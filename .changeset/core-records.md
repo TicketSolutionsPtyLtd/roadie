@@ -56,8 +56,14 @@ action takes.
 
 `describeRecordFilter(filter, fields, { now, timeZone })` writes a filter as
 its chip reads ("Venue is Kazoo Hollow Room", "Gross is more than $100",
-"Starts: This weekend"), with the dates a relative range stands for in
-`detail`. `recordOperatorLabel` names an operator ("is more than") and
+"Start date is this weekend"), with the dates a relative range stands for in
+`detail`. Outside a timestamp, upcoming, past and happening now give days
+with no clock, such as "From 16 Oct 2026, unless already over" on an event
+with an end, which compares the instant ("unless already started" with only a
+start), and "From 16 Oct 2026" on a plain date.
+A date chip reads like any other, with "is" after the field's name: "is
+in the next 7 days", "is on Tue 20 Oct", "is before 20 Oct", and a range of one day reads as that day, "is on Thu 22
+Oct". `recordOperatorLabel` names an operator ("is more than") and
 `recordOptionPaths` gives each option's label with its parents' ("Ochre Kite
 Weekender 2027 › Opening Night"). A chip listing more than two values names
 them all in `detail`. `parseQuery` labels its filters the same way, dates included, names a
@@ -88,8 +94,8 @@ end, so "name disco melb" suggests "Name contains disco" and "City is
 Melbourne" first. "city is empty" and "city is not empty" read as the field
 having no value or one. A field name a statement reads is never also read as a
 value, so "sold > 100" never suggests "Status is Sold out". A date keeps the
-word that compares it: "starts after today" never suggests "Starts: Today",
-and one it can't read, such as "after 7pm", suggests no date. The words of a
+word that compares it: "starts after today" never suggests "Start date is
+today", and one it can't read, such as "after 7pm", suggests no date. The words of a
 longer date read nothing on their own, so "last monday" never also suggests
 the coming Monday, and two days joined by "to" or "and", such as "tomorrow
 to next fri", read as the days between or not at all, though each day can

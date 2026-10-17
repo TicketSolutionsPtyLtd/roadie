@@ -112,7 +112,9 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     await userEvent.click(
       await screen.findByRole('button', { name: /^Next week/ })
     )
-    await expect.poll(() => chip('Starts')?.textContent).toContain('Next week')
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('is next week')
     const after = screen.getByRole('dialog', { name: 'Starts' })
     expect(after).toBeVisible()
     // The edited chip remounts; the editor stays under the chip that holds it.
@@ -131,6 +133,73 @@ describe('Records.Search in a browser', TIMEOUT, () => {
       await screen.findByRole('dialog', { name: 'Starts' })
     )
     expect(reopened.top).toBeGreaterThan(box(chip('Starts')).bottom)
+  })
+
+  it('keeps Tab inside Custom dates, titled with its field', async () => {
+    render(
+      <Shows
+        defaultView={{
+          query: {
+            filters: [
+              { field: 'starts', operator: 'within', value: 'this-weekend' }
+            ]
+          }
+        }}
+      />
+    )
+    await userEvent.click(
+      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
+    )
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Custom dates' })
+    )
+    const dialog = await screen.findByRole('dialog', { name: 'Starts' })
+    await expect
+      .element(within(dialog).getByRole('heading', { name: 'Starts' }))
+      .toBeVisible()
+    await expect.poll(() => dialog.contains(document.activeElement)).toBe(true)
+    const stops = new Set<Element | null>()
+    for (let press = 0; press < 6; press++) {
+      await userEvent.keyboard('{Tab}')
+      // A focus guard at the edge hands focus on a moment later.
+      await expect
+        .poll(() => document.activeElement?.closest('[role=dialog]'))
+        .toBe(dialog)
+      stops.add(document.activeElement)
+    }
+    expect(stops.size).toBeGreaterThan(1)
+    expect(dialog).toBeVisible()
+  })
+
+  it('leaves the page scrolling under Custom dates, and a click on another chip closes it and edits that chip', async () => {
+    render(
+      <Shows
+        defaultView={{
+          query: {
+            filters: [
+              { field: 'starts', operator: 'within', value: 'this-weekend' },
+              { field: 'city', operator: 'contains', value: 'Perth' }
+            ]
+          }
+        }}
+      />
+    )
+    await userEvent.click(
+      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
+    )
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Custom dates' })
+    )
+    await screen.findByRole('dialog', { name: 'Starts' })
+    // The page still scrolls behind it.
+    for (const element of [document.documentElement, document.body])
+      expect(getComputedStyle(element).overflow).not.toBe('hidden')
+    // By selector, as the dialog hides the page from the accessibility tree.
+    await userEvent.click(chip('City').querySelector('button')!)
+    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
+    await expect
+      .poll(() => chip('City').hasAttribute('data-selected'))
+      .toBe(true)
   })
 
   it('edits an option chip in the list on a phone', async () => {
@@ -157,7 +226,7 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     expect(screen.getByRole('listbox')).toBeVisible()
   })
 
-  it('edits a number chip in a bottom drawer on a phone', async () => {
+  it('edits a number chip in the list on a phone, its value in the field, then closes the list', async () => {
     await page.viewport(390, 844)
     render(
       <Shows
@@ -169,9 +238,16 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     await userEvent.click(
       within(chip('Sold')).getByRole('button', { name: /^Sold/ })
     )
-    const drawer = await screen.findByRole('dialog', { name: 'Sold' })
-    const sheet = await settledBox(drawer)
-    expect(Math.round(sheet.bottom)).toBe(844)
-    expect(within(drawer).getByRole('heading', { name: 'Sold' })).toBeVisible()
+    const field = screen.getByRole('combobox', { name: 'Search and filter' })
+    await expect.element(field).toHaveValue('100')
+    await userEvent.clear(field)
+    await userEvent.type(field, '250')
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'Sold is more than 250' })
+    )
+    await expect.poll(() => chip('Sold')?.textContent).toContain('250')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
+    expect(chip('Sold')).not.toHaveAttribute('data-selected')
   })
 })

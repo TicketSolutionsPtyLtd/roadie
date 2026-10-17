@@ -271,9 +271,9 @@ function ComboboxRichItems() {
 Set `multiple` to pick more than one value. `Combobox.Value` hands the current
 values to a function; render a `Combobox.Chip` for each one inside
 `Combobox.Chips`, with the input last. Put the text in `Combobox.ChipLabel` so a
-long value truncates. The input group grows as the chips wrap. A chip shows
-selected while it has focus; set `selected` on `Combobox.Chip` to show it
-selected while focus stays in the input, such as while its values are edited.
+long value truncates. The input group grows as the chips wrap. A chip with
+focus shows as selected. Set `selected` on `Combobox.Chip` to show it selected
+while focus stays in the input, as QueryField does while it edits a chip.
 
 ```tsx-live
 function ComboboxMultiple() {
@@ -471,15 +471,15 @@ For server-side search, update the `items` prop as results arrive, and pass
 - The input points `aria-activedescendant` at the highlighted item, so screen
   readers read the first match as the list filters.
 - With `multiple`, **Backspace** in an empty input selects the last chip, and
-  a second **Backspace** removes it. Clicking a chip selects it too. **Escape**
-  on a chip returns to the input and keeps every value.
+  a second **Backspace** removes it. A click on a chip selects it too.
+  **Escape** on a chip returns focus to the input and keeps every value.
   **Left Arrow** from the start of the input moves to the chips, **Left** and
   **Right** move between them (swapped in a right-to-left layout), and
   **Backspace** or **Delete** removes the focused one. Focus moves to the
   next chip, or the previous one after the last, and returns to the input
   once no chips are left.
-- **Escape** while the popup is closed clears every value, not just the last
-  one.
+- With `multiple`, **Escape** while the popup is closed clears the typed text
+  and keeps every value.
 - `Combobox.Chips` becomes a toolbar once it holds chips, so screen readers
   stay in focus mode while the arrows move between them. Name it with
   `aria-label` while it holds chips.

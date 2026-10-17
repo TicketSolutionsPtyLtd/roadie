@@ -1,11 +1,20 @@
 import { useState } from 'react'
 
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { server, userEvent } from 'vitest/browser'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
+import { page, server, userEvent } from 'vitest/browser'
 
 import { QueryField, type QueryFieldProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { setHoverCapable } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { Tooltip } from '../Tooltip'
 import type {
@@ -63,12 +72,16 @@ const LONG_LABEL = 'Venue is Gooseberry Signal Warehouse, Fortitude Valley'
 
 function Harness({
   initialChips = [],
+  width = 360,
   ...props
-}: Partial<QueryFieldProps> & { initialChips?: QueryFieldChip[] }) {
+}: Partial<QueryFieldProps> & {
+  initialChips?: QueryFieldChip[]
+  width?: number
+}) {
   const [current, setCurrent] = useState(initialChips)
   return (
     <Tooltip.Provider delay={0}>
-      <div style={{ width: 360 }}>
+      <div style={{ width }}>
         <QueryField
           aria-label='Search orders'
           chips={current}
@@ -145,6 +158,36 @@ describe('QueryField', () => {
     const filter = screen.getByRole('option', { name: /Iguana Teapot Hall/ })
     await expect.poll(() => shown(filter.querySelector('kbd'))).toBe(true)
     expect(search.querySelector('kbd')).toBeNull()
+  })
+
+  it('hides the Enter hint on a touch screen, keeping the fill', async () => {
+    setHoverCapable(false)
+    onTestFinished(() => setHoverCapable(true))
+    render(<Harness />)
+    await userEvent.click(input())
+    await userEvent.keyboard('igua')
+    const search = await screen.findByRole('option', { name: /Search for/ })
+    const filter = screen.getByRole('option', { name: /Iguana Teapot Hall/ })
+    expect(search.querySelector('kbd')).toBeInTheDocument()
+    expect(shown(search.querySelector('kbd'))).toBe(false)
+    expect(getComputedStyle(search).backgroundColor).not.toBe(
+      getComputedStyle(filter).backgroundColor
+    )
+  })
+
+  // On the body, as the list is portalled there.
+  it('keeps the Enter hint on a touch screen where a page keeps key hints', async () => {
+    document.body.dataset.keyboardHints = 'always'
+    setHoverCapable(false)
+    onTestFinished(() => {
+      delete document.body.dataset.keyboardHints
+      setHoverCapable(true)
+    })
+    render(<Harness />)
+    await userEvent.click(input())
+    await userEvent.keyboard('igua')
+    const search = await screen.findByRole('option', { name: /Search for/ })
+    expect(shown(search.querySelector('kbd'))).toBe(true)
   })
 
   it('searches on Enter while the pointer rests on a filter', async () => {
@@ -252,7 +295,7 @@ describe('QueryField', () => {
         initialChips={[
           {
             id: 'starts',
-            label: 'Starts: This weekend',
+            label: 'Starts is this weekend',
             description: '3 to 4 Oct'
           }
         ]}
@@ -274,6 +317,21 @@ describe('QueryField', () => {
     const clear = screen.getByRole('button', { name: 'Clear' })
     expect(Math.abs(middle(icon) - middle(first))).toBeLessThanOrEqual(1)
     expect(Math.abs(middle(clear) - middle(first))).toBeLessThanOrEqual(1)
+  })
+
+  it('rings Clear in a circle, as the chips’ remove buttons', async () => {
+    render(<Harness initialChips={[{ id: 'city', label: 'City is Perth' }]} />)
+    const clear = screen.getByRole('button', { name: 'Clear' })
+    const height = box(group()).height
+    clear.focus()
+    expect(clear).toHaveFocus()
+    const style = getComputedStyle(clear)
+    expect(style.outlineStyle).not.toBe('none')
+    expect(parseFloat(style.borderRadius)).toBeGreaterThanOrEqual(
+      box(clear).height / 2
+    )
+    expect(box(clear).width).toBe(box(clear).height)
+    expect(box(group()).height).toBe(height)
   })
 
   it('sizes operators as Buttons, at least square, above values that keep their label for assistive technology', async () => {
@@ -387,6 +445,64 @@ describe('QueryField', () => {
     await expect.poll(() => toggle.scrollLeft).toBeGreaterThan(0)
   })
 
+  it.each([
+    ['a phone', 390, 280],
+    ['a desktop', 1280, 640]
+  ])(
+    'opens the list no wider than the field on %s, scrolling the operators',
+    async (_, viewport, width) => {
+      await page.viewport(viewport, 800)
+      onTestFinished(() => page.viewport(1024, 768))
+      const numbers: QueryFieldOperator[] = [
+        { value: 'eq', label: '=' },
+        { value: 'neq', label: '≠' },
+        { value: 'lt', label: '<' },
+        { value: 'gt', label: '>' },
+        { value: 'between', label: 'between' },
+        { value: 'empty', label: 'is empty' },
+        { value: 'not-empty', label: 'is not empty' }
+      ]
+      render(
+        <div style={{ paddingInline: 40 }}>
+          <Harness
+            width={width}
+            pendingChip={{
+              id: 'sold',
+              label: 'Sold is',
+              operators: numbers,
+              operator: 'eq'
+            }}
+            suggest={() => [
+              {
+                id: 'values',
+                label: 'Sold',
+                items: [
+                  {
+                    id: 'long',
+                    label: `${LONG_LABEL} ${LONG_LABEL} ${LONG_LABEL}`,
+                    kind: 'filter',
+                    value: 'long'
+                  }
+                ]
+              }
+            ]}
+          />
+        </div>
+      )
+      await userEvent.click(input())
+      await screen.findByRole('option', { name: /Gooseberry/ })
+      const popup = document.querySelector('[data-slot=combobox-popup]')!
+      await expect
+        .poll(() => box(popup).width)
+        .toBeLessThanOrEqual(box(group()).width + 0.5)
+      expect(Math.abs(box(popup).left - box(group()).left)).toBeLessThan(1)
+      const toggle = screen.getByRole('group', { name: 'Operator' })
+      expect(box(toggle).right).toBeLessThanOrEqual(box(popup).right)
+      if (viewport < 640)
+        expect(toggle.scrollWidth).toBeGreaterThan(toggle.clientWidth)
+    }
+  )
+
   it('keeps focus in the input and the values open when an operator is pressed', async () => {
     function Step() {
       const [operator, setOperator] = useState('is')
@@ -448,40 +564,5 @@ describe('QueryField', () => {
     popup.scrollTop = popup.scrollHeight
     await expect.poll(() => popup.scrollTop).toBeGreaterThan(0)
     expect(box(toggle).top - box(popup).top).toBe(resting)
-  })
-
-  it('shows a hidden label to no one but assistive technology, with a line between the value step’s groups', async () => {
-    render(
-      <Harness
-        pendingChip={{ id: 'venue', label: 'Venue is' }}
-        suggest={() => [
-          {
-            id: 'empty',
-            label: 'Empty',
-            hideLabel: true,
-            items: [
-              { id: 'empty', label: 'Empty', kind: 'filter', value: 'empty' }
-            ]
-          },
-          suggest('values')[0]!
-        ]}
-      />
-    )
-    await userEvent.click(input())
-    await screen.findByRole('option', { name: /Iguana Teapot Hall/ })
-    const empty = screen.getByRole('group', { name: 'Empty' })
-    const values = screen.getByRole('group', { name: 'Filters' })
-    const [hidden, shownLabel] = [empty, values].map((each) =>
-      each.querySelector('[data-slot=combobox-group-label]')!
-    )
-    expect(box(hidden!).width).toBeLessThanOrEqual(1)
-    expect(box(shownLabel!).width).toBeGreaterThan(1)
-    const divider = document.querySelector('[data-slot=query-field-divider]')!
-    const line = getComputedStyle(divider, '::before')
-    expect(parseFloat(line.borderTopWidth)).toBeGreaterThan(0)
-    expect(line.borderTopStyle).toBe('solid')
-    expect(box(divider).top).toBeGreaterThanOrEqual(box(empty).bottom)
-    expect(box(divider).bottom).toBeLessThanOrEqual(box(values).top)
-    expect(box(divider).width).toBeGreaterThan(box(divider).height)
   })
 })

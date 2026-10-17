@@ -26,12 +26,18 @@ export type QueryFieldPendingChip = {
   id: string
   /** Reads the chosen operator, such as "Venue is not". */
   label: string
-  /** The chip whose values the step edits: it shows selected, in place of a pending chip. */
+  /** The chip whose values the step edits. It shows selected, in place of a pending chip. */
   chipId?: string
   /** Two or more show as a toggle above the values, which Tab steps through. */
   operators?: readonly QueryFieldOperator[]
   /** The chosen operator's `value`. */
   operator?: string
+  /**
+   * What to type, such as "Type a number.", shown and announced in place of
+   * No suggestions while no value is listed, and below the values while Enter
+   * has none to take for the typed text.
+   */
+  hint?: string
 }
 
 export type QueryFieldSuggestion<Value = unknown> = {
@@ -43,16 +49,18 @@ export type QueryFieldSuggestion<Value = unknown> = {
   /** `filter` adds a chip, `field` starts choosing values, `record` opens one. */
   kind: 'filter' | 'field' | 'record'
   value: Value
-  /** The text names this one exactly, such as an order number, so Enter takes it. */
+  /** Enter takes it with no row chosen: an order number the text names exactly, or a value step's one answer, such as "City is empty". */
   exact?: boolean
   /**
    * Ticks the row, such as a value the chip being edited holds. Enter on typed
-   * text passes over it while a chip is edited, so only an arrow or click
+   * text passes over it while a chip is edited, so only an arrow or a click
    * unticks it.
    */
   selected?: boolean
   /** The typed words it doesn't read, left in the field once it is taken. */
   remainder?: string
+  /** Opens an editor, such as "Custom dates", so only an arrow or a click takes it, never Enter on typed text. */
+  opensEditor?: boolean
 }
 
 export type QueryFieldSearchSuggestion = {
@@ -69,15 +77,12 @@ export type QueryFieldAccepted<Value = unknown> =
 export type QueryFieldSuggestionGroup<Value = unknown> = {
   id: string
   label: string
-  /** The label names the group for screen readers only, for items that say what they are, such as Empty and Not empty. Enter takes a typed value from another group first. */
-  hideLabel?: boolean
   items: readonly QueryFieldSuggestion<Value>[]
 }
 
 export type QueryFieldListGroup<Value = unknown> = {
   id: string
   label: string
-  hideLabel?: boolean
   items: readonly QueryFieldAccepted<Value>[]
   builtIn?: boolean
 }

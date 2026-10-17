@@ -1,6 +1,9 @@
 'use client'
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { use, useEffect, useId, useMemo, useRef, useState } from 'react'
+
+import { XIcon } from '@phosphor-icons/react'
+import { flushSync } from 'react-dom'
 
 import { plainDateOf } from '@oztix/roadie-core/datetime'
 import type { RecordFilter } from '@oztix/roadie-core/records'
@@ -8,29 +11,38 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { PickerOverlay, usePickerSurface } from '../../pickers/PickerShell'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
+import { IconButton } from '../Button/IconButton'
+import { Popover } from '../Popover'
 import { QueryField, type QueryFieldAccepted } from '../QueryField'
 import { RecordsFilterEditorLazy } from './RecordsFilterEditorLazy'
 import { useRecordsContext } from './context'
 import { fieldIcon } from './fieldIcon'
 import { whenIdle } from './idle'
 import { applyQuery } from './query'
+import { SearchFocusContext } from './searchFocus'
 import {
   type SearchContext,
   type SearchGroup,
   type SearchValue,
   type ValueOperator,
   filterChipIds,
-  hasValueStep,
+  heldHint,
   isApplied,
-  isValueOperator,
+  isEmptiness,
   mergeFilter,
+  optionOperator,
   pendingLabel,
+  rulesOut,
   sameFilter,
   searchChips,
+  stepOperator,
   toggleValue,
   topSuggestions,
+  valueHint,
   valueOperators,
-  valueSuggestions
+  valueSuggestions,
+  valueText,
+  withAnd
 } from './searchSuggestions'
 import type { RecordsField } from './types'
 import type { RecordsInstance } from './useRecords'
@@ -146,9 +158,8 @@ const focusPanel = (popup: HTMLElement) => popup
 /**
  * Search and filter in one field. Typing searches the records' searchable
  * fields and suggests filters, such as a city or "this weekend", that become
- * chips. A selected chip edits its values in the list, or for text, numbers
- * and Custom dates, in an editor. The page's `scope` shows first, as locked
- * chips.
+ * chips. Selecting a chip edits its values in the list, and Custom dates
+ * opens an editor. The page's `scope` shows first, as locked chips.
  */
 export function RecordsSearch({
   placeholder = 'Search and filter',
@@ -210,6 +221,7 @@ export function RecordsSearch({
     }
   })
   const labelId = useId()
+  const onFocusChange = use(SearchFocusContext)
   const editorOpen = editing?.open ?? false
   const surface = usePickerSurface(editorOpen)
   useEffect(() => whenIdle(RecordsFilterEditorLazy.preload), [])
@@ -279,14 +291,39 @@ export function RecordsSearch({
     })
   }
 
+  /** Removes these filters, by index, last first so each index still holds. */
+  function removeAt(indexes: readonly number[]) {
+    for (const index of [...new Set(indexes)].sort((a, b) => b - a))
+      records.removeFilter(index)
+  }
+
+  /** The filters another written at `at` rules out, such as values beside is empty. */
+  const ruledOut = (filter: RecordFilter, at: number | null = null) =>
+    filters.flatMap((other, index) =>
+      index !== at && rulesOut(filter, other) ? [index] : []
+    )
+
+  /** Adds a filter in place of the first it rules out, or else last. Returns where. */
+  function place(filter: RecordFilter): number {
+    const [first, ...rest] = ruledOut(filter)
+    if (first === undefined) {
+      records.addFilter(filter)
+      return filters.length
+    }
+    records.updateFilter(first, filter)
+    removeAt(rest)
+    return first
+  }
+
   function add(filter: RecordFilter) {
     if (isApplied(filter, context.filters)) return
     const merged = mergeFilter(filters, filter, fields)
     if (merged) {
       if (!sameFilter(merged.filter, filters[merged.index]!))
         records.updateFilter(merged.index, merged.filter)
-    } else if (!filters.some((other) => sameFilter(other, filter)))
-      records.addFilter(filter)
+      removeAt(ruledOut(merged.filter, merged.index))
+    } else if (!context.filters.some((other) => sameFilter(other, filter)))
+      place(filter)
   }
 
   // An editor waiting for its code gives way to whatever happens next.
@@ -312,22 +349,21 @@ export function RecordsSearch({
     const field = filter && byKey.get(filter.field)
     if (!field) return
     dropOpening()
-    if (!hasValueStep(field)) {
-      endStep()
-      openEditor({ field: field.key, index }, chipElement(id))
-      return
-    }
     setSelected({ index, written: [filter] })
     setPending(field.key)
-    setPendingOperator(
-      isValueOperator(filter.operator) ? filter.operator : 'is'
-    )
-    setStepText('')
+    setPendingOperator(stepOperator(field, filter.operator))
+    setStepText(valueText(field, filter))
   }
 
   function writeSelected(next: RecordFilter | null) {
     if (!selected || selectedAt === null) return
-    if (!next) {
+    if (next && selectedFilter && sameFilter(next, selectedFilter)) return
+    const others = [
+      ...records.scope,
+      ...filters.filter((_, index) => index !== selectedAt)
+    ]
+    // Emptied of values, or now what another chip holds, it goes.
+    if (!next || others.some((other) => sameFilter(other, next))) {
       records.removeFilter(selectedAt)
       endStep()
       return
@@ -339,18 +375,27 @@ export function RecordsSearch({
       fields
     )
     const filter = merged?.filter ?? next
-    // `locate` finds the chip once the other's removal moves it.
+    // `locate` finds the chip once the others' removal moves it.
     setSelected({ index: selectedAt, written: [...selected.written, filter] })
     records.updateFilter(selectedAt, filter)
-    if (merged)
-      records.removeFilter(
-        merged.index < selectedAt ? merged.index : merged.index + 1
-      )
+    removeAt([
+      ...ruledOut(filter, selectedAt),
+      ...(merged
+        ? [merged.index < selectedAt ? merged.index : merged.index + 1]
+        : [])
+    ])
   }
 
   function acceptForSelected(value: SearchValue, edited: RecordFilter) {
     if (value.type === 'filter') {
-      writeSelected(toggleValue(edited, value.filter))
+      // An option's values tick on and off; anything else holds one value,
+      // so taking it ends the edit.
+      if (byKey.get(edited.field)?.type === 'option') {
+        writeSelected(toggleValue(edited, value.filter))
+        return
+      }
+      writeSelected(value.filter)
+      endStep()
       return
     }
     if (value.type === 'edit' && selectedAt !== null) {
@@ -374,11 +419,9 @@ export function RecordsSearch({
     if (value.type === 'field') {
       const field = byKey.get(value.field)
       if (!field) return
-      if (hasValueStep(field)) {
-        setStepText('')
-        setPendingOperator('is')
-        setPending(field.key)
-      } else openEditor({ field: field.key, index: null }, group())
+      setStepText('')
+      setPendingOperator(stepOperator(field, ''))
+      setPending(field.key)
       return
     }
     setPending(null)
@@ -429,15 +472,15 @@ export function RecordsSearch({
         written: [...editing.written, filter]
       })
       records.updateFilter(at, filter)
+      removeAt(ruledOut(filter, at))
       return
     }
     const same = filters.findIndex((other) => sameFilter(other, filter))
     setEditing({
       ...editing,
-      index: same >= 0 ? same : filters.length,
+      index: same >= 0 ? same : place(filter),
       written: [...editing.written, filter]
     })
-    if (same < 0) records.addFilter(filter)
   }
 
   function removeEdited() {
@@ -448,7 +491,27 @@ export function RecordsSearch({
     setEditing({ ...editing, index: null, written: [], open: false })
   }
 
-  return (
+  // The edited chip's filter stays out of the context, so its values still list.
+  const stepValues = (text: string) =>
+    pendingField
+      ? valueSuggestions(
+          pendingField,
+          text,
+          selectedAt === null
+            ? context
+            : {
+                ...context,
+                filters: [
+                  ...records.scope,
+                  ...filters.filter((_, index) => index !== selectedAt)
+                ]
+              },
+          pendingOperator,
+          selectedFilter
+        )
+      : []
+
+  const content = (
     <>
       <QueryField<SearchValue>
         aria-label={label ?? placeholder}
@@ -473,41 +536,53 @@ export function RecordsSearch({
                 label: pendingLabel(pendingField, pendingOperator),
                 operators: valueOperators(pendingField),
                 operator: pendingOperator,
+                hint:
+                  valueHint(pendingField, stepText, pendingOperator, context) ??
+                  (selectedFilter &&
+                    heldHint(pendingField, stepText, stepValues(stepText))),
                 chipId: selectedAt === null ? undefined : chipIds[selectedAt]
               }
             : undefined
         }
-        onPendingOperatorChange={(operator) => {
-          if (!isValueOperator(operator)) return
+        onPendingOperatorChange={(chosen) => {
+          if (!pendingField) return
+          const operator = stepOperator(pendingField, chosen)
           setPendingOperator(operator)
-          if (selectedFilter && 'values' in selectedFilter)
-            writeSelected({ ...selectedFilter, operator })
+          // An option chip keeps its values under the new condition. Typed
+          // text, numbers, and emptiness wait for Enter, so a Tab passing
+          // through is empty never drops the values.
+          if (
+            pendingField.type === 'option' &&
+            !isEmptiness(operator) &&
+            selectedFilter &&
+            'values' in selectedFilter
+          )
+            writeSelected({
+              ...selectedFilter,
+              operator: optionOperator(operator)
+            })
         }}
         onPendingChipCancel={() => {
           dropOpening()
           endStep()
         }}
         inputValue={pendingField ? stepText : records.searchText}
-        onInputValueChange={(text) =>
-          pendingField ? setStepText(text) : records.setSearch(text)
-        }
+        onInputValueChange={(text) => {
+          if (!pendingField) {
+            records.setSearch(text)
+            return
+          }
+          // Emptiness takes no value, so typing asks for one.
+          const operator =
+            isEmptiness(pendingOperator) && text.trim()
+              ? stepOperator(pendingField, '')
+              : pendingOperator
+          setPendingOperator(operator)
+          setStepText(withAnd(pendingField, stepText, text, operator, context))
+        }}
         suggest={(text) =>
           pendingField
-            ? valueSuggestions(
-                pendingField,
-                text,
-                selectedAt === null
-                  ? context
-                  : {
-                      ...context,
-                      filters: [
-                        ...records.scope,
-                        ...filters.filter((_, index) => index !== selectedAt)
-                      ]
-                    },
-                pendingOperator,
-                selectedFilter
-              )
+            ? stepValues(text)
             : withFieldIcons(topSuggestions(text, context), byKey)
         }
         onAccept={accept}
@@ -527,15 +602,33 @@ export function RecordsSearch({
           // A new filter takes its value at once; an existing one opens on
           // the panel, so no control looks active and Tab reaches the first.
           initialFocus={editing.index === null ? focusTarget : focusPanel}
+          // Anchored to a chip, it has no trigger for Tab to go on from, so
+          // focus stays inside, as in the drawer.
+          modal='trap-focus'
           finalFocus={() => {
             const id = returnTo.current
             return (id && chipElement(id)) || inputRef.current
           }}
           className='w-80'
         >
-          <span id={labelId} hidden>
-            {editingField.label}
-          </span>
+          {/* The drawer has its own title and Close. */}
+          {surface === 'popover' ? (
+            <div className='flex items-center justify-between gap-2'>
+              <Popover.Title id={labelId}>{editingField.label}</Popover.Title>
+              {/* Base UI traps focus in a modal popover only with a Close. */}
+              <Popover.Close
+                render={
+                  <IconButton aria-label='Close' size='sm' emphasis='subtler'>
+                    <XIcon weight='bold' className='size-4' />
+                  </IconButton>
+                }
+              />
+            </div>
+          ) : (
+            <span id={labelId} hidden>
+              {editingField.label}
+            </span>
+          )}
           <RecordsFilterEditorLazy
             key={editing.session}
             field={editingField}
@@ -551,6 +644,37 @@ export function RecordsSearch({
         </PickerOverlay>
       )}
     </>
+  )
+  if (!onFocusChange) return content
+  // React's focus events bubble out of the list and editor portals too.
+  return (
+    <div
+      data-slot='records-search'
+      className='contents'
+      onFocus={(event) => {
+        // Only as the toolbar's own child: inside a wrapper, the wrapper hides.
+        if (
+          event.currentTarget.parentElement?.dataset.slot === 'records-toolbar'
+        )
+          onFocusChange(true)
+      }}
+      onBlur={() => onFocusChange(false)}
+      onKeyDown={(event) => {
+        // The rest show before Tab moves on, so focus lands on them rather than
+        // past them. Committed and styled now: Firefox picks Tab's target
+        // before a microtask would commit, from styles it hasn't recomputed.
+        if (
+          event.key === 'Tab' &&
+          !event.defaultPrevented &&
+          event.currentTarget.contains(event.target as Node)
+        ) {
+          flushSync(() => onFocusChange(false))
+          void event.currentTarget.parentElement?.offsetWidth
+        }
+      }}
+    >
+      {content}
+    </div>
   )
 }
 RecordsSearch.displayName = 'Records.Search'

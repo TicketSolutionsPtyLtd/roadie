@@ -247,8 +247,12 @@ export type PickerOverlayProps = {
   initialFocus?: (popup: HTMLElement) => HTMLElement | null | undefined
   /** Which edge of the anchor the popover lines up with. @default 'start' */
   align?: 'start' | 'end'
-  /** Locks the page behind the popover, as a menu does. @default false */
-  modal?: boolean
+  /**
+   * Locks the page behind the popover, as a menu does, or with
+   * `'trap-focus'` only keeps Tab inside it. Either traps focus only with a
+   * `Popover.Close` inside. @default false
+   */
+  modal?: boolean | 'trap-focus'
   /** Where focus returns on close, when there is no trigger, such as a chip. Defaults to the trigger. */
   finalFocus?: () => HTMLElement | null | undefined
   /** Classes for the popover. */

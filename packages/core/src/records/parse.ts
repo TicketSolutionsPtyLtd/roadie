@@ -306,7 +306,7 @@ function dateReadings(
       return [
         {
           filter,
-          label: `${field.label}: ${phrase.label}`,
+          label: `${field.label} is ${phrase.label}`,
           quality:
             (p === 0 ? 1 : 0.9) * (completed ? 0.8 : 1) * DATE_FIELD_DECAY ** f,
           complete: !completed,

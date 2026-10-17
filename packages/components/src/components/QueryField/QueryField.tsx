@@ -48,7 +48,7 @@ export type QueryFieldProps<Value = unknown> = {
   chips?: readonly QueryFieldChip[]
   /** A chip's remove button, Backspace on a selected chip, or Clear asks to remove it. Clear calls it once per chip, so update state functionally. */
   onRemoveChip?: (id: string) => void
-  /** A click, Enter or Space on an unlocked chip, which moves focus to the input. Start a value step with `pendingChip.chipId` naming the chip to list its values, or open an editor of your own. */
+  /** A click, Enter, or Space on an unlocked chip, which moves focus to the input. Start a value step with `pendingChip.chipId` naming the chip to list its values, or open an editor of your own. */
   onSelectChip?: (id: string) => void
   /**
    * Clear calls it in place of clearing the text through `onInputValueChange`
@@ -57,14 +57,16 @@ export type QueryFieldProps<Value = unknown> = {
   onClear?: () => void
   /**
    * The field being given a value, such as "Venue is", shown after the chips.
-   * With `chipId`, that chip shows selected instead, and taking a value keeps
-   * the list open; Backspace on the empty field removes the chip, and focus
-   * leaving the field ends the step.
+   * With `chipId`, that chip shows selected instead, taking a value keeps
+   * the list open unless `onAccept` ends the step, and Backspace in the empty
+   * field removes the chip. Focus
+   * moving outside the field and its list, or a press outside them, ends the
+   * step.
    */
   pendingChip?: QueryFieldPendingChip
   /** An operator was pressed, or Tab moved to one, while a chip is pending. */
   onPendingOperatorChange?: (operator: string) => void
-  /** Backspace on an empty field or Escape, while a chip is pending. */
+  /** While a chip is pending: Backspace on an empty field, Escape, Tab out of the input, or, while a chip is edited, Enter with no new value to take. */
   onPendingChipCancel?: () => void
   /** The typed text, searched as it changes. Controlled. */
   inputValue?: string
@@ -111,8 +113,13 @@ export type QueryFieldProps<Value = unknown> = {
 const DEFAULT_PLACEHOLDER = 'Search and filter'
 const NO_CHIPS: readonly QueryFieldChip[] = []
 const NO_OPERATORS: readonly QueryFieldOperator[] = []
+const NO_ITEMS: readonly never[] = []
 
 const CARET_KEYS = new Set(['Home', 'End'])
+
+// As Combobox.Empty's, which the hint stands in for.
+const EMPTY_TEXT =
+  'text-center text-sm text-subtle empty:hidden [&:not(:empty)]:px-3 [&:not(:empty)]:py-4'
 
 // Centred on the first line of 24px chips, so wrapped rows grow below it.
 const FIRST_ROW = 'self-start mt-[calc(var(--combobox-chips-py)+--spacing(1))]'
@@ -216,6 +223,12 @@ export function QueryField<Value = unknown>({
     setOpeningByArrow(false)
   }
   const keyboardHighlightKey = arrowed ? highlightKey : undefined
+  // Base UI keeps its highlight's index as the list changes under it, so a
+  // take that changes the list renders once with no items to drop it.
+  const [unhighlighting, setUnhighlighting] = useState(false)
+  useIsomorphicLayoutEffect(() => {
+    if (unhighlighting) setUnhighlighting(false)
+  }, [unhighlighting])
 
   const isDisabled = disabled ?? field.disabled
   const isInvalid = invalid ?? field.invalid
@@ -240,29 +253,65 @@ export function QueryField<Value = unknown>({
     setListedFor(editedId)
     if (editedId) setOpen(true)
   }
+  // A take that ends an edit, as a chip holding one value does, closes the list.
+  const [takenIn, setTakenIn] = useState<string>()
+  if (takenIn !== undefined) {
+    setTakenIn(undefined)
+    if (takenIn !== step) setOpen(false)
+  }
   const popupRef = useRef<HTMLDivElement>(null)
   const leaving = useRef<ReturnType<typeof setTimeout>>(undefined)
-  // Read as focus lands: a step for a new filter, or one already ended, stays.
-  const cancelEdit = useRef<(() => void) | undefined>(undefined)
+  // Read as focus lands, so a step already ended isn't ended again.
+  const cancelStep = useRef<(() => void) | undefined>(undefined)
+  // A press outside and the focus it moves end a step once, until focus comes
+  // back or the step goes.
+  const ended = useRef(false)
   useIsomorphicLayoutEffect(() => {
-    cancelEdit.current = editedId ? onPendingChipCancel : undefined
+    cancelStep.current = pendingChip ? onPendingChipCancel : undefined
+    if (!pendingChip) ended.current = false
   })
   useEffect(() => () => clearTimeout(leaving.current), [])
 
-  // Editing a chip ends as focus leaves the field and its list. Checked once
-  // focus lands, as it stays put while the window loses focus.
+  const isInside = (target: EventTarget | null) => {
+    const field = inputRef.current?.closest('[data-slot=query-field]')
+    return [field, popupRef.current].some(
+      (element) => target instanceof Node && element?.contains(target)
+    )
+  }
+  function endStep() {
+    clearTimeout(leaving.current)
+    if (ended.current) return
+    ended.current = true
+    cancelStep.current?.()
+  }
+  const handleFocus = () => {
+    ended.current = false
+  }
+
+  // A value step ends once focus lands on something outside the field and its
+  // list, checked as it lands. Focus going nowhere, as when a phone's keyboard
+  // is put away or the window loses focus, keeps it.
   function handleBlur(event: FocusEvent<HTMLElement>) {
     const { ownerDocument } = event.currentTarget
     clearTimeout(leaving.current)
     leaving.current = setTimeout(() => {
       const active = ownerDocument.activeElement
-      const field = inputRef.current?.closest('[data-slot=query-field]')
-      const inside = [field, popupRef.current].some(
-        (element) => active && element?.contains(active)
-      )
-      if (!inside) cancelEdit.current?.()
+      const nowhere = !active || active === ownerDocument.body
+      if (!nowhere && !isInside(active)) endStep()
     })
   }
+
+  // Or once a press lands outside them, focusable or not.
+  const stepShown = !!pendingChip
+  useEffect(() => {
+    const doc = inputRef.current?.ownerDocument
+    if (!stepShown || !doc) return
+    const press = (event: PointerEvent) => {
+      if (!isInside(event.target)) endStep()
+    }
+    doc.addEventListener('pointerdown', press, true)
+    return () => doc.removeEventListener('pointerdown', press, true)
+  }, [stepShown])
   const operators = pendingChip?.operators ?? NO_OPERATORS
   const operator = pendingChip?.operator
   const showsOperators = operators.length >= 2
@@ -286,9 +335,10 @@ export function QueryField<Value = unknown>({
     pending: !!pendingChip
   })
   const current = suggestions.inputValue === text
-  // Typed text only adds to an edited chip; a ticked row unticks by arrow or click.
+  // Typed text only adds to an edited chip; a ticked row unticks, and an
+  // editor opens, by arrow or click.
   const enterable = (item: QueryFieldSuggestion<Value>) =>
-    !editedId || !item.selected
+    !item.opensEditor && (!editedId || !item.selected)
   const exact = current
     ? exactSuggestion(suggestions.groups, enterable)
     : undefined
@@ -305,6 +355,18 @@ export function QueryField<Value = unknown>({
     keyboardHighlightKey !== undefined
       ? highlightIndex
       : items.findIndex((item) => itemKey(item) === fallbackKey)
+  // Also once typed text leaves Enter nothing, such as a value already ticked.
+  const stuck = current && !!text.trim() && enterTarget < 0
+  const hint =
+    !suggestions.loading && (list.length === 0 || stuck) && pendingChip?.hint
+  // Asked for suggestions, but with none, nothing to type, no hint, and no
+  // operators to switch to, a list would only say No suggestions.
+  const nothingToShow =
+    list.length === 0 &&
+    !hint &&
+    !showsOperators &&
+    !suggestions.loading &&
+    !text.trim()
   const groupStarts = list.map((_, index) =>
     list.slice(0, index).reduce((sum, group) => sum + group.items.length, 0)
   )
@@ -317,8 +379,13 @@ export function QueryField<Value = unknown>({
     : undefined
 
   function accept(suggestion: QueryFieldAccepted<Value>) {
-    if (suggestion.kind !== 'search') setText(suggestion.remainder ?? '')
-    if (suggestion.kind !== 'field' && !editedId) setOpen(false)
+    const left =
+      suggestion.kind === 'search' ? '' : (suggestion.remainder ?? '')
+    if (suggestion.kind !== 'search') setText(left)
+    if (suggestion.kind === 'field' || left !== text) setUnhighlighting(true)
+    // Words left over list their own suggestions.
+    if (suggestion.kind !== 'field' && !editedId && !left.trim()) setOpen(false)
+    if (editedId) setTakenIn(step)
     onAccept?.(suggestion)
   }
 
@@ -352,16 +419,22 @@ export function QueryField<Value = unknown>({
   function handleInputKeyDown(
     event: BaseUIEvent<KeyboardEvent<HTMLInputElement>>
   ) {
-    const tabbedOperator =
+    const tab =
       event.key === 'Tab' &&
       !(event.metaKey || event.ctrlKey || event.altKey) &&
       !isComposing(event)
-        ? operatorOnTab(event.shiftKey ? -1 : 1)
-        : undefined
+    const tabbedOperator = tab
+      ? operatorOnTab(event.shiftKey ? -1 : 1)
+      : undefined
     if (tabbedOperator) {
       event.preventBaseUIHandler()
       event.preventDefault()
       onPendingOperatorChange?.(tabbedOperator.value)
+      return
+    }
+    // Ended here, as Tab may land on Clear, still inside the field.
+    if (tab && pendingChip) {
+      endStep()
       return
     }
     if (CARET_KEYS.has(event.key)) setArrowed(false)
@@ -384,6 +457,12 @@ export function QueryField<Value = unknown>({
       event.preventBaseUIHandler()
       event.preventDefault()
       if (enterFallback) accept(enterFallback)
+      // Nothing new to take means done, unless typed text matched no value,
+      // when the hint says what to type, or its values are still on their way.
+      else if (editedId && current && (items.length > 0 || !text.trim())) {
+        setOpen(false)
+        onPendingChipCancel?.()
+      }
       return
     }
     // Ends the composition only: the page, such as a toolbar, never hears it.
@@ -452,7 +531,7 @@ export function QueryField<Value = unknown>({
       multiple
       // Enter takes an arrowed row, else enterTarget's fallback.
       autoHighlight={false}
-      items={list}
+      items={unhighlighting ? NO_ITEMS : list}
       filter={null}
       value={ordered as readonly unknown[] as QueryFieldAccepted<Value>[]}
       onValueChange={(next, details) => {
@@ -473,7 +552,7 @@ export function QueryField<Value = unknown>({
         setText(next)
         setArrowed(false)
       }}
-      open={open}
+      open={open && !nothingToShow}
       onOpenChange={(next, details) => {
         setOpen(next)
         const byArrow = next && details.reason === 'list-navigation'
@@ -502,6 +581,7 @@ export function QueryField<Value = unknown>({
         emphasis={emphasis}
         aria-invalid={isInvalid || undefined}
         className={cn('group/query-field gap-2', className)}
+        onFocus={handleFocus}
         onBlur={handleBlur}
       >
         <MagnifyingGlassIcon
@@ -646,10 +726,8 @@ export function QueryField<Value = unknown>({
               type='button'
               aria-label='Clear'
               data-slot='query-field-clear'
-              className={cn(
-                'grid shrink-0 cursor-pointer text-subtle hover:text-normal',
-                FIRST_ROW
-              )}
+              // Round and a chip's height, its margins keeping the icon's footprint.
+              className='is-interactive -mx-1 mt-(--combobox-chips-py) grid size-6 shrink-0 place-items-center self-start rounded-full emphasis-subtler text-subtle'
               onClick={clear}
             >
               <XIcon aria-hidden weight='bold' className='size-4' />
@@ -658,7 +736,13 @@ export function QueryField<Value = unknown>({
       </Combobox.InputGroup>
       <Combobox.Portal>
         <Combobox.Positioner>
-          <Combobox.Popup ref={popupRef} onBlur={handleBlur}>
+          <Combobox.Popup
+            ref={popupRef}
+            // Under the field exactly, so rows truncate rather than spill past it.
+            className='w-(--anchor-width)'
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+          >
             {showsOperators && (
               <div
                 data-slot='query-field-operators'
@@ -693,85 +777,83 @@ export function QueryField<Value = unknown>({
             )}
             <Combobox.List>
               {list.map((group, groupIndex) => (
-                <Fragment key={groupKey(group)}>
-                  {pendingChip && groupIndex > 0 && (
-                    <ComboboxPrimitive.Separator
-                      data-slot='query-field-divider'
-                      className='px-2 py-1 before:block before:border-t before:border-subtle'
-                    />
-                  )}
-                  <Combobox.Group items={group.items}>
-                    <Combobox.GroupLabel
-                      // The operators stand in the first label; it still names
-                      // the group. The label's own padding would outsize sr-only.
-                      className={cn(
-                        (group.hideLabel ||
-                          (showsOperators && groupIndex === 0)) &&
-                          'sr-only p-0'
-                      )}
-                    >
-                      {group.label}
-                    </Combobox.GroupLabel>
-                    <Combobox.Collection>
-                      {(item: QueryFieldAccepted<Value>, index: number) => (
-                        <Combobox.Item
-                          key={itemKey(item)}
-                          value={item}
-                          // Enter's target reads as highlighted until something else is.
-                          className={cn(
-                            highlightKey === undefined &&
-                              groupStarts[groupIndex]! + index ===
-                                enterTarget &&
-                              'bg-subtle'
-                          )}
-                          // Chips hold the field's value, so Base UI never selects a row.
-                          aria-selected={
-                            item.kind !== 'search' && !!item.selected
+                <Combobox.Group key={groupKey(group)} items={group.items}>
+                  <Combobox.GroupLabel
+                    // The operators stand in the first label; it still names
+                    // the group. The label's own padding would outsize sr-only.
+                    className={cn(
+                      showsOperators && groupIndex === 0 && 'sr-only p-0'
+                    )}
+                  >
+                    {group.label}
+                  </Combobox.GroupLabel>
+                  <Combobox.Collection>
+                    {(item: QueryFieldAccepted<Value>, index: number) => (
+                      <Combobox.Item
+                        key={itemKey(item)}
+                        value={item}
+                        // Enter's target reads as highlighted until something else is.
+                        className={cn(
+                          highlightKey === undefined &&
+                            groupStarts[groupIndex]! + index === enterTarget &&
+                            'bg-subtle'
+                        )}
+                        // Chips hold the field's value, so Base UI never selects a row.
+                        aria-selected={
+                          item.kind !== 'search' && !!item.selected
+                        }
+                      >
+                        <OptionIcon
+                          icon={
+                            item.kind === 'search' ? (
+                              <MagnifyingGlassIcon weight='bold' />
+                            ) : (
+                              item.icon
+                            )
                           }
-                        >
-                          <OptionIcon
-                            icon={
-                              item.kind === 'search' ? (
-                                <MagnifyingGlassIcon weight='bold' />
-                              ) : (
-                                item.icon
-                              )
-                            }
-                          />
-                          <span className='me-auto grid min-w-0 gap-0.5'>
-                            <span
-                              data-slot='query-field-option-label'
-                              className='truncate'
-                            >
-                              {item.label}
-                            </span>
-                            {item.kind !== 'search' &&
-                              hasDescription(item.description) && (
-                                <span
-                                  data-slot='query-field-option-description'
-                                  className='truncate text-xs text-subtle'
-                                >
-                                  {item.description}
-                                </span>
-                              )}
+                        />
+                        <span className='me-auto grid min-w-0 gap-0.5'>
+                          <span
+                            data-slot='query-field-option-label'
+                            className='truncate'
+                          >
+                            {item.label}
                           </span>
-                          {groupStarts[groupIndex]! + index === enterTarget && (
-                            <Kbd size='sm' className='text-subtle'>
-                              Enter
-                            </Kbd>
-                          )}
-                          {item.kind !== 'search' && item.selected && (
-                            <Combobox.ItemIndicator keepMounted />
-                          )}
-                        </Combobox.Item>
-                      )}
-                    </Combobox.Collection>
-                  </Combobox.Group>
-                </Fragment>
+                          {item.kind !== 'search' &&
+                            hasDescription(item.description) && (
+                              <span
+                                data-slot='query-field-option-description'
+                                className='truncate text-xs text-subtle'
+                              >
+                                {item.description}
+                              </span>
+                            )}
+                        </span>
+                        {groupStarts[groupIndex]! + index === enterTarget && (
+                          <Kbd size='sm' className='text-subtle'>
+                            Enter
+                          </Kbd>
+                        )}
+                        {item.kind !== 'search' && item.selected && (
+                          <Combobox.ItemIndicator keepMounted />
+                        )}
+                      </Combobox.Item>
+                    )}
+                  </Combobox.Collection>
+                </Combobox.Group>
               ))}
             </Combobox.List>
+            <ComboboxPrimitive.Status
+              data-slot='query-field-hint'
+              className={EMPTY_TEXT}
+            >
+              {hint}
+            </ComboboxPrimitive.Status>
             <Combobox.Empty>
-              {suggestions.loading ? 'Loading suggestions' : 'No suggestions'}
+              {!unhighlighting &&
+                (suggestions.loading
+                  ? 'Loading suggestions'
+                  : !hint && 'No suggestions')}
             </Combobox.Empty>
           </Combobox.Popup>
         </Combobox.Positioner>

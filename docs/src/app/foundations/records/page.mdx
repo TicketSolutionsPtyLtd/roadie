@@ -63,7 +63,7 @@ export const eventFields: RecordField[] = [
   { key: 'gross', label: 'Gross', type: 'money', currencyKey: 'currency' },
   {
     key: 'starts',
-    label: 'Starts',
+    label: 'Start date',
     type: 'date',
     moment: 'event',
     end: 'ends',
@@ -209,7 +209,7 @@ starts in July. The core functions also take `weekStart` and
 `fiscalYearStart`, but the Records components always use these defaults, so
 keep them wherever a view also runs in the browser. Hour windows and the open
 ranges upcoming, past, and ongoing compare the instant, except on a plain date,
-where upcoming starts today and past ends yesterday. A range field matches when any part of it overlaps, so a five-night
+where upcoming starts today and past ends yesterday. Outside a timestamp, their `detail` gives days, never the viewer's clock: "From 16 Oct 2026, unless already over" for upcoming on an event with an end, "unless already started" on one with only a start, and "From 16 Oct 2026" on a plain date. A range field matches when any part of it overlaps, so a five-night
 festival is on this weekend if one night is.
 
 A time written without an offset names one moment, in the record's or the
@@ -262,9 +262,9 @@ remainder.
 Values read from the start of a word, so `melb` suggests "City is Melbourne"
 and `elb` suggests nothing. A value named only in part is left out when a
 longer reading takes its words: in `melb this weekend`, "this" belongs to
-"Starts: This weekend", so it never suggests a venue such as Nimbus Thistle
-Hall. Text a field contains takes no words this way, so `name disco melb`
-still suggests "City is Melbourne".
+"Start date is this weekend", so it never suggests a venue such as Nimbus
+Thistle Hall. Text a field contains takes no words this way, so
+`name disco melb` still suggests "City is Melbourne".
 
 Negation reads as the opposite filter. "not melb" suggests "City is not
 Melbourne", and never "City is Melbourne". The negating words are part of the
@@ -318,17 +318,17 @@ Any field's name, then a value, reads as `field:value` does, with or without
 so `name disco melb` suggests "Name contains “disco”" and "City is Melbourne"
 first, then "Name contains “disco melb”".
 
-| Form                            | Typed                 | Suggests             |
-| ------------------------------- | --------------------- | -------------------- |
-| `<field> <value>`, with no verb | `city melb`           | City is Melbourne    |
-| `<field> <value>`, with no verb | `capacity 100`        | Capacity is 100      |
-| `<field> <value>`, with no verb | `starts this weekend` | Starts: This weekend |
-| `<field> is empty`              | `starts is empty`     | Starts is empty      |
-| `<field> is not empty`          | `city is not empty`   | City is not empty    |
+| Form                            | Typed                 | Suggests                   |
+| ------------------------------- | --------------------- | -------------------------- |
+| `<field> <value>`, with no verb | `city melb`           | City is Melbourne          |
+| `<field> <value>`, with no verb | `capacity 100`        | Capacity is 100            |
+| `<field> <value>`, with no verb | `starts this weekend` | Start date is this weekend |
+| `<field> is empty`              | `starts is empty`     | Start date is empty        |
+| `<field> is not empty`          | `city is not empty`   | City is not empty          |
 
-A date keeps the word that compares it. `starts after today` suggests Starts
-after today's date, never "Starts: Today", and `after`, `before`, `since`,
-`from`, `until`, `till`, `on or after`, and `on or before` read as the
+A date keeps the word that compares it. `starts after today` suggests Start
+date after today's date, never "Start date is today", and `after`, `before`,
+`since`, `from`, `until`, `till`, `on or after`, and `on or before` read as the
 [date phrases](/foundations/date-and-time#typed-phrases) do. One that can't be
 a filter, such as `after 7pm`, suggests no date. The words of a longer date
 read nothing on their own, so `last monday` never also suggests the coming

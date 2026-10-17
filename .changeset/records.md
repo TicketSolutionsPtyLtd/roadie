@@ -67,35 +67,65 @@ shown, or the `baseline`'s, so switching back reads as unchanged.
 
 `Records.Search` searches and filters in one `QueryField`, named "Search and
 filter". Typing searches the searchable fields as before and suggests filters
-from the fields: option values (or, in the browser, the values an option
-field without `options` holds), statuses, booleans by name, identifiers and
-date phrases such as "this weekend", each becoming a chip; the words a
-suggestion doesn't read stay in the field. Picking a field lists its values,
-or for a date its quick dates and Custom dates, below Empty and Not empty
-and a line; an option field's values sit under an is and is not toggle (and has
-all of, for a `multiple` field) that Tab steps through; typing narrows them, and Enter takes the first. A number or text field opens
-its editor. Option values added to a field join its chip with the same
-condition, so a value added as "is not" never joins an "is" chip. Typed
-negation, such as "city is not melb", suggests "City is not Melbourne". A
-field named in full, such as "sold", lists before values that start with its
-name, such as Sold out, unless a filter reads the words after it, as in
-"city melb". Text naming a filter already applied still suggests it, marked
-Already applied, and taking it clears those words and adds nothing. Clicking an option,
-boolean or date chip, or Enter on it, edits it in the list: the chip shows
-selected, its values are ticked, taking a value ticks or unticks it (the last
-one unticked removes the chip, and Enter on typed text only ticks), is and is not rewrite its condition (one
-changed to is joins the field's is chip), and a boolean's answer, a quick
-date, Empty or Not empty replaces what it holds.
-Backspace in the empty field removes it, and Escape or leaving the field keeps
-it. Custom dates
-opens a date range picker with relative presets, or a date picker, for the
-chip, and a text or number chip opens its editor for its condition and value
-as they change; both sit in a popover under the chip or a bottom drawer on a
-phone, with Remove filter, and load while the page is idle. A relative date chip shows its dates
-in a tooltip, and a filter the fields can't apply shows in warning colours.
-`/` focuses the search unless `shortcut` (or `searchShortcut` on
-`Records.Toolbar` and `RecordTable`) says otherwise, and Clear and Escape
-clear it. The toolbar keeps its buttons at the top as chips wrap.
+from the fields: option values (or, in the browser, the values an option field
+without `options` holds), statuses, booleans by name, identifiers, and date
+phrases such as "this weekend", each becoming a chip. The words a suggestion
+doesn't read stay in the field. Typed negation, such as "city is not melb",
+suggests "City is not Melbourne". A field named in full, such as "sold", lists
+before values that start with its name, such as Sold out, unless a filter reads
+the words after it, as in "city melb". Text naming a filter already applied
+still suggests it, marked Already applied, and taking it clears those words and
+adds nothing.
+
+Picking a field lists its values under a toggle of operators, which Tab steps
+through. Leaving the field ends picking a value, as Escape does. An option
+field offers is, is not, and has all of for a `multiple` field. A text field
+offers contains, doesn't contain, is, and is not. A number or money field
+offers =, ≠, <, >, and between, named in words for screen readers. A boolean
+lists Yes and No, and a date its quick dates and Custom dates, under is. Every
+field that can be filtered ends its toggle with is empty and is not empty,
+whose one row Enter takes. Typing switches back to the field's first operator,
+so the text applies. Typing narrows the values, and Enter takes the first. A
+quick date lists when its name has a word starting with each word typed, so
+"next" lists Next 7 days, with whole words first, so "week" lists This week
+before This weekend, and Enter never opens Custom dates. Typed text or a
+number shows as one row worded as its chip. Between reads 20 and 50, 20-50, 20
+to 50, or 20..50, in either order, and a space after the first number adds the
+"and". One Backspace takes it away. Money takes `$` and commas. Until the
+value reads, the list says what to type, such as "Type a number." Another option value joins the field's chip with the same condition, so a value added under is not never joins an is chip. An is empty chip takes
+the place of the field's other chips, and any other chip on the field takes
+the place of its is empty chip, as together they match nothing. A date chip
+takes the place of the field's earlier date chip, as two dates rarely
+overlap.
+
+Clicking a chip, or Enter on it, edits it in the list, with what it holds
+ticked. An option chip's values tick and untick, and unticking the last
+removes the chip. Enter on typed text only ticks. When the typed text matches
+only values the chip holds, the list says so, such as "Perth is already in
+this filter." Its is, is not, and has all of rewrite its condition and keep
+its values, and a chip rewritten to is joins the field's is chip. A text or
+number chip puts its value in the field and its condition in the toggle, and
+Enter replaces it once either changes. Any other value taken, or the row under
+is empty or is not empty, replaces what the chip holds. Every chip but an
+option chip holds one value, so taking one ends the edit and closes the list.
+Everything but an
+option chip's operator waits for Enter, so Tab passing through is empty keeps
+the values. Backspace in the empty field removes the chip, and Escape, Enter
+with no new value to take, or leaving the field keeps it and ends the edit. Custom dates opens a date range picker with
+relative presets, or a date picker, in a popover under the chip or a bottom
+drawer on a phone, with Remove filter. Is on, is before, and is
+after share one date, and is within keeps its own range, so switching back
+brings back what was last chosen. A condition with nothing chosen yet takes
+the other's dates: is on and is before take the range's first day, is after
+its last, and is within takes the one date as a day. Either one is titled with the field's
+name, has a Close button, and keeps Tab inside it. It loads while the page is idle. A
+date chip reads as other chips do, such as "Start date is this weekend", and a
+relative one shows its dates in a tooltip. A filter the fields can't
+apply shows in warning colours. `/` focuses the search unless `shortcut` (or
+`searchShortcut` on `Records.Toolbar` and `RecordTable`) says otherwise, and
+Clear and Escape clear it. The toolbar keeps its buttons at the top as chips
+wrap. Under 40rem, the focused search takes the toolbar's row, and the other
+controls hide until focus leaves it.
 
 `useRecords` takes a `scope`: filters the page sets, such as the event a list
 of tickets belongs to. They filter with the view but are never part of it,

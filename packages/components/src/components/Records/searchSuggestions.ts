@@ -2,7 +2,6 @@ import type { DateRangeValue } from '@oztix/roadie-core/datetime'
 import {
   type RecordField,
   type RecordFilter,
-  type RecordFilterOperator,
   type RecordQueryOptions,
   type RecordSuggestion,
   describeRecordFilter,
@@ -67,34 +66,85 @@ export function datePresets(field: RecordField): readonly DateRangeValue[] {
   return (field.moment ?? 'timestamp') === 'timestamp' ? RECENT : UPCOMING
 }
 
-/** Fields whose values are picked from a list; the rest open an editor. */
-export function hasValueStep(field: RecordField): boolean {
-  return (
-    field.type === 'option' || field.type === 'boolean' || field.type === 'date'
-  )
+/** How a value step compares, chosen before its value. */
+export type ValueOperator =
+  | 'is'
+  | 'is-not'
+  | 'has-all'
+  | 'contains'
+  | 'not-contains'
+  | 'eq'
+  | 'neq'
+  | 'lt'
+  | 'gt'
+  | 'between'
+  | EmptinessOperator
+
+type EmptinessOperator = 'is-not-set' | 'is-set'
+
+const EMPTINESS: readonly EmptinessOperator[] = ['is-not-set', 'is-set']
+
+export const isEmptiness = (operator: string): operator is EmptinessOperator =>
+  EMPTINESS.some((each) => each === operator)
+
+type OptionOperator = Extract<ValueOperator, 'is' | 'is-not' | 'has-all'>
+
+/** An option filter's operator: the step's, which for an option field is one. */
+export const optionOperator = (operator: ValueOperator): OptionOperator =>
+  operator === 'is-not' || operator === 'has-all' ? operator : 'is'
+
+const isNumeric = (field: RecordField) =>
+  field.type === 'number' || field.type === 'money'
+
+/** Text and numbers are typed, and their one row reads as the chip will. */
+const isTyped = (field: RecordField) =>
+  field.type === 'text' || isNumeric(field)
+
+const SYMBOLS: Partial<Record<ValueOperator, string>> = {
+  eq: '=',
+  neq: '≠',
+  lt: '<',
+  gt: '>',
+  between: 'between'
 }
 
-/** How an option field's value step compares, chosen before its values. */
-export type ValueOperator = 'is' | 'is-not' | 'has-all'
-
-const VALUE_OPERATORS: readonly RecordFilterOperator[] = [
-  'is',
-  'is-not',
-  'has-all'
-]
-
-export function isValueOperator(operator: string): operator is ValueOperator {
-  return (VALUE_OPERATORS as readonly string[]).includes(operator)
+/** Booleans and dates list their values under a single is. Emptiness comes last. */
+function stepOperators(field: RecordField): ValueOperator[] {
+  const allowed = recordFilterOperators(field)
+  const compared: ValueOperator[] =
+    field.type === 'date' || field.type === 'boolean'
+      ? ['is']
+      : allowed.filter(
+          (operator): operator is ValueOperator => !isEmptiness(operator)
+        )
+  return [
+    ...compared,
+    ...EMPTINESS.filter((operator) => allowed.includes(operator))
+  ]
 }
 
-/** The operators a value step toggles between: an option field's, or none. */
+/** The operators a value step toggles between: a number's as symbols, and emptiness in words. */
 export function valueOperators(
   field: RecordField
 ): (QueryFieldOperator & { value: ValueOperator })[] {
-  if (field.type !== 'option') return []
-  return recordFilterOperators(field)
-    .filter(isValueOperator)
-    .map((value) => ({ value, label: recordOperatorLabel(value) }))
+  return stepOperators(field).map((value) =>
+    isNumeric(field) && !isEmptiness(value)
+      ? {
+          value,
+          label: SYMBOLS[value] ?? value,
+          'aria-label': recordOperatorLabel(value)
+        }
+      : { value, label: recordOperatorLabel(value) }
+  )
+}
+
+/** The operator a step on the field compares by: the one given if it offers it, or its first. */
+export function stepOperator(
+  field: RecordField,
+  operator: string
+): ValueOperator {
+  const offered = stepOperators(field)
+  return offered.find((each) => each === operator) ?? offered[0] ?? 'is'
 }
 
 /** What the value step's pending chip reads, such as "Venue is not". */
@@ -102,10 +152,31 @@ export function pendingLabel(
   field: RecordField,
   operator: ValueOperator
 ): string {
-  if (field.type === 'date') return field.label
-  if (field.type === 'option')
-    return `${field.label} ${recordOperatorLabel(operator)}`
-  return `${field.label} is`
+  return `${field.label} ${recordOperatorLabel(operator)}`
+}
+
+/** A text or number filter's value as typed, to edit it in the field: "20 and 50" for a range. */
+export function valueText(field: RecordField, filter: RecordFilter): string {
+  if (!isTyped(field)) return ''
+  switch (filter.operator) {
+    case 'contains':
+    case 'not-contains':
+      return filter.value
+    case 'is':
+    case 'is-not':
+      return filter.values[0] ?? ''
+    case 'eq':
+    case 'neq':
+    case 'lt':
+    case 'gt':
+      return String(filter.value)
+    case 'between':
+      return [...filter.value]
+        .sort((a, b) => Number(a) - Number(b))
+        .join(' and ')
+    default:
+      return ''
+  }
 }
 
 function canonical(value: unknown): unknown {
@@ -246,7 +317,7 @@ export function topSuggestions(
 /** What a field offers before anything is typed. Labels come later. */
 function presetItems(
   field: RecordField,
-  operator: ValueOperator
+  operator: OptionOperator
 ): SearchSuggestion[] {
   switch (field.type) {
     case 'option':
@@ -279,43 +350,177 @@ function customDates(field: RecordField): SearchSuggestion {
     id: `edit:${field.key}`,
     kind: 'filter',
     label: 'Custom dates',
-    value: { type: 'edit', field: field.key }
+    value: { type: 'edit', field: field.key },
+    opensEditor: true
   }
-}
-
-const EMPTINESS = [
-  { operator: 'is-not-set', label: 'Empty' },
-  { operator: 'is-set', label: 'Not empty' }
-] as const
-
-/** Whether the text starts at one of the label's words: "not" or "empty". */
-function startsAWord(label: string, text: string): boolean {
-  const words = label.toLowerCase().split(' ')
-  return words.some((_, index) =>
-    words.slice(index).join(' ').startsWith(text.toLowerCase())
-  )
-}
-
-function emptinessItems(field: RecordField, typed: string): SearchSuggestion[] {
-  const allowed = recordFilterOperators(field)
-  return EMPTINESS.filter(
-    ({ operator, label }) =>
-      allowed.includes(operator) && startsAWord(label, typed)
-  ).map(({ operator, label }) => ({
-    ...filterSuggestion({ field: field.key, operator }),
-    label
-  }))
 }
 
 /** An option value read from typed text, compared by the step's operator. */
 function withOperator(
   item: SearchSuggestion,
-  operator: ValueOperator
+  operator: OptionOperator
 ): SearchSuggestion {
   const { value } = item
   if (value.type !== 'filter' || value.filter.operator !== 'is') return item
   const filter = { ...value.filter, operator }
   return { ...item, ...filterSuggestion(filter), label: item.label }
+}
+
+// parseQuery reads a lone number as `eq`, with any `$` and commas.
+function numberReader(field: RecordField, context: SearchContext) {
+  return (text: string) => {
+    const [reading] = parseQuery(`${field.key}:${text}`, {
+      ...context,
+      fields: [field]
+    })
+    return reading?.kind === 'filter' ? reading.value : null
+  }
+}
+
+const RANGE_SEPARATOR = /-|\.\.|to|and/gi
+
+/** A range typed either way round, such as "50-20" or "20 and 50", low to high. */
+function typedRange(
+  typed: string,
+  readNumber: (text: string) => RecordFilter | null
+): [number, number] | null {
+  for (const { 0: separator, index } of typed.matchAll(RANGE_SEPARATOR)) {
+    const low = readNumber(typed.slice(0, index))
+    const high = readNumber(typed.slice(index + separator.length))
+    if (low?.operator === 'eq' && high?.operator === 'eq')
+      return [Math.min(low.value, high.value), Math.max(low.value, high.value)]
+  }
+  return null
+}
+
+/** Typed text, or a number or range, compared by the step's operator: none for what it can't read. */
+function typedFilters(
+  field: RecordField,
+  typed: string,
+  operator: ValueOperator,
+  context: SearchContext
+): RecordFilter[] {
+  const key = field.key
+  if (field.type === 'text') {
+    if (operator === 'contains' || operator === 'not-contains')
+      return [{ field: key, operator, value: typed }]
+    return operator === 'is' || operator === 'is-not'
+      ? [{ field: key, operator, values: [typed] }]
+      : []
+  }
+  const readNumber = numberReader(field, context)
+  if (operator === 'between') {
+    const range = typedRange(typed, readNumber)
+    return range ? [{ field: key, operator, value: range }] : []
+  }
+  const read = readNumber(typed)
+  return read?.operator === 'eq' &&
+    (operator === 'eq' ||
+      operator === 'neq' ||
+      operator === 'lt' ||
+      operator === 'gt')
+    ? [{ ...read, operator }]
+    : []
+}
+
+const isOneNumber = (
+  field: RecordField,
+  text: string,
+  context: SearchContext
+) => numberReader(field, context)(text)?.operator === 'eq'
+
+/**
+ * What a text or number step asks for while nothing typed reads under its
+ * operator, such as "Between 20 and what? Type the second number." after "20 and".
+ */
+export function valueHint(
+  field: RecordField,
+  text: string,
+  operator: ValueOperator,
+  context: SearchContext
+): string | undefined {
+  const typed = text.trim()
+  if (isEmptiness(operator)) return undefined
+  if (field.type === 'text')
+    return typed ? undefined : 'Type the text to match.'
+  if (!isNumeric(field) || typedFilters(field, typed, operator, context).length)
+    return undefined
+  const money = field.type === 'money'
+  const one = money ? 'an amount' : 'a number'
+  if (operator !== 'between') {
+    if (!typed) return `Type ${one}.`
+    return `Type ${one} like ${money ? '$50' : '50'}.`
+  }
+  const first = numberReader(
+    field,
+    context
+  )(typed.replace(/\s*(?:-|\.\.|to|and)$/i, ''))
+  if (first?.operator === 'eq') {
+    const { value } = describeRecordFilter(first, context.fields, context)
+    const second = money ? 'amount' : 'number'
+    return `Between ${value} and what? Type the second ${second}.`
+  }
+  return money
+    ? 'Type two amounts like $20 and $50.'
+    : 'Type two numbers like 20 and 50.'
+}
+
+/** Labels as a list, with an Oxford comma: "Perth, Hobart, and Sydney". */
+function listOf(labels: readonly string[]): string {
+  if (labels.length < 3) return labels.join(' and ')
+  return `${labels.slice(0, -1).join(', ')}, and ${labels.at(-1)}`
+}
+
+/**
+ * While a chip is edited, what to say when every value the typed text
+ * matches is one the chip already holds, so Enter has nothing to add.
+ */
+export function heldHint(
+  field: RecordField,
+  text: string,
+  groups: readonly SearchGroup[]
+): string | undefined {
+  if (isTyped(field) || !text.trim()) return undefined
+  const values = groups
+    .flatMap((group) => group.items)
+    .filter((item) => item.value.type === 'filter')
+  if (values.length === 0 || values.some((item) => !item.selected))
+    return undefined
+  const verb = values.length === 1 ? 'is' : 'are'
+  return `${listOf(values.map((item) => item.label))} ${verb} already in this filter.`
+}
+
+/**
+ * A space typed after a range's first number, such as "20 ", adds "and " for
+ * the second. A word typed in its place, such as "to", replaces it, so typing
+ * "and" yourself doesn't double it, and Backspace takes it away whole.
+ */
+export function withAnd(
+  field: RecordField,
+  previous: string,
+  next: string,
+  operator: ValueOperator,
+  context: SearchContext
+): string {
+  if (operator !== 'between') return next
+  const added = /^(.*\S) and $/.exec(previous)?.[1]
+  if (
+    added &&
+    next === previous.slice(0, -1) &&
+    isOneNumber(field, added, context)
+  )
+    return added
+  if (!next.startsWith(previous)) return next
+  const typed = next.slice(previous.length)
+  if (
+    typed === ' ' &&
+    previous === previous.trimEnd() &&
+    isOneNumber(field, previous, context)
+  )
+    return `${next}and `
+  return added && /^[a-z]$/i.test(typed) && isOneNumber(field, added, context)
+    ? `${added} ${typed}`
+    : next
 }
 
 /** Whether the edited filter holds what a suggestion would add. */
@@ -353,63 +558,159 @@ function heldOnly(
 }
 
 /**
- * Suggestions for one field's value, after it was picked: Empty and Not empty
- * first, where the field allows them, then its values, which for an option
- * field compare by `operator`. Editing a filter, those it holds are ticked;
- * leave it out of `context.filters`, so they still show.
+ * A date field's presets whose label has a word starting with each typed
+ * word, so "next" lists Next 7 days. Those holding more typed words whole come
+ * first, so "week" lists This week before This weekend.
+ */
+function typedPresets(
+  field: RecordField,
+  typed: string,
+  context: SearchContext
+): SearchSuggestion[] {
+  if (field.type !== 'date') return []
+  const words = typed.toLowerCase().split(/\s+/)
+  return presetItems(field, 'is')
+    .flatMap((item) => {
+      if (item.value.type !== 'filter') return []
+      const { value } = describeRecordFilter(
+        item.value.filter,
+        context.fields,
+        context
+      )
+      const labelWords = value.toLowerCase().split(/\s+/)
+      const matches = words.every((word) =>
+        labelWords.some((labelWord) => labelWord.startsWith(word))
+      )
+      const whole = words.filter((word) => labelWords.includes(word)).length
+      return matches ? [{ item, whole }] : []
+    })
+    .sort((a, b) => b.whole - a.whole)
+    .map(({ item }) => item)
+}
+
+function parsedValues(
+  field: RecordField,
+  typed: string,
+  option: OptionOperator,
+  context: SearchContext
+): SearchSuggestion[] {
+  const presets = typedPresets(field, typed, context)
+  const parsed = parseQuery(`${field.key}:${typed}`, {
+    ...context,
+    fields: [field]
+  })
+    .filter((suggestion) => suggestion.kind === 'filter')
+    .map((suggestion) => fromParsed(suggestion))
+    .map((item) =>
+      field.type === 'option' ? withOperator(item, option) : item
+    )
+  const isPreset = (item: SearchSuggestion) =>
+    item.value.type === 'filter' &&
+    presets.some(
+      (preset) =>
+        preset.value.type === 'filter' &&
+        item.value.type === 'filter' &&
+        sameFilter(preset.value.filter, item.value.filter)
+    )
+  return [...presets, ...parsed.filter((item) => !isPreset(item))]
+}
+
+/** The values a field offers, or reads from typed text, compared by the step's operator. */
+function readValues(
+  field: RecordField,
+  typed: string,
+  operator: ValueOperator,
+  context: SearchContext
+): SearchSuggestion[] {
+  const unlisted =
+    field.type === 'option' && recordFieldOptions(field).length === 0
+  const option = optionOperator(operator)
+  return !typed
+    ? presetItems(field, option)
+    : isTyped(field)
+      ? typedFilters(field, typed, operator, context).map(filterSuggestion)
+      : unlisted
+        ? [
+            filterSuggestion({
+              field: field.key,
+              operator: option,
+              values: [typed]
+            })
+          ]
+        : parsedValues(field, typed, option, context)
+}
+
+/** The values read, then those the edited filter holds that aren't among them. */
+function valueItems(
+  field: RecordField,
+  typed: string,
+  operator: ValueOperator,
+  context: SearchContext,
+  edited: RecordFilter | undefined
+): SearchSuggestion[] {
+  const items = readValues(field, typed, operator, context)
+  const listed = new Set(items.map(({ id }) => id))
+  const held = heldOnly(field, typed, edited).filter(
+    ({ id }) => !listed.has(id)
+  )
+  return [...items, ...held]
+}
+
+/**
+ * Under is empty or is not empty, the one row, which Enter takes. A chip
+ * already holding it ticks it, so the step still answers.
+ */
+function emptinessRow(
+  field: RecordField,
+  operator: EmptinessOperator,
+  context: SearchContext
+): SearchSuggestion {
+  const row = filterSuggestion({ field: field.key, operator })
+  const applied = unused([row], context).length === 0
+  return { ...row, exact: true, ...(applied && { selected: true }) }
+}
+
+/**
+ * Suggestions for one field's value, after it was picked, compared by
+ * `operator`: an option's values, the one row text or a number typed reads,
+ * or under emptiness the chip's own row. Editing a filter, those it holds are
+ * ticked; leave it out of `context.filters`, so they still show.
  */
 export function valueSuggestions(
   field: RecordField,
   text: string,
   context: SearchContext,
-  operator: ValueOperator = 'is',
+  operator: ValueOperator = stepOperator(field, ''),
   edited?: RecordFilter
 ): SearchGroup[] {
   const typed = text.trim()
-  const unlisted =
-    field.type === 'option' && recordFieldOptions(field).length === 0
-  const items = !typed
-    ? presetItems(field, operator)
-    : unlisted
-      ? [filterSuggestion({ field: field.key, operator, values: [typed] })]
-      : parseQuery(`${field.key}:${typed}`, { ...context, fields: [field] })
-          .filter((suggestion) => suggestion.kind === 'filter')
-          .map((suggestion) => fromParsed(suggestion))
-          .map((item) =>
-            field.type === 'option' ? withOperator(item, operator) : item
-          )
-  const listed = new Set(items.map(({ id }) => id))
-  const held = heldOnly(field, typed, edited).filter(
-    ({ id }) => !listed.has(id)
-  )
+  const items = isEmptiness(operator)
+    ? [emptinessRow(field, operator, context)]
+    : unused(valueItems(field, typed, operator, context, edited), context)
+  // Typed text is the whole value, so only the filter itself is held.
+  const isHeld = isTyped(field) ? sameFilter : holds
   const tick = (item: SearchSuggestion): SearchSuggestion =>
-    edited && item.value.type === 'filter' && holds(edited, item.value.filter)
+    edited && item.value.type === 'filter' && isHeld(edited, item.value.filter)
       ? { ...item, selected: true }
       : item
-  const values = unused([...items, ...held], context).map((item) => {
+  const values = items.map((item) => {
     if (item.value.type !== 'filter') return item
-    const { value, detail } = describeRecordFilter(
+    const { label, value, detail } = describeRecordFilter(
       item.value.filter,
       context.fields,
       context
     )
     return tick({
       ...item,
-      label: value,
-      remainder: undefined,
+      label: isTyped(field) || isEmptiness(operator) ? label : value,
       ...(detail && { description: detail })
     })
   })
-  const emptiness = unused(emptinessItems(field, typed), context).map(tick)
-  // Not a typed match, so it gives way to a typed Empty, or Enter takes it.
   const editable =
     field.type === 'date' &&
-    recordFilterOperators(field).some((operator) => operator === 'between') &&
-    (!typed || emptiness.length === 0)
+    !isEmptiness(operator) &&
+    recordFilterOperators(field).some((operator) => operator === 'between')
   return [
-    ...(emptiness.length > 0
-      ? [{ id: 'empty', label: 'Empty', hideLabel: true, items: emptiness }]
-      : []),
     {
       id: 'values',
       label: field.label,
@@ -437,6 +738,25 @@ export function toggleValue(
     ? edited.values.filter((value) => !taken.values.includes(value))
     : [...new Set([...edited.values, ...taken.values])]
   return values.length > 0 ? { ...edited, values } : null
+}
+
+const isDateFilter = (filter: RecordFilter) =>
+  filter.operator === 'between'
+    ? typeof filter.value[0] === 'string'
+    : ['on', 'before', 'after', 'within'].includes(filter.operator)
+
+/**
+ * Whether a filter rules the other out: is empty on a field rules out
+ * anything else on it, so it never stands beside a value that matches nothing,
+ * and a date rules out the field's other date, as two rarely overlap.
+ */
+export function rulesOut(filter: RecordFilter, other: RecordFilter): boolean {
+  if (filter.field !== other.field || sameFilter(filter, other)) return false
+  return (
+    filter.operator === 'is-not-set' ||
+    other.operator === 'is-not-set' ||
+    (isDateFilter(filter) && isDateFilter(other))
+  )
 }
 
 /** Option filters on one field with the same operator merge into one chip. */

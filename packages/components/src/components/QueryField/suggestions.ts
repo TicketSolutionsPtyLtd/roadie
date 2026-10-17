@@ -47,21 +47,12 @@ type Takes<Value> = (item: QueryFieldSuggestion<Value>) => boolean
 
 const takesAny = () => true
 
-/**
- * The value step's first match for typed text that `takes` allows: from a
- * group with its label shown, whose items are matches, before one whose items
- * say what they are. A match it passes over still keeps the latter out.
- */
+/** The value step's first match for typed text that `takes` allows. */
 export function firstMatch<Value>(
   groups: readonly QueryFieldSuggestionGroup<Value>[],
   takes: Takes<Value> = takesAny
 ) {
-  const items = (hidden: boolean) =>
-    groups
-      .filter((group) => !!group.hideLabel === hidden)
-      .flatMap((group) => group.items)
-  const matches = items(false)
-  return (matches.length > 0 ? matches : items(true)).find(takes)
+  return groups.flatMap((group) => group.items).find(takes)
 }
 
 export function exactSuggestion<Value>(

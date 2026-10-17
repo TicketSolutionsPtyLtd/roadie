@@ -779,11 +779,25 @@ describe('QueryField', () => {
       />
     )
     await userEvent.click(input())
-    expect(await screen.findByText('No suggestions')).toBeInTheDocument()
     await userEvent.keyboard('z')
     expect(await screen.findByText('Loading suggestions')).toBeInTheDocument()
     await act(async () => later.reject(new Error('offline')))
     expect(screen.getByText('No suggestions')).toBeInTheDocument()
+  })
+
+  it('opens no list with nothing to suggest, hint, or text', async () => {
+    render(<Harness initialChips={[scope]} suggest={() => []} />)
+    await userEvent.click(input())
+    expect(input()).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
+    await userEvent.keyboard('z')
+    expect(
+      await screen.findByRole('option', { name: 'Search for “z”' })
+    ).toBeInTheDocument()
+    await userEvent.keyboard('{Backspace}')
+    await waitFor(() =>
+      expect(input()).toHaveAttribute('aria-expanded', 'false')
+    )
   })
 
   it('drops the arrow mark when newer results replace the arrowed one', async () => {
@@ -966,6 +980,71 @@ describe('QueryField', () => {
     expect(onAccept).toHaveBeenCalledWith(melbourne)
     expect(input()).toHaveValue('this weekend')
     expect(onInputValueChange).toHaveBeenLastCalledWith('this weekend')
+    // Open, so the words left over list their own suggestions.
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+    expect(input()).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('highlights nothing once a take leaves words in the field, never saying the list is empty', async () => {
+    const sydney: QueryFieldSuggestion = {
+      id: 'city:sydney',
+      label: 'City is Sydney',
+      kind: 'filter',
+      value: 'sydney',
+      remainder: 'this weekend'
+    }
+    const weekend: QueryFieldSuggestion = {
+      id: 'starts:weekend',
+      label: 'Starts is this weekend',
+      kind: 'filter',
+      value: 'weekend'
+    }
+    render(
+      <Harness
+        suggest={(text) => [
+          {
+            id: 'filters',
+            label: 'Filters',
+            items: text.startsWith('syd') ? [venueField, sydney] : [weekend]
+          }
+        ]}
+      />
+    )
+    await typeInto('syd this weekend')
+    await screen.findByRole('option', { name: sydney.label })
+    // Text that went in and out again, as a live region may still read it.
+    const shown: string[] = []
+    const collect = (records: MutationRecord[]) => {
+      for (const record of records) {
+        shown.push(record.oldValue ?? '')
+        for (const node of record.addedNodes) shown.push(node.textContent ?? '')
+      }
+    }
+    const observer = new MutationObserver(collect)
+    observer.observe(document.body, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+      characterDataOldValue: true
+    })
+    onTestFinished(() => observer.disconnect())
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+    expect(input()).toHaveValue('this weekend')
+    await screen.findByRole('option', { name: weekend.label })
+    collect(observer.takeRecords())
+    expect(shown.filter((text) => text.includes('No suggestions'))).toEqual([])
+    expect(
+      screen
+        .getAllByRole('option')
+        .filter((option) => option.hasAttribute('data-highlighted'))
+    ).toEqual([])
+    expect(input()).not.toHaveAttribute('aria-activedescendant')
+    expect(hinted()).toEqual(['Search for “this weekend”'])
+    await userEvent.keyboard('{ArrowDown}')
+    expect(input()).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('option', { name: weekend.label }).id
+    )
   })
 
   it('clears the text on Escape once the list is closed, keeping chips', async () => {
@@ -984,7 +1063,7 @@ describe('QueryField', () => {
         initialChips={[
           {
             id: 'starts',
-            label: 'Starts: This weekend',
+            label: 'Starts is this weekend',
             description: '3 to 4 Oct'
           },
           { ...scope, description: 'Fri 9 Oct' }
@@ -992,7 +1071,7 @@ describe('QueryField', () => {
       />
     )
     expect(chipElement('starts')).toHaveTextContent(
-      'Starts: This weekend, 3 to 4 Oct'
+      'Starts is this weekend, 3 to 4 Oct'
     )
     expect(chipElement('event')).toHaveTextContent(
       'Event is Lampshade Disco, set by this page, Fri 9 Oct'
@@ -1197,6 +1276,14 @@ describe('QueryField operators', () => {
     expect(screen.getByRole('group', { name: 'Venue' })).toBeInTheDocument()
   })
 
+  // Such as an option field with no values to list, whose is empty is a click away.
+  it('shows the operators while no value is listed and no hint is given', async () => {
+    render(<OperatorStep suggest={() => []} />)
+    await userEvent.click(input())
+    await waitFor(() => expect(operatorGroup()).toBeInTheDocument())
+    expect(input()).toHaveAttribute('aria-expanded', 'true')
+  })
+
   it('shows no operators with only one', async () => {
     render(
       <Harness
@@ -1236,8 +1323,9 @@ describe('QueryField operators', () => {
     expect(onPendingOperatorChange).toHaveBeenCalledWith('has-all')
   })
 
-  it('walks the operators with Tab, then leaves the field from the last', async () => {
-    render(<OperatorStep />)
+  it('walks the operators with Tab, then ends the step from the last', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(<OperatorStep onPendingChipCancel={onPendingChipCancel} />)
     await userEvent.click(input())
     await screen.findByRole('listbox')
     expect(input()).toHaveAttribute('aria-keyshortcuts', 'Tab')
@@ -1249,11 +1337,14 @@ describe('QueryField operators', () => {
     expect(input()).toHaveAttribute('aria-keyshortcuts', 'Shift+Tab')
     expect(document.activeElement).toBe(input())
     expect(screen.getByRole('listbox')).toBeInTheDocument()
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
     await userEvent.tab()
     expect(pressed()).toEqual(['has all of'])
+    // Clear is in the field, so only the Tab itself ends the step.
     expect(document.activeElement).toBe(
       screen.getByRole('button', { name: 'Clear' })
     )
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
   })
 
   it('walks back with Shift+Tab, then leaves backwards from the first', async () => {
@@ -1286,14 +1377,21 @@ describe('QueryField operators', () => {
     expect(input()).toHaveAccessibleDescription('Venue is not')
   })
 
-  it('leaves Tab to move on with no operators to cycle', async () => {
-    render(<Harness pendingChip={{ id: 'venue', label: 'Venue is' }} />)
+  it('leaves Tab to move on, ending the step, with no operators to cycle', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(
+      <Harness
+        pendingChip={{ id: 'venue', label: 'Venue is' }}
+        onPendingChipCancel={onPendingChipCancel}
+      />
+    )
     await userEvent.click(input())
     expect(input()).not.toHaveAttribute('aria-keyshortcuts')
     await userEvent.tab()
     expect(document.activeElement).toBe(
       screen.getByRole('button', { name: 'Clear' })
     )
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
   })
 
   it('still leaves the value step with Escape and Backspace', async () => {
@@ -1317,50 +1415,83 @@ describe('QueryField operators', () => {
   })
 })
 
-const emptiness: QueryFieldSuggestionGroup = {
-  id: 'empty',
-  label: 'Empty',
-  hideLabel: true,
-  items: [
-    { id: 'venue:empty', label: 'Empty', kind: 'filter', value: 'empty' },
-    { id: 'venue:set', label: 'Not empty', kind: 'filter', value: 'set' }
-  ]
-}
-const dividers = () =>
-  document.querySelectorAll('[data-slot=query-field-divider]')
-
-describe('QueryField value step groups', () => {
-  it('divides the value step’s groups, each still named', async () => {
+describe('QueryField value step hint', () => {
+  it('shows the pending chip’s hint, announced, in place of No suggestions', async () => {
     render(
       <Harness
-        pendingChip={{ id: 'venue', label: 'Venue is' }}
-        suggest={() => [
-          emptiness,
-          { id: 'values', label: 'Venue', items: [iguana] }
+        pendingChip={{ id: 'sold', label: 'Sold is', hint: 'Type a number.' }}
+        suggest={() => []}
+      />
+    )
+    await userEvent.click(input())
+    const hint = await screen.findByText('Type a number.')
+    expect(hint).toHaveAttribute('role', 'status')
+    expect(hint).toHaveAttribute('aria-live', 'polite')
+    expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
+  })
+
+  it('shows the hint until a value is listed', async () => {
+    render(
+      <Harness
+        pendingChip={{ id: 'venue', label: 'Venue is', hint: 'Type a venue.' }}
+        suggest={(text) => [
+          { id: 'values', label: 'Venue', items: text ? [hall] : [] }
         ]}
       />
     )
     await userEvent.click(input())
-    await screen.findByRole('option', { name: iguana.label })
-    expect(optionNames()).toEqual(['Empty', 'Not empty', iguana.label])
-    const empty = screen.getByRole('group', { name: 'Empty' })
-    const values = screen.getByRole('group', { name: 'Venue' })
-    expect(dividers()).toHaveLength(1)
-    const [divider] = dividers()
-    expect(
-      empty.compareDocumentPosition(divider!) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy()
-    expect(
-      divider!.compareDocumentPosition(values) &
-        Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy()
+    await screen.findByText('Type a venue.')
+    await userEvent.keyboard('hal')
+    await screen.findByRole('option', { name: hall.label })
+    expect(screen.queryByText('Type a venue.')).not.toBeInTheDocument()
+    expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
   })
 
-  it('divides no groups outside the value step', async () => {
-    render(<Harness />)
-    await typeInto('igua')
-    await screen.findByRole('group', { name: 'Fields' })
-    expect(dividers()).toHaveLength(0)
+  it('shows the hint below the values once typed text leaves Enter nothing', async () => {
+    const perth: QueryFieldSuggestion = {
+      id: 'perth',
+      label: 'Perth',
+      kind: 'filter',
+      value: 'perth',
+      selected: true
+    }
+    render(
+      <Harness
+        initialChips={[city]}
+        pendingChip={{
+          id: 'city',
+          label: 'City is',
+          chipId: 'city',
+          hint: 'Perth is already in this filter.'
+        }}
+        suggest={() => [{ id: 'values', label: 'City', items: [perth] }]}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: 'Perth' })
+    expect(
+      screen.queryByText('Perth is already in this filter.')
+    ).not.toBeInTheDocument()
+    await userEvent.keyboard('per')
+    expect(
+      await screen.findByText('Perth is already in this filter.')
+    ).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Perth' })).toBeInTheDocument()
+  })
+
+  it('says it is loading, not the hint, while values load', async () => {
+    const values = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    render(
+      <Harness
+        pendingChip={{ id: 'sold', label: 'Sold is', hint: 'Type a number.' }}
+        suggest={() => values.promise}
+      />
+    )
+    await userEvent.click(input())
+    expect(await screen.findByText('Loading suggestions')).toBeInTheDocument()
+    expect(screen.queryByText('Type a number.')).not.toBeInTheDocument()
+    await act(async () => values.resolve([]))
+    expect(screen.getByText('Type a number.')).toBeInTheDocument()
   })
 })
 
@@ -1375,21 +1506,14 @@ function TypedValueStep(props: HarnessProps) {
   return (
     <Harness
       pendingChip={{ id: 'venue', label: 'Venue is' }}
-      suggest={(text) => [
-        emptiness,
-        {
-          id: 'values',
-          label: 'Venue',
-          items: text === 'empty' ? [] : [hall, iguana]
-        }
-      ]}
+      suggest={() => [{ id: 'values', label: 'Venue', items: [hall, iguana] }]}
       {...props}
     />
   )
 }
 
 describe('QueryField value step Enter', () => {
-  it('takes the first value the text matches on Enter, past Empty and Not empty', async () => {
+  it('takes the first value the text matches on Enter', async () => {
     const onAccept = vi.fn()
     render(<TypedValueStep onAccept={onAccept} />)
     await typeInto('hal')
@@ -1415,15 +1539,6 @@ describe('QueryField value step Enter', () => {
     expect(onAccept).toHaveBeenCalledExactlyOnceWith(exactIguana)
   })
 
-  it('takes Empty on Enter when the text matches nothing else', async () => {
-    const onAccept = vi.fn()
-    render(<TypedValueStep onAccept={onAccept} />)
-    await typeInto('empty')
-    await waitFor(() => expect(hinted()).toEqual(['Empty']))
-    await userEvent.keyboard('{Enter}')
-    expect(onAccept).toHaveBeenCalledExactlyOnceWith(emptiness.items[0])
-  })
-
   it('takes nothing on Enter before anything is typed', async () => {
     const onAccept = vi.fn()
     render(<TypedValueStep onAccept={onAccept} />)
@@ -1439,8 +1554,55 @@ describe('QueryField value step Enter', () => {
     render(<TypedValueStep onAccept={onAccept} />)
     await typeInto('hal')
     await screen.findByRole('option', { name: hall.label })
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(iguana)
+  })
+
+  it('takes an exact row on Enter before anything is typed', async () => {
+    const onAccept = vi.fn()
+    const empty: QueryFieldSuggestion = {
+      id: 'venue:empty',
+      label: 'Venue is empty',
+      kind: 'filter',
+      value: 'empty',
+      exact: true
+    }
+    render(
+      <TypedValueStep
+        onAccept={onAccept}
+        suggest={() => [{ id: 'values', label: 'Venue', items: [empty] }]}
+      />
+    )
+    await userEvent.click(input())
+    await waitFor(() => expect(hinted()).toEqual([empty.label]))
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(empty)
+  })
+
+  it('never takes a row that opens an editor on Enter after typing', async () => {
+    const onAccept = vi.fn()
+    const customDates: QueryFieldSuggestion = {
+      id: 'edit:starts',
+      label: 'Custom dates',
+      kind: 'filter',
+      value: 'edit',
+      opensEditor: true
+    }
+    render(
+      <TypedValueStep
+        onAccept={onAccept}
+        suggest={() => [
+          { id: 'values', label: 'Starts', items: [customDates] }
+        ]}
+      />
+    )
+    await typeInto('zzz')
+    await screen.findByRole('option', { name: 'Custom dates' })
+    expect(hinted()).toEqual([])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).not.toHaveBeenCalled()
     await userEvent.keyboard('{ArrowDown}{Enter}')
-    expect(onAccept).toHaveBeenCalledExactlyOnceWith(emptiness.items[0])
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(customDates)
   })
 
   it('takes no value found for older text', async () => {
@@ -1486,7 +1648,13 @@ describe('QueryField operators, edge keys', () => {
 
   it('leaves a modified or composing Tab alone', async () => {
     const onPendingOperatorChange = vi.fn()
-    render(<OperatorStep onPendingOperatorChange={onPendingOperatorChange} />)
+    const onPendingChipCancel = vi.fn()
+    render(
+      <OperatorStep
+        onPendingOperatorChange={onPendingOperatorChange}
+        onPendingChipCancel={onPendingChipCancel}
+      />
+    )
     await userEvent.click(input())
     await screen.findByRole('listbox')
     for (const init of [
@@ -1498,6 +1666,7 @@ describe('QueryField operators, edge keys', () => {
     ])
       fireEvent.keyDown(input(), { key: 'Tab', ...init })
     expect(onPendingOperatorChange).not.toHaveBeenCalled()
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
   })
 
   it('announces a change of operator', async () => {
@@ -1649,6 +1818,29 @@ describe('QueryField chip editing', () => {
     expect(screen.getByRole('listbox')).toBeInTheDocument()
   })
 
+  it('closes the values once a take ends the edit, as for a chip holding one value', async () => {
+    function OneValue() {
+      const [editing, setEditing] = useState(true)
+      return (
+        <Harness
+          initialChips={[city]}
+          pendingChip={
+            editing
+              ? { id: 'city', label: 'City is', chipId: 'city' }
+              : undefined
+          }
+          suggest={() => [{ id: 'values', label: 'City', items: [hobart] }]}
+          onAccept={() => setEditing(false)}
+        />
+      )
+    }
+    render(<OneValue />)
+    await userEvent.click(input())
+    await userEvent.click(await screen.findByRole('option', { name: 'Hobart' }))
+    expect(chipElement('city')).not.toHaveAttribute('data-selected')
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+  })
+
   it('closes the values once one is taken for a new filter', async () => {
     render(<CityEditing editing={false} />)
     await userEvent.click(input())
@@ -1726,7 +1918,7 @@ describe('QueryField chip editing', () => {
     expect(onPendingChipCancel).not.toHaveBeenCalled()
   })
 
-  it('keeps a step for a new filter as focus leaves', async () => {
+  it('ends a step for a new filter as focus leaves', async () => {
     const onPendingChipCancel = vi.fn()
     render(
       <>
@@ -1738,13 +1930,99 @@ describe('QueryField chip editing', () => {
       </>
     )
     await userEvent.click(input())
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
-    onTestFinished(() => {
-      vi.useRealTimers()
+    await userEvent.click(screen.getByText('Outside'))
+    await waitFor(() => expect(onPendingChipCancel).toHaveBeenCalledTimes(1))
+  })
+
+  describe.each([
+    ['a new filter', false],
+    ['an edited chip', true]
+  ])('a step for %s', (_, editing) => {
+    function Step({ onCancel }: { onCancel: () => void }) {
+      return (
+        <>
+          <CityEditing editing={editing} onPendingChipCancel={onCancel} />
+          <button type='button'>Outside</button>
+          <p>Elsewhere</p>
+        </>
+      )
+    }
+
+    it('ends as focus moves to something outside the field', async () => {
+      const onCancel = vi.fn()
+      render(<Step onCancel={onCancel} />)
+      await userEvent.click(input())
+      await screen.findByRole('listbox')
+      act(() => screen.getByText('Outside').focus())
+      await waitFor(() => expect(onCancel).toHaveBeenCalledTimes(1))
     })
-    screen.getByText('Outside').focus()
-    settleFocus()
-    expect(onPendingChipCancel).not.toHaveBeenCalled()
+
+    // As an iPhone's keyboard is put away: the input blurs, and nothing takes focus.
+    it('stays as the input blurs with nothing new focused', async () => {
+      const onCancel = vi.fn()
+      render(<Step onCancel={onCancel} />)
+      await userEvent.click(input())
+      await screen.findByRole('listbox')
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      onTestFinished(() => {
+        vi.useRealTimers()
+      })
+      act(() => input().blur())
+      expect(document.activeElement).toBe(document.body)
+      settleFocus()
+      expect(onCancel).not.toHaveBeenCalled()
+    })
+
+    it('ends as a press lands outside the field and its list', async () => {
+      const onCancel = vi.fn()
+      render(<Step onCancel={onCancel} />)
+      await userEvent.click(input())
+      await screen.findByRole('listbox')
+      fireEvent.pointerDown(screen.getByText('Elsewhere'))
+      expect(onCancel).toHaveBeenCalledTimes(1)
+    })
+
+    it('stays as a press lands in the list’s padding', async () => {
+      const onCancel = vi.fn()
+      render(<Step onCancel={onCancel} />)
+      await userEvent.click(input())
+      const popup = (await screen.findByRole('listbox')).closest(
+        '[data-slot=combobox-popup]'
+      )!
+      fireEvent.pointerDown(popup)
+      expect(onCancel).not.toHaveBeenCalled()
+    })
+  })
+
+  it('ends a later step on a press outside while focus never left', async () => {
+    const onPendingChipCancel = vi.fn()
+    function Steps() {
+      const [step, setStep] = useState(true)
+      return (
+        <>
+          <Harness
+            pendingChip={step ? { id: 'venue', label: 'Venue is' } : undefined}
+            onPendingChipCancel={() => {
+              setStep(false)
+              onPendingChipCancel()
+            }}
+          />
+          <p>Elsewhere</p>
+          <button type='button' onClick={() => setStep(true)}>
+            Start
+          </button>
+        </>
+      )
+    }
+    render(<Steps />)
+    await userEvent.click(input())
+    fireEvent.pointerDown(screen.getByText('Elsewhere'))
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+    expect(document.activeElement).toBe(input())
+    // A click alone, as a keyboard would pick the next field.
+    fireEvent.click(screen.getByText('Start'))
+    fireEvent.pointerDown(screen.getByText('Elsewhere'))
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(2)
   })
 
   it('leaves the step alone once the field unmounts as focus leaves', async () => {
@@ -1789,6 +2067,82 @@ describe('QueryField chip editing', () => {
     expect(onAccept).toHaveBeenLastCalledWith(
       expect.objectContaining({ id: 'perth' })
     )
+  })
+
+  it('ends the edit on Enter with no new value to take, closing the values', async () => {
+    const onAccept = vi.fn()
+    const onPendingChipCancel = vi.fn()
+    render(
+      <CityEditing
+        onAccept={onAccept}
+        onPendingChipCancel={onPendingChipCancel}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: 'Perth' })
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+    await userEvent.keyboard('perth')
+    await screen.findByRole('option', { name: 'Perth' })
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(2)
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+    expect(onAccept).not.toHaveBeenCalled()
+    expect(chipNames()).toEqual(['Status is On sale', 'City is Perth'])
+  })
+
+  it('keeps the edit on Enter while typed text matches no value, so its hint stays', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(<CityEditing onPendingChipCancel={onPendingChipCancel} />)
+    await typeInto('zzz')
+    await waitFor(() => expect(optionNames()).toEqual([]))
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
+  })
+
+  it('ends the edit on Enter in the empty field with no values to list', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(
+      <QueryField
+        aria-label='Search orders'
+        chips={[{ id: 'sold', label: 'Sold is more than 50' }]}
+        pendingChip={{
+          id: 'sold',
+          label: 'Sold is more than',
+          chipId: 'sold',
+          hint: 'Type a number.'
+        }}
+        onPendingChipCancel={onPendingChipCancel}
+        suggest={() => []}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByText('Type a number.')
+    await userEvent.keyboard('{Enter}')
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the edit on Enter while the typed text’s values are on their way', async () => {
+    const later = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    const onPendingChipCancel = vi.fn()
+    render(
+      <QueryField
+        aria-label='Search orders'
+        chips={[{ id: 'city', label: 'City is Perth' }]}
+        pendingChip={{ id: 'city', label: 'City is', chipId: 'city' }}
+        onPendingChipCancel={onPendingChipCancel}
+        suggest={(text) =>
+          text
+            ? later.promise
+            : [{ id: 'values', label: 'City', items: [perth, hobart] }]
+        }
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: 'Hobart' })
+    await userEvent.keyboard('zzz{Enter}')
+    expect(onPendingChipCancel).not.toHaveBeenCalled()
   })
 
   it('keeps the edited chip on Escape, ending the step', async () => {
