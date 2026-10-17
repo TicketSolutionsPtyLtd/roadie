@@ -48,9 +48,14 @@ function staticBranches(node) {
   return value === undefined ? [] : [value]
 }
 
-// Navigator.Item renders its icon duotone, so it takes the icon bare.
+const BRANCHING = new Set(['ConditionalExpression', 'LogicalExpression'])
+
+// Navigator.Item renders its icon duotone, so it takes the icon bare, even
+// as a fallback such as icon={icons[href] ?? <HouseIcon />}.
 function isNavigatorItemIcon(openingElement) {
-  const attribute = openingElement.parent.parent?.parent
+  let node = openingElement.parent
+  while (BRANCHING.has(node.parent?.type)) node = node.parent
+  const attribute = node.parent?.parent
   const element = attribute?.parent?.name
   return (
     attribute?.type === 'JSXAttribute' &&

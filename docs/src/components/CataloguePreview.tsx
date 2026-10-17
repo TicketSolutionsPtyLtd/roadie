@@ -6,8 +6,10 @@ import { ChartPreview } from './ChartPreview'
 import { ComponentSkeleton, Skel } from './ComponentSkeleton'
 import { ContentPreview } from './ContentPreview'
 import { FoundationPreview } from './FoundationPreview'
+import { BrandPreview } from './brand/BrandPreview'
 
 const ART_BY_ROUTE: Record<string, (props: { name: string }) => ReactNode> = {
+  '/brand': BrandPreview,
   '/components': ComponentSkeleton,
   '/foundations': FoundationPreview,
   '/content': ContentPreview,

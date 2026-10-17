@@ -2,6 +2,8 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { Toast } from '@oztix/roadie-components/toast'
+
 import { DocsNavigator, type NavigationDestination } from './Navigation'
 
 const location = vi.hoisted(() => ({ pathname: '/' }))
@@ -49,15 +51,18 @@ const destinations: NavigationDestination[] = [
 
 function renderAt(route: string, pageWide: Record<string, boolean> = {}) {
   location.pathname = route
+  // The header's agent menu confirms a copy with a toast.
   render(
-    <DocsNavigator
-      items={destinations}
-      pageTitles={{ [route]: 'Page' }}
-      pageWide={pageWide}
-      markdownTwins={{}}
-    >
-      <p>Body</p>
-    </DocsNavigator>
+    <Toast.Provider>
+      <DocsNavigator
+        items={destinations}
+        pageTitles={{ [route]: 'Page' }}
+        pageWide={pageWide}
+        markdownTwins={{}}
+      >
+        <p>Body</p>
+      </DocsNavigator>
+    </Toast.Provider>
   )
 }
 

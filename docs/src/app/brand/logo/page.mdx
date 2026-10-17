@@ -1,0 +1,266 @@
+export const metadata = {
+  title: 'Logo',
+  description:
+    'The Oztix logo, its primary and secondary lockups, colours, clear space, minimum sizes, and downloads.',
+  category: 'Brand',
+  order: 3
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { BrandFigure } from '@/components/brand/BrandFigure'
+import { BrandFigureGrid } from '@/components/brand/BrandFigureGrid'
+import { DownloadCard } from '@/components/brand/DownloadCard'
+import { LogoExample } from '@/components/brand/LogoExample'
+
+<BrandFigureGrid>
+
+<BrandFigure
+  src='/brand/logo/primary-tagline.svg'
+  width='520'
+  height='80'
+  alt='The blue logo with tagline on white'
+  caption='Brand, on white or light backgrounds. The first choice.'
+/>
+<BrandFigure
+  src='/brand/logo/on-light-dark.svg'
+  width='520'
+  height='80'
+  alt='The dark logo with tagline on white'
+  caption='Dark, for one colour print and beside other neutral logos.'
+/>
+<BrandFigure
+  src='/brand/logo/on-dark-light.svg'
+  width='520'
+  height='80'
+  alt='The light logo with tagline on black'
+  caption='Light, on dark backgrounds and photos.'
+/>
+<BrandFigure
+  src='/brand/logo/on-brand-light.svg'
+  width='520'
+  height='80'
+  alt='The light logo with tagline on Spotlight blue'
+  caption='Light, on Spotlight blue and other colour fills.'
+/>
+
+</BrandFigureGrid>
+
+The logo is the most recognisable part of the brand. Using it the same way
+every time keeps Oztix work professional and easy to recognise.
+
+## Lockups
+
+The logo is the logomark, a swirl, beside the wordmark, "oztix", with the
+tagline Built on Partnerships wherever there's room. The tagline keeps its
+title case.
+
+<BrandFigureGrid>
+
+<BrandFigure
+  src='/brand/logo/primary.svg'
+  frame
+  width='216'
+  height='80'
+  alt='The primary logo, with the logomark to the left of the wordmark'
+  caption='Primary. The logo for most work.'
+/>
+<BrandFigure
+  src='/brand/logo/secondary-tagline.svg'
+  frame
+  width='96'
+  height='114'
+  alt='The secondary logo, with the logomark above the wordmark and the tagline below'
+  caption='Secondary, stacked. For square or narrow spaces, such as a profile picture or an app icon.'
+/>
+
+</BrandFigureGrid>
+
+## Choosing a logo
+
+Start with the primary logo and tagline, in blue, on white or a transparent
+background. Make sure it contrasts clearly with what's behind it, and once a
+campaign has a logo, use the same one across all of it.
+
+## Clear space and size
+
+Leave clear space around the logo equal to the height of the x in "oztix", and
+keep text, images, and edges out of it.
+
+<LogoExample kind='clearSpace' version='do' />
+
+The minimums are the same with or without the tagline. Product interfaces can
+set the primary logo at 20px tall; marketing and partner work keeps 24px.
+
+| Logo      | Screen    | Print    |
+| --------- | --------- | -------- |
+| Primary   | 24px tall | 1cm tall |
+| Secondary | 48px wide | 2cm wide |
+
+## Special uses
+
+A social profile uses the secondary logo in blue on a dark square, and a
+favicon uses the logomark in white on blue.
+
+<BrandFigureGrid columns='3'>
+
+<BrandFigure
+  src='/brand/logo/social-profile.svg'
+  frame
+  width='256'
+  height='256'
+  alt='A social profile picture, the secondary logo in blue on a dark square'
+  caption='Social profile'
+/>
+<BrandFigure
+  src='/brand/logo/favicon.svg'
+  frame
+  width='256'
+  height='256'
+  alt='The favicon, the white logomark on a blue square'
+  caption='Favicon'
+/>
+
+</BrandFigureGrid>
+
+## Downloads
+
+Both packs hold SVG files, which scale to any size, and EPS files of the
+primary and secondary logos for print tools. The EPS files keep the screen
+colours and are cropped to the artwork, so set print colours from
+[Colour](/brand/colour) and leave the clear space yourself.
+
+<BrandFigureGrid>
+
+<DownloadCard
+  title='Logo pack'
+  href='/brand/logo/oztix-logo-pack.zip'
+  formats='SVG and EPS'
+  size='511 KB'
+  description='Primary and secondary logos, each element, versions on light, dark, and brand backgrounds, and the social and favicon files.'
+/>
+<DownloadCard
+  title='Partner logo pack'
+  href='/brand/logo/oztix-partner-logo-pack.zip'
+  formats='SVG and EPS'
+  size='29 KB'
+  description='Primary and secondary logos in brand, dark, and light, with clear space built into the SVG files. Send this one to partners.'
+/>
+
+</BrandFigureGrid>
+
+Share the logo for co-branded promotion and to recognise a partnership. Always
+send the partner logo pack, never a single file, an old version, or an edited
+logo.
+
+## Guidelines
+
+Use the files as they are. Each pair shows the logo used well beside a common
+mistake.
+
+<Guidelines>
+
+<Guideline title='Keep the brand colours'>
+  <Guideline.Do example={<LogoExample kind='colour' version='do' />}>
+    Use the logo in Spotlight blue, or in dark or light where the background calls for it.
+  </Guideline.Do>
+  <Guideline.Dont example={<LogoExample kind='colour' version='dont' />}>
+    Recolour the logo, even in another brand colour.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep it flat'>
+  <Guideline.Do example={<LogoExample kind='effects' version='do' />}>
+    Set the logo flat, with no effects.
+  </Guideline.Do>
+  <Guideline.Dont example={<LogoExample kind='effects' version='dont' />}>
+    Add a shadow, glow, or any other effect.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Give it a clear background'>
+  <Guideline.Do example={<LogoExample kind='background' version='do' />}>
+    Set the logo on a plain surface, or on the black strip that pairs with the pattern.
+  </Guideline.Do>
+  <Guideline.Dont example={<LogoExample kind='background' version='dont' />}>
+    Place the logo over the pattern or a busy photo, where it gets lost.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title="Don't stretch it">
+  <Guideline.Do example={<LogoExample kind='stretch' version='do' />}>
+    Scale the logo evenly, at its own proportions.
+  </Guideline.Do>
+  <Guideline.Dont example={<LogoExample kind='stretch' version='dont' />}>
+    Squash or stretch the logo in one direction.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep it level'>
+  <Guideline.Do example={<LogoExample kind='rotate' version='do' />}>
+    Set the logo level with the layout.
+  </Guideline.Do>
+  <Guideline.Dont example={<LogoExample kind='rotate' version='dont' />}>
+    Tilt or rotate the logo.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep the parts in order'>
+  <Guideline.Do example={<LogoExample kind='rearrange' version='do' />}>
+    Set the logo, then the divider, then the tagline, as the files draw them.
+  </Guideline.Do>
+  <Guideline.Dont example={<LogoExample kind='rearrange' version='dont' />}>
+    Move the tagline before the logo, or resize its parts.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep the logomark'>
+  <Guideline.Do example={<LogoExample kind='wordmark' version='do' />}>
+    Use the full logo, with the logomark.
+  </Guideline.Do>
+  <Guideline.Dont example={<LogoExample kind='wordmark' version='dont' />}>
+    Use the wordmark on its own.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Save the logomark for icons'>
+  <Guideline.Do example={<LogoExample kind='logomark' version='do' />}>
+    Use the logomark alone only as a favicon or app icon.
+  </Guideline.Do>
+  <Guideline.Dont example={<LogoExample kind='logomark' version='dont' />}>
+    Use the logomark alone as the logo in a layout.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## In code
+
+The [Logo](/components/logo) component draws every lockup, so apps never need
+the files. Its page has the full API.
+
+```tsx-live layout=stack gap=6
+{/* Primary */}
+<Logo />
+{/* With the tagline */}
+<Logo variant='tagline' size='sm' />
+{/* Secondary, stacked */}
+<Logo variant='tagline' direction='vertical' size='xl' />
+```
+
+`tone` picks the colour for the background: `brand`, `dark`, `light`, or
+`neutral`, which follows the theme.
+
+```tsx-live layout=stack gap=4
+{/* Brand */}
+<Logo tone='brand' variant='tagline' size='sm' />
+{/* Dark */}
+<div className='rounded-lg bg-(--color-neutral-light-0) p-6'>
+  <Logo tone='dark' variant='tagline' size='sm' />
+</div>
+{/* Light */}
+<div className='rounded-lg bg-(--color-neutral-light-13) p-6'>
+  <Logo tone='light' variant='tagline' size='sm' />
+</div>
+{/* Neutral */}
+<Logo tone='neutral' variant='tagline' size='sm' />
+```

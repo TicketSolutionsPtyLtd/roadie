@@ -62,9 +62,9 @@ In a config, each rule takes the `roadie/` prefix, such as `roadie/no-dark-varia
 
 [Iconography](/foundations/iconography) says which weight goes where, [Colors](/foundations/colors) why `.dark` needs no variant, [Elevation](/foundations/elevation) lists the z tiers, and [Shape](/foundations/shape) the radius tiers.
 
-The class rules read `className`, any prop ending in `ClassName`, and the arguments of `cn`, `clsx`, `cva`, `cx`, and `twMerge`. `roadie/no-arbitrary-radius` also fails a raw length, such as `[--card-radius:10px]`, in a variable that a `rounded-(--card-radius)` class reads.
+The class rules read `className`, any prop ending in `ClassName`, and the arguments of `cn`, `clsx`, `cva`, `cx`, `tv`, and `twMerge`. They also read a `const` those name, such as `variants` in `cn(variants[size])`, when it holds a string, array, or object. They follow one constant, not a constant built from another, and don't read CSS, so `@apply` goes unchecked. `roadie/no-arbitrary-radius` also fails a raw length, such as `[--card-radius:10px]`, in a variable that a `rounded-(--card-radius)` class reads.
 
-Two icon rules skip a case on purpose. `roadie/phosphor-icon-weight` skips an icon passed to `Navigator.Item`, because Navigator sets its own weight. `roadie/phosphor-icon-size-prop` allows `size='100%'`, which fills an SVG around the icon, such as a QR code's centre mark.
+Two icon rules skip a case on purpose. `roadie/phosphor-icon-weight` skips an icon passed to `Navigator.Item`, including one in a fallback such as `icon={icons[href] ?? <HouseIcon />}`, because Navigator sets its own weight. An icon built elsewhere, such as in a map of icons, still fails, so disable the rule around it and say why. `roadie/phosphor-icon-size-prop` allows `size='100%'`, which fills an SVG around the icon, such as a QR code's centre mark.
 
 ## Icons without an import
 

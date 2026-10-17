@@ -9,6 +9,12 @@ import {
   viewMeilisearchExample,
   viewSearchParamsExample
 } from '../src/components/records/example.ts'
+import {
+  BRAND_HUES,
+  type BrandHue,
+  brandColourTable
+} from '../src/lib/brand-colours.ts'
+import { BRAND_ILLUSTRATIONS } from '../src/lib/brand-illustrations.ts'
 import { cardSizeTable } from '../src/lib/card-sizes.ts'
 import {
   DATAVIZ_STRIPS,
@@ -95,7 +101,22 @@ export const twinTableMarkdown = ({ head, rows }: TwinTable) =>
 export const DATA_RENDERERS: Record<string, Renderer> = {
   AccentScales: () =>
     twinTableMarkdown(accentDefaultsTable(tokens(), DEFAULT_ACCENT_COLOR)),
+  BrandSwatches: ({ hue }) => {
+    if (typeof hue !== 'string' || !Object.hasOwn(BRAND_HUES, hue))
+      throw new Error(`<BrandSwatches hue="${hue}"> names no brand hue`)
+    return twinTableMarkdown(brandColourTable(tokens(), hue as BrandHue))
+  },
   BreakpointScale: () => twinTableMarkdown(breakpointTable(tokens())),
+  IllustrationLibrary: () =>
+    twinTableMarkdown({
+      head: ['Illustration', 'Tags', 'SVG', 'Component'],
+      rows: BRAND_ILLUSTRATIONS.map(({ slug, label, tags, component }) => [
+        label,
+        tags.join(', '),
+        [{ code: `/brand/illustrations/${slug}.svg` }],
+        component ? [{ code: component }] : ''
+      ])
+    }),
   ContainerScale: () => twinTableMarkdown(containerTable(tokens())),
   DurationScale: () => twinTableMarkdown(durationTable(tokens())),
   EasingScale: () => twinTableMarkdown(easingTable(tokens())),
