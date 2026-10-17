@@ -242,51 +242,53 @@ function QueryFieldLocked() {
 
 ### With chip editing
 
-Pass `onEditChip` and each unlocked chip gets an edit button. Open your editor
-in a `Popover` against the chip it hands you, and send focus back to the chip
-when it closes.
+Pass `onSelectChip` and a click, Enter or Space on an unlocked chip selects it.
+Start a value step for the chip's field with `pendingChip.chipId` naming it:
+the list opens, the chip shows selected in place of a pending chip, and the
+list stays open as values are taken, so several can be ticked and unticked.
+Mark the values the chip holds `selected`, and toggle them in `onAccept`.
+Enter on typed text takes the first value not ticked, so only an arrow or a
+click unticks one.
+Backspace on the empty field removes the chip; Escape, or focus leaving the
+field, ends the step and keeps it.
 
 ```tsx-live
 function QueryFieldChipEditing() {
   const statuses = ['On sale', 'Sold out', 'Postponed']
-  const [status, setStatus] = useState('On sale')
-  const [open, setOpen] = useState(false)
-  const [anchor, setAnchor] = useState(null)
+  const [chosen, setChosen] = useState(['On sale'])
+  const [editing, setEditing] = useState(false)
+  const chips = chosen.length > 0 ? [{ id: 'status', label: `Status is ${chosen.join(' or ')}` }] : []
+
+  function toggle(status) {
+    const next = chosen.includes(status) ? chosen.filter((each) => each !== status) : [...chosen, status]
+    setChosen(next)
+    if (next.length === 0) setEditing(false)
+  }
 
   return (
-    <>
-      <QueryField
-        aria-label='Search events'
-        chips={[{ id: 'status', label: `Status is ${status}` }]}
-        suggest={() => []}
-        onEditChip={(id, element) => {
-          setAnchor(element)
-          setOpen(true)
-        }}
-      />
-      <Popover open={open} onOpenChange={setOpen}>
-        <Popover.Portal>
-          <Popover.Positioner anchor={anchor} side='bottom' align='start'>
-            <Popover.Popup finalFocus={() => anchor}>
-              <Popover.Body>
-                <RadioGroup
-                  aria-label='Status'
-                  value={status}
-                  onValueChange={(value) => {
-                    setStatus(value)
-                    setOpen(false)
-                  }}
-                >
-                  {statuses.map((option) => (
-                    <RadioGroup.Item key={option} value={option} label={option} />
-                  ))}
-                </RadioGroup>
-              </Popover.Body>
-            </Popover.Popup>
-          </Popover.Positioner>
-        </Popover.Portal>
-      </Popover>
-    </>
+    <QueryField
+      aria-label='Search events'
+      chips={chips}
+      onRemoveChip={() => {
+        setChosen([])
+        setEditing(false)
+      }}
+      onSelectChip={() => setEditing(true)}
+      pendingChip={editing ? { id: 'status', label: 'Status is', chipId: 'status' } : undefined}
+      onPendingChipCancel={() => setEditing(false)}
+      suggest={(text) => [
+        {
+          id: 'statuses',
+          label: 'Status',
+          items: (editing ? statuses : [])
+            .filter((status) => status.toLowerCase().includes(text.trim().toLowerCase()))
+            .map((status) => ({ id: status, label: status, kind: 'filter', value: status, selected: chosen.includes(status) })),
+        },
+      ]}
+      onAccept={(suggestion) => {
+        if (suggestion.kind === 'filter') toggle(suggestion.value)
+      }}
+    />
   )
 }
 ```
@@ -475,8 +477,13 @@ function QueryFieldShortcut() {
   from the start of the input moves to the chips, and **Left** and **Right**
   move between them.
 - On a chip, **Backspace** or **Delete** removes it, and **Enter** or
-  **Space** opens its editor when you pass `onEditChip`. Locked chips ignore
-  all four.
+  **Space** selects it when you pass `onSelectChip`, moving focus to the
+  input, and the list opens once a value step edits the chip. Locked chips
+  ignore all four.
+- While a step edits a chip, **Backspace** in the empty field removes that
+  chip, and **Escape** ends the step and keeps it, as does focus leaving the
+  field and its list. A `selected` suggestion is
+  `aria-selected`, with a check that stays out of its name.
 - **Escape** closes the suggestions, or ends the value step. With the
   suggestions closed it clears the typed text. It never clears the chips.
 - In a value step with `operators`, while the values show, **Tab** and
@@ -491,7 +498,8 @@ function QueryFieldShortcut() {
 - A locked chip reads "set by this page" after its label, and a chip's
   `description` is read after its label too. A pending chip
   describes the input, so the value step is announced, and it's a live
-  region, so a change of operator is too.
+  region, so a change of operator is too. While a step edits a chip, the
+  pending label is read but not shown.
 - `required` is announced but never blocks a form: an empty search is valid.
 - `shortcut` adds `aria-keyshortcuts` to the input. The key hint beside the
   field is visual only, and hides once the field has focus.

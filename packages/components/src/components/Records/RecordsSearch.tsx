@@ -27,6 +27,7 @@ import {
   pendingLabel,
   sameFilter,
   searchChips,
+  toggleValue,
   topSuggestions,
   valueOperators,
   valueSuggestions
@@ -57,6 +58,27 @@ type Editing = {
   written: RecordFilter[]
   /** Each opening edits afresh. */
   session: number
+}
+
+/** A chip whose values the value step edits in the list. */
+type Selected = {
+  index: number
+  /** The filter as selected and each version written since, as with `Editing`. */
+  written: RecordFilter[]
+}
+
+/** Where a filter, as written, sits now: at its index, or moved. */
+function locate(
+  filters: readonly RecordFilter[],
+  index: number,
+  written: readonly RecordFilter[]
+): number | null {
+  const ours = (filter: RecordFilter) =>
+    written.some((version) => sameFilter(filter, version))
+  const held = filters[index]
+  if (held && ours(held)) return index
+  const found = filters.findIndex(ours)
+  return found >= 0 ? found : null
 }
 
 const MAX_LISTED_VALUES = 1000
@@ -124,8 +146,9 @@ const focusPanel = (popup: HTMLElement) => popup
 /**
  * Search and filter in one field. Typing searches the records' searchable
  * fields and suggests filters, such as a city or "this weekend", that become
- * chips; a chip opens an editor for its operator and value. The page's
- * `scope` shows first, as locked chips.
+ * chips. A selected chip edits its values in the list, or for text, numbers
+ * and Custom dates, in an editor. The page's `scope` shows first, as locked
+ * chips.
  */
 export function RecordsSearch({
   placeholder = 'Search and filter',
@@ -140,6 +163,7 @@ export function RecordsSearch({
   const [pendingOperator, setPendingOperator] = useState<ValueOperator>('is')
   const [stepText, setStepText] = useState('')
   const [editing, setEditing] = useState<Editing | null>(null)
+  const [selected, setSelected] = useState<Selected | null>(null)
   const sessions = useRef(0)
   const emptied = useRef(false)
   // Where focus returns as the editor closes: its chip, or the field.
@@ -223,6 +247,11 @@ export function RecordsSearch({
   const group = () =>
     inputRef.current?.closest<HTMLElement>('[data-slot=query-field]') ?? null
 
+  const chipElement = (id: string) =>
+    group()?.querySelector<HTMLElement>(
+      `[data-slot=combobox-chip][data-chip-id="${CSS.escape(id)}"]`
+    ) ?? null
+
   function openEditor(
     next: Pick<Editing, 'field' | 'index'>,
     anchor: HTMLElement | null
@@ -263,6 +292,74 @@ export function RecordsSearch({
   // An editor waiting for its code gives way to whatever happens next.
   const dropOpening = () => ++sessions.current
 
+  function endStep() {
+    setSelected(null)
+    setPending(null)
+    setStepText('')
+  }
+
+  const selectedAt = selected
+    ? locate(filters, selected.index, selected.written)
+    : null
+  // The chip went, such as with its ✕ or the view replaced, so its step ends.
+  if (selected && selectedAt === null) endStep()
+  const selectedFilter =
+    selectedAt === null ? undefined : selected?.written.at(-1)
+
+  function selectChip(id: string) {
+    const index = chipIds.indexOf(id)
+    const filter = filters[index]
+    const field = filter && byKey.get(filter.field)
+    if (!field) return
+    dropOpening()
+    if (!hasValueStep(field)) {
+      endStep()
+      openEditor({ field: field.key, index }, chipElement(id))
+      return
+    }
+    setSelected({ index, written: [filter] })
+    setPending(field.key)
+    setPendingOperator(
+      isValueOperator(filter.operator) ? filter.operator : 'is'
+    )
+    setStepText('')
+  }
+
+  function writeSelected(next: RecordFilter | null) {
+    if (!selected || selectedAt === null) return
+    if (!next) {
+      records.removeFilter(selectedAt)
+      endStep()
+      return
+    }
+    // Is chips on one field AND, so one rewritten to is takes in the field's is chip.
+    const merged = mergeFilter(
+      filters.filter((_, index) => index !== selectedAt),
+      next,
+      fields
+    )
+    const filter = merged?.filter ?? next
+    // `locate` finds the chip once the other's removal moves it.
+    setSelected({ index: selectedAt, written: [...selected.written, filter] })
+    records.updateFilter(selectedAt, filter)
+    if (merged)
+      records.removeFilter(
+        merged.index < selectedAt ? merged.index : merged.index + 1
+      )
+  }
+
+  function acceptForSelected(value: SearchValue, edited: RecordFilter) {
+    if (value.type === 'filter') {
+      writeSelected(toggleValue(edited, value.filter))
+      return
+    }
+    if (value.type === 'edit' && selectedAt !== null) {
+      const id = chipIds[selectedAt]!
+      endStep()
+      openEditor({ field: value.field, index: selectedAt }, chipElement(id))
+    }
+  }
+
   function accept(suggestion: QueryFieldAccepted<SearchValue>) {
     dropOpening()
     if (suggestion.kind === 'search') {
@@ -270,6 +367,10 @@ export function RecordsSearch({
       return
     }
     const value = suggestion.value
+    if (selectedFilter) {
+      acceptForSelected(value, selectedFilter)
+      return
+    }
     if (value.type === 'field') {
       const field = byKey.get(value.field)
       if (!field) return
@@ -292,14 +393,10 @@ export function RecordsSearch({
     if (!editing || editing.index === null) return null
     const { written, index } = editing
     if (written.length === 0) return index < filters.length ? index : null
-    const ours = (filter: RecordFilter) =>
-      written.some((version) => sameFilter(filter, version))
-    const held = filters[index]
-    if (held && ours(held)) return index
-    const found = filters.findIndex(ours)
-    if (found >= 0) return found
+    const found = locate(filters, index, written)
+    if (found !== null) return found
     // A new filter written but not shown yet.
-    return !held && index === filters.length ? index : null
+    return !filters[index] && index === filters.length ? index : null
   }
   const at = editingAt()
   useIsomorphicLayoutEffect(() => {
@@ -368,29 +465,27 @@ export function RecordsSearch({
           dropOpening()
           records.clearQuery()
         }}
-        onEditChip={(id, anchor) => {
-          const index = chipIds.indexOf(id)
-          const filter = filters[index]
-          if (filter && byKey.has(filter.field))
-            openEditor({ field: filter.field, index }, anchor)
-        }}
+        onSelectChip={selectChip}
         pendingChip={
           pendingField
             ? {
                 id: pendingField.key,
                 label: pendingLabel(pendingField, pendingOperator),
                 operators: valueOperators(pendingField),
-                operator: pendingOperator
+                operator: pendingOperator,
+                chipId: selectedAt === null ? undefined : chipIds[selectedAt]
               }
             : undefined
         }
         onPendingOperatorChange={(operator) => {
-          if (isValueOperator(operator)) setPendingOperator(operator)
+          if (!isValueOperator(operator)) return
+          setPendingOperator(operator)
+          if (selectedFilter && 'values' in selectedFilter)
+            writeSelected({ ...selectedFilter, operator })
         }}
         onPendingChipCancel={() => {
           dropOpening()
-          setPending(null)
-          setStepText('')
+          endStep()
         }}
         inputValue={pendingField ? stepText : records.searchText}
         onInputValueChange={(text) =>
@@ -398,7 +493,21 @@ export function RecordsSearch({
         }
         suggest={(text) =>
           pendingField
-            ? valueSuggestions(pendingField, text, context, pendingOperator)
+            ? valueSuggestions(
+                pendingField,
+                text,
+                selectedAt === null
+                  ? context
+                  : {
+                      ...context,
+                      filters: [
+                        ...records.scope,
+                        ...filters.filter((_, index) => index !== selectedAt)
+                      ]
+                    },
+                pendingOperator,
+                selectedFilter
+              )
             : withFieldIcons(topSuggestions(text, context), byKey)
         }
         onAccept={accept}
@@ -420,12 +529,7 @@ export function RecordsSearch({
           initialFocus={editing.index === null ? focusTarget : focusPanel}
           finalFocus={() => {
             const id = returnTo.current
-            const chip =
-              id &&
-              group()?.querySelector<HTMLElement>(
-                `[data-slot=combobox-chip][data-chip-id="${CSS.escape(id)}"]`
-              )
-            return chip || inputRef.current
+            return (id && chipElement(id)) || inputRef.current
           }}
           className='w-80'
         >

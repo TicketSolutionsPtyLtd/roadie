@@ -29,6 +29,7 @@ export function ComboboxChipRemove({
         // A selected chip is strong, where the intent's own tints vanish, so
         // the ✕ reads and tints in the on-strong colour, like a strong Button's icon.
         'in-[[data-slot=combobox-chip]:focus]:text-on-strong in-[[data-slot=combobox-chip]:focus]:[--intent-3a:color-mix(in_oklch,var(--intent-text-on-strong)_20%,transparent)] in-[[data-slot=combobox-chip]:focus]:[--intent-4a:color-mix(in_oklch,var(--intent-text-on-strong)_30%,transparent)]',
+        'in-[[data-slot=combobox-chip][data-selected]]:text-on-strong in-[[data-slot=combobox-chip][data-selected]]:[--intent-3a:color-mix(in_oklch,var(--intent-text-on-strong)_20%,transparent)] in-[[data-slot=combobox-chip][data-selected]]:[--intent-4a:color-mix(in_oklch,var(--intent-text-on-strong)_30%,transparent)]',
         className
       )}
       {...props}

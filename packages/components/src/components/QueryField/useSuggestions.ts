@@ -29,14 +29,15 @@ function isThenable<T>(value: T | PromiseLike<T>): value is PromiseLike<T> {
   return value != null && typeof (value as PromiseLike<T>).then === 'function'
 }
 
-// Asks again when the text, the open state or the step (the pending field and
-// its operator) changes, not when `suggest` does, so an inline function
-// doesn't loop.
+// Asks again when the text, the open state, the step (the pending field and
+// its operator) or its version changes, not when `suggest` does, so an inline
+// function doesn't loop. A new version keeps the step's suggestions meanwhile.
 export function useSuggestions<Value>(
   suggest: Suggest<Value>,
   inputValue: string,
   open: boolean,
-  step: string | undefined
+  step: string | undefined,
+  version?: string
 ) {
   const suggestRef = useRef(suggest)
   useIsomorphicLayoutEffect(() => {
@@ -70,7 +71,7 @@ export function useSuggestions<Value>(
     return () => {
       current = false
     }
-  }, [inputValue, open, step])
+  }, [inputValue, open, step, version])
 
   const waiting =
     requested !== undefined &&

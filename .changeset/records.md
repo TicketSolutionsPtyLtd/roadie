@@ -80,11 +80,18 @@ negation, such as "city is not melb", suggests "City is not Melbourne". A
 field named in full, such as "sold", lists before values that start with its
 name, such as Sold out, unless a filter reads the words after it, as in
 "city melb". Text naming a filter already applied still suggests it, marked
-Already applied, and taking it clears those words and adds nothing. Each chip opens an editor for its condition and value as they change (a list of values, a date
-range picker with relative presets, a date picker, a number, text, or Yes and
-No), in a popover under the chip or a bottom drawer on a phone, with Remove
-filter; a filter whose values are cleared is removed as its editor closes,
-and the editor loads while the page is idle. A relative date chip shows its dates
+Already applied, and taking it clears those words and adds nothing. Clicking an option,
+boolean or date chip, or Enter on it, edits it in the list: the chip shows
+selected, its values are ticked, taking a value ticks or unticks it (the last
+one unticked removes the chip, and Enter on typed text only ticks), is and is not rewrite its condition (one
+changed to is joins the field's is chip), and a boolean's answer, a quick
+date, Empty or Not empty replaces what it holds.
+Backspace in the empty field removes it, and Escape or leaving the field keeps
+it. Custom dates
+opens a date range picker with relative presets, or a date picker, for the
+chip, and a text or number chip opens its editor for its condition and value
+as they change; both sit in a popover under the chip or a bottom drawer on a
+phone, with Remove filter, and load while the page is idle. A relative date chip shows its dates
 in a tooltip, and a filter the fields can't apply shows in warning colours.
 `/` focuses the search unless `shortcut` (or `searchShortcut` on
 `Records.Toolbar` and `RecordTable`) says otherwise, and Clear and Escape
