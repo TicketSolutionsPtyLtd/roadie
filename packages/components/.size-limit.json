@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "254.1 kB"
+    "limit": "257.4 kB"
   },
   {
     "name": "Single component (Button)",
@@ -259,14 +259,14 @@
     "name": "DatePicker",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "34.6 kB",
+    "limit": "34.8 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DashboardPeriod",
     "path": "dist/components/DashboardPeriod/index.js",
     "import": "*",
-    "limit": "44.4 kB",
+    "limit": "44.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -280,28 +280,28 @@
     "name": "QueryField",
     "path": "dist/components/QueryField/index.js",
     "import": "*",
-    "limit": "15 kB",
+    "limit": "17.1 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Records",
     "path": "dist/components/Records/index.js",
     "import": "*",
-    "limit": "84.2 kB",
+    "limit": "70.05 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordGrid",
     "path": "dist/components/RecordGrid/index.js",
     "import": "*",
-    "limit": "116.8 kB",
+    "limit": "103.95 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordTable",
     "path": "dist/components/RecordTable/index.js",
     "import": "*",
-    "limit": "124.7 kB",
+    "limit": "112 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]

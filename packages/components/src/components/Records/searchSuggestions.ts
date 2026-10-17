@@ -1,4 +1,4 @@
-import type { DateRangeValue } from '@oztix/roadie-core/datetime'
+import { type DateRangeValue, plainDateOf } from '@oztix/roadie-core/datetime'
 import {
   type RecordField,
   type RecordFilter,
@@ -11,6 +11,8 @@ import {
   recordOperatorLabel
 } from '@oztix/roadie-core/records'
 
+import { readDays } from '../../pickers/readDate'
+import { suggestDates } from '../../pickers/suggestDates'
 import type {
   QueryFieldChip,
   QueryFieldOperator,
@@ -21,10 +23,7 @@ import { describeFilter } from './clock'
 
 /** What a search suggestion does once taken. */
 export type SearchValue =
-  | { type: 'filter'; filter: RecordFilter }
-  | { type: 'field'; field: string }
-  /** Opens the editor for a new filter on the field, such as "Custom dates". */
-  | { type: 'edit'; field: string }
+  { type: 'filter'; filter: RecordFilter } | { type: 'field'; field: string }
 
 export type SearchSuggestion = QueryFieldSuggestion<SearchValue>
 export type SearchGroup = QueryFieldSuggestionGroup<SearchValue>
@@ -78,7 +77,26 @@ export type ValueOperator =
   | 'lt'
   | 'gt'
   | 'between'
+  | DateOperator
   | EmptinessOperator
+
+type DateOperator = 'within' | 'on' | 'before' | 'after'
+
+/** A date step's conditions: quick dates under is relative, then the calendar's. */
+const DATE_STEP: readonly ValueOperator[] = [
+  'within',
+  'on',
+  'before',
+  'after',
+  'between'
+]
+
+// The toggle's words where they differ from the chip's: a date picked under
+// is reads "is on" once it's a chip.
+const DATE_LABELS: Partial<Record<ValueOperator, string>> = {
+  within: 'is relative',
+  on: 'is'
+}
 
 type EmptinessOperator = 'is-not-set' | 'is-set'
 
@@ -108,20 +126,26 @@ const SYMBOLS: Partial<Record<ValueOperator, string>> = {
   between: 'between'
 }
 
-/** Booleans and dates list their values under a single is. Emptiness comes last. */
+/** Booleans list their values under a single is, and dates under their own conditions. Emptiness comes last. */
 function stepOperators(field: RecordField): ValueOperator[] {
-  const allowed = recordFilterOperators(field)
+  const allowed: readonly string[] = recordFilterOperators(field)
   const compared: ValueOperator[] =
-    field.type === 'date' || field.type === 'boolean'
+    field.type === 'boolean'
       ? ['is']
-      : allowed.filter(
-          (operator): operator is ValueOperator => !isEmptiness(operator)
-        )
+      : field.type === 'date'
+        ? DATE_STEP.filter((operator) => allowed.includes(operator))
+        : allowed.filter(
+            (operator): operator is ValueOperator => !isEmptiness(operator)
+          )
   return [
     ...compared,
     ...EMPTINESS.filter((operator) => allowed.includes(operator))
   ]
 }
+
+const operatorLabel = (field: RecordField, operator: ValueOperator) =>
+  (field.type === 'date' && DATE_LABELS[operator]) ||
+  recordOperatorLabel(operator)
 
 /** The operators a value step toggles between: a number's as symbols, and emptiness in words. */
 export function valueOperators(
@@ -134,7 +158,7 @@ export function valueOperators(
           label: SYMBOLS[value] ?? value,
           'aria-label': recordOperatorLabel(value)
         }
-      : { value, label: recordOperatorLabel(value) }
+      : { value, label: operatorLabel(field, value) }
   )
 }
 
@@ -144,7 +168,31 @@ export function stepOperator(
   operator: string
 ): ValueOperator {
   const offered = stepOperators(field)
-  return offered.find((each) => each === operator) ?? offered[0] ?? 'is'
+  return (
+    offered.find((each) => each === operator) ??
+    offered[0] ??
+    (field.type === 'date' ? 'within' : 'is')
+  )
+}
+
+/** A date step's conditions that pick from a calendar: one day, or a range under is between. */
+export type CalendarOperator = Extract<
+  ValueOperator,
+  'on' | 'before' | 'after' | 'between'
+>
+
+/** The step's operator when it picks from a calendar, or null. */
+export function calendarOperator(
+  field: RecordField,
+  operator: ValueOperator
+): CalendarOperator | null {
+  if (field.type !== 'date') return null
+  return operator === 'on' ||
+    operator === 'before' ||
+    operator === 'after' ||
+    operator === 'between'
+    ? operator
+    : null
 }
 
 /** What the value step's pending chip reads, such as "Venue is not". */
@@ -152,11 +200,91 @@ export function pendingLabel(
   field: RecordField,
   operator: ValueOperator
 ): string {
-  return `${field.label} ${recordOperatorLabel(operator)}`
+  return `${field.label} ${operatorLabel(field, operator)}`
 }
 
-/** A text or number filter's value as typed, to edit it in the field: "20 and 50" for a range. */
-export function valueText(field: RecordField, filter: RecordFilter): string {
+const OFFSET = /(?:Z|[+-]\d{2}:\d{2})$/
+
+/** The day a date or date-time falls on, where the records are. */
+export const dayOf = (value: string, timeZone: string) =>
+  OFFSET.test(value)
+    ? plainDateOf(new Date(value), timeZone)
+    : value.slice(0, 10)
+
+const MONTH_WORDS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec'
+]
+
+function dayWords(day: string, withYear: boolean): string {
+  const [year, month, date] = day.split('-').map(Number) as [
+    number,
+    number,
+    number
+  ]
+  const words = `${date} ${MONTH_WORDS[month - 1]}`
+  return withYear ? `${words} ${year}` : words
+}
+
+/** Days as typed, such as "12 Nov to 15 Dec", with years only where they're needed to read back. */
+function daysText(start: string, end: string, context: SearchContext): string {
+  const write = (withYear: boolean) =>
+    start === end
+      ? dayWords(start, withYear)
+      : `${dayWords(start, withYear)} to ${dayWords(end, withYear)}`
+  const short = write(false)
+  return readDays(short, readOptions(context)).some(
+    (reading) => reading.start === start && reading.end === end
+  )
+    ? short
+    : write(true)
+}
+
+function dateText(
+  field: RecordField,
+  filter: RecordFilter,
+  context: SearchContext
+): string {
+  const day = (value: string) => dayOf(value, context.timeZone)
+  switch (filter.operator) {
+    case 'on':
+    case 'before':
+    case 'after':
+      return daysText(day(filter.value), day(filter.value), context)
+    case 'between': {
+      const [start, end] = filter.value
+      return typeof start === 'string' && typeof end === 'string'
+        ? daysText(day(start), day(end), context)
+        : ''
+    }
+    case 'within':
+      return describeRecordFilter(filter, [field], context).value
+    default:
+      return ''
+  }
+}
+
+/**
+ * A filter's value as typed, to edit it in the field: "20 and 50" for a
+ * number range, "12 Nov to 15 Dec" for dates, or a quick date's name. Each
+ * reads back as the filter under its operator. Options and booleans have none.
+ */
+export function valueText(
+  field: RecordField,
+  filter: RecordFilter,
+  context: SearchContext
+): string {
+  if (field.type === 'date') return dateText(field, filter, context)
   if (!isTyped(field)) return ''
   switch (filter.operator) {
     case 'contains':
@@ -345,16 +473,6 @@ function presetItems(
   }
 }
 
-function customDates(field: RecordField): SearchSuggestion {
-  return {
-    id: `edit:${field.key}`,
-    kind: 'filter',
-    label: 'Custom dates',
-    value: { type: 'edit', field: field.key },
-    opensEditor: true
-  }
-}
-
 /** An option value read from typed text, compared by the step's operator. */
 function withOperator(
   item: SearchSuggestion,
@@ -441,6 +559,18 @@ export function valueHint(
 ): string | undefined {
   const typed = text.trim()
   if (isEmptiness(operator)) return undefined
+  if (calendarOperator(field, operator)) {
+    const range = operator === 'between'
+    if (!typed)
+      return range
+        ? 'Pick two days, or type them like 22 Oct to 30 Oct.'
+        : 'Pick a day, or type one like 22 Oct.'
+    return typedDates(field, typed, operator, context).length
+      ? undefined
+      : range
+        ? 'Type two dates like 22 Oct to 30 Oct.'
+        : 'Type a date like 22 Oct or next Fri.'
+  }
   if (field.type === 'text')
     return typed ? undefined : 'Type the text to match.'
   if (!isNumeric(field) || typedFilters(field, typed, operator, context).length)
@@ -502,7 +632,7 @@ export function withAnd(
   operator: ValueOperator,
   context: SearchContext
 ): string {
-  if (operator !== 'between') return next
+  if (operator !== 'between' || !isNumeric(field)) return next
   const added = /^(.*\S) and $/.exec(previous)?.[1]
   if (
     added &&
@@ -615,6 +745,40 @@ function parsedValues(
   return [...presets, ...parsed.filter((item) => !isPreset(item))]
 }
 
+const readOptions = ({ now, timeZone }: SearchContext) => ({
+  today: plainDateOf(now ?? new Date(), timeZone),
+  timeZone
+})
+
+/**
+ * Dates typed under a calendar's condition: under is between, the ranges the
+ * text reads, such as "22 oct to 30 oct"; otherwise the days it suggests, as a
+ * date picker does, each named as typed with its date to go by.
+ */
+function typedDates(
+  field: RecordField,
+  typed: string,
+  operator: ValueOperator,
+  context: SearchContext
+): SearchSuggestion[] {
+  const picking = calendarOperator(field, operator)
+  if (!typed || !picking) return []
+  const key = field.key
+  if (picking === 'between')
+    return readDays(typed, readOptions(context))
+      .filter((reading) => !reading.relative && reading.start !== reading.end)
+      .map(({ start, end }) =>
+        filterSuggestion({ field: key, operator: picking, value: [start, end] })
+      )
+  return suggestDates(typed, readOptions(context)).map(
+    ({ start, label, description }) => ({
+      ...filterSuggestion({ field: key, operator: picking, value: start }),
+      label,
+      ...(description && { description })
+    })
+  )
+}
+
 /** The values a field offers, or reads from typed text, compared by the step's operator. */
 function readValues(
   field: RecordField,
@@ -622,6 +786,8 @@ function readValues(
   operator: ValueOperator,
   context: SearchContext
 ): SearchSuggestion[] {
+  if (calendarOperator(field, operator))
+    return typedDates(field, typed, operator, context)
   const unlisted =
     field.type === 'option' && recordFieldOptions(field).length === 0
   const option = optionOperator(operator)
@@ -693,8 +859,11 @@ export function valueSuggestions(
     edited && item.value.type === 'filter' && isHeld(edited, item.value.filter)
       ? { ...item, selected: true }
       : item
+  // A typed day keeps the words it was suggested by, as a date picker's do.
+  const suggestedDays =
+    calendarOperator(field, operator) && operator !== 'between'
   const values = items.map((item) => {
-    if (item.value.type !== 'filter') return item
+    if (item.value.type !== 'filter' || suggestedDays) return tick(item)
     const { label, value, detail } = describeRecordFilter(
       item.value.filter,
       context.fields,
@@ -706,17 +875,7 @@ export function valueSuggestions(
       ...(detail && { description: detail })
     })
   })
-  const editable =
-    field.type === 'date' &&
-    !isEmptiness(operator) &&
-    recordFilterOperators(field).some((operator) => operator === 'between')
-  return [
-    {
-      id: 'values',
-      label: field.label,
-      items: [...values, ...(editable ? [customDates(field)] : [])]
-    }
-  ]
+  return [{ id: 'values', label: field.label, items: values }]
 }
 
 /**

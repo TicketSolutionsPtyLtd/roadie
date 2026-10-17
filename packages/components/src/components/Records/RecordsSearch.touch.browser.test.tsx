@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
-import { settledBox, tapOn } from '../../utils/touchTestUtils'
+import { tapOn } from '../../utils/touchTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { RecordTable, tableColumns } from '../RecordTable'
 import { type TestShow, showFields, testShows } from './testUtils'
@@ -38,10 +38,6 @@ function Shows({ defaultView }: { defaultView?: RecordViewDefaults }) {
 }
 
 const input = () => screen.getByRole('combobox', { name: 'Search and filter' })
-const chip = (label: string) =>
-  [...document.querySelectorAll<HTMLElement>('[data-slot=combobox-chip]')].find(
-    (element) => element.textContent?.includes(label)
-  )
 const chipLabels = () =>
   [...document.querySelectorAll('[data-slot=combobox-chip-label]')].map(
     (label) => label.textContent
@@ -68,61 +64,23 @@ describe('Records.Search by touch', TIMEOUT, () => {
     await expect.poll(chipLabels).toEqual(['Status is Sold out'])
   })
 
-  it('opens Custom dates for a tapped date chip in a drawer, and its dates in another', async () => {
-    render(
-      <Shows
-        defaultView={{
-          query: {
-            filters: [
-              { field: 'starts', operator: 'within', value: 'this-weekend' }
-            ]
-          }
-        }}
-      />
-    )
-    await tapOn(chip('Starts')!.querySelector('button')!)
-    await tapOn(await screen.findByRole('option', { name: 'Custom dates' }))
-    const drawer = await screen.findByRole('dialog', { name: 'Starts' })
-    expect(Math.round((await settledBox(drawer)).bottom)).toBe(844)
-    await tapOn(within(drawer).getByRole('button', { name: /^Choose dates/ }))
-    await tapOn(await screen.findByRole('button', { name: /^Next week/ }))
-    await expect
-      .poll(() => chip('Starts')?.textContent)
-      .toContain('is next week')
-  })
-
-  it('titles a date’s drawer with the field, as the editor is', async () => {
+  it('adds a tapped day from the calendar in the dropdown', async () => {
     render(<Shows />)
     await tapOn(input())
     await tapOn(await screen.findByRole('option', { name: /^Starts/ }))
-    await tapOn(await screen.findByRole('option', { name: 'Custom dates' }))
-    const drawer = await screen.findByRole('dialog', { name: 'Starts' })
     await tapOn(
-      within(drawer).getByRole('combobox', { name: 'Starts condition' })
+      within(screen.getByRole('group', { name: 'Operator' })).getByRole(
+        'button',
+        { name: 'is' }
+      )
     )
-    await tapOn(await screen.findByRole('option', { name: 'Is on' }))
-    await tapOn(within(drawer).getByRole('button', { name: /^Choose date/ }))
-    const calendar = await screen.findByRole('dialog', { name: /Choose date/ })
-    expect(
-      within(calendar).getByRole('heading', { name: 'Starts' })
-    ).toBeVisible()
-  })
-
-  it('adds a new date filter from Custom dates in a drawer', async () => {
-    render(<Shows />)
-    await tapOn(input())
-    await tapOn(await screen.findByRole('option', { name: /^Starts/ }))
-    await tapOn(await screen.findByRole('option', { name: 'Custom dates' }))
-    const drawer = await screen.findByRole('dialog', { name: 'Starts' })
-    await tapOn(within(drawer).getByRole('button', { name: /^Choose dates/ }))
-    const calendar = await screen.findByRole('dialog', { name: /dates/ })
-    expect(
-      within(calendar).getByRole('heading', { name: 'Starts' })
-    ).toBeVisible()
-    await tapOn(within(calendar).getByRole('tab', { name: 'Periods' }))
-    await tapOn(await screen.findByRole('button', { name: /^Next week/ }))
-    await expect
-      .poll(() => chip('Starts')?.textContent)
-      .toContain('is next week')
+    const day = () =>
+      document.querySelector<HTMLElement>(
+        '[data-slot=combobox-popup] button[data-date="2026-10-22"]:not([data-outside])'
+      )
+    await expect.poll(day).toBeTruthy()
+    await tapOn(day()!)
+    await expect.poll(chipLabels).toEqual(['Starts is on Thu 22 Oct'])
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

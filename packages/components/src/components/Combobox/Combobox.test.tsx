@@ -305,6 +305,14 @@ describe('Combobox first match', () => {
     await userEvent.keyboard('{Enter}')
     expect(onValueChange).not.toHaveBeenCalled()
   })
+
+  it("highlights the first item with no text when autoHighlight is 'always'", async () => {
+    render(<Genres autoHighlight='always' />)
+    await userEvent.click(screen.getByRole('button', { name: 'Show genres' }))
+    const first = await screen.findByRole('option', { name: 'Rock' })
+    await waitFor(() => expect(first).toHaveAttribute('data-highlighted'))
+    expect(genreInput()).toHaveAttribute('aria-activedescendant', first.id)
+  })
 })
 
 const optionNames = () =>

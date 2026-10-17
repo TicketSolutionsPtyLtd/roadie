@@ -399,7 +399,7 @@ Focus the empty field to list the fields to filter by. Pick one, and the list sh
 | Text             | contains, doesn't contain, is, and is not         | What you type                                                                                           |
 | Number or money  | `=`, `≠`, `<`, `>`, and between                   | What you type                                                                                           |
 | Boolean          | is                                                | Yes and No                                                                                              |
-| Date             | is                                                | Quick dates, upcoming for an event date and recent for a timestamp, then **Custom dates**               |
+| Date             | is relative, is, is before, is after, and is between | Under is relative, quick dates, upcoming for an event date and recent for a timestamp. Under the others, a calendar |
 
 Every field you can filter by ends its toggle with **is empty** and **is not empty**. A field that holds a list of dates can't be filtered yet, so it isn't listed.
 
@@ -410,26 +410,29 @@ Every field you can filter by ends its toggle with **is empty** and **is not emp
 - Between reads 20 and 50, 20-50, 20 to 50, or 20..50, in either order. A space after the first number adds the "and", and one Backspace takes it away.
 - Money takes a `$` and thousands commas, such as $1,500.
 - Until the value reads, the list says what to type, such as "Type a number." or "Between 20 and what? Type the second number."
-- Under **is empty** or **is not empty**, the list shows one row, such as "City is empty", and Enter takes it. Typing switches back to the field's first operator, such as **is**, so what you type applies.
+- Under **is empty** or **is not empty**, the list shows one row, such as "City is empty", and Enter takes it. What you'd typed is set aside, and comes back if you move to another operator, or press Backspace in the empty field, which also returns to the operator you typed it under. Typing switches back to the field's first operator, such as **is**, so what you type applies.
 
 Another option value taken under **is** joins that field's is chip, which matches any one of its values. An **is empty** chip takes the place of the field's other chips, and any other chip on the field takes the place of its **is empty** chip, as together they match nothing. A date chip takes the place of the field's earlier date chip, as two dates rarely overlap.
 
 #### Editing a chip
 
-Click a chip, or press Enter on it, to edit it in the list. The chip shows as selected, and focus stays in the field. The toggle shows the chip's operator, and the list ticks what the chip holds.
+Click a chip, or press Enter on it, to edit it in the list. It turns back into a dashed chip in its place, with its value in the field and selected, so typing replaces it. The toggle shows the chip's operator, and the list ticks what the chip holds.
 
-- **An option chip.** Take values to tick and untick them, and the list stays open for more. Unticking the last value removes the chip. Enter on typed text only ticks. Press **is**, **is not**, or **has all of** to change the condition and keep the values. A chip changed to **is** joins the field's is chip.
+- **An option chip.** Its values stay in the dashed chip, and the field is empty. Take values to tick and untick them, and the list stays open for more. Unticking the last value removes the chip. Enter on typed text only ticks. Press **is**, **is not**, or **has all of** to change the condition and keep the values. A chip changed to **is** joins the field's is chip.
 - **A text or number chip.** Its value is in the field and its condition in the toggle, such as 20 and 50 under **between**. Change either, and Enter replaces the chip once the value reads and ends the edit.
-- **A boolean or date chip.** Yes, No, or a quick date replaces what the chip holds and ends the edit.
+- **A date chip.** Its dates are in the field, such as 12 Nov to 15 Dec under **is between**, or This week under **is relative**. Type others, or take a quick date or a day from the calendar, to replace them and end the edit.
+- **A boolean chip.** The field is empty. Yes or No replaces what the chip holds and ends the edit.
 - **Is empty or is not empty.** The row under either replaces what the chip holds, and ends the edit of any chip but an option chip. A chip that already reads is empty or is not empty opens with that row ticked.
 
-Only an option chip changes as you press an operator. Anything else waits for Enter, so pressing Tab past **is empty** keeps the chip's values. Backspace in the empty field removes the chip. Escape, Enter with no new value to take, or leaving the field ends the edit and keeps the chip.
+Only an option chip changes as you press an operator. Anything else waits for Enter, so pressing Tab past **is empty** keeps the chip's values. Backspace in the empty field removes the chip. Escape, Enter on the chip's value unchanged or with no new value to take, or leaving the field ends the edit and keeps the chip. While you edit, Left and Right move only within the text.
 
-#### Custom dates
+#### Dates
 
-**Custom dates** is last in a date field's values, and the one filter you edit outside the list. It opens a condition (Is within, Is on, Is before, or Is after) with the [date range picker](/components/date-range-picker) and its relative presets, or the [date picker](/components/date-picker). It edits the selected chip, or adds a new one, and applies each change as you make it. Is on, Is before, and Is after share one date, and Is within keeps its own range, so switching back brings back what you last chose. A condition with nothing chosen yet takes the other's dates: Is on and Is before take the range's first day, Is after its last, and Is within takes the one date as a day.
+A date field starts on **is relative**, with its quick dates, such as Today, This week, and Next 7 days. Typing narrows them, and phrases like "rest of the month" read too.
 
-It opens in a popover under the chip, or a bottom drawer on a phone, and loads while the page is idle. Either one shows the field's name as its title, with a Close button, and Tab stays inside it until it closes. An existing chip's editor has **Remove filter** at the foot, and a chip whose dates you clear is removed as the editor closes.
+Under **is**, **is before**, or **is after**, the dropdown shows a calendar under the values. Click or tap a day to add the chip, such as "Start date is on Thu 22 Oct". Typing suggests days above the calendar, such as Fri for "fri", and Enter takes the first. The calendar moves to the month of the first day, so "26 feb" shows February, and tints the day or range Enter would take. Under **is between**, click two days for a range, or type one, such as "22 oct to 30 oct".
+
+The calendar stays in the dropdown at every screen size, as wide as the field. It shows two months side by side where they fit, and one on a phone, with a month and year select to jump further. Until you type, a hint says you can type a date instead. Dates are whole days, on a timestamp field too. Editing a date chip opens it on its operator, with the calendar on its month and its day or range marked. Picking another day changes the chip.
 
 #### Chips
 
@@ -442,7 +445,7 @@ It opens in a popover under the chip, or a bottom drawer on a phone, and loads w
 | Key            | What it does                                                                                                                                                                   |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `/`            | Focuses the search from anywhere on the page, except while you type in another field.                                                                                          |
-| Enter          | Takes the suggestion you moved to. With none, it takes an identifier the text matches, or searches the text. While you pick a value, it takes the first value once you type, or the one row under is empty or is not empty. While you edit a chip, with no new value to take, it ends the edit. |
+| Enter          | Takes the suggestion you moved to. With none, it takes an identifier the text matches, or searches the text. While you pick a value, it takes the first value once you type, or the one row under is empty or is not empty. While you edit a chip, with its value unchanged or no new value to take, it ends the edit. |
 | Tab, Shift+Tab | While a field's values show, moves to the next or previous operator. From the last operator, or the first, it leaves the input and ends picking a value or editing a chip. |
 | Backspace      | In the empty field, selects the last chip, and a second removes it. While you pick a value, it goes back to the fields, and while you edit a chip, it removes that chip.              |
 | Escape         | Ends picking a value or editing a chip, and keeps the chips, as leaving the field does. Otherwise it closes the suggestions, then clears the text.                              |
@@ -1607,7 +1610,7 @@ column.field('city', { pin: true })`}
 - The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click, or with the arrows, not on Tab. While they're open, the rest of the page is hidden from screen readers, as for any combobox. Clear keeps focus in the field and keeps the page's scope. [Keys](#keys) lists what each key does.
 - Chips are a toolbar named "Filters", and Left and Right move between them. Selecting a chip lists its values and keeps focus in the field. Each chip's remove button is named "Remove" and the chip. A locked scope chip says it's set by this page, and a chip's dates, or a note that it can't apply, are read after its label.
 - The operators are a toggle group named "Operator". A number's operators are symbols named in words, such as "is less than" for `<`.
-- **Custom dates** opens a dialog named after the field. Focus returns to the chip as it closes, or to the field once the filter is removed.
+- A date's calendar is named after the field, such as "Start date". Focus stays in the field as you press it, and Tab moves through the operators, so the keyboard picks a date by typing it.
 - Each record's checkbox is named "Select" followed by the record's title, or its id with no title, and the header checkbox is named "Select page", with a mixed state when only some of the page is checked.
 - `Records.Status` also announces the selection, such as "3 selected, 24 results". It announces a search's count once typing settles, not on every keystroke, and against a server once the new count loads.
 - While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
