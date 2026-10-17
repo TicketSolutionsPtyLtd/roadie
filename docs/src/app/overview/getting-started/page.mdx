@@ -207,23 +207,9 @@ All components accept a `className` prop for additional Tailwind classes:
 </p>
 ```
 
-## Package manifests for coding agents
+## Building with AI
 
-Core, components, charts and widgets each ship a `roadie.manifest.json` built from the same source as the release, so it always matches the version you installed. Agents and tools can read it instead of crawling the docs.
-
-```ts
-import core from '@oztix/roadie-core/roadie.manifest.json' with { type: 'json' }
-import components from '@oztix/roadie-components/roadie.manifest.json' with { type: 'json' }
-import charts from '@oztix/roadie-charts/roadie.manifest.json' with { type: 'json' }
-import widgets from '@oztix/roadie-widgets/roadie.manifest.json' with { type: 'json' }
-```
-
-All four manifests have the same shape:
-
-- `exports` lists each import path with the values and types it exports.
-- `components` lists each React component with its import path, props, compound parts, and docs page, plus its first live example when its page has one. Vue skins appear in `exports` only.
-- `deprecations` lists every deprecated export and prop with what to use instead.
-- `tokens` lists the CSS variables, utilities, and classes, in the core manifest only.
+Each package ships a `roadie.manifest.json` that coding agents read, and a Claude Code plugin teaches agents to build with Roadie. [Building with AI](/overview/ai) covers both.
 
 ## Features
 
@@ -241,3 +227,4 @@ The Roadie Design System includes:
 - Browse our [Components](/components) to see what is available
 - Learn about our [Design Tokens](/tokens) and how to use them
 - Catch Roadie mistakes at lint time with the [ESLint plugin](/overview/linting)
+- Set up Claude Code and other agents in [Building with AI](/overview/ai)

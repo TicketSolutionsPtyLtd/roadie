@@ -74,7 +74,13 @@ suggestion doesn't read stay in the field. Picking a field lists its values,
 or for a date its quick dates and Custom dates, below Empty and Not empty
 and a line; an option field's values sit under an is and is not toggle (and has
 all of, for a `multiple` field) that Tab steps through; typing narrows them, and Enter takes the first. A number or text field opens
-its editor. Option values added to a field join its chip. Clicking an option,
+its editor. Option values added to a field join its chip with the same
+condition, so a value added as "is not" never joins an "is" chip. Typed
+negation, such as "city is not melb", suggests "City is not Melbourne". A
+field named in full, such as "sold", lists before values that start with its
+name, such as Sold out, unless a filter reads the words after it, as in
+"city melb". Text naming a filter already applied still suggests it, marked
+Already applied, and taking it clears those words and adds nothing. Clicking an option,
 boolean or date chip, or Enter on it, edits it in the list: the chip shows
 selected, its values are ticked, taking a value ticks or unticks it (the last
 one unticked removes the chip, and Enter on typed text only ticks), is and is not rewrite its condition (one
