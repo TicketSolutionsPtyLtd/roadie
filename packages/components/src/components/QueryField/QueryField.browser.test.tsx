@@ -6,6 +6,7 @@ import { userEvent } from 'vitest/browser'
 
 import { QueryField, type QueryFieldProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { keepFramesRunning } from '../../css/testUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { Tooltip } from '../Tooltip'
 import type {
@@ -330,7 +331,14 @@ describe('QueryField', () => {
         .backgroundColor
     await expect.poll(() => fill('Brisbane')).not.toBe(fill('Hobart'))
     const resting = fill('Hobart')
-    await userEvent.hover(screen.getByRole('option', { name: /Hobart/ }))
+    const hobart = screen.getByRole('option', { name: /Hobart/ })
+    await userEvent.hover(hobart)
+    // Headless WebKit on Linux runs no frames while idle, so the fill's
+    // transition would never finish.
+    keepFramesRunning(() => {
+      const { x, y, width, height } = hobart.getBoundingClientRect()
+      return { x: x + width / 2, y: y + height / 2 }
+    })
     await expect.poll(() => fill('Brisbane')).toBe(resting)
   })
 
