@@ -18,13 +18,17 @@ import {
   type SearchContext,
   type SearchGroup,
   type SearchValue,
+  type ValueOperator,
   filterChipIds,
   hasValueStep,
   isApplied,
+  isValueOperator,
   mergeFilter,
+  pendingLabel,
   sameFilter,
   searchChips,
   topSuggestions,
+  valueOperators,
   valueSuggestions
 } from './searchSuggestions'
 import type { RecordsField } from './types'
@@ -88,9 +92,6 @@ function useListedFields(records: RecordsInstance): readonly RecordsField[] {
   }, [data, fields, mode])
 }
 
-const pendingLabel = (field: RecordsField) =>
-  field.type === 'date' ? field.label : `${field.label} is`
-
 function withFieldIcons(
   groups: readonly SearchGroup[],
   byKey: ReadonlyMap<string, RecordsField>
@@ -136,6 +137,7 @@ export function RecordsSearch({
   const fields = useListedFields(records)
   const filters = records.view.query.filters
   const [pending, setPending] = useState<string | null>(null)
+  const [pendingOperator, setPendingOperator] = useState<ValueOperator>('is')
   const [stepText, setStepText] = useState('')
   const [editing, setEditing] = useState<Editing | null>(null)
   const sessions = useRef(0)
@@ -273,6 +275,7 @@ export function RecordsSearch({
       if (!field) return
       if (hasValueStep(field)) {
         setStepText('')
+        setPendingOperator('is')
         setPending(field.key)
       } else openEditor({ field: field.key, index: null }, group())
       return
@@ -373,9 +376,17 @@ export function RecordsSearch({
         }}
         pendingChip={
           pendingField
-            ? { id: pendingField.key, label: pendingLabel(pendingField) }
+            ? {
+                id: pendingField.key,
+                label: pendingLabel(pendingField, pendingOperator),
+                operators: valueOperators(pendingField),
+                operator: pendingOperator
+              }
             : undefined
         }
+        onPendingOperatorChange={(operator) => {
+          if (isValueOperator(operator)) setPendingOperator(operator)
+        }}
         onPendingChipCancel={() => {
           dropOpening()
           setPending(null)
@@ -387,7 +398,7 @@ export function RecordsSearch({
         }
         suggest={(text) =>
           pendingField
-            ? valueSuggestions(pendingField, text, context)
+            ? valueSuggestions(pendingField, text, context, pendingOperator)
             : withFieldIcons(topSuggestions(text, context), byKey)
         }
         onAccept={accept}

@@ -24,3 +24,11 @@ mounted takes it and shows its hint. Clear also ends the value step, and with
 `onClear` it hands over the text and chips in one call. The
 search icon and Clear stay on the first row as chips wrap. A suggestion's
 `icon` shows before its label, and the "Search for …" row has a search icon.
+A `pendingChip` with two or more `operators` shows them as a toggle above the
+values, with the chosen `operator` pressed: pressing one, or Tab and Shift+Tab
+in the input while they show, calls `onPendingOperatorChange`, keeps focus in
+the input, and asks `suggest` again. Tab from the last operator, or Shift+Tab
+from the first, leaves the field.
+A line divides the value step's groups, and a group with `hideLabel` names
+itself for screen readers only. Once text is typed in the value step, Enter
+takes the first value, from a group without `hideLabel` if one matches.

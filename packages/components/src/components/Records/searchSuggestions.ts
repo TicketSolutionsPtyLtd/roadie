@@ -2,16 +2,19 @@ import type { DateRangeValue } from '@oztix/roadie-core/datetime'
 import {
   type RecordField,
   type RecordFilter,
+  type RecordFilterOperator,
   type RecordQueryOptions,
   type RecordSuggestion,
   describeRecordFilter,
   parseQuery,
   recordFieldOptions,
-  recordFilterOperators
+  recordFilterOperators,
+  recordOperatorLabel
 } from '@oztix/roadie-core/records'
 
 import type {
   QueryFieldChip,
+  QueryFieldOperator,
   QueryFieldSuggestion,
   QueryFieldSuggestionGroup
 } from '../QueryField'
@@ -69,6 +72,40 @@ export function hasValueStep(field: RecordField): boolean {
   return (
     field.type === 'option' || field.type === 'boolean' || field.type === 'date'
   )
+}
+
+/** How an option field's value step compares, chosen before its values. */
+export type ValueOperator = 'is' | 'is-not' | 'has-all'
+
+const VALUE_OPERATORS: readonly RecordFilterOperator[] = [
+  'is',
+  'is-not',
+  'has-all'
+]
+
+export function isValueOperator(operator: string): operator is ValueOperator {
+  return (VALUE_OPERATORS as readonly string[]).includes(operator)
+}
+
+/** The operators a value step toggles between: an option field's, or none. */
+export function valueOperators(
+  field: RecordField
+): (QueryFieldOperator & { value: ValueOperator })[] {
+  if (field.type !== 'option') return []
+  return recordFilterOperators(field)
+    .filter(isValueOperator)
+    .map((value) => ({ value, label: recordOperatorLabel(value) }))
+}
+
+/** What the value step's pending chip reads, such as "Venue is not". */
+export function pendingLabel(
+  field: RecordField,
+  operator: ValueOperator
+): string {
+  if (field.type === 'date') return field.label
+  if (field.type === 'option')
+    return `${field.label} ${recordOperatorLabel(operator)}`
+  return `${field.label} is`
 }
 
 function canonical(value: unknown): unknown {
@@ -207,15 +244,14 @@ export function topSuggestions(
 }
 
 /** What a field offers before anything is typed. Labels come later. */
-function presetItems(field: RecordField): SearchSuggestion[] {
+function presetItems(
+  field: RecordField,
+  operator: ValueOperator
+): SearchSuggestion[] {
   switch (field.type) {
     case 'option':
       return recordFieldOptions(field).map((option) =>
-        filterSuggestion({
-          field: field.key,
-          operator: 'is',
-          values: [option.value]
-        })
+        filterSuggestion({ field: field.key, operator, values: [option.value] })
       )
     case 'boolean':
       return (['is-true', 'is-false'] as const).map((operator) =>
@@ -247,28 +283,65 @@ function customDates(field: RecordField): SearchSuggestion {
   }
 }
 
-/** Suggestions for one field's value, after it was picked. */
+const EMPTINESS = [
+  { operator: 'is-not-set', label: 'Empty' },
+  { operator: 'is-set', label: 'Not empty' }
+] as const
+
+/** Whether the text starts at one of the label's words: "not" or "empty". */
+function startsAWord(label: string, text: string): boolean {
+  const words = label.toLowerCase().split(' ')
+  return words.some((_, index) =>
+    words.slice(index).join(' ').startsWith(text.toLowerCase())
+  )
+}
+
+function emptinessItems(field: RecordField, typed: string): SearchSuggestion[] {
+  const allowed = recordFilterOperators(field)
+  return EMPTINESS.filter(
+    ({ operator, label }) =>
+      allowed.includes(operator) && startsAWord(label, typed)
+  ).map(({ operator, label }) => ({
+    ...filterSuggestion({ field: field.key, operator }),
+    label
+  }))
+}
+
+/** An option value read from typed text, compared by the step's operator. */
+function withOperator(
+  item: SearchSuggestion,
+  operator: ValueOperator
+): SearchSuggestion {
+  const { value } = item
+  if (value.type !== 'filter' || value.filter.operator !== 'is') return item
+  const filter = { ...value.filter, operator }
+  return { ...item, ...filterSuggestion(filter), label: item.label }
+}
+
+/**
+ * Suggestions for one field's value, after it was picked: Empty and Not empty
+ * first, where the field allows them, then its values, which for an option
+ * field compare by `operator`.
+ */
 export function valueSuggestions(
   field: RecordField,
   text: string,
-  context: SearchContext
+  context: SearchContext,
+  operator: ValueOperator = 'is'
 ): SearchGroup[] {
   const typed = text.trim()
   const unlisted =
     field.type === 'option' && recordFieldOptions(field).length === 0
   const items = !typed
-    ? presetItems(field)
+    ? presetItems(field, operator)
     : unlisted
-      ? [
-          filterSuggestion({
-            field: field.key,
-            operator: 'is',
-            values: [typed]
-          })
-        ]
+      ? [filterSuggestion({ field: field.key, operator, values: [typed] })]
       : parseQuery(`${field.key}:${typed}`, { ...context, fields: [field] })
           .filter((suggestion) => suggestion.kind === 'filter')
           .map((suggestion) => fromParsed(suggestion))
+          .map((item) =>
+            field.type === 'option' ? withOperator(item, operator) : item
+          )
   const values = unused(items, context).map((item) => {
     if (item.value.type !== 'filter') return item
     const { value, detail } = describeRecordFilter(
@@ -283,14 +356,20 @@ export function valueSuggestions(
       ...(detail && { description: detail })
     }
   })
+  const emptiness = unused(emptinessItems(field, typed), context)
+  // Not a typed match, so it gives way to a typed Empty, or Enter takes it.
   const editable =
     field.type === 'date' &&
-    recordFilterOperators(field).some((operator) => operator === 'between')
+    recordFilterOperators(field).some((operator) => operator === 'between') &&
+    (!typed || emptiness.length === 0)
   return [
+    ...(emptiness.length > 0
+      ? [{ id: 'empty', label: 'Empty', hideLabel: true, items: emptiness }]
+      : []),
     {
       id: 'values',
       label: field.label,
-      items: editable ? [...values, customDates(field)] : values
+      items: [...values, ...(editable ? [customDates(field)] : [])]
     }
   ]
 }

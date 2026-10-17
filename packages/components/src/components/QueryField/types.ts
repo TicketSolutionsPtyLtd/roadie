@@ -14,6 +14,24 @@ export type QueryFieldChip = {
   intent?: QueryFieldIntent
 }
 
+/** One way to compare a pending field with its value, such as "is not". */
+export type QueryFieldOperator = {
+  value: string
+  label: string
+  /** Names a symbol for screen readers, such as "not equal to" for ≠. */
+  'aria-label'?: string
+}
+
+export type QueryFieldPendingChip = {
+  id: string
+  /** Reads the chosen operator, such as "Venue is not". */
+  label: string
+  /** Two or more show as a toggle above the values, which Tab steps through. */
+  operators?: readonly QueryFieldOperator[]
+  /** The chosen operator's `value`. */
+  operator?: string
+}
+
 export type QueryFieldSuggestion<Value = unknown> = {
   id: string
   label: string
@@ -43,12 +61,15 @@ export type QueryFieldAccepted<Value = unknown> =
 export type QueryFieldSuggestionGroup<Value = unknown> = {
   id: string
   label: string
+  /** The label names the group for screen readers only, for items that say what they are, such as Empty and Not empty. Enter takes a typed value from another group first. */
+  hideLabel?: boolean
   items: readonly QueryFieldSuggestion<Value>[]
 }
 
 export type QueryFieldListGroup<Value = unknown> = {
   id: string
   label: string
+  hideLabel?: boolean
   items: readonly QueryFieldAccepted<Value>[]
   builtIn?: boolean
 }

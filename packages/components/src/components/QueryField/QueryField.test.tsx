@@ -1110,3 +1110,377 @@ describe('QueryField', () => {
     expect(icon.closest('[aria-hidden=true]')).toBeInTheDocument()
   })
 })
+
+const operators = [
+  { value: 'is', label: 'is' },
+  { value: 'is-not', label: 'is not' },
+  { value: 'has-all', label: 'has all of' }
+]
+
+function OperatorStep(props: HarnessProps) {
+  const [operator, setOperator] = useState('is')
+  const label = operators.find((each) => each.value === operator)!.label
+  return (
+    <Harness
+      pendingChip={{
+        id: 'venue',
+        label: `Venue ${label}`,
+        operators,
+        operator
+      }}
+      onPendingOperatorChange={setOperator}
+      suggest={() => [{ id: 'values', label: 'Venue', items: [iguana] }]}
+      {...props}
+    />
+  )
+}
+
+const operatorGroup = () => screen.queryByRole('group', { name: 'Operator' })
+const pressed = () =>
+  within(operatorGroup()!)
+    .getAllByRole('button')
+    .filter((item) => item.getAttribute('aria-pressed') === 'true')
+    .map((item) => item.textContent)
+
+describe('QueryField operators', () => {
+  it('shows two or more operators above the values, pressing the current one', async () => {
+    render(<OperatorStep />)
+    await userEvent.click(input())
+    const listbox = await screen.findByRole('listbox')
+    expect(
+      within(operatorGroup()!)
+        .getAllByRole('button')
+        .map((item) => item.textContent)
+    ).toEqual(['is', 'is not', 'has all of'])
+    expect(pressed()).toEqual(['is'])
+    expect(
+      operatorGroup()!.compareDocumentPosition(listbox) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Venue' })).toBeInTheDocument()
+  })
+
+  it('shows no operators with only one', async () => {
+    render(
+      <Harness
+        pendingChip={{
+          id: 'venue',
+          label: 'Venue is',
+          operators: operators.slice(0, 1),
+          operator: 'is'
+        }}
+        suggest={() => [{ id: 'values', label: 'Venue', items: [iguana] }]}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: iguana.label })
+    expect(operatorGroup()).toBeNull()
+  })
+
+  it('changes operator on a click, keeping focus in the input and the values open', async () => {
+    render(<OperatorStep />)
+    await userEvent.click(input())
+    await screen.findByRole('listbox')
+    await userEvent.click(screen.getByRole('button', { name: 'is not' }))
+    expect(document.activeElement).toBe(input())
+    expect(pressed()).toEqual(['is not'])
+    expect(
+      document.querySelector('[data-slot=query-field-pending-chip]')
+    ).toHaveTextContent('Venue is not')
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+  })
+
+  it('hands the clicked operator to onPendingOperatorChange', async () => {
+    const onPendingOperatorChange = vi.fn()
+    render(<OperatorStep onPendingOperatorChange={onPendingOperatorChange} />)
+    await userEvent.click(input())
+    await screen.findByRole('listbox')
+    await userEvent.click(screen.getByRole('button', { name: 'has all of' }))
+    expect(onPendingOperatorChange).toHaveBeenCalledWith('has-all')
+  })
+
+  it('walks the operators with Tab, then leaves the field from the last', async () => {
+    render(<OperatorStep />)
+    await userEvent.click(input())
+    await screen.findByRole('listbox')
+    expect(input()).toHaveAttribute('aria-keyshortcuts', 'Tab')
+    await userEvent.tab()
+    expect(pressed()).toEqual(['is not'])
+    expect(input()).toHaveAttribute('aria-keyshortcuts', 'Tab Shift+Tab')
+    await userEvent.tab()
+    expect(pressed()).toEqual(['has all of'])
+    expect(input()).toHaveAttribute('aria-keyshortcuts', 'Shift+Tab')
+    expect(document.activeElement).toBe(input())
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+    await userEvent.tab()
+    expect(pressed()).toEqual(['has all of'])
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Clear' })
+    )
+  })
+
+  it('walks back with Shift+Tab, then leaves backwards from the first', async () => {
+    render(
+      <>
+        <button type='button'>Before</button>
+        <OperatorStep />
+      </>
+    )
+    await userEvent.click(input())
+    await screen.findByRole('listbox')
+    await userEvent.tab()
+    await userEvent.tab()
+    await userEvent.tab({ shift: true })
+    expect(pressed()).toEqual(['is not'])
+    await userEvent.tab({ shift: true })
+    expect(pressed()).toEqual(['is'])
+    expect(document.activeElement).toBe(input())
+    await userEvent.tab({ shift: true })
+    expect(pressed()).toEqual(['is'])
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Before' })
+    )
+  })
+
+  it('reads the new operator through the pending chip it describes the input with', async () => {
+    render(<OperatorStep />)
+    await userEvent.click(input())
+    await userEvent.tab()
+    expect(input()).toHaveAccessibleDescription('Venue is not')
+  })
+
+  it('leaves Tab to move on with no operators to cycle', async () => {
+    render(<Harness pendingChip={{ id: 'venue', label: 'Venue is' }} />)
+    await userEvent.click(input())
+    expect(input()).not.toHaveAttribute('aria-keyshortcuts')
+    await userEvent.tab()
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Clear' })
+    )
+  })
+
+  it('still leaves the value step with Escape and Backspace', async () => {
+    const onPendingChipCancel = vi.fn()
+    render(<OperatorStep onPendingChipCancel={onPendingChipCancel} />)
+    await userEvent.click(input())
+    await userEvent.tab()
+    await userEvent.keyboard('{Escape}{Backspace}')
+    expect(onPendingChipCancel).toHaveBeenCalledTimes(2)
+  })
+
+  it('asks for suggestions again when the operator changes', async () => {
+    const suggest = vi.fn(() => [
+      { id: 'values', label: 'Venue', items: [iguana] }
+    ])
+    render(<OperatorStep suggest={suggest} />)
+    await userEvent.click(input())
+    await waitFor(() => expect(suggest).toHaveBeenCalledTimes(1))
+    await userEvent.tab()
+    await waitFor(() => expect(suggest).toHaveBeenCalledTimes(2))
+  })
+})
+
+const emptiness: QueryFieldSuggestionGroup = {
+  id: 'empty',
+  label: 'Empty',
+  hideLabel: true,
+  items: [
+    { id: 'venue:empty', label: 'Empty', kind: 'filter', value: 'empty' },
+    { id: 'venue:set', label: 'Not empty', kind: 'filter', value: 'set' }
+  ]
+}
+const dividers = () =>
+  document.querySelectorAll('[data-slot=query-field-divider]')
+
+describe('QueryField value step groups', () => {
+  it('divides the value step’s groups, each still named', async () => {
+    render(
+      <Harness
+        pendingChip={{ id: 'venue', label: 'Venue is' }}
+        suggest={() => [
+          emptiness,
+          { id: 'values', label: 'Venue', items: [iguana] }
+        ]}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: iguana.label })
+    expect(optionNames()).toEqual(['Empty', 'Not empty', iguana.label])
+    const empty = screen.getByRole('group', { name: 'Empty' })
+    const values = screen.getByRole('group', { name: 'Venue' })
+    expect(dividers()).toHaveLength(1)
+    const [divider] = dividers()
+    expect(
+      empty.compareDocumentPosition(divider!) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(
+      divider!.compareDocumentPosition(values) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+  })
+
+  it('divides no groups outside the value step', async () => {
+    render(<Harness />)
+    await typeInto('igua')
+    await screen.findByRole('group', { name: 'Fields' })
+    expect(dividers()).toHaveLength(0)
+  })
+})
+
+const hall: QueryFieldSuggestion = {
+  id: 'venue:hall',
+  label: 'Venue is Nimbus Thistle Hall',
+  kind: 'filter',
+  value: 'hall'
+}
+
+function TypedValueStep(props: HarnessProps) {
+  return (
+    <Harness
+      pendingChip={{ id: 'venue', label: 'Venue is' }}
+      suggest={(text) => [
+        emptiness,
+        {
+          id: 'values',
+          label: 'Venue',
+          items: text === 'empty' ? [] : [hall, iguana]
+        }
+      ]}
+      {...props}
+    />
+  )
+}
+
+describe('QueryField value step Enter', () => {
+  it('takes the first value the text matches on Enter, past Empty and Not empty', async () => {
+    const onAccept = vi.fn()
+    render(<TypedValueStep onAccept={onAccept} />)
+    await typeInto('hal')
+    await waitFor(() => expect(hinted()).toEqual([hall.label]))
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(hall)
+  })
+
+  it('takes an exact match on Enter over the first value', async () => {
+    const onAccept = vi.fn()
+    const exactIguana = { ...iguana, exact: true }
+    render(
+      <TypedValueStep
+        onAccept={onAccept}
+        suggest={() => [
+          { id: 'values', label: 'Venue', items: [hall, exactIguana] }
+        ]}
+      />
+    )
+    await typeInto('hal')
+    await waitFor(() => expect(hinted()).toEqual([iguana.label]))
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(exactIguana)
+  })
+
+  it('takes Empty on Enter when the text matches nothing else', async () => {
+    const onAccept = vi.fn()
+    render(<TypedValueStep onAccept={onAccept} />)
+    await typeInto('empty')
+    await waitFor(() => expect(hinted()).toEqual(['Empty']))
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(emptiness.items[0])
+  })
+
+  it('takes nothing on Enter before anything is typed', async () => {
+    const onAccept = vi.fn()
+    render(<TypedValueStep onAccept={onAccept} />)
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: hall.label })
+    expect(hinted()).toEqual([])
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).not.toHaveBeenCalled()
+  })
+
+  it('takes an arrowed row over the first value', async () => {
+    const onAccept = vi.fn()
+    render(<TypedValueStep onAccept={onAccept} />)
+    await typeInto('hal')
+    await screen.findByRole('option', { name: hall.label })
+    await userEvent.keyboard('{ArrowDown}{Enter}')
+    expect(onAccept).toHaveBeenCalledExactlyOnceWith(emptiness.items[0])
+  })
+
+  it('takes no value found for older text', async () => {
+    const onAccept = vi.fn()
+    const later = Promise.withResolvers<QueryFieldSuggestionGroup[]>()
+    render(
+      <TypedValueStep
+        onAccept={onAccept}
+        suggest={(text) =>
+          text === 'halx'
+            ? later.promise
+            : [{ id: 'values', label: 'Venue', items: [hall] }]
+        }
+      />
+    )
+    await typeInto('hal')
+    await waitFor(() => expect(hinted()).toEqual([hall.label]))
+    await userEvent.keyboard('x{Enter}')
+    expect(onAccept).not.toHaveBeenCalled()
+  })
+})
+
+describe('QueryField operators, edge keys', () => {
+  it('leaves Tab to move on while the values are closed', async () => {
+    const onPendingOperatorChange = vi.fn()
+    render(
+      <>
+        <button type='button'>Before</button>
+        <OperatorStep onPendingOperatorChange={onPendingOperatorChange} />
+      </>
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Before' }))
+    await userEvent.tab()
+    expect(document.activeElement).toBe(input())
+    expect(screen.queryByRole('listbox')).toBeNull()
+    expect(input()).not.toHaveAttribute('aria-keyshortcuts')
+    await userEvent.tab()
+    expect(onPendingOperatorChange).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Clear' })
+    )
+  })
+
+  it('leaves a modified or composing Tab alone', async () => {
+    const onPendingOperatorChange = vi.fn()
+    render(<OperatorStep onPendingOperatorChange={onPendingOperatorChange} />)
+    await userEvent.click(input())
+    await screen.findByRole('listbox')
+    for (const init of [
+      { ctrlKey: true },
+      { altKey: true },
+      { metaKey: true },
+      { isComposing: true },
+      { keyCode: 229 }
+    ])
+      fireEvent.keyDown(input(), { key: 'Tab', ...init })
+    expect(onPendingOperatorChange).not.toHaveBeenCalled()
+  })
+
+  it('announces a change of operator', async () => {
+    render(<OperatorStep />)
+    await userEvent.click(input())
+    const pendingChip = document.querySelector(
+      '[data-slot=query-field-pending-chip]'
+    )
+    expect(pendingChip).toHaveAttribute('aria-live', 'polite')
+  })
+
+  it('takes nothing on Enter after an arrowed highlight is cycled away', async () => {
+    const onAccept = vi.fn()
+    render(<OperatorStep onAccept={onAccept} />)
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: iguana.label })
+    await userEvent.keyboard('{ArrowDown}')
+    await userEvent.tab()
+    await screen.findByRole('option', { name: iguana.label })
+    await userEvent.keyboard('{Enter}')
+    expect(onAccept).not.toHaveBeenCalled()
+  })
+})

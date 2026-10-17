@@ -15,11 +15,11 @@ type Suggestions<Value> = {
   groups: readonly QueryFieldSuggestionGroup<Value>[]
   /** The text these groups were asked for. */
   inputValue: string
-  pendingId: string | undefined
+  step: string | undefined
 }
 
-function requestKey(inputValue: string, pendingId: string | undefined) {
-  return `${pendingId ?? ''}\u0000${inputValue}`
+function requestKey(inputValue: string, step: string | undefined) {
+  return `${step ?? ''}\u0000${inputValue}`
 }
 
 const NONE: readonly never[] = []
@@ -29,13 +29,14 @@ function isThenable<T>(value: T | PromiseLike<T>): value is PromiseLike<T> {
   return value != null && typeof (value as PromiseLike<T>).then === 'function'
 }
 
-// Asks again when the text, the open state or the pending field changes, not
-// when `suggest` does, so an inline function doesn't loop.
+// Asks again when the text, the open state or the step (the pending field and
+// its operator) changes, not when `suggest` does, so an inline function
+// doesn't loop.
 export function useSuggestions<Value>(
   suggest: Suggest<Value>,
   inputValue: string,
   open: boolean,
-  pendingId: string | undefined
+  step: string | undefined
 ) {
   const suggestRef = useRef(suggest)
   useIsomorphicLayoutEffect(() => {
@@ -44,7 +45,7 @@ export function useSuggestions<Value>(
   const [suggestions, setSuggestions] = useState<Suggestions<Value>>({
     groups: NONE_YET,
     inputValue: '',
-    pendingId: undefined
+    step: undefined
   })
   const [requested, setRequested] = useState<string>()
 
@@ -53,30 +54,30 @@ export function useSuggestions<Value>(
     let current = true
     const result = suggestRef.current(inputValue)
     if (!isThenable(result)) {
-      setSuggestions({ groups: result, inputValue, pendingId })
+      setSuggestions({ groups: result, inputValue, step })
       setRequested(undefined)
       return
     }
-    setRequested(requestKey(inputValue, pendingId))
+    setRequested(requestKey(inputValue, step))
     result.then(
       (groups) => {
-        if (current) setSuggestions({ groups, inputValue, pendingId })
+        if (current) setSuggestions({ groups, inputValue, step })
       },
       () => {
-        if (current) setSuggestions({ groups: NONE, inputValue, pendingId })
+        if (current) setSuggestions({ groups: NONE, inputValue, step })
       }
     )
     return () => {
       current = false
     }
-  }, [inputValue, open, pendingId])
+  }, [inputValue, open, step])
 
   const waiting =
     requested !== undefined &&
     (suggestions.groups === NONE_YET ||
-      requested !== requestKey(suggestions.inputValue, suggestions.pendingId))
+      requested !== requestKey(suggestions.inputValue, suggestions.step))
   // Another step's suggestions never show while this step's load.
-  return suggestions.pendingId === pendingId
+  return suggestions.step === step
     ? { ...suggestions, loading: waiting }
     : { ...suggestions, groups: NONE, loading: true }
 }

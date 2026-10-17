@@ -12,6 +12,7 @@ import {
   useState
 } from 'react'
 
+import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import type { BaseUIEvent } from '@base-ui/react/types'
 import {
   LockSimpleIcon,
@@ -26,12 +27,15 @@ import { intentVariants } from '../../variants'
 import { Combobox, type ComboboxChipProps } from '../Combobox'
 import { useFieldContext } from '../Field'
 import { Kbd } from '../Kbd'
+import { ToggleGroup } from '../ToggleGroup'
 import { Tooltip } from '../Tooltip'
 import { useControlledText, useShortcut } from './hooks'
-import { exactSuggestion, listGroups } from './suggestions'
+import { exactSuggestion, firstMatch, listGroups } from './suggestions'
 import type {
   QueryFieldAccepted,
   QueryFieldChip,
+  QueryFieldOperator,
+  QueryFieldPendingChip,
   QueryFieldSuggestion,
   QueryFieldSuggestionGroup
 } from './types'
@@ -50,7 +54,9 @@ export type QueryFieldProps<Value = unknown> = {
    */
   onClear?: () => void
   /** The field being given a value, such as "Venue is", shown after the chips. */
-  pendingChip?: { id: string; label: string }
+  pendingChip?: QueryFieldPendingChip
+  /** An operator was pressed, or Tab moved to one, while a chip is pending. */
+  onPendingOperatorChange?: (operator: string) => void
   /** Backspace on an empty field or Escape, while a chip is pending. */
   onPendingChipCancel?: () => void
   /** The typed text, searched as it changes. Controlled. */
@@ -97,6 +103,7 @@ export type QueryFieldProps<Value = unknown> = {
 
 const DEFAULT_PLACEHOLDER = 'Search and filter'
 const NO_CHIPS: readonly QueryFieldChip[] = []
+const NO_OPERATORS: readonly QueryFieldOperator[] = []
 
 const CARET_KEYS = new Set(['Home', 'End'])
 
@@ -148,6 +155,7 @@ export function QueryField<Value = unknown>({
   onEditChip,
   onClear,
   pendingChip,
+  onPendingOperatorChange,
   onPendingChipCancel,
   inputValue,
   defaultInputValue = '',
@@ -216,20 +224,36 @@ export function QueryField<Value = unknown>({
   )
   const unlocked = ordered.filter((chip) => !chip.locked)
   const removable = !!(onRemoveChip || onClear)
-  const suggestions = useSuggestions(suggest, text, open, pendingChip?.id)
+  const operators = pendingChip?.operators ?? NO_OPERATORS
+  const operator = pendingChip?.operator
+  const showsOperators = operators.length >= 2
+  // Only while they show, so Tab still leaves a closed field, and once
+  // through, so Tab leaves from either end.
+  const operatorAt = operators.findIndex((each) => each.value === operator)
+  const operatorOnTab = (step: 1 | -1) =>
+    showsOperators && open ? operators[operatorAt + step] : undefined
+  const suggestions = useSuggestions(
+    suggest,
+    text,
+    open,
+    pendingChip && `${pendingChip.id}\u0000${operator ?? ''}`
+  )
   const list = listGroups({
     groups: suggestions.groups,
     inputValue: text,
     recent,
     pending: !!pendingChip
   })
-  const exact =
-    suggestions.inputValue === text
-      ? exactSuggestion(suggestions.groups)
+  const current = suggestions.inputValue === text
+  const exact = current ? exactSuggestion(suggestions.groups) : undefined
+  const typedValue =
+    current && pendingChip && text.trim()
+      ? firstMatch(suggestions.groups)
       : undefined
   const items = list.flatMap((group) => group.items)
   const search = items.find((item) => item.kind === 'search')
-  const fallbackKey = (exact && itemKey(exact)) ?? (search && itemKey(search))
+  const enterFallback = exact ?? typedValue ?? search
+  const fallbackKey = enterFallback && itemKey(enterFallback)
   // By position, so a recent item repeating a suggestion isn't marked too.
   const enterTarget =
     keyboardHighlightKey !== undefined
@@ -280,6 +304,18 @@ export function QueryField<Value = unknown>({
   function handleInputKeyDown(
     event: BaseUIEvent<KeyboardEvent<HTMLInputElement>>
   ) {
+    const tabbedOperator =
+      event.key === 'Tab' &&
+      !(event.metaKey || event.ctrlKey || event.altKey) &&
+      !isComposing(event)
+        ? operatorOnTab(event.shiftKey ? -1 : 1)
+        : undefined
+    if (tabbedOperator) {
+      event.preventBaseUIHandler()
+      event.preventDefault()
+      onPendingOperatorChange?.(tabbedOperator.value)
+      return
+    }
     if (CARET_KEYS.has(event.key)) setArrowed(false)
     if (
       (event.key === 'ArrowDown' || event.key === 'ArrowUp') &&
@@ -299,8 +335,7 @@ export function QueryField<Value = unknown>({
       if (keyboardHighlightKey) return
       event.preventBaseUIHandler()
       event.preventDefault()
-      const target = exact ?? search
-      if (target) accept(target)
+      if (enterFallback) accept(enterFallback)
       return
     }
     // Ends the composition only: the page, such as a toolbar, never hears it.
@@ -366,7 +401,7 @@ export function QueryField<Value = unknown>({
   return (
     <Combobox
       multiple
-      // Enter searches the text unless arrowed or exact; see enterTarget.
+      // Enter takes an arrowed row, else enterTarget's fallback.
       autoHighlight={false}
       items={list}
       filter={null}
@@ -513,6 +548,8 @@ export function QueryField<Value = unknown>({
             <span
               id={pendingId}
               data-slot='query-field-pending-chip'
+              // A description's change isn't read, so the operator's is live.
+              aria-live='polite'
               className={cn(
                 'inline-flex h-6 min-w-0 items-center rounded-full border border-dashed border-normal px-2.5 text-sm font-medium text-subtle',
                 CHIP_WIDTH
@@ -526,7 +563,15 @@ export function QueryField<Value = unknown>({
             aria-label={ariaLabel}
             aria-invalid={isInvalid || undefined}
             aria-required={isRequired || undefined}
-            aria-keyshortcuts={ownsShortcut ? shortcut : undefined}
+            aria-keyshortcuts={
+              [
+                ownsShortcut && shortcut,
+                operatorOnTab(1) && 'Tab',
+                operatorOnTab(-1) && 'Shift+Tab'
+              ]
+                .filter(Boolean)
+                .join(' ') || undefined
+            }
             {...(describedBy && { 'aria-describedby': describedBy })}
             placeholder={ordered.length > 0 || pendingChip ? '' : placeholder}
             onKeyDown={handleInputKeyDown}
@@ -560,48 +605,108 @@ export function QueryField<Value = unknown>({
       <Combobox.Portal>
         <Combobox.Positioner>
           <Combobox.Popup>
+            {showsOperators && (
+              <div
+                data-slot='query-field-operators'
+                className='sticky -top-1 z-1 -mx-1 -mt-1 grid bg-raised p-1'
+              >
+                <ToggleGroup
+                  aria-label='Operator'
+                  size='md'
+                  emphasis='subtler'
+                  value={operator === undefined ? [] : [operator]}
+                  onValueChange={([next]) => {
+                    if (next !== undefined) onPendingOperatorChange?.(next)
+                  }}
+                  // Focus stays in the input, so typing and Tab carry on there.
+                  onMouseDown={(event) => event.preventDefault()}
+                  // Words of very different lengths, so equal columns leave gaps.
+                  className='auto-cols-max justify-self-start'
+                >
+                  {operators.map((each) => (
+                    <ToggleGroup.Item
+                      key={each.value}
+                      value={each.value}
+                      aria-label={each['aria-label']}
+                      tabIndex={-1}
+                      className='min-w-8'
+                    >
+                      {each.label}
+                    </ToggleGroup.Item>
+                  ))}
+                </ToggleGroup>
+              </div>
+            )}
             <Combobox.List>
               {list.map((group, groupIndex) => (
-                <Combobox.Group key={groupKey(group)} items={group.items}>
-                  <Combobox.GroupLabel>{group.label}</Combobox.GroupLabel>
-                  <Combobox.Collection>
-                    {(item: QueryFieldAccepted<Value>, index: number) => (
-                      <Combobox.Item key={itemKey(item)} value={item}>
-                        <OptionIcon
-                          icon={
-                            item.kind === 'search' ? (
-                              <MagnifyingGlassIcon weight='bold' />
-                            ) : (
-                              item.icon
-                            )
-                          }
-                        />
-                        <span className='me-auto grid min-w-0 gap-0.5'>
-                          <span
-                            data-slot='query-field-option-label'
-                            className='truncate'
-                          >
-                            {item.label}
+                <Fragment key={groupKey(group)}>
+                  {pendingChip && groupIndex > 0 && (
+                    <ComboboxPrimitive.Separator
+                      data-slot='query-field-divider'
+                      className='px-2 py-1 before:block before:border-t before:border-subtle'
+                    />
+                  )}
+                  <Combobox.Group items={group.items}>
+                    <Combobox.GroupLabel
+                      // The operators stand in the first label; it still names
+                      // the group. The label's own padding would outsize sr-only.
+                      className={cn(
+                        (group.hideLabel ||
+                          (showsOperators && groupIndex === 0)) &&
+                          'sr-only p-0'
+                      )}
+                    >
+                      {group.label}
+                    </Combobox.GroupLabel>
+                    <Combobox.Collection>
+                      {(item: QueryFieldAccepted<Value>, index: number) => (
+                        <Combobox.Item
+                          key={itemKey(item)}
+                          value={item}
+                          // Enter's target reads as highlighted until something else is.
+                          className={cn(
+                            highlightKey === undefined &&
+                              groupStarts[groupIndex]! + index ===
+                                enterTarget &&
+                              'bg-subtle'
+                          )}
+                        >
+                          <OptionIcon
+                            icon={
+                              item.kind === 'search' ? (
+                                <MagnifyingGlassIcon weight='bold' />
+                              ) : (
+                                item.icon
+                              )
+                            }
+                          />
+                          <span className='me-auto grid min-w-0 gap-0.5'>
+                            <span
+                              data-slot='query-field-option-label'
+                              className='truncate'
+                            >
+                              {item.label}
+                            </span>
+                            {item.kind !== 'search' &&
+                              hasDescription(item.description) && (
+                                <span
+                                  data-slot='query-field-option-description'
+                                  className='truncate text-xs text-subtle'
+                                >
+                                  {item.description}
+                                </span>
+                              )}
                           </span>
-                          {item.kind !== 'search' &&
-                            hasDescription(item.description) && (
-                              <span
-                                data-slot='query-field-option-description'
-                                className='truncate text-xs text-subtle'
-                              >
-                                {item.description}
-                              </span>
-                            )}
-                        </span>
-                        {groupStarts[groupIndex]! + index === enterTarget && (
-                          <Kbd size='sm' className='text-subtle'>
-                            Enter
-                          </Kbd>
-                        )}
-                      </Combobox.Item>
-                    )}
-                  </Combobox.Collection>
-                </Combobox.Group>
+                          {groupStarts[groupIndex]! + index === enterTarget && (
+                            <Kbd size='sm' className='text-subtle'>
+                              Enter
+                            </Kbd>
+                          )}
+                        </Combobox.Item>
+                      )}
+                    </Combobox.Collection>
+                  </Combobox.Group>
+                </Fragment>
               ))}
             </Combobox.List>
             <Combobox.Empty>
