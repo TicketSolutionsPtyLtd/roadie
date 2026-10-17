@@ -122,22 +122,55 @@ function fromParsed(suggestion: RecordSuggestion): SearchSuggestion {
   }
 }
 
+type ListFilter = Extract<RecordFilter, { values: string[] }>
+
+const isList = (filter: RecordFilter): filter is ListFilter =>
+  'values' in filter
+
+/** Values for one field under one operator, as one chip holds them. */
+const sameCondition = (a: ListFilter, b: RecordFilter): b is ListFilter =>
+  isList(b) && a.field === b.field && a.operator === b.operator
+
+/** Whether the filters apply this one already, alone or among a chip's values. */
+export function isApplied(
+  filter: RecordFilter,
+  filters: readonly RecordFilter[]
+): boolean {
+  return filters.some(
+    (other) =>
+      sameFilter(other, filter) ||
+      (isList(filter) &&
+        sameCondition(filter, other) &&
+        filter.values.every((item) => other.values.includes(item)))
+  )
+}
+
 function unused(
   items: readonly SearchSuggestion[],
   context: SearchContext
 ): SearchSuggestion[] {
-  return items.filter(({ value }) => {
-    if (value.type !== 'filter') return true
-    const { filter } = value
-    return !context.filters.some(
-      (other) =>
-        sameFilter(other, filter) ||
-        (filter.operator === 'is' &&
-          other.operator === 'is' &&
-          other.field === filter.field &&
-          filter.values.every((item) => other.values.includes(item)))
-    )
-  })
+  return items.filter(
+    ({ value }) =>
+      value.type !== 'filter' || !isApplied(value.filter, context.filters)
+  )
+}
+
+/** Typed text that names an applied filter still offers it, to take its words. */
+function markApplied(
+  items: readonly SearchSuggestion[],
+  context: SearchContext
+): SearchSuggestion[] {
+  return items.map((item) =>
+    item.value.type === 'filter' &&
+    isApplied(item.value.filter, context.filters)
+      ? {
+          ...item,
+          description: item.description
+            ? `${item.description}, already applied`
+            : 'Already applied'
+        }
+      : item
+  )
 }
 
 /** Suggestions while nothing is pending: filters the text reads, then fields it names. */
@@ -149,11 +182,11 @@ export function topSuggestions(
     fromParsed(suggestion)
   )
   if (!text.trim()) return [{ id: 'fields', label: 'Filter by', items: parsed }]
-  return [
+  const groups = [
     {
       id: 'filters',
       label: 'Filters',
-      items: unused(
+      items: markApplied(
         parsed.filter((item) => item.kind === 'filter'),
         context
       )
@@ -164,6 +197,13 @@ export function topSuggestions(
       items: parsed.filter((item) => item.kind === 'field')
     }
   ]
+  // "sold" names the Sold field before it starts "Sold out", but "sold melb"
+  // lists City is Melbourne first, as it reads the rest.
+  const [top] = parsed
+  const named =
+    top?.kind === 'field' &&
+    groups[0]!.items.every((item) => item.remainder === top.remainder)
+  return named ? groups.reverse() : groups
 }
 
 /** What a field offers before anything is typed. Labels come later. */
@@ -255,19 +295,17 @@ export function valueSuggestions(
   ]
 }
 
-/** Option `is` filters on one field merge into one chip, as its values are ORed. */
+/** Option filters on one field with the same operator merge into one chip. */
 export function mergeFilter(
   filters: readonly RecordFilter[],
   filter: RecordFilter,
   fields: readonly RecordField[]
 ): { index: number; filter: RecordFilter } | null {
   const field = fields.find(({ key }) => key === filter.field)
-  if (filter.operator !== 'is' || field?.type !== 'option') return null
-  const at = filters.findIndex(
-    (other) => other.field === filter.field && other.operator === 'is'
-  )
-  if (at < 0) return null
-  const existing = filters[at] as { values: string[] }
+  if (!isList(filter) || field?.type !== 'option') return null
+  const at = filters.findIndex((other) => sameCondition(filter, other))
+  const existing = filters[at]
+  if (!existing || !isList(existing)) return null
   return {
     index: at,
     filter: {

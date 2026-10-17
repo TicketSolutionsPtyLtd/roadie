@@ -72,8 +72,13 @@ field without `options` holds), statuses, booleans by name, identifiers and
 date phrases such as "this weekend", each becoming a chip; the words a
 suggestion doesn't read stay in the field. Picking a field lists its values,
 or for a date its quick dates and Custom dates; a number or text field opens
-its editor. Option values added to a field join its chip. Each chip opens an
-editor for its condition and value as they change (a list of values, a date
+its editor. Option values added to a field join its chip with the same
+condition, so a value added as "is not" never joins an "is" chip. Typed
+negation, such as "city is not melb", suggests "City is not Melbourne". A
+field named in full, such as "sold", lists before values that start with its
+name, such as Sold out, unless a filter reads the words after it, as in
+"city melb". Text naming a filter already applied still suggests it, marked
+Already applied, and taking it clears those words and adds nothing. Each chip opens an editor for its condition and value as they change (a list of values, a date
 range picker with relative presets, a date picker, a number, text, or Yes and
 No), in a popover under the chip or a bottom drawer on a phone, with Remove
 filter; a filter whose values are cleared is removed as its editor closes,
