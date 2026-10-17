@@ -167,7 +167,7 @@ describe('parseQuery', () => {
   ])('reads "%s" as this weekend, its words as nothing else', (text) => {
     const result = parse(text, { limit: 50 })
     expect(result[0]).toMatchObject({
-      label: 'Starts: This weekend',
+      label: 'Starts is this weekend',
       value: { field: 'starts', operator: 'within', value: 'this-weekend' }
     })
     expect(result.map(summary)).not.toEqual(
@@ -219,8 +219,8 @@ describe('parseQuery', () => {
         .filter((s) => s.kind === 'filter' && s.value.field === 'starts')
         .map((s) => [s.label, s.description])
     ).toEqual([
-      ['Starts: 10 to 11 Oct', 'Next weekend'],
-      ['Starts: This weekend', '3 to 4 Oct 2026']
+      ['Starts is 10 to 11 Oct', 'Next weekend'],
+      ['Starts is this weekend', '3 to 4 Oct 2026']
     ])
   })
 
@@ -302,7 +302,7 @@ describe('parseQuery', () => {
     it('reads no partial value inside a longer reading', () => {
       const result = read('melb this weekend')
       expect(result.slice(0, 2)).toEqual([
-        'Starts: This weekend',
+        'Starts is this weekend',
         'City is Melbourne'
       ])
       expect(result).not.toContain('Room is Nimbus Thistle Hall')
@@ -312,9 +312,9 @@ describe('parseQuery', () => {
     })
 
     it.each([
-      ['in the next 7 days', 'Starts: Next 7 days'],
-      ['in the next week', 'Starts: Next week'],
-      ['the 20th of oct', 'Starts: 20 Oct']
+      ['in the next 7 days', 'Starts is in the next 7 days'],
+      ['in the next week', 'Starts is next week'],
+      ['the 20th of oct', 'Starts is on Tue 20 Oct']
     ])('reads "%s" as a date, and "the" as no value', (text, label) => {
       const result = read(text)
       expect(result[0]).toBe(label)
@@ -807,7 +807,7 @@ describe('parseQuery', () => {
       ],
       [
         'starts is this weekend',
-        'Starts: This weekend',
+        'Starts is this weekend',
         { field: 'starts', operator: 'within', value: 'this-weekend' }
       ]
     ])('reads "%s", taking the field name and verb', (text, label, value) => {
@@ -921,7 +921,7 @@ describe('parseQuery', () => {
       ],
       [
         'starts this weekend',
-        'Starts: This weekend',
+        'Starts is this weekend',
         { field: 'starts', operator: 'within', value: 'this-weekend' }
       ],
       [
@@ -948,7 +948,7 @@ describe('parseQuery', () => {
       ['name is disco melb', 'City is Melbourne', 'disco melb'],
       [
         'name contains disco this weekend',
-        'Starts: This weekend',
+        'Starts is this weekend',
         'disco this weekend'
       ],
       ['name disco oz-12345', 'Order number is oz-12345', 'disco oz-12345']
@@ -970,7 +970,7 @@ describe('parseQuery', () => {
       ).toEqual([
         'City is Melbourne',
         'Name contains “disco”',
-        'Starts: This weekend'
+        'Starts is this weekend'
       ])
     })
 
@@ -1139,13 +1139,21 @@ describe('parseQuery', () => {
     })
 
     it.each([
-      ['starts after today', 'Starts: After 3 Oct', 'Starts: Today'],
-      ['starts from tomorrow', 'Starts: After 3 Oct', 'Starts: Tomorrow'],
-      ['starts after tomorrow', 'Starts: After 4 Oct', 'Starts: Tomorrow'],
-      ['starts since monday', 'Starts: After 27 Sept', 'Starts: 5 Oct'],
-      ['since monday', 'Starts: After 27 Sept', 'Starts: After 4 Oct'],
-      ['starts until friday', 'Starts: Before 10 Oct', 'Starts: 9 Oct'],
-      ['after today', 'Starts: After 3 Oct', 'Starts: Today']
+      ['starts after today', 'Starts is after 3 Oct', 'Starts is today'],
+      ['starts from tomorrow', 'Starts is after 3 Oct', 'Starts is tomorrow'],
+      ['starts after tomorrow', 'Starts is after 4 Oct', 'Starts is tomorrow'],
+      [
+        'starts since monday',
+        'Starts is after 27 Sept',
+        'Starts is on Mon 5 Oct'
+      ],
+      ['since monday', 'Starts is after 27 Sept', 'Starts is after 4 Oct'],
+      [
+        'starts until friday',
+        'Starts is before 10 Oct',
+        'Starts is on Fri 9 Oct'
+      ],
+      ['after today', 'Starts is after 3 Oct', 'Starts is today']
     ])(
       'reads "%s" as %s, never dropping the comparison',
       (text, label, dropped) => {
@@ -1156,8 +1164,8 @@ describe('parseQuery', () => {
     )
 
     it.each([
-      ['on or after 20 oct', 'Starts: After 19 Oct'],
-      ['on or before 20 oct', 'Starts: Before 21 Oct']
+      ['on or after 20 oct', 'Starts is after 19 Oct'],
+      ['on or before 20 oct', 'Starts is before 21 Oct']
     ])('reads "%s" as %s, the day included', (text, label) => {
       const read = parse(text, { limit: 50 })
       expect(read[0]).toMatchObject({ label, remainder: '' })
@@ -1165,14 +1173,26 @@ describe('parseQuery', () => {
     })
 
     it.each([
-      ['last monday', 'Starts: 28 Sept', 'Starts: 5 Oct'],
-      ['next sat', 'Starts: 10 Oct', 'Starts: 3 Oct'],
-      ['sat 10 oct', 'Starts: 10 Oct', 'Starts: 3 Oct'],
-      ['starts sat 10 oct', 'Starts: 10 Oct', 'Starts: 3 Oct'],
-      ['20 to 23 oct', 'Starts: 20 to 23 Oct', 'Starts: 23 Oct'],
-      ['on or after 20 oct', 'Starts: After 19 Oct', 'Starts: After 20 Oct'],
-      ['20 oct onwards', 'Starts: After 19 Oct', 'Starts: 20 Oct'],
-      ['next 7 days', 'Starts: Next 7 days', 'Starts: Next 7 weeks']
+      ['last monday', 'Starts is on Mon 28 Sept', 'Starts is on Mon 5 Oct'],
+      ['next sat', 'Starts is on Sat 10 Oct', 'Starts is on Sat 3 Oct'],
+      ['sat 10 oct', 'Starts is on Sat 10 Oct', 'Starts is on Sat 3 Oct'],
+      [
+        'starts sat 10 oct',
+        'Starts is on Sat 10 Oct',
+        'Starts is on Sat 3 Oct'
+      ],
+      ['20 to 23 oct', 'Starts is 20 to 23 Oct', 'Starts is on Fri 23 Oct'],
+      [
+        'on or after 20 oct',
+        'Starts is after 19 Oct',
+        'Starts is after 20 Oct'
+      ],
+      ['20 oct onwards', 'Starts is after 19 Oct', 'Starts is on Tue 20 Oct'],
+      [
+        'next 7 days',
+        'Starts is in the next 7 days',
+        'Starts is in the next 7 weeks'
+      ]
     ])(
       'reads no date from words inside the longer date "%s"',
       (text, label, dropped) => {
@@ -1209,12 +1229,12 @@ describe('parseQuery', () => {
       it('puts the field a statement names before a date that leaves the name', () => {
         const read = readDays('day saturday and sunday')
         expect(read[0]).toBe('Day is Saturday')
-        expect(read).toContain('Starts: 3 to 4 Oct')
+        expect(read).toContain('Starts is 3 to 4 Oct')
       })
 
       it('still offers each day of a range as a value', () => {
         const read = readDays('saturday and sunday')
-        expect(read[0]).toBe('Starts: 3 to 4 Oct')
+        expect(read[0]).toBe('Starts is 3 to 4 Oct')
         expect(read).toContain('Day is Saturday')
         expect(read).toContain('Day is Sunday')
       })
@@ -1232,7 +1252,7 @@ describe('parseQuery', () => {
 
       it('puts no statement of text a field contains before a date', () => {
         expect(readDays('name disco this weekend')[0]).toBe(
-          'Starts: This weekend'
+          'Starts is this weekend'
         )
       })
 
@@ -1263,9 +1283,17 @@ describe('parseQuery', () => {
     })
 
     it.each([
-      ['before next fri', 'Starts: Before 9 Oct', 'Starts: 9 Oct'],
-      ['until next month', 'Starts: Before 1 Dec', 'Starts: Month to date'],
-      ['melb since last week', 'Starts: After 20 Sept', 'Starts: Week to date']
+      ['before next fri', 'Starts is before 9 Oct', 'Starts is on Fri 9 Oct'],
+      [
+        'until next month',
+        'Starts is before 1 Dec',
+        'Starts is this month to date'
+      ],
+      [
+        'melb since last week',
+        'Starts is after 20 Sept',
+        'Starts is this week to date'
+      ]
     ])(
       'reads no date from a later word "%s" compares',
       (text, label, dropped) => {
@@ -1300,12 +1328,12 @@ describe('parseQuery', () => {
     })
 
     it.each([
-      ['from tomorrow to next sat', 'Starts: 4 to 10 Oct'],
-      ['tomorrow to fri', 'Starts: 4 to 9 Oct'],
-      ['tomorrow to sat', 'Starts: 4 to 10 Oct'],
-      ['fri to mon', 'Starts: 9 to 12 Oct'],
-      ['starts from tomorrow to next sat', 'Starts: 4 to 10 Oct'],
-      ['starts on or after 20 oct', 'Starts: After 19 Oct']
+      ['from tomorrow to next sat', 'Starts is 4 to 10 Oct'],
+      ['tomorrow to fri', 'Starts is 4 to 9 Oct'],
+      ['tomorrow to sat', 'Starts is 4 to 10 Oct'],
+      ['fri to mon', 'Starts is 9 to 12 Oct'],
+      ['starts from tomorrow to next sat', 'Starts is 4 to 10 Oct'],
+      ['starts on or after 20 oct', 'Starts is after 19 Oct']
     ])('reads "%s" whole, as %s', (text, label) => {
       const read = parse(text, { limit: 50 })
       expect(read[0]).toMatchObject({ label, remainder: '' })
@@ -1316,11 +1344,11 @@ describe('parseQuery', () => {
 
     it('still reads "from" before a range it can read, or before other words', () => {
       expect(parse('from 1 oct to 5 oct')[0]).toMatchObject({
-        label: 'Starts: 1 to 5 Oct',
+        label: 'Starts is 1 to 5 Oct',
         remainder: ''
       })
       expect(parse('from today and melb', { limit: 50 }).map(summary)).toEqual(
-        expect.arrayContaining(['Starts: After 2 Oct', 'City is Melbourne'])
+        expect.arrayContaining(['Starts is after 2 Oct', 'City is Melbourne'])
       )
     })
 

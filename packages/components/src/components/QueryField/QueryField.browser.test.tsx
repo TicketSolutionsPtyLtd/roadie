@@ -295,7 +295,7 @@ describe('QueryField', () => {
         initialChips={[
           {
             id: 'starts',
-            label: 'Starts: This weekend',
+            label: 'Starts is this weekend',
             description: '3 to 4 Oct'
           }
         ]}
