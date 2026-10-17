@@ -33,8 +33,9 @@ import { resolveLinkKind } from '../../utils/resolveLinkKind'
  *   navigation; passing them is almost always a bug or an attack
  *   vector reaching a user-controlled href.
  *
- * Not exported from `@oztix/roadie-components`. Smart-href components
- * (Button, Card, Breadcrumb, Carousel, Tabs) compose this internally.
+ * Public as `Link` from `@oztix/roadie-components/link`, for links in
+ * rendered content. Smart-href components (Button, Card, Breadcrumb,
+ * Carousel, Tabs) compose it internally.
  */
 export type RoadieRoutedLinkProps = Omit<
   AnchorHTMLAttributes<HTMLAnchorElement>,

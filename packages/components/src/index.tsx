@@ -3,6 +3,7 @@ export {
   IconButton,
   type IconButtonProps
 } from './components/Button/IconButton'
+export { Link, type LinkProps } from './components/Link'
 export { LinkButton, type LinkButtonProps } from './components/LinkButton'
 export {
   LinkIconButton,
