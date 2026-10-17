@@ -10,11 +10,12 @@ import {
   it,
   onTestFinished
 } from 'vitest'
-import { page, server, userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { QueryField, type QueryFieldProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
+import { pointAt } from '../../utils/pointerTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { Tooltip } from '../Tooltip'
 import type {
@@ -209,13 +210,13 @@ describe('QueryField', () => {
       name: /Iguana Teapot Hall/
     })
     const search = screen.getByRole('option', { name: /Search for/ })
-    await userEvent.hover(filter)
+    await pointAt(filter)
     await expect.poll(() => shown(filter.querySelector('kbd'))).toBe(true)
     expect(search.querySelector('kbd')).toBeNull()
     await userEvent.unhover(filter)
     await expect.poll(() => shown(search.querySelector('kbd'))).toBe(true)
     expect(search).toHaveAttribute('data-highlighted')
-    await userEvent.hover(filter)
+    await pointAt(filter)
     await userEvent.keyboard('{Enter}')
     expect(accepted).toEqual(['filter'])
   })
@@ -506,39 +507,34 @@ describe('QueryField', () => {
     expect(screen.getByRole('group', { name: 'Filters' })).toBeInTheDocument()
   })
 
-  // Headless WebKit's hover doesn't move Base UI's highlight; the other engines
-  // cover it.
-  it.skipIf(server.browser === 'webkit')(
-    'fills the row Enter takes until another row is highlighted',
-    async () => {
-      const cities: QueryFieldSuggestionGroup[] = [
-        {
-          id: 'values',
-          label: 'City',
-          items: ['Brisbane', 'Hobart'].map((city) => ({
-            id: city,
-            label: city,
-            kind: 'filter' as const,
-            value: city
-          }))
-        }
-      ]
-      render(
-        <Harness
-          pendingChip={{ id: 'city', label: 'City is' }}
-          suggest={() => cities}
-        />
-      )
-      await userEvent.type(input(), 'b')
-      const fill = (name: string) =>
-        getComputedStyle(screen.getByRole('option', { name: new RegExp(name) }))
-          .backgroundColor
-      await expect.poll(() => fill('Brisbane')).not.toBe(fill('Hobart'))
-      const resting = fill('Hobart')
-      await userEvent.hover(screen.getByRole('option', { name: /Hobart/ }))
-      await expect.poll(() => fill('Brisbane')).toBe(resting)
-    }
-  )
+  it('fills the row Enter takes until another row is highlighted', async () => {
+    const cities: QueryFieldSuggestionGroup[] = [
+      {
+        id: 'values',
+        label: 'City',
+        items: ['Brisbane', 'Hobart'].map((city) => ({
+          id: city,
+          label: city,
+          kind: 'filter' as const,
+          value: city
+        }))
+      }
+    ]
+    render(
+      <Harness
+        pendingChip={{ id: 'city', label: 'City is' }}
+        suggest={() => cities}
+      />
+    )
+    await userEvent.type(input(), 'b')
+    const fill = (name: string) =>
+      getComputedStyle(screen.getByRole('option', { name: new RegExp(name) }))
+        .backgroundColor
+    await expect.poll(() => fill('Brisbane')).not.toBe(fill('Hobart'))
+    const resting = fill('Hobart')
+    await pointAt(screen.getByRole('option', { name: /Hobart/ }))
+    await expect.poll(() => fill('Brisbane')).toBe(resting)
+  })
 
   it('lists the search Enter takes first, and Down moves to the next row', async () => {
     render(<Harness />)
