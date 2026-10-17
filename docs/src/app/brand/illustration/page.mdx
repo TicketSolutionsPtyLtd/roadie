@@ -1,0 +1,100 @@
+export const metadata = {
+  title: 'Illustration',
+  description:
+    'The three tiers of brand illustration, hero, feature, and spot, and a library of every spot illustration to copy or download.',
+  category: 'Brand',
+  order: 5
+}
+
+import { PairTable } from '@/components/PairTable'
+import { BrandFigure } from '@/components/brand/BrandFigure'
+import { DownloadCard } from '@/components/brand/DownloadCard'
+import { IllustrationLibrary } from '@/components/brand/IllustrationLibrary'
+
+<BrandFigure
+  src='/brand/illustration/feature-partnership.webp'
+  width='1280'
+  height='1285'
+  alt='Two people fitting giant puzzle pieces together on a blue platform, with stars, a light bulb, and an envelope around them'
+  caption='A feature illustration for partnership.'
+/>
+
+Illustrations tell the brand's story with bold compositions, strong brand
+colour, and clean line work, always focused on people and the connections
+between them.
+
+## Types
+
+Illustrations come in three tiers, from the most detailed to the simplest.
+
+<PairTable>
+
+| Tier    | Use                                                                                                                                  |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Hero    | Narrative scenes with three or more people, for campaigns and landing pages, 1200px wide or more. The hero set is still being drawn. |
+| Feature | One story about a feature or service, often a metaphor, for feature pages, sales material, and email headers, 600px to 1200px wide.  |
+| Spot    | A single idea with few elements, for empty states, dividers, help content, and small pieces, 48px to 300px wide.                     |
+
+</PairTable>
+
+In product, keep feature illustrations literal and focused on what the
+feature does. In marketing, lean into the benefit and the excitement.
+
+## Library
+
+Every spot illustration, searchable by name or tag. Copy its SVG into a design,
+or download it as an SVG or a 1024px PNG from its menu. Each keeps its brand
+colours on any background.
+
+<IllustrationLibrary />
+
+### Brand pillars
+
+Four spot illustrations stand for the brand's partnership pillars.
+
+| Pillar    | Illustration   | Stands for                             |
+| --------- | -------------- | -------------------------------------- |
+| People    | Heart          | The team's expertise and relationships |
+| Service   | Hand           | Personal service                       |
+| Marketing | Arrow up right | Growth and promotional support         |
+| Platform  | Cursor         | The technology underneath              |
+
+## Markets
+
+Change what an illustration shows for each market, never its style.
+
+<PairTable>
+
+| Market     | Show                                                   |
+| ---------- | ------------------------------------------------------ |
+| Live music | Concert scenes, performances, and audience energy      |
+| Venues     | Architectural spaces, crowd flow, and facilities       |
+| Shows      | Exhibition spaces, interactive displays, and attendees |
+| Sports     | Movement, competition, and spectators                  |
+| Events     | Community, shared experiences, and atmosphere          |
+
+</PairTable>
+
+## Making illustrations
+
+- Build from the brand's base shapes, with a clear focal point.
+- Keep perspective, scale, and style consistent across a series.
+- Use the brand palette with purpose, and keep enough contrast to read.
+- Match the detail to the space. Don't use a detailed illustration small.
+- For print, use 300dpi or more and convert colour for CMYK.
+
+## Downloads
+
+<DownloadCard
+  title='Illustration pack'
+  href='/brand/illustration/oztix-illustration-pack.zip'
+  formats='PNG and SVG'
+  size='249 KB'
+  description='The key illustrations as PNG files and every spot illustration in the library as an SVG.'
+/>
+
+## In Roadie
+
+The spot tier in apps is the [SpotIllustration](/components/spot-illustration)
+components, marked with their component name in the library. They keep their
+brand colours in both themes.

@@ -147,6 +147,27 @@ describe('Records.Search', () => {
     expect(rows()).toHaveLength(6)
   })
 
+  it('reads a negation as the opposite filter, joining chips with the same condition', async () => {
+    const { user, lastView } = setup()
+    await user.click(input())
+    await user.keyboard('city is not melb')
+    await user.click(await option(/City is not Melbourne/))
+    expect(chipLabels()).toEqual(['City is not Melbourne'])
+    expect(input()).toHaveValue('')
+    expect(lastView().query).toMatchObject({
+      search: '',
+      filters: [{ field: 'city', operator: 'is-not', values: ['Melbourne'] }]
+    })
+    await user.keyboard('not syd')
+    await user.click(await option(/City is not Sydney/))
+    await user.keyboard('perth')
+    await user.click(await option(/City is Perth/))
+    expect(chipLabels()).toEqual([
+      'City is not Melbourne or Sydney',
+      'City is Perth'
+    ])
+  })
+
   it('keeps searching the words a filter did not read', async () => {
     const { user, lastView } = setup()
     await user.click(input())
@@ -395,8 +416,8 @@ describe('Records.Search', () => {
     expect(input()).not.toHaveFocus()
   })
 
-  it('never suggests a filter already applied', async () => {
-    const { user } = setup({
+  it('takes a filter already applied for its words, adding nothing', async () => {
+    const { user, lastView } = setup({
       defaultView: {
         query: {
           filters: [{ field: 'city', operator: 'is', values: ['Melbourne'] }]
@@ -405,10 +426,21 @@ describe('Records.Search', () => {
     })
     await user.click(input())
     await user.keyboard('melb')
-    await option(/Search for/)
-    expect(
-      screen.queryByRole('option', { name: /City is Melbourne/ })
-    ).toBeNull()
+    await user.click(await option(/City is Melbourne.*Already applied/))
+    expect(chipLabels()).toEqual(['City is Melbourne'])
+    expect(input()).toHaveValue('')
+    expect(lastView()?.query.search ?? '').toBe('')
+  })
+
+  it('adds nothing for a filter the scope applies', async () => {
+    const { user } = setup({
+      scope: [{ field: 'city', operator: 'is', values: ['Melbourne'] }]
+    })
+    await user.click(input())
+    await user.keyboard('melb')
+    await user.click(await option(/City is Melbourne.*Already applied/))
+    expect(chipLabels()).toEqual(['City is Melbourne'])
+    expect(input()).toHaveValue('')
   })
 
   it('removes a chip once its last value is unticked', async () => {

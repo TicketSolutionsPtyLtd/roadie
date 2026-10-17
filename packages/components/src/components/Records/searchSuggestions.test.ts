@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { type RecordFilter, recordFields } from '@oztix/roadie-core/records'
 
 import {
+  type SearchGroup,
   type ValueOperator,
   filterChipIds,
   filterKey,
@@ -66,6 +67,9 @@ const valuesOf = (groups: readonly { id: string }[]) =>
     typeof valueSuggestions
   >[number]
 
+const group = (groups: SearchGroup[], id: string) =>
+  groups.find((g) => g.id === id)!
+
 describe('topSuggestions', () => {
   it('lists the fields to filter by while empty', () => {
     const [group] = topSuggestions('', context())
@@ -94,40 +98,108 @@ describe('topSuggestions', () => {
     ])
   })
 
-  it('never suggests a filter already applied', () => {
-    const melbourne: RecordFilter = {
-      field: 'city',
-      operator: 'is',
-      values: ['melbourne']
-    }
-    const [filters] = topSuggestions('melb', context([melbourne]))
-    expect(filters!.items.map((item) => item.label)).not.toContain(
-      'City is Melbourne'
-    )
+  const applied = (text: string, filters: RecordFilter[]) =>
+    topSuggestions(text, context(filters))[0]!.items.map((item) => [
+      item.label,
+      item.description,
+      item.remainder
+    ])
+
+  it('marks a filter already applied, rather than hide it', () => {
+    expect(
+      applied('melb', [
+        { field: 'city', operator: 'is', values: ['melbourne'] }
+      ])
+    ).toEqual([['City is Melbourne', 'Already applied', '']])
   })
 
-  it('never suggests a value its field’s chip already holds', () => {
-    const [filters] = topSuggestions(
-      'melb',
-      context([
+  it('marks a value its field’s chip already holds', () => {
+    expect(
+      applied('melb', [
         { field: 'city', operator: 'is', values: ['perth', 'melbourne'] }
       ])
-    )
-    expect(filters!.items.map((item) => item.label)).not.toContain(
-      'City is Melbourne'
-    )
+    ).toEqual([['City is Melbourne', 'Already applied', '']])
+  })
+
+  it('marks a value only a chip with the same condition holds', () => {
+    expect(
+      applied('not melb', [
+        { field: 'city', operator: 'is-not', values: ['perth', 'melbourne'] }
+      ])
+    ).toContainEqual(['City is not Melbourne', 'Already applied', ''])
+    expect(
+      applied('not melb', [
+        { field: 'city', operator: 'is', values: ['melbourne'] }
+      ])
+    ).toContainEqual(['City is not Melbourne', undefined, ''])
+  })
+
+  it('offers an applied value beside a new one, so taking it reads its words', () => {
+    expect(
+      applied('melb syd', [
+        { field: 'city', operator: 'is', values: ['melbourne'] }
+      ]).slice(0, 2)
+    ).toEqual([
+      ['City is Melbourne', 'Already applied', 'syd'],
+      ['City is Sydney', undefined, 'melb']
+    ])
+  })
+
+  it('keeps an applied filter’s dates beside the mark', () => {
+    const weekend: RecordFilter = {
+      field: 'starts',
+      operator: 'within',
+      value: 'this-weekend'
+    }
+    const [fresh] = applied('this weekend', [])
+    const [marked] = applied('this weekend', [weekend])
+    expect(fresh![1]).toBeTruthy()
+    expect(marked).toEqual([fresh![0], `${fresh![1]}, already applied`, ''])
   })
 
   it('keeps the words a field didn’t read', () => {
-    const [, found] = topSuggestions('ocean cit', context())
-    expect(found!.items[0]).toMatchObject({ label: 'City', remainder: 'ocean' })
+    const found = group(topSuggestions('ocean cit', context()), 'fields')
+    expect(found.items[0]).toMatchObject({ label: 'City', remainder: 'ocean' })
   })
 
   it('names fields the text starts', () => {
-    const [, found] = topSuggestions('cit', context())
-    expect(found!.items).toMatchObject([
+    const found = group(topSuggestions('cit', context()), 'fields')
+    expect(found.items).toMatchObject([
       { kind: 'field', label: 'City', value: { type: 'field', field: 'city' } }
     ])
+  })
+
+  it('lists a field its name matches exactly before the filters', () => {
+    const status = {
+      key: 'status',
+      label: 'Status',
+      type: 'option' as const,
+      options: [{ value: 'sold-out', label: 'Sold out' }]
+    }
+    const first = (text: string) =>
+      topSuggestions(text, { ...context(), fields: [...fields, status] })
+        .flatMap((g) => g.items)
+        .map((item) => item.label)[0]
+    expect(first('sold')).toBe('Sold')
+    expect(first('sol')).toBe('Status is Sold out')
+  })
+
+  it('lists the filters first once one reads words after a field name', () => {
+    const status = {
+      key: 'status',
+      label: 'Status',
+      type: 'option' as const,
+      options: [{ value: 'sold-out', label: 'Sold out' }]
+    }
+    const order = (text: string) =>
+      topSuggestions(text, { ...context(), fields: [...fields, status] }).map(
+        (g) => g.id
+      )
+    expect(order('sold')).toEqual(['fields', 'filters'])
+    expect(order('sold melb')).toEqual(['filters', 'fields'])
+    expect(
+      topSuggestions('city melb', context()).flatMap((g) => g.items)[0]
+    ).toMatchObject({ label: 'City is Melbourne', remainder: '' })
   })
 })
 
@@ -597,11 +669,43 @@ describe('mergeFilter', () => {
     })
   })
 
+  it('adds a value to a chip with the same condition', () => {
+    const notSydney: RecordFilter = {
+      field: 'city',
+      operator: 'is-not',
+      values: ['sydney']
+    }
+    expect(
+      mergeFilter(
+        [sydney, notSydney],
+        { field: 'city', operator: 'is-not', values: ['perth'] },
+        fields
+      )
+    ).toEqual({
+      index: 1,
+      filter: { field: 'city', operator: 'is-not', values: ['sydney', 'perth'] }
+    })
+    expect(
+      mergeFilter(
+        [notSydney],
+        { field: 'city', operator: 'is', values: ['perth'] },
+        fields
+      )
+    ).toBeNull()
+  })
+
   it('leaves other filters alone', () => {
     expect(
       mergeFilter(
         [sydney],
         { field: 'city', operator: 'is-not', values: ['perth'] },
+        fields
+      )
+    ).toBeNull()
+    expect(
+      mergeFilter(
+        [{ field: 'venue', operator: 'is', values: ['x'] }],
+        { field: 'city', operator: 'is', values: ['perth'] },
         fields
       )
     ).toBeNull()
