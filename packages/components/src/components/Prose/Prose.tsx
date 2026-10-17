@@ -32,8 +32,9 @@ export type ProseProps<T extends ElementType = 'div'> = {
   render?: RoadieRenderProp
   className?: string
   /**
-   * Body size and heading scale. `sm` uses the UI heading styles for dense
-   * content such as an FAQ; `md` and `lg` use the prose heading styles.
+   * Body size and heading scale. `sm` sets headings one step below the UI
+   * heading styles, for dense content such as an FAQ; `md` uses the UI
+   * heading styles; `lg` uses the prose heading styles, for editorial pages.
    * @default 'md'
    */
   size?: 'sm' | 'md' | 'lg'
