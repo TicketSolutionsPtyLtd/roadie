@@ -3,6 +3,7 @@
 import { use, useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import { XIcon } from '@phosphor-icons/react'
+import { flushSync } from 'react-dom'
 
 import { plainDateOf } from '@oztix/roadie-core/datetime'
 import type { RecordFilter } from '@oztix/roadie-core/records'
@@ -659,14 +660,17 @@ export function RecordsSearch({
       }}
       onBlur={() => onFocusChange(false)}
       onKeyDown={(event) => {
-        // The rest show before Tab moves on, as a discrete event commits first,
-        // so focus lands on them rather than past them.
+        // The rest show before Tab moves on, so focus lands on them rather than
+        // past them. Committed and styled now: Firefox picks Tab's target
+        // before a microtask would commit, from styles it hasn't recomputed.
         if (
           event.key === 'Tab' &&
           !event.defaultPrevented &&
           event.currentTarget.contains(event.target as Node)
-        )
-          onFocusChange(false)
+        ) {
+          flushSync(() => onFocusChange(false))
+          void event.currentTarget.parentElement?.offsetWidth
+        }
       }}
     >
       {content}
