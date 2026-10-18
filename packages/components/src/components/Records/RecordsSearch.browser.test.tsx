@@ -3,7 +3,6 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
-import { settledBox } from '../../utils/touchTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { RecordTable, tableColumns } from '../RecordTable'
 import { type TestShow, showFields, testShows } from './testUtils'
@@ -84,124 +83,6 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     expect(box(configure).height).toBe(40)
   })
 
-  it('opens Custom dates for a date chip under it, with a date picker inside', async () => {
-    render(
-      <Shows
-        defaultView={{
-          query: {
-            filters: [
-              { field: 'starts', operator: 'within', value: 'this-weekend' }
-            ]
-          }
-        }}
-      />
-    )
-    const starts = chip('Starts')
-    await userEvent.click(
-      within(starts).getByRole('button', { name: /^Starts/ })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Custom dates' })
-    )
-    const dialog = await screen.findByRole('dialog', { name: 'Starts' })
-    const editor = await settledBox(dialog)
-    expect(editor.top).toBeGreaterThan(box(starts).bottom)
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: /^Choose dates/ })
-    )
-    await userEvent.click(
-      await screen.findByRole('button', { name: /^Next week/ })
-    )
-    await expect
-      .poll(() => chip('Starts')?.textContent)
-      .toContain('is next week')
-    const after = screen.getByRole('dialog', { name: 'Starts' })
-    expect(after).toBeVisible()
-    // The edited chip remounts; the editor stays under the chip that holds it.
-    const moved = await settledBox(after)
-    expect(moved.top).toBeGreaterThan(box(chip('Starts')).bottom)
-    expect(Math.abs(moved.left - box(chip('Starts')).left)).toBeLessThan(2)
-    await userEvent.keyboard('{Escape}')
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
-    await userEvent.click(
-      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Custom dates' })
-    )
-    const reopened = await settledBox(
-      await screen.findByRole('dialog', { name: 'Starts' })
-    )
-    expect(reopened.top).toBeGreaterThan(box(chip('Starts')).bottom)
-  })
-
-  it('keeps Tab inside Custom dates, titled with its field', async () => {
-    render(
-      <Shows
-        defaultView={{
-          query: {
-            filters: [
-              { field: 'starts', operator: 'within', value: 'this-weekend' }
-            ]
-          }
-        }}
-      />
-    )
-    await userEvent.click(
-      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Custom dates' })
-    )
-    const dialog = await screen.findByRole('dialog', { name: 'Starts' })
-    await expect
-      .element(within(dialog).getByRole('heading', { name: 'Starts' }))
-      .toBeVisible()
-    await expect.poll(() => dialog.contains(document.activeElement)).toBe(true)
-    const stops = new Set<Element | null>()
-    for (let press = 0; press < 6; press++) {
-      await userEvent.keyboard('{Tab}')
-      // A focus guard at the edge hands focus on a moment later.
-      await expect
-        .poll(() => document.activeElement?.closest('[role=dialog]'))
-        .toBe(dialog)
-      stops.add(document.activeElement)
-    }
-    expect(stops.size).toBeGreaterThan(1)
-    expect(dialog).toBeVisible()
-  })
-
-  it('leaves the page scrolling under Custom dates, and a click on another chip closes it and edits that chip', async () => {
-    render(
-      <Shows
-        defaultView={{
-          query: {
-            filters: [
-              { field: 'starts', operator: 'within', value: 'this-weekend' },
-              { field: 'city', operator: 'contains', value: 'Perth' }
-            ]
-          }
-        }}
-      />
-    )
-    await userEvent.click(
-      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
-    )
-    await userEvent.click(
-      await screen.findByRole('option', { name: 'Custom dates' })
-    )
-    await screen.findByRole('dialog', { name: 'Starts' })
-    // The page still scrolls behind it.
-    for (const element of [document.documentElement, document.body])
-      expect(getComputedStyle(element).overflow).not.toBe('hidden')
-    // By selector, as the dialog hides the page from the accessibility tree.
-    await userEvent.click(chip('City').querySelector('button')!)
-    await expect.poll(() => screen.queryByRole('dialog')).toBeNull()
-    await expect
-      .poll(() => chip('City').hasAttribute('data-selected'))
-      .toBe(true)
-  })
-
   it('edits an option chip in the list on a phone', async () => {
     await page.viewport(390, 844)
     render(
@@ -224,6 +105,44 @@ describe('Records.Search in a browser', TIMEOUT, () => {
       .toContain('On sale or Sold out')
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(screen.getByRole('listbox')).toBeVisible()
+  })
+
+  it('edits a between chip in its place, its days typed and selected', async () => {
+    render(
+      <Shows
+        defaultView={{
+          query: {
+            filters: [
+              {
+                field: 'starts',
+                operator: 'between',
+                value: ['2026-11-12', '2026-12-15']
+              },
+              { field: 'sold', operator: 'gt', value: 100 }
+            ]
+          }
+        }}
+      />
+    )
+    await userEvent.click(
+      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
+    )
+    const field = screen.getByRole<HTMLInputElement>('combobox', {
+      name: 'Search and filter'
+    })
+    const pending = document.querySelector(
+      '[data-slot=query-field-pending-chip]'
+    )!
+    await expect.element(field).toHaveValue('12 Nov to 15 Dec')
+    expect([field.selectionStart, field.selectionEnd]).toEqual([0, 16])
+    expect(pending).toContainElement(field)
+    expect(field).toHaveAccessibleDescription('Starts is between')
+    expect(getComputedStyle(pending).borderStyle).toBe('dashed')
+    expect(getComputedStyle(chip('Starts')).display).toBe('none')
+    expect(box(pending).right).toBeLessThan(box(chip('Sold')).left)
+    expect(
+      screen.getByRole('button', { name: 'is between', pressed: true })
+    ).toBeVisible()
   })
 
   it('edits a number chip in the list on a phone, its value in the field, then closes the list', async () => {
@@ -249,5 +168,240 @@ describe('Records.Search in a browser', TIMEOUT, () => {
     expect(screen.queryByRole('dialog')).toBeNull()
     await expect.poll(() => screen.queryByRole('listbox')).toBeNull()
     expect(chip('Sold')).not.toHaveAttribute('data-selected')
+  })
+})
+
+const popup = () =>
+  document.querySelector<HTMLElement>('[data-slot=combobox-popup]')
+const calendar = () =>
+  popup()?.querySelector<HTMLElement>('[data-slot=calendar]') ?? null
+const day = (date: string) =>
+  calendar()!.querySelector<HTMLElement>(
+    `button[data-date="${date}"]:not([data-outside])`
+  )!
+const operator = (name: string) =>
+  within(screen.getByRole('group', { name: 'Operator' })).getByRole('button', {
+    name
+  })
+const searchInput = () =>
+  screen.getByRole('combobox', { name: 'Search and filter' })
+
+describe.each([
+  { name: 'a phone', width: 390, height: 844 },
+  { name: 'a desktop', width: 1440, height: 900 }
+])('Records.Search dates on $name', TIMEOUT, ({ width, height }) => {
+  async function chooseStarts(defaultView?: RecordViewDefaults) {
+    await page.viewport(width, height)
+    render(<Shows defaultView={defaultView} />)
+    await userEvent.click(searchInput())
+    await userEvent.click(
+      await screen.findByRole('option', { name: /^Starts/ })
+    )
+  }
+
+  async function underCondition(name: string) {
+    await chooseStarts()
+    await userEvent.click(operator(name))
+    await expect.poll(calendar).toBeTruthy()
+  }
+
+  afterEach(() => {
+    // No popover or drawer: the dates stay in the dropdown.
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('starts on is relative, listing the quick dates', async () => {
+    await chooseStarts()
+    expect(operator('is relative')).toHaveAttribute('aria-pressed', 'true')
+    await expect
+      .element(await screen.findByRole('option', { name: /^This weekend/ }))
+      .toBeVisible()
+    expect(calendar()).toBeNull()
+  })
+
+  it('shows a calendar under is, its week inside the field’s width', async () => {
+    await underCondition('is')
+    expect(operator('is')).toHaveAttribute('aria-pressed', 'true')
+    const field = box(searchField())
+    const dropdown = box(popup()!)
+    expect(dropdown.width).toBeLessThanOrEqual(field.width + 1)
+    const sunday = box(day('2026-10-04'))
+    expect(sunday.right).toBeLessThanOrEqual(dropdown.right)
+    expect(box(day('2026-10-05')).left).toBeGreaterThanOrEqual(dropdown.left)
+    expect(searchInput()).toHaveFocus()
+  })
+
+  it('shows two months side by side only where they fit', async () => {
+    await underCondition('is')
+    const months = () =>
+      popup()!.querySelectorAll('[data-slot="calendar-month"]')
+    await expect.poll(() => months().length).toBe(width > 768 ? 2 : 1)
+    const [first, second] = [...months()].map(box)
+    if (second) expect(second.top).toBe(first!.top)
+    expect(box(popup()!).width).toBeLessThanOrEqual(
+      box(searchField()).width + 1
+    )
+  })
+
+  it('jumps months from the caption’s select, keeping the dropdown open', async () => {
+    await underCondition('is')
+    const month = popup()!.querySelector('select')!
+    // A press on the select keeps its default, so it takes focus to open.
+    const press = new MouseEvent('mousedown', {
+      bubbles: true,
+      cancelable: true
+    })
+    expect(month.dispatchEvent(press)).toBe(true)
+    month.focus()
+    await userEvent.selectOptions(month, 'December')
+    await expect.poll(() => day('2026-12-10')).toBeTruthy()
+    expect(popup()).not.toBeNull()
+    expect(searchInput()).toHaveFocus()
+    await userEvent.click(day('2026-12-10'))
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('Starts is on Thu 10 Dec')
+  })
+
+  it('shows the month of the day typed, and still moves by its select and arrows', async () => {
+    await underCondition('is')
+    const firstMonth = () => within(popup()!).getAllByRole('grid')[0]
+    await expect.poll(firstMonth).toHaveAccessibleName('October 2026')
+    await userEvent.keyboard('26 feb')
+    await expect.poll(firstMonth).toHaveAccessibleName('February 2027')
+    await userEvent.selectOptions(popup()!.querySelector('select')!, 'December')
+    await expect.poll(firstMonth).toHaveAccessibleName('December 2027')
+    await userEvent.click(
+      within(popup()!).getByRole('button', { name: 'Next month' })
+    )
+    await expect.poll(firstMonth).toHaveAccessibleName('January 2028')
+    expect(searchInput()).toHaveValue('26 feb')
+  })
+
+  it('tints the day Enter would take, without selecting it', async () => {
+    await underCondition('is after')
+    await userEvent.keyboard('25 dec')
+    await expect
+      .poll(() => day('2026-12-25').hasAttribute('data-previewed'))
+      .toBe(true)
+    const background = (date: string) =>
+      getComputedStyle(day(date)).backgroundColor
+    expect(background('2026-12-25')).not.toBe(background('2026-12-24'))
+    expect(day('2026-12-25')).not.toHaveAttribute('data-selected')
+  })
+
+  it('draws a typed range as one neutral band, not separate days', async () => {
+    await underCondition('is between')
+    await userEvent.keyboard('23 nov and 12 dec')
+    await expect
+      .poll(() => day('2026-11-25').hasAttribute('data-previewed'))
+      .toBe(true)
+    const cell = (date: string) =>
+      getComputedStyle(day(date).parentElement!).backgroundColor
+    // Middle days share the cell's band, so neighbours run together.
+    expect(cell('2026-11-25')).not.toBe('rgba(0, 0, 0, 0)')
+    expect(cell('2026-11-26')).toBe(cell('2026-11-25'))
+    expect(cell('2026-11-20')).toBe('rgba(0, 0, 0, 0)')
+    expect(day('2026-11-23')).not.toHaveAttribute('data-selected')
+  })
+
+  it('lets a tinted day show its hover', async () => {
+    await underCondition('is after')
+    await userEvent.keyboard('25 dec')
+    await expect
+      .poll(() => day('2026-12-25').hasAttribute('data-previewed'))
+      .toBe(true)
+    const background = () => getComputedStyle(day('2026-12-25')).backgroundColor
+    const resting = background()
+    await userEvent.hover(day('2026-12-25'))
+    await expect.poll(background).not.toBe(resting)
+  })
+
+  it('adds “is on” for a clicked day and closes the dropdown', async () => {
+    await underCondition('is')
+    await userEvent.click(day('2026-10-22'))
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('Starts is on Thu 22 Oct')
+    await expect.poll(popup).toBeNull()
+    expect(searchInput()).toHaveFocus()
+  })
+
+  it('adds a range from two clicks under is between', async () => {
+    await underCondition('is between')
+    await userEvent.click(day('2026-10-20'))
+    expect(chip('Starts')).toBeUndefined()
+    expect(calendar()).toBeTruthy()
+    await userEvent.click(day('2026-10-23'))
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('Starts is 20 to 23 Oct')
+    await expect.poll(popup).toBeNull()
+  })
+
+  it('offers a typed day under is, and Enter adds it', async () => {
+    await underCondition('is')
+    await userEvent.keyboard('fri')
+    const friday = await screen.findByRole('option', { name: /^Fri/ })
+    expect(
+      friday.compareDocumentPosition(calendar()!) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    await userEvent.keyboard('{Enter}')
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('Starts is on Fri 9 Oct')
+  })
+
+  it('opens a before chip on is before, its day marked', async () => {
+    await page.viewport(width, height)
+    render(
+      <Shows
+        defaultView={{
+          query: {
+            filters: [
+              { field: 'starts', operator: 'before', value: '2026-11-12' }
+            ]
+          }
+        }}
+      />
+    )
+    await userEvent.click(
+      within(chip('Starts')).getByRole('button', { name: /^Starts/ })
+    )
+    await expect.poll(calendar).toBeTruthy()
+    expect(operator('is before')).toHaveAttribute('aria-pressed', 'true')
+    expect(day('2026-11-12')).toHaveAttribute('data-selected')
+    await userEvent.click(day('2026-11-20'))
+    await expect
+      .poll(() => chip('Starts')?.textContent)
+      .toContain('Starts is before')
+    expect(chip('Starts').textContent).toContain('20 Nov')
+    expect(document.querySelectorAll('[data-slot=combobox-chip]')).toHaveLength(
+      1
+    )
+  })
+})
+
+describe('Records.Search dates on a narrow toolbar', TIMEOUT, () => {
+  it('keeps the search on the row while the calendar is pressed', async () => {
+    await page.viewport(390, 844)
+    render(<Shows />)
+    await userEvent.click(searchInput())
+    await userEvent.click(
+      await screen.findByRole('option', { name: /^Starts/ })
+    )
+    await userEvent.click(operator('is after'))
+    await expect.poll(calendar).toBeTruthy()
+    const toolbar = document.querySelector('[data-slot=records-toolbar]')!
+    expect(toolbar).toHaveAttribute('data-search-focused')
+    await userEvent.click(
+      within(calendar()!).getByRole('button', { name: /next month/i })
+    )
+    expect(searchInput()).toHaveFocus()
+    expect(toolbar).toHaveAttribute('data-search-focused')
+    expect(
+      document.querySelector('[data-slot=query-field-pending-chip]')
+    ).toHaveTextContent('Starts is after')
   })
 })

@@ -467,7 +467,8 @@ For server-side search, update the `items` prop as results arrive, and pass
   Opening the list without typing doesn't highlight the first match, so Enter
   can't pick a value nobody chose. While a match is highlighted, the arrows
   wrap at either end. Set `autoHighlight={false}` to highlight only what the
-  user moves to.
+  user moves to, or `autoHighlight='always'` to highlight the first item with
+  no text too.
 - The input points `aria-activedescendant` at the highlighted item, so screen
   readers read the first match as the list filters.
 - With `multiple`, **Backspace** in an empty input selects the last chip, and

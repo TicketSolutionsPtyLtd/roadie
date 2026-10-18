@@ -5,9 +5,12 @@
 Add `QueryField` at `@oztix/roadie-components/query-field`: a search field
 that turns what you type into filter chips. It takes your chips and a
 `suggest` function, lists suggestions in the groups you return with a
-"Search for …" row last, and hands what was taken to `onAccept`. Outside a
+"Search for …" row, and hands what was taken to `onAccept`. Outside a
 value step, Enter searches the text unless a suggestion is marked `exact`,
-and filters are taken by arrow or click. Locked chips come first with a "Set
+and filters are taken by arrow or click. The row Enter takes shows at the
+top, its group above the rest, highlighted for screen readers too, so Down
+moves to the next row. A row the pointer rests on takes the highlight,
+and Enter, until the pointer leaves the list. Locked chips come first with a "Set
 by this page" tooltip, and nothing in the field removes them. Backspace on an
 empty field selects the last chip, then removes it. `pendingChip` shows the
 field being given a value, `onSelectChip` hears a click, Enter, or Space on a
@@ -35,22 +38,28 @@ values, with `operator` pressed. Pressing one, or Tab and Shift+Tab in the
 input while they show, calls `onPendingOperatorChange`, keeps focus in the
 input, and asks `suggest` again. Tab from the last operator, or Shift+Tab from
 the first, leaves the input and ends the step, as any Tab out of a step does. In the value step, Enter takes the first value
-once text is typed. Mark a step's one answer `exact`, such as "City is empty",
+once text is typed, and when its label starts with the text, the rest shows
+faintly after the caret. The pending chip is as wide as its text in every
+browser. Mark a step's one answer `exact`, such as "City is empty",
 and Enter takes it before anything is typed. Mark one that opens an editor
-`opensEditor`, such as "Custom dates", and only an arrow or a click takes it.
+of your own `opensEditor`, and only an arrow or a click takes it.
 `pendingChip.hint`, such as "Type a number.", shows and is announced in place
 of No suggestions while no value is listed, and below the values while Enter
 has none to take for the typed text. Focus moving to something outside the
 field and its list, or a press outside them, calls `onPendingChipCancel`, as
 Escape does. Focus going nowhere, as when a phone's keyboard is put away,
-keeps the step.
+keeps the step. `pendingChip.content` shows under the values, such as a
+calendar to pick a date from. Focus stays in the input as it's pressed, and a
+press in it that ends the step closes the list, as taking a value does.
 
 To edit a chip in the list, answer `onSelectChip` with a value step whose
-`pendingChip.chipId` names the chip. The chip shows selected in place of a
-pending chip, focus stays in the input, and taking a value keeps the list
-open. Ending the step in `onAccept`, as for a chip that holds one value,
+`pendingChip.chipId` names the chip. The pending chip takes the chip's place,
+the text the step starts with is selected so typing replaces it, focus stays
+in the input, and taking a value keeps the list open. Ending the step in `onAccept`, as for a chip that holds one value,
 closes it. A suggestion marked `selected` is ticked, and Enter on typed text passes
-over it. Backspace in the empty field removes the edited chip. Escape, Enter
-with no new value to take, or focus leaving the field ends the step and keeps
-the chip. Enter keeps the step while typed text matches no value, so the hint
+over it. Backspace in the empty field removes the edited chip, or with
+`onPendingChipBackspace`, calls it instead, such as to bring back text the
+step set aside. Escape, Enter
+on the text the step started with or with no new value to take, or focus
+leaving the field ends the step and keeps the chip. Enter keeps the step while typed text matches no value, so the hint
 stays.

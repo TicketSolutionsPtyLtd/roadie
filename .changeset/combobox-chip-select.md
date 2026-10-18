@@ -13,7 +13,8 @@ focus to the input and keeps every value. Escape in the input while the list
 is closed clears the typed text and keeps every chip, where Base UI removes
 them all. A chip without `Combobox.ChipRemove` has the same padding at both
 ends. Set `selected` on `Combobox.Chip` to show it selected while focus stays
-elsewhere, such as in the input.
+elsewhere, such as in the input. `autoHighlight='always'` highlights the
+first item with no text too, as it does on `Autocomplete`.
 
 `Records` takes `RecordsField`, a `RecordField` with an optional `icon`.
 `Records.Search` shows it on the field's suggestions and their filters, or an

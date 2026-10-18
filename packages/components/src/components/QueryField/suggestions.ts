@@ -43,6 +43,25 @@ export function listGroups<Value>({
   return list
 }
 
+/**
+ * The groups with the item `isFirst` picks leading its group, and that group
+ * leading the rest, so the row Enter takes is the top one.
+ */
+export function leadWith<Value>(
+  groups: readonly QueryFieldListGroup<Value>[],
+  isFirst: (item: QueryFieldListGroup<Value>['items'][number]) => boolean
+): QueryFieldListGroup<Value>[] {
+  const at = groups.findIndex((group) => group.items.some(isFirst))
+  if (at < 0) return [...groups]
+  const group = groups[at]!
+  const first = group.items.findIndex(isFirst)
+  const led = {
+    ...group,
+    items: [group.items[first]!, ...group.items.filter((_, i) => i !== first)]
+  }
+  return [led, ...groups.filter((_, i) => i !== at)]
+}
+
 type Takes<Value> = (item: QueryFieldSuggestion<Value>) => boolean
 
 const takesAny = () => true

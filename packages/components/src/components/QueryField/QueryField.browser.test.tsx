@@ -10,11 +10,12 @@ import {
   it,
   onTestFinished
 } from 'vitest'
-import { page, server, userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { QueryField, type QueryFieldProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
+import { pointAt } from '../../utils/pointerTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { Tooltip } from '../Tooltip'
 import type {
@@ -96,7 +97,8 @@ function Harness({
   )
 }
 
-const input = () => screen.getByRole('combobox', { name: 'Search orders' })
+const input = () =>
+  screen.getByRole<HTMLInputElement>('combobox', { name: 'Search orders' })
 const group = () => document.querySelector('[data-slot=query-field]')!
 const box = (element: Element) => element.getBoundingClientRect()
 const shown = (element: Element | null) =>
@@ -121,7 +123,14 @@ describe('QueryField', () => {
   ] as const)('keeps the input on a long %s’s row', (_, props) => {
     const initialChips =
       'pendingChip' in props ? [] : [{ id: 'venue', label: LONG_LABEL }]
-    render(<Harness initialChips={initialChips} {...props} />)
+    // A pending chip's input is as wide as its text, which the label gives way to.
+    render(
+      <Harness
+        initialChips={initialChips}
+        {...props}
+        defaultInputValue={'pendingChip' in props ? 'Iguana' : ''}
+      />
+    )
     expect(box(group()).height).toBe(40)
     expect(box(input()).width).toBeGreaterThanOrEqual(32)
   })
@@ -190,7 +199,7 @@ describe('QueryField', () => {
     expect(shown(search.querySelector('kbd'))).toBe(true)
   })
 
-  it('searches on Enter while the pointer rests on a filter', async () => {
+  it('takes the filter the pointer rests on, and the search once it leaves', async () => {
     const accepted: string[] = []
     render(
       <Harness onAccept={(suggestion) => accepted.push(suggestion.kind)} />
@@ -200,10 +209,16 @@ describe('QueryField', () => {
     const filter = await screen.findByRole('option', {
       name: /Iguana Teapot Hall/
     })
-    await userEvent.hover(filter)
-    expect(filter.querySelector('kbd')).toBeNull()
+    const search = screen.getByRole('option', { name: /Search for/ })
+    await pointAt(filter)
+    await expect.poll(() => shown(filter.querySelector('kbd'))).toBe(true)
+    expect(search.querySelector('kbd')).toBeNull()
+    await userEvent.unhover(filter)
+    await expect.poll(() => shown(search.querySelector('kbd'))).toBe(true)
+    expect(search).toHaveAttribute('data-highlighted')
+    await pointAt(filter)
     await userEvent.keyboard('{Enter}')
-    expect(accepted).toEqual(['search'])
+    expect(accepted).toEqual(['filter'])
   })
 
   it('takes no value under the pointer after clicking a field', async () => {
@@ -287,6 +302,135 @@ describe('QueryField', () => {
     )!
     expect(getComputedStyle(pending).borderStyle).toBe('dashed')
     expect(box(pending).height).toBe(24)
+    expect(pending.contains(input())).toBe(true)
+  })
+
+  it('edits a chip in its place, as a pending chip holding its value selected', async () => {
+    function Editing() {
+      const [editing, setEditing] = useState<string>()
+      const [text, setText] = useState('')
+      const end = () => {
+        setEditing(undefined)
+        setText('')
+      }
+      return (
+        <Harness
+          width={900}
+          initialChips={chips.slice(1, 4)}
+          onSelectChip={(id) => {
+            setEditing(id)
+            setText('Perth')
+          }}
+          pendingChip={
+            editing
+              ? { id: editing, label: 'City is', chipId: editing }
+              : undefined
+          }
+          onPendingChipCancel={end}
+          inputValue={text}
+          onInputValueChange={setText}
+        />
+      )
+    }
+    render(<Editing />)
+    const chipNamed = (id: string) =>
+      document.querySelector(`[data-slot=combobox-chip][data-chip-id=${id}]`)!
+    await userEvent.click(screen.getByRole('button', { name: 'City is Perth' }))
+    const pending = document.querySelector(
+      '[data-slot=query-field-pending-chip]'
+    )!
+    expect(getComputedStyle(pending).borderStyle).toBe('dashed')
+    expect(pending).toContainElement(input())
+    expect(input()).toHaveAccessibleDescription('City is')
+    expect(shown(chipNamed('city'))).toBe(false)
+    expect(box(pending).left).toBeGreaterThan(box(chipNamed('status')).right)
+    expect(box(pending).right).toBeLessThan(box(chipNamed('tier')).left)
+    expect(input()).toHaveFocus()
+    expect(input()).toHaveValue('Perth')
+    expect([input().selectionStart, input().selectionEnd]).toEqual([0, 5])
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}')
+    expect(input()).toHaveFocus()
+    await userEvent.keyboard('{End}{Backspace}')
+    expect(input()).toHaveValue('Pert')
+    await userEvent.keyboard('{Escape}')
+    expect(
+      document.querySelector('[data-slot=query-field-pending-chip]')
+    ).toBeNull()
+    expect(shown(chipNamed('city'))).toBe(true)
+  })
+
+  it('shows the rest of the value Enter takes faintly after the caret, and hugs the typed text', async () => {
+    const statuses = ['On sale', 'Sold out', 'Cancelled']
+    function StatusStep() {
+      const [text, setText] = useState('')
+      return (
+        <Harness
+          width={600}
+          pendingChip={{ id: 'status', label: 'Status is' }}
+          inputValue={text}
+          onInputValueChange={setText}
+          suggest={(typed) => [
+            {
+              id: 'values',
+              label: 'Status',
+              items: statuses
+                .filter((each) =>
+                  each.toLowerCase().includes(typed.trim().toLowerCase())
+                )
+                .map((each) => ({
+                  id: each,
+                  label: each,
+                  kind: 'filter' as const,
+                  value: each
+                }))
+            }
+          ]}
+        />
+      )
+    }
+    render(<StatusStep />)
+    const ghost = () =>
+      document.querySelector<HTMLElement>('[data-slot=query-field-ghost]')
+        ?.dataset.ghost ?? ''
+    await userEvent.click(input())
+    expect(box(input()).width).toBeLessThan(8)
+    await userEvent.keyboard('O')
+    await expect.poll(ghost).toBe('n sale')
+    // Typing adds and removes no nodes, which would restyle a page's :has() anchors.
+    const changed: Node[] = []
+    const observer = new MutationObserver((records) =>
+      records.forEach((record) =>
+        changed.push(...record.addedNodes, ...record.removedNodes)
+      )
+    )
+    observer.observe(input().closest('[data-slot=query-field]')!, {
+      childList: true,
+      subtree: true
+    })
+    await userEvent.keyboard('n')
+    await expect.poll(ghost).toBe(' sale')
+    observer.disconnect()
+    expect(changed).toEqual([])
+    const ghostText = document.querySelector('[data-slot=query-field-ghost]')!
+    expect(box(ghostText).left).toBeGreaterThan(box(input()).left)
+    expect(box(ghostText).top).toBeGreaterThanOrEqual(box(input()).top - 1)
+    // A press on it lands in the input, so focus and the caret stay there.
+    const { left, top, width, height } = box(ghostText)
+    expect(document.elementFromPoint(left + width / 2, top + height / 2)).toBe(
+      input()
+    )
+    await userEvent.keyboard('{ArrowLeft}')
+    await expect.poll(ghost).toBe('')
+    await userEvent.keyboard('{End}x')
+    await expect.poll(ghost).toBe('')
+    const short = box(input()).width
+    expect(short).toBeLessThan(30)
+    await userEvent.keyboard('xxxxxxxxxx')
+    expect(box(input()).width).toBeGreaterThan(short + 40)
+    const pending = document.querySelector(
+      '[data-slot=query-field-pending-chip]'
+    )!
+    expect(box(pending).height).toBe(24)
   })
 
   it("shows a chip's description on hover", async () => {
@@ -363,39 +507,51 @@ describe('QueryField', () => {
     expect(screen.getByRole('group', { name: 'Filters' })).toBeInTheDocument()
   })
 
-  // Headless WebKit's hover doesn't move Base UI's highlight; the other engines
-  // cover it.
-  it.skipIf(server.browser === 'webkit')(
-    'fills the row Enter takes until another row is highlighted',
-    async () => {
-      const cities: QueryFieldSuggestionGroup[] = [
-        {
-          id: 'values',
-          label: 'City',
-          items: ['Brisbane', 'Hobart'].map((city) => ({
-            id: city,
-            label: city,
-            kind: 'filter' as const,
-            value: city
-          }))
-        }
-      ]
-      render(
-        <Harness
-          pendingChip={{ id: 'city', label: 'City is' }}
-          suggest={() => cities}
-        />
-      )
-      await userEvent.type(input(), 'b')
-      const fill = (name: string) =>
-        getComputedStyle(screen.getByRole('option', { name: new RegExp(name) }))
-          .backgroundColor
-      await expect.poll(() => fill('Brisbane')).not.toBe(fill('Hobart'))
-      const resting = fill('Hobart')
-      await userEvent.hover(screen.getByRole('option', { name: /Hobart/ }))
-      await expect.poll(() => fill('Brisbane')).toBe(resting)
-    }
-  )
+  it('fills the row Enter takes until another row is highlighted', async () => {
+    const cities: QueryFieldSuggestionGroup[] = [
+      {
+        id: 'values',
+        label: 'City',
+        items: ['Brisbane', 'Hobart'].map((city) => ({
+          id: city,
+          label: city,
+          kind: 'filter' as const,
+          value: city
+        }))
+      }
+    ]
+    render(
+      <Harness
+        pendingChip={{ id: 'city', label: 'City is' }}
+        suggest={() => cities}
+      />
+    )
+    await userEvent.type(input(), 'b')
+    const fill = (name: string) =>
+      getComputedStyle(screen.getByRole('option', { name: new RegExp(name) }))
+        .backgroundColor
+    await expect.poll(() => fill('Brisbane')).not.toBe(fill('Hobart'))
+    const resting = fill('Hobart')
+    await pointAt(screen.getByRole('option', { name: /Hobart/ }))
+    await expect.poll(() => fill('Brisbane')).toBe(resting)
+  })
+
+  it('lists the search Enter takes first, and Down moves to the next row', async () => {
+    render(<Harness />)
+    await userEvent.type(input(), 'igua')
+    const options = () =>
+      screen.getAllByRole('option').map((each) => each.textContent)
+    await expect
+      .poll(options)
+      .toEqual([
+        expect.stringMatching(/^Search for “igua”/),
+        expect.stringMatching(/^Venue is Iguana Teapot Hall/)
+      ])
+    await userEvent.keyboard('{ArrowDown}')
+    await expect
+      .poll(() => input().getAttribute('aria-activedescendant'))
+      .toBe(screen.getByRole('option', { name: /^Venue is/ }).id)
+  })
 
   it('sizes each operator to its own label', async () => {
     const words: QueryFieldOperator[] = [

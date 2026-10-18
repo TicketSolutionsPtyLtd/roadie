@@ -10,9 +10,8 @@ the option it went down on without moving off it, and the list stays open
 while the finger is down, even if the input blurs as the keyboard goes. The
 mouse events and click that follow the tap don't choose again, or land on
 whatever the choice put under the finger, such as the page below a list that
-moved on to a field's values; a drag or a scroll chooses nothing. A popup the choice opens, such as
-the drawer `Records.Search` opens for Custom dates, stays open at the next
-tap inside it. It used to take those late events for a press outside it. This also fixes date suggestions in `DateField`, `DatePicker` and
+moved on to a field's values; a drag or a scroll chooses nothing. A popup the choice opens stays open
+at the next tap inside it. It used to take those late events for a press outside it. This also fixes date suggestions in `DateField`, `DatePicker` and
 `DateRangePicker`.
 
 The date suggestions' Enter hint now shows only for a highlight made by typing

@@ -82,13 +82,17 @@ through. Leaving the field ends picking a value, as Escape does. An option
 field offers is, is not, and has all of for a `multiple` field. A text field
 offers contains, doesn't contain, is, and is not. A number or money field
 offers =, ≠, <, >, and between, named in words for screen readers. A boolean
-lists Yes and No, and a date its quick dates and Custom dates, under is. Every
+lists Yes and No under is. A date field offers is relative, with its quick
+dates, then is, is before, is after, and is between, each with a calendar
+under the values. A day picked, or a range's second day, adds the chip, and
+typing suggests days, such as Fri for "fri", or a range for "22 oct to 30
+oct". Dates are whole days, on a timestamp field too. Every
 field that can be filtered ends its toggle with is empty and is not empty,
 whose one row Enter takes. Typing switches back to the field's first operator,
 so the text applies. Typing narrows the values, and Enter takes the first. A
 quick date lists when its name has a word starting with each word typed, so
 "next" lists Next 7 days, with whole words first, so "week" lists This week
-before This weekend, and Enter never opens Custom dates. Typed text or a
+before This weekend. Typed text or a
 number shows as one row worded as its chip. Between reads 20 and 50, 20-50, 20
 to 50, or 20..50, in either order, and a space after the first number adds the
 "and". One Backspace takes it away. Money takes `$` and commas. Until the
@@ -98,27 +102,27 @@ the place of its is empty chip, as together they match nothing. A date chip
 takes the place of the field's earlier date chip, as two dates rarely
 overlap.
 
-Clicking a chip, or Enter on it, edits it in the list, with what it holds
-ticked. An option chip's values tick and untick, and unticking the last
+Clicking a chip, or Enter on it, edits it in the list, as a dashed chip in
+its place with what it holds ticked. An option chip's values tick and untick, and unticking the last
 removes the chip. Enter on typed text only ticks. When the typed text matches
 only values the chip holds, the list says so, such as "Perth is already in
 this filter." Its is, is not, and has all of rewrite its condition and keep
 its values, and a chip rewritten to is joins the field's is chip. A text or
-number chip puts its value in the field and its condition in the toggle, and
-Enter replaces it once either changes. Any other value taken, or the row under
+number chip puts its value in the field, selected so typing replaces it, and
+its condition in the toggle, and Enter replaces it once either changes. A date
+chip puts its dates in the field the same way, such as "12 Nov to 15 Dec" or
+"This week", and Enter on them unchanged keeps the chip. Any other value taken, or the row under
 is empty or is not empty, replaces what the chip holds. Every chip but an
 option chip holds one value, so taking one ends the edit and closes the list.
 Everything but an
 option chip's operator waits for Enter, so Tab passing through is empty keeps
-the values. Backspace in the empty field removes the chip, and Escape, Enter
-with no new value to take, or leaving the field keeps it and ends the edit. Custom dates opens a date range picker with
-relative presets, or a date picker, in a popover under the chip or a bottom
-drawer on a phone, with Remove filter. Is on, is before, and is
-after share one date, and is within keeps its own range, so switching back
-brings back what was last chosen. A condition with nothing chosen yet takes
-the other's dates: is on and is before take the range's first day, is after
-its last, and is within takes the one date as a day. Either one is titled with the field's
-name, has a Close button, and keeps Tab inside it. It loads while the page is idle. A
+the values. Text typed before is empty or is not empty is set aside, and
+Backspace in the empty field brings it back under the operator it was typed
+under. Otherwise Backspace in the empty field removes the chip, and Escape, Enter
+with no new value to take, or leaving the field keeps it and ends the edit. A
+date chip opens on its operator, with the calendar on its month and its day or
+range marked. Typing a date moves the calendar to its month. The calendar
+loads while the page is idle. A
 date chip reads as other chips do, such as "Start date is this weekend", and a
 relative one shows its dates in a tooltip. A filter the fields can't
 apply shows in warning colours. `/` focuses the search unless `shortcut` (or
