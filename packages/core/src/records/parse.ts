@@ -266,7 +266,14 @@ type Reading = {
 
 function optionReadings(field: RecordField, text: string): Reading[] {
   return recordFieldOptions(field).flatMap((option) => {
-    const q = bestQuality([option.label, option.value], text)
+    // A place's id holds its parents' ("au-vic-fitzroy"), so only all of it reads.
+    const q =
+      field.type === 'location'
+        ? Math.max(
+            quality(option.label, text),
+            option.value.toLowerCase() === text ? 1 : 0
+          )
+        : bestQuality([option.label, option.value], text)
     return q > 0
       ? [
           {

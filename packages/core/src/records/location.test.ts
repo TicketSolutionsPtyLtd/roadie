@@ -422,6 +422,15 @@ describe("a location's places", () => {
     expect(first).toMatchObject({ kind: 'filter', label, description })
   })
 
+  it('reads a place by its label, or its whole id, never a word inside its id', () => {
+    const labels = (text: string) =>
+      parseQuery(text, { fields: placeFields, ...options })
+        .filter((suggestion) => suggestion.kind === 'filter')
+        .map((suggestion) => suggestion.label)
+    expect(labels('vic')).toEqual(['Location is in Victoria'])
+    expect(labels('au-vic')).toEqual(['Location is in Victoria'])
+  })
+
   it('describes a place without a kind or parent by nothing', () => {
     const [first] = parseQuery('perth', { fields, ...options })
     expect(first).not.toHaveProperty('description')
