@@ -10,7 +10,7 @@ import type { ButtonHrefProps } from '../Button/Button'
 import { ToolbarContext } from './ToolbarContext'
 
 export type ToolbarButtonProps = ToolbarPrimitive.Button.Props &
-  RefAttributes<HTMLButtonElement> &
+  RefAttributes<HTMLElement> &
   ButtonHrefProps
 
 export function ToolbarButton({
