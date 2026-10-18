@@ -112,6 +112,19 @@ describe('a location field', () => {
     })
   })
 
+  it.each(['location is not perth', 'not perth', '-perth'])(
+    'reads "%s" as its opposite',
+    (text) => {
+      const [first] = parseQuery(text, { fields, ...options })
+      expect(first).toMatchObject({
+        kind: 'filter',
+        label: 'Location is not Perth',
+        value: { field: 'location', operator: 'is-not', values: ['perth'] },
+        remainder: ''
+      })
+    }
+  )
+
   it('round trips through the URL', () => {
     const written = view([
       { field: 'location', operator: 'is-not', values: ['perth', 'sa'] }
