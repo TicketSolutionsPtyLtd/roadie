@@ -154,10 +154,10 @@ On a phone the table turns into cards: the event, its venue and status, with the
 
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [
-  ['au-qld-fortitude-valley', 'Kazoo Hollow Room'],
-  ['au-vic-fitzroy', 'Echidna Gaslight Theatre'],
-  ['au-qld-west-end', 'Iguana Teapot Hall'],
-  ['au-vic-st-kilda', 'Saltbush Trumpet Ballroom']
+  { value: 'kazoo-hollow-room', label: 'Kazoo Hollow Room', timeZone: 'Australia/Brisbane' },
+  { value: 'quilted-walrus-room', label: 'The Quilted Walrus Room', timeZone: 'Australia/Melbourne' },
+  { value: 'drongo-bell-social-club', label: 'Drongo Bell Social Club', timeZone: 'Australia/Perth' },
+  { value: 'antler-kettle-hall', label: 'Antler Kettle Hall', timeZone: 'Australia/Sydney' }
 ]
 const names = ['Paper Lanterns', 'Marzipan Thunderclap', 'Corduroy Lagoon Sessions', 'Sapphire Cassowary Night', 'Echo Garden', 'Midnight Frequency']
 const statuses = ['on_sale', 'on_sale', 'selling_fast', 'sold_out', 'cancelled']
