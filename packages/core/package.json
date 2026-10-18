@@ -65,6 +65,12 @@
       "types": "./dist/records/meilisearch/index.d.ts",
       "import": "./dist/records/meilisearch/index.js"
     },
+    "./records/json-schema": {
+      "types": "./dist/records/json-schema/index.d.ts",
+      "import": "./dist/records/json-schema/index.js"
+    },
+    "./records/record-view.schema.json": "./dist/records/record-view.schema.json",
+    "./records/records-request.schema.json": "./dist/records/records-request.schema.json",
     "./roadie.manifest.json": "./dist/roadie.manifest.json"
   },
   "sideEffects": [
@@ -80,8 +86,8 @@
   },
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build": "pnpm generate:tokens && tsdown && pnpm build:css && pnpm generate:manifest",
-    "build:quiet": "tsdown --log-level warn && pnpm build:css",
+    "build": "pnpm generate:tokens && tsdown && node scripts/records-json-schema.mjs && pnpm build:css && pnpm generate:manifest",
+    "build:quiet": "tsdown --log-level warn && node scripts/records-json-schema.mjs && pnpm build:css",
     "build:css": "tailwindcss -i src/css/roadie.css -o dist/roadie.compiled.css --content 'src/css/safelist.html'",
     "generate:tokens": "node scripts/generate-tokens.mjs",
     "generate:manifest": "node scripts/manifest/generate.ts --tokens",
@@ -134,13 +140,18 @@
     {
       "name": "records",
       "path": "dist/records/index.js",
-      "limit": "39.85 KB"
+      "limit": "40.2 KB"
     },
     {
       "name": "records without validation",
       "path": "dist/records/index.js",
       "import": "{ matchesRecordQuery, resolveRecordQuery, parseQuery, toSearchParams, equalViews }",
       "limit": "14 KB"
+    },
+    {
+      "name": "records/json-schema",
+      "path": "dist/records/json-schema/index.js",
+      "limit": "24.9 KB"
     },
     {
       "name": "records/meilisearch",

@@ -40,6 +40,8 @@ export type RecordLayout =
   | { type: 'grid'; fields?: string[] }
 
 export type RecordView = {
+  /** The view format. `validateRecordView` reads a view without one as 1. */
+  version?: 1
   id?: string
   /** Required once saved; a view read from a URL has none. */
   name?: string
@@ -107,8 +109,11 @@ export type RecordField = {
   localDateKey?: string
   /** Event and access ranges: the stored venue-local date of the end. */
   endLocalDateKey?: string
-  /** Identifiers, such as order numbers, matched exactly. Anchor it with ^ and $. */
-  match?: RegExp
+  /**
+   * Identifiers, such as order numbers, matched exactly and ignoring case: a
+   * pattern string anchored with ^ and $, such as '^OZ-\\d{5}$'.
+   */
+  match?: string
   /** How a number or money field's values read. Defaults to `number`, or `currency` for money. */
   format?: ValueFormat
   /** A fixed ISO 4217 code. */

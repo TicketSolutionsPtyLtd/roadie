@@ -14,6 +14,7 @@ import {
   momentOf,
   recordFieldOptions
 } from './fields'
+import { identifierPattern } from './pattern'
 import type { RecordField, RecordFilter, RecordQueryOptions } from './types'
 
 type SuggestionBase = {
@@ -164,13 +165,6 @@ function quality(candidate: string, text: string): number {
 
 function bestQuality(candidates: readonly string[], text: string): number {
   return Math.max(0, ...candidates.map((c) => quality(c, text)))
-}
-
-function isLiteral(match: RegExp, text: string): boolean {
-  match.lastIndex = 0
-  const result = match.test(text)
-  match.lastIndex = 0
-  return result
 }
 
 /** The range a phrase stands for, or null for a single date or a time. */
@@ -327,7 +321,7 @@ function identifierReadings(
   text: string
 ): Reading[] {
   return fields.flatMap((field) =>
-    field.match && isLiteral(field.match, text)
+    identifierPattern(field)?.test(text)
       ? [
           {
             filter: { field: field.key, operator: 'is', values: [text] },

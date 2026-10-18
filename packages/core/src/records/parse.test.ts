@@ -48,6 +48,15 @@ describe('parseQuery', () => {
     })
   })
 
+  it('says which field holds a pattern it cannot read', () => {
+    const fields = [
+      { key: 'code', label: 'Code', type: 'text' as const, match: '^($' }
+    ]
+    expect(() => parseQuery('abc', { ...options, fields })).toThrow(
+      /"Code" match is not a valid pattern/
+    )
+  })
+
   it('takes an identifier as an exact match, first', () => {
     const [first] = parse('oz-12345')
     expect(first).toMatchObject({
@@ -1097,7 +1106,7 @@ describe('parseQuery', () => {
           key: 'code',
           label: 'Code',
           type: 'text' as const,
-          match: /^PROMO=\d+$/i
+          match: '^PROMO=\\d+$'
         }
       ]
       expect(
