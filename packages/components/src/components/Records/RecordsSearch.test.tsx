@@ -852,6 +852,28 @@ describe('Records.Search', () => {
     await waitFor(() => expect(ticked()).toEqual(['Hobart']))
   })
 
+  it('reads a place listed from the records by its whole id, never a word inside it', async () => {
+    const located = fields.map((each) =>
+      each.key === 'city' ? field.location('city', { label: 'Location' }) : each
+    )
+    const ids = ['au-vic-fitzroy', 'au-qld-west-end']
+    const data = shows.map((show, index) => ({
+      ...show,
+      city: ids[index % ids.length]!
+    }))
+    const { user } = setup({ fields: located, data })
+    await user.click(input())
+    await user.keyboard('AU-VIC-FITZROY')
+    expect(await option(/Location is in au-vic-fitzroy/)).toBeTruthy()
+    await user.clear(input())
+    await user.keyboard('vic')
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('option', { name: /Location is in/ })
+      ).toBeNull()
+    )
+  })
+
   it('filters to the places inside a location, and says where each is', async () => {
     const placed = fields.map((each) =>
       each.key === 'city'
@@ -878,7 +900,7 @@ describe('Records.Search', () => {
     )
     const { user, lastView } = setup({ fields: placed })
     await user.click(input())
-    await user.keyboard('queens')
+    await user.keyboard('queensland')
     const queensland = await option(/Location is in Queensland/)
     expect(within(queensland).getByText('State')).toBeTruthy()
     await user.click(queensland)

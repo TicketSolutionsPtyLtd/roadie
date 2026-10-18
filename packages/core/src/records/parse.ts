@@ -266,11 +266,12 @@ type Reading = {
 
 function optionReadings(field: RecordField, text: string): Reading[] {
   return recordFieldOptions(field).flatMap((option) => {
-    // A place's id holds its parents' ("au-vic-fitzroy"), so only all of it reads.
+    // A place's id holds its parents' ("au-vic-fitzroy"), so only all of it
+    // reads, as does a label that repeats it, like a value listed from records.
     const q =
       field.type === 'location'
         ? Math.max(
-            quality(option.label, text),
+            option.label === option.value ? 0 : quality(option.label, text),
             option.value.toLowerCase() === text ? 1 : 0
           )
         : bestQuality([option.label, option.value], text)

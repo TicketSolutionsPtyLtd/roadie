@@ -515,6 +515,24 @@ describe("a location's places", () => {
     expect(labels('au-vic')).toEqual(['Location is in Victoria'])
   })
 
+  it('reads a place whose label repeats its id, as one listed from records, by its whole id', () => {
+    const listed = field.location('location', {
+      label: 'Location',
+      options: ['au-vic', 'au-vic-fitzroy'].map((value) => ({
+        value,
+        label: value
+      }))
+    })
+    const labels = (text: string) =>
+      parseQuery(text, { fields: [listed], ...options })
+        .filter((suggestion) => suggestion.kind === 'filter')
+        .map((suggestion) => suggestion.label)
+    expect(labels('vic')).toEqual([])
+    expect(labels('fitzroy')).toEqual([])
+    expect(labels('au-vic')).toEqual(['Location is in au-vic'])
+    expect(labels('AU-VIC-FITZROY')).toEqual(['Location is in au-vic-fitzroy'])
+  })
+
   it('describes a place without a kind or parent by nothing', () => {
     const [first] = parseQuery('perth', { fields, ...options })
     expect(first).not.toHaveProperty('description')
