@@ -410,6 +410,17 @@ describe("a location's places", () => {
     expect(describeRecordFilter(filter, placeFields, options).label).toBe(label)
   })
 
+  it('says where one place is, and leaves several to their labels', () => {
+    const detail = (values: string[]) =>
+      describeRecordFilter(
+        { field: 'location', operator: 'is', values },
+        placeFields,
+        options
+      ).detail
+    expect(detail(['au-qld-brisbane'])).toBe('City in Queensland')
+    expect(detail(['au-qld-brisbane', 'au-vic'])).toBeUndefined()
+  })
+
   it('names "is in" and "is not in" for a location only', () => {
     expect(recordOperatorLabel('is', places)).toBe('is in')
     expect(recordOperatorLabel('is-not', places)).toBe('is not in')
