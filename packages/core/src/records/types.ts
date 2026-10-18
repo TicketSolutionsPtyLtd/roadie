@@ -81,9 +81,9 @@ export type RecordFieldType =
  */
 export type RecordMoment = 'event' | 'access' | 'timestamp' | 'date'
 
-/** What kind of place a location's option is. Open to others, such as `venue`. */
+/** What kind of place a location's option is. Open to others. */
 export type RecordPlaceKind =
-  'suburb' | 'city' | 'region' | 'state' | 'country' | (string & {})
+  'venue' | 'suburb' | 'city' | 'region' | 'state' | 'country' | (string & {})
 
 export type RecordOption = {
   value: string

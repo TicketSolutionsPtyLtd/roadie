@@ -101,7 +101,7 @@ export const eventFields: RecordField[] = [
 A location field holds a place, such as a suburb, or a list of places. Its
 options are places with stable ids, never free text, and each names the place
 it's in as its `parent` and what it is as its `kind`: `venue`, `suburb`,
-`city`, `region`, `state`, or `country`. So is and is not read is in and is
+`city`, `region`, `state`, `country`, or any other. So is and is not read is in and is
 not in. A record is in its own place and every place above it, so with a
 record in Fitzroy, "Location is in Victoria" matches and "Location is not in
 Melbourne" doesn't. Suggestions say where each place is, such as "Suburb in
@@ -289,8 +289,11 @@ takes it too. A filter then reads the same everywhere:
 | An API        | `?location=au-vic`, matched against the list |
 
 A filter holding several places ORs them: Algolia's inner array, or
-Elasticsearch's `terms` list. Is not in negates the same term, such as
-`location != "au-vic"` or `location:-au-vic`. Listing every place inside the
+Elasticsearch's `terms` list. Is not in negates the same term: Meilisearch's
+`location != "au-vic"`, Algolia's `"location:-au-vic"`, or the `terms` in a
+`must_not`. Each keeps records with no place, as Roadie does. Algolia needs
+`location` in `attributesForFaceting`, and Elasticsearch needs it mapped as a
+`keyword`, whose terms match case, so index the ids `recordPlaces` returns. Listing every place inside the
 one picked would be thousands of suburbs for a state, too many for a query,
 so the places travel with the record instead.
 
