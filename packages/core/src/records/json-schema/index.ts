@@ -18,10 +18,19 @@ export function recordViewJsonSchema() {
   }
 }
 
+// The paging pairs, which zod's refinement can't carry into JSON Schema.
+const pairs = {
+  page: ['pageSize'],
+  pageSize: ['page'],
+  start: ['end'],
+  end: ['start']
+}
+
 /** The JSON Schema of a `RecordsRequest`, version 1. */
 export function recordsRequestJsonSchema() {
   return {
     title: 'RecordsRequest',
-    ...z.toJSONSchema(recordsRequestSchema(), options)
+    ...z.toJSONSchema(recordsRequestSchema(), options),
+    dependencies: pairs
   }
 }

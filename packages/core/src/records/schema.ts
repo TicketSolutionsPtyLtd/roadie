@@ -154,6 +154,9 @@ function buildRequestSchema() {
         (request.page === undefined || request.start === undefined),
       'Page with pageSize, or start with end, or neither'
     )
+    .describe(
+      'Paged with page and pageSize, ranged with start and end, or neither for every match, never both'
+    )
 }
 
 let schema: ReturnType<typeof buildSchema> | undefined

@@ -1,15 +1,14 @@
+import Ajv from 'ajv'
 import { describe, expect, it } from 'vitest'
-import { z } from 'zod'
 
 import { toRecordsRequest } from '../request'
 import { eventFields } from '../testFields'
 import { recordViewJsonSchema, recordsRequestJsonSchema } from './index'
 
-// Read back as a validator, so the tests check what the schema accepts.
-const accepts = (schema: object, value: unknown) =>
-  z
-    .fromJSONSchema(schema as Parameters<typeof z.fromJSONSchema>[0])
-    .safeParse(value).success
+// A draft-07 validator, as a server would run, so the tests check what the
+// schema itself accepts.
+const ajv = new Ajv({ allErrors: true })
+const accepts = (schema: object, value: unknown) => ajv.validate(schema, value)
 
 const view = {
   name: 'Melbourne this weekend',
@@ -79,7 +78,9 @@ describe('recordsRequestJsonSchema', () => {
       }
     ],
     ['no zone', { ...request, query: { ...request.query, timeZone: '' } }],
-    ['a negative page', { ...request, page: -1 }]
+    ['a negative page', { ...request, page: -1 }],
+    ['a page without its size', { ...request, pageSize: undefined }],
+    ['an end without its start', { version: 1, query: request.query, end: 50 }]
   ])('rejects a request with %s', (_, value) => {
     expect(
       accepts(recordsRequestJsonSchema(), JSON.parse(JSON.stringify(value)))
