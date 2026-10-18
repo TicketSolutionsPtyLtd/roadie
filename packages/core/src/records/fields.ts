@@ -55,34 +55,37 @@ export function isRecordOptionField(field: RecordField): boolean {
 }
 
 /**
- * The places a location filter on `values` takes in: each one, then every
- * place inside them, in option order, matched without case. A value the
- * options don't hold stands alone, a place whose parent they don't hold is a
- * root, and any other field keeps its values. For backends that resolve a
- * URL's filters themselves.
+ * A record's places, to index once: its location value or values, then each
+ * one's ancestors by the options' `parent`, so "is in" stays a plain term.
+ * Places are found without case. A parent the options don't hold ends the
+ * line, and a value they don't hold, or any value of a field without
+ * options, stands alone.
  */
-export function recordPlacesWithin(
-  field: RecordField,
-  values: readonly string[]
-): string[] {
+export function recordPlaces(field: RecordField, value: unknown): string[] {
+  return placeReader(field)(value)
+}
+
+/** `recordPlaces` for one field, reading its options once for many records. */
+export function placeReader(field: RecordField): (value: unknown) => string[] {
   const options = field.type === 'location' ? (field.options ?? []) : []
-  const key = (value: string) => value.toLowerCase()
-  const known = new Set(options.map(({ value }) => key(value)))
-  const children = new Map<string, string[]>()
-  for (const { value, parent } of options) {
-    if (parent === undefined || !known.has(key(parent))) continue
-    const siblings = children.get(key(parent)) ?? []
-    siblings.push(key(value))
-    children.set(key(parent), siblings)
+  const byKey = new Map(
+    options.map((option) => [option.value.toLowerCase(), option])
+  )
+  return (value) => {
+    const places = new Set<string>()
+    for (const start of Array.isArray(value) ? value : [value]) {
+      if (typeof start !== 'string' || start === '') continue
+      places.add(start)
+      let place = byKey.get(start.toLowerCase())
+      while (place?.parent !== undefined) {
+        const parent = byKey.get(place.parent.toLowerCase())
+        if (!parent || places.has(parent.value)) break
+        places.add(parent.value)
+        place = parent
+      }
+    }
+    return [...places]
   }
-  const given = new Set(values.map(key))
-  const within = new Set(given)
-  for (const place of within)
-    for (const child of children.get(place) ?? []) within.add(child)
-  const inside = options
-    .map(({ value }) => value)
-    .filter((value) => within.has(key(value)) && !given.has(key(value)))
-  return [...new Set(values), ...inside]
 }
 
 export function momentOf(field: RecordField): RecordMoment {

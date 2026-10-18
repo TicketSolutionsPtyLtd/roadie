@@ -23,7 +23,7 @@ export {
   isRecordOptionField,
   recordFieldOptions,
   recordFilterOperators,
-  recordPlacesWithin
+  recordPlaces
 } from './fields'
 export { recordFields } from './builder'
 export type {

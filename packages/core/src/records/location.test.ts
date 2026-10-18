@@ -6,7 +6,7 @@ import { describeRecordFilter, recordOperatorLabel } from './describe'
 import {
   isRecordOptionField,
   recordFilterOperators,
-  recordPlacesWithin
+  recordPlaces
 } from './fields'
 import { formatRecordValue } from './format'
 import { matchesRecordQuery } from './match'
@@ -158,35 +158,45 @@ describe('a location field', () => {
 const places = field.location('location', {
   label: 'Location',
   options: [
-    { value: 'qld', label: 'Queensland', kind: 'state' },
-    { value: 'brisbane', label: 'Brisbane', kind: 'city', parent: 'qld' },
+    { value: 'au', label: 'Australia', kind: 'country' },
+    { value: 'au-qld', label: 'Queensland', kind: 'state', parent: 'au' },
     {
-      value: 'fortitude-valley',
+      value: 'au-qld-brisbane',
+      label: 'Brisbane',
+      kind: 'city',
+      parent: 'au-qld'
+    },
+    {
+      value: 'au-qld-fortitude-valley',
       label: 'Fortitude Valley',
       kind: 'suburb',
-      parent: 'brisbane'
+      parent: 'au-qld-brisbane'
     },
     {
-      value: 'west-end',
+      value: 'au-qld-west-end',
       label: 'West End',
       kind: 'suburb',
-      parent: 'brisbane'
+      parent: 'au-qld-brisbane'
     },
-    { value: 'gold-coast', label: 'Gold Coast', kind: 'city', parent: 'qld' },
-    { value: 'vic', label: 'Victoria', kind: 'state' },
-    { value: 'fitzroy', label: 'Fitzroy', parent: 'vic' }
+    { value: 'au-vic', label: 'Victoria', parent: 'au' },
+    {
+      value: 'au-vic-fitzroy',
+      label: 'Fitzroy',
+      kind: 'suburb',
+      parent: 'au-vic'
+    }
   ]
 })
 const placeFields = [field.text('name', { label: 'Name' }), places]
 
-const placeRows = [
-  { name: 'Valley', location: 'fortitude-valley' },
-  { name: 'West End', location: 'west-end' },
-  { name: 'Brisbane', location: 'brisbane' },
-  { name: 'Gold Coast', location: 'gold-coast' },
-  { name: 'Fitzroy', location: 'fitzroy' },
+const placeRows: { name: string; location?: string | string[] }[] = [
+  { name: 'Valley', location: 'au-qld-fortitude-valley' },
+  { name: 'West End', location: 'AU-QLD-WEST-END' },
+  { name: 'Brisbane', location: 'au-qld-brisbane' },
+  { name: 'Fitzroy', location: 'au-vic-fitzroy' },
+  { name: 'Indexed', location: ['nz', 'nz-auckland'] },
   { name: 'Nowhere' },
-  { name: 'Hobart', location: 'hobart' }
+  { name: 'Hobart', location: 'au-tas-hobart' }
 ]
 
 const inPlaces = (filter: RecordFilter, fields = placeFields) =>
@@ -201,40 +211,51 @@ const inPlaces = (filter: RecordFilter, fields = placeFields) =>
     .map((row) => row.name)
 
 describe("a location's places", () => {
-  it('lists a place and every place inside it', () => {
-    expect(recordPlacesWithin(places, ['qld'])).toEqual([
-      'qld',
-      'brisbane',
-      'fortitude-valley',
-      'west-end',
-      'gold-coast'
-    ])
-    expect(recordPlacesWithin(places, ['brisbane', 'vic'])).toEqual([
-      'brisbane',
-      'vic',
-      'fortitude-valley',
-      'west-end',
-      'fitzroy'
+  it("lists a record's place, then the places it is in", () => {
+    expect(recordPlaces(places, 'au-qld-fortitude-valley')).toEqual([
+      'au-qld-fortitude-valley',
+      'au-qld-brisbane',
+      'au-qld',
+      'au'
     ])
   })
 
-  it("lists a place it doesn't know, or one with nothing inside, alone", () => {
-    expect(recordPlacesWithin(places, ['hobart'])).toEqual(['hobart'])
-    expect(recordPlacesWithin(places, ['west-end'])).toEqual(['west-end'])
-  })
-
-  it('takes in the places inside one named in another case, as filters match', () => {
-    expect(recordPlacesWithin(places, ['Brisbane'])).toEqual([
-      'Brisbane',
-      'fortitude-valley',
-      'west-end'
-    ])
+  it('lists each of several places once, with theirs', () => {
     expect(
-      inPlaces({ field: 'location', operator: 'is', values: ['BRISBANE'] })
-    ).toEqual(['Valley', 'West End', 'Brisbane'])
+      recordPlaces(places, ['au-qld-west-end', 'au-vic-fitzroy', 'au-qld'])
+    ).toEqual([
+      'au-qld-west-end',
+      'au-qld-brisbane',
+      'au-qld',
+      'au',
+      'au-vic-fitzroy',
+      'au-vic'
+    ])
   })
 
-  it("treats a place whose parent it doesn't know as a root", () => {
+  it('finds a place named in another case', () => {
+    expect(recordPlaces(places, 'AU-VIC-FITZROY')).toEqual([
+      'AU-VIC-FITZROY',
+      'au-vic',
+      'au'
+    ])
+    const capitalised = field.location('location', {
+      label: 'Location',
+      options: [
+        { value: 'VIC', label: 'Victoria' },
+        { value: 'Fitzroy', label: 'Fitzroy', parent: 'Vic' }
+      ]
+    })
+    expect(recordPlaces(capitalised, 'fitzroy')).toEqual(['fitzroy', 'VIC'])
+  })
+
+  it("lists a place it doesn't know, or nothing for no place, alone", () => {
+    expect(recordPlaces(places, 'au-tas-hobart')).toEqual(['au-tas-hobart'])
+    expect(recordPlaces(places, undefined)).toEqual([])
+    expect(recordPlaces(places, '')).toEqual([])
+  })
+
+  it("stops at a parent it doesn't know", () => {
     const orphaned = field.location('location', {
       label: 'Location',
       options: [
@@ -242,11 +263,7 @@ describe("a location's places", () => {
         { value: 'carlton', label: 'Carlton', parent: 'fitzroy' }
       ]
     })
-    expect(recordPlacesWithin(orphaned, ['melbourne'])).toEqual(['melbourne'])
-    expect(recordPlacesWithin(orphaned, ['fitzroy'])).toEqual([
-      'fitzroy',
-      'carlton'
-    ])
+    expect(recordPlaces(orphaned, 'carlton')).toEqual(['carlton', 'fitzroy'])
   })
 
   it('stops at a cycle', () => {
@@ -258,11 +275,11 @@ describe("a location's places", () => {
         { value: 'c', label: 'C', parent: 'c' }
       ]
     })
-    expect(recordPlacesWithin(looped, ['a'])).toEqual(['a', 'b'])
-    expect(recordPlacesWithin(looped, ['c'])).toEqual(['c'])
+    expect(recordPlaces(looped, 'a')).toEqual(['a', 'b'])
+    expect(recordPlaces(looped, 'c')).toEqual(['c'])
   })
 
-  it('leaves values alone on a field without places', () => {
+  it('lists only the values on a field without places', () => {
     const unlisted = field.location('location', { label: 'Location' })
     const nested: RecordField = {
       key: 'session',
@@ -273,77 +290,84 @@ describe("a location's places", () => {
         { value: 'opening', label: 'Opening night', parent: 'weekender' }
       ]
     }
-    expect(recordPlacesWithin(unlisted, ['brisbane'])).toEqual(['brisbane'])
-    expect(recordPlacesWithin(nested, ['weekender'])).toEqual(['weekender'])
+    expect(recordPlaces(unlisted, 'au-qld-brisbane')).toEqual([
+      'au-qld-brisbane'
+    ])
+    expect(recordPlaces(nested, 'opening')).toEqual(['opening'])
   })
 
   it.each<[RecordFilter, string[]]>([
     [
-      { field: 'location', operator: 'is', values: ['brisbane'] },
+      { field: 'location', operator: 'is', values: ['au-qld-brisbane'] },
       ['Valley', 'West End', 'Brisbane']
     ],
     [
-      { field: 'location', operator: 'is', values: ['qld'] },
-      ['Valley', 'West End', 'Brisbane', 'Gold Coast']
+      { field: 'location', operator: 'is', values: ['au'] },
+      ['Valley', 'West End', 'Brisbane', 'Fitzroy']
     ],
     [
-      { field: 'location', operator: 'is', values: ['west-end', 'vic'] },
+      {
+        field: 'location',
+        operator: 'is',
+        values: ['au-qld-west-end', 'au-vic']
+      },
       ['West End', 'Fitzroy']
     ],
     [
-      { field: 'location', operator: 'is-not', values: ['brisbane'] },
-      ['Gold Coast', 'Fitzroy', 'Nowhere', 'Hobart']
+      { field: 'location', operator: 'is-not', values: ['au-qld'] },
+      ['Fitzroy', 'Indexed', 'Nowhere', 'Hobart']
     ],
-    [{ field: 'location', operator: 'is', values: ['hobart'] }, ['Hobart']],
+    [{ field: 'location', operator: 'is', values: ['nz'] }, ['Indexed']],
+    [
+      { field: 'location', operator: 'is', values: ['au-tas-hobart'] },
+      ['Hobart']
+    ],
+    [{ field: 'location', operator: 'is', values: ['au-tas'] }, []],
     [{ field: 'location', operator: 'is-not-set' }, ['Nowhere']],
     [
       { field: 'location', operator: 'is-set' },
-      ['Valley', 'West End', 'Brisbane', 'Gold Coast', 'Fitzroy', 'Hobart']
+      ['Valley', 'West End', 'Brisbane', 'Fitzroy', 'Indexed', 'Hobart']
     ]
   ])('matches %j by place', (filter, names) => {
     expect(inPlaces(filter)).toEqual(names)
   })
 
-  it('matches only the place itself on a field without places', () => {
+  it('matches only the value itself on a field without places', () => {
     const unlisted = field.location('location', { label: 'Location' })
     expect(
-      inPlaces({ field: 'location', operator: 'is', values: ['brisbane'] }, [
+      inPlaces({ field: 'location', operator: 'is', values: ['au-qld'] }, [
         unlisted
       ])
+    ).toEqual([])
+    expect(
+      inPlaces(
+        { field: 'location', operator: 'is', values: ['au-qld-brisbane'] },
+        [unlisted]
+      )
     ).toEqual(['Brisbane'])
   })
 
-  it('resolves a filter to its places, for any backend', () => {
+  it('resolves a filter on a place as a plain term, for any backend', () => {
+    const filter: RecordFilter = {
+      field: 'location',
+      operator: 'is-not',
+      values: ['au-qld']
+    }
     expect(
-      resolveRecordQuery(
-        view([{ field: 'location', operator: 'is-not', values: ['brisbane'] }])
-          .query,
-        placeFields,
-        options
-      ).filters
-    ).toEqual([
-      {
-        field: 'location',
-        operator: 'is-not',
-        values: ['brisbane', 'fortitude-valley', 'west-end']
-      }
-    ])
+      resolveRecordQuery(view([filter]).query, placeFields, options).filters
+    ).toEqual([filter])
   })
 
   it.each<[RecordFilter, string]>([
     [
-      { field: 'location', operator: 'is', values: ['brisbane'] },
-      'location IN ["brisbane", "fortitude-valley", "west-end"]'
+      { field: 'location', operator: 'is', values: ['au-qld'] },
+      'location = "au-qld"'
     ],
     [
-      { field: 'location', operator: 'is-not', values: ['vic'] },
-      'location NOT IN ["vic", "fitzroy"]'
-    ],
-    [
-      { field: 'location', operator: 'is', values: ['hobart'] },
-      'location = "hobart"'
+      { field: 'location', operator: 'is-not', values: ['au-vic', 'au-qld'] },
+      'location NOT IN ["au-vic", "au-qld"]'
     ]
-  ])('asks Meilisearch for %j by place', (filter, expression) => {
+  ])('asks Meilisearch for %j as a term', (filter, expression) => {
     expect(toMeilisearch(view([filter]), placeFields, options).filter).toEqual([
       expression
     ])
@@ -351,9 +375,9 @@ describe("a location's places", () => {
 
   it('keeps the place alone in the URL', () => {
     const written = view([
-      { field: 'location', operator: 'is', values: ['brisbane'] }
+      { field: 'location', operator: 'is', values: ['au-qld-brisbane'] }
     ])
-    expect(toSearchParams(written).get('f')).toBe('location:is:brisbane')
+    expect(toSearchParams(written).get('f')).toBe('location:is:au-qld-brisbane')
     expect(
       fromSearchParams(toSearchParams(written), placeFields).view.query.filters
     ).toEqual(written.query.filters)
@@ -361,16 +385,20 @@ describe("a location's places", () => {
 
   it.each<[RecordFilter, string]>([
     [
-      { field: 'location', operator: 'is', values: ['brisbane'] },
+      { field: 'location', operator: 'is', values: ['au-qld-brisbane'] },
       'Location is in Brisbane'
     ],
     [
-      { field: 'location', operator: 'is-not', values: ['brisbane'] },
+      { field: 'location', operator: 'is-not', values: ['au-qld-brisbane'] },
       'Location is not in Brisbane'
     ],
     [
-      { field: 'location', operator: 'is', values: ['brisbane', 'gold-coast'] },
-      'Location is in Brisbane or Gold Coast'
+      {
+        field: 'location',
+        operator: 'is',
+        values: ['au-qld-brisbane', 'au-vic']
+      },
+      'Location is in Brisbane or Victoria'
     ],
     [{ field: 'location', operator: 'is-set' }, 'Location is not empty']
   ])('reads %j as "%s"', (filter, label) => {
@@ -387,8 +415,8 @@ describe("a location's places", () => {
 
   it.each([
     ['fortitude', 'Location is in Fortitude Valley', 'Suburb in Brisbane'],
-    ['queensland', 'Location is in Queensland', 'State'],
-    ['fitzroy', 'Location is in Fitzroy', 'In Victoria']
+    ['australia', 'Location is in Australia', 'Country'],
+    ['victoria', 'Location is in Victoria', 'In Australia']
   ])('describes "%s" by where it is', (text, label, description) => {
     const [first] = parseQuery(text, { fields: placeFields, ...options })
     expect(first).toMatchObject({ kind: 'filter', label, description })

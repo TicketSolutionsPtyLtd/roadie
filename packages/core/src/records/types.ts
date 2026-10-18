@@ -67,10 +67,10 @@ export type RecordSelection =
   | { readonly allMatching: true; readonly except: readonly string[] }
 
 /**
- * `location` is a place, such as a city. Its options nest by `parent`, so
- * `is` and `is-not` mean is in and is not in: the place and every place
- * inside it. Distance filters are reserved for later as a `near` operator,
- * never `within`, which dates use.
+ * `location` is a place, such as a suburb, or a list of places. Its options
+ * nest by `parent`, so `is` and `is-not` mean is in and is not in: a record is
+ * in each of its places and their ancestors. Distance filters are reserved for
+ * later as a `near` operator, never `within`, which dates use.
  */
 export type RecordFieldType =
   'text' | 'option' | 'location' | 'number' | 'money' | 'date' | 'boolean'

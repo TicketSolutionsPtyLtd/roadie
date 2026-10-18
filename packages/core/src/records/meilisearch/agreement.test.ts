@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { plainDateOf } from '../../datetime/plainDate'
 import { rowInstant } from '../bounds'
-import { momentOf } from '../fields'
+import { momentOf, recordPlaces } from '../fields'
 import { matchesRecordQuery } from '../match'
 import { resolveRecordQuery } from '../resolve'
 import { eventFields, eventRows } from '../testFields'
@@ -23,6 +23,8 @@ function epoch(value: unknown, zone: string): number {
 function toDocument(row: Row, scale: number): Row {
   const doc: Row = { ...row }
   for (const field of eventFields) {
+    if (field.type === 'location' && row[field.key] !== undefined)
+      doc[field.key] = recordPlaces(field, row[field.key])
     if (field.type !== 'date' || momentOf(field) === 'date') continue
     const start = row[field.key]
     if (start === undefined || start === null) continue

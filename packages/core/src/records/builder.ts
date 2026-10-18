@@ -22,8 +22,8 @@ export type OptionFieldOptions = Common & {
   options?: RecordOption[]
 }
 /**
- * Places nest by `parent`, so a filter on one takes in every place inside it.
- * Reserved for distance filters: a `near` operator, valued
+ * Places are stable ids that nest by `parent`, so a record is in its places'
+ * ancestors too. Reserved for distance filters: a `near` operator, valued
  * `{ lat, lng, meters, label }`, and an option naming the record's
  * coordinates.
  */
