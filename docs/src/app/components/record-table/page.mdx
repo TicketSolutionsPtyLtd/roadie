@@ -223,8 +223,8 @@ function EventsPane() {
           <Records.Status />
           <Records.BulkActions
             actions={[
-              { label: 'Export', icon: <ExportIcon weight='bold' />, onAction: (selection) => console.log('export', selection) },
-              { label: 'Cancel', icon: <XCircleIcon weight='bold' />, intent: 'danger', onAction: (selection) => console.log('cancel', selection) }
+              { label: 'Export', icon: <ExportIcon weight='bold' />, onAction: ({ selection }) => console.log('export', selection) },
+              { label: 'Cancel', icon: <XCircleIcon weight='bold' />, intent: 'danger', onAction: ({ selection }) => console.log('cancel', selection) }
             ]}
           />
         </Pane.Body>
@@ -459,7 +459,7 @@ A page that shows part of a list, such as one venue's shows or one event's ticke
 
 The scope is never part of the view. Saved views and the URL leave it out. Clear, and the empty state's Clear search and filters, keep it. A list filtered only by its scope counts as unfiltered.
 
-In server mode, fetch `records.scopedQuery`. It's the applied query with the scope's filters first. `toMeilisearch` reads a whole view, so pass it `{ ...records.appliedView, query: records.scopedQuery }`. Table and bulk actions get the same query, so an action on every match stays within the page.
+In server mode, fetch `records.request`. Its query is the applied query with the scope's filters first, as is `records.scopedQuery`. `toMeilisearch` reads a whole view, so pass it `{ ...records.appliedView, query: records.scopedQuery }`. Table and bulk actions get the same query and request, so an action on every match stays within the page.
 
 A scope holds any filter a field can apply. An app turns a rule such as "products on this event, its days, or its collection" into filters on its own fields.
 
@@ -803,7 +803,7 @@ Keep the views your app stores as `RecordView` JSON, the same shape as the URL r
 
 ### Selection and actions
 
-`bulkActions` turns on a checkbox for each record and shows the bulk actions once something is selected. An action gets the selection and the query it was taken against: the picked ids, or every matching record but some. It never gets a record the search and filters hide. Selection is session state, like the page, and works controlled with `selection` and `onSelectionChange` or uncontrolled with `defaultSelection`. A search or filter change drops picked records it hides, and drops a "select all".
+`bulkActions` turns on a checkbox for each record and shows the bulk actions once something is selected. An action gets the selection and the query and request it was taken against: the picked ids, or every matching record but some. It never gets a record the search and filters hide. Selection is session state, like the page, and works controlled with `selection` and `onSelectionChange` or uncontrolled with `defaultSelection`. A search or filter change drops picked records it hides, and drops a "select all".
 
 `rowActions` returns menu items for a record, shown in a menu on its row named "More actions for" the record. `getRowHref` links each record to its page through the title column. When records can be selected, clicking anywhere else on a row selects it, and Shift extends the selection from the last one picked; otherwise the click follows the link. Cmd or Ctrl opens the record in a new tab. Return `undefined` for a record with no page.
 
@@ -850,13 +850,13 @@ function ShowActions() {
               </>
             )}
             bulkActions={[
-              { label: 'Export', icon: <ExportIcon weight='bold' />, onAction: (selection) => console.log('export', selection) },
+              { label: 'Export', icon: <ExportIcon weight='bold' />, onAction: ({ selection }) => console.log('export', selection) },
               {
                 label: 'Cancel',
                 icon: <XCircleIcon weight='bold' />,
                 intent: 'danger',
                 confirm: { description: 'Ticket holders are refunded and told by email.' },
-                onAction: (selection) => console.log('cancel', selection)
+                onAction: ({ selection }) => console.log('cancel', selection)
               }
             ]}
             recordName={{ one: 'show', other: 'shows' }}
@@ -872,7 +872,7 @@ render(<ShowActions />)
 
 ### Table actions and export
 
-`tableActions` act on everything the search and filters match, with nothing selected, such as exporting an attendee list. Each gets the applied query and the records. The first shows as a button at the end of the toolbar and the rest sit in a "More actions" menu after it. In a toolbar under 40rem they all sit in the menu. Danger actions confirm first, as bulk actions do. They stay in the toolbar while records are selected, apart from the bulk actions in the header row, so it stays clear which actions use the selection.
+`tableActions` act on everything the search and filters match, with nothing selected, such as exporting an attendee list. Each gets the applied query, the request for every match, and the records. The first shows as a button at the end of the toolbar and the rest sit in a "More actions" menu after it. In a toolbar under 40rem they all sit in the menu. Danger actions confirm first, as bulk actions do. They stay in the toolbar while records are selected, apart from the bulk actions in the header row, so it stays clear which actions use the selection.
 
 `recordsToCsv(rows, fields, { timeZone })` from `@oztix/roadie-core/records` writes rows as CSV, one column per field, each value as the table shows it, and `downloadCsv` saves it. In the browser, `records.matchingRows` holds every matching record in the current sort, across pages, and `shownColumns(columns, records.view.layout)` gives the columns the table shows, in its order. Pass `{ values: 'raw' }` to write plain numbers a spreadsheet can sum. Text that starts like a formula, such as `=` or `@`, is written with a leading apostrophe so a spreadsheet shows it rather than runs it. A column with its own `cell` exports its field's value, not what your cell draws.
 
@@ -922,25 +922,27 @@ render(
       {
         label: 'Export CSV',
         icon: <DownloadIcon weight='bold' />,
-        onAction: (_, records) => exportCsv(records)
+        onAction: ({ records }) => exportCsv(records)
       },
-      { label: 'Print door list', onAction: (query) => console.log('print', query) }
+      { label: 'Print door list', onAction: ({ query }) => console.log('print', query) }
     ]}
   />
 )
 ```
 
-When the browser doesn't hold every record, export on the server with the same fields and the query. Have the server send the CSV without a byte order mark, since `downloadCsv` adds one.
+An action gets one object: `query`, the applied query with the scope first; `request`, that query resolved for a server, with relative dates fixed and no paging, as it means every record that matches; `timeZone` and `now`, the zone and moment `request` resolved in; and `records`. A bulk action gets `selection` in place of `records`.
+
+When the browser doesn't hold every record, POST `request` and export on the server with the same fields. [Records model](/foundations/records#server-contract) has the request's shape. Have the server send the CSV without a byte order mark, since `downloadCsv` adds one.
 
 ```tsx
 tableActions={[
   {
     label: 'Export CSV',
-    onAction: async (query) => {
+    onAction: async ({ request }) => {
       const response = await fetch('/api/attendees/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(query)
+        body: JSON.stringify(request)
       })
       downloadCsv(await response.text(), 'attendees.csv')
     }
@@ -950,13 +952,15 @@ tableActions={[
 
 ### Server data
 
-Pass `rowCount` and the records stop searching, filtering, sorting and paging in the browser. `data` is one page, in the order the server returned it, and `rowCount` counts every record that matches. Hold the view and position yourself, usually in the URL, and fetch whenever either changes, or the viewer's zone does: relative dates such as "today" resolve in it, and a server render reads UTC until the page hydrates. The search waits for a 250ms pause in typing before `onViewChange` hears it, so a request doesn't leave on every keystroke. Clearing it is immediate.
+Pass `rowCount` and the records stop searching, filtering, sorting and paging in the browser. `data` is one page, in the order the server returned it, and `rowCount` counts every record that matches. Hold the view and position yourself, usually in the URL, and fetch whenever either changes, or the viewer's zone does: relative dates such as "today" resolve in it, and a server render reads UTC until the page hydrates. Send the server the request `toRecordsRequest(view.query, fields, { now, timeZone, scope }, position)` builds, or `records.request` from `useRecords`, which carries the page. The search waits for a 250ms pause in typing before `onViewChange` hears it, so a request doesn't leave on every keystroke. Clearing it is immediate.
 
 Set `loading` from whether the rows for the current view and position have arrived, so it is already true in the render where either changes. While `loading` or `error` is set, the records keep a page past the old count, so a linked page waits for the new count before it moves, and `Records.Status` waits for the new count before it announces it. Once given, `rowCount` keeps server mode on: left `undefined` while a page loads, it keeps the last count. Pass 0 until the first count arrives. Take each change `onViewChange` reports: a parent that ignores a search leaves the field showing it. Column widths come from the first page a search or filter brings, and hold as people page, so the columns don't shift.
 
-Selection works against the total. Records ticked on different pages stay selected, and Select all picks `{ allMatching: true, except }`, counted from `rowCount`. A bulk action gets that selection and the query it was taken against, so the server acts on the same records. A new search or filter clears the selection, since only the server knows what still matches; a new sort or page keeps it. Selecting needs `getRowId`, as index ids repeat on every page. `matchingRows` holds only the page, so export on the server, as Table actions shows.
+Some backends stop counting, such as a search index that counts to 10,000. Pass `rowCountExact={false}` with the count it stopped at. Counts then read "10,000+": the pagination, Select all, the selection, the status, and the confirm dialog. Paging stops at the last whole page within the count, so every page it offers is one the server can return.
 
-This example's server is pretend: it filters and sorts with core's `resolveRecordQuery`, `compileRecordQuery` and `sortRecords`, as an index would, waits half a second, and shows the Meilisearch search it stands in for.
+Selection works against the total. Records ticked on different pages stay selected, and Select all picks `{ allMatching: true, except }`, counted from `rowCount`. A bulk action gets that selection and the query and request it was taken against, so the server acts on the same records. A new search or filter clears the selection, since only the server knows what still matches; a new sort or page keeps it. Selecting needs `getRowId`, as index ids repeat on every page. `matchingRows` holds only the page, so export on the server, as Table actions shows.
+
+This example's server is pretend: it reads the request `toRecordsRequest` builds, filters and sorts with core's `compileRecordQuery` and `sortRecords`, as an index would, waits half a second, and shows the request it was sent.
 
 ```tsx-live-noinline
 const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Opal Harpoon Room', 'Saltbush Trumpet Ballroom']
@@ -990,18 +994,17 @@ const column = tableColumns(fields)
 const columns = fields.map((field, index) => column.field(field.key, { pin: index === 0 }))
 const timeZone = 'Australia/Sydney'
 
-function pretendServer(viewQuery, position) {
-  const now = new Date()
-  const query = resolveRecordQuery(viewQuery, fields, { now, timeZone })
-  const matching = sortRecords(everyShow.filter(compileRecordQuery(query, fields)), query.sort, fields, { timeZone })
-  const start = position.page * position.pageSize
+function pretendServer(request) {
+  const { query, page, pageSize } = request
+  const matching = sortRecords(everyShow.filter(compileRecordQuery(query, fields)), query.sort, fields, { timeZone: query.timeZone })
+  const start = page * pageSize
   return new Promise((resolve) =>
     setTimeout(
       () =>
         resolve({
-          rows: matching.slice(start, start + position.pageSize),
+          rows: matching.slice(start, start + pageSize),
           rowCount: matching.length,
-          search: toMeilisearch({ query: viewQuery, layout: { type: 'table' } }, fields, { now, timeZone, position })
+          request
         }),
       500
     )
@@ -1020,7 +1023,8 @@ function ServerShows() {
 
   useEffect(() => {
     let current = true
-    pretendServer(query, { page, pageSize }).then((next) => {
+    const request = toRecordsRequest(query, fields, { now: new Date(), timeZone }, { page, pageSize })
+    pretendServer(request).then((next) => {
       if (current) setResult({ ...next, key })
     })
     return () => {
@@ -1043,11 +1047,12 @@ function ServerShows() {
         onViewChange={setView}
         position={position}
         onPositionChange={setPosition}
-        bulkActions={[{ label: 'Export', onAction: (selection, query) => console.log('export', selection, query) }]}
+        timeZone={timeZone}
+        bulkActions={[{ label: 'Export', onAction: ({ selection, request }) => console.log('export', selection, request) }]}
       />
-      {result.search && (
+      {result.request && (
         <pre className='rounded-md bg-sunken p-3 font-mono text-xs break-all whitespace-pre-wrap text-subtle'>
-          {JSON.stringify(result.search)}
+          {JSON.stringify(result.request)}
         </pre>
       )}
     </div>
@@ -1057,7 +1062,7 @@ function ServerShows() {
 render(<ServerShows />)
 ```
 
-With Meilisearch, `toMeilisearch(view, fields, { now, timeZone, position })` from `@oztix/roadie-core/records/meilisearch` turns the view and position into a search. It adds `page` and `hitsPerPage`, so the response's `totalHits` counts the matches for `rowCount`. Meilisearch stops counting at the index's `pagination.maxTotalHits`, 1,000 by default, so raise it to the most records a screen can match. Pass the viewer's zone, `records.timeZone`, so "today" means their day. [Records model](/foundations/records) lists the index shape it needs.
+With Meilisearch, `toMeilisearch(view, fields, { now, timeZone, position })` from `@oztix/roadie-core/records/meilisearch` turns the view and position into a search. It adds `page` and `hitsPerPage`, so the response's `totalHits` counts the matches for `rowCount`. Meilisearch stops counting at the index's `pagination.maxTotalHits`, 1,000 by default, so raise it to the most records a screen can match, or pass `rowCountExact={false}` when `totalHits` reaches it. Pass the viewer's zone, `records.timeZone`, so "today" means their day. [Records model](/foundations/records) lists the index shape it needs.
 
 ```tsx
 const { q, ...params } = toMeilisearch(view, fields, {
@@ -1069,11 +1074,11 @@ const response = await client.index('events').search(q, params)
 const page = { rows: response.hits, rowCount: response.totalHits }
 ```
 
-The example fetches `view`, which only the table changes. A view from a URL read with `fromSearchParams`, or checked with `validateRecordView`, is safe to fetch too. Built from `useRecords`, fetch `records.scopedQuery` instead: it leaves out the filters and sorts the fields can't apply, as the table does, and puts the page's `scope` first. A view never holds the scope, so a `RecordTable` given `scope` adds those filters to what it fetches too.
+The example fetches `view`, which only the table changes. A view from a URL read with `fromSearchParams`, or checked with `validateRecordView`, is safe to fetch too. Built from `useRecords`, fetch `records.request` instead: it leaves out the filters and sorts the fields can't apply, as the table does, and puts the page's `scope` first. A view never holds the scope, so a `RecordTable` given `scope` passes it to `toRecordsRequest` too.
 
 ### Range loading
 
-Pass `loadRange` for one long list with no pages that loads the records on screen as people scroll. The list asks for the rows on screen plus a screen either side, a page per request, as `{ start, end }` with `end` exclusive. Each range is one whole page, page `start / pageSize`, so fetch `pageSize` records from `start`; the last one can run past the end of the list. Fetch it, put the records in `data` at their index with `placeRange` from `@oztix/roadie-core/records`, then resolve. Rows that haven't arrived show as grey placeholders. Pass `rowCount` as the total that matches, so the scrollbar is the right length from the first frame. A count that grows, as when a record is added at the end, loads the rows it adds. A record added anywhere else moves the rows after it, so clear `data` then.
+Pass `loadRange` for one long list with no pages that loads the records on screen as people scroll. The list asks for the rows on screen plus a screen either side, a page per request, each a request with `start` and `end`, `end` exclusive, to POST as it is. Each range is one whole page, page `start / pageSize`, so fetch `pageSize` records from `start`; the last one can run past the end of the list. Fetch it, put the records in `data` at their index with `placeRange` from `@oztix/roadie-core/records`, then resolve. Rows that haven't arrived show as grey placeholders. Pass `rowCount` as the total that matches, so the scrollbar is the right length from the first frame. A count that grows, as when a record is added at the end, loads the rows it adds. A record added anywhere else moves the rows after it, so clear `data` then.
 
 The server searches, filters and sorts, as in server mode, and the search waits for a pause in typing. Clear `data` when the query or the zone changes, or when you pass a new `now` and a relative date filter (such as Upcoming) would match other records, or the old records count as loaded and are never fetched again. This example keeps the records with the query they belong to, drops a response for an older one, and keeps the last total until the new query's first response, so the scrollbar holds its length. Every request waits 400ms.
 
@@ -1102,18 +1107,16 @@ const columns = [column.field('show', { pin: true }), column.field('location'), 
 const timeZone = 'Australia/Sydney'
 const pageSize = 50
 
-function pretendServer(view, { start, end }) {
-  const now = new Date()
-  const query = resolveRecordQuery(view.query, fields, { now, timeZone })
-  const matching = sortRecords(everyShow.filter(compileRecordQuery(query, fields)), query.sort, fields, { timeZone })
-  const position = { page: start / pageSize, pageSize }
+function pretendServer(request) {
+  const { query, start, end } = request
+  const matching = sortRecords(everyShow.filter(compileRecordQuery(query, fields)), query.sort, fields, { timeZone: query.timeZone })
   return new Promise((resolve) =>
     setTimeout(
       () =>
         resolve({
           rows: matching.slice(start, end),
           rowCount: matching.length,
-          search: toMeilisearch(view, fields, { now, timeZone, position })
+          request
         }),
       400
     )
@@ -1125,7 +1128,7 @@ const firstView = { query: { search: '', filters: [], sort: [] }, layout: { type
 function RangeShows() {
   const [view, setView] = useState(firstView)
   const key = JSON.stringify(view.query)
-  const [result, setResult] = useState({ key, data: [], rowCount: undefined, search: null })
+  const [result, setResult] = useState({ key, data: [], rowCount: undefined, request: null })
   if (result.key !== key) setResult({ ...result, key, data: [] })
 
   return (
@@ -1142,19 +1145,19 @@ function RangeShows() {
         onViewChange={setView}
         defaultPosition={{ pageSize }}
         timeZone={timeZone}
-        loadRange={async (range) => {
-          const next = await pretendServer(view, range)
+        loadRange={async (request) => {
+          const next = await pretendServer(request)
           setResult((current) =>
             current.key === key
-              ? { ...next, key, data: placeRange(current.data, range.start, next.rows) }
+              ? { ...next, key, data: placeRange(current.data, request.start, next.rows) }
               : current
           )
         }}
         maxHeight='30rem'
       />
-      {result.search && (
+      {result.request && (
         <pre className='rounded-md bg-sunken p-3 font-mono text-xs break-all whitespace-pre-wrap text-subtle'>
-          {JSON.stringify(result.search)}
+          {JSON.stringify(result.request)}
         </pre>
       )}
     </div>
@@ -1403,8 +1406,8 @@ render(
       getRowId={(row) => row.id}
       recordName={{ one: 'order', other: 'orders' }}
       bulkActions={[
-        { label: 'Export', icon: <ExportIcon weight='bold' />, onAction: (selection) => console.log('export', selection) },
-        { label: 'Resend tickets', icon: <EnvelopeIcon weight='bold' />, onAction: (selection) => console.log('resend', selection) }
+        { label: 'Export', icon: <ExportIcon weight='bold' />, onAction: ({ selection }) => console.log('export', selection) },
+        { label: 'Resend tickets', icon: <EnvelopeIcon weight='bold' />, onAction: ({ selection }) => console.log('resend', selection) }
       ]}
       maxHeight='28rem'
     />
@@ -1556,10 +1559,10 @@ column.field('location', { pin: true })`}
     code={`bulkActions={[{
   label: 'Cancel',
   intent: 'danger',
-  onAction: (selection, query) => cancel(selection, query)
+  onAction: ({ selection, request }) => cancel(selection, request)
 }]}`}
   >
-    Act on the selection and query the action gets. They hold only records
+    Act on the selection and request the action gets. They hold only records
     the search and filters still show, and "all matching" means the query.
   </Guideline.Do>
   <Guideline.Dont
@@ -1630,7 +1633,7 @@ column.field('location', { pin: true })`}
 function useRecords<Row extends object>(options: UseRecordsOptions<Row>): RecordsInstance<Row>
 ```
 
-Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `baseline` (the saved view the screen opened), `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is), `now` (when relative dates resolve, by default when the list mounted in the browser; a server reads no clock, so a relative date filter shows the loading state until then) and `loadRange` (which loads the list by range as people scroll). Pass the result to `Records` or `Records.Provider`.
+Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `rowCountExact` (false when the count is a floor the server stopped at), `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `baseline` (the saved view the screen opened), `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is), `now` (when relative dates resolve, by default when the list mounted in the browser; a server reads no clock, so a relative date filter shows the loading state until then) and `loadRange` (which loads the list by range as people scroll). Pass the result to `Records` or `Records.Provider`.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1641,8 +1644,10 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `appliedView` | `RecordView` | The view the rows show, without the filters and sorts the fields can't apply, and without the page's scope. In the browser its search lags typing while a long list filters. Its `query` keeps its identity while its content holds. |
 | `searchText` | `string` | What the search field shows. In server mode it runs ahead of the view's search until typing pauses. |
 | `resolvedQuery` | `ResolvedRecordQuery` | The applied query, with relative dates fixed and unusable filters skipped. |
+| `request` | `RecordsRequest` | What to POST to a server: `resolvedQuery` with the scope first, under `version` 1, with `page` and `pageSize` in server mode. It keeps its identity while its content holds, so key a fetch on it. |
 | `rows` | `readonly { id: string; row: Row }[]` | The current page. In range mode, every record loaded. |
 | `resultCount` | `number` | Records the search and filters match: `rowCount` in server mode. |
+| `resultCountExact` | `boolean` | False when `resultCount` is a floor the server stopped counting at, from `rowCountExact`. |
 | `filtered` | `boolean` | Whether a search or filter narrows the records. |
 | `position` | `{ page: number; pageSize: number; row: number }` | The page, zero-based, and its size. In range mode, `row` is the first row on screen and each range is one page. |
 | `pageCount` | `number` | Pages at this size, at least one. |
@@ -1652,7 +1657,7 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `resetView` | `() => void` | Goes back to `baseline` from the first page. Does nothing without one. |
 | `skippedFilters` | `readonly number[]` | Filters in the view, by index, that these fields can't apply. |
 | `scope` | `readonly RecordFilter[]` | The page's own filters, applied before the view's and never part of it. |
-| `scopedQuery` | `RecordQuery` | The applied view's query with the scope's filters first: what to fetch in server mode, and what actions act on. It keeps its identity while its content holds, so key a fetch on it, the position and `timeZone`. |
+| `scopedQuery` | `RecordQuery` | The applied view's query with the scope's filters first, which actions get as `query`. It keeps its identity while its content holds. |
 | `setSearch` | `(search: string) => void` | Sets the search and returns to the first page. In server mode, once typing pauses for 250ms, or at once when cleared. |
 | `addFilter` | `(filter: RecordFilter) => void` | Adds a filter. |
 | `updateFilter` | `(index: number, filter: RecordFilter) => void` | Replaces the filter at an index. |

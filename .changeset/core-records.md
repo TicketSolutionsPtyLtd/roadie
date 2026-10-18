@@ -7,13 +7,16 @@ through. A `RecordField` names one fact about a record by key: its type,
 whether it is filterable, sortable or searchable, a list or a date range,
 how its dates compare (`event`, `access`, `timestamp` or `date`), the keys
 holding its venue zone and venue-local dates (`localDateKey`,
-`endLocalDateKey`), an identifier `match`, its currency, its `options` and
-the dashboard `status` map. A `RecordView` saves a search, filters, sort and
+`endLocalDateKey`), an identifier `match` (a pattern string anchored with
+`^` and `$`, matched in any case; `recordFields` throws on one that doesn't
+compile or isn't anchored), its currency, its `options` and the dashboard
+`status` map. A `RecordView` saves its `version`, a search, filters, sort and
 layout as JSON; page, page size and scroll row travel beside it as a
 `RecordPosition`.
 
 `validateRecordView` checks a view against its fields and says which
-operators fit. `resolveRecordQuery` fixes relative dates at a moment: event
+operators fit, reads a view without a `version` as version 1, and rejects a
+version it doesn't know. `resolveRecordQuery` fixes relative dates at a moment: event
 and access dates compare the venue-local date, timestamps the viewer's day.
 `matchesRecordQuery` filters rows in the browser, testing overlap for date
 ranges. Text compares without case, and negative filters (is not, does not
@@ -125,3 +128,12 @@ the index's `pagination.maxTotalHits`). A page below 0 or a page size below
 
 `placeRange(data, start, rows)` returns a copy of `data` with `rows` placed
 from `start` and any gaps left undefined, for lists loaded by range.
+
+A server reads a `RecordsRequest`, never a view: `version` 1, the query
+resolved with relative dates fixed, and `page` and `pageSize`, `start` and
+`end`, or no paging for every match. `toRecordsRequest(query, fields, { now,
+timeZone, scope }, paging)` builds one with the scope's filters first. The
+new `@oztix/roadie-core/records/json-schema` subpath exports
+`recordsRequestJsonSchema()` and `recordViewJsonSchema()`, and
+`records/records-request.schema.json` and `records/record-view.schema.json`
+ship the same JSON Schemas as files, for servers that generate models.

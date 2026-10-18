@@ -2,6 +2,7 @@ import {
   type RecordField,
   type RecordView,
   parseQuery,
+  toRecordsRequest,
   toSearchParams
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
@@ -14,7 +15,7 @@ export const EVENT_FIELDS: RecordField[] = [
     key: 'orderNumber',
     label: 'Order number',
     type: 'text',
-    match: /^OZ-\d{5}$/i
+    match: '^OZ-\\d{5}$'
   },
   {
     key: 'venue',
@@ -59,6 +60,7 @@ export const EVENT_FIELDS: RecordField[] = [
 ]
 
 export const WEEKEND_VIEW: RecordView = {
+  version: 1,
   id: 'melbourne-weekend',
   name: 'Melbourne this weekend',
   entity: 'events',
@@ -76,6 +78,15 @@ export const WEEKEND_VIEW: RecordView = {
     columns: { order: ['name', 'gross', 'starts'], hidden: ['created'] }
   }
 }
+
+/** The example view's first page as the request a server reads. */
+export const weekendRequest = () =>
+  toRecordsRequest(
+    WEEKEND_VIEW.query,
+    EVENT_FIELDS,
+    { now: new Date(EXAMPLE_NOW), timeZone: EXAMPLE_ZONE },
+    { page: 0, pageSize: 50 }
+  )
 
 /** A fixed moment, so the outputs read the same on every build. */
 export const EXAMPLE_NOW = '2026-10-02T13:30:00Z'

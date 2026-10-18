@@ -30,7 +30,7 @@ import type { RecordField } from '@oztix/roadie-core/records'
 
 export const eventFields: RecordField[] = [
   { key: 'name', label: 'Name', type: 'text' },
-  { key: 'orderNumber', label: 'Order number', type: 'text', match: /^OZ-\d{5}$/i },
+  { key: 'orderNumber', label: 'Order number', type: 'text', match: '^OZ-\\d{5}$' },
   {
     key: 'venue',
     label: 'Venue',
@@ -86,7 +86,7 @@ export const eventFields: RecordField[] = [
 | `moment`                          | How a date compares: event, access, timestamp (the default), or date. See [Dates](#dates).                                                      |
 | `timeZoneKey`                     | For event and access moments, the row key holding the venue's IANA zone.                                                                        |
 | `localDateKey`, `endLocalDateKey` | The stored venue-local date, for adapters that can't work it out per row.                                                                       |
-| `match`                           | A pattern for identifiers, such as order numbers. Typed text that matches is offered as an exact filter.                                        |
+| `match`                           | A pattern for identifiers, such as order numbers, as a string anchored with `^` and `$`. Typed text that matches, in any case, is offered as an exact filter. |
 | `format`                          | How a number or money field's values read. Defaults to number, or currency for money.                                                          |
 | `currency`, `currencyKey`         | A fixed ISO code, or the row key holding it.                                                                                                    |
 | `status`                          | The dashboard status map. An option field with one gets Badge rendering, sorting by order, and labels from one definition.                     |
@@ -119,6 +119,7 @@ are session state, never part of a view.
 
 ```json
 {
+  "version": 1,
   "id": "melbourne-weekend",
   "name": "Melbourne this weekend",
   "entity": "events",
@@ -181,7 +182,9 @@ Empty is a real state: null, an empty string, and an empty list are all not
 set. Negative operators (is-not, not-contains, and neq) keep records where the
 field is empty, the way Meilisearch does. Check a view from storage or an API
 with `validateRecordView(view, fields)`. It rejects unknown fields and
-operators that don't fit, and says what would.
+operators that don't fit, and says what would. A view carries its format as
+`version`. A view saved without one reads as version 1, and a version this
+release doesn't know is rejected.
 
 ## Scope
 
@@ -190,9 +193,9 @@ Lampshade Disco, any of its days, or its collection". It's a filter list your
 app resolves, because it can span levels a flat record can't express. Scope is
 never saved in a view, and Clear never removes it. Pass it to `RecordTable`,
 `RecordGrid`, or `useRecords` as `scope`. In server mode, a list built from
-`useRecords` fetches its `scopedQuery`, which puts the scope before the view's
+`useRecords` fetches its `request`, which puts the scope before the view's
 own filters. `RecordTable` and `RecordGrid` give your fetch only the view, so
-add the scope's filters to it yourself.
+pass the scope to `toRecordsRequest` yourself.
 
 ## Dates
 
@@ -248,6 +251,136 @@ Add `position` to page through the results. It adds `page` (one-based) and
 index's `pagination.maxTotalHits`. A [RecordTable](/components/record-table)
 takes that count as `rowCount` and the page as its data. Loading by range,
 each range is one page: fetch `{ page: start / pageSize, pageSize }`.
+
+## Server contract
+
+A server never reads a view. It reads a `RecordsRequest`: the view's query
+resolved at a moment, with the page's scope first, under a version. Relative
+dates arrive fixed, so the server needs no calendar rules, and "this weekend"
+means the same there as in the browser. `useRecords` holds it as
+`records.request`, every action gets it as `request`, and
+`toRecordsRequest(query, fields, { now, timeZone, scope }, paging)` builds one
+anywhere else. POST it as JSON. The view from [Views](#views), on its first
+page at 11:30pm on a Friday in Melbourne, is this request:
+
+```json
+{
+  "version": 1,
+  "query": {
+    "search": "lampshade",
+    "filters": [
+      {
+        "field": "location",
+        "operator": "is",
+        "values": [
+          "melbourne"
+        ]
+      },
+      {
+        "field": "starts",
+        "operator": "overlaps",
+        "range": {
+          "kind": "dates",
+          "start": "2026-10-03",
+          "end": "2026-10-04"
+        }
+      },
+      {
+        "field": "offer",
+        "operator": "is-not",
+        "values": [
+          "sold_out"
+        ]
+      }
+    ],
+    "sort": [
+      {
+        "field": "starts",
+        "direction": "ascending"
+      }
+    ],
+    "timeZone": "Australia/Melbourne"
+  },
+  "page": 0,
+  "pageSize": 50
+}
+```
+
+| Key                | Holds                                                                                                                                                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`          | 1. Reject a version the server doesn't know.                                                                                                                                                                                                |
+| `query.search`     | The search text, for the fields marked `searchable`.                                                                                                                                                                                        |
+| `query.filters`    | The chips in order, ANDed. A date filter becomes `overlaps` with a `range`: `dates` compares calendar dates, the venue's for event and access fields, and `instants` compares epoch milliseconds. Ends are inclusive and null is open. Every other filter is as the view holds it. |
+| `query.sort`       | The sort, in order.                                                                                                                                                                                                                         |
+| `query.timeZone`   | The viewer's zone, for rows that name no venue zone.                                                                                                                                                                                        |
+| `page`, `pageSize` | One page, counted from 0, in a paged list.                                                                                                                                                                                                  |
+| `start`, `end`     | Rows from `start` up to, not including, `end`, in a list loaded by range.                                                                                                                                                                   |
+
+A request with no paging means every record that matches, as for an export
+or an action on all of them. Field keys are logical names, never index paths:
+the server's adapter maps each one, such as `location` to `venue.city`, so an
+index can change without changing a saved view, a link, or a request.
+
+Answer with the page's rows and the count, `rowCount`. An index that stops
+counting, such as one that counts to 10,000, also answers whether the count
+is exact, for `rowCountExact`. Counts then read "10,000+", and paging stops at
+the last page the index can return.
+
+`@oztix/roadie-core/records/records-request.schema.json` and
+`@oztix/roadie-core/records/record-view.schema.json` are JSON Schemas, draft
+07, for a request and a stored view. They're generated from the schemas
+`validateRecordView` uses, so they always agree with it. Generate a server's
+models from them, or check what arrives against them.
+`@oztix/roadie-core/records/json-schema` returns the same schemas in
+JavaScript, from `recordsRequestJsonSchema()` and `recordViewJsonSchema()`.
+
+On a .NET server, generate the models from the schema files with a tool such
+as NJsonSchema, or write them as records. ASP.NET Core reads the camel case
+keys into them. Apply the person's permissions on the server as a filter of
+your own, ANDed with the request's, so the browser can never widen what it
+sees.
+
+```csharp
+public sealed record RecordsRequest(
+    int Version,
+    RecordsQuery Query,
+    int? Page = null,
+    int? PageSize = null,
+    int? Start = null,
+    int? End = null);
+
+public sealed record RecordsQuery(
+    string Search,
+    IReadOnlyList<RecordsFilter> Filters,
+    IReadOnlyList<RecordsSort> Sort,
+    string TimeZone);
+
+// Value holds a string, a number, or two numbers, by operator.
+public sealed record RecordsFilter(
+    string Field,
+    string Operator,
+    IReadOnlyList<string>? Values = null,
+    JsonElement? Value = null,
+    RecordsRange? Range = null);
+
+// Kind "dates" holds 'YYYY-MM-DD' strings; "instants", epoch milliseconds.
+public sealed record RecordsRange(string Kind, JsonElement? Start, JsonElement? End);
+
+public sealed record RecordsSort(string Field, string Direction);
+
+app.MapPost("/api/events/search", async (
+    RecordsRequest request, ClaimsPrincipal user, EventSearch search) =>
+{
+    if (request.Version != 1) return Results.BadRequest("Unsupported request version");
+    var permitted = search.PermissionFilter(user);
+    var page = await search.RunAsync(request, permitted);
+    return Results.Ok(new { rows = page.Rows, rowCount = page.Total, rowCountExact = page.Exact });
+});
+```
+
+`EventSearch` stands for your adapter: it maps each field key to the index,
+turns each filter into the index's query, and adds the permission filter to
+every search, count, export, and bulk action.
 
 ## Typed text
 
@@ -374,7 +507,7 @@ holds something invalid.
 
 | Key                                       | Holds                                                                                                                                                       |
 | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `v`                                       | The format version, 1                                                                                                                                       |
+| `v`                                       | The view's `version`, 1                                                                                                                                     |
 | `view`, `entity`                          | The saved view it started from, and the entity. A URL view has no name                                                                                      |
 | `q`                                       | The search text                                                                                                                                             |
 | `f`                                       | One per chip, in order, as `field:operator:value`. Lists are comma separated                                                                                |
