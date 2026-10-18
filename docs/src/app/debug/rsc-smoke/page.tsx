@@ -786,7 +786,7 @@ export default function RscSmokePage() {
             <Toolbar.Button disabled>Redo</Toolbar.Button>
           </Toolbar.Group>
           <Toolbar.Separator />
-          <Toolbar.Link href='/components/toolbar'>Help</Toolbar.Link>
+          <Toolbar.Button href='/components/toolbar'>Help</Toolbar.Button>
         </Toolbar>
       </section>
 

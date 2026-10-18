@@ -86,7 +86,7 @@ Each part renders a Roadie component you already know. `Toolbar.Button` is a `Bu
 
 ### States
 
-A disabled `Toolbar.Button` stays in the arrow order, so a keyboard user still finds it. `disabled` on `Toolbar.Group`, `Toolbar.ToggleGroup`, or the toolbar disables every item inside it, and they stay in the arrow order too. A `Toolbar.Link` stays active, so remove it when it shouldn't be followed.
+A disabled `Toolbar.Button` stays in the arrow order, so a keyboard user still finds it. `disabled` on `Toolbar.Group`, `Toolbar.ToggleGroup`, or the toolbar disables every item inside it, and they stay in the arrow order too. A `Toolbar.Button` with an `href` takes its own `disabled`, which keeps it in the arrow order and stops the click, but a disabled group or toolbar leaves it active. Disable it too, or remove it, when it shouldn't be followed.
 
 ```tsx-live layout=stack
 {/* One button disabled */}
@@ -135,12 +135,12 @@ Every part takes the toolbar's `size`. Anything passed to `render` keeps its own
 
 #### Links
 
-`Toolbar.Link` takes an `href`, which routes through the Link given to `RoadieProvider`. An external `href` opens in a new tab.
+Give `Toolbar.Button` an `href` and it renders a link, as `Button` does: an internal `href` routes through the Link given to `RoadieProvider`, and an external one opens in a new tab. It stays in the arrow order with the buttons.
 
 ```tsx-live
 <Toolbar aria-label='Event'>
   <Toolbar.Button>Save draft</Toolbar.Button>
-  <Toolbar.Link href='/events/feathered-anchor-sessions'>Preview</Toolbar.Link>
+  <Toolbar.Button href='/events/feathered-anchor-sessions'>Preview</Toolbar.Button>
 </Toolbar>
 ```
 
@@ -171,7 +171,7 @@ On a touch screen, or a screen narrower than `md`, the items stay on one row and
   <Toolbar.Button>Duplicate</Toolbar.Button>
   <Toolbar.Button>Save draft</Toolbar.Button>
   <Toolbar.Button>Schedule</Toolbar.Button>
-  <Toolbar.Link href='/events/feathered-anchor-sessions'>Preview</Toolbar.Link>
+  <Toolbar.Button href='/events/feathered-anchor-sessions'>Preview</Toolbar.Button>
 </Toolbar>
 ```
 

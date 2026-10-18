@@ -3,6 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Toolbar } from '.'
+import {
+  type RoadieLinkComponent,
+  RoadieLinkProvider
+} from '../../providers/RoadieLinkProvider'
 import { Button, IconButton } from '../Button'
 import { Menu } from '../Menu'
 import { Toggle } from '../Toggle'
@@ -16,7 +20,7 @@ function Formatting(props: { orientation?: 'horizontal' | 'vertical' }) {
         <Toolbar.Button render={<Toggle aria-label='Bold' />} />
         <Toolbar.Button>Undo</Toolbar.Button>
         <Toolbar.Separator />
-        <Toolbar.Link href='/help'>Help</Toolbar.Link>
+        <Toolbar.Button href='/help'>Help</Toolbar.Button>
       </Toolbar>
       <button type='button'>After</button>
     </>
@@ -341,14 +345,14 @@ describe('Toolbar', () => {
     render(
       <Toolbar aria-label='Editing'>
         <Toolbar.Button>Undo</Toolbar.Button>
-        <Toolbar.Link href='/help'>Help</Toolbar.Link>
+        <Toolbar.Button href='/help'>Help</Toolbar.Button>
       </Toolbar>
     )
     const undo = screen.getByRole('button', { name: 'Undo' })
     const help = screen.getByRole('link', { name: 'Help' })
     expect(undo).toHaveAttribute('data-slot', 'toolbar-button')
     expect(undo).toHaveClass('is-interactive', 'emphasis-subtler')
-    expect(help).toHaveAttribute('data-slot', 'toolbar-link')
+    expect(help).toHaveAttribute('data-slot', 'toolbar-button')
     expect(help).toHaveClass('is-interactive', 'emphasis-subtler')
   })
 
@@ -368,9 +372,9 @@ describe('Toolbar', () => {
   it('lets a link render element keep its own props', () => {
     render(
       <Toolbar aria-label='Editing'>
-        <Toolbar.Link href='/help' render={<Button emphasis='strong' />}>
+        <Toolbar.Button href='/help' render={<Button emphasis='strong' />}>
           Help
-        </Toolbar.Link>
+        </Toolbar.Button>
       </Toolbar>
     )
     expect(screen.getByRole('link', { name: 'Help' })).toHaveClass(
@@ -378,10 +382,87 @@ describe('Toolbar', () => {
     )
   })
 
+  it('renders an href as a routed link through the provider', () => {
+    const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
+      <a data-router='stub' href={href} {...rest}>
+        {children}
+      </a>
+    )
+    render(
+      <RoadieLinkProvider Link={StubLink}>
+        <Toolbar aria-label='Editing'>
+          <Toolbar.Button href='/help'>Help</Toolbar.Button>
+        </Toolbar>
+      </RoadieLinkProvider>
+    )
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveAttribute(
+      'data-router',
+      'stub'
+    )
+  })
+
+  it('renders an href as a plain link, with no button semantics or warning', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button href='/help'>Help</Toolbar.Button>
+      </Toolbar>
+    )
+    const help = screen.getByRole('link', { name: 'Help' })
+    expect(help).not.toHaveAttribute('type')
+    expect(help).not.toHaveAttribute('aria-disabled')
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
+  })
+
+  it('keeps a disabled link focusable in the arrow order and stops its click', async () => {
+    const onClick = vi.fn()
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button>Undo</Toolbar.Button>
+        <Toolbar.Button href='/help' disabled onClick={onClick}>
+          Help
+        </Toolbar.Button>
+      </Toolbar>
+    )
+    const help = screen.getByRole('link', { name: 'Help' })
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(help).toHaveFocus()
+    expect(help).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(help)
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it('leaves a link active in a disabled toolbar', () => {
+    render(
+      <Toolbar aria-label='Editing' disabled>
+        <Toolbar.Button href='/help'>Help</Toolbar.Button>
+      </Toolbar>
+    )
+    expect(screen.getByRole('link', { name: 'Help' })).not.toHaveAttribute(
+      'aria-disabled'
+    )
+  })
+
+  it('refuses an unsafe href', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button href='javascript:alert(1)'>Help</Toolbar.Button>
+      </Toolbar>
+    )
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveAttribute(
+      'href',
+      '#'
+    )
+    warn.mockRestore()
+  })
+
   it('opens external links in a new tab', () => {
     render(
       <Toolbar aria-label='Editing'>
-        <Toolbar.Link href='https://example.com/guide'>Guide</Toolbar.Link>
+        <Toolbar.Button href='https://example.com/guide'>Guide</Toolbar.Button>
       </Toolbar>
     )
     expect(screen.getByRole('link', { name: 'Guide' })).toHaveAttribute(
@@ -393,9 +474,9 @@ describe('Toolbar', () => {
   it('opens an internal link in a new tab when external', () => {
     render(
       <Toolbar aria-label='Editing'>
-        <Toolbar.Link href='/events/preview' external>
+        <Toolbar.Button href='/events/preview' external>
           Preview
-        </Toolbar.Link>
+        </Toolbar.Button>
       </Toolbar>
     )
     expect(screen.getByRole('link', { name: 'Preview' })).toHaveAttribute(

@@ -112,13 +112,19 @@ describe('Toolbar layout', () => {
             </Toolbar.Toggle>
           </Toolbar.ToggleGroup>
           <Toolbar.Button aria-label='Undo'>{icon}</Toolbar.Button>
+          <Toolbar.Button href='/help' aria-label='Help'>
+            {icon}
+          </Toolbar.Button>
           <Toolbar.Button>Save draft</Toolbar.Button>
         </Toolbar>
       )
       const box = (name: string) =>
-        screen.getByRole('button', { name }).getBoundingClientRect()
+        (
+          screen.queryByRole('button', { name }) ??
+          screen.getByRole('link', { name })
+        ).getBoundingClientRect()
       const height = box('Save draft').height
-      for (const name of ['Bold', 'Align left', 'Undo']) {
+      for (const name of ['Bold', 'Align left', 'Undo', 'Help']) {
         expect(box(name).height).toBe(height)
         expect(box(name).width).toBe(height)
       }
@@ -271,7 +277,7 @@ describe('Toolbar layout', () => {
           <Button size={size}>Reference</Button>
           <Toolbar aria-label='Formatting' size={size}>
             <Toolbar.Button>Bold</Toolbar.Button>
-            <Toolbar.Link href='/help'>Help</Toolbar.Link>
+            <Toolbar.Button href='/help'>Help</Toolbar.Button>
           </Toolbar>
         </>
       )
