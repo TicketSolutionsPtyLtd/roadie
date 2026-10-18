@@ -57,7 +57,8 @@ export function isRecordOptionField(field: RecordField): boolean {
 /**
  * A record's places, to index once: its location value or values, then each
  * one's ancestors by the options' `parent`, so "is in" stays a plain term.
- * Places are found without case. A parent the options don't hold ends the
+ * Places are found without case and listed by their options' values, as a
+ * filter holds them. A parent the options don't hold ends the
  * line, and a value they don't hold, or any value of a field without
  * options, stands alone.
  */
@@ -75,8 +76,8 @@ export function placeReader(field: RecordField): (value: unknown) => string[] {
     const places = new Set<string>()
     for (const start of Array.isArray(value) ? value : [value]) {
       if (typeof start !== 'string' || start === '') continue
-      places.add(start)
       let place = byKey.get(start.toLowerCase())
+      places.add(place?.value ?? start)
       while (place?.parent !== undefined) {
         const parent = byKey.get(place.parent.toLowerCase())
         if (!parent || places.has(parent.value)) break

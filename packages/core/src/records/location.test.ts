@@ -233,11 +233,16 @@ describe("a location's places", () => {
     ])
   })
 
-  it('finds a place named in another case', () => {
+  it('finds a place named in another case, and lists it by its id', () => {
     expect(recordPlaces(places, 'AU-VIC-FITZROY')).toEqual([
-      'AU-VIC-FITZROY',
+      'au-vic-fitzroy',
       'au-vic',
       'au'
+    ])
+    expect(recordPlaces(places, ['au-vic', 'AU-VIC-FITZROY'])).toEqual([
+      'au-vic',
+      'au',
+      'au-vic-fitzroy'
     ])
     const capitalised = field.location('location', {
       label: 'Location',
@@ -246,7 +251,7 @@ describe("a location's places", () => {
         { value: 'Fitzroy', label: 'Fitzroy', parent: 'Vic' }
       ]
     })
-    expect(recordPlaces(capitalised, 'fitzroy')).toEqual(['fitzroy', 'VIC'])
+    expect(recordPlaces(capitalised, 'fitzroy')).toEqual(['Fitzroy', 'VIC'])
   })
 
   it("lists a place it doesn't know, or nothing for no place, alone", () => {
