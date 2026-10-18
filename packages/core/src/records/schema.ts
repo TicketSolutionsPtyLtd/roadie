@@ -130,10 +130,12 @@ function buildRequestSchema() {
     flag
   ])
 
+  // Loose at the top and in the query, so a key a later release adds stays
+  // version 1; filters and sorts stay strict, as a key there changes a match.
   return z
-    .strictObject({
+    .looseObject({
       version: z.literal(1),
-      query: z.strictObject({
+      query: z.looseObject({
         search: z.string(),
         filters: z.array(filter),
         sort: z.array(sort),

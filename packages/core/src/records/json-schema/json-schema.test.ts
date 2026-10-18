@@ -65,8 +65,40 @@ describe('recordsRequestJsonSchema', () => {
     ).toBe(true)
   })
 
+  it('accepts keys a later release adds, at the top and in the query', () => {
+    expect(
+      accepts(recordsRequestJsonSchema(), {
+        ...request,
+        facets: ['city'],
+        query: { ...request.query, scopeCount: 1 }
+      })
+    ).toBe(true)
+  })
+
   it.each([
     ['no version', { ...request, version: undefined }],
+    [
+      'an unknown operator',
+      {
+        ...request,
+        query: {
+          ...request.query,
+          filters: [{ field: 'name', operator: 'like', value: 'x' }]
+        }
+      }
+    ],
+    [
+      'an unknown filter key',
+      {
+        ...request,
+        query: {
+          ...request.query,
+          filters: [
+            { field: 'city', operator: 'is', values: ['perth'], scope: true }
+          ]
+        }
+      }
+    ],
     [
       'an unresolved date filter',
       {

@@ -136,4 +136,6 @@ timeZone, scope }, paging)` builds one with the scope's filters first. The
 new `@oztix/roadie-core/records/json-schema` subpath exports
 `recordsRequestJsonSchema()` and `recordViewJsonSchema()`, and
 `records/records-request.schema.json` and `records/record-view.schema.json`
-ship the same JSON Schemas as files, for servers that generate models.
+ship the same JSON Schemas as files, for servers that generate models. A
+request accepts keys it doesn't name at its top level and in `query`, so a
+later key keeps version 1; filters and sorts stay strict.

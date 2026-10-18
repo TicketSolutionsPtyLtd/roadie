@@ -6,7 +6,10 @@ import type {
   RecordQueryOptions
 } from './types'
 
-/** Bumped only when a server must read a request differently. */
+/**
+ * Bumped only when an existing key's meaning changes. A new key at the top or
+ * in `query` keeps version 1, so a server ignores keys it doesn't know.
+ */
 export const RECORDS_REQUEST_VERSION = 1
 
 /** A page, zero-based, or rows `start` to `end`, `end` exclusive. */

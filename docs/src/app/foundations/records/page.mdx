@@ -307,7 +307,7 @@ page at 11:30pm on a Friday in Melbourne, is this request:
 
 | Key                | Holds                                                                                                                                                                                                                                       |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `version`          | 1. Reject a version the server doesn't know.                                                                                                                                                                                                |
+| `version`          | 1. Reject a version the server doesn't know. It changes only when an existing key's meaning does.                                                                                                                                           |
 | `query.search`     | The search text, for the fields marked `searchable`.                                                                                                                                                                                        |
 | `query.filters`    | The chips in order, ANDed. A date filter becomes `overlaps` with a `range`: `dates` compares calendar dates, the venue's for event and access fields, and `instants` compares epoch milliseconds. Ends are inclusive and null is open. Every other filter is as the view holds it. |
 | `query.sort`       | The sort, in order.                                                                                                                                                                                                                         |
@@ -335,6 +335,11 @@ the last page the index can return.
 models from them, or check what arrives against them.
 `@oztix/roadie-core/records/json-schema` returns the same schemas in
 JavaScript, from `recordsRequestJsonSchema()` and `recordViewJsonSchema()`.
+
+Ignore keys you don't know. A later release can add one at the top of a
+request or in its `query` and still send version 1, and the request schema
+accepts them there. A filter or a sort with a key the schema doesn't name is
+rejected, since it would change what matches.
 
 On a .NET server, generate the models from the schema files with a tool such
 as NJsonSchema, or write them as records. ASP.NET Core reads the camel case
