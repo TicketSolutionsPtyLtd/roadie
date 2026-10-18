@@ -43,7 +43,8 @@ Algolia, Elasticsearch or an API (`location:is:au-qld`).
 `recordPlaceReader(field)` reads the options once and returns a reader to
 call per record as you index. A place reads by its label or its whole id,
 never a word inside its id, so a place listed from the records, whose label
-is its id, reads only by the whole id. A chip reads
+is its id, reads from its start: "bris" suggests Brisbane, and "vic" never
+suggests au-vic-fitzroy. A chip reads
 "Location is in Queensland", `recordOperatorLabel` takes the field to say
 "is in", and one place's `detail` says where it is, such as "Suburb in
 Brisbane". Distance filters come later. `isRecordOptionField` tells whether a field picks

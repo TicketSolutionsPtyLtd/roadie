@@ -515,10 +515,10 @@ describe("a location's places", () => {
     expect(labels('au-vic')).toEqual(['Location is in Victoria'])
   })
 
-  it('reads a place whose label repeats its id, as one listed from records, by its whole id', () => {
+  it('reads a place whose label repeats its id, as one listed from records, from its start only', () => {
     const listed = field.location('location', {
       label: 'Location',
-      options: ['au-vic', 'au-vic-fitzroy'].map((value) => ({
+      options: ['au-vic-fitzroy', 'Brisbane', 'Queensland'].map((value) => ({
         value,
         label: value
       }))
@@ -529,8 +529,10 @@ describe("a location's places", () => {
         .map((suggestion) => suggestion.label)
     expect(labels('vic')).toEqual([])
     expect(labels('fitzroy')).toEqual([])
-    expect(labels('au-vic')).toEqual(['Location is in au-vic'])
+    expect(labels('au-vic')).toEqual(['Location is in au-vic-fitzroy'])
     expect(labels('AU-VIC-FITZROY')).toEqual(['Location is in au-vic-fitzroy'])
+    expect(labels('bris')).toEqual(['Location is in Brisbane'])
+    expect(labels('queens')).toEqual(['Location is in Queensland'])
   })
 
   it('describes a place without a kind or parent by nothing', () => {
