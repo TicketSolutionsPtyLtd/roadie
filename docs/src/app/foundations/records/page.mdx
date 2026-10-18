@@ -192,10 +192,9 @@ Scope is the part of a query the page sets, such as "products offered on
 Lampshade Disco, any of its days, or its collection". It's a filter list your
 app resolves, because it can span levels a flat record can't express. Scope is
 never saved in a view, and Clear never removes it. Pass it to `RecordTable`,
-`RecordGrid`, or `useRecords` as `scope`. In server mode, a list built from
-`useRecords` fetches its `request`, which puts the scope before the view's
-own filters. `RecordTable` and `RecordGrid` give your fetch only the view, so
-pass the scope to `toRecordsRequest` yourself.
+`RecordGrid`, or `useRecords` as `scope`. In server mode, fetch the request
+`onRequestChange` hands you, or `records.request` from `useRecords`. It puts
+the scope before the view's own filters.
 
 ## Dates
 
@@ -257,10 +256,10 @@ each range is one page: fetch `{ page: start / pageSize, pageSize }`.
 A server never reads a view. It reads a `RecordsRequest`: the view's query
 resolved at a moment, with the page's scope first, under a version. Relative
 dates arrive fixed, so the server needs no calendar rules, and "this weekend"
-means the same there as in the browser. `useRecords` holds it as
-`records.request`, every action gets it as `request`, and
-`toRecordsRequest(query, fields, { now, timeZone, scope }, paging)` builds one
-anywhere else. POST it as JSON. The view from [Views](#views), on its first
+means the same there as in the browser. `onRequestChange` hands it over,
+`useRecords` holds it as `records.request`, every action gets it as `request`,
+and `toRecordsRequest(query, fields, { now, timeZone, scope }, paging)` builds
+one anywhere else. POST it as JSON. The view from [Views](#views), on its first
 page at 11:30pm on a Friday in Melbourne, is this request:
 
 ```json
@@ -317,9 +316,12 @@ page at 11:30pm on a Friday in Melbourne, is this request:
 | `start`, `end`     | Rows from `start` up to, not including, `end`, in a list loaded by range.                                                                                                                                                                   |
 
 A request with no paging means every record that matches, as for an export
-or an action on all of them. Field keys are logical names, never index paths:
-the server's adapter maps each one, such as `location` to `venue.city`, so an
-index can change without changing a saved view, a link, or a request.
+or an action on all of them. Match as the browser does: text compares ignoring
+case, for `is`, `is-not`, `has-all`, `contains`, and `not-contains`, and
+negative operators keep records where the field is empty. Field keys are
+logical names, never index paths: the server's adapter maps each one, such as
+`location` to `venue.city`, so an index can change without changing a saved
+view, a link, or a request.
 
 Answer with the page's rows and the count, `rowCount`. An index that stops
 counting, such as one that counts to 10,000, also answers whether the count

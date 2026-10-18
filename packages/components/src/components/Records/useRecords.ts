@@ -112,6 +112,8 @@ export type UseRecordsOptions<Row extends object> = {
    * Turns on range mode: one long list, searched, filtered and sorted on the server, that loads the records on screen as people scroll. Each gets the request for one range: one page of `pageSize` records from `start`, `end` exclusive. Put the records in `data` at their index with `placeRange`, then resolve. With `rowCount` the list is that long from the start; without it, ranges load one after another until one comes back short. A rejection shows the range's error with Retry.
    */
   loadRange?: (request: RecordsRangeRequest) => Promise<void> | void
+  /** Hears `request` once the list is in the browser, then each time it changes: what to fetch in server mode, as the list resolved it. */
+  onRequestChange?: (request: RecordsRequest) => void
 }
 
 export type RecordsInstance<Row extends object = object> = {
@@ -216,6 +218,8 @@ function useEqualValue<T>(value: T): T {
 }
 const serverZone = () => 'UTC'
 const noClock = () => null
+const inBrowser = () => true
+const onServer = () => false
 const NO_SCOPE: readonly RecordFilter[] = []
 
 export function useRecords<Row extends object>({
@@ -244,7 +248,8 @@ export function useRecords<Row extends object>({
   onSelectionChange,
   rowActions,
   getRowHref,
-  loadRange
+  loadRange,
+  onRequestChange
 }: UseRecordsOptions<Row>): RecordsInstance<Row> {
   const [ownView, setOwnView] = useState(() => toView(defaultView))
   const view = controlledView ?? ownView
@@ -486,14 +491,26 @@ export function useRecords<Row extends object>({
   // A controlled position belongs to the parent, so the clamp is only reported.
   const clampedPage = outOfRange ? lastPage : undefined
   const { pageSize, row } = position
-  const request = useMemo<RecordsRequest>(
-    () => ({
-      version: RECORDS_REQUEST_VERSION,
-      query: resolvedQuery,
-      ...(server && !ranged && { page: position.page, pageSize })
-    }),
-    [resolvedQuery, server, ranged, position.page, pageSize]
+  // By content, as a new `fields` list each render resolves a new query.
+  const request = useEqualValue(
+    useMemo<RecordsRequest>(
+      () => ({
+        version: RECORDS_REQUEST_VERSION,
+        query: resolvedQuery,
+        ...(server && !ranged && { page: position.page, pageSize })
+      }),
+      [resolvedQuery, server, ranged, position.page, pageSize]
+    )
   )
+  // Hydration renders the server's UTC and clockless request first.
+  const hydrated = useSyncExternalStore(noSubscription, inBrowser, onServer)
+  const latestOnRequestChange = useRef(onRequestChange)
+  useLayoutEffect(() => {
+    latestOnRequestChange.current = onRequestChange
+  })
+  useEffect(() => {
+    if (hydrated) latestOnRequestChange.current?.(request)
+  }, [hydrated, request])
   const controlled = controlledPosition !== undefined
   useEffect(() => {
     if (controlled && clampedPage !== undefined)

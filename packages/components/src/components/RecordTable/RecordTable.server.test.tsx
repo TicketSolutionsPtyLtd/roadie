@@ -1195,3 +1195,65 @@ describe('RecordTable server count a backend cannot finish', () => {
     )
   })
 })
+
+describe('RecordTable server request', () => {
+  const perth: RecordFilter = {
+    field: 'city',
+    operator: 'is',
+    values: ['Perth']
+  }
+  const request = (page: number) => ({
+    version: 1,
+    query: {
+      search: '',
+      filters: [
+        perth,
+        {
+          field: 'starts',
+          operator: 'overlaps',
+          range: { kind: 'dates', start: '2026-10-03', end: '2026-10-03' }
+        }
+      ],
+      sort: [],
+      timeZone: 'Australia/Perth'
+    },
+    page,
+    pageSize: 10
+  })
+
+  it('hands the app each request to fetch, as the table resolved it', async () => {
+    const user = userEvent.setup()
+    const onRequestChange = vi.fn()
+    const table = () => (
+      <RecordTable
+        data={SHOWS.slice(0, 10)}
+        // A new list each render, as an app may pass, still sends each request once.
+        fields={[...showFields]}
+        columns={showColumns}
+        getRowId={(row) => row.id}
+        rowCount={120}
+        scope={[perth]}
+        timeZone='Australia/Perth'
+        now={new Date('2026-10-02T16:30:00Z')}
+        defaultView={{
+          query: {
+            search: '',
+            filters: [
+              { field: 'starts', operator: 'within', value: 'today' },
+              // A field this list no longer has, which the table skips.
+              { field: 'venue', operator: 'is', values: ['Astor'] }
+            ],
+            sort: []
+          }
+        }}
+        defaultPosition={{ pageSize: 10 }}
+        onRequestChange={onRequestChange}
+      />
+    )
+    const { rerender } = render(table())
+    rerender(table())
+    expect(onRequestChange.mock.calls).toEqual([[request(0)]])
+    await user.click(screen.getByRole('button', { name: 'Next page' }))
+    expect(onRequestChange.mock.calls).toEqual([[request(0)], [request(1)]])
+  })
+})

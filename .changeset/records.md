@@ -143,7 +143,9 @@ so they are never saved, put in the URL, cleared or counted as filtering, and
 applied query with the scope's filters first, and table and bulk actions
 get it, so acting on every match stays within the page. `request` is the
 `RecordsRequest` to fetch: the resolved query with the scope first, with
-`page` and `pageSize` in server mode. The instance gains `scope`
+`page` and `pageSize` in server mode, and `onRequestChange` hears it once
+the page hydrates and each time it changes, so a `RecordTable` or
+`RecordGrid` fetches what it shows. The instance gains `scope`
 and `now`, and writes made in one event, such as a search and a filter
 together, build on each other. With no match, the empty state names the
 search and filters that matched nothing.

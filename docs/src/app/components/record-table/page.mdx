@@ -952,15 +952,15 @@ tableActions={[
 
 ### Server data
 
-Pass `rowCount` and the records stop searching, filtering, sorting and paging in the browser. `data` is one page, in the order the server returned it, and `rowCount` counts every record that matches. Hold the view and position yourself, usually in the URL, and fetch whenever either changes, or the viewer's zone does: relative dates such as "today" resolve in it, and a server render reads UTC until the page hydrates. Send the server the request `toRecordsRequest(view.query, fields, { now, timeZone, scope }, position)` builds, or `records.request` from `useRecords`, which carries the page. The search waits for a 250ms pause in typing before `onViewChange` hears it, so a request doesn't leave on every keystroke. Clearing it is immediate.
+Pass `rowCount` and the records stop searching, filtering, sorting and paging in the browser. `data` is one page, in the order the server returned it, and `rowCount` counts every record that matches. `onRequestChange` hands you the request to fetch once the page hydrates, then each time the view, position, zone, or `now` changes it. It carries the page, relative dates such as "today" fixed in the viewer's zone, the page's `scope` first, and only the filters and sorts the fields can apply, as the table shows them. From `useRecords`, `records.request` holds the same. The search waits for a 250ms pause in typing before the request or `onViewChange` hears it, so a request doesn't leave on every keystroke. Clearing it is immediate.
 
-Set `loading` from whether the rows for the current view and position have arrived, so it is already true in the render where either changes. While `loading` or `error` is set, the records keep a page past the old count, so a linked page waits for the new count before it moves, and `Records.Status` waits for the new count before it announces it. Once given, `rowCount` keeps server mode on: left `undefined` while a page loads, it keeps the last count. Pass 0 until the first count arrives. Take each change `onViewChange` reports: a parent that ignores a search leaves the field showing it. Column widths come from the first page a search or filter brings, and hold as people page, so the columns don't shift.
+Set `loading` until the rows for the latest request arrive. To have it true in the very render where the view or position changes, hold both yourself, usually in the URL, and key `loading` on them. While `loading` or `error` is set, the records keep a page past the old count, so a linked page waits for the new count before it moves, and `Records.Status` waits for the new count before it announces it. Once given, `rowCount` keeps server mode on: left `undefined` while a page loads, it keeps the last count. Pass 0 until the first count arrives. Take each change `onViewChange` reports: a parent that ignores a search leaves the field showing it. Column widths come from the first page a search or filter brings, and hold as people page, so the columns don't shift.
 
 Some backends stop counting, such as a search index that counts to 10,000. Pass `rowCountExact={false}` with the count it stopped at. Counts then read "10,000+": the pagination, Select all, the selection, the status, and the confirm dialog. Paging stops at the last whole page within the count, so every page it offers is one the server can return.
 
 Selection works against the total. Records ticked on different pages stay selected, and Select all picks `{ allMatching: true, except }`, counted from `rowCount`. A bulk action gets that selection and the query and request it was taken against, so the server acts on the same records. A new search or filter clears the selection, since only the server knows what still matches; a new sort or page keeps it. Selecting needs `getRowId`, as index ids repeat on every page. `matchingRows` holds only the page, so export on the server, as Table actions shows.
 
-This example's server is pretend: it reads the request `toRecordsRequest` builds, filters and sorts with core's `compileRecordQuery` and `sortRecords`, as an index would, waits half a second, and shows the request it was sent.
+This example's server is pretend: it reads the request `onRequestChange` hands over, filters and sorts with core's `compileRecordQuery` and `sortRecords`, as an index would, waits half a second, and shows the request it was sent.
 
 ```tsx-live-noinline
 const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Opal Harpoon Room', 'Saltbush Trumpet Ballroom']
@@ -1014,23 +1014,19 @@ function pretendServer(request) {
 const firstView = { query: { search: '', filters: [], sort: [] }, layout: { type: 'table' } }
 
 function ServerShows() {
-  const [view, setView] = useState(firstView)
-  const [position, setPosition] = useState({ page: 0, pageSize: 25, row: 0 })
-  const [result, setResult] = useState({ rows: [], rowCount: 0, key: null })
-  const { query } = view
-  const { page, pageSize } = position
-  const key = JSON.stringify([query, page, pageSize])
+  const [request, setRequest] = useState(null)
+  const [result, setResult] = useState({ rows: [], rowCount: 0, request: null })
 
   useEffect(() => {
+    if (!request) return
     let current = true
-    const request = toRecordsRequest(query, fields, { now: new Date(), timeZone }, { page, pageSize })
     pretendServer(request).then((next) => {
-      if (current) setResult({ ...next, key })
+      if (current) setResult(next)
     })
     return () => {
       current = false
     }
-  }, [key, query, page, pageSize])
+  }, [request])
 
   return (
     <div className='grid gap-3'>
@@ -1038,15 +1034,13 @@ function ServerShows() {
         caption='Shows'
         data={result.rows}
         rowCount={result.rowCount}
-        loading={result.key !== key}
+        loading={!result.request || result.request !== request}
         fields={fields}
         columns={columns}
         getRowId={(row) => row.id}
         recordName={{ one: 'show', other: 'shows' }}
-        view={view}
-        onViewChange={setView}
-        position={position}
-        onPositionChange={setPosition}
+        defaultPosition={{ pageSize: 25 }}
+        onRequestChange={setRequest}
         timeZone={timeZone}
         bulkActions={[{ label: 'Export', onAction: ({ selection, request }) => console.log('export', selection, request) }]}
       />
@@ -1074,7 +1068,7 @@ const response = await client.index('events').search(q, params)
 const page = { rows: response.hits, rowCount: response.totalHits }
 ```
 
-The example fetches `view`, which only the table changes. A view from a URL read with `fromSearchParams`, or checked with `validateRecordView`, is safe to fetch too. Built from `useRecords`, fetch `records.request` instead: it leaves out the filters and sorts the fields can't apply, as the table does, and puts the page's `scope` first. A view never holds the scope, so a `RecordTable` given `scope` passes it to `toRecordsRequest` too.
+To build a request away from the table, as for a link or a scheduled export, call `toRecordsRequest(view.query, fields, { now, timeZone, scope }, position)` from `@oztix/roadie-core/records`. It throws for a filter on a field the list doesn't have, where the table skips it, so check a stored view with `validateRecordView` first.
 
 ### Range loading
 
@@ -1633,7 +1627,7 @@ column.field('location', { pin: true })`}
 function useRecords<Row extends object>(options: UseRecordsOptions<Row>): RecordsInstance<Row>
 ```
 
-Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `rowCountExact` (false when the count is a floor the server stopped at), `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `baseline` (the saved view the screen opened), `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is), `now` (when relative dates resolve, by default when the list mounted in the browser; a server reads no clock, so a relative date filter shows the loading state until then) and `loadRange` (which loads the list by range as people scroll). Pass the result to `Records` or `Records.Provider`.
+Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `rowCountExact` (false when the count is a floor the server stopped at), `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `baseline` (the saved view the screen opened), `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is), `now` (when relative dates resolve, by default when the list mounted in the browser; a server reads no clock, so a relative date filter shows the loading state until then) `loadRange` (which loads the list by range as people scroll) and `onRequestChange` (which hears each request to fetch). Pass the result to `Records` or `Records.Provider`.
 
 | Field | Type | Description |
 | --- | --- | --- |
