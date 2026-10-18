@@ -382,6 +382,44 @@ describe('Toolbar', () => {
     )
   })
 
+  it('passes its link props and disabled to a link render element', async () => {
+    const onClick = vi.fn()
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button
+          href='/report.csv'
+          download='report.csv'
+          external
+          disabled
+          onClick={onClick}
+          render={<Button emphasis='strong' />}
+        >
+          Export
+        </Toolbar.Button>
+      </Toolbar>
+    )
+    const link = screen.getByRole('link', { name: 'Export' })
+    expect(link).toHaveAttribute('download', 'report.csv')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(link)
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it('renders a bare anchor render element without a warning', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button href='/help' render={<a />}>
+          Help
+        </Toolbar.Button>
+      </Toolbar>
+    )
+    expect(screen.getByRole('link', { name: 'Help' })).toBeInTheDocument()
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
+  })
+
   it('renders an href as a routed link through the provider', () => {
     const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
       <a data-router='stub' href={href} {...rest}>

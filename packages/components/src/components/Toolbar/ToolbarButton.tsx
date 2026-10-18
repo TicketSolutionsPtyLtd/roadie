@@ -34,7 +34,8 @@ export function ToolbarButton({
   }
 
   if (href !== undefined) {
-    const { disabled, focusableWhenDisabled = true, ...rest } = props
+    const { disabled, focusableWhenDisabled, ...rest } = props
+    const linkProps = { disabled, external, target, rel, download }
     // Base UI's button part would put type='button' on the link.
     return (
       <ToolbarPrimitive.Link
@@ -43,15 +44,12 @@ export function ToolbarButton({
         render={
           (render as ToolbarPrimitive.Link.Props['render']) ??
           look({
-            disabled,
-            focusableWhenDisabled,
-            external,
-            target,
-            rel,
-            download
+            ...linkProps,
+            focusableWhenDisabled: focusableWhenDisabled ?? true
           })
         }
         href={href}
+        {...(render && definedOnly({ ...linkProps, focusableWhenDisabled }))}
         {...(rest as ToolbarPrimitive.Link.Props)}
       />
     )
@@ -72,3 +70,10 @@ export function ToolbarButton({
 }
 
 ToolbarButton.displayName = 'Toolbar.Button'
+
+// React warns about an unknown prop on a DOM render element even when undefined.
+function definedOnly(props: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(props).filter(([, value]) => value !== undefined)
+  )
+}
