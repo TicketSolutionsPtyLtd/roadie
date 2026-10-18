@@ -70,12 +70,12 @@ filter". Typing searches the searchable fields as before and suggests filters
 from the fields: option values (or, in the browser, the values an option field
 without `options` holds), statuses, booleans by name, identifiers, and date
 phrases such as "this weekend", each becoming a chip. The words a suggestion
-doesn't read stay in the field. Typed negation, such as "location is not
-melb", suggests "Location is not Melbourne". A field named in full, such as "sold", lists
-before values that start with its name, such as Sold out, unless a filter reads
-the words after it, as in "location melb". Text naming a filter already applied
-still suggests it, marked Already applied, and taking it clears those words and
-adds nothing.
+doesn't read stay in the field. Typed negation, such as "location is not melb",
+suggests "Location is not Melbourne". A field named in full, such as "sold",
+lists before values that start with its name, such as Sold out, unless a filter
+reads the words after it, as in "location melb". Text naming a filter already
+applied still suggests it, marked Already applied, and taking it clears those
+words and adds nothing.
 
 Picking a field lists its values under a toggle of operators, which Tab steps
 through. Leaving the field ends picking a value, as Escape does. An option

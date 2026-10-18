@@ -155,10 +155,10 @@ truncate.
 Once something is typed, Enter takes the first value. When the highlighted
 value's label starts with the typed text, the rest shows faintly after the
 caret, such as "n sale" after "O". Only Enter takes it. When the step has one
-answer, such as "Location is empty" under **is empty**, mark it `exact`, and Enter
-takes it before anything is typed. Mark a value that opens an editor of your
-own `opensEditor`, and Enter never takes it, so only an arrow or a click opens
-it.
+answer, such as "Location is empty" under **is empty**, mark it `exact`, and
+Enter takes it before anything is typed. Mark a value that opens an editor of
+your own `opensEditor`, and Enter never takes it, so only an arrow or a click
+opens it.
 
 Give the pending chip a `hint`, such as "Type a number.", to say what to type.
 It shows in place of No suggestions while no value is listed, and below the
@@ -429,10 +429,10 @@ function QueryFieldExact() {
 
 ### With words left over
 
-A suggestion that reads only part of the text, such as the location in "melb this
-weekend", gives the rest as `remainder`. Taking it leaves those words in the
-field, with the list open, so the next suggestion can read them. `parseQuery`
-from `@oztix/roadie-core/records` fills `remainder` for you.
+A suggestion that reads only part of the text, such as the location in "melb
+this weekend", gives the rest as `remainder`. Taking it leaves those words in
+the field, with the list open, so the next suggestion can read them.
+`parseQuery` from `@oztix/roadie-core/records` fills `remainder` for you.
 
 A chip's `description`, such as the dates a relative range stands for, shows
 in a tooltip and is read after the chip's label.
@@ -530,8 +530,8 @@ function QueryFieldShortcut() {
   <Guideline.Dont>
     Outside a value step, don't mark a filter `exact` to make Enter take it.
     People expect Enter to search what they typed, and pick a filter with the
-    arrows or a click. A value step's one answer, such as "Location is empty", is
-    the exception.
+    arrows or a click. A value step's one answer, such as "Location is empty",
+    is the exception.
   </Guideline.Dont>
 </Guideline>
 
