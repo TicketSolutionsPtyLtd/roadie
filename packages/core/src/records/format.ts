@@ -132,7 +132,8 @@ export function formatRecordValue(
         : formatValue(value, field.format)
     case 'boolean':
       return typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)
-    case 'option': {
+    case 'option':
+    case 'location': {
       const labels = labelsOf(field)
       return list(value)
         .map((item) => labels.get(String(item)) ?? String(item))

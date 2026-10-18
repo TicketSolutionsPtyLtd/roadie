@@ -41,9 +41,9 @@ export const eventFields: RecordField[] = [
     ]
   },
   {
-    key: 'city',
-    label: 'City',
-    type: 'option',
+    key: 'location',
+    label: 'Location',
+    type: 'location',
     options: [
       { value: 'melbourne', label: 'Melbourne' },
       { value: 'sydney', label: 'Sydney' }
@@ -77,7 +77,7 @@ export const eventFields: RecordField[] = [
 
 | Property                          | Meaning                                                                                                                                         |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `type`                            | text, option, number, money, date, or boolean. It decides which operators fit.                                                                 |
+| `type`                            | text, option, location, number, money, date, or boolean. It decides which operators fit.                                                       |
 | `filterable`                      | Defaults to true. Set false to keep a field out of filters and suggestions.                                                                     |
 | `sortable`                        | Defaults to true.                                                                                                                               |
 | `searchable`                      | Free-text search reads it. Defaults to true for text and false otherwise.                                                                       |
@@ -92,6 +92,10 @@ export const eventFields: RecordField[] = [
 | `status`                          | The dashboard status map. An option field with one gets Badge rendering, sorting by order, and labels from one definition.                     |
 | `options`                         | The values to pick from, each with an optional parent for hierarchies.                                                                          |
 
+A location field holds places, such as cities. It filters like an option for
+now: is, is not, is empty, and is not empty. Distance filters, such as within
+100 km of Brisbane, come later.
+
 Derived states, such as Selling fast or Sold out, are worked out once on the
 server and arrive as option values. Roadie never bands a percentage into a
 state.
@@ -100,9 +104,10 @@ In React, `useRecords` takes `RecordsField` from
 `@oztix/roadie-components/records`: a field with an optional `icon`, a bold
 Phosphor icon. `Records.Search` shows it on the field's suggestions and their
 filters, never on values or chips. A field without one gets its type's icon: a
-tag for an option, a half circle for an option with `status`, Aa for text, a
-hash for a number, a dollar sign for money, a calendar for a date, and a toggle
-for a boolean.
+tag for an option, a half circle for an option with `status`, a map pin for a
+location, Aa for text, a hash for a number, a dollar sign for money, a calendar
+for a date, and a toggle for a boolean. Give a field that names a kind of
+thing its own, such as a building for a venue.
 
 ## Views
 
@@ -121,7 +126,7 @@ are session state, never part of a view.
     "search": "lampshade",
     "filters": [
       {
-        "field": "city",
+        "field": "location",
         "operator": "is",
         "values": [
           "melbourne"
@@ -259,26 +264,27 @@ remainder.
 
 <QuerySuggestions />
 
-Values read from the start of a word, so `melb` suggests "City is Melbourne"
-and `elb` suggests nothing. A value named only in part is left out when a
-longer reading takes its words: in `melb this weekend`, "this" belongs to
-"Start date is this weekend", so it never suggests a venue such as Nimbus
-Thistle Hall. Text a field contains takes no words this way, so
-`name disco melb` still suggests "City is Melbourne".
+Values read from the start of a word, so `melb` suggests "Location is Melbourne"
+and `elb` suggests nothing. A value named only in part is left out when a longer
+reading takes its words: in `melb this weekend`, "this" belongs to "Start date
+is this weekend", so it never suggests a venue such as Nimbus Thistle Hall. Text
+a field contains takes no words this way, so `name disco melb` still suggests
+"Location is Melbourne".
 
-Negation reads as the opposite filter. "not melb" suggests "City is not
-Melbourne", and never "City is Melbourne". The negating words are part of the
-filter, so none of them stay in `remainder`.
+Negation reads as the opposite filter. "not melb" suggests "Location is not
+Melbourne", and never "Location is Melbourne". The negating words are part of
+the filter, so none of them stay in `remainder`.
 
 | Form                                                                                      | Typed                        | Suggests                             |
 | ----------------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------ |
 | `not`, `isn't`, `excludes`, `excluding`, `except`, `without`, `!=`, or `≠` before a value | `excluding walrus`           | Venue is not The Quilted Walrus Room |
 | `-` before a value                                                                        | `-sold out`                  | Status is not Sold out               |
 | `!`, `!=`, or `-` after `field:`                                                          | `venue:!walrus`              | Venue is not The Quilted Walrus Room |
-| `<field> is not`, or `<field>` then any word in the first row                             | `city not syd`               | City is not Sydney                   |
+| `<field> is not`, or `<field>` then any word in the first row                             | `location not syd`           | Location is not Sydney               |
 | `<field> doesn't contain` or `<field> does not contain`                                   | `name doesn't contain disco` | Name doesn't contain "disco"         |
 
-The apostrophe is optional, so `city isnt syd` suggests "City is not Sydney".
+The apostrophe is optional, so `location isnt syd` suggests "Location is not
+Sydney".
 
 `venue is walrus`, `venue = walrus`, and `name contains disco` read the same
 way, as the filter without the negation. Once a value is negated, its positive
@@ -314,17 +320,17 @@ A range reads in either order, so `capacity 50-20` suggests "Capacity is 20 to
   is more than 5" and keeps 6 as search text.
 
 Any field's name, then a value, reads as `field:value` does, with or without
-`is`. Text a field contains stops before words other filters read to the end,
-so `name disco melb` suggests "Name contains “disco”" and "City is Melbourne"
+`is`. Text a field contains stops before words other filters read to the end, so
+`name disco melb` suggests "Name contains “disco”" and "Location is Melbourne"
 first, then "Name contains “disco melb”".
 
-| Form                            | Typed                 | Suggests                   |
-| ------------------------------- | --------------------- | -------------------------- |
-| `<field> <value>`, with no verb | `city melb`           | City is Melbourne          |
-| `<field> <value>`, with no verb | `capacity 100`        | Capacity is 100            |
-| `<field> <value>`, with no verb | `starts this weekend` | Start date is this weekend |
-| `<field> is empty`              | `starts is empty`     | Start date is empty        |
-| `<field> is not empty`          | `city is not empty`   | City is not empty          |
+| Form                            | Typed                   | Suggests                   |
+| ------------------------------- | ----------------------- | -------------------------- |
+| `<field> <value>`, with no verb | `location melb`         | Location is Melbourne      |
+| `<field> <value>`, with no verb | `capacity 100`          | Capacity is 100            |
+| `<field> <value>`, with no verb | `starts this weekend`   | Start date is this weekend |
+| `<field> is empty`              | `starts is empty`       | Start date is empty        |
+| `<field> is not empty`          | `location is not empty` | Location is not empty      |
 
 A date keeps the word that compares it. `starts after today` suggests Start
 date after today's date, never "Start date is today", and `after`, `before`,
@@ -355,7 +361,7 @@ makes read alike, dates included. Next and last weekend, whose chips have no
 shows a page's `scope` as locked chips that are never part of the view. Text
 that names a filter already applied, in the view or the scope, still suggests
 it, marked Already applied. Taking it clears those words and adds nothing, so
-with "City is Melbourne" applied, `melb syd` can take both words.
+with "Location is Melbourne" applied, `melb syd` can take both words.
 
 ## URL format
 

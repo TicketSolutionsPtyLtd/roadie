@@ -8,7 +8,12 @@ import {
 import type { DateRangeValue } from '../datetime/ranges'
 import { describeRecordFilter } from './describe'
 import { encodeFilter } from './encoding'
-import { isFilterable, momentOf, recordFieldOptions } from './fields'
+import {
+  isFilterable,
+  isRecordOptionField,
+  momentOf,
+  recordFieldOptions
+} from './fields'
 import type { RecordField, RecordFilter, RecordQueryOptions } from './types'
 
 type SuggestionBase = {
@@ -364,6 +369,7 @@ function typedValueReadings(
   const text = value.toLowerCase()
   switch (field.type) {
     case 'option':
+    case 'location':
       return optionReadings(field, text)
     case 'text':
       return [
@@ -431,7 +437,7 @@ function valueReadings(
   text: string
 ): Reading[] {
   return fields.flatMap((field) => {
-    if (field.type === 'option') return optionReadings(field, text)
+    if (isRecordOptionField(field)) return optionReadings(field, text)
     if (field.type === 'boolean') return booleanReadings(field, text)
     return []
   })

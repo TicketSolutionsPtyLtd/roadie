@@ -18,11 +18,16 @@ export type {
 } from './types'
 export type { RelativeRange } from '../datetime/ranges'
 
-export { recordFieldOptions, recordFilterOperators } from './fields'
+export {
+  isRecordOptionField,
+  recordFieldOptions,
+  recordFilterOperators
+} from './fields'
 export { recordFields } from './builder'
 export type {
   BooleanFieldOptions,
   DateFieldOptions,
+  LocationFieldOptions,
   MoneyFieldOptions,
   NumberFieldOptions,
   OptionFieldOptions,

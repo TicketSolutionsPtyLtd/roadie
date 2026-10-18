@@ -5,7 +5,10 @@ import { use, useEffect, useMemo, useState } from 'react'
 import { flushSync } from 'react-dom'
 
 import { plainDateOf } from '@oztix/roadie-core/datetime'
-import type { RecordFilter } from '@oztix/roadie-core/records'
+import {
+  type RecordFilter,
+  isRecordOptionField
+} from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { QueryField, type QueryFieldAccepted } from '../QueryField'
@@ -123,7 +126,8 @@ function useListedFields(records: RecordsInstance): readonly RecordsField[] {
   return useMemo(() => {
     if (mode !== 'browser') return fields
     return fields.map((field) => {
-      if (field.type !== 'option' || field.options || field.status) return field
+      if (!isRecordOptionField(field) || field.options || field.status)
+        return field
       const values = heldValues(data, field.key)
       if (!values) return field
       const options = values.map((value) => ({ value, label: value }))
@@ -309,7 +313,8 @@ export function RecordsSearch({
     }
     // An option's values tick on and off; anything else holds one value,
     // so taking it ends the edit.
-    if (byKey.get(selectedFilter.field)?.type === 'option') {
+    const selectedField = byKey.get(selectedFilter.field)
+    if (selectedField && isRecordOptionField(selectedField)) {
       writeSelected(toggleValue(selectedFilter, filter))
       return
     }
@@ -384,7 +389,7 @@ export function RecordsSearch({
               id: pendingField.key,
               // An option chip's values stay in it as they're ticked.
               label:
-                (pendingField.type === 'option' &&
+                (isRecordOptionField(pendingField) &&
                   selectedFilter &&
                   !isEmptiness(pendingOperator) &&
                   chips.find((chip) => chip.id === chipId)?.label) ||
@@ -429,7 +434,7 @@ export function RecordsSearch({
         // text, numbers, and emptiness wait for Enter, so a Tab passing
         // through is empty never drops the values.
         if (
-          pendingField.type === 'option' &&
+          isRecordOptionField(pendingField) &&
           !isEmptiness(operator) &&
           selectedFilter &&
           'values' in selectedFilter

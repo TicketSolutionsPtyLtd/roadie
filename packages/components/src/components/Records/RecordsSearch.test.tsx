@@ -4,6 +4,7 @@ import {
   CalendarBlankIcon,
   CircleHalfIcon,
   HashIcon,
+  MapPinIcon,
   TextAaIcon
 } from '@phosphor-icons/react/ssr'
 import { render, screen, waitFor, within } from '@testing-library/react'
@@ -808,6 +809,40 @@ describe('Records.Search', () => {
     expect(
       within(await option(/City is Melbourne/)).getByTestId('city-icon')
     ).toBeTruthy()
+  })
+
+  it('steps through a location’s values as an option’s, under a map pin', async () => {
+    const located = fields.map((each) =>
+      each.key === 'city' ? field.location('city', { label: 'Location' }) : each
+    )
+    const { user, lastView } = setup({ fields: located })
+    const operators = () =>
+      within(screen.getByRole('group', { name: 'Operator' }))
+        .getAllByRole('button')
+        .map((item) => item.textContent)
+    await user.click(input())
+    expect(
+      (await option('Location')).querySelector('[aria-hidden=true]')?.innerHTML
+    ).toBe(renderToStaticMarkup(<MapPinIcon weight='bold' />))
+    await user.click(await option('Location'))
+    expect(operators()).toEqual(['is', 'is not', 'is empty', 'is not empty'])
+    await user.click(await option('Perth'))
+    await user.click(input())
+    await user.click(await option('Location'))
+    await user.click(await option('Hobart'))
+    expect(chipLabels()).toEqual(['Location is Perth or Hobart'])
+    await user.keyboard('{Escape}')
+    await selectChip(user, 'Location is Perth or Hobart')
+    expect(input()).toHaveValue('')
+    expect(input()).toHaveAccessibleDescription('Location is Perth or Hobart')
+    await waitFor(() => expect(ticked()).toEqual(['Hobart', 'Perth']))
+    await user.click(await option('Perth'))
+    expect(chipLabels()).toEqual(['Location is Hobart'])
+    await user.click(screen.getByRole('button', { name: 'is not' }))
+    expect(lastView().query.filters).toEqual([
+      { field: 'city', operator: 'is-not', values: ['Hobart'] }
+    ])
+    await waitFor(() => expect(ticked()).toEqual(['Hobart']))
   })
 
   it('leaves icons off value suggestions and chips', async () => {

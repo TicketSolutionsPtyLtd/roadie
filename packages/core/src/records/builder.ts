@@ -21,6 +21,8 @@ export type OptionFieldOptions = Common & {
   status?: Record<string, StatusDefinition>
   options?: RecordOption[]
 }
+/** Distance filters come later; for now it filters like a single option. */
+export type LocationFieldOptions = Common & { options?: RecordOption[] }
 export type NumberFieldOptions = Common & { format?: ValueFormat }
 export type MoneyFieldOptions<Row> = NumberFieldOptions & {
   currency?: string
@@ -53,6 +55,10 @@ export function recordFields<Row extends object = Record<string, unknown>>() {
       key: Key,
       options: OptionFieldOptions
     ): Built<Key> => ({ key, type: 'option', ...options }),
+    location: <Key extends KeyOf<Row>>(
+      key: Key,
+      options: LocationFieldOptions
+    ): Built<Key> => ({ key, type: 'location', ...options }),
     number: <Key extends KeyOf<Row>>(
       key: Key,
       options: NumberFieldOptions

@@ -18,4 +18,4 @@ first item with no text too, as it does on `Autocomplete`.
 
 `Records` takes `RecordsField`, a `RecordField` with an optional `icon`.
 `Records.Search` shows it on the field's suggestions and their filters, or an
-icon for the field's type when it has none.
+icon for the field's type when it has none: a map pin for a `location`.

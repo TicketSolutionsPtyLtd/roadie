@@ -5,6 +5,7 @@ import {
   type RecordQueryOptions,
   type RecordSuggestion,
   describeRecordFilter,
+  isRecordOptionField,
   parseQuery,
   recordFieldOptions,
   recordFilterOperators,
@@ -449,6 +450,7 @@ function presetItems(
 ): SearchSuggestion[] {
   switch (field.type) {
     case 'option':
+    case 'location':
       return recordFieldOptions(field).map((option) =>
         filterSuggestion({ field: field.key, operator, values: [option.value] })
       )
@@ -671,7 +673,7 @@ function heldOnly(
   typed: string,
   edited: RecordFilter | undefined
 ): SearchSuggestion[] {
-  if (!edited || !('values' in edited) || field.type !== 'option') return []
+  if (!edited || !('values' in edited) || !isRecordOptionField(field)) return []
   const offered = new Set(recordFieldOptions(field).map(({ value }) => value))
   return edited.values
     .filter(
@@ -732,7 +734,7 @@ function parsedValues(
     .filter((suggestion) => suggestion.kind === 'filter')
     .map((suggestion) => fromParsed(suggestion))
     .map((item) =>
-      field.type === 'option' ? withOperator(item, option) : item
+      isRecordOptionField(field) ? withOperator(item, option) : item
     )
   const isPreset = (item: SearchSuggestion) =>
     item.value.type === 'filter' &&
@@ -789,7 +791,7 @@ function readValues(
   if (calendarOperator(field, operator))
     return typedDates(field, typed, operator, context)
   const unlisted =
-    field.type === 'option' && recordFieldOptions(field).length === 0
+    isRecordOptionField(field) && recordFieldOptions(field).length === 0
   const option = optionOperator(operator)
   return !typed
     ? presetItems(field, option)
@@ -925,7 +927,7 @@ export function mergeFilter(
   fields: readonly RecordField[]
 ): { index: number; filter: RecordFilter } | null {
   const field = fields.find(({ key }) => key === filter.field)
-  if (!isList(filter) || field?.type !== 'option') return null
+  if (!isList(filter) || !field || !isRecordOptionField(field)) return null
   const at = filters.findIndex((other) => sameCondition(filter, other))
   const existing = filters[at]
   if (!existing || !isList(existing)) return null

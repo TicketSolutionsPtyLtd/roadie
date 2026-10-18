@@ -66,8 +66,12 @@ export type RecordSelection =
   | { readonly ids: readonly string[] }
   | { readonly allMatching: true; readonly except: readonly string[] }
 
+/**
+ * `location` is a place, such as a city. It filters like a single `option`
+ * for now; distance filters ("within 100 km of Brisbane") come later.
+ */
 export type RecordFieldType =
-  'text' | 'option' | 'number' | 'money' | 'date' | 'boolean'
+  'text' | 'option' | 'location' | 'number' | 'money' | 'date' | 'boolean'
 
 /**
  * How a date field is compared. `event` and `access` compare the venue-local

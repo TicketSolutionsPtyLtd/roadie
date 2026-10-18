@@ -30,8 +30,11 @@ whether a view was modified. `recordFilterOperators` and `recordFieldOptions`
 list what a field accepts.
 
 `recordFields<Row>()` builds an entity's fields with typed row keys
-(`text`, `option`, `number`, `money`, `date`, `boolean`), and a number or
-money field takes a `format`. `compileRecordQuery` turns a resolved query
+(`text`, `option`, `location`, `number`, `money`, `date`, `boolean`), and a
+number or money field takes a `format`. A `location` field holds a place,
+such as a city, and filters, sorts and reads like a single option for now;
+distance filters come later. `isRecordOptionField` tells whether a field picks
+from values that way. `compileRecordQuery` turns a resolved query
 into a predicate that reads the fields once, for filtering a long list;
 `matchesRecordQuery` uses it. `sortRecords` sorts rows the way an index
 would: text and labels as people read them, statuses by their `order`,

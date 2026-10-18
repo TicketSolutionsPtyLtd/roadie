@@ -26,9 +26,9 @@ export const EVENT_FIELDS: RecordField[] = [
     ]
   },
   {
-    key: 'city',
-    label: 'City',
-    type: 'option',
+    key: 'location',
+    label: 'Location',
+    type: 'location',
     options: [
       { value: 'melbourne', label: 'Melbourne' },
       { value: 'sydney', label: 'Sydney' }
@@ -65,7 +65,7 @@ export const WEEKEND_VIEW: RecordView = {
   query: {
     search: 'lampshade',
     filters: [
-      { field: 'city', operator: 'is', values: ['melbourne'] },
+      { field: 'location', operator: 'is', values: ['melbourne'] },
       { field: 'starts', operator: 'within', value: 'this-weekend' },
       { field: 'offer', operator: 'is-not', values: ['sold_out'] }
     ],

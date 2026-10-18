@@ -252,21 +252,26 @@ describe('valueSuggestions', () => {
     ).toBeUndefined()
   })
 
-  it('takes typed text for an option field with no values to list', () => {
-    const promoter = field.option('city', { label: 'Promoter' })
-    expect(labels(valueSuggestions(promoter, '', context()))).toEqual([[]])
-    expect(
-      valuesOf(valueSuggestions(promoter, 'Thimble', context())).items
-    ).toMatchObject([
-      {
-        label: 'Thimble',
-        value: {
-          type: 'filter',
-          filter: { field: 'city', operator: 'is', values: ['Thimble'] }
+  it.each([
+    field.option('city', { label: 'Promoter' }),
+    field.location('city', { label: 'Promoter' })
+  ])(
+    'takes typed text for a $type field with no values to list',
+    (promoter) => {
+      expect(labels(valueSuggestions(promoter, '', context()))).toEqual([[]])
+      expect(
+        valuesOf(valueSuggestions(promoter, 'Thimble', context())).items
+      ).toMatchObject([
+        {
+          label: 'Thimble',
+          value: {
+            type: 'filter',
+            filter: { field: 'city', operator: 'is', values: ['Thimble'] }
+          }
         }
-      }
-    ])
-  })
+      ])
+    }
+  )
 
   it('offers Yes and No for a boolean', () => {
     expect(
@@ -1174,5 +1179,58 @@ describe('heldHint', () => {
   it('says nothing while a match is new, or nothing is typed', () => {
     expect(hintFor('perth', ['perth'])).toBeUndefined()
     expect(hintFor('', ['perth'])).toBeUndefined()
+  })
+})
+
+describe('a location field’s value step', () => {
+  const location = field.location('city', {
+    label: 'Location',
+    options: [
+      { value: 'melbourne', label: 'Melbourne' },
+      { value: 'sydney', label: 'Sydney' },
+      { value: 'perth', label: 'Perth' }
+    ]
+  })
+  const located = { ...context(), fields: [location] }
+
+  it('toggles the operators an option field does', () => {
+    expect(valueOperators(location)).toEqual(valueOperators(byKey('city')))
+  })
+
+  it('reads typed values under the step’s operator', () => {
+    expect(
+      valuesOf(valueSuggestions(location, 'per', located, 'is-not')).items
+    ).toMatchObject([
+      {
+        label: 'Perth',
+        value: {
+          filter: { field: 'city', operator: 'is-not', values: ['perth'] }
+        }
+      }
+    ])
+  })
+
+  it('ticks a chip’s values, with one the field doesn’t offer', () => {
+    const edited: RecordFilter = {
+      field: 'city',
+      operator: 'is-not',
+      values: ['perth', 'darwin']
+    }
+    expect(
+      tickedIn(valueSuggestions(location, '', located, 'is-not', edited))
+    ).toEqual(['Perth', 'darwin'])
+  })
+
+  it('joins values under the same condition into one chip', () => {
+    expect(
+      mergeFilter(
+        [{ field: 'city', operator: 'is-not', values: ['perth'] }],
+        { field: 'city', operator: 'is-not', values: ['sydney'] },
+        [location]
+      )
+    ).toEqual({
+      index: 0,
+      filter: { field: 'city', operator: 'is-not', values: ['perth', 'sydney'] }
+    })
   })
 })

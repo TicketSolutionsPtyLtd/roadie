@@ -34,7 +34,7 @@ const names = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon
 const shows = Array.from({ length: 240 }, (_, index) => ({
   id: `show-${index}`,
   show: `${names[index % names.length]} at Kazoo Hollow Room`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400,
   gross: (index * 7919) % 250000
 }))
@@ -42,7 +42,7 @@ const shows = Array.from({ length: 240 }, (_, index) => ({
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.number('sold', { label: 'Sold' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
 ]
@@ -50,7 +50,7 @@ const fields = [
 const column = tableColumns(fields)
 const columns = [
   column.field('show', { pin: true }),
-  column.field('city'),
+  column.field('location'),
   column.field('sold'),
   column.field('gross')
 ]
@@ -74,12 +74,12 @@ Pass `loading` while records load and `error` when the load fails. With no recor
 
 ```tsx-live-noinline
 const field = recordFields()
-const fields = [field.text('show', { label: 'Show' }), field.text('city', { label: 'City' }), field.number('sold', { label: 'Sold' })]
+const fields = [field.text('show', { label: 'Show' }), field.location('location', { label: 'Location' }), field.number('sold', { label: 'Sold' })]
 const column = tableColumns(fields)
-const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold')]
+const columns = [column.field('show', { pin: true }), column.field('location'), column.field('sold')]
 const shows = [
-  { id: 'a', show: 'Ocean Alley', city: 'Brisbane', sold: 1840 },
-  { id: 'b', show: 'Alex Lahey', city: 'Melbourne', sold: 920 }
+  { id: 'a', show: 'Ocean Alley', location: 'Brisbane', sold: 1840 },
+  { id: 'b', show: 'Alex Lahey', location: 'Melbourne', sold: 920 }
 ]
 const props = {
   fields,
@@ -175,7 +175,7 @@ const events = Array.from({ length: 60 }, (_, index) => ({
 const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
-  field.option('venue', { label: 'Venue', options: venues, searchable: true }),
+  { ...field.option('venue', { label: 'Venue', options: venues, searchable: true }), icon: <BuildingsIcon weight='bold' /> },
   field.date('startsAt', { label: 'Start date', moment: 'event', timeZoneKey: 'timeZone' }),
   field.option('status', {
     label: 'Status',
@@ -256,6 +256,7 @@ A field describes one fact about a record, and its type decides how the value re
 | --- | --- |
 | `text` | The text. A list joins with commas. |
 | `option` | Each value's label from `options`. With a `status` map, a small Badge in the key's intent. |
+| `location` | A place, such as a city: each value's label from `options`, as an option reads. |
 | `number` | Its `format`, `number` by default. Figures end-align. |
 | `money` | Its `format`, `currency` by default. `currency` or `currencyKey` names a currency that isn't dollars. |
 | `date` | House formats: event and access dates in the venue's zone from `timeZoneKey`, timestamps in the reader's zone, a range when the field has an `end`. |
@@ -327,8 +328,8 @@ The toolbar's search is a [query field](/components/query-field) named "Search a
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.option('city', { label: 'City' }),
-  field.option('venue', { label: 'Venue' }),
+  field.location('location', { label: 'Location' }),
+  { ...field.option('venue', { label: 'Venue' }), icon: <BuildingsIcon weight='bold' /> },
   field.option('status', {
     label: 'Status',
     status: { on_sale: { intent: 'success', order: 1 }, selling_fast: { intent: 'warning', order: 2 }, sold_out: { intent: 'danger', order: 3 } }
@@ -339,7 +340,7 @@ const fields = [
 const column = tableColumns(fields)
 const columns = [
   column.field('show', { pin: true }),
-  column.field('city'),
+  column.field('location'),
   column.field('venue'),
   column.field('status'),
   column.field('starts'),
@@ -358,7 +359,7 @@ const today = plainDateOf(new Date(), viewerTimeZone())
 const shows = Array.from({ length: 60 }, (_, index) => ({
   id: `show-${index}`,
   show: bands[index % bands.length],
-  city: places[index % places.length][0],
+  location: places[index % places.length][0],
   venue: places[index % places.length][1],
   status: statuses[index % statuses.length],
   starts: addDays(today, index % 45),
@@ -382,12 +383,12 @@ render(
 
 Typing searches the searchable fields, and suggests the filters the text reads:
 
-- an option's values, or a status
+- an option's or location's values, or a status
 - a boolean, by its name
 - an identifier, by its `match`
 - a date phrase for each date field, such as "this weekend" or "after 1 dec"
 
-Pick a suggestion with the arrows and Enter, or a click, to add its chip. Enter with no suggestion picked searches the text. A filter takes only the words it reads, and the rest stay in the field for the next one. Typing "melb this weekend" offers "City is Melbourne" and "Start date is this weekend".
+Pick a suggestion with the arrows and Enter, or a click, to add its chip. Enter with no suggestion picked searches the text. A filter takes only the words it reads, and the rest stay in the field for the next one. Typing "melb this weekend" offers "Location is Melbourne" and "Start date is this weekend".
 
 #### Picking a field
 
@@ -395,7 +396,7 @@ Focus the empty field to list the fields to filter by. Pick one, and the list sh
 
 | Field            | Operators                                         | Values                                                                                                  |
 | ---------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Option or status | is, is not, and has all of for a `multiple` field | Its `options`, or up to 1,000 values its records hold. Past that, or when a server filters the records, you type the value. |
+| Option, location, or status | is, is not, and has all of for a `multiple` field | Its `options`, or up to 1,000 values its records hold. Past that, or when a server filters the records, you type the value. |
 | Text             | contains, doesn't contain, is, and is not         | What you type                                                                                           |
 | Number or money  | `=`, `≠`, `<`, `>`, and between                   | What you type                                                                                           |
 | Boolean          | is                                                | Yes and No                                                                                              |
@@ -405,12 +406,12 @@ Every field you can filter by ends its toggle with **is empty** and **is not emp
 
 #### Typing a value
 
-- Typing narrows an option, boolean, or date field's values, and Enter takes the first.
+- Typing narrows an option, location, boolean, or date field's values, and Enter takes the first.
 - Text or a number you type shows as one row worded as its chip, such as "Sold is more than 1,500", and Enter takes it.
 - Between reads 20 and 50, 20-50, 20 to 50, or 20..50, in either order. A space after the first number adds the "and", and one Backspace takes it away.
 - Money takes a `$` and thousands commas, such as $1,500.
 - Until the value reads, the list says what to type, such as "Type a number." or "Between 20 and what? Type the second number."
-- Under **is empty** or **is not empty**, the list shows one row, such as "City is empty", and Enter takes it. What you'd typed is set aside, and comes back if you move to another operator, or press Backspace in the empty field, which also returns to the operator you typed it under. Typing switches back to the field's first operator, such as **is**, so what you type applies.
+- Under **is empty** or **is not empty**, the list shows one row, such as "Location is empty", and Enter takes it. What you'd typed is set aside, and comes back if you move to another operator, or press Backspace in the empty field, which also returns to the operator you typed it under. Typing switches back to the field's first operator, such as **is**, so what you type applies.
 
 Another option value taken under **is** joins that field's is chip, which matches any one of its values. An **is empty** chip takes the place of the field's other chips, and any other chip on the field takes the place of its **is empty** chip, as together they match nothing. A date chip takes the place of the field's earlier date chip, as two dates rarely overlap.
 
@@ -418,7 +419,7 @@ Another option value taken under **is** joins that field's is chip, which matche
 
 Click a chip, or press Enter on it, to edit it in the list. It turns back into a dashed chip in its place, with its value in the field and selected, so typing replaces it. The toggle shows the chip's operator, and the list ticks what the chip holds.
 
-- **An option chip.** Its values stay in the dashed chip, and the field is empty. Take values to tick and untick them, and the list stays open for more. Unticking the last value removes the chip. Enter on typed text only ticks. Press **is**, **is not**, or **has all of** to change the condition and keep the values. A chip changed to **is** joins the field's is chip.
+- **An option or location chip.** Its values stay in the dashed chip, and the field is empty. Take values to tick and untick them, and the list stays open for more. Unticking the last value removes the chip. Enter on typed text only ticks. Press **is**, **is not**, or **has all of** to change the condition and keep the values. A chip changed to **is** joins the field's is chip.
 - **A text or number chip.** Its value is in the field and its condition in the toggle, such as 20 and 50 under **between**. Change either, and Enter replaces the chip once the value reads and ends the edit.
 - **A date chip.** Its dates are in the field, such as 12 Nov to 15 Dec under **is between**, or This week under **is relative**. Type others, or take a quick date or a day from the calendar, to replace them and end the edit.
 - **A boolean chip.** The field is empty. Yes or No replaces what the chip holds and ends the edit.
@@ -466,7 +467,7 @@ A scope holds any filter a field can apply. An app turns a rule such as "product
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.option('venue', { label: 'Venue' }),
+  { ...field.option('venue', { label: 'Venue' }), icon: <BuildingsIcon weight='bold' /> },
   field.number('sold', { label: 'Sold' })
 ]
 const column = tableColumns(fields)
@@ -502,22 +503,22 @@ Keep the view in the URL with `toSearchParams` and `fromSearchParams`, as [Recor
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.number('sold', { label: 'Sold' })
 ]
 const column = tableColumns(fields)
-const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold')]
+const columns = [column.field('show', { pin: true }), column.field('location'), column.field('sold')]
 const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
 const shows = Array.from({ length: 40 }, (_, index) => ({
   id: `show-${index}`,
   show: `Middle Kids ${index + 1}`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400
 }))
 
 function Controlled() {
   const [view, setView] = useState({
-    query: { search: 'Perth', filters: [], sort: [{ field: 'sold', direction: 'descending' }] },
+    query: { search: '', filters: [{ field: 'location', operator: 'is', values: ['Perth'] }], sort: [{ field: 'sold', direction: 'descending' }] },
     layout: { type: 'table' }
   })
   return (
@@ -552,7 +553,7 @@ The options write the view, like the headers do: the sort to `query.sort`, and t
 const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.date('startsAt', { label: 'Start date', moment: 'date' }),
   field.number('sold', { label: 'Sold' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
@@ -560,7 +561,7 @@ const fields = [
 const column = tableColumns(fields)
 const columns = [
   column.field('name', { pin: true }),
-  column.field('city'),
+  column.field('location'),
   column.field('startsAt'),
   column.field('sold'),
   column.field('gross')
@@ -570,7 +571,7 @@ const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
 const events = Array.from({ length: 12 }, (_, index) => ({
   id: `event-${index}`,
   name: `${names[index % names.length]} ${index + 1}`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   startsAt: `2026-11-${String(index + 2).padStart(2, '0')}`,
   sold: (index * 37) % 2400,
   gross: (index * 7919) % 250000
@@ -645,7 +646,7 @@ const events = Array.from({ length: 48 }, (_, index) => ({
   id: `event-${index}`,
   name: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
   venue: venues[index % venues.length],
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   startsAt: `2026-${10 + (index % 3)}-${String((index % 27) + 1).padStart(2, '0')}`,
   status: index % 5 === 0 ? 'sold_out' : 'on_sale',
   sold: (index * 37) % 2400
@@ -655,7 +656,7 @@ const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
   field.text('venue', { label: 'Venue' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.date('startsAt', { label: 'Start date', moment: 'date' }),
   field.option('status', {
     label: 'Status',
@@ -669,7 +670,7 @@ const layouts = [
     column.field('name', { pin: true }),
     column.field('startsAt'),
     column.field('venue'),
-    column.field('city'),
+    column.field('location'),
     column.field('status'),
     column.field('sold')
   ])
@@ -814,7 +815,7 @@ const names = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon
 const shows = Array.from({ length: 40 }, (_, index) => ({
   id: `show-${index}`,
   show: `${names[index % names.length]} at Kazoo Hollow Room`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400,
   gross: (index * 7919) % 250000
 }))
@@ -822,12 +823,12 @@ const shows = Array.from({ length: 40 }, (_, index) => ({
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.number('sold', { label: 'Sold' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
 ]
 const column = tableColumns(fields)
-const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold'), column.field('gross')]
+const columns = [column.field('show', { pin: true }), column.field('location'), column.field('sold'), column.field('gross')]
 
 function ShowActions() {
   return (
@@ -965,7 +966,7 @@ const everyShow = Array.from({ length: 400 }, (_, index) => ({
   id: `show-${index}`,
   show: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
   venue: venues[index % venues.length],
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   status: ['on_sale', 'on_sale', 'sold_out', 'cancelled'][index % 4],
   sold: (index * 37) % 2400
 }))
@@ -974,7 +975,7 @@ const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
   field.text('venue', { label: 'Venue' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.option('status', {
     label: 'Status',
     status: {
@@ -1086,18 +1087,18 @@ const cities = ['Brisbane', 'Melbourne', 'Sydney', 'Perth', 'Hobart']
 const everyShow = Array.from({ length: 5000 }, (_, index) => ({
   id: `show-${index}`,
   show: `${names[index % names.length]} ${Math.floor(index / names.length) + 1}`,
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400
 }))
 
 const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.number('sold', { label: 'Sold' })
 ]
 const column = tableColumns(fields)
-const columns = [column.field('show', { pin: true }), column.field('city'), column.field('sold')]
+const columns = [column.field('show', { pin: true }), column.field('location'), column.field('sold')]
 const timeZone = 'Australia/Sydney'
 const pageSize = 50
 
@@ -1178,7 +1179,7 @@ const field = recordFields()
 const fields = [
   field.text('show', { label: 'Show' }),
   field.text('venue', { label: 'Venue' }),
-  field.text('city', { label: 'City' }),
+  field.location('location', { label: 'Location' }),
   field.number('sold', { label: 'Sold' }),
   field.number('capacity', { label: 'Capacity' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
@@ -1187,7 +1188,7 @@ const column = tableColumns(fields)
 const columns = [
   column.field('show', { pin: true, width: { min: 14 } }),
   column.field('venue', { width: { min: 14 } }),
-  column.field('city', { width: { min: 10 } }),
+  column.field('location', { width: { min: 10 } }),
   column.field('sold', { width: { min: 8 } }),
   column.field('capacity', { width: { min: 8 } }),
   column.field('gross', { width: { min: 8 } })
@@ -1197,7 +1198,7 @@ const shows = Array.from({ length: 100 }, (_, index) => ({
   id: `show-${index}`,
   show: `Julia Jacklin ${index + 1}`,
   venue: 'The Quilted Walrus Room',
-  city: cities[index % cities.length],
+  location: cities[index % cities.length],
   sold: (index * 37) % 2400,
   capacity: 2400,
   gross: (index * 7919) % 250000
@@ -1466,7 +1467,7 @@ const columns = [column.field('name', { pin: true })]`}
   <Guideline.Dont
     code={`column.field('name', { pin: true }),
 column.field('venue', { pin: true }),
-column.field('city', { pin: true })`}
+column.field('location', { pin: true })`}
   >
     Don't pin several columns. Each one takes width from the columns that
     scroll.
