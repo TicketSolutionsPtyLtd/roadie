@@ -56,31 +56,33 @@ export function isRecordOptionField(field: RecordField): boolean {
 
 /**
  * The places a location filter on `values` takes in: each one, then every
- * place inside them, in option order. A value the options don't hold stands
- * alone, a place whose parent they don't hold is a root, and any other field
- * keeps its values. For backends that resolve a URL's filters themselves.
+ * place inside them, in option order, matched without case. A value the
+ * options don't hold stands alone, a place whose parent they don't hold is a
+ * root, and any other field keeps its values. For backends that resolve a
+ * URL's filters themselves.
  */
 export function recordPlacesWithin(
   field: RecordField,
   values: readonly string[]
 ): string[] {
   const options = field.type === 'location' ? (field.options ?? []) : []
-  const known = new Set(options.map(({ value }) => value))
+  const key = (value: string) => value.toLowerCase()
+  const known = new Set(options.map(({ value }) => key(value)))
   const children = new Map<string, string[]>()
   for (const { value, parent } of options) {
-    if (parent === undefined || !known.has(parent)) continue
-    const siblings = children.get(parent) ?? []
-    siblings.push(value)
-    children.set(parent, siblings)
+    if (parent === undefined || !known.has(key(parent))) continue
+    const siblings = children.get(key(parent)) ?? []
+    siblings.push(key(value))
+    children.set(key(parent), siblings)
   }
-  const given = new Set(values)
-  const within = new Set(values)
+  const given = new Set(values.map(key))
+  const within = new Set(given)
   for (const place of within)
     for (const child of children.get(place) ?? []) within.add(child)
   const inside = options
     .map(({ value }) => value)
-    .filter((value) => within.has(value) && !given.has(value))
-  return [...given, ...inside]
+    .filter((value) => within.has(key(value)) && !given.has(key(value)))
+  return [...new Set(values), ...inside]
 }
 
 export function momentOf(field: RecordField): RecordMoment {

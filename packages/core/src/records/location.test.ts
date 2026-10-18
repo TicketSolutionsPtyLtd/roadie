@@ -223,6 +223,17 @@ describe("a location's places", () => {
     expect(recordPlacesWithin(places, ['west-end'])).toEqual(['west-end'])
   })
 
+  it('takes in the places inside one named in another case, as filters match', () => {
+    expect(recordPlacesWithin(places, ['Brisbane'])).toEqual([
+      'Brisbane',
+      'fortitude-valley',
+      'west-end'
+    ])
+    expect(
+      inPlaces({ field: 'location', operator: 'is', values: ['BRISBANE'] })
+    ).toEqual(['Valley', 'West End', 'Brisbane'])
+  })
+
   it("treats a place whose parent it doesn't know as a root", () => {
     const orphaned = field.location('location', {
       label: 'Location',
