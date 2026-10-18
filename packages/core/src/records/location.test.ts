@@ -6,6 +6,7 @@ import { describeRecordFilter, recordOperatorLabel } from './describe'
 import {
   isRecordOptionField,
   recordFilterOperators,
+  recordPlaceReader,
   recordPlaces
 } from './fields'
 import { formatRecordValue } from './format'
@@ -299,6 +300,73 @@ describe("a location's places", () => {
       'au-qld-brisbane'
     ])
     expect(recordPlaces(nested, 'opening')).toEqual(['opening'])
+  })
+
+  it("reads each record's places as recordPlaces does, with one reader per field", () => {
+    const placesOf = recordPlaceReader(places)
+    const cases: [string | string[], string[]][] = [
+      [
+        'au-qld-fortitude-valley',
+        ['au-qld-fortitude-valley', 'au-qld-brisbane', 'au-qld', 'au']
+      ],
+      [
+        ['au-qld-west-end', 'au-vic-fitzroy', 'au-qld'],
+        [
+          'au-qld-west-end',
+          'au-qld-brisbane',
+          'au-qld',
+          'au',
+          'au-vic-fitzroy',
+          'au-vic'
+        ]
+      ],
+      ['AU-VIC-FITZROY', ['au-vic-fitzroy', 'au-vic', 'au']],
+      [
+        ['au-vic', 'AU-VIC-FITZROY'],
+        ['au-vic', 'au', 'au-vic-fitzroy']
+      ],
+      ['au-tas-hobart', ['au-tas-hobart']],
+      ['', []],
+      [[], []]
+    ]
+    for (const [value, expected] of cases) {
+      expect(placesOf(value)).toEqual(expected)
+      expect(recordPlaces(places, value)).toEqual(expected)
+    }
+    const looped = recordPlaceReader(
+      field.location('location', {
+        label: 'Location',
+        options: [
+          { value: 'a', label: 'A', parent: 'b' },
+          { value: 'b', label: 'B', parent: 'a' },
+          { value: 'fitzroy', label: 'Fitzroy', parent: 'melbourne' }
+        ]
+      })
+    )
+    expect(looped('a')).toEqual(['a', 'b'])
+    expect(looped('fitzroy')).toEqual(['fitzroy'])
+    expect(
+      recordPlaceReader(field.location('location', { label: 'Location' }))(
+        'au-qld-brisbane'
+      )
+    ).toEqual(['au-qld-brisbane'])
+  })
+
+  it('reads the options once for a reader, however many records it reads', () => {
+    let reads = 0
+    const counted = new Proxy([...(places.options ?? [])], {
+      get(target, key, receiver) {
+        if (key === 'length') reads++
+        return Reflect.get(target, key, receiver)
+      }
+    })
+    const placesOf = recordPlaceReader({ ...places, options: counted })
+    const built = reads
+    expect(built).toBeGreaterThan(0)
+    placesOf('au-qld-fortitude-valley')
+    placesOf(['au-vic-fitzroy', 'au-qld-west-end'])
+    placesOf('au-tas-hobart')
+    expect(reads).toBe(built)
   })
 
   it.each<[RecordFilter, string[]]>([

@@ -60,21 +60,31 @@ export function isRecordOptionField(field: RecordField): boolean {
  * Places are found without case and listed by their options' values, as a
  * filter holds them. A parent the options don't hold ends the
  * line, and a value they don't hold, or any value of a field without
- * options, stands alone.
+ * options, stands alone. To index many records, use `recordPlaceReader`.
  */
 export function recordPlaces(field: RecordField, value: unknown): string[] {
-  return placeReader(field)(value)
+  return isPlaceValue(value) ? recordPlaceReader(field)(value) : []
 }
 
-/** `recordPlaces` for one field, reading its options once for many records. */
-export function placeReader(field: RecordField): (value: unknown) => string[] {
+/**
+ * `recordPlaces` for one field, reading its options once. An indexer calls
+ * the reader per record, so build it once per field:
+ *
+ * ```ts
+ * const placesOf = recordPlaceReader(locationField)
+ * const documents = rows.map((row) => ({ ...row, location: placesOf(row.location) }))
+ * ```
+ */
+export function recordPlaceReader(
+  field: RecordField
+): (value: string | readonly string[]) => string[] {
   const options = field.type === 'location' ? (field.options ?? []) : []
   const byKey = new Map(
     options.map((option) => [option.value.toLowerCase(), option])
   )
   return (value) => {
     const places = new Set<string>()
-    for (const start of Array.isArray(value) ? value : [value]) {
+    for (const start of typeof value === 'string' ? [value] : value) {
       if (typeof start !== 'string' || start === '') continue
       let place = byKey.get(start.toLowerCase())
       places.add(place?.value ?? start)
@@ -87,6 +97,11 @@ export function placeReader(field: RecordField): (value: unknown) => string[] {
     }
     return [...places]
   }
+}
+
+/** A cell a place reader takes: a place or a list of places. */
+export function isPlaceValue(value: unknown): value is string | string[] {
+  return typeof value === 'string' || Array.isArray(value)
 }
 
 export function momentOf(field: RecordField): RecordMoment {

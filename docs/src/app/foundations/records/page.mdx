@@ -268,14 +268,21 @@ Scope facet value search to the user's permissions on the server.
 
 A filter on a place stays a plain term, `location:is:au-vic`, in the URL and
 in every backend. Store each record's places once, when you index it:
-`recordPlaces(field, value)` lists its place and every place above it. In
-the browser, `matchesRecordQuery` reads them from the options itself.
+`recordPlaceReader(field)` returns a reader that lists a record's place and
+every place above it. An indexer calls it per record, so make one per field,
+and it reads the options once. `recordPlaces(field, value)` does the same for
+one value. In the browser, `matchesRecordQuery` reads them from the options
+itself.
 
 ```ts
-import { recordPlaces } from '@oztix/roadie-core/records'
+import { recordPlaceReader } from '@oztix/roadie-core/records'
 
-const location = recordPlaces(locationField, 'au-vic-fitzroy')
-// ['au-vic-fitzroy', 'au-vic-melbourne', 'au-vic', 'au']
+const placesOf = recordPlaceReader(locationField)
+const documents = venues.map((venue) => ({
+  ...venue,
+  location: placesOf(venue.location)
+}))
+// placesOf('au-vic-fitzroy'): ['au-vic-fitzroy', 'au-vic-melbourne', 'au-vic', 'au']
 ```
 
 An index can store that list already, as a record's value, and the field
@@ -293,7 +300,7 @@ Elasticsearch's `terms` list. Is not in negates the same term: Meilisearch's
 `location != "au-vic"`, Algolia's `"location:-au-vic"`, or the `terms` in a
 `must_not`. Each keeps records with no place, as Roadie does. Algolia needs
 `location` in `attributesForFaceting`, and Elasticsearch needs it mapped as a
-`keyword`, whose terms match case, so index the ids `recordPlaces` returns. Listing every place inside the
+`keyword`, whose terms match case, so index the ids the reader returns. Listing every place inside the
 one picked would be thousands of suburbs for a state, too many for a query,
 so the places travel with the record instead.
 

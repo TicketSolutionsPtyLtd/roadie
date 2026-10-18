@@ -23,6 +23,7 @@ export {
   isRecordOptionField,
   recordFieldOptions,
   recordFilterOperators,
+  recordPlaceReader,
   recordPlaces
 } from './fields'
 export { recordFields } from './builder'

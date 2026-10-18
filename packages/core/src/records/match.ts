@@ -2,10 +2,11 @@ import { isPlainDate, plainDateOf } from '../datetime/plainDate'
 import { rowInstant } from './bounds'
 import {
   fieldIndex,
+  isPlaceValue,
   isSearchable,
   momentOf,
-  placeReader,
-  recordFieldOptions
+  recordFieldOptions,
+  recordPlaceReader
 } from './fields'
 import type {
   ResolvedRecordFilter,
@@ -54,6 +55,11 @@ function numbers(value: unknown): number[] {
 
 function list(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [value]
+}
+
+function placesOf(field: RecordField): Values {
+  const places = recordPlaceReader(field)
+  return (value) => (isPlaceValue(value) ? places(value) : [])
 }
 
 function same(a: unknown, b: string): boolean {
@@ -247,8 +253,7 @@ export function compileRecordQuery(
   const filters = query.filters.map((filter) => {
     const field = byKey.get(filter.field)
     // A location's record is in its places' ancestors too.
-    const values: Values =
-      field?.type === 'location' ? placeReader(field) : list
+    const values: Values = field?.type === 'location' ? placesOf(field) : list
     return { filter, field, values }
   })
   const words = query.search.toLowerCase().split(/\s+/).filter(Boolean)
