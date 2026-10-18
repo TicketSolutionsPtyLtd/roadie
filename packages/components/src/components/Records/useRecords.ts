@@ -56,7 +56,7 @@ export type UseRecordsOptions<Row extends object> = {
   /** Every record, which Records filters, sorts and pages in the browser. With `rowCount`, the page the server returned. With `loadRange`, the records loaded so far, each at its index, with gaps left undefined (`placeRange` puts a range in place). */
   data: readonly (Row | undefined)[]
   /**
-   * How many records the search and filters match on the server. Giving it turns on server mode: `data` is one page, already searched, filtered, sorted and paged, and the search waits for a pause in typing. Fetch `request`. Once given, server mode stays: an `undefined` count keeps the last one. Pass 0 until the first count arrives.
+   * How many records the search and filters match on the server. Giving it turns on server mode: `data` is one page, already searched, filtered, sorted and paged, and the search waits for a pause in typing. Fetch the `request` that `onRequestChange` hears. Once given, server mode stays: an `undefined` count keeps the last one. Pass 0 until the first count arrives.
    */
   rowCount?: number
   /** False when `rowCount` is a floor the server stopped counting at, such as a search index's 10,000: counts read "10,000+", and paging stops at the last page the server can reach. @default true */
