@@ -472,6 +472,19 @@ describe('Toolbar', () => {
     expect(onClick).not.toHaveBeenCalled()
   })
 
+  it('keeps a disabled first link as the toolbar Tab stop', async () => {
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button href='/help' disabled>
+          Help
+        </Toolbar.Button>
+        <Toolbar.Button>Undo</Toolbar.Button>
+      </Toolbar>
+    )
+    await userEvent.tab()
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveFocus()
+  })
+
   it('leaves a link active in a disabled toolbar', () => {
     render(
       <Toolbar aria-label='Editing' disabled>
