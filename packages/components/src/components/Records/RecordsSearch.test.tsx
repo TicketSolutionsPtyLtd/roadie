@@ -825,24 +825,81 @@ describe('Records.Search', () => {
       (await option('Location')).querySelector('[aria-hidden=true]')?.innerHTML
     ).toBe(renderToStaticMarkup(<MapPinIcon weight='bold' />))
     await user.click(await option('Location'))
-    expect(operators()).toEqual(['is', 'is not', 'is empty', 'is not empty'])
+    expect(operators()).toEqual([
+      'is in',
+      'is not in',
+      'is empty',
+      'is not empty'
+    ])
     await user.click(await option('Perth'))
     await user.click(input())
     await user.click(await option('Location'))
     await user.click(await option('Hobart'))
-    expect(chipLabels()).toEqual(['Location is Perth or Hobart'])
+    expect(chipLabels()).toEqual(['Location is in Perth or Hobart'])
     await user.keyboard('{Escape}')
-    await selectChip(user, 'Location is Perth or Hobart')
+    await selectChip(user, 'Location is in Perth or Hobart')
     expect(input()).toHaveValue('')
-    expect(input()).toHaveAccessibleDescription('Location is Perth or Hobart')
+    expect(input()).toHaveAccessibleDescription(
+      'Location is in Perth or Hobart'
+    )
     await waitFor(() => expect(ticked()).toEqual(['Hobart', 'Perth']))
     await user.click(await option('Perth'))
-    expect(chipLabels()).toEqual(['Location is Hobart'])
-    await user.click(screen.getByRole('button', { name: 'is not' }))
+    expect(chipLabels()).toEqual(['Location is in Hobart'])
+    await user.click(screen.getByRole('button', { name: 'is not in' }))
     expect(lastView().query.filters).toEqual([
       { field: 'city', operator: 'is-not', values: ['Hobart'] }
     ])
     await waitFor(() => expect(ticked()).toEqual(['Hobart']))
+  })
+
+  it('filters to the places inside a location, and says where each is', async () => {
+    const placed = fields.map((each) =>
+      each.key === 'city'
+        ? field.location('city', {
+            label: 'Location',
+            options: [
+              { value: 'Queensland', label: 'Queensland', kind: 'state' },
+              {
+                value: 'Brisbane',
+                label: 'Brisbane',
+                kind: 'city',
+                parent: 'Queensland'
+              },
+              { value: 'Victoria', label: 'Victoria', kind: 'state' },
+              {
+                value: 'Melbourne',
+                label: 'Melbourne',
+                kind: 'city',
+                parent: 'Victoria'
+              }
+            ]
+          })
+        : each
+    )
+    const { user, lastView } = setup({ fields: placed })
+    await user.click(input())
+    await user.keyboard('queens')
+    const queensland = await option(/Location is in Queensland/)
+    expect(within(queensland).getByText('State')).toBeTruthy()
+    await user.click(queensland)
+    expect(chipLabels()).toEqual(['Location is in Queensland'])
+    expect(lastView().query.filters).toEqual([
+      { field: 'city', operator: 'is', values: ['Queensland'] }
+    ])
+    await waitFor(() =>
+      expect(
+        new Set(
+          rows().map((row) => within(row).getAllByRole('cell')[1]?.textContent)
+        )
+      ).toEqual(new Set(['Brisbane']))
+    )
+    await user.click(input())
+    await user.click(await option('Location'))
+    await user.click(screen.getByRole('button', { name: 'is not in' }))
+    expect(input()).toHaveAccessibleDescription('Location is not in')
+    expect(
+      within(await option(/Melbourne/)).getByText('City in Victoria')
+    ).toBeTruthy()
   })
 
   it('leaves icons off value suggestions and chips', async () => {
