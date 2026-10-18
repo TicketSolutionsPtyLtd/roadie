@@ -367,8 +367,9 @@ describe('RecordTable range mode', () => {
     await settle()
     await user.click(screen.getByRole('button', { name: 'Archive' }))
     expect(onAction).toHaveBeenCalledWith(
-      { ids: ['show-4000'] },
-      expect.anything()
+      expect.objectContaining({
+        selection: { ids: ['show-4000'] }
+      })
     )
   })
 

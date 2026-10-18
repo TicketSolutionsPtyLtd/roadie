@@ -71,8 +71,10 @@ describe('RecordTable bulk actions', () => {
     await pick('Ocean Alley 1')
     await userEvent.click(screen.getByRole('button', { name: 'Export' }))
     expect(onAction).toHaveBeenCalledWith(
-      { ids: ['show-0'] },
-      expect.objectContaining({ search: '' })
+      expect.objectContaining({
+        selection: { ids: ['show-0'] },
+        query: expect.objectContaining({ search: '' })
+      })
     )
     await waitFor(() => expect(bulkBar()).toBeNull())
   })
@@ -126,8 +128,10 @@ describe('RecordTable bulk actions', () => {
     expect(bar).toHaveTextContent('1 selected')
     await user.click(within(bar).getByRole('button', { name: 'Export' }))
     expect(onAction).toHaveBeenCalledWith(
-      { ids: ['show-3'] },
-      expect.objectContaining({ search: 'Perth' })
+      expect.objectContaining({
+        selection: { ids: ['show-3'] },
+        query: expect.objectContaining({ search: 'Perth' })
+      })
     )
   })
 
@@ -180,8 +184,10 @@ describe('RecordTable bulk actions', () => {
     })
     await user.click(within(dialog).getByRole('button', { name: 'Refund' }))
     expect(onAction).toHaveBeenCalledWith(
-      { ids: ['show-3'] },
-      expect.objectContaining({ search: 'Perth' })
+      expect.objectContaining({
+        selection: { ids: ['show-3'] },
+        query: expect.objectContaining({ search: 'Perth' })
+      })
     )
   })
 
@@ -271,8 +277,10 @@ describe('RecordTable bulk actions', () => {
     )
     await user.click(screen.getByRole('button', { name: 'Export' }))
     expect(onAction).toHaveBeenCalledWith(
-      { allMatching: true, except: ['show-0'] },
-      expect.objectContaining({ search: '' })
+      expect.objectContaining({
+        selection: { allMatching: true, except: ['show-0'] },
+        query: expect.objectContaining({ search: '' })
+      })
     )
     await user.click(
       screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })

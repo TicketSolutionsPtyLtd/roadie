@@ -152,11 +152,42 @@ describe('useRecords range mode', () => {
       })
     )
     await act(async () => result.current.range!.show(120, 135))
-    expect(loadRange.mock.calls.map(([range]) => range)).toEqual([
+    expect(
+      loadRange.mock.calls.map(([{ start, end }]) => ({ start, end }))
+    ).toEqual([
       { start: 100, end: 125 },
       { start: 125, end: 150 },
       { start: 150, end: 175 }
     ])
+  })
+
+  it('hands each range the request to fetch, with the scope first', async () => {
+    const loadRange = vi.fn()
+    const { result } = renderHook(() =>
+      useRecords({
+        data: [] as (TestShow | undefined)[],
+        fields: showFields,
+        getRowId: (row) => row.id,
+        rowCount: 1000,
+        timeZone: 'Australia/Perth',
+        scope: [{ field: 'city', operator: 'is', values: ['Perth'] }],
+        defaultView: { query: { search: 'ocean' } },
+        defaultPosition: { pageSize: 25 },
+        loadRange
+      })
+    )
+    await act(async () => result.current.range!.show(0, 10))
+    expect(loadRange.mock.calls[0]![0]).toEqual({
+      version: 1,
+      query: {
+        search: 'ocean',
+        filters: [{ field: 'city', operator: 'is', values: ['Perth'] }],
+        sort: [],
+        timeZone: 'Australia/Perth'
+      },
+      start: 0,
+      end: 25
+    })
   })
 
   it('grows a range at a time without rowCount, then stops at a short range', async () => {

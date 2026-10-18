@@ -12,7 +12,12 @@ import type {
 } from '@oztix/roadie-core/records'
 
 import { tableLayout } from '.'
-import { Records, type RecordsBulkAction, useRecords } from '../Records'
+import {
+  Records,
+  type RecordsAction,
+  type RecordsBulkAction,
+  useRecords
+} from '../Records'
 import { useRecordsContext } from '../Records/context'
 import { showFields, testShows } from '../Records/testUtils'
 import { RecordTable } from './RecordTablePreset'
@@ -38,11 +43,17 @@ const EMPTY_VIEW: RecordView = {
 function Server({
   onViewChange = () => {},
   onPositionChange = () => {},
-  actions = []
+  actions = [],
+  tableActions = [],
+  rowCount = 120,
+  rowCountExact
 }: {
   onViewChange?: (view: RecordView) => void
   onPositionChange?: (position: Required<RecordPosition>) => void
   actions?: RecordsBulkAction[]
+  tableActions?: RecordsAction[]
+  rowCount?: number
+  rowCountExact?: boolean
 }) {
   const [view, setView] = React.useState(EMPTY_VIEW)
   const [position, setPosition] = React.useState<RecordPosition>({
@@ -53,7 +64,8 @@ function Server({
     data: SHOWS.slice(page * 10, (page + 1) * 10),
     fields: showFields,
     getRowId: (row) => row.id,
-    rowCount: 120,
+    rowCount,
+    rowCountExact,
     selectable: true,
     view,
     onViewChange: (next) => {
@@ -69,6 +81,7 @@ function Server({
   return (
     <Records.Root records={records} layouts={layouts} caption='Shows'>
       <Records.Search />
+      <Records.Actions actions={tableActions} />
       <Records.Content />
       <Records.Pagination />
       <Records.BulkActions actions={actions} />
@@ -191,8 +204,10 @@ describe('RecordTable server mode', () => {
     expect(bar()).toHaveTextContent('2 selected')
     await user.click(screen.getByRole('button', { name: 'Export' }))
     expect(onAction).toHaveBeenCalledWith(
-      { ids: ['show-0', 'show-10'] },
-      EMPTY_VIEW.query
+      expect.objectContaining({
+        selection: { ids: ['show-0', 'show-10'] },
+        query: EMPTY_VIEW.query
+      })
     )
     await waitFor(() => expect(bar()).toBeNull())
   })
@@ -212,8 +227,10 @@ describe('RecordTable server mode', () => {
     await user.click(screen.getByRole('button', { name: 'Next page' }))
     await user.click(screen.getByRole('button', { name: 'Export' }))
     expect(onAction).toHaveBeenCalledWith(
-      { allMatching: true, except: ['show-0'] },
-      EMPTY_VIEW.query
+      expect.objectContaining({
+        selection: { allMatching: true, except: ['show-0'] },
+        query: EMPTY_VIEW.query
+      })
     )
     await waitFor(() => expect(bar()).toBeNull())
   })
@@ -231,9 +248,32 @@ describe('RecordTable server mode', () => {
     )
     await user.click(screen.getByRole('button', { name: 'Export' }))
     expect(onAction).toHaveBeenCalledWith(
-      { ids: ['show-0'] },
-      expect.objectContaining({ search: '' })
+      expect.objectContaining({
+        selection: { ids: ['show-0'] },
+        query: expect.objectContaining({ search: '' })
+      })
     )
+  })
+
+  it('hands a bulk action the selection, the query, and the request to post', async () => {
+    const user = userEvent.setup()
+    const onAction = vi.fn()
+    render(<Server actions={[{ label: 'Export', onAction }]} />)
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    await user.click(screen.getByRole('button', { name: 'Export' }))
+    const [context] = onAction.mock.calls[0]!
+    expect(context).toEqual({
+      selection: { ids: ['show-0'] },
+      query: EMPTY_VIEW.query,
+      request: {
+        version: 1,
+        query: { ...EMPTY_VIEW.query, timeZone: context.timeZone }
+      },
+      timeZone: expect.any(String),
+      now: expect.any(Date)
+    })
   })
 
   it('names records from the hook', async () => {
@@ -867,8 +907,10 @@ describe('Records server bulk actions that settle after a query change', () => {
     await user.click(ocean())
     await user.click(screen.getByRole('button', { name: 'Tag' }))
     expect(onAction).toHaveBeenCalledWith(
-      { allMatching: true, except: ['show-0'] },
-      EMPTY_VIEW.query
+      expect.objectContaining({
+        selection: { allMatching: true, except: ['show-0'] },
+        query: EMPTY_VIEW.query
+      })
     )
     await user.click(ocean())
     await act(async () => finish())
@@ -1114,5 +1156,42 @@ describe('Records server bulk bar focus when a query change clears it', () => {
     expect(bar()).toBeNull()
     expect(screen.getByRole('checkbox', { name: 'Select page' })).toHaveFocus()
     await act(async () => finish())
+  })
+})
+
+describe('RecordTable server count a backend cannot finish', () => {
+  it('reads the count as a floor everywhere it shows', async () => {
+    const user = userEvent.setup()
+    render(
+      <Server
+        rowCount={10_000}
+        rowCountExact={false}
+        actions={[{ label: 'Export', onAction: vi.fn() }]}
+      />
+    )
+    expect(
+      document.querySelector('[data-slot="records-pagination"] p')
+    ).toHaveTextContent('1–10 of 10,000+')
+    await user.click(screen.getByRole('checkbox', { name: 'Select page' }))
+    await pickFromCount(user, 'Select all 10,000+ records')
+    expect(bar()).toHaveTextContent('10,000+ selected')
+    expect(screen.getByRole('status')).toHaveTextContent('10,000+ selected')
+  })
+
+  it('asks before acting on a count it cannot finish', async () => {
+    const user = userEvent.setup()
+    render(
+      <Server
+        rowCount={10_000}
+        rowCountExact={false}
+        tableActions={[
+          { label: 'Cancel shows', intent: 'danger', onAction: vi.fn() }
+        ]}
+      />
+    )
+    await user.click(screen.getByRole('button', { name: 'Cancel shows' }))
+    expect(await screen.findByRole('alertdialog')).toHaveTextContent(
+      'Cancel shows 10,000+ records?'
+    )
   })
 })

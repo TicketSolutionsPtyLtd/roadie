@@ -287,21 +287,21 @@
     "name": "Records",
     "path": "dist/components/Records/index.js",
     "import": "*",
-    "limit": "70.3 kB",
+    "limit": "70.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordGrid",
     "path": "dist/components/RecordGrid/index.js",
     "import": "*",
-    "limit": "104.2 kB",
+    "limit": "104.7 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordTable",
     "path": "dist/components/RecordTable/index.js",
     "import": "*",
-    "limit": "112 kB",
+    "limit": "112.4 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]
