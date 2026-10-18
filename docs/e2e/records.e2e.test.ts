@@ -80,7 +80,7 @@ describe('Records foundation', () => {
     expect(suggestions.length).toBeLessThanOrEqual(4)
     expect(suggestions).toContainEqual({
       kind: 'filter',
-      label: 'Location is Melbourne',
+      label: 'Location is in Melbourne',
       remainder: 'this weekend'
     })
     for (const { kind } of suggestions)

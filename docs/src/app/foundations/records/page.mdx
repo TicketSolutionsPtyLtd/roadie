@@ -45,8 +45,11 @@ export const eventFields: RecordField[] = [
     label: 'Location',
     type: 'location',
     options: [
-      { value: 'melbourne', label: 'Melbourne' },
-      { value: 'sydney', label: 'Sydney' }
+      { value: 'victoria', label: 'Victoria', kind: 'state' },
+      { value: 'melbourne', label: 'Melbourne', kind: 'city', parent: 'victoria' },
+      { value: 'fitzroy', label: 'Fitzroy', kind: 'suburb', parent: 'melbourne' },
+      { value: 'nsw', label: 'New South Wales', kind: 'state' },
+      { value: 'sydney', label: 'Sydney', kind: 'city', parent: 'nsw' }
     ]
   },
   {
@@ -90,11 +93,28 @@ export const eventFields: RecordField[] = [
 | `format`                          | How a number or money field's values read. Defaults to number, or currency for money.                                                          |
 | `currency`, `currencyKey`         | A fixed ISO code, or the row key holding it.                                                                                                    |
 | `status`                          | The dashboard status map. An option field with one gets Badge rendering, sorting by order, and labels from one definition.                     |
-| `options`                         | The values to pick from, each with an optional parent for hierarchies.                                                                          |
+| `options`                         | The values to pick from, each with an optional parent for hierarchies and, on a location, a kind.                                               |
 
-A location field holds places, such as cities. It filters like an option for
-now: is, is not, is empty, and is not empty. Distance filters, such as within
-100 km of Brisbane, come later.
+### Places
+
+A location field holds places, such as suburbs, cities, and states. Its
+options nest: each place names the place it's in as its `parent`, and what it
+is as its `kind`, such as `suburb`, `city`, `region`, `state`, or `country`.
+So is and is not read is in and is not in, and take in every place inside the
+one named. "Location is in Victoria" matches Melbourne and Fitzroy too, and
+"Location is not in Melbourne" leaves out Fitzroy as well. A record holds
+only its own place. Suggestions say where each place is, such as "Suburb in
+Melbourne" or "State".
+
+- A place whose parent isn't in the options is a top-level place.
+- A value the options don't hold matches only itself.
+- A location field without options picks from the values its records hold,
+  each matching only itself.
+- Is empty and is not empty work as they do on any field.
+
+Distance filters come later as a `near` operator, never `within`, which dates
+use. Its value will be `{ lat, lng, meters, label }`, and a field option will
+name the key holding the record's coordinates.
 
 Derived states, such as Selling fast or Sold out, are worked out once on the
 server and arrive as option values. Roadie never bands a percentage into a
@@ -243,6 +263,35 @@ record. Text `contains` needs Meilisearch's `containsFilter` feature, and the
 index's `searchableAttributes` should list the fields marked `searchable`.
 Scope facet value search to the user's permissions on the server.
 
+### Places on any backend
+
+`resolveRecordQuery` turns a location filter into each place it names and
+every place inside them, and the URL still names only the place
+(`location:is:melbourne`). So any backend can match records that hold only
+their own place. `toMeilisearch` asks for `location IN ["melbourne",
+"fitzroy"]`. For a backend that reads the URL itself,
+`recordPlacesWithin(field, values)` gives the same list.
+
+```ts
+import { recordPlacesWithin } from '@oztix/roadie-core/records'
+
+const places = recordPlacesWithin(locationField, ['melbourne'])
+// ['melbourne', 'fitzroy']
+
+// Algolia ORs the values in one inner array, and ANDs the rest.
+const isIn = { facetFilters: [places.map((place) => `location:${place}`)] }
+const isNotIn = { facetFilters: places.map((place) => `location:-${place}`) }
+
+// A plain endpoint takes the list and matches any of them.
+const url = `/api/events?location=${places.map(encodeURIComponent).join(',')}`
+```
+
+Distance filters, when they come, read the record's coordinates with
+Meilisearch's `_geoRadius(lat, lng, meters)` and sort by `_geoPoint`, or with
+Algolia's `aroundLatLng` and `aroundRadius`.
+
+### Pages
+
 Add `position` to page through the results. It adds `page` (one-based) and
 `hitsPerPage`, so the response's `totalHits` counts the matches, up to the
 index's `pagination.maxTotalHits`. A [RecordTable](/components/record-table)
@@ -264,26 +313,26 @@ remainder.
 
 <QuerySuggestions />
 
-Values read from the start of a word, so `melb` suggests "Location is Melbourne"
-and `elb` suggests nothing. A value named only in part is left out when a longer
-reading takes its words: in `melb this weekend`, "this" belongs to "Start date
-is this weekend", so it never suggests a venue such as Nimbus Thistle Hall. Text
-a field contains takes no words this way, so `name disco melb` still suggests
-"Location is Melbourne".
+Values read from the start of a word, so `melb` suggests "Location is in
+Melbourne" and `elb` suggests nothing. A value named only in part is left out
+when a longer reading takes its words: in `melb this weekend`, "this" belongs
+to "Start date is this weekend", so it never suggests a venue such as Nimbus
+Thistle Hall. Text a field contains takes no words this way, so
+`name disco melb` still suggests "Location is in Melbourne".
 
 Negation reads as the opposite filter. "not melb" suggests "Location is not
-Melbourne", and never "Location is Melbourne". The negating words are part of
-the filter, so none of them stay in `remainder`.
+in Melbourne", and never "Location is in Melbourne". The negating words are
+part of the filter, so none of them stay in `remainder`.
 
 | Form                                                                                      | Typed                        | Suggests                             |
 | ----------------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------ |
 | `not`, `isn't`, `excludes`, `excluding`, `except`, `without`, `!=`, or `≠` before a value | `excluding walrus`           | Venue is not The Quilted Walrus Room |
 | `-` before a value                                                                        | `-sold out`                  | Status is not Sold out               |
 | `!`, `!=`, or `-` after `field:`                                                          | `venue:!walrus`              | Venue is not The Quilted Walrus Room |
-| `<field> is not`, or `<field>` then any word in the first row                             | `location not syd`           | Location is not Sydney               |
+| `<field> is not`, or `<field>` then any word in the first row                             | `location not syd`           | Location is not in Sydney            |
 | `<field> doesn't contain` or `<field> does not contain`                                   | `name doesn't contain disco` | Name doesn't contain "disco"         |
 
-The apostrophe is optional, so `location isnt syd` suggests "Location is not
+The apostrophe is optional, so `location isnt syd` suggests "Location is not in
 Sydney".
 
 `venue is walrus`, `venue = walrus`, and `name contains disco` read the same
@@ -321,12 +370,12 @@ A range reads in either order, so `capacity 50-20` suggests "Capacity is 20 to
 
 Any field's name, then a value, reads as `field:value` does, with or without
 `is`. Text a field contains stops before words other filters read to the end, so
-`name disco melb` suggests "Name contains “disco”" and "Location is Melbourne"
-first, then "Name contains “disco melb”".
+`name disco melb` suggests "Name contains “disco”" and "Location is in
+Melbourne" first, then "Name contains “disco melb”".
 
 | Form                            | Typed                   | Suggests                   |
 | ------------------------------- | ----------------------- | -------------------------- |
-| `<field> <value>`, with no verb | `location melb`         | Location is Melbourne      |
+| `<field> <value>`, with no verb | `location melb`         | Location is in Melbourne   |
 | `<field> <value>`, with no verb | `capacity 100`          | Capacity is 100            |
 | `<field> <value>`, with no verb | `starts this weekend`   | Start date is this weekend |
 | `<field> is empty`              | `starts is empty`       | Start date is empty        |
@@ -361,7 +410,7 @@ makes read alike, dates included. Next and last weekend, whose chips have no
 shows a page's `scope` as locked chips that are never part of the view. Text
 that names a filter already applied, in the view or the scope, still suggests
 it, marked Already applied. Taking it clears those words and adds nothing, so
-with "Location is Melbourne" applied, `melb syd` can take both words.
+with "Location is in Melbourne" applied, `melb syd` can take both words.
 
 ## URL format
 
