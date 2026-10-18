@@ -59,7 +59,7 @@ export type UseRecordsOptions<Row extends object> = {
    * How many records the search and filters match on the server. Giving it turns on server mode: `data` is one page, already searched, filtered, sorted and paged, and the search waits for a pause in typing. Fetch the `request` that `onRequestChange` hears. Once given, server mode stays: an `undefined` count keeps the last one. Pass 0 until the first count arrives.
    */
   rowCount?: number
-  /** False when `rowCount` is a floor the server stopped counting at, such as a search index's 10,000: counts read "10,000+", and paging stops at the last page the server can reach. @default true */
+  /** False when `rowCount` is a floor the server stopped counting at, such as a search index's 10,000: counts read "10,000+", paging stops at the last page the server can reach, and no range runs past the count. @default true */
   rowCountExact?: boolean
   /** What each record holds. Keep the array stable (module scope or `useMemo`). */
   fields: readonly RecordsField[]
@@ -418,6 +418,7 @@ export function useRecords<Row extends object>({
         })),
     key,
     rowCount: count === undefined ? undefined : whole(count, 0, 0),
+    rowCountExact,
     size: position.pageSize,
     data,
     held: loaded.rows.length

@@ -329,6 +329,20 @@ describe('useRecords range mode', () => {
     expect(requests(result)).toEqual([{ start: 0, end: 50 }])
   })
 
+  it('asks no further than a count the server stopped at', async () => {
+    const { result } = renderHook(() =>
+      useRangeHarness({
+        total: 10_000,
+        rowCount: 10_000,
+        rowCountExact: false,
+        defaultPosition: { pageSize: 30 },
+        respond: 'manual'
+      })
+    )
+    await view(result, 9980, 9999)
+    expect(requests(result).at(-1)).toEqual({ start: 9990, end: 10_000 })
+  })
+
   it('loads a list whose count reads 0 until a range of its query says so', async () => {
     const { result, rerender } = renderHook(
       ({ rowCount }: { rowCount: number }) =>

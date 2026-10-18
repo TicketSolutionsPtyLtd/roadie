@@ -167,7 +167,8 @@ its content holds; key a fetch on `request`. `rowCountExact: false` marks
 `rowCount` as a floor the server stopped counting at, such as a search
 index's 10,000: counts read "10,000+" in the pagination, Select all, the
 selection, the status and the confirm dialog, `resultCountExact` is false,
-and paging stops at the last whole page within the count. Selection treats a chip's values in any order as the same
+paging stops at the last whole page within the count, and no range
+runs past it. Selection treats a chip's values in any order as the same
 filter, and ignores filters the fields can't apply. `Records.Status`
 holds a count while `loading` and announces it once loaded, and
 `Records.Pagination` reads a page past the end as the last page.
