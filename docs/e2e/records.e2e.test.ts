@@ -107,7 +107,7 @@ describe('Records foundation', () => {
       ['view', view.id],
       ['entity', view.entity],
       ['q', view.query.search],
-      ['f', 'location:is:melbourne'],
+      ['f', 'location:is:au-vic-melbourne'],
       ['f', 'starts:within:this-weekend'],
       ['f', 'offer:is-not:sold_out'],
       ['sort', 'starts'],

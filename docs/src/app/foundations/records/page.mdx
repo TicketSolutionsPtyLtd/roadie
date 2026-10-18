@@ -45,11 +45,12 @@ export const eventFields: RecordField[] = [
     label: 'Location',
     type: 'location',
     options: [
-      { value: 'victoria', label: 'Victoria', kind: 'state' },
-      { value: 'melbourne', label: 'Melbourne', kind: 'city', parent: 'victoria' },
-      { value: 'fitzroy', label: 'Fitzroy', kind: 'suburb', parent: 'melbourne' },
-      { value: 'nsw', label: 'New South Wales', kind: 'state' },
-      { value: 'sydney', label: 'Sydney', kind: 'city', parent: 'nsw' }
+      { value: 'au', label: 'Australia', kind: 'country' },
+      { value: 'au-vic', label: 'Victoria', kind: 'state', parent: 'au' },
+      { value: 'au-vic-melbourne', label: 'Melbourne', kind: 'city', parent: 'au-vic' },
+      { value: 'au-vic-fitzroy', label: 'Fitzroy', kind: 'suburb', parent: 'au-vic-melbourne' },
+      { value: 'au-nsw', label: 'New South Wales', kind: 'state', parent: 'au' },
+      { value: 'au-nsw-sydney', label: 'Sydney', kind: 'city', parent: 'au-nsw' }
     ]
   },
   {
@@ -97,19 +98,19 @@ export const eventFields: RecordField[] = [
 
 ### Places
 
-A location field holds places, such as suburbs, cities, and states. Its
-options nest: each place names the place it's in as its `parent`, and what it
-is as its `kind`, such as `suburb`, `city`, `region`, `state`, or `country`.
-So is and is not read is in and is not in, and take in every place inside the
-one named. "Location is in Victoria" matches Melbourne and Fitzroy too, and
-"Location is not in Melbourne" leaves out Fitzroy as well. A record holds
-only its own place. Suggestions say where each place is, such as "Suburb in
-Melbourne" or "State".
+A location field holds a place, such as a suburb, or a list of places. Its
+options are places with stable ids, never free text, and each names the place
+it's in as its `parent` and what it is as its `kind`: `venue`, `suburb`,
+`city`, `region`, `state`, or `country`. So is and is not read is in and is
+not in. A record is in its own place and every place above it, so with a
+record in Fitzroy, "Location is in Victoria" matches and "Location is not in
+Melbourne" doesn't. Suggestions say where each place is, such as "Suburb in
+Melbourne" or "Country".
 
-- A place whose parent isn't in the options is a top-level place.
-- A value the options don't hold matches only itself.
+- A parent the options don't hold ends the line, so that place is top level.
+- A value the options don't hold is in only itself.
 - A location field without options picks from the values its records hold,
-  each matching only itself.
+  each in only itself.
 - Is empty and is not empty work as they do on any field.
 
 Distance filters come later as a `near` operator, never `within`, which dates
@@ -149,7 +150,7 @@ are session state, never part of a view.
         "field": "location",
         "operator": "is",
         "values": [
-          "melbourne"
+          "au-vic-melbourne"
         ]
       },
       {
@@ -265,30 +266,38 @@ Scope facet value search to the user's permissions on the server.
 
 ### Places on any backend
 
-`resolveRecordQuery` turns a location filter into each place it names and
-every place inside them, and the URL still names only the place
-(`location:is:melbourne`). So any backend can match records that hold only
-their own place. `toMeilisearch` asks for `location IN ["melbourne",
-"fitzroy"]`. For a backend that reads the URL itself,
-`recordPlacesWithin(field, values)` gives the same list.
+A filter on a place stays a plain term, `location:is:au-vic`, in the URL and
+in every backend. Store each record's places once, when you index it:
+`recordPlaces(field, value)` lists its place and every place above it. In
+the browser, `matchesRecordQuery` reads them from the options itself.
 
 ```ts
-import { recordPlacesWithin } from '@oztix/roadie-core/records'
+import { recordPlaces } from '@oztix/roadie-core/records'
 
-const places = recordPlacesWithin(locationField, ['melbourne'])
-// ['melbourne', 'fitzroy']
-
-// Algolia ORs the values in one inner array, and ANDs the rest.
-const isIn = { facetFilters: [places.map((place) => `location:${place}`)] }
-const isNotIn = { facetFilters: places.map((place) => `location:-${place}`) }
-
-// A plain endpoint takes the list and matches any of them.
-const url = `/api/events?location=${places.map(encodeURIComponent).join(',')}`
+const location = recordPlaces(locationField, 'au-vic-fitzroy')
+// ['au-vic-fitzroy', 'au-vic-melbourne', 'au-vic', 'au']
 ```
 
+An index can store that list already, as a record's value, and the field
+takes it too. A filter then reads the same everywhere:
+
+| Backend       | Location is in Victoria                      |
+| ------------- | -------------------------------------------- |
+| Meilisearch   | `location = "au-vic"`, from `toMeilisearch`  |
+| Algolia       | `facetFilters: [["location:au-vic"]]`        |
+| Elasticsearch | `{ terms: { location: ['au-vic'] } }`        |
+| An API        | `?location=au-vic`, matched against the list |
+
+A filter holding several places ORs them: Algolia's inner array, or
+Elasticsearch's `terms` list. Is not in negates the same term, such as
+`location != "au-vic"` or `location:-au-vic`. Listing every place inside the
+one picked would be thousands of suburbs for a state, too many for a query,
+so the places travel with the record instead.
+
 Distance filters, when they come, read the record's coordinates with
-Meilisearch's `_geoRadius(lat, lng, meters)` and sort by `_geoPoint`, or with
-Algolia's `aroundLatLng` and `aroundRadius`.
+Meilisearch's `_geoRadius(lat, lng, meters)` and sort by `_geoPoint`,
+Algolia's `aroundLatLng` and `aroundRadius`, or Elasticsearch's
+`geo_distance` on a `geo_point`.
 
 ### Pages
 

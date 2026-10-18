@@ -32,17 +32,17 @@ list what a field accepts.
 `recordFields<Row>()` builds an entity's fields with typed row keys
 (`text`, `option`, `location`, `number`, `money`, `date`, `boolean`), and a
 number or money field takes a `format`. A `location` field holds a place,
-such as a city, and sorts and reads like a single option. Its `options` nest
-by `parent`, each with an optional `kind` (`suburb`, `city`, `region`,
-`state`, `country` or another), so is and is not mean is in and is not in:
-a place and every place inside it. `resolveRecordQuery` expands a location
-filter into those places, so a record stores only its own place and every
-backend matches it, and `recordPlacesWithin(field, values)` does the same
-for a backend reading the URL itself. The URL still names the place alone
-(`location:is:brisbane`). A chip reads "Location is in Brisbane",
-`recordOperatorLabel` takes the field to say "is in", and one place's
-`detail` says where it is, such as "Suburb in Brisbane". Distance filters
-come later. `isRecordOptionField` tells whether a field picks
+such as a suburb, or a list of places, and sorts and reads like an option.
+Its `options` are places with stable ids that nest by `parent`, each with an
+optional `kind` (`venue`, `suburb`, `city`, `region`, `state`, `country` or
+another), so is and is not mean is in and is not in: a record is in each of
+its places and their ancestors. `matchesRecordQuery` reads the ancestors
+from the options, and `recordPlaces(field, value)` lists a record's places
+for an index to store, so a filter stays a plain term in Meilisearch,
+Algolia, Elasticsearch or an API (`location:is:au-qld`). A chip reads
+"Location is in Queensland", `recordOperatorLabel` takes the field to say
+"is in", and one place's `detail` says where it is, such as "Suburb in
+Brisbane". Distance filters come later. `isRecordOptionField` tells whether a field picks
 from values that way. `compileRecordQuery` turns a resolved query
 into a predicate that reads the fields once, for filtering a long list;
 `matchesRecordQuery` uses it. `sortRecords` sorts rows the way an index
@@ -56,8 +56,8 @@ turns a view into Meilisearch `q`, `filter` and `sort` with the same filter
 meaning. It needs Meilisearch 1.15 or later. The index stores instants as
 epoch seconds (or milliseconds with `epoch: 'milliseconds'`), event and
 access dates under their local date keys, and a range's end on every record;
-`contains` needs Meilisearch's `containsFilter` feature. A location filter
-asks for its places with `IN`.
+`contains` needs Meilisearch's `containsFilter` feature. A location field
+stores `recordPlaces`.
 
 `parseDatePhrase` no longer reads inherited object names such as
 `constructor` as a date alias, unit or month.

@@ -154,10 +154,10 @@ On a phone the table turns into cards: the event, its venue and status, with the
 
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [
-  { value: 'kazoo-hollow-room', label: 'Kazoo Hollow Room', timeZone: 'Australia/Brisbane' },
-  { value: 'quilted-walrus-room', label: 'The Quilted Walrus Room', timeZone: 'Australia/Melbourne' },
-  { value: 'drongo-bell-social-club', label: 'Drongo Bell Social Club', timeZone: 'Australia/Perth' },
-  { value: 'antler-kettle-hall', label: 'Antler Kettle Hall', timeZone: 'Australia/Sydney' }
+  ['au-qld-fortitude-valley', 'Kazoo Hollow Room'],
+  ['au-vic-fitzroy', 'Echidna Gaslight Theatre'],
+  ['au-qld-west-end', 'Iguana Teapot Hall'],
+  ['au-vic-st-kilda', 'Saltbush Trumpet Ballroom']
 ]
 const names = ['Paper Lanterns', 'Marzipan Thunderclap', 'Corduroy Lagoon Sessions', 'Sapphire Cassowary Night', 'Echo Garden', 'Midnight Frequency']
 const statuses = ['on_sale', 'on_sale', 'selling_fast', 'sold_out', 'cancelled']
@@ -327,18 +327,15 @@ The toolbar's search is a [query field](/components/query-field) named "Search a
 ```tsx-live-noinline
 const field = recordFields()
 const places = [
-  { value: 'vic', label: 'Victoria', kind: 'state' },
-  { value: 'melbourne', label: 'Melbourne', kind: 'city', parent: 'vic' },
-  { value: 'fitzroy', label: 'Fitzroy', kind: 'suburb', parent: 'melbourne' },
-  { value: 'nsw', label: 'New South Wales', kind: 'state' },
-  { value: 'sydney', label: 'Sydney', kind: 'city', parent: 'nsw' },
-  { value: 'newtown', label: 'Newtown', kind: 'suburb', parent: 'sydney' },
-  { value: 'qld', label: 'Queensland', kind: 'state' },
-  { value: 'brisbane', label: 'Brisbane', kind: 'city', parent: 'qld' },
-  { value: 'fortitude-valley', label: 'Fortitude Valley', kind: 'suburb', parent: 'brisbane' },
-  { value: 'west-end', label: 'West End', kind: 'suburb', parent: 'brisbane' },
-  { value: 'wa', label: 'Western Australia', kind: 'state' },
-  { value: 'perth', label: 'Perth', kind: 'city', parent: 'wa' }
+  { value: 'au', label: 'Australia', kind: 'country' },
+  { value: 'au-qld', label: 'Queensland', kind: 'state', parent: 'au' },
+  { value: 'au-qld-brisbane', label: 'Brisbane', kind: 'city', parent: 'au-qld' },
+  { value: 'au-qld-fortitude-valley', label: 'Fortitude Valley', kind: 'suburb', parent: 'au-qld-brisbane' },
+  { value: 'au-qld-west-end', label: 'West End', kind: 'suburb', parent: 'au-qld-brisbane' },
+  { value: 'au-vic', label: 'Victoria', kind: 'state', parent: 'au' },
+  { value: 'au-vic-melbourne', label: 'Melbourne', kind: 'city', parent: 'au-vic' },
+  { value: 'au-vic-fitzroy', label: 'Fitzroy', kind: 'suburb', parent: 'au-vic-melbourne' },
+  { value: 'au-vic-st-kilda', label: 'St Kilda', kind: 'suburb', parent: 'au-vic-melbourne' }
 ]
 const fields = [
   field.text('show', { label: 'Show' }),
@@ -391,7 +388,7 @@ render(
       query: {
         filters: [
           { field: 'status', operator: 'is', values: ['on_sale', 'selling_fast'] },
-          { field: 'location', operator: 'is', values: ['brisbane'] }
+          { field: 'location', operator: 'is', values: ['au-qld-brisbane'] }
         ]
       }
     }}
@@ -400,7 +397,7 @@ render(
 )
 ```
 
-A location's places nest, so the example's "Location is in Brisbane" chip shows the shows in Fortitude Valley and West End, which are in Brisbane. Remove it, or change it to **is not in**, to see the rest. [Places](/foundations/records#places) covers how they nest.
+Each show holds its suburb, and a location's places nest, so the example's "Location is in Brisbane" chip shows the shows in Fortitude Valley and West End, and "Location is in Queensland" would too. Remove the chip, or change it to **is not in**, to see the rest. [Places](/foundations/records#places) covers how they nest.
 
 #### Searching
 
