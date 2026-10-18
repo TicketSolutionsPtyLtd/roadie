@@ -5,11 +5,13 @@ function compile(pattern: string): RegExp | string {
     return 'needs ^ at the start and $ at the end, so it matches whole identifiers'
   }
   try {
-    // Identifiers are typed in any case, as in oz-12345 for OZ-12345.
-    return new RegExp(pattern, 'i')
+    new RegExp(pattern)
   } catch (error) {
     return `is not a valid pattern: ${(error as Error).message}`
   }
+  // Identifiers are typed in any case, as in oz-12345 for OZ-12345. The group
+  // anchors the whole pattern, which ^a|b$ or an escaped \$ doesn't.
+  return new RegExp(`^(?:${pattern})$`, 'i')
 }
 
 /**

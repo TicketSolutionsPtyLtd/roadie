@@ -57,6 +57,18 @@ describe('parseQuery', () => {
     )
   })
 
+  it.each([
+    ['an alternative', '^OZ-1|OZ-2$', 'Order OZ-2'],
+    ['an escaped dollar', '^OZ-\\d+\\$', 'OZ-12$ off']
+  ])('matches whole text only, with %s in the pattern', (_, match, text) => {
+    const fields = [
+      { key: 'code', label: 'Code', type: 'text' as const, match }
+    ]
+    expect(
+      parseQuery(text, { ...options, fields }).map((s) => s.label)
+    ).not.toContain(`Code is ${text}`)
+  })
+
   it('takes an identifier as an exact match, first', () => {
     const [first] = parse('oz-12345')
     expect(first).toMatchObject({
