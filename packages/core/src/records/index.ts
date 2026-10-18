@@ -6,6 +6,7 @@ export type {
   RecordLayout,
   RecordMoment,
   RecordOption,
+  RecordPlaceKind,
   RecordPosition,
   RecordQuery,
   RecordQueryOptions,
@@ -21,7 +22,8 @@ export type { RelativeRange } from '../datetime/ranges'
 export {
   isRecordOptionField,
   recordFieldOptions,
-  recordFilterOperators
+  recordFilterOperators,
+  recordPlacesWithin
 } from './fields'
 export { recordFields } from './builder'
 export type {

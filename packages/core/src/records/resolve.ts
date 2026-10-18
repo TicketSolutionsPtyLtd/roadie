@@ -6,7 +6,7 @@ import {
 } from '../datetime/ranges'
 import { startOfDayInstant } from '../datetime/zone'
 import { boundEnd, boundStart, readBound } from './bounds'
-import { fieldIndex, momentOf } from './fields'
+import { fieldIndex, momentOf, recordPlacesWithin } from './fields'
 import type {
   RecordField,
   RecordFilter,
@@ -24,7 +24,10 @@ export type ResolvedRecordRange =
   | { kind: 'dates'; start: string | null; end: string | null }
   | { kind: 'instants'; start: number | null; end: number | null }
 
-/** Date filters become one overlap test; the rest stay as they are. */
+/**
+ * Date filters become one overlap test, and a location's places take in the
+ * places inside them; the rest stay as they are.
+ */
 export type ResolvedRecordFilter =
   | Exclude<
       RecordFilter,
@@ -170,7 +173,9 @@ function resolveDateFilter(
 }
 
 /**
- * Turns relative and absolute date filters into fixed ranges, as at `now`.
+ * Turns relative and absolute date filters into fixed ranges, as at `now`,
+ * and a location's places into each place and every place inside it, so a
+ * backend matches records holding only their own place.
  * Calendar words resolve in the viewer's zone. Event and access moments then
  * compare each record's venue-local date, so "today" is today's date at
  * every venue; timestamps compare instants across the viewer's day.
@@ -191,9 +196,13 @@ export function resolveRecordQuery(
     filters: query.filters.map((filter) => {
       const field = byKey.get(filter.field)
       if (!field) throw new RangeError(`Unknown field "${filter.field}"`)
-      return isDateFilter(filter)
-        ? resolveDateFilter(filter, field, options)
-        : (filter as ResolvedRecordFilter)
+      if (isDateFilter(filter)) return resolveDateFilter(filter, field, options)
+      if (
+        field.type === 'location' &&
+        (filter.operator === 'is' || filter.operator === 'is-not')
+      )
+        return { ...filter, values: recordPlacesWithin(field, filter.values) }
+      return filter as ResolvedRecordFilter
     })
   }
 }

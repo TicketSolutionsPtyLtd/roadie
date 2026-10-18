@@ -54,6 +54,35 @@ export function isRecordOptionField(field: RecordField): boolean {
   return field.type === 'option' || field.type === 'location'
 }
 
+/**
+ * The places a location filter on `values` takes in: each one, then every
+ * place inside them, in option order. A value the options don't hold stands
+ * alone, a place whose parent they don't hold is a root, and any other field
+ * keeps its values. For backends that resolve a URL's filters themselves.
+ */
+export function recordPlacesWithin(
+  field: RecordField,
+  values: readonly string[]
+): string[] {
+  const options = field.type === 'location' ? (field.options ?? []) : []
+  const known = new Set(options.map(({ value }) => value))
+  const children = new Map<string, string[]>()
+  for (const { value, parent } of options) {
+    if (parent === undefined || !known.has(parent)) continue
+    const siblings = children.get(parent) ?? []
+    siblings.push(value)
+    children.set(parent, siblings)
+  }
+  const given = new Set(values)
+  const within = new Set(values)
+  for (const place of within)
+    for (const child of children.get(place) ?? []) within.add(child)
+  const inside = options
+    .map(({ value }) => value)
+    .filter((value) => within.has(value) && !given.has(value))
+  return [...given, ...inside]
+}
+
 export function momentOf(field: RecordField): RecordMoment {
   return field.moment ?? 'timestamp'
 }

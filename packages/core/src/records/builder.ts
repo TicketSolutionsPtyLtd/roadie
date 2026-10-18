@@ -21,7 +21,12 @@ export type OptionFieldOptions = Common & {
   status?: Record<string, StatusDefinition>
   options?: RecordOption[]
 }
-/** Distance filters come later; for now it filters like a single option. */
+/**
+ * Places nest by `parent`, so a filter on one takes in every place inside it.
+ * Reserved for distance filters: a `near` operator, valued
+ * `{ lat, lng, meters, label }`, and an option naming the record's
+ * coordinates.
+ */
 export type LocationFieldOptions = Common & { options?: RecordOption[] }
 export type NumberFieldOptions = Common & { format?: ValueFormat }
 export type MoneyFieldOptions<Row> = NumberFieldOptions & {

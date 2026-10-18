@@ -67,8 +67,10 @@ export type RecordSelection =
   | { readonly allMatching: true; readonly except: readonly string[] }
 
 /**
- * `location` is a place, such as a city. It filters like a single `option`
- * for now; distance filters ("within 100 km of Brisbane") come later.
+ * `location` is a place, such as a city. Its options nest by `parent`, so
+ * `is` and `is-not` mean is in and is not in: the place and every place
+ * inside it. Distance filters are reserved for later as a `near` operator,
+ * never `within`, which dates use.
  */
 export type RecordFieldType =
   'text' | 'option' | 'location' | 'number' | 'money' | 'date' | 'boolean'
@@ -79,7 +81,18 @@ export type RecordFieldType =
  */
 export type RecordMoment = 'event' | 'access' | 'timestamp' | 'date'
 
-export type RecordOption = { value: string; label: string; parent?: string }
+/** What kind of place a location's option is. Open to others, such as `venue`. */
+export type RecordPlaceKind =
+  'suburb' | 'city' | 'region' | 'state' | 'country' | (string & {})
+
+export type RecordOption = {
+  value: string
+  label: string
+  /** Another option's value. A location's place is inside its parent. */
+  parent?: string
+  /** A location's place only. Suggestions describe it: "Suburb in Brisbane". */
+  kind?: RecordPlaceKind
+}
 
 /**
  * What a record field holds. Every per-row fact is a key, not a function, so

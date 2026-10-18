@@ -44,6 +44,7 @@ function toDocument(row: Row, scale: number): Row {
 
 const rows: Row[] = [
   ...Object.values(eventRows),
+  { id: 'suburb', city: 'fitzroy' },
   { id: 'empty-object', venue: {}, genres: ['jazz'], capacity: 400 },
   { id: 'listed-capacity', capacity: [400, 900], name: 'Two Rooms' },
   { id: 'gap', created: '2026-10-04T02:30' },
@@ -115,6 +116,10 @@ const FILTERS: RecordFilter[] = [
   { field: 'venue', operator: 'is-not', values: ['quilted-walrus-room'] },
   { field: 'venue', operator: 'is-set' },
   { field: 'venue', operator: 'is-not-set' },
+  { field: 'city', operator: 'is', values: ['victoria'] },
+  { field: 'city', operator: 'is', values: ['melbourne', 'perth'] },
+  { field: 'city', operator: 'is-not', values: ['melbourne'] },
+  { field: 'city', operator: 'is', values: ['FITZROY'] },
   { field: 'genres', operator: 'is', values: ['folk', 'comedy'] },
   { field: 'genres', operator: 'is-not', values: ['jazz', 'folk'] },
   { field: 'genres', operator: 'has-all', values: ['jazz', 'folk'] },

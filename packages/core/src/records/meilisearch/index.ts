@@ -12,6 +12,10 @@
  *   under `localDateKey` (and `endLocalDateKey` for a range).
  * - A range field stores its end on every record; a single moment repeats its
  *   start there.
+ * - A location stores only the record's own place. A filter on a place asks
+ *   for it and every place inside it: `city IN ["victoria", "melbourne"]`.
+ *   Distance filters, later, will read `_geo` with `_geoRadius(lat, lng,
+ *   meters)` and sort by `_geoPoint`.
  * - `contains` needs Meilisearch's `containsFilter` experimental feature.
  * - `searchableAttributes` lists the fields marked `searchable`.
  */
