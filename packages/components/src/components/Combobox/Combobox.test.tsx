@@ -305,6 +305,14 @@ describe('Combobox first match', () => {
     await userEvent.keyboard('{Enter}')
     expect(onValueChange).not.toHaveBeenCalled()
   })
+
+  it("highlights the first item with no text when autoHighlight is 'always'", async () => {
+    render(<Genres autoHighlight='always' />)
+    await userEvent.click(screen.getByRole('button', { name: 'Show genres' }))
+    const first = await screen.findByRole('option', { name: 'Rock' })
+    await waitFor(() => expect(first).toHaveAttribute('data-highlighted'))
+    expect(genreInput()).toHaveAttribute('aria-activedescendant', first.id)
+  })
 })
 
 const optionNames = () =>
@@ -559,5 +567,27 @@ describe('Combobox closest match', () => {
     await userEvent.type(genreInput(), 'Rock')
     await screen.findByRole('option', { name: 'Rock' })
     expect(optionNames()).toEqual(['Hard rock', 'Rock'])
+  })
+
+  // Only a multiple Combobox keeps its values; one value clears as Base UI does.
+  it('clears a single value with Escape while the popup is closed', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Combobox
+        items={['Rock', 'Jazz']}
+        defaultValue='Rock'
+        onValueChange={onValueChange}
+      >
+        <Combobox.InputGroup>
+          <Combobox.Input aria-label='Genre' />
+        </Combobox.InputGroup>
+      </Combobox>
+    )
+    await userEvent.tab()
+    await userEvent.keyboard('{Escape}')
+    expect(onValueChange).toHaveBeenCalledWith(
+      null,
+      expect.objectContaining({ reason: 'escape-key' })
+    )
   })
 })

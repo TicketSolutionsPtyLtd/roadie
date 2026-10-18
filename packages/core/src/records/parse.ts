@@ -1,7 +1,8 @@
-import { describeDateRange } from '../datetime/describe'
 import {
+  DATE_COMPARISONS,
   type DatePhraseValue,
   isDatePhraseCompletion,
+  isDateRange,
   parseDatePhrase
 } from '../datetime/parse'
 import type { DateRangeValue } from '../datetime/ranges'
@@ -19,7 +20,7 @@ type SuggestionBase = {
   /** Stable for the same text, fields and day. */
   id: string
   label: string
-  /** The dates a relative phrase stands for, so the absolute stays reachable. */
+  /** The chip's detail, such as the dates a relative phrase stands for. */
   description?: string
   /** Higher is better, from 0 to 1; comparable across entities' fields. */
   score: number
@@ -55,7 +56,15 @@ export type ParseQueryOptions = RecordQueryOptions & {
   locale?: string
 }
 
-type Candidate = RecordSuggestion & { span: [number, number]; order: number }
+type Candidate = RecordSuggestion & {
+  span: [number, number]
+  order: number
+  /** The id of the filter this one negates, ruled out after its first word. */
+  negates?: string
+  /** A statement's field name, whose words read no other filter. */
+  named?: [number, number]
+  partial?: boolean
+}
 
 const MAX_WORDS = 8
 const MAX_SPAN = 4
@@ -68,15 +77,89 @@ const NUMBER_RANGE = new RegExp(`^${NUMBER}(?:-|\\.\\.|to)${NUMBER}$`)
 const NUMBER_COMPARE = new RegExp(`^(>|<|=|!=)?${NUMBER}$`)
 const TRUE_WORDS = new Set(['yes', 'true', 'y'])
 const FALSE_WORDS = new Set(['no', 'false', 'n'])
+const NEGATIONS = new Set([
+  'not',
+  'isnt',
+  'excludes',
+  'excluding',
+  'except',
+  'without',
+  '!=',
+  '≠'
+])
+// ">=" and "=>" stay whole: read as "=" then ">", they'd drop the number itself.
+const OPERATOR = /(!=|[<>]=|=[<>]|≠|[<>=])/g
+// Comparisons a number reads, and those it doesn't, such as "at least" or "100+".
+const COMPARING =
+  /^(?:[<>=≥≤≠!]|at (?:least|most)\b|(?:more|less|fewer) than\b|over\b|under\b|between\b|-?\$?[\d,.]+\+(?:\s|$))/
+// A dash before a digit or dollar sign is a minus sign, as in "-5".
+const SIGNED = /^-[$\d]/
 
-/** How well typed text names a candidate, from 0 to 1. */
+type Verb = {
+  words: readonly string[]
+  negated: boolean
+  contains: boolean
+}
+
+const VERBS: readonly Verb[] = [
+  { words: ['is', 'not'], negated: true, contains: false },
+  ...[...NEGATIONS].map((word) => ({
+    words: [word],
+    negated: true,
+    contains: false
+  })),
+  { words: ['is'], negated: false, contains: false },
+  { words: ['='], negated: false, contains: false },
+  { words: ['doesnt', 'contain'], negated: true, contains: true },
+  { words: ['does', 'not', 'contain'], negated: true, contains: true },
+  { words: ['contains'], negated: false, contains: true }
+]
+
+const FREE_TEXT = new Set<RecordFilter['operator']>([
+  'contains',
+  'not-contains'
+])
+
+/** No verb, as in "city melb" or "sold > 100". */
+const BARE: Verb = { words: [], negated: false, contains: false }
+
+const isOperator = (word = '') => word.replace(OPERATOR, '') === ''
+
+/** A number's value in symbols: "over 100" as ">100", "20 and 50" as "20-50". */
+const numberText = (text: string) =>
+  text
+    .replace(/^(?:more than|over)\b/, '>')
+    .replace(/^(?:less than|under)\b/, '<')
+    .replace(/^between\s(.+)\sand\s/, '$1-')
+    .replace(/\sand\s/, '-')
+    // "5 6" stays two numbers, never 56.
+    .replace(/(?<!\d)\s+|\s+(?!\d)/g, '')
+
+/** Lower case with no apostrophes, so "isnt" reads as "isn't" and "isn’t" do. */
+const plain = (word: string) => word.toLowerCase().replace(/['’]/g, '')
+
+/** The value after a leading `!`, `!=`, `≠` or `-`, or null when it isn't negated. */
+function negatedValue(value: string): string | null {
+  const bang = /^(?:!=?|≠)/.exec(value)
+  if (bang) return value.slice(bang[0].length).trimStart()
+  if (value.startsWith('-') && !SIGNED.test(value)) return value.slice(1)
+  return null
+}
+
+// After a space or punctuation, as "Lawn" in "Room/Lawn", but not an apostrophe.
+const WORD_START = /(?<![\p{L}\p{N}'’])[\p{L}\p{N}]/gu
+
+/** How well typed text names a candidate, from 0 to 1, read from a word's start. */
 function quality(candidate: string, text: string): number {
   const name = candidate.toLowerCase()
   if (name === text) return 1
   if (name.startsWith(text)) return 0.8
-  if (name.split(/[\s_-]+/).some((word) => word.startsWith(text))) return 0.7
-  if (text.length >= 3 && name.includes(text)) return 0.5
-  return 0
+  const spaced = name.replace(/[\s_-]+/g, ' ')
+  return [...spaced.matchAll(WORD_START)].some(({ index }) =>
+    spaced.startsWith(text, index)
+  )
+    ? 0.7
+    : 0
 }
 
 function bestQuality(candidates: readonly string[], text: string): number {
@@ -139,8 +222,10 @@ function dateFilter(
 function numberFilter(field: RecordField, text: string) {
   const range = NUMBER_RANGE.exec(text)
   if (range) {
-    const value: [number, number] = [amount(range[1]!), amount(range[2]!)]
-    return value.every(Number.isFinite) && value[0] <= value[1]
+    const value = [amount(range[1]!), amount(range[2]!)].sort(
+      (a, b) => a - b
+    ) as [number, number]
+    return value.every(Number.isFinite)
       ? {
           filter: { field: field.key, operator: 'between', value } as const,
           label: `${field.label} is ${value[0]} to ${value[1]}`
@@ -169,10 +254,14 @@ type Reading = {
   filter: RecordFilter
   label: string
   quality: number
+  /** A value the text names only in part, such as "this" for Thistle. */
+  partial?: boolean
+  /** What a date says when its chip has no detail, as "Next weekend". */
   description?: string
   exact?: boolean
   /** False for a date phrase completed from its first words, like "this". */
   complete?: boolean
+  negates?: string
 }
 
 function optionReadings(field: RecordField, text: string): Reading[] {
@@ -187,7 +276,8 @@ function optionReadings(field: RecordField, text: string): Reading[] {
               values: [option.value]
             },
             label: `${field.label} is ${option.label}`,
-            quality: q
+            quality: q,
+            partial: q < 1
           }
         ]
       : []
@@ -217,17 +307,15 @@ function dateReadings(
     dateFields.flatMap((field, f) => {
       const filter = dateFilter(field, phrase.value)
       if (!filter) return []
-      const range = phraseRange(phrase.value)
-      const detail = range && describeDateRange(range, options).detail
       const completed = isDatePhraseCompletion(phrase)
       return [
         {
           filter,
-          label: `${field.label}: ${phrase.label}`,
+          label: `${field.label} is ${phrase.label}`,
           quality:
             (p === 0 ? 1 : 0.9) * (completed ? 0.8 : 1) * DATE_FIELD_DECAY ** f,
           complete: !completed,
-          ...(detail && detail !== phrase.label && { description: detail })
+          ...(phrase.description && { description: phrase.description })
         }
       ]
     })
@@ -258,6 +346,26 @@ function fieldValueReadings(
   value: string,
   options: ParseQueryOptions
 ): Reading[] {
+  // Every filterable field can be empty.
+  return [
+    ...(value.toLowerCase() === 'empty'
+      ? [
+          {
+            filter: { field: field.key, operator: 'is-not-set' } as const,
+            label: `${field.label} is empty`,
+            quality: 1
+          }
+        ]
+      : []),
+    ...typedValueReadings(field, value, options)
+  ]
+}
+
+function typedValueReadings(
+  field: RecordField,
+  value: string,
+  options: ParseQueryOptions
+): Reading[] {
   const text = value.toLowerCase()
   switch (field.type) {
     case 'option':
@@ -274,7 +382,7 @@ function fieldValueReadings(
       ]
     case 'number':
     case 'money': {
-      const reading = numberFilter(field, text.replace(/\s+/g, ''))
+      const reading = numberFilter(field, numberText(text))
       return reading ? [{ ...reading, quality: 1 }] : []
     }
     case 'boolean': {
@@ -291,6 +399,48 @@ function fieldValueReadings(
     case 'date':
       return dateReadings([field], value, options)
   }
+}
+
+function negatedFilter(filter: RecordFilter): RecordFilter | null {
+  switch (filter.operator) {
+    case 'is':
+      return { ...filter, operator: 'is-not' }
+    case 'contains':
+      return { ...filter, operator: 'not-contains' }
+    case 'eq':
+      return { ...filter, operator: 'neq' }
+    case 'neq':
+      return { ...filter, operator: 'eq' }
+    case 'is-true':
+      return { field: filter.field, operator: 'is-false' }
+    case 'is-false':
+      return { field: filter.field, operator: 'is-true' }
+    case 'is-not-set':
+      return { field: filter.field, operator: 'is-set' }
+    default:
+      return null
+  }
+}
+
+/** The opposite of each reading that has one; the label comes from the filter. */
+function negate(readings: readonly Reading[]): Reading[] {
+  return readings.flatMap(({ exact: _exact, ...reading }) => {
+    const filter = negatedFilter(reading.filter)
+    const negates = `filter:${encodeFilter(reading.filter)}`
+    return filter ? [{ ...reading, filter, negates }] : []
+  })
+}
+
+/** Option values and booleans by name, the readings a bare negation can flip. */
+function valueReadings(
+  fields: readonly RecordField[],
+  text: string
+): Reading[] {
+  return fields.flatMap((field) => {
+    if (isRecordOptionField(field)) return optionReadings(field, text)
+    if (field.type === 'boolean') return booleanReadings(field, text)
+    return []
+  })
 }
 
 function filterSuggestion(
@@ -310,7 +460,9 @@ function filterSuggestion(
     span,
     order,
     ...(reading.description && { description: reading.description }),
-    ...(reading.exact && { exact: true })
+    ...(reading.exact && { exact: true }),
+    ...(reading.negates && { negates: reading.negates }),
+    ...(reading.partial && { partial: true })
   }
 }
 
@@ -337,6 +489,12 @@ function round(score: number): number {
   return Math.round(score * 1000) / 1000
 }
 
+const spanWeight = (start: number, end: number, length: number) =>
+  0.4 + (0.6 * (end - start)) / length
+
+const remainderOf = (words: readonly string[], start: number, end: number) =>
+  [...words.slice(0, start), ...words.slice(end)].join(' ')
+
 function spanCandidates(
   words: readonly string[],
   fields: readonly RecordField[],
@@ -345,7 +503,14 @@ function spanCandidates(
   const dateFields = fields.filter((f) => f.type === 'date')
   const candidates: Candidate[] = []
   const maxSpan = words.length > MAX_WORDS ? MAX_SPAN : words.length
+  // Spans a date phrase reads, and those of them a range of two days reads.
+  const dated: [number, number][] = []
+  const ranges: [number, number][] = []
   for (let start = 0; start < words.length; start++) {
+    // "not melb" and "-melb" never offer Melbourne itself.
+    const ruledOut = start > 0 && NEGATIONS.has(plain(words[start - 1]!))
+    // "after today" never offers Today: the longer reading keeps "after".
+    const compared = start > 0 && DATE_COMPARISONS.has(plain(words[start - 1]!))
     for (
       let end = start + 1;
       end <= Math.min(words.length, start + maxSpan);
@@ -353,10 +518,8 @@ function spanCandidates(
     ) {
       const span: [number, number] = [start, end]
       const text = words.slice(start, end).join(' ').toLowerCase()
-      const remainder = [...words.slice(0, start), ...words.slice(end)].join(
-        ' '
-      )
-      const weight = 0.4 + (0.6 * (end - start)) / words.length
+      const remainder = remainderOf(words, start, end)
+      const weight = spanWeight(start, end, words.length)
       let order = 0
       const add = (reading: Reading) => {
         candidates.push(
@@ -367,12 +530,6 @@ function spanCandidates(
             span,
             order++
           )
-        )
-      }
-      // Exact only when it is the whole text: Enter must not drop the rest.
-      if (end - start === 1 && words.length > 1) {
-        identifierReadings(fields, words[start]!).forEach((reading) =>
-          add({ ...reading, exact: false })
         )
       }
       fields.forEach((field) => {
@@ -388,33 +545,301 @@ function spanCandidates(
             )
           )
         }
-        if (isRecordOptionField(field)) optionReadings(field, text).forEach(add)
-        if (field.type === 'boolean') booleanReadings(field, text).forEach(add)
       })
+      const dashed = negatedValue(words[start]!)
+      const negated = dashed
+        ? [dashed, ...words.slice(start + 1, end)].join(' ')
+        : end - start > 1 && NEGATIONS.has(plain(words[start]!))
+          ? words.slice(start + 1, end).join(' ')
+          : null
+      const read = !ruledOut && dashed === null
+      if (read) {
+        // Exact only when it is the whole text: Enter must not drop the rest.
+        if (end - start === 1 && words.length > 1) {
+          identifierReadings(fields, words[start]!).forEach((reading) =>
+            add({ ...reading, exact: false })
+          )
+        }
+        valueReadings(fields, text).forEach(add)
+      }
       // A phrase is only completed while it is still being typed, at the end.
       const typing = end === words.length
-      if (dateFields.length) {
-        dateReadings(dateFields, text, options)
-          .filter((reading) => typing || reading.complete !== false)
-          .forEach(add)
+      const readings =
+        dateFields.length && !compared
+          ? dateReadings(dateFields, text, options).filter(
+              (reading) => typing || reading.complete !== false
+            )
+          : []
+      if (readings.length && !inRange(words, start, end, options)) {
+        // A negated date reads nothing, its words included.
+        if (read) readings.forEach(add)
+        dated.push(span)
+        if (isDateRange(text, options)) ranges.push(span)
+      }
+      if (negated) {
+        negate([
+          ...identifierReadings(fields, negated),
+          ...valueReadings(fields, negated.toLowerCase())
+        ]).forEach(add)
+      }
+    }
+  }
+  // A date phrase's words read nothing that takes less than the whole
+  // phrase, so "next fri" never offers Fri, nor "not this weekend" Thistle.
+  // Each day of a range is a value of its own, so "saturday and sunday" may
+  // offer Day is Saturday.
+  return candidates.filter(
+    (c) =>
+      !dated.some(
+        (d) =>
+          !(c.kind === 'filter' && ranges.includes(d)) &&
+          overlap(c.span, d) &&
+          !within(d, c.span) &&
+          length(d) >= length(c.span)
+      )
+  )
+}
+
+/**
+ * Whether `start` to `end` sits inside a range of two days, read or not, as
+ * "fri" and "from tomorrow" do in "from tomorrow to fri".
+ */
+function inRange(
+  words: readonly string[],
+  start: number,
+  end: number,
+  options: ParseQueryOptions
+): boolean {
+  const last = Math.min(words.length, end + MAX_SPAN)
+  for (let from = Math.max(0, start - MAX_SPAN); from <= start; from++) {
+    for (let to = end; to <= last; to++) {
+      const text = words.slice(from, to).join(' ')
+      if ((from < start || to > end) && isDateRange(text, options)) return true
+    }
+  }
+  return false
+}
+
+/** The number of words from `start` that name the field, or 0. */
+function nameLength(
+  field: RecordField,
+  words: readonly string[],
+  start: number
+): number {
+  return Math.max(
+    ...[field.key, field.label].map((name) => {
+      const parts = plain(name).trim().split(/\s+/)
+      return parts.every((part, i) => words[start + i] === part)
+        ? parts.length
+        : 0
+    })
+  )
+}
+
+/** "<field> is <value>", "<field> is not <value>", "<field> doesn't contain <value>" and the like. */
+function statementCandidates(
+  words: readonly string[],
+  fields: readonly RecordField[],
+  options: ParseQueryOptions,
+  stops: ReadonlySet<number>
+): Candidate[] {
+  const lower = words.map(plain)
+  const candidates: Candidate[] = []
+  for (let start = 0; start < words.length; start++) {
+    let order = 0
+    const next = () => order++
+    for (const field of fields) {
+      const named = nameLength(field, lower, start)
+      if (!named) continue
+      const numeric = field.type === 'number' || field.type === 'money'
+      const at = start + named
+      const verbs = VERBS.filter((verb) =>
+        verb.words.every((word, i) => lower[at + i] === word)
+      )
+      // Only a number compares with no verb: "city > syd" stays text.
+      if (!verbs.length && (numeric || !isOperator(lower[at]))) verbs.push(BARE)
+      for (const verb of verbs) {
+        candidates.push(
+          ...statementValues(words, field, verb, [start, at], options, {
+            next,
+            stops
+          })
+        )
       }
     }
   }
   return candidates
 }
 
+/**
+ * Statements with their operators spaced apart, so "city!=syd" reads as
+ * "city != syd", each spanning the typed words it touches.
+ */
+function spacedStatements(
+  words: readonly string[],
+  fields: readonly RecordField[],
+  options: ParseQueryOptions,
+  starts: ReadonlySet<number>
+): { candidates: Candidate[]; compared: [number, number][] } {
+  const wordOf: number[] = []
+  const pieces = words.flatMap((word, i) => {
+    const split = word.replace(OPERATOR, ' $1 ').trim().split(/\s+/)
+    wordOf.push(...split.map(() => i))
+    return split
+  })
+  const touched = ([start, end]: [number, number]): [number, number] => [
+    wordOf[start]!,
+    wordOf[end - 1]! + 1
+  ]
+  const stops = new Set(
+    pieces.flatMap((_, i) => (starts.has(wordOf[i]!) ? [i] : []))
+  )
+  return {
+    candidates: statementCandidates(pieces, fields, options, stops).map(
+      (candidate) => {
+        const span = touched(candidate.span)
+        return {
+          ...candidate,
+          span,
+          remainder: remainderOf(words, ...span),
+          named: touched(candidate.named!)
+        }
+      }
+    ),
+    compared: comparedNames(pieces, fields).map(touched)
+  }
+}
+
+/** Each number field's name followed by a comparison, read or not, as "sold >= 100". */
+function comparedNames(
+  words: readonly string[],
+  fields: readonly RecordField[]
+): [number, number][] {
+  const lower = words.map(plain)
+  const numbers = fields.filter(
+    (field) => field.type === 'number' || field.type === 'money'
+  )
+  return lower.flatMap((_, start) =>
+    numbers.flatMap((field): [number, number][] => {
+      const at = start + nameLength(field, lower, start)
+      const next = `${lower[at] ?? ''} ${lower[at + 1] ?? ''}`
+      return at > start && COMPARING.test(next) ? [[start, at]] : []
+    })
+  )
+}
+
+/** Each reading of the words after a statement's verb, as one candidate. */
+function statementValues(
+  words: readonly string[],
+  field: RecordField,
+  verb: Verb,
+  named: [number, number],
+  options: ParseQueryOptions,
+  { next, stops }: { next: () => number; stops: ReadonlySet<number> }
+): Candidate[] {
+  const [start, at] = named
+  const from = at + verb.words.length
+  // A date of more words, such as "on or after 20 oct", while the text is short.
+  const last =
+    words.length > MAX_WORDS
+      ? Math.min(words.length, from + MAX_SPAN)
+      : words.length
+  // Free text stops where other filters read the rest, so "name disco melb"
+  // leaves melb to City is Melbourne. Reading past it scores as stopping
+  // there, and ties go to the shorter reading, so it's the runner-up.
+  let stop = from + 1
+  while (stop < last && !stops.has(stop)) stop++
+  const candidates: Candidate[] = []
+  for (let end = from + 1; end <= last; end++) {
+    if (field.type === 'date' && inRange(words, from, end, options)) continue
+    const typing = end === words.length
+    const readings = fieldValueReadings(
+      field,
+      words.slice(from, end).join(' '),
+      options
+    ).filter(
+      (reading) =>
+        (!verb.contains || reading.filter.operator === 'contains') &&
+        (typing || reading.complete !== false)
+    )
+    const remainder = remainderOf(words, start, end)
+    for (const reading of verb.negated ? negate(readings) : readings) {
+      const past = end > stop && FREE_TEXT.has(reading.filter.operator)
+      const weight = spanWeight(start, past ? stop : end, words.length)
+      candidates.push({
+        ...filterSuggestion(
+          // Enter takes an exact reading, so it must leave nothing.
+          remainder ? { ...reading, exact: false } : reading,
+          round(reading.quality * weight),
+          remainder,
+          [start, end],
+          next()
+        ),
+        named
+      })
+    }
+  }
+  if (field.type !== 'date') return candidates
+  // "starts sat 10 oct" never also reads Sat on its own.
+  const longest = Math.max(...candidates.map(({ span }) => span[1]))
+  return candidates.filter(({ span }) => span[1] === longest)
+}
+
 function overlap(a: [number, number], b: [number, number]): boolean {
   return a[0] < b[1] && b[0] < a[1]
 }
+
+function within(inner: [number, number], outer: [number, number]): boolean {
+  return outer[0] <= inner[0] && inner[1] <= outer[1]
+}
+
+const length = ([start, end]: [number, number]) => end - start
+
+/**
+ * Another filter reads the same words and more, as "this weekend" does
+ * "this". Text a field contains reads any words, so it claims none.
+ */
+const covers = (outer: Candidate, inner: Candidate) =>
+  outer.kind === 'filter' &&
+  !FREE_TEXT.has(outer.value.operator) &&
+  within(inner.span, outer.span) &&
+  length(outer.span) > length(inner.span)
 
 /**
  * Best first, except that the best reading of each separate part of the text
  * comes before the runners-up, so "melb this weekend" offers both its city
  * and its dates at the top.
  */
-function rank(candidates: Candidate[]): Candidate[] {
+function rank(
+  candidates: Candidate[],
+  compared: readonly [number, number][] = []
+): Candidate[] {
+  // "status is not sold out" never offers Sold out from its last word. A
+  // reading that takes the negating word too, like "Not on sale", stays.
+  const negations = candidates.filter((c) => c.negates)
+  // "sold > 100" and "sold >= 100" never offer Sold out from the field's name.
+  const names = [
+    ...compared,
+    ...candidates.flatMap((c) => (c.named ? [c.named] : []))
+  ]
   const byId = new Map<string, Candidate>()
-  for (const candidate of candidates) {
+  // Statements that read a value, not text a field contains.
+  const statements = candidates.filter(
+    (c) => c.named && c.kind === 'filter' && !FREE_TEXT.has(c.value.operator)
+  )
+  for (const candidate of candidates.map((c) =>
+    belowStatements(c, statements)
+  )) {
+    if (
+      negations.some(
+        (n) => n.negates === candidate.id && n.span[0] < candidate.span[0]
+      ) ||
+      (candidate.kind === 'filter' &&
+        !candidate.named &&
+        names.some((name) => within(candidate.span, name))) ||
+      (candidate.partial && candidates.some((c) => covers(c, candidate)))
+    )
+      continue
     const seen = byId.get(candidate.id)
     if (!seen || candidate.score > seen.score) byId.set(candidate.id, candidate)
   }
@@ -432,6 +857,28 @@ function rank(candidates: Candidate[]): Candidate[] {
     }
   }
   return [...leaders, ...sorted.filter((c) => !leaders.includes(c))]
+}
+
+/**
+ * A reading of a statement's value that leaves its field's name unread
+ * scores no higher than the statement, so "day saturday and sunday" offers
+ * Day is Saturday before the dates.
+ */
+function belowStatements(
+  candidate: Candidate,
+  statements: readonly Candidate[]
+): Candidate {
+  if (candidate.named) return candidate
+  const score = Math.min(
+    candidate.score,
+    ...statements.flatMap(({ named, span, score }) =>
+      overlap(candidate.span, [named![1], span[1]]) &&
+      !overlap(candidate.span, named!)
+        ? [score]
+        : []
+    )
+  )
+  return score === candidate.score ? candidate : { ...candidate, score }
 }
 
 /** The field named before a colon, the longest name first, so a label may hold a colon. */
@@ -457,19 +904,30 @@ function namedField(
 
 function finish(options: ParseQueryOptions) {
   const { entity, fields } = options
-  const dateKeys = new Set(
-    fields.filter((field) => field.type === 'date').map((field) => field.key)
-  )
-  return ({ span: _span, order: _order, ...suggestion }: Candidate) => {
-    // A chip reads the same words; a date keeps the phrase as typed.
-    const label =
-      suggestion.kind === 'filter' && !dateKeys.has(suggestion.value.field)
-        ? describeRecordFilter(suggestion.value, fields, options).label
-        : suggestion.label
+  return ({
+    span: _span,
+    order: _order,
+    negates: _negates,
+    named: _named,
+    partial: _partial,
+    ...suggestion
+  }: Candidate) => {
+    // A filter reads as its chip will, dates and their tooltip included.
+    const described =
+      suggestion.kind === 'filter'
+        ? describeRecordFilter(suggestion.value, fields, options)
+        : null
+    const finished = described
+      ? {
+          ...suggestion,
+          label: described.label,
+          ...(described.detail && { description: described.detail })
+        }
+      : suggestion
     return (
       entity
-        ? { ...suggestion, label, id: `${entity}:${suggestion.id}`, entity }
-        : { ...suggestion, label }
+        ? { ...finished, id: `${entity}:${suggestion.id}`, entity }
+        : finished
     ) as RecordSuggestion
   }
 }
@@ -478,11 +936,20 @@ function finish(options: ParseQueryOptions) {
  * Suggestions for typed text, best first, from field definitions alone, so
  * the same function serves one list screen or a search across entities.
  * Reads identifiers (a field's `match`, offered as exact), `field:value`,
- * field names, option and status values, booleans by name, and date phrases
- * for each date field. A number field's `field:value` takes `100`, `>100`,
- * `<100`, `!=100` or `100-500`, with `$` and thousands commas allowed.
- * Filter labels read as `describeRecordFilter` writes chips. Empty text lists the filterable fields. Free text is
- * left to the caller, as a search.
+ * `<field> <value>`, `<field> is <value>` and `<field> contains <value>`, field names, option
+ * and status values, booleans by name, and date phrases for each date field.
+ * A number field's `field:value` takes `100`, `>100`, `<100`, `!=100`,
+ * `100-500`, `over 100`, `under 100` or `100 and 500`, with `$` and thousands
+ * commas allowed; `<field> > 100`, `<field> more than 100`,
+ * `<field> between 100 and 500` and `<field> 100-500` read the same. Negation reads as the
+ * opposite filter: a `-` before a value (not a number), `not`, `isn't`,
+ * `excludes`, `excluding`, `except`, `without`, `!=` or `≠` before a value
+ * or after a field's name, `<field> is not`, `doesn't contain` or
+ * `does not contain`, apostrophes optional, and `field:!value`,
+ * `field:!=value` or `field:-value`; a date or a comparison has no
+ * opposite, so reads nothing.
+ * Filter labels read as `describeRecordFilter` writes chips. Empty text lists
+ * the filterable fields. Free text is left to the caller, as a search.
  */
 export function parseQuery(
   text: string,
@@ -506,9 +973,13 @@ export function parseQuery(
 
   const named = namedField(input, fields)
   if (named) {
-    const { field, value } = named
+    const { field } = named
+    const negated = negatedValue(named.value)
+    const value = negated ?? named.value
+    const read = (readings: Reading[]) =>
+      negated === null ? readings : negate(readings)
     const readings = value
-      ? fieldValueReadings(field, value, options).map((reading, i) =>
+      ? read(fieldValueReadings(field, value, options)).map((reading, i) =>
           filterSuggestion(reading, round(reading.quality), '', whole, i)
         )
       : [fieldSuggestion(field, 1, '', whole, 0)]
@@ -517,7 +988,23 @@ export function parseQuery(
       .map(strip)
   }
 
-  return rank([...identifiers, ...spanCandidates(words, fields, options)])
+  const spans = spanCandidates(words, fields, options)
+  // Where other filters read every word to the end, as "melb this weekend".
+  // "hall" in "kettle hall" doesn't count: Antler Kettle Hall reads it.
+  const readers = spans.filter(
+    (c) =>
+      c.kind === 'filter' && !(c.partial && spans.some((o) => covers(o, c)))
+  )
+  const starts = new Set([words.length])
+  for (let i = words.length - 1; i > 0; i--) {
+    const read = readers.some((c) => c.span[0] === i && starts.has(c.span[1]))
+    if (read) starts.add(i)
+  }
+  const statements = spacedStatements(words, fields, options, starts)
+  return rank(
+    [...identifiers, ...spans, ...statements.candidates],
+    statements.compared
+  )
     .slice(0, limit)
     .map(strip)
 }

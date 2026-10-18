@@ -67,22 +67,70 @@ shown, or the `baseline`'s, so switching back reads as unchanged.
 
 `Records.Search` searches and filters in one `QueryField`, named "Search and
 filter". Typing searches the searchable fields as before and suggests filters
-from the fields: option values (or, in the browser, the values an option
-field without `options` holds), statuses, booleans by name, identifiers and
-date phrases such as "this weekend", each becoming a chip; the words a
-suggestion doesn't read stay in the field. Picking a field lists its values,
-or for a date its quick dates and Custom dates; a number or text field opens
-its editor. A `location` field filters as an option does. Option values
-added to a field join its chip. Each chip opens an
-editor for its condition and value as they change (a list of values, a date
-range picker with relative presets, a date picker, a number, text, or Yes and
-No), in a popover under the chip or a bottom drawer on a phone, with Remove
-filter; a filter whose values are cleared is removed as its editor closes,
-and the editor loads while the page is idle. A relative date chip shows its dates
-in a tooltip, and a filter the fields can't apply shows in warning colours.
-`/` focuses the search unless `shortcut` (or `searchShortcut` on
-`Records.Toolbar` and `RecordTable`) says otherwise, and Clear and Escape
-clear it. The toolbar keeps its buttons at the top as chips wrap.
+from the fields: option values (or, in the browser, the values an option field
+without `options` holds), statuses, booleans by name, identifiers, and date
+phrases such as "this weekend", each becoming a chip. The words a suggestion
+doesn't read stay in the field. Typed negation, such as "location is not
+melb", suggests "Location is not Melbourne". A field named in full, such as "sold", lists
+before values that start with its name, such as Sold out, unless a filter reads
+the words after it, as in "location melb". Text naming a filter already applied
+still suggests it, marked Already applied, and taking it clears those words and
+adds nothing.
+
+Picking a field lists its values under a toggle of operators, which Tab steps
+through. Leaving the field ends picking a value, as Escape does. An option
+field offers is, is not, and has all of for a `multiple` field, and a
+`location` field filters as an option does. A text field
+offers contains, doesn't contain, is, and is not. A number or money field
+offers =, ≠, <, >, and between, named in words for screen readers. A boolean
+lists Yes and No under is. A date field offers is relative, with its quick
+dates, then is, is before, is after, and is between, each with a calendar
+under the values. A day picked, or a range's second day, adds the chip, and
+typing suggests days, such as Fri for "fri", or a range for "22 oct to 30
+oct". Dates are whole days, on a timestamp field too. Every
+field that can be filtered ends its toggle with is empty and is not empty,
+whose one row Enter takes. Typing switches back to the field's first operator,
+so the text applies. Typing narrows the values, and Enter takes the first. A
+quick date lists when its name has a word starting with each word typed, so
+"next" lists Next 7 days, with whole words first, so "week" lists This week
+before This weekend. Typed text or a
+number shows as one row worded as its chip. Between reads 20 and 50, 20-50, 20
+to 50, or 20..50, in either order, and a space after the first number adds the
+"and". One Backspace takes it away. Money takes `$` and commas. Until the
+value reads, the list says what to type, such as "Type a number." Another option value joins the field's chip with the same condition, so a value added under is not never joins an is chip. An is empty chip takes
+the place of the field's other chips, and any other chip on the field takes
+the place of its is empty chip, as together they match nothing. A date chip
+takes the place of the field's earlier date chip, as two dates rarely
+overlap.
+
+Clicking a chip, or Enter on it, edits it in the list, as a dashed chip in
+its place with what it holds ticked. An option chip's values tick and untick, and unticking the last
+removes the chip. Enter on typed text only ticks. When the typed text matches
+only values the chip holds, the list says so, such as "Perth is already in
+this filter." Its is, is not, and has all of rewrite its condition and keep
+its values, and a chip rewritten to is joins the field's is chip. A text or
+number chip puts its value in the field, selected so typing replaces it, and
+its condition in the toggle, and Enter replaces it once either changes. A date
+chip puts its dates in the field the same way, such as "12 Nov to 15 Dec" or
+"This week", and Enter on them unchanged keeps the chip. Any other value taken, or the row under
+is empty or is not empty, replaces what the chip holds. Every chip but an
+option chip holds one value, so taking one ends the edit and closes the list.
+Everything but an
+option chip's operator waits for Enter, so Tab passing through is empty keeps
+the values. Text typed before is empty or is not empty is set aside, and
+Backspace in the empty field brings it back under the operator it was typed
+under. Otherwise Backspace in the empty field removes the chip, and Escape, Enter
+with no new value to take, or leaving the field keeps it and ends the edit. A
+date chip opens on its operator, with the calendar on its month and its day or
+range marked. Typing a date moves the calendar to its month. The calendar
+loads while the page is idle. A
+date chip reads as other chips do, such as "Start date is this weekend", and a
+relative one shows its dates in a tooltip. A filter the fields can't
+apply shows in warning colours. `/` focuses the search unless `shortcut` (or
+`searchShortcut` on `Records.Toolbar` and `RecordTable`) says otherwise, and
+Clear and Escape clear it. The toolbar keeps its buttons at the top as chips
+wrap. Under 40rem, the focused search takes the toolbar's row, and the other
+controls hide until focus leaves it.
 
 `useRecords` takes a `scope`: filters the page sets, such as the event a list
 of tickets belongs to. They filter with the view but are never part of it,

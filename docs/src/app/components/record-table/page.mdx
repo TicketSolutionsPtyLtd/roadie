@@ -136,6 +136,8 @@ function Shows() {
 
 `Records.Toolbar` holds the standard controls: the search and filter field, `Records.Select` for Select mode on narrow rows, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
 
+In a toolbar under 40rem, the search takes the whole row while it has focus. The other controls hide from sight and screen readers, and come back once focus leaves the search. Tab out of the search shows them first, so it lands on the next one.
+
 `Records.BulkActions` can sit anywhere inside the Provider: the table's `Records.Content` shows it in its header row.
 
 ### In a Pane
@@ -174,7 +176,7 @@ const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
   { ...field.option('venue', { label: 'Venue', options: venues, searchable: true }), icon: <BuildingsIcon weight='bold' /> },
-  field.date('startsAt', { label: 'Starts', moment: 'event', timeZoneKey: 'timeZone' }),
+  field.date('startsAt', { label: 'Start date', moment: 'event', timeZoneKey: 'timeZone' }),
   field.option('status', {
     label: 'Status',
     status: {
@@ -320,11 +322,7 @@ render(
 
 ### Search and filters
 
-The toolbar's search is a [query field](/components/query-field) named "Search and filter". Typing searches the searchable fields as you type, and suggests filters the fields can read: an option's values, a status, a boolean by its name, an identifier's `match`, and date phrases such as "this weekend" or "after 1 dec" for each date field. Take a suggestion with the arrows and Enter, or a click, and it becomes a chip; Enter on its own keeps searching the text. Typing "melb this weekend" offers both Location is Melbourne and Starts: This weekend, and the words a filter doesn't read stay in the field for the next one.
-
-Focusing the empty field lists the fields to filter by. An option or boolean field then lists its values, and a date field its quick dates, upcoming for event dates and recent for timestamps, with Custom dates last. A number or text field opens its editor straight away. Picking another value for an option field adds it to that field's chip, since a chip's values are ORed and chips are ANDed.
-
-Click a chip, or press Enter on it, to edit it: its condition and value, applied as you change them, in a popover under the chip or a bottom drawer on a phone. Options are a list of checkboxes, dates use the [date range picker](/components/date-range-picker) or [date picker](/components/date-picker), numbers a [number field](/components/number-field), and booleans Yes or No. Remove filter is at the foot, and a filter whose values you clear is removed as its editor closes. An option field with no `options` lists the values its records hold, in the browser, and otherwise takes what you type. A chip with more values than it shows names them all in its tooltip. A relative date chip shows its dates in a tooltip, and a filter these fields can't apply shows in warning colours and filters nothing. Press `/` to focus the search from anywhere on the page. With several on a page, the first one takes the key; set `searchShortcut` on `RecordTable` or `Records.Toolbar`, or `shortcut` on `Records.Search`, to another key or `false`.
+The toolbar's search is a [query field](/components/query-field) named "Search and filter". It searches the records as you type and adds filters as chips. A record shows only when it matches every chip.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -336,7 +334,7 @@ const fields = [
     label: 'Status',
     status: { on_sale: { intent: 'success', order: 1 }, selling_fast: { intent: 'warning', order: 2 }, sold_out: { intent: 'danger', order: 3 } }
   }),
-  field.date('starts', { label: 'Starts', moment: 'date' }),
+  field.date('starts', { label: 'Start date', moment: 'date' }),
   field.number('sold', { label: 'Sold' })
 ]
 const column = tableColumns(fields)
@@ -357,14 +355,14 @@ const places = [
   ['Hobart', 'Nimbus Thistle Hall']
 ]
 const statuses = ['on_sale', 'selling_fast', 'sold_out']
-const day = (offset) => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10)
+const today = plainDateOf(new Date(), viewerTimeZone())
 const shows = Array.from({ length: 60 }, (_, index) => ({
   id: `show-${index}`,
   show: bands[index % bands.length],
   location: places[index % places.length][0],
   venue: places[index % places.length][1],
   status: statuses[index % statuses.length],
-  starts: day(index % 45),
+  starts: addDays(today, index % 45),
   sold: (index * 137) % 2400
 }))
 
@@ -381,9 +379,89 @@ render(
 )
 ```
 
+#### Searching
+
+Typing searches the searchable fields, and suggests the filters the text reads:
+
+- an option's or location's values, or a status
+- a boolean, by its name
+- an identifier, by its `match`
+- a date phrase for each date field, such as "this weekend" or "after 1 dec"
+
+Pick a suggestion with the arrows and Enter, or a click, to add its chip. Enter with no suggestion picked searches the text. A filter takes only the words it reads, and the rest stay in the field for the next one. Typing "melb this weekend" offers "Location is Melbourne" and "Start date is this weekend".
+
+#### Picking a field
+
+Focus the empty field to list the fields to filter by. Pick one, and the list shows its values under a toggle of operators. Press an operator, or press Tab and Shift+Tab, to change it.
+
+| Field            | Operators                                         | Values                                                                                                  |
+| ---------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Option, location, or status | is, is not, and has all of for a `multiple` field | Its `options`, or up to 1,000 values its records hold. Past that, or when a server filters the records, you type the value. |
+| Text             | contains, doesn't contain, is, and is not         | What you type                                                                                           |
+| Number or money  | `=`, `≠`, `<`, `>`, and between                   | What you type                                                                                           |
+| Boolean          | is                                                | Yes and No                                                                                              |
+| Date             | is relative, is, is before, is after, and is between | Under is relative, quick dates, upcoming for an event date and recent for a timestamp. Under the others, a calendar |
+
+Every field you can filter by ends its toggle with **is empty** and **is not empty**. A field that holds a list of dates can't be filtered yet, so it isn't listed.
+
+#### Typing a value
+
+- Typing narrows an option, location, boolean, or date field's values, and Enter takes the first.
+- Text or a number you type shows as one row worded as its chip, such as "Sold is more than 1,500", and Enter takes it.
+- Between reads 20 and 50, 20-50, 20 to 50, or 20..50, in either order. A space after the first number adds the "and", and one Backspace takes it away.
+- Money takes a `$` and thousands commas, such as $1,500.
+- Until the value reads, the list says what to type, such as "Type a number." or "Between 20 and what? Type the second number."
+- Under **is empty** or **is not empty**, the list shows one row, such as "Location is empty", and Enter takes it. What you'd typed is set aside, and comes back if you move to another operator, or press Backspace in the empty field, which also returns to the operator you typed it under. Typing switches back to the field's first operator, such as **is**, so what you type applies.
+
+Another option value taken under **is** joins that field's is chip, which matches any one of its values. An **is empty** chip takes the place of the field's other chips, and any other chip on the field takes the place of its **is empty** chip, as together they match nothing. A date chip takes the place of the field's earlier date chip, as two dates rarely overlap.
+
+#### Editing a chip
+
+Click a chip, or press Enter on it, to edit it in the list. It turns back into a dashed chip in its place, with its value in the field and selected, so typing replaces it. The toggle shows the chip's operator, and the list ticks what the chip holds.
+
+- **An option or location chip.** Its values stay in the dashed chip, and the field is empty. Take values to tick and untick them, and the list stays open for more. Unticking the last value removes the chip. Enter on typed text only ticks. Press **is**, **is not**, or **has all of** to change the condition and keep the values. A chip changed to **is** joins the field's is chip.
+- **A text or number chip.** Its value is in the field and its condition in the toggle, such as 20 and 50 under **between**. Change either, and Enter replaces the chip once the value reads and ends the edit.
+- **A date chip.** Its dates are in the field, such as 12 Nov to 15 Dec under **is between**, or This week under **is relative**. Type others, or take a quick date or a day from the calendar, to replace them and end the edit.
+- **A boolean chip.** The field is empty. Yes or No replaces what the chip holds and ends the edit.
+- **Is empty or is not empty.** The row under either replaces what the chip holds, and ends the edit of any chip but an option chip. A chip that already reads is empty or is not empty opens with that row ticked.
+
+Only an option chip changes as you press an operator. Anything else waits for Enter, so pressing Tab past **is empty** keeps the chip's values. Backspace in the empty field removes the chip. Escape, Enter on the chip's value unchanged or with no new value to take, or leaving the field ends the edit and keeps the chip. While you edit, Left and Right move only within the text.
+
+#### Dates
+
+A date field starts on **is relative**, with its quick dates, such as Today, This week, and Next 7 days. Typing narrows them, and phrases like "rest of the month" read too.
+
+Under **is**, **is before**, or **is after**, the dropdown shows a calendar under the values. Click or tap a day to add the chip, such as "Start date is on Thu 22 Oct". Typing suggests days above the calendar, such as Fri for "fri", and Enter takes the first. The calendar moves to the month of the first day, so "26 feb" shows February, and tints the day or range Enter would take. Under **is between**, click two days for a range, or type one, such as "22 oct to 30 oct".
+
+The calendar stays in the dropdown at every screen size, as wide as the field. It shows two months side by side where they fit, and one on a phone, with a month and year select to jump further. Until you type, a hint says you can type a date instead. Dates are whole days, on a timestamp field too. Editing a date chip opens it on its operator, with the calendar on its month and its day or range marked. Picking another day changes the chip.
+
+#### Chips
+
+- A chip with more values than it shows names them all in its tooltip.
+- A relative date chip, such as "Start date is this weekend", shows its dates in its tooltip.
+- A filter these fields can't apply shows in warning colours and filters nothing.
+
+#### Keys
+
+| Key            | What it does                                                                                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/`            | Focuses the search from anywhere on the page, except while you type in another field.                                                                                          |
+| Enter          | Takes the suggestion you moved to. With none, it takes an identifier the text matches, or searches the text. While you pick a value, it takes the first value once you type, or the one row under is empty or is not empty. While you edit a chip, with its value unchanged or no new value to take, it ends the edit. |
+| Tab, Shift+Tab | While a field's values show, moves to the next or previous operator. From the last operator, or the first, it leaves the input and ends picking a value or editing a chip. |
+| Backspace      | In the empty field, selects the last chip, and a second removes it. While you pick a value, it goes back to the fields, and while you edit a chip, it removes that chip.              |
+| Escape         | Ends picking a value or editing a chip, and keeps the chips, as leaving the field does. Otherwise it closes the suggestions, then clears the text.                              |
+
+With several searches on a page, the first one takes `/`. Set `searchShortcut` on `RecordTable` or `Records.Toolbar`, or `shortcut` on `Records.Search`, to another key or `false`.
+
 #### Scope
 
-A page that shows part of a list, such as one venue's shows or one event's tickets, passes `scope`: filters it sets, not the person. They show first as locked chips with a "Set by this page" tooltip, filter with the view, and are never part of it, so they never reach a saved view or the URL, Clear and the empty state's Clear search and filters keep them, and a list with only its scope counts as unfiltered. In server mode, fetch `records.scopedQuery`, which puts the scope's filters first; `toMeilisearch` reads a view, so pass it `{ ...records.appliedView, query: records.scopedQuery }`. Table and bulk actions get that query too, so acting on every match stays within the page. The scope can hold anything a filter can, so an app can resolve "products on this event, any of its days or its collection" into filters it understands.
+A page that shows part of a list, such as one venue's shows or one event's tickets, passes `scope`: filters the page sets, not the person. They show first as locked chips with a "Set by this page" tooltip, and filter the records along with the view.
+
+The scope is never part of the view. Saved views and the URL leave it out. Clear, and the empty state's Clear search and filters, keep it. A list filtered only by its scope counts as unfiltered.
+
+In server mode, fetch `records.scopedQuery`. It's the applied query with the scope's filters first. `toMeilisearch` reads a whole view, so pass it `{ ...records.appliedView, query: records.scopedQuery }`. Table and bulk actions get the same query, so an action on every match stays within the page.
+
+A scope holds any filter a field can apply. An app turns a rule such as "products on this event, its days, or its collection" into filters on its own fields.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -476,7 +554,7 @@ const field = recordFields()
 const fields = [
   field.text('name', { label: 'Event' }),
   field.location('location', { label: 'Location' }),
-  field.date('startsAt', { label: 'Starts', moment: 'date' }),
+  field.date('startsAt', { label: 'Start date', moment: 'date' }),
   field.number('sold', { label: 'Sold' }),
   field.money('gross', { label: 'Gross', format: 'compactCurrency' })
 ]
@@ -579,7 +657,7 @@ const fields = [
   field.text('name', { label: 'Event' }),
   field.text('venue', { label: 'Venue' }),
   field.location('location', { label: 'Location' }),
-  field.date('startsAt', { label: 'Starts', moment: 'date' }),
+  field.date('startsAt', { label: 'Start date', moment: 'date' }),
   field.option('status', {
     label: 'Status',
     status: { on_sale: { intent: 'success', label: 'On sale' }, sold_out: { intent: 'neutral', label: 'Sold out' } }
@@ -1530,8 +1608,10 @@ column.field('location', { pin: true })`}
 - When the table holds only some of its rows (a page of several, more than 100 rows, or a list loaded by range), it carries `aria-rowcount`, counting every match (up to 300,000 loading by range) and the header row, and each row its `aria-rowindex`, so screen readers announce "row 52 of 121". Loading by range, the count is `-1` until the total is known.
 - Loading by range, the table is `aria-busy` while a range loads, placeholders are hidden from screen readers, and a failed range is announced, such as "Couldn't load more shows". The result count is announced only once the total is known. The header checkbox is named "Select loaded rows".
 - State titles are paragraphs, not headings, since the table can't know the page's outline. Their icon tiles are hidden from screen readers.
-- The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click or with the arrows, not on Tab, and while they're open the rest of the page is hidden from screen readers, as for any combobox. Enter searches the text unless you moved to a suggestion with the arrows. Escape closes the suggestions, and a second Escape clears the text. Clear keeps focus in the field and keeps the page's scope. `/` focuses the field from anywhere, except while typing in another one.
-- Chips are a toolbar named "Filters": Left and Right move between them, Backspace on the empty field selects the last one and a second removes it, and Enter or a click opens its editor, a dialog named after the field. Focus returns to the chip when the editor closes, or to the field once the filter is removed. Each chip's remove button is named "Remove" and the chip. A locked scope chip says it is set by the page, and a chip's dates or a note that it can't apply are read after its label.
+- The search is a combobox named "Search and filter", or by its `aria-label`. Suggestions open as you type, on a click, or with the arrows, not on Tab. While they're open, the rest of the page is hidden from screen readers, as for any combobox. Clear keeps focus in the field and keeps the page's scope. [Keys](#keys) lists what each key does.
+- Chips are a toolbar named "Filters", and Left and Right move between them. Selecting a chip lists its values and keeps focus in the field. Each chip's remove button is named "Remove" and the chip. A locked scope chip says it's set by this page, and a chip's dates, or a note that it can't apply, are read after its label.
+- The operators are a toggle group named "Operator". A number's operators are symbols named in words, such as "is less than" for `<`.
+- A date's calendar is named after the field, such as "Start date". Focus stays in the field as you press it, and Tab moves through the operators, so the keyboard picks a date by typing it.
 - Each record's checkbox is named "Select" followed by the record's title, or its id with no title, and the header checkbox is named "Select page", with a mixed state when only some of the page is checked.
 - `Records.Status` also announces the selection, such as "3 selected, 24 results". It announces a search's count once typing settles, not on every keystroke, and against a server once the new count loads.
 - While records are selected, the bulk actions are a toolbar named "Bulk actions" in the header row, beside "Select page", which keeps focus as the bar replaces the column headers. The headers stay in the table for screen readers, and the toolbar sits in a last header with no cells under it. Arrow keys move between its controls. Escape clears the selection and returns focus to "Select page".
@@ -1606,8 +1686,4 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `timeZone` | `string` | The reader's zone in use. |
 | `now` | `Date` | The moment relative dates resolve against. |
 
-<PropsDefinitions component='RecordTable' />
-
-<PropsDefinitions component='Records' />
-
-<PropsDefinitions component='RecordValue' />
+<PropsDefinitions component={['RecordTable', 'Records', 'RecordValue']} />

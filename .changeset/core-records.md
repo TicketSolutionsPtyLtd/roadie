@@ -20,7 +20,10 @@ ranges. Text compares without case, and negative filters (is not, does not
 contain, not equal) keep records where the field is empty. `parseQuery`
 reads typed text into ranked suggestions for `QueryField`: identifiers,
 `field:value`, field names, option values and date phrases, tagged with an
-`entity` when given. `toSearchParams` and `fromSearchParams` write and read a
+`entity` when given. Values read from the start of a word, and a value named
+only in part is left out when a longer reading takes its words, so "melb this
+weekend" never suggests a venue named Thistle, while "name disco melb" still
+suggests "City is Melbourne". `toSearchParams` and `fromSearchParams` write and read a
 view and position as a versioned URL (`RECORD_VIEW_FORMAT`, `v=1`), falling
 back to a `fallback` view when the URL is invalid, and `equalViews` tells
 whether a view was modified. `recordFilterOperators` and `recordFieldOptions`
@@ -56,13 +59,64 @@ action takes.
 
 `describeRecordFilter(filter, fields, { now, timeZone })` writes a filter as
 its chip reads ("Venue is Kazoo Hollow Room", "Gross is more than $100",
-"Starts: This weekend"), with the dates a relative range stands for in
-`detail`. `recordOperatorLabel` names an operator ("is more than") and
+"Start date is this weekend"), with the dates a relative range stands for in
+`detail`. Outside a timestamp, upcoming, past and happening now give days
+with no clock, such as "From 16 Oct 2026, unless already over" on an event
+with an end, which compares the instant ("unless already started" with only a
+start), and "From 16 Oct 2026" on a plain date.
+A date chip reads like any other, with "is" after the field's name: "is
+in the next 7 days", "is on Tue 20 Oct", "is before 20 Oct", and a range of one day reads as that day, "is on Thu 22
+Oct". `recordOperatorLabel` names an operator ("is more than") and
 `recordOptionPaths` gives each option's label with its parents' ("Ochre Kite
 Weekender 2027 › Opening Night"). A chip listing more than two values names
-them all in `detail`. `parseQuery` labels its filters the same way, names a
+them all in `detail`. `parseQuery` labels its filters the same way, dates included, names a
 field whose label holds a colon in `field:value`, and reads `$` and
 thousands commas in a number's value.
+
+`parseQuery` reads negation as the opposite filter, and leaves none of its
+words in `remainder`. "not melb" and "-melb" suggest "City is not Melbourne".
+It also reads `isn't`, `excludes`, `excluding`, `except`, `without`, `!=`,
+and `≠` before a value, `venue:!walrus`, "venue is not walrus", "city not
+syd", "city != syd", and "name doesn't contain disco", with or without the
+apostrophe. It reads "venue is walrus", "city =
+syd", and "name contains disco" too. A negated value never also suggests its
+positive, so "status is not sold out" offers only "Status is not Sold out". A
+date or a comparison has no opposite, so a negated one reads nothing, and
+neither do its words.
+
+A number or money field's name, then `>`, `<`, `=`, `!=`, more than, less
+than, over, under, between 20 and 50, or a range such as 20-50 in either
+order, reads as that comparison: "capacity > 100" suggests "Capacity is more
+than 100". `field:value` takes the same words, and "capacity:20 and 50" reads
+as a range. `>=`, `<=`, `≥`, `≤`, at least, at most, and "100+" read nothing, but the
+field's name still keeps "sold >= 100" from suggesting "Status is Sold out".
+Numbers a space separates never join. A field name then a value with no verb reads as `field:value` does, so
+"city melb" suggests "City is Melbourne" and "capacity 100" suggests "Capacity
+is 100". Text a field contains stops before words other filters read to the
+end, so "name disco melb" suggests "Name contains disco" and "City is
+Melbourne" first. "city is empty" and "city is not empty" read as the field
+having no value or one. A field name a statement reads is never also read as a
+value, so "sold > 100" never suggests "Status is Sold out". A date keeps the
+word that compares it: "starts after today" never suggests "Start date is
+today", and one it can't read, such as "after 7pm", suggests no date. The words of a
+longer date read nothing on their own, so "last monday" never also suggests
+the coming Monday, and two days joined by "to" or "and", such as "tomorrow
+to next fri", read as the days between or not at all, though each day can
+still be a value, as "Day is Saturday" is in "saturday and sunday". A
+statement comes before another reading of its value that leaves the field's
+name out, so "day saturday and sunday" suggests "Day is Saturday" first.
+`parseDatePhrase` reads "after" and "before" with any day or range, such as
+"after this weekend", and "since", "from", "on or after", "until", "till",
+and "on or before" with the day itself included, as it does "onwards" or
+"and later" after a day. A weekday after "since" is the last one, so
+"since mon" never means next Monday, and after any other comparison it's the
+next one. It reads "weekend", "on the weekend" and "over the weekend" as
+this weekend, "tonight" as today, "tmrw" as tomorrow, "rest of the week",
+month or year as today to its last day, "the 20th of oct", and "in the next
+7 days". A period on its own, such as "month", completes to this month
+before month to date. Next and last weekend's dates carry a `description`,
+"Next weekend" or "Last weekend", and `parseQuery` takes each suggestion's
+`description` from its chip's `detail`.
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
 and `hitsPerPage`, so the response's `totalHits` counts the matches (up to

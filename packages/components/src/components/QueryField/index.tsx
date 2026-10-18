@@ -3,6 +3,8 @@ export type {
   QueryFieldAccepted,
   QueryFieldChip,
   QueryFieldIntent,
+  QueryFieldOperator,
+  QueryFieldPendingChip,
   QueryFieldSearchSuggestion,
   QueryFieldSuggestion,
   QueryFieldSuggestionGroup
