@@ -361,10 +361,10 @@ public sealed record RecordsFilter(
     string Operator,
     IReadOnlyList<string>? Values = null,
     JsonElement? Value = null,
-    RecordsRange? Range = null);
+    RecordsFilterRange? Range = null);
 
 // Kind "dates" holds 'YYYY-MM-DD' strings; "instants", epoch milliseconds.
-public sealed record RecordsRange(string Kind, JsonElement? Start, JsonElement? End);
+public sealed record RecordsFilterRange(string Kind, JsonElement? Start, JsonElement? End);
 
 public sealed record RecordsSort(string Field, string Direction);
 

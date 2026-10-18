@@ -43,15 +43,23 @@ export type RecordsRequestOptions = RecordQueryOptions & {
 const isWhole = (value: number, min: number) =>
   Number.isSafeInteger(value) && value >= min
 
-function checkPaging(paging: RecordsRequestPaging) {
-  const fits =
-    'page' in paging
-      ? isWhole(paging.page, 0) && isWhole(paging.pageSize, 1)
-      : isWhole(paging.start, 0) && isWhole(paging.end, paging.start + 1)
-  if (!fits) {
-    throw new RangeError(`Paging reads no rows: ${JSON.stringify(paging)}`)
+/** Only the paging keys, so a position's `row` stays out of the request. */
+function readPaging(paging: RecordsRequestPaging): RecordsRequestPaging {
+  if ('page' in paging) {
+    const { page, pageSize } = paging
+    if (isWhole(page, 0) && isWhole(pageSize, 1)) return { page, pageSize }
+  } else {
+    const { start, end } = paging
+    if (isWhole(start, 0) && isWhole(end, start + 1)) return { start, end }
   }
+  throw new RangeError(`Paging reads no rows: ${JSON.stringify(paging)}`)
 }
+
+type Built<Paging> = Paging extends { page: number }
+  ? RecordsPageRequest
+  : Paging extends { start: number }
+    ? RecordsRangeRequest
+    : RecordsRequest
 
 /**
  * Builds the versioned request a server reads, with relative dates fixed at
@@ -64,16 +72,13 @@ export function toRecordsRequest<
   fields: readonly RecordField[],
   { scope = [], ...options }: RecordsRequestOptions,
   paging?: Paging
-): RecordsRequest & (Paging extends RecordsRequestPaging ? Paging : unknown) {
-  type Built = RecordsRequest &
-    (Paging extends RecordsRequestPaging ? Paging : unknown)
-  if (paging) checkPaging(paging)
+): Built<Paging> {
   const scoped = scope.length
     ? { ...query, filters: [...scope, ...query.filters] }
     : query
   return {
     version: RECORDS_REQUEST_VERSION,
     query: resolveRecordQuery(scoped, fields, options),
-    ...paging
-  } as Built
+    ...(paging && readPaging(paging))
+  } as Built<Paging>
 }

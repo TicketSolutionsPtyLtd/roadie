@@ -60,6 +60,13 @@ describe('toRecordsRequest', () => {
     ).toMatchObject({ start: 100, end: 150 })
   })
 
+  it('takes a position as paging, leaving its row out', () => {
+    const position = { page: 1, pageSize: 25, row: 40 }
+    const request = toRecordsRequest(query, eventFields, options, position)
+    expect(request).not.toHaveProperty('row')
+    expect(request).toMatchObject({ page: 1, pageSize: 25 })
+  })
+
   it.each([
     [{ page: -1, pageSize: 50 }],
     [{ page: 0, pageSize: 0 }],
