@@ -1,6 +1,14 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi
+} from 'vitest'
+import { page, userEvent } from 'vitest/browser'
 
 import { Editor, type EditorProps, useEditorContext } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -297,6 +305,27 @@ describe('Editor tables', () => {
         .getAllByRole('button')
         .filter((button) => button.tabIndex === 0)
     ).toHaveLength(1)
+  })
+
+  it('keeps the table actions off the Formatting toolbar when a table comes first, at 375px', async () => {
+    await page.viewport(375, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    render(<TableEditor defaultValue={setTimes} />)
+    await clickCell('Time')
+    const actions = await tableActions()
+    const formatting = screen.getByRole('toolbar', { name: 'Formatting' })
+
+    await waitFor(() => {
+      const a = actions.getBoundingClientRect()
+      const b = formatting.getBoundingClientRect()
+      const overlaps =
+        a.left < b.right &&
+        b.left < a.right &&
+        a.top < b.bottom &&
+        b.top < a.bottom
+      expect(a.width).toBeGreaterThan(0)
+      expect(overlaps).toBe(false)
+    })
   })
 
   it.each<[string, Partial<EditorProps>]>([

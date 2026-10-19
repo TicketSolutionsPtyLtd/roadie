@@ -320,7 +320,7 @@ share link uses `@_` in its place; TikTok finds the video by its id.
 The rich preset holds tables. The Table control inserts one of three rows
 and three columns, with a header row. Tab moves to the next cell, adding a
 row after the last, and Shift+Tab moves back. While the caret is in a table,
-a toolbar above it has its actions: Add row above, Add row below, Add column
+a toolbar above it, or below it when a table comes first, has its actions: Add row above, Add row below, Add column
 before, Add column after, Delete row, Delete column, Header row, and Delete
 table.
 
@@ -699,7 +699,8 @@ render(
   or Delete removes it. The Embed control's popover has a named input,
   and a link it can't embed shows its error under the row.
 - While the caret is in a table, a `toolbar` named Table actions shows above
-  it, with the same keys as Formatting, and never while read-only or
+  it, or below it when above would cover Formatting, with the same keys as
+  Formatting, and never while read-only or
   disabled. Header row is a toggle that reports `aria-pressed`, and Delete
   row and Delete column are disabled when they'd delete the last one.
   Alt+F10 in a table moves focus to its first action, and Escape back to the

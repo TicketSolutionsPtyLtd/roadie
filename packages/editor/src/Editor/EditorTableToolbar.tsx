@@ -38,7 +38,10 @@ type EditorTableToolbarProps = {
   toolbarRef: RefObject<HTMLDivElement | null>
 }
 
-/** The actions of the table holding the selection, above its end corner. */
+/**
+ * The actions of the table holding the selection, above its end corner, or
+ * below it when the table starts the content.
+ */
 export function EditorTableToolbar({
   editor,
   size,
@@ -57,9 +60,18 @@ export function EditorTableToolbar({
   // mounted while it's detached can't order its buttons, so none roves.
   const [shown, setShown] = useState(false)
   useRepositionOnResize(editor, menuRef, PLUGIN_KEY)
+  // Kept inside the content, so over a table that comes first it drops below
+  // rather than over the Formatting toolbar. Read on each placement, as the
+  // view mounts after this renders.
+  const inContent = () => ({ boundary: editor.view.dom })
   const floating = {
     placement: 'top-end',
     offset: 4,
+    flip: () => ({
+      ...inContent(),
+      fallbackPlacements: ['bottom-end' as const]
+    }),
+    shift: inContent,
     onShow: () => {
       // The plugin makes its element a tab stop; the toolbar inside is the one.
       menuRef.current?.setAttribute('tabindex', '-1')
