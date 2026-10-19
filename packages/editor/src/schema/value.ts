@@ -67,6 +67,13 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
     return { ...attrs, alt: typeof alt === 'string' ? alt : '' }
   }
   if (type === 'embed') return embedAttrs(attrs) ?? undefined
+  if (type === 'orderedList') {
+    const { start, type: listType } = attrs ?? {}
+    return {
+      ...(Number.isInteger(start) && { start }),
+      ...(typeof listType === 'string' && { type: listType })
+    }
+  }
   return attrs
 }
 
@@ -155,15 +162,16 @@ function cleaned(node: JSONContent, shape: PresetShape): JSONContent[] {
   const nodeShape = shapeOf(node, shape)
   if (!nodeShape)
     return paragraphsAround(childrenOf(node.content, shape), shape)
-  const { marks, content, attrs: stored, ...rest } = node
-  const attrs = picked(
-    cleanedAttrs({ type: node.type, attrs: stored }),
-    nodeShape.attrs
-  )
+  const { type, text, marks, content, attrs: stored } = node
+  const attrs = picked(cleanedAttrs({ type, attrs: stored }), nodeShape.attrs)
+  // Built from known keys, as the saved format keeps nothing else. Only
+  // inline nodes take marks.
   const kept: JSONContent = {
-    ...rest,
+    type,
+    ...(type === 'text' && { text }),
     ...(attrs && { attrs }),
-    ...(Array.isArray(marks) && { marks: cleanedMarks(marks, shape) })
+    ...(nodeShape.inline &&
+      Array.isArray(marks) && { marks: cleanedMarks(marks, shape) })
   }
   if (nodeShape.content === 'none') return [kept]
   if (nodeShape.content === 'inline') {
@@ -193,7 +201,8 @@ function cleaned(node: JSONContent, shape: PresetShape): JSONContent[] {
  * any link whose href could run script, keeping its text, any image not on
  * https or the same site, and any embed that isn't a provider and id. Reads a
  * heading outside h2 to h4 as the nearest of them, and missing alt text as
- * empty. Keeps only the attrs and the first of each mark the preset saves,
+ * empty. Keeps only the keys, attrs, and first of each mark the preset saves,
+ * marks only on inline nodes and an ordered list's start only when whole,
  * starts every list item with a paragraph, drops a list or quote left empty,
  * and gives an empty doc one paragraph.
  */
