@@ -4,6 +4,14 @@
    Hover/active bg changes are per-emphasis in emphasis.css.
    ═══════════════════════════════════════════════════════════ */
 
+/* A field clears its own raised rim on hover, focus, and invalid. It doesn't
+   inherit, so a raised surface inside the field, such as a toolbar, keeps its
+   rim. */
+@property --rim-light-own {
+  syntax: '*';
+  inherits: false;
+}
+
 @utility is-interactive-field {
   transition:
     background-color var(--duration-moderate) var(--ease-enter),
@@ -37,13 +45,13 @@
   &:focus,
   &[aria-invalid='true'],
   &[data-popup-open] {
-    --rim-light-strong: 0 0 #0000;
+    --rim-light-own: 0 0 #0000;
   }
 
   /* Hover — neutral tint */
   @media (hover: hover) {
     &:hover {
-      --rim-light-strong: 0 0 #0000;
+      --rim-light-own: 0 0 #0000;
       background-color: var(--field-hover-bg);
       border-color: var(--color-neutral-7);
     }
@@ -144,13 +152,13 @@
   &:focus-within,
   &[aria-invalid='true'],
   &[data-popup-open] {
-    --rim-light-strong: 0 0 #0000;
+    --rim-light-own: 0 0 #0000;
   }
 
   /* Hover — neutral tint */
   @media (hover: hover) {
     &:hover {
-      --rim-light-strong: 0 0 #0000;
+      --rim-light-own: 0 0 #0000;
       background-color: var(--field-hover-bg);
       border-color: var(--color-neutral-7);
     }
