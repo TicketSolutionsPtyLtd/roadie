@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { describeRecordFilter } from './describe'
-import { type RecordSuggestion, parseQuery } from './parse'
+import { type RecordSuggestion, parseRecordQuery } from './parse'
 import { eventFields } from './testFields'
 
 const options = {
@@ -12,7 +12,7 @@ const options = {
 }
 
 const parse = (text: string, extra: { limit?: number; entity?: string } = {}) =>
-  parseQuery(text, { ...options, ...extra })
+  parseRecordQuery(text, { ...options, ...extra })
 
 const summary = (s: RecordSuggestion) =>
   s.kind === 'field' ? `field ${s.value.field}` : s.label
@@ -24,9 +24,9 @@ const soldFields = [
 ]
 
 const readSold = (text: string, fields = soldFields) =>
-  parseQuery(text, { ...options, fields, limit: 50 }).map(summary)
+  parseRecordQuery(text, { ...options, fields, limit: 50 }).map(summary)
 
-describe('parseQuery', () => {
+describe('parseRecordQuery', () => {
   it('lists filterable fields when nothing is typed', () => {
     const result = parse('  ')
     expect(result.every((s) => s.kind === 'field')).toBe(true)
@@ -52,7 +52,7 @@ describe('parseQuery', () => {
     const fields = [
       { key: 'code', label: 'Code', type: 'text' as const, match: '^($' }
     ]
-    expect(() => parseQuery('abc', { ...options, fields })).toThrow(
+    expect(() => parseRecordQuery('abc', { ...options, fields })).toThrow(
       /"Code" match is not a valid pattern/
     )
   })
@@ -65,7 +65,7 @@ describe('parseQuery', () => {
       { key: 'code', label: 'Code', type: 'text' as const, match }
     ]
     expect(
-      parseQuery(text, { ...options, fields }).map((s) => s.label)
+      parseRecordQuery(text, { ...options, fields }).map((s) => s.label)
     ).not.toContain(`Code is ${text}`)
   })
 
@@ -294,7 +294,7 @@ describe('parseQuery', () => {
       }
     ]
     const read = (text: string) =>
-      parseQuery(text, { ...options, fields, limit: 50 }).map(summary)
+      parseRecordQuery(text, { ...options, fields, limit: 50 }).map(summary)
 
     it.each([
       ['this', 'Room is Nimbus Thistle Hall'],
@@ -305,7 +305,7 @@ describe('parseQuery', () => {
       ['lawn', 'Room is Wobbly Teacup Room/Lawn']
     ])('reads "%s" from the start of a word: %s', (text, label) => {
       expect(
-        parseQuery(text, { ...options, fields }).map((s) => [
+        parseRecordQuery(text, { ...options, fields }).map((s) => [
           s.label,
           s.remainder
         ])
@@ -360,7 +360,7 @@ describe('parseQuery', () => {
 
     it('reads an option value to the end past words other filters read', () => {
       expect(
-        parseQuery('room kazoo hollow perth', { ...options, fields })[0]
+        parseRecordQuery('room kazoo hollow perth', { ...options, fields })[0]
       ).toMatchObject({ label: 'Room is Kazoo Hollow Perth', remainder: '' })
     })
 
@@ -482,7 +482,7 @@ describe('parseQuery', () => {
         { key: 'doors', label: 'Doors: main', type: 'number' as const }
       ]
       expect(
-        parseQuery('doors: main:>5', { ...options, fields })[0]
+        parseRecordQuery('doors: main:>5', { ...options, fields })[0]
       ).toMatchObject({
         kind: 'filter',
         value: { field: 'doors', operator: 'gt', value: 5 }
@@ -807,7 +807,7 @@ describe('parseQuery', () => {
         }
       ]
       const read = (text: string) =>
-        parseQuery(text, { ...options, fields }).map((s) => s.label)
+        parseRecordQuery(text, { ...options, fields }).map((s) => s.label)
       expect(read('not on sale')[0]).toBe('Availability is Not on sale')
       expect(read('not on sale')).toContain('Availability is not On sale')
     })
@@ -904,7 +904,7 @@ describe('parseQuery', () => {
       'sold:100-20'
     ])('reads the range "%s" in either order', (text) => {
       expect(
-        parseQuery(text, { ...options, fields: soldFields })[0]
+        parseRecordQuery(text, { ...options, fields: soldFields })[0]
       ).toMatchObject({
         label: 'Sold is 20 to 100',
         value: { field: 'sold', operator: 'between', value: [20, 100] },
@@ -1051,7 +1051,7 @@ describe('parseQuery', () => {
       'reads no comparison from "%s"',
       (text) => {
         expect(
-          parseQuery(text, { ...options, fields: soldFields, limit: 50 })
+          parseRecordQuery(text, { ...options, fields: soldFields, limit: 50 })
             .filter((s) => s.kind === 'filter' && s.value.field === 'sold')
             .map((s) => s.label)
         ).toEqual([])
@@ -1125,7 +1125,7 @@ describe('parseQuery', () => {
         }
       ]
       expect(
-        parseQuery('melb promo=10', { ...options, fields }).map((s) => [
+        parseRecordQuery('melb promo=10', { ...options, fields }).map((s) => [
           s.label,
           s.remainder
         ])
@@ -1246,9 +1246,11 @@ describe('parseQuery', () => {
         }
       ]
       const readDays = (text: string) =>
-        parseQuery(text, { ...options, fields: dayFields, limit: 50 }).map(
-          summary
-        )
+        parseRecordQuery(text, {
+          ...options,
+          fields: dayFields,
+          limit: 50
+        }).map(summary)
 
       it('puts the field a statement names before a date that leaves the name', () => {
         const read = readDays('day saturday and sunday')
@@ -1264,7 +1266,7 @@ describe('parseQuery', () => {
       })
 
       it('keeps the score of a reading that takes the field’s name too', () => {
-        const [first] = parseQuery('day saturday lawn', {
+        const [first] = parseRecordQuery('day saturday lawn', {
           ...options,
           fields: dayFields
         })
@@ -1285,7 +1287,7 @@ describe('parseQuery', () => {
           ...dayFields,
           { key: 'tour', label: 'Tour', type: 'text' as const }
         ]
-        const read = parseQuery('sat to sun', { ...options, fields })
+        const read = parseRecordQuery('sat to sun', { ...options, fields })
         expect(read.map(summary)).not.toContain('field tour')
       })
 
@@ -1494,7 +1496,7 @@ describe('parseQuery', () => {
       }
     ]
     const read = (text: string) =>
-      parseQuery(text, { ...options, fields, limit: 50 }).map(
+      parseRecordQuery(text, { ...options, fields, limit: 50 }).map(
         (s) => s.value.field
       )
     expect(read('')).not.toContain('sessions')
@@ -1524,7 +1526,7 @@ describe('parseQuery', () => {
       label: `Date ${i}`,
       type: 'date' as const
     }))
-    const scores = parseQuery('this weekend', {
+    const scores = parseRecordQuery('this weekend', {
       ...options,
       fields,
       limit: 100

@@ -20,15 +20,15 @@ version it doesn't know. `resolveRecordQuery` fixes relative dates at a moment: 
 and access dates compare the venue-local date, timestamps the viewer's day.
 `matchesRecordQuery` filters rows in the browser, testing overlap for date
 ranges. Text compares without case, and negative filters (is not, does not
-contain, not equal) keep records where the field is empty. `parseQuery`
+contain, not equal) keep records where the field is empty. `parseRecordQuery`
 reads typed text into ranked suggestions for `QueryField`: identifiers,
 `field:value`, field names, option values and date phrases, tagged with an
 `entity` when given. Values read from the start of a word, and a value named
 only in part is left out when a longer reading takes its words, so "melb this
 weekend" never suggests a venue named Thistle, while "name disco melb" still
-suggests "City is Melbourne". `toSearchParams` and `fromSearchParams` write and read a
-view and position as a versioned URL (`RECORD_VIEW_FORMAT`, `v=1`), falling
-back to a `fallback` view when the URL is invalid, and `equalViews` tells
+suggests "City is Melbourne". `recordViewToSearchParams` and `recordViewFromSearchParams` write and read a
+view and position as a versioned URL (`RECORD_URL_VERSION`, `v=1`), falling
+back to a `fallback` view when the URL is invalid, and `equalRecordViews` tells
 whether a view was modified. `recordFilterOperators` and `recordFieldOptions`
 list what a field accepts.
 
@@ -87,11 +87,11 @@ in the next 7 days", "is on Tue 20 Oct", "is before 20 Oct", and a range of one 
 Oct". `recordOperatorLabel` names an operator ("is more than") and
 `recordOptionPaths` gives each option's label with its parents' ("Ochre Kite
 Weekender 2027 › Opening Night"). A chip listing more than two values names
-them all in `detail`. `parseQuery` labels its filters the same way, dates included, names a
+them all in `detail`. `parseRecordQuery` labels its filters the same way, dates included, names a
 field whose label holds a colon in `field:value`, and reads `$` and
 thousands commas in a number's value.
 
-`parseQuery` reads negation as the opposite filter, and leaves none of its
+`parseRecordQuery` reads negation as the opposite filter, and leaves none of its
 words in `remainder`. "not melb" and "-melb" suggest "City is not Melbourne".
 It also reads `isn't`, `excludes`, `excluding`, `except`, `without`, `!=`,
 and `≠` before a value, `venue:!walrus`, "venue is not walrus", "city not
@@ -133,7 +133,7 @@ this weekend, "tonight" as today, "tmrw" as tomorrow, "rest of the week",
 month or year as today to its last day, "the 20th of oct", and "in the next
 7 days". A period on its own, such as "month", completes to this month
 before month to date. Next and last weekend's dates carry a `description`,
-"Next weekend" or "Last weekend", and `parseQuery` takes each suggestion's
+"Next weekend" or "Last weekend", and `parseRecordQuery` takes each suggestion's
 `description` from its chip's `detail`.
 
 `toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`

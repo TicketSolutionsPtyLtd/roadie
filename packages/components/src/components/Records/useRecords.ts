@@ -25,7 +25,7 @@ import {
   type RecordsRequest,
   type ResolvedRecordQuery,
   compileRecordQuery,
-  equalViews,
+  equalRecordViews,
   sortRecords
 } from '@oztix/roadie-core/records'
 
@@ -144,7 +144,7 @@ export type RecordsInstance<Row extends object = object> = {
   setView: (view: RecordView) => void
   /** The saved or preset view the screen opened. */
   baseline: RecordView | undefined
-  /** The view shows something other than its `baseline`, by `equalViews`. Always false without one. */
+  /** The view shows something other than its `baseline`, by `equalRecordViews`. Always false without one. */
   modified: boolean
   /** Goes back to the `baseline` from the first page. Does nothing without one. */
   resetView: () => void
@@ -779,7 +779,7 @@ export function useRecords<Row extends object>({
       setView(next)
     },
     baseline: baseline ?? undefined,
-    modified: baseline != null && !equalViews(view, baseline),
+    modified: baseline != null && !equalRecordViews(view, baseline),
     resetView: () => {
       if (baseline) resetTo(baseline)
     },

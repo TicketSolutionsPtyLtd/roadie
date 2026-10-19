@@ -1,9 +1,9 @@
 import {
   type RecordField,
   type RecordView,
-  parseQuery,
-  toRecordsRequest,
-  toSearchParams
+  parseRecordQuery,
+  recordViewToSearchParams,
+  toRecordsRequest
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 
@@ -125,16 +125,16 @@ export function callAndResult(call: string, result: unknown) {
 
 const QUERY_TEXT = 'melb this weekend'
 
-/** What `parseQuery` suggests for some typed text, trimmed to the parts the page explains. */
+/** What `parseRecordQuery` suggests for some typed text, trimmed to the parts the page explains. */
 export function querySuggestionsExample() {
-  const suggestions = parseQuery(QUERY_TEXT, {
+  const suggestions = parseRecordQuery(QUERY_TEXT, {
     fields: EVENT_FIELDS,
     now: new Date(EXAMPLE_NOW),
     timeZone: EXAMPLE_ZONE,
     limit: 4
   }).map(({ kind, label, remainder }) => ({ kind, label, remainder }))
   return callAndResult(
-    `parseQuery('${QUERY_TEXT}', { fields: eventFields, now, timeZone })`,
+    `parseRecordQuery('${QUERY_TEXT}', { fields: eventFields, now, timeZone })`,
     suggestions
   )
 }
@@ -152,8 +152,8 @@ export function viewMeilisearchExample() {
   return callAndResult(call, params)
 }
 
-/** The example view on its first page, as `toSearchParams` writes it, one param a line. */
+/** The example view on its first page, as `recordViewToSearchParams` writes it, one param a line. */
 export const viewSearchParamsExample = () =>
-  [...toSearchParams(WEEKEND_VIEW, { page: 0 })]
+  [...recordViewToSearchParams(WEEKEND_VIEW, { page: 0 })]
     .map(([key, value]) => `${key}=${value}`)
     .join('\n')

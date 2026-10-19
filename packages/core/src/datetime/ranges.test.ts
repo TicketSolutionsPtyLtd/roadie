@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   type Comparison,
   type DateRangeValue,
+  canonicalDateRange,
   isBuiltInComparison,
   resolveComparison,
   resolveDateRange
@@ -38,6 +39,12 @@ describe('resolveDateRange: calendar ranges', () => {
     ['this-month', '2026-10-01', '2026-10-31'],
     ['next-month', '2026-11-01', '2026-11-30'],
     ['last-month', '2026-09-01', '2026-09-30'],
+    ['this-quarter', '2026-10-01', '2026-12-31'],
+    ['next-quarter', '2027-01-01', '2027-03-31'],
+    ['last-quarter', '2026-07-01', '2026-09-30'],
+    ['this-year', '2026-01-01', '2026-12-31'],
+    ['next-year', '2027-01-01', '2027-12-31'],
+    ['last-year', '2025-01-01', '2025-12-31'],
     [{ direction: 'next', amount: 7, unit: 'day' }, '2026-10-02', '2026-10-08'],
     [{ direction: 'past', amount: 7, unit: 'day' }, '2026-09-26', '2026-10-02'],
     [
@@ -673,6 +680,63 @@ describe('resolveComparison: a period in progress', () => {
       start: Date.parse('2026-09-30T14:00:00Z'),
       end: Date.parse('2026-10-01T14:00:00Z') - 1
     })
+  })
+})
+
+describe('canonicalDateRange', () => {
+  it.each<[DateRangeValue, DateRangeValue]>([
+    [{ period: 'day', offset: 0 }, 'today'],
+    [{ period: 'day', offset: 1 }, 'tomorrow'],
+    [{ period: 'day', offset: -1 }, 'yesterday'],
+    [{ period: 'week', offset: 0 }, 'this-week'],
+    [{ period: 'week', offset: -1 }, 'last-week'],
+    [{ period: 'month', offset: 1 }, 'next-month'],
+    [{ period: 'month', offset: -1 }, 'last-month'],
+    [{ period: 'quarter', offset: 0 }, 'this-quarter'],
+    [{ period: 'year', offset: -1 }, 'last-year'],
+    [
+      { period: 'month', offset: 0, toDate: false, fiscal: false },
+      'this-month'
+    ],
+    [{ period: 'month', offset: 0, fiscal: true }, 'this-month'],
+    [{ period: 'day', offset: 0, toDate: true }, 'today'],
+    [
+      { period: 'week', offset: 0, toDate: true },
+      { period: 'week', offset: 0, toDate: true }
+    ],
+    [
+      { period: 'year', offset: -1, fiscal: true, toDate: false },
+      { period: 'year', offset: -1, fiscal: true }
+    ],
+    [
+      { period: 'quarter', offset: 2 },
+      { period: 'quarter', offset: 2 }
+    ]
+  ])('writes %j as %j', (value, canonical) => {
+    expect(canonicalDateRange(value)).toEqual(canonical)
+  })
+
+  it.each<DateRangeValue>([
+    'this-weekend',
+    'upcoming',
+    { direction: 'past', amount: 2, unit: 'week' },
+    { start: '2026-10-01', end: '2026-10-31' }
+  ])('keeps %j, which has one form', (value) => {
+    expect(canonicalDateRange(value)).toBe(value)
+  })
+
+  it('means what the value it replaces means', () => {
+    const values: DateRangeValue[] = [
+      { period: 'quarter', offset: -1 },
+      { period: 'year', offset: 0, fiscal: true, toDate: false },
+      { period: 'day', offset: 0, toDate: true },
+      { period: 'month', offset: 1, fiscal: true }
+    ]
+    for (const value of values) {
+      expect(resolveDateRange(canonicalDateRange(value), SYDNEY)).toEqual(
+        resolveDateRange(value, SYDNEY)
+      )
+    }
   })
 })
 

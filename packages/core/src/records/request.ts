@@ -5,12 +5,9 @@ import type {
   RecordQuery,
   RecordQueryOptions
 } from './types'
+import { RECORDS_REQUEST_VERSION } from './versions'
 
-/**
- * Bumped only when an existing key's meaning changes. A new key at the top or
- * in `query` keeps version 1, so a server ignores keys it doesn't know.
- */
-export const RECORDS_REQUEST_VERSION = 1
+export { RECORDS_REQUEST_VERSION }
 
 /** A page, zero-based, or rows `start` to `end`, `end` exclusive. */
 export type RecordsRequestPaging =

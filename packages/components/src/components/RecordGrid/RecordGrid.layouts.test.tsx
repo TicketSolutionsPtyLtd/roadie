@@ -6,8 +6,8 @@ import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
   type RecordView,
-  fromSearchParams,
-  toSearchParams
+  recordViewFromSearchParams,
+  recordViewToSearchParams
 } from '@oztix/roadie-core/records'
 
 import { gridLayout } from '.'
@@ -311,7 +311,10 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
     )
     const written: RecordView = onViewChange.mock.lastCall![0]
     unmount()
-    const read = fromSearchParams(toSearchParams(written), showFields)
+    const read = recordViewFromSearchParams(
+      recordViewToSearchParams(written),
+      showFields
+    )
     expect(read.view.layout).toEqual({
       type: 'grid',
       fields: ['sold', 'gross']

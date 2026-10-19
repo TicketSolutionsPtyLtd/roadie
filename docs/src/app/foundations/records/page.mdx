@@ -459,7 +459,7 @@ every search, count, export, and bulk action.
 
 ## Typed text
 
-`parseQuery(text, { fields, now, timeZone })` reads typed text into ranked
+`parseRecordQuery(text, { fields, now, timeZone })` reads typed text into ranked
 suggestions, shaped for `QueryField`. It knows nothing about any one entity.
 To search events and orders together, call it once per entity with its
 `entity` and merge the results by `score`. It reads identifiers,
@@ -562,7 +562,7 @@ before the dates.
 
 `describeRecordFilter(filter, fields, { now, timeZone })` writes any filter as
 its chip reads, such as "Gross is more than $100", with the dates a relative
-range stands for in `detail`. `parseQuery` labels its filters the same way and
+range stands for in `detail`. `parseRecordQuery` labels its filters the same way and
 takes each `description` from that `detail`, so a suggestion and the chip it
 makes read alike, dates included. Next and last weekend, whose chips have no
 `detail`, are described as "Next weekend" and "Last weekend". `Records.Search` uses both, and
@@ -573,10 +573,10 @@ with "Location is in Melbourne" applied, `melb syd` can take both words.
 
 ## URL format
 
-`toSearchParams(view, position)` writes a view as search params, so a list
+`recordViewToSearchParams(view, position)` writes a view as search params, so a list
 screen opens from a link with the view applied. The format is versioned and a
 public contract: the same view always writes the same URL.
-`fromSearchParams(params, fields, { fallback })` reads it back, ignores keys
+`recordViewFromSearchParams(params, fields, { fallback })` reads it back, ignores keys
 it doesn't know, and returns your fallback view with its problems when the URL
 holds something invalid.
 
@@ -592,13 +592,13 @@ holds something invalid.
 | `page`, `size`, `row`                     | Where the reader is: the page, or in a list loaded by range, the first row on screen. The URL counts pages from 1, and `position.page` counts from 0        |
 
 On the docs site, the view from [Views](#views) on its first page shows as the
-params `toSearchParams` writes, one a line.
+params `recordViewToSearchParams` writes, one a line.
 
 <ViewSearchParams />
 
 ## Modified views
 
-`equalViews(view, baseline)` tells whether a view still matches the one it was
+`equalRecordViews(view, baseline)` tells whether a view still matches the one it was
 opened from, for the modified mark beside a view name. It ignores id, name,
 spacing in the search, and the order of chips and their values. Sort and
 column order still count.
@@ -633,7 +633,7 @@ and the views people save, and lists them, as
   title='Keep session state out of views'
   description='A saved view should open the same for everyone, at the top.'
 >
-  <Guideline.Do code={`toSearchParams(view, { page: 2, row: 40 })`}>
+  <Guideline.Do code={`recordViewToSearchParams(view, { page: 2, row: 40 })`}>
     Pass the page and row as position, next to the view.
   </Guideline.Do>
   <Guideline.Dont

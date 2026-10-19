@@ -238,7 +238,7 @@ with the records when the floating bar goes, under `Records.Provider` too.
 
 Saved views: `useRecords` takes a `baseline`, the saved or preset view the
 screen opened, and gives `modified` (the view differs from it by
-`equalViews`) and `resetView`, which goes back to it from the first page.
+`equalRecordViews`) and `resetView`, which goes back to it from the first page.
 `Records.ViewActions` (or `viewActions`, an object of its props, on
 `Records.Toolbar` and `RecordTable`) shows the view's name after the search,
 with a dot once it's modified, and a menu of Save view, Reset view, Save as

@@ -95,11 +95,11 @@ import {
   compileRecordQuery,
   placeRange,
   recordFields,
+  recordViewToSearchParams,
   recordsToCsv,
   resolveRecordQuery,
   sortRecords,
-  toRecordsRequest,
-  toSearchParams
+  toRecordsRequest
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
@@ -215,7 +215,7 @@ const scope = {
   viewerTimeZone,
   recordFields,
   recordsToCsv,
-  toSearchParams,
+  recordViewToSearchParams,
   compileRecordQuery,
   resolveRecordQuery,
   sortRecords,

@@ -13,6 +13,12 @@ const NAMED_RANGES = [
   'this-month',
   'next-month',
   'last-month',
+  'this-quarter',
+  'next-quarter',
+  'last-quarter',
+  'this-year',
+  'next-year',
+  'last-year',
   'upcoming',
   'past',
   'ongoing'
