@@ -53,6 +53,8 @@ const setTimes: EditorValue = {
   }
 }
 
+const MOD = /^(Mac|iP)/.test(navigator.platform) ? 'Meta' : 'Control'
+
 function TableEditor(props: Partial<EditorProps>) {
   return <Editor aria-label={LABEL} preset='rich' {...props} />
 }
@@ -268,6 +270,72 @@ describe('Editor tables', () => {
     )
   })
 
+  it('turns Delete column off in a table of one column', async () => {
+    render(<TableEditor defaultValue={setTimes} />)
+    await clickCell('9pm')
+    const toolbar = await tableActions()
+    await userEvent.click(
+      within(toolbar).getByRole('button', { name: 'Delete column' })
+    )
+
+    await waitFor(() =>
+      expect(
+        within(toolbar).getByRole('button', { name: 'Delete column' })
+      ).toHaveAttribute('aria-disabled', 'true')
+    )
+  })
+
+  it.each([
+    ['the first row and column', 'Time'],
+    ['the last row and column', 'Ochre Kite']
+  ])(
+    'keeps Delete row and Delete column on with the caret in %s',
+    async (_, text) => {
+      render(<TableEditor defaultValue={setTimes} />)
+      await clickCell(text)
+      const toolbar = await tableActions()
+
+      for (const name of ['Delete row', 'Delete column']) {
+        await waitFor(() =>
+          expect(within(toolbar).getByRole('button', { name })).toHaveAttribute(
+            'aria-disabled',
+            'false'
+          )
+        )
+      }
+    }
+  )
+
+  it.each([
+    ['Add row above'],
+    ['Add row below'],
+    ['Add column before'],
+    ['Add column after'],
+    ['Delete row'],
+    ['Delete column'],
+    ['Header row'],
+    ['Delete table']
+  ])('undoes %s', async (name) => {
+    const onValueChange = vi.fn()
+    render(
+      <TableEditor defaultValue={setTimes} onValueChange={onValueChange} />
+    )
+    await clickCell('9pm')
+    const before = grid(tableIn(setTimes))
+
+    await userEvent.click(
+      within(await tableActions()).getByRole('button', { name })
+    )
+    await waitFor(() =>
+      expect(grid(tableIn(lastValue(onValueChange)))).not.toEqual(before)
+    )
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(grid(tableIn(lastValue(onValueChange)))).toEqual(before)
+    )
+  })
+
   it('deletes the table, hiding its actions', async () => {
     const onValueChange = vi.fn()
     render(
@@ -394,6 +462,37 @@ describe('Editor tables', () => {
       )
     ).toEqual(['Beer', 'Wine', 'Cider'])
     expect(doc.content!.map((node) => node.type)).not.toContain('bulletList')
+  })
+
+  it('shows the table actions only once focus is in the editor', async () => {
+    const probe: ReturnType<typeof useEditorContext> = { editor: null }
+    function Probe() {
+      probe.editor = useEditorContext().editor
+      return null
+    }
+    render(
+      <>
+        <button type='button'>Elsewhere</button>
+        <TableEditor defaultValue={setTimes}>
+          <Editor.Toolbar />
+          <Editor.Content />
+          <Probe />
+        </TableEditor>
+      </>
+    )
+    await waitFor(() => expect(probe.editor).not.toBe(null))
+    screen.getByRole('button', { name: 'Elsewhere' }).focus()
+    let inCell = 0
+    probe.editor!.state.doc.descendants((node, pos) => {
+      if (!inCell && node.type.name === 'tableCell') inCell = pos + 2
+    })
+
+    probe.editor!.commands.setTextSelection(inCell)
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+
+    expect(screen.queryByRole('toolbar', { name: 'Table actions' })).toBe(null)
+    probe.editor!.commands.focus()
+    await tableActions()
   })
 
   it('saves no widths, alignment or styles after editing a table', async () => {
