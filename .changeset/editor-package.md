@@ -50,22 +50,22 @@ and keep its text, and never render raw HTML. Headings render as `h2` to
 whose `src` `embedSrc` rebuilds; both take `embedProviders`, and drop embeds
 from any provider not in it.
 
-`@oztix/roadie-editor/editor` adds `Editor`, a rich-text field on the `basic`
-preset, reading a value in another preset into it and keeping the text of what
-it can't hold. Content the editor still can't read stays read-only with an
-error, and saves nothing over the stored value. It takes `value`,
-`defaultValue` and `onValueChange` with an `EditorValue`, plus `placeholder`,
-`readOnly`, `disabled`, `size` (the `Prose` sizes) and `emphasis`: `normal`
-(the default) and `subtle` match `Textarea`'s, and `subtler` is a boxless
-frame for content edited in place, with no border, fill, padding or focus
-ring, so the text lines up with the page; an invalid `subtler` editor draws a
-danger edge at its start. Its code loads after the page: on the server and
-until then it renders a `Skeleton` the shape of the empty editor, and
-`preloadEditor()` starts the load early. `Editor.Content` is the editable
-`textbox`, styled as `.prose`, and `useEditorContext()` gives custom children
-the Tiptap editor. Pasted HTML goes through the preset's schema, so only what
-the preset holds survives. Import `@oztix/roadie-editor/css` for the
-placeholder and the `subtler` invalid edge.
+`@oztix/roadie-editor/editor` adds `Editor`, a rich-text field on its value's
+preset, or `basic` without one. A `preset` prop that differs reads the value
+into that preset, with a warning in development. Content the editor still
+can't read stays read-only with an error, and saves nothing over the stored
+value. It takes `value`, `defaultValue` and `onValueChange` with an
+`EditorValue`, plus `placeholder`, `readOnly`, `disabled`, `size` (the `Prose`
+sizes) and `emphasis`: `normal` (the default) and `subtle` match `Textarea`'s,
+and `subtler` is a boxless frame for content edited in place, with no border,
+fill, padding or focus ring, so the text lines up with the page; an invalid
+`subtler` editor draws a danger edge at its start. Its code loads after the
+page: on the server and until then it renders a `Skeleton` the shape of the
+empty editor, and `preloadEditor()` starts the load early. `Editor.Content` is
+the editable `textbox`, styled as `.prose`, and `useEditorContext()` gives
+custom children the Tiptap editor. Pasted HTML goes through the preset's
+schema, so only what the preset holds survives. Import
+`@oztix/roadie-editor/css` for the placeholder and the `subtler` invalid edge.
 
 `Editor.Toolbar` is a bar at the top of the editor, a size smaller than the
 text, that hugs its controls, scrolls away with the text, and looks the same
@@ -95,12 +95,10 @@ error under the row. Any `href` that `isUnsafeHref` flags is refused there,
 dropped from pasted HTML, and removed by `migrate`, so a stored value never
 holds one.
 
-`Editor` takes `preset`. With none it edits its value's own preset, or
-`basic` without a value, and a `preset` that differs reads the value into it,
-with a warning in development. `<Editor preset='rich'>` leads its toolbar with
-a Block type menu (Paragraph, Heading 2 to 4, and Quote) named for the block
-at the caret, and adds Divider, Image, and Embed controls. `## `, `### `,
-`#### `, `> ` and `---` work as you type.
+`<Editor preset='rich'>` leads its toolbar with a Block type menu (Paragraph,
+Heading 2 to 4, and Quote) named for the block at the caret, and adds Divider,
+Image, and Embed controls. `## `, `### `, `#### `, `> ` and `---` work as you
+type.
 
 Images: `Editor` takes `onUploadImage(file)`, resolving to `{ src, alt? }`.
 With it the rich toolbar has an Image control, and picked, pasted, or dropped
