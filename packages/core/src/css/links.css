@@ -11,19 +11,32 @@
    Reduced motion jumps to the end state through motion.css.
    ═══════════════════════════════════════════════════════════ */
 
+/* Registered so the underline's colour animates into the fill's. */
+@property --link-underline {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
+/* The underline is a layer at the bottom and the fill sits just above it.
+   Engaged, the underline takes the fill's colour, so the two read as one
+   shape as the fill completes. */
 @utility link-normal {
   --link-tone: var(--intent-link-own, var(--color-accent-9));
   --link-fill: color-mix(in oklch, var(--link-tone) 17%, transparent);
   --link-line: 0.0625em;
+  --link-underline: var(--link-tone);
 
   background-image:
-    linear-gradient(var(--link-tone), var(--link-tone)),
+    linear-gradient(var(--link-underline), var(--link-underline)),
     linear-gradient(var(--link-fill), var(--link-fill));
   background-repeat: no-repeat;
-  background-position: left bottom;
+  background-position:
+    left bottom,
+    left bottom var(--link-line);
   background-size:
     100% var(--link-line),
-    100% var(--link-line);
+    100% 0%;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 
@@ -31,57 +44,68 @@
   &:is(&) {
     transition:
       var(--interactive-transition),
-      background-size var(--duration-moderate) var(--ease-spring);
+      background-size var(--duration-moderate) var(--ease-spring),
+      --link-underline var(--duration-moderate) var(--ease-spring);
   }
 
   &:focus-visible {
+    --link-underline: var(--link-fill);
     background-size:
       100% var(--link-line),
-      100% 100%;
+      100% calc(100% - var(--link-line));
   }
 
   /* A tap leaves :hover on, so only a pointer that can hover changes it. */
   @media (hover: hover) {
     &:hover {
+      --link-underline: var(--link-fill);
       background-size:
         100% var(--link-line),
-        100% 100%;
+        100% calc(100% - var(--link-line));
     }
   }
 }
 
 @utility link-strong {
-  --link-fill: color-mix(
-    in oklch,
-    var(--intent-link-underline) 17%,
-    transparent
-  );
+  --link-tone: var(--intent-link-underline);
+  --link-fill: color-mix(in oklch, var(--link-tone) 17%, transparent);
+  --link-line: 0.0625em;
+  --link-underline: var(--link-tone);
 
   color: var(--intent-link-text);
-  text-decoration-line: underline;
-  text-decoration-color: var(--intent-link-underline);
-  text-decoration-thickness: 0.0625em;
-  text-underline-offset: 0.2em;
-  background-image: linear-gradient(var(--link-fill), var(--link-fill));
+  background-image:
+    linear-gradient(var(--link-underline), var(--link-underline)),
+    linear-gradient(var(--link-fill), var(--link-fill));
   background-repeat: no-repeat;
-  background-position: left top;
-  background-size: 0% 100%;
+  background-position:
+    left bottom,
+    left top;
+  background-size:
+    100% var(--link-line),
+    0% calc(100% - var(--link-line));
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 
   &:is(&) {
     transition:
       var(--interactive-transition),
-      background-size var(--duration-moderate) var(--ease-spring);
+      background-size var(--duration-moderate) var(--ease-spring),
+      --link-underline var(--duration-moderate) var(--ease-spring);
   }
 
   &:focus-visible {
-    background-size: 100% 100%;
+    --link-underline: var(--link-fill);
+    background-size:
+      100% var(--link-line),
+      100% calc(100% - var(--link-line));
   }
 
   @media (hover: hover) {
     &:hover {
-      background-size: 100% 100%;
+      --link-underline: var(--link-fill);
+      background-size:
+        100% var(--link-line),
+        100% calc(100% - var(--link-line));
     }
   }
 }
@@ -92,7 +116,7 @@
 @utility link-subtle {
   text-decoration-line: underline;
   text-decoration-color: transparent;
-  text-decoration-thickness: 0.125em;
+  text-decoration-thickness: 0.0625em;
   text-underline-offset: 0.375em;
 
   &:is(&) {

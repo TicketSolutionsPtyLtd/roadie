@@ -31,6 +31,7 @@ const INTERNAL = [
   '--link-fill',
   '--link-line',
   '--link-tone',
+  '--link-underline',
   '--rim-light-own',
   '--toast-away',
   '--toast-collapsed-height',
