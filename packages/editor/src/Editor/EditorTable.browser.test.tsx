@@ -345,6 +345,45 @@ describe('Editor tables', () => {
     )
   })
 
+  it('keeps each item of a list pasted in a cell as a paragraph in it', async () => {
+    const onValueChange = vi.fn()
+    render(<TableEditor onValueChange={onValueChange} />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(textbox)
+    const clipboardData = new DataTransfer()
+    // As Word writes a list in a cell.
+    clipboardData.setData(
+      'text/html',
+      [
+        '<table class="MsoTableGrid"><tr>',
+        '<td><p class="MsoNormal">Bar</p></td>',
+        '<td><ul><li><p class="MsoNormal">Beer</p></li><li>Wine</li></ul>',
+        '<ol><li>Cider</li></ol></td>',
+        '</tr></table>'
+      ].join('')
+    )
+    clipboardData.setData('text/plain', 'Bar Beer Wine Cider')
+
+    textbox.dispatchEvent(
+      new ClipboardEvent('paste', {
+        clipboardData,
+        bubbles: true,
+        cancelable: true
+      })
+    )
+
+    await waitFor(() => expect(textbox).toHaveTextContent('Cider'))
+    const { doc } = lastValue(onValueChange)
+    const table = tableIn(lastValue(onValueChange))
+    expect(grid(table)).toEqual([['td:Bar', 'td:BeerWineCider']])
+    expect(
+      table!.content![0]!.content![1]!.content!.map(
+        (paragraph) => paragraph.content?.[0]?.text
+      )
+    ).toEqual(['Beer', 'Wine', 'Cider'])
+    expect(doc.content!.map((node) => node.type)).not.toContain('bulletList')
+  })
+
   it('saves no widths, alignment or styles after editing a table', async () => {
     const onValueChange = vi.fn()
     render(<TableEditor onValueChange={onValueChange} />)
