@@ -73,6 +73,7 @@ export function EditorToolbarEngine({
   className,
   children,
   onKeyDown,
+  onMouseDown,
   ...props
 }: EditorToolbarProps) {
   const {
@@ -103,6 +104,7 @@ export function EditorToolbarEngine({
         className={className}
         // A press between controls keeps focus in the editor.
         onMouseDown={(event) => {
+          onMouseDown?.(event)
           const target = event.target as Element
           if (!target.closest('button, a, input')) event.preventDefault()
         }}
