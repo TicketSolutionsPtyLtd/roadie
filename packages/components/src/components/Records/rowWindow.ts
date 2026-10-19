@@ -138,16 +138,13 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
           ...pane.querySelectorAll<HTMLElement>('[data-slot="pane-header"]')
         ].find((element) => element.closest('[data-slot="pane"]') === pane)
       : undefined
-    ;((globalThis as any).__rt ??= []).push(['observe', Math.round(performance.now()), !!body, !!header])
     if (!body || !header) return
     const remeasure = () => {
       const next = latestMeasureInset.current?.(body) ?? 0
-      ;((globalThis as any).__rt ??= []).push(['measured', Math.round(performance.now()), next])
       setInset((inset) => (Math.abs(next - inset) > 0.5 ? next : inset))
     }
     let frame = 0
     const observer = new ResizeObserver(() => {
-      ;((globalThis as any).__rt ??= []).push(['ro', Math.round(performance.now())])
       // Now, while the restore still holds its row: the pane's own observer, made first, has published the header's height.
       remeasure()
       cancelAnimationFrame(frame)
