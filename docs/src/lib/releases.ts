@@ -504,6 +504,24 @@ export function pageRelease(
   }
 }
 
+/** A page's status and releases as one plain sentence, for its markdown copy. */
+export function statusSentence(
+  status: string,
+  { added, updated, upcoming }: PageRelease,
+  formatDate: (date: string) => string
+): string {
+  const parts = [`Status: ${status}.`]
+  if (added === 'unreleased') parts.push('Not released yet.')
+  else if (added) parts.push(`Added in ${added.label} ${added.version}.`)
+  if (updated)
+    parts.push(
+      `Updated in ${updated.label} ${updated.version}${updated.date ? `, ${formatDate(updated.date)}` : ''}.`
+    )
+  if (upcoming && added !== 'unreleased')
+    parts.push('More changes are in the next release.')
+  return parts.join(' ')
+}
+
 const ROOT = join(process.cwd(), '..')
 const APP_DIR = join(process.cwd(), 'src/app')
 

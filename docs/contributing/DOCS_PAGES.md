@@ -43,8 +43,9 @@ with its skeleton and the rules on top of these.
 
 ## Status
 
-`status` says how settled the API a page documents is. Every component and
-chart page sets one, and `scripts/check-component-docs.mjs` fails without it.
+`status` says how settled the API a page documents is. Every page that
+documents an exported component sets one, and
+`scripts/check-component-docs.mjs` fails without it.
 A foundation page that documents a code API, such as Records, may set one.
 Any value other than these four fails the docs build.
 

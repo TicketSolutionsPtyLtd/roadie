@@ -14,6 +14,7 @@ import {
   parseChangeset,
   pendingChanges,
   releaseHistoryMarkdown,
+  statusSentence,
   summarise,
   versionCommits
 } from './releases'
@@ -667,5 +668,35 @@ describe('pagePackages', () => {
       '/charts/stat-tile': '@oztix/roadie-components',
       '/components/field': '@oztix/roadie-components'
     })
+  })
+})
+
+describe('statusSentence', () => {
+  const ref = (version: string, date: string) => ({
+    label: 'Components',
+    version,
+    date,
+    id: `release-${date}`
+  })
+  it.each([
+    [
+      'stable',
+      {
+        added: ref('0.1.0', '2025-01-03'),
+        updated: ref('2.13.0', '2026-09-22'),
+        upcoming: true
+      },
+      'Status: stable. Added in Components 0.1.0. Updated in Components 2.13.0, day 2026-09-22. More changes are in the next release.'
+    ],
+    [
+      'alpha',
+      { added: 'unreleased' as const, updated: null, upcoming: true },
+      'Status: alpha. Not released yet.'
+    ],
+    ['beta', { added: null, updated: null, upcoming: false }, 'Status: beta.']
+  ])('writes %s', (status, release, sentence) => {
+    expect(statusSentence(status, release, (date) => `day ${date}`)).toBe(
+      sentence
+    )
   })
 })

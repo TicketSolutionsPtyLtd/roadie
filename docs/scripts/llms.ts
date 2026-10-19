@@ -32,11 +32,14 @@ import {
   WIDGETS,
   getCatalogue,
   getMarkdownRoutes,
+  parseStatus,
   readPageMetadata
 } from '../src/lib/page-manifest.ts'
 import {
+  getPageRelease,
   getReleaseHistory,
-  releaseHistoryMarkdown
+  releaseHistoryMarkdown,
+  statusSentence
 } from '../src/lib/releases.ts'
 import {
   ALL_TOKENS_INTRO,
@@ -112,6 +115,12 @@ const catalogueMarkdown: Record<string, string> = Object.fromEntries(
   )
 )
 
+const releaseDate = (date: string) =>
+  formatDateTime(new Date(`${date}T00:00:00Z`), {
+    timeZone: 'UTC',
+    dateStyle: 'medium'
+  }) ?? date
+
 const renderers = {
   ...DATA_RENDERERS,
   CatalogueIndex: ({ name }: Record<string, string | true>) => {
@@ -120,15 +129,7 @@ const renderers = {
     return catalogueMarkdown[name]!
   },
   Changelog: () =>
-    releaseHistoryMarkdown(
-      getReleaseHistory(),
-      resolveLink,
-      (date) =>
-        formatDateTime(new Date(`${date}T00:00:00Z`), {
-          timeZone: 'UTC',
-          dateStyle: 'medium'
-        }) ?? date
-    ),
+    releaseHistoryMarkdown(getReleaseHistory(), resolveLink, releaseDate),
   BrandFigure: ({ src, alt, caption }: Record<string, string | true>) =>
     [imageMarkdown(src, alt), typeof caption === 'string' ? caption : '']
       .filter(Boolean)
@@ -223,9 +224,13 @@ async function markdownFor(route: string) {
     })
   }
   const related = relatedLinks(route)
+  const status = parseStatus(metadata?.status, route)
   return pageToMarkdown({
     title,
     description: metadata?.description,
+    ...(status && {
+      status: statusSentence(status, getPageRelease(route), releaseDate)
+    }),
     ...(related && {
       related: {
         label: related.label,
