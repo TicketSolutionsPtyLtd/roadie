@@ -90,3 +90,34 @@ but not the Enter that ends an IME composition, and a refused link shows its
 error under the row. Any `href` that `isUnsafeHref` flags is refused there,
 dropped from pasted HTML, and removed by `migrate`, so a stored value never
 holds one.
+
+`Editor` takes `preset`. With none it edits its value's own preset, or
+`basic` without a value, and a `preset` that differs reads the value into it,
+with a warning in development. `<Editor preset='rich'>` leads its toolbar with
+a Block type menu (Paragraph, Heading 2 to 4, and Quote) named for the block
+at the caret, and adds Divider, Image, and Embed controls. `## `, `### `,
+`#### `, `> ` and `---` work as you type.
+
+Images: `Editor` takes `onUploadImage(file)`, resolving to `{ src, alt? }`.
+With it the rich toolbar has an Image control, and picked, pasted, or dropped
+image files upload behind a placeholder, with a rejection's message in
+`Field.ErrorText`. Without it, image files are ignored. An image with no alt
+text shows a warning badge until its Alt text popover, opened by Enter or the
+image's own toolbar, fills it; clearing alt text an image already had can be
+saved.
+
+Embeds: a supported share link pasted alone on an empty line embeds, and the
+Embed control takes a link in a popover, refusing one no provider reads.
+`Editor` takes `embedProviders` (default `defaultEmbedProviders`) and an async
+`resolveUrl(url)` for short links entered there. The editor shows each player
+in a sandboxed, lazy `iframe` at its provider's shape, under a cover so a
+click selects it, and the arrow keys and Backspace select and delete it. A
+player with a ratio is no taller than 36rem, so a portrait one stays narrow.
+
+Clicking or arrowing onto an image or embed shows its own toolbar, 8px inside
+its media's top-end corner: Alt text, Replace image (with `onUploadImage`,
+keeping the alt text), and Remove image, or Edit link (starting from the
+embed's share URL and replacing it with the new link's player) and Remove
+embed. Its selection ring hugs the media. Alt+F10 moves focus to a selected
+node's toolbar and Escape returns to the node, and each action is one undo
+step.

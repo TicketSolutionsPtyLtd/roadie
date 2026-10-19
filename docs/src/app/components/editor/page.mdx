@@ -15,8 +15,8 @@ A rich-text field that saves its content as an `EditorValue`.
 import { Editor } from '@oztix/roadie-editor/editor'
 ```
 
-Add the editor's CSS after the components' CSS. It styles the placeholder,
-and a `subtler` editor's invalid edge:
+Add the editor's CSS after the components' CSS. It places the toolbar and
+styles the placeholder and selection:
 
 ```css
 @import '@oztix/roadie-core/css';
@@ -54,20 +54,21 @@ planned.
 ```tsx-live-prose
 <Editor
   aria-label='Event description'
+  preset='rich'
   defaultValue={{
     version: 1,
-    preset: 'basic',
+    preset: 'rich',
     doc: {
       type: 'doc',
       content: [
-        { type: 'paragraph', content: [{ type: 'text', marks: [{ type: 'bold' }], text: 'Set times' }] },
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Set times' }] },
         ...['Gates open, 11am', 'Ochre Kite, 12pm', 'Feathered Anchor Sessions, 1:15pm', 'The Jumbuck Strings, 2:30pm', 'Kazoo Hollow, 3:45pm', 'Saltbush Choir, 5pm', 'Last entry, 7pm', 'Headliner, 8:30pm', 'Curfew, 11pm'].map((set) => (
           { type: 'paragraph', content: [{ type: 'text', text: set }] }
         )),
-        { type: 'paragraph', content: [{ type: 'text', marks: [{ type: 'bold' }], text: 'Getting there' }] },
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Getting there' }] },
         { type: 'paragraph', content: [{ type: 'text', text: 'Shuttles leave Brisbane city every 20 minutes from 10am, and the last one back leaves at 11:30pm.' }] },
         { type: 'paragraph', content: [{ type: 'text', text: 'Bike racks are by the main gate. There’s no parking on site.' }] },
-        { type: 'paragraph', content: [{ type: 'text', marks: [{ type: 'bold' }], text: 'What to bring' }] },
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'What to bring' }] },
         { type: 'paragraph', content: [{ type: 'text', text: 'A hat, sunscreen, and a refillable bottle. Water stations are by each stage.' }] }
       ]
     }
@@ -123,7 +124,7 @@ web address such as `oztix.com.au` and the editor adds `https://`. With
 nothing selected, saving inserts the address as linked text. Typing or pasting
 a web address links it as you go.
 
-The Link popover is one row: a bare input
+The Link, Embed, Edit link, and Alt text popovers are one row: a bare input
 that shows only its placeholder, then a check button that saves and a Close
 button. The check stays disabled until there's something to save. Enter saves
 too, except the Enter that picks an IME candidate, and Escape closes. Editing a
@@ -159,6 +160,160 @@ A link that could run script, such as a `javascript:` address, never reaches
 the saved value. The link editor refuses it, pasted HTML keeps only its text,
 and `migrate` drops it from a stored value.
 
+### Rich preset
+
+`preset='rich'` adds headings 2 to 4, quotes, and dividers to the basic
+preset, for an event page. The Block type menu leads the toolbar and names
+the block at the caret. Markdown works as you type: `## `, `### `, and
+`#### ` start a heading, `> ` a quote, and `---` a divider.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  preset='rich'
+  defaultValue={{
+    version: 1,
+    preset: 'rich',
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', marks: [{ type: 'bold' }], text: 'Ochre Kite Weekender' },
+            { type: 'text', text: ' returns to Jumbuck Orchard Park, Brisbane, for two days in the sun.' }
+          ]
+        },
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Lineup' }] },
+        {
+          type: 'bulletList',
+          content: [
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'The Living End' }] }] },
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Spiderbait' }] }] }
+          ]
+        },
+        { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text: 'Getting there' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Shuttles leave Brisbane city every 20 minutes from 10am.' }] },
+        { type: 'horizontalRule' },
+        {
+          type: 'blockquote',
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Bring a hat, sunscreen, and a refillable bottle.' }] }]
+        }
+      ]
+    }
+  }}
+/>
+```
+
+The page owns its `h1`, so pasted `h1` becomes a heading 2, and `h5` and
+`h6` become a heading 4.
+
+### Images
+
+The rich preset holds images. Pass `onUploadImage` to add the Image control:
+it uploads a file the person picks, pastes, or drops, and resolves to where
+the image is served. A placeholder shows while it uploads, and a rejection's
+message shows in `Field.ErrorText`. Without `onUploadImage` there's no Image
+control, and image files are ignored.
+
+```tsx-live-prose-noinline
+function uploadImage(file) {
+  // Send the file to your storage and resolve to where it's served.
+  return new Promise((resolve) =>
+    setTimeout(() => resolve({ src: '/brand/photography/04.webp' }), 1000)
+  )
+}
+
+render(
+  <Field>
+    <Field.Label>Event description</Field.Label>
+    <Editor
+      preset='rich'
+      onUploadImage={uploadImage}
+      defaultValue={{
+        version: 1,
+        preset: 'rich',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'paragraph',
+              content: [{ type: 'text', text: 'Show your ticket on your phone at the Kazoo Hollow Room door.' }]
+            },
+            {
+              type: 'image',
+              attrs: { src: '/brand/photography/04.webp', alt: 'A staff member scans a ticket on a phone at the door' }
+            }
+          ]
+        }
+      }}
+    />
+    <Field.ErrorText />
+  </Field>
+)
+```
+
+An image saves only its `src` and `alt`. The `src` must be `https` or a path
+on the same site, such as `/images/poster.webp`; any other address is refused
+when it's inserted, pasted, or loaded.
+
+Click an image, or move onto it with the arrow keys, to edit it in place. A
+toolbar by the image has Alt text, Replace image (with `onUploadImage`, which
+uploads the new file the same way and keeps the alt text), and Remove image.
+An image with no alt text shows a No alt text badge until it has some; Enter
+on a selected image opens Alt text too.
+
+### Embeds
+
+The rich preset embeds videos and tracks from YouTube, Vimeo, Spotify, and
+TikTok. Paste a share link alone on an empty line, or use the Embed control.
+The editor shows each player at its own shape, under a cover, so a click
+selects it rather than playing it, and Backspace or Delete removes it. A
+player with a ratio is no taller than 36rem, so a portrait one, such as
+TikTok's, stays narrow at the start of the line, in the editor and in
+`/render`.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  preset='rich'
+  defaultValue={{
+    version: 1,
+    preset: 'rich',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'Warm up for the Ochre Kite Weekender.' }] },
+        { type: 'embed', attrs: { provider: 'youtube', id: 'sBzrzS1Ag_g', params: null } },
+        { type: 'embed', attrs: { provider: 'spotify', id: '5INjqkS1o8h1imAzPqGZBb', params: { type: 'artist' } } },
+        { type: 'embed', attrs: { provider: 'vimeo', id: '1084537', params: null } },
+        { type: 'embed', attrs: { provider: 'tiktok', id: '6718335390845095173', params: null } }
+      ]
+    }
+  }}
+/>
+```
+
+An embed saves only its provider, its id, and the params its provider reads,
+never a URL, so `/render` builds the player's address from
+`defaultEmbedProviders` and a provider can move its player without a
+migration. Players run in a sandboxed `iframe`, and a look-alike host such as
+`youtube.com.evil.test` is never embedded.
+
+- `embedProviders` sets the providers the editor reads links from, starting
+  from `defaultEmbedProviders`. Pass the same list to `/render`, or it drops
+  the embeds it doesn't know.
+- `resolveUrl` turns a link no provider reads, such as a TikTok short link,
+  into one it can, when it's entered in the Embed control. Resolve it on
+  your server.
+
+Click an embed, or move onto it with the arrow keys, to edit it in place. A
+toolbar by the embed has Edit link and Remove embed. Edit link starts from the
+embed's share link, from its provider's optional `shareUrl`, and replaces the
+embed with the new link's player. It refuses a link no provider reads, as the
+Embed control does. An embed doesn't save a TikTok poster's name, so TikTok's
+share link uses `@_` in its place; TikTok finds the video by its id.
+
 ### Emphasis
 
 `emphasis` sets the frame. The toolbar takes its own
@@ -189,9 +344,10 @@ Its skeleton is lines of text, not a box.
 <Editor
   aria-labelledby='about-the-event'
   emphasis='subtler'
+  preset='rich'
   defaultValue={{
     version: 1,
-    preset: 'basic',
+    preset: 'rich',
     doc: {
       type: 'doc',
       content: [
@@ -286,8 +442,8 @@ like the published page.
 
 `onValueChange` gets the whole `EditorValue` on each change. Save it as JSON,
 never as HTML, and pass a stored value through `migrate` before it goes back in.
-The editor holds the `basic` preset, and reads a value in another preset into
-it, keeping the text of what it can't hold.
+The editor takes its preset from the value. A `preset` prop that differs reads
+the value into that preset, keeping the text of what it can't hold.
 
 ```tsx-live-prose-noinline
 function DescriptionEditor() {
@@ -404,10 +560,10 @@ import { renderEditorHtml, renderEditorValue } from '@oztix/roadie-editor/render
   an HTML string in a `.prose` element, for a consumer that isn't React.
   External links get `target="_blank"` and `rel="noopener noreferrer"`, as
   `Link` gives them.
-- Both render a `rich` value's images with `loading="lazy"`, and its embeds
-  as a lazy, sandboxed `iframe` whose address they rebuild from the provider.
-  Pass `embedProviders` to add providers, or embeds from any other provider
-  drop.
+- Both render images with `loading="lazy"`, and embeds as a lazy, sandboxed
+  `iframe` whose address they rebuild from the provider. Pass
+  `embedProviders` if the editor has its own, or embeds from any other
+  provider drop.
 
 Both run `migrate` first, so a value from a newer package, or with a preset
 this one doesn't know, throws. They render only the nodes, marks, and
@@ -468,13 +624,28 @@ render(
   controls, scrolling the one with focus into view on a phone. Bold, italic, link, and the lists are toggles that report
   `aria-pressed` for the text at the caret. Undo and Redo are disabled when
   there's nothing to undo or redo, and stay focusable.
+- A selected image or embed has its own `toolbar`, named Image actions or
+  Embed actions, with the same keys as Formatting. It shows only while the
+  node is selected and the editor has focus, and never while read-only or
+  disabled. Each action is one step to undo.
+- An image's alt text is edited in a popover with a named input, opened by
+  Enter on a selected image or its Alt text action. Escape closes it and
+  returns focus to the image. An upload in progress is a `status`, and an upload error
+  shows in `Field.ErrorText`, or under the editor outside a `Field`.
+- An embed's player is titled with its provider and id, and takes no Tab
+  stop in the editor. Arrow keys select an embed or an image, and Backspace
+  or Delete removes it. The Embed control's popover has a named input,
+  and a link it can't embed shows its error under the row.
+- In the rich preset, the Block type menu's trigger is named for the block at
+  the caret, such as "Block type: Heading 2". Its items are radio items, with
+  the current type checked, and choosing one puts focus back in the text.
 - Each control carries its shortcut in `aria-keyshortcuts`.
 - The link editor is a popover by the selection, with an input named Link. It
   takes focus when it opens, Enter or the Save link button saves, and Escape
   or the Close button closes it and puts the caret back where it was. A refused
   address shows its error under the row, and focus stays in the input.
-- Each popover's icon buttons are named for what they do: Save link, Remove
-  link, and Close. A check with nothing to save is
+- Each popover's icon buttons are named for what they do: Save link, Embed
+  link, Save alt text, Remove link, and Close. A check with nothing to save is
   disabled but keeps its Tab stop.
 
 | Keys | Action |
@@ -484,11 +655,15 @@ render(
 | `Mod+K` | Add, change, or remove a link |
 | `Mod+Shift+8` | Bulleted list |
 | `Mod+Shift+7` | Numbered list |
+| `Mod+Alt+0` | Paragraph, in the rich preset |
+| `Mod+Alt+2` to `Mod+Alt+4` | Heading 2 to 4, in the rich preset |
+| `Mod+Shift+B` | Quote, in the rich preset |
+| `Enter` | On a selected image, edit its alt text |
 | `Mod+Z` | Undo |
 | `Mod+Shift+Z` | Redo |
 | `Shift+Enter` | Line break |
-| `Alt+F10` | Move focus to the toolbar's first enabled control |
-| `Escape` | In the toolbar, move focus back to the text, where the caret was |
+| `Alt+F10` | Move focus to the toolbar's first enabled control, or a selected image's or embed's first action |
+| `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image or embed |
 
 `Mod` is `⌘` on Apple devices and `Ctrl` elsewhere, and `Alt` is `⌥` on
 Apple devices.
