@@ -320,10 +320,10 @@ share link uses `@_` in its place; TikTok finds the video by its id.
 The rich preset holds tables. The Table control inserts one of three rows
 and three columns, with a header row. Tab moves to the next cell, adding a
 row after the last, and Shift+Tab moves back, leaving the editor from the
-first cell. While the caret is in a table, a toolbar above it, or below it
-when a table comes first, has its actions: Add row above, Add row below, Add
-column before, Add column after, Delete row, Delete column, Header row, and
-Delete table.
+first cell. While the caret is in a table, a toolbar at its start edge, above
+it, or below it when a table comes first, has its actions: a Row menu with
+Insert above, Insert below and Delete row, a Column menu with Insert before,
+Insert after and Delete column, the Header row toggle, and Delete table.
 
 ```tsx-live-prose
 <Editor
@@ -702,9 +702,10 @@ render(
   and a link it can't embed shows its error under the row.
 - While the caret is in a table, a `toolbar` named Table actions shows above
   it, or below it when above would cover Formatting, with the same keys as
-  Formatting, and never while read-only or disabled. Header row is a toggle
-  that reports `aria-pressed`, and Delete row and Delete column are disabled
-  when they'd delete the last one.
+  Formatting, and never while read-only or disabled. Row and Column open
+  menus whose items are `menuitem`s, and a menu returns focus to the cell
+  when it closes. Header row is a toggle that reports `aria-pressed`, and
+  Delete row and Delete column are disabled when they'd delete the last one.
   Alt+F10 in a table moves focus to its first action, and Escape back to the
   cell. In a table, Tab and Shift+Tab move between cells instead of nesting.
   Tab in the last cell adds a row, and Shift+Tab in the first leaves the

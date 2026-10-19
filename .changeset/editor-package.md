@@ -140,9 +140,10 @@ step.
 Tables: the Table control inserts a table of three rows and three columns
 with a header row, and Tab and Shift+Tab move between its cells, Tab adding a
 row after the last. While the caret is in a table, a Table actions toolbar
-above it adds a row above or below, adds a column before or after, deletes
-the row, the column, or the table, and toggles the header row, with Delete
-row and Delete column disabled when they'd delete the last one. Alt+F10
+at its start edge has a Row menu (Insert above, Insert below, Delete row), a
+Column menu (Insert before, Insert after, Delete column), a Header row
+toggle and Delete table, with Delete row and Delete column disabled when
+they'd delete the last one. Alt+F10
 moves focus to it and Escape back to the cell. The editor draws each cell's
 edges, tints selected cells, and scrolls a wide table sideways in a
 `.prose-scroll`, as `/render` does, and saves no widths or styles.
