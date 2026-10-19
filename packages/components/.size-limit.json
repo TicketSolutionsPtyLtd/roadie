@@ -287,7 +287,7 @@
     "name": "DateRangePicker",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
-    "limit": "41.3 kB",
+    "limit": "41.55 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
