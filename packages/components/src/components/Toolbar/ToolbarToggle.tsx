@@ -13,9 +13,10 @@ import { ToolbarContext, ToolbarToggleGroupContext } from './ToolbarContext'
 
 export type ToolbarToggleProps = Omit<ToggleProps, 'size'>
 
-// Under a sliding indicator, pressed shows in the label alone.
+// Under a sliding indicator, pressed shows in the label alone. It keeps the
+// unpressed toggle's border, so a press never resizes its neighbours.
 const SLIDING = cn(
-  'relative z-1',
+  'relative z-1 data-[pressed]:border data-[pressed]:border-transparent',
   'not-data-[pressed]:emphasis-subtler not-data-[pressed]:is-unselected data-[pressed]:is-selected-label'
 )
 

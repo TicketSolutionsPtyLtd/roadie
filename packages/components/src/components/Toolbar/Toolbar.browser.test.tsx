@@ -164,6 +164,28 @@ describe('Toolbar layout', () => {
     )
   })
 
+  it('keeps every toggle of a sliding group the same width as presses move', async () => {
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.ToggleGroup aria-label='Alignment' defaultValue={['left']}>
+          <Toolbar.Toggle value='left'>Left</Toolbar.Toggle>
+          <Toolbar.Toggle value='centre'>Centre</Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const indicator = document.querySelector<HTMLElement>(
+      '[data-slot="toolbar-toggle-group-indicator"]'
+    )!
+    await expect.poll(() => indicator.hasAttribute('data-ready')).toBe(true)
+    const widths = () =>
+      screen
+        .getAllByRole('button')
+        .map((toggle) => toggle.getBoundingClientRect().width)
+    const before = widths()
+    await userEvent.click(screen.getByRole('button', { name: 'Centre' }))
+    expect(widths()).toEqual(before)
+  })
+
   it('keeps focus on a toggle as its group empties and fills again', async () => {
     render(
       <Toolbar aria-label='Formatting'>
