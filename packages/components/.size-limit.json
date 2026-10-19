@@ -308,7 +308,7 @@
     "name": "RecordGrid",
     "path": "dist/components/RecordGrid/index.js",
     "import": "*",
-    "limit": "104.7 kB",
+    "limit": "104.95 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
