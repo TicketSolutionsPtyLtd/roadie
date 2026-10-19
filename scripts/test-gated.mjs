@@ -14,6 +14,7 @@ const PACKAGES = [
   'core',
   'components',
   'charts',
+  'editor',
   'widgets',
   'eslint-plugin',
   'docs'
