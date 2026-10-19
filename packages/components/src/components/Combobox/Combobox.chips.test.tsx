@@ -244,11 +244,26 @@ describe('Combobox chips', () => {
     )
   })
 
-  it('clears every chip with Escape while the popup is closed', async () => {
-    render(<Genres />)
+  it('keeps every chip with Escape while the popup is closed', async () => {
+    const onValueChange = vi.fn()
+    render(<Genres onValueChange={onValueChange} />)
     await userEvent.tab()
     await userEvent.keyboard('{Escape}')
-    expect(chipNames()).toEqual([])
+    expect(chipNames()).toEqual(['Rock', 'Jazz'])
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
+  // Such as a dialog's, which would otherwise never close from the input.
+  it('lets an Escape with nothing to clear reach the page', async () => {
+    const onPageKeyDown = vi.fn()
+    render(
+      <div onKeyDown={(event) => onPageKeyDown(event.key)}>
+        <Genres />
+      </div>
+    )
+    await userEvent.tab()
+    await userEvent.keyboard('{Escape}')
+    expect(onPageKeyDown).toHaveBeenCalledWith('Escape')
   })
 
   it('keeps every chip while disabled', async () => {

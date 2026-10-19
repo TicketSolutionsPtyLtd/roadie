@@ -238,6 +238,186 @@ describe.each(EMPHASES)('the %s sliding pill', (emphasis) => {
   })
 })
 
+describe('an edge fade', () => {
+  const fades = () => {
+    const style = getComputedStyle(screen.getByRole('group'))
+    return [
+      style.getPropertyValue('--toggle-group-fade-left').trim(),
+      style.getPropertyValue('--toggle-group-fade-right').trim()
+    ]
+  }
+  const masked = () => {
+    const style = getComputedStyle(screen.getByRole('group'))
+    return style.maskImage || style.getPropertyValue('-webkit-mask-image')
+  }
+
+  it('fades only the side that can still scroll', async () => {
+    render(<NarrowDateRange defaultValue={['7d']} />)
+    const group = screen.getByRole('group')
+    await expectPillOver('7 days')
+    await expect.poll(fades).toEqual(['0px', '24px'])
+    expect(masked()).toContain('linear-gradient')
+    group.scrollLeft = group.scrollWidth
+    await expect.poll(fades).toEqual(['24px', '0px'])
+  })
+
+  it('fades the far side first in a right-to-left layout', async () => {
+    render(
+      <div dir='rtl'>
+        <NarrowDateRange defaultValue={['7d']} />
+      </div>
+    )
+    await expect.poll(fades).toEqual(['24px', '0px'])
+  })
+
+  it('leaves a group with room for every item unfaded and unmasked', async () => {
+    render(<DateRange />)
+    await expect.poll(fades).toEqual(['0px', '0px'])
+    // A mask clips any outer shadow or outline a page adds.
+    expect(masked()).toBe('none')
+  })
+
+  function Labels({ labels }: { labels: string[] }) {
+    return (
+      <div style={{ width: NARROW }}>
+        <ToggleGroup aria-label='Date range' className='w-full'>
+          {labels.map((label) => (
+            <ToggleGroup.Item key={label} value={label}>
+              {label}
+            </ToggleGroup.Item>
+          ))}
+        </ToggleGroup>
+      </div>
+    )
+  }
+
+  // Past the group's first resize observation, which would mark it anyway.
+  const settled = async () => {
+    for (let frame = 0; frame < 3; frame++)
+      await new Promise(requestAnimationFrame)
+  }
+
+  it('fades once new items overflow a full-width group', async () => {
+    const { rerender } = render(<Labels labels={['Day', 'Week']} />)
+    await expect.poll(fades).toEqual(['0px', '0px'])
+    await settled()
+    rerender(<Labels labels={['Day', 'Week', 'Month', 'Quarter', 'Year']} />)
+    await expect.poll(fades).toEqual(['0px', '24px'])
+  })
+
+  it('stops fading once the items fit a full-width group again', async () => {
+    const { rerender } = render(
+      <Labels labels={['Day', 'Week', 'Month', 'Quarter', 'Year']} />
+    )
+    await expect.poll(fades).toEqual(['0px', '24px'])
+    await settled()
+    rerender(<Labels labels={['Day', 'Week']} />)
+    await expect.poll(fades).toEqual(['0px', '0px'])
+  })
+
+  it('fades the end again once an item joins it', async () => {
+    const labels = ['Day', 'Week', 'Month', 'Quarter', 'Year']
+    const { rerender } = render(<Labels labels={labels} />)
+    const group = screen.getByRole('group')
+    await expect.poll(fades).toEqual(['0px', '24px'])
+    group.scrollLeft = group.scrollWidth
+    await expect.poll(fades).toEqual(['24px', '0px'])
+    await settled()
+    rerender(<Labels labels={[...labels, 'Decade']} />)
+    await expect.poll(fades).toEqual(['24px', '24px'])
+  })
+
+  // As when a web font loads and the labels widen, with nothing rendered.
+  it('fades once its items widen past a full-width group', async () => {
+    render(<Labels labels={['Day', 'Week']} />)
+    await expect.poll(fades).toEqual(['0px', '0px'])
+    await settled()
+    for (const item of screen.getAllByRole('button'))
+      item.style.paddingInline = `${NARROW}px`
+    await expect.poll(fades).toEqual(['0px', '24px'])
+  })
+
+  it('scrolls a pressed item clear of the fade', async () => {
+    const labels = ['Day', 'Week', 'Month', 'Quarter', 'Year']
+    function Pressed({ value }: { value: string }) {
+      return (
+        <div style={{ width: NARROW }}>
+          <ToggleGroup aria-label='Date range' value={[value]}>
+            {labels.map((label) => (
+              <ToggleGroup.Item key={label} value={label}>
+                {label}
+              </ToggleGroup.Item>
+            ))}
+          </ToggleGroup>
+        </div>
+      )
+    }
+    const { rerender } = render(<Pressed value='Year' />)
+    await expectPillOver('Year')
+    rerender(<Pressed value='Week' />)
+    await expectPillOver('Week')
+    const group = screen.getByRole('group').getBoundingClientRect()
+    const item = screen.getByRole('button', { name: 'Week' })
+    expect(item.getBoundingClientRect().left - group.left).toBeGreaterThan(24)
+  })
+
+  it('presses an item half under the fade on a click', async () => {
+    const labels = ['Day', 'Week', 'Month', 'Quarter', 'Year']
+    render(
+      <div style={{ width: NARROW }}>
+        <ToggleGroup aria-label='Date range' multiple>
+          {labels.map((label) => (
+            <ToggleGroup.Item key={label} value={label}>
+              {label}
+            </ToggleGroup.Item>
+          ))}
+        </ToggleGroup>
+      </div>
+    )
+    const group = screen.getByRole('group').getBoundingClientRect()
+    const cut = screen
+      .getAllByRole('button')
+      .find((item) => item.getBoundingClientRect().right > group.right)!
+    const { left } = cut.getBoundingClientRect()
+    await userEvent.click(cut, {
+      position: { x: (group.right - left) / 2, y: 4 }
+    })
+    expect(cut).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  for (const multiple of [false, true])
+    it(`scrolls to the end Home or End moves focus to, clear of the fade${multiple ? ', in a multiple group' : ''}`, async () => {
+      const labels = ['Day', 'Week', 'Month', 'Quarter', 'Year']
+      render(
+        <div style={{ width: NARROW }}>
+          <ToggleGroup
+            aria-label='Date range'
+            multiple={multiple}
+            defaultValue={['Day']}
+          >
+            {labels.map((label) => (
+              <ToggleGroup.Item key={label} value={label}>
+                {label}
+              </ToggleGroup.Item>
+            ))}
+          </ToggleGroup>
+        </div>
+      )
+      const group = screen.getByRole('group')
+      await expect.poll(fades).toEqual(['0px', '24px'])
+      await userEvent.tab()
+      await userEvent.keyboard('{End}')
+      expect(screen.getByRole('button', { name: 'Year' })).toHaveFocus()
+      const room = group.scrollWidth - group.clientWidth
+      await expect.poll(() => group.scrollLeft).toBeGreaterThanOrEqual(room - 1)
+      await expect.poll(fades).toEqual(['24px', '0px'])
+      await userEvent.keyboard('{Home}')
+      expect(screen.getByRole('button', { name: 'Day' })).toHaveFocus()
+      await expect.poll(() => group.scrollLeft).toBeLessThanOrEqual(1)
+      await expect.poll(fades).toEqual(['0px', '24px'])
+    })
+})
+
 it('keeps the same height at every emphasis', () => {
   render(
     <>

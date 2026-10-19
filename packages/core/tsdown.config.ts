@@ -13,7 +13,8 @@ export default defineConfig(({ watch }) => ({
     'dashboard/index': './src/dashboard/index.ts',
     'dashboard-layout/index': './src/dashboard-layout/index.ts',
     'records/index': './src/records/index.ts',
-    'records/meilisearch/index': './src/records/meilisearch/index.ts'
+    'records/meilisearch/index': './src/records/meilisearch/index.ts',
+    'records/json-schema/index': './src/records/json-schema/index.ts'
   },
   format: ['esm'],
   minify: !watch,

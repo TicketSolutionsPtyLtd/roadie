@@ -78,6 +78,21 @@ describe('validateRecordView', () => {
     expect(result.ok).toBe(true)
   })
 
+  it('reads a view without a version as version 1', () => {
+    const result = validateRecordView(view(), eventFields)
+    expect(result.ok && result.view.version).toBe(1)
+  })
+
+  it('rejects a view version this release cannot read', () => {
+    expect(errors(view([], { version: 2 }))).toEqual([
+      {
+        path: 'version',
+        message: 'Unsupported view version; this release reads version 1',
+        severity: 'error'
+      }
+    ])
+  })
+
   it('rejects something that is not a view', () => {
     expect(validateRecordView(null, eventFields).ok).toBe(false)
     expect(errors({ query: { search: '' } })[0]!.path).toBe('query.filters')

@@ -12,6 +12,10 @@
  *   under `localDateKey` (and `endLocalDateKey` for a range).
  * - A range field stores its end on every record; a single moment repeats its
  *   start there.
+ * - A location field stores `recordPlaces(field, value)`: the record's
+ *   places and their ancestors, so "is in" is a plain term,
+ *   `location = "au-qld"`. Distance filters, later, will read `_geo` with
+ *   `_geoRadius(lat, lng, meters)` and sort by `_geoPoint`.
  * - `contains` needs Meilisearch's `containsFilter` experimental feature.
  * - `searchableAttributes` lists the fields marked `searchable`.
  */

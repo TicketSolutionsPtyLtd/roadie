@@ -1,6 +1,8 @@
+import { type ReactNode } from 'react'
+
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import roadieCss from '../../../vitest.browser.css?inline'
 import { nudgeFrames } from '../../css/testUtils'
@@ -48,7 +50,13 @@ const oneChip: RecordViewDefaults = {
   }
 }
 
-function ShowsPane({ defaultView }: { defaultView?: RecordViewDefaults }) {
+function ShowsPane({
+  defaultView,
+  toolbar
+}: {
+  defaultView?: RecordViewDefaults
+  toolbar?: ReactNode
+}) {
   const records = useRecords({
     data: testShows(80),
     fields: showFields,
@@ -62,7 +70,7 @@ function ShowsPane({ defaultView }: { defaultView?: RecordViewDefaults }) {
           <Pane.Title>Shows</Pane.Title>
         </Pane.Header>
         <Pane.Body>
-          <Records.Toolbar />
+          <Records.Toolbar>{toolbar}</Records.Toolbar>
           <Records.Content />
         </Pane.Body>
       </Pane>
@@ -76,11 +84,15 @@ const box = (element: Element) => element.getBoundingClientRect()
 const searchField = () => slot('query-field')
 const configure = () => screen.getByRole('button', { name: 'Configure table' })
 
-async function renderAt(width: number, defaultView?: RecordViewDefaults) {
+async function renderAt(
+  width: number,
+  defaultView?: RecordViewDefaults,
+  toolbar?: ReactNode
+) {
   await page.viewport(width, 800)
   render(
     <div style={{ height: 640, width, display: 'grid' }}>
-      <ShowsPane defaultView={defaultView} />
+      <ShowsPane defaultView={defaultView} toolbar={toolbar} />
     </div>
   )
   await expect.poll(() => slot('pane-header')).not.toBeNull()
@@ -149,6 +161,103 @@ describe.each([390, 360, 280, 1280])(
     })
   }
 )
+
+describe('Records.Toolbar’s focused search', () => {
+  const searchInput = () =>
+    screen.getByRole('combobox', { name: 'Search and filter' })
+  const toolbarRoom = () => {
+    const toolbar = slot('records-toolbar')
+    const style = getComputedStyle(toolbar)
+    return (
+      box(toolbar).width -
+      parseFloat(style.paddingLeft) -
+      parseFloat(style.paddingRight)
+    )
+  }
+
+  it(
+    'takes the toolbar’s row on a phone, hiding the other controls until focus leaves',
+    TIMEOUT,
+    async () => {
+      await renderAt(390, oneChip)
+      await expect.poll(() => configure()).toBeTruthy()
+      const resting = box(searchField()).width
+      expect(resting).toBeLessThan(toolbarRoom() - 40)
+      searchInput().focus()
+      await expect
+        .poll(() => screen.queryByRole('button', { name: 'Configure table' }))
+        .toBeNull()
+      expect(Math.abs(box(searchField()).width - toolbarRoom())).toBeLessThan(1)
+      searchInput().blur()
+      await expect.poll(() => configure()).toBeTruthy()
+      expect(box(searchField()).width).toBe(resting)
+    }
+  )
+
+  it(
+    'shows the other controls again as Tab leaves the search',
+    TIMEOUT,
+    async () => {
+      await renderAt(390, oneChip)
+      await userEvent.click(searchInput())
+      await expect
+        .poll(() => screen.queryByRole('button', { name: 'Configure table' }))
+        .toBeNull()
+      const search = slot('records-search')
+      for (
+        let tabs = 0;
+        tabs < 4 && search.contains(document.activeElement);
+        tabs++
+      )
+        await userEvent.tab()
+      expect(slot('records-toolbar')).toContainElement(
+        document.activeElement as HTMLElement
+      )
+    }
+  )
+
+  it(
+    'keeps the row while Tab steps through an edited chip’s operators',
+    TIMEOUT,
+    async () => {
+      await renderAt(390, oneChip)
+      await userEvent.click(searchInput())
+      await userEvent.click(slot('combobox-chip'))
+      await expect.poll(() => screen.queryByRole('listbox')).not.toBeNull()
+      await userEvent.tab()
+      expect(searchInput()).toHaveFocus()
+      await nudgeFrames()
+      expect(Math.abs(box(searchField()).width - toolbarRoom())).toBeLessThan(1)
+    }
+  )
+
+  it('keeps focus in a search a custom toolbar wraps', TIMEOUT, async () => {
+    await renderAt(
+      390,
+      oneChip,
+      <>
+        <div className='flex min-w-40 grow basis-0'>
+          <Records.Search className='grow' />
+        </div>
+        <Records.Options />
+      </>
+    )
+    await userEvent.click(searchInput())
+    await nudgeFrames()
+    expect(searchInput()).toHaveFocus()
+    expect(searchInput()).toBeVisible()
+  })
+
+  it('leaves the controls beside it on a wide toolbar', TIMEOUT, async () => {
+    await renderAt(1280, oneChip)
+    const resting = box(searchField()).width
+    searchInput().focus()
+    await expect.poll(() => document.activeElement).toBe(searchInput())
+    await nudgeFrames()
+    expect(configure()).toBeVisible()
+    expect(box(searchField()).width).toBe(resting)
+  })
+})
 
 describe('Records.Toolbar outside a pane', () => {
   it('adds no space above the search', TIMEOUT, async () => {

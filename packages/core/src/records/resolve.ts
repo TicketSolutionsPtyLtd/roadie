@@ -186,14 +186,14 @@ export function resolveRecordQuery(
   }
   return {
     search: query.search,
-    sort: query.sort,
-    timeZone: options.timeZone,
     filters: query.filters.map((filter) => {
       const field = byKey.get(filter.field)
       if (!field) throw new RangeError(`Unknown field "${filter.field}"`)
       return isDateFilter(filter)
         ? resolveDateFilter(filter, field, options)
         : (filter as ResolvedRecordFilter)
-    })
+    }),
+    sort: query.sort,
+    timeZone: options.timeZone
   }
 }
