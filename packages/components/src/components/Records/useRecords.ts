@@ -89,7 +89,7 @@ export type UseRecordsOptions<Row extends object> = {
   onRetry?: () => void
   /** The viewer's IANA zone: it decides what "today" is and how timestamps read. Defaults to the browser's. */
   timeZone?: string
-  /** The moment relative dates resolve against. Defaults to when the list mounted in the browser: a server reads no clock, so a relative date filter shows the loading state until then. */
+  /** The moment relative dates resolve against. Defaults to when the list mounted in the browser: a server reads no clock, so a relative date filter shows the loading state until then. A new `now` that moves a relative date starts a range list over, so keep it stable. */
   now?: Instantish
   /**
    * Filters the page sets, such as the event a list of tickets belongs to.
@@ -286,11 +286,11 @@ export function useRecords<Row extends object>({
     at === null ? 0 : at instanceof Date ? at.getTime() : at.epochMilliseconds
   const resolvedAt = useMemo(() => new Date(atTime), [atTime])
 
-  // A page that loads without a count keeps the last one, so the records
-  // don't fall back to the browser and prune the selection or the page.
   const ranged = loadRange !== undefined
   // Range mode's count comes with each range.
   const rowCount = ranged ? undefined : rowCountOption
+  // A page that loads without a count keeps the last one, so the records
+  // don't fall back to the browser and prune the selection or the page.
   const [lastCount, setLastCount] = useState(rowCount)
   if (rowCount !== undefined && !Object.is(rowCount, lastCount))
     setLastCount(rowCount)
@@ -370,7 +370,11 @@ export function useRecords<Row extends object>({
   )
 
   // A new page size starts over, as pages asked for at the old one would block it.
-  const key = `${JSON.stringify(resolvedQuery)}@${position.pageSize}`
+  const requestKey = useMemo(
+    () => JSON.stringify(resolvedQuery),
+    [resolvedQuery]
+  )
+  const key = `${requestKey}@${position.pageSize}`
   const range = useRangeLoading<Row>({
     loadRange:
       loadRange &&

@@ -725,6 +725,13 @@ describe('canonicalDateRange', () => {
     expect(canonicalDateRange(value)).toBe(value)
   })
 
+  it('keeps a period with an offset that is not whole, for resolving to refuse', () => {
+    expect(canonicalDateRange({ period: 'month', offset: 0.5 })).toEqual({
+      period: 'month',
+      offset: 0.5
+    })
+  })
+
   it('means what the value it replaces means', () => {
     const values: DateRangeValue[] = [
       { period: 'quarter', offset: -1 },

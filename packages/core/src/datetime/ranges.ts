@@ -141,7 +141,7 @@ function canonical(value: DateRangeValue): DateRangeValue {
   const toDate = value.toDate === true && period !== 'day'
   const fiscal =
     value.fiscal === true && (period === 'quarter' || period === 'year')
-  if (!toDate && !fiscal && offset >= -1 && offset <= 1) {
+  if (!toDate && !fiscal && (offset === -1 || offset === 0 || offset === 1)) {
     return PERIOD_NAMES[period][offset + 1]!
   }
   return {
