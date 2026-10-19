@@ -2,8 +2,10 @@
 
 import { use } from 'react'
 
+import { CaretDownIcon } from '@phosphor-icons/react'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
+import { Menu } from '@oztix/roadie-components/menu'
 import { Toolbar } from '@oztix/roadie-components/toolbar'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
 import { cn } from '@oztix/roadie-core/utils'
@@ -11,24 +13,87 @@ import { cn } from '@oztix/roadie-core/utils'
 import { EditorContext } from './EditorContext'
 import type { EditorToolbarProps } from './EditorToolbar'
 import {
+  type EditorBlockMenu,
   type EditorControl,
   type EditorControlUi,
   type EditorToolbarItem,
   SEPARATOR,
   ariaKeyShortcuts,
-  editorControls
+  presetControls
 } from './controls'
 import { focusEditor } from './focusEditor'
 import { EDITOR_TOOLBAR_ROOM, EDITOR_TOOLBAR_SIZE } from './variants'
 
-type ControlState = { pressed: boolean; enabled: boolean }
+export type ControlState = {
+  pressed: boolean
+  enabled: boolean
+  current?: string
+}
 
-function stateOf(item: EditorToolbarItem, editor: TiptapEditor) {
+export function stateOf(item: EditorToolbarItem, editor: TiptapEditor) {
   if (item === SEPARATOR) return undefined
+  if ('kind' in item) {
+    const current = item.types.find((type) => type.active(editor))
+    return {
+      pressed: false,
+      enabled: editor.isEditable,
+      current: (current ?? item.types[0])?.label
+    }
+  }
   return {
     pressed: item.pressed?.(editor) ?? false,
     enabled: editor.isEditable && (item.enabled?.(editor) ?? true)
   }
+}
+
+type BlockMenuProps = {
+  menu: EditorBlockMenu
+  state: ControlState | undefined
+  editor: TiptapEditor | null
+}
+
+function BlockMenu({ menu, state, editor }: BlockMenuProps) {
+  const current = state?.current ?? menu.types[0]?.label
+  return (
+    <Menu>
+      <Menu.Trigger
+        render={
+          <Toolbar.Button
+            disabled={!state?.enabled}
+            aria-label={`${menu.label}: ${current}`}
+          >
+            {current}
+            <CaretDownIcon weight='bold' className='size-4' aria-hidden />
+          </Toolbar.Button>
+        }
+      />
+      <Menu.Content
+        finalFocus={() => {
+          editor?.commands.focus()
+          return false
+        }}
+      >
+        <Menu.RadioGroup
+          value={current}
+          onValueChange={(label) => {
+            const type = menu.types.find((option) => option.label === label)
+            if (editor && type) type.run(editor)
+          }}
+        >
+          {menu.types.map((type) => (
+            <Menu.RadioItem
+              key={type.label}
+              value={type.label}
+              shortcut={type.shortcut}
+              closeOnClick
+            >
+              {type.label}
+            </Menu.RadioItem>
+          ))}
+        </Menu.RadioGroup>
+      </Menu.Content>
+    </Menu>
+  )
 }
 
 type ControlProps = {
@@ -38,10 +103,13 @@ type ControlProps = {
   ui: EditorControlUi
 }
 
-function Control({ control, state, editor, ui }: ControlProps) {
+export function Control({ control, state, editor, ui }: ControlProps) {
   const { label, icon: Icon, shortcut } = control
   const run = () => {
-    if (editor) control.run(editor, ui)
+    if (!editor) return
+    // The click focused the button, and the command's own focus waits a frame.
+    focusEditor(editor)
+    control.run(editor, ui)
   }
   const shared = {
     'aria-label': label,
@@ -79,18 +147,27 @@ export function EditorToolbarEngine({
 }: EditorToolbarProps) {
   const {
     editor,
+    preset,
     size,
     emphasis: editorEmphasis,
     contentId,
     toolbarRef,
-    editLink
+    editLink,
+    editAlt,
+    editEmbed,
+    pickImage,
+    replaceImage
   } = use(EditorContext)!
   const toolbarSize = EDITOR_TOOLBAR_SIZE[size]
-  const ui = { editLink }
+  const ui = { editLink, editAlt, editEmbed, pickImage, replaceImage }
+  const items = presetControls[preset].filter(
+    (item) =>
+      item === SEPARATOR || 'kind' in item || (item.available?.(ui) ?? true)
+  )
   const states = useEditorState({
     editor,
     selector: ({ editor: current }) =>
-      current ? editorControls.map((item) => stateOf(item, current)) : []
+      current ? items.map((item) => stateOf(item, current)) : []
   })
 
   return (
@@ -117,9 +194,16 @@ export function EditorToolbarEngine({
         }}
         {...props}
       >
-        {editorControls.map((item, index) =>
+        {items.map((item, index) =>
           item === SEPARATOR ? (
             <Toolbar.Separator key={index} />
+          ) : 'kind' in item ? (
+            <BlockMenu
+              key={item.label}
+              menu={item}
+              state={states?.[index]}
+              editor={editor}
+            />
           ) : (
             <Control
               key={item.label}
