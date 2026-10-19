@@ -54,16 +54,17 @@ describe('Editor on the server', () => {
   it.each<[string, EditorProps, EditorValue]>([
     [
       'an empty value without one',
-      {},
+      { preset: 'rich' },
       {
         version: 1,
-        preset: 'basic',
+        preset: 'rich',
         doc: { type: 'doc', content: [{ type: 'paragraph' }] }
       }
     ],
     [
-      'a value in another preset, read into basic',
+      'the value migrated into the preset prop',
       {
+        preset: 'basic',
         defaultValue: {
           version: 1,
           preset: 'rich',
@@ -102,6 +103,7 @@ describe('Editor on the server', () => {
   ])(
     'submits %s before the editor loads, as the loaded editor would',
     (_, props, expected) => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
       const html = renderToString(
         <Editor aria-label='Event description' name='description' {...props} />
       )

@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
+import { type ComponentType, useEffect, useId, useRef, useState } from 'react'
 
-import { Extension, type JSONContent, getSchema } from '@tiptap/core'
+import { Extension, type JSONContent, type Node, getSchema } from '@tiptap/core'
 import { Placeholder } from '@tiptap/extensions'
+import { NodeSelection } from '@tiptap/pm/state'
 import {
+  type ReactNodeViewProps,
+  ReactNodeViewRenderer,
   EditorContent as TiptapContent,
   type Editor as TiptapEditor,
   useEditor,
@@ -22,15 +25,30 @@ import {
   CURRENT_VERSION,
   type Preset,
   createEmptyValue,
+  defaultEmbedProviders,
   migrate,
   presets
 } from '../schema'
+import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
+import { EditorEmbedPopover } from './EditorEmbedPopover'
+import { EditorEmbedView } from './EditorEmbedView'
+import { EditorImageView } from './EditorImageView'
 import { EditorLinkPopover } from './EditorLinkPopover'
+import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
 import type { EditorRootProps } from './EditorRoot'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
-import { EDITOR_PRESET } from './startingValue'
+import { EmbedPaste } from './embedPaste'
+import {
+  ImageUpload,
+  type UploadImage,
+  imageFiles,
+  replaceImage,
+  uploadImages
+} from './imageUpload'
+import { isDev } from './isDev'
+import { resolvedPreset } from './startingValue'
 import {
   EDITOR_FRAME,
   EDITOR_MIN_HEIGHT,
@@ -53,6 +71,45 @@ const LinkShortcut = Extension.create<LinkShortcutOptions>({
   }
 })
 
+type AltTextShortcutOptions = { onEditAlt: () => void }
+
+const AltTextShortcut = Extension.create<AltTextShortcutOptions>({
+  name: 'altTextShortcut',
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        const { selection } = editor.state
+        const onImage =
+          selection instanceof NodeSelection &&
+          selection.node.type.name === 'image'
+        if (!onImage || !editor.isEditable) return false
+        this.options.onEditAlt()
+        return true
+      }
+    }
+  }
+})
+
+const NODE_VIEWS: Record<string, ComponentType<ReactNodeViewProps>> = {
+  image: EditorImageView,
+  embed: EditorEmbedView
+}
+
+// The saved schema stays React-free; the editor adds its views here.
+const editorExtensions = Object.fromEntries(
+  Object.entries(presets).map(([preset, extensions]) => [
+    preset,
+    extensions.map((extension) => {
+      const view = NODE_VIEWS[extension.name]
+      return view
+        ? (extension as Node).extend({
+            addNodeView: () => ReactNodeViewRenderer(view)
+          })
+        : extension
+    })
+  ])
+) as Record<Preset, typeof presets.basic>
+
 const UNREADABLE =
   'This content couldn’t be loaded, so it can’t be edited here.'
 
@@ -72,6 +129,10 @@ function readsDoc(preset: Preset, doc: JSONContent) {
   } catch {
     return false
   }
+}
+
+function presetHoldsImages(preset: Preset) {
+  return presets[preset].some(({ name }) => name === 'image')
 }
 
 function holdsDoc(editor: TiptapEditor, doc: JSONContent) {
@@ -123,6 +184,7 @@ function FormValue({
 /** The loaded editor, which `Editor` renders in place of its skeleton. */
 
 export function EditorEngine({
+  preset: presetProp,
   value,
   defaultValue,
   onValueChange,
@@ -134,12 +196,23 @@ export function EditorEngine({
   emphasis = 'normal',
   className,
   children,
+  onUploadImage,
+  embedProviders = defaultEmbedProviders,
+  resolveUrl,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy
 }: EditorRootProps) {
   const placeholderRef = useRef(placeholder)
   const toolbarRef = useRef<HTMLDivElement>(null)
+  const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const [editingLink, setEditingLink] = useState(false)
+  const [editingAlt, setEditingAlt] = useState(false)
+  const [editingEmbed, setEditingEmbed] = useState(false)
+  const providersRef = useRef(embedProviders)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const uploadRef = useRef<UploadImage | undefined>(onUploadImage)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const replaceInputRef = useRef<HTMLInputElement>(null)
   const field = useFieldContext()
   const fieldInput = useFieldInputProps()
   const generatedId = useId()
@@ -148,7 +221,8 @@ export function EditorEngine({
   const labelledBy =
     ariaLabelledBy ?? (ariaLabel ? undefined : field.labelId || undefined)
   const describedBy = fieldInput['aria-describedby']
-  const preset = EDITOR_PRESET
+  const preset = resolvedPreset({ preset: presetProp, value, defaultValue })
+  const storedPreset = (value ?? defaultValue)?.preset
   const valueDoc = value && migrate(value, preset).doc
   const [defaultDoc] = useState(
     () => migrate(defaultValue ?? createEmptyValue(preset), preset).doc
@@ -156,16 +230,24 @@ export function EditorEngine({
   const shownDoc = valueDoc ?? defaultDoc
   const unreadable = !readsDoc(preset, shownDoc)
   const editable = !readOnly && !disabled && !unreadable
-  useFieldControlError(unreadable ? UNREADABLE : null)
+  useFieldControlError(uploadError ?? (unreadable ? UNREADABLE : null))
+  const holdsImages = presetHoldsImages(preset)
+  const uploads = {
+    upload: () => (holdsImages ? uploadRef.current : undefined),
+    onError: setUploadError
+  }
 
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      ...presets[preset],
+      ...editorExtensions[preset],
       Placeholder.configure({
         placeholder: () => placeholderRef.current ?? ''
       }),
-      LinkShortcut.configure({ onEditLink: () => setEditingLink(true) })
+      LinkShortcut.configure({ onEditLink: () => setEditingLink(true) }),
+      AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
+      ImageUpload.configure(uploads),
+      EmbedPaste.configure({ providers: () => providersRef.current })
     ],
     content: shownDoc,
     editable,
@@ -183,9 +265,28 @@ export function EditorEngine({
         ...(disabled && { 'aria-disabled': 'true' }),
         class: cn(editorContentClass(size, emphasis), 'outline-none')
       },
-      handleKeyDown: (_view, event) => {
+      handleDOMEvents: {
+        // ProseMirror draws its selection only while focused, so a press that
+        // also focuses the page gets the browser's caret, and a click on the
+        // node already selected, such as a leading image, would change nothing.
+        mousedown: (view) => {
+          const { selection } = view.state
+          if (
+            view.editable &&
+            !view.hasFocus() &&
+            selection instanceof NodeSelection
+          ) {
+            view.focus()
+          }
+          return false
+        }
+      },
+      handleKeyDown: (view, event) => {
         if (!event.altKey || event.key !== 'F10') return false
-        const firstEnabled = toolbarRef.current?.querySelector<HTMLElement>(
+        const toolbar = selectedNodeType(view.state)
+          ? nodeToolbarRef.current
+          : toolbarRef.current
+        const firstEnabled = toolbar?.querySelector<HTMLElement>(
           'button:not([aria-disabled="true"])'
         )
         firstEnabled?.focus()
@@ -201,12 +302,25 @@ export function EditorEngine({
   })
 
   useEffect(() => {
+    if (presetProp && storedPreset && presetProp !== storedPreset && isDev()) {
+      console.warn(
+        `Editor: the value's preset "${storedPreset}" isn't the preset prop "${presetProp}", so it's read as "${presetProp}", dropping what that preset can't hold.`
+      )
+    }
+  }, [presetProp, storedPreset])
+
+  useEffect(() => {
     if (!editor) return
     editor.setEditable(editable, false)
     // useEditorState hears only of transactions, so its isEditable reads
     // would keep the old value.
     editor.view.dispatch(editor.state.tr.setMeta('addToHistory', false))
   }, [editor, editable])
+
+  useEffect(() => {
+    uploadRef.current = onUploadImage
+    providersRef.current = embedProviders
+  }, [onUploadImage, embedProviders])
 
   useEffect(() => {
     placeholderRef.current = placeholder
@@ -219,21 +333,36 @@ export function EditorEngine({
     editor.commands.setContent(valueDoc, { emitUpdate: false })
   }, [editor, valueDoc])
 
-  const editLink = () => {
-    if (editor?.isEditable && editor.schema.marks.link) {
-      setEditingLink(true)
-    }
+  const canUpload = Boolean(onUploadImage) && holdsImages
+  const ui = {
+    editLink: () => {
+      if (editor?.isEditable && editor.schema.marks.link) {
+        setEditingLink(true)
+      }
+    },
+    editAlt: () => {
+      if (editor?.isEditable) setEditingAlt(true)
+    },
+    editEmbed: () => {
+      if (editor?.isEditable && editor.schema.nodes.embed) {
+        setEditingEmbed(true)
+      }
+    },
+    pickImage: canUpload ? () => fileInputRef.current?.click() : undefined,
+    replaceImage: canUpload ? () => replaceInputRef.current?.click() : undefined
   }
 
   return (
     <EditorContext
       value={{
         editor,
+        preset,
         size,
         emphasis,
         contentId,
         toolbarRef,
-        editLink,
+        ...ui,
+        embedProviders,
         TiptapContent,
         ToolbarEngine: EditorToolbarEngine
       }}
@@ -258,19 +387,84 @@ export function EditorEngine({
             <EditorContent />
           </>
         )}
+        {editor ? (
+          <EditorNodeToolbar
+            editor={editor}
+            size={size}
+            ui={ui}
+            toolbarRef={nodeToolbarRef}
+          />
+        ) : null}
         <EditorLinkPopover
           editor={editor}
           open={editingLink}
           onOpenChange={setEditingLink}
         />
-        {unreadable && !field.fieldId ? (
+        <EditorAltTextPopover
+          editor={editor}
+          open={editingAlt}
+          onOpenChange={setEditingAlt}
+        />
+        <EditorEmbedPopover
+          editor={editor}
+          providers={embedProviders}
+          resolveUrl={resolveUrl}
+          open={editingEmbed}
+          onOpenChange={setEditingEmbed}
+        />
+        {(uploadError || unreadable) && !field.fieldId ? (
           // In a Field, Field.ErrorText shows it instead.
           <p
             role='alert'
             className='px-2 pb-2 text-sm text-subtle intent-danger'
           >
-            {UNREADABLE}
+            {uploadError ?? UNREADABLE}
           </p>
+        ) : null}
+        {canUpload ? (
+          <>
+            <input
+              ref={fileInputRef}
+              type='file'
+              accept='image/*'
+              multiple
+              hidden
+              aria-label='Image file'
+              onChange={(event) => {
+                const files = imageFiles(event.currentTarget.files)
+                if (editor && files.length > 0) {
+                  uploadImages(
+                    editor.view,
+                    files,
+                    editor.state.selection.from,
+                    uploads
+                  )
+                }
+                event.currentTarget.value = ''
+              }}
+            />
+            <input
+              ref={replaceInputRef}
+              type='file'
+              accept='image/*'
+              hidden
+              aria-label='Replacement image file'
+              onChange={(event) => {
+                const [file] = imageFiles(event.currentTarget.files)
+                const onImage =
+                  editor && selectedNodeType(editor.state) === 'image'
+                if (file && onImage) {
+                  replaceImage(
+                    editor.view,
+                    file,
+                    editor.state.selection.from,
+                    uploads
+                  )
+                }
+                event.currentTarget.value = ''
+              }}
+            />
+          </>
         ) : null}
         {name ? (
           <FormValue

@@ -10,6 +10,23 @@
   pointer-events: none;
 }
 
+/* A node view rings its own wrapper, which can be narrower than the row. */
+[data-slot='editor-content'] .ProseMirror-selectednode:not(.react-renderer),
+[data-slot='editor-content'] [data-node-view-wrapper][data-selected] {
+  outline: var(--focus-ring-width) solid var(--color-accent-9);
+  outline-offset: 2px;
+}
+
+/* The cover takes clicks, so one selects the embed instead of playing it. */
+[data-slot='editor-embed'] {
+  position: relative;
+}
+
+[data-slot='editor-embed-cover'] {
+  position: absolute;
+  inset: 0;
+}
+
 /* A boxless editor has no border to colour, so invalid draws the field's
    danger edge on the start side only, just outside the text so it stays
    aligned with the page. Danger 9 on the page clears APCA Lc 45 for non-text

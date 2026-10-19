@@ -1,7 +1,15 @@
 import { useState } from 'react'
 
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Field } from '@oztix/roadie-components/field'
@@ -9,7 +17,11 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 
 import { Editor, useEditorContext } from '.'
 import editorCss from '../css/editor.css?inline'
-import type { EditorValue } from '../schema'
+import {
+  type EditorValue,
+  type EmbedProvider,
+  defaultEmbedProviders
+} from '../schema'
 
 const MOD = /^(Mac|iP)/.test(navigator.platform) ? 'Meta' : 'Control'
 
@@ -875,6 +887,785 @@ describe('Editor links', () => {
   })
 })
 
+function RichEditor(props: { onValueChange?: (value: EditorValue) => void }) {
+  return (
+    <Editor
+      aria-label={LABEL}
+      preset='rich'
+      defaultValue={{ ...soldOut, preset: 'rich' }}
+      {...props}
+    />
+  )
+}
+
+function pasteHtml(target: HTMLElement, html: string, plain: string) {
+  const clipboardData = new DataTransfer()
+  clipboardData.setData('text/html', html)
+  clipboardData.setData('text/plain', plain)
+  target.dispatchEvent(
+    new ClipboardEvent('paste', {
+      clipboardData,
+      bubbles: true,
+      cancelable: true
+    })
+  )
+}
+
+describe('Editor rich preset', () => {
+  it('leads with the block type, then the basic controls and Divider', async () => {
+    render(<RichEditor />)
+
+    expect(toolbarItems(await formattingToolbar())).toEqual([
+      'Block type: Paragraph',
+      '|',
+      'Bold',
+      'Italic',
+      'Link',
+      '|',
+      'Bulleted list',
+      'Numbered list',
+      '|',
+      'Divider',
+      'Embed',
+      '|',
+      'Undo',
+      'Redo'
+    ])
+  })
+
+  it('changes the block from the Block type menu and names it on the trigger', async () => {
+    const onValueChange = vi.fn()
+    render(<RichEditor onValueChange={onValueChange} />)
+    const textbox = await focusedTextbox()
+    const blockType = () => screen.getByRole('button', { name: /^Block type/ })
+    const choose = async (name: string) => {
+      await userEvent.click(blockType())
+      await userEvent.click(await screen.findByRole('menuitemradio', { name }))
+      await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    }
+
+    await choose('Heading 3')
+
+    await waitFor(() =>
+      expect(within(textbox).getByText('Sold out').tagName).toBe('H3')
+    )
+    await waitFor(() => expect(textbox).toHaveFocus())
+    expect(blockType()).toHaveAccessibleName('Block type: Heading 3')
+    expect(onValueChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        preset: 'rich',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'heading',
+              attrs: { level: 3 },
+              content: [{ type: 'text', text: 'Sold out' }]
+            },
+            // Tiptap keeps a paragraph last, so there's always a line to type on.
+            { type: 'paragraph' }
+          ]
+        }
+      })
+    )
+
+    await choose('Quote')
+    expect(within(textbox).getByText('Sold out').tagName).toBe('P')
+    expect(
+      within(textbox).getByText('Sold out').closest('blockquote')
+    ).not.toBe(null)
+    expect(blockType()).toHaveAccessibleName('Block type: Quote')
+
+    await userEvent.click(blockType())
+    expect(
+      await screen.findByRole('menuitemradio', { name: 'Quote' })
+    ).toHaveAttribute('aria-checked', 'true')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+
+    await choose('Paragraph')
+    expect(within(textbox).getByText('Sold out').closest('blockquote')).toBe(
+      null
+    )
+    expect(blockType()).toHaveAccessibleName('Block type: Paragraph')
+  })
+
+  it.each([
+    ['## ', 'H2'],
+    ['### ', 'H3'],
+    ['#### ', 'H4']
+  ])('starts a heading with %j', async (typed, tag) => {
+    render(<Editor aria-label={LABEL} preset='rich' />)
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard(`${typed}Lineup`)
+
+    await waitFor(() =>
+      expect(within(textbox).getByText('Lineup').tagName).toBe(tag)
+    )
+  })
+
+  it('starts a quote with "> "', async () => {
+    render(<Editor aria-label={LABEL} preset='rich' />)
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('> Best weekend of the year')
+
+    await waitFor(() =>
+      expect(
+        within(textbox)
+          .getByText('Best weekend of the year')
+          .closest('blockquote')
+      ).not.toBe(null)
+    )
+  })
+
+  it('draws a divider with "---"', async () => {
+    render(<Editor aria-label={LABEL} preset='rich' />)
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('---')
+
+    await waitFor(() => expect(textbox.querySelector('hr')).not.toBe(null))
+  })
+
+  it('draws a divider with the Divider control', async () => {
+    render(<RichEditor />)
+    const textbox = await focusedTextbox()
+    await userEvent.keyboard('{End}')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Divider' }))
+
+    await waitFor(() => expect(textbox.querySelector('hr')).not.toBe(null))
+  })
+
+  it('reads a pasted h1 as a heading 2, and h5 and h6 as heading 4', async () => {
+    render(<Editor aria-label={LABEL} preset='rich' />)
+    const textbox = await focusedTextbox()
+
+    pasteHtml(
+      textbox,
+      '<h1>Ochre Kite Weekender</h1><h5>Bar</h5><h6>Food</h6>',
+      'Ochre Kite Weekender Bar Food'
+    )
+
+    await waitFor(() => expect(textbox).toHaveTextContent('Food'))
+    expect(within(textbox).getByText('Ochre Kite Weekender').tagName).toBe('H2')
+    expect(within(textbox).getByText('Bar').tagName).toBe('H4')
+    expect(within(textbox).getByText('Food').tagName).toBe('H4')
+  })
+})
+
+const CROWD = '/images/crowd.webp'
+const CROWD_ALT = 'The crowd at sunset'
+
+const pictured = (alt: string): EditorValue => ({
+  version: 1,
+  preset: 'rich',
+  doc: {
+    type: 'doc',
+    content: [
+      { type: 'image', attrs: { src: CROWD, alt } },
+      { type: 'paragraph', content: [{ type: 'text', text: 'Sold out' }] }
+    ]
+  }
+})
+
+function imageFile(name = 'crowd.png') {
+  return new File(['png'], name, { type: 'image/png' })
+}
+
+function pasteFiles(target: HTMLElement, ...files: File[]) {
+  const clipboardData = new DataTransfer()
+  for (const file of files) clipboardData.items.add(file)
+  target.dispatchEvent(
+    new ClipboardEvent('paste', {
+      clipboardData,
+      bubbles: true,
+      cancelable: true
+    })
+  )
+}
+
+function dropFiles(target: HTMLElement, ...files: File[]) {
+  const dataTransfer = new DataTransfer()
+  for (const file of files) dataTransfer.items.add(file)
+  const box = target.getBoundingClientRect()
+  const drop = new DragEvent('drop', {
+    dataTransfer,
+    bubbles: true,
+    cancelable: true,
+    clientX: box.left + 8,
+    clientY: box.top + 8
+  })
+  target.dispatchEvent(drop)
+  return drop
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (reason: unknown) => void
+  const promise = new Promise<T>((onResolve, onReject) => {
+    resolve = onResolve
+    reject = onReject
+  })
+  return { promise, resolve, reject }
+}
+
+function imagesIn(value: EditorValue) {
+  return (value.doc.content ?? [])
+    .filter((node) => node.type === 'image')
+    .map((node) => node.attrs)
+}
+
+describe('Editor images', () => {
+  it('has no image control, and ignores pasted and dropped images, without onUploadImage', async () => {
+    const onValueChange = vi.fn()
+    render(<RichEditor onValueChange={onValueChange} />)
+    const textbox = await focusedTextbox()
+    expect(screen.queryByRole('button', { name: 'Image' })).toBe(null)
+
+    pasteFiles(textbox, imageFile())
+    const drop = dropFiles(textbox, imageFile())
+    await userEvent.keyboard('{End}!')
+
+    await waitFor(() => expect(textbox).toHaveTextContent('Sold out!'))
+    expect(drop.defaultPrevented).toBe(true)
+    expect(textbox.querySelector('img')).toBe(null)
+    expect(imagesIn(onValueChange.mock.lastCall![0])).toEqual([])
+  })
+
+  it('ignores onUploadImage in the basic preset, which holds no images', async () => {
+    const onUploadImage = vi.fn(async () => ({ src: CROWD }))
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={soldOut}
+        onUploadImage={onUploadImage}
+      />
+    )
+    const textbox = await focusedTextbox()
+    expect(screen.queryByRole('button', { name: 'Image' })).toBe(null)
+
+    pasteFiles(textbox, imageFile())
+    dropFiles(textbox, imageFile())
+    await userEvent.keyboard('{End}!')
+
+    await waitFor(() => expect(textbox).toHaveTextContent('Sold out!'))
+    expect(onUploadImage).not.toHaveBeenCalled()
+  })
+
+  it('uploads a chosen image, showing a placeholder until it is saved', async () => {
+    const upload = deferred<{ src: string; alt?: string }>()
+    const onUploadImage = vi.fn(() => upload.promise)
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='rich'
+        defaultValue={{ ...soldOut, preset: 'rich' }}
+        onUploadImage={onUploadImage}
+        onValueChange={onValueChange}
+      />
+    )
+    const textbox = await focusedTextbox()
+    const file = imageFile()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Image' }))
+    await userEvent.upload(screen.getByLabelText('Image file'), file)
+
+    expect(onUploadImage).toHaveBeenCalledWith(file)
+    expect(
+      await within(textbox).findByRole('status', { name: 'Uploading image' })
+    ).toBeVisible()
+
+    upload.resolve({ src: CROWD, alt: CROWD_ALT })
+
+    const image = await within(textbox).findByRole('img', { name: CROWD_ALT })
+    expect(image).toHaveAttribute('src', CROWD)
+    expect(within(textbox).queryByRole('status')).toBe(null)
+    expect(imagesIn(onValueChange.mock.lastCall![0])).toEqual([
+      { src: CROWD, alt: CROWD_ALT }
+    ])
+  })
+
+  it.each([
+    ['pasted', pasteFiles],
+    ['dropped', dropFiles]
+  ])('uploads a %s image file', async (_, send) => {
+    const onUploadImage = vi.fn(async () => ({ src: CROWD }))
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='rich'
+        defaultValue={{ ...soldOut, preset: 'rich' }}
+        onUploadImage={onUploadImage}
+      />
+    )
+    const textbox = await focusedTextbox()
+    const file = imageFile()
+
+    send(textbox, file, new File(['x'], 'notes.txt', { type: 'text/plain' }))
+
+    const image = await waitFor(() => {
+      const shown = textbox.querySelector('img')
+      expect(shown).toHaveAttribute('src', CROWD)
+      return shown!
+    })
+    expect(image).toHaveAttribute('alt', '')
+    expect(onUploadImage).toHaveBeenCalledTimes(1)
+    expect(onUploadImage).toHaveBeenCalledWith(file)
+  })
+
+  it.each<[string, () => Promise<{ src: string }>, RegExp]>([
+    [
+      'rejects',
+      () => Promise.reject(new Error('That file is over 5 MB.')),
+      /^That file is over 5 MB\.$/
+    ],
+    [
+      'throws before returning a promise',
+      () => {
+        throw new Error('That file is over 5 MB.')
+      },
+      /^That file is over 5 MB\.$/
+    ],
+    [
+      'returns an http: address',
+      async () => ({ src: 'http://example.com/a.png' }),
+      /couldn’t be added/
+    ]
+  ])(
+    'shows an error in the Field when the upload %s',
+    async (_, onUploadImage, message) => {
+      render(
+        <Field>
+          <Field.Label>{LABEL}</Field.Label>
+          <Editor
+            preset='rich'
+            defaultValue={{ ...soldOut, preset: 'rich' }}
+            onUploadImage={onUploadImage}
+          />
+          <Field.ErrorText />
+        </Field>
+      )
+      const textbox = await focusedTextbox()
+
+      pasteFiles(textbox, imageFile())
+
+      expect((await screen.findByRole('alert')).textContent).toMatch(message)
+      expect(within(textbox).queryByRole('status')).toBe(null)
+      expect(textbox.querySelector('img')).toBe(null)
+    }
+  )
+
+  it('shows an upload error under the editor outside a Field, until the next upload', async () => {
+    const onUploadImage = vi
+      .fn<(file: File) => Promise<{ src: string }>>()
+      .mockRejectedValueOnce(new Error('That file is over 5 MB.'))
+      .mockResolvedValueOnce({ src: CROWD })
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='rich'
+        defaultValue={{ ...soldOut, preset: 'rich' }}
+        onUploadImage={onUploadImage}
+      />
+    )
+    const textbox = await focusedTextbox()
+
+    pasteFiles(textbox, imageFile())
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'That file is over 5 MB.'
+    )
+
+    pasteFiles(textbox, imageFile())
+    await waitFor(() => expect(textbox.querySelector('img')).not.toBe(null))
+    expect(screen.queryByRole('alert')).toBe(null)
+  })
+
+  it.each([
+    ['javascript:', 'javascript:alert(1)'],
+    ['http:', 'http://example.com/a.png'],
+    ['another site by a protocol-relative URL', '//evil.test/a.png']
+  ])('drops a pasted image on %s', async (_, src) => {
+    render(<Editor aria-label={LABEL} preset='rich' />)
+    const textbox = await focusedTextbox()
+
+    pasteHtml(textbox, `<p>Doors</p><img src="${src}" alt="Poster">`, 'Doors')
+
+    await waitFor(() => expect(textbox).toHaveTextContent('Doors'))
+    expect(textbox.querySelector('img')).toBe(null)
+  })
+
+  it('keeps a pasted https image, with its alt text', async () => {
+    render(<Editor aria-label={LABEL} preset='rich' />)
+    const textbox = await focusedTextbox()
+
+    pasteHtml(
+      textbox,
+      `<img src="https://assets.example.com/crowd.webp" alt="${CROWD_ALT}">`,
+      ''
+    )
+
+    expect(
+      await within(textbox).findByRole('img', { name: CROWD_ALT })
+    ).toHaveAttribute('src', 'https://assets.example.com/crowd.webp')
+  })
+
+  it('flags an image with no alt text until it is added', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='rich'
+        defaultValue={pictured('')}
+        onValueChange={onValueChange}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    expect(await within(textbox).findByText('No alt text')).toBeVisible()
+
+    await userEvent.click(within(textbox).getByText('Sold out'))
+    await userEvent.keyboard('{Home}{ArrowUp}{Enter}')
+    const field = await screen.findByRole('textbox', { name: 'Alt text' })
+    await waitFor(() => expect(field).toHaveFocus())
+    await userEvent.type(field, `${CROWD_ALT}{Enter}`)
+
+    expect(
+      await within(textbox).findByRole('img', { name: CROWD_ALT })
+    ).toBeVisible()
+    expect(within(textbox).queryByText('No alt text')).toBe(null)
+    expect(imagesIn(onValueChange.mock.lastCall![0])).toEqual([
+      { src: CROWD, alt: CROWD_ALT }
+    ])
+  })
+
+  it('opens the alt text editor with Enter on a selected image', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='rich'
+        defaultValue={pictured(CROWD_ALT)}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    expect(within(textbox).queryByText('No alt text')).toBe(null)
+
+    await userEvent.click(within(textbox).getByText('Sold out'))
+    await userEvent.keyboard('{Home}{ArrowUp}{Enter}')
+
+    expect(
+      await screen.findByRole('textbox', { name: 'Alt text' })
+    ).toHaveValue(CROWD_ALT)
+  })
+})
+
+// Players point at this server, so the tests load nothing from the internet.
+const localPlayers: EmbedProvider[] = defaultEmbedProviders.map((provider) => ({
+  ...provider,
+  src: ({ id }) => `/embed-test/${provider.name}/${id}`
+}))
+
+const YOUTUBE = 'https://www.youtube.com/watch?v=exampleVid1'
+
+function EmbedEditor(props: {
+  defaultValue?: EditorValue
+  onValueChange?: (value: EditorValue) => void
+  resolveUrl?: (url: string) => Promise<string>
+  embedProviders?: readonly EmbedProvider[]
+}) {
+  return (
+    <Editor
+      aria-label={LABEL}
+      preset='rich'
+      embedProviders={localPlayers}
+      {...props}
+    />
+  )
+}
+
+function pasteText(target: HTMLElement, value: string) {
+  const clipboardData = new DataTransfer()
+  clipboardData.setData('text/plain', value)
+  target.dispatchEvent(
+    new ClipboardEvent('paste', {
+      clipboardData,
+      bubbles: true,
+      cancelable: true
+    })
+  )
+}
+
+function embedsIn(value: EditorValue) {
+  return (value.doc.content ?? [])
+    .filter((node) => node.type === 'embed')
+    .map((node) => node.attrs)
+}
+
+const embedded = (attrs: Record<string, unknown>): EditorValue => ({
+  version: 1,
+  preset: 'rich',
+  doc: {
+    type: 'doc',
+    content: [
+      { type: 'embed', attrs },
+      { type: 'paragraph', content: [{ type: 'text', text: 'Sold out' }] }
+    ]
+  }
+})
+
+describe('Editor embeds', () => {
+  it('embeds a supported URL pasted alone on an empty line, saving no src', async () => {
+    const onValueChange = vi.fn()
+    render(<EmbedEditor onValueChange={onValueChange} />)
+    const textbox = await focusedTextbox()
+
+    pasteText(textbox, YOUTUBE)
+
+    const player = await within(textbox).findByTitle(
+      'YouTube embed exampleVid1'
+    )
+    expect(player.tagName).toBe('IFRAME')
+    expect(player).toHaveAttribute('src', '/embed-test/youtube/exampleVid1')
+    expect(player).toHaveAttribute(
+      'sandbox',
+      'allow-scripts allow-same-origin allow-presentation'
+    )
+    expect(player).toHaveAttribute(
+      'allow',
+      'encrypted-media; fullscreen; picture-in-picture'
+    )
+    expect(player).toHaveAttribute('loading', 'lazy')
+    expect(embedsIn(onValueChange.mock.lastCall![0])).toEqual([
+      { provider: 'youtube', id: 'exampleVid1', params: null }
+    ])
+  })
+
+  it('links a supported URL pasted into a sentence', async () => {
+    render(<EmbedEditor defaultValue={{ ...soldOut, preset: 'rich' }} />)
+    const textbox = await focusedTextbox()
+    await userEvent.keyboard('{End} ')
+
+    pasteText(textbox, YOUTUBE)
+
+    expect(
+      await within(textbox).findByRole('link', { name: YOUTUBE })
+    ).toBeVisible()
+    expect(textbox.querySelector('iframe')).toBe(null)
+  })
+
+  it.each([
+    [
+      'a look-alike suffix',
+      'https://youtube.com.evil.test/watch?v=exampleVid1'
+    ],
+    ['a look-alike prefix', 'https://evilyoutube.com/watch?v=exampleVid1'],
+    ['user info', 'https://youtube.com@evil.test/watch?v=exampleVid1']
+  ])('pastes a URL with %s as text, not an embed', async (_, url) => {
+    render(<EmbedEditor />)
+    const textbox = await focusedTextbox()
+
+    pasteText(textbox, url)
+
+    await waitFor(() => expect(textbox).toHaveTextContent(url))
+    expect(textbox.querySelector('iframe')).toBe(null)
+  })
+
+  it('embeds a URL from the Embed control', async () => {
+    render(<EmbedEditor />)
+    const textbox = await focusedTextbox()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Embed' }))
+    await userEvent.type(
+      await screen.findByRole('textbox', { name: 'Video or audio link' }),
+      'https://vimeo.com/76979871/8272103f6e{Enter}'
+    )
+
+    expect(
+      await within(textbox).findByTitle('Vimeo embed 76979871')
+    ).toHaveAttribute('src', '/embed-test/vimeo/76979871')
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('textbox', { name: 'Video or audio link' })
+      ).toBe(null)
+    )
+  })
+
+  it('refuses a URL no provider takes, with an error, in the Embed control', async () => {
+    render(<EmbedEditor />)
+    const textbox = await focusedTextbox()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Embed' }))
+    const field = await screen.findByRole('textbox', {
+      name: 'Video or audio link'
+    })
+    await userEvent.type(
+      field,
+      'https://www.instagram.com/p/C1a2b3c4d5e/{Enter}'
+    )
+
+    await waitFor(() => expect(field).toHaveAttribute('aria-invalid', 'true'))
+    expect(field).toHaveAccessibleDescription(/can’t be embedded/)
+    expect(textbox.querySelector('iframe')).toBe(null)
+  })
+
+  it('resolves a short link through resolveUrl', async () => {
+    const resolveUrl = vi.fn(
+      async () => 'https://www.tiktok.com/@oztix/video/7000000000000000001'
+    )
+    render(<EmbedEditor resolveUrl={resolveUrl} />)
+    const textbox = await focusedTextbox()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Embed' }))
+    await userEvent.type(
+      await screen.findByRole('textbox', { name: 'Video or audio link' }),
+      'https://vm.tiktok.com/ZMabcdef/{Enter}'
+    )
+
+    expect(
+      await within(textbox).findByTitle('TikTok embed 7000000000000000001')
+    ).toBeVisible()
+    expect(resolveUrl).toHaveBeenCalledWith('https://vm.tiktok.com/ZMabcdef/')
+  })
+
+  it('embeds nothing when the Embed control closes before resolveUrl settles', async () => {
+    const { promise, resolve } = Promise.withResolvers<string>()
+    render(<EmbedEditor resolveUrl={() => promise} />)
+    const textbox = await focusedTextbox()
+    await userEvent.click(screen.getByRole('button', { name: 'Embed' }))
+    const field = await screen.findByRole('textbox', {
+      name: 'Video or audio link'
+    })
+    await userEvent.type(field, 'https://vm.tiktok.com/ZMabcdef/{Enter}')
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+
+    resolve('https://www.tiktok.com/@oztix/video/7000000000000000001')
+    await promise
+    await new Promise(requestAnimationFrame)
+
+    expect(textbox.querySelector('iframe')).toBe(null)
+  })
+
+  it.each<[string, Record<string, unknown>, (box: DOMRect) => void]>([
+    [
+      'Spotify at its fixed height',
+      {
+        provider: 'spotify',
+        id: 'exampleTrack0000000001',
+        params: { type: 'track' }
+      },
+      (box) => expect(box.height).toBe(352)
+    ],
+    [
+      'TikTok at 9:16',
+      { provider: 'tiktok', id: '7000000000000000001', params: null },
+      (box) => expect(box.width / box.height).toBeCloseTo(9 / 16, 2)
+    ],
+    [
+      'YouTube at 16:9',
+      { provider: 'youtube', id: 'exampleVid1', params: null },
+      (box) => expect(box.width / box.height).toBeCloseTo(16 / 9, 2)
+    ]
+  ])('shows %s', async (_, attrs, check) => {
+    render(<EmbedEditor defaultValue={embedded(attrs)} />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+
+    const player = await waitFor(() => {
+      const shown = textbox.querySelector('iframe')
+      expect(shown).not.toBe(null)
+      return shown!
+    })
+
+    check(player.getBoundingClientRect())
+  })
+
+  it('selects an embed on click rather than playing it, and deletes it with Backspace', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <EmbedEditor
+        defaultValue={embedded({
+          provider: 'youtube',
+          id: 'exampleVid1',
+          params: null
+        })}
+        onValueChange={onValueChange}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const player = await within(textbox).findByTitle(
+      'YouTube embed exampleVid1'
+    )
+    const box = player.getBoundingClientRect()
+    expect(
+      document.elementFromPoint(
+        box.left + box.width / 2,
+        box.top + box.height / 2
+      )
+    ).not.toBe(player)
+
+    await userEvent.click(player, { force: true })
+    await userEvent.keyboard('{Backspace}')
+
+    await waitFor(() => expect(textbox.querySelector('iframe')).toBe(null))
+    expect(textbox).toHaveTextContent('Sold out')
+    expect(embedsIn(onValueChange.mock.lastCall![0])).toEqual([])
+  })
+
+  it('selects an embed with the arrow keys and deletes it', async () => {
+    render(
+      <EmbedEditor
+        defaultValue={embedded({
+          provider: 'youtube',
+          id: 'exampleVid1',
+          params: null
+        })}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await within(textbox).findByTitle('YouTube embed exampleVid1')
+    await userEvent.click(within(textbox).getByText('Sold out'))
+
+    await userEvent.keyboard('{Home}{ArrowUp}{Delete}')
+
+    await waitFor(() => expect(textbox.querySelector('iframe')).toBe(null))
+    expect(textbox).toHaveTextContent('Sold out')
+  })
+
+  it('shows a saved embed only from a provider it was given', async () => {
+    const loom: EmbedProvider = {
+      name: 'loom',
+      label: 'Loom',
+      id: /^[0-9a-f]{32}$/,
+      aspect: '16:9',
+      match: () => null,
+      src: ({ id }) => `/embed-test/loom/${id}`
+    }
+    const id = '0123456789abcdef0123456789abcdef'
+    const value = embedded({ provider: 'loom', id, params: null })
+    const { unmount } = render(<EmbedEditor defaultValue={value} />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    expect(
+      await within(textbox).findByText('This embed can’t be shown.')
+    ).toBeVisible()
+    expect(textbox.querySelector('iframe')).toBe(null)
+    unmount()
+
+    render(
+      <EmbedEditor
+        defaultValue={value}
+        embedProviders={[...localPlayers, loom]}
+      />
+    )
+
+    expect(await screen.findByTitle(`Loom embed ${id}`)).toHaveAttribute(
+      'src',
+      `/embed-test/loom/${id}`
+    )
+  })
+})
+
 const richLineup: EditorValue = {
   version: 1,
   preset: 'rich',
@@ -900,7 +1691,9 @@ function lastSavedText(onValueChange: ReturnType<typeof vi.fn>) {
 }
 
 describe('Editor and a stored value’s preset', () => {
-  it('reads a value in another preset into basic, keeping its text', async () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('takes its preset from its value, keeping the content as it edits', async () => {
     const onValueChange = vi.fn()
     render(
       <Editor
@@ -910,14 +1703,68 @@ describe('Editor and a stored value’s preset', () => {
       />
     )
     const textbox = await focusedTextbox()
+    expect(
+      within(textbox).getByRole('heading', { level: 2 })
+    ).toHaveTextContent('Lineup')
+
+    await userEvent.keyboard('{End}!')
+
+    await waitFor(() => expect(onValueChange).toHaveBeenCalled())
+    const saved = onValueChange.mock.lastCall![0] as EditorValue
+    expect(saved.preset).toBe('rich')
+    expect(saved.doc.content?.[0]?.type).toBe('heading')
+    expect(lastSavedText(onValueChange)).toContain('Ochre Kite Weekender')
+  })
+
+  it('keeps the text of a value its preset prop holds less of, with a warning', async () => {
+    // A browser has no `process`; a consumer's bundler supplies NODE_ENV.
+    vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='basic'
+        defaultValue={richLineup}
+        onValueChange={onValueChange}
+      />
+    )
+    const textbox = await focusedTextbox()
     expect(textbox).toHaveTextContent('LineupOchre Kite Weekender')
-    expect(within(textbox).queryByRole('heading')).toBe(null)
+    expect(warn).toHaveBeenCalledWith(expect.stringMatching(/"rich".*"basic"/))
+    warn.mockRestore()
 
     await userEvent.keyboard('{End}!')
 
     await waitFor(() => expect(onValueChange).toHaveBeenCalled())
     expect(onValueChange.mock.lastCall![0].preset).toBe('basic')
     expect(lastSavedText(onValueChange)).toContain('Lineup')
+  })
+
+  it('shows a controlled value that moves to another preset', async () => {
+    const onValueChange = vi.fn()
+    const { rerender } = render(
+      <Editor
+        aria-label={LABEL}
+        value={soldOut}
+        onValueChange={onValueChange}
+      />
+    )
+    await focusedTextbox()
+
+    rerender(
+      <Editor
+        aria-label={LABEL}
+        value={richLineup}
+        onValueChange={onValueChange}
+      />
+    )
+
+    const heading = await within(
+      await screen.findByRole('textbox', { name: LABEL })
+    ).findByRole('heading', { level: 2 })
+    expect(heading).toHaveTextContent('Lineup')
+    expect(onValueChange).not.toHaveBeenCalled()
   })
 
   it('keeps text whose marks its preset doesn’t hold', async () => {

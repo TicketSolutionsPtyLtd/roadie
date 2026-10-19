@@ -6,9 +6,9 @@ import { useFieldContext } from '@oztix/roadie-components/field'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
 import { cn } from '@oztix/roadie-core/utils'
 
-import type { EditorValue } from '../schema'
+import type { EditorValue, EmbedProvider, Preset } from '../schema'
 import { loadedEngine, preloadEditor, subscribeToEngine } from './load'
-import { startingValue } from './startingValue'
+import { resolvedPreset, startingValue } from './startingValue'
 import {
   EDITOR_MIN_HEIGHT,
   EDITOR_TOOLBAR_HEIGHT,
@@ -19,6 +19,12 @@ import {
 } from './variants'
 
 export type EditorRootProps = {
+  /**
+   * The nodes and marks the document may hold. A value in another preset is
+   * read into this one, keeping the text of what it can't hold.
+   * @default the value's preset, or 'basic'
+   */
+  preset?: Preset
   /** The document, for a controlled editor. */
   value?: EditorValue
   /** The starting document, for an uncontrolled editor. */
@@ -44,6 +50,23 @@ export type EditorRootProps = {
    */
   emphasis?: EditorEmphasis
   className?: string
+  /**
+   * Uploads an image the person picks, pastes, or drops, and resolves to
+   * where it's served: https, or a path on this site. Without it the editor
+   * has no image control and ignores image files. A rejection's message shows
+   * in `Field.ErrorText`.
+   */
+  onUploadImage?: (file: File) => Promise<{ src: string; alt?: string }>
+  /**
+   * The providers the editor embeds from, matching what renders the value.
+   * @default defaultEmbedProviders
+   */
+  embedProviders?: readonly EmbedProvider[]
+  /**
+   * Resolves a link no provider reads, such as a short link, to one it can.
+   * Called when one is entered in the Embed control; run it on your server.
+   */
+  resolveUrl?: (url: string) => Promise<string>
   'aria-label'?: string
   'aria-labelledby'?: string
   /** Replaces the default parts, `<Editor.Toolbar />` then `<Editor.Content />`. */
@@ -53,10 +76,8 @@ export type EditorRootProps = {
 const notLoadedOnServer = () => undefined
 
 /**
- * A rich-text editor that saves an `EditorValue` in the `basic` preset,
- * reading a value in another preset into it and keeping the text of what it
- * can't hold. It shows a skeleton on the server and until the editor's code
- * loads in the browser.
+ * A rich-text editor that saves an `EditorValue`. It shows a skeleton on the
+ * server and until the editor's code loads in the browser.
  */
 export function EditorRoot(props: EditorRootProps) {
   const engine = useSyncExternalStore(
@@ -126,7 +147,9 @@ export function EditorRoot(props: EditorRootProps) {
       </>
     )
   }
-  return <engine.EditorEngine {...props} />
+  // Tiptap fixes the schema when it creates the editor, so a new preset needs
+  // a new editor.
+  return <engine.EditorEngine key={resolvedPreset(props)} {...props} />
 }
 
 EditorRoot.displayName = 'Editor.Root'

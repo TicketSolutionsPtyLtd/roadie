@@ -36,6 +36,7 @@ type RowProps = InputProps & {
   onValueChange: (value: string) => void
   submitLabel: string
   canSubmit: boolean
+  busy: boolean
   remove?: RemoveAction
 }
 
@@ -46,6 +47,7 @@ function Row({
   onValueChange,
   submitLabel,
   canSubmit,
+  busy,
   remove,
   ...inputProps
 }: RowProps) {
@@ -86,7 +88,7 @@ function Row({
         size={size}
         emphasis='subtler'
         aria-label={submitLabel}
-        disabled={!canSubmit}
+        disabled={busy || !canSubmit}
         focusableWhenDisabled
       >
         <CheckIcon weight='bold' className='size-4' aria-hidden />
@@ -120,8 +122,11 @@ type EditorPopoverFormProps = InputProps & {
   onValueChange: (value: string) => void
   /** Names the check button. */
   submitLabel: string
-  /** Returns `false` when refused, keeping the popover open with focus in the input. */
-  onSubmit: () => boolean
+  /** Resolves `false` when refused, keeping the popover open with focus in the input. */
+  onSubmit: () => boolean | Promise<boolean>
+  /** Whether the check can save. Defaults to the input having text. */
+  canSubmit?: boolean
+  busy?: boolean
   error?: ReactNode
   invalid?: boolean
   /** A Remove button between the check and Close. */
@@ -131,23 +136,25 @@ type EditorPopoverFormProps = InputProps & {
 /** One row: a bare input, then check, optional Remove, and Close buttons. Enter saves too. */
 export function EditorPopoverForm({
   onSubmit,
+  canSubmit,
+  busy = false,
   error,
   invalid = false,
   ...rowProps
 }: EditorPopoverFormProps) {
   const { inputRef, value } = rowProps
-  const submittable = value.trim() !== ''
+  const submittable = canSubmit ?? value.trim() !== ''
   return (
     <form
       noValidate
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault()
-        if (!submittable) return
-        if (!onSubmit()) inputRef.current?.focus()
+        if (busy || !submittable) return
+        if (!(await onSubmit())) inputRef.current?.focus()
       }}
     >
       <Field invalid={invalid}>
-        <Row {...rowProps} canSubmit={submittable} />
+        <Row {...rowProps} canSubmit={submittable} busy={busy} />
         {error ? (
           <Field.ErrorText className='px-2 pb-1'>{error}</Field.ErrorText>
         ) : null}

@@ -2,17 +2,33 @@ import type { Icon } from '@phosphor-icons/react'
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
+  FilmStripIcon,
+  ImageIcon,
   LinkIcon,
   ListBulletsIcon,
   ListNumbersIcon,
+  MinusIcon,
+  PencilSimpleIcon,
+  SwapIcon,
+  TextAaIcon,
   TextBIcon,
-  TextItalicIcon
+  TextItalicIcon,
+  TrashIcon
 } from '@phosphor-icons/react'
 import type { Editor } from '@tiptap/react'
+
+import type { Preset } from '../schema'
+import { HEADING_LEVELS } from '../schema/headings'
 
 /** What a control can open in the editor's own UI. */
 export type EditorControlUi = {
   editLink: () => void
+  /** Opens the embed editor, on the selected embed if there is one. */
+  editEmbed: () => void
+  pickImage: (() => void) | undefined
+  editAlt: () => void
+  /** Opens the file picker to replace the selected image, or undefined without `onUploadImage`. */
+  replaceImage: (() => void) | undefined
 }
 
 export type EditorControl = {
@@ -24,11 +40,29 @@ export type EditorControl = {
   /** Makes the control a toggle, pressed while this holds. */
   pressed?: (editor: Editor) => boolean
   enabled?: (editor: Editor) => boolean
+  /** Shows the control only while this holds, such as with an upload handler. */
+  available?: (ui: EditorControlUi) => boolean
 }
 
 export const SEPARATOR = 'separator'
 
-export type EditorToolbarItem = EditorControl | typeof SEPARATOR
+/** One choice in the block type menu. */
+export type EditorBlockType = {
+  label: string
+  shortcut: readonly string[]
+  /** Whether the caret's block is this type. */
+  active: (editor: Editor) => boolean
+  run: (editor: Editor) => void
+}
+
+export type EditorBlockMenu = {
+  kind: 'blockMenu'
+  label: string
+  types: readonly EditorBlockType[]
+}
+
+export type EditorToolbarItem =
+  EditorControl | EditorBlockMenu | typeof SEPARATOR
 
 const bold: EditorControl = {
   label: 'Bold',
@@ -86,6 +120,63 @@ const redo: EditorControl = {
   enabled: (editor) => editor.can().redo()
 }
 
+const divider: EditorControl = {
+  label: 'Divider',
+  icon: MinusIcon,
+  run: (editor) => editor.chain().focus().setHorizontalRule().run(),
+  enabled: (editor) => editor.can().setHorizontalRule()
+}
+
+const image: EditorControl = {
+  label: 'Image',
+  icon: ImageIcon,
+  run: (_editor, { pickImage }) => pickImage?.(),
+  available: ({ pickImage }) => Boolean(pickImage)
+}
+
+const embed: EditorControl = {
+  label: 'Embed',
+  icon: FilmStripIcon,
+  run: (_editor, { editEmbed }) => editEmbed(),
+  enabled: (editor) => editor.can().setEmbed({ provider: '', id: '' })
+}
+
+const headings: EditorBlockType[] = HEADING_LEVELS.map((level) => ({
+  label: `Heading ${level}`,
+  shortcut: ['mod', 'alt', String(level)],
+  active: (editor) => editor.isActive('heading', { level }),
+  run: (editor) => editor.chain().focus().setHeading({ level }).run()
+}))
+
+const quote: EditorBlockType = {
+  label: 'Quote',
+  shortcut: ['mod', 'shift', 'b'],
+  active: (editor) => editor.isActive('blockquote'),
+  run: (editor) => {
+    const chain = editor.chain().focus().setParagraph()
+    if (!editor.isActive('blockquote')) chain.wrapIn('blockquote')
+    chain.run()
+  }
+}
+
+const paragraph: EditorBlockType = {
+  label: 'Paragraph',
+  shortcut: ['mod', 'alt', '0'],
+  active: (editor) =>
+    editor.isActive('paragraph') && !editor.isActive('blockquote'),
+  run: (editor) => {
+    const chain = editor.chain().focus().setParagraph()
+    if (editor.isActive('blockquote')) chain.lift('blockquote')
+    chain.run()
+  }
+}
+
+const blockType: EditorBlockMenu = {
+  kind: 'blockMenu',
+  label: 'Block type',
+  types: [paragraph, ...headings, quote]
+}
+
 const basicControls = [
   bold,
   italic,
@@ -97,12 +188,56 @@ const basicControls = [
 
 const history = [undo, redo] as const
 
-// Only controls for extensions the basic preset holds.
-export const editorControls: readonly EditorToolbarItem[] = [
-  ...basicControls,
-  SEPARATOR,
-  ...history
-]
+// Each preset lists only controls for extensions it holds.
+export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
+  basic: [...basicControls, SEPARATOR, ...history],
+  rich: [
+    blockType,
+    SEPARATOR,
+    ...basicControls,
+    SEPARATOR,
+    divider,
+    image,
+    embed,
+    SEPARATOR,
+    ...history
+  ]
+}
+
+const altText: EditorControl = {
+  label: 'Alt text',
+  icon: TextAaIcon,
+  run: (_editor, { editAlt }) => editAlt()
+}
+
+const replaceImage: EditorControl = {
+  label: 'Replace image',
+  icon: SwapIcon,
+  run: (_editor, { replaceImage: replace }) => replace?.(),
+  available: ({ replaceImage: replace }) => Boolean(replace)
+}
+
+const editEmbedLink: EditorControl = {
+  label: 'Edit link',
+  icon: PencilSimpleIcon,
+  run: (_editor, { editEmbed }) => editEmbed()
+}
+
+function remove(label: string): EditorControl {
+  return {
+    label,
+    icon: TrashIcon,
+    run: (editor) => editor.chain().focus().deleteSelection().run()
+  }
+}
+
+export type EditorNodeType = 'image' | 'embed'
+
+/** The actions in a selected node's own toolbar. */
+export const nodeControls: Record<EditorNodeType, readonly EditorControl[]> = {
+  image: [altText, replaceImage, remove('Remove image')],
+  embed: [editEmbedLink, remove('Remove embed')]
+}
 
 const ARIA_KEY_NAMES: Record<string, string> = { shift: 'Shift', alt: 'Alt' }
 
