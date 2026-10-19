@@ -158,16 +158,20 @@ const STATUSES: Record<PageStatus, true> = {
   deprecated: true
 }
 
-/** A page's `metadata.status`, or undefined without one. Any other value fails the build. */
+/** A page's `metadata.status`, or undefined without one. Any other value, or none where one is required, fails the build. */
 export function parseStatus(
   value: unknown,
-  where: string
+  where: string,
+  required = false
 ): PageStatus | undefined {
-  if (value === undefined) return undefined
+  if (value === undefined && !required) return undefined
   if (typeof value === 'string' && Object.hasOwn(STATUSES, value))
     return value as PageStatus
+  const statuses = Object.keys(STATUSES).join(', ')
   throw new Error(
-    `${where} has status ${JSON.stringify(value)}. Use one of ${Object.keys(STATUSES).join(', ')}.`
+    value === undefined
+      ? `${where} has no status. Set one of ${statuses}.`
+      : `${where} has status ${JSON.stringify(value)}. Use one of ${statuses}.`
   )
 }
 
@@ -186,7 +190,12 @@ async function readListings(route: string, name: string): Promise<Listing[]> {
       description: metadata?.description ?? '',
       category: metadata?.category ?? 'Other',
       order: metadata?.order,
-      status: parseStatus(metadata?.status, `${route}/${name}`)
+      // Widget pages aren't in the component docs check, so the build requires theirs.
+      status: parseStatus(
+        metadata?.status,
+        `${route}/${name}`,
+        route === WIDGETS.route
+      )
     }
     return [
       { route, entry },

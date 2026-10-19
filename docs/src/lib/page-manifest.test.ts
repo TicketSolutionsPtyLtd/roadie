@@ -196,6 +196,12 @@ describe('parseStatus', () => {
     expect(parseStatus(undefined, '/components/x')).toBeUndefined()
   })
 
+  it('fails on no status where one is required', () => {
+    expect(() => parseStatus(undefined, '/roadie-widgets/x', true)).toThrow(
+      '/roadie-widgets/x has no status'
+    )
+  })
+
   it.each(['experimental', 'Beta', 1])('fails on %s', (status) => {
     expect(() => parseStatus(status, '/components/x')).toThrow(
       '/components/x has status'

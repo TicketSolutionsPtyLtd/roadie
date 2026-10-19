@@ -47,6 +47,7 @@ const destinations: NavigationDestination[] = [
       { title: 'Meter', href: '/charts/meter', status: 'beta' },
       { title: 'Funnel', href: '/charts/funnel', status: 'alpha' },
       { title: 'Delta', href: '/charts/delta', status: 'stable' },
+      { title: 'Heatmap', href: '/charts/heatmap', status: 'deprecated' },
       { title: 'Show dashboard', href: '/charts/show-dashboard' }
     ]
   }
@@ -112,11 +113,12 @@ describe('DocsNavigator status', () => {
           link.getAttribute('href') === `/charts/${name}` && link.closest('nav')
       )
 
-  it('badges alpha and beta pages in the navigation, and not stable ones', () => {
+  it('badges alpha, beta, and deprecated pages in the navigation, and not stable ones', () => {
     renderAt('/charts/meter')
     expect(navLink('meter')?.textContent).toContain('Beta')
     expect(navLink('funnel')?.textContent).toContain('Alpha')
-    expect(navLink('delta')?.textContent).not.toMatch(/Stable|Beta|Alpha/)
+    expect(navLink('heatmap')?.textContent).toContain('Deprecated')
+    expect(navLink('delta')?.textContent).toBe('Delta')
   })
 
   it('shows a page its status, the release that added it, and its latest update', () => {
@@ -131,13 +133,13 @@ describe('DocsNavigator status', () => {
               label: 'Charts',
               version: '0.1.0',
               date: '2026-09-28',
-              id: 'release-2026-09-28'
+              id: 'charts-0-1-0'
             },
             updated: {
               label: 'Charts',
               version: '0.2.0',
               date: '2026-10-12',
-              id: 'release-2026-10-12'
+              id: 'charts-0-2-0'
             },
             upcoming: true
           }
@@ -146,21 +148,50 @@ describe('DocsNavigator status', () => {
     )
     const line = document.querySelector('[data-slot="page-status"]')
     expect(line?.textContent).toBe(
-      'AlphaAdded in Charts 0.1.0Updated in 0.2.0, 12 Oct 2026More in the next release'
+      'AlphaAdded in Charts 0.1.0Updated in Charts 0.2.0, 12 Oct 2026More in the next release'
     )
-    expect(
-      screen.getByRole('link', { name: 'Charts 0.1.0', hidden: true })
-    ).toHaveProperty('pathname', '/overview/changelog')
     expect(
       screen
         .getByRole('link', { name: 'Charts 0.1.0', hidden: true })
         .getAttribute('href')
-    ).toBe('/overview/changelog#release-2026-09-28')
+    ).toBe('/overview/changelog/charts-0-1-0')
     expect(
       screen
         .getByRole('link', { name: 'More in the next release', hidden: true })
         .getAttribute('href')
-    ).toBe('/overview/changelog#unreleased')
+    ).toBe('/overview/changelog/unreleased')
+  })
+
+  it('shows a stable page its status as plain text beside its latest release, with no badge', () => {
+    renderAt(
+      '/charts/delta',
+      {},
+      {
+        '/charts/delta': {
+          status: 'stable',
+          release: {
+            added: {
+              label: 'Charts',
+              version: '0.1.0',
+              date: '2026-09-28',
+              id: 'charts-0-1-0'
+            },
+            updated: {
+              label: 'Charts',
+              version: '0.2.0',
+              date: '2026-10-12',
+              id: 'charts-0-2-0'
+            },
+            upcoming: false
+          }
+        }
+      }
+    )
+    const line = document.querySelector('[data-slot="page-status"]')
+    expect(line?.textContent).toBe(
+      'Stable·Updated in Charts 0.2.0, 12 Oct 2026'
+    )
+    expect(line?.querySelector('[data-slot="badge"]')).toBeNull()
   })
 
   it('says a page whose component is only pending is not released yet', () => {

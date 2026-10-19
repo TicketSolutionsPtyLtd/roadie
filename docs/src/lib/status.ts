@@ -7,15 +7,15 @@ export const STATUS_DETAILS: Record<
   PageStatus,
   {
     label: string
-    intent: 'warning' | 'info' | 'success' | 'danger'
-    /** Shown in the navigation beside the page's title. */
-    inNavigation: boolean
+    intent: 'warning' | 'info' | 'danger' | 'neutral'
+    /** A badge in the navigation and beside the page's title. Stable is the norm, so it goes unmarked. */
+    flagged: boolean
   }
 > = {
-  alpha: { label: 'Alpha', intent: 'warning', inNavigation: true },
-  beta: { label: 'Beta', intent: 'info', inNavigation: true },
-  stable: { label: 'Stable', intent: 'success', inNavigation: false },
-  deprecated: { label: 'Deprecated', intent: 'danger', inNavigation: false }
+  alpha: { label: 'Alpha', intent: 'warning', flagged: true },
+  beta: { label: 'Beta', intent: 'info', flagged: true },
+  stable: { label: 'Stable', intent: 'neutral', flagged: false },
+  deprecated: { label: 'Deprecated', intent: 'danger', flagged: true }
 }
 
 export const STATUS_ROUTE = '/overview/changelog#status'

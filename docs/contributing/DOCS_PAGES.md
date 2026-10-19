@@ -45,11 +45,11 @@ with its skeleton and the rules on top of these.
 
 ## Status
 
-`status` says how settled the API a page documents is. Every page that
-documents an exported component sets one, and
-`scripts/check-component-docs.mjs` fails without it.
-A foundation page that documents a code API, such as Records, may set one.
-Any value other than these four fails the docs build.
+`status` says how settled the API a page documents is. Every component,
+chart, and widget page sets one: `scripts/check-component-docs.mjs` fails a
+component or chart page without it, and the docs build fails a widget page.
+A foundation page that documents a code API, such as Records or Linking,
+may set one. Any value other than these four fails the docs build.
 
 | Status       | Means                                                                                                                     | Set it when                                                                                |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -58,11 +58,14 @@ Any value other than these four fails the docs build.
 | `stable`     | Follows semver: a breaking change only comes in a major version.                                                          | It has been on npm for about a month with no breaking change, and apps use it.             |
 | `deprecated` | Being removed. The page says what to use instead.                                                                         | Its replacement has shipped.                                                               |
 
-The layout shows the status under the page title as a badge, with the release
-that added the component and the latest release that changed it, from the
-changelog data in `docs/src/lib/releases.ts`. The navigation shows alpha and
-beta beside the page's title. The manifest gives each component the status of
-the page that documents it.
+Stable is the norm, so it carries no badge: the layout writes it as plain
+text under the page title, beside the latest release that changed the
+component. Alpha, beta, and deprecated get a badge there and beside the
+page's title in the navigation, with the release that added the component and
+its latest change. Releases come from the changelog data in
+`docs/src/lib/releases.ts`, where "added" is the first release of the
+package after the component's import path appeared. The manifest gives each
+component the status of the page that documents it.
 
 ## Prose and live examples
 
