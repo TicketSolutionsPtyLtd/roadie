@@ -62,8 +62,8 @@ function slugify(text: string): string {
     .replace(/-+/g, '-')
 }
 
-/** Headings and a scroll-to handler, lifted so the inspector renders only with two or more. */
-export function useDocHeadings(): DocHeadings {
+/** Headings and a scroll-to handler, lifted so the inspector renders only with two or more. Off while a page fills the inspector itself. */
+export function useDocHeadings(enabled = true): DocHeadings {
   const route = useRoute()
   const [headings, setHeadings] = useState<Heading[]>([])
 
@@ -75,7 +75,7 @@ export function useDocHeadings(): DocHeadings {
 
   useEffect(() => {
     // Clear on every bail-out, or the last page's headings linger.
-    if (route === '/') {
+    if (route === '/' || !enabled) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- reading DOM state on mount
       setHeadings([])
       return
@@ -213,7 +213,7 @@ export function useDocHeadings(): DocHeadings {
       mutations.disconnect()
       replaced.disconnect()
     }
-  }, [route])
+  }, [route, enabled])
 
   const handleClick = useCallback(
     (event: MouseEvent<HTMLAnchorElement>, id: string) => {

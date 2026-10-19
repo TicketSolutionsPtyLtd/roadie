@@ -8,7 +8,6 @@ import {
   type NavigationItem
 } from '@/components/Navigation'
 import { Providers } from '@/components/Providers'
-import { CHANGELOG_URL } from '@/lib/changelog'
 import {
   BRAND,
   CHARTS,
@@ -25,6 +24,7 @@ import {
   getPageWide,
   readPageMetadata
 } from '@/lib/page-manifest'
+import { getReleaseViews } from '@/lib/releases'
 import { getAssetPath } from '@/utils/getAssetPath'
 
 import { getNavigatorExpandedScript } from '@oztix/roadie-core/navigator'
@@ -81,11 +81,7 @@ async function getNavigationItems(): Promise<NavigationDestination[]> {
         guide('/overview/philosophy', 'overview/philosophy/page.mdx'),
         guide('/overview/vue-integration', 'overview/vue-integration/page.mdx'),
         guide('/overview/linting', 'overview/linting/page.mdx'),
-        {
-          title: 'Changelog',
-          href: CHANGELOG_URL,
-          description: 'Every release, on GitHub.'
-        }
+        guide('/overview/changelog', 'overview/changelog/page.mdx')
       ])
     },
     await catalogueDestination('Brand', BRAND, { overview: true }),
@@ -126,6 +122,11 @@ export default async function RootLayout({
     getPageWide(),
     getMarkdownRoutes()
   ])
+  // Each release has a page of its own, titled and with a markdown copy like any other.
+  const releases = getReleaseViews()
+  for (const { href, headlines } of releases)
+    pageTitles[href] = headlines.all.title
+  const twins = [...markdownRoutes, ...releases.map(({ href }) => href)]
 
   return (
     <html lang='en' suppressHydrationWarning>
@@ -147,7 +148,7 @@ export default async function RootLayout({
             pageTitles={pageTitles}
             pageWide={pageWide}
             markdownTwins={Object.fromEntries(
-              markdownRoutes.map((route) => [route, true])
+              twins.map((route) => [route, true])
             )}
           >
             {children}

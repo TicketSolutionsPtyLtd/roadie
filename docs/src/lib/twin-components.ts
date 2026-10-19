@@ -21,6 +21,7 @@ export const TWIN_COMPONENTS = {
   CartDrawerParityDemo: 'drawing',
   CartExpiryDialogsDemo: 'drawing',
   CatalogueIndex: 'rendered',
+  Changelog: 'rendered',
   ChartLabelLimits: 'rendered',
   ColourStrip: 'drawing',
   ComparisonTable: 'rendered',

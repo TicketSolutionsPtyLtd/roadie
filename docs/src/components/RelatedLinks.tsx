@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 
 import Link from 'next/link'
 
-import { ArrowRightIcon } from '@phosphor-icons/react'
+import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 
 import type { DocLink } from '@/lib/token-families'
 

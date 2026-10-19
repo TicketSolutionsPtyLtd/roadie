@@ -1,0 +1,15 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "env": ["$TURBO_EXTENDS$", "DOCS_GIT_HISTORY"],
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "src/content/**/*.md",
+        "$TURBO_ROOT$/.changeset/*.md",
+        "$TURBO_ROOT$/packages/*/CHANGELOG.md"
+      ]
+    }
+  }
+}
