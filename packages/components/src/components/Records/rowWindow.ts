@@ -125,6 +125,39 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
     return () => observer.disconnect()
   }, [])
 
+  const latestMeasureInset = useRef(measureInset)
+  useLayoutEffect(() => {
+    latestMeasureInset.current = measureInset
+  })
+  // A pane header compacts as its pane scrolls, with no render here, and a stuck header sits under it.
+  useLayoutEffect(() => {
+    const body = bodyRef.current
+    const pane = body?.closest<HTMLElement>('[data-slot="pane"]')
+    const header = pane
+      ? [
+          ...pane.querySelectorAll<HTMLElement>('[data-slot="pane-header"]')
+        ].find((element) => element.closest('[data-slot="pane"]') === pane)
+      : undefined
+    if (!body || !header) return
+    const remeasure = () => {
+      const next = latestMeasureInset.current?.(body) ?? 0
+      setInset((inset) => (Math.abs(next - inset) > 0.5 ? next : inset))
+    }
+    let frame = 0
+    const observer = new ResizeObserver(() => {
+      // Now, while the restore still holds its row: the pane's own observer, made first, has published the header's height.
+      remeasure()
+      cancelAnimationFrame(frame)
+      // Again a frame later, in case the pane's observer was made after this one.
+      frame = requestAnimationFrame(remeasure)
+    })
+    observer.observe(header)
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
+  }, [])
+
   const usesWindow = scroller.ready && scroller.element === null
   // Both hooks stay mounted so the body never remounts mid-measurement. The
   // compiler skips this hook; callers get items read fresh each render.
