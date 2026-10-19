@@ -710,6 +710,17 @@ export {
 } from './components/ToggleGroup'
 
 export {
+  Toolbar,
+  type ToolbarProps,
+  type ToolbarGroupProps,
+  type ToolbarButtonProps,
+  type ToolbarSeparatorProps,
+  type ToolbarToggleProps,
+  type ToolbarToggleGroupProps,
+  type ToolbarSize
+} from './components/Toolbar'
+
+export {
   Switch,
   switchVariants,
   switchThumbVariants,
