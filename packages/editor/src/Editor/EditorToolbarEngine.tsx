@@ -25,7 +25,7 @@ import { EDITOR_TOOLBAR_ROOM, EDITOR_TOOLBAR_SIZE } from './variants'
 
 type ControlState = { pressed: boolean; enabled: boolean; current?: string }
 
-function stateOf(item: EditorToolbarItem, editor: TiptapEditor) {
+export function stateOf(item: EditorToolbarItem, editor: TiptapEditor) {
   if (item === SEPARATOR) return undefined
   if ('kind' in item) {
     const current = item.types.find((type) => type.active(editor))

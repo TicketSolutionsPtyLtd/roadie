@@ -2,8 +2,16 @@
 
 import { type ComponentType, useEffect, useId, useRef, useState } from 'react'
 
-import { Extension, type JSONContent, type Node, getSchema } from '@tiptap/core'
+import {
+  Extension,
+  type Extensions,
+  type JSONContent,
+  type Node,
+  getSchema
+} from '@tiptap/core'
+import type { TableOptions } from '@tiptap/extension-table'
 import { Placeholder } from '@tiptap/extensions'
+import type { DOMOutputSpec } from '@tiptap/pm/model'
 import { NodeSelection } from '@tiptap/pm/state'
 import {
   type ReactNodeViewProps,
@@ -38,6 +46,7 @@ import { EditorImageView } from './EditorImageView'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
 import type { EditorRootProps } from './EditorRoot'
+import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
 import { EmbedPaste } from './embedPaste'
 import {
@@ -49,6 +58,7 @@ import {
 } from './imageUpload'
 import { isDev } from './isDev'
 import { resolvedPreset } from './startingValue'
+import { selectedTable } from './table'
 import {
   EDITOR_FRAME,
   EDITOR_MIN_HEIGHT,
@@ -95,18 +105,35 @@ const NODE_VIEWS: Record<string, ComponentType<ReactNodeViewProps>> = {
   embed: EditorEmbedView
 }
 
+// In a `.prose-scroll`, as the renderers draw it, so a wide table scrolls
+// in the editor too, and with no widths, as tables aren't resizable.
+const editorTableDom: DOMOutputSpec = [
+  'div',
+  { class: 'prose-scroll' },
+  ['table', ['tbody', 0]]
+]
+
+function forEditor(extension: Extensions[number]) {
+  const view = NODE_VIEWS[extension.name]
+  if (view) {
+    return (extension as Node).extend({
+      addNodeView: () => ReactNodeViewRenderer(view)
+    })
+  }
+  if (extension.name === 'table') {
+    // With no View, Tiptap's own table view, which writes widths, stays out.
+    return (extension as Node<TableOptions>)
+      .extend({ renderHTML: () => editorTableDom })
+      .configure({ View: null })
+  }
+  return extension
+}
+
 // The saved schema stays React-free; the editor adds its views here.
 const editorExtensions = Object.fromEntries(
   Object.entries(presets).map(([preset, extensions]) => [
     preset,
-    extensions.map((extension) => {
-      const view = NODE_VIEWS[extension.name]
-      return view
-        ? (extension as Node).extend({
-            addNodeView: () => ReactNodeViewRenderer(view)
-          })
-        : extension
-    })
+    extensions.map(forEditor)
   ])
 ) as Record<Preset, typeof presets.basic>
 
@@ -205,6 +232,7 @@ export function EditorEngine({
   const placeholderRef = useRef(placeholder)
   const toolbarRef = useRef<HTMLDivElement>(null)
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
+  const tableToolbarRef = useRef<HTMLDivElement>(null)
   const [editingLink, setEditingLink] = useState(false)
   const [editingAlt, setEditingAlt] = useState(false)
   const [editingEmbed, setEditingEmbed] = useState(false)
@@ -263,7 +291,8 @@ export function EditorEngine({
         ...(field.required && { 'aria-required': 'true' }),
         ...((readOnly || unreadable) && { 'aria-readonly': 'true' }),
         ...(disabled && { 'aria-disabled': 'true' }),
-        class: cn(editorContentClass(size, emphasis), 'outline-none')
+        // A grid item, which would otherwise grow to fit a wide table.
+        class: cn(editorContentClass(size, emphasis), 'min-w-0 outline-none')
       },
       handleDOMEvents: {
         // ProseMirror draws its selection only while focused, so a press that
@@ -285,7 +314,9 @@ export function EditorEngine({
         if (!event.altKey || event.key !== 'F10') return false
         const toolbar = selectedNodeType(view.state)
           ? nodeToolbarRef.current
-          : toolbarRef.current
+          : selectedTable(view.state)
+            ? tableToolbarRef.current
+            : toolbarRef.current
         const firstEnabled = toolbar?.querySelector<HTMLElement>(
           'button:not([aria-disabled="true"])'
         )
@@ -393,6 +424,14 @@ export function EditorEngine({
             size={size}
             ui={ui}
             toolbarRef={nodeToolbarRef}
+          />
+        ) : null}
+        {editor?.schema.nodes.table ? (
+          <EditorTableToolbar
+            editor={editor}
+            size={size}
+            ui={ui}
+            toolbarRef={tableToolbarRef}
           />
         ) : null}
         <EditorLinkPopover

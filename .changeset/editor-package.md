@@ -106,7 +106,7 @@ holds one.
 `<Editor preset='rich'>` leads its toolbar with a Block type menu (Paragraph,
 Heading 2 to 4, and Quote) named for the block at the caret, keeps the basic
 controls from Bold, Italic and Underline to the lists, and adds Divider,
-Image, and Embed controls. `## `, `### `, `#### `, `> ` and `---` work as you
+Image, Embed, and Table controls. `## `, `### `, `#### `, `> ` and `---` work as you
 type.
 
 Images: `Editor` takes `onUploadImage(file)`, resolving to `{ src, alt? }`.
@@ -132,3 +132,13 @@ embed's share URL and replacing it with the new link's player) and Remove
 embed. Its selection ring hugs the media. Alt+F10 moves focus to a selected
 node's toolbar and Escape returns to the node, and each action is one undo
 step.
+
+Tables: the Table control inserts a table of three rows and three columns
+with a header row, and Tab and Shift+Tab move between its cells, Tab adding a
+row after the last. While the caret is in a table, a Table actions toolbar
+above it adds a row above or below, adds a column before or after, deletes
+the row, the column, or the table, and toggles the header row, with Delete
+row and Delete column disabled when they'd delete the last one. Alt+F10
+moves focus to it and Escape back to the cell. The editor draws each cell's
+edges, tints selected cells, and scrolls a wide table sideways in a
+`.prose-scroll`, as `/render` does, and saves no widths or styles.

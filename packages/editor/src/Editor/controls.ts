@@ -2,6 +2,9 @@ import type { Icon } from '@phosphor-icons/react'
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
+  ColumnsIcon,
+  ColumnsPlusLeftIcon,
+  ColumnsPlusRightIcon,
   FilmStripIcon,
   ImageIcon,
   LinkIcon,
@@ -9,7 +12,12 @@ import {
   ListNumbersIcon,
   MinusIcon,
   PencilSimpleIcon,
+  RowsIcon,
+  RowsPlusBottomIcon,
+  RowsPlusTopIcon,
+  SquareSplitVerticalIcon,
   SwapIcon,
+  TableIcon,
   TextAaIcon,
   TextBIcon,
   TextItalicIcon,
@@ -20,6 +28,7 @@ import type { Editor } from '@tiptap/react'
 
 import type { Preset } from '../schema'
 import { HEADING_LEVELS } from '../schema/headings'
+import { hasHeaderRow, leavesAColumn, leavesARow, selectedTable } from './table'
 
 /** What a control can open in the editor's own UI. */
 export type EditorControlUi = {
@@ -150,6 +159,17 @@ const embed: EditorControl = {
   enabled: (editor) => editor.can().setEmbed({ provider: '', id: '' })
 }
 
+const NEW_TABLE = { rows: 3, cols: 3, withHeaderRow: true }
+
+const table: EditorControl = {
+  label: 'Table',
+  icon: TableIcon,
+  run: (editor) => editor.chain().focus().insertTable(NEW_TABLE).run(),
+  // A cell holds only paragraphs, so a table never goes in one.
+  enabled: (editor) =>
+    !selectedTable(editor.state) && editor.can().insertTable(NEW_TABLE)
+}
+
 const headings: EditorBlockType[] = HEADING_LEVELS.map((level) => ({
   label: `Heading ${level}`,
   shortcut: ['mod', 'alt', String(level)],
@@ -209,6 +229,7 @@ export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
     divider,
     image,
     embed,
+    table,
     SEPARATOR,
     ...history
   ]
@@ -248,6 +269,55 @@ export const nodeControls: Record<EditorNodeType, readonly EditorControl[]> = {
   image: [altText, replaceImage, remove('Remove image')],
   embed: [editEmbedLink, remove('Remove embed')]
 }
+
+type TableCommand =
+  | 'addRowBefore'
+  | 'addRowAfter'
+  | 'addColumnBefore'
+  | 'addColumnAfter'
+  | 'deleteRow'
+  | 'deleteColumn'
+  | 'deleteTable'
+
+function tableAction(
+  label: string,
+  icon: Icon,
+  command: TableCommand,
+  enabled: EditorControl['enabled'] = (editor) => editor.can()[command]()
+): EditorControl {
+  return {
+    label,
+    icon,
+    run: (editor) => editor.chain().focus()[command]().run(),
+    enabled
+  }
+}
+
+const headerRow: EditorControl = {
+  label: 'Header row',
+  icon: SquareSplitVerticalIcon,
+  run: (editor) => editor.chain().focus().toggleHeaderRow().run(),
+  pressed: (editor) => hasHeaderRow(editor.state)
+}
+
+/** The actions in the toolbar of the table holding the selection. */
+export const tableControls: readonly (EditorControl | typeof SEPARATOR)[] = [
+  tableAction('Add row above', RowsPlusTopIcon, 'addRowBefore'),
+  tableAction('Add row below', RowsPlusBottomIcon, 'addRowAfter'),
+  tableAction('Add column before', ColumnsPlusLeftIcon, 'addColumnBefore'),
+  tableAction('Add column after', ColumnsPlusRightIcon, 'addColumnAfter'),
+  SEPARATOR,
+  tableAction('Delete row', RowsIcon, 'deleteRow', ({ state }) =>
+    leavesARow(state)
+  ),
+  tableAction('Delete column', ColumnsIcon, 'deleteColumn', ({ state }) =>
+    leavesAColumn(state)
+  ),
+  SEPARATOR,
+  headerRow,
+  SEPARATOR,
+  tableAction('Delete table', TrashIcon, 'deleteTable')
+]
 
 const ARIA_KEY_NAMES: Record<string, string> = { shift: 'Shift', alt: 'Alt' }
 

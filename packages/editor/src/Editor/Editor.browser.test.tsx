@@ -1012,7 +1012,7 @@ function pasteHtml(target: HTMLElement, html: string, plain: string) {
 }
 
 describe('Editor rich preset', () => {
-  it('leads with the block type, then the basic controls and Divider', async () => {
+  it('leads with the block type, then the basic controls, Divider, Embed and Table', async () => {
     render(<RichEditor />)
 
     expect(toolbarItems(await formattingToolbar())).toEqual([
@@ -1028,6 +1028,7 @@ describe('Editor rich preset', () => {
       '|',
       'Divider',
       'Embed',
+      'Table',
       '|',
       'Undo',
       'Redo'

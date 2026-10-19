@@ -64,9 +64,10 @@ const PLUGIN_KEY = 'editorNodeToolbar'
  * an empty menu's zero width put its start at the media's end. Placing it
  * again whenever its size changes keeps its end inside the media.
  */
-function useRepositionOnResize(
+export function useRepositionOnResize(
   editor: TiptapEditor,
-  menuRef: RefObject<HTMLDivElement | null>
+  menuRef: RefObject<HTMLDivElement | null>,
+  pluginKey: string
 ) {
   useEffect(() => {
     const menu = menuRef.current
@@ -75,13 +76,13 @@ function useRepositionOnResize(
       if (editor.isDestroyed) return
       editor.view.dispatch(
         editor.state.tr
-          .setMeta(PLUGIN_KEY, 'updatePosition')
+          .setMeta(pluginKey, 'updatePosition')
           .setMeta('addToHistory', false)
       )
     })
     observer.observe(menu)
     return () => observer.disconnect()
-  }, [editor, menuRef])
+  }, [editor, menuRef, pluginKey])
 }
 
 const shouldShow: BubbleMenuProps['shouldShow'] = ({ view, state, element }) =>
@@ -107,7 +108,7 @@ export function EditorNodeToolbar({
     selector: ({ editor: current }) => selectedNodeType(current.state)
   })
   const menuRef = useRef<HTMLDivElement>(null)
-  useRepositionOnResize(editor, menuRef)
+  useRepositionOnResize(editor, menuRef, PLUGIN_KEY)
   const toolbarSize = EDITOR_TOOLBAR_SIZE[size]
   const floating = {
     placement: 'bottom-end',

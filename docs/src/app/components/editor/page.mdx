@@ -315,6 +315,63 @@ embed with the new link's player. It refuses a link no provider reads, as the
 Embed control does. An embed doesn't save a TikTok poster's name, so TikTok's
 share link uses `@_` in its place; TikTok finds the video by its id.
 
+### Tables
+
+The rich preset holds tables. The Table control inserts one of three rows
+and three columns, with a header row. Tab moves to the next cell, adding a
+row after the last, and Shift+Tab moves back. While the caret is in a table,
+a toolbar above it has its actions: Add row above, Add row below, Add column
+before, Add column after, Delete row, Delete column, Header row, and Delete
+table.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  preset='rich'
+  defaultValue={{
+    version: 1,
+    preset: 'rich',
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'table',
+          content: [
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Time' }] }] },
+                { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Act' }] }] }
+              ]
+            },
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: '7pm' }] }] },
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'The Saltbush Echoes' }] }] }
+              ]
+            },
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: '9pm' }] }] },
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Velvet Kookaburra' }] }] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }}
+/>
+```
+
+A cell holds paragraphs, with bold, italic, underline, and links, but no
+headings, lists, images, embeds, or other tables. A table saves no widths or
+styles, only each cell's `colspan` and `rowspan`, and a wide one scrolls
+sideways in the editor and in `/render`, so it never widens the page on a
+phone.
+
 ### Emphasis
 
 `emphasis` sets the frame. The toolbar takes its own
@@ -641,6 +698,13 @@ render(
   stop in the editor. Arrow keys select an embed or an image, and Backspace
   or Delete removes it. The Embed control's popover has a named input,
   and a link it can't embed shows its error under the row.
+- While the caret is in a table, a `toolbar` named Table actions shows above
+  it, with the same keys as Formatting, and never while read-only or
+  disabled. Header row is a toggle that reports `aria-pressed`, and Delete
+  row and Delete column are disabled when they'd delete the last one.
+  Alt+F10 in a table moves focus to its first action, and Escape back to the
+  cell. In a table, Tab and Shift+Tab move between cells instead of nesting
+  or leaving.
 - In the rich preset, the Block type menu's trigger is named for the block at
   the caret, such as "Block type: Heading 2". Its items are radio items, with
   the current type checked, and choosing one puts focus back in the text.
@@ -665,10 +729,12 @@ render(
 | `Mod+Alt+2` to `Mod+Alt+4` | Heading 2 to 4, in the rich preset |
 | `Mod+Shift+B` | Quote, in the rich preset |
 | `Enter` | On a selected image, edit its alt text |
+| `Tab` | In a table, move to the next cell, adding a row after the last |
+| `Shift+Tab` | In a table, move to the cell before |
 | `Mod+Z` | Undo |
 | `Mod+Shift+Z` | Redo |
 | `Shift+Enter` | Line break |
-| `Alt+F10` | Move focus to the toolbar's first enabled control, or a selected image's or embed's first action |
+| `Alt+F10` | Move focus to the toolbar's first enabled control, a selected image's or embed's first action, or in a table its first table action |
 | `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image or embed |
 
 `Mod` is `⌘` on Apple devices and `Ctrl` elsewhere, and `Alt` is `⌥` on

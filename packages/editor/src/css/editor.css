@@ -42,3 +42,23 @@
     var(--editor-invalid-gap) - var(--editor-invalid-edge)
   );
 }
+
+/* Every cell keeps its edges and room inside them while editing, so an empty
+   one can still be found and clicked. */
+[data-slot='editor-content'] :where(th, td) {
+  border: 1px solid var(--intent-border-subtle);
+  padding-inline: 0.5em;
+}
+
+/* A drag or Shift+arrow across cells selects them, and they take the
+   chosen-control tint. */
+[data-slot='editor-content'] :where(th, td).selectedCell {
+  background-color: var(--intent-5);
+}
+
+@media (forced-colors: active) {
+  [data-slot='editor-content'] :where(th, td).selectedCell {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}
