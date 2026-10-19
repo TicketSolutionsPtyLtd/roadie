@@ -1,3 +1,5 @@
+import type { FormEvent } from 'react'
+
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
@@ -316,6 +318,22 @@ describe('Editor link popover', () => {
 
     await waitFor(() => expect(within(textbox).queryByRole('link')).toBe(null))
     expect(textbox).toHaveTextContent('Get tickets')
+  })
+
+  it('saves without submitting a form around the editor', async () => {
+    const onSubmit = vi.fn((event: FormEvent) => event.preventDefault())
+    render(
+      <form onSubmit={onSubmit}>
+        <Editor name='description' aria-label={LABEL} defaultValue={soldOut} />
+      </form>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const field = await POPOVERS[0]!.open(textbox)
+
+    await userEvent.type(field, `${TICKETS}{Enter}`)
+
+    expect(await POPOVERS[0]!.saved(textbox)).toBeVisible()
+    expect(onSubmit).not.toHaveBeenCalled()
   })
 
   it('offers Remove link only for an existing link', async () => {

@@ -142,6 +142,8 @@ export function EditorPopoverForm({
       noValidate
       onSubmit={(event) => {
         event.preventDefault()
+        // React bubbles a portalled submit to the form around the editor.
+        event.stopPropagation()
         if (!submittable) return
         if (!onSubmit()) inputRef.current?.focus()
       }}
