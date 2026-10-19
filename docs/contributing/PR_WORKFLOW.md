@@ -76,7 +76,10 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   first sentence as the change's headline and sorts it by bump and opening
   word: `Add` is new, `Remove` or `Drop` is removed, any mention of
   `deprecat` is deprecated, `Update`, `Upgrade`, or `Migrate` is changed,
-  and any other `patch` is a fix. Lead with what changed for the consumer. A
+  and any other `patch` is a fix. A new component opening the sentence,
+  as in "Add `Calendar`, a month grid for choosing a date.", becomes a
+  highlight card titled by its page, described by what follows the comma;
+  so does a breaking change. Lead with what changed for the consumer. A
   breaking change to an alpha or beta API ships in a `minor` and opens with
   "Breaking", so the changelog marks it.
 - **Plugin skills.** A change under `skills/` adds a `roadie-skills`

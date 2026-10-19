@@ -36,9 +36,12 @@ import {
   readPageMetadata
 } from '../src/lib/page-manifest.ts'
 import {
+  changesOf,
   getPageRelease,
   getReleaseHistory,
+  getReleaseViews,
   releaseHistoryMarkdown,
+  releaseMarkdown,
   statusSentence
 } from '../src/lib/releases.ts'
 import {
@@ -64,7 +67,10 @@ const site = `${new URL(manifests[0]!.docs).origin}${basePath}`
 const components = manifests.flatMap((manifest) => manifest.components)
 
 const routes = await getMarkdownRoutes()
-const markdownRoutes = new Set(routes)
+const markdownRoutes = new Set([
+  ...routes,
+  ...getReleaseViews().map(({ href }) => href)
+])
 
 const pageUrl = (route: string) =>
   markdownRoutes.has(route)
@@ -129,7 +135,10 @@ const renderers = {
     return catalogueMarkdown[name]!
   },
   Changelog: () =>
-    releaseHistoryMarkdown(getReleaseHistory(), resolveLink, releaseDate),
+    releaseHistoryMarkdown(getReleaseHistory(), getReleaseViews(), {
+      resolve: resolveLink,
+      formatDate: releaseDate
+    }),
   BrandFigure: ({ src, alt, caption }: Record<string, string | true>) =>
     [imageMarkdown(src, alt), typeof caption === 'string' ? caption : '']
       .filter(Boolean)
@@ -254,6 +263,20 @@ for (const route of routes) {
   const md = await markdownFor(route)
   await mkdir(path.dirname(path.join(outDir, route)), { recursive: true })
   await writeFile(path.join(outDir, `${route}.md`), md)
+}
+
+// Each release's own page, with every change in full.
+for (const release of getReleaseViews()) {
+  const md = `${releaseMarkdown(
+    release,
+    changesOf(getReleaseHistory(), release.slug),
+    { resolve: resolveLink, formatDate: releaseDate },
+    1
+  )}\n`
+  await mkdir(path.dirname(path.join(outDir, release.href)), {
+    recursive: true
+  })
+  await writeFile(path.join(outDir, `${release.href}.md`), md)
 }
 
 async function link(route: string): Promise<LlmsLink> {

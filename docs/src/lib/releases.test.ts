@@ -1,22 +1,35 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  type Change,
   type PageIndex,
+  type ReleaseCard,
+  type ReleaseItem,
+  addedPages,
+  applyNote,
   buildPageIndex,
   byKind,
+  cardOf,
   classify,
   groupReleases,
   linkPages,
   pageCreatedDates,
-  pagePackages,
   pageRelease,
+  pageSubpaths,
   parseChangelog,
   parseChangeset,
+  parseReleaseNote,
   pendingChanges,
   releaseHistoryMarkdown,
+  releaseSummary,
+  releaseTitle,
   statusSentence,
+  subpathTimes,
   summarise,
-  versionCommits
+  toInline,
+  toReleaseView,
+  versionCommits,
+  views
 } from './releases'
 
 const COMPONENTS_CHANGELOG = `# @oztix/roadie-components
@@ -232,7 +245,7 @@ describe('groupReleases', () => {
       ],
       index
     )
-    expect(latest?.id).toBe('release-2026-09-28')
+    expect(latest?.id).toBe('components-2-15-0')
     expect(latest?.date).toBe('2026-09-28')
     expect(
       latest?.packages.map(({ label, version }) => `${label} ${version}`)
@@ -310,9 +323,14 @@ describe('groupReleases', () => {
     ])
   })
 
-  it('leaves a version undated, as its own release, when there is no history', () => {
+  it('leaves a version undated, as its own release, newest first across packages, when there is no history', () => {
     const releases = groupReleases(
       [
+        {
+          name: '@oztix/roadie-components',
+          versions: parseChangelog(COMPONENTS_CHANGELOG),
+          commits: new Map()
+        },
         {
           name: '@oztix/roadie-core',
           versions: parseChangelog(CORE_CHANGELOG),
@@ -322,8 +340,12 @@ describe('groupReleases', () => {
       index
     )
     expect(
-      releases.map(({ date, packages }) => [date, packages.length])
-    ).toEqual([[null, 1]])
+      releases.map(({ id, date, packages }) => [id, date, packages.length])
+    ).toEqual([
+      ['components-2-15-0', null, 1],
+      ['core-2-10-0', null, 1],
+      ['components-2-14-0', null, 1]
+    ])
   })
 })
 
@@ -451,43 +473,57 @@ describe('buildPageIndex', () => {
 })
 
 describe('releaseHistoryMarkdown', () => {
-  it('writes unreleased changes, then each release under its date, grouped by kind with page links', () => {
-    const releases = groupReleases(
-      [
-        {
-          name: '@oztix/roadie-components',
-          versions: parseChangelog(COMPONENTS_CHANGELOG).slice(1),
-          commits: new Map([
-            ['2.14.0', { hash: 'bbb', date: '2026-09-24', time: 10 }]
-          ])
-        }
-      ],
-      index
-    )
-    const unreleased = pendingChanges(
-      [
-        {
-          id: 'avatar',
-          bumps: { '@oztix/roadie-components': 'minor' },
-          text: 'Add `Avatar`. It shows initials.'
-        }
-      ],
-      index
-    )
-    expect(
-      releaseHistoryMarkdown(
-        { unreleased, releases },
-        (href) => `https://docs.test${href}.md`,
-        (date) => `day ${date}`
+  it('writes each release with its headline, versions, highlights, and every change in full', () => {
+    const history = {
+      releases: groupReleases(
+        [
+          {
+            name: '@oztix/roadie-components',
+            versions: parseChangelog(COMPONENTS_CHANGELOG).slice(1),
+            commits: new Map([
+              ['2.14.0', { hash: 'bbb', date: '2026-09-24', time: 10 }]
+            ])
+          }
+        ],
+        index
+      ),
+      unreleased: pendingChanges(
+        [
+          {
+            id: 'avatar',
+            bumps: { '@oztix/roadie-components': 'minor' },
+            text: 'Add `Avatar`, a photo. It shows initials.'
+          }
+        ],
+        index
       )
+    }
+    const releases = views(history, {
+      index,
+      pageInfo: () => undefined,
+      notes: new Map()
+    })
+    expect(
+      releaseHistoryMarkdown(history, releases, {
+        resolve: (href) => `https://docs.test${href}.md`,
+        formatDate: (date) => `day ${date}`
+      })
     ).toBe(
       [
-        '## Unreleased',
-        'Not on npm yet. Goes to `@oztix/roadie-components` (minor).',
+        '## Avatar',
+        'Not on npm yet. Goes to Components.',
+        '1 addition.',
+        '[This release on its own page](https://docs.test/overview/changelog/unreleased.md)',
+        '### Highlights',
+        '- **Avatar**: A photo. See [Avatar](https://docs.test/components/avatar.md).',
         '### New',
-        '- Add `Avatar`.\n\n  See [Avatar](https://docs.test/components/avatar.md).\n\n  It shows initials.',
-        '## day 2026-09-24',
-        '[`@oztix/roadie-components@2.14.0`](https://github.com/TicketSolutionsPtyLtd/roadie/blob/main/packages/components/CHANGELOG.md#2140)',
+        '- Add `Avatar`, a photo.\n\n  See [Avatar](https://docs.test/components/avatar.md).\n\n  It shows initials.',
+        '## Button',
+        'Released day 2026-09-24. [Components 2.14.0](https://github.com/TicketSolutionsPtyLtd/roadie/blob/main/packages/components/CHANGELOG.md#2140)',
+        '1 breaking change.',
+        '[This release on its own page](https://docs.test/overview/changelog/components-2-14-0.md)',
+        '### Highlights',
+        '- **Button** (breaking): Remove `LinkButton`. See [Button](https://docs.test/components/button.md).',
         '### Removed',
         '- **Breaking.** Remove `LinkButton`.\n\n  See [Button](https://docs.test/components/button.md).\n\n  Use `Button` with `href`.'
       ].join('\n\n')
@@ -496,7 +532,7 @@ describe('releaseHistoryMarkdown', () => {
 })
 
 describe('groupReleases on one day', () => {
-  it('makes one release of every version added that day, even two of one package', () => {
+  it('keeps versions that separate commits added on one day as separate releases', () => {
     const versions = parseChangelog(
       '## 3.1.0\n\n### Minor Changes\n\n- aaa1111: Add `Avatar`.\n\n## 3.0.0\n\n### Major Changes\n\n- bbb2222: Remove `LinkButton`.\n'
     )
@@ -513,14 +549,15 @@ describe('groupReleases on one day', () => {
       ],
       index
     )
-    expect(releases).toHaveLength(1)
-    expect(releases[0]?.packages.map(({ version }) => version)).toEqual([
-      '3.1.0',
-      '3.0.0'
-    ])
-    expect(releases[0]?.changes.map(({ kind }) => kind)).toEqual([
-      'new',
-      'removed'
+    expect(
+      releases.map(({ id, date, changes }) => [
+        id,
+        date,
+        changes.map(({ kind }) => kind)
+      ])
+    ).toEqual([
+      ['widgets-3-1-0', '2026-06-18', ['new']],
+      ['widgets-3-0-0', '2026-06-18', ['removed']]
     ])
   })
 })
@@ -622,13 +659,13 @@ describe('pageRelease', () => {
         label: 'Components',
         version: '2.13.0',
         date: '2026-09-22',
-        id: 'release-2026-09-22'
+        id: 'components-2-13-0'
       },
       updated: {
         label: 'Components',
         version: '2.15.0',
         date: '2026-09-28',
-        id: 'release-2026-09-28'
+        id: 'components-2-15-0'
       },
       upcoming: false
     })
@@ -653,6 +690,17 @@ describe('pageRelease', () => {
       updated: null,
       upcoming: true
     })
+  })
+
+  it('takes the first release of its package after its import path appeared, over any mention', () => {
+    expect(
+      pageRelease('/components/avatar', history, { ...components, shipped: 15 })
+        .added
+    ).toMatchObject({ version: '2.14.0' })
+    expect(
+      pageRelease('/components/avatar', history, { ...components, shipped: 31 })
+        .added
+    ).toBe('unreleased')
   })
 
   it('says unreleased for a page created after the last release, and nothing without history', () => {
@@ -694,11 +742,11 @@ describe('pageCreatedDates', () => {
   })
 })
 
-describe('pagePackages', () => {
-  it('gives each docs route the package of the first component it documents', () => {
+describe('pageSubpaths', () => {
+  it('gives each docs route the package and import path of the first component it documents', () => {
     expect(
       Object.fromEntries(
-        pagePackages([
+        pageSubpaths([
           {
             package: '@oztix/roadie-components',
             components: [
@@ -727,8 +775,41 @@ describe('pagePackages', () => {
         ])
       )
     ).toEqual({
-      '/charts/stat-tile': '@oztix/roadie-components',
-      '/components/field': '@oztix/roadie-components'
+      '/charts/stat-tile': {
+        packageName: '@oztix/roadie-components',
+        importPath: '@oztix/roadie-components/stat-tile'
+      },
+      '/components/field': {
+        packageName: '@oztix/roadie-components',
+        importPath: '@oztix/roadie-components/field'
+      }
+    })
+  })
+})
+
+describe('subpathTimes', () => {
+  it('times each import path by the oldest commit that exported it or added its component folder', () => {
+    const exportsLog = [
+      '\x1e300',
+      '+++ b/packages/widgets/package.json',
+      '+    "./cart-contents/react": {',
+      '+++ b/packages/core/package.json',
+      '+    "./records": "./dist/records.js",',
+      '\x1e100',
+      '+++ b/packages/widgets/package.json',
+      '+    "./cart-contents/react": {',
+      '+    "./*": "./dist/*.js"'
+    ].join('\n')
+    const foldersLog = [
+      '\x1e200',
+      '',
+      'packages/components/src/components/OTPField/index.tsx',
+      'packages/components/src/components/OTPField/OTPField.test.tsx'
+    ].join('\n')
+    expect(Object.fromEntries(subpathTimes(exportsLog, foldersLog))).toEqual({
+      '@oztix/roadie-widgets/cart-contents/react': 100,
+      '@oztix/roadie-core/records': 300,
+      '@oztix/roadie-components/otp-field': 200
     })
   })
 })
@@ -760,5 +841,345 @@ describe('statusSentence', () => {
     expect(statusSentence(status, release, (date) => `day ${date}`)).toBe(
       sentence
     )
+  })
+})
+
+const pages: PageIndex = new Map([
+  ['DateField', { title: 'Date field', href: '/components/date-field' }],
+  ['TimeField', { title: 'Time field', href: '/components/time-field' }],
+  ['OTPField', { title: 'OTP field', href: '/components/otp-field' }],
+  ['Badge', { title: 'Badge', href: '/components/badge' }],
+  ['Card', { title: 'Card', href: '/components/card' }],
+  [
+    '@oztix/roadie-components/date-field',
+    { title: 'Date field', href: '/components/date-field' }
+  ]
+])
+
+const change = (summary: string, overrides: Partial<Change> = {}): Change => ({
+  id: summary.slice(0, 8),
+  kind: 'new',
+  breaking: false,
+  packages: ['@oztix/roadie-components'],
+  summary,
+  details: '',
+  pages: [],
+  ...overrides
+})
+
+describe('addedPages', () => {
+  it('reads the components a change adds, past their import paths, and what it says of them', () => {
+    expect(
+      addedPages(
+        'Add `DateField` (`@oztix/roadie-components/date-field`) and `TimeField`, typed date and time fields.',
+        pages
+      )
+    ).toEqual({
+      pages: [
+        { title: 'Date field', href: '/components/date-field' },
+        { title: 'Time field', href: '/components/time-field' }
+      ],
+      rest: ', typed date and time fields.'
+    })
+  })
+
+  it.each([
+    ['a prop', 'Add `hideLabel` to `Badge`.'],
+    ['a part', 'Add `Card.Link`, the card’s main link.'],
+    ['no opening name', 'Add the dashboard components: `Card`.'],
+    ['no verb that adds', '`Badge` now wraps.']
+  ])('finds no new component in %s', (_, summary) => {
+    expect(addedPages(summary, pages)).toBeNull()
+  })
+})
+
+describe('cardOf', () => {
+  const pageInfo = (route: string) =>
+    route === '/components/otp-field'
+      ? { title: 'OTP field', description: 'One slot per character.' }
+      : undefined
+
+  it('cards a new component under its page title, described by what the change says of it', () => {
+    expect(
+      cardOf(change('Add `DateField`, a typed date field.'), pages, pageInfo)
+    ).toMatchObject({
+      title: 'Date field',
+      description: ['A typed date field.'],
+      href: '/components/date-field',
+      art: '/components/date-field',
+      breaking: false,
+      packages: ['components']
+    })
+  })
+
+  it('falls back to the page description when the change says nothing more', () => {
+    expect(
+      cardOf(change('Add `OTPField`.'), pages, pageInfo)?.description
+    ).toEqual(['One slot per character.'])
+  })
+
+  it('cards a breaking change under its bold subject, or its page', () => {
+    expect(
+      cardOf(
+        change('**Peer dependency change: React 19.2 is required.**', {
+          kind: 'changed',
+          breaking: true
+        }),
+        pages,
+        pageInfo
+      )
+    ).toMatchObject({
+      title: 'Peer dependency change',
+      description: ['React 19.2 is required.'],
+      breaking: true
+    })
+    expect(
+      cardOf(
+        change('**Breaking:** `Card` drops `as`.', {
+          kind: 'changed',
+          breaking: true,
+          pages: [{ title: 'Card', href: '/components/card' }]
+        }),
+        pages,
+        pageInfo
+      )
+    ).toMatchObject({
+      title: 'Card',
+      description: [{ code: 'Card' }, ' drops ', { code: 'as' }, '.']
+    })
+  })
+
+  it('lists a fix or a smaller addition rather than carding it', () => {
+    expect(
+      cardOf(change('Add `hideLabel` to `Badge`.'), pages, pageInfo)
+    ).toBeNull()
+    expect(
+      cardOf(change('`Badge` wraps.', { kind: 'fixed' }), pages, pageInfo)
+    ).toBeNull()
+  })
+})
+
+const card = (
+  name: string,
+  overrides: Partial<ReleaseCard> = {}
+): ReleaseCard => ({
+  id: name,
+  title: name,
+  name,
+  description: [],
+  breaking: false,
+  packages: ['components'],
+  ...overrides
+})
+
+const item = (
+  kind: ReleaseItem['kind'],
+  page?: string,
+  text = 'A change.'
+): ReleaseItem => ({
+  id: `${kind}-${page}-${text}`,
+  kind,
+  text: [text],
+  page: page ? { title: page, href: `/components/${page}` } : undefined,
+  packages: ['components']
+})
+
+describe('releaseTitle', () => {
+  it('names the first highlights, then the pages the rest touch most, and says when there is more', () => {
+    expect(
+      releaseTitle(
+        [card('QR code')],
+        [item('fixed', 'Drawer'), item('new', 'Card'), item('new', 'Card')]
+      )
+    ).toBe('QR code, Card, and Drawer')
+    expect(
+      releaseTitle(
+        [card('Avatar'), card('Callout'), card('Menu'), card('Toast')],
+        []
+      )
+    ).toBe('Avatar, Callout, Menu, and more')
+  })
+
+  it('names the pages a release without highlights updates', () => {
+    expect(releaseTitle([], [item('fixed', 'Select')])).toBe(
+      'Updates to Select'
+    )
+  })
+
+  it('takes a lone change’s opening words when it names no page', () => {
+    expect(
+      releaseTitle(
+        [],
+        [item('new', undefined, 'Add a date standard: four parts.')]
+      )
+    ).toBe('Add a date standard')
+  })
+})
+
+describe('releaseSummary', () => {
+  it('counts each kind once, breaking changes first', () => {
+    expect(
+      releaseSummary(
+        [card('Avatar'), card('Card', { breaking: true })],
+        [item('fixed'), item('fixed'), item('changed')]
+      )
+    ).toBe('1 breaking change, 1 addition, 1 change, and 2 fixes.')
+  })
+})
+
+describe('parseReleaseNote', () => {
+  it('reads a title, a summary, and highlights', () => {
+    expect(
+      parseReleaseNote(
+        'note.md',
+        '---\ntitle: Charts\nsummary: Nine chart types.\nhighlights:\n  - Avatar\n  - title: Charts\n    href: /charts/line-chart\n    packages: [charts]\n---\n'
+      )
+    ).toEqual({
+      title: 'Charts',
+      summary: 'Nine chart types.',
+      highlights: [
+        'Avatar',
+        { title: 'Charts', href: '/charts/line-chart', packages: ['charts'] }
+      ]
+    })
+  })
+
+  it.each([
+    ['a misspelt field', '---\ntitel: Charts\n---\n', 'unknown field "titel"'],
+    [
+      'a card with no title',
+      '---\nhighlights:\n  - href: /charts\n---\n',
+      'a highlight card has no title'
+    ],
+    [
+      'an unknown package',
+      '---\nhighlights:\n  - title: Charts\n    packages: [chart]\n---\n',
+      "names a package that isn't one of"
+    ]
+  ])('fails the build on %s', (_, source, message) => {
+    expect(() => parseReleaseNote('note.md', source)).toThrow(message)
+  })
+})
+
+describe('applyNote', () => {
+  it('puts the cards a note lists first, in its order, adding its own and keeping the rest', () => {
+    const cards = applyNote(
+      [
+        card('Avatar'),
+        card('Menu'),
+        card('Toast', { href: '/components/toast' })
+      ],
+      {
+        highlights: [
+          {
+            title: 'Charts',
+            href: '/charts/line-chart',
+            description: 'Nine `Chart` types.'
+          },
+          'Toast',
+          { title: 'Menu', description: 'Actions.' }
+        ]
+      },
+      ['components', 'charts']
+    )
+    expect(
+      cards.map(({ title, description, href, art, packages }) => ({
+        title,
+        description,
+        href,
+        art,
+        packages
+      }))
+    ).toEqual([
+      {
+        title: 'Charts',
+        description: ['Nine ', { code: 'Chart' }, ' types.'],
+        href: '/charts/line-chart',
+        art: '/charts/line-chart',
+        packages: ['components', 'charts']
+      },
+      {
+        title: 'Toast',
+        description: [],
+        href: '/components/toast',
+        art: undefined,
+        packages: ['components']
+      },
+      {
+        title: 'Menu',
+        description: ['Actions.'],
+        href: undefined,
+        art: undefined,
+        packages: ['components']
+      },
+      {
+        title: 'Avatar',
+        description: [],
+        href: undefined,
+        art: undefined,
+        packages: ['components']
+      }
+    ])
+  })
+
+  it('fails the build when a note lists a highlight the release lacks', () => {
+    expect(() =>
+      applyNote(
+        [card('Avatar')],
+        { highlights: ['Avtar'] },
+        ['components'],
+        'x.md'
+      )
+    ).toThrow(
+      'x.md lists "Avtar", which is not one of this release\'s highlights: Avatar.'
+    )
+  })
+})
+
+describe('toReleaseView', () => {
+  it('uses a note’s headline for the whole release, and automatic ones for each package', () => {
+    const view = toReleaseView(
+      {
+        slug: 'components-2-15-0',
+        date: '2026-09-28',
+        pending: false,
+        versions: [
+          { package: 'components', label: 'Components', version: '2.15.0' },
+          { package: 'core', label: 'Core', version: '2.10.0' }
+        ],
+        changes: [
+          change('Add `DateField`, a typed date field.'),
+          change('`cn()` merges intents.', {
+            kind: 'fixed',
+            packages: ['@oztix/roadie-core']
+          })
+        ]
+      },
+      {
+        index: pages,
+        pageInfo: () => undefined,
+        note: { title: 'Dates', summary: 'Typed dates.' }
+      }
+    )
+    expect(view.headlines).toEqual({
+      all: { title: 'Dates', summary: 'Typed dates.' },
+      components: { title: 'Date field', summary: '1 addition.' },
+      core: { title: 'Fixes', summary: '1 fix.' }
+    })
+    expect(view.href).toBe('/overview/changelog/components-2-15-0')
+  })
+})
+
+describe('toInline', () => {
+  it('keeps code and links, and drops emphasis to text', () => {
+    expect(
+      toInline('Use **`Button`** with [href](/foundations/linking) now.')
+    ).toEqual([
+      'Use ',
+      { code: 'Button' },
+      ' with ',
+      { text: 'href', href: '/foundations/linking' },
+      ' now.'
+    ])
   })
 })

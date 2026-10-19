@@ -8,7 +8,7 @@ import { FoundationPreview } from '@/components/FoundationPreview'
 import { HomeGuides } from '@/components/HomeGuides'
 import { Image } from '@/components/Image'
 import { PreviewCard } from '@/components/PreviewGrid'
-import { LatestReleases } from '@/components/changelog/LatestReleases'
+import { LatestRelease } from '@/components/changelog/LatestRelease'
 import {
   BRAND,
   CHARTS,
@@ -221,7 +221,7 @@ export default async function Home() {
           </Button>
         }
       >
-        <LatestReleases count={2} />
+        <LatestRelease />
       </HomeSection>
     </div>
   )

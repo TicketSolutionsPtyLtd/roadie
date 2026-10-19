@@ -5,13 +5,11 @@ export const metadata = {
 
 import { Changelog } from '@/components/changelog/Changelog'
 
-A release is every package version published on one day. Each one lists those versions, then its changes as new, changed, deprecated, removed, and fixed. A change links to the docs page it touches, and **Details** opens the rest of its note. Changes marked **Breaking** may need code changes: they came in a major version, or in a minor for an alpha or beta API.
-
-**Unreleased** holds changes that are merged but not on npm yet. Each version links to its entry in the package's changelog on GitHub, and [GitHub releases](https://github.com/TicketSolutionsPtyLtd/roadie/releases) lists every published version. The Roadie skills for AI agents keep [their own changelog](https://github.com/TicketSolutionsPtyLtd/roadie/blob/main/skills/CHANGELOG.md).
+Every release, newest first: its highlights, then the smaller changes. A release's title opens it on a page of its own. **Unreleased** is merged but not on npm yet, and [GitHub releases](https://github.com/TicketSolutionsPtyLtd/roadie/releases) lists every published version.
 
 ## Status
 
-Every component page shows a status beside the release that added it. Alpha and beta pages also say so in the navigation.
+A component page says how settled its API is. Alpha, beta, and deprecated pages show a badge beside their title and in the navigation. A stable page shows no badge: its status sits beside its latest release, under the title.
 
 | Status | What it means for you |
 | --- | --- |
