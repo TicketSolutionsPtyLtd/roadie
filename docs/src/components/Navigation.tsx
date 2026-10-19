@@ -326,7 +326,10 @@ export function DocsNavigator({
               </Pane.BodyTitle>
             ) : null}
             {pageStatus[route] ? (
-              <PageStatusLine {...pageStatus[route]} className='-mt-3 mb-6' />
+              <PageStatusLine
+                {...pageStatus[route]}
+                className='mb-6 rounded-2xl emphasis-subtle px-4 py-3'
+              />
             ) : null}
             {related ? (
               <RelatedLinks {...related} className='-mt-3 mb-6' />
