@@ -49,7 +49,7 @@ export type RecordSuggestion =
     })
   | (SuggestionBase & { kind: 'field'; value: { field: string } })
 
-export type ParseQueryOptions = RecordQueryOptions & {
+export type ParseRecordQueryOptions = RecordQueryOptions & {
   /**
    * One entity's fields. To search several entities, call once per entity
    * with its `entity` and merge the results by `score`.
@@ -312,7 +312,7 @@ function booleanReadings(field: RecordField, text: string): Reading[] {
 function dateReadings(
   dateFields: readonly RecordField[],
   text: string,
-  options: ParseQueryOptions
+  options: ParseRecordQueryOptions
 ): Reading[] {
   const phrases = parseDatePhrase(text, options)
   return phrases.flatMap((phrase, p) =>
@@ -356,7 +356,7 @@ function identifierReadings(
 function fieldValueReadings(
   field: RecordField,
   value: string,
-  options: ParseQueryOptions
+  options: ParseRecordQueryOptions
 ): Reading[] {
   // Every filterable field can be empty.
   return [
@@ -376,7 +376,7 @@ function fieldValueReadings(
 function typedValueReadings(
   field: RecordField,
   value: string,
-  options: ParseQueryOptions
+  options: ParseRecordQueryOptions
 ): Reading[] {
   const text = value.toLowerCase()
   switch (field.type) {
@@ -510,7 +510,7 @@ const remainderOf = (words: readonly string[], start: number, end: number) =>
 function spanCandidates(
   words: readonly string[],
   fields: readonly RecordField[],
-  options: ParseQueryOptions
+  options: ParseRecordQueryOptions
 ): Candidate[] {
   const dateFields = fields.filter((f) => f.type === 'date')
   const candidates: Candidate[] = []
@@ -620,7 +620,7 @@ function inRange(
   words: readonly string[],
   start: number,
   end: number,
-  options: ParseQueryOptions
+  options: ParseRecordQueryOptions
 ): boolean {
   const last = Math.min(words.length, end + MAX_SPAN)
   for (let from = Math.max(0, start - MAX_SPAN); from <= start; from++) {
@@ -652,7 +652,7 @@ function nameLength(
 function statementCandidates(
   words: readonly string[],
   fields: readonly RecordField[],
-  options: ParseQueryOptions,
+  options: ParseRecordQueryOptions,
   stops: ReadonlySet<number>
 ): Candidate[] {
   const lower = words.map(plain)
@@ -690,7 +690,7 @@ function statementCandidates(
 function spacedStatements(
   words: readonly string[],
   fields: readonly RecordField[],
-  options: ParseQueryOptions,
+  options: ParseRecordQueryOptions,
   starts: ReadonlySet<number>
 ): { candidates: Candidate[]; compared: [number, number][] } {
   const wordOf: number[] = []
@@ -746,7 +746,7 @@ function statementValues(
   field: RecordField,
   verb: Verb,
   named: [number, number],
-  options: ParseQueryOptions,
+  options: ParseRecordQueryOptions,
   { next, stops }: { next: () => number; stops: ReadonlySet<number> }
 ): Candidate[] {
   const [start, at] = named
@@ -914,7 +914,7 @@ function namedField(
   return best && { field: best.field, value: best.value }
 }
 
-function finish(options: ParseQueryOptions) {
+function finish(options: ParseRecordQueryOptions) {
   const { entity, fields } = options
   return ({
     span: _span,
@@ -963,9 +963,9 @@ function finish(options: ParseQueryOptions) {
  * Filter labels read as `describeRecordFilter` writes chips. Empty text lists
  * the filterable fields. Free text is left to the caller, as a search.
  */
-export function parseQuery(
+export function parseRecordQuery(
   text: string,
-  options: ParseQueryOptions
+  options: ParseRecordQueryOptions
 ): RecordSuggestion[] {
   const { limit = 10 } = options
   const strip = finish(options)

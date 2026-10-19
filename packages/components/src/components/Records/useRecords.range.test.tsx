@@ -1,77 +1,76 @@
-import { StrictMode, useMemo, useRef, useState } from 'react'
+import { StrictMode, useLayoutEffect, useMemo, useRef } from 'react'
 
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { type RecordFilter, placeRange } from '@oztix/roadie-core/records'
+import type {
+  RecordFilter,
+  RecordsRangeRequest
+} from '@oztix/roadie-core/records'
 
 import { MAX_RANGE_ROWS } from './ranges'
 import { type TestShow, showFields, testShows } from './testUtils'
+import type { RecordsRangeResult } from './useRangeLoading'
 import { type UseRecordsOptions, useRecords } from './useRecords'
 
 type Call = {
   start: number
   end: number
+  /** Resolves with the server's rows for the range and its count. */
   resolve: () => void
-  /** Resolves without placing rows, as a consumer dropping a stale reply. */
-  settle: () => void
   reject: (error: Error) => void
 }
 
 function useRangeHarness({
   total,
   rowCount,
+  rowCountExact,
   respond = 'sync',
-  seed = 0,
   ...options
 }: {
+  /** How many records the server holds. */
   total: number
+  /** The count each result carries; left out, results carry none. */
   rowCount?: number
+  rowCountExact?: boolean
   respond?: 'sync' | 'manual'
-  /** Rows already in `data` at mount, as from a cache or a remount. */
-  seed?: number
 } & Partial<UseRecordsOptions<TestShow>>) {
   const all = useMemo(() => testShows(total), [total])
-  const [data, setData] = useState<(TestShow | undefined)[]>(() =>
-    all.slice(0, seed)
-  )
   const calls = useRef<Call[]>([])
+  // Read when a reply leaves, so a count changed by a rerender applies.
+  const latest = useRef({ rowCount, rowCountExact })
+  useLayoutEffect(() => {
+    latest.current = { rowCount, rowCountExact }
+  })
   const records = useRecords({
-    data,
     fields: showFields,
     getRowId: (row) => row.id,
-    rowCount,
     loadRange: ({ start, end }) => {
-      const fill = () =>
-        setData((current) => placeRange(current, start, all.slice(start, end)))
-      if (respond === 'sync') {
-        calls.current.push({
-          start,
-          end,
-          resolve() {},
-          settle() {},
-          reject() {}
+      const reply = (): RecordsRangeResult<TestShow> => ({
+        rows: all.slice(start, end),
+        ...(latest.current.rowCount !== undefined && {
+          rowCount: latest.current.rowCount
+        }),
+        ...(latest.current.rowCountExact !== undefined && {
+          rowCountExact: latest.current.rowCountExact
         })
-        return fill()
+      })
+      if (respond === 'sync') {
+        calls.current.push({ start, end, resolve() {}, reject() {} })
+        return Promise.resolve(reply())
       }
-      return new Promise<void>((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         calls.current.push({
           start,
           end,
-          resolve: () => {
-            fill()
-            resolve()
-          },
-          settle: resolve,
+          resolve: () => resolve(reply()),
           reject
         })
       })
     },
     ...options
   })
-  // A consumer whose own key changed while the records' didn't.
-  const clear = () => setData([])
-  return { records, calls, clear }
+  return { records, calls }
 }
 
 type Harness = { current: ReturnType<typeof useRangeHarness> }
@@ -81,6 +80,13 @@ const requests = (result: Harness) =>
 
 const view = (result: Harness, first: number, last: number) =>
   act(async () => result.current.records.range!.show(first, last))
+
+/** Loads the first range, so the count the server sends is known. */
+const loadFirst = async (result: Harness) => {
+  await view(result, 0, 15)
+  const first = result.current.calls.current[0]
+  if (first) await act(async () => first.resolve())
+}
 
 const fakeTimers = () =>
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
@@ -121,54 +127,98 @@ describe('useRecords range mode', () => {
     expect(server.result.current.range).toBeUndefined()
   })
 
+  it('holds the rows each range returns at their index', async () => {
+    const { result } = renderHook(() =>
+      useRangeHarness({ total: 1000, rowCount: 1000 })
+    )
+    await loadFirst(result)
+    await view(result, 120, 135)
+    expect(result.current.records.range!.rowAt(120)).toEqual({
+      id: 'show-120',
+      row: expect.objectContaining({ id: 'show-120' })
+    })
+    expect(result.current.records.range!.rowAt(60)).toBeUndefined()
+    expect(result.current.records.data).toHaveLength(150)
+    expect(result.current.records.rows[50]!.id).toBe('show-100')
+  })
+
   it.each(['sync', 'manual'] as const)(
-    'sizes for rowCount and requests the window once (%s)',
+    'sizes for the count a range returns and requests the window once (%s)',
     async (respond) => {
       const { result } = renderHook(() =>
         useRangeHarness({ total: 1000, rowCount: 1000, respond })
       )
+      expect(result.current.records.range!.count).toBe(50)
+      await loadFirst(result)
       expect(result.current.records.range!.count).toBe(1000)
       expect(result.current.records.range!.total).toBe(1000)
+      expect(result.current.records.resultCount).toBe(1000)
       await view(result, 120, 135)
       expect(requests(result)).toEqual([
+        { start: 0, end: 50 },
         { start: 100, end: 150 },
         { start: 150, end: 200 }
       ])
       await view(result, 120, 135)
-      expect(requests(result)).toHaveLength(2)
+      expect(requests(result)).toHaveLength(3)
     }
   )
 
-  it('asks for ranges of the page size', async () => {
-    const loadRange = vi.fn()
+  it('keeps the count when a later range leaves it out', async () => {
+    const { result, rerender } = renderHook(
+      ({ rowCount }: { rowCount?: number }) =>
+        useRangeHarness({ total: 1000, rowCount }),
+      { initialProps: { rowCount: 1000 } as { rowCount?: number } }
+    )
+    await loadFirst(result)
+    rerender({ rowCount: undefined })
+    await view(result, 120, 135)
+    expect(result.current.records.range!.total).toBe(1000)
+  })
+
+  it('reads the count from its ranges, not rowCount', async () => {
     const { result } = renderHook(() =>
-      useRecords({
-        data: [] as (TestShow | undefined)[],
+      useRecords<TestShow>({
         fields: showFields,
         getRowId: (row) => row.id,
-        rowCount: 1000,
+        rowCount: 5000,
+        loadRange: async ({ start, end }) => ({
+          rows: testShows(70).slice(start, end)
+        })
+      })
+    )
+    expect(result.current.range!.count).toBe(50)
+    await act(async () => result.current.range!.show(0, 15))
+    await act(async () => result.current.range!.show(40, 60))
+    expect(result.current.range!.total).toBe(70)
+  })
+
+  it('asks for ranges of the page size', async () => {
+    const loadRange = vi.fn(async (_: RecordsRangeRequest) => ({
+      rows: [] as TestShow[]
+    }))
+    const { result } = renderHook(() =>
+      useRecords({
+        fields: showFields,
+        getRowId: (row) => row.id,
         defaultPosition: { pageSize: 25 },
         loadRange
       })
     )
-    await act(async () => result.current.range!.show(120, 135))
+    await act(async () => result.current.range!.show(0, 15))
     expect(
       loadRange.mock.calls.map(([{ start, end }]) => ({ start, end }))
-    ).toEqual([
-      { start: 100, end: 125 },
-      { start: 125, end: 150 },
-      { start: 150, end: 175 }
-    ])
+    ).toEqual([{ start: 0, end: 25 }])
   })
 
   it('hands each range the request to fetch, with the scope first', async () => {
-    const loadRange = vi.fn()
+    const loadRange = vi.fn(async (_: RecordsRangeRequest) => ({
+      rows: [] as TestShow[]
+    }))
     const { result } = renderHook(() =>
       useRecords({
-        data: [] as (TestShow | undefined)[],
         fields: showFields,
         getRowId: (row) => row.id,
-        rowCount: 1000,
         timeZone: 'Australia/Perth',
         scope: [{ field: 'city', operator: 'is', values: ['Perth'] }],
         defaultView: { query: { search: 'ocean' } },
@@ -190,7 +240,7 @@ describe('useRecords range mode', () => {
     })
   })
 
-  it('grows a range at a time without rowCount, then stops at a short range', async () => {
+  it('grows a range at a time without a count, then stops at a short range', async () => {
     const { result } = renderHook(() => useRangeHarness({ total: 70 }))
     expect(result.current.records.range!.count).toBe(50)
     expect(result.current.records.range!.total).toBeUndefined()
@@ -205,7 +255,7 @@ describe('useRecords range mode', () => {
     expect(result.current.records.resultCount).toBe(70)
   })
 
-  it('requests the first range without rowCount', async () => {
+  it('requests the first range without a count', async () => {
     const { result } = renderHook(() =>
       useRangeHarness({ total: 70, respond: 'manual' })
     )
@@ -216,6 +266,15 @@ describe('useRecords range mode', () => {
 
   it('knows an empty list once the first range is empty', async () => {
     const { result } = renderHook(() => useRangeHarness({ total: 0 }))
+    await view(result, 0, 15)
+    expect(result.current.records.range!.count).toBe(0)
+    expect(result.current.records.range!.total).toBe(0)
+  })
+
+  it('shows an empty list once a range returns a count of 0', async () => {
+    const { result } = renderHook(() =>
+      useRangeHarness({ total: 0, rowCount: 0 })
+    )
     await view(result, 0, 15)
     expect(result.current.records.range!.count).toBe(0)
     expect(result.current.records.range!.total).toBe(0)
@@ -247,8 +306,7 @@ describe('useRecords range mode', () => {
     const { result } = renderHook(() =>
       useRangeHarness({ total: 1000, rowCount: 1000, respond: 'manual' })
     )
-    await view(result, 0, 15)
-    await act(async () => result.current.calls.current[0]!.resolve())
+    await loadFirst(result)
     await view(result, 40, 55)
     await act(async () =>
       result.current.calls.current[1]!.reject(new Error('Offline'))
@@ -260,10 +318,25 @@ describe('useRecords range mode', () => {
     expect(result.current.records.rows).toHaveLength(50)
   })
 
+  it('fails a range whose result holds no rows', async () => {
+    const { result } = renderHook(() =>
+      useRecords<TestShow>({
+        fields: showFields,
+        getRowId: (row) => row.id,
+        loadRange: async () =>
+          undefined as unknown as RecordsRangeResult<TestShow>
+      })
+    )
+    await act(async () => result.current.range!.show(0, 15))
+    expect(result.current.range!.failed).toEqual([{ start: 0, end: 50 }])
+    expect(result.current.error).toBe(true)
+  })
+
   it('retries no window from an earlier query', async () => {
     const { result } = renderHook(() =>
-      useRangeHarness({ total: 5000, rowCount: 5000, respond: 'manual' })
+      useRangeHarness({ total: 5000, rowCount: 5000 })
     )
+    await loadFirst(result)
     await view(result, 500, 515)
     const before = requests(result).length
     await act(async () => result.current.records.addFilter(perth))
@@ -278,8 +351,7 @@ describe('useRecords range mode', () => {
 
   it('turns a synchronous throw into a failed range', async () => {
     const { result } = renderHook(() =>
-      useRecords({
-        data: [] as (TestShow | undefined)[],
+      useRecords<TestShow>({
         fields: showFields,
         getRowId: (row) => row.id,
         loadRange: () => {
@@ -293,9 +365,9 @@ describe('useRecords range mode', () => {
     expect(result.current.range!.count).toBe(50)
   })
 
-  it('ignores a reply for an earlier query', async () => {
+  it('drops a reply for an earlier query', async () => {
     const { result } = renderHook(() =>
-      useRangeHarness({ total: 70, respond: 'manual' })
+      useRangeHarness({ total: 70, rowCount: 70, respond: 'manual' })
     )
     await view(result, 0, 15)
     await search(result, 'Perth')
@@ -304,10 +376,43 @@ describe('useRecords range mode', () => {
       { start: 0, end: 50 },
       { start: 0, end: 50 }
     ])
-    await act(async () => result.current.calls.current[0]!.settle())
+    await act(async () => result.current.calls.current[0]!.resolve())
+    expect(result.current.records.range!.rowAt(0)).toBeUndefined()
     expect(result.current.records.range!.loading).toBe(true)
-    expect(result.current.records.range!.count).toBe(50)
     expect(result.current.records.range!.total).toBeUndefined()
+  })
+
+  it("drops the rows when the query changes, holding the last count until the new query's first range", async () => {
+    const { result, rerender } = renderHook(
+      ({ rowCount }: { rowCount?: number }) =>
+        useRangeHarness({ total: 1000, rowCount, respond: 'manual' }),
+      { initialProps: { rowCount: 1000 } as { rowCount?: number } }
+    )
+    await loadFirst(result)
+    expect(result.current.records.range!.rowAt(0)?.id).toBe('show-0')
+    await act(async () => result.current.records.addFilter(perth))
+    expect(result.current.records.range!.rowAt(0)).toBeUndefined()
+    expect(result.current.records.range!.count).toBe(1000)
+    await view(result, 0, 15)
+    expect(requests(result).at(-1)).toEqual({ start: 0, end: 50 })
+    rerender({ rowCount: 200 })
+    await act(async () => result.current.calls.current.at(-1)!.resolve())
+    expect(result.current.records.range!.rowAt(0)?.id).toBe('show-0')
+    expect(result.current.records.range!.count).toBe(200)
+  })
+
+  it("drops the last query's count when the new query's first range has none", async () => {
+    const { result, rerender } = renderHook(
+      ({ rowCount }: { rowCount?: number }) =>
+        useRangeHarness({ total: 70, rowCount }),
+      { initialProps: { rowCount: 1000 } as { rowCount?: number } }
+    )
+    await loadFirst(result)
+    rerender({ rowCount: undefined })
+    await act(async () => result.current.records.addFilter(perth))
+    await view(result, 0, 15)
+    await view(result, 40, 60)
+    expect(result.current.records.range!.total).toBe(70)
   })
 
   it('starts over when the zone changes', async () => {
@@ -316,17 +421,64 @@ describe('useRecords range mode', () => {
         useRangeHarness({ total: 1000, rowCount: 1000, timeZone }),
       { initialProps: { timeZone: 'Australia/Perth' } }
     )
+    await loadFirst(result)
     const before = result.current.records.range!.key
     rerender({ timeZone: 'Australia/Sydney' })
     expect(result.current.records.range!.key).not.toBe(before)
+    expect(result.current.records.range!.rowAt(0)).toBeUndefined()
+  })
+
+  it('starts over when a new now moves a relative date, and not otherwise', async () => {
+    const upcoming: RecordFilter = {
+      field: 'starts',
+      operator: 'within',
+      value: 'upcoming'
+    }
+    const { result, rerender } = renderHook(
+      ({ now, filters }: { now: Date; filters: RecordFilter[] }) =>
+        useRangeHarness({
+          total: 1000,
+          rowCount: 1000,
+          timeZone: 'Australia/Perth',
+          now,
+          defaultView: { query: { filters } }
+        }),
+      {
+        initialProps: {
+          now: new Date('2026-10-03T00:00:00Z'),
+          filters: [] as RecordFilter[]
+        }
+      }
+    )
+    await loadFirst(result)
+    rerender({ now: new Date('2026-10-04T00:00:00Z'), filters: [] })
+    expect(result.current.records.range!.rowAt(0)?.id).toBe('show-0')
+
+    const dated = renderHook(
+      ({ now }: { now: Date }) =>
+        useRangeHarness({
+          total: 1000,
+          rowCount: 1000,
+          timeZone: 'Australia/Perth',
+          now,
+          defaultView: { query: { filters: [upcoming] } }
+        }),
+      { initialProps: { now: new Date('2026-10-03T00:00:00Z') } }
+    )
+    await loadFirst(dated.result)
+    expect(dated.result.current.records.range!.rowAt(0)?.id).toBe('show-0')
+    dated.rerender({ now: new Date('2026-10-04T00:00:00Z') })
+    expect(dated.result.current.records.range!.rowAt(0)).toBeUndefined()
   })
 
   it('asks for a whole page past a count that may be stale', async () => {
     const { result } = renderHook(() =>
-      useRangeHarness({ total: 1000, rowCount: 3, respond: 'manual' })
+      useRangeHarness({ total: 1000, rowCount: 3 })
     )
+    await loadFirst(result)
+    await act(async () => result.current.records.setPageSize(20))
     await view(result, 0, 2)
-    expect(requests(result)).toEqual([{ start: 0, end: 50 }])
+    expect(requests(result).at(-1)).toEqual({ start: 0, end: 20 })
   })
 
   it('asks no further than a count the server stopped at', async () => {
@@ -339,39 +491,47 @@ describe('useRecords range mode', () => {
         respond: 'manual'
       })
     )
+    await loadFirst(result)
+    expect(result.current.records.resultCountExact).toBe(false)
     await view(result, 9980, 9999)
     expect(requests(result).at(-1)).toEqual({ start: 9990, end: 10_000 })
   })
 
-  it('loads a list whose count reads 0 until a range of its query says so', async () => {
-    const { result, rerender } = renderHook(
-      ({ rowCount }: { rowCount: number }) =>
-        useRangeHarness({ total: 1000, rowCount, respond: 'manual' }),
-      { initialProps: { rowCount: 0 } }
+  it('holds a floor with its count until the new query answers', async () => {
+    const { result } = renderHook(() =>
+      useRangeHarness({
+        total: 10_000,
+        rowCount: 10_000,
+        rowCountExact: false,
+        respond: 'manual'
+      })
     )
-    expect(result.current.records.range!.count).toBe(50)
-    await view(result, 0, 15)
-    expect(requests(result)).toEqual([{ start: 0, end: 50 }])
-    await act(async () => result.current.calls.current[0]!.resolve())
-    rerender({ rowCount: 1000 })
-    expect(result.current.records.range!.count).toBe(1000)
+    await loadFirst(result)
+    await act(async () => result.current.records.addFilter(perth))
+    expect(result.current.records.range!.count).toBe(10_000)
+    expect(result.current.records.resultCountExact).toBe(false)
   })
 
-  it('shows an empty list once a range confirms a count of 0', async () => {
+  it('keeps only the rows a range asked for', async () => {
+    const all = testShows(100)
     const { result } = renderHook(() =>
-      useRangeHarness({ total: 0, rowCount: 0 })
+      useRecords<TestShow>({
+        fields: showFields,
+        getRowId: (row) => row.id,
+        loadRange: ({ start }) =>
+          Promise.resolve({ rows: all.slice(start, start + 60) })
+      })
     )
-    await view(result, 0, 15)
-    expect(result.current.records.range!.count).toBe(0)
-    expect(result.current.records.range!.total).toBe(0)
+    await act(async () => result.current.range!.show(0, 15))
+    expect(result.current.range!.rowAt(49)?.id).toBe('show-49')
+    expect(result.current.range!.rowAt(50)).toBeUndefined()
   })
 
   it('loads a new query after one with no matches', async () => {
     const { result } = renderHook(() =>
       useRangeHarness({ total: 1000, rowCount: 0, respond: 'manual' })
     )
-    await view(result, 0, 15)
-    await act(async () => result.current.calls.current[0]!.settle())
+    await loadFirst(result)
     expect(result.current.records.range!.count).toBe(0)
     await act(async () => result.current.records.addFilter(perth))
     expect(result.current.records.range!.count).toBe(50)
@@ -388,24 +548,25 @@ describe('useRecords range mode', () => {
         useRangeHarness({ total: 120, rowCount, respond: 'manual' }),
       { initialProps: { rowCount: 120 } }
     )
+    await loadFirst(result)
     await view(result, 100, 119)
     expect(requests(result)).toEqual([
+      { start: 0, end: 50 },
       { start: 50, end: 100 },
       { start: 100, end: 150 }
     ])
     rerender({ rowCount: 125 })
-    await view(result, 105, 124)
-    expect(requests(result)).toHaveLength(2)
     await act(async () => {
-      result.current.calls.current[0]!.resolve()
       result.current.calls.current[1]!.resolve()
+      result.current.calls.current[2]!.resolve()
     })
+    expect(result.current.records.range!.count).toBe(125)
     await view(result, 105, 124)
-    expect(requests(result).slice(2)).toEqual([{ start: 100, end: 150 }])
+    expect(requests(result).slice(3)).toEqual([{ start: 100, end: 150 }])
     // The server has 120 rows, short of its count, so the page stays short.
-    await act(async () => result.current.calls.current[2]!.resolve())
+    await act(async () => result.current.calls.current[3]!.resolve())
     await view(result, 105, 124)
-    expect(requests(result)).toHaveLength(3)
+    expect(requests(result)).toHaveLength(4)
   })
 
   it('loads the first record added to an empty list', async () => {
@@ -414,64 +575,20 @@ describe('useRecords range mode', () => {
         useRangeHarness({ total: 1, rowCount, respond: 'manual' }),
       { initialProps: { rowCount: 0 } }
     )
-    await view(result, 0, 15)
-    await act(async () => result.current.calls.current[0]!.settle())
+    await loadFirst(result)
     expect(result.current.records.range!.count).toBe(0)
     rerender({ rowCount: 1 })
     await view(result, 0, 0)
-    expect(requests(result)).toEqual([
-      { start: 0, end: 50 },
-      { start: 0, end: 50 }
-    ])
-  })
-
-  it('treats the rows a last page holds as held', async () => {
-    const { result } = renderHook(() =>
-      useRangeHarness({
-        total: 120,
-        rowCount: 120,
-        respond: 'manual',
-        seed: 120
-      })
-    )
-    await view(result, 100, 119)
-    expect(requests(result)).toEqual([])
-  })
-
-  it('never requests rows already held, with rowCount', async () => {
-    const { result } = renderHook(() =>
-      useRangeHarness({
-        total: 1000,
-        rowCount: 1000,
-        respond: 'manual',
-        seed: 100
-      })
-    )
-    await view(result, 0, 15)
-    await view(result, 60, 75)
-    expect(requests(result)).toEqual([])
-    await view(result, 80, 95)
-    expect(requests(result)).toEqual([{ start: 100, end: 150 }])
-  })
-
-  it('continues from the page holding the last row held, without rowCount', async () => {
-    const { result } = renderHook(() =>
-      useRangeHarness({ total: 1000, respond: 'manual', seed: 120 })
-    )
-    await view(result, 100, 115)
-    expect(requests(result)).toEqual([{ start: 100, end: 150 }])
+    expect(requests(result)).toEqual([{ start: 0, end: 50 }])
   })
 
   it('requests each range once under StrictMode', async () => {
     const { result } = renderHook(
-      () => useRangeHarness({ total: 1000, rowCount: 1000, respond: 'manual' }),
+      () => useRangeHarness({ total: 1000, respond: 'manual' }),
       { wrapper: StrictMode }
     )
-    await view(result, 120, 135)
-    expect(requests(result)).toEqual([
-      { start: 100, end: 150 },
-      { start: 150, end: 200 }
-    ])
+    await view(result, 0, 15)
+    expect(requests(result)).toEqual([{ start: 0, end: 50 }])
     expect(result.current.records.range!.loading).toBe(true)
   })
 
@@ -493,14 +610,13 @@ describe('useRecords range mode', () => {
     const { result } = renderHook(() =>
       useRangeHarness({ total: 1000, rowCount: 1000, respond: 'manual' })
     )
-    await view(result, 0, 15)
-    await act(async () => result.current.calls.current[0]!.resolve())
+    await loadFirst(result)
     await act(async () => result.current.records.setPageSize(100))
     await view(result, 40, 70)
     expect(requests(result).slice(1)).toContainEqual({ start: 0, end: 100 })
   })
 
-  it('ignores a reply for a query that changed and came back', async () => {
+  it('drops a reply for a query that changed and came back', async () => {
     const { result } = renderHook(() =>
       useRangeHarness({ total: 70, respond: 'manual' })
     )
@@ -508,74 +624,16 @@ describe('useRecords range mode', () => {
     await act(async () => result.current.records.addFilter(perth))
     await act(async () => result.current.records.removeFilter(0))
     await view(result, 0, 15)
-    await act(async () => result.current.calls.current[0]!.settle())
-    expect(result.current.records.range!.loading).toBe(true)
-    await act(async () => result.current.calls.current[1]!.settle())
-    expect(result.current.records.range!.loading).toBe(false)
-  })
-
-  it.each([
-    ['with rowCount', 1000],
-    ['without rowCount', undefined]
-  ] as const)(
-    'reloads rows the consumer cleared under the same key (%s)',
-    async (_, rowCount) => {
-      const { result } = renderHook(() =>
-        useRangeHarness({ total: 1000, rowCount })
-      )
-      await view(result, 0, 15)
-      expect(requests(result)).toEqual([{ start: 0, end: 50 }])
-      await act(async () => result.current.clear())
-      expect(requests(result)).toEqual([
-        { start: 0, end: 50 },
-        { start: 0, end: 50 }
-      ])
-      expect(result.current.records.range!.rowAt(0)?.id).toBe('show-0')
-    }
-  )
-
-  it('ignores a reply from before the consumer cleared rows', async () => {
-    const { result } = renderHook(() =>
-      useRangeHarness({ total: 1000, rowCount: 1000, respond: 'manual' })
-    )
-    await view(result, 0, 15)
     await act(async () => result.current.calls.current[0]!.resolve())
-    await view(result, 40, 55)
-    expect(requests(result)).toEqual([
-      { start: 0, end: 50 },
-      { start: 50, end: 100 }
-    ])
-    await act(async () => result.current.clear())
-    expect(requests(result)).toEqual([
-      { start: 0, end: 50 },
-      { start: 50, end: 100 },
-      { start: 0, end: 50 },
-      { start: 50, end: 100 }
-    ])
-    await act(async () => result.current.calls.current[1]!.settle())
     expect(result.current.records.range!.loading).toBe(true)
-    await act(async () => {
-      result.current.calls.current[2]!.resolve()
-      result.current.calls.current[3]!.resolve()
-    })
+    expect(result.current.records.range!.rowAt(0)).toBeUndefined()
+    await act(async () => result.current.calls.current[1]!.resolve())
     expect(result.current.records.range!.loading).toBe(false)
+    expect(result.current.records.range!.rowAt(0)?.id).toBe('show-0')
   })
 
-  it('finds the loaded record at an index and nothing in a gap', async () => {
-    const { result } = renderHook(() =>
-      useRangeHarness({ total: 1000, rowCount: 1000 })
-    )
-    await view(result, 120, 135)
-    expect(result.current.records.range!.rowAt(120)).toEqual({
-      id: 'show-120',
-      row: expect.objectContaining({ id: 'show-120' })
-    })
-    expect(result.current.records.range!.rowAt(10)).toBeUndefined()
-    expect(result.current.records.data).toHaveLength(100)
-    expect(result.current.records.rows[0]!.id).toBe('show-100')
-  })
-
-  it('gives index ids from the index in data', async () => {
+  it('gives index ids from the index in the list', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { result } = renderHook(() =>
       useRangeHarness({
         total: 1000,
@@ -583,7 +641,7 @@ describe('useRecords range mode', () => {
         getRowId: undefined
       })
     )
-    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await loadFirst(result)
     await view(result, 120, 135)
     expect(result.current.records.range!.rowAt(120)?.id).toBe('120')
   })
@@ -649,6 +707,7 @@ describe('useRecords range mode', () => {
     const { result } = renderHook(() =>
       useRangeHarness({ total: 1000, rowCount: 1000, selectable: true })
     )
+    await loadFirst(result)
     expect(
       result.current.records.countSelection({
         allMatching: true,
@@ -714,11 +773,10 @@ describe('useRecords range mode', () => {
     it('warns once without getRowId', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       const { rerender } = renderHook(() =>
-        useRecords({
-          data: [] as (TestShow | undefined)[],
+        useRecords<TestShow>({
           fields: showFields,
           selectable: true,
-          loadRange: () => {}
+          loadRange: async () => ({ rows: [] })
         })
       )
       rerender()
@@ -729,11 +787,12 @@ describe('useRecords range mode', () => {
       ])
     })
 
-    it('warns once and caps the count above the row limit', () => {
+    it('warns once and caps the count above the row limit', async () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       const { result, rerender } = renderHook(() =>
         useRangeHarness({ total: 0, rowCount: MAX_RANGE_ROWS + 1 })
       )
+      await loadFirst(result)
       rerender()
       expect(result.current.records.range!.count).toBe(MAX_RANGE_ROWS)
       expect(warn.mock.calls).toEqual([
@@ -743,25 +802,32 @@ describe('useRecords range mode', () => {
       ])
     })
 
-    it('warns once and stops at the row limit without rowCount', () => {
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-      const data = placeRange<TestShow>([], MAX_RANGE_ROWS - 1, testShows(1))
-      const { result, rerender } = renderHook(() =>
-        useRecords({
-          data,
-          fields: showFields,
-          getRowId: (row) => row.id,
-          loadRange: () => {}
-        })
-      )
-      rerender()
-      expect(result.current.range!.count).toBe(MAX_RANGE_ROWS)
-      expect(warn.mock.calls).toEqual([
-        [
-          '[Roadie] Records with loadRange stop at 300,000 rows. Filter the list or use paged server mode.'
-        ]
-      ])
-    })
+    it(
+      'warns once and stops at the row limit without a count',
+      { timeout: 30_000 },
+      async () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const rows = Array.from<TestShow>({ length: MAX_RANGE_ROWS }).fill(
+          testShows(1)[0]!
+        )
+        const { result, rerender } = renderHook(() =>
+          useRecords<TestShow>({
+            fields: showFields,
+            getRowId: (row) => row.id,
+            defaultPosition: { pageSize: MAX_RANGE_ROWS },
+            loadRange: async () => ({ rows })
+          })
+        )
+        await act(async () => result.current.range!.show(0, 15))
+        rerender()
+        expect(result.current.range!.count).toBe(MAX_RANGE_ROWS)
+        expect(warn.mock.calls).toEqual([
+          [
+            '[Roadie] Records with loadRange stop at 300,000 rows. Filter the list or use paged server mode.'
+          ]
+        ])
+      }
+    )
 
     it('stays quiet for a long browser list', { timeout: 30_000 }, () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})

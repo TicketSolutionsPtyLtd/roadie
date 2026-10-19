@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`toMeilisearch > pins a full view 1`] = `
+exports[`toMeilisearch > pins a full request 1`] = `
 {
   "filter": [
     "city IN ["melbourne", "sydney"]",

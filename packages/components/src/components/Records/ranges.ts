@@ -1,7 +1,3 @@
-import type { RecordQuery } from '@oztix/roadie-core/records'
-
-import { matchKey } from './selection'
-
 /** Rows `start` to `end`, end exclusive. */
 export type RecordsRange = { start: number; end: number }
 
@@ -53,12 +49,3 @@ export function rangesToLoad(plan: RangePlan): RecordsRange[] {
   }
   return ranges
 }
-
-/**
- * What loaded rows belong to: a new search, filter, sort or zone starts over.
- * The search as typed, as an app keys its data on the search it sent.
- */
-export const rangeKey = (
-  query: Pick<RecordQuery, 'search' | 'filters' | 'sort'>,
-  timeZone: string
-) => JSON.stringify([query.search, matchKey(query), query.sort, timeZone])

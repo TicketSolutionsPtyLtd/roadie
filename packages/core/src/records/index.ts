@@ -49,7 +49,12 @@ export type {
   ResolvedRecordQuery,
   ResolvedRecordRange
 } from './resolve'
-export { RECORDS_REQUEST_VERSION, toRecordsRequest } from './request'
+export {
+  RECORDS_REQUEST_VERSION,
+  RECORD_URL_VERSION,
+  RECORD_VIEW_VERSION
+} from './versions'
+export { toRecordsRequest } from './request'
 export type {
   RecordsPageRequest,
   RecordsRangeRequest,
@@ -58,7 +63,7 @@ export type {
   RecordsRequestPaging
 } from './request'
 export { compileRecordQuery, matchesRecordQuery } from './match'
-export { parseQuery } from './parse'
+export { parseRecordQuery } from './parse'
 export {
   describeRecordFilter,
   recordOperatorLabel,
@@ -68,15 +73,13 @@ export type {
   DescribeRecordFilterOptions,
   RecordFilterDescription
 } from './describe'
-export type { ParseQueryOptions, RecordSuggestion } from './parse'
+export type { ParseRecordQueryOptions, RecordSuggestion } from './parse'
 export {
-  RECORD_VIEW_FORMAT,
-  fromSearchParams,
-  toSearchParams
+  recordViewFromSearchParams,
+  recordViewToSearchParams
 } from './searchParams'
 export type {
   RecordSearchParamsInput,
   RecordSearchParamsResult
 } from './searchParams'
-export { equalViews } from './equal'
-export { placeRange } from './ranges'
+export { equalRecordViews } from './equal'

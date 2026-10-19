@@ -12,7 +12,7 @@ import {
   vi
 } from 'vitest'
 
-import { type RecordPosition, placeRange } from '@oztix/roadie-core/records'
+import type { RecordPosition } from '@oztix/roadie-core/records'
 
 import { RecordGrid, gridLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -185,7 +185,6 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
           show: `show-${index}`
         })
       }, [])
-      const [data, setData] = useState<(TestShow | undefined)[]>([])
       const [position, setPosition] = useState<RecordPosition>({ row: 91 })
       const [width, setWidth] = useState(900)
       resize = setWidth
@@ -194,23 +193,18 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
           <RecordGrid
             caption='Shows'
             maxHeight='600px'
-            data={data}
             fields={showFields}
-            getRowId={(row) => row.id}
-            rowCount={2000}
+            getRowId={(row: TestShow) => row.id}
             position={position}
             onPositionChange={setPosition}
-            loadRange={({ start, end }) => {
+            loadRange={async ({ start, end }) => {
               spans.push({ start, end })
-              setData((current) =>
-                placeRange(
-                  current,
-                  start,
-                  Array.from({ length: end - start }, (_, offset) =>
-                    show(start + offset)
-                  )
-                )
-              )
+              return {
+                rows: Array.from({ length: end - start }, (_, offset) =>
+                  show(start + offset)
+                ),
+                rowCount: 2000
+              }
             }}
             card={grid}
           />

@@ -1,7 +1,7 @@
 import type { core } from 'zod'
 
 import { isPlainDate } from '../datetime/plainDate'
-import { resolveAbsolute } from '../datetime/ranges'
+import { canonicalDateRange, resolveAbsolute } from '../datetime/ranges'
 import {
   fieldIndex,
   isDateList,
@@ -199,11 +199,21 @@ function schemaProblems(issues: readonly core.$ZodIssue[]) {
   return issues.map((issue) => error(toPath(issue.path), issue.message))
 }
 
+function withCanonicalRanges(view: RecordView): RecordView {
+  const filters = view.query.filters.map((filter) =>
+    filter.operator === 'within'
+      ? { ...filter, value: canonicalDateRange(filter.value) }
+      : filter
+  )
+  return { ...view, query: { ...view.query, filters } }
+}
+
 /**
  * Checks a view against an entity's fields: its shape, that every field it
  * names exists, and that each filter's operator and value fit the field.
  * Layout keys a field list does not know are warnings, since a layout may
- * show columns, such as actions, that are not fields.
+ * show columns, such as actions, that are not fields. The view it returns
+ * writes each relative date range in its one form (`canonicalDateRange`).
  */
 export function validateRecordView(
   input: unknown,
@@ -213,7 +223,7 @@ export function validateRecordView(
   if (!parsed.success) {
     return { ok: false, problems: schemaProblems(parsed.error.issues) }
   }
-  const view = parsed.data as RecordView
+  const view = withCanonicalRanges(parsed.data as RecordView)
   const byKey = fieldIndex(fields)
   const problems: RecordViewProblem[] = []
 

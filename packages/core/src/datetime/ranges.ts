@@ -36,17 +36,28 @@ export type PeriodRange = {
   fiscal?: boolean
 }
 
+/**
+ * One form per meaning: offsets -1, 0 and 1 of a whole calendar period are
+ * named, as 'last-month' or 'this-quarter'; any other period is a
+ * `PeriodRange`. `canonicalDateRange` writes a value in this form.
+ */
 export type RelativeRange =
   | 'today'
   | 'tomorrow'
   | 'yesterday'
   | 'this-week'
-  | 'this-weekend'
   | 'next-week'
   | 'last-week'
   | 'this-month'
   | 'next-month'
   | 'last-month'
+  | 'this-quarter'
+  | 'next-quarter'
+  | 'last-quarter'
+  | 'this-year'
+  | 'next-year'
+  | 'last-year'
+  | 'this-weekend'
   | 'upcoming'
   | 'past'
   | 'ongoing'
@@ -90,6 +101,57 @@ const DATE_TIME =
 
 const MONTHS_IN: Record<'quarter' | 'year', number> = { quarter: 3, year: 12 }
 
+type NamedRange = Extract<RelativeRange, string>
+
+/** Each period's names for offsets -1, 0 and 1. */
+const PERIOD_NAMES: Record<
+  PeriodRange['period'],
+  readonly [NamedRange, NamedRange, NamedRange]
+> = {
+  day: ['yesterday', 'today', 'tomorrow'],
+  week: ['last-week', 'this-week', 'next-week'],
+  month: ['last-month', 'this-month', 'next-month'],
+  quarter: ['last-quarter', 'this-quarter', 'next-quarter'],
+  year: ['last-year', 'this-year', 'next-year']
+}
+
+const NAMED_PERIODS = new Map<NamedRange, PeriodRange>(
+  Object.entries(PERIOD_NAMES).flatMap(([period, names]) =>
+    names.map((name, index): [NamedRange, PeriodRange] => [
+      name,
+      { period: period as PeriodRange['period'], offset: index - 1 }
+    ])
+  )
+)
+
+/**
+ * The one form of a value's meaning, so equal ranges compare equal: a whole
+ * period at offset -1, 0 or 1 becomes its name, and flags that change
+ * nothing go (`false`, `fiscal` on a day, week or month, `toDate` on a day).
+ */
+export function canonicalDateRange<Value extends DateRangeValue>(
+  value: Value
+): Value extends AbsoluteRange ? Value : RelativeRange {
+  return canonical(value) as Value extends AbsoluteRange ? Value : RelativeRange
+}
+
+function canonical(value: DateRangeValue): DateRangeValue {
+  if (!isPeriodRange(value)) return value
+  const { period, offset } = value
+  const toDate = value.toDate === true && period !== 'day'
+  const fiscal =
+    value.fiscal === true && (period === 'quarter' || period === 'year')
+  if (!toDate && !fiscal && (offset === -1 || offset === 0 || offset === 1)) {
+    return PERIOD_NAMES[period][offset + 1]!
+  }
+  return {
+    period,
+    offset,
+    ...(toDate && { toDate }),
+    ...(fiscal && { fiscal })
+  }
+}
+
 /** Tells apart values already known to be valid; it does not validate. */
 export function isAbsoluteRange(
   value: DateRangeValue | Comparison
@@ -128,15 +190,6 @@ function dates(start: string, end: string): ResolvedDateRange {
 
 function instants(start: number | null, end: number | null): ResolvedDateRange {
   return { kind: 'instants', start, end }
-}
-
-function lastOfMonth(date: string): string {
-  return addDays(addMonths(firstOfMonth(date), 1), -1)
-}
-
-function firstOfMonth(date: string): string {
-  const { year, month } = plainDateParts(date)
-  return toPlainDate(year, month, 1)
 }
 
 function minDate(a: string, b: string): string {
@@ -212,40 +265,18 @@ function resolveRolling(
 }
 
 function resolveNamed(
-  range: Extract<RelativeRange, string>,
+  range: NamedRange,
   now: number,
   today: string,
   options: DateRangeOptions
 ): ResolvedDateRange {
-  const weekStart = options.weekStart ?? 1
+  const period = NAMED_PERIODS.get(range)
+  if (period) return resolvePeriod(period, today, options)
   switch (range) {
-    case 'today':
-      return dates(today, today)
-    case 'tomorrow':
-      return dates(addDays(today, 1), addDays(today, 1))
-    case 'yesterday':
-      return dates(addDays(today, -1), addDays(today, -1))
-    case 'this-week':
-    case 'next-week':
-    case 'last-week': {
-      const shift = range === 'this-week' ? 0 : range === 'next-week' ? 7 : -7
-      const start = addDays(startOfWeek(today, weekStart), shift)
-      return dates(start, addDays(start, 6))
-    }
     case 'this-weekend': {
       const day = dayOfWeek(today)
       const saturday = addDays(today, day === 7 ? -1 : 6 - day)
       return dates(saturday, addDays(saturday, 1))
-    }
-    case 'this-month':
-      return dates(firstOfMonth(today), lastOfMonth(today))
-    case 'next-month':
-    case 'last-month': {
-      const first = addMonths(
-        firstOfMonth(today),
-        range === 'next-month' ? 1 : -1
-      )
-      return dates(first, lastOfMonth(first))
     }
     case 'upcoming':
       return instants(now, null)
@@ -380,27 +411,15 @@ export type ResolvedComparison =
 
 type CalendarUnit = { days: number } | { months: number }
 
-const NAMED_UNITS: Partial<
-  Record<Extract<RelativeRange, string>, CalendarUnit>
-> = {
-  today: { days: 1 },
-  tomorrow: { days: 1 },
-  yesterday: { days: 1 },
-  'this-week': { days: 7 },
-  'next-week': { days: 7 },
-  'last-week': { days: 7 },
-  'this-weekend': { days: 7 },
-  'this-month': { months: 1 },
-  'next-month': { months: 1 },
-  'last-month': { months: 1 }
-}
-
 function calendarUnit(value: DateRangeValue): CalendarUnit | null {
   if (isAbsoluteRange(value) || isRollingRange(value)) return null
-  if (!isPeriodRange(value)) return NAMED_UNITS[value] ?? null
-  if (value.period === 'day') return { days: 1 }
-  if (value.period === 'week') return { days: 7 }
-  return { months: value.period === 'month' ? 1 : MONTHS_IN[value.period] }
+  const period = isPeriodRange(value) ? value : NAMED_PERIODS.get(value)
+  if (!period) return value === 'this-weekend' ? { days: 7 } : null
+  if (period.period === 'day') return { days: 1 }
+  if (period.period === 'week') return { days: 7 }
+  return {
+    months: period.period === 'month' ? 1 : MONTHS_IN[period.period]
+  }
 }
 
 function shift(date: string, unit: CalendarUnit, times: number): string {

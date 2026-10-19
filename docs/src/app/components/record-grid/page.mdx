@@ -208,7 +208,7 @@ function Events() {
   })
   return (
     <div className='grid gap-3'>
-      <p className='text-sm text-subtle'>URL: ?{toSearchParams(view).toString()}</p>
+      <p className='text-sm text-subtle'>URL: ?{recordViewToSearchParams(view).toString()}</p>
       <Records records={records} layouts={layouts} caption='Events'>
         <Records.Toolbar />
         <Records.Content />
@@ -226,7 +226,7 @@ render(<Events />)
 
 Configure lists the fields a card shows as details. Drag a handle to reorder them, or click it or press Enter for a Move menu. The eye beside each one hides it. Hidden fields are listed apart, in the fields' own order, and showing one again adds it to the end. The fields the card places as its title, description, image, leading, or trailing aren't listed. When the grid defines details, the last one stays shown. The list loads once the page is idle, or as a pointer or focus reaches the button, so drag and drop stays out of the grid's first load.
 
-The fields write the view's `layout.fields`, the shown keys in order, left out once back to the grid's `details`, so `equalViews` reads the view as unchanged. A view's keys for fields this grid doesn't have, such as one only some people see, are kept in their places.
+The fields write the view's `layout.fields`, the shown keys in order, left out once back to the grid's `details`, so `equalRecordViews` reads the view as unchanged. A view's keys for fields this grid doesn't have, such as one only some people see, are kept in their places.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -255,7 +255,7 @@ function Configured() {
   })
   return (
     <div className='grid gap-3'>
-      <p className='text-sm text-subtle'>URL: ?{toSearchParams(view).toString()}</p>
+      <p className='text-sm text-subtle'>URL: ?{recordViewToSearchParams(view).toString()}</p>
       <RecordGrid
         caption='Events'
         data={events}

@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   type RecordView,
-  fromSearchParams,
-  toSearchParams
+  recordViewFromSearchParams,
+  recordViewToSearchParams
 } from '@oztix/roadie-core/records'
 
 import { type TestShow, showFields, testShows } from './testUtils'
@@ -50,7 +50,7 @@ describe('useRecords baseline', () => {
     expect(result.current.modified).toBe(false)
   })
 
-  it('compares as equalViews does, ignoring id, name and chip order', () => {
+  it('compares as equalRecordViews does, ignoring id, name and chip order', () => {
     const city = upcoming.query.filters[0]!
     const sold = { field: 'sold', operator: 'gt', value: 10 } as const
     const baseline = {
@@ -79,10 +79,10 @@ describe('useRecords baseline', () => {
       ...upcoming,
       query: { ...upcoming.query, search: 'Perth' }
     }
-    const params = toSearchParams(changed)
+    const params = recordViewToSearchParams(changed)
     expect(params.get('v')).toBe('1')
     expect(params.get('view')).toBe('upcoming')
-    const { view } = fromSearchParams(params, showFields)
+    const { view } = recordViewFromSearchParams(params, showFields)
     const baseline = [upcoming].find((saved) => saved.id === view.id)
     const { result } = setup({ defaultView: view, baseline })
     expect(result.current.baseline).toBe(upcoming)
