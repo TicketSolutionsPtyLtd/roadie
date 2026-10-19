@@ -8,14 +8,19 @@ import {
 } from '@oztix/roadie-core/records'
 
 import { type TestShow, showFields, testShows } from './testUtils'
-import { type UseRecordsOptions, useRecords } from './useRecords'
+import { type UseRecordsOptions, useRecordsState } from './useRecords'
 
 const shows = testShows(120)
 
 const setup = (options: Partial<UseRecordsOptions<TestShow>> = {}) =>
   renderHook(
     (props: Partial<UseRecordsOptions<TestShow>>) =>
-      useRecords({ data: shows, fields: showFields, ...options, ...props }),
+      useRecordsState({
+        data: shows,
+        fields: showFields,
+        ...options,
+        ...props
+      }),
     { initialProps: {} }
   )
 

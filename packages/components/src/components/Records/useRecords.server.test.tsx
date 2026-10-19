@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { RecordSelection, RecordView } from '@oztix/roadie-core/records'
 
 import { type TestShow, showFields, testShows } from './testUtils'
-import { type UseRecordsOptions, useRecords } from './useRecords'
+import { type UseRecordsOptions, useRecordsState } from './useRecords'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -18,7 +18,7 @@ type Options = Partial<UseRecordsOptions<TestShow>>
 const setup = (options: Options = {}) =>
   renderHook(
     (props: Options) =>
-      useRecords({
+      useRecordsState({
         data: page,
         fields: showFields,
         getRowId: (row) => row.id,
@@ -385,7 +385,7 @@ describe('useRecords server search before its echo', () => {
   const controlled = (onViewChange = vi.fn()) =>
     renderHook(
       (props: { search: string; rowCount?: number }) =>
-        useRecords({
+        useRecordsState({
           data: page,
           fields: showFields,
           rowCount: 'rowCount' in props ? props.rowCount : 120,
@@ -442,7 +442,7 @@ describe('useRecords server search with a parent that keeps only the last', () =
   const coalescing = () =>
     renderHook(
       (props: { search: string }) =>
-        useRecords({
+        useRecordsState({
           data: page,
           fields: showFields,
           rowCount: 120,
@@ -480,7 +480,7 @@ describe('useRecords browser page past the end', () => {
   it('shows the last page for a controlled page the parent never clamped', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { result } = renderHook(() =>
-      useRecords({
+      useRecordsState({
         data: shows.slice(0, 100),
         fields: showFields,
         getRowId: (row) => row.id,

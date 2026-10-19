@@ -211,7 +211,7 @@ describe('Records.ViewActions in a browser', TIMEOUT, () => {
       </div>
     )
     const toolbar = container.querySelector<HTMLElement>(
-      '[data-slot="records-toolbar"]'
+      '[data-slot="records-header"]'
     )!
     await expect
       .poll(() => container.querySelector('[data-slot="record-table-body"]'))

@@ -149,7 +149,7 @@ describe('QueryField', () => {
   })
 
   it('shows the shortcut hint until the field has focus', async () => {
-    render(<Harness shortcut='/' />)
+    render(<Harness focusShortcut='/' />)
     const hint = document.querySelector('[data-slot=query-field-shortcut]')
     expect(shown(hint)).toBe(true)
     await userEvent.keyboard('/')

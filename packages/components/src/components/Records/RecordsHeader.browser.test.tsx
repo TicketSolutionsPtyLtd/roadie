@@ -70,7 +70,7 @@ function ShowsPane({
           <Pane.Title>Shows</Pane.Title>
         </Pane.Header>
         <Pane.Body>
-          <Records.Toolbar>{toolbar}</Records.Toolbar>
+          <Records.Header>{toolbar}</Records.Header>
           <Records.Content />
         </Pane.Body>
       </Pane>
@@ -104,7 +104,7 @@ async function scrollUntilStuck() {
   await nudgeFrames()
   await expect
     .poll(
-      () => box(slot('pane-header')).bottom - box(slot('records-toolbar')).top
+      () => box(slot('pane-header')).bottom - box(slot('records-header')).top
     )
     .toBeLessThanOrEqual(1)
   expect(viewport.scrollTop).toBeGreaterThan(0)
@@ -114,7 +114,7 @@ const gapUnderHeader = () =>
   box(searchField()).top - box(slot('pane-header')).bottom
 
 describe.each([390, 360, 280, 1280])(
-  'Records.Toolbar in a pane at %ipx',
+  'Records.Header in a pane at %ipx',
   (width) => {
     it(
       'leaves a gap between the pane header and the search at rest',
@@ -142,7 +142,7 @@ describe.each([390, 360, 280, 1280])(
           .poll(() =>
             Math.abs(
               box(slot('record-table-head')).top -
-                box(slot('records-toolbar')).bottom
+                box(slot('records-header')).bottom
             )
           )
           .toBeLessThanOrEqual(1)
@@ -162,11 +162,11 @@ describe.each([390, 360, 280, 1280])(
   }
 )
 
-describe('Records.Toolbar’s focused search', () => {
+describe('Records.Header’s focused search', () => {
   const searchInput = () =>
     screen.getByRole('combobox', { name: 'Search and filter' })
   const toolbarRoom = () => {
-    const toolbar = slot('records-toolbar')
+    const toolbar = slot('records-header')
     const style = getComputedStyle(toolbar)
     return (
       box(toolbar).width -
@@ -210,7 +210,7 @@ describe('Records.Toolbar’s focused search', () => {
         tabs++
       )
         await userEvent.tab()
-      expect(slot('records-toolbar')).toContainElement(
+      expect(slot('records-header')).toContainElement(
         document.activeElement as HTMLElement
       )
     }
@@ -259,7 +259,7 @@ describe('Records.Toolbar’s focused search', () => {
   })
 })
 
-describe('Records.Toolbar outside a pane', () => {
+describe('Records.Header outside a pane', () => {
   it('adds no space above the search', TIMEOUT, async () => {
     function Shows() {
       const records = useRecords({
@@ -269,13 +269,13 @@ describe('Records.Toolbar outside a pane', () => {
       })
       return (
         <Records records={records} layouts={layouts} caption='Shows'>
-          <Records.Toolbar />
+          <Records.Header />
           <Records.Content />
         </Records>
       )
     }
     render(<Shows />)
     await expect.poll(() => slot('query-field')).not.toBeNull()
-    expect(box(searchField()).top).toBe(box(slot('records-toolbar')).top)
+    expect(box(searchField()).top).toBe(box(slot('records-header')).top)
   })
 })

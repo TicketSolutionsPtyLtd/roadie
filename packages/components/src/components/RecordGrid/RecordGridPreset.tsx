@@ -23,14 +23,14 @@ export type RecordGridProps<Row extends object> = UseRecordsOptions<Row> & {
   searchPlaceholder?: string
   /** Names the search field when its placeholder doesn't. */
   searchLabel?: string
-  /** The key that focuses the search, or `false` for none. @default '/' */
-  searchShortcut?: string | false
+  /** The key that focuses the search, a `KeyboardEvent.key` value such as `/`, or `false` for none. @default '/' */
+  searchFocusShortcut?: string | false
   /** @default [25, 50, 100] */
   pageSizes?: number[]
   /** Turns on selection and shows the bulk actions once something is selected. */
   bulkActions?: readonly RecordsBulkAction[]
   /** Act on everything the search and filters match, with nothing selected, such as an export. Shown at the end of the toolbar. */
-  gridActions?: readonly RecordsAction<Row>[]
+  actions?: readonly RecordsAction<Row>[]
   /** Shows the open view's name, marked once it differs from `baseline`, with a menu to save, save as, rename, reset or delete it. The app keeps the views. */
   viewActions?: RecordsViewActionsProps
   /** Scrolls the cards in their own box this tall, any CSS length. */
@@ -46,10 +46,10 @@ export function RecordGrid<Row extends object>({
   caption,
   searchPlaceholder,
   searchLabel,
-  searchShortcut,
+  searchFocusShortcut,
   pageSizes,
   bulkActions,
-  gridActions,
+  actions,
   viewActions,
   maxHeight,
   fill,
@@ -71,11 +71,11 @@ export function RecordGrid<Row extends object>({
       data-pane-fill={fill || undefined}
       className={cn(fill && 'flex h-full min-h-0 flex-col', className)}
     >
-      <Records.Toolbar
+      <Records.Header
         searchPlaceholder={searchPlaceholder}
         searchLabel={searchLabel}
-        searchShortcut={searchShortcut}
-        actions={gridActions}
+        searchFocusShortcut={searchFocusShortcut}
+        actions={actions}
         viewActions={viewActions}
       />
       <Records.Content maxHeight={maxHeight} fill={fill} />

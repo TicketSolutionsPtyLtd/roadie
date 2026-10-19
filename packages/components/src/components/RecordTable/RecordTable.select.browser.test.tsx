@@ -35,7 +35,7 @@ function Shows() {
         defaultPosition={ALL}
         rowActions={() => <Menu.Item>Edit</Menu.Item>}
         bulkActions={[{ label: 'Export', onAction: () => {} }]}
-        tableActions={[
+        actions={[
           { label: 'Export CSV', onAction: () => {} },
           { label: 'Print door list', onAction: () => {} }
         ]}
@@ -224,7 +224,7 @@ describe('RecordTable Select mode on narrow rows in a browser', () => {
           fields={showFields}
           columns={narrowColumns}
           bulkActions={[{ label: 'Export', onAction: () => {} }]}
-          tableActions={[
+          actions={[
             { label: 'Export CSV', onAction: () => {} },
             { label: 'Print door list', onAction: () => {} }
           ]}

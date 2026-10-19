@@ -11,7 +11,7 @@ import type {
 import { MAX_RANGE_ROWS } from './ranges'
 import { type TestShow, showFields, testShows } from './testUtils'
 import type { RecordsRangeResult } from './useRangeLoading'
-import { type UseRecordsOptions, useRecords } from './useRecords'
+import { type UseRecordsOptions, useRecordsState } from './useRecords'
 
 type Call = {
   start: number
@@ -42,7 +42,7 @@ function useRangeHarness({
   useLayoutEffect(() => {
     latest.current = { rowCount, rowCountExact }
   })
-  const records = useRecords({
+  const records = useRecordsState({
     fields: showFields,
     getRowId: (row) => row.id,
     loadRange: ({ start, end }) => {
@@ -115,13 +115,13 @@ describe('useRecords range mode', () => {
     expect(result.current.records.range).toBeDefined()
 
     const browser = renderHook(() =>
-      useRecords({ data: testShows(3), fields: showFields })
+      useRecordsState({ data: testShows(3), fields: showFields })
     )
     expect(browser.result.current.mode).toBe('browser')
     expect(browser.result.current.range).toBeUndefined()
 
     const server = renderHook(() =>
-      useRecords({ data: testShows(3), fields: showFields, rowCount: 9 })
+      useRecordsState({ data: testShows(3), fields: showFields, rowCount: 9 })
     )
     expect(server.result.current.mode).toBe('server')
     expect(server.result.current.range).toBeUndefined()
@@ -178,7 +178,7 @@ describe('useRecords range mode', () => {
 
   it('reads the count from its ranges, not rowCount', async () => {
     const { result } = renderHook(() =>
-      useRecords<TestShow>({
+      useRecordsState<TestShow>({
         fields: showFields,
         getRowId: (row) => row.id,
         rowCount: 5000,
@@ -198,7 +198,7 @@ describe('useRecords range mode', () => {
       rows: [] as TestShow[]
     }))
     const { result } = renderHook(() =>
-      useRecords({
+      useRecordsState({
         fields: showFields,
         getRowId: (row) => row.id,
         defaultPosition: { pageSize: 25 },
@@ -216,7 +216,7 @@ describe('useRecords range mode', () => {
       rows: [] as TestShow[]
     }))
     const { result } = renderHook(() =>
-      useRecords({
+      useRecordsState({
         fields: showFields,
         getRowId: (row) => row.id,
         timeZone: 'Australia/Perth',
@@ -320,7 +320,7 @@ describe('useRecords range mode', () => {
 
   it('fails a range whose result holds no rows', async () => {
     const { result } = renderHook(() =>
-      useRecords<TestShow>({
+      useRecordsState<TestShow>({
         fields: showFields,
         getRowId: (row) => row.id,
         loadRange: async () =>
@@ -351,7 +351,7 @@ describe('useRecords range mode', () => {
 
   it('turns a synchronous throw into a failed range', async () => {
     const { result } = renderHook(() =>
-      useRecords<TestShow>({
+      useRecordsState<TestShow>({
         fields: showFields,
         getRowId: (row) => row.id,
         loadRange: () => {
@@ -515,7 +515,7 @@ describe('useRecords range mode', () => {
   it('keeps only the rows a range asked for', async () => {
     const all = testShows(100)
     const { result } = renderHook(() =>
-      useRecords<TestShow>({
+      useRecordsState<TestShow>({
         fields: showFields,
         getRowId: (row) => row.id,
         loadRange: ({ start }) =>
@@ -773,7 +773,7 @@ describe('useRecords range mode', () => {
     it('warns once without getRowId', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       const { rerender } = renderHook(() =>
-        useRecords<TestShow>({
+        useRecordsState<TestShow>({
           fields: showFields,
           selectable: true,
           loadRange: async () => ({ rows: [] })
@@ -811,7 +811,7 @@ describe('useRecords range mode', () => {
           testShows(1)[0]!
         )
         const { result, rerender } = renderHook(() =>
-          useRecords<TestShow>({
+          useRecordsState<TestShow>({
             fields: showFields,
             getRowId: (row) => row.id,
             defaultPosition: { pageSize: MAX_RANGE_ROWS },
@@ -832,7 +832,7 @@ describe('useRecords range mode', () => {
     it('stays quiet for a long browser list', { timeout: 30_000 }, () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       renderHook(() =>
-        useRecords({
+        useRecordsState({
           data: Array.from<TestShow>({ length: MAX_RANGE_ROWS }).fill(
             testShows(1)[0]!
           ),
@@ -845,7 +845,7 @@ describe('useRecords range mode', () => {
     it('stays quiet for a large paged server count', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       renderHook(() =>
-        useRecords({
+        useRecordsState({
           data: testShows(3),
           fields: showFields,
           rowCount: MAX_RANGE_ROWS + 1

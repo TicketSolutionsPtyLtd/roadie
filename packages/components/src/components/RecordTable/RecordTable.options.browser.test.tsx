@@ -59,7 +59,7 @@ function Shows({ width = 900 }: { width?: number | string }) {
         data={testShows(20)}
         fields={showFields}
         columns={columns}
-        tableActions={[
+        actions={[
           { label: 'Export CSV', onAction: () => {} },
           { label: 'Print door list', onAction: () => {} }
         ]}
@@ -135,7 +135,7 @@ describe('Records.Options', TIMEOUT, () => {
     const height = rect(searchField()).height
     expect(height).toBe(40)
     const toolbar = searchField().closest<HTMLElement>(
-      '[data-slot="records-toolbar"]'
+      '[data-slot="records-header"]'
     )!
     const buttons = within(toolbar).getAllByRole('button')
     expect(

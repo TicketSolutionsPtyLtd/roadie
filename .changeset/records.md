@@ -9,7 +9,7 @@ searches, filters, sorts and pages them in the browser. Filters a view names
 but the fields can't apply are skipped, listed in `skippedFilters` and
 warned about in development. `Records.Root` (or
 `Records.Provider`, which adds no element, for parts spread across a
-`Pane`) shares it with `Records.Toolbar` and its `Records.Search`,
+`Pane`) shares it with `Records.Header` and its `Records.Search`,
 `Records.Content`, `Records.Pagination` and a
 `Records.Status` live region. Content shows the view's layout, or the first
 one given, with skeleton rows while loading, an error with Retry, and an
@@ -23,7 +23,7 @@ taking `pin`, `width`, `cell`, `kind`, `alt`, `narrow` and `priority`;
 view's `layout.columns` orders and hides them. The table sorts from its headers,
 pins columns, and scrolls sideways with a Roadie scrollbar that sticks to
 the bottom of whatever scrolls the page, or both ways in its own box with
-`maxHeight` or `fill`. `RecordTable` puts the toolbar, table, pagination
+`maxHeight` or `fill`. `RecordTable` puts the header, table, pagination
 and status together.
 
 Records can be selected: `useRecords` takes `selectable` and a
@@ -40,20 +40,20 @@ does, with a count menu to select all or clear and a More actions menu for
 actions that don't fit, otherwise floating at the foot of the screen, where
 the first action shows and those that don't fit go in a More actions menu,
 last.
-`Records.Actions` (or the toolbar's `actions`) acts on every match. An
+`Records.Actions` (or the header's `actions`) acts on every match. An
 action gets one object: `query`, the applied query with the scope first;
 `request`, the `RecordsRequest` for every match, to POST to a server;
 `timeZone` and `now`; and `records` for a table action or `selection` for a
 bulk action. Danger
 actions ask first unless `confirm` is `false`, and any action given
 `confirm` asks. `downloadCsv` saves CSV text as a file. `RecordTable` takes
-`bulkActions`, `tableActions` and `searchLabel`, and `record-table` exports
+`bulkActions`, `actions` and `searchLabel`, and `record-table` exports
 `shownColumns` for the columns a view shows. `Records.Search` takes an
-`aria-label`, `Records.Toolbar` a `searchLabel`, and `Records.Status`
+`aria-label`, `Records.Header` a `searchLabel`, and `Records.Status`
 announces the selection and a search's count once typing settles.
 
 `Records.Options` is a Configure button for the view, in the standard
-toolbar after the search and before the table actions. It opens a popover,
+header after the search and before the table actions. It opens a popover,
 or a bottom drawer on a phone, with the sort (a field and direction per
 level, in the field's own terms such as Low to high, with Add sort and
 Remove) and the shown layout's settings. For the table these are its
@@ -61,10 +61,9 @@ columns: drag a handle, or use its Move menu, to reorder them, and an eye
 toggle to show or hide each one. They write `view.query.sort` and
 `view.layout.columns`, leaving out an order or hidden list that matches the
 columns as defined and keeping keys for columns the table doesn't have.
-`label` renames the button, which is "Configure table" for the table. A
-layout definition adds its own settings with `Settings`, which can carry a
-`preload` that runs once the page is idle or the button is reached; the
-table's columns list loads that way, out of the table's first load. Given
+`label` renames the button, which is "Configure table" for the table. The
+table's columns list loads once the page is idle or the button is reached,
+out of the table's first load. Given
 more than one layout, Options shows a Layout switcher above the sort that
 writes `view.layout`; each layout comes back with its settings as last
 shown, or the `baseline`'s, so switching back reads as unchanged.
@@ -132,10 +131,10 @@ range marked. Typing a date moves the calendar to its month. The calendar
 loads while the page is idle. A
 date chip reads as other chips do, such as "Start date is this weekend", and a
 relative one shows its dates in a tooltip. A filter the fields can't
-apply shows in warning colours. `/` focuses the search unless `shortcut` (or
-`searchShortcut` on `Records.Toolbar` and `RecordTable`) says otherwise, and
-Clear and Escape clear it. The toolbar keeps its buttons at the top as chips
-wrap. Under 40rem, the focused search takes the toolbar's row, and the other
+apply shows in warning colours. `/` focuses the search unless `focusShortcut` (or
+`searchFocusShortcut` on `Records.Header`, `RecordTable` and `RecordGrid`) says otherwise, and
+Clear and Escape clear it. The header keeps its buttons at the top as chips
+wrap. Under 40rem, the focused search takes the header's row, and the other
 controls hide until focus leaves it.
 
 `useRecords` takes a `scope`: filters the page sets, such as the event a list
@@ -191,11 +190,10 @@ another until one comes back short. Rows not yet loaded show as
 placeholders. A failed range, or one that resolves without `rows`, shows an
 error row with Retry in its place, keeping the records already loaded, or
 the error state when none have. The list reports the first row on screen as
-`position.row` (through `setRow` and `onPositionChange`) and scrolls back to
+`position.row` (through `onPositionChange`) and scrolls back to
 a row set from outside, such as from the URL, once the first range brings
 the count, loading the row's range before any between; a row it reported
-itself never scrolls it back. `records.range` (`RecordsRangeState`) holds
-the loading state for a layout, and `RecordsRange` types a range.
+itself never scrolls it back. `RecordsRange` types a range.
 `Records.Pagination` shows the count instead of pages, and `Records.Status`
 announces a count only once the total is known. Bulk actions get the
 selection as picked, as in server mode, `loading` neither dims rows nor
@@ -217,7 +215,7 @@ once any column is a `detail`, as cards. Each column takes a `narrow` place:
 `title`, `description`, `leading`, `trailing`, `detail` or `hidden` (the
 default). The title carries the record's link, the bulk actions float, and
 a selectable table offers Select mode: `Records.Select` (in the standard
-toolbar) shows Select, Select all and Done, each record shows a checkbox a
+header) shows Select, Select all and Done, each record shows a checkbox a
 tap anywhere on it toggles, and Escape or Done leaves. A selection made wide
 enters Select mode as the table narrows, and focus follows the record across
 the switch. Narrow rows page, window past 100 records and load by range as
@@ -243,7 +241,7 @@ Saved views: `useRecords` takes a `baseline`, the saved or preset view the
 screen opened, and gives `modified` (the view differs from it by
 `equalRecordViews`) and `resetView`, which goes back to it from the first page.
 `Records.ViewActions` (or `viewActions`, an object of its props, on
-`Records.Toolbar` and `RecordTable`) shows the view's name after the search,
+`Records.Header` and `RecordTable`) shows the view's name after the search,
 with a dot once it's modified, and a menu of Save view, Reset view, Save as
 new view, Rename view and Delete view. The app keeps the views: each action
 calls its handler (`onSave`, `onSaveAs`, `onRename`, `onDelete`, typed
@@ -253,3 +251,11 @@ asked for in a dialog, or a bottom drawer on a phone, and Delete view asks in
 an alert dialog. A handler can return a promise: its control stays busy and
 its dialog open until it settles, and a rejection's message shows in the
 dialog. `RecordsViewActionsProps` is exported too.
+
+`useRecords` returns a `RecordsInstance`: the view, position, selection,
+request, counts and rows, and the setters and actions to change them.
+`Records` and `Records.Provider` take only what `useRecords` returns, so an
+object built by hand to its shape doesn't type-check as `records`.
+`AnyRecordLayout` names what `layouts` takes; the layout contract stays
+internal until custom layouts can be built, and `tableLayout()` and
+`gridLayout()` build the two there are.

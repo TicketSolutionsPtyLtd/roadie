@@ -67,7 +67,7 @@ function Harness({
   })
   return (
     <Records records={records} layouts={shownLayouts} caption='Shows'>
-      <Records.Toolbar
+      <Records.Header
         viewActions={baseline ? { onSaveAs: () => {} } : undefined}
       />
       <Records.Content />
@@ -250,7 +250,7 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
           >
             Open rows
           </button>
-          <Records.Toolbar />
+          <Records.Header />
           <Records.Content />
         </Records>
       )
@@ -281,7 +281,7 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
           <button onClick={() => setOpen({ ...view, name: 'Cards, renamed' })}>
             Save it
           </button>
-          <Records.Toolbar />
+          <Records.Header />
           <Records.Content />
         </Records>
       )

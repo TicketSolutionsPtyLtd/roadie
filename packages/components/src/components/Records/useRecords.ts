@@ -116,7 +116,13 @@ export type UseRecordsOptions<Row extends object> = {
   onRequestChange?: (request: RecordsRequest) => void
 }
 
-export type RecordsInstance<Row extends object = object> = {
+// Only what `useRecords` builds carries it, so a hand-built object can't pass
+// as records the parts read in full.
+const recordsBrand: unique symbol = Symbol('roadie.records')
+
+/** Everything `useRecords` holds, for the parts and layouts. Apps read `RecordsInstance`. */
+export type RecordsState<Row extends object = object> = {
+  readonly [recordsBrand]: true
   /** `server` once `rowCount` is given, `range` once `loadRange` is. */
   mode: 'browser' | 'server' | 'range'
   /** Every record held, before search, filters and paging; in server mode, the page; in range mode, the records loaded, in order. */
@@ -196,6 +202,56 @@ export type RecordsInstance<Row extends object = object> = {
   now: Date
 }
 
+/** What an app reads and calls on the records `useRecords` holds; pass it whole to `Records` or `Records.Provider`. Only what `useRecords` returns fits. */
+export type RecordsInstance<Row extends object = object> = Pick<
+  RecordsState<Row>,
+  | typeof recordsBrand
+  | 'mode'
+  | 'data'
+  | 'fields'
+  | 'view'
+  | 'appliedView'
+  | 'scopedQuery'
+  | 'request'
+  | 'rows'
+  | 'resultCount'
+  | 'resultCountExact'
+  | 'filtered'
+  | 'position'
+  | 'pageCount'
+  | 'matchingRows'
+  | 'setView'
+  | 'baseline'
+  | 'modified'
+  | 'resetView'
+  | 'skippedFilters'
+  | 'scope'
+  | 'setSearch'
+  | 'addFilter'
+  | 'updateFilter'
+  | 'removeFilter'
+  | 'clearQuery'
+  | 'setSort'
+  | 'setLayout'
+  | 'setPage'
+  | 'setPageSize'
+  | 'selectable'
+  | 'selection'
+  | 'selectedCount'
+  | 'countSelection'
+  | 'isSelected'
+  | 'setSelection'
+  | 'toggleRow'
+  | 'selectPage'
+  | 'selectAllMatching'
+  | 'clearSelection'
+  | 'loading'
+  | 'error'
+  | 'onRetry'
+  | 'timeZone'
+  | 'now'
+>
+
 const RECORD: RecordName = { one: 'record', other: 'records' }
 const PAGE_SIZE = 50
 // Long enough to sit between keystrokes, so a request leaves once per pause.
@@ -224,7 +280,15 @@ const NO_SCOPE: readonly RecordFilter[] = []
 
 const NO_DATA: readonly never[] = []
 
-export function useRecords<Row extends object>({
+/** Holds the view, position and selection, and searches, filters, sorts and pages the records. */
+export function useRecords<Row extends object>(
+  options: UseRecordsOptions<Row>
+): RecordsInstance<Row> {
+  return useRecordsState(options)
+}
+
+/** `useRecords` with everything the parts and layouts read. */
+export function useRecordsState<Row extends object>({
   data: dataOption = NO_DATA,
   rowCount: rowCountOption,
   rowCountExact = true,
@@ -252,7 +316,7 @@ export function useRecords<Row extends object>({
   getRowHref,
   loadRange,
   onRequestChange
-}: UseRecordsOptions<Row>): RecordsInstance<Row> {
+}: UseRecordsOptions<Row>): RecordsState<Row> {
   const [ownView, setOwnView] = useState(() => toView(defaultView))
   const view = controlledView ?? ownView
   const [ownPosition, setOwnPosition] = useState(defaultPosition ?? {})
@@ -768,6 +832,7 @@ export function useRecords<Row extends object>({
   }
 
   return {
+    [recordsBrand]: true,
     mode: ranged ? 'range' : server ? 'server' : 'browser',
     data: loaded.rows,
     fields,

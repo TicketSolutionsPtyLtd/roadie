@@ -451,7 +451,7 @@ describe('RecordTable narrow list rows in a browser', () => {
     }
     const { container } = render(<Ranged />)
     const toolbar = container.querySelector<HTMLElement>(
-      '[data-slot="records-toolbar"]'
+      '[data-slot="records-header"]'
     )!
     await expect
       .poll(() => {

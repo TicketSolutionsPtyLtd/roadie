@@ -125,7 +125,7 @@ function Shows() {
   const records = useRecords({ data, fields, getRowId: (row) => row.id })
   return (
     <Records records={records} layouts={layouts} caption='Upcoming shows'>
-      <Records.Toolbar searchPlaceholder='Search shows' />
+      <Records.Header searchPlaceholder='Search shows' />
       <Records.Content />
       <Records.Pagination pageSizes={[20, 40]} />
       <Records.Status />
@@ -134,9 +134,9 @@ function Shows() {
 }
 ```
 
-`Records.Toolbar` holds the standard controls: the search and filter field, `Records.Select` for Select mode on narrow rows, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its toolbar, never in `Pane.Search`.
+`Records.Header` holds the standard controls: the search and filter field, `Records.Select` for Select mode on narrow rows, with `viewActions` the [saved view's actions](#saved-views) as `Records.ViewActions`, `Records.Options`, and with `actions`, the table actions as `Records.Actions` at the end. `searchLabel` names the search when its placeholder doesn't. Pass children to replace them, such as a `Records.Search` with your own placeholder or `aria-label` beside other controls. Keep a table's search with its table, in its header, never in `Pane.Search`.
 
-In a toolbar under 40rem, the search takes the whole row while it has focus. The other controls hide from sight and screen readers, and come back once focus leaves the search. Tab out of the search shows them first, so it lands on the next one.
+In a header under 40rem, the search takes the whole row while it has focus. The other controls hide from sight and screen readers, and come back once focus leaves the search. Tab out of the search shows them first, so it lands on the next one.
 
 `Records.BulkActions` can sit anywhere inside the Provider: the table's `Records.Content` shows it in its header row.
 
@@ -144,8 +144,8 @@ In a toolbar under 40rem, the search takes the whole row while it has focus. The
 
 Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Records.Provider`, which shares the records without adding an element, and spread the parts across it:
 
-- `Records.Toolbar` in `Pane.Body`, above the table. It sticks under the pane's header while the body scrolls, so the search stays in reach, and paints the pane's margins beside it so rows never show there. `Pane.Header` keeps the `Pane.Title`.
-- `Records.Content` in `Pane.Body`, below the toolbar. Its column headers stick under the toolbar. Placed straight in `Pane.Body`, a wide table runs to the pane's edges, with the pane's inset inside its first and last cells, so its first column lines up with the search and columns scrolled sideways pass under any pinned ones. Narrow rows, a `fill` or `maxHeight` box and a pane with a `measure` keep the inset.
+- `Records.Header` in `Pane.Body`, above the table. It sticks under the pane's header while the body scrolls, so the search stays in reach, and paints the pane's margins beside it so rows never show there. `Pane.Header` keeps the `Pane.Title`.
+- `Records.Content` in `Pane.Body`, below the header. Its column headers stick under the header. Placed straight in `Pane.Body`, a wide table runs to the pane's edges, with the pane's inset inside its first and last cells, so its first column lines up with the search and columns scrolled sideways pass under any pinned ones. Narrow rows, a `fill` or `maxHeight` box and a pane with a `measure` keep the inset.
 - `Records.Status` anywhere inside the Provider. It renders nothing visible.
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
 - `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and floats it over narrow rows.
@@ -218,7 +218,7 @@ function EventsPane() {
           <Pane.Title>Events</Pane.Title>
         </Pane.Header>
         <Pane.Body>
-          <Records.Toolbar searchPlaceholder='Search events' />
+          <Records.Header searchPlaceholder='Search events' />
           <Records.Content />
           <Records.Status />
           <Records.BulkActions
@@ -322,7 +322,7 @@ render(
 
 ### Search and filters
 
-The toolbar's search is a [query field](/components/query-field) named "Search and filter". It searches the records as you type and adds filters as chips. A record shows only when it matches every chip.
+The header's search is a [query field](/components/query-field) named "Search and filter". It searches the records as you type and adds filters as chips. A record shows only when it matches every chip.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -471,7 +471,7 @@ The calendar stays in the dropdown at every screen size, as wide as the field. I
 | Backspace      | In the empty field, selects the last chip, and a second removes it. While you pick a value, it goes back to the fields, and while you edit a chip, it removes that chip.              |
 | Escape         | Ends picking a value or editing a chip, and keeps the chips, as leaving the field does. Otherwise it closes the suggestions, then clears the text.                              |
 
-With several searches on a page, the first one takes `/`. Set `searchShortcut` on `RecordTable` or `Records.Toolbar`, or `shortcut` on `Records.Search`, to another key or `false`.
+With several searches on a page, the first one takes `/`. Set `searchFocusShortcut` on `RecordTable` or `Records.Header`, or `focusShortcut` on `Records.Search`, to another key, a `KeyboardEvent.key` value such as `s`, or `false`.
 
 #### Scope
 
@@ -562,7 +562,7 @@ render(<Controlled />)
 
 ### Options
 
-`Records.Options` is the Configure button in the toolbar, after the search and before any table actions, so their More actions menu stays last. It opens a popover below the button, lined up with its end, or a bottom drawer on a phone, and every change applies at once.
+`Records.Options` is the Configure button in the header, after the search and before any table actions, so their More actions menu stays last. It opens a popover below the button, lined up with its end, or a bottom drawer on a phone, and every change applies at once.
 
 - **Sort** lists each level the view sorts by: a field, then its direction in the field's own terms, such as A to Z, Low to high or Earliest first. Add sort starts with the first sortable field, its natural way, and Add another sort breaks ties with a field not sorted yet. A header click still sorts by that column alone. A level on a field that doesn't sort isn't listed, and changes here leave it in the view. A level that repeats a field sorts nothing, so changes here drop it.
 - **Columns** lists the table's columns in their order. Drag a handle to move a column, or click it, or press Enter on it, for a Move menu. The eye beside each column shows or hides it, and a hidden column stays in the list, dimmed, in its place. Pinned columns always come first and always show, so the list names them rather than offering them. The last shown column can't be hidden. The table loads this list once the page is idle, or as a pointer or focus reaches the button, so drag and drop stays out of the table's first load and the first open doesn't wait for it.
@@ -621,7 +621,7 @@ function Configured() {
 render(<Configured />)
 ```
 
-`label` renames the button, its tooltip and the panel, which are "Configure table" for the table. In your own toolbar, put `Records.Options` after the search and any `Records.ViewActions`, and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which `Records.Options` calls once the page is idle or its button is reached.
+`label` renames the button, its tooltip and the panel, which are "Configure table" for the table. In your own header, put `Records.Options` after the search and any `Records.ViewActions`, and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which `Records.Options` calls once the page is idle or its button is reached.
 
 #### Layouts
 
@@ -633,7 +633,7 @@ A saved view is a view with a name that people come back to. Apps ship preset vi
 
 Pass the saved view the screen opened as `baseline`. `modified` says whether the view now shows something else, by `equalRecordViews`, which ignores the id, the name, spacing in the search and the order of chips. `resetView` goes back to the baseline from the first page. The page's `scope` is never part of a view, so it never makes one read as modified.
 
-`viewActions` on `RecordTable` or `Records.Toolbar` takes the handlers below as one object, the props of `Records.ViewActions`, unlike the arrays `actions` and `bulkActions` take. It shows the baseline's name after the search and Select, before Configure, with a dot once the view is modified and a tooltip with the whole name. In your own toolbar, put `Records.ViewActions` in the same place. Its menu offers what your handlers allow:
+`viewActions` on `RecordTable` or `Records.Header` takes the handlers below as one object, the props of `Records.ViewActions`, unlike the arrays `actions` and `bulkActions` take. It shows the baseline's name after the search and Select, before Configure, with a dot once the view is modified and a tooltip with the whole name. In your own header, put `Records.ViewActions` in the same place. Its menu offers what your handlers allow:
 
 - **Save view** calls `onSave` with the view under the baseline's id and name. It shows while the view is modified.
 - **Reset view** goes back to the baseline. It shows while the view is modified, and needs no handler.
@@ -741,7 +741,7 @@ function ViewPane({ baseline, preset, onSave, onSaveAs, onRename, onDelete }) {
           <Pane.Title>{baseline.name}</Pane.Title>
         </Pane.Header>
         <Pane.Body>
-          <Records.Toolbar
+          <Records.Header
             searchPlaceholder='Search events'
             viewActions={preset ? { onSaveAs } : { onSave, onSaveAs, onRename, onDelete }}
           />
@@ -892,7 +892,7 @@ render(<ShowActions />)
 
 ### Table actions and export
 
-`tableActions` act on everything the search and filters match, with nothing selected, such as exporting an attendee list. Each gets the applied query, the request for every match, and the records. The first shows as a button at the end of the toolbar and the rest sit in a "More actions" menu after it. In a toolbar under 40rem they all sit in the menu. Danger actions confirm first, as bulk actions do. They stay in the toolbar while records are selected, apart from the bulk actions in the header row, so it stays clear which actions use the selection.
+`actions` act on everything the search and filters match, with nothing selected, such as exporting an attendee list. Each gets the applied query, the request for every match, and the records. The first shows as a button at the end of the header and the rest sit in a "More actions" menu after it. In a header under 40rem they all sit in the menu. Danger actions confirm first, as bulk actions do. They stay in the header while records are selected, apart from the bulk actions in the header row, so it stays clear which actions use the selection.
 
 `recordsToCsv(rows, fields, { timeZone })` from `@oztix/roadie-core/records` writes rows as CSV, one column per field, each value as the table shows it, and `downloadCsv` saves it. In the browser, `records.matchingRows` holds every matching record in the current sort, across pages, and `shownColumns(columns, records.view.layout)` gives the columns the table shows, in its order. Pass `{ values: 'raw' }` to write plain numbers a spreadsheet can sum. Text that starts like a formula, such as `=` or `@`, is written with a leading apostrophe so a spreadsheet shows it rather than runs it. A column with its own `cell` exports its field's value, not what your cell draws.
 
@@ -938,7 +938,7 @@ render(
     columns={columns}
     getRowId={(row) => row.id}
     recordName={{ one: 'attendee', other: 'attendees' }}
-    tableActions={[
+    actions={[
       {
         label: 'Export CSV',
         icon: <DownloadIcon weight='bold' />,
@@ -955,7 +955,7 @@ An action gets one object: `query`, the applied query with the scope first; `req
 When the browser doesn't hold every record, POST `request` and export on the server with the same fields. [Records model](/foundations/records#server-contract) has the request's shape. Have the server send the CSV without a byte order mark, since `downloadCsv` adds one.
 
 ```tsx
-tableActions={[
+actions={[
   {
     label: 'Export CSV',
     onAction: async ({ request }) => {
@@ -1235,7 +1235,7 @@ Under 40rem of its own width, 640px at the default text size, the table drops it
 | `'detail'` | A label and value on a card. Any detail column turns the rows into cards. |
 | `'hidden'` | Left out of the narrow layout. The default for every column but images. |
 
-The server can't know the table's width, so the table renders wide there and on its first render. A phone shows the wide table until the page hydrates, then the list before the next paint. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the toolbar: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
+The server can't know the table's width, so the table renders wide there and on its first render. A phone shows the wide table until the page hydrates, then the list before the next paint. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the header: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
 
 Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions float at the foot of the screen, keeping the first action and putting the rest in a More actions menu when they don't fit.
 
@@ -1359,7 +1359,7 @@ render(
 
 #### Select mode
 
-A phone has no hover and no room for a checkbox column, so narrow rows that can be selected show a Select button in the toolbar instead. Tap it to enter Select mode: each record shows a checkbox, a tap selects the record rather than opening it, and the toolbar offers Select all, or Deselect all once the page is selected, and Done. Done, or Escape, leaves the mode and clears the selection. Going wide leaves the mode too but keeps the selection, and selecting from the wide table and then narrowing it enters Select mode on its own. Once records are selected, the floating bar shows the count, the offer to select every matching record and the bulk actions, with labels collapsed to icons.
+A phone has no hover and no room for a checkbox column, so narrow rows that can be selected show a Select button in the header instead. Tap it to enter Select mode: each record shows a checkbox, a tap selects the record rather than opening it, and the header offers Select all, or Deselect all once the page is selected, and Done. Done, or Escape, leaves the mode and clears the selection. Going wide leaves the mode too but keeps the selection, and selecting from the wide table and then narrowing it enters Select mode on its own. Once records are selected, the floating bar shows the count, the offer to select every matching record and the bulk actions, with labels collapsed to icons.
 
 `RecordTable` places the Select button for you. When you compose the parts, put `Records.Select` beside the search; it shows only while the layout selects through Select mode.
 
@@ -1408,14 +1408,14 @@ render(
 
 <Guidelines>
 
-<Guideline title="Keep the search in the table's toolbar">
+<Guideline title="Keep the search in the table's header">
   <Guideline.Do
     code={`<Pane.Body>
-  <Records.Toolbar searchPlaceholder='Search events' />
+  <Records.Header searchPlaceholder='Search events' />
   <Records.Content />
 </Pane.Body>`}
   >
-    Put the search in the toolbar above the rows, where it sticks while the
+    Put the search in the header above the rows, where it sticks while the
     body scrolls and clearly searches this table.
   </Guideline.Do>
   <Guideline.Dont
@@ -1504,20 +1504,20 @@ column.field('location', { pin: true })`}
 
 <Guideline title='Put the More menu last'>
   <Guideline.Do
-    code={`tableActions={[
+    code={`actions={[
   { label: 'Export CSV', onAction: exportCsv },
   { label: 'Print door list', onAction: printDoorList }
 ]}`}
   >
     Lead with the action people use most. It shows as a button, and the rest
-    sit in the More actions menu at the end of the toolbar.
+    sit in the More actions menu at the end of the header.
   </Guideline.Do>
   <Guideline.Dont
-    code={`<Records.Toolbar>
+    code={`<Records.Header>
   <Menu>{/* More actions */}</Menu>
   <Records.Search />
   <Button>Export CSV</Button>
-</Records.Toolbar>`}
+</Records.Header>`}
   >
     Don't put a menu before the search or other actions. The More menu
     always comes last in an action group.
@@ -1526,9 +1526,9 @@ column.field('location', { pin: true })`}
 
 <Guideline title='Let people arrange columns in Configure'>
   <Guideline.Do
-    code={`<Records.Toolbar searchPlaceholder='Search events' />`}
+    code={`<Records.Header searchPlaceholder='Search events' />`}
   >
-    Keep the standard toolbar, or put `Records.Options` after the search in
+    Keep the standard header, or put `Records.Options` after the search in
     your own. People sort, move and hide columns there, and the view keeps
     it.
   </Guideline.Do>
@@ -1570,7 +1570,7 @@ column.field('location', { pin: true })`}
   <Guideline.Dont
     code={`{failed ? <p>Something went wrong</p> : <RecordTable {...props} />}`}
   >
-    Don't swap the table for your own message. The toolbar and pager
+    Don't swap the table for your own message. The header and pager
     disappear, and screen readers hear nothing.
   </Guideline.Dont>
 </Guideline>
@@ -1622,7 +1622,7 @@ column.field('location', { pin: true })`}
 function useRecords<Row extends object>(options: UseRecordsOptions<Row>): RecordsInstance<Row>
 ```
 
-Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data` (left out with `loadRange`), `rowCount`, `rowCountExact` (false when the count is a floor the server stopped at), `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `baseline` (the saved view the screen opened), `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is), `now` (when relative dates resolve, by default when the list mounted in the browser; a server reads no clock, so a relative date filter shows the loading state until then) `loadRange` (which loads the list by range as people scroll, resolving with `{ rows, rowCount, rowCountExact }`) and `onRequestChange` (which hears each request to fetch). Pass the result to `Records` or `Records.Provider`.
+Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data` (left out with `loadRange`), `rowCount`, `rowCountExact` (false when the count is a floor the server stopped at), `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `baseline` (the saved view the screen opened), `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is), `now` (when relative dates resolve, by default when the list mounted in the browser; a server reads no clock, so a relative date filter shows the loading state until then) `loadRange` (which loads the list by range as people scroll, resolving with `{ rows, rowCount, rowCountExact }`) and `onRequestChange` (which hears each request to fetch). Pass the result to `Records` or `Records.Provider`, which take only what `useRecords` returns, not an object built to its shape.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -1631,9 +1631,7 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `fields` | `readonly RecordField[]` | What each record holds. |
 | `view` | `RecordView` | The search, filters, sort and layout. |
 | `appliedView` | `RecordView` | The view the rows show, without the filters and sorts the fields can't apply, and without the page's scope. In the browser its search lags typing while a long list filters. Its `query` keeps its identity while its content holds. |
-| `searchText` | `string` | What the search field shows. In server mode it runs ahead of the view's search until typing pauses. |
-| `resolvedQuery` | `ResolvedRecordQuery` | The applied query, with relative dates fixed and unusable filters skipped. |
-| `request` | `RecordsRequest` | What to POST to a server: `resolvedQuery` with the scope first, under `version` 1, with `page` and `pageSize` in server mode. It keeps its identity while its content holds, so key a fetch on it. |
+| `request` | `RecordsRequest` | What to POST to a server: the applied query with relative dates fixed and the scope first, under `version` 1, with `page` and `pageSize` in server mode. It keeps its identity while its content holds, so key a fetch on it. |
 | `rows` | `readonly { id: string; row: Row }[]` | The current page. In range mode, every record loaded. |
 | `resultCount` | `number` | Records the search and filters match: `rowCount` in server mode. |
 | `resultCountExact` | `boolean` | False when `resultCount` is a floor the server stopped counting at, from `rowCountExact`. |
@@ -1656,8 +1654,6 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `setLayout` | `(layout: RecordLayout) => void` | Sets the layout, such as the table's column order. |
 | `setPage` | `(page: number) => void` | Goes to a page, within the pages there are. |
 | `setPageSize` | `(pageSize: number) => void` | Sets the page size and returns to the first page. |
-| `setRow` | `(row: number) => void` | Range mode: reports the first row on screen as `position.row`, when it changed and a parent listens or holds the position. |
-| `range` | `RecordsRangeState \| undefined` | Range mode's loading state, for a layout that renders records at their index: `count`, `total`, `loading`, `failed`, `retry`, `rowAt(index)` and `show(first, last)`. |
 | `matchingRows` | `readonly { id: string; row: Row }[]` | Every record the search and filters match, sorted, across pages. In server mode, only the page. |
 | `selectable` | `boolean` | Whether records can be selected. |
 | `selection` | `RecordSelection` | `{ ids }`, or `{ allMatching: true, except }`. |
@@ -1669,11 +1665,6 @@ Holds the view, position and selection, and searches, filters, sorts and pages t
 | `selectPage` | `(value: boolean) => void` | Picks or drops every record on the page. |
 | `selectAllMatching` | `() => void` | Picks every record the search and filters match. |
 | `clearSelection` | `() => void` | Drops the selection. |
-| `selecting` | `boolean` | Whether Select mode is on, for a layout without checkboxes. |
-| `setSelecting` | `(value: boolean, options?: { keep?: boolean }) => void` | Enters or leaves Select mode. Leaving clears the selection unless `keep`. |
-| `rowActions` | `((row: Row) => ReactNode) \| undefined` | Menu items for a record's row. |
-| `getRowHref` | `((row: Row) => string \| undefined) \| undefined` | A record's page. |
-| `recordName` | `{ one: string; other: string }` | What the records are called in messages. |
 | `loading` | `boolean` | Whether a load is under way. |
 | `error` | `boolean \| string` | Whether the load failed, or its message. |
 | `onRetry` | `(() => void) \| undefined` | Loads again. |

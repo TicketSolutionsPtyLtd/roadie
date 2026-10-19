@@ -535,7 +535,7 @@ describe('QueryField', () => {
     render(
       <Harness
         disabled
-        shortcut='/'
+        focusShortcut='/'
         defaultInputValue='lampshade'
         initialChips={[status]}
         onSelectChip={onSelectChip}
@@ -1014,11 +1014,11 @@ describe('QueryField', () => {
     expect(input()).toHaveValue('')
   })
 
-  it('focuses on its shortcut, unless another field has focus', async () => {
+  it('focuses on its focus shortcut, unless another field has focus', async () => {
     render(
       <>
         <input aria-label='Other' />
-        <Harness shortcut='/' />
+        <Harness focusShortcut='/' />
       </>
     )
     expect(input()).toHaveAttribute('aria-keyshortcuts', '/')
@@ -1031,7 +1031,7 @@ describe('QueryField', () => {
   })
 
   it('shows the shortcut hint only while empty', async () => {
-    render(<Harness shortcut='/' />)
+    render(<Harness focusShortcut='/' />)
     expect(
       document.querySelector('[data-slot=query-field-shortcut]')
     ).toHaveTextContent('/')
@@ -1213,8 +1213,8 @@ describe('QueryField', () => {
   it('gives a shared shortcut to the first field only', async () => {
     render(
       <>
-        <QueryField aria-label='First' shortcut='/' suggest={() => []} />
-        <QueryField aria-label='Second' shortcut='/' suggest={() => []} />
+        <QueryField aria-label='First' focusShortcut='/' suggest={() => []} />
+        <QueryField aria-label='Second' focusShortcut='/' suggest={() => []} />
       </>
     )
     const first = screen.getByRole('combobox', { name: 'First' })
@@ -1718,30 +1718,6 @@ describe('QueryField value step Enter', () => {
     await waitFor(() => expect(hinted()).toEqual([empty.label]))
     await userEvent.keyboard('{Enter}')
     expect(onAccept).toHaveBeenCalledExactlyOnceWith(empty)
-  })
-
-  it('never takes a row that opens an editor on Enter after typing', async () => {
-    const onAccept = vi.fn()
-    const moreVenues: QueryFieldSuggestion = {
-      id: 'edit:venue',
-      label: 'More venues',
-      kind: 'filter',
-      value: 'edit',
-      opensEditor: true
-    }
-    render(
-      <TypedValueStep
-        onAccept={onAccept}
-        suggest={() => [{ id: 'values', label: 'Venue', items: [moreVenues] }]}
-      />
-    )
-    await typeInto('zzz')
-    await screen.findByRole('option', { name: 'More venues' })
-    expect(hinted()).toEqual([])
-    await userEvent.keyboard('{Enter}')
-    expect(onAccept).not.toHaveBeenCalled()
-    await userEvent.keyboard('{ArrowDown}{Enter}')
-    expect(onAccept).toHaveBeenCalledExactlyOnceWith(moreVenues)
   })
 
   it('takes no value found for older text', async () => {

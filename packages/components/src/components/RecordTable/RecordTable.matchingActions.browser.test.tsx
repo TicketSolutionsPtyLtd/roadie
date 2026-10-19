@@ -34,7 +34,7 @@ function Shows({ actions }: { actions: RecordsAction<TestShow>[] }) {
         fields={showFields}
         columns={showColumns}
         getRowId={(row) => row.id}
-        tableActions={actions}
+        actions={actions}
       />
     </div>
   )

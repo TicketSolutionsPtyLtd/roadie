@@ -20,7 +20,7 @@ import {
 import type { AnyRecordLayout } from './layouts'
 import { leaveSelectOnEscape } from './selectMode'
 import { matchKey } from './selection'
-import type { RecordsInstance } from './useRecords'
+import type { RecordsInstance, RecordsState } from './useRecords'
 
 export type RecordsProviderProps<Row extends object = object> = {
   records: RecordsInstance<Row>
@@ -53,7 +53,7 @@ export function RecordsProvider<Row extends object>({
   const [bulkRunning, setBulkRunning] = useState<number | null>(null)
   const [bulkConfirming, setBulkConfirming] = useState<number | null>(null)
   // Parts read rows as plain objects; the consumer's Row narrows them.
-  const shared = records as unknown as RecordsInstance
+  const shared = records as unknown as RecordsState
   const latestRecords = useRef(shared)
   const searchKey = matchKey(shared.scopedQuery)
   const queryRevision = useRef({ key: searchKey, count: 0 })
