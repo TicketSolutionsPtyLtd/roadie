@@ -76,14 +76,18 @@ async function focusedTextbox() {
 
 // Firefox ignores the clipboardData a ClipboardEvent is made with and gives
 // it an empty one, so the data is set on the event itself.
+function dispatchPaste(target: HTMLElement, clipboardData: DataTransfer) {
+  const event = new ClipboardEvent('paste', { bubbles: true, cancelable: true })
+  Object.defineProperty(event, 'clipboardData', { value: clipboardData })
+  target.dispatchEvent(event)
+}
+
 function paste(target: HTMLElement, data: Record<string, string>) {
   const clipboardData = new DataTransfer()
   for (const [type, text] of Object.entries(data)) {
     clipboardData.setData(type, text)
   }
-  const event = new ClipboardEvent('paste', { bubbles: true, cancelable: true })
-  Object.defineProperty(event, 'clipboardData', { value: clipboardData })
-  target.dispatchEvent(event)
+  dispatchPaste(target, clipboardData)
 }
 
 function shortcut(...keys: string[]) {
@@ -993,16 +997,7 @@ function RichEditor(props: { onValueChange?: (value: EditorValue) => void }) {
 }
 
 function pasteHtml(target: HTMLElement, html: string, plain: string) {
-  const clipboardData = new DataTransfer()
-  clipboardData.setData('text/html', html)
-  clipboardData.setData('text/plain', plain)
-  target.dispatchEvent(
-    new ClipboardEvent('paste', {
-      clipboardData,
-      bubbles: true,
-      cancelable: true
-    })
-  )
+  paste(target, { 'text/html': html, 'text/plain': plain })
 }
 
 describe('Editor rich preset', () => {
@@ -1193,13 +1188,7 @@ function imageFile(name = 'crowd.png') {
 function pasteFiles(target: HTMLElement, ...files: File[]) {
   const clipboardData = new DataTransfer()
   for (const file of files) clipboardData.items.add(file)
-  target.dispatchEvent(
-    new ClipboardEvent('paste', {
-      clipboardData,
-      bubbles: true,
-      cancelable: true
-    })
-  )
+  dispatchPaste(target, clipboardData)
 }
 
 function dropFiles(target: HTMLElement, ...files: File[]) {
@@ -1501,15 +1490,7 @@ function EmbedEditor(props: {
 }
 
 function pasteText(target: HTMLElement, value: string) {
-  const clipboardData = new DataTransfer()
-  clipboardData.setData('text/plain', value)
-  target.dispatchEvent(
-    new ClipboardEvent('paste', {
-      clipboardData,
-      bubbles: true,
-      cancelable: true
-    })
-  )
+  paste(target, { 'text/plain': value })
 }
 
 function embedsIn(value: EditorValue) {

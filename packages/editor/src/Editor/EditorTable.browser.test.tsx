@@ -645,13 +645,13 @@ describe('Editor tables', () => {
     )
     clipboardData.setData('text/plain', 'Bar Beer Wine Cider')
 
-    textbox.dispatchEvent(
-      new ClipboardEvent('paste', {
-        clipboardData,
-        bubbles: true,
-        cancelable: true
-      })
-    )
+    // Firefox drops the clipboardData a ClipboardEvent is made with.
+    const event = new ClipboardEvent('paste', {
+      bubbles: true,
+      cancelable: true
+    })
+    Object.defineProperty(event, 'clipboardData', { value: clipboardData })
+    textbox.dispatchEvent(event)
 
     await waitFor(() => expect(textbox).toHaveTextContent('Cider'))
     const { doc } = lastValue(onValueChange)
