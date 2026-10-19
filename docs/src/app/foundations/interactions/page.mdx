@@ -284,6 +284,7 @@ The classes the component library applies.
 | Select              | `emphasis-normal is-interactive-field`     |
 | Select (subtler)    | `emphasis-subtler is-interactive`          |
 | Card (raised, `href`) | `rounded-xl emphasis-raised is-interactive` |
+| Link (normal)       | `is-interactive link-normal`               |
 | Radio (subtler)     | `emphasis-subtler is-interactive`          |
 
 ## Guidelines
@@ -538,4 +539,4 @@ when building custom interactive UI.
 | Clickable card | `is-interactive`       | raised                            | Add `rounded-xl`               |
 | Toggle or radio | `is-interactive`      | subtler or normal                 | None                           |
 | Scroll region  | `is-focusable`         | Any                               | Add `tabIndex={0}`, a `region` role, and a name |
-| Link           | None (native)          | None                              | Use `underline underline-offset-2` |
+| Link           | `is-interactive`       | None                              | Use [`Link`](/components/link), or `link-normal`, `link-strong`, or `link-subtle` for the underline |

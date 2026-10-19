@@ -148,16 +148,7 @@
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
     ) {
     color: inherit;
-    text-decoration-line: underline;
-    text-decoration-color: var(--color-accent-9);
-    text-decoration-thickness: 0.0625em;
-    text-underline-offset: 0.2em;
-  }
-  .prose
-    :where(a:hover):not(
-      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
-    ) {
-    text-decoration-color: currentColor;
+    @apply link-normal;
   }
 
   .prose

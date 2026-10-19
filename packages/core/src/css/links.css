@@ -1,0 +1,47 @@
+/* ═══════════════════════════════════════════════════════════
+   Link Utilities
+   Text link styles by emphasis: link-normal, link-strong and
+   link-subtle. They own the underline and its hover and
+   focus-visible change; pair with is-interactive for the focus
+   ring. Colours come from --intent-link-*, accent in neutral.
+   ═══════════════════════════════════════════════════════════ */
+
+@utility link-normal {
+  text-decoration-line: underline;
+  text-decoration-color: var(--intent-link-underline);
+  text-decoration-thickness: 0.0625em;
+  text-underline-offset: 0.2em;
+
+  &:focus-visible {
+    text-decoration-color: currentColor;
+  }
+
+  /* A tap leaves :hover on, so only a pointer that can hover changes it. */
+  @media (hover: hover) {
+    &:hover {
+      text-decoration-color: currentColor;
+    }
+  }
+}
+
+@utility link-strong {
+  @apply link-normal;
+  color: var(--intent-link-text);
+}
+
+@utility link-subtle {
+  text-decoration-line: none;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 0.0625em;
+  text-underline-offset: 0.2em;
+
+  &:focus-visible {
+    text-decoration-line: underline;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      text-decoration-line: underline;
+    }
+  }
+}
