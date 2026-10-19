@@ -793,6 +793,11 @@ describe('parseReleaseNote', () => {
       'a highlight card has no title'
     ],
     [
+      'a card field that is not text',
+      '---\nhighlights:\n  - title: Charts\n    description: [Nine, types]\n---\n',
+      '"Charts" description is not text'
+    ],
+    [
       'an unknown package',
       '---\nhighlights:\n  - title: Charts\n    packages: [chart]\n---\n',
       "names a package that isn't one of"
