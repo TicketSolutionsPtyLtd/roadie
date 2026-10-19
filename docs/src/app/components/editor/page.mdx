@@ -408,6 +408,9 @@ import { renderEditorHtml, renderEditorValue } from '@oztix/roadie-editor/render
   as a lazy, sandboxed `iframe` whose address they rebuild from the provider.
   Pass `embedProviders` to add providers, or embeds from any other provider
   drop.
+- Both render a `rich` value's tables in a `.prose-scroll`, so a wide table
+  scrolls on a phone rather than widening the page, with a first row of
+  header cells in a `thead`.
 
 Both run `migrate` first, so a value from a newer package, or with a preset
 this one doesn't know, throws. They render only the nodes, marks, and
