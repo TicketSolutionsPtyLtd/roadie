@@ -45,7 +45,8 @@ function keyReader(
         )
         return instants.length ? Math.min(...instants) : undefined
       }
-    case 'option': {
+    case 'option':
+    case 'location': {
       const values = (row: object) => {
         const value = read(row, field.key)
         if (isEmptyValue(value)) return []

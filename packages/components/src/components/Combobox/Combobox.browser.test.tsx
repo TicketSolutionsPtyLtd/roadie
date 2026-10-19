@@ -5,6 +5,7 @@ import { page, userEvent } from 'vitest/browser'
 import { Combobox, type ComboboxInputGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
+import { pointAt } from '../../utils/pointerTestUtils'
 import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -27,15 +28,6 @@ afterEach(() => {
 })
 
 const fill = (element: Element) => getComputedStyle(element).backgroundColor
-
-// Base UI ignores a WebKit mousemove with no movement, which is all
-// Playwright sends there, so move onto the option the way a hand would.
-async function pointAt(option: Element) {
-  await userEvent.hover(option)
-  option.dispatchEvent(
-    new MouseEvent('mousemove', { bubbles: true, movementX: 1, movementY: 1 })
-  )
-}
 
 function Genres() {
   return (

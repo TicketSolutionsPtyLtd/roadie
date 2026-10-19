@@ -4,7 +4,8 @@ import type {
   RecordField,
   RecordQuery,
   RecordSelection,
-  RecordView
+  RecordView,
+  RecordsRequest
 } from '@oztix/roadie-core/records'
 
 import type { RecordsInstance } from './useRecords'
@@ -29,16 +30,26 @@ export type RecordsRow<Row> = { id: string; row: Row }
 export type RecordsActionConfirm =
   false | { title?: string; description?: string; confirmLabel?: string }
 
+/** What an action acts on, taken when it runs. */
+export type RecordsActionContext = {
+  /** The applied query, with the page's `scope` first. */
+  query: RecordQuery
+  /** The query resolved for a server, with no paging, as it means every record that matches. POST it to act on the server. */
+  request: RecordsRequest
+  timeZone: string
+  /** The moment relative dates in `request` resolved against. */
+  now: Date
+}
+
 /** Acts on the selected records. */
 export type RecordsBulkAction = {
   label: string
   icon?: ReactNode
   intent?: 'danger'
   confirm?: RecordsActionConfirm
-  /** Gets the selection, narrowed to records the search and filters still match, and the query it was taken against, with the page's `scope` first. */
+  /** Gets the selection, narrowed to records the search and filters still match, with the query and request it was taken against. */
   onAction: (
-    selection: RecordSelection,
-    query: RecordQuery
+    context: RecordsActionContext & { selection: RecordSelection }
   ) => void | Promise<void>
 }
 
@@ -48,10 +59,9 @@ export type RecordsAction<Row extends object = object> = {
   icon?: ReactNode
   intent?: 'danger'
   confirm?: RecordsActionConfirm
-  /** Gets the applied query, with the page's `scope` first, and the records. */
+  /** Gets the query and request to act on, and the records. */
   onAction: (
-    query: RecordQuery,
-    records: RecordsInstance<Row>
+    context: RecordsActionContext & { records: RecordsInstance<Row> }
   ) => void | Promise<void>
 }
 

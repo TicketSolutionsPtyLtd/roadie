@@ -42,12 +42,14 @@ function Bands({
   defaultValue,
   disabled,
   size,
-  chipClassName
+  chipClassName,
+  selected
 }: {
   defaultValue: string[]
   disabled?: boolean
   size?: 'sm' | 'md' | 'lg'
   chipClassName?: string
+  selected?: string
 }) {
   return (
     <div style={{ width: 320 }}>
@@ -66,6 +68,7 @@ function Bands({
                     key={band}
                     aria-label={band}
                     className={chipClassName}
+                    selected={band === selected}
                   >
                     <Combobox.ChipLabel>{band}</Combobox.ChipLabel>
                     <Combobox.ChipRemove aria-label={`Remove ${band}`} />
@@ -91,12 +94,19 @@ function look(element: Element) {
   return { backgroundColor, color, borderColor, boxShadow }
 }
 
-function BandsBesideButton({ chipClassName }: { chipClassName?: string }) {
+function BandsBesideButton({
+  chipClassName,
+  selected
+}: {
+  chipClassName?: string
+  selected?: string
+}) {
   return (
     <>
       <Bands
         defaultValue={['Saltwater Choir', 'Velvet Kingfisher']}
         chipClassName={chipClassName}
+        selected={selected}
       />
       <Button intent='accent' emphasis='strong'>
         Apply
@@ -321,6 +331,46 @@ describe('Combobox chips', () => {
     await expect
       .poll(() => document.activeElement)
       .toBe(chip('Saltwater Choir'))
+    await commands.forcedColors(true)
+    onTestFinished(() => commands.forcedColors(false))
+    if (!matchMedia('(forced-colors: active)').matches) {
+      context.skip()
+      return
+    }
+    const edge = (element: Element) => getComputedStyle(element).borderTopColor
+    expect(edge(chip('Saltwater Choir'))).not.toBe(
+      edge(chip('Velvet Kingfisher'))
+    )
+  })
+
+  it('mark a chip selected while focus stays in the input, looking like an accent strong Button', async () => {
+    render(
+      <BandsBesideButton
+        selected='Saltwater Choir'
+        chipClassName='intent-warning'
+      />
+    )
+    await userEvent.click(input())
+    await userEvent.hover(input())
+    const selected = chip('Saltwater Choir')
+    expect(document.activeElement).toBe(input())
+    expect(selected).toHaveAttribute('data-selected')
+    expect(look(selected)).toEqual(look(button()))
+    expect(look(chip('Velvet Kingfisher'))).not.toEqual(look(button()))
+    expect(
+      getComputedStyle(
+        screen.getByRole('button', { name: 'Remove Saltwater Choir' })
+      ).color
+    ).toBe(getComputedStyle(button()).color)
+  })
+
+  it('edge a selected chip in Highlight under forced colours', async (context) => {
+    render(
+      <Bands
+        defaultValue={['Saltwater Choir', 'Velvet Kingfisher']}
+        selected='Saltwater Choir'
+      />
+    )
     await commands.forcedColors(true)
     onTestFinished(() => commands.forcedColors(false))
     if (!matchMedia('(forced-colors: active)').matches) {

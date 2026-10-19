@@ -1078,17 +1078,41 @@ starts after it has no data yet, so its comparison is unavailable. Pass
 
 `parseDatePhrase` turns what someone types into ranked suggestions. Each one
 has a label and an explicit value: a range, `{ on }`, `{ before }`,
-`{ after }`, or `{ time }`. Text that isn't a date returns nothing. On the docs
-site, a table gives the suggestions for a set of typed phrases, best first.
+`{ after }`, or `{ time }`. Next and last weekend, whose labels are only
+dates, also have a `description` that names them. Text that isn't a date
+returns nothing. On the docs site, a table gives the suggestions for a set of
+typed phrases, best first.
 
 <PhraseTable />
 
 - Numbers are day first. `1/12` is 1 December.
+- `on`, `at`, and `over` before `the weekend` change nothing, so
+  `on the weekend` and `weekend` read as this weekend. Neither does `the`
+  before a date or `in the` before `next` or `last`, as in `the 20th of oct`
+  and `in the next 7 days`.
+- `tonight` is today, and `tmrw` is tomorrow. `rest of the week`, month, or
+  year runs from today to its last day.
+- A period on its own completes to the current one first, so `month` offers
+  this month, then month to date.
 - A date with no year takes the occurrence closest to today, either way. In
   October, `14 mar` is next March and `20 sep` is last month.
+- `after` and `before` take any day or range, so `after this weekend` is
+  after its Sunday. `since`, `from`, `on or after`, `until`, `till`, and
+  `on or before` take the day itself too, so `since fri` reads as after
+  Thursday. So do `onwards`, `onward`, and `and later` after a day, as in
+  `20 oct onwards`. A comparison with no day, such as `after 7pm`, reads
+  nothing.
+- A weekday after `since` is the last one, today included, so on a Wednesday
+  `since mon` starts this Monday. After any other comparison, or before
+  `onwards`, it's the next one, so `from fri` starts this Friday. `next` and
+  `this` work as they do on their own.
+- Two days joined by `to` or `and` read as the days between, so
+  `tomorrow to next fri` is a range. A weekday at the end is the first one on
+  or after the start, so `fri to mon` runs from Friday to the Monday after it.
+  Days that run backwards, such as `tomorrow to yesterday`, read nothing.
 - A word with two readings never becomes a label of its own. A fortnight is
   the next 14 days. Next weekend offers the one after this, by date, then this
-  weekend.
+  weekend. Its dates have "Next weekend" as their description.
 
 ## Outside React
 
