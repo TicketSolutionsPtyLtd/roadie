@@ -1,0 +1,27 @@
+/* Registers the editor dist for Tailwind. Consumers also import @oztix/roadie-components/css. */
+@source '../../dist';
+
+/* Tiptap's Placeholder marks the empty first block and puts its text in data-placeholder. */
+[data-slot='editor-content'] .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: inline-start;
+  block-size: 0;
+  color: var(--intent-text-subtler);
+  pointer-events: none;
+}
+
+/* A boxless editor has no border to colour, so invalid draws the field's
+   danger edge on the start side only, just outside the text so it stays
+   aligned with the page. Danger 9 on the page clears APCA Lc 45 for non-text
+   UI in both themes. */
+[data-slot='editor'][data-emphasis='subtler']
+  .ProseMirror[aria-invalid='true'] {
+  --editor-invalid-gap: calc(var(--spacing) * 3);
+  --editor-invalid-edge: 2px;
+
+  border-inline-start: var(--editor-invalid-edge) solid var(--color-danger-9);
+  margin-inline-start: calc(-1 * var(--editor-invalid-gap));
+  padding-inline-start: calc(
+    var(--editor-invalid-gap) - var(--editor-invalid-edge)
+  );
+}

@@ -15,13 +15,24 @@
   },
   "homepage": "https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/packages/editor",
   "files": [
-    "dist"
+    "dist",
+    "src/css"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "publishConfig": {
     "access": "public"
   },
   "exports": {
+    "./css": {
+      "style": "./src/css/editor.css",
+      "default": "./src/css/editor.css"
+    },
+    "./editor": {
+      "types": "./dist/Editor/index.d.ts",
+      "import": "./dist/Editor/index.js"
+    },
     "./render": {
       "types": "./dist/render/index.d.ts",
       "import": "./dist/render/index.js"
@@ -35,7 +46,7 @@
   "scripts": {
     "build": "tsdown && pnpm generate:manifest && pnpm check:exports",
     "generate:manifest": "node ../core/scripts/manifest/generate.ts",
-    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints roadie.manifest.json",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run --project node",
     "test:browser": "vitest run --project 'browser (*)'",
@@ -49,20 +60,27 @@
     "@tiptap/core": "3.31.4",
     "@tiptap/extension-heading": "3.31.4",
     "@tiptap/extension-link": "3.31.4",
+    "@tiptap/extensions": "3.31.4",
     "@tiptap/pm": "3.31.4",
+    "@tiptap/react": "3.31.4",
     "@tiptap/starter-kit": "3.31.4",
     "@tiptap/static-renderer": "3.31.4"
   },
   "peerDependencies": {
+    "@base-ui/react": "^1.8.0",
     "@oztix/roadie-components": "workspace:^",
     "@oztix/roadie-core": "workspace:^",
+    "@phosphor-icons/react": "^2.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
+    "@base-ui/react": "1.8.0",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-core": "workspace:*",
+    "@phosphor-icons/react": "2.1.10",
+    "@rolldown/plugin-babel": "0.2.4",
     "@size-limit/preset-small-lib": "14.2.0",
     "@tailwindcss/vite": "4.3.3",
     "@testing-library/jest-dom": "7.0.1",
@@ -72,6 +90,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.2",
     "@vitest/browser-playwright": "5.0.3",
+    "babel-plugin-react-compiler": "1.0.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "size-limit": "14.2.0",

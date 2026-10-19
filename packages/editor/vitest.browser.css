@@ -1,3 +1,4 @@
 @import '@oztix/roadie-core/css';
 @import '@oztix/roadie-components/css';
+@import './src/css/editor.css';
 @source './src';
