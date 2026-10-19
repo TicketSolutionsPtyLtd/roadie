@@ -25,7 +25,7 @@ const SUBTLER_GAP = 12
 
 const description: EditorValue = {
   version: 1,
-  preset: 'basic',
+  preset: 'rich',
   doc: {
     type: 'doc',
     content: [

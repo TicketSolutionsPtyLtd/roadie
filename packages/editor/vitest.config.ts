@@ -47,6 +47,7 @@ export default defineConfig({
         plugins: [tailwindcss()],
         optimizeDeps: {
           include: [
+            '@oztix/roadie-components/badge',
             '@oztix/roadie-components/button',
             '@oztix/roadie-components/field',
             '@oztix/roadie-components/menu',
@@ -68,6 +69,7 @@ export default defineConfig({
             '@tiptap/pm/state',
             '@tiptap/pm/view',
             '@tiptap/react',
+            '@tiptap/react/menus',
             '@tiptap/starter-kit',
             'class-variance-authority',
             'react/compiler-runtime',

@@ -63,22 +63,22 @@ page, with a first row of header cells in a `thead` (unless one spans more
 than one row, which a `thead` would clip), `colspan` and `rowspan`
 only above 1, and no widths or styles.
 
-`@oztix/roadie-editor/editor` adds `Editor`, a rich-text field on the `basic`
-preset, reading a value in another preset into it and keeping the text of what
-it can't hold. Content the editor still can't read stays read-only with an
-error, and saves nothing over the stored value. It takes `value`,
-`defaultValue` and `onValueChange` with an `EditorValue`, plus `placeholder`,
-`readOnly`, `disabled`, `size` (the `Prose` sizes) and `emphasis`: `normal`
-(the default) and `subtle` match `Textarea`'s, and `subtler` is a boxless
-frame for content edited in place, with no border, fill, padding or focus
-ring, so the text lines up with the page; an invalid `subtler` editor draws a
-danger edge at its start. Its code loads after the page: on the server and
-until then it renders a `Skeleton` the shape of the empty editor, and
-`preloadEditor()` starts the load early. `Editor.Content` is the editable
-`textbox`, styled as `.prose`, and `useEditorContext()` gives custom children
-the Tiptap editor. Pasted HTML goes through the preset's schema, so only what
-the preset holds survives. Import `@oztix/roadie-editor/css` for the
-placeholder and the `subtler` invalid edge.
+`@oztix/roadie-editor/editor` adds `Editor`, a rich-text field on its value's
+preset, or `basic` without one. A `preset` prop that differs reads the value
+into that preset, with a warning in development. Content the editor still
+can't read stays read-only with an error, and saves nothing over the stored
+value. It takes `value`, `defaultValue` and `onValueChange` with an
+`EditorValue`, plus `placeholder`, `readOnly`, `disabled`, `size` (the `Prose`
+sizes) and `emphasis`: `normal` (the default) and `subtle` match `Textarea`'s,
+and `subtler` is a boxless frame for content edited in place, with no border,
+fill, padding or focus ring, so the text lines up with the page; an invalid
+`subtler` editor draws a danger edge at its start. Its code loads after the
+page: on the server and until then it renders a `Skeleton` the shape of the
+empty editor, and `preloadEditor()` starts the load early. `Editor.Content` is
+the editable `textbox`, styled as `.prose`, and `useEditorContext()` gives
+custom children the Tiptap editor. Pasted HTML goes through the preset's
+schema, so only what the preset holds survives. Import
+`@oztix/roadie-editor/css` for the placeholder and the `subtler` invalid edge.
 
 `Editor.Toolbar` is a bar at the top of the editor, a size smaller than the
 text, that hugs its controls, scrolls away with the text, and looks the same
@@ -107,3 +107,44 @@ but not the Enter that ends an IME composition, and a refused link shows its
 error under the row. Any `href` that `isUnsafeHref` flags is refused there,
 dropped from pasted HTML, and removed by `migrate`, so a stored value never
 holds one.
+
+`<Editor preset='rich'>` leads its toolbar with a Block type menu (Paragraph,
+Heading 2 to 4, and Quote) named for the block at the caret, keeps the basic
+controls from Bold, Italic and Underline to the lists, and adds Divider,
+Image, Embed, and Table controls. `## `, `### `, `#### `, `> ` and `---` work as you
+type.
+
+Images: `Editor` takes `onUploadImage(file)`, resolving to `{ src, alt? }`.
+With it the rich toolbar has an Image control, and picked, pasted, or dropped
+image files upload behind a placeholder, with a rejection's message in
+`Field.ErrorText`. Without it, image files are ignored. An image with no alt
+text shows a warning badge until its Alt text popover, opened by Enter or the
+image's own toolbar, fills it; clearing alt text an image already had can be
+saved.
+
+Embeds: a supported share link pasted alone on an empty line embeds, and the
+Embed control takes a link in a popover, refusing one no provider reads.
+`Editor` takes `embedProviders` (default `defaultEmbedProviders`) and an async
+`resolveUrl(url)` for short links entered there. The editor shows each player
+in a sandboxed, lazy `iframe` at its provider's shape, under a cover so a
+click selects it, and the arrow keys and Backspace select and delete it. A
+player with a ratio is no taller than 36rem, so a portrait one stays narrow.
+
+Clicking or arrowing onto an image or embed shows its own toolbar, 8px inside
+its media's top-end corner: Alt text, Replace image (with `onUploadImage`,
+keeping the alt text), and Remove image, or Edit link (starting from the
+embed's share URL and replacing it with the new link's player) and Remove
+embed. Its selection ring hugs the media. Alt+F10 moves focus to a selected
+node's toolbar and Escape returns to the node, and each action is one undo
+step.
+
+Tables: the Table control inserts a table of three rows and three columns
+with a header row, and Tab and Shift+Tab move between its cells, Tab adding a
+row after the last. While the caret is in a table, a Table actions toolbar
+at its start edge has a Row menu (Insert above, Insert below, Delete row), a
+Column menu (Insert before, Insert after, Delete column), a Header row
+toggle and Delete table, with Delete row and Delete column disabled when
+they'd delete the last one. Alt+F10
+moves focus to it and Escape back to the cell. The editor draws each cell's
+edges, tints selected cells, and scrolls a wide table sideways in a
+`.prose-scroll`, as `/render` does, and saves no widths or styles.

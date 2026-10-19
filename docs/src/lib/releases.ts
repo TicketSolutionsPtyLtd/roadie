@@ -1284,8 +1284,20 @@ let pageContext:
     }
   | undefined
 
+// The layout renders once per page and asks for every page's release, so a build works each out once.
+const pageReleases = new Map<string, PageRelease>()
+
 /** Each page's added and updated releases, from the release history, its subpath's first commit, and the page's own. */
 export function getPageRelease(route: string): PageRelease {
+  let release = pageReleases.get(route)
+  if (!release) {
+    release = readPageRelease(route)
+    pageReleases.set(route, release)
+  }
+  return release
+}
+
+function readPageRelease(route: string): PageRelease {
   const history = hasHistory()
   const log = (args: string[]) => (history ? (git(['log', ...args]) ?? '') : '')
   pageContext ??= {
@@ -1326,11 +1338,15 @@ export function getPageRelease(route: string): PageRelease {
 }
 
 /** Route → the day, in UTC, its page last changed, or empty without history. */
+let updatedDates: Record<string, string> | undefined
+
 export function getPageUpdatedDates(): Record<string, string> {
+  if (updatedDates) return updatedDates
   const log = hasHistory()
     ? git(['log', '--format=%x1e%ct', '--name-only', '--', 'docs/src/app'])
     : null
-  return log ? Object.fromEntries(pageUpdatedDates(log)) : {}
+  updatedDates = log ? Object.fromEntries(pageUpdatedDates(log)) : {}
+  return updatedDates
 }
 
 function readChangesets(): Changeset[] {

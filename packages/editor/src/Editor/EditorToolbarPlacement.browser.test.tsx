@@ -21,7 +21,7 @@ const DESKTOP = { width: 1280, height: 800 }
 
 const longRead: EditorValue = {
   version: 1,
-  preset: 'basic',
+  preset: 'rich',
   doc: {
     type: 'doc',
     content: Array.from({ length: 40 }, (_, index) => ({
@@ -35,7 +35,7 @@ const longRead: EditorValue = {
 
 const shortRead: EditorValue = {
   version: 1,
-  preset: 'basic',
+  preset: 'rich',
   doc: {
     type: 'doc',
     content: [
@@ -268,12 +268,7 @@ describe('Editor toolbar on a phone', () => {
 
   it('scrolls its controls sideways on one row, bringing a focused one into view', async () => {
     await page.viewport(PHONE.width, PHONE.height)
-    // Narrower than the basic controls, so they overflow.
-    render(
-      <div style={{ width: 200 }}>
-        <Editor aria-label={LABEL} defaultValue={shortRead} />
-      </div>
-    )
+    render(<Editor aria-label={LABEL} defaultValue={shortRead} />)
     const textbox = await focusedTextbox()
     const toolbar = await shownToolbar()
     const scroller = scrollerOf(toolbar)
@@ -332,6 +327,21 @@ describe('Editor toolbar on a larger screen', () => {
     expect(bold).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('puts focus back in the text after a choice from the Block type menu', async () => {
+    render(<Editor aria-label={LABEL} defaultValue={shortRead} />)
+    const textbox = await focusedTextbox()
+
+    for (const name of ['Heading 2', 'Paragraph']) {
+      await userEvent.click(screen.getByRole('button', { name: /^Block type/ }))
+      await userEvent.click(await screen.findByRole('menuitemradio', { name }))
+      await waitFor(() => expect(textbox).toHaveFocus())
+    }
+
+    expect(
+      screen.getByRole('button', { name: /^Block type/ })
+    ).toHaveAccessibleName('Block type: Paragraph')
+  })
+
   it('keeps the caret in the text when pressed between controls', async () => {
     render(<Editor aria-label={LABEL} defaultValue={shortRead} />)
     const textbox = await focusedTextbox()
@@ -377,5 +387,37 @@ describe('Editor placeholder', () => {
     await shownToolbar()
 
     expect(placeholderOffset(textbox)).toBeLessThan(24)
+  })
+})
+
+describe('Block type trigger', () => {
+  const blockType = () => screen.getByRole('button', { name: /^Block type/ })
+  const choose = async (name: string) => {
+    await userEvent.click(blockType())
+    await userEvent.click(await screen.findByRole('menuitemradio', { name }))
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+  }
+  const gapToCaret = () => {
+    const text = [...blockType().childNodes].find(
+      (node) => node.nodeType === Node.TEXT_NODE
+    )!
+    const range = document.createRange()
+    range.selectNodeContents(text)
+    const caret = blockType().querySelector('svg')!.getBoundingClientRect()
+    return caret.left - range.getBoundingClientRect().right
+  }
+
+  it('fits the label it shows', async () => {
+    render(<Editor aria-label={LABEL} defaultValue={shortRead} />)
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await choose('Quote')
+    const quoteWidth = blockType().getBoundingClientRect().width
+    const quoteGap = gapToCaret()
+    await choose('Paragraph')
+
+    expect(quoteWidth).toBeLessThan(blockType().getBoundingClientRect().width)
+    // The caret follows the label, not the far edge of a fixed-width button.
+    expect(quoteGap).toBeLessThan(12)
   })
 })

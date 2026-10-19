@@ -2,18 +2,41 @@ import type { Icon } from '@phosphor-icons/react'
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
+  ColumnsPlusLeftIcon,
+  ColumnsPlusRightIcon,
+  FilmStripIcon,
+  ImageIcon,
   LinkIcon,
   ListBulletsIcon,
   ListNumbersIcon,
+  MinusIcon,
+  PencilSimpleIcon,
+  RowsPlusBottomIcon,
+  RowsPlusTopIcon,
+  SquareSplitVerticalIcon,
+  SwapIcon,
+  TableIcon,
+  TextAaIcon,
   TextBIcon,
   TextItalicIcon,
-  TextUnderlineIcon
+  TextUnderlineIcon,
+  TrashIcon
 } from '@phosphor-icons/react'
 import type { Editor } from '@tiptap/react'
+
+import type { Preset } from '../schema'
+import { HEADING_LEVELS } from '../schema/headings'
+import { hasHeaderRow, leavesAColumn, leavesARow, selectedTable } from './table'
 
 /** What a control can open in the editor's own UI. */
 export type EditorControlUi = {
   editLink: () => void
+  /** Opens the embed editor, on the selected embed if there is one. */
+  editEmbed: () => void
+  pickImage: (() => void) | undefined
+  editAlt: () => void
+  /** Opens the file picker to replace the selected image, or undefined without `onUploadImage`. */
+  replaceImage: (() => void) | undefined
 }
 
 export type EditorControl = {
@@ -25,11 +48,29 @@ export type EditorControl = {
   /** Makes the control a toggle, pressed while this holds. */
   pressed?: (editor: Editor) => boolean
   enabled?: (editor: Editor) => boolean
+  /** Shows the control only while this holds, such as with an upload handler. */
+  available?: (ui: EditorControlUi) => boolean
 }
 
 export const SEPARATOR = 'separator'
 
-export type EditorToolbarItem = EditorControl | typeof SEPARATOR
+/** One choice in the block type menu. */
+export type EditorBlockType = {
+  label: string
+  shortcut: readonly string[]
+  /** Whether the caret's block is this type. */
+  active: (editor: Editor) => boolean
+  run: (editor: Editor) => void
+}
+
+export type EditorBlockMenu = {
+  kind: 'blockMenu'
+  label: string
+  types: readonly EditorBlockType[]
+}
+
+export type EditorToolbarItem =
+  EditorControl | EditorBlockMenu | typeof SEPARATOR
 
 const bold: EditorControl = {
   label: 'Bold',
@@ -95,6 +136,74 @@ const redo: EditorControl = {
   enabled: (editor) => editor.can().redo()
 }
 
+const divider: EditorControl = {
+  label: 'Divider',
+  icon: MinusIcon,
+  run: (editor) => editor.chain().focus().setHorizontalRule().run(),
+  enabled: (editor) => editor.can().setHorizontalRule()
+}
+
+const image: EditorControl = {
+  label: 'Image',
+  icon: ImageIcon,
+  run: (_editor, { pickImage }) => pickImage?.(),
+  available: ({ pickImage }) => Boolean(pickImage)
+}
+
+const embed: EditorControl = {
+  label: 'Embed',
+  icon: FilmStripIcon,
+  run: (_editor, { editEmbed }) => editEmbed(),
+  enabled: (editor) => editor.can().setEmbed({ provider: '', id: '' })
+}
+
+const NEW_TABLE = { rows: 3, cols: 3, withHeaderRow: true }
+
+const table: EditorControl = {
+  label: 'Table',
+  icon: TableIcon,
+  run: (editor) => editor.chain().focus().insertTable(NEW_TABLE).run(),
+  // A cell holds only paragraphs, so a table never goes in one.
+  enabled: (editor) =>
+    !selectedTable(editor.state) && editor.can().insertTable(NEW_TABLE)
+}
+
+const headings: EditorBlockType[] = HEADING_LEVELS.map((level) => ({
+  label: `Heading ${level}`,
+  shortcut: ['mod', 'alt', String(level)],
+  active: (editor) => editor.isActive('heading', { level }),
+  run: (editor) => editor.chain().focus().setHeading({ level }).run()
+}))
+
+const quote: EditorBlockType = {
+  label: 'Quote',
+  shortcut: ['mod', 'shift', 'b'],
+  active: (editor) => editor.isActive('blockquote'),
+  run: (editor) => {
+    const chain = editor.chain().focus().setParagraph()
+    if (!editor.isActive('blockquote')) chain.wrapIn('blockquote')
+    chain.run()
+  }
+}
+
+const paragraph: EditorBlockType = {
+  label: 'Paragraph',
+  shortcut: ['mod', 'alt', '0'],
+  active: (editor) =>
+    editor.isActive('paragraph') && !editor.isActive('blockquote'),
+  run: (editor) => {
+    const chain = editor.chain().focus().setParagraph()
+    if (editor.isActive('blockquote')) chain.lift('blockquote')
+    chain.run()
+  }
+}
+
+const blockType: EditorBlockMenu = {
+  kind: 'blockMenu',
+  label: 'Block type',
+  types: [paragraph, ...headings, quote]
+}
+
 const basicControls = [
   bold,
   italic,
@@ -107,11 +216,142 @@ const basicControls = [
 
 const history = [undo, redo] as const
 
-// Only controls for extensions the basic preset holds.
-export const editorControls: readonly EditorToolbarItem[] = [
-  ...basicControls,
+// Each preset lists only controls for extensions it holds.
+export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
+  basic: [...basicControls, SEPARATOR, ...history],
+  rich: [
+    blockType,
+    SEPARATOR,
+    ...basicControls,
+    SEPARATOR,
+    divider,
+    image,
+    embed,
+    table,
+    SEPARATOR,
+    ...history
+  ]
+}
+
+const altText: EditorControl = {
+  label: 'Alt text',
+  icon: TextAaIcon,
+  run: (_editor, { editAlt }) => editAlt()
+}
+
+const replaceImage: EditorControl = {
+  label: 'Replace image',
+  icon: SwapIcon,
+  run: (_editor, { replaceImage: replace }) => replace?.(),
+  available: ({ replaceImage: replace }) => Boolean(replace)
+}
+
+const editEmbedLink: EditorControl = {
+  label: 'Edit link',
+  icon: PencilSimpleIcon,
+  run: (_editor, { editEmbed }) => editEmbed()
+}
+
+function remove(label: string): EditorControl {
+  return {
+    label,
+    icon: TrashIcon,
+    run: (editor) => editor.chain().focus().deleteSelection().run()
+  }
+}
+
+export type EditorNodeType = 'image' | 'embed'
+
+/** The actions in a selected node's own toolbar. */
+export const nodeControls: Record<EditorNodeType, readonly EditorControl[]> = {
+  image: [altText, replaceImage, remove('Remove image')],
+  embed: [editEmbedLink, remove('Remove embed')]
+}
+
+type TableCommand =
+  | 'addRowBefore'
+  | 'addRowAfter'
+  | 'addColumnBefore'
+  | 'addColumnAfter'
+  | 'deleteRow'
+  | 'deleteColumn'
+  | 'deleteTable'
+
+function tableAction(
+  label: string,
+  icon: Icon,
+  command: TableCommand,
+  enabled: EditorControl['enabled'] = (editor) => editor.can()[command]()
+): EditorControl {
+  return {
+    label,
+    icon,
+    run: (editor) => editor.chain().focus()[command]().run(),
+    enabled
+  }
+}
+
+const headerRow: EditorControl = {
+  label: 'Header row',
+  icon: SquareSplitVerticalIcon,
+  run: (editor) => editor.chain().focus().toggleHeaderRow().run(),
+  pressed: (editor) => hasHeaderRow(editor.state)
+}
+
+/** A menu item, in the danger intent when it deletes. */
+export type EditorTableAction = EditorControl & { intent?: 'danger' }
+
+/** A toolbar button that opens a menu of a row's or a column's actions. */
+export type EditorTableMenu = {
+  kind: 'tableMenu'
+  label: string
+  items: readonly (EditorTableAction | typeof SEPARATOR)[]
+}
+
+export type EditorTableItem = EditorControl | EditorTableMenu | typeof SEPARATOR
+
+// Phosphor has no remove-row or remove-column icon, so these delete from a
+// labelled menu rather than an icon button.
+const rowMenu: EditorTableMenu = {
+  kind: 'tableMenu',
+  label: 'Row',
+  items: [
+    tableAction('Insert above', RowsPlusTopIcon, 'addRowBefore'),
+    tableAction('Insert below', RowsPlusBottomIcon, 'addRowAfter'),
+    SEPARATOR,
+    {
+      ...tableAction('Delete row', TrashIcon, 'deleteRow', ({ state }) =>
+        leavesARow(state)
+      ),
+      intent: 'danger'
+    }
+  ]
+}
+
+const columnMenu: EditorTableMenu = {
+  kind: 'tableMenu',
+  label: 'Column',
+  items: [
+    tableAction('Insert before', ColumnsPlusLeftIcon, 'addColumnBefore'),
+    tableAction('Insert after', ColumnsPlusRightIcon, 'addColumnAfter'),
+    SEPARATOR,
+    {
+      ...tableAction('Delete column', TrashIcon, 'deleteColumn', ({ state }) =>
+        leavesAColumn(state)
+      ),
+      intent: 'danger'
+    }
+  ]
+}
+
+/** The actions in the toolbar of the table holding the selection. */
+export const tableControls: readonly EditorTableItem[] = [
+  rowMenu,
+  columnMenu,
   SEPARATOR,
-  ...history
+  headerRow,
+  SEPARATOR,
+  tableAction('Delete table', TrashIcon, 'deleteTable')
 ]
 
 const ARIA_KEY_NAMES: Record<string, string> = { shift: 'Shift', alt: 'Alt' }
