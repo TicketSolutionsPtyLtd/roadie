@@ -10,14 +10,15 @@ import { describe, expect, it } from 'vitest'
 import type { RecordTableNarrow } from '@oztix/roadie-components/record-table'
 import type { RecordFieldType } from '@oztix/roadie-core/records'
 
-const FIELD_TYPES: readonly RecordFieldType[] = [
-  'text',
-  'option',
-  'number',
-  'money',
-  'date',
-  'boolean'
-]
+const FIELD_TYPES = Object.keys({
+  text: true,
+  option: true,
+  location: true,
+  number: true,
+  money: true,
+  date: true,
+  boolean: true
+} satisfies Record<RecordFieldType, true>)
 const NARROW_ROLES: readonly Exclude<RecordTableNarrow, 'hidden'>[] = [
   'title',
   'description',

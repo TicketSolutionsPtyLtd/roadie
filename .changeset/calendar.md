@@ -9,7 +9,7 @@ grid for choosing a date, several dates or a range, built on the plain-date math
 `defaultSelected` and `onSelect`; a range's `min` and `max` limit its length
 in days. Days that would break them dim, and pressing one keeps the start and
 announces the rule, such as "Ranges can be up to 14 days". `disabled` and `modifiers` take matchers: a date, a list,
-`{ start, end }`, `{ before }`, `{ after }`, `{ dayOfWeek }` or a function.
+`{ start, end }`, `{ before }`, `{ after }`, `{ dayOfWeek }` or a function. `previewRange` draws days as a neutral band, such as dates typed but not yet taken.
 Each modifier renders as a data attribute on its days, such as
 `data-has-session`.
 

@@ -77,7 +77,19 @@ describe('RecordTable table actions', () => {
     }
     render(<Shows actions={actions(onAction)} scope={[perth]} />)
     await userEvent.click(screen.getByRole('button', { name: 'Export CSV' }))
-    expect(onAction.mock.calls[0]![0].filters).toEqual([perth])
+    expect(onAction.mock.calls[0]![0].query.filters).toEqual([perth])
+  })
+
+  it('hands an action the request for every match, to post to a server', async () => {
+    const onAction = vi.fn()
+    render(<Shows actions={actions(onAction)} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Export CSV' }))
+    const [{ request, timeZone, now }] = onAction.mock.calls[0]!
+    expect(request).toEqual({
+      version: 1,
+      query: { search: '', filters: [], sort: [], timeZone }
+    })
+    expect(now).toBeInstanceOf(Date)
   })
 
   it('acts on the applied query and the records, with nothing selected', async () => {
@@ -90,7 +102,7 @@ describe('RecordTable table actions', () => {
     await userEvent.keyboard('{Escape}')
     await userEvent.click(screen.getByRole('button', { name: 'Export CSV' }))
     expect(onAction).toHaveBeenCalledOnce()
-    const [query, records] = onAction.mock.calls[0]!
+    const [{ query, records }] = onAction.mock.calls[0]!
     expect(query).toMatchObject({ search: 'ocean' })
     expect(records.appliedView.query).toBe(query)
     expect(records.selectedCount).toBe(0)

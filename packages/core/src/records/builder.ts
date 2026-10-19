@@ -1,4 +1,5 @@
 import type { ValueFormat } from '../dataviz/format'
+import { identifierPattern } from './pattern'
 import type {
   RecordField,
   RecordMoment,
@@ -15,12 +16,19 @@ type Common = {
 
 type KeyOf<Row> = keyof Row & string
 
-export type TextFieldOptions = Common & { match?: RegExp; multiple?: boolean }
+export type TextFieldOptions = Common & { match?: string; multiple?: boolean }
 export type OptionFieldOptions = Common & {
   multiple?: boolean
   status?: Record<string, StatusDefinition>
   options?: RecordOption[]
 }
+/**
+ * Places are stable ids that nest by `parent`, so a record is in its places'
+ * ancestors too. Reserved for distance filters: a `near` operator, valued
+ * `{ lat, lng, meters, label }`, and an option naming the record's
+ * coordinates.
+ */
+export type LocationFieldOptions = Common & { options?: RecordOption[] }
 export type NumberFieldOptions = Common & { format?: ValueFormat }
 export type MoneyFieldOptions<Row> = NumberFieldOptions & {
   currency?: string
@@ -48,11 +56,18 @@ export function recordFields<Row extends object = Record<string, unknown>>() {
     text: <Key extends KeyOf<Row>>(
       key: Key,
       options: TextFieldOptions
-    ): Built<Key> => ({ key, type: 'text', ...options }),
+    ): Built<Key> => {
+      identifierPattern(options)
+      return { key, type: 'text', ...options }
+    },
     option: <Key extends KeyOf<Row>>(
       key: Key,
       options: OptionFieldOptions
     ): Built<Key> => ({ key, type: 'option', ...options }),
+    location: <Key extends KeyOf<Row>>(
+      key: Key,
+      options: LocationFieldOptions
+    ): Built<Key> => ({ key, type: 'location', ...options }),
     number: <Key extends KeyOf<Row>>(
       key: Key,
       options: NumberFieldOptions

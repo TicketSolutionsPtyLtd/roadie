@@ -188,6 +188,79 @@ describe('useRecords server mode', () => {
   })
 })
 
+describe('useRecords server request', () => {
+  it('holds the request for the page, dates fixed and the scope first', () => {
+    const { result } = setup({
+      timeZone: 'Australia/Perth',
+      now: new Date('2026-10-02T15:30:00Z'),
+      scope: [{ field: 'city', operator: 'is', values: ['Perth'] }],
+      defaultView: {
+        query: {
+          search: 'ocean',
+          filters: [{ field: 'starts', operator: 'within', value: 'today' }],
+          sort: [{ field: 'show', direction: 'ascending' }]
+        }
+      },
+      defaultPosition: { page: 1, pageSize: 25 }
+    })
+    expect(result.current.request).toEqual({
+      version: 1,
+      query: {
+        search: 'ocean',
+        filters: [
+          { field: 'city', operator: 'is', values: ['Perth'] },
+          {
+            field: 'starts',
+            operator: 'overlaps',
+            range: { kind: 'dates', start: '2026-10-02', end: '2026-10-02' }
+          }
+        ],
+        sort: [{ field: 'show', direction: 'ascending' }],
+        timeZone: 'Australia/Perth'
+      },
+      page: 1,
+      pageSize: 25
+    })
+  })
+
+  it('holds a request for every match in the browser', () => {
+    const { result } = setup({ rowCount: undefined, timeZone: 'UTC' })
+    expect(result.current.request).toEqual({
+      version: 1,
+      query: { search: '', filters: [], sort: [], timeZone: 'UTC' }
+    })
+  })
+})
+
+describe('useRecords count a server cannot finish', () => {
+  it('stops at the last page the server can reach', async () => {
+    const onPositionChange = vi.fn()
+    const { result } = setup({
+      rowCount: 10_000,
+      rowCountExact: false,
+      defaultPosition: { pageSize: 30 },
+      onPositionChange
+    })
+    expect(result.current.resultCountExact).toBe(false)
+    expect(result.current.pageCount).toBe(333)
+    await act(() => result.current.setPage(400))
+    expect(onPositionChange).toHaveBeenLastCalledWith({
+      page: 332,
+      pageSize: 30,
+      row: 0
+    })
+  })
+
+  it('counts every page of an exact total', () => {
+    const { result } = setup({
+      rowCount: 10_000,
+      defaultPosition: { pageSize: 30 }
+    })
+    expect(result.current.resultCountExact).toBe(true)
+    expect(result.current.pageCount).toBe(334)
+  })
+})
+
 describe('useRecords server scope', () => {
   const perth = { field: 'city', operator: 'contains', value: 'Perth' } as const
 

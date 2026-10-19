@@ -40,6 +40,8 @@ export type RecordLayout =
   | { type: 'grid'; fields?: string[] }
 
 export type RecordView = {
+  /** The view format. `validateRecordView` reads a view without one as 1. */
+  version?: 1
   id?: string
   /** Required once saved; a view read from a URL has none. */
   name?: string
@@ -66,8 +68,14 @@ export type RecordSelection =
   | { readonly ids: readonly string[] }
   | { readonly allMatching: true; readonly except: readonly string[] }
 
+/**
+ * `location` is a place, such as a suburb, or a list of places. Its options
+ * nest by `parent`, so `is` and `is-not` mean is in and is not in: a record is
+ * in each of its places and their ancestors. Distance filters are reserved for
+ * later as a `near` operator, never `within`, which dates use.
+ */
 export type RecordFieldType =
-  'text' | 'option' | 'number' | 'money' | 'date' | 'boolean'
+  'text' | 'option' | 'location' | 'number' | 'money' | 'date' | 'boolean'
 
 /**
  * How a date field is compared. `event` and `access` compare the venue-local
@@ -75,7 +83,18 @@ export type RecordFieldType =
  */
 export type RecordMoment = 'event' | 'access' | 'timestamp' | 'date'
 
-export type RecordOption = { value: string; label: string; parent?: string }
+/** What kind of place a location's option is. Open to others. */
+export type RecordPlaceKind =
+  'venue' | 'suburb' | 'city' | 'region' | 'state' | 'country' | (string & {})
+
+export type RecordOption = {
+  value: string
+  label: string
+  /** Another option's value. A location's place is inside its parent. */
+  parent?: string
+  /** A location's place only. Suggestions describe it: "Suburb in Brisbane". */
+  kind?: RecordPlaceKind
+}
 
 /**
  * What a record field holds. Every per-row fact is a key, not a function, so
@@ -103,8 +122,11 @@ export type RecordField = {
   localDateKey?: string
   /** Event and access ranges: the stored venue-local date of the end. */
   endLocalDateKey?: string
-  /** Identifiers, such as order numbers, matched exactly. Anchor it with ^ and $. */
-  match?: RegExp
+  /**
+   * Identifiers, such as order numbers, matched exactly and ignoring case: a
+   * pattern string anchored with ^ and $, such as '^OZ-\\d{5}$'.
+   */
+  match?: string
   /** How a number or money field's values read. Defaults to `number`, or `currency` for money. */
   format?: ValueFormat
   /** A fixed ISO 4217 code. */

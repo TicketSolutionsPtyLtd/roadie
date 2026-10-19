@@ -23,6 +23,7 @@ const loose = field.option('mood', {
   label: 'Mood',
   status: { calm: { intent: 'neutral' } }
 })
+const place = field.location('place', { label: 'Location' })
 const sold = field.number('sold', { label: 'Sold' })
 const gross = field.money('gross', { label: 'Gross' })
 const starts = field.date('starts', { label: 'Starts', moment: 'date' })
@@ -34,6 +35,7 @@ describe('sortDirectionLabel', () => {
     [name, 'A to Z', 'Z to A'],
     [venue, 'A to Z', 'Z to A'],
     [loose, 'A to Z', 'Z to A'],
+    [place, 'A to Z', 'Z to A'],
     [status, 'First to last', 'Last to first'],
     [sold, 'Low to high', 'High to low'],
     [gross, 'Low to high', 'High to low'],
@@ -50,6 +52,7 @@ describe('firstDirection', () => {
     [name, 'ascending'],
     [venue, 'ascending'],
     [status, 'ascending'],
+    [place, 'ascending'],
     [sold, 'descending'],
     [gross, 'descending'],
     [starts, 'descending'],

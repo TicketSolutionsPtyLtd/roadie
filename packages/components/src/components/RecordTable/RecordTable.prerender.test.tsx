@@ -105,12 +105,12 @@ describe('RecordTable on a prerendering server', () => {
     const { serverHtml, onRecoverableError } = await hydrateWithoutClock(
       table({ defaultView: UPCOMING })
     )
-    expect(serverHtml).toContain('Upcoming')
+    expect(serverHtml).toContain('Starts is upcoming')
     expect(serverHtml).not.toContain('1970')
     expect(onRecoverableError).not.toHaveBeenCalled()
     expect(
       screen.getByRole('toolbar', { name: 'Filters' }).textContent
-    ).toContain('Starts: Upcoming, From 9 Oct 2026')
+    ).toContain('Starts is upcoming, From 9 Oct 2026')
   })
 
   it('keeps a later page while it waits for the browser’s clock', async () => {
@@ -122,5 +122,22 @@ describe('RecordTable on a prerendering server', () => {
     )
     expect(onRecoverableError).not.toHaveBeenCalled()
     expect(shownShows()).toEqual([expect.stringContaining(SHOWS[11]!.show)])
+  })
+})
+
+describe('RecordTable request on a prerendering server', () => {
+  it('hands the app a request only once the browser clock is read', async () => {
+    const onRequestChange = vi.fn()
+    await hydrateWithoutClock(
+      table({ rowCount: 12, defaultView: UPCOMING, onRequestChange })
+    )
+    expect(onRequestChange).toHaveBeenCalledOnce()
+    expect(onRequestChange.mock.calls[0]![0].query.filters).toEqual([
+      {
+        field: 'starts',
+        operator: 'overlaps',
+        range: { kind: 'dates', start: '2026-10-09', end: null }
+      }
+    ])
   })
 })
