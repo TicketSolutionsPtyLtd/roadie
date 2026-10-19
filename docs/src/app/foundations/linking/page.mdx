@@ -77,11 +77,23 @@ enough, such as custom elements or full render control.
 | Breadcrumb.Link                    | `<a>`                            | Routed `<a>` | `render`       |
 | Carousel.TitleLink                 | `<a>`                            | Routed `<a>` | `render`       |
 | Tabs.Tab                           | `<button>`                       | Routed `<a>` | `render`       |
+| Toolbar.Button                     | `<button>`                       | Routed `<a>` | `render`       |
 | List.Item                          | `<button>`                       | Routed `<a>` | None, `href` only |
 | Menu.Item                          | Menu item                        | Routed `<a>` | None, `href` only |
 | Navigator items and tabs           | `<button>`                       | Routed `<a>` | None, `href` only |
 
 Row links in `DataTable` and `RecordTable` route the same way.
+
+For a text link, such as one in rendered content, use `Link` from
+`@oztix/roadie-components/link`. It's the anchor the components above
+render, so it takes `href`, `external`, `target`, and `rel`, and it has no
+styles of its own.
+
+```tsx
+import { Link } from '@oztix/roadie-components/link'
+
+<Link href='/events/123'>Ochre Kite Weekender</Link>
+```
 
 ## Examples
 

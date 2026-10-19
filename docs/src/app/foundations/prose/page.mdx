@@ -8,7 +8,8 @@ export const metadata = {
 Rich text from a CMS, Markdown, or MDX arrives as bare HTML elements with no
 classes. Add `.prose` to the element that holds it, and the headings,
 paragraphs, lists, tables, code, quotes, rules, figures, and keys inside are
-styled from Roadie tokens. The class ships in `@oztix/roadie-core/css`, so it
+styled from Roadie tokens, and `em`, `i`, and `cite` show in Intermission's
+italic face. The class ships in `@oztix/roadie-core/css`, so it
 needs no import of its own.
 In React, the [Prose component](/components/prose/) adds the class and sets
 its size.
@@ -159,8 +160,8 @@ Set these on the `.prose` element to adjust the type without new classes.
 | `--prose-leading` | `var(--leading-prose)` | Body line height |
 | `--prose-flow` | `1.25em` | The gap every other gap derives from |
 | `--prose-measure` | `65ch` | Maximum width of each direct child |
-| `--prose-h1-size` to `--prose-h6-size` | The `text-display-prose-1` to `-6` sizes | Heading font sizes |
-| `--prose-h1-weight` to `--prose-h6-weight` | The `text-display-prose-1` to `-6` weights | Heading font weights |
+| `--prose-h1-size` to `--prose-h6-size` | The `text-display-ui-1` to `-6` sizes | Heading font sizes |
+| `--prose-h1-weight` to `--prose-h6-weight` | The `text-display-ui-1` to `-6` weights | Heading font weights |
 
 ## Colour and dark mode
 
