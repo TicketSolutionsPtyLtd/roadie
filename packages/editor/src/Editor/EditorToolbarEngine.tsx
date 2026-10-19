@@ -106,7 +106,10 @@ type ControlProps = {
 export function Control({ control, state, editor, ui }: ControlProps) {
   const { label, icon: Icon, shortcut } = control
   const run = () => {
-    if (editor) control.run(editor, ui)
+    if (!editor) return
+    // The click focused the button, and the command's own focus waits a frame.
+    focusEditor(editor)
+    control.run(editor, ui)
   }
   const shared = {
     'aria-label': label,

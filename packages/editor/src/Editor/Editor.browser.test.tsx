@@ -1024,6 +1024,21 @@ describe('Editor rich preset', () => {
     ])
   })
 
+  // Typing straight after a click would otherwise land on the button.
+  it.each(['Underline', 'Bulleted list', 'Divider'])(
+    'gives focus back to the text in the same task as a %s click',
+    async (name) => {
+      render(<RichEditor />)
+      const textbox = await focusedTextbox()
+      const control = screen.getByRole('button', { name })
+
+      control.focus()
+      control.click()
+
+      expect(textbox).toHaveFocus()
+    }
+  )
+
   it('underlines with the Underline control in the rich preset', async () => {
     const onValueChange = vi.fn()
     render(<RichEditor onValueChange={onValueChange} />)
