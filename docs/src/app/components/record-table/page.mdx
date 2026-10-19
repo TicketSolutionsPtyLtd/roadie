@@ -1076,14 +1076,10 @@ function ServerShows() {
 render(<ServerShows />)
 ```
 
-With Meilisearch, `toMeilisearch(view, fields, { now, timeZone, position })` from `@oztix/roadie-core/records/meilisearch` turns the view and position into a search. It adds `page` and `hitsPerPage`, so the response's `totalHits` counts the matches for `rowCount`. Meilisearch stops counting at the index's `pagination.maxTotalHits`, 1,000 by default, so raise it to the most records a screen can match, or pass `rowCountExact={false}` when `totalHits` reaches it. Pass the viewer's zone, `records.timeZone`, so "today" means their day. [Records model](/foundations/records) lists the index shape it needs.
+With Meilisearch, `toMeilisearch(request, fields)` from `@oztix/roadie-core/records/meilisearch` turns the request into a search. Its `page` and `pageSize` become `page` and `hitsPerPage`, so the response's `totalHits` counts the matches for `rowCount`. Meilisearch stops counting at the index's `pagination.maxTotalHits`, 1,000 by default, so raise it to the most records a screen can match, or pass `rowCountExact={false}` when `totalHits` reaches it. The request's relative dates are already fixed in the viewer's zone, so the server reads no clock. [Records model](/foundations/records) lists the index shape it needs.
 
 ```tsx
-const { q, ...params } = toMeilisearch(view, fields, {
-  now: new Date(),
-  timeZone,
-  position
-})
+const { q, ...params } = toMeilisearch(request, fields)
 const response = await client.index('events').search(q, params)
 const page = { rows: response.hits, rowCount: response.totalHits }
 ```
