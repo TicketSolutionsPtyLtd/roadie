@@ -1,4 +1,3 @@
-import { canonicalDateRange } from '../datetime/ranges'
 import { encodeFilter } from './encoding'
 import type { RecordFilter, RecordLayout, RecordView } from './types'
 
@@ -16,9 +15,6 @@ function filterKey(filter: RecordFilter): string {
       ...filter,
       values: [...new Set(filter.values)].sort()
     })
-  }
-  if (filter.operator === 'within') {
-    return encodeFilter({ ...filter, value: canonicalDateRange(filter.value) })
   }
   return encodeFilter(filter)
 }
