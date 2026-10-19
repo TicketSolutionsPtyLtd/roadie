@@ -175,8 +175,7 @@ const PhosphorIcons = {
   TextAlignCenter: TextAlignCenterIcon,
   TextAlignRight: TextAlignRightIcon,
   ArrowCounterClockwise: ArrowCounterClockwiseIcon,
-  ArrowClockwise: ArrowClockwiseIcon,
-  Table: TableIcon
+  ArrowClockwise: ArrowClockwiseIcon
 }
 
 // Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.
@@ -233,8 +232,9 @@ const scope = {
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,
-  // Bare Image stays Roadie's component.
+  // Bare Image and Table stay Roadie's components.
   ImageIcon,
+  TableIcon,
   // Widgets + the helpers their live demos need.
   CartDrawer,
   CartContents,

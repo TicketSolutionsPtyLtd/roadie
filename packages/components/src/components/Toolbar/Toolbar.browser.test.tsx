@@ -419,7 +419,7 @@ describe('Toolbar on a phone', () => {
     await page.viewport(390, 844)
   })
   afterAll(async () => {
-    await page.viewport(1280, 720)
+    await page.viewport(1920, 1080)
   })
 
   it('keeps its items on one row and scrolls them sideways', () => {
