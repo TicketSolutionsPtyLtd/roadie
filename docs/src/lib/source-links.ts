@@ -75,18 +75,25 @@ function componentSource(components: PageComponent[], context: SourceContext) {
   return dir ? `tree/main/packages/${dir}/src` : undefined
 }
 
-/** A route's source on GitHub, relative to the repo URL: the folder of the component it documents, or else the page's own file. */
+/** A page's sources on GitHub, relative to the repo URL: its own file, and the code it documents. */
+export type SourceLink = { page?: string; code?: string }
+
 export function sourcePath(
   route: string,
   context: SourceContext
-): string | undefined {
+): SourceLink | undefined {
   const components = context.components.get(route)
-  if (components?.length) return componentSource(components, context)
-  const page = route.startsWith(`${CHANGELOG_ROUTE}/`)
-    ? `${CHANGELOG_ROUTE}/[release]`
-    : route
-  const file = context.pageFiles.get(page)
-  return file ? `blob/main/${file}` : undefined
+  const code = components?.length
+    ? componentSource(components, context)
+    : undefined
+  const file = context.pageFiles.get(
+    route.startsWith(`${CHANGELOG_ROUTE}/`)
+      ? `${CHANGELOG_ROUTE}/[release]`
+      : route
+  )
+  const page = file ? `blob/main/${file}` : undefined
+  if (!page && !code) return undefined
+  return { ...(page && { page }), ...(code && { code }) }
 }
 
 const ROOT = join(process.cwd(), '..')
@@ -114,8 +121,10 @@ function kindOf(path: string) {
   }
 }
 
-/** Route → its source on GitHub, relative to the repo URL, for every page and each release's page. */
-export function getSourceLinks(releaseRoutes: string[]) {
+/** Route → its sources on GitHub, for every page and each release's page. */
+export function getSourceLinks(
+  releaseRoutes: string[]
+): Record<string, SourceLink> {
   const pageFiles = readPageFiles()
   const context: SourceContext = {
     pageFiles,
