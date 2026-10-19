@@ -50,9 +50,22 @@ function ReleaseName({ release }: { release: ReleaseRef }) {
             at={new Date(`${release.date}T00:00:00Z`)}
             timeZone='UTC'
             dateStyle='medium'
+            className='whitespace-nowrap'
           />
         </>
       ) : null}
+    </>
+  )
+}
+
+// Inline, with a no-break space after the dot, so no line ends on one.
+function AfterDot({ children }: { children: ReactNode }) {
+  return (
+    <>
+      {' '}
+      <span aria-hidden>·</span>
+      {'\u00a0'}
+      {children}
     </>
   )
 }
@@ -82,10 +95,7 @@ export function PageStatusLine({
     return (
       <p
         data-slot='page-status'
-        className={cn(
-          'flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-subtle',
-          className
-        )}
+        className={cn('text-sm text-subtle', className)}
       >
         <Link
           href={STATUS_ROUTE}
@@ -95,21 +105,18 @@ export function PageStatusLine({
           {label}
         </Link>
         {added === 'unreleased' ? (
-          <>
-            <span aria-hidden>·</span>
+          <AfterDot>
             <ReleaseLink href={UNRELEASED}>Not released yet</ReleaseLink>
-          </>
+          </AfterDot>
         ) : latest ? (
-          <>
-            <span aria-hidden>·</span>
+          <AfterDot>
             <span>
               {latest === updated ? 'Updated' : 'Added'} in{' '}
               <ReleaseName release={latest} />
             </span>
-          </>
+          </AfterDot>
         ) : null}
-        {next ? <span aria-hidden>·</span> : null}
-        {next}
+        {next ? <AfterDot>{next}</AfterDot> : null}
       </p>
     )
   }
