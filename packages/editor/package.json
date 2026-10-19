@@ -1,0 +1,72 @@
+{
+  "name": "@oztix/roadie-editor",
+  "version": "0.0.0",
+  "description": "Roadie rich-text editor and its saved format for Oztix apps",
+  "type": "module",
+  "license": "ISC",
+  "author": {
+    "name": "Luke Brooker",
+    "email": "mail@lukebrooker.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TicketSolutionsPtyLtd/roadie",
+    "directory": "packages/editor"
+  },
+  "homepage": "https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/packages/editor",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "import": "./dist/schema/index.js"
+    },
+    "./roadie.manifest.json": "./dist/roadie.manifest.json"
+  },
+  "scripts": {
+    "build": "tsdown && pnpm generate:manifest && pnpm check:exports",
+    "generate:manifest": "node ../core/scripts/manifest/generate.ts",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints roadie.manifest.json",
+    "dev": "tsdown --watch --log-level warn",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "format": "prettier --write src",
+    "size": "size-limit",
+    "size:check": "size-limit --limit"
+  },
+  "dependencies": {
+    "@tiptap/core": "3.31.4",
+    "@tiptap/extension-heading": "3.31.4",
+    "@tiptap/extension-link": "3.31.4",
+    "@tiptap/pm": "3.31.4",
+    "@tiptap/starter-kit": "3.31.4"
+  },
+  "peerDependencies": {
+    "@oztix/roadie-core": "workspace:^"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@oztix/roadie-core": "workspace:*",
+    "@size-limit/preset-small-lib": "14.2.0",
+    "@types/node": "24.19.1",
+    "size-limit": "14.2.0",
+    "tsdown": "0.23.0",
+    "vitest": "5.0.3"
+  },
+  "turbo": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    }
+  }
+}
