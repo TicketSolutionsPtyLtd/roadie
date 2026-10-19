@@ -1,3 +1,5 @@
+import { markScrollEdges } from './scrollEdges'
+
 export const PRESSED_ITEM = '[data-slot="toggle-group-item"][data-pressed]'
 
 /**
@@ -18,6 +20,9 @@ export function revealItem(group: HTMLElement, item: HTMLElement) {
     group.clientWidth
   if (start < 0) group.scrollLeft += start
   else if (end > 0) group.scrollLeft += end
+  else return
+  // Now, not on the scroll event, which Firefox can hold back.
+  markScrollEdges(group)
 }
 
 /**
