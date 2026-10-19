@@ -2,7 +2,8 @@
 '@oztix/roadie-editor': minor
 ---
 
-New package `@oztix/roadie-editor`, Roadie's rich-text editor on Tiptap v3.
+Add `Editor` (`@oztix/roadie-editor/editor`), a rich-text field on Tiptap v3,
+in the new package `@oztix/roadie-editor`.
 This release ships its saved format in `@oztix/roadie-editor/schema`, which
 has no React and runs on a server. `EditorValue` is
 `{ version, preset, doc }`, where `doc` is Tiptap's JSON with Tiptap's default
