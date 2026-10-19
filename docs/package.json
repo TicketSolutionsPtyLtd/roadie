@@ -29,6 +29,7 @@
     "@oztix/roadie-charts": "workspace:*",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-core": "workspace:*",
+    "@oztix/roadie-editor": "workspace:*",
     "@oztix/roadie-widgets": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@phosphor-icons/vue": "2.2.1",

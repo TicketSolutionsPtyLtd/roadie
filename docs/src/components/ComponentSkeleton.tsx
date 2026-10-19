@@ -245,6 +245,20 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-2 w-10 opacity-50' />
         </div>
       )
+    case 'editor':
+      return (
+        <div className='grid w-44 gap-1.5 rounded-lg emphasis-field px-3 py-2.5'>
+          <Skel className='h-2 w-28' />
+          <div className='flex items-center gap-1.5'>
+            <Skel className='size-1.5 rounded-full' />
+            <Skel className='h-2 w-20' />
+          </div>
+          <div className='flex items-center gap-1.5'>
+            <Skel className='size-1.5 rounded-full' />
+            <Skel className='h-2 w-16' />
+          </div>
+        </div>
+      )
     case 'query-field':
       return (
         <div className='flex w-44 items-center gap-1.5 rounded-lg emphasis-field px-2 py-1.5'>

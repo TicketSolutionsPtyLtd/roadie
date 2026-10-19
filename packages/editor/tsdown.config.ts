@@ -1,4 +1,7 @@
+import babel from '@rolldown/plugin-babel'
 import { defineConfig } from 'tsdown'
+
+import { reactCompilerPreset } from './react-compiler.config.ts'
 
 // Unbundle mode is load-bearing for RSC safety — see packages/components/tsdown.config.ts.
 export default defineConfig(({ watch }) => ({
@@ -23,6 +26,7 @@ export default defineConfig(({ watch }) => ({
   shims: true,
   outDir: 'dist',
   outExtensions: () => ({ js: '.js' }),
+  plugins: [babel({ presets: [reactCompilerPreset] })],
   deps: {
     neverBundle: [
       'react',

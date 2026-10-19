@@ -58,6 +58,7 @@ type Manifest = { docs: string; components: ManifestComponent[] }
 const manifests = [
   '@oztix/roadie-components',
   '@oztix/roadie-charts',
+  '@oztix/roadie-editor',
   '@oztix/roadie-widgets'
 ].map((pkg) => require(`${pkg}/roadie.manifest.json`) as Manifest)
 const site = `${new URL(manifests[0]!.docs).origin}${basePath}`

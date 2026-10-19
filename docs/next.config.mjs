@@ -24,6 +24,7 @@ const nextConfig = {
     '@oztix/roadie-charts',
     '@oztix/roadie-components',
     '@oztix/roadie-core',
+    '@oztix/roadie-editor',
     '@oztix/roadie-widgets'
   ]
 }

@@ -129,26 +129,27 @@
 
 @utility emphasis-raised {
   background-color: var(--intent-bg-raised);
-  box-shadow: var(--rim-light-strong), var(--shadow-md);
+  box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-md);
   color: var(--intent-text-normal);
 
   &.is-interactive:focus-visible,
   &.is-interactive-within:has([data-interactive-target]:focus-visible) {
     transform: translateY(-1px);
-    box-shadow: var(--rim-light-strong), var(--shadow-lg);
+    box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-lg);
   }
   @media (hover: hover) {
     &.is-interactive:hover,
     &.is-interactive-within:has([data-interactive-target]:hover) {
       transform: translateY(-1px);
-      box-shadow: var(--rim-light-strong), var(--shadow-lg);
+      box-shadow:
+        var(--rim-light-own, var(--rim-light-strong)), var(--shadow-lg);
     }
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
   &.is-interactive-within:has([data-interactive-target]:active) {
     transform: translateY(0) scale(0.99);
-    box-shadow: var(--rim-light-strong), var(--shadow-sm);
+    box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-sm);
   }
 }
 
@@ -179,7 +180,7 @@
 
 @utility emphasis-floating {
   background-color: var(--intent-bg-raised);
-  box-shadow: var(--rim-light-strong), var(--shadow-xl);
+  box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-xl);
   color: var(--intent-text-normal);
 }
 

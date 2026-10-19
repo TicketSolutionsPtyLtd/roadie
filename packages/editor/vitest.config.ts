@@ -1,8 +1,10 @@
+import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
+import type { BrowserCommand } from 'vitest/node'
 
 import {
   browserInstances,
@@ -10,12 +12,16 @@ import {
   browserRunOptions,
   quarantineInclude
 } from '../../vitest.browsers.config.ts'
+import { reactCompilerPreset } from './react-compiler.config.ts'
+
+const reducedMotion: BrowserCommand<[active: boolean]> = ({ page }, active) =>
+  page.emulateMedia({ reducedMotion: active ? 'reduce' : 'no-preference' })
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
 const ROOT = fileURLToPath(new URL('./', import.meta.url))
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), babel({ presets: [reactCompilerPreset] })],
   resolve: {
     dedupe: ['react', 'react-dom']
   },
@@ -41,16 +47,35 @@ export default defineConfig({
         plugins: [tailwindcss()],
         optimizeDeps: {
           include: [
-            '@oztix/roadie-components/link',
+            '@oztix/roadie-components/button',
+            '@oztix/roadie-components/field',
+            '@oztix/roadie-components/menu',
+            '@oztix/roadie-components/popover',
             '@oztix/roadie-components/prose',
+            '@oztix/roadie-components/scroll-area',
+            '@oztix/roadie-components/skeleton',
+            '@oztix/roadie-components/toggle',
+            '@oztix/roadie-components/toolbar',
+            '@oztix/roadie-components/tooltip',
+            '@phosphor-icons/react',
             '@testing-library/jest-dom/vitest',
             '@testing-library/react',
             '@tiptap/core',
-            '@tiptap/static-renderer/json/react',
+            '@tiptap/extension-heading',
+            '@tiptap/extension-link',
+            '@tiptap/extensions',
+            '@tiptap/pm/model',
+            '@tiptap/pm/state',
+            '@tiptap/pm/view',
+            '@tiptap/react',
+            '@tiptap/starter-kit',
+            'class-variance-authority',
+            'react/compiler-runtime',
             'react/jsx-dev-runtime',
             'react/jsx-runtime',
             'react-dom',
-            'react-dom/client'
+            'react-dom/client',
+            'react-dom/server'
           ]
         },
         test: {
@@ -63,6 +88,7 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             viewport: { width: 1280, height: 800 },
+            commands: { reducedMotion },
             instances: browserInstances
           }
         }
