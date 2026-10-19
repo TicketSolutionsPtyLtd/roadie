@@ -131,7 +131,7 @@ A disabled `Toolbar.Button` stays in the arrow order, so a keyboard user still f
 </Toolbar>
 ```
 
-Every part takes the toolbar's `size`. Anything passed to `render` keeps its own props instead, so set `size` on it to match. Use `Toolbar.ToggleGroup` here rather than `ToggleGroup`, a segmented control with its own surface and sliding indicator.
+Every part takes the toolbar's `size`. Anything passed to `render` keeps its own props instead, so set `size` on it to match. With one value pressed at a time, a `Toolbar.ToggleGroup`'s fill slides from toggle to toggle, as in `ToggleGroup`; with `multiple`, each pressed toggle fills itself. Use it here rather than `ToggleGroup`, whose own track and smaller items wouldn't match the toolbar.
 
 #### Links
 

@@ -24,13 +24,14 @@ export function revealItem(group: HTMLElement, item: HTMLElement) {
  */
 export function followPressedItem(
   indicator: HTMLElement,
-  onReadyChange: (ready: boolean) => void
+  onReadyChange: (ready: boolean) => void,
+  pressedItem = PRESSED_ITEM
 ) {
   const group = indicator.parentElement
   if (!group) return
 
   const place = () => {
-    const item = group.querySelector<HTMLElement>(PRESSED_ITEM)
+    const item = group.querySelector<HTMLElement>(pressedItem)
     if (item) {
       indicator.style.setProperty('--pressed-item-left', `${item.offsetLeft}px`)
       indicator.style.setProperty('--pressed-item-top', `${item.offsetTop}px`)

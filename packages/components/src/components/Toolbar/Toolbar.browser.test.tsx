@@ -131,6 +131,61 @@ describe('Toolbar layout', () => {
     }
   )
 
+  it('slides one pressed fill between the toggles of a single-value group', async () => {
+    const icon = <svg viewBox='0 0 16 16' className='size-4' />
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.ToggleGroup aria-label='Alignment' defaultValue={['left']}>
+          <Toolbar.Toggle value='left' aria-label='Align left'>
+            {icon}
+          </Toolbar.Toggle>
+          <Toolbar.Toggle value='right' aria-label='Align right'>
+            {icon}
+          </Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const right = screen.getByRole('button', { name: 'Align right' })
+    const indicator = document.querySelector<HTMLElement>(
+      '[data-slot="toolbar-toggle-group-indicator"]'
+    )!
+    await expect.poll(() => indicator.hasAttribute('data-ready')).toBe(true)
+    expect(getComputedStyle(indicator).transitionProperty).toMatch(/left/)
+
+    right.click()
+
+    await expect
+      .poll(() => indicator.style.getPropertyValue('--pressed-item-left'))
+      .toBe(`${right.offsetLeft}px`)
+    // The indicator draws the fill, so the toggle doesn't cover its slide.
+    expect(getComputedStyle(right).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+    expect(getComputedStyle(indicator).backgroundColor).not.toBe(
+      'rgba(0, 0, 0, 0)'
+    )
+  })
+
+  it('fills each pressed toggle of a multiple group itself', () => {
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.ToggleGroup
+          aria-label='Styles'
+          multiple
+          defaultValue={['bold']}
+        >
+          <Toolbar.Toggle value='bold'>Bold</Toolbar.Toggle>
+          <Toolbar.Toggle value='italic'>Italic</Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    expect(
+      document.querySelector('[data-slot="toolbar-toggle-group-indicator"]')
+    ).toBeNull()
+    expect(
+      getComputedStyle(screen.getByRole('button', { name: 'Bold' }))
+        .backgroundColor
+    ).not.toBe('rgba(0, 0, 0, 0)')
+  })
+
   it('wraps the items of a group inside a narrow container', () => {
     render(
       <div style={{ width: 320 }}>
