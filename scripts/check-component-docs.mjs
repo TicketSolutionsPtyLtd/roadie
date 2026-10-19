@@ -1,13 +1,18 @@
 #!/usr/bin/env node
-// Fails when an exported component has no docs page or no catalogue tile.
+// Fails when an exported component has no docs page, no catalogue tile, or a
+// page with no status.
 // Usage: node scripts/check-component-docs.mjs
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
 import {
+  PAGE_STATUSES,
   caseSlugs,
+  componentSlug,
   exportedFolders,
-  findMissingDocs
+  findMissingDocs,
+  findMissingStatus,
+  pageStatus
 } from '../packages/components/scripts/component-docs.mjs'
 
 const root = join(import.meta.dirname, '..')
@@ -78,11 +83,40 @@ for (const component of staleAllowList)
     `${component} is allow-listed but is documented or no longer exported. Remove it from ALLOW_LIST.`
   )
 
-if (missing.length > 0 || staleAllowList.length > 0) {
+function componentPageStatuses() {
+  return [
+    ...new Set(
+      exportedComponents()
+        .filter((component) => !(component in ALLOW_LIST))
+        .map(componentSlug)
+    )
+  ].flatMap((slug) =>
+    PAGE_ROUTES.map((route) => join(root, route, slug, 'page.mdx'))
+      .filter((file) => existsSync(file))
+      .map((file) => ({ slug, status: pageStatus(readFileSync(file, 'utf8')) }))
+  )
+}
+
+const unstatused = findMissingStatus(componentPageStatuses())
+for (const { slug, status } of unstatused)
+  console.error(
+    status === undefined
+      ? `The ${slug} page has no status.`
+      : `The ${slug} page has status '${status}'.`
+  )
+if (unstatused.length > 0)
+  console.error(
+    `\nSet metadata.status to one of ${PAGE_STATUSES.join(', ')}. docs/contributing/DOCS_PAGES.md says which.`
+  )
+
+if (missing.length > 0 || staleAllowList.length > 0)
   console.error(
     '\nAdd a page in docs/src/app/components/<slug>/ (or charts/) and a case in ComponentSkeleton.tsx (or ChartPreview.tsx). See .claude/skills/docs-page/SKILL.md, or new-component/SKILL.md for a new component.'
   )
-  process.exit(1)
-}
 
-console.log('Every exported component has a docs page and an index tile.')
+if (missing.length > 0 || staleAllowList.length > 0 || unstatused.length > 0)
+  process.exit(1)
+
+console.log(
+  'Every exported component has a docs page with a status, and an index tile.'
+)

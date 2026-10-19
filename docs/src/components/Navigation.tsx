@@ -27,6 +27,7 @@ import {
 
 import type { CatalogueCategory, CatalogueEntry } from '@/lib/page-manifest'
 import { useRoute } from '@/lib/route'
+import type { PageStatus } from '@/lib/status'
 import { relatedLinks } from '@/lib/token-families'
 
 import { Navigator, Pane } from '@oztix/roadie-components'
@@ -42,12 +43,14 @@ import {
   useNavQuery
 } from './NavQueryFlag'
 import { OnThisPage, useDocHeadings } from './OnThisPage'
+import { type PageStatusInfo, PageStatusLine, navBadge } from './PageStatus'
 import { RelatedLinks } from './RelatedLinks'
 
 export type NavigationItem = {
   title: string
   href?: string
   description?: string
+  status?: PageStatus
 }
 
 export type NavigationDestination = {
@@ -69,6 +72,8 @@ type NavigationProps = {
   pageWide: Record<string, boolean>
   /** Routes with a markdown twin at `{route}.md`. */
   markdownTwins: Record<string, boolean>
+  /** Route → its status and releases, for pages that set a status. */
+  pageStatus?: Record<string, PageStatusInfo>
   children: ReactNode
 }
 
@@ -106,6 +111,7 @@ export function DocsNavigator({
   pageTitles,
   pageWide,
   markdownTwins,
+  pageStatus = {},
   children
 }: NavigationProps) {
   const route = useRoute()
@@ -232,6 +238,7 @@ export function DocsNavigator({
                             value={entryValue(destination.href, entry)}
                             href={entry.href}
                             description={entry.description}
+                            badge={navBadge(entry.status)}
                           >
                             {entry.title}
                           </Navigator.Item>
@@ -250,6 +257,7 @@ export function DocsNavigator({
                         value={item.href ?? item.title}
                         href={item.href}
                         description={item.description}
+                        badge={navBadge(item.status)}
                       >
                         {item.title}
                       </Navigator.Item>
@@ -293,6 +301,9 @@ export function DocsNavigator({
               <Pane.BodyTitle className='mb-6 text-display-prose-1'>
                 {pageTitles[route]}
               </Pane.BodyTitle>
+            ) : null}
+            {pageStatus[route] ? (
+              <PageStatusLine {...pageStatus[route]} className='-mt-3 mb-6' />
             ) : null}
             {related ? (
               <RelatedLinks {...related} className='-mt-3 mb-6' />

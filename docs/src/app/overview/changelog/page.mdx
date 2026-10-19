@@ -9,4 +9,15 @@ A release is every package version published on one day. Each one lists those ve
 
 **Unreleased** holds changes that are merged but not on npm yet. Each version links to its entry in the package's changelog on GitHub, and [GitHub releases](https://github.com/TicketSolutionsPtyLtd/roadie/releases) lists every published version. The Roadie skills for AI agents keep [their own changelog](https://github.com/TicketSolutionsPtyLtd/roadie/blob/main/skills/CHANGELOG.md).
 
+## Status
+
+Every component page shows a status beside the release that added it. Alpha and beta pages also say so in the navigation.
+
+| Status | What it means for you |
+| --- | --- |
+| Alpha | The API can break in a minor release. Pin the version and read the changelog before you upgrade. |
+| Beta | Ready to use while its shape settles. A breaking change can come in a minor release, and the changelog marks it **Breaking**. |
+| Stable | Follows semver: a breaking change only comes in a major version. |
+| Deprecated | Being removed. Its page says what to use instead. |
+
 <Changelog />

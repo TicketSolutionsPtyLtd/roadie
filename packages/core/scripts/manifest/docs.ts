@@ -30,7 +30,15 @@ function metadataField(mdx: string, field: string) {
   return value?.replace(/\\(.)/g, '$1')
 }
 
+/** What `status` may be. `docs/contributing/DOCS_PAGES.md` defines each. */
+export const PAGE_STATUSES = ['alpha', 'beta', 'stable', 'deprecated']
+
 export function parseDocsPage(mdx: string, route: string): DocsPage {
+  const status = metadataField(mdx, 'status')
+  if (status !== undefined && !PAGE_STATUSES.includes(status))
+    throw new Error(
+      `${route} has status '${status}'. Use one of ${PAGE_STATUSES.join(', ')}.`
+    )
   const components = Array.from(mdx.matchAll(COMPONENT)).flatMap(
     ([, single, double, list]) =>
       list === undefined
@@ -44,7 +52,7 @@ export function parseDocsPage(mdx: string, route: string): DocsPage {
     route,
     components,
     description: metadataField(mdx, 'description'),
-    status: metadataField(mdx, 'status'),
+    status,
     example
   }
 }

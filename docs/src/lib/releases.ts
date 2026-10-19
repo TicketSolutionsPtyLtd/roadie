@@ -35,7 +35,7 @@ export type PageLink = { title: string; href: string }
 export type Change = {
   id: string
   kind: ChangeKind
-  /** A major bump: code written for the last version may need to change. */
+  /** A major bump, or a first paragraph that says "breaking", as a change to an alpha or beta API in a minor does. */
   breaking: boolean
   /** Package names, such as `@oztix/roadie-core`. */
   packages: string[]
@@ -213,7 +213,7 @@ export function toChange(
   return {
     id: entry.id,
     kind: classify(summary, entry.bump),
-    breaking: entry.bump === 'major',
+    breaking: entry.bump === 'major' || /\bbreaking\b/i.test(lead),
     packages: entry.packages,
     summary,
     details,
@@ -342,6 +342,7 @@ export function byKind(changes: Change[]) {
 }
 
 type ManifestJson = {
+  package?: string
   exports?: { subpath: string; import: string; values?: string[] }[]
   components?: { name: string; import: string; docs?: string }[]
 }
@@ -394,6 +395,113 @@ export function buildPageIndex(
     }
   }
   return index
+}
+
+/** A release a page names: the version of the page's package in it, and the release's anchor. */
+export type ReleaseRef = {
+  label: string
+  version: string
+  date: string | null
+  id: string
+}
+
+export type PageRelease = {
+  /** The first release with the page's component, or 'unreleased' when it's only pending. */
+  added: ReleaseRef | 'unreleased' | null
+  /** The newest release with a change that names the page, when that isn't `added`. */
+  updated: ReleaseRef | null
+  /** A pending change names the page. */
+  upcoming: boolean
+}
+
+/** Docs route → the package of the first component it documents. */
+export function pagePackages(manifests: ManifestJson[]): Map<string, string> {
+  const packages = new Map<string, string>()
+  for (const manifest of manifests) {
+    for (const { docs } of manifest.components ?? []) {
+      const route =
+        docs && SITE_PREFIX.test(docs)
+          ? docs.replace(SITE_PREFIX, '').split('#')[0]!.replace(/\/$/, '')
+          : undefined
+      if (route && manifest.package && !packages.has(route))
+        packages.set(route, manifest.package)
+    }
+  }
+  return packages
+}
+
+/** Route → the day its page file was first added, from `git log --diff-filter=A --name-only` under `docs/src/app`. */
+export function pageCreatedDates(log: string): Map<string, string> {
+  const dates = new Map<string, string>()
+  for (const chunk of log.split('\x1e').slice(1)) {
+    const [date = '', ...files] = chunk.trim().split('\n')
+    for (const file of files) {
+      const route = file.match(/^docs\/src\/app(\/.*)?\/page\.(mdx|tsx)$/)
+      // `git log` runs newest first, so the last date seen is the oldest.
+      if (route) dates.set(route[1] ?? '/', date)
+    }
+  }
+  return dates
+}
+
+/**
+ * When a page's component first shipped and last changed. Added is the
+ * earlier of the first release of its package on or after the page's first
+ * commit and the first release whose changes name the page.
+ */
+export function pageRelease(
+  route: string,
+  { releases, unreleased }: ReleaseHistory,
+  { packageName, created }: { packageName?: string; created?: string } = {}
+): PageRelease {
+  const names = (change: Change) =>
+    change.pages.some((page) => page.href.split('#')[0] === route)
+  const ref = (release: Release, newest: boolean): ReleaseRef => {
+    const named = release.changes.find(names)?.packages ?? []
+    const own = release.packages.filter((pkg) => pkg.name === packageName)
+    const candidates =
+      own.length > 0
+        ? own
+        : release.packages.filter((pkg) => named.includes(pkg.name))
+    const pkg =
+      (newest ? candidates[0] : candidates.at(-1)) ?? release.packages[0]!
+    return {
+      label: pkg.label,
+      version: pkg.version,
+      date: release.date,
+      id: release.id
+    }
+  }
+  const oldestFirst = [...releases].reverse()
+  const byDate =
+    created && packageName
+      ? oldestFirst.findIndex(
+          (release) =>
+            release.date !== null &&
+            release.date >= created &&
+            release.packages.some((pkg) => pkg.name === packageName)
+        )
+      : -1
+  const byMention = oldestFirst.findIndex((release) =>
+    release.changes.some(names)
+  )
+  const first = [byDate, byMention].filter((index) => index >= 0)
+  const addedRelease =
+    first.length > 0 ? oldestFirst[Math.min(...first)] : undefined
+  const updatedRelease = releases.find((release) => release.changes.some(names))
+  const upcoming = unreleased.changes.some(names)
+  return {
+    added: addedRelease
+      ? ref(addedRelease, false)
+      : created || upcoming
+        ? 'unreleased'
+        : null,
+    updated:
+      updatedRelease && updatedRelease.id !== addedRelease?.id
+        ? ref(updatedRelease, true)
+        : null,
+    upcoming
+  }
 }
 
 const ROOT = join(process.cwd(), '..')
@@ -459,13 +567,42 @@ function pageTitle(route: string): string | undefined {
   return undefined
 }
 
-function readPageIndex(): PageIndex {
-  const manifests = RELEASED_PACKAGES.map(({ dir }) =>
+const readManifests = () =>
+  RELEASED_PACKAGES.map(({ dir }) =>
     readJson<ManifestJson>(
       join(ROOT, 'packages', dir, 'dist/roadie.manifest.json')
     )
   ).filter((manifest) => manifest !== undefined)
-  return buildPageIndex(manifests, pageTitle)
+
+function readPageIndex(): PageIndex {
+  return buildPageIndex(readManifests(), pageTitle)
+}
+
+let pageContext:
+  { packages: Map<string, string>; created: Map<string, string> } | undefined
+
+/** Each page's added and updated releases, from the release history, its package, and its first commit. */
+export function getPageRelease(route: string): PageRelease {
+  pageContext ??= {
+    packages: pagePackages(readManifests()),
+    created:
+      git(['rev-parse', '--is-shallow-repository'])?.trim() === 'false'
+        ? pageCreatedDates(
+            git([
+              'log',
+              '--diff-filter=A',
+              '--format=%x1e%cs',
+              '--name-only',
+              '--',
+              'docs/src/app'
+            ]) ?? ''
+          )
+        : new Map()
+  }
+  return pageRelease(route, getReleaseHistory(), {
+    packageName: pageContext.packages.get(route),
+    created: pageContext.created.get(route)
+  })
 }
 
 function readChangesets(): Changeset[] {

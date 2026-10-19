@@ -4,7 +4,9 @@ import {
   caseSlugs,
   componentSlug,
   exportedFolders,
-  findMissingDocs
+  findMissingDocs,
+  findMissingStatus,
+  pageStatus
 } from './component-docs.mjs'
 
 describe('componentSlug', () => {
@@ -140,5 +142,41 @@ describe('findMissingDocs', () => {
         allowList: { Button: 'Missing.', Removed: 'Missing.' }
       }).staleAllowList
     ).toEqual(['Button', 'Removed'])
+  })
+})
+
+describe('pageStatus', () => {
+  it.each([
+    [
+      "export const metadata = {\n  title: 'Button',\n  status: 'stable',\n  category: 'Actions'\n}\n",
+      'stable'
+    ],
+    [
+      'export const metadata = {\n  title: "Badge",\n  status: "beta"\n}\n',
+      'beta'
+    ],
+    [
+      "export const metadata = {\n  title: 'Toolbar'\n}\n\nA `status: 'alpha'` in prose.\n",
+      undefined
+    ],
+    ['# No metadata', undefined]
+  ])('reads the status from the metadata block only (%#)', (source, status) => {
+    expect(pageStatus(source)).toBe(status)
+  })
+})
+
+describe('findMissingStatus', () => {
+  it('flags pages with no status or one outside alpha, beta, stable, and deprecated', () => {
+    expect(
+      findMissingStatus([
+        { slug: 'button', status: 'stable' },
+        { slug: 'record-table', status: 'alpha' },
+        { slug: 'toolbar', status: undefined },
+        { slug: 'badge', status: 'experimental' }
+      ])
+    ).toEqual([
+      { slug: 'toolbar', status: undefined },
+      { slug: 'badge', status: 'experimental' }
+    ])
   })
 })

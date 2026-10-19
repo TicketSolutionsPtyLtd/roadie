@@ -20,10 +20,12 @@ import {
   WIDGETS,
   getCatalogue,
   getMarkdownRoutes,
+  getPageStatuses,
   getPageTitles,
   getPageWide,
   readPageMetadata
 } from '@/lib/page-manifest'
+import { getPageRelease } from '@/lib/releases'
 import { getAssetPath } from '@/utils/getAssetPath'
 
 import { getNavigatorExpandedScript } from '@oztix/roadie-core/navigator'
@@ -49,7 +51,7 @@ const flatten = (route: string, groups: CatalogueCategory[]) => [
       : []),
     ...group.entries
       .filter((entry) => !entry.crossListedFrom)
-      .map(({ title, href }) => ({ title, href }))
+      .map(({ title, href, status }) => ({ title, href, status }))
   ])
 ]
 
@@ -115,12 +117,20 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [items, pageTitles, pageWide, markdownRoutes] = await Promise.all([
-    getNavigationItems(),
-    getPageTitles(),
-    getPageWide(),
-    getMarkdownRoutes()
-  ])
+  const [items, pageTitles, pageWide, markdownRoutes, statuses] =
+    await Promise.all([
+      getNavigationItems(),
+      getPageTitles(),
+      getPageWide(),
+      getMarkdownRoutes(),
+      getPageStatuses()
+    ])
+  const pageStatus = Object.fromEntries(
+    Object.entries(statuses).map(([route, status]) => [
+      route,
+      { status, release: getPageRelease(route) }
+    ])
+  )
 
   return (
     <html lang='en' suppressHydrationWarning>
@@ -144,6 +154,7 @@ export default async function RootLayout({
             markdownTwins={Object.fromEntries(
               markdownRoutes.map((route) => [route, true])
             )}
+            pageStatus={pageStatus}
           >
             {children}
           </DocsNavigator>

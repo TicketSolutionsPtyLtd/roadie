@@ -39,7 +39,27 @@ with its skeleton and the rules on top of these.
 - `description` is one sentence, shown on catalogue cards.
 - A catalogue page adds `category`, one of its catalogue's categories in
   `docs/src/lib/page-manifest.ts`. `order`, `hidden`, `alsoIn`, and `wide`
-  are optional, and component and widget pages add `status`.
+  are optional, and component, chart, and widget pages add `status`.
+
+## Status
+
+`status` says how settled the API a page documents is. Every component and
+chart page sets one, and `scripts/check-component-docs.mjs` fails without it.
+A foundation page that documents a code API, such as Records, may set one.
+Any value other than these four fails the docs build.
+
+| Status       | Means                                                                                                                     | Set it when                                                                                |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `alpha`      | The API can break in a minor release. Pin the version and read the changelog before upgrading.                            | The shape is still moving, such as a new engine or a component its first apps are shaping. |
+| `beta`       | Ready to use while the shape settles. A breaking change can come in a minor release, and the changelog marks it Breaking. | It is new: in the latest release, or not released yet.                                     |
+| `stable`     | Follows semver: a breaking change only comes in a major version.                                                          | It has been on npm for about a month with no breaking change, and apps use it.             |
+| `deprecated` | Being removed. The page says what to use instead.                                                                         | Its replacement has shipped.                                                               |
+
+The layout shows the status under the page title as a badge, with the release
+that added the component and the latest release that changed it, from the
+changelog data in `docs/src/lib/releases.ts`. The navigation shows alpha and
+beta beside the page's title. The manifest gives each component the status of
+the page that documents it.
 
 ## Prose and live examples
 

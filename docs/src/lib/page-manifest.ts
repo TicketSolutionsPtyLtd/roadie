@@ -1,6 +1,8 @@
 import { access, readFile, readdir } from 'fs/promises'
 import { basename, dirname, join, sep } from 'path'
 
+import type { PageStatus } from './status'
+
 export type CatalogueEntry = {
   name: string
   title: string
@@ -8,6 +10,7 @@ export type CatalogueEntry = {
   category: string
   href: string
   order?: number
+  status?: PageStatus
   /** The catalogue route that owns the page, set when this entry lists it elsewhere. */
   crossListedFrom?: string
 }
@@ -147,6 +150,27 @@ export async function readPageMetadata(
   }
 }
 
+// Typed against `PageStatus`, so a status added there must be added here.
+const STATUSES: Record<PageStatus, true> = {
+  alpha: true,
+  beta: true,
+  stable: true,
+  deprecated: true
+}
+
+/** A page's `metadata.status`, or undefined without one. Any other value fails the build. */
+export function parseStatus(
+  value: unknown,
+  where: string
+): PageStatus | undefined {
+  if (value === undefined) return undefined
+  if (typeof value === 'string' && Object.hasOwn(STATUSES, value))
+    return value as PageStatus
+  throw new Error(
+    `${where} has status ${JSON.stringify(value)}. Use one of ${Object.keys(STATUSES).join(', ')}.`
+  )
+}
+
 type Listing = { route: string; entry: CatalogueEntry }
 
 /** A page's listing in its own catalogue, then one per `alsoIn` placement. */
@@ -161,7 +185,8 @@ async function readListings(route: string, name: string): Promise<Listing[]> {
       title: metadata?.title ?? name,
       description: metadata?.description ?? '',
       category: metadata?.category ?? 'Other',
-      order: metadata?.order
+      order: metadata?.order,
+      status: parseStatus(metadata?.status, `${route}/${name}`)
     }
     return [
       { route, entry },
@@ -327,6 +352,39 @@ export async function getPageWide(): Promise<Record<string, boolean>> {
   const wide: Record<string, boolean> = {}
   await walkPageWide(APP_DIR, '/', wide)
   return wide
+}
+
+async function walkPageStatuses(
+  dir: string,
+  route: string,
+  out: Record<string, PageStatus>
+): Promise<void> {
+  for (const file of ['page.mdx', 'page.tsx']) {
+    const metadata = await readPageMetadata(join(dir, file))
+    if (metadata === undefined) continue
+    const status = parseStatus(metadata?.status, route)
+    if (status) out[route] = status
+    break
+  }
+  const entries = await readdir(dir, { withFileTypes: true })
+  await Promise.all(
+    entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) =>
+        walkPageStatuses(
+          join(dir, entry.name),
+          `${route === '/' ? '' : route}/${entry.name}`,
+          out
+        )
+      )
+  )
+}
+
+/** Route → `metadata.status` for every page that sets one. */
+export async function getPageStatuses(): Promise<Record<string, PageStatus>> {
+  const statuses: Record<string, PageStatus> = {}
+  await walkPageStatuses(APP_DIR, '/', statuses)
+  return statuses
 }
 
 const generatesTwin = (metadata: PageMetadata | null | undefined) =>

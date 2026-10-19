@@ -7,6 +7,9 @@ import {
   classify,
   groupReleases,
   linkPages,
+  pageCreatedDates,
+  pagePackages,
+  pageRelease,
   parseChangelog,
   parseChangeset,
   pendingChanges,
@@ -488,5 +491,181 @@ describe('groupReleases across packages', () => {
       index
     )
     expect(release?.changes.map(({ kind }) => kind)).toEqual(['new'])
+  })
+})
+
+describe('breaking changes', () => {
+  it.each([
+    ['major', 'Rename `tone` to `intent`.', true],
+    ['minor', '**Breaking:** `RecordTable` takes `view`, not `query`.', true],
+    ['minor', 'Add `Avatar`.\n\nA breaking note further down.', false],
+    ['minor', 'Add `Avatar`.', false]
+  ] as const)(
+    'a %s change reading "%s" is breaking: %s',
+    (bump, text, breaking) => {
+      expect(
+        pendingChanges(
+          [{ id: 'x', bumps: { '@oztix/roadie-components': bump }, text }],
+          index
+        ).changes[0]?.breaking
+      ).toBe(breaking)
+    }
+  )
+})
+
+describe('pageRelease', () => {
+  const history = {
+    releases: groupReleases(
+      [
+        {
+          name: '@oztix/roadie-components',
+          versions: parseChangelog(
+            [
+              '## 2.15.0',
+              '### Minor Changes',
+              '- a1: `Avatar` now takes `shape`.',
+              '## 2.14.0',
+              '### Minor Changes',
+              '- b2: Add `Callout`.',
+              '## 2.13.0',
+              '### Minor Changes',
+              '- c3: Add `Avatar`.'
+            ].join('\n\n')
+          ),
+          commits: new Map([
+            ['2.15.0', { hash: 'x', date: '2026-09-28', time: 30 }],
+            ['2.14.0', { hash: 'y', date: '2026-09-24', time: 20 }],
+            ['2.13.0', { hash: 'z', date: '2026-09-22', time: 10 }]
+          ])
+        }
+      ],
+      index
+    ),
+    unreleased: pendingChanges(
+      [
+        {
+          id: 'callout',
+          bumps: { '@oztix/roadie-components': 'patch' },
+          text: '`Callout` wraps long titles.'
+        }
+      ],
+      index
+    )
+  }
+  const components = { packageName: '@oztix/roadie-components' }
+
+  it('adds a page in the first release that names it, and updates it in the newest', () => {
+    expect(pageRelease('/components/avatar', history, components)).toEqual({
+      added: {
+        label: 'Components',
+        version: '2.13.0',
+        date: '2026-09-22',
+        id: 'release-2026-09-22'
+      },
+      updated: {
+        label: 'Components',
+        version: '2.15.0',
+        date: '2026-09-28',
+        id: 'release-2026-09-28'
+      },
+      upcoming: false
+    })
+  })
+
+  it('takes the first release of its package after the page was created when that is earlier', () => {
+    const { added } = pageRelease('/components/avatar', history, {
+      ...components,
+      created: '2026-09-23'
+    })
+    expect(added).toMatchObject({ version: '2.13.0' })
+    const { added: fromDate } = pageRelease('/components/button', history, {
+      ...components,
+      created: '2026-09-23'
+    })
+    expect(fromDate).toMatchObject({ version: '2.14.0' })
+  })
+
+  it('leaves out updated when it is the release that added the page, and flags a pending change', () => {
+    expect(pageRelease('/components/callout', history, components)).toEqual({
+      added: expect.objectContaining({ version: '2.14.0' }),
+      updated: null,
+      upcoming: true
+    })
+  })
+
+  it('says unreleased for a page created after the last release, and nothing without history', () => {
+    expect(
+      pageRelease('/components/button', history, {
+        ...components,
+        created: '2026-10-01'
+      }).added
+    ).toBe('unreleased')
+    expect(pageRelease('/components/button', history, components)).toEqual({
+      added: null,
+      updated: null,
+      upcoming: false
+    })
+  })
+})
+
+describe('pageCreatedDates', () => {
+  it('dates each page route by the oldest commit that added its page file', () => {
+    const log = [
+      '\x1e2026-10-01',
+      '',
+      'docs/src/app/components/kbd/page.mdx',
+      'docs/src/app/components/kbd/notes.ts',
+      '\x1e2026-04-08',
+      '',
+      'docs/src/app/components/button/page.mdx',
+      '\x1e2025-01-03',
+      '',
+      'docs/src/app/components/button/page.tsx',
+      'docs/src/app/page.tsx'
+    ].join('\n')
+    expect(Object.fromEntries(pageCreatedDates(log))).toEqual({
+      '/components/kbd': '2026-10-01',
+      '/components/button': '2025-01-03',
+      '/': '2025-01-03'
+    })
+  })
+})
+
+describe('pagePackages', () => {
+  it('gives each docs route the package of the first component it documents', () => {
+    expect(
+      Object.fromEntries(
+        pagePackages([
+          {
+            package: '@oztix/roadie-components',
+            components: [
+              {
+                name: 'StatTile',
+                import: '@oztix/roadie-components/stat-tile',
+                docs: 'https://ticketsolutionsptyltd.github.io/roadie/charts/stat-tile/'
+              },
+              {
+                name: 'RequiredIndicator',
+                import: '@oztix/roadie-components/field',
+                docs: 'https://ticketsolutionsptyltd.github.io/roadie/components/field/#with-indicators'
+              }
+            ]
+          },
+          {
+            package: '@oztix/roadie-charts',
+            components: [
+              {
+                name: 'StatTileChart',
+                import: '@oztix/roadie-charts/x',
+                docs: 'https://ticketsolutionsptyltd.github.io/roadie/charts/stat-tile/'
+              }
+            ]
+          }
+        ])
+      )
+    ).toEqual({
+      '/charts/stat-tile': '@oztix/roadie-components',
+      '/components/field': '@oztix/roadie-components'
+    })
   })
 })

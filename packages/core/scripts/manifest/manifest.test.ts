@@ -152,11 +152,41 @@ describe('buildManifest', () => {
     ])
   })
 
-  it('links a component documented elsewhere, by name or by import path', () => {
+  it("links a component documented elsewhere, by name or by import path, with that page's status", () => {
     expect(manifest.components.find((c) => c.name === 'Tag')).toMatchObject({
       import: '@fixture/ui/pill',
-      docs: 'https://example.com/docs/components/pill/'
+      docs: 'https://example.com/docs/components/pill/',
+      status: 'beta'
     })
+  })
+
+  it('gives a subpath the docs page and status it is documented on', () => {
+    const { exports } = buildManifest({
+      ...options,
+      documentedSubpaths: {
+        '@fixture/ui/theme': '/components/pill/',
+        '@fixture/ui/css': '/overview/setup/#providers'
+      }
+    })
+    expect(exports.find((e) => e.subpath === './theme')).toMatchObject({
+      docs: 'https://example.com/docs/components/pill/',
+      status: 'beta'
+    })
+    expect(exports.find((e) => e.subpath === './css')).toEqual({
+      subpath: './css',
+      import: '@fixture/ui/css',
+      kind: 'css',
+      docs: 'https://example.com/docs/overview/setup/#providers'
+    })
+  })
+
+  it('fails when a documented subpath is not exported', () => {
+    expect(() =>
+      buildManifest({
+        ...options,
+        documentedSubpaths: { '@fixture/ui/gone': '/components/pill/' }
+      })
+    ).toThrow('documentedSubpaths: @fixture/ui/gone is not exported')
   })
 
   it.each([
