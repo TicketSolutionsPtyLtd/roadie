@@ -48,8 +48,7 @@ const notInStarterKit = {
   code: false,
   codeBlock: false,
   link: false,
-  strike: false,
-  underline: false
+  strike: false
 } as const
 
 // Each name and attribute these extensions produce is saved in `EditorValue`,

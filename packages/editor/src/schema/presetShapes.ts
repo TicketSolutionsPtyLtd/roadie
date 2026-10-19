@@ -27,7 +27,12 @@ const basicNodes = {
   listItem: { content: 'paragraphFirst' }
 } as const satisfies Record<string, NodeShape>
 
-const marks = { bold: [], italic: [], link: ['href'] } as const
+const marks = {
+  bold: [],
+  italic: [],
+  underline: [],
+  link: ['href']
+} as const
 
 // Mirrors each preset's Tiptap schema without loading Tiptap, so `migrate`
 // runs anywhere; presets.test.ts keeps the two in step.

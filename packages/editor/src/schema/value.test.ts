@@ -105,6 +105,60 @@ describe('migrate and links', () => {
   })
 })
 
+describe('migrate and underline', () => {
+  it.each([['basic'], ['rich']])(
+    'keeps underlined text in a %s value',
+    (preset) => {
+      const doc = {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                marks: [{ type: 'bold' }, { type: 'underline' }],
+                text: 'No refunds'
+              }
+            ]
+          }
+        ]
+      }
+
+      expect(migrate({ version: 1, preset, doc }).doc).toEqual(doc)
+    }
+  )
+
+  it('keeps the first underline and none of its attrs', () => {
+    const value = {
+      version: 1,
+      preset: 'basic',
+      doc: {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                marks: [
+                  { type: 'underline', attrs: { style: 'color: red' } },
+                  { type: 'underline' }
+                ],
+                text: 'No refunds'
+              }
+            ]
+          }
+        ]
+      }
+    }
+
+    expect(migrate(value).doc.content?.[0]?.content).toEqual([
+      { type: 'text', marks: [{ type: 'underline' }], text: 'No refunds' }
+    ])
+  })
+})
+
 describe('createEmptyValue', () => {
   it('starts a basic value at the current version with one empty paragraph', () => {
     expect(createEmptyValue('basic')).toEqual({
@@ -546,6 +600,17 @@ describe('migrate and nodes or marks outside the preset', () => {
         {
           type: 'paragraph',
           content: [textOf('Doors', [{ type: 'bold' }, { type: 'bold' }])]
+        }
+      ]
+    ],
+    [
+      'an underline twice',
+      [
+        {
+          type: 'paragraph',
+          content: [
+            textOf('Doors', [{ type: 'underline' }, { type: 'underline' }])
+          ]
         }
       ]
     ],

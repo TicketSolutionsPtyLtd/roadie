@@ -9,7 +9,7 @@ has no React and runs on a server. `EditorValue` is
 node and mark names.
 
 - `presets.basic` holds paragraphs, hard breaks, bulleted and numbered lists,
-  bold, italic, and links. A saved link holds only its `href`, and any `href`
+  bold, italic, underline (`underline`), and links. A saved link holds only its `href`, and any `href`
   that `isUnsafeHref` flags is refused.
 - `presets.rich` adds headings 2 to 4 (`heading`, saving only `level`), quotes
   (`blockquote`), dividers (`horizontalRule`), images (`image`, saving only

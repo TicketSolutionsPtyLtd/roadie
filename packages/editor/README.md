@@ -41,7 +41,7 @@ const description: EditorValue = {
   package writes.
 - `preset` names the set of nodes and marks the document may hold.
   `presets.basic` has paragraphs, hard breaks, bulleted and numbered lists,
-  bold, italic, and links. A link saves only its `href`. `presets.rich` adds
+  bold, italic, underline (`underline`), and links. A link saves only its `href`. `presets.rich` adds
   headings 2 to 4 (`heading`, saving only `level`), quotes (`blockquote`),
   dividers (`horizontalRule`), images (`image`, saving only `src` and
   `alt`), and embeds (`embed`, saving only `provider`, `id`, and `params`).

@@ -17,6 +17,8 @@ const eventDescription: JSONContent = {
         { type: 'hardBreak' },
         { type: 'text', marks: [{ type: 'italic' }], text: 'All ages.' },
         { type: 'text', text: ' ' },
+        { type: 'text', marks: [{ type: 'underline' }], text: 'No refunds.' },
+        { type: 'text', text: ' ' },
         {
           type: 'text',
           marks: [
@@ -75,11 +77,20 @@ describe('presets.basic', () => {
       'paragraph',
       'text'
     ])
-    expect(Object.keys(schema.marks).sort()).toEqual(['bold', 'italic', 'link'])
+    expect(Object.keys(schema.marks).sort()).toEqual([
+      'bold',
+      'italic',
+      'link',
+      'underline'
+    ])
   })
 
   it('saves only the href of a link', () => {
     expect(Object.keys(schema.marks.link!.spec.attrs ?? {})).toEqual(['href'])
+  })
+
+  it('saves an underline with no attrs', () => {
+    expect(schema.marks.underline!.spec.attrs ?? {}).toEqual({})
   })
 
   it('reads an event description saved in the basic marks, links and lists', () => {
@@ -128,7 +139,12 @@ describe('presets.rich', () => {
       'paragraph',
       'text'
     ])
-    expect(Object.keys(rich.marks).sort()).toEqual(['bold', 'italic', 'link'])
+    expect(Object.keys(rich.marks).sort()).toEqual([
+      'bold',
+      'italic',
+      'link',
+      'underline'
+    ])
   })
 
   it('saves only the level of a heading', () => {
