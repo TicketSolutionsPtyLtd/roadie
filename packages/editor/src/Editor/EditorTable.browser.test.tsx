@@ -464,6 +464,22 @@ describe('Editor tables', () => {
     expect(doc.content!.map((node) => node.type)).not.toContain('bulletList')
   })
 
+  it('hides the table actions when the editor turns read-only from them', async () => {
+    const { rerender } = render(<TableEditor defaultValue={setTimes} />)
+    await clickCell('9pm')
+    const toolbar = await tableActions()
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    expect(toolbar).toContainElement(document.activeElement as HTMLElement)
+
+    rerender(<TableEditor defaultValue={setTimes} readOnly />)
+
+    await waitFor(() =>
+      expect(screen.queryByRole('toolbar', { name: 'Table actions' })).toBe(
+        null
+      )
+    )
+  })
+
   it('shows the table actions only once focus is in the editor', async () => {
     const probe: ReturnType<typeof useEditorContext> = { editor: null }
     function Probe() {

@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useRef, useState } from 'react'
+import { type RefObject, useEffect, useRef, useState } from 'react'
 
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 import { BubbleMenu, type BubbleMenuProps } from '@tiptap/react/menus'
@@ -26,8 +26,8 @@ function tableBox(editor: TiptapEditor) {
   }
 }
 
+// A read-only view can't take focus, so focus also keeps these off then.
 const shouldShow: BubbleMenuProps['shouldShow'] = ({ view, state, element }) =>
-  view.editable &&
   selectedTable(state) !== undefined &&
   (view.hasFocus() || element.contains(document.activeElement))
 
@@ -55,11 +55,23 @@ export function EditorTableToolbar({
         ? tableControls.map((item) => stateOf(item, current))
         : undefined
   })
+  const editable = useEditorState({
+    editor,
+    selector: ({ editor: current }) => current.isEditable
+  })
   const menuRef = useRef<HTMLDivElement>(null)
   // The toolbar mounts once the plugin has put the menu in the page, as one
   // mounted while it's detached can't order its buttons, so none roves.
   const [shown, setShown] = useState(false)
   useRepositionOnResize(editor, menuRef, PLUGIN_KEY)
+  // The plugin asks shouldShow only when the selection or doc changes, so
+  // turning read-only with focus in these actions would leave them up.
+  useEffect(() => {
+    if (editable || editor.isDestroyed) return
+    editor.view.dispatch(
+      editor.state.tr.setMeta(PLUGIN_KEY, 'hide').setMeta('addToHistory', false)
+    )
+  }, [editor, editable])
   // Kept inside the content, so over a table that comes first it drops below
   // rather than over the Formatting toolbar. Read on each placement, as the
   // view mounts after this renders.
