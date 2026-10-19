@@ -23,7 +23,11 @@ import {
 } from './controls'
 import { EDITOR_TOOLBAR_ROOM, EDITOR_TOOLBAR_SIZE } from './variants'
 
-type ControlState = { pressed: boolean; enabled: boolean; current?: string }
+export type ControlState = {
+  pressed: boolean
+  enabled: boolean
+  current?: string
+}
 
 export function stateOf(item: EditorToolbarItem, editor: TiptapEditor) {
   if (item === SEPARATOR) return undefined

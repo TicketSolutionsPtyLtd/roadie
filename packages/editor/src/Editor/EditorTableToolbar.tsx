@@ -2,14 +2,22 @@
 
 import { type RefObject, useEffect, useRef, useState } from 'react'
 
+import { CaretDownIcon } from '@phosphor-icons/react'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 import { BubbleMenu, type BubbleMenuProps } from '@tiptap/react/menus'
 
+import { Menu } from '@oztix/roadie-components/menu'
 import { Toolbar } from '@oztix/roadie-components/toolbar'
 
 import { useRepositionOnResize } from './EditorNodeToolbar'
-import { Control, stateOf } from './EditorToolbarEngine'
-import { type EditorControlUi, SEPARATOR, tableControls } from './controls'
+import { Control, type ControlState, stateOf } from './EditorToolbarEngine'
+import {
+  type EditorControlUi,
+  type EditorTableItem,
+  type EditorTableMenu,
+  SEPARATOR,
+  tableControls
+} from './controls'
 import { selectedTable } from './table'
 import { EDITOR_TOOLBAR_SIZE, type EditorSize } from './variants'
 
@@ -35,6 +43,57 @@ function tableBox(editor: TiptapEditor) {
   if (!element) return null
   const rect = () => visibleRect(element, scroller)
   return { getBoundingClientRect: rect, getClientRects: () => [rect()] }
+}
+
+function stateOfItem(item: EditorTableItem, editor: TiptapEditor) {
+  if (item !== SEPARATOR && 'kind' in item) {
+    return item.items.map((action) => stateOf(action, editor))
+  }
+  return stateOf(item, editor)
+}
+
+type TableMenuProps = {
+  menu: EditorTableMenu
+  states: readonly (ControlState | undefined)[]
+  editor: TiptapEditor
+  ui: EditorControlUi
+}
+
+function TableMenu({ menu, states, editor, ui }: TableMenuProps) {
+  return (
+    <Menu>
+      <Menu.Trigger
+        render={
+          <Toolbar.Button>
+            {menu.label}
+            <CaretDownIcon weight='bold' className='size-4' aria-hidden />
+          </Toolbar.Button>
+        }
+      />
+      <Menu.Content
+        finalFocus={() => {
+          editor.commands.focus()
+          return false
+        }}
+      >
+        {menu.items.map((item, index) => {
+          if (item === SEPARATOR) return <Menu.Separator key={index} />
+          const Icon = item.icon
+          return (
+            <Menu.Item
+              key={item.label}
+              icon={<Icon weight='bold' />}
+              intent={item.intent}
+              disabled={!states[index]?.enabled}
+              onClick={() => item.run(editor, ui)}
+            >
+              {item.label}
+            </Menu.Item>
+          )
+        })}
+      </Menu.Content>
+    </Menu>
+  )
 }
 
 // A read-only view can't take focus, so focus also keeps these off then.
@@ -63,7 +122,7 @@ export function EditorTableToolbar({
     editor,
     selector: ({ editor: current }) =>
       selectedTable(current.state)
-        ? tableControls.map((item) => stateOf(item, current))
+        ? tableControls.map((item) => stateOfItem(item, current))
         : undefined
   })
   const editable = useEditorState({
@@ -126,19 +185,30 @@ export function EditorTableToolbar({
             if (event.key === 'Escape') editor.commands.focus()
           }}
         >
-          {tableControls.map((item, index) =>
-            item === SEPARATOR ? (
-              <Toolbar.Separator key={index} />
-            ) : (
+          {tableControls.map((item, index) => {
+            const state = states[index]
+            if (item === SEPARATOR) return <Toolbar.Separator key={index} />
+            if ('kind' in item) {
+              return (
+                <TableMenu
+                  key={item.label}
+                  menu={item}
+                  states={Array.isArray(state) ? state : []}
+                  editor={editor}
+                  ui={ui}
+                />
+              )
+            }
+            return (
               <Control
                 key={item.label}
                 control={item}
-                state={states[index]}
+                state={Array.isArray(state) ? undefined : state}
                 editor={editor}
                 ui={ui}
               />
             )
-          )}
+          })}
         </Toolbar>
       ) : null}
     </BubbleMenu>

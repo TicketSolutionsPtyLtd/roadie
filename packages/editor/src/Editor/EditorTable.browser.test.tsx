@@ -89,6 +89,32 @@ async function tableActions() {
   return screen.findByRole('toolbar', { name: 'Table actions' })
 }
 
+// A toolbar button, or a menu's trigger and the item to pick from it.
+type Action = readonly [string] | readonly ['Row' | 'Column', string]
+
+async function openMenu(name: 'Row' | 'Column') {
+  const toolbar = await tableActions()
+  await userEvent.click(within(toolbar).getByRole('button', { name }))
+  return screen.findByRole('menu')
+}
+
+async function runAction(action: Action) {
+  if (action.length === 1) {
+    const toolbar = await tableActions()
+    await userEvent.click(
+      within(toolbar).getByRole('button', { name: action[0] })
+    )
+    return
+  }
+  const menu = await openMenu(action[0])
+  await userEvent.click(within(menu).getByRole('menuitem', { name: action[1] }))
+}
+
+const labelOf = (item: Element) =>
+  item.getAttribute('role') === 'separator'
+    ? '|'
+    : (item.getAttribute('aria-label') ?? item.textContent)
+
 describe('Editor tables', () => {
   it('inserts a 3 by 3 table with a header row from the Table control', async () => {
     const onValueChange = vi.fn()
@@ -159,24 +185,8 @@ describe('Editor tables', () => {
     const toolbar = await tableActions()
     await waitFor(() => expect(toolbar).toBeVisible())
     expect(
-      [...toolbar.querySelectorAll('button, [role="separator"]')].map((item) =>
-        item.getAttribute('role') === 'separator'
-          ? '|'
-          : item.getAttribute('aria-label')
-      )
-    ).toEqual([
-      'Add row above',
-      'Add row below',
-      'Add column before',
-      'Add column after',
-      '|',
-      'Delete row',
-      'Delete column',
-      '|',
-      'Header row',
-      '|',
-      'Delete table'
-    ])
+      [...toolbar.querySelectorAll('button, [role="separator"]')].map(labelOf)
+    ).toEqual(['Row', 'Column', '|', 'Header row', '|', 'Delete table'])
 
     await userEvent.click(within(textbox).getByText('Sold out'))
     await waitFor(() =>
@@ -186,9 +196,29 @@ describe('Editor tables', () => {
     )
   })
 
-  it.each<[string, string[][]]>([
+  it.each<['Row' | 'Column', string[]]>([
+    ['Row', ['Insert above', 'Insert below', '|', 'Delete row']],
+    ['Column', ['Insert before', 'Insert after', '|', 'Delete column']]
+  ])('lists the %s actions, deleting last', async (menuName, expected) => {
+    render(<TableEditor defaultValue={setTimes} />)
+    await clickCell('9pm')
+
+    const menu = await openMenu(menuName)
+
+    expect(
+      [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
+        labelOf
+      )
+    ).toEqual(expected)
+    const remove = within(menu).getByRole('menuitem', { name: expected.at(-1) })
+    expect(getComputedStyle(remove).color).not.toBe(
+      getComputedStyle(within(menu).getAllByRole('menuitem')[0]!).color
+    )
+  })
+
+  it.each<[Action, string[][]]>([
     [
-      'Add row above',
+      ['Row', 'Insert above'],
       [
         ['th:Time', 'th:Act'],
         ['td:', 'td:'],
@@ -196,7 +226,7 @@ describe('Editor tables', () => {
       ]
     ],
     [
-      'Add row below',
+      ['Row', 'Insert below'],
       [
         ['th:Time', 'th:Act'],
         ['td:9pm', 'td:Ochre Kite'],
@@ -204,37 +234,39 @@ describe('Editor tables', () => {
       ]
     ],
     [
-      'Add column before',
+      ['Column', 'Insert before'],
       [
         ['th:', 'th:Time', 'th:Act'],
         ['td:', 'td:9pm', 'td:Ochre Kite']
       ]
     ],
     [
-      'Add column after',
+      ['Column', 'Insert after'],
       [
         ['th:Time', 'th:', 'th:Act'],
         ['td:9pm', 'td:', 'td:Ochre Kite']
       ]
     ],
-    ['Delete row', [['th:Time', 'th:Act']]],
-    ['Delete column', [['th:Act'], ['td:Ochre Kite']]],
+    [['Row', 'Delete row'], [['th:Time', 'th:Act']]],
     [
-      'Header row',
+      ['Column', 'Delete column'],
+      [['th:Act'], ['td:Ochre Kite']]
+    ],
+    [
+      ['Header row'],
       [
         ['td:Time', 'td:Act'],
         ['td:9pm', 'td:Ochre Kite']
       ]
     ]
-  ])('changes the table with %s', async (name, expected) => {
+  ])('changes the table with %s', async (action, expected) => {
     const onValueChange = vi.fn()
     render(
       <TableEditor defaultValue={setTimes} onValueChange={onValueChange} />
     )
     await clickCell('9pm')
-    const toolbar = await tableActions()
 
-    await userEvent.click(within(toolbar).getByRole('button', { name }))
+    await runAction(action)
 
     await waitFor(() =>
       expect(grid(tableIn(lastValue(onValueChange)))).toEqual(expected)
@@ -255,80 +287,120 @@ describe('Editor tables', () => {
     expect(within(textbox).getByText('Time').closest('td')).not.toBe(null)
   })
 
-  it('turns Delete row off in a table of one row', async () => {
-    render(<TableEditor defaultValue={setTimes} />)
-    await clickCell('9pm')
-    const toolbar = await tableActions()
-    await userEvent.click(
-      within(toolbar).getByRole('button', { name: 'Delete row' })
-    )
-
-    await waitFor(() =>
-      expect(
-        within(toolbar).getByRole('button', { name: 'Delete row' })
-      ).toHaveAttribute('aria-disabled', 'true')
-    )
-  })
-
-  it('turns Delete column off in a table of one column', async () => {
-    render(<TableEditor defaultValue={setTimes} />)
-    await clickCell('9pm')
-    const toolbar = await tableActions()
-    await userEvent.click(
-      within(toolbar).getByRole('button', { name: 'Delete column' })
-    )
-
-    await waitFor(() =>
-      expect(
-        within(toolbar).getByRole('button', { name: 'Delete column' })
-      ).toHaveAttribute('aria-disabled', 'true')
-    )
-  })
-
-  it.each([
-    ['the first row and column', 'Time'],
-    ['the last row and column', 'Ochre Kite']
+  it.each<['Row' | 'Column', string, string]>([
+    ['Row', 'Delete row', 'Insert above'],
+    ['Column', 'Delete column', 'Insert before']
   ])(
-    'keeps Delete row and Delete column on with the caret in %s',
-    async (_, text) => {
+    'turns %s > %s off when it would delete the last one',
+    async (menuName, remove, insert) => {
       render(<TableEditor defaultValue={setTimes} />)
-      await clickCell(text)
-      const toolbar = await tableActions()
+      await clickCell('9pm')
+      await runAction([menuName, remove])
+      await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
 
-      for (const name of ['Delete row', 'Delete column']) {
-        await waitFor(() =>
-          expect(within(toolbar).getByRole('button', { name })).toHaveAttribute(
-            'aria-disabled',
-            'false'
-          )
-        )
-      }
+      const menu = await openMenu(menuName)
+
+      await waitFor(() =>
+        expect(
+          within(menu).getByRole('menuitem', { name: remove })
+        ).toHaveAttribute('aria-disabled', 'true')
+      )
+      expect(
+        within(menu).getByRole('menuitem', { name: insert })
+      ).not.toHaveAttribute('aria-disabled', 'true')
     }
   )
 
-  it.each([
-    ['Add row above'],
-    ['Add row below'],
-    ['Add column before'],
-    ['Add column after'],
-    ['Delete row'],
-    ['Delete column'],
-    ['Header row'],
-    ['Delete table']
-  ])('undoes %s', async (name) => {
+  it.each<['Row' | 'Column', string, string, string]>([
+    ['Row', 'Delete row', 'the first row', 'Time'],
+    ['Column', 'Delete column', 'the first column', 'Time'],
+    ['Row', 'Delete row', 'the last row', 'Ochre Kite'],
+    ['Column', 'Delete column', 'the last column', 'Ochre Kite']
+  ])(
+    'keeps %s > %s on with the caret in %s',
+    async (menuName, remove, _, text) => {
+      render(<TableEditor defaultValue={setTimes} />)
+      await clickCell(text)
+
+      const menu = await openMenu(menuName)
+
+      expect(
+        within(menu).getByRole('menuitem', { name: remove })
+      ).not.toHaveAttribute('aria-disabled', 'true')
+    }
+  )
+
+  it('closes a menu once an item is picked, with focus back in the cell', async () => {
     const onValueChange = vi.fn()
     render(
       <TableEditor defaultValue={setTimes} onValueChange={onValueChange} />
     )
-    await clickCell('9pm')
+    const textbox = await clickCell('9pm')
+
+    await runAction(['Row', 'Insert below'])
+
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    await waitFor(() => expect(textbox).toHaveFocus())
+    await userEvent.keyboard('10pm')
+    await waitFor(() =>
+      expect(grid(tableIn(lastValue(onValueChange)))).toEqual([
+        ['th:Time', 'th:Act'],
+        ['td:9pm10pm', 'td:Ochre Kite'],
+        ['td:', 'td:']
+      ])
+    )
+  })
+
+  it('closes a menu with Escape, with focus back in the cell', async () => {
+    render(<TableEditor defaultValue={setTimes} />)
+    const textbox = await clickCell('9pm')
+    const toolbar = await tableActions()
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}{Enter}')
+    const menu = await screen.findByRole('menu')
+    await waitFor(() =>
+      expect(menu).toContainElement(document.activeElement as HTMLElement)
+    )
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    await waitFor(() => expect(textbox).toHaveFocus())
+    expect(toolbar).toBeVisible()
+  })
+
+  it('closes a menu with a press outside it, with focus back in the cell', async () => {
+    render(<TableEditor defaultValue={setTimes} />)
+    const textbox = await clickCell('9pm')
+    await openMenu('Column')
+
+    await userEvent.click(document.body, { position: { x: 1, y: 1 } })
+
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    await waitFor(() => expect(textbox).toHaveFocus())
+  })
+
+  it.each<[Action]>([
+    [['Row', 'Insert above']],
+    [['Row', 'Insert below']],
+    [['Column', 'Insert before']],
+    [['Column', 'Insert after']],
+    [['Row', 'Delete row']],
+    [['Column', 'Delete column']],
+    [['Header row']],
+    [['Delete table']]
+  ])('undoes %s', async (action) => {
+    const onValueChange = vi.fn()
+    render(
+      <TableEditor defaultValue={setTimes} onValueChange={onValueChange} />
+    )
+    const textbox = await clickCell('9pm')
     const before = grid(tableIn(setTimes))
 
-    await userEvent.click(
-      within(await tableActions()).getByRole('button', { name })
-    )
+    await runAction(action)
     await waitFor(() =>
       expect(grid(tableIn(lastValue(onValueChange)))).not.toEqual(before)
     )
+    await waitFor(() => expect(textbox).toHaveFocus())
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 
     await waitFor(() =>
@@ -343,9 +415,7 @@ describe('Editor tables', () => {
     )
     const textbox = await clickCell('9pm')
 
-    await userEvent.click(
-      within(await tableActions()).getByRole('button', { name: 'Delete table' })
-    )
+    await runAction(['Delete table'])
 
     await waitFor(() => expect(textbox.querySelector('table')).toBe(null))
     expect(tableIn(lastValue(onValueChange))).toBe(undefined)
@@ -362,9 +432,7 @@ describe('Editor tables', () => {
     const toolbar = await tableActions()
 
     await userEvent.keyboard('{Alt>}{F10}{/Alt}')
-    expect(
-      within(toolbar).getByRole('button', { name: 'Add row above' })
-    ).toHaveFocus()
+    expect(within(toolbar).getByRole('button', { name: 'Row' })).toHaveFocus()
 
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(textbox).toHaveFocus())
@@ -376,9 +444,17 @@ describe('Editor tables', () => {
     const toolbar = await tableActions()
 
     await userEvent.keyboard('{Alt>}{F10}{/Alt}{ArrowRight}')
+    expect(
+      within(toolbar).getByRole('button', { name: 'Column' })
+    ).toHaveFocus()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(
+      within(toolbar).getByRole('button', { name: 'Header row' })
+    ).toHaveFocus()
+    await userEvent.keyboard('{ArrowRight}')
 
     expect(
-      within(toolbar).getByRole('button', { name: 'Add row below' })
+      within(toolbar).getByRole('button', { name: 'Delete table' })
     ).toHaveFocus()
     expect(
       within(toolbar)
@@ -612,11 +688,15 @@ describe('Editor tables', () => {
     const textbox = await screen.findByRole('textbox', { name: LABEL })
     await userEvent.click(textbox)
     await userEvent.click(screen.getByRole('button', { name: 'Table' }))
-    const toolbar = await tableActions()
+    await tableActions()
 
-    for (const name of ['Add column after', 'Add row below', 'Header row']) {
-      await userEvent.click(within(toolbar).getByRole('button', { name }))
-    }
+    const actions: Action[] = [
+      ['Column', 'Insert after'],
+      ['Row', 'Insert below'],
+      ['Header row']
+    ]
+    for (const action of actions) await runAction(action)
+    await waitFor(() => expect(textbox).toHaveFocus())
     await userEvent.keyboard('Doors')
 
     await waitFor(() =>

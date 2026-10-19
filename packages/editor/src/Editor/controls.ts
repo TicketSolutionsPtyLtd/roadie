@@ -2,7 +2,6 @@ import type { Icon } from '@phosphor-icons/react'
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
-  ColumnsIcon,
   ColumnsPlusLeftIcon,
   ColumnsPlusRightIcon,
   FilmStripIcon,
@@ -12,7 +11,6 @@ import {
   ListNumbersIcon,
   MinusIcon,
   PencilSimpleIcon,
-  RowsIcon,
   RowsPlusBottomIcon,
   RowsPlusTopIcon,
   SquareSplitVerticalIcon,
@@ -300,19 +298,56 @@ const headerRow: EditorControl = {
   pressed: (editor) => hasHeaderRow(editor.state)
 }
 
+/** A menu item, in the danger intent when it deletes. */
+export type EditorTableAction = EditorControl & { intent?: 'danger' }
+
+/** A toolbar button that opens a menu of a row's or a column's actions. */
+export type EditorTableMenu = {
+  kind: 'tableMenu'
+  label: string
+  items: readonly (EditorTableAction | typeof SEPARATOR)[]
+}
+
+export type EditorTableItem = EditorControl | EditorTableMenu | typeof SEPARATOR
+
+// Phosphor has no remove-row or remove-column icon, so these delete from a
+// labelled menu rather than an icon button.
+const rowMenu: EditorTableMenu = {
+  kind: 'tableMenu',
+  label: 'Row',
+  items: [
+    tableAction('Insert above', RowsPlusTopIcon, 'addRowBefore'),
+    tableAction('Insert below', RowsPlusBottomIcon, 'addRowAfter'),
+    SEPARATOR,
+    {
+      ...tableAction('Delete row', TrashIcon, 'deleteRow', ({ state }) =>
+        leavesARow(state)
+      ),
+      intent: 'danger'
+    }
+  ]
+}
+
+const columnMenu: EditorTableMenu = {
+  kind: 'tableMenu',
+  label: 'Column',
+  items: [
+    tableAction('Insert before', ColumnsPlusLeftIcon, 'addColumnBefore'),
+    tableAction('Insert after', ColumnsPlusRightIcon, 'addColumnAfter'),
+    SEPARATOR,
+    {
+      ...tableAction('Delete column', TrashIcon, 'deleteColumn', ({ state }) =>
+        leavesAColumn(state)
+      ),
+      intent: 'danger'
+    }
+  ]
+}
+
 /** The actions in the toolbar of the table holding the selection. */
-export const tableControls: readonly (EditorControl | typeof SEPARATOR)[] = [
-  tableAction('Add row above', RowsPlusTopIcon, 'addRowBefore'),
-  tableAction('Add row below', RowsPlusBottomIcon, 'addRowAfter'),
-  tableAction('Add column before', ColumnsPlusLeftIcon, 'addColumnBefore'),
-  tableAction('Add column after', ColumnsPlusRightIcon, 'addColumnAfter'),
-  SEPARATOR,
-  tableAction('Delete row', RowsIcon, 'deleteRow', ({ state }) =>
-    leavesARow(state)
-  ),
-  tableAction('Delete column', ColumnsIcon, 'deleteColumn', ({ state }) =>
-    leavesAColumn(state)
-  ),
+export const tableControls: readonly EditorTableItem[] = [
+  rowMenu,
+  columnMenu,
   SEPARATOR,
   headerRow,
   SEPARATOR,
