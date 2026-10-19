@@ -282,6 +282,23 @@ describe('Editor tables', () => {
     await waitFor(() => expect(textbox).toHaveFocus())
   })
 
+  it('roves the table actions with the arrow keys the first time they show', async () => {
+    render(<TableEditor defaultValue={setTimes} />)
+    await clickCell('9pm')
+    const toolbar = await tableActions()
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}{ArrowRight}')
+
+    expect(
+      within(toolbar).getByRole('button', { name: 'Add row below' })
+    ).toHaveFocus()
+    expect(
+      within(toolbar)
+        .getAllByRole('button')
+        .filter((button) => button.tabIndex === 0)
+    ).toHaveLength(1)
+  })
+
   it.each<[string, Partial<EditorProps>]>([
     ['read-only', { readOnly: true }],
     ['disabled', { disabled: true }]

@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useRef } from 'react'
+import { type RefObject, useRef, useState } from 'react'
 
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 import { BubbleMenu, type BubbleMenuProps } from '@tiptap/react/menus'
@@ -53,12 +53,19 @@ export function EditorTableToolbar({
         : undefined
   })
   const menuRef = useRef<HTMLDivElement>(null)
+  // The toolbar mounts once the plugin has put the menu in the page, as one
+  // mounted while it's detached can't order its buttons, so none roves.
+  const [shown, setShown] = useState(false)
   useRepositionOnResize(editor, menuRef, PLUGIN_KEY)
   const floating = {
     placement: 'top-end',
     offset: 4,
-    // The plugin makes its element a tab stop; the toolbar inside is the one.
-    onShow: () => menuRef.current?.setAttribute('tabindex', '-1')
+    onShow: () => {
+      // The plugin makes its element a tab stop; the toolbar inside is the one.
+      menuRef.current?.setAttribute('tabindex', '-1')
+      setShown(true)
+    },
+    onHide: () => setShown(false)
   } as const
 
   return (
@@ -73,7 +80,7 @@ export function EditorTableToolbar({
       data-slot='editor-table-toolbar'
       className='z-sticky'
     >
-      {states ? (
+      {states && shown ? (
         <Toolbar
           ref={toolbarRef}
           aria-label='Table actions'
