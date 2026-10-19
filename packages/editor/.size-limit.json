@@ -30,6 +30,7 @@
       "@tiptap/core",
       "@tiptap/extension-heading",
       "@tiptap/extension-link",
+      "@tiptap/extension-table",
       "@tiptap/extensions",
       "@tiptap/pm",
       "@tiptap/react",

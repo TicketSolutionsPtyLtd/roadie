@@ -22,9 +22,9 @@ import {
   CURRENT_VERSION,
   type Preset,
   createEmptyValue,
-  migrate,
-  presets
+  migrate
 } from '../schema'
+import { basic } from '../schema/basicPreset'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
 import { EditorLinkPopover } from './EditorLinkPopover'
@@ -56,16 +56,15 @@ const LinkShortcut = Extension.create<LinkShortcutOptions>({
 const UNREADABLE =
   'This content couldn’t be loaded, so it can’t be edited here.'
 
-const schemas = new Map<Preset, ReturnType<typeof getSchema>>()
+// The editor edits only `EDITOR_PRESET`, so it loads that preset alone and
+// none of the rich preset's code.
+const extensions = basic
+let schema: ReturnType<typeof getSchema> | undefined
 
 // Tiptap swaps content its schema can't read for an empty document, which the
 // next save would store, so the editor checks first.
-function readsDoc(preset: Preset, doc: JSONContent) {
-  let schema = schemas.get(preset)
-  if (!schema) {
-    schema = getSchema(presets[preset])
-    schemas.set(preset, schema)
-  }
+function readsDoc(doc: JSONContent) {
+  schema ??= getSchema(extensions)
   try {
     schema.nodeFromJSON(doc)
     return true
@@ -154,14 +153,14 @@ export function EditorEngine({
     () => migrate(defaultValue ?? createEmptyValue(preset), preset).doc
   )
   const shownDoc = valueDoc ?? defaultDoc
-  const unreadable = !readsDoc(preset, shownDoc)
+  const unreadable = !readsDoc(shownDoc)
   const editable = !readOnly && !disabled && !unreadable
   useFieldControlError(unreadable ? UNREADABLE : null)
 
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      ...presets[preset],
+      ...extensions,
       Placeholder.configure({
         placeholder: () => placeholderRef.current ?? ''
       }),
