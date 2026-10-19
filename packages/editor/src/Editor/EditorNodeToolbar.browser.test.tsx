@@ -404,10 +404,12 @@ describe('Editor node toolbar placement', () => {
 
   const MEDIA_INSET = 8
 
+  // The wrapper widens too: a 100% image inside a wrapper that hugs it is
+  // circular, and WebKit sizes that to nothing.
   function widenImages() {
     const wide = document.createElement('style')
     wide.textContent =
-      '[data-slot="editor-image"] img { inline-size: 100%; block-size: 240px }'
+      '[data-slot="editor-image"] { inline-size: 100% } [data-slot="editor-image"] img { inline-size: 100%; block-size: 240px }'
     document.head.append(wide)
     onTestFinished(() => wide.remove())
   }
