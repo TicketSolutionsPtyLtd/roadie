@@ -45,3 +45,48 @@ and keep its text, and never render raw HTML. Headings render as `h2` to
 `h4`, images with `loading="lazy"`, and embeds as a lazy, sandboxed `iframe`
 whose `src` `embedSrc` rebuilds; both take `embedProviders`, and drop embeds
 from any provider not in it.
+
+`@oztix/roadie-editor/editor` adds `Editor`, a rich-text field on the `basic`
+preset, reading a value in another preset into it and keeping the text of what
+it can't hold. Content the editor still can't read stays read-only with an
+error, and saves nothing over the stored value. It takes `value`,
+`defaultValue` and `onValueChange` with an `EditorValue`, plus `placeholder`,
+`readOnly`, `disabled`, `size` (the `Prose` sizes) and `emphasis`: `normal`
+(the default) and `subtle` match `Textarea`'s, and `subtler` is a boxless
+frame for content edited in place, with no border, fill, padding or focus
+ring, so the text lines up with the page; an invalid `subtler` editor draws a
+danger edge at its start. Its code loads after the page: on the server and
+until then it renders a `Skeleton` the shape of the empty editor, and
+`preloadEditor()` starts the load early. `Editor.Content` is the editable
+`textbox`, styled as `.prose`, and `useEditorContext()` gives custom children
+the Tiptap editor. Pasted HTML goes through the preset's schema, so only what
+the preset holds survives. Import `@oztix/roadie-editor/css` for the
+placeholder and the `subtler` invalid edge.
+
+`Editor.Toolbar` is a bar at the top of the editor, a size smaller than the
+text, that hugs its controls, scrolls away with the text, and looks the same
+whether you're editing or not, so the text never moves. It takes Toolbar's
+`emphasis` (`normal` by default), independent of the editor's. On a phone or
+touch screen its controls scroll sideways on one row. The controls are Bold,
+Italic, Link, Bulleted list, Numbered list, Undo, and Redo, each with its
+shortcut in a tooltip; the toggles show pressed for the text at the caret,
+and Undo and Redo are disabled, but focusable, when there's nothing to undo or
+redo. Alt+F10 in the text moves focus to the toolbar, and Escape moves it back
+to the caret. With no children `Editor` renders `<Editor.Toolbar />` then
+`<Editor.Content />`; `Editor.Toolbar`'s own children follow its controls, and
+can run commands through `useEditorContext()`.
+
+In a `Field`, `Editor` is named by `Field.Label`, described by its helper or
+error text, and takes `invalid`, `required`, and `disabled` from the field.
+`disabled` also works on its own, and `name` adds a hidden input holding the
+value as JSON, so a native form submits it.
+
+`Mod+K` or the Link control opens a popover by the selection to add, change,
+or remove a link, adding `https://` to a bare domain, and typed or pasted web
+addresses link themselves. The popover is one row: a bare input named by
+`aria-label`, then icon buttons to save (disabled, but focusable, until
+there's something to save), remove an existing link, and close. Enter saves,
+but not the Enter that ends an IME composition, and a refused link shows its
+error under the row. Any `href` that `isUnsafeHref` flags is refused there,
+dropped from pasted HTML, and removed by `migrate`, so a stored value never
+holds one.

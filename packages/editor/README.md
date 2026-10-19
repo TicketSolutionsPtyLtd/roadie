@@ -1,9 +1,9 @@
 # @oztix/roadie-editor
 
-The saved format of the rich-text editor for the
+The rich-text editor for the
 [Roadie Design System](https://ticketsolutionsptyltd.github.io/roadie/), and
-its renderers. Built on [Tiptap](https://tiptap.dev/) v3, using its MIT parts
-only.
+the saved format it reads and writes. Built on
+[Tiptap](https://tiptap.dev/) v3, using its MIT parts only.
 
 ## Install
 
@@ -13,6 +13,23 @@ pnpm add @oztix/roadie-editor @oztix/roadie-components @oztix/roadie-core
 
 Tiptap is a dependency of this package, pinned to one version, so apps never
 install it themselves.
+
+## The editor
+
+```tsx
+import { Editor } from '@oztix/roadie-editor/editor'
+
+;<Editor
+  aria-label='Event description'
+  placeholder='Tell people about the night'
+  value={value}
+  onValueChange={setValue}
+/>
+```
+
+Add `@import '@oztix/roadie-editor/css';` after the components' CSS. `Editor`
+loads Tiptap after the page, and shows a skeleton on the server and until it
+has loaded. Call `preloadEditor()` on the hover or focus that leads to one.
 
 ## The saved format
 
