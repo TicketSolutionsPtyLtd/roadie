@@ -1,11 +1,20 @@
-/** What a node holds: blocks, inline content, list items, or nothing. */
-export type NodeContent = 'blocks' | 'inline' | 'listItems' | 'none'
+/**
+ * What a node holds: one or more blocks, a paragraph then blocks, inline
+ * content, one or more list items, or nothing.
+ */
+export type NodeContent =
+  'blocks' | 'paragraphFirst' | 'inline' | 'listItems' | 'none'
 
-export type NodeShape = { inline?: true; content: NodeContent }
+export type NodeShape = {
+  inline?: true
+  content: NodeContent
+  attrs?: readonly string[]
+}
 
 export type PresetShape = {
   nodes: Readonly<Record<string, NodeShape>>
-  marks: readonly string[]
+  /** Each mark's name and the attrs it saves. */
+  marks: Readonly<Record<string, readonly string[]>>
 }
 
 const basicNodes = {
@@ -14,11 +23,11 @@ const basicNodes = {
   text: { inline: true, content: 'none' },
   hardBreak: { inline: true, content: 'none' },
   bulletList: { content: 'listItems' },
-  orderedList: { content: 'listItems' },
-  listItem: { content: 'blocks' }
+  orderedList: { content: 'listItems', attrs: ['start', 'type'] },
+  listItem: { content: 'paragraphFirst' }
 } as const satisfies Record<string, NodeShape>
 
-const marks = ['bold', 'italic', 'link'] as const
+const marks = { bold: [], italic: [], link: ['href'] } as const
 
 // Mirrors each preset's Tiptap schema without loading Tiptap, so `migrate`
 // runs anywhere; presets.test.ts keeps the two in step.
@@ -27,11 +36,11 @@ export const presetShapes = {
   rich: {
     nodes: {
       ...basicNodes,
-      heading: { content: 'inline' },
+      heading: { content: 'inline', attrs: ['level'] },
       blockquote: { content: 'blocks' },
       horizontalRule: { content: 'none' },
-      image: { content: 'none' },
-      embed: { content: 'none' }
+      image: { content: 'none', attrs: ['src', 'alt'] },
+      embed: { content: 'none', attrs: ['provider', 'id', 'params'] }
     },
     marks
   }

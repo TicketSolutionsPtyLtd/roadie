@@ -133,7 +133,7 @@ export function presetElementsFor(preset: Preset): Elements {
 export function outermostMarksLast(node: JSONContent): JSONContent {
   return {
     ...node,
-    ...(Array.isArray(node.marks) && { marks: node.marks.toReversed() }),
+    ...(Array.isArray(node.marks) && { marks: [...node.marks].reverse() }),
     ...(Array.isArray(node.content) && {
       content: node.content.map(outermostMarksLast)
     })

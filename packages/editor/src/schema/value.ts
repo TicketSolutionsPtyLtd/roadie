@@ -34,13 +34,30 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+function picked(attrs: unknown, names: readonly string[] = []) {
+  if (!isObject(attrs)) return undefined
+  const kept = names.filter((name) => Object.hasOwn(attrs, name))
+  if (kept.length === 0) return undefined
+  return Object.fromEntries(kept.map((name) => [name, attrs[name]]))
+}
+
 function isKeptMark(mark: unknown, shape: PresetShape): mark is StoredMark {
-  if (!isObject(mark) || !shape.marks.includes(mark.type as string)) {
-    return false
-  }
+  if (!isObject(mark) || typeof mark.type !== 'string') return false
+  if (!Object.hasOwn(shape.marks, mark.type)) return false
   if (mark.type !== 'link') return true
   const href: unknown = (mark as StoredMark).attrs?.href
   return typeof href === 'string' && !isUnsafeHref(href)
+}
+
+// The schema holds one mark of each type, so a repeat is dropped.
+function cleanedMarks(marks: unknown[], shape: PresetShape) {
+  const kept = new Map<string, StoredMark>()
+  for (const mark of marks) {
+    if (!isKeptMark(mark, shape) || kept.has(mark.type)) continue
+    const attrs = picked(mark.attrs, shape.marks[mark.type])
+    kept.set(mark.type, { type: mark.type, ...(attrs && { attrs }) })
+  }
+  return [...kept.values()]
 }
 
 function cleanedAttrs({ type, attrs }: JSONContent) {
@@ -96,6 +113,12 @@ function paragraphsAround(nodes: JSONContent[], shape: PresetShape) {
   return blocks
 }
 
+function paragraphFirst(blocks: JSONContent[]) {
+  return blocks[0]?.type === 'paragraph'
+    ? blocks
+    : [{ type: 'paragraph' }, ...blocks]
+}
+
 // Reshapes children so each sits where the schema can read it, keeping text.
 function fitted(
   nodes: JSONContent[],
@@ -108,12 +131,15 @@ function fitted(
   const blocks = paragraphsAround(nodes, shape)
   if (content === 'listItems') {
     return blocks.map((node) =>
-      node.type === 'listItem' ? node : { type: 'listItem', content: [node] }
+      node.type === 'listItem'
+        ? node
+        : { type: 'listItem', content: paragraphFirst([node]) }
     )
   }
-  return blocks.flatMap((node) =>
+  const unwrapped = blocks.flatMap((node) =>
     node.type === 'listItem' ? (node.content ?? []) : [node]
   )
+  return content === 'paragraphFirst' ? paragraphFirst(unwrapped) : unwrapped
 }
 
 function childrenOf(content: unknown, shape: PresetShape) {
@@ -123,26 +149,35 @@ function childrenOf(content: unknown, shape: PresetShape) {
 
 // JSON skips the schema's parseHTML checks, so stored values are checked here.
 // A node the preset doesn't hold gives way to its children, its text in a
-// paragraph of its own, which a parent holding inline content unwraps.
+// paragraph of its own, which a parent holding inline content unwraps. A
+// node that must hold blocks or list items and is left with none is dropped.
 function cleaned(node: JSONContent, shape: PresetShape): JSONContent[] {
   const nodeShape = shapeOf(node, shape)
   if (!nodeShape)
     return paragraphsAround(childrenOf(node.content, shape), shape)
-  const { marks, content, ...rest } = node
-  const attrs = cleanedAttrs(node)
-  const holdsContent = Array.isArray(content) && nodeShape.content !== 'none'
-  return [
-    {
-      ...rest,
-      ...(attrs && { attrs }),
-      ...(Array.isArray(marks) && {
-        marks: marks.filter((mark) => isKeptMark(mark, shape))
-      }),
-      ...(holdsContent && {
-        content: fitted(childrenOf(content, shape), nodeShape.content, shape)
-      })
-    }
-  ]
+  const { marks, content, attrs: stored, ...rest } = node
+  const attrs = picked(
+    cleanedAttrs({ type: node.type, attrs: stored }),
+    nodeShape.attrs
+  )
+  const kept: JSONContent = {
+    ...rest,
+    ...(attrs && { attrs }),
+    ...(Array.isArray(marks) && { marks: cleanedMarks(marks, shape) })
+  }
+  if (nodeShape.content === 'none') return [kept]
+  if (nodeShape.content === 'inline') {
+    return [
+      Array.isArray(content)
+        ? {
+            ...kept,
+            content: fitted(childrenOf(content, shape), 'inline', shape)
+          }
+        : kept
+    ]
+  }
+  const children = fitted(childrenOf(content, shape), nodeShape.content, shape)
+  return children.length > 0 ? [{ ...kept, content: children }] : []
 }
 
 /**
@@ -158,7 +193,9 @@ function cleaned(node: JSONContent, shape: PresetShape): JSONContent[] {
  * any link whose href could run script, keeping its text, any image not on
  * https or the same site, and any embed that isn't a provider and id. Reads a
  * heading outside h2 to h4 as the nearest of them, and missing alt text as
- * empty.
+ * empty. Keeps only the attrs and the first of each mark the preset saves,
+ * starts every list item with a paragraph, drops a list or quote left empty,
+ * and gives an empty doc one paragraph.
  */
 export function migrate(
   value: StoredEditorValue,
@@ -181,8 +218,11 @@ export function migrate(
   if (!isObject(doc)) {
     throw new RangeError('An EditorValue’s doc must be an object.')
   }
-  const [cleanedDoc] = cleaned({ ...doc, type: 'doc' }, presetShapes[preset])
-  return { version, preset, doc: cleanedDoc! }
+  const [cleanedDoc = createEmptyValue(preset).doc] = cleaned(
+    { ...doc, type: 'doc' },
+    presetShapes[preset]
+  )
+  return { version, preset, doc: cleanedDoc }
 }
 
 export function createEmptyValue(preset: Preset): EditorValue {

@@ -24,7 +24,11 @@ node and mark names.
   drops each node and mark the preset doesn't hold and keeps their text, so a
   value never loads as an empty document. It also drops unsafe links, keeping
   their text, images with any other `src`, and malformed embeds, and brings a
-  heading level into 2 to 4. `createEmptyValue` starts a new value.
+  heading level into 2 to 4. It keeps only the attributes the preset saves
+  and the first mark of each type, starts every list item with a paragraph,
+  drops a list or quote left empty, and gives an empty `doc` one paragraph,
+  so every value it returns loads in Tiptap. `createEmptyValue` starts a new
+  value.
 - `parseEmbedUrl` turns a YouTube, Vimeo, Spotify or TikTok share URL into an
   `EmbedValue` (`{ provider, id, params? }`), `embedSrc` rebuilds the player
   URL from one (YouTube through youtube-nocookie.com, and Vimeo with
