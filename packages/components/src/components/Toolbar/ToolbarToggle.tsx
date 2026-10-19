@@ -8,7 +8,7 @@ import { Toolbar as ToolbarPrimitive } from '@base-ui/react/toolbar'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isIconOnly } from '../../utils/isIconOnly'
-import { Toggle, type ToggleProps, toggleVariants } from '../Toggle'
+import { type ToggleProps, toggleVariants } from '../Toggle'
 import { ToolbarContext, ToolbarToggleGroupContext } from './ToolbarContext'
 
 export type ToolbarToggleProps = Omit<ToggleProps, 'size'>
@@ -35,27 +35,19 @@ export function ToolbarToggle({
       data-slot='toolbar-toggle'
       disabled={disabled || group.disabled}
       render={
-        group.sliding ? (
-          <TogglePrimitive
-            {...props}
-            nativeButton={nativeButton ?? !props.render}
-            data-icon-only={isIconOnly(props.children) ? '' : undefined}
-            className={cn(
-              toggleVariants({ intent, emphasis: null, size }),
-              SLIDING,
-              className
-            )}
-          />
-        ) : (
-          <Toggle
-            {...props}
-            intent={intent}
-            className={className}
-            nativeButton={nativeButton}
-            size={size}
-            emphasis={emphasis}
-          />
-        )
+        // One element type in both modes, so the swap never remounts the
+        // button and drops its focus.
+        <TogglePrimitive
+          {...props}
+          nativeButton={nativeButton ?? !props.render}
+          data-icon-only={isIconOnly(props.children) ? '' : undefined}
+          className={cn(
+            group.sliding
+              ? [toggleVariants({ intent, emphasis: null, size }), SLIDING]
+              : toggleVariants({ intent, emphasis, size }),
+            className
+          )}
+        />
       }
     />
   )

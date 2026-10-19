@@ -164,6 +164,27 @@ describe('Toolbar layout', () => {
     )
   })
 
+  it('keeps focus on a toggle as its group empties and fills again', async () => {
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.ToggleGroup aria-label='Alignment' defaultValue={['left']}>
+          <Toolbar.Toggle value='left'>Left</Toolbar.Toggle>
+          <Toolbar.Toggle value='right'>Right</Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const left = screen.getByRole('button', { name: 'Left' })
+    await userEvent.click(left)
+    expect(left).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Left' })).toHaveFocus()
+    await userEvent.keyboard(' ')
+    expect(screen.getByRole('button', { name: 'Left' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    expect(screen.getByRole('button', { name: 'Left' })).toHaveFocus()
+  })
+
   it('fills each pressed toggle of a multiple group itself', () => {
     render(
       <Toolbar aria-label='Formatting'>
