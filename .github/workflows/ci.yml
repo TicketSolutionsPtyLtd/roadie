@@ -198,8 +198,9 @@ jobs:
     # One engine per runner: three at once backlog Vitest's Playwright bridge
     # and actions time out (vitest-dev/vitest#9941). Firefox runs files one at
     # a time, so it is split across three runners: on two, each shard of the
-    # components suite ran four to six minutes and the job neared its limit. The changes job picks the
-    # engines, so the check names stay the same whichever engines run.
+    # components suite ran four to six minutes and the job neared its limit.
+    # The changes job picks the engines, so the check names stay the same
+    # whichever engines run.
     strategy:
       fail-fast: false
       matrix:
