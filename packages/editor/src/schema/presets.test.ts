@@ -184,6 +184,54 @@ describe('presets.rich', () => {
     }
   )
 
+  // A pasted cell holding text, as ProseMirror's DOMParser meets it.
+  const cellWithSpans = (colspan: string, rowspan: string) => ({
+    children: [{}],
+    textContent: '9pm',
+    getAttribute: (name: string) => ({ colspan, rowspan })[name] ?? null
+  })
+
+  function pastedAttrs(name: string, element: object) {
+    for (const rule of rich.nodes[name]!.spec.parseDOM ?? []) {
+      const attrs = rule.getAttrs?.(element as HTMLElement) ?? {}
+      if (attrs !== false) return attrs
+    }
+    return false
+  }
+
+  it.each(
+    [
+      ['2', 2],
+      ['1000', 1000],
+      ['0', 1],
+      ['-1', 1],
+      ['1.5', 1],
+      ['two', 1],
+      ['1001', 1],
+      ['1000000000', 1]
+    ].flatMap(([colspan, read]) =>
+      ['tableCell', 'tableHeader'].map((name) => [name, colspan, read])
+    )
+  )('reads a pasted %s colspan of "%s" as %d', (name, colspan, read) => {
+    expect(pastedAttrs(name, cellWithSpans(colspan, '1'))).toEqual({
+      colspan: read,
+      rowspan: 1
+    })
+  })
+
+  it.each([
+    ['3', 3],
+    ['65534', 65534],
+    ['0', 1],
+    ['65535', 1],
+    ['1000000000', 1]
+  ])('reads a pasted rowspan of "%s" as %d', (rowspan, read) => {
+    expect(pastedAttrs('tableCell', cellWithSpans('1', rowspan))).toEqual({
+      colspan: 1,
+      rowspan: read
+    })
+  })
+
   it.each([['tableCell'], ['tableHeader']])(
     'holds only paragraphs in a %s',
     (name) => {

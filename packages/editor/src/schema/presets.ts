@@ -15,6 +15,7 @@ import { Embed } from './embedNode'
 import { headingLevel } from './headings'
 import { Image } from './image'
 import type { Preset } from './presetShapes'
+import { spanAttribute } from './spans'
 
 // Saved links hold only `href`; how a link opens is the renderer's call.
 const SafeLink = Link.extend({
@@ -55,7 +56,10 @@ const RichHeading = Heading.extend({
 const cellSpec = {
   content: 'paragraph+',
   addAttributes() {
-    return { colspan: { default: 1 }, rowspan: { default: 1 } }
+    return {
+      colspan: spanAttribute('colspan'),
+      rowspan: spanAttribute('rowspan')
+    }
   }
 }
 
