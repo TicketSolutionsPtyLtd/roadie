@@ -154,6 +154,8 @@ export function EditorEngine({
   )
   const shownDoc = valueDoc ?? defaultDoc
   const unreadable = !readsDoc(shownDoc)
+  // Tiptap would warn of content it can't read and show an empty doc anyway.
+  const readableDoc = unreadable ? createEmptyValue(preset).doc : shownDoc
   const editable = !readOnly && !disabled && !unreadable
   useFieldControlError(unreadable ? UNREADABLE : null)
 
@@ -166,7 +168,7 @@ export function EditorEngine({
       }),
       LinkShortcut.configure({ onEditLink: () => setEditingLink(true) })
     ],
-    content: shownDoc,
+    content: readableDoc,
     editable,
     editorProps: {
       attributes: {
@@ -214,9 +216,9 @@ export function EditorEngine({
   }, [editor, placeholder])
 
   useEffect(() => {
-    if (!editor || !valueDoc || holdsDoc(editor, valueDoc)) return
-    editor.commands.setContent(valueDoc, { emitUpdate: false })
-  }, [editor, valueDoc])
+    if (!editor || !valueDoc || holdsDoc(editor, readableDoc)) return
+    editor.commands.setContent(readableDoc, { emitUpdate: false })
+  }, [editor, valueDoc, readableDoc])
 
   const editLink = () => {
     if (editor?.isEditable && editor.schema.marks.link) {
