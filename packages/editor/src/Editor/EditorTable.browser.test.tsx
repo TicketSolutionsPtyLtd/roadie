@@ -138,6 +138,18 @@ describe('Editor tables', () => {
     )
   })
 
+  it('leaves the editor with Shift+Tab from the first cell, as from any text', async () => {
+    render(<TableEditor defaultValue={setTimes} />)
+    const textbox = await clickCell('Time')
+
+    await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+
+    await waitFor(() => expect(textbox).not.toHaveFocus())
+    expect(
+      screen.getByRole('toolbar', { name: 'Formatting' })
+    ).toContainElement(document.activeElement as HTMLElement)
+  })
+
   it('shows the table actions while the caret is in a table, in order', async () => {
     render(<TableEditor defaultValue={setTimes} />)
     const textbox = await clickCell('9pm')

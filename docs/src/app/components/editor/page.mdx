@@ -319,7 +319,8 @@ share link uses `@_` in its place; TikTok finds the video by its id.
 
 The rich preset holds tables. The Table control inserts one of three rows
 and three columns, with a header row. Tab moves to the next cell, adding a
-row after the last, and Shift+Tab moves back. While the caret is in a table,
+row after the last, and Shift+Tab moves back, leaving the editor from the
+first cell. While the caret is in a table,
 a toolbar above it, or below it when a table comes first, has its actions: Add row above, Add row below, Add column
 before, Add column after, Delete row, Delete column, Header row, and Delete
 table.
@@ -705,8 +706,9 @@ render(
   disabled. Header row is a toggle that reports `aria-pressed`, and Delete
   row and Delete column are disabled when they'd delete the last one.
   Alt+F10 in a table moves focus to its first action, and Escape back to the
-  cell. In a table, Tab and Shift+Tab move between cells instead of nesting
-  or leaving.
+  cell. In a table, Tab and Shift+Tab move between cells instead of nesting.
+  Tab in the last cell adds a row, and Shift+Tab in the first leaves the
+  editor, as it does from any text.
 - In the rich preset, the Block type menu's trigger is named for the block at
   the caret, such as "Block type: Heading 2". Its items are radio items, with
   the current type checked, and choosing one puts focus back in the text.
@@ -732,7 +734,7 @@ render(
 | `Mod+Shift+B` | Quote, in the rich preset |
 | `Enter` | On a selected image, edit its alt text |
 | `Tab` | In a table, move to the next cell, adding a row after the last |
-| `Shift+Tab` | In a table, move to the cell before |
+| `Shift+Tab` | In a table, move to the cell before, or leave the editor from the first |
 | `Mod+Z` | Undo |
 | `Mod+Shift+Z` | Redo |
 | `Shift+Enter` | Line break |
