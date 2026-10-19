@@ -1,9 +1,21 @@
-import {
-  RoadieRoutedLink,
-  type RoadieRoutedLinkProps
-} from './RoadieRoutedLink'
+import type { AnchorHTMLAttributes, Ref } from 'react'
 
-export type LinkProps = RoadieRoutedLinkProps
+import { RoadieRoutedLink } from './RoadieRoutedLink'
+
+// Its own type, so an internal prop added to RoadieRoutedLink stays internal.
+export type LinkProps = Omit<
+  AnchorHTMLAttributes<HTMLAnchorElement>,
+  'href'
+> & {
+  href: string
+  /**
+   * Opens in a new tab when `true`, or routes through the Link given to
+   * `RoadieProvider` when `false`. Unset, an `http(s)://` or `//` href is
+   * external and any other is internal.
+   */
+  external?: boolean
+  ref?: Ref<HTMLAnchorElement>
+}
 
 /**
  * An anchor that routes like every link-bearing Roadie component: internal
