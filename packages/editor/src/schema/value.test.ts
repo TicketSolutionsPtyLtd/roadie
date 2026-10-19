@@ -1,4 +1,5 @@
 import { getSchema } from '@tiptap/core'
+import { Node } from '@tiptap/pm/model'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -41,7 +42,7 @@ describe('migrate', () => {
   })
 })
 
-const linked = (href: unknown) => ({
+const linked = (href: unknown, extraAttrs?: object) => ({
   type: 'doc',
   content: [
     {
@@ -50,7 +51,10 @@ const linked = (href: unknown) => ({
         { type: 'text', text: 'Get ' },
         {
           type: 'text',
-          marks: [{ type: 'bold' }, { type: 'link', attrs: { href } }],
+          marks: [
+            { type: 'bold' },
+            { type: 'link', attrs: { href, ...extraAttrs } }
+          ],
           text: 'tickets'
         }
       ]
@@ -76,6 +80,15 @@ describe('migrate and links', () => {
     const doc = linked('https://www.oztix.com.au/ochre-kite-weekender')
 
     expect(migrate({ version: 1, preset: 'basic', doc }).doc).toEqual(doc)
+  })
+
+  it('keeps only the href of a link', () => {
+    const href = 'https://www.oztix.com.au/ochre-kite-weekender'
+    const doc = linked(href, { target: '_blank' })
+
+    expect(migrate({ version: 1, preset: 'basic', doc }).doc).toEqual(
+      linked(href)
+    )
   })
 
   it.each([
@@ -491,29 +504,89 @@ describe('migrate and nodes or marks outside the preset', () => {
     expect(() => migrate(value, 'fancy' as never)).toThrow(RangeError)
   })
 
-  it.each([['basic'], ['rich']] as const)(
-    'gives a %s value Tiptap can load',
-    (preset) => {
-      const value = {
-        version: 1,
-        preset: 'rich',
-        doc: docOf(
-          { type: 'callout', content: [textOf('Doors', [{ type: 'code' }])] },
-          {
-            type: 'bulletList',
-            content: [
-              { type: 'heading', content: [textOf('Bar')] },
-              textOf('Cloakroom')
-            ]
-          },
-          { type: 'paragraph', content: [{ type: 'paragraph' }, textOf('!')] }
-        )
-      }
-      const schema = getSchema(presets[preset])
+  const image = { type: 'image', attrs: { src: '/images/crowd.webp' } }
+  const embed = {
+    type: 'embed',
+    attrs: { provider: 'youtube', id: 'dQw4w9WgXcQ' }
+  }
+  const itemOf = (...content: object[]) => ({ type: 'listItem', content })
+  const bulletsOf = (...content: object[]) => ({ type: 'bulletList', content })
+  const loadable: [string, object[]][] = [
+    [
+      'unknown nodes, marks and loose list text',
+      [
+        { type: 'callout', content: [textOf('Doors', [{ type: 'code' }])] },
+        bulletsOf(
+          { type: 'heading', content: [textOf('Bar')] },
+          textOf('Cloakroom')
+        ),
+        { type: 'paragraph', content: [{ type: 'paragraph' }, textOf('!')] }
+      ]
+    ],
+    [
+      'a list item starting with a heading',
+      [bulletsOf(itemOf({ type: 'heading', content: [textOf('Bar')] }))]
+    ],
+    ['a list item starting with an image', [bulletsOf(itemOf(image))]],
+    ['a list item starting with an embed', [bulletsOf(itemOf(embed))]],
+    ['a doc with no blocks', []],
+    ['an image alone', [image]],
+    ['an embed alone', [embed]],
+    ['an empty bulleted list', [bulletsOf()]],
+    ['a numbered list with no content', [{ type: 'orderedList' }]],
+    ['an empty list item', [bulletsOf(itemOf())]],
+    [
+      'a list item emptied by an unsafe image',
+      [bulletsOf(itemOf({ type: 'image', attrs: { src: 'javascript:x' } }))]
+    ],
+    ['an empty quote', [{ type: 'blockquote', content: [] }]],
+    [
+      'a mark twice',
+      [
+        {
+          type: 'paragraph',
+          content: [textOf('Doors', [{ type: 'bold' }, { type: 'bold' }])]
+        }
+      ]
+    ],
+    [
+      'attributes outside the preset',
+      [
+        {
+          type: 'orderedList',
+          attrs: { start: 1, foo: 'bar' },
+          content: [
+            itemOf({
+              type: 'paragraph',
+              content: [
+                textOf('Tickets', [
+                  { type: 'bold', attrs: { x: 1 } },
+                  {
+                    type: 'link',
+                    attrs: {
+                      href: 'https://www.oztix.com.au',
+                      target: '_blank'
+                    }
+                  }
+                ])
+              ]
+            })
+          ]
+        }
+      ]
+    ]
+  ]
 
-      expect(() =>
-        schema.nodeFromJSON(migrate(value, preset).doc)
-      ).not.toThrow()
-    }
-  )
+  it.each(
+    (['basic', 'rich'] as const).flatMap((preset) =>
+      loadable.map(([name, content]) => [preset, name, content] as const)
+    )
+  )('gives a %s value Tiptap can load from %s', (preset, _, content) => {
+    const value = { version: 1, preset: 'rich', doc: docOf(...content) }
+    const schema = getSchema(presets[preset])
+
+    expect(() =>
+      Node.fromJSON(schema, migrate(value, preset).doc).check()
+    ).not.toThrow()
+  })
 })
