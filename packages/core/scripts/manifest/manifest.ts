@@ -28,6 +28,9 @@ export type ManifestExport = {
   kind: 'js' | 'css' | 'json'
   values?: string[]
   types?: string[]
+  /** The page that documents the subpath, when it has no component of its own to carry it. */
+  docs?: string
+  status?: string
 }
 
 export type ManifestComponent = ManifestPart & {
@@ -74,12 +77,16 @@ export type DocumentedElsewhere = Record<
   string | Record<string, string>
 >
 
+/** Import path → the docs route that documents that subpath as a whole. */
+export type DocumentedSubpaths = Record<string, string>
+
 export type BuildOptions = {
   packageDir: string
   workspaceRoot: string
   docsUrl?: string
   tokens?: TokenEntry[]
   documentedElsewhere?: DocumentedElsewhere
+  documentedSubpaths?: DocumentedSubpaths
 }
 
 export function importPath(packageName: string, subpath: string) {
@@ -89,7 +96,13 @@ export function importPath(packageName: string, subpath: string) {
 function withDocs(
   part: ManifestPart,
   parts: ManifestPart[],
-  meta: { import: string; match?: PageMatch; route?: string; docsUrl: string }
+  meta: {
+    import: string
+    match?: PageMatch
+    route?: string
+    docsUrl: string
+    status?: string
+  }
 ): ManifestComponent {
   const page = meta.match?.page
   const own = meta.match?.own ? page : undefined
@@ -98,7 +111,7 @@ function withDocs(
     name: part.name,
     import: meta.import,
     ...(route && { docs: new URL(route.slice(1), meta.docsUrl).href }),
-    ...(own?.status && { status: own.status }),
+    ...(meta.status && { status: meta.status }),
     ...(own?.description && { summary: own.description }),
     ...(part.description && { description: part.description }),
     ...(part.deprecated !== undefined && { deprecated: part.deprecated }),
@@ -150,7 +163,8 @@ export function buildManifest({
   workspaceRoot,
   docsUrl = DOCS_URL,
   tokens,
-  documentedElsewhere = {}
+  documentedElsewhere = {},
+  documentedSubpaths = {}
 }: BuildOptions): RoadieManifest {
   const pkg = JSON.parse(
     readFileSync(path.join(packageDir, 'package.json'), 'utf8')
@@ -164,6 +178,8 @@ export function buildManifest({
   const parser = createDocgenParser(program)
   const appDir = path.join(workspaceRoot, 'docs/src/app')
   const pages = readDocsPages(appDir)
+  const pageAt = (route: string) =>
+    pages.find((page) => page.route === route.split('#')[0])
   const linksUsed = new Set<string>()
 
   const exports: ManifestExport[] = []
@@ -188,8 +204,17 @@ export function buildManifest({
           typeof links === 'string' ? importName : `${importName} ${root.name}`
         )
       }
+      // A component without a page of its own takes the status of the page that documents it.
+      const status = (match?.page ?? (route ? pageAt(route) : undefined))
+        ?.status
       components.push(
-        withDocs(root, parts, { import: importName, match, route, docsUrl })
+        withDocs(root, parts, {
+          import: importName,
+          match,
+          route,
+          docsUrl,
+          status
+        })
       )
       for (const part of [root, ...parts]) {
         for (const prop of part.props) {
@@ -306,6 +331,20 @@ export function buildManifest({
     throw new Error(
       `documentedElsewhere: ${unused.join(', ')} links no component without a page of its own`
     )
+  }
+
+  for (const [importName, route] of Object.entries(documentedSubpaths)) {
+    if (importName !== pkg.name && !importName.startsWith(`${pkg.name}/`))
+      continue
+    const entry = exports.find((e) => e.import === importName)
+    if (!entry)
+      throw new Error(
+        `documentedSubpaths: ${importName} is not exported from ${pkg.name}`
+      )
+    checkRoute(appDir, route)
+    entry.docs = new URL(route.slice(1), docsUrl).href
+    const status = pageAt(route)?.status
+    if (status) entry.status = status
   }
 
   deprecations.unshift(

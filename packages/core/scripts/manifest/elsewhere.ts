@@ -1,4 +1,4 @@
-import type { DocumentedElsewhere } from './manifest.ts'
+import type { DocumentedElsewhere, DocumentedSubpaths } from './manifest.ts'
 
 export const DOCUMENTED_ELSEWHERE: DocumentedElsewhere = {
   '@oztix/roadie-components': {
@@ -13,4 +13,11 @@ export const DOCUMENTED_ELSEWHERE: DocumentedElsewhere = {
   '@oztix/roadie-charts/dashboard-view': {
     DashboardView: '/charts/dashboards/'
   }
+}
+
+/** Subpaths with no component, linked to the page that documents them. */
+export const DOCUMENTED_SUBPATHS: DocumentedSubpaths = {
+  '@oztix/roadie-core/records': '/foundations/records/',
+  '@oztix/roadie-core/records/meilisearch': '/foundations/records/',
+  '@oztix/roadie-core/records/json-schema': '/foundations/records/'
 }

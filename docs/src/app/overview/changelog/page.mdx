@@ -3,8 +3,15 @@ export const metadata = {
   description: 'What each Roadie release changed, and what the next one brings.'
 }
 
+import { StatusKey } from '@/components/PageStatus'
 import { Changelog } from '@/components/changelog/Changelog'
 
 Every release, newest first. [GitHub releases](https://github.com/TicketSolutionsPtyLtd/roadie/releases) lists each published version.
+
+## Status
+
+How settled a component's API is.
+
+<StatusKey />
 
 <Changelog />

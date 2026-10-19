@@ -4,7 +4,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import type { TokenManifest } from '../../src/tokens/manifest.ts'
-import { DOCUMENTED_ELSEWHERE } from './elsewhere.ts'
+import { DOCUMENTED_ELSEWHERE, DOCUMENTED_SUBPATHS } from './elsewhere.ts'
 import { MANIFEST_FILE, buildManifest } from './manifest.ts'
 
 const workspaceRoot = fileURLToPath(new URL('../../../../', import.meta.url))
@@ -18,6 +18,7 @@ const manifest = buildManifest({
   packageDir,
   workspaceRoot,
   documentedElsewhere: DOCUMENTED_ELSEWHERE,
+  documentedSubpaths: DOCUMENTED_SUBPATHS,
   tokens: tokensFile
     ? (JSON.parse(readFileSync(tokensFile, 'utf8')) as TokenManifest).tokens
     : undefined

@@ -39,6 +39,29 @@ describe('pageToMarkdown', () => {
     )
   })
 
+  it('states the status line the site shows under the title', () => {
+    expect(
+      pageToMarkdown({
+        title: 'RecordTable',
+        description: 'A table of records',
+        status: 'Status: alpha. Not released yet.',
+        mdx: 'Body.'
+      })
+    ).toBe(
+      '# RecordTable\n\n> A table of records\n\nStatus: alpha. Not released yet.\n\nBody.\n'
+    )
+  })
+
+  it('ends with the last-updated line from the footer', () => {
+    expect(
+      pageToMarkdown({
+        title: 'Badge',
+        updated: 'Docs updated 3 Oct 2026.',
+        mdx: 'Body.'
+      })
+    ).toBe('# Badge\n\nBody.\n\nDocs updated 3 Oct 2026.\n')
+  })
+
   it('writes the title once when the page opens with its own H1', () => {
     expect(page('# Badge\n\nBody.')).toBe('# Badge\n\nBody.\n')
   })

@@ -32,14 +32,18 @@ import {
   WIDGETS,
   getCatalogue,
   getMarkdownRoutes,
+  parseStatus,
   readPageMetadata
 } from '../src/lib/page-manifest.ts'
 import {
   changesOf,
+  getPageRelease,
+  getPageUpdatedDates,
   getReleaseHistory,
   getReleaseViews,
   releaseHistoryMarkdown,
-  releaseMarkdown
+  releaseMarkdown,
+  statusSentence
 } from '../src/lib/releases.ts'
 import {
   ALL_TOKENS_INTRO,
@@ -124,6 +128,8 @@ const releaseDate = (date: string) =>
     timeZone: 'UTC',
     dateStyle: 'medium'
   }) ?? date
+
+const updatedDates = getPageUpdatedDates()
 
 const renderers = {
   ...DATA_RENDERERS,
@@ -231,9 +237,16 @@ async function markdownFor(route: string) {
     })
   }
   const related = relatedLinks(route)
+  const status = parseStatus(metadata?.status, route)
   return pageToMarkdown({
     title,
     description: metadata?.description,
+    ...(status && {
+      status: statusSentence(status, getPageRelease(route), releaseDate)
+    }),
+    ...(updatedDates[route] && {
+      updated: `Docs updated ${releaseDate(updatedDates[route])}.`
+    }),
     ...(related && {
       related: {
         label: related.label,

@@ -63,3 +63,21 @@ export function findMissingDocs({ components, pages, tiles, allowList }) {
 
   return { missing, staleAllowList }
 }
+
+export const PAGE_STATUSES = ['alpha', 'beta', 'stable', 'deprecated']
+
+/** A docs page's `metadata.status`, or undefined when its metadata has none. */
+export function pageStatus(source) {
+  const metadata = source.match(/^export const metadata = \{\n([\s\S]*?)^\}/m)
+  return metadata?.[1].match(/^\s+status:\s*['"]([^'"]*)['"]/m)?.[1]
+}
+
+/**
+ * @param {{ slug: string, status: string | undefined }[]} pages A component's
+ *   own docs pages and the status each sets.
+ * @returns {{ slug: string, status: string | undefined }[]} Pages with no
+ *   status, or one that isn't in `PAGE_STATUSES`.
+ */
+export function findMissingStatus(pages) {
+  return pages.filter(({ status }) => !PAGE_STATUSES.includes(status))
+}

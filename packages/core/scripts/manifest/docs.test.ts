@@ -92,6 +92,17 @@ describe('parseDocsPage', () => {
   })
 })
 
+describe('parseDocsPage status', () => {
+  it('fails on a status other than alpha, beta, stable, and deprecated', () => {
+    expect(() =>
+      parseDocsPage(
+        "export const metadata = {\n  title: 'Badge',\n  status: 'experimental'\n}\n",
+        '/components/badge/'
+      )
+    ).toThrow("/components/badge/ has status 'experimental'")
+  })
+})
+
 describe('pageForComponent', () => {
   const pages = [
     page('/components/button/', ['Button', 'IconButton']),
