@@ -34,11 +34,7 @@ const packageJsonPath = join(packageRoot, 'package.json')
 // - Indicator: internal after Phase 10 M8; consumed via Field / Select / RadioGroup.
 // - SpotIllustration: tracked in a separate plan; retains its own legacy
 //   `./spot-illustrations` subpath key, handled manually below.
-// - Link: houses the internal `RoadieRoutedLink` primitive that smart-href
-//   components delegate to. A public `<Link>` is deferred until a consumer
-//   needs one; custom links use `useRoadieLink`. Until then internal
-//   components import via relative paths.
-const EXCLUDE = new Set(['Indicator', 'SpotIllustration', 'Link'])
+const EXCLUDE = new Set(['Indicator', 'SpotIllustration'])
 
 function toKebab(pascal) {
   return pascal

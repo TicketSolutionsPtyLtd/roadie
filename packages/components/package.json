@@ -172,6 +172,10 @@
       "types": "./dist/components/Label/index.d.ts",
       "import": "./dist/components/Label/index.js"
     },
+    "./link": {
+      "types": "./dist/components/Link/index.d.ts",
+      "import": "./dist/components/Link/index.js"
+    },
     "./link-button": {
       "types": "./dist/components/LinkButton/index.d.ts",
       "import": "./dist/components/LinkButton/index.js"
