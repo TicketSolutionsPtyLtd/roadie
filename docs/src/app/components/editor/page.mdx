@@ -626,7 +626,7 @@ import { renderEditorHtml, renderEditorValue } from '@oztix/roadie-editor/render
   provider drop.
 - Both render tables in a `.prose-scroll`, so a wide table scrolls on a
   phone rather than widening the page, with a first row of header cells in a
-  `thead`.
+  `thead`, unless one spans down, as a `thead` would clip it.
 
 Both run `migrate` first, so a value from a newer package, or with a preset
 this one doesn't know, throws. They render only the nodes, marks, and
