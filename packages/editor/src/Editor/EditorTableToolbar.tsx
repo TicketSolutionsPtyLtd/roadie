@@ -15,15 +15,26 @@ import { EDITOR_TOOLBAR_SIZE, type EditorSize } from './variants'
 
 const PLUGIN_KEY = 'editorTableToolbar'
 
-// Its scroller, so a wide table's toolbar stays over the part in view.
+function visibleRect(element: Element, scroller: Element) {
+  const box = element.getBoundingClientRect()
+  const view = scroller.getBoundingClientRect()
+  const left = Math.max(box.left, view.left)
+  const top = Math.max(box.top, view.top)
+  const right = Math.min(box.right, view.right)
+  const bottom = Math.min(box.bottom, view.bottom)
+  return new DOMRect(left, top, Math.max(0, right - left), bottom - top)
+}
+
+// The table node's DOM is its full-width `.prose-scroll`, so the box is the
+// table clipped to it: a wide table's toolbar stays over the part in view.
 function tableBox(editor: TiptapEditor) {
   const table = selectedTable(editor.state)
-  const element = table && editor.view.nodeDOM(table.pos)
-  if (!(element instanceof HTMLElement)) return null
-  return {
-    getBoundingClientRect: () => element.getBoundingClientRect(),
-    getClientRects: () => [element.getBoundingClientRect()]
-  }
+  const scroller = table && editor.view.nodeDOM(table.pos)
+  const element =
+    scroller instanceof HTMLElement && scroller.querySelector('table')
+  if (!element) return null
+  const rect = () => visibleRect(element, scroller)
+  return { getBoundingClientRect: rect, getClientRects: () => [rect()] }
 }
 
 // A read-only view can't take focus, so focus also keeps these off then.
@@ -39,7 +50,7 @@ type EditorTableToolbarProps = {
 }
 
 /**
- * The actions of the table holding the selection, above its end corner, or
+ * The actions of the table holding the selection, above its start corner, or
  * below it when the table starts the content.
  */
 export function EditorTableToolbar({
@@ -77,11 +88,11 @@ export function EditorTableToolbar({
   // view mounts after this renders.
   const inContent = () => ({ boundary: editor.view.dom })
   const floating = {
-    placement: 'top-end',
+    placement: 'top-start',
     offset: 4,
     flip: () => ({
       ...inContent(),
-      fallbackPlacements: ['bottom-end' as const]
+      fallbackPlacements: ['bottom-start' as const]
     }),
     shift: inContent,
     onShow: () => {

@@ -408,6 +408,101 @@ describe('Editor tables', () => {
     })
   })
 
+  it('puts the table actions above a narrow table, at its start edge', async () => {
+    const leadIn: EditorValue = {
+      ...setTimes,
+      doc: {
+        type: 'doc',
+        content: [
+          { type: 'paragraph', content: [{ type: 'text', text: 'Set times' }] },
+          ...setTimes.doc.content!
+        ]
+      }
+    }
+    render(<TableEditor defaultValue={leadIn} />)
+    const textbox = await clickCell('9pm')
+    const actions = await tableActions()
+    const table = textbox.querySelector('table')!
+
+    await waitFor(() => {
+      const a = actions.getBoundingClientRect()
+      const t = table.getBoundingClientRect()
+      expect(a.width).toBeGreaterThan(0)
+      expect(Math.abs(a.left - t.left)).toBeLessThan(4)
+      expect(t.top - a.bottom).toBeGreaterThanOrEqual(0)
+      expect(t.top - a.bottom).toBeLessThan(12)
+    })
+    const editorRight = textbox.getBoundingClientRect().right
+    expect(editorRight - actions.getBoundingClientRect().right).toBeGreaterThan(
+      100
+    )
+  })
+
+  it('puts the table actions just below a table that starts the content', async () => {
+    render(<TableEditor defaultValue={setTimes} />)
+    const textbox = await clickCell('9pm')
+    const actions = await tableActions()
+    const table = textbox.querySelector('table')!
+
+    await waitFor(() => {
+      const a = actions.getBoundingClientRect()
+      const t = table.getBoundingClientRect()
+      expect(a.width).toBeGreaterThan(0)
+      expect(Math.abs(a.left - t.left)).toBeLessThan(4)
+      expect(a.top - t.bottom).toBeGreaterThanOrEqual(0)
+      expect(a.top - t.bottom).toBeLessThan(12)
+    })
+  })
+
+  it('keeps the table actions over the part of a wide table in view', async () => {
+    const wide: EditorValue = {
+      ...setTimes,
+      doc: {
+        type: 'doc',
+        content: [
+          { type: 'paragraph', content: [{ type: 'text', text: 'Set times' }] },
+          {
+            type: 'table',
+            content: [
+              {
+                type: 'tableRow',
+                content: [
+                  'Time',
+                  'Stage',
+                  'Act',
+                  'Genre',
+                  'Tickets',
+                  'Doors',
+                  'Bar'
+                ].map((text) => cell('tableHeader', text))
+              }
+            ]
+          }
+        ]
+      }
+    }
+    render(
+      <div style={{ width: 480 }}>
+        <TableEditor defaultValue={wide} />
+      </div>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await waitFor(() => expect(textbox.querySelector('table')).not.toBe(null))
+    const scroller = textbox.querySelector<HTMLElement>('.prose-scroll')!
+    scroller.scrollLeft = scroller.scrollWidth
+    await clickCell('Bar')
+    const actions = await tableActions()
+
+    await waitFor(() => {
+      const a = actions.getBoundingClientRect()
+      const s = scroller.getBoundingClientRect()
+      expect(a.width).toBeGreaterThan(0)
+      expect(a.left).toBeGreaterThanOrEqual(s.left - 1)
+      expect(a.right).toBeLessThanOrEqual(s.right + 1)
+      expect(Math.abs(a.left - s.left)).toBeLessThan(4)
+    })
+  })
+
   it.each<[string, Partial<EditorProps>]>([
     ['read-only', { readOnly: true }],
     ['disabled', { disabled: true }]
