@@ -185,6 +185,7 @@ export function classify(summary: string, bump: Bump): ChangeKind {
   const words = summary.replace(/`[^`]*`/g, 'code').toLowerCase()
   if (/^(remove[sd]?|drop(s|ped)?|delete[sd]?)\b/.test(words)) return 'removed'
   if (/\bdeprecat/.test(words)) return 'deprecated'
+  if (/^first release\b/.test(words)) return 'new'
   if (CHANGED_VERBS.test(words)) return 'changed'
   if (bump === 'patch') {
     if (/^(add|adds|added)\b/.test(words)) return 'new'
@@ -800,7 +801,32 @@ const keysOf = (names: string[]) =>
     return dir ? [dir] : []
   })
 
-/** A change as a card: a new component, titled by its page, or a breaking change, titled by its subject. */
+/** The page that introduces a package with no component page of its own. */
+const PACKAGE_PAGES: Record<string, string> = {
+  '@oztix/roadie-eslint-plugin': '/overview/linting'
+}
+
+function firstReleaseCard(
+  change: Change,
+  packages: PackageKey[]
+): ReleaseCard | null {
+  const name = change.summary.match(/^First release of `(@[^`]+)`/)?.[1]
+  const pkg = name ? packageOf(name) : undefined
+  if (!pkg) return null
+  const href = PACKAGE_PAGES[pkg.name]
+  return {
+    id: change.id,
+    title: pkg.label,
+    name: pkg.label,
+    description: toInline(summarise(change.details).summary),
+    href,
+    art: artOf(href),
+    breaking: false,
+    packages
+  }
+}
+
+/** A change as a card: a new component, titled by its page, a package's first release, or a breaking change, titled by its subject. */
 export function cardOf(
   change: Change,
   index: PageIndex,
@@ -847,6 +873,8 @@ export function cardOf(
     }
   }
   if (change.kind !== 'new') return null
+  const debut = firstReleaseCard(change, packages)
+  if (debut) return debut
   const added = addedPages(change.summary, index)
   if (!added) return null
   const [page] = added.pages
