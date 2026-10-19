@@ -76,12 +76,19 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   first sentence as the change's headline and sorts it by bump and opening
   word: `Add` is new, `Remove` or `Drop` is removed, any mention of
   `deprecat` is deprecated, `Update`, `Upgrade`, or `Migrate` is changed,
-  and any other `patch` is a fix. A new component opening the sentence,
-  as in "Add `Calendar`, a month grid for choosing a date.", becomes a
-  highlight card titled by its page, described by what follows the comma;
-  so does a breaking change. Lead with what changed for the consumer. A
-  breaking change to an alpha or beta API ships in a `minor` and opens with
-  "Breaking", so the changelog marks it.
+  and any other `patch` is a fix. Lead with what changed for the consumer.
+  A breaking change to an alpha or beta API ships in a `minor` and opens
+  with "Breaking", so the changelog marks it and gives it a card.
+- **Highlight cards.** A new component gets a card on the changelog when
+  its changeset opens "Add `Name`", or "Add `A` and `B`" for several, each
+  with a docs page of its own. An import path in brackets can follow a
+  name. Then a comma and what it is, which becomes the card's description:
+  "Add `Calendar` (`@oztix/roadie-components/calendar`), a month grid for
+  choosing a date." A new package opens "First release of
+  `@oztix/roadie-name`", with a paragraph after that sentence to describe
+  it, and needs entries in `RELEASED_PACKAGES` and `PACKAGE_PAGES` in
+  `docs/src/lib/releases.ts`. CI warns when a changeset misses a card
+  (`node docs/scripts/check-changesets.ts`).
 - **Plugin skills.** A change under `skills/` adds a `roadie-skills`
   changeset, patch or minor (never major), or CI fails. The plugin version
   ships when the maintainer merges Version Packages, as

@@ -144,6 +144,16 @@ jobs:
         if: github.event_name == 'pull_request'
         run: node scripts/check-plugin-release.mjs --base HEAD^1
 
+      # Warning only, on the changesets this PR adds or edits: wording that
+      # keeps a new component or package off the changelog's highlight cards.
+      - name: Check changesets
+        if: github.event_name == 'pull_request'
+        run: |
+          files=$(git diff --name-only --diff-filter=AM HEAD^1 HEAD -- '.changeset/*.md')
+          if [[ -z $files ]]; then echo "No changesets changed."; exit 0; fi
+          node docs/scripts/check-changesets.ts $files ||
+            echo "::warning title=Changelog card::The changeset check failed to run."
+
       - name: Lint and typecheck
         run: pnpm turbo lint typecheck --affected --framework-inference=false
         env:
