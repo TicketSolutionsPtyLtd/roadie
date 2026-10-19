@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import type { ComponentProps } from 'react'
+
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { Toast } from '@oztix/roadie-components/toast'
@@ -56,7 +58,8 @@ const destinations: NavigationDestination[] = [
 function renderAt(
   route: string,
   pageWide: Record<string, boolean> = {},
-  pageStatus: Record<string, PageStatusInfo> = {}
+  pageStatus: Record<string, PageStatusInfo> = {},
+  props: Partial<ComponentProps<typeof DocsNavigator>> = {}
 ) {
   location.pathname = route
   // The header's agent menu confirms a copy with a toast.
@@ -68,6 +71,7 @@ function renderAt(
         pageWide={pageWide}
         markdownTwins={{}}
         pageStatus={pageStatus}
+        {...props}
       >
         <p>Body</p>
       </DocsNavigator>
@@ -101,6 +105,71 @@ describe('DocsNavigator header', () => {
       .getAllByRole('button', { name: 'Scroll to top', hidden: true })
       .map((button) => button.textContent)
     expect(echoes).toContain('Page')
+  })
+})
+
+describe('DocsNavigator sources', () => {
+  it('offers a page with code both its code and its docs source', async () => {
+    renderAt(
+      '/charts/meter',
+      {},
+      {},
+      {
+        sourceLinks: {
+          '/charts/meter': {
+            page: 'blob/main/docs/src/app/charts/meter/page.mdx',
+            code: 'tree/main/packages/components/src/components/Meter'
+          }
+        }
+      }
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'View on GitHub', hidden: true })
+    )
+    const items = await screen.findAllByRole('menuitem')
+    expect(items.map((item) => item.textContent)).toEqual([
+      'Component code',
+      'Docs page'
+    ])
+    expect(items[0]?.getAttribute('href')).toMatch(
+      /\/tree\/main\/packages\/components\/src\/components\/Meter$/
+    )
+  })
+
+  it('links a page with one source straight to it', () => {
+    renderAt(
+      '/charts/meter',
+      {},
+      {},
+      {
+        sourceLinks: {
+          '/charts/meter': {
+            page: 'blob/main/docs/src/app/charts/meter/page.mdx'
+          }
+        }
+      }
+    )
+    expect(
+      screen
+        .getByRole('link', { name: 'View source on GitHub', hidden: true })
+        .getAttribute('href')
+    ).toMatch(/\/blob\/main\/docs\/src\/app\/charts\/meter\/page\.mdx$/)
+  })
+})
+
+describe('DocsNavigator footer', () => {
+  it('says when the page last changed', () => {
+    renderAt(
+      '/charts/meter',
+      {},
+      {},
+      {
+        pageUpdated: { '/charts/meter': '2026-10-03' }
+      }
+    )
+    expect(document.querySelector('footer')?.textContent).toContain(
+      'Last updated 3 Oct 2026'
+    )
   })
 })
 
@@ -189,7 +258,7 @@ describe('DocsNavigator status', () => {
     )
     const line = document.querySelector('[data-slot="page-status"]')
     expect(line?.textContent).toBe(
-      'Stable·Updated in Charts 0.2.0, 12 Oct 2026'
+      'Stable ·\u00a0Updated in Charts 0.2.0, 12 Oct 2026'
     )
     expect(line?.querySelector('[data-slot="badge"]')).toBeNull()
   })
