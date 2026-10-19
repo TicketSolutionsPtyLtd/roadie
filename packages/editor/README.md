@@ -107,8 +107,10 @@ renderEditorHtml(value, { size: 'md' }) // the same, as an HTML string
 Both run `migrate` first and need none of the editor's code, so they work in a
 server component. They render only the nodes, marks and attributes the value's
 preset defines, through the table in `src/render/elements.ts`, and keep only
-the text of the rest. Links go through Roadie's `Link`, and an unsafe href drops the link but
-keeps its text.
+the text of the rest. Links go through Roadie's `Link`, and an unsafe href
+drops the link but keeps its text. A table renders in a `.prose-scroll`, so a
+wide one scrolls on a phone rather than widening the page, with a first row
+of header cells in a `thead`.
 
 ## Changing the format
 

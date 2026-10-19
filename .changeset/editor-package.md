@@ -51,6 +51,9 @@ className })` returns React elements in `Prose`, with links through Roadie's
 a `.prose` element. Both run `migrate` first, render only the nodes, marks
 and attributes the value's preset defines, drop a link whose href is unsafe
 and keep its text, and never render raw HTML. Underline renders as `u`,
-headings as `h2` to `h4`, images with `loading="lazy"`, and embeds as a lazy, sandboxed `iframe`
-whose `src` `embedSrc` rebuilds; both take `embedProviders`, and drop embeds
-from any provider not in it.
+headings as `h2` to `h4`, images with `loading="lazy"`, and embeds as a lazy,
+sandboxed `iframe` whose `src` `embedSrc` rebuilds; both take
+`embedProviders`, and drop embeds from any provider not in it. A table
+renders in a `.prose-scroll`, so a wide one scrolls rather than widening the
+page, with a first row of header cells in a `thead`, `colspan` and `rowspan`
+only above 1, and no widths or styles.

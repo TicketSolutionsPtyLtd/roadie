@@ -76,3 +76,42 @@ describe('renderEditorValue embed size', () => {
     expect(player.width).toBeCloseTo(prose.width, 0)
   })
 })
+
+describe('renderEditorValue tables', () => {
+  it('scrolls a wide table inside a 320px container rather than widening it', () => {
+    const header = ['Time', 'Stage', 'Act', 'Genre', 'Tickets', 'Notes']
+    const cellsOf = (type: string, values: string[]) =>
+      values.map((value) => ({
+        type,
+        content: [
+          { type: 'paragraph', content: [{ type: 'text', text: value }] }
+        ]
+      }))
+    const { container } = render(
+      <div style={{ width: 320 }}>
+        {renderEditorValue({
+          version: 1,
+          preset: 'rich',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'table',
+                content: [
+                  { type: 'tableRow', content: cellsOf('tableHeader', header) },
+                  { type: 'tableRow', content: cellsOf('tableCell', header) }
+                ]
+              }
+            ]
+          }
+        })}
+      </div>
+    )
+    const prose = container.querySelector<HTMLElement>('.prose')!
+    const scroller = container.querySelector<HTMLElement>('.prose-scroll')!
+
+    expect(prose.getBoundingClientRect().width).toBe(320)
+    expect(scroller.getBoundingClientRect().width).toBe(320)
+    expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth)
+  })
+})
