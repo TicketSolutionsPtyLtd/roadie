@@ -193,7 +193,7 @@ describe('A strong link', () => {
       color: tokenColor('--color-accent-11'),
       line: 'none'
     })
-    expect(look(link).size).toMatch(/^100% 1px, 0% calc/)
+    expect(look(link).size).toBe('100% 1px, 0% 100%')
     expect(layerColors(link)[0]).toBe(tokenColor('--color-accent-9'))
   })
 
@@ -206,7 +206,7 @@ describe('A strong link', () => {
 
       const [underline, fill] = layerColors(link)
       const strong = emphasisStrong('intent-accent')
-      expect(look(link).size).toMatch(FULL_LESS_LINE)
+      expect(look(link).size).toBe('100% 1px, 100% 100%')
       expect(underline).toBe(fill)
       expect({ fill, text: look(link).color }).toEqual(strong)
     }

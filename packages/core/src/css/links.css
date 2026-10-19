@@ -69,7 +69,7 @@
 /* strong fills as emphasis-strong does. A blend between its text colours
    passes through the fill's own colour, so the text switches in one step:
    on-strong once the spring has all but covered it, and back at once on
-   the way out. */
+   the way out. The opaque fill runs under the underline, so no seam shows. */
 @utility link-strong {
   --link-tone: var(--intent-link-underline);
   --link-fill: var(--intent-link-fill);
@@ -86,7 +86,7 @@
     left top;
   background-size:
     100% var(--link-line),
-    0% calc(100% - var(--link-line));
+    0% 100%;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 
@@ -103,7 +103,7 @@
     color: var(--intent-link-on-fill);
     background-size:
       100% var(--link-line),
-      100% calc(100% - var(--link-line));
+      100% 100%;
     transition:
       var(--interactive-transition),
       background-size var(--duration-moderate) var(--ease-spring),
@@ -117,7 +117,7 @@
       color: var(--intent-link-on-fill);
       background-size:
         100% var(--link-line),
-        100% calc(100% - var(--link-line));
+        100% 100%;
       transition:
         var(--interactive-transition),
         background-size var(--duration-moderate) var(--ease-spring),
