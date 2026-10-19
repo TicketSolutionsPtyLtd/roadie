@@ -67,7 +67,6 @@
     "@tiptap/static-renderer": "3.31.4"
   },
   "peerDependencies": {
-    "@base-ui/react": "^1.8.0",
     "@oztix/roadie-components": "workspace:^",
     "@oztix/roadie-core": "workspace:^",
     "@phosphor-icons/react": "^2.0.0",
@@ -76,7 +75,6 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
-    "@base-ui/react": "1.8.0",
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-core": "workspace:*",
     "@phosphor-icons/react": "2.1.10",

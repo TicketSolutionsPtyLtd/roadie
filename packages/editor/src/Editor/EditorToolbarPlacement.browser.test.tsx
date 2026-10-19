@@ -6,7 +6,8 @@ import {
   describe,
   expect,
   it,
-  onTestFinished
+  onTestFinished,
+  vi
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
@@ -348,6 +349,24 @@ describe('Editor toolbar on a larger screen', () => {
     const [separator] = within(toolbar).getAllByRole('separator')
     await userEvent.click(separator!)
 
+    expect(textbox).toHaveFocus()
+  })
+
+  it('calls its own onMouseDown and still keeps the caret in the text', async () => {
+    const onMouseDown = vi.fn()
+    render(
+      <Editor aria-label={LABEL} defaultValue={shortRead}>
+        <Editor.Toolbar onMouseDown={onMouseDown} />
+        <Editor.Content />
+      </Editor>
+    )
+    const textbox = await focusedTextbox()
+    const toolbar = await shownToolbar()
+
+    const [separator] = within(toolbar).getAllByRole('separator')
+    await userEvent.click(separator!)
+
+    expect(onMouseDown).toHaveBeenCalledOnce()
     expect(textbox).toHaveFocus()
   })
 })

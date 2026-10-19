@@ -8,7 +8,7 @@ the saved format it reads and writes. Built on
 ## Install
 
 ```bash
-pnpm add @oztix/roadie-editor @oztix/roadie-components @oztix/roadie-core
+pnpm add @oztix/roadie-editor @oztix/roadie-components @oztix/roadie-core @phosphor-icons/react
 ```
 
 Tiptap is a dependency of this package, pinned to one version, so apps never
@@ -96,7 +96,10 @@ would store. It also drops any link whose `href`
 could run script, such as `javascript:`, and keeps its text, and drops any
 image whose `src` isn't `https` or root-relative, and any embed without a
 string `provider` and `id`, keeping only those and `params`. It reads a heading level
-outside 2 to 4 as the nearest of them, and missing alt text as `''`.
+outside 2 to 4 as the nearest of them, and missing alt text as `''`. It keeps
+only the attributes the preset saves and the first mark of each type, starts
+every list item with a paragraph, drops a list or quote left empty, and gives
+an empty `doc` one paragraph, so every value it returns loads in Tiptap.
 `createEmptyValue(preset)` starts a new value.
 
 ## Rendering a stored value
