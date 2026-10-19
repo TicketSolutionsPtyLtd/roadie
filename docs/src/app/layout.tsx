@@ -141,8 +141,6 @@ export default async function RootLayout({
   for (const { href, headlines } of releases)
     pageTitles[href] = headlines.all.title
   const twins = [...markdownRoutes, ...releases.map(({ href }) => href)]
-  const pageUpdated = getPageUpdatedDates()
-  for (const { href, date } of releases) if (date) pageUpdated[href] = date
 
   return (
     <html lang='en' suppressHydrationWarning>
@@ -168,7 +166,7 @@ export default async function RootLayout({
             )}
             pageStatus={pageStatus}
             sourceLinks={getSourceLinks(releases.map(({ href }) => href))}
-            pageUpdated={pageUpdated}
+            pageUpdated={getPageUpdatedDates()}
           >
             {children}
           </DocsNavigator>

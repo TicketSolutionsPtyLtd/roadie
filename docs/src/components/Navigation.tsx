@@ -321,15 +321,17 @@ export function DocsNavigator({
           >
             {/* The homepage and debug routes have no metadata.title and keep their own h1. */}
             {pageTitles[route] ? (
-              <Pane.BodyTitle className='mb-6 text-display-prose-1'>
-                {pageTitles[route]}
-              </Pane.BodyTitle>
+              <>
+                <Pane.BodyTitle className='mb-6 text-display-prose-1'>
+                  {pageTitles[route]}
+                </Pane.BodyTitle>
+                <PageMeta
+                  status={pageStatus[route]}
+                  updated={pageUpdated[route]}
+                  className='mb-6'
+                />
+              </>
             ) : null}
-            <PageMeta
-              status={pageStatus[route]}
-              updated={pageUpdated[route]}
-              className='mb-6'
-            />
             {related ? (
               <RelatedLinks {...related} className='-mt-3 mb-6' />
             ) : null}

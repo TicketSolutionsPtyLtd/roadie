@@ -170,9 +170,16 @@ describe('DocsNavigator page meta', () => {
     expect(
       document.querySelector('[data-slot="page-meta"]')?.textContent
     ).toContain('Docs updated3 Oct 2026')
-    expect(document.querySelector('footer')?.textContent ?? '').not.toContain(
-      'updated'
+  })
+
+  it('leaves the card off a page that keeps its own h1, such as the homepage', () => {
+    renderAt(
+      '/',
+      {},
+      {},
+      { pageTitles: {}, pageUpdated: { '/': '2026-10-03' } }
     )
+    expect(document.querySelector('[data-slot="page-meta"]')).toBeNull()
   })
 })
 
