@@ -4,6 +4,8 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 
+import { formatDateTime } from '@oztix/roadie-core/datetime'
+
 import { isAssetHref } from '../src/lib/asset-href.ts'
 import { DASHBOARD_EXAMPLES } from '../src/lib/dashboard-examples.ts'
 import {
@@ -32,6 +34,10 @@ import {
   getMarkdownRoutes,
   readPageMetadata
 } from '../src/lib/page-manifest.ts'
+import {
+  getReleaseHistory,
+  releaseHistoryMarkdown
+} from '../src/lib/releases.ts'
 import {
   ALL_TOKENS_INTRO,
   TOKEN_FAMILY_PAGES,
@@ -113,6 +119,16 @@ const renderers = {
       throw new Error(`<CatalogueIndex name="${name}"> names no catalogue`)
     return catalogueMarkdown[name]!
   },
+  Changelog: () =>
+    releaseHistoryMarkdown(
+      getReleaseHistory(),
+      resolveLink,
+      (date) =>
+        formatDateTime(new Date(`${date}T00:00:00Z`), {
+          timeZone: 'UTC',
+          dateStyle: 'medium'
+        }) ?? date
+    ),
   BrandFigure: ({ src, alt, caption }: Record<string, string | true>) =>
     [imageMarkdown(src, alt), typeof caption === 'string' ? caption : '']
       .filter(Boolean)

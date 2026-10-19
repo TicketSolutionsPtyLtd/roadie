@@ -89,7 +89,11 @@ export function useDocHeadings(): DocHeadings {
     let mainEl: HTMLElement = found
 
     // These pages' h3s duplicate the navigation or run to dozens.
-    const selector = ['/components', '/tokens/reference'].includes(route)
+    const selector = [
+      '/components',
+      '/tokens/reference',
+      '/overview/changelog'
+    ].includes(route)
       ? 'h2'
       : 'h2, h3'
     // Read from positions, not crossings, so a jump between headings still lands.
