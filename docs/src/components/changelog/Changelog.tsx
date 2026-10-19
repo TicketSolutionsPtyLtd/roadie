@@ -149,7 +149,11 @@ export function Changelog() {
             </h2>
             <PackageVersions packages={release.packages} />
           </div>
-          <ChangeGroups changes={release.changes} />
+          {release.changes.length > 0 ? (
+            <ChangeGroups changes={release.changes} />
+          ) : (
+            <p className='text-subtle'>Dependency updates only.</p>
+          )}
         </section>
       ))}
     </div>

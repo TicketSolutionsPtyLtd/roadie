@@ -3,7 +3,6 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
 export const REPO_URL = 'https://github.com/TicketSolutionsPtyLtd/roadie'
-export const RELEASES_URL = `${REPO_URL}/releases`
 export const CHANGELOG_ROUTE = '/overview/changelog'
 
 /** The packages the changelog follows, in the order a release lists them. */

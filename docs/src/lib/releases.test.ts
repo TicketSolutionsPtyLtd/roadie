@@ -462,3 +462,31 @@ describe('groupReleases on one day', () => {
     ])
   })
 })
+
+describe('groupReleases across packages', () => {
+  it('classifies a changeset by its largest bump across the packages it versions', () => {
+    const commits = new Map([
+      ['1.0.0', { hash: 'c', date: '2026-09-28', time: 1 }]
+    ])
+    const [release] = groupReleases(
+      [
+        {
+          name: '@oztix/roadie-components',
+          versions: parseChangelog(
+            '## 1.0.0\n\n### Patch Changes\n\n- abc1234: `Card` sizes its footer.\n'
+          ),
+          commits
+        },
+        {
+          name: '@oztix/roadie-core',
+          versions: parseChangelog(
+            '## 1.0.0\n\n### Minor Changes\n\n- abc1234: `Card` sizes its footer.\n'
+          ),
+          commits
+        }
+      ],
+      index
+    )
+    expect(release?.changes.map(({ kind }) => kind)).toEqual(['new'])
+  })
+})
