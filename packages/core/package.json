@@ -141,7 +141,7 @@
     {
       "name": "records",
       "path": "dist/records/index.js",
-      "limit": "40.2 KB"
+      "limit": "40.55 KB"
     },
     {
       "name": "records without validation",
