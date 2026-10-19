@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { RoadieLinkProvider } from '@oztix/roadie-components'
 
@@ -45,13 +45,34 @@ function link(href: string): Mark {
   return { type: 'link', attrs: { href } }
 }
 
+function cell(
+  type: 'tableCell' | 'tableHeader',
+  value: string,
+  attrs?: object
+) {
+  return { type, ...(attrs && { attrs }), content: [paragraph(text(value))] }
+}
+
+function row(...content: JSONContent[]): JSONContent {
+  return { type: 'tableRow', content }
+}
+
+function table(...content: JSONContent[]): JSONContent {
+  return { type: 'table', content }
+}
+
+const th = (value: string, attrs?: object) => cell('tableHeader', value, attrs)
+const td = (value: string, attrs?: object) => cell('tableCell', value, attrs)
+
 const bold = { type: 'bold' }
 const italic = { type: 'italic' }
 
-// Strips the Prose wrapper and React's text separators, leaving the content.
+// Strips the Prose wrapper and React's text separators, and lowercases
+// React's span attribute names, as HTML reads them either way.
 function contentOf(html: string) {
   return html
     .replaceAll('<!-- -->', '')
+    .replace(/ (col|row)Span=/g, ' $1span=')
     .replaceAll('<br/>', '<br>')
     .replaceAll('<hr/>', '<hr>')
     .replace(/<img([^>]*?)\/>/g, '<img$1>')
@@ -82,6 +103,11 @@ describe.each(renderers)('%s', (_, render) => {
       'bold inside italic',
       [paragraph(text('All ', italic), text('ages', italic, bold))],
       '<p><em>All </em><em><strong>ages</strong></em></p>'
+    ],
+    [
+      'underline inside bold',
+      [paragraph(text('No refunds', bold, { type: 'underline' }))],
+      '<p><strong><u>No refunds</u></strong></p>'
     ],
     [
       'a hard break',
@@ -323,6 +349,77 @@ describe.each(renderers)('%s', (_, render) => {
           }
         ],
         '<img src="/images/crowd.webp" alt="&quot;&gt;&lt;script&gt;x&lt;/script&gt;" loading="lazy">'
+      ],
+      [
+        'a table with a header row, in a scroller',
+        [
+          table(
+            row(th('Time'), th('Act')),
+            row(td('9pm'), td('Ochre Kite')),
+            row(td('10pm'), td('Night Parrot'))
+          )
+        ],
+        '<div class="prose-scroll"><table>' +
+          '<thead><tr><th><p>Time</p></th><th><p>Act</p></th></tr></thead>' +
+          '<tbody><tr><td><p>9pm</p></td><td><p>Ochre Kite</p></td></tr>' +
+          '<tr><td><p>10pm</p></td><td><p>Night Parrot</p></td></tr></tbody>' +
+          '</table></div>'
+      ],
+      [
+        'a table with no header row, all in its body',
+        [table(row(td('9pm'), td('Ochre Kite')))],
+        '<div class="prose-scroll"><table><tbody><tr><td><p>9pm</p></td><td><p>Ochre Kite</p></td></tr></tbody></table></div>'
+      ],
+      [
+        'a header column in the body',
+        [
+          table(
+            row(th('9pm'), td('Ochre Kite')),
+            row(th('10pm'), td('Night Parrot'))
+          )
+        ],
+        '<div class="prose-scroll"><table><tbody>' +
+          '<tr><th><p>9pm</p></th><td><p>Ochre Kite</p></td></tr>' +
+          '<tr><th><p>10pm</p></th><td><p>Night Parrot</p></td></tr>' +
+          '</tbody></table></div>'
+      ],
+      [
+        'a table of a header row only',
+        [table(row(th('Time'), th('Act')))],
+        '<div class="prose-scroll"><table><thead><tr><th><p>Time</p></th><th><p>Act</p></th></tr></thead></table></div>'
+      ],
+      [
+        'spans above 1, and no others',
+        [
+          table(
+            row(th('Lineup', { colspan: 2, rowspan: 1 })),
+            row(td('9pm', { rowspan: 2 }), td('Ochre Kite')),
+            row(td('Night Parrot', { colspan: 1 }))
+          )
+        ],
+        '<div class="prose-scroll"><table>' +
+          '<thead><tr><th colspan="2"><p>Lineup</p></th></tr></thead>' +
+          '<tbody><tr><td rowspan="2"><p>9pm</p></td><td><p>Ochre Kite</p></td></tr>' +
+          '<tr><td><p>Night Parrot</p></td></tr></tbody>' +
+          '</table></div>'
+      ],
+      [
+        'a table with no widths or styles from its cells',
+        [
+          table(
+            row({
+              type: 'tableCell',
+              attrs: {
+                colwidth: [200],
+                style: 'width:200px',
+                class: 'evil',
+                align: 'center'
+              },
+              content: [paragraph(text('9pm'))]
+            })
+          )
+        ],
+        '<div class="prose-scroll"><table><tbody><tr><td><p>9pm</p></td></tr></tbody></table></div>'
       ]
     ])('renders %s', (_, content, html) => {
       expect(render(richValueOf(...content))).toBe(html)
@@ -431,6 +528,19 @@ describe('renderEditorValue', () => {
     expect(html).toMatch(
       /^<div data-slot="prose"[^>]* class="prose [^"]*text-lg[^"]* mt-4"/
     )
+  })
+
+  it('renders a table with no React warnings', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    renderToString(
+      renderEditorValue(
+        richValueOf(table(row(th('Lineup', { colspan: 2, rowspan: 2 }))))
+      )
+    )
+
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
   })
 
   it('routes internal links through the Link given to RoadieProvider', () => {

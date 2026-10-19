@@ -72,6 +72,19 @@ function embed(attrs: SavedAttrs, { embedProviders }: RenderContext) {
   }
 }
 
+// A span of 1 is the default, so only a wider one is written.
+const isSpan = (span: unknown) => Number.isInteger(span) && Number(span) > 1
+
+function cellOf(tag: 'th' | 'td') {
+  return ({ colspan, rowspan }: SavedAttrs): Element => ({
+    tag,
+    attrs: {
+      ...(isSpan(colspan) && { colspan: colspan as number }),
+      ...(isSpan(rowspan) && { rowspan: rowspan as number })
+    }
+  })
+}
+
 // Each saved node and mark the renderers know, by Tiptap's name. Attributes
 // are read one by one, so nothing else in a saved value reaches the output.
 // `text` is each renderer's own, since it escapes differently.
@@ -86,12 +99,24 @@ const NODES: Record<string, ToElement> = {
   blockquote: () => ({ tag: 'blockquote' }),
   horizontalRule: () => ({ tag: 'hr' }),
   image,
-  embed
+  embed,
+  table: () => ({ tag: 'table' }),
+  tableRow: () => ({ tag: 'tr' }),
+  tableHeader: cellOf('th'),
+  tableCell: cellOf('td')
+}
+
+// Nodes `withTableSections` adds around a saved table's rows, never saved.
+const TABLE_PARTS: Record<string, ToElement> = {
+  tableScroll: () => ({ tag: 'div', attrs: { class: 'prose-scroll' } }),
+  tableHead: () => ({ tag: 'thead' }),
+  tableBody: () => ({ tag: 'tbody' })
 }
 
 const MARKS: Record<string, ToElement> = {
   bold: () => ({ tag: 'strong' }),
   italic: () => ({ tag: 'em' }),
+  underline: () => ({ tag: 'u' }),
   link
 }
 
@@ -107,8 +132,9 @@ function known(table: Record<string, ToElement>, names: readonly string[]) {
 
 function elementsFor(extensions: Extensions): Elements {
   const schema = getSchema(extensions)
+  const nodes = known(NODES, Object.keys(schema.nodes))
   return {
-    nodes: known(NODES, Object.keys(schema.nodes)),
+    nodes: nodes.table ? Object.assign(nodes, TABLE_PARTS) : nodes,
     marks: known(MARKS, Object.keys(schema.marks))
   }
 }
@@ -137,5 +163,32 @@ export function outermostMarksLast(node: JSONContent): JSONContent {
     ...(Array.isArray(node.content) && {
       content: node.content.map(outermostMarksLast)
     })
+  }
+}
+
+const isHeaderRow = (row: JSONContent | undefined) =>
+  row?.content?.every((cell) => cell.type === 'tableHeader') === true
+
+function tableSections(rows: JSONContent[]): JSONContent[] {
+  const [first, ...body] = rows
+  const head = isHeaderRow(first) ? [first!] : []
+  const bodyRows = head.length > 0 ? body : rows
+  return [
+    ...(head.length > 0 ? [{ type: 'tableHead', content: head }] : []),
+    ...(bodyRows.length > 0 ? [{ type: 'tableBody', content: bodyRows }] : [])
+  ]
+}
+
+/**
+ * Puts a header first row in a `thead` and the rest in a `tbody`, and each
+ * table in a `.prose-scroll`, so a wide one scrolls rather than widening the
+ * page.
+ */
+export function withTableSections(node: JSONContent): JSONContent {
+  const content = node.content?.map(withTableSections)
+  if (node.type !== 'table') return content ? { ...node, content } : node
+  return {
+    type: 'tableScroll',
+    content: [{ ...node, content: tableSections(content ?? []) }]
   }
 }

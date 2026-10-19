@@ -60,7 +60,16 @@ function cleanedMarks(marks: unknown[], shape: PresetShape) {
   return [...kept.values()]
 }
 
+const isSpan = (span: unknown) => Number.isInteger(span) && Number(span) > 0
+
 function cleanedAttrs({ type, attrs }: JSONContent) {
+  if (type === 'tableCell' || type === 'tableHeader') {
+    const { colspan, rowspan } = attrs ?? {}
+    return {
+      ...(isSpan(colspan) && { colspan }),
+      ...(isSpan(rowspan) && { rowspan })
+    }
+  }
   if (type === 'heading') return { ...attrs, level: headingLevel(attrs?.level) }
   if (type === 'image') {
     const alt: unknown = attrs?.alt
@@ -101,29 +110,75 @@ function inlineWithin(node: JSONContent, shape: PresetShape): JSONContent[] {
   return (node.content ?? []).flatMap((child) => inlineWithin(child, shape))
 }
 
-function paragraphsAround(nodes: JSONContent[], shape: PresetShape) {
-  const blocks: JSONContent[] = []
+// Each run of nodes `inRun` picks is wrapped in a node of its own.
+function wrapRuns(
+  nodes: JSONContent[],
+  inRun: (node: JSONContent) => boolean,
+  wrap: (run: JSONContent[]) => JSONContent
+) {
+  const wrapped: JSONContent[] = []
   let run: JSONContent[] = []
   const endRun = () => {
-    if (run.length > 0) blocks.push({ type: 'paragraph', content: run })
+    if (run.length > 0) wrapped.push(wrap(run))
     run = []
   }
   for (const node of nodes) {
-    if (isInline(node, shape)) {
+    if (inRun(node)) {
       run.push(node)
       continue
     }
     endRun()
-    blocks.push(node)
+    wrapped.push(node)
   }
   endRun()
-  return blocks
+  return wrapped
+}
+
+function paragraphsAround(nodes: JSONContent[], shape: PresetShape) {
+  return wrapRuns(
+    nodes,
+    (node) => isInline(node, shape),
+    (content) => ({ type: 'paragraph', content })
+  )
 }
 
 function paragraphFirst(blocks: JSONContent[]) {
   return blocks[0]?.type === 'paragraph'
     ? blocks
     : [{ type: 'paragraph' }, ...blocks]
+}
+
+const isCell = ({ type }: JSONContent) =>
+  type === 'tableCell' || type === 'tableHeader'
+
+// List items sit only in lists, and rows and cells only in tables.
+function unwrapped(node: JSONContent): JSONContent[] {
+  if (node.type !== 'listItem' && node.type !== 'tableRow' && !isCell(node)) {
+    return [node]
+  }
+  return (node.content ?? []).flatMap(unwrapped)
+}
+
+function paragraphsWithin(
+  node: JSONContent,
+  shape: PresetShape
+): JSONContent[] {
+  if (node.type === 'paragraph') return [node]
+  if (shapeOf(node, shape)?.content === 'inline') {
+    return node.content?.length
+      ? [{ type: 'paragraph', content: node.content }]
+      : []
+  }
+  return (node.content ?? []).flatMap((child) => paragraphsWithin(child, shape))
+}
+
+function cellsOf(node: JSONContent, shape: PresetShape): JSONContent[] {
+  if (isCell(node)) return [node]
+  if (node.type === 'tableRow') return node.content ?? []
+  const paragraphs = paragraphsWithin(node, shape)
+  return paragraphs.length > 0
+    ? [{ type: 'tableCell', content: paragraphs }]
+    : []
 }
 
 // Reshapes children so each sits where the schema can read it, keeping text.
@@ -140,13 +195,29 @@ function fitted(
     return blocks.map((node) =>
       node.type === 'listItem'
         ? node
-        : { type: 'listItem', content: paragraphFirst([node]) }
+        : { type: 'listItem', content: paragraphFirst(unwrapped(node)) }
     )
   }
-  const unwrapped = blocks.flatMap((node) =>
-    node.type === 'listItem' ? (node.content ?? []) : [node]
-  )
-  return content === 'paragraphFirst' ? paragraphFirst(unwrapped) : unwrapped
+  if (content === 'paragraphs') {
+    const paragraphs = blocks.flatMap((node) => paragraphsWithin(node, shape))
+    return paragraphs.length > 0 ? paragraphs : [{ type: 'paragraph' }]
+  }
+  if (content === 'tableCells') {
+    return blocks.flatMap((node) => cellsOf(node, shape))
+  }
+  if (content === 'tableRows') {
+    return wrapRuns(
+      blocks.flatMap((node) =>
+        node.type === 'tableRow' ? [node] : cellsOf(node, shape)
+      ),
+      isCell,
+      (cells) => ({ type: 'tableRow', content: cells })
+    )
+  }
+  const unwrappedBlocks = blocks.flatMap(unwrapped)
+  return content === 'paragraphFirst'
+    ? paragraphFirst(unwrappedBlocks)
+    : unwrappedBlocks
 }
 
 function childrenOf(content: unknown, shape: PresetShape) {
@@ -157,7 +228,8 @@ function childrenOf(content: unknown, shape: PresetShape) {
 // JSON skips the schema's parseHTML checks, so stored values are checked here.
 // A node the preset doesn't hold gives way to its children, its text in a
 // paragraph of its own, which a parent holding inline content unwraps. A
-// node that must hold blocks or list items and is left with none is dropped.
+// node that must hold blocks, list items, rows or cells and is left with none
+// is dropped.
 function cleaned(node: JSONContent, shape: PresetShape): JSONContent[] {
   const nodeShape = shapeOf(node, shape)
   if (!nodeShape)
@@ -204,7 +276,10 @@ function cleaned(node: JSONContent, shape: PresetShape): JSONContent[] {
  * empty. Keeps only the keys, attrs, and first of each mark the preset saves,
  * marks only on inline nodes and an ordered list's start only when whole,
  * starts every list item with a paragraph, drops a list or quote left empty,
- * and gives an empty doc one paragraph.
+ * and gives an empty doc one paragraph. Keeps only cells in a table's rows,
+ * and only paragraphs in a cell, unwrapping other blocks to their text;
+ * keeps a cell's spans only when whole and positive, gives an empty cell a
+ * paragraph, and drops a row with no cells and a table with no rows.
  */
 export function migrate(
   value: StoredEditorValue,

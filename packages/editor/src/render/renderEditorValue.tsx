@@ -23,7 +23,8 @@ import {
   type SavedAttrs,
   VOID_TAGS,
   outermostMarksLast,
-  presetElementsFor
+  presetElementsFor,
+  withTableSections
 } from './elements'
 
 export type RenderEditorOptions = {
@@ -45,10 +46,21 @@ type RendererProps = {
 
 type Renderer = (props: RendererProps) => ReactNode
 
+const REACT_PROP_NAMES: Record<string, string> = {
+  class: 'className',
+  colspan: 'colSpan',
+  rowspan: 'rowSpan'
+}
+
 function reactElement({ tag, attrs, style }: Element, children: ReactNode) {
   if (tag === 'a') return <Link href={String(attrs?.href)}>{children}</Link>
   const props: Record<string, unknown> & { style?: CSSProperties } = {
-    ...attrs,
+    ...Object.fromEntries(
+      Object.entries(attrs ?? {}).map(([name, value]) => [
+        REACT_PROP_NAMES[name] ?? name,
+        value
+      ])
+    ),
     ...(style && { style })
   }
   return VOID_TAGS.has(tag)
@@ -84,7 +96,7 @@ function renderDoc(
     markMapping: renderers(marks, ({ mark }) => mark?.attrs, context),
     unhandledNode: () => null,
     unhandledMark: ({ children }) => children
-  })({ content: outermostMarksLast(doc) })
+  })({ content: withTableSections(outermostMarksLast(doc)) })
 }
 
 /**

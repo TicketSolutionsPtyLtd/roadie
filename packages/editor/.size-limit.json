@@ -3,13 +3,13 @@
     "name": "schema",
     "path": "dist/schema/index.js",
     "import": "*",
-    "limit": "101 kB"
+    "limit": "115 kB"
   },
   {
     "name": "render",
     "path": "dist/render/index.js",
     "import": "*",
-    "limit": "102 kB",
+    "limit": "118 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
