@@ -40,7 +40,7 @@ beforeAll(async () => {
 })
 afterAll(async () => {
   style.remove()
-  await page.viewport(1280, 720)
+  await page.viewport(1280, 800)
 })
 afterEach(() => {
   document.body.innerHTML = ''
