@@ -106,6 +106,8 @@ import {
   toSearchParams
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
+import { Editor, useEditorContext } from '@oztix/roadie-editor/editor'
+import { renderEditorValue } from '@oztix/roadie-editor/render'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
@@ -217,6 +219,9 @@ const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
 const scope = {
   ...RoadieComponents,
   ...RoadieCharts,
+  Editor,
+  useEditorContext,
+  renderEditorValue,
   LegendKey,
   lineChartTable,
   plainDateOf,

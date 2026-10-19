@@ -81,8 +81,48 @@ import { Toggle } from '@oztix/roadie-components/toggle'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 import { Toolbar } from '@oztix/roadie-components/toolbar'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
+import { Editor } from '@oztix/roadie-editor/editor'
+import { renderEditorValue } from '@oztix/roadie-editor/render'
+import type { EditorValue } from '@oztix/roadie-editor/schema'
 
 import { NavigatorCanary } from './NavigatorCanary'
+
+const SAVED_DESCRIPTION: EditorValue = {
+  version: 1,
+  preset: 'basic',
+  doc: {
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            marks: [{ type: 'bold' }],
+            text: 'Ochre Kite Weekender'
+          },
+          { type: 'text', text: ' returns to Jumbuck Orchard Park.' },
+          { type: 'hardBreak' },
+          { type: 'text', marks: [{ type: 'italic' }], text: 'All ages.' }
+        ]
+      },
+      {
+        type: 'bulletList',
+        content: [
+          {
+            type: 'listItem',
+            content: [
+              {
+                type: 'paragraph',
+                content: [{ type: 'text', text: 'Gates open 11am' }]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
 
 // A server component, so passing it as Prose's `as` fails the build if Prose
 // is ever a client component.
@@ -1124,6 +1164,39 @@ export default function RscSmokePage() {
             __html: `<table><tbody><tr>${CANARY_CELLS.map((cell) => `<td style="white-space: nowrap">${cell}</td>`).join('')}</tr></tbody></table>`
           }}
         />
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Editor</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; Editor &#125; from
+            &apos;@oztix/roadie-editor/editor&apos;
+          </code>
+        </p>
+        <p className='text-sm text-subtle'>
+          The server renders a skeleton at the editor&apos;s minimum height,
+          with no Tiptap, and the browser swaps in the editor once its code
+          loads.
+        </p>
+        <Editor aria-label='Event description'>
+          <Editor.Content />
+        </Editor>
+      </section>
+
+      <section className='grid gap-4'>
+        <h2 className='text-display-ui-3 text-strong'>Rendered editor value</h2>
+        <p className='text-sm text-subtle'>
+          <code>
+            import &#123; renderEditorValue &#125; from
+            &apos;@oztix/roadie-editor/render&apos;
+          </code>
+        </p>
+        <p className='text-sm text-subtle'>
+          A saved value rendered by a server component, through Tiptap&apos;s
+          static renderer, with no editor code.
+        </p>
+        {renderEditorValue(SAVED_DESCRIPTION, { size: 'sm' })}
       </section>
 
       {/*

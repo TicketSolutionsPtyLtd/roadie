@@ -1,0 +1,508 @@
+export const metadata = {
+  title: 'Editor',
+  description: 'A rich-text field that saves its content as an EditorValue',
+  status: 'alpha',
+  category: 'Fields',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A rich-text field that saves its content as an `EditorValue`.
+
+## Import
+
+```tsx
+import { Editor } from '@oztix/roadie-editor/editor'
+```
+
+Add the editor's CSS after the components' CSS. It styles the placeholder,
+and a `subtler` editor's invalid edge:
+
+```css
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-editor/css';
+```
+
+## Examples
+
+### Default
+
+The toolbar holds the preset's controls: bold, italic, link, bulleted and
+numbered lists, undo, and redo, a size smaller than the text. It sits in a
+bordered bar at the top of the editor, and each control's tooltip shows its
+shortcut.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  placeholder='Tell people about the night'
+/>
+```
+
+### Toolbar
+
+The toolbar is always there, as a bar that hugs its controls at the top of
+the editor. It's part of the editor, so it scrolls away with a long
+description, and it looks the same whether you're editing or not, so the text
+never moves. On a phone or touch screen its controls scroll sideways on one
+row when they don't fit.
+
+A floating toolbar that stays in reach as you edit a long description is
+planned.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  defaultValue={{
+    version: 1,
+    preset: 'basic',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', marks: [{ type: 'bold' }], text: 'Set times' }] },
+        ...['Gates open, 11am', 'Ochre Kite, 12pm', 'Feathered Anchor Sessions, 1:15pm', 'The Jumbuck Strings, 2:30pm', 'Kazoo Hollow, 3:45pm', 'Saltbush Choir, 5pm', 'Last entry, 7pm', 'Headliner, 8:30pm', 'Curfew, 11pm'].map((set) => (
+          { type: 'paragraph', content: [{ type: 'text', text: set }] }
+        )),
+        { type: 'paragraph', content: [{ type: 'text', marks: [{ type: 'bold' }], text: 'Getting there' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Shuttles leave Brisbane city every 20 minutes from 10am, and the last one back leaves at 11:30pm.' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Bike racks are by the main gate. There’s no parking on site.' }] },
+        { type: 'paragraph', content: [{ type: 'text', marks: [{ type: 'bold' }], text: 'What to bring' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'A hat, sunscreen, and a refillable bottle. Water stations are by each stage.' }] }
+      ]
+    }
+  }}
+/>
+```
+
+### With content
+
+`defaultValue` takes an `EditorValue` from `@oztix/roadie-editor/schema`. The
+`basic` preset holds paragraphs, bulleted and numbered lists, bold, italic, and
+links.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  defaultValue={{
+    version: 1,
+    preset: 'basic',
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', marks: [{ type: 'bold' }], text: 'Ochre Kite Weekender' },
+            { type: 'text', text: ' returns to Jumbuck Orchard Park, Brisbane, for two days in the sun.' }
+          ]
+        },
+        {
+          type: 'bulletList',
+          content: [
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Gates open 11am' }] }] },
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Last entry 7pm' }] }] }
+          ]
+        },
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', marks: [{ type: 'italic' }], text: 'All ages. Under 16s need a guardian.' }
+          ]
+        }
+      ]
+    }
+  }}
+/>
+```
+
+### Links
+
+Select text and press `Mod+K`, or use the Link control, to link it. Type a
+web address such as `oztix.com.au` and the editor adds `https://`. With
+nothing selected, saving inserts the address as linked text. Typing or pasting
+a web address links it as you go.
+
+The Link popover is one row: a bare input
+that shows only its placeholder, then a check button that saves and a Close
+button. The check stays disabled until there's something to save. Enter saves
+too, except the Enter that picks an IME candidate, and Escape closes. Editing a
+link adds a Remove link button between the two.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  defaultValue={{
+    version: 1,
+    preset: 'basic',
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Feathered Anchor Sessions plays the Kazoo Hollow Room on Friday. ' },
+            {
+              type: 'text',
+              marks: [{ type: 'link', attrs: { href: 'https://www.oztix.com.au/feathered-anchor-sessions' } }],
+              text: 'Get tickets'
+            }
+          ]
+        }
+      ]
+    }
+  }}
+/>
+```
+
+A link that could run script, such as a `javascript:` address, never reaches
+the saved value. The link editor refuses it, pasted HTML keeps only its text,
+and `migrate` drops it from a stored value.
+
+### Emphasis
+
+`emphasis` sets the frame. The toolbar takes its own
+[emphasis](#toolbar-emphasis), so it's the same in each.
+
+| Emphasis           | Frame                                   | Use it for                                                |
+| ------------------ | --------------------------------------- | --------------------------------------------------------- |
+| `normal` (default) | A field's border, fill, and focus ring  | A form, beside other fields                               |
+| `subtle`           | A tint with no border, and a focus ring | A form on a busy surface, where a border adds noise       |
+| `subtler`          | None: the content sits on the page      | Content edited in place, such as an event page's sections |
+
+```tsx-live-prose layout=stack gap=2
+<Editor aria-label='Normal emphasis' emphasis='normal' placeholder='Normal emphasis' />
+<Editor aria-label='Subtle emphasis' emphasis='subtle' placeholder='Subtle emphasis' />
+```
+
+#### Subtler
+
+`emphasis='subtler'` drops the border, fill, and padding, so the text lines up
+with the page around it and editing looks like reading. The caret shows
+where focus is.
+Its skeleton is lines of text, not a box.
+
+```tsx-live-prose layout=stack gap=2
+<h2 id='about-the-event' className='text-display-ui-4 text-strong'>
+  About the event
+</h2>
+<Editor
+  aria-labelledby='about-the-event'
+  emphasis='subtler'
+  defaultValue={{
+    version: 1,
+    preset: 'basic',
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', marks: [{ type: 'bold' }], text: 'Ochre Kite Weekender' },
+            { type: 'text', text: ' returns to Jumbuck Orchard Park, Brisbane, for two days in the sun.' }
+          ]
+        },
+        {
+          type: 'bulletList',
+          content: [
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Gates open 11am' }] }] },
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Shuttles from Brisbane city every 20 minutes' }] }] }
+          ]
+        }
+      ]
+    }
+  }}
+/>
+```
+
+An invalid `subtler` editor has no border to turn red, so it draws the
+field's danger edge on its start side, just outside the text, and
+`Field.ErrorText` says what's wrong. The edge uses danger step 9, as an
+invalid field's border does, which clears APCA Lc 45 on the page in both
+themes. Give it room at the start: a container that clips its overflow hides
+the edge. A disabled one dims as a disabled field does.
+
+#### Toolbar emphasis
+
+`Editor.Toolbar` takes [Toolbar's `emphasis`](/components/toolbar/#emphasis) for its bar, the same on every screen and
+whether you're editing or not. It's independent of the editor's own `emphasis`. To
+change it, pass the parts yourself:
+
+| Emphasis           | Bar                                      | Use it for                                   |
+| ------------------ | ---------------------------------------- | -------------------------------------------- |
+| `normal` (default) | A visible border on the normal surface   | Most editors, in a form or on the page       |
+| `subtle`           | A tint with no border                    | A busy surface, where a border adds noise    |
+| `subtler`          | No surface, just the controls            | A quiet bar, such as over a `subtler` editor |
+| `raised`           | A translucent raised surface             | An editor on a tinted surface                |
+| `floating`         | A translucent surface with a deep shadow | A bar that should read as above the content  |
+
+```tsx-live-prose layout=stack gap=2
+<Editor aria-label='Subtler toolbar' placeholder='Subtler toolbar'>
+  <Editor.Toolbar emphasis='subtler' />
+  <Editor.Content />
+</Editor>
+<Editor aria-label='Raised toolbar' placeholder='Raised toolbar'>
+  <Editor.Toolbar emphasis='raised' />
+  <Editor.Content />
+</Editor>
+```
+
+### Sizes
+
+`size` sets the body and heading sizes to match `Prose`, so editing looks
+like the published page.
+
+```tsx-live-prose layout=stack gap=2
+<Editor aria-label='Small' size='sm' placeholder='Small' />
+<Editor aria-label='Medium' size='md' placeholder='Medium (default)' />
+<Editor aria-label='Large' size='lg' placeholder='Large' />
+```
+
+### States
+
+```tsx-live-prose layout=stack
+{/* Default */}
+<Editor aria-label='Event description' placeholder='Click to focus' />
+{/* Read-only */}
+<Editor
+  aria-label='Event description'
+  readOnly
+  defaultValue={{
+    version: 1,
+    preset: 'basic',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'Doors open 7pm at the Kazoo Hollow Room.' }] }
+      ]
+    }
+  }}
+/>
+{/* Disabled */}
+<Editor aria-label='Event description' placeholder='Tell people about the night' disabled />
+```
+
+### Controlled
+
+`onValueChange` gets the whole `EditorValue` on each change. Save it as JSON,
+never as HTML, and pass a stored value through `migrate` before it goes back in.
+The editor holds the `basic` preset, and reads a value in another preset into
+it, keeping the text of what it can't hold.
+
+```tsx-live-prose-noinline
+function DescriptionEditor() {
+  const [value, setValue] = useState()
+  return (
+    <Editor
+      aria-label='Event description'
+      placeholder='Tell people about the night'
+      value={value}
+      onValueChange={setValue}
+    />
+  )
+}
+
+render(<DescriptionEditor />)
+```
+
+### Composition
+
+#### Field
+
+In a `Field`, the editor is named by `Field.Label` and described by
+`Field.HelperText`, or by `Field.ErrorText` while the field is invalid. It
+takes `invalid`, `required`, and `disabled` from the field.
+
+```tsx-live layout=stack
+{/* Default */}
+<Field>
+  <Field.Label>Event description</Field.Label>
+  <Editor placeholder='Tell people about the night' />
+  <Field.HelperText>Shown on the event page, under the lineup.</Field.HelperText>
+</Field>
+{/* Invalid */}
+<Field invalid required>
+  <Field.Label showIndicator>Event description</Field.Label>
+  <Editor placeholder='Tell people about the night' />
+  <Field.ErrorText>Add a description so people know what's on.</Field.ErrorText>
+</Field>
+```
+
+#### Forms
+
+`name` adds a hidden input that holds the `EditorValue` as JSON, so a native
+form submits it. A disabled editor leaves it out, as a disabled input does.
+
+```tsx
+<form action='/events/ochre-kite-weekender' method='post'>
+  <Field>
+    <Field.Label>Event description</Field.Label>
+    <Editor name='description' defaultValue={savedDescription} />
+  </Field>
+  <Button type='submit'>Save</Button>
+</form>
+```
+
+#### Custom controls
+
+With no children, `Editor` renders `Editor.Toolbar` then `Editor.Content`.
+Pass them yourself to add controls: `Editor.Toolbar` renders the preset's
+controls, then its children. A `Toolbar.Button` child joins the toolbar's
+arrow order, and `useEditorContext()` gives it the editor to run commands on.
+
+```tsx-live-prose-noinline
+function DoorsTimeControl() {
+  const { editor } = useEditorContext()
+  return (
+    <Toolbar.Button
+      onClick={() =>
+        editor?.chain().focus().insertContent('Doors open 7pm. ').run()
+      }
+    >
+      Add doors time
+    </Toolbar.Button>
+  )
+}
+
+render(
+  <Editor aria-label='Event description' placeholder='Tell people about the night'>
+    <Editor.Toolbar>
+      <Toolbar.Separator />
+      <DoorsTimeControl />
+    </Editor.Toolbar>
+    <Editor.Content />
+  </Editor>
+)
+```
+
+## Guidelines
+
+- The editor's code loads after the page, so `Editor` shows a skeleton the
+  height of the empty editor until then, and always on the server. Call `preloadEditor()`
+  on the hover or focus that leads to an editor to start loading it sooner.
+- Put the editor in a `Field` with a `Field.Label`. Outside one, label it
+  with `aria-label` or `aria-labelledby`; a `<label for>` can't name editable
+  content.
+- Add a custom control only for something the preset can't do. A preset's
+  controls come with its schema, so each one works on what the editor can
+  save.
+
+## Rendering saved content
+
+`@oztix/roadie-editor/render` turns a saved `EditorValue` into the page's
+content, with none of the editor's code. It works in a server component and
+on the client.
+
+```tsx
+import { renderEditorHtml, renderEditorValue } from '@oztix/roadie-editor/render'
+```
+
+- `renderEditorValue(value, { size, className })` returns React elements in
+  `Prose` at `size`, so pass the editor's size. Links render through `Link`,
+  so internal hrefs route through the Link given to `RoadieProvider`.
+- `renderEditorHtml(value, { size, className })` returns the same content as
+  an HTML string in a `.prose` element, for a consumer that isn't React.
+  External links get `target="_blank"` and `rel="noopener noreferrer"`, as
+  `Link` gives them.
+- Both render a `rich` value's images with `loading="lazy"`, and its embeds
+  as a lazy, sandboxed `iframe` whose address they rebuild from the provider.
+  Pass `embedProviders` to add providers, or embeds from any other provider
+  drop.
+
+Both run `migrate` first, so a value from a newer package, or with a preset
+this one doesn't know, throws. They render only the nodes, marks, and
+attributes the value's preset defines, and keep only the text of the rest. A link to an unsafe
+href, such as `javascript:`, keeps its text and loses its link. Neither
+renders raw HTML, so the saved JSON stays the source of truth.
+
+The same value in the editor, then rendered:
+
+```tsx-live-prose-noinline
+const description = {
+  version: 1,
+  preset: 'basic',
+  doc: {
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: [
+          { type: 'text', marks: [{ type: 'bold' }], text: 'Ochre Kite Weekender' },
+          { type: 'text', text: ' returns to Jumbuck Orchard Park, Brisbane.' }
+        ]
+      },
+      {
+        type: 'bulletList',
+        content: [
+          { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Gates open 11am' }] }] },
+          { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Last entry 7pm' }] }] }
+        ]
+      }
+    ]
+  }
+}
+
+render(
+  <>
+    <Editor aria-label='Event description' defaultValue={description} />
+    {renderEditorValue(description)}
+  </>
+)
+```
+
+## Accessibility
+
+- The editable area is a `textbox` with `aria-multiline`. In a `Field` it's
+  named by `Field.Label` through `aria-labelledby`, unless `Editor` has its
+  own `aria-label` or `aria-labelledby`, and described by the helper or error
+  text through `aria-describedby`.
+- An invalid or required field sets `aria-invalid` or `aria-required`. A
+  read-only editor sets `aria-readonly`, and a disabled one `aria-disabled`.
+- A `subtler` editor has no focus ring: the caret shows
+  focus. While invalid it shows a danger edge at its start, beside
+  `aria-invalid` and the error text.
+- Tab moves into and out of the editor. In a list, Tab nests an item under
+  the one before it and Shift+Tab lifts it back out.
+- The toolbar is a `toolbar` named Formatting, with `aria-controls` set to
+  the editable area. It takes one Tab stop, and the arrow keys move between its
+  controls, scrolling the one with focus into view on a phone. Bold, italic, link, and the lists are toggles that report
+  `aria-pressed` for the text at the caret. Undo and Redo are disabled when
+  there's nothing to undo or redo, and stay focusable.
+- Each control carries its shortcut in `aria-keyshortcuts`.
+- The link editor is a popover by the selection, with an input named Link. It
+  takes focus when it opens, Enter or the Save link button saves, and Escape
+  or the Close button closes it and puts the caret back where it was. A refused
+  address shows its error under the row, and focus stays in the input.
+- Each popover's icon buttons are named for what they do: Save link, Remove
+  link, and Close. A check with nothing to save is
+  disabled but keeps its Tab stop.
+
+| Keys | Action |
+| --- | --- |
+| `Mod+B` | Bold |
+| `Mod+I` | Italic |
+| `Mod+K` | Add, change, or remove a link |
+| `Mod+Shift+8` | Bulleted list |
+| `Mod+Shift+7` | Numbered list |
+| `Mod+Z` | Undo |
+| `Mod+Shift+Z` | Redo |
+| `Shift+Enter` | Line break |
+| `Alt+F10` | Move focus to the toolbar's first enabled control |
+| `Escape` | In the toolbar, move focus back to the text, where the caret was |
+
+`Mod` is `⌘` on Apple devices and `Ctrl` elsewhere, and `Alt` is `⌥` on
+Apple devices.
+
+## Hooks
+
+### useEditorContext
+
+```tsx
+function useEditorContext(): { editor: Editor | null }
+```
+
+Returns the Tiptap `Editor` of the nearest `Editor`, for a custom control in
+`Editor.Toolbar` or elsewhere among its children. `editor` is null for a moment after the editor's code
+loads, until it mounts. It throws outside an `Editor`.
+
+<PropsDefinitions component='Editor' />
