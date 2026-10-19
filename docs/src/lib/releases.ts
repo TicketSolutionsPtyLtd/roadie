@@ -164,14 +164,16 @@ export function summarise(text: string): {
  * Changesets use `patch` for a fix and `minor` for a new export, so the bump
  * decides unless the sentence says otherwise.
  */
+const CHANGED_VERBS =
+  /^(raise[sd]?|bump(s|ed)?|update[sd]?|upgrade[sd]?|migrate[sd]?|refine[sd]?|align(s|ed)?)\b/
+
 export function classify(summary: string, bump: Bump): ChangeKind {
   const words = summary.replace(/`[^`]*`/g, 'code').toLowerCase()
   if (/^(remove[sd]?|drop(s|ped)?|delete[sd]?)\b/.test(words)) return 'removed'
   if (/\bdeprecat/.test(words)) return 'deprecated'
+  if (CHANGED_VERBS.test(words)) return 'changed'
   if (bump === 'patch') {
     if (/^(add|adds|added)\b/.test(words)) return 'new'
-    if (/^(raise[sd]?|bump(s|ed)?|update[sd]?|upgrade[sd]?)\b/.test(words))
-      return 'changed'
     return 'fixed'
   }
   if (/^(add|adds|added|introduce[sd]?|new)\b/.test(words)) return 'new'
@@ -221,20 +223,31 @@ export function toChange(
   }
 }
 
-/** One entry per changeset, since a changeset that bumps several packages repeats in each changelog. */
+/**
+ * One entry per changeset, since a changeset that bumps several packages
+ * repeats in each changelog. Matched by text, not hash: every changeset a
+ * commit added carries that commit's hash.
+ */
 function mergeEntries(
   entries: { id: string; text: string; bump: Bump; packages: string[] }[]
 ) {
-  const byId = new Map<string, (typeof entries)[number]>()
+  const byText = new Map<string, (typeof entries)[number]>()
   for (const entry of entries) {
-    const seen = byId.get(entry.id)
-    if (!seen) byId.set(entry.id, { ...entry, packages: [...entry.packages] })
+    const seen = byText.get(entry.text)
+    if (!seen)
+      byText.set(entry.text, { ...entry, packages: [...entry.packages] })
     else {
       seen.packages.push(...entry.packages)
       if (BUMP_RANK[entry.bump] > BUMP_RANK[seen.bump]) seen.bump = entry.bump
     }
   }
-  return [...byId.values()]
+  const ids = new Set<string>()
+  return [...byText.values()].map((entry) => {
+    let id = entry.id
+    for (let n = 2; ids.has(id); n++) id = `${entry.id}-${n}`
+    ids.add(id)
+    return { ...entry, id }
+  })
 }
 
 export type PackageChangelog = {
@@ -377,6 +390,8 @@ export function buildPageIndex(
   for (const manifest of manifests) {
     for (const { subpath, import: path, values = [] } of manifest.exports ??
       []) {
+      // The root barrel re-exports every component, so it names no one page.
+      if (subpath === '.') continue
       const owner = components.find(
         (component) => component.import === path && component.docs
       )
@@ -543,11 +558,14 @@ export function versionCommits(log: string) {
   const chunks = log.split('\x1e').slice(1)
   for (const chunk of chunks) {
     const [head = '', ...lines] = chunk.split('\n')
-    const [hash = '', date = '', time = '0'] = head.trim().split(' ')
+    const [hash = '', seconds = '0'] = head.trim().split(' ')
+    const time = Number(seconds)
+    // In UTC, not the committer's zone, which differs by who merged.
+    const date = new Date(time * 1000).toISOString().slice(0, 10)
     for (const line of lines) {
       const version = line.match(/^\+## (\S+)\s*$/)?.[1]
       // `git log` runs newest first, so the last commit seen is the oldest.
-      if (version) commits.set(version, { hash, date, time: Number(time) })
+      if (version) commits.set(version, { hash, date, time })
     }
   }
   return commits
@@ -558,7 +576,7 @@ function readCommits(dir: string): PackageChangelog['commits'] {
     return new Map()
   const log = git([
     'log',
-    '--format=%x1e%H %cs %ct',
+    '--format=%x1e%H %ct',
     '-p',
     '--unified=0',
     '--no-color',

@@ -75,10 +75,10 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   has installed. The docs changelog (`docs/src/lib/releases.ts`) shows the
   first sentence as the change's headline and sorts it by bump and opening
   word: `Add` is new, `Remove` or `Drop` is removed, any mention of
-  `deprecat` is deprecated, and a `patch` is a fix. Lead with what changed
-  for the consumer. A breaking change to an alpha or beta API ships in a
-  `minor` and says "Breaking" in its first paragraph, so the changelog marks
-  it.
+  `deprecat` is deprecated, `Update`, `Upgrade`, or `Migrate` is changed,
+  and any other `patch` is a fix. Lead with what changed for the consumer. A
+  breaking change to an alpha or beta API ships in a `minor` and says
+  "Breaking" in its first paragraph, so the changelog marks it.
 - **Plugin skills.** A change under `skills/` adds a `roadie-skills`
   changeset, patch or minor (never major), or CI fails. The plugin version
   ships when the maintainer merges Version Packages, as

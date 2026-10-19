@@ -147,6 +147,9 @@ describe('classify', () => {
     ['Select options no longer stay filled.', 'patch', 'fixed'],
     ['Fix the focus ring on `Tabs`.', 'patch', 'fixed'],
     ['Raise the `@base-ui/react` peer range.', 'patch', 'changed'],
+    ['Upgrade to PandaCSS 1.4.3.', 'major', 'changed'],
+    ['Migrate the build from tsup to tsdown.', 'patch', 'changed'],
+    ['Refine the shadow scale.', 'minor', 'changed'],
     ['Add a `title` to `Kbd`.', 'patch', 'new'],
     ['`Remove` button labels read better.', 'patch', 'fixed']
   ] as const)('%s (%s) is %s', (summary, bump, kind) => {
@@ -182,18 +185,19 @@ describe('linkPages', () => {
 describe('versionCommits', () => {
   it('dates each version by the oldest commit that added its heading', () => {
     const log = [
-      '\x1enew1111 2026-09-28 1790000000',
+      // 2026-09-27 23:50 UTC, and 09:50 the next day in Sydney.
+      '\x1enew1111 1790553034',
       '@@ -1,0 +3,2 @@',
       '+## 2.15.0',
       '+',
-      '\x1eold2222 2026-09-24 1789000000',
+      '\x1eold2222 1789000000',
       '+## 2.14.0',
-      '\x1eolder333 2026-09-20 1788000000',
+      '\x1eolder333 1788000000',
       '+## 2.14.0'
     ].join('\n')
     expect(Object.fromEntries(versionCommits(log))).toEqual({
-      '2.15.0': { hash: 'new1111', date: '2026-09-28', time: 1790000000 },
-      '2.14.0': { hash: 'older333', date: '2026-09-20', time: 1788000000 }
+      '2.15.0': { hash: 'new1111', date: '2026-09-27', time: 1790553034 },
+      '2.14.0': { hash: 'older333', date: '2026-08-29', time: 1788000000 }
     })
   })
 })
@@ -265,6 +269,45 @@ describe('groupReleases', () => {
       breaking: true,
       details: 'Use `Button` with `href`.'
     })
+  })
+
+  it('keeps changesets one commit added apart, since they share its hash', () => {
+    const [release] = groupReleases(
+      [
+        {
+          name: '@oztix/roadie-components',
+          versions: parseChangelog(`## 2.14.0
+
+### Minor Changes
+
+- dba660b: Add \`Card.Link\`.
+- dba660b: Add \`emphasis\` to \`Drawer\`.
+`),
+          commits: commits([['2.14.0', 'aaa', '2026-09-24', 10]])
+        },
+        {
+          name: '@oztix/roadie-core',
+          versions: parseChangelog(`## 2.9.0
+
+### Minor Changes
+
+- dba660b: Add \`emphasis\` to \`Drawer\`.
+`),
+          commits: commits([['2.9.0', 'aaa', '2026-09-24', 10]])
+        }
+      ],
+      index
+    )
+    expect(
+      release?.changes.map(({ id, summary, packages }) => [
+        id,
+        summary,
+        packages.length
+      ])
+    ).toEqual([
+      ['dba660b', 'Add `Card.Link`.', 1],
+      ['dba660b-2', 'Add `emphasis` to `Drawer`.', 2]
+    ])
   })
 
   it('leaves a version undated, as its own release, when there is no history', () => {
@@ -343,12 +386,22 @@ describe('buildPageIndex', () => {
             docs: 'https://ticketsolutionsptyltd.github.io/roadie/components/field/#with-indicators'
           },
           {
+            name: 'OptionalIndicator',
+            import: '@oztix/roadie-components',
+            docs: 'https://ticketsolutionsptyltd.github.io/roadie/components/field/#with-indicators'
+          },
+          {
             name: 'Ghost',
             import: '@oztix/roadie-components/ghost',
             docs: 'https://ticketsolutionsptyltd.github.io/roadie/components/ghost/'
           }
         ],
         exports: [
+          {
+            subpath: '.',
+            import: '@oztix/roadie-components',
+            values: ['OptionalIndicator', 'buttonVariants']
+          },
           {
             subpath: './avatar',
             import: '@oztix/roadie-components/avatar',
@@ -384,8 +437,13 @@ describe('buildPageIndex', () => {
     expect(built.get(key)).toEqual({ title, href })
   })
 
-  it.each(['Ghost', 'getThemeScript'])(
-    'leaves %s out when its page does not exist',
+  it.each([
+    'Ghost',
+    'getThemeScript',
+    '@oztix/roadie-components',
+    'buttonVariants'
+  ])(
+    'leaves %s out when its page does not exist or it is the root barrel',
     (key) => {
       expect(built.has(key)).toBe(false)
     }
