@@ -1,4 +1,4 @@
-import { getSchema } from '@tiptap/core'
+import { getExtensionField, getSchema } from '@tiptap/core'
 import { Node } from '@tiptap/pm/model'
 import { describe, expect, it } from 'vitest'
 
@@ -210,7 +210,9 @@ describe('presets.rich', () => {
       ['1001', 1],
       ['1000000000', 1]
     ].flatMap(([colspan, read]) =>
-      ['tableCell', 'tableHeader'].map((name) => [name, colspan, read])
+      ['tableCell', 'tableHeader'].map(
+        (name) => [name, String(colspan), Number(read)] as const
+      )
     )
   )('reads a pasted %s colspan of "%s" as %d', (name, colspan, read) => {
     expect(pastedAttrs(name, cellWithSpans(colspan, '1'))).toEqual({
@@ -273,10 +275,47 @@ describe('presets.rich', () => {
     expect(() => Node.fromJSON(rich, doc).check()).toThrow(/Invalid content/)
   })
 
-  it('keeps tables a fixed width, never resizable', () => {
-    const table = presets.rich.find((extension) => extension.name === 'table')
+  const tableNodes = ['table', 'tableRow', 'tableHeader', 'tableCell']
 
-    expect(table?.options).toMatchObject({ resizable: false })
+  it.each(tableNodes)(
+    'saves a %s with no editing plugins, commands or shortcuts',
+    (name) => {
+      const extension = presets.rich.find((each) => each.name === name)!
+
+      for (const field of [
+        'addProseMirrorPlugins',
+        'addCommands',
+        'addKeyboardShortcuts',
+        'addNodeView'
+      ] as const) {
+        expect(getExtensionField(extension, field)).toBeUndefined()
+      }
+    }
+  )
+
+  it('gives each table node the role prosemirror-tables reads, isolating cells', () => {
+    expect(
+      tableNodes.map((name) => [
+        rich.nodes[name]!.spec.tableRole,
+        rich.nodes[name]!.spec.isolating
+      ])
+    ).toEqual([
+      ['table', true],
+      ['row', undefined],
+      ['header_cell', true],
+      ['cell', true]
+    ])
+  })
+
+  it.each([
+    ['table', 'table'],
+    ['tableRow', 'tr'],
+    ['tableHeader', 'th'],
+    ['tableCell', 'td']
+  ])('reads a pasted %s from a <%s>', (name, tag) => {
+    expect(rich.nodes[name]!.spec.parseDOM?.map((rule) => rule.tag)).toEqual([
+      tag
+    ])
   })
 
   it('reads an event description with headings, a quote and a divider', () => {

@@ -1,12 +1,6 @@
 import type { Extensions } from '@tiptap/core'
 import { Heading } from '@tiptap/extension-heading'
 import { Link } from '@tiptap/extension-link'
-import {
-  Table,
-  TableCell,
-  TableHeader,
-  TableRow
-} from '@tiptap/extension-table'
 import { StarterKit } from '@tiptap/starter-kit'
 
 import { isUnsafeHref } from '@oztix/roadie-core/utils'
@@ -15,7 +9,7 @@ import { Embed } from './embedNode'
 import { headingLevel } from './headings'
 import { Image } from './image'
 import type { Preset } from './presetShapes'
-import { spanAttribute } from './spans'
+import { Table, TableCell, TableHeader, TableRow } from './table'
 
 // Saved links hold only `href`; how a link opens is the renderer's call.
 const SafeLink = Link.extend({
@@ -51,18 +45,6 @@ const RichHeading = Heading.extend({
   }
 }).configure({ levels: [2, 3, 4] })
 
-// A cell saves only its spans: widths and alignment are the renderer's call,
-// and it holds paragraphs only, so no table, list or image sits in a cell.
-const cellSpec = {
-  content: 'paragraph+',
-  addAttributes() {
-    return {
-      colspan: spanAttribute('colspan'),
-      rowspan: spanAttribute('rowspan')
-    }
-  }
-}
-
 const notInStarterKit = {
   code: false,
   codeBlock: false,
@@ -88,10 +70,10 @@ const rich: Extensions = [
   SafeLink,
   Image,
   Embed,
-  Table.configure({ resizable: false }),
+  Table,
   TableRow,
-  TableHeader.extend(cellSpec),
-  TableCell.extend(cellSpec)
+  TableHeader,
+  TableCell
 ]
 
 export const presets = { basic, rich } as const satisfies Record<
