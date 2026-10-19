@@ -89,8 +89,8 @@ describe('parseDatePhrase: relative words', () => {
         toDate: true
       })
     ],
-    ['last quarter', one('Last quarter', { period: 'quarter', offset: -1 })],
-    ['this year', one('This year', { period: 'year', offset: 0 })],
+    ['last quarter', one('Last quarter', 'last-quarter')],
+    ['this year', one('This year', 'this-year')],
     [
       'month to date',
       one('Month to date', { period: 'month', offset: 0, toDate: true })

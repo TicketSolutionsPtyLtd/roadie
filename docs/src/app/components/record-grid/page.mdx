@@ -118,7 +118,7 @@ render(
 
 ### States
 
-Pass `loading` while records load and `error` when the load fails. With no records yet, `loading` shows still placeholder cards; with records, it dims them and runs a bar under the toolbar. An error replaces the cards, and `onRetry` adds a Retry button. With no records, the empty state says whether none exist yet or none match, and offers to clear the search and filters.
+Pass `loading` while records load and `error` when the load fails. With no records yet, `loading` shows still placeholder cards; with records, it dims them and runs a bar under the header. An error replaces the cards, and `onRetry` adds a Retry button. With no records, the empty state says whether none exist yet or none match, and offers to clear the search and filters.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -208,9 +208,9 @@ function Events() {
   })
   return (
     <div className='grid gap-3'>
-      <p className='text-sm text-subtle'>URL: ?{toSearchParams(view).toString()}</p>
+      <p className='text-sm text-subtle'>URL: ?{recordViewToSearchParams(view).toString()}</p>
       <Records records={records} layouts={layouts} caption='Events'>
-        <Records.Toolbar />
+        <Records.Header />
         <Records.Content />
         <Records.Pagination />
         <Records.Status />
@@ -226,7 +226,7 @@ render(<Events />)
 
 Configure lists the fields a card shows as details. Drag a handle to reorder them, or click it or press Enter for a Move menu. The eye beside each one hides it. Hidden fields are listed apart, in the fields' own order, and showing one again adds it to the end. The fields the card places as its title, description, image, leading, or trailing aren't listed. When the grid defines details, the last one stays shown. The list loads once the page is idle, or as a pointer or focus reaches the button, so drag and drop stays out of the grid's first load.
 
-The fields write the view's `layout.fields`, the shown keys in order, left out once back to the grid's `details`, so `equalViews` reads the view as unchanged. A view's keys for fields this grid doesn't have, such as one only some people see, are kept in their places.
+The fields write the view's `layout.fields`, the shown keys in order, left out once back to the grid's `details`, so `equalRecordViews` reads the view as unchanged. A view's keys for fields this grid doesn't have, such as one only some people see, are kept in their places.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -255,7 +255,7 @@ function Configured() {
   })
   return (
     <div className='grid gap-3'>
-      <p className='text-sm text-subtle'>URL: ?{toSearchParams(view).toString()}</p>
+      <p className='text-sm text-subtle'>URL: ?{recordViewToSearchParams(view).toString()}</p>
       <RecordGrid
         caption='Events'
         data={events}
@@ -274,7 +274,7 @@ render(<Configured />)
 
 ### Selection and actions
 
-Cards have no checkboxes, so a selectable grid offers Select mode, as a narrow table does. Select in the toolbar shows a checkbox on each card, a tap anywhere on a card selects it rather than opening it, and the toolbar offers Select all and Done. Escape or Done leaves the mode and clears the selection. The bulk actions float at the foot of the screen with the count. Switching to a table keeps the selection, with a checkbox on each row.
+Cards have no checkboxes, so a selectable grid offers Select mode, as a narrow table does. Select in the header shows a checkbox on each card, a tap anywhere on a card selects it rather than opening it, and the header offers Select all and Done. Escape or Done leaves the mode and clears the selection. The bulk actions float at the foot of the screen with the count. Switching to a table keeps the selection, with a checkbox on each row.
 
 ```tsx-live-noinline
 const field = recordFields()
@@ -301,7 +301,7 @@ render(
       { label: 'Share', icon: <ShareNetworkIcon weight='bold' className='size-4' />, onAction: () => {} },
       { label: 'Delete', icon: <TrashIcon weight='bold' className='size-4' />, intent: 'danger', onAction: () => {} }
     ]}
-    gridActions={[{ label: 'Export CSV', onAction: () => {} }]}
+    actions={[{ label: 'Export CSV', onAction: () => {} }]}
   />
 )
 ```

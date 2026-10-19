@@ -46,11 +46,11 @@ function Harness({ baseline, initialView, ...actions }: HarnessProps) {
   })
   return (
     <Records records={records} layouts={layouts} caption='Shows'>
-      <Records.Toolbar>
+      <Records.Header>
         <Records.Search />
         <Records.ViewActions {...actions} />
         <Records.Options />
-      </Records.Toolbar>
+      </Records.Header>
       <Records.Content />
     </Records>
   )
@@ -148,7 +148,7 @@ describe('Records.ViewActions', { timeout: 15_000 }, () => {
     expect(button).toHaveAccessibleName('View: Upcoming')
     expect(button).toHaveTextContent('Upcoming')
     expect(button).toHaveClass('emphasis-normal')
-    const toolbar = button.closest('[data-slot="records-toolbar"]')!
+    const toolbar = button.closest('[data-slot="records-header"]')!
     const controls = within(toolbar as HTMLElement).getAllByRole('button')
     expect(controls.indexOf(button)).toBeLessThan(
       controls.indexOf(screen.getByRole('button', { name: 'Configure table' }))
@@ -434,7 +434,7 @@ describe('Records.ViewActions', { timeout: 15_000 }, () => {
   })
 })
 
-describe('Records.Toolbar and RecordTable viewActions', () => {
+describe('Records.Header and RecordTable viewActions', () => {
   it('puts the view actions between the search and Configure', () => {
     render(
       <RecordTable
@@ -448,7 +448,7 @@ describe('Records.Toolbar and RecordTable viewActions', () => {
     )
     const toolbar = screen
       .getByRole('combobox', { name: 'Search and filter' })
-      .closest('[data-slot="records-toolbar"]') as HTMLElement
+      .closest('[data-slot="records-header"]') as HTMLElement
     const names = within(toolbar)
       .getAllByRole('button')
       .map((button) => button.getAttribute('aria-label') ?? button.textContent)

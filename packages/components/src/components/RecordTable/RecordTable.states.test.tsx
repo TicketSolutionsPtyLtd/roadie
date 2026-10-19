@@ -28,7 +28,7 @@ function Table({ rows = 30, ...options }: Options) {
   })
   return (
     <Records.Root records={records} layouts={layouts} caption='Shows'>
-      <Records.Toolbar />
+      <Records.Header />
       <Records.Content />
       <Records.Pagination />
       <Records.Status />

@@ -9,15 +9,15 @@ import {
 import { Button } from '../Button'
 import { EmptyState } from '../EmptyState'
 import { describeFilter } from './clock'
-import type { RecordsInstance } from './useRecords'
+import type { RecordsState } from './useRecords'
 
-export const errorMessage = (records: RecordsInstance) =>
+export const errorMessage = (records: RecordsState) =>
   typeof records.error === 'string'
     ? records.error
     : `Couldn't load ${records.recordName.other}`
 
 /** A range that failed after others loaded, shown in place of its rows. */
-export const rangeErrorMessage = (records: RecordsInstance) =>
+export const rangeErrorMessage = (records: RecordsState) =>
   `Couldn't load more ${records.recordName.other}`
 
 // A component can't know the page's heading outline, so state titles are text.
@@ -29,7 +29,7 @@ const capitalise = (text: string) =>
 const NAMED_PARTS = 3
 
 /** The search and filters that matched nothing, as people read their chips. */
-function unmatched(records: RecordsInstance): string {
+function unmatched(records: RecordsState): string {
   // The applied view leaves out filters the fields can't apply.
   const { search, filters: applied } = records.appliedView.query
   const words = search.trim()
@@ -51,7 +51,7 @@ function unmatched(records: RecordsInstance): string {
   return `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}`
 }
 
-export function RecordsError({ records }: { records: RecordsInstance }) {
+export function RecordsError({ records }: { records: RecordsState }) {
   return (
     <EmptyState size='sm' intent='danger' data-slot='records-error'>
       <EmptyState.IconTile aria-hidden>
@@ -76,7 +76,7 @@ export function RecordsError({ records }: { records: RecordsInstance }) {
   )
 }
 
-export function RecordsEmpty({ records }: { records: RecordsInstance }) {
+export function RecordsEmpty({ records }: { records: RecordsState }) {
   const { other } = records.recordName
   if (!records.filtered)
     return (

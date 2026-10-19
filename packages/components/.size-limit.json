@@ -287,7 +287,7 @@
     "name": "DateRangePicker",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
-    "limit": "41.3 kB",
+    "limit": "41.55 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -301,14 +301,14 @@
     "name": "Records",
     "path": "dist/components/Records/index.js",
     "import": "*",
-    "limit": "70.6 kB",
+    "limit": "70.65 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordGrid",
     "path": "dist/components/RecordGrid/index.js",
     "import": "*",
-    "limit": "104.7 kB",
+    "limit": "104.95 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {

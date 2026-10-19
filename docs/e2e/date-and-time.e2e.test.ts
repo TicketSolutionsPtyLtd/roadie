@@ -122,7 +122,7 @@ describe('Date and time foundation', () => {
   it('works out ranges, comparisons, and phrases on Fri 2 Oct 2026 at 10am in Sydney', async () => {
     const page = await open()
     const ranges = await rowsOf(page, 'range-table')
-    expect(ranges).toHaveLength(12)
+    expect(ranges).toHaveLength(13)
     expect(ranges).toContainEqual([
       "'this-week'",
       'This week',
@@ -137,6 +137,11 @@ describe('Date and time foundation', () => {
       "{ direction: 'next', amount: 7, unit: 'day' }",
       'Next 7 days',
       '2 to 8 Oct 2026'
+    ])
+    expect(ranges).toContainEqual([
+      "'last-quarter'",
+      'Last quarter',
+      '1 Jul to 30 Sept 2026'
     ])
     expect(ranges).toContainEqual([
       "{ period: 'year', offset: 0, fiscal: true }",

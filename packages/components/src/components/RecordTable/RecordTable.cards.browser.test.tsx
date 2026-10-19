@@ -7,7 +7,6 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import {
   type RecordPosition,
   type RecordView,
-  placeRange,
   recordFields
 } from '@oztix/roadie-core/records'
 
@@ -153,7 +152,6 @@ function Ranged({ row = 0 }: { row?: number }) {
     layout: { type: 'table' }
   })
   const [position, setPosition] = useState<RecordPosition>({ row })
-  const [data, setData] = useState<(NotedShow | undefined)[]>([])
   return (
     <div
       data-testid='box'
@@ -161,25 +159,19 @@ function Ranged({ row = 0 }: { row?: number }) {
     >
       <RecordTable
         caption='Shows'
-        data={data}
         fields={fields}
         columns={cardColumns}
         getRowId={(item) => item.id}
-        rowCount={2000}
         view={view}
-        onViewChange={(next) => {
-          if (next.query.search !== view.query.search) setData([])
-          setView(next)
-        }}
+        onViewChange={setView}
         position={position}
         onPositionChange={setPosition}
-        loadRange={({ start, end }) => {
-          const rows = noted(
-            Math.min(end, 2000),
-            () => view.query.search === ''
-          ).slice(start)
-          setData((current) => placeRange(current, start, rows))
-        }}
+        loadRange={async ({ query, start, end }) => ({
+          rows: noted(Math.min(end, 2000), () => query.search === '').slice(
+            start
+          ),
+          rowCount: 2000
+        })}
       />
     </div>
   )
@@ -273,7 +265,7 @@ describe('RecordTable narrow cards in a browser', () => {
   it('lands a restored range row under the toolbar once cards are measured', async () => {
     const { container } = render(<Ranged row={120} />)
     const toolbar = container.querySelector<HTMLElement>(
-      '[data-slot="records-toolbar"]'
+      '[data-slot="records-header"]'
     )!
     const offset = () => {
       const card = cards(container).find(
