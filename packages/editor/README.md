@@ -85,8 +85,8 @@ only the attributes the preset saves and the first mark of each type, starts
 every list item with a paragraph, drops a list or quote left empty, and gives
 an empty `doc` one paragraph. In a table, it keeps only cells in rows and
 only paragraphs in cells, keeping the text of any other block as paragraphs,
-keeps a cell's `colspan` and `rowspan` only when whole and positive, gives an
-empty cell a paragraph, and drops a row with no cells and a table with no
+keeps a cell's `colspan` and `rowspan` only when whole, positive and no more
+than HTML allows (1,000 and 65,534), gives an empty cell a paragraph, and drops a row with no cells and a table with no
 rows. Read into `basic`, a table keeps its cells' text as paragraphs. So
 every value it returns loads in Tiptap. `createEmptyValue(preset)` starts a
 new value.

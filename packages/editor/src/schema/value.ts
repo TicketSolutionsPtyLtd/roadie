@@ -12,6 +12,7 @@ import {
   isPreset,
   presetShapes
 } from './presetShapes'
+import { isSpan } from './spans'
 
 export const CURRENT_VERSION = 1
 
@@ -60,14 +61,12 @@ function cleanedMarks(marks: unknown[], shape: PresetShape) {
   return [...kept.values()]
 }
 
-const isSpan = (span: unknown) => Number.isInteger(span) && Number(span) > 0
-
 function cleanedAttrs({ type, attrs }: JSONContent) {
   if (type === 'tableCell' || type === 'tableHeader') {
     const { colspan, rowspan } = attrs ?? {}
     return {
-      ...(isSpan(colspan) && { colspan }),
-      ...(isSpan(rowspan) && { rowspan })
+      ...(isSpan('colspan', colspan) && { colspan }),
+      ...(isSpan('rowspan', rowspan) && { rowspan })
     }
   }
   if (type === 'heading') return { ...attrs, level: headingLevel(attrs?.level) }
@@ -278,8 +277,9 @@ function cleaned(node: JSONContent, shape: PresetShape): JSONContent[] {
  * starts every list item with a paragraph, drops a list or quote left empty,
  * and gives an empty doc one paragraph. Keeps only cells in a table's rows,
  * and only paragraphs in a cell, unwrapping other blocks to their text;
- * keeps a cell's spans only when whole and positive, gives an empty cell a
- * paragraph, and drops a row with no cells and a table with no rows.
+ * keeps a cell's spans only when whole, positive and no more than HTML
+ * allows (1,000 columns, 65,534 rows), gives an empty cell a paragraph, and
+ * drops a row with no cells and a table with no rows.
  */
 export function migrate(
   value: StoredEditorValue,

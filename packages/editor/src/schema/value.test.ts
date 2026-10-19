@@ -530,43 +530,62 @@ describe('migrate and tables', () => {
     ['fractional spans', { colspan: 1.5, rowspan: Number.NaN }, undefined],
     ['spans as text', { colspan: '2', rowspan: '1' }, undefined],
     [
+      'spans at the most HTML allows',
+      { colspan: 1000, rowspan: 65534 },
+      { colspan: 1000, rowspan: 65534 }
+    ],
+    [
+      'spans past what HTML allows',
+      { colspan: 1001, rowspan: 65535 },
+      undefined
+    ],
+    ['spans of a billion', { colspan: 1e9, rowspan: 1e9 }, undefined],
+    [
+      'a rowspan HTML allows but a colspan it doesn’t',
+      { colspan: 1001, rowspan: 1001 },
+      { rowspan: 1001 }
+    ],
+    [
       'one whole span and one not',
       { colspan: 2, rowspan: null },
       { colspan: 2 }
     ]
-  ])('keeps only whole positive spans of a cell with %s', (_, stored, kept) => {
-    const value = {
-      version: 1,
-      preset: 'rich',
-      doc: docOf(
-        tableOf(
-          rowOf(
-            { type: 'tableHeader', attrs: stored, content: [para('Act')] },
-            { type: 'tableCell', attrs: stored, content: [para('9pm')] }
+  ])(
+    'keeps only the spans HTML allows of a cell with %s',
+    (_, stored, kept) => {
+      const value = {
+        version: 1,
+        preset: 'rich',
+        doc: docOf(
+          tableOf(
+            rowOf(
+              { type: 'tableHeader', attrs: stored, content: [para('Act')] },
+              { type: 'tableCell', attrs: stored, content: [para('9pm')] }
+            )
+          )
+        )
+      }
+
+      expect(migrate(value).doc).toEqual(
+        docOf(
+          tableOf(
+            rowOf(
+              {
+                type: 'tableHeader',
+                ...(kept && { attrs: kept }),
+                content: [para('Act')]
+              },
+              {
+                type: 'tableCell',
+                ...(kept && { attrs: kept }),
+                content: [para('9pm')]
+              }
+            )
           )
         )
       )
     }
-
-    expect(migrate(value).doc).toEqual(
-      docOf(
-        tableOf(
-          rowOf(
-            {
-              type: 'tableHeader',
-              ...(kept && { attrs: kept }),
-              content: [para('Act')]
-            },
-            {
-              type: 'tableCell',
-              ...(kept && { attrs: kept }),
-              content: [para('9pm')]
-            }
-          )
-        )
-      )
-    )
-  })
+  )
 
   it('reads a table into a basic value, keeping each cell’s text as paragraphs', () => {
     const value = { version: 1, preset: 'rich', doc: docOf(lineup) }
