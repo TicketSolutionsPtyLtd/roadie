@@ -42,10 +42,12 @@ const description: EditorValue = {
   package writes.
 - `preset` names the set of nodes and marks the document may hold.
   `presets.basic` has paragraphs, hard breaks, bulleted and numbered lists,
-  bold, italic, and links. A link saves only its `href`. `presets.rich` adds
+  bold, italic, underline (`underline`), and links. A link saves only its `href`. `presets.rich` adds
   headings 2 to 4 (`heading`, saving only `level`), quotes (`blockquote`),
   dividers (`horizontalRule`), images (`image`, saving only `src` and
-  `alt`), and embeds (`embed`, saving only `provider`, `id`, and `params`).
+  `alt`), embeds (`embed`, saving only `provider`, `id`, and `params`), and
+  tables (`table`, `tableRow`, `tableHeader` and `tableCell`, saving only a
+  cell's `colspan` and `rowspan`). A cell holds paragraphs only.
   An image's `src` is `https` or a root-relative path, and its `alt` is `''`
   until someone writes it.
 - `doc` is Tiptap's JSON, with Tiptap's default names (`paragraph`,
@@ -82,8 +84,13 @@ string `provider` and `id`, keeping only those and `params`. It reads a heading 
 outside 2 to 4 as the nearest of them, and missing alt text as `''`. It keeps
 only the attributes the preset saves and the first mark of each type, starts
 every list item with a paragraph, drops a list or quote left empty, and gives
-an empty `doc` one paragraph, so every value it returns loads in Tiptap.
-`createEmptyValue(preset)` starts a new value.
+an empty `doc` one paragraph. In a table, it keeps only cells in rows and
+only paragraphs in cells, keeping the text of any other block as paragraphs,
+keeps a cell's `colspan` and `rowspan` only when whole and positive, gives an
+empty cell a paragraph, and drops a row with no cells and a table with no
+rows. Read into `basic`, a table keeps its cells' text as paragraphs. So
+every value it returns loads in Tiptap. `createEmptyValue(preset)` starts a
+new value.
 
 ## Rendering a stored value
 
