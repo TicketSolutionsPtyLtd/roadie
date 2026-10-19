@@ -58,5 +58,6 @@ headings as `h2` to `h4`, images with `loading="lazy"`, and embeds as a lazy,
 sandboxed `iframe` whose `src` `embedSrc` rebuilds; both take
 `embedProviders`, and drop embeds from any provider not in it. A table
 renders in a `.prose-scroll`, so a wide one scrolls rather than widening the
-page, with a first row of header cells in a `thead`, `colspan` and `rowspan`
+page, with a first row of header cells in a `thead` (unless one spans more
+than one row, which a `thead` would clip), `colspan` and `rowspan`
 only above 1, and no widths or styles.
