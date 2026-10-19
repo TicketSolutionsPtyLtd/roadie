@@ -1,12 +1,11 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Field } from '.'
+import { Field, useFieldControlError } from '.'
 import { Autocomplete } from '../Autocomplete'
 import { Combobox } from '../Combobox'
 import { RadioGroup } from '../RadioGroup'
 import { Select } from '../Select'
-import { useFieldControlError } from './FieldContext'
 
 describe('Field', () => {
   it('Field and Field.Root are the same component reference', () => {

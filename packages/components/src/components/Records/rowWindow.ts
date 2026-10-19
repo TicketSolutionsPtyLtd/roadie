@@ -53,7 +53,7 @@ function stuckInset(body: HTMLElement): number {
   if (head) return stuckBottom(head)
   const toolbar = body
     .closest('[data-slot="records"]')
-    ?.querySelector<HTMLElement>('[data-slot="records-toolbar"]')
+    ?.querySelector<HTMLElement>('[data-slot="records-header"]')
   // From above the scroller, which is a sticky container itself; the toolbar covers the rows only when both stick in one box.
   const scroller = body.closest<HTMLElement>(RECORDS_SCROLLER)
   return toolbar &&
@@ -123,6 +123,39 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
     if (body.parentElement?.parentElement)
       observer.observe(body.parentElement.parentElement)
     return () => observer.disconnect()
+  }, [])
+
+  const latestMeasureInset = useRef(measureInset)
+  useLayoutEffect(() => {
+    latestMeasureInset.current = measureInset
+  })
+  // A pane header compacts as its pane scrolls, with no render here, and a stuck header sits under it.
+  useLayoutEffect(() => {
+    const body = bodyRef.current
+    const pane = body?.closest<HTMLElement>('[data-slot="pane"]')
+    const header = pane
+      ? [
+          ...pane.querySelectorAll<HTMLElement>('[data-slot="pane-header"]')
+        ].find((element) => element.closest('[data-slot="pane"]') === pane)
+      : undefined
+    if (!body || !header) return
+    const remeasure = () => {
+      const next = latestMeasureInset.current?.(body) ?? 0
+      setInset((inset) => (Math.abs(next - inset) > 0.5 ? next : inset))
+    }
+    let frame = 0
+    const observer = new ResizeObserver(() => {
+      // Now, while the restore still holds its row: the pane's own observer, made first, has published the header's height.
+      remeasure()
+      cancelAnimationFrame(frame)
+      // Again a frame later, in case the pane's observer was made after this one.
+      frame = requestAnimationFrame(remeasure)
+    })
+    observer.observe(header)
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
   }, [])
 
   const usesWindow = scroller.ready && scroller.element === null

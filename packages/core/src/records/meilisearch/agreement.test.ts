@@ -185,9 +185,9 @@ describe.each([
             }
             const resolved = resolveRecordQuery(query, eventFields, options)
             const [expression] = toMeilisearch(
-              { query, layout: { type: 'table' } },
+              { version: 1, query: resolved },
               eventFields,
-              { ...options, epoch: epochUnit }
+              { epoch: epochUnit }
             ).filter
             const browser = docs
               .filter((row) => matchesRecordQuery(row, resolved, eventFields))

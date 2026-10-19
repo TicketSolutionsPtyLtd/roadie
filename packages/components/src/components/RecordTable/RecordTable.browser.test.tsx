@@ -65,7 +65,7 @@ describe('RecordTable in a pane', () => {
     await expect
       .poll(() => {
         box.scrollTop = 2000
-        const toolbar = rect(slot(container, 'records-toolbar'))
+        const toolbar = rect(slot(container, 'records-header'))
         const head = rect(slot(container, 'record-table-head'))
         return Math.max(
           Math.abs(toolbar.top - rect(box).top),
@@ -91,7 +91,7 @@ describe('RecordTable in a pane', () => {
       .poll(() => {
         viewport.scrollTop = 4000
         const pane = rect(slot(container, 'pane-header'))
-        const toolbar = rect(slot(container, 'records-toolbar'))
+        const toolbar = rect(slot(container, 'records-header'))
         const head = rect(slot(container, 'record-table-head'))
         return Math.max(
           Math.abs(toolbar.top - pane.bottom),
@@ -279,7 +279,7 @@ describe('RecordTable sticky chrome', () => {
     ).toBeGreaterThanOrEqual(
       rect(slot(container, 'record-table-head')).bottom - 1
     )
-    expect(rect(slot(container, 'records-toolbar')).bottom).toBeLessThanOrEqual(
+    expect(rect(slot(container, 'records-header')).bottom).toBeLessThanOrEqual(
       rect(viewport).top
     )
   })
@@ -305,7 +305,7 @@ describe('RecordTable surface', () => {
       container.querySelector('[data-testid="card"]')!
     ).backgroundColor
     await expect.poll(() => bg(container, 'record-table-head')).toBe(card)
-    expect(bg(container, 'records-toolbar')).toBe(card)
+    expect(bg(container, 'records-header')).toBe(card)
   })
 
   it('paints pinned body cells with the same surface', async () => {

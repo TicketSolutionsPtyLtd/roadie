@@ -7,6 +7,7 @@ export const DOCUMENTED_ELSEWHERE: DocumentedElsewhere = {
     RequiredIndicator: '/components/field/#with-indicators',
     OptionalIndicator: '/components/field/#with-indicators'
   },
+  '@oztix/roadie-components/link': { Link: '/foundations/linking/' },
   '@oztix/roadie-components/spot-illustrations':
     '/components/spot-illustration/#available-illustrations',
   '@oztix/roadie-charts/dashboard-view': {

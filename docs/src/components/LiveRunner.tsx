@@ -16,6 +16,8 @@ import {
 import Link from 'next/link'
 
 import {
+  ArrowClockwiseIcon,
+  ArrowCounterClockwiseIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
   ArrowSquareOutIcon,
@@ -55,6 +57,10 @@ import {
   SlidersHorizontalIcon,
   SquaresFourIcon,
   StarIcon,
+  TableIcon,
+  TextAlignCenterIcon,
+  TextAlignLeftIcon,
+  TextAlignRightIcon,
   TextBIcon,
   TextItalicIcon,
   TextUnderlineIcon,
@@ -93,13 +99,12 @@ import {
 } from '@oztix/roadie-core/datetime'
 import {
   compileRecordQuery,
-  placeRange,
   recordFields,
+  recordViewToSearchParams,
   recordsToCsv,
   resolveRecordQuery,
   sortRecords,
-  toRecordsRequest,
-  toSearchParams
+  toRecordsRequest
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
@@ -166,7 +171,12 @@ const PhosphorIcons = {
   SquaresFour: SquaresFourIcon,
   TextB: TextBIcon,
   TextItalic: TextItalicIcon,
-  TextUnderline: TextUnderlineIcon
+  TextUnderline: TextUnderlineIcon,
+  TextAlignLeft: TextAlignLeftIcon,
+  TextAlignCenter: TextAlignCenterIcon,
+  TextAlignRight: TextAlignRightIcon,
+  ArrowCounterClockwise: ArrowCounterClockwiseIcon,
+  ArrowClockwise: ArrowClockwiseIcon
 }
 
 // Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.
@@ -215,18 +225,18 @@ const scope = {
   viewerTimeZone,
   recordFields,
   recordsToCsv,
-  toSearchParams,
+  recordViewToSearchParams,
   compileRecordQuery,
   resolveRecordQuery,
   sortRecords,
   toRecordsRequest,
   toMeilisearch,
-  placeRange,
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,
-  // Bare Image stays Roadie's component.
+  // Bare Image and Table stay Roadie's components.
   ImageIcon,
+  TableIcon,
   // Widgets + the helpers their live demos need.
   CartDrawer,
   CartContents,

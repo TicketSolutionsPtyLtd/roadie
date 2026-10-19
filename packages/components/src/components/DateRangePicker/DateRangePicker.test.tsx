@@ -203,6 +203,23 @@ describe('DateRangePicker', () => {
       )
     })
 
+    it('emits a preset in its one relative form', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <DateRangePicker
+          aria-label='Period'
+          today={TODAY}
+          presets={[{ value: { period: 'week', offset: -1 } }]}
+          onValueChange={onValueChange}
+        />
+      )
+      const dialog = await open()
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Last week' })
+      )
+      expect(onValueChange).toHaveBeenCalledWith('last-week')
+    })
+
     it('emits a preset as given, so it stays relative, and closes', async () => {
       const onValueChange = vi.fn()
       render(

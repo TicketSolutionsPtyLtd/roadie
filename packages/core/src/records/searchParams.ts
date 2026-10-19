@@ -17,8 +17,7 @@ import type {
   RecordViewProblem
 } from './types'
 import { validateRecordView } from './validate'
-
-export const RECORD_VIEW_FORMAT = '1'
+import { RECORD_URL_VERSION } from './versions'
 
 export type RecordSearchParamsInput =
   | URLSearchParams
@@ -114,16 +113,16 @@ function layoutEntries(layout: RecordLayout): [string, string][] {
 
 /**
  * A view, and optionally where the reader is in it, as URL search params in
- * format v1. Keys come in a fixed order and empty parts are left out, so the
+ * the `RECORD_URL_VERSION` format. Keys come in a fixed order and empty parts are left out, so the
  * same view always gives the same URL. The name stays out: a URL view has
  * none. Merge the result into your own params to keep theirs.
  */
-export function toSearchParams(
+export function recordViewToSearchParams(
   view: RecordView,
   position: RecordPosition = {}
 ): URLSearchParams {
   const params = new URLSearchParams()
-  params.set('v', RECORD_VIEW_FORMAT)
+  params.set('v', String(RECORD_URL_VERSION))
   if (view.id) params.set('view', view.id)
   if (view.entity) params.set('entity', view.entity)
   if (view.query.search) params.set('q', view.query.search)
@@ -132,7 +131,6 @@ export function toSearchParams(
   }
   if (view.query.sort.length) params.set('sort', encodeSort(view.query.sort))
   for (const [key, value] of layoutEntries(view.layout)) params.set(key, value)
-  if (view.group) params.set('group', view.group)
   if (position.page !== undefined) params.set('page', String(position.page + 1))
   if (position.pageSize !== undefined) {
     params.set('size', String(position.pageSize))
@@ -198,12 +196,12 @@ function problem(path: string, message: string): RecordViewProblem {
 }
 
 /**
- * Reads a view and position written by `toSearchParams`. Unknown keys are
+ * Reads a view and position written by `recordViewToSearchParams`. Unknown keys are
  * ignored. A URL with no view, a format it does not know, or a view that
  * fails `validateRecordView` gives `fallback` (an empty table view by
  * default) with the problems that caused it; the position is read either way.
  */
-export function fromSearchParams(
+export function recordViewFromSearchParams(
   input: RecordSearchParamsInput,
   fields: readonly RecordField[],
   { fallback = emptyView() }: { fallback?: RecordView } = {}
@@ -218,7 +216,7 @@ export function fromSearchParams(
   })
   const version = params.get('v')
   if (version === null) return fail([])
-  if (version !== RECORD_VIEW_FORMAT) {
+  if (version !== String(RECORD_URL_VERSION)) {
     return fail([problem('v', `Unsupported view format "${version}"`)])
   }
 
@@ -247,8 +245,7 @@ export function fromSearchParams(
       filters,
       sort: decodeSort(params.get('sort') ?? '')
     },
-    layout,
-    ...(params.get('group') && { group: params.get('group')! })
+    layout
   }
   const result = validateRecordView(view, fields)
   if (!result.ok) return fail(result.problems)

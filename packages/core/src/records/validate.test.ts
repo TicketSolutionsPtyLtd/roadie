@@ -333,9 +333,34 @@ describe('validateRecordView', () => {
     expect(grid.problems[0]!.path).toBe('layout.fields[0]')
   })
 
-  it('rejects unknown keys on the view', () => {
+  it('rejects unknown keys on the view, such as the retired group', () => {
     expect(errors(view([], { page: 2 } as never))[0]!.message).toMatch(
       /Unrecognized key/
     )
+    expect(errors(view([], { group: 'venue' } as never))[0]!.message).toMatch(
+      /Unrecognized key/
+    )
+  })
+
+  it('writes each relative range in its one form', () => {
+    const result = validateRecordView(
+      view([
+        {
+          field: 'starts',
+          operator: 'within',
+          value: { period: 'week', offset: 0 }
+        },
+        {
+          field: 'created',
+          operator: 'within',
+          value: { period: 'quarter', offset: -1, fiscal: false }
+        }
+      ]),
+      eventFields
+    )
+    expect(result.ok && result.view.query.filters).toEqual([
+      { field: 'starts', operator: 'within', value: 'this-week' },
+      { field: 'created', operator: 'within', value: 'last-quarter' }
+    ])
   })
 })

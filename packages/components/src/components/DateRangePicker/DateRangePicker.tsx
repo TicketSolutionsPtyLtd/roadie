@@ -23,9 +23,9 @@ export type DateRangePickerProps = Omit<
   /** The range to start from when uncontrolled. */
   defaultValue?: DateRangeValue | null
   /**
-   * Called with a preset's value as given, so a relative choice stays
-   * relative, or with absolute dates when they are chosen or typed. Null when
-   * both dates are cleared.
+   * Called with a preset's value, relative and in its one form
+   * (`canonicalDateRange`), or with absolute dates when they are chosen or
+   * typed. Null when both dates are cleared.
    */
   onValueChange?: (value: DateRangeValue | null) => void
   /**

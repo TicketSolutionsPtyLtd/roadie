@@ -205,8 +205,8 @@ set. Negative operators (is-not, not-contains, and neq) keep records where the
 field is empty, the way Meilisearch does. Check a view from storage or an API
 with `validateRecordView(view, fields)`. It rejects unknown fields and
 operators that don't fit, and says what would. A view carries its format as
-`version`. A view saved without one reads as version 1, and a version this
-release doesn't know is rejected.
+`version`, `RECORD_VIEW_VERSION`. A view saved without one reads as version 1,
+and a version this release doesn't know is rejected.
 
 ## Scope
 
@@ -236,7 +236,12 @@ Relative ranges have one fixed meaning: a week is Monday to Sunday, a weekend
 is Saturday and Sunday, rolling windows count today, and the financial year
 starts in July. The core functions also take `weekStart` and
 `fiscalYearStart`, but the Records components always use these defaults, so
-keep them wherever a view also runs in the browser. Hour windows and the open
+keep them wherever a view also runs in the browser. Each range has one form:
+the last, this, or next day, week, month, quarter, or year is a word, such as
+`this-week` or `last-quarter`, and any other period is an object, such as
+`{ period: 'month', offset: -2 }`. `validateRecordView`, the URL, typed
+phrases, and `DateRangePicker` all write `{ period: 'week', offset: 0 }` as
+`this-week`, so two views that mean the same compare equal. Hour windows and the open
 ranges upcoming, past, and ongoing compare the instant, except on a plain date,
 where upcoming starts today and past ends yesterday. Outside a timestamp, their `detail` gives days, never the viewer's clock: "From 16 Oct 2026, unless already over" for upcoming on an event with an end, "unless already started" on one with only a start, and "From 16 Oct 2026" on a plain date. A range field matches when any part of it overlaps, so a five-night
 festival is on this weekend if one night is.
@@ -251,12 +256,13 @@ or time, never two of these.
 
 `resolveRecordQuery(query, fields, { now, timeZone })` fixes relative dates at
 a moment. In the browser, `matchesRecordQuery(row, resolved, fields)` keeps or
-drops each row. On a server, `toMeilisearch(view, fields, { now, timeZone })`
-from `@oztix/roadie-core/records/meilisearch` returns the same meaning as
-Meilisearch parameters. It sits on its own subpath so the model stays
-backend-agnostic. On the docs site, the view from [Views](#views) runs through
-`toMeilisearch` at 11:30pm on a Friday in Melbourne, and its parameters show
-as comments under the call.
+drops each row. A server reads the [request](#server-contract) the browser
+sends, with its dates already fixed, never the view, so it needs no clock.
+`toMeilisearch(request, fields)` from `@oztix/roadie-core/records/meilisearch`
+returns the request's meaning as Meilisearch parameters. It sits on its own
+subpath so the model stays backend-agnostic. On the docs site, the request for
+the view from [Views](#views), at 11:30pm on a Friday in Melbourne, runs
+through `toMeilisearch`, and its parameters show as comments under the call.
 
 <ViewMeilisearch />
 
@@ -314,11 +320,13 @@ Algolia's `aroundLatLng` and `aroundRadius`, or Elasticsearch's
 
 ### Pages
 
-Add `position` to page through the results. It adds `page` (one-based) and
+A request's `page` and `pageSize` become `page` (one-based) and
 `hitsPerPage`, so the response's `totalHits` counts the matches, up to the
 index's `pagination.maxTotalHits`. A [RecordTable](/components/record-table)
-takes that count as `rowCount` and the page as its data. Loading by range,
-each range is one page: fetch `{ page: start / pageSize, pageSize }`.
+takes that count as `rowCount` and the page as its data. A range, `start` to
+`end`, becomes a page the same way when it is a whole page, as the ranges a
+list asks for are, and `offset` and `limit` otherwise, where Meilisearch only
+estimates the count.
 
 ## Server contract
 
@@ -376,7 +384,7 @@ page at 11:30pm on a Friday in Melbourne, is this request:
 
 | Key                | Holds                                                                                                                                                                                                                                       |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `version`          | 1. Reject a version the server doesn't know. It changes only when an existing key's meaning does.                                                                                                                                           |
+| `version`          | 1, `RECORDS_REQUEST_VERSION`. Reject a version the server doesn't know. It changes only when an existing key's meaning does.                                                                                                                |
 | `query.search`     | The search text, for the fields marked `searchable`.                                                                                                                                                                                        |
 | `query.filters`    | The chips in order, ANDed. A date filter becomes `overlaps` with a `range`: `dates` compares calendar dates, the venue's for event and access fields, and `instants` compares epoch milliseconds. Ends are inclusive and null is open. Every other filter is as the view holds it. |
 | `query.sort`       | The sort, in order.                                                                                                                                                                                                                         |
@@ -409,6 +417,11 @@ Ignore keys you don't know. A later release can add one at the top of a
 request or in its `query` and still send version 1, and the request schema
 accepts them there. A filter or a sort with a key the schema doesn't name is
 rejected, since it would change what matches.
+
+So is a filter operator the schema doesn't name, and a version 1 server
+rejects it. A new operator, such as `near` for distance, comes with request
+version 2, or only on fields the server opts in to, never quietly in
+version 1.
 
 On a .NET server, generate the models from the schema files with a tool such
 as NJsonSchema, or write them as records. ASP.NET Core reads the camel case
@@ -460,7 +473,7 @@ every search, count, export, and bulk action.
 
 ## Typed text
 
-`parseQuery(text, { fields, now, timeZone })` reads typed text into ranked
+`parseRecordQuery(text, { fields, now, timeZone })` reads typed text into ranked
 suggestions, shaped for `QueryField`. It knows nothing about any one entity.
 To search events and orders together, call it once per entity with its
 `entity` and merge the results by `score`. It reads identifiers,
@@ -563,7 +576,7 @@ before the dates.
 
 `describeRecordFilter(filter, fields, { now, timeZone })` writes any filter as
 its chip reads, such as "Gross is more than $100", with the dates a relative
-range stands for in `detail`. `parseQuery` labels its filters the same way and
+range stands for in `detail`. `parseRecordQuery` labels its filters the same way and
 takes each `description` from that `detail`, so a suggestion and the chip it
 makes read alike, dates included. Next and last weekend, whose chips have no
 `detail`, are described as "Next weekend" and "Last weekend". `Records.Search` uses both, and
@@ -574,35 +587,35 @@ with "Location is in Melbourne" applied, `melb syd` can take both words.
 
 ## URL format
 
-`toSearchParams(view, position)` writes a view as search params, so a list
-screen opens from a link with the view applied. The format is versioned and a
-public contract: the same view always writes the same URL.
-`fromSearchParams(params, fields, { fallback })` reads it back, ignores keys
+`recordViewToSearchParams(view, position)` writes a view as search params, so a list
+screen opens from a link with the view applied. The format is versioned, as
+`RECORD_URL_VERSION`, and a public contract: the same view always writes the
+same URL.
+`recordViewFromSearchParams(params, fields, { fallback })` reads it back, ignores keys
 it doesn't know, and returns your fallback view with its problems when the URL
 holds something invalid.
 
 | Key                                       | Holds                                                                                                                                                       |
 | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `v`                                       | The view's `version`, 1                                                                                                                                     |
+| `v`                                       | The URL format, `RECORD_URL_VERSION`, 1                                                                                                                     |
 | `view`, `entity`                          | The saved view it started from, and the entity. A URL view has no name                                                                                      |
 | `q`                                       | The search text                                                                                                                                             |
 | `f`                                       | One per chip, in order, as `field:operator:value`. Lists are comma separated                                                                                |
 | `sort`                                    | Fields in order, descending with a leading dash, such as `-starts,name`                                                                                     |
 | `layout`, `columns`, `hidden`, `fields`   | The layout and its settings                                                                                                                                 |
-| `group`                                   | The view's `group`, which is reserved for grouping and no layout reads yet                                                                                  |
 | `page`, `size`, `row`                     | Where the reader is: the page, or in a list loaded by range, the first row on screen. The URL counts pages from 1, and `position.page` counts from 0        |
 
 On the docs site, the view from [Views](#views) on its first page shows as the
-params `toSearchParams` writes, one a line.
+params `recordViewToSearchParams` writes, one a line.
 
 <ViewSearchParams />
 
 ## Modified views
 
-`equalViews(view, baseline)` tells whether a view still matches the one it was
+`equalRecordViews(view, baseline)` tells whether a view still matches the one it was
 opened from, for the modified mark beside a view name. It ignores id, name,
-spacing in the search, and the order of chips and their values. Sort and
-column order still count.
+spacing in the search, the order of chips and their values, and how a
+relative range is written. Sort and column order still count.
 
 Pass that saved view to `useRecords` as `baseline` and it gives `modified` and
 `resetView`. `Records.ViewActions` shows the name and the mark, with a menu to
@@ -634,7 +647,7 @@ and the views people save, and lists them, as
   title='Keep session state out of views'
   description='A saved view should open the same for everyone, at the top.'
 >
-  <Guideline.Do code={`toSearchParams(view, { page: 2, row: 40 })`}>
+  <Guideline.Do code={`recordViewToSearchParams(view, { page: 2, row: 40 })`}>
     Pass the page and row as position, next to the view.
   </Guideline.Do>
   <Guideline.Dont

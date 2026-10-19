@@ -60,7 +60,7 @@ function ShowsPane({
     selectable
   })
   const toolbar = (
-    <Records.Toolbar
+    <Records.Header
       actions={actions ? [{ label: 'Export', onAction: () => {} }] : undefined}
     />
   )
@@ -205,7 +205,7 @@ describe('A toolbar in a pane', () => {
       slot: 'record-table-list-row',
       actions: true
     })
-    const toolbar = slot(container, 'records-toolbar')
+    const toolbar = slot(container, 'records-header')
     await expect
       .poll(() => toolbar.querySelector('[aria-label="More actions"]'))
       .not.toBeNull()
@@ -234,7 +234,7 @@ describe('A table in a pane measures the room its columns get', () => {
     const frame = rect(slot(container, 'record-table-frame'))
     expect(frame.left).toBeCloseTo(searchLeft(container), 0)
     expect(frame.right).toBeCloseTo(
-      contentRight(slot(container, 'records-toolbar')),
+      contentRight(slot(container, 'records-header')),
       0
     )
   })
@@ -306,7 +306,7 @@ describe.each([390, 360, 1280])(
       })
       slot(container, 'pane-viewport').scrollTop = 1500
       await nudgeFrames()
-      const toolbar = slot(container, 'records-toolbar')
+      const toolbar = slot(container, 'records-header')
       const edges = innerEdges(container)
       const header = rect(slot(container, 'pane-header'))
       await expect.poll(() => rect(toolbar).top).toBeCloseTo(header.bottom, 0)
@@ -338,7 +338,7 @@ describe.each([390, 360])('Narrow rows in a pane at %ipx', (width) => {
       searchLeft(container),
       0
     )
-    const toolbar = slot(container, 'records-toolbar')
+    const toolbar = slot(container, 'records-header')
     expect(rect(slot(container, 'record-table-frame')).right).toBeCloseTo(
       rect(toolbar).right - parseFloat(getComputedStyle(toolbar).paddingRight),
       0

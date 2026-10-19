@@ -91,6 +91,10 @@ const printMedia: BrowserCommand<[active: boolean]> = ({ page }, active) =>
 // test that needs nothing hovered parks it in the top-left corner first.
 const parkPointer: BrowserCommand<[]> = ({ page }) => page.mouse.move(0, 0)
 
+// Firefox stops firing focus events in a window that isn't focused, which
+// files run one after another can leave it in.
+const focusPage: BrowserCommand<[]> = ({ page }) => page.bringToFront()
+
 type PointerStep =
   | { type: 'move'; x: number; y: number; steps?: number }
   | { type: 'down' }
@@ -208,6 +212,7 @@ const browserTest = {
     forcedColors,
     printMedia,
     parkPointer,
+    focusPage,
     pointer,
     tap,
     swipe

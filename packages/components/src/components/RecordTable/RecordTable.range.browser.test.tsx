@@ -20,7 +20,7 @@ import {
 } from 'vitest'
 import { userEvent as browserUser, page } from 'vitest/browser'
 
-import { type RecordPosition, placeRange } from '@oztix/roadie-core/records'
+import type { RecordPosition } from '@oztix/roadie-core/records'
 
 import { RecordTable } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -76,7 +76,6 @@ function Ranged({
       show: `show-${index}`
     })
   }, [])
-  const [data, setData] = useState<(TestShow | undefined)[]>([])
   const [failed] = useState(() => new Set<number>())
   return (
     <div
@@ -86,12 +85,10 @@ function Ranged({
       <RecordTable
         caption='Shows'
         maxHeight={maxHeight}
-        data={data}
         fields={showFields}
         columns={showColumns}
         getRowId={(row) => row.id}
-        rowCount={rowCount}
-        loadRange={({ start, end }) => {
+        loadRange={async ({ start, end }) => {
           spans.push({ start, end })
           const settle = () => {
             if (start === failAt && !failed.has(start)) {
@@ -102,7 +99,7 @@ function Ranged({
               { length: Math.max(0, Math.min(end, total) - start) },
               (_, offset) => show(start + offset)
             )
-            setData((current) => placeRange(current, start, rows))
+            return { rows, rowCount }
           }
           if (start !== hold?.at) return settle()
           return hold.until.then(settle)
@@ -134,7 +131,10 @@ describe('RecordTable range mode in a browser', { timeout: 30_000 }, () => {
       <Ranged total={100_000} rowCount={100_000} spans={spans} />
     )
     const scroller = box(container)
-    expect(scroller.scrollHeight).toBeGreaterThanOrEqual(100_000 * ROW_PX)
+    // The first range brings the count, and the scrollbar its full length.
+    await framed(() => scroller.scrollHeight).toBeGreaterThanOrEqual(
+      100_000 * ROW_PX
+    )
     await framed(() => {
       scroller.scrollTop = ROW_PX * 50_000
       return container.textContent?.includes('show-50000')
@@ -193,27 +193,22 @@ function Positioned({
   onRow?: (row: number) => void
 }) {
   const [position, setPosition] = useState<RecordPosition>({ row })
-  const [data, setData] = useState<(TestShow | undefined)[]>([])
   return (
     <RecordTable
       caption='Shows'
-      data={data}
       fields={showFields}
       columns={showColumns}
       getRowId={(item) => item.id}
-      rowCount={rowCount}
       position={position}
       onPositionChange={(next) => {
         onRow?.(next.row)
         setPosition(next)
       }}
-      loadRange={({ start, end }) => {
+      loadRange={async ({ start, end }) => {
         spans.push({ start, end })
         const rows = testShowsFrom(start, Math.min(end, total))
-        const place = () =>
-          setData((current) => placeRange(current, start, rows))
-        if (!until) return place()
-        return until.then(place)
+        if (until) await until
+        return { rows, rowCount }
       }}
     />
   )
@@ -437,10 +432,12 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     await framed(() => underHeader(container, 480)).toBeLessThanOrEqual(1)
     // The hold's release plans loads for where the row landed.
     await runTimers()
-    // Only the restored window and a screen either side; nothing from the top it left.
-    const starts = spans.map(({ start }) => start)
-    expect(Math.min(...starts)).toBeGreaterThanOrEqual(400)
-    expect(Math.max(...starts)).toBeLessThanOrEqual(550)
+    // The first range brings the count; then only the restored window and a
+    // screen either side, nothing between.
+    const [first, ...rest] = spans.map(({ start }) => start)
+    expect(first).toBe(0)
+    expect(Math.min(...rest)).toBeGreaterThanOrEqual(400)
+    expect(Math.max(...rest)).toBeLessThanOrEqual(550)
   })
 
   it('wins over the pane restoring its own remembered offset', async () => {
@@ -697,7 +694,6 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     const echoed: number[] = []
     function Echoing() {
       const [position, setPosition] = useState<RecordPosition>({})
-      const [data, setData] = useState<(TestShow | undefined)[]>([])
       return (
         <InBox>
           <button
@@ -710,11 +706,9 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
           </button>
           <RecordTable
             caption='Shows'
-            data={data}
             fields={showFields}
             columns={showColumns}
             getRowId={(item) => item.id}
-            rowCount={5000}
             position={position}
             onPositionChange={(next) => {
               reported.push(next.row)
@@ -724,11 +718,10 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
                 echoed.push(next.row)
               }, 400)
             }}
-            loadRange={({ start, end }) =>
-              setData((current) =>
-                placeRange(current, start, testShowsFrom(start, end))
-              )
-            }
+            loadRange={async ({ start, end }) => ({
+              rows: testShowsFrom(start, end),
+              rowCount: 5000
+            })}
           />
         </InBox>
       )

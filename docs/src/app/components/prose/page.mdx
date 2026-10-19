@@ -44,9 +44,11 @@ import { Prose } from '@oztix/roadie-components/prose'
 
 ### Sizes
 
-`sm` sets 14px body text with the UI heading styles and a tighter rhythm, for
-dense content such as an FAQ or a sidebar. `md` is the default. `lg` sets
-larger body text for editorial pages. Both use the prose heading styles.
+`sm` sets 14px body text, headings one step below the UI heading styles, and
+a tighter rhythm, for dense content such as an FAQ or a sidebar. `md` is the
+default, with the UI heading styles, for content inside a page such as an
+event description. `lg` sets larger body text with the prose heading styles,
+for editorial pages.
 
 ```tsx-live-prose layout=stack gap=8
 <Prose size='sm'>

@@ -83,9 +83,10 @@ component the status of the page that documents it.
 
 ## Prose and live examples
 
-- MDX renders inside `.prose` (the `wrapper` in `docs/mdx-components.tsx`), so
-  headings, lists, tables, code, and links need no classes. Markdown tables
-  scroll sideways on narrow screens by themselves.
+- MDX renders inside `.prose` at the `lg` size (the `wrapper` in
+  `docs/mdx-components.tsx`), so headings, lists, tables, code, and links
+  need no classes. Markdown tables scroll sideways on narrow screens by
+  themselves.
 - `tsx-live` is the default for a live example. The whole example escapes
   `.prose` and renders as it would in an app.
 - `tsx-live-prose` is only for an example that demos `.prose` or `Prose`.

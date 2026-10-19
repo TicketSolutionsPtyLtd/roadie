@@ -444,7 +444,12 @@ function RangeGrid({
   useHeldHeight(bodyRef, true)
   const setRefs = useBodyRef(bodyRef, columnsRef)
   const size = range.total ?? -1
-  const { cells, padding } = recordsWindow(view, { range, columns })
+  // Cells keyed by the column count too: a card leading a row at both counts
+  // would keep its measuring ref, and its new row would never be measured.
+  const { cells, padding } = recordsWindow(view, {
+    range: { ...range, key: byRow.key },
+    columns
+  })
   return (
     <GridList
       {...listProps}

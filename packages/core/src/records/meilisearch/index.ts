@@ -1,5 +1,5 @@
 /**
- * Records views as Meilisearch search parameters. Kept on its own subpath so
+ * Records requests as Meilisearch search parameters. Kept on its own subpath so
  * the records model stays backend-agnostic.
  *
  * Needs Meilisearch 1.15 or later, which compares strings with <, >, and TO,
@@ -20,24 +20,18 @@
  * - `searchableAttributes` lists the fields marked `searchable`.
  */
 import { fieldIndex, momentOf } from '../fields'
-import {
-  type ResolvedRecordFilter,
-  type ResolvedRecordRange,
-  resolveRecordQuery
-} from '../resolve'
 import type {
-  RecordField,
-  RecordPosition,
-  RecordQueryOptions,
-  RecordView
-} from '../types'
+  RecordsPageRequest,
+  RecordsRangeRequest,
+  RecordsRequest
+} from '../request'
+import type { ResolvedRecordFilter, ResolvedRecordRange } from '../resolve'
+import type { RecordField } from '../types'
+import { RECORDS_REQUEST_VERSION } from '../versions'
 
-export type MeilisearchOptions = RecordQueryOptions & {
+export type MeilisearchOptions = {
   /** How the index stores instants. Defaults to seconds. */
   epoch?: 'seconds' | 'milliseconds'
-  /** The page to fetch, zero-based like `RecordPosition`. Adds `page` and `hitsPerPage`. */
-  position?: Required<Pick<RecordPosition, 'page' | 'pageSize'>> &
-    Pick<RecordPosition, 'row'>
 }
 
 export type MeilisearchQuery = {
@@ -48,6 +42,9 @@ export type MeilisearchQuery = {
   /** One-based. With `hitsPerPage`, the response's `totalHits` counts the matches for `rowCount`, up to the index's `pagination.maxTotalHits` (1,000 by default). */
   page?: number
   hitsPerPage?: number
+  /** A range that isn't a whole page. The response's `estimatedTotalHits` is only an estimate. */
+  offset?: number
+  limit?: number
 }
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$/
@@ -224,48 +221,70 @@ function filterExpression(
   }
 }
 
-function paging({
-  page,
-  pageSize
-}: NonNullable<MeilisearchOptions['position']>) {
-  if (
-    !Number.isInteger(page) ||
-    page < 0 ||
-    !Number.isInteger(pageSize) ||
-    pageSize < 1
+const isWhole = (value: number, min: number) =>
+  Number.isSafeInteger(value) && value >= min
+
+function paging(
+  request: RecordsRequest | RecordsPageRequest | RecordsRangeRequest
+): Pick<MeilisearchQuery, 'page' | 'hitsPerPage' | 'offset' | 'limit'> {
+  if ('page' in request) {
+    const { page, pageSize } = request
+    if (isWhole(page, 0) && isWhole(pageSize, 1))
+      return { page: page + 1, hitsPerPage: pageSize }
+  } else if ('start' in request) {
+    const { start, end } = request
+    if (isWhole(start, 0) && isWhole(end, start + 1)) {
+      const size = end - start
+      // As a page, so the response's totalHits counts every match.
+      return start % size === 0
+        ? { page: start / size + 1, hitsPerPage: size }
+        : { offset: start, limit: size }
+    }
+  } else return {}
+  throw new RangeError(
+    `Meilisearch fetches a page from 0 of a size from 1, or rows start to end, not ${JSON.stringify(request)}`
   )
-    throw new RangeError(
-      `Meilisearch pages need a whole page from 0 and a page size from 1, not page ${page} of ${pageSize}`
-    )
-  return { page: page + 1, hitsPerPage: pageSize }
+}
+
+function knownField(byKey: Map<string, RecordField>, key: string) {
+  const field = byKey.get(key)
+  if (!field) throw new RangeError(`Unknown field "${key}"`)
+  return field
 }
 
 /**
- * A view as Meilisearch's `q`, `filter` and `sort`. Filters mean the same as
- * `matchesRecordQuery` in the browser; search ranks with Meilisearch's prefix
- * and typo rules over the index's `searchableAttributes`, which should list
- * the fields marked `searchable`. Relative dates resolve at `now`. Throws on
- * an unknown field, on an event or access field filtered by date with no
- * `localDateKey`, and on text Meilisearch cannot quote. With `position`, adds
- * one-based `page` and `hitsPerPage` (its `row` is ignored), and throws a
- * RangeError on a page below 0 or a page size below 1.
+ * A records request as Meilisearch's `q`, `filter` and `sort`. Filters mean
+ * the same as `matchesRecordQuery` in the browser; search ranks with
+ * Meilisearch's prefix and typo rules over the index's
+ * `searchableAttributes`, which should list the fields marked `searchable`.
+ * The request's dates are already resolved. A page becomes one-based `page`
+ * and `hitsPerPage`; a range does too when it is a whole page, as the ranges
+ * Records asks for are, and otherwise `offset` and `limit`. Throws on an
+ * unknown request version or field, on an event or access field filtered by
+ * date with no `localDateKey`, on text Meilisearch cannot quote, and a
+ * RangeError on paging that fetches no rows.
  */
 export function toMeilisearch(
-  view: RecordView,
+  request: RecordsRequest | RecordsPageRequest | RecordsRangeRequest,
   fields: readonly RecordField[],
-  { epoch = 'seconds', position, ...options }: MeilisearchOptions
+  { epoch = 'seconds' }: MeilisearchOptions = {}
 ): MeilisearchQuery {
-  const resolved = resolveRecordQuery(view.query, fields, options)
+  if (request.version !== RECORDS_REQUEST_VERSION) {
+    throw new RangeError(
+      `Unsupported records request version ${String(request.version)}`
+    )
+  }
+  const { query } = request
   const byKey = fieldIndex(fields)
   return {
-    q: resolved.search.trim(),
-    filter: resolved.filters.map((filter) =>
-      filterExpression(filter, byKey.get(filter.field)!, epoch)
+    q: query.search.trim(),
+    filter: query.filters.map((filter) =>
+      filterExpression(filter, knownField(byKey, filter.field), epoch)
     ),
-    sort: resolved.sort.map(
-      ({ field, direction }) =>
-        `${field}:${direction === 'descending' ? 'desc' : 'asc'}`
-    ),
-    ...(position && paging(position))
+    sort: query.sort.map(({ field, direction }) => {
+      knownField(byKey, field)
+      return `${field}:${direction === 'descending' ? 'desc' : 'asc'}`
+    }),
+    ...paging(request)
   }
 }

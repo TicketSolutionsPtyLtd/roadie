@@ -4,7 +4,17 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { MAX_RANGE_ROWS, type RecordsRange, rangesToLoad } from './ranges'
 
-type Book = {
+/** What `loadRange` resolves with: the range's rows, and the count once known. */
+export type RecordsRangeResult<Row> = {
+  /** The rows from the range's `start`, in order. Fewer than asked for ends a list with no count. */
+  rows: readonly Row[]
+  /** Every match. Leave it out when unknown, and the list keeps the last one, or grows a range at a time. */
+  rowCount?: number
+  /** False when `rowCount` is a floor the server stopped counting at. @default true */
+  rowCountExact?: boolean
+}
+
+type Book<Row> = {
   key: string
   /** Tells apart two books for one key, as when a search changes and comes back. */
   token: object
@@ -12,59 +22,72 @@ type Book = {
   settledEnd: number
   failed: readonly RecordsRange[]
   attempt: number
-  /** A range has loaded, so a count of 0 is this query's. */
+  /** Each loaded row at its index; gaps are undefined. */
+  rows: readonly (Row | undefined)[]
+  /** Held from the last query until a range of this one returns, so the scrollbar keeps its length. */
+  rowCount?: number
+  rowCountExact: boolean
+  /** A range of this query has returned, so its count is this query's. */
   counted: boolean
-  /** Started because `data` lost rows, so it plans from the last window itself. */
-  refill: boolean
 }
 
-const freshBook = (key: string, refill = false): Book => ({
+const freshBook = <Row>(key: string, last?: Book<Row>): Book<Row> => ({
   key,
   token: {},
   pending: 0,
   settledEnd: 0,
   failed: [],
   attempt: 0,
-  counted: false,
-  refill
+  rows: [],
+  rowCount: last?.rowCount,
+  rowCountExact: last?.rowCountExact ?? true,
+  counted: false
 })
 
-export function useRangeLoading({
+function place<Row>(
+  rows: readonly (Row | undefined)[],
+  start: number,
+  placed: readonly Row[]
+): (Row | undefined)[] {
+  const next = rows.slice()
+  if (next.length < start) next.length = start
+  placed.forEach((row, offset) => {
+    next[start + offset] = row
+  })
+  return next
+}
+
+function readResult<Row>(
+  result: RecordsRangeResult<Row> | undefined,
+  range: RecordsRange
+): RecordsRangeResult<Row> {
+  if (!result || !Array.isArray(result.rows))
+    throw new TypeError('loadRange must resolve with { rows }')
+  return { ...result, rows: result.rows.slice(0, range.end - range.start) }
+}
+
+export function useRangeLoading<Row>({
   loadRange,
   key,
-  rowCount,
-  rowCountExact = true,
-  size,
-  data,
-  held
+  size
 }: {
-  loadRange?: (range: RecordsRange) => Promise<void> | void
+  loadRange?: (range: RecordsRange) => Promise<RecordsRangeResult<Row>>
   key: string
-  rowCount?: number
-  rowCountExact?: boolean
   size: number
-  data: readonly unknown[]
-  /** Rows loaded in `data`. */
-  held: number
 }) {
-  const loadedLength = data.length
-  const [stored, setStored] = useState(() => freshBook(key))
-  const book = stored.key === key ? stored : freshBook(key)
+  const [stored, setStored] = useState(() => freshBook<Row>(key))
+  const book = stored.key === key ? stored : freshBook<Row>(key, stored)
   if (stored.key !== key) setStored(book)
+  const data = book.rows
+  const loadedLength = data.length
 
-  // A consumer key the table can't see, like a trailing space, clears `data`
-  // under the same key; the ranges it requested must load again.
-  const seen = useRef({ key, held })
-  useLayoutEffect(() => {
-    const before = seen.current
-    seen.current = { key, held }
-    if (before.key === key && held < before.held)
-      setStored(freshBook(key, true))
-  }, [key, held])
-
-  // A parent keeps the last count until a new query's first range returns,
-  // and a stale 0 would show an empty list that never asks for one.
-  const known = rowCount === 0 && !book.counted ? undefined : rowCount
+  // A last query's 0 would show an empty list that never asks for a range.
+  const known =
+    book.rowCount === undefined ||
+    !Number.isFinite(book.rowCount) ||
+    (book.rowCount === 0 && !book.counted)
+      ? undefined
+      : Math.max(0, Math.floor(book.rowCount))
   const capped = loadedLength >= MAX_RANGE_ROWS
   const ended =
     known === undefined &&
@@ -87,7 +110,7 @@ export function useRangeLoading({
     pending: new Set<number>(),
     nextStart: 0
   })
-  const floor = rowCountExact ? undefined : known
+  const floor = book.rowCountExact ? undefined : known
   const latest = useRef({
     loadRange,
     rowCount: known,
@@ -161,7 +184,7 @@ export function useRangeLoading({
         }
       })
       if (ranges.length === 0) return
-      const forBook = (update: (book: Book) => Book) =>
+      const forBook = (update: (book: Book<Row>) => Book<Row>) =>
         setStored((current) =>
           current.token === mine.token ? update(current) : current
         )
@@ -179,14 +202,23 @@ export function useRangeLoading({
         // A synchronous throw becomes a rejection like any other.
         Promise.resolve()
           .then(() => load(range))
+          .then((result) => readResult(result, range))
           .then(
-            () => {
+            ({ rows, rowCount, rowCountExact = true }) => {
               mine.pending.delete(range.start)
               forBook((current) => ({
                 ...current,
                 pending: current.pending - 1,
+                settledEnd: Math.max(current.settledEnd, range.end),
+                rows: place(current.rows, range.start, rows),
                 counted: true,
-                settledEnd: Math.max(current.settledEnd, range.end)
+                // A first reply with no count drops the last query's.
+                ...(rowCount !== undefined
+                  ? { rowCount, rowCountExact }
+                  : !current.counted && {
+                      rowCount: undefined,
+                      rowCountExact: true
+                    })
               }))
             },
             () => {
@@ -218,11 +250,13 @@ export function useRangeLoading({
   useEffect(() => {
     const last = lastView.current
     if (!last) return
-    const retried = book.attempt > 0 && last.token === book.token
-    if (retried || book.refill) view(...last.window)
-  }, [book.attempt, book.token, book.refill, view])
+    if (book.attempt > 0 && last.token === book.token) view(...last.window)
+  }, [book.attempt, book.token, view])
 
   return {
+    rows: data,
+    rowCount: known,
+    rowCountExact: book.rowCountExact,
     capped,
     count,
     total,

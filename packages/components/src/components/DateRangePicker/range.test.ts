@@ -54,7 +54,9 @@ describe('sameRange', () => {
       { period: 'year', offset: 0, fiscal: true },
       { period: 'year', offset: 0 },
       false
-    ]
+    ],
+    ['last-month', { period: 'month', offset: -1 }, true],
+    [{ period: 'quarter', offset: 0, fiscal: false }, 'this-quarter', true]
   ])('%j and %j are the same: %s', (a, b, same) => {
     expect(sameRange(a, b)).toBe(same)
   })

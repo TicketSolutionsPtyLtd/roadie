@@ -20,15 +20,15 @@ import { useStickyTop } from './stickyTop'
 import { surfaceClass, useSurface } from './surface'
 import type { RecordsAction } from './types'
 
-export type RecordsToolbarProps<Row extends object = object> = {
+export type RecordsHeaderProps<Row extends object = object> = {
   /** Replaces the standard controls: the search, the view actions, the options and the actions. */
   children?: ReactNode
   /** The standard search's placeholder. @default 'Search and filter' */
   searchPlaceholder?: string
   /** Names the standard search when its placeholder doesn't. */
   searchLabel?: string
-  /** The key that focuses the standard search, or `false` for none. @default '/' */
-  searchShortcut?: string | false
+  /** The key that focuses the standard search, a `KeyboardEvent.key` value such as `/`, or `false` for none. @default '/' */
+  searchFocusShortcut?: string | false
   /** The standard controls' actions on every matching record, at the end as `Records.Actions`. */
   actions?: readonly RecordsAction<Row>[]
   /** The standard controls' view actions, after the search as `Records.ViewActions`. */
@@ -37,15 +37,15 @@ export type RecordsToolbarProps<Row extends object = object> = {
 }
 
 /** The records' controls, sticking above the content as it scrolls. */
-export function RecordsToolbar<Row extends object>({
+export function RecordsHeader<Row extends object>({
   children,
   searchPlaceholder,
   searchLabel,
-  searchShortcut,
+  searchFocusShortcut,
   actions,
   viewActions,
   className
-}: RecordsToolbarProps<Row>) {
+}: RecordsHeaderProps<Row>) {
   const { records, toolbar, setToolbar } = useRecordsContext()
   const ref = useRef<HTMLDivElement>(null)
   const top = useStickyTop(ref, null)
@@ -85,7 +85,7 @@ export function RecordsToolbar<Row extends object>({
   return (
     <div
       ref={ref}
-      data-slot='records-toolbar'
+      data-slot='records-header'
       data-search-focused={narrow && searchFocused ? '' : undefined}
       style={{ top }}
       onKeyDown={leaveSelectOnEscape(records)}
@@ -104,7 +104,7 @@ export function RecordsToolbar<Row extends object>({
             <RecordsSearch
               placeholder={searchPlaceholder}
               aria-label={searchLabel}
-              shortcut={searchShortcut}
+              focusShortcut={searchFocusShortcut}
               className='min-w-40 grow basis-0'
             />
             <RecordsSelect />
@@ -119,4 +119,4 @@ export function RecordsToolbar<Row extends object>({
     </div>
   )
 }
-RecordsToolbar.displayName = 'Records.Toolbar'
+RecordsHeader.displayName = 'Records.Header'

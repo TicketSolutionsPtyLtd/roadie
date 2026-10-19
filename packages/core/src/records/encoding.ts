@@ -1,4 +1,4 @@
-import type { RelativeRange } from '../datetime/ranges'
+import { type RelativeRange, canonicalDateRange } from '../datetime/ranges'
 import type { RecordFilter, RecordSort } from './types'
 
 const NUMBER = /^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/i
@@ -28,7 +28,9 @@ export function splitItems(text: string): string[] {
   return text === '' ? [] : text.split(',').map(unescape)
 }
 
-function encodeRange(range: RelativeRange): string {
+// In its one form, so the same meaning always writes the same text.
+function encodeRange(value: RelativeRange): string {
+  const range = canonicalDateRange(value)
   if (typeof range === 'string') return range
   if ('direction' in range) {
     return `${range.direction}-${range.amount}-${range.unit}`

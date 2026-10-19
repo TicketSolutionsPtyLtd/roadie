@@ -4,22 +4,17 @@ import { act, render, screen, waitFor, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { type RecordView, placeRange } from '@oztix/roadie-core/records'
-
 import { RecordTable, type RecordTableProps } from '.'
 import type { RecordsBulkAction } from '../Records'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import { bulkBar, countMenuItems, showColumns } from './testUtils'
 
-const EMPTY_VIEW: RecordView = {
-  query: { search: '', filters: [], sort: [] },
-  layout: { type: 'table' }
-}
-
 type Span = { start: number; end: number }
 
 function Ranged({
   total = 5000,
+  rowCount,
+  rowCountExact,
   respond = 'sync',
   failFirst = false,
   failAt,
@@ -27,6 +22,9 @@ function Ranged({
   ...props
 }: {
   total?: number
+  /** The count each range's result carries. */
+  rowCount?: number
+  rowCountExact?: boolean
   respond?: 'sync' | 'never' | 'empty'
   /** Rejects the first request and shows the error until the next. */
   failFirst?: boolean
@@ -35,33 +33,34 @@ function Ranged({
   spans?: Span[]
 } & Partial<RecordTableProps<TestShow>>) {
   const all = useMemo(() => testShows(total), [total])
-  const [data, setData] = useState<(TestShow | undefined)[]>([])
   const [error, setError] = useState(false)
   const failed = useRef(false)
   const failedAt = useRef(false)
   return (
     <RecordTable
       caption='Shows'
-      data={data}
       fields={showFields}
       columns={showColumns}
       getRowId={(row) => row.id}
       error={error}
-      loadRange={({ start, end }) => {
+      loadRange={async ({ start, end }) => {
         spans?.push({ start, end })
         setError(false)
         if (failFirst && !failed.current) {
           failed.current = true
           setError(true)
-          return Promise.reject(new Error('Offline'))
+          throw new Error('Offline')
         }
         if (start === failAt && !failedAt.current) {
           failedAt.current = true
-          return Promise.reject(new Error('Offline'))
+          throw new Error('Offline')
         }
-        if (respond === 'never') return new Promise<void>(() => {})
-        if (respond === 'empty') return
-        setData((current) => placeRange(current, start, all.slice(start, end)))
+        if (respond === 'never') return new Promise(() => {})
+        return {
+          rows: respond === 'empty' ? [] : all.slice(start, end),
+          rowCount,
+          rowCountExact
+        }
       }}
       {...props}
     />
@@ -76,88 +75,32 @@ const placeholders = () =>
 const status = () =>
   document.querySelector('[data-slot="records-status"]')!.textContent
 
-// The docs example: rows kept with the consumer's own key, which a trailing space changes.
-function KeyedRanged({
-  rowCount,
+function SearchedRanged({
+  counted = false,
   loads
 }: {
-  rowCount?: number
-  loads: string[]
+  /** Each range's result carries the count of matches. */
+  counted?: boolean
+  loads?: string[]
 }) {
   const all = useMemo(() => testShows(500), [])
-  const [view, setView] = useState<RecordView>(EMPTY_VIEW)
-  const key = JSON.stringify(view.query)
-  const [result, setResult] = useState<{
-    key: string
-    data: (TestShow | undefined)[]
-  }>({ key, data: [] })
-  if (result.key !== key) setResult({ key, data: [] })
   return (
     <RecordTable
       caption='Shows'
-      data={result.data}
       fields={showFields}
       columns={showColumns}
       getRowId={(row) => row.id}
-      rowCount={rowCount}
-      view={view}
-      onViewChange={setView}
-      loadRange={async ({ start, end }) => {
-        loads.push(`${view.query.search} ${start}`)
+      loadRange={async ({ query, start, end }) => {
+        loads?.push(`${query.search} ${start}`)
         await Promise.resolve()
-        setResult((current) =>
-          current.key === key
-            ? {
-                key,
-                data: placeRange(current.data, start, all.slice(start, end))
-              }
-            : current
-        )
-      }}
-    />
-  )
-}
-
-// The docs example: the total arrives with each range and is kept across a new query until then.
-function CountedRanged() {
-  const all = useMemo(() => testShows(500), [])
-  const [view, setView] = useState<RecordView>(EMPTY_VIEW)
-  const key = JSON.stringify(view.query)
-  const [result, setResult] = useState<{
-    key: string
-    data: (TestShow | undefined)[]
-    rowCount?: number
-  }>({ key, data: [] })
-  if (result.key !== key) setResult({ ...result, key, data: [] })
-  return (
-    <RecordTable
-      caption='Shows'
-      data={result.data}
-      rowCount={result.rowCount}
-      fields={showFields}
-      columns={showColumns}
-      getRowId={(row) => row.id}
-      view={view}
-      onViewChange={setView}
-      loadRange={async ({ start, end }) => {
-        await Promise.resolve()
-        const needle = view.query.search.toLowerCase()
+        const needle = query.search.trim().toLowerCase()
         const matching = all.filter((row) =>
-          row.show.toLowerCase().includes(needle)
+          `${row.show} ${row.city}`.toLowerCase().includes(needle)
         )
-        setResult((current) =>
-          current.key === key
-            ? {
-                key,
-                rowCount: matching.length,
-                data: placeRange(
-                  current.data,
-                  start,
-                  matching.slice(start, end)
-                )
-              }
-            : current
-        )
+        return {
+          rows: matching.slice(start, end),
+          ...(counted && { rowCount: matching.length })
+        }
       }}
     />
   )
@@ -165,15 +108,15 @@ function CountedRanged() {
 
 describe('RecordTable range mode', () => {
   it.each([
-    ['with rowCount', 500],
-    ['without rowCount', undefined]
+    ['with a count', true],
+    ['without a count', false]
   ] as const)(
-    'loads a new search, then rows a consumer cleared for a key the table shares (%s)',
+    'loads a new search, even one that only gains a trailing space (%s)',
     { timeout: 20_000 },
-    async (_, rowCount) => {
+    async (_, counted) => {
       const user = userEvent.setup()
       const loads: string[] = []
-      render(<KeyedRanged rowCount={rowCount} loads={loads} />)
+      render(<SearchedRanged counted={counted} loads={loads} />)
       const search = screen.getByRole('combobox', { name: 'Search and filter' })
       const loaded = async (key: string) => {
         await waitFor(() => expect(loads).toContain(`${key} 0`))
@@ -192,7 +135,7 @@ describe('RecordTable range mode', () => {
     { timeout: 20_000 },
     async () => {
       const user = userEvent.setup()
-      render(<CountedRanged />)
+      render(<SearchedRanged counted />)
       await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
       const search = screen.getByRole('combobox', { name: 'Search and filter' })
       await user.type(search, 'zzzz')
@@ -209,7 +152,7 @@ describe('RecordTable range mode', () => {
     { timeout: 20_000 },
     async () => {
       const user = userEvent.setup()
-      render(<CountedRanged />)
+      render(<SearchedRanged counted />)
       await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
       const search = screen.getByRole('combobox', { name: 'Search and filter' })
       await user.type(search, 'Ocean Alley 7')
@@ -319,16 +262,20 @@ describe('RecordTable range mode', () => {
     render(
       <RecordTable
         caption='Shows'
-        data={shows}
         fields={showFields}
         columns={showColumns}
         // A shifting offset API repeats the record on the boundary.
         getRowId={(row) => (row.id === 'show-50' ? 'show-49' : row.id)}
         bulkActions={bulkActions}
-        loadRange={() => new Promise<void>(() => {})}
+        defaultPosition={{ pageSize: 100 }}
+        loadRange={async ({ start, end }) =>
+          start < 100
+            ? { rows: shows.slice(start, end) }
+            : new Promise(() => {})
+        }
       />
     )
-    await settle()
+    await waitFor(() => expect(dataRows().length).toBeGreaterThan(0))
     await user.click(
       screen.getByRole('checkbox', { name: 'Select loaded rows' })
     )
