@@ -32,4 +32,8 @@ export type { FieldInputProps } from './FieldInput'
 export type { FieldTextareaProps } from './FieldTextarea'
 export type { FieldHelperTextProps } from './FieldHelperText'
 export type { FieldErrorTextProps } from './FieldErrorText'
-export { useFieldContext, useFieldInputProps } from './FieldContext'
+export {
+  useFieldContext,
+  useFieldControlError,
+  useFieldInputProps
+} from './FieldContext'

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { fromSearchParams, toSearchParams } from './searchParams'
+import {
+  recordViewFromSearchParams,
+  recordViewToSearchParams
+} from './searchParams'
 import { eventFields } from './testFields'
 import type { RecordView } from './types'
 
@@ -33,7 +36,7 @@ const full: RecordView = {
       {
         field: 'created',
         operator: 'within',
-        value: { period: 'month', offset: -1 }
+        value: { period: 'month', offset: -2 }
       },
       {
         field: 'created',
@@ -59,8 +62,7 @@ const full: RecordView = {
   layout: {
     type: 'table',
     columns: { order: ['name', 'starts'], hidden: ['gross'] }
-  },
-  group: 'venue'
+  }
 }
 
 const FULL_PARAMS = [
@@ -79,7 +81,7 @@ const FULL_PARAMS = [
   ['f', 'featured:is-true'],
   ['f', 'gross:is-not-set'],
   ['f', 'created:within:next-7-day'],
-  ['f', 'created:within:month.-1'],
+  ['f', 'created:within:month.-2'],
   ['f', 'created:within:year.0.fiscal.to-date'],
   ['f', 'created:after:2026-10-03T09:30:00+10:00'],
   ['f', 'starts:between:2026-10-01,2026-10-31'],
@@ -87,7 +89,6 @@ const FULL_PARAMS = [
   ['layout', 'table'],
   ['columns', 'name,starts'],
   ['hidden', 'gross'],
-  ['group', 'venue'],
   ['page', '3'],
   ['size', '50'],
   ['row', '120']
@@ -98,16 +99,16 @@ const empty: RecordView = {
   layout: { type: 'table' }
 }
 
-describe('toSearchParams', () => {
+describe('recordViewToSearchParams', () => {
   it('writes format v1, in a fixed order, leaving out the name', () => {
     expect([
-      ...toSearchParams(full, { page: 2, pageSize: 50, row: 120 })
+      ...recordViewToSearchParams(full, { page: 2, pageSize: 50, row: 120 })
     ]).toEqual(FULL_PARAMS)
   })
 
   it('pins the encoded string', () => {
     expect(
-      toSearchParams({
+      recordViewToSearchParams({
         query: {
           search: 'late show',
           filters: [
@@ -128,11 +129,11 @@ describe('toSearchParams', () => {
   })
 
   it('writes only the version for an empty table view', () => {
-    expect(toSearchParams(empty).toString()).toBe('v=1')
+    expect(recordViewToSearchParams(empty).toString()).toBe('v=1')
   })
 
   it('escapes commas, colons, percents and a leading dash in keys', () => {
-    const params = toSearchParams({
+    const params = recordViewToSearchParams({
       query: {
         search: '',
         filters: [{ field: 'a:b', operator: 'is', values: ['x%y', '-z'] }],
@@ -150,10 +151,10 @@ describe('toSearchParams', () => {
   })
 })
 
-describe('fromSearchParams', () => {
+describe('recordViewFromSearchParams', () => {
   it('reads every part back', () => {
     const params = new URLSearchParams(FULL_PARAMS)
-    const { view, position, source, problems } = fromSearchParams(
+    const { view, position, source, problems } = recordViewFromSearchParams(
       params,
       eventFields
     )
@@ -166,13 +167,56 @@ describe('fromSearchParams', () => {
 
   it('round-trips to the same string', () => {
     const text = new URLSearchParams(FULL_PARAMS).toString()
-    const { view, position } = fromSearchParams(text, eventFields)
-    expect(toSearchParams(view, position).toString()).toBe(text)
+    const { view, position } = recordViewFromSearchParams(text, eventFields)
+    expect(recordViewToSearchParams(view, position).toString()).toBe(text)
+  })
+
+  it('reads a relative range in its one form', () => {
+    const { view } = recordViewFromSearchParams(
+      'v=1&f=starts:within:week.0&f=created:within:quarter.1.to-date',
+      eventFields
+    )
+    expect(view.query.filters).toEqual([
+      { field: 'starts', operator: 'within', value: 'this-week' },
+      {
+        field: 'created',
+        operator: 'within',
+        value: { period: 'quarter', offset: 1, toDate: true }
+      }
+    ])
+    expect(recordViewToSearchParams(view).toString()).toBe(
+      'v=1&f=starts%3Awithin%3Athis-week&f=created%3Awithin%3Aquarter.1.to-date'
+    )
+  })
+
+  it('writes a relative range in its one form', () => {
+    const view: RecordView = {
+      query: {
+        search: '',
+        filters: [
+          {
+            field: 'starts',
+            operator: 'within',
+            value: { period: 'week', offset: 0 }
+          },
+          {
+            field: 'created',
+            operator: 'within',
+            value: { period: 'month', offset: -2, fiscal: true }
+          }
+        ],
+        sort: []
+      },
+      layout: { type: 'table' }
+    }
+    expect(recordViewToSearchParams(view).toString()).toBe(
+      'v=1&f=starts%3Awithin%3Athis-week&f=created%3Awithin%3Amonth.-2'
+    )
   })
 
   it('takes a framework search params object', () => {
     expect(
-      fromSearchParams(
+      recordViewFromSearchParams(
         {
           v: '1',
           q: 'lampshade',
@@ -191,13 +235,15 @@ describe('fromSearchParams', () => {
   })
 
   it('gives a fresh default view on each call', () => {
-    const first = fromSearchParams('', eventFields).view
+    const first = recordViewFromSearchParams('', eventFields).view
     first.query.filters.push({ field: 'featured', operator: 'is-true' })
-    expect(fromSearchParams('', eventFields).view.query.filters).toEqual([])
+    expect(
+      recordViewFromSearchParams('', eventFields).view.query.filters
+    ).toEqual([])
   })
 
   it('ignores keys it does not know', () => {
-    const result = fromSearchParams(
+    const result = recordViewFromSearchParams(
       'utm_source=newsletter&v=1&q=jazz&tab=2',
       eventFields
     )
@@ -207,14 +253,18 @@ describe('fromSearchParams', () => {
 
   it('keeps grid fields in order', () => {
     expect(
-      fromSearchParams('v=1&layout=grid&fields=starts%2Cname', eventFields).view
-        .layout
+      recordViewFromSearchParams(
+        'v=1&layout=grid&fields=starts%2Cname',
+        eventFields
+      ).view.layout
     ).toEqual({ type: 'grid', fields: ['starts', 'name'] })
   })
 
   it('falls back with no view in the URL, quietly', () => {
     const fallback = { ...empty, id: 'all' }
-    expect(fromSearchParams('page=2', eventFields, { fallback })).toEqual({
+    expect(
+      recordViewFromSearchParams('page=2', eventFields, { fallback })
+    ).toEqual({
       view: fallback,
       position: { page: 1 },
       source: 'fallback',
@@ -239,7 +289,7 @@ describe('fromSearchParams', () => {
     ],
     ['v=1&layout=board', 'layout', 'Unknown layout "board"']
   ])('rejects %s and falls back', (text, path, message) => {
-    const result = fromSearchParams(text, eventFields, {
+    const result = recordViewFromSearchParams(text, eventFields, {
       fallback: { ...empty, id: 'all' }
     })
     expect(result.source).toBe('fallback')
@@ -260,13 +310,13 @@ describe('fromSearchParams', () => {
     ['row=-1', {}],
     ['page=99999999999999999999', {}]
   ])('reads position %s', (text, position) => {
-    expect(fromSearchParams(`v=1&${text}`, eventFields).position).toEqual(
-      position
-    )
+    expect(
+      recordViewFromSearchParams(`v=1&${text}`, eventFields).position
+    ).toEqual(position)
   })
 
   it('reads the first of a repeated key', () => {
-    const result = fromSearchParams(
+    const result = recordViewFromSearchParams(
       'v=1&q=Perth&q=Hobart&page=5&page=9',
       eventFields
     )
@@ -284,15 +334,19 @@ describe('fromSearchParams', () => {
     'never throws or touches Object.prototype on hostile input: %s',
     (text) => {
       const before = Object.getOwnPropertyNames(Object.prototype)
-      expect(() => fromSearchParams(text, eventFields)).not.toThrow()
+      expect(() => recordViewFromSearchParams(text, eventFields)).not.toThrow()
       expect(Object.getOwnPropertyNames(Object.prototype)).toEqual(before)
     }
   )
 
   it('rejects filters on inherited names rather than reading them as fields', () => {
-    const result = fromSearchParams('v=1&f=constructor:is:y', eventFields, {
-      fallback: { ...empty, id: 'all' }
-    })
+    const result = recordViewFromSearchParams(
+      'v=1&f=constructor:is:y',
+      eventFields,
+      {
+        fallback: { ...empty, id: 'all' }
+      }
+    )
     expect(result.source).toBe('fallback')
     expect(result.problems[0]?.message).toContain('Unknown field')
   })
@@ -307,7 +361,7 @@ describe('fromSearchParams', () => {
         sort: []
       }
     }
-    const text = toSearchParams(literal).toString()
-    expect(fromSearchParams(text, eventFields).view).toEqual(literal)
+    const text = recordViewToSearchParams(literal).toString()
+    expect(recordViewFromSearchParams(text, eventFields).view).toEqual(literal)
   })
 })

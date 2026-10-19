@@ -6,6 +6,8 @@ import { CodePreview } from '@/components/CodePreview'
 import { ProseScroll } from '@/components/ProseScroll'
 import { exampleHref } from '@/lib/live-examples.mjs'
 
+import { proseVariants } from '@oztix/roadie-components/prose'
+
 type AnchorProps = ComponentPropsWithoutRef<'a'>
 /** Set on live fences by `src/lib/live-examples.mjs`. */
 type FenceProps = ComponentPropsWithoutRef<'code'> & {
@@ -19,7 +21,12 @@ const components = {
   // Not the Prose component: On this page skips headings under a data-slot.
   // The docs column already caps the width, and wide pages need full-width examples.
   wrapper: ({ children }: { children: ReactNode }) => (
-    <div className='prose min-w-0 [--prose-measure:none] [--prose-size:var(--text-lg)]'>
+    <div
+      className={proseVariants({
+        size: 'lg',
+        className: 'min-w-0 [--prose-measure:none]'
+      })}
+    >
       {children}
     </div>
   ),

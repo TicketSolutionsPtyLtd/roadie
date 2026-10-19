@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { act, render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
@@ -6,12 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Records } from '.'
 import { type TestShow, showFields, testShows } from './testUtils'
-import { type RecordsInstance, useRecords } from './useRecords'
+import { type RecordsState, useRecordsState } from './useRecords'
 
-const holder: { records?: RecordsInstance<TestShow> } = {}
+const holder: { records?: RecordsState<TestShow> } = {}
 
 function Shows({ selectable = false }: { selectable?: boolean }) {
-  const records = useRecords({
+  const records = useRecordsState({
     data: testShows(120),
     fields: showFields,
     getRowId: (row) => row.id,
@@ -74,7 +74,7 @@ describe('Records.Status', () => {
       rowCount: number
       loading: boolean
     }) {
-      const records = useRecords({
+      const records = useRecordsState({
         data: testShows(50),
         fields: showFields,
         getRowId: (row) => row.id,
@@ -98,7 +98,7 @@ describe('Records.Status', () => {
 
   it('announces a count the server stopped at as a floor', () => {
     function Server() {
-      const records = useRecords({
+      const records = useRecordsState({
         data: testShows(50),
         fields: showFields,
         getRowId: (row) => row.id,
@@ -121,7 +121,7 @@ describe('Records.Status', () => {
 describe('Records.Pagination', () => {
   it('offers no Previous on a deep link that reads as the first page', () => {
     function Linked() {
-      const records = useRecords({
+      const records = useRecordsState({
         data: testShows(10),
         fields: showFields,
         rowCount: 10,
@@ -142,7 +142,7 @@ describe('Records.Pagination', () => {
     vi.useRealTimers()
     const onPositionChange = vi.fn()
     function Linked() {
-      const records = useRecords({
+      const records = useRecordsState({
         data: testShows(10),
         fields: showFields,
         rowCount: 60,
@@ -168,7 +168,7 @@ describe('Records.Pagination', () => {
   it('reads a page past the end, which the parent never clamped, as the last page', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     function Paged() {
-      const records = useRecords({
+      const records = useRecordsState({
         data: testShows(100),
         fields: showFields,
         position: { page: 3, pageSize: 50 }
@@ -193,12 +193,15 @@ describe('Records.Status in range mode', () => {
   })
 
   function Ranged() {
-    const records = useRecords({
-      data: testShows(50),
+    const loads = useRef(0)
+    const records = useRecordsState<TestShow>({
       fields: showFields,
       getRowId: (row) => row.id,
-      rowCount: 500,
-      loadRange: () => new Promise<void>(() => {})
+      // The first query's range loads; the next one's never does.
+      loadRange: async () =>
+        loads.current++ === 0
+          ? { rows: testShows(50), rowCount: 500 }
+          : new Promise(() => {})
     })
     useEffect(() => {
       holder.records = records
@@ -210,9 +213,10 @@ describe('Records.Status in range mode', () => {
     )
   }
 
-  it("holds the last query's count while the new query's range loads", () => {
+  it("announces loading, not the last query's count, while the new query's range loads", async () => {
     vi.useFakeTimers()
     render(<Ranged />)
+    await act(async () => holder.records!.range!.show(0, 15))
     act(() =>
       holder.records!.addFilter({
         field: 'city',
@@ -223,6 +227,6 @@ describe('Records.Status in range mode', () => {
     act(() => holder.records!.range!.show(100, 115))
     expect(holder.records!.range!.loading).toBe(true)
     act(() => vi.advanceTimersByTime(600))
-    expect(status()).toHaveTextContent('')
+    expect(status()).toHaveTextContent('Loading')
   })
 })

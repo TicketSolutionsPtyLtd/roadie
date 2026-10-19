@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { RecordQuery } from '@oztix/roadie-core/records'
-
-import { type RangePlan, rangeKey, rangesToLoad } from './ranges'
+import { type RangePlan, rangesToLoad } from './ranges'
 
 const plan = (overrides: Partial<RangePlan>): RangePlan => ({
   first: 0,
@@ -122,64 +120,5 @@ describe('rangesToLoad without rowCount', () => {
   it('stops once ended or after a failure', () => {
     expect(rangesToLoad(plan({ ended: true }))).toEqual([])
     expect(rangesToLoad(plan({ failed: new Set([0]) }))).toEqual([])
-  })
-})
-
-describe('rangeKey', () => {
-  const query = (overrides: Partial<RecordQuery> = {}): RecordQuery => ({
-    search: '',
-    filters: [],
-    sort: [],
-    ...overrides
-  })
-
-  it('ignores chip value order', () => {
-    expect(
-      rangeKey(
-        query({
-          search: 'Perth',
-          filters: [
-            { field: 'city', operator: 'is', values: ['Perth', 'Hobart'] }
-          ]
-        }),
-        'Australia/Perth'
-      )
-    ).toBe(
-      rangeKey(
-        query({
-          search: 'Perth',
-          filters: [
-            { field: 'city', operator: 'is', values: ['Hobart', 'Perth'] }
-          ]
-        }),
-        'Australia/Perth'
-      )
-    )
-  })
-
-  it('changes with a trailing space, as the app keys its data on the search it sent', () => {
-    expect(rangeKey(query({ search: 'Perth ' }), 'UTC')).not.toBe(
-      rangeKey(query({ search: 'Perth' }), 'UTC')
-    )
-  })
-
-  it('changes with search, filters, sort and zone', () => {
-    const base = rangeKey(query(), 'UTC')
-    expect(rangeKey(query({ search: 'Perth' }), 'UTC')).not.toBe(base)
-    expect(
-      rangeKey(
-        query({
-          filters: [{ field: 'city', operator: 'is', values: ['Perth'] }]
-        }),
-        'UTC'
-      )
-    ).not.toBe(base)
-    expect(
-      rangeKey(
-        query({ sort: [{ field: 'show', direction: 'ascending' }] }),
-        'UTC'
-      )
-    ).not.toBe(base)
-    expect(rangeKey(query(), 'Australia/Sydney')).not.toBe(base)
   })
 })

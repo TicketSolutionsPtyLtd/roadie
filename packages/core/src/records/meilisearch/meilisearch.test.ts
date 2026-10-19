@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
+import { toRecordsRequest } from '../request'
 import { eventFields } from '../testFields'
-import type { RecordField, RecordFilter, RecordView } from '../types'
+import type { RecordField, RecordFilter, RecordQuery } from '../types'
 import { toMeilisearch } from './index'
 
 const SYDNEY = 'Australia/Sydney'
@@ -9,31 +10,31 @@ const SYDNEY = 'Australia/Sydney'
 const options = { now: new Date('2026-10-03T02:00:00Z'), timeZone: SYDNEY }
 const seconds = (iso: string) => Date.parse(iso) / 1000
 
-const view = (filters: RecordFilter[], search = ''): RecordView => ({
-  query: { search, filters, sort: [] },
-  layout: { type: 'table' }
-})
+const request = (
+  query: Partial<RecordQuery>,
+  fields: readonly RecordField[] = eventFields
+) =>
+  toRecordsRequest(
+    { search: '', filters: [], sort: [], ...query },
+    fields,
+    options
+  )
 
 const filterFor = (filter: RecordFilter, fields = eventFields) =>
-  toMeilisearch(view([filter]), fields, options).filter
+  toMeilisearch(request({ filters: [filter] }, fields), fields).filter
 
 describe('toMeilisearch', () => {
   it('passes search as q and sort as attribute:direction', () => {
     expect(
       toMeilisearch(
-        {
-          query: {
-            search: '  lampshade disco ',
-            filters: [],
-            sort: [
-              { field: 'starts', direction: 'ascending' },
-              { field: 'gross', direction: 'descending' }
-            ]
-          },
-          layout: { type: 'grid' }
-        },
-        eventFields,
-        options
+        request({
+          search: '  lampshade disco ',
+          sort: [
+            { field: 'starts', direction: 'ascending' },
+            { field: 'gross', direction: 'descending' }
+          ]
+        }),
+        eventFields
       )
     ).toEqual({
       q: 'lampshade disco',
@@ -133,43 +134,65 @@ describe('toMeilisearch', () => {
 
   it('pages with page and hitsPerPage, so the response counts every hit', () => {
     expect(
-      toMeilisearch(view([]), eventFields, {
-        ...options,
-        position: { page: 0, pageSize: 25 }
-      })
+      toMeilisearch({ ...request({}), page: 0, pageSize: 25 }, eventFields)
     ).toEqual({ q: '', filter: [], sort: [], page: 1, hitsPerPage: 25 })
     expect(
-      toMeilisearch(view([]), eventFields, {
-        ...options,
-        position: { page: 3, pageSize: 50, row: 120 }
-      })
+      toMeilisearch({ ...request({}), page: 3, pageSize: 50 }, eventFields)
     ).toMatchObject({ page: 4, hitsPerPage: 50 })
+  })
+
+  it('fetches a range that is a whole page as that page, and any other by offset', () => {
+    expect(
+      toMeilisearch({ ...request({}), start: 100, end: 150 }, eventFields)
+    ).toMatchObject({ page: 3, hitsPerPage: 50 })
+    expect(
+      toMeilisearch({ ...request({}), start: 9990, end: 10_001 }, eventFields)
+    ).toMatchObject({ offset: 9990, limit: 11 })
+    expect(
+      toMeilisearch({ ...request({}), start: 9990, end: 10_001 }, eventFields)
+    ).not.toHaveProperty('page')
   })
 
   it.each([
     { page: -1, pageSize: 25 },
     { page: 1.5, pageSize: 25 },
     { page: 0, pageSize: 0 },
-    { page: 0, pageSize: Number.NaN }
-  ])('refuses a position it cannot page to: %o', (position) => {
+    { page: 0, pageSize: Number.NaN },
+    { start: -1, end: 10 },
+    { start: 10, end: 10 }
+  ])('refuses paging it cannot fetch: %o', (paging) => {
     expect(() =>
-      toMeilisearch(view([]), eventFields, { ...options, position })
+      toMeilisearch({ ...request({}), ...paging }, eventFields)
     ).toThrow(RangeError)
   })
 
-  it('throws on an unknown sort field', () => {
+  it('refuses a request version it cannot read', () => {
+    expect(() =>
+      toMeilisearch({ ...request({}), version: 2 as 1 }, eventFields)
+    ).toThrow('Unsupported records request version 2')
+  })
+
+  it('throws on a field the list does not have', () => {
+    const { query } = request({})
     expect(() =>
       toMeilisearch(
         {
+          version: 1,
           query: {
-            search: '',
-            filters: [],
-            sort: [{ field: 'nope', direction: 'ascending' }]
-          },
-          layout: { type: 'table' }
+            ...query,
+            filters: [{ field: 'nope', operator: 'is-true' }]
+          }
         },
-        eventFields,
-        options
+        eventFields
+      )
+    ).toThrow('Unknown field "nope"')
+    expect(() =>
+      toMeilisearch(
+        {
+          version: 1,
+          query: { ...query, sort: [{ field: 'nope', direction: 'ascending' }] }
+        },
+        eventFields
       )
     ).toThrow('Unknown field "nope"')
   })
@@ -256,8 +279,7 @@ describe('toMeilisearch', () => {
         value: '2026-10-03T09:30:00.500+10:00'
       }
       expect(
-        toMeilisearch(view([filter]), eventFields, {
-          ...options,
+        toMeilisearch(request({ filters: [filter] }), eventFields, {
           epoch: 'milliseconds'
         }).filter
       ).toEqual([`created >= ${Date.parse('2026-10-02T23:30:00.501Z')}`])
@@ -294,13 +316,17 @@ describe('toMeilisearch', () => {
     ]
     expect(
       toMeilisearch(
-        view([
-          { field: 'ticket type', operator: 'is', values: ['vip'] },
-          { field: 'NOT', operator: 'eq', value: 1 },
-          { field: 'venue.name', operator: 'contains', value: 'hall' }
-        ]),
-        fields,
-        options
+        request(
+          {
+            filters: [
+              { field: 'ticket type', operator: 'is', values: ['vip'] },
+              { field: 'NOT', operator: 'eq', value: 1 },
+              { field: 'venue.name', operator: 'contains', value: 'hall' }
+            ]
+          },
+          fields
+        ),
+        fields
       ).filter
     ).toEqual([
       '"ticket type" = "vip"',
@@ -309,29 +335,25 @@ describe('toMeilisearch', () => {
     ])
   })
 
-  it('pins a full view', () => {
+  it('pins a full request', () => {
     expect(
       toMeilisearch(
-        {
-          query: {
-            search: 'jazz',
-            filters: [
-              {
-                field: 'city',
-                operator: 'is',
-                values: ['melbourne', 'sydney']
-              },
-              { field: 'starts', operator: 'within', value: 'this-weekend' },
-              { field: 'status', operator: 'is-not', values: ['sold_out'] },
-              { field: 'capacity', operator: 'is-set' },
-              { field: 'gross', operator: 'between', value: [1000, 50000] }
-            ],
-            sort: [{ field: 'starts', direction: 'ascending' }]
-          },
-          layout: { type: 'table' }
-        },
-        eventFields,
-        options
+        request({
+          search: 'jazz',
+          filters: [
+            {
+              field: 'city',
+              operator: 'is',
+              values: ['melbourne', 'sydney']
+            },
+            { field: 'starts', operator: 'within', value: 'this-weekend' },
+            { field: 'status', operator: 'is-not', values: ['sold_out'] },
+            { field: 'capacity', operator: 'is-set' },
+            { field: 'gross', operator: 'between', value: [1000, 50000] }
+          ],
+          sort: [{ field: 'starts', direction: 'ascending' }]
+        }),
+        eventFields
       )
     ).toMatchSnapshot()
   })

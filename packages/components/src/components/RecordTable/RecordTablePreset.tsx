@@ -23,14 +23,14 @@ export type RecordTableProps<Row extends object> = UseRecordsOptions<Row> & {
   searchPlaceholder?: string
   /** Names the search field when its placeholder doesn't. */
   searchLabel?: string
-  /** The key that focuses the search, or `false` for none. @default '/' */
-  searchShortcut?: string | false
+  /** The key that focuses the search, a `KeyboardEvent.key` value such as `/`, or `false` for none. @default '/' */
+  searchFocusShortcut?: string | false
   /** @default [25, 50, 100] */
   pageSizes?: number[]
   /** Turns on selection and shows the bulk actions once something is selected. */
   bulkActions?: readonly RecordsBulkAction[]
   /** Act on everything the search and filters match, with nothing selected, such as an export. Shown at the end of the toolbar. */
-  tableActions?: readonly RecordsAction<Row>[]
+  actions?: readonly RecordsAction<Row>[]
   /** Shows the open view's name, marked once it differs from `baseline`, with a menu to save, save as, rename, reset or delete it. The app keeps the views. */
   viewActions?: RecordsViewActionsProps
   /** How the table shows its records under 40rem. Defaults to cards when a column is a `detail`, else list rows. */
@@ -48,10 +48,10 @@ export function RecordTable<Row extends object>({
   caption,
   searchPlaceholder,
   searchLabel,
-  searchShortcut,
+  searchFocusShortcut,
   pageSizes,
   bulkActions,
-  tableActions,
+  actions,
   viewActions,
   narrow,
   maxHeight,
@@ -77,11 +77,11 @@ export function RecordTable<Row extends object>({
       data-pane-fill={fill || undefined}
       className={cn(fill && 'flex h-full min-h-0 flex-col', className)}
     >
-      <Records.Toolbar
+      <Records.Header
         searchPlaceholder={searchPlaceholder}
         searchLabel={searchLabel}
-        searchShortcut={searchShortcut}
-        actions={tableActions}
+        searchFocusShortcut={searchFocusShortcut}
+        actions={actions}
         viewActions={viewActions}
       />
       <Records.Content maxHeight={maxHeight} fill={fill} />

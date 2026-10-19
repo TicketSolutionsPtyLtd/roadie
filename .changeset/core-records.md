@@ -10,26 +10,29 @@ holding its venue zone and venue-local dates (`localDateKey`,
 `endLocalDateKey`), an identifier `match` (a pattern string anchored with
 `^` and `$`, matched in any case; `recordFields` throws on one that doesn't
 compile or isn't anchored), its currency, its `options` and the dashboard
-`status` map. A `RecordView` saves its `version`, a search, filters, sort and
-layout as JSON; page, page size and scroll row travel beside it as a
-`RecordPosition`.
+`status` map. A `RecordView` saves its `version` (`RECORD_VIEW_VERSION`), a
+search, filters, sort and layout as JSON; page, page size and scroll row
+travel beside it as a `RecordPosition`.
 
 `validateRecordView` checks a view against its fields and says which
-operators fit, reads a view without a `version` as version 1, and rejects a
-version it doesn't know. `resolveRecordQuery` fixes relative dates at a moment: event
+operators fit, reads a view without a `version` as version 1, rejects a
+version it doesn't know, and writes each relative date range in its one form
+(`canonicalDateRange`), so `{ period: 'week', offset: 0 }` comes back as
+`'this-week'`. `resolveRecordQuery` fixes relative dates at a moment: event
 and access dates compare the venue-local date, timestamps the viewer's day.
 `matchesRecordQuery` filters rows in the browser, testing overlap for date
 ranges. Text compares without case, and negative filters (is not, does not
-contain, not equal) keep records where the field is empty. `parseQuery`
+contain, not equal) keep records where the field is empty. `parseRecordQuery`
 reads typed text into ranked suggestions for `QueryField`: identifiers,
 `field:value`, field names, option values and date phrases, tagged with an
 `entity` when given. Values read from the start of a word, and a value named
 only in part is left out when a longer reading takes its words, so "melb this
 weekend" never suggests a venue named Thistle, while "name disco melb" still
-suggests "City is Melbourne". `toSearchParams` and `fromSearchParams` write and read a
-view and position as a versioned URL (`RECORD_VIEW_FORMAT`, `v=1`), falling
-back to a `fallback` view when the URL is invalid, and `equalViews` tells
-whether a view was modified. `recordFilterOperators` and `recordFieldOptions`
+suggests "City is Melbourne". `recordViewToSearchParams` and
+`recordViewFromSearchParams` write and read a view and position as a
+versioned URL (`RECORD_URL_VERSION`, `v=1`), falling back to a `fallback`
+view when the URL is invalid, and `equalRecordViews` tells whether a view was
+modified, reading two forms of one relative range as the same. `recordFilterOperators` and `recordFieldOptions`
 list what a field accepts.
 
 `recordFields<Row>()` builds an entity's fields with typed row keys
@@ -60,8 +63,9 @@ its field shows it: option and status labels, numbers and money in their
 format and currency, Yes or No, and dates in the house formats.
 
 New `@oztix/roadie-core/records/meilisearch` exports `toMeilisearch`, which
-turns a view into Meilisearch `q`, `filter` and `sort` with the same filter
-meaning. It needs Meilisearch 1.15 or later. The index stores instants as
+turns a `RecordsRequest`, its dates already resolved and its scope first,
+into Meilisearch `q`, `filter` and `sort` with the same filter meaning. It
+needs Meilisearch 1.15 or later. The index stores instants as
 epoch seconds (or milliseconds with `epoch: 'milliseconds'`), event and
 access dates under their local date keys, and a range's end on every record;
 `contains` needs Meilisearch's `containsFilter` feature. A location field
@@ -87,11 +91,11 @@ in the next 7 days", "is on Tue 20 Oct", "is before 20 Oct", and a range of one 
 Oct". `recordOperatorLabel` names an operator ("is more than") and
 `recordOptionPaths` gives each option's label with its parents' ("Ochre Kite
 Weekender 2027 › Opening Night"). A chip listing more than two values names
-them all in `detail`. `parseQuery` labels its filters the same way, dates included, names a
+them all in `detail`. `parseRecordQuery` labels its filters the same way, dates included, names a
 field whose label holds a colon in `field:value`, and reads `$` and
 thousands commas in a number's value.
 
-`parseQuery` reads negation as the opposite filter, and leaves none of its
+`parseRecordQuery` reads negation as the opposite filter, and leaves none of its
 words in `remainder`. "not melb" and "-melb" suggest "City is not Melbourne".
 It also reads `isn't`, `excludes`, `excluding`, `except`, `without`, `!=`,
 and `≠` before a value, `venue:!walrus`, "venue is not walrus", "city not
@@ -133,16 +137,15 @@ this weekend, "tonight" as today, "tmrw" as tomorrow, "rest of the week",
 month or year as today to its last day, "the 20th of oct", and "in the next
 7 days". A period on its own, such as "month", completes to this month
 before month to date. Next and last weekend's dates carry a `description`,
-"Next weekend" or "Last weekend", and `parseQuery` takes each suggestion's
+"Next weekend" or "Last weekend", and `parseRecordQuery` takes each suggestion's
 `description` from its chip's `detail`.
 
-`toMeilisearch` takes a `position` and adds Meilisearch's one-based `page`
-and `hitsPerPage`, so the response's `totalHits` counts the matches (up to
-the index's `pagination.maxTotalHits`). A page below 0 or a page size below
-1 throws a RangeError.
-
-`placeRange(data, start, rows)` returns a copy of `data` with `rows` placed
-from `start` and any gaps left undefined, for lists loaded by range.
+`toMeilisearch` maps a request's `page` and `pageSize` to Meilisearch's
+one-based `page` and `hitsPerPage`, so the response's `totalHits` counts the
+matches (up to the index's `pagination.maxTotalHits`), and `start` and `end`
+the same way when the range is a whole page, or to `offset` and `limit`. It
+throws on a request version or field it doesn't know, and a RangeError on
+paging that reads no rows.
 
 A server reads a `RecordsRequest`, never a view: `version` 1, the query
 resolved with relative dates fixed, and `page` and `pageSize`, `start` and
@@ -153,4 +156,7 @@ new `@oztix/roadie-core/records/json-schema` subpath exports
 `records/records-request.schema.json` and `records/record-view.schema.json`
 ship the same JSON Schemas as files, for servers that generate models. A
 request accepts keys it doesn't name at its top level and in `query`, so a
-later key keeps version 1; filters and sorts stay strict.
+later key keeps version 1; filters and sorts stay strict, so a new operator,
+such as `near` for distance, needs request version 2 or a field the server
+opts in to. `RECORDS_REQUEST_VERSION`, `RECORD_VIEW_VERSION` and
+`RECORD_URL_VERSION` name the three formats.

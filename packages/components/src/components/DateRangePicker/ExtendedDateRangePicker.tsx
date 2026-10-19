@@ -12,6 +12,7 @@ import { flushSync } from 'react-dom'
 import {
   type DateRangeValue,
   addMonths,
+  canonicalDateRange,
   compareDates,
   formatDateRange,
   joinWithFact
@@ -194,8 +195,9 @@ export function ExtendedDateRangePicker({
     if (sync.emitted === undefined || !sameRange(value, sync.emitted))
       setEdit(NO_EDIT)
   }
-  function emit(next: DateRangeValue | null) {
-    if (sameRange(next, value)) return
+  function emit(chosen: DateRangeValue | null) {
+    if (sameRange(chosen, value)) return
+    const next = chosen && canonicalDateRange(chosen)
     setSync({ ...sync, emitted: next })
     if (valueProp === undefined) setUncontrolled(next)
     onValueChange?.(next)
@@ -491,7 +493,7 @@ export function ExtendedDateRangePicker({
     ((isRequired || !clearable) && result.value === null)
   function apply() {
     if (result.kind !== 'value') return
-    if (onApply) onApply(result.value)
+    if (onApply) onApply(result.value && canonicalDateRange(result.value))
     else emit(result.value)
     changeOpen(false)
   }

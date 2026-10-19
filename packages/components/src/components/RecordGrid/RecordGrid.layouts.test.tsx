@@ -6,8 +6,8 @@ import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
   type RecordView,
-  fromSearchParams,
-  toSearchParams
+  recordViewFromSearchParams,
+  recordViewToSearchParams
 } from '@oztix/roadie-core/records'
 
 import { gridLayout } from '.'
@@ -67,7 +67,7 @@ function Harness({
   })
   return (
     <Records records={records} layouts={shownLayouts} caption='Shows'>
-      <Records.Toolbar
+      <Records.Header
         viewActions={baseline ? { onSaveAs: () => {} } : undefined}
       />
       <Records.Content />
@@ -250,7 +250,7 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
           >
             Open rows
           </button>
-          <Records.Toolbar />
+          <Records.Header />
           <Records.Content />
         </Records>
       )
@@ -281,7 +281,7 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
           <button onClick={() => setOpen({ ...view, name: 'Cards, renamed' })}>
             Save it
           </button>
-          <Records.Toolbar />
+          <Records.Header />
           <Records.Content />
         </Records>
       )
@@ -311,7 +311,10 @@ describe('Layout switcher', { timeout: 15_000 }, () => {
     )
     const written: RecordView = onViewChange.mock.lastCall![0]
     unmount()
-    const read = fromSearchParams(toSearchParams(written), showFields)
+    const read = recordViewFromSearchParams(
+      recordViewToSearchParams(written),
+      showFields
+    )
     expect(read.view.layout).toEqual({
       type: 'grid',
       fields: ['sold', 'gross']

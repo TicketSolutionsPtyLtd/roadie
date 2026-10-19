@@ -1,10 +1,8 @@
-import { type ReactNode, useState } from 'react'
+import type { ReactNode } from 'react'
 
 import { type Root, createRoot } from 'react-dom/client'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
-
-import { placeRange } from '@oztix/roadie-core/records'
 
 import { RecordTable, tableColumns } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -90,22 +88,18 @@ const SCROLL_BOX = { height: 800, overflowY: 'auto' } as const
 const RANGE_SHOWS = testShows(100_000)
 
 function RangeScrolling() {
-  const [data, setData] = useState<(TestShow | undefined)[]>([])
   return (
     <div style={SCROLL_BOX} data-testid='scroller'>
       <RecordTable
-        data={data}
         fields={showFields}
         columns={showColumns}
-        rowCount={RANGE_SHOWS.length}
         getRowId={(row) => row.id}
         bulkActions={[{ label: 'Export', onAction: () => {} }]}
         defaultSelection={{ ids: ['show-0'] }}
-        loadRange={({ start, end }) =>
-          setData((current) =>
-            placeRange(current, start, RANGE_SHOWS.slice(start, end))
-          )
-        }
+        loadRange={async ({ start, end }) => ({
+          rows: RANGE_SHOWS.slice(start, end),
+          rowCount: RANGE_SHOWS.length
+        })}
       />
     </div>
   )
@@ -272,21 +266,17 @@ const cardColumns = [
 const CARD_SHOWS = testShows(2000)
 
 function RangeCards() {
-  const [data, setData] = useState<(TestShow | undefined)[]>([])
   return (
     <div style={NARROW_BOX} data-testid='scroller'>
       <RecordTable
         caption='Shows'
-        data={data}
         fields={showFields}
         columns={cardColumns}
-        rowCount={CARD_SHOWS.length}
         getRowId={(row) => row.id}
-        loadRange={({ start, end }) =>
-          setData((current) =>
-            placeRange(current, start, CARD_SHOWS.slice(start, end))
-          )
-        }
+        loadRange={async ({ start, end }) => ({
+          rows: CARD_SHOWS.slice(start, end),
+          rowCount: CARD_SHOWS.length
+        })}
       />
     </div>
   )
