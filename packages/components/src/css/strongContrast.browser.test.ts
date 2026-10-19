@@ -61,8 +61,12 @@ beforeAll(() => {
 afterAll(() => removeStylesheets())
 
 let host: HTMLElement | undefined
+// Moving the pointer takes a round trip to the browser, so only a test that
+// hovered pays for moving it away.
+let hovered = false
 afterEach(async () => {
-  await userEvent.unhover(document.body)
+  if (hovered) await userEvent.unhover(document.body)
+  hovered = false
   host?.remove()
   const root = document.documentElement
   root.classList.remove('dark')
@@ -72,6 +76,13 @@ afterEach(async () => {
 
 const frame = () =>
   new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
+
+// The hover state lands with the frame after the pointer moves.
+async function hover(element: HTMLElement) {
+  hovered = true
+  await userEvent.hover(element)
+  await frame()
+}
 
 function mount(markup: string) {
   host = document.createElement('div')
@@ -104,7 +115,6 @@ describe.each(MODES)('%s mode', (mode) => {
     it('reads at Lc 60 on a strong fill', async () => {
       setTheme(mode)
       const target = mount(strongButton(intent))
-      await frame()
       expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
 
@@ -113,8 +123,7 @@ describe.each(MODES)('%s mode', (mode) => {
       setHoverCapable(true)
       const target = mount(strongButton(intent))
       const rest = getComputedStyle(target).backgroundColor
-      await userEvent.hover(target)
-      await frame()
+      await hover(target)
       expect(getComputedStyle(target).backgroundColor).not.toBe(rest)
       expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
@@ -122,7 +131,6 @@ describe.each(MODES)('%s mode', (mode) => {
     it('still reads at Lc 60 while pressed', async () => {
       setTheme(mode)
       const target = mount(strongButton(intent, 'is-active'))
-      await frame()
       expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
 
@@ -131,7 +139,6 @@ describe.each(MODES)('%s mode', (mode) => {
       const target = mount(
         `<div data-target class="intent-${intent} emphasis-inverted">Sold out</div>`
       )
-      await frame()
       expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
 
@@ -140,7 +147,6 @@ describe.each(MODES)('%s mode', (mode) => {
       const target = mount(
         `<div data-target class="intent-${intent} bg-inverted text-inverted font-bold">Sold out</div>`
       )
-      await frame()
       expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
 
@@ -149,7 +155,6 @@ describe.each(MODES)('%s mode', (mode) => {
       const target = mount(
         `<div data-target class="intent-${intent} bg-strong text-on-strong font-bold">Sold out</div>`
       )
-      await frame()
       expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
 
@@ -161,7 +166,6 @@ describe.each(MODES)('%s mode', (mode) => {
         const target = mount(
           `<div data-target class="intent-${intent} ${overlay}">Sold out</div>`
         )
-        await frame()
         expect(flatten(getComputedStyle(target).color)).toEqual([255, 255, 255])
       }
     )
@@ -171,7 +175,6 @@ describe.each(MODES)('%s mode', (mode) => {
       const target = mount(
         `<div class="intent-${intent}"><span data-target class="text-inverted"></span><span data-page class="text-normal"></span></div>`
       )
-      await frame()
       const page = host!.querySelector<HTMLElement>('[data-page]')!
       const inverted = Math.abs(
         apcaLc(getComputedStyle(target).color, getComputedStyle(page).color)
@@ -184,21 +187,18 @@ describe.each(MODES)('%s mode', (mode) => {
     it('reads at Lc 60 on a strong accent fill', async () => {
       setTheme(mode, accent)
       const target = mount(strongButton('accent'))
-      await frame()
       expect(contrast(target)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
 
     it('still reads at Lc 60 while hovered or pressed', async () => {
       setTheme(mode, accent)
       setHoverCapable(true)
-      const hovered = mount(strongButton('accent'))
-      await userEvent.hover(hovered)
-      await frame()
-      expect(contrast(hovered)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
+      const hoveredButton = mount(strongButton('accent'))
+      await hover(hoveredButton)
+      expect(contrast(hoveredButton)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
       host?.remove()
 
       const pressed = mount(strongButton('accent', 'is-active'))
-      await frame()
       expect(contrast(pressed)).toBeGreaterThanOrEqual(STRONG_LABEL_LC)
     })
   })
@@ -259,7 +259,6 @@ describe('without color-mix', () => {
         const target = mount(
           `<div class="intent-${intent}">${strongButton(intent)}<i data-step style="background: var(--color-${scale}-9)"></i></div>`
         )
-        await frame()
         const step = host!.querySelector<HTMLElement>('[data-step]')!
         expect(getComputedStyle(target).backgroundColor).toBe(
           getComputedStyle(step).backgroundColor
@@ -273,8 +272,7 @@ describe('without color-mix', () => {
         const target = mount(
           `<div class="intent-${intent}">${strongButton(intent)}<i data-step style="background: var(--color-${scale}-${hoverStep})"></i></div>`
         )
-        await userEvent.hover(target)
-        await frame()
+        await hover(target)
         const step = host!.querySelector<HTMLElement>('[data-step]')!
         expect(getComputedStyle(target).backgroundColor).toBe(
           getComputedStyle(step).backgroundColor
@@ -287,7 +285,6 @@ describe('without color-mix', () => {
         async (state) => {
           setTheme(mode)
           const target = mount(strongButton(intent, state))
-          await frame()
           const { backgroundColor } = getComputedStyle(target)
           expect(backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
           expect(contrast(target)).toBeGreaterThanOrEqual(FALLBACK_LABEL_LC)

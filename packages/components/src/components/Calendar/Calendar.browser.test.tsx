@@ -56,10 +56,20 @@ const caption = () =>
           .textContent
     )
 
-// A page turn lands after its slide out.
+// A page turn lands after its slide out. The motion has tests of its own, so
+// each running slide skips to its end rather than taking its full duration.
+const finishMotion = () => {
+  for (const animation of document.getAnimations()) animation.finish()
+}
 const turned = () =>
   expect
-    .poll(() => document.querySelector('[data-swiping]'), { timeout: 2000 })
+    .poll(
+      () => {
+        finishMotion()
+        return document.querySelector('[data-swiping]')
+      },
+      { timeout: 2000 }
+    )
     .toBeNull()
 
 async function tabIntoGrid() {
@@ -693,7 +703,12 @@ describe('Calendar day tiles', () => {
 async function viewSettled(view: 'week' | 'month') {
   const root = () => document.querySelector('[data-slot="calendar"]')!
   await expect.poll(() => root().getAttribute('data-view')).toBe(view)
-  await expect.poll(() => root().hasAttribute('data-swiping')).toBe(false)
+  await expect
+    .poll(() => {
+      finishMotion()
+      return root().hasAttribute('data-swiping')
+    })
+    .toBe(false)
 }
 
 describe('Calendar views', () => {
