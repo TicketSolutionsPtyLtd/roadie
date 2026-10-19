@@ -52,6 +52,16 @@ describe('pageToMarkdown', () => {
     )
   })
 
+  it('ends with the last-updated line from the footer', () => {
+    expect(
+      pageToMarkdown({
+        title: 'Badge',
+        updated: 'Last updated 3 Oct 2026.',
+        mdx: 'Body.'
+      })
+    ).toBe('# Badge\n\nBody.\n\nLast updated 3 Oct 2026.\n')
+  })
+
   it('writes the title once when the page opens with its own H1', () => {
     expect(page('# Badge\n\nBody.')).toBe('# Badge\n\nBody.\n')
   })

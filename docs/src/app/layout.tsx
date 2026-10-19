@@ -25,7 +25,11 @@ import {
   getPageWide,
   readPageMetadata
 } from '@/lib/page-manifest'
-import { getPageRelease, getReleaseViews } from '@/lib/releases'
+import {
+  getPageRelease,
+  getPageUpdatedDates,
+  getReleaseViews
+} from '@/lib/releases'
 import { getSourceLinks } from '@/lib/source-links'
 import { getAssetPath } from '@/utils/getAssetPath'
 
@@ -137,6 +141,8 @@ export default async function RootLayout({
   for (const { href, headlines } of releases)
     pageTitles[href] = headlines.all.title
   const twins = [...markdownRoutes, ...releases.map(({ href }) => href)]
+  const pageUpdated = getPageUpdatedDates()
+  for (const { href, date } of releases) if (date) pageUpdated[href] = date
 
   return (
     <html lang='en' suppressHydrationWarning>
@@ -162,6 +168,7 @@ export default async function RootLayout({
             )}
             pageStatus={pageStatus}
             sourceLinks={getSourceLinks(releases.map(({ href }) => href))}
+            pageUpdated={pageUpdated}
           >
             {children}
           </DocsNavigator>

@@ -16,6 +16,7 @@ import {
   pageCreatedDates,
   pageRelease,
   pageSubpaths,
+  pageUpdatedDates,
   parseChangelog,
   parseChangeset,
   parseReleaseNote,
@@ -739,6 +740,25 @@ describe('pageCreatedDates', () => {
       '/components/kbd': '2026-09-30',
       '/components/button': '2025-01-03',
       '/': '2025-01-03'
+    })
+  })
+})
+
+describe('pageUpdatedDates', () => {
+  it('dates each page route by the newest commit that changed its page file', () => {
+    const log = [
+      '\x1e1790812234',
+      '',
+      'docs/src/app/components/kbd/page.mdx',
+      'docs/src/app/components/kbd/notes.ts',
+      '\x1e1775606400',
+      '',
+      'docs/src/app/components/kbd/page.mdx',
+      'docs/src/app/page.tsx'
+    ].join('\n')
+    expect(Object.fromEntries(pageUpdatedDates(log))).toEqual({
+      '/components/kbd': '2026-09-30',
+      '/': '2026-04-08'
     })
   })
 })

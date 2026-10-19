@@ -38,6 +38,7 @@ import {
 import {
   changesOf,
   getPageRelease,
+  getPageUpdatedDates,
   getReleaseHistory,
   getReleaseViews,
   releaseHistoryMarkdown,
@@ -126,6 +127,8 @@ const releaseDate = (date: string) =>
     timeZone: 'UTC',
     dateStyle: 'medium'
   }) ?? date
+
+const updatedDates = getPageUpdatedDates()
 
 const renderers = {
   ...DATA_RENDERERS,
@@ -239,6 +242,9 @@ async function markdownFor(route: string) {
     description: metadata?.description,
     ...(status && {
       status: statusSentence(status, getPageRelease(route), releaseDate)
+    }),
+    ...(updatedDates[route] && {
+      updated: `Last updated ${releaseDate(updatedDates[route])}.`
     }),
     ...(related && {
       related: {

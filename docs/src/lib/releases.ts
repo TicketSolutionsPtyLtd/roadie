@@ -521,20 +521,26 @@ export function subpathTimes(exportsLog: string, foldersLog: string) {
   return times
 }
 
-/** Route → the day, in UTC, its page file was first added, from `git log --diff-filter=A --name-only` under `docs/src/app`. */
-export function pageCreatedDates(log: string): Map<string, string> {
+function pageDates(log: string, newest: boolean): Map<string, string> {
   const dates = new Map<string, string>()
   for (const chunk of log.split('\x1e').slice(1)) {
     const [seconds = '0', ...files] = chunk.trim().split('\n')
     const date = utcDate(Number(seconds))
     for (const file of files) {
       const route = file.match(/^docs\/src\/app(\/.*)?\/page\.(mdx|tsx)$/)
-      // `git log` runs newest first, so the last date seen is the oldest.
-      if (route) dates.set(route[1] ?? '/', date)
+      const key = route ? (route[1] ?? '/') : undefined
+      // `git log` runs newest first.
+      if (key && !(newest && dates.has(key))) dates.set(key, date)
     }
   }
   return dates
 }
+
+/** Route → the day, in UTC, its page file was first added, from `git log --diff-filter=A --name-only` under `docs/src/app`. */
+export const pageCreatedDates = (log: string) => pageDates(log, false)
+
+/** Route → the day, in UTC, its page file last changed, from `git log --name-only` under `docs/src/app`. */
+export const pageUpdatedDates = (log: string) => pageDates(log, true)
 
 /**
  * When a page's component first shipped and last changed. Added is the
@@ -1205,9 +1211,12 @@ export function versionCommits(log: string) {
   return commits
 }
 
+// A shallow checkout's oldest commit would date every older file wrongly.
+const hasHistory = () =>
+  git(['rev-parse', '--is-shallow-repository'])?.trim() === 'false'
+
 function readCommits(dir: string): PackageChangelog['commits'] {
-  if (git(['rev-parse', '--is-shallow-repository'])?.trim() !== 'false')
-    return new Map()
+  if (!hasHistory()) return new Map()
   const log = git([
     'log',
     '--format=%x1e%H %ct',
@@ -1274,8 +1283,7 @@ let pageContext:
 
 /** Each page's added and updated releases, from the release history, its subpath's first commit, and the page's own. */
 export function getPageRelease(route: string): PageRelease {
-  const history =
-    git(['rev-parse', '--is-shallow-repository'])?.trim() === 'false'
+  const history = hasHistory()
   const log = (args: string[]) => (history ? (git(['log', ...args]) ?? '') : '')
   pageContext ??= {
     subpaths: pageSubpaths(readManifests()),
@@ -1312,6 +1320,14 @@ export function getPageRelease(route: string): PageRelease {
     created: pageContext.created.get(route),
     shipped: subpath && pageContext.shipped.get(subpath.importPath)
   })
+}
+
+/** Route → the day, in UTC, its page last changed, or empty without history. */
+export function getPageUpdatedDates(): Record<string, string> {
+  const log = hasHistory()
+    ? git(['log', '--format=%x1e%ct', '--name-only', '--', 'docs/src/app'])
+    : null
+  return log ? Object.fromEntries(pageUpdatedDates(log)) : {}
 }
 
 function readChangesets(): Changeset[] {

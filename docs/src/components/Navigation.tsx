@@ -81,6 +81,8 @@ type NavigationProps = {
   pageStatus?: Record<string, PageStatusInfo>
   /** Route → its source on GitHub, relative to the repo URL. */
   sourceLinks?: Record<string, string>
+  /** Route → `YYYY-MM-DD`, in UTC, when the page last changed. */
+  pageUpdated?: Record<string, string>
   children: ReactNode
 }
 
@@ -120,6 +122,7 @@ export function DocsNavigator({
   markdownTwins,
   pageStatus = {},
   sourceLinks = {},
+  pageUpdated = {},
   children
 }: NavigationProps) {
   const route = useRoute()
@@ -338,7 +341,7 @@ export function DocsNavigator({
             <InspectorSlotContext value={inspectorSlot}>
               {children}
             </InspectorSlotContext>
-            <FooterNav items={items} />
+            <FooterNav items={items} updated={pageUpdated[route]} />
           </div>
         </Pane>
 
