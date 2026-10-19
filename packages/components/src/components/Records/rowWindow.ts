@@ -140,16 +140,19 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
       : undefined
     ;((globalThis as any).__rt ??= []).push(['observe', Math.round(performance.now()), !!body, !!header])
     if (!body || !header) return
+    const remeasure = () => {
+      const next = latestMeasureInset.current?.(body) ?? 0
+      ;((globalThis as any).__rt ??= []).push(['measured', Math.round(performance.now()), next])
+      setInset((inset) => (Math.abs(next - inset) > 0.5 ? next : inset))
+    }
     let frame = 0
     const observer = new ResizeObserver(() => {
-      cancelAnimationFrame(frame)
-      // A frame later, once the pane has published the header's new height.
       ;((globalThis as any).__rt ??= []).push(['ro', Math.round(performance.now())])
-      frame = requestAnimationFrame(() => {
-        const next = latestMeasureInset.current?.(body) ?? 0
-        ;((globalThis as any).__rt ??= []).push(['measured', Math.round(performance.now()), next])
-        setInset((inset) => (Math.abs(next - inset) > 0.5 ? next : inset))
-      })
+      // Now, while the restore still holds its row: the pane's own observer, made first, has published the header's height.
+      remeasure()
+      cancelAnimationFrame(frame)
+      // Again a frame later, in case the pane's observer was made after this one.
+      frame = requestAnimationFrame(remeasure)
     })
     observer.observe(header)
     return () => {
