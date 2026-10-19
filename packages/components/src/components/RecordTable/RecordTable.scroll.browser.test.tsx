@@ -227,7 +227,7 @@ describe('RecordTable in a scrolling pane scrolls sideways with a Roadie scrollb
     expect(scroller.scrollLeft).toBeGreaterThan(0)
     const head = slot(container, 'record-table-head')
     expect(
-      Math.abs(rect(head).top - rect(slot(container, 'records-toolbar')).bottom)
+      Math.abs(rect(head).top - rect(slot(container, 'records-header')).bottom)
     ).toBeLessThanOrEqual(1)
     expectAligned(container, rowBelow(container, rect(head).bottom))
     expect(scroller.scrollHeight - scroller.clientHeight).toBeLessThanOrEqual(1)
@@ -459,7 +459,7 @@ describe('RecordTable fill', () => {
         </Pane.Header>
         <Pane.Body>
           <Records.Root records={records} layouts={layouts} caption='Shows'>
-            <Records.Toolbar />
+            <Records.Header />
             <Records.Content fill />
             <Records.Pagination />
           </Records.Root>
@@ -512,9 +512,9 @@ describe('Records spread across a pane by a Provider', () => {
             <Pane.Title>Shows</Pane.Title>
           </Pane.Header>
           <Pane.Body>
-            {first && <Records.Toolbar />}
+            {first && <Records.Header />}
             {second && (
-              <Records.Toolbar
+              <Records.Header
                 className={second === 'hidden' ? 'hidden' : undefined}
                 searchPlaceholder='Search again'
               />
@@ -536,7 +536,7 @@ describe('Records spread across a pane by a Provider', () => {
       </div>
     )
     await frame()
-    const toolbar = () => rect(slot(container, 'records-toolbar'))
+    const toolbar = () => rect(slot(container, 'records-header'))
     const head = () => rect(slot(container, 'record-table-head'))
     expect(head().top).toBeGreaterThanOrEqual(toolbar().bottom - 0.5)
     const pane = slot(container, 'pane-viewport')
@@ -566,7 +566,7 @@ describe('Records spread across a pane by a Provider', () => {
         viewport.scrollTop = 1500
         return Math.abs(
           rect(slot(container, 'record-table-head')).top -
-            rect(slot(container, 'records-toolbar')).bottom
+            rect(slot(container, 'records-header')).bottom
         )
       })
       .toBeLessThanOrEqual(1)
@@ -584,7 +584,7 @@ describe('Records spread across a pane by a Provider', () => {
         pane.scrollTop = 1500
         return Math.abs(
           rect(slot(container, 'record-table-head')).top -
-            rect(slot(container, 'records-toolbar')).bottom
+            rect(slot(container, 'records-header')).bottom
         )
       })
       .toBeLessThanOrEqual(1)

@@ -120,7 +120,9 @@ export function EditorLinkPopover({
         positionerProps={{ anchor }}
         initialFocus={inputRef}
         finalFocus={() => {
-          editor.commands.focus()
+          // Tiptap's focus command focuses Safari's DOM first, which moves
+          // the caret to the start before ProseMirror restores the selection.
+          editor.view.focus()
           return false
         }}
       >

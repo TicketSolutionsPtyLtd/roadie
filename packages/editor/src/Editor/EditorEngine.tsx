@@ -239,6 +239,8 @@ export function EditorEngine({
   )
   const shownDoc = valueDoc ?? defaultDoc
   const unreadable = !readsDoc(preset, shownDoc)
+  // Tiptap would warn of content it can't read and show an empty doc anyway.
+  const readableDoc = unreadable ? createEmptyValue(preset).doc : shownDoc
   const editable = !readOnly && !disabled && !unreadable
   useFieldControlError(uploadError ?? (unreadable ? UNREADABLE : null))
   const holdsImages = presetHoldsImages(preset)
@@ -259,7 +261,7 @@ export function EditorEngine({
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current })
     ],
-    content: shownDoc,
+    content: readableDoc,
     editable,
     editorProps: {
       attributes: {
@@ -342,9 +344,9 @@ export function EditorEngine({
   }, [editor, placeholder])
 
   useEffect(() => {
-    if (!editor || !valueDoc || holdsDoc(editor, valueDoc)) return
-    editor.commands.setContent(valueDoc, { emitUpdate: false })
-  }, [editor, valueDoc])
+    if (!editor || !valueDoc || holdsDoc(editor, readableDoc)) return
+    editor.commands.setContent(readableDoc, { emitUpdate: false })
+  }, [editor, valueDoc, readableDoc])
 
   const canUpload = Boolean(onUploadImage) && holdsImages
   const ui = {

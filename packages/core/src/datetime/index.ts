@@ -47,6 +47,7 @@ export {
 export type { MonthGridOptions } from './plainDate'
 
 export {
+  canonicalDateRange,
   isAbsoluteRange,
   isBuiltInComparison,
   isPeriodRange,

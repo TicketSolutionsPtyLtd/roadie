@@ -99,12 +99,13 @@ export type QueryFieldProps<Value = unknown> = {
   /** @default 'Search and filter' */
   placeholder?: string
   /**
-   * A single key, such as `/`, that focuses the field from anywhere on the
-   * page. Ignored while typing in another field. Unlike `Menu.Item`'s
+   * A key that focuses the field from anywhere on the page: one
+   * `KeyboardEvent.key` value, such as `/` or `s`, pressed without Cmd, Ctrl
+   * or Alt. Ignored while typing in another field. Unlike `Menu.Item`'s
    * display-only `shortcut`, this binds the key. When several fields on a
    * page ask for the same key, the first one mounted takes it.
    */
-  shortcut?: string
+  focusShortcut?: string
   /** The input, for focusing it after an editor closes. Pass a stable ref. */
   inputRef?: Ref<HTMLInputElement>
   /** @default 'md' */
@@ -206,7 +207,7 @@ export function QueryField<Value = unknown>({
   onAccept,
   recent,
   placeholder = DEFAULT_PLACEHOLDER,
-  shortcut,
+  focusShortcut,
   inputRef: inputRefProp,
   size,
   emphasis,
@@ -251,7 +252,10 @@ export function QueryField<Value = unknown>({
   const isDisabled = disabled ?? field.disabled
   const isInvalid = invalid ?? field.invalid
   const isRequired = required ?? field.required
-  const ownsShortcut = useShortcut(isDisabled ? undefined : shortcut, inputRef)
+  const ownsShortcut = useShortcut(
+    isDisabled ? undefined : focusShortcut,
+    inputRef
+  )
 
   const ordered = useMemo(
     () => [
@@ -369,10 +373,9 @@ export function QueryField<Value = unknown>({
     pending: !!pendingChip
   })
   const current = suggestions.inputValue === text
-  // Typed text only adds to an edited chip; a ticked row unticks, and an
-  // editor opens, by arrow or click.
+  // Typed text only adds to an edited chip; a ticked row unticks by arrow or click.
   const enterable = (item: QueryFieldSuggestion<Value>) =>
-    !item.opensEditor && (!editedId || !item.selected)
+    !editedId || !item.selected
   const exact = current
     ? exactSuggestion(suggestions.groups, enterable)
     : undefined
@@ -613,7 +616,7 @@ export function QueryField<Value = unknown>({
       aria-invalid={isInvalid || undefined}
       aria-required={isRequired || undefined}
       aria-keyshortcuts={keyShortcuts([
-        ownsShortcut && shortcut,
+        ownsShortcut && focusShortcut,
         operatorOnTab(1) && 'Tab',
         operatorOnTab(-1) && 'Shift+Tab'
       ])}
@@ -836,7 +839,7 @@ export function QueryField<Value = unknown>({
             size='sm'
             className='group-focus-within/query-field:hidden'
           >
-            {shortcut}
+            {focusShortcut}
           </Kbd>
         )}
         {!isDisabled &&

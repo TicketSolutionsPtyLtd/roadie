@@ -149,7 +149,8 @@ async function onScreen(
   if (touch) pinCoarsePointer()
 }
 
-// In the page, not the viewport, as clicking the text can scroll it.
+// In the page, not the viewport, as clicking the text can scroll it. Firefox
+// gives a scrolled box's top off by a few millionths of a pixel.
 const pageTop = (element: HTMLElement) =>
   element.getBoundingClientRect().top + window.scrollY
 
@@ -198,14 +199,14 @@ describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
 
     expect(getComputedStyle(bar).position).not.toMatch(/sticky|fixed/)
     expect(looksOf(surface)).toEqual(resting.looks)
-    expect(pageTop(toolbar)).toBe(resting.top)
-    expect(pageTop(textbox)).toBe(resting.text)
+    expect(pageTop(toolbar)).toBeCloseTo(resting.top, 1)
+    expect(pageTop(textbox)).toBeCloseTo(resting.text, 1)
 
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
     await new Promise(requestAnimationFrame)
 
     expect(looksOf(surface)).toEqual(resting.looks)
-    expect(pageTop(textbox)).toBe(resting.text)
+    expect(pageTop(textbox)).toBeCloseTo(resting.text, 1)
 
     await focusedTextbox()
     window.scrollTo(0, resting.top + 300)

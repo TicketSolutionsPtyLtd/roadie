@@ -20,7 +20,7 @@ import { DateRangePicker } from '@oztix/roadie-components/date-range-picker'
 
 ### Default
 
-Press the button and choose a preset, type a start and an end, or press two days in the calendar. The Start and End fields suggest single dates as you type, as [DateField](/components/date-field) does. They never suggest a range, since the presets hold those, and End suggests nothing before the start. A preset keeps its words, so "Last 30 days" saved today still means the last 30 days next week. Typed or pressed dates become an absolute range, `{ start, end }`, with both ends included. The button shows the range in words, with the dates a relative range stands for beside it.
+Press the button and choose a preset, type a start and an end, or press two days in the calendar. The Start and End fields suggest single dates as you type, as [DateField](/components/date-field) does. They never suggest a range, since the presets hold those, and End suggests nothing before the start. A preset keeps its words, so "Last 30 days" saved today still means the last 30 days next week, and arrives in its one form: `{ period: 'week', offset: -1 }` as `'last-week'`. Typed or pressed dates become an absolute range, `{ start, end }`, with both ends included. The button shows the range in words, with the dates a relative range stands for beside it.
 
 ```tsx-live-noinline
 function Default() {

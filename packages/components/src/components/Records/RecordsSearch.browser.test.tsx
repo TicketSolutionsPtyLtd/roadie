@@ -45,7 +45,7 @@ function Shows({ defaultView }: { defaultView?: RecordViewDefaults }) {
       defaultView={defaultView}
       timeZone='Australia/Sydney'
       now={new Date('2026-10-03T02:00:00Z')}
-      tableActions={[{ label: 'Export CSV', onAction: () => {} }]}
+      actions={[{ label: 'Export CSV', onAction: () => {} }]}
     />
   )
 }
@@ -393,7 +393,7 @@ describe('Records.Search dates on a narrow toolbar', TIMEOUT, () => {
     )
     await userEvent.click(operator('is after'))
     await expect.poll(calendar).toBeTruthy()
-    const toolbar = document.querySelector('[data-slot=records-toolbar]')!
+    const toolbar = document.querySelector('[data-slot=records-header]')!
     expect(toolbar).toHaveAttribute('data-search-focused')
     await userEvent.click(
       within(calendar()!).getByRole('button', { name: /next month/i })

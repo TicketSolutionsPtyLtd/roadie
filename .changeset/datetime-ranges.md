@@ -24,6 +24,12 @@ as `'similar'`, which `isBuiltInComparison` tells apart and
 `describeDateRange` returns the words to show and the dates they
 stand for, and `describeComparison` the context line under a delta.
 
+Each meaning has one form: the last, this or next day, week, month, quarter
+or year is a word (`'yesterday'`, `'this-week'`, `'last-quarter'`,
+`'next-year'` and the rest), and any other period a `PeriodRange`.
+`canonicalDateRange` writes a value in that form, dropping flags that change
+nothing, so `{ period: 'month', offset: -1 }` becomes `'last-month'`.
+
 `parseDatePhrase` turns typed text such as "this weekend", "next 7 days",
 "14 mar", "1/12", "in 2 weeks", "end of month", "after 1 dec" or "7:30pm"
 into ranked suggestions with explicit values. Plain-date helpers come with it:

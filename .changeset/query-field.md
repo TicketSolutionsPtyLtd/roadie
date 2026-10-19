@@ -14,7 +14,8 @@ and Enter, until the pointer leaves the list. Locked chips come first with a "Se
 by this page" tooltip, and nothing in the field removes them. Backspace on an
 empty field selects the last chip, then removes it. `pendingChip` shows the
 field being given a value, `onSelectChip` hears a click, Enter, or Space on a
-chip, `shortcut` focuses the field from anywhere on the page, and `inputRef`
+chip, `focusShortcut` (one `KeyboardEvent.key` value, such as `/`, pressed
+without Cmd, Ctrl or Alt) focuses the field from anywhere on the page, and `inputRef`
 reaches the input. It works alone with `aria-label` or inside `Field`.
 `required` is announced but never blocks a form.
 
@@ -23,7 +24,7 @@ open, so "melb this weekend" can take Melbourne and keep "this weekend" for
 the next suggestion. A chip's `description`, such as the dates "This weekend"
 stands for, shows in a tooltip and is read after its label. Escape with the
 list closed clears the typed text and keeps the chips, and an Escape the field
-uses doesn't reach the page. When several fields ask for the same `shortcut`,
+uses doesn't reach the page. When several fields ask for the same `focusShortcut`,
 the first one mounted takes it and shows its hint. Clear also ends the value
 step, and with `onClear` it hands over the text and chips in one call. The
 search icon and Clear stay on the first row as chips wrap. Clear is round, as
@@ -41,8 +42,7 @@ the first, leaves the input and ends the step, as any Tab out of a step does. In
 once text is typed, and when its label starts with the text, the rest shows
 faintly after the caret. The pending chip is as wide as its text in every
 browser. Mark a step's one answer `exact`, such as "City is empty",
-and Enter takes it before anything is typed. Mark one that opens an editor
-of your own `opensEditor`, and only an arrow or a click takes it.
+and Enter takes it before anything is typed.
 `pendingChip.hint`, such as "Type a number.", shows and is announced in place
 of No suggestions while no value is listed, and below the values while Enter
 has none to take for the typed text. Focus moving to something outside the

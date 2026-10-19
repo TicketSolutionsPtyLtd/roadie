@@ -74,6 +74,18 @@ async function focusedTextbox() {
   return textbox
 }
 
+// Firefox ignores the clipboardData a ClipboardEvent is made with and gives
+// it an empty one, so the data is set on the event itself.
+function paste(target: HTMLElement, data: Record<string, string>) {
+  const clipboardData = new DataTransfer()
+  for (const [type, text] of Object.entries(data)) {
+    clipboardData.setData(type, text)
+  }
+  const event = new ClipboardEvent('paste', { bubbles: true, cancelable: true })
+  Object.defineProperty(event, 'clipboardData', { value: clipboardData })
+  target.dispatchEvent(event)
+}
+
 function shortcut(...keys: string[]) {
   const held = [MOD, ...keys.slice(0, -1)]
   return userEvent.keyboard(
@@ -233,27 +245,18 @@ describe('Editor', () => {
     const onValueChange = vi.fn()
     render(<Editor aria-label={LABEL} onValueChange={onValueChange} />)
     const textbox = await focusedTextbox()
-    const clipboardData = new DataTransfer()
-    clipboardData.setData(
-      'text/html',
-      [
+
+    paste(textbox, {
+      'text/html': [
         '<h1>Lineup</h1>',
         '<script>window.pasted = true</script>',
         '<p style="color: red" onclick="window.pasted = true">Doors <b>7pm</b>',
         '<img src="/poster.png" alt="Poster"></p>',
         '<iframe src="https://www.youtube.com/embed/x"></iframe>',
         '<ul><li><i>All ages</i></li></ul>'
-      ].join('')
-    )
-    clipboardData.setData('text/plain', 'Lineup Doors 7pm All ages')
-
-    textbox.dispatchEvent(
-      new ClipboardEvent('paste', {
-        clipboardData,
-        bubbles: true,
-        cancelable: true
-      })
-    )
+      ].join(''),
+      'text/plain': 'Lineup Doors 7pm All ages'
+    })
 
     await waitFor(() => expect(textbox).toHaveTextContent('All ages'))
     expect(
@@ -934,20 +937,11 @@ describe('Editor links', () => {
     const onValueChange = vi.fn()
     render(<Editor aria-label={LABEL} onValueChange={onValueChange} />)
     const textbox = await focusedTextbox()
-    const clipboardData = new DataTransfer()
-    clipboardData.setData(
-      'text/html',
-      `<p>Get <a href="${href}">tickets</a></p>`
-    )
-    clipboardData.setData('text/plain', 'Get tickets')
 
-    textbox.dispatchEvent(
-      new ClipboardEvent('paste', {
-        clipboardData,
-        bubbles: true,
-        cancelable: true
-      })
-    )
+    paste(textbox, {
+      'text/html': `<p>Get <a href="${href}">tickets</a></p>`,
+      'text/plain': 'Get tickets'
+    })
 
     await waitFor(() => expect(textbox).toHaveTextContent('Get tickets'))
     expect(textbox.querySelector('a')).toBe(null)

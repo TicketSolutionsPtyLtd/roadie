@@ -2,10 +2,10 @@
 '@oztix/roadie-components': patch
 ---
 
-`Records.Toolbar` in a `Pane` leaves room above the search, at rest and while
+`Records.Header` in a `Pane` leaves room above the search, at rest and while
 it sticks, so the pane header's shadow no longer covers the field. In a pane's
 body it paints the pane's margins beside it, so rows scrolling up never show
-there. The search shrinks before the toolbar's buttons wrap below it, so
+there. The search shrinks before the header's buttons wrap below it, so
 `Records.Options` stays on the search's row on a phone. In `QueryField`, a long
 chip truncates to leave the input room beside it, so one chip no longer adds an
 empty second row.

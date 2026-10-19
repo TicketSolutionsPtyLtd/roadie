@@ -8,7 +8,7 @@
 /* A toolbar at any depth in a pane clears its header. In a layer, so a
    consumer's padding class still wins. */
 @layer components {
-  [data-slot='pane-viewport'] [data-slot='records-toolbar'] {
+  [data-slot='pane-viewport'] [data-slot='records-header'] {
     padding-top: calc(var(--spacing) * 3);
   }
 }
@@ -28,12 +28,12 @@
       > [data-slot='records']
   )
   > :is(
-    [data-slot='records-toolbar'],
+    [data-slot='records-header'],
     [data-slot='record-table-frame']:not([data-narrow])
   ) {
   --content-inset: inherit;
 
-  &[data-slot='records-toolbar'] {
+  &[data-slot='records-header'] {
     margin-inline: calc(var(--content-inset) * -1);
     padding-inline: var(--content-inset);
   }

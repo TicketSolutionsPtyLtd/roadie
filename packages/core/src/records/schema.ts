@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { dateRangeSchemas } from '../datetime/rangeSchema'
+import { RECORDS_REQUEST_VERSION, RECORD_VIEW_VERSION } from './versions'
 
 function filterSchemas() {
   const field = z.string().min(1)
@@ -68,8 +69,11 @@ function buildSchema() {
 
   return z.strictObject({
     version: z
-      .literal(1, 'Unsupported view version; this release reads version 1')
-      .default(1),
+      .literal(
+        RECORD_VIEW_VERSION,
+        `Unsupported view version; this release reads version ${RECORD_VIEW_VERSION}`
+      )
+      .default(RECORD_VIEW_VERSION),
     id: z.string().optional(),
     name: z.string().optional(),
     entity: z.string().optional(),
@@ -86,8 +90,7 @@ function buildSchema() {
           .optional()
       }),
       z.strictObject({ type: z.literal('grid'), fields: keys.optional() })
-    ]),
-    group: z.string().optional()
+    ])
   })
 }
 
@@ -134,7 +137,7 @@ function buildRequestSchema() {
   // version 1; filters and sorts stay strict, as a key there changes a match.
   return z
     .looseObject({
-      version: z.literal(1),
+      version: z.literal(RECORDS_REQUEST_VERSION),
       query: z.looseObject({
         search: z.string(),
         filters: z.array(filter),

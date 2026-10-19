@@ -35,6 +35,12 @@ const NAMED: Record<Extract<RelativeRange, string>, string> = {
   'this-month': 'This month',
   'next-month': 'Next month',
   'last-month': 'Last month',
+  'this-quarter': 'This quarter',
+  'next-quarter': 'Next quarter',
+  'last-quarter': 'Last quarter',
+  'this-year': 'This year',
+  'next-year': 'Next year',
+  'last-year': 'Last year',
   upcoming: 'Upcoming',
   past: 'Past',
   ongoing: 'Happening now'

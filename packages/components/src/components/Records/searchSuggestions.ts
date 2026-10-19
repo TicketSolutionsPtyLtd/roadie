@@ -6,7 +6,7 @@ import {
   type RecordSuggestion,
   describeRecordFilter,
   isRecordOptionField,
-  parseQuery,
+  parseRecordQuery,
   recordFieldOptions,
   recordFilterOperators,
   recordOperatorLabel
@@ -415,7 +415,7 @@ export function topSuggestions(
   text: string,
   context: SearchContext
 ): SearchGroup[] {
-  const parsed = parseQuery(text, context).map((suggestion) =>
+  const parsed = parseRecordQuery(text, context).map((suggestion) =>
     fromParsed(suggestion)
   )
   if (!text.trim()) return [{ id: 'fields', label: 'Filter by', items: parsed }]
@@ -486,10 +486,10 @@ function withOperator(
   return { ...item, ...filterSuggestion(filter), label: item.label }
 }
 
-// parseQuery reads a lone number as `eq`, with any `$` and commas.
+// parseRecordQuery reads a lone number as `eq`, with any `$` and commas.
 function numberReader(field: RecordField, context: SearchContext) {
   return (text: string) => {
-    const [reading] = parseQuery(`${field.key}:${text}`, {
+    const [reading] = parseRecordQuery(`${field.key}:${text}`, {
       ...context,
       fields: [field]
     })
@@ -727,7 +727,7 @@ function parsedValues(
   context: SearchContext
 ): SearchSuggestion[] {
   const presets = typedPresets(field, typed, context)
-  const parsed = parseQuery(`${field.key}:${typed}`, {
+  const parsed = parseRecordQuery(`${field.key}:${typed}`, {
     ...context,
     fields: [field]
   })

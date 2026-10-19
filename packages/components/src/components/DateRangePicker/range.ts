@@ -1,6 +1,7 @@
 import {
   type DateRangeOptions,
   type DateRangeValue,
+  canonicalDateRange,
   describeDateRange,
   isAbsoluteRange,
   resolveDateRange
@@ -11,7 +12,7 @@ import { withinLength } from '../Calendar/selection'
 
 /** A choice in the picker's preset list. */
 export type DateRangePreset = {
-  /** Kept as given, so a relative choice stays relative when saved. */
+  /** Kept relative when saved, in its one form (`canonicalDateRange`). */
   value: DateRangeValue
   /** Defaults to the value in words, such as "Last 30 days". */
   label?: string
@@ -28,7 +29,7 @@ export const dateRangePresets: readonly DateRangePreset[] = [
   { value: { direction: 'past', amount: 90, unit: 'day' }, group: 'Recent' },
   { value: 'last-week', group: 'Recent' },
   { value: 'last-month', group: 'Recent' },
-  { value: { period: 'quarter', offset: -1 }, group: 'Recent' },
+  { value: 'last-quarter', group: 'Recent' },
   { value: { period: 'week', offset: 0, toDate: true }, group: 'To date' },
   { value: { period: 'month', offset: 0, toDate: true }, group: 'To date' },
   { value: { period: 'quarter', offset: 0, toDate: true }, group: 'To date' },
@@ -66,12 +67,10 @@ export type DraftResult =
 
 const EMPTY: DateTimeParts = { date: null, time: null }
 
-function canonical(value: DateRangeValue): string {
-  if (typeof value === 'string') return value
-  const entries = Object.entries(value)
-    // `false` reads the same as leaving a flag out.
-    .filter(([, field]) => field !== undefined && field !== false)
-    .sort(([a], [b]) => (a < b ? -1 : 1))
+function rangeKey(value: DateRangeValue): string {
+  const canonical = canonicalDateRange(value)
+  if (typeof canonical === 'string') return canonical
+  const entries = Object.entries(canonical).sort(([a], [b]) => (a < b ? -1 : 1))
   return JSON.stringify(entries)
 }
 
@@ -80,7 +79,7 @@ export function sameRange(
   b: DateRangeValue | null
 ): boolean {
   if (a === null || b === null) return a === b
-  return canonical(a) === canonical(b)
+  return rangeKey(a) === rangeKey(b)
 }
 
 /** The value's dates as the calendar and typed fields show them. */

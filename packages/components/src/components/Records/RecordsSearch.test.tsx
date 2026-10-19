@@ -59,7 +59,7 @@ function Shows(options: Partial<UseRecordsOptions<TestShow>>) {
   })
   return (
     <Records.Root records={records} layouts={layouts}>
-      <Records.Toolbar />
+      <Records.Header />
       <Records.Content />
     </Records.Root>
   )
@@ -479,7 +479,7 @@ describe('Records.Search', () => {
       const records = useRecords({ data: shows, fields })
       return (
         <Records.Root records={records} layouts={layouts}>
-          <Records.Toolbar searchShortcut={false} />
+          <Records.Header searchFocusShortcut={false} />
         </Records.Root>
       )
     }
@@ -499,7 +499,7 @@ describe('Records.Search', () => {
       const records = useRecords({ data: shows, fields })
       return (
         <Records.Root records={records} layouts={layouts}>
-          <Records.Search shortcut={false} />
+          <Records.Search focusShortcut={false} />
         </Records.Root>
       )
     }

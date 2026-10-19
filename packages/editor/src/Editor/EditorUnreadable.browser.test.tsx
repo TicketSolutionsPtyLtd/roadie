@@ -73,6 +73,17 @@ describe('Editor with content its schema can’t read', () => {
     )
   })
 
+  it('doesn’t hand Tiptap the content, which it would warn of', async () => {
+    const warn = vi.spyOn(console, 'warn')
+    render(<Editor aria-label='Event description' defaultValue={unreadable} />)
+
+    await screen.findByRole('alert')
+    expect(warn.mock.calls.flat().map(String).join('\n')).not.toMatch(
+      /Invalid content/
+    )
+    warn.mockRestore()
+  })
+
   it('shows its own error outside a Field', async () => {
     render(<Editor aria-label='Event description' defaultValue={unreadable} />)
 

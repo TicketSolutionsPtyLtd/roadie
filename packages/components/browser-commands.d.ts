@@ -12,6 +12,8 @@ declare module 'vitest/browser' {
     forcedColors: (active: boolean) => Promise<void>
     printMedia: (active: boolean) => Promise<void>
     parkPointer: () => Promise<void>
+    /** Gives the test page window focus, so focus events fire. */
+    focusPage: () => Promise<void>
     /** Drives a real mouse, in the test frame's CSS pixels. */
     pointer: (steps: PointerStep[]) => Promise<void>
     /** A real touch tap, in the test frame's CSS pixels. Touch projects only. */

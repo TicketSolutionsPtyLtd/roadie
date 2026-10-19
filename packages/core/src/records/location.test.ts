@@ -12,9 +12,13 @@ import {
 import { formatRecordValue } from './format'
 import { matchesRecordQuery } from './match'
 import { toMeilisearch } from './meilisearch'
-import { parseQuery } from './parse'
+import { parseRecordQuery } from './parse'
+import { toRecordsRequest } from './request'
 import { resolveRecordQuery } from './resolve'
-import { fromSearchParams, toSearchParams } from './searchParams'
+import {
+  recordViewFromSearchParams,
+  recordViewToSearchParams
+} from './searchParams'
 import { sortRecords } from './sort'
 import type { RecordField, RecordFilter, RecordView } from './types'
 import { validateRecordView } from './validate'
@@ -110,7 +114,7 @@ describe('a location field', () => {
   })
 
   it.each(['perth', 'location:perth'])('suggests a value for "%s"', (text) => {
-    const [first] = parseQuery(text, { fields, ...options })
+    const [first] = parseRecordQuery(text, { fields, ...options })
     expect(first).toMatchObject({
       kind: 'filter',
       label: 'Location is in Perth',
@@ -121,7 +125,7 @@ describe('a location field', () => {
   it.each(['location is not perth', 'not perth', '-perth'])(
     'reads "%s" as its opposite',
     (text) => {
-      const [first] = parseQuery(text, { fields, ...options })
+      const [first] = parseRecordQuery(text, { fields, ...options })
       expect(first).toMatchObject({
         kind: 'filter',
         label: 'Location is not in Perth',
@@ -135,7 +139,10 @@ describe('a location field', () => {
     const written = view([
       { field: 'location', operator: 'is-not', values: ['perth', 'sa'] }
     ])
-    const read = fromSearchParams(toSearchParams(written), fields)
+    const read = recordViewFromSearchParams(
+      recordViewToSearchParams(written),
+      fields
+    )
     expect(read.source).toBe('url')
     expect(read.view.query.filters).toEqual(written.query.filters)
   })
@@ -441,18 +448,20 @@ describe("a location's places", () => {
       'location NOT IN ["au-vic", "au-qld"]'
     ]
   ])('asks Meilisearch for %j as a term', (filter, expression) => {
-    expect(toMeilisearch(view([filter]), placeFields, options).filter).toEqual([
-      expression
-    ])
+    const request = toRecordsRequest(view([filter]).query, placeFields, options)
+    expect(toMeilisearch(request, placeFields).filter).toEqual([expression])
   })
 
   it('keeps the place alone in the URL', () => {
     const written = view([
       { field: 'location', operator: 'is', values: ['au-qld-brisbane'] }
     ])
-    expect(toSearchParams(written).get('f')).toBe('location:is:au-qld-brisbane')
+    expect(recordViewToSearchParams(written).get('f')).toBe(
+      'location:is:au-qld-brisbane'
+    )
     expect(
-      fromSearchParams(toSearchParams(written), placeFields).view.query.filters
+      recordViewFromSearchParams(recordViewToSearchParams(written), placeFields)
+        .view.query.filters
     ).toEqual(written.query.filters)
   })
 
@@ -502,13 +511,13 @@ describe("a location's places", () => {
     ['australia', 'Location is in Australia', 'Country'],
     ['victoria', 'Location is in Victoria', 'In Australia']
   ])('describes "%s" by where it is', (text, label, description) => {
-    const [first] = parseQuery(text, { fields: placeFields, ...options })
+    const [first] = parseRecordQuery(text, { fields: placeFields, ...options })
     expect(first).toMatchObject({ kind: 'filter', label, description })
   })
 
   it('reads a place by its label, or its whole id, never a word inside its id', () => {
     const labels = (text: string) =>
-      parseQuery(text, { fields: placeFields, ...options })
+      parseRecordQuery(text, { fields: placeFields, ...options })
         .filter((suggestion) => suggestion.kind === 'filter')
         .map((suggestion) => suggestion.label)
     expect(labels('vic')).toEqual(['Location is in Victoria'])
@@ -524,7 +533,7 @@ describe("a location's places", () => {
       }))
     })
     const labels = (text: string) =>
-      parseQuery(text, { fields: [listed], ...options })
+      parseRecordQuery(text, { fields: [listed], ...options })
         .filter((suggestion) => suggestion.kind === 'filter')
         .map((suggestion) => suggestion.label)
     expect(labels('vic')).toEqual([])
@@ -536,7 +545,7 @@ describe("a location's places", () => {
   })
 
   it('describes a place without a kind or parent by nothing', () => {
-    const [first] = parseQuery('perth', { fields, ...options })
+    const [first] = parseRecordQuery('perth', { fields, ...options })
     expect(first).not.toHaveProperty('description')
   })
 })
