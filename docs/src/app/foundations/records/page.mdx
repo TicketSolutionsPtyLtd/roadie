@@ -102,7 +102,7 @@ A location field holds a place, such as a suburb, or a list of places. Its
 options are places with stable ids, never free text, and each names the place
 it's in as its `parent` and what it is as its `kind`: `venue`, `suburb`,
 `city`, `region`, `state`, `country`, or any other. So is and is not read is in and is
-not in. A record is in its own place and every place above it, so with a
+not in. A record is in its own place and every place that contains it, so with a
 record in Fitzroy, "Location is in Victoria" matches and "Location is not in
 Melbourne" doesn't. Suggestions say where each place is, such as "Suburb in
 Melbourne" or "Country".
@@ -269,7 +269,7 @@ Scope facet value search to the user's permissions on the server.
 A filter on a place stays a plain term, `location:is:au-vic`, in the URL and
 in every backend. Store each record's places once, when you index it:
 `recordPlaceReader(field)` returns a reader that lists a record's place and
-every place above it. An indexer calls it per record, so make one per field,
+every place that contains it. An indexer calls it per record, so make one per field,
 and it reads the options once. `recordPlaces(field, value)` does the same for
 one value. In the browser, `matchesRecordQuery` reads them from the options
 itself.
