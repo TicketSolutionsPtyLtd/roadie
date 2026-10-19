@@ -5,6 +5,7 @@
     "build": {
       "inputs": [
         "$TURBO_EXTENDS$",
+        "src/content/**/*.md",
         "$TURBO_ROOT$/.changeset/*.md",
         "$TURBO_ROOT$/packages/*/CHANGELOG.md"
       ]
