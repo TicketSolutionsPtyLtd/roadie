@@ -51,12 +51,26 @@ component or chart page without it, and the docs build fails a widget page.
 A foundation page that documents a code API, such as Records or Linking,
 may set one. Any value other than these four fails the docs build.
 
-| Status       | Means                                                                                                                     | Set it when                                                                                |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `alpha`      | The API can break in a minor release. Pin the version and read the changelog before upgrading.                            | The shape is still moving, such as a new engine or a component its first apps are shaping. |
-| `beta`       | Ready to use while the shape settles. A breaking change can come in a minor release, and the changelog marks it Breaking. | It is new: in the latest release, or not released yet.                                     |
-| `stable`     | Follows semver: a breaking change only comes in a major version.                                                          | It has been on npm for about a month with no breaking change, and apps use it.             |
-| `deprecated` | Being removed. The page says what to use instead.                                                                         | Its replacement has shipped.                                                               |
+| Status       | Means                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `alpha`      | The API can break in a minor release. Pin the version and read the changelog before upgrading.                            |
+| `beta`       | Ready to use while the shape settles. A breaking change can come in a minor release, and the changelog marks it Breaking. |
+| `stable`     | Follows semver: a breaking change only comes in a major version.                                                          |
+| `deprecated` | Being removed. The page says what to use instead.                                                                         |
+
+Promote a page when it meets every rule for the next status:
+
+- **Alpha to beta:** an app uses it in a real screen, its docs page is
+  complete, and no open ticket plans a breaking change.
+- **Beta to stable:** it has been on npm for 30 days and through a minor
+  release with no breaking change, an app uses it in production, and no open
+  ticket plans a breaking change.
+- **Alpha for 90 days:** promote it, or state why not on the page or ticket.
+- **Deprecated:** its replacement has shipped.
+
+The release skill lists candidates with
+`pnpm --filter docs exec tsx scripts/status-candidates.ts`. Check app use by
+hand.
 
 Stable is the norm, so it carries no badge: the layout writes it as plain
 text under the page title, beside the latest release that changed the
