@@ -497,6 +497,36 @@ describe('useRecords range mode', () => {
     expect(requests(result).at(-1)).toEqual({ start: 9990, end: 10_000 })
   })
 
+  it('holds a floor with its count until the new query answers', async () => {
+    const { result } = renderHook(() =>
+      useRangeHarness({
+        total: 10_000,
+        rowCount: 10_000,
+        rowCountExact: false,
+        respond: 'manual'
+      })
+    )
+    await loadFirst(result)
+    await act(async () => result.current.records.addFilter(perth))
+    expect(result.current.records.range!.count).toBe(10_000)
+    expect(result.current.records.resultCountExact).toBe(false)
+  })
+
+  it('keeps only the rows a range asked for', async () => {
+    const all = testShows(100)
+    const { result } = renderHook(() =>
+      useRecords({
+        fields: showFields,
+        getRowId: (row) => row.id,
+        loadRange: ({ start }) =>
+          Promise.resolve({ rows: all.slice(start, start + 60) })
+      })
+    )
+    await act(async () => result.current.range!.show(0, 15))
+    expect(result.current.range!.rowAt(49)?.id).toBe('show-49')
+    expect(result.current.range!.rowAt(50)).toBeUndefined()
+  })
+
   it('loads a new query after one with no matches', async () => {
     const { result } = renderHook(() =>
       useRangeHarness({ total: 1000, rowCount: 0, respond: 'manual' })
