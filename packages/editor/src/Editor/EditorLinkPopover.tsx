@@ -8,6 +8,7 @@ import type { Editor as TiptapEditor } from '@tiptap/react'
 import { Popover } from '@oztix/roadie-components/popover'
 
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
+import { focusEditor } from './focusEditor'
 
 const HAS_SCHEME = /^[a-z][a-z\d+.-]*:/i
 const BARE_DOMAIN = /^[^\s/?#:@]+\.[a-z]{2,}(?:[/?#:]|$)/i
@@ -120,9 +121,7 @@ export function EditorLinkPopover({
         positionerProps={{ anchor }}
         initialFocus={inputRef}
         finalFocus={() => {
-          // Tiptap's focus command focuses Safari's DOM first, which moves
-          // the caret to the start before ProseMirror restores the selection.
-          editor.view.focus()
+          focusEditor(editor)
           return false
         }}
       >

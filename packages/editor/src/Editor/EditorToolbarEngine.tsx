@@ -21,6 +21,7 @@ import {
   ariaKeyShortcuts,
   presetControls
 } from './controls'
+import { focusEditor } from './focusEditor'
 import { EDITOR_TOOLBAR_ROOM, EDITOR_TOOLBAR_SIZE } from './variants'
 
 export type ControlState = {
@@ -185,8 +186,8 @@ export function EditorToolbarEngine({
         onKeyDown={(event) => {
           onKeyDown?.(event)
           const inToolbar = event.currentTarget.contains(event.target as Node)
-          if (event.key !== 'Escape' || !inToolbar) return
-          editor?.commands.focus()
+          if (event.key !== 'Escape' || !inToolbar || !editor) return
+          focusEditor(editor)
         }}
         {...props}
       >
