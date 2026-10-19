@@ -50,6 +50,7 @@ import {
   markdownTable
 } from '../src/lib/llms.ts'
 import { SPOT_ILLUSTRATION_NAMES } from '../src/lib/spot-illustrations.ts'
+import { statusTable } from '../src/lib/status.ts'
 import {
   type TwinCell,
   type TwinTable,
@@ -126,6 +127,7 @@ export const DATA_RENDERERS: Record<string, Renderer> = {
   RadiusScale: () => twinTableMarkdown(radiusTable(tokens())),
   RhythmTable: () => twinTableMarkdown(rhythmTable(tokens())),
   SpacingScale: () => twinTableMarkdown(spacingTable(tokens())),
+  StatusKey: () => twinTableMarkdown(statusTable()),
   TransitionList: () => twinTableMarkdown(transitionTable(tokens())),
   TypeScale: () => twinTableMarkdown(typeScaleTable(tokens())),
   DatavizSwatches: ({ kind }) => {

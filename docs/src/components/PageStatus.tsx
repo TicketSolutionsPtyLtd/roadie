@@ -3,10 +3,16 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 
 import type { PageRelease, ReleaseRef } from '@/lib/releases'
-import { type PageStatus, STATUS_DETAILS, STATUS_ROUTE } from '@/lib/status'
+import {
+  PAGE_STATUSES,
+  type PageStatus,
+  STATUS_DETAILS,
+  STATUS_ROUTE
+} from '@/lib/status'
 
 import { Badge } from '@oztix/roadie-components/badge'
 import { DateTime } from '@oztix/roadie-components/date-time'
+import { cn } from '@oztix/roadie-core/utils'
 
 export type PageStatusInfo = { status: PageStatus; release: PageRelease }
 
@@ -76,7 +82,10 @@ export function PageStatusLine({
     return (
       <p
         data-slot='page-status'
-        className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-subtle ${className ?? ''}`}
+        className={cn(
+          'flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-subtle',
+          className
+        )}
       >
         <Link
           href={STATUS_ROUTE}
@@ -108,16 +117,17 @@ export function PageStatusLine({
   return (
     <p
       data-slot='page-status'
-      className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-subtle ${className ?? ''}`}
+      className={cn(
+        'flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-subtle',
+        className
+      )}
     >
       <Link
         href={STATUS_ROUTE}
         aria-label={`${label}: what this status means`}
         className='is-interactive rounded-full'
       >
-        <Badge size='sm' intent={intent} emphasis='subtle'>
-          {label}
-        </Badge>
+        <StatusBadge status={status} size='sm' />
       </Link>
       {added === 'unreleased' ? (
         <span>
@@ -141,13 +151,43 @@ export function PageStatusLine({
   )
 }
 
+function StatusBadge({ status, size }: { status: PageStatus; size?: 'sm' }) {
+  const { label, intent } = STATUS_DETAILS[status]
+  return (
+    <Badge size={size} intent={intent} emphasis='subtle'>
+      {label}
+    </Badge>
+  )
+}
+
 /** The navigation's badge for an alpha, beta, or deprecated page. */
 export function navBadge(status: PageStatus | undefined) {
   if (!status || !STATUS_DETAILS[status].flagged) return undefined
-  const { label, intent } = STATUS_DETAILS[status]
+  return <StatusBadge status={status} />
+}
+
+/** Each status as its badge, with what it means. */
+export function StatusKey() {
   return (
-    <Badge intent={intent} emphasis='subtle'>
-      {label}
-    </Badge>
+    <dl
+      data-not-prose
+      data-slot='status-key'
+      className='grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-3'
+    >
+      {PAGE_STATUSES.map((status) => (
+        <div
+          key={status}
+          data-twin-row
+          className='col-span-2 grid grid-cols-subgrid items-center'
+        >
+          <dt data-twin-cell className='flex'>
+            <StatusBadge status={status} />
+          </dt>
+          <dd data-twin-cell className='text-subtle'>
+            {STATUS_DETAILS[status].summary}
+          </dd>
+        </div>
+      ))}
+    </dl>
   )
 }

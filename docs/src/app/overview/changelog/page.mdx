@@ -3,19 +3,15 @@ export const metadata = {
   description: 'What each Roadie release changed, and what the next one brings.'
 }
 
+import { StatusKey } from '@/components/PageStatus'
 import { Changelog } from '@/components/changelog/Changelog'
 
 Every release, newest first. [GitHub releases](https://github.com/TicketSolutionsPtyLtd/roadie/releases) lists each published version.
 
 ## Status
 
-A component page says how settled its API is. Alpha, beta, and deprecated pages show a badge beside their title and in the navigation. A stable page shows no badge: its status sits beside its latest release, under the title.
+How settled a component's API is.
 
-| Status | What it means for you |
-| --- | --- |
-| Alpha | The API can break in a minor release. Pin the version and read the changelog before you upgrade. |
-| Beta | Ready to use while its shape settles. A breaking change can come in a minor release, and the changelog marks it **Breaking**. |
-| Stable | Follows semver: a breaking change only comes in a major version. |
-| Deprecated | Being removed. Its page says what to use instead. |
+<StatusKey />
 
 <Changelog />
