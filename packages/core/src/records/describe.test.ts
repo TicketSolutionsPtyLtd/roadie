@@ -27,7 +27,7 @@ describe('describeRecordFilter', () => {
         operator: 'is',
         values: ['melbourne', 'sydney']
       },
-      'City is Melbourne or Sydney',
+      'City is in Melbourne or Sydney',
       'Melbourne or Sydney'
     ],
     [
@@ -36,7 +36,7 @@ describe('describeRecordFilter', () => {
         operator: 'is-not',
         values: ['melbourne', 'sydney', 'perth', 'darwin']
       },
-      'City is not Melbourne, Sydney or 2 more',
+      'City is not in Melbourne, Sydney or 2 more',
       'Melbourne, Sydney or 2 more'
     ],
     [

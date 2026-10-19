@@ -147,7 +147,7 @@
       "name": "records without validation",
       "path": "dist/records/index.js",
       "import": "{ matchesRecordQuery, resolveRecordQuery, parseQuery, toSearchParams, equalViews }",
-      "limit": "14 KB"
+      "limit": "14.25 KB"
     },
     {
       "name": "records/json-schema",

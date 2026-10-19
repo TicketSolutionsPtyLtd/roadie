@@ -80,7 +80,7 @@ describe('Records foundation', () => {
     expect(suggestions.length).toBeLessThanOrEqual(4)
     expect(suggestions).toContainEqual({
       kind: 'filter',
-      label: 'Location is Melbourne',
+      label: 'Location is in Melbourne',
       remainder: 'this weekend'
     })
     for (const { kind } of suggestions)
@@ -107,7 +107,7 @@ describe('Records foundation', () => {
       ['view', view.id],
       ['entity', view.entity],
       ['q', view.query.search],
-      ['f', 'location:is:melbourne'],
+      ['f', 'location:is:au-vic-melbourne'],
       ['f', 'starts:within:this-weekend'],
       ['f', 'offer:is-not:sold_out'],
       ['sort', 'starts'],

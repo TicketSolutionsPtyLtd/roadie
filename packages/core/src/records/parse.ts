@@ -15,7 +15,12 @@ import {
   recordFieldOptions
 } from './fields'
 import { identifierPattern } from './pattern'
-import type { RecordField, RecordFilter, RecordQueryOptions } from './types'
+import type {
+  RecordField,
+  RecordFilter,
+  RecordOption,
+  RecordQueryOptions
+} from './types'
 
 type SuggestionBase = {
   /** Stable for the same text, fields and day. */
@@ -258,9 +263,22 @@ type Reading = {
   negates?: string
 }
 
+// A place's id holds its parents' ("au-vic-fitzroy"), so a word inside it
+// never reads, and a label that repeats its id, as one listed from records,
+// reads only from its start.
+function placeQuality(option: RecordOption, text: string): number {
+  const id = option.value.toLowerCase()
+  if (id === text) return 1
+  if (option.label !== option.value) return quality(option.label, text)
+  return id.startsWith(text) ? 0.8 : 0
+}
+
 function optionReadings(field: RecordField, text: string): Reading[] {
   return recordFieldOptions(field).flatMap((option) => {
-    const q = bestQuality([option.label, option.value], text)
+    const q =
+      field.type === 'location'
+        ? placeQuality(option, text)
+        : bestQuality([option.label, option.value], text)
     return q > 0
       ? [
           {

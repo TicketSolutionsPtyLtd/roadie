@@ -89,7 +89,7 @@ describe('parseQuery', () => {
   it.each([
     [
       'melb',
-      'City is Melbourne',
+      'City is in Melbourne',
       { field: 'city', operator: 'is', values: ['melbourne'] }
     ],
     [
@@ -272,7 +272,7 @@ describe('parseQuery', () => {
     const result = parse('melb this weekend')
     expect(result.slice(0, 2).map((s) => [s.label, s.remainder])).toEqual([
       ['Starts is this weekend', 'melb'],
-      ['City is Melbourne', 'this weekend']
+      ['City is in Melbourne', 'this weekend']
     ])
   })
 
@@ -300,7 +300,7 @@ describe('parseQuery', () => {
       ['this', 'Room is Nimbus Thistle Hall'],
       ['thistle hall', 'Room is Nimbus Thistle Hall'],
       ['walrus room', 'Venue is The Quilted Walrus Room'],
-      ['per', 'City is Perth'],
+      ['per', 'City is in Perth'],
       ['upstairs', 'Room is Opal Harpoon Room (Upstairs)'],
       ['lawn', 'Room is Wobbly Teacup Room/Lawn']
     ])('reads "%s" from the start of a word: %s', (text, label) => {
@@ -313,7 +313,7 @@ describe('parseQuery', () => {
     })
 
     it.each([
-      ['elb', 'City is Melbourne'],
+      ['elb', 'City is in Melbourne'],
       ['istle', 'Room is Nimbus Thistle Hall'],
       ['uilted', 'Venue is The Quilted Walrus Room']
     ])('reads nothing from inside a word in "%s"', (text, label) => {
@@ -324,7 +324,7 @@ describe('parseQuery', () => {
       const result = read('melb this weekend')
       expect(result.slice(0, 2)).toEqual([
         'Starts is this weekend',
-        'City is Melbourne'
+        'City is in Melbourne'
       ])
       expect(result).not.toContain('Room is Nimbus Thistle Hall')
       expect(read('starts this weekend')).not.toContain(
@@ -351,7 +351,10 @@ describe('parseQuery', () => {
 
     it('keeps a value named in full inside a longer reading', () => {
       expect(read('perth lantern')).toEqual(
-        expect.arrayContaining(['Room is Perth Lantern Hall', 'City is Perth'])
+        expect.arrayContaining([
+          'Room is Perth Lantern Hall',
+          'City is in Perth'
+        ])
       )
     })
 
@@ -367,13 +370,13 @@ describe('parseQuery', () => {
           s.label,
           s.remainder
         ])
-      ).toContainEqual(['City is Melbourne', 'name disco'])
+      ).toContainEqual(['City is in Melbourne', 'name disco'])
       expect(
         parse('name not disco melb', { limit: 50 }).map((s) => [
           s.label,
           s.remainder
         ])
-      ).toContainEqual(['City is Melbourne', 'name not disco'])
+      ).toContainEqual(['City is in Melbourne', 'name not disco'])
     })
   })
 
@@ -386,7 +389,7 @@ describe('parseQuery', () => {
       ],
       [
         'City: syd',
-        'City is Sydney',
+        'City is in Sydney',
         { field: 'city', operator: 'is', values: ['sydney'] }
       ],
       [
@@ -495,17 +498,17 @@ describe('parseQuery', () => {
     it.each([
       [
         '-melb',
-        'City is not Melbourne',
+        'City is not in Melbourne',
         { field: 'city', operator: 'is-not', values: ['melbourne'] }
       ],
       [
         'not melb',
-        'City is not Melbourne',
+        'City is not in Melbourne',
         { field: 'city', operator: 'is-not', values: ['melbourne'] }
       ],
       [
         "isn't sydney",
-        'City is not Sydney',
+        'City is not in Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
       ],
       [
@@ -605,7 +608,7 @@ describe('parseQuery', () => {
       ],
       [
         'city:! melb',
-        'City is not Melbourne',
+        'City is not in Melbourne',
         { field: 'city', operator: 'is-not', values: ['melbourne'] }
       ],
       [
@@ -620,12 +623,12 @@ describe('parseQuery', () => {
       ],
       [
         'city != syd',
-        'City is not Sydney',
+        'City is not in Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
       ],
       [
         'city!=syd',
-        'City is not Sydney',
+        'City is not in Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
       ],
       [
@@ -635,32 +638,32 @@ describe('parseQuery', () => {
       ],
       [
         '!= syd',
-        'City is not Sydney',
+        'City is not in Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
       ],
       [
         '≠ syd',
-        'City is not Sydney',
+        'City is not in Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
       ],
       [
         'city:!=syd',
-        'City is not Sydney',
+        'City is not in Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
       ],
       [
         'city:≠syd',
-        'City is not Sydney',
+        'City is not in Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
       ],
       [
         'city isnt sydney',
-        'City is not Sydney',
+        'City is not in Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
       ],
       [
         'isnt sydney',
-        'City is not Sydney',
+        'City is not in Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
       ],
       [
@@ -685,7 +688,7 @@ describe('parseQuery', () => {
       ],
       [
         'city excludes syd',
-        'City is not Sydney',
+        'City is not in Sydney',
         { field: 'city', operator: 'is-not', values: ['sydney'] }
       ]
     ])('reads "%s" as %s, taking every word', (text, label, value) => {
@@ -704,21 +707,21 @@ describe('parseQuery', () => {
     it('keeps the words a negation didn’t read', () => {
       expect(
         parse('not melb ocean').map((s) => [s.label, s.remainder])
-      ).toContainEqual(['City is not Melbourne', 'ocean'])
+      ).toContainEqual(['City is not in Melbourne', 'ocean'])
     })
 
     it.each([
-      ['not melb', 'City is Melbourne'],
+      ['not melb', 'City is in Melbourne'],
       ['-walrus', 'Venue is The Quilted Walrus Room'],
-      ['city != syd', 'City is Sydney'],
-      ['city!=syd', 'City is Sydney'],
-      ['city ≠ syd', 'City is Sydney'],
-      ['!=syd', 'City is Sydney'],
+      ['city != syd', 'City is in Sydney'],
+      ['city!=syd', 'City is in Sydney'],
+      ['city ≠ syd', 'City is in Sydney'],
+      ['!=syd', 'City is in Sydney'],
       ['status is not sold out', 'Status is Sold out'],
       ['-sold out', 'Status is Sold out'],
       ['not sold out', 'Status is Sold out'],
       ['venue != quilted walrus', 'Venue is The Quilted Walrus Room'],
-      ['city isnt sydney', 'City is Sydney'],
+      ['city isnt sydney', 'City is in Sydney'],
       ['name excludes disco', 'Name contains “disco”']
     ])('never offers the value "%s" rules out', (text, label) => {
       expect(parse(text, { limit: 50 }).map((s) => s.label)).not.toContain(
@@ -739,7 +742,7 @@ describe('parseQuery', () => {
 
     it('reads "city = syd" as the value', () => {
       expect(parse('city = syd')[0]).toMatchObject({
-        label: 'City is Sydney',
+        label: 'City is in Sydney',
         remainder: ''
       })
     })
@@ -937,7 +940,7 @@ describe('parseQuery', () => {
       ],
       [
         'city melb',
-        'City is Melbourne',
+        'City is in Melbourne',
         { field: 'city', operator: 'is', values: ['melbourne'] }
       ],
       [
@@ -965,8 +968,8 @@ describe('parseQuery', () => {
     })
 
     it.each([
-      ['name disco melb', 'City is Melbourne', 'disco melb'],
-      ['name is disco melb', 'City is Melbourne', 'disco melb'],
+      ['name disco melb', 'City is in Melbourne', 'disco melb'],
+      ['name is disco melb', 'City is in Melbourne', 'disco melb'],
       [
         'name contains disco this weekend',
         'Starts is this weekend',
@@ -989,7 +992,7 @@ describe('parseQuery', () => {
           .map((s) => s.label)
           .sort()
       ).toEqual([
-        'City is Melbourne',
+        'City is in Melbourne',
         'Name contains “disco”',
         'Starts is this weekend'
       ])
@@ -1014,7 +1017,7 @@ describe('parseQuery', () => {
     })
 
     it.each([
-      ['city not melb', 'City is not Melbourne'],
+      ['city not melb', 'City is not in Melbourne'],
       ['city not empty', 'City is not empty'],
       ['name not disco', 'Name doesn’t contain “disco”'],
       ['capacity not 100', 'Capacity is not 100']
@@ -1105,7 +1108,7 @@ describe('parseQuery', () => {
     it('leaves an operator in other words as typed', () => {
       expect(
         parse('melb a>b').map((s) => [s.label, s.remainder])
-      ).toContainEqual(['City is Melbourne', 'a>b'])
+      ).toContainEqual(['City is in Melbourne', 'a>b'])
       expect(
         parse('a>b capacity>100').map((s) => [s.label, s.remainder])
       ).toContainEqual(['Capacity is more than 100', 'a>b'])
@@ -1369,7 +1372,10 @@ describe('parseQuery', () => {
         remainder: ''
       })
       expect(parse('from today and melb', { limit: 50 }).map(summary)).toEqual(
-        expect.arrayContaining(['Starts is after 2 Oct', 'City is Melbourne'])
+        expect.arrayContaining([
+          'Starts is after 2 Oct',
+          'City is in Melbourne'
+        ])
       )
     })
 

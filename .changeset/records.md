@@ -75,7 +75,7 @@ from the fields: option values (or, in the browser, the values an option field
 without `options` holds), statuses, booleans by name, identifiers, and date
 phrases such as "this weekend", each becoming a chip. The words a suggestion
 doesn't read stay in the field. Typed negation, such as "location is not melb",
-suggests "Location is not Melbourne". A field named in full, such as "sold",
+suggests "Location is not in Melbourne". A field named in full, such as "sold",
 lists before values that start with its name, such as Sold out, unless a filter
 reads the words after it, as in "location melb". Text naming a filter already
 applied still suggests it, marked Already applied, and taking it clears those
@@ -84,7 +84,9 @@ words and adds nothing.
 Picking a field lists its values under a toggle of operators, which Tab steps
 through. Leaving the field ends picking a value, as Escape does. An option
 field offers is, is not, and has all of for a `multiple` field, and a
-`location` field filters as an option does. A text field
+`location` field filters as an option does, under is in and is not in, which
+take in every place inside the one picked, and each place says where it is,
+such as "Suburb in Brisbane". A text field
 offers contains, doesn't contain, is, and is not. A number or money field
 offers =, ≠, <, >, and between, named in words for screen readers. A boolean
 lists Yes and No under is. A date field offers is relative, with its quick

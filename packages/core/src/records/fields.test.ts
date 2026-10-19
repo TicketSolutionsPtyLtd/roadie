@@ -41,9 +41,10 @@ describe('recordFilterOperators for a list of dates', () => {
 
 describe('recordFieldOptions', () => {
   it('returns the options given', () => {
-    expect(recordFieldOptions(field('city'))[0]).toEqual({
+    expect(recordFieldOptions(field('city'))[1]).toEqual({
       value: 'melbourne',
-      label: 'Melbourne'
+      label: 'Melbourne',
+      parent: 'victoria'
     })
   })
 

@@ -56,9 +56,24 @@ const OPERATORS: Record<RecordFilterOperator, string> = {
   'is-not-set': 'is empty'
 }
 
-/** An operator in words, for an editor's operator choice: "is more than". */
-export function recordOperatorLabel(operator: RecordFilterOperator): string {
-  return OPERATORS[operator]
+// A location's place takes in the places inside it.
+const PLACE_OPERATORS: Partial<Record<RecordFilterOperator, string>> = {
+  is: 'is in',
+  'is-not': 'is not in'
+}
+
+/**
+ * An operator in words, for an editor's operator choice: "is more than". With
+ * a location field, `is` and `is-not` read "is in" and "is not in".
+ */
+export function recordOperatorLabel(
+  operator: RecordFilterOperator,
+  field?: RecordField
+): string {
+  return (
+    (field?.type === 'location' && PLACE_OPERATORS[operator]) ||
+    OPERATORS[operator]
+  )
 }
 
 const SHOWN_VALUES = 2
@@ -95,6 +110,21 @@ export function recordOptionPaths(field: RecordField): Map<string, string> {
       return [option.value, path.join(' › ')]
     })
   )
+}
+
+/** Where a place is, from its kind and parent: "Suburb in Brisbane", "State". */
+function placeDescription(
+  field: RecordField,
+  value: string
+): string | undefined {
+  const options = field.options ?? []
+  const place = options.find((option) => option.value === value)
+  const parent = options.find((option) => option.value === place?.parent)
+  const kind = place?.kind
+    ? place.kind.charAt(0).toUpperCase() + place.kind.slice(1)
+    : undefined
+  if (kind && parent) return `${kind} in ${parent.label}`
+  return kind ?? (parent && `In ${parent.label}`)
 }
 
 function numberFormat(field: RecordField | undefined): ValueFormat {
@@ -330,16 +360,28 @@ export function describeRecordFilter(
     case 'is':
     case 'is-not':
     case 'has-all': {
-      const paths = field ? recordOptionPaths(field) : new Map()
+      const place = field?.type === 'location'
+      // A place reads alone, as its parent is in its description.
+      const paths = !field
+        ? new Map<string, string>()
+        : place
+          ? new Map(recordFieldOptions(field).map((o) => [o.value, o.label]))
+          : recordOptionPaths(field)
       const labels = filter.values.map((value) => paths.get(value) ?? value)
       const last = filter.operator === 'has-all' ? 'and' : 'or'
       const described = phrase(
-        filter.operator === 'has-all' ? 'has' : OPERATORS[filter.operator],
+        filter.operator === 'has-all'
+          ? 'has'
+          : recordOperatorLabel(filter.operator, field),
         list(labels, last)
       )
-      return labels.length > SHOWN_VALUES
-        ? { ...described, detail: list(labels, last, Infinity) }
-        : described
+      const where =
+        place && filter.values.length === 1
+          ? placeDescription(field, filter.values[0]!)
+          : undefined
+      if (labels.length > SHOWN_VALUES)
+        return { ...described, detail: list(labels, last, Infinity) }
+      return where ? { ...described, detail: where } : described
     }
     case 'contains':
     case 'not-contains':

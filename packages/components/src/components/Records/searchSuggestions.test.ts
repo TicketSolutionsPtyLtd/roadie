@@ -1193,8 +1193,55 @@ describe('a location field’s value step', () => {
   })
   const located = { ...context(), fields: [location] }
 
-  it('toggles the operators an option field does', () => {
-    expect(valueOperators(location)).toEqual(valueOperators(byKey('city')))
+  it('toggles an option field’s operators, read as is in and is not in', () => {
+    expect(valueOperators(location).map(({ value }) => value)).toEqual(
+      valueOperators(byKey('city')).map(({ value }) => value)
+    )
+    expect(valueOperators(location).map(({ label }) => label)).toEqual([
+      'is in',
+      'is not in',
+      'is empty',
+      'is not empty'
+    ])
+    expect(valueOperators(byKey('city')).map(({ label }) => label)).toEqual([
+      'is',
+      'is not',
+      'is empty',
+      'is not empty'
+    ])
+    expect(pendingLabel(location, 'is-not')).toBe('Location is not in')
+  })
+
+  it('says where each of its places is', () => {
+    const placed = field.location('city', {
+      label: 'Location',
+      options: [
+        { value: 'qld', label: 'Queensland', kind: 'state' },
+        { value: 'brisbane', label: 'Brisbane', kind: 'city', parent: 'qld' },
+        {
+          value: 'fortitude-valley',
+          label: 'Fortitude Valley',
+          kind: 'suburb',
+          parent: 'brisbane'
+        }
+      ]
+    })
+    const inPlaces = { ...context(), fields: [placed] }
+    expect(
+      valuesOf(valueSuggestions(placed, '', inPlaces, 'is')).items.map(
+        ({ label, description }) => [label, description]
+      )
+    ).toEqual([
+      ['Queensland', 'State'],
+      ['Brisbane', 'City in Queensland'],
+      ['Fortitude Valley', 'Suburb in Brisbane']
+    ])
+    expect(
+      group(topSuggestions('fortitude', inPlaces), 'filters').items[0]
+    ).toMatchObject({
+      label: 'Location is in Fortitude Valley',
+      description: 'Suburb in Brisbane'
+    })
   })
 
   it('reads typed values under the step’s operator', () => {

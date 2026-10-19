@@ -35,8 +35,22 @@ list what a field accepts.
 `recordFields<Row>()` builds an entity's fields with typed row keys
 (`text`, `option`, `location`, `number`, `money`, `date`, `boolean`), and a
 number or money field takes a `format`. A `location` field holds a place,
-such as a city, and filters, sorts and reads like a single option for now;
-distance filters come later. `isRecordOptionField` tells whether a field picks
+such as a suburb, or a list of places, and sorts and reads like an option.
+Its `options` are places with stable ids that nest by `parent`, each with an
+optional `kind` (`venue`, `suburb`, `city`, `region`, `state`, `country` or
+another), so is and is not mean is in and is not in: a record is in each of
+its places and their ancestors. `matchesRecordQuery` reads the ancestors
+from the options, and `recordPlaces(field, value)` lists a record's places
+for an index to store, so a filter stays a plain term in Meilisearch,
+Algolia, Elasticsearch or an API (`location:is:au-qld`).
+`recordPlaceReader(field)` reads the options once and returns a reader to
+call per record as you index. A place reads by its label or its whole id,
+never a word inside its id, so a place listed from the records, whose label
+is its id, reads from its start: "bris" suggests Brisbane, and "vic" never
+suggests au-vic-fitzroy. A chip reads
+"Location is in Queensland", `recordOperatorLabel` takes the field to say
+"is in", and one place's `detail` says where it is, such as "Suburb in
+Brisbane". Distance filters come later. `isRecordOptionField` tells whether a field picks
 from values that way. `compileRecordQuery` turns a resolved query
 into a predicate that reads the fields once, for filtering a long list;
 `matchesRecordQuery` uses it. `sortRecords` sorts rows the way an index
@@ -50,7 +64,8 @@ turns a view into Meilisearch `q`, `filter` and `sort` with the same filter
 meaning. It needs Meilisearch 1.15 or later. The index stores instants as
 epoch seconds (or milliseconds with `epoch: 'milliseconds'`), event and
 access dates under their local date keys, and a range's end on every record;
-`contains` needs Meilisearch's `containsFilter` feature.
+`contains` needs Meilisearch's `containsFilter` feature. A location field
+stores `recordPlaces`.
 
 `parseDatePhrase` no longer reads inherited object names such as
 `constructor` as a date alias, unit or month.
