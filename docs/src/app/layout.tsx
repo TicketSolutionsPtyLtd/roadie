@@ -24,6 +24,7 @@ import {
   getPageWide,
   readPageMetadata
 } from '@/lib/page-manifest'
+import { getReleaseViews } from '@/lib/releases'
 import { getAssetPath } from '@/utils/getAssetPath'
 
 import { getNavigatorExpandedScript } from '@oztix/roadie-core/navigator'
@@ -121,6 +122,11 @@ export default async function RootLayout({
     getPageWide(),
     getMarkdownRoutes()
   ])
+  // Each release has a page of its own, titled and with a markdown copy like any other.
+  const releases = getReleaseViews()
+  for (const { href, headlines } of releases)
+    pageTitles[href] = headlines.all.title
+  const twins = [...markdownRoutes, ...releases.map(({ href }) => href)]
 
   return (
     <html lang='en' suppressHydrationWarning>
@@ -142,7 +148,7 @@ export default async function RootLayout({
             pageTitles={pageTitles}
             pageWide={pageWide}
             markdownTwins={Object.fromEntries(
-              markdownRoutes.map((route) => [route, true])
+              twins.map((route) => [route, true])
             )}
           >
             {children}

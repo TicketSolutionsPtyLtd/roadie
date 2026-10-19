@@ -5,8 +5,6 @@ export const metadata = {
 
 import { Changelog } from '@/components/changelog/Changelog'
 
-A release is every package version published on one day. Each one lists those versions, then its changes as new, changed, deprecated, removed, and fixed. A change links to the docs page it touches, and **Details** opens the rest of its note. Changes marked **Breaking** came in a major version and may need code changes.
-
-**Unreleased** holds changes that are merged but not on npm yet. Each version links to its entry in the package's changelog on GitHub, and [GitHub releases](https://github.com/TicketSolutionsPtyLtd/roadie/releases) lists every published version. The Roadie skills for AI agents keep [their own changelog](https://github.com/TicketSolutionsPtyLtd/roadie/blob/main/skills/CHANGELOG.md).
+Every release, newest first: its highlights, then the smaller changes. A release's title opens it on a page of its own. **Unreleased** is merged but not on npm yet, and [GitHub releases](https://github.com/TicketSolutionsPtyLtd/roadie/releases) lists every published version.
 
 <Changelog />

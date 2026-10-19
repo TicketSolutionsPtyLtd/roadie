@@ -76,7 +76,10 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   first sentence as the change's headline and sorts it by bump and opening
   word: `Add` is new, `Remove` or `Drop` is removed, any mention of
   `deprecat` is deprecated, `Update`, `Upgrade`, or `Migrate` is changed,
-  and any other `patch` is a fix. Lead with what changed for the consumer.
+  and any other `patch` is a fix. A new component opening the sentence,
+  as in "Add `Calendar`, a month grid for choosing a date.", becomes a
+  highlight card titled by its page, described by what follows the comma;
+  so does a major. Lead with what changed for the consumer.
 - **Plugin skills.** A change under `skills/` adds a `roadie-skills`
   changeset, patch or minor (never major), or CI fails. The plugin version
   ships when the maintainer merges Version Packages, as

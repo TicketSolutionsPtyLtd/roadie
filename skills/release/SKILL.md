@@ -13,8 +13,9 @@ here.
 **Read-only.** Never merge, approve, review, comment on, edit, rebase, or
 push to the Version Packages PR or its `changeset-release/<base>` branch, and
 never run `changeset version` or `changeset publish`. Don't add or edit a
-changeset here either; a gap becomes its own PR. Release timing is the
-maintainer's call, so don't suggest a date or a cadence.
+changeset here either; a gap becomes its own PR. The one file this skill may
+write is the release note in section 4, in a PR of its own. Release timing is
+the maintainer's call, so don't suggest a date or a cadence.
 
 ## 1. Gather
 
@@ -91,7 +92,30 @@ Fail blocks the merge; attention needs the maintainer to look.
    returns 404), and no major is unannounced. Attention for a `0.x` minor,
    which a `^0.y` range won't pick up.
 
-## 4. Hand off
+## 4. Release note
+
+In a repo with a docs changelog that reads release notes (Roadie's is
+`docs/src/content/releases/`), draft one for this release. The changelog
+titles, summarises, and picks highlights by itself, so the note is optional
+and the release never waits on it. Write one when the automatic title misses
+the story, such as a new package or a theme across several changes.
+
+- Name it after a version the release ships, such as
+  `components-2.16.0.md` (the package folder, then the next version from
+  step 2).
+- Frontmatter only: `title` (a few words naming the biggest changes),
+  `summary` (one sentence on what the release means for an app), and
+  `highlights`, a list in the order to show them. A bare title, such as
+  `- Calendar`, picks a card the changelog made; an entry with `title`,
+  `description`, `href`, `image` (a screenshot under `docs/public/`), and
+  `packages` adds a card or rewrites the one with that title. Cards it
+  doesn't list follow in their own order.
+- Follow the host's writing rules (`/roadie:content` in Roadie). An unknown
+  field or a title that names no card fails the docs build, so run it.
+- Open it as its own docs PR for the maintainer to merge with or after
+  Version Packages. Put the draft in the hand-off too.
+
+## 5. Hand off
 
 Post the summary and the readiness lines as text, with a one-line verdict:
 **ready**, **ready with attention**, or **not ready**, naming each fail.

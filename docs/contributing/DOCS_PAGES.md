@@ -23,7 +23,9 @@ with its skeleton and the rules on top of these.
 - The `/components`, `/foundations`, and `/charts` indexes are MDX that render
   `<CatalogueIndex name>`.
 - `page.tsx` is only for app-like pages: the home page, the `/tokens` index,
-  `/appearance`, the token explorer pages under `/tokens/`, the reference
+  `/appearance`, the changelog's page for each release
+  (`/overview/changelog/[release]`), the token explorer pages under
+  `/tokens/`, the reference
   dashboards (`/charts/audience-dashboard`, `/charts/portfolio-dashboard`, and
   `/charts/show-dashboard`), `/examples/`, `/debug/`, and redirects.
 - The foundations pages other than Accessibility, Colors, Date and time,

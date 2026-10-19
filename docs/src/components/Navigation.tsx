@@ -6,6 +6,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState
 } from 'react'
@@ -35,6 +36,7 @@ import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
 import { AgentMenu } from './AgentMenu'
 import { FooterNav } from './FooterNav'
 import { Image } from './Image'
+import { InspectorSlotContext } from './InspectorSlot'
 import {
   NAV_LIST_PARAM,
   NAV_MORE_PARAM,
@@ -145,10 +147,20 @@ export function DocsNavigator({
 
   const related = relatedLinks(route)
   const isWide = pageWide[route] ?? false
-  const toc = useDocHeadings()
-  const showInspector = toc.headings.length >= 2 && !isWide
+  // A page's own inspector, such as the changelog's months, replaces "On this page".
+  const [pageInspector, setPageInspector] = useState<ReactNode>(null)
+  const toc = useDocHeadings(pageInspector === null)
+  const showInspector =
+    (pageInspector !== null || toc.headings.length >= 2) && !isWide
   // Held here so picking a heading can close the drawer the column yields into.
   const [tocRevealed, setTocRevealed] = useState(false)
+  const inspectorSlot = useMemo(
+    () => ({
+      setInspector: setPageInspector,
+      closeInspector: () => setTocRevealed(false)
+    }),
+    []
+  )
   const { onSelect: scrollToHeading } = toc
   const selectHeading = useCallback(
     (event: MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -297,7 +309,9 @@ export function DocsNavigator({
             {related ? (
               <RelatedLinks {...related} className='-mt-3 mb-6' />
             ) : null}
-            {children}
+            <InspectorSlotContext value={inspectorSlot}>
+              {children}
+            </InspectorSlotContext>
             <FooterNav items={items} />
           </div>
         </Pane>
@@ -311,7 +325,9 @@ export function DocsNavigator({
             onRevealChange={setTocRevealed}
           >
             <div className='py-6'>
-              <OnThisPage {...toc} onSelect={selectHeading} />
+              {pageInspector ?? (
+                <OnThisPage {...toc} onSelect={selectHeading} />
+              )}
             </div>
           </Pane>
         ) : null}
