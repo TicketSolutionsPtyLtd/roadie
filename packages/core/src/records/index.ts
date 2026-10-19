@@ -6,6 +6,7 @@ export type {
   RecordLayout,
   RecordMoment,
   RecordOption,
+  RecordPlaceKind,
   RecordPosition,
   RecordQuery,
   RecordQueryOptions,
@@ -18,11 +19,18 @@ export type {
 } from './types'
 export type { RelativeRange } from '../datetime/ranges'
 
-export { recordFieldOptions, recordFilterOperators } from './fields'
+export {
+  isRecordOptionField,
+  recordFieldOptions,
+  recordFilterOperators,
+  recordPlaceReader,
+  recordPlaces
+} from './fields'
 export { recordFields } from './builder'
 export type {
   BooleanFieldOptions,
   DateFieldOptions,
+  LocationFieldOptions,
   MoneyFieldOptions,
   NumberFieldOptions,
   OptionFieldOptions,
@@ -41,6 +49,14 @@ export type {
   ResolvedRecordQuery,
   ResolvedRecordRange
 } from './resolve'
+export { RECORDS_REQUEST_VERSION, toRecordsRequest } from './request'
+export type {
+  RecordsPageRequest,
+  RecordsRangeRequest,
+  RecordsRequest,
+  RecordsRequestOptions,
+  RecordsRequestPaging
+} from './request'
 export { compileRecordQuery, matchesRecordQuery } from './match'
 export { parseQuery } from './parse'
 export {

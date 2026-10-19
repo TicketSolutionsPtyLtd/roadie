@@ -99,4 +99,21 @@ describe('keepTouchTap', () => {
     option.remove()
     below.remove()
   })
+
+  // A popup the tap opened listens on the document for a press outside it.
+  // Seeing the ghost, it waited, and took the next click inside as outside.
+  it("keeps a chosen tap's late click from the document's listeners", () => {
+    const option = document.createElement('div')
+    const drawer = document.createElement('div')
+    document.body.append(option, drawer)
+    touch(option, 'down')
+    touch(option, 'up')
+    const outsidePress = vi.fn()
+    document.addEventListener('click', outsidePress, true)
+    drawer.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    expect(outsidePress).not.toHaveBeenCalled()
+    document.removeEventListener('click', outsidePress, true)
+    option.remove()
+    drawer.remove()
+  })
 })

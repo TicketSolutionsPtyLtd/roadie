@@ -46,10 +46,18 @@ export function RecordsActions<Row extends object>({
     const current = latestRecords.current
     try {
       // The consumer's Row narrows the shared instance, as Records.Root's does.
-      await action.onAction(
-        current.scopedQuery,
-        current as unknown as Parameters<typeof action.onAction>[1]
-      )
+      await action.onAction({
+        query: current.scopedQuery,
+        request: {
+          version: current.request.version,
+          query: current.request.query
+        },
+        timeZone: current.timeZone,
+        now: current.now,
+        records: current as unknown as Parameters<
+          typeof action.onAction
+        >[0]['records']
+      })
     } catch (error) {
       reportActionError(error)
     } finally {
@@ -132,6 +140,7 @@ export function RecordsActions<Row extends object>({
             <RecordsConfirm
               action={confirmed}
               count={records.resultCount}
+              exact={records.resultCountExact}
               recordName={records.recordName}
               onCancel={() => setConfirming(null)}
               onConfirm={() => {

@@ -86,6 +86,7 @@ import { lineChartTable } from '@oztix/roadie-charts/tables'
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 import {
+  addDays,
   plainDateOf,
   resolveComparison,
   viewerTimeZone
@@ -97,6 +98,7 @@ import {
   recordsToCsv,
   resolveRecordQuery,
   sortRecords,
+  toRecordsRequest,
   toSearchParams
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
@@ -207,6 +209,7 @@ const scope = {
   ...RoadieCharts,
   LegendKey,
   lineChartTable,
+  addDays,
   plainDateOf,
   resolveComparison,
   viewerTimeZone,
@@ -216,6 +219,7 @@ const scope = {
   compileRecordQuery,
   resolveRecordQuery,
   sortRecords,
+  toRecordsRequest,
   toMeilisearch,
   placeRange,
   ...SpotIllustrations,

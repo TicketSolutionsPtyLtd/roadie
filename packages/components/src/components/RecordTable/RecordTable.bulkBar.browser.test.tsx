@@ -206,8 +206,10 @@ describe('RecordTable selection bar', () => {
       within(dialog).getByRole('button', { name: 'Refund' })
     )
     expect(onRefund).toHaveBeenCalledWith(
-      { ids: ['0'] },
-      expect.objectContaining({ search: '' })
+      expect.objectContaining({
+        selection: { ids: ['0'] },
+        query: expect.objectContaining({ search: '' })
+      })
     )
   })
 

@@ -6,7 +6,7 @@ export const eventFields: RecordField[] = [
     key: 'orderNumber',
     label: 'Order number',
     type: 'text',
-    match: /^OZ-\d{5}$/i,
+    match: '^OZ-\\d{5}$',
     searchable: false
   },
   {
@@ -22,9 +22,16 @@ export const eventFields: RecordField[] = [
   {
     key: 'city',
     label: 'City',
-    type: 'option',
+    type: 'location',
     options: [
-      { value: 'melbourne', label: 'Melbourne' },
+      { value: 'victoria', label: 'Victoria', kind: 'state' },
+      { value: 'melbourne', label: 'Melbourne', parent: 'victoria' },
+      {
+        value: 'fitzroy',
+        label: 'Fitzroy',
+        kind: 'suburb',
+        parent: 'melbourne'
+      },
       { value: 'sydney', label: 'Sydney' },
       { value: 'perth', label: 'Perth' }
     ]

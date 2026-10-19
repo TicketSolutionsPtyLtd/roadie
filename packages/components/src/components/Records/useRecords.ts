@@ -13,6 +13,7 @@ import {
 
 import { type Instantish, viewerTimeZone } from '@oztix/roadie-core/datetime'
 import {
+  RECORDS_REQUEST_VERSION,
   type RecordFilter,
   type RecordLayout,
   type RecordPosition,
@@ -20,6 +21,8 @@ import {
   type RecordSelection,
   type RecordSort,
   type RecordView,
+  type RecordsRangeRequest,
+  type RecordsRequest,
   type ResolvedRecordQuery,
   compileRecordQuery,
   equalViews,
@@ -28,7 +31,7 @@ import {
 
 import { isDev } from '../../utils/isDev'
 import { applyQuery, isFiltered, toView } from './query'
-import { MAX_RANGE_ROWS, type RecordsRange, rangeKey } from './ranges'
+import { MAX_RANGE_ROWS, rangeKey } from './ranges'
 import {
   EMPTY_SELECTION,
   selectedCount as countSelected,
@@ -53,9 +56,11 @@ export type UseRecordsOptions<Row extends object> = {
   /** Every record, which Records filters, sorts and pages in the browser. With `rowCount`, the page the server returned. With `loadRange`, the records loaded so far, each at its index, with gaps left undefined (`placeRange` puts a range in place). */
   data: readonly (Row | undefined)[]
   /**
-   * How many records the search and filters match on the server. Giving it turns on server mode: `data` is one page, already searched, filtered, sorted and paged, and the search waits for a pause in typing. Fetch `scopedQuery` at `position` in `timeZone`. Once given, server mode stays: an `undefined` count keeps the last one. Pass 0 until the first count arrives.
+   * How many records the search and filters match on the server. Giving it turns on server mode: `data` is one page, already searched, filtered, sorted and paged, and the search waits for a pause in typing. Fetch the `request` that `onRequestChange` hears. Once given, server mode stays: an `undefined` count keeps the last one. Pass 0 until the first count arrives.
    */
   rowCount?: number
+  /** False when `rowCount` is a floor the server stopped counting at, such as a search index's 10,000: counts read "10,000+", paging stops at the last page the server can reach, and no range runs past the count. @default true */
+  rowCountExact?: boolean
   /** What each record holds. Keep the array stable (module scope or `useMemo`). */
   fields: readonly RecordsField[]
   /** Defaults to the record's index in `data`. Selecting in server or range mode needs it, as index ids repeat on every page and a refetch. */
@@ -104,9 +109,11 @@ export type UseRecordsOptions<Row extends object> = {
   /** The record's page. Return `undefined` for a record with none. */
   getRowHref?: (row: Row) => string | undefined
   /**
-   * Turns on range mode: one long list, searched, filtered and sorted on the server, that loads the records on screen as people scroll. Each range is one page of `pageSize` records, `end` exclusive, so it starts at `page * pageSize`. Put the records in `data` at their index with `placeRange`, then resolve. With `rowCount` the list is that long from the start; without it, ranges load one after another until one comes back short. A rejection shows the range's error with Retry.
+   * Turns on range mode: one long list, searched, filtered and sorted on the server, that loads the records on screen as people scroll. Each gets the request for one range: one page of `pageSize` records from `start`, `end` exclusive. Put the records in `data` at their index with `placeRange`, then resolve. With `rowCount` the list is that long from the start; without it, ranges load one after another until one comes back short. A rejection shows the range's error with Retry.
    */
-  loadRange?: (range: RecordsRange) => Promise<void> | void
+  loadRange?: (request: RecordsRangeRequest) => Promise<void> | void
+  /** Hears `request` once the list is in the browser, then each time it changes: what to fetch in server mode, as the list resolved it. */
+  onRequestChange?: (request: RecordsRequest) => void
 }
 
 export type RecordsInstance<Row extends object = object> = {
@@ -118,14 +125,18 @@ export type RecordsInstance<Row extends object = object> = {
   view: RecordView
   /** The view the rows show, without the filters and sorts these fields can't apply, and without the page's `scope`. In the browser its search lags typing while thousands of rows filter. It and its `query` keep their identity while their content holds. Key a fetch on `query`, the position and `timeZone`, as relative dates resolve in the zone, which moves from UTC to the viewer's after hydration. */
   appliedView: RecordView
-  /** The applied view's query with the page's `scope` first: what to fetch in server mode, and what actions act on. It keeps its identity while its content holds. */
+  /** The applied view's query with the page's `scope` first, what actions act on. It keeps its identity while its content holds. */
   scopedQuery: RecordQuery
+  /** What a server reads: `resolvedQuery` under a version, with `page` and `pageSize` in server mode. POST it, and key the fetch on it. In range mode each range's comes to `loadRange`. */
+  request: RecordsRequest
   /** What the search field shows. In server mode it runs ahead of the view's search until typing pauses. */
   searchText: string
   resolvedQuery: ResolvedRecordQuery
   /** The current page; in range mode, every record loaded. */
   rows: readonly RecordsRow<Row>[]
   resultCount: number
+  /** False when `resultCount` is a floor the server stopped counting at, from `rowCountExact`. */
+  resultCountExact: boolean
   /** A search or filter narrows the records. */
   filtered: boolean
   position: Required<RecordPosition>
@@ -207,11 +218,14 @@ function useEqualValue<T>(value: T): T {
 }
 const serverZone = () => 'UTC'
 const noClock = () => null
+const inBrowser = () => true
+const onServer = () => false
 const NO_SCOPE: readonly RecordFilter[] = []
 
 export function useRecords<Row extends object>({
   data,
   rowCount,
+  rowCountExact = true,
   fields,
   getRowId = indexId,
   view: controlledView,
@@ -234,7 +248,8 @@ export function useRecords<Row extends object>({
   onSelectionChange,
   rowActions,
   getRowHref,
-  loadRange
+  loadRange,
+  onRequestChange
 }: UseRecordsOptions<Row>): RecordsInstance<Row> {
   const [ownView, setOwnView] = useState(() => toView(defaultView))
   const view = controlledView ?? ownView
@@ -393,9 +408,17 @@ export function useRecords<Row extends object>({
   // A new page size starts over, as pages asked for at the old one would block it.
   const key = `${rangeKey(scopedQuery, zone)}@${position.pageSize}`
   const range = useRangeLoading({
-    loadRange,
+    loadRange:
+      loadRange &&
+      ((rows) =>
+        loadRange({
+          version: RECORDS_REQUEST_VERSION,
+          query: resolvedQuery,
+          ...rows
+        })),
     key,
     rowCount: count === undefined ? undefined : whole(count, 0, 0),
+    rowCountExact,
     size: position.pageSize,
     data,
     held: loaded.rows.length
@@ -449,10 +472,17 @@ export function useRecords<Row extends object>({
     : server
       ? whole(count, 0, 0)
       : matching.length
-  // A range list is one long page.
+  const resultCountExact = count === undefined || rowCountExact
+  // A range list is one long page. Past a floor the server stopped counting
+  // at, only whole pages within it can be fetched.
   const pageCount = ranged
     ? 1
-    : Math.max(1, Math.ceil(resultCount / position.pageSize))
+    : Math.max(
+        1,
+        (resultCountExact ? Math.ceil : Math.floor)(
+          resultCount / position.pageSize
+        )
+      )
   const lastPage = pageCount - 1
   // A count from a pending or failed fetch would wipe a deep-linked page.
   const outOfRange = !ranged && !busy && !error && position.page > lastPage
@@ -462,6 +492,26 @@ export function useRecords<Row extends object>({
   // A controlled position belongs to the parent, so the clamp is only reported.
   const clampedPage = outOfRange ? lastPage : undefined
   const { pageSize, row } = position
+  // By content, as a new `fields` list each render resolves a new query.
+  const request = useEqualValue(
+    useMemo<RecordsRequest>(
+      () => ({
+        version: RECORDS_REQUEST_VERSION,
+        query: resolvedQuery,
+        ...(server && !ranged && { page: position.page, pageSize })
+      }),
+      [resolvedQuery, server, ranged, position.page, pageSize]
+    )
+  )
+  // Hydration renders the server's UTC and clockless request first.
+  const hydrated = useSyncExternalStore(noSubscription, inBrowser, onServer)
+  const latestOnRequestChange = useRef(onRequestChange)
+  useLayoutEffect(() => {
+    latestOnRequestChange.current = onRequestChange
+  })
+  useEffect(() => {
+    if (hydrated) latestOnRequestChange.current?.(request)
+  }, [hydrated, request])
   const controlled = controlledPosition !== undefined
   useEffect(() => {
     if (controlled && clampedPage !== undefined)
@@ -717,8 +767,10 @@ export function useRecords<Row extends object>({
     appliedView,
     searchText: server ? draft : committed,
     resolvedQuery,
+    request,
     rows,
     resultCount,
+    resultCountExact,
     filtered: isFiltered(applied.resolved),
     position,
     pageCount,

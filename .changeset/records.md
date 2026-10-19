@@ -40,7 +40,11 @@ does, with a count menu to select all or clear and a More actions menu for
 actions that don't fit, otherwise floating at the foot of the screen, where
 the first action shows and those that don't fit go in a More actions menu,
 last.
-`Records.Actions` (or the toolbar's `actions`) acts on every match. Danger
+`Records.Actions` (or the toolbar's `actions`) acts on every match. An
+action gets one object: `query`, the applied query with the scope first;
+`request`, the `RecordsRequest` for every match, to POST to a server;
+`timeZone` and `now`; and `records` for a table action or `selection` for a
+bulk action. Danger
 actions ask first unless `confirm` is `false`, and any action given
 `confirm` asks. `downloadCsv` saves CSV text as a file. `RecordTable` takes
 `bulkActions`, `tableActions` and `searchLabel`, and `record-table` exports
@@ -67,29 +71,83 @@ shown, or the `baseline`'s, so switching back reads as unchanged.
 
 `Records.Search` searches and filters in one `QueryField`, named "Search and
 filter". Typing searches the searchable fields as before and suggests filters
-from the fields: option values (or, in the browser, the values an option
-field without `options` holds), statuses, booleans by name, identifiers and
-date phrases such as "this weekend", each becoming a chip; the words a
-suggestion doesn't read stay in the field. Picking a field lists its values,
-or for a date its quick dates and Custom dates; a number or text field opens
-its editor. Option values added to a field join its chip. Each chip opens an
-editor for its condition and value as they change (a list of values, a date
-range picker with relative presets, a date picker, a number, text, or Yes and
-No), in a popover under the chip or a bottom drawer on a phone, with Remove
-filter; a filter whose values are cleared is removed as its editor closes,
-and the editor loads while the page is idle. A relative date chip shows its dates
-in a tooltip, and a filter the fields can't apply shows in warning colours.
-`/` focuses the search unless `shortcut` (or `searchShortcut` on
-`Records.Toolbar` and `RecordTable`) says otherwise, and Clear and Escape
-clear it. The toolbar keeps its buttons at the top as chips wrap.
+from the fields: option values (or, in the browser, the values an option field
+without `options` holds), statuses, booleans by name, identifiers, and date
+phrases such as "this weekend", each becoming a chip. The words a suggestion
+doesn't read stay in the field. Typed negation, such as "location is not melb",
+suggests "Location is not in Melbourne". A field named in full, such as "sold",
+lists before values that start with its name, such as Sold out, unless a filter
+reads the words after it, as in "location melb". Text naming a filter already
+applied still suggests it, marked Already applied, and taking it clears those
+words and adds nothing.
+
+Picking a field lists its values under a toggle of operators, which Tab steps
+through. Leaving the field ends picking a value, as Escape does. An option
+field offers is, is not, and has all of for a `multiple` field, and a
+`location` field filters as an option does, under is in and is not in, which
+take in every place inside the one picked, and each place says where it is,
+such as "Suburb in Brisbane". A text field
+offers contains, doesn't contain, is, and is not. A number or money field
+offers =, ≠, <, >, and between, named in words for screen readers. A boolean
+lists Yes and No under is. A date field offers is relative, with its quick
+dates, then is, is before, is after, and is between, each with a calendar
+under the values. A day picked, or a range's second day, adds the chip, and
+typing suggests days, such as Fri for "fri", or a range for "22 oct to 30
+oct". Dates are whole days, on a timestamp field too. Every
+field that can be filtered ends its toggle with is empty and is not empty,
+whose one row Enter takes. Typing switches back to the field's first operator,
+so the text applies. Typing narrows the values, and Enter takes the first. A
+quick date lists when its name has a word starting with each word typed, so
+"next" lists Next 7 days, with whole words first, so "week" lists This week
+before This weekend. Typed text or a
+number shows as one row worded as its chip. Between reads 20 and 50, 20-50, 20
+to 50, or 20..50, in either order, and a space after the first number adds the
+"and". One Backspace takes it away. Money takes `$` and commas. Until the
+value reads, the list says what to type, such as "Type a number." Another option value joins the field's chip with the same condition, so a value added under is not never joins an is chip. An is empty chip takes
+the place of the field's other chips, and any other chip on the field takes
+the place of its is empty chip, as together they match nothing. A date chip
+takes the place of the field's earlier date chip, as two dates rarely
+overlap.
+
+Clicking a chip, or Enter on it, edits it in the list, as a dashed chip in
+its place with what it holds ticked. An option chip's values tick and untick, and unticking the last
+removes the chip. Enter on typed text only ticks. When the typed text matches
+only values the chip holds, the list says so, such as "Perth is already in
+this filter." Its is, is not, and has all of rewrite its condition and keep
+its values, and a chip rewritten to is joins the field's is chip. A text or
+number chip puts its value in the field, selected so typing replaces it, and
+its condition in the toggle, and Enter replaces it once either changes. A date
+chip puts its dates in the field the same way, such as "12 Nov to 15 Dec" or
+"This week", and Enter on them unchanged keeps the chip. Any other value taken, or the row under
+is empty or is not empty, replaces what the chip holds. Every chip but an
+option chip holds one value, so taking one ends the edit and closes the list.
+Everything but an
+option chip's operator waits for Enter, so Tab passing through is empty keeps
+the values. Text typed before is empty or is not empty is set aside, and
+Backspace in the empty field brings it back under the operator it was typed
+under. Otherwise Backspace in the empty field removes the chip, and Escape, Enter
+with no new value to take, or leaving the field keeps it and ends the edit. A
+date chip opens on its operator, with the calendar on its month and its day or
+range marked. Typing a date moves the calendar to its month. The calendar
+loads while the page is idle. A
+date chip reads as other chips do, such as "Start date is this weekend", and a
+relative one shows its dates in a tooltip. A filter the fields can't
+apply shows in warning colours. `/` focuses the search unless `shortcut` (or
+`searchShortcut` on `Records.Toolbar` and `RecordTable`) says otherwise, and
+Clear and Escape clear it. The toolbar keeps its buttons at the top as chips
+wrap. Under 40rem, the focused search takes the toolbar's row, and the other
+controls hide until focus leaves it.
 
 `useRecords` takes a `scope`: filters the page sets, such as the event a list
 of tickets belongs to. They filter with the view but are never part of it,
 so they are never saved, put in the URL, cleared or counted as filtering, and
 `Records.Search` shows them first as locked chips. `scopedQuery` is the
-applied query with the scope's filters first: fetch it in server mode, and
-table and bulk actions get it, so acting on every match stays within the
-page. The instance gains `scope`
+applied query with the scope's filters first, and table and bulk actions
+get it, so acting on every match stays within the page. `request` is the
+`RecordsRequest` to fetch: the resolved query with the scope first, with
+`page` and `pageSize` in server mode, and `onRequestChange` hears it once
+the page hydrates and each time it changes, so a `RecordTable` or
+`RecordGrid` fetches what it shows. The instance gains `scope`
 and `now`, and writes made in one event, such as a search and a filter
 together, build on each other. With no match, the empty state names the
 search and filters that matched nothing.
@@ -107,8 +165,12 @@ given, `rowCount` keeps server mode on, and an `undefined` count keeps the
 last one. Selecting without `getRowId` in server mode warns in development,
 as index ids repeat on every page. `appliedView` now leaves out the filters
 and sorts the fields can't apply, and its `query` keeps its identity while
-its content holds; key a fetch on `scopedQuery`, the position and
-`timeZone`. Selection treats a chip's values in any order as the same
+its content holds; key a fetch on `request`. `rowCountExact: false` marks
+`rowCount` as a floor the server stopped counting at, such as a search
+index's 10,000: counts read "10,000+" in the pagination, Select all, the
+selection, the status and the confirm dialog, `resultCountExact` is false,
+paging stops at the last whole page within the count, and no range
+runs past it. Selection treats a chip's values in any order as the same
 filter, and ignores filters the fields can't apply. `Records.Status`
 holds a count while `loading` and announces it once loaded, and
 `Records.Pagination` reads a page past the end as the last page.
@@ -116,7 +178,8 @@ holds a count while `loading` and announces it once loaded, and
 Give `useRecords` a `loadRange` and it runs in range mode (`mode: 'range'`):
 one long list, searched, filtered and sorted on the server, that loads the
 records on screen plus a screen either side as people scroll. Each range is
-one page of `pageSize` records, `{ start, end }` with `end` exclusive, and
+one page of `pageSize` records, and `loadRange` gets its `RecordsRequest`
+with `start` and `end`, `end` exclusive, and
 `data` holds the records loaded so far at their index (`placeRange` puts a
 range there). With `rowCount` the list is that long from the start; without
 it, ranges load one after another until one comes back short. Rows not yet

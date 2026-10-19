@@ -2,11 +2,10 @@
 
 import { Button } from '../Button'
 import { Dialog } from '../Dialog'
+import { formatCount } from './count'
 import type { RecordName, RecordsBulkAction } from './types'
 
 type Confirmable = Pick<RecordsBulkAction, 'label' | 'intent' | 'confirm'>
-
-const format = new Intl.NumberFormat('en-AU')
 
 export const needsConfirm = ({ intent, confirm }: Confirmable) =>
   (intent === 'danger' && confirm !== false) || typeof confirm === 'object'
@@ -21,6 +20,8 @@ export type RecordsConfirmProps = {
   action: Confirmable
   /** The records the action acts on, for the default title. */
   count: number
+  /** False for a count the server stopped at, which reads with a +. */
+  exact?: boolean
   recordName: RecordName
   onCancel: () => void
   onConfirm: () => void
@@ -29,6 +30,7 @@ export type RecordsConfirmProps = {
 export function RecordsConfirm({
   action,
   count,
+  exact,
   recordName,
   onCancel,
   onConfirm
@@ -45,7 +47,7 @@ export function RecordsConfirm({
         <Dialog.Header>
           <Dialog.Title>
             {overrides.title ??
-              `${action.label} ${format.format(count)} ${noun}?`}
+              `${action.label} ${formatCount(count, exact)} ${noun}?`}
           </Dialog.Title>
           {overrides.description && (
             <Dialog.Description>{overrides.description}</Dialog.Description>

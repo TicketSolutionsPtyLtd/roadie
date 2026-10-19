@@ -54,13 +54,15 @@ function dropGhost(event: globalThis.MouseEvent) {
   event.stopPropagation()
 }
 
+// On the window, ahead of the document, where a popup's outside-press
+// listener would otherwise see a ghost and wait for the next click.
 function watchGhosts() {
-  if (ghostsWatched || typeof document === 'undefined') return
+  if (ghostsWatched || typeof window === 'undefined') return
   ghostsWatched = true
   for (const type of ['mousedown', 'mouseup', 'click'] as const)
-    document.addEventListener(type, dropGhost, true)
+    window.addEventListener(type, dropGhost, true)
   // A new touch's own mouse events are real.
-  document.addEventListener('pointerdown', () => (lastTap = null), true)
+  window.addEventListener('pointerdown', () => (lastTap = null), true)
 }
 
 function endPress() {
