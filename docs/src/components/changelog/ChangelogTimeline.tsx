@@ -201,7 +201,8 @@ export function ChangelogTimeline({
       const top = root?.getBoundingClientRect().top ?? 0
       const height = root?.clientHeight ?? window.innerHeight
       const line = top + height * ACTIVE_LINE
-      let active: HTMLElement | undefined
+      // Above the first release, the rail marks it, not nothing.
+      let active: HTMLElement | undefined = sections[0]
       for (const section of sections) {
         if (section.getBoundingClientRect().top > line) break
         active = section

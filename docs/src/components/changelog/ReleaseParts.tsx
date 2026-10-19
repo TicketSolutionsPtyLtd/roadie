@@ -104,12 +104,14 @@ function KindLabel({ kind }: { kind: ChangeKind }) {
         {KIND_LABELS[kind]}
       </Badge>
     )
-  return <span className='text-subtle'>{KIND_LABELS[kind]}</span>
+  return (
+    <span className='text-xs text-subtle @md:text-sm'>{KIND_LABELS[kind]}</span>
+  )
 }
 
 function Item({ item }: { item: ReleaseItem }) {
   return (
-    <li className='grid grid-cols-[4.75rem_1fr] items-baseline gap-x-3'>
+    <li className='grid items-baseline gap-x-3 gap-y-0.5 @md:grid-cols-[4.75rem_1fr]'>
       <KindLabel kind={item.kind} />
       <p>
         <InlineText inline={item.text} />
@@ -153,7 +155,7 @@ export function ReleaseItems({
       <h3 id={headingId} className='text-display-ui-6 text-strong'>
         {heading}
       </h3>
-      <ul className='grid gap-2 text-sm'>
+      <ul className='grid gap-3 text-sm @md:gap-2'>
         {sorted.slice(0, cut).map((item) => (
           <Item key={item.id} item={item} />
         ))}
@@ -169,7 +171,7 @@ export function ReleaseItems({
               {rest.length} more <span className='sr-only'>in {title}</span>
             </span>
           </summary>
-          <ul className='grid gap-2 pt-2 text-sm'>
+          <ul className='grid gap-3 pt-2 text-sm @md:gap-2'>
             {rest.map((item) => (
               <Item key={item.id} item={item} />
             ))}
