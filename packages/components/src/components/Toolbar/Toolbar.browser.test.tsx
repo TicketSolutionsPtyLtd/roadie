@@ -185,6 +185,28 @@ describe('Toolbar layout', () => {
     expect(screen.getByRole('button', { name: 'Left' })).toHaveFocus()
   })
 
+  it('covers the pressed toggle of a vertical group with its fill', async () => {
+    render(
+      <Toolbar aria-label='Formatting' orientation='vertical'>
+        <Toolbar.ToggleGroup aria-label='Alignment' defaultValue={['right']}>
+          <Toolbar.Toggle value='left'>Left</Toolbar.Toggle>
+          <Toolbar.Toggle value='right'>Right</Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const right = screen.getByRole('button', { name: 'Right' })
+    const indicator = document.querySelector<HTMLElement>(
+      '[data-slot="toolbar-toggle-group-indicator"]'
+    )!
+    await expect.poll(() => indicator.hasAttribute('data-ready')).toBe(true)
+    await expect
+      .poll(() => indicator.getBoundingClientRect().width)
+      .toBeCloseTo(right.getBoundingClientRect().width, 0)
+    expect(indicator.getBoundingClientRect().top).toBe(
+      right.getBoundingClientRect().top
+    )
+  })
+
   it('fills each pressed toggle of a multiple group itself', () => {
     render(
       <Toolbar aria-label='Formatting'>

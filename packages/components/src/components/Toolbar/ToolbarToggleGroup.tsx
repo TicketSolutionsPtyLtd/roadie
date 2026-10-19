@@ -50,7 +50,8 @@ export function ToolbarToggleGroup({
         orientation={toolbar.orientation}
         className={cn(
           'group/toolbar-toggle-group relative flex flex-wrap items-center gap-1',
-          'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:w-auto',
+          // Toggles only: the indicator takes the pressed toggle's width.
+          'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:data-[slot=toolbar-toggle]:w-auto',
           className
         )}
         disabled={disabled}
