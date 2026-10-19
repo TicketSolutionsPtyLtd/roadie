@@ -3,12 +3,15 @@
 import { type CSSProperties, type RefAttributes, useMemo } from 'react'
 
 import { Toolbar as ToolbarPrimitive } from '@base-ui/react/toolbar'
-import type { VariantProps } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
 import { ScrollArea } from '../ScrollArea'
-import { ToolbarContext, type ToolbarSize } from './ToolbarContext'
+import {
+  ToolbarContext,
+  type ToolbarEmphasis,
+  type ToolbarSize
+} from './ToolbarContext'
 import { toolbarSurfaceVariants, toolbarVariants } from './variants'
 
 export type ToolbarRootProps = Omit<
@@ -33,7 +36,7 @@ export type ToolbarRootProps = Omit<
      *
      * @default 'normal'
      */
-    emphasis?: VariantProps<typeof toolbarSurfaceVariants>['emphasis']
+    emphasis?: ToolbarEmphasis
   }
 
 // Sideways only, within the row: scrollIntoView would scroll the page too.

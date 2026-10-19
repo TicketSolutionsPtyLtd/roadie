@@ -716,6 +716,7 @@ export {
   type ToolbarSeparatorProps,
   type ToolbarToggleProps,
   type ToolbarToggleGroupProps,
+  type ToolbarEmphasis,
   type ToolbarSize
 } from './components/Toolbar'
 
