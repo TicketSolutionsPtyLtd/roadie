@@ -105,8 +105,9 @@ for fields and views.
 - **Let the server search a big list.** Pass one page as `data` with
   `rowCount`, and fetch the request `onRequestChange` hands you. For one long
   list people scroll, pass `loadRange` instead, which resolves with
-  `{ rows, rowCount }`, and leave out `data`. Pass `rowCountExact={false}`
-  when the backend stops counting, such as at 10,000.
+  `{ rows, rowCount }`, and leave out `data`. Either way, pass `getRowId`, so
+  a selection survives refetching. Pass `rowCountExact={false}` when the
+  backend stops counting, such as at 10,000.
 - **The server reads the request, never the view.** A `RecordsRequest` holds
   `version: 1` and the query with its dates already resolved. POST it as
   JSON, reject a version you don't know, and add the person's permissions as
@@ -296,8 +297,10 @@ Read [Linking](https://ticketsolutionsptyltd.github.io/roadie/foundations/linkin
   `List.Item`, `Menu.Item`, `Breadcrumb.Link`, and `Tabs.Tab`. Internal
   hrefs route through the provider's Link, external ones open in a new tab
   with a safe `rel`, and no `href` renders a `<button>`.
-- Never wrap a Roadie component in `<Link>`, and never navigate from
-  `onClick` with `router.push`. Use `href`.
+- Never wrap a Roadie component in the router's `<Link>`, and never
+  navigate from `onClick` with `router.push`. Use `href`.
+- For a text link, such as one in rendered content, use `Link`
+  (`@oztix/roadie-components/link`), which routes the same way.
 - Don't add `target` or `rel` to a Roadie component; it sets them.
 - `render` is the escape hatch for a custom element, and it wins over `href`.
 

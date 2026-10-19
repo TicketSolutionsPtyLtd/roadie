@@ -72,16 +72,16 @@ the `full-browsers` label on the PR (PR workflow sections 5 and 7).
 Patterns the INNO-1130 audit found in Roadie (October 2026), since fixed.
 Roadie's lint rules (`eslint/roadie-plugin.js`) now fail the first five.
 
-| Anti-pattern                                       | Lint rule                        | Instead                                                            |
-| -------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------ |
-| CVA class strings standing in for behaviour        | `roadie/no-cva-output-assertion` | Render it; measure the height in a browser test if size matters    |
-| A `calc()` or other class asserted in jsdom        | `roadie/no-css-class-in-jsdom`   | Measure it in a browser                                            |
-| Reading CSS or source text (`?raw`)                | `roadie/no-css-source-in-jsdom`  | Emulate the condition in a browser and read computed style         |
-| Faked layout in jsdom (`getBoundingClientRect`)    | `roadie/no-layout-fake-in-jsdom` | A browser test at a real width                                     |
-| A fixed sleep                                      | `roadie/no-fixed-sleep`          | Fake timers past the debounce, or wait for a positive signal first |
-| Recomputing the expected value                     | None                             | A literal from the spec                                            |
-| Mocking Base UI, motion, or the repo's own modules | None                             | Render the real thing; test in a browser if jsdom can't            |
-| An unread snapshot                                 | None                             | Assert the part that matters                                       |
+| Anti-pattern                                              | Lint rule                        | Instead                                                            |
+| --------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------ |
+| CVA class strings standing in for behaviour               | `roadie/no-cva-output-assertion` | Render it; measure the height in a browser test if size matters    |
+| A `calc()`, container query, or breakpoint class in jsdom | `roadie/no-css-class-in-jsdom`   | Measure it in a browser                                            |
+| Reading CSS source (`?raw` or `readFileSync`)             | `roadie/no-css-source-in-jsdom`  | Emulate the condition in a browser and read computed style         |
+| Faked layout in jsdom (`getBoundingClientRect`)           | `roadie/no-layout-fake-in-jsdom` | A browser test at a real width                                     |
+| A fixed sleep                                             | `roadie/no-fixed-sleep`          | Fake timers past the debounce, or wait for a positive signal first |
+| Recomputing the expected value                            | None                             | A literal from the spec                                            |
+| Mocking Base UI, motion, or the repo's own modules        | None                             | Render the real thing; test in a browser if jsdom can't            |
+| An unread snapshot                                        | None                             | Assert the part that matters                                       |
 
 ## 5. Engine quirks in browser tests
 
