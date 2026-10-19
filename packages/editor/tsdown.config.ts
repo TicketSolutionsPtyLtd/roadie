@@ -2,7 +2,7 @@ import { defineConfig } from 'tsdown'
 
 // Unbundle mode is load-bearing for RSC safety — see packages/components/tsdown.config.ts.
 export default defineConfig(({ watch }) => ({
-  entry: ['src/**/*.ts', '!**/*.test.ts'],
+  entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}'],
   unbundle: true,
   // With one subpath, the common base would be src/schema and drop it from dist.
   root: 'src',
@@ -24,6 +24,11 @@ export default defineConfig(({ watch }) => ({
   outDir: 'dist',
   outExtensions: () => ({ js: '.js' }),
   deps: {
-    neverBundle: ['@oztix/roadie-core']
+    neverBundle: [
+      'react',
+      'react-dom',
+      '@oztix/roadie-core',
+      /^@oztix\/roadie-components/
+    ]
   }
 }))

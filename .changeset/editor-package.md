@@ -46,3 +46,18 @@ node and mark names.
   an `aspect` (a ratio or a fixed height), an optional `label`, and an
   optional `shareUrl`; apps pass their own list, starting from
   `defaultEmbedProviders`, to add one.
+
+`@oztix/roadie-editor/render` renders a saved value with no editor code, in a
+server component or on the client. `renderEditorValue(value, { size,
+className })` returns React elements in `Prose`, with links through Roadie's
+`Link`, and `renderEditorHtml` returns the same content as an HTML string in
+a `.prose` element. Both run `migrate` first, render only the nodes, marks
+and attributes the value's preset defines, drop a link whose href is unsafe
+and keep its text, and never render raw HTML. Underline renders as `u`,
+headings as `h2` to `h4`, images with `loading="lazy"`, and embeds as a lazy,
+sandboxed `iframe` whose `src` `embedSrc` rebuilds; both take
+`embedProviders`, and drop embeds from any provider not in it. A table
+renders in a `.prose-scroll`, so a wide one scrolls rather than widening the
+page, with a first row of header cells in a `thead` (unless one spans more
+than one row, which a `thead` would clip), `colspan` and `rowspan`
+only above 1, and no widths or styles.
