@@ -6,7 +6,8 @@ import {
   ListBulletsIcon,
   ListNumbersIcon,
   TextBIcon,
-  TextItalicIcon
+  TextItalicIcon,
+  TextUnderlineIcon
 } from '@phosphor-icons/react'
 import type { Editor } from '@tiptap/react'
 
@@ -44,6 +45,14 @@ const italic: EditorControl = {
   shortcut: ['mod', 'i'],
   run: (editor) => editor.chain().focus().toggleItalic().run(),
   pressed: (editor) => editor.isActive('italic')
+}
+
+const underline: EditorControl = {
+  label: 'Underline',
+  icon: TextUnderlineIcon,
+  shortcut: ['mod', 'u'],
+  run: (editor) => editor.chain().focus().toggleUnderline().run(),
+  pressed: (editor) => editor.isActive('underline')
 }
 
 const link: EditorControl = {
@@ -89,6 +98,7 @@ const redo: EditorControl = {
 const basicControls = [
   bold,
   italic,
+  underline,
   link,
   SEPARATOR,
   bulletList,

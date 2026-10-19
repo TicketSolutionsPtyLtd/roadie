@@ -28,8 +28,8 @@ and a `subtler` editor's invalid edge:
 
 ### Default
 
-The toolbar holds the preset's controls: bold, italic, link, bulleted and
-numbered lists, undo, and redo, a size smaller than the text. It sits in a
+The toolbar holds the preset's controls: bold, italic, underline, link,
+bulleted and numbered lists, undo, and redo, a size smaller than the text. It sits in a
 bordered bar at the top of the editor, and each control's tooltip shows its
 shortcut.
 
@@ -78,8 +78,8 @@ planned.
 ### With content
 
 `defaultValue` takes an `EditorValue` from `@oztix/roadie-editor/schema`. The
-`basic` preset holds paragraphs, bulleted and numbered lists, bold, italic, and
-links.
+`basic` preset holds paragraphs, bulleted and numbered lists, bold, italic,
+underline, and links.
 
 ```tsx-live-prose
 <Editor
@@ -465,7 +465,8 @@ render(
   the one before it and Shift+Tab lifts it back out.
 - The toolbar is a `toolbar` named Formatting, with `aria-controls` set to
   the editable area. It takes one Tab stop, and the arrow keys move between its
-  controls, scrolling the one with focus into view on a phone. Bold, italic, link, and the lists are toggles that report
+  controls, scrolling the one with focus into view on a phone. Bold, italic, underline,
+  link, and the lists are toggles that report
   `aria-pressed` for the text at the caret. Undo and Redo are disabled when
   there's nothing to undo or redo, and stay focusable.
 - Each control carries its shortcut in `aria-keyshortcuts`.
@@ -481,6 +482,7 @@ render(
 | --- | --- |
 | `Mod+B` | Bold |
 | `Mod+I` | Italic |
+| `Mod+U` | Underline |
 | `Mod+K` | Add, change, or remove a link |
 | `Mod+Shift+8` | Bulleted list |
 | `Mod+Shift+7` | Numbered list |

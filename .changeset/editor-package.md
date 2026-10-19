@@ -80,7 +80,7 @@ text, that hugs its controls, scrolls away with the text, and looks the same
 whether you're editing or not, so the text never moves. It takes Toolbar's
 `emphasis` (`normal` by default), independent of the editor's. On a phone or
 touch screen its controls scroll sideways on one row. The controls are Bold,
-Italic, Link, Bulleted list, Numbered list, Undo, and Redo, each with its
+Italic, Underline, Link, Bulleted list, Numbered list, Undo, and Redo, each with its
 shortcut in a tooltip; the toggles show pressed for the text at the caret,
 and Undo and Redo are disabled, but focusable, when there's nothing to undo or
 redo. Alt+F10 in the text moves focus to the toolbar, and Escape moves it back
