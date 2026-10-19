@@ -1,6 +1,12 @@
 import type { Extensions } from '@tiptap/core'
 import { Heading } from '@tiptap/extension-heading'
 import { Link } from '@tiptap/extension-link'
+import {
+  Table,
+  TableCell,
+  TableHeader,
+  TableRow
+} from '@tiptap/extension-table'
 import { StarterKit } from '@tiptap/starter-kit'
 
 import { isUnsafeHref } from '@oztix/roadie-core/utils'
@@ -44,6 +50,15 @@ const RichHeading = Heading.extend({
   }
 }).configure({ levels: [2, 3, 4] })
 
+// A cell saves only its spans: widths and alignment are the renderer's call,
+// and it holds paragraphs only, so no table, list or image sits in a cell.
+const cellSpec = {
+  content: 'paragraph+',
+  addAttributes() {
+    return { colspan: { default: 1 }, rowspan: { default: 1 } }
+  }
+}
+
 const notInStarterKit = {
   code: false,
   codeBlock: false,
@@ -68,7 +83,11 @@ const rich: Extensions = [
   RichHeading,
   SafeLink,
   Image,
-  Embed
+  Embed,
+  Table.configure({ resizable: false }),
+  TableRow,
+  TableHeader.extend(cellSpec),
+  TableCell.extend(cellSpec)
 ]
 
 export const presets = { basic, rich } as const satisfies Record<

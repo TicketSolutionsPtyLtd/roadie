@@ -1,9 +1,17 @@
 /**
- * What a node holds: one or more blocks, a paragraph then blocks, inline
- * content, one or more list items, or nothing.
+ * What a node holds: one or more blocks, a paragraph then blocks, one or more
+ * paragraphs, inline content, one or more list items, one or more table rows,
+ * table cells, or nothing.
  */
 export type NodeContent =
-  'blocks' | 'paragraphFirst' | 'inline' | 'listItems' | 'none'
+  | 'blocks'
+  | 'paragraphFirst'
+  | 'paragraphs'
+  | 'inline'
+  | 'listItems'
+  | 'tableRows'
+  | 'tableCells'
+  | 'none'
 
 export type NodeShape = {
   inline?: true
@@ -45,7 +53,11 @@ export const presetShapes = {
       blockquote: { content: 'blocks' },
       horizontalRule: { content: 'none' },
       image: { content: 'none', attrs: ['src', 'alt'] },
-      embed: { content: 'none', attrs: ['provider', 'id', 'params'] }
+      embed: { content: 'none', attrs: ['provider', 'id', 'params'] },
+      table: { content: 'tableRows' },
+      tableRow: { content: 'tableCells' },
+      tableHeader: { content: 'paragraphs', attrs: ['colspan', 'rowspan'] },
+      tableCell: { content: 'paragraphs', attrs: ['colspan', 'rowspan'] }
     },
     marks
   }

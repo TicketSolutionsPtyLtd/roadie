@@ -350,6 +350,233 @@ const docOf = (...content: object[]): JSONContent => ({
   content: content as JSONContent[]
 })
 
+const para = (text?: string) => ({
+  type: 'paragraph',
+  ...(text && { content: [textOf(text)] })
+})
+const cellOf = (...content: object[]) => ({ type: 'tableCell', content })
+const headerOf = (...content: object[]) => ({ type: 'tableHeader', content })
+const rowOf = (...content: object[]) => ({ type: 'tableRow', content })
+const tableOf = (...content: object[]) => ({ type: 'table', content })
+const lineup = tableOf(
+  rowOf(headerOf(para('Time')), headerOf(para('Act'))),
+  rowOf(cellOf(para('9pm')), cellOf(para('Ochre Kite')))
+)
+
+describe('migrate and tables', () => {
+  it('keeps a table with a header row, its marks and links', () => {
+    const doc = docOf(
+      tableOf(
+        rowOf({
+          type: 'tableHeader',
+          attrs: { colspan: 2, rowspan: 1 },
+          content: [para('Set times')]
+        }),
+        rowOf(
+          cellOf({
+            type: 'paragraph',
+            content: [
+              textOf('9pm', [
+                { type: 'bold' },
+                { type: 'link', attrs: { href: 'https://www.oztix.com.au' } }
+              ])
+            ]
+          }),
+          { type: 'tableCell', attrs: { rowspan: 2 }, content: [para('Act')] }
+        )
+      )
+    )
+
+    expect(migrate({ version: 1, preset: 'rich', doc }).doc).toEqual(doc)
+  })
+
+  it.each([
+    [
+      'a row with no cells, dropping it',
+      tableOf(rowOf(), ...lineup.content),
+      lineup
+    ],
+    ['a table with no rows, dropping it', tableOf(), []],
+    [
+      'a table whose rows have no cells, dropping it',
+      tableOf(rowOf(), rowOf()),
+      []
+    ],
+    [
+      'a cell with no content, giving it a paragraph',
+      tableOf(rowOf(cellOf(), { type: 'tableHeader' })),
+      tableOf(rowOf(cellOf(para()), headerOf(para())))
+    ],
+    [
+      'a cell holding a heading, a list and a quote, keeping their text as paragraphs',
+      tableOf(
+        rowOf(
+          cellOf(
+            {
+              type: 'heading',
+              attrs: { level: 2 },
+              content: [textOf('Lineup')]
+            },
+            {
+              type: 'bulletList',
+              content: [
+                { type: 'listItem', content: [para('Bar')] },
+                { type: 'listItem', content: [para('Cloakroom')] }
+              ]
+            },
+            { type: 'blockquote', content: [para('Loud')] }
+          )
+        )
+      ),
+      tableOf(
+        rowOf(
+          cellOf(para('Lineup'), para('Bar'), para('Cloakroom'), para('Loud'))
+        )
+      )
+    ],
+    [
+      'a cell holding a table, keeping its cells’ text as paragraphs',
+      tableOf(rowOf(cellOf(lineup))),
+      tableOf(
+        rowOf(
+          cellOf(para('Time'), para('Act'), para('9pm'), para('Ochre Kite'))
+        )
+      )
+    ],
+    [
+      'a cell holding only an image, an embed and a divider, leaving a paragraph',
+      tableOf(
+        rowOf(
+          cellOf(
+            { type: 'image', attrs: { src: '/images/crowd.webp', alt: '' } },
+            {
+              type: 'embed',
+              attrs: { provider: 'youtube', id: 'exampleVid1' }
+            },
+            { type: 'horizontalRule' }
+          )
+        )
+      ),
+      tableOf(rowOf(cellOf(para())))
+    ],
+    [
+      'loose text in a cell, keeping it as a paragraph',
+      tableOf(rowOf(cellOf(textOf('9pm')))),
+      tableOf(rowOf(cellOf(para('9pm'))))
+    ],
+    [
+      'a row holding a paragraph, keeping it in a cell',
+      tableOf(rowOf(para('9pm'), cellOf(para('Ochre Kite')))),
+      tableOf(rowOf(cellOf(para('9pm')), cellOf(para('Ochre Kite'))))
+    ],
+    [
+      'a row holding an image only, dropping the row',
+      tableOf(
+        rowOf({ type: 'image', attrs: { src: '/images/crowd.webp' } }),
+        ...lineup.content
+      ),
+      lineup
+    ],
+    [
+      'cells straight in a table, keeping them in a row',
+      tableOf(cellOf(para('9pm')), headerOf(para('Act')), ...lineup.content),
+      tableOf(
+        rowOf(cellOf(para('9pm')), headerOf(para('Act'))),
+        ...lineup.content
+      )
+    ],
+    [
+      'a paragraph straight in a table, keeping it in a cell of a row',
+      tableOf(para('Doors 7pm')),
+      tableOf(rowOf(cellOf(para('Doors 7pm'))))
+    ],
+    [
+      'a row outside a table, keeping its cells’ text as paragraphs',
+      rowOf(cellOf(para('9pm')), headerOf(para('Act'))),
+      [para('9pm'), para('Act')]
+    ],
+    [
+      'a cell outside a table, keeping its paragraphs',
+      cellOf(para('9pm')),
+      para('9pm')
+    ]
+  ])('reshapes %s', (_, stored, expected) => {
+    const value = {
+      version: 1,
+      preset: 'rich',
+      doc: docOf(stored, para('Doors 7pm'))
+    }
+
+    const { doc: migrated } = migrate(value)
+
+    expect(migrated).toEqual(docOf(...[expected].flat(), para('Doors 7pm')))
+    expect(() =>
+      Node.fromJSON(getSchema(presets.rich), migrated).check()
+    ).not.toThrow()
+  })
+
+  it.each([
+    [
+      'a colwidth, an alignment and a style',
+      { colwidth: [120], align: 'center', style: 'color: red' },
+      undefined
+    ],
+    [
+      'spans of 2 and 3',
+      { colspan: 2, rowspan: 3 },
+      { colspan: 2, rowspan: 3 }
+    ],
+    ['spans of 0 and -1', { colspan: 0, rowspan: -1 }, undefined],
+    ['fractional spans', { colspan: 1.5, rowspan: Number.NaN }, undefined],
+    ['spans as text', { colspan: '2', rowspan: '1' }, undefined],
+    [
+      'one whole span and one not',
+      { colspan: 2, rowspan: null },
+      { colspan: 2 }
+    ]
+  ])('keeps only whole positive spans of a cell with %s', (_, stored, kept) => {
+    const value = {
+      version: 1,
+      preset: 'rich',
+      doc: docOf(
+        tableOf(
+          rowOf(
+            { type: 'tableHeader', attrs: stored, content: [para('Act')] },
+            { type: 'tableCell', attrs: stored, content: [para('9pm')] }
+          )
+        )
+      )
+    }
+
+    expect(migrate(value).doc).toEqual(
+      docOf(
+        tableOf(
+          rowOf(
+            {
+              type: 'tableHeader',
+              ...(kept && { attrs: kept }),
+              content: [para('Act')]
+            },
+            {
+              type: 'tableCell',
+              ...(kept && { attrs: kept }),
+              content: [para('9pm')]
+            }
+          )
+        )
+      )
+    )
+  })
+
+  it('reads a table into a basic value, keeping each cell’s text as paragraphs', () => {
+    const value = { version: 1, preset: 'rich', doc: docOf(lineup) }
+
+    expect(migrate(value, 'basic').doc).toEqual(
+      docOf(para('Time'), para('Act'), para('9pm'), para('Ochre Kite'))
+    )
+  })
+})
+
 describe('migrate and nodes or marks outside the preset', () => {
   it.each([
     [
@@ -594,6 +821,53 @@ describe('migrate and nodes or marks outside the preset', () => {
       [bulletsOf(itemOf({ type: 'image', attrs: { src: 'javascript:x' } }))]
     ],
     ['an empty quote', [{ type: 'blockquote', content: [] }]],
+    ['a table', [lineup]],
+    ['a table with no rows', [tableOf()]],
+    ['a table with an empty row', [tableOf(rowOf())]],
+    ['a table with an empty cell', [tableOf(rowOf(cellOf()))]],
+    [
+      'a table cell holding blocks a cell can’t hold',
+      [
+        tableOf(
+          rowOf(
+            cellOf(
+              { type: 'heading', content: [textOf('Lineup')] },
+              bulletsOf(itemOf(para('Bar'))),
+              image,
+              embed,
+              lineup
+            )
+          )
+        )
+      ]
+    ],
+    ['a table row holding a paragraph', [tableOf(rowOf(para('9pm')))]],
+    ['a table holding a paragraph', [tableOf(para('9pm'))]],
+    ['a table cell outside a row', [tableOf(cellOf(para('9pm')))]],
+    ['a table row outside a table', [rowOf(cellOf(para('9pm')))]],
+    ['a table cell outside a table', [headerOf(para('Act'))]],
+    ['a table inside a list item', [bulletsOf(itemOf(para('Set'), lineup))]],
+    ['a table row inside a list', [bulletsOf(rowOf(cellOf(para('9pm'))))]],
+    [
+      'a table row starting a list item',
+      [bulletsOf(itemOf(rowOf(cellOf(para('9pm')))))]
+    ],
+    [
+      'a table row inside a quote',
+      [{ type: 'blockquote', content: [rowOf(cellOf(para('9pm')))] }]
+    ],
+    [
+      'table cells with widths and bad spans',
+      [
+        tableOf(
+          rowOf({
+            type: 'tableCell',
+            attrs: { colwidth: [100], colspan: 0, rowspan: '2' },
+            content: [para('9pm')]
+          })
+        )
+      ]
+    ],
     [
       'a mark twice',
       [
