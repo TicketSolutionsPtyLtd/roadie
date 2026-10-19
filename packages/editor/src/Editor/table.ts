@@ -23,10 +23,10 @@ const BLOCK = 'p, div, h1, h2, h3, h4, h5, h6, ul, ol, blockquote, table'
 
 // A cell holds paragraphs only, so ProseMirror would close a cell at a list
 // and put the list after the table. Each item becomes a paragraph instead.
+// DOMParser builds an inert document: nothing in the paste runs or loads.
 export function cellListsAsParagraphs(html: string) {
-  const template = document.createElement('template')
-  template.innerHTML = html
-  const { content } = template
+  const parsed = new DOMParser().parseFromString(html, 'text/html')
+  const content = parsed.body
   for (const item of [
     ...content.querySelectorAll(':is(td, th) li')
   ].reverse()) {
@@ -35,7 +35,7 @@ export function cellListsAsParagraphs(html: string) {
       item.replaceWith(...item.childNodes)
       continue
     }
-    const paragraph = document.createElement('p')
+    const paragraph = parsed.createElement('p')
     paragraph.append(...item.childNodes)
     item.replaceWith(paragraph)
   }
@@ -44,7 +44,7 @@ export function cellListsAsParagraphs(html: string) {
   ].reverse()) {
     list.replaceWith(...list.childNodes)
   }
-  return template.innerHTML
+  return content.innerHTML
 }
 
 const EditingTable = Table.extend({
