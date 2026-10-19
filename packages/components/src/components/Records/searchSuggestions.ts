@@ -146,7 +146,7 @@ function stepOperators(field: RecordField): ValueOperator[] {
 
 const operatorLabel = (field: RecordField, operator: ValueOperator) =>
   (field.type === 'date' && DATE_LABELS[operator]) ||
-  recordOperatorLabel(operator)
+  recordOperatorLabel(operator, field)
 
 /** The operators a value step toggles between: a number's as symbols, and emptiness in words. */
 export function valueOperators(

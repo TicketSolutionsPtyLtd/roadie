@@ -30,8 +30,32 @@ export const EVENT_FIELDS: RecordField[] = [
     label: 'Location',
     type: 'location',
     options: [
-      { value: 'melbourne', label: 'Melbourne' },
-      { value: 'sydney', label: 'Sydney' }
+      { value: 'au', label: 'Australia', kind: 'country' },
+      { value: 'au-vic', label: 'Victoria', kind: 'state', parent: 'au' },
+      {
+        value: 'au-vic-melbourne',
+        label: 'Melbourne',
+        kind: 'city',
+        parent: 'au-vic'
+      },
+      {
+        value: 'au-vic-fitzroy',
+        label: 'Fitzroy',
+        kind: 'suburb',
+        parent: 'au-vic-melbourne'
+      },
+      {
+        value: 'au-nsw',
+        label: 'New South Wales',
+        kind: 'state',
+        parent: 'au'
+      },
+      {
+        value: 'au-nsw-sydney',
+        label: 'Sydney',
+        kind: 'city',
+        parent: 'au-nsw'
+      }
     ]
   },
   {
@@ -65,7 +89,7 @@ export const WEEKEND_VIEW: RecordView = {
   query: {
     search: 'lampshade',
     filters: [
-      { field: 'location', operator: 'is', values: ['melbourne'] },
+      { field: 'location', operator: 'is', values: ['au-vic-melbourne'] },
       { field: 'starts', operator: 'within', value: 'this-weekend' },
       { field: 'offer', operator: 'is-not', values: ['sold_out'] }
     ],

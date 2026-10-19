@@ -24,7 +24,14 @@ export const eventFields: RecordField[] = [
     label: 'City',
     type: 'location',
     options: [
-      { value: 'melbourne', label: 'Melbourne' },
+      { value: 'victoria', label: 'Victoria', kind: 'state' },
+      { value: 'melbourne', label: 'Melbourne', parent: 'victoria' },
+      {
+        value: 'fitzroy',
+        label: 'Fitzroy',
+        kind: 'suburb',
+        parent: 'melbourne'
+      },
       { value: 'sydney', label: 'Sydney' },
       { value: 'perth', label: 'Perth' }
     ]

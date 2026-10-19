@@ -326,9 +326,20 @@ The toolbar's search is a [query field](/components/query-field) named "Search a
 
 ```tsx-live-noinline
 const field = recordFields()
+const places = [
+  { value: 'au', label: 'Australia', kind: 'country' },
+  { value: 'au-qld', label: 'Queensland', kind: 'state', parent: 'au' },
+  { value: 'au-qld-brisbane', label: 'Brisbane', kind: 'city', parent: 'au-qld' },
+  { value: 'au-qld-fortitude-valley', label: 'Fortitude Valley', kind: 'suburb', parent: 'au-qld-brisbane' },
+  { value: 'au-qld-west-end', label: 'West End', kind: 'suburb', parent: 'au-qld-brisbane' },
+  { value: 'au-vic', label: 'Victoria', kind: 'state', parent: 'au' },
+  { value: 'au-vic-melbourne', label: 'Melbourne', kind: 'city', parent: 'au-vic' },
+  { value: 'au-vic-fitzroy', label: 'Fitzroy', kind: 'suburb', parent: 'au-vic-melbourne' },
+  { value: 'au-vic-st-kilda', label: 'St Kilda', kind: 'suburb', parent: 'au-vic-melbourne' }
+]
 const fields = [
   field.text('show', { label: 'Show' }),
-  field.location('location', { label: 'Location' }),
+  field.location('location', { label: 'Location', options: places }),
   { ...field.option('venue', { label: 'Venue' }), icon: <BuildingsIcon weight='bold' /> },
   field.option('status', {
     label: 'Status',
@@ -347,20 +358,19 @@ const columns = [
   column.field('sold')
 ]
 const bands = ['Ocean Alley', 'Ball Park Music', 'Julia Jacklin', 'Angie McMahon', 'Alex Lahey', 'Middle Kids']
-const places = [
-  ['Melbourne', 'Kazoo Hollow Room'],
-  ['Sydney', 'Echidna Gaslight Theatre'],
-  ['Brisbane', 'Iguana Teapot Hall'],
-  ['Perth', 'Saltbush Trumpet Ballroom'],
-  ['Hobart', 'Nimbus Thistle Hall']
+const venues = [
+  ['au-qld-fortitude-valley', 'Kazoo Hollow Room'],
+  ['au-vic-fitzroy', 'Echidna Gaslight Theatre'],
+  ['au-qld-west-end', 'Iguana Teapot Hall'],
+  ['au-vic-st-kilda', 'Saltbush Trumpet Ballroom']
 ]
 const statuses = ['on_sale', 'selling_fast', 'sold_out']
 const today = plainDateOf(new Date(), viewerTimeZone())
 const shows = Array.from({ length: 60 }, (_, index) => ({
   id: `show-${index}`,
   show: bands[index % bands.length],
-  location: places[index % places.length][0],
-  venue: places[index % places.length][1],
+  location: venues[index % venues.length][0],
+  venue: venues[index % venues.length][1],
   status: statuses[index % statuses.length],
   starts: addDays(today, index % 45),
   sold: (index * 137) % 2400
@@ -373,11 +383,20 @@ render(
     fields={fields}
     columns={columns}
     getRowId={(row) => row.id}
-    defaultView={{ query: { filters: [{ field: 'status', operator: 'is', values: ['on_sale', 'selling_fast'] }] } }}
+    defaultView={{
+      query: {
+        filters: [
+          { field: 'status', operator: 'is', values: ['on_sale', 'selling_fast'] },
+          { field: 'location', operator: 'is', values: ['au-qld-brisbane'] }
+        ]
+      }
+    }}
     defaultPosition={{ pageSize: 10 }}
   />
 )
 ```
+
+Each show holds its suburb, and a location's places nest, so the example's "Location is in Brisbane" chip shows the shows in Fortitude Valley and West End, and "Location is in Queensland" would too. Remove the chip, or change it to **is not in**, to see the rest. [Places](/foundations/records#places) covers how they nest.
 
 #### Searching
 
@@ -388,7 +407,7 @@ Typing searches the searchable fields, and suggests the filters the text reads:
 - an identifier, by its `match`
 - a date phrase for each date field, such as "this weekend" or "after 1 dec"
 
-Pick a suggestion with the arrows and Enter, or a click, to add its chip. Enter with no suggestion picked searches the text. A filter takes only the words it reads, and the rest stay in the field for the next one. Typing "melb this weekend" offers "Location is Melbourne" and "Start date is this weekend".
+Pick a suggestion with the arrows and Enter, or a click, to add its chip. Enter with no suggestion picked searches the text. A filter takes only the words it reads, and the rest stay in the field for the next one. Typing "melb this weekend" offers "Location is in Melbourne" and "Start date is this weekend".
 
 #### Picking a field
 
@@ -396,7 +415,8 @@ Focus the empty field to list the fields to filter by. Pick one, and the list sh
 
 | Field            | Operators                                         | Values                                                                                                  |
 | ---------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Option, location, or status | is, is not, and has all of for a `multiple` field | Its `options`, or up to 1,000 values its records hold. Past that, or when a server filters the records, you type the value. |
+| Option or status | is, is not, and has all of for a `multiple` field | Its `options`, or up to 1,000 values its records hold. Past that, or when a server filters the records, you type the value. |
+| Location         | is in and is not in, which take in every place inside | Its places, each with where it is, such as "Suburb in Brisbane". Without `options`, its records' values, as an option's. |
 | Text             | contains, doesn't contain, is, and is not         | What you type                                                                                           |
 | Number or money  | `=`, `≠`, `<`, `>`, and between                   | What you type                                                                                           |
 | Boolean          | is                                                | Yes and No                                                                                              |
@@ -419,7 +439,7 @@ Another option value taken under **is** joins that field's is chip, which matche
 
 Click a chip, or press Enter on it, to edit it in the list. It turns back into a dashed chip in its place, with its value in the field and selected, so typing replaces it. The toggle shows the chip's operator, and the list ticks what the chip holds.
 
-- **An option or location chip.** Its values stay in the dashed chip, and the field is empty. Take values to tick and untick them, and the list stays open for more. Unticking the last value removes the chip. Enter on typed text only ticks. Press **is**, **is not**, or **has all of** to change the condition and keep the values. A chip changed to **is** joins the field's is chip.
+- **An option or location chip.** Its values stay in the dashed chip, and the field is empty. Take values to tick and untick them, and the list stays open for more. Unticking the last value removes the chip. Enter on typed text only ticks. Press **is**, **is not**, or **has all of** (**is in** or **is not in** on a location) to change the condition and keep the values. A chip changed to **is** joins the field's is chip.
 - **A text or number chip.** Its value is in the field and its condition in the toggle, such as 20 and 50 under **between**. Change either, and Enter replaces the chip once the value reads and ends the edit.
 - **A date chip.** Its dates are in the field, such as 12 Nov to 15 Dec under **is between**, or This week under **is relative**. Type others, or take a quick date or a day from the calendar, to replace them and end the edit.
 - **A boolean chip.** The field is empty. Yes or No replaces what the chip holds and ends the edit.

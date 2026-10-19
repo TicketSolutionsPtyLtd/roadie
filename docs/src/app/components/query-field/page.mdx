@@ -447,9 +447,9 @@ function QueryFieldRemainder() {
     if (words.includes('melb'))
       items.push({
         id: 'location:melbourne',
-        label: 'Location is Melbourne',
+        label: 'Location is in Melbourne',
         kind: 'filter',
-        value: { id: 'location', label: 'Location is Melbourne' },
+        value: { id: 'location', label: 'Location is in Melbourne' },
         remainder: words.replace(/\S*melb\S*/, '').trim()
       })
     if (words.includes('weekend'))
