@@ -18,7 +18,7 @@ import { Records, downloadCsv, useRecords } from '@oztix/roadie-components/recor
 import { recordFields, recordsToCsv } from '@oztix/roadie-core/records'
 ```
 
-Fields with a `match` hold a RegExp, and columns with a `cell`, `getRowId` and the `useRecords` instance hold functions, so they can't pass from a Server Component. Build them and render the table in a client component, a file that starts with `'use client'`.
+Columns with a `cell`, `getRowId` and the `useRecords` instance hold functions, so they can't pass from a Server Component. Build them and render the table in a client component, a file that starts with `'use client'`.
 
 ## Examples
 
@@ -479,7 +479,7 @@ A page that shows part of a list, such as one venue's shows or one event's ticke
 
 The scope is never part of the view. Saved views and the URL leave it out. Clear, and the empty state's Clear search and filters, keep it. A list filtered only by its scope counts as unfiltered.
 
-In server mode, fetch `records.request`. Its query is the applied query with the scope's filters first, as is `records.scopedQuery`. `toMeilisearch` reads a whole view, so pass it `{ ...records.appliedView, query: records.scopedQuery }`. Table and bulk actions get the same query and request, so an action on every match stays within the page.
+In server mode, fetch `records.request`. Its query is the applied query with the scope's filters first, as is `records.scopedQuery`, and `toMeilisearch` reads it as it is. Table and bulk actions get the same query and request, so an action on every match stays within the page.
 
 A scope holds any filter a field can apply. An app turns a rule such as "products on this event, its days, or its collection" into filters on its own fields.
 
@@ -1092,9 +1092,9 @@ To build a request away from the table, as for a link or a scheduled export, cal
 
 ### Range loading
 
-Pass `loadRange` for one long list with no pages that loads the records on screen as people scroll. The list asks for the rows on screen plus a screen either side, a page per request, each a request with `start` and `end`, `end` exclusive, to POST as it is. Each range is one whole page, page `start / pageSize`, so fetch `pageSize` records from `start`; the last one can run past the end of the list, unless the count is one the server stopped at, where it ends at the count. Fetch it, put the records in `data` at their index with `placeRange` from `@oztix/roadie-core/records`, then resolve. Rows that haven't arrived show as grey placeholders. Pass `rowCount` as the total that matches, so the scrollbar is the right length from the first frame. A count that grows, as when a record is added at the end, loads the rows it adds. A record added anywhere else moves the rows after it, so clear `data` then.
+Pass `loadRange` for one long list with no pages that loads the records on screen as people scroll. The list asks for the rows on screen plus a screen either side, a page per request, each a request with `start` and `end`, `end` exclusive, to POST as it is. Each range is one whole page, page `start / pageSize`, so fetch `pageSize` records from `start`; the last one can run past the end of the list, unless the count is one the server stopped at, where it ends at the count. Resolve with `{ rows, rowCount }`: the range's records, in order, and the total that matches, with `rowCountExact: false` when it is a floor. Leave out `data`; the list holds what it loads. Rows that haven't arrived show as grey placeholders.
 
-The server searches, filters and sorts, as in server mode, and the search waits for a pause in typing. Clear `data` when the query or the zone changes, or when you pass a new `now` and a relative date filter (such as Upcoming) would match other records, or the old records count as loaded and are never fetched again. This example keeps the records with the query they belong to, drops a response for an older one, and keeps the last total until the new query's first response, so the scrollbar holds its length. Every request waits 400ms.
+The server searches, filters and sorts, as in server mode, and the search waits for a pause in typing. The list keeps each range's records with the request they answer, drops a response for an older one, and starts over when the search, filters, sort or zone change, or when a new `now` moves a relative date. It keeps the last total until the new query's first response, so the scrollbar holds its length. The first range brings the count, so a list that opens at a saved row asks for the first page, then the row's. A count that grows, as when a record is added at the end, loads the rows it adds. Every request in this example waits 400ms.
 
 If `loadRange` rejects, the range shows an error row in place of its records, with Retry, and the records already loaded stay. When nothing has loaded yet, the table shows its error state instead. Range mode stops at 300,000 rows. With range loading, `Records.Pagination` shows the count instead of pages, such as "1,284 shows", or "50+ shows" while the total is unknown, with no page buttons and no rows per page: the list scrolls. Paging stays for paged tables.
 
@@ -1125,53 +1125,32 @@ function pretendServer(request) {
   const { query, start, end } = request
   const matching = sortRecords(everyShow.filter(compileRecordQuery(query, fields)), query.sort, fields, { timeZone: query.timeZone })
   return new Promise((resolve) =>
-    setTimeout(
-      () =>
-        resolve({
-          rows: matching.slice(start, end),
-          rowCount: matching.length,
-          request
-        }),
-      400
-    )
+    setTimeout(() => resolve({ rows: matching.slice(start, end), rowCount: matching.length }), 400)
   )
 }
 
-const firstView = { query: { search: '', filters: [], sort: [] }, layout: { type: 'table' } }
-
 function RangeShows() {
-  const [view, setView] = useState(firstView)
-  const key = JSON.stringify(view.query)
-  const [result, setResult] = useState({ key, data: [], rowCount: undefined, request: null })
-  if (result.key !== key) setResult({ ...result, key, data: [] })
+  const [request, setRequest] = useState(null)
 
   return (
     <div className='grid gap-3'>
       <RecordTable
         caption='Shows'
-        data={result.data}
-        rowCount={result.rowCount}
         fields={fields}
         columns={columns}
         getRowId={(row) => row.id}
         recordName={{ one: 'show', other: 'shows' }}
-        view={view}
-        onViewChange={setView}
         defaultPosition={{ pageSize }}
         timeZone={timeZone}
-        loadRange={async (request) => {
-          const next = await pretendServer(request)
-          setResult((current) =>
-            current.key === key
-              ? { ...next, key, data: placeRange(current.data, request.start, next.rows) }
-              : current
-          )
+        loadRange={(next) => {
+          setRequest(next)
+          return pretendServer(next)
         }}
         maxHeight='30rem'
       />
-      {result.request && (
+      {request && (
         <pre className='rounded-md bg-sunken p-3 font-mono text-xs break-all whitespace-pre-wrap text-subtle'>
-          {JSON.stringify(result.request)}
+          {JSON.stringify(request)}
         </pre>
       )}
     </div>
@@ -1181,11 +1160,11 @@ function RangeShows() {
 render(<RangeShows />)
 ```
 
-With Meilisearch, fetch each range as a page: `toMeilisearch(view, fields, { now, timeZone, position: { page: start / pageSize, pageSize } })`, and pass `totalHits` as `rowCount`. Raise the index's `pagination.maxTotalHits` to the longest list a screen can show.
+With Meilisearch, `toMeilisearch(request, fields)` fetches each range as a page, so return its `hits` as `rows` and `totalHits` as `rowCount`. Raise the index's `pagination.maxTotalHits` to the longest list a screen can show.
 
-Some APIs page with a cursor and never say how many records match. Leave out `rowCount` and the list asks for one range at a time, from the end of what it holds, and stops once a range comes back short or resolves without placing any records. The scrollbar grows as records arrive. Keep each range's cursor by where it starts, and set the page size to the API's.
+Some APIs page with a cursor and never say how many records match. Resolve with `rows` alone and the list asks for one range at a time, from the end of what it holds, and stops once a range comes back short or empty. The scrollbar grows as records arrive. Keep each range's cursor by where it starts, and set the page size to the API's.
 
-The list reports the first row on screen as `position.row`, through `onPositionChange`, a few times a second while people scroll. Keep it with the view, such as in the URL, and coming back to the list lands on the same row, loading its range first. A row the list reported itself never scrolls it back, so a slow router replaying an older row can't jump the list. Scrolling changes `row` often, so write it to the URL without adding history.
+The list reports the first row on screen as `position.row`, through `onPositionChange`, a few times a second while people scroll. Keep it with the view, such as in the URL, and coming back to the list lands on the same row once the first range brings the count, loading the row's range before any between. A row the list reported itself never scrolls it back, so a slow router replaying an older row can't jump the list. Scrolling changes `row` often, so write it to the URL without adding history.
 
 ### Long lists
 
@@ -1601,10 +1580,10 @@ column.field('location', { pin: true })`}
 </Guideline>
 
 <Guideline title='Load by range when people scroll and come back'>
-  <Guideline.Do code={`<RecordTable rowCount={total} loadRange={loadRange} {...props} />`}>
+  <Guideline.Do code={`<RecordTable loadRange={async (request) => ({ rows, rowCount })} {...props} />`}>
     Load by range when the list is long and people scroll it, open a record
     and come back. Return a total with each range, so the scrollbar is honest
-    from the start and a restored row lands on the first frame.
+    and a restored row lands as soon as the count arrives.
   </Guideline.Do>
   <Guideline.Dont
     code={`<RecordTable data={everyRecord} defaultPosition={{ pageSize: 100000 }} {...props} />`}
@@ -1647,7 +1626,7 @@ column.field('location', { pin: true })`}
 function useRecords<Row extends object>(options: UseRecordsOptions<Row>): RecordsInstance<Row>
 ```
 
-Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data`, `rowCount`, `rowCountExact` (false when the count is a floor the server stopped at), `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `baseline` (the saved view the screen opened), `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is), `now` (when relative dates resolve, by default when the list mounted in the browser; a server reads no clock, so a relative date filter shows the loading state until then) `loadRange` (which loads the list by range as people scroll) and `onRequestChange` (which hears each request to fetch). Pass the result to `Records` or `Records.Provider`.
+Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data` (left out with `loadRange`), `rowCount`, `rowCountExact` (false when the count is a floor the server stopped at), `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `baseline` (the saved view the screen opened), `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is), `now` (when relative dates resolve, by default when the list mounted in the browser; a server reads no clock, so a relative date filter shows the loading state until then) `loadRange` (which loads the list by range as people scroll, resolving with `{ rows, rowCount, rowCountExact }`) and `onRequestChange` (which hears each request to fetch). Pass the result to `Records` or `Records.Provider`.
 
 | Field | Type | Description |
 | --- | --- | --- |

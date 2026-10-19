@@ -93,7 +93,6 @@ import {
 } from '@oztix/roadie-core/datetime'
 import {
   compileRecordQuery,
-  placeRange,
   recordFields,
   recordViewToSearchParams,
   recordsToCsv,
@@ -221,7 +220,6 @@ const scope = {
   sortRecords,
   toRecordsRequest,
   toMeilisearch,
-  placeRange,
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,

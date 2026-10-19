@@ -139,16 +139,14 @@ export function querySuggestionsExample() {
   )
 }
 
-/** The example view as Meilisearch parameters, worked out by `toMeilisearch`. */
+/** The example view's request as Meilisearch parameters, worked out by `toMeilisearch`. */
 export function viewMeilisearchExample() {
-  const params = toMeilisearch(WEEKEND_VIEW, EVENT_FIELDS, {
-    now: new Date(EXAMPLE_NOW),
-    timeZone: EXAMPLE_ZONE
-  })
-  const call = `toMeilisearch(view, eventFields, {
+  const params = toMeilisearch(weekendRequest(), EVENT_FIELDS)
+  const call = `const request = toRecordsRequest(view.query, eventFields, {
   now: new Date('${EXAMPLE_NOW}'), // ${EXAMPLE_NOW_LABEL}
   timeZone: '${EXAMPLE_ZONE}'
-})`
+}, { page: 0, pageSize: 50 })
+toMeilisearch(request, eventFields)`
   return callAndResult(call, params)
 }
 

@@ -64,6 +64,7 @@ export type {
   RecordsRow
 } from './types'
 export type { RecordsRange } from './ranges'
+export type { RecordsRangeResult } from './useRangeLoading'
 export type { RecordsActionsProps } from './RecordsActions'
 export type { RecordsOptionsProps } from './RecordsOptions'
 export type { RecordsBulkActionsProps } from './RecordsBulkActions'

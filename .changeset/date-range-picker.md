@@ -9,7 +9,9 @@ showing a date range that opens presets, typed start and end dates, and a range
 subpath and the package root.
 
 The value is a `DateRangeValue` from `@oztix/roadie-core/datetime`. A preset
-is emitted as given, so "Last 30 days" stays relative when saved; typed or
+is emitted relative, in its one form (`canonicalDateRange`), so "Last 30
+days" stays relative when saved and `{ period: 'week', offset: -1 }` arrives
+as `'last-week'`; typed or
 pressed dates become an absolute `{ start, end }`, and null when both are
 cleared. Nothing is emitted while typed text names no date. The typed Start
 and End are comboboxes that suggest single dates as `DateField` does, never

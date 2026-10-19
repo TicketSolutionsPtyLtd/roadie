@@ -31,7 +31,7 @@ import {
 
 import { isDev } from '../../utils/isDev'
 import { applyQuery, isFiltered, toView } from './query'
-import { MAX_RANGE_ROWS, rangeKey } from './ranges'
+import { MAX_RANGE_ROWS } from './ranges'
 import {
   EMPTY_SELECTION,
   selectedCount as countSelected,
@@ -50,16 +50,16 @@ import type {
   RecordsRangeState,
   RecordsRow
 } from './types'
-import { useRangeLoading } from './useRangeLoading'
+import { type RecordsRangeResult, useRangeLoading } from './useRangeLoading'
 
 export type UseRecordsOptions<Row extends object> = {
-  /** Every record, which Records filters, sorts and pages in the browser. With `rowCount`, the page the server returned. With `loadRange`, the records loaded so far, each at its index, with gaps left undefined (`placeRange` puts a range in place). */
-  data: readonly (Row | undefined)[]
+  /** Every record, which Records filters, sorts and pages in the browser. With `rowCount`, the page the server returned. Leave it out with `loadRange`, which holds the records it loads. */
+  data?: readonly Row[]
   /**
-   * How many records the search and filters match on the server. Giving it turns on server mode: `data` is one page, already searched, filtered, sorted and paged, and the search waits for a pause in typing. Fetch the `request` that `onRequestChange` hears. Once given, server mode stays: an `undefined` count keeps the last one. Pass 0 until the first count arrives.
+   * How many records the search and filters match on the server. Giving it turns on server mode: `data` is one page, already searched, filtered, sorted and paged, and the search waits for a pause in typing. Fetch the `request` that `onRequestChange` hears. Once given, server mode stays: an `undefined` count keeps the last one. Pass 0 until the first count arrives. With `loadRange`, each range's result carries the count instead.
    */
   rowCount?: number
-  /** False when `rowCount` is a floor the server stopped counting at, such as a search index's 10,000: counts read "10,000+", paging stops at the last page the server can reach, and no range runs past the count. @default true */
+  /** False when `rowCount` is a floor the server stopped counting at, such as a search index's 10,000: counts read "10,000+" and paging stops at the last page the server can reach. With `loadRange`, each range's result carries it instead. @default true */
   rowCountExact?: boolean
   /** What each record holds. Keep the array stable (module scope or `useMemo`). */
   fields: readonly RecordsField[]
@@ -109,9 +109,9 @@ export type UseRecordsOptions<Row extends object> = {
   /** The record's page. Return `undefined` for a record with none. */
   getRowHref?: (row: Row) => string | undefined
   /**
-   * Turns on range mode: one long list, searched, filtered and sorted on the server, that loads the records on screen as people scroll. Each gets the request for one range: one page of `pageSize` records from `start`, `end` exclusive. Put the records in `data` at their index with `placeRange`, then resolve. With `rowCount` the list is that long from the start; without it, ranges load one after another until one comes back short. A rejection shows the range's error with Retry.
+   * Turns on range mode: one long list, searched, filtered and sorted on the server, that loads the records on screen as people scroll. Each gets the request for one range: one page of `pageSize` records from `start`, `end` exclusive. Resolve with its `rows` and, once known, `rowCount` (and `rowCountExact`). The list holds the rows for the request they answer, drops a reply for an older one, and starts over when the search, filters, sort, zone or a relative date's resolved dates change. Without a count, ranges load one after another until one comes back short. A rejection shows the range's error with Retry.
    */
-  loadRange?: (request: RecordsRangeRequest) => Promise<void> | void
+  loadRange?: (request: RecordsRangeRequest) => Promise<RecordsRangeResult<Row>>
   /** Hears `request` once the list is in the browser, then each time it changes: what to fetch in server mode, as the list resolved it. */
   onRequestChange?: (request: RecordsRequest) => void
 }
@@ -222,9 +222,11 @@ const inBrowser = () => true
 const onServer = () => false
 const NO_SCOPE: readonly RecordFilter[] = []
 
+const NO_DATA: readonly never[] = []
+
 export function useRecords<Row extends object>({
-  data,
-  rowCount,
+  data: dataOption = NO_DATA,
+  rowCount: rowCountOption,
   rowCountExact = true,
   fields,
   getRowId = indexId,
@@ -286,11 +288,13 @@ export function useRecords<Row extends object>({
 
   // A page that loads without a count keeps the last one, so the records
   // don't fall back to the browser and prune the selection or the page.
+  const ranged = loadRange !== undefined
+  // Range mode's count comes with each range.
+  const rowCount = ranged ? undefined : rowCountOption
   const [lastCount, setLastCount] = useState(rowCount)
   if (rowCount !== undefined && !Object.is(rowCount, lastCount))
     setLastCount(rowCount)
   const count = rowCount ?? lastCount
-  const ranged = loadRange !== undefined
   const server = count !== undefined || ranged
   // The field paints each keystroke; filtering thousands of rows follows. A
   // server's search already waited for typing to pause.
@@ -365,6 +369,22 @@ export function useRecords<Row extends object>({
     [appliedQuery, scopedFilters]
   )
 
+  // A new page size starts over, as pages asked for at the old one would block it.
+  const key = `${JSON.stringify(resolvedQuery)}@${position.pageSize}`
+  const range = useRangeLoading<Row>({
+    loadRange:
+      loadRange &&
+      ((rows) =>
+        loadRange({
+          version: RECORDS_REQUEST_VERSION,
+          query: resolvedQuery,
+          ...rows
+        })),
+    key,
+    size: position.pageSize
+  })
+  const data: readonly (Row | undefined)[] = ranged ? range.rows : dataOption
+
   // The records held, gaps left out, each with its index in `data`.
   const loaded = useMemo(() => {
     const rows: Row[] = []
@@ -405,25 +425,6 @@ export function useRecords<Row extends object>({
     )
   }, [server, awaitingClock, loaded, resolvedQuery, fields, zone])
 
-  // A new page size starts over, as pages asked for at the old one would block it.
-  const key = `${rangeKey(scopedQuery, zone)}@${position.pageSize}`
-  const range = useRangeLoading({
-    loadRange:
-      loadRange &&
-      ((rows) =>
-        loadRange({
-          version: RECORDS_REQUEST_VERSION,
-          query: resolvedQuery,
-          ...rows
-        })),
-    key,
-    rowCount: count === undefined ? undefined : whole(count, 0, 0),
-    rowCountExact,
-    size: position.pageSize,
-    data,
-    held: loaded.rows.length
-  })
-
   const rangeCapped = ranged && range.capped
 
   const warned = useRef(new Set<string>())
@@ -432,7 +433,8 @@ export function useRecords<Row extends object>({
   const rangeUnidentified = ranged && getRowId === indexId
   const rangePaged =
     ranged && heldPosition.page !== undefined && heldPosition.page > 0
-  const countCapped = ranged && count !== undefined && count > MAX_RANGE_ROWS
+  const countCapped =
+    ranged && range.rowCount !== undefined && range.rowCount > MAX_RANGE_ROWS
   useEffect(() => {
     if (!isDev()) return
     const warn = (message: string) => {
@@ -472,7 +474,9 @@ export function useRecords<Row extends object>({
     : server
       ? whole(count, 0, 0)
       : matching.length
-  const resultCountExact = count === undefined || rowCountExact
+  const resultCountExact = ranged
+    ? range.rowCount === undefined || range.rowCountExact
+    : count === undefined || rowCountExact
   // A range list is one long page. Past a floor the server stopped counting
   // at, only whole pages within it can be fetched.
   const pageCount = ranged

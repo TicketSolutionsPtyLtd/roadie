@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { act, render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
@@ -193,12 +193,15 @@ describe('Records.Status in range mode', () => {
   })
 
   function Ranged() {
-    const records = useRecords({
-      data: testShows(50),
+    const loads = useRef(0)
+    const records = useRecords<TestShow>({
       fields: showFields,
       getRowId: (row) => row.id,
-      rowCount: 500,
-      loadRange: () => new Promise<void>(() => {})
+      // The first query's range loads; the next one's never does.
+      loadRange: async () =>
+        loads.current++ === 0
+          ? { rows: testShows(50), rowCount: 500 }
+          : new Promise(() => {})
     })
     useEffect(() => {
       holder.records = records
@@ -210,9 +213,10 @@ describe('Records.Status in range mode', () => {
     )
   }
 
-  it("holds the last query's count while the new query's range loads", () => {
+  it("announces loading, not the last query's count, while the new query's range loads", async () => {
     vi.useFakeTimers()
     render(<Ranged />)
+    await act(async () => holder.records!.range!.show(0, 15))
     act(() =>
       holder.records!.addFilter({
         field: 'city',
@@ -223,6 +227,6 @@ describe('Records.Status in range mode', () => {
     act(() => holder.records!.range!.show(100, 115))
     expect(holder.records!.range!.loading).toBe(true)
     act(() => vi.advanceTimersByTime(600))
-    expect(status()).toHaveTextContent('')
+    expect(status()).toHaveTextContent('Loading')
   })
 })

@@ -19,7 +19,7 @@ import {
 } from 'vitest'
 import { userEvent as browserUserEvent } from 'vitest/browser'
 
-import { type RecordPosition, placeRange } from '@oztix/roadie-core/records'
+import type { RecordPosition } from '@oztix/roadie-core/records'
 
 import {
   RecordTable,
@@ -428,16 +428,13 @@ describe('RecordTable narrow list rows in a browser', () => {
     const sample = testShows(1)[0]!
     function Ranged() {
       const [position, setPosition] = useState<RecordPosition>({ row: 480 })
-      const [data, setData] = useState<(TestShow | undefined)[]>([])
       return (
         <Boxed width={360}>
           <RecordTable
             {...base}
-            data={data}
-            rowCount={5000}
             position={position}
             onPositionChange={setPosition}
-            loadRange={({ start, end }) => {
+            loadRange={async ({ start, end }) => {
               const rows = Array.from(
                 { length: Math.min(end, 5000) - start },
                 (_, offset) => ({
@@ -446,7 +443,7 @@ describe('RecordTable narrow list rows in a browser', () => {
                   show: `show-${start + offset}`
                 })
               )
-              setData((current) => placeRange(current, start, rows))
+              return { rows, rowCount: 5000 }
             }}
           />
         </Boxed>
@@ -982,26 +979,22 @@ function NarrowRanged({
   spans: number[]
 } & Partial<RecordTableProps<TestShow>>) {
   const all = useMemo(() => testShows(100), [])
-  const [data, setData] = useState<(TestShow | undefined)[]>([])
   const failed = useRef(false)
   return (
     <Boxed width={360}>
       <RecordTable
         {...six}
         columns={detailColumns}
-        data={data}
         narrow={layout}
         recordName={{ one: 'show', other: 'shows' }}
         defaultPosition={{ pageSize: 10 }}
-        loadRange={({ start, end }) => {
+        loadRange={async ({ start, end }) => {
           spans.push(start)
           if (start === 10 && !failed.current) {
             failed.current = true
-            return Promise.reject(new Error('Offline'))
+            throw new Error('Offline')
           }
-          setData((current) =>
-            placeRange(current, start, all.slice(start, end))
-          )
+          return { rows: all.slice(start, end) }
         }}
         {...props}
       />
