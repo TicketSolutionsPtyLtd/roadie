@@ -17,6 +17,7 @@ import {
   ChartLineIcon,
   CompassIcon,
   CubeIcon,
+  GithubLogoIcon,
   HouseIcon,
   ListDashesIcon,
   PaintBrushIcon,
@@ -27,11 +28,13 @@ import {
 } from '@phosphor-icons/react'
 
 import type { CatalogueCategory, CatalogueEntry } from '@/lib/page-manifest'
+import { REPO_URL } from '@/lib/repo'
 import { useRoute } from '@/lib/route'
 import type { PageStatus } from '@/lib/status'
 import { relatedLinks } from '@/lib/token-families'
 
 import { Navigator, Pane } from '@oztix/roadie-components'
+import { IconButton } from '@oztix/roadie-components/button'
 import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
 
 import { AgentMenu } from './AgentMenu'
@@ -76,6 +79,8 @@ type NavigationProps = {
   markdownTwins: Record<string, boolean>
   /** Route → its status and releases, for pages that set a status. */
   pageStatus?: Record<string, PageStatusInfo>
+  /** Route → its source on GitHub, relative to the repo URL. */
+  sourceLinks?: Record<string, string>
   children: ReactNode
 }
 
@@ -114,6 +119,7 @@ export function DocsNavigator({
   pageWide,
   markdownTwins,
   pageStatus = {},
+  sourceLinks = {},
   children
 }: NavigationProps) {
   const route = useRoute()
@@ -293,6 +299,15 @@ export function DocsNavigator({
         <Pane className='scroll-pt-6'>
           <Pane.Header>
             <Pane.Actions>
+              {sourceLinks[route] ? (
+                <IconButton
+                  href={`${REPO_URL}/${sourceLinks[route]}`}
+                  aria-label='View source on GitHub'
+                  emphasis='normal'
+                >
+                  <GithubLogoIcon weight='bold' className='size-5' />
+                </IconButton>
+              ) : null}
               <AgentMenu
                 route={route}
                 hasTwin={markdownTwins[route] === true}

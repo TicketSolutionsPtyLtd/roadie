@@ -6,7 +6,8 @@ import remarkParse from 'remark-parse'
 import { unified } from 'unified'
 import { parse as parseYaml } from 'yaml'
 
-export const REPO_URL = 'https://github.com/TicketSolutionsPtyLtd/roadie'
+import { REPO_URL } from './repo'
+
 export const CHANGELOG_ROUTE = '/overview/changelog'
 
 /** The packages the changelog follows, in the order a release lists them. */
@@ -391,13 +392,14 @@ export function byKind<T extends { kind: ChangeKind }>(changes: T[]) {
   })).filter((group) => group.changes.length > 0)
 }
 
-type ManifestJson = {
+export type ManifestJson = {
   package?: string
   exports?: { subpath: string; import: string; values?: string[] }[]
   components?: { name: string; import: string; docs?: string }[]
 }
 
-const SITE_PREFIX = /^https:\/\/ticketsolutionsptyltd\.github\.io\/roadie/
+export const SITE_PREFIX =
+  /^https:\/\/ticketsolutionsptyltd\.github\.io\/roadie/
 
 /**
  * Names and import paths → docs pages, from the packages' manifests. A
@@ -1251,7 +1253,7 @@ const readPageInfo: PageInfo = (route) => {
     : undefined
 }
 
-const readManifests = () =>
+export const readManifests = () =>
   RELEASED_PACKAGES.map(({ dir }) =>
     readJson<ManifestJson>(
       join(ROOT, 'packages', dir, 'dist/roadie.manifest.json')

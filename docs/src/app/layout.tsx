@@ -26,6 +26,7 @@ import {
   readPageMetadata
 } from '@/lib/page-manifest'
 import { getPageRelease, getReleaseViews } from '@/lib/releases'
+import { getSourceLinks } from '@/lib/source-links'
 import { getAssetPath } from '@/utils/getAssetPath'
 
 import { getNavigatorExpandedScript } from '@oztix/roadie-core/navigator'
@@ -160,6 +161,7 @@ export default async function RootLayout({
               twins.map((route) => [route, true])
             )}
             pageStatus={pageStatus}
+            sourceLinks={getSourceLinks(releases.map(({ href }) => href))}
           >
             {children}
           </DocsNavigator>
