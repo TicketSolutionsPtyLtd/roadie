@@ -13,8 +13,8 @@ here.
 **Read-only.** Never merge, approve, review, comment on, edit, rebase, or
 push to the Version Packages PR or its `changeset-release/<base>` branch, and
 never run `changeset version` or `changeset publish`. Don't add or edit a
-changeset here either; a gap becomes its own PR. The one file this skill may
-write is the release note in section 4, in a PR of its own. Release timing is
+changeset here either; a gap becomes its own PR. The release note in
+section 4 is a draft in the hand-off, not a file or a PR. Release timing is
 the maintainer's call, so don't suggest a date or a cadence.
 
 ## 1. Gather
@@ -110,10 +110,12 @@ the story, such as a new package or a theme across several changes.
   `description`, `href`, `image` (a screenshot under `docs/public/`), and
   `packages` adds a card or rewrites the one with that title. Cards it
   doesn't list follow in their own order.
-- Follow the host's writing rules (`/roadie:content` in Roadie). An unknown
-  field or a title that names no card fails the docs build, so run it.
-- Open it as its own docs PR for the maintainer to merge with or after
-  Version Packages. Put the draft in the hand-off too.
+- Follow the host's writing rules (`/roadie:content` in Roadie).
+- Put the draft and its file path in the hand-off. It goes in a docs PR of
+  its own once Version Packages has merged: until then no release ships its
+  version, and a note naming no released version fails the docs build, as
+  does an unknown field or a title that names no card. Build the docs on
+  that PR to check it.
 
 ## 5. Hand off
 
