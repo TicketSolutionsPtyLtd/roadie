@@ -976,6 +976,12 @@ it covers on that day, from `describeDateRange`.
 - `upcoming` and `past` run from now with no other end. `ongoing` holds
   whatever contains now.
 - The financial year starts in July. Pass `fiscalYearStart` for another month.
+- Each meaning has one form. The last, this, or next day, week, month,
+  quarter, or year is a word, such as `'yesterday'`, `'this-week'`, or
+  `'last-quarter'`; any other period is a `PeriodRange` object.
+  `canonicalDateRange` writes `{ period: 'quarter', offset: -1 }` as
+  `'last-quarter'`, and typed phrases, `DateRangePicker`, and saved views
+  already hold that form.
 - `DateRangePicker` and `DashboardPeriod` take `weekStart` and
   `fiscalYearStart` too, and `Calendar`, `DatePicker`, and `DateField` take
   `weekStart`.

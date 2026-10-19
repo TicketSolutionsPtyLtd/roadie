@@ -1,9 +1,9 @@
 import {
   type RecordField,
   type RecordView,
-  parseQuery,
-  toRecordsRequest,
-  toSearchParams
+  parseRecordQuery,
+  recordViewToSearchParams,
+  toRecordsRequest
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 
@@ -125,35 +125,33 @@ export function callAndResult(call: string, result: unknown) {
 
 const QUERY_TEXT = 'melb this weekend'
 
-/** What `parseQuery` suggests for some typed text, trimmed to the parts the page explains. */
+/** What `parseRecordQuery` suggests for some typed text, trimmed to the parts the page explains. */
 export function querySuggestionsExample() {
-  const suggestions = parseQuery(QUERY_TEXT, {
+  const suggestions = parseRecordQuery(QUERY_TEXT, {
     fields: EVENT_FIELDS,
     now: new Date(EXAMPLE_NOW),
     timeZone: EXAMPLE_ZONE,
     limit: 4
   }).map(({ kind, label, remainder }) => ({ kind, label, remainder }))
   return callAndResult(
-    `parseQuery('${QUERY_TEXT}', { fields: eventFields, now, timeZone })`,
+    `parseRecordQuery('${QUERY_TEXT}', { fields: eventFields, now, timeZone })`,
     suggestions
   )
 }
 
-/** The example view as Meilisearch parameters, worked out by `toMeilisearch`. */
+/** The example view's request as Meilisearch parameters, worked out by `toMeilisearch`. */
 export function viewMeilisearchExample() {
-  const params = toMeilisearch(WEEKEND_VIEW, EVENT_FIELDS, {
-    now: new Date(EXAMPLE_NOW),
-    timeZone: EXAMPLE_ZONE
-  })
-  const call = `toMeilisearch(view, eventFields, {
+  const params = toMeilisearch(weekendRequest(), EVENT_FIELDS)
+  const call = `const request = toRecordsRequest(view.query, eventFields, {
   now: new Date('${EXAMPLE_NOW}'), // ${EXAMPLE_NOW_LABEL}
   timeZone: '${EXAMPLE_ZONE}'
-})`
+}, { page: 0, pageSize: 50 })
+toMeilisearch(request, eventFields)`
   return callAndResult(call, params)
 }
 
-/** The example view on its first page, as `toSearchParams` writes it, one param a line. */
+/** The example view on its first page, as `recordViewToSearchParams` writes it, one param a line. */
 export const viewSearchParamsExample = () =>
-  [...toSearchParams(WEEKEND_VIEW, { page: 0 })]
+  [...recordViewToSearchParams(WEEKEND_VIEW, { page: 0 })]
     .map(([key, value]) => `${key}=${value}`)
     .join('\n')

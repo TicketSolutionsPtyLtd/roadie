@@ -312,7 +312,8 @@ export const RELATIVE_RANGES: [string, DateRangeValue][] = [
     "{ period: 'month', offset: 0, toDate: true }",
     { period: 'month', offset: 0, toDate: true }
   ],
-  ["{ period: 'quarter', offset: -1 }", { period: 'quarter', offset: -1 }],
+  ["'last-quarter'", 'last-quarter'],
+  ["{ period: 'quarter', offset: -2 }", { period: 'quarter', offset: -2 }],
   [
     "{ period: 'year', offset: 0, fiscal: true }",
     { period: 'year', offset: 0, fiscal: true }

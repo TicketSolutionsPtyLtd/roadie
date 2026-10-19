@@ -11,10 +11,10 @@ import {
 import type { RecordView } from '@oztix/roadie-core/records'
 
 import type { AnyRecordLayout } from './layouts'
-import type { RecordsInstance } from './useRecords'
+import type { RecordsState } from './useRecords'
 
 export type RecordsContextValue = {
-  records: RecordsInstance
+  records: RecordsState
   /** Ties the parts of one set of records together wherever they render, such as where focus lands once a bar goes. */
   scope: string
   layouts: readonly AnyRecordLayout[]
@@ -44,7 +44,7 @@ export type RecordsContextValue = {
   bulkConfirming: number | null
   setBulkConfirming: (index: number | null) => void
   /** The records as of the last render, for an action that settles after renders its closure never saw. */
-  latestRecords: RefObject<RecordsInstance>
+  latestRecords: RefObject<RecordsState>
   /** Bumped by each change to the search or filters, so an action can tell its query moved on. */
   queryRevision: RefObject<{ key: string; count: number }>
 }
@@ -64,7 +64,7 @@ export function useRecordsContext() {
 
 /** Select mode as shown: a selection made where Select mode applies is in it before the state commits. */
 export const isSelecting = (
-  records: Pick<RecordsInstance, 'selecting' | 'selectable' | 'selectedCount'>,
+  records: Pick<RecordsState, 'selecting' | 'selectable' | 'selectedCount'>,
   selectMode: boolean
 ) =>
   records.selecting ||

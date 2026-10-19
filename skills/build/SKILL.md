@@ -76,7 +76,7 @@ to pick the right one, and
 [Records model](https://ticketsolutionsptyltd.github.io/roadie/foundations/records/)
 for fields and views.
 
-- **The toolbar is the filter bar.** `Records.Toolbar` holds the search,
+- **The header is the filter bar.** `Records.Header` holds the search,
   which turns typed text into filter chips ("melb this weekend"), and the
   Configure button for sort and columns. Don't build a row of `Select`s,
   date pickers, or a columns menu above the table.
@@ -98,12 +98,12 @@ for fields and views.
   pass `loading`, `error`, and `onRetry` straight from the query. Never swap the
   table for your own message.
 - **In a Pane**, wrap the pane in `Records.Provider`: `Pane.Title` in
-  `Pane.Header`, `Records.Toolbar` and `Records.Content` in `Pane.Body`, and
-  `Records.Pagination` in `Pane.Footer`. Keep the search in the toolbar,
+  `Pane.Header`, `Records.Header` and `Records.Content` in `Pane.Body`, and
+  `Records.Pagination` in `Pane.Footer`. Keep the search in `Records.Header`,
   never in `Pane.Search`.
 - **What the page is about** (one venue's events) is `scope`, not a filter
   in `defaultView`.
-- **Actions.** `tableActions` act on every match, `bulkActions` on a
+- **Actions.** `actions` act on every match, `bulkActions` on a
   selection, and `rowActions` on one row. `getRowHref` links each row.
 
 Use `DataTable` for a read-only summary of about 25 rows or fewer, and `List`

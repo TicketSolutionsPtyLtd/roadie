@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { commands, userEvent } from 'vitest/browser'
 
 import { ToggleGroup, type ToggleGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -405,6 +405,10 @@ describe('an edge fade', () => {
       )
       const group = screen.getByRole('group')
       await expect.poll(fades).toEqual(['0px', '24px'])
+      // The group scrolls clear of the fade on focus, which Firefox only
+      // reports in a focused window.
+      await commands.focusPage()
+      await expect.poll(() => document.hasFocus()).toBe(true)
       await userEvent.tab()
       await userEvent.keyboard('{End}')
       expect(screen.getByRole('button', { name: 'Year' })).toHaveFocus()

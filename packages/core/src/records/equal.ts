@@ -51,12 +51,12 @@ function sameLayout(a: RecordLayout, b: RecordLayout): boolean {
 /**
  * Whether two views show the same thing, for a view's modified state. Id and
  * name are ignored. Chips, a chip's values and hidden columns compare as
- * sets; sort and column order compare in order.
+ * sets; sort and column order compare in order; a relative date range
+ * compares in its one form, so 'last-month' equals a period of month -1.
  */
-export function equalViews(a: RecordView, b: RecordView): boolean {
+export function equalRecordViews(a: RecordView, b: RecordView): boolean {
   return (
     (a.entity ?? '') === (b.entity ?? '') &&
-    (a.group ?? '') === (b.group ?? '') &&
     normaliseSearch(a.query.search) === normaliseSearch(b.query.search) &&
     sameList(chipKeys(a), chipKeys(b)) &&
     sameList(

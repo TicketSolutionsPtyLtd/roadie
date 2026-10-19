@@ -37,7 +37,7 @@ function Shows() {
   })
   return (
     <Records.Root records={records} layouts={layouts}>
-      <Records.Toolbar />
+      <Records.Header />
       <Records.Content />
     </Records.Root>
   )

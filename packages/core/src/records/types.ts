@@ -2,6 +2,7 @@ import type { TableStatus } from '../dashboard/cells'
 import type { ValueFormat } from '../dataviz/format'
 import type { Instantish } from '../datetime/format'
 import type { RelativeRange } from '../datetime/ranges'
+import type { RECORD_VIEW_VERSION } from './versions'
 
 /** The dashboard status column's `{ intent, label?, order? }`, shared. */
 export type StatusDefinition = TableStatus
@@ -40,16 +41,14 @@ export type RecordLayout =
   | { type: 'grid'; fields?: string[] }
 
 export type RecordView = {
-  /** The view format. `validateRecordView` reads a view without one as 1. */
-  version?: 1
+  /** `validateRecordView` reads a view without one as `RECORD_VIEW_VERSION`. */
+  version?: typeof RECORD_VIEW_VERSION
   id?: string
   /** Required once saved; a view read from a URL has none. */
   name?: string
   entity?: string
   query: RecordQuery
   layout: RecordLayout
-  /** Reserved for grouping; no layout reads it yet. */
-  group?: string
 }
 
 /** Page, scroll row and selection belong to the session, never the view. */

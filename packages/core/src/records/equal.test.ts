@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { equalViews } from './equal'
+import { equalRecordViews } from './equal'
 import type { RecordView } from './types'
 
 const base: RecordView = {
@@ -37,7 +37,7 @@ const withQuery = (query: Partial<RecordView['query']>): RecordView => ({
   query: { ...base.query, ...query }
 })
 
-describe('equalViews', () => {
+describe('equalRecordViews', () => {
   it.each<[string, RecordView]>([
     ['itself', base],
     ['a renamed copy', { ...base, id: 'copy', name: 'Copy' }],
@@ -87,12 +87,12 @@ describe('equalViews', () => {
       withQuery({ filters: [...base.query.filters, base.query.filters[0]!] })
     ]
   ])('treats %s as the same view', (_, other) => {
-    expect(equalViews(base, other)).toBe(true)
+    expect(equalRecordViews(base, other)).toBe(true)
   })
 
   it('treats a repeated hidden column as the same view', () => {
     expect(
-      equalViews(
+      equalRecordViews(
         { ...base, layout: { type: 'table', columns: { hidden: ['gross'] } } },
         {
           ...base,
@@ -104,7 +104,7 @@ describe('equalViews', () => {
 
   it('treats missing and empty layout lists as the same', () => {
     expect(
-      equalViews(
+      equalRecordViews(
         { ...base, layout: { type: 'table' } },
         {
           ...base,
@@ -113,7 +113,7 @@ describe('equalViews', () => {
       )
     ).toBe(true)
     expect(
-      equalViews(
+      equalRecordViews(
         { ...base, layout: { type: 'grid' } },
         { ...base, layout: { type: 'grid', fields: [] } }
       )
@@ -156,9 +156,25 @@ describe('equalViews', () => {
       }
     ],
     ['another layout', { ...base, layout: { type: 'grid' } }],
-    ['another entity', { ...base, entity: 'orders' }],
-    ['a group', { ...base, group: 'venue' }]
+    ['another entity', { ...base, entity: 'orders' }]
   ])('notices %s', (_, other) => {
-    expect(equalViews(base, other)).toBe(false)
+    expect(equalRecordViews(base, other)).toBe(false)
+  })
+
+  it('reads two forms of one relative range as the same view', () => {
+    const within = (value: RecordView['query']['filters'][number]) => ({
+      ...base,
+      query: { ...base.query, filters: [value] }
+    })
+    expect(
+      equalRecordViews(
+        within({ field: 'starts', operator: 'within', value: 'last-month' }),
+        within({
+          field: 'starts',
+          operator: 'within',
+          value: { period: 'month', offset: -1 }
+        })
+      )
+    ).toBe(true)
   })
 })
