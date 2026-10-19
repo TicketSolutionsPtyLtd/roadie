@@ -1,13 +1,14 @@
 # @oztix/roadie-editor
 
 The saved format of the rich-text editor for the
-[Roadie Design System](https://ticketsolutionsptyltd.github.io/roadie/). Built on
-[Tiptap](https://tiptap.dev/) v3, using its MIT parts only.
+[Roadie Design System](https://ticketsolutionsptyltd.github.io/roadie/), and
+its renderers. Built on [Tiptap](https://tiptap.dev/) v3, using its MIT parts
+only.
 
 ## Install
 
 ```bash
-pnpm add @oztix/roadie-editor @oztix/roadie-core
+pnpm add @oztix/roadie-editor @oztix/roadie-components @oztix/roadie-core
 ```
 
 Tiptap is a dependency of this package, pinned to one version, so apps never
@@ -81,6 +82,24 @@ string `provider` and `id`, keeping only those and `params`. It reads a heading 
 outside 2 to 4 as the nearest of them, and missing alt text as `''`.
 `createEmptyValue(preset)` starts a new value.
 
+## Rendering a stored value
+
+```tsx
+import {
+  renderEditorHtml,
+  renderEditorValue
+} from '@oztix/roadie-editor/render'
+
+renderEditorValue(value, { size: 'md' }) // React elements in Prose
+renderEditorHtml(value, { size: 'md' }) // the same, as an HTML string
+```
+
+Both run `migrate` first and need none of the editor's code, so they work in a
+server component. They render only the nodes, marks and attributes the value's
+preset defines, through the table in `src/render/elements.ts`, and keep only
+the text of the rest. Links go through Roadie's `Link`, and an unsafe href drops the link but
+keeps its text.
+
 ## Changing the format
 
 Node names, mark names and their attributes are public API: products store
@@ -88,6 +107,9 @@ them. Any change to them, in any preset:
 
 1. bumps `CURRENT_VERSION`, and
 2. adds a step to `migrate` that turns the previous version into the new one.
+
+A new node or mark also needs its entry in `src/render/elements.ts`, or the
+renderers drop it.
 
 A value is never rewritten in place without a version bump.
 
@@ -108,4 +130,5 @@ const src = video && embedSrc(video)
 match exactly, and every id and param must match its provider's pattern before
 `embedSrc` builds a URL, so a stored value can't point a player anywhere else.
 To add a provider, pass `[...defaultEmbedProviders, yours]` as the second
-argument of both functions.
+argument of both functions, and as `embedProviders` to `renderEditorValue`
+and `renderEditorHtml`.
