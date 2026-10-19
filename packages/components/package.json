@@ -332,6 +332,10 @@
       "types": "./dist/components/ToggleGroup/index.d.ts",
       "import": "./dist/components/ToggleGroup/index.js"
     },
+    "./toolbar": {
+      "types": "./dist/components/Toolbar/index.d.ts",
+      "import": "./dist/components/Toolbar/index.js"
+    },
     "./tooltip": {
       "types": "./dist/components/Tooltip/index.d.ts",
       "import": "./dist/components/Tooltip/index.js"
