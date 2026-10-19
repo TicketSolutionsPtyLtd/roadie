@@ -15,7 +15,7 @@ beforeAll(() => {
 afterAll(() => removeStylesheet())
 afterEach(async () => {
   setHoverCapable(true)
-  await commands.parkPointer()
+  await userEvent.unhover(document.body)
   cleanup()
 })
 
