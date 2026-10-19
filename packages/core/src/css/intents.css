@@ -14,6 +14,13 @@
    brand-blue and brand-orange are brand and brand-secondary by hue name.
    ═══════════════════════════════════════════════════════════ */
 
+/* Only the element with the intent class has it, so a normal or subtle link
+   takes its own intent prop but never a surrounding intent. */
+@property --intent-link-own {
+  syntax: '*';
+  inherits: false;
+}
+
 /* --- Default intent (neutral) on :root --- */
 /* Declared again on a nested ThemeProvider's wrapper, so the default intent
    resolves its accent there. */
@@ -70,7 +77,7 @@
   --intent-mark-bg: var(--color-neutral-13);
   --intent-mark-text: var(--color-neutral-0);
 
-  /* A neutral text link is accent; every other intent colours its own. */
+  /* A neutral strong link is accent; every other intent colours its own. */
   --intent-link-underline: var(--color-accent-9);
   --intent-link-text: var(--color-accent-11);
 }
@@ -136,6 +143,7 @@
 
   --intent-link-underline: var(--color-accent-9);
   --intent-link-text: var(--color-accent-11);
+  --intent-link-own: var(--color-accent-9);
 
   .dark & {
     --intent-bg-normal: var(--color-neutral-2);
@@ -197,6 +205,7 @@
 
   --intent-link-underline: var(--color-brand-9);
   --intent-link-text: var(--color-brand-11);
+  --intent-link-own: var(--color-brand-9);
 
   .dark & {
     --intent-bg-normal: var(--color-brand-2);
@@ -288,6 +297,7 @@
 
   --intent-link-underline: var(--color-brand-secondary-9);
   --intent-link-text: var(--color-brand-secondary-11);
+  --intent-link-own: var(--color-brand-secondary-9);
 
   .dark & {
     --intent-bg-normal: var(--color-brand-secondary-2);
@@ -377,6 +387,7 @@
 
   --intent-link-underline: var(--color-accent-9);
   --intent-link-text: var(--color-accent-11);
+  --intent-link-own: var(--color-accent-9);
 
   .dark & {
     --intent-bg-normal: var(--color-accent-2);
@@ -440,6 +451,7 @@
 
   --intent-link-underline: var(--color-danger-9);
   --intent-link-text: var(--color-danger-11);
+  --intent-link-own: var(--color-danger-9);
 
   .dark & {
     --intent-bg-normal: var(--color-danger-2);
@@ -515,6 +527,7 @@
 
   --intent-link-underline: var(--color-success-9);
   --intent-link-text: var(--color-success-11);
+  --intent-link-own: var(--color-success-9);
 
   .dark & {
     --intent-bg-normal: var(--color-success-2);
@@ -598,6 +611,7 @@
 
   --intent-link-underline: var(--color-warning-9);
   --intent-link-text: var(--color-warning-11);
+  --intent-link-own: var(--color-warning-9);
 
   .dark & {
     --intent-bg-normal: var(--color-warning-2);
@@ -673,6 +687,7 @@
 
   --intent-link-underline: var(--color-info-9);
   --intent-link-text: var(--color-info-11);
+  --intent-link-own: var(--color-info-9);
 
   .dark & {
     --intent-bg-normal: var(--color-info-2);

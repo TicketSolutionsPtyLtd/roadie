@@ -20,7 +20,7 @@ import { Link } from '@oztix/roadie-components/link'
 
 ### Default
 
-A link keeps the colour of the text around it and underlines in the accent colour. The underline turns to the text colour on hover and on keyboard focus.
+A link keeps the colour of the text around it and underlines in the accent colour. On hover and on keyboard focus, the underline grows up into a tint behind the text, on every line the link wraps to.
 
 ```tsx-live
 <p>
@@ -30,7 +30,7 @@ A link keeps the colour of the text around it and underlines in the accent colou
 
 ### Emphasis
 
-`normal` is the default. `strong` colours the text too, for a link that has to stand out from the text around it. `subtle` shows its underline only on hover or keyboard focus, for a link whose place already says it's a link.
+`normal` is the default. `strong` colours the text too, for a link that has to stand out from the text around it, and a tint fills it from the left on hover. `subtle` shows its underline only on hover or keyboard focus, rising and fading in, for a link whose place already says it's a link. It fades out a beat after the pointer leaves, so sweeping across a list doesn't flicker. With reduced motion, each one jumps straight to its end state.
 
 ```tsx-live layout=stack
 {/* Normal */}
@@ -43,7 +43,7 @@ A link keeps the colour of the text around it and underlines in the accent colou
 
 ### Intents
 
-`intent` colours the underline, and a strong link’s text. In neutral, the default, a link is accent, as links in `.prose` are. A link inside an `intent-*` surface, such as a danger callout, takes that intent without the prop.
+`intent` colours the underline and tint, and a strong link’s text. A `normal` or `subtle` link is always accent, as links in `.prose` are, unless you give it an `intent` of its own; an `intent-*` surface around it, such as a danger callout, doesn’t change it. A `strong` link follows the surrounding intent too, and is accent in neutral.
 
 ```tsx-live layout=stack
 {/* Neutral */}
@@ -60,7 +60,7 @@ A link keeps the colour of the text around it and underlines in the accent colou
 <Callout intent='danger'>
   <Callout.Title>Payment declined</Callout.Title>
   <Callout.Description>
-    Try another card, or <Link href='#intents'>contact your bank</Link>.
+    Try another card, or <Link href='#intents'>contact your bank</Link>. Read about <Link href='#intents' intent='danger'>declined payments</Link> or <Link href='#intents' emphasis='strong'>update your card</Link>.
   </Callout.Description>
 </Callout>
 ```
@@ -144,9 +144,11 @@ import { Link } from '@oztix/roadie-components/link'
 ## Accessibility
 
 - **Element**: Renders a native `<a href>`, so Enter follows it and the browser’s link menu, middle click and modified clicks work.
-- **Focus**: Keyboard focus shows the Roadie focus ring and turns the underline to the text colour. A `subtle` link shows its underline on keyboard focus too.
+- **Focus**: Keyboard focus shows the Roadie focus ring and the same change as hover, so a `subtle` link shows its underline.
 - **Name**: The link text is its accessible name. Write text that makes sense out of context, such as "View the line-up", not "Click here".
 - **New tabs**: An external link opens in a new tab, and `Link` doesn't announce it. Say so in the text, as the external example does.
-- **Touch**: The underline doesn't change on a tap, so a touch screen never shows a hover state left behind.
+- **Touch**: Nothing changes on a tap, so a touch screen never shows a hover state left behind.
+- **Motion**: With reduced motion, the fill and underline change at once, with no transition or delay.
+- **Contrast**: The tints are 17% of the link colour, so text over them keeps its contrast in light and dark.
 
 <PropsDefinitions component='Link' />

@@ -147,7 +147,7 @@ export const GROUP_NOTES: Record<string, string> = {
   Text: 'Foreground roles, read by the text-* utilities.',
   Borders: 'Edge roles, read by the border-* and divide-* utilities.',
   Mark: 'Highlight colours for mark and search matches.',
-  Link: 'Text link colours, read by the link-* utilities. Accent in neutral.',
+  Link: 'A strong link’s colours, which follow the intent; accent in neutral.',
   'Semantic utilities': 'The Tailwind classes that read the roles above.',
   'Raw steps':
     "The active intent's 14 scale steps, for states a role doesn't cover.",
@@ -177,7 +177,7 @@ export const GROUP_NOTES: Record<string, string> = {
   Keyframes: 'The keyframes the animation classes run.',
   Buttons: 'Pair btn with a size, an intent and an emphasis.',
   'Text links':
-    'A text link’s underline by emphasis, as Link applies it. link-subtle shows it only on hover or keyboard focus.',
+    'A text link’s underline and hover motion by emphasis, as Link applies it. Hover or focus a preview to see it.',
   'Calendar tile':
     'A month and day tile for templates; the parts are dimmed to show which one a class styles.'
 }

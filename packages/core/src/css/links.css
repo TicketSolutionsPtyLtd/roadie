@@ -1,47 +1,118 @@
 /* ═══════════════════════════════════════════════════════════
    Link Utilities
    Text link styles by emphasis: link-normal, link-strong and
-   link-subtle. They own the underline and its hover and
-   focus-visible change; pair with is-interactive for the focus
-   ring. Colours come from --intent-link-*, accent in neutral.
+   link-subtle, with their hover and focus-visible motion. Pair
+   with is-interactive for the focus ring.
+
+   normal and subtle are accent, or the colour of an intent class
+   on the link itself (--intent-link-own, which doesn't inherit);
+   strong follows the surrounding intent (--intent-link-*).
+   Backgrounds clone per line, so a wrapped link animates on each.
+   Reduced motion jumps to the end state through motion.css.
    ═══════════════════════════════════════════════════════════ */
 
 @utility link-normal {
-  text-decoration-line: underline;
-  text-decoration-color: var(--intent-link-underline);
-  text-decoration-thickness: 0.0625em;
-  text-underline-offset: 0.2em;
+  --link-tone: var(--intent-link-own, var(--color-accent-9));
+  --link-fill: color-mix(in oklch, var(--link-tone) 17%, transparent);
+  --link-line: 0.0625em;
+
+  background-image:
+    linear-gradient(var(--link-tone), var(--link-tone)),
+    linear-gradient(var(--link-fill), var(--link-fill));
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size:
+    100% var(--link-line),
+    100% var(--link-line);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+
+  /* Doubled to outrank is-interactive's transition on the same element. */
+  &:is(&) {
+    transition:
+      var(--interactive-transition),
+      background-size var(--duration-moderate) var(--ease-standard);
+  }
 
   &:focus-visible {
-    text-decoration-color: currentColor;
+    background-size:
+      100% var(--link-line),
+      100% 100%;
   }
 
   /* A tap leaves :hover on, so only a pointer that can hover changes it. */
   @media (hover: hover) {
     &:hover {
-      text-decoration-color: currentColor;
+      background-size:
+        100% var(--link-line),
+        100% 100%;
     }
   }
 }
 
 @utility link-strong {
-  @apply link-normal;
-  color: var(--intent-link-text);
-}
+  --link-fill: color-mix(
+    in oklch,
+    var(--intent-link-underline) 17%,
+    transparent
+  );
 
-@utility link-subtle {
-  text-decoration-line: none;
-  text-decoration-color: currentColor;
+  color: var(--intent-link-text);
+  text-decoration-line: underline;
+  text-decoration-color: var(--intent-link-underline);
   text-decoration-thickness: 0.0625em;
   text-underline-offset: 0.2em;
+  background-image: linear-gradient(var(--link-fill), var(--link-fill));
+  background-repeat: no-repeat;
+  background-position: left top;
+  background-size: 0% 100%;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+
+  &:is(&) {
+    transition:
+      var(--interactive-transition),
+      background-size var(--duration-moderate) var(--ease-standard);
+  }
 
   &:focus-visible {
-    text-decoration-line: underline;
+    background-size: 100% 100%;
   }
 
   @media (hover: hover) {
     &:hover {
-      text-decoration-line: underline;
+      background-size: 100% 100%;
+    }
+  }
+}
+
+/* The leave waits a beat, so a pointer sweeping down a list doesn't flicker
+   each link it crosses. */
+@utility link-subtle {
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0.125em;
+  text-underline-offset: 0.375em;
+
+  &:is(&) {
+    transition:
+      var(--interactive-transition),
+      text-decoration-color var(--duration-moderate) var(--ease-enter),
+      text-underline-offset var(--duration-moderate) var(--ease-enter);
+    transition-delay: var(--duration-moderate);
+  }
+
+  &:focus-visible {
+    text-decoration-color: var(--intent-link-own, var(--color-accent-9));
+    text-underline-offset: 0.125em;
+    transition-delay: 0s;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      text-decoration-color: var(--intent-link-own, var(--color-accent-9));
+      text-underline-offset: 0.125em;
+      transition-delay: 0s;
     }
   }
 }
