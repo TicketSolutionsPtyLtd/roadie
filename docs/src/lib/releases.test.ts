@@ -159,7 +159,8 @@ describe('classify', () => {
     ['Migrate the build from tsup to tsdown.', 'patch', 'changed'],
     ['Refine the shadow scale.', 'minor', 'changed'],
     ['Add a `title` to `Kbd`.', 'patch', 'new'],
-    ['`Remove` button labels read better.', 'patch', 'fixed']
+    ['`Remove` button labels read better.', 'patch', 'fixed'],
+    ['First release of `@oztix/roadie-eslint-plugin`.', 'patch', 'new']
   ] as const)('%s (%s) is %s', (summary, bump, kind) => {
     expect(classify(summary, bump)).toBe(kind)
   })
@@ -687,6 +688,31 @@ describe('cardOf', () => {
     ).toMatchObject({
       title: 'Card',
       description: [{ code: 'Card' }, ' drops ', { code: 'as' }, '.']
+    })
+  })
+
+  it("cards a package's first release under its name and docs page", () => {
+    expect(
+      cardOf(
+        change(
+          'First release of `@oztix/roadie-eslint-plugin` through the release workflow.',
+          {
+            packages: ['@oztix/roadie-eslint-plugin'],
+            details:
+              'The package holds ESLint rules that catch Roadie mistakes. Add it.'
+          }
+        ),
+        pages,
+        pageInfo
+      )
+    ).toMatchObject({
+      title: 'ESLint plugin',
+      description: [
+        'The package holds ESLint rules that catch Roadie mistakes.'
+      ],
+      href: '/overview/linting',
+      breaking: false,
+      packages: ['eslint-plugin']
     })
   })
 
