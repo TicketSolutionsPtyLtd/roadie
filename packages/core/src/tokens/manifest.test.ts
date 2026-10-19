@@ -27,6 +27,7 @@ const INTERNAL = [
   '--field-hover-bg',
   '--interactive-within-control-position',
   '--interactive-within-control-z',
+  '--rim-light-own',
   '--toast-away',
   '--toast-collapsed-height',
   '--toast-gap',
