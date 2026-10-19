@@ -1,0 +1,1316 @@
+import type { PhrasingContent } from 'mdast'
+import { execFileSync } from 'node:child_process'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
+import remarkParse from 'remark-parse'
+import { unified } from 'unified'
+import { parse as parseYaml } from 'yaml'
+
+export const REPO_URL = 'https://github.com/TicketSolutionsPtyLtd/roadie'
+export const CHANGELOG_ROUTE = '/overview/changelog'
+
+/** The packages the changelog follows, in the order a release lists them. */
+export const RELEASED_PACKAGES = [
+  { name: '@oztix/roadie-components', label: 'Components', dir: 'components' },
+  { name: '@oztix/roadie-core', label: 'Core', dir: 'core' },
+  { name: '@oztix/roadie-charts', label: 'Charts', dir: 'charts' },
+  { name: '@oztix/roadie-widgets', label: 'Widgets', dir: 'widgets' },
+  {
+    name: '@oztix/roadie-eslint-plugin',
+    label: 'ESLint plugin',
+    dir: 'eslint-plugin'
+  }
+] as const
+
+/** A package's short name, as the changelog's `?package=` filter takes it. */
+export type PackageKey = (typeof RELEASED_PACKAGES)[number]['dir']
+
+export type Bump = 'major' | 'minor' | 'patch'
+export type ChangeKind = 'new' | 'changed' | 'deprecated' | 'removed' | 'fixed'
+
+/** The order and headings a release groups its changes under. */
+export const CHANGE_KINDS: { kind: ChangeKind; title: string }[] = [
+  { kind: 'new', title: 'New' },
+  { kind: 'changed', title: 'Changed' },
+  { kind: 'deprecated', title: 'Deprecated' },
+  { kind: 'removed', title: 'Removed' },
+  { kind: 'fixed', title: 'Fixed' }
+]
+
+export type PageLink = { title: string; href: string }
+
+export type Change = {
+  id: string
+  kind: ChangeKind
+  /** A major bump: code written for the last version may need to change. */
+  breaking: boolean
+  /** Package names, such as `@oztix/roadie-core`. */
+  packages: string[]
+  /** The first sentence, as markdown. */
+  summary: string
+  /** The rest, as markdown, or empty. */
+  details: string
+  pages: PageLink[]
+}
+
+export type PackageVersion = {
+  name: string
+  label: string
+  version: string
+  /** The version's section of the package's changelog on GitHub. */
+  href: string
+}
+
+export type Release = {
+  /** Unique: the release's anchor on the changelog and its own page's slug. */
+  id: string
+  /** `YYYY-MM-DD` in UTC, or null when the checkout has no history to date it. */
+  date: string | null
+  packages: PackageVersion[]
+  changes: Change[]
+}
+
+export type PendingPackage = { name: string; label: string; bump: Bump }
+
+export type ReleaseHistory = {
+  unreleased: { packages: PendingPackage[]; changes: Change[] }
+  releases: Release[]
+}
+
+export type ChangelogEntry = { id: string; bump: Bump; text: string }
+export type ChangelogVersion = { version: string; entries: ChangelogEntry[] }
+
+const BUMP_RANK: Record<Bump, number> = { patch: 0, minor: 1, major: 2 }
+const SECTION_BUMPS: Record<string, Bump> = {
+  'Major Changes': 'major',
+  'Minor Changes': 'minor',
+  'Patch Changes': 'patch'
+}
+
+const packageOf = (name: string) =>
+  RELEASED_PACKAGES.find((pkg) => pkg.name === name)
+const labelOf = (name: string) => packageOf(name)?.label ?? name
+
+function entryFrom(raw: string, bump: Bump): ChangelogEntry | null {
+  const text = raw.trim()
+  if (text.startsWith('Updated dependencies')) return null
+  const hash = text.match(/^([0-9a-f]{7,40}): (?:- )?/)
+  const body = hash ? text.slice(hash[0].length).trim() : text
+  if (!body) return null
+  return { id: hash?.[1] ?? body.slice(0, 60), bump, text: body }
+}
+
+/** Each `## version` of a Changesets changelog, newest first, with its entries. */
+export function parseChangelog(markdown: string): ChangelogVersion[] {
+  return markdown
+    .split(/^## /m)
+    .slice(1)
+    .map((block) => {
+      const [heading = '', ...lines] = block.split('\n')
+      const entries: ChangelogEntry[] = []
+      let bump: Bump = 'patch'
+      let current: string[] | null = null
+      const flush = () => {
+        const entry = current && entryFrom(current.join('\n'), bump)
+        if (entry) entries.push(entry)
+        current = null
+      }
+      for (const line of lines) {
+        const section = line.match(/^### (.+)$/)
+        if (section) {
+          flush()
+          bump = SECTION_BUMPS[section[1]!.trim()] ?? 'patch'
+        } else if (line.startsWith('- ')) {
+          flush()
+          current = [line.slice(2)]
+        } else if (current) {
+          current.push(line.replace(/^ {2}/, ''))
+        }
+      }
+      flush()
+      return { version: heading.trim(), entries }
+    })
+}
+
+export type Changeset = {
+  id: string
+  bumps: Record<string, Bump>
+  text: string
+}
+
+/** A pending `.changeset/*.md`: the bump per package and the entry. */
+export function parseChangeset(id: string, source: string): Changeset | null {
+  const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/)
+  if (!match) return null
+  const bumps: Record<string, Bump> = {}
+  for (const line of match[1]!.split('\n')) {
+    const pkg = line.match(/^\s*['"]?([^'":]+)['"]?\s*:\s*(major|minor|patch)/)
+    if (pkg) bumps[pkg[1]!.trim()] = pkg[2] as Bump
+  }
+  return { id, bumps, text: match[2]!.trim() }
+}
+
+/** The first sentence of the first paragraph, and everything after it. */
+export function summarise(text: string): {
+  summary: string
+  details: string
+} {
+  const [first = '', ...rest] = text.trim().split(/\n\s*\n/)
+  const paragraph = first.replace(/\s+/g, ' ').trim()
+  const summary = paragraph.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? paragraph
+  const remainder = paragraph.slice(summary.length).trim()
+  return {
+    summary,
+    details: [remainder, ...rest.map((block) => block.trim())]
+      .filter(Boolean)
+      .join('\n\n')
+  }
+}
+
+/**
+ * The kind of change, from its bump and the wording of its first sentence.
+ * Changesets use `patch` for a fix and `minor` for a new export, so the bump
+ * decides unless the sentence says otherwise.
+ */
+const CHANGED_VERBS =
+  /^(raise[sd]?|bump(s|ed)?|update[sd]?|upgrade[sd]?|migrate[sd]?|refine[sd]?|align(s|ed)?)\b/
+
+export function classify(summary: string, bump: Bump): ChangeKind {
+  const words = summary.replace(/`[^`]*`/g, 'code').toLowerCase()
+  if (/^(remove[sd]?|drop(s|ped)?|delete[sd]?)\b/.test(words)) return 'removed'
+  if (/\bdeprecat/.test(words)) return 'deprecated'
+  if (/^first release\b/.test(words)) return 'new'
+  if (CHANGED_VERBS.test(words)) return 'changed'
+  if (bump === 'patch') {
+    if (/^(add|adds|added)\b/.test(words)) return 'new'
+    return 'fixed'
+  }
+  if (/^(add|adds|added|introduce[sd]?|new)\b/.test(words)) return 'new'
+  if (
+    /\b(now|no longer|instead|renamed?|replaces?|replaced|moves?|moved)\b/.test(
+      words
+    )
+  )
+    return 'changed'
+  return 'new'
+}
+
+/** Name or import path → the docs page that covers it. */
+export type PageIndex = Map<string, PageLink>
+
+const MAX_PAGES = 4
+
+/** The pages a change names in backticks, such as `Avatar` or `@oztix/roadie-core/records`, in the order it names them. */
+export function linkPages(text: string, index: PageIndex): PageLink[] {
+  const pages = new Map<string, PageLink>()
+  for (const [, code = ''] of text.matchAll(/`([^`\n]+)`/g)) {
+    const key = code.startsWith('@')
+      ? code.trim()
+      : code.match(/^<?([A-Za-z_$][\w$]*)/)?.[1]
+    const page = key ? index.get(key) : undefined
+    if (page && !pages.has(page.href)) pages.set(page.href, page)
+    if (pages.size === MAX_PAGES) break
+  }
+  return [...pages.values()]
+}
+
+export function toChange(
+  entry: { id: string; text: string; bump: Bump; packages: string[] },
+  index: PageIndex
+): Change {
+  const { summary, details } = summarise(entry.text)
+  const [lead = ''] = entry.text.split(/\n\s*\n/)
+  const named = linkPages(summary, index)
+  return {
+    id: entry.id,
+    kind: classify(summary, entry.bump),
+    breaking: entry.bump === 'major',
+    packages: entry.packages,
+    summary,
+    details,
+    pages: named.length > 0 ? named : linkPages(lead, index)
+  }
+}
+
+/**
+ * One entry per changeset, since a changeset that bumps several packages
+ * repeats in each changelog. Matched by text, not hash: every changeset a
+ * commit added carries that commit's hash.
+ */
+function mergeEntries(
+  entries: { id: string; text: string; bump: Bump; packages: string[] }[]
+) {
+  const byText = new Map<string, (typeof entries)[number]>()
+  for (const entry of entries) {
+    const seen = byText.get(entry.text)
+    if (!seen)
+      byText.set(entry.text, { ...entry, packages: [...entry.packages] })
+    else {
+      seen.packages.push(...entry.packages)
+      if (BUMP_RANK[entry.bump] > BUMP_RANK[seen.bump]) seen.bump = entry.bump
+    }
+  }
+  const ids = new Set<string>()
+  return [...byText.values()].map((entry) => {
+    let id = entry.id
+    for (let n = 2; ids.has(id); n++) id = `${entry.id}-${n}`
+    ids.add(id)
+    return { ...entry, id }
+  })
+}
+
+export type PackageChangelog = {
+  name: string
+  versions: ChangelogVersion[]
+  /** Version → the commit that added its heading, with its Unix time. */
+  commits: Map<string, { hash: string; date: string; time: number }>
+}
+
+export const changelogHref = (dir: string, version: string) =>
+  `${REPO_URL}/blob/main/packages/${dir}/CHANGELOG.md#${version.replace(/\./g, '')}`
+
+const PACKAGE_ORDER = new Map<string, number>(
+  RELEASED_PACKAGES.map((pkg, index) => [pkg.name, index])
+)
+
+const orderOf = (name: string) => PACKAGE_ORDER.get(name) ?? Infinity
+
+/** A release's slug, from the first package it versions, such as `components-2-15-0`. */
+export function releaseSlug(packages: { name: string; version: string }[]) {
+  const [lead] = [...packages].sort((a, b) => orderOf(a.name) - orderOf(b.name))
+  if (!lead) return 'release'
+  const dir = packageOf(lead.name)?.dir ?? lead.name.replace(/\W+/g, '-')
+  return `${dir}-${lead.version.replace(/[^\w]+/g, '-')}`
+}
+
+/**
+ * Releases, newest first. A release is the package versions one commit
+ * added, which is how Changesets versions packages together, dated in UTC
+ * by that commit. A version with no commit, as in a shallow checkout, is a
+ * release of its own, ordered newest first across packages.
+ */
+export function groupReleases(
+  changelogs: PackageChangelog[],
+  index: PageIndex
+): Release[] {
+  type Group = {
+    date: string | null
+    time: number
+    packages: PackageVersion[]
+    entries: { id: string; text: string; bump: Bump; packages: string[] }[]
+  }
+  const groups = new Map<string, Group>()
+  for (const { name, versions, commits } of changelogs) {
+    const dir = packageOf(name)?.dir ?? name
+    versions.forEach(({ version, entries }, age) => {
+      const commit = commits.get(version)
+      const key = commit
+        ? `commit:${commit.hash}`
+        : `version:${name}@${version}`
+      const group = groups.get(key) ?? {
+        date: commit?.date ?? null,
+        // Undated versions interleave by age, then by package order.
+        time:
+          commit?.time ??
+          -(age * RELEASED_PACKAGES.length + Math.min(orderOf(name), 99)) - 1,
+        packages: [],
+        entries: []
+      }
+      group.packages.push({
+        name,
+        label: labelOf(name),
+        version,
+        href: changelogHref(dir, version)
+      })
+      group.entries.push(
+        ...entries.map((entry) => ({ ...entry, packages: [name] }))
+      )
+      groups.set(key, group)
+    })
+  }
+  const slugs = new Set<string>()
+  return [...groups.values()]
+    .sort((a, b) => b.time - a.time)
+    .map(({ date, packages, entries }) => {
+      packages.sort((a, b) => orderOf(a.name) - orderOf(b.name))
+      let id = releaseSlug(packages)
+      for (let n = 2; slugs.has(id); n++) id = `${releaseSlug(packages)}-${n}`
+      slugs.add(id)
+      return {
+        id,
+        date,
+        packages,
+        changes: mergeEntries(entries).map((entry) => toChange(entry, index))
+      }
+    })
+}
+
+/** What the pending changesets will release, limited to the packages the changelog follows. */
+export function pendingChanges(
+  changesets: Changeset[],
+  index: PageIndex
+): ReleaseHistory['unreleased'] {
+  const tracked = new Set<string>(RELEASED_PACKAGES.map((pkg) => pkg.name))
+  const bumps = new Map<string, Bump>()
+  const changes: Change[] = []
+  for (const { id, bumps: packageBumps, text } of changesets) {
+    const packages = Object.keys(packageBumps).filter((name) =>
+      tracked.has(name)
+    )
+    if (packages.length === 0 || !text) continue
+    let bump: Bump = 'patch'
+    for (const name of packages) {
+      const next = packageBumps[name]!
+      if (BUMP_RANK[next] > BUMP_RANK[bump]) bump = next
+      const known = bumps.get(name)
+      if (!known || BUMP_RANK[next] > BUMP_RANK[known]) bumps.set(name, next)
+    }
+    changes.push(toChange({ id, text, bump, packages }, index))
+  }
+  return {
+    packages: RELEASED_PACKAGES.filter((pkg) => bumps.has(pkg.name)).map(
+      ({ name, label }) => ({ name, label, bump: bumps.get(name)! })
+    ),
+    changes
+  }
+}
+
+/** Changes of each kind, in `CHANGE_KINDS` order, leaving out empty kinds. */
+export function byKind<T extends { kind: ChangeKind }>(changes: T[]) {
+  return CHANGE_KINDS.map(({ kind, title }) => ({
+    kind,
+    title,
+    changes: changes.filter((change) => change.kind === kind)
+  })).filter((group) => group.changes.length > 0)
+}
+
+type ManifestJson = {
+  exports?: { subpath: string; import: string; values?: string[] }[]
+  components?: { name: string; import: string; docs?: string }[]
+}
+
+const SITE_PREFIX = /^https:\/\/ticketsolutionsptyltd\.github\.io\/roadie/
+
+/**
+ * Names and import paths → docs pages, from the packages' manifests. A
+ * component names its page; the other values of its subpath share it. A
+ * core subpath links to the foundations, components, or charts page of the
+ * same name when one exists.
+ */
+export function buildPageIndex(
+  manifests: ManifestJson[],
+  pageTitle: (route: string) => string | undefined
+): PageIndex {
+  const index: PageIndex = new Map()
+  const add = (key: string, route: string) => {
+    const title = pageTitle(route.split('#')[0]!)
+    if (title && !index.has(key)) index.set(key, { title, href: route })
+  }
+  const routeOf = (docs: string) =>
+    SITE_PREFIX.test(docs)
+      ? docs.replace(SITE_PREFIX, '').replace(/\/(?=#|$)/, '') || '/'
+      : undefined
+
+  const components = manifests.flatMap((manifest) => manifest.components ?? [])
+  for (const { name, docs } of components) {
+    const route = docs && routeOf(docs)
+    if (route) add(name, route)
+  }
+  for (const manifest of manifests) {
+    for (const { subpath, import: path, values = [] } of manifest.exports ??
+      []) {
+      // The root barrel re-exports every component, so it names no one page.
+      if (subpath === '.') continue
+      const owner = components.find(
+        (component) => component.import === path && component.docs
+      )
+      const segment = subpath.split('/')[1]
+      const route = owner?.docs
+        ? routeOf(owner.docs)?.split('#')[0]
+        : segment &&
+          [
+            `/foundations/${segment}`,
+            `/components/${segment}`,
+            `/charts/${segment}`
+          ].find((candidate) => pageTitle(candidate))
+      if (!route) continue
+      add(path, route)
+      for (const value of values) add(value, route)
+    }
+  }
+  return index
+}
+
+// Views: what the changelog page draws for each release.
+
+/** Markdown inline content, flattened to text, code, and links so the client renders it without a parser. */
+export type Inline = (
+  string | { code: string } | { text: string; href: string }
+)[]
+
+/** A highlight, such as a new component or a breaking change, drawn as a card. */
+export type ReleaseCard = {
+  id: string
+  title: string
+  /** The first thing the card names, for the release's title. */
+  name: string
+  description: Inline
+  /** The docs page the card opens. */
+  href?: string
+  /** A screenshot under `docs/public`, from a release note. */
+  image?: string
+  /** The catalogue page whose index art the card shows. */
+  art?: string
+  breaking: boolean
+  packages: PackageKey[]
+}
+
+/** A smaller change, listed under the cards. */
+export type ReleaseItem = {
+  id: string
+  kind: ChangeKind
+  text: Inline
+  page?: PageLink
+  packages: PackageKey[]
+}
+
+export type ReleaseVersion = {
+  package: PackageKey
+  label: string
+  /** The version, or none while it's pending. */
+  version?: string
+  /** The version's entry in the package's changelog on GitHub. */
+  href?: string
+}
+
+export type Headline = { title: string; summary: string }
+
+export type ReleaseView = {
+  /** The release's anchor on the changelog and the last segment of its own page. */
+  slug: string
+  /** Its own page. */
+  href: string
+  /** `YYYY-MM-DD` in UTC, or null when pending or undated. */
+  date: string | null
+  pending: boolean
+  versions: ReleaseVersion[]
+  /** The title and summary for the whole release, and for each package in it, as the filter shows it. */
+  headlines: { all: Headline } & Partial<Record<PackageKey, Headline>>
+  cards: ReleaseCard[]
+  items: ReleaseItem[]
+}
+
+const inlineParser = unified().use(remarkParse)
+
+function flatten(nodes: PhrasingContent[], out: Inline) {
+  for (const node of nodes) {
+    if (node.type === 'inlineCode') out.push({ code: node.value })
+    else if (node.type === 'link') {
+      const text: Inline = []
+      flatten(node.children, text)
+      out.push({ text: plainText(text), href: node.url })
+    } else if ('children' in node)
+      flatten(node.children as PhrasingContent[], out)
+    else if (node.type === 'break') out.push(' ')
+    else if ('value' in node) out.push(node.value)
+  }
+}
+
+/** A line of markdown as text, code, and links. Emphasis drops to plain text. */
+export function toInline(markdown: string): Inline {
+  const [first] = inlineParser.parse(markdown).children
+  if (first?.type !== 'paragraph') return [markdown]
+  const out: Inline = []
+  flatten(first.children, out)
+  return out.reduce<Inline>((merged, part) => {
+    const last = merged.at(-1)
+    if (typeof part === 'string' && typeof last === 'string')
+      merged[merged.length - 1] = last + part
+    else merged.push(part)
+    return merged
+  }, [])
+}
+
+/** `OTPField` → `otp-field`, as component pages are named. */
+const kebab = (name: string) =>
+  name
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase()
+
+/** The page a component name or import path has to itself. */
+function ownPage(name: string, index: PageIndex): PageLink | undefined {
+  const page = index.get(name)
+  if (!page) return undefined
+  if (name.startsWith('@')) return page
+  if (!/^[A-Z][A-Za-z0-9]*$/.test(name)) return undefined
+  return page.href.split('#')[0]!.split('/').at(-1) === kebab(name)
+    ? page
+    : undefined
+}
+
+const ADDS = /^(?:Add|Adds|Added|Introduces?|New)\s+(?:the\s+)?/
+
+/**
+ * The pages of what a change adds, when it opens by naming them, such as
+ * "Add `DateField` (`…/date-field`) and `TimeField`, typed fields", and what
+ * it says after the names.
+ */
+export function addedPages(
+  summary: string,
+  index: PageIndex
+): { pages: PageLink[]; rest: string } | null {
+  const lead = summary.match(ADDS)
+  if (!lead) return null
+  let rest = summary.slice(lead[0].length)
+  const pages: PageLink[] = []
+  for (;;) {
+    const code = rest.match(/^`([^`\n]+)`/)
+    if (!code) break
+    const page = ownPage(code[1]!.trim(), index)
+    if (!page) return null
+    if (!pages.some((known) => known.href === page.href)) pages.push(page)
+    rest = rest.slice(code[0].length)
+    rest = rest.replace(/^\s*(?:\(`[^`]+`\)|(?:at|from)\s+`[^`]+`)/, '')
+    const separator = rest.match(/^(?:,\s*and\s+|\s+and\s+|,\s*)(?=`)/)
+    if (!separator) break
+    rest = rest.slice(separator[0].length)
+  }
+  return pages.length > 0 ? { pages, rest: rest.trim() } : null
+}
+
+export const plainText = (inline: Inline) =>
+  inline
+    .map((part) =>
+      typeof part === 'string' ? part : 'code' in part ? part.code : part.text
+    )
+    .join('')
+
+const capitalise = (text: string) =>
+  text ? `${text[0]!.toUpperCase()}${text.slice(1)}` : text
+
+export type PageInfo = (
+  route: string
+) => { title: string; description?: string } | undefined
+
+const ART_ROUTE = /^\/(components|charts|foundations)\/[\w-]+$/
+
+const artOf = (href: string | undefined) => {
+  const route = href?.split('#')[0]
+  return route && ART_ROUTE.test(route) ? route : undefined
+}
+
+const keysOf = (names: string[]) =>
+  names.flatMap((name) => {
+    const dir = packageOf(name)?.dir
+    return dir ? [dir] : []
+  })
+
+/** The page that introduces a package with no component page of its own. */
+const PACKAGE_PAGES: Record<string, string> = {
+  '@oztix/roadie-eslint-plugin': '/overview/linting'
+}
+
+function firstReleaseCard(
+  change: Change,
+  packages: PackageKey[]
+): ReleaseCard | null {
+  const name = change.summary.match(/^First release of `(@[^`]+)`/)?.[1]
+  const pkg = name ? packageOf(name) : undefined
+  if (!pkg) return null
+  const href = PACKAGE_PAGES[pkg.name]
+  return {
+    id: change.id,
+    title: pkg.label,
+    name: pkg.label,
+    description: toInline(summarise(change.details).summary),
+    href,
+    art: artOf(href),
+    breaking: false,
+    packages
+  }
+}
+
+/** A change as a card: a new component, titled by its page, a package's first release, or a breaking change, titled by its subject. */
+export function cardOf(
+  change: Change,
+  index: PageIndex,
+  pageInfo: PageInfo
+): ReleaseCard | null {
+  const packages = keysOf(change.packages)
+  if (change.breaking) {
+    // A bold lead such as "**Peer dependency change: React 19.2 is required.**" names its subject.
+    const bold = change.summary.match(/^\*\*([^:*]+):/)?.[1]?.trim()
+    const subject = bold && !/^breaking\b/i.test(bold) ? bold : undefined
+    const plain = change.summary
+      .replace(/\*\*/g, '')
+      .replace(/^[^:]*:\s*/, (lead) =>
+        subject || /^breaking\b/i.test(lead) ? '' : lead
+      )
+    const code = change.summary.match(/`([A-Z@][\w./-]*)`/)?.[1]
+    const [page] = change.pages
+    const opening = plain
+      .split(/[:;(—]/)[0]!
+      .replace(/[.!]$/, '')
+      .trim()
+    const title =
+      subject ||
+      page?.title ||
+      code ||
+      (opening.length <= 60 ? capitalise(opening) : GENERIC_BREAKING)
+    // A title that took the whole first sentence leaves the details to describe it.
+    const { summary: next } = summarise(change.details)
+    const description =
+      title === capitalise(opening)
+        ? /^[A-Za-z`]/.test(next)
+          ? next
+          : ''
+        : plain
+    return {
+      id: change.id,
+      title,
+      name: title,
+      description: toInline(capitalise(description)),
+      href: page?.href,
+      art: artOf(page?.href),
+      breaking: true,
+      packages
+    }
+  }
+  if (change.kind !== 'new') return null
+  const debut = firstReleaseCard(change, packages)
+  if (debut) return debut
+  const added = addedPages(change.summary, index)
+  if (!added) return null
+  const [page] = added.pages
+  const appositive = added.rest
+    .match(/^[,:]\s*(.+)$/)?.[1]
+    ?.replace(/^which\s+/, '')
+  const description = appositive
+    ? capitalise(appositive)
+    : (pageInfo(page!.href.split('#')[0]!)?.description ?? '')
+  return {
+    id: change.id,
+    title: andList(added.pages.map((added) => added.title)),
+    name: page!.title,
+    description: toInline(description),
+    href: page!.href,
+    art: artOf(page!.href),
+    breaking: false,
+    packages
+  }
+}
+
+/** Names joined with commas and a closing "and", with the Oxford comma from three. */
+export function andList(names: string[]) {
+  if (names.length < 3) return names.join(' and ')
+  return `${names.slice(0, -1).join(', ')}, and ${names.at(-1)}`
+}
+
+const TITLE_NAMES = 3
+
+const named = (names: string[]) =>
+  andList(
+    names.length > TITLE_NAMES
+      ? [...names.slice(0, TITLE_NAMES), 'more']
+      : names
+  )
+
+const GENERIC_BREAKING = 'Breaking change'
+
+/** The pages the changes touch most, most first. */
+function busiestPages(items: ReleaseItem[]) {
+  const counts = new Map<string, number>()
+  for (const { page } of items)
+    if (page) counts.set(page.title, (counts.get(page.title) ?? 0) + 1)
+  return [...counts].sort((a, b) => b[1] - a[1]).map(([title]) => title)
+}
+
+/** A title from the highlights, then the pages the other changes touch most. */
+export function releaseTitle(cards: ReleaseCard[], items: ReleaseItem[]) {
+  const names = [
+    ...new Set(
+      cards.flatMap((card) =>
+        card.name === GENERIC_BREAKING ? [] : [card.name]
+      )
+    )
+  ]
+  const pages = busiestPages(items).filter((title) => !names.includes(title))
+  if (names.length > 0) {
+    const all = [...names, ...pages]
+    const shown = all.slice(0, TITLE_NAMES)
+    const more = all.length > shown.length || items.some((item) => !item.page)
+    return andList(more ? [...shown, 'more'] : shown)
+  }
+  if (pages.length > 0) return `Updates to ${named(pages)}`
+  if (cards.length > 0 && items.length === 0) return GENERIC_BREAKING
+  if (items.length === 0) return 'Dependency updates'
+  // A lone change's opening words, such as "Add a date and time standard".
+  const [lone] = items
+  const opening = lone?.text[0]
+  const words =
+    typeof opening === 'string' && /^[A-Z]/.test(opening)
+      ? plainText(lone!.text)
+          .split(/[:;(—]/)[0]!
+          .replace(/[.!]$/, '')
+          .trim()
+      : ''
+  if (items.length === 1 && words && words.length <= 48) return words
+  return items.every((item) => item.kind === 'fixed') ? 'Fixes' : 'Updates'
+}
+
+const SUMMARY_NOUNS: Record<ChangeKind, [string, string]> = {
+  new: ['addition', 'additions'],
+  changed: ['change', 'changes'],
+  deprecated: ['deprecation', 'deprecations'],
+  removed: ['removal', 'removals'],
+  fixed: ['fix', 'fixes']
+}
+
+const count = (n: number, [one, many]: [string, string]) =>
+  `${n} ${n === 1 ? one : many}`
+
+/** One line counting what a release holds, such as "4 additions, 2 changes, and 5 fixes." */
+export function releaseSummary(cards: ReleaseCard[], items: ReleaseItem[]) {
+  const counts = new Map<ChangeKind, number>()
+  const add = (kind: ChangeKind) =>
+    counts.set(kind, (counts.get(kind) ?? 0) + 1)
+  const breaking = cards.filter((card) => card.breaking).length
+  for (const card of cards) if (!card.breaking) add('new')
+  for (const item of items) add(item.kind)
+  const parts = [
+    ...(breaking > 0
+      ? [count(breaking, ['breaking change', 'breaking changes'])]
+      : []),
+    ...CHANGE_KINDS.flatMap(({ kind }) => {
+      const n = counts.get(kind)
+      return n ? [count(n, SUMMARY_NOUNS[kind])] : []
+    })
+  ]
+  return parts.length > 0
+    ? `${capitalise(andList(parts))}.`
+    : 'Dependency updates only.'
+}
+
+export type ReleaseNoteHighlight =
+  | string
+  | {
+      title: string
+      description?: string
+      href?: string
+      image?: string
+      packages?: PackageKey[]
+    }
+
+/** A hand-written release note: `docs/src/content/releases/<package>-<version>.md`. */
+export type ReleaseNote = {
+  title?: string
+  summary?: string
+  highlights?: ReleaseNoteHighlight[]
+}
+
+const NOTE_FIELDS = new Set(['title', 'summary', 'highlights'])
+const HIGHLIGHT_FIELDS = new Set([
+  'title',
+  'description',
+  'href',
+  'image',
+  'packages'
+])
+
+/** A release note's frontmatter. Anything it doesn't know fails the build, so a typo never ships silently. */
+export function parseReleaseNote(file: string, source: string): ReleaseNote {
+  const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/)
+  if (!match) throw new Error(`${file} has no frontmatter.`)
+  const note: unknown = parseYaml(match[1]!)
+  const fail = (problem: string) => {
+    throw new Error(`${file}: ${problem}`)
+  }
+  if (!note || typeof note !== 'object') return fail('frontmatter is empty')
+  for (const key of Object.keys(note))
+    if (!NOTE_FIELDS.has(key)) fail(`unknown field "${key}"`)
+  const { title, summary, highlights } = note as Record<string, unknown>
+  if (title !== undefined && typeof title !== 'string')
+    fail('title is not text')
+  if (summary !== undefined && typeof summary !== 'string')
+    fail('summary is not text')
+  if (highlights !== undefined && !Array.isArray(highlights))
+    fail('highlights is not a list')
+  for (const highlight of (highlights as unknown[] | undefined) ?? []) {
+    if (typeof highlight === 'string') continue
+    if (!highlight || typeof highlight !== 'object')
+      fail('a highlight is neither a title nor a card')
+    const card = highlight as Record<string, unknown>
+    for (const key of Object.keys(card))
+      if (!HIGHLIGHT_FIELDS.has(key)) fail(`unknown highlight field "${key}"`)
+    if (typeof card.title !== 'string') fail('a highlight card has no title')
+    for (const key of ['description', 'href', 'image'])
+      if (card[key] !== undefined && typeof card[key] !== 'string')
+        fail(`"${card.title}" ${key} is not text`)
+    if (
+      card.packages !== undefined &&
+      !(
+        Array.isArray(card.packages) &&
+        card.packages.every((key) =>
+          RELEASED_PACKAGES.some((pkg) => pkg.dir === key)
+        )
+      )
+    )
+      fail(
+        `"${card.title}" names a package that isn't one of ${RELEASED_PACKAGES.map((pkg) => pkg.dir).join(', ')}`
+      )
+  }
+  return note as ReleaseNote
+}
+
+/**
+ * The cards a note lists come first, in its order: a title picks an
+ * automatic card, and a card with a title of its own adds one or overrides
+ * the automatic card of that title. The rest follow.
+ */
+export function applyNote(
+  cards: ReleaseCard[],
+  note: ReleaseNote,
+  releasePackages: PackageKey[],
+  where = 'the release note'
+): ReleaseCard[] {
+  const remaining = [...cards]
+  const take = (title: string) => {
+    const at = remaining.findIndex(
+      (card) => card.title.toLowerCase() === title.toLowerCase()
+    )
+    return at >= 0 ? remaining.splice(at, 1)[0] : undefined
+  }
+  const listed = (note.highlights ?? []).map((highlight, index) => {
+    if (typeof highlight === 'string') {
+      const card = take(highlight)
+      if (!card)
+        throw new Error(
+          `${where} lists "${highlight}", which is not one of this release's highlights: ${cards.map((card) => card.title).join(', ')}.`
+        )
+      return card
+    }
+    const base = take(highlight.title)
+    return {
+      id: base?.id ?? `note-${index + 1}`,
+      title: highlight.title,
+      name: highlight.title,
+      description: highlight.description
+        ? toInline(highlight.description)
+        : (base?.description ?? []),
+      href: highlight.href ?? base?.href,
+      image: highlight.image ?? base?.image,
+      art: highlight.image ? undefined : (artOf(highlight.href) ?? base?.art),
+      breaking: base?.breaking ?? false,
+      packages: highlight.packages ?? base?.packages ?? releasePackages
+    }
+  })
+  return [...listed, ...remaining]
+}
+
+const headline = (cards: ReleaseCard[], items: ReleaseItem[]): Headline => ({
+  title: releaseTitle(cards, items),
+  summary: releaseSummary(cards, items)
+})
+
+/** A release as the changelog draws it: cards for its highlights, a list for the rest, and a headline for each filter. */
+export function toReleaseView(
+  release: {
+    slug: string
+    date: string | null
+    pending: boolean
+    versions: ReleaseVersion[]
+    changes: Change[]
+  },
+  {
+    index,
+    pageInfo,
+    note,
+    where
+  }: {
+    index: PageIndex
+    pageInfo: PageInfo
+    note?: ReleaseNote
+    where?: string
+  }
+): ReleaseView {
+  const auto: ReleaseCard[] = []
+  const items: ReleaseItem[] = []
+  for (const change of release.changes) {
+    const card = cardOf(change, index, pageInfo)
+    if (card) auto.push(card)
+    else
+      items.push({
+        id: change.id,
+        kind: change.kind,
+        text: toInline(change.summary),
+        page: change.pages[0],
+        packages: keysOf(change.packages)
+      })
+  }
+  const keys = release.versions.map((version) => version.package)
+  const cards = note ? applyNote(auto, note, keys, where) : auto
+  const all = headline(cards, items)
+  const headlines: ReleaseView['headlines'] = {
+    all: {
+      title: note?.title ?? all.title,
+      summary: note?.summary ?? all.summary
+    }
+  }
+  for (const key of keys)
+    headlines[key] = headline(
+      cards.filter((card) => card.packages.includes(key)),
+      items.filter((item) => item.packages.includes(key))
+    )
+  return {
+    slug: release.slug,
+    href: `${CHANGELOG_ROUTE}/${release.slug}`,
+    date: release.date,
+    pending: release.pending,
+    versions: release.versions,
+    headlines,
+    cards,
+    items
+  }
+}
+
+const ROOT = join(process.cwd(), '..')
+const APP_DIR = join(process.cwd(), 'src/app')
+const NOTES_DIR = join(process.cwd(), 'src/content/releases')
+
+function git(args: string[]): string | null {
+  try {
+    return execFileSync('git', ['-C', ROOT, ...args], {
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'ignore']
+    })
+  } catch {
+    return null
+  }
+}
+
+/** Version → the oldest commit that added its `## version` heading, from `git log -p`. */
+export function versionCommits(log: string) {
+  const commits: PackageChangelog['commits'] = new Map()
+  const chunks = log.split('\x1e').slice(1)
+  for (const chunk of chunks) {
+    const [head = '', ...lines] = chunk.split('\n')
+    const [hash = '', seconds = '0'] = head.trim().split(' ')
+    const time = Number(seconds)
+    // In UTC, not the committer's zone, which differs by who merged.
+    const date = new Date(time * 1000).toISOString().slice(0, 10)
+    for (const line of lines) {
+      const version = line.match(/^\+## (\S+)\s*$/)?.[1]
+      // `git log` runs newest first, so the last commit seen is the oldest.
+      if (version) commits.set(version, { hash, date, time })
+    }
+  }
+  return commits
+}
+
+function readCommits(dir: string): PackageChangelog['commits'] {
+  if (git(['rev-parse', '--is-shallow-repository'])?.trim() !== 'false')
+    return new Map()
+  const log = git([
+    'log',
+    '--format=%x1e%H %ct',
+    '-p',
+    '--unified=0',
+    '--no-color',
+    '--',
+    `packages/${dir}/CHANGELOG.md`
+  ])
+  return log ? versionCommits(log) : new Map()
+}
+
+function readJson<T>(path: string): T | undefined {
+  try {
+    return JSON.parse(readFileSync(path, 'utf8')) as T
+  } catch {
+    return undefined
+  }
+}
+
+function pageSource(route: string): string | undefined {
+  for (const file of ['page.mdx', 'page.tsx']) {
+    const path = join(APP_DIR, route, file)
+    if (existsSync(path)) return readFileSync(path, 'utf8')
+  }
+  return undefined
+}
+
+const metadataField = (source: string | undefined, field: string) =>
+  source
+    ?.match(new RegExp(`${field}:\\s*(['"])((?:\\\\.|(?!\\1).)+)\\1`))?.[2]
+    ?.replace(/\\(.)/g, '$1')
+
+function pageTitle(route: string): string | undefined {
+  return metadataField(pageSource(route), 'title')
+}
+
+const readPageInfo: PageInfo = (route) => {
+  const source = pageSource(route)
+  const title = metadataField(source, 'title')
+  return title
+    ? { title, description: metadataField(source, 'description') }
+    : undefined
+}
+
+function readPageIndex(): PageIndex {
+  const manifests = RELEASED_PACKAGES.map(({ dir }) =>
+    readJson<ManifestJson>(
+      join(ROOT, 'packages', dir, 'dist/roadie.manifest.json')
+    )
+  ).filter((manifest) => manifest !== undefined)
+  return buildPageIndex(manifests, pageTitle)
+}
+
+function readChangesets(): Changeset[] {
+  const dir = join(ROOT, '.changeset')
+  if (!existsSync(dir)) return []
+  return readdirSync(dir)
+    .filter((file) => file.endsWith('.md') && file !== 'README.md')
+    .sort()
+    .map((file) =>
+      parseChangeset(file.slice(0, -3), readFileSync(join(dir, file), 'utf8'))
+    )
+    .filter((changeset) => changeset !== null)
+}
+
+/** Release notes by the package version they're named after, such as `components-2.15.0`. */
+function readNotes(): Map<string, { file: string; note: ReleaseNote }> {
+  const notes = new Map<string, { file: string; note: ReleaseNote }>()
+  if (!existsSync(NOTES_DIR)) return notes
+  for (const file of readdirSync(NOTES_DIR)) {
+    if (!file.endsWith('.md') || file === 'README.md') continue
+    const where = `docs/src/content/releases/${file}`
+    notes.set(file.slice(0, -3), {
+      file: where,
+      note: parseReleaseNote(where, readFileSync(join(NOTES_DIR, file), 'utf8'))
+    })
+  }
+  return notes
+}
+
+let history: ReleaseHistory | undefined
+let index: PageIndex | undefined
+
+/**
+ * Every release of the packages the changelog follows, and what's pending,
+ * read at build time from their changelogs, the pending changesets, and git
+ * history for the dates.
+ */
+export function getReleaseHistory(): ReleaseHistory {
+  if (history) return history
+  index ??= readPageIndex()
+  const changelogs = RELEASED_PACKAGES.flatMap(({ name, dir }) => {
+    const path = join(ROOT, 'packages', dir, 'CHANGELOG.md')
+    if (!existsSync(path)) return []
+    return [
+      {
+        name,
+        versions: parseChangelog(readFileSync(path, 'utf8')),
+        commits: readCommits(dir)
+      }
+    ]
+  })
+  history = {
+    unreleased: pendingChanges(readChangesets(), index),
+    releases: groupReleases(changelogs, index)
+  }
+  return history
+}
+
+export const UNRELEASED_SLUG = 'unreleased'
+
+/** Views of every release, with what's pending first, each with its release note applied. */
+export function views(
+  { unreleased, releases }: ReleaseHistory,
+  {
+    index,
+    pageInfo,
+    notes
+  }: {
+    index: PageIndex
+    pageInfo: PageInfo
+    notes: Map<string, { file: string; note: ReleaseNote }>
+  }
+): ReleaseView[] {
+  const used = new Set<string>()
+  const noteFor = (packages: PackageVersion[]) => {
+    for (const { name, version } of packages) {
+      const key = `${packageOf(name)?.dir ?? name}-${version}`
+      const found = notes.get(key)
+      if (found) {
+        used.add(key)
+        return found
+      }
+    }
+    return undefined
+  }
+  const result: ReleaseView[] = []
+  if (unreleased.changes.length > 0)
+    result.push(
+      toReleaseView(
+        {
+          slug: UNRELEASED_SLUG,
+          date: null,
+          pending: true,
+          versions: unreleased.packages.map(({ name, label }) => ({
+            package: packageOf(name)!.dir,
+            label
+          })),
+          changes: unreleased.changes
+        },
+        { index, pageInfo }
+      )
+    )
+  for (const release of releases) {
+    const found = noteFor(release.packages)
+    result.push(
+      toReleaseView(
+        {
+          slug: release.id,
+          date: release.date,
+          pending: false,
+          versions: release.packages.flatMap(
+            ({ name, label, version, href }) => {
+              const dir = packageOf(name)?.dir
+              return dir ? [{ package: dir, label, version, href }] : []
+            }
+          ),
+          changes: release.changes
+        },
+        { index, pageInfo, note: found?.note, where: found?.file }
+      )
+    )
+  }
+  for (const [key, { file }] of notes)
+    if (!used.has(key))
+      throw new Error(
+        `${file} names no released version. Name it after a version in the release, such as components-2.15.0.md.`
+      )
+  return result
+}
+
+let releaseViews: ReleaseView[] | undefined
+
+/** Every release as the changelog draws it, pending first. */
+export function getReleaseViews(): ReleaseView[] {
+  releaseViews ??= views(getReleaseHistory(), {
+    index: (index ??= readPageIndex()),
+    pageInfo: readPageInfo,
+    notes: readNotes()
+  })
+  return releaseViews
+}
+
+// Markdown: the copy agents read, which carries every change in full.
+
+const indent = (text: string) => text.replace(/^(?=.)/gm, '  ')
+
+function changesMarkdown(
+  changes: Change[],
+  resolve: (href: string) => string,
+  depth = 3
+): string {
+  return byKind(changes)
+    .map(({ title, changes: group }) =>
+      [
+        `${'#'.repeat(depth)} ${title}`,
+        group
+          .map((change) => {
+            const see = change.pages
+              .map(({ title: page, href }) => `[${page}](${resolve(href)})`)
+              .join(', ')
+            return [
+              `- ${change.breaking ? '**Breaking.** ' : ''}${change.summary}`,
+              see && indent(`See ${see}.`),
+              change.details && indent(change.details)
+            ]
+              .filter(Boolean)
+              .join('\n\n')
+          })
+          .join('\n')
+      ].join('\n\n')
+    )
+    .join('\n\n')
+}
+
+const inlineMarkdown = (inline: Inline) =>
+  inline
+    .map((part) =>
+      typeof part === 'string'
+        ? part
+        : 'code' in part
+          ? `\`${part.code}\``
+          : `[${part.text}](${part.href})`
+    )
+    .join('')
+
+export type ReleaseMarkdownOptions = {
+  resolve: (href: string) => string
+  formatDate: (date: string) => string
+}
+
+/** One release in markdown: its headline, versions, highlights, and every change in full. */
+export function releaseMarkdown(
+  view: ReleaseView,
+  changes: Change[],
+  { resolve, formatDate }: ReleaseMarkdownOptions,
+  depth = 2
+): string {
+  const { title, summary } = view.headlines.all
+  const when = view.pending
+    ? 'Not on npm yet.'
+    : view.date
+      ? `Released ${formatDate(view.date)}.`
+      : ''
+  const versions = andList(
+    view.versions.map(({ label, version, href }) =>
+      version && href ? `[${label} ${version}](${href})` : label
+    )
+  )
+  const highlights = view.cards.map((card) => {
+    const description = inlineMarkdown(card.description).replace(
+      /(?<=[^.!?])$/,
+      '.'
+    )
+    const link = card.href ? ` See [${card.title}](${resolve(card.href)}).` : ''
+    return `- **${card.title}**${card.breaking ? ' (breaking)' : ''}${description ? `: ${description}` : '.'}${link}`
+  })
+  return [
+    `${'#'.repeat(depth)} ${title}`,
+    [when, view.pending ? `Goes to ${versions}.` : versions]
+      .filter(Boolean)
+      .join(' '),
+    summary,
+    depth > 1 && `[This release on its own page](${resolve(view.href)})`,
+    ...(highlights.length > 0
+      ? [`${'#'.repeat(depth + 1)} Highlights`, highlights.join('\n')]
+      : []),
+    changesMarkdown(changes, resolve, depth + 1)
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+}
+
+/** The changes behind a view, for its markdown. */
+export function changesOf(history: ReleaseHistory, slug: string): Change[] {
+  if (slug === UNRELEASED_SLUG) return history.unreleased.changes
+  return history.releases.find((release) => release.id === slug)?.changes ?? []
+}
+
+/** The changelog page's history as markdown, for its markdown copy. */
+export function releaseHistoryMarkdown(
+  history: ReleaseHistory,
+  releases: ReleaseView[],
+  options: ReleaseMarkdownOptions
+): string {
+  return releases
+    .map((view) =>
+      releaseMarkdown(view, changesOf(history, view.slug), options)
+    )
+    .join('\n\n')
+}

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import { ArrowRightIcon, ArrowUpRightIcon } from '@phosphor-icons/react/ssr'
+import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 
 import { ChartPreview } from '@/components/ChartPreview'
 import { ComponentSkeleton, Skel } from '@/components/ComponentSkeleton'
@@ -8,7 +8,7 @@ import { FoundationPreview } from '@/components/FoundationPreview'
 import { HomeGuides } from '@/components/HomeGuides'
 import { Image } from '@/components/Image'
 import { PreviewCard } from '@/components/PreviewGrid'
-import { CHANGELOG_URL, getRecentReleases } from '@/lib/changelog'
+import { LatestRelease } from '@/components/changelog/LatestRelease'
 import {
   BRAND,
   CHARTS,
@@ -19,6 +19,7 @@ import {
   countEntries,
   getCatalogue
 } from '@/lib/page-manifest'
+import { CHANGELOG_ROUTE } from '@/lib/releases'
 
 import { Badge } from '@oztix/roadie-components/badge'
 import { Button } from '@oztix/roadie-components/button'
@@ -39,15 +40,14 @@ const EXPLORE_GRID = [
 ].join(' ')
 
 export default async function Home() {
-  const [brand, foundations, content, components, charts, widgets, releases] =
+  const [brand, foundations, content, components, charts, widgets] =
     await Promise.all([
       getCatalogue(BRAND),
       getCatalogue(FOUNDATIONS),
       getCatalogue(CONTENT),
       getCatalogue(COMPONENTS),
       getCatalogue(CHARTS),
-      getCatalogue(WIDGETS),
-      getRecentReleases(3)
+      getCatalogue(WIDGETS)
     ])
 
   return (
@@ -215,29 +215,13 @@ export default async function Home() {
       <HomeSection
         title='What’s new'
         action={
-          <Button href={CHANGELOG_URL} emphasis='subtler' size='sm'>
+          <Button href={CHANGELOG_ROUTE} emphasis='subtler' size='sm'>
             Changelog
-            <ArrowUpRightIcon weight='bold' className='size-4' />
+            <ArrowRightIcon weight='bold' className='size-4' />
           </Button>
         }
       >
-        <ul className='grid divide-y divide-subtle border-y border-subtle'>
-          {releases.map((release) => (
-            <li
-              key={release.version}
-              className='grid gap-1 py-4 @md:grid-cols-[5rem_1fr] @md:gap-4'
-            >
-              <p className='font-mono text-sm text-subtle'>
-                v{release.version}
-              </p>
-              <ul className='grid gap-1'>
-                {release.changes.map((change) => (
-                  <li key={change}>{withInlineCode(change)}</li>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ul>
+        <LatestRelease />
       </HomeSection>
     </div>
   )
@@ -283,15 +267,6 @@ function Principle({
       </div>
     </li>
   )
-}
-
-/** Changelog text with its backtick spans set as `Code`. */
-function withInlineCode(text: string) {
-  return text
-    .split('`')
-    .map((part, index) =>
-      index % 2 === 1 ? <Code key={index}>{part}</Code> : part
-    )
 }
 
 const BRAND_HUES = [
