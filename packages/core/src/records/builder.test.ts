@@ -21,7 +21,7 @@ const field = recordFields<Session>()
 describe('recordFields', () => {
   it('builds a field of each type with its key, label and options', () => {
     const fields: RecordField[] = [
-      field.text('name', { label: 'Session', match: /^S\d+$/ }),
+      field.text('name', { label: 'Session', match: '^S\\d+$' }),
       field.date('start', {
         label: 'Starts',
         end: 'finish',
@@ -38,7 +38,7 @@ describe('recordFields', () => {
       field.boolean('featured', { label: 'Featured', filterable: false })
     ]
     expect(fields).toEqual([
-      { key: 'name', type: 'text', label: 'Session', match: /^S\d+$/ },
+      { key: 'name', type: 'text', label: 'Session', match: '^S\\d+$' },
       {
         key: 'start',
         type: 'date',
@@ -74,6 +74,15 @@ describe('recordFields', () => {
     expect(
       field.date('start', { label: 'Sessions', multiple: true }).multiple
     ).toBe(true)
+  })
+
+  it.each([
+    ['^[$', /"Session" match is not a valid pattern/],
+    ['S\\d+', /"Session" match needs \^ at the start and \$ at the end/]
+  ])('rejects the identifier pattern %s', (match, message) => {
+    expect(() => field.text('name', { label: 'Session', match })).toThrow(
+      message
+    )
   })
 
   it('only takes keys the row has', () => {

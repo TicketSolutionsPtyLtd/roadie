@@ -5,6 +5,7 @@ import {
   CircleHalfIcon,
   CurrencyDollarIcon,
   HashIcon,
+  MapPinIcon,
   TagIcon,
   TextAaIcon,
   ToggleLeftIcon
@@ -31,6 +32,7 @@ describe('fieldIcon', () => {
       of('option', { status: { on_sale: { intent: 'success' } } }),
       <CircleHalfIcon weight='bold' />
     ],
+    ['a location', of('location'), <MapPinIcon weight='bold' />],
     ['text', of('text'), <TextAaIcon weight='bold' />],
     ['a number', of('number'), <HashIcon weight='bold' />],
     ['money', of('money'), <CurrencyDollarIcon weight='bold' />],

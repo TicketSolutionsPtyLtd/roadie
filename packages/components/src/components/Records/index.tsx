@@ -57,6 +57,7 @@ export type {
   RecordViewDefaults,
   RecordsAction,
   RecordsActionConfirm,
+  RecordsActionContext,
   RecordsBulkAction,
   RecordsField,
   RecordsRangeState,

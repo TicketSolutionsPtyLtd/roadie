@@ -2,9 +2,11 @@ import { isPlainDate, plainDateOf } from '../datetime/plainDate'
 import { rowInstant } from './bounds'
 import {
   fieldIndex,
+  isPlaceValue,
   isSearchable,
   momentOf,
-  recordFieldOptions
+  recordFieldOptions,
+  recordPlaceReader
 } from './fields'
 import type {
   ResolvedRecordFilter,
@@ -53,6 +55,11 @@ function numbers(value: unknown): number[] {
 
 function list(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [value]
+}
+
+function placesOf(field: RecordField): Values {
+  const places = recordPlaceReader(field)
+  return (value) => (isPlaceValue(value) ? places(value) : [])
 }
 
 function same(a: unknown, b: string): boolean {
@@ -151,11 +158,14 @@ function overlaps(span: Span, range: ResolvedRecordRange): boolean {
   )
 }
 
+type Values = (value: unknown) => unknown[]
+
 function matchesFilter(
   row: Row,
   filter: ResolvedRecordFilter,
   field: RecordField,
-  viewerZone: string
+  viewerZone: string,
+  values: Values
 ): boolean {
   const value = read(row, field.key)
   const empty = isEmptyValue(value)
@@ -166,11 +176,13 @@ function matchesFilter(
       return empty
     case 'is':
       return (
-        !empty && list(value).some((v) => filter.values.some((w) => same(v, w)))
+        !empty &&
+        values(value).some((v) => filter.values.some((w) => same(v, w)))
       )
     case 'is-not':
       return (
-        empty || !list(value).some((v) => filter.values.some((w) => same(v, w)))
+        empty ||
+        !values(value).some((v) => filter.values.some((w) => same(v, w)))
       )
     case 'has-all':
       return (
@@ -238,15 +250,17 @@ export function compileRecordQuery(
   fields: readonly RecordField[]
 ): (row: Row) => boolean {
   const byKey = fieldIndex(fields)
-  const filters = query.filters.map((filter) => ({
-    filter,
-    field: byKey.get(filter.field)
-  }))
+  const filters = query.filters.map((filter) => {
+    const field = byKey.get(filter.field)
+    // A location's record is in its places' ancestors too.
+    const values: Values = field?.type === 'location' ? placesOf(field) : list
+    return { filter, field, values }
+  })
   const words = query.search.toLowerCase().split(/\s+/).filter(Boolean)
   const searched = words.length ? searchFields(fields) : []
   return (row) => {
-    const allMatch = filters.every(({ filter, field }) =>
-      field ? matchesFilter(row, filter, field, query.timeZone) : false
+    const allMatch = filters.every(({ filter, field, values }) =>
+      field ? matchesFilter(row, filter, field, query.timeZone, values) : false
     )
     if (!allMatch) return false
     if (!words.length) return true
@@ -258,7 +272,8 @@ export function compileRecordQuery(
 /**
  * Whether a row belongs in a resolved query's results. Filters mean the same
  * as in the Meilisearch adapter: negative filters (is-not, not-contains, neq)
- * keep rows where the field is empty, and text compares without case. Search
+ * keep rows where the field is empty, text compares without case, and a
+ * location is in its places' ancestors, as `recordPlaces` indexes them. Search
  * is simpler than Meilisearch's: every word must appear, as typed, somewhere
  * in the searchable fields or their option labels. To test many rows, use
  * `compileRecordQuery`.

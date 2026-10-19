@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { type DatePhraseSuggestion, parseDatePhrase } from './parse'
+import {
+  type DatePhraseSuggestion,
+  isDatePhraseCompletion,
+  parseDatePhrase
+} from './parse'
 
 // Fri 2 Oct 2026, 10am in Sydney.
 const SYDNEY = {
@@ -20,6 +24,9 @@ describe('parseDatePhrase: relative words', () => {
     ['today', one('Today', 'today')],
     ['tomorrow', one('Tomorrow', 'tomorrow')],
     ['yesterday', one('Yesterday', 'yesterday')],
+    ['tmrw', one('Tomorrow', 'tomorrow')],
+    ['tomorow', one('Tomorrow', 'tomorrow')],
+    ['tonight', one('Today', 'today')],
     ['this week', one('This week', 'this-week')],
     ['next week', one('Next week', 'next-week')],
     ['last week', one('Last week', 'last-week')],
@@ -29,10 +36,6 @@ describe('parseDatePhrase: relative words', () => {
     ['last month', one('Last month', 'last-month')],
     ['upcoming', one('Upcoming', 'upcoming')],
     ['ongoing', one('Happening now', 'ongoing')],
-    [
-      'last weekend',
-      one('26 to 27 Sept 2026', { start: '2026-09-26', end: '2026-09-27' })
-    ],
     [
       'next 7 days',
       one('Next 7 days', { direction: 'next', amount: 7, unit: 'day' })
@@ -100,10 +103,34 @@ describe('parseDatePhrase: relative words', () => {
     expect(parseDatePhrase('next weekend', SYDNEY)).toEqual([
       {
         label: '10 to 11 Oct 2026',
-        value: { start: '2026-10-10', end: '2026-10-11' }
+        value: { start: '2026-10-10', end: '2026-10-11' },
+        description: 'Next weekend'
       },
       { label: 'This weekend', value: 'this-weekend' }
     ])
+  })
+
+  it('reads last weekend as dates, and says which weekend they are', () => {
+    expect(parseDatePhrase('last weekend', SYDNEY)).toEqual([
+      {
+        label: '26 to 27 Sept 2026',
+        value: { start: '2026-09-26', end: '2026-09-27' },
+        description: 'Last weekend'
+      }
+    ])
+  })
+
+  it.each([
+    'weekend',
+    'the weekend',
+    'on the weekend',
+    'at the weekend',
+    'over the weekend',
+    'on weekend'
+  ])('reads "%s" as this weekend', (text) => {
+    expect(parseDatePhrase(text, SYDNEY)).toEqual(
+      one('This weekend', 'this-weekend')
+    )
   })
 
   it('ignores case and extra spaces', () => {
@@ -118,6 +145,15 @@ describe('parseDatePhrase: relative words', () => {
       'This week',
       'This weekend'
     ])
+  })
+
+  it.each([
+    ['wee', ['This week', 'This weekend', 'Week to date']],
+    ['week', ['This week', 'This weekend', 'Week to date']],
+    ['month', ['This month', 'Month to date']],
+    ['year', ['This year', 'Year to date']]
+  ])('completes "%s" to this period first', (text, labels) => {
+    expect(parseDatePhrase(text, SYDNEY).map((s) => s.label)).toEqual(labels)
   })
 
   it('keeps completing a phrase that contains to', () => {
@@ -181,6 +217,32 @@ describe('parseDatePhrase: in and end of', () => {
     expect(values).toEqual(on ? [{ on }] : [])
   })
 
+  it.each<[string, DatePhraseSuggestion[]]>([
+    [
+      'rest of the week',
+      one('2 to 4 Oct 2026', { start: '2026-10-02', end: '2026-10-04' })
+    ],
+    [
+      'rest of this week',
+      one('2 to 4 Oct 2026', { start: '2026-10-02', end: '2026-10-04' })
+    ],
+    [
+      'rest of month',
+      one('2 to 31 Oct 2026', { start: '2026-10-02', end: '2026-10-31' })
+    ],
+    [
+      'rest of the year',
+      one('2 Oct to 31 Dec 2026', { start: '2026-10-02', end: '2026-12-31' })
+    ]
+  ])('reads "%s" from today to the end', (text, expected) => {
+    expect(parseDatePhrase(text, SYDNEY)).toEqual(expected)
+  })
+
+  it('offers no rest of the week past year 9999', () => {
+    const last = { now: new Date('9999-12-31T12:00:00Z'), timeZone: 'UTC' }
+    expect(parseDatePhrase('rest of the week', last)).toEqual([])
+  })
+
   it('labels the date it lands on', () => {
     expect(parseDatePhrase('in 2 weeks', SYDNEY)).toEqual(
       one('Fri 16 Oct 2026', { on: '2026-10-16' })
@@ -228,6 +290,17 @@ describe('parseDatePhrase: dates', () => {
     ['Friday, 27 November 2026', one('Fri 27 Nov 2026', { on: '2026-11-27' })],
     ['sun 14 mar', one('Sun 14 Mar 2027', { on: '2027-03-14' })],
     ['Thu 27 Nov 2026', one('Fri 27 Nov 2026', { on: '2026-11-27' })],
+    ['the 20th of oct', one('Tue 20 Oct 2026', { on: '2026-10-20' })],
+    ['on the 14th of march', one('Sun 14 Mar 2027', { on: '2027-03-14' })],
+    [
+      'in the next 7 days',
+      one('Next 7 days', { direction: 'next', amount: 7, unit: 'day' })
+    ],
+    [
+      'in the last 2 weeks',
+      one('Last 2 weeks', { direction: 'past', amount: 2, unit: 'week' })
+    ],
+    ['in the next week', one('Next week', 'next-week')],
     ['after 1 dec', one('After Tue 1 Dec 2026', { after: '2026-12-01' })],
     ['before 14 mar', one('Before Sun 14 Mar 2027', { before: '2027-03-14' })],
     [
@@ -272,6 +345,161 @@ describe('parseDatePhrase: dates', () => {
     expect(
       parseDatePhrase('fri', { now, timeZone: 'Australia/Sydney' })[0]?.value
     ).toEqual({ on: '2026-10-09' })
+  })
+})
+
+describe('parseDatePhrase: comparisons', () => {
+  it.each<[string, DatePhraseSuggestion[]]>([
+    ['after today', one('After Fri 2 Oct 2026', { after: '2026-10-02' })],
+    ['before tomorrow', one('Before Sat 3 Oct 2026', { before: '2026-10-03' })],
+    // A weekday after since is the last one, today included; after others, the coming one.
+    ['after mon', one('After Mon 5 Oct 2026', { after: '2026-10-05' })],
+    ['from wed', one('After Tue 6 Oct 2026', { after: '2026-10-06' })],
+    ['on or after mon', one('After Sun 4 Oct 2026', { after: '2026-10-04' })],
+    ['since wed', one('After Tue 29 Sept 2026', { after: '2026-09-29' })],
+    ['since fri', one('After Thu 1 Oct 2026', { after: '2026-10-01' })],
+    ['since next mon', one('After Sun 4 Oct 2026', { after: '2026-10-04' })],
+    ['until mon', one('Before Tue 6 Oct 2026', { before: '2026-10-06' })],
+    ['after in 2 weeks', one('After Fri 16 Oct 2026', { after: '2026-10-16' })],
+    // A range: after its last day, before its first.
+    [
+      'after this weekend',
+      one('After Sun 4 Oct 2026', { after: '2026-10-04' })
+    ],
+    [
+      'before next week',
+      one('Before Mon 5 Oct 2026', { before: '2026-10-05' })
+    ],
+    // Since, from and until take the day itself too.
+    ['since mon', one('After Sun 27 Sept 2026', { after: '2026-09-27' })],
+    ['from tomorrow', one('After Fri 2 Oct 2026', { after: '2026-10-02' })],
+    [
+      'since this weekend',
+      one('After Fri 2 Oct 2026', { after: '2026-10-02' })
+    ],
+    ['since 1 dec', one('After Mon 30 Nov 2026', { after: '2026-11-30' })],
+    ['until fri', one('Before Sat 3 Oct 2026', { before: '2026-10-03' })],
+    [
+      'till this weekend',
+      one('Before Mon 5 Oct 2026', { before: '2026-10-05' })
+    ],
+    [
+      'on or after 20 oct',
+      one('After Mon 19 Oct 2026', { after: '2026-10-19' })
+    ],
+    [
+      'on or before 20 oct',
+      one('Before Wed 21 Oct 2026', { before: '2026-10-21' })
+    ],
+    // Onwards takes the day itself, as since does.
+    ['20 oct onwards', one('After Mon 19 Oct 2026', { after: '2026-10-19' })],
+    ['20 oct onward', one('After Mon 19 Oct 2026', { after: '2026-10-19' })],
+    ['20 oct and later', one('After Mon 19 Oct 2026', { after: '2026-10-19' })],
+    ['tomorrow onwards', one('After Fri 2 Oct 2026', { after: '2026-10-02' })],
+    // Unlike since, a weekday before onwards is the coming one.
+    ['mon onwards', one('After Sun 4 Oct 2026', { after: '2026-10-04' })],
+    ['fri onwards', one('After Thu 1 Oct 2026', { after: '2026-10-01' })]
+  ])('%s', (text, expected) => {
+    expect(parseDatePhrase(text, SYDNEY)).toEqual(expected)
+  })
+
+  it.each([
+    'after 7pm',
+    'before upcoming',
+    'since next 6 hours',
+    'until after 1 dec',
+    'since 20 oct onwards',
+    '20 oct onwards onwards'
+  ])('reads nothing for "%s", rather than drop the comparison', (text) => {
+    expect(parseDatePhrase(text, SYDNEY)).toEqual([])
+  })
+
+  it('reads nothing past the last day a date holds', () => {
+    const last = { now: new Date('9999-12-31T12:00:00Z'), timeZone: 'UTC' }
+    expect(parseDatePhrase('until today', last)).toEqual([])
+  })
+
+  it.each<[string, typeof SYDNEY, DatePhraseSuggestion[]]>([
+    [
+      'from tomorrow to next fri',
+      SYDNEY,
+      one('3 to 9 Oct 2026', { start: '2026-10-03', end: '2026-10-09' })
+    ],
+    [
+      'today and mon',
+      SYDNEY,
+      one('2 to 5 Oct 2026', { start: '2026-10-02', end: '2026-10-05' })
+    ],
+    // A weekday at the end is the first on or after the start.
+    [
+      'tomorrow to fri',
+      SYDNEY,
+      one('3 to 9 Oct 2026', { start: '2026-10-03', end: '2026-10-09' })
+    ],
+    [
+      'from tomorrow to fri',
+      SYDNEY,
+      one('3 to 9 Oct 2026', { start: '2026-10-03', end: '2026-10-09' })
+    ],
+    [
+      'fri to mon',
+      WEDNESDAY,
+      one('2 to 5 Oct 2026', { start: '2026-10-02', end: '2026-10-05' })
+    ],
+    [
+      'sun to sat',
+      SYDNEY,
+      one('4 to 10 Oct 2026', { start: '2026-10-04', end: '2026-10-10' })
+    ],
+    ['tomorrow to yesterday', SYDNEY, []],
+    [
+      'today to next fri',
+      WEDNESDAY,
+      [
+        {
+          label: '30 Sept to 9 Oct 2026',
+          value: { start: '2026-09-30', end: '2026-10-09' }
+        },
+        {
+          label: '30 Sept to 2 Oct 2026',
+          value: { start: '2026-09-30', end: '2026-10-02' }
+        }
+      ]
+    ]
+  ])('reads "%s" as the days between, in order', (text, options, expected) => {
+    expect(parseDatePhrase(text, options)).toEqual(expected)
+  })
+
+  it('keeps "from" to "to" a range', () => {
+    expect(parseDatePhrase('from 1 to 14 mar', SYDNEY)).toEqual(
+      one('1 to 14 Mar 2027', { start: '2027-03-01', end: '2027-03-14' })
+    )
+  })
+
+  it('completes the day being typed, as a completion', () => {
+    const [after] = parseDatePhrase('after tomo', SYDNEY)
+    expect(after).toEqual({
+      label: 'After Sat 3 Oct 2026',
+      value: { after: '2026-10-03' }
+    })
+    expect(isDatePhraseCompletion(after!)).toBe(true)
+    expect(
+      isDatePhraseCompletion(parseDatePhrase('after today', SYDNEY)[0]!)
+    ).toBe(false)
+  })
+
+  it('stays linear on a long run of onwards', () => {
+    const text = 'today' + ' onwards'.repeat(20_000)
+    const started = performance.now()
+    expect(parseDatePhrase(text, SYDNEY)).toEqual([])
+    expect(performance.now() - started).toBeLessThan(500)
+  })
+
+  it('stays linear on a long run of comparison words', () => {
+    const text = 'after '.repeat(20_000) + 'today'
+    const started = performance.now()
+    expect(parseDatePhrase(text, SYDNEY)).toEqual([])
+    expect(performance.now() - started).toBeLessThan(500)
   })
 })
 
@@ -321,6 +549,7 @@ describe('parseDatePhrase: nothing to offer', () => {
     'in 9999 years',
     'in 2 fortnights',
     'end of days',
+    'today to this',
     'x'
   ])('%j', (text) => {
     expect(parseDatePhrase(text, SYDNEY)).toEqual([])
