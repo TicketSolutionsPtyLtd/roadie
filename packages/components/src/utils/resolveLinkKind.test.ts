@@ -87,6 +87,11 @@ describe('resolveLinkKind', () => {
       expect(resolveLinkKind('\tjavascript:alert(1)')).toBe('unsafe')
     })
 
+    it('catches a scheme hidden with tabs or control characters', () => {
+      expect(resolveLinkKind('java\tscript:alert(1)')).toBe('unsafe')
+      expect(resolveLinkKind('\x00javascript:alert(1)')).toBe('unsafe')
+    })
+
     it('does NOT misclassify innocent paths starting with javascript-similar text', () => {
       expect(resolveLinkKind('/javascript-tutorial')).toBe('internal')
       expect(resolveLinkKind('https://example.com/data:foo')).toBe('external')
