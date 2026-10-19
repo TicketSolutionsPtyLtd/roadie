@@ -1,11 +1,5 @@
 import type { Extensions } from '@tiptap/core'
 import { Heading } from '@tiptap/extension-heading'
-import {
-  Table,
-  TableCell,
-  TableHeader,
-  TableRow
-} from '@tiptap/extension-table'
 import { StarterKit } from '@tiptap/starter-kit'
 
 import { SafeLink, basic, notInStarterKit } from './basicPreset'
@@ -13,6 +7,7 @@ import { Embed } from './embedNode'
 import { headingLevel } from './headings'
 import { Image } from './image'
 import type { Preset } from './presetShapes'
+import { Table, TableCell, TableHeader, TableRow } from './table'
 
 // The page owns h1, so pasted h1 becomes h2 and h5 and h6 become h4.
 const RichHeading = Heading.extend({
@@ -27,15 +22,6 @@ const RichHeading = Heading.extend({
   }
 }).configure({ levels: [2, 3, 4] })
 
-// A cell saves only its spans: widths and alignment are the renderer's call,
-// and it holds paragraphs only, so no table, list or image sits in a cell.
-const cellSpec = {
-  content: 'paragraph+',
-  addAttributes() {
-    return { colspan: { default: 1 }, rowspan: { default: 1 } }
-  }
-}
-
 // Each name and attribute these extensions produce is saved in `EditorValue`,
 // so changing one bumps CURRENT_VERSION and adds a migrate step.
 const rich: Extensions = [
@@ -44,10 +30,10 @@ const rich: Extensions = [
   SafeLink,
   Image,
   Embed,
-  Table.configure({ resizable: false }),
+  Table,
   TableRow,
-  TableHeader.extend(cellSpec),
-  TableCell.extend(cellSpec)
+  TableHeader,
+  TableCell
 ]
 
 export const presets = { basic, rich } as const satisfies Record<

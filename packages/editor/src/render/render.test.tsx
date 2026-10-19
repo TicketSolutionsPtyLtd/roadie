@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { RoadieLinkProvider } from '@oztix/roadie-components'
 
@@ -530,17 +530,16 @@ describe('renderEditorValue', () => {
     )
   })
 
-  it('renders a table with no React warnings', () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-    renderToString(
+  // React warns about a lowercase `colspan` once per process, so this reads
+  // the prop names React was given, which it writes back as is.
+  it('gives React a cell’s spans as colSpan and rowSpan', () => {
+    const html = renderToString(
       renderEditorValue(
-        richValueOf(table(row(th('Lineup', { colspan: 2, rowspan: 2 }))))
+        richValueOf(table(row(th('Lineup', { colspan: 2, rowspan: 3 }))))
       )
     )
 
-    expect(error).not.toHaveBeenCalled()
-    error.mockRestore()
+    expect(html).toContain('<th colSpan="2" rowSpan="3">')
   })
 
   it('routes internal links through the Link given to RoadieProvider', () => {

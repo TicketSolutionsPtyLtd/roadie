@@ -12,6 +12,7 @@ import {
   isPreset,
   presetShapes
 } from './presetShapes'
+import { isSpan } from './spans'
 
 export const CURRENT_VERSION = 1
 
@@ -60,14 +61,12 @@ function cleanedMarks(marks: unknown[], shape: PresetShape) {
   return [...kept.values()]
 }
 
-const isSpan = (span: unknown) => Number.isInteger(span) && Number(span) > 0
-
 function cleanedAttrs({ type, attrs }: JSONContent) {
   if (type === 'tableCell' || type === 'tableHeader') {
     const { colspan, rowspan } = attrs ?? {}
     return {
-      ...(isSpan(colspan) && { colspan }),
-      ...(isSpan(rowspan) && { rowspan })
+      ...(isSpan('colspan', colspan) && { colspan }),
+      ...(isSpan('rowspan', rowspan) && { rowspan })
     }
   }
   if (type === 'heading') return { ...attrs, level: headingLevel(attrs?.level) }
@@ -95,8 +94,11 @@ function isSafeNode(node: unknown): node is JSONContent {
   return true
 }
 
+// A doc is the root only, so one below it gives way to its blocks.
 function shapeOf({ type }: JSONContent, shape: PresetShape) {
-  return typeof type === 'string' && Object.hasOwn(shape.nodes, type)
+  return typeof type === 'string' &&
+    type !== 'doc' &&
+    Object.hasOwn(shape.nodes, type)
     ? shape.nodes[type]
     : undefined
 }
@@ -230,8 +232,11 @@ function childrenOf(content: unknown, shape: PresetShape) {
 // paragraph of its own, which a parent holding inline content unwraps. A
 // node that must hold blocks, list items, rows or cells and is left with none
 // is dropped.
-function cleaned(node: JSONContent, shape: PresetShape): JSONContent[] {
-  const nodeShape = shapeOf(node, shape)
+function cleaned(
+  node: JSONContent,
+  shape: PresetShape,
+  nodeShape = shapeOf(node, shape)
+): JSONContent[] {
   if (!nodeShape)
     return paragraphsAround(childrenOf(node.content, shape), shape)
   const { type, text, marks, content, attrs: stored } = node
@@ -267,8 +272,9 @@ function cleaned(node: JSONContent, shape: PresetShape): JSONContent[] {
  * older one, and on a value or doc that isn't an object.
  *
  * Every node and mark the preset doesn't hold is dropped, keeping its text:
- * a block's text becomes a paragraph, and a mark's text stays unmarked. So
- * the editor never meets content it can't load. Skips content or marks that
+ * a block's text becomes a paragraph, and a mark's text stays unmarked. A
+ * doc below the root gives way to its blocks. So the editor never meets
+ * content it can't load. Skips content or marks that
  * aren't a list, any child or mark that isn't an object, and empty text. Drops
  * any link whose href could run script, keeping its text, any image not on
  * https or the same site, and any embed that isn't a provider and id. Reads a
@@ -278,8 +284,9 @@ function cleaned(node: JSONContent, shape: PresetShape): JSONContent[] {
  * starts every list item with a paragraph, drops a list or quote left empty,
  * and gives an empty doc one paragraph. Keeps only cells in a table's rows,
  * and only paragraphs in a cell, unwrapping other blocks to their text;
- * keeps a cell's spans only when whole and positive, gives an empty cell a
- * paragraph, and drops a row with no cells and a table with no rows.
+ * keeps a cell's spans only when whole, positive and no more than HTML
+ * allows (1,000 columns, 65,534 rows), gives an empty cell a paragraph, and
+ * drops a row with no cells and a table with no rows.
  */
 export function migrate(
   value: StoredEditorValue,
@@ -302,9 +309,11 @@ export function migrate(
   if (!isObject(doc)) {
     throw new RangeError('An EditorValue’s doc must be an object.')
   }
+  const shape = presetShapes[preset]
   const [cleanedDoc = createEmptyValue(preset).doc] = cleaned(
     { ...doc, type: 'doc' },
-    presetShapes[preset]
+    shape,
+    shape.nodes.doc
   )
   return { version, preset, doc: cleanedDoc }
 }

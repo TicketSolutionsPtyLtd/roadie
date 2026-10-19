@@ -166,8 +166,12 @@ export function outermostMarksLast(node: JSONContent): JSONContent {
   }
 }
 
+// A thead clips a rowspan at its end, so a row that spans down stays in the
+// tbody.
 const isHeaderRow = (row: JSONContent | undefined) =>
-  row?.content?.every((cell) => cell.type === 'tableHeader') === true
+  row?.content?.every(
+    (cell) => cell.type === 'tableHeader' && !(Number(cell.attrs?.rowspan) > 1)
+  ) === true
 
 function tableSections(rows: JSONContent[]): JSONContent[] {
   const [first, ...body] = rows
@@ -180,9 +184,9 @@ function tableSections(rows: JSONContent[]): JSONContent[] {
 }
 
 /**
- * Puts a header first row in a `thead` and the rest in a `tbody`, and each
- * table in a `.prose-scroll`, so a wide one scrolls rather than widening the
- * page.
+ * Puts a header first row in a `thead`, unless a cell in it spans more than
+ * one row, and the rest in a `tbody`, and each table in a `.prose-scroll`,
+ * so a wide one scrolls rather than widening the page.
  */
 export function withTableSections(node: JSONContent): JSONContent {
   const content = node.content?.map(withTableSections)

@@ -1,9 +1,16 @@
 import { render } from '@testing-library/react'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { type EmbedProvider, defaultEmbedProviders } from '../schema'
-import { renderEditorValue } from './index'
+import { renderEditorHtml, renderEditorValue } from './index'
 
 let style: HTMLStyleElement
 beforeAll(() => {
@@ -114,4 +121,66 @@ describe('renderEditorValue tables', () => {
     expect(scroller.getBoundingClientRect().width).toBe(320)
     expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth)
   })
+
+  const cellOf = (type: string, value: string, attrs?: object) => ({
+    type,
+    ...(attrs && { attrs }),
+    content: [{ type: 'paragraph', content: [{ type: 'text', text: value }] }]
+  })
+  const spannedHeader = {
+    version: 1,
+    preset: 'rich',
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'table',
+          content: [
+            {
+              type: 'tableRow',
+              content: [
+                cellOf('tableHeader', 'Time', { rowspan: 2 }),
+                cellOf('tableHeader', 'Act')
+              ]
+            },
+            { type: 'tableRow', content: [cellOf('tableCell', 'Ochre Kite')] }
+          ]
+        }
+      ]
+    }
+  }
+
+  function leftOf(container: HTMLElement, text: string) {
+    const cell = [...container.querySelectorAll('th, td')].find(
+      (each) => each.textContent === text
+    )!
+    return cell.getBoundingClientRect().left
+  }
+
+  it.each([
+    [
+      'renderEditorValue',
+      () => render(<div>{renderEditorValue(spannedHeader)}</div>).container
+    ],
+    [
+      'renderEditorHtml',
+      () => {
+        const container = document.createElement('div')
+        container.innerHTML = renderEditorHtml(spannedHeader)
+        document.body.append(container)
+        onTestFinished(() => container.remove())
+        return container
+      }
+    ]
+  ])(
+    'keeps a header row’s rowspan with %s, so the next row sits beside it',
+    (_, rendered) => {
+      const container = rendered()
+
+      expect(leftOf(container, 'Ochre Kite')).toBe(leftOf(container, 'Act'))
+      expect(leftOf(container, 'Ochre Kite')).toBeGreaterThan(
+        leftOf(container, 'Time')
+      )
+    }
+  )
 })
