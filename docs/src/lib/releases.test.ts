@@ -558,6 +558,9 @@ describe('breaking changes', () => {
     ['major', 'Rename `tone` to `intent`.', true],
     ['minor', '**Breaking:** `RecordTable` takes `view`, not `query`.', true],
     ['minor', 'Add `Avatar`.\n\nA breaking note further down.', false],
+    ['minor', 'Breaking: `List.Item` takes `href` only.', true],
+    ['minor', 'Add `status`. Beta marks a breaking change as Breaking.', false],
+    ['patch', 'Zero breaking change: `.Root` is an alias.', false],
     ['minor', 'Add `Avatar`.', false]
   ] as const)(
     'a %s change reading "%s" is breaking: %s',
@@ -670,20 +673,21 @@ describe('pageRelease', () => {
 describe('pageCreatedDates', () => {
   it('dates each page route by the oldest commit that added its page file', () => {
     const log = [
-      '\x1e2026-10-01',
+      // 2026-09-30 23:50 UTC, and 09:50 the next day in Sydney.
+      '\x1e1790812234',
       '',
       'docs/src/app/components/kbd/page.mdx',
       'docs/src/app/components/kbd/notes.ts',
-      '\x1e2026-04-08',
+      '\x1e1775606400',
       '',
       'docs/src/app/components/button/page.mdx',
-      '\x1e2025-01-03',
+      '\x1e1735862400',
       '',
       'docs/src/app/components/button/page.tsx',
       'docs/src/app/page.tsx'
     ].join('\n')
     expect(Object.fromEntries(pageCreatedDates(log))).toEqual({
-      '/components/kbd': '2026-10-01',
+      '/components/kbd': '2026-09-30',
       '/components/button': '2025-01-03',
       '/': '2025-01-03'
     })

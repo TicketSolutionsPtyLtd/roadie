@@ -44,7 +44,11 @@ export function PageStatusLine({
       data-slot='page-status'
       className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-subtle ${className ?? ''}`}
     >
-      <Link href={STATUS_ROUTE} aria-label={`${label}: what this status means`}>
+      <Link
+        href={STATUS_ROUTE}
+        aria-label={`${label}: what this status means`}
+        className='is-interactive rounded-full'
+      >
         <Badge size='sm' intent={intent} emphasis='subtle'>
           {label}
         </Badge>

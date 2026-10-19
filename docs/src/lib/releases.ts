@@ -35,7 +35,7 @@ export type PageLink = { title: string; href: string }
 export type Change = {
   id: string
   kind: ChangeKind
-  /** A major bump, or a first paragraph that says "breaking", as a change to an alpha or beta API in a minor does. */
+  /** A major bump, or a first paragraph that opens with "Breaking", as a change to an alpha or beta API in a minor does. */
   breaking: boolean
   /** Package names, such as `@oztix/roadie-core`. */
   packages: string[]
@@ -79,6 +79,10 @@ const SECTION_BUMPS: Record<string, Bump> = {
   'Minor Changes': 'minor',
   'Patch Changes': 'patch'
 }
+
+/** A commit's day in UTC, not the committer's zone, which differs by who merged. */
+const utcDate = (seconds: number) =>
+  new Date(seconds * 1000).toISOString().slice(0, 10)
 
 const labelOf = (name: string) =>
   RELEASED_PACKAGES.find((pkg) => pkg.name === name)?.label ?? name
@@ -215,7 +219,7 @@ export function toChange(
   return {
     id: entry.id,
     kind: classify(summary, entry.bump),
-    breaking: entry.bump === 'major' || /\bbreaking\b/i.test(lead),
+    breaking: entry.bump === 'major' || /^\W*breaking\b/i.test(lead),
     packages: entry.packages,
     summary,
     details,
@@ -445,11 +449,12 @@ export function pagePackages(manifests: ManifestJson[]): Map<string, string> {
   return packages
 }
 
-/** Route → the day its page file was first added, from `git log --diff-filter=A --name-only` under `docs/src/app`. */
+/** Route → the day, in UTC, its page file was first added, from `git log --diff-filter=A --name-only` under `docs/src/app`. */
 export function pageCreatedDates(log: string): Map<string, string> {
   const dates = new Map<string, string>()
   for (const chunk of log.split('\x1e').slice(1)) {
-    const [date = '', ...files] = chunk.trim().split('\n')
+    const [seconds = '0', ...files] = chunk.trim().split('\n')
+    const date = utcDate(Number(seconds))
     for (const file of files) {
       const route = file.match(/^docs\/src\/app(\/.*)?\/page\.(mdx|tsx)$/)
       // `git log` runs newest first, so the last date seen is the oldest.
@@ -560,8 +565,7 @@ export function versionCommits(log: string) {
     const [head = '', ...lines] = chunk.split('\n')
     const [hash = '', seconds = '0'] = head.trim().split(' ')
     const time = Number(seconds)
-    // In UTC, not the committer's zone, which differs by who merged.
-    const date = new Date(time * 1000).toISOString().slice(0, 10)
+    const date = utcDate(time)
     for (const line of lines) {
       const version = line.match(/^\+## (\S+)\s*$/)?.[1]
       // `git log` runs newest first, so the last commit seen is the oldest.
@@ -627,7 +631,7 @@ export function getPageRelease(route: string): PageRelease {
             git([
               'log',
               '--diff-filter=A',
-              '--format=%x1e%cs',
+              '--format=%x1e%ct',
               '--name-only',
               '--',
               'docs/src/app'
