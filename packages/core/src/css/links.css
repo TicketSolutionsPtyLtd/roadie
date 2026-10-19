@@ -66,9 +66,13 @@
   }
 }
 
+/* strong fills as emphasis-strong does. A blend between its text colours
+   passes through the fill's own colour, so the text switches in one step:
+   on-strong once the spring has all but covered it, and back at once on
+   the way out. */
 @utility link-strong {
   --link-tone: var(--intent-link-underline);
-  --link-fill: color-mix(in oklch, var(--link-tone) 17%, transparent);
+  --link-fill: var(--intent-link-fill);
   --link-line: 0.0625em;
   --link-underline: var(--link-tone);
 
@@ -90,22 +94,35 @@
     transition:
       var(--interactive-transition),
       background-size var(--duration-moderate) var(--ease-spring),
-      --link-underline var(--duration-moderate) var(--ease-spring);
+      --link-underline var(--duration-moderate) var(--ease-spring),
+      color 0s;
   }
 
-  &:focus-visible {
+  &:is(&):focus-visible {
     --link-underline: var(--link-fill);
+    color: var(--intent-link-on-fill);
     background-size:
       100% var(--link-line),
       100% calc(100% - var(--link-line));
+    transition:
+      var(--interactive-transition),
+      background-size var(--duration-moderate) var(--ease-spring),
+      --link-underline var(--duration-moderate) var(--ease-spring),
+      color 0s var(--duration-fast);
   }
 
   @media (hover: hover) {
-    &:hover {
+    &:is(&):hover {
       --link-underline: var(--link-fill);
+      color: var(--intent-link-on-fill);
       background-size:
         100% var(--link-line),
         100% calc(100% - var(--link-line));
+      transition:
+        var(--interactive-transition),
+        background-size var(--duration-moderate) var(--ease-spring),
+        --link-underline var(--duration-moderate) var(--ease-spring),
+        color 0s var(--duration-fast);
     }
   }
 }

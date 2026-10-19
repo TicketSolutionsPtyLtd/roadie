@@ -50,6 +50,14 @@ function tokenColor(token: string) {
 
 const TRANSPARENT = 'rgba(0, 0, 0, 0)'
 
+// A paused transition reports its colour in another space, so compare what paints.
+function pixel(color: string) {
+  const context = document.createElement('canvas').getContext('2d')!
+  context.fillStyle = color
+  context.fillRect(0, 0, 1, 1)
+  return [...context.getImageData(0, 0, 1, 1).data]
+}
+
 function look(element: Element) {
   const style = getComputedStyle(element)
   return {
@@ -86,6 +94,16 @@ function layerColors(element: Element) {
     if (depth === 0) start = -1
   }
   return colors
+}
+
+// What emphasis-strong paints in the given intent, to compare a strong link's fill with.
+function emphasisStrong(intent: string) {
+  const probe = document.createElement('span')
+  probe.className = `emphasis-strong ${intent}`
+  document.body.append(probe)
+  const { backgroundColor, color } = getComputedStyle(probe)
+  probe.remove()
+  return { fill: backgroundColor, text: color }
 }
 
 const FULL_LESS_LINE = /^100% 1px, 100% calc\((100% - 1px|-1px \+ 100%)\)$/
@@ -180,15 +198,17 @@ describe('A strong link', () => {
   })
 
   it.each(engagements)(
-    'fills from the left, merging its underline into the fill, on %s',
+    'fills from the left as an accent emphasis-strong, merging its underline, on %s',
     async (_, engage) => {
       const { link } = renderLink({ emphasis: 'strong' })
 
       await engage(link)
 
       const [underline, fill] = layerColors(link)
+      const strong = emphasisStrong('intent-accent')
       expect(look(link).size).toMatch(FULL_LESS_LINE)
       expect(underline).toBe(fill)
+      expect({ fill, text: look(link).color }).toEqual(strong)
     }
   )
 })
@@ -337,6 +357,23 @@ describe('Link intent', () => {
     expect(look(link).color).toBe(tokenColor('--color-danger-11'))
     expect(layerColors(link)[0]).toBe(tokenColor('--color-danger-9'))
   })
+
+  it.each([
+    ['inside a danger surface', () => renderInDanger({ emphasis: 'strong' })],
+    [
+      'with its own danger intent',
+      () => renderLink({ emphasis: 'strong', intent: 'danger' }).link
+    ]
+  ])('fills a strong link %s as a danger emphasis-strong', async (_, mount) => {
+    const link = mount()
+
+    await hover(link)
+
+    const [, fill] = layerColors(link)
+    expect({ fill, text: look(link).color }).toEqual(
+      emphasisStrong('intent-danger')
+    )
+  })
 })
 
 describe('Link motion', () => {
@@ -379,11 +416,15 @@ describe('Link motion', () => {
     ).toMatch(/^linear\(/)
   })
 
-  it.each(['normal', 'strong'] as const)(
+  // In neutral a strong link's underline is already the fill's accent, so danger shows the blend.
+  it.each([
+    ['normal', {}],
+    ['strong', { intent: 'danger' }]
+  ] as const)(
     'blends a %s link’s underline colour into the fill, not in one step',
-    async (emphasis) => {
+    async (emphasis, props) => {
       withoutStill()
-      const { link } = renderLink({ emphasis })
+      const { link } = renderLink({ emphasis, ...props })
       const [rest, fill] = layerColors(link)
 
       await hover(link)
@@ -402,6 +443,24 @@ describe('Link motion', () => {
       expect(between).not.toBe(fill)
     }
   )
+
+  it('keeps a strong link’s text in its resting colour until the fill has all but covered it', async () => {
+    withoutStill()
+    const { link } = renderLink({ emphasis: 'strong' })
+    const rest = look(link).color
+    const at = (time: number) => {
+      for (const animation of link.getAnimations()) {
+        animation.pause()
+        animation.currentTime = time
+      }
+      return look(link).color
+    }
+
+    await hover(link)
+
+    expect(pixel(at(50))).toEqual(pixel(rest))
+    expect(pixel(at(150))).toEqual(pixel(emphasisStrong('intent-accent').text))
+  })
 
   it.each(['normal', 'strong', 'subtle'] as const)(
     'jumps a %s link to its end state when motion is reduced',
