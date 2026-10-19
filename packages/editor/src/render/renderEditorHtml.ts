@@ -1,0 +1,109 @@
+import {
+  escapeHTML,
+  escapeHTMLAttribute,
+  renderJSONContentToString,
+  serializeAttrsToHTMLString,
+  serializeChildrenToHTMLString
+} from '@tiptap/static-renderer/json/html-string'
+
+import { proseVariants } from '@oztix/roadie-components/prose'
+import { cn } from '@oztix/roadie-core/utils'
+
+import { type EditorValue, type StoredEditorValue, migrate } from '../schema'
+import {
+  type Element,
+  type Elements,
+  type RenderContext,
+  type SavedAttrs,
+  VOID_TAGS,
+  outermostMarksLast,
+  presetElementsFor
+} from './elements'
+import type { RenderEditorOptions } from './renderEditorValue'
+
+// Roadie's Link opens these in a new tab (`resolveLinkKind` in components).
+const EXTERNAL_HREF = /^(https?:)?\/\//i
+
+type RendererProps = {
+  node: { attrs?: SavedAttrs; text?: unknown }
+  mark?: { attrs?: SavedAttrs }
+  children?: string | string[]
+}
+
+type Renderer = (props: RendererProps) => string
+
+// Matches React's inline style output, so both renderers agree.
+function cssText(style: Record<string, string>) {
+  return Object.entries(style)
+    .map(([property, value]) => {
+      const name = property.replace(
+        /[A-Z]/g,
+        (letter) => `-${letter.toLowerCase()}`
+      )
+      return `${name}:${value}`
+    })
+    .join(';')
+}
+
+function htmlAttrs({ tag, attrs, style }: Element) {
+  const opensTab = tag === 'a' && EXTERNAL_HREF.test(String(attrs?.href))
+  return serializeAttrsToHTMLString({
+    ...attrs,
+    ...(opensTab && { target: '_blank', rel: 'noopener noreferrer' }),
+    ...(style && { style: cssText(style) })
+  })
+}
+
+function htmlElement(element: Element, children: string) {
+  const open = `<${element.tag}${htmlAttrs(element)}>`
+  return VOID_TAGS.has(element.tag)
+    ? open
+    : `${open}${children}</${element.tag}>`
+}
+
+function renderers(
+  table: Elements['nodes'],
+  attrsOf: (props: RendererProps) => SavedAttrs | undefined,
+  context: RenderContext
+) {
+  const mapping: Record<string, Renderer> = Object.create(null)
+  for (const [name, toElement] of Object.entries(table)) {
+    mapping[name] = (props) => {
+      const element = toElement(attrsOf(props) ?? {}, context)
+      const children = serializeChildrenToHTMLString(props.children)
+      return element ? htmlElement(element, children) : children
+    }
+  }
+  return mapping
+}
+
+function renderDoc(
+  doc: EditorValue['doc'],
+  { nodes, marks }: Elements,
+  context: RenderContext
+) {
+  const nodeMapping = renderers(nodes, ({ node }) => node.attrs, context)
+  nodeMapping.text = ({ node }) =>
+    typeof node.text === 'string' ? escapeHTML(node.text) : ''
+  return renderJSONContentToString({
+    nodeMapping,
+    markMapping: renderers(marks, ({ mark }) => mark?.attrs, context),
+    unhandledNode: () => '',
+    unhandledMark: ({ children }) => serializeChildrenToHTMLString(children)
+  })({ content: outermostMarksLast(doc) })
+}
+
+/**
+ * Renders a saved value as an HTML string in a `.prose` element, for a
+ * consumer that isn't React. It maps the same nodes and marks as
+ * `renderEditorValue` and escapes every text and attribute.
+ */
+export function renderEditorHtml(
+  value: StoredEditorValue | EditorValue,
+  { size, className, embedProviders }: RenderEditorOptions = {}
+): string {
+  const { preset, doc } = migrate(value)
+  const classes = escapeHTMLAttribute(cn(proseVariants({ size, className })))
+  const content = renderDoc(doc, presetElementsFor(preset), { embedProviders })
+  return `<div data-slot="prose" class="${classes}">${content}</div>`
+}

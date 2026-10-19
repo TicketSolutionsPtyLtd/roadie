@@ -24,6 +24,11 @@ export default defineConfig(({ watch }) => ({
   outDir: 'dist',
   outExtensions: () => ({ js: '.js' }),
   deps: {
-    neverBundle: ['@oztix/roadie-core']
+    neverBundle: [
+      'react',
+      'react-dom',
+      '@oztix/roadie-core',
+      /^@oztix\/roadie-components/
+    ]
   }
 }))
