@@ -121,3 +121,66 @@ describe('Menu shortcuts on a touch screen', () => {
     expect(getComputedStyle(shortcut).display).not.toBe('none')
   })
 })
+
+describe('Menu choice rows with shortcuts', () => {
+  const rightEdge = (row: Element) =>
+    row
+      .querySelector('[data-slot="menu-item-shortcut"]')!
+      .getBoundingClientRect().right
+  const checkShows = (row: Element) => {
+    const check = row.querySelector('[data-slot="menu-item-indicator"]')
+    return check ? getComputedStyle(check).visibility === 'visible' : false
+  }
+
+  async function expectAligned(role: 'menuitemradio' | 'menuitemcheckbox') {
+    await userEvent.click(screen.getByRole('button', { name: 'Format' }))
+    const rows = await screen.findAllByRole(role)
+    const edges = rows.map(rightEdge)
+    for (const edge of edges) {
+      expect(Math.abs(edge - edges[0]!)).toBeLessThanOrEqual(0.5)
+    }
+    expect(rows.map(checkShows)).toEqual([false, true, false])
+  }
+
+  it('line up radio item shortcuts when one is checked', async () => {
+    render(
+      <Menu>
+        <Menu.Trigger>Format</Menu.Trigger>
+        <Menu.Content>
+          <Menu.RadioGroup defaultValue='h2'>
+            <Menu.RadioItem value='p' shortcut='⌘⌥0'>
+              Paragraph
+            </Menu.RadioItem>
+            <Menu.RadioItem value='h2' shortcut='⌘⌥2'>
+              Heading 2
+            </Menu.RadioItem>
+            <Menu.RadioItem value='quote' shortcut='⌘⇧B'>
+              Quote
+            </Menu.RadioItem>
+          </Menu.RadioGroup>
+        </Menu.Content>
+      </Menu>
+    )
+    await expectAligned('menuitemradio')
+  })
+
+  it('line up checkbox item shortcuts when one is checked', async () => {
+    render(
+      <Menu>
+        <Menu.Trigger>Format</Menu.Trigger>
+        <Menu.Content>
+          <Menu.CheckboxItem shortcut='⌘B'>Bold</Menu.CheckboxItem>
+          <Menu.CheckboxItem shortcut='⌘I' defaultChecked>
+            Italic
+          </Menu.CheckboxItem>
+          <Menu.CheckboxItem shortcut='⌘U'>Underline</Menu.CheckboxItem>
+        </Menu.Content>
+      </Menu>
+    )
+    await expectAligned('menuitemcheckbox')
+    const rows = screen.getAllByRole('menuitemcheckbox')
+    await userEvent.click(rows[0]!)
+    await userEvent.click(rows[1]!)
+    await expect.poll(() => rows.map(checkShows)).toEqual([true, false, false])
+  })
+})

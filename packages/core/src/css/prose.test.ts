@@ -170,10 +170,10 @@ describe('prose.css', () => {
   })
 
   it.each([1, 2, 3, 4, 5, 6])(
-    'sizes and weights h%i like its text-display-prose utility',
+    'sizes and weights h%i like its text-display-ui utility',
     (level) => {
       const prose = ruleFor('.prose')
-      const utility = ruleFor(`.text-display-prose-${level}`)
+      const utility = ruleFor(`.text-display-ui-${level}`)
       const heading = proseRules.find(({ selector }) =>
         selector
           .replace(/\s+/g, ' ')

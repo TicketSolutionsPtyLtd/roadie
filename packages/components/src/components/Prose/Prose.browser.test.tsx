@@ -5,7 +5,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { Prose } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { useStylesheet } from '../Pane/testUtils'
+import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -35,6 +35,16 @@ const DISPLAY_PROSE = [
   'text-display-prose-4',
   'text-display-prose-5',
   'text-display-prose-6'
+] as const
+
+// One step below display-ui; no utility carries this scale.
+const DISPLAY_SMALL = [
+  'text-3xl font-bold',
+  'text-2xl font-bold',
+  'text-xl font-bold',
+  'text-lg font-bold',
+  'text-base font-semibold',
+  'text-sm font-semibold'
 ] as const
 
 const style = (element: Element) => getComputedStyle(element)
@@ -159,37 +169,34 @@ describe('Prose', () => {
   })
 
   it.each([
-    ['sm', 'ui', DISPLAY_UI],
-    ['md', 'prose', DISPLAY_PROSE],
+    ['sm', 'small', DISPLAY_SMALL],
+    ['md', 'ui', DISPLAY_UI],
     ['lg', 'prose', DISPLAY_PROSE]
-  ] as const)(
-    'sets %s headings to the display-%s scale',
-    (size, _, display) => {
-      const container = renderWide(
-        <>
-          <Prose size={size}>
-            <h1>Set times</h1>
-            <h2>Set times</h2>
-            <h3>Set times</h3>
-            <h4>Set times</h4>
-            <h5>Set times</h5>
-            <h6>Set times</h6>
-          </Prose>
-          {display.map((className) => (
-            <p key={className} className={className}>
-              Set times
-            </p>
-          ))}
-        </>
-      )
-      display.forEach((className, index) => {
-        const heading = style(get(container, `h${index + 1}`))
-        const reference = style(get(container, `.${className}`))
-        expect(heading.fontSize, className).toBe(reference.fontSize)
-        expect(heading.fontWeight, className).toBe(reference.fontWeight)
-      })
-    }
-  )
+  ] as const)('sets %s headings to the %s scale', (size, _, display) => {
+    const container = renderWide(
+      <>
+        <Prose size={size}>
+          <h1>Set times</h1>
+          <h2>Set times</h2>
+          <h3>Set times</h3>
+          <h4>Set times</h4>
+          <h5>Set times</h5>
+          <h6>Set times</h6>
+        </Prose>
+        {display.map((className, index) => (
+          <p key={className} className={className} data-level={index + 1}>
+            Set times
+          </p>
+        ))}
+      </>
+    )
+    display.forEach((className, index) => {
+      const heading = style(get(container, `h${index + 1}`))
+      const reference = style(get(container, `[data-level='${index + 1}']`))
+      expect(heading.fontSize, className).toBe(reference.fontSize)
+      expect(heading.fontWeight, className).toBe(reference.fontWeight)
+    })
+  })
 
   it('lets a variable on Prose override its size', () => {
     const container = renderWide(
@@ -491,6 +498,32 @@ describe('Prose', () => {
     expect(style(get(container, '#outer')).listStyleType).toBe('disc')
     expect(style(get(container, '#inner')).listStyleType).toBe('circle')
     expect(style(get(container, '#ordered')).listStyleType).toBe('decimal')
+  })
+
+  it('sets emphasis in the italic face, and keeps it upright in not-prose', async () => {
+    await Promise.all([
+      loadBrandFont(),
+      document.fonts.load('italic 1em Intermission')
+    ])
+    const text = 'Bring sunscreen'
+    const container = renderWide(
+      <Prose>
+        <p>
+          <span id='upright'>{text}</span> <em id='em'>{text}</em>{' '}
+          <i id='i'>{text}</i> <cite id='cite'>{text}</cite>
+        </p>
+        <div className='not-prose'>
+          <em id='opted-out'>{text}</em>
+        </div>
+      </Prose>
+    )
+    const upright = box(get(container, '#upright')).width
+    for (const id of ['#em', '#i', '#cite']) {
+      expect(style(get(container, id)).fontStyle).toBe('italic')
+      // The upright face can't lay out to another width, so a change means the italic face drew.
+      expect(box(get(container, id)).width).not.toBe(upright)
+    }
+    expect(style(get(container, '#opted-out')).fontStyle).toBe('normal')
   })
 
   it('takes its colours from the scheme, with no rules of its own', () => {
