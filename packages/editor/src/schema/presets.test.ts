@@ -199,6 +199,8 @@ describe('presetShapes', () => {
     'matches the %s preset’s schema',
     (preset) => {
       const { nodes, marks } = getSchema(presets[preset])
+      const attrsOf = (spec: { attrs?: object }) =>
+        Object.keys(spec.attrs ?? {})
       const shapes = Object.fromEntries(
         Object.values(nodes).map((type) => [
           type.name,
@@ -210,15 +212,19 @@ describe('presetShapes', () => {
                 ? 'inline'
                 : type.spec.content === 'listItem+'
                   ? 'listItems'
-                  : 'blocks'
+                  : type.spec.content === 'paragraph block*'
+                    ? 'paragraphFirst'
+                    : 'blocks',
+            ...(attrsOf(type.spec).length > 0 && { attrs: attrsOf(type.spec) })
           }
         ])
       )
+      const markAttrs = Object.fromEntries(
+        Object.values(marks).map((type) => [type.name, attrsOf(type.spec)])
+      )
 
       expect(presetShapes[preset].nodes).toEqual(shapes)
-      expect([...presetShapes[preset].marks].sort()).toEqual(
-        Object.keys(marks).sort()
-      )
+      expect(presetShapes[preset].marks).toEqual(markAttrs)
     }
   )
 })
