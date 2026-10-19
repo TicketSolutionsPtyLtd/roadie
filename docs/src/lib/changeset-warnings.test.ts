@@ -68,6 +68,25 @@ describe('changesetWarnings', () => {
     ).toEqual([])
   })
 
+  it('stays quiet when any tracked package takes a major, which makes a breaking card', () => {
+    expect(
+      warn('Add a `Calendar` component.', {
+        '@oztix/roadie-components': 'major',
+        '@oztix/roadie-core': 'minor'
+      })
+    ).toEqual([])
+  })
+
+  it('warns on a minor beside a patch or an untracked package', () => {
+    expect(
+      warn('Add a `Calendar` component.', {
+        '@oztix/roadie-components': 'minor',
+        '@oztix/roadie-core': 'patch',
+        'roadie-skills': 'major'
+      })
+    ).toHaveLength(1)
+  })
+
   it('warns when a first release has no details to describe its card', () => {
     const warnings = warn('First release of `@oztix/roadie-eslint-plugin`.', {
       '@oztix/roadie-eslint-plugin': 'minor'
