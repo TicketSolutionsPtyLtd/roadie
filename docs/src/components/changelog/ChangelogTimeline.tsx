@@ -239,11 +239,19 @@ export function ChangelogTimeline({
     window.history.replaceState(window.history.state, '', `#${slug}`)
   }, [])
 
-  // The frame's hash landing is off while the rail fills the inspector.
+  // The frame's hash landing is off while the rail fills the inspector, so a
+  // link to a release or a heading on the page lands here.
   useEffect(() => {
-    const slug = decodeURIComponent(window.location.hash.slice(1))
-    if (slug && document.getElementById(slug)?.dataset.release) jumpTo(slug)
-  }, [jumpTo])
+    let id = ''
+    try {
+      id = decodeURIComponent(window.location.hash.slice(1))
+    } catch {
+      return
+    }
+    const target = id ? document.getElementById(id) : null
+    if (target && document.getElementById('docs-content')?.contains(target))
+      landOn(target, false)
+  }, [])
 
   const months = useMemo(() => railMonths(shown), [shown])
   const pending = shown[0]?.release.pending ?? false
