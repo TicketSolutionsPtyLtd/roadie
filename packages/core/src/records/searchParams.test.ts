@@ -189,6 +189,31 @@ describe('recordViewFromSearchParams', () => {
     )
   })
 
+  it('writes a relative range in its one form', () => {
+    const view: RecordView = {
+      query: {
+        search: '',
+        filters: [
+          {
+            field: 'starts',
+            operator: 'within',
+            value: { period: 'week', offset: 0 }
+          },
+          {
+            field: 'created',
+            operator: 'within',
+            value: { period: 'month', offset: -2, fiscal: true }
+          }
+        ],
+        sort: []
+      },
+      layout: { type: 'table' }
+    }
+    expect(recordViewToSearchParams(view).toString()).toBe(
+      'v=1&f=starts%3Awithin%3Athis-week&f=created%3Awithin%3Amonth.-2'
+    )
+  })
+
   it('takes a framework search params object', () => {
     expect(
       recordViewFromSearchParams(
