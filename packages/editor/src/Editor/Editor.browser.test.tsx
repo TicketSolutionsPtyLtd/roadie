@@ -1020,6 +1020,7 @@ describe('Editor rich preset', () => {
       '|',
       'Bold',
       'Italic',
+      'Underline',
       'Link',
       '|',
       'Bulleted list',
@@ -1031,6 +1032,25 @@ describe('Editor rich preset', () => {
       'Undo',
       'Redo'
     ])
+  })
+
+  it('underlines with the Underline control in the rich preset', async () => {
+    const onValueChange = vi.fn()
+    render(<RichEditor onValueChange={onValueChange} />)
+    const textbox = await focusedTextbox()
+    const underline = screen.getByRole('button', { name: 'Underline' })
+
+    await userEvent.keyboard('{End} ')
+    await userEvent.click(underline)
+    await userEvent.keyboard('tonight')
+
+    await waitFor(() =>
+      expect(within(textbox).getByText('tonight').tagName).toBe('U')
+    )
+    expect(underline).toHaveAttribute('aria-pressed', 'true')
+    expect(onValueChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ preset: 'rich' })
+    )
   })
 
   it('changes the block from the Block type menu and names it on the trigger', async () => {

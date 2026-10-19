@@ -104,7 +104,8 @@ dropped from pasted HTML, and removed by `migrate`, so a stored value never
 holds one.
 
 `<Editor preset='rich'>` leads its toolbar with a Block type menu (Paragraph,
-Heading 2 to 4, and Quote) named for the block at the caret, and adds Divider,
+Heading 2 to 4, and Quote) named for the block at the caret, keeps the basic
+controls from Bold, Italic and Underline to the lists, and adds Divider,
 Image, and Embed controls. `## `, `### `, `#### `, `> ` and `---` work as you
 type.
 
