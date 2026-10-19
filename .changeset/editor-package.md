@@ -16,22 +16,25 @@ node and mark names.
   `src` and `alt`), and embeds (`embed`, saving only `provider`, `id`, and
   `params`, never a URL), and tables (`table`, `tableRow`, `tableHeader` and
   `tableCell`, saving only each cell's `colspan` and `rowspan`, never a
-  width). A cell holds paragraphs only. A pasted `h1` reads as a heading 2, and `h5` and
+  width). A cell holds paragraphs only, and a pasted span HTML doesn't allow reads
+  as 1. The table nodes carry no editing code, so `/schema` stays small. A pasted `h1` reads as a heading 2, and `h5` and
   `h6` as a heading 4. An image's `src` must be `https` or a root-relative
   path.
 - `migrate` checks a stored value and brings it up to `CURRENT_VERSION`,
   throwing a `RangeError` on an unknown preset, a newer version, or a value or
   `doc` that isn't an object, and skipping malformed children and marks.
   `migrate(value, preset)` reads a value into another preset. Either way it
-  drops each node and mark the preset doesn't hold and keeps their text, so a
-  value never loads as an empty document. It also drops unsafe links, keeping
+  drops each node and mark the preset doesn't hold and keeps their text, and
+  unwraps a `doc` below the root to its blocks, so a value never loads as an
+  empty document. It also drops unsafe links, keeping
   their text, images with any other `src`, and malformed embeds, and brings a
   heading level into 2 to 4. It keeps only the attributes the preset saves
   and the first mark of each type, starts every list item with a paragraph,
   drops a list or quote left empty, and gives an empty `doc` one paragraph,
   so every value it returns loads in Tiptap. In a table it keeps only cells
   in rows and only paragraphs in cells, keeping other blocks' text as
-  paragraphs, keeps whole positive spans, gives an empty cell a paragraph,
+  paragraphs, keeps only spans HTML allows (1 to 1,000 columns and 1 to
+  65,534 rows), gives an empty cell a paragraph,
   and drops a row with no cells and a table with no rows. `createEmptyValue` starts a new
   value.
 - `parseEmbedUrl` turns a YouTube, Vimeo, Spotify or TikTok share URL into an
