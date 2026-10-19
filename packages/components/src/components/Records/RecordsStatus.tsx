@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 
 import { errorMessage, rangeErrorMessage } from './RecordsStates'
 import { isSelecting, useRecordsContext } from './context'
+import { formatCount, selectionExact } from './count'
 
-const count = new Intl.NumberFormat('en-AU')
 // Long enough to sit between keystrokes, so a search announces its count once.
 const SETTLE_MS = 500
 
@@ -30,7 +30,7 @@ export function RecordsStatus() {
   const unknown = range !== undefined && range.total === undefined
   const results = useSettled(
     records.filtered && !unknown
-      ? `${count.format(total)} ${total === 1 ? 'result' : 'results'}`
+      ? `${formatCount(total, records.resultCountExact)} ${total === 1 ? 'result' : 'results'}`
       : '',
     // A server's count is the last search's until the new one loads.
     records.loading || Boolean(range?.loading)
@@ -40,7 +40,7 @@ export function RecordsStatus() {
       ? [
           // Entering says so; once records are picked the count is enough.
           !selected && 'Select mode',
-          `${count.format(selected)} selected`,
+          `${formatCount(selected, selectionExact(records, records.selection))} selected`,
           results
         ]
           .filter(Boolean)

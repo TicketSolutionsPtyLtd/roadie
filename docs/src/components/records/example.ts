@@ -2,6 +2,7 @@ import {
   type RecordField,
   type RecordView,
   parseQuery,
+  toRecordsRequest,
   toSearchParams
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
@@ -14,7 +15,7 @@ export const EVENT_FIELDS: RecordField[] = [
     key: 'orderNumber',
     label: 'Order number',
     type: 'text',
-    match: /^OZ-\d{5}$/i
+    match: '^OZ-\\d{5}$'
   },
   {
     key: 'venue',
@@ -26,12 +27,36 @@ export const EVENT_FIELDS: RecordField[] = [
     ]
   },
   {
-    key: 'city',
-    label: 'City',
-    type: 'option',
+    key: 'location',
+    label: 'Location',
+    type: 'location',
     options: [
-      { value: 'melbourne', label: 'Melbourne' },
-      { value: 'sydney', label: 'Sydney' }
+      { value: 'au', label: 'Australia', kind: 'country' },
+      { value: 'au-vic', label: 'Victoria', kind: 'state', parent: 'au' },
+      {
+        value: 'au-vic-melbourne',
+        label: 'Melbourne',
+        kind: 'city',
+        parent: 'au-vic'
+      },
+      {
+        value: 'au-vic-fitzroy',
+        label: 'Fitzroy',
+        kind: 'suburb',
+        parent: 'au-vic-melbourne'
+      },
+      {
+        value: 'au-nsw',
+        label: 'New South Wales',
+        kind: 'state',
+        parent: 'au'
+      },
+      {
+        value: 'au-nsw-sydney',
+        label: 'Sydney',
+        kind: 'city',
+        parent: 'au-nsw'
+      }
     ]
   },
   {
@@ -47,7 +72,7 @@ export const EVENT_FIELDS: RecordField[] = [
   { key: 'gross', label: 'Gross', type: 'money', currencyKey: 'currency' },
   {
     key: 'starts',
-    label: 'Starts',
+    label: 'Start date',
     type: 'date',
     moment: 'event',
     end: 'ends',
@@ -59,13 +84,14 @@ export const EVENT_FIELDS: RecordField[] = [
 ]
 
 export const WEEKEND_VIEW: RecordView = {
+  version: 1,
   id: 'melbourne-weekend',
   name: 'Melbourne this weekend',
   entity: 'events',
   query: {
     search: 'lampshade',
     filters: [
-      { field: 'city', operator: 'is', values: ['melbourne'] },
+      { field: 'location', operator: 'is', values: ['au-vic-melbourne'] },
       { field: 'starts', operator: 'within', value: 'this-weekend' },
       { field: 'offer', operator: 'is-not', values: ['sold_out'] }
     ],
@@ -76,6 +102,15 @@ export const WEEKEND_VIEW: RecordView = {
     columns: { order: ['name', 'gross', 'starts'], hidden: ['created'] }
   }
 }
+
+/** The example view's first page as the request a server reads. */
+export const weekendRequest = () =>
+  toRecordsRequest(
+    WEEKEND_VIEW.query,
+    EVENT_FIELDS,
+    { now: new Date(EXAMPLE_NOW), timeZone: EXAMPLE_ZONE },
+    { page: 0, pageSize: 50 }
+  )
 
 /** A fixed moment, so the outputs read the same on every build. */
 export const EXAMPLE_NOW = '2026-10-02T13:30:00Z'

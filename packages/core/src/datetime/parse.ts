@@ -43,7 +43,12 @@ export type DatePhraseValue =
   /** A wall-clock time, 'HH:MM' on a 24-hour clock. */
   | { time: string }
 
-export type DatePhraseSuggestion = { label: string; value: DatePhraseValue }
+export type DatePhraseSuggestion = {
+  label: string
+  value: DatePhraseValue
+  /** The words a label of dates stands for: "Next weekend". */
+  description?: string
+}
 
 const PHRASES: [string, DateRangeValue][] = [
   ['today', 'today'],
@@ -81,6 +86,10 @@ const PHRASES: [string, DateRangeValue][] = [
 
 // Exact matches only, never completed: each hides an explicit range.
 const ALIASES: Record<string, DateRangeValue> = {
+  weekend: 'this-weekend',
+  tonight: 'today',
+  tmrw: 'tomorrow',
+  tomorow: 'tomorrow',
   fortnight: { direction: 'next', amount: 14, unit: 'day' },
   'next fortnight': { direction: 'next', amount: 14, unit: 'day' },
   'last fortnight': { direction: 'past', amount: 14, unit: 'day' },
@@ -154,7 +163,8 @@ function fullYear(text: string | undefined): number | undefined {
   return text.length === 2 ? 2000 + Number(text) : Number(text)
 }
 
-const DAY_MONTH = /^(\d{1,2})(?:st|nd|rd|th)? ([a-z]+)(?: (\d{2}|\d{4}))?$/
+const DAY_MONTH =
+  /^(\d{1,2})(?:st|nd|rd|th)? (?:of )?([a-z]+)(?: (\d{2}|\d{4}))?$/
 const MONTH_DAY = /^([a-z]+) (\d{1,2})(?:st|nd|rd|th)?(?: (\d{2}|\d{4}))?$/
 const SLASHED = /^(\d{1,2})\/(\d{1,2})(?:\/(\d{2}|\d{4}))?$/
 const BARE_DAY = /^(\d{1,2})(?:st|nd|rd|th)?$/
@@ -339,6 +349,11 @@ function rolling(
   return { direction: direction === 'next' ? 'next' : 'past', amount, unit }
 }
 
+// Words that change nothing before a phrase, as in "on the weekend",
+// "the 20th of oct" and "in the next 7 days".
+const LEADING =
+  /^(?:(?:on|at|over) )?the (?=\d|weekend$)|^(?:in )?the (?=(?:next|last|past) )|^on (?!or )/
+
 function normalise(text: string): string {
   return text.toLowerCase().replace(/,/g, ' ').replace(/\s+/g, ' ').trim()
 }
@@ -351,7 +366,7 @@ export function parseDatePhrase(
   text: string,
   options: DatePhraseOptions
 ): DatePhraseSuggestion[] {
-  const input = normalise(text).replace(/^on /, '')
+  const input = normalise(text).replace(LEADING, '')
   if (!input) return []
   const today = plainDateOf(options.now, options.timeZone)
   const weekStart = options.weekStart ?? 1
@@ -386,7 +401,10 @@ export function parseDatePhrase(
     const shift = input === 'next weekend' ? 7 : -7
     const thisWeekend = resolveDateRange('this-weekend', options)
     const start = addDays(thisWeekend.start as string, shift)
-    const explicit = describe({ start, end: addDays(start, 1) })
+    const explicit = {
+      ...describe({ start, end: addDays(start, 1) }),
+      description: `${input[0]!.toUpperCase()}${input.slice(1)}`
+    }
     return input === 'next weekend'
       ? [explicit, describe('this-weekend')]
       : [explicit]
@@ -412,10 +430,11 @@ export function parseDatePhrase(
     const date = dateAhead(today, m[1]!, m[2]!)
     return date ? [on(date)] : []
   }
-  m = /^end of (?:the )?(week|month|year)$/.exec(input)
+  m = /^(end|rest) of (?:the |this )?(week|month|year)$/.exec(input)
   if (m) {
-    const date = endOf(m[1]!, today, weekStart)
-    return date ? [on(date)] : []
+    const end = endOf(m[2]!, today, weekStart)
+    if (!end) return []
+    return [m[1] === 'end' ? on(end) : describe({ start: today, end })]
   }
 
   m = /^(?:(this|next|last) )?([a-z]+)$/.exec(input)
@@ -438,28 +457,53 @@ export function parseDatePhrase(
     return [{ label: label ?? time, value: { time } }]
   }
 
-  m = /^(after|before) (.+)$/.exec(input)
-  if (m) {
-    const date = parseDate(m[2]!, today)
-    if (!date) return []
-    const word = m[1] === 'after' ? 'After' : 'Before'
-    const value = m[1] === 'after' ? { after: date } : { before: date }
-    return [{ label: `${word} ${formatDay(date)}`, value }]
+  const compare = (
+    comparison: Comparison,
+    text: string,
+    lookBack: boolean
+  ): DatePhraseSuggestion[] => {
+    // One level only, so a run of comparison words stays linear.
+    if (COMPARED.test(text)) return []
+    const { after, edge, shift } = COMPARISONS[comparison]
+    // "since mon" looks back to the last Monday, today included.
+    const weekday = lookBack && nameIndex(WEEKDAYS, text)
+    const days = weekday
+      ? [on(addDays(today, -((dayOfWeek(today) - weekday + 7) % 7)))]
+      : parseDatePhrase(text, options)
+    return days.flatMap((day) => {
+      const days = dayBounds(day.value, options)
+      if (!days) return []
+      const date = dayAway(days[edge], shift)
+      if (!date) return []
+      const suggestion: DatePhraseSuggestion = {
+        label: `${after ? 'After' : 'Before'} ${formatDay(date)}`,
+        value: after ? { after: date } : { before: date }
+      }
+      if (isDatePhraseCompletion(day)) COMPLETIONS.add(suggestion)
+      return [suggestion]
+    })
   }
 
-  // Split rather than match: a lazy pattern backtracks on many separators.
-  const ends = input.replace(/^(?:between|from) /, '').split(/ (?:and|to) /)
-  if (ends.length === 2) {
-    const range = parseRange(ends[0]!, ends[1]!, today)
-    if (range) return [describe(range)]
-  }
+  // "20 oct onwards" reads as "since 20 oct", but "mon onwards" is the
+  // coming Monday.
+  m = ONWARDS.exec(input)
+  if (m) return ONWARDS.test(m[1]!) ? [] : compare('since', m[1]!, false)
+
+  const ranges = rangesOf(input, today, options)
+  if (ranges) return ranges.map(describe)
+
+  m = COMPARED.exec(input)
+  if (m) return compare(m[1] as Comparison, m[2]!, m[1] === 'since')
 
   const date = parseDate(input, today)
   if (date) return [on(date)]
 
   if (input.length < 2) return []
   const seen = new Set<string>()
-  const completions = PHRASES.filter(([words]) => words.startsWith(input))
+  // A bare period, as "month", completes to this one before "Month to date".
+  const completions = PHRASES.filter(
+    ([words]) => words.startsWith(input) || words.startsWith(`this ${input}`)
+  )
     .map(([, value]) => describe(value))
     .filter(({ label }) => !seen.has(label) && seen.add(label))
   for (const suggestion of completions) COMPLETIONS.add(suggestion)
@@ -467,6 +511,95 @@ export function parseDatePhrase(
 }
 
 const COMPLETIONS = new WeakSet<DatePhraseSuggestion>()
+const ONWARDS = /^(.+) (?:onwards?|and later)$/
+
+/**
+ * Each reading of "X to Y" as the days between, in order, or null unless
+ * both ends read as days, as "tomorrow to next fri" does.
+ */
+function rangesOf(
+  input: string,
+  today: string,
+  options: DatePhraseOptions
+): { start: string; end: string }[] | null {
+  // Split rather than match: a lazy pattern backtracks on many separators.
+  const ends = input.replace(/^(?:between|from) /, '').split(/ (?:and|to) /)
+  if (ends.length !== 2) return null
+  const range = parseRange(ends[0]!, ends[1]!, today)
+  if (range) return [range]
+  const [firsts = [], lasts = []] = ends.map((end) =>
+    parseDatePhrase(end, options).flatMap(
+      (day) =>
+        (!isDatePhraseCompletion(day) && dayBounds(day.value, options)) || []
+    )
+  )
+  if (!firsts.length || !lasts.length) return null
+  // "fri to mon" ends on the first Monday from Friday on.
+  const weekday = nameIndex(WEEKDAYS, ends[1]!)
+  return firsts.flatMap(({ start }) =>
+    (weekday
+      ? [{ end: addDays(start, (weekday - dayOfWeek(start) + 7) % 7) }]
+      : lasts
+    ).flatMap(({ end }) =>
+      compareDates(start, end) > 0 ? [] : [{ start, end }]
+    )
+  )
+}
+
+/** Whether text is two days joined as a range, in either order, as "since tomorrow and fri". */
+export function isDateRange(text: string, options: DatePhraseOptions): boolean {
+  const input = normalise(text).replace(/^since /, '')
+  return (
+    rangesOf(input, plainDateOf(options.now, options.timeZone), options) !==
+    null
+  )
+}
+
+// "Since" and "from" take the day itself, as "until" and "till" do.
+const ONWARD = { after: true, edge: 'start', shift: -1 } as const
+const THROUGH = { after: false, edge: 'end', shift: 1 } as const
+const COMPARISONS = {
+  after: { after: true, edge: 'end', shift: 0 },
+  before: { after: false, edge: 'start', shift: 0 },
+  since: ONWARD,
+  from: ONWARD,
+  'on or after': ONWARD,
+  until: THROUGH,
+  till: THROUGH,
+  'on or before': THROUGH
+} as const
+type Comparison = keyof typeof COMPARISONS
+
+/** Words that compare with the date after them, as "after" in "after today". */
+export const DATE_COMPARISONS: ReadonlySet<string> = new Set(
+  Object.keys(COMPARISONS)
+)
+const COMPARED = new RegExp(`^(${[...DATE_COMPARISONS].join('|')}) (.+)$`)
+
+/** The day `shift` days from `date`, or null past the years a date holds. */
+function dayAway(date: string, shift: number): string | null {
+  try {
+    return addDays(date, shift)
+  } catch {
+    return null
+  }
+}
+
+/** The first and last day a phrase covers, or null for a time or an open range. */
+function dayBounds(
+  value: DatePhraseValue,
+  options: DatePhraseOptions
+): { start: string; end: string } | null {
+  if (typeof value === 'object' && 'on' in value)
+    return { start: value.on, end: value.on }
+  if (
+    typeof value === 'object' &&
+    ('before' in value || 'after' in value || 'time' in value)
+  )
+    return null
+  const range = resolveDateRange(value, options)
+  return range.kind === 'dates' ? range : null
+}
 
 /** Whether a suggestion finishes a phrase from its first letters, like "ongo". */
 export function isDatePhraseCompletion(

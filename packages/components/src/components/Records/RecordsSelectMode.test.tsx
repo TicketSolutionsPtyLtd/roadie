@@ -140,8 +140,10 @@ describe('Records Select mode', () => {
       within(floating()!).getByRole('button', { name: 'Export' })
     )
     expect(onAction).toHaveBeenCalledWith(
-      { ids: ['show-0'] },
-      expect.objectContaining({ search: '' })
+      expect.objectContaining({
+        selection: { ids: ['show-0'] },
+        query: expect.objectContaining({ search: '' })
+      })
     )
     await waitFor(() => expect(toggle()).toHaveTextContent('Select'))
     expect(floating()).toBeNull()

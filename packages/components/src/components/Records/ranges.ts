@@ -16,6 +16,8 @@ export type RangePlan = {
   nextStart: number
   ended: boolean
   target?: number
+  /** A count the server stopped at, which no range may run past. */
+  floor?: number
   /** Every row of the range is already in `data`. */
   held?: (range: RecordsRange) => boolean
 }
@@ -44,8 +46,9 @@ export function rangesToLoad(plan: RangePlan): RecordsRange[] {
   const ranges: RecordsRange[] = []
   for (let start = from; start < to; start += size) {
     if (plan.requested.has(start) || plan.failed.has(start)) continue
-    // A whole page, as a count from before the query changed may be short.
-    const range = { start, end: start + size }
+    // A whole page, as a count from before the query changed may be short,
+    // but never past a floor, which a search index's window rejects.
+    const range = { start, end: Math.min(start + size, plan.floor ?? Infinity) }
     if (!plan.held?.(range)) ranges.push(range)
   }
   return ranges

@@ -61,7 +61,7 @@ describe('Records foundation', () => {
     const { q, filter, sort } = commentedResult(code)
     expect(q).toBe('lampshade')
     expect(filter).toHaveLength(3)
-    expect(filter[0]).toMatch(/city.*melbourne/)
+    expect(filter[0]).toMatch(/location.*melbourne/)
     // 11:30pm Friday in Melbourne, so this weekend is 3 and 4 October.
     expect(filter[1]).toMatch(/startsLocal/)
     expect(filter[1]).toMatch(/2026-10-03/)
@@ -70,7 +70,7 @@ describe('Records foundation', () => {
     expect(sort).toEqual(['starts:asc'])
   }, 60_000)
 
-  it('reads typed text into a city chip, with the date phrase left over', async () => {
+  it('reads typed text into a location chip, with the date phrase left over', async () => {
     const page = await open()
     const suggestions: { kind: string; label: string; remainder: string }[] =
       commentedResult(
@@ -80,7 +80,7 @@ describe('Records foundation', () => {
     expect(suggestions.length).toBeLessThanOrEqual(4)
     expect(suggestions).toContainEqual({
       kind: 'filter',
-      label: 'City is Melbourne',
+      label: 'Location is in Melbourne',
       remainder: 'this weekend'
     })
     for (const { kind } of suggestions)
@@ -107,7 +107,7 @@ describe('Records foundation', () => {
       ['view', view.id],
       ['entity', view.entity],
       ['q', view.query.search],
-      ['f', 'city:is:melbourne'],
+      ['f', 'location:is:au-vic-melbourne'],
       ['f', 'starts:within:this-weekend'],
       ['f', 'offer:is-not:sold_out'],
       ['sort', 'starts'],
