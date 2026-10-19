@@ -470,6 +470,11 @@ describe('migrate and tables', () => {
       tableOf(rowOf(cellOf(para('9pm')), cellOf(para('Ochre Kite'))))
     ],
     [
+      'a row inside a row, keeping each of its cells',
+      tableOf(rowOf(rowOf(headerOf(para('Time')), cellOf(para('9pm'))))),
+      tableOf(rowOf(headerOf(para('Time')), cellOf(para('9pm'))))
+    ],
+    [
       'a row holding an image only, dropping the row',
       tableOf(
         rowOf({ type: 'image', attrs: { src: '/images/crowd.webp' } }),
@@ -530,43 +535,62 @@ describe('migrate and tables', () => {
     ['fractional spans', { colspan: 1.5, rowspan: Number.NaN }, undefined],
     ['spans as text', { colspan: '2', rowspan: '1' }, undefined],
     [
+      'spans at the most HTML allows',
+      { colspan: 1000, rowspan: 65534 },
+      { colspan: 1000, rowspan: 65534 }
+    ],
+    [
+      'spans past what HTML allows',
+      { colspan: 1001, rowspan: 65535 },
+      undefined
+    ],
+    ['spans of a billion', { colspan: 1e9, rowspan: 1e9 }, undefined],
+    [
+      'a rowspan HTML allows but a colspan it doesn’t',
+      { colspan: 1001, rowspan: 1001 },
+      { rowspan: 1001 }
+    ],
+    [
       'one whole span and one not',
       { colspan: 2, rowspan: null },
       { colspan: 2 }
     ]
-  ])('keeps only whole positive spans of a cell with %s', (_, stored, kept) => {
-    const value = {
-      version: 1,
-      preset: 'rich',
-      doc: docOf(
-        tableOf(
-          rowOf(
-            { type: 'tableHeader', attrs: stored, content: [para('Act')] },
-            { type: 'tableCell', attrs: stored, content: [para('9pm')] }
+  ])(
+    'keeps only the spans HTML allows of a cell with %s',
+    (_, stored, kept) => {
+      const value = {
+        version: 1,
+        preset: 'rich',
+        doc: docOf(
+          tableOf(
+            rowOf(
+              { type: 'tableHeader', attrs: stored, content: [para('Act')] },
+              { type: 'tableCell', attrs: stored, content: [para('9pm')] }
+            )
+          )
+        )
+      }
+
+      expect(migrate(value).doc).toEqual(
+        docOf(
+          tableOf(
+            rowOf(
+              {
+                type: 'tableHeader',
+                ...(kept && { attrs: kept }),
+                content: [para('Act')]
+              },
+              {
+                type: 'tableCell',
+                ...(kept && { attrs: kept }),
+                content: [para('9pm')]
+              }
+            )
           )
         )
       )
     }
-
-    expect(migrate(value).doc).toEqual(
-      docOf(
-        tableOf(
-          rowOf(
-            {
-              type: 'tableHeader',
-              ...(kept && { attrs: kept }),
-              content: [para('Act')]
-            },
-            {
-              type: 'tableCell',
-              ...(kept && { attrs: kept }),
-              content: [para('9pm')]
-            }
-          )
-        )
-      )
-    )
-  })
+  )
 
   it('reads a table into a basic value, keeping each cell’s text as paragraphs', () => {
     const value = { version: 1, preset: 'rich', doc: docOf(lineup) }
@@ -663,6 +687,35 @@ describe('migrate and nodes or marks outside the preset', () => {
 
     expect(migrate(value).doc).toEqual(expected)
   })
+
+  it.each([['basic'], ['rich']] as const)(
+    'unwraps a doc below the root of a %s value to its blocks',
+    (preset) => {
+      const value = {
+        version: 1,
+        preset,
+        doc: docOf(
+          { type: 'doc', content: [para('Doors 7pm')] },
+          {
+            type: 'bulletList',
+            content: [
+              {
+                type: 'listItem',
+                content: [{ type: 'doc', content: [para('Bar')] }]
+              }
+            ]
+          }
+        )
+      }
+
+      expect(migrate(value).doc).toEqual(
+        docOf(para('Doors 7pm'), {
+          type: 'bulletList',
+          content: [{ type: 'listItem', content: [para('Bar')] }]
+        })
+      )
+    }
+  )
 
   it('reads a value into another preset, dropping what that preset can’t hold', () => {
     const value = {
@@ -822,6 +875,15 @@ describe('migrate and nodes or marks outside the preset', () => {
     ],
     ['an empty quote', [{ type: 'blockquote', content: [] }]],
     ['a table', [lineup]],
+    [
+      'a doc inside a table cell',
+      [tableOf(rowOf(cellOf({ type: 'doc', content: [para('9pm')] })))]
+    ],
+    [
+      'a doc inside a quote',
+      [{ type: 'blockquote', content: [{ type: 'doc', content: [para('x')] }] }]
+    ],
+    ['a doc inside a doc', [{ type: 'doc', content: [para('x')] }]],
     ['a table with no rows', [tableOf()]],
     ['a table with an empty row', [tableOf(rowOf())]],
     ['a table with an empty cell', [tableOf(rowOf(cellOf()))]],

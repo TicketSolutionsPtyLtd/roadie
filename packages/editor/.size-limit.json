@@ -3,7 +3,7 @@
     "name": "schema",
     "path": "dist/schema/index.js",
     "import": "*",
-    "limit": "115 kB"
+    "limit": "103 kB"
   },
   {
     "name": "render",
