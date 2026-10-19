@@ -4,8 +4,6 @@ import Link from 'next/link'
 
 import { useRoute } from '@/lib/route'
 
-import { DateTime } from '@oztix/roadie-components/date-time'
-
 interface NavItem {
   title: string
   href?: string
@@ -19,11 +17,9 @@ interface NavSection {
 
 interface FooterNavProps {
   items: NavSection[]
-  /** `YYYY-MM-DD`, in UTC, when the page last changed. */
-  updated?: string
 }
 
-export function FooterNav({ items, updated }: FooterNavProps) {
+export function FooterNav({ items }: FooterNavProps) {
   const route = useRoute()
 
   const flatNav = items.reduce<(NavItem & { href: string })[]>(
@@ -45,43 +41,31 @@ export function FooterNav({ items, updated }: FooterNavProps) {
       ? flatNav[currentIndex + 1]
       : undefined
 
-  if (!prev && !next && !updated) return null
+  if (!prev && !next) return null
 
   return (
-    <footer className='mt-12 grid gap-8 border-t border-subtle pt-12'>
-      {prev || next ? (
-        <div className='flex w-full flex-row justify-between'>
-          {prev && (
-            <Link href={prev.href} className='group grid gap-1 no-underline'>
-              <span className='text-sm text-subtle'>Previous page</span>
-              <span className='text-normal intent-accent group-hover:text-accent-11'>
-                &larr; {prev.title}
-              </span>
-            </Link>
-          )}
-          {next && (
-            <Link
-              href={next.href}
-              className='group ml-auto grid gap-1 text-right no-underline'
-            >
-              <span className='text-sm text-subtle'>Next page</span>
-              <span className='text-normal intent-accent group-hover:text-accent-11'>
-                {next.title} &rarr;
-              </span>
-            </Link>
-          )}
-        </div>
-      ) : null}
-      {updated ? (
-        <p className='text-sm text-subtle'>
-          Last updated{' '}
-          <DateTime
-            at={new Date(`${updated}T00:00:00Z`)}
-            timeZone='UTC'
-            dateStyle='medium'
-          />
-        </p>
-      ) : null}
+    <footer className='mt-12 border-t border-subtle pt-12'>
+      <div className='flex w-full flex-row justify-between'>
+        {prev && (
+          <Link href={prev.href} className='group grid gap-1 no-underline'>
+            <span className='text-sm text-subtle'>Previous page</span>
+            <span className='text-normal intent-accent group-hover:text-accent-11'>
+              &larr; {prev.title}
+            </span>
+          </Link>
+        )}
+        {next && (
+          <Link
+            href={next.href}
+            className='group ml-auto grid gap-1 text-right no-underline'
+          >
+            <span className='text-sm text-subtle'>Next page</span>
+            <span className='text-normal intent-accent group-hover:text-accent-11'>
+              {next.title} &rarr;
+            </span>
+          </Link>
+        )}
+      </div>
     </footer>
   )
 }

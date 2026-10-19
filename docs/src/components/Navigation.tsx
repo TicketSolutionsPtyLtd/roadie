@@ -46,7 +46,7 @@ import {
   useNavQuery
 } from './NavQueryFlag'
 import { OnThisPage, useDocHeadings } from './OnThisPage'
-import { type PageStatusInfo, PageStatusLine, navBadge } from './PageStatus'
+import { PageMeta, type PageStatusInfo, navBadge } from './PageStatus'
 import { RelatedLinks } from './RelatedLinks'
 import { SourceMenu } from './SourceMenu'
 
@@ -325,19 +325,18 @@ export function DocsNavigator({
                 {pageTitles[route]}
               </Pane.BodyTitle>
             ) : null}
-            {pageStatus[route] ? (
-              <PageStatusLine
-                {...pageStatus[route]}
-                className='mb-6 rounded-2xl emphasis-subtle px-4 py-3'
-              />
-            ) : null}
+            <PageMeta
+              status={pageStatus[route]}
+              updated={pageUpdated[route]}
+              className='mb-6'
+            />
             {related ? (
               <RelatedLinks {...related} className='-mt-3 mb-6' />
             ) : null}
             <InspectorSlotContext value={inspectorSlot}>
               {children}
             </InspectorSlotContext>
-            <FooterNav items={items} updated={pageUpdated[route]} />
+            <FooterNav items={items} />
           </div>
         </Pane>
 

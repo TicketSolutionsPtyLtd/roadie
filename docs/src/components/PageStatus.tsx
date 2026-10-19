@@ -37,124 +37,114 @@ function ReleaseLink({
 
 const releaseHref = ({ id }: ReleaseRef) => `${CHANGELOG}/${id}`
 
-function ReleaseName({ release }: { release: ReleaseRef }) {
+const utcDate = (date: string) => (
+  <DateTime
+    at={new Date(`${date}T00:00:00Z`)}
+    timeZone='UTC'
+    dateStyle='medium'
+  />
+)
+
+function Field({
+  name,
+  label,
+  children
+}: {
+  name: string
+  label: string
+  children: ReactNode
+}) {
+  return (
+    <div data-field={name} className='grid content-start gap-1'>
+      <dt className='text-xs text-subtle'>{label}</dt>
+      <dd className='grid gap-0.5 text-sm whitespace-nowrap text-strong'>
+        {children}
+      </dd>
+    </div>
+  )
+}
+
+function ReleaseValue({ release }: { release: ReleaseRef }) {
   return (
     <>
       <ReleaseLink href={releaseHref(release)}>
         {release.label} {release.version}
       </ReleaseLink>
       {release.date ? (
-        <>
-          ,{' '}
-          <DateTime
-            at={new Date(`${release.date}T00:00:00Z`)}
-            timeZone='UTC'
-            dateStyle='medium'
-            className='whitespace-nowrap'
-          />
-        </>
+        <span className='text-subtle'>{utcDate(release.date)}</span>
       ) : null}
     </>
   )
 }
 
-// Inline, with a no-break space after the dot, so no line ends on one.
-function AfterDot({ children }: { children: ReactNode }) {
+function StatusFields({ status, release }: PageStatusInfo) {
+  const { label, flagged } = STATUS_DETAILS[status]
+  const { added, updated, upcoming } = release
   return (
     <>
-      {' '}
-      <span aria-hidden>·</span>
-      {'\u00a0'}
-      {children}
-    </>
-  )
-}
-
-/**
- * A component page's status and releases, under the title. Alpha, beta, and
- * deprecated lead with a badge, the release that added the component, and
- * its latest change. Stable is the norm, so it reads as plain text beside
- * the latest release alone.
- */
-export function PageStatusLine({
-  status,
-  release,
-  className
-}: PageStatusInfo & { className?: string }) {
-  const { label, intent, flagged } = STATUS_DETAILS[status]
-  const { added, updated, upcoming } = release
-  const next =
-    upcoming && added !== 'unreleased' ? (
-      <span>
-        <ReleaseLink href={UNRELEASED}>More in the next release</ReleaseLink>
-      </span>
-    ) : null
-
-  if (!flagged) {
-    const latest = updated ?? (typeof added === 'object' ? added : null)
-    return (
-      <p
-        data-slot='page-status'
-        className={cn('text-sm text-subtle', className)}
-      >
+      <Field name='status' label='Status'>
         <Link
           href={STATUS_ROUTE}
           aria-label={`${label}: what this status means`}
-          className='font-medium text-strong underline-offset-4 hover:underline'
+          className={
+            flagged
+              ? 'is-interactive justify-self-start rounded-full'
+              : linkClass
+          }
         >
-          {label}
+          {flagged ? <StatusBadge status={status} size='sm' /> : label}
         </Link>
-        {added === 'unreleased' ? (
-          <AfterDot>
+      </Field>
+      {added ? (
+        <Field name='added' label='Added'>
+          {added === 'unreleased' ? (
             <ReleaseLink href={UNRELEASED}>Not released yet</ReleaseLink>
-          </AfterDot>
-        ) : latest ? (
-          <AfterDot>
-            <span>
-              {latest === updated ? 'Updated' : 'Added'} in{' '}
-              <ReleaseName release={latest} />
-            </span>
-          </AfterDot>
-        ) : null}
-        {next ? <AfterDot>{next}</AfterDot> : null}
-      </p>
-    )
-  }
+          ) : (
+            <ReleaseValue release={added} />
+          )}
+        </Field>
+      ) : null}
+      {updated ? (
+        <Field name='updated' label='Updated'>
+          <ReleaseValue release={updated} />
+        </Field>
+      ) : null}
+      {upcoming && added !== 'unreleased' ? (
+        <Field name='next' label='Next release'>
+          <ReleaseLink href={UNRELEASED}>Has changes</ReleaseLink>
+        </Field>
+      ) : null}
+    </>
+  )
+}
 
+/** A page's status, releases, and when its docs last changed, as labelled fields in a card under its title. */
+export function PageMeta({
+  status,
+  updated,
+  className
+}: {
+  status?: PageStatusInfo
+  /** `YYYY-MM-DD`, in UTC, when the page last changed. */
+  updated?: string
+  className?: string
+}) {
+  if (!status && !updated) return null
   return (
-    <p
-      data-slot='page-status'
+    <dl
+      data-slot='page-meta'
       className={cn(
-        'flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-subtle',
+        'flex flex-wrap gap-x-10 gap-y-4 rounded-2xl emphasis-subtle px-4 py-3',
         className
       )}
     >
-      <Link
-        href={STATUS_ROUTE}
-        aria-label={`${label}: what this status means`}
-        className='is-interactive rounded-full'
-      >
-        <StatusBadge status={status} size='sm' />
-      </Link>
-      {added === 'unreleased' ? (
-        <span>
-          <ReleaseLink href={UNRELEASED}>Not released yet</ReleaseLink>
-        </span>
-      ) : added ? (
-        <span>
-          Added in{' '}
-          <ReleaseLink href={releaseHref(added)}>
-            {added.label} {added.version}
-          </ReleaseLink>
-        </span>
-      ) : null}
+      {status ? <StatusFields {...status} /> : null}
       {updated ? (
-        <span>
-          Updated in <ReleaseName release={updated} />
-        </span>
+        <Field name='page-updated' label='Docs updated'>
+          <span>{utcDate(updated)}</span>
+        </Field>
       ) : null}
-      {next}
-    </p>
+    </dl>
   )
 }
 

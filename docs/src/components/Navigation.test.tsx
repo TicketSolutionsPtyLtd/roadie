@@ -157,8 +157,8 @@ describe('DocsNavigator sources', () => {
   })
 })
 
-describe('DocsNavigator footer', () => {
-  it('says when the page last changed', () => {
+describe('DocsNavigator page meta', () => {
+  it('says when the page last changed in the card under the title, not the footer', () => {
     renderAt(
       '/charts/meter',
       {},
@@ -167,8 +167,11 @@ describe('DocsNavigator footer', () => {
         pageUpdated: { '/charts/meter': '2026-10-03' }
       }
     )
-    expect(document.querySelector('footer')?.textContent).toContain(
-      'Last updated 3 Oct 2026'
+    expect(
+      document.querySelector('[data-slot="page-meta"]')?.textContent
+    ).toContain('Docs updated3 Oct 2026')
+    expect(document.querySelector('footer')?.textContent ?? '').not.toContain(
+      'updated'
     )
   })
 })
@@ -190,7 +193,11 @@ describe('DocsNavigator status', () => {
     expect(navLink('delta')?.textContent).toBe('Delta')
   })
 
-  it('shows a page its status, the release that added it, and its latest update', () => {
+  const field = (name: string) =>
+    document.querySelector(`[data-slot="page-meta"] [data-field="${name}"] dd`)
+      ?.textContent
+
+  it('shows a page its status, the release that added it, its latest update, and what is coming', () => {
     renderAt(
       '/charts/funnel',
       {},
@@ -215,10 +222,9 @@ describe('DocsNavigator status', () => {
         }
       }
     )
-    const line = document.querySelector('[data-slot="page-status"]')
-    expect(line?.textContent).toBe(
-      'AlphaAdded in Charts 0.1.0Updated in Charts 0.2.0, 12 Oct 2026More in the next release'
-    )
+    expect(field('status')).toBe('Alpha')
+    expect(field('added')).toBe('Charts 0.1.028 Sept 2026')
+    expect(field('updated')).toBe('Charts 0.2.012 Oct 2026')
     expect(
       screen
         .getByRole('link', { name: 'Charts 0.1.0', hidden: true })
@@ -226,12 +232,12 @@ describe('DocsNavigator status', () => {
     ).toBe('/overview/changelog/charts-0-1-0')
     expect(
       screen
-        .getByRole('link', { name: 'More in the next release', hidden: true })
+        .getByRole('link', { name: 'Has changes', hidden: true })
         .getAttribute('href')
     ).toBe('/overview/changelog/unreleased')
   })
 
-  it('shows a stable page its status as plain text beside its latest release, with no badge', () => {
+  it('shows a stable page its status as plain text, with no badge', () => {
     renderAt(
       '/charts/delta',
       {},
@@ -256,11 +262,12 @@ describe('DocsNavigator status', () => {
         }
       }
     )
-    const line = document.querySelector('[data-slot="page-status"]')
-    expect(line?.textContent).toBe(
-      'Stable ·\u00a0Updated in Charts 0.2.0, 12 Oct 2026'
-    )
-    expect(line?.querySelector('[data-slot="badge"]')).toBeNull()
+    expect(field('status')).toBe('Stable')
+    expect(field('updated')).toBe('Charts 0.2.012 Oct 2026')
+    expect(field('next')).toBeUndefined()
+    expect(
+      document.querySelector('[data-slot="page-meta"] [data-slot="badge"]')
+    ).toBeNull()
   })
 
   it('says a page whose component is only pending is not released yet', () => {
@@ -274,13 +281,13 @@ describe('DocsNavigator status', () => {
         }
       }
     )
-    expect(
-      document.querySelector('[data-slot="page-status"]')?.textContent
-    ).toBe('BetaNot released yet')
+    expect(field('status')).toBe('Beta')
+    expect(field('added')).toBe('Not released yet')
+    expect(field('next')).toBeUndefined()
   })
 
-  it('shows no status line on a page without a status', () => {
+  it('shows no status on a page without a status', () => {
     renderAt('/charts/meter')
-    expect(document.querySelector('[data-slot="page-status"]')).toBeNull()
+    expect(field('status')).toBeUndefined()
   })
 })
