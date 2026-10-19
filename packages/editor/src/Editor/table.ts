@@ -1,5 +1,45 @@
+import type { Extensions } from '@tiptap/core'
+import {
+  Table,
+  TableCell,
+  TableHeader,
+  TableRow
+} from '@tiptap/extension-table'
+import type { DOMOutputSpec } from '@tiptap/pm/model'
 import type { EditorState } from '@tiptap/pm/state'
 import { isInTable, selectedRect } from '@tiptap/pm/tables'
+
+import { cellSpec } from '../schema/table'
+
+// In a `.prose-scroll`, as the renderers draw it, so a wide table scrolls
+// in the editor too, and with no widths, as tables aren't resizable.
+const editorTableDom: DOMOutputSpec = [
+  'div',
+  { class: 'prose-scroll' },
+  ['table', ['tbody', 0]]
+]
+
+// Tiptap's table nodes, which bring prosemirror-tables' cell selection, Tab
+// between cells and row and column commands, in place of the saved schema's
+// plain ones. With no View, Tiptap's table view, which writes widths, stays
+// out.
+const EDITING_TABLE_NODES: Record<string, Extensions[number]> = {
+  table: Table.extend({ renderHTML: () => editorTableDom }).configure({
+    resizable: false,
+    View: null
+  }),
+  tableRow: TableRow,
+  tableHeader: TableHeader.extend(cellSpec),
+  tableCell: TableCell.extend(cellSpec)
+}
+
+export function withTableEditing(extensions: Extensions): Extensions {
+  return extensions.map((extension) =>
+    Object.hasOwn(EDITING_TABLE_NODES, extension.name)
+      ? EDITING_TABLE_NODES[extension.name]!
+      : extension
+  )
+}
 
 /** The table holding the selection, with the position before it. */
 export function selectedTable({ selection: { $from } }: EditorState) {

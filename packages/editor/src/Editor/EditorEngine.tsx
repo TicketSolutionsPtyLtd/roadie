@@ -9,9 +9,7 @@ import {
   type Node,
   getSchema
 } from '@tiptap/core'
-import type { TableOptions } from '@tiptap/extension-table'
 import { Placeholder } from '@tiptap/extensions'
-import type { DOMOutputSpec } from '@tiptap/pm/model'
 import { NodeSelection } from '@tiptap/pm/state'
 import {
   type ReactNodeViewProps,
@@ -58,7 +56,7 @@ import {
 } from './imageUpload'
 import { isDev } from './isDev'
 import { resolvedPreset } from './startingValue'
-import { selectedTable } from './table'
+import { selectedTable, withTableEditing } from './table'
 import {
   EDITOR_FRAME,
   EDITOR_MIN_HEIGHT,
@@ -105,35 +103,19 @@ const NODE_VIEWS: Record<string, ComponentType<ReactNodeViewProps>> = {
   embed: EditorEmbedView
 }
 
-// In a `.prose-scroll`, as the renderers draw it, so a wide table scrolls
-// in the editor too, and with no widths, as tables aren't resizable.
-const editorTableDom: DOMOutputSpec = [
-  'div',
-  { class: 'prose-scroll' },
-  ['table', ['tbody', 0]]
-]
-
 function forEditor(extension: Extensions[number]) {
   const view = NODE_VIEWS[extension.name]
-  if (view) {
-    return (extension as Node).extend({
-      addNodeView: () => ReactNodeViewRenderer(view)
-    })
-  }
-  if (extension.name === 'table') {
-    // With no View, Tiptap's own table view, which writes widths, stays out.
-    return (extension as Node<TableOptions>)
-      .extend({ renderHTML: () => editorTableDom })
-      .configure({ View: null })
-  }
-  return extension
+  if (!view) return extension
+  return (extension as Node).extend({
+    addNodeView: () => ReactNodeViewRenderer(view)
+  })
 }
 
 // The saved schema stays React-free; the editor adds its views here.
 const editorExtensions = Object.fromEntries(
   Object.entries(presets).map(([preset, extensions]) => [
     preset,
-    extensions.map(forEditor)
+    withTableEditing(extensions).map(forEditor)
   ])
 ) as Record<Preset, typeof presets.basic>
 
