@@ -6,7 +6,7 @@ export const eventFields: RecordField[] = [
     key: 'orderNumber',
     label: 'Order number',
     type: 'text',
-    match: /^OZ-\d{5}$/i,
+    match: '^OZ-\\d{5}$',
     searchable: false
   },
   {

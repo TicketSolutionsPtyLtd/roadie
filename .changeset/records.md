@@ -40,7 +40,11 @@ does, with a count menu to select all or clear and a More actions menu for
 actions that don't fit, otherwise floating at the foot of the screen, where
 the first action shows and those that don't fit go in a More actions menu,
 last.
-`Records.Actions` (or the toolbar's `actions`) acts on every match. Danger
+`Records.Actions` (or the toolbar's `actions`) acts on every match. An
+action gets one object: `query`, the applied query with the scope first;
+`request`, the `RecordsRequest` for every match, to POST to a server;
+`timeZone` and `now`; and `records` for a table action or `selection` for a
+bulk action. Danger
 actions ask first unless `confirm` is `false`, and any action given
 `confirm` asks. `downloadCsv` saves CSV text as a file. `RecordTable` takes
 `bulkActions`, `tableActions` and `searchLabel`, and `record-table` exports
@@ -138,9 +142,12 @@ controls hide until focus leaves it.
 of tickets belongs to. They filter with the view but are never part of it,
 so they are never saved, put in the URL, cleared or counted as filtering, and
 `Records.Search` shows them first as locked chips. `scopedQuery` is the
-applied query with the scope's filters first: fetch it in server mode, and
-table and bulk actions get it, so acting on every match stays within the
-page. The instance gains `scope`
+applied query with the scope's filters first, and table and bulk actions
+get it, so acting on every match stays within the page. `request` is the
+`RecordsRequest` to fetch: the resolved query with the scope first, with
+`page` and `pageSize` in server mode, and `onRequestChange` hears it once
+the page hydrates and each time it changes, so a `RecordTable` or
+`RecordGrid` fetches what it shows. The instance gains `scope`
 and `now`, and writes made in one event, such as a search and a filter
 together, build on each other. With no match, the empty state names the
 search and filters that matched nothing.
@@ -158,8 +165,12 @@ given, `rowCount` keeps server mode on, and an `undefined` count keeps the
 last one. Selecting without `getRowId` in server mode warns in development,
 as index ids repeat on every page. `appliedView` now leaves out the filters
 and sorts the fields can't apply, and its `query` keeps its identity while
-its content holds; key a fetch on `scopedQuery`, the position and
-`timeZone`. Selection treats a chip's values in any order as the same
+its content holds; key a fetch on `request`. `rowCountExact: false` marks
+`rowCount` as a floor the server stopped counting at, such as a search
+index's 10,000: counts read "10,000+" in the pagination, Select all, the
+selection, the status and the confirm dialog, `resultCountExact` is false,
+paging stops at the last whole page within the count, and no range
+runs past it. Selection treats a chip's values in any order as the same
 filter, and ignores filters the fields can't apply. `Records.Status`
 holds a count while `loading` and announces it once loaded, and
 `Records.Pagination` reads a page past the end as the last page.
@@ -167,7 +178,8 @@ holds a count while `loading` and announces it once loaded, and
 Give `useRecords` a `loadRange` and it runs in range mode (`mode: 'range'`):
 one long list, searched, filtered and sorted on the server, that loads the
 records on screen plus a screen either side as people scroll. Each range is
-one page of `pageSize` records, `{ start, end }` with `end` exclusive, and
+one page of `pageSize` records, and `loadRange` gets its `RecordsRequest`
+with `start` and `end`, `end` exclusive, and
 `data` holds the records loaded so far at their index (`placeRange` puts a
 range there). With `rowCount` the list is that long from the start; without
 it, ranges load one after another until one comes back short. Rows not yet

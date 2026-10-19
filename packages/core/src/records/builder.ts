@@ -1,4 +1,5 @@
 import type { ValueFormat } from '../dataviz/format'
+import { identifierPattern } from './pattern'
 import type {
   RecordField,
   RecordMoment,
@@ -15,7 +16,7 @@ type Common = {
 
 type KeyOf<Row> = keyof Row & string
 
-export type TextFieldOptions = Common & { match?: RegExp; multiple?: boolean }
+export type TextFieldOptions = Common & { match?: string; multiple?: boolean }
 export type OptionFieldOptions = Common & {
   multiple?: boolean
   status?: Record<string, StatusDefinition>
@@ -55,7 +56,10 @@ export function recordFields<Row extends object = Record<string, unknown>>() {
     text: <Key extends KeyOf<Row>>(
       key: Key,
       options: TextFieldOptions
-    ): Built<Key> => ({ key, type: 'text', ...options }),
+    ): Built<Key> => {
+      identifierPattern(options)
+      return { key, type: 'text', ...options }
+    },
     option: <Key extends KeyOf<Row>>(
       key: Key,
       options: OptionFieldOptions

@@ -98,6 +98,7 @@ import {
   recordsToCsv,
   resolveRecordQuery,
   sortRecords,
+  toRecordsRequest,
   toSearchParams
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
@@ -218,6 +219,7 @@ const scope = {
   compileRecordQuery,
   resolveRecordQuery,
   sortRecords,
+  toRecordsRequest,
   toMeilisearch,
   placeRange,
   ...SpotIllustrations,

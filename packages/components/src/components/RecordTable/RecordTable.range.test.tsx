@@ -367,8 +367,9 @@ describe('RecordTable range mode', () => {
     await settle()
     await user.click(screen.getByRole('button', { name: 'Archive' }))
     expect(onAction).toHaveBeenCalledWith(
-      { ids: ['show-4000'] },
-      expect.anything()
+      expect.objectContaining({
+        selection: { ids: ['show-4000'] }
+      })
     )
   })
 
@@ -528,6 +529,19 @@ describe('RecordTable range footer', () => {
     await settle()
     expect(footer()!.textContent).toBe('1,284 shows')
     expect(footer()!.querySelector('button')).toBeNull()
+  })
+
+  it('reads a count the server stopped at as a floor', async () => {
+    render(
+      <Ranged
+        total={12000}
+        rowCount={10_000}
+        rowCountExact={false}
+        recordName={{ one: 'show', other: 'shows' }}
+      />
+    )
+    await settle()
+    expect(footer()!.textContent).toBe('10,000+ shows')
   })
 
   it('shows only the count, with no page buttons or page size, loading by range', async () => {

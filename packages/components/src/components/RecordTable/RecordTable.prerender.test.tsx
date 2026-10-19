@@ -124,3 +124,20 @@ describe('RecordTable on a prerendering server', () => {
     expect(shownShows()).toEqual([expect.stringContaining(SHOWS[11]!.show)])
   })
 })
+
+describe('RecordTable request on a prerendering server', () => {
+  it('hands the app a request only once the browser clock is read', async () => {
+    const onRequestChange = vi.fn()
+    await hydrateWithoutClock(
+      table({ rowCount: 12, defaultView: UPCOMING, onRequestChange })
+    )
+    expect(onRequestChange).toHaveBeenCalledOnce()
+    expect(onRequestChange.mock.calls[0]![0].query.filters).toEqual([
+      {
+        field: 'starts',
+        operator: 'overlaps',
+        range: { kind: 'dates', start: '2026-10-09', end: null }
+      }
+    ])
+  })
+})

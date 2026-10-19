@@ -49,6 +49,14 @@ export type {
   ResolvedRecordQuery,
   ResolvedRecordRange
 } from './resolve'
+export { RECORDS_REQUEST_VERSION, toRecordsRequest } from './request'
+export type {
+  RecordsPageRequest,
+  RecordsRangeRequest,
+  RecordsRequest,
+  RecordsRequestOptions,
+  RecordsRequestPaging
+} from './request'
 export { compileRecordQuery, matchesRecordQuery } from './match'
 export { parseQuery } from './parse'
 export {
