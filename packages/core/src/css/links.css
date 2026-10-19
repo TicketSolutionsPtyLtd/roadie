@@ -1,8 +1,11 @@
 /* ═══════════════════════════════════════════════════════════
    Link Utilities
    Text link styles by emphasis: link-normal, link-strong and
-   link-subtle, with their hover and focus-visible motion. Pair
-   with is-interactive for the focus ring.
+   link-subtle, with their hover and focus-visible motion and
+   is-focusable's ring, so a bare link or a .prose one needs no other
+   class. Their transition replaces is-focusable's in the same rule; a
+   doubled selector would instead break where nesting is lowered under
+   a complex parent such as .prose.
 
    normal and subtle are accent, or the colour of an intent class
    on the link itself (--intent-link-own, which doesn't inherit);
@@ -22,6 +25,7 @@
    Engaged, the underline takes the fill's colour, so the two read as one
    shape as the fill completes. */
 @utility link-normal {
+  @apply is-focusable;
   --link-tone: var(--intent-link-own, var(--color-accent-9));
   --link-fill: color-mix(in oklch, var(--link-tone) 17%, transparent);
   --link-line: 0.0625em;
@@ -40,13 +44,10 @@
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 
-  /* Doubled to outrank is-interactive's transition on the same element. */
-  &:is(&) {
-    transition:
-      var(--interactive-transition),
-      background-size var(--duration-moderate) var(--ease-spring),
-      --link-underline var(--duration-moderate) var(--ease-spring);
-  }
+  transition:
+    var(--interactive-transition),
+    background-size var(--duration-moderate) var(--ease-spring),
+    --link-underline var(--duration-moderate) var(--ease-spring);
 
   &:focus-visible {
     --link-underline: var(--link-fill);
@@ -71,6 +72,7 @@
    on-strong once the spring has all but covered it, and back at once on
    the way out. The opaque fill runs under the underline, so no seam shows. */
 @utility link-strong {
+  @apply is-focusable;
   --link-tone: var(--intent-link-underline);
   --link-fill: var(--intent-link-fill);
   --link-line: 0.0625em;
@@ -90,15 +92,13 @@
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 
-  &:is(&) {
-    transition:
-      var(--interactive-transition),
-      background-size var(--duration-moderate) var(--ease-spring),
-      --link-underline var(--duration-moderate) var(--ease-spring),
-      color 0s;
-  }
+  transition:
+    var(--interactive-transition),
+    background-size var(--duration-moderate) var(--ease-spring),
+    --link-underline var(--duration-moderate) var(--ease-spring),
+    color 0s;
 
-  &:is(&):focus-visible {
+  &:focus-visible {
     --link-underline: var(--link-fill);
     color: var(--intent-link-on-fill);
     background-size:
@@ -112,7 +112,7 @@
   }
 
   @media (hover: hover) {
-    &:is(&):hover {
+    &:hover {
       --link-underline: var(--link-fill);
       color: var(--intent-link-on-fill);
       background-size:
@@ -131,18 +131,17 @@
    each link it crosses. The rise's overshoot is a fraction of a pixel, so
    it never reaches the text. */
 @utility link-subtle {
+  @apply is-focusable;
   text-decoration-line: underline;
   text-decoration-color: transparent;
   text-decoration-thickness: 0.0625em;
   text-underline-offset: 0.375em;
 
-  &:is(&) {
-    transition:
-      var(--interactive-transition),
-      text-decoration-color var(--duration-moderate) var(--ease-enter),
-      text-underline-offset var(--duration-slower) var(--ease-spring-lively);
-    transition-delay: var(--duration-moderate);
-  }
+  transition:
+    var(--interactive-transition),
+    text-decoration-color var(--duration-moderate) var(--ease-enter),
+    text-underline-offset var(--duration-slower) var(--ease-spring-lively);
+  transition-delay: var(--duration-moderate);
 
   &:focus-visible {
     text-decoration-color: var(--intent-link-own, var(--color-accent-9));

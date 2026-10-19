@@ -47,7 +47,7 @@ function cssText(style: Record<string, string>) {
 }
 
 // What Roadie's Link renders, so a link looks the same from either renderer.
-const LINK_ATTRS = { 'data-slot': 'link', class: 'is-interactive link-normal' }
+const LINK_ATTRS = { 'data-slot': 'link', class: 'link-normal' }
 
 function htmlAttrs({ tag, attrs, style }: Element) {
   const opensTab = tag === 'a' && EXTERNAL_HREF.test(String(attrs?.href))

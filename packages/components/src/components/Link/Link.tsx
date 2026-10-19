@@ -7,7 +7,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { type RoadieIntent, intentVariants } from '../../variants'
 import { RoadieRoutedLink } from './RoadieRoutedLink'
 
-const linkVariants = cva('is-interactive', {
+const linkVariants = cva('', {
   variants: {
     intent: intentVariants,
     emphasis: {

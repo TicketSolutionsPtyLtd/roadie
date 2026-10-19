@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import { globSync, readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import type { CDPSession } from 'playwright'
 import { configDefaults, defineConfig } from 'vitest/config'
@@ -52,6 +53,14 @@ function importedPackages() {
   }
   return [...packages]
 }
+
+// Production builds lower CSS nesting through Tailwind's optimizer, which the
+// dev server skips, so a test can check the CSS apps actually ship.
+const tailwindNode = createRequire(
+  createRequire(import.meta.url).resolve('@tailwindcss/vite')
+)('@tailwindcss/node') as { optimize: (css: string) => { code: string } }
+const optimizeCss: BrowserCommand<[css: string]> = (_, css) =>
+  tailwindNode.optimize(css).code
 
 const reduceMotion: BrowserCommand<[reduce: boolean]> = ({ page }, reduce) =>
   page.emulateMedia({ reducedMotion: reduce ? 'reduce' : 'no-preference' })
@@ -208,6 +217,7 @@ const browserTest = {
   viewport: { width: 1920, height: 1080 },
   commands: {
     reduceMotion,
+    optimizeCss,
     reduceTransparency,
     forcedColors,
     printMedia,

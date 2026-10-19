@@ -396,6 +396,67 @@ describe('Link motion', () => {
     })
   }
 
+  // As a production build ships the CSS: prose links and bare utilities get
+  // the link styles through nesting, which the optimizer lowers.
+  it.each([
+    [
+      'a .prose link',
+      '<div class="prose"><p><a href="#x">Line-up</a></p></div>',
+      'background-size'
+    ],
+    [
+      'a bare link-normal',
+      '<a class="link-normal" href="#x">Line-up</a>',
+      'background-size'
+    ],
+    [
+      'a bare link-strong',
+      '<a class="link-strong" href="#x">Line-up</a>',
+      'background-size'
+    ],
+    [
+      'a bare link-subtle',
+      '<a class="link-subtle" href="#x">Line-up</a>',
+      'text-underline-offset'
+    ]
+  ] as const)('moves %s part-way on hover', async (_, markup, property) => {
+    withoutStill()
+    const shipped = useStylesheet(await commands.optimizeCss(roadieCss))
+    removeRoadie()
+    onTestFinished(() => {
+      shipped()
+      removeRoadie = useStylesheet(roadieCss)
+    })
+    const host = document.createElement('p')
+    host.style.fontSize = '16px'
+    host.innerHTML = markup
+    document.body.append(host)
+    onTestFinished(() => host.remove())
+    const link = host.querySelector('a')!
+    const value = () =>
+      property === 'background-size'
+        ? getComputedStyle(link).backgroundSize
+        : getComputedStyle(link).textUnderlineOffset
+    const rest = value()
+
+    expect(durations(link)[property]).toBeGreaterThan(0)
+    await hover(link)
+    const moving = link
+      .getAnimations()
+      .find(
+        (animation) =>
+          (animation as CSSTransition).transitionProperty === property
+      )!
+    moving.pause()
+    moving.currentTime = 1000
+    const end = value()
+    moving.currentTime = 20
+    const between = value()
+
+    expect(between).not.toBe(rest)
+    expect(between).not.toBe(end)
+  })
+
   it.each([
     ['normal', 'background-size', 0.2],
     ['strong', 'background-size', 0.2],
@@ -500,6 +561,36 @@ describe('A link in prose', () => {
     expect(look(prose)).toEqual(look(component))
     expect(layerColors(prose)[0]).toBe(tokenColor('--color-accent-9'))
   })
+
+  it.each([
+    ['hover', hover],
+    ['keyboard focus', focusByKeyboard],
+    [
+      'a tap on a touch screen',
+      async (link: HTMLElement) => {
+        setHoverCapable(false)
+        await userEvent.hover(link)
+        await frame()
+      }
+    ]
+  ] as const)(
+    'matches a normal Link on %s as a production build ships it',
+    async (_, engage) => {
+      const shipped = useStylesheet(await commands.optimizeCss(roadieCss))
+      removeRoadie()
+      onTestFinished(() => {
+        shipped()
+        removeRoadie = useStylesheet(roadieCss)
+      })
+      const { prose, component } = renderPair()
+
+      await engage(prose)
+      const proseLook = look(prose)
+      await engage(component)
+
+      expect(proseLook).toEqual(look(component))
+    }
+  )
 
   it('looks the same as a normal Link on hover', async () => {
     const { prose, component } = renderPair()

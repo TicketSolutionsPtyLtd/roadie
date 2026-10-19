@@ -4,6 +4,7 @@
 
 Add `link-normal`, `link-strong`, and `link-subtle`, the text link styles
 `Link` uses, animated on hover and focus-visible with the motion tokens.
+Each includes `is-focusable`'s ring, so a bare link needs no other class.
 Every emphasis draws the same 1/16em underline. `link-normal` grows a tint
 up from it, and `link-strong` colours the text with `--intent-link-text`
 and fills from the left with `--intent-link-fill` and `--intent-link-on-fill`,
@@ -13,5 +14,5 @@ underline and fades it in, leaving after a short delay. Backgrounds clone per li
 hover only changes where a pointer can hover, and reduced motion jumps to
 the end state. `normal` and `subtle` are accent unless the element has its
 own intent class, which sets the non-inheriting `--intent-link-own`;
-`strong` follows the surrounding intent. `.prose` links use `link-normal`,
+`strong` follows the surrounding intent. `.prose` links use `link-normal`, motion included,
 and `cn()` lets one link style replace another.
