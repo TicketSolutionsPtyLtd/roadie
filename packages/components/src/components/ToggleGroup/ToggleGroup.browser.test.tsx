@@ -15,7 +15,7 @@ beforeAll(() => {
 afterAll(() => removeStylesheet())
 afterEach(async () => {
   setHoverCapable(true)
-  await userEvent.unhover(document.body)
+  await commands.parkPointer()
   cleanup()
 })
 
@@ -48,13 +48,19 @@ function gap(pill: DOMRect, item: DOMRect) {
   )
 }
 
-// The pill animates between items, so wait for it to settle.
+// The pill slides between items. Where it lands is under test, not the
+// slide, so each wait skips its transition to the end.
 async function expectPillOver(name: string) {
   const item = screen.getByRole('button', { name })
   await expect
     .poll(
-      () =>
-        gap(indicator().getBoundingClientRect(), item.getBoundingClientRect()),
+      () => {
+        for (const animation of indicator().getAnimations()) animation.finish()
+        return gap(
+          indicator().getBoundingClientRect(),
+          item.getBoundingClientRect()
+        )
+      },
       { timeout: 5000 }
     )
     .toBeLessThan(1)
