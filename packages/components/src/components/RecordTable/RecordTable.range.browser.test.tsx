@@ -610,20 +610,63 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
   })
 
   it('restores the row under the header in a pane, and again on remount', async () => {
+    const timeline: unknown[] = []
+    const started = performance.now()
+    let tracing = true
+    const trace = () => {
+      if (!tracing) return
+      const scroller =
+        document.querySelector<HTMLElement>('[data-slot="pane-body"]') ??
+        document.querySelector<HTMLElement>('[data-slot="pane"]')
+      const paneHeader = document
+        .querySelector('[data-slot="pane-header"]')
+        ?.getBoundingClientRect()
+      const head = document
+        .querySelector('[data-slot="record-table-head"]')
+        ?.getBoundingClientRect()
+      const row = rowAt(document.body, 480)?.getBoundingClientRect()
+      timeline.push([
+        Math.round(performance.now() - started),
+        scroller?.scrollTop,
+        paneHeader && Math.round(paneHeader.height * 10) / 10,
+        head && Math.round(head.top * 10) / 10,
+        head && Math.round(head.bottom * 10) / 10,
+        row && Math.round(row.top * 10) / 10,
+        document.fonts.status
+      ])
+      requestAnimationFrame(trace)
+    }
+    requestAnimationFrame(trace)
     const first = render(
       <InPane>
         <Positioned total={5000} rowCount={5000} row={480} spans={[]} />
       </InPane>
     )
-    await framed(() => underHeader(first.container, 480)).toBeLessThanOrEqual(1)
+    const traced = async (check: Promise<unknown>) => {
+      try {
+        await check
+      } catch (error) {
+        tracing = false
+        throw new Error(
+          `PANE-RESTORE-TRACE ${JSON.stringify(timeline)}\n${String(error)}`
+        )
+      }
+    }
+    await traced(
+      framed(() => underHeader(first.container, 480)).toBeLessThanOrEqual(1)
+    )
     first.unmount()
+    timeline.push('remount')
 
     const again = render(
       <InPane>
         <Positioned total={5000} rowCount={5000} row={480} spans={[]} />
       </InPane>
     )
-    await framed(() => underHeader(again.container, 480)).toBeLessThanOrEqual(1)
+    await traced(
+      framed(() => underHeader(again.container, 480)).toBeLessThanOrEqual(1)
+    )
+    tracing = false
   })
 
   it('loads ranges in order to the row without rowCount', async () => {
