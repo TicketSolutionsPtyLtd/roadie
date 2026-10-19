@@ -550,6 +550,21 @@ describe('migrate and nodes or marks outside the preset', () => {
       ]
     ],
     [
+      'marks on blocks',
+      [
+        {
+          type: 'paragraph',
+          marks: [{ type: 'bold' }],
+          content: [textOf('x')]
+        },
+        {
+          type: 'bulletList',
+          marks: [{ type: 'italic' }],
+          content: [itemOf({ type: 'paragraph', content: [textOf('y')] })]
+        }
+      ]
+    ],
+    [
       'attributes outside the preset',
       [
         {
@@ -576,6 +591,73 @@ describe('migrate and nodes or marks outside the preset', () => {
       ]
     ]
   ]
+
+  it('saves only the attrs a node keeps, and no other keys', () => {
+    const value = {
+      version: 1,
+      preset: 'basic',
+      doc: docOf(
+        {
+          type: 'orderedList',
+          attrs: { start: 1, foo: 'bar' },
+          extra: true,
+          content: [itemOf({ type: 'paragraph', text: 'oops', foo: 1 })]
+        },
+        { type: 'paragraph', marks: [{ type: 'bold' }], content: [textOf('x')] }
+      )
+    }
+
+    expect(migrate(value).doc.content).toEqual([
+      {
+        type: 'orderedList',
+        attrs: { start: 1 },
+        content: [{ type: 'listItem', content: [{ type: 'paragraph' }] }]
+      },
+      { type: 'paragraph', content: [textOf('x')] }
+    ])
+  })
+
+  it.each([
+    ['a string', 'x'],
+    ['a fraction', 1.5],
+    ['NaN', Number.NaN]
+  ])('drops an ordered list start that is %s', (_, start) => {
+    const value = {
+      version: 1,
+      preset: 'basic',
+      doc: docOf({
+        type: 'orderedList',
+        attrs: { start, type: { a: 1 } },
+        content: [itemOf({ type: 'paragraph', content: [textOf('One')] })]
+      })
+    }
+
+    expect(migrate(value).doc.content?.[0]).toEqual({
+      type: 'orderedList',
+      content: [
+        {
+          type: 'listItem',
+          content: [{ type: 'paragraph', content: [textOf('One')] }]
+        }
+      ]
+    })
+  })
+
+  it('keeps an image’s marks off it', () => {
+    const value = {
+      version: 1,
+      preset: 'rich',
+      doc: docOf({
+        type: 'image',
+        marks: [{ type: 'bold' }],
+        attrs: { src: '/a.png', alt: '' }
+      })
+    }
+
+    expect(() =>
+      Node.fromJSON(getSchema(presets.rich), migrate(value).doc).check()
+    ).not.toThrow()
+  })
 
   it.each(
     (['basic', 'rich'] as const).flatMap((preset) =>
