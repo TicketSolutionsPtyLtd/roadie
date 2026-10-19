@@ -515,7 +515,7 @@ describe('useRecords range mode', () => {
   it('keeps only the rows a range asked for', async () => {
     const all = testShows(100)
     const { result } = renderHook(() =>
-      useRecords<TestShow>({
+      useRecordsState<TestShow>({
         fields: showFields,
         getRowId: (row) => row.id,
         loadRange: ({ start }) =>
