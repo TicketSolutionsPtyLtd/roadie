@@ -8,7 +8,7 @@ the saved format it reads and writes. Built on
 ## Install
 
 ```bash
-pnpm add @oztix/roadie-editor @oztix/roadie-components @oztix/roadie-core
+pnpm add @oztix/roadie-editor @oztix/roadie-components @oztix/roadie-core @phosphor-icons/react
 ```
 
 Tiptap is a dependency of this package, pinned to one version, so apps never
