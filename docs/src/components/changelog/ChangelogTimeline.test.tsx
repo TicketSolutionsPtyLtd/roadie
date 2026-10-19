@@ -52,6 +52,8 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup()
+  vi.restoreAllMocks()
+  window.history.replaceState(null, '', '/')
   navigation.search = new URLSearchParams()
 })
 
@@ -112,7 +114,7 @@ function near(...slugs: string[]) {
 const renderedTitles = () =>
   screen.queryAllByRole('heading', { level: 2 }).map((h) => h.textContent)
 
-function renderTimeline() {
+function renderTimeline(releases = RELEASES) {
   let inspector: React.ReactNode = null
   const view = render(
     <InspectorSlotContext
@@ -123,7 +125,7 @@ function renderTimeline() {
         closeInspector() {}
       }}
     >
-      <ChangelogTimeline releases={RELEASES} art={{}} packages={PACKAGES} />
+      <ChangelogTimeline releases={releases} art={{}} packages={PACKAGES} />
     </InspectorSlotContext>
   )
   return { ...view, inspector: () => inspector }
@@ -142,8 +144,26 @@ describe('ChangelogTimeline', () => {
     expect(document.querySelectorAll('[data-release]')).toHaveLength(8)
   })
 
+  it('keeps a release at its measured height once it leaves, for that filter only', () => {
+    renderTimeline()
+    const newest = document.getElementById('components-2-8-0')!
+    vi.spyOn(newest, 'getBoundingClientRect').mockReturnValue({
+      height: 500
+    } as DOMRect)
+
+    near('components-2-3-0')
+    expect(newest.style.height).toBe('500px')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Core' }))
+    // Filtered to Core it holds less, so it falls back to an estimate.
+    expect(document.getElementById('components-2-8-0')!.style.height).toBe(
+      '248px'
+    )
+  })
+
   it('lists each month in the rail, linked to its newest release', () => {
-    const { inspector } = renderTimeline()
+    const later = { ...release(9, ['components']), date: '2026-09-20' }
+    const { inspector } = renderTimeline([later, ...RELEASES])
     render(<>{inspector()}</>)
     const rail = screen.getByRole('navigation', { name: 'Releases by month' })
     expect(
@@ -151,7 +171,7 @@ describe('ChangelogTimeline', () => {
         .getAllByRole('link')
         .map((link) => [link.textContent, link.getAttribute('href')])
     ).toEqual([
-      ['September', '#components-2-8-0'],
+      ['September', '#components-2-9-0'],
       ['August', '#components-2-7-0'],
       ['July', '#components-2-6-0'],
       ['June', '#components-2-5-0'],
@@ -160,6 +180,21 @@ describe('ChangelogTimeline', () => {
       ['March', '#components-2-2-0'],
       ['February', '#components-2-1-0']
     ])
+  })
+
+  it('jumps to a month from the rail, rendered or not', () => {
+    const scrolled: Element[] = []
+    vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(function (
+      this: Element
+    ) {
+      scrolled.push(this)
+    })
+    const { inspector } = renderTimeline()
+    render(<>{inspector()}</>)
+    fireEvent.click(screen.getByRole('link', { name: 'March' }))
+
+    expect(scrolled[0]).toBe(document.getElementById('components-2-2-0'))
+    expect(window.location.hash).toBe('#components-2-2-0')
   })
 
   it('narrows the history to one package, retitled for it, and puts it in the URL', () => {

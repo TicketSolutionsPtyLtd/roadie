@@ -1011,6 +1011,9 @@ export function parseReleaseNote(file: string, source: string): ReleaseNote {
     for (const key of Object.keys(card))
       if (!HIGHLIGHT_FIELDS.has(key)) fail(`unknown highlight field "${key}"`)
     if (typeof card.title !== 'string') fail('a highlight card has no title')
+    for (const key of ['description', 'href', 'image'])
+      if (card[key] !== undefined && typeof card[key] !== 'string')
+        fail(`"${card.title}" ${key} is not text`)
     if (
       card.packages !== undefined &&
       !(
