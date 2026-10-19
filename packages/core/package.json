@@ -147,7 +147,7 @@
       "name": "records without validation",
       "path": "dist/records/index.js",
       "import": "{ matchesRecordQuery, resolveRecordQuery, parseRecordQuery, recordViewToSearchParams, equalRecordViews }",
-      "limit": "14.25 KB"
+      "limit": "14.5 KB"
     },
     {
       "name": "records/json-schema",
@@ -157,7 +157,7 @@
     {
       "name": "records/meilisearch",
       "path": "dist/records/meilisearch/index.js",
-      "limit": "4.9 KB"
+      "limit": "1.65 KB"
     },
     {
       "name": "theme",
