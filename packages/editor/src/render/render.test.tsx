@@ -84,6 +84,11 @@ describe.each(renderers)('%s', (_, render) => {
       '<p><em>All </em><em><strong>ages</strong></em></p>'
     ],
     [
+      'underline inside bold',
+      [paragraph(text('No refunds', bold, { type: 'underline' }))],
+      '<p><strong><u>No refunds</u></strong></p>'
+    ],
+    [
       'a hard break',
       [
         paragraph(

@@ -92,6 +92,7 @@ const NODES: Record<string, ToElement> = {
 const MARKS: Record<string, ToElement> = {
   bold: () => ({ tag: 'strong' }),
   italic: () => ({ tag: 'em' }),
+  underline: () => ({ tag: 'u' }),
   link
 }
 
