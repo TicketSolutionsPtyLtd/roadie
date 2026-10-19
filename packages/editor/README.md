@@ -93,8 +93,8 @@ aren't a list, any child or mark that isn't an object, and empty text.
 `migrate(value, preset)` reads the value into `preset` instead of its own.
 Either way, it drops every node and mark the preset doesn't hold and keeps
 their text: a block's text becomes a paragraph, and marked text stays,
-unmarked. So a value never loads as an empty document, which the next save
-would store. It also drops any link whose `href`
+unmarked, and a `doc` below the root gives way to its blocks. So a value
+never loads as an empty document, which the next save would store. It also drops any link whose `href`
 could run script, such as `javascript:`, and keeps its text, and drops any
 image whose `src` isn't `https` or root-relative, and any embed without a
 string `provider` and `id`, keeping only those and `params`. It reads a heading level
@@ -103,8 +103,8 @@ only the attributes the preset saves and the first mark of each type, starts
 every list item with a paragraph, drops a list or quote left empty, and gives
 an empty `doc` one paragraph. In a table, it keeps only cells in rows and
 only paragraphs in cells, keeping the text of any other block as paragraphs,
-keeps a cell's `colspan` and `rowspan` only when whole and positive, gives an
-empty cell a paragraph, and drops a row with no cells and a table with no
+keeps a cell's `colspan` and `rowspan` only when whole, positive and no more
+than HTML allows (1,000 and 65,534), gives an empty cell a paragraph, and drops a row with no cells and a table with no
 rows. Read into `basic`, a table keeps its cells' text as paragraphs. So
 every value it returns loads in Tiptap. `createEmptyValue(preset)` starts a
 new value.
@@ -127,7 +127,8 @@ preset defines, through the table in `src/render/elements.ts`, and keep only
 the text of the rest. Links go through Roadie's `Link`, and an unsafe href
 drops the link but keeps its text. A table renders in a `.prose-scroll`, so a
 wide one scrolls on a phone rather than widening the page, with a first row
-of header cells in a `thead`.
+of header cells in a `thead`, unless one spans down, as a `thead` would clip
+it.
 
 ## Changing the format
 
