@@ -310,14 +310,19 @@ describe('Link motion', () => {
   }
 
   it.each([
-    ['normal', 'background-size'],
-    ['strong', 'background-size'],
-    ['subtle', 'text-underline-offset']
-  ] as const)('animates a %s link’s %s', (emphasis, property) => {
+    ['normal', 'background-size', 0.2],
+    ['strong', 'background-size', 0.2],
+    ['subtle', 'text-underline-offset', 0.4]
+  ] as const)('springs a %s link’s %s', (emphasis, property, seconds) => {
     withoutStill()
     const { link } = renderLink({ emphasis })
+    const style = getComputedStyle(link)
+    const index = style.transitionProperty.split(', ').indexOf(property)
 
-    expect(durations(link)[property]).toBeCloseTo(0.2)
+    expect(durations(link)[property]).toBeCloseTo(seconds)
+    expect(
+      style.transitionTimingFunction.split(/,\s*(?![^()]*\))/)[index]
+    ).toMatch(/^linear\(/)
   })
 
   it.each(['normal', 'strong', 'subtle'] as const)(

@@ -31,7 +31,7 @@
   &:is(&) {
     transition:
       var(--interactive-transition),
-      background-size var(--duration-moderate) var(--ease-standard);
+      background-size var(--duration-moderate) var(--ease-spring);
   }
 
   &:focus-visible {
@@ -72,7 +72,7 @@
   &:is(&) {
     transition:
       var(--interactive-transition),
-      background-size var(--duration-moderate) var(--ease-standard);
+      background-size var(--duration-moderate) var(--ease-spring);
   }
 
   &:focus-visible {
@@ -87,7 +87,8 @@
 }
 
 /* The leave waits a beat, so a pointer sweeping down a list doesn't flicker
-   each link it crosses. */
+   each link it crosses. The rise's overshoot is a fraction of a pixel, so
+   it never reaches the text. */
 @utility link-subtle {
   text-decoration-line: underline;
   text-decoration-color: transparent;
@@ -98,7 +99,7 @@
     transition:
       var(--interactive-transition),
       text-decoration-color var(--duration-moderate) var(--ease-enter),
-      text-underline-offset var(--duration-moderate) var(--ease-enter);
+      text-underline-offset var(--duration-slower) var(--ease-spring-lively);
     transition-delay: var(--duration-moderate);
   }
 
