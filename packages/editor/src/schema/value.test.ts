@@ -683,6 +683,35 @@ describe('migrate and nodes or marks outside the preset', () => {
     expect(migrate(value).doc).toEqual(expected)
   })
 
+  it.each([['basic'], ['rich']] as const)(
+    'unwraps a doc below the root of a %s value to its blocks',
+    (preset) => {
+      const value = {
+        version: 1,
+        preset,
+        doc: docOf(
+          { type: 'doc', content: [para('Doors 7pm')] },
+          {
+            type: 'bulletList',
+            content: [
+              {
+                type: 'listItem',
+                content: [{ type: 'doc', content: [para('Bar')] }]
+              }
+            ]
+          }
+        )
+      }
+
+      expect(migrate(value).doc).toEqual(
+        docOf(para('Doors 7pm'), {
+          type: 'bulletList',
+          content: [{ type: 'listItem', content: [para('Bar')] }]
+        })
+      )
+    }
+  )
+
   it('reads a value into another preset, dropping what that preset can’t hold', () => {
     const value = {
       version: 1,
@@ -841,6 +870,15 @@ describe('migrate and nodes or marks outside the preset', () => {
     ],
     ['an empty quote', [{ type: 'blockquote', content: [] }]],
     ['a table', [lineup]],
+    [
+      'a doc inside a table cell',
+      [tableOf(rowOf(cellOf({ type: 'doc', content: [para('9pm')] })))]
+    ],
+    [
+      'a doc inside a quote',
+      [{ type: 'blockquote', content: [{ type: 'doc', content: [para('x')] }] }]
+    ],
+    ['a doc inside a doc', [{ type: 'doc', content: [para('x')] }]],
     ['a table with no rows', [tableOf()]],
     ['a table with an empty row', [tableOf(rowOf())]],
     ['a table with an empty cell', [tableOf(rowOf(cellOf()))]],

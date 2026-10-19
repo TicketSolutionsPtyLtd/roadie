@@ -75,8 +75,8 @@ aren't a list, any child or mark that isn't an object, and empty text.
 `migrate(value, preset)` reads the value into `preset` instead of its own.
 Either way, it drops every node and mark the preset doesn't hold and keeps
 their text: a block's text becomes a paragraph, and marked text stays,
-unmarked. So a value never loads as an empty document, which the next save
-would store. It also drops any link whose `href`
+unmarked, and a `doc` below the root gives way to its blocks. So a value
+never loads as an empty document, which the next save would store. It also drops any link whose `href`
 could run script, such as `javascript:`, and keeps its text, and drops any
 image whose `src` isn't `https` or root-relative, and any embed without a
 string `provider` and `id`, keeping only those and `params`. It reads a heading level
