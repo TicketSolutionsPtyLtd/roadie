@@ -470,6 +470,11 @@ describe('migrate and tables', () => {
       tableOf(rowOf(cellOf(para('9pm')), cellOf(para('Ochre Kite'))))
     ],
     [
+      'a row inside a row, keeping each of its cells',
+      tableOf(rowOf(rowOf(headerOf(para('Time')), cellOf(para('9pm'))))),
+      tableOf(rowOf(headerOf(para('Time')), cellOf(para('9pm'))))
+    ],
+    [
       'a row holding an image only, dropping the row',
       tableOf(
         rowOf({ type: 'image', attrs: { src: '/images/crowd.webp' } }),
