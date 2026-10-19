@@ -196,8 +196,10 @@ describe('RecordTable selection bar', () => {
       within(bar()!).getByRole('button', { name: 'Export' })
     )
     expect(onAction).toHaveBeenCalledWith(
-      { ids: ['show-0'] },
-      expect.objectContaining({ search: '' })
+      expect.objectContaining({
+        selection: { ids: ['show-0'] },
+        query: expect.objectContaining({ search: '' })
+      })
     )
     await waitFor(() => expect(bar()).toBeNull())
     expect(screen.getByRole('columnheader', { name: 'City' })).toBeVisible()

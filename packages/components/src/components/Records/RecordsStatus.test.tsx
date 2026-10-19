@@ -95,6 +95,27 @@ describe('Records.Status', () => {
     act(() => vi.advanceTimersByTime(500))
     expect(status()).toHaveTextContent('24 results')
   })
+
+  it('announces a count the server stopped at as a floor', () => {
+    function Server() {
+      const records = useRecords({
+        data: testShows(50),
+        fields: showFields,
+        getRowId: (row) => row.id,
+        rowCount: 10_000,
+        rowCountExact: false,
+        defaultView: { query: { search: 'Perth' } }
+      })
+      return (
+        <Records.Root records={records} layouts={[]}>
+          <Records.Status />
+        </Records.Root>
+      )
+    }
+    render(<Server />)
+    act(() => vi.advanceTimersByTime(600))
+    expect(status()).toHaveTextContent('10,000+ results')
+  })
 })
 
 describe('Records.Pagination', () => {

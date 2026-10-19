@@ -6,7 +6,7 @@ import { unified } from 'unified'
 import { visit } from 'unist-util-visit'
 import { describe, expect, it } from 'vitest'
 
-import { EVENT_FIELDS, WEEKEND_VIEW } from './example'
+import { EVENT_FIELDS, WEEKEND_VIEW, weekendRequest } from './example'
 
 const page = readFileSync(
   new URL('../../app/foundations/records/page.mdx', import.meta.url),
@@ -37,5 +37,12 @@ describe('Records model example', () => {
   it('shows the view the outputs are worked out from', () => {
     const fence = fences().find(({ lang }) => lang === 'json')
     expect(JSON.parse(fence!.value)).toEqual(WEEKEND_VIEW)
+  })
+
+  it('shows the request toRecordsRequest builds from the view', () => {
+    const fence = fences().find(
+      ({ lang, value }) => lang === 'json' && value.includes('"pageSize"')
+    )
+    expect(JSON.parse(fence!.value)).toEqual(weekendRequest())
   })
 })

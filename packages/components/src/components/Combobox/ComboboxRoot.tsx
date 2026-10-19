@@ -19,12 +19,14 @@ export type ComboboxRootProps<
   'autoHighlight'
 > & {
   /**
-   * Whether the first match is highlighted while the user types, so Enter
-   * picks it. Matches that arrive later are highlighted too. Opening the
-   * list without typing doesn't highlight the first match.
+   * Whether the first match is highlighted, so Enter picks it.
+   * - `true`: once the user types, including matches that arrive later.
+   *   Opening the list without typing highlights nothing.
+   * - `'always'`: whenever the list shows an item, even with no text.
+   * - `false`: only an item moved to with the arrows or the pointer.
    * @default true
    */
-  autoHighlight?: boolean
+  autoHighlight?: boolean | 'always'
 }
 
 type AutoHighlightMode = ComboboxPrimitive.Root.Props<unknown>['autoHighlight']
@@ -59,7 +61,9 @@ export function ComboboxRoot<
     locale: props.locale
   })
   // Base UI types 'always' for Autocomplete only; its Combobox handles it.
-  const mode = (autoHighlight && typed ? 'always' : false) as AutoHighlightMode
+  const mode = (
+    autoHighlight === 'always' || (autoHighlight && typed) ? 'always' : false
+  ) as AutoHighlightMode
   const [open, handleOpenChange] = useHeldOpen(
     props.open,
     props.defaultOpen,
@@ -80,6 +84,13 @@ export function ComboboxRoot<
           handleQueryChange(next, details)
         }}
         onValueChange={(next, details) => {
+          // Base UI's Escape in a closed list clears every chip, not just the
+          // text. Kept, the Escape did nothing, so a dialog around can close.
+          if (props.multiple && details.reason === 'escape-key') {
+            details.cancel()
+            details.allowPropagation()
+            return
+          }
           onValueChange?.(next, details)
           resetTyped(details)
         }}
