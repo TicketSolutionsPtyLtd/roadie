@@ -1,14 +1,28 @@
 import { useState } from 'react'
 
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
+import { page, userEvent } from 'vitest/browser'
 
 import { QueryField, type QueryFieldProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { setHoverCapable } from '../../css/testUtils'
+import { pointAt } from '../../utils/pointerTestUtils'
 import { useStylesheet } from '../Pane/testUtils'
 import { Tooltip } from '../Tooltip'
-import type { QueryFieldChip, QueryFieldSuggestionGroup } from './types'
+import type {
+  QueryFieldChip,
+  QueryFieldOperator,
+  QueryFieldSuggestionGroup
+} from './types'
 
 const STILL = '*, *::before, *::after { transition: none !important }'
 
@@ -59,12 +73,16 @@ const LONG_LABEL = 'Venue is Gooseberry Signal Warehouse, Fortitude Valley'
 
 function Harness({
   initialChips = [],
+  width = 360,
   ...props
-}: Partial<QueryFieldProps> & { initialChips?: QueryFieldChip[] }) {
+}: Partial<QueryFieldProps> & {
+  initialChips?: QueryFieldChip[]
+  width?: number
+}) {
   const [current, setCurrent] = useState(initialChips)
   return (
     <Tooltip.Provider delay={0}>
-      <div style={{ width: 360 }}>
+      <div style={{ width }}>
         <QueryField
           aria-label='Search orders'
           chips={current}
@@ -79,7 +97,8 @@ function Harness({
   )
 }
 
-const input = () => screen.getByRole('combobox', { name: 'Search orders' })
+const input = () =>
+  screen.getByRole<HTMLInputElement>('combobox', { name: 'Search orders' })
 const group = () => document.querySelector('[data-slot=query-field]')!
 const box = (element: Element) => element.getBoundingClientRect()
 const shown = (element: Element | null) =>
@@ -104,7 +123,14 @@ describe('QueryField', () => {
   ] as const)('keeps the input on a long %s’s row', (_, props) => {
     const initialChips =
       'pendingChip' in props ? [] : [{ id: 'venue', label: LONG_LABEL }]
-    render(<Harness initialChips={initialChips} {...props} />)
+    // A pending chip's input is as wide as its text, which the label gives way to.
+    render(
+      <Harness
+        initialChips={initialChips}
+        {...props}
+        defaultInputValue={'pendingChip' in props ? 'Iguana' : ''}
+      />
+    )
     expect(box(group()).height).toBe(40)
     expect(box(input()).width).toBeGreaterThanOrEqual(32)
   })
@@ -143,7 +169,37 @@ describe('QueryField', () => {
     expect(search.querySelector('kbd')).toBeNull()
   })
 
-  it('searches on Enter while the pointer rests on a filter', async () => {
+  it('hides the Enter hint on a touch screen, keeping the fill', async () => {
+    setHoverCapable(false)
+    onTestFinished(() => setHoverCapable(true))
+    render(<Harness />)
+    await userEvent.click(input())
+    await userEvent.keyboard('igua')
+    const search = await screen.findByRole('option', { name: /Search for/ })
+    const filter = screen.getByRole('option', { name: /Iguana Teapot Hall/ })
+    expect(search.querySelector('kbd')).toBeInTheDocument()
+    expect(shown(search.querySelector('kbd'))).toBe(false)
+    expect(getComputedStyle(search).backgroundColor).not.toBe(
+      getComputedStyle(filter).backgroundColor
+    )
+  })
+
+  // On the body, as the list is portalled there.
+  it('keeps the Enter hint on a touch screen where a page keeps key hints', async () => {
+    document.body.dataset.keyboardHints = 'always'
+    setHoverCapable(false)
+    onTestFinished(() => {
+      delete document.body.dataset.keyboardHints
+      setHoverCapable(true)
+    })
+    render(<Harness />)
+    await userEvent.click(input())
+    await userEvent.keyboard('igua')
+    const search = await screen.findByRole('option', { name: /Search for/ })
+    expect(shown(search.querySelector('kbd'))).toBe(true)
+  })
+
+  it('takes the filter the pointer rests on, and the search once it leaves', async () => {
     const accepted: string[] = []
     render(
       <Harness onAccept={(suggestion) => accepted.push(suggestion.kind)} />
@@ -153,10 +209,16 @@ describe('QueryField', () => {
     const filter = await screen.findByRole('option', {
       name: /Iguana Teapot Hall/
     })
-    await userEvent.hover(filter)
-    expect(filter.querySelector('kbd')).toBeNull()
+    const search = screen.getByRole('option', { name: /Search for/ })
+    await pointAt(filter)
+    await expect.poll(() => shown(filter.querySelector('kbd'))).toBe(true)
+    expect(search.querySelector('kbd')).toBeNull()
+    await userEvent.unhover(filter)
+    await expect.poll(() => shown(search.querySelector('kbd'))).toBe(true)
+    expect(search).toHaveAttribute('data-highlighted')
+    await pointAt(filter)
     await userEvent.keyboard('{Enter}')
-    expect(accepted).toEqual(['search'])
+    expect(accepted).toEqual(['filter'])
   })
 
   it('takes no value under the pointer after clicking a field', async () => {
@@ -240,6 +302,135 @@ describe('QueryField', () => {
     )!
     expect(getComputedStyle(pending).borderStyle).toBe('dashed')
     expect(box(pending).height).toBe(24)
+    expect(pending.contains(input())).toBe(true)
+  })
+
+  it('edits a chip in its place, as a pending chip holding its value selected', async () => {
+    function Editing() {
+      const [editing, setEditing] = useState<string>()
+      const [text, setText] = useState('')
+      const end = () => {
+        setEditing(undefined)
+        setText('')
+      }
+      return (
+        <Harness
+          width={900}
+          initialChips={chips.slice(1, 4)}
+          onSelectChip={(id) => {
+            setEditing(id)
+            setText('Perth')
+          }}
+          pendingChip={
+            editing
+              ? { id: editing, label: 'City is', chipId: editing }
+              : undefined
+          }
+          onPendingChipCancel={end}
+          inputValue={text}
+          onInputValueChange={setText}
+        />
+      )
+    }
+    render(<Editing />)
+    const chipNamed = (id: string) =>
+      document.querySelector(`[data-slot=combobox-chip][data-chip-id=${id}]`)!
+    await userEvent.click(screen.getByRole('button', { name: 'City is Perth' }))
+    const pending = document.querySelector(
+      '[data-slot=query-field-pending-chip]'
+    )!
+    expect(getComputedStyle(pending).borderStyle).toBe('dashed')
+    expect(pending).toContainElement(input())
+    expect(input()).toHaveAccessibleDescription('City is')
+    expect(shown(chipNamed('city'))).toBe(false)
+    expect(box(pending).left).toBeGreaterThan(box(chipNamed('status')).right)
+    expect(box(pending).right).toBeLessThan(box(chipNamed('tier')).left)
+    expect(input()).toHaveFocus()
+    expect(input()).toHaveValue('Perth')
+    expect([input().selectionStart, input().selectionEnd]).toEqual([0, 5])
+    await userEvent.keyboard('{ArrowLeft}{ArrowLeft}')
+    expect(input()).toHaveFocus()
+    await userEvent.keyboard('{End}{Backspace}')
+    expect(input()).toHaveValue('Pert')
+    await userEvent.keyboard('{Escape}')
+    expect(
+      document.querySelector('[data-slot=query-field-pending-chip]')
+    ).toBeNull()
+    expect(shown(chipNamed('city'))).toBe(true)
+  })
+
+  it('shows the rest of the value Enter takes faintly after the caret, and hugs the typed text', async () => {
+    const statuses = ['On sale', 'Sold out', 'Cancelled']
+    function StatusStep() {
+      const [text, setText] = useState('')
+      return (
+        <Harness
+          width={600}
+          pendingChip={{ id: 'status', label: 'Status is' }}
+          inputValue={text}
+          onInputValueChange={setText}
+          suggest={(typed) => [
+            {
+              id: 'values',
+              label: 'Status',
+              items: statuses
+                .filter((each) =>
+                  each.toLowerCase().includes(typed.trim().toLowerCase())
+                )
+                .map((each) => ({
+                  id: each,
+                  label: each,
+                  kind: 'filter' as const,
+                  value: each
+                }))
+            }
+          ]}
+        />
+      )
+    }
+    render(<StatusStep />)
+    const ghost = () =>
+      document.querySelector<HTMLElement>('[data-slot=query-field-ghost]')
+        ?.dataset.ghost ?? ''
+    await userEvent.click(input())
+    expect(box(input()).width).toBeLessThan(8)
+    await userEvent.keyboard('O')
+    await expect.poll(ghost).toBe('n sale')
+    // Typing adds and removes no nodes, which would restyle a page's :has() anchors.
+    const changed: Node[] = []
+    const observer = new MutationObserver((records) =>
+      records.forEach((record) =>
+        changed.push(...record.addedNodes, ...record.removedNodes)
+      )
+    )
+    observer.observe(input().closest('[data-slot=query-field]')!, {
+      childList: true,
+      subtree: true
+    })
+    await userEvent.keyboard('n')
+    await expect.poll(ghost).toBe(' sale')
+    observer.disconnect()
+    expect(changed).toEqual([])
+    const ghostText = document.querySelector('[data-slot=query-field-ghost]')!
+    expect(box(ghostText).left).toBeGreaterThan(box(input()).left)
+    expect(box(ghostText).top).toBeGreaterThanOrEqual(box(input()).top - 1)
+    // A press on it lands in the input, so focus and the caret stay there.
+    const { left, top, width, height } = box(ghostText)
+    expect(document.elementFromPoint(left + width / 2, top + height / 2)).toBe(
+      input()
+    )
+    await userEvent.keyboard('{ArrowLeft}')
+    await expect.poll(ghost).toBe('')
+    await userEvent.keyboard('{End}x')
+    await expect.poll(ghost).toBe('')
+    const short = box(input()).width
+    expect(short).toBeLessThan(30)
+    await userEvent.keyboard('xxxxxxxxxx')
+    expect(box(input()).width).toBeGreaterThan(short + 40)
+    const pending = document.querySelector(
+      '[data-slot=query-field-pending-chip]'
+    )!
+    expect(box(pending).height).toBe(24)
   })
 
   it("shows a chip's description on hover", async () => {
@@ -248,7 +439,7 @@ describe('QueryField', () => {
         initialChips={[
           {
             id: 'starts',
-            label: 'Starts: This weekend',
+            label: 'Starts is this weekend',
             description: '3 to 4 Oct'
           }
         ]}
@@ -270,5 +461,264 @@ describe('QueryField', () => {
     const clear = screen.getByRole('button', { name: 'Clear' })
     expect(Math.abs(middle(icon) - middle(first))).toBeLessThanOrEqual(1)
     expect(Math.abs(middle(clear) - middle(first))).toBeLessThanOrEqual(1)
+  })
+
+  it('rings Clear in a circle, as the chips’ remove buttons', async () => {
+    render(<Harness initialChips={[{ id: 'city', label: 'City is Perth' }]} />)
+    const clear = screen.getByRole('button', { name: 'Clear' })
+    const height = box(group()).height
+    clear.focus()
+    expect(clear).toHaveFocus()
+    const style = getComputedStyle(clear)
+    expect(style.outlineStyle).not.toBe('none')
+    expect(parseFloat(style.borderRadius)).toBeGreaterThanOrEqual(
+      box(clear).height / 2
+    )
+    expect(box(clear).width).toBe(box(clear).height)
+    expect(box(group()).height).toBe(height)
+  })
+
+  it('sizes operators as Buttons, at least square, above values that keep their label for assistive technology', async () => {
+    // As narrow as labels get.
+    const symbols: QueryFieldOperator[] = [
+      { value: 'not', label: '!', 'aria-label': 'not' },
+      { value: 'or', label: '|', 'aria-label': 'or' }
+    ]
+    render(
+      <Harness
+        pendingChip={{
+          id: 'tickets',
+          label: 'Tickets !',
+          operators: symbols,
+          operator: 'not'
+        }}
+        suggest={() => suggest('values')}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('button', { name: 'not' })
+    for (const name of ['not', 'or']) {
+      const item = screen.getByRole('button', { name })
+      expect(box(item).height).toBeGreaterThanOrEqual(32)
+      expect(box(item).width).toBeGreaterThanOrEqual(box(item).height)
+    }
+    const label = document.querySelector('[data-slot=combobox-group-label]')!
+    expect(box(label).width).toBeLessThanOrEqual(1)
+    expect(screen.getByRole('group', { name: 'Filters' })).toBeInTheDocument()
+  })
+
+  it('fills the row Enter takes until another row is highlighted', async () => {
+    const cities: QueryFieldSuggestionGroup[] = [
+      {
+        id: 'values',
+        label: 'City',
+        items: ['Brisbane', 'Hobart'].map((city) => ({
+          id: city,
+          label: city,
+          kind: 'filter' as const,
+          value: city
+        }))
+      }
+    ]
+    render(
+      <Harness
+        pendingChip={{ id: 'city', label: 'City is' }}
+        suggest={() => cities}
+      />
+    )
+    await userEvent.type(input(), 'b')
+    const fill = (name: string) =>
+      getComputedStyle(screen.getByRole('option', { name: new RegExp(name) }))
+        .backgroundColor
+    await expect.poll(() => fill('Brisbane')).not.toBe(fill('Hobart'))
+    const resting = fill('Hobart')
+    await pointAt(screen.getByRole('option', { name: /Hobart/ }))
+    await expect.poll(() => fill('Brisbane')).toBe(resting)
+  })
+
+  it('lists the search Enter takes first, and Down moves to the next row', async () => {
+    render(<Harness />)
+    await userEvent.type(input(), 'igua')
+    const options = () =>
+      screen.getAllByRole('option').map((each) => each.textContent)
+    await expect
+      .poll(options)
+      .toEqual([
+        expect.stringMatching(/^Search for “igua”/),
+        expect.stringMatching(/^Venue is Iguana Teapot Hall/)
+      ])
+    await userEvent.keyboard('{ArrowDown}')
+    await expect
+      .poll(() => input().getAttribute('aria-activedescendant'))
+      .toBe(screen.getByRole('option', { name: /^Venue is/ }).id)
+  })
+
+  it('sizes each operator to its own label', async () => {
+    const words: QueryFieldOperator[] = [
+      { value: 'contains', label: 'contains' },
+      { value: 'not-contains', label: 'doesn’t contain' },
+      { value: 'is', label: 'is' }
+    ]
+    render(
+      <Harness
+        pendingChip={{
+          id: 'show',
+          label: 'Show contains',
+          operators: words,
+          operator: 'contains'
+        }}
+        suggest={() => suggest('values')}
+      />
+    )
+    await userEvent.click(input())
+    const short = await screen.findByRole('button', { name: 'is' })
+    const long = screen.getByRole('button', { name: 'doesn’t contain' })
+    expect(box(short).width).toBeLessThan(box(long).width / 2)
+  })
+
+  it('scrolls operators sideways when they outgrow the popup, keeping them above the values', async () => {
+    const many: QueryFieldOperator[] = Array.from(
+      { length: 24 },
+      (_, index) => ({ value: `op-${index}`, label: `is something ${index}` })
+    )
+    render(
+      <Harness
+        pendingChip={{
+          id: 'venue',
+          label: 'Venue is',
+          operators: many,
+          operator: 'op-23'
+        }}
+        suggest={() => suggest('values')}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: /Iguana Teapot Hall/ })
+    const toggle = screen.getByRole('group', { name: 'Operator' })
+    const popup = document.querySelector('[data-slot=combobox-popup]')!
+    expect(toggle.scrollWidth).toBeGreaterThan(toggle.clientWidth)
+    expect(box(toggle).right).toBeLessThanOrEqual(box(popup).right)
+    await expect.poll(() => toggle.scrollLeft).toBeGreaterThan(0)
+  })
+
+  it.each([
+    ['a phone', 390, 280],
+    ['a desktop', 1280, 640]
+  ])(
+    'opens the list no wider than the field on %s, scrolling the operators',
+    async (_, viewport, width) => {
+      await page.viewport(viewport, 800)
+      onTestFinished(() => page.viewport(1024, 768))
+      const numbers: QueryFieldOperator[] = [
+        { value: 'eq', label: '=' },
+        { value: 'neq', label: '≠' },
+        { value: 'lt', label: '<' },
+        { value: 'gt', label: '>' },
+        { value: 'between', label: 'between' },
+        { value: 'empty', label: 'is empty' },
+        { value: 'not-empty', label: 'is not empty' }
+      ]
+      render(
+        <div style={{ paddingInline: 40 }}>
+          <Harness
+            width={width}
+            pendingChip={{
+              id: 'sold',
+              label: 'Sold is',
+              operators: numbers,
+              operator: 'eq'
+            }}
+            suggest={() => [
+              {
+                id: 'values',
+                label: 'Sold',
+                items: [
+                  {
+                    id: 'long',
+                    label: `${LONG_LABEL} ${LONG_LABEL} ${LONG_LABEL}`,
+                    kind: 'filter',
+                    value: 'long'
+                  }
+                ]
+              }
+            ]}
+          />
+        </div>
+      )
+      await userEvent.click(input())
+      await screen.findByRole('option', { name: /Gooseberry/ })
+      const popup = document.querySelector('[data-slot=combobox-popup]')!
+      await expect
+        .poll(() => box(popup).width)
+        .toBeLessThanOrEqual(box(group()).width + 0.5)
+      expect(Math.abs(box(popup).left - box(group()).left)).toBeLessThan(1)
+      const toggle = screen.getByRole('group', { name: 'Operator' })
+      expect(box(toggle).right).toBeLessThanOrEqual(box(popup).right)
+      if (viewport < 640)
+        expect(toggle.scrollWidth).toBeGreaterThan(toggle.clientWidth)
+    }
+  )
+
+  it('keeps focus in the input and the values open when an operator is pressed', async () => {
+    function Step() {
+      const [operator, setOperator] = useState('is')
+      return (
+        <Harness
+          pendingChip={{
+            id: 'venue',
+            label: operator === 'is' ? 'Venue is' : 'Venue is not',
+            operators: [
+              { value: 'is', label: 'is' },
+              { value: 'is-not', label: 'is not' }
+            ],
+            operator
+          }}
+          onPendingOperatorChange={setOperator}
+          suggest={() => suggest('values')}
+        />
+      )
+    }
+    render(<Step />)
+    await userEvent.click(input())
+    await userEvent.click(await screen.findByRole('button', { name: 'is not' }))
+    expect(document.activeElement).toBe(input())
+    expect(screen.getByRole('button', { name: 'is not' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    expect(
+      screen.getByRole('option', { name: /Iguana Teapot Hall/ })
+    ).toBeVisible()
+  })
+
+  it('keeps operators in view, at the top, as the values scroll', async () => {
+    const values = Array.from({ length: 40 }, (_, index) => ({
+      id: `value-${index}`,
+      label: `Venue ${index}`,
+      kind: 'filter' as const,
+      value: index
+    }))
+    render(
+      <Harness
+        pendingChip={{
+          id: 'venue',
+          label: 'Venue is',
+          operators: [
+            { value: 'is', label: 'is' },
+            { value: 'is-not', label: 'is not' }
+          ],
+          operator: 'is'
+        }}
+        suggest={() => [{ id: 'values', label: 'Venue', items: values }]}
+      />
+    )
+    await userEvent.click(input())
+    await screen.findByRole('option', { name: 'Venue 0' })
+    const popup = document.querySelector('[data-slot=combobox-popup]')!
+    const toggle = screen.getByRole('group', { name: 'Operator' })
+    const resting = box(toggle).top - box(popup).top
+    popup.scrollTop = popup.scrollHeight
+    await expect.poll(() => popup.scrollTop).toBeGreaterThan(0)
+    expect(box(toggle).top - box(popup).top).toBe(resting)
   })
 })

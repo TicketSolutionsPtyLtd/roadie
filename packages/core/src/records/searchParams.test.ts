@@ -157,7 +157,7 @@ describe('fromSearchParams', () => {
       params,
       eventFields
     )
-    expect(view).toEqual({ ...full, name: undefined })
+    expect(view).toEqual({ ...full, version: 1, name: undefined })
     expect(view).not.toHaveProperty('name')
     expect(position).toEqual({ page: 2, pageSize: 50, row: 120 })
     expect(source).toBe('url')
@@ -299,6 +299,7 @@ describe('fromSearchParams', () => {
 
   it('round-trips values holding literal escapes', () => {
     const literal: RecordView = {
+      version: 1,
       ...empty,
       query: {
         search: '%2D %2C%25',

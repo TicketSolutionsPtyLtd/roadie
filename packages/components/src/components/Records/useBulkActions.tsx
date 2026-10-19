@@ -8,10 +8,9 @@ import {
   reportActionError
 } from './RecordsConfirm'
 import { useRecordsContext } from './context'
+import { formatCount, selectionExact } from './count'
 import { deselect, pageState, withinMatching } from './selection'
 import type { RecordName, RecordsBulkAction } from './types'
-
-const count = new Intl.NumberFormat('en-AU')
 
 /** Where focus lands once a bar that held it unmounts: the selection control, else the rows. */
 const SURVIVOR = 'data-records-survivor'
@@ -71,6 +70,7 @@ export function useBulkActions({
   const recordName = recordNameProp ?? records.recordName
   const noun = (n: number) => (n === 1 ? recordName.one : recordName.other)
   const pageIds = records.rows.map((row) => row.id)
+  const allNoun = `${formatCount(records.resultCount, records.resultCountExact)} ${noun(records.resultCount)}`
   const offerAll =
     // Until a range list knows its total, every match is no known number.
     (records.range === undefined || records.range.total !== undefined) &&
@@ -116,11 +116,17 @@ export function useBulkActions({
         ? matchingIds.filter((id) => !except.has(id))
         : submitted.ids
     )
-    const query = records.scopedQuery
+    const { scopedQuery: query, request, timeZone, now } = records
     const revision = queryRevision.current.count
     setRunning(index)
     try {
-      await action.onAction(submitted, query)
+      await action.onAction({
+        selection: submitted,
+        query,
+        request: { version: request.version, query: request.query },
+        timeZone,
+        now
+      })
       const current = latest.current
       // A selection taken against a newer query isn't what the action took.
       if (server && queryRevision.current.count !== revision) return
@@ -157,6 +163,7 @@ export function useBulkActions({
     <RecordsConfirm
       action={confirmed}
       count={selected}
+      exact={selectionExact(records, records.selection)}
       recordName={recordName}
       onCancel={() => setConfirming(null)}
       onConfirm={() => {
@@ -173,8 +180,8 @@ export function useBulkActions({
     confirm,
     clearSelection,
     offerAll,
-    selectedLabel: `${count.format(selected)} selected`,
-    allLabel: `Select all ${count.format(records.resultCount)} ${noun(records.resultCount)}`,
-    allNoun: `${count.format(records.resultCount)} ${noun(records.resultCount)}`
+    selectedLabel: `${formatCount(selected, selectionExact(records, records.selection))} selected`,
+    allLabel: `Select all ${allNoun}`,
+    allNoun
   }
 }

@@ -23,6 +23,9 @@ import { QueryField } from '@oztix/roadie-components/query-field'
 Pass the chips you hold and a `suggest` function. Suggestions come back in
 groups, and `onAccept` hands you the one taken: add a chip for a filter, or
 search for the text when Enter sends `kind: 'search'`.
+The row Enter takes shows at the top, with its group above the rest, so the
+list can move as you type. It's highlighted, so Down Arrow moves to the next
+row.
 Give a suggestion an `icon`, a bold Phosphor icon, to show before its label.
 Chips never show one.
 
@@ -126,9 +129,41 @@ takes `invalid`, `disabled` and `required` from it.
 ### With the value step
 
 Picking a field, such as Venue, starts the value step. Show a `pendingChip`
-and swap what `suggest` returns for that field's values. Taking a value adds
-the chip and ends the step; Backspace on the empty field or Escape calls
-`onPendingChipCancel` to go back.
+and swap what `suggest` returns for that field's values. What you type sits
+inside the pending chip, after its label. Taking a value adds
+the chip and ends the step. Each of these calls `onPendingChipCancel` to go
+back:
+
+- Backspace in the empty field
+- Escape
+- Tab out of the input
+- Focus moving outside the field and its list
+- A press outside the field and its list
+- Enter on the text the step started with, or with no new value to take, while
+  a step edits a chip
+
+Focus going nowhere, as when a phone's keyboard is put away, keeps the step.
+
+Give the pending chip two or more `operators`, and the chosen one as
+`operator`, to show a toggle above the values. Pressing an operator, or Tab in
+the field, calls `onPendingOperatorChange`. Update `operator` and the chip's
+`label`, such as "Venue is not", and the field asks `suggest` again. Give an
+operator that's a symbol, such as ≠, an `aria-label`. The list is as wide as
+the field, so operators that don't fit scroll sideways, and long values
+truncate.
+
+Once something is typed, Enter takes the first value. When the highlighted
+value's label starts with the typed text, the rest shows faintly after the
+caret, such as "n sale" after "O". Only Enter takes it. When the step has one
+answer, such as "Location is empty" under **is empty**, mark it `exact`, and
+Enter takes it before anything is typed. Mark a value that opens an editor of
+your own `opensEditor`, and Enter never takes it, so only an arrow or a click
+opens it.
+
+Give the pending chip a `hint`, such as "Type a number.", to say what to type.
+It shows in place of No suggestions while no value is listed, and below the
+values while Enter has none to take for the typed text, such as when the only
+match is already ticked. Screen readers announce it.
 
 ```tsx-live
 function QueryFieldValueStep() {
@@ -140,24 +175,30 @@ function QueryFieldValueStep() {
     { id: 'field:venue', label: 'Venue', kind: 'field', value: 'venue' },
     { id: 'field:status', label: 'Status', kind: 'field', value: 'status' },
   ]
-  const label = { venue: 'Venue is', status: 'Status is' }
+  const operators = [
+    { value: 'is', label: 'is' },
+    { value: 'is-not', label: 'is not' },
+  ]
+  const verb = { is: 'is', 'is-not': 'is not' }
   const [chips, setChips] = useState([])
   const [pending, setPending] = useState(null)
+  const [operator, setOperator] = useState('is')
 
-  function filter(field, value, text) {
-    return { id: `${field}:${value}`, label: text, kind: 'filter', value: { field, value } }
+  function filter(field, value, compare, label) {
+    const text = `${field.label} ${verb[compare]} ${value}`
+    return { id: `${field.value}:${compare}:${value}`, label: label ?? text, kind: 'filter', value: text }
   }
 
   function suggest(text) {
     const query = text.trim().toLowerCase()
     const matches = (name) => name.toLowerCase().includes(query)
     if (pending) {
-      const items = values[pending].filter(matches).map((value) => filter(pending, value, value))
-      return [{ id: 'values', label: label[pending], items }]
+      const items = values[pending.value].filter(matches).map((value) => filter(pending, value, operator, value))
+      return [{ id: 'values', label: pending.label, items }]
     }
     if (!query) return [{ id: 'fields', label: 'Filter by', items: fields }]
-    const filters = Object.keys(values).flatMap((field) =>
-      values[field].filter(matches).map((value) => filter(field, value, `${label[field]} ${value}`))
+    const filters = fields.flatMap((field) =>
+      values[field.value].filter(matches).map((value) => filter(field, value, 'is'))
     )
     return [
       { id: 'filters', label: 'Filters', items: filters },
@@ -166,14 +207,16 @@ function QueryFieldValueStep() {
   }
 
   function accept(suggestion) {
-    if (suggestion.kind === 'field') setPending(suggestion.value)
+    if (suggestion.kind === 'field') {
+      setPending(suggestion)
+      setOperator('is')
+    }
     if (suggestion.kind === 'filter') {
-      const { field, value } = suggestion.value
       setPending(null)
       setChips((current) =>
         current.some((chip) => chip.id === suggestion.id)
           ? current
-          : [...current, { id: suggestion.id, label: `${label[field]} ${value}` }]
+          : [...current, { id: suggestion.id, label: suggestion.value }]
       )
     }
   }
@@ -183,10 +226,74 @@ function QueryFieldValueStep() {
       aria-label='Search events'
       chips={chips}
       onRemoveChip={(id) => setChips((current) => current.filter((chip) => chip.id !== id))}
-      pendingChip={pending ? { id: pending, label: label[pending] } : undefined}
+      pendingChip={
+        pending
+          ? { id: pending.value, label: `${pending.label} ${verb[operator]}`, operators, operator }
+          : undefined
+      }
+      onPendingOperatorChange={setOperator}
       onPendingChipCancel={() => setPending(null)}
       suggest={suggest}
       onAccept={accept}
+    />
+  )
+}
+```
+
+### With content under the values
+
+Give the pending chip `content` to show it under the values, such as a
+calendar to pick a date from. Focus stays in the field as you press it, so
+typing and Tab carry on there. A press that ends the step, such as picking a
+day, closes the list, as taking a value does.
+
+The list is as wide as the field, and a calendar fits from about 300px, as on
+a phone. Keep the content to pointer and touch, and offer the same values as
+suggestions, so typing reaches them too.
+
+```tsx-live
+function QueryFieldContent() {
+  const operators = [
+    { value: 'on', label: 'is' },
+    { value: 'before', label: 'is before' },
+    { value: 'after', label: 'is after' },
+  ]
+  const words = { on: 'is on', before: 'is before', after: 'is after' }
+  const [chips, setChips] = useState([])
+  const [pending, setPending] = useState(false)
+  const [operator, setOperator] = useState('on')
+  const field = { id: 'field:date', label: 'Event date', kind: 'field', value: 'date' }
+
+  function pick(date) {
+    const day = new Date(`${date}T12:00:00Z`).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', timeZone: 'UTC' })
+    setChips([{ id: 'date', label: `Event date ${words[operator]} ${day}` }])
+    setPending(false)
+  }
+
+  return (
+    <QueryField
+      aria-label='Search events'
+      chips={chips}
+      onRemoveChip={() => setChips([])}
+      pendingChip={
+        pending
+          ? {
+              id: 'date',
+              label: `Event date ${operators.find((each) => each.value === operator).label}`,
+              operators,
+              operator,
+              content: <Calendar aria-label='Event date' onSelect={(date) => date && pick(date)} />,
+            }
+          : undefined
+      }
+      onPendingOperatorChange={setOperator}
+      onPendingChipCancel={() => setPending(false)}
+      suggest={() => (pending ? [] : [{ id: 'fields', label: 'Filter by', items: [field] }])}
+      onAccept={(suggestion) => {
+        if (suggestion.kind !== 'field') return
+        setOperator('on')
+        setPending(true)
+      }}
     />
   )
 }
@@ -218,51 +325,63 @@ function QueryFieldLocked() {
 
 ### With chip editing
 
-Pass `onEditChip` and each unlocked chip gets an edit button. Open your editor
-in a `Popover` against the chip it hands you, and send focus back to the chip
-when it closes.
+Pass `onSelectChip`, and a click, Enter, or Space on an unlocked chip selects
+it. Answer with a value step for the chip's field, with `pendingChip.chipId`
+naming the chip. The list opens, and the pending chip takes the chip's place.
+To edit a value typed in full, such as a date or a number, set `inputValue` to
+it as the step starts. The field selects it, so typing replaces it.
+
+Mark the values the chip holds `selected` to tick them, and toggle them in
+`onAccept`. Taking a value keeps the list open, so several can be ticked and
+unticked. For a chip that holds one value, such as typed text or a date, end the step in
+`onAccept`, and the list closes. Enter on typed text takes the first value that isn't ticked, so only
+an arrow or a click unticks one.
+
+Backspace in the empty field removes the chip. Pass `onPendingChipBackspace`
+to do something else, such as bring back text the step set aside. Escape,
+Enter on the text the step started with or with no new value to take, or focus
+leaving the field ends the step and keeps the chip.
+Enter keeps the step while typed text matches no value, so the hint stays.
 
 ```tsx-live
 function QueryFieldChipEditing() {
   const statuses = ['On sale', 'Sold out', 'Postponed']
-  const [status, setStatus] = useState('On sale')
-  const [open, setOpen] = useState(false)
-  const [anchor, setAnchor] = useState(null)
+  const [chosen, setChosen] = useState(['On sale'])
+  const [editing, setEditing] = useState(false)
+  // At the start of a word, so "on" finds On sale but not Postponed.
+  const matches = (status, text) => ` ${status.toLowerCase()}`.includes(` ${text.trim().toLowerCase()}`)
+  const chips = chosen.length > 0 ? [{ id: 'status', label: `Status is ${chosen.join(' or ')}` }] : []
+
+  function toggle(status) {
+    const next = chosen.includes(status) ? chosen.filter((each) => each !== status) : [...chosen, status]
+    setChosen(next)
+    if (next.length === 0) setEditing(false)
+  }
 
   return (
-    <>
-      <QueryField
-        aria-label='Search events'
-        chips={[{ id: 'status', label: `Status is ${status}` }]}
-        suggest={() => []}
-        onEditChip={(id, element) => {
-          setAnchor(element)
-          setOpen(true)
-        }}
-      />
-      <Popover open={open} onOpenChange={setOpen}>
-        <Popover.Portal>
-          <Popover.Positioner anchor={anchor} side='bottom' align='start'>
-            <Popover.Popup finalFocus={() => anchor}>
-              <Popover.Body>
-                <RadioGroup
-                  aria-label='Status'
-                  value={status}
-                  onValueChange={(value) => {
-                    setStatus(value)
-                    setOpen(false)
-                  }}
-                >
-                  {statuses.map((option) => (
-                    <RadioGroup.Item key={option} value={option} label={option} />
-                  ))}
-                </RadioGroup>
-              </Popover.Body>
-            </Popover.Popup>
-          </Popover.Positioner>
-        </Popover.Portal>
-      </Popover>
-    </>
+    <QueryField
+      aria-label='Search events'
+      chips={chips}
+      onRemoveChip={() => {
+        setChosen([])
+        setEditing(false)
+      }}
+      onSelectChip={() => setEditing(true)}
+      pendingChip={editing ? { id: 'status', label: 'Status is', chipId: 'status' } : undefined}
+      onPendingChipCancel={() => setEditing(false)}
+      suggest={(text) => [
+        {
+          id: 'statuses',
+          label: 'Status',
+          items: (editing ? statuses : [])
+            .filter((status) => matches(status, text))
+            .map((status) => ({ id: status, label: status, kind: 'filter', value: status, selected: chosen.includes(status) })),
+        },
+      ]}
+      onAccept={(suggestion) => {
+        if (suggestion.kind === 'filter') toggle(suggestion.value)
+      }}
+    />
   )
 }
 ```
@@ -310,10 +429,10 @@ function QueryFieldExact() {
 
 ### With words left over
 
-A suggestion that reads only part of the text, such as the city in
-"melb this weekend", gives the rest as `remainder`. Taking it leaves those
-words in the field, so the next suggestion can read them. `parseQuery` from
-`@oztix/roadie-core/records` fills `remainder` for you.
+A suggestion that reads only part of the text, such as the location in "melb
+this weekend", gives the rest as `remainder`. Taking it leaves those words in
+the field, with the list open, so the next suggestion can read them.
+`parseQuery` from `@oztix/roadie-core/records` fills `remainder` for you.
 
 A chip's `description`, such as the dates a relative range stands for, shows
 in a tooltip and is read after the chip's label.
@@ -327,18 +446,18 @@ function QueryFieldRemainder() {
     const items = []
     if (words.includes('melb'))
       items.push({
-        id: 'city:melbourne',
-        label: 'City is Melbourne',
+        id: 'location:melbourne',
+        label: 'Location is in Melbourne',
         kind: 'filter',
-        value: { id: 'city', label: 'City is Melbourne' },
+        value: { id: 'location', label: 'Location is in Melbourne' },
         remainder: words.replace(/\S*melb\S*/, '').trim()
       })
     if (words.includes('weekend'))
       items.push({
         id: 'starts:weekend',
-        label: 'Starts: This weekend',
+        label: 'Start date is this weekend',
         kind: 'filter',
-        value: { id: 'starts', label: 'Starts: This weekend', description: 'The coming Saturday and Sunday' },
+        value: { id: 'starts', label: 'Start date is this weekend', description: 'The coming Saturday and Sunday' },
         remainder: words.replace(/this\s+weekend|weekend/, '').trim()
       })
     return [{ id: 'filters', label: 'Filters', items }]
@@ -404,12 +523,15 @@ function QueryFieldShortcut() {
 
 <Guideline title='Order suggestions by what Enter does'>
   <Guideline.Do>
-    Return filters first, then fields. The field adds "Search for …" last, and
-    Enter takes it unless a suggestion is an exact match.
+    Return filters first, then fields. The field adds "Search for …", and
+    Enter takes it unless a suggestion is an exact match. Whichever Enter
+    takes leads the list.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't mark a filter `exact` to make Enter take it. People expect Enter to
-    search what they typed; filters are picked with the arrows or a click.
+    Outside a value step, don't mark a filter `exact` to make Enter take it.
+    People expect Enter to search what they typed, and pick a filter with the
+    arrows or a click. A value step's one answer, such as "Location is empty",
+    is the exception.
   </Guideline.Dont>
 </Guideline>
 
@@ -439,24 +561,61 @@ function QueryFieldShortcut() {
 
 - The input is a combobox. Name it with `aria-label`, or put the field in
   `Field` and use `Field.Label`.
-- **Arrow keys** move through the suggestions and **Enter** takes the one
-  you moved to. With nothing chosen, Enter takes an exact match, or searches
-  the text. The suggestion Enter would take shows an Enter key hint.
-- Unlike `Combobox` and `Autocomplete`, typing highlights no suggestion, so
-  Enter keeps searching what you typed and the first Down Arrow lands on the
-  first suggestion.
+- **Arrow keys** move through the suggestions, and **Enter** takes the
+  highlighted one. Until you move, the top row is highlighted: an exact match,
+  or the search for your text. In a value step, once you type, it's the first
+  value. **Down Arrow** moves to the next row, and **Up Arrow** comes back.
+  The input's `aria-activedescendant` points at the highlighted row, so screen
+  readers read each row the highlight moves to.
+- With nothing for Enter to take, such as before you type in a value step, or
+  when the only match is already ticked, no row is highlighted and Enter takes
+  nothing. **Down Arrow** lands on the first row.
+- The highlighted row is filled and shows an Enter key hint. A touch screen
+  shows the fill alone, unless `data-keyboard-hints='always'` keeps key hints,
+  as on a tablet with a keyboard.
+- A row the pointer rests on takes the highlight, so Enter takes it. Once the
+  pointer leaves the list, the highlight goes back to the top row. Typing
+  takes it back there too.
 - **Backspace** in an empty field selects the last chip you can remove; a
   second Backspace removes it and returns focus to the input. **Left Arrow**
   from the start of the input moves to the chips, and **Left** and **Right**
   move between them.
-- On a chip, **Backspace** or **Delete** removes it, and **Enter** or
-  **Space** opens its editor when you pass `onEditChip`. Locked chips ignore
-  all four.
+- On a chip, **Backspace** or **Delete** removes it. With `onSelectChip`,
+  **Enter** or **Space** selects it and moves focus to the input, and the list
+  opens once a value step edits the chip. Locked chips ignore all four keys.
+- While a step edits a chip, **Backspace** in the empty field removes the
+  chip, and **Escape** ends the step and keeps the chip. **Enter** on the text
+  the step started with, or with no new value to take, does the same, unless
+  typed text matches no value. **Left** and **Right Arrow** move only within
+  the text. Focus
+  moving to something outside the field and its list, or a press outside
+  them, does the same as Escape.
+- A `selected` suggestion is `aria-selected`. Its check stays out of its name.
 - **Escape** closes the suggestions, or ends the value step. With the
   suggestions closed it clears the typed text. It never clears the chips.
+- In a value step with `operators`, while the values show, **Tab** and
+  **Shift+Tab** move to the next and previous operator. Tab from the last
+  operator, or Shift+Tab from the first, leaves the input and ends the step,
+  even when focus lands on Clear. The input's `aria-keyshortcuts` names each
+  key only while it moves to an operator. Focus stays in the input, even when
+  you press an operator. Without operators, or with the list closed, Tab
+  leaves the input as usual and ends the step.
+- The operators are a toggle group named "Operator". It takes the place of
+  the first group's label, which screen readers still read.
+- Focus stays in the input as you press the pending chip's `content`, except
+  on a native control such as a select, which takes focus to open and gives
+  it back once its value changes. The
+  content is for pointer and touch, so offer what it picks as suggestions
+  too, and a keyboard can type it.
 - A locked chip reads "set by this page" after its label, and a chip's
-  `description` is read after its label too. A pending chip
-  describes the input, so the value step is announced.
+  `description` is read after its label too. A pending chip describes the
+  input, so the value step is announced. It's a live region, so a change of
+  operator is announced too. While a step edits a chip, the chip is hidden,
+  and the pending chip in its place describes the input. The pending chip
+  shows where the chip was, but screen readers reach it after the other
+  chips, as moving the input would lose focus.
+- The faint rest of a value after the caret is visual only. The value it
+  names is in the list.
 - `required` is announced but never blocks a form: an empty search is valid.
 - `shortcut` adds `aria-keyshortcuts` to the input. The key hint beside the
   field is visual only, and hides once the field has focus.

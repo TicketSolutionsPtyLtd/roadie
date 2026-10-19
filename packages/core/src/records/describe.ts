@@ -1,9 +1,20 @@
 import { formatValue, normalizeMinusSign } from '../dataviz/format'
 import type { ValueFormat } from '../dataviz/format'
-import { describeDateRange, plainDateInstant } from '../datetime/describe'
+import {
+  describeDateRange,
+  formatResolved,
+  plainDateInstant
+} from '../datetime/describe'
 import { formatDateRange, formatDateTime } from '../datetime/format'
-import { isPlainDate, plainDateOf } from '../datetime/plainDate'
-import { fieldIndex, recordFieldOptions } from './fields'
+import { addDays, isPlainDate, plainDateOf } from '../datetime/plainDate'
+import {
+  type DateRangeValue,
+  type PeriodRange,
+  isAbsoluteRange,
+  isPeriodRange,
+  isRollingRange
+} from '../datetime/ranges'
+import { fieldIndex, momentOf, recordFieldOptions } from './fields'
 import type {
   RecordField,
   RecordFilter,
@@ -45,9 +56,24 @@ const OPERATORS: Record<RecordFilterOperator, string> = {
   'is-not-set': 'is empty'
 }
 
-/** An operator in words, for an editor's operator choice: "is more than". */
-export function recordOperatorLabel(operator: RecordFilterOperator): string {
-  return OPERATORS[operator]
+// A location's place takes in the places inside it.
+const PLACE_OPERATORS: Partial<Record<RecordFilterOperator, string>> = {
+  is: 'is in',
+  'is-not': 'is not in'
+}
+
+/**
+ * An operator in words, for an editor's operator choice: "is more than". With
+ * a location field, `is` and `is-not` read "is in" and "is not in".
+ */
+export function recordOperatorLabel(
+  operator: RecordFilterOperator,
+  field?: RecordField
+): string {
+  return (
+    (field?.type === 'location' && PLACE_OPERATORS[operator]) ||
+    OPERATORS[operator]
+  )
 }
 
 const SHOWN_VALUES = 2
@@ -86,6 +112,21 @@ export function recordOptionPaths(field: RecordField): Map<string, string> {
   )
 }
 
+/** Where a place is, from its kind and parent: "Suburb in Brisbane", "State". */
+function placeDescription(
+  field: RecordField,
+  value: string
+): string | undefined {
+  const options = field.options ?? []
+  const place = options.find((option) => option.value === value)
+  const parent = options.find((option) => option.value === place?.parent)
+  const kind = place?.kind
+    ? place.kind.charAt(0).toUpperCase() + place.kind.slice(1)
+    : undefined
+  if (kind && parent) return `${kind} in ${parent.label}`
+  return kind ?? (parent && `In ${parent.label}`)
+}
+
 function numberFormat(field: RecordField | undefined): ValueFormat {
   // A threshold reads in full: "$2,500", not "$2.5K".
   const format =
@@ -120,11 +161,15 @@ function plainNow(options: DescribeRecordFilterOptions) {
   return plainDateInstant(plainDateOf(options.now, options.timeZone))
 }
 
-function date(value: string, options: DescribeRecordFilterOptions): string {
+function date(
+  value: string,
+  options: DescribeRecordFilterOptions,
+  dateStyle: 'long' | 'medium' = 'medium'
+): string {
   const shared = {
     now: options.now,
     locale: options.locale,
-    dateStyle: 'medium',
+    dateStyle,
     context: 'standalone'
   } as const
   if (isPlainDate(value))
@@ -167,35 +212,120 @@ function dateRange(
   )
 }
 
-const capitalise = (text: string) =>
-  text.charAt(0).toUpperCase() + text.slice(1)
+// As a chip reads after "is": "Start date is in the next 7 days".
+const NAMED_PHRASES: Record<string, string> = {
+  past: 'in the past',
+  ongoing: 'happening now'
+}
+const DAY_PHRASES: Record<number, string> = {
+  [-1]: 'yesterday',
+  0: 'today',
+  1: 'tomorrow'
+}
+const OFFSET_PHRASES: Record<number, string> = {
+  [-1]: 'last',
+  0: 'this',
+  1: 'next'
+}
+
+function periodPhrase({ period, offset, toDate, fiscal }: PeriodRange) {
+  if (period === 'day') return DAY_PHRASES[offset] ?? null
+  const word = OFFSET_PHRASES[offset]
+  if (!word) return null
+  const noun =
+    fiscal && (period === 'quarter' || period === 'year')
+      ? `financial ${period}`
+      : period
+  return `${word} ${noun}${toDate ? ' to date' : ''}`
+}
+
+/** A relative range as it reads after "is", or null when only dates will do. */
+function rangePhrase(value: DateRangeValue): string | null {
+  if (isAbsoluteRange(value)) return null
+  if (isRollingRange(value)) {
+    const { direction, amount, unit } = value
+    const span = amount === 1 ? unit : `${amount} ${unit}s`
+    return `in the ${direction === 'next' ? 'next' : 'last'} ${span}`
+  }
+  if (isPeriodRange(value)) return periodPhrase(value)
+  return NAMED_PHRASES[value] ?? value.replace('-', ' ')
+}
+
+/**
+ * Upcoming, past, and happening now as days, for a field with no clock of its
+ * own to read them in. A plain date counts whole days; an event or access
+ * moment compares the instant, so today counts only in part: a range until it
+ * ends, and a single time until it passes.
+ */
+function openDays(
+  value: DateRangeValue,
+  field: RecordField,
+  options: DescribeRecordFilterOptions
+): string | null {
+  const moment = momentOf(field)
+  if (moment === 'timestamp') return null
+  const today = plainDateOf(options.now, options.timeZone)
+  const day = (date: string) =>
+    formatResolved(
+      { kind: 'dates', start: date, end: date },
+      'UTC',
+      options.locale
+    )
+  const plain = moment === 'date'
+  switch (value) {
+    case 'upcoming':
+      if (plain) return `From ${day(today)}`
+      return `From ${day(today)}, unless already ${field.end ? 'over' : 'started'}`
+    case 'past':
+      return plain
+        ? `Until ${day(addDays(today, -1))}`
+        : `Until ${day(today)}, if already started`
+    case 'ongoing':
+      return day(today)
+    default:
+      return null
+  }
+}
 
 function describeDate(
   filter: RecordFilter,
   name: string,
+  field: RecordField,
   options: DescribeRecordFilterOptions
 ): RecordFilterDescription | null {
-  const dated = (value: string, detail?: string) => ({
-    label: `${name}: ${value}`,
+  const dated = (phrase: string, value = phrase, detail?: string) => ({
+    label: `${name} is ${phrase}`,
     value,
     ...(detail && detail !== value && { detail })
   })
+  const on = (value: string) => {
+    const day = date(value, options, 'long')
+    return dated(`on ${day}`, day)
+  }
   switch (filter.operator) {
     case 'on':
-      return dated(date(filter.value, options))
+      return on(filter.value)
     case 'before':
-    case 'after':
+    case 'after': {
+      const day = date(filter.value, options)
       return dated(
-        `${capitalise(filter.operator)} ${date(filter.value, options)}`
+        `${filter.operator} ${day}`,
+        `${filter.operator === 'before' ? 'Before' : 'After'} ${day}`
       )
-    case 'between':
-      return typeof filter.value[0] === 'string'
-        ? dated(dateRange(filter.value as [string, string], options))
-        : null
+    }
+    case 'between': {
+      const [start, end] = filter.value
+      if (typeof start !== 'string' || typeof end !== 'string') return null
+      return start === end ? on(start) : dated(dateRange([start, end], options))
+    }
     case 'within': {
       try {
         const { label, detail } = describeDateRange(filter.value, options)
-        return dated(label, detail)
+        return dated(
+          rangePhrase(filter.value) ?? label,
+          label,
+          openDays(filter.value, field, options) ?? detail
+        )
       } catch {
         return dated(JSON.stringify(filter.value))
       }
@@ -219,7 +349,7 @@ export function describeRecordFilter(
   const field = fieldIndex(fields).get(filter.field)
   const name = field?.label ?? filter.field
   if (field?.type === 'date') {
-    const described = describeDate(filter, name, options)
+    const described = describeDate(filter, name, field, options)
     if (described) return described
   }
   const phrase = (operator: string, value: string) => ({
@@ -230,16 +360,28 @@ export function describeRecordFilter(
     case 'is':
     case 'is-not':
     case 'has-all': {
-      const paths = field ? recordOptionPaths(field) : new Map()
+      const place = field?.type === 'location'
+      // A place reads alone, as its parent is in its description.
+      const paths = !field
+        ? new Map<string, string>()
+        : place
+          ? new Map(recordFieldOptions(field).map((o) => [o.value, o.label]))
+          : recordOptionPaths(field)
       const labels = filter.values.map((value) => paths.get(value) ?? value)
       const last = filter.operator === 'has-all' ? 'and' : 'or'
       const described = phrase(
-        filter.operator === 'has-all' ? 'has' : OPERATORS[filter.operator],
+        filter.operator === 'has-all'
+          ? 'has'
+          : recordOperatorLabel(filter.operator, field),
         list(labels, last)
       )
-      return labels.length > SHOWN_VALUES
-        ? { ...described, detail: list(labels, last, Infinity) }
-        : described
+      const where =
+        place && filter.values.length === 1
+          ? placeDescription(field, filter.values[0]!)
+          : undefined
+      if (labels.length > SHOWN_VALUES)
+        return { ...described, detail: list(labels, last, Infinity) }
+      return where ? { ...described, detail: where } : described
     }
     case 'contains':
     case 'not-contains':
