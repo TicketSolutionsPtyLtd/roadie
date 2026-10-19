@@ -116,7 +116,8 @@ export type UseRecordsOptions<Row extends object> = {
   onRequestChange?: (request: RecordsRequest) => void
 }
 
-export type RecordsInstance<Row extends object = object> = {
+/** Everything `useRecords` holds, for the parts and layouts. Apps read `RecordsInstance`. */
+export type RecordsState<Row extends object = object> = {
   /** `server` once `rowCount` is given, `range` once `loadRange` is. */
   mode: 'browser' | 'server' | 'range'
   /** Every record held, before search, filters and paging; in server mode, the page; in range mode, the records loaded, in order. */
@@ -196,6 +197,55 @@ export type RecordsInstance<Row extends object = object> = {
   now: Date
 }
 
+/** What an app reads and calls on the records `useRecords` holds; pass it whole to `Records` or `Records.Provider`. */
+export type RecordsInstance<Row extends object = object> = Pick<
+  RecordsState<Row>,
+  | 'mode'
+  | 'data'
+  | 'fields'
+  | 'view'
+  | 'appliedView'
+  | 'scopedQuery'
+  | 'request'
+  | 'rows'
+  | 'resultCount'
+  | 'resultCountExact'
+  | 'filtered'
+  | 'position'
+  | 'pageCount'
+  | 'matchingRows'
+  | 'setView'
+  | 'baseline'
+  | 'modified'
+  | 'resetView'
+  | 'skippedFilters'
+  | 'scope'
+  | 'setSearch'
+  | 'addFilter'
+  | 'updateFilter'
+  | 'removeFilter'
+  | 'clearQuery'
+  | 'setSort'
+  | 'setLayout'
+  | 'setPage'
+  | 'setPageSize'
+  | 'selectable'
+  | 'selection'
+  | 'selectedCount'
+  | 'countSelection'
+  | 'isSelected'
+  | 'setSelection'
+  | 'toggleRow'
+  | 'selectPage'
+  | 'selectAllMatching'
+  | 'clearSelection'
+  | 'loading'
+  | 'error'
+  | 'onRetry'
+  | 'timeZone'
+  | 'now'
+>
+
 const RECORD: RecordName = { one: 'record', other: 'records' }
 const PAGE_SIZE = 50
 // Long enough to sit between keystrokes, so a request leaves once per pause.
@@ -224,7 +274,15 @@ const NO_SCOPE: readonly RecordFilter[] = []
 
 const NO_DATA: readonly never[] = []
 
-export function useRecords<Row extends object>({
+/** Holds the view, position and selection, and searches, filters, sorts and pages the records. */
+export function useRecords<Row extends object>(
+  options: UseRecordsOptions<Row>
+): RecordsInstance<Row> {
+  return useRecordsState(options)
+}
+
+/** `useRecords` with everything the parts and layouts read. */
+export function useRecordsState<Row extends object>({
   data: dataOption = NO_DATA,
   rowCount: rowCountOption,
   rowCountExact = true,
@@ -252,7 +310,7 @@ export function useRecords<Row extends object>({
   getRowHref,
   loadRange,
   onRequestChange
-}: UseRecordsOptions<Row>): RecordsInstance<Row> {
+}: UseRecordsOptions<Row>): RecordsState<Row> {
   const [ownView, setOwnView] = useState(() => toView(defaultView))
   const view = controlledView ?? ownView
   const [ownPosition, setOwnPosition] = useState(defaultPosition ?? {})

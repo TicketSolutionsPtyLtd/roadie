@@ -44,15 +44,15 @@ import {
   withAnd
 } from './searchSuggestions'
 import type { RecordsField } from './types'
-import type { RecordsInstance } from './useRecords'
+import type { RecordsState } from './useRecords'
 
 export type RecordsSearchProps = {
   /** @default 'Search and filter' */
   placeholder?: string
   /** Names the field. Defaults to the placeholder. */
   'aria-label'?: string
-  /** A key that focuses the search from anywhere on the page, or `false` for none. @default '/' */
-  shortcut?: string | false
+  /** A key that focuses the search from anywhere on the page, as `QueryField`'s `focusShortcut` takes it, or `false` for none. @default '/' */
+  focusShortcut?: string | false
   className?: string
 }
 
@@ -121,7 +121,7 @@ function heldValues(data: readonly object[], key: string): string[] | null {
 }
 
 // An option field with no `options` lists the values the records hold.
-function useListedFields(records: RecordsInstance): readonly RecordsField[] {
+function useListedFields(records: RecordsState): readonly RecordsField[] {
   const { data, fields, mode } = records
   return useMemo(() => {
     if (mode !== 'browser') return fields
@@ -163,7 +163,7 @@ function withFieldIcons(
 export function RecordsSearch({
   placeholder = 'Search and filter',
   'aria-label': label,
-  shortcut = '/',
+  focusShortcut = '/',
   className
 }: RecordsSearchProps) {
   const { records } = useRecordsContext()
@@ -374,7 +374,7 @@ export function RecordsSearch({
     <QueryField<SearchValue>
       aria-label={label ?? placeholder}
       placeholder={placeholder}
-      shortcut={shortcut || undefined}
+      focusShortcut={focusShortcut || undefined}
       className={cn('min-w-0', className)}
       chips={chips}
       onRemoveChip={(id) => {
@@ -489,7 +489,7 @@ export function RecordsSearch({
       onFocus={(event) => {
         // Only as the toolbar's own child: inside a wrapper, the wrapper hides.
         if (
-          event.currentTarget.parentElement?.dataset.slot === 'records-toolbar'
+          event.currentTarget.parentElement?.dataset.slot === 'records-header'
         )
           onFocusChange(true)
       }}

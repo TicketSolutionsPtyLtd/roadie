@@ -265,7 +265,7 @@ describe('RecordTable narrow cards in a browser', () => {
   it('lands a restored range row under the toolbar once cards are measured', async () => {
     const { container } = render(<Ranged row={120} />)
     const toolbar = container.querySelector<HTMLElement>(
-      '[data-slot="records-toolbar"]'
+      '[data-slot="records-header"]'
     )!
     const offset = () => {
       const card = cards(container).find(

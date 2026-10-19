@@ -31,7 +31,7 @@ function Shows({
       fields={showFields}
       columns={showColumns}
       getRowId={(row) => row.id}
-      tableActions={actions}
+      actions={actions}
       scope={scope}
       bulkActions={bulk ? [{ label: 'Refund', onAction: vi.fn() }] : undefined}
     />
@@ -47,7 +47,7 @@ const actions = (onAction = vi.fn()): RecordsAction<TestShow>[] => [
 describe('RecordTable table actions', () => {
   it('shows the first action as a button and the rest in a menu, last in the toolbar', async () => {
     render(<Shows actions={actions()} />)
-    const toolbar = document.querySelector('[data-slot="records-toolbar"]')!
+    const toolbar = document.querySelector('[data-slot="records-header"]')!
     const button = screen.getByRole('button', { name: 'Export CSV' })
     expect(toolbar).toContainElement(button)
     const more = screen.getByRole('button', { name: 'More actions' })

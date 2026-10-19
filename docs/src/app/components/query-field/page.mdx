@@ -156,9 +156,7 @@ Once something is typed, Enter takes the first value. When the highlighted
 value's label starts with the typed text, the rest shows faintly after the
 caret, such as "n sale" after "O". Only Enter takes it. When the step has one
 answer, such as "Location is empty" under **is empty**, mark it `exact`, and
-Enter takes it before anything is typed. Mark a value that opens an editor of
-your own `opensEditor`, and Enter never takes it, so only an arrow or a click
-opens it.
+Enter takes it before anything is typed.
 
 Give the pending chip a `hint`, such as "Type a number.", to say what to type.
 It shows in place of No suggestions while no value is listed, and below the
@@ -481,9 +479,11 @@ function QueryFieldRemainder() {
 }
 ```
 
-### With a shortcut and recent searches
+### With a focus shortcut and recent searches
 
-Set `shortcut` to let a key focus the field from anywhere on the page. The
+Set `focusShortcut` to let a key focus the field from anywhere on the page. It
+takes one `KeyboardEvent.key` value, such as `/` or `s`, pressed without Cmd,
+Ctrl or Alt. The
 field ignores it while you type in another field. When several fields ask for
 the same key, the first one on the page takes it and shows the hint. `recent` lists earlier
 searches above the fields while the field is empty.
@@ -499,7 +499,7 @@ function QueryFieldShortcut() {
   return (
     <QueryField
       aria-label='Search events'
-      shortcut='/'
+      focusShortcut='/'
       recent={recent}
       chips={chips}
       onRemoveChip={(id) => setChips((current) => current.filter((chip) => chip.id !== id))}
@@ -617,7 +617,7 @@ function QueryFieldShortcut() {
 - The faint rest of a value after the caret is visual only. The value it
   names is in the list.
 - `required` is announced but never blocks a form: an empty search is valid.
-- `shortcut` adds `aria-keyshortcuts` to the input. The key hint beside the
+- `focusShortcut` adds `aria-keyshortcuts` to the input. The key hint beside the
   field is visual only, and hides once the field has focus.
 
 <PropsDefinitions component='QueryField' />

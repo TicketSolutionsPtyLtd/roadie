@@ -325,7 +325,7 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
       return (
         <div style={{ width: 900 }}>
           <Records records={records} layouts={layouts} caption='Shows'>
-            <Records.Toolbar />
+            <Records.Header />
             <Records.Content />
           </Records>
         </div>

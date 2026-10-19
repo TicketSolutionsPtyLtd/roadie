@@ -8,7 +8,7 @@ import type {
 } from '@oztix/roadie-core/records'
 
 import { type TestShow, showFields, testShows } from './testUtils'
-import { type UseRecordsOptions, useRecords } from './useRecords'
+import { type UseRecordsOptions, useRecordsState } from './useRecords'
 
 const shows = testShows(120)
 const names = (result: { current: { rows: readonly { row: TestShow }[] } }) =>
@@ -17,7 +17,12 @@ const names = (result: { current: { rows: readonly { row: TestShow }[] } }) =>
 const setup = (options: Partial<UseRecordsOptions<TestShow>> = {}) =>
   renderHook(
     (props: Partial<UseRecordsOptions<TestShow>>) =>
-      useRecords({ data: shows, fields: showFields, ...options, ...props }),
+      useRecordsState({
+        data: shows,
+        fields: showFields,
+        ...options,
+        ...props
+      }),
     { initialProps: {} }
   )
 
@@ -365,7 +370,7 @@ describe('useRecords', () => {
 
   it('survives a new data array every render', () => {
     const { result } = renderHook(() =>
-      useRecords({ data: testShows(10), fields: showFields })
+      useRecordsState({ data: testShows(10), fields: showFields })
     )
     expect(result.current.resultCount).toBe(10)
   })
@@ -668,7 +673,7 @@ describe('useRecords selection set with its query', () => {
     const changes: unknown[] = []
     const { result, rerender } = renderHook(
       ({ view, selection }: { view: RecordView; selection: RecordSelection }) =>
-        useRecords({
+        useRecordsState({
           data: shows,
           fields: showFields,
           getRowId: (row) => row.id,

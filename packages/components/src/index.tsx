@@ -516,8 +516,6 @@ export {
   RecordValue,
   downloadCsv,
   useRecords,
-  type AnyRecordLayout,
-  type RecordLayoutDefinition,
   type RecordName,
   type RecordValueProps,
   type RecordViewDefaults,
@@ -526,7 +524,6 @@ export {
   type RecordsActionsProps,
   type RecordsBulkAction,
   type RecordsBulkActionsProps,
-  type RecordsContentProps,
   type RecordsInstance,
   type RecordsPaginationProps,
   type RecordsProps,
@@ -534,7 +531,7 @@ export {
   type RecordsRootProps,
   type RecordsRow,
   type RecordsSearchProps,
-  type RecordsToolbarProps,
+  type RecordsHeaderProps,
   type UseRecordsOptions
 } from './components/Records'
 export {

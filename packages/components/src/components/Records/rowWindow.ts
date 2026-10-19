@@ -53,7 +53,7 @@ function stuckInset(body: HTMLElement): number {
   if (head) return stuckBottom(head)
   const toolbar = body
     .closest('[data-slot="records"]')
-    ?.querySelector<HTMLElement>('[data-slot="records-toolbar"]')
+    ?.querySelector<HTMLElement>('[data-slot="records-header"]')
   // From above the scroller, which is a sticky container itself; the toolbar covers the rows only when both stick in one box.
   const scroller = body.closest<HTMLElement>(RECORDS_SCROLLER)
   return toolbar &&

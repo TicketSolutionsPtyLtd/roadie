@@ -548,7 +548,7 @@ describe('Records.Options', { timeout: 15_000 }, () => {
       const records = useRecords({ data: testShows(5), fields: showFields })
       return (
         <Records records={records} layouts={[{ ...table, Settings }]}>
-          <Records.Toolbar />
+          <Records.Header />
         </Records>
       )
     }
@@ -634,13 +634,13 @@ describe('Records.Options', { timeout: 15_000 }, () => {
         data={testShows(5)}
         fields={showFields}
         columns={showColumns}
-        tableActions={[
+        actions={[
           { label: 'Export CSV', onAction: () => {} },
           { label: 'Print door list', onAction: () => {} }
         ]}
       />
     )
-    const toolbar = document.querySelector('[data-slot="records-toolbar"]')!
+    const toolbar = document.querySelector('[data-slot="records-header"]')!
     expect(
       within(toolbar as HTMLElement)
         .getAllByRole('button')
@@ -656,9 +656,9 @@ describe('Records.Options', { timeout: 15_000 }, () => {
       const [layouts] = useState(() => [tableLayout(showColumns)])
       return (
         <Records records={records} layouts={layouts}>
-          <Records.Toolbar>
+          <Records.Header>
             <Records.Options label='Table options' />
-          </Records.Toolbar>
+          </Records.Header>
           <Records.Content />
         </Records>
       )
