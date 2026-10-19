@@ -1,12 +1,15 @@
-import type {
-  RecordField,
-  RecordSort,
-  RecordSortDirection
+import {
+  type RecordField,
+  type RecordSort,
+  type RecordSortDirection,
+  isRecordOptionField
 } from '@oztix/roadie-core/records'
 
 // As DataTable: words A to Z first, figures and dates largest or latest first.
 export const firstDirection = (field: RecordField): RecordSortDirection =>
-  field.type === 'text' || field.type === 'option' ? 'ascending' : 'descending'
+  field.type === 'text' || isRecordOptionField(field)
+    ? 'ascending'
+    : 'descending'
 
 // Matches `sortRecords`, which sorts a status map with an `order` by it.
 const ordered = (field: RecordField) =>
@@ -33,6 +36,7 @@ function labelsFor(field: RecordField) {
     case 'boolean':
       return LABELS.yesNo
     case 'option':
+    case 'location':
       return ordered(field) ? LABELS.order : LABELS.words
     case 'text':
       return LABELS.words

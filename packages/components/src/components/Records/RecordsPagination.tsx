@@ -7,8 +7,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { IconButton } from '../Button'
 import { Select } from '../Select'
 import { useRecordsContext } from './context'
-
-const count = new Intl.NumberFormat('en-AU')
+import { formatCount } from './count'
 
 export type RecordsPaginationProps = {
   /** @default [25, 50, 100] */
@@ -45,7 +44,7 @@ export function RecordsPagination({
       <p>
         {total === 0
           ? '0 results'
-          : `${count.format(first)}–${count.format(last)} of ${count.format(total)}`}
+          : `${formatCount(first)}–${formatCount(last)} of ${formatCount(total, records.resultCountExact)}`}
       </p>
       <div className='flex items-center gap-2'>
         <Select
@@ -112,8 +111,8 @@ function RangeCount({ className }: { className?: string }) {
       className={cn('text-sm text-subtle', className)}
     >
       {known === undefined
-        ? `${count.format(shown)}+ ${other}`
-        : `${count.format(shown)} ${shown === 1 ? one : other}`}
+        ? `${formatCount(shown, false)} ${other}`
+        : `${formatCount(shown, records.resultCountExact)} ${shown === 1 ? one : other}`}
     </p>
   )
 }

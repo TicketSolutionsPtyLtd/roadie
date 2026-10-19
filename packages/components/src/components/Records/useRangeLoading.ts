@@ -33,6 +33,7 @@ export function useRangeLoading({
   loadRange,
   key,
   rowCount,
+  rowCountExact = true,
   size,
   data,
   held
@@ -40,6 +41,7 @@ export function useRangeLoading({
   loadRange?: (range: RecordsRange) => Promise<void> | void
   key: string
   rowCount?: number
+  rowCountExact?: boolean
   size: number
   data: readonly unknown[]
   /** Rows loaded in `data`. */
@@ -85,9 +87,26 @@ export function useRangeLoading({
     pending: new Set<number>(),
     nextStart: 0
   })
-  const latest = useRef({ loadRange, rowCount: known, size, book, ended, data })
+  const floor = rowCountExact ? undefined : known
+  const latest = useRef({
+    loadRange,
+    rowCount: known,
+    floor,
+    size,
+    book,
+    ended,
+    data
+  })
   useLayoutEffect(() => {
-    latest.current = { loadRange, rowCount: known, size, book, ended, data }
+    latest.current = {
+      loadRange,
+      rowCount: known,
+      floor,
+      size,
+      book,
+      ended,
+      data
+    }
   })
 
   const lastView = useRef<{
@@ -133,6 +152,7 @@ export function useRangeLoading({
         nextStart: Math.max(mine.nextStart, now.data.length),
         ended: now.ended,
         target,
+        floor: now.floor,
         held: ({ start, end }) => {
           const last = Math.min(end, now.rowCount ?? end)
           for (let index = start; index < last; index++)

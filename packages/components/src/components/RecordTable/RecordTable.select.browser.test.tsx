@@ -164,7 +164,7 @@ describe('RecordTable Select mode on narrow rows in a browser', () => {
           bulkActions={[
             {
               label: 'Export',
-              onAction: (selection) => void actions.push(selection)
+              onAction: ({ selection }) => void actions.push(selection)
             }
           ]}
         />

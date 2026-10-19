@@ -92,6 +92,7 @@ import { lineChartTable } from '@oztix/roadie-charts/tables'
 import * as RoadieComponents from '@oztix/roadie-components'
 import * as SpotIllustrations from '@oztix/roadie-components/spot-illustrations'
 import {
+  addDays,
   plainDateOf,
   resolveComparison,
   viewerTimeZone
@@ -103,6 +104,7 @@ import {
   recordsToCsv,
   resolveRecordQuery,
   sortRecords,
+  toRecordsRequest,
   toSearchParams
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
@@ -177,8 +179,7 @@ const PhosphorIcons = {
   TextAlignCenter: TextAlignCenterIcon,
   TextAlignRight: TextAlignRightIcon,
   ArrowCounterClockwise: ArrowCounterClockwiseIcon,
-  ArrowClockwise: ArrowClockwiseIcon,
-  Table: TableIcon
+  ArrowClockwise: ArrowClockwiseIcon
 }
 
 // Icon-suffixed keys (`<TicketIcon />`) derived from the bare map.
@@ -224,6 +225,7 @@ const scope = {
   renderEditorValue,
   LegendKey,
   lineChartTable,
+  addDays,
   plainDateOf,
   resolveComparison,
   viewerTimeZone,
@@ -233,13 +235,15 @@ const scope = {
   compileRecordQuery,
   resolveRecordQuery,
   sortRecords,
+  toRecordsRequest,
   toMeilisearch,
   placeRange,
   ...SpotIllustrations,
   ...PhosphorIcons,
   ...PhosphorIconsSuffixed,
-  // Bare Image stays Roadie's component.
+  // Bare Image and Table stay Roadie's components.
   ImageIcon,
+  TableIcon,
   // Widgets + the helpers their live demos need.
   CartDrawer,
   CartContents,

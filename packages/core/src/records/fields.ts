@@ -16,6 +16,7 @@ export function recordFilterOperators(
     case 'text':
       return ['contains', 'not-contains', 'is', 'is-not', ...EMPTINESS]
     case 'option':
+    case 'location':
       return field.multiple
         ? ['is', 'is-not', 'has-all', ...EMPTINESS]
         : ['is', 'is-not', ...EMPTINESS]
@@ -46,6 +47,61 @@ export function recordFieldOptions(field: RecordField): RecordOption[] {
       value,
       label: status.label ?? humaniseStatus(value)
     }))
+}
+
+/** Option and location fields pick from values the same way. */
+export function isRecordOptionField(field: RecordField): boolean {
+  return field.type === 'option' || field.type === 'location'
+}
+
+/**
+ * A record's places, to index once: its location value or values, then each
+ * one's ancestors by the options' `parent`, so "is in" stays a plain term.
+ * Places are found without case and listed by their options' values, as a
+ * filter holds them. A parent the options don't hold ends the
+ * line, and a value they don't hold, or any value of a field without
+ * options, stands alone. To index many records, use `recordPlaceReader`.
+ */
+export function recordPlaces(field: RecordField, value: unknown): string[] {
+  return isPlaceValue(value) ? recordPlaceReader(field)(value) : []
+}
+
+/**
+ * `recordPlaces` for one field, reading its options once. An indexer calls
+ * the reader per record, so build it once per field:
+ *
+ * ```ts
+ * const placesOf = recordPlaceReader(locationField)
+ * const documents = rows.map((row) => ({ ...row, location: placesOf(row.location) }))
+ * ```
+ */
+export function recordPlaceReader(
+  field: RecordField
+): (value: string | readonly string[]) => string[] {
+  const options = field.type === 'location' ? (field.options ?? []) : []
+  const byKey = new Map(
+    options.map((option) => [option.value.toLowerCase(), option])
+  )
+  return (value) => {
+    const places = new Set<string>()
+    for (const start of typeof value === 'string' ? [value] : value) {
+      if (typeof start !== 'string' || start === '') continue
+      let place = byKey.get(start.toLowerCase())
+      places.add(place?.value ?? start)
+      while (place?.parent !== undefined) {
+        const parent = byKey.get(place.parent.toLowerCase())
+        if (!parent || places.has(parent.value)) break
+        places.add(parent.value)
+        place = parent
+      }
+    }
+    return [...places]
+  }
+}
+
+/** A cell a place reader takes: a place or a list of places. */
+export function isPlaceValue(value: unknown): value is string | string[] {
+  return typeof value === 'string' || Array.isArray(value)
 }
 
 export function momentOf(field: RecordField): RecordMoment {

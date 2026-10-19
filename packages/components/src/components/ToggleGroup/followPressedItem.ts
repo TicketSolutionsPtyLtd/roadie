@@ -1,16 +1,19 @@
 export const PRESSED_ITEM = '[data-slot="toggle-group-item"][data-pressed]'
 
 /**
- * Scrolls a group sideways just far enough to show the item and the track's
- * padding beside it, which holds the item's focus ring.
+ * Scrolls a group sideways just far enough to show the item clear of the edge
+ * fade, with the track's padding beside it, which holds the item's focus ring.
  */
 export function revealItem(group: HTMLElement, item: HTMLElement) {
-  const { paddingLeft, paddingRight } = getComputedStyle(group)
-  const start = item.offsetLeft - parseFloat(paddingLeft) - group.scrollLeft
+  const style = getComputedStyle(group)
+  const fade = parseFloat(style.getPropertyValue('--toggle-group-fade')) || 0
+  const start =
+    item.offsetLeft - parseFloat(style.paddingLeft) - fade - group.scrollLeft
   const end =
     item.offsetLeft +
     item.offsetWidth +
-    parseFloat(paddingRight) -
+    parseFloat(style.paddingRight) +
+    fade -
     group.scrollLeft -
     group.clientWidth
   if (start < 0) group.scrollLeft += start

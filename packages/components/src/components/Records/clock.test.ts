@@ -16,12 +16,15 @@ const within = (value: unknown) =>
 describe('describeFilter', () => {
   it('names a relative range without its dates until the clock is known', () => {
     expect(describeFilter(within('this-month'), showFields, NO_CLOCK)).toEqual({
-      label: 'Starts: This month',
+      label: 'Starts is this month',
       value: 'This month'
     })
     expect(
       describeFilter(within('this-month'), showFields, CLOCK)
-    ).toMatchObject({ label: 'Starts: This month', detail: '1 to 31 Oct 2026' })
+    ).toMatchObject({
+      label: 'Starts is this month',
+      detail: '1 to 31 Oct 2026'
+    })
   })
 
   it('reads a range with no name as its field until the clock is known', () => {
@@ -31,14 +34,14 @@ describe('describeFilter', () => {
       value: ''
     })
     expect(describeFilter(twoMonthsAgo, showFields, CLOCK).label).toBe(
-      'Starts: 1 to 31 Aug 2026'
+      'Starts is 1 to 31 Aug 2026'
     )
   })
 
   it('keeps absolute dates, which need no clock', () => {
     const august = within({ start: '2026-08-01', end: '2026-08-31' })
     expect(describeFilter(august, showFields, NO_CLOCK).label).toBe(
-      'Starts: 1 to 31 Aug 2026'
+      'Starts is 1 to 31 Aug 2026'
     )
   })
 })

@@ -259,6 +259,99 @@ describe('Calendar pointer', () => {
   })
 })
 
+describe('Calendar preview range', () => {
+  const cell = (date: string) => day(date).closest('td')!
+  const fill = (element: Element) => getComputedStyle(element).backgroundColor
+  const CLEAR = 'rgba(0, 0, 0, 0)'
+  const radius = (date: string, corner: 'Left' | 'Right') =>
+    getComputedStyle(cell(date))[`borderTop${corner}Radius`]
+
+  it('draws its days as one band, rounded at its ends and row edges', () => {
+    render(
+      <Calendar
+        today={TODAY}
+        mode='range'
+        previewRange={{ start: '2027-03-03', end: '2027-03-09' }}
+      />
+    )
+    expect(fill(cell('2027-03-05'))).not.toBe(CLEAR)
+    for (const date of ['2027-03-03', '2027-03-07', '2027-03-08', '2027-03-09'])
+      expect(fill(cell(date))).toBe(fill(cell('2027-03-05')))
+    expect(fill(cell('2027-03-02'))).toBe(CLEAR)
+    expect(fill(cell('2027-03-10'))).toBe(CLEAR)
+    expect(radius('2027-03-05', 'Left')).toBe('0px')
+    expect(radius('2027-03-05', 'Right')).toBe('0px')
+    // Start, a row's end, a row's start, and the end.
+    expect(radius('2027-03-03', 'Left')).not.toBe('0px')
+    expect(radius('2027-03-03', 'Right')).toBe('0px')
+    expect(radius('2027-03-07', 'Right')).not.toBe('0px')
+    expect(radius('2027-03-08', 'Left')).not.toBe('0px')
+    expect(radius('2027-03-09', 'Right')).not.toBe('0px')
+    expect(day('2027-03-05')).toHaveAttribute('data-previewed')
+    expect(cell('2027-03-05')).toHaveAttribute('aria-selected', 'false')
+  })
+
+  it('rounds the band from the start edge right to left', () => {
+    render(
+      <div dir='rtl'>
+        <Calendar
+          today={TODAY}
+          previewRange={{ start: '2027-03-03', end: '2027-03-05' }}
+        />
+      </div>
+    )
+    expect(radius('2027-03-03', 'Right')).not.toBe('0px')
+    expect(radius('2027-03-03', 'Left')).toBe('0px')
+    expect(radius('2027-03-05', 'Left')).not.toBe('0px')
+  })
+
+  it('draws an end given before its start the same way round', () => {
+    render(
+      <Calendar
+        today={TODAY}
+        previewRange={{ start: '2027-03-09', end: '2027-03-03' }}
+      />
+    )
+    expect(day('2027-03-05')).toHaveAttribute('data-previewed')
+    expect(radius('2027-03-03', 'Left')).not.toBe('0px')
+    expect(radius('2027-03-09', 'Right')).not.toBe('0px')
+  })
+
+  it('draws a single day as a filled circle, not a band', () => {
+    render(
+      <Calendar
+        today={TODAY}
+        previewRange={{ start: '2027-03-12', end: '2027-03-12' }}
+      />
+    )
+    expect(fill(cell('2027-03-12'))).toBe(CLEAR)
+    expect(fill(day('2027-03-12'))).not.toBe(fill(day('2027-03-11')))
+    expect(day('2027-03-12')).toHaveAttribute('data-previewed')
+  })
+
+  it('draws a chosen range over the band, which runs on beneath it', async () => {
+    render(
+      <Calendar
+        today={TODAY}
+        mode='range'
+        previewRange={{ start: '2027-03-02', end: '2027-03-06' }}
+      />
+    )
+    const band = fill(cell('2027-03-03'))
+    await userEvent.click(day('2027-03-04'))
+    expect(day('2027-03-04')).toHaveAttribute('data-range-start')
+    expect(fill(cell('2027-03-04'))).toBe(band)
+    await userEvent.click(day('2027-03-05'))
+    expect(fill(cell('2027-03-04'))).toBe(band)
+    expect(fill(cell('2027-03-05'))).toBe(band)
+    // The chosen half-band joining the ends is the accent's, not the preview's.
+    expect(
+      getComputedStyle(cell('2027-03-04'), '::before').backgroundColor
+    ).not.toBe(band)
+    expect(day('2027-03-04')).not.toHaveAttribute('data-previewed')
+  })
+})
+
 const cellsOf = (grid: Element) =>
   Array.from(grid.querySelectorAll('tbody tr:nth-child(2) td'), (td) =>
     td.getBoundingClientRect()
