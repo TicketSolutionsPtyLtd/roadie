@@ -6,7 +6,7 @@ import remarkParse from 'remark-parse'
 import { unified } from 'unified'
 import { parse as parseYaml } from 'yaml'
 
-import { REPO_URL } from './repo'
+import { REPO_URL } from './repo.ts'
 
 export const CHANGELOG_ROUTE = '/overview/changelog'
 
