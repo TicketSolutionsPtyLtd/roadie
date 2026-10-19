@@ -72,11 +72,12 @@ The release skill lists candidates with
 `pnpm --filter docs exec tsx scripts/status-candidates.ts`. Check app use by
 hand.
 
-Stable is the norm, so it carries no badge: the layout writes it as plain
-text under the page title, beside the latest release that changed the
-component. Alpha, beta, and deprecated get a badge there and beside the
-page's title in the navigation, with the release that added the component and
-its latest change. Releases come from the changelog data in
+The layout shows it in a card under the page title, with the release that
+added the component, the latest release that changed it, whether the next
+release has changes, and when the docs page last changed. Stable is the
+norm, so it is plain text there and has no badge; alpha, beta, and
+deprecated get a badge in the card and beside the page's title in the
+navigation. Releases come from the changelog data in
 `docs/src/lib/releases.ts`, where "added" is the first release of the
 package after the component's import path appeared. The manifest gives each
 component the status of the page that documents it.
