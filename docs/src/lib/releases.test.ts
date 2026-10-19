@@ -761,6 +761,20 @@ describe('pageUpdatedDates', () => {
       '/': '2026-04-08'
     })
   })
+
+  it('takes the newest date even when the log lists an older commit first', () => {
+    const log = [
+      '\x1e1775606400',
+      '',
+      'docs/src/app/components/kbd/page.mdx',
+      '\x1e1790812234',
+      '',
+      'docs/src/app/components/kbd/page.mdx'
+    ].join('\n')
+    expect(Object.fromEntries(pageUpdatedDates(log))).toEqual({
+      '/components/kbd': '2026-09-30'
+    })
+  })
 })
 
 describe('pageSubpaths', () => {

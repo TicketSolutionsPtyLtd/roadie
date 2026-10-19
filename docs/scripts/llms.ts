@@ -244,7 +244,7 @@ async function markdownFor(route: string) {
       status: statusSentence(status, getPageRelease(route), releaseDate)
     }),
     ...(updatedDates[route] && {
-      updated: `Last updated ${releaseDate(updatedDates[route])}.`
+      updated: `Docs updated ${releaseDate(updatedDates[route])}.`
     }),
     ...(related && {
       related: {

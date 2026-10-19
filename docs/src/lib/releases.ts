@@ -529,8 +529,10 @@ function pageDates(log: string, newest: boolean): Map<string, string> {
     for (const file of files) {
       const route = file.match(/^docs\/src\/app(\/.*)?\/page\.(mdx|tsx)$/)
       const key = route ? (route[1] ?? '/') : undefined
-      // `git log` runs newest first.
-      if (key && !(newest && dates.has(key))) dates.set(key, date)
+      if (!key) continue
+      // By date, not log order, which a rebase or a skewed clock can shuffle.
+      const known = dates.get(key)
+      if (!known || (newest ? date > known : date < known)) dates.set(key, date)
     }
   }
   return dates

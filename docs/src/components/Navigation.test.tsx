@@ -127,10 +127,7 @@ describe('DocsNavigator sources', () => {
       screen.getByRole('button', { name: 'View on GitHub', hidden: true })
     )
     const items = await screen.findAllByRole('menuitem')
-    expect(items.map((item) => item.textContent)).toEqual([
-      'Component code',
-      'Docs page'
-    ])
+    expect(items.map((item) => item.textContent)).toEqual(['Code', 'Docs page'])
     expect(items[0]?.getAttribute('href')).toMatch(
       /\/tree\/main\/packages\/components\/src\/components\/Meter$/
     )

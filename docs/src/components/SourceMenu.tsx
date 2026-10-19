@@ -38,7 +38,7 @@ export function SourceMenu({ page, code }: SourceLink) {
           href={`${REPO_URL}/${code}`}
           icon={<CodeIcon weight='bold' />}
         >
-          Component code
+          Code
         </Menu.Item>
         <Menu.Item
           href={`${REPO_URL}/${page}`}
