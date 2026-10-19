@@ -77,6 +77,22 @@ describe('statusCandidates', () => {
     ])
   })
 
+  it('counts the 30th and 90th day, not the day before', () => {
+    const shipped = release('2.0.0', '2026-07-21')
+    const pages = [
+      page('/components/beta', 'beta', shipped),
+      page('/components/alpha', 'alpha', shipped)
+    ]
+    const due = (today: string) =>
+      statusCandidates(pages, history([shipped]), today).map(
+        ({ route }) => route
+      )
+    expect(due('2026-08-19')).toEqual([])
+    expect(due('2026-08-20')).toEqual(['/components/beta'])
+    expect(due('2026-10-18')).toEqual(['/components/beta'])
+    expect(due('2026-10-19')).toEqual(['/components/beta', '/components/alpha'])
+  })
+
   it('skips a beta page broken since it shipped, or about to be', () => {
     const broken = release('2.1.0', '2026-10-10', [
       change('/components/a#props', true)

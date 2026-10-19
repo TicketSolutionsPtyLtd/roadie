@@ -230,6 +230,12 @@ describe('DocsNavigator status', () => {
       }
     )
     expect(field('status')).toBe('Alpha')
+    const statusLink = screen.getByRole('link', {
+      name: 'Alpha: what this status means',
+      hidden: true
+    })
+    expect(statusLink.getAttribute('href')).toBe('/overview/changelog#status')
+    expect(statusLink.querySelector('[data-slot="badge"]')).not.toBeNull()
     expect(field('added')).toBe('Charts 0.1.028 Sept 2026')
     expect(field('updated')).toBe('Charts 0.2.012 Oct 2026')
     expect(
