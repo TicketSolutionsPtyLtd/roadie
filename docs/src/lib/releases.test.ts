@@ -1,8 +1,10 @@
+import { readFileSync, readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import {
   type Change,
   type PageIndex,
+  RELEASED_PACKAGES,
   type ReleaseCard,
   type ReleaseItem,
   addedPages,
@@ -1246,5 +1248,23 @@ describe('toInline', () => {
       { text: 'href', href: '/foundations/linking' },
       ' now.'
     ])
+  })
+})
+
+describe('RELEASED_PACKAGES', () => {
+  it('follows every published package, so its releases reach the changelog', () => {
+    const packages = new URL('../../../packages/', import.meta.url)
+    const published = readdirSync(packages, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .flatMap((entry) => {
+        const pkg = JSON.parse(
+          readFileSync(new URL(`${entry.name}/package.json`, packages), 'utf8')
+        ) as { name: string; private?: boolean }
+        return pkg.private ? [] : [{ name: pkg.name, dir: entry.name }]
+      })
+    expect(published.length).toBeGreaterThan(0)
+    expect(RELEASED_PACKAGES.map(({ name, dir }) => ({ name, dir }))).toEqual(
+      expect.arrayContaining(published)
+    )
   })
 })
