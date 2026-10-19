@@ -9,12 +9,14 @@ has no React and runs on a server. `EditorValue` is
 node and mark names.
 
 - `presets.basic` holds paragraphs, hard breaks, bulleted and numbered lists,
-  bold, italic, and links. A saved link holds only its `href`, and any `href`
+  bold, italic, underline (`underline`), and links. A saved link holds only its `href`, and any `href`
   that `isUnsafeHref` flags is refused.
 - `presets.rich` adds headings 2 to 4 (`heading`, saving only `level`), quotes
   (`blockquote`), dividers (`horizontalRule`), images (`image`, saving only
   `src` and `alt`), and embeds (`embed`, saving only `provider`, `id`, and
-  `params`, never a URL). A pasted `h1` reads as a heading 2, and `h5` and
+  `params`, never a URL), and tables (`table`, `tableRow`, `tableHeader` and
+  `tableCell`, saving only each cell's `colspan` and `rowspan`, never a
+  width). A cell holds paragraphs only. A pasted `h1` reads as a heading 2, and `h5` and
   `h6` as a heading 4. An image's `src` must be `https` or a root-relative
   path.
 - `migrate` checks a stored value and brings it up to `CURRENT_VERSION`,
@@ -27,7 +29,10 @@ node and mark names.
   heading level into 2 to 4. It keeps only the attributes the preset saves
   and the first mark of each type, starts every list item with a paragraph,
   drops a list or quote left empty, and gives an empty `doc` one paragraph,
-  so every value it returns loads in Tiptap. `createEmptyValue` starts a new
+  so every value it returns loads in Tiptap. In a table it keeps only cells
+  in rows and only paragraphs in cells, keeping other blocks' text as
+  paragraphs, keeps whole positive spans, gives an empty cell a paragraph,
+  and drops a row with no cells and a table with no rows. `createEmptyValue` starts a new
   value.
 - `parseEmbedUrl` turns a YouTube, Vimeo, Spotify or TikTok share URL into an
   `EmbedValue` (`{ provider, id, params? }`), `embedSrc` rebuilds the player
@@ -45,10 +50,13 @@ className })` returns React elements in `Prose`, with links through Roadie's
 `Link`, and `renderEditorHtml` returns the same content as an HTML string in
 a `.prose` element. Both run `migrate` first, render only the nodes, marks
 and attributes the value's preset defines, drop a link whose href is unsafe
-and keep its text, and never render raw HTML. Headings render as `h2` to
-`h4`, images with `loading="lazy"`, and embeds as a lazy, sandboxed `iframe`
-whose `src` `embedSrc` rebuilds; both take `embedProviders`, and drop embeds
-from any provider not in it.
+and keep its text, and never render raw HTML. Underline renders as `u`,
+headings as `h2` to `h4`, images with `loading="lazy"`, and embeds as a lazy,
+sandboxed `iframe` whose `src` `embedSrc` rebuilds; both take
+`embedProviders`, and drop embeds from any provider not in it. A table
+renders in a `.prose-scroll`, so a wide one scrolls rather than widening the
+page, with a first row of header cells in a `thead`, `colspan` and `rowspan`
+only above 1, and no widths or styles.
 
 `@oztix/roadie-editor/editor` adds `Editor`, a rich-text field on its value's
 preset, or `basic` without one. A `preset` prop that differs reads the value
@@ -72,7 +80,7 @@ text, that hugs its controls, scrolls away with the text, and looks the same
 whether you're editing or not, so the text never moves. It takes Toolbar's
 `emphasis` (`normal` by default), independent of the editor's. On a phone or
 touch screen its controls scroll sideways on one row. The controls are Bold,
-Italic, Link, Bulleted list, Numbered list, Undo, and Redo, each with its
+Italic, Underline, Link, Bulleted list, Numbered list, Undo, and Redo, each with its
 shortcut in a tooltip; the toggles show pressed for the text at the caret,
 and Undo and Redo are disabled, but focusable, when there's nothing to undo or
 redo. Alt+F10 in the text moves focus to the toolbar, and Escape moves it back

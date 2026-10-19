@@ -17,6 +17,8 @@ const eventDescription: JSONContent = {
         { type: 'hardBreak' },
         { type: 'text', marks: [{ type: 'italic' }], text: 'All ages.' },
         { type: 'text', text: ' ' },
+        { type: 'text', marks: [{ type: 'underline' }], text: 'No refunds.' },
+        { type: 'text', text: ' ' },
         {
           type: 'text',
           marks: [
@@ -75,11 +77,20 @@ describe('presets.basic', () => {
       'paragraph',
       'text'
     ])
-    expect(Object.keys(schema.marks).sort()).toEqual(['bold', 'italic', 'link'])
+    expect(Object.keys(schema.marks).sort()).toEqual([
+      'bold',
+      'italic',
+      'link',
+      'underline'
+    ])
   })
 
   it('saves only the href of a link', () => {
     expect(Object.keys(schema.marks.link!.spec.attrs ?? {})).toEqual(['href'])
+  })
+
+  it('saves an underline with no attrs', () => {
+    expect(schema.marks.underline!.spec.attrs ?? {}).toEqual({})
   })
 
   it('reads an event description saved in the basic marks, links and lists', () => {
@@ -88,6 +99,7 @@ describe('presets.basic', () => {
 
   it.each([
     ['a heading', { type: 'heading', attrs: { level: 2 } }],
+    ['a table', { type: 'table', content: [] }],
     ['a raw HTML node', { type: 'html', attrs: { html: '<script></script>' } }]
   ])('rejects %s', (_, node) => {
     expect(() => parse({ type: 'doc', content: [node] })).toThrow(
@@ -126,9 +138,18 @@ describe('presets.rich', () => {
       'listItem',
       'orderedList',
       'paragraph',
+      'table',
+      'tableCell',
+      'tableHeader',
+      'tableRow',
       'text'
     ])
-    expect(Object.keys(rich.marks).sort()).toEqual(['bold', 'italic', 'link'])
+    expect(Object.keys(rich.marks).sort()).toEqual([
+      'bold',
+      'italic',
+      'link',
+      'underline'
+    ])
   })
 
   it('saves only the level of a heading', () => {
@@ -151,6 +172,63 @@ describe('presets.rich', () => {
 
     expect(Object.keys(image.spec.attrs ?? {})).toEqual(['src', 'alt'])
     expect(image.isBlock && image.isAtom).toBe(true)
+  })
+
+  it.each([['tableCell'], ['tableHeader']])(
+    'saves only the colspan and rowspan of a %s, never a colwidth',
+    (name) => {
+      expect(Object.keys(rich.nodes[name]!.spec.attrs ?? {})).toEqual([
+        'colspan',
+        'rowspan'
+      ])
+    }
+  )
+
+  it.each([['tableCell'], ['tableHeader']])(
+    'holds only paragraphs in a %s',
+    (name) => {
+      expect(rich.nodes[name]!.spec.content).toBe('paragraph+')
+    }
+  )
+
+  it('rejects a list inside a table cell', () => {
+    const doc = {
+      type: 'doc',
+      content: [
+        {
+          type: 'table',
+          content: [
+            {
+              type: 'tableRow',
+              content: [
+                {
+                  type: 'tableCell',
+                  content: [
+                    {
+                      type: 'bulletList',
+                      content: [
+                        {
+                          type: 'listItem',
+                          content: [{ type: 'paragraph' }]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+
+    expect(() => Node.fromJSON(rich, doc).check()).toThrow(/Invalid content/)
+  })
+
+  it('keeps tables a fixed width, never resizable', () => {
+    const table = presets.rich.find((extension) => extension.name === 'table')
+
+    expect(table?.options).toMatchObject({ resizable: false })
   })
 
   it('reads an event description with headings, a quote and a divider', () => {
@@ -184,6 +262,53 @@ describe('presets.rich', () => {
               content: [{ type: 'text', text: 'Best weekend of the year.' }]
             }
           ]
+        },
+        {
+          type: 'table',
+          content: [
+            {
+              type: 'tableRow',
+              content: [
+                {
+                  type: 'tableHeader',
+                  attrs: { colspan: 2, rowspan: 1 },
+                  content: [
+                    {
+                      type: 'paragraph',
+                      content: [{ type: 'text', text: 'Set times' }]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              type: 'tableRow',
+              content: [
+                {
+                  type: 'tableCell',
+                  attrs: { colspan: 1, rowspan: 1 },
+                  content: [
+                    {
+                      type: 'paragraph',
+                      content: [
+                        { type: 'text', marks: [{ type: 'bold' }], text: '7pm' }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  type: 'tableCell',
+                  attrs: { colspan: 1, rowspan: 1 },
+                  content: [
+                    {
+                      type: 'paragraph',
+                      content: [{ type: 'text', text: 'Doors' }]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     }
@@ -193,6 +318,14 @@ describe('presets.rich', () => {
     expect(node.toJSON()).toEqual(doc)
   })
 })
+
+const contentKinds: Record<string, string> = {
+  'listItem+': 'listItems',
+  'paragraph block*': 'paragraphFirst',
+  'tableRow+': 'tableRows',
+  '(tableCell | tableHeader)*': 'tableCells',
+  'paragraph+': 'paragraphs'
+}
 
 describe('presetShapes', () => {
   it.each(Object.keys(presets) as Preset[])(
@@ -210,11 +343,7 @@ describe('presetShapes', () => {
               ? 'none'
               : type.inlineContent
                 ? 'inline'
-                : type.spec.content === 'listItem+'
-                  ? 'listItems'
-                  : type.spec.content === 'paragraph block*'
-                    ? 'paragraphFirst'
-                    : 'blocks',
+                : (contentKinds[type.spec.content ?? ''] ?? 'blocks'),
             ...(attrsOf(type.spec).length > 0 && { attrs: attrsOf(type.spec) })
           }
         ])

@@ -165,6 +165,38 @@ describe('Editor', () => {
     expect(within(textbox).getByText('soft').tagName).toBe('EM')
   })
 
+  it('underlines with Mod+U', async () => {
+    const onValueChange = vi.fn()
+    render(<Editor aria-label={LABEL} onValueChange={onValueChange} />)
+    const textbox = await focusedTextbox()
+
+    await shortcut('u')
+    await userEvent.keyboard('No refunds')
+
+    await waitFor(() =>
+      expect(within(textbox).getByText('No refunds').tagName).toBe('U')
+    )
+    expect(onValueChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'paragraph',
+              content: [
+                {
+                  type: 'text',
+                  marks: [{ type: 'underline' }],
+                  text: 'No refunds'
+                }
+              ]
+            }
+          ]
+        }
+      })
+    )
+  })
+
   it.each([
     ['bulleted', '8', 'UL'],
     ['numbered', '7', 'OL']
@@ -328,6 +360,7 @@ describe('Editor toolbar', () => {
     expect(toolbarItems(toolbar)).toEqual([
       'Bold',
       'Italic',
+      'Underline',
       'Link',
       '|',
       'Bulleted list',
@@ -336,6 +369,73 @@ describe('Editor toolbar', () => {
       'Undo',
       'Redo'
     ])
+  })
+
+  it('shows Mod+U on the Underline control and its tooltip', async () => {
+    render(<Editor aria-label={LABEL} />)
+    await focusedTextbox()
+    const underline = within(await formattingToolbar()).getByRole('button', {
+      name: 'Underline'
+    })
+    expect(underline).toHaveAttribute('aria-keyshortcuts', `${MOD}+U`)
+
+    await userEvent.hover(underline)
+
+    const popup = await waitFor(() => {
+      const shown = document.querySelector<HTMLElement>(
+        '[data-slot="tooltip-popup"]'
+      )
+      expect(shown).toHaveTextContent('Underline')
+      return shown!
+    })
+    expect(
+      popup.querySelector('[data-slot="tooltip-shortcut"]')
+    ).toHaveTextContent(MOD === 'Meta' ? 'U' : 'CtrlU')
+  })
+
+  it('presses Underline while the caret is in underlined text, and underlines with it', async () => {
+    const noRefunds: EditorValue = {
+      version: 1,
+      preset: 'basic',
+      doc: {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              { type: 'text', text: 'Tickets: ' },
+              {
+                type: 'text',
+                marks: [{ type: 'underline' }],
+                text: 'no refunds'
+              }
+            ]
+          }
+        ]
+      }
+    }
+    render(<Editor aria-label={LABEL} defaultValue={noRefunds} />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const underline = within(await formattingToolbar()).getByRole('button', {
+      name: 'Underline'
+    })
+    expect(underline).toHaveAttribute('aria-pressed', 'false')
+
+    await userEvent.click(within(textbox).getByText('no refunds'))
+    await waitFor(() =>
+      expect(underline).toHaveAttribute('aria-pressed', 'true')
+    )
+
+    await userEvent.keyboard('{Home}')
+    await waitFor(() =>
+      expect(underline).toHaveAttribute('aria-pressed', 'false')
+    )
+    await userEvent.click(underline)
+    await userEvent.keyboard('All')
+
+    await waitFor(() =>
+      expect(within(textbox).getByText('All').tagName).toBe('U')
+    )
   })
 
   it('shows the shortcut in each control tooltip', async () => {

@@ -29,4 +29,12 @@ describe('presetElementsFor, below migrate', () => {
   ])('renders no image for %s', (src) => {
     expect(nodes.image!({ src, alt: 'x' }, context)).toBeNull()
   })
+
+  it.each([
+    ['text', { colspan: '2 onclick=x', rowspan: '2' }],
+    ['a fraction', { colspan: 1.5, rowspan: 2.5 }],
+    ['a span of 1', { colspan: 1, rowspan: 1 }]
+  ])('renders a cell with spans of %s as no spans', (_, attrs) => {
+    expect(nodes.tableCell!(attrs, context)).toEqual({ tag: 'td', attrs: {} })
+  })
 })

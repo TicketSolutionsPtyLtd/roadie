@@ -17,7 +17,8 @@ import {
   type SavedAttrs,
   VOID_TAGS,
   outermostMarksLast,
-  presetElementsFor
+  presetElementsFor,
+  withTableSections
 } from './elements'
 import type { RenderEditorOptions } from './renderEditorValue'
 
@@ -90,7 +91,7 @@ function renderDoc(
     markMapping: renderers(marks, ({ mark }) => mark?.attrs, context),
     unhandledNode: () => '',
     unhandledMark: ({ children }) => serializeChildrenToHTMLString(children)
-  })({ content: outermostMarksLast(doc) })
+  })({ content: withTableSections(outermostMarksLast(doc)) })
 }
 
 /**
