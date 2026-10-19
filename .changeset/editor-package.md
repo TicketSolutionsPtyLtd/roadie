@@ -1,0 +1,36 @@
+---
+'@oztix/roadie-editor': minor
+---
+
+New package `@oztix/roadie-editor`, Roadie's rich-text editor on Tiptap v3.
+This release ships its saved format in `@oztix/roadie-editor/schema`, which
+has no React and runs on a server. `EditorValue` is
+`{ version, preset, doc }`, where `doc` is Tiptap's JSON with Tiptap's default
+node and mark names.
+
+- `presets.basic` holds paragraphs, hard breaks, bulleted and numbered lists,
+  bold, italic, and links. A saved link holds only its `href`, and any `href`
+  that `isUnsafeHref` flags is refused.
+- `presets.rich` adds headings 2 to 4 (`heading`, saving only `level`), quotes
+  (`blockquote`), dividers (`horizontalRule`), images (`image`, saving only
+  `src` and `alt`), and embeds (`embed`, saving only `provider`, `id`, and
+  `params`, never a URL). A pasted `h1` reads as a heading 2, and `h5` and
+  `h6` as a heading 4. An image's `src` must be `https` or a root-relative
+  path.
+- `migrate` checks a stored value and brings it up to `CURRENT_VERSION`,
+  throwing a `RangeError` on an unknown preset, a newer version, or a value or
+  `doc` that isn't an object, and skipping malformed children and marks.
+  `migrate(value, preset)` reads a value into another preset. Either way it
+  drops each node and mark the preset doesn't hold and keeps their text, so a
+  value never loads as an empty document. It also drops unsafe links, keeping
+  their text, images with any other `src`, and malformed embeds, and brings a
+  heading level into 2 to 4. `createEmptyValue` starts a new value.
+- `parseEmbedUrl` turns a YouTube, Vimeo, Spotify or TikTok share URL into an
+  `EmbedValue` (`{ provider, id, params? }`), `embedSrc` rebuilds the player
+  URL from one (YouTube through youtube-nocookie.com, and Vimeo with
+  `dnt=1`), and `embedShareUrl` rebuilds its share URL. Hosts must match
+  exactly, and ids and params must match each provider's patterns, so a saved
+  value can't point a player anywhere else. Each `EmbedProvider` is data with
+  an `aspect` (a ratio or a fixed height), an optional `label`, and an
+  optional `shareUrl`; apps pass their own list, starting from
+  `defaultEmbedProviders`, to add one.
