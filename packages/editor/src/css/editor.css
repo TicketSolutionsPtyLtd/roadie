@@ -43,13 +43,6 @@
   );
 }
 
-/* Every cell keeps its edges and room inside them while editing, so an empty
-   one can still be found and clicked. */
-[data-slot='editor-content'] :where(th, td) {
-  border: 1px solid var(--intent-border-subtle);
-  padding-inline: 0.5em;
-}
-
 /* A drag or Shift+arrow across cells selects them, and they take the
    chosen-control tint. */
 [data-slot='editor-content'] :where(th, td).selectedCell {

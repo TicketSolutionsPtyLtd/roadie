@@ -12,6 +12,7 @@ import { page, userEvent } from 'vitest/browser'
 
 import { Editor, type EditorProps, useEditorContext } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
+import { renderEditorValue } from '../render'
 import type { EditorValue, JSONContent } from '../schema'
 
 const LABEL = 'Event description'
@@ -116,6 +117,35 @@ const labelOf = (item: Element) =>
     : (item.getAttribute('aria-label') ?? item.textContent)
 
 describe('Editor tables', () => {
+  it('draws cells as the rendered page does, so editing shows the published table', async () => {
+    render(
+      <>
+        <Editor aria-label={LABEL} defaultValue={setTimes} />
+        <div data-testid='rendered'>{renderEditorValue(setTimes)}</div>
+      </>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const looks = (element: Element) => {
+      const style = getComputedStyle(element)
+      return {
+        top: style.borderTopWidth,
+        start: style.borderInlineStartWidth,
+        end: style.borderInlineEndWidth,
+        bottom: style.borderBlockEndWidth,
+        bottomColor: style.borderBlockEndColor,
+        paddingStart: style.paddingInlineStart,
+        paddingEnd: style.paddingInlineEnd,
+        paddingTop: style.paddingBlockStart
+      }
+    }
+    const rendered = screen.getByTestId('rendered')
+    for (const tag of ['th', 'td']) {
+      expect(looks(textbox.querySelector(tag)!)).toEqual(
+        looks(rendered.querySelector(tag)!)
+      )
+    }
+  })
+
   it('inserts a 3 by 3 table with a header row from the Table control', async () => {
     const onValueChange = vi.fn()
     render(<TableEditor onValueChange={onValueChange} />)
@@ -707,7 +737,7 @@ describe('Editor tables', () => {
     expect(grid(tableIn(lastValue(onValueChange)))).toHaveLength(4)
   })
 
-  it('outlines each cell and tints the selected cells', async () => {
+  it('tints the selected cells', async () => {
     const probe: ReturnType<typeof useEditorContext> = { editor: null }
     function Probe() {
       probe.editor = useEditorContext().editor
@@ -721,12 +751,8 @@ describe('Editor tables', () => {
       </TableEditor>
     )
     const textbox = await screen.findByRole('textbox', { name: LABEL })
-    const time = within(textbox).getByText('Time').closest('th')!
     const act = within(textbox).getByText('Ochre Kite').closest('td')!
     const before = getComputedStyle(act).backgroundColor
-
-    expect(getComputedStyle(time).borderInlineStartWidth).toBe('1px')
-    expect(getComputedStyle(act).borderInlineEndStyle).toBe('solid')
 
     await waitFor(() => expect(probe.editor).not.toBe(null))
     const cells: number[] = []
