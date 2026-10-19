@@ -3,6 +3,7 @@ export {
   IconButton,
   type IconButtonProps
 } from './components/Button/IconButton'
+export { Link, type LinkProps } from './components/Link'
 export { LinkButton, type LinkButtonProps } from './components/LinkButton'
 export {
   LinkIconButton,
@@ -704,6 +705,18 @@ export {
   type ToggleGroupEmphasis,
   type ToggleGroupSize
 } from './components/ToggleGroup'
+
+export {
+  Toolbar,
+  type ToolbarProps,
+  type ToolbarGroupProps,
+  type ToolbarButtonProps,
+  type ToolbarSeparatorProps,
+  type ToolbarToggleProps,
+  type ToolbarToggleGroupProps,
+  type ToolbarEmphasis,
+  type ToolbarSize
+} from './components/Toolbar'
 
 export {
   Switch,

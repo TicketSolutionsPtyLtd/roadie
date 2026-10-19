@@ -62,6 +62,25 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
         </div>
       )
+    case 'toolbar':
+      return (
+        <div className='flex items-center gap-1'>
+          <div className='grid size-7 place-content-center rounded-full emphasis-subtle'>
+            <Skel className='size-3' />
+          </div>
+          <div className='grid size-7 place-content-center rounded-full'>
+            <Skel className='size-3' />
+          </div>
+          <div className='grid size-7 place-content-center rounded-full'>
+            <Skel className='size-3' />
+          </div>
+          <div className='h-5 border-l border-subtle' />
+          <div className='flex h-7 items-center gap-1.5 rounded-full px-2.5'>
+            <Skel className='h-1.5 w-8' />
+            <Skel className='size-2 rounded-full' />
+          </div>
+        </div>
+      )
     case 'card':
       return (
         <div className='grid w-40 gap-2 rounded-lg border border-subtle bg-normal p-3'>

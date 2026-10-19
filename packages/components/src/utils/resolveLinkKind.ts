@@ -1,3 +1,5 @@
+import { isUnsafeHref } from '@oztix/roadie-core/utils'
+
 /**
  * Classifies an `href` so smart-href components can pick the right
  * element and routing strategy. Pure, server-safe, no React imports —
@@ -19,11 +21,10 @@ export type ResolvedLinkKind =
 
 const EXTERNAL_PATTERN = /^(https?:)?\/\//i
 const PROTOCOL_PATTERN = /^(mailto|tel|sms):/i
-const UNSAFE_PATTERN = /^\s*(javascript|data|vbscript|blob|file):/i
 
 export function resolveLinkKind(href: string | undefined): ResolvedLinkKind {
   if (href === undefined) return 'button'
-  if (UNSAFE_PATTERN.test(href)) return 'unsafe'
+  if (isUnsafeHref(href)) return 'unsafe'
   if (EXTERNAL_PATTERN.test(href)) return 'external'
   if (PROTOCOL_PATTERN.test(href)) return 'protocol'
   return 'internal'

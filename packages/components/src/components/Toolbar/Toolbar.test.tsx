@@ -1,0 +1,599 @@
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+
+import { Toolbar } from '.'
+import {
+  type RoadieLinkComponent,
+  RoadieLinkProvider
+} from '../../providers/RoadieLinkProvider'
+import { Button, IconButton } from '../Button'
+import { Menu } from '../Menu'
+import { Toggle } from '../Toggle'
+import { ToggleGroup } from '../ToggleGroup'
+
+function Formatting(props: { orientation?: 'horizontal' | 'vertical' }) {
+  return (
+    <>
+      <button type='button'>Before</button>
+      <Toolbar aria-label='Formatting' {...props}>
+        <Toolbar.Button render={<Toggle aria-label='Bold' />} />
+        <Toolbar.Button>Undo</Toolbar.Button>
+        <Toolbar.Separator />
+        <Toolbar.Button href='/help'>Help</Toolbar.Button>
+      </Toolbar>
+      <button type='button'>After</button>
+    </>
+  )
+}
+
+function surface() {
+  return screen.getByRole('toolbar').closest('[data-slot="toolbar-surface"]')
+}
+
+describe('Toolbar', () => {
+  it('is the same reference as Toolbar.Root', () => {
+    expect(Toolbar).toBe(Toolbar.Root)
+  })
+
+  it('names a horizontal toolbar by default', () => {
+    render(<Formatting />)
+    const toolbar = screen.getByRole('toolbar', { name: 'Formatting' })
+    expect(toolbar).toHaveAttribute('data-slot', 'toolbar')
+    expect(toolbar).toHaveAttribute('aria-orientation', 'horizontal')
+  })
+
+  it('reports a vertical orientation', () => {
+    render(<Formatting orientation='vertical' />)
+    expect(screen.getByRole('toolbar')).toHaveAttribute(
+      'aria-orientation',
+      'vertical'
+    )
+  })
+
+  it('takes one Tab stop, with arrows moving across buttons, toggles and links', async () => {
+    const user = userEvent.setup()
+    render(<Formatting />)
+    const bold = screen.getByRole('button', { name: 'Bold' })
+    const undo = screen.getByRole('button', { name: 'Undo' })
+    const help = screen.getByRole('link', { name: 'Help' })
+
+    screen.getByRole('button', { name: 'Before' }).focus()
+    await user.tab()
+    expect(bold).toHaveFocus()
+    await user.keyboard('{ArrowRight}')
+    expect(undo).toHaveFocus()
+    await user.keyboard('{ArrowRight}')
+    expect(help).toHaveFocus()
+    await user.keyboard('{ArrowLeft}')
+    expect(undo).toHaveFocus()
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus()
+  })
+
+  it('moves with up and down arrows when vertical', async () => {
+    const user = userEvent.setup()
+    render(<Formatting orientation='vertical' />)
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    await user.keyboard('{ArrowDown}')
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveFocus()
+  })
+
+  it('wraps focus from the last item to the first unless loopFocus is off', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(<Formatting />)
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    await user.keyboard('{ArrowRight}{ArrowRight}')
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveFocus()
+
+    rerender(
+      <Toolbar aria-label='Formatting' loopFocus={false}>
+        <Toolbar.Button>Undo</Toolbar.Button>
+        <Toolbar.Button>Redo</Toolbar.Button>
+      </Toolbar>
+    )
+    await user.click(screen.getByRole('button', { name: 'Redo' }))
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getByRole('button', { name: 'Redo' })).toHaveFocus()
+  })
+
+  it('presses a Toggle rendered through Toolbar.Button', async () => {
+    const user = userEvent.setup()
+    render(<Formatting />)
+    const bold = screen.getByRole('button', { name: 'Bold' })
+    expect(bold).toHaveAttribute('aria-pressed', 'false')
+    await user.click(bold)
+    expect(bold).toHaveAttribute('aria-pressed', 'true')
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus()
+  })
+
+  it('moves through a ToggleGroup in the same arrow order', async () => {
+    const user = userEvent.setup()
+    render(
+      <>
+        <Toolbar aria-label='Formatting'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+          <ToggleGroup aria-label='Alignment' defaultValue={['left']}>
+            <ToggleGroup.Item value='left'>Left</ToggleGroup.Item>
+            <ToggleGroup.Item value='right'>Right</ToggleGroup.Item>
+          </ToggleGroup>
+          <Toolbar.Button>Insert</Toolbar.Button>
+        </Toolbar>
+        <button type='button'>After</button>
+      </>
+    )
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getByRole('button', { name: 'Left' })).toHaveFocus()
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getByRole('button', { name: 'Right' })).toHaveFocus()
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getByRole('button', { name: 'Insert' })).toHaveFocus()
+    await user.tab()
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus()
+  })
+
+  it('keeps a disabled button focusable in the arrow order', async () => {
+    const user = userEvent.setup()
+    render(
+      <Toolbar aria-label='History'>
+        <Toolbar.Button>Undo</Toolbar.Button>
+        <Toolbar.Button disabled>Redo</Toolbar.Button>
+      </Toolbar>
+    )
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    await user.keyboard('{ArrowRight}')
+    const redo = screen.getByRole('button', { name: 'Redo' })
+    expect(redo).toHaveFocus()
+    expect(redo).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('disables every button when the toolbar is disabled', () => {
+    render(
+      <Toolbar aria-label='History' disabled>
+        <Toolbar.Button>Undo</Toolbar.Button>
+      </Toolbar>
+    )
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    )
+  })
+
+  it('disables the buttons in a disabled group only', () => {
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Group aria-label='History' disabled>
+          <Toolbar.Button>Undo</Toolbar.Button>
+        </Toolbar.Group>
+        <Toolbar.Button>Bold</Toolbar.Button>
+      </Toolbar>
+    )
+    expect(screen.getByRole('group', { name: 'History' })).toHaveAttribute(
+      'data-slot',
+      'toolbar-group'
+    )
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    )
+    expect(screen.getByRole('button', { name: 'Bold' })).not.toHaveAttribute(
+      'aria-disabled',
+      'true'
+    )
+  })
+
+  it('sits in a normal surface by default', () => {
+    render(<Formatting />)
+    expect(surface()).toHaveClass('emphasis-normal')
+  })
+
+  it.each(['subtle', 'raised', 'floating'] as const)(
+    'takes the %s surface',
+    (emphasis) => {
+      render(<Toolbar aria-label='Formatting' emphasis={emphasis} />)
+      expect(surface()).toHaveClass(`emphasis-${emphasis}`)
+    }
+  )
+
+  it('has no surface at emphasis subtler', () => {
+    render(<Toolbar aria-label='Formatting' emphasis='subtler' />)
+    expect(surface()?.className).not.toMatch(/emphasis-/)
+  })
+
+  it('puts className on its surface', () => {
+    render(<Toolbar aria-label='Formatting' className='mx-2' />)
+    expect(surface()).toHaveClass('mx-2')
+  })
+
+  it('puts style and hidden on its surface', () => {
+    render(<Toolbar aria-label='Formatting' style={{ width: '100%' }} hidden />)
+    const toolbar = screen.getByRole('toolbar', { hidden: true })
+    const outer = toolbar.closest<HTMLElement>('[data-slot="toolbar-surface"]')
+    expect(outer?.style.width).toBe('100%')
+    expect(outer).toHaveAttribute('hidden')
+    expect(toolbar.style.width).toBe('')
+  })
+
+  it('keeps its scroll area out of the Tab order', async () => {
+    render(<Formatting />)
+    await userEvent.tab()
+    await userEvent.tab()
+    expect(screen.getByRole('button', { name: 'Bold' })).toHaveFocus()
+  })
+
+  it('presses a Toolbar.Toggle at emphasis subtler', async () => {
+    const onPressedChange = vi.fn()
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.Toggle aria-label='Bold' onPressedChange={onPressedChange}>
+          <svg />
+        </Toolbar.Toggle>
+      </Toolbar>
+    )
+    const bold = screen.getByRole('button', { name: 'Bold' })
+    expect(bold.className).toMatch(/\bemphasis-subtler\b/)
+    expect(bold).toHaveAttribute('aria-pressed', 'false')
+
+    await userEvent.click(bold)
+
+    expect(bold).toHaveAttribute('aria-pressed', 'true')
+    expect(onPressedChange).toHaveBeenLastCalledWith(true, expect.anything())
+  })
+
+  it('keeps a disabled Toolbar.Toggle focusable and unpressable', async () => {
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.Toggle aria-label='Bold' disabled>
+          <svg />
+        </Toolbar.Toggle>
+        <Toolbar.Button>Undo</Toolbar.Button>
+      </Toolbar>
+    )
+    const bold = screen.getByRole('button', { name: 'Bold' })
+    await userEvent.tab()
+    expect(bold).toHaveFocus()
+    expect(bold).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(bold)
+    expect(bold).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('presses one Toolbar.Toggle at a time in a Toolbar.ToggleGroup', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.ToggleGroup
+          aria-label='Alignment'
+          defaultValue={['left']}
+          onValueChange={onValueChange}
+        >
+          <Toolbar.Toggle value='left' aria-label='Align left'>
+            <svg />
+          </Toolbar.Toggle>
+          <Toolbar.Toggle value='center' aria-label='Align centre'>
+            <svg />
+          </Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const left = screen.getByRole('button', { name: 'Align left' })
+    const centre = screen.getByRole('button', { name: 'Align centre' })
+    expect(screen.getByRole('group', { name: 'Alignment' })).toBeInTheDocument()
+    expect(left).toHaveAttribute('aria-pressed', 'true')
+
+    await userEvent.click(centre)
+
+    expect(centre).toHaveAttribute('aria-pressed', 'true')
+    expect(left).toHaveAttribute('aria-pressed', 'false')
+    expect(onValueChange).toHaveBeenLastCalledWith(
+      ['center'],
+      expect.anything()
+    )
+  })
+
+  it('keeps the toggles of a disabled Toolbar.ToggleGroup focusable and unpressable', async () => {
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.Button>Undo</Toolbar.Button>
+        <Toolbar.ToggleGroup aria-label='Alignment' disabled>
+          <Toolbar.Toggle value='left' aria-label='Align left'>
+            <svg />
+          </Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const left = screen.getByRole('button', { name: 'Align left' })
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(left).toHaveFocus()
+    expect(left).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(left)
+    expect(left).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('moves through a Toolbar.ToggleGroup in the toolbar’s arrow order', async () => {
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.Toggle aria-label='Bold'>
+          <svg />
+        </Toolbar.Toggle>
+        <Toolbar.ToggleGroup aria-label='Alignment'>
+          <Toolbar.Toggle value='left' aria-label='Align left'>
+            <svg />
+          </Toolbar.Toggle>
+          <Toolbar.Toggle value='center' aria-label='Align centre'>
+            <svg />
+          </Toolbar.Toggle>
+        </Toolbar.ToggleGroup>
+        <Toolbar.Button>Undo</Toolbar.Button>
+      </Toolbar>
+    )
+    await userEvent.tab()
+    const order = []
+    for (let step = 0; step < 4; step++) {
+      order.push(
+        document.activeElement?.textContent ||
+          document.activeElement?.getAttribute('aria-label')
+      )
+      await userEvent.keyboard('{ArrowRight}')
+    }
+    expect(order).toEqual(['Bold', 'Align left', 'Align centre', 'Undo'])
+  })
+
+  it('renders its parts as Roadie buttons at emphasis subtler', () => {
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button>Undo</Toolbar.Button>
+        <Toolbar.Button href='/help'>Help</Toolbar.Button>
+      </Toolbar>
+    )
+    const undo = screen.getByRole('button', { name: 'Undo' })
+    const help = screen.getByRole('link', { name: 'Help' })
+    expect(undo).toHaveAttribute('data-slot', 'toolbar-button')
+    expect(undo).toHaveClass('is-interactive', 'emphasis-subtler')
+    expect(help).toHaveAttribute('data-slot', 'toolbar-button')
+    expect(help).toHaveClass('is-interactive', 'emphasis-subtler')
+  })
+
+  it('lets a render element keep its own props', () => {
+    render(
+      <Toolbar aria-label='Editing' size='sm'>
+        <Toolbar.Button
+          render={<IconButton aria-label='Undo' emphasis='strong' />}
+        />
+      </Toolbar>
+    )
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveClass(
+      'emphasis-strong'
+    )
+  })
+
+  it('lets a link render element keep its own props', () => {
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button href='/help' render={<Button emphasis='strong' />}>
+          Help
+        </Toolbar.Button>
+      </Toolbar>
+    )
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveClass(
+      'emphasis-strong'
+    )
+  })
+
+  it('passes its link props and disabled to a link render element', async () => {
+    const onClick = vi.fn()
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button
+          href='/report.csv'
+          download='report.csv'
+          external
+          disabled
+          onClick={onClick}
+          render={<Button emphasis='strong' />}
+        >
+          Export
+        </Toolbar.Button>
+      </Toolbar>
+    )
+    const link = screen.getByRole('link', { name: 'Export' })
+    expect(link).toHaveAttribute('download', 'report.csv')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(link)
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it('renders a bare anchor render element without a warning', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button href='/help' render={<a />}>
+          Help
+        </Toolbar.Button>
+      </Toolbar>
+    )
+    expect(screen.getByRole('link', { name: 'Help' })).toBeInTheDocument()
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
+  })
+
+  it('renders an href as a routed link through the provider', () => {
+    const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
+      <a data-router='stub' href={href} {...rest}>
+        {children}
+      </a>
+    )
+    render(
+      <RoadieLinkProvider Link={StubLink}>
+        <Toolbar aria-label='Editing'>
+          <Toolbar.Button href='/help'>Help</Toolbar.Button>
+        </Toolbar>
+      </RoadieLinkProvider>
+    )
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveAttribute(
+      'data-router',
+      'stub'
+    )
+  })
+
+  it('renders an href as a plain link, with no button semantics or warning', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button href='/help'>Help</Toolbar.Button>
+      </Toolbar>
+    )
+    const help = screen.getByRole('link', { name: 'Help' })
+    expect(help).not.toHaveAttribute('type')
+    expect(help).not.toHaveAttribute('aria-disabled')
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
+  })
+
+  it('keeps a disabled link focusable in the arrow order and stops its click', async () => {
+    const onClick = vi.fn()
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button>Undo</Toolbar.Button>
+        <Toolbar.Button href='/help' disabled onClick={onClick}>
+          Help
+        </Toolbar.Button>
+      </Toolbar>
+    )
+    const help = screen.getByRole('link', { name: 'Help' })
+    await userEvent.tab()
+    await userEvent.keyboard('{ArrowRight}')
+    expect(help).toHaveFocus()
+    expect(help).toHaveAttribute('aria-disabled', 'true')
+    await userEvent.click(help)
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
+  it('keeps a disabled first link as the toolbar Tab stop', async () => {
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button href='/help' disabled>
+          Help
+        </Toolbar.Button>
+        <Toolbar.Button>Undo</Toolbar.Button>
+      </Toolbar>
+    )
+    await userEvent.tab()
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveFocus()
+  })
+
+  it('leaves a link active in a disabled toolbar', () => {
+    render(
+      <Toolbar aria-label='Editing' disabled>
+        <Toolbar.Button href='/help'>Help</Toolbar.Button>
+      </Toolbar>
+    )
+    expect(screen.getByRole('link', { name: 'Help' })).not.toHaveAttribute(
+      'aria-disabled'
+    )
+  })
+
+  it('refuses an unsafe href', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button href='javascript:alert(1)'>Help</Toolbar.Button>
+      </Toolbar>
+    )
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveAttribute(
+      'href',
+      '#'
+    )
+    warn.mockRestore()
+  })
+
+  it('opens external links in a new tab', () => {
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button href='https://example.com/guide'>Guide</Toolbar.Button>
+      </Toolbar>
+    )
+    expect(screen.getByRole('link', { name: 'Guide' })).toHaveAttribute(
+      'target',
+      '_blank'
+    )
+  })
+
+  it('opens an internal link in a new tab when external', () => {
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button href='/events/preview' external>
+          Preview
+        </Toolbar.Button>
+      </Toolbar>
+    )
+    expect(screen.getByRole('link', { name: 'Preview' })).toHaveAttribute(
+      'target',
+      '_blank'
+    )
+  })
+
+  it('opens a menu from a Toolbar.Button trigger in the arrow order', async () => {
+    const user = userEvent.setup()
+    render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Button>Undo</Toolbar.Button>
+        <Menu>
+          <Menu.Trigger render={<Toolbar.Button>Insert</Toolbar.Button>} />
+          <Menu.Content>
+            <Menu.Item>Image</Menu.Item>
+          </Menu.Content>
+        </Menu>
+      </Toolbar>
+    )
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    await user.keyboard('{ArrowRight}')
+    const insert = screen.getByRole('button', { name: 'Insert' })
+    expect(insert).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(
+      await screen.findByRole('menuitem', { name: 'Image' })
+    ).toBeInTheDocument()
+  })
+
+  it('announces a menu trigger in a disabled toolbar as disabled', () => {
+    render(
+      <Toolbar aria-label='Editing' disabled>
+        <Menu>
+          <Menu.Trigger render={<Toolbar.Button>Insert</Toolbar.Button>} />
+          <Menu.Content>
+            <Menu.Item>Image</Menu.Item>
+          </Menu.Content>
+        </Menu>
+      </Toolbar>
+    )
+    expect(screen.getByRole('button', { name: 'Insert' })).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    )
+  })
+
+  it('runs separators across the toolbar', () => {
+    const { rerender } = render(
+      <Toolbar aria-label='Editing'>
+        <Toolbar.Separator />
+      </Toolbar>
+    )
+    const separator = screen.getByRole('separator')
+    expect(separator).toHaveAttribute('data-slot', 'toolbar-separator')
+    expect(separator).toHaveAttribute('aria-orientation', 'vertical')
+
+    rerender(
+      <Toolbar aria-label='Editing' orientation='vertical'>
+        <Toolbar.Separator />
+      </Toolbar>
+    )
+    expect(screen.getByRole('separator')).toHaveAttribute(
+      'aria-orientation',
+      'horizontal'
+    )
+  })
+})
