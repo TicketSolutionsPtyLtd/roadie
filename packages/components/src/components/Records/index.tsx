@@ -56,6 +56,7 @@ export type {
   RecordsField,
   RecordsRow
 } from './types'
+export type { AnyRecordLayout } from './layouts'
 export type { RecordsRange } from './ranges'
 export type { RecordsRangeResult } from './useRangeLoading'
 export type { RecordsActionsProps } from './RecordsActions'

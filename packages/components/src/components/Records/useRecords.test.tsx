@@ -8,7 +8,12 @@ import type {
 } from '@oztix/roadie-core/records'
 
 import { type TestShow, showFields, testShows } from './testUtils'
-import { type UseRecordsOptions, useRecordsState } from './useRecords'
+import {
+  type RecordsInstance,
+  type UseRecordsOptions,
+  useRecords,
+  useRecordsState
+} from './useRecords'
 
 const shows = testShows(120)
 const names = (result: { current: { rows: readonly { row: TestShow }[] } }) =>
@@ -32,6 +37,23 @@ const view = (query: Partial<RecordView['query']> = {}): RecordView => ({
 })
 
 describe('useRecords', () => {
+  it('returns the only records Records takes, not a copy of their fields', () => {
+    const { result } = renderHook(() =>
+      useRecords({ data: shows, fields: showFields })
+    )
+    const records: RecordsInstance<TestShow> = result.current
+    type Fields = {
+      [
+        Key in keyof typeof records as Key extends string ? Key : never
+      ]: (typeof records)[Key]
+    }
+    const handBuilt = Object.fromEntries(Object.entries(records)) as Fields
+    // @ts-expect-error a hand-built object lacks what the parts read in full
+    const forged: RecordsInstance<TestShow> = handBuilt
+    expect(Object.getOwnPropertySymbols(records)).toHaveLength(1)
+    expect(Object.getOwnPropertySymbols(forged)).toHaveLength(0)
+  })
+
   it('pages rows 50 at a time', () => {
     const { result } = setup()
     expect(result.current.mode).toBe('browser')

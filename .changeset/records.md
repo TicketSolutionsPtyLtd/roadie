@@ -253,6 +253,9 @@ its dialog open until it settles, and a rejection's message shows in the
 dialog. `RecordsViewActionsProps` is exported too.
 
 `useRecords` returns a `RecordsInstance`: the view, position, selection,
-request, counts and rows, and the setters and actions to change them. The
-layout contract stays internal until custom layouts can be built;
-`tableLayout()` and `gridLayout()` build the two there are.
+request, counts and rows, and the setters and actions to change them.
+`Records` and `Records.Provider` take only what `useRecords` returns, so an
+object built by hand to its shape doesn't type-check as `records`.
+`AnyRecordLayout` names what `layouts` takes; the layout contract stays
+internal until custom layouts can be built, and `tableLayout()` and
+`gridLayout()` build the two there are.

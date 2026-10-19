@@ -116,8 +116,13 @@ export type UseRecordsOptions<Row extends object> = {
   onRequestChange?: (request: RecordsRequest) => void
 }
 
+// Only what `useRecords` builds carries it, so a hand-built object can't pass
+// as records the parts read in full.
+const recordsBrand: unique symbol = Symbol('roadie.records')
+
 /** Everything `useRecords` holds, for the parts and layouts. Apps read `RecordsInstance`. */
 export type RecordsState<Row extends object = object> = {
+  readonly [recordsBrand]: true
   /** `server` once `rowCount` is given, `range` once `loadRange` is. */
   mode: 'browser' | 'server' | 'range'
   /** Every record held, before search, filters and paging; in server mode, the page; in range mode, the records loaded, in order. */
@@ -197,9 +202,10 @@ export type RecordsState<Row extends object = object> = {
   now: Date
 }
 
-/** What an app reads and calls on the records `useRecords` holds; pass it whole to `Records` or `Records.Provider`. */
+/** What an app reads and calls on the records `useRecords` holds; pass it whole to `Records` or `Records.Provider`. Only what `useRecords` returns fits. */
 export type RecordsInstance<Row extends object = object> = Pick<
   RecordsState<Row>,
+  | typeof recordsBrand
   | 'mode'
   | 'data'
   | 'fields'
@@ -826,6 +832,7 @@ export function useRecordsState<Row extends object>({
   }
 
   return {
+    [recordsBrand]: true,
     mode: ranged ? 'range' : server ? 'server' : 'browser',
     data: loaded.rows,
     fields,

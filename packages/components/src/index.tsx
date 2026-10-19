@@ -517,6 +517,7 @@ export {
   RecordValue,
   downloadCsv,
   useRecords,
+  type AnyRecordLayout,
   type RecordName,
   type RecordValueProps,
   type RecordViewDefaults,
