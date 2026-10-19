@@ -615,6 +615,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
     async () => {
       const timeline: unknown[] = []
       const started = performance.now()
+      ;(globalThis as any).__rt = [["start", Math.round(performance.now())]]
       let tracing = true
       const trace = () => {
         if (!tracing) return
@@ -651,7 +652,7 @@ describe('RecordTable range position in a browser', { timeout: 30_000 }, () => {
         } catch (error) {
           tracing = false
           throw new Error(
-            `PANE-RESTORE-TRACE ${JSON.stringify(timeline)}\n${String(error)}`
+            `PANE-RESTORE-TRACE ${JSON.stringify((globalThis as any).__rt)} ${JSON.stringify(timeline)}\n${String(error)}`
           )
         }
       }

@@ -196,6 +196,7 @@ export function useRowRestore({
       scrolled.current = undefined
     }
     const release = () => {
+      ;((globalThis as any).__rt ??= []).push(['release', Math.round(performance.now())])
       clearTimeout(hold.current)
       hold.current = undefined
       if (jumped.current && seen.current) view(...seen.current)
@@ -211,6 +212,7 @@ export function useRowRestore({
       if (scrolled.current?.row !== row) jumped.current = true
       const moved =
         scrolled.current?.row === row && scrolled.current.geometry !== geometry
+      ;((globalThis as any).__rt ??= []).push(['effect', Math.round(performance.now()), inset, margin, moved, total])
       if (scrolled.current?.row !== row || moved)
         virtualizer.scrollToIndex(row, { align: 'start' })
       scrolled.current = { row, geometry }
