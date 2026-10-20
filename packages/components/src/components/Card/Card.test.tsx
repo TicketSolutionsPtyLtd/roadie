@@ -21,13 +21,25 @@ describe('Card', () => {
   })
 
   it('renders <Card.Root> alias the same as bare <Card>', () => {
-    const { getByText } = render(<Card.Root>Root content</Card.Root>)
-    expect(getByText('Root content').tagName.toLowerCase()).toBe('div')
+    const { getByText } = render(
+      <Card.Root>
+        <Card.Content>Root content</Card.Content>
+      </Card.Root>
+    )
+    expect(
+      getByText('Root content')
+        .closest('[data-slot=card]')!
+        .tagName.toLowerCase()
+    ).toBe('div')
   })
 
   it('renders with default props', () => {
-    const { getByText } = render(<Card>Content</Card>)
-    const card = getByText('Content')
+    const { getByText } = render(
+      <Card>
+        <Card.Content>Content</Card.Content>
+      </Card>
+    )
+    const card = getByText('Content').closest('[data-slot=card]')!
     expect(card).toBeInTheDocument()
     expect(card.tagName.toLowerCase()).toBe('div')
     expect(card).toHaveClass(
@@ -39,36 +51,79 @@ describe('Card', () => {
   })
 
   it('renders with different intents', () => {
-    const { rerender, getByText } = render(<Card intent='accent'>Accent</Card>)
-    expect(getByText('Accent')).toHaveClass('intent-accent')
+    const { rerender, getByText } = render(
+      <Card intent='accent'>
+        <Card.Content>Accent</Card.Content>
+      </Card>
+    )
+    expect(getByText('Accent').closest('[data-slot=card]')!).toHaveClass(
+      'intent-accent'
+    )
 
-    rerender(<Card intent='danger'>Danger</Card>)
-    expect(getByText('Danger')).toHaveClass('intent-danger')
+    rerender(
+      <Card intent='danger'>
+        <Card.Content>Danger</Card.Content>
+      </Card>
+    )
+    expect(getByText('Danger').closest('[data-slot=card]')!).toHaveClass(
+      'intent-danger'
+    )
 
-    rerender(<Card intent='success'>Success</Card>)
-    expect(getByText('Success')).toHaveClass('intent-success')
+    rerender(
+      <Card intent='success'>
+        <Card.Content>Success</Card.Content>
+      </Card>
+    )
+    expect(getByText('Success').closest('[data-slot=card]')!).toHaveClass(
+      'intent-success'
+    )
   })
 
   it('renders with different emphasis', () => {
     const { rerender, getByText } = render(
-      <Card emphasis='raised'>Raised</Card>
+      <Card emphasis='raised'>
+        <Card.Content>Raised</Card.Content>
+      </Card>
     )
-    expect(getByText('Raised')).toHaveClass('emphasis-raised')
+    expect(getByText('Raised').closest('[data-slot=card]')!).toHaveClass(
+      'emphasis-raised'
+    )
 
-    rerender(<Card emphasis='subtle'>Subtle</Card>)
-    expect(getByText('Subtle')).toHaveClass('emphasis-subtle')
+    rerender(
+      <Card emphasis='subtle'>
+        <Card.Content>Subtle</Card.Content>
+      </Card>
+    )
+    expect(getByText('Subtle').closest('[data-slot=card]')!).toHaveClass(
+      'emphasis-subtle'
+    )
 
-    rerender(<Card emphasis='subtler'>Subtler</Card>)
-    expect(getByText('Subtler')).toHaveClass('emphasis-subtler', 'p-2', 'gap-4')
+    rerender(
+      <Card emphasis='subtler'>
+        <Card.Content>Subtler</Card.Content>
+      </Card>
+    )
+    expect(getByText('Subtler').closest('[data-slot=card]')!).toHaveClass(
+      'emphasis-subtler',
+      'p-2',
+      'gap-4'
+    )
 
-    rerender(<Card emphasis='normal'>Default</Card>)
-    expect(getByText('Default')).toHaveClass('emphasis-normal')
+    rerender(
+      <Card emphasis='normal'>
+        <Card.Content>Default</Card.Content>
+      </Card>
+    )
+    expect(getByText('Default').closest('[data-slot=card]')!).toHaveClass(
+      'emphasis-normal'
+    )
   })
 
   it('renders Header sub-component', () => {
     const { getByText } = render(
       <Card>
         <Card.Header>Card Title</Card.Header>
+        <Card.Content>Doors open at 7pm.</Card.Content>
       </Card>
     )
     const header = getByText('Card Title')
@@ -90,6 +145,7 @@ describe('Card', () => {
   it('renders Footer sub-component', () => {
     const { getByText } = render(
       <Card>
+        <Card.Content>Doors open at 7pm.</Card.Content>
         <Card.Footer>Card Footer</Card.Footer>
       </Card>
     )
@@ -99,52 +155,81 @@ describe('Card', () => {
   })
 
   it('renders as a custom element', () => {
-    const { getByText } = render(<Card as='section'>Section Card</Card>)
-    expect(getByText('Section Card').tagName.toLowerCase()).toBe('section')
+    const { getByText } = render(
+      <Card as='section'>
+        <Card.Content>Section Card</Card.Content>
+      </Card>
+    )
+    expect(
+      getByText('Section Card')
+        .closest('[data-slot=card]')!
+        .tagName.toLowerCase()
+    ).toBe('section')
   })
 
   it('renders as anchor when as="a" and href is provided', () => {
     const { getByText } = render(
       <Card as='a' href='/event'>
-        Event
+        <Card.Content>Event</Card.Content>
       </Card>
     )
-    const card = getByText('Event')
+    const card = getByText('Event').closest('[data-slot=card]')!
     expect(card.tagName.toLowerCase()).toBe('a')
     expect(card).toHaveAttribute('href', '/event')
     expect(card).toHaveClass('is-interactive')
   })
 
   it('adds is-interactive when onClick is provided', () => {
-    const { getByText } = render(<Card onClick={() => {}}>Click me</Card>)
-    const card = getByText('Click me')
+    const { getByText } = render(
+      <Card onClick={() => {}}>
+        <Card.Content>Click me</Card.Content>
+      </Card>
+    )
+    const card = getByText('Click me').closest('[data-slot=card]')!
     expect(card.tagName.toLowerCase()).toBe('div')
     expect(card).toHaveClass('is-interactive')
   })
 
   it('does not add is-interactive without href or onClick', () => {
-    const { getByText } = render(<Card>Static</Card>)
-    expect(getByText('Static')).not.toHaveClass('is-interactive')
+    const { getByText } = render(
+      <Card>
+        <Card.Content>Static</Card.Content>
+      </Card>
+    )
+    expect(getByText('Static').closest('[data-slot=card]')!).not.toHaveClass(
+      'is-interactive'
+    )
   })
 
   it('uses as prop to render as button', () => {
     const { getByText } = render(
       <Card as='button' onClick={() => {}}>
-        Button Card
+        <Card.Content>Button Card</Card.Content>
       </Card>
     )
-    expect(getByText('Button Card').tagName.toLowerCase()).toBe('button')
+    expect(
+      getByText('Button Card')
+        .closest('[data-slot=card]')!
+        .tagName.toLowerCase()
+    ).toBe('button')
   })
 
   it('applies custom className', () => {
-    const { getByText } = render(<Card className='custom-class'>Custom</Card>)
-    expect(getByText('Custom')).toHaveClass('custom-class')
+    const { getByText } = render(
+      <Card className='custom-class'>
+        <Card.Content>Custom</Card.Content>
+      </Card>
+    )
+    expect(getByText('Custom').closest('[data-slot=card]')!).toHaveClass(
+      'custom-class'
+    )
   })
 
   it('renders Image sub-component with wrapper', () => {
     const { getByAltText } = render(
       <Card>
         <Card.Image src='test.jpg' alt='Test image' />
+        <Card.Content>Doors open at 7pm.</Card.Content>
       </Card>
     )
     const img = getByAltText('Test image')
@@ -162,6 +247,7 @@ describe('Card', () => {
           alt='Sized'
           width={600}
         />
+        <Card.Content>Doors open at 7pm.</Card.Content>
       </Card>
     )
     const img = getByAltText('Sized')
@@ -175,6 +261,7 @@ describe('Card', () => {
         <Card.Header>
           <Card.Title>Event name</Card.Title>
         </Card.Header>
+        <Card.Content>Doors open at 7pm.</Card.Content>
       </Card>
     )
     const title = getByText('Event name')
@@ -185,8 +272,12 @@ describe('Card', () => {
 
   describe('href routing', () => {
     it('renders as anchor when href is set without as', () => {
-      const { getByText } = render(<Card href='/event/123'>Event</Card>)
-      const card = getByText('Event')
+      const { getByText } = render(
+        <Card href='/event/123'>
+          <Card.Content>Event</Card.Content>
+        </Card>
+      )
+      const card = getByText('Event').closest('[data-slot=card]')!
       expect(card.tagName.toLowerCase()).toBe('a')
       expect(card).toHaveAttribute('href', '/event/123')
       expect(card).toHaveClass('is-interactive')
@@ -195,7 +286,9 @@ describe('Card', () => {
     it('routes through configured Link when provider is wired', () => {
       const { getByTestId } = render(
         <RoadieLinkProvider Link={StubLink}>
-          <Card href='/event/123'>Event</Card>
+          <Card href='/event/123'>
+            <Card.Content>Event</Card.Content>
+          </Card>
         </RoadieLinkProvider>
       )
       const card = getByTestId('stub-link')
@@ -207,13 +300,13 @@ describe('Card', () => {
       const { getByText, queryByTestId } = render(
         <RoadieLinkProvider Link={StubLink}>
           <Card as='a' href='/event'>
-            Event
+            <Card.Content>Event</Card.Content>
           </Card>
         </RoadieLinkProvider>
       )
       // Provider Link must NOT be invoked when `as` is explicit
       expect(queryByTestId('stub-link')).toBeNull()
-      const card = getByText('Event')
+      const card = getByText('Event').closest('[data-slot=card]')!
       expect(card.tagName.toLowerCase()).toBe('a')
       expect(card).toHaveAttribute('href', '/event')
     })
@@ -223,10 +316,10 @@ describe('Card', () => {
     it('renders the element form, merging className', () => {
       const { getByText } = render(
         <Card render={<button type='button' className='extra' />}>
-          Click me
+          <Card.Content>Click me</Card.Content>
         </Card>
       )
-      const card = getByText('Click me')
+      const card = getByText('Click me').closest('[data-slot=card]')!
       expect(card.tagName.toLowerCase()).toBe('button')
       expect(card).toHaveClass('rounded-xl', 'extra')
     })
@@ -235,12 +328,12 @@ describe('Card', () => {
       const { getByText, queryByTestId } = render(
         <RoadieLinkProvider Link={StubLink}>
           <Card href='/x' render={<a href='/y' data-custom='1' />}>
-            Custom
+            <Card.Content>Custom</Card.Content>
           </Card>
         </RoadieLinkProvider>
       )
       expect(queryByTestId('stub-link')).toBeNull()
-      const card = getByText('Custom')
+      const card = getByText('Custom').closest('[data-slot=card]')!
       expect(card.tagName.toLowerCase()).toBe('a')
       expect(card).toHaveAttribute('href', '/y')
       expect(card).toHaveAttribute('data-custom', '1')
@@ -253,10 +346,10 @@ describe('Card', () => {
       // styles silently dropped.
       const { getByText } = render(
         <Card render={<button type='button' onClick={() => {}} />}>
-          Click me
+          <Card.Content>Click me</Card.Content>
         </Card>
       )
-      const card = getByText('Click me')
+      const card = getByText('Click me').closest('[data-slot=card]')!
       expect(card.tagName.toLowerCase()).toBe('button')
       expect(card).toHaveClass('is-interactive')
     })
@@ -271,10 +364,10 @@ describe('Card', () => {
             />
           )}
         >
-          Section
+          <Card.Content>Section</Card.Content>
         </Card>
       )
-      const card = getByText('Section')
+      const card = getByText('Section').closest('[data-slot=card]')!
       expect(card.tagName.toLowerCase()).toBe('section')
       expect(card).toHaveAttribute('data-from-fn', '1')
       expect(card).toHaveClass('rounded-xl')
@@ -287,6 +380,7 @@ describe('Card', () => {
         <Card.Header>
           <Card.Description>Some details</Card.Description>
         </Card.Header>
+        <Card.Content>Doors open at 7pm.</Card.Content>
       </Card>
     )
     const desc = getByText('Some details')
@@ -300,14 +394,20 @@ describe('Card', () => {
       render(ui).container.querySelector('[data-slot=card]')!
 
     it('defaults to vertical, ticket or not', () => {
-      expect(cardIn(<Card>Body</Card>)).toHaveAttribute(
-        'data-direction',
-        'vertical'
-      )
-      expect(cardIn(<Card variant='ticket'>Body</Card>)).toHaveAttribute(
-        'data-direction',
-        'vertical'
-      )
+      expect(
+        cardIn(
+          <Card>
+            <Card.Content>Body</Card.Content>
+          </Card>
+        )
+      ).toHaveAttribute('data-direction', 'vertical')
+      expect(
+        cardIn(
+          <Card variant='ticket'>
+            <Card.Content>Body</Card.Content>
+          </Card>
+        )
+      ).toHaveAttribute('data-direction', 'vertical')
     })
 
     it.each(['horizontal', 'auto'] as const)(
@@ -355,7 +455,11 @@ describe('Card', () => {
     })
 
     it('rounds the ticket at 4xl, and lets className override it', () => {
-      const { container, rerender } = render(<Card variant='ticket'>Body</Card>)
+      const { container, rerender } = render(
+        <Card variant='ticket'>
+          <Card.Content>Body</Card.Content>
+        </Card>
+      )
       const card = () => container.querySelector('[data-slot=card]')!
 
       expect(card()).toHaveClass('rounded-4xl')
@@ -363,7 +467,7 @@ describe('Card', () => {
 
       rerender(
         <Card variant='ticket' className='rounded-2xl'>
-          Body
+          <Card.Content>Body</Card.Content>
         </Card>
       )
       expect(card()).toHaveClass('rounded-2xl')
@@ -373,7 +477,7 @@ describe('Card', () => {
     it('keeps subtler emphasis for the ticket styles', () => {
       const { container } = render(
         <Card variant='ticket' emphasis='subtler' href='/tickets/1'>
-          Body
+          <Card.Content>Body</Card.Content>
         </Card>
       )
       const card = container.querySelector('[data-slot=card]')!
@@ -383,7 +487,11 @@ describe('Card', () => {
     })
 
     it('defaults the ticket emphasis to normal', () => {
-      const { container } = render(<Card variant='ticket'>Body</Card>)
+      const { container } = render(
+        <Card variant='ticket'>
+          <Card.Content>Body</Card.Content>
+        </Card>
+      )
       const card = container.querySelector('[data-slot=card]')!
 
       expect(card).toHaveAttribute('data-emphasis', 'normal')
@@ -393,7 +501,7 @@ describe('Card', () => {
     it('keeps the ticket attributes on a linked card', () => {
       const { container } = render(
         <Card variant='ticket' href='/tickets/1'>
-          Body
+          <Card.Content>Body</Card.Content>
         </Card>
       )
       expect(container.querySelector('a')).toHaveAttribute(
@@ -403,7 +511,11 @@ describe('Card', () => {
     })
 
     it('adds nothing by default', () => {
-      const { container } = render(<Card>Body</Card>)
+      const { container } = render(
+        <Card>
+          <Card.Content>Body</Card.Content>
+        </Card>
+      )
       const card = container.querySelector('[data-slot=card]')!
 
       expect(card).not.toHaveAttribute('data-variant')

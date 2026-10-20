@@ -20,7 +20,7 @@ This skill runs in any consumer repo that uses `@oztix/roadie-core` and `@oztix/
 
 ## Run the lint rules first
 
-`@oztix/roadie-eslint-plugin` checks Phosphor icons (their import names, `size` props, and weights), `dark:` variants, hex colours in class strings, and arbitrary z-index and radius classes. This skill doesn't grep for any of those.
+`@oztix/roadie-eslint-plugin` checks Phosphor icons (their import names, `size` props, and weights), `dark:` variants, hex colours in class strings, arbitrary z-index and radius classes, and a `Card` without `Card.Content`. This skill doesn't grep for any of those.
 
 The plugin needs ESLint 9 or 10 with a flat config. A repo on a legacy `.eslintrc` can't load it, so skip this section and say in the report that the rules below didn't run.
 
@@ -38,6 +38,7 @@ The plugin needs ESLint 9 or 10 with a flat config. A repo on a legacy `.eslintr
 | `roadie/phosphor-icon-weight`    | Info     |
 | `roadie/no-arbitrary-z-index`    | Warning  |
 | `roadie/no-arbitrary-radius`     | Warning  |
+| `roadie/card-content`            | Warning  |
 
 The [linting guide](https://ticketsolutionsptyltd.github.io/roadie/overview/linting/) says what each rule fails and how to fix it. `eslint --fix` fixes none of them, so fix each by hand.
 

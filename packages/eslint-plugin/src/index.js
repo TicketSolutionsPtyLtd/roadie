@@ -1,11 +1,12 @@
 import { createRequire } from 'node:module'
 
+import { cardRules } from './card.js'
 import { classRules } from './classes.js'
 import { phosphorRules } from './phosphor.js'
 
 const { name, version } = createRequire(import.meta.url)('../package.json')
 
-const rules = { ...phosphorRules, ...classRules }
+const rules = { ...phosphorRules, ...classRules, ...cardRules }
 
 const plugin = {
   meta: { name, version },

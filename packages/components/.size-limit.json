@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "260.3 kB"
+    "limit": "260.6 kB"
   },
   {
     "name": "Single component (Button)",
@@ -308,14 +308,14 @@
     "name": "RecordGrid",
     "path": "dist/components/RecordGrid/index.js",
     "import": "*",
-    "limit": "104.95 kB",
+    "limit": "105.25 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordTable",
     "path": "dist/components/RecordTable/index.js",
     "import": "*",
-    "limit": "112.4 kB",
+    "limit": "112.65 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]

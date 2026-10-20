@@ -50,7 +50,7 @@ component already has.
 | You need                               | Use                                                     |
 | -------------------------------------- | ------------------------------------------------------- |
 | An action                              | `Button`, or `IconButton` with `aria-label`             |
-| A surface for content in a page        | `Card`, with `Card.Header`, `Card.Content`, and so on   |
+| A surface for content in a page        | `Card`, always with a `Card.Content`                    |
 | A column of an app frame               | `Pane` inside `Navigator`, never as a box in a page     |
 | Records to search, filter, sort, page  | `RecordTable`, or `RecordGrid` when an image leads      |
 | A search that turns text into filters  | `QueryField`, when there's no records list              |
