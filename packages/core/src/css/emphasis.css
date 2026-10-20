@@ -142,7 +142,8 @@
 
    Lighter dark fills sit closer to step 11, so on them subtle text moves 40%
    toward step 12 to keep Lc 75, even over a tinted track. It resolves on the
-   surface, so it follows the surface's intent. */
+   surface and on any intent inside it, which would otherwise reset it, so it
+   follows each one's own intent. */
 @property --raised-fill {
   syntax: '*';
   inherits: false;
@@ -186,7 +187,8 @@
       );
     }
 
-    .dark & {
+    .dark &,
+    .dark & :where([class*='intent-']) {
       --intent-text-subtle: color-mix(
         in oklch,
         var(--intent-12) 40%,
@@ -237,7 +239,8 @@
   color: var(--intent-text-normal);
 
   @supports (color: color-mix(in oklch, red, red)) {
-    .dark & {
+    .dark &,
+    .dark & :where([class*='intent-']) {
       --intent-text-subtle: color-mix(
         in oklch,
         var(--intent-12) 40%,

@@ -13,7 +13,13 @@ unchanged.
   another raised one, such as a selected tab or a search field in a `Pane`.
   A raised surface inside a floating one lifts 20% again.
 - On dark raised and floating surfaces, `text-subtle` moves 40% toward step 12,
-  so it keeps APCA Lc 75 on the lighter fills.
+  so it keeps APCA Lc 75 on the lighter fills, and so does an intent set
+  inside one.
+- `emphasis-subtle`, `emphasis-subtler`, `bg-subtle`, `bg-subtler`, and their
+  hover and pressed tints mix more of step 9 in dark mode, so a subtle surface
+  stands off the page in every intent: subtle is 18% for neutral, 15% for
+  brand and accent, 13% for danger and info, and 12% for success, with the
+  rest of each ladder in proportion. Warning and brand-secondary keep theirs.
 - An `emphasis-subtle` track with an `emphasis-raised` pill in it, such as the
   `Tabs` list at its default emphasis, takes the sunken fill in dark mode, so
   the chosen tab stands out from its track.

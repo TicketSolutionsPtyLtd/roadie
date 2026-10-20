@@ -31,8 +31,8 @@ step of the current intent.
 
 | Level     | `bg-*`                                                                                   | `text-*`                                                                                     | `border-*` |
 | --------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ---------- |
-| subtler   | Step 9 at 6% alpha                                                                       | Step 10                                                                                      | Step 5     |
-| subtle    | Step 9 at 11% alpha                                                                      | Step 11                                                                                      | Step 6 (dark neutral: 7) |
+| subtler   | Step 9 at 6% alpha (dark: 6 to 10%, by intent)                                           | Step 10                                                                                      | Step 5     |
+| subtle    | Step 9 at 11% alpha (dark: 11 to 18%, by intent)                                         | Step 11                                                                                      | Step 6 (dark neutral: 7) |
 | normal    | Step 1 (dark: 2)                                                                         | Step 12                                                                                      | Step 7 (dark neutral: 8) |
 | strong    | Step 9 (neutral: 13, danger: 10; success and brand-secondary mix 10% toward white)       | Step 13                                                                                      | Step 9 (dark neutral: 10) |
 | inverted  | Step 12                                                                                  | Step 0, the page's text flipped. It pairs with `bg-inverted`.                                | Step 12    |
@@ -199,12 +199,16 @@ leans on fills and edges instead:
 
 - Neutral `border-subtle`, `border-normal`, and `border-strong` take one step
   higher, to keep their contrast against dark surfaces.
+- Subtle and subtler tints mix more of step 9, so a subtle surface stands
+  about as far off the dark page in every intent: 18% for neutral, 15% for
+  brand and accent, 13% for danger and info, 12% for success, and 11% for
+  warning and brand-secondary. The hover and pressed tints step up with them.
 - Raised neutral surfaces use step 4. Floating surfaces, and a raised
   surface inside another, lift 20% further toward step 9
   (`--intent-bg-floating`), and a raised surface inside a floating one lifts
   20% again, so each layer stands off what's under it.
 - On raised and floating surfaces, `text-subtle` moves 40% toward step 12, so
-  it keeps Lc 75 on the lighter fills.
+  it keeps Lc 75 on the lighter fills. An intent set inside one moves too.
 - An `emphasis-subtle` track with an `emphasis-raised` pill in it, as in
   Tabs, takes the sunken fill, since a tint lifts it toward the pill on a dark
   page. The pill then stands off it on any surface.
