@@ -7,6 +7,8 @@ description: Use before pushing any user-visible change (a component, page, styl
 
 Show a UI change running before CI or a reviewer sees it. The approver opens it on
 their phone and says OK, and only then does the branch get pushed.
+The change is explored first, in `/roadie:implement`'s gate (its step 8): run
+that gate if it hasn't been, and reuse the preview it left running.
 
 ## 1. Gather
 
