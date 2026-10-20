@@ -1,5 +1,648 @@
 # @oztix/roadie-components
 
+## 2.16.0
+
+### Minor Changes
+
+- 1cda559: Add `Toolbar` (`@oztix/roadie-components/toolbar`), a row of buttons, toggles, links, and menus that takes one Tab stop.
+
+  It wraps Base UI's toolbar, and its parts render Roadie components at the toolbar's `size`: `Toolbar.Button` (a `Button`, an `IconButton` when its only child is an icon, or a routed link with `href`), `Toolbar.Toggle`, `Toolbar.ToggleGroup`, whose pressed fill slides between its toggles, `Toolbar.Group`, and `Toolbar.Separator`. The arrow keys move between items. On touch screens and phones the items scroll sideways on one row, and elsewhere they wrap. It sits in an `emphasis='normal'` surface by default; `subtle`, `raised`, and `floating` change it, and `subtler` drops it for a toolbar inside another surface.
+
+- 72a5b57: Pressing Enter after typing in an `Autocomplete` or `Combobox` now takes the
+  first suggestion, without moving to it with the arrows first. Suggestions
+  that arrive after typing, such as server results, are highlighted too.
+
+  Opening the list without typing still highlights nothing new, so Enter there
+  picks no value, and an empty `Autocomplete` still submits its form. While
+  suggestions show for typed text, Enter fills the first one instead of
+  submitting; press Escape first to keep the typed text. After typing, the first
+  Down Arrow moves to the second suggestion, and the arrows wrap at either end
+  instead of returning to the input. `Autocomplete` in `both` or `inline` mode is
+  unchanged, since a highlight there replaces the typed text.
+
+  Pass `autoHighlight={false}` to keep the old behaviour. `Autocomplete` also
+  takes `autoHighlight='always'` to highlight the first suggestion with no text.
+
+- 0fe97b2: Add brand intents named by hue. `intent-brand-purple` is a new brand intent on the purple scale that `info` also uses, with white labels on its strong fill. `intent-brand-blue` and `intent-brand-orange` are aliases of `intent-brand` and `intent-brand-secondary`, which stay. Every component `intent` prop accepts `brand-blue`, `brand-orange`, and `brand-purple`, and `cn()` treats them as one intent group.
+
+  Add a fixed `--color-{scale}-light-9` token for every scale. Like the light 0, 5, 12, and 13 steps, `.dark` doesn't override it, so brand artwork keeps its step 9 colour in dark mode.
+
+  `text-display-prose-2` is now weight 700 (Bold), down from 800.
+
+- 5a62938: Add `Calendar` (`@oztix/roadie-components/calendar`), a month or week grid for choosing a date, several dates, or a range.
+
+  Every value is an ISO date string, never a `Date`, built on the plain-date math in `@oztix/roadie-core/datetime`. `mode` is `single`, `multiple`, or `range`, with `selected`, `defaultSelected`, and `onSelect`, and a range's `min` and `max` limit its length in days. `disabled` and `modifiers` take matchers: a date, a list, `{ start, end }`, `{ before }`, `{ after }`, `{ dayOfWeek }`, or a function, and each modifier marks its days with a data attribute.
+
+  It fills its container and shows `numberOfMonths` side by side where they fit, or with `layout='scroll'` stacks months under one pinned weekday row. `view='week'` shows one week of larger days, and `views={['week', 'month']}` adds a toggle between them. `direction='vertical'` turns months up and down. A swipe or drag turns the page, and `getDayContent` puts a price or status under each day. `captionLayout='dropdown'` adds month and year selects.
+
+  Focus moves apart from selection, with arrows, Page Up and Page Down (Shift for a year), Home, and End, and a live region announces the month and the selection. Today follows midnight in `timeZone`, and the server leaves today unmarked, so cached HTML hydrates without a mismatch.
+
+- 0eed3da: `Combobox` gains chip parts for multiple selection: `Combobox.Value`,
+  `Combobox.Chips`, `Combobox.Chip`, and `Combobox.ChipRemove`, wrapping Base
+  UI's, and `Combobox.ChipLabel`, which truncates a long value. Chips are subtle
+  pills that inherit the intent around them, with a round remove button.
+
+  The arrow keys move between chips, and a chip with focus turns accent strong
+  to show it's selected. Clicking a chip selects it. Backspace in an empty
+  `Combobox.Input` selects the last chip, and a second Backspace removes it.
+  Escape on a chip returns focus to the input, and Escape in the input while the
+  list is closed clears the typed text and keeps every chip, where Base UI
+  removes them all. `selected` on `Combobox.Chip` shows it selected while focus
+  stays elsewhere.
+
+  `Combobox.InputGroup` and `comboboxInputGroupVariants` now set a minimum height
+  for each size (`min-h-8`, `min-h-10`, `min-h-12`) instead of a fixed `h-*`, so
+  the group grows when chips wrap. A single line keeps its height, but a child
+  sized with `h-full` now takes its content's height instead of the group's.
+
+  `Combobox` takes `autoHighlight='always'` to highlight the first item before
+  anything is typed, as `Autocomplete` does.
+
+- 3c9937b: `useFieldControlError(message)` is now public in
+  `@oztix/roadie-components/field`. A custom control calls it to show its own
+  error, such as a file it couldn't upload, in the nearest `Field.ErrorText`,
+  as Roadie's date and time fields already do. Pass `null` to clear it.
+- 3c9937b: New `Link` in `@oztix/roadie-components/link`, a text link that routes like
+  every link-bearing component: internal hrefs go through the Link given to
+  `RoadieProvider`, external ones open in a new tab, and unsafe ones are
+  refused. Its `emphasis` sets the look: `normal`, the default, keeps the text
+  colour with an accent underline that grows into a tint on hover or keyboard
+  focus, the same as links in `.prose`; `strong` colours the text in its intent and
+  fills it from the left like `emphasis-strong`, recolouring each letter as the
+  fill reaches it; and `subtle` shows its underline only on hover or
+  keyboard focus. `normal` and `subtle` stay accent inside any intent unless
+  given their own `intent`, `intent='neutral'` included; `strong` follows the surrounding intent, neutral included. The focus
+  ring comes from `is-focusable`, and reduced motion skips the transitions.
+- 99111f3: Dashboards gain a period and a comparison.
+
+  `@oztix/roadie-core/dashboard`: a description can carry `period: { range,
+compare?, history? }` (`DashboardPeriodSpec`), where `range` is a
+  `DateRangeValue`, `compare` a `Comparison` or the app's own, such as
+  `'similar'`, and `history` what `resolveComparison` said about the data. A
+  delta marked `comparison: true` follows it. `validateDashboard` checks the
+  period, and rejects a comparison delta on a dashboard with no period.
+
+  `@oztix/roadie-components`: add `DashboardPeriod`
+  (`@oztix/roadie-components/dashboard-period`), one `DateRangePicker` button
+  that shows the period and the dates it compares with. Under the range, a
+  Compare switch turns the comparison on, and a toggle group picks previous
+  period, previous year, custom dates, or the app's own options from
+  `compareOptions`. Apply sends both together. Its value is
+  `DashboardPeriodValue`, `{ range, compare? }`, and its presets default to
+  `dashboardPeriodPresets`. `dataStart`, `dataEnd`, and `alignWeekday` match the
+  app's `resolveComparison`, so the comparison shows the dates the app fetches.
+  It's a large control, 48px tall, so pair it with large Buttons and Selects.
+
+  `@oztix/roadie-charts`: `DashboardView` shows a description's `period` above its
+  sections, and `onPeriodChange` receives the new `{ range, compare? }`; without
+  it the period shows read-only. `periodProps` (`DashboardViewPeriodProps`)
+  passes the toolbar's other props. A delta marked `comparison: true` names the
+  comparison on its context line, such as "vs previous period", and gives way to
+  "Not enough history" or "Nothing to compare" when the period's `history` says
+  so.
+
+- 816a826: `DataTable` links rows with `getRowHref`. The title cell, the pinned text
+  column or else the first text column, becomes a link routed through
+  `RoadieProvider`, with external links opening in a new tab. Its overlay covers
+  the row, so pressing anywhere on it follows the link, and the row takes the
+  link's hover tint and focus ring. The link is the row's only tab stop.
+  `getRowHref` runs where the table renders, so a server component can pass it.
+
+  `DashboardView` takes `getRowHref={(card, row) => …}` to link table card rows,
+  since a dashboard description is JSON and holds no functions.
+
+- 816a826: `DataTable` sorts in the browser with `sortable`. Pressing a header sorts by that
+  column, numbers largest first and text A to Z, and pressing it again flips the
+  direction. Empty and text values in a number column stay at the bottom. Start
+  from `defaultSort`, or control it with `sort` and `onSortChange`. Sortable
+  headers now show a caret: up or down on the sorted column, and a faint up-down
+  caret on the rest, styled with `is-interactive` rather than an underlined
+  link. `getSortHref` still links headers for server sorting: an unsorted
+  number, delta or meter header now links `descending` first, the way a click
+  sorts, and sparkline headers no longer link. `sortDataTableRows` sorts rows on
+  a server the same way. Sparkline columns don't sort.
+
+  Pinned-cell styles now apply only inside a `DataTable`, so a `data-pin`
+  attribute elsewhere on the page no longer makes an element sticky.
+
+- ff2f04d: `DataTable` takes a totals row with `totals`, rendered in a new `Table.Foot`:
+  strong text over a rule, its label in the first column as a row header. `true`
+  or `'sum'` adds up the number columns over every row, labelled "Totals for 12
+  records", or the `recordName` you pass. Shares, indexes, points and columns with
+  `total: false` stay blank, and currency sums round to the cent. Give
+  `{ label, values }` to show your own figures, such as the server's totals for a
+  paged report or an average; with `values`, nothing is summed, and without a
+  label the row reads "Totals". The first column holds the label, so it never
+  hides while the totals show. `DataTableTotals` types the prop, `true`
+  included, and `tableCellClass(align)` gives a body cell's classes, for a `th`
+  that heads a row.
+
+  A dashboard table card takes the same `totals`, and columns take `total: false`.
+  `validateDashboard` checks them: values need a label and must name a column,
+  `'sum'` warns when there's nothing to sum, and either warns when the first
+  column, which holds the label, has a total that would never show.
+  `cardTable(card)` returns the totals summed, and a `Chart` table view shows a
+  `ChartTable`'s totals. In core,
+  `resolveTableTotals(columns, rows, totals)`, `isSummable(column)` and the
+  `RecordName` and `ResolvedTotals` types come from
+  `@oztix/roadie-core/dashboard` and the Zod-free `/dashboard-layout`.
+
+- df311de: Add `DateField` (`@oztix/roadie-components/date-field`), `TimeField`
+  (`@oztix/roadie-components/time-field`), and `DatePicker`
+  (`@oztix/roadie-components/date-picker`), typed date and time fields built on
+  `Calendar` and the date phrases in `@oztix/roadie-core/datetime`.
+
+  `DateField` reads what people type, such as "14 mar", "next fri", "tomorrow",
+  or "1/12" (day first), and suggests the dates it could mean. `TimeField` reads
+  "7:30pm", "19:30", or "noon". Text is committed on blur or Enter and shown in
+  the house style ("Fri 27 Nov 2026", "7:30pm"). Values are plain strings: an ISO
+  date, `'HH:MM'`, or null. Text that names nothing stays on screen, sets
+  `aria-invalid`, and shows its error in `Field.ErrorText`.
+
+  `DatePicker` pairs a typed date with a calendar in a `Popover`, or below 48rem
+  in a bottom `Drawer`. `granularity='minute'` adds a `TimeField`, and the value
+  becomes the instant the date and time name in `timeZone`, such as
+  `'2026-11-27T19:30:00+11:00'`, so event times are set on the venue's clock.
+
+  All three inherit `invalid`, `required`, and `disabled` from `Field`. The
+  picker's calendar button is labelled by the `Field` label too, so a test that
+  finds the input with `getByLabelText` should use `getByRole('combobox', { name })`.
+
+  `Field.ErrorText` now also shows a control's own error, such as "Enter a date,
+  like 14 Mar or next Fri", even when the `Field` isn't `invalid`.
+
+- 1936d26: Add `DateRangePicker` (`@oztix/roadie-components/date-range-picker`), a button
+  showing a date range that opens presets, typed start and end dates, and a range
+  `Calendar` in a `Popover`, or below 48rem in a bottom `Drawer`.
+
+  The value is a `DateRangeValue` from `@oztix/roadie-core/datetime`. A preset
+  stays relative, so "Last 30 days" is still the last 30 days when a saved view
+  opens, and typed or picked dates become an absolute `{ start, end }`. The
+  button shows the range in words with the dates it stands for.
+
+  `presets` replaces the default list (`dateRangePresets`), and `commit='apply'`
+  holds changes until Apply is pressed, for a dashboard period.
+  `granularity='minute'` adds a time to each end, read in `timeZone`. It also
+  takes `min`, `max`, `disabled` matchers, `readOnly`, `numberOfMonths`, `size`, and
+  `emphasis`, and inherits its label, `invalid`, `required`, and `disabled`
+  from `Field`.
+
+- 02a7d71: Add `Kbd` (`@oztix/roadie-components/kbd`), a keyboard key or shortcut drawn
+  as a keycap. Known key names show a glyph or short word, `keys={['mod', 'k']}`
+  draws a combination with a keycap per key, `combined` draws it on one keycap
+  (⌘K, or Ctrl+K off Apple), and `separator` goes between keys, such as `'+'` or
+  `'then'` for a sequence. `mod`, `meta`, `shift`, `alt` and `ctrl` follow the
+  reader's platform without a hydration mismatch. `emphasis` is `subtle` (the
+  default: a soft, borderless keycap tinted from the surrounding text colour),
+  `normal` (its own opaque, bordered surface, built on `emphasis-normal`) or
+  `subtler` (plain text in the surrounding colour, for menu rows). Kbd is
+  `aria-hidden` unless `announce` is set, and is hidden on screens without hover
+  unless announced or inside a container marked `data-keyboard-hints='always'`,
+  such as a help page about shortcuts.
+
+  `Menu` item `shortcut`s now render through `Kbd` and accept a key list such as
+  `['mod', 'd']`. Text such as `'⌘D'` keeps its characters, but a known key name
+  given as text now shows its `Kbd` face (`'Enter'` gains the return glyph,
+  `'Delete'` reads "Del", `'Shift'` becomes ⇧ on Apple devices) and a single
+  letter shows in capitals. Menu shortcuts are now hidden on screens without
+  hover. `Tooltip.Content` and `Tooltip.Popup` take a new `shortcut` that shows
+  keys after the label.
+
+- 58b2703: `listItemVariants` gains an `interactive` variant, true by default. Set it to
+  false for a row whose link or control sits inside it, and style the row with
+  `is-interactive-within`, marking that link `data-interactive-target`. Without
+  the marked link, a subtler row keeps its tinted fill at rest. `List.Item` is
+  unchanged.
+- a86fafc: Logo takes every lockup through `variant`: `normal` (the default), `mark`,
+  `wordmark`, `tagline`, and `product`. `variant='tagline'` adds Built on
+  Partnerships after a divider, from the brand logo pack. `variant='product'`
+  needs `product`, and `product` on its own still implies it, so
+  `<Logo product='Studio' />` keeps working. The product logo's `data-variant`
+  is now `product`. A logo with the tagline is named "Oztix, Built on
+  Partnerships".
+
+  `direction='vertical'` sets the wordmark, and any tagline, under the mark, on
+  `normal` and `tagline` only. `tone` picks the colour on every lockup: `brand`
+  (the default, unchanged), `dark`, or `light`, each the same in light and dark
+  mode, or `neutral`, one colour that follows the theme. No tone takes a
+  surrounding intent's colour.
+
+  The props are a discriminated union, so passing `product` with another
+  variant, or `direction` with `mark`, `wordmark`, or `product`, is now a type
+  error. A wrapper that forwards `Omit<LogoProps, …>` loses the union, so its
+  spread no longer type-checks; use a distributive omit
+  (`T extends unknown ? Omit<T, K> : never`) instead. A runtime `product` still
+  wins over any variant. The `LogoDirection` and `LogoTone` types are exported,
+  and `LogoVariant` adds `tagline` and `product`.
+
+- a9c7f01: Two components move onto Roadie's motion tokens, and each looks a little different:
+
+  - Badge's pulsing indicator uses `animate-pulse-subtle` (1.8s, fading to 60%) in place of Tailwind's `animate-pulse` (2s, fading to 50%).
+  - Image's fade-in uses `--duration-slower` (still 400ms) with `--ease-standard` in place of the CSS `ease` keyword.
+
+- 58b2703: `Pane` publishes `--pane-sticky-bottom`, the height of its `Pane.Footer`, so
+  sticky content at the bottom of a pane can clear the footer. A direct child of
+  `Pane.Body` marked `data-pane-fill` takes the height the rest of the body
+  leaves; give it its own overflow and it scrolls while the pane stays put.
+- ac88649: Add `Pattern` at `@oztix/roadie-components/pattern`, the Oztix swirl pattern. It fills its parent with no radius of its own, and its swirls always run off every edge, at a set line weight until the box outgrows the artwork. `crop` (`top`, `bottom`, `left`, `right`, or `banner`, default `right`) says where it sits and anchors the artwork to that edge, or centres it for `banner`. `tone` (`brand-blue`, `brand-purple`, or `brand-orange`, default `brand-blue`) picks its colour, which stays the same in light and dark mode. It's always hidden from assistive technology.
+- 6de78c5: `Prose` now renders the core `.prose` class instead of its own list of
+  descendant classes. Its sizes only set `--prose-*` variables, and `render`,
+  `as`, and `size` work as before. Pages that use `Prose` will look different, so
+  check legal pages, FAQs, and content sections after upgrading.
+
+  What changes on the page:
+
+  - Space now goes above each block only, in `em`, from one `--prose-flow`
+    variable: 1em at `sm`, and 1.25em at `md` and `lg`. Paragraphs sit 14px
+    apart at `sm`, up from 8px, 20px at `md`, up from 16px, and 23 to 25px at
+    `lg`, close to the old 24px. The first child sits flush with the top.
+  - Space above a heading is a multiple of the body text's flow, not of the
+    heading's own size, so a larger heading doesn't push the text above it
+    further away. It runs from 3 flows above an `h1` to 2.4 above an `h2`, 1.8
+    above an `h3`, 1.4 above an `h4`, and 1.2 above an `h5` or `h6`. At `md`
+    that's 48px above an `h2`, up from 32px, then 36, 28, and 24px. At `sm`
+    it's 34px above an `h2`, up from 16px, then 25, 20, and 17px, and at `lg`
+    it's 54 to 60px above an `h2`. The block after a heading sits half a flow
+    below it, 10px at `md`, down from 16px, so each heading stays with the
+    section it opens.
+  - Tables and code blocks have one body flow above them, like paragraphs,
+    rather than a flow at their smaller text size.
+  - List items sit 0.4 of a flow apart (8px at `md`, up from 4px), and a rule
+    has two flows above it and one below.
+  - Each direct child stops at a 65ch measure, so long lines no longer run the
+    full width of the container.
+  - Body text is 14px at `sm`, 16px at `md`, and the fluid `text-lg` at `lg`,
+    all at the prose leading of 1.5. Before, `sm` and `lg` took the tighter line
+    height of the page around them.
+  - Headings at `md`, the default, use the UI display styles, `text-display-ui-1`
+    to `-6`, one step smaller than the prose display styles they used, so
+    headings in content such as an event description don't overwhelm the page.
+    `sm` headings keep their sizes, apart from `h6`, which drops to `text-sm`,
+    and `lg` keeps the prose display styles.
+  - Links keep the surrounding text colour with an accent underline that turns
+    to the text colour on hover.
+  - List indent is 1.5em, so it scales with the size (24px at `md`, as before),
+    and a nested bulleted list uses circles.
+  - Tables shrink to fit their content instead of filling the width. `Prose`
+    wraps each bare table in `.prose-scroll`, so a wide one scrolls sideways on a
+    phone.
+    Each column of a table in `.prose-scroll` stays at least 9em wide, so when
+    the columns can't all fit, the table scrolls rather than squeezing text to a
+    word or two a line. A column with short content, such as "Yes", also takes
+    9em. A long cell wraps at the prose measure. A table whose columns fit still
+    shrinks to fit without scrolling.
+    Inline code in a table inside `.prose-scroll` stays on one line, so a name
+    such as `rounded-sm` never splits; the table scrolls instead. Outside
+    `.prose-scroll`, inline code still breaks where it must so the table fits.
+  - Code blocks and images use `rounded-md`, down from `rounded-lg`.
+  - Inline code uses the subtle fill, up from subtler, at 0.875em, down from
+    0.9em.
+
+  New escapes:
+
+  - `.not-prose` or `data-not-prose` on an element inside `Prose` keeps the
+    styles away from it and everything inside it. A `Prose` nested inside one
+    stays unstyled.
+  - A `Button` or other component that renders an `<a>` inside `Prose` picks up
+    the prose underline. Wrap it in `.not-prose`.
+  - `.prose-bleed` on a direct child lifts the 65ch measure.
+
+  To restore old behaviour where a page needs it, add a class to `Prose`:
+
+  - Full-width text: `className='[--prose-measure:none]'`.
+  - Full-width tables: `className='[&_table]:w-full'`, plus `.prose-bleed` on
+    each table, or on its `.prose-scroll` wrapper, so it passes the 65ch measure.
+  - The old `md` gap of 1rem: `className='[--prose-flow:1em]'`.
+  - The old `md` headings: set `--prose-h1-size: var(--text-5xl)` and
+    `--prose-h1-weight: 900`, down to `--prose-h6-size: var(--text-lg)` and
+    `--prose-h6-weight: 700`, one text step per level, all at weight 700 but
+    `h1`.
+
+  `proseVariants` now returns `prose` and the size variables only.
+
+- cb1ab12: `Prose` makes wide tables reachable and scrollable with the keyboard.
+
+  - `Prose` wraps each bare table in `<div class="prose-scroll is-focusable">`,
+    both tables in its JSX children and tables in HTML it renders through
+    `dangerouslySetInnerHTML`, such as CMS output. A table already in
+    `.prose-scroll`, `.not-prose`, or `data-not-prose` stays as it is, and a
+    `.prose-bleed` table passes the class to its wrapper.
+  - While a table overflows, its scroller gets `tabIndex={0}`, `role="region"`,
+    and a name: the table's caption, else the nearest heading before it with an
+    `id`, else "Table". A later table under the same heading is numbered. A table
+    that fits adds no tab stop. This also applies to `.prose-scroll` wrappers you
+    write yourself.
+  - Tables in rendered HTML are wrapped after hydration, and tab stops are added
+    after hydration, so server markup still matches.
+  - Each column of a wrapped table stays at least 9em wide and its inline code
+    stays on one line, as in any `.prose-scroll`, so a table that used to squeeze
+    into its column now scrolls.
+  - A table that a component renders inside `Prose` isn't wrapped, since React
+    owns it. Wrap it in `.prose-scroll` yourself.
+  - `Prose` still renders in server components, with any `as` or `render`. Its
+    root gets a `data-prose-id`, which links it to a client component that
+    renders nothing and does the work in the browser.
+
+  New `useScrollRegion(ref)` from `@oztix/roadie-components/scroll-region` gives
+  any scroll container the same keyboard access, for tables outside `Prose`.
+
+- 7b8d0da: Add `QueryField` (`@oztix/roadie-components/query-field`), a search field that turns what you type into filter chips.
+
+  It takes your chips and a `suggest` function, lists suggestions in the groups you return with a "Search for …" row, and hands what was taken to `onAccept`. Enter searches the typed text unless a suggestion is marked `exact`, and filters are taken by arrow or click. A suggestion's `remainder` stays in the field once it's taken, so "melb this weekend" can take Melbourne and keep "this weekend" for the next one.
+
+  A `pendingChip` runs a value step: picking a field, such as Venue, shows its values, under a toggle of `operators` when it has more than one, with an optional `hint` and `content`, such as a calendar. `onSelectChip` and `pendingChip.chipId` edit an existing chip in the list. `locked` chips, such as the page's scope, come first and nothing in the field removes them. Backspace in an empty field selects the last chip, then removes it, and `focusShortcut` focuses the field from anywhere on the page. It works alone with `aria-label` or inside `Field`.
+
+- 7670b03: Add `RecordGrid` (`@oztix/roadie-components/record-grid`), records as a grid of cards to search, filter, sort, and page through.
+
+  `gridLayout({ title, description, image, leading, trailing, details })` gives `Records.Root` the grid layout, each part a field's key or `{ key, alt, cell }`. Cards are at least 16rem wide, as many columns as fit, and `image` is a 16:9 banner. The grid selects through Select mode, and pages, loads by range, and renders only the rows near the screen past 100 records, as the table does. `Records.Options` shows, hides, and reorders the card's details. `RecordGrid` takes the card's parts as `card`, which needs a `title`, and the same records and header options as `RecordTable`.
+
+- 85a054f: Add `RecordTable` (`@oztix/roadie-components/record-table`), a table of records to search, filter, sort, and page through, built on the records model in `@oztix/roadie-core/records`.
+
+  `@oztix/roadie-components/records` holds the parts it's built from. `useRecords` takes the records, their fields, a `RecordView`, and a `RecordPosition`, each controlled or not, and returns a `RecordsInstance`. `Records.Root`, or `Records.Provider` for parts spread across a `Pane`, shares it with `Records.Header`, `Records.Search`, `Records.Content`, `Records.Pagination`, `Records.Status`, `Records.Options`, `Records.Select`, `Records.Actions`, `Records.BulkActions`, and `Records.ViewActions`. `RecordValue` shows one value as its field reads. `tableColumns(fields).field(key, options)` and `tableLayout(columns)` describe the table.
+
+  - `Records.Search` is a `QueryField` named "Search and filter". It searches the searchable fields and turns typed text, such as "melb this weekend", into filter chips. Picking a field lists its values under a toggle of operators, with a calendar for dates. A field can carry an `icon` (`RecordsField`) for its suggestions.
+  - `scope` takes the filters a page sets, such as the event a list of tickets belongs to. They show as locked chips and are never part of the view.
+  - The table sorts from its headers, pins columns, and scrolls sideways with a Roadie scrollbar. Columns with a `priority` hide as it narrows, and under 40rem it lists its records as list rows or cards. Past 100 rows, only the rows near the screen render.
+  - `Records.Options` is the Configure button: the sort, the columns to show, hide, and reorder, and a Layout switcher when there's more than one layout.
+  - `bulkActions`, `rowActions`, `getRowHref`, and `actions` act on records. Each action gets the applied query and the `RecordsRequest` for its records. `downloadCsv` saves CSV from `recordsToCsv`.
+  - `baseline` is the saved view the screen opened, so `modified` and `resetView` work, and `Records.ViewActions` offers Save, Save as new, Rename, Reset, and Delete through your handlers. Your app stores the views.
+  - `rowCount` turns on server mode, where `onRequestChange` hands over the `RecordsRequest` to fetch, and `rowCountExact={false}` marks a count the server stopped at. `loadRange` loads one long list by range as people scroll.
+
+- e3b095a: Each package now ships `roadie.manifest.json`, a machine-readable catalogue for coding agents and tools. Import it from `@oztix/roadie-core/roadie.manifest.json`, `@oztix/roadie-components/roadie.manifest.json`, or `@oztix/roadie-charts/roadie.manifest.json`. It lists every export path with the values and types it exports, every component with its props in the order its source declares them, compound parts, and, where it has them, its docs page and first live example, every deprecated export and prop with its replacement, and, in core, the design tokens. The build generates it from the same source it publishes, so it always matches the installed version.
+- e8751a7: Select-style triggers now use a visible border instead of the raised look. `Select.Trigger`, `DateRangePicker` and `DashboardPeriod` default to `emphasis-normal`, with no shadow or rim light, and keep the field states for hover, focus, open and invalid.
+
+  Adds `emphasis='subtler'` to the same three: no fill or border at rest, as wide as its value and icon rather than its container, the hover and press of a subtler `Button`, a danger edge when invalid. `Records.Pagination` uses it for rows per page, so it sits with the subtler page buttons beside it, and keeps the width of its widest option as the page size changes.
+
+- ebc4db6: Add `Sortable` (`@oztix/roadie-components/sortable`), drag to reorder built on
+  the browser's native drag and drop. `Sortable` takes the item values in order
+  as `items` and reports `onReorder(next, { value, from, to })`; `Sortable.Item`
+  marks each item and `Sortable.Handle` drags it. `disabled` on an item stops
+  it being dragged or moved from its own menu, while other items can still move
+  past it. Clicking or tapping the handle, or pressing Enter or Space on it,
+  opens a Move menu (up, down, to top, to bottom; left, right, start and end for
+  `orientation='horizontal'`) for keyboard and screen reader users; a press that
+  turns into a drag doesn't. Focus returns to the moved item's handle, and each
+  move is announced in a polite live region.
+  The drop line is accent coloured, the dragged item dims in place, and a
+  scrolling container scrolls while you drag near its edge.
+
+  The package gains three runtime dependencies for this:
+  `@atlaskit/pragmatic-drag-and-drop`, `@atlaskit/pragmatic-drag-and-drop-hitbox`
+  and `@atlaskit/pragmatic-drag-and-drop-auto-scroll` (Apache-2.0). Only
+  `Sortable` imports them, so importing other components, including `List`,
+  doesn't load them. Importing everything from the root barrel adds about 10 kB.
+
+  `List.Item` takes a `value`. Inside a `Sortable` the row becomes reorderable:
+  a drag handle leads, and the row is static, so it ignores `href`, `onClick`,
+  `current` and `chevron` (a development warning names `href` and `onClick`).
+  Outside a `Sortable` the row is unchanged.
+
+- ff2f04d: Tables take a `status` column kind. The value is a status key, and the column's
+  `status` map gives each key an intent and an optional label, which defaults to
+  the key in sentence case, so `on_sale` reads "On sale". A key the map lacks
+  shows as neutral, in its raw text.
+
+  `DataTable` shows it as a small `Badge` in normal emphasis, or as the label in
+  a `plain` table. It sorts by label, or by each key's `order` when the map gives
+  one, with keys that have no order last. An empty status shows the column's
+  `emptyText` and sorts last. A `secondaryKey` adds a line under the badge, or
+  under the label in a `plain` table, styled and wrapped as it is on a text
+  column. An empty secondary value adds no line, on either kind.
+
+  In core, `TableColumn` takes `kind: 'status'` and `status`, and
+  `validateDashboard` rejects an unknown intent and warns about keys a map lacks.
+  `columnStatus(column, key)` resolves a key's intent and label, and
+  `cellText(column, value)` gives any cell as the plain text its table shows,
+  and `humaniseStatus(key)` gives a key's default label. They come with the
+  `STATUS_INTENTS`, `StatusIntent`, `TableStatus` and `ResolvedStatus` types, and
+  also from the Zod-free `@oztix/roadie-core/dashboard-layout`. A `status` map on
+  a column of another kind gets a warning, as does a `secondaryKey` on a column
+  that is neither text nor status. `COLUMN_KINDS` gains `'status'`, so an
+  exhaustive `switch` over a column's `kind` needs a case for it.
+
+- fad898f: A nested `ThemeProvider` scopes its accent to its own subtree. It sets `--accent-hue` and `--accent-chroma` on a `display: contents` wrapper marked `data-accent-scope`, which renders on the server too, and Roadie's CSS declares the accent and neutral scales, the default intent, the shadows, and the chart ink again on that wrapper. Before, a nested provider wrote its accent to `:root`: it lost to the root's on a cold load, took over the whole page when it mounted later, and kept the page on its accent after it unmounted. Now the root's accent stays on everything outside the nested provider, and the portals of `Dialog`, `Drawer`, `Popover`, `Menu`, `Tooltip`, `Select`, `Combobox`, and `Autocomplete` carry the nested accent to popups that open from inside it. A parent's selectors for its direct children, such as `*:` variants, now see the wrapper instead of the nested provider's children. A nested provider's subtree starts at the neutral intent, and browsers without OKLCH keep the root's accent inside it. A nested provider with `accentColor={null}`, no accent, or an invalid one, and no `defaultAccentColor`, inherits the accent around it, whether the root's or an enclosing nested provider's, and so do its popups. It sets no scope, so its subtree also keeps the intent around it, and the subtree doesn't remount when an accent arrives. The root provider still falls back to Oztix blue.
+
+  The root provider keeps a server-injected accent style that already holds its accent (from `getAccentStyleSync`, `getAccentStyleTagSync`, or `getBootstrapScript`) instead of rewriting it on hydration, and writes the accent in the same form. `RoadieProvider`'s warning for a `RoadieProvider` inside a `ThemeProvider` now says the inner theme is scoped to its subtree.
+
+  Update `@oztix/roadie-core` together with `@oztix/roadie-components`, since the wrapper needs core's scoped selectors to change the scales.
+
+### Patch Changes
+
+- d8a0ad6: Tapping the active tab of a collapsed `Navigator` bar on its own route now
+  scrolls the page back to the top in browsers with the Navigation API, such as
+  Chrome. A pane now restores a remembered scroll only when you arrive at it:
+  going back or forward, or changing destination.
+- ddcad84: Buttons now follow their parent's alignment. The `btn` utility set
+  `place-self: start`, which overrode a flex row's `items-center` and a grid's
+  `justify-items`, so every `Button`, `IconButton` and `Toggle` in a taller row
+  sat at the top. It now sets `width: fit-content` instead. With a size class
+  (every `Button`, `IconButton` and `Toggle` has one), a button keeps its own
+  size in a grid cell or a flex column and takes the row's `align-items`
+  (including `items-baseline` and `items-end`), a grid's `justify-items`, or a
+  flex column's `items-center`, as in a horizontal `Card`'s side-column footer.
+
+  To widen a button, use `w-full`. `self-stretch`, `justify-self-stretch` and
+  `place-self-stretch` no longer widen it. To undo `w-full` at a breakpoint, use
+  `w-fit` rather than `w-auto`, which now lets a grid or flex column stretch it.
+  If you load `@oztix/roadie-core/css/compiled` beside your own Tailwind build,
+  import it before your utilities so `w-*` on a button still wins.
+
+- e2007ba: `CalendarTile` no longer puts its month or weekday in capitals, because the
+  writing rule keeps all caps for acronyms. The tile shows `Nov`, not `NOV`, and
+  the band drops the wide letter spacing that only suited capitals.
+
+  Mixed case reads smaller than capitals, so the band's text is one size bigger
+  and still scales with the tile: 10px at `sm` (was 9px), `text-xs` (12px) at
+  `md` (was 10px), and `text-sm` (14px) at `lg` (was 11px). The band also has a
+  set height, about a third of the tile: 14px at `sm`, 16px at `md`, and 18px at
+  `lg`, with 2px of vertical padding and the text centred.
+
+  The `calendar-tile-top` utility changes the same way. The React tile now uses
+  that utility for its band, and marks its size with `data-size`, so the two
+  render an identical band.
+
+  `formatGlyph` now returns `month` and `weekday` as the locale abbreviates them
+  (`Nov` and `Fri` in English) rather than uppercased. Some locales abbreviate
+  in lowercase, such as `nov.` in French, and the tile shows that as given. If
+  you pass your own strings, pass them in sentence case.
+
+- 5484613: Warn in development when a `Card` has no `Card.Content`. `Card.Header` has no bottom padding, so a card with only a title and description puts them in `Card.Content`. `Card.Content` registers with its card, so it counts inside a fragment or your own component, and production builds skip the check. Keep a `Suspense` boundary inside `Card.Content`, not around it, or the card warns while it loads. A `RecordGrid` or narrow `RecordTable` card with no details now renders its title row as the card's `Card.Content`.
+- cc83b4f: A `Carousel` with `autoPlay` now moves to the next slide once the delay has
+  passed. Before, it never advanced: Embla re-initialises when the slides
+  mount, the carousel resizes, or slides change, and each time it stopped the
+  autoplay timer without starting it again. Autoplay now resumes after each of
+  these, unless the user has paused it with `Carousel.PlayPause` or the pointer
+  or focus is inside the carousel, in which case it resumes when they leave. A
+  user who prefers reduced motion still gets no autoplay.
+- c842876: An `Autocomplete` or `Combobox` input inside a `Field` keeps the `Field.Label`
+  as its accessible name while its list is open. Opening the list hides
+  everything outside it from assistive tech, including the label, so the input
+  now also points at the label with `aria-labelledby`. Your own `aria-label` or
+  `aria-labelledby` still wins.
+- 189296c: Carousel runs on Embla 9.0.0-rc04. When the carousel or a slide resizes,
+  Embla now re-initialises on the next animation frame, once per frame, instead
+  of inside the `ResizeObserver` callback. Code that listens for `reinit`
+  through `useCarouselUnsafeEmbla()` sees it a frame later.
+- e7e4efb: Link components check for unsafe `href` protocols with `isUnsafeHref` from `@oztix/roadie-core/utils`, so they also refuse an unsafe protocol hidden with a tab, line break, or control character.
+- 5e9a8bd: `@oztix/roadie-core/theme` exports `DEFAULT_ACCENT_COLOR`, so components, widgets, and apps share one default accent. Its value is `#0191eb`, the accent step 9 that tokens.css ships. `@oztix/roadie-components` re-exports it, and its value changes from `#0091EB` to `#0191eb`, one step of red apart, so the default matches the tokens. The Vue cart drawer theme reads the same constant.
+- 0b234a4: Update the `Select`, `Combobox`, and `Autocomplete` popups, the `QueryField`
+  operator bar, the `Popover` arrow, and the `Tooltip` arrow to use
+  `--intent-bg-floating`, so in dark mode they match the lifted fill of other
+  floating surfaces. The three popups also lift `text-subtle` on that fill, as
+  `emphasis-floating` does, so group labels and empty messages keep their
+  contrast.
+
+  A raised `Pane` and the inspector drawer publish the fill they paint as
+  `--pane-surface`, so their sticky header matches the lifted dark fill, and
+  `Pane.Search` lifts its field off a raised `Pane` in dark mode.
+
+- ff2f04d: A `DataTable` whose rows link keeps its title column visible. The title holds
+  each row's only link, so its `priority` is now ignored while rows link, with a
+  warning in development, instead of hiding the column and the row links with it.
+- 496217b: A link with `download`, such as `<Button href='/files/lineup.pdf' download>`,
+  now renders a plain `<a>` instead of the provider's Link. A file isn't a route,
+  and Next.js prefetched it as one and logged a 404. Because the router no longer
+  handles it, add any base path to a download `href` yourself.
+- eb8cb85: Large pages in Chromium no longer restyle every element when something small
+  changes, such as opening a menu, ticking a row, hovering a list row, or typing
+  in a search. On a large page inside `Navigator` or `Pane` that took up to 3
+  seconds of style work at 4x CPU. The styles for `List` dividers and contained
+  rows, `Navigator.Brand` and `Navigator.Item`, the ticket `Card` fill, the
+  disabled `Switch` label, `DataTable`'s Show all columns, and
+  `is-interactive-within` now select only what they style. Nothing looks
+  different.
+
+  `listItemVariants()` now carries the classes that square a row inside a
+  contained `List`, so a custom row built from it still matches `List.Item`.
+
+- d72d07b: Example data uses invented venue, event and promoter names from the contributing guide's vetted list, so no example reads as a real Oztix client. Affects the chart examples from `@oztix/roadie-charts/examples` and JSDoc in core records and QueryField.
+- 853d76c: Add each component's status to `roadie.manifest.json` even when another page documents it, such as `CheckboxGroup` on the Checkbox page or `Records` on Records model, and add `docs` and `status` to core's records subpaths. Status is one of `alpha`, `beta`, `stable`, or `deprecated`, as the docs define them: alpha can break in a minor release, beta is settling and marks a breaking change as Breaking, stable follows semver, and deprecated is being removed. Many long-standing components are now `stable`, and `RecordTable`, `RecordGrid`, `QueryField`, and the records model are `alpha`.
+- 53c9b64: Menu radio and checkbox items keep their shortcuts lined up when one is checked.
+- 7d6da50: Dialog's backdrop, Card's image, NumberField, Steps, and Switch time their transitions with Roadie's motion tokens in place of the Tailwind values they matched, so they follow a token change. Nothing moves differently.
+- 8a7b4c5: On a phone, `Navigator` no longer pulls its panes back while a navigation is
+  pending for someone who prefers reduced motion. The pending colour still
+  shows; only the movement is gone.
+- daa17b3: Navigator's pending glow draws its spinning square small and scales it up.
+  The conic gradient sits on a square an eighth of the frame's diagonal, scaled
+  eight times, rather than one drawn at one and a half times the frame's long
+  side. Under heavy load Safari could show the frame's corners while the old,
+  very large layer turned. The square still covers the frame at every angle,
+  and reduced motion still holds it still.
+- 4693788: Navigator no longer logs React's "Each child in a list should have a unique
+  key" warning when a route's child streams in. It used to copy its children
+  with `Children.toArray` to lift out `Navigator.Primary`, and those re-keyed
+  copies flagged a child that had skipped JSX's key check, such as a promise
+  React unwraps. It now renders the rest of its children as given, so apps no
+  longer need to wrap route children in a fragment.
+- 230a991: `DateTime` no longer reads the clock while rendering on the server, so it
+  prerenders under Next's `cacheComponents` without a `Suspense` boundary,
+  including as a `Suspense` fallback.
+
+  The date formatters read the clock only when the words depend on it: a
+  standalone date's year, or relative text. A `DateTime` with
+  `context='standalone'` renders its year on the server, then drops it after
+  mount when the date is in the current year. Client-rendered output is
+  unchanged.
+
+- 0a72e40: Every focus ring now has the same shape: 4px wide with no gap, from the `--focus-ring-width`, `--focus-ring-opacity`, and `--focus-ring-opacity-dark` tokens. Plain links and buttons with no Roadie class, such as links in CMS content, now get a 4px ring with no gap, where they had a 2px ring with a 2px gap. The ring's colour is unchanged: it still follows the nearest intent, and fields still use accent, or danger when invalid.
+
+  Components that drew their own ring now use the base ring, so they follow the nearest intent too: a focused chart plot, Toast, and ScrollArea's viewport. The bare NumberField stepper's ring loses its 2px gap. ScrollArea's viewport and the `subtler` Tabs keep the ring inset by its width so their container doesn't clip it.
+
+- 58b2703: `Pane.Footer` has a little more room above its content and casts a soft shadow
+  up over the body. A `Pane` outside a `Navigator` no longer pads its bottom for a
+  phone tab bar that can't be there, so its footer sits at the bottom on phones.
+- 494b3f5: A `Pane` now remembers its scroll for the history entry you're on, even after
+  a push that keeps the same `Navigator` value, such as a change to the query
+  alone. Before, it kept saving to the entry it was on before the push, so going
+  back put the pane at the newer entry's position. Going back or forward to an
+  entry on the same route now restores that entry's scroll too.
+- d27a4c0: `Autocomplete` and `Combobox` now list the closest matches first as you type,
+  so the highlighted first option, and Enter, take the likeliest one. An exact
+  match leads, then labels that start with the text, then labels with a word
+  that starts with it, then labels that contain it anywhere. Matches of the same
+  kind keep the order of `items`, grouped items are ranked within their group,
+  and case and accents don't count. Typing "Rock" over `['Hard rock', 'Rock']`
+  now lists Rock first. With `limit` on a flat list, ranking comes first, so the
+  closest matches are the ones kept; grouped items fill the limit group by group,
+  in your group order.
+
+  `Combobox` opened without typing still shows `items` in your order.
+  `Autocomplete` ranks by its value, whether typed or set in code. Pass your own
+  `filter` or `filteredItems` to keep your order. Server results passed as
+  `items` without `filter={null}` are now re-ranked; add `filter={null}` to keep
+  the server's order. A `Combobox` given a `createItems()` collection keeps its
+  order.
+
+  For grouped items, pass a function to `Autocomplete.List` or `Combobox.List`
+  rather than mapping your source groups inside it, so the groups filter and
+  rank.
+
+- a9a6b8a: Add selection utilities, so a set of choices takes its label colours from the system rather than from each component. `is-unselected` marks an unchosen item: subtle text that lifts to normal text on hover. `is-selected-label` and `is-selected-label-on-strong` give a chosen item the label of `is-selected` or `emphasis-strong` when an indicator behind it draws the fill.
+
+  `Toggle`, `ToggleGroup` and `Tabs` now compose these utilities. An unpressed `subtler` `Toggle` now lifts its label to normal text on hover, as `ToggleGroup` and `Tabs` items already did. A `text-*` class passed to a subtler `Toggle`, a `ToggleGroup` item or a tab no longer changes its label colour, because these utilities now set it.
+
+- b2c534d: `Switch` renders a native `<button>`, so a bottom `Drawer`'s swipe no longer
+  swallows a tap on it, and its label's `for` now points at the switch itself.
+- cf4f202: A horizontal `ToggleGroup` that runs out of room now scrolls sideways, as
+  `Tabs` does, instead of squashing its items until the labels overflow. It
+  scrolls the pressed item into view, and a focus ring stays inside the track. A
+  side with more items to scroll to fades out, and the arrow keys, Home, and End
+  scroll each item they focus clear of it. Items keep equal widths while
+  they fit.
+- b2c534d: `Autocomplete` and `Combobox` options can be chosen with a tap on an iPhone.
+  Before, WebKit dropped the tap's click, so a tapped suggestion closed the list
+  without choosing. Touch and pen now choose an option when the finger lifts on
+  the option it went down on, and the list stays open while the finger is down,
+  even if the input blurs as the keyboard goes. A drag or a scroll chooses
+  nothing, and the mouse events that follow a tap don't choose again or land on
+  whatever the choice put under the finger.
+- b0e7656: Widgets now ship `@oztix/roadie-widgets/roadie.manifest.json`, with the same shape as the other packages' manifests. It lists every export, including the Vue skins, and describes the React components (`CartDrawer`, `CartExpiryDialogs` and `CartContents`) with their props and docs pages. The Vue skins appear as exports only. Deprecated re-exports, such as `CartExpiryModals` and the `cart-drawer/core` shim, are listed under `deprecations`.
+
+  Every component in the components and charts manifests now has a `docs` link. The spot illustrations, `RoadieProvider`, `RoadieLinkProvider`, `ThemeProvider`, `RequiredIndicator`, `OptionalIndicator`, `LegendKey` and `DashboardView` link the page or section that documents them.
+
+- Updated dependencies [9196e9a]
+- Updated dependencies [0fe97b2]
+- Updated dependencies [ddcad84]
+- Updated dependencies [e2007ba]
+- Updated dependencies [cc39346]
+- Updated dependencies [4c9bc5c]
+- Updated dependencies [5e9a8bd]
+- Updated dependencies [9596020]
+- Updated dependencies [e7e4efb]
+- Updated dependencies [d52ab01]
+- Updated dependencies [bf0ec67]
+- Updated dependencies [54c87b2]
+- Updated dependencies [e7e4efb]
+- Updated dependencies [b74a7bd]
+- Updated dependencies [1336d18]
+- Updated dependencies [7fe7954]
+- Updated dependencies [0b234a4]
+- Updated dependencies [99111f3]
+- Updated dependencies [ff2f04d]
+- Updated dependencies [156ca60]
+- Updated dependencies [c09a86a]
+- Updated dependencies [f57dfba]
+- Updated dependencies [eb8cb85]
+- Updated dependencies [60bebfd]
+- Updated dependencies [94c5e81]
+- Updated dependencies [d72d07b]
+- Updated dependencies [c324014]
+- Updated dependencies [8b5de45]
+- Updated dependencies [0c67df7]
+- Updated dependencies [853d76c]
+- Updated dependencies [230a991]
+- Updated dependencies [0a72e40]
+- Updated dependencies [fe925b2]
+- Updated dependencies [83e9966]
+- Updated dependencies [ed68775]
+- Updated dependencies [ba7ede5]
+- Updated dependencies [e3b095a]
+- Updated dependencies [a9a6b8a]
+- Updated dependencies [ff2f04d]
+- Updated dependencies [1ae382b]
+- Updated dependencies [fad898f]
+  - @oztix/roadie-core@2.11.0
+
 ## 2.15.0
 
 ### Minor Changes
