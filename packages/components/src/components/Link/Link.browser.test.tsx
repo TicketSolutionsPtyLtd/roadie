@@ -495,16 +495,13 @@ describe('A strong link’s real text', () => {
     expect(pixel(fill(link))[3]).toBe(0)
   })
 
-  const pseudos = () =>
-    CSS.supports('selector(::search-text)')
-      ? ['::selection', '::target-text', '::search-text']
-      : ['::selection', '::target-text']
+  const pseudos = () => ['::selection', '::target-text']
   const highlight = (element: Element, pseudo: string) => {
     const style = getComputedStyle(element, pseudo)
     return { background: style.backgroundColor, text: style.color }
   }
 
-  it('leaves selection, fragment and find highlights native at rest', () => {
+  it('leaves selection and fragment highlights native at rest', () => {
     const { link } = renderLink({ emphasis: 'strong' })
     const plain = document.createElement('span')
     plain.textContent = 'Line-up'
@@ -518,7 +515,7 @@ describe('A strong link’s real text', () => {
   })
 
   it.each(engagements)(
-    'paints selection, fragment and find highlights in Mark on %s',
+    'paints selection and fragment highlights in Mark on %s',
     async (_, engage) => {
       const { link } = renderLink({ emphasis: 'strong' })
 
@@ -602,6 +599,40 @@ describe('A link that wraps', () => {
 })
 
 describe('Link intent', () => {
+  describe.each(['normal', 'subtle'] as const)('A %s link', (emphasis) => {
+    const tone = async (link: HTMLElement) => {
+      if (emphasis === 'normal') return layers(link).underline
+      await focusByKeyboard(link)
+      return look(link).underline
+    }
+
+    it('is neutral with intent="neutral"', async () => {
+      const { link } = renderLink({ emphasis, intent: 'neutral' })
+
+      expect(await tone(link)).toBe(tokenColor('--color-neutral-9'))
+    })
+
+    it('stays accent with no intent', async () => {
+      const { link } = renderLink({ emphasis })
+
+      expect(await tone(link)).toBe(tokenColor('--color-accent-9'))
+    })
+
+    it('stays accent inside a neutral surface with no intent of its own', async () => {
+      render(
+        <div className='intent-neutral'>
+          <Link href='#lineup' emphasis={emphasis}>
+            Ochre Kite Weekender
+          </Link>
+        </div>
+      )
+
+      expect(await tone(screen.getByRole('link'))).toBe(
+        tokenColor('--color-accent-9')
+      )
+    })
+  })
+
   function renderInDanger(props: Partial<LinkProps>) {
     render(
       <Callout intent='danger'>
@@ -884,7 +915,7 @@ describe('Link motion', () => {
   )
 
   it.each(['normal', 'strong', 'subtle'] as const)(
-    'jumps a %s link to its end state when motion is reduced',
+    'has its %s link transitions zeroed by the global reduced-motion rule',
     async (emphasis) => {
       withoutStill()
       await commands.reduceMotion(true)

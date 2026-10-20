@@ -43,7 +43,7 @@ A link keeps the colour of the text around it and underlines in the accent colou
 
 ### Intents
 
-`intent` colours the underline and tint, and a strong link’s text and fill. A `normal` or `subtle` link is always accent, as links in `.prose` are, unless you give it an `intent` of its own; an `intent-*` surface around it, such as a danger callout, doesn’t change it. A `strong` link follows the surrounding intent, neutral included: its text, underline and fill all come from that intent, and the fill matches the intent’s `emphasis-strong`. Give it `intent='accent'` for an accent link that stands out.
+`intent` colours the underline and tint, and a strong link’s text and fill. A `normal` or `subtle` link is accent, as links in `.prose` are, unless you give it an `intent` of its own, `intent='neutral'` included; an `intent-*` surface around it, such as a danger callout, doesn’t change it. A `strong` link follows the surrounding intent, neutral included: its text, underline and fill all come from that intent, and the fill matches the intent’s `emphasis-strong`. Give it `intent='accent'` for an accent link that stands out.
 
 ```tsx-live layout=stack
 {/* Neutral */}
@@ -152,7 +152,7 @@ import { Link } from '@oztix/roadie-components/link'
 - **Touch**: Nothing changes on a tap, so a touch screen never shows a hover state left behind.
 - **Motion**: With reduced motion, the fill and underline change at once, with no transition or delay.
 - **Contrast**: The `normal` tint is 17% of the link colour, so text over it keeps its contrast in light and dark. A filled `strong` link has the text and fill of `emphasis-strong` in its intent, and each letter turns as the fill reaches it, so text over the fill is always on-strong.
-- **Find and selection**: At rest a `strong` link is plain text, so find in page, selection, text fragments and copy work as they do anywhere. While it's filled, they paint in the system's highlight colours, so the selected letters stay readable.
+- **Find and selection**: At rest a `strong` link is plain text, so find in page, selection, text fragments and copy work as they do anywhere. Find in page always uses the browser’s own highlight. While the link is filled, selection and text fragments paint in the system’s highlight colours, so the letters stay readable.
 - **Forced colours**: Every link shows plain, underlined text in the system colours, and a `strong` link drops its fill.
 
 <PropsDefinitions component='Link' />

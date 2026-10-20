@@ -141,7 +141,7 @@
   --intent-mark-text: var(--color-neutral-0);
 
   --intent-link-text: var(--color-neutral-13);
-  --intent-link-own: var(--color-accent-9);
+  --intent-link-own: var(--color-neutral-9);
 
   .dark & {
     --intent-bg-normal: var(--color-neutral-2);
