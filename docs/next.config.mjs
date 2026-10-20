@@ -8,6 +8,9 @@ const nextConfig = {
   trailingSlash: true,
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   devIndicators: false,
+  // On, `next dev` rewrites a committed docs/AGENTS.md whenever a Next bump
+  // changes its block; the root AGENTS.md carries the same pointer instead.
+  agentRules: false,
   reactCompiler: true,
   allowedDevOrigins: [
     '192.168.*.*',

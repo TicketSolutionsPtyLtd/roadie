@@ -16,7 +16,9 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 
 - pnpm (`corepack enable`), Turborepo, React 19, TypeScript 5 in strict mode
   with no `any`, [Tailwind CSS v4](https://tailwindcss.com/docs) with
-  `@utility` directives, and Next.js 16 with MDX for the docs.
+  `@utility` directives, and Next.js 16 with MDX for the docs. Next 16 may
+  differ from what you know: read its guide in
+  `docs/node_modules/next/dist/docs/` before changing the docs app.
 - Interactive components wrap [Base UI](https://base-ui.com/). Steps is the one
   exception (`@ark-ui/react/steps`); build new components on Base UI.
 - Icons are [Phosphor](https://phosphoricons.com/).
