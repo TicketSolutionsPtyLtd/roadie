@@ -24,6 +24,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'schedule' && 'nightly' || github.ref }}${{ github.event.pull_request.draft && '-draft' || '' }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+# Turbo steps keep turbo's default flags and pass no `--` args, so their
+# builds hash the same as the ones pnpm install's prepare step just ran and
+# replay from the cache instead of building every package twice.
 env:
   NEXT_TELEMETRY_DISABLED: 1
   NODE_OPTIONS: --max-old-space-size=4096
@@ -154,14 +157,14 @@ jobs:
             echo "::warning title=Changelog card::The changeset check failed to run."
 
       - name: Lint and typecheck
-        run: pnpm turbo lint typecheck --affected --framework-inference=false
+        run: pnpm turbo lint typecheck --affected
         env:
           TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
       # On 4 vCPUs, jsdom suites run 8 to 20 times slower beside lint,
       # typecheck and other packages' tests, so tests run one package at a time.
       - name: Test
-        run: pnpm turbo test --affected --framework-inference=false --concurrency=1
+        run: pnpm turbo test --affected --concurrency=1
         env:
           TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
@@ -238,12 +241,12 @@ jobs:
         run: >-
           pnpm turbo test:browser
           ${{ (github.event_name != 'schedule' && github.event_name != 'workflow_dispatch') && '--affected' || '' }}
-          --framework-inference=false
           --concurrency=1
-          ${{ matrix.shard && format('-- --shard={0} --passWithNoTests', matrix.shard) || '' }}
         env:
           ROADIE_BROWSERS: ${{ matrix.browser }}
           ROADIE_QUARANTINE: skip
+          # By env, since `--` args change the hash of every task in the run.
+          ROADIE_SHARD: ${{ matrix.shard }}
           TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
       # Only Chromium takes screenshots. The log names the -actual and -diff
@@ -280,7 +283,7 @@ jobs:
       # Failures show as annotations but never block a merge.
       - name: Quarantined browser tests
         continue-on-error: true
-        run: pnpm turbo test:browser --framework-inference=false --concurrency=1
+        run: pnpm turbo test:browser --concurrency=1
         env:
           ROADIE_BROWSERS: chromium,webkit,firefox
           ROADIE_QUARANTINE: only
@@ -311,7 +314,7 @@ jobs:
         uses: ./.github/composite-actions/setup
 
       - name: Build packages
-        run: pnpm turbo build --affected --framework-inference=false
+        run: pnpm turbo build --affected
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
           TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
