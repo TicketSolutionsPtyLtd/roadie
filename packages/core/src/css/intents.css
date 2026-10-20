@@ -77,12 +77,9 @@
   --intent-mark-bg: var(--color-neutral-13);
   --intent-mark-text: var(--color-neutral-0);
 
-  /* A neutral strong link is accent, and fills as intent-accent emphasis-strong
-     does; every other intent uses its own colours and strong fill. */
+  /* A neutral strong link is accent; every other intent colours its own. */
   --intent-link-underline: var(--color-accent-9);
   --intent-link-text: var(--color-accent-11);
-  --intent-link-fill: var(--color-accent-9);
-  --intent-link-on-fill: var(--color-neutral-light-0);
 }
 
 /* Dark mode: bump surfaces up for depth separation */
@@ -146,8 +143,6 @@
 
   --intent-link-underline: var(--color-accent-9);
   --intent-link-text: var(--color-accent-11);
-  --intent-link-fill: var(--color-accent-9);
-  --intent-link-on-fill: var(--color-neutral-light-0);
   --intent-link-own: var(--color-accent-9);
 
   .dark & {
@@ -210,8 +205,6 @@
 
   --intent-link-underline: var(--color-brand-9);
   --intent-link-text: var(--color-brand-11);
-  --intent-link-fill: var(--intent-bg-strong);
-  --intent-link-on-fill: var(--intent-text-on-strong);
   --intent-link-own: var(--color-brand-9);
 
   .dark & {
@@ -304,8 +297,6 @@
 
   --intent-link-underline: var(--color-brand-secondary-9);
   --intent-link-text: var(--color-brand-secondary-11);
-  --intent-link-fill: var(--intent-bg-strong);
-  --intent-link-on-fill: var(--intent-text-on-strong);
   --intent-link-own: var(--color-brand-secondary-9);
 
   .dark & {
@@ -396,8 +387,6 @@
 
   --intent-link-underline: var(--color-accent-9);
   --intent-link-text: var(--color-accent-11);
-  --intent-link-fill: var(--intent-bg-strong);
-  --intent-link-on-fill: var(--intent-text-on-strong);
   --intent-link-own: var(--color-accent-9);
 
   .dark & {
@@ -462,8 +451,6 @@
 
   --intent-link-underline: var(--color-danger-9);
   --intent-link-text: var(--color-danger-11);
-  --intent-link-fill: var(--intent-bg-strong);
-  --intent-link-on-fill: var(--intent-text-on-strong);
   --intent-link-own: var(--color-danger-9);
 
   .dark & {
@@ -540,8 +527,6 @@
 
   --intent-link-underline: var(--color-success-9);
   --intent-link-text: var(--color-success-11);
-  --intent-link-fill: var(--intent-bg-strong);
-  --intent-link-on-fill: var(--intent-text-on-strong);
   --intent-link-own: var(--color-success-9);
 
   .dark & {
@@ -626,8 +611,6 @@
 
   --intent-link-underline: var(--color-warning-9);
   --intent-link-text: var(--color-warning-11);
-  --intent-link-fill: var(--intent-bg-strong);
-  --intent-link-on-fill: var(--intent-text-on-strong);
   --intent-link-own: var(--color-warning-9);
 
   .dark & {
@@ -704,8 +687,6 @@
 
   --intent-link-underline: var(--color-info-9);
   --intent-link-text: var(--color-info-11);
-  --intent-link-fill: var(--intent-bg-strong);
-  --intent-link-on-fill: var(--intent-text-on-strong);
   --intent-link-own: var(--color-info-9);
 
   .dark & {

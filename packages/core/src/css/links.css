@@ -74,7 +74,7 @@
 @utility link-strong {
   @apply is-focusable;
   --link-tone: var(--intent-link-underline);
-  --link-fill: var(--intent-link-fill);
+  --link-fill: var(--intent-bg-strong);
   --link-line: 0.0625em;
   --link-underline: var(--link-tone);
 
@@ -100,7 +100,7 @@
 
   &:focus-visible {
     --link-underline: var(--link-fill);
-    color: var(--intent-link-on-fill);
+    color: var(--intent-text-on-strong);
     background-size:
       100% var(--link-line),
       100% 100%;
@@ -114,7 +114,7 @@
   @media (hover: hover) {
     &:hover {
       --link-underline: var(--link-fill);
-      color: var(--intent-link-on-fill);
+      color: var(--intent-text-on-strong);
       background-size:
         100% var(--link-line),
         100% 100%;

@@ -198,14 +198,14 @@ describe('A strong link', () => {
   })
 
   it.each(engagements)(
-    'fills from the left as an accent emphasis-strong, merging its underline, on %s',
+    'fills from the left as emphasis-strong, merging its underline, on %s',
     async (_, engage) => {
       const { link } = renderLink({ emphasis: 'strong' })
 
       await engage(link)
 
       const [underline, fill] = layerColors(link)
-      const strong = emphasisStrong('intent-accent')
+      const strong = emphasisStrong('intent-neutral')
       expect(look(link).size).toBe('100% 1px, 100% 100%')
       expect(underline).toBe(fill)
       expect({ fill, text: look(link).color }).toEqual(strong)
@@ -520,7 +520,7 @@ describe('Link motion', () => {
     await hover(link)
 
     expect(pixel(at(50))).toEqual(pixel(rest))
-    expect(pixel(at(150))).toEqual(pixel(emphasisStrong('intent-accent').text))
+    expect(pixel(at(150))).toEqual(pixel(emphasisStrong('intent-neutral').text))
   })
 
   it.each(['normal', 'strong', 'subtle'] as const)(

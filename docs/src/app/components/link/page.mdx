@@ -43,7 +43,7 @@ A link keeps the colour of the text around it and underlines in the accent colou
 
 ### Intents
 
-`intent` colours the underline and tint, and a strong link’s text and fill. A `normal` or `subtle` link is always accent, as links in `.prose` are, unless you give it an `intent` of its own; an `intent-*` surface around it, such as a danger callout, doesn’t change it. A `strong` link follows the surrounding intent too, and is accent in neutral.
+`intent` colours the underline and tint, and a strong link’s text and fill. A `normal` or `subtle` link is always accent, as links in `.prose` are, unless you give it an `intent` of its own; an `intent-*` surface around it, such as a danger callout, doesn’t change it. A `strong` link follows the surrounding intent too: accent text in neutral, filling on hover with that intent’s `emphasis-strong` colours, which in neutral are near-black in light and near-white in dark.
 
 ```tsx-live layout=stack
 {/* Neutral */}
