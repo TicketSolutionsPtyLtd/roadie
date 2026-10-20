@@ -222,7 +222,8 @@ and a key the pattern marks optional is a follow-up, not a fix.
 as focus rings, overlay placement, and clipping usually are, otherwise the
 cheaper test that can fail (a keyboard path is a jsdom test with
 `userEvent`). Watch it fail on the bug, fix it, watch it pass, and repeat the
-step that found it. Triage by the host's
+step that found it, after rebuilding dist where the preview reads it (step 6;
+in Roadie, the preview builds the packages only at start). Triage by the host's
 rule (in Roadie: PR workflow section 7, where a Minor bug is fixed only if a
 real user would hit it in normal use). A bug the base branch has too, or one
 left unfixed, goes to the host's follow-up list (in Roadie: section 9), not
