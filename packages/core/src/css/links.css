@@ -129,20 +129,18 @@
        highlights over the clipped ink and ignores their text colour, so it
        keeps its own, which stay readable; -apple-system-body singles it out. */
     @supports not (font: -apple-system-body) {
-      @supports not (font: -apple-system-body) {
-        &::selection,
-        &::target-text {
+      &::selection,
+      &::target-text {
+        background-color: Mark;
+        color: MarkText;
+        -webkit-text-fill-color: MarkText;
+      }
+
+      @supports selector(::search-text) {
+        &::search-text {
           background-color: Mark;
           color: MarkText;
           -webkit-text-fill-color: MarkText;
-        }
-
-        @supports selector(::search-text) {
-          &::search-text {
-            background-color: Mark;
-            color: MarkText;
-            -webkit-text-fill-color: MarkText;
-          }
         }
       }
     }
