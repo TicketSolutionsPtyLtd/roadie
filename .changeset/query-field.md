@@ -2,64 +2,8 @@
 '@oztix/roadie-components': minor
 ---
 
-Add `QueryField` at `@oztix/roadie-components/query-field`: a search field
-that turns what you type into filter chips. It takes your chips and a
-`suggest` function, lists suggestions in the groups you return with a
-"Search for …" row, and hands what was taken to `onAccept`. Outside a
-value step, Enter searches the text unless a suggestion is marked `exact`,
-and filters are taken by arrow or click. The row Enter takes shows at the
-top, its group above the rest, highlighted for screen readers too, so Down
-moves to the next row. A row the pointer rests on takes the highlight,
-and Enter, until the pointer leaves the list. Locked chips come first with a "Set
-by this page" tooltip, and nothing in the field removes them. Backspace on an
-empty field selects the last chip, then removes it. `pendingChip` shows the
-field being given a value, `onSelectChip` hears a click, Enter, or Space on a
-chip, `focusShortcut` (one `KeyboardEvent.key` value, such as `/`, pressed
-without Cmd, Ctrl or Alt) focuses the field from anywhere on the page, and `inputRef`
-reaches the input. It works alone with `aria-label` or inside `Field`.
-`required` is announced but never blocks a form.
+Add `QueryField` (`@oztix/roadie-components/query-field`), a search field that turns what you type into filter chips.
 
-A suggestion's `remainder` stays in the field once it is taken, with the list
-open, so "melb this weekend" can take Melbourne and keep "this weekend" for
-the next suggestion. A chip's `description`, such as the dates "This weekend"
-stands for, shows in a tooltip and is read after its label. Escape with the
-list closed clears the typed text and keeps the chips, and an Escape the field
-uses doesn't reach the page. When several fields ask for the same `focusShortcut`,
-the first one mounted takes it and shows its hint. Clear also ends the value
-step, and with `onClear` it hands over the text and chips in one call. The
-search icon and Clear stay on the first row as chips wrap. Clear is round, as
-a chip's remove button is, focus ring included. A suggestion's `icon` shows
-before its label, and the "Search for …" row has a search icon. With nothing
-to suggest, no hint, no operators, and no text, the list stays closed rather
-than say No suggestions. The list is as wide as the field and sits right under
-it, so long rows truncate.
+It takes your chips and a `suggest` function, lists suggestions in the groups you return with a "Search for …" row, and hands what was taken to `onAccept`. Enter searches the typed text unless a suggestion is marked `exact`, and filters are taken by arrow or click. A suggestion's `remainder` stays in the field once it's taken, so "melb this weekend" can take Melbourne and keep "this weekend" for the next one.
 
-A `pendingChip` with two or more `operators` shows them as a toggle above the
-values, with `operator` pressed. Pressing one, or Tab and Shift+Tab in the
-input while they show, calls `onPendingOperatorChange`, keeps focus in the
-input, and asks `suggest` again. Tab from the last operator, or Shift+Tab from
-the first, leaves the input and ends the step, as any Tab out of a step does. In the value step, Enter takes the first value
-once text is typed, and when its label starts with the text, the rest shows
-faintly after the caret. The pending chip is as wide as its text in every
-browser. Mark a step's one answer `exact`, such as "City is empty",
-and Enter takes it before anything is typed.
-`pendingChip.hint`, such as "Type a number.", shows and is announced in place
-of No suggestions while no value is listed, and below the values while Enter
-has none to take for the typed text. Focus moving to something outside the
-field and its list, or a press outside them, calls `onPendingChipCancel`, as
-Escape does. Focus going nowhere, as when a phone's keyboard is put away,
-keeps the step. `pendingChip.content` shows under the values, such as a
-calendar to pick a date from. Focus stays in the input as it's pressed, and a
-press in it that ends the step closes the list, as taking a value does.
-
-To edit a chip in the list, answer `onSelectChip` with a value step whose
-`pendingChip.chipId` names the chip. The pending chip takes the chip's place,
-the text the step starts with is selected so typing replaces it, focus stays
-in the input, and taking a value keeps the list open. Ending the step in `onAccept`, as for a chip that holds one value,
-closes it. A suggestion marked `selected` is ticked, and Enter on typed text passes
-over it. Backspace in the empty field removes the edited chip, or with
-`onPendingChipBackspace`, calls it instead, such as to bring back text the
-step set aside. Escape, Enter
-on the text the step started with or with no new value to take, or focus
-leaving the field ends the step and keeps the chip. Enter keeps the step while typed text matches no value, so the hint
-stays.
+A `pendingChip` runs a value step: picking a field, such as Venue, shows its values, under a toggle of `operators` when it has more than one, with an optional `hint` and `content`, such as a calendar. `onSelectChip` and `pendingChip.chipId` edit an existing chip in the list. `locked` chips, such as the page's scope, come first and nothing in the field removes them. Backspace in an empty field selects the last chip, then removes it, and `focusShortcut` focuses the field from anywhere on the page. It works alone with `aria-label` or inside `Field`.

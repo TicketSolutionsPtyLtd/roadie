@@ -1,0 +1,214 @@
+/* ═══════════════════════════════════════════════════════════
+   Link Utilities
+   Text link styles by emphasis: link-normal, link-strong and
+   link-subtle, with their hover and focus-visible motion and
+   is-focusable's ring, so a bare link or a .prose one needs no other
+   class. Their transition replaces is-focusable's in the same rule; a
+   doubled selector would instead break where nesting is lowered under
+   a complex parent such as .prose.
+
+   normal and subtle are accent, or the colour of an intent class
+   on the link itself (--intent-link-own, which doesn't inherit);
+   strong follows the surrounding intent, neutral included.
+   Backgrounds clone per line, so a wrapped link animates on each.
+   Reduced motion jumps to the end state through motion.css.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Registered so the underline's colour animates into the fill's. */
+@property --link-underline {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
+/* The underline is a layer at the bottom and the fill sits just above it.
+   Engaged, the underline takes the fill's colour, so the two read as one
+   shape as the fill completes. */
+@utility link-normal {
+  @apply is-focusable;
+  --link-tone: var(--intent-link-own, var(--color-accent-9));
+  --link-fill: color-mix(in oklch, var(--link-tone) 17%, transparent);
+  --link-line: 0.0625em;
+  --link-underline: var(--link-tone);
+
+  background-image:
+    linear-gradient(var(--link-underline), var(--link-underline)),
+    linear-gradient(var(--link-fill), var(--link-fill));
+  background-repeat: no-repeat;
+  background-position:
+    left bottom,
+    left bottom var(--link-line);
+  background-size:
+    100% var(--link-line),
+    100% 0%;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+
+  transition:
+    var(--interactive-transition),
+    background-size var(--duration-moderate) var(--ease-spring),
+    --link-underline var(--duration-moderate) var(--ease-spring);
+
+  &:focus-visible {
+    --link-underline: var(--link-fill);
+    background-size:
+      100% var(--link-line),
+      100% calc(100% - var(--link-line));
+  }
+
+  /* A tap leaves :hover on, so only a pointer that can hover changes it. */
+  @media (hover: hover) {
+    &:hover {
+      --link-underline: var(--link-fill);
+      background-size:
+        100% var(--link-line),
+        100% calc(100% - var(--link-line));
+    }
+  }
+
+  /* Forced colours drop gradient backgrounds, and the underline with them. */
+  @media (forced-colors: active) {
+    text-decoration-line: underline;
+  }
+}
+
+/* strong fills as emphasis-strong does. Its text is two text-clipped
+   layers over the fill: the on-strong ink grows with the fill, so each
+   letter turns as the fill reaches it, over the resting ink. The opaque fill
+   runs under the underline, so no seam shows. */
+@utility link-strong {
+  @apply is-focusable;
+  --link-tone: var(--intent-border-strong);
+  --link-fill: var(--intent-bg-strong);
+  --link-line: 0.0625em;
+  --link-underline: var(--link-tone);
+  --link-ink: var(--intent-link-text);
+  --link-ink-on: var(--intent-text-on-strong);
+
+  color: var(--link-ink);
+  background-image:
+    linear-gradient(var(--link-ink-on), var(--link-ink-on)),
+    linear-gradient(var(--link-ink), var(--link-ink)),
+    linear-gradient(var(--link-underline), var(--link-underline)),
+    linear-gradient(var(--link-fill), var(--link-fill));
+  background-repeat: no-repeat;
+  background-position:
+    left top,
+    left top,
+    left bottom,
+    left top;
+  background-size:
+    0% 100%,
+    100% 100%,
+    100% var(--link-line),
+    0% 100%;
+  -webkit-background-clip: text, text, border-box, border-box;
+  background-clip: text, text, border-box, border-box;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+
+  /* The text stays real until the sweep has reversed, then fills itself. */
+  transition:
+    var(--interactive-transition),
+    background-size var(--duration-slow) var(--ease-spring),
+    --link-underline var(--duration-slow) var(--ease-spring),
+    -webkit-text-fill-color 0s var(--duration-slow);
+
+  &:focus-visible {
+    --link-underline: var(--link-fill);
+    -webkit-text-fill-color: transparent;
+    transition:
+      var(--interactive-transition),
+      background-size var(--duration-slow) var(--ease-spring),
+      --link-underline var(--duration-slow) var(--ease-spring),
+      -webkit-text-fill-color 0s;
+    background-size:
+      100% 100%,
+      100% 100%,
+      100% var(--link-line),
+      100% 100%;
+
+    /* Clipped, the text is background, which Chromium paints its selection
+       and fragment highlights over, so they paint the letters in system
+       colours (a var() fill is ignored there). Only Chromium is known to
+       honour that, so it's gated on a Chromium-only feature; Firefox and
+       WebKit keep their own highlights, which stay readable
+       (docs/solutions/best-practices/webkit-highlight-over-clipped-text.md). */
+    @supports selector(::search-text) {
+      &::selection,
+      &::target-text {
+        background-color: Mark;
+        color: MarkText;
+        -webkit-text-fill-color: MarkText;
+      }
+    }
+  }
+
+  /* A pointer passing over waits a beat before the sweep, so it doesn't
+     flicker; focus and leaving don't wait. */
+  @media (hover: hover) {
+    &:hover {
+      --link-underline: var(--link-fill);
+      -webkit-text-fill-color: transparent;
+      transition:
+        var(--interactive-transition),
+        background-size var(--duration-slow) var(--ease-spring)
+          var(--duration-fastest),
+        --link-underline var(--duration-slow) var(--ease-spring)
+          var(--duration-fastest),
+        -webkit-text-fill-color 0s;
+      background-size:
+        100% 100%,
+        100% 100%,
+        100% var(--link-line),
+        100% 100%;
+
+      @supports selector(::search-text) {
+        &::selection,
+        &::target-text {
+          background-color: Mark;
+          color: MarkText;
+          -webkit-text-fill-color: MarkText;
+        }
+      }
+    }
+  }
+
+  /* System colours replace the layers, so the text is plain again. */
+  @media (forced-colors: active) {
+    -webkit-text-fill-color: LinkText;
+    background-image: none;
+    text-decoration-line: underline;
+  }
+}
+
+/* The leave waits a beat, so a pointer sweeping down a list doesn't flicker
+   each link it crosses. The rise's overshoot is a fraction of a pixel, so
+   it never reaches the text. */
+@utility link-subtle {
+  @apply is-focusable;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 0.0625em;
+  text-underline-offset: 0.375em;
+
+  transition:
+    var(--interactive-transition),
+    text-decoration-color var(--duration-moderate) var(--ease-enter),
+    text-underline-offset var(--duration-slower) var(--ease-spring-lively);
+  transition-delay: var(--duration-moderate);
+
+  &:focus-visible {
+    text-decoration-color: var(--intent-link-own, var(--color-accent-9));
+    text-underline-offset: 0.125em;
+    transition-delay: 0s;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      text-decoration-color: var(--intent-link-own, var(--color-accent-9));
+      text-underline-offset: 0.125em;
+      transition-delay: 0s;
+    }
+  }
+}

@@ -152,17 +152,17 @@ describe.each(renderers)('%s', (_, render) => {
     [
       'an internal link',
       [paragraph(text('Tickets', link('/events/123')))],
-      '<p><a href="/events/123">Tickets</a></p>'
+      '<p><a href="/events/123" data-slot="link" class="link-normal">Tickets</a></p>'
     ],
     [
       'an external link in a new tab',
       [paragraph(text('Map', link('https://example.com/map')))],
-      '<p><a href="https://example.com/map" target="_blank" rel="noopener noreferrer">Map</a></p>'
+      '<p><a href="https://example.com/map" target="_blank" rel="noopener noreferrer" data-slot="link" class="link-normal">Map</a></p>'
     ],
     [
       'a mailto link',
       [paragraph(text('Email us', link('mailto:help@example.com')))],
-      '<p><a href="mailto:help@example.com">Email us</a></p>'
+      '<p><a href="mailto:help@example.com" data-slot="link" class="link-normal">Email us</a></p>'
     ]
   ])('renders %s', (_, content, html) => {
     expect(render(valueOf(...content))).toBe(html)
@@ -248,7 +248,7 @@ describe.each(renderers)('%s', (_, render) => {
         )
       )
     ).toBe(
-      '<p><strong>Hi</strong></p><ol><li><p>One</p></li></ol><p><a href="/go">Go</a></p>'
+      '<p><strong>Hi</strong></p><ol><li><p>One</p></li></ol><p><a href="/go" data-slot="link" class="link-normal">Go</a></p>'
     )
   })
 
@@ -262,7 +262,7 @@ describe.each(renderers)('%s', (_, render) => {
       )
     ).toBe(
       '<p>&lt;script&gt;alert(1)&lt;/script&gt; &amp; co</p>' +
-        '<p><a href="/a&quot;&gt;&lt;script&gt;x&lt;/script&gt;">Go</a></p>'
+        '<p><a href="/a&quot;&gt;&lt;script&gt;x&lt;/script&gt;" data-slot="link" class="link-normal">Go</a></p>'
     )
   })
 

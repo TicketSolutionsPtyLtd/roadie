@@ -1,0 +1,158 @@
+export const metadata = {
+  title: 'Link',
+  description: 'A text link that routes through your app’s router and underlines to match its emphasis',
+  status: 'beta',
+  category: 'Navigation',
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+import { Guideline, Guidelines } from '@/components/Guideline'
+
+A text link that routes through your app’s router and underlines to match its emphasis.
+
+## Import
+
+```tsx
+import { Link } from '@oztix/roadie-components/link'
+```
+
+## Examples
+
+### Default
+
+A link keeps the colour of the text around it and underlines in the accent colour. On hover and on keyboard focus, a tint grows up from the underline behind the text, and the underline blends into it, on every line the link wraps to.
+
+```tsx-live
+<p>
+  Gates open at 4pm. Read the <Link href='#default'>Ochre Kite Weekender FAQ</Link> before you travel.
+</p>
+```
+
+### Emphasis
+
+`normal` is the default. `strong` colours the text too, for a link that has to stand out from the text around it. On hover it fills from the left the way `emphasis-strong` does, after a 50ms pause so a passing pointer doesn’t set it off, and each letter turns to the on-strong colour as the fill reaches it. `subtle` shows its underline only on hover or keyboard focus, rising and fading in, for a link whose place already says it's a link. It fades out a beat after the pointer leaves, so sweeping across a list doesn't flicker. With reduced motion, each one jumps straight to its end state.
+
+```tsx-live layout=stack
+{/* Normal */}
+<Link href='#emphasis'>View the line-up</Link>
+{/* Strong */}
+<Link href='#emphasis' emphasis='strong'>View the line-up</Link>
+{/* Subtle */}
+<Link href='#emphasis' emphasis='subtle'>View the line-up</Link>
+```
+
+### Intents
+
+`intent` colours the underline and tint, and a strong link’s text and fill. A `normal` or `subtle` link is accent, as links in `.prose` are, unless you give it an `intent` of its own, `intent='neutral'` included; an `intent-*` surface around it, such as a danger callout, doesn’t change it. A `strong` link follows the surrounding intent, neutral included: its text, underline and fill all come from that intent, and the fill matches the intent’s `emphasis-strong`. Give it `intent='accent'` for an accent link that stands out.
+
+```tsx-live layout=stack
+{/* Neutral */}
+<Link href='#intents' emphasis='strong'>Refund policy</Link>
+{/* Accent */}
+<Link href='#intents' emphasis='strong' intent='accent'>Refund policy</Link>
+{/* Danger */}
+<Link href='#intents' emphasis='strong' intent='danger'>Refund policy</Link>
+{/* Success */}
+<Link href='#intents' emphasis='strong' intent='success'>Refund policy</Link>
+{/* Warning */}
+<Link href='#intents' emphasis='strong' intent='warning'>Refund policy</Link>
+```
+
+```tsx-live width=140
+<Callout intent='danger'>
+  <Callout.Title>Payment declined</Callout.Title>
+  <Callout.Description>
+    Try another card, or <Link href='#intents'>contact your bank</Link>. Read about <Link href='#intents' intent='danger'>declined payments</Link> or <Link href='#intents' emphasis='strong'>update your card</Link>.
+  </Callout.Description>
+</Callout>
+```
+
+### In running text
+
+Links in `.prose` and the `Prose` component share the `normal` style, its hover and focus motion included, so a `Link` beside rendered content looks and moves the same as the links inside it.
+
+```tsx-live-prose
+<div className='prose'>
+  <p>
+    Tickets for <a href='#in-running-text'>Velvet Dingo Fest</a> are on sale now. Check the <Link href='#in-running-text'>accessibility guide</Link> for step-free entry.
+  </p>
+</div>
+```
+
+### External link
+
+An `https://` href opens in a new tab with `rel='noopener noreferrer'`. Say so in the text, so it isn't a surprise.
+
+```tsx-live
+<p>
+  Plan your trip on the <Link href='https://example.com/transport'>transport site (opens in a new tab)</Link>.
+</p>
+```
+
+## Your router’s Link
+
+Pass your router’s Link, such as `next/link`, to `RoadieProvider` once at the app root, as [Linking](/foundations/linking) shows. Then use Roadie’s `Link` everywhere else. An internal href routes through the router you passed, with its prefetch and client navigation; an external one opens in a new tab; and an unsafe one, such as `javascript:`, is refused. Every link-bearing component, such as `Button` with `href`, routes the same way.
+
+```tsx
+'use client'
+
+import NextLink from 'next/link'
+import { RoadieProvider } from '@oztix/roadie-components'
+
+export function Providers({ children }) {
+  return <RoadieProvider link={NextLink}>{children}</RoadieProvider>
+}
+```
+
+```tsx
+import { Link } from '@oztix/roadie-components/link'
+
+<Link href='/events/123'>Ochre Kite Weekender</Link>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Choose the emphasis by place'>
+  <Guideline.Do code={`<Link href='/faq'>Read the FAQ</Link>`}>
+    Use <code>normal</code> in running text, <code>strong</code> for a link that stands alone, such as "View all events" under a list, and <code>subtle</code> where the place already says it's a link, such as a footer or a list of links.
+  </Guideline.Do>
+  <Guideline.Dont code={`<p>Read the <Link href='/faq' emphasis='subtle'>FAQ</Link> first.</p>`}>
+    Don't use <code>subtle</code> in a sentence. With no underline at rest, nothing tells the link from the words around it.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Links go somewhere, buttons do something'>
+  <Guideline.Do code={`<Button onClick={addToCart}>Add to cart</Button>`}>
+    Use <code>Button</code> for an action, such as saving or adding to the cart, and <code>Button</code> with <code>href</code> for a call to action that navigates.
+  </Guideline.Do>
+  <Guideline.Dont code={`<Link href='#' onClick={addToCart}>Add to cart</Link>`}>
+    Don't make a link that only runs a handler. A screen reader announces it as navigation, and a middle click opens the page again in a new tab.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Import your router’s Link only in the provider'>
+  <Guideline.Do code={`<Link href='/events'>Events</Link>`}>
+    Use Roadie’s <code>Link</code> for every text link, so it routes, refuses unsafe hrefs, and looks the same everywhere.
+  </Guideline.Do>
+  <Guideline.Dont code={`import NextLink from 'next/link'`}>
+    Don't import <code>next/link</code> anywhere but the file that sets up <code>RoadieProvider</code>.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- **Element**: Renders a native `<a href>`, so Enter follows it and the browser’s link menu, middle click and modified clicks work.
+- **Focus**: Keyboard focus shows the Roadie focus ring and the same change as hover, so a `subtle` link shows its underline.
+- **Name**: The link text is its accessible name. Write text that makes sense out of context, such as "View the line-up", not "Click here".
+- **New tabs**: An external link opens in a new tab, and `Link` doesn't announce it. Say so in the text, as the external example does.
+- **Touch**: Nothing changes on a tap, so a touch screen never shows a hover state left behind.
+- **Motion**: With reduced motion, the fill and underline change at once, with no transition or delay.
+- **Contrast**: The `normal` tint is 17% of the link colour, so text over it keeps its contrast in light and dark. A filled `strong` link has the text and fill of `emphasis-strong` in its intent, and each letter turns as the fill reaches it, so text over the fill is always on-strong.
+- **Find and selection**: At rest a `strong` link is plain text, so find in page, selection, text fragments and copy work as they do anywhere. Find in page always uses the browser’s own highlight. While the link is filled, selection and text fragments paint in the system’s highlight colours, so the letters stay readable.
+- **Forced colours**: Every link shows plain, underlined text in the system colours, and a `strong` link drops its fill.
+
+<PropsDefinitions component='Link' />

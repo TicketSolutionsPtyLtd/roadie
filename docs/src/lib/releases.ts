@@ -490,14 +490,17 @@ export function pageSubpaths(
 }
 
 /**
- * Import path → the Unix time it first appeared: an `exports` key added to
- * a package's `package.json`, from `git log -p`, or a component folder
- * added under `packages/components/src/components`, whose subpaths a
- * wildcard exports, from `git log --diff-filter=A --name-only`.
+ * Import path → the Unix time it first became importable: an `exports` key
+ * added to a package's `package.json`, from `git log -p`, or a component's
+ * export from the components barrel, `packages/components/src/index.tsx`,
+ * which is how components shipped before they had subpaths. A component
+ * folder can predate both, so its creation never counts.
  */
-export function subpathTimes(exportsLog: string, foldersLog: string) {
+export function subpathTimes(exportsLog: string, barrelLog: string) {
   const times = new Map<string, number>()
-  // `git log` runs newest first, so the last time seen is the oldest.
+  // `git log` runs newest first, so the oldest time seen wins.
+  const keep = (path: string, seconds: string) =>
+    times.set(path, Math.min(Number(seconds), times.get(path) ?? Infinity))
   for (const chunk of exportsLog.split('\x1e').slice(1)) {
     const [seconds = '0', ...lines] = chunk.split('\n')
     let name: string | undefined
@@ -506,17 +509,14 @@ export function subpathTimes(exportsLog: string, foldersLog: string) {
       if (file)
         name = RELEASED_PACKAGES.find((pkg) => pkg.dir === file[1])?.name
       const key = line.match(/^\+\s+"\.\/([^"*]+)"\s*:/)?.[1]
-      if (name && key) times.set(`${name}/${key}`, Number(seconds))
+      if (name && key) keep(`${name}/${key}`, seconds)
     }
   }
-  for (const chunk of foldersLog.split('\x1e').slice(1)) {
-    const [seconds = '0', ...files] = chunk.trim().split('\n')
-    for (const file of files) {
-      const folder = file.match(
-        /^packages\/components\/src\/components\/([^/]+)\/index\.tsx$/
-      )?.[1]
-      if (folder)
-        times.set(`@oztix/roadie-components/${kebab(folder)}`, Number(seconds))
+  for (const chunk of barrelLog.split('\x1e').slice(1)) {
+    const [seconds = '0', ...lines] = chunk.split('\n')
+    for (const line of lines) {
+      const folder = line.match(/^\+.*\bfrom '\.\/components\/([^/']+)/)?.[1]
+      if (folder) keep(`@oztix/roadie-components/${kebab(folder)}`, seconds)
     }
   }
   return times
@@ -814,6 +814,7 @@ const keysOf = (names: string[]) =>
 
 /** The page that introduces a package with no component page of its own. */
 export const PACKAGE_PAGES: Record<string, string> = {
+  '@oztix/roadie-editor': '/components/editor',
   '@oztix/roadie-eslint-plugin': '/overview/linting'
 }
 
@@ -1321,11 +1322,12 @@ function readPageRelease(route: string): PageRelease {
         ...RELEASED_PACKAGES.map(({ dir }) => `packages/${dir}/package.json`)
       ]),
       log([
-        '--diff-filter=A',
         '--format=%x1e%ct',
-        '--name-only',
+        '-p',
+        '--unified=0',
+        '--no-color',
         '--',
-        'packages/components/src/components'
+        'packages/components/src/index.tsx'
       ])
     )
   }

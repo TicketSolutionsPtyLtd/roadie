@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'Records model',
   description:
-    'Fields describe an entity once. Views save a search, filters, sort and layout as JSON. The same view runs in the browser, on a server, in Meilisearch and in a URL.',
+    'Fields describe a list once, and a view saves its search, filters, sort, and layout as JSON that means the same in the browser, on a server, in Meilisearch, and in a URL.',
   status: 'alpha',
   category: 'Building apps'
 }
@@ -234,16 +234,18 @@ in the viewer's zone, so "today" is today's date at every venue. An event at
 
 Relative ranges have one fixed meaning: a week is Monday to Sunday, a weekend
 is Saturday and Sunday, rolling windows count today, and the financial year
-starts in July. The core functions also take `weekStart` and
-`fiscalYearStart`, but the Records components always use these defaults, so
-keep them wherever a view also runs in the browser. Each range has one form:
-the last, this, or next day, week, month, quarter, or year is a word, such as
-`this-week` or `last-quarter`, and any other period is an object, such as
-`{ period: 'month', offset: -2 }`. `validateRecordView`, the URL, typed
-phrases, and `DateRangePicker` all write `{ period: 'week', offset: 0 }` as
-`this-week`, so two views that mean the same compare equal. Hour windows and the open
-ranges upcoming, past, and ongoing compare the instant, except on a plain date,
-where upcoming starts today and past ends yesterday. Outside a timestamp, their `detail` gives days, never the viewer's clock: "From 16 Oct 2026, unless already over" for upcoming on an event with an end, "unless already started" on one with only a start, and "From 16 Oct 2026" on a plain date. A range field matches when any part of it overlaps, so a five-night
+starts in July. The core functions take `weekStart` and `fiscalYearStart`, but
+the Records components always use these defaults, so keep them wherever a view
+also runs in the browser.
+
+Each range has one form: the last, this, or next day, week, month, quarter, or
+year is a word, such as `this-week` or `last-quarter`, and any other period is
+an object, such as `{ period: 'month', offset: -2 }`. Two views that mean the
+same then compare equal.
+
+Hour windows and the open ranges upcoming, past, and ongoing compare the
+instant, except on a plain date, where upcoming starts today and past ends
+yesterday. A range field matches when any part of it overlaps, so a five-night
 festival is on this weekend if one night is.
 
 A time written without an offset names one moment, in the record's or the
@@ -480,9 +482,8 @@ To search events and orders together, call it once per entity with its
 `field:value`, field names, option and status values, booleans by name, and
 date phrases. Each part of the text gets its best reading first, with the rest
 kept as `remainder`. A phrase always becomes a visible, editable chip, never
-hidden logic. On the docs site, the first four suggestions for "melb this
-weekend" show as comments under the call, with each one's kind, label, and
-remainder.
+hidden logic. On the docs site, the suggestions for "melb this weekend" show
+as comments under the call, with each one's kind, label, and remainder.
 
 <QuerySuggestions />
 

@@ -12,14 +12,15 @@ on:
   # is a no-op — the version job finds nothing and Publish is skipped.
   workflow_dispatch:
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
-
 jobs:
   # Opens or updates the version PR. It has no environment and no id-token, so
   # nothing it runs can mint an npm publish token.
   version:
     name: Version
     runs-on: ubuntu-latest
+    # Per job, not per workflow: a Publish waiting on its approval holds its
+    # group, and a workflow-wide group would queue every later run behind it.
+    concurrency: ${{ github.workflow }}-version-${{ github.ref }}
     permissions:
       contents: write
       pull-requests: write
@@ -85,6 +86,7 @@ jobs:
       needs.version.outputs.has-changesets == 'false' &&
       needs.version.outputs.unpublished != '0'
     runs-on: ubuntu-latest
+    concurrency: ${{ github.workflow }}-publish-${{ github.ref }}
     environment: production
     permissions:
       contents: write

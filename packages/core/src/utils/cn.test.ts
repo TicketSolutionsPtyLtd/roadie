@@ -48,6 +48,19 @@ describe('cn', () => {
     }
   })
 
+  it('lets a consumer’s link emphasis replace a component’s', () => {
+    const links = readFileSync(
+      fileURLToPath(new URL('../css/links.css', import.meta.url)),
+      'utf8'
+    ).match(/(?<=@utility )link-[\w-]+/g)
+
+    expect(links).toContain('link-subtle')
+    for (const link of links ?? []) {
+      expect(cn(link, 'link-normal')).toBe('link-normal')
+      expect(cn('link-normal', link)).toBe(link)
+    }
+  })
+
   it('dedupes the selection states, which each set the label colour', () => {
     const states = readFileSync(
       fileURLToPath(new URL('../css/emphasis.css', import.meta.url)),

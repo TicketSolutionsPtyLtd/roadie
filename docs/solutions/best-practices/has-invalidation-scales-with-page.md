@@ -77,6 +77,14 @@ End every selector that runs past a `:has()` on something narrow:
 5. **No `:has()` on a frequently changing attribute** when React can set a
    data attribute on the root instead (DataTable's `data-show-all`).
 
+6. **No nodes added or removed as someone types.** Inserting or removing a
+   node fires every `:has()` anchor above it, so a
+   value redrawn on each keystroke restyles the page each time. Draw changing
+   text from an attribute instead: QueryField's typeahead ghost is one span
+   with `data-ghost={ghost}` and `before:content-[attr(data-ghost)]`
+   (roadie#560), and its browser test records `childList` mutations while
+   typing and expects none.
+
 Even a class added to every row (a per-row class) restyles every row when
 an anchor fires, so a variable is better there.
 

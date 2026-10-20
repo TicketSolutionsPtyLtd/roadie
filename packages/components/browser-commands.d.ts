@@ -7,6 +7,8 @@ type PointerStep =
 declare module 'vitest/browser' {
   interface BrowserCommands {
     reduceMotion: (reduce: boolean) => Promise<void>
+    /** The CSS as a production build ships it, with nesting lowered. */
+    optimizeCss: (css: string) => Promise<string>
     /** Resolves false where it can't emulate, which is everywhere but Chromium. */
     reduceTransparency: (reduce: boolean) => Promise<boolean>
     forcedColors: (active: boolean) => Promise<void>
