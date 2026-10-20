@@ -154,8 +154,9 @@
   }
 
   @supports selector(::search-text) {
-    &::search-text,
-    &::search-text:current {
+    /* Not ::search-text:current: Lightning CSS rejects a pseudo-class after
+       it, and fails the build. */
+    &::search-text {
       background-color: color-mix(
         in oklch,
         var(--color-info-9) 25%,
