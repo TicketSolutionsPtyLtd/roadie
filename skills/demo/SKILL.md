@@ -85,8 +85,9 @@ the session has (Playwright MCP: `browser_press_key`, `browser_snapshot`, and
 repeat the keyboard and overlay checks in WebKit and Firefox for a focus or
 layout change when the repo installs them (Roadie's browser tests do).
 
-With Playwright, this script saved next to `shoot.mjs` records the console
-and walks the tab order so you start from facts. Run
+With Playwright, this script records the console and walks the tab order so
+you start from facts. Save it inside the repo at a gitignored path, as step 4
+does `shoot.mjs` (Roadie ignores `.scratch/`), and run
 `node .scratch/explore.mjs <url> '<css selector>' [tab stops]`, then drive the
 rest by hand from the same page, or in an MCP:
 
