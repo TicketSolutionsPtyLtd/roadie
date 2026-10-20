@@ -63,6 +63,7 @@ export const TWIN_COMPONENTS = {
   ShadowScale: 'drawing',
   SpacingScale: 'rendered',
   Stage: 'drawing',
+  StatusKey: 'rendered',
   TimeStyleScale: 'rendered',
   TransitionList: 'rendered',
   TypeSpecimen: 'drawing',

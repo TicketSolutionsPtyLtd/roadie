@@ -13,7 +13,8 @@
       "@roadie-core/tokens": ["../packages/core/src/tokens/manifest.ts"]
     },
     "skipLibCheck": true,
-    "incremental": true
+    "incremental": true,
+    "rewriteRelativeImportExtensions": true
   },
   "include": [
     "next-env.d.ts",

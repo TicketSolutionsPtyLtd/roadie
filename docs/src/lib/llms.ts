@@ -37,6 +37,10 @@ export type MarkdownPage = {
   drawings?: ReadonlySet<string>
   /** The cross-links the site shows under the title, such as a foundation's token reference, with resolved URLs. */
   related?: { label: string; links: LlmsLink[] }
+  /** The status line the site shows under the title, as plain text. */
+  status?: string
+  /** The footer's last-updated line, as plain text. */
+  updated?: string
 }
 
 // Structure every page shares, which `transform` expands itself. PairTable
@@ -446,11 +450,17 @@ export function pageToMarkdown(page: MarkdownPage): string {
           } as BlockContent
         ]
       : []),
-    ...(page.related ? [relatedLine(page.related)] : [])
+    ...(page.related ? [relatedLine(page.related)] : []),
+    ...(page.status ? [paragraph(text(page.status))] : [])
   ]
   return processor.stringify({
     type: 'root',
-    children: [...head, ...children, ...(trailingReference as RootContent[])]
+    children: [
+      ...head,
+      ...children,
+      ...(trailingReference as RootContent[]),
+      ...(page.updated ? [paragraph(text(page.updated))] : [])
+    ]
   })
 }
 

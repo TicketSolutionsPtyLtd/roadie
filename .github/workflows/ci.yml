@@ -54,7 +54,7 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
-          browsers='[{"browser":"chromium"},{"browser":"webkit"},{"browser":"firefox","shard":"1/2"},{"browser":"firefox","shard":"2/2"}]'
+          browsers='[{"browser":"chromium"},{"browser":"webkit"},{"browser":"firefox","shard":"1/3"},{"browser":"firefox","shard":"2/3"},{"browser":"firefox","shard":"3/3"}]'
           if [[ -n $PR ]]; then
             labelled=$(gh api "repos/$REPO/pulls/$PR" --jq 'any(.labels[]; .name == "full-browsers")')
             if [[ $labelled != true ]]; then browsers='[{"browser":"chromium"}]'; fi
@@ -144,6 +144,15 @@ jobs:
         if: github.event_name == 'pull_request'
         run: node scripts/check-plugin-release.mjs --base HEAD^1
 
+      # Warning only, on the changesets this PR adds, edits, or renames: wording
+      # that keeps a new component or package off the changelog's highlight
+      # cards. HEAD^1 is the base for the same reason as the size check.
+      - name: Check changesets
+        if: github.event_name == 'pull_request'
+        run: |
+          node docs/scripts/check-changesets.ts --base HEAD^1 ||
+            echo "::warning title=Changelog card::The changeset check failed to run."
+
       - name: Lint and typecheck
         run: pnpm turbo lint typecheck --affected --framework-inference=false
         env:
@@ -197,8 +206,10 @@ jobs:
       options: --user 1001 --ipc=host
     # One engine per runner: three at once backlog Vitest's Playwright bridge
     # and actions time out (vitest-dev/vitest#9941). Firefox runs files one at
-    # a time, so it is split across two runners. The changes job picks the
-    # engines, so the check names stay the same whichever engines run.
+    # a time, so it is split across three runners: on two, each shard of the
+    # components suite ran four to six minutes and the job neared its limit.
+    # The changes job picks the engines, so the check names stay the same
+    # whichever engines run.
     strategy:
       fail-fast: false
       matrix:

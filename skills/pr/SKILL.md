@@ -67,6 +67,15 @@ then the blast radius.
 **Decisions** hold the open calls you made and why, so the maintainer can
 veto them. **Out of scope** names follow-ups with ticket keys.
 
+**Changeset.** Check its wording before you post, since it becomes the
+release notes. In Roadie, a new component's changeset opens "Add `Name`"
+(several: "Add `A` and `B`"), with an optional import path in brackets, then
+a comma and what it is, which becomes the description on its changelog
+card. A new package opens "First release of `@oztix/roadie-name`" with a
+paragraph after that sentence, and entries in `RELEASED_PACKAGES` and
+`PACKAGE_PAGES`. PR workflow section 2 has the rest, and
+`node docs/scripts/check-changesets.ts` warns on a miss.
+
 Write to the host repo's content rules, keep it short, and keep it true once
 merged, because the squash commit carries it into `git log`.
 

@@ -10,7 +10,9 @@ import {
   type CatalogueCategory,
   FOUNDATIONS,
   countEntries,
-  getCatalogue
+  getCatalogue,
+  getPageStatuses,
+  parseStatus
 } from './page-manifest'
 
 const entriesIn = (groups: CatalogueCategory[], group: string) =>
@@ -182,5 +184,37 @@ describe('the Brand catalogue', () => {
         .sort()
     ).toEqual(pages.sort())
     expect(countEntries(brand)).toBe(pages.length)
+  })
+})
+
+describe('parseStatus', () => {
+  it.each(['alpha', 'beta', 'stable', 'deprecated'])('takes %s', (status) => {
+    expect(parseStatus(status, '/components/x')).toBe(status)
+  })
+
+  it('takes no status as none', () => {
+    expect(parseStatus(undefined, '/components/x')).toBeUndefined()
+  })
+
+  it('fails on no status where one is required', () => {
+    expect(() => parseStatus(undefined, '/roadie-widgets/x', true)).toThrow(
+      '/roadie-widgets/x has no status'
+    )
+  })
+
+  it.each(['experimental', 'Beta', 1])('fails on %s', (status) => {
+    expect(() => parseStatus(status, '/components/x')).toThrow(
+      '/components/x has status'
+    )
+  })
+})
+
+describe('getPageStatuses', () => {
+  it('reads the status of every page that sets one', async () => {
+    const statuses = await getPageStatuses()
+    expect(statuses['/components/record-table']).toBe('alpha')
+    expect(statuses['/foundations/records']).toBe('alpha')
+    expect(statuses['/components/button']).toBe('stable')
+    expect(statuses['/foundations/colors']).toBeUndefined()
   })
 })

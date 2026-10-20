@@ -1,9 +1,11 @@
 # @oztix/roadie-core
 
-The CSS foundation of the [Roadie Design System](https://ticketsolutionsptyltd.github.io/roadie/):
-design tokens, colour scales, intents, emphasis, elevation, typography,
-interactions and motion, built on Tailwind CSS v4. It also ships the
-framework-agnostic helpers the other Roadie packages share.
+The foundations of the [Roadie Design System](https://ticketsolutionsptyltd.github.io/roadie/):
+CSS plus framework-agnostic logic. The CSS holds the design tokens, colour
+scales, intents, emphasis, elevation, typography, interactions and motion,
+built on Tailwind CSS v4. The logic, with no React, holds records, dates and
+times, the colour generator, and dashboards, which the other Roadie packages
+and any server or framework can share.
 
 ## Install
 
@@ -47,17 +49,20 @@ utilities for hosts that can't run Tailwind v4.
 
 Each helper lives on its own subpath:
 
-| Subpath                               | What it holds                                                                             |
-| ------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `@oztix/roadie-core/utils`            | `cn`, for merging class names                                                             |
-| `@oztix/roadie-core/colors`           | Accent and neutral scales from a brand colour, OKLCH conversion, `getContrastColor`       |
-| `@oztix/roadie-core/theme`            | `getThemeScript` and `getBootstrapScript` for the first paint, and `DEFAULT_ACCENT_COLOR` |
-| `@oztix/roadie-core/datetime`         | House date, time, range, duration and countdown formats                                   |
-| `@oztix/roadie-core/image`            | Oztix image URLs, widths and `srcset`s                                                    |
-| `@oztix/roadie-core/navigator`        | The cookie and script that keep `Navigator` expanded or collapsed across loads            |
-| `@oztix/roadie-core/dataviz`          | Chart palettes, `chartColorVar`, `chartHex` for canvas and PDF, palette checks            |
-| `@oztix/roadie-core/dashboard`        | The dashboard description schema and `validateDashboard`                                  |
-| `@oztix/roadie-core/dashboard-layout` | Dashboard layout rules without the schema dependency                                      |
+| Subpath                                  | What it holds                                                                             |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `@oztix/roadie-core/utils`               | `cn`, for merging class names                                                             |
+| `@oztix/roadie-core/colors`              | Accent and neutral scales from a brand colour, OKLCH conversion, `getContrastColor`       |
+| `@oztix/roadie-core/theme`               | `getThemeScript` and `getBootstrapScript` for the first paint, and `DEFAULT_ACCENT_COLOR` |
+| `@oztix/roadie-core/datetime`            | House date, time, range, duration and countdown formats                                   |
+| `@oztix/roadie-core/image`               | Oztix image URLs, widths and `srcset`s                                                    |
+| `@oztix/roadie-core/navigator`           | The cookie and script that keep `Navigator` expanded or collapsed across loads            |
+| `@oztix/roadie-core/dataviz`             | Chart palettes, `chartColorVar`, `chartHex` for canvas and PDF, palette checks            |
+| `@oztix/roadie-core/dashboard`           | The dashboard description schema and `validateDashboard`                                  |
+| `@oztix/roadie-core/dashboard-layout`    | Dashboard layout rules without the schema dependency                                      |
+| `@oztix/roadie-core/records`             | Record fields, views, query parsing and matching, and `toRecordsRequest` for servers      |
+| `@oztix/roadie-core/records/meilisearch` | `toMeilisearch`, a records request as Meilisearch search parameters                       |
+| `@oztix/roadie-core/records/json-schema` | JSON Schemas for a records request and a saved view                                       |
 
 ```ts
 import { formatDateRange } from '@oztix/roadie-core/datetime'

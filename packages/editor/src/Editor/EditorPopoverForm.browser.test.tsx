@@ -6,19 +6,35 @@ import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
-import type { EditorValue } from '../schema'
+import {
+  type EditorValue,
+  type EmbedProvider,
+  defaultEmbedProviders
+} from '../schema'
 
 const MOD = /^(Mac|iP)/.test(navigator.platform) ? 'Meta' : 'Control'
 const LABEL = 'Event description'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
+const CROWD_ALT = 'The crowd at sunset'
+const SPOTIFY = 'https://open.spotify.com/track/exampleTrack0000000001'
+
+// The tests serve no images, so this stands in for a loaded one's size.
+const IMAGE_SIZE =
+  '[data-slot="editor-image"] img { inline-size: 320px; block-size: 180px }'
 
 let style: HTMLStyleElement
 beforeAll(() => {
   style = document.createElement('style')
-  style.textContent = roadieCss
+  style.textContent = `${roadieCss}\n${IMAGE_SIZE}`
   document.head.append(style)
 })
 afterAll(() => style.remove())
+
+// Players point at this server, so the tests load nothing from the internet.
+const localPlayers: EmbedProvider[] = defaultEmbedProviders.map((provider) => ({
+  ...provider,
+  src: ({ id }) => `/embed-test/${provider.name}/${id}`
+}))
 
 const SOLD_OUT = {
   type: 'paragraph',
@@ -28,11 +44,19 @@ const SOLD_OUT = {
 const withDoc = (...content: unknown[]): EditorValue =>
   ({
     version: 1,
-    preset: 'basic',
+    preset: 'rich',
     doc: { type: 'doc', content }
   }) as EditorValue
 
 const soldOut = withDoc(SOLD_OUT)
+const pictured = withDoc(
+  { type: 'image', attrs: { src: '/images/crowd.webp', alt: '' } },
+  SOLD_OUT
+)
+const youtube = withDoc(
+  { type: 'embed', attrs: { provider: 'youtube', id: 'exampleVid1' } },
+  SOLD_OUT
+)
 const linked = withDoc({
   type: 'paragraph',
   content: [
@@ -52,6 +76,8 @@ function renderEditor(
   render(
     <Editor
       aria-label={LABEL}
+      preset='rich'
+      embedProviders={localPlayers}
       defaultValue={defaultValue}
       onValueChange={onValueChange}
     />
@@ -92,6 +118,52 @@ const POPOVERS: Popover[] = [
     typed: TICKETS,
     submitLabel: 'Save link',
     saved: (textbox) => within(textbox).findByRole('link', { name: 'Sold' })
+  },
+  {
+    name: 'Embed',
+    placeholder: 'Paste a video or audio link',
+    value: soldOut,
+    async open(textbox) {
+      await userEvent.click(within(textbox).getByText('Sold out'))
+      await userEvent.click(screen.getByRole('button', { name: 'Embed' }))
+      return openField('Video or audio link')
+    },
+    typed: SPOTIFY,
+    submitLabel: 'Embed link',
+    saved: (textbox) =>
+      within(textbox).findByTitle('Spotify embed exampleTrack0000000001')
+  },
+  {
+    name: 'Edit link',
+    placeholder: 'Paste a video or audio link',
+    value: youtube,
+    async open(textbox) {
+      const player = await within(textbox).findByTitle(/embed/)
+      await userEvent.click(player, { force: true })
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Edit link' })
+      )
+      const field = await openField('Video or audio link')
+      await userEvent.clear(field)
+      return field
+    },
+    typed: SPOTIFY,
+    submitLabel: 'Save link',
+    saved: (textbox) =>
+      within(textbox).findByTitle('Spotify embed exampleTrack0000000001')
+  },
+  {
+    name: 'Alt text',
+    placeholder: 'Describe the image',
+    value: pictured,
+    async open(textbox) {
+      await userEvent.click(textbox.querySelector('img')!)
+      await userEvent.keyboard('{Enter}')
+      return openField('Alt text')
+    },
+    typed: CROWD_ALT,
+    submitLabel: 'Save alt text',
+    saved: (textbox) => within(textbox).findByRole('img', { name: CROWD_ALT })
   }
 ]
 
@@ -344,30 +416,43 @@ describe('Editor link popover', () => {
   })
 })
 
-describe.each([['Link', 0, 'not a web address', /web address/]] as const)(
-  'Editor %s popover refusing',
-  (_, index, typed, error) => {
-    it('shows the error and keeps focus in the field after the check button', async () => {
-      const popover = POPOVERS[index]!
-      const textbox = await renderEditor(popover.value)
-      const field = await popover.open(textbox)
-      await userEvent.type(field, typed)
+describe.each([
+  ['Link', 0, 'not a web address', /web address/],
+  ['Embed', 1, 'https://www.instagram.com/p/C1a2b3c4d5e/', /can’t be embedded/]
+] as const)('Editor %s popover refusing', (_, index, typed, error) => {
+  it('shows the error and keeps focus in the field after the check button', async () => {
+    const popover = POPOVERS[index]!
+    const textbox = await renderEditor(popover.value)
+    const field = await popover.open(textbox)
+    await userEvent.type(field, typed)
 
-      await userEvent.click(
-        screen.getByRole('button', { name: popover.submitLabel })
-      )
+    await userEvent.click(
+      screen.getByRole('button', { name: popover.submitLabel })
+    )
 
-      await waitFor(() => expect(field).toHaveAttribute('aria-invalid', 'true'))
-      expect(field).toHaveAccessibleDescription(error)
-      expect(within(popupOf(field)).getByRole('alert').textContent).toMatch(
-        error
-      )
-      expect(field).toHaveFocus()
-    })
-  }
-)
+    await waitFor(() => expect(field).toHaveAttribute('aria-invalid', 'true'))
+    expect(field).toHaveAccessibleDescription(error)
+    expect(within(popupOf(field)).getByRole('alert').textContent).toMatch(error)
+    expect(field).toHaveFocus()
+  })
+})
+
+const YOUTUBE = 'https://www.youtube.com/watch?v=exampleVid1'
 
 const PREFILLED = [
+  {
+    name: 'Edit link on an embed',
+    value: youtube,
+    saved: YOUTUBE,
+    async open(textbox: HTMLElement) {
+      const player = await within(textbox).findByTitle(/embed/)
+      await userEvent.click(player, { force: true })
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Edit link' })
+      )
+      return openField('Video or audio link')
+    }
+  },
   {
     name: `${MOD}+K on a link`,
     value: linked,
@@ -386,6 +471,19 @@ const PREFILLED = [
       await userEvent.click(within(textbox).getByText('tickets'))
       await userEvent.click(screen.getByRole('button', { name: 'Link' }))
       return openField('Link')
+    }
+  },
+  {
+    name: 'Alt text on an image with alt',
+    value: withDoc(
+      { type: 'image', attrs: { src: '/images/crowd.webp', alt: CROWD_ALT } },
+      SOLD_OUT
+    ),
+    saved: CROWD_ALT,
+    async open(textbox: HTMLElement) {
+      await userEvent.click(textbox.querySelector('img')!)
+      await userEvent.keyboard('{Enter}')
+      return openField('Alt text')
     }
   }
 ]

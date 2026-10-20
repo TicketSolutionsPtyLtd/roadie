@@ -20,11 +20,17 @@ import {
   WIDGETS,
   getCatalogue,
   getMarkdownRoutes,
+  getPageStatuses,
   getPageTitles,
   getPageWide,
   readPageMetadata
 } from '@/lib/page-manifest'
-import { getReleaseViews } from '@/lib/releases'
+import {
+  getPageRelease,
+  getPageUpdatedDates,
+  getReleaseViews
+} from '@/lib/releases'
+import { getSourceLinks } from '@/lib/source-links'
 import { getAssetPath } from '@/utils/getAssetPath'
 
 import { getNavigatorExpandedScript } from '@oztix/roadie-core/navigator'
@@ -50,7 +56,7 @@ const flatten = (route: string, groups: CatalogueCategory[]) => [
       : []),
     ...group.entries
       .filter((entry) => !entry.crossListedFrom)
-      .map(({ title, href }) => ({ title, href }))
+      .map(({ title, href, status }) => ({ title, href, status }))
   ])
 ]
 
@@ -116,12 +122,20 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [items, pageTitles, pageWide, markdownRoutes] = await Promise.all([
-    getNavigationItems(),
-    getPageTitles(),
-    getPageWide(),
-    getMarkdownRoutes()
-  ])
+  const [items, pageTitles, pageWide, markdownRoutes, statuses] =
+    await Promise.all([
+      getNavigationItems(),
+      getPageTitles(),
+      getPageWide(),
+      getMarkdownRoutes(),
+      getPageStatuses()
+    ])
+  const pageStatus = Object.fromEntries(
+    Object.entries(statuses).map(([route, status]) => [
+      route,
+      { status, release: getPageRelease(route) }
+    ])
+  )
   // Each release has a page of its own, titled and with a markdown copy like any other.
   const releases = getReleaseViews()
   for (const { href, headlines } of releases)
@@ -150,6 +164,9 @@ export default async function RootLayout({
             markdownTwins={Object.fromEntries(
               twins.map((route) => [route, true])
             )}
+            pageStatus={pageStatus}
+            sourceLinks={getSourceLinks(releases.map(({ href }) => href))}
+            pageUpdated={getPageUpdatedDates()}
           >
             {children}
           </DocsNavigator>

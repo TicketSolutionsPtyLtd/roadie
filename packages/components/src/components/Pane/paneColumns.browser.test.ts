@@ -62,8 +62,11 @@ function sweep(
 ) {
   const mismatches: Mismatch[] = []
   for (const { name, spec } of shapes) {
+    // The tiers are container queries, so resizing one mount reaches every
+    // width without parsing and restyling the row again for each.
+    const content = mount(contentMarkup(rowMarkup(spec)), widths[0]!, dir)
     for (const width of widths) {
-      const content = mount(contentMarkup(rowMarkup(spec)), width, dir)
+      content.parentElement!.style.width = `${width}px`
       const model = modelLayoutAt(spec, width)
       const expected = hidingParked(
         dir === 'rtl' ? mirrored(model, width) : model

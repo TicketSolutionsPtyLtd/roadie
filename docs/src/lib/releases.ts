@@ -6,7 +6,8 @@ import remarkParse from 'remark-parse'
 import { unified } from 'unified'
 import { parse as parseYaml } from 'yaml'
 
-export const REPO_URL = 'https://github.com/TicketSolutionsPtyLtd/roadie'
+import { REPO_URL } from './repo.ts'
+
 export const CHANGELOG_ROUTE = '/overview/changelog'
 
 /** The packages the changelog follows, in the order a release lists them. */
@@ -14,6 +15,7 @@ export const RELEASED_PACKAGES = [
   { name: '@oztix/roadie-components', label: 'Components', dir: 'components' },
   { name: '@oztix/roadie-core', label: 'Core', dir: 'core' },
   { name: '@oztix/roadie-charts', label: 'Charts', dir: 'charts' },
+  { name: '@oztix/roadie-editor', label: 'Editor', dir: 'editor' },
   { name: '@oztix/roadie-widgets', label: 'Widgets', dir: 'widgets' },
   {
     name: '@oztix/roadie-eslint-plugin',
@@ -42,7 +44,7 @@ export type PageLink = { title: string; href: string }
 export type Change = {
   id: string
   kind: ChangeKind
-  /** A major bump: code written for the last version may need to change. */
+  /** A major bump, or a first paragraph that opens with "Breaking", as a change to an alpha or beta API in a minor does. */
   breaking: boolean
   /** Package names, such as `@oztix/roadie-core`. */
   packages: string[]
@@ -66,6 +68,8 @@ export type Release = {
   id: string
   /** `YYYY-MM-DD` in UTC, or null when the checkout has no history to date it. */
   date: string | null
+  /** The versioning commit's Unix time, or null without history. */
+  time: number | null
   packages: PackageVersion[]
   changes: Change[]
 }
@@ -86,6 +90,10 @@ const SECTION_BUMPS: Record<string, Bump> = {
   'Minor Changes': 'minor',
   'Patch Changes': 'patch'
 }
+
+/** A commit's day in UTC, not the committer's zone, which differs by who merged. */
+const utcDate = (seconds: number) =>
+  new Date(seconds * 1000).toISOString().slice(0, 10)
 
 const packageOf = (name: string) =>
   RELEASED_PACKAGES.find((pkg) => pkg.name === name)
@@ -224,7 +232,7 @@ export function toChange(
   return {
     id: entry.id,
     kind: classify(summary, entry.bump),
-    breaking: entry.bump === 'major',
+    breaking: entry.bump === 'major' || /^\W*breaking\b/i.test(lead),
     packages: entry.packages,
     summary,
     details,
@@ -331,7 +339,7 @@ export function groupReleases(
   const slugs = new Set<string>()
   return [...groups.values()]
     .sort((a, b) => b.time - a.time)
-    .map(({ date, packages, entries }) => {
+    .map(({ date, time, packages, entries }) => {
       packages.sort((a, b) => orderOf(a.name) - orderOf(b.name))
       let id = releaseSlug(packages)
       for (let n = 2; slugs.has(id); n++) id = `${releaseSlug(packages)}-${n}`
@@ -339,6 +347,7 @@ export function groupReleases(
       return {
         id,
         date,
+        time: date === null ? null : time,
         packages,
         changes: mergeEntries(entries).map((entry) => toChange(entry, index))
       }
@@ -384,12 +393,14 @@ export function byKind<T extends { kind: ChangeKind }>(changes: T[]) {
   })).filter((group) => group.changes.length > 0)
 }
 
-type ManifestJson = {
+export type ManifestJson = {
+  package?: string
   exports?: { subpath: string; import: string; values?: string[] }[]
   components?: { name: string; import: string; docs?: string }[]
 }
 
-const SITE_PREFIX = /^https:\/\/ticketsolutionsptyltd\.github\.io\/roadie/
+export const SITE_PREFIX =
+  /^https:\/\/ticketsolutionsptyltd\.github\.io\/roadie/
 
 /**
  * Names and import paths → docs pages, from the packages' manifests. A
@@ -439,6 +450,201 @@ export function buildPageIndex(
     }
   }
   return index
+}
+
+/** A release a page names: the version of the page's package in it, and the release's anchor. */
+export type ReleaseRef = {
+  label: string
+  version: string
+  date: string | null
+  id: string
+}
+
+export type PageRelease = {
+  /** The first release with the page's component, or 'unreleased' when it's only pending. */
+  added: ReleaseRef | 'unreleased' | null
+  /** The newest release with a change that names the page, when that isn't `added`. */
+  updated: ReleaseRef | null
+  /** A pending change names the page. */
+  upcoming: boolean
+}
+
+export type PageSubpath = { packageName: string; importPath: string }
+
+/** Docs route → the package and import path of the first component it documents. */
+export function pageSubpaths(
+  manifests: ManifestJson[]
+): Map<string, PageSubpath> {
+  const subpaths = new Map<string, PageSubpath>()
+  for (const manifest of manifests) {
+    for (const { docs, import: importPath } of manifest.components ?? []) {
+      const route =
+        docs && SITE_PREFIX.test(docs)
+          ? docs.replace(SITE_PREFIX, '').split('#')[0]!.replace(/\/$/, '')
+          : undefined
+      if (route && manifest.package && !subpaths.has(route))
+        subpaths.set(route, { packageName: manifest.package, importPath })
+    }
+  }
+  return subpaths
+}
+
+/**
+ * Import path → the Unix time it first appeared: an `exports` key added to
+ * a package's `package.json`, from `git log -p`, or a component folder
+ * added under `packages/components/src/components`, whose subpaths a
+ * wildcard exports, from `git log --diff-filter=A --name-only`.
+ */
+export function subpathTimes(exportsLog: string, foldersLog: string) {
+  const times = new Map<string, number>()
+  // `git log` runs newest first, so the last time seen is the oldest.
+  for (const chunk of exportsLog.split('\x1e').slice(1)) {
+    const [seconds = '0', ...lines] = chunk.split('\n')
+    let name: string | undefined
+    for (const line of lines) {
+      const file = line.match(/^\+\+\+ b\/packages\/([^/]+)\/package\.json$/)
+      if (file)
+        name = RELEASED_PACKAGES.find((pkg) => pkg.dir === file[1])?.name
+      const key = line.match(/^\+\s+"\.\/([^"*]+)"\s*:/)?.[1]
+      if (name && key) times.set(`${name}/${key}`, Number(seconds))
+    }
+  }
+  for (const chunk of foldersLog.split('\x1e').slice(1)) {
+    const [seconds = '0', ...files] = chunk.trim().split('\n')
+    for (const file of files) {
+      const folder = file.match(
+        /^packages\/components\/src\/components\/([^/]+)\/index\.tsx$/
+      )?.[1]
+      if (folder)
+        times.set(`@oztix/roadie-components/${kebab(folder)}`, Number(seconds))
+    }
+  }
+  return times
+}
+
+function pageDates(log: string, newest: boolean): Map<string, string> {
+  const dates = new Map<string, string>()
+  for (const chunk of log.split('\x1e').slice(1)) {
+    const [seconds = '0', ...files] = chunk.trim().split('\n')
+    const date = utcDate(Number(seconds))
+    for (const file of files) {
+      const route = file.match(/^docs\/src\/app(\/.*)?\/page\.(mdx|tsx)$/)
+      const key = route ? (route[1] ?? '/') : undefined
+      if (!key) continue
+      // By date, not log order, which a rebase or a skewed clock can shuffle.
+      const known = dates.get(key)
+      if (!known || (newest ? date > known : date < known)) dates.set(key, date)
+    }
+  }
+  return dates
+}
+
+/** Route → the day, in UTC, its page file was first added, from `git log --diff-filter=A --name-only` under `docs/src/app`. */
+export const pageCreatedDates = (log: string) => pageDates(log, false)
+
+/** Route → the day, in UTC, its page file last changed, from `git log --name-only` under `docs/src/app`. */
+export const pageUpdatedDates = (log: string) => pageDates(log, true)
+
+/**
+ * When a page's component first shipped and last changed. Added is the
+ * earlier of the first release of its package on or after the page's first
+ * commit and the first release whose changes name the page.
+ */
+export function pageRelease(
+  route: string,
+  { releases, unreleased }: ReleaseHistory,
+  {
+    packageName,
+    created,
+    shipped
+  }: {
+    packageName?: string
+    created?: string
+    /** When the page's import path first appeared, which decides `added` when known. */
+    shipped?: number
+  } = {}
+): PageRelease {
+  const names = (change: Change) =>
+    change.pages.some((page) => page.href.split('#')[0] === route)
+  const ref = (release: Release, newest: boolean): ReleaseRef => {
+    const named = release.changes.find(names)?.packages ?? []
+    const own = release.packages.filter((pkg) => pkg.name === packageName)
+    const candidates =
+      own.length > 0
+        ? own
+        : release.packages.filter((pkg) => named.includes(pkg.name))
+    const pkg =
+      (newest ? candidates[0] : candidates.at(-1)) ?? release.packages[0]!
+    return {
+      label: pkg.label,
+      version: pkg.version,
+      date: release.date,
+      id: release.id
+    }
+  }
+  const oldestFirst = [...releases].reverse()
+  const ownPackage = (release: Release) =>
+    release.packages.some((pkg) => pkg.name === packageName)
+  const byShipped =
+    shipped !== undefined && packageName
+      ? oldestFirst.findIndex(
+          (release) =>
+            release.time !== null &&
+            release.time >= shipped &&
+            ownPackage(release)
+        )
+      : -1
+  const byDate =
+    created && packageName
+      ? oldestFirst.findIndex(
+          (release) =>
+            release.date !== null &&
+            release.date >= created &&
+            release.packages.some((pkg) => pkg.name === packageName)
+        )
+      : -1
+  const byMention = oldestFirst.findIndex((release) =>
+    release.changes.some(names)
+  )
+  // The subpath's first release is exact; a mention or the page's age only estimates it.
+  const first =
+    shipped !== undefined
+      ? [byShipped].filter((index) => index >= 0)
+      : [byDate, byMention].filter((index) => index >= 0)
+  const addedRelease =
+    first.length > 0 ? oldestFirst[Math.min(...first)] : undefined
+  const updatedRelease = releases.find((release) => release.changes.some(names))
+  const upcoming = unreleased.changes.some(names)
+  return {
+    added: addedRelease
+      ? ref(addedRelease, false)
+      : created || upcoming || shipped !== undefined
+        ? 'unreleased'
+        : null,
+    updated:
+      updatedRelease && updatedRelease.id !== addedRelease?.id
+        ? ref(updatedRelease, true)
+        : null,
+    upcoming
+  }
+}
+
+/** A page's status and releases as one plain sentence, for its markdown copy. */
+export function statusSentence(
+  status: string,
+  { added, updated, upcoming }: PageRelease,
+  formatDate: (date: string) => string
+): string {
+  const parts = [`Status: ${status}.`]
+  if (added === 'unreleased') parts.push('Not released yet.')
+  else if (added) parts.push(`Added in ${added.label} ${added.version}.`)
+  if (updated)
+    parts.push(
+      `Updated in ${updated.label} ${updated.version}${updated.date ? `, ${formatDate(updated.date)}` : ''}.`
+    )
+  if (upcoming && added !== 'unreleased')
+    parts.push('More changes are in the next release.')
+  return parts.join(' ')
 }
 
 // Views: what the changelog page draws for each release.
@@ -532,14 +738,14 @@ export function toInline(markdown: string): Inline {
 }
 
 /** `OTPField` → `otp-field`, as component pages are named. */
-const kebab = (name: string) =>
+export const kebab = (name: string) =>
   name
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
     .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
     .toLowerCase()
 
 /** The page a component name or import path has to itself. */
-function ownPage(name: string, index: PageIndex): PageLink | undefined {
+export function ownPage(name: string, index: PageIndex): PageLink | undefined {
   const page = index.get(name)
   if (!page) return undefined
   if (name.startsWith('@')) return page
@@ -607,7 +813,7 @@ const keysOf = (names: string[]) =>
   })
 
 /** The page that introduces a package with no component page of its own. */
-const PACKAGE_PAGES: Record<string, string> = {
+export const PACKAGE_PAGES: Record<string, string> = {
   '@oztix/roadie-eslint-plugin': '/overview/linting'
 }
 
@@ -998,8 +1204,7 @@ export function versionCommits(log: string) {
     const [head = '', ...lines] = chunk.split('\n')
     const [hash = '', seconds = '0'] = head.trim().split(' ')
     const time = Number(seconds)
-    // In UTC, not the committer's zone, which differs by who merged.
-    const date = new Date(time * 1000).toISOString().slice(0, 10)
+    const date = utcDate(time)
     for (const line of lines) {
       const version = line.match(/^\+## (\S+)\s*$/)?.[1]
       // `git log` runs newest first, so the last commit seen is the oldest.
@@ -1009,9 +1214,12 @@ export function versionCommits(log: string) {
   return commits
 }
 
+// A shallow checkout's oldest commit would date every older file wrongly.
+const hasHistory = () =>
+  git(['rev-parse', '--is-shallow-repository'])?.trim() === 'false'
+
 function readCommits(dir: string): PackageChangelog['commits'] {
-  if (git(['rev-parse', '--is-shallow-repository'])?.trim() !== 'false')
-    return new Map()
+  if (!hasHistory()) return new Map()
   const log = git([
     'log',
     '--format=%x1e%H %ct',
@@ -1057,13 +1265,88 @@ const readPageInfo: PageInfo = (route) => {
     : undefined
 }
 
-function readPageIndex(): PageIndex {
-  const manifests = RELEASED_PACKAGES.map(({ dir }) =>
+export const readManifests = () =>
+  RELEASED_PACKAGES.map(({ dir }) =>
     readJson<ManifestJson>(
       join(ROOT, 'packages', dir, 'dist/roadie.manifest.json')
     )
   ).filter((manifest) => manifest !== undefined)
-  return buildPageIndex(manifests, pageTitle)
+
+function readPageIndex(): PageIndex {
+  return buildPageIndex(readManifests(), pageTitle)
+}
+
+let pageContext:
+  | {
+      subpaths: Map<string, PageSubpath>
+      created: Map<string, string>
+      shipped: Map<string, number>
+    }
+  | undefined
+
+// The layout renders once per page and asks for every page's release, so a build works each out once.
+const pageReleases = new Map<string, PageRelease>()
+
+/** Each page's added and updated releases, from the release history, its subpath's first commit, and the page's own. */
+export function getPageRelease(route: string): PageRelease {
+  let release = pageReleases.get(route)
+  if (!release) {
+    release = readPageRelease(route)
+    pageReleases.set(route, release)
+  }
+  return release
+}
+
+function readPageRelease(route: string): PageRelease {
+  const history = hasHistory()
+  const log = (args: string[]) => (history ? (git(['log', ...args]) ?? '') : '')
+  pageContext ??= {
+    subpaths: pageSubpaths(readManifests()),
+    created: pageCreatedDates(
+      log([
+        '--diff-filter=A',
+        '--format=%x1e%ct',
+        '--name-only',
+        '--',
+        'docs/src/app'
+      ])
+    ),
+    shipped: subpathTimes(
+      log([
+        '--format=%x1e%ct',
+        '-p',
+        '--unified=0',
+        '--no-color',
+        '--',
+        ...RELEASED_PACKAGES.map(({ dir }) => `packages/${dir}/package.json`)
+      ]),
+      log([
+        '--diff-filter=A',
+        '--format=%x1e%ct',
+        '--name-only',
+        '--',
+        'packages/components/src/components'
+      ])
+    )
+  }
+  const subpath = pageContext.subpaths.get(route)
+  return pageRelease(route, getReleaseHistory(), {
+    packageName: subpath?.packageName,
+    created: pageContext.created.get(route),
+    shipped: subpath && pageContext.shipped.get(subpath.importPath)
+  })
+}
+
+/** Route → the day, in UTC, its page last changed, or empty without history. */
+let updatedDates: Record<string, string> | undefined
+
+export function getPageUpdatedDates(): Record<string, string> {
+  if (updatedDates) return updatedDates
+  const log = hasHistory()
+    ? git(['log', '--format=%x1e%ct', '--name-only', '--', 'docs/src/app'])
+    : null
+  updatedDates = log ? Object.fromEntries(pageUpdatedDates(log)) : {}
+  return updatedDates
 }
 
 function readChangesets(): Changeset[] {
