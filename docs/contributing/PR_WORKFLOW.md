@@ -294,6 +294,8 @@ the maintainer.
 - Behaviour changes for consumers are named in the changeset.
 
 Never merge the Version Packages PR. The maintainer merges releases by hand.
+It shows `CI result`, mirrored from main's CI, and needs no admin bypass
+([why](../solutions/best-practices/release-pr-mirrors-main-ci.md)).
 
 ## 9. Nothing deferred is dropped
 

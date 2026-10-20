@@ -1,0 +1,58 @@
+name: Release CI status
+
+# The version commit carries [skip ci], so the Version Packages PR never runs
+# the required "CI result". This posts main's CI result for the commit the
+# release branch is built on as that check, as a commit status. Why:
+# docs/solutions/best-practices/release-pr-mirrors-main-ci.md
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  # Release calls this once Version has pushed the branch.
+  workflow_call:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  sync:
+    name: Sync CI result
+    # The branch filter also matches a pull_request run from a fork's main.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # One group for every trigger, so a sync that read the run before CI
+    # finished can't post after one that read the result.
+    concurrency:
+      group: release-ci-status
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+      statuses: write
+    steps:
+      # Only main's script; the release branch's code never runs here.
+      - name: Checkout the sync script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+          sparse-checkout: |
+            .nvmrc
+            scripts/sync-release-ci-status.mjs
+            packages/core/scripts/release-ci-status.mjs
+          sparse-checkout-cone-mode: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Mirror main's CI result onto the Version Packages PR
+        run: node scripts/sync-release-ci-status.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
