@@ -128,7 +128,11 @@ for (let i = 0; i < Number(stops); i++) {
     const el = document.activeElement
     if (!el || el === document.body) return 'body'
     // Utilities leave transparent shadows on everything, so a ring is
-    // whatever changes when focus leaves.
+    // whatever changes when focus leaves. A transitioning ring still reads
+    // as its start value, so turn transitions off while measuring.
+    const instant = document.createElement('style')
+    instant.textContent = '*, ::before, ::after { transition: none !important }'
+    document.head.append(instant)
     const look = () =>
       [getComputedStyle(el), getComputedStyle(el, '::after')]
         .map((s) => [s.outline, s.boxShadow, s.borderColor, s.backgroundColor])
@@ -137,6 +141,7 @@ for (let i = 0; i < Number(stops); i++) {
     el.blur()
     const rest = look()
     el.focus()
+    instant.remove()
     const label =
       el.getAttribute('aria-label') ?? el.textContent?.trim().slice(0, 40)
     const role = el.getAttribute('role') ?? el.tagName.toLowerCase()
