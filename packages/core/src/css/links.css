@@ -73,7 +73,7 @@
    runs under the underline, so no seam shows. */
 @utility link-strong {
   @apply is-focusable;
-  --link-tone: var(--intent-9);
+  --link-tone: var(--intent-border-strong);
   --link-fill: var(--intent-bg-strong);
   --link-line: 0.0625em;
   --link-underline: var(--link-tone);
@@ -81,7 +81,6 @@
   --link-ink-on: var(--intent-text-on-strong);
 
   color: var(--link-ink);
-  -webkit-text-fill-color: transparent;
   background-image:
     linear-gradient(var(--link-ink-on), var(--link-ink-on)),
     linear-gradient(var(--link-ink), var(--link-ink)),
@@ -103,13 +102,21 @@
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 
+  /* The text stays real until the sweep has reversed, then fills itself. */
   transition:
     var(--interactive-transition),
     background-size var(--duration-slow) var(--ease-spring),
-    --link-underline var(--duration-slow) var(--ease-spring);
+    --link-underline var(--duration-slow) var(--ease-spring),
+    -webkit-text-fill-color 0s var(--duration-slow);
 
   &:focus-visible {
     --link-underline: var(--link-fill);
+    -webkit-text-fill-color: transparent;
+    transition:
+      var(--interactive-transition),
+      background-size var(--duration-slow) var(--ease-spring),
+      --link-underline var(--duration-slow) var(--ease-spring),
+      -webkit-text-fill-color 0s;
     background-size:
       100% 100%,
       100% 100%,
@@ -122,12 +129,14 @@
   @media (hover: hover) {
     &:hover {
       --link-underline: var(--link-fill);
+      -webkit-text-fill-color: transparent;
       transition:
         var(--interactive-transition),
         background-size var(--duration-slow) var(--ease-spring)
           var(--duration-fastest),
         --link-underline var(--duration-slow) var(--ease-spring)
-          var(--duration-fastest);
+          var(--duration-fastest),
+        -webkit-text-fill-color 0s;
       background-size:
         100% 100%,
         100% 100%,
@@ -136,11 +145,23 @@
     }
   }
 
-  /* Chromium paints the selection over the text-clipped ink and ignores a
-     var() text fill there, so the highlight is see-through instead: the
-     reset's info tint, at a strength the ink shows under. */
-  &::selection {
+  /* Engaged, the text is clipped ink, which Chromium paints its selection,
+     find and fragment highlights over, so they're see-through on strong links:
+     the reset's info tint, at a strength the ink shows under. */
+  &::selection,
+  &::target-text {
     background-color: color-mix(in oklch, var(--color-info-9) 25%, transparent);
+  }
+
+  @supports selector(::search-text) {
+    &::search-text,
+    &::search-text:current {
+      background-color: color-mix(
+        in oklch,
+        var(--color-info-9) 25%,
+        transparent
+      );
+    }
   }
 
   /* System colours replace the layers, so the text is plain again. */

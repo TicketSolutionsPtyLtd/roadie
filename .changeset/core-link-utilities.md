@@ -7,7 +7,7 @@ Add `link-normal`, `link-strong`, and `link-subtle`, the text link styles
 Each includes `is-focusable`'s ring, so a bare link needs no other class.
 Every emphasis draws the same 1/16em underline. `link-normal` grows a tint up
 from it. `link-strong` takes its text from `--intent-link-text` and its
-underline from the intent, then fills from the left with `emphasis-strong`'s
+underline from `--intent-border-strong`, then fills from the left with `emphasis-strong`'s
 colours after a short pause on hover, recolouring each letter as the fill
 reaches it; it falls back to plain underlined system colours in forced
 colours. In both, the underline blends into the fill as it completes, so they

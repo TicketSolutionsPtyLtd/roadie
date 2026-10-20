@@ -342,7 +342,7 @@ describe.each(['normal', 'strong', 'subtle'] as const)(
 )
 
 describe('A selected strong link', () => {
-  it('keeps its text visible under the selection highlight', async () => {
+  it('keeps its clipped text visible under the selection highlight', async () => {
     render(
       <p className='bg-normal' style={{ fontSize: 48, padding: 8 }}>
         <Link href='#lineup' emphasis='strong'>
@@ -351,6 +351,7 @@ describe('A selected strong link', () => {
       </p>
     )
     const link = screen.getByRole('link')
+    await focusByKeyboard(link)
     const range = document.createRange()
     range.selectNodeContents(link)
     getSelection()!.removeAllRanges()
@@ -366,6 +367,101 @@ describe('A selected strong link', () => {
         seen.push(luminance(pixelAt(x, y)))
 
     expect(seen.some((value) => value < 55)).toBe(true)
+  })
+})
+
+describe('A neutral strong link in dark mode', () => {
+  it('underlines with the strong border colour, a step stronger in dark', () => {
+    document.documentElement.classList.add('dark')
+    onTestFinished(() => document.documentElement.classList.remove('dark'))
+    const { link } = renderLink({ emphasis: 'strong' })
+    const border = document.createElement('span')
+    border.className = 'border border-strong'
+    document.body.append(border)
+    onTestFinished(() => border.remove())
+
+    expect(layers(link).underline).toBe(tokenColor('--color-neutral-10'))
+    expect(getComputedStyle(border).borderTopColor).toBe(
+      tokenColor('--color-neutral-10')
+    )
+  })
+})
+
+describe('A strong link’s real text', () => {
+  const fill = (link: Element) => getComputedStyle(link).webkitTextFillColor
+  const textFill = (link: Element) =>
+    link
+      .getAnimations()
+      .find(
+        (animation) =>
+          (animation as CSSTransition).transitionProperty ===
+          '-webkit-text-fill-color'
+      )
+
+  function live() {
+    removeStill()
+    onTestFinished(() => {
+      removeStill = useStylesheet(STILL)
+    })
+  }
+
+  it('is plain text at rest, so find and selection stay native', () => {
+    const { link } = renderLink({ emphasis: 'strong' })
+
+    expect(fill(link)).toBe(getComputedStyle(link).color)
+  })
+
+  it.each(engagements)(
+    'gives way to the clipped ink on %s',
+    async (_, engage) => {
+      const { link } = renderLink({ emphasis: 'strong' })
+
+      await engage(link)
+
+      expect(pixel(fill(link))[3]).toBe(0)
+    }
+  )
+
+  it('comes back only once the sweep has reversed', async () => {
+    live()
+    const { link } = renderLink({ emphasis: 'strong' })
+    await hover(link)
+    for (const animation of link.getAnimations()) animation.finish()
+
+    await userEvent.unhover(link)
+    await frame()
+
+    expect(pixel(fill(link))[3]).toBe(0)
+    const back = textFill(link)!
+    expect(back.effect!.getTiming().delay).toBeCloseTo(300, -1)
+    back.finish()
+    expect(pixel(fill(link))).toEqual(pixel(getComputedStyle(link).color))
+  })
+
+  it('stays clipped through a quick hover out and back', async () => {
+    live()
+    const { link } = renderLink({ emphasis: 'strong' })
+    await hover(link)
+    for (const animation of link.getAnimations()) animation.finish()
+
+    await userEvent.unhover(link)
+    await frame()
+    await hover(link)
+    for (const animation of link.getAnimations()) animation.finish()
+
+    expect(pixel(fill(link))[3]).toBe(0)
+  })
+
+  it('shows fragment and find highlights through to the text', () => {
+    const { link } = renderLink({ emphasis: 'strong' })
+    const seeThrough = (pseudo: string) =>
+      getComputedStyle(link, pseudo).backgroundColor
+
+    const highlight = seeThrough('::selection')
+    expect(pixel(highlight)[3]).toBeLessThan(255)
+    expect(seeThrough('::target-text')).toBe(highlight)
+    if (CSS.supports('selector(::search-text)'))
+      expect(seeThrough('::search-text')).toBe(highlight)
   })
 })
 

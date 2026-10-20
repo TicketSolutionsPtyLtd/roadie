@@ -152,6 +152,7 @@ import { Link } from '@oztix/roadie-components/link'
 - **Touch**: Nothing changes on a tap, so a touch screen never shows a hover state left behind.
 - **Motion**: With reduced motion, the fill and underline change at once, with no transition or delay.
 - **Contrast**: The `normal` tint is 17% of the link colour, so text over it keeps its contrast in light and dark. A filled `strong` link has the text and fill of `emphasis-strong` in its intent, and each letter turns as the fill reaches it, so text over the fill is always on-strong.
+- **Find and selection**: At rest a `strong` link is plain text, so find in page, selection, text fragments and copy work as they do anywhere. While it's filled, their highlights are see-through, so the text shows under them.
 - **Forced colours**: A `strong` link drops its fill and shows plain, underlined link text in the system colours.
 
 <PropsDefinitions component='Link' />
