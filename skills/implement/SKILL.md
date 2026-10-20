@@ -230,8 +230,7 @@ this PR.
 
 Keep a note of each check: what you exercised, at which width and in which
 engine, and what you didn't, with why (no touch device, no screen reader, an
-engine not installed). It goes to the approver with the demo's shots and
-into Evidence.
+engine not installed). It goes into the PR's Evidence (`/roadie:pr`).
 
 ## 9. Stop at the demo
 
