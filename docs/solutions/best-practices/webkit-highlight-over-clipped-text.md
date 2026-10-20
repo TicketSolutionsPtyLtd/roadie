@@ -1,5 +1,5 @@
 ---
-title: WebKit can't colour highlights over text-clipped ink
+title: Only Chromium colours highlights over text-clipped ink
 date: 2026-10-21
 category: best-practices
 module: core
@@ -24,27 +24,36 @@ letters on an olive box. Its own default highlight stays readable.
 
 ## Why no feature query detects it
 
-The difference is in how WebKit paints, not in what it parses. WebKit
-supports `background-clip: text`, `-webkit-text-fill-color`, `Mark`,
-`MarkText` and the highlight pseudo-elements, so `@supports` for any of
-them is true in every engine.
+The difference is in how each engine paints, not in what it parses. Every
+engine supports `background-clip: text`, `-webkit-text-fill-color`, `Mark`,
+`MarkText` and the highlight pseudo-elements, so `@supports` for any of them
+is true everywhere.
 
 ## What we do
 
-The Mark rules sit inside `@supports not (font: -apple-system-body)`, a value
-only WebKit accepts, so WebKit keeps its own highlight. It's an engine sniff,
-used in two places:
+The Mark rules sit inside `@supports selector(::search-text)`, a feature only
+Chromium ships, so the override is positive for the one engine known to paint
+it correctly. Firefox and WebKit keep their own highlight, which stays
+readable over the clipped ink. It's an engine sniff, used in two places:
 
 - `packages/core/src/css/links.css`, on `link-strong`'s engaged
   `::selection` and `::target-text`.
 - `packages/components/src/components/Link/Link.browser.test.tsx`, which
-  skips the Mark pixel test and the Mark computed-style check in WebKit with
-  `CSS.supports('font', '-apple-system-body')`.
+  skips the Mark pixel test and the Mark computed-style check where
+  `CSS.supports('selector(::search-text)')` is false. The selection contrast
+  test runs in every engine, since it checks what a reader sees.
+
+The first gate, `@supports not (font: -apple-system-body)`, excluded WebKit
+by a value only Apple's WebKit accepts. Linux WebKit (GTK and WPE, which
+Playwright runs in CI) doesn't accept it, so it got the Mark override and the
+yellow-on-olive highlight. A negative test for one engine misses its other
+ports; a positive test for the engine that's verified doesn't.
 
 ## When to remove it
 
-When WebKit honours a highlight pseudo-element's text colour over clipped
-text, or drops `-apple-system-body`, whichever comes first. Check by
-removing the `@supports not` wrapper and running the Link browser tests with
-`ROADIE_BROWSERS=webkit`: the selection contrast test and a manual selection
-on the Link page's strong example should show dark MarkText on Mark.
+When WebKit or Firefox ships `::search-text`, check the strong example's
+selection there: if it's MarkText on Mark, the gate can stay; if not, find
+another Chromium-only feature. Remove the gate entirely once WebKit honours a
+highlight pseudo-element's text colour over clipped text. Check with the Link
+browser tests in each engine (`ROADIE_BROWSERS=webkit` and `firefox`) and, for
+Linux WebKit, the CI run with the `full-browsers` label.

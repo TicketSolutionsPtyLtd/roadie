@@ -129,13 +129,12 @@
       100% 100%;
 
     /* Clipped, the text is background, which Chromium paints its selection
-       and fragment highlights over, so they paint the letters too; find keeps
-       the browser's own. A var() fill is ignored there; system colours
-       aren't. WebKit blends its
-       highlights over the clipped ink and ignores their text colour, so it
-       keeps its own, which stay readable; -apple-system-body singles it out
+       and fragment highlights over, so they paint the letters in system
+       colours (a var() fill is ignored there). Only Chromium is known to
+       honour that, so it's gated on a Chromium-only feature; Firefox and
+       WebKit keep their own highlights, which stay readable
        (docs/solutions/best-practices/webkit-highlight-over-clipped-text.md). */
-    @supports not (font: -apple-system-body) {
+    @supports selector(::search-text) {
       &::selection,
       &::target-text {
         background-color: Mark;
@@ -164,7 +163,7 @@
         100% var(--link-line),
         100% 100%;
 
-      @supports not (font: -apple-system-body) {
+      @supports selector(::search-text) {
         &::selection,
         &::target-text {
           background-color: Mark;

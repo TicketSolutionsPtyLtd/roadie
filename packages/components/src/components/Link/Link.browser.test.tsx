@@ -371,7 +371,7 @@ describe('A selected strong link', () => {
   })
 
   it('paints selected letters MarkText on Mark mid-sweep', async (context) => {
-    if (CSS.supports('font', '-apple-system-body')) {
+    if (!CSS.supports('selector(::search-text)')) {
       context.skip()
       return
     }
@@ -521,8 +521,8 @@ describe('A strong link’s real text', () => {
 
       await engage(link)
 
-      // WebKit blends its highlights over the clipped ink and keeps its own.
-      if (CSS.supports('font', '-apple-system-body')) return
+      // Only Chromium gets Mark; Firefox and WebKit keep their own.
+      if (!CSS.supports('selector(::search-text)')) return
       for (const pseudo of pseudos())
         expect(highlight(link, pseudo)).toEqual({
           background: tokenColor('Mark'),

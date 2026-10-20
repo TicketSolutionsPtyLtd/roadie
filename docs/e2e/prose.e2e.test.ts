@@ -162,13 +162,18 @@ describe('Docs MDX in .prose', () => {
         getComputedStyle(demo.querySelector(selector)!)
       return {
         list: style('ul').listStyleType,
-        link: style('a').textDecorationLine,
+        // link-normal draws the underline as the first background layer.
+        link: {
+          image: style('a').backgroundImage,
+          size: style('a').backgroundSize.split(', ')[0]
+        },
         heading: parseFloat(style('h3').marginTop),
         code: parseFloat(style('pre ~ * code, p code').paddingLeft)
       }
     })
     expect(styles.list).toBe('disc')
-    expect(styles.link).toBe('underline')
+    expect(styles.link.image).toMatch(/^linear-gradient/)
+    expect(parseFloat(styles.link.size!.split(' ')[1]!)).toBeGreaterThan(0)
     expect(styles.heading).toBeGreaterThan(0)
     expect(styles.code).toBeGreaterThan(0)
   }, 60_000)
