@@ -814,6 +814,7 @@ const keysOf = (names: string[]) =>
 
 /** The page that introduces a package with no component page of its own. */
 export const PACKAGE_PAGES: Record<string, string> = {
+  '@oztix/roadie-editor': '/components/editor',
   '@oztix/roadie-eslint-plugin': '/overview/linting'
 }
 
