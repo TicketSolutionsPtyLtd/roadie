@@ -78,6 +78,14 @@
   border-style: solid;
   box-shadow: var(--rim-light-subtler);
 
+  /* A track under a raised pill, as in Tabs. In light the tint recesses it
+     below the pill; in dark the tint lifts it toward the pill, so it takes
+     the sunken fill instead and the pill stands off it on any surface. */
+  .dark &:has(> .emphasis-raised) {
+    background-color: var(--intent-bg-sunken);
+    box-shadow: var(--inset-shadow-xs);
+  }
+
   &.is-interactive:focus-visible,
   &.is-interactive-within:has([data-interactive-target]:focus-visible) {
     background-color: var(--intent-4a);
@@ -127,8 +135,22 @@
   color: var(--intent-text-inverted);
 }
 
+/* A raised fill that steps up a level in dark mode: to floating on a raised
+   parent, and past floating on a floating one, where it would otherwise
+   match its base. is-translucent reads it too. It doesn't inherit, so a
+   surface inside keeps its own.
+
+   Lighter dark fills sit closer to step 11, so on them subtle text moves 40%
+   toward step 12 to keep Lc 75, even over a tinted track. It resolves on the
+   surface and on any intent inside it, which would otherwise reset it, so it
+   follows each one's own intent. */
+@property --raised-fill {
+  syntax: '*';
+  inherits: false;
+}
+
 @utility emphasis-raised {
-  background-color: var(--intent-bg-raised);
+  background-color: var(--raised-fill, var(--intent-bg-raised));
   box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-md);
   color: var(--intent-text-normal);
 
@@ -151,6 +173,29 @@
     transform: translateY(0) scale(0.99);
     box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-sm);
   }
+
+  :where(.emphasis-raised) & {
+    --raised-fill: var(--intent-bg-floating);
+  }
+
+  @supports (color: color-mix(in oklch, red, red)) {
+    .dark :where(.emphasis-floating) & {
+      --raised-fill: color-mix(
+        in oklch,
+        var(--intent-9) 20%,
+        var(--intent-bg-floating)
+      );
+    }
+
+    .dark &,
+    .dark & :where([class*='intent-']) {
+      --intent-text-subtle: color-mix(
+        in oklch,
+        var(--intent-12) 40%,
+        var(--intent-11)
+      );
+    }
+  }
 }
 
 @utility emphasis-sunken {
@@ -170,6 +215,15 @@
 
   @supports (color: color-mix(in oklch, red, red)) {
     --field-border-color: color-mix(in oklch, var(--intent-9) 22%, transparent);
+
+    /* Over a dark fill, 22% lands on the page's own step and the edge vanishes. */
+    .dark & {
+      --field-border-color: color-mix(
+        in oklch,
+        var(--intent-9) 50%,
+        transparent
+      );
+    }
   }
 
   background-color: var(--intent-bg-sunken);
@@ -178,8 +232,27 @@
   color: var(--intent-text-normal);
 }
 
+/* Internal, not public API: the floating fill and the subtle text lift that
+   keeps Lc 75 on it, kept together so they can't drift apart. emphasis-floating
+   builds on it, and so do popups that draw their own edge and shadow. */
+@utility surface-floating {
+  --raised-fill: var(--intent-bg-floating);
+  background-color: var(--raised-fill);
+
+  @supports (color: color-mix(in oklch, red, red)) {
+    .dark &,
+    .dark & :where([class*='intent-']) {
+      --intent-text-subtle: color-mix(
+        in oklch,
+        var(--intent-12) 40%,
+        var(--intent-11)
+      );
+    }
+  }
+}
+
 @utility emphasis-floating {
-  background-color: var(--intent-bg-raised);
+  @apply surface-floating;
   box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-xl);
   color: var(--intent-text-normal);
 }
@@ -253,7 +326,7 @@
         ) {
         background-color: color-mix(
           in oklch,
-          var(--intent-bg-raised) var(--translucent-fill),
+          var(--raised-fill, var(--intent-bg-raised)) var(--translucent-fill),
           transparent
         );
         -webkit-backdrop-filter: var(--translucent-backdrop);
@@ -264,7 +337,7 @@
       &:is(&):not(.is-interactive-field:is(:focus, [aria-invalid='true'])) {
         background-color: color-mix(
           in oklch,
-          var(--intent-bg-raised) var(--translucent-fill),
+          var(--raised-fill, var(--intent-bg-raised)) var(--translucent-fill),
           transparent
         );
         -webkit-backdrop-filter: var(--translucent-backdrop);

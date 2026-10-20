@@ -55,7 +55,7 @@ export function ComponentBrowser({
           placeholder='Search components'
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          className='emphasis-raised rounded-full bg-raised ps-11 pe-4 placeholder:text-subtler'
+          className='emphasis-raised rounded-full ps-11 pe-4 placeholder:text-subtler'
         />
         <MagnifyingGlassIcon
           aria-hidden

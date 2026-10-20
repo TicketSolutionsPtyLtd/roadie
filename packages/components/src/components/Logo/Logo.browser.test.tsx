@@ -209,7 +209,7 @@ describe('tone', () => {
     expect(light.divider).toBe(token('--color-neutral-7'))
     expect(dark.logo).toBe(token('--color-neutral-13', 'dark'))
     expect(dark.tagline).toBe(token('--color-neutral-12', 'dark'))
-    expect(dark.divider).toBe(token('--color-neutral-7', 'dark'))
+    expect(dark.divider).toBe(token('--color-neutral-8', 'dark'))
     expect(dark.logo).not.toBe(light.logo)
   })
 

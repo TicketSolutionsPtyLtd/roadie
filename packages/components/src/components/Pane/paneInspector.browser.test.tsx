@@ -284,6 +284,21 @@ describe("an inspector drawer's Close", () => {
     expect(getComputedStyle(header).backdropFilter).toBe('none')
   })
 
+  it('paints the header in the drawer’s lifted fill in dark mode', async () => {
+    document.documentElement.classList.add('dark')
+    try {
+      mount(NARROW, <Shell reveal header />)
+      const drawer = await screen.findByRole('dialog')
+      const header = drawer.querySelector('[data-slot="pane-header"]')!
+
+      expect(getComputedStyle(header).backgroundColor).toBe(
+        getComputedStyle(drawer).backgroundColor
+      )
+    } finally {
+      document.documentElement.classList.remove('dark')
+    }
+  })
+
   it('fills the drawer with a Pane.Body, as it fills a pane', async () => {
     mount(
       NARROW,

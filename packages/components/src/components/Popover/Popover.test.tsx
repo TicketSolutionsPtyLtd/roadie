@@ -119,7 +119,9 @@ describe('Popover (assembled)', () => {
     // positioning div — otherwise it is invisible.
     const shape = arrow?.querySelector('svg path')
     expect(shape).toBeInTheDocument()
-    expect(arrow?.querySelector('svg')).toHaveClass('fill-(--intent-bg-raised)')
+    expect(arrow?.querySelector('svg')).toHaveClass(
+      'fill-(--intent-bg-floating)'
+    )
   })
 
   it('Enter activates the strong primary action', async () => {

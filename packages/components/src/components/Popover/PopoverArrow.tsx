@@ -37,13 +37,13 @@ export function PopoverArrow({ className, ...props }: PopoverArrowProps) {
       <svg
         aria-hidden='true'
         viewBox='0 0 20 10'
-        // Fill with the cascading intent raised colour (inherited from the
+        // Fill with the cascading intent floating colour (inherited from the
         // popup's intent context) so the arrow matches a coloured popup.
         // `--background-color-raised` resolves at :root and would always be
-        // neutral, so use `--intent-bg-raised` directly. The open path means
+        // neutral, so use `--intent-bg-floating` directly. The open path means
         // the stroke only paints the two outward slanted edges, giving them
         // the same rim-light highlight as the popup surface.
-        className='h-(--arrow-h) w-(--arrow-w) fill-(--intent-bg-raised) stroke-(--rim-light-edge)'
+        className='h-(--arrow-h) w-(--arrow-w) fill-(--intent-bg-floating) stroke-(--rim-light-edge)'
         strokeWidth='1'
         strokeLinejoin='round'
         strokeLinecap='round'

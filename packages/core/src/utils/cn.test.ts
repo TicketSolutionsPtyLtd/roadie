@@ -13,6 +13,13 @@ describe('cn', () => {
     expect(cn('border-subtle', 'border-strong')).toBe('border-strong')
   })
 
+  it('lets a bg utility override the floating surface fill', () => {
+    expect(cn('surface-floating p-1', 'bg-raised')).toBe('p-1 bg-raised')
+    expect(cn('bg-(--intent-bg-raised)', 'surface-floating')).toBe(
+      'surface-floating'
+    )
+  })
+
   it('dedupes intent and emphasis presets', () => {
     expect(cn('intent-neutral', 'intent-accent')).toBe('intent-accent')
     expect(cn('emphasis-subtle', 'emphasis-strong')).toBe('emphasis-strong')

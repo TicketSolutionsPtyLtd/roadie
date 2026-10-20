@@ -48,7 +48,7 @@ describe('Tooltip', () => {
     await screen.findByText('Get help')
     expect(popup()).toHaveClass(
       'emphasis-floating',
-      '[--tooltip-surface:var(--intent-bg-raised)]',
+      '[--tooltip-surface:var(--intent-bg-floating)]',
       '[--tooltip-rim:var(--rim-light-edge)]'
     )
   })

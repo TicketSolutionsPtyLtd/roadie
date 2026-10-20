@@ -157,6 +157,8 @@ export const GROUP_NOTES: Record<string, string> = {
     'Background, text, border and shadow in one class. Add is-interactive for states.',
   'Interaction states':
     'Hover, press, focus ring and disabled. Fields shift neutral, then accent, then danger.',
+  'Internal surfaces':
+    'Used inside Roadie components, not for apps: the floating fill and the subtle text lift on it.',
   'Font size line heights':
     'Size classes set no line height, so pair them with leading-*.',
   'Display styles':

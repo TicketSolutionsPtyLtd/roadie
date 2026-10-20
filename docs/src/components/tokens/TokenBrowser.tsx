@@ -282,7 +282,7 @@ export function TokenBrowser({
             placeholder={label}
             value={query}
             onChange={(event) => update({ query: event.target.value })}
-            className='emphasis-raised rounded-full bg-raised ps-11 pe-4 placeholder:text-subtler'
+            className='emphasis-raised rounded-full ps-11 pe-4 placeholder:text-subtler'
           />
           <MagnifyingGlassIcon
             aria-hidden

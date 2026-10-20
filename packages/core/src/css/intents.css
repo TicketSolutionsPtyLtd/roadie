@@ -81,12 +81,46 @@
   --intent-link-text: var(--color-neutral-13);
 }
 
-/* Dark mode: bump surfaces up for depth separation */
+/* Dark mode: bump surfaces up for depth separation, and borders a step
+   further from them, since dark steps sit closer together and shadows
+   barely show. Each intent's alpha ladder steps up in proportion until its
+   subtle tint stands about 0.065 of lightness off the dark page. */
 .dark,
 .dark [data-accent-scope] {
   --intent-bg-normal: var(--color-neutral-2);
-  --intent-bg-raised: var(--color-neutral-3);
+  --intent-bg-raised: var(--color-neutral-4);
   --intent-bg-sunken: var(--color-neutral-0);
+
+  --intent-border-subtle: var(--color-neutral-7);
+  --intent-border-normal: var(--color-neutral-8);
+  --intent-border-strong: var(--color-neutral-10);
+
+  --intent-2a: color-mix(in oklch, var(--color-neutral-9) 10%, transparent);
+  --intent-3a: color-mix(in oklch, var(--color-neutral-9) 18%, transparent);
+  --intent-4a: color-mix(in oklch, var(--color-neutral-9) 28%, transparent);
+  --intent-5a: color-mix(in oklch, var(--color-neutral-9) 38%, transparent);
+}
+
+/* Floating surfaces sit above raised ones. Shadows barely show on dark, so
+   there the fill lifts 20% toward step 9 as well. Declared on each intent
+   element so it resolves that intent's own raised fill, as elevation.css does
+   for shadows. */
+@layer base {
+  :root,
+  :where([class*='intent-'], [data-accent-scope]) {
+    --intent-bg-floating: var(--intent-bg-raised);
+  }
+
+  @supports (color: color-mix(in oklch, red, red)) {
+    .dark,
+    .dark :where([class*='intent-'], [data-accent-scope]) {
+      --intent-bg-floating: color-mix(
+        in oklch,
+        var(--intent-9) 20%,
+        var(--intent-bg-raised)
+      );
+    }
+  }
 }
 
 /* ═══ Intent: neutral ═══ */
@@ -145,8 +179,17 @@
 
   .dark & {
     --intent-bg-normal: var(--color-neutral-2);
-    --intent-bg-raised: var(--color-neutral-3);
+    --intent-bg-raised: var(--color-neutral-4);
     --intent-bg-sunken: var(--color-neutral-0);
+
+    --intent-border-subtle: var(--color-neutral-7);
+    --intent-border-normal: var(--color-neutral-8);
+    --intent-border-strong: var(--color-neutral-10);
+
+    --intent-2a: color-mix(in oklch, var(--color-neutral-9) 10%, transparent);
+    --intent-3a: color-mix(in oklch, var(--color-neutral-9) 18%, transparent);
+    --intent-4a: color-mix(in oklch, var(--color-neutral-9) 28%, transparent);
+    --intent-5a: color-mix(in oklch, var(--color-neutral-9) 38%, transparent);
   }
 }
 
@@ -210,6 +253,11 @@
     --intent-bg-sunken: var(--color-brand-0);
     --intent-bg-strong-hover: var(--color-brand-8);
     --intent-bg-strong-active: var(--color-brand-7);
+
+    --intent-2a: color-mix(in oklch, var(--color-brand-9) 9%, transparent);
+    --intent-3a: color-mix(in oklch, var(--color-brand-9) 15%, transparent);
+    --intent-4a: color-mix(in oklch, var(--color-brand-9) 23%, transparent);
+    --intent-5a: color-mix(in oklch, var(--color-brand-9) 31%, transparent);
   }
 }
 
@@ -390,6 +438,11 @@
     --intent-bg-sunken: var(--color-accent-0);
     --intent-bg-strong-hover: var(--color-accent-8);
     --intent-bg-strong-active: var(--color-accent-7);
+
+    --intent-2a: color-mix(in oklch, var(--color-accent-9) 9%, transparent);
+    --intent-3a: color-mix(in oklch, var(--color-accent-9) 15%, transparent);
+    --intent-4a: color-mix(in oklch, var(--color-accent-9) 23%, transparent);
+    --intent-5a: color-mix(in oklch, var(--color-accent-9) 31%, transparent);
   }
 }
 
@@ -453,6 +506,11 @@
     --intent-bg-sunken: var(--color-danger-0);
     --intent-bg-strong-hover: var(--color-danger-8);
     --intent-bg-strong-active: var(--color-danger-7);
+
+    --intent-2a: color-mix(in oklch, var(--color-danger-9) 7%, transparent);
+    --intent-3a: color-mix(in oklch, var(--color-danger-9) 13%, transparent);
+    --intent-4a: color-mix(in oklch, var(--color-danger-9) 20%, transparent);
+    --intent-5a: color-mix(in oklch, var(--color-danger-9) 27%, transparent);
   }
 }
 
@@ -527,6 +585,11 @@
     --intent-bg-raised: var(--color-success-2);
     --intent-bg-sunken: var(--color-success-0);
     --intent-text-on-strong: var(--color-success-0);
+
+    --intent-2a: color-mix(in oklch, var(--color-success-9) 7%, transparent);
+    --intent-3a: color-mix(in oklch, var(--color-success-9) 12%, transparent);
+    --intent-4a: color-mix(in oklch, var(--color-success-9) 19%, transparent);
+    --intent-5a: color-mix(in oklch, var(--color-success-9) 25%, transparent);
   }
 
   /* Safari 15.4 to 16.1 draw oklch but not color-mix, which would leave these
@@ -686,5 +749,10 @@
     --intent-bg-sunken: var(--color-info-0);
     --intent-bg-strong-hover: var(--color-info-8);
     --intent-bg-strong-active: var(--color-info-7);
+
+    --intent-2a: color-mix(in oklch, var(--color-info-9) 7%, transparent);
+    --intent-3a: color-mix(in oklch, var(--color-info-9) 13%, transparent);
+    --intent-4a: color-mix(in oklch, var(--color-info-9) 20%, transparent);
+    --intent-5a: color-mix(in oklch, var(--color-info-9) 27%, transparent);
   }
 }
