@@ -20,7 +20,8 @@ export const paneVariants = cva(
     variants: {
       // Nearest opaque surface behind sticky chrome; bg-inherit would resolve transparent.
       emphasis: {
-        raised: 'emphasis-raised [--pane-surface:var(--intent-bg-raised)]',
+        raised:
+          'emphasis-raised [--pane-surface:var(--raised-fill,var(--intent-bg-raised))]',
         normal: 'emphasis-normal [--pane-surface:var(--intent-bg-normal)]',
         subtle: 'emphasis-subtle',
         subtler: ''

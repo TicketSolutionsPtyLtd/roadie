@@ -98,13 +98,13 @@ describe('Pane', () => {
   })
 
   it.each([
-    ['raised', '--intent-bg-raised'],
+    ['raised', '--raised-fill,var(--intent-bg-raised)'],
     ['normal', '--intent-bg-normal']
   ] as const)(
     'publishes the surface it paints, for its sticky chrome (%s)',
-    async (emphasis, token) => {
+    async (emphasis, value) => {
       await renderPane(<Pane emphasis={emphasis}>Body</Pane>)
-      expect(pane()).toHaveClass(`[--pane-surface:var(${token})]`)
+      expect(pane()).toHaveClass(`[--pane-surface:var(${value})]`)
     }
   )
 

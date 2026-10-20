@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
+import { Pane } from '../components/Pane'
 import { useStylesheet } from '../components/Pane/testUtils'
 import { Popover } from '../components/Popover'
 
@@ -166,6 +167,21 @@ describe('a popover in dark mode', () => {
     const arrow = document.querySelector('[data-slot="popover-arrow"] svg')!
     expect(getComputedStyle(popup).backgroundColor).toBe(colourOf(FLOATING))
     expect(getComputedStyle(arrow).fill).toBe(colourOf(FLOATING))
+  })
+})
+
+describe('a raised Pane in dark mode', () => {
+  it('publishes the lifted fill it paints inside a floating surface', () => {
+    document.documentElement.classList.add('dark')
+    render(
+      <div className='emphasis-floating'>
+        <Pane aria-label='Tickets'>Body</Pane>
+      </div>
+    )
+    const pane = screen.getByLabelText('Tickets')
+    expect(
+      colourOf(getComputedStyle(pane).getPropertyValue('--pane-surface'))
+    ).toBe(getComputedStyle(pane).backgroundColor)
   })
 })
 
