@@ -6,7 +6,7 @@ highlights:
     description: A rich-text field that saves JSON, never HTML, with a renderer that runs on a server, in the new `@oztix/roadie-editor`.
     href: /components/editor
     packages: [editor]
-  - title: Records
+  - title: Records model
     description: Search, filter, sort, and page through records in a table or a grid, with saved views.
     href: /foundations/records
     packages: [core, components]
