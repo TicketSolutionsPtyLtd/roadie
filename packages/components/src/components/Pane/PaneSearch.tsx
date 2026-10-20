@@ -55,7 +55,6 @@ export function PaneSearch({
         <Input
           type='search'
           size='lg'
-          emphasis='subtle'
           data-slot='pane-search-field'
           aria-label={ariaLabel ?? placeholder}
           placeholder={placeholder}

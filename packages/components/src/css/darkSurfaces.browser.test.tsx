@@ -185,6 +185,35 @@ describe('a raised Pane in dark mode', () => {
   })
 })
 
+function searchPane() {
+  render(
+    <Pane aria-label='Components'>
+      <Pane.Header>
+        <Pane.Search value='' onValueChange={() => {}} placeholder='Search' />
+      </Pane.Header>
+    </Pane>
+  )
+  return {
+    pane: screen.getByLabelText('Components'),
+    field: screen.getByRole('searchbox', { name: 'Search' })
+  }
+}
+
+describe('a Pane search field', () => {
+  it('sits raised on the light page', () => {
+    const { field } = searchPane()
+    expect(getComputedStyle(field).backgroundColor).toBe(
+      colourOf('var(--color-neutral-1)')
+    )
+  })
+
+  it('lifts off its raised Pane in dark mode', () => {
+    document.documentElement.classList.add('dark')
+    const { field } = searchPane()
+    expect(getComputedStyle(field).backgroundColor).toBe(colourOf(FLOATING))
+  })
+})
+
 describe('surfaces in light mode', () => {
   it('keeps raised, nested and floating surfaces on step 1', () => {
     renderSurfaces()

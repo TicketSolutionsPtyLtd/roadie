@@ -8,4 +8,5 @@ operator bar, the `Popover` arrow, and the `Tooltip` arrow to use
 floating surfaces.
 
 A raised `Pane` and the inspector drawer publish the fill they paint as
-`--pane-surface`, so their sticky header matches the lifted dark fill.
+`--pane-surface`, so their sticky header matches the lifted dark fill, and
+`Pane.Search` lifts its field off a raised `Pane` in dark mode.
