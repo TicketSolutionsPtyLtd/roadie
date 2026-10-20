@@ -1,8 +1,8 @@
 import { existsSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
-import { type Browser, chromium, firefox, webkit } from 'playwright'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { type Browser, type Page, chromium, firefox, webkit } from 'playwright'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { TOKEN_FAMILY_PAGES } from '../src/lib/token-families'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
@@ -67,11 +67,7 @@ afterAll(async () => {
   await browser?.close()
 })
 
-afterEach(async () => {
-  await Promise.all(browser.contexts().map((context) => context.close()))
-})
-
-async function open(route: string) {
+async function load(route: string) {
   const context = await browser.newContext({
     viewport: { width: 1280, height: 900 }
   })
@@ -80,6 +76,16 @@ async function open(route: string) {
   await page.goto(`${ORIGIN}${BASE_PATH}${route}/`)
   await page.waitForLoadState('networkidle')
   return page
+}
+
+// Each route loads once per file rather than once per table (the date and
+// time page alone has 13), so a test may read the page or open its own
+// block's code, but must not change what another test reads.
+const pages = new Map<string, Promise<Page>>()
+
+function open(route: string) {
+  if (!pages.has(route)) pages.set(route, load(route))
+  return pages.get(route)!
 }
 
 const twin = (route: string) =>

@@ -15,7 +15,6 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "env": ["NEXT_PUBLIC_BASE_PATH"],
       "inputs": [
         "src/**/*.{js,jsx,mjs,ts,tsx,mts,css,json}",
         "src/**/*.mdx",
@@ -91,7 +90,12 @@
     },
     "test:browser": {
       "dependsOn": ["^build"],
-      "env": ["ROADIE_BROWSERS", "ROADIE_QUARANTINE", "ROADIE_VISUAL"],
+      "env": [
+        "ROADIE_BROWSERS",
+        "ROADIE_QUARANTINE",
+        "ROADIE_SHARD",
+        "ROADIE_VISUAL"
+      ],
       "passThroughEnv": ["PLAYWRIGHT_*"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css}",

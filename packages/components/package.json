@@ -366,7 +366,7 @@
     "clean": "rm -rf node_modules dist",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run --project jsdom",
-    "test:browser": "vitest run --project 'browser*'",
+    "test:browser": "vitest run --project 'browser*' ${ROADIE_SHARD:+--shard=$ROADIE_SHARD --passWithNoTests}",
     "test:perf": "NODE_ENV=production vitest run --project perf",
     "test:visual:update": "scripts/update-screenshots.sh",
     "test:watch": "vitest --project jsdom",
