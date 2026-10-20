@@ -164,8 +164,8 @@ and a key the pattern marks optional is a follow-up, not a fix.
 
 **Every bug the pass finds becomes a failing test first**, then the fix
 (`/roadie:test`): a `*.browser.test.tsx` when the browser or CSS decides it,
-as focus rings, overlay placement, clipping, and real key handling usually
-are, otherwise the cheaper test that can fail. Watch it fail on the bug, fix
+as focus rings, overlay placement, and clipping usually are, otherwise the
+cheaper test that can fail (a keyboard path is a jsdom test with `userEvent`). Watch it fail on the bug, fix
 it, watch it pass, and repeat the step that found it. Triage by the host's
 rule (in Roadie: PR workflow section 7, where a Minor bug is fixed only if a
 real user would hit it in normal use). A bug the base branch has too, or one
