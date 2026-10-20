@@ -29,6 +29,8 @@ const INTERNAL = [
   '--interactive-within-control-position',
   '--interactive-within-control-z',
   '--link-fill',
+  '--link-ink',
+  '--link-ink-on',
   '--link-line',
   '--link-tone',
   '--link-underline',

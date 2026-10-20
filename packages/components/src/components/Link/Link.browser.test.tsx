@@ -8,7 +8,7 @@ import {
   it,
   onTestFinished
 } from 'vitest'
-import { commands, userEvent } from 'vitest/browser'
+import { commands, page, userEvent } from 'vitest/browser'
 
 import { Link, type LinkProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -41,7 +41,7 @@ const frame = () =>
 // Resolves a colour token the way the browser computes it, for comparison.
 function tokenColor(token: string) {
   const probe = document.createElement('span')
-  probe.style.color = `var(${token})`
+  probe.style.color = token.startsWith('--') ? `var(${token})` : token
   document.body.append(probe)
   const color = getComputedStyle(probe).color
   probe.remove()
@@ -50,7 +50,37 @@ function tokenColor(token: string) {
 
 const TRANSPARENT = 'rgba(0, 0, 0, 0)'
 
+async function capture(element: HTMLElement) {
+  const base64 = await page.screenshot({ element, save: false })
+  const image = new Image()
+  image.src = `data:image/png;base64,${base64}`
+  await image.decode()
+  const canvas = document.createElement('canvas')
+  canvas.width = image.width
+  canvas.height = image.height
+  const context = canvas.getContext('2d')!
+  context.drawImage(image, 0, 0)
+  const box = element.getBoundingClientRect()
+  const scale = image.width / box.width
+  return (x: number, y: number) =>
+    [
+      ...context.getImageData(
+        Math.round((x - box.left) * scale),
+        Math.round((y - box.top) * scale),
+        1,
+        1
+      ).data
+    ].slice(0, 3)
+}
+
+const luminance = ([r, g, b]: number[]) =>
+  0.2126 * r! + 0.7152 * g! + 0.0722 * b!
+
 // A paused transition reports its colour in another space, so compare what paints.
+function paint(color: string) {
+  return pixel(color).slice(0, 3)
+}
+
 function pixel(color: string) {
   const context = document.createElement('canvas').getContext('2d')!
   context.fillStyle = color
@@ -96,6 +126,22 @@ function layerColors(element: Element) {
   return colors
 }
 
+// normal draws [underline, fill]; strong draws [ink on the fill, resting ink,
+// underline, fill], its inks clipped to the text.
+function layers(element: Element) {
+  const colors = layerColors(element)
+  const sizes = getComputedStyle(element).backgroundSize.split(', ')
+  const at = colors.length === 4 ? 2 : 0
+  return {
+    inkOn: colors[0],
+    ink: colors[1],
+    inkSize: sizes[0],
+    underline: colors[at],
+    underlineSize: sizes[at],
+    fill: colors[at + 1]
+  }
+}
+
 // What emphasis-strong paints in the given intent, to compare a strong link's fill with.
 function emphasisStrong(intent: string) {
   const probe = document.createElement('span')
@@ -113,7 +159,7 @@ function thickness(element: Element) {
   const style = getComputedStyle(element)
   return style.textDecorationLine === 'underline'
     ? style.textDecorationThickness
-    : style.backgroundSize.split(', ')[0]!.split(' ')[1]
+    : layers(element).underlineSize!.split(' ')[1]
 }
 
 const boxDecorationBreak = (element: Element) => {
@@ -185,30 +231,43 @@ describe('A normal link', () => {
   )
 })
 
-describe('A strong link', () => {
-  it('rests in accent text with an accent underline and no fill', () => {
-    const { link } = renderLink({ emphasis: 'strong' })
+describe.each([
+  ['neutral', undefined, '--color-neutral-13', '--color-neutral-9'],
+  ['accent', 'accent', '--color-accent-11', '--color-accent-9']
+] as const)('A %s strong link', (name, intent, text, underline) => {
+  it('rests in its intent’s link text with its underline and no fill', () => {
+    const { link } = renderLink({ emphasis: 'strong', intent })
 
     expect(look(link)).toMatchObject({
-      color: tokenColor('--color-accent-11'),
+      color: tokenColor(text),
       line: 'none'
     })
-    expect(look(link).size).toBe('100% 1px, 0% 100%')
-    expect(layerColors(link)[0]).toBe(tokenColor('--color-accent-9'))
+    expect(look(link).size).toBe('0% 100%, 100% 100%, 100% 1px, 0% 100%')
+    const clip = getComputedStyle(link) as CSSStyleDeclaration & {
+      webkitBackgroundClip?: string
+    }
+    expect(
+      (clip.backgroundClip || clip.webkitBackgroundClip)!
+        .split(', ')
+        .slice(0, 2)
+    ).toEqual(['text', 'text'])
+    expect(layers(link)).toMatchObject({
+      ink: tokenColor(text),
+      underline: tokenColor(underline)
+    })
   })
 
   it.each(engagements)(
     'fills from the left as emphasis-strong, merging its underline, on %s',
     async (_, engage) => {
-      const { link } = renderLink({ emphasis: 'strong' })
+      const { link } = renderLink({ emphasis: 'strong', intent })
 
       await engage(link)
 
-      const [underline, fill] = layerColors(link)
-      const strong = emphasisStrong('intent-neutral')
-      expect(look(link).size).toBe('100% 1px, 100% 100%')
-      expect(underline).toBe(fill)
-      expect({ fill, text: look(link).color }).toEqual(strong)
+      const { underline: line, fill, inkOn } = layers(link)
+      expect(look(link).size).toBe('100% 100%, 100% 100%, 100% 1px, 100% 100%')
+      expect(line).toBe(fill)
+      expect({ fill, text: inkOn }).toEqual(emphasisStrong(`intent-${name}`))
     }
   )
 })
@@ -281,6 +340,23 @@ describe.each(['normal', 'strong', 'subtle'] as const)(
     })
   }
 )
+
+describe('A strong link in forced colours', () => {
+  it('drops its layers for plain, underlined system-coloured text', async (context) => {
+    await commands.forcedColors(true)
+    onTestFinished(() => commands.forcedColors(false))
+    if (!matchMedia('(forced-colors: active)').matches) {
+      context.skip()
+      return
+    }
+    const { link } = renderLink({ emphasis: 'strong' })
+    const style = getComputedStyle(link)
+
+    expect(style.backgroundImage).toBe('none')
+    expect(style.textDecorationLine).toBe('underline')
+    expect(style.webkitTextFillColor).toBe(tokenColor('LinkText'))
+  })
+})
 
 describe('A link that wraps', () => {
   it.each(['normal', 'strong'] as const)(
@@ -355,7 +431,7 @@ describe('Link intent', () => {
     const link = renderInDanger({ emphasis: 'strong' })
 
     expect(look(link).color).toBe(tokenColor('--color-danger-11'))
-    expect(layerColors(link)[0]).toBe(tokenColor('--color-danger-9'))
+    expect(layers(link).underline).toBe(tokenColor('--color-danger-9'))
   })
 
   it.each([
@@ -369,10 +445,8 @@ describe('Link intent', () => {
 
     await hover(link)
 
-    const [, fill] = layerColors(link)
-    expect({ fill, text: look(link).color }).toEqual(
-      emphasisStrong('intent-danger')
-    )
+    const { fill, inkOn } = layers(link)
+    expect({ fill, text: inkOn }).toEqual(emphasisStrong('intent-danger'))
   })
 })
 
@@ -388,6 +462,34 @@ describe('Link motion', () => {
       ])
     )
   }
+
+  const delays = (link: Element) => {
+    const style = getComputedStyle(link)
+    const properties = style.transitionProperty.split(', ')
+    const times = style.transitionDelay.split(', ')
+    return Object.fromEntries(
+      properties.map((property, index) => [
+        property,
+        parseFloat(times[index % times.length]!)
+      ])
+    )
+  }
+
+  it('waits 50ms before a strong link sweeps on hover, but not on focus or leave', async () => {
+    withoutStill()
+    const { link } = renderLink({ emphasis: 'strong' })
+    const sweep = (state: Record<string, number>) => [
+      state['background-size'],
+      state['--link-underline']
+    ]
+
+    expect(sweep(delays(link))).toEqual([0, 0])
+    await hover(link)
+    expect(sweep(delays(link))).toEqual([0.05, 0.05])
+    await userEvent.unhover(link)
+    await focusByKeyboard(link)
+    expect(sweep(delays(link))).toEqual([0, 0])
+  })
 
   function withoutStill() {
     removeStill()
@@ -450,7 +552,7 @@ describe('Link motion', () => {
     moving.pause()
     moving.currentTime = 1000
     const end = value()
-    moving.currentTime = 20
+    moving.currentTime = moving.effect!.getTiming().delay! + 20
     const between = value()
 
     expect(between).not.toBe(rest)
@@ -459,7 +561,7 @@ describe('Link motion', () => {
 
   it.each([
     ['normal', 'background-size', 0.2],
-    ['strong', 'background-size', 0.2],
+    ['strong', 'background-size', 0.3],
     ['subtle', 'text-underline-offset', 0.4]
   ] as const)('springs a %s link’s %s', (emphasis, property, seconds) => {
     withoutStill()
@@ -486,7 +588,7 @@ describe('Link motion', () => {
     async (emphasis, props) => {
       withoutStill()
       const { link } = renderLink({ emphasis, ...props })
-      const [rest, fill] = layerColors(link)
+      const { underline: rest, fill } = layers(link)
 
       await hover(link)
       const blend = link
@@ -497,31 +599,65 @@ describe('Link motion', () => {
             '--link-underline'
         )!
       blend.pause()
-      blend.currentTime = 20
+      blend.currentTime = blend.effect!.getTiming().delay! + 20
 
-      const [between] = layerColors(link)
+      const between = layers(link).underline
       expect(between).not.toBe(rest)
       expect(between).not.toBe(fill)
     }
   )
 
-  it('keeps a strong link’s text in its resting colour until the fill has all but covered it', async () => {
-    withoutStill()
-    const { link } = renderLink({ emphasis: 'strong' })
-    const rest = look(link).color
-    const at = (time: number) => {
+  it.each(['light', 'dark'] as const)(
+    'turns each letter of a strong link as the fill reaches it, in %s',
+    async (mode) => {
+      withoutStill()
+      document.documentElement.classList.toggle('dark', mode === 'dark')
+      onTestFinished(() => document.documentElement.classList.remove('dark'))
+      render(
+        <p className='bg-normal' style={{ fontSize: 48, padding: 8 }}>
+          <Link href='#lineup' emphasis='strong'>
+            MMMMMMMMMM
+          </Link>
+        </p>
+      )
+      const link = screen.getByRole('link')
+
+      await hover(link)
       for (const animation of link.getAnimations()) {
         animation.pause()
-        animation.currentTime = time
+        const { delay, duration } = animation.effect!.getTiming()
+        animation.currentTime = delay! + Number(duration) * 0.12
       }
-      return look(link).color
+      await frame()
+      const filled = parseFloat(layers(link).inkSize!) / 100
+      expect(filled).toBeGreaterThan(0.2)
+      expect(filled).toBeLessThan(0.8)
+
+      const box = link.getBoundingClientRect()
+      const pixelAt = await capture(link)
+      const band = (from: number, to: number) => {
+        const seen: number[] = []
+        for (
+          let x = box.left + box.width * from;
+          x < box.left + box.width * to;
+          x += 2
+        )
+          for (let y = box.top + 4; y < box.bottom - 4; y += 2)
+            seen.push(luminance(pixelAt(x, y)))
+        return seen
+      }
+      const onFill = band(0.02, filled - 0.08)
+      const beyond = band(filled + 0.08, 0.98)
+      // In neutral the on-strong ink is the opposite of the resting ink in
+      // both themes, so letters over the fill show one and the rest the other.
+      const inkOnLight =
+        luminance(paint(emphasisStrong('intent-neutral').text)) > 128
+      const light = (value: number) => value > 200
+      const dark = (value: number) => value < 55
+      expect(onFill.some(inkOnLight ? light : dark)).toBe(true)
+      expect(beyond.some(inkOnLight ? dark : light)).toBe(true)
     }
-
-    await hover(link)
-
-    expect(pixel(at(50))).toEqual(pixel(rest))
-    expect(pixel(at(150))).toEqual(pixel(emphasisStrong('intent-neutral').text))
-  })
+  )
 
   it.each(['normal', 'strong', 'subtle'] as const)(
     'jumps a %s link to its end state when motion is reduced',

@@ -9,7 +9,7 @@
 
    normal and subtle are accent, or the colour of an intent class
    on the link itself (--intent-link-own, which doesn't inherit);
-   strong follows the surrounding intent (--intent-link-*).
+   strong follows the surrounding intent, neutral included.
    Backgrounds clone per line, so a wrapped link animates on each.
    Reduced motion jumps to the end state through motion.css.
    ═══════════════════════════════════════════════════════════ */
@@ -67,63 +67,80 @@
   }
 }
 
-/* strong fills as emphasis-strong does. A blend between its text colours
-   passes through the fill's own colour, so the text switches in one step:
-   on-strong once the spring has all but covered it, and back at once on
-   the way out. The opaque fill runs under the underline, so no seam shows. */
+/* strong fills as emphasis-strong does. Its text is two text-clipped
+   layers over the fill: the on-strong ink grows with the fill, so each
+   letter turns as the fill reaches it, over the resting ink. The opaque fill
+   runs under the underline, so no seam shows. */
 @utility link-strong {
   @apply is-focusable;
-  --link-tone: var(--intent-link-underline);
+  --link-tone: var(--intent-9);
   --link-fill: var(--intent-bg-strong);
   --link-line: 0.0625em;
   --link-underline: var(--link-tone);
+  --link-ink: var(--intent-link-text);
+  --link-ink-on: var(--intent-text-on-strong);
 
-  color: var(--intent-link-text);
+  color: var(--link-ink);
+  -webkit-text-fill-color: transparent;
   background-image:
+    linear-gradient(var(--link-ink-on), var(--link-ink-on)),
+    linear-gradient(var(--link-ink), var(--link-ink)),
     linear-gradient(var(--link-underline), var(--link-underline)),
     linear-gradient(var(--link-fill), var(--link-fill));
   background-repeat: no-repeat;
   background-position:
+    left top,
+    left top,
     left bottom,
     left top;
   background-size:
+    0% 100%,
+    100% 100%,
     100% var(--link-line),
     0% 100%;
+  -webkit-background-clip: text, text, border-box, border-box;
+  background-clip: text, text, border-box, border-box;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 
   transition:
     var(--interactive-transition),
-    background-size var(--duration-moderate) var(--ease-spring),
-    --link-underline var(--duration-moderate) var(--ease-spring),
-    color 0s;
+    background-size var(--duration-slow) var(--ease-spring),
+    --link-underline var(--duration-slow) var(--ease-spring);
 
   &:focus-visible {
     --link-underline: var(--link-fill);
-    color: var(--intent-text-on-strong);
     background-size:
+      100% 100%,
+      100% 100%,
       100% var(--link-line),
       100% 100%;
-    transition:
-      var(--interactive-transition),
-      background-size var(--duration-moderate) var(--ease-spring),
-      --link-underline var(--duration-moderate) var(--ease-spring),
-      color 0s var(--duration-fast);
   }
 
+  /* A pointer passing over waits a beat before the sweep, so it doesn't
+     flicker; focus and leaving don't wait. */
   @media (hover: hover) {
     &:hover {
       --link-underline: var(--link-fill);
-      color: var(--intent-text-on-strong);
-      background-size:
-        100% var(--link-line),
-        100% 100%;
       transition:
         var(--interactive-transition),
-        background-size var(--duration-moderate) var(--ease-spring),
-        --link-underline var(--duration-moderate) var(--ease-spring),
-        color 0s var(--duration-fast);
+        background-size var(--duration-slow) var(--ease-spring)
+          var(--duration-fastest),
+        --link-underline var(--duration-slow) var(--ease-spring)
+          var(--duration-fastest);
+      background-size:
+        100% 100%,
+        100% 100%,
+        100% var(--link-line),
+        100% 100%;
     }
+  }
+
+  /* System colours replace the layers, so the text is plain again. */
+  @media (forced-colors: active) {
+    -webkit-text-fill-color: LinkText;
+    background-image: none;
+    text-decoration-line: underline;
   }
 }
 

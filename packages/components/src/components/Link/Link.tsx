@@ -36,14 +36,15 @@ export type LinkProps = Omit<
   /**
    * How much the link stands out from the text around it. `normal` keeps
    * the text colour with an accent underline that grows into a tint on
-   * hover, `strong` colours the text and fills from the left like `emphasis-strong`, and `subtle`
+   * hover, `strong` colours the text in its intent and fills from the left like `emphasis-strong`, and `subtle`
    * shows the underline only on hover or keyboard focus.
    * @default 'normal'
    */
   emphasis?: 'normal' | 'strong' | 'subtle'
   /**
    * Colours the link. Without it, `normal` and `subtle` stay accent inside
-   * any intent, and `strong` follows the surrounding intent.
+   * any intent, and `strong` follows the surrounding intent, neutral
+   * included.
    */
   intent?: RoadieIntent
   ref?: Ref<HTMLAnchorElement>

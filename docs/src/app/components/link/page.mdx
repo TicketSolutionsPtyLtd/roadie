@@ -30,7 +30,7 @@ A link keeps the colour of the text around it and underlines in the accent colou
 
 ### Emphasis
 
-`normal` is the default. `strong` colours the text too, for a link that has to stand out from the text around it. On hover it fills from the left the way `emphasis-strong` does, and its text switches to the on-strong colour as the fill all but covers it. `subtle` shows its underline only on hover or keyboard focus, rising and fading in, for a link whose place already says it's a link. It fades out a beat after the pointer leaves, so sweeping across a list doesn't flicker. With reduced motion, each one jumps straight to its end state.
+`normal` is the default. `strong` colours the text too, for a link that has to stand out from the text around it. On hover it fills from the left the way `emphasis-strong` does, after a 50ms pause so a passing pointer doesn’t set it off, and each letter turns to the on-strong colour as the fill reaches it. `subtle` shows its underline only on hover or keyboard focus, rising and fading in, for a link whose place already says it's a link. It fades out a beat after the pointer leaves, so sweeping across a list doesn't flicker. With reduced motion, each one jumps straight to its end state.
 
 ```tsx-live layout=stack
 {/* Normal */}
@@ -43,11 +43,13 @@ A link keeps the colour of the text around it and underlines in the accent colou
 
 ### Intents
 
-`intent` colours the underline and tint, and a strong link’s text and fill. A `normal` or `subtle` link is always accent, as links in `.prose` are, unless you give it an `intent` of its own; an `intent-*` surface around it, such as a danger callout, doesn’t change it. A `strong` link follows the surrounding intent too: accent text in neutral, filling on hover with that intent’s `emphasis-strong` colours, which in neutral are near-black in light and near-white in dark.
+`intent` colours the underline and tint, and a strong link’s text and fill. A `normal` or `subtle` link is always accent, as links in `.prose` are, unless you give it an `intent` of its own; an `intent-*` surface around it, such as a danger callout, doesn’t change it. A `strong` link follows the surrounding intent, neutral included: its text, underline and fill all come from that intent, and the fill matches the intent’s `emphasis-strong`. Give it `intent='accent'` for an accent link that stands out.
 
 ```tsx-live layout=stack
 {/* Neutral */}
 <Link href='#intents' emphasis='strong'>Refund policy</Link>
+{/* Accent */}
+<Link href='#intents' emphasis='strong' intent='accent'>Refund policy</Link>
 {/* Danger */}
 <Link href='#intents' emphasis='strong' intent='danger'>Refund policy</Link>
 {/* Success */}
@@ -149,6 +151,7 @@ import { Link } from '@oztix/roadie-components/link'
 - **New tabs**: An external link opens in a new tab, and `Link` doesn't announce it. Say so in the text, as the external example does.
 - **Touch**: Nothing changes on a tap, so a touch screen never shows a hover state left behind.
 - **Motion**: With reduced motion, the fill and underline change at once, with no transition or delay.
-- **Contrast**: The `normal` tint is 17% of the link colour, so text over it keeps its contrast in light and dark. A filled `strong` link has the text and fill of `emphasis-strong` in its intent.
+- **Contrast**: The `normal` tint is 17% of the link colour, so text over it keeps its contrast in light and dark. A filled `strong` link has the text and fill of `emphasis-strong` in its intent, and each letter turns as the fill reaches it, so text over the fill is always on-strong.
+- **Forced colours**: A `strong` link drops its fill and shows plain, underlined link text in the system colours.
 
 <PropsDefinitions component='Link' />

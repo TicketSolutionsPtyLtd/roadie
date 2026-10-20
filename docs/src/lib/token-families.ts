@@ -147,7 +147,7 @@ export const GROUP_NOTES: Record<string, string> = {
   Text: 'Foreground roles, read by the text-* utilities.',
   Borders: 'Edge roles, read by the border-* and divide-* utilities.',
   Mark: 'Highlight colours for mark and search matches.',
-  Link: 'A strong link’s text and underline, which follow the intent; accent in neutral.',
+  Link: 'A strong link’s text, which follows the intent: the strongest neutral, or the intent’s step 11.',
   'Semantic utilities': 'The Tailwind classes that read the roles above.',
   'Raw steps':
     "The active intent's 14 scale steps, for states a role doesn't cover.",

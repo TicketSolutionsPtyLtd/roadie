@@ -77,9 +77,8 @@
   --intent-mark-bg: var(--color-neutral-13);
   --intent-mark-text: var(--color-neutral-0);
 
-  /* A neutral strong link is accent; every other intent colours its own. */
-  --intent-link-underline: var(--color-accent-9);
-  --intent-link-text: var(--color-accent-11);
+  /* A strong link's text: the strongest neutral, or an intent's own step 11. */
+  --intent-link-text: var(--color-neutral-13);
 }
 
 /* Dark mode: bump surfaces up for depth separation */
@@ -141,8 +140,7 @@
   --intent-mark-bg: var(--color-neutral-13);
   --intent-mark-text: var(--color-neutral-0);
 
-  --intent-link-underline: var(--color-accent-9);
-  --intent-link-text: var(--color-accent-11);
+  --intent-link-text: var(--color-neutral-13);
   --intent-link-own: var(--color-accent-9);
 
   .dark & {
@@ -203,7 +201,6 @@
   --intent-mark-bg: var(--color-brand-light-5);
   --intent-mark-text: var(--color-brand-light-13);
 
-  --intent-link-underline: var(--color-brand-9);
   --intent-link-text: var(--color-brand-11);
   --intent-link-own: var(--color-brand-9);
 
@@ -295,7 +292,6 @@
   --intent-mark-bg: var(--color-brand-secondary-light-5);
   --intent-mark-text: var(--color-brand-secondary-light-13);
 
-  --intent-link-underline: var(--color-brand-secondary-9);
   --intent-link-text: var(--color-brand-secondary-11);
   --intent-link-own: var(--color-brand-secondary-9);
 
@@ -385,7 +381,6 @@
   --intent-mark-bg: var(--color-accent-light-5);
   --intent-mark-text: var(--color-accent-light-13);
 
-  --intent-link-underline: var(--color-accent-9);
   --intent-link-text: var(--color-accent-11);
   --intent-link-own: var(--color-accent-9);
 
@@ -449,7 +444,6 @@
   --intent-mark-bg: var(--color-danger-light-5);
   --intent-mark-text: var(--color-danger-light-13);
 
-  --intent-link-underline: var(--color-danger-9);
   --intent-link-text: var(--color-danger-11);
   --intent-link-own: var(--color-danger-9);
 
@@ -525,7 +519,6 @@
   --intent-mark-bg: var(--color-success-light-5);
   --intent-mark-text: var(--color-success-light-13);
 
-  --intent-link-underline: var(--color-success-9);
   --intent-link-text: var(--color-success-11);
   --intent-link-own: var(--color-success-9);
 
@@ -609,7 +602,6 @@
   --intent-mark-bg: var(--color-warning-light-5);
   --intent-mark-text: var(--color-warning-light-13);
 
-  --intent-link-underline: var(--color-warning-9);
   --intent-link-text: var(--color-warning-11);
   --intent-link-own: var(--color-warning-9);
 
@@ -685,7 +677,6 @@
   --intent-mark-bg: var(--color-info-light-5);
   --intent-mark-text: var(--color-info-light-13);
 
-  --intent-link-underline: var(--color-info-9);
   --intent-link-text: var(--color-info-11);
   --intent-link-own: var(--color-info-9);
 
