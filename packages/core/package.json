@@ -1,7 +1,7 @@
 {
   "name": "@oztix/roadie-core",
   "version": "2.10.0",
-  "description": "Design tokens, CSS foundation, and utilities for the Roadie Design System",
+  "description": "Foundations of the Roadie Design System: CSS tokens and utilities, plus framework-agnostic logic for records, dates and times, the colour generator, and dashboards",
   "type": "module",
   "repository": {
     "type": "git",
@@ -112,25 +112,25 @@
     "clsx": "2.1.1",
     "colorjs.io": "0.7.1",
     "tailwind-merge": "3.7.0",
-    "zod": "4.6.6"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "14.2.0",
     "@tailwindcss/cli": "4.3.3",
-    "@types/node": "24.19.1",
+    "@types/node": "24.19.2",
     "@vitejs/plugin-react": "6.1.2",
-    "@vitest/coverage-v8": "5.0.3",
-    "ajv": "8.18.0",
+    "@vitest/coverage-v8": "5.0.5",
+    "ajv": "8.20.0",
     "chokidar-cli": "3.0.0",
     "github-slugger": "2.0.0",
     "jscodeshift": "17.4.0",
     "react-docgen-typescript": "2.4.0",
     "size-limit": "14.2.0",
     "tailwindcss": "4.3.3",
-    "tsdown": "0.23.0",
+    "tsdown": "0.23.1",
     "typescript": "6.0.3",
     "vite": "8.3.4",
-    "vitest": "5.0.3"
+    "vitest": "5.0.5"
   },
   "size-limit": [
     {

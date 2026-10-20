@@ -29,14 +29,14 @@ and typecheck cover.
 Choose the cheapest test that can fail ("Tests" in `CODING_STANDARDS.md`). A
 browser test is only for what CSS or the browser itself decides.
 
-| Behaviour                                                            | Boundary                            | Test                                                             |
-| -------------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------- |
-| A component                                                          | props, roles, keyboard, ARIA states | jsdom, Testing Library, `userEvent`                              |
-| Pure logic (records queries, `validateDashboard`, chart definitions) | inputs and outputs                  | table-driven unit test (`it.each`)                               |
-| Anything CSS decides, or real pointer input such as drag and drop    | computed style or geometry          | `*.browser.test.tsx` in Chromium, WebKit, and Firefox            |
-| Touch                                                                | the same, with hover off            | browser test with `setHoverCapable(false)`                       |
-| Appearance                                                           | pixels                              | the visual and accessibility checks (INNO-1132), not a unit test |
-| A journey across pages                                               | the running app                     | the repo's e2e suite, for critical paths only                    |
+| Behaviour                                                            | Boundary                            | Test                                                  |
+| -------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------- |
+| A component                                                          | props, roles, keyboard, ARIA states | jsdom, Testing Library, `userEvent`                   |
+| Pure logic (records queries, `validateDashboard`, chart definitions) | inputs and outputs                  | table-driven unit test (`it.each`)                    |
+| Anything CSS decides, or real pointer input such as drag and drop    | computed style or geometry          | `*.browser.test.tsx` in Chromium, WebKit, and Firefox |
+| Touch                                                                | the same, with hover off            | browser test with `setHoverCapable(false)`            |
+| Appearance                                                           | pixels                              | the visual and accessibility checks, not a unit test  |
+| A journey across pages                                               | the running app                     | the repo's e2e suite, for critical paths only         |
 
 ## 3. The loop
 
@@ -59,8 +59,9 @@ never `vitest` or the whole suite directly. In Roadie that's
 `pnpm test:gated <package> <file>`, where `<package>` is the folder name (such
 as `components`, not the npm name) and the path, relative to the package or
 the repo, is a file or folder; a missing path exits 2, and one no test covers
-exits 1. It waits for load and runs Chromium only. A repo without a runner
-follows its own load rule and runs `vitest run <file>`. Before pushing, follow
+exits 1. It waits for load and runs Chromium only; add `--all-browsers` for
+WebKit and Firefox too. A repo without a runner follows its own load rule and
+runs `vitest run <file>`. Before pushing, follow
 the host workflow and let the hooks and CI run the rest. In Roadie, the run
 `gh pr ready` starts is Chromium only, and WebKit and Firefox run on `main`
 and nightly, so a browser test that covers CSS or an engine difference wants
@@ -68,20 +69,45 @@ the `full-browsers` label on the PR (PR workflow sections 5 and 7).
 
 ## 4. Tests that lie
 
-Real Roadie examples from the INNO-1130 audit (October 2026):
+Patterns the INNO-1130 audit found in Roadie (October 2026), since fixed.
+Roadie's lint rules (`eslint/roadie-plugin.js`) now fail the first five.
 
-| Anti-pattern                                       | Example                                                                              | Instead                                                            |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| CVA class strings standing in for behaviour        | `Switch.test.tsx:127`: `expect(switchVariants({ size: 'sm' })).toContain('h-5')`     | Render it; measure the height in a browser test if size matters    |
-| A `calc()` asserted as text in jsdom               | `Pane.test.tsx:926`: `toHaveClass('min-h-[calc(--spacing(4)_+_…)]')`                 | Measure the header's height in a browser                           |
-| Reading CSS or source text                         | `navigatorPending.test.ts:3`: imports the sheet `?raw` and asserts `animation: none` | Emulate reduced motion in a browser and read computed style        |
-| Recomputing the expected value                     | calling the palette's own formula to get the expected token                          | A literal from the spec                                            |
-| Mocking Base UI, motion, or the repo's own modules | `NumberField.test.tsx:11`: `vi.mock('@number-flow/react', …)`                        | Render the real thing; test in a browser if jsdom can't            |
-| Faked layout in jsdom                              | `RecordTable.narrow.test.tsx:51`: stubs `getBoundingClientRect` and a 16px root      | A browser test at a real width                                     |
-| A fixed sleep                                      | `RecordsSearch.test.tsx:565`: sleeps 150ms, then asserts no chips                    | Fake timers past the debounce, or wait for a positive signal first |
-| An unread snapshot                                 | `toMatchSnapshot()` on a whole tree                                                  | Assert the part that matters                                       |
+| Anti-pattern                                              | Lint rule                        | Instead                                                            |
+| --------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------ |
+| CVA class strings standing in for behaviour               | `roadie/no-cva-output-assertion` | Render it; measure the height in a browser test if size matters    |
+| A `calc()`, container query, or breakpoint class in jsdom | `roadie/no-css-class-in-jsdom`   | Measure it in a browser                                            |
+| Reading CSS source (`?raw` or `readFileSync`)             | `roadie/no-css-source-in-jsdom`  | Emulate the condition in a browser and read computed style         |
+| Faked layout in jsdom (`getBoundingClientRect`)           | `roadie/no-layout-fake-in-jsdom` | A browser test at a real width                                     |
+| A fixed sleep                                             | `roadie/no-fixed-sleep`          | Fake timers past the debounce, or wait for a positive signal first |
+| Recomputing the expected value                            | None                             | A literal from the spec                                            |
+| Mocking Base UI, motion, or the repo's own modules        | None                             | Render the real thing; test in a browser if jsdom can't            |
+| An unread snapshot                                        | None                             | Assert the part that matters                                       |
 
-## 5. Before you hand off
+## 5. Engine quirks in browser tests
+
+A browser test that passes in Chromium can fail in WebKit or Firefox for a
+reason in the engine, not the code. Search the repo's learnings
+(`docs/solutions/test-failures/` in Roadie) before you debug one. Roadie has
+helpers for the common ones:
+
+- **WebKit ignores a hover.** Base UI drops WebKit's pointer moves that don't
+  move, which is all Playwright sends. Use `pointAt(element)` from
+  `packages/components/src/utils/pointerTestUtils.ts`, not
+  `userEvent.hover`.
+- **Firefox stops firing focus events** in a window that isn't focused, which
+  files run one after another can leave it in. Call
+  `await commands.focusPage()` (a browser command in
+  `packages/components/vitest.config.ts`), then
+  `await expect.poll(() => document.hasFocus()).toBe(true)` before the first
+  key.
+- **Headless WebKit on Linux runs no frames while idle**, so
+  `requestAnimationFrame`, `ResizeObserver`, and animations stall. Wrap the
+  wait in `withFrames` from `packages/components/src/css/testUtils.ts`.
+- **Touch.** `setHoverCapable(false)` from the same file turns hover off,
+  and `tapOn` from `packages/components/src/utils/touchTestUtils.ts` sends a
+  real tap.
+
+## 6. Before you hand off
 
 For each new test, answer yes to all three, or rewrite it:
 

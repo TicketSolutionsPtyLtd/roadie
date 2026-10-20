@@ -16,22 +16,24 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 
 - pnpm (`corepack enable`), Turborepo, React 19, TypeScript 5 in strict mode
   with no `any`, [Tailwind CSS v4](https://tailwindcss.com/docs) with
-  `@utility` directives, and Next.js 16 with MDX for the docs.
+  `@utility` directives, and Next.js 16 with MDX for the docs. Next 16 may
+  differ from what you know: read its guide in
+  `docs/node_modules/next/dist/docs/` before changing the docs app.
 - Interactive components wrap [Base UI](https://base-ui.com/). Steps is the one
   exception (`@ark-ui/react/steps`); build new components on Base UI.
 - Icons are [Phosphor](https://phosphoricons.com/).
 - The editor is [Tiptap](https://tiptap.dev/) v3, MIT parts only, in
   `@oztix/roadie-editor`; `roadie-components` never depends on Tiptap.
 
-| Path                      | Package                                                           |
-| ------------------------- | ----------------------------------------------------------------- |
-| `packages/core/`          | `@oztix/roadie-core`: CSS, colour generator, records, dashboards  |
-| `packages/components/`    | `@oztix/roadie-components`                                        |
-| `packages/charts/`        | `@oztix/roadie-charts`: charts, legends, and dashboard views      |
-| `packages/editor/`        | `@oztix/roadie-editor`: the rich-text editor and its saved format |
-| `packages/widgets/`       | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins     |
-| `packages/eslint-plugin/` | `@oztix/roadie-eslint-plugin`: lint rules for apps on Roadie      |
-| `docs/`                   | The docs site                                                     |
+| Path                      | Package                                                                                                                |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `packages/core/`          | `@oztix/roadie-core`: foundations, CSS plus framework-agnostic logic (records, datetime, colour generator, dashboards) |
+| `packages/components/`    | `@oztix/roadie-components`                                                                                             |
+| `packages/charts/`        | `@oztix/roadie-charts`: charts, legends, and dashboard views                                                           |
+| `packages/editor/`        | `@oztix/roadie-editor`: the rich-text editor and its saved format                                                      |
+| `packages/widgets/`       | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins                                                          |
+| `packages/eslint-plugin/` | `@oztix/roadie-eslint-plugin`: lint rules for apps on Roadie                                                           |
+| `docs/`                   | The docs site                                                                                                          |
 
 Root scripts: `pnpm dev`, `build`, `test`, `test:browser`, `typecheck`, `lint`,
 and `format`. Scope one with `--filter`:

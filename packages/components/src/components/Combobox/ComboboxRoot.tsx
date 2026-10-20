@@ -30,6 +30,9 @@ export type ComboboxRootProps<
 }
 
 type AutoHighlightMode = ComboboxPrimitive.Root.Props<unknown>['autoHighlight']
+type OpenChangeDetails = Parameters<
+  NonNullable<ComboboxPrimitive.Root.Props<unknown>['onOpenChange']>
+>[1]
 
 export function ComboboxRoot<
   Value,
@@ -67,7 +70,7 @@ export function ComboboxRoot<
   const [open, handleOpenChange] = useHeldOpen(
     props.open,
     props.defaultOpen,
-    (open: boolean, details: ComboboxPrimitive.Root.ChangeEventDetails) => {
+    (open: boolean, details: OpenChangeDetails) => {
       onOpenChange?.(open, details)
       if (!open) resetTyped(details)
       handleRankOpenChange(open, details)

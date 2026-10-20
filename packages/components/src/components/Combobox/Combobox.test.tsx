@@ -141,7 +141,7 @@ describe('Combobox value types', () => {
       string | null | undefined
     >()
     expectTypeOf<ComboboxProps<string, true>['value']>().toEqualTypeOf<
-      string[] | null | undefined
+      readonly string[] | null | undefined
     >()
   })
 })

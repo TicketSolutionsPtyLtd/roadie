@@ -3,7 +3,7 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "env": ["$TURBO_EXTENDS$", "DOCS_GIT_HISTORY"],
+      "env": ["$TURBO_EXTENDS$", "NEXT_PUBLIC_BASE_PATH", "DOCS_GIT_HISTORY"],
       "inputs": [
         "$TURBO_EXTENDS$",
         "src/content/**/*.md",

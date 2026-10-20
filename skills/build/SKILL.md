@@ -14,7 +14,10 @@ wrong. The detail lives in two places:
   same file in `@oztix/roadie-core`. It lists every subpath, component, prop,
   and deprecation, with a link to each docs page. Read it before you write
   markup or guess a prop. Older releases don't ship it; read the package's
-  `exports` and `.d.ts` files instead.
+  `exports` and `.d.ts` files instead. Each component has a `status`:
+  an `alpha` or `beta` API can break in a minor release, so pin the version
+  and read the [changelog](https://ticketsolutionsptyltd.github.io/roadie/overview/changelog/)
+  before upgrading, and don't build on a `deprecated` one.
 - **The docs index**, `https://ticketsolutionsptyltd.github.io/roadie/llms.txt`.
   Links ending in `.md` are markdown with props. Read a component's page
   before you use it for the first time, and the foundations page for the area
@@ -34,6 +37,8 @@ If any of this is missing, run `/roadie:setup` first.
 - Import each component from its own subpath
   (`@oztix/roadie-components/button`), never the root barrel.
   `RoadieProvider` is the one root import.
+- `Editor` is in its own package. Install `@oztix/roadie-editor` and import
+  `@oztix/roadie-editor/css` after the components' CSS.
 
 ## 1. Pick a component before writing markup
 
@@ -48,12 +53,16 @@ component already has.
 | A surface for content in a page        | `Card`, with `Card.Header`, `Card.Content`, and so on   |
 | A column of an app frame               | `Pane` inside `Navigator`, never as a box in a page     |
 | Records to search, filter, sort, page  | `RecordTable`, or `RecordGrid` when an image leads      |
+| A search that turns text into filters  | `QueryField`, when there's no records list              |
 | A few records to open, or settings     | `List` with `List.Item`                                 |
 | A status or a tag                      | `Badge`                                                 |
 | A message about the page or a section  | `Callout`                                               |
 | Nothing to show, or a failed load      | `EmptyState`                                            |
 | A short task or a confirmation         | `Dialog`, or `Drawer` for a longer one                  |
 | A menu of actions                      | `Menu`                                                  |
+| A row of controls with one Tab stop    | `Toolbar`                                               |
+| Rich text people write and save        | `Editor` (`@oztix/roadie-editor/editor`)                |
+| A text link in rendered content        | `Link` (`/link`)                                        |
 | One of a few views or options          | `Tabs`, `ToggleGroup`, or `RadioGroup`                  |
 | A date, time, range, or countdown      | `DateTime`, `Duration`, `Countdown`, `CalendarTile`     |
 | Feedback after an action               | A toast from `useToastManager` (`/toast`)               |
@@ -78,18 +87,38 @@ for fields and views.
 
 - **The header is the filter bar.** `Records.Header` holds the search,
   which turns typed text into filter chips ("melb this weekend"), and the
-  Configure button for sort and columns. Don't build a row of `Select`s,
-  date pickers, or a columns menu above the table.
+  Configure button for sort and columns. Its dropdown picks a field, an
+  operator, and a value, with a calendar for dates. Don't build a row of
+  `Select`s, date pickers, or a columns menu above the table.
 - **Describe the records once, at module scope.** Build fields with
   `recordFields<Row>()` (`@oztix/roadie-core/records`) and columns with
   `tableColumns<Row>(fields)` (`@oztix/roadie-components/record-table`)
   outside the component. An option field with a `status` map shows a
   `Badge` in each value's intent. A date field takes `moment` and, for events,
-  `timeZoneKey`, so dates read in the venue's zone.
+  `timeZoneKey`, so dates read in the venue's zone. A place is a
+  `location` field, whose options nest by `parent`, so "Location is in
+  Victoria" takes in every suburb inside it.
 - **Pin one title column** with `pin: true`.
 - **Render it in a client component** (`'use client'`), since fields and
-  columns hold functions. Fetch on the server, inside a `<Suspense>`
-  boundary, and pass the rows in.
+  columns hold functions. When every record fits in the browser, fetch on the
+  server, inside a `<Suspense>` boundary, and pass the rows in as `data`.
+- **Let the server search a big list.** Pass one page as `data` with
+  `rowCount`, and fetch the request `onRequestChange` hands you. For one long
+  list people scroll, pass `loadRange` instead, which resolves with
+  `{ rows, rowCount }`, and leave out `data`. Either way, pass `getRowId`, so
+  a selection survives refetching. Pass `rowCountExact={false}` when the
+  backend stops counting, such as at 10,000.
+- **The server reads the request, never the view.** A `RecordsRequest` holds
+  `version: 1` and the query with its dates already resolved. POST it as
+  JSON, reject a version you don't know, and add the person's permissions as
+  a filter of your own. `toMeilisearch(request, fields)`
+  (`@oztix/roadie-core/records/meilisearch`) turns it into a search, and
+  `@oztix/roadie-core/records/records-request.schema.json` is its JSON
+  Schema, for generating a server's models. Away from the table, as for a
+  scheduled export, build one with `toRecordsRequest`
+  (`@oztix/roadie-core/records`). Read the
+  [Server contract](https://ticketsolutionsptyltd.github.io/roadie/foundations/records/#server-contract)
+  first.
 - **Let it show its own states.** Pass `recordName`, and the table shows the
   empty and no match states itself, with a Clear search and filters action.
   While the server fetches, the Suspense fallback is a `Skeleton` shaped
@@ -104,7 +133,12 @@ for fields and views.
 - **What the page is about** (one venue's events) is `scope`, not a filter
   in `defaultView`.
 - **Actions.** `actions` act on every match, `bulkActions` on a
-  selection, and `rowActions` on one row. `getRowHref` links each row.
+  selection, and `rowActions` on one row. `getRowHref` links each row. An
+  action gets one object, `{ query, request, timeZone, now }`, plus
+  `records` for `actions` or `selection` for `bulkActions`. When the browser
+  holds only a page, POST `request` and act or export on the server.
+- **Pass `records` only what `useRecords` returns** when you build from the
+  `Records` parts. Never build that object yourself.
 
 Use `DataTable` for a read-only summary of about 25 rows or fewer, and `List`
 for a few records to open.
@@ -212,7 +246,7 @@ Read [Forms](https://ticketsolutionsptyltd.github.io/roadie/foundations/forms.md
 ```
 
 - `Field` wraps every control: `Input`, `Textarea`, `Select`, `RadioGroup`,
-  `Combobox`, `Autocomplete`, `DatePicker`, and `NumberField`. Set
+  `Combobox`, `Autocomplete`, `DatePicker`, `NumberField`, and `Editor`. Set
   `invalid`, `required`, and `disabled` on `Field`, never on the control.
 - `Field.Label showIndicator` marks required or optional for you.
 - Always render `Field.ErrorText`; it shows only when `invalid`. Don't wrap
@@ -263,8 +297,10 @@ Read [Linking](https://ticketsolutionsptyltd.github.io/roadie/foundations/linkin
   `List.Item`, `Menu.Item`, `Breadcrumb.Link`, and `Tabs.Tab`. Internal
   hrefs route through the provider's Link, external ones open in a new tab
   with a safe `rel`, and no `href` renders a `<button>`.
-- Never wrap a Roadie component in `<Link>`, and never navigate from
-  `onClick` with `router.push`. Use `href`.
+- Never wrap a Roadie component in the router's `<Link>`, and never
+  navigate from `onClick` with `router.push`. Use `href`.
+- For a text link, such as one in rendered content, use `Link`
+  (`@oztix/roadie-components/link`), which routes the same way.
 - Don't add `target` or `rel` to a Roadie component; it sets them.
 - A text link is `Link` from `@oztix/roadie-components/link`, never a raw
   `<a>` or the router's Link. `emphasis` is `normal` in a sentence, `strong`
