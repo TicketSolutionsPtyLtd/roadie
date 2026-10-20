@@ -29,6 +29,10 @@ export type AutocompleteRootProps = Omit<
   autoHighlight?: boolean | 'always'
 }
 
+type OpenChangeDetails = Parameters<
+  NonNullable<AutocompleteRootProps['onOpenChange']>
+>[1]
+
 export function AutocompleteRoot({
   onItemHighlighted,
   mode,
@@ -59,7 +63,7 @@ export function AutocompleteRoot({
   const [open, handleOpenChange] = useHeldOpen(
     props.open,
     props.defaultOpen,
-    (open: boolean, details: AutocompletePrimitive.Root.ChangeEventDetails) => {
+    (open: boolean, details: OpenChangeDetails) => {
       onOpenChange?.(open, details)
       if (!open) resetTyped(details)
     }

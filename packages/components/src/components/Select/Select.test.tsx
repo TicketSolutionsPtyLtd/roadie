@@ -517,7 +517,7 @@ describe('Select value types', () => {
       string | null | undefined
     >()
     expectTypeOf<SelectProps<string, true>['value']>().toEqualTypeOf<
-      string[] | null | undefined
+      readonly string[] | null | undefined
     >()
   })
 })
