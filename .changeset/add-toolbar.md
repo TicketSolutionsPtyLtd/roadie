@@ -2,4 +2,6 @@
 '@oztix/roadie-components': minor
 ---
 
-Add `Toolbar` (`@oztix/roadie-components/toolbar`), a wrapper over Base UI's toolbar whose parts render `Button` (an `IconButton` when its only child is an icon, and a routed link with `href`), `Toggle`, a group of toggles that share one value, whose pressed fill slides between them and `Separator`, all at the toolbar's size. It takes one Tab stop, moves with the arrow keys, scrolls its items sideways on one row on touch screens and phones and wraps them onto new lines elsewhere, and sets the size of the items it renders. It sits in an `emphasis='normal'` surface by default; `subtle`, `raised`, and `floating` change it, and `subtler` drops it for a toolbar inside another surface.
+Add `Toolbar` (`@oztix/roadie-components/toolbar`), a row of buttons, toggles, links, and menus that takes one Tab stop.
+
+It wraps Base UI's toolbar, and its parts render Roadie components at the toolbar's `size`: `Toolbar.Button` (a `Button`, an `IconButton` when its only child is an icon, or a routed link with `href`), `Toolbar.Toggle`, `Toolbar.ToggleGroup`, whose pressed fill slides between its toggles, `Toolbar.Group`, and `Toolbar.Separator`. The arrow keys move between items. On touch screens and phones the items scroll sideways on one row, and elsewhere they wrap. It sits in an `emphasis='normal'` surface by default; `subtle`, `raised`, and `floating` change it, and `subtler` drops it for a toolbar inside another surface.

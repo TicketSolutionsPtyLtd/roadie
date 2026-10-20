@@ -88,6 +88,7 @@ const VARIABLE_RULES: Rule[] = [
   [/^--intent-text-/, 'intents', 'Text'],
   [/^--intent-border-/, 'intents', 'Borders'],
   [/^--intent-mark-/, 'intents', 'Mark'],
+  [/^--intent-link-/, 'intents', 'Link'],
   [/^--(background|text|border)-color-/, 'intents', 'Semantic utilities'],
   [/^--intent-hue$/, 'intents', 'Hue'],
   [/^--intent-\d+$/, 'intents', 'Raw steps'],
@@ -144,6 +145,7 @@ const UTILITY_RULES: Rule[] = [
   ],
   [/^container-/, 'shape', 'Containers'],
   [/^btn/, 'component-utilities', 'Buttons'],
+  [/^link-/, 'component-utilities', 'Text links'],
   [/^calendar-tile/, 'component-utilities', 'Calendar tile']
 ]
 

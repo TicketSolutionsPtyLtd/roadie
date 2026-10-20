@@ -12,7 +12,8 @@ default: a soft, borderless keycap tinted from the surrounding text colour),
 `normal` (its own opaque, bordered surface, built on `emphasis-normal`) or
 `subtler` (plain text in the surrounding colour, for menu rows). Kbd is
 `aria-hidden` unless `announce` is set, and is hidden on screens without hover
-unless announced.
+unless announced or inside a container marked `data-keyboard-hints='always'`,
+such as a help page about shortcuts.
 
 `Menu` item `shortcut`s now render through `Kbd` and accept a key list such as
 `['mod', 'd']`. Text such as `'⌘D'` keeps its characters, but a known key name

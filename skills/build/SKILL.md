@@ -50,7 +50,7 @@ component already has.
 | You need                               | Use                                                     |
 | -------------------------------------- | ------------------------------------------------------- |
 | An action                              | `Button`, or `IconButton` with `aria-label`             |
-| A surface for content in a page        | `Card`, with `Card.Header`, `Card.Content`, and so on   |
+| A surface for content in a page        | `Card`, always with a `Card.Content`                    |
 | A column of an app frame               | `Pane` inside `Navigator`, never as a box in a page     |
 | Records to search, filter, sort, page  | `RecordTable`, or `RecordGrid` when an image leads      |
 | A search that turns text into filters  | `QueryField`, when there's no records list              |
@@ -302,6 +302,10 @@ Read [Linking](https://ticketsolutionsptyltd.github.io/roadie/foundations/linkin
 - For a text link, such as one in rendered content, use `Link`
   (`@oztix/roadie-components/link`), which routes the same way.
 - Don't add `target` or `rel` to a Roadie component; it sets them.
+- A text link is `Link` from `@oztix/roadie-components/link`, never a raw
+  `<a>` or the router's Link. `emphasis` is `normal` in a sentence, `strong`
+  for a link that stands alone, and `subtle` only where its place says it's a
+  link, such as a footer. An action is a `Button`.
 - `render` is the escape hatch for a custom element, and it wins over `href`.
 
 ## 9. Empty, loading, and error states

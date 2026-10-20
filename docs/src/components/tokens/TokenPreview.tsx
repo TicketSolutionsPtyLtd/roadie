@@ -239,6 +239,8 @@ function variablePreview(token: TokenEntry) {
       ) : (
         <Swatch color={v(name)} />
       )
+    case 'Link':
+      return <Glyph style={{ color: v(name) }} />
     case 'Borders':
       return (
         <span
@@ -428,6 +430,8 @@ function utilityPreview({ name, family, group, kind }: TokenEntry) {
           return <CalendarTile part={variant} />
         return <CalendarTile />
       }
+      if (name.startsWith('link-'))
+        return <span className={cn('text-sm', name)}>Line-up</span>
       if (name === 'btn')
         return <span className='btn btn-md emphasis-strong'>Go</span>
       return (

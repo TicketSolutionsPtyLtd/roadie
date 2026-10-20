@@ -13,8 +13,6 @@ import {
   useState
 } from 'react'
 
-import Link from 'next/link'
-
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
@@ -249,7 +247,6 @@ const scope = {
   QueryClientProvider,
   createDemoCart,
   DemoRouter,
-  Link,
   createPortal,
   use,
   useState,

@@ -9,8 +9,10 @@ import { type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { isDev } from '../../utils/isDev'
 import { type RoadieRenderProp, resolveRender } from '../../utils/resolveRender'
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
+import { CardContentCheck } from './CardContentCheck'
 import { cardVariants } from './variants'
 
 type CardOwnProps<T extends ElementType = 'div'> = {
@@ -94,6 +96,7 @@ export function CardRoot<T extends ElementType = 'div'>({
   target,
   rel,
   render,
+  children,
   ...props
 }: CardRootProps<T>): ReactElement {
   const ticketAttributes =
@@ -103,7 +106,12 @@ export function CardRoot<T extends ElementType = 'div'>({
   const rest = {
     'data-direction': direction,
     ...ticketAttributes,
-    ...props
+    ...props,
+    children: isDev() ? (
+      <CardContentCheck>{children}</CardContentCheck>
+    ) : (
+      children
+    )
   } as Record<string, unknown>
 
   // Detect interactivity from outer onClick OR from a render element

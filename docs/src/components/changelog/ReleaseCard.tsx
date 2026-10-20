@@ -45,32 +45,31 @@ export function ReleaseCard({
   const Heading = headingLevel === 3 ? 'h3' : 'h4'
   return (
     <li className='grid'>
-      <Card
-        emphasis='subtle'
-        className='grid-cols-[1fr_auto] items-center gap-4 p-4'
-      >
-        <div className='grid content-start gap-1'>
-          <div className='flex flex-wrap items-center gap-x-2 gap-y-1'>
-            <Heading className='text-display-ui-6 text-strong'>
-              {card.href ? (
-                <Card.Link href={card.href}>{card.title}</Card.Link>
-              ) : (
-                card.title
-              )}
-            </Heading>
-            {card.breaking ? (
-              <Badge size='sm' intent='danger' emphasis='subtle'>
-                Breaking
-              </Badge>
+      <Card emphasis='subtle'>
+        <Card.Content className='grid grid-cols-[1fr_auto] items-center gap-4 p-4'>
+          <div className='grid content-start gap-1'>
+            <div className='flex flex-wrap items-center gap-x-2 gap-y-1'>
+              <Heading className='text-display-ui-6 text-strong'>
+                {card.href ? (
+                  <Card.Link href={card.href}>{card.title}</Card.Link>
+                ) : (
+                  card.title
+                )}
+              </Heading>
+              {card.breaking ? (
+                <Badge size='sm' intent='danger' emphasis='subtle'>
+                  Breaking
+                </Badge>
+              ) : null}
+            </div>
+            {card.description.length > 0 ? (
+              <p className='line-clamp-2 text-sm text-subtle'>
+                <InlineText inline={card.description} />
+              </p>
             ) : null}
           </div>
-          {card.description.length > 0 ? (
-            <p className='line-clamp-2 text-sm text-subtle'>
-              <InlineText inline={card.description} />
-            </p>
-          ) : null}
-        </div>
-        <Thumbnail card={card} art={art} />
+          <Thumbnail card={card} art={art} />
+        </Card.Content>
       </Card>
     </li>
   )

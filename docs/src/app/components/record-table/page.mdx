@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'RecordTable',
-  description: 'A table of records to search, filter, sort and page through',
+  description: 'A table of records to search, filter, sort, and page through',
   status: 'alpha',
   category: 'Collections'
 }
@@ -8,7 +8,7 @@ export const metadata = {
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-A table of records to search, filter, sort and page through.
+A table of records to search, filter, sort, and page through.
 
 ## Import
 
@@ -18,13 +18,13 @@ import { Records, downloadCsv, useRecords } from '@oztix/roadie-components/recor
 import { recordFields, recordsToCsv } from '@oztix/roadie-core/records'
 ```
 
-Columns with a `cell`, `getRowId` and the `useRecords` instance hold functions, so they can't pass from a Server Component. Build them and render the table in a client component, a file that starts with `'use client'`.
+Columns with a `cell`, `getRowId`, and the `useRecords` instance hold functions, so they can't pass from a Server Component. Build them and render the table in a client component, a file that starts with `'use client'`.
 
 ## Examples
 
 ### Default
 
-Describe the records once as fields, pick the fields to show as columns, and pass both with the data. Search, sorting from the headers and paging come built in.
+Describe the records once as fields, pick the fields to show as columns, and pass both with the data. Search, sorting from the headers, and paging come built in.
 
 Search matches every word, in any order, in the text fields and the option labels of fields marked `searchable`. Text fields are searchable by default; other types aren't.
 
@@ -145,12 +145,12 @@ In a header under 40rem, the search takes the whole row while it has focus. The 
 Most record tables live in a [`Pane`](/components/pane). Wrap the pane in `Records.Provider`, which shares the records without adding an element, and spread the parts across it:
 
 - `Records.Header` in `Pane.Body`, above the table. It sticks under the pane's header while the body scrolls, so the search stays in reach, and paints the pane's margins beside it so rows never show there. `Pane.Header` keeps the `Pane.Title`.
-- `Records.Content` in `Pane.Body`, below the header. Its column headers stick under the header. Placed straight in `Pane.Body`, a wide table runs to the pane's edges, with the pane's inset inside its first and last cells, so its first column lines up with the search and columns scrolled sideways pass under any pinned ones. Narrow rows, a `fill` or `maxHeight` box and a pane with a `measure` keep the inset.
+- `Records.Content` in `Pane.Body`, below the header. Its column headers stick under the header. Placed straight in `Pane.Body`, a wide table runs to the pane's edges, with the pane's inset inside its first and last cells, so its first column lines up with the search and columns scrolled sideways pass under any pinned ones. Narrow rows, a `fill` or `maxHeight` box, and a pane with a `measure` keep the inset.
 - `Records.Status` anywhere inside the Provider. It renders nothing visible.
 - `Records.Pagination` in `Pane.Footer`, which stays pinned at the bottom. The table's sideways scrollbar sits just above the footer.
 - `Records.BulkActions` anywhere inside the Provider. The table's `Records.Content` shows it in place of the column headers while records are selected, and floats it over narrow rows.
 
-On a phone the table turns into cards: the event, its venue and status, with the start, sold and gross as details. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
+On a phone the table turns into cards: the event, its venue, and its status, with the start, sold, and gross as details. The second frame shows it at 390px. See [Narrow layouts](#narrow-layouts).
 
 ```tsx-live-noinline-expand id=in-a-pane
 const venues = [
@@ -515,7 +515,7 @@ render(
 
 ### Views
 
-A view holds the search, filters, sort and layout; a position holds the page and page size. Both work uncontrolled, with `defaultView` and `defaultPosition`, or controlled, with `view` and `onViewChange`, and `position` and `onPositionChange`. A change to the search, filters or sort returns to the first page: when the page changes, `onPositionChange` hears that first, then `onViewChange` gets the view and the new position, so a parent writing both to one URL ends with the two agreeing.
+A view holds the search, filters, sort, and layout; a position holds the page and page size. Both work uncontrolled, with `defaultView` and `defaultPosition`, or controlled, with `view` and `onViewChange`, and `position` and `onPositionChange`. A change to the search, filters, or sort returns to the first page: when the page changes, `onPositionChange` hears that first, then `onViewChange` gets the view and the new position, so a parent writing both to one URL ends with the two agreeing.
 
 Keep the view in the URL with `recordViewToSearchParams` and `recordViewFromSearchParams`, as [Records model](/foundations/records) shows. A view can name a filter on a field these records don't have, or one its field can't read, such as a date range that ends before it starts. The records skip it, show the rest, list it in `skippedFilters`, and warn in development. A sort on a field that doesn't sort is skipped too, with the same warning, and no header shows it.
 
@@ -564,8 +564,8 @@ render(<Controlled />)
 
 `Records.Options` is the Configure button in the header, after the search and before any table actions, so their More actions menu stays last. It opens a popover below the button, lined up with its end, or a bottom drawer on a phone, and every change applies at once.
 
-- **Sort** lists each level the view sorts by: a field, then its direction in the field's own terms, such as A to Z, Low to high or Earliest first. Add sort starts with the first sortable field, its natural way, and Add another sort breaks ties with a field not sorted yet. A header click still sorts by that column alone. A level on a field that doesn't sort isn't listed, and changes here leave it in the view. A level that repeats a field sorts nothing, so changes here drop it.
-- **Columns** lists the table's columns in their order. Drag a handle to move a column, or click it, or press Enter on it, for a Move menu. The eye beside each column shows or hides it, and a hidden column stays in the list, dimmed, in its place. Pinned columns always come first and always show, so the list names them rather than offering them. The last shown column can't be hidden. The table loads this list once the page is idle, or as a pointer or focus reaches the button, so drag and drop stays out of the table's first load and the first open doesn't wait for it.
+- **Sort** lists each level the view sorts by: a field, then its direction in the field's own terms, such as A to Z, Low to high, or Earliest first. Add sort starts with the first sortable field, its natural way, and Add another sort breaks ties with a field not sorted yet. A header click still sorts by that column alone. A level on a field that doesn't sort isn't listed, and changes here leave it in the view. A level that repeats a field sorts nothing, so changes here drop it.
+- **Columns** lists the table's columns in their order. Drag a handle to move a column, or click it, or press Enter on it, for a Move menu. The eye beside each column shows or hides it, and a hidden column stays in the list, dimmed, in its place. Pinned columns always come first and always show, so the list names them rather than offering them. The last shown column can't be hidden.
 
 The options write the view, like the headers do: the sort to `query.sort`, and the columns to `layout.columns`, with the whole `order` once a column moves and the `hidden` keys. Put back the way the columns are defined, the layout leaves both out, so `equalRecordViews` reads it as unchanged. A view's keys for columns this table doesn't have, such as one only some people see, are kept. The button shows only when a field sorts or a column can move or hide: two columns that aren't pinned, or one beside a pinned column.
 
@@ -621,7 +621,7 @@ function Configured() {
 render(<Configured />)
 ```
 
-`label` renames the button, its tooltip and the panel, which are "Configure table" for the table. In your own header, put `Records.Options` after the search and any `Records.ViewActions`, and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which `Records.Options` calls once the page is idle or its button is reached.
+`label` renames the button, its tooltip, and the panel, which are "Configure table" for the table. In your own header, put `Records.Options` after the search and any `Records.ViewActions`, and before `Records.Actions`. A layout adds its own settings under the sort with a `Settings` component in its definition, as `tableLayout` does for the columns. A lazy one can carry a `preload` function, which `Records.Options` calls once the page is idle or its button is reached.
 
 #### Layouts
 
@@ -631,19 +631,19 @@ Give `Records` more than one layout, such as the table and a grid of cards, and 
 
 A saved view is a view with a name that people come back to. Apps ship preset views for a screen, such as On sale and Sold out on an events screen, and people save their own beside them. Roadie applies views and tells when one has changed. Your app stores the views and lists them.
 
-Pass the saved view the screen opened as `baseline`. `modified` says whether the view now shows something else, by `equalRecordViews`, which ignores the id, the name, spacing in the search and the order of chips. `resetView` goes back to the baseline from the first page. The page's `scope` is never part of a view, so it never makes one read as modified.
+Pass the saved view the screen opened as `baseline`. `modified` says whether the view now shows something else, by `equalRecordViews`, which ignores the id, the name, spacing in the search, and the order of chips. `resetView` goes back to the baseline from the first page. The page's `scope` is never part of a view, so it never makes one read as modified.
 
 `viewActions` on `RecordTable` or `Records.Header` takes the handlers below as one object, the props of `Records.ViewActions`, unlike the arrays `actions` and `bulkActions` take. It shows the baseline's name after the search and Select, before Configure, with a dot once the view is modified and a tooltip with the whole name. In your own header, put `Records.ViewActions` in the same place. Its menu offers what your handlers allow:
 
 - **Save view** calls `onSave` with the view under the baseline's id and name. It shows while the view is modified.
 - **Reset view** goes back to the baseline. It shows while the view is modified, and needs no handler.
-- **Save as new view** asks for a name, then calls `onSaveAs` with the view, that name and no id, for your app to assign one.
+- **Save as new view** asks for a name, then calls `onSaveAs` with the view, that name, and no id, for your app to assign one.
 - **Rename view** asks for a new name, then calls `onRename` with the baseline under it. Unsaved changes stay unsaved.
 - **Delete view** asks first, then calls `onDelete` with the baseline. Open another view once it resolves.
 
 Leave out the handlers a view doesn't allow. A preset takes `onSaveAs` alone, so people can start their own view from it but can't change it for everyone. With no baseline, the button reads Unsaved view and offers Save as new view, and a baseline with no name reads Untitled view. A baseline with nothing to offer still shows its name, in a button that opens nothing, so focus stays put after a reset. With neither a baseline nor `onSaveAs`, it renders nothing.
 
-Names are asked for in a dialog, or a bottom drawer on a phone, and Delete view asks in an alert dialog on every screen. A handler can return a promise, and the button or the dialog's action stays busy until it settles. Reject to say it failed. The dialog stays open and shows the error's message, so reject with one people can read, such as "You already have a view called Perth". Without a message it says plainly that the view wasn't saved, renamed or deleted. While a handler runs, the dialog stays open. A failed Save view goes to `reportError`, so show your own toast too.
+Names are asked for in a dialog, or a bottom drawer on a phone, and Delete view asks in an alert dialog on every screen. A handler can return a promise, and the button or the dialog's action stays busy until it settles. Reject to say it failed. The dialog stays open and shows the error's message, so reject with one people can read, such as "You already have a view called Perth". Without a message it says plainly that the view wasn't saved, renamed, or deleted. While a handler runs, the dialog stays open. A failed Save view goes to `reportError`, so show your own toast too.
 
 Keep the open view in the URL. `recordViewToSearchParams` writes its id as `view`, so a link opens the same view with the same changes. A link to a saved view as it is can carry its id alone, `?view=on-sale`, which `recordViewFromSearchParams` reads as no view, so pass that saved view as the fallback. Then find the baseline by the view's id:
 
@@ -819,7 +819,7 @@ render(
 )
 ```
 
-Keep the views your app stores as `RecordView` JSON, the same shape as the URL reads, so a view saved on one screen opens from a link, a preset or a search hand-off alike.
+Keep the views your app stores as `RecordView` JSON, the same shape as the URL reads, so a view saved on one screen opens from a link, a preset, or a search hand-off alike.
 
 ### Selection and actions
 
@@ -972,7 +972,7 @@ actions={[
 
 ### Server data
 
-Pass `rowCount` and the records stop searching, filtering, sorting and paging in the browser. `data` is one page, in the order the server returned it, and `rowCount` counts every record that matches. `onRequestChange` hands you the request to fetch once the page hydrates, then each time the view, position, zone, or `now` changes it. It carries the page, relative dates such as "today" fixed in the viewer's zone, the page's `scope` first, and only the filters and sorts the fields can apply, as the table shows them. From `useRecords`, `records.request` holds the same. The search waits for a 250ms pause in typing before the request or `onViewChange` hears it, so a request doesn't leave on every keystroke. Clearing it is immediate.
+Pass `rowCount` and the records stop searching, filtering, sorting, and paging in the browser. `data` is one page, in the order the server returned it, and `rowCount` counts every record that matches. `onRequestChange` hands you the request to fetch once the page hydrates, then each time the view, position, zone, or `now` changes it. It carries the page, relative dates such as "today" fixed in the viewer's zone, the page's `scope` first, and only the filters and sorts the fields can apply, as the table shows them. From `useRecords`, `records.request` holds the same. The search waits for a 250ms pause in typing before the request or `onViewChange` hears it, so a request doesn't leave on every keystroke. Clearing it is immediate.
 
 Set `loading` until the rows for the latest request arrive. To have it true in the very render where the view or position changes, hold both yourself, usually in the URL, and key `loading` on them. While `loading` or `error` is set, the records keep a page past the old count, so a linked page waits for the new count before it moves, and `Records.Status` waits for the new count before it announces it. Once given, `rowCount` keeps server mode on: left `undefined` while a page loads, it keeps the last count. Pass 0 until the first count arrives. Take each change `onViewChange` reports: a parent that ignores a search leaves the field showing it. Column widths come from the first page a search or filter brings, and hold as people page, so the columns don't shift.
 
@@ -1090,7 +1090,7 @@ To build a request away from the table, as for a link or a scheduled export, cal
 
 Pass `loadRange` for one long list with no pages that loads the records on screen as people scroll. The list asks for the rows on screen plus a screen either side, a page per request, each a request with `start` and `end`, `end` exclusive, to POST as it is. Each range is one whole page, page `start / pageSize`, so fetch `pageSize` records from `start`; the last one can run past the end of the list, unless the count is one the server stopped at, where it ends at the count. Resolve with `{ rows, rowCount }`: the range's records, in order, and the total that matches, with `rowCountExact: false` when it is a floor. Leave out `data`; the list holds what it loads. Rows that haven't arrived show as grey placeholders.
 
-The server searches, filters and sorts, as in server mode, and the search waits for a pause in typing. The list keeps each range's records with the request they answer, drops a response for an older one, and starts over when the search, filters, sort or zone change, or when a new `now` moves a relative date. It keeps the last total until the new query's first response, so the scrollbar holds its length. The first range brings the count, so a list that opens at a saved row asks for the first page, then the row's. A count that grows, as when a record is added at the end, loads the rows it adds. Every request in this example waits 400ms.
+The server searches, filters, and sorts, as in server mode, and the search waits for a pause in typing. The list keeps each range's records with the request they answer, drops a response for an older one, and starts over when the search, filters, sort, or zone change, or when a new `now` moves a relative date. It keeps the last total until the new query's first response, so the scrollbar holds its length. The first range brings the count, so a list that opens at a saved row asks for the first page, then the row's. A count that grows, as when a record is added at the end, loads the rows it adds. Every request in this example waits 400ms.
 
 If `loadRange` rejects, the range shows an error row in place of its records, with Retry, and the records already loaded stay. When nothing has loaded yet, the table shows its error state instead. Range mode stops at 300,000 rows. With range loading, `Records.Pagination` shows the count instead of pages, such as "1,284 shows", or "50+ shows" while the total is unknown, with no page buttons and no rows per page: the list scrolls. Paging stays for paged tables.
 
@@ -1160,7 +1160,7 @@ With Meilisearch, `toMeilisearch(request, fields)` fetches each range as a page,
 
 Some APIs page with a cursor and never say how many records match. Resolve with `rows` alone and the list asks for one range at a time, from the end of what it holds, and stops once a range comes back short or empty. The scrollbar grows as records arrive. Keep each range's cursor by where it starts, and set the page size to the API's.
 
-The list reports the first row on screen as `position.row`, through `onPositionChange`, a few times a second while people scroll. Keep it with the view, such as in the URL, and coming back to the list lands on the same row once the first range brings the count, loading the row's range before any between. A row the list reported itself never scrolls it back, so a slow router replaying an older row can't jump the list. Scrolling changes `row` often, so write it to the URL without adding history.
+The list reports the first row on screen as `position.row`, through `onPositionChange`, a few times a second while people scroll. Keep it with the view, such as in the URL, and coming back to the list lands on the same row once the first range brings the count, loading the row's range before any between. Scrolling changes `row` often, so write it to the URL without adding history.
 
 ### Long lists
 
@@ -1211,7 +1211,7 @@ render(
 
 ### Column priority
 
-Give columns people can do without a `priority`, so they hide as a wide table narrows, before it turns into list rows. Priority 3 hides below 64rem of the table's own width, 2 below 56rem and 1 below 48rem, and the header and rows hide together. Pinned columns and the title never hide, so `pin` and `narrow: 'title'` win over `priority`. A column hidden by priority still shows in Configure, and search and exports still include it.
+Give columns people can do without a `priority`, so they hide as a wide table narrows, before it turns into list rows. Priority 3 hides below 64rem of the table's own width, 2 below 56rem, and 1 below 48rem, and the header and rows hide together. Pinned columns and the title never hide, so `pin` and `narrow: 'title'` win over `priority`. A column hidden by priority still shows in Configure, and search and exports still include it.
 
 ```tsx
 const columns = [
@@ -1235,13 +1235,13 @@ Under 40rem of its own width, 640px at the default text size, the table drops it
 | `'detail'` | A label and value on a card. Any detail column turns the rows into cards. |
 | `'hidden'` | Left out of the narrow layout. The default for every column but images. |
 
-The server can't know the table's width, so the table renders wide there and on its first render. A phone shows the wide table until the page hydrates, then the list before the next paint. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the header: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
+The server can't measure the table, so it renders wide, and a phone switches to the list once the page hydrates. List rows reach 12px into the space beside the table, as a `List` does, so their text lines up with the header: give the table at least that much inline padding, as a page or `Pane` does. In a box of its own, with `maxHeight` or `fill`, rows stay inside the box. The examples below sit in a 360px box.
 
 Narrow rows load by range and render only near the screen past 100 records, as wide rows do. The bulk actions float at the foot of the screen, keeping the first action and putting the rest in a More actions menu when they don't fit.
 
 #### List rows
 
-With no detail columns, each record is a list row of a fixed height: leading, title, description and trailing. An image column becomes the leading thumbnail. Switch to Wide to see the same table turn back into columns.
+With no detail columns, each record is a list row of a fixed height: leading, title, description, and trailing. An image column becomes the leading thumbnail. Switch to Wide to see the same table turn back into columns.
 
 ```tsx-live-noinline-expand
 const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
@@ -1311,7 +1311,7 @@ render(<NarrowEvents />)
 
 Give columns `narrow: 'detail'` and each record becomes a card, with the details listed under its title as labels and values. An image column becomes the card's 16:9 banner, with the trailing value on its top end. Cards grow to fit their content, and past 100 records the list measures each as it renders.
 
-To choose for yourself, pass `narrow: 'list'` or `narrow: 'cards'` to `tableLayout`, or `narrow` to `RecordTable`. List rows leave out detail columns, and cards without details show just the title, description and trailing.
+To choose for yourself, pass `narrow: 'list'` or `narrow: 'cards'` to `tableLayout`, or `narrow` to `RecordTable`. List rows leave out detail columns, and cards without details show just the title, description, and trailing.
 
 ```tsx-live-noinline
 const venues = ['Kazoo Hollow Room', 'Antler Kettle Hall', 'Echidna Gaslight Theatre', 'Foxglove Tin Pavilion']
@@ -1437,7 +1437,7 @@ const column = tableColumns<Event>(eventFields)
 const columns = [column.field('name', { pin: true })]`}
   >
     Build fields and columns once, outside the component, and share the
-    fields with the server, filters and URLs. Stable arrays keep rows from
+    fields with the server, filters, and URLs. Stable arrays keep rows from
     rendering again.
   </Guideline.Do>
   <Guideline.Dont
@@ -1469,7 +1469,7 @@ column.field('location', { pin: true })`}
 <Guideline title="Set a page's scope, don't add it as a filter">
   <Guideline.Do code={`<RecordTable scope={[{ field: 'venue', operator: 'is', values: [venueId] }]} {...props} />`}>
     Pass what the page is about as `scope`. It shows as a locked chip, and
-    Clear, a saved view and the URL leave it alone.
+    Clear, a saved view, and the URL leave it alone.
   </Guideline.Do>
   <Guideline.Dont
     code={`<RecordTable defaultView={{ query: { filters: [{ field: 'venue', operator: 'is', values: [venueId] }] } }} {...props} />`}
@@ -1529,7 +1529,7 @@ column.field('location', { pin: true })`}
     code={`<Records.Header searchPlaceholder='Search events' />`}
   >
     Keep the standard header, or put `Records.Options` after the search in
-    your own. People sort, move and hide columns there, and the view keeps
+    your own. People sort, move, and hide columns there, and the view keeps
     it.
   </Guideline.Do>
   <Guideline.Dont
@@ -1564,8 +1564,8 @@ column.field('location', { pin: true })`}
 
 <Guideline title='Let the table show its own states'>
   <Guideline.Do code={`<RecordTable loading={isLoading} error={failed} onRetry={refetch} {...props} />`}>
-    Pass `loading`, `error` and `onRetry`. The table shows the matching
-    EmptyState, placeholders and announcements.
+    Pass `loading`, `error`, and `onRetry`. The table shows the matching
+    EmptyState, placeholders, and announcements.
   </Guideline.Do>
   <Guideline.Dont
     code={`{failed ? <p>Something went wrong</p> : <RecordTable {...props} />}`}
@@ -1622,14 +1622,14 @@ column.field('location', { pin: true })`}
 function useRecords<Row extends object>(options: UseRecordsOptions<Row>): RecordsInstance<Row>
 ```
 
-Holds the view, position and selection, and searches, filters, sorts and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data` (left out with `loadRange`), `rowCount`, `rowCountExact` (false when the count is a floor the server stopped at), `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `baseline` (the saved view the screen opened), `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is), `now` (when relative dates resolve, by default when the list mounted in the browser; a server reads no clock, so a relative date filter shows the loading state until then) `loadRange` (which loads the list by range as people scroll, resolving with `{ rows, rowCount, rowCountExact }`) and `onRequestChange` (which hears each request to fetch). Pass the result to `Records` or `Records.Provider`, which take only what `useRecords` returns, not an object built to its shape.
+Holds the view, position, and selection, and searches, filters, sorts, and pages the records in the browser, or with `rowCount` leaves that to a server. Takes `data` (left out with `loadRange`), `rowCount`, `rowCountExact` (false when the count is a floor the server stopped at), `fields`, `getRowId`, `view`, `defaultView`, `onViewChange`, `baseline` (the saved view the screen opened), `scope` (the page's own filters), `position`, `defaultPosition`, `onPositionChange`, `selectable`, `selection`, `defaultSelection`, `onSelectionChange`, `rowActions`, `getRowHref`, `recordName`, `loading`, `error`, `onRetry`, `timeZone` (the reader's, which decides what "today" is), `now` (when relative dates resolve, by default when the list mounted in the browser; a server reads no clock, so a relative date filter shows the loading state until then), `loadRange` (which loads the list by range as people scroll, resolving with `{ rows, rowCount, rowCountExact }`), and `onRequestChange` (which hears each request to fetch). Pass the result to `Records` or `Records.Provider`, which take only what `useRecords` returns, not an object built to its shape.
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `mode` | `'browser' \| 'server' \| 'range'` | Where the records are searched and paged: `server` once `rowCount` is given, `range` once `loadRange` is. |
-| `data` | `readonly Row[]` | Every record held, before search, filters and paging. In server mode, the page; in range mode, the records loaded, in order. |
-| `fields` | `readonly RecordField[]` | What each record holds. |
-| `view` | `RecordView` | The search, filters, sort and layout. |
+| `data` | `readonly Row[]` | Every record held, before search, filters, and paging. In server mode, the page; in range mode, the records loaded, in order. |
+| `fields` | `readonly RecordsField[]` | What each record holds. |
+| `view` | `RecordView` | The search, filters, sort, and layout. |
 | `appliedView` | `RecordView` | The view the rows show, without the filters and sorts the fields can't apply, and without the page's scope. In the browser its search lags typing while a long list filters. Its `query` keeps its identity while its content holds. |
 | `request` | `RecordsRequest` | What to POST to a server: the applied query with relative dates fixed and the scope first, under `version` 1, with `page` and `pageSize` in server mode. It keeps its identity while its content holds, so key a fetch on it. |
 | `rows` | `readonly { id: string; row: Row }[]` | The current page. In range mode, every record loaded. |

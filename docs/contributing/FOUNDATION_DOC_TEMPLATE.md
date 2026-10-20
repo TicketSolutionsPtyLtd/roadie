@@ -50,7 +50,9 @@ Which components use which step by default, as a guidance table.
 One sentence on when to use it.
 
 ```tsx-live
-<Card className='rounded-xl'>Ochre Kite Weekender 2026</Card>
+<Card className='rounded-xl'>
+  <Card.Content>Ochre Kite Weekender 2026</Card.Content>
+</Card>
 ```
 
 ## Guidelines

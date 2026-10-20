@@ -28,10 +28,8 @@ styles the placeholder and selection:
 
 ### Default
 
-The toolbar holds the preset's controls: bold, italic, underline, link,
-bulleted and numbered lists, undo, and redo, a size smaller than the text. It sits in a
-bordered bar at the top of the editor, and each control's tooltip shows its
-shortcut.
+The toolbar at the top of the editor holds the preset's controls, and each
+control's tooltip shows its shortcut.
 
 ```tsx-live-prose
 <Editor
@@ -42,14 +40,10 @@ shortcut.
 
 ### Toolbar
 
-The toolbar is always there, as a bar that hugs its controls at the top of
-the editor. It's part of the editor, so it scrolls away with a long
-description, and it looks the same whether you're editing or not, so the text
-never moves. On a phone or touch screen its controls scroll sideways on one
-row when they don't fit.
-
-A floating toolbar that stays in reach as you edit a long description is
-planned.
+The toolbar is a bar at the top of the editor, a size smaller than the text.
+It scrolls away with a long description, and looks the same whether you're
+editing or not, so the text never moves. On a phone or touch screen its
+controls scroll sideways on one row when they don't fit.
 
 ```tsx-live-prose
 <Editor
@@ -124,11 +118,9 @@ web address such as `oztix.com.au` and the editor adds `https://`. With
 nothing selected, saving inserts the address as linked text. Typing or pasting
 a web address links it as you go.
 
-The Link, Embed, Edit link, and Alt text popovers are one row: a bare input
-that shows only its placeholder, then a check button that saves and a Close
-button. The check stays disabled until there's something to save. Enter saves
-too, except the Enter that picks an IME candidate, and Escape closes. Editing a
-link adds a Remove link button between the two.
+The Link, Embed, Edit link, and Alt text popovers are one row: an input, a
+check button that saves, and Close. Enter saves and Escape closes. Editing a
+link adds Remove link between the two.
 
 ```tsx-live-prose
 <Editor
@@ -164,7 +156,7 @@ and `migrate` drops it from a stored value.
 
 `preset='rich'` adds headings 2 to 4, quotes, and dividers to the basic
 preset, for an event page. The Block type menu leads the toolbar and names
-the block at the caret, then come the basic controls, from Bold, Italic and
+the block at the caret, then come the basic controls, from Bold, Italic, and
 Underline to the lists. Markdown works as you type: `## `, `### `, and
 `#### ` start a heading, `> ` a quote, and `---` a divider.
 
@@ -312,8 +304,7 @@ Click an embed, or move onto it with the arrow keys, to edit it in place. A
 toolbar by the embed has Edit link and Remove embed. Edit link starts from the
 embed's share link, from its provider's optional `shareUrl`, and replaces the
 embed with the new link's player. It refuses a link no provider reads, as the
-Embed control does. An embed doesn't save a TikTok poster's name, so TikTok's
-share link uses `@_` in its place; TikTok finds the video by its id.
+Embed control does.
 
 ### Tables
 
@@ -322,8 +313,8 @@ and three columns, with a header row. Tab moves to the next cell, adding a
 row after the last, and Shift+Tab moves back, leaving the editor from the
 first cell. While the caret is in a table, a toolbar at its start edge, above
 it, or below it when a table comes first, has its actions: a Row menu with
-Insert above, Insert below and Delete row, a Column menu with Insert before,
-Insert after and Delete column, the Header row toggle, and Delete table.
+Insert above, Insert below, and Delete row, a Column menu with Insert before,
+Insert after, and Delete column, the Header row toggle, and Delete table.
 
 ```tsx-live-prose
 <Editor
@@ -431,16 +422,14 @@ Its skeleton is lines of text, not a box.
 />
 ```
 
-An invalid `subtler` editor has no border to turn red, so it draws the
-field's danger edge on its start side, just outside the text, and
-`Field.ErrorText` says what's wrong. The edge uses danger step 9, as an
-invalid field's border does, which clears APCA Lc 45 on the page in both
-themes. Give it room at the start: a container that clips its overflow hides
-the edge. A disabled one dims as a disabled field does.
+An invalid `subtler` editor has no border to turn red, so it draws a danger
+edge on its start side, just outside the text, and `Field.ErrorText` says
+what's wrong. Give it room at the start: a container that clips its overflow
+hides the edge. A disabled one dims as a disabled field does.
 
 #### Toolbar emphasis
 
-`Editor.Toolbar` takes [Toolbar's `emphasis`](/components/toolbar/#emphasis) for its bar, the same on every screen and
+`Editor.Toolbar` takes [Toolbar's `emphasis`](/components/toolbar#emphasis) for its bar, the same on every screen and
 whether you're editing or not. It's independent of the editor's own `emphasis`. To
 change it, pass the parts yourself:
 
@@ -591,19 +580,7 @@ render(
 )
 ```
 
-## Guidelines
-
-- The editor's code loads after the page, so `Editor` shows a skeleton the
-  height of the empty editor until then, and always on the server. Call `preloadEditor()`
-  on the hover or focus that leads to an editor to start loading it sooner.
-- Put the editor in a `Field` with a `Field.Label`. Outside one, label it
-  with `aria-label` or `aria-labelledby`; a `<label for>` can't name editable
-  content.
-- Add a custom control only for something the preset can't do. A preset's
-  controls come with its schema, so each one works on what the editor can
-  save.
-
-## Rendering saved content
+### Rendering saved content
 
 `@oztix/roadie-editor/render` turns a saved `EditorValue` into the page's
 content, with none of the editor's code. It works in a server component and
@@ -668,6 +645,18 @@ render(
   </>
 )
 ```
+
+## Guidelines
+
+- The editor's code loads after the page, so `Editor` shows a skeleton the
+  height of the empty editor until then, and always on the server. Call `preloadEditor()`
+  on the hover or focus that leads to an editor to start loading it sooner.
+- Put the editor in a `Field` with a `Field.Label`. Outside one, label it
+  with `aria-label` or `aria-labelledby`; a `<label for>` can't name editable
+  content.
+- Add a custom control only for something the preset can't do. A preset's
+  controls come with its schema, so each one works on what the editor can
+  save.
 
 ## Accessibility
 

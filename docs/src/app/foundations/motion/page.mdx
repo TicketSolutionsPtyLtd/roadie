@@ -162,22 +162,22 @@ function Entrances() {
       </Button>
       <div key={run} className='grid gap-3 sm:grid-cols-3'>
         <Card emphasis='raised' className='animate-fade-in'>
-          <Card.Header>
+          <Card.Content>
             <Card.Title>Ochre Kite Weekender</Card.Title>
             <Card.Description>animate-fade-in</Card.Description>
-          </Card.Header>
+          </Card.Content>
         </Card>
         <Card emphasis='raised' className='animate-scale-in'>
-          <Card.Header>
+          <Card.Content>
             <Card.Title>Lampshade Disco</Card.Title>
             <Card.Description>animate-scale-in</Card.Description>
-          </Card.Header>
+          </Card.Content>
         </Card>
         <Card emphasis='raised' className='origin-bottom animate-pop-in'>
-          <Card.Header>
+          <Card.Content>
             <Card.Title>Nectarine Hoedown</Card.Title>
             <Card.Description>animate-pop-in</Card.Description>
-          </Card.Header>
+          </Card.Content>
         </Card>
       </div>
     </div>
@@ -324,15 +324,15 @@ it has no transition. Hover or tab to each card to compare. A `Card` with an
 ```tsx-live layout=stack width=80
 {/* Static */}
 <Card emphasis='raised'>
-  <Card.Header>
+  <Card.Content>
     <Card.Title>Tuxedo Possum Cabaret</Card.Title>
-  </Card.Header>
+  </Card.Content>
 </Card>
 {/* Interactive */}
 <Card emphasis='raised' href='#raised-surfaces'>
-  <Card.Header>
+  <Card.Content>
     <Card.Title>Tuxedo Possum Cabaret</Card.Title>
-  </Card.Header>
+  </Card.Content>
 </Card>
 ```
 

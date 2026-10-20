@@ -2,7 +2,8 @@
 
 ESLint rules that catch [Roadie Design System](https://github.com/TicketSolutionsPtyLtd/roadie)
 mistakes in apps: Phosphor icon imports, sizes, and weights, `dark:` variants,
-hex colour classes, and arbitrary radius and z-index values.
+hex colour classes, arbitrary radius and z-index values, and a `Card`
+without `Card.Content`.
 
 ```bash
 pnpm add -D @oztix/roadie-eslint-plugin

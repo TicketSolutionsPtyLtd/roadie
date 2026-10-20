@@ -1,11 +1,10 @@
 export const metadata = {
   title: 'Installation',
   description:
-    'Add Roadie to a React app: packages, CSS and fonts.'
+    'Add Roadie to a React app: packages, CSS, and fonts.'
 }
 
-This guide will help you set up and start using the Roadie Design
-System in your project.
+Set up Roadie in a React app.
 
 ## Install the packages
 
@@ -14,6 +13,15 @@ Install the core package and component library:
 ```bash
 pnpm add @oztix/roadie-core @oztix/roadie-components
 ```
+
+Add the others as you need them:
+
+| Package | For |
+| --- | --- |
+| `@oztix/roadie-charts` | [Charts](/charts) and dashboards |
+| `@oztix/roadie-editor` | The rich-text [Editor](/components/editor) |
+| `@oztix/roadie-widgets` | The cart drawer, in React or Vue |
+| `@oztix/roadie-eslint-plugin` | [Lint rules](/overview/linting) that catch Roadie mistakes, as a dev dependency |
 
 ## Setup
 
@@ -28,7 +36,7 @@ Add these to your HTML `<head>` to reduce font loading latency:
 
 ### 2. Configure your CSS
 
-In your main CSS entry point (e.g. `globals.css` or `index.css`), import Roadie's CSS. This single import includes Tailwind CSS v4, all design tokens, theme variables, and base styles:
+In your main CSS entry point (such as `globals.css` or `index.css`), import Roadie's CSS. This single import includes Tailwind CSS v4, all design tokens, theme variables, and base styles:
 
 ```css
 @import '@oztix/roadie-core/css';
@@ -43,13 +51,14 @@ Tailwind v4 ignores `node_modules` by default, so it won't see the class strings
 @import '@oztix/roadie-components/css';
 ```
 
-Using widgets or charts too? Add `@oztix/roadie-widgets/css` or `@oztix/roadie-charts/css` as well. Each package's CSS registers only its own classes, so include every package you use. The React widget skins render Roadie components, so they need the components CSS too; the Vue skins don't:
+Using widgets, charts, or the editor too? Add `@oztix/roadie-widgets/css`, `@oztix/roadie-charts/css`, or `@oztix/roadie-editor/css` as well. Each package's CSS registers only its own classes, so include every package you use. The React widget skins render Roadie components, so they need the components CSS too; the Vue skins don't:
 
 ```css
 @import '@oztix/roadie-core/css';
 @import '@oztix/roadie-components/css';
 @import '@oztix/roadie-widgets/css';
 @import '@oztix/roadie-charts/css';
+@import '@oztix/roadie-editor/css';
 ```
 
 ### 4. Mount RoadieProvider
@@ -131,7 +140,7 @@ Place them yourself when one root doesn't fit:
 
 ### Moving to RoadieProvider
 
-Replace your root's `RoadieLinkProvider`, `ThemeProvider` and `Toast.Provider` with one `RoadieProvider`, and move their props across: `Link` becomes `link`, the theme's props go in `theme`, and the toast provider's props and the viewport's `position` go in `toast`. Nothing else changes, and the individual providers keep working.
+Replace your root's `RoadieLinkProvider`, `ThemeProvider`, and `Toast.Provider` with one `RoadieProvider`, and move their props across: `Link` becomes `link`, the theme's props go in `theme`, and the toast provider's props and the viewport's `position` go in `toast`. Nothing else changes, and the individual providers keep working.
 
 Keep an individual provider only for a deliberate scoped override. In development, Roadie warns when a `RoadieProvider` sits inside another one, or when a `ThemeProvider` or `Toast.Provider` it already mounts wraps it or sits straight inside it.
 
@@ -139,10 +148,10 @@ Keep an individual provider only for a deliberate scoped override. In developmen
 
 ### Using components
 
-Import and use components from `@oztix/roadie-components`. Components use the `intent` and `emphasis` props for styling:
+Import each component from its own subpath. Components use the `intent` and `emphasis` props for styling:
 
 ```tsx
-import { Button } from '@oztix/roadie-components'
+import { Button } from '@oztix/roadie-components/button'
 
 function MyComponent() {
   return (
@@ -159,7 +168,7 @@ function MyComponent() {
 
 ### Using intent and emphasis
 
-The `intent` prop controls the color theme of a component:
+The `intent` prop sets a component's colour:
 
 ```tsx
 <Button intent='neutral'>Default action</Button>
@@ -211,20 +220,9 @@ All components accept a `className` prop for additional Tailwind classes:
 
 Each package ships a `roadie.manifest.json` that coding agents read, and a Claude Code plugin teaches agents to build with Roadie. [Building with AI](/overview/ai) covers both.
 
-## Features
-
-The Roadie Design System includes:
-
-- Design tokens for colors, spacing, typography, and more
-- Pre-built React components with intent/emphasis API
-- Tailwind CSS v4 integration
-- Built-in dark mode support
-- Responsive design utilities
-- Semantic color scales for consistent theming
-
 ## Next steps
 
-- Browse our [Components](/components) to see what is available
-- Learn about our [Design Tokens](/tokens) and how to use them
+- Browse the [components](/components)
+- Learn the [design tokens](/tokens)
 - Catch Roadie mistakes at lint time with the [ESLint plugin](/overview/linting)
 - Set up Claude Code and other agents in [Building with AI](/overview/ai)

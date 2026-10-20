@@ -46,11 +46,15 @@ function cssText(style: Record<string, string>) {
     .join(';')
 }
 
+// What Roadie's Link renders, so a link looks the same from either renderer.
+const LINK_ATTRS = { 'data-slot': 'link', class: 'link-normal' }
+
 function htmlAttrs({ tag, attrs, style }: Element) {
   const opensTab = tag === 'a' && EXTERNAL_HREF.test(String(attrs?.href))
   return serializeAttrsToHTMLString({
     ...attrs,
     ...(opensTab && { target: '_blank', rel: 'noopener noreferrer' }),
+    ...(tag === 'a' && LINK_ATTRS),
     ...(style && { style: cssText(style) })
   })
 }

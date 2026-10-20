@@ -104,9 +104,10 @@ export const TOKEN_FAMILY_PAGES: Record<TokenFamily, TokenFamilyPage> = {
     href: '/tokens/component-utilities',
     intro:
       'The same styles the React components apply, for server-rendered and Vue templates. Pair `btn` with a size, an intent and an emphasis.',
-    aliases: 'button calendar tile variant template',
+    aliases: 'button calendar tile link underline variant template',
     guidance: [
       foundation('Date and time', 'date-and-time'),
+      foundation('Linking', 'linking'),
       foundation('Navigation', 'navigation')
     ]
   }
@@ -146,6 +147,7 @@ export const GROUP_NOTES: Record<string, string> = {
   Text: 'Foreground roles, read by the text-* utilities.',
   Borders: 'Edge roles, read by the border-* and divide-* utilities.',
   Mark: 'Highlight colours for mark and search matches.',
+  Link: 'A strong link’s text, which follows the intent: the strongest neutral, or the intent’s step 11.',
   'Semantic utilities': 'The Tailwind classes that read the roles above.',
   'Raw steps':
     "The active intent's 14 scale steps, for states a role doesn't cover.",
@@ -176,6 +178,8 @@ export const GROUP_NOTES: Record<string, string> = {
     'Driven by data-starting-style and data-ending-style. Press a preview to toggle it.',
   Keyframes: 'The keyframes the animation classes run.',
   Buttons: 'Pair btn with a size, an intent and an emphasis.',
+  'Text links':
+    'A text link’s underline and hover motion by emphasis, as Link applies it. Hover or focus a preview to see it.',
   'Calendar tile':
     'A month and day tile for templates; the parts are dimmed to show which one a class styles.'
 }

@@ -238,7 +238,8 @@ the PR only when the review is clean.
   personal auto-review setting may still post a Copilot review; triage its
   threads like any other, but never wait for one.
 - **Add the `full-browsers` label** before `gh pr ready` for CSS, layout,
-  or anything iOS-sensitive, so the PR also runs WebKit and Firefox. CI reads
+  or anything iOS-sensitive, and to a Dependabot PR that bumps a rendering
+  dependency, so the PR also runs WebKit and Firefox. CI reads
   the label when it runs, so a label added later takes effect on the next
   push or `gh run rerun <id>` (not `--failed`).
 - **Push once per round of fixes**, not per commit. Every push reruns CI.
@@ -270,6 +271,10 @@ the PR only when the review is clean.
   retries browser tests twice and flags any that pass on a retry.
 - If `main` moves under you, update the branch and wait for CI again,
   especially after changes to shared CSS or the lockfile.
+- **Stacked PRs** merge `main` in after their base squash-merges, never
+  rebase, taking `--ours` for each file where `main` equals the base's final
+  head
+  ([how](../solutions/best-practices/stacked-prs-after-squash-merge.md)).
 
 ## 8. Merge
 
@@ -281,6 +286,8 @@ the maintainer.
 
 - CI is green on the full run that `gh pr ready` started: wait for every job
   to finish, not just `check`. A green draft run covers only `check`.
+  `gh pr merge --auto` doesn't wait for that run: with no required check
+  pending, it merges at once.
 - The file list is clean.
 - The local review is clean, and every review thread is triaged and
   resolved.

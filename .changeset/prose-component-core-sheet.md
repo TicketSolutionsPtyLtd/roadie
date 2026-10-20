@@ -31,9 +31,11 @@ What changes on the page:
 - Body text is 14px at `sm`, 16px at `md`, and the fluid `text-lg` at `lg`,
   all at the prose leading of 1.5. Before, `sm` and `lg` took the tighter line
   height of the page around them.
-- Headings at `sm` use the UI display styles, with `h1` to `h6` matching
-  `text-display-ui-1` to `-6`. `h1` to `h5` are one step larger than before,
-  and `h6` is unchanged. `md` and `lg` keep the prose display styles.
+- Headings at `md`, the default, use the UI display styles, `text-display-ui-1`
+  to `-6`, one step smaller than the prose display styles they used, so
+  headings in content such as an event description don't overwhelm the page.
+  `sm` headings keep their sizes, apart from `h6`, which drops to `text-sm`,
+  and `lg` keeps the prose display styles.
 - Links keep the surrounding text colour with an accent underline that turns
   to the text colour on hover.
 - List indent is 1.5em, so it scales with the size (24px at `md`, as before),
@@ -68,5 +70,9 @@ To restore old behaviour where a page needs it, add a class to `Prose`:
 - Full-width tables: `className='[&_table]:w-full'`, plus `.prose-bleed` on
   each table, or on its `.prose-scroll` wrapper, so it passes the 65ch measure.
 - The old `md` gap of 1rem: `className='[--prose-flow:1em]'`.
+- The old `md` headings: set `--prose-h1-size: var(--text-5xl)` and
+  `--prose-h1-weight: 900`, down to `--prose-h6-size: var(--text-lg)` and
+  `--prose-h6-weight: 700`, one text step per level, all at weight 700 but
+  `h1`.
 
 `proseVariants` now returns `prose` and the size variables only.
