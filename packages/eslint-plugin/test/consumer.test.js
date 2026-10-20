@@ -15,18 +15,27 @@ export default [roadie.configs.recommended]
 `
 
 const MISTAKES = `import { Heart, StarIcon } from '@phosphor-icons/react'
+import { Card } from '@oztix/roadie-components/card'
 
 export const Ticket = () => (
   <div className='dark:bg-strong z-[5] rounded-[10px] bg-[#ff0000]'>
     <Heart weight='bold' className='size-4' />
     <StarIcon size={16} />
+    <Card><Card.Header>Midnight Frequency</Card.Header></Card>
   </div>
 )
 `
 
 const CLEAN = `import { HeartIcon } from '@phosphor-icons/react'
+import { Card } from '@oztix/roadie-components/card'
 
-export const Ticket = () => <HeartIcon weight='bold' className='size-4 rounded-xl z-popover' />
+export const Ticket = () => (
+  <Card>
+    <Card.Content>
+      <HeartIcon weight='bold' className='size-4 rounded-xl z-popover' />
+    </Card.Content>
+  </Card>
+)
 `
 
 // Packs the package as npm would publish it and installs the tarball into a
@@ -70,6 +79,7 @@ describe.each([
 
   it('reports each kind of Roadie mistake', async () => {
     expect(await lint('src/Mistakes.jsx')).toEqual([
+      'roadie/card-content',
       'roadie/no-arbitrary-radius',
       'roadie/no-arbitrary-z-index',
       'roadie/no-dark-variant',

@@ -11,10 +11,13 @@ runRuleCases({
       `${IMPORT} <Card><EventBody /></Card>`,
       `${IMPORT} <Card><Card.Header />{body}</Card>`,
       `${IMPORT} <Card><><Card.Content /></></Card>`,
+      `${IMPORT} <Card><Card.Header />{open && <Card.Content />}</Card>`,
+      `${IMPORT} <Card>{events.map((event) => <Card.Content key={event.id} />)}</Card>`,
       `${IMPORT} <Card {...props} />`,
       `${IMPORT} <Card children={body} />`,
       "import { Card as RoadieCard } from '@oztix/roadie-components'; <RoadieCard><RoadieCard.Content /></RoadieCard>",
       '<Card><Card.Header /></Card>',
+      "import * as Roadie from '@oztix/roadie-components'; <Roadie.Card><Roadie.Card.Header /></Roadie.Card>",
       "import { Card } from './Card'; <Card><Card.Header /></Card>"
     ],
     invalid: [
