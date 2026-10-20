@@ -915,6 +915,25 @@ describe('A link in prose', () => {
     }
   }
 
+  it.each(['strong', 'subtle'] as const)(
+    'leaves a %s Link looking as it does outside prose',
+    (emphasis) => {
+      const outside = look(renderLink({ emphasis }).link)
+      cleanup()
+      render(
+        <div className='prose'>
+          <p className='text-subtle' style={{ fontSize: 16 }}>
+            <Link href='#lineup' emphasis={emphasis}>
+              Ochre Kite Weekender
+            </Link>
+          </p>
+        </div>
+      )
+
+      expect(look(screen.getByRole('link'))).toEqual(outside)
+    }
+  )
+
   it('looks the same as a normal Link at rest, accent in any intent', () => {
     const { prose, component } = renderPair()
 

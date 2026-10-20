@@ -143,9 +143,17 @@
     text-wrap: pretty;
   }
 
+  /* A link with its own emphasis keeps it, rather than gaining normal's layers. */
   .prose
     :where(a):not(
-      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+      :where(
+        .link-strong,
+        .link-subtle,
+        .not-prose,
+        [data-not-prose],
+        .not-prose *,
+        [data-not-prose] *
+      )
     ) {
     color: inherit;
     @apply link-normal;
