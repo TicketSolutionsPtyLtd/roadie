@@ -65,6 +65,11 @@
         100% calc(100% - var(--link-line));
     }
   }
+
+  /* Forced colours drop gradient backgrounds, and the underline with them. */
+  @media (forced-colors: active) {
+    text-decoration-line: underline;
+  }
 }
 
 /* strong fills as emphasis-strong does. Its text is two text-clipped

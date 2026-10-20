@@ -552,6 +552,36 @@ describe('A strong link in forced colours', () => {
   })
 })
 
+describe('A normal link in forced colours', () => {
+  // Forced colours drop gradient backgrounds, which is where its underline is drawn.
+  it.each([
+    ['a normal Link', () => renderLink().link],
+    [
+      'a .prose link',
+      () => {
+        render(
+          <div className='prose'>
+            <p>
+              <a href='#prose'>Prose link</a>
+            </p>
+          </div>
+        )
+        return screen.getByRole('link')
+      }
+    ]
+  ])('keeps %s underlined', async (_, mount, context) => {
+    await commands.forcedColors(true)
+    onTestFinished(() => commands.forcedColors(false))
+    if (!matchMedia('(forced-colors: active)').matches) {
+      context.skip()
+      return
+    }
+    const link = mount()
+
+    expect(getComputedStyle(link).textDecorationLine).toBe('underline')
+  })
+})
+
 describe('A link that wraps', () => {
   it.each(['normal', 'strong'] as const)(
     'paints a %s background on every line',
