@@ -136,6 +136,13 @@
     }
   }
 
+  /* Chromium paints the selection over the text-clipped ink and ignores a
+     var() text fill there, so the highlight is see-through instead: the
+     reset's info tint, at a strength the ink shows under. */
+  &::selection {
+    background-color: color-mix(in oklch, var(--color-info-9) 25%, transparent);
+  }
+
   /* System colours replace the layers, so the text is plain again. */
   @media (forced-colors: active) {
     -webkit-text-fill-color: LinkText;

@@ -341,6 +341,34 @@ describe.each(['normal', 'strong', 'subtle'] as const)(
   }
 )
 
+describe('A selected strong link', () => {
+  it('keeps its text visible under the selection highlight', async () => {
+    render(
+      <p className='bg-normal' style={{ fontSize: 48, padding: 8 }}>
+        <Link href='#lineup' emphasis='strong'>
+          MMMMMMMM
+        </Link>
+      </p>
+    )
+    const link = screen.getByRole('link')
+    const range = document.createRange()
+    range.selectNodeContents(link)
+    getSelection()!.removeAllRanges()
+    getSelection()!.addRange(range)
+    onTestFinished(() => getSelection()!.removeAllRanges())
+    await frame()
+
+    const box = link.getBoundingClientRect()
+    const pixelAt = await capture(link)
+    const seen: number[] = []
+    for (let x = box.left + 4; x < box.right - 4; x += 2)
+      for (let y = box.top + 4; y < box.bottom - 4; y += 2)
+        seen.push(luminance(pixelAt(x, y)))
+
+    expect(seen.some((value) => value < 55)).toBe(true)
+  })
+})
+
 describe('A strong link in forced colours', () => {
   it('drops its layers for plain, underlined system-coloured text', async (context) => {
     await commands.forcedColors(true)
