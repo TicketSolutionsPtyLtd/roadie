@@ -36,9 +36,11 @@ Colour page states APCA only.
 
 One pair is excepted for good: the accent strong fill of a chosen day in
 Calendar measures Lc 34.5 against the dark popover (38.9 before dark floating
-surfaces were lifted above raised ones) and 40.1 against the dark page. Its white semibold label carries the selected state. No colour in the
-sRGB gamut reaches Lc 45 against those surfaces while keeping a white label at
-Lc 60; the closest is about 44.8 and 59.8 (INNO-1198).
+surfaces were lifted above raised ones) and 40.1 against the dark page. Its
+white semibold label carries the selected state. No colour in the sRGB gamut
+reaches Lc 45 against those surfaces while keeping a white label at Lc 60; the
+closest was about 44.8 and 59.8 on the old popover, and is about 40.2 and 60.0
+on the lifted one, so the check's floor is 34 (INNO-1198).
 
 Dark chart marks and greys are non-text UI, so the dataviz validator measures
 them with APCA at Lc 45 against the dark page (INNO-1223). Every dark

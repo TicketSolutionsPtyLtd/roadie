@@ -90,7 +90,8 @@ const twMerge = extendTailwindMerge<
         'bg-strong',
         'bg-inverted',
         'bg-raised',
-        'bg-sunken'
+        'bg-sunken',
+        'surface-floating'
       ],
       'semantic-border-color': [
         'border-subtle',

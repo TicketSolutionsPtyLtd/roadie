@@ -100,7 +100,7 @@
 }
 
 [data-slot='chart'] {
-  --ts-chart-tooltip-background: var(--intent-bg-raised);
+  --ts-chart-tooltip-background: var(--intent-bg-floating);
   --ts-chart-tooltip-color: var(--intent-text-normal);
   --ts-chart-tooltip-border: 1px solid var(--intent-border-subtle);
   --ts-chart-tooltip-border-radius: var(--radius-xl);

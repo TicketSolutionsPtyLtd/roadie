@@ -28,6 +28,9 @@ afterEach(() => {
 
 // As far as raised stands off the page in dark mode.
 const MIN_PILL_GAP = 0.07
+// Light neutral step 9 at 11%, and step 1, at the default accent hue.
+const LIGHT_TRACK_TINT = 'oklch(0.645 0.039 247 / 0.11)'
+const LIGHT_PILL_FILL = 'oklch(0.991 0.004 247)'
 
 const lightness = (element: Element) => oklchLightness(shownFill(element))
 
@@ -96,7 +99,7 @@ describe('in light mode', () => {
     render(<div className='bg-normal p-4'>{tabs()}</div>)
     await expect.poll(() => slot('tabs-indicator')).toBeTruthy()
     expect(getComputedStyle(slot('tabs-list')).backgroundColor).toBe(
-      colourOf('var(--intent-bg-subtle)')
+      colourOf(LIGHT_TRACK_TINT)
     )
   })
 
@@ -104,7 +107,7 @@ describe('in light mode', () => {
     render(<div className='bg-normal p-4'>{tabs()}</div>)
     await expect.poll(() => slot('tabs-indicator')).toBeTruthy()
     expect(getComputedStyle(slot('tabs-indicator')).backgroundColor).toBe(
-      colourOf('var(--color-neutral-1)')
+      colourOf(LIGHT_PILL_FILL)
     )
   })
 })

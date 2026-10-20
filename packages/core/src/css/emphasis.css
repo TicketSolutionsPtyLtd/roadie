@@ -232,11 +232,12 @@
   color: var(--intent-text-normal);
 }
 
-@utility emphasis-floating {
+/* Internal, not public API: the floating fill and the subtle text lift that
+   keeps Lc 75 on it, kept together so they can't drift apart. emphasis-floating
+   builds on it, and so do popups that draw their own edge and shadow. */
+@utility surface-floating {
   --raised-fill: var(--intent-bg-floating);
   background-color: var(--raised-fill);
-  box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-xl);
-  color: var(--intent-text-normal);
 
   @supports (color: color-mix(in oklch, red, red)) {
     .dark &,
@@ -248,6 +249,12 @@
       );
     }
   }
+}
+
+@utility emphasis-floating {
+  @apply surface-floating;
+  box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-xl);
+  color: var(--intent-text-normal);
 }
 
 /* The chosen item in a trackless control, over emphasis-subtle: a soft fill
