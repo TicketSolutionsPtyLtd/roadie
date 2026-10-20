@@ -122,6 +122,30 @@
       100% 100%,
       100% var(--link-line),
       100% 100%;
+
+    /* Clipped, the text is background, which Chromium paints its selection,
+       find and fragment highlights over, so they paint the letters too. A
+       var() fill is ignored there; system colours aren't. WebKit blends its
+       highlights over the clipped ink and ignores their text colour, so it
+       keeps its own, which stay readable; -apple-system-body singles it out. */
+    @supports not (font: -apple-system-body) {
+      @supports not (font: -apple-system-body) {
+        &::selection,
+        &::target-text {
+          background-color: Mark;
+          color: MarkText;
+          -webkit-text-fill-color: MarkText;
+        }
+
+        @supports selector(::search-text) {
+          &::search-text {
+            background-color: Mark;
+            color: MarkText;
+            -webkit-text-fill-color: MarkText;
+          }
+        }
+      }
+    }
   }
 
   /* A pointer passing over waits a beat before the sweep, so it doesn't
@@ -142,26 +166,23 @@
         100% 100%,
         100% var(--link-line),
         100% 100%;
-    }
-  }
 
-  /* Engaged, the text is clipped ink, which Chromium paints its selection,
-     find and fragment highlights over, so they're see-through on strong links:
-     the reset's info tint, at a strength the ink shows under. */
-  &::selection,
-  &::target-text {
-    background-color: color-mix(in oklch, var(--color-info-9) 25%, transparent);
-  }
+      @supports not (font: -apple-system-body) {
+        &::selection,
+        &::target-text {
+          background-color: Mark;
+          color: MarkText;
+          -webkit-text-fill-color: MarkText;
+        }
 
-  @supports selector(::search-text) {
-    /* Not ::search-text:current: Lightning CSS rejects a pseudo-class after
-       it, and fails the build. */
-    &::search-text {
-      background-color: color-mix(
-        in oklch,
-        var(--color-info-9) 25%,
-        transparent
-      );
+        @supports selector(::search-text) {
+          &::search-text {
+            background-color: Mark;
+            color: MarkText;
+            -webkit-text-fill-color: MarkText;
+          }
+        }
+      }
     }
   }
 

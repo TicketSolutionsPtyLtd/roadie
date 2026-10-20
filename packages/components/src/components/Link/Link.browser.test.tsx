@@ -366,7 +366,53 @@ describe('A selected strong link', () => {
       for (let y = box.top + 4; y < box.bottom - 4; y += 2)
         seen.push(luminance(pixelAt(x, y)))
 
-    expect(seen.some((value) => value < 55)).toBe(true)
+    // Letters stand apart from the highlight behind them.
+    expect(Math.max(...seen) - Math.min(...seen)).toBeGreaterThan(80)
+  })
+
+  it('paints selected letters MarkText on Mark mid-sweep', async (context) => {
+    if (CSS.supports('font', '-apple-system-body')) {
+      context.skip()
+      return
+    }
+    removeStill()
+    onTestFinished(() => {
+      removeStill = useStylesheet(STILL)
+    })
+    render(
+      <p className='bg-normal' style={{ fontSize: 48, padding: 8 }}>
+        <Link href='#lineup' emphasis='strong'>
+          MMMMMMMM
+        </Link>
+      </p>
+    )
+    const link = screen.getByRole('link')
+    await hover(link)
+    for (const animation of link.getAnimations()) {
+      animation.pause()
+      const { delay, duration } = animation.effect!.getTiming()
+      animation.currentTime = delay! + Number(duration) * 0.12
+    }
+    const range = document.createRange()
+    range.selectNodeContents(link)
+    getSelection()!.removeAllRanges()
+    getSelection()!.addRange(range)
+    onTestFinished(() => getSelection()!.removeAllRanges())
+    await frame()
+
+    const box = link.getBoundingClientRect()
+    const pixelAt = await capture(link)
+    const mark = paint(tokenColor('Mark'))
+    const markText = paint(tokenColor('MarkText'))
+    const near = (a: number[], b: number[]) =>
+      a.every((channel, index) => Math.abs(channel - b[index]!) < 40)
+    const seen: number[][] = []
+    for (let x = box.left + 4; x < box.right - 4; x += 2)
+      for (let y = box.top + 4; y < box.bottom - 4; y += 2)
+        seen.push(pixelAt(x, y))
+
+    expect(seen.some((rgb) => near(rgb, mark))).toBe(true)
+    expect(seen.some((rgb) => near(rgb, markText))).toBe(true)
   })
 })
 
@@ -452,17 +498,44 @@ describe('A strong link’s real text', () => {
     expect(pixel(fill(link))[3]).toBe(0)
   })
 
-  it('shows fragment and find highlights through to the text', () => {
-    const { link } = renderLink({ emphasis: 'strong' })
-    const seeThrough = (pseudo: string) =>
-      getComputedStyle(link, pseudo).backgroundColor
+  const pseudos = () =>
+    CSS.supports('selector(::search-text)')
+      ? ['::selection', '::target-text', '::search-text']
+      : ['::selection', '::target-text']
+  const highlight = (element: Element, pseudo: string) => {
+    const style = getComputedStyle(element, pseudo)
+    return { background: style.backgroundColor, text: style.color }
+  }
 
-    const highlight = seeThrough('::selection')
-    expect(pixel(highlight)[3]).toBeLessThan(255)
-    expect(seeThrough('::target-text')).toBe(highlight)
-    if (CSS.supports('selector(::search-text)'))
-      expect(seeThrough('::search-text')).toBe(highlight)
+  it('leaves selection, fragment and find highlights native at rest', () => {
+    const { link } = renderLink({ emphasis: 'strong' })
+    const plain = document.createElement('span')
+    plain.textContent = 'Line-up'
+    document.body.append(plain)
+    onTestFinished(() => plain.remove())
+
+    for (const pseudo of pseudos())
+      expect(highlight(link, pseudo).background).toBe(
+        highlight(plain, pseudo).background
+      )
   })
+
+  it.each(engagements)(
+    'paints selection, fragment and find highlights in Mark on %s',
+    async (_, engage) => {
+      const { link } = renderLink({ emphasis: 'strong' })
+
+      await engage(link)
+
+      // WebKit blends its highlights over the clipped ink and keeps its own.
+      if (CSS.supports('font', '-apple-system-body')) return
+      for (const pseudo of pseudos())
+        expect(highlight(link, pseudo)).toEqual({
+          background: tokenColor('Mark'),
+          text: tokenColor('MarkText')
+        })
+    }
+  )
 })
 
 describe('A strong link in forced colours', () => {
