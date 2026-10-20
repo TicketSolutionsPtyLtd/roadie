@@ -81,14 +81,12 @@
   --intent-link-text: var(--color-neutral-13);
 }
 
-/* Dark mode: bump surfaces up for depth separation, and the strong border a
-   step, since neutral-9 reads faint on dark surfaces. */
+/* Dark mode: bump surfaces up for depth separation */
 .dark,
 .dark [data-accent-scope] {
   --intent-bg-normal: var(--color-neutral-2);
   --intent-bg-raised: var(--color-neutral-3);
   --intent-bg-sunken: var(--color-neutral-0);
-  --intent-border-strong: var(--color-neutral-10);
 }
 
 /* ═══ Intent: neutral ═══ */
@@ -149,7 +147,6 @@
     --intent-bg-normal: var(--color-neutral-2);
     --intent-bg-raised: var(--color-neutral-3);
     --intent-bg-sunken: var(--color-neutral-0);
-    --intent-border-strong: var(--color-neutral-10);
   }
 }
 

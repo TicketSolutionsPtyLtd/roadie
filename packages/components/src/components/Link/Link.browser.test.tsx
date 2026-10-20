@@ -417,7 +417,7 @@ describe('A selected strong link', () => {
 })
 
 describe('A neutral strong link in dark mode', () => {
-  it('underlines with the strong border colour, a step stronger in dark', () => {
+  it('underlines with the strong border colour', () => {
     document.documentElement.classList.add('dark')
     onTestFinished(() => document.documentElement.classList.remove('dark'))
     const { link } = renderLink({ emphasis: 'strong' })
@@ -426,10 +426,7 @@ describe('A neutral strong link in dark mode', () => {
     document.body.append(border)
     onTestFinished(() => border.remove())
 
-    expect(layers(link).underline).toBe(tokenColor('--color-neutral-10'))
-    expect(getComputedStyle(border).borderTopColor).toBe(
-      tokenColor('--color-neutral-10')
-    )
+    expect(layers(link).underline).toBe(getComputedStyle(border).borderTopColor)
   })
 })
 
