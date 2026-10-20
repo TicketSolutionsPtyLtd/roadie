@@ -240,16 +240,7 @@ function variablePreview(token: TokenEntry) {
         <Swatch color={v(name)} />
       )
     case 'Link':
-      return name.endsWith('-text') ? (
-        <Glyph style={{ color: v(name) }} />
-      ) : (
-        <Glyph
-          style={{
-            textDecorationLine: 'underline',
-            textDecorationColor: v(name)
-          }}
-        />
-      )
+      return <Glyph style={{ color: v(name) }} />
     case 'Borders':
       return (
         <span
