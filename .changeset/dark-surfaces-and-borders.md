@@ -14,6 +14,9 @@ unchanged.
   A raised surface inside a floating one lifts 20% again.
 - On dark raised and floating surfaces, `text-subtle` moves 40% toward step 12,
   so it keeps APCA Lc 75 on the lighter fills.
+- An `emphasis-subtle` track with an `emphasis-raised` pill in it, such as the
+  `Tabs` list at its default emphasis, takes the sunken fill in dark mode, so
+  the chosen tab stands out from its track.
 - Neutral `border-subtle`, `border-normal`, and `border-strong` move one step
   lighter, to neutral steps 7, 8, and 10. `border-subtler` and the other
   intents keep their steps. Anything drawn with them, such as

@@ -78,6 +78,14 @@
   border-style: solid;
   box-shadow: var(--rim-light-subtler);
 
+  /* A track under a raised pill, as in Tabs. In light the tint recesses it
+     below the pill; in dark the tint lifts it toward the pill, so it takes
+     the sunken fill instead and the pill stands off it on any surface. */
+  .dark &:has(> .emphasis-raised) {
+    background-color: var(--intent-bg-sunken);
+    box-shadow: var(--inset-shadow-xs);
+  }
+
   &.is-interactive:focus-visible,
   &.is-interactive-within:has([data-interactive-target]:focus-visible) {
     background-color: var(--intent-4a);
