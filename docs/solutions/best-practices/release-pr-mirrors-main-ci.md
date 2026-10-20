@@ -60,6 +60,11 @@ satisfies it, and that status triggers no further runs.
 - **Check without posting:**
   `GITHUB_TOKEN=$(gh auth token) GITHUB_REPOSITORY=TicketSolutionsPtyLtd/roadie node scripts/sync-release-ci-status.mjs --dry-run`.
 
+- **A PR about this never got CI:** GitHub skips every workflow when the
+  head commit message holds the skip marker, even quoted in prose. Write
+  "the skip-CI marker" in commit messages and PR bodies, since the squash
+  commit takes the body and would skip main's CI too.
+
 ## Rejected
 
 A GitHub App token for the version push would run real CI on the release
