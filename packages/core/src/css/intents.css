@@ -238,7 +238,7 @@
     --intent-bg-strong-hover: var(--color-brand-8);
     --intent-bg-strong-active: var(--color-brand-7);
 
-    --intent-2a: color-mix(in oklch, var(--color-brand-9) 8%, transparent);
+    --intent-2a: color-mix(in oklch, var(--color-brand-9) 9%, transparent);
     --intent-3a: color-mix(in oklch, var(--color-brand-9) 15%, transparent);
     --intent-4a: color-mix(in oklch, var(--color-brand-9) 23%, transparent);
     --intent-5a: color-mix(in oklch, var(--color-brand-9) 31%, transparent);
@@ -417,7 +417,7 @@
     --intent-bg-strong-hover: var(--color-accent-8);
     --intent-bg-strong-active: var(--color-accent-7);
 
-    --intent-2a: color-mix(in oklch, var(--color-accent-9) 8%, transparent);
+    --intent-2a: color-mix(in oklch, var(--color-accent-9) 9%, transparent);
     --intent-3a: color-mix(in oklch, var(--color-accent-9) 15%, transparent);
     --intent-4a: color-mix(in oklch, var(--color-accent-9) 23%, transparent);
     --intent-5a: color-mix(in oklch, var(--color-accent-9) 31%, transparent);
