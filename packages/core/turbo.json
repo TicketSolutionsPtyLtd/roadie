@@ -6,6 +6,7 @@
       "outputs": ["$TURBO_EXTENDS$", "src/tokens/tokens.json"],
       "inputs": [
         "$TURBO_EXTENDS$",
+        "!src/tokens/tokens.json",
         "$TURBO_ROOT$/tsconfig.base.json",
         "$TURBO_ROOT$/tsconfig.react.json"
       ]
