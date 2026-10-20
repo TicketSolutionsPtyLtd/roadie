@@ -67,7 +67,7 @@ The class rules read `className`, any prop ending in `ClassName`, and the argume
 
 Two icon rules skip a case on purpose. `roadie/phosphor-icon-weight` skips an icon passed to `Navigator.Item`, including one in a fallback such as `icon={icons[href] ?? <HouseIcon />}`, because Navigator sets its own weight. An icon built elsewhere, such as in a map of icons, still fails, so disable the rule around it and say why. `roadie/phosphor-icon-size-prop` allows `size='100%'`, which fills an SVG around the icon, such as a QR code's centre mark.
 
-`roadie/card-content` judges a `Card` imported from `@oztix/roadie-components` only when it can see every part. A card whose children include your own component, an expression such as a `map`, or a fragment passes, since any of those might render `Card.Content`. Card warns in development when it renders without one, which catches the rest.
+`roadie/card-content` judges a `Card` imported by name from `@oztix/roadie-components`, not through a namespace import, and only when it can see every part. A card whose children include your own component, an expression such as a `map`, or a fragment passes, since any of those might render `Card.Content`. Card warns in development when it renders without one, which catches the rest.
 
 ## Icons without an import
 
