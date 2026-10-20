@@ -19,6 +19,6 @@ in your group order.
 the server's order. A `Combobox` given a `createItems()` collection keeps its
 order.
 
-The docs' grouped examples mapped the source groups inside `List`, which never
-filtered. Pass a function to `Autocomplete.List` or `Combobox.List` instead, as
-the examples now do, so groups filter and rank.
+For grouped items, pass a function to `Autocomplete.List` or `Combobox.List`
+rather than mapping your source groups inside it, so the groups filter and
+rank.
