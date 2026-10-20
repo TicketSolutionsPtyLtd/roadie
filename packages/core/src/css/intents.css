@@ -71,12 +71,17 @@
   --intent-mark-text: var(--color-neutral-0);
 }
 
-/* Dark mode: bump surfaces up for depth separation */
+/* Dark mode: bump surfaces up for depth separation, and borders a step
+   further from them, since dark steps sit closer together */
 .dark,
 .dark [data-accent-scope] {
   --intent-bg-normal: var(--color-neutral-2);
   --intent-bg-raised: var(--color-neutral-3);
   --intent-bg-sunken: var(--color-neutral-0);
+
+  --intent-border-subtle: var(--color-neutral-7);
+  --intent-border-normal: var(--color-neutral-8);
+  --intent-border-strong: var(--color-neutral-10);
 }
 
 /* ═══ Intent: neutral ═══ */
@@ -134,6 +139,10 @@
     --intent-bg-normal: var(--color-neutral-2);
     --intent-bg-raised: var(--color-neutral-3);
     --intent-bg-sunken: var(--color-neutral-0);
+
+    --intent-border-subtle: var(--color-neutral-7);
+    --intent-border-normal: var(--color-neutral-8);
+    --intent-border-strong: var(--color-neutral-10);
   }
 }
 

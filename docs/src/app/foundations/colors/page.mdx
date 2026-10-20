@@ -32,9 +32,9 @@ step of the current intent.
 | Level     | `bg-*`                                                                                   | `text-*`                                                                                     | `border-*` |
 | --------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ---------- |
 | subtler   | Step 9 at 6% alpha                                                                       | Step 10                                                                                      | Step 5     |
-| subtle    | Step 9 at 11% alpha                                                                      | Step 11                                                                                      | Step 6     |
-| normal    | Step 1 (dark: 2)                                                                         | Step 12                                                                                      | Step 7     |
-| strong    | Step 9 (neutral: 13, danger: 10; success and brand-secondary mix 10% toward white)       | Step 13                                                                                      | Step 9     |
+| subtle    | Step 9 at 11% alpha                                                                      | Step 11                                                                                      | Step 6 (dark neutral: 7) |
+| normal    | Step 1 (dark: 2)                                                                         | Step 12                                                                                      | Step 7 (dark neutral: 8) |
+| strong    | Step 9 (neutral: 13, danger: 10; success and brand-secondary mix 10% toward white)       | Step 13                                                                                      | Step 9 (dark neutral: 10) |
 | inverted  | Step 12                                                                                  | Step 0, the page's text flipped. It pairs with `bg-inverted`.                                | Step 12    |
 | on-strong | None                                                                                     | White or step 13, chosen per intent. It's the label colour for [strong fills](#text-on-strong-fills). | None       |
 | raised    | Step 1 (dark: 3 for neutral, 2 for the other intents)                                    | None                                                                                         | None       |
@@ -193,6 +193,10 @@ For meaning only.
 Dark mode is automatic. The `.dark` class on `<html>` swaps every OKLCH value,
 so no `dark:` Tailwind variants are needed. `bg-normal`, `text-subtle`, and
 `border-subtle` all adapt by themselves.
+
+Dark steps sit closer together, so neutral `border-subtle`, `border-normal`,
+and `border-strong` take one step higher in dark mode to keep their contrast
+against dark surfaces.
 
 The CSS also sets `color-scheme: light` on `:root` and `color-scheme: dark` on
 `.dark`, so native browser UI, such as scrollbars and form controls, matches
