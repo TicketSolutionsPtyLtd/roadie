@@ -72,11 +72,12 @@
 }
 
 /* Dark mode: bump surfaces up for depth separation, and borders a step
-   further from them, since dark steps sit closer together */
+   further from them, since dark steps sit closer together and shadows
+   barely show */
 .dark,
 .dark [data-accent-scope] {
   --intent-bg-normal: var(--color-neutral-2);
-  --intent-bg-raised: var(--color-neutral-3);
+  --intent-bg-raised: var(--color-neutral-4);
   --intent-bg-sunken: var(--color-neutral-0);
 
   --intent-border-subtle: var(--color-neutral-7);
@@ -85,9 +86,9 @@
 }
 
 /* Floating surfaces sit above raised ones. Shadows barely show on dark, so
-   there the fill lifts toward step 9 as well. Declared on each intent element
-   so it resolves that intent's own raised fill, as elevation.css does for
-   shadows. */
+   there the fill lifts 20% toward step 9 as well. Declared on each intent
+   element so it resolves that intent's own raised fill, as elevation.css does
+   for shadows. */
 @layer base {
   :root,
   :where([class*='intent-'], [data-accent-scope]) {
@@ -99,7 +100,7 @@
     .dark :where([class*='intent-'], [data-accent-scope]) {
       --intent-bg-floating: color-mix(
         in oklch,
-        var(--intent-9) 11%,
+        var(--intent-9) 20%,
         var(--intent-bg-raised)
       );
     }
@@ -159,7 +160,7 @@
 
   .dark & {
     --intent-bg-normal: var(--color-neutral-2);
-    --intent-bg-raised: var(--color-neutral-3);
+    --intent-bg-raised: var(--color-neutral-4);
     --intent-bg-sunken: var(--color-neutral-0);
 
     --intent-border-subtle: var(--color-neutral-7);

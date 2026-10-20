@@ -465,11 +465,11 @@ const knownLowContrast: KnownLowContrast[] = [
     matches: ({ element }) =>
       element.matches('.intent-accent') &&
       element.closest('button[data-date]') !== null,
-    floor: 35,
+    floor: 34,
     theme: 'dark',
     ticket: 'https://oztix.atlassian.net/browse/INNO-1198',
-    // Lc 38.9 on the dark popover and 40.1 on the page, for the accent strong
-    // fill of a chosen day.
+    // Lc 34.5 on the dark popover, lifted above raised, and 40.1 on the page,
+    // for the accent strong fill of a chosen day.
     permanent:
       "The chosen day's white semibold label carries the selected state. A search of the sRGB gamut found no fill that reaches Lc 45 against the dark surfaces with a white label at Lc 60 or more; the best was about 44.8 and 59.8."
   }

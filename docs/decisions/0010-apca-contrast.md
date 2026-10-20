@@ -35,8 +35,8 @@ already shipped under their minimum are allow-listed with a ticket. The brand
 Colour page states APCA only.
 
 One pair is excepted for good: the accent strong fill of a chosen day in
-Calendar measures Lc 38.9 against the dark popover and 40.1 against the dark
-page. Its white semibold label carries the selected state. No colour in the
+Calendar measures Lc 34.5 against the dark popover (38.9 before dark floating
+surfaces were lifted above raised ones) and 40.1 against the dark page. Its white semibold label carries the selected state. No colour in the
 sRGB gamut reaches Lc 45 against those surfaces while keeping a white label at
 Lc 60; the closest is about 44.8 and 59.8 (INNO-1198).
 

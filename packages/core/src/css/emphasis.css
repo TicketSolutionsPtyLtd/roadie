@@ -127,10 +127,14 @@
   color: var(--intent-text-inverted);
 }
 
-/* A raised fill that steps up to floating: on a floating surface, and on a
-   raised one nested in another, where it would otherwise match its base.
-   is-translucent reads it too. It doesn't inherit, so a surface inside keeps
-   its own. */
+/* A raised fill that steps up a level in dark mode: to floating on a raised
+   parent, and past floating on a floating one, where it would otherwise
+   match its base. is-translucent reads it too. It doesn't inherit, so a
+   surface inside keeps its own.
+
+   Lighter dark fills sit closer to step 11, so on them subtle text moves 40%
+   toward step 12 to keep Lc 75, even over a tinted track. It resolves on the
+   surface, so it follows the surface's intent. */
 @property --raised-fill {
   syntax: '*';
   inherits: false;
@@ -161,8 +165,26 @@
     box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-sm);
   }
 
-  :where(.emphasis-raised, .emphasis-floating) & {
+  :where(.emphasis-raised) & {
     --raised-fill: var(--intent-bg-floating);
+  }
+
+  @supports (color: color-mix(in oklch, red, red)) {
+    .dark :where(.emphasis-floating) & {
+      --raised-fill: color-mix(
+        in oklch,
+        var(--intent-9) 20%,
+        var(--intent-bg-floating)
+      );
+    }
+
+    .dark & {
+      --intent-text-subtle: color-mix(
+        in oklch,
+        var(--intent-12) 40%,
+        var(--intent-11)
+      );
+    }
   }
 }
 
@@ -205,6 +227,16 @@
   background-color: var(--raised-fill);
   box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-xl);
   color: var(--intent-text-normal);
+
+  @supports (color: color-mix(in oklch, red, red)) {
+    .dark & {
+      --intent-text-subtle: color-mix(
+        in oklch,
+        var(--intent-12) 40%,
+        var(--intent-11)
+      );
+    }
+  }
 }
 
 /* The chosen item in a trackless control, over emphasis-subtle: a soft fill

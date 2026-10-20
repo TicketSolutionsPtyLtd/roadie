@@ -18,8 +18,11 @@ afterEach(() => {
   document.documentElement.classList.remove('dark')
 })
 
-const RAISED_LIFT =
-  'color-mix(in oklch, var(--color-neutral-9) 11%, var(--color-neutral-3))'
+const RAISED = 'var(--color-neutral-4)'
+const FLOATING = `color-mix(in oklch, var(--color-neutral-9) 20%, ${RAISED})`
+const ABOVE_FLOATING = `color-mix(in oklch, var(--color-neutral-9) 20%, ${FLOATING})`
+const LIFTED_SUBTLE =
+  'color-mix(in oklch, var(--color-neutral-12) 40%, var(--color-neutral-11))'
 
 function colourOf(background: string) {
   const probe = document.createElement('span')
@@ -39,6 +42,24 @@ function edgeOf(border: string) {
   return colour
 }
 
+function textOf(colour: string) {
+  const probe = document.createElement('span')
+  probe.style.color = colour
+  document.body.appendChild(probe)
+  const resolved = getComputedStyle(probe).color
+  probe.remove()
+  return resolved
+}
+
+function subtleText(testId: string) {
+  const probe = document.createElement('span')
+  probe.className = 'text-subtle'
+  screen.getByTestId(testId).appendChild(probe)
+  const resolved = getComputedStyle(probe).color
+  probe.remove()
+  return resolved
+}
+
 const fill = (testId: string) =>
   getComputedStyle(screen.getByTestId(testId)).backgroundColor
 
@@ -48,7 +69,10 @@ function renderSurfaces() {
       <div data-testid='raised' className='emphasis-raised'>
         <div data-testid='nested' className='emphasis-raised' />
       </div>
-      <div data-testid='floating' className='emphasis-floating' />
+      <div data-testid='floating' className='emphasis-floating'>
+        <div data-testid='in-floating' className='emphasis-raised' />
+      </div>
+      <div data-testid='page' />
       <div
         data-testid='translucent'
         className='emphasis-floating is-translucent'
@@ -63,30 +87,45 @@ function renderSurfaces() {
 }
 
 describe('surfaces in dark mode', () => {
-  it('keeps a raised surface on the page on step 3', () => {
+  it('lifts a raised surface a step off the page', () => {
     document.documentElement.classList.add('dark')
     renderSurfaces()
-    expect(fill('raised')).toBe(colourOf('var(--color-neutral-3)'))
+    expect(fill('raised')).toBe(colourOf(RAISED))
   })
 
   it('lifts a floating surface above a raised one', () => {
     document.documentElement.classList.add('dark')
     renderSurfaces()
-    expect(fill('floating')).toBe(colourOf(RAISED_LIFT))
+    expect(fill('floating')).toBe(colourOf(FLOATING))
   })
 
   it('keeps the lift under a translucent floating surface', () => {
     document.documentElement.classList.add('dark')
     renderSurfaces()
     expect(fill('translucent')).toBe(
-      colourOf(`color-mix(in oklch, ${RAISED_LIFT} 88%, transparent)`)
+      colourOf(`color-mix(in oklch, ${FLOATING} 88%, transparent)`)
     )
   })
 
   it('lifts a raised surface inside another one', () => {
     document.documentElement.classList.add('dark')
     renderSurfaces()
-    expect(fill('nested')).toBe(colourOf(RAISED_LIFT))
+    expect(fill('nested')).toBe(colourOf(FLOATING))
+  })
+
+  it('lifts a raised surface inside a floating one above it', () => {
+    document.documentElement.classList.add('dark')
+    renderSurfaces()
+    expect(fill('in-floating')).toBe(colourOf(ABOVE_FLOATING))
+  })
+
+  it('brightens subtle text on raised and floating surfaces', () => {
+    document.documentElement.classList.add('dark')
+    renderSurfaces()
+    const lifted = textOf(LIFTED_SUBTLE)
+    expect(subtleText('raised')).toBe(lifted)
+    expect(subtleText('floating')).toBe(lifted)
+    expect(subtleText('page')).toBe(textOf('var(--color-neutral-11)'))
   })
 
   it('lifts a floating surface in its own intent', () => {
@@ -94,7 +133,7 @@ describe('surfaces in dark mode', () => {
     renderSurfaces()
     expect(fill('brand-floating')).toBe(
       colourOf(
-        'color-mix(in oklch, var(--color-brand-9) 11%, var(--color-brand-2))'
+        'color-mix(in oklch, var(--color-brand-9) 20%, var(--color-brand-2))'
       )
     )
   })
@@ -125,8 +164,8 @@ describe('a popover in dark mode', () => {
 
     const popup = document.querySelector('[data-slot="popover-popup"]')!
     const arrow = document.querySelector('[data-slot="popover-arrow"] svg')!
-    expect(getComputedStyle(popup).backgroundColor).toBe(colourOf(RAISED_LIFT))
-    expect(getComputedStyle(arrow).fill).toBe(colourOf(RAISED_LIFT))
+    expect(getComputedStyle(popup).backgroundColor).toBe(colourOf(FLOATING))
+    expect(getComputedStyle(arrow).fill).toBe(colourOf(FLOATING))
   })
 })
 
@@ -137,6 +176,12 @@ describe('surfaces in light mode', () => {
     expect(fill('raised')).toBe(step1)
     expect(fill('nested')).toBe(step1)
     expect(fill('floating')).toBe(step1)
+    expect(fill('in-floating')).toBe(step1)
+  })
+
+  it('keeps subtle text on step 11 on a raised surface', () => {
+    renderSurfaces()
+    expect(subtleText('raised')).toBe(textOf('var(--color-neutral-11)'))
   })
 
   it('keeps the field’s light edge', () => {
