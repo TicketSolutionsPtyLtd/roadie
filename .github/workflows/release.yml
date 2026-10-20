@@ -44,7 +44,8 @@ jobs:
           version-script: pnpm changeset:version
           pr-title: 'chore: version packages'
           # Bot-pushed runs wait for approval; main still runs CI on merge,
-          # since the squash commit takes the PR title and body.
+          # since the squash commit takes the PR title and body. The ci-status
+          # job gives the PR its required check instead.
           commit-message: 'chore: version packages [skip ci]'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,6 +74,19 @@ jobs:
             count=$((count + 1))
           done
           echo "count=$count" >> "$GITHUB_OUTPUT"
+
+  # The version PR runs no CI, so this gives it main's "CI result", pending
+  # until main's CI finishes; Release CI status updates it then.
+  ci-status:
+    name: CI status
+    needs: version
+    if: needs.version.outputs.has-changesets == 'true'
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+      statuses: write
+    uses: ./.github/workflows/release-ci-status.yml
 
   # npm's trusted publisher for every published package is pinned to this environment.
   # GitHub only puts an `environment` claim in the OIDC token when the job
