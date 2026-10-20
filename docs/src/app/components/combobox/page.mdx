@@ -478,7 +478,8 @@ For server-side search, update the `items` prop as results arrive, and pass
   **Right** move between them (swapped in a right-to-left layout), and
   **Backspace** or **Delete** removes the focused one. Focus moves to the
   next chip, or the previous one after the last, and returns to the input
-  once no chips are left.
+  once no chips are left. To handle these keys yourself, call
+  `event.preventBaseUIHandler()` in the input's `onKeyDown`.
 - With `multiple`, **Escape** while the popup is closed clears the typed text
   and keeps every value.
 - `Combobox.Chips` becomes a toolbar once it holds chips, so screen readers

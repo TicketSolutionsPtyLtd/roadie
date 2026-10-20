@@ -22,12 +22,10 @@ import { QueryField } from '@oztix/roadie-components/query-field'
 
 Pass the chips you hold and a `suggest` function. Suggestions come back in
 groups, and `onAccept` hands you the one taken: add a chip for a filter, or
-search for the text when Enter sends `kind: 'search'`.
-The row Enter takes shows at the top, with its group above the rest, so the
-list can move as you type. It's highlighted, so Down Arrow moves to the next
-row.
-Give a suggestion an `icon`, a bold Phosphor icon, to show before its label.
-Chips never show one.
+search for the text when Enter sends `kind: 'search'`. The row Enter takes
+leads the list, with its group above the rest, and is highlighted, so Down
+Arrow moves to the next row. A suggestion's `icon`, a bold Phosphor icon,
+shows before its label. Chips never show one.
 
 ```tsx-live layout=stack gap=2
 function QueryFieldDefault() {
@@ -116,7 +114,7 @@ function QueryFieldDefault() {
 #### With Field
 
 Inside [Field](/components/field), the label names the input, and the field
-takes `invalid`, `disabled` and `required` from it.
+takes `invalid`, `disabled`, and `required` from it.
 
 ```tsx-live
 <Field>
@@ -483,10 +481,10 @@ function QueryFieldRemainder() {
 
 Set `focusShortcut` to let a key focus the field from anywhere on the page. It
 takes one `KeyboardEvent.key` value, such as `/` or `s`, pressed without Cmd,
-Ctrl or Alt. The
-field ignores it while you type in another field. When several fields ask for
-the same key, the first one on the page takes it and shows the hint. `recent` lists earlier
-searches above the fields while the field is empty.
+Ctrl, or Alt. The field ignores it while you type in another field. When
+several fields ask for the same key, the first one on the page takes it and
+shows the hint. `recent` lists earlier searches above the fields while the
+field is empty.
 
 ```tsx-live
 function QueryFieldShortcut() {
@@ -537,10 +535,10 @@ function QueryFieldShortcut() {
 
 <Guideline title='Write each chip as the whole condition'>
   <Guideline.Do code={`{ id: 'venue', label: 'Venue is Iguana Teapot Hall' }`}>
-    Label a chip with field, operator and value, so it reads on its own.
+    Label a chip with field, operator, and value, so it reads on its own.
   </Guideline.Do>
   <Guideline.Dont code={`{ id: 'venue', label: 'Iguana Teapot Hall' }`}>
-    Don't show the value alone. "Iguana Teapot Hall" could be a venue, a promoter or
+    Don't show the value alone. "Iguana Teapot Hall" could be a venue, a promoter, or
     a search.
   </Guideline.Dont>
 </Guideline>

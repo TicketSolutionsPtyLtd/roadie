@@ -1,5 +1,5 @@
 ---
-'@oztix/roadie-components': patch
+'@oztix/roadie-components': minor
 ---
 
 Pressing Enter after typing in an `Autocomplete` or `Combobox` now takes the
@@ -16,5 +16,3 @@ unchanged, since a highlight there replaces the typed text.
 
 Pass `autoHighlight={false}` to keep the old behaviour. `Autocomplete` also
 takes `autoHighlight='always'` to highlight the first suggestion with no text.
-`QueryField` is unchanged: Enter still searches the typed text unless you
-arrow to a suggestion or one is marked `exact`.
