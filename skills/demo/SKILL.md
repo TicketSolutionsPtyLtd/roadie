@@ -156,7 +156,9 @@ await browser.close()
 ```
 
 "NO RING" is a lead, not a verdict: a parent or sibling can draw the ring,
-so look at the stop in a screenshot before calling it a bug. Scroll each
+so look at the stop in a screenshot before calling it a bug. The walk blurs
+and refocuses each stop, which closes an open overlay, so run it with
+overlays closed and check them by hand. Scroll each
 example into view and wait for it before you drive it: pages that render
 examples lazily (Roadie's docs do) have nothing to click until then.
 
