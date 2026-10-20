@@ -37,7 +37,11 @@ to a long paragraph.
   passed), with the engines for browser tests, or a CI run link.
 - For UI, screenshots at phone and desktop widths, in light and dark, from
   the demo the host workflow asks for, embedded from its screenshot branch
-  (`/roadie:demo` step 4). The preview link stays in the session.
+  (`/roadie:demo` step 5). The preview link stays in the session.
+- For UI, the demo's explore note (`/roadie:demo` step 3): what the pass
+  exercised (interactions, keyboard, overlays, edge content, and the
+  console), at which widths and in which engines, what it didn't and why, and
+  each bug it found with the test that now catches it.
 - For a fix or behaviour change, before and after: the test failing without
   the change, then passing, or two screenshots.
 - What you didn't verify, and why. "Tests pass" with no command isn't

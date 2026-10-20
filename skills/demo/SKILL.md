@@ -1,11 +1,11 @@
 ---
 name: demo
-description: Use before pushing any user-visible change (a component, page, style, or layout), in any Oztix repo. Starts a long-lived preview from the worktree, screenshots the changed pages at phone and desktop widths in light and dark, sends the preview link to the approver in the session, posts the screenshots, and waits for the approver's OK (the one the host workflow names) before the push. Reads the host repo's AGENTS.md and PR workflow. Triggers on "demo this", "show me", "preview the change", "screenshot it", "can I see it on my phone".
+description: Use before pushing any user-visible change (a component, page, style, or layout), in any Oztix repo. Starts a long-lived preview from the worktree, drives the changed UI (clicks, keyboard, overlays, edge content, and the console) and turns each bug it finds into a failing test before the fix, screenshots the changed pages at phone and desktop widths in light and dark, sends the preview link to the approver in the session, posts the screenshots, and waits for the approver's OK (the one the host workflow names) before the push. Reads the host repo's AGENTS.md and PR workflow. Triggers on "demo this", "show me", "preview the change", "screenshot it", "can I see it on my phone".
 ---
 
 # Roadie demo
 
-Show a UI change running before CI or a reviewer sees it. The approver opens it on
+Show a UI change running, and use it, before CI or a reviewer sees it. The approver opens it on
 their phone and says OK, and only then does the branch get pushed.
 
 ## 1. Gather
@@ -47,7 +47,132 @@ Wait for the ready line (Roadie's starts `Preview ready` and names the pid),
 check its URL's port is in your range (stop and restart if not), then open the changed page once with `curl -sf` to
 compile it before screenshots.
 
-## 3. Screenshot
+## 3. Explore
+
+Use the change in the preview before anyone sees a screenshot. The tests
+check what someone thought of, and the screenshots show it at rest; this pass
+looks for what neither did. A change with nothing to click still gets the
+edge content and the console checks.
+
+- **The changed interaction.** Click through every path the diff touches, at
+  desktop width and at phone width with touch on (`hasTouch: true`),
+  including states the page doesn't show by default (disabled, loading,
+  invalid, selected).
+- **Keyboard only.** Tab from above the change to past it, and Shift+Tab
+  back. Focus follows reading order, every stop shows a visible focus ring,
+  nothing hidden takes focus, and nothing traps it. Use the arrows, Home, End,
+  Enter, and Space wherever the pattern uses them (in Roadie: the
+  component's docs page, or the WAI-ARIA pattern it follows). Escape closes
+  each overlay and returns focus to what opened it.
+- **Overlays.** Open every menu, popover, select, tooltip, and dialog the
+  change touches, at both widths. Each stays on screen, isn't clipped by a
+  scroll container, sits above its neighbours, and closes on an outside
+  click.
+- **Edge content.** Long unbroken text, many items, one, and none (the empty
+  state), plus zero and very large numbers where it shows data. Type into
+  the page's own inputs, or swap text in the browser
+  (`locator.evaluate((el) => (el.textContent = '…'))`); never commit test
+  content to the page.
+- **The console.** Errors, warnings, uncaught exceptions, and failed requests
+  from load to the end of the pass. Open the same page on the base branch
+  (in Roadie: the published docs site) for any you didn't expect: one that's
+  there too isn't this change's, so note it rather than fix it here.
+
+Drive it with the headless Playwright the repo already has, or a browser MCP
+the session has (Playwright MCP: `browser_press_key`, `browser_snapshot`, and
+`browser_console_messages`; Chrome DevTools: `press_key`, `take_snapshot`, and
+`list_console_messages`). Never add a dependency. Run it in Chromium, and
+repeat the keyboard and overlay checks in WebKit and Firefox for a focus or
+layout change when the repo installs them (Roadie's browser tests do).
+
+With Playwright, this script saved next to `shoot.mjs` records the console
+and walks the tab order so you start from facts. Run
+`node .scratch/explore.mjs <url> '<css selector>' [tab stops]`, then drive the
+rest by hand from the same page, or in an MCP:
+
+```js
+import { chromium } from 'playwright'
+
+const [url, section, stops = '40'] = process.argv.slice(2)
+const browser = await chromium.launch()
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+const log = (...line) => console.log(...line)
+page.on('console', (m) => {
+  if (['error', 'warning'].includes(m.type()))
+    log(`console.${m.type()}`, m.text())
+})
+page.on('pageerror', (e) => log('pageerror', e.message))
+page.on('requestfailed', (r) => log('requestfailed', r.url()))
+const settle = () =>
+  page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {})
+await page.goto(url)
+await settle()
+// Start the walk at the change, not the site header, once lazy content near
+// it has rendered. A heading only takes focus with a tabindex.
+if (section) {
+  const start = page.locator(section).first()
+  await start.evaluate((el) => el.scrollIntoView({ block: 'start' }))
+  // The load state already resolved, so give lazy content time to mount.
+  await page.waitForTimeout(1500)
+  await start.evaluate((el) => {
+    el.focus()
+    if (document.activeElement !== el) {
+      el.setAttribute('tabindex', '-1')
+      el.focus()
+    }
+  })
+}
+for (let i = 0; i < Number(stops); i++) {
+  await page.keyboard.press('Tab')
+  const stop = await page.evaluate(() => {
+    const el = document.activeElement
+    if (!el || el === document.body) return 'body'
+    // Utilities leave transparent shadows on everything, so a ring is
+    // whatever changes when focus leaves.
+    const look = () =>
+      [getComputedStyle(el), getComputedStyle(el, '::after')]
+        .map((s) => [s.outline, s.boxShadow, s.borderColor, s.backgroundColor])
+        .join()
+    const focused = look()
+    el.blur()
+    const rest = look()
+    el.focus()
+    const label =
+      el.getAttribute('aria-label') ?? el.textContent?.trim().slice(0, 40)
+    const role = el.getAttribute('role') ?? el.tagName.toLowerCase()
+    return `${role} "${label}" ${focused === rest ? 'NO RING' : 'ring'}`
+  })
+  log('tab', i + 1, stop)
+}
+await browser.close()
+```
+
+"NO RING" is a lead, not a verdict: a parent or sibling can draw the ring,
+so look at the stop in a screenshot before calling it a bug. Scroll each
+example into view and wait for it before you drive it: pages that render
+examples lazily (Roadie's docs do) have nothing to click until then.
+
+A lead is a bug only once you know what the change promised. Check it
+against the docs page or spec, and the base branch, before writing a test:
+clipped text inside a scroll container that fades its edges is the design,
+and a key the pattern marks optional is a follow-up, not a fix.
+
+**Every bug the pass finds becomes a failing test first**, then the fix
+(`/roadie:test`): a `*.browser.test.tsx` when the browser or CSS decides it,
+as focus rings, overlay placement, clipping, and real key handling usually
+are, otherwise the cheaper test that can fail. Watch it fail on the bug, fix
+it, watch it pass, and repeat the step that found it. Triage by the host's
+rule (in Roadie: PR workflow section 7, where a Minor bug is fixed only if a
+real user would hit it in normal use). A bug the base branch has too, or one
+left unfixed, goes to the host's follow-up list (in Roadie: section 9), not
+this PR.
+
+Keep a note of each check: what you exercised, at which width and in which
+engine, and what you didn't, with why (no touch device, no screen reader, an
+engine not installed). It goes to the approver with the shots and into
+Evidence.
+
+## 4. Screenshot
 
 Four shots per changed page: phone (390 by 844) and desktop (1440 by 900), each
 in light and dark, scrolled to the part that changed. Use the headless browser
@@ -117,10 +242,11 @@ Look at every shot before posting. A blank page, an error overlay, or a wrong
 theme means fix and retake, not post. So does anything the host's privacy rule
 keeps out of a public screenshot (Roadie: PR workflow section 7).
 
-## 4. Post and wait
+## 5. Post and wait
 
 - In the session, send the approver the preview link to the changed page, the
-  four shots, and one line on what to look at.
+  four shots, one line on what to look at, and the explore note: what the
+  pass exercised, what it didn't, and each bug it found with its test.
 - Wait for the approver's OK before pushing UI changes, and work on something
   else meanwhile. Feedback means fix, retake, and post again. A standing
   approval (one the approver gave, such as for overnight work, or one the host
@@ -137,7 +263,7 @@ keeps out of a public screenshot (Roadie: PR workflow section 7).
   preview is stopped before the OK, say so and give the command that restarts
   it.
 
-## 5. Stop
+## 6. Stop
 
 Stop the preview once the approver says OK or you finish the session: kill the
 pid the preview printed (`kill <pid>`; Roadie's stops its whole process
