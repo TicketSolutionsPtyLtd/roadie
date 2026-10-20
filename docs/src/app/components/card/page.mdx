@@ -350,7 +350,7 @@ The subtler card has padding around the image, giving it inset rounded corners. 
 
 ### Composition
 
-Every card has a `Card.Content`, which holds its body. `Card.Header` above it and `Card.Footer` below it are optional. A header has no bottom padding, so a card with only a title and description puts them in `Card.Content`, as the [main link](#with-a-main-link) example does. A card without `Card.Content` warns in development.
+Every card has a `Card.Content`, which holds its body. `Card.Header` above it and `Card.Footer` below it are optional. A header has no bottom padding, so a card with only a title and description puts them in `Card.Content`, as the [main link](#with-a-main-link) example does. A card without `Card.Content` warns in development. Keep a `Suspense` boundary inside `Card.Content`, not around it, or the card warns while it loads.
 
 ```tsx-live
 <Card>
