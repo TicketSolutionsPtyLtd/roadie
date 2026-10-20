@@ -140,3 +140,8 @@ with a one-line verdict:
 Follow the host's writing rules, and keep hosts, local paths, tokens, and
 real names out (Roadie's PR workflow section 7). The maintainer decides when
 to merge.
+
+After the Release workflow's Publish job passes, npm can take up to about 10
+minutes to show a large package's new version (components 2.16.0 took about
+7). Changesets reports success whenever `npm publish` exits 0, so wait before
+treating a missing version as a failed publish.
