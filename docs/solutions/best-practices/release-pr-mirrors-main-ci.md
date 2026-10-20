@@ -39,9 +39,14 @@ a commit status by `.github/workflows/release-ci-status.yml`:
 
 It runs after Release's Version job pushes the branch, and again whenever
 CI on main completes. Each run reads the current branch, so the status
-follows the newest base, and the shared concurrency group stops an older
-read posting after a newer one. A branch with anything beyond the version
-commit is left alone, since a pushed commit runs CI itself.
+follows the newest base. Syncs share no concurrency group, since one would
+cancel a queued sync and mark the Release run that called it cancelled.
+Instead, a sync that posts pending reads main's run again and posts the
+result if CI has finished, so a stale pending can't outlast a newer success.
+
+Only one verified commit by `github-actions[bot]` directly on a main commit
+gets a status. A branch with anything else, such as a pushed or amended
+commit, is left alone: main's CI says nothing about it.
 
 The ruleset names no source app, so a commit status from `GITHUB_TOKEN`
 satisfies it, and that status triggers no further runs.

@@ -24,11 +24,8 @@ jobs:
       github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    # One group for every trigger, so a sync that read the run before CI
-    # finished can't post after one that read the result.
-    concurrency:
-      group: release-ci-status
-      cancel-in-progress: false
+    # No concurrency group: one would cancel a queued sync, and with it the
+    # Release run that called it. The script re-reads after a pending post.
     permissions:
       contents: read
       actions: read

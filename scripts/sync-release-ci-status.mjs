@@ -9,7 +9,8 @@ import {
   CONTEXT,
   RELEASE_BRANCH,
   mirroredStatus,
-  releaseBase
+  releaseBase,
+  syncStatus
 } from '../packages/core/scripts/release-ci-status.mjs'
 
 const args = process.argv.slice(2)
@@ -58,28 +59,34 @@ const release = headOverride ?? RELEASE_BRANCH
 const compared = releaseBase(await github(`compare/main...${release}`))
 if (!compared) {
   console.log(
-    `${release} holds more than a version commit; it runs its own CI.`
+    `${release} isn't one verified version commit on main; leaving it alone.`
   )
   process.exit(0)
 }
 
 const { head, base } = compared
-const { workflow_runs: runs } = await github(
-  `actions/workflows/ci.yml/runs?head_sha=${base}&event=push&per_page=1`
-)
-const status = {
-  context: CONTEXT,
-  ...mirroredStatus({
-    run: runs[0],
-    base,
-    fallbackUrl: `${server}/${repo}/actions/workflows/ci.yml`
-  })
+
+async function readStatus() {
+  const { workflow_runs: runs } = await github(
+    `actions/workflows/ci.yml/runs?head_sha=${base}&event=push&branch=main&per_page=1`
+  )
+  return {
+    context: CONTEXT,
+    ...mirroredStatus({
+      run: runs[0],
+      base,
+      fallbackUrl: `${server}/${repo}/actions/workflows/ci.yml`
+    })
+  }
 }
 
-console.log(`${head} (on main ${base}): ${JSON.stringify(status)}`)
-if (!dryRun) {
+async function postStatus(status) {
+  console.log(`${head} (on main ${base}): ${JSON.stringify(status)}`)
+  if (dryRun) return
   await github(`statuses/${head}`, {
     method: 'POST',
     body: JSON.stringify(status)
   })
 }
+
+await syncStatus({ read: readStatus, post: postStatus })
