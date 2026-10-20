@@ -127,8 +127,17 @@
   color: var(--intent-text-inverted);
 }
 
+/* A raised fill that steps up to floating: on a floating surface, and on a
+   raised one nested in another, where it would otherwise match its base.
+   is-translucent reads it too. It doesn't inherit, so a surface inside keeps
+   its own. */
+@property --raised-fill {
+  syntax: '*';
+  inherits: false;
+}
+
 @utility emphasis-raised {
-  background-color: var(--intent-bg-raised);
+  background-color: var(--raised-fill, var(--intent-bg-raised));
   box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-md);
   color: var(--intent-text-normal);
 
@@ -151,6 +160,10 @@
     transform: translateY(0) scale(0.99);
     box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-sm);
   }
+
+  :where(.emphasis-raised, .emphasis-floating) & {
+    --raised-fill: var(--intent-bg-floating);
+  }
 }
 
 @utility emphasis-sunken {
@@ -170,6 +183,15 @@
 
   @supports (color: color-mix(in oklch, red, red)) {
     --field-border-color: color-mix(in oklch, var(--intent-9) 22%, transparent);
+
+    /* Over a dark fill, 22% lands on the page's own step and the edge vanishes. */
+    .dark & {
+      --field-border-color: color-mix(
+        in oklch,
+        var(--intent-9) 50%,
+        transparent
+      );
+    }
   }
 
   background-color: var(--intent-bg-sunken);
@@ -179,7 +201,8 @@
 }
 
 @utility emphasis-floating {
-  background-color: var(--intent-bg-raised);
+  --raised-fill: var(--intent-bg-floating);
+  background-color: var(--raised-fill);
   box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-xl);
   color: var(--intent-text-normal);
 }
@@ -253,7 +276,7 @@
         ) {
         background-color: color-mix(
           in oklch,
-          var(--intent-bg-raised) var(--translucent-fill),
+          var(--raised-fill, var(--intent-bg-raised)) var(--translucent-fill),
           transparent
         );
         -webkit-backdrop-filter: var(--translucent-backdrop);
@@ -264,7 +287,7 @@
       &:is(&):not(.is-interactive-field:is(:focus, [aria-invalid='true'])) {
         background-color: color-mix(
           in oklch,
-          var(--intent-bg-raised) var(--translucent-fill),
+          var(--raised-fill, var(--intent-bg-raised)) var(--translucent-fill),
           transparent
         );
         -webkit-backdrop-filter: var(--translucent-backdrop);

@@ -84,7 +84,7 @@ elevated cards, and floating for popovers and modals.
 | Sunken   | `bg-sunken`, for recessed areas, inset panels, and empty-state wells. `emphasis-sunken` adds the inset shadow.                                                                                      |
 | Normal   | `bg-normal`, the default page background and the baseline everything else sits on. Use it when nothing should feel elevated or recessed.                                                           |
 | Raised   | `bg-raised`, for elevated cards, sticky headers, and grouped content that should lift off the page. `emphasis-raised` adds the rim light and `shadow-md`.                                           |
-| Floating | `emphasis-floating`, for popovers, modals, dropdowns, and anything else that floats over the document flow. It uses the raised background, `shadow-xl`, and the strong rim light. Add `is-translucent` to let content show through as it scrolls beneath. |
+| Floating | `emphasis-floating`, for popovers, modals, dropdowns, and anything else that floats over the document flow. It uses the raised background, lifted in dark mode, `shadow-xl`, and the strong rim light. Add `is-translucent` to let content show through as it scrolls beneath. |
 
 The four levels go from `sunken` to `normal`, `raised`, and `floating`. Reach
 for the `emphasis-*` shortcut when you need the background, text, and shadow
@@ -194,9 +194,15 @@ Dark mode is automatic. The `.dark` class on `<html>` swaps every OKLCH value,
 so no `dark:` Tailwind variants are needed. `bg-normal`, `text-subtle`, and
 `border-subtle` all adapt by themselves.
 
-Dark steps sit closer together, so neutral `border-subtle`, `border-normal`,
-and `border-strong` take one step higher in dark mode to keep their contrast
-against dark surfaces.
+Dark steps sit closer together and shadows barely show on dark, so dark mode
+leans on fills and edges instead:
+
+- Neutral `border-subtle`, `border-normal`, and `border-strong` take one step
+  higher, to keep their contrast against dark surfaces.
+- Floating surfaces, and a raised surface inside another, lift 11% toward
+  step 9 (`--intent-bg-floating`), so they stand off what's under them.
+- `emphasis-field` stays sunken, as in light mode, with its edge at 50% of
+  step 9 instead of 22%, so the field's outline shows on the page.
 
 The CSS also sets `color-scheme: light` on `:root` and `color-scheme: dark` on
 `.dark`, so native browser UI, such as scrollbars and form controls, matches

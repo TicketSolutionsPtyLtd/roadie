@@ -158,7 +158,7 @@ export const paneSearchBoxClass = 'relative grid min-w-0 flex-1'
 
 // Opaque: the header already blurs. The native clear button would be a second ✕ beside Cancel.
 export const paneSearchFieldClass = [
-  'rounded-full bg-raised emphasis-raised ps-11 pe-4',
+  'rounded-full emphasis-raised ps-11 pe-4',
   'placeholder:text-subtler [&::-webkit-search-cancel-button]:appearance-none'
 ].join(' ')
 

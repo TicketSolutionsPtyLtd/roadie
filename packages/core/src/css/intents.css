@@ -84,6 +84,28 @@
   --intent-border-strong: var(--color-neutral-10);
 }
 
+/* Floating surfaces sit above raised ones. Shadows barely show on dark, so
+   there the fill lifts toward step 9 as well. Declared on each intent element
+   so it resolves that intent's own raised fill, as elevation.css does for
+   shadows. */
+@layer base {
+  :root,
+  :where([class*='intent-'], [data-accent-scope]) {
+    --intent-bg-floating: var(--intent-bg-raised);
+  }
+
+  @supports (color: color-mix(in oklch, red, red)) {
+    .dark,
+    .dark :where([class*='intent-'], [data-accent-scope]) {
+      --intent-bg-floating: color-mix(
+        in oklch,
+        var(--intent-9) 11%,
+        var(--intent-bg-raised)
+      );
+    }
+  }
+}
+
 /* ═══ Intent: neutral ═══ */
 @utility intent-neutral {
   --intent-hue: var(--accent-hue, 247);

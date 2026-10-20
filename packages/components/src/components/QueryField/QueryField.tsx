@@ -872,7 +872,7 @@ export function QueryField<Value = unknown>({
             {showsOperators && (
               <div
                 data-slot='query-field-operators'
-                className='sticky -top-1 z-1 -mx-1 -mt-1 grid bg-raised p-1'
+                className='sticky -top-1 z-1 -mx-1 -mt-1 grid bg-(--intent-bg-floating) p-1'
               >
                 <ToggleGroup
                   aria-label='Operator'

@@ -18,7 +18,7 @@ export const tooltipPopupVariants = cva(
         strong:
           'emphasis-strong [--tooltip-rim:transparent] [--tooltip-surface:var(--intent-bg-strong)]',
         floating:
-          'emphasis-floating [--tooltip-rim:var(--rim-light-edge)] [--tooltip-surface:var(--intent-bg-raised)]'
+          'emphasis-floating [--tooltip-rim:var(--rim-light-edge)] [--tooltip-surface:var(--intent-bg-floating)]'
       }
     },
     defaultVariants: { emphasis: 'strong' }
