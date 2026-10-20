@@ -15,6 +15,7 @@ export const RELEASED_PACKAGES = [
   { name: '@oztix/roadie-components', label: 'Components', dir: 'components' },
   { name: '@oztix/roadie-core', label: 'Core', dir: 'core' },
   { name: '@oztix/roadie-charts', label: 'Charts', dir: 'charts' },
+  { name: '@oztix/roadie-editor', label: 'Editor', dir: 'editor' },
   { name: '@oztix/roadie-widgets', label: 'Widgets', dir: 'widgets' },
   {
     name: '@oztix/roadie-eslint-plugin',
@@ -737,14 +738,14 @@ export function toInline(markdown: string): Inline {
 }
 
 /** `OTPField` → `otp-field`, as component pages are named. */
-const kebab = (name: string) =>
+export const kebab = (name: string) =>
   name
     .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
     .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
     .toLowerCase()
 
 /** The page a component name or import path has to itself. */
-function ownPage(name: string, index: PageIndex): PageLink | undefined {
+export function ownPage(name: string, index: PageIndex): PageLink | undefined {
   const page = index.get(name)
   if (!page) return undefined
   if (name.startsWith('@')) return page
@@ -812,7 +813,7 @@ const keysOf = (names: string[]) =>
   })
 
 /** The page that introduces a package with no component page of its own. */
-const PACKAGE_PAGES: Record<string, string> = {
+export const PACKAGE_PAGES: Record<string, string> = {
   '@oztix/roadie-eslint-plugin': '/overview/linting'
 }
 
@@ -1283,8 +1284,20 @@ let pageContext:
     }
   | undefined
 
+// The layout renders once per page and asks for every page's release, so a build works each out once.
+const pageReleases = new Map<string, PageRelease>()
+
 /** Each page's added and updated releases, from the release history, its subpath's first commit, and the page's own. */
 export function getPageRelease(route: string): PageRelease {
+  let release = pageReleases.get(route)
+  if (!release) {
+    release = readPageRelease(route)
+    pageReleases.set(route, release)
+  }
+  return release
+}
+
+function readPageRelease(route: string): PageRelease {
   const history = hasHistory()
   const log = (args: string[]) => (history ? (git(['log', ...args]) ?? '') : '')
   pageContext ??= {
@@ -1325,11 +1338,15 @@ export function getPageRelease(route: string): PageRelease {
 }
 
 /** Route → the day, in UTC, its page last changed, or empty without history. */
+let updatedDates: Record<string, string> | undefined
+
 export function getPageUpdatedDates(): Record<string, string> {
+  if (updatedDates) return updatedDates
   const log = hasHistory()
     ? git(['log', '--format=%x1e%ct', '--name-only', '--', 'docs/src/app'])
     : null
-  return log ? Object.fromEntries(pageUpdatedDates(log)) : {}
+  updatedDates = log ? Object.fromEntries(pageUpdatedDates(log)) : {}
+  return updatedDates
 }
 
 function readChangesets(): Changeset[] {

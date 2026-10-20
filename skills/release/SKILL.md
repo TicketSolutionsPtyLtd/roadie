@@ -92,18 +92,23 @@ Fail blocks the merge; attention needs the maintainer to look.
    returns 404), and no major is unannounced. Attention for a `0.x` minor,
    which a `^0.y` range won't pick up.
 
-## 4. Status candidates
+## 4. Status candidates (required)
 
-In a repo with docs page statuses (Roadie's are in
+Run this step every time and report its result in the hand-off, even when
+it finds nothing: "Status candidates: nothing due" is a valid answer. In a
+repo with docs page statuses (Roadie's are in
 `docs/contributing/DOCS_PAGES.md`), list the pages due a promotion:
 `pnpm --filter docs exec tsx scripts/status-candidates.ts`. It prints beta
 pages added 30 days ago with no breaking change since, and alpha pages added
-90 days ago. Put the list in the hand-off for the maintainer, who checks
-which apps use each one. Don't change a status here.
+90 days ago. Put the list, or "nothing due", in the hand-off for the
+maintainer, who checks which apps use each one. Don't change a status here.
+A repo with no page statuses reports "not applicable".
 
-## 5. Release note
+## 5. Release note (required)
 
-In a repo with a docs changelog that reads release notes (Roadie's is
+Decide every time and report the decision in the hand-off: a draft, or "no
+note needed" with one line on why the automatic title and cards tell the
+story. In a repo with a docs changelog that reads release notes (Roadie's is
 `docs/src/content/releases/`), draft one for this release. The changelog
 titles, summarises, and picks highlights by itself, so the note is optional
 and the release never waits on it. Write one when the automatic title misses
@@ -128,7 +133,9 @@ the story, such as a new package or a theme across several changes.
 
 ## 6. Hand off
 
-Post the summary, the readiness lines, and the status candidates as text, with a one-line verdict:
+Post the summary, the readiness lines, the status candidates (or "nothing
+due"), and the release note draft (or "no note needed" and why) as text,
+with a one-line verdict:
 **ready**, **ready with attention**, or **not ready**, naming each fail.
 Follow the host's writing rules, and keep hosts, local paths, tokens, and
 real names out (Roadie's PR workflow section 7). The maintainer decides when

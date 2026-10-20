@@ -112,7 +112,9 @@ function expectNoOverlap(container: HTMLElement) {
 
 /** The card nearest the middle of the box, which stays in view for a step under half its height. */
 function anchor(container: HTMLElement) {
-  const middle = box(container).getBoundingClientRect().top + 300
+  const scroller = box(container)
+  const middle =
+    scroller.getBoundingClientRect().top + scroller.clientHeight / 2
   const card = cards(container).reduce((nearest, element) =>
     Math.abs(element.getBoundingClientRect().top - middle) <
     Math.abs(nearest.getBoundingClientRect().top - middle)
@@ -178,11 +180,15 @@ function Ranged({ row = 0 }: { row?: number }) {
 }
 
 describe('RecordTable narrow cards in a browser', () => {
+  // Each step waits two frames, so a tall box with steps just under half its
+  // height crosses the list in fewer of them. It runs past the page, but the
+  // list virtualises against the box, not the window.
   it('measures 1,000 cards without overlap or jumps', async () => {
+    const step = 950
     const { container } = render(
       <div
         data-testid='box'
-        style={{ width: 360, height: 600, overflowY: 'auto' }}
+        style={{ width: 360, height: 2 * step + 100, overflowY: 'auto' }}
       >
         <RecordTable
           caption='Shows'
@@ -202,7 +208,7 @@ describe('RecordTable narrow cards in a browser', () => {
       scroller.scrollTop + scroller.clientHeight <
       scroller.scrollHeight - 1
     )
-      await scrollAndCheck(container, 250, seen)
+      await scrollAndCheck(container, step, seen)
     await expect
       .poll(() =>
         cards(container).some((card) => card.dataset.rowId === 'show-999')
@@ -214,7 +220,7 @@ describe('RecordTable narrow cards in a browser', () => {
       scroller.getBoundingClientRect().bottom + 1
     )
     expect(seen.size).toBe(1000)
-    while (scroller.scrollTop > 0) await scrollAndCheck(container, -250, seen)
+    while (scroller.scrollTop > 0) await scrollAndCheck(container, -step, seen)
     const first = cards(container)[0]!
     expect(first.dataset.rowId).toBe('show-0')
     expect(
