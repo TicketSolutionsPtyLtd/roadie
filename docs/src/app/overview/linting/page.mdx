@@ -4,7 +4,7 @@ export const metadata = {
     'Catch Roadie mistakes in your app at lint time with @oztix/roadie-eslint-plugin.'
 }
 
-`@oztix/roadie-eslint-plugin` checks the Roadie conventions a rule can be sure of: Phosphor icon imports, sizes, and weights, colour classes, and arbitrary radius and z-index values. Calls that need judgement, such as which emphasis a surface takes, stay with review.
+`@oztix/roadie-eslint-plugin` checks the Roadie conventions a rule can be sure of: Phosphor icon imports, sizes, and weights, colour classes, arbitrary radius and z-index values, and a `Card` without `Card.Content`. Calls that need judgement, such as which emphasis a surface takes, stay with review.
 
 ## Install
 
@@ -50,21 +50,24 @@ export default [
 
 In a config, each rule takes the `roadie/` prefix, such as `roadie/no-dark-variant`.
 
-| Rule                      | Fails                                                                    | Fix                                         |
-| ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------- |
-| `phosphor-icon-suffix`    | A Phosphor import by its bare name, such as `Heart`                      | Import `HeartIcon`                          |
-| `phosphor-icon-size-prop` | The `size` prop on a Phosphor icon                                       | A `size-*` class                            |
-| `phosphor-icon-weight`    | A Phosphor icon with no weight, or one other than bold, fill, or duotone | `weight='bold'`                             |
-| `no-dark-variant`         | A `dark:` variant                                                        | A semantic colour utility                   |
-| `no-hex-colour-class`     | A hex colour, such as `bg-[#fff]`                                        | A semantic colour utility                   |
-| `no-arbitrary-z-index`    | An arbitrary z-index, such as `z-[5]`                                    | A named z tier, or `z-1` inside a component |
-| `no-arbitrary-radius`     | An arbitrary radius, such as `rounded-[10px]`                            | A named radius tier, such as `rounded-xl`   |
+| Rule                      | Fails                                                                    | Fix                                                           |
+| ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| `phosphor-icon-suffix`    | A Phosphor import by its bare name, such as `Heart`                      | Import `HeartIcon`                                            |
+| `phosphor-icon-size-prop` | The `size` prop on a Phosphor icon                                       | A `size-*` class                                              |
+| `phosphor-icon-weight`    | A Phosphor icon with no weight, or one other than bold, fill, or duotone | `weight='bold'`                                               |
+| `no-dark-variant`         | A `dark:` variant                                                        | A semantic colour utility                                     |
+| `no-hex-colour-class`     | A hex colour, such as `bg-[#fff]`                                        | A semantic colour utility                                     |
+| `no-arbitrary-z-index`    | An arbitrary z-index, such as `z-[5]`                                    | A named z tier, or `z-1` inside a component                   |
+| `no-arbitrary-radius`     | An arbitrary radius, such as `rounded-[10px]`                            | A named radius tier, such as `rounded-xl`                     |
+| `card-content`            | A `Card` with no `Card.Content` among its parts                          | Put the body, or the title and description, in `Card.Content` |
 
 [Iconography](/foundations/iconography) says which weight goes where, [Colors](/foundations/colors) why `.dark` needs no variant, [Elevation](/foundations/elevation) lists the z tiers, and [Shape](/foundations/shape) the radius tiers.
 
 The class rules read `className`, any prop ending in `ClassName`, and the arguments of `cn`, `clsx`, `cva`, `cx`, `tv`, and `twMerge`. They also read a `const` those name, such as `variants` in `cn(variants[size])`, when it holds a string, array, or object. They follow one constant, not a constant built from another, and don't read CSS, so `@apply` goes unchecked. `roadie/no-arbitrary-radius` also fails a raw length, such as `[--card-radius:10px]`, in a variable that a `rounded-(--card-radius)` class reads.
 
 Two icon rules skip a case on purpose. `roadie/phosphor-icon-weight` skips an icon passed to `Navigator.Item`, including one in a fallback such as `icon={icons[href] ?? <HouseIcon />}`, because Navigator sets its own weight. An icon built elsewhere, such as in a map of icons, still fails, so disable the rule around it and say why. `roadie/phosphor-icon-size-prop` allows `size='100%'`, which fills an SVG around the icon, such as a QR code's centre mark.
+
+`roadie/card-content` judges a `Card` imported from `@oztix/roadie-components` only when it can see every part. A card whose children include your own component, an expression such as a `map`, or a fragment passes, since any of those might render `Card.Content`. Card warns in development when it renders without one, which catches the rest.
 
 ## Icons without an import
 
