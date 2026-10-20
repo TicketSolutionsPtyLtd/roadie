@@ -78,8 +78,9 @@ async function load(route: string) {
   return page
 }
 
-// The tests only read a page, so each route loads once per file rather than
-// once per table: the date and time page alone has 13.
+// Each route loads once per file rather than once per table (the date and
+// time page alone has 13), so a test may read the page or open its own
+// block's code, but must not change what another test reads.
 const pages = new Map<string, Promise<Page>>()
 
 function open(route: string) {
