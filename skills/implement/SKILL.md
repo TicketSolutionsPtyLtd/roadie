@@ -231,7 +231,8 @@ this PR.
 
 Keep a note of each check: what you exercised, at which width and in which
 engine, and what you didn't, with why (no touch device, no screen reader, an
-engine not installed). It goes into the PR's Evidence (`/roadie:pr`).
+engine not installed), and each bug it found with the test that now catches
+it. It goes into the PR's Evidence (`/roadie:pr`).
 
 ## 9. Stop at the demo
 
