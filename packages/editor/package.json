@@ -57,15 +57,15 @@
     "size:check": "size-limit --limit"
   },
   "dependencies": {
-    "@tiptap/core": "3.31.4",
-    "@tiptap/extension-heading": "3.31.4",
-    "@tiptap/extension-link": "3.31.4",
-    "@tiptap/extension-table": "3.31.4",
-    "@tiptap/extensions": "3.31.4",
-    "@tiptap/pm": "3.31.4",
-    "@tiptap/react": "3.31.4",
-    "@tiptap/starter-kit": "3.31.4",
-    "@tiptap/static-renderer": "3.31.4"
+    "@tiptap/core": "3.32.0",
+    "@tiptap/extension-heading": "3.32.0",
+    "@tiptap/extension-link": "3.32.0",
+    "@tiptap/extension-table": "3.32.0",
+    "@tiptap/extensions": "3.32.0",
+    "@tiptap/pm": "3.32.0",
+    "@tiptap/react": "3.32.0",
+    "@tiptap/starter-kit": "3.32.0",
+    "@tiptap/static-renderer": "3.32.0"
   },
   "peerDependencies": {
     "@oztix/roadie-components": "workspace:^",
@@ -90,8 +90,8 @@
     "@vitejs/plugin-react": "6.1.2",
     "@vitest/browser-playwright": "5.0.5",
     "babel-plugin-react-compiler": "1.0.0",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "size-limit": "14.2.0",
     "tsdown": "0.23.1",
     "vite": "8.3.4",
