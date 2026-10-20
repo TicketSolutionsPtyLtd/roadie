@@ -439,6 +439,13 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-1.5 w-28' />
         </div>
       )
+    case 'link':
+      return (
+        <div className='flex gap-1 text-sm'>
+          <span className='text-subtle'>Read the</span>
+          <span className='link-normal'>event FAQ</span>
+        </div>
+      )
     case 'breadcrumb':
       return (
         <div className='flex items-center gap-1.5 text-xs'>

@@ -825,7 +825,7 @@ describe('pageSubpaths', () => {
 })
 
 describe('subpathTimes', () => {
-  it('times each import path by the oldest commit that exported it or added its component folder', () => {
+  it('times each import path by the oldest commit that exported it from package.json or the components barrel', () => {
     const exportsLog = [
       '\x1e300',
       '+++ b/packages/widgets/package.json',
@@ -837,16 +837,37 @@ describe('subpathTimes', () => {
       '+    "./cart-contents/react": {',
       '+    "./*": "./dist/*.js"'
     ].join('\n')
-    const foldersLog = [
+    const barrelLog = [
       '\x1e200',
-      '',
-      'packages/components/src/components/OTPField/index.tsx',
-      'packages/components/src/components/OTPField/OTPField.test.tsx'
+      "+export { OTPField, type OTPFieldProps } from './components/OTPField'",
+      "+} from './components/Toast/manager'"
     ].join('\n')
-    expect(Object.fromEntries(subpathTimes(exportsLog, foldersLog))).toEqual({
+    expect(Object.fromEntries(subpathTimes(exportsLog, barrelLog))).toEqual({
       '@oztix/roadie-widgets/cart-contents/react': 100,
       '@oztix/roadie-core/records': 300,
-      '@oztix/roadie-components/otp-field': 200
+      '@oztix/roadie-components/otp-field': 200,
+      '@oztix/roadie-components/toast': 200
+    })
+  })
+
+  it('dates a component by its export, not by when its folder was made', () => {
+    const exportsLog = [
+      '\x1e900',
+      '+++ b/packages/components/package.json',
+      '+    "./link": {',
+      '\x1e100',
+      '+++ b/packages/components/package.json',
+      '+    "./badge": {'
+    ].join('\n')
+    const barrelLog = [
+      '\x1e900',
+      "+export { Link, type LinkProps } from './components/Link'",
+      '\x1e50',
+      "+export { Badge } from './components/Badge'"
+    ].join('\n')
+    expect(Object.fromEntries(subpathTimes(exportsLog, barrelLog))).toEqual({
+      '@oztix/roadie-components/link': 900,
+      '@oztix/roadie-components/badge': 50
     })
   })
 })

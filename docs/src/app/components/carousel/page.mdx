@@ -644,7 +644,7 @@ Set `basis-auto` on each `Carousel.Item` and every card sizes to its own content
 
 Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayPause` button is placed first inside `Carousel.Controls` so it is the first tab stop, required by WCAG 2.2.2. Slides run edge-to-edge with a sliver of the next slide peeking in.
 
-`Carousel.TitleLink` accepts `as` so you can pass a framework router link (`Link` here) instead of a plain `<a>`. The trailing arrow icon and link styling come along automatically.
+`Carousel.TitleLink` takes `href`, which routes through the Link given to `RoadieProvider`. The trailing arrow icon and link styling come along automatically.
 
 ```tsx-live
 <Carousel
@@ -653,7 +653,7 @@ Auto-rotating hero carousel with a persistent pause control. The `Carousel.PlayP
   opts={{ loop: true }}
 >
   <Carousel.Header>
-    <Carousel.TitleLink render={<Link href='/events' />}>
+    <Carousel.TitleLink href='/events'>
       Featured events
     </Carousel.TitleLink>
     <Carousel.Dots />
