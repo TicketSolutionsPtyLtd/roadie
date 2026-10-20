@@ -35,10 +35,10 @@ export function PreviewCard({
     <li className={`grid ${className ?? ''}`}>
       <Card href={href} className='overflow-hidden no-underline'>
         <PreviewThumbnail>{children}</PreviewThumbnail>
-        <div className='grid gap-0.5 px-3 py-2.5'>
+        <Card.Content className='grid gap-0.5 px-3 py-2.5'>
           <h3 className='text-display-ui-6 text-strong'>{title}</h3>
           {subtitle ? <p className='text-sm text-subtle'>{subtitle}</p> : null}
-        </div>
+        </Card.Content>
       </Card>
     </li>
   )

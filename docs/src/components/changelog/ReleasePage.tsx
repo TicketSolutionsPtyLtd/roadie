@@ -139,19 +139,21 @@ function Neighbour({
 }) {
   return (
     <li className='grid'>
-      <Card emphasis='normal' className='gap-1 p-4'>
-        <p className='flex items-center gap-1 text-sm text-subtle'>
-          {direction === 'Newer' ? (
-            <ArrowLeftIcon weight='bold' className='size-4' />
-          ) : null}
-          {direction}
-          {direction === 'Older' ? (
-            <ArrowRightIcon weight='bold' className='size-4' />
-          ) : null}
-        </p>
-        <Card.Link href={release.href} className='font-semibold text-strong'>
-          {release.headlines.all.title}
-        </Card.Link>
+      <Card emphasis='normal'>
+        <Card.Content className='grid gap-1 p-4'>
+          <p className='flex items-center gap-1 text-sm text-subtle'>
+            {direction === 'Newer' ? (
+              <ArrowLeftIcon weight='bold' className='size-4' />
+            ) : null}
+            {direction}
+            {direction === 'Older' ? (
+              <ArrowRightIcon weight='bold' className='size-4' />
+            ) : null}
+          </p>
+          <Card.Link href={release.href} className='font-semibold text-strong'>
+            {release.headlines.all.title}
+          </Card.Link>
+        </Card.Content>
       </Card>
     </li>
   )

@@ -196,7 +196,10 @@ Embla mounts every slide in the DOM, so native `loading='lazy'` over-fetches off
     {events.map((event) => (
       <Carousel.Item key={event.id}>
         <Card href={event.href}>
-          <Card.Image src={event.image} alt={event.title} width={360} defer />
+          <Card.Image src={event.image} alt='' width={360} defer />
+          <Card.Content>
+            <Card.Title>{event.title}</Card.Title>
+          </Card.Content>
         </Card>
       </Carousel.Item>
     ))}

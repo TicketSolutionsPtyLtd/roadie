@@ -313,7 +313,7 @@ The subtler card has padding around the image, giving it inset rounded corners. 
       sizes='(min-width: 640px) 25vw, 50vw'
       placeholder='blur'
     />
-    <Card.Header>
+    <Card.Content>
       <Card.Title>Yabby Lightning Tour</Card.Title>
       <Card.Description>
         <DateTime
@@ -323,7 +323,7 @@ The subtler card has padding around the image, giving it inset rounded corners. 
         />
       </Card.Description>
       <Card.Description>Lighthouse Fig Lawn</Card.Description>
-    </Card.Header>
+    </Card.Content>
     <Card.Footer>
       <p className='text-strong font-semibold'>$89</p>
     </Card.Footer>
@@ -336,21 +336,21 @@ The subtler card has padding around the image, giving it inset rounded corners. 
       height={300}
       sizes='(min-width: 640px) 25vw, 50vw'
     />
-    <Card.Header>
+    <Card.Content>
       <Card.Description>Dining &amp; Social</Card.Description>
       <Card.Title>Windmill Pear Long Table Dinner</Card.Title>
       <Card.Description>
         <DateTime at={new Date('2026-05-24T08:00:00Z')} timeZone='Australia/Brisbane' />{' '}
         &middot; <Duration of='PT3H' durationStyle='medium' />
       </Card.Description>
-    </Card.Header>
+    </Card.Content>
   </Card>
 </div>
 ```
 
 ### Composition
 
-Use `Card.Header`, `Card.Content`, and `Card.Footer` to structure content.
+Every card has a `Card.Content`, which holds its body. `Card.Header` above it and `Card.Footer` below it are optional. A header has no bottom padding, so a card with only a title and description puts them in `Card.Content`, as the [main link](#with-a-main-link) example does. A card without `Card.Content` warns in development.
 
 ```tsx-live
 <Card>

@@ -74,22 +74,22 @@ lifts on hover and presses in on click.
 ```tsx-live
 <div className='grid gap-4 sm:grid-cols-2'>
   <Card emphasis='raised' href='#emphasis-presets'>
-    <Card.Header>
+    <Card.Content>
       <Card.Title>emphasis-raised</Card.Title>
       <Card.Description>Hover and press me</Card.Description>
-    </Card.Header>
+    </Card.Content>
   </Card>
   <Card className='emphasis-floating'>
-    <Card.Header>
+    <Card.Content>
       <Card.Title>emphasis-floating</Card.Title>
       <Card.Description>Popovers, menus, dialogs, and drawers</Card.Description>
-    </Card.Header>
+    </Card.Content>
   </Card>
   <Card className='emphasis-sunken'>
-    <Card.Header>
+    <Card.Content>
       <Card.Title>emphasis-sunken</Card.Title>
       <Card.Description>Wells and sunken panels</Card.Description>
-    </Card.Header>
+    </Card.Content>
   </Card>
   <Field>
     <Field.Label>emphasis-field</Field.Label>
@@ -153,10 +153,10 @@ Browsers without `oklch()` show the untinted fallback shadow.
 <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
   {['neutral', 'brand', 'accent', 'danger', 'success', 'warning', 'info'].map((intent) => (
     <Card key={intent} intent={intent} emphasis='raised' href='#intent-tinting'>
-      <Card.Header>
+      <Card.Content>
         <Card.Title>intent-{intent}</Card.Title>
         <Card.Description>emphasis-raised. Hover me.</Card.Description>
-      </Card.Header>
+      </Card.Content>
     </Card>
   ))}
 </div>
