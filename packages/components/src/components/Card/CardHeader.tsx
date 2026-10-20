@@ -4,6 +4,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 export type CardHeaderProps = ComponentProps<'div'>
 
+/** An optional top part, above `Card.Content`. It has no bottom padding, so a card never ends with it. */
 export function CardHeader({ className, ...props }: CardHeaderProps) {
   return (
     <div

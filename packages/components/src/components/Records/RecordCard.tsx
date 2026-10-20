@@ -71,6 +71,8 @@ export const RecordCard = memo(function RecordCard({
   const trailing = value(parts.trailing)
   const hasDetails = parts.details.length > 0
   const title = parts.title ? value(parts.title) : id
+  // With no details below, the title row is the card's only part, so it's the content.
+  const TitleRow = hasDetails ? CardHeader : CardContent
   return (
     <CardRoot
       data-slot='record-card'
@@ -99,7 +101,7 @@ export const RecordCard = memo(function RecordCard({
           )}
         </div>
       )}
-      <CardHeader
+      <TitleRow
         className={cn(
           'flex items-start gap-3 px-4 pt-4',
           !hasDetails && 'pb-4'
@@ -145,7 +147,7 @@ export const RecordCard = memo(function RecordCard({
             <RecordsRowActions title={name} row={row} rowActions={rowActions} />
           </div>
         )}
-      </CardHeader>
+      </TitleRow>
       {hasDetails && (
         <CardContent className='px-4 pt-3 pb-4'>
           <dl className='grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm'>
