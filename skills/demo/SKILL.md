@@ -114,13 +114,15 @@ if (section) {
   await start.evaluate((el) => el.scrollIntoView({ block: 'start' }))
   // The load state already resolved, so give lazy content time to mount.
   await page.waitForTimeout(1500)
-  await start.evaluate((el) => {
+  const focusable = await start.evaluate((el) => {
     el.focus()
-    if (document.activeElement !== el) {
-      el.setAttribute('tabindex', '-1')
-      el.focus()
-    }
+    if (document.activeElement === el) return true
+    el.setAttribute('tabindex', '-1')
+    el.focus()
+    return false
   })
+  // Step back so the first Tab lands on the changed control itself.
+  if (focusable) await page.keyboard.press('Shift+Tab')
 }
 for (let i = 0; i < Number(stops); i++) {
   await page.keyboard.press('Tab')
