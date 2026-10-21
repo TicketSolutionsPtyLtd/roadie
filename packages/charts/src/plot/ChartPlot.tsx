@@ -79,7 +79,8 @@ const inBrush = (target: EventTarget | null) =>
   target instanceof Element && target.closest(BRUSH) !== null
 
 // d3-brush cancels touchmove, which would trap page scroll on the chart, so
-// no touch event reaches it; its move and end listeners throw without a start. A tap's emulated mousedown follows within a second.
+// no touch event reaches it; its move and end listeners throw without a
+// start. A tap's emulated mousedown follows within a second.
 const touchFree = new WeakSet<Element>()
 function keepTouchForScrolling(brush: Element) {
   if (touchFree.has(brush)) return
