@@ -589,6 +589,13 @@ describe('LineChart counting down to the event', () => {
     expect(lineChartTable(countdown).rows[0]).toMatchObject({
       day: '30 days before'
     })
+    expect(
+      lineChart.summary({
+        ...countdown,
+        series: undefined,
+        highlight: undefined
+      })
+    ).toMatch(/between 30 days before and event day$/i)
   })
 
   it('reads a plain numeric x as a number, whatever the y format', () => {
