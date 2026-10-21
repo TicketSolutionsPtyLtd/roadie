@@ -116,7 +116,7 @@ describe('DataTable grouped rows', () => {
       <DataTable columns={columns} rows={rows} groupBy={['pool']} />
     )
     const leaf = () =>
-      container.querySelector<HTMLElement>('tbody > tr:last-child')!
+      container.querySelector<HTMLTableRowElement>('tbody > tr:last-child')!
     const height = () => leaf().getBoundingClientRect().height
     expect(height()).toBe(0)
     const toggle = screen.getByRole('button', { name: 'General' })
