@@ -76,7 +76,7 @@ export function Checkbox({
       aria-describedby={describedBy}
       className={cn(
         sizes.box,
-        'flex shrink-0 items-center justify-center rounded-md border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] duration-moderate aria-[invalid=true]:border-[var(--color-danger-9)] aria-[invalid=true]:bg-[var(--color-danger-2)] aria-[invalid=true]:outline-[color-mix(in_oklch,var(--color-danger-9)_var(--focus-ring-opacity),transparent)] data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)] data-[indeterminate]:border-[var(--color-accent-9)] data-[indeterminate]:bg-[var(--color-accent-3)]',
+        'flex shrink-0 items-center justify-center rounded-md border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] duration-moderate aria-[invalid=true]:border-[var(--color-danger-9)] aria-[invalid=true]:bg-[var(--color-danger-2)] aria-[invalid=true]:outline-[color-mix(in_oklch,var(--color-danger-9)_var(--focus-ring-opacity),transparent)] data-[checked]:border-[var(--intent-bg-strong)] data-[checked]:bg-[var(--intent-bg-strong)] data-[indeterminate]:border-[var(--intent-bg-strong)] data-[indeterminate]:bg-[var(--intent-bg-strong)]',
         emphasis !== 'normal' &&
           'focus-visible:outline-[length:var(--focus-ring-width)]'
       )}
@@ -84,7 +84,7 @@ export function Checkbox({
     >
       <CheckboxPrimitive.Indicator
         data-slot='checkbox-indicator'
-        className='flex text-[var(--color-accent-9)]'
+        className='flex text-[var(--intent-text-on-strong)]'
         render={(indicatorProps, state) => (
           <span {...indicatorProps}>
             {state.indeterminate ? (

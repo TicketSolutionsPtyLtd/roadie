@@ -87,6 +87,31 @@ describe('Checkbox size', () => {
   })
 })
 
+describe('Checkbox colour', () => {
+  it.each([
+    ['ticked', { defaultChecked: true }],
+    ['indeterminate', { indeterminate: true }]
+  ] as const)(
+    'fills a %s box with the strong intent and its icon with text on strong',
+    (_, state) => {
+      render(
+        <div className='intent-brand'>
+          <span data-testid='strong' className='emphasis-strong'>
+            Strong
+          </span>
+          <Checkbox label='Rock' {...state} />
+        </div>
+      )
+      const strong = getComputedStyle(screen.getByTestId('strong'))
+      const box = screen.getByRole('checkbox', { name: 'Rock' })
+      expect(getComputedStyle(box).backgroundColor).toBe(strong.backgroundColor)
+      expect(getComputedStyle(box.querySelector('svg')!).color).toBe(
+        strong.color
+      )
+    }
+  )
+})
+
 describe('Checkbox trailing', () => {
   it('keeps the count in view beside a long unbroken label', () => {
     const label = 'Supercalifragilisticexpialidocious_unbroken_venue_name'
