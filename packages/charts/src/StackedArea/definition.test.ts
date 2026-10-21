@@ -136,6 +136,19 @@ describe('stackedArea', () => {
     expect(svgOf(share)).toMatch(/>100%</)
   })
 
+  it('tops the share axis at 100% when the shares sum a hair over 1', () => {
+    const data = ['19:00', '19:15'].flatMap((time) =>
+      [5, 1, 1, 1, 1].map((scans, i) => ({
+        at: `2026-11-14T${time}`,
+        gate: `Gate ${i + 1}`,
+        scans
+      }))
+    )
+    const svg = svgOf({ ...small, data, mode: 'share' })
+    const ticks = [...svg.matchAll(/y-tick-label:number:([\d.]+)/g)]
+    expect(Math.max(...ticks.map((t) => Number(t[1])))).toBe(1)
+  })
+
   it('gives each layer its share and count in share mode', () => {
     const point = { x: at('19:00'), y: 50, series: 'Main', index: 1 }
     const share = { ...small, mode: 'share' as const }
