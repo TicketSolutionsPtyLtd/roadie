@@ -39,10 +39,11 @@
   background: var(--data-card-surface, var(--intent-bg-normal));
 }
 
-/* A linked row (getRowHref) is an is-interactive-within surface: its title
-   link's overlay covers the row. Hovering the row hovers the link. */
+/* A linked row (getRowHref) or a group row is an is-interactive-within
+   surface: its title link's or caret's overlay covers the row. Hovering the
+   row hovers the target. */
 @media (hover: hover) {
-  [data-slot='data-table'] tr[data-linked]:hover > td {
+  [data-slot='data-table'] tr:is([data-linked], [data-group]):hover > td {
     background-color: color-mix(
       in oklch,
       var(--intent-9) 6%,
@@ -54,13 +55,13 @@
 /* A table row doesn't shrink on press like a card does. Its own outline is
    hidden by cells, and WebKit never paints it, so the overlay draws the
    ring inset instead. */
-[data-slot='data-table'] tr[data-linked] {
+[data-slot='data-table'] tr:is([data-linked], [data-group]) {
   transform: none;
   outline: none;
 }
 
 [data-slot='data-table']
-  tr[data-linked]
+  tr:is([data-linked], [data-group])
   [data-interactive-target]:focus-visible::after {
   outline: var(--focus-ring-width) solid
     color-mix(in oklch, var(--intent-9) var(--focus-ring-opacity), transparent);
@@ -69,7 +70,7 @@
 
 .dark
   [data-slot='data-table']
-  tr[data-linked]
+  tr:is([data-linked], [data-group])
   [data-interactive-target]:focus-visible::after {
   outline-color: color-mix(
     in oklch,
@@ -82,7 +83,7 @@
    first cell sticks to the start edge, so its overlay spans the table's
    visible width from there. */
 [data-slot='data-table']
-  tr[data-linked]
+  tr:is([data-linked], [data-group])
   > [data-pin]:first-child
   [data-interactive-target]::after {
   inset-inline-end: auto;
@@ -93,7 +94,7 @@
    visible width either side, and the table clips what overhangs so it never
    adds scroll width. */
 [data-slot='data-table']
-  tr[data-linked]
+  tr:is([data-linked], [data-group])
   > [data-pin]:not(:first-child)
   [data-interactive-target]::after {
   inset-inline: -100cqi;
@@ -106,5 +107,5 @@
 /* Each level of a grouped table steps in by a caret and its gap, so a row's
    label lines up with its group's. */
 [data-slot='data-table-indent'] {
-  padding-inline-start: calc(var(--data-table-depth, 0) * var(--spacing) * 5);
+  padding-inline-start: calc(var(--data-table-depth, 0) * var(--spacing) * 4);
 }

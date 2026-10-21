@@ -82,7 +82,8 @@ export function DataTableGroups({
           <Table.Row
             key={node.key}
             data-slot='data-table-group'
-            className='font-semibold text-strong'
+            data-group=''
+            className='is-interactive-within font-semibold text-strong'
           >
             {columns.map((column, index) => (
               <Table.Cell key={column.key} {...cellAttributes(column)}>
@@ -92,11 +93,12 @@ export function DataTableGroups({
                       type='button'
                       aria-expanded={open}
                       onClick={() => toggle(node.key)}
-                      className='group is-interactive inline-flex items-center gap-1 rounded-sm text-start active:scale-100'
+                      data-interactive-target=''
+                      className='group inline-flex items-center gap-1 text-start'
                     >
                       <CaretRightIcon
                         weight='bold'
-                        className='size-4 shrink-0 transition-transform duration-moderate group-aria-expanded:rotate-90 rtl:-scale-x-100 rtl:group-aria-expanded:-rotate-90'
+                        className='size-3 shrink-0 text-subtle transition-transform duration-moderate group-aria-expanded:rotate-90 rtl:-scale-x-100 rtl:group-aria-expanded:-rotate-90'
                         aria-hidden
                       />
                       <DataTableCellContent

@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import { DataTable, type DataTableColumn } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -46,7 +47,7 @@ describe('DataTable grouped rows', () => {
     const general = textStart('General')
     const ga = textStart('GA')
     const north = textStart('North')
-    expect(ga - general).toBeCloseTo(20, 0)
+    expect(ga - general).toBeCloseTo(16, 0)
     expect(north).toBeCloseTo(ga, 0)
   })
 
@@ -85,5 +86,27 @@ describe('DataTable grouped rows', () => {
     expect(caretOf('GA').scale).toBe('-1 1')
     expect(caretOf('GA').rotate).toBe('none')
     expect(caretOf('General').rotate).toBe('-90deg')
+  })
+
+  it('toggles a group from anywhere on its row, with a small muted caret', async () => {
+    const { container } = render(
+      <DataTable columns={columns} rows={rows} groupBy={['pool']} />
+    )
+    const toggle = screen.getByRole('button', { name: 'General' })
+    const caret = toggle.querySelector('svg')!
+    expect(caret.getBoundingClientRect().width).toBe(12)
+    expect(getComputedStyle(caret).color).not.toBe(
+      getComputedStyle(toggle).color
+    )
+    const sum = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-group] > td:last-child'
+    )!
+    await userEvent.click(sum, { force: true })
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    await userEvent.hover(sum, { force: true })
+    expect(getComputedStyle(sum).backgroundColor).not.toBe(
+      getComputedStyle(container.querySelector('tbody tr:last-child > td')!)
+        .backgroundColor
+    )
   })
 })
