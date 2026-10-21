@@ -92,9 +92,12 @@ describe('RecordTable totals', () => {
       const headRow = slot(container, 'record-table-head-row')
       const totals = slot(container, 'record-table-totals')
       expect(near(rect(totals).top, rect(headRow).bottom)).toBe(true)
-      const top = rect(totals).top
       await scroll(container, mode)
-      expect(near(rect(totals).top, top)).toBe(true)
+      // Stuck with the headings, wherever the engine sticks them.
+      expect(near(rect(totals).top, rect(headRow).bottom)).toBe(true)
+      expect(rect(slot(container, 'record-table-row')).top).toBeLessThan(
+        rect(headRow).top
+      )
       expect(rect(slot(container, 'record-table-head')).height).toBe(
         rect(headRow).height + rect(totals).height
       )
