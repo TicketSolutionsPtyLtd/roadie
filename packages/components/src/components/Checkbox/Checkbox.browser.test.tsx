@@ -92,15 +92,17 @@ describe('Checkbox colour', () => {
     ['ticked', { defaultChecked: true }],
     ['indeterminate', { indeterminate: true }]
   ] as const)(
-    'fills a %s box with the strong intent and its icon with text on strong',
+    'fills a %s box with the accent strong colour, unsunken, whatever the intent around it',
     (_, state) => {
       render(
-        <div className='intent-brand'>
-          <span data-testid='strong' className='emphasis-strong'>
+        <>
+          <span data-testid='strong' className='emphasis-strong intent-accent'>
             Strong
           </span>
-          <Checkbox label='Rock' {...state} />
-        </div>
+          <div className='intent-brand-secondary'>
+            <Checkbox label='Rock' {...state} />
+          </div>
+        </>
       )
       const strong = getComputedStyle(screen.getByTestId('strong'))
       const box = screen.getByRole('checkbox', { name: 'Rock' })
@@ -108,8 +110,16 @@ describe('Checkbox colour', () => {
       expect(getComputedStyle(box.querySelector('svg')!).color).toBe(
         strong.color
       )
+      expect(getComputedStyle(box).boxShadow).not.toContain('inset')
     }
   )
+
+  it('keeps an empty box sunken', () => {
+    render(<Checkbox label='Rock' />)
+    expect(
+      getComputedStyle(screen.getByRole('checkbox', { name: 'Rock' })).boxShadow
+    ).toContain('inset')
+  })
 })
 
 describe('Checkbox trailing', () => {
