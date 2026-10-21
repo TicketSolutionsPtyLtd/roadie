@@ -81,6 +81,6 @@ describe('the tables entry stays engine-free', () => {
     expect(files.filter((f) => /[/\\]definition\.tsx?$/.test(f))).toEqual([])
     expect(
       files.filter((f) => /[/\\][A-Z]\w+[/\\]table\.ts$/.test(f))
-    ).toHaveLength(9)
+    ).toHaveLength(10)
   })
 })
