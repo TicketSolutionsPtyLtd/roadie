@@ -145,7 +145,7 @@ export const stackedArea: ChartDefinition<StackedAreaProps> = {
     return {
       title: x === undefined ? '' : xTitle(props, x),
       rows: [
-        { label: TOTAL, value: formatValue(total, format) },
+        { label: TOTAL, value: formatValue(total, format), shape: 'none' },
         ...here
           .filter((l) => l.y !== 0)
           .reverse()

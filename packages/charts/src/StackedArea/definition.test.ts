@@ -58,6 +58,7 @@ describe('stackedArea', () => {
       ['North', '20'],
       ['Main', '50']
     ])
+    expect(rows[0]!.shape).toBe('none')
   })
 
   it('lists the legend from the top of the stack down', () => {
