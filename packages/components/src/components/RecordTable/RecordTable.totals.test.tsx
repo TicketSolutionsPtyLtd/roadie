@@ -158,6 +158,30 @@ describe('RecordTable totals', () => {
     ).toHaveLength(1)
   })
 
+  it('points a range list asked to sum at its range results', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <RecordTable
+        caption='Shows'
+        fields={showFields}
+        columns={showColumns}
+        getRowId={(row) => row.id}
+        totals
+        loadRange={async ({ start, end }) => ({
+          rows: SHOWS.slice(start, end),
+          rowCount: SHOWS.length
+        })}
+      />
+    )
+    await waitFor(() =>
+      expect(
+        warn.mock.calls.filter(([message]) =>
+          /totals can't sum with loadRange/.test(String(message))
+        )
+      ).toHaveLength(1)
+    )
+  })
+
   it('counts the totals row among the rows', () => {
     render(<Table totals />)
     const table = screen.getByRole('table')

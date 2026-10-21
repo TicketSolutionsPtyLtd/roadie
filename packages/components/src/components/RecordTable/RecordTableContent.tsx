@@ -209,7 +209,6 @@ export function RecordTableContent({
   const style = tierStyle(layout) as CSSProperties
 
   const { rows, range, totals } = records
-  // Headings, then the totals under them.
   const headRows = totals ? 2 : 1
   const headTextClass = cn(headerTextClass, totals ? 'text-sm' : 'text-xs')
   const busy = records.loading && !records.error

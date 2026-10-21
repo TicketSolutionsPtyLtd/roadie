@@ -518,7 +518,8 @@ export function useRecordsState<Row extends object>({
   const countCapped =
     ranged && range.rowCount !== undefined && range.rowCount > MAX_RANGE_ROWS
   const summing = totalsOption === true || totalsOption === 'sum'
-  const sumsPage = summing && (server || ranged)
+  const sumsPage = summing && server && !ranged
+  const sumsRanges = summing && ranged
   useEffect(() => {
     if (!isDev()) return
     const warn = (message: string) => {
@@ -546,7 +547,11 @@ export function useRecordsState<Row extends object>({
       )
     if (sumsPage)
       warn(
-        "[Roadie] Records totals can't sum in server or range mode: the list holds only some records. Pass the server's totals as { values }."
+        "[Roadie] Records totals can't sum in server mode: the list holds only a page. Pass the server's totals as { values }."
+      )
+    if (sumsRanges)
+      warn(
+        "[Roadie] Records totals can't sum with loadRange: the list holds only the ranges loaded. Resolve each range with the server's totals beside rowCount."
       )
   }, [
     skipped,
@@ -555,7 +560,8 @@ export function useRecordsState<Row extends object>({
     rangePaged,
     countCapped,
     rangeCapped,
-    sumsPage
+    sumsPage,
+    sumsRanges
   ])
 
   const resultCount = ranged
