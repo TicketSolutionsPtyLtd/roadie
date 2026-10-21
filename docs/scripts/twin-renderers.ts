@@ -6,6 +6,7 @@ import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-core/theme'
 import { DATE_TIME_TABLES } from '../src/components/date-and-time/example.ts'
 import {
   querySuggestionsExample,
+  viewElasticsearchExample,
   viewMeilisearchExample,
   viewSearchParamsExample
 } from '../src/components/records/example.ts'
@@ -169,6 +170,7 @@ export const DATA_RENDERERS: Record<string, Renderer> = {
     SPOT_ILLUSTRATION_NAMES.map((name) => `- \`${name}\``).join('\n'),
   PeriodComparisons: () => twinTableMarkdown(periodComparisonsTable()),
   QuerySuggestions: () => fence('ts', querySuggestionsExample()),
+  ViewElasticsearch: () => fence('ts', viewElasticsearchExample()),
   ViewMeilisearch: () => fence('ts', viewMeilisearchExample()),
   ViewSearchParams: () => fence('text', viewSearchParamsExample())
 }

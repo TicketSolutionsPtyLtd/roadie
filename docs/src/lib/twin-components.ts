@@ -69,6 +69,7 @@ export const TWIN_COMPONENTS = {
   TypeSpecimen: 'drawing',
   TypeScale: 'rendered',
   UpcomingShows: 'drawing',
+  ViewElasticsearch: 'rendered',
   ViewMeilisearch: 'rendered',
   ViewSearchParams: 'rendered',
   ZoneTable: 'rendered'
