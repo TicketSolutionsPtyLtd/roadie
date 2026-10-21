@@ -2,7 +2,7 @@ import { type ChartMark, areaY, defineChart, lineY } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 
-import { formatValue } from '@oztix/roadie-core/dataviz'
+import { formatValue, formatX } from '@oztix/roadie-core/dataviz'
 
 import type { ChartLegendItem } from '../ChartLegend'
 import {
@@ -93,7 +93,7 @@ function styles(
   )
 }
 
-// The cone is one range, so it belongs to the story series, or the first.
+// The cone and today are one each, so they belong to the story series, or the first.
 const coneOwner = (series: readonly SeriesStyle[]) =>
   series.find((s) => s.emphasis === 'highlight') ?? series[0]
 
@@ -317,7 +317,8 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
   const xDomain = lineXDomain(points)
   const yDomain = frame.yDomain ?? lineYExtent(props)
   const series = styles(props, points, paint)
-  const today = todayPoint(props, points, series[0])
+  const lead = coneOwner(series)
+  const today = todayPoint(props, points, lead)
   const todayEnds = today?.x === xDomain[1] ? today : null
   const ends = endLabelsFit(series.length, frame)
     ? endLabels(props, points, series, frame, yDomain, todayEnds)
@@ -351,12 +352,12 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
             paint
           )
         ]),
-    ...(today && series[0]
+    ...(today && lead
       ? todayMarks(
           today,
           paint,
           frame,
-          series[0].color,
+          lead.color,
           todayInEnds
             ? null
             : {
@@ -400,7 +401,9 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
             }),
             size: 0,
             format: (value: number) =>
-              isTime ? formatTimeTick(value, span) : format(value)
+              isTime
+                ? formatTimeTick(value, span)
+                : formatX(value, props.xFormat, 'tick')
           },
           tickLabels: {
             fontSize: frame.fontSize,
@@ -452,7 +455,11 @@ export const lineChart: ChartDefinition<LineChartProps> = {
     )
     const isTime = isTimeField(props.data, props.x)
     const label = (x: number | string) =>
-      isTime && typeof x === 'number' ? formatTimeTick(x, 2 * DAY) : String(x)
+      typeof x !== 'number'
+        ? x
+        : isTime
+          ? formatTimeTick(x, 2 * DAY)
+          : formatX(x, props.xFormat)
     const names = [...new Set(points.map((p) => p.series))]
     if (names.length > 1 && props.series) {
       const lead = names
@@ -494,7 +501,8 @@ export const lineChart: ChartDefinition<LineChartProps> = {
     const when = spokenPoint(
       datum.x,
       isTime,
-      hasTimeOfDay(props.data[0]?.[props.x])
+      hasTimeOfDay(props.data[0]?.[props.x]),
+      props.xFormat
     )
     const value = describeValue(
       datum.y,
@@ -519,9 +527,11 @@ export const lineChart: ChartDefinition<LineChartProps> = {
     const styled = styles(props, toLinePoints(props), paint)
     const title = !first
       ? ''
-      : isTime && typeof first.x === 'number'
-        ? formatTimeTitle(first.x, hasTimeOfDay(props.data[0]?.[props.x]))
-        : String(first.x)
+      : typeof first.x !== 'number'
+        ? first.x
+        : isTime
+          ? formatTimeTitle(first.x, hasTimeOfDay(props.data[0]?.[props.x]))
+          : formatX(first.x, props.xFormat)
     return {
       title,
       rows: rows.map((d) => ({

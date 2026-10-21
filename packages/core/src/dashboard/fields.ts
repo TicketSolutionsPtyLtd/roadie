@@ -11,4 +11,5 @@ export const VALUE_FORMATS = [
 ] as const
 
 export const valueFormat = z.enum(VALUE_FORMATS)
+export const xFormat = z.enum([...VALUE_FORMATS, 'daysOut'])
 export const goodWhen = z.enum(['up', 'down', 'neither'])

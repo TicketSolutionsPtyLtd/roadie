@@ -1,4 +1,9 @@
-import { type ValueFormat, formatValue } from '@oztix/roadie-core/dataviz'
+import {
+  type ValueFormat,
+  type XFormat,
+  formatValue,
+  formatX
+} from '@oztix/roadie-core/dataviz'
 
 import { spokenX } from './time'
 import { fullFormat } from './values'
@@ -15,9 +20,11 @@ export function describeValue(
 export function spokenPoint(
   x: number | string,
   isTime: boolean,
-  hasTime: boolean
+  hasTime: boolean,
+  xFormat?: XFormat
 ) {
-  return isTime && typeof x === 'number' ? spokenX(x, hasTime) : String(x)
+  if (typeof x !== 'number') return x
+  return isTime ? spokenX(x, hasTime) : formatX(x, xFormat)
 }
 
 export function trendSentence({

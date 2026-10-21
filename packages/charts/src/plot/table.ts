@@ -1,5 +1,9 @@
 import type { PlotCell, PlotX, TableColumn } from '@oztix/roadie-core/dashboard'
-import type { ValueFormat } from '@oztix/roadie-core/dataviz'
+import {
+  type ValueFormat,
+  type XFormat,
+  formatX
+} from '@oztix/roadie-core/dataviz'
 
 import { formatTimeCell, hasTimeOfDay, parseX } from './time'
 import { fullFormat } from './values'
@@ -33,9 +37,16 @@ export const valueColumn = (
   format?: ValueFormat
 ): TableColumn => ({ key, header, kind: 'number', format: fullFormat(format) })
 
-export function xCell(value: PlotCell | PlotX, isTime: boolean) {
+export function xCell(
+  value: PlotCell | PlotX,
+  isTime: boolean,
+  xFormat?: XFormat
+) {
   if (value === null) return ''
-  if (!isTime) return value
+  if (!isTime)
+    return xFormat && typeof value === 'number'
+      ? formatX(value, xFormat)
+      : value
   const ms = parseX(value)
   return ms === null ? String(value) : formatTimeCell(ms, hasTimeOfDay(value))
 }
