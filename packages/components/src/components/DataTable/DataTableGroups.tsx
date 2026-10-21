@@ -37,7 +37,7 @@ function useExpanded(defaultExpanded: DataTableExpanded = false) {
           : defaultExpanded.map((path) => groupKey(path))
       )
   )
-  const allOpen = defaultExpanded === true
+  const [allOpen] = useState(defaultExpanded === true)
   return {
     isOpen: (key: string) => allOpen !== toggled.has(key),
     toggle: (key: string) =>

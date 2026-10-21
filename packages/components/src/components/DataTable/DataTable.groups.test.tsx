@@ -78,6 +78,29 @@ describe('DataTable groupBy', () => {
     expect(bodyRows(container)).toHaveLength(8)
   })
 
+  it('keeps the groups a viewer opened or closed when defaultExpanded changes', async () => {
+    const user = userEvent.setup()
+    const table = (defaultExpanded: boolean) => (
+      <DataTable
+        columns={columns}
+        rows={rows}
+        groupBy={['pool']}
+        defaultExpanded={defaultExpanded}
+      />
+    )
+    const { rerender } = render(table(true))
+    await user.click(screen.getByRole('button', { name: 'General' }))
+    rerender(table(false))
+    expect(screen.getByRole('button', { name: 'General' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
+    expect(screen.getByRole('button', { name: 'Premium' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
+  })
+
   it('opens the groups at the given paths, nesting a level per key', () => {
     const nested = [
       { pool: 'General', type: 'GA', gate: 'North', scans: 250 },
