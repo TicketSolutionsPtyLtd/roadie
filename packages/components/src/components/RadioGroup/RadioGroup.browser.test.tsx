@@ -149,3 +149,28 @@ describe('RadioGroup direction', () => {
     expect(balcony.left).toBeGreaterThanOrEqual(floor.right)
   })
 })
+
+describe('RadioGroup spacing', () => {
+  it('tightens the gap between stacked items as size drops', () => {
+    const gap = (size: 'sm' | 'md' | 'lg') => {
+      render(
+        <RadioGroup size={size}>
+          <RadioGroup.Item value='rock' label='Rock' />
+          <RadioGroup.Item value='jazz' label='Jazz' />
+        </RadioGroup>
+      )
+      const row = (name: string) =>
+        screen
+          .getByRole('radio', { name })
+          .closest('[data-slot="radio-group-item"]')!
+          .getBoundingClientRect()
+      const between = row('Jazz').top - row('Rock').bottom
+      cleanup()
+      return between
+    }
+    const [sm, md, lg] = [gap('sm'), gap('md'), gap('lg')]
+    expect(sm).toBeLessThanOrEqual(2)
+    expect(md).toBeGreaterThan(sm)
+    expect(lg).toBeGreaterThan(md)
+  })
+})

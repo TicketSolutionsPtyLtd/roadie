@@ -53,7 +53,7 @@ export function CheckboxGroupRoot({
     >
       <CheckboxGroupPrimitive
         data-slot='checkbox-group'
-        className={cn(checkboxGroupVariants({ direction, className }))}
+        className={cn(checkboxGroupVariants({ direction, size, className }))}
         disabled={disabled ?? fieldContext.disabled}
         aria-labelledby={
           labelId ?? ((inField && fieldContext.labelId) || undefined)

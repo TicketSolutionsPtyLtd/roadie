@@ -42,3 +42,28 @@ describe('CheckboxGroup direction', () => {
     expect(jazz.left).toBeGreaterThanOrEqual(rock.right)
   })
 })
+
+describe('CheckboxGroup spacing', () => {
+  it('tightens the gap between stacked items as size drops', () => {
+    const gap = (size: 'sm' | 'md' | 'lg') => {
+      render(
+        <CheckboxGroup size={size}>
+          <CheckboxGroup.Item value='rock' label='Rock' />
+          <CheckboxGroup.Item value='jazz' label='Jazz' />
+        </CheckboxGroup>
+      )
+      const row = (name: string) =>
+        screen
+          .getByRole('checkbox', { name })
+          .closest('[data-slot="checkbox"]')!
+          .getBoundingClientRect()
+      const between = row('Jazz').top - row('Rock').bottom
+      cleanup()
+      return between
+    }
+    const [sm, md, lg] = [gap('sm'), gap('md'), gap('lg')]
+    expect(sm).toBeLessThanOrEqual(2)
+    expect(md).toBeGreaterThan(sm)
+    expect(lg).toBeGreaterThan(md)
+  })
+})
