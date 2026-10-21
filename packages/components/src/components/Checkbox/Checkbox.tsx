@@ -18,7 +18,9 @@ import {
 
 export type CheckboxProps = CheckboxPrimitive.Root.Props &
   RefAttributes<HTMLElement> & {
+    /** Names the checkbox. The whole row becomes the click target. */
     label?: ReactNode
+    /** A line of help under the label, read as the checkbox's description. */
     description?: ReactNode
     /** Ignored inside a `CheckboxGroup`, which sets it for every item. */
     emphasis?: 'subtler' | 'normal'
@@ -26,6 +28,7 @@ export type CheckboxProps = CheckboxPrimitive.Root.Props &
     size?: 'sm' | 'md' | 'lg'
     /** End of the row: a count, `Badge`, or value. Left out of the accessible name. */
     trailing?: ReactNode
+    /** Marks the box invalid. A lone checkbox in a `Field` follows the Field's `invalid`. */
     invalid?: boolean
   }
 

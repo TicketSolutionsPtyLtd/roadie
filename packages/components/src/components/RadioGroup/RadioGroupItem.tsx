@@ -16,7 +16,9 @@ import {
 
 export type RadioGroupItemProps = Radio.Root.Props &
   RefAttributes<HTMLButtonElement> & {
+    /** Names the radio. The whole row becomes the click target. */
     label?: ReactNode
+    /** A line of help under the label, read as the radio's description. */
     description?: ReactNode
     /** End of the row: a count, `Badge`, or value. Left out of the accessible name. */
     trailing?: ReactNode
