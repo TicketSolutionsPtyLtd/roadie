@@ -187,6 +187,44 @@ describe('RecordTable totals', () => {
     expect(totals().show).toBe('Totals for 120 shows')
   })
 
+  it("holds a range's totals while the next search loads, then takes its own", async () => {
+    const user = userEvent.setup()
+    let release = () => {}
+    let searching = 0
+    const searched = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    render(
+      <RecordTable
+        caption='Shows'
+        fields={showFields}
+        columns={showColumns}
+        getRowId={(row) => row.id}
+        recordName={SHOW}
+        loadRange={async ({ query, start, end }) => {
+          if (!query.search)
+            return {
+              rows: SHOWS.slice(start, end),
+              rowCount: SHOWS.length,
+              totals: { values: { sold: 4321 } }
+            }
+          searching += 1
+          await searched
+          return { rows: SHOWS.slice(0, 5), rowCount: 5 }
+        }}
+      />
+    )
+    await waitFor(() => expect(totals().sold).toBe('4,321'))
+    await user.type(
+      screen.getByRole('combobox', { name: 'Search and filter' }),
+      'Perth'
+    )
+    await waitFor(() => expect(searching).toBeGreaterThan(0))
+    expect(totals().sold).toBe('4,321')
+    release()
+    await waitFor(() => expect(totalsRow()).toBeNull())
+  })
+
   it('counts the totals row among ranged rows', async () => {
     render(
       <RecordTable
