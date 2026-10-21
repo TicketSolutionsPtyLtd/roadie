@@ -208,6 +208,9 @@ describe('DataCard.MoreButton', () => {
     ).toBeInTheDocument()
     expect(button).toHaveAttribute('aria-expanded', 'true')
   })
+})
+
+describe('DataCard controls', () => {
   it.each(['ready', 'stale', 'loading', 'empty', 'error'] as const)(
     'shows controls when %s, so a switch stays put while it loads',
     (state) => {
