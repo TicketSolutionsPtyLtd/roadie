@@ -5,6 +5,7 @@ import {
   recordViewToSearchParams,
   toRecordsRequest
 } from '@oztix/roadie-core/records'
+import { toElasticsearch } from '@oztix/roadie-core/records/elasticsearch'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 
 // The page shows these as its fields and view fences; example.test.ts keeps
@@ -148,6 +149,17 @@ export function viewMeilisearchExample() {
 }, { page: 0, pageSize: 50 })
 toMeilisearch(request, eventFields)`
   return callAndResult(call, params)
+}
+
+/** The example view's request as an Elasticsearch search body, worked out by `toElasticsearch`. */
+export function viewElasticsearchExample() {
+  const body = toElasticsearch(weekendRequest(), EVENT_FIELDS)
+  const call = `const request = toRecordsRequest(view.query, eventFields, {
+  now: new Date('${EXAMPLE_NOW}'), // ${EXAMPLE_NOW_LABEL}
+  timeZone: '${EXAMPLE_ZONE}'
+}, { page: 0, pageSize: 50 })
+toElasticsearch(request, eventFields)`
+  return callAndResult(call, body)
 }
 
 /** The example view on its first page, as `recordViewToSearchParams` writes it, one param a line. */

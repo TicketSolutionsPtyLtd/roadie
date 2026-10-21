@@ -14,6 +14,7 @@ export default defineConfig(({ watch }) => ({
     'dashboard-layout/index': './src/dashboard-layout/index.ts',
     'records/index': './src/records/index.ts',
     'records/meilisearch/index': './src/records/meilisearch/index.ts',
+    'records/elasticsearch/index': './src/records/elasticsearch/index.ts',
     'records/json-schema/index': './src/records/json-schema/index.ts'
   },
   format: ['esm'],

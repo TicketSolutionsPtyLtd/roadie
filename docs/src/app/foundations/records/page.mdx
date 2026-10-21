@@ -1,21 +1,22 @@
 export const metadata = {
   title: 'Records model',
   description:
-    'Fields describe a list once, and a view saves its search, filters, sort, and layout as JSON that means the same in the browser, on a server, in Meilisearch, and in a URL.',
+    'Fields describe a list once, and a view saves its search, filters, sort, and layout as JSON that means the same in the browser, on a server, in Meilisearch or Elasticsearch, and in a URL.',
   status: 'alpha',
   category: 'Building apps'
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { QuerySuggestions } from '@/components/records/QuerySuggestions'
+import { ViewElasticsearch } from '@/components/records/ViewElasticsearch'
 import { ViewMeilisearch } from '@/components/records/ViewMeilisearch'
 import { ViewSearchParams } from '@/components/records/ViewSearchParams'
 
 Organisers work through lists: events, sessions, orders, attendees, and
 customers. `@oztix/roadie-core/records` describes those lists once, as plain
 TypeScript with no components, so a search typed on a list screen means the
-same thing in the browser, on your server, in Meilisearch, and in a shared
-link. [RecordTable](/components/record-table) and
+same thing in the browser, on your server, in Meilisearch or Elasticsearch,
+and in a shared link. [RecordTable](/components/record-table) and
 [RecordGrid](/components/record-grid) build on it.
 
 ## Fields
@@ -275,6 +276,47 @@ record. Text `contains` needs Meilisearch's `containsFilter` feature, and the
 index's `searchableAttributes` should list the fields marked `searchable`.
 Scope facet value search to the user's permissions on the server.
 
+### Elasticsearch
+
+`toElasticsearch(request, fields)` from
+`@oztix/roadie-core/records/elasticsearch` returns the request's meaning as
+an Elasticsearch search body: `query`, `sort`, `from`, and `size`. Each chip
+is one clause in `bool.filter`, and search is a `simple_query_string` that
+needs every word. The same request runs through it here.
+
+<ViewElasticsearch />
+
+It needs Elasticsearch 7.10 or later, or OpenSearch, for case-insensitive
+terms. Map text, option, and location fields as `keyword`, or name a
+`keyword` sub-field in `paths`, such as `{ venue: 'venue.raw' }`, which
+filters and sort then read. Map instants as `date`, and store event and
+access dates under `localDateKey` as a `date` with no zone: a local
+date-time, such as `2026-10-03T19:30:00`, counts as its day. Search reads
+the fields marked `searchable`, or `searchFields` with any boosts, such as
+`['name^5', 'venue']`.
+
+Post the body to your search endpoint, which adds the person's permissions
+as a filter of its own. Add `highlight` and `track_total_hits` as the page
+needs. The response's `hits.total.value` is `rowCount`, and it's exact,
+for `rowCountExact`, when `hits.total.relation` is `eq`. Elasticsearch
+counts to 10,000 unless `track_total_hits` says otherwise. With no paging,
+the body has no `size`, so set one for an export.
+
+A filter list that shows a count beside each value counts that field
+against every other filter, so ticking one brand doesn't hide the rest. Pass
+the field as `except`, which leaves out its own chips, and add the
+aggregation:
+
+```ts
+const { query } = toElasticsearch(request, eventFields, { except: 'venue' })
+const body = {
+  query,
+  size: 0,
+  aggs: { venue: { terms: { field: 'venue', size: 50 } } }
+}
+// Each bucket's doc_count is that venue's count beside its checkbox.
+```
+
 ### Places on any backend
 
 A filter on a place stays a plain term, `location:is:au-vic`, in the URL and
@@ -299,19 +341,19 @@ const documents = venues.map((venue) => ({
 An index can store that list already, as a record's value, and the field
 takes it too. A filter then reads the same everywhere:
 
-| Backend       | Location is in Victoria                      |
-| ------------- | -------------------------------------------- |
-| Meilisearch   | `location = "au-vic"`, from `toMeilisearch`  |
-| Algolia       | `facetFilters: [["location:au-vic"]]`        |
-| Elasticsearch | `{ terms: { location: ['au-vic'] } }`        |
-| An API        | `?location=au-vic`, matched against the list |
+| Backend       | Location is in Victoria                                |
+| ------------- | ------------------------------------------------------ |
+| Meilisearch   | `location = "au-vic"`, from `toMeilisearch`            |
+| Algolia       | `facetFilters: [["location:au-vic"]]`                  |
+| Elasticsearch | `{ term: { location: … } }`, from `toElasticsearch`    |
+| An API        | `?location=au-vic`, matched against the list           |
 
 A filter holding several places ORs them: Algolia's inner array, or
-Elasticsearch's `terms` list. Is not in negates the same term: Meilisearch's
-`location != "au-vic"`, Algolia's `"location:-au-vic"`, or the `terms` in a
+Elasticsearch's `should`. Is not in negates the same term: Meilisearch's
+`location != "au-vic"`, Algolia's `"location:-au-vic"`, or the term in a
 `must_not`. Each keeps records with no place, as Roadie does. Algolia needs
 `location` in `attributesForFaceting`, and Elasticsearch needs it mapped as a
-`keyword`, whose terms match case, so index the ids the reader returns. Listing every place inside the
+`keyword`. Listing every place inside the
 one picked would be thousands of suburbs for a state, too many for a query,
 so the places travel with the record instead.
 
