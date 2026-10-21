@@ -66,7 +66,7 @@ export function timeTicks(
 const part = (ms: number, options: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat(LOCALE, { timeZone: 'UTC', ...options }).format(ms)
 
-function clock(ms: number) {
+export function clock(ms: number) {
   const date = new Date(ms)
   const hours = date.getUTCHours()
   const minutes = date.getUTCMinutes()

@@ -6,11 +6,11 @@ import type { BarChartProps } from './types'
 
 describe('BarChart props', () => {
   it('match the bar plot schema both ways', () => {
-    expectTypeOf<Omit<BarChartProps, 'className'>>().toExtend<
+    expectTypeOf<Omit<BarChartProps, 'className' | 'onRangeSelect'>>().toExtend<
       PlotProps<'bar'>
     >()
     expectTypeOf<PlotProps<'bar'>>().toExtend<
-      Omit<BarChartProps, 'className'>
+      Omit<BarChartProps, 'className' | 'onRangeSelect'>
     >()
   })
 })

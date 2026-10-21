@@ -199,6 +199,24 @@
   height: 100%;
 }
 
+/* brushX paints with presentation attributes, which can't read a token. */
+[data-slot='chart-plot-host'] [data-chart-brush] .selection {
+  fill: var(--chart-highlight);
+  fill-opacity: 0.16;
+  stroke: none;
+}
+
+[data-slot='chart-plot-host'] [data-chart-brush] .handle {
+  fill: var(--chart-highlight);
+  fill-opacity: 0.6;
+}
+
+/* d3 only empties a brush when a gesture ends, so an unset range would
+   otherwise show, and focus, its two handles. */
+[data-slot='chart-plot-host'][data-range='empty'] [data-chart-brush] .handle {
+  display: none;
+}
+
 [data-slot='chart-plot-host'] .ts-chart:focus-visible {
   border-radius: var(--radius-md);
 }
