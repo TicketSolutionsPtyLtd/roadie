@@ -130,17 +130,10 @@ describe('DataTable grouped rows', () => {
         .sort()
     toggle.click()
     await new Promise(requestAnimationFrame)
-    expect(transitions()).toEqual([
-      'grid-template-rows',
-      'grid-template-rows',
-      'grid-template-rows',
-      'padding-bottom',
-      'padding-bottom',
-      'padding-bottom',
-      'padding-top',
-      'padding-top',
-      'padding-top'
-    ])
+    // WebKit doesn't transition a table cell's padding, so it snaps there.
+    expect(
+      transitions().filter((property) => property === 'grid-template-rows')
+    ).toHaveLength(3)
     await expect.poll(height).toBeGreaterThan(30)
     await expect
       .poll(() => getComputedStyle(group.cells[0]!).borderBottomWidth)
@@ -176,9 +169,11 @@ describe('DataTable grouped rows', () => {
       )
     expect(clipOf('GA').overflowX).toBe('visible')
     expect(clipOf('GA').overflowY).toBe('clip')
-    if (CSS.supports('overflow-clip-margin', '0.25rem'))
+    // WebKit has no overflow-clip-margin, so it clips at the box.
+    if (CSS.supports('overflow-clip-margin', '0.25rem')) {
       expect(clipOf('GA').overflowClipMargin).not.toBe('0px')
-    expect(clipOf('Guest').overflowClipMargin).toBe('0px')
+      expect(clipOf('Guest').overflowClipMargin).toBe('0px')
+    }
   })
 
   it('covers and rings a group row with a pinned label, scrolled or not', async () => {
