@@ -2,7 +2,7 @@ import { type ChartMark, areaY, defineChart, lineY } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 
-import { formatValue, formatX } from '@oztix/roadie-core/dataviz'
+import { formatValue } from '@oztix/roadie-core/dataviz'
 
 import type { ChartLegendItem } from '../ChartLegend'
 import {
@@ -34,15 +34,7 @@ import {
   seriesStyles
 } from '../plot/series'
 import { fieldLabel } from '../plot/table'
-import {
-  eventTimeTicks,
-  formatTimeTick,
-  formatTimeTitle,
-  hasTimeOfDay,
-  isTimeField,
-  parseX,
-  timeTicks
-} from '../plot/time'
+import { formatTimeTick, hasTimeOfDay, isTimeField, parseX } from '../plot/time'
 import type {
   ChartDefinition,
   ChartPaint,
@@ -63,6 +55,7 @@ import {
   trendSentence,
   xLabel
 } from '../plot/words'
+import { xAxisScale, xTitle } from '../plot/xAxis'
 import {
   forecastStart,
   hasEnoughPoints,
@@ -391,36 +384,7 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
   return defineChart({
     marks,
     scales: {
-      x: {
-        scale: scaleLinear().domain(xDomain),
-        axis: {
-          line: false,
-          ticks: {
-            ...(isTime && {
-              values: timeTicks(xDomain[0], xDomain[1], {
-                hasTime: hasTimeOfDay(props.data[0]?.[props.x])
-              })
-            }),
-            ...(props.xFormat === 'eventTime' && {
-              values: eventTimeTicks(xDomain[0], xDomain[1])
-            }),
-            size: 0,
-            format: (value: number) =>
-              isTime
-                ? formatTimeTick(value, span)
-                : formatX(value, props.xFormat, 'tick')
-          },
-          tickLabels: {
-            fontSize: frame.fontSize,
-            anchor: ({ value }) =>
-              value === xDomain[0]
-                ? 'start'
-                : value === xDomain[1]
-                  ? 'end'
-                  : 'middle'
-          }
-        }
-      },
+      x: xAxisScale(props, xDomain, frame),
       y: {
         scale: scaleLinear().domain(yDomain),
         grid: { stroke: paint.grid, strokeOpacity: 1 },
@@ -523,20 +487,13 @@ export const lineChart: ChartDefinition<LineChartProps> = {
     return parts.join(', ')
   },
   tooltip(data, props, paint) {
-    const isTime = isTimeField(props.data, props.x)
     // The solid line and the forecast both hold the point where the forecast starts.
     const rows = data.filter(
       (d, i) => data.findIndex((other) => other.series === d.series) === i
     )
     const first = rows[0]
     const styled = styles(props, toLinePoints(props), paint)
-    const title = !first
-      ? ''
-      : typeof first.x !== 'number'
-        ? first.x
-        : isTime
-          ? formatTimeTitle(first.x, hasTimeOfDay(props.data[0]?.[props.x]))
-          : xLabel(first.x, props.xFormat)
+    const title = first ? xTitle(props, first.x) : ''
     return {
       title,
       rows: rows.map((d) => ({
