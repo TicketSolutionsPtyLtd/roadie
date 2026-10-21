@@ -18,6 +18,8 @@ export type CheckboxGroupRootProps = CheckboxGroupPrimitive.Props &
   RefAttributes<HTMLDivElement> & {
     direction?: CheckboxGroupDirection
     emphasis?: CheckboxEmphasis
+    /** Sets every item's size. @default 'md' */
+    size?: 'sm' | 'md' | 'lg'
     invalid?: boolean
     required?: boolean
   }
@@ -26,6 +28,7 @@ export function CheckboxGroupRoot({
   className,
   direction = 'vertical',
   emphasis = 'subtler',
+  size = 'md',
   invalid,
   required,
   disabled,
@@ -42,6 +45,7 @@ export function CheckboxGroupRoot({
       value={{
         emphasis,
         direction,
+        size,
         invalid: resolvedInvalid,
         required: resolvedRequired,
         setLabelId
@@ -49,7 +53,7 @@ export function CheckboxGroupRoot({
     >
       <CheckboxGroupPrimitive
         data-slot='checkbox-group'
-        className={cn(checkboxGroupVariants({ direction, className }))}
+        className={cn(checkboxGroupVariants({ direction, size, className }))}
         disabled={disabled ?? fieldContext.disabled}
         aria-labelledby={
           labelId ?? ((inField && fieldContext.labelId) || undefined)

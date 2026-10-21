@@ -3,7 +3,7 @@ import { cva } from 'class-variance-authority'
 import { intentVariants } from '../../variants'
 
 export const accordionVariants = cva(
-  'grid w-full [--content-inset:--spacing(4)]',
+  'grid w-full grid-cols-1 [--content-inset:--spacing(4)]',
   {
     variants: {
       intent: intentVariants,

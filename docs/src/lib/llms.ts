@@ -330,6 +330,31 @@ function guideline(
   ]
 }
 
+const isTrigger = (node: Node) =>
+  node.type === 'paragraph' &&
+  node.children.some(
+    (child) =>
+      child.type === 'mdxJsxTextElement' && child.name === 'Accordion.Trigger'
+  )
+
+// The site hides these behind a tab or a disclosure, so the twin heads them
+// one level below the heading above.
+function sectionHeading(node: Node, page: Page): Heading | undefined {
+  if (node.type !== 'mdxJsxFlowElement') return undefined
+  const title =
+    node.name === 'IndexTabs.Panel'
+      ? attribute(node, 'label')
+      : node.name === 'Accordion.Item'
+        ? toString(node.children.find(isTrigger) ?? [])
+        : undefined
+  if (!title) return undefined
+  return {
+    type: 'heading',
+    depth: Math.min(page.headingDepth + 1, 6) as Heading['depth'],
+    children: [text(title)]
+  }
+}
+
 type Page = Required<Pick<MarkdownPage, 'components'>> &
   MarkdownPage & { docsOnly: Set<string>; headingDepth: number }
 
@@ -371,9 +396,16 @@ function transform(node: Node, page: Page): Node[] {
   }
 
   if (!('children' in node)) return [node]
-  const children = (node.children as Node[]).flatMap((child) =>
-    transform(child, page)
-  )
+  const outerDepth = page.headingDepth
+  const section = sectionHeading(node, page)
+  if (section) page.headingDepth = section.depth
+  const children = (node.children as Node[])
+    .filter((child) => !(section && isTrigger(child)))
+    .flatMap((child) => transform(child, page))
+  if (section) {
+    page.headingDepth = outerDepth
+    return [section, ...children]
+  }
 
   if (node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') {
     const render =

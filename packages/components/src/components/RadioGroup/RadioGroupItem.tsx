@@ -8,22 +8,32 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { isEmptyNode } from '../../utils/isEmptyNode'
 import { RadioGroupContext } from './RadioGroupContext'
-import { radioGroupItemVariants } from './variants'
+import {
+  radioGroupItemSizes,
+  radioGroupItemTrailingClassName,
+  radioGroupItemVariants
+} from './variants'
 
 export type RadioGroupItemProps = Radio.Root.Props &
   RefAttributes<HTMLButtonElement> & {
+    /** Names the radio. The whole row becomes the click target. */
     label?: ReactNode
+    /** A line of help under the label, read as the radio's description. */
     description?: ReactNode
+    /** End of the row: a count, `Badge`, or value. Left out of the accessible name. */
+    trailing?: ReactNode
   }
 
 export function RadioGroupItem({
   className,
   label,
   description,
+  trailing,
   children,
   ...props
 }: RadioGroupItemProps) {
-  const { emphasis, direction } = use(RadioGroupContext)
+  const { emphasis, direction, size } = use(RadioGroupContext)
+  const sizes = radioGroupItemSizes[size]
   const generatedId = useId()
   const hasLabel = !isEmptyNode(label)
   const hasDescription = !isEmptyNode(description)
@@ -35,7 +45,8 @@ export function RadioGroupItem({
   const radio = (
     <Radio.Root
       className={cn(
-        'flex size-6 shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] duration-moderate data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)]',
+        sizes.circle,
+        'flex shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] duration-moderate data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)]',
         emphasis !== 'normal' &&
           'focus-visible:outline-[length:var(--focus-ring-width)]'
       )}
@@ -43,19 +54,21 @@ export function RadioGroupItem({
       aria-describedby={descriptionId}
       {...props}
     >
-      <Radio.Indicator className='size-2.5 rounded-full bg-[var(--color-accent-9)]' />
+      <Radio.Indicator
+        className={cn(sizes.dot, 'rounded-full bg-[var(--color-accent-9)]')}
+      />
     </Radio.Root>
   )
 
   const text = (hasLabel || hasDescription) && (
-    <span className='grid gap-0.5'>
+    <span className='grid min-w-0 gap-0.5 wrap-anywhere'>
       {hasLabel && (
         <span
           id={labelId}
           className={
             emphasis === 'normal'
               ? 'text-base font-medium text-normal'
-              : 'text-sm text-normal'
+              : cn(sizes.label, 'text-normal')
           }
         >
           {label}
@@ -69,11 +82,20 @@ export function RadioGroupItem({
     </span>
   )
 
+  const trailingSlot = !isEmptyNode(trailing) && (
+    <span
+      data-slot='radio-group-item-trailing'
+      className={radioGroupItemTrailingClassName}
+    >
+      {trailing}
+    </span>
+  )
+
   return (
     <label
       data-slot='radio-group-item'
       className={cn(
-        radioGroupItemVariants({ emphasis, className }),
+        radioGroupItemVariants({ emphasis, size, className }),
         direction === 'horizontal' && emphasis === 'normal' && 'flex-1'
       )}
     >
@@ -83,6 +105,7 @@ export function RadioGroupItem({
             {children}
             {text}
           </span>
+          {trailingSlot}
           {radio}
         </>
       ) : (
@@ -90,6 +113,7 @@ export function RadioGroupItem({
           {radio}
           {children}
           {text}
+          {trailingSlot}
         </>
       )}
     </label>

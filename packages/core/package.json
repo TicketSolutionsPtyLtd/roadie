@@ -65,6 +65,10 @@
       "types": "./dist/records/meilisearch/index.d.ts",
       "import": "./dist/records/meilisearch/index.js"
     },
+    "./records/elasticsearch": {
+      "types": "./dist/records/elasticsearch/index.d.ts",
+      "import": "./dist/records/elasticsearch/index.js"
+    },
     "./records/json-schema": {
       "types": "./dist/records/json-schema/index.d.ts",
       "import": "./dist/records/json-schema/index.js"
@@ -153,6 +157,11 @@
       "name": "records/json-schema",
       "path": "dist/records/json-schema/index.js",
       "limit": "24.9 KB"
+    },
+    {
+      "name": "records/elasticsearch",
+      "path": "dist/records/elasticsearch/index.js",
+      "limit": "1.45 KB"
     },
     {
       "name": "records/meilisearch",

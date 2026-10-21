@@ -161,6 +161,61 @@ describe('DataCard copy never wraps', () => {
     ).toBeLessThan(1)
   })
 
+  it('puts controls in a full-width row between the headline and the body', () => {
+    const { container } = render(
+      <div style={{ width: 343 }}>
+        <DataCard
+          label='Sales'
+          value={1842}
+          context='Since on sale'
+          actions={<button type='button'>Chart</button>}
+          controls={<button type='button'>Cumulative</button>}
+        >
+          <div style={{ height: 40 }} />
+        </DataCard>
+      </div>
+    )
+    const box = (slot: string) =>
+      container
+        .querySelector<HTMLElement>(`[data-slot=${slot}]`)!
+        .getBoundingClientRect()
+    const controls = box('data-card-controls')
+    expect(controls.top).toBeGreaterThanOrEqual(box('data-card-context').bottom)
+    expect(controls.bottom).toBeLessThanOrEqual(box('data-card-body').top)
+    expect(
+      Math.abs(controls.width - box('data-card-context').width)
+    ).toBeLessThan(1)
+  })
+
+  it('wraps controls on a narrow card instead of overflowing it', () => {
+    const { container } = render(
+      <div style={{ width: 200 }}>
+        <DataCard
+          label='Sales'
+          value={1842}
+          controls={
+            <>
+              <button type='button' style={{ width: 120 }}>
+                Cumulative
+              </button>
+              <button type='button' style={{ width: 120 }}>
+                Incremental
+              </button>
+            </>
+          }
+        />
+      </div>
+    )
+    const row = container.querySelector<HTMLElement>(
+      '[data-slot=data-card-controls]'
+    )!
+    const [first, second] = row.querySelectorAll('button')
+    expect(second!.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      first!.getBoundingClientRect().bottom
+    )
+    expect(row.scrollWidth).toBeLessThanOrEqual(row.clientWidth)
+  })
+
   it('matches a ready card height while loading', () => {
     const ready = render(
       <div style={{ width: 280 }}>
