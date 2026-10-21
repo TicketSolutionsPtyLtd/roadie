@@ -324,6 +324,41 @@ describe('pageToMarkdown', () => {
     )
   })
 
+  it('heads each index tab with its label and each accordion item with its trigger', () => {
+    const md = page(
+      [
+        '## Browser and server',
+        '<IndexTabs>',
+        "<IndexTabs.Panel value='meilisearch' label='Meilisearch'>",
+        'Meilisearch body.',
+        '<IndexDetails>',
+        '  <Accordion.Item>',
+        '    <Accordion.Trigger>Pages and counts</Accordion.Trigger>',
+        '    <Accordion.Content>',
+        '',
+        'Pages body.',
+        '',
+        '    </Accordion.Content>',
+        '  </Accordion.Item>',
+        '</IndexDetails>',
+        '</IndexTabs.Panel>',
+        '</IndexTabs>',
+        '### Places'
+      ].join('\n\n')
+    )
+    expect(md).toBe(
+      [
+        '# Badge',
+        '## Browser and server',
+        '### Meilisearch',
+        'Meilisearch body.',
+        '#### Pages and counts',
+        'Pages body.',
+        '### Places\n'
+      ].join('\n\n')
+    )
+  })
+
   it('writes inline <code> elements as inline code', () => {
     const md = page(
       '<Guideline.Do>\n  Use <code>subtler</code> in toolbars.\n</Guideline.Do>'
