@@ -109,3 +109,37 @@
 [data-slot='data-table-indent'] {
   padding-inline-start: calc(var(--data-table-depth, 0) * var(--spacing) * 4);
 }
+
+/* A closed group's rows stay in the table, collapsed, so groups open and
+   close like an Accordion: each cell's content shrinks from 1fr to 0fr while
+   its padding and rule go with it. */
+[data-slot='data-table'] tbody[data-grouped] > tr > td {
+  transition-property: padding-block, border-bottom-width;
+  transition-duration: var(--duration-moderate);
+  transition-timing-function: var(--ease-enter);
+}
+
+[data-slot='data-table-collapse'] {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--duration-moderate) var(--ease-enter);
+
+  & > * {
+    min-height: 0;
+    overflow: clip;
+  }
+}
+
+[data-slot='data-table'] tr[data-collapsed] > td {
+  padding-block: 0;
+  border-bottom-width: 0;
+}
+
+[data-slot='data-table'] tr[data-collapsed] [data-slot='data-table-collapse'] {
+  grid-template-rows: 0fr;
+}
+
+/* The last row on show drops its rule, as a table's last row does. */
+[data-slot='data-table'] tr[data-last] > td {
+  border-bottom-width: 0;
+}

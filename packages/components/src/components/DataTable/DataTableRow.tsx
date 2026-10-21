@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ComponentProps, ReactNode } from 'react'
 
 import type { TableColumn } from '@oztix/roadie-core/dashboard'
 import { cn } from '@oztix/roadie-core/utils'
@@ -21,14 +21,16 @@ export function DataTableRow({
   row: { row, href },
   titleKey,
   plain,
-  depth
+  depth,
+  rowProps
 }: {
   columns: readonly TableColumn[]
   row: KeyedRow
   titleKey?: string
   plain: boolean
-  /** A grouped row's level, which indents its first cell. */
+  /** A grouped row's level, which indents its first cell and lets it collapse. */
   depth?: number
+  rowProps?: ComponentProps<'tr'>
 }) {
   // An empty title shows a muted placeholder, with nothing to link.
   const linked =
@@ -38,6 +40,7 @@ export function DataTableRow({
     cellOf(row, titleKey) !== ''
   return (
     <Table.Row
+      {...rowProps}
       data-linked={linked || undefined}
       className={cn(linked && 'is-interactive-within')}
     >
@@ -55,10 +58,16 @@ export function DataTableRow({
         )
         return (
           <Table.Cell key={column.key} {...cellAttributes(column)}>
-            {depth !== undefined && index === 0 ? (
-              <DataTableIndent depth={depth}>{content}</DataTableIndent>
-            ) : (
+            {depth === undefined ? (
               content
+            ) : (
+              <DataTableCollapse>
+                {index === 0 ? (
+                  <DataTableIndent depth={depth}>{content}</DataTableIndent>
+                ) : (
+                  content
+                )}
+              </DataTableCollapse>
             )}
           </Table.Cell>
         )
@@ -84,5 +93,14 @@ export function DataTableIndent({
     >
       {children}
     </span>
+  )
+}
+
+/** Shrinks a grouped cell's content to nothing while its row is collapsed. */
+export function DataTableCollapse({ children }: { children: ReactNode }) {
+  return (
+    <div data-slot='data-table-collapse'>
+      <div>{children}</div>
+    </div>
   )
 }

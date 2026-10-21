@@ -8,12 +8,17 @@ import type { TableColumn } from '@oztix/roadie-core/dashboard'
 
 import { Table } from '../Table'
 import { DataTableCellContent } from './DataTableCell'
-import { DataTableIndent, DataTableRow, cellAttributes } from './DataTableRow'
+import {
+  DataTableCollapse,
+  DataTableIndent,
+  DataTableRow,
+  cellAttributes
+} from './DataTableRow'
 import {
   type DataTableExpanded,
   buildGroups,
-  groupKey,
-  visibleNodes
+  flattenNodes,
+  groupKey
 } from './groups'
 import { type DataTableSort, type KeyedRow, cellOf } from './sort'
 
@@ -59,13 +64,22 @@ export function DataTableGroups({
   plain
 }: DataTableGroupsProps) {
   const { isOpen, toggle } = useExpanded(defaultExpanded)
-  const nodes = visibleNodes(
+  const entries = flattenNodes(
     buildGroups(rows, columns, groupColumns, sort),
     isOpen
   )
+  const last = entries.findLastIndex(({ collapsed }) => !collapsed)
+  // Closed groups keep their rows, collapsed, so they open and close like an
+  // Accordion. Collapsed rows are hidden from screen readers and the keyboard.
+  const rowProps = (collapsed: boolean, index: number) => ({
+    'data-collapsed': collapsed || undefined,
+    'data-last': index === last || undefined,
+    'aria-hidden': collapsed || undefined,
+    inert: collapsed || undefined
+  })
   return (
-    <Table.Body>
-      {nodes.map((node) => {
+    <Table.Body data-grouped=''>
+      {entries.map(({ node, collapsed }, entryIndex) => {
         if (node.kind === 'row')
           return (
             <DataTableRow
@@ -75,48 +89,52 @@ export function DataTableGroups({
               titleKey={titleKey}
               plain={plain}
               depth={node.depth}
+              rowProps={rowProps(collapsed, entryIndex)}
             />
           )
         const open = isOpen(node.key)
         return (
           <Table.Row
             key={node.key}
+            {...rowProps(collapsed, entryIndex)}
             data-slot='data-table-group'
             data-group=''
             className='is-interactive-within font-semibold text-strong'
           >
             {columns.map((column, index) => (
               <Table.Cell key={column.key} {...cellAttributes(column)}>
-                {index === 0 ? (
-                  <DataTableIndent depth={node.depth}>
-                    <button
-                      type='button'
-                      aria-expanded={open}
-                      onClick={() => toggle(node.key)}
-                      data-interactive-target=''
-                      className='group inline-flex items-center gap-1 text-start'
-                    >
-                      <CaretRightIcon
-                        weight='bold'
-                        className='size-3 shrink-0 text-subtle transition-transform duration-moderate group-aria-expanded:rotate-90 rtl:-scale-x-100 rtl:group-aria-expanded:-rotate-90'
-                        aria-hidden
-                      />
+                <DataTableCollapse>
+                  {index === 0 ? (
+                    <DataTableIndent depth={node.depth}>
+                      <button
+                        type='button'
+                        aria-expanded={open}
+                        onClick={() => toggle(node.key)}
+                        data-interactive-target=''
+                        className='group inline-flex items-center gap-1 text-start'
+                      >
+                        <CaretRightIcon
+                          weight='bold'
+                          className='size-3 shrink-0 text-subtle transition-transform duration-moderate group-aria-expanded:rotate-90 rtl:-scale-x-100 rtl:group-aria-expanded:-rotate-90'
+                          aria-hidden
+                        />
+                        <DataTableCellContent
+                          column={node.column}
+                          value={node.value}
+                          plain={plain}
+                        />
+                      </button>
+                    </DataTableIndent>
+                  ) : (
+                    cellOf(node.values, column.key) !== undefined && (
                       <DataTableCellContent
-                        column={node.column}
-                        value={node.value}
+                        column={column}
+                        value={cellOf(node.values, column.key)}
                         plain={plain}
                       />
-                    </button>
-                  </DataTableIndent>
-                ) : (
-                  cellOf(node.values, column.key) !== undefined && (
-                    <DataTableCellContent
-                      column={column}
-                      value={cellOf(node.values, column.key)}
-                      plain={plain}
-                    />
-                  )
-                )}
+                    )
+                  )}
+                </DataTableCollapse>
               </Table.Cell>
             ))}
           </Table.Row>

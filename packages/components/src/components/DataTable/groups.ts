@@ -120,14 +120,18 @@ export function buildGroups(
   return sortGroups(groups, columns, column, sort)
 }
 
-/** The rows on show: each group, then its children while it's open. */
-export function visibleNodes(
+export type DataTableEntry = { node: DataTableNode; collapsed: boolean }
+
+/** Every row, each collapsed while any group above it is closed. */
+export function flattenNodes(
   nodes: readonly DataTableNode[],
-  isOpen: (key: string) => boolean
-): DataTableNode[] {
-  return nodes.flatMap((node) =>
-    node.kind === 'group' && isOpen(node.key)
-      ? [node, ...visibleNodes(node.children, isOpen)]
-      : [node]
-  )
+  isOpen: (key: string) => boolean,
+  collapsed = false
+): DataTableEntry[] {
+  return nodes.flatMap((node) => [
+    { node, collapsed },
+    ...(node.kind === 'group'
+      ? flattenNodes(node.children, isOpen, collapsed || !isOpen(node.key))
+      : [])
+  ])
 }

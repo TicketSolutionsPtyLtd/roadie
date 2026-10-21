@@ -21,11 +21,32 @@ const rows = [
 ]
 
 const bodyRows = (container: HTMLElement) =>
-  [...container.querySelectorAll('tbody > tr')].map((row) =>
+  [...container.querySelectorAll('tbody > tr:not([aria-hidden])')].map((row) =>
     [...row.querySelectorAll('td, th')].map((cell) => cell.textContent)
   )
 
 describe('DataTable groupBy', () => {
+  it("keeps a closed group's rows out of reach until it opens", async () => {
+    const user = userEvent.setup()
+    const { container } = render(
+      <DataTable
+        columns={columns}
+        rows={rows}
+        groupBy={['pool']}
+        getRowHref={(row) => `/types/${String(row.type)}`}
+      />
+    )
+    const hidden = container.querySelectorAll('tbody > tr[aria-hidden]')
+    expect(hidden).toHaveLength(5)
+    for (const row of hidden) expect(row).toHaveAttribute('inert')
+    expect(screen.queryAllByRole('link')).toHaveLength(0)
+    await user.click(screen.getByRole('button', { name: 'Comp' }))
+    expect(container.querySelectorAll('tbody > tr[aria-hidden]')).toHaveLength(
+      4
+    )
+    expect(screen.getByRole('link', { name: 'Guest list' })).toBeVisible()
+  })
+
   it('shows one collapsed row per group, summing its counts', () => {
     const { container } = render(
       <DataTable columns={columns} rows={rows} groupBy={['pool']} />
@@ -334,7 +355,12 @@ describe('DataTable groupBy', () => {
       <DataTable columns={columns} rows={rows} groupBy={['pool']} />
     )
     expect(html).toContain('aria-expanded="false"')
-    expect(html).toContain('General')
-    expect(html).not.toContain('Concession')
+    const container = document.createElement('div')
+    container.innerHTML = html
+    expect(bodyRows(container)).toEqual([
+      ['General', '700', ''],
+      ['Premium', '300', ''],
+      ['Comp', '50', '']
+    ])
   })
 })

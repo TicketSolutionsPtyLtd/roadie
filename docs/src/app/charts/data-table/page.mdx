@@ -161,7 +161,7 @@ When the server pages or filters the rows, or a figure is an average rather than
 
 ### Grouped rows
 
-Pass `groupBy` to group rows by one or more text or status columns, outermost first, such as scans by ticket pool and then ticket type. Each group gets a row that sums its number columns the way `totals` does, with a caret that opens it. The first column holds every level's label, indented, and the grouped columns are hidden.
+Pass `groupBy` to group rows by one or more text or status columns, outermost first, such as scans by ticket pool and then ticket type. Each group gets a row that sums its number columns the way `totals` does, with a caret that opens it, from anywhere on the row. Groups open and close like an Accordion. The first column holds every level's label, indented, and the grouped columns are hidden.
 
 Groups start closed. `defaultExpanded` opens every group, which a PDF or report needs, or only the groups you list, each as its path of values: `[['General'], ['General', 'GA']]`. A path holds the values in the rows, so a status column's key rather than its label, and `''` for an empty value. Sorting orders the groups by their sums, or by label, at every level.
 
@@ -266,7 +266,7 @@ Pass `getRowHref` so each row opens its own page, such as a show opening its eve
 - The totals row sits in the table's `<tfoot>`, with its label as a row header, so screen readers announce it as the table's summary.
 - Sortable headers are buttons, or links with `getSortHref`, named by the header text. The sorted column carries `aria-sort`, and the caret is hidden from screen readers.
 - Sparkline columns don't sort.
-- A group's caret is a button named by the group's label, with `aria-expanded` saying whether it's open. A closed group's rows leave the table, so screen readers count only the rows on show.
+- A group's caret is a button named by the group's label, with `aria-expanded` saying whether it's open. A closed group's rows stay in the table so they can animate shut, but they're hidden from screen readers and can't take focus.
 - A linked row has one tab stop, its title link, so screen readers hear the title as the link name. The row shows the link's focus ring and hover.
 
 <PropsDefinitions component='DataTable' />

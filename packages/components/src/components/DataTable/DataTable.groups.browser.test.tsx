@@ -109,4 +109,44 @@ describe('DataTable grouped rows', () => {
         .backgroundColor
     )
   })
+
+  it("grows a group's rows open and shrinks them shut, like an Accordion", async () => {
+    const { container } = render(
+      <DataTable columns={columns} rows={rows} groupBy={['pool']} />
+    )
+    const leaf = () =>
+      container.querySelector<HTMLElement>('tbody > tr:last-child')!
+    const height = () => leaf().getBoundingClientRect().height
+    expect(height()).toBe(0)
+    const toggle = screen.getByRole('button', { name: 'General' })
+    const group = toggle.closest('tr')!
+    expect(getComputedStyle(group.cells[0]!).borderBottomWidth).toBe('0px')
+
+    const transitions = () =>
+      leaf()
+        .getAnimations({ subtree: true })
+        .map((animation) => (animation as CSSTransition).transitionProperty)
+        .sort()
+    toggle.click()
+    await new Promise(requestAnimationFrame)
+    expect(transitions()).toEqual([
+      'grid-template-rows',
+      'grid-template-rows',
+      'grid-template-rows',
+      'padding-bottom',
+      'padding-bottom',
+      'padding-bottom',
+      'padding-top',
+      'padding-top',
+      'padding-top'
+    ])
+    await expect.poll(height).toBeGreaterThan(30)
+    await expect
+      .poll(() => getComputedStyle(group.cells[0]!).borderBottomWidth)
+      .toBe('1px')
+    expect(getComputedStyle(leaf().cells[0]!).borderBottomWidth).toBe('0px')
+
+    toggle.click()
+    await expect.poll(height).toBe(0)
+  })
 })
