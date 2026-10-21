@@ -551,7 +551,7 @@ export function useRecordsState<Row extends object>({
       )
     if (sumsRanges)
       warn(
-        "[Roadie] Records totals can't sum with loadRange: the list holds only the ranges loaded. Resolve each range with the server's totals beside rowCount."
+        "[Roadie] Records totals can't sum with loadRange: the list holds only the ranges loaded. Leave totals out, or pass only a label, and resolve each range with the server's totals beside rowCount."
       )
   }, [
     skipped,

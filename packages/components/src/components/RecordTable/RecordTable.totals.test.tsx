@@ -175,10 +175,10 @@ describe('RecordTable totals', () => {
     )
     await waitFor(() =>
       expect(
-        warn.mock.calls.filter(([message]) =>
-          /totals can't sum with loadRange/.test(String(message))
-        )
-      ).toHaveLength(1)
+        warn.mock.calls
+          .map(([message]) => String(message))
+          .filter((message) => message.includes('totals'))
+      ).toEqual([expect.stringMatching(/totals can't sum with loadRange/)])
     )
   })
 
