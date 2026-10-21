@@ -279,7 +279,7 @@ describe('range selection by keyboard', () => {
     await userEvent.keyboard('{End}')
     await expect
       .poll(() => end.getAttribute('aria-valuetext'))
-      .toBe('Thursday 8 October')
+      .toBe('Thursday, 8 October 2026')
   })
 
   it.each([
