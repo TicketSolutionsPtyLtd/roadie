@@ -57,6 +57,7 @@ type Rendered = ReturnType<typeof renderChart>
 
 /** Each x's position in the test frame, read from where the tooltip sits. */
 async function pointPositions(chart: Rendered, count: number) {
+  await expect.poll(() => chart.brush()).not.toBeNull()
   chart.svg().focus()
   await expect.poll(() => chart.tooltip()).not.toBeNull()
   const box = chart.host().getBoundingClientRect()

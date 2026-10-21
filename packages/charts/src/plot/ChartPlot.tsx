@@ -13,12 +13,10 @@ import {
 } from 'react'
 
 import type { ChartRenderContext, ChartSvgRenderer } from '@tanstack/charts'
-import {
-  type BrushRange,
-  type BrushXChange,
-  brushX
+import type {
+  BrushRange,
+  BrushXChange
 } from '@tanstack/charts/interaction/brush'
-import { controlledSignal } from '@tanstack/charts/interaction/signal'
 import { renderChartSvg } from '@tanstack/charts/svg'
 import { type ChartPoint, Chart as EngineChart } from '@tanstack/react-charts'
 
@@ -49,6 +47,7 @@ import { cssPaint } from './paint'
 import { type RangeAxis, spokenRange, wallRange } from './range'
 import { spokenX } from './time'
 import { type CategoryAxis, type ChartDefinition, isPlotDatum } from './types'
+import { useBrushX } from './useBrushX'
 import { usePlotBox } from './usePlotBox'
 
 export type ChartPlotProps<P> = {
@@ -142,6 +141,7 @@ export function ChartPlot<P>({
   )
   // New x values are new data, which drops the old selection.
   const axisKey = rangeAxis?.values.join() ?? ''
+  const brushX = useBrushX(rangeAxis !== null)
   const [held, setHeld] = useState<Selection | null>(null)
   const selection = held?.axisKey === axisKey ? held : null
   const [rangeSpoken, setRangeSpoken] = useState('')
@@ -167,7 +167,7 @@ export function ChartPlot<P>({
     [chart, props, frame]
   )
   const definition = useMemo(() => {
-    if (!drawing || !rangeAxis) return drawing?.definition
+    if (!drawing || !rangeAxis || !brushX) return drawing?.definition
     const first = rangeAxis.values[0]!
     const onChange = (
       range: BrushRange<RangeValue>,
@@ -181,10 +181,10 @@ export function ChartPlot<P>({
     }
     const brush = brushX<RangeValue>({
       values: rangeAxis.values,
-      range: controlledSignal(
-        selection?.range ?? { start: first, end: first },
+      range: {
+        value: selection?.range ?? { start: first, end: first },
         onChange
-      ),
+      },
       ariaLabel: 'Selected range',
       startAriaLabel: 'Range start',
       endAriaLabel: 'Range end',
@@ -199,7 +199,7 @@ export function ChartPlot<P>({
       ...drawing.definition,
       controls: [...(drawing.definition.controls ?? []), brush]
     }
-  }, [drawing, rangeAxis, selection, axisKey, onRangeSelect])
+  }, [drawing, rangeAxis, brushX, selection, axisKey, onRangeSelect])
   const fail = drawing ? undefined : card?.fail
   useLayoutEffect(() => fail?.(), [fail])
 
