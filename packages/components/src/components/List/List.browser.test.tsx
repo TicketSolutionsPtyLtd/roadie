@@ -164,3 +164,21 @@ describe('List touch target', () => {
     )
   })
 })
+
+describe('List width', () => {
+  it('keeps a row with a long unbroken title inside a narrow frame', () => {
+    const title = 'Kazoo_Hollow_Room_late_show_with_a_very_long_unbroken_name'
+    render(
+      <div data-testid='frame' style={{ width: 320 }}>
+        <List>
+          <List.Item href='#show' title={title} trailing='1,284' />
+        </List>
+      </div>
+    )
+    const frame = screen.getByTestId('frame').getBoundingClientRect()
+    const list = row(title).closest('ul')!.getBoundingClientRect()
+    const count = screen.getByText('1,284').getBoundingClientRect()
+    expect(list.right).toBeLessThanOrEqual(frame.right)
+    expect(count.right).toBeLessThanOrEqual(frame.right)
+  })
+})
