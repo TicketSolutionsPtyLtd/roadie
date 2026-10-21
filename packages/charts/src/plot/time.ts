@@ -1,5 +1,9 @@
 import type { PlotCell, PlotX } from '@oztix/roadie-core/dashboard'
-import { isWallTime, parseWallTime } from '@oztix/roadie-core/dataviz'
+import {
+  EVENT_DAY_START_HOUR,
+  isWallTime,
+  parseWallTime
+} from '@oztix/roadie-core/dataviz'
 import { formatDateTime, formatTimeOfDay } from '@oztix/roadie-core/datetime'
 
 import type { Row } from './types'
@@ -63,14 +67,15 @@ export function timeTicks(
       })
 }
 
-// formatX's eventTime days start at 6am, so day ticks land on that hour.
-const EVENT_DAY_START = 6
-
 /** Time ticks for an x of hours from midnight starting the event's first day. */
 export const eventTimeTicks = (min: number, max: number) =>
-  timeTicks((min - EVENT_DAY_START) * HOUR, (max - EVENT_DAY_START) * HOUR, {
-    hasTime: true
-  }).map((ms) => ms / HOUR + EVENT_DAY_START)
+  timeTicks(
+    (min - EVENT_DAY_START_HOUR) * HOUR,
+    (max - EVENT_DAY_START_HOUR) * HOUR,
+    {
+      hasTime: true
+    }
+  ).map((ms) => ms / HOUR + EVENT_DAY_START_HOUR)
 
 // Plot x is wall time held as UTC milliseconds, so it formats in UTC.
 const at = (ms: number) => ({ epochMilliseconds: ms })

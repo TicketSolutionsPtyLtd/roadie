@@ -30,7 +30,12 @@ export {
   formatValue
 } from './format'
 export { isWallTime, parseWallTime } from './wallTime'
-export { type XFormat, type XFormatStyle, formatX } from './xFormat'
+export {
+  EVENT_DAY_START_HOUR,
+  type XFormat,
+  type XFormatStyle,
+  formatX
+} from './xFormat'
 
 const SLOTS = palette.categorical.light.length
 

@@ -160,7 +160,7 @@ To compare events with different dates, line them up on days to the event. Send 
 
 ### Event clock
 
-To compare scans across events on different dates, line them up on the event's own clock. Send `x` as hours from midnight starting the first event day, and set `xFormat='eventTime'`. A day runs to 6am, so a 1am scan still counts as the night before. Ticks read "Day 2" where a day starts and "19:00" between, and the tooltip reads "Day 2, 7:15pm".
+To compare scans across events on different dates, line them up on the event's own clock. Send `x` as hours from midnight starting the first event day, and set `xFormat='eventTime'`. A day runs to 6am, so a 1am scan still counts as the night before, and anything before 6am on the first day reads as Day 0. Ticks read "Day 2" where a day starts and "19:00" between, and the tooltip reads "Day 2, 7:15pm".
 
 ```tsx-live width=140
 <Chart label='Scans by event clock' source='Oztix scans.' size='md'>
