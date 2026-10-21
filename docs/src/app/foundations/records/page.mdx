@@ -293,7 +293,9 @@ filters and sort then read. Map instants as `date`, and store event and
 access dates under `localDateKey` as a `date` with no zone: a local
 date-time, such as `2026-10-03T19:30:00`, counts as its day. Search reads
 the fields marked `searchable`, or `searchFields` with any boosts, such as
-`['name^5', 'venue']`.
+`['name^5', 'venue']`. It matches analysed words, so map a searchable field
+as `text` with its `keyword` sub-field in `paths`: a plain `keyword` only
+matches the whole value.
 
 Post the body to your search endpoint, which adds the person's permissions
 as a filter of its own. Add `highlight` and `track_total_hits` as the page

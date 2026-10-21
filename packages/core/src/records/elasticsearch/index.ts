@@ -7,7 +7,9 @@
  *
  * Index shape the queries assume:
  * - Text, option, and location fields as `keyword`, or with a `keyword`
- *   sub-field named in `paths`, since filters match whole values.
+ *   sub-field named in `paths`, since filters match whole values. A
+ *   searchable field needs the `text` mapping with the sub-field, since
+ *   search matches analysed words.
  * - Instants (timestamp moments, and event and access times) mapped as
  *   `date`.
  * - Event and access moments also store the venue-local date, or date-time,
@@ -231,7 +233,8 @@ function knownField(byKey: Map<string, RecordField>, key: string) {
  * `track_total_hits` the page needs. Filters mean the same as
  * `matchesRecordQuery` in the browser, one clause per chip in `bool.filter`.
  * Search is a `simple_query_string` that needs every word, in `bool.must`,
- * ranked by the index's analysers. Empty values sort last either way. With
+ * ranked by the index's analysers. Missing values sort last either way, but
+ * a keyword sorts by its stored text, "" lowest, not by label. With
  * no paging there's no `size`, so set one for an export. Throws on an unknown
  * request version or field, on an event or access field filtered by date
  * with no `localDateKey`, and a RangeError on paging that reads no rows.
