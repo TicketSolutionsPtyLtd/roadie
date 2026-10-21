@@ -1,5 +1,6 @@
 import type { PlotAnnotation, PlotRow } from '@oztix/roadie-core/dashboard'
 import type { ValueFormat } from '@oztix/roadie-core/dataviz'
+import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
 
 export type BarChartInterval = 'hour' | 'day' | 'week'
 
@@ -20,5 +21,7 @@ export type BarChartProps = {
   interval?: 'hour' | 'day' | 'week'
   /** A second measure on its own axis, labelled at its end. */
   line?: { y: string; label: string; format?: ValueFormat }
+  /** Lets a drag across dated x select a range, inclusive and in venue wall time. */
+  onRangeSelect?: (range: AbsoluteRange) => void
   className?: string
 }

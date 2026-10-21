@@ -4,6 +4,7 @@ import type {
   PlotX
 } from '@oztix/roadie-core/dashboard'
 import type { ValueFormat } from '@oztix/roadie-core/dataviz'
+import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
 
 export type LineChartPalette = 'categorical' | 'pair' | 'trio'
 
@@ -38,5 +39,7 @@ export type LineChartProps = {
   target?: number
   /** Marks today with a labelled dot. */
   today?: PlotX
+  /** Lets a drag across dated x select a range, inclusive and in venue wall time. */
+  onRangeSelect?: (range: AbsoluteRange) => void
   className?: string
 }

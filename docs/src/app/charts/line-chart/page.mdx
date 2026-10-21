@@ -102,6 +102,40 @@ Name the series that tells the story. It draws in the highlight at 2px and the r
 </Chart>
 ```
 
+### Selecting a range
+
+`onRangeSelect` lets someone drag across dated x to pick a range, such as to zoom the page to those days. The range is inclusive, in the venue's wall time: `'2026-10-03'` for days, or `'2026-10-03T18:00'` for times. It fits straight into `DateRangePicker` or `onPeriodChange`.
+
+```tsx-live-noinline
+function Zoom() {
+  const [range, setRange] = useState(null)
+  return (
+    <div className='grid gap-4'>
+      <Chart label='Tickets sold' source='Oztix sales.' size='md'>
+        <LineChart
+          data={[
+            { day: '2026-10-01', sold: 120 },
+            { day: '2026-10-02', sold: 180 },
+            { day: '2026-10-03', sold: 150 },
+            { day: '2026-10-04', sold: 240 },
+            { day: '2026-10-05', sold: 310 },
+            { day: '2026-10-06', sold: 260 },
+            { day: '2026-10-07', sold: 400 },
+            { day: '2026-10-08', sold: 380 }
+          ]}
+          x='day'
+          y='sold'
+          onRangeSelect={setRange}
+        />
+      </Chart>
+      <p className='text-sm text-subtle'>Range: {range ? `${range.start} to ${range.end}` : 'none yet'}</p>
+    </div>
+  )
+}
+
+render(<Zoom />)
+```
+
 ### States
 
 ```tsx-live layout=stack width=140
@@ -126,12 +160,14 @@ Name the series that tells the story. It draws in the highlight at 2px and the r
 - A `null` value breaks the line, so a day with no data never reads as a trend. Send `null` for that day rather than leaving it out.
 - Forecasts are always dotted, so they never read as actual sales.
 - Past 6 series, the smallest roll into Other, and the table keeps a column for every series. Past 10,000, axes and labels switch to compact numbers. The tooltip and table keep full values.
+- With `onRangeSelect`, releasing a drag reports the range and leaves it drawn until a click on the plot, Escape while the chart has focus, or `data` with different x values. Refetch for it, or show it in the page's date picker. Touch only scrolls and shows the tooltip, so pair the chart with a `DateRangePicker` for phones.
 - There are no colour props. Use `highlight` for the story and `palette` for the set.
 
 ## Accessibility
 
 - The plot is one tab stop, named by `takeaway`, or by a generated sentence such as "Sold rose from 120 to 1,464 between 1 Oct and 29 Oct".
 - Left and right arrows move between days. Up and down move between series on the same day. Each value is read out in plain words, such as "Thursday 15 October, 690 sold".
+- With `onRangeSelect`, Shift with the left or right arrow selects from the focused day, and Shift with Home or End selects to either end. The range is read out, such as "Selected 2 to 4 October, 3 days", and Enter applies it. Once there's a range, its start and end handles are sliders in the tab order. Their arrows move them, and Enter applies. Escape clears the range.
 - The Table tab holds every value the chart draws.
 - Under forced colours and in print, each series after the first switches to its own dash style, so lines stay apart without colour.
 

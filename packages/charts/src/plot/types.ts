@@ -6,6 +6,7 @@ import type { StatusName } from '@oztix/roadie-core/dataviz'
 import type { ChartTable } from '../Chart'
 import type { ChartLegendItem } from '../ChartLegend'
 import type { ChartTooltipRow } from '../ChartTooltip'
+import type { RangeAxis } from './range'
 
 // The bare type's tooltip host defaults to string, which <Chart> rejects.
 export type EngineDefinition = StaticChartDefinition<
@@ -81,6 +82,8 @@ export type ChartDefinition<P> = {
   yExtent?: (props: P) => readonly [number, number]
   /** The axis categories run along; 'y' for horizontal bars. @default 'x' */
   categoryAxis?: (props: P) => CategoryAxis
+  /** The x values a range brush snaps to; null when x isn't time. */
+  rangeAxis?: (props: P) => RangeAxis | null
 }
 
 export function isPlotDatum(value: unknown): value is PlotDatum {
