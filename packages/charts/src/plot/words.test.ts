@@ -18,7 +18,7 @@ describe('words', () => {
 
   it('says a point in plain words', () => {
     expect(spokenPoint(Date.UTC(2026, 2, 10), true, false)).toBe(
-      'Tuesday 10 March'
+      'Tuesday, 10 March 2026'
     )
     expect(spokenPoint('Email', false, false)).toBe('Email')
   })

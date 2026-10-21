@@ -21,7 +21,7 @@ describe('SmallMultiples', () => {
       screen.getByRole('group', { name: gatesExample.takeaway })
     ).toBeInTheDocument()
     expect(screen.getAllByRole('img')[0]).toHaveAccessibleName(
-      'North gate. Scans peaked at 300 at 6pm on Sat 14 Nov'
+      'North gate. Scans peaked at 300 on Sat 14 Nov 2026, 6:00pm'
     )
     expect(
       container.querySelectorAll(`[aria-label*="${gatesExample.takeaway}"]`)
