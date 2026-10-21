@@ -94,11 +94,14 @@ export function stackLabels(
   )
 }
 
+/** The plotting area's height in pixels, estimated from the frame. */
+export const plotHeight = (frame: PlotFrame) => frame.height - AXIS_ROOM
+
 export function labelGap(
   frame: PlotFrame,
   [low, high]: readonly [number, number]
 ) {
-  return ((frame.fontSize + 3) / (frame.height - AXIS_ROOM)) * (high - low)
+  return ((frame.fontSize + 3) / plotHeight(frame)) * (high - low)
 }
 
 export function endLabelsFit(count: number, frame: PlotFrame) {

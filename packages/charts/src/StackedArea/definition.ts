@@ -70,7 +70,8 @@ function build(props: StackedAreaProps, paint: ChartPaint, frame: PlotFrame) {
   const span = xDomain[1] - xDomain[0]
   const across = (x: number) => (span > 0 ? (x - xDomain[0]) / span : 0)
   const today = todayPoint(props, layers)
-  const todayLabel = today && placeTodayLabel(today, pixels, across, frame)
+  const todayLabel =
+    today && placeTodayLabel(today, pixels, across, yDomain, frame)
   const marks = styles(props, paint).flatMap((style) => {
     const own = layers.filter((l) => l.series === style.name)
     const quiet = style.emphasis === 'context' || style.emphasis === 'other'
@@ -113,7 +114,7 @@ function build(props: StackedAreaProps, paint: ChartPaint, frame: PlotFrame) {
         paint,
         frame,
         pixels,
-        todayLabel?.span ?? null
+        todayLabel?.box ?? null
       )
     ],
     scales: {

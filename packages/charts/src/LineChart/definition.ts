@@ -328,7 +328,9 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
   const margins = pixels.left + pixels.right
   const across = (x: number) => (span > 0 ? (x - xDomain[0]) / span : 0)
   const todayLabel =
-    today && !todayInEnds ? placeTodayLabel(today, pixels, across, frame) : null
+    today && !todayInEnds
+      ? placeTodayLabel(today, pixels, across, yDomain, frame)
+      : null
 
   const marks = [
     ...(band
@@ -363,7 +365,7 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
       paint,
       frame,
       pixels,
-      todayLabel?.span ?? null
+      todayLabel?.box ?? null
     ),
     ...(ends.length
       ? endLabelMarks(

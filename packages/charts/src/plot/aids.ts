@@ -2,8 +2,8 @@ import { areaY, dot, lineY, link, text } from '@tanstack/charts'
 import type { ChartMark } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 
-import type { LabelSpan } from './annotations'
-import { textWidth } from './endLabels'
+import { type LabelBox, labelBox } from './annotations'
+import { plotHeight, textWidth } from './endLabels'
 import { type PlotSpan, centredShift, spanPixel } from './frame'
 import type { ChartPaint, PlotFrame } from './types'
 
@@ -106,6 +106,13 @@ export function targetMark(
 
 export type TodayPoint = { x: number; y: number; label: string }
 
+const TODAY_DOT_RADIUS = 3.5
+const TODAY_LABEL_GAP = 0.5
+
+// The text is centred on dy, so half its size clears the dot.
+const todayLabelDy = (frame: PlotFrame) =>
+  -(frame.fontSize / 2 + TODAY_DOT_RADIUS + TODAY_LABEL_GAP)
+
 /**
  * The shift that keeps the today label inside the SVG, and the pixels it then
  * covers, so annotation labels can keep off it.
@@ -114,16 +121,24 @@ export function placeTodayLabel(
   point: TodayPoint,
   span: PlotSpan,
   across: (x: number) => number,
+  [low, high]: readonly [number, number],
   frame: PlotFrame
-): { dx: number; span: LabelSpan } {
+): { dx: number; box: LabelBox } {
   const x = spanPixel(span, across(point.x))
   const width = textWidth(point.label, frame)
   const dx = centredShift(x, width, frame.width)
-  return { dx, span: { left: x + dx - width / 2, right: x + dx + width / 2 } }
+  const down =
+    high > low ? ((high - point.y) / (high - low)) * plotHeight(frame) : 0
+  return {
+    dx,
+    box: labelBox(
+      x + dx - width / 2,
+      x + dx + width / 2,
+      down + todayLabelDy(frame),
+      frame
+    )
+  }
 }
-
-const TODAY_DOT_RADIUS = 3.5
-const TODAY_LABEL_GAP = 0.5
 
 /**
  * A dot at today, labelled above and shifted `dx` px to stay inside the plot.
@@ -158,8 +173,7 @@ export function todayMarks(
               y: 'y',
               text: 'label',
               dx: label.dx,
-              // The text is centred on dy, so half its size clears the dot.
-              dy: -(frame.fontSize / 2 + TODAY_DOT_RADIUS + TODAY_LABEL_GAP),
+              dy: todayLabelDy(frame),
               fill: paint.value,
               fontSize: frame.fontSize,
               fontWeight: 600

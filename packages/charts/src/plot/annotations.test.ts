@@ -4,7 +4,7 @@ import { renderChartSvg } from '@tanstack/charts/svg'
 import { describe, expect, it } from 'vitest'
 
 import {
-  type LabelSpan,
+  type LabelBox,
   annotationMarks,
   annotationsOnAxis,
   annotationsOnBars
@@ -104,7 +104,7 @@ describe('annotationMarks', () => {
   const paint = hexPaint('light')
   const frame = plotFrame(220, 'narrow', undefined, 320)
   const span = { width: 320, left: 40, right: 8 }
-  const render = (across: number, avoid: LabelSpan | null = null) =>
+  const render = (across: number, avoid: LabelBox | null = null) =>
     renderChartSvg(
       createChartScene(
         defineChart({
@@ -132,19 +132,39 @@ describe('annotationMarks', () => {
   it('flips left of its rule near the right edge', () =>
     expect(render(0.95)).toMatch(/text-anchor="end"/))
 
-  // At 0.5 the rule sits at x 176, so the label reads 180 to about 250.
+  // At 0.5 the rule sits at x 176, so the label reads 180 to about 270, with
+  // its first line from 0 to 12 down and its second from 18 to 34.
   const labelY = (svg: string) =>
     Number(/label-annotations:[^"]*"[^>]*\sy="([\d.]+)"/.exec(svg)?.[1])
+  const firstLine = { top: 0, bottom: 10 }
 
   it('reads on the other side of its rule to keep off a label', () => {
-    const svg = render(0.5, { left: 190, right: 240 })
+    const svg = render(0.5, { left: 190, right: 240, ...firstLine })
     expect(svg).toMatch(/text-anchor="end"/)
     expect(labelY(svg)).toBe(labelY(render(0.5)))
   })
 
+  it('keeps its side when the label sits lower down', () =>
+    expect(
+      render(0.5, { left: 190, right: 240, top: 100, bottom: 110 })
+    ).toMatch(/text-anchor="start"/))
+
   it('drops a line when both sides would cross the label', () => {
-    expect(labelY(render(0.5, { left: 100, right: 260 }))).toBeGreaterThan(
-      labelY(render(0.5))
-    )
+    expect(
+      labelY(render(0.5, { left: 100, right: 260, ...firstLine }))
+    ).toBeGreaterThan(labelY(render(0.5)))
+  })
+
+  it('stays put rather than drop onto a label a line down', () =>
+    expect(
+      labelY(render(0.5, { left: 100, right: 260, top: 20, bottom: 30 }))
+    ).toBe(labelY(render(0.5))))
+
+  // At 0.25 the rule sits at x 108, so a label left of it would cross the
+  // y tick labels in the 40px margin.
+  it('drops rather than read over the y tick labels', () => {
+    const svg = render(0.25, { left: 120, right: 170, ...firstLine })
+    expect(svg).toMatch(/text-anchor="start"/)
+    expect(labelY(svg)).toBeGreaterThan(labelY(render(0.25)))
   })
 })
