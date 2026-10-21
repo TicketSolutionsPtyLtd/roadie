@@ -106,7 +106,8 @@ function keepTouchForScrolling(brush: Element) {
 // An empty range hides its handles, which would drop their focus to the page.
 function keepFocusInPlot(context: ChartRenderContext | null) {
   const plot = context?.surface.element
-  if (plot && inBrush(plot.ownerDocument.activeElement)) plot.focus()
+  if (plot instanceof SVGElement && inBrush(plot.ownerDocument.activeElement))
+    plot.focus()
 }
 
 function spans(axis: RangeAxis, range: BrushRange<RangeValue>) {
