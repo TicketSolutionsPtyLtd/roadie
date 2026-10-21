@@ -17,6 +17,12 @@ const ICONS = {
   'Your API': PlugsConnectedIcon
 } as const
 
+// Lets a call wrap between its arguments rather than inside a name.
+const breakable = (call: string) =>
+  call
+    .split(/(?<=\(|, )/)
+    .flatMap((part, i) => (i ? [<wbr key={i} />, part] : [part]))
+
 export function RecordsAdapters() {
   return (
     <ul
@@ -27,7 +33,7 @@ export function RecordsAdapters() {
       {RECORDS_ADAPTERS.map(({ name, call, use }) => {
         const Icon = ICONS[name as keyof typeof ICONS]
         return (
-          <li key={name} data-twin-row className='grid'>
+          <li key={name} data-twin-row className='grid min-w-0'>
             <Card emphasis='subtle'>
               <Card.Content className='grid content-start gap-3 p-5'>
                 <div className='flex items-center gap-3'>
@@ -40,9 +46,9 @@ export function RecordsAdapters() {
                 </div>
                 <code
                   data-twin-cell
-                  className='font-mono text-sm break-words text-strong'
+                  className='font-mono text-sm wrap-anywhere text-strong'
                 >
-                  {call}
+                  {breakable(call)}
                 </code>
                 <p data-twin-cell className='text-sm text-subtle'>
                   {use}

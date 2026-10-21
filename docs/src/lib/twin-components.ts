@@ -41,6 +41,7 @@ export const TWIN_COMPONENTS = {
   IllustrationGallery: 'rendered',
   IllustrationLibrary: 'rendered',
   LogoExample: 'drawing',
+  IndexDetails: 'drawing',
   IndexTabs: 'drawing',
   IntentEmphasis: 'drawing',
   LayeringScale: 'rendered',

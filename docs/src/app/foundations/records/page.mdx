@@ -9,6 +9,7 @@ export const metadata = {
 import { Accordion } from '@oztix/roadie-components/accordion'
 
 import { Guideline, Guidelines } from '@/components/Guideline'
+import { IndexDetails } from '@/components/records/IndexDetails'
 import { IndexTabs } from '@/components/records/IndexTabs'
 import { QuerySuggestions } from '@/components/records/QuerySuggestions'
 import { RecordsAdapters } from '@/components/records/RecordsAdapters'
@@ -292,7 +293,7 @@ returns Meilisearch's `q`, `filter`, and `sort`, and the page.
 | Search                 | `searchableAttributes` lists the fields marked `searchable`         |
 | Text `contains`        | The `containsFilter` experimental feature                           |
 
-<Accordion>
+<IndexDetails>
   <Accordion.Item>
     <Accordion.Trigger>Pages and counts</Accordion.Trigger>
     <Accordion.Content>
@@ -316,7 +317,7 @@ as the search itself.
 
     </Accordion.Content>
   </Accordion.Item>
-</Accordion>
+</IndexDetails>
 
 </IndexTabs.Panel>
 <IndexTabs.Panel value='elasticsearch' label='Elasticsearch'>
@@ -337,7 +338,7 @@ body: `query`, `sort`, `from`, and `size`. Each chip is one clause in
 | Event and access dates | The venue-local date or date-time under `localDateKey`, as a `date` with no zone       |
 | Ranges                 | The end on every record                                                                |
 
-<Accordion>
+<IndexDetails>
   <Accordion.Item>
     <Accordion.Trigger>Pages and counts</Accordion.Trigger>
     <Accordion.Content>
@@ -383,7 +384,7 @@ sub-field in `paths`.
 
     </Accordion.Content>
   </Accordion.Item>
-</Accordion>
+</IndexDetails>
 
 </IndexTabs.Panel>
 </IndexTabs>
