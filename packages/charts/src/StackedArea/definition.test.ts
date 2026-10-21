@@ -2,6 +2,7 @@ import { createChartScene } from '@tanstack/charts'
 import { renderChartSvg as renderSceneSvg } from '@tanstack/charts/svg'
 import { describe, expect, it } from 'vitest'
 
+import { textWidth } from '../plot/endLabels'
 import { plotFrame } from '../plot/frame'
 import { hexPaint } from '../plot/paint'
 import { stackedArea } from './definition'
@@ -159,12 +160,42 @@ describe('stackedArea', () => {
     expect(svg).toMatch(/>Today 70</)
   })
 
-  it('draws annotations along the time axis', () => {
+  it('puts today on the top of a share stack in value ink, read as the count', () => {
+    const svg = svgOf({ ...small, mode: 'share', today: '2026-11-14T19:00' })
+    const top = svg.match(/y-tick-label:number:1"[^>]* y="([\d.]+)"/)?.[1]
+    const dot = svg.match(
+      /data-ts-key="today:[^"]*" fill="([^"]+)"[^>]* cy="([\d.]+)"/
+    )
+    expect(top).toBeDefined()
+    expect(dot?.[2]).toBe(top)
+    expect(dot?.[1]).toBe(paint.value)
+    expect(svg).toMatch(/>Today 70</)
+  })
+
+  it('keeps the today label inside the plot at the last time', () => {
+    const svg = svgOf({ ...small, today: '2026-11-14T19:15' })
+    const label = Number(
+      /data-ts-key="label-today[^"]*"[^>]*\sx="([\d.]+)"/.exec(svg)?.[1]
+    )
+    expect(label + textWidth('Today 89', frame) / 2).toBeLessThanOrEqual(640)
+  })
+
+  it('draws annotations along the time axis, from the top of the plot', () => {
     const svg = svgOf({
       ...small,
+      mode: 'share',
       annotations: [{ at: '2026-11-14T19:00', label: 'Doors' }]
     })
+    const y = (key: string) =>
+      Number(
+        new RegExp(`data-ts-key="${key}[^"]*"[^>]* y="([\\d.]+)"`).exec(
+          svg
+        )?.[1]
+      )
     expect(svg).toMatch(keyOf('annotation-rules'))
+    expect(y('label-annotations:') - y('y-tick-label:number:1')).toBeLessThan(
+      frame.fontSize
+    )
     expect(svg).toContain('>Doors<')
   })
 })
