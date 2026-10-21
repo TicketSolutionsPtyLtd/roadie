@@ -208,6 +208,28 @@ function ReportingPlot() {
 describe('Chart actions', () => {
   const more = <button type='button'>More actions for Sales pace</button>
 
+  it('keeps controls in view, above the legend, in the Table view', () => {
+    const { container } = render(
+      <Chart
+        label='Sales'
+        source='Oztix sales.'
+        table={table}
+        legend={<p>Legend</p>}
+        controls={<button type='button'>Cumulative</button>}
+      >
+        <svg role='img' aria-label='Sales chart' />
+      </Chart>
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Table' }))
+    const controls = screen.getByRole('button', { name: 'Cumulative' })
+    expect(controls.closest('[inert]')).toBeNull()
+    expect(
+      container
+        .querySelector('[data-slot=data-card-controls]')!
+        .compareDocumentPosition(screen.getByText('Legend'))
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
   it('renders actions after the view switch', () => {
     const { container } = render(
       <Chart label='Sales pace' source='Oztix sales.' actions={more}>

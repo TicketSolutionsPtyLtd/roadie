@@ -34,4 +34,10 @@ describe('StatTile', () => {
     expect(container.querySelector('[data-slot=sparkline]')).toBeNull()
     expect(screen.getByText('On sale 2 days')).toBeInTheDocument()
   })
+  it('takes no controls, since a tile has no room for them', () => {
+    render(
+      // @ts-expect-error StatTile leaves out DataCard's controls
+      <StatTile label='Tickets sold' value={180} controls={null} />
+    )
+  })
 })

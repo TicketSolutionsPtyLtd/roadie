@@ -208,4 +208,27 @@ describe('DataCard.MoreButton', () => {
     ).toBeInTheDocument()
     expect(button).toHaveAttribute('aria-expanded', 'true')
   })
+  it.each(['ready', 'stale', 'loading', 'empty', 'error'] as const)(
+    'shows controls when %s, so a switch stays put while it loads',
+    (state) => {
+      render(
+        <DataCard
+          label='Sales'
+          value={1842}
+          state={state}
+          controls={<button type='button'>Cumulative</button>}
+        />
+      )
+      expect(
+        screen.getByRole('button', { name: 'Cumulative' })
+      ).toBeInTheDocument()
+    }
+  )
+
+  it('renders no controls row without controls', () => {
+    const { container } = render(<DataCard label='Sales' value={1842} />)
+    expect(
+      container.querySelector('[data-slot=data-card-controls]')
+    ).not.toBeInTheDocument()
+  })
 })
