@@ -371,7 +371,9 @@ function groupProblems(
   const problems: DashboardProblem[] = []
   groupBy.forEach((key, i) => {
     const column = card.columns.find((candidate) => candidate.key === key)
-    if (!column)
+    if (groupBy.indexOf(key) < i)
+      problems.push(error(`${path}.groupBy[${i}]`, `Group by "${key}" once`))
+    else if (!column)
       problems.push(
         error(`${path}.groupBy[${i}]`, `No column has the key "${key}"`)
       )

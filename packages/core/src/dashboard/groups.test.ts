@@ -46,6 +46,20 @@ describe('validateDashboard grouped tables', () => {
     expect(result.problems).toEqual([])
   })
 
+  it('rejects an empty groupBy', () => {
+    expect(validateDashboard(scansTable({ groupBy: [] })).ok).toBe(false)
+  })
+
+  it('rejects a key given twice', () => {
+    expect(problems({ groupBy: ['pool', 'pool'] })).toEqual([
+      {
+        path: `${at}.groupBy[1]`,
+        severity: 'error',
+        message: 'Group by "pool" once'
+      }
+    ])
+  })
+
   it('rejects a key no column has', () => {
     expect(problems({ groupBy: ['gate'] })).toEqual([
       {

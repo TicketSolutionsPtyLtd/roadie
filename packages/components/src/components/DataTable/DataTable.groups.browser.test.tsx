@@ -66,4 +66,24 @@ describe('DataTable grouped rows', () => {
     expect(rotationOf('GA')).toBe('none')
     expect(rotationOf('General')).toBe('90deg')
   })
+
+  it('points the closed caret along the line and the open one down in RTL', () => {
+    render(
+      <div dir='rtl'>
+        <DataTable
+          columns={columns}
+          rows={rows}
+          groupBy={['pool', 'type']}
+          defaultExpanded={[['General']]}
+        />
+      </div>
+    )
+    const caretOf = (name: string) =>
+      getComputedStyle(
+        screen.getByRole('button', { name }).querySelector('svg')!
+      )
+    expect(caretOf('GA').scale).toBe('-1 1')
+    expect(caretOf('GA').rotate).toBe('none')
+    expect(caretOf('General').rotate).toBe('-90deg')
+  })
 })

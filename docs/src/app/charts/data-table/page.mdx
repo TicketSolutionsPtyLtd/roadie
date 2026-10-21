@@ -163,7 +163,7 @@ When the server pages or filters the rows, or a figure is an average rather than
 
 Pass `groupBy` to group rows by one or more text or status columns, outermost first, such as scans by ticket pool and then ticket type. Each group gets a row that sums its number columns the way `totals` does, with a caret that opens it. The first column holds every level's label, indented, and the grouped columns are hidden.
 
-Groups start closed. `defaultExpanded` opens every group, which a PDF or report needs, or only the groups you list, each as its path of values: `[['General'], ['General', 'GA']]`. Sorting orders the groups by their sums, or by label, at every level.
+Groups start closed. `defaultExpanded` opens every group, which a PDF or report needs, or only the groups you list, each as its path of values: `[['General'], ['General', 'GA']]`. A path holds the values in the rows, so a status column's key rather than its label, and `''` for an empty value. Sorting orders the groups by their sums, or by label, at every level.
 
 ```tsx-live
 <DataTable

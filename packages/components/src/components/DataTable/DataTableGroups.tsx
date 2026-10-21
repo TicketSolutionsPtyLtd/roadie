@@ -96,7 +96,7 @@ export function DataTableGroups({
                     >
                       <CaretRightIcon
                         weight='bold'
-                        className='size-4 shrink-0 transition-transform group-aria-expanded:rotate-90'
+                        className='size-4 shrink-0 transition-transform duration-moderate group-aria-expanded:rotate-90 rtl:-scale-x-100 rtl:group-aria-expanded:-rotate-90'
                         aria-hidden
                       />
                       <DataTableCellContent
