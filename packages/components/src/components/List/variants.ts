@@ -5,7 +5,8 @@ import { cva } from 'class-variance-authority'
 // selector after a :has() restyles every match on the page.
 export const listSectionClass = [
   // Buttons shrink-wrap even as block flex; a width would break the -mx bleed.
-  'grid [&>li]:grid [--list-divider:initial]',
+  // minmax(0,1fr) lets a row shrink below its text, so a long title truncates.
+  'grid [&>li]:grid [&>li]:grid-cols-[minmax(0,1fr)] [--list-divider:initial]',
   '[&>li:last-child>*>[data-slot=list-item-content]]:after:bg-transparent',
   '[&>li:is(:hover,:has(>:is(:focus-visible,[aria-current])))]:[--list-divider:transparent]',
   // `:has()` can't nest, and `:is()` hides the error, so these stay split.
