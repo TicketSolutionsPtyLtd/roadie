@@ -180,4 +180,50 @@ describe('DataTable grouped rows', () => {
       expect(clipOf('GA').overflowClipMargin).not.toBe('0px')
     expect(clipOf('Guest').overflowClipMargin).toBe('0px')
   })
+
+  it('covers and rings a group row with a pinned label, scrolled or not', async () => {
+    const { container } = render(
+      <div style={{ width: 280 }}>
+        <DataTable
+          columns={[
+            { key: 'pool', header: 'Pool', kind: 'text' },
+            { key: 'type', header: 'Type', kind: 'text', pin: true },
+            { key: 'gate', header: 'Entry gate name', kind: 'text' },
+            { key: 'scans', header: 'Scans at the gate', kind: 'number' },
+            { key: 'late', header: 'Scans after doors', kind: 'number' }
+          ]}
+          rows={rows.map((row) => ({ ...row, late: 1 }))}
+          groupBy={['pool']}
+        />
+      </div>
+    )
+    const toggle = screen.getByRole('button', { name: 'General' })
+    const scroller = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-scroller]'
+    )!
+    const coversRow = () => {
+      for (const cell of toggle.closest('tr')!.cells) {
+        const box = cell.getBoundingClientRect()
+        const view = scroller.getBoundingClientRect()
+        const left = Math.max(box.left, view.left) + 2
+        const right = Math.min(box.right, view.right) - 2
+        if (right <= left) continue
+        for (const x of [left, (left + right) / 2, right])
+          expect(
+            document
+              .elementFromPoint(x, box.top + box.height / 2)
+              ?.closest('button')
+          ).toBe(toggle)
+      }
+    }
+    expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth)
+    coversRow()
+    scroller.scrollLeft = scroller.scrollWidth
+    coversRow()
+
+    await userEvent.keyboard('{Shift}')
+    toggle.focus({ focusVisible: true })
+    await new Promise(requestAnimationFrame)
+    expect(getComputedStyle(toggle, '::after').outlineStyle).toBe('solid')
+  })
 })
