@@ -89,13 +89,12 @@ function finite(value: number): number {
 }
 
 function isSet(field: RecordField, path: string): ElasticsearchClause {
-  const exists = { exists: { field: path } }
-  // A keyword holds "", which Roadie reads as empty.
+  // A keyword holds "", which Roadie reads as empty, beside any other value.
   return field.type === 'text' ||
     field.type === 'option' ||
     field.type === 'location'
-    ? { bool: { filter: [exists], must_not: [term(path, '')] } }
-    : exists
+    ? range(path, { gt: '' })
+    : { exists: { field: path } }
 }
 
 function overlap(

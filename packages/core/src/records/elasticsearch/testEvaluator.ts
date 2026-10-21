@@ -64,10 +64,23 @@ function dayBound(text: unknown, roundUp: boolean): number {
 }
 
 function inRange(actual: unknown, bounds: Bounds, format: unknown): boolean {
+  if (!format && Object.values(bounds).every((b) => typeof b === 'string')) {
+    // A keyword indexes numbers and booleans as their text.
+    return typeof actual !== 'object' && within(String(actual), bounds, String)
+  }
   const read: (bound: unknown, roundUp: boolean) => number =
     format === 'yyyy-MM-dd' ? dayBound : (bound) => Number(bound)
   const value = format ? instant(actual) : Number(actual)
-  if (Number.isNaN(value)) return false
+  return !Number.isNaN(value) && within(value, bounds, read)
+}
+
+// A keyword range compares text; JavaScript's order agrees with Lucene's for
+// the bounds the adapter writes.
+function within<T extends number | string>(
+  value: T,
+  bounds: Bounds,
+  read: (bound: unknown, roundUp: boolean) => T
+): boolean {
   if (bounds.gt !== undefined && !(value > read(bounds.gt, false))) return false
   if (bounds.gte !== undefined && !(value >= read(bounds.gte, false)))
     return false
