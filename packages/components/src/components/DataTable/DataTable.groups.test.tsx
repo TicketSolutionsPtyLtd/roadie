@@ -147,6 +147,36 @@ describe('DataTable groupBy', () => {
     ])
   })
 
+  it('sorts nested groups by their own sums', () => {
+    const { container } = render(
+      <DataTable
+        columns={[
+          { key: 'pool', header: 'Pool', kind: 'text' },
+          { key: 'type', header: 'Type', kind: 'text' },
+          { key: 'gate', header: 'Gate', kind: 'text' },
+          { key: 'scans', header: 'Scans', kind: 'number' }
+        ]}
+        rows={[
+          { pool: 'General', type: 'GA', gate: 'North', scans: 100 },
+          { pool: 'General', type: 'Concession', gate: 'North', scans: 150 },
+          { pool: 'General', type: 'GA', gate: 'South', scans: 100 }
+        ]}
+        groupBy={['pool', 'type']}
+        defaultExpanded
+        sortable
+        defaultSort={{ key: 'scans', direction: 'descending' }}
+      />
+    )
+    expect(bodyRows(container).map(([label]) => label)).toEqual([
+      'General',
+      'GA',
+      'North',
+      'South',
+      'Concession',
+      'North'
+    ])
+  })
+
   it('orders groups by a server sort and keeps the rows as given', () => {
     const { container } = render(
       <DataTable
@@ -232,15 +262,48 @@ describe('DataTable groupBy', () => {
 
   it('warns once and ignores a key that is not a text or status column', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const { container } = render(
+    const table = () => (
       <DataTable columns={columns} rows={rows} groupBy={['scans', 'missing']} />
     )
+    const { container, rerender } = render(table())
+    rerender(table())
     expect(bodyRows(container)).toHaveLength(5)
     expect(warn.mock.calls.map(([message]) => message)).toEqual([
       '[Roadie] DataTable groupBy "scans" is not a text or status column, so it\'s ignored.',
       '[Roadie] DataTable groupBy "missing" names no column, so it\'s ignored.'
     ])
     warn.mockRestore()
+  })
+
+  it('shows every row ungrouped when groupBy would leave no column', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = render(
+      <DataTable
+        columns={columns.slice(0, 2)}
+        rows={rows}
+        groupBy={['pool', 'type']}
+      />
+    )
+    expect(bodyRows(container)).toHaveLength(5)
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
+    expect(warn).toHaveBeenCalledWith(
+      '[Roadie] DataTable groupBy "pool, type" leaves no column to show, so it\'s ignored.'
+    )
+    warn.mockRestore()
+  })
+
+  it('never hides the label column by priority', () => {
+    const { container } = render(
+      <DataTable
+        columns={columns.map((column) =>
+          column.key === 'type' ? { ...column, priority: 3 as const } : column
+        )}
+        rows={rows}
+        groupBy={['pool']}
+      />
+    )
+    for (const row of container.querySelectorAll('tr'))
+      expect(row.firstElementChild).not.toHaveAttribute('data-priority')
   })
 
   it('renders collapsed groups on the server', () => {
