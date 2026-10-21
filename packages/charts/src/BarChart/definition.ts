@@ -222,6 +222,17 @@ export const barChart: ChartDefinition<BarChartProps> = {
   build,
   table: barChartTable,
   yExtent: barYExtent,
+  rangeAxis(props) {
+    if (!isTimeField(props.data, props.x)) return null
+    return {
+      values: toBars(props).map((b) => b.key),
+      msOf: parseX,
+      options: {
+        hasTime: isHourly(props),
+        bucketDays: props.interval === 'week' ? 7 : 1
+      }
+    }
+  },
   summary(props) {
     if (props.takeaway) return props.takeaway
     const noun = fieldLabel(props.y)

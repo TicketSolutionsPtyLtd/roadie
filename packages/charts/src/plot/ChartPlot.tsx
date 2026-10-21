@@ -3,6 +3,7 @@
 import {
   type FocusEvent,
   type KeyboardEvent,
+  type PointerEvent,
   useContext,
   useEffect,
   useLayoutEffect,
@@ -12,9 +13,14 @@ import {
 } from 'react'
 
 import type { ChartRenderContext, ChartSvgRenderer } from '@tanstack/charts'
+import type {
+  BrushRange,
+  BrushXChange
+} from '@tanstack/charts/interaction/brush'
 import { renderChartSvg } from '@tanstack/charts/svg'
 import { type ChartPoint, Chart as EngineChart } from '@tanstack/react-charts'
 
+import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { ChartCardContext } from '../Chart/context'
@@ -38,7 +44,9 @@ import {
   visualEnds
 } from './keyboard'
 import { cssPaint } from './paint'
+import { type RangeAxis, spokenRange, spokenValue, wallRange } from './range'
 import { type CategoryAxis, type ChartDefinition, isPlotDatum } from './types'
+import { useBrushX } from './useBrushX'
 import { usePlotBox } from './usePlotBox'
 
 export type ChartPlotProps<P> = {
@@ -49,7 +57,66 @@ export type ChartPlotProps<P> = {
   /** Overrides the card's plot height, for small multiples. */
   height?: number
   yDomain?: readonly [number, number]
+  /** Called with the range a drag, or Shift+Arrow then Enter, selects. */
+  onRangeSelect?: (range: AbsoluteRange) => void
   className?: string
+}
+
+type RangeValue = number | string
+type Selection = {
+  range: BrushRange<RangeValue>
+  /** Where Shift+Arrow grows the range from. */
+  anchor: RangeValue
+}
+
+const BRUSH = '[data-chart-brush]'
+const RANGE_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'Home', 'End'])
+
+const rangeValueOf = (point: ChartPoint): RangeValue =>
+  point.xValue instanceof Date ? point.xValue.getTime() : point.xValue
+
+const inBrush = (target: EventTarget | null) =>
+  target instanceof Element && target.closest(BRUSH) !== null
+
+// d3-brush cancels touchmove, which would trap page scroll on the chart, so
+// no touch event reaches it; its move and end listeners throw without a
+// start. A tap's emulated mousedown follows within a second.
+const touchFree = new WeakSet<Element>()
+function keepTouchForScrolling(brush: Element) {
+  if (touchFree.has(brush)) return
+  touchFree.add(brush)
+  let touchedAt = -Infinity
+  for (const type of ['touchstart', 'touchmove', 'touchend', 'touchcancel'])
+    brush.addEventListener(
+      type,
+      (event) => {
+        touchedAt = event.timeStamp
+        event.stopPropagation()
+      },
+      { capture: true, passive: true }
+    )
+  brush.addEventListener(
+    'mousedown',
+    (event) => {
+      if (event.timeStamp - touchedAt < 1000) event.stopPropagation()
+    },
+    { capture: true }
+  )
+}
+
+// An empty range hides its handles, which would drop their focus to the page.
+function keepFocusInPlot(context: ChartRenderContext | null) {
+  const plot = context?.surface.element
+  if (plot instanceof SVGElement && inBrush(plot.ownerDocument.activeElement))
+    plot.focus()
+}
+
+function spans(axis: RangeAxis, range: BrushRange<RangeValue>) {
+  const start = axis.msOf(range.start)
+  const end = axis.msOf(range.end)
+  return start !== null && end !== null && start !== end
+    ? ([start, end] as const)
+    : null
 }
 
 type Step = (
@@ -85,6 +152,7 @@ export function ChartPlot<P>({
   report = true,
   height,
   yDomain,
+  onRangeSelect,
   className
 }: ChartPlotProps<P>) {
   const card = useContext(ChartCardContext)
@@ -98,6 +166,20 @@ export function ChartPlot<P>({
   // user with a screen reader shouldn't hear every point they pass over.
   const [spoken, setSpoken] = useState(false)
   const pressedRef = useRef(false)
+  const rangeAxis = useMemo(
+    () => (onRangeSelect ? (chart.rangeAxis?.(props) ?? null) : null),
+    [onRangeSelect, chart, props]
+  )
+  // New x values are new data, which drops the old selection.
+  const axisKey = rangeAxis?.values.join() ?? ''
+  const brushX = useBrushX(rangeAxis !== null)
+  const [selection, setSelection] = useState<Selection | null>(null)
+  const [selectionKey, setSelectionKey] = useState(axisKey)
+  if (selectionKey !== axisKey) {
+    setSelectionKey(axisKey)
+    setSelection(null)
+  }
+  const [rangeSpoken, setRangeSpoken] = useState('')
 
   const summary = useMemo(() => chart.summary(props), [chart, props])
   const table = useMemo(() => chart.table(props), [chart, props])
@@ -119,6 +201,42 @@ export function ChartPlot<P>({
     () => draw(chart, props, cssPaint, frame),
     [chart, props, frame]
   )
+  const definition = useMemo(() => {
+    if (!drawing || !rangeAxis || !brushX) return drawing?.definition
+    const first = rangeAxis.values[0]!
+    const onChange = (
+      range: BrushRange<RangeValue>,
+      { reason }: { reason: BrushXChange<RangeValue> }
+    ) => {
+      const span = spans(rangeAxis, range)
+      // brushX ends a drag whose controlled range stops matching it, so a
+      // drag held inside one x is kept too.
+      const keep = span || reason.type === 'preview'
+      if (!keep) keepFocusInPlot(renderRef.current)
+      setSelection(keep ? { range, anchor: range.start } : null)
+      setRangeSpoken('')
+      if (span && reason.type === 'commit' && reason.source === 'pointer')
+        onRangeSelect?.(wallRange(span[0], span[1], rangeAxis.options))
+    }
+    const brush = brushX<RangeValue>({
+      values: rangeAxis.values,
+      range: {
+        value: selection?.range ?? { start: first, end: first },
+        onChange
+      },
+      ariaLabel: 'Selected range',
+      startAriaLabel: 'Range start',
+      endAriaLabel: 'Range end',
+      format: (value) => {
+        const ms = rangeAxis.msOf(value)
+        return ms === null ? String(value) : spokenValue(ms, rangeAxis.options)
+      }
+    })
+    return {
+      ...drawing.definition,
+      controls: [...(drawing.definition.controls ?? []), brush]
+    }
+  }, [drawing, rangeAxis, brushX, selection, onRangeSelect])
   const fail = drawing ? undefined : card?.fail
   useLayoutEffect(() => fail?.(), [fail])
 
@@ -146,19 +264,73 @@ export function ChartPlot<P>({
       source: 'programmatic'
     })
 
+  function applyRange() {
+    const span = rangeAxis && selection && spans(rangeAxis, selection.range)
+    if (!span) return false
+    onRangeSelect?.(wallRange(span[0], span[1], rangeAxis.options))
+    return true
+  }
+
+  function clearRange() {
+    if (!selection) return false
+    keepFocusInPlot(renderRef.current)
+    setSelection(null)
+    setRangeSpoken('Selection cleared')
+    return true
+  }
+
+  // Shift+Arrow grows the brush from where it started, so the brush's own
+  // handles aren't the only way in for the keyboard.
+  function growRange(next: ChartPoint) {
+    if (!rangeAxis) return
+    const anchor = selection?.anchor ?? (focused && rangeValueOf(focused))
+    if (anchor == null) return
+    const end = rangeValueOf(next)
+    const span = spans(rangeAxis, { start: anchor, end })
+    if (!span) {
+      setSelection(null)
+      setRangeSpoken('')
+      return
+    }
+    const range =
+      span[0] <= span[1] ? { start: anchor, end } : { start: end, end: anchor }
+    setSelection({ range, anchor })
+    setRangeSpoken(spokenRange(span[0], span[1], rangeAxis.options))
+  }
+
+  // Runs before the brush handles' own keys, which move them.
+  function onRangeKey(event: KeyboardEvent<HTMLDivElement>) {
+    const handled =
+      (event.key === 'Enter' && applyRange()) ||
+      (event.key === 'Escape' && clearRange())
+    if (!handled) return false
+    event.preventDefault()
+    event.stopPropagation()
+    return true
+  }
+
   // The engine walks every arrow key along one list: column tops on an x
   // category axis, bar values on a y one. That loses the series after a step
   // between series and the category order on horizontal bars, and its Home and
   // End follow the same list, so steps and ends run on screen position here.
   function onKeyDownCapture(event: KeyboardEvent<HTMLDivElement>) {
     setSpoken(true)
+    if (rangeAxis && onRangeKey(event)) return
+    if (inBrush(event.target)) return
+    const growing =
+      rangeAxis !== null && event.shiftKey && RANGE_KEYS.has(event.key)
+    if (!growing) setRangeSpoken('')
+    const move = (point: ChartPoint) => {
+      focusPoint(point)
+      if (growing) growRange(point)
+    }
     const points = plotPoints()
     if (event.key === 'Home' || event.key === 'End') {
       const ends = visualEnds(points, axis)
       if (!ends) return
       event.preventDefault()
       event.stopPropagation()
-      focusPoint(event.key === 'Home' ? ends.first : ends.last)
+      move(event.key === 'Home' ? ends.first : ends.last)
       return
     }
     const step = ARROW_STEPS[axis][event.key]
@@ -167,7 +339,18 @@ export function ChartPlot<P>({
     event.preventDefault()
     event.stopPropagation()
     const next = step(points, current)
-    if (next) focusPoint(next)
+    if (next) move(next)
+  }
+
+  // The brush covers the plot, and the engine drops hover and taps over a
+  // control, so the tooltip follows the pointer from here.
+  function followPointer(event: PointerEvent<HTMLDivElement>) {
+    if (!rangeAxis || !inBrush(event.target)) return
+    const interaction = renderRef.current?.interaction
+    interaction?.setControlledFocus(
+      interaction.resolvePointer(event.clientX, event.clientY),
+      { source: 'pointer' }
+    )
   }
 
   // Runs before the engine's own focusin, which skips entry once a point is set.
@@ -217,6 +400,7 @@ export function ChartPlot<P>({
       <div
         ref={hostRef}
         data-slot='chart-plot-host'
+        data-range={rangeAxis ? (selection ? 'held' : 'empty') : undefined}
         className='relative'
         onKeyDownCapture={onKeyDownCapture}
         onFocusCapture={onFocusCapture}
@@ -224,7 +408,18 @@ export function ChartPlot<P>({
           pressedRef.current = true
           setSpoken(false)
         }}
-        onPointerMove={() => setSpoken(false)}
+        onPointerDown={(event) => {
+          if (event.pointerType === 'touch') followPointer(event)
+        }}
+        onPointerMove={(event) => {
+          setSpoken(false)
+          followPointer(event)
+        }}
+        // A tap leaves as the finger lifts, and its tooltip should stay.
+        onPointerLeave={(event) => {
+          if (rangeAxis && focused && event.pointerType !== 'touch')
+            focusPoint(null)
+        }}
         onBlur={onBlur}
       >
         {!card && patterns}
@@ -235,7 +430,7 @@ export function ChartPlot<P>({
             'motion-safe:transition-opacity',
             !measured && 'opacity-0'
           )}
-          definition={drawing.definition}
+          definition={definition ?? drawing.definition}
           renderSvg={axis === 'y' ? renderWithTitles : undefined}
           height={fillsCard ? undefined : frame.height}
           style={fillsCard ? { height: '100%' } : undefined}
@@ -245,6 +440,10 @@ export function ChartPlot<P>({
           onFocusGroupChange={setGroup}
           onRender={(context) => {
             renderRef.current = context
+            const brush = context.container.querySelector<HTMLElement>(BRUSH)
+            if (!brush) return
+            brush.style.touchAction = 'auto'
+            keepTouchForScrolling(brush)
           }}
         />
         {focused && tooltip && (
@@ -263,7 +462,9 @@ export function ChartPlot<P>({
         aria-live='polite'
         className='sr-only'
       >
-        {spoken && focusedDatum ? chart.describe(focusedDatum, props) : ''}
+        {spoken &&
+          (rangeSpoken ||
+            (focusedDatum ? chart.describe(focusedDatum, props) : ''))}
       </p>
     </div>
   )

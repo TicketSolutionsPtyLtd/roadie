@@ -434,6 +434,16 @@ export const lineChart: ChartDefinition<LineChartProps> = {
   build,
   table: lineChartTable,
   yExtent: lineYExtent,
+  rangeAxis(props) {
+    if (!isTimeField(props.data, props.x)) return null
+    const xs = toLinePoints(props).map((p) => Number(p.x))
+    const values = [...new Set(xs)].sort((a, b) => a - b)
+    return {
+      values,
+      msOf: Number,
+      options: { hasTime: hasTimeOfDay(props.data[0]?.[props.x]) }
+    }
+  },
   summary(props) {
     if (props.takeaway) return props.takeaway
     // A summary states what has happened, so a forecast stays out of it.

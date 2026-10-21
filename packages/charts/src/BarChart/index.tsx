@@ -6,7 +6,12 @@ import type { BarChartProps } from './types'
 
 export function BarChart(props: BarChartProps) {
   return (
-    <ChartPlot chart={barChart} props={props} className={props.className} />
+    <ChartPlot
+      chart={barChart}
+      props={props}
+      onRangeSelect={props.onRangeSelect}
+      className={props.className}
+    />
   )
 }
 BarChart.displayName = 'BarChart'

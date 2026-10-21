@@ -31,14 +31,14 @@
     "name": "DashboardView",
     "path": "dist/DashboardView/index.js",
     "import": "*",
-    "limit": "58 kB",
+    "limit": "85 kB",
     "ignore": ["@oztix/roadie-core", "@oztix/roadie-components"]
   },
   {
     "name": "LineChart",
     "path": "dist/LineChart/index.js",
     "import": "*",
-    "limit": "43 kB",
+    "limit": "68 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -50,7 +50,7 @@
     "name": "BarChart",
     "path": "dist/BarChart/index.js",
     "import": "*",
-    "limit": "43 kB",
+    "limit": "67 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -62,7 +62,7 @@
     "name": "RankedBars",
     "path": "dist/RankedBars/index.js",
     "import": "*",
-    "limit": "43 kB",
+    "limit": "67 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -74,7 +74,7 @@
     "name": "StackedBars",
     "path": "dist/StackedBars/index.js",
     "import": "*",
-    "limit": "42 kB",
+    "limit": "67 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -86,7 +86,7 @@
     "name": "Histogram",
     "path": "dist/Histogram/index.js",
     "import": "*",
-    "limit": "38 kB",
+    "limit": "61 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -98,7 +98,7 @@
     "name": "Funnel",
     "path": "dist/Funnel/index.js",
     "import": "*",
-    "limit": "42 kB",
+    "limit": "66 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -110,7 +110,7 @@
     "name": "Heatmap",
     "path": "dist/Heatmap/index.js",
     "import": "*",
-    "limit": "36 kB",
+    "limit": "59 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -122,7 +122,7 @@
     "name": "Scatter",
     "path": "dist/Scatter/index.js",
     "import": "*",
-    "limit": "38 kB",
+    "limit": "61 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -134,7 +134,7 @@
     "name": "SmallMultiples",
     "path": "dist/SmallMultiples/index.js",
     "import": "*",
-    "limit": "50 kB",
+    "limit": "74 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",

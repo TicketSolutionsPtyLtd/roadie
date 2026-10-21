@@ -68,6 +68,39 @@ import { BarChart } from '@oztix/roadie-charts/bar-chart'
 </Chart>
 ```
 
+### Selecting a range
+
+`onRangeSelect` reports the bars a drag covers, inclusive and in the venue's wall time. On hourly bars both ends carry the time, such as `'2026-11-14T18:00'`. On weekly bars the range ends on the last day of the last week.
+
+```tsx-live-noinline
+function Zoom() {
+  const [range, setRange] = useState(null)
+  return (
+    <div className='grid gap-4'>
+      <Chart label='Weekly orders' source='Oztix sales.' size='md'>
+        <BarChart
+          data={[
+            { week: '2026-09-07', orders: 420 },
+            { week: '2026-09-14', orders: 610 },
+            { week: '2026-09-21', orders: 580 },
+            { week: '2026-09-28', orders: 890 },
+            { week: '2026-10-05', orders: 1240 },
+            { week: '2026-10-12', orders: 980 }
+          ]}
+          x='week'
+          y='orders'
+          interval='week'
+          onRangeSelect={setRange}
+        />
+      </Chart>
+      <p className='text-sm text-subtle'>Range: {range ? `${range.start} to ${range.end}` : 'none yet'}</p>
+    </div>
+  )
+}
+
+render(<Zoom />)
+```
+
 ### States
 
 ```tsx-live layout=stack width=140
@@ -83,12 +116,14 @@ import { BarChart } from '@oztix/roadie-charts/bar-chart'
 - Send one row per bar. Rows that share an x add up into one bar, and `validateDashboard` warns about them. A `line` can't add up a rate, so it keeps the first value it has and skips empty rows.
 - Use `interval='hour'` for on-sale and entry charts so ticks and spoken values carry the time.
 - Keep annotation labels to 20 characters. Mark what moved sales: announcements, line-up drops, email sends, ad bursts and price releases.
+- With `onRangeSelect`, releasing a drag reports the range and leaves it drawn until a click on the plot, Escape while the chart has focus, or `data` with different x values. Touch only scrolls and shows the tooltip, so pair the chart with a `DateRangePicker` for phones.
 - Only `line` gets its own scale. Don't put two unrelated measures on one chart. A percent `line` always runs from 0 to 100%.
 
 ## Accessibility
 
 - The plot is one tab stop. Left and right arrows move between bars, and each bar is read out with its time, such as "Monday 3 August, 9am, 1,840 orders".
 - With `line`, each bar is read out with the second measure too, such as "Saturday 14 November, 6pm, 300 scans, inside 48%".
+- With `onRangeSelect`, Shift with the left or right arrow selects bars from the focused one, the range is read out, and Enter applies it. Escape clears it.
 - The Table tab lists every bar and the `line` measure in full.
 
 <PropsDefinitions component='BarChart' />
