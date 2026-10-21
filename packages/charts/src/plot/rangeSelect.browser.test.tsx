@@ -194,6 +194,29 @@ describe('range selection by keyboard', () => {
     })
   })
 
+  it('selects to either end with Shift+Home and Shift+End', async () => {
+    const onRangeSelect = vi.fn()
+    const chart = renderChart(
+      <LineChart data={days} x='day' y='sold' onRangeSelect={onRangeSelect} />
+    )
+    await afterResize()
+    chart.svg().focus()
+    await expect.poll(() => chart.live().textContent).not.toBe('')
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}{Shift>}{End}{/Shift}')
+    await expect
+      .poll(() => chart.live().textContent)
+      .toBe('Selected 3 to 8 October, 6 days. Enter to apply.')
+    await userEvent.keyboard('{Shift>}{Home}{/Shift}')
+    await expect
+      .poll(() => chart.live().textContent)
+      .toBe('Selected 1 to 3 October, 3 days. Enter to apply.')
+    await userEvent.keyboard('{Enter}')
+    expect(onRangeSelect).toHaveBeenCalledExactlyOnceWith({
+      start: '2026-10-01',
+      end: '2026-10-03'
+    })
+  })
+
   it('moves a handle without applying until Enter', async () => {
     const onRangeSelect = vi.fn()
     const chart = renderChart(
@@ -223,6 +246,10 @@ describe('range selection by keyboard', () => {
       start: '2026-10-01',
       end: '2026-10-04'
     })
+    await userEvent.keyboard('{End}')
+    await expect
+      .poll(() => end.getAttribute('aria-valuetext'))
+      .toBe('Thursday 8 October')
   })
 
   it.each([
@@ -259,11 +286,15 @@ describe('range selection by keyboard', () => {
       <LineChart data={days} x='day' y='sold' onRangeSelect={onRangeSelect} />
     )
     await afterResize()
-    // d3 hides the handles of an empty brush rather than removing them.
-    const handles = () =>
-      [...(chart.brush()?.querySelectorAll('[role=slider]') ?? [])].filter(
+    // d3 hides the handles of an empty brush rather than removing them, and
+    // a chart that failed to draw has no brush at all.
+    const handles = () => {
+      const brush = chart.brush()
+      if (!brush) return 'no brush'
+      return [...brush.querySelectorAll('[role=slider]')].filter(
         (el) => getComputedStyle(el).display !== 'none'
       ).length
+    }
     await expect.poll(() => chart.brush()).not.toBeNull()
     expect(handles()).toBe(0)
     chart.svg().focus()
@@ -364,6 +395,7 @@ describe('range selection on touch', () => {
     )
     await afterResize()
     await expect.poll(() => chart.brush()).not.toBeNull()
+    expect(getComputedStyle(chart.brush()!).touchAction).toBe('auto')
     const overlay = chart.brush()!.querySelector('.overlay')!
     const box = overlay.getBoundingClientRect()
     const at = {
@@ -380,6 +412,43 @@ describe('range selection on touch', () => {
       overlay.dispatchEvent(new PointerEvent(type, at))
     await afterResize()
     expect(chart.tooltip()).not.toBeNull()
+  })
+
+  it.skipIf(!canTouch)('leaves a held range alone on a tap', async () => {
+    const chart = renderChart(
+      <LineChart data={days} x='day' y='sold' onRangeSelect={() => {}} />
+    )
+    await afterResize()
+    chart.svg().focus()
+    await expect.poll(() => chart.live().textContent).not.toBe('')
+    await userEvent.keyboard('{Shift>}{ArrowRight}{ArrowRight}{/Shift}')
+    await expect
+      .poll(() => chart.host().getAttribute('data-range'))
+      .toBe('held')
+    const overlay = chart.brush()!.querySelector('.overlay')!
+    const box = overlay.getBoundingClientRect()
+    const at = {
+      clientX: box.left + box.width * 0.8,
+      clientY: box.top + box.height / 2
+    }
+    const touch = new Touch({ identifier: 1, target: overlay, ...at })
+    overlay.dispatchEvent(
+      new TouchEvent('touchstart', {
+        bubbles: true,
+        touches: [touch],
+        targetTouches: [touch],
+        changedTouches: [touch]
+      })
+    )
+    overlay.dispatchEvent(
+      new TouchEvent('touchend', { bubbles: true, changedTouches: [touch] })
+    )
+    // The mouse events a browser emulates after a tap.
+    const mouse = { bubbles: true, cancelable: true, view: window, ...at }
+    overlay.dispatchEvent(new MouseEvent('mousedown', mouse))
+    window.dispatchEvent(new MouseEvent('mouseup', mouse))
+    await afterResize()
+    expect(chart.host().getAttribute('data-range')).toBe('held')
   })
 
   it.skipIf(!canTouch)('leaves a swipe to scroll the page', async () => {
