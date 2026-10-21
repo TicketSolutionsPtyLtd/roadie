@@ -3,7 +3,7 @@
  * markdown twin, keyed by the name the page uses. `scripts/llms.ts` fails the
  * build on a component missing here, including one passed as a prop.
  * - `rendered`: a renderer in `scripts/twin-renderers.ts` writes its data
- * - `drawing`: it only draws for the site; the sentence before it says what it shows
+ * - `drawing`: it only draws for the site; the sentence before it says what it shows. A wrapper, such as `IndexTabs`, keeps its children in the twin
  */
 export const TWIN_COMPONENTS = {
   AccentScales: 'rendered',
