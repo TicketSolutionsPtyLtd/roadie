@@ -120,6 +120,7 @@ export function plotFields(plot: ChartPlot): FieldRef[] {
       add('reference.field', plot.reference?.field)
       break
     case 'stacked-bars':
+    case 'stacked-area':
       add('x', plot.x)
       add('y', plot.y)
       add('series', plot.series)
@@ -150,7 +151,12 @@ export function plotFields(plot: ChartPlot): FieldRef[] {
 }
 
 function seriesCount(plot: ChartPlot) {
-  if ((plot.kind !== 'line' && plot.kind !== 'stacked-bars') || !plot.series)
+  if (
+    (plot.kind !== 'line' &&
+      plot.kind !== 'stacked-bars' &&
+      plot.kind !== 'stacked-area') ||
+    !plot.series
+  )
     return 0
   const field = plot.series
   return new Set(plot.data.map((row) => row[field])).size

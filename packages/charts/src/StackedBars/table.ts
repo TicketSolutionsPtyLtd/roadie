@@ -5,7 +5,7 @@ import { valueColumn, xColumn } from '../plot/table'
 import { seriesOrder, tableParts } from './stack'
 import type { StackedBarsProps } from './types'
 
-function unusedKey(base: string, taken: readonly string[]) {
+export function unusedKey(base: string, taken: readonly string[]) {
   let key = base
   while (taken.includes(key)) key = `_${key}`
   return key

@@ -45,6 +45,7 @@ export {
   type SmallMultiplesChart,
   type SmallMultiplesProps
 } from './SmallMultiples'
+export { StackedArea, type StackedAreaProps } from './StackedArea'
 export {
   StackedBars,
   type StackedBarsMode,

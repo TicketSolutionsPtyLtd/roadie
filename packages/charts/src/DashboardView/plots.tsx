@@ -15,6 +15,7 @@ import { LineChart } from '../LineChart'
 import { RankedBars } from '../RankedBars'
 import { Scatter } from '../Scatter'
 import { SmallMultiples } from '../SmallMultiples'
+import { StackedArea } from '../StackedArea'
 import { StackedBars } from '../StackedBars'
 
 function ThemedImage({ image, alt }: { image: StaticPlotImage; alt: string }) {
@@ -67,6 +68,8 @@ function ChartPlotView({ plot }: { plot: ChartPlot }): ReactElement {
       return <RankedBars {...withoutKind(plot)} />
     case 'stacked-bars':
       return <StackedBars {...withoutKind(plot)} />
+    case 'stacked-area':
+      return <StackedArea {...withoutKind(plot)} />
     case 'histogram':
       return <Histogram {...withoutKind(plot)} />
     case 'funnel':

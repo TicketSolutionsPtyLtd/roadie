@@ -12,6 +12,7 @@ import { paceExample } from '../LineChart/examples'
 import { channelExample } from '../RankedBars/examples'
 import { portfolioExample } from '../Scatter/examples'
 import { gatesExample } from '../SmallMultiples/examples'
+import { scansByGateExample } from '../StackedArea/examples'
 import { ticketMixExample } from '../StackedBars/examples'
 import { plotTable } from '../tables/cardTable'
 import { PlotView } from './plots'
@@ -21,6 +22,7 @@ const plots: ChartPlot[] = [
   { kind: 'bar', ...onSaleExample },
   { kind: 'ranked-bars', ...channelExample },
   { kind: 'stacked-bars', ...ticketMixExample },
+  { kind: 'stacked-area', ...scansByGateExample },
   { kind: 'histogram', ...leadTimeExample },
   { kind: 'funnel', ...checkoutExample },
   { kind: 'heatmap', ...whenFansBuyExample },

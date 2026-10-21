@@ -8,7 +8,8 @@ export type ChartTooltipRow = {
   label: string
   value: string
   color?: string
-  shape?: ChartLegendShape
+  /** `none` keeps the key's space but draws no key, for a total. */
+  shape?: ChartLegendShape | 'none'
 }
 export type ChartTooltipProps = ComponentProps<'div'> & {
   title?: string
@@ -35,7 +36,11 @@ export function ChartTooltip({
         {rows.map((row) => (
           <Fragment key={row.label}>
             <dt className='flex items-center gap-1.5 text-subtle'>
-              <LegendKey shape={row.shape ?? 'swatch'} color={row.color} />
+              {row.shape === 'none' ? (
+                <span data-slot='legend-key-space' className='w-4 shrink-0' />
+              ) : (
+                <LegendKey shape={row.shape ?? 'swatch'} color={row.color} />
+              )}
               {row.label}:
             </dt>
             <dd className='text-right font-semibold text-strong'>

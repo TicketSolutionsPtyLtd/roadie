@@ -280,6 +280,23 @@ export function ChartPreview({ name }: { name: string }) {
           ))}
         </div>
       )
+    case 'stacked-area':
+      return (
+        <svg viewBox='0 0 160 64' className='h-16 w-40' aria-hidden='true'>
+          <path
+            d='M0 64 L0 40 L40 28 L80 18 L120 26 L160 34 L160 64 Z'
+            className='fill-chart-trio-3'
+          />
+          <path
+            d='M0 64 L0 48 L40 40 L80 32 L120 38 L160 44 L160 64 Z'
+            className='fill-chart-trio-2'
+          />
+          <path
+            d='M0 64 L0 56 L40 52 L80 46 L120 50 L160 54 L160 64 Z'
+            className='fill-chart-trio-1'
+          />
+        </svg>
+      )
     case 'histogram':
       return (
         <div className='relative flex h-16 w-40 items-end gap-px'>

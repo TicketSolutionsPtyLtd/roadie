@@ -113,6 +113,15 @@ export const stackedBarsPlotSchema = z.strictObject({
   orientation: z.enum(['horizontal', 'vertical']).optional()
 })
 
+export const stackedAreaPlotSchema = z.strictObject({
+  kind: z.literal('stacked-area'),
+  ...measured,
+  series: field,
+  highlight: highlight.optional(),
+  palette: palette.optional(),
+  xFormat: xFormat.optional()
+})
+
 export const histogramPlotSchema = z.strictObject({
   kind: z.literal('histogram'),
   data: z.array(plotRow),
@@ -181,6 +190,7 @@ const chartPlots = [
   barPlotSchema,
   rankedBarsPlotSchema,
   stackedBarsPlotSchema,
+  stackedAreaPlotSchema,
   histogramPlotSchema,
   funnelPlotSchema,
   heatmapPlotSchema,
@@ -199,6 +209,7 @@ export const CHART_PLOT_KINDS = [
   'bar',
   'ranked-bars',
   'stacked-bars',
+  'stacked-area',
   'histogram',
   'funnel',
   'heatmap',
@@ -216,6 +227,7 @@ export type LinePlot = z.infer<typeof linePlotSchema>
 export type BarPlot = z.infer<typeof barPlotSchema>
 export type RankedBarsPlot = z.infer<typeof rankedBarsPlotSchema>
 export type StackedBarsPlot = z.infer<typeof stackedBarsPlotSchema>
+export type StackedAreaPlot = z.infer<typeof stackedAreaPlotSchema>
 export type HistogramPlot = z.infer<typeof histogramPlotSchema>
 export type FunnelPlot = z.infer<typeof funnelPlotSchema>
 export type HeatmapPlot = z.infer<typeof heatmapPlotSchema>

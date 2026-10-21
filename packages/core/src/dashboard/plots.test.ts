@@ -38,6 +38,13 @@ const valid = {
     series: 'type',
     mode: 'share'
   },
+  'stacked-area': {
+    kind: 'stacked-area',
+    data: [{ at: '2026-11-14T19:00', gate: 'Main', scans: 50 }],
+    x: 'at',
+    y: 'scans',
+    series: 'gate'
+  },
   histogram: {
     kind: 'histogram',
     data: [{ lead: 12 }, { lead: 30 }],

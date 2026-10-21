@@ -56,6 +56,7 @@ describe('tables entry', () => {
       'rankedBarsTable',
       'scatterTable',
       'smallMultiplesTable',
+      'stackedAreaTable',
       'stackedBarsTable'
     ])
   })
