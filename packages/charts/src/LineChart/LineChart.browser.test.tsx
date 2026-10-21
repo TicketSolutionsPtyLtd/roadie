@@ -35,6 +35,52 @@ const todayAtEnd: LineChartProps = {
   annotations: [{ at: '2026-10-14', label: 'Final release' }]
 }
 
+const presale: LineChartProps = {
+  data: [
+    '2026-10-01',
+    '2026-10-08',
+    '2026-10-15',
+    '2026-10-22',
+    '2026-10-29'
+  ].map((day, i) => ({ day, sold: 440 + i * 90 })),
+  x: 'day',
+  y: 'sold',
+  today: '2026-10-22',
+  annotations: [{ at: '2026-10-08', label: 'Members presale' }]
+}
+
+const WEEKS = [
+  '2026-10-01',
+  '2026-10-08',
+  '2026-10-15',
+  '2026-10-22',
+  '2026-10-29'
+]
+
+const weekly = (sold: readonly number[], days = WEEKS) =>
+  days.map((day, i) => ({ day, sold: sold[i]! }))
+
+// Today's label sits a line below the top, where a dropped label would land.
+const todayALineDown: LineChartProps = {
+  data: weekly([400, 500, 600, 800, 1000]),
+  x: 'day',
+  y: 'sold',
+  today: '2026-10-22',
+  annotations: [{ at: '2026-10-21', label: 'Members presale' }]
+}
+
+// Today sits low, so the annotation keeps its side, clear of the y ticks.
+const todayLowNearTheAxis: LineChartProps = {
+  data: weekly(
+    [400, 100, 600, 700, 1000],
+    ['2026-10-01', '2026-10-05', '2026-10-15', '2026-10-22', '2026-10-29']
+  ),
+  x: 'day',
+  y: 'sold',
+  today: '2026-10-05',
+  annotations: [{ at: '2026-10-03', label: 'Presale' }]
+}
+
 const labelledExamples = { pace: paceExample, 'today at the end': todayAtEnd }
 
 let removeStylesheet = () => {}
@@ -46,6 +92,42 @@ afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
 describe('LineChart in a card', () => {
+  it.each([280, 320, 560, 1200])(
+    'keeps the today and annotation labels apart at %ipx',
+    async (width) => {
+      const { container } = renderInCard(<LineChart {...presale} />, {
+        size: 'md',
+        width
+      })
+      await afterResize()
+      expectNoOverlap(container, '[data-ts-key^="label-"] text')
+    }
+  )
+
+  it.each([320, 560])(
+    'keeps a label clear of today a line down at %ipx',
+    async (width) => {
+      const { container } = renderInCard(<LineChart {...todayALineDown} />, {
+        size: 'md',
+        width
+      })
+      await afterResize()
+      expectNoOverlap(container, '[data-ts-key^="label-"] text')
+    }
+  )
+
+  it('keeps a label off the y tick labels when today sits low', async () => {
+    const { container } = renderInCard(<LineChart {...todayLowNearTheAxis} />, {
+      size: 'md',
+      width: 480
+    })
+    await afterResize()
+    expectNoOverlap(
+      container,
+      '[data-ts-key^="label-"] text, text[data-ts-key^="y-tick-label"]'
+    )
+  })
+
   it.each(Object.entries(CARD_HEIGHTS))('fills the %s plot', (size, height) => {
     const { container } = renderInCard(<LineChart {...paceExample} />, {
       size: size as keyof typeof CARD_HEIGHTS

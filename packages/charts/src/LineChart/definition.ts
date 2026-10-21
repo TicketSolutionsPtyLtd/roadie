@@ -12,6 +12,7 @@ import {
   type TodayPoint,
   bandMarks,
   forecastMarks,
+  placeTodayLabel,
   targetMark,
   todayMarks
 } from '../plot/aids'
@@ -23,10 +24,9 @@ import {
   endLabelsFit,
   labelGap,
   plotSpan,
-  stackLabels,
-  textWidth
+  stackLabels
 } from '../plot/endLabels'
-import { centredShift, pixelsToX, spanPixel } from '../plot/frame'
+import { pixelsToX } from '../plot/frame'
 import {
   OTHER,
   type SeriesStyle,
@@ -327,6 +327,10 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
   const pixels = plotSpan(frame, yTicks.map(format), rightMargin)
   const margins = pixels.left + pixels.right
   const across = (x: number) => (span > 0 ? (x - xDomain[0]) / span : 0)
+  const todayLabel =
+    today && !todayInEnds
+      ? placeTodayLabel(today, pixels, across, yDomain, frame)
+      : null
 
   const marks = [
     ...(band
@@ -353,22 +357,15 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
           paint,
           frame,
           lead.color,
-          todayInEnds
-            ? null
-            : {
-                dx: centredShift(
-                  spanPixel(pixels, across(today.x)),
-                  textWidth(today.label, frame),
-                  frame.width
-                )
-              }
+          todayLabel && { dx: todayLabel.dx }
         )
       : []),
     ...annotationMarks(
       annotationsOnAxis(props.annotations, xDomain, isTime, yDomain[1]),
       paint,
       frame,
-      pixels
+      pixels,
+      todayLabel?.box ?? null
     ),
     ...(ends.length
       ? endLabelMarks(

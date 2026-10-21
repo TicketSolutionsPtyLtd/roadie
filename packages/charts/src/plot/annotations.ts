@@ -19,6 +19,39 @@ export type PlacedAnnotation = {
 }
 
 const LABEL_GAP = 4
+const LABEL_DY = 4
+const LINES = [0, 1, 2]
+
+/**
+ * The pixels a label covers, across from the SVG's left edge and down from
+ * the plot's top.
+ */
+export type LabelBox = {
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
+
+/** A glyph box runs taller than the font size, so lines sit two sizes apart. */
+export const labelBox = (
+  left: number,
+  right: number,
+  middle: number,
+  frame: PlotFrame
+): LabelBox => ({
+  left,
+  right,
+  top: middle - frame.fontSize * 0.75,
+  bottom: middle + frame.fontSize * 0.75
+})
+
+const clash = (a: LabelBox, b: LabelBox | null) =>
+  b !== null &&
+  a.left < b.right &&
+  b.left < a.right &&
+  a.top < b.bottom &&
+  b.top < a.bottom
 
 /** Places annotations on a continuous x axis, dropping any outside `domain`. */
 export function annotationsOnAxis(
@@ -82,25 +115,40 @@ export function annotationsOnBars(
   })
 }
 
-/** Each label reads right of its rule, or left when it would leave `span`. */
+/**
+ * Each label reads right of its rule, or left when it would leave `span`. A
+ * label that would cross `avoid`, such as the today label, reads on the other
+ * side if it fits there, or drops a line at a time until clear.
+ */
 export function annotationMarks(
   annotations: readonly PlacedAnnotation[],
   paint: ChartPaint,
   frame: PlotFrame,
-  span: PlotSpan
+  span: PlotSpan,
+  avoid: LabelBox | null = null
 ): ChartMark[] {
   if (annotations.length === 0) return []
   const placed = annotations.map((annotation) => {
-    const anchor = besideAnchor(
-      spanPixel(span, annotation.across),
-      LABEL_GAP,
-      textWidth(annotation.label, frame),
-      span.width
-    )
+    const x = spanPixel(span, annotation.across)
+    const width = textWidth(annotation.label, frame)
+    const preferred = besideAnchor(x, LABEL_GAP, width, span.width)
+    // Left of the rule, a label must clear the y tick labels too.
+    const flips = preferred === 'start' && x - LABEL_GAP - width >= span.left
+    const sides = flips ? (['start', 'end'] as const) : [preferred]
+    const dyOf = (line: number) => LABEL_DY + line * 2 * frame.fontSize
+    const covers = (side: 'start' | 'end', line: number) =>
+      side === 'start'
+        ? labelBox(x + LABEL_GAP, x + LABEL_GAP + width, dyOf(line), frame)
+        : labelBox(x - LABEL_GAP - width, x - LABEL_GAP, dyOf(line), frame)
+    const spots = LINES.flatMap((line) => sides.map((side) => ({ side, line })))
+    const { side, line } = spots.find(
+      (spot) => !clash(covers(spot.side, spot.line), avoid)
+    ) ?? { side: preferred, line: 0 }
     return {
       ...annotation,
-      anchor,
-      dx: anchor === 'start' ? LABEL_GAP : -LABEL_GAP
+      anchor: side,
+      dx: side === 'start' ? LABEL_GAP : -LABEL_GAP,
+      dy: dyOf(line)
     }
   })
   return [
@@ -120,7 +168,7 @@ export function annotationMarks(
         y: 'y',
         text: 'label',
         dx: (d) => d.dx,
-        dy: 4,
+        dy: (d) => d.dy,
         anchor: (d) => d.anchor,
         fill: paint.label,
         fontSize: frame.fontSize,

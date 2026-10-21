@@ -4,10 +4,9 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
-import { todayMarks } from '../plot/aids'
+import { placeTodayLabel, todayMarks } from '../plot/aids'
 import { annotationMarks, annotationsOnAxis } from '../plot/annotations'
-import { plotSpan, textWidth } from '../plot/endLabels'
-import { centredShift, spanPixel } from '../plot/frame'
+import { plotSpan } from '../plot/endLabels'
 import { OTHER, seriesMarkId, seriesStyles } from '../plot/series'
 import { fieldLabel } from '../plot/table'
 import { hasTimeOfDay, isTimeField, parseX } from '../plot/time'
@@ -71,6 +70,8 @@ function build(props: StackedAreaProps, paint: ChartPaint, frame: PlotFrame) {
   const span = xDomain[1] - xDomain[0]
   const across = (x: number) => (span > 0 ? (x - xDomain[0]) / span : 0)
   const today = todayPoint(props, layers)
+  const todayLabel =
+    today && placeTodayLabel(today, pixels, across, yDomain, frame)
   const marks = styles(props, paint).flatMap((style) => {
     const own = layers.filter((l) => l.series === style.name)
     const quiet = style.emphasis === 'context' || style.emphasis === 'other'
@@ -100,14 +101,8 @@ function build(props: StackedAreaProps, paint: ChartPaint, frame: PlotFrame) {
   return defineChart({
     marks: [
       ...marks,
-      ...(today
-        ? todayMarks(today, paint, frame, paint.value, {
-            dx: centredShift(
-              spanPixel(pixels, across(today.x)),
-              textWidth(today.label, frame),
-              frame.width
-            )
-          })
+      ...(today && todayLabel
+        ? todayMarks(today, paint, frame, paint.value, { dx: todayLabel.dx })
         : []),
       ...annotationMarks(
         annotationsOnAxis(
@@ -118,7 +113,8 @@ function build(props: StackedAreaProps, paint: ChartPaint, frame: PlotFrame) {
         ),
         paint,
         frame,
-        pixels
+        pixels,
+        todayLabel?.box ?? null
       )
     ],
     scales: {
