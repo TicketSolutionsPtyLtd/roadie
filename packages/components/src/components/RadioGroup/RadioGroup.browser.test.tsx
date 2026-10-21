@@ -61,6 +61,26 @@ describe('RadioGroup size', () => {
     }
   )
 
+  it('sets a larger label at lg only', () => {
+    render(
+      <>
+        <RadioGroup size='sm'>
+          <RadioGroup.Item value='a' label='Small' />
+        </RadioGroup>
+        <RadioGroup size='md'>
+          <RadioGroup.Item value='a' label='Medium' />
+        </RadioGroup>
+        <RadioGroup size='lg'>
+          <RadioGroup.Item value='a' label='Large' />
+        </RadioGroup>
+      </>
+    )
+    const fontSize = (text: string) =>
+      parseFloat(getComputedStyle(screen.getByText(text)).fontSize)
+    expect(fontSize('Small')).toBe(fontSize('Medium'))
+    expect(fontSize('Large')).toBeGreaterThan(fontSize('Medium'))
+  })
+
   it('keeps an sm row at least 24px tall', () => {
     render(
       <RadioGroup size='sm'>
@@ -89,8 +109,15 @@ describe('RadioGroup.Item trailing', () => {
       'Supercalifragilisticexpialidocious_unbroken_date_range'
     )
     const count = screen.getByText('1,284,903').getBoundingClientRect()
+    const labelText = document.createRange()
+    labelText.selectNodeContents(
+      screen.getByText('Supercalifragilisticexpialidocious_unbroken_date_range')
+    )
     expect(row.right).toBeLessThanOrEqual(frame.right)
     expect(count.right).toBeLessThanOrEqual(frame.right)
+    expect(labelText.getBoundingClientRect().right).toBeLessThanOrEqual(
+      count.left
+    )
   })
 
   it('sits at the end of the row, after the label', () => {

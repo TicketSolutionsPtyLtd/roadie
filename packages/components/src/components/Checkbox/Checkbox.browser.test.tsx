@@ -58,6 +58,20 @@ describe('Checkbox size', () => {
     expect(lg).toBeGreaterThan(md)
   })
 
+  it('sets a larger label at lg only', () => {
+    render(
+      <>
+        <Checkbox size='sm' label='Small' />
+        <Checkbox size='md' label='Medium' />
+        <Checkbox size='lg' label='Large' />
+      </>
+    )
+    const fontSize = (text: string) =>
+      parseFloat(getComputedStyle(screen.getByText(text)).fontSize)
+    expect(fontSize('Small')).toBe(fontSize('Medium'))
+    expect(fontSize('Large')).toBeGreaterThan(fontSize('Medium'))
+  })
+
   it('takes its size from the group, over its own', () => {
     render(
       <CheckboxGroup size='sm' defaultValue={['rock']}>
@@ -75,12 +89,10 @@ describe('Checkbox size', () => {
 
 describe('Checkbox trailing', () => {
   it('keeps the count in view beside a long unbroken label', () => {
+    const label = 'Supercalifragilisticexpialidocious_unbroken_venue_name'
     render(
       <div data-testid='frame' style={{ width: 240 }}>
-        <Checkbox
-          label='Supercalifragilisticexpialidocious_unbroken_venue_name'
-          trailing='1,284,903'
-        />
+        <Checkbox label={label} trailing='1,284,903' />
       </div>
     )
     const frame = screen.getByTestId('frame').getBoundingClientRect()
@@ -89,8 +101,13 @@ describe('Checkbox trailing', () => {
       .closest('[data-slot="checkbox"]')!
       .getBoundingClientRect()
     const count = screen.getByText('1,284,903').getBoundingClientRect()
+    const labelText = document.createRange()
+    labelText.selectNodeContents(screen.getByText(label))
     expect(row.right).toBeLessThanOrEqual(frame.right)
     expect(count.right).toBeLessThanOrEqual(frame.right)
+    expect(labelText.getBoundingClientRect().right).toBeLessThanOrEqual(
+      count.left
+    )
   })
 
   it('sits at the end of the row, after the label', () => {
