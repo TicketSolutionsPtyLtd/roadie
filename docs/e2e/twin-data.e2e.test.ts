@@ -34,6 +34,7 @@ const TABLES: [route: string, slot: string][] = [
     'zone-table'
   ].map((slot): [string, string] => ['/foundations/date-and-time', slot]),
   ['/foundations/elevation', 'layering-scale'],
+  ['/foundations/records', 'records-adapters'],
   ['/foundations/iconography', 'icon-size-scale'],
   ['/foundations/interactions', 'focus-ring-list'],
   ['/foundations/interactions', 'transition-list'],
@@ -51,6 +52,7 @@ const TABLES: [route: string, slot: string][] = [
 
 const CODE: [route: string, slot: string, lang: string][] = [
   ['/foundations/records', 'query-suggestions', 'ts'],
+  ['/foundations/records', 'view-elasticsearch', 'ts'],
   ['/foundations/records', 'view-meilisearch', 'ts'],
   ['/foundations/records', 'view-search-params', 'text']
 ]
@@ -79,8 +81,9 @@ async function load(route: string) {
 }
 
 // Each route loads once per file rather than once per table (the date and
-// time page alone has 13), so a test may read the page or open its own
-// block's code, but must not change what another test reads.
+// time page alone has 13), so a test may read the page, open its own
+// block's code, or pick the tab that shows it, but must not change what
+// another test reads.
 const pages = new Map<string, Promise<Page>>()
 
 function open(route: string) {
@@ -161,6 +164,15 @@ describe('twins carry the data their pages render', () => {
     async (route, slot, lang) => {
       const page = await open(route)
       const block = page.locator(`[data-slot=${slot}]`)
+      const hiddenPanel = page.locator('[role=tabpanel][hidden]', {
+        has: block
+      })
+      if (await hiddenPanel.count())
+        await page
+          .locator(
+            `[role=tab][aria-controls="${await hiddenPanel.getAttribute('id')}"]`
+          )
+          .click()
       await block.scrollIntoViewIfNeeded()
       const viewCode = block.getByRole('button', { name: 'View code' })
       if (await viewCode.count()) await viewCode.click()

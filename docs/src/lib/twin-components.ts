@@ -3,7 +3,7 @@
  * markdown twin, keyed by the name the page uses. `scripts/llms.ts` fails the
  * build on a component missing here, including one passed as a prop.
  * - `rendered`: a renderer in `scripts/twin-renderers.ts` writes its data
- * - `drawing`: it only draws for the site; the sentence before it says what it shows
+ * - `drawing`: it only draws for the site; the sentence before it says what it shows. A wrapper, such as `IndexTabs`, keeps its children in the twin
  */
 export const TWIN_COMPONENTS = {
   AccentScales: 'rendered',
@@ -41,6 +41,8 @@ export const TWIN_COMPONENTS = {
   IllustrationGallery: 'rendered',
   IllustrationLibrary: 'rendered',
   LogoExample: 'drawing',
+  IndexDetails: 'drawing',
+  IndexTabs: 'drawing',
   IntentEmphasis: 'drawing',
   LayeringScale: 'rendered',
   MachineValueReads: 'rendered',
@@ -55,6 +57,7 @@ export const TWIN_COMPONENTS = {
   RangeTable: 'rendered',
   ReadingAidsChart: 'drawing',
   RelativeLadder: 'rendered',
+  RecordsAdapters: 'rendered',
   RhythmTable: 'rendered',
   RimLightScale: 'drawing',
   RowDiagram: 'drawing',
@@ -69,6 +72,7 @@ export const TWIN_COMPONENTS = {
   TypeSpecimen: 'drawing',
   TypeScale: 'rendered',
   UpcomingShows: 'drawing',
+  ViewElasticsearch: 'rendered',
   ViewMeilisearch: 'rendered',
   ViewSearchParams: 'rendered',
   ZoneTable: 'rendered'
