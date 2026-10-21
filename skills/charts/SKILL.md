@@ -57,6 +57,7 @@ show a number or a table, not a chart.
 | Change over time         | `LineChart` or `BarChart`                   | `line`, `bar`     |
 | Pace against similar     | `LineChart` with `band`, `target`, `today`  | `line`            |
 | Part of a whole          | `StackedBars`, or a capacity `Meter`        | `stacked-bars`    |
+| Part of a whole, by time | `StackedArea`                               | `stacked-area`    |
 | Spread                   | `Histogram`                                 | `histogram`       |
 | Drop off                 | `Funnel`                                    | `funnel`          |
 | Two measures per item    | `Scatter`                                   | `scatter`         |
@@ -242,7 +243,7 @@ if (!result.ok)
 
 - Card `kind` is `stat`, `table`, `chart`, or `note`. A chart card's `plot` is
   `{ kind, ...props }`, where `kind` is `line`, `bar`, `ranked-bars`,
-  `stacked-bars`, `histogram`, `funnel`, `heatmap`, `scatter`, or
+  `stacked-bars`, `stacked-area`, `histogram`, `funnel`, `heatmap`, `scatter`, or
   `small-multiples`.
 - Card `size` is `stat` (stat cards only), `sm`, `md`, `lg`, or `full`. Every
   row must fill at desktop (12 tracks), tablet (6), and phone (2). Safe rows:
