@@ -1,7 +1,7 @@
 import type { PlotCell, PlotX, TableColumn } from '@oztix/roadie-core/dashboard'
 import type { ValueFormat } from '@oztix/roadie-core/dataviz'
 
-import { formatTimeTitle, hasTimeOfDay, parseX } from './time'
+import { formatTimeCell, hasTimeOfDay, parseX } from './time'
 import { fullFormat } from './values'
 
 // Two or more capitals, with an optional plural s: AUD, URLs.
@@ -37,5 +37,5 @@ export function xCell(value: PlotCell | PlotX, isTime: boolean) {
   if (value === null) return ''
   if (!isTime) return value
   const ms = parseX(value)
-  return ms === null ? String(value) : formatTimeTitle(ms, hasTimeOfDay(value))
+  return ms === null ? String(value) : formatTimeCell(ms, hasTimeOfDay(value))
 }

@@ -213,7 +213,7 @@ describe('barChartTable', () => {
     expect(table.columns[2]).toMatchObject({ key: 'inside', format: 'percent' })
     expect(table.rows).toHaveLength(scanRateExample.data.length)
     expect(table.rows[0]).toEqual({
-      time: 'Sat 14 Nov 2026, 5:00pm',
+      time: 'Sat 14 Nov 2026 17:00',
       scans: 69,
       inside: 0.03
     })

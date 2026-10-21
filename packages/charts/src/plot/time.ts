@@ -97,3 +97,10 @@ export const spokenX = (ms: number, hasTime: boolean) =>
     dateStyle: 'full',
     timeStyle: hasTime ? 'medium' : undefined
   }) ?? ''
+
+export const formatTimeCell = (ms: number, hasTime: boolean) =>
+  formatDateTime(at(ms), {
+    ...WALL,
+    dateStyle: 'long',
+    timeStyle: hasTime ? 'numeric' : undefined
+  }) ?? ''
