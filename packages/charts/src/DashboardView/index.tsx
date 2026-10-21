@@ -168,6 +168,8 @@ function Card({
         >
           <DataTable
             totals={card.totals}
+            groupBy={card.groupBy}
+            defaultExpanded={card.defaultExpanded}
             columns={card.columns}
             rows={card.rows}
             caption={card.label}

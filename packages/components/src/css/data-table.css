@@ -102,3 +102,9 @@
 [data-slot='data-table'] table[data-overlay-clip] {
   overflow-x: clip;
 }
+
+/* Each level of a grouped table steps in by a caret and its gap, so a row's
+   label lines up with its group's. */
+[data-slot='data-table-indent'] {
+  padding-inline-start: calc(var(--data-table-depth, 0) * var(--spacing) * 5);
+}

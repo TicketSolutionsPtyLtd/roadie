@@ -115,6 +115,12 @@ const tableCard = z.strictObject({
   rows: tableData.shape.rows,
   /** A footer row: 'sum' adds up the number columns, or give a label and values. */
   totals: totals.optional(),
+  /** Groups rows by these text or status columns, outermost first. */
+  groupBy: z.array(z.string().min(1)).min(1).optional(),
+  /** Opens every group, or the groups at these paths of values. */
+  defaultExpanded: z
+    .union([z.boolean(), z.array(z.array(z.string()).min(1))])
+    .optional(),
   source: z.string().min(1)
 })
 
