@@ -604,6 +604,20 @@ describe('LineChart counting down to the event', () => {
     expect(svg).not.toMatch(/>-3,000%</)
   })
 
+  it('keeps a plain numeric x as written in words, such as a year', () => {
+    const years: LineChartProps = {
+      data: [
+        { year: 2024, sold: 10 },
+        { year: 2025, sold: 20 }
+      ],
+      x: 'year',
+      y: 'sold'
+    }
+    const point = { x: 2024, y: 10, series: 'Sold', index: 0 }
+    expect(lineChart.tooltip([point], years, paint).title).toBe('2024')
+    expect(lineChart.describe(point, years)).toMatch(/^2024, /)
+  })
+
   it('puts the today dot on the highlighted series', () => {
     const svg = svgOf(countdown)
     const sydney = strokeOf(svg, 'series-2')

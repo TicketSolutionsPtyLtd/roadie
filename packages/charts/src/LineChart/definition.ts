@@ -59,7 +59,8 @@ import {
   describeValue,
   plural,
   spokenPoint,
-  trendSentence
+  trendSentence,
+  xLabel
 } from '../plot/words'
 import {
   forecastStart,
@@ -459,7 +460,7 @@ export const lineChart: ChartDefinition<LineChartProps> = {
         ? x
         : isTime
           ? formatTimeTick(x, 2 * DAY)
-          : formatX(x, props.xFormat)
+          : xLabel(x, props.xFormat)
     const names = [...new Set(points.map((p) => p.series))]
     if (names.length > 1 && props.series) {
       const lead = names
@@ -531,7 +532,7 @@ export const lineChart: ChartDefinition<LineChartProps> = {
         ? first.x
         : isTime
           ? formatTimeTitle(first.x, hasTimeOfDay(props.data[0]?.[props.x]))
-          : formatX(first.x, props.xFormat)
+          : xLabel(first.x, props.xFormat)
     return {
       title,
       rows: rows.map((d) => ({
