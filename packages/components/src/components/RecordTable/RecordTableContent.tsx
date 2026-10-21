@@ -47,6 +47,10 @@ import {
 import { RecordTableRows } from './RecordTableRows'
 import { RecordTablePageCheckbox } from './RecordTableSelectCell'
 import { RecordTableSkeletonRows, StateRow } from './RecordTableStates'
+import {
+  RecordTableNarrowTotals,
+  RecordTableTotalsRow
+} from './RecordTableTotals'
 import { shownColumns } from './columns'
 import { SELECT_WIDTH, columnLayout, priorityProps, tierStyle } from './layout'
 import { useLayoutFocus } from './layoutFocus'
@@ -81,7 +85,7 @@ const SIDEWAYS_ONLY = {
   overscrollBehaviorY: 'auto'
 } as const
 
-const headerTextClass = 'text-xs font-semibold whitespace-nowrap text-subtle'
+const headerTextClass = 'font-semibold whitespace-nowrap text-subtle'
 
 const STICKY_BAR = {
   position: 'sticky',
@@ -204,7 +208,10 @@ export function RecordTableContent({
   )
   const style = tierStyle(layout) as CSSProperties
 
-  const { rows, range } = records
+  const { rows, range, totals } = records
+  // Headings, then the totals under them.
+  const headRows = totals ? 2 : 1
+  const headTextClass = cn(headerTextClass, totals ? 'text-sm' : 'text-xs')
   const busy = records.loading && !records.error
   // Range mode keeps its rows bright: placeholders already show what loads.
   const dimmed = busy && !range && rows.length > 0
@@ -221,10 +228,10 @@ export function RecordTableContent({
     : range
       ? range.total === undefined
         ? -1
-        : range.count + 1
-      : records.resultCount + 1
+        : range.count + headRows
+      : records.resultCount + headRows
   const firstIndex = partial
-    ? shownPage * records.position.pageSize + 2
+    ? shownPage * records.position.pageSize + headRows + 1
     : undefined
   // What the rows show: a sort the fields can't apply marks nothing.
   const sort = records.resolvedQuery.sort
@@ -315,6 +322,13 @@ export function RecordTableContent({
   )
   const narrowBody = narrow !== undefined && (
     <>
+      {totals && (
+        <RecordTableNarrowTotals
+          totals={totals}
+          columns={columns}
+          timeZone={records.timeZone}
+        />
+      )}
       {progress && (
         // Zero height, so the rows don't move; sticks where the wide header would.
         <div
@@ -404,8 +418,9 @@ export function RecordTableContent({
               className={cn(
                 'sticky z-docked',
                 surfaceClass,
-                // The bar fits the frame, so nothing to clip but its focus rings.
-                !boxed && !barShown && 'overflow-hidden'
+                // The bar fits the frame, so nothing to clip but its focus
+                // rings, unless the totals under it scroll with the columns.
+                !boxed && (!barShown || totals) && 'overflow-hidden'
               )}
             >
               <div
@@ -421,7 +436,8 @@ export function RecordTableContent({
                     sortFocused.current = false
                 }}
                 className={cn(
-                  'h-9 border-b border-normal',
+                  'h-9',
+                  !totals && 'border-b border-normal',
                   // Frame wide and stuck at its start, so it never scrolls sideways with the columns.
                   barShown
                     ? cn(
@@ -437,7 +453,7 @@ export function RecordTableContent({
                     role='columnheader'
                     className={cn(
                       selectCellClass,
-                      headerTextClass,
+                      headTextClass,
                       barShown && 'h-full shrink-0'
                     )}
                     style={
@@ -474,7 +490,7 @@ export function RecordTableContent({
                           ? 'sr-only'
                           : cn(
                               cellClass(column),
-                              headerTextClass,
+                              headTextClass,
                               // The bulk slot after it is the row's last child.
                               hasBulkSlot &&
                                 !hasRowActions &&
@@ -515,9 +531,7 @@ export function RecordTableContent({
                   <div
                     role='columnheader'
                     className={
-                      barShown
-                        ? 'sr-only'
-                        : cn(actionsCellClass, headerTextClass)
+                      barShown ? 'sr-only' : cn(actionsCellClass, headTextClass)
                     }
                   >
                     <span className='sr-only'>Actions</span>
@@ -534,6 +548,17 @@ export function RecordTableContent({
                   />
                 )}
               </div>
+              {totals && (
+                <RecordTableTotalsRow
+                  totals={totals}
+                  columns={columns}
+                  timeZone={records.timeZone}
+                  layout={layout}
+                  select={selectable}
+                  actions={hasRowActions}
+                  rowIndex={partial ? 2 : undefined}
+                />
+              )}
               {progress && (
                 <div
                   aria-hidden
@@ -615,7 +640,7 @@ export function RecordTableContent({
       <ScrollArea.Scrollbar
         keepMounted
         data-slot='record-table-scrollbar'
-        className={narrow ? undefined : 'mt-9'}
+        className={narrow ? undefined : totals ? 'mt-16' : 'mt-9'}
       >
         <ScrollArea.Thumb />
       </ScrollArea.Scrollbar>

@@ -59,6 +59,11 @@ export type {
 export type { AnyRecordLayout } from './layouts'
 export type { RecordsRange } from './ranges'
 export type { RecordsRangeResult } from './useRangeLoading'
+export type {
+  RecordsGivenTotals,
+  RecordsResolvedTotals,
+  RecordsTotals
+} from './totals'
 export type { RecordsActionsProps } from './RecordsActions'
 export type { RecordsOptionsProps } from './RecordsOptions'
 export type { RecordsBulkActionsProps } from './RecordsBulkActions'

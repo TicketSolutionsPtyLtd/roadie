@@ -43,6 +43,12 @@ import {
   toggleRange,
   withinMatching
 } from './selection'
+import {
+  type RecordsResolvedTotals,
+  type RecordsTotals,
+  sumRecords,
+  totalsLabel
+} from './totals'
 import type {
   RecordName,
   RecordViewDefaults,
@@ -81,6 +87,10 @@ export type UseRecordsOptions<Row extends object> = {
   onPositionChange?: (position: Required<RecordPosition>) => void
   /** @default { one: 'record', other: 'records' } */
   recordName?: RecordName
+  /**
+   * Totals over every record the search and filters match, labelled "Totals for 1,234 records" by default. `true` or `'sum'` adds up the number and money fields in the browser, except shares, indexes and points. A server gives its own as `{ values }`, keyed by field, and `label`; keep passing the last ones while the next page loads. With `loadRange`, a range's result can carry them instead.
+   */
+  totals?: RecordsTotals
   /** A fetch is under way. With no records the layout shows placeholders; with records it dims them. */
   loading?: boolean
   /** The fetch failed. A string is shown as the message. */
@@ -194,6 +204,8 @@ export type RecordsState<Row extends object = object> = {
   rowActions?: (row: Row) => ReactNode
   getRowHref?: (row: Row) => string | undefined
   recordName: RecordName
+  /** The totals row's label and values, from `totals` or the latest range. */
+  totals?: RecordsResolvedTotals
   loading: boolean
   error: boolean | string
   onRetry?: () => void
@@ -245,6 +257,7 @@ export type RecordsInstance<Row extends object = object> = Pick<
   | 'selectPage'
   | 'selectAllMatching'
   | 'clearSelection'
+  | 'totals'
   | 'loading'
   | 'error'
   | 'onRetry'
@@ -302,6 +315,7 @@ export function useRecordsState<Row extends object>({
   defaultPosition,
   onPositionChange,
   recordName = RECORD,
+  totals: totalsOption,
   loading = false,
   error = false,
   onRetry,
@@ -503,6 +517,8 @@ export function useRecordsState<Row extends object>({
     ranged && heldPosition.page !== undefined && heldPosition.page > 0
   const countCapped =
     ranged && range.rowCount !== undefined && range.rowCount > MAX_RANGE_ROWS
+  const summing = totalsOption === true || totalsOption === 'sum'
+  const sumsPage = summing && (server || ranged)
   useEffect(() => {
     if (!isDev()) return
     const warn = (message: string) => {
@@ -528,13 +544,18 @@ export function useRecordsState<Row extends object>({
       warn(
         '[Roadie] Records with loadRange stop at 300,000 rows. Filter the list or use paged server mode.'
       )
+    if (sumsPage)
+      warn(
+        "[Roadie] Records totals can't sum in server or range mode: the list holds only some records. Pass the server's totals as { values }."
+      )
   }, [
     skipped,
     unidentified,
     rangeUnidentified,
     rangePaged,
     countCapped,
-    rangeCapped
+    rangeCapped,
+    sumsPage
   ])
 
   const resultCount = ranged
@@ -606,6 +627,19 @@ export function useRecordsState<Row extends object>({
         : undefined,
     [ranged, loaded.at, matchingRows]
   )
+  const given =
+    totalsOption === undefined || summing
+      ? ranged
+        ? range.totals
+        : undefined
+      : totalsOption
+  const defaultLabel = totalsLabel(resultCount, resultCountExact, recordName)
+  const totals = useMemo<RecordsResolvedTotals | undefined>(() => {
+    if (given?.values)
+      return { label: given.label ?? defaultLabel, values: given.values }
+    if (totalsOption === undefined || server || ranged) return undefined
+    return sumRecords(fields, matchingRows, given?.label ?? defaultLabel)
+  }, [given, defaultLabel, totalsOption, server, ranged, fields, matchingRows])
   // Stable between loads, so the window and its memoised rows hold while scrolling.
   const rangeState = useMemo<RecordsRangeState<Row> | undefined>(
     () =>
@@ -920,6 +954,7 @@ export function useRecordsState<Row extends object>({
     rowActions,
     getRowHref,
     recordName,
+    totals,
     loading: busy,
     // Once records have loaded, a failed range shows in place of its rows.
     error:

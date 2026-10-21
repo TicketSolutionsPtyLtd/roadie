@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { MAX_RANGE_ROWS, type RecordsRange, rangesToLoad } from './ranges'
+import type { RecordsGivenTotals } from './totals'
 
 /** What `loadRange` resolves with: the range's rows, and the count once known. */
 export type RecordsRangeResult<Row> = {
@@ -12,6 +13,8 @@ export type RecordsRangeResult<Row> = {
   rowCount?: number
   /** False when `rowCount` is a floor the server stopped counting at. @default true */
   rowCountExact?: boolean
+  /** Totals over every match, such as the server's sums. The list keeps the latest for the query. */
+  totals?: RecordsGivenTotals
 }
 
 type Book<Row> = {
@@ -27,6 +30,7 @@ type Book<Row> = {
   /** Held from the last query until a range of this one returns, so the scrollbar keeps its length. */
   rowCount?: number
   rowCountExact: boolean
+  totals?: RecordsGivenTotals
   /** A range of this query has returned, so its count is this query's. */
   counted: boolean
 }
@@ -41,6 +45,7 @@ const freshBook = <Row>(key: string, last?: Book<Row>): Book<Row> => ({
   rows: [],
   rowCount: last?.rowCount,
   rowCountExact: last?.rowCountExact ?? true,
+  totals: last?.totals,
   counted: false
 })
 
@@ -204,7 +209,7 @@ export function useRangeLoading<Row>({
           .then(() => load(range))
           .then((result) => readResult(result, range))
           .then(
-            ({ rows, rowCount, rowCountExact = true }) => {
+            ({ rows, rowCount, rowCountExact = true, totals }) => {
               mine.pending.delete(range.start)
               forBook((current) => ({
                 ...current,
@@ -218,7 +223,10 @@ export function useRangeLoading<Row>({
                   : !current.counted && {
                       rowCount: undefined,
                       rowCountExact: true
-                    })
+                    }),
+                ...(totals !== undefined
+                  ? { totals }
+                  : !current.counted && { totals: undefined })
               }))
             },
             () => {
@@ -257,6 +265,7 @@ export function useRangeLoading<Row>({
     rows: data,
     rowCount: known,
     rowCountExact: book.rowCountExact,
+    totals: book.totals,
     capped,
     count,
     total,
