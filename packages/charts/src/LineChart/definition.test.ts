@@ -553,3 +553,77 @@ describe('LineChart across a day or two of hourly data', () => {
     expect(svg).toMatch(/>2 Oct</)
   })
 })
+
+describe('LineChart counting down to the event', () => {
+  const events = ['Brisbane', 'Sydney', 'Melbourne']
+  const countdown: LineChartProps = {
+    data: events.flatMap((event, e) =>
+      [-30, -20, -10, 0].map((day, i) => ({
+        day,
+        event,
+        sold: (i + 1) * (100 + e * 10) * 0.01
+      }))
+    ),
+    x: 'day',
+    y: 'sold',
+    series: 'event',
+    format: 'percent',
+    xFormat: 'daysOut',
+    highlight: 'Sydney',
+    today: -10
+  }
+  const point = { x: -30, y: 0.11, series: 'Sydney', index: 0 }
+
+  it('ticks days out, not the value format', () => {
+    const svg = svgOf(countdown)
+    expect(svg).toMatch(/>30d</)
+    expect(svg).toMatch(/>0d</)
+    expect(svg).not.toMatch(/>-30%?</)
+  })
+
+  it('titles, speaks and tabulates the day in words', () => {
+    expect(lineChart.tooltip([point], countdown, paint).title).toBe(
+      '30 days before'
+    )
+    expect(lineChart.describe(point, countdown)).toMatch(/^30 days before, /)
+    expect(lineChartTable(countdown).rows[0]).toMatchObject({
+      day: '30 days before'
+    })
+    expect(
+      lineChart.summary({
+        ...countdown,
+        series: undefined,
+        highlight: undefined
+      })
+    ).toMatch(/between 30 days before and event day$/i)
+  })
+
+  it('reads a plain numeric x as a number, whatever the y format', () => {
+    const svg = svgOf({ ...countdown, xFormat: undefined })
+    expect(svg).toMatch(/>-30</)
+    expect(svg).not.toMatch(/>-3,000%</)
+  })
+
+  it('keeps a plain numeric x as written in words, such as a year', () => {
+    const years: LineChartProps = {
+      data: [
+        { year: 2024, sold: 10 },
+        { year: 2025, sold: 20 }
+      ],
+      x: 'year',
+      y: 'sold'
+    }
+    const point = { x: 2024, y: 10, series: 'Sold', index: 0 }
+    expect(lineChart.tooltip([point], years, paint).title).toBe('2024')
+    expect(lineChart.describe(point, years)).toMatch(/^2024, /)
+  })
+
+  it('puts the today dot on the highlighted series', () => {
+    const svg = svgOf(countdown)
+    const sydney = strokeOf(svg, 'series-2')
+    expect(sydney).toBeDefined()
+    expect(svg).toMatch(
+      new RegExp(`data-ts-key="today:[^"]*"[^>]*fill="${sydney}"`)
+    )
+  })
+})

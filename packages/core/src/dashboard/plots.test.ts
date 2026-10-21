@@ -109,6 +109,16 @@ describe('chart plot schemas', () => {
     ).toBe(false)
   })
 
+  it('counts a line chart down in days out, and nothing made up', () => {
+    const countdown = { ...valid.line, data: [{ day: -30, sold: 0.1 }] }
+    expect(
+      chartPlotSchema.safeParse({ ...countdown, xFormat: 'daysOut' }).success
+    ).toBe(true)
+    expect(
+      chartPlotSchema.safeParse({ ...countdown, xFormat: 'weeksOut' }).success
+    ).toBe(false)
+  })
+
   it('rejects pies', () => {
     expect(plotSchema.safeParse({ kind: 'pie', data: [] }).success).toBe(false)
   })

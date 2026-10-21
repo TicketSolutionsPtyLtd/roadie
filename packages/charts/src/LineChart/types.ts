@@ -3,7 +3,7 @@ import type {
   PlotRow,
   PlotX
 } from '@oztix/roadie-core/dashboard'
-import type { ValueFormat } from '@oztix/roadie-core/dataviz'
+import type { ValueFormat, XFormat } from '@oztix/roadie-core/dataviz'
 import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
 
 export type LineChartPalette = 'categorical' | 'pair' | 'trio'
@@ -37,9 +37,11 @@ export type LineChartProps = {
   forecast?: { from: PlotX; low?: string; high?: string }
   /** Draws an end tick labelled with the target. */
   target?: number
-  /** Marks today with a labelled dot. */
+  /** Marks today with a labelled dot, on the highlighted series or the first. */
   today?: PlotX
   /** Lets a drag across dated x select a range, inclusive and in venue wall time. */
   onRangeSelect?: (range: AbsoluteRange) => void
+  /** How a numeric x reads. `daysOut` counts days to the event, negative before it. @default 'number' */
+  xFormat?: XFormat
   className?: string
 }

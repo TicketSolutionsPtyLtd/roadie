@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { valueFormat } from './fields'
+import { valueFormat, xFormat } from './fields'
 
 export const ANNOTATION_LABEL_LIMIT = 20
 export const SERIES_CAP = 6
@@ -73,7 +73,8 @@ const lineShape = {
     })
     .optional(),
   target: z.number().optional(),
-  today: plotX.optional()
+  today: plotX.optional(),
+  xFormat: xFormat.optional()
 }
 
 const barShape = {

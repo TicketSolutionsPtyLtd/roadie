@@ -1,4 +1,9 @@
-import { type ValueFormat, formatValue } from '@oztix/roadie-core/dataviz'
+import {
+  type ValueFormat,
+  type XFormat,
+  formatValue,
+  formatX
+} from '@oztix/roadie-core/dataviz'
 
 import { spokenX } from './time'
 import { fullFormat } from './values'
@@ -12,12 +17,18 @@ export function describeValue(
   return `${formatValue(value, fullFormat(format))} ${noun}`
 }
 
+// Without a format, a numeric x reads as written, so a year stays 2024.
+export const xLabel = (x: number, xFormat?: XFormat) =>
+  xFormat ? formatX(x, xFormat) : String(x)
+
 export function spokenPoint(
   x: number | string,
   isTime: boolean,
-  hasTime: boolean
+  hasTime: boolean,
+  xFormat?: XFormat
 ) {
-  return isTime && typeof x === 'number' ? spokenX(x, hasTime) : String(x)
+  if (typeof x !== 'number') return x
+  return isTime ? spokenX(x, hasTime) : xLabel(x, xFormat)
 }
 
 export function trendSentence({

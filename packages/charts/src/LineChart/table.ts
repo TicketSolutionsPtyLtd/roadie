@@ -61,7 +61,7 @@ export function lineChartTable(props: LineChartProps): ChartTable {
     const raw = row[props.x] ?? null
     const x = isTime ? parseX(raw) : raw
     if (x === null) continue
-    const cells = byX.get(x) ?? { [props.x]: xCell(raw, isTime) }
+    const cells = byX.get(x) ?? { [props.x]: xCell(raw, isTime, props.xFormat) }
     byX.set(x, cells)
     if (band) {
       cells.bandRange = rangeText(
