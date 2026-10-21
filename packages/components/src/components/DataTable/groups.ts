@@ -108,7 +108,8 @@ export function buildGroups(
     key: groupKey([...path, value]),
     depth,
     column,
-    value: cellOf(grouped[0]!.row, column.key),
+    // Empty, null and missing share a group, labelled as missing.
+    value: value === '' ? null : cellOf(grouped[0]!.row, column.key),
     values: resolveTableTotals(
       columns,
       grouped.map(({ row }) => row),

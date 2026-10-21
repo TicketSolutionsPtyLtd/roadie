@@ -188,6 +188,24 @@ describe('DataTable groupBy', () => {
     expect(screen.getByRole('button', { name: 'Not available' })).toBeVisible()
   })
 
+  it("names an empty text group by its column's emptyText", () => {
+    render(
+      <DataTable
+        columns={[
+          { key: 'pool', header: 'Pool', kind: 'text', emptyText: 'No pool' },
+          { key: 'type', header: 'Type', kind: 'text' },
+          { key: 'scans', header: 'Scans', kind: 'number' }
+        ]}
+        rows={[
+          { pool: '', type: 'GA', scans: 10 },
+          { pool: null, type: 'VIP', scans: 5 }
+        ]}
+        groupBy={['pool']}
+      />
+    )
+    expect(screen.getByRole('button', { name: 'No pool' })).toBeVisible()
+  })
+
   it('links leaf rows only and keeps the totals footer over every row', async () => {
     const user = userEvent.setup()
     const { container } = render(
