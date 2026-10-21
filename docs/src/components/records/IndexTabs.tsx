@@ -9,9 +9,10 @@ import { Tabs } from '@oztix/roadie-components/tabs'
 
 type PanelProps = { value: string; label: string; children: ReactNode }
 
+// Kept mounted so every index's docs are in the page's HTML, for search and find.
 function IndexPanel({ value, children }: PanelProps) {
   return (
-    <Tabs.Panel value={value} className='min-w-0 pt-2'>
+    <Tabs.Panel value={value} keepMounted className='min-w-0 pt-2'>
       {children}
     </Tabs.Panel>
   )
