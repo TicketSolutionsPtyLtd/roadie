@@ -35,6 +35,20 @@ const todayAtEnd: LineChartProps = {
   annotations: [{ at: '2026-10-14', label: 'Final release' }]
 }
 
+const presale: LineChartProps = {
+  data: [
+    '2026-10-01',
+    '2026-10-08',
+    '2026-10-15',
+    '2026-10-22',
+    '2026-10-29'
+  ].map((day, i) => ({ day, sold: 440 + i * 90 })),
+  x: 'day',
+  y: 'sold',
+  today: '2026-10-22',
+  annotations: [{ at: '2026-10-08', label: 'Members presale' }]
+}
+
 const labelledExamples = { pace: paceExample, 'today at the end': todayAtEnd }
 
 let removeStylesheet = () => {}
@@ -46,6 +60,18 @@ afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
 describe('LineChart in a card', () => {
+  it.each([280, 320, 560, 1200])(
+    'keeps the today and annotation labels apart at %ipx',
+    async (width) => {
+      const { container } = renderInCard(<LineChart {...presale} />, {
+        size: 'md',
+        width
+      })
+      await afterResize()
+      expectNoOverlap(container, '[data-ts-key^="label-"] text')
+    }
+  )
+
   it.each(Object.entries(CARD_HEIGHTS))('fills the %s plot', (size, height) => {
     const { container } = renderInCard(<LineChart {...paceExample} />, {
       size: size as keyof typeof CARD_HEIGHTS

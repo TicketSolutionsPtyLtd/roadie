@@ -5,12 +5,34 @@ import { StackedArea } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import {
   CARD_HEIGHTS,
+  afterResize,
   expectFillsPlot,
+  expectNoOverlap,
   renderInCard,
   visitEveryStop
 } from '../plot/browserTesting'
 import { loadBrandFont, useStylesheet } from '../testUtils'
 import { scansByGateExample } from './examples'
+import type { StackedAreaProps } from './types'
+
+const presale: StackedAreaProps = {
+  data: [
+    '2026-10-01',
+    '2026-10-08',
+    '2026-10-15',
+    '2026-10-22',
+    '2026-10-29'
+  ].flatMap((day, i) => [
+    { day, pool: 'GA', issued: 300 + i * 80 },
+    { day, pool: 'Members', issued: 120 + i * 10 },
+    { day, pool: 'Comps', issued: 20 }
+  ]),
+  x: 'day',
+  y: 'issued',
+  series: 'pool',
+  today: '2026-10-22',
+  annotations: [{ at: '2026-10-08', label: 'Members presale' }]
+}
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -39,4 +61,16 @@ describe('StackedArea in a card', () => {
     expect(heard).toHaveLength(times)
     expect(heard[0]).toMatch(/^Saturday, 14 November 2026, 6:00pm, \d+ scans, /)
   })
+
+  it.each([280, 320, 560, 1200])(
+    'keeps the today and annotation labels apart at %ipx',
+    async (width) => {
+      const { container } = renderInCard(<StackedArea {...presale} />, {
+        size: 'md',
+        width
+      })
+      await afterResize()
+      expectNoOverlap(container, '[data-ts-key^="label-"] text')
+    }
+  )
 })

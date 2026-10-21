@@ -4,6 +4,7 @@ import { renderChartSvg } from '@tanstack/charts/svg'
 import { describe, expect, it } from 'vitest'
 
 import {
+  type LabelSpan,
   annotationMarks,
   annotationsOnAxis,
   annotationsOnBars
@@ -103,7 +104,7 @@ describe('annotationMarks', () => {
   const paint = hexPaint('light')
   const frame = plotFrame(220, 'narrow', undefined, 320)
   const span = { width: 320, left: 40, right: 8 }
-  const render = (across: number) =>
+  const render = (across: number, avoid: LabelSpan | null = null) =>
     renderChartSvg(
       createChartScene(
         defineChart({
@@ -111,7 +112,8 @@ describe('annotationMarks', () => {
             [{ x: across * 10, label: 'Final release', y: 1, across }],
             paint,
             frame,
-            span
+            span,
+            avoid
           ),
           scales: {
             x: { scale: scaleLinear().domain([0, 10]) },
@@ -129,4 +131,20 @@ describe('annotationMarks', () => {
 
   it('flips left of its rule near the right edge', () =>
     expect(render(0.95)).toMatch(/text-anchor="end"/))
+
+  // At 0.5 the rule sits at x 176, so the label reads 180 to about 250.
+  const labelY = (svg: string) =>
+    Number(/label-annotations:[^"]*"[^>]*\sy="([\d.]+)"/.exec(svg)?.[1])
+
+  it('reads on the other side of its rule to keep off a label', () => {
+    const svg = render(0.5, { left: 190, right: 240 })
+    expect(svg).toMatch(/text-anchor="end"/)
+    expect(labelY(svg)).toBe(labelY(render(0.5)))
+  })
+
+  it('drops a line when both sides would cross the label', () => {
+    expect(labelY(render(0.5, { left: 100, right: 260 }))).toBeGreaterThan(
+      labelY(render(0.5))
+    )
+  })
 })

@@ -19,6 +19,13 @@ export type PlacedAnnotation = {
 }
 
 const LABEL_GAP = 4
+const LABEL_DY = 4
+
+/** The pixels a label covers along the x axis, from the SVG's left edge. */
+export type LabelSpan = { left: number; right: number }
+
+const clash = (a: LabelSpan, b: LabelSpan | null) =>
+  b !== null && a.left < b.right && b.left < a.right
 
 /** Places annotations on a continuous x axis, dropping any outside `domain`. */
 export function annotationsOnAxis(
@@ -82,25 +89,45 @@ export function annotationsOnBars(
   })
 }
 
-/** Each label reads right of its rule, or left when it would leave `span`. */
+/**
+ * Each label reads right of its rule, or left when it would leave `span`. A
+ * label that would cross `avoid`, such as the today label, reads on the other
+ * side, or drops a line when both sides cross it.
+ */
 export function annotationMarks(
   annotations: readonly PlacedAnnotation[],
   paint: ChartPaint,
   frame: PlotFrame,
-  span: PlotSpan
+  span: PlotSpan,
+  avoid: LabelSpan | null = null
 ): ChartMark[] {
   if (annotations.length === 0) return []
   const placed = annotations.map((annotation) => {
-    const anchor = besideAnchor(
-      spanPixel(span, annotation.across),
-      LABEL_GAP,
-      textWidth(annotation.label, frame),
-      span.width
-    )
+    const x = spanPixel(span, annotation.across)
+    const width = textWidth(annotation.label, frame)
+    const covers = (side: 'start' | 'end'): LabelSpan =>
+      side === 'start'
+        ? { left: x + LABEL_GAP, right: x + LABEL_GAP + width }
+        : { left: x - LABEL_GAP - width, right: x - LABEL_GAP }
+    const preferred = besideAnchor(x, LABEL_GAP, width, span.width)
+    const other = preferred === 'start' ? 'end' : 'start'
+    const otherFits =
+      other === 'end'
+        ? covers('end').left >= 0
+        : covers('start').right <= span.width
+    const anchor =
+      clash(covers(preferred), avoid) &&
+      otherFits &&
+      !clash(covers(other), avoid)
+        ? other
+        : preferred
+    const dropped = clash(covers(anchor), avoid)
     return {
       ...annotation,
       anchor,
-      dx: anchor === 'start' ? LABEL_GAP : -LABEL_GAP
+      dx: anchor === 'start' ? LABEL_GAP : -LABEL_GAP,
+      // A glyph box runs taller than the font size, so a line down is two of them.
+      dy: dropped ? LABEL_DY + 2 * frame.fontSize : LABEL_DY
     }
   })
   return [
@@ -120,7 +147,7 @@ export function annotationMarks(
         y: 'y',
         text: 'label',
         dx: (d) => d.dx,
-        dy: 4,
+        dy: (d) => d.dy,
         anchor: (d) => d.anchor,
         fill: paint.label,
         fontSize: frame.fontSize,

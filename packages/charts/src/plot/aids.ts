@@ -2,6 +2,9 @@ import { areaY, dot, lineY, link, text } from '@tanstack/charts'
 import type { ChartMark } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 
+import type { LabelSpan } from './annotations'
+import { textWidth } from './endLabels'
+import { type PlotSpan, centredShift, spanPixel } from './frame'
 import type { ChartPaint, PlotFrame } from './types'
 
 export type RangePoint = { x: number; low: number | null; high: number | null }
@@ -102,6 +105,22 @@ export function targetMark(
 }
 
 export type TodayPoint = { x: number; y: number; label: string }
+
+/**
+ * The shift that keeps the today label inside the SVG, and the pixels it then
+ * covers, so annotation labels can keep off it.
+ */
+export function placeTodayLabel(
+  point: TodayPoint,
+  span: PlotSpan,
+  across: (x: number) => number,
+  frame: PlotFrame
+): { dx: number; span: LabelSpan } {
+  const x = spanPixel(span, across(point.x))
+  const width = textWidth(point.label, frame)
+  const dx = centredShift(x, width, frame.width)
+  return { dx, span: { left: x + dx - width / 2, right: x + dx + width / 2 } }
+}
 
 const TODAY_DOT_RADIUS = 3.5
 const TODAY_LABEL_GAP = 0.5
