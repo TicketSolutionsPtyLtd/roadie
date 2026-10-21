@@ -7,6 +7,7 @@ import { columnStatus } from '@oztix/roadie-core/dashboard-layout'
 
 export type DataTableSortDirection = 'ascending' | 'descending'
 export type DataTableSort = { key: string; direction: DataTableSortDirection }
+export type KeyedRow = { key: string; row: TableRow; href?: string }
 
 export const cellOf = (row: TableRow, key: string) =>
   Object.hasOwn(row, key) ? row[key] : undefined

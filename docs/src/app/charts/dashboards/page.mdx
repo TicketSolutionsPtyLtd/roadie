@@ -646,6 +646,12 @@ because actions aren’t part of the JSON.
   text column. For a page of server rows or an average, pass
   `{ label, values }` instead. `cardTable(card)` returns the row summed, for a
   CSV.
+- To group rows, such as scans by ticket pool and then ticket type, give a
+  table card `groupBy` with the keys of text or status columns, outermost
+  first. Groups start closed; `defaultExpanded: true` opens them all, or give
+  paths of values, such as `[['General']]`. `validateDashboard` rejects a key
+  that isn't a text or status column. See
+  [DataTable](/charts/data-table#grouped-rows).
 - The “Show all columns” button switches to horizontal scrolling and holds the
   `pin` column in place.
 - A sparkline cell needs 5 points. With fewer, it shows “Not enough history”.

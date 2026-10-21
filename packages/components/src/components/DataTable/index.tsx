@@ -10,6 +10,7 @@ import { resolveTableTotals } from '@oztix/roadie-core/dashboard-layout'
 
 import { DataTableSortable } from './DataTableSortable'
 import { DataTableView } from './DataTableView'
+import type { DataTableExpanded } from './groups'
 import {
   type DataTableSort,
   type DataTableSortDirection,
@@ -20,7 +21,7 @@ import {
 export type DataTableColumn = TableColumn
 export type DataTableRow = TableRow
 export type DataTableTotals = true | TableTotals
-export type { DataTableSort, DataTableSortDirection }
+export type { DataTableExpanded, DataTableSort, DataTableSortDirection }
 export { sortDataTableRows } from './sort'
 
 export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
@@ -64,6 +65,18 @@ export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
    * @default { one: 'record', other: 'records' }
    */
   recordName?: RecordName
+  /**
+   * Groups rows by these text or status columns, outermost first. Each group
+   * row sums the number columns the way `totals` does and expands to show its
+   * rows, labelled in the first column. The grouped columns are hidden.
+   */
+  groupBy?: readonly string[]
+  /**
+   * Opens every group with `true`, or the groups at these paths of values,
+   * outermost first, as in `[['Pool A'], ['Pool A', 'VIP']]`.
+   * @default false
+   */
+  defaultExpanded?: DataTableExpanded
 }
 
 export function DataTable({

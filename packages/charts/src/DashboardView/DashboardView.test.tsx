@@ -388,3 +388,50 @@ describe('DashboardView totals rows', () => {
     )
   })
 })
+
+const groupedDashboard: Parameters<typeof DashboardView>[0]['spec'] = {
+  version: 1,
+  title: 'Entry',
+  sections: [
+    {
+      title: 'Scans',
+      cards: [
+        {
+          id: 'scans',
+          kind: 'table',
+          size: 'full',
+          label: 'Scans by ticket type',
+          source: 'Oztix scans.',
+          columns: [
+            { key: 'pool', header: 'Ticket pool', kind: 'text' },
+            { key: 'type', header: 'Ticket type', kind: 'text' },
+            { key: 'scans', header: 'Scans', kind: 'number' }
+          ],
+          rows: [
+            { pool: 'General', type: 'GA', scans: 400 },
+            { pool: 'General', type: 'Concession', scans: 300 },
+            { pool: 'Comp', type: 'Guest list', scans: 50 }
+          ],
+          groupBy: ['pool'],
+          defaultExpanded: [['Comp']]
+        }
+      ]
+    }
+  ]
+}
+
+describe('DashboardView grouped tables', () => {
+  it('groups a table card by its groupBy, opening the given groups', () => {
+    render(<DashboardView spec={groupedDashboard} />)
+    expect(screen.getByRole('button', { name: 'General' })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
+    expect(screen.getByRole('button', { name: 'Comp' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
+    expect(screen.getByRole('cell', { name: 'Guest list' })).toBeVisible()
+    expect(screen.getByRole('cell', { name: '700' })).toBeVisible()
+  })
+})

@@ -1,20 +1,20 @@
 import type { ComponentProps, ReactNode } from 'react'
 
-import type {
-  ResolvedTotals,
-  TableColumn,
-  TableRow
-} from '@oztix/roadie-core/dashboard'
+import type { ResolvedTotals, TableColumn } from '@oztix/roadie-core/dashboard'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
 import { Table, tableCellClass } from '../Table'
 import { DataTableCellContent } from './DataTableCell'
+import { DataTableGroups } from './DataTableGroups'
+import { DataTableRow, alignOf, cellAttributes } from './DataTableRow'
 import { DataTableFrame, DataTableShowAll } from './DataTableShowAll'
 import { SortIcon } from './SortIcon'
+import { type DataTableExpanded, groupColumnsOf } from './groups'
 import {
   type DataTableSort,
   type DataTableSortDirection,
+  type KeyedRow,
   cellOf,
   isSortableColumn
 } from './sort'
@@ -23,13 +23,15 @@ export type DataTableSortControl = { href: string } | { onSort: () => void }
 
 export type DataTableViewProps = Omit<ComponentProps<'div'>, 'children'> & {
   columns: readonly TableColumn[]
-  rows: readonly { key: string; row: TableRow; href?: string }[]
+  rows: readonly KeyedRow[]
   caption?: string
   sort?: DataTableSort
   sortControl?: (column: TableColumn) => DataTableSortControl | undefined
   showAllLabel: string
   plain: boolean
   totals?: ResolvedTotals
+  groupBy?: readonly string[]
+  defaultExpanded?: DataTableExpanded
 }
 
 const titleColumn = (columns: readonly TableColumn[]) =>
@@ -45,9 +47,6 @@ function warnTitlePriority(key: string) {
     `[Roadie] DataTable column "${key}" holds the row links, so its priority is ignored: it never hides.`
   )
 }
-
-const alignOf = (column: TableColumn): 'start' | 'end' =>
-  column.kind === 'number' || column.kind === 'delta' ? 'end' : 'start'
 
 function SortableHeader({
   column,
@@ -84,7 +83,7 @@ function SortableHeader({
 }
 
 export function DataTableView({
-  columns,
+  columns: allColumns,
   rows,
   caption,
   sort,
@@ -92,24 +91,28 @@ export function DataTableView({
   showAllLabel,
   plain,
   totals: footer,
+  groupBy,
+  defaultExpanded,
   className,
   ...props
 }: DataTableViewProps) {
-  const title = titleColumn(columns)
+  const groupColumns = groupColumnsOf(allColumns, groupBy)
+  const visible = allColumns.filter((column) => !groupColumns.includes(column))
+  const title = titleColumn(visible)
   const linksRows = rows.some(({ href }) => href)
-  const priorityOf = (column: TableColumn) =>
-    (linksRows && column === title) || (footer && column === columns[0])
-      ? undefined
-      : column.priority
   if (linksRows && title?.priority !== undefined) warnTitlePriority(title.key)
-  const hasPriorities = columns.some(
-    (column) => priorityOf(column) !== undefined
-  )
-  const cellAttributes = (column: TableColumn) => ({
-    'data-priority': priorityOf(column),
-    'data-pin': column.pin || undefined,
-    align: alignOf(column)
+  const labelHeader = [...groupColumns, visible[0]]
+    .map((column) => column?.header)
+    .join(' / ')
+  // The title holds the row links and the first column the labels, so neither hides.
+  const columns = visible.map((column, index) => {
+    if (index === 0 && groupColumns.length)
+      return { ...column, header: labelHeader, priority: undefined }
+    return (linksRows && column === title) || (footer && index === 0)
+      ? { ...column, priority: undefined }
+      : column
   })
+  const hasPriorities = columns.some((column) => column.priority !== undefined)
   const header = (column: TableColumn): ReactNode => {
     const control = sortControl?.(column)
     if (!control) return column.header
@@ -132,7 +135,7 @@ export function DataTableView({
       >
         <Table
           data-overlay-clip={
-            title?.pin && title !== columns[0] && linksRows ? '' : undefined
+            title?.pin && title !== visible[0] && linksRows ? '' : undefined
           }
         >
           {caption && <caption className='sr-only'>{caption}</caption>}
@@ -153,39 +156,29 @@ export function DataTableView({
               ))}
             </Table.Row>
           </Table.Head>
-          <Table.Body>
-            {rows.map(({ key, row, href }) => {
-              // An empty title shows a muted placeholder, with nothing to link.
-              const linked =
-                !!href &&
-                title !== undefined &&
-                cellOf(row, title.key) != null &&
-                cellOf(row, title.key) !== ''
-              return (
-                <Table.Row
-                  key={key}
-                  data-linked={linked || undefined}
-                  className={cn(linked && 'is-interactive-within')}
-                >
-                  {columns.map((column) => (
-                    <Table.Cell key={column.key} {...cellAttributes(column)}>
-                      <DataTableCellContent
-                        column={column}
-                        value={cellOf(row, column.key)}
-                        secondary={
-                          column.secondaryKey
-                            ? cellOf(row, column.secondaryKey)
-                            : undefined
-                        }
-                        plain={plain}
-                        href={linked && column === title ? href : undefined}
-                      />
-                    </Table.Cell>
-                  ))}
-                </Table.Row>
-              )
-            })}
-          </Table.Body>
+          {groupColumns.length ? (
+            <DataTableGroups
+              columns={columns}
+              groupColumns={groupColumns}
+              rows={rows}
+              sort={sort}
+              defaultExpanded={defaultExpanded}
+              titleKey={title?.key}
+              plain={plain}
+            />
+          ) : (
+            <Table.Body>
+              {rows.map((row) => (
+                <DataTableRow
+                  key={row.key}
+                  columns={columns}
+                  row={row}
+                  titleKey={title?.key}
+                  plain={plain}
+                />
+              ))}
+            </Table.Body>
+          )}
           {footer && (
             <Table.Foot data-slot='data-table-totals'>
               <Table.Row>

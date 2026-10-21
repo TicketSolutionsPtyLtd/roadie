@@ -26,6 +26,7 @@ import {
   type DashboardCard,
   type DashboardPeriodSpec,
   type DashboardSpec,
+  type TableColumn,
   type TableData,
   dashboardSchema
 } from './schema'
@@ -350,6 +351,68 @@ function totalsProblems(
   return problems
 }
 
+const isGroupable = (column: TableColumn) =>
+  column.kind === 'text' || column.kind === 'status'
+
+function groupProblems(
+  card: Extract<DashboardCard, { kind: 'table' }>,
+  path: string
+) {
+  const { groupBy, defaultExpanded } = card
+  if (!groupBy)
+    return defaultExpanded === undefined
+      ? []
+      : [
+          warning(
+            `${path}.defaultExpanded`,
+            'Set groupBy too, or leave out defaultExpanded'
+          )
+        ]
+  const problems: DashboardProblem[] = []
+  groupBy.forEach((key, i) => {
+    const column = card.columns.find((candidate) => candidate.key === key)
+    if (groupBy.indexOf(key) < i)
+      problems.push(error(`${path}.groupBy[${i}]`, `Group by "${key}" once`))
+    else if (!column)
+      problems.push(
+        error(`${path}.groupBy[${i}]`, `No column has the key "${key}"`)
+      )
+    else if (!isGroupable(column))
+      problems.push(
+        error(
+          `${path}.groupBy[${i}]`,
+          `Group by a text or status column, not a ${column.kind} column`
+        )
+      )
+  })
+  const shown = card.columns.filter((column) => !groupBy.includes(column.key))
+  if (!shown.length)
+    problems.push(
+      error(
+        `${path}.groupBy`,
+        'Leave at least one column ungrouped to show the rows'
+      )
+    )
+  else if (!isGroupable(shown[0]!))
+    problems.push(
+      warning(
+        `${path}.groupBy`,
+        'The first column left holds the group labels. Lead with a text or status column'
+      )
+    )
+  if (Array.isArray(defaultExpanded))
+    defaultExpanded.forEach((groupPath, i) => {
+      if (groupPath.length > groupBy.length)
+        problems.push(
+          warning(
+            `${path}.defaultExpanded[${i}]`,
+            'This path is deeper than groupBy, so it opens nothing'
+          )
+        )
+    })
+  return problems
+}
+
 function plotProblems(plot: ChartPlot, path: string) {
   const problems: DashboardProblem[] = []
   const plotPath = `${path}.plot`
@@ -626,7 +689,8 @@ function cardProblems(
           )
         )
     })
-  if (card.kind === 'table') problems.push(...totalsProblems(card, path))
+  if (card.kind === 'table')
+    problems.push(...totalsProblems(card, path), ...groupProblems(card, path))
   return problems
 }
 
