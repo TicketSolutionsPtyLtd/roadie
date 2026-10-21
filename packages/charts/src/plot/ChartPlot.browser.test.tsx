@@ -248,6 +248,17 @@ describe('ChartPlot in a card', () => {
     expect(ring(plot)).toMatchObject({ width: '4px', offset: '0px' })
   })
 
+  it('shows no ring on a clicked plot', async () => {
+    const { container } = renderInCard()
+    const plot = container.querySelector<SVGElement>('svg.ts-chart')!
+
+    await userEvent.click(plot)
+
+    expect(document.activeElement).toBe(plot)
+    expect(plot.matches(':focus-visible')).toBe(false)
+    expect(getComputedStyle(plot).outlineStyle).toBe('none')
+  })
+
   it('reaches every x value with the arrow keys and speaks each one', async () => {
     const { container } = renderInCard()
     const live = await focusPlot(container)

@@ -73,6 +73,24 @@ Put at most one visible action first and `DataCard.MoreButton` last. More passes
 />
 ```
 
+### Controls
+
+`controls` sit in a full-width row under the headline and wrap on a narrow card. Use them for switches that change what the body shows.
+
+```tsx-live width=72
+<DataCard
+  label='Payment methods'
+  takeaway='Most buyers pay by card'
+  source='Oztix sales.'
+  controls={
+    <ToggleGroup size='sm' aria-label='Measure' defaultValue={['sales']}>
+      <ToggleGroup.Item value='sales'>Sales</ToggleGroup.Item>
+      <ToggleGroup.Item value='value'>Sales value</ToggleGroup.Item>
+    </ToggleGroup>
+  }
+/>
+```
+
 ### States
 
 ```tsx-live layout=stack width=72
@@ -93,6 +111,7 @@ Put at most one visible action first and `DataCard.MoreButton` last. More passes
 - Set `value` and `delta` for one headline number, or `takeaway` for a sentence. Never both. `StatTile`, table cards and chart cards all build on this rule.
 - Give every chart and table card a `source`. It sits under a hairline in the footer.
 - Pass `actions` for what a person can do from the card: at most one visible action, then `DataCard.MoreButton` for the rest. Actions show in every state, so a refresh still works on a card that failed to load. See [card actions](/charts/dashboards#card-actions).
+- Pass `controls` for switches that change what the body shows, such as a chart's mode or measure. Like actions, they show in every state, so a switch stays in place while the new view loads.
 
 ## Accessibility
 
