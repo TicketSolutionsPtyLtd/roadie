@@ -269,7 +269,7 @@ describe('range selection by keyboard', () => {
     await userEvent.keyboard('{ArrowRight}')
     await expect
       .poll(() => end.getAttribute('aria-valuetext'))
-      .toBe('Sunday 4 October')
+      .toBe('Sunday, 4 October 2026')
     expect(onRangeSelect).not.toHaveBeenCalled()
     await userEvent.keyboard('{Enter}')
     expect(onRangeSelect).toHaveBeenCalledExactlyOnceWith({

@@ -68,14 +68,14 @@ describe('spokenRange', () => {
       start: '2026-10-03T18:00',
       end: '2026-10-03T21:45',
       options: { hasTime: true },
-      text: 'Selected Saturday 3 October, 6pm to 9:45pm. Enter to apply.'
+      text: 'Selected Saturday, 3 October 2026, 6:00pm to 9:45pm. Enter to apply.'
     },
     {
       name: 'times across days',
       start: '2026-10-03T22:00',
       end: '2026-10-04T01:00',
       options: { hasTime: true },
-      text: 'Selected Saturday 3 October, 10pm to Sunday 4 October, 1am. Enter to apply.'
+      text: 'Selected Saturday, 3 October 2026, 10:00pm to Sunday, 4 October 2026, 1:00am. Enter to apply.'
     }
   ])('reads $name', ({ start, end, options, text }) => {
     expect(spokenRange(at(start), at(end), options)).toBe(text)
@@ -84,18 +84,18 @@ describe('spokenRange', () => {
 
 describe('spokenValue', () => {
   it.each([
-    ['a day', '2026-10-04T00:00', { hasTime: false }, 'Sunday 4 October'],
+    ['a day', '2026-10-04T00:00', { hasTime: false }, 'Sunday, 4 October 2026'],
     [
       'a time',
       '2026-10-03T18:30',
       { hasTime: true },
-      'Saturday 3 October, 6:30pm'
+      'Saturday, 3 October 2026, 6:30pm'
     ],
     [
       'a week',
       '2026-09-28T00:00',
       { hasTime: false, bucketDays: 7 },
-      'Week of Monday 28 September'
+      'Week of Monday, 28 September 2026'
     ]
   ])('reads %s', (_, iso, options, text) => {
     expect(spokenValue(at(iso), options)).toBe(text)
