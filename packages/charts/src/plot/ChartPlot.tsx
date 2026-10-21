@@ -103,6 +103,12 @@ function keepTouchForScrolling(brush: Element) {
   )
 }
 
+// An empty range hides its handles, which would drop their focus to the page.
+function keepFocusInPlot(context: ChartRenderContext | null) {
+  const plot = context?.surface.element
+  if (plot && inBrush(plot.ownerDocument.activeElement)) plot.focus()
+}
+
 function spans(axis: RangeAxis, range: BrushRange<RangeValue>) {
   const start = axis.msOf(range.start)
   const end = axis.msOf(range.end)
@@ -204,6 +210,7 @@ export function ChartPlot<P>({
       // brushX ends a drag whose controlled range stops matching it, so a
       // drag held inside one x is kept too.
       const keep = span || reason.type === 'preview'
+      if (!keep) keepFocusInPlot(renderRef.current)
       setSelection(keep ? { range, anchor: range.start } : null)
       setRangeSpoken('')
       if (span && reason.type === 'commit' && reason.source === 'pointer')
@@ -264,6 +271,7 @@ export function ChartPlot<P>({
 
   function clearRange() {
     if (!selection) return false
+    keepFocusInPlot(renderRef.current)
     setSelection(null)
     setRangeSpoken('Selection cleared')
     return true

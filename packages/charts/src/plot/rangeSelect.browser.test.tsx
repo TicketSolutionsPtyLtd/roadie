@@ -225,6 +225,34 @@ describe('range selection by keyboard', () => {
     })
   })
 
+  it.each([
+    ['Escape clears from a handle', '{Escape}'],
+    ['a handle meets the other', '{ArrowLeft}']
+  ])('keeps focus in the chart when %s', async (_, key) => {
+    const chart = renderChart(
+      <LineChart data={days} x='day' y='sold' onRangeSelect={() => {}} />
+    )
+    await afterResize()
+    chart.svg().focus()
+    await expect.poll(() => chart.live().textContent).not.toBe('')
+    await userEvent.keyboard('{Shift>}{ArrowRight}{/Shift}')
+    const end = await vi.waitFor(() => {
+      const handle = chart
+        .brush()
+        ?.querySelector<SVGElement>(
+          '[data-chart-brush-handle=end][role=slider]'
+        )
+      if (!handle) throw new Error('No end handle yet')
+      return handle
+    })
+    end.focus()
+    await userEvent.keyboard(key)
+    await expect
+      .poll(() => chart.host().getAttribute('data-range'))
+      .toBe('empty')
+    await expect.poll(() => document.activeElement).toBe(chart.svg())
+  })
+
   it('clears on Escape and on new data', async () => {
     const onRangeSelect = vi.fn()
     const chart = renderChart(
