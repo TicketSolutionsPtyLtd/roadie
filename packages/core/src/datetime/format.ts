@@ -92,7 +92,7 @@ const MIDDOT = '·'
 const DATE_TIME_SEPARATOR = ', '
 
 /** An end at or before this hour belongs to the previous night's programme. */
-const END_OF_NIGHT_HOUR = 6
+export const END_OF_NIGHT_HOUR = 6
 
 /** Past this, a day count stops being information. */
 const MAX_DURATION_DAYS = 30

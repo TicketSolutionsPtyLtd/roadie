@@ -115,6 +115,9 @@ describe('chart plot schemas', () => {
       chartPlotSchema.safeParse({ ...countdown, xFormat: 'daysOut' }).success
     ).toBe(true)
     expect(
+      chartPlotSchema.safeParse({ ...countdown, xFormat: 'eventTime' }).success
+    ).toBe(true)
+    expect(
       chartPlotSchema.safeParse({ ...countdown, xFormat: 'weeksOut' }).success
     ).toBe(false)
   })

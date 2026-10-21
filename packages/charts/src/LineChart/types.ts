@@ -41,7 +41,7 @@ export type LineChartProps = {
   today?: PlotX
   /** Lets a drag across dated x select a range, inclusive and in venue wall time. */
   onRangeSelect?: (range: AbsoluteRange) => void
-  /** How a numeric x reads. `daysOut` counts days to the event, negative before it. @default 'number' */
+  /** How a numeric x reads. `daysOut` counts days to the event, negative before it; `eventTime` is hours from midnight starting the first event day. @default 'number' */
   xFormat?: XFormat
   className?: string
 }

@@ -158,6 +158,26 @@ To compare events with different dates, line them up on days to the event. Send 
 </Chart>
 ```
 
+### Event clock
+
+To compare scans across events on different dates, line them up on the event's own clock. Send `x` as hours from midnight starting the first event day, and set `xFormat='eventTime'`. A day runs to 6am, so a 1am scan still counts as the night before, and anything before 6am on the first day reads as Day 0. Ticks read "Day 2" where a day starts and "19:00" between, and the tooltip reads "Day 2, 7:15pm".
+
+```tsx-live width=140
+<Chart label='Scans by event clock' source='Oztix scans.' size='md'>
+  <LineChart
+    data={['This festival', 'Last year'].flatMap((event, e) =>
+      Array.from({ length: 31 }, (_, i) => 16 + i * 2).map((at) => ({ at, event, scans: Math.round((e ? 160 : 200) * Math.max(0, Math.sin(((at % 24) - 14) / 4))) }))
+    )}
+    x='at'
+    y='scans'
+    series='event'
+    highlight='This festival'
+    xFormat='eventTime'
+    takeaway='Entry peaks around 8pm each night, up on last year'
+  />
+</Chart>
+```
+
 ### States
 
 ```tsx-live layout=stack width=140
@@ -179,7 +199,7 @@ To compare events with different dates, line them up on days to the event. Send 
 
 - Put the chart inside a `Chart` card. The card sets the height and builds its Table view from the chart, so there is no `table` to pass. Plots are 160px at `sm` and 220px at `md`. At `lg` and `full` they start at 260px and grow with the card.
 - Send dates as ISO strings in the venue's wall time. A time zone offset is ignored, so 7:30pm at the venue stays 7:30pm for every reader.
-- Compare events by days out rather than by date: a numeric `x` of days to the event with `xFormat='daysOut'`. The x axis has no title, so the ticks say what they count.
+- Compare events by days out rather than by date: a numeric `x` of days to the event with `xFormat='daysOut'`. Compare times across events on the event clock with `xFormat='eventTime'`. The x axis has no title, so the ticks say what they count.
 - A `null` value breaks the line, so a day with no data never reads as a trend. Send `null` for that day rather than leaving it out.
 - Forecasts are always dotted, so they never read as actual sales.
 - Past 6 series, the smallest roll into Other, and the table keeps a column for every series. Past 10,000, axes and labels switch to compact numbers. The tooltip and table keep full values.

@@ -35,6 +35,7 @@ import {
 } from '../plot/series'
 import { fieldLabel } from '../plot/table'
 import {
+  eventTimeTicks,
   formatTimeTick,
   formatTimeTitle,
   hasTimeOfDay,
@@ -399,6 +400,9 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
               values: timeTicks(xDomain[0], xDomain[1], {
                 hasTime: hasTimeOfDay(props.data[0]?.[props.x])
               })
+            }),
+            ...(props.xFormat === 'eventTime' && {
+              values: eventTimeTicks(xDomain[0], xDomain[1])
             }),
             size: 0,
             format: (value: number) =>
