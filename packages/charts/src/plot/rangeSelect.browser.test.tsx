@@ -246,6 +246,21 @@ describe('range selection by keyboard', () => {
     await expect.poll(handles).toBe(0)
     await userEvent.keyboard('{Enter}')
     expect(onRangeSelect).not.toHaveBeenCalled()
+
+    chart.rerender(
+      <div style={{ width: 560 }}>
+        <Chart label='Tickets sold' source='Oztix sales.'>
+          <LineChart
+            data={days}
+            x='day'
+            y='sold'
+            onRangeSelect={onRangeSelect}
+          />
+        </Chart>
+      </div>
+    )
+    await afterResize()
+    expect(handles()).toBe(0)
   })
 })
 

@@ -64,7 +64,6 @@ export type ChartPlotProps<P> = {
 
 type RangeValue = number | string
 type Selection = {
-  axisKey: string
   range: BrushRange<RangeValue>
   /** Where Shift+Arrow grows the range from. */
   anchor: RangeValue
@@ -166,8 +165,12 @@ export function ChartPlot<P>({
   // New x values are new data, which drops the old selection.
   const axisKey = rangeAxis?.values.join() ?? ''
   const brushX = useBrushX(rangeAxis !== null)
-  const [held, setHeld] = useState<Selection | null>(null)
-  const selection = held?.axisKey === axisKey ? held : null
+  const [selection, setSelection] = useState<Selection | null>(null)
+  const [selectionKey, setSelectionKey] = useState(axisKey)
+  if (selectionKey !== axisKey) {
+    setSelectionKey(axisKey)
+    setSelection(null)
+  }
   const [rangeSpoken, setRangeSpoken] = useState('')
 
   const summary = useMemo(() => chart.summary(props), [chart, props])
@@ -198,7 +201,7 @@ export function ChartPlot<P>({
       { reason }: { reason: BrushXChange<RangeValue> }
     ) => {
       const span = spans(rangeAxis, range)
-      setHeld(span ? { axisKey, range, anchor: range.start } : null)
+      setSelection(span ? { range, anchor: range.start } : null)
       setRangeSpoken('')
       if (span && reason.type === 'commit' && reason.source === 'pointer')
         onRangeSelect?.(wallRange(span[0], span[1], rangeAxis.options))
@@ -221,7 +224,7 @@ export function ChartPlot<P>({
       ...drawing.definition,
       controls: [...(drawing.definition.controls ?? []), brush]
     }
-  }, [drawing, rangeAxis, brushX, selection, axisKey, onRangeSelect])
+  }, [drawing, rangeAxis, brushX, selection, onRangeSelect])
   const fail = drawing ? undefined : card?.fail
   useLayoutEffect(() => fail?.(), [fail])
 
@@ -258,7 +261,7 @@ export function ChartPlot<P>({
 
   function clearRange() {
     if (!selection) return false
-    setHeld(null)
+    setSelection(null)
     setRangeSpoken('Selection cleared')
     return true
   }
@@ -272,13 +275,13 @@ export function ChartPlot<P>({
     const end = rangeValueOf(next)
     const span = spans(rangeAxis, { start: anchor, end })
     if (!span) {
-      setHeld(null)
+      setSelection(null)
       setRangeSpoken('')
       return
     }
     const range =
       span[0] <= span[1] ? { start: anchor, end } : { start: end, end: anchor }
-    setHeld({ axisKey, range, anchor })
+    setSelection({ range, anchor })
     setRangeSpoken(spokenRange(span[0], span[1], rangeAxis.options))
   }
 
