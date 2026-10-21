@@ -627,3 +627,32 @@ describe('LineChart counting down to the event', () => {
     )
   })
 })
+
+describe('LineChart on an event clock', () => {
+  const hours = Array.from({ length: 28 }, (_, i) => 16 + i * 2)
+  const clock: LineChartProps = {
+    data: ['Brisbane', 'Sydney'].flatMap((event, e) =>
+      hours.map((at, i) => ({ at, event, scans: (i + 1) * (10 + e) }))
+    ),
+    x: 'at',
+    y: 'scans',
+    series: 'event',
+    xFormat: 'eventTime'
+  }
+
+  it('ticks the day as it starts at 6am, and clock times between', () => {
+    const svg = svgOf(clock)
+    expect(svg).toMatch(/>Day 2</)
+    expect(svg).toMatch(/>\d{2}:00</)
+    const xTicks = [...svg.matchAll(/x-tick-label[^>]*>([^<]*)</g)].map(
+      (match) => match[1]
+    )
+    expect(xTicks.length).toBeGreaterThan(1)
+    for (const tick of xTicks) expect(tick).toMatch(/^(Day \d+|\d{2}:\d{2})$/)
+  })
+
+  it('titles a point with its day and time', () => {
+    const point = { x: 26, y: 60, series: 'Sydney', index: 5 }
+    expect(lineChart.tooltip([point], clock, paint).title).toBe('Day 1, 2:00am')
+  })
+})

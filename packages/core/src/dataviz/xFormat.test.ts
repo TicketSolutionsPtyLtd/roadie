@@ -14,6 +14,20 @@ describe('formatX', () => {
     expect(formatX(days, 'daysOut', 'tick')).toBe(tick)
   })
 
+  it.each([
+    [19, 'Day 1, 7:00pm', '19:00'],
+    [25, 'Day 1, 1:00am', '01:00'],
+    [30, 'Day 2, 6:00am', 'Day 2'],
+    [43.25, 'Day 2, 7:15pm', '19:15'],
+    [6, 'Day 1, 6:00am', 'Day 1']
+  ])(
+    'reads %s hours into the event as "%s", ticked "%s"',
+    (hours, label, tick) => {
+      expect(formatX(hours, 'eventTime')).toBe(label)
+      expect(formatX(hours, 'eventTime', 'tick')).toBe(tick)
+    }
+  )
+
   it('formats a plain number as its value format', () => {
     expect(formatX(1234, 'number')).toBe('1,234')
     expect(formatX(0.25, 'percent', 'tick')).toBe('25%')
