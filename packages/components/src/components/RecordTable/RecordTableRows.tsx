@@ -77,7 +77,13 @@ export function RecordTableRows({
 }: RecordTableRowsProps) {
   if (range)
     return (
-      <RangeRows range={range} row={row ?? 0} onRow={onRow} shared={shared} />
+      <RangeRows
+        range={range}
+        row={row ?? 0}
+        onRow={onRow}
+        firstIndex={firstIndex}
+        shared={shared}
+      />
     )
   if (rows.length > VIRTUALISE_AFTER)
     return <VirtualRows rows={rows} firstIndex={firstIndex} shared={shared} />
@@ -128,11 +134,13 @@ function RangeRows({
   range,
   row,
   onRow,
+  firstIndex = 2,
   shared
 }: {
   range: RecordsRangeState
   row: number
   onRow?: (row: number) => void
+  firstIndex?: number
   shared: RowsShared
 }) {
   const { bodyRef, view } = useRangeWindow({
@@ -144,7 +152,7 @@ function RangeRows({
   return (
     <WindowBody bodyRef={bodyRef} padding={padding}>
       {cells.map(({ key, index, record, failed }) => {
-        const rowIndex = index + 2
+        const rowIndex = firstIndex + index
         if (failed === 'error')
           return (
             <RecordTableRangeError

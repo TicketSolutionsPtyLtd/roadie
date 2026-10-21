@@ -43,6 +43,12 @@ import {
   toggleRange,
   withinMatching
 } from './selection'
+import {
+  type RecordsResolvedTotals,
+  type RecordsTotals,
+  sumRecords,
+  totalsLabel
+} from './totals'
 import type {
   RecordName,
   RecordViewDefaults,
@@ -81,6 +87,10 @@ export type UseRecordsOptions<Row extends object> = {
   onPositionChange?: (position: Required<RecordPosition>) => void
   /** @default { one: 'record', other: 'records' } */
   recordName?: RecordName
+  /**
+   * Totals over every record the search and filters match, labelled "Totals for 1,234 records" by default. `true` or `'sum'` adds up the number and money fields in the browser, except shares, indexes and points. A server gives its own as `{ values }`, keyed by field, and `label`; keep passing the last ones while the next page loads. With `loadRange`, a range's result can carry them instead.
+   */
+  totals?: RecordsTotals
   /** A fetch is under way. With no records the layout shows placeholders; with records it dims them. */
   loading?: boolean
   /** The fetch failed. A string is shown as the message. */
@@ -194,6 +204,8 @@ export type RecordsState<Row extends object = object> = {
   rowActions?: (row: Row) => ReactNode
   getRowHref?: (row: Row) => string | undefined
   recordName: RecordName
+  /** The totals row's label and values, from `totals` or the latest range. */
+  totals?: RecordsResolvedTotals
   loading: boolean
   error: boolean | string
   onRetry?: () => void
@@ -245,6 +257,7 @@ export type RecordsInstance<Row extends object = object> = Pick<
   | 'selectPage'
   | 'selectAllMatching'
   | 'clearSelection'
+  | 'totals'
   | 'loading'
   | 'error'
   | 'onRetry'
@@ -302,6 +315,7 @@ export function useRecordsState<Row extends object>({
   defaultPosition,
   onPositionChange,
   recordName = RECORD,
+  totals: totalsOption,
   loading = false,
   error = false,
   onRetry,
@@ -503,6 +517,9 @@ export function useRecordsState<Row extends object>({
     ranged && heldPosition.page !== undefined && heldPosition.page > 0
   const countCapped =
     ranged && range.rowCount !== undefined && range.rowCount > MAX_RANGE_ROWS
+  const summing = totalsOption === true || totalsOption === 'sum'
+  const sumsPage = summing && server && !ranged
+  const sumsRanges = summing && ranged
   useEffect(() => {
     if (!isDev()) return
     const warn = (message: string) => {
@@ -528,13 +545,23 @@ export function useRecordsState<Row extends object>({
       warn(
         '[Roadie] Records with loadRange stop at 300,000 rows. Filter the list or use paged server mode.'
       )
+    if (sumsPage)
+      warn(
+        "[Roadie] Records totals can't sum in server mode: the list holds only a page. Pass the server's totals as { values }."
+      )
+    if (sumsRanges)
+      warn(
+        "[Roadie] Records totals can't sum with loadRange: the list holds only the ranges loaded. Leave totals out, or pass only a label, and resolve each range with the server's totals beside rowCount."
+      )
   }, [
     skipped,
     unidentified,
     rangeUnidentified,
     rangePaged,
     countCapped,
-    rangeCapped
+    rangeCapped,
+    sumsPage,
+    sumsRanges
   ])
 
   const resultCount = ranged
@@ -606,6 +633,15 @@ export function useRecordsState<Row extends object>({
         : undefined,
     [ranged, loaded.at, matchingRows]
   )
+  const given = totalsOption === undefined || summing ? undefined : totalsOption
+  const served = given?.values ? given : ranged ? range.totals : undefined
+  const defaultLabel = totalsLabel(resultCount, resultCountExact, recordName)
+  const label = given?.label ?? served?.label ?? defaultLabel
+  const totals = useMemo<RecordsResolvedTotals | undefined>(() => {
+    if (served?.values) return { label, values: served.values }
+    if (totalsOption === undefined || server || ranged) return undefined
+    return sumRecords(fields, matchingRows, label)
+  }, [served, label, totalsOption, server, ranged, fields, matchingRows])
   // Stable between loads, so the window and its memoised rows hold while scrolling.
   const rangeState = useMemo<RecordsRangeState<Row> | undefined>(
     () =>
@@ -920,6 +956,7 @@ export function useRecordsState<Row extends object>({
     rowActions,
     getRowHref,
     recordName,
+    totals,
     loading: busy,
     // Once records have loaded, a failed range shows in place of its rows.
     error:

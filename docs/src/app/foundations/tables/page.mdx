@@ -107,6 +107,22 @@ copy.
 - Hide the rest. A view's `layout.columns.hidden` hides columns, and its
   `order` reorders them. Pinned columns stay first and shown.
 
+## Totals
+
+- Add a totals row when the totals belong to columns, so people read down a
+  column to its total: sold, gross, and capacity across events. For two or
+  three headline numbers that don't map to columns, show StatTiles above the
+  table instead.
+- Total every record that matches, never just the page. A server sums the
+  matches, and the totals follow the search and filters.
+- A RecordTable shows its totals under the headings, since its last row is
+  only the end of a page. A DataTable shows them in its footer, under every
+  row, as an invoice does.
+- Add up counts and amounts only. Work a ratio out from the sums, such as
+  total sold over total capacity, never by adding up or averaging each row's.
+- See [Totals](/components/record-table#totals) on the RecordTable page and
+  [DataTable](/charts/data-table).
+
 ## Table examples
 
 ### Orders
