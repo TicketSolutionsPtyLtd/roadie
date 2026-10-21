@@ -641,14 +641,10 @@ describe('LineChart on an event clock', () => {
   }
 
   it('ticks the day as it starts at 6am, and clock times between', () => {
-    const svg = svgOf(clock)
-    expect(svg).toMatch(/>Day 2</)
-    expect(svg).toMatch(/>\d{2}:00</)
-    const xTicks = [...svg.matchAll(/x-tick-label[^>]*>([^<]*)</g)].map(
-      (match) => match[1]
-    )
-    expect(xTicks.length).toBeGreaterThan(1)
-    for (const tick of xTicks) expect(tick).toMatch(/^(Day \d+|\d{2}:\d{2})$/)
+    const xTicks = [
+      ...svgOf(clock).matchAll(/x-tick-label[^>]*>([^<]*)</g)
+    ].map((match) => match[1])
+    expect(xTicks).toEqual(['18:00', 'Day 2', '18:00', 'Day 3', '18:00'])
   })
 
   it('titles a point with its day and time', () => {
