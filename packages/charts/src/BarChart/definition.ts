@@ -248,7 +248,7 @@ export const barChart: ChartDefinition<BarChartProps> = {
       ms === null
         ? `at ${peak.key}`
         : isHourly(props)
-          ? `at ${formatTimeTick(ms, DAY)} on ${formatTimeTitle(ms, false)}`
+          ? `on ${formatTimeTitle(ms, true)}`
           : props.interval === 'week'
             ? `in the week of ${formatTimeTitle(ms, false)}`
             : `on ${formatTimeTitle(ms, false)}`

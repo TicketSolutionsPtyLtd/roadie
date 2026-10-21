@@ -124,8 +124,8 @@ describe('LineChart in a card', () => {
     })
     const heard = await visitEveryStop(container)
     expect(heard).toHaveLength(paceExample.data.length)
-    expect(heard[0]).toMatch(/^Sunday 16 August, \d+% sold$/)
-    expect(heard.at(-1)).toBe('Saturday 14 November, 96% sold, forecast')
+    expect(heard[0]).toMatch(/^Sunday, 16 August 2026, \d+% sold$/)
+    expect(heard.at(-1)).toBe('Saturday, 14 November 2026, 96% sold, forecast')
   })
 
   it('keeps text at 11px or more on a phone', async () => {

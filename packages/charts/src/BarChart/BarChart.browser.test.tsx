@@ -42,7 +42,7 @@ describe('BarChart in a card', () => {
     })
     const heard = await visitEveryStop(container)
     expect(heard).toHaveLength(onSaleExample.data.length)
-    expect(heard[0]).toBe('Monday 3 August, 9am, 1,840 orders')
+    expect(heard[0]).toBe('Monday, 3 August 2026, 9:00am, 1,840 orders')
   })
 
   it('speaks the second measure with each bar', async () => {
@@ -53,7 +53,7 @@ describe('BarChart in a card', () => {
     const heard = await visitEveryStop(container)
     expect(heard).toHaveLength(scanRateExample.data.length)
     expect(heard.at(-1)).toBe(
-      'Saturday 14 November, 7:45pm, 60 scans, inside 69%'
+      'Saturday, 14 November 2026, 7:45pm, 60 scans, inside 69%'
     )
   })
 

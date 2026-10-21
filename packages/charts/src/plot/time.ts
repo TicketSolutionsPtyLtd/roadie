@@ -1,11 +1,11 @@
 import type { PlotCell, PlotX } from '@oztix/roadie-core/dashboard'
 import { isWallTime, parseWallTime } from '@oztix/roadie-core/dataviz'
+import { formatDateTime, formatTimeOfDay } from '@oztix/roadie-core/datetime'
 
 import type { Row } from './types'
 
 const HOUR = 3_600_000
 const DAY = 86_400_000
-const LOCALE = 'en-AU'
 
 export const parseX = (value: PlotX | PlotCell | undefined) =>
   parseWallTime(value)
@@ -56,43 +56,44 @@ export function timeTicks(
   return span > DAY
     ? ticks
     : ticks.filter((tick) => {
-        const label = clock(tick)
+        const label = tickClock(tick)
         if (clocks.has(label)) return false
         clocks.add(label)
         return true
       })
 }
 
-const part = (ms: number, options: Intl.DateTimeFormatOptions) =>
-  new Intl.DateTimeFormat(LOCALE, { timeZone: 'UTC', ...options }).format(ms)
+// Plot x is wall time held as UTC milliseconds, so it formats in UTC.
+const at = (ms: number) => ({ epochMilliseconds: ms })
+const WALL = { timeZone: 'UTC' } as const
 
-export function clock(ms: number) {
-  const date = new Date(ms)
-  const hours = date.getUTCHours()
-  const minutes = date.getUTCMinutes()
-  const suffix = hours < 12 ? 'am' : 'pm'
-  const hour = hours % 12 || 12
-  return minutes
-    ? `${hour}:${String(minutes).padStart(2, '0')}${suffix}`
-    : `${hour}${suffix}`
-}
+const tickClock = (ms: number) =>
+  formatTimeOfDay(at(ms), { ...WALL, timeStyle: 'numeric' }) ?? ''
+
+/** A clock time for prose, such as the end of a spoken range. */
+export const clock = (ms: number) =>
+  formatTimeOfDay(at(ms), { ...WALL, timeStyle: 'medium' }) ?? ''
 
 const shortDate = (ms: number) =>
-  `${part(ms, { day: 'numeric' })} ${part(ms, { month: 'short' })}`
+  formatDateTime(at(ms), { ...WALL, dateStyle: 'short' }) ?? ''
 
 /** A clock time within a day, and a date past it. A short range dates midnight. */
 export function formatTimeTick(ms: number, spanMs: number) {
-  if (spanMs <= DAY) return clock(ms)
-  if (spanMs < SHORT_RANGE && ms % DAY !== 0) return clock(ms)
+  if (spanMs <= DAY) return tickClock(ms)
+  if (spanMs < SHORT_RANGE && ms % DAY !== 0) return tickClock(ms)
   return shortDate(ms)
 }
 
-export function formatTimeTitle(ms: number, hasTime: boolean) {
-  const date = `${part(ms, { weekday: 'short' })} ${shortDate(ms)}`
-  return hasTime ? `${date}, ${clock(ms)}` : date
-}
+export const formatTimeTitle = (ms: number, hasTime: boolean) =>
+  formatDateTime(at(ms), {
+    ...WALL,
+    dateStyle: 'long',
+    timeStyle: hasTime ? 'medium' : undefined
+  }) ?? ''
 
-export function spokenX(ms: number, hasTime: boolean) {
-  const date = `${part(ms, { weekday: 'long' })} ${part(ms, { day: 'numeric' })} ${part(ms, { month: 'long' })}`
-  return hasTime ? `${date}, ${clock(ms)}` : date
-}
+export const spokenX = (ms: number, hasTime: boolean) =>
+  formatDateTime(at(ms), {
+    ...WALL,
+    dateStyle: 'full',
+    timeStyle: hasTime ? 'medium' : undefined
+  }) ?? ''

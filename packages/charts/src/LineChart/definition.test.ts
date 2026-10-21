@@ -339,7 +339,7 @@ describe('lineChart', () => {
       label: 'Sold forecast'
     })
     expect(lineChart.describe(point, plainForecast)).toBe(
-      'Monday 5 October, 8 sold, forecast'
+      'Monday, 5 October 2026, 8 sold, forecast'
     )
   })
 
@@ -349,7 +349,7 @@ describe('lineChart', () => {
         { x: Date.UTC(2026, 2, 10), y: 92, series: 'GA', index: 0 },
         salesByTypeExample
       )
-    ).toBe('Tuesday 10 March, 92 orders, GA')
+    ).toBe('Tuesday, 10 March 2026, 92 orders, GA')
   })
 
   it('speaks a point in plain words', () => {
@@ -362,7 +362,7 @@ describe('lineChart', () => {
           y: 'orders'
         }
       )
-    ).toBe('Tuesday 10 March, 184 orders')
+    ).toBe('Tuesday, 10 March 2026, 184 orders')
   })
 
   it('honours a shared y domain', () => {
@@ -392,7 +392,7 @@ describe('lineChartTable', () => {
       'Similar shows range'
     ])
     expect(table.rows[0]).toMatchObject({
-      day: 'Sun 16 Aug',
+      day: 'Sun 16 Aug 2026',
       bandMedian: 0.14,
       bandRange: '7% to 22%'
     })
@@ -549,7 +549,7 @@ describe('LineChart across a day or two of hourly data', () => {
       scans: i
     }))
     const svg = svgOf({ data, x: 'at', y: 'scans' })
-    expect(svg).toMatch(/>12pm</)
+    expect(svg).toMatch(/>12:00</)
     expect(svg).toMatch(/>2 Oct</)
   })
 })

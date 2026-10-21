@@ -33,8 +33,8 @@ describe('table helpers', () => {
   })
 
   it('writes dates as house dates in the table', () => {
-    expect(xCell('2026-11-27', true)).toBe('Fri 27 Nov')
-    expect(xCell('2026-11-27T19:30', true)).toBe('Fri 27 Nov, 7:30pm')
+    expect(xCell('2026-11-27', true)).toBe('Fri 27 Nov 2026')
+    expect(xCell('2026-11-27T19:30', true)).toBe('Fri 27 Nov 2026, 7:30pm')
     expect(xCell(90, false)).toBe(90)
   })
 })
