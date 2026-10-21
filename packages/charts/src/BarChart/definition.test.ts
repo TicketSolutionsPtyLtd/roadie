@@ -74,7 +74,7 @@ describe('barChart', () => {
   })
 
   it('labels hours as times and days as dates', () => {
-    expect(svgOf(onSaleExample)).toContain('>9am<')
+    expect(svgOf(onSaleExample)).toContain('>09:00<')
     expect(svgOf(dailyOrdersExample)).toContain('>3 Oct<')
   })
 
@@ -137,11 +137,11 @@ describe('barChart', () => {
   it('names the plot by the takeaway, or the peak', () => {
     expect(barChart.summary(onSaleExample)).toBe(onSaleExample.takeaway)
     expect(barChart.summary({ ...onSaleExample, takeaway: undefined })).toBe(
-      'Orders peaked at 1,840 at 9am on Mon 3 Aug'
+      'Orders peaked at 1,840 on Mon 3 Aug 2026, 9:00am'
     )
     expect(
       barChart.summary({ ...dailyOrdersExample, takeaway: undefined })
-    ).toBe('Orders peaked at 21 on Fri 9 Oct')
+    ).toBe('Orders peaked at 21 on Fri 9 Oct 2026')
     expect(barChart.summary({ data: [], x: 'd', y: 'v' })).toBe('V by day')
   })
 
@@ -168,7 +168,7 @@ describe('barChart', () => {
         { x: '2026-08-03T09:00', y: 1840, series: 'Orders', index: 0 },
         onSaleExample
       )
-    ).toBe('Monday 3 August, 9am, 1,840 orders')
+    ).toBe('Monday, 3 August 2026, 9:00am, 1,840 orders')
   })
 
   it('speaks the second measure with the bar', () => {
@@ -177,7 +177,7 @@ describe('barChart', () => {
         { x: '2026-11-14T18:00', y: 300, series: 'Scans', index: 4 },
         scanRateExample
       )
-    ).toBe('Saturday 14 November, 6pm, 300 scans, inside 37%')
+    ).toBe('Saturday, 14 November 2026, 6:00pm, 300 scans, inside 37%')
   })
 
   it('shows both measures in the tooltip', () => {
@@ -188,7 +188,7 @@ describe('barChart', () => {
         paint
       )
     ).toEqual({
-      title: 'Sat 14 Nov, 6pm',
+      title: 'Sat 14 Nov 2026, 6:00pm',
       rows: [
         {
           label: 'Scans',
@@ -213,7 +213,7 @@ describe('barChartTable', () => {
     expect(table.columns[2]).toMatchObject({ key: 'inside', format: 'percent' })
     expect(table.rows).toHaveLength(scanRateExample.data.length)
     expect(table.rows[0]).toEqual({
-      time: 'Sat 14 Nov, 5pm',
+      time: 'Sat 14 Nov 2026 17:00',
       scans: 69,
       inside: 0.03
     })

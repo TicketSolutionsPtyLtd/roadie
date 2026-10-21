@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { formatDateTime, formatTimeOfDay } from '@oztix/roadie-core/datetime'
+
 import {
   formatTimeTick,
   formatTimeTitle,
@@ -30,19 +32,32 @@ describe('time', () => {
     expect(isTimeField([{ d: 'Mon' }], 'd')).toBe(false)
   })
 
-  it('labels ticks in house formats', () => {
+  it('labels ticks as the date and time foundations set for an axis', () => {
     expect(formatTimeTick(Date.UTC(2026, 10, 14), 30 * DAY)).toBe('14 Nov')
-    expect(formatTimeTick(Date.UTC(2026, 10, 14, 19), DAY / 2)).toBe('7pm')
+    expect(formatTimeTick(Date.UTC(2026, 10, 14, 19), DAY / 2)).toBe('19:00')
     expect(formatTimeTick(Date.UTC(2026, 10, 14, 19, 30), DAY / 2)).toBe(
-      '7:30pm'
+      '19:30'
     )
   })
 
-  it('titles and speaks a point', () => {
-    expect(formatTimeTitle(Date.UTC(2026, 10, 27), false)).toBe('Fri 27 Nov')
-    expect(spokenX(Date.UTC(2026, 2, 10), false)).toBe('Tuesday 10 March')
+  it('titles and speaks a point as the foundations set for a tooltip', () => {
+    expect(formatTimeTitle(Date.UTC(2026, 10, 27), false)).toBe(
+      'Fri 27 Nov 2026'
+    )
+    expect(spokenX(Date.UTC(2026, 2, 10), false)).toBe('Tuesday, 10 March 2026')
     expect(spokenX(Date.UTC(2026, 10, 14, 19, 30), true)).toBe(
-      'Saturday 14 November, 7:30pm'
+      'Saturday, 14 November 2026, 7:30pm'
+    )
+  })
+
+  it('reads as DateTime does for the same wall time', () => {
+    const at = { epochMilliseconds: Date.UTC(2026, 10, 27, 19, 30) }
+    const options = { timeZone: 'UTC' } as const
+    expect(formatTimeTick(at.epochMilliseconds, DAY)).toBe(
+      formatTimeOfDay(at, { ...options, timeStyle: 'numeric' })
+    )
+    expect(formatTimeTitle(at.epochMilliseconds, true)).toBe(
+      formatDateTime(at, { ...options, dateStyle: 'long', timeStyle: 'medium' })
     )
   })
 
@@ -67,9 +82,9 @@ describe('time', () => {
     const ticks = timeTicks(start, start + 5 * 3_600_000)
     expect(ticks.every((t) => t % 3_600_000 === 0)).toBe(true)
     expect(ticks.map((t) => formatTimeTick(t, DAY / 2))).toEqual([
-      '6pm',
-      '8pm',
-      '10pm'
+      '18:00',
+      '20:00',
+      '22:00'
     ])
   })
 
@@ -79,13 +94,13 @@ describe('time', () => {
     const labels = timeTicks(start, start + span, { hasTime: true }).map((t) =>
       formatTimeTick(t, span)
     )
-    expect(labels).toEqual(['12pm', '2 Oct', '12pm'])
+    expect(labels).toEqual(['12:00', '2 Oct', '12:00'])
     const day = 25 * 3_600_000
     expect(
       timeTicks(start, start + day, { hasTime: true }).map((t) =>
         formatTimeTick(t, day)
       )
-    ).toEqual(['12pm', '6pm', '2 Oct', '6am'])
+    ).toEqual(['12:00', '18:00', '2 Oct', '06:00'])
   })
 
   it('keeps whole days on a short range of dates', () => {
@@ -123,7 +138,7 @@ describe('time', () => {
     const ms = parseX('2026-11-14T19:30:45')
     expect(ms).toBe(Date.UTC(2026, 10, 14, 19, 30, 45))
     expect(hasTimeOfDay('2026-11-14T19:30:45')).toBe(true)
-    expect(formatTimeTitle(ms!, true)).toBe('Sat 14 Nov, 7:30pm')
+    expect(formatTimeTitle(ms!, true)).toBe('Sat 14 Nov 2026, 7:30pm')
     expect(hasTimeOfDay('2026-11-14T19:30:99')).toBe(false)
   })
 
