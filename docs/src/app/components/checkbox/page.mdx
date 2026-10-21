@@ -66,7 +66,7 @@ function GenreFilter() {
     <CheckboxGroup value={value} onValueChange={setValue} allValues={genres}>
       <CheckboxGroup.Label>Filter by genre</CheckboxGroup.Label>
       <CheckboxGroup.Item parent label='All genres' />
-      <div className='grid gap-2 ps-6'>
+      <div className='grid gap-1 ps-6'>
         <CheckboxGroup.Item value='rock' label='Rock' />
         <CheckboxGroup.Item value='jazz' label='Jazz' />
         <CheckboxGroup.Item value='hip-hop' label='Hip hop' />
@@ -170,6 +170,47 @@ group, or on a single `Checkbox`.
 </CheckboxGroup>
 ```
 
+### Sizes
+
+`md` is the default. Use `sm` in dense lists, such as a filter sidebar, and
+`lg` where the choice is the main thing on the screen. Set it on the group, or
+on a single `Checkbox`. With `emphasis='normal'`, it sizes the box only.
+
+```tsx-live layout=stack
+{/* Small */}
+<Checkbox size='sm' label='Send me event news' defaultChecked />
+{/* Medium */}
+<Checkbox size='md' label='Send me event news' defaultChecked />
+{/* Large */}
+<Checkbox size='lg' label='Send me event news' defaultChecked />
+```
+
+### Trailing
+
+`trailing` puts a count, `Badge`, or value at the end of the row. It isn't
+part of the checkbox's name, so screen readers announce the label alone.
+
+```tsx-live width=64
+<CheckboxGroup size='sm' defaultValue={['antler-kettle-hall']}>
+  <CheckboxGroup.Label>Venue</CheckboxGroup.Label>
+  <CheckboxGroup.Item
+    value='antler-kettle-hall'
+    label='Antler Kettle Hall'
+    trailing='128'
+  />
+  <CheckboxGroup.Item
+    value='kazoo-hollow-room'
+    label='Kazoo Hollow Room'
+    trailing='96'
+  />
+  <CheckboxGroup.Item
+    value='opal-harpoon-room'
+    label='Opal Harpoon Room'
+    trailing='41'
+  />
+</CheckboxGroup>
+```
+
 ### States
 
 ```tsx-live layout=stack
@@ -189,6 +230,8 @@ group, or on a single `Checkbox`.
 
 - Use a checkbox for choices that take effect on submit. For a setting that
   applies straight away, use a switch.
+- A filter can apply as soon as it's ticked, since the results it changes are
+  in view.
 - Use a [RadioGroup](/components/radio-group) when people must pick exactly one
   option.
 - Word the label so ticking it means yes. "Send me event news", not "Don't send

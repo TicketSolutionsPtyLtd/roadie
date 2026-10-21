@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "260.6 kB"
+    "limit": "262 kB"
   },
   {
     "name": "Single component (Button)",
@@ -161,14 +161,14 @@
     "name": "Checkbox",
     "path": "dist/components/Checkbox/index.js",
     "import": "*",
-    "limit": "2 kB",
+    "limit": "2.25 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "CheckboxGroup",
     "path": "dist/components/CheckboxGroup/index.js",
     "import": "*",
-    "limit": "3 kB",
+    "limit": "3.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -308,14 +308,14 @@
     "name": "RecordGrid",
     "path": "dist/components/RecordGrid/index.js",
     "import": "*",
-    "limit": "105.25 kB",
+    "limit": "105.5 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordTable",
     "path": "dist/components/RecordTable/index.js",
     "import": "*",
-    "limit": "112.65 kB",
+    "limit": "113 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]

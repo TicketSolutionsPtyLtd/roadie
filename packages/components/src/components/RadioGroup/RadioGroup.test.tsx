@@ -1,4 +1,5 @@
 import { render } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
 import { RadioGroup } from '.'
@@ -275,5 +276,25 @@ describe('Field text description', () => {
       </Field>
     )
     expect(getByRole('radiogroup')).toHaveAccessibleDescription('Error')
+  })
+
+  it("leaves an item's trailing out of its name", () => {
+    const { getByRole } = render(
+      <RadioGroup>
+        <RadioGroup.Item value='upcoming' label='Upcoming' trailing='84' />
+      </RadioGroup>
+    )
+    expect(getByRole('radio')).toHaveAccessibleName('Upcoming')
+  })
+
+  it('picks an item when its trailing count is clicked', async () => {
+    const user = userEvent.setup()
+    const { getByRole, getByText } = render(
+      <RadioGroup>
+        <RadioGroup.Item value='upcoming' label='Upcoming' trailing='84' />
+      </RadioGroup>
+    )
+    await user.click(getByText('84'))
+    expect(getByRole('radio')).toHaveAttribute('aria-checked', 'true')
   })
 })

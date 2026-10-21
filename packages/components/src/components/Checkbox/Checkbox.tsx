@@ -10,14 +10,25 @@ import { cn } from '@oztix/roadie-core/utils'
 import { isEmptyNode } from '../../utils/isEmptyNode'
 import { useFieldContext } from '../Field'
 import { CheckboxGroupContext } from './CheckboxGroupContext'
-import { checkboxVariants } from './variants'
+import {
+  checkboxSizes,
+  checkboxTrailingClassName,
+  checkboxVariants
+} from './variants'
 
 export type CheckboxProps = CheckboxPrimitive.Root.Props &
   RefAttributes<HTMLElement> & {
+    /** Names the checkbox. The whole row becomes the click target. */
     label?: ReactNode
+    /** A line of help under the label, read as the checkbox's description. */
     description?: ReactNode
     /** Ignored inside a `CheckboxGroup`, which sets it for every item. */
     emphasis?: 'subtler' | 'normal'
+    /** Ignored inside a `CheckboxGroup`, which sets it for every item. @default 'md' */
+    size?: 'sm' | 'md' | 'lg'
+    /** End of the row: a count, `Badge`, or value. Left out of the accessible name. */
+    trailing?: ReactNode
+    /** Marks the box invalid. A lone checkbox in a `Field` follows the Field's `invalid`. */
     invalid?: boolean
   }
 
@@ -26,6 +37,8 @@ export function Checkbox({
   label,
   description,
   emphasis: emphasisProp,
+  size: sizeProp,
+  trailing,
   invalid: invalidProp,
   required: requiredProp,
   disabled: disabledProp,
@@ -39,6 +52,8 @@ export function Checkbox({
   const inField = !group && !!field.fieldId
 
   const emphasis = group?.emphasis ?? emphasisProp ?? 'subtler'
+  const size = group?.size ?? sizeProp ?? 'md'
+  const sizes = checkboxSizes[size]
   const invalid = invalidProp ?? (inField ? field.invalid : undefined)
   const required = requiredProp ?? (inField ? field.required : undefined)
   const disabled = disabledProp ?? (inField ? field.disabled : undefined)
@@ -63,7 +78,8 @@ export function Checkbox({
       aria-labelledby={labelId}
       aria-describedby={describedBy}
       className={cn(
-        'flex size-6 shrink-0 items-center justify-center rounded-md border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] duration-moderate aria-[invalid=true]:border-[var(--color-danger-9)] aria-[invalid=true]:bg-[var(--color-danger-2)] aria-[invalid=true]:outline-[color-mix(in_oklch,var(--color-danger-9)_var(--focus-ring-opacity),transparent)] data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)] data-[indeterminate]:border-[var(--color-accent-9)] data-[indeterminate]:bg-[var(--color-accent-3)]',
+        sizes.box,
+        'flex shrink-0 items-center justify-center rounded-md border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] duration-moderate aria-[invalid=true]:border-[var(--color-danger-9)] aria-[invalid=true]:bg-[var(--color-danger-2)] aria-[invalid=true]:outline-[color-mix(in_oklch,var(--color-danger-9)_var(--focus-ring-opacity),transparent)] data-[checked]:border-[var(--intent-bg-strong)] data-[checked]:bg-[var(--intent-bg-strong)] data-[checked]:shadow-none data-[checked]:intent-accent data-[indeterminate]:border-[var(--intent-bg-strong)] data-[indeterminate]:bg-[var(--intent-bg-strong)] data-[indeterminate]:shadow-none data-[indeterminate]:intent-accent',
         emphasis !== 'normal' &&
           'focus-visible:outline-[length:var(--focus-ring-width)]'
       )}
@@ -71,13 +87,13 @@ export function Checkbox({
     >
       <CheckboxPrimitive.Indicator
         data-slot='checkbox-indicator'
-        className='flex text-[var(--color-accent-9)]'
+        className='flex text-[var(--intent-text-on-strong)]'
         render={(indicatorProps, state) => (
           <span {...indicatorProps}>
             {state.indeterminate ? (
-              <MinusIcon weight='bold' className='size-4' />
+              <MinusIcon weight='bold' className={sizes.icon} />
             ) : (
-              <CheckIcon weight='bold' className='size-4' />
+              <CheckIcon weight='bold' className={sizes.icon} />
             )}
           </span>
         )}
@@ -86,14 +102,14 @@ export function Checkbox({
   )
 
   const text = (hasLabel || hasDescription) && (
-    <span className='grid gap-0.5'>
+    <span className='grid min-w-0 gap-0.5 wrap-anywhere'>
       {hasLabel && (
         <span
           id={labelId}
           className={
             emphasis === 'normal'
               ? 'text-base font-medium text-normal'
-              : 'text-sm text-normal'
+              : cn(sizes.label, 'text-normal')
           }
         >
           {label}
@@ -107,11 +123,17 @@ export function Checkbox({
     </span>
   )
 
+  const trailingSlot = !isEmptyNode(trailing) && (
+    <span data-slot='checkbox-trailing' className={checkboxTrailingClassName}>
+      {trailing}
+    </span>
+  )
+
   return (
     <label
       data-slot='checkbox'
       className={cn(
-        checkboxVariants({ emphasis, className }),
+        checkboxVariants({ emphasis, size, className }),
         group?.direction === 'horizontal' && emphasis === 'normal' && 'flex-1'
       )}
     >
@@ -121,6 +143,7 @@ export function Checkbox({
             {children}
             {text}
           </span>
+          {trailingSlot}
           {checkbox}
         </>
       ) : (
@@ -128,6 +151,7 @@ export function Checkbox({
           {checkbox}
           {children}
           {text}
+          {trailingSlot}
         </>
       )}
     </label>

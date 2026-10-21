@@ -184,4 +184,18 @@ describe('Field text description', () => {
     )
     expect(getByRole('checkbox')).toHaveAccessibleDescription('Error')
   })
+
+  it('leaves trailing out of its name', () => {
+    const { getByRole } = render(<Checkbox label='Brisbane' trailing='12' />)
+    expect(getByRole('checkbox')).toHaveAccessibleName('Brisbane')
+  })
+
+  it('toggles when its trailing count is clicked', async () => {
+    const user = userEvent.setup()
+    const { getByRole, getByText } = render(
+      <Checkbox label='Brisbane' trailing='12' />
+    )
+    await user.click(getByText('12'))
+    expect(getByRole('checkbox')).toHaveAttribute('aria-checked', 'true')
+  })
 })

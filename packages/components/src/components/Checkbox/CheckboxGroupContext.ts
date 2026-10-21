@@ -2,12 +2,15 @@
 
 import { createContext } from 'react'
 
+import type { CheckboxSize } from './variants'
+
 export type CheckboxEmphasis = 'subtler' | 'normal'
 export type CheckboxGroupDirection = 'vertical' | 'horizontal'
 
 export type CheckboxGroupContextValue = {
   emphasis: CheckboxEmphasis
   direction: CheckboxGroupDirection
+  size: CheckboxSize
   invalid?: boolean
   required?: boolean
   setLabelId?: (id: string | undefined) => void
