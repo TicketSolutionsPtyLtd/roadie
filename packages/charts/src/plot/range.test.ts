@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { spokenRange, wallRange } from './range'
+import { spokenRange, spokenValue, wallRange } from './range'
 
 const at = (iso: string) => Date.parse(`${iso}Z`)
 
@@ -79,5 +79,25 @@ describe('spokenRange', () => {
     }
   ])('reads $name', ({ start, end, options, text }) => {
     expect(spokenRange(at(start), at(end), options)).toBe(text)
+  })
+})
+
+describe('spokenValue', () => {
+  it.each([
+    ['a day', '2026-10-04T00:00', { hasTime: false }, 'Sunday 4 October'],
+    [
+      'a time',
+      '2026-10-03T18:30',
+      { hasTime: true },
+      'Saturday 3 October, 6:30pm'
+    ],
+    [
+      'a week',
+      '2026-09-28T00:00',
+      { hasTime: false, bucketDays: 7 },
+      'Week of Monday 28 September'
+    ]
+  ])('reads %s', (_, iso, options, text) => {
+    expect(spokenValue(at(iso), options)).toBe(text)
   })
 })

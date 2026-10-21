@@ -206,9 +206,16 @@
   stroke: none;
 }
 
+/* The handles are 24px hit areas, so they only show while in use. */
 [data-slot='chart-plot-host'] [data-chart-brush] .handle {
   fill: var(--chart-highlight);
-  fill-opacity: 0.6;
+  fill-opacity: 0;
+}
+
+[data-slot='chart-plot-host']
+  [data-chart-brush]
+  .handle:is(:hover, :focus-visible) {
+  fill-opacity: 0.24;
 }
 
 /* d3 only empties a brush when a gesture ends, so an unset range would

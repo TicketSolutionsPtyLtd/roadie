@@ -44,8 +44,7 @@ import {
   visualEnds
 } from './keyboard'
 import { cssPaint } from './paint'
-import { type RangeAxis, spokenRange, wallRange } from './range'
-import { spokenX } from './time'
+import { type RangeAxis, spokenRange, spokenValue, wallRange } from './range'
 import { type CategoryAxis, type ChartDefinition, isPlotDatum } from './types'
 import { useBrushX } from './useBrushX'
 import { usePlotBox } from './usePlotBox'
@@ -79,6 +78,31 @@ const rangeValueOf = (point: ChartPoint): RangeValue =>
 
 const inBrush = (target: EventTarget | null) =>
   target instanceof Element && target.closest(BRUSH) !== null
+
+// d3-brush cancels touchmove, which would trap page scroll on the chart, so
+// no touch event reaches it; its move and end listeners throw without a start. A tap's emulated mousedown follows within a second.
+const touchFree = new WeakSet<Element>()
+function keepTouchForScrolling(brush: Element) {
+  if (touchFree.has(brush)) return
+  touchFree.add(brush)
+  let touchedAt = -Infinity
+  for (const type of ['touchstart', 'touchmove', 'touchend', 'touchcancel'])
+    brush.addEventListener(
+      type,
+      (event) => {
+        touchedAt = event.timeStamp
+        event.stopPropagation()
+      },
+      { capture: true, passive: true }
+    )
+  brush.addEventListener(
+    'mousedown',
+    (event) => {
+      if (event.timeStamp - touchedAt < 1000) event.stopPropagation()
+    },
+    { capture: true }
+  )
+}
 
 function spans(axis: RangeAxis, range: BrushRange<RangeValue>) {
   const start = axis.msOf(range.start)
@@ -190,9 +214,7 @@ export function ChartPlot<P>({
       endAriaLabel: 'Range end',
       format: (value) => {
         const ms = rangeAxis.msOf(value)
-        return ms === null
-          ? String(value)
-          : spokenX(ms, rangeAxis.options.hasTime)
+        return ms === null ? String(value) : spokenValue(ms, rangeAxis.options)
       }
     })
     return {
@@ -304,10 +326,9 @@ export function ChartPlot<P>({
     if (next) move(next)
   }
 
-  // The brush covers the plot, and the engine drops hover over a control, so
-  // the tooltip follows the pointer from here.
-  function onBrushPointerMove(event: PointerEvent<HTMLDivElement>) {
-    setSpoken(false)
+  // The brush covers the plot, and the engine drops hover and taps over a
+  // control, so the tooltip follows the pointer from here.
+  function followPointer(event: PointerEvent<HTMLDivElement>) {
     if (!rangeAxis || !inBrush(event.target)) return
     const interaction = renderRef.current?.interaction
     interaction?.setControlledFocus(
@@ -371,9 +392,17 @@ export function ChartPlot<P>({
           pressedRef.current = true
           setSpoken(false)
         }}
-        onPointerMove={onBrushPointerMove}
-        onPointerLeave={() => {
-          if (rangeAxis && focused) focusPoint(null)
+        onPointerDown={(event) => {
+          if (event.pointerType === 'touch') followPointer(event)
+        }}
+        onPointerMove={(event) => {
+          setSpoken(false)
+          followPointer(event)
+        }}
+        // A tap leaves as the finger lifts, and its tooltip should stay.
+        onPointerLeave={(event) => {
+          if (rangeAxis && focused && event.pointerType !== 'touch')
+            focusPoint(null)
         }}
         onBlur={onBlur}
       >
@@ -395,9 +424,10 @@ export function ChartPlot<P>({
           onFocusGroupChange={setGroup}
           onRender={(context) => {
             renderRef.current = context
-            // A vertical swipe still scrolls the page past the chart.
             const brush = context.container.querySelector<HTMLElement>(BRUSH)
-            if (brush) brush.style.touchAction = 'pan-y'
+            if (!brush) return
+            brush.style.touchAction = 'auto'
+            keepTouchForScrolling(brush)
           }}
         />
         {focused && tooltip && (

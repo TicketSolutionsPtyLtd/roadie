@@ -286,3 +286,72 @@ describe('range selection off', () => {
     expect(chart.host().hasAttribute('data-range')).toBe(false)
   })
 })
+
+// Desktop WebKit and Firefox can't construct touches.
+const canTouch = (() => {
+  try {
+    new Touch({ identifier: 0, target: document.body })
+    return true
+  } catch {
+    return false
+  }
+})()
+
+describe('range selection on touch', () => {
+  it('shows the tooltip for a tap, as a plain chart does', async () => {
+    const chart = renderChart(
+      <LineChart data={days} x='day' y='sold' onRangeSelect={() => {}} />
+    )
+    await afterResize()
+    await expect.poll(() => chart.brush()).not.toBeNull()
+    const overlay = chart.brush()!.querySelector('.overlay')!
+    const box = overlay.getBoundingClientRect()
+    const at = {
+      bubbles: true,
+      pointerType: 'touch',
+      isPrimary: true,
+      clientX: box.left + box.width * 0.6,
+      clientY: box.top + box.height / 2
+    }
+    overlay.dispatchEvent(new PointerEvent('pointerdown', at))
+    await expect.poll(() => chart.tooltip()).not.toBeNull()
+    // Touch leaves the element as soon as the finger lifts.
+    for (const type of ['pointerup', 'pointerout', 'pointerleave'])
+      overlay.dispatchEvent(new PointerEvent(type, at))
+    await afterResize()
+    expect(chart.tooltip()).not.toBeNull()
+  })
+
+  it.skipIf(!canTouch)('leaves a swipe to scroll the page', async () => {
+    const onRangeSelect = vi.fn()
+    const chart = renderChart(
+      <LineChart data={days} x='day' y='sold' onRangeSelect={onRangeSelect} />
+    )
+    await afterResize()
+    await expect.poll(() => chart.brush()).not.toBeNull()
+    const overlay = chart.brush()!.querySelector('.overlay')!
+    const box = overlay.getBoundingClientRect()
+    const touchAt = (x: number, y: number) =>
+      new Touch({ identifier: 1, target: overlay, clientX: x, clientY: y })
+    const send = (type: string, x: number, y: number) => {
+      const touch = touchAt(x, y)
+      const event = new TouchEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        touches: type === 'touchend' ? [] : [touch],
+        targetTouches: type === 'touchend' ? [] : [touch],
+        changedTouches: [touch]
+      })
+      overlay.dispatchEvent(event)
+      return event
+    }
+    const y = box.top + box.height / 2
+    send('touchstart', box.left + 40, y)
+    const move = send('touchmove', box.left + 200, y - 40)
+    send('touchend', box.left + 200, y - 40)
+    await afterResize()
+    expect(move.defaultPrevented).toBe(false)
+    expect(chart.host().getAttribute('data-range')).toBe('empty')
+    expect(onRangeSelect).not.toHaveBeenCalled()
+  })
+})

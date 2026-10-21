@@ -77,3 +77,9 @@ export function spokenRange(from: number, to: number, options: RangeOptions) {
     : `${spokenDays(start, last)}, ${count} ${nounFor(count, weeks ? 'weeks' : 'days')}`
   return `Selected ${span}. Enter to apply.`
 }
+
+/** How a brush handle reads its value. */
+export function spokenValue(ms: number, options: RangeOptions) {
+  const when = spokenX(ms, options.hasTime)
+  return options.bucketDays === 7 ? `Week of ${when}` : when
+}
