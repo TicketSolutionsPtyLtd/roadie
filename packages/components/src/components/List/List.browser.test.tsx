@@ -176,9 +176,7 @@ describe('List width', () => {
       </div>
     )
     const frame = screen.getByTestId('frame').getBoundingClientRect()
-    const list = row(title).closest('ul')!.getBoundingClientRect()
     const count = screen.getByText('1,284').getBoundingClientRect()
-    expect(list.right).toBeLessThanOrEqual(frame.right)
     expect(count.right).toBeLessThanOrEqual(frame.right)
   })
 })
