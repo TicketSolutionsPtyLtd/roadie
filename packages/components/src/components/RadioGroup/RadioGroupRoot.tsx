@@ -15,6 +15,8 @@ export type RadioGroupRootProps = RadioGroupPrimitive.Props &
   RefAttributes<HTMLDivElement> &
   VariantProps<typeof radioGroupVariants> & {
     emphasis?: RadioGroupEmphasis
+    /** Sets every item's size. @default 'md' */
+    size?: 'sm' | 'md' | 'lg'
     invalid?: boolean
     required?: boolean
   }
@@ -23,6 +25,7 @@ export function RadioGroupRoot({
   className,
   direction = 'vertical',
   emphasis = 'subtler',
+  size = 'md',
   invalid,
   required,
   disabled,
@@ -39,6 +42,7 @@ export function RadioGroupRoot({
       value={{
         emphasis,
         direction: direction ?? 'vertical',
+        size,
         invalid: resolvedInvalid,
         required: resolvedRequired,
         setLabelId

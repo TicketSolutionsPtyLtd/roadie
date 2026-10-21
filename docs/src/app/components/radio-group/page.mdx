@@ -83,6 +83,40 @@ Use the `emphasis` prop on the Root to control the visual weight of all items.
 </RadioGroup>
 ```
 
+### Size
+
+`md` is the default. Use `sm` in dense lists, such as a filter sidebar, and
+`lg` where the choice is the main thing on the screen. Set it on the Root.
+
+```tsx-live layout=stack
+{/* Small */}
+<RadioGroup size='sm' defaultValue='a'>
+  <RadioGroup.Item value='a' label='Option A' />
+</RadioGroup>
+{/* Medium */}
+<RadioGroup size='md' defaultValue='a'>
+  <RadioGroup.Item value='a' label='Option A' />
+</RadioGroup>
+{/* Large */}
+<RadioGroup size='lg' defaultValue='a'>
+  <RadioGroup.Item value='a' label='Option A' />
+</RadioGroup>
+```
+
+### Trailing
+
+`trailing` puts a count, `Badge`, or value at the end of an item. It isn't
+part of the radio's name, so screen readers announce the label alone.
+
+```tsx-live width=64
+<RadioGroup size='sm' defaultValue='upcoming'>
+  <RadioGroup.Label>Event dates</RadioGroup.Label>
+  <RadioGroup.Item value='upcoming' label='Upcoming' trailing='265' />
+  <RadioGroup.Item value='next-7-days' label='Next 7 days' trailing='18' />
+  <RadioGroup.Item value='next-30-days' label='Next 30 days' trailing='74' />
+</RadioGroup>
+```
+
 ### States
 
 ```tsx-live layout=stack

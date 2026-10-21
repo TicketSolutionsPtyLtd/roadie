@@ -29,6 +29,86 @@ function renderSeats({ direction }: Pick<RadioGroupProps, 'direction'>) {
   return { floor: box('Floor'), balcony: box('Balcony') }
 }
 
+function measureRadio(name: string) {
+  const circle = screen.getByRole('radio', { name })
+  return {
+    circle: circle.getBoundingClientRect(),
+    dot: circle.firstElementChild?.getBoundingClientRect(),
+    row: circle
+      .closest('[data-slot="radio-group-item"]')!
+      .getBoundingClientRect()
+  }
+}
+
+describe('RadioGroup size', () => {
+  it.each([
+    ['sm', 16],
+    [undefined, 20],
+    ['md', 20],
+    ['lg', 24]
+  ] as const)(
+    'size %s draws a %ipx circle, its dot half as wide',
+    (size, circle) => {
+      render(
+        <RadioGroup size={size} defaultValue='floor'>
+          <RadioGroup.Item value='floor' label='Floor' />
+        </RadioGroup>
+      )
+      const rects = measureRadio('Floor')
+      expect(rects.circle.width).toBe(circle)
+      expect(rects.circle.height).toBe(circle)
+      expect(rects.dot?.width).toBe(circle / 2)
+    }
+  )
+
+  it('keeps an sm row at least 24px tall', () => {
+    render(
+      <RadioGroup size='sm'>
+        <RadioGroup.Item value='floor' label='Floor' />
+      </RadioGroup>
+    )
+    expect(measureRadio('Floor').row.height).toBeGreaterThanOrEqual(24)
+  })
+})
+
+describe('RadioGroup.Item trailing', () => {
+  it('keeps the count in view beside a long unbroken label', () => {
+    render(
+      <div data-testid='frame' style={{ width: 240 }}>
+        <RadioGroup>
+          <RadioGroup.Item
+            value='long'
+            label='Supercalifragilisticexpialidocious_unbroken_date_range'
+            trailing='1,284,903'
+          />
+        </RadioGroup>
+      </div>
+    )
+    const frame = screen.getByTestId('frame').getBoundingClientRect()
+    const { row } = measureRadio(
+      'Supercalifragilisticexpialidocious_unbroken_date_range'
+    )
+    const count = screen.getByText('1,284,903').getBoundingClientRect()
+    expect(row.right).toBeLessThanOrEqual(frame.right)
+    expect(count.right).toBeLessThanOrEqual(frame.right)
+  })
+
+  it('sits at the end of the row, after the label', () => {
+    render(
+      <div style={{ width: 240 }}>
+        <RadioGroup>
+          <RadioGroup.Item value='upcoming' label='Upcoming' trailing='84' />
+        </RadioGroup>
+      </div>
+    )
+    const { row } = measureRadio('Upcoming')
+    const label = screen.getByText('Upcoming').getBoundingClientRect()
+    const count = screen.getByText('84').getBoundingClientRect()
+    expect(count.left).toBeGreaterThan(label.right)
+    expect(row.right - count.right).toBeLessThanOrEqual(8)
+  })
+})
+
 describe('RadioGroup direction', () => {
   it('stacks its items by default', () => {
     const { floor, balcony } = renderSeats({})
