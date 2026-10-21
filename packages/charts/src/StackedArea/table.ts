@@ -7,12 +7,13 @@ import { formatTimeCell, hasTimeOfDay, isTimeField } from '../plot/time'
 import { stackLayers, stackOrder } from './stack'
 import type { StackedAreaProps } from './types'
 
-/** Every layer at every x, including those the plot rolls into Other. */
+/** Every layer at every x, including those the plot rolls into Other. Share mode tabulates shares. */
 export function stackedAreaTable(props: StackedAreaProps): ChartTable {
   const isTime = isTimeField(props.data, props.x)
   const hasTime = hasTimeOfDay(props.data[0]?.[props.x])
   const names = stackOrder(props, false)
   const totalKey = unusedKey('total', [props.x, ...names])
+  const share = props.mode === 'share'
   const byX = new Map<number, TableRow>()
   for (const layer of stackLayers(props, false)) {
     const row = byX.get(layer.x) ?? {
@@ -21,14 +22,16 @@ export function stackedAreaTable(props: StackedAreaProps): ChartTable {
         : xCell(layer.x, false, props.xFormat),
       [totalKey]: 0
     }
-    row[layer.series] = layer.y
+    row[layer.series] = share ? layer.share : layer.y
     row[totalKey] = Number(row[totalKey]) + layer.y
     byX.set(layer.x, row)
   }
   return {
     columns: [
       xColumn(props.x),
-      ...names.map((name) => valueColumn(name, name, props.format)),
+      ...names.map((name) =>
+        valueColumn(name, name, share ? 'percent' : props.format)
+      ),
       valueColumn(totalKey, 'Total', props.format)
     ],
     rows: [...byX.values()]

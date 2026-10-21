@@ -612,6 +612,23 @@ describe('validateDashboard checks annotations against the data', () => {
     ).toEqual([])
   })
 
+  it('warns on a stacked area annotation outside its times', () => {
+    expect(
+      problemsAt({
+        kind: 'stacked-area',
+        data: hourly.map((row) => ({ ...row, gate: 'Main' })),
+        x: 'time',
+        y: 'orders',
+        series: 'gate',
+        annotations: [{ at: '2026-08-04', label: 'Presale' }]
+      })
+    ).toEqual([
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.annotations[0].at'
+      })
+    ])
+  })
+
   it('warns on a date outside hourly data', () => {
     expect(
       problemsAt({

@@ -119,7 +119,10 @@ export const stackedAreaPlotSchema = z.strictObject({
   series: field,
   highlight: highlight.optional(),
   palette: palette.optional(),
-  xFormat: xFormat.optional()
+  xFormat: xFormat.optional(),
+  mode: z.enum(['count', 'share']).optional(),
+  annotations: z.array(annotation).optional(),
+  today: plotX.optional()
 })
 
 export const histogramPlotSchema = z.strictObject({

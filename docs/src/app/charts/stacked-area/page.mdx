@@ -58,6 +58,48 @@ Name the layer that tells the story. It draws in the highlight and the rest step
 </Chart>
 ```
 
+### Share
+
+`mode='share'` stacks every time to 100%, so the make-up reads the same whether the crowd is big or small. The tooltip gives each layer's share and count, and the table holds shares.
+
+```tsx-live width=140
+<Chart label='Tickets issued by pool' source='Oztix sales.' size='md'>
+  <StackedArea
+    data={['2026-10-01', '2026-10-08', '2026-10-15', '2026-10-22', '2026-10-29'].flatMap((day, i) => [
+      { day, pool: 'GA', issued: 300 + i * 80 },
+      { day, pool: 'Members', issued: 120 + i * 10 },
+      { day, pool: 'Comps', issued: 20 }
+    ])}
+    x='day'
+    y='issued'
+    series='pool'
+    mode='share'
+    takeaway='GA is a growing share of tickets issued'
+  />
+</Chart>
+```
+
+### Today and annotations
+
+`today` marks the top of the stack with a labelled dot that reads the total. `annotations` are dated markers, as on LineChart.
+
+```tsx-live width=140
+<Chart label='Tickets issued by pool' source='Oztix sales.' size='md'>
+  <StackedArea
+    data={['2026-10-01', '2026-10-08', '2026-10-15', '2026-10-22', '2026-10-29'].flatMap((day, i) => [
+      { day, pool: 'GA', issued: 300 + i * 80 },
+      { day, pool: 'Members', issued: 120 + i * 10 },
+      { day, pool: 'Comps', issued: 20 }
+    ])}
+    x='day'
+    y='issued'
+    series='pool'
+    today='2026-10-29'
+    annotations={[{ at: '2026-10-08', label: 'Members presale' }]}
+  />
+</Chart>
+```
+
 ## Guidelines
 
 - Use StackedArea when both the total and its make-up matter over time, such as scans by gate. To compare the layers' own trends, use a LineChart; for a few categories rather than a run of time, use StackedBars.
@@ -68,8 +110,8 @@ Name the layer that tells the story. It draws in the highlight and the rest step
 
 ## Accessibility
 
-- The plot is one tab stop. Left and right arrows move between times, and up and down between layers at the same time. Each value is read out in plain words, such as "Saturday, 14 November 2026, 7:00pm, 48 scans, Main gate".
+- The plot is one tab stop. Left and right arrows move between times, and up and down between layers at the same time. Each value is read out in plain words, such as "Saturday, 14 November 2026, 7:00pm, 48 scans, Main gate". In `share` mode it ends with the layer's share, such as "71% of the total".
 - The tooltip opens with the total, then lists each layer with a value from the top of the stack down, matching the legend.
-- The Table tab holds every value, with a Total column.
+- The Table tab holds every value, with a Total column. In `share` mode it holds shares, and the total stays a count.
 
 <PropsDefinitions component='StackedArea' />

@@ -1,4 +1,8 @@
-import type { PlotRow } from '@oztix/roadie-core/dashboard'
+import type {
+  PlotAnnotation,
+  PlotRow,
+  PlotX
+} from '@oztix/roadie-core/dashboard'
 import type { ValueFormat, XFormat } from '@oztix/roadie-core/dataviz'
 
 export type StackedAreaProps = {
@@ -20,5 +24,11 @@ export type StackedAreaProps = {
   xFormat?: XFormat
   /** The headline sentence. It becomes the plot's accessible name. */
   takeaway?: string
+  /** `share` stacks every time to 100%. @default 'count' */
+  mode?: 'count' | 'share'
+  /** Dated markers with labels of 20 characters at most. */
+  annotations?: PlotAnnotation[]
+  /** Marks today with a labelled dot on the top of the stack, read as the total. */
+  today?: PlotX
   className?: string
 }

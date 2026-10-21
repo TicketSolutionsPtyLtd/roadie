@@ -2,10 +2,12 @@ import { createChartScene } from '@tanstack/charts'
 import { renderChartSvg as renderSceneSvg } from '@tanstack/charts/svg'
 import { describe, expect, it } from 'vitest'
 
+import { textWidth } from '../plot/endLabels'
 import { plotFrame } from '../plot/frame'
 import { hexPaint } from '../plot/paint'
 import { stackedArea } from './definition'
 import { scansByGateExample } from './examples'
+import { stackLayers } from './stack'
 import { stackedAreaTable } from './table'
 import type { StackedAreaProps } from './types'
 
@@ -125,5 +127,88 @@ describe('stackedArea', () => {
       'Total'
     ])
     expect(table.rows[0]).toMatchObject({ 'Gate 8': 3, total: 52 })
+  })
+
+  it('stacks every time to 100% in share mode', () => {
+    const share = { ...small, mode: 'share' as const }
+    const tops = stackLayers(share).filter((l) => l.series === 'VIP')
+    for (const top of tops) expect(top.end).toBeCloseTo(1)
+    expect(svgOf(share)).toMatch(/>100%</)
+  })
+
+  it('tops the share axis at 100% when the shares sum a hair over 1', () => {
+    const data = ['19:00', '19:15'].flatMap((time) =>
+      [5, 1, 1, 1, 1].map((scans, i) => ({
+        at: `2026-11-14T${time}`,
+        gate: `Gate ${i + 1}`,
+        scans
+      }))
+    )
+    const svg = svgOf({ ...small, data, mode: 'share' })
+    const ticks = [...svg.matchAll(/y-tick-label:number:([\d.]+)/g)]
+    expect(Math.max(...ticks.map((t) => Number(t[1])))).toBe(1)
+  })
+
+  it('gives each layer its share and count in share mode', () => {
+    const point = { x: at('19:00'), y: 50, series: 'Main', index: 1 }
+    const share = { ...small, mode: 'share' as const }
+    expect(
+      stackedArea.tooltip([point], share, paint).rows.map((r) => r.value)
+    ).toEqual(['70', '29% (20)', '71% (50)'])
+    expect(stackedArea.describe(point, share)).toMatch(/, 71% of the total$/)
+  })
+
+  it('tabulates shares in share mode, with the total as a count', () => {
+    const table = stackedAreaTable({ ...small, mode: 'share' })
+    expect(table.columns.find((c) => c.key === 'Main')).toMatchObject({
+      format: 'percent'
+    })
+    expect(table.rows[0]).toMatchObject({ total: 70 })
+    expect(table.rows[0]!.Main).toBeCloseTo(50 / 70)
+  })
+
+  it('marks today with a dot on the top of the stack, read as the total', () => {
+    const svg = svgOf({ ...small, today: '2026-11-14T19:00' })
+    expect(svg).toMatch(keyOf('today'))
+    expect(svg).toMatch(/>Today 70</)
+  })
+
+  it('puts today on the top of a share stack in value ink, read as the count', () => {
+    const svg = svgOf({ ...small, mode: 'share', today: '2026-11-14T19:00' })
+    const top = svg.match(/y-tick-label:number:1"[^>]* y="([\d.]+)"/)?.[1]
+    const dot = svg.match(
+      /data-ts-key="today:[^"]*" fill="([^"]+)"[^>]* cy="([\d.]+)"/
+    )
+    expect(top).toBeDefined()
+    expect(dot?.[2]).toBe(top)
+    expect(dot?.[1]).toBe(paint.value)
+    expect(svg).toMatch(/>Today 70</)
+  })
+
+  it('keeps the today label inside the plot at the last time', () => {
+    const svg = svgOf({ ...small, today: '2026-11-14T19:15' })
+    const label = Number(
+      /data-ts-key="label-today[^"]*"[^>]*\sx="([\d.]+)"/.exec(svg)?.[1]
+    )
+    expect(label + textWidth('Today 89', frame) / 2).toBeLessThanOrEqual(640)
+  })
+
+  it('draws annotations along the time axis, from the top of the plot', () => {
+    const svg = svgOf({
+      ...small,
+      mode: 'share',
+      annotations: [{ at: '2026-11-14T19:00', label: 'Doors' }]
+    })
+    const y = (key: string) =>
+      Number(
+        new RegExp(`data-ts-key="${key}[^"]*"[^>]* y="([\\d.]+)"`).exec(
+          svg
+        )?.[1]
+      )
+    expect(svg).toMatch(keyOf('annotation-rules'))
+    expect(y('label-annotations:') - y('y-tick-label:number:1')).toBeLessThan(
+      frame.fontSize
+    )
+    expect(svg).toContain('>Doors<')
   })
 })
