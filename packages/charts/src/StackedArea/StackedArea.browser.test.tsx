@@ -34,6 +34,17 @@ const presale: StackedAreaProps = {
   annotations: [{ at: '2026-10-08', label: 'Members presale' }]
 }
 
+// Today's label sits a line below the top, where a dropped label would land.
+const todayALineDown: StackedAreaProps = {
+  ...presale,
+  data: presale.data.map((row, i) =>
+    row.pool === 'GA'
+      ? { ...row, issued: [300, 380, 460, 630, 820][i / 3]! }
+      : row
+  ),
+  annotations: [{ at: '2026-10-21', label: 'Members presale' }]
+}
+
 let removeStylesheet = () => {}
 beforeAll(async () => {
   removeStylesheet = useStylesheet(roadieCss)
@@ -66,6 +77,18 @@ describe('StackedArea in a card', () => {
     'keeps the today and annotation labels apart at %ipx',
     async (width) => {
       const { container } = renderInCard(<StackedArea {...presale} />, {
+        size: 'md',
+        width
+      })
+      await afterResize()
+      expectNoOverlap(container, '[data-ts-key^="label-"] text')
+    }
+  )
+
+  it.each([320, 560])(
+    'keeps a label clear of today a line down at %ipx',
+    async (width) => {
+      const { container } = renderInCard(<StackedArea {...todayALineDown} />, {
         size: 'md',
         width
       })
