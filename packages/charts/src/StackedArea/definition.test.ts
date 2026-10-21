@@ -105,4 +105,24 @@ describe('stackedArea', () => {
       total: 70
     })
   })
+
+  it('keeps a column for every layer the plot rolls into Other', () => {
+    const gates = Array.from({ length: 8 }, (_, i) => `Gate ${i + 1}`)
+    const table = stackedAreaTable({
+      ...small,
+      data: gates.flatMap((gate, i) =>
+        ['19:00', '19:15'].map((time) => ({
+          at: `2026-11-14T${time}`,
+          gate,
+          scans: 10 - i
+        }))
+      )
+    })
+    expect(table.columns.map((c) => c.header)).toEqual([
+      'At',
+      ...gates,
+      'Total'
+    ])
+    expect(table.rows[0]).toMatchObject({ 'Gate 8': 3, total: 52 })
+  })
 })
