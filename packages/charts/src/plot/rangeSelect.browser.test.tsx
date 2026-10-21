@@ -194,6 +194,36 @@ describe('range selection by keyboard', () => {
     })
   })
 
+  it('selects weekly bars with Shift+Arrow', async () => {
+    const onRangeSelect = vi.fn()
+    const weeks = ['2026-09-07', '2026-09-14', '2026-09-21'].map((week, i) => ({
+      week,
+      sold: 100 + i * 40
+    }))
+    const chart = renderChart(
+      <BarChart
+        data={weeks}
+        x='week'
+        y='sold'
+        interval='week'
+        onRangeSelect={onRangeSelect}
+      />
+    )
+    await afterResize()
+    await expect.poll(() => chart.brush()).not.toBeNull()
+    chart.svg().focus()
+    await expect.poll(() => chart.live().textContent).not.toBe('')
+    await userEvent.keyboard('{Shift>}{ArrowRight}{/Shift}')
+    await expect
+      .poll(() => chart.live().textContent)
+      .toBe('Selected 7 to 20 September, 2 weeks. Enter to apply.')
+    await userEvent.keyboard('{Enter}')
+    expect(onRangeSelect).toHaveBeenCalledExactlyOnceWith({
+      start: '2026-09-07',
+      end: '2026-09-20'
+    })
+  })
+
   it('selects to either end with Shift+Home and Shift+End', async () => {
     const onRangeSelect = vi.fn()
     const chart = renderChart(
