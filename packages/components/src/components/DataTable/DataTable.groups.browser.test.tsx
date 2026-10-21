@@ -150,4 +150,34 @@ describe('DataTable grouped rows', () => {
     toggle.click()
     await expect.poll(height).toBe(0)
   })
+
+  it("clips only a row's height, with room for a sparkline's end dot", () => {
+    const { container } = render(
+      <DataTable
+        columns={[
+          { key: 'pool', header: 'Pool', kind: 'text' },
+          { key: 'type', header: 'Type', kind: 'text' },
+          { key: 'trend', header: 'Trend', kind: 'sparkline' }
+        ]}
+        rows={[
+          { pool: 'General', type: 'GA', trend: [1, 2, 3, 4, 5] },
+          { pool: 'Comp', type: 'Guest', trend: [1, 2, 3, 4, 5] }
+        ]}
+        groupBy={['pool']}
+        defaultExpanded={[['General']]}
+      />
+    )
+    const clipOf = (type: string) =>
+      getComputedStyle(
+        [...container.querySelectorAll('tbody tr')]
+          .find((row) => row.textContent?.startsWith(type))!
+          .querySelector('[data-slot=sparkline]')!
+          .closest('[data-slot=data-table-collapse] > *')!
+      )
+    expect(clipOf('GA').overflowX).toBe('visible')
+    expect(clipOf('GA').overflowY).toBe('clip')
+    if (CSS.supports('overflow-clip-margin', '0.25rem'))
+      expect(clipOf('GA').overflowClipMargin).not.toBe('0px')
+    expect(clipOf('Guest').overflowClipMargin).toBe('0px')
+  })
 })

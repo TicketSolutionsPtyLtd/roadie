@@ -124,9 +124,13 @@
   grid-template-rows: 1fr;
   transition: grid-template-rows var(--duration-moderate) var(--ease-enter);
 
+  /* Clips only the height it animates, with room for a sparkline's end dot
+     once the row is open. */
   & > * {
     min-height: 0;
-    overflow: clip;
+    overflow-x: visible;
+    overflow-y: clip;
+    overflow-clip-margin: var(--spacing);
   }
 }
 
@@ -137,6 +141,13 @@
 
 [data-slot='data-table'] tr[data-collapsed] [data-slot='data-table-collapse'] {
   grid-template-rows: 0fr;
+}
+
+[data-slot='data-table']
+  tr[data-collapsed]
+  [data-slot='data-table-collapse']
+  > * {
+  overflow-clip-margin: 0px;
 }
 
 /* The last row on show drops its rule, as a table's last row does. */
