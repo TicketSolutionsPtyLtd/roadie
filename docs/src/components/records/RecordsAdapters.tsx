@@ -1,3 +1,4 @@
+import type { Icon } from '@phosphor-icons/react'
 import {
   BrowserIcon,
   DatabaseIcon,
@@ -8,14 +9,14 @@ import {
 import { Card } from '@oztix/roadie-components/card'
 import { IconTile } from '@oztix/roadie-components/icon-tile'
 
-import { RECORDS_ADAPTERS } from './adapters'
+import { RECORDS_ADAPTERS, type RecordsAdapter } from './adapters'
 
-const ICONS = {
+const ICONS: Record<RecordsAdapter['name'], Icon> = {
   Browser: BrowserIcon,
   Meilisearch: MagnifyingGlassIcon,
   Elasticsearch: DatabaseIcon,
   'Your API': PlugsConnectedIcon
-} as const
+}
 
 // Lets a call wrap between its arguments rather than inside a name.
 const breakable = (call: string) =>
@@ -31,14 +32,14 @@ export function RecordsAdapters() {
       className='grid list-none gap-4 p-0 @md:grid-cols-2'
     >
       {RECORDS_ADAPTERS.map(({ name, call, use }) => {
-        const Icon = ICONS[name as keyof typeof ICONS]
+        const AdapterIcon = ICONS[name]
         return (
           <li key={name} data-twin-row className='grid min-w-0'>
             <Card emphasis='subtle'>
               <Card.Content className='grid content-start gap-3 p-5'>
                 <div className='flex items-center gap-3'>
                   <IconTile size='sm'>
-                    <Icon weight='bold' />
+                    <AdapterIcon weight='bold' />
                   </IconTile>
                   <p data-twin-cell className='text-display-ui-6 text-strong'>
                     {name}

@@ -1,6 +1,6 @@
 /** Where a records request runs, for the cards on the records page and its markdown twin. */
 export type RecordsAdapter = {
-  name: string
+  name: 'Browser' | 'Meilisearch' | 'Elasticsearch' | 'Your API'
   call: string
   use: string
 }
