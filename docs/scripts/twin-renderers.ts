@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import { DEFAULT_ACCENT_COLOR } from '@oztix/roadie-core/theme'
 
 import { DATE_TIME_TABLES } from '../src/components/date-and-time/example.ts'
+import { RECORDS_ADAPTERS } from '../src/components/records/adapters.ts'
 import {
   querySuggestionsExample,
   viewElasticsearchExample,
@@ -170,6 +171,15 @@ export const DATA_RENDERERS: Record<string, Renderer> = {
     SPOT_ILLUSTRATION_NAMES.map((name) => `- \`${name}\``).join('\n'),
   PeriodComparisons: () => twinTableMarkdown(periodComparisonsTable()),
   QuerySuggestions: () => fence('ts', querySuggestionsExample()),
+  RecordsAdapters: () =>
+    markdownTable(
+      ['Runs in', 'Call', 'Use it for'],
+      RECORDS_ADAPTERS.map(({ name, call, use }) => [
+        name,
+        inlineCode(call),
+        escapeCell(use)
+      ])
+    ),
   ViewElasticsearch: () => fence('ts', viewElasticsearchExample()),
   ViewMeilisearch: () => fence('ts', viewMeilisearchExample()),
   ViewSearchParams: () => fence('text', viewSearchParamsExample())

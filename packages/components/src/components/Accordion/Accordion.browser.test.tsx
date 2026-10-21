@@ -87,3 +87,24 @@ describe('an Accordion without interpolate-size', () => {
     expect(contentHeight()).toBe(open)
   })
 })
+
+describe('an Accordion in a narrow container', () => {
+  afterEach(() => cleanup())
+
+  it('keeps an open item with wide content inside the container', () => {
+    render(
+      <div style={{ width: 300 }}>
+        <Accordion>
+          <Accordion.Item open>
+            <Accordion.Trigger>Trigger</Accordion.Trigger>
+            <Accordion.Content>
+              <pre style={{ overflowX: 'auto' }}>{'x'.repeat(200)}</pre>
+            </Accordion.Content>
+          </Accordion.Item>
+        </Accordion>
+      </div>
+    )
+    const item = document.querySelector('details')!
+    expect(item.getBoundingClientRect().width).toBeLessThanOrEqual(300)
+  })
+})

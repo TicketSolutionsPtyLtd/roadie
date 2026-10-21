@@ -6,8 +6,12 @@ export const metadata = {
   category: 'Building apps'
 }
 
+import { Accordion } from '@oztix/roadie-components/accordion'
+
 import { Guideline, Guidelines } from '@/components/Guideline'
+import { IndexTabs } from '@/components/records/IndexTabs'
 import { QuerySuggestions } from '@/components/records/QuerySuggestions'
+import { RecordsAdapters } from '@/components/records/RecordsAdapters'
 import { ViewElasticsearch } from '@/components/records/ViewElasticsearch'
 import { ViewMeilisearch } from '@/components/records/ViewMeilisearch'
 import { ViewSearchParams } from '@/components/records/ViewSearchParams'
@@ -258,56 +262,102 @@ or time, never two of these.
 ## Browser and server
 
 `resolveRecordQuery(query, fields, { now, timeZone })` fixes relative dates at
-a moment. In the browser, `matchesRecordQuery(row, resolved, fields)` keeps or
-drops each row. A server reads the [request](#server-contract) the browser
-sends, with its dates already fixed, never the view, so it needs no clock.
+a moment, and every place a query runs reads the result the same way. A
+server reads the [request](#server-contract) the browser sends, with its
+dates already fixed, never the view, so it needs no clock. Pick where it runs
+by where the records live: in the browser, a Meilisearch index, an
+Elasticsearch index, or your own API.
+
+<RecordsAdapters />
+
+Each index has a translator on its own subpath, so the model stays
+backend-agnostic. On the docs site, the request for the view from
+[Views](#views), at 11:30pm on a Friday in Melbourne, runs through each one,
+and the result shows as comments under the call.
+
+<IndexTabs>
+<IndexTabs.Panel value='meilisearch' label='Meilisearch'>
+
 `toMeilisearch(request, fields)` from `@oztix/roadie-core/records/meilisearch`
-returns the request's meaning as Meilisearch parameters. It sits on its own
-subpath so the model stays backend-agnostic. On the docs site, the request for
-the view from [Views](#views), at 11:30pm on a Friday in Melbourne, runs
-through `toMeilisearch`, and its parameters show as comments under the call.
+returns Meilisearch's `q`, `filter`, and `sort`, and the page.
 
 <ViewMeilisearch />
 
-It needs Meilisearch 1.15 or later, which compares date strings. The index
-stores instants as epoch seconds (pass `epoch: 'milliseconds'` otherwise),
-event and access dates under `localDateKey`, and a range's end on every
-record. Text `contains` needs Meilisearch's `containsFilter` feature, and the
-index's `searchableAttributes` should list the fields marked `searchable`.
-Scope facet value search to the user's permissions on the server.
+| Index setting          | What it needs                                                       |
+| ---------------------- | ------------------------------------------------------------------- |
+| Version                | Meilisearch 1.15 or later, which compares date strings              |
+| Instants               | Epoch seconds, or `epoch: 'milliseconds'`                           |
+| Event and access dates | The venue-local date under `localDateKey`                           |
+| Ranges                 | The end on every record                                             |
+| Search                 | `searchableAttributes` lists the fields marked `searchable`         |
+| Text `contains`        | The `containsFilter` experimental feature                           |
 
-### Elasticsearch
+<Accordion>
+  <Accordion.Item>
+    <Accordion.Trigger>Pages and counts</Accordion.Trigger>
+    <Accordion.Content>
+
+A request's `page` and `pageSize` become `page` (one-based) and
+`hitsPerPage`, so the response's `totalHits` counts the matches, up to the
+index's `pagination.maxTotalHits`. A [RecordTable](/components/record-table)
+takes that count as `rowCount` and the page as its data. A range, `start` to
+`end`, becomes a page the same way when it is a whole page, as the ranges a
+list asks for are, and `offset` and `limit` otherwise, where Meilisearch only
+estimates the count.
+
+    </Accordion.Content>
+  </Accordion.Item>
+  <Accordion.Item>
+    <Accordion.Trigger>Permissions</Accordion.Trigger>
+    <Accordion.Content>
+
+Scope facet value search to the person's permissions on the server, as well
+as the search itself.
+
+    </Accordion.Content>
+  </Accordion.Item>
+</Accordion>
+
+</IndexTabs.Panel>
+<IndexTabs.Panel value='elasticsearch' label='Elasticsearch'>
 
 `toElasticsearch(request, fields)` from
-`@oztix/roadie-core/records/elasticsearch` returns the request's meaning as
-an Elasticsearch search body: `query`, `sort`, `from`, and `size`. Each chip
-is one clause in `bool.filter`, and search is a `simple_query_string` that
-needs every word. The same request runs through it here.
+`@oztix/roadie-core/records/elasticsearch` returns an Elasticsearch search
+body: `query`, `sort`, `from`, and `size`. Each chip is one clause in
+`bool.filter`, and search is a `simple_query_string` that needs every word.
 
 <ViewElasticsearch />
 
-It needs Elasticsearch 7.10 or later, or OpenSearch, for case-insensitive
-terms. Map text, option, and location fields as `keyword`, or name a
-`keyword` sub-field in `paths`, such as `{ venue: 'venue.raw' }`, which
-filters and sort then read. Map instants as `date`, and store event and
-access dates under `localDateKey` as a `date` with no zone: a local
-date-time, such as `2026-10-03T19:30:00`, counts as its day. Search reads
-the fields marked `searchable`, or `searchFields` with any boosts, such as
-`['name^5', 'venue']`. It matches analysed words, so map a searchable field
-as `text` with its `keyword` sub-field in `paths`: a plain `keyword` only
-matches the whole value.
+| Index setting          | What it needs                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------- |
+| Version                | Elasticsearch 7.10 or later, or OpenSearch, for case-insensitive terms                 |
+| Filters and sort       | `keyword` fields, or a `keyword` sub-field named in `paths`, such as `{ venue: 'venue.raw' }` |
+| Search                 | `text` fields: those marked `searchable`, or `searchFields` with boosts, such as `['name^5', 'venue']` |
+| Instants               | `date`                                                                                 |
+| Event and access dates | The venue-local date or date-time under `localDateKey`, as a `date` with no zone       |
+| Ranges                 | The end on every record                                                                |
 
-Post the body to your search endpoint, which adds the person's permissions
-as a filter of its own. Add `highlight` and `track_total_hits` as the page
-needs. The response's `hits.total.value` is `rowCount`, and it's exact,
-for `rowCountExact`, when `hits.total.relation` is `eq`. Elasticsearch
-counts to 10,000 unless `track_total_hits` says otherwise. With no paging,
-the body has no `size`, so set one for an export.
+<Accordion>
+  <Accordion.Item>
+    <Accordion.Trigger>Pages and counts</Accordion.Trigger>
+    <Accordion.Content>
 
-A filter list that shows a count beside each value counts that field
-against every other filter, so ticking one brand doesn't hide the rest. Pass
-the field as `except`, which leaves out its own chips, and add the
-aggregation:
+Post the body to your search endpoint, which adds the person's permissions as
+a filter of its own, and add `highlight` and `track_total_hits` as the page
+needs. The response's `hits.total.value` is `rowCount`. It's exact, for
+`rowCountExact`, when `hits.total.relation` is `eq`, and Elasticsearch counts
+to 10,000 unless `track_total_hits` says otherwise. With no paging, the body
+has no `size`, so set one for an export.
+
+    </Accordion.Content>
+  </Accordion.Item>
+  <Accordion.Item>
+    <Accordion.Trigger>Counts beside each filter value</Accordion.Trigger>
+    <Accordion.Content>
+
+A checkbox list with a count beside each value counts that field against
+every other filter, so ticking one venue doesn't hide the rest. Pass the field
+as `except`, which leaves out its own chips, and add the aggregation:
 
 ```ts
 const { query } = toElasticsearch(request, eventFields, { except: 'venue' })
@@ -318,6 +368,25 @@ const body = {
 }
 // Each bucket's doc_count is that venue's count beside its checkbox.
 ```
+
+    </Accordion.Content>
+  </Accordion.Item>
+  <Accordion.Item>
+    <Accordion.Trigger>Dates and search</Accordion.Trigger>
+    <Accordion.Content>
+
+A venue-local date-time under `localDateKey`, such as `2026-10-03T19:30:00`,
+counts as its whole day, so an index that already stores one needs no new
+field. Search matches analysed words, so a searchable field mapped only as
+`keyword` matches only its whole value: map it as `text`, with its `keyword`
+sub-field in `paths`.
+
+    </Accordion.Content>
+  </Accordion.Item>
+</Accordion>
+
+</IndexTabs.Panel>
+</IndexTabs>
 
 ### Places on any backend
 
@@ -363,16 +432,6 @@ Distance filters, when they come, read the record's coordinates with
 Meilisearch's `_geoRadius(lat, lng, meters)` and sort by `_geoPoint`,
 Algolia's `aroundLatLng` and `aroundRadius`, or Elasticsearch's
 `geo_distance` on a `geo_point`.
-
-### Pages
-
-A request's `page` and `pageSize` become `page` (one-based) and
-`hitsPerPage`, so the response's `totalHits` counts the matches, up to the
-index's `pagination.maxTotalHits`. A [RecordTable](/components/record-table)
-takes that count as `rowCount` and the page as its data. A range, `start` to
-`end`, becomes a page the same way when it is a whole page, as the ranges a
-list asks for are, and `offset` and `limit` otherwise, where Meilisearch only
-estimates the count.
 
 ## Server contract
 

@@ -34,6 +34,7 @@ const TABLES: [route: string, slot: string][] = [
     'zone-table'
   ].map((slot): [string, string] => ['/foundations/date-and-time', slot]),
   ['/foundations/elevation', 'layering-scale'],
+  ['/foundations/records', 'records-adapters'],
   ['/foundations/iconography', 'icon-size-scale'],
   ['/foundations/interactions', 'focus-ring-list'],
   ['/foundations/interactions', 'transition-list'],
@@ -51,6 +52,7 @@ const TABLES: [route: string, slot: string][] = [
 
 const CODE: [route: string, slot: string, lang: string][] = [
   ['/foundations/records', 'query-suggestions', 'ts'],
+  ['/foundations/records', 'view-elasticsearch', 'ts'],
   ['/foundations/records', 'view-meilisearch', 'ts'],
   ['/foundations/records', 'view-search-params', 'text']
 ]
