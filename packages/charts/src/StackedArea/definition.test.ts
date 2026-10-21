@@ -6,6 +6,7 @@ import { plotFrame } from '../plot/frame'
 import { hexPaint } from '../plot/paint'
 import { stackedArea } from './definition'
 import { scansByGateExample } from './examples'
+import { stackLayers } from './stack'
 import { stackedAreaTable } from './table'
 import type { StackedAreaProps } from './types'
 
@@ -125,5 +126,45 @@ describe('stackedArea', () => {
       'Total'
     ])
     expect(table.rows[0]).toMatchObject({ 'Gate 8': 3, total: 52 })
+  })
+
+  it('stacks every time to 100% in share mode', () => {
+    const share = { ...small, mode: 'share' as const }
+    const tops = stackLayers(share).filter((l) => l.series === 'VIP')
+    for (const top of tops) expect(top.end).toBeCloseTo(1)
+    expect(svgOf(share)).toMatch(/>100%</)
+  })
+
+  it('gives each layer its share and count in share mode', () => {
+    const point = { x: at('19:00'), y: 50, series: 'Main', index: 1 }
+    const share = { ...small, mode: 'share' as const }
+    expect(
+      stackedArea.tooltip([point], share, paint).rows.map((r) => r.value)
+    ).toEqual(['70', '29% (20)', '71% (50)'])
+    expect(stackedArea.describe(point, share)).toMatch(/, 71% of the total$/)
+  })
+
+  it('tabulates shares in share mode, with the total as a count', () => {
+    const table = stackedAreaTable({ ...small, mode: 'share' })
+    expect(table.columns.find((c) => c.key === 'Main')).toMatchObject({
+      format: 'percent'
+    })
+    expect(table.rows[0]).toMatchObject({ total: 70 })
+    expect(table.rows[0]!.Main).toBeCloseTo(50 / 70)
+  })
+
+  it('marks today with a dot on the top of the stack, read as the total', () => {
+    const svg = svgOf({ ...small, today: '2026-11-14T19:00' })
+    expect(svg).toMatch(keyOf('today'))
+    expect(svg).toMatch(/>Today 70</)
+  })
+
+  it('draws annotations along the time axis', () => {
+    const svg = svgOf({
+      ...small,
+      annotations: [{ at: '2026-11-14T19:00', label: 'Doors' }]
+    })
+    expect(svg).toMatch(keyOf('annotation-rules'))
+    expect(svg).toContain('>Doors<')
   })
 })

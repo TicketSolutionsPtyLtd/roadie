@@ -20,7 +20,8 @@ import {
   type ChartPlot,
   type PlotRow,
   SERIES_CAP,
-  type SmallMultiplesPlot
+  type SmallMultiplesPlot,
+  type StackedAreaPlot
 } from './plots'
 import {
   type DashboardCard,
@@ -164,7 +165,7 @@ function seriesCount(plot: ChartPlot) {
 
 const INTERVAL_MS = { hour: 3_600_000, day: 86_400_000, week: 604_800_000 }
 
-type AnnotatedChart = SmallMultiplesPlot['chart']
+type AnnotatedChart = SmallMultiplesPlot['chart'] | StackedAreaPlot
 
 // A spread into Math.min or Math.max overflows the call stack on large data.
 function minMax(values: readonly number[]): [number, number] {
@@ -440,7 +441,11 @@ function plotProblems(plot: ChartPlot, path: string) {
     )
   problems.push(...copyProblems(plotPath, 'takeaway', plot.takeaway))
   problems.push(...duplicateProblems(plot, plotPath))
-  if (plot.kind === 'line' || plot.kind === 'bar')
+  if (
+    plot.kind === 'line' ||
+    plot.kind === 'bar' ||
+    plot.kind === 'stacked-area'
+  )
     problems.push(...annotationProblems(plot, plot.data, plotPath))
   if (plot.kind === 'small-multiples')
     problems.push(

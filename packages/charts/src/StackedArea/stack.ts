@@ -5,8 +5,8 @@ import type { StackedAreaProps } from './types'
 
 type Reading = { x: number; series: string; y: number; index: number }
 
-/** One series at one x, with where its band starts and ends in the stack. */
-export type Layer = Reading & { start: number; end: number }
+/** One series at one x, with its share and where its band sits in the stack. */
+export type Layer = Reading & { share: number; start: number; end: number }
 
 const keyOf = (x: number, series: string) => JSON.stringify([x, series])
 
@@ -54,19 +54,23 @@ export function stackLayers(props: StackedAreaProps, rollup = true): Layer[] {
   const byKey = new Map(all.map((r) => [keyOf(r.x, r.series), r]))
   const xs = [...new Set(all.map((r) => r.x))].sort((a, b) => a - b)
   return xs.flatMap((x) => {
+    const values = order.map((series) => byKey.get(keyOf(x, series)))
+    const total = values.reduce((sum, r) => sum + (r?.y ?? 0), 0)
     let start = 0
-    return order.map((series): Layer => {
-      const reading = byKey.get(keyOf(x, series))
-      const y = reading?.y ?? 0
+    return order.map((series, i): Layer => {
+      const y = values[i]?.y ?? 0
+      const share = total ? y / total : 0
+      const size = props.mode === 'share' ? share : y
       const layer = {
         x,
         series,
         y,
-        index: reading?.index ?? -1,
+        index: values[i]?.index ?? -1,
+        share,
         start,
-        end: start + y
+        end: start + size
       }
-      start += y
+      start += size
       return layer
     })
   })

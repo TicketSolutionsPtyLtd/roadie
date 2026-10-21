@@ -4,14 +4,19 @@ import { scaleLinear } from '@tanstack/charts/scales/linear'
 
 import { formatValue } from '@oztix/roadie-core/dataviz'
 
+import { todayMarks } from '../plot/aids'
+import { annotationMarks, annotationsOnAxis } from '../plot/annotations'
+import { plotSpan, textWidth } from '../plot/endLabels'
+import { centredShift, spanPixel } from '../plot/frame'
 import { OTHER, seriesMarkId, seriesStyles } from '../plot/series'
 import { fieldLabel } from '../plot/table'
-import { hasTimeOfDay, isTimeField } from '../plot/time'
+import { hasTimeOfDay, isTimeField, parseX } from '../plot/time'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
 import {
   axisFormat,
   fullFormat,
   gridTicks,
+  labelFormat,
   minMax,
   valueDomain
 } from '../plot/values'
@@ -37,16 +42,35 @@ const timesOf = (layers: readonly Layer[]) => [
   ...new Set(layers.map((l) => l.x))
 ]
 
+const percent = (value: number) => formatValue(value, 'percent')
+
+// The top of the stack, which reads as the total at that time.
+function todayPoint(props: StackedAreaProps, layers: readonly Layer[]) {
+  const x = props.today === undefined ? null : parseX(props.today)
+  const here = layers.filter((l) => l.x === x)
+  const top = here.at(-1)
+  if (x === null || !top) return null
+  const total = here.reduce((sum, l) => sum + l.y, 0)
+  return { x, y: top.end, label: `Today ${labelFormat(props.format, total)}` }
+}
+
 function build(props: StackedAreaProps, paint: ChartPaint, frame: PlotFrame) {
   const layers = stackLayers(props)
+  const share = props.mode === 'share'
   const xDomain = minMax(timesOf(layers))
-  const yDomain =
-    frame.yDomain ??
-    valueDomain(
-      layers.map((l) => l.end),
-      { zero: true, format: props.format }
-    )
-  const format = axisFormat(props.format, yDomain[1])
+  const yDomain: readonly [number, number] = share
+    ? [0, 1]
+    : (frame.yDomain ??
+      valueDomain(
+        layers.map((l) => l.end),
+        { zero: true, format: props.format }
+      ))
+  const format = share ? percent : axisFormat(props.format, yDomain[1])
+  const yTicks = gridTicks(yDomain)
+  const pixels = plotSpan(frame, yTicks.map(format), 8)
+  const span = xDomain[1] - xDomain[0]
+  const across = (x: number) => (span > 0 ? (x - xDomain[0]) / span : 0)
+  const today = todayPoint(props, layers)
   const marks = styles(props, paint).flatMap((style) => {
     const own = layers.filter((l) => l.series === style.name)
     const quiet = style.emphasis === 'context' || style.emphasis === 'other'
@@ -74,7 +98,29 @@ function build(props: StackedAreaProps, paint: ChartPaint, frame: PlotFrame) {
     ]
   })
   return defineChart({
-    marks,
+    marks: [
+      ...marks,
+      ...(today
+        ? todayMarks(today, paint, frame, paint.value, {
+            dx: centredShift(
+              spanPixel(pixels, across(today.x)),
+              textWidth(today.label, frame),
+              frame.width
+            )
+          })
+        : []),
+      ...annotationMarks(
+        annotationsOnAxis(
+          props.annotations,
+          xDomain,
+          isTimeField(props.data, props.x),
+          yDomain[1]
+        ),
+        paint,
+        frame,
+        pixels
+      )
+    ],
     scales: {
       x: xAxisScale(props, xDomain, frame),
       y: {
@@ -82,7 +128,7 @@ function build(props: StackedAreaProps, paint: ChartPaint, frame: PlotFrame) {
         grid: { stroke: paint.grid, strokeOpacity: 1 },
         axis: {
           line: false,
-          ticks: { values: gridTicks(yDomain), size: 0, format },
+          ticks: { values: yTicks, size: 0, format },
           tickLabels: { fontSize: frame.fontSize }
         }
       }
@@ -134,7 +180,12 @@ export const stackedArea: ChartDefinition<StackedAreaProps> = {
       props.xFormat
     )
     const noun = fieldLabel(props.y).toLowerCase()
-    return `${when}, ${describeValue(datum.y, props.format, noun)}, ${datum.series}`
+    const base = `${when}, ${describeValue(datum.y, props.format, noun)}, ${datum.series}`
+    if (props.mode !== 'share') return base
+    const layer = stackLayers(props).find(
+      (l) => l.x === datum.x && l.series === datum.series
+    )
+    return layer ? `${base}, ${percent(layer.share)} of the total` : base
   },
   tooltip(data, props, paint) {
     const x = data[0]?.x
@@ -151,7 +202,10 @@ export const stackedArea: ChartDefinition<StackedAreaProps> = {
           .reverse()
           .map((l) => ({
             label: l.series,
-            value: formatValue(l.y, format),
+            value:
+              props.mode === 'share'
+                ? `${percent(l.share)} (${formatValue(l.y, format)})`
+                : formatValue(l.y, format),
             color: colours.get(l.series),
             shape: 'swatch' as const
           }))
