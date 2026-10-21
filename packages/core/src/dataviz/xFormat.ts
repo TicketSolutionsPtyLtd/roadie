@@ -24,21 +24,20 @@ function daysOut(days: number, style: XFormatStyle) {
   return `${length} ${days < 0 ? 'before' : 'after'}`
 }
 
-/** Hours from the start of the event day, held as wall time on a UTC clock. */
-const clockAt = (hours: number, timeStyle: 'medium' | 'numeric') =>
-  formatTimeOfDay(
-    { epochMilliseconds: Math.round(hours * HOUR) },
-    { timeZone: 'UTC', timeStyle }
-  ) ?? ''
+/** Wall time on a UTC clock, so the time of day reads as written. */
+const clockAt = (ms: number, timeStyle: 'medium' | 'numeric') =>
+  formatTimeOfDay({ epochMilliseconds: ms }, { timeZone: 'UTC', timeStyle }) ??
+  ''
 
 // A night runs to 6am, as the date and time foundations count a late show.
-const eventDayStart = (hours: number) => (hours - END_OF_NIGHT_HOUR) % 24 === 0
+const NIGHT_END = END_OF_NIGHT_HOUR * HOUR
 
+// The day and the clock read the same rounded instant, so they never disagree.
 function eventTime(hours: number, style: XFormatStyle) {
-  const day = `Day ${Math.floor((hours - END_OF_NIGHT_HOUR) / 24) + 1}`
-  if (style === 'tick')
-    return eventDayStart(hours) ? day : clockAt(hours, 'numeric')
-  return `${day}, ${clockAt(hours, 'medium')}`
+  const ms = Math.round(hours * HOUR)
+  const day = `Day ${Math.floor((ms - NIGHT_END) / DAY) + 1}`
+  if (style === 'label') return `${day}, ${clockAt(ms, 'medium')}`
+  return (ms - NIGHT_END) % DAY === 0 ? day : clockAt(ms, 'numeric')
 }
 
 /**

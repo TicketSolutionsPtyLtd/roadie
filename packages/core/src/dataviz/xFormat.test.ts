@@ -19,7 +19,8 @@ describe('formatX', () => {
     [25, 'Day 1, 1:00am', '01:00'],
     [30, 'Day 2, 6:00am', 'Day 2'],
     [43.25, 'Day 2, 7:15pm', '19:15'],
-    [6, 'Day 1, 6:00am', 'Day 1']
+    [6, 'Day 1, 6:00am', 'Day 1'],
+    [29.9999999999, 'Day 2, 6:00am', 'Day 2']
   ])(
     'reads %s hours into the event as "%s", ticked "%s"',
     (hours, label, tick) => {
