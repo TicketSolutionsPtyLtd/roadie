@@ -160,7 +160,7 @@ render(<Zoom />)
 - A `null` value breaks the line, so a day with no data never reads as a trend. Send `null` for that day rather than leaving it out.
 - Forecasts are always dotted, so they never read as actual sales.
 - Past 6 series, the smallest roll into Other, and the table keeps a column for every series. Past 10,000, axes and labels switch to compact numbers. The tooltip and table keep full values.
-- With `onRangeSelect`, releasing a drag reports the range and leaves it drawn until Escape, a click on the plot, or new `data`. Refetch for it, or show it in the page's date picker. A vertical swipe still scrolls the page past the chart.
+- With `onRangeSelect`, releasing a drag reports the range and leaves it drawn until Escape, a click on the plot, or new `data`. Refetch for it, or show it in the page's date picker. Touch only scrolls and shows the tooltip, so pair the chart with a `DateRangePicker` for phones.
 - There are no colour props. Use `highlight` for the story and `palette` for the set.
 
 ## Accessibility

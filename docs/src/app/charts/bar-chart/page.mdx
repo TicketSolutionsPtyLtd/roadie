@@ -116,7 +116,7 @@ render(<Zoom />)
 - Send one row per bar. Rows that share an x add up into one bar, and `validateDashboard` warns about them. A `line` can't add up a rate, so it keeps the first value it has and skips empty rows.
 - Use `interval='hour'` for on-sale and entry charts so ticks and spoken values carry the time.
 - Keep annotation labels to 20 characters. Mark what moved sales: announcements, line-up drops, email sends, ad bursts and price releases.
-- With `onRangeSelect`, releasing a drag reports the range and leaves it drawn until Escape, a click on the plot, or new `data`.
+- With `onRangeSelect`, releasing a drag reports the range and leaves it drawn until Escape, a click on the plot, or new `data`. Touch only scrolls and shows the tooltip, so pair the chart with a `DateRangePicker` for phones.
 - Only `line` gets its own scale. Don't put two unrelated measures on one chart. A percent `line` always runs from 0 to 100%.
 
 ## Accessibility
