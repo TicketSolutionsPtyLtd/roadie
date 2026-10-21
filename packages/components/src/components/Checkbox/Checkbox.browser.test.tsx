@@ -107,6 +107,7 @@ describe('Checkbox colour', () => {
       const strong = getComputedStyle(screen.getByTestId('strong'))
       const box = screen.getByRole('checkbox', { name: 'Rock' })
       expect(getComputedStyle(box).backgroundColor).toBe(strong.backgroundColor)
+      expect(getComputedStyle(box).borderColor).toBe(strong.backgroundColor)
       expect(getComputedStyle(box.querySelector('svg')!).color).toBe(
         strong.color
       )
