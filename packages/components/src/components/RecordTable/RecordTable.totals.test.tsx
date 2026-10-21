@@ -187,6 +187,31 @@ describe('RecordTable totals', () => {
     expect(totals().show).toBe('Totals for 120 shows')
   })
 
+  it('counts the totals row among ranged rows', async () => {
+    render(
+      <RecordTable
+        caption='Shows'
+        fields={showFields}
+        columns={showColumns}
+        getRowId={(row) => row.id}
+        recordName={SHOW}
+        totals={{ label: 'All shows' }}
+        loadRange={async ({ start, end }) => ({
+          rows: SHOWS.slice(start, end),
+          rowCount: SHOWS.length,
+          totals: { values: { sold: 4321 } }
+        })}
+      />
+    )
+    await waitFor(() => expect(totals().sold).toBe('4,321'))
+    expect(totals().show).toBe('All shows')
+    const table = screen.getByRole('table')
+    expect(table).toHaveAttribute('aria-rowcount', '122')
+    expect(
+      within(table).getByRole('row', { name: /Ocean Alley 1\b/ })
+    ).toHaveAttribute('aria-rowindex', '3')
+  })
+
   it('resolves totals on the records for a custom layout', () => {
     const { result } = renderHook(() =>
       useRecords({ data: SHOWS, fields: showFields, totals: true })

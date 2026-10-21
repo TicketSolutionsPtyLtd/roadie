@@ -627,19 +627,15 @@ export function useRecordsState<Row extends object>({
         : undefined,
     [ranged, loaded.at, matchingRows]
   )
-  const given =
-    totalsOption === undefined || summing
-      ? ranged
-        ? range.totals
-        : undefined
-      : totalsOption
+  const given = totalsOption === undefined || summing ? undefined : totalsOption
+  const served = given?.values ? given : ranged ? range.totals : undefined
   const defaultLabel = totalsLabel(resultCount, resultCountExact, recordName)
+  const label = given?.label ?? served?.label ?? defaultLabel
   const totals = useMemo<RecordsResolvedTotals | undefined>(() => {
-    if (given?.values)
-      return { label: given.label ?? defaultLabel, values: given.values }
+    if (served?.values) return { label, values: served.values }
     if (totalsOption === undefined || server || ranged) return undefined
-    return sumRecords(fields, matchingRows, given?.label ?? defaultLabel)
-  }, [given, defaultLabel, totalsOption, server, ranged, fields, matchingRows])
+    return sumRecords(fields, matchingRows, label)
+  }, [served, label, totalsOption, server, ranged, fields, matchingRows])
   // Stable between loads, so the window and its memoised rows hold while scrolling.
   const rangeState = useMemo<RecordsRangeState<Row> | undefined>(
     () =>
