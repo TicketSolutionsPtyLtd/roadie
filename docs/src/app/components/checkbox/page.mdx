@@ -170,11 +170,11 @@ group, or on a single `Checkbox`.
 </CheckboxGroup>
 ```
 
-### Size
+### Sizes
 
 `md` is the default. Use `sm` in dense lists, such as a filter sidebar, and
 `lg` where the choice is the main thing on the screen. Set it on the group, or
-on a single `Checkbox`.
+on a single `Checkbox`. With `emphasis='normal'`, it sizes the box only.
 
 ```tsx-live layout=stack
 {/* Small */}
@@ -191,15 +191,23 @@ on a single `Checkbox`.
 part of the checkbox's name, so screen readers announce the label alone.
 
 ```tsx-live width=64
-<CheckboxGroup size='sm' defaultValue={['fortitude-music-hall']}>
+<CheckboxGroup size='sm' defaultValue={['antler-kettle-hall']}>
   <CheckboxGroup.Label>Venue</CheckboxGroup.Label>
   <CheckboxGroup.Item
-    value='fortitude-music-hall'
-    label='Fortitude Music Hall'
+    value='antler-kettle-hall'
+    label='Antler Kettle Hall'
     trailing='128'
   />
-  <CheckboxGroup.Item value='the-triffid' label='The Triffid' trailing='96' />
-  <CheckboxGroup.Item value='the-tivoli' label='The Tivoli' trailing='41' />
+  <CheckboxGroup.Item
+    value='kazoo-hollow-room'
+    label='Kazoo Hollow Room'
+    trailing='96'
+  />
+  <CheckboxGroup.Item
+    value='opal-harpoon-room'
+    label='Opal Harpoon Room'
+    trailing='41'
+  />
 </CheckboxGroup>
 ```
 
