@@ -201,7 +201,10 @@ export function ChartPlot<P>({
       { reason }: { reason: BrushXChange<RangeValue> }
     ) => {
       const span = spans(rangeAxis, range)
-      setSelection(span ? { range, anchor: range.start } : null)
+      // brushX ends a drag whose controlled range stops matching it, so a
+      // drag held inside one x is kept too.
+      const keep = span || reason.type === 'preview'
+      setSelection(keep ? { range, anchor: range.start } : null)
       setRangeSpoken('')
       if (span && reason.type === 'commit' && reason.source === 'pointer')
         onRangeSelect?.(wallRange(span[0], span[1], rangeAxis.options))

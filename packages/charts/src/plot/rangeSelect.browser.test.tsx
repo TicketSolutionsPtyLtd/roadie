@@ -106,6 +106,23 @@ describe('range selection by pointer', () => {
     })
   })
 
+  it('replaces a held range with a new drag', async () => {
+    const onRangeSelect = vi.fn()
+    const chart = renderChart(
+      <LineChart data={days} x='day' y='sold' onRangeSelect={onRangeSelect} />
+    )
+    await afterResize()
+    const at = await pointPositions(chart, 8)
+    await drag(at[1]!, at[3]!)
+    await expect.poll(() => onRangeSelect.mock.calls.length).toBe(1)
+    await drag(at[5]!, at[7]!)
+    await expect.poll(() => onRangeSelect.mock.calls.length).toBe(2)
+    expect(onRangeSelect).toHaveBeenLastCalledWith({
+      start: '2026-10-06',
+      end: '2026-10-08'
+    })
+  })
+
   it('reports nothing for a drag inside one day', async () => {
     const onRangeSelect = vi.fn()
     const chart = renderChart(
