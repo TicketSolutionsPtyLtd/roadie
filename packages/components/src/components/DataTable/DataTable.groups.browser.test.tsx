@@ -94,6 +94,7 @@ describe('DataTable grouped rows', () => {
     )
     const toggle = screen.getByRole('button', { name: 'General' })
     const caret = toggle.querySelector('svg')!
+    expect(getComputedStyle(toggle, '::after').cursor).toBe('pointer')
     expect(caret.getBoundingClientRect().width).toBe(12)
     expect(getComputedStyle(caret).color).not.toBe(
       getComputedStyle(toggle).color

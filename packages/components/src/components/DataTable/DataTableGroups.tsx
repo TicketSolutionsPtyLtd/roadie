@@ -111,7 +111,7 @@ export function DataTableGroups({
                         aria-expanded={open}
                         onClick={() => toggle(node.key)}
                         data-interactive-target=''
-                        className='group inline-flex items-center gap-1 text-start'
+                        className='group inline-flex cursor-pointer items-center gap-1 text-start'
                       >
                         <CaretRightIcon
                           weight='bold'
