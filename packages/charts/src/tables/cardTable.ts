@@ -10,6 +10,7 @@ import { lineChartTable } from '../LineChart/table'
 import { rankedBarsTable } from '../RankedBars/table'
 import { scatterTable } from '../Scatter/table'
 import { smallMultiplesTable } from '../SmallMultiples/table'
+import { stackedAreaTable } from '../StackedArea/table'
 import { stackedBarsTable } from '../StackedBars/table'
 
 /** The Table view rows for any chart plot in a dashboard description. */
@@ -23,6 +24,8 @@ export function plotTable(plot: ChartPlot): ChartTable {
       return rankedBarsTable(plot)
     case 'stacked-bars':
       return stackedBarsTable(plot)
+    case 'stacked-area':
+      return stackedAreaTable(plot)
     case 'histogram':
       return histogramTable(plot)
     case 'funnel':

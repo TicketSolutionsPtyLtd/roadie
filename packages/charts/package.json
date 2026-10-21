@@ -85,6 +85,10 @@
       "types": "./dist/SmallMultiples/index.d.ts",
       "import": "./dist/SmallMultiples/index.js"
     },
+    "./stacked-area": {
+      "types": "./dist/StackedArea/index.d.ts",
+      "import": "./dist/StackedArea/index.js"
+    },
     "./stacked-bars": {
       "types": "./dist/StackedBars/index.d.ts",
       "import": "./dist/StackedBars/index.js"
