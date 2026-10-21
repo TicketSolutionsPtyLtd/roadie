@@ -62,6 +62,7 @@ describe('CheckboxGroup spacing', () => {
       return between
     }
     const [sm, md, lg] = [gap('sm'), gap('md'), gap('lg')]
+    expect(sm).toBeGreaterThan(0)
     expect(sm).toBeLessThanOrEqual(2)
     expect(md).toBeGreaterThan(sm)
     expect(lg).toBeGreaterThan(md)
