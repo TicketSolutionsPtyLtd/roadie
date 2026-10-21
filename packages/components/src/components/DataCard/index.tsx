@@ -40,6 +40,12 @@ export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> & {
    * action such as refresh still works on a card that failed to load.
    */
   actions?: ReactNode
+  /**
+   * Switches for what the body shows, such as a chart's mode or measure, in a
+   * full-width row under the headline. Shown in every state, so a switch
+   * stays put while the new view loads.
+   */
+  controls?: ReactNode
   size?: CardSize
   /** @default 'ready' */
   state?: CardState
@@ -114,6 +120,7 @@ export function DataCard({
   context,
   source,
   actions,
+  controls,
   size,
   state = 'ready',
   emptyMessage = "We don't have data for this yet. You'll see it here once it arrives.",
@@ -186,6 +193,14 @@ export function DataCard({
             )
           )}
         </header>
+        {controls && (
+          <div
+            data-slot='data-card-controls'
+            className='flex flex-wrap items-center gap-2'
+          >
+            {controls}
+          </div>
+        )}
         {state === 'loading' && (
           <Skeleton
             shape='block'

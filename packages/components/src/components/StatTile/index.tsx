@@ -3,7 +3,7 @@ import { Sparkline, type SparklineReference } from '../Sparkline'
 
 export type StatTileProps = Omit<
   DataCardProps,
-  'size' | 'takeaway' | 'children' | 'value'
+  'size' | 'takeaway' | 'children' | 'value' | 'controls'
 > & {
   value: number | string
   /** Recent history, oldest first. Hidden with fewer than 5 points. */

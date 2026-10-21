@@ -64,6 +64,18 @@ import { StatTile } from '@oztix/roadie-components/stat-tile'
 />
 ```
 
+### Several metrics
+
+Show each metric in its own tile, with its `trend`. Follow the row with a [Chart](/charts/chart) per metric when people need the detail.
+
+```tsx-live width=180
+<div className='grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-3'>
+  <StatTile label='Sales' value={1530} delta={{ value: 220 }} context='Since yesterday' trend={[420, 600, 860, 1000, 1310, 1530]} />
+  <StatTile label='Sales value' value={84150} format='compactCurrency' delta={{ value: 12100, format: 'compactCurrency' }} context='Since yesterday' trend={[23100, 33000, 47300, 55000, 72050, 84150]} />
+  <StatTile label='Sold' value={0.64} format='percent' delta={{ value: 9, format: 'points' }} context='Of 2,400' trend={[0.18, 0.25, 0.36, 0.42, 0.55, 0.64]} />
+</div>
+```
+
 ### States
 
 ```tsx-live layout=stack width=72
@@ -83,6 +95,7 @@ import { StatTile } from '@oztix/roadie-components/stat-tile'
 - Set `goodWhen='down'` for numbers where falling is good, such as refunds.
 - Pass `trend` whenever history exists. The sparkline hides itself below 5 points.
 - Use a `reference` for a target or benchmark, not a second series.
+- Don't make tiles switch a chart below them. People don't notice tiles are clickable, and hiding two or three metrics behind a click makes them harder to compare. Show every metric, as a row of tiles with `trend`, then a Chart for each one.
 
 ## Accessibility
 
