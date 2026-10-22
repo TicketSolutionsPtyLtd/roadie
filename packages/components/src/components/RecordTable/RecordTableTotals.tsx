@@ -7,7 +7,8 @@ import {
   cellClass,
   pinStyle,
   rowClass,
-  selectCellClass
+  selectCellClass,
+  titleColumn
 } from './RecordTableRow'
 import { type ColumnLayout, priorityProps } from './layout'
 import type { RecordTableColumn } from './types'
@@ -47,11 +48,14 @@ export function RecordTableTotalsRow({
   actions: boolean
   rowIndex?: number
 }) {
-  // A thumbnail column is too narrow for the label.
-  const labelIndex = Math.max(
-    0,
-    columns.findIndex((column) => column.kind !== 'image')
-  )
+  // The title column has no total and never hides; a thumbnail is too narrow.
+  const title = titleColumn(columns)
+  const labelIndex = title
+    ? columns.indexOf(title)
+    : Math.max(
+        0,
+        columns.findIndex((column) => column.kind !== 'image')
+      )
   return (
     <div
       role='row'

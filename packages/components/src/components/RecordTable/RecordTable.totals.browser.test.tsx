@@ -93,7 +93,7 @@ describe('RecordTable totals', () => {
       const totals = slot(container, 'record-table-totals')
       expect(near(rect(totals).top, rect(headRow).bottom)).toBe(true)
       await scroll(container, mode)
-      // Stuck with the headings, wherever the engine sticks them.
+      // Stuck with the headings, which stick under the toolbar (INNO-1418).
       expect(near(rect(totals).top, rect(headRow).bottom)).toBe(true)
       expect(rect(slot(container, 'record-table-row')).top).toBeLessThan(
         rect(headRow).top
@@ -121,6 +121,72 @@ describe('RecordTable totals', () => {
       ).toBeVisible()
     })
   }
+
+  it('scrolls sideways with the columns while the bulk bar shows', async () => {
+    const { container } = render(<Shows mode='pane' />)
+    await frame()
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    await expect
+      .poll(() => screen.queryByRole('toolbar', { name: 'Bulk actions' }))
+      .not.toBeNull()
+    await scroll(container, 'pane')
+    expect(misaligned(container)).toEqual([])
+  })
+
+  it('sticks the head under the toolbar, under the pane header, with the bar shown', async () => {
+    const { container } = render(<Shows mode='pane' />)
+    await frame()
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    await expect
+      .poll(() => screen.queryByRole('toolbar', { name: 'Bulk actions' }))
+      .not.toBeNull()
+    slot(container, 'pane-viewport').scrollTop = 1500
+    // The pane header collapses as it scrolls, over a transition.
+    await expect
+      .poll(() => {
+        const header = slot(container, 'pane-header')
+        const toolbar = rect(slot(container, 'records-header'))
+        const head = rect(slot(container, 'record-table-head'))
+        return [
+          header.dataset.collapsed,
+          ...[toolbar.top - rect(header).bottom, head.top - toolbar.bottom].map(
+            Math.round
+          )
+        ]
+      })
+      .toEqual(['true', 0, 0])
+  })
+
+  it('leaves room above the bulk bar for its focus rings', async () => {
+    const { container } = render(<Shows mode='pane' />)
+    await frame()
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    await expect
+      .poll(() => screen.queryByRole('toolbar', { name: 'Bulk actions' }))
+      .not.toBeNull()
+    const first = screen
+      .getByRole('toolbar', { name: 'Bulk actions' })
+      .querySelector('button')!
+    // The ring's full reach: a 2px offset and a 2px ring.
+    const ringTop = rect(first).top - 4
+    const frameElement = slot(container, 'record-table-frame')
+    const clippers = []
+    for (let el = first.parentElement; el && el !== frameElement;) {
+      if (getComputedStyle(el).overflowY !== 'visible') clippers.push(el)
+      el = el.parentElement
+    }
+    expect(
+      clippers
+        .filter((el) => rect(el).top > ringTop)
+        .map((el) => el.dataset.slot)
+    ).toEqual([])
+  })
 
   it('starts the box scrollbar under the totals', async () => {
     const { container } = render(<Shows mode='maxHeight' />)

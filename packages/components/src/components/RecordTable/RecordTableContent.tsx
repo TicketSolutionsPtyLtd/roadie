@@ -134,6 +134,7 @@ export function RecordTableContent({
   const rowsSurvivor = useSurvivor('rows')
   const frameRef = useRef<HTMLDivElement>(null)
   const headRef = useRef<HTMLDivElement>(null)
+  const totalsClipRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
   // In its own box, one viewport scrolls both ways; otherwise only the rows scroll sideways.
   const boxed = fill || Boolean(maxHeight)
@@ -250,10 +251,12 @@ export function RecordTableContent({
       ?.querySelector<HTMLElement>('[data-slot="record-table-page-checkbox"]')
       ?.focus()
   }, [barShown])
-  // The head scrolls only with the header row; back, it rejoins the rows.
+  // The head scrolls only with the header row, and the totals alone under the
+  // bar; whichever clips takes the rows' scroll when the bar comes or goes.
   useLayoutEffect(() => {
-    if (!barShown && scrollerRef.current)
-      syncScroll(scrollerRef.current, headRef)
+    const scroller = scrollerRef.current
+    if (!scroller) return
+    syncScroll(scroller, barShown ? totalsClipRef : headRef)
   }, [barShown])
   const columnCount =
     columns.length + (selectable ? 1 : 0) + (hasRowActions ? 1 : 0)
@@ -417,9 +420,8 @@ export function RecordTableContent({
               className={cn(
                 'sticky z-docked',
                 surfaceClass,
-                // The bar fits the frame, so nothing to clip but its focus
-                // rings, unless the totals under it scroll with the columns.
-                !boxed && (!barShown || totals) && 'overflow-hidden'
+                // The bar fits the frame, so nothing to clip but its focus rings.
+                !boxed && !barShown && 'overflow-hidden'
               )}
             >
               <div
@@ -548,15 +550,23 @@ export function RecordTableContent({
                 )}
               </div>
               {totals && (
-                <RecordTableTotalsRow
-                  totals={totals}
-                  columns={columns}
-                  timeZone={records.timeZone}
-                  layout={layout}
-                  select={selectable}
-                  actions={hasRowActions}
-                  rowIndex={partial ? 2 : undefined}
-                />
+                <div
+                  ref={totalsClipRef}
+                  role='none'
+                  data-slot='record-table-totals-clip'
+                  // Under the bar, the head no longer clips the totals as they scroll with the columns.
+                  className={cn(!boxed && barShown && 'overflow-hidden')}
+                >
+                  <RecordTableTotalsRow
+                    totals={totals}
+                    columns={columns}
+                    timeZone={records.timeZone}
+                    layout={layout}
+                    select={selectable}
+                    actions={hasRowActions}
+                    rowIndex={partial ? 2 : undefined}
+                  />
+                </div>
               )}
               {progress && (
                 <div
@@ -593,7 +603,10 @@ export function RecordTableContent({
                   tabIndex={0}
                   className={cn('isolate', dimmed && 'opacity-60')}
                   style={SIDEWAYS_ONLY}
-                  onScroll={(event) => syncScroll(event.currentTarget, headRef)}
+                  onScroll={(event) => {
+                    syncScroll(event.currentTarget, headRef)
+                    syncScroll(event.currentTarget, totalsClipRef)
+                  }}
                 >
                   <ScrollArea.Content>{body}</ScrollArea.Content>
                 </ScrollArea.Viewport>

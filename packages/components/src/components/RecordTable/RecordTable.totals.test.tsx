@@ -106,6 +106,28 @@ describe('RecordTable totals', () => {
     expect(totals()).toMatchObject({ sold: '', gross: '' })
   })
 
+  it('labels the title column, never a summed or hiding one before it', () => {
+    const column = tableColumns<TestShow>(showFields)
+    render(
+      <Table
+        totals
+        columns={[
+          column.field('sold'),
+          column.field('city', { priority: 1 }),
+          column.field('show', { narrow: 'title' })
+        ]}
+      />
+    )
+    const cells = [
+      ...totalsRow().querySelectorAll('[role="rowheader"], [role="cell"]')
+    ].map((cell) => [cell.getAttribute('role'), cell.textContent])
+    expect(cells).toEqual([
+      ['cell', count.format(soldOf(SHOWS))],
+      ['cell', ''],
+      ['rowheader', 'Totals for 120 shows']
+    ])
+  })
+
   it("doesn't sum money whose rows name their own currency", () => {
     render(
       <Table
