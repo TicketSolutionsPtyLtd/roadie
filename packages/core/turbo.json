@@ -20,6 +20,7 @@
         "scripts/**",
         "$TURBO_ROOT$/docs/eslint.config.js",
         "$TURBO_ROOT$/oxlint.config.ts",
+        "$TURBO_ROOT$/packages/eslint-plugin/src/**",
         "$TURBO_ROOT$/skills/audit/**",
         "$TURBO_ROOT$/skills/*/codemods/**"
       ]
