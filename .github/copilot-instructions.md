@@ -16,8 +16,8 @@ and utilities (`packages/core`), React components on Base UI
 3. Tests that pass without testing anything, or that depend on timing.
 4. Roadie conventions below.
 
-Give a concrete failing input for each finding. Skip style nits Prettier or
-the linters already enforce.
+Give a concrete failing input for each finding. Skip style nits oxfmt or the
+linters already enforce.
 
 ## Conventions to enforce
 

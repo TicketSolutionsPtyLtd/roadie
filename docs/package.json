@@ -14,8 +14,8 @@
     "test:watch": "vitest",
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "start": "next start",
-    "format": "prettier --ignore-path ../.prettierignore --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",
-    "format:check": "prettier --ignore-path ../.prettierignore --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "lint": "oxlint --report-unused-disable-directives-severity=warn . && eslint '**/*.{md,mdx}'",
     "lint:fix": "oxlint --report-unused-disable-directives-severity=warn --fix . && eslint '**/*.{md,mdx}' --fix",
     "typecheck": "tsc --noEmit && tsc --noEmit -p scripts"

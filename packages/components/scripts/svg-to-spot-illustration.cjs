@@ -349,8 +349,7 @@ function formatGeneratedFiles(componentDir) {
     // Build file paths
     const filePaths = files.map((file) => path.join(componentDir, file))
 
-    // Run prettier on all generated files
-    execFileSync('npx', ['prettier', '--write', ...filePaths], {
+    execFileSync('pnpm', ['exec', 'oxfmt', ...filePaths], {
       cwd: path.join(__dirname, '..'),
       stdio: 'ignore'
     })
@@ -508,8 +507,7 @@ function buildAllSvgs(svgsDir, shouldOptimize) {
       console.log('✓ index.tsx already up to date')
     }
 
-    // Format all generated files with Prettier
-    console.log('Formatting generated files with Prettier...')
+    console.log('Formatting generated files with oxfmt...')
     const formatted = formatGeneratedFiles(componentDir)
     if (formatted) {
       console.log('✓ All files formatted\n')
@@ -619,7 +617,7 @@ if (require.main === module) {
       }
 
       // Format the generated file
-      console.log('Formatting generated files with Prettier...')
+      console.log('Formatting generated files with oxfmt...')
       const formatted = formatGeneratedFiles(result.componentDir)
       if (formatted) {
         console.log('✓ Files formatted')

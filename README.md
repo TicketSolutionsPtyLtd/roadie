@@ -127,7 +127,7 @@ pnpm test                # Run tests
 pnpm test:browser        # Run layout tests in Chromium, WebKit and Firefox
 pnpm typecheck           # TypeScript type checking
 pnpm lint                # oxlint (ESLint for docs Markdown and MDX)
-pnpm format              # Prettier
+pnpm format              # oxfmt
 ```
 
 `pnpm test:browser` runs every engine by default, as CI does. To pick engines,

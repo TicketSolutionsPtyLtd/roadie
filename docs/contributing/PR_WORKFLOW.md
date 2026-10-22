@@ -141,7 +141,7 @@ Every PR is checked against these before review. Fix every real hit.
   dark. Chart pages need one in `ChartPreview.tsx`, foundations in
   `FoundationPreview.tsx` and token families in `tokens/TokenFamilyArt.tsx`;
   `CataloguePreview.test.tsx` fails for any listed page without art.
-- Edit `.mdx` by hand; never run Prettier on it.
+- Edit `.mdx` by hand; never run a formatter on it.
 - Docs never point at files or code that `main` doesn't have.
 
 ## 5. Verify locally

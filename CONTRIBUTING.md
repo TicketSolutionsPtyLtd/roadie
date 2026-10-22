@@ -240,7 +240,7 @@ All workflows use Turborepo for intelligent caching and parallelization.
 ## Style Guide
 
 - Use TypeScript for all new code
-- Follow the project's lint and Prettier configuration
+- Follow the project's oxlint and oxfmt configuration
 - Use styled-components for styling
 - Follow semantic HTML principles
 - Maintain mobile-first responsive design

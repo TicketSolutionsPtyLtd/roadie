@@ -1,7 +1,6 @@
 // Oxlint lints this app's JS and TS (oxlint.config.ts). ESLint stays for
 // Markdown and MDX only, because oxlint has no processors to lint live fences
 // as code, so this config keeps the live-fence processor and the MDX rules.
-import prettierConfig from 'eslint-config-prettier'
 import {
   createRemarkProcessor,
   flatCodeBlocks,
@@ -206,10 +205,7 @@ const config = [
     }
   },
 
-  ...oxlintRules,
-
-  // Prettier config (must be last to override conflicting rules)
-  prettierConfig
+  ...oxlintRules
 ]
 
 export default config

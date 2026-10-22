@@ -22,7 +22,7 @@ rules and change often, so read them each time rather than from memory. They,
 ## 2. Write
 
 Copy the skeleton, keep only the sections that apply, and edit the `.mdx` by
-hand. Never run Prettier on `.mdx`; it rewrites the code in fences. The rules
+hand. Never run a formatter on `.mdx`; it rewrites the code in fences. The rules
 that slip most, each detailed in `DOCS_PAGES.md` or a template:
 
 - **Layout.** No `className` layout in top-level MDX, which

@@ -32,8 +32,8 @@ what is clearly wrong, commits the fixes, and comments only on judgement calls.
 - Run the host repo's format and lint on the changed files. Hooks may have been
   skipped, so don't assume they ran. In a fresh worktree the first run installs
   every dependency, so check machine load first. Files no package lints, such
-  as `skills/` and root `.md` and `.json` files, get Prettier, plus lint where a
-  config covers them. Report only hits on added lines
+  as `skills/` and root `.md` and `.json` files, get the repo's formatter, plus
+  lint where a config covers them. Report only hits on added lines
   (`git diff origin/<base>...HEAD -U0`); a hit on an untouched line predates
   the diff.
 
