@@ -70,10 +70,9 @@ docs/brainstorms/
 *.pem
 .vercel
 
-# Formatted by oxfmt, which INNO-1391 switches to. Prettier would undo it, so
-# it skips these until that lands and this file goes.
+# oxfmt formatted these and Prettier would undo it, so Prettier skips them
+# until INNO-1391 switches the repo to oxfmt and deletes this file.
 docs/solutions/best-practices/unsafe-href-protocols-xss.md
-docs/solutions/best-practices/verifying-base-ui-runtime-contract-from-source.md
 docs/solutions/component-patterns/base-ui-scroll-area-inline-overflow.md
 docs/solutions/pane-motion/route-driven-shells.md
 docs/src/lib/releases.ts
@@ -108,5 +107,4 @@ packages/core/src/records/bounds.ts
 packages/core/src/records/request.ts
 packages/core/src/records/types.ts
 packages/core/src/tokens/manifest.ts
-playground/vue-cart-drawer/src/App.vue
 vitest.browsers.config.ts
