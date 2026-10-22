@@ -110,6 +110,7 @@ describe('oxlint import boundaries', () => {
     [`${charts}/static/seed.ts`, ['nextLink']],
     [`${charts}/SeedChart/definition.ts`, ['nextLink']],
     [`${charts}/SeedChart/definition.test.ts`, ['nextLink']],
+    [`${charts}/SeedChart/definition.test.tsx`, ['nextLink']],
     [
       'packages/widgets/src/cart-drawer/react/seed.tsx',
       ['nextLink', 'skinNext']
@@ -138,13 +139,16 @@ describe('oxlint import boundaries', () => {
   )
 
   // next/link alone also matches a shallow next/* group.
-  it('catches a deep next/* import in the React skin', () => {
-    const path = 'packages/widgets/src/cart-drawer/react/seed.tsx'
-    const source = `import router from 'next/dist/client/router'
-export const seed = router
+  it.each(['next', 'next/dist/client/router'])(
+    'catches %s in the React skin',
+    (specifier) => {
+      const path = 'packages/widgets/src/cart-drawer/react/seed.tsx'
+      const source = `import seed from '${specifier}'
+export { seed }
 `
-    expect(lintSeeds([[path, source]]).get(path)).toEqual(['skinNext'])
-  })
+      expect(lintSeeds([[path, source]]).get(path)).toEqual(['skinNext'])
+    }
+  )
 })
 
 const JSDOM_RULES = [
@@ -157,8 +161,10 @@ describe('oxlint excludeFiles exceptions', () => {
   const cases = [
     ['packages/core/src/seed.ts', ENV, ['no-import-meta-env']],
     ['packages/core/src/seed.test.ts', ENV, []],
+    ['packages/core/src/seed.test.tsx', ENV, []],
     ['packages/charts/src/seed.test.tsx', JSDOM, JSDOM_RULES],
     ['packages/charts/src/seed.browser.test.tsx', JSDOM, []],
+    ['packages/charts/src/seed.browser.test.ts', JSDOM, []],
     [
       'packages/widgets/src/cart-drawer/vue/useCartDrawerDrag.test.ts',
       JSDOM,
