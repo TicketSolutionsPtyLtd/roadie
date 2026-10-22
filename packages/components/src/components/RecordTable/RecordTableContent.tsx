@@ -251,8 +251,7 @@ export function RecordTableContent({
       ?.querySelector<HTMLElement>('[data-slot="record-table-page-checkbox"]')
       ?.focus()
   }, [barShown])
-  // The head scrolls only with the header row, and the totals alone under the
-  // bar; whichever clips takes the rows' scroll when the bar comes or goes.
+  // Whichever clips, the head or the totals under the bar, takes the rows' scroll.
   useLayoutEffect(() => {
     const scroller = scrollerRef.current
     if (!scroller) return

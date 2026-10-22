@@ -93,7 +93,6 @@ describe('RecordTable totals', () => {
       const totals = slot(container, 'record-table-totals')
       expect(near(rect(totals).top, rect(headRow).bottom)).toBe(true)
       await scroll(container, mode)
-      // Stuck with the headings, which stick under the toolbar (INNO-1418).
       expect(near(rect(totals).top, rect(headRow).bottom)).toBe(true)
       expect(rect(slot(container, 'record-table-row')).top).toBeLessThan(
         rect(headRow).top
