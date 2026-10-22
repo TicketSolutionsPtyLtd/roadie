@@ -22,13 +22,7 @@ import {
   type EmbedProvider,
   defaultEmbedProviders
 } from '../schema'
-import {
-  LINE_END,
-  LINE_START,
-  MOD,
-  selectAll,
-  selectParagraph
-} from './testUtils'
+import { LINE_END, LINE_START, MOD, selectParagraph } from './testUtils'
 
 const LABEL = 'Event description'
 
@@ -819,8 +813,8 @@ const soldOutThenDoors: EditorValue = {
 }
 
 async function selectSoldOut() {
-  const textbox = await focusedTextbox()
-  await selectAll()
+  const textbox = await screen.findByRole('textbox', { name: LABEL })
+  await selectParagraph(within(textbox).getByText('Sold out'))
   return textbox
 }
 

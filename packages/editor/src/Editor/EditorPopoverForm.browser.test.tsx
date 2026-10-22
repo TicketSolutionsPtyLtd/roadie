@@ -11,7 +11,7 @@ import {
   type EmbedProvider,
   defaultEmbedProviders
 } from '../schema'
-import { LINE_END, MOD, selectAll } from './testUtils'
+import { LINE_END, MOD, selectParagraph } from './testUtils'
 
 const LABEL = 'Event description'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
@@ -107,9 +107,8 @@ const POPOVERS: Popover[] = [
     placeholder: 'Paste a link',
     value: soldOut,
     async open(textbox) {
-      await userEvent.click(textbox)
+      await selectParagraph(within(textbox).getByText('Sold out'))
       await waitFor(() => expect(textbox).toHaveFocus())
-      await selectAll()
       await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
       return openField('Link')
     },
