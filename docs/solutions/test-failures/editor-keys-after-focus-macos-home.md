@@ -1,5 +1,5 @@
 ---
-title: Editor tests that select with Home and Shift+Arrow fail on macOS and flake in Firefox
+title: Editor tests that select with Home and Shift+Arrow fail on macOS and flake in CI
 date: 2026-10-22
 category: test-failures
 module: editor
@@ -31,6 +31,8 @@ text. Chromium passed.
 In CI on Linux, `browser (firefox 3/3)` failed "saves without submitting a
 form around the editor" on all three attempts in one run, with
 `Unable to find role="link" and name "Sold"`. The link covered "Sol".
+Linux WebKit also retried these tests often, along with others that click
+and then press native caret keys.
 
 ## Cause
 
@@ -45,9 +47,9 @@ Two causes, each with the same test step: click into the editor, then
 - **ProseMirror's focus sync.** When the editor takes focus,
   `handlers.focus` in prosemirror-view sets a 20ms timer. If the DOM
   selection then differs from the last one ProseMirror read, the timer
-  writes ProseMirror's selection back. Firefox delivers `selectionchange`
-  late, so Shift+Arrow moves that land within those 20ms can still be
-  unread, and the timer undoes them. A logged timer moved the selection
+  writes ProseMirror's selection back. Firefox, and WebKit on Linux, can
+  deliver `selectionchange` late, so Shift+Arrow moves that land within
+  those 20ms can still be unread, and the timer undoes them. A logged timer moved the selection
   from `0/3` to `0/2`, the "Sol" seen in CI. No user presses a key 10ms
   after clicking, so it's a test bug, not a product bug.
 
@@ -73,9 +75,10 @@ runs out of two, and passed on retry. The cause may be the frame stall in
 since Mod+A sends one key press and no pointer input, but that wasn't
 confirmed on Linux. The triple click doesn't have the problem.
 
-Native caret moves right after a click still carry the race. Prefer a
-ProseMirror command, or a step the test waits on, such as a toolbar
-button's `aria-pressed`.
+Native caret moves right after a click still carry the race, and waiting
+for a state the click sets, such as a toolbar button's `aria-pressed`,
+doesn't remove it. The tests that place a caret with `{End}{ArrowLeft}` or
+`{Home}` still retry on Linux WebKit; INNO-1429 tracks them.
 
 ## Check
 
