@@ -18,6 +18,8 @@ export type RangeAxis = {
   /** Wall-time ms of an x value. */
   msOf: (value: number | string) => number | null
   options: RangeOptions
+  /** Each value is a band, so a range covers its end values whole. */
+  bands?: boolean
 }
 
 const ordered = (a: number, b: number): [number, number] =>

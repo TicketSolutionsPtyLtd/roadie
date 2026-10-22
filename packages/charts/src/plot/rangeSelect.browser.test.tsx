@@ -171,6 +171,75 @@ describe('range selection by pointer', () => {
   })
 })
 
+const bars = [
+  '2026-10-01',
+  '2026-10-02',
+  '2026-10-03',
+  '2026-10-04',
+  '2026-10-05'
+].map((day, i) => ({ day, sold: 120 + i * 40 }))
+
+/** How far each bar runs under the shading, as a share of its width. */
+function shadedShare(chart: Rendered) {
+  const band = chart.svg().querySelector('[data-ts-key="range-band"]')
+  const hidden = chart.brush()!.querySelector('.selection')!
+  if (!band || Number(getComputedStyle(hidden).fillOpacity) !== 0) return null
+  const shade = band.getBoundingClientRect()
+  return [
+    ...chart.svg().querySelectorAll('path[data-ts-key^="series-1:"]')
+  ].map((bar) => {
+    const box = bar.getBoundingClientRect()
+    const overlap =
+      Math.min(box.right, shade.right) - Math.max(box.left, shade.left)
+    return Math.round((Math.max(0, overlap) / box.width) * 100) / 100
+  })
+}
+
+describe('range selection over bars', () => {
+  it('shades whole bars from a drag', async () => {
+    const chart = renderChart(
+      <BarChart data={bars} x='day' y='sold' onRangeSelect={() => {}} />
+    )
+    await afterResize()
+    const at = await pointPositions(chart, 5)
+    await drag(at[1]!, at[3]!)
+    await expect.poll(() => shadedShare(chart)).toEqual([0, 1, 1, 1, 0])
+  })
+
+  it('shades whole bars from Shift+Arrow', async () => {
+    const chart = renderChart(
+      <BarChart data={bars} x='day' y='sold' onRangeSelect={() => {}} />
+    )
+    await afterResize()
+    await expect.poll(() => chart.brush()).not.toBeNull()
+    chart.svg().focus()
+    await expect.poll(() => chart.live().textContent).not.toBe('')
+    await userEvent.keyboard(
+      '{ArrowRight}{Shift>}{ArrowRight}{ArrowRight}{/Shift}'
+    )
+    await expect.poll(() => shadedShare(chart)).toEqual([0, 1, 1, 1, 0])
+    await userEvent.keyboard('{Escape}')
+    await expect
+      .poll(() => chart.svg().querySelector('[data-ts-key="range-band"]'))
+      .toBeNull()
+  })
+
+  it('leaves a line chart’s range to the brush', async () => {
+    const chart = renderChart(
+      <LineChart data={days} x='day' y='sold' onRangeSelect={() => {}} />
+    )
+    await afterResize()
+    const at = await pointPositions(chart, 4)
+    await drag(at[1]!, at[3]!)
+    await expect
+      .poll(() => chart.host().getAttribute('data-range'))
+      .toBe('held')
+    const selection = chart.brush()!.querySelector('.selection')!
+    expect(getComputedStyle(selection).fillOpacity).toBe('0.16')
+    expect(chart.svg().querySelector('[data-ts-key="range-band"]')).toBeNull()
+  })
+})
+
 describe('range selection by keyboard', () => {
   it('grows with Shift+Arrow, reads the range, and applies on Enter', async () => {
     const onRangeSelect = vi.fn()
