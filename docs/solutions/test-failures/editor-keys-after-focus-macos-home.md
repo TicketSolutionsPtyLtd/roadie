@@ -68,12 +68,12 @@ Two causes, each with the same test step: click into the editor, then
   selection to a typed address" uses it on the first of two paragraphs, so
   a link on more than the selection fails.
 
-A first try used Mod+A, which ProseMirror also runs itself. In CI's Linux
-WebKit, the first Link popover test then failed its first attempt in two
-runs out of two, and passed on retry. The cause may be the frame stall in
+Linux WebKit has a separate flake in these files. In CI's image, about one
+run of `EditorPopoverForm.browser.test.tsx` in five fails a Link test
+because the popover's close never finishes, on `main` as well. It looks like
+the frame stall in
 [linux-webkit-no-frames-while-idle](linux-webkit-no-frames-while-idle.md),
-since Mod+A sends one key press and no pointer input, but that wasn't
-confirmed on Linux. The triple click doesn't have the problem.
+not this race; INNO-1429 tracks it.
 
 Native caret moves right after a click still carry the race, and waiting
 for a state the click sets, such as a toolbar button's `aria-pressed`,
