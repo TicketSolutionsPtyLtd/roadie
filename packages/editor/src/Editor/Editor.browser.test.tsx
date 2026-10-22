@@ -22,8 +22,7 @@ import {
   type EmbedProvider,
   defaultEmbedProviders
 } from '../schema'
-
-const MOD = /^(Mac|iP)/.test(navigator.platform) ? 'Meta' : 'Control'
+import { LINE_END, LINE_START, MOD, selectParagraph } from './testUtils'
 
 const LABEL = 'Event description'
 
@@ -133,7 +132,7 @@ describe('Editor', () => {
     render(<ControlledEditor />)
     const textbox = await focusedTextbox()
     await userEvent.keyboard(
-      '{End}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}'
+      `${LINE_END}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}`
     )
 
     await userEvent.keyboard('-ish')
@@ -237,7 +236,7 @@ describe('Editor', () => {
   it('undoes typing with Mod+Z', async () => {
     render(<Editor aria-label={LABEL} defaultValue={soldOut} />)
     const textbox = await focusedTextbox()
-    await userEvent.keyboard('{End} tonight')
+    await userEvent.keyboard(`${LINE_END} tonight`)
     await waitFor(() => expect(textbox).toHaveTextContent('Sold out tonight'))
 
     await shortcut('z')
@@ -433,7 +432,7 @@ describe('Editor toolbar', () => {
       expect(underline).toHaveAttribute('aria-pressed', 'true')
     )
 
-    await userEvent.keyboard('{Home}')
+    await userEvent.keyboard(LINE_START)
     await waitFor(() =>
       expect(underline).toHaveAttribute('aria-pressed', 'false')
     )
@@ -477,7 +476,7 @@ describe('Editor toolbar', () => {
     await userEvent.click(within(textbox).getByText('Jumbuck Orchard Park'))
     await waitFor(() => expect(bold).toHaveAttribute('aria-pressed', 'true'))
 
-    await userEvent.keyboard('{Home}')
+    await userEvent.keyboard(LINE_START)
     await waitFor(() => expect(bold).toHaveAttribute('aria-pressed', 'false'))
   })
 
@@ -527,7 +526,7 @@ describe('Editor toolbar', () => {
     expect(undo).toHaveAttribute('aria-disabled', 'true')
     expect(redo).toHaveAttribute('aria-disabled', 'true')
 
-    await userEvent.keyboard('{End} tonight')
+    await userEvent.keyboard(`${LINE_END} tonight`)
     await waitFor(() => expect(undo).toHaveAttribute('aria-disabled', 'false'))
 
     await userEvent.click(undo)
@@ -543,7 +542,7 @@ describe('Editor toolbar', () => {
     render(<Editor aria-label={LABEL} defaultValue={soldOut} />)
     const textbox = await focusedTextbox()
     await userEvent.keyboard(
-      '{End}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}'
+      `${LINE_END}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}`
     )
 
     await userEvent.keyboard('{Alt>}{F10}{/Alt}')
@@ -721,7 +720,7 @@ describe('Editor in a Field', () => {
       </form>
     )
     const textbox = await focusedTextbox()
-    await userEvent.keyboard('{End} tonight')
+    await userEvent.keyboard(`${LINE_END} tonight`)
     await waitFor(() => expect(textbox).toHaveTextContent('Sold out tonight'))
 
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
@@ -802,11 +801,20 @@ function linksIn(value: EditorValue) {
   return hrefs
 }
 
-async function selectSold() {
-  const textbox = await focusedTextbox()
-  await userEvent.keyboard(
-    '{Home}{Shift>}{ArrowRight}{ArrowRight}{ArrowRight}{ArrowRight}{/Shift}'
-  )
+const soldOutThenDoors: EditorValue = {
+  ...soldOut,
+  doc: {
+    type: 'doc',
+    content: [
+      ...soldOut.doc.content!,
+      { type: 'paragraph', content: [{ type: 'text', text: 'Doors 7pm' }] }
+    ]
+  }
+}
+
+async function selectSoldOut() {
+  const textbox = await screen.findByRole('textbox', { name: LABEL })
+  await selectParagraph(within(textbox).getByText('Sold out'))
   return textbox
 }
 
@@ -815,7 +823,7 @@ describe('Editor links', () => {
     render(<Editor aria-label={LABEL} defaultValue={soldOut} />)
     const textbox = await focusedTextbox()
     await userEvent.keyboard(
-      '{End}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}'
+      `${LINE_END}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}`
     )
 
     await shortcut('k')
@@ -836,11 +844,12 @@ describe('Editor links', () => {
     render(
       <Editor
         aria-label={LABEL}
-        defaultValue={soldOut}
+        defaultValue={soldOutThenDoors}
         onValueChange={onValueChange}
       />
     )
-    const textbox = await selectSold()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await selectParagraph(within(textbox).getByText('Sold out'))
 
     await userEvent.click(screen.getByRole('button', { name: 'Link' }))
     await userEvent.type(
@@ -850,13 +859,15 @@ describe('Editor links', () => {
 
     await waitFor(() =>
       expect(
-        within(textbox).getByRole('link', { name: 'Sold' })
+        within(textbox).getByRole('link', { name: 'Sold out' })
       ).toHaveAttribute('href', TICKETS)
     )
     expect(linksIn(onValueChange.mock.lastCall![0])).toEqual([
       { href: TICKETS }
     ])
-    expect(screen.queryByRole('textbox', { name: 'Link' })).toBe(null)
+    await waitFor(() =>
+      expect(screen.queryByRole('textbox', { name: 'Link' })).toBe(null)
+    )
   })
 
   it('presses Link and edits the href while the caret is in a link', async () => {
@@ -902,7 +913,7 @@ describe('Editor links', () => {
   it('inserts the address as linked text when nothing is selected', async () => {
     render(<Editor aria-label={LABEL} defaultValue={soldOut} />)
     const textbox = await focusedTextbox()
-    await userEvent.keyboard('{End} ')
+    await userEvent.keyboard(`${LINE_END} `)
 
     await shortcut('k')
     await userEvent.type(
@@ -921,7 +932,7 @@ describe('Editor links', () => {
     'refuses %s with an error and keeps the editor open',
     async (typed) => {
       render(<Editor aria-label={LABEL} defaultValue={soldOut} />)
-      const textbox = await selectSold()
+      const textbox = await selectSoldOut()
 
       await shortcut('k')
       const url = await screen.findByRole('textbox', { name: 'Link' })
@@ -965,7 +976,7 @@ describe('Editor links', () => {
     expect(textbox).toHaveTextContent('Get tickets')
     expect(textbox.querySelector('a')).toBe(null)
 
-    await userEvent.keyboard('{End}!')
+    await userEvent.keyboard(`${LINE_END}!`)
 
     await waitFor(() => expect(onValueChange).toHaveBeenCalled())
     expect(linksIn(onValueChange.mock.lastCall![0])).toEqual([])
@@ -1045,7 +1056,7 @@ describe('Editor rich preset', () => {
     const textbox = await focusedTextbox()
     const underline = screen.getByRole('button', { name: 'Underline' })
 
-    await userEvent.keyboard('{End} ')
+    await userEvent.keyboard(`${LINE_END} `)
     await userEvent.click(underline)
     await userEvent.keyboard('tonight')
 
@@ -1157,7 +1168,7 @@ describe('Editor rich preset', () => {
   it('draws a divider with the Divider control', async () => {
     render(<RichEditor />)
     const textbox = await focusedTextbox()
-    await userEvent.keyboard('{End}')
+    await userEvent.keyboard(LINE_END)
 
     await userEvent.click(screen.getByRole('button', { name: 'Divider' }))
 
@@ -1246,7 +1257,7 @@ describe('Editor images', () => {
 
     pasteFiles(textbox, imageFile())
     const drop = dropFiles(textbox, imageFile())
-    await userEvent.keyboard('{End}!')
+    await userEvent.keyboard(`${LINE_END}!`)
 
     await waitFor(() => expect(textbox).toHaveTextContent('Sold out!'))
     expect(drop.defaultPrevented).toBe(true)
@@ -1268,7 +1279,7 @@ describe('Editor images', () => {
 
     pasteFiles(textbox, imageFile())
     dropFiles(textbox, imageFile())
-    await userEvent.keyboard('{End}!')
+    await userEvent.keyboard(`${LINE_END}!`)
 
     await waitFor(() => expect(textbox).toHaveTextContent('Sold out!'))
     expect(onUploadImage).not.toHaveBeenCalled()
@@ -1446,7 +1457,7 @@ describe('Editor images', () => {
     expect(await within(textbox).findByText('No alt text')).toBeVisible()
 
     await userEvent.click(within(textbox).getByText('Sold out'))
-    await userEvent.keyboard('{Home}{ArrowUp}{Enter}')
+    await userEvent.keyboard(`${LINE_START}{ArrowUp}{Enter}`)
     const field = await screen.findByRole('textbox', { name: 'Alt text' })
     await waitFor(() => expect(field).toHaveFocus())
     await userEvent.type(field, `${CROWD_ALT}{Enter}`)
@@ -1472,7 +1483,7 @@ describe('Editor images', () => {
     expect(within(textbox).queryByText('No alt text')).toBe(null)
 
     await userEvent.click(within(textbox).getByText('Sold out'))
-    await userEvent.keyboard('{Home}{ArrowUp}{Enter}')
+    await userEvent.keyboard(`${LINE_START}{ArrowUp}{Enter}`)
 
     expect(
       await screen.findByRole('textbox', { name: 'Alt text' })
@@ -1556,7 +1567,7 @@ describe('Editor embeds', () => {
   it('links a supported URL pasted into a sentence', async () => {
     render(<EmbedEditor defaultValue={{ ...soldOut, preset: 'rich' }} />)
     const textbox = await focusedTextbox()
-    await userEvent.keyboard('{End} ')
+    await userEvent.keyboard(`${LINE_END} `)
 
     pasteText(textbox, YOUTUBE)
 
@@ -1738,7 +1749,7 @@ describe('Editor embeds', () => {
     await within(textbox).findByTitle('YouTube embed exampleVid1')
     await userEvent.click(within(textbox).getByText('Sold out'))
 
-    await userEvent.keyboard('{Home}{ArrowUp}{Delete}')
+    await userEvent.keyboard(`${LINE_START}{ArrowUp}{Delete}`)
 
     await waitFor(() => expect(textbox.querySelector('iframe')).toBe(null))
     expect(textbox).toHaveTextContent('Sold out')
@@ -1818,7 +1829,7 @@ describe('Editor and a stored value’s preset', () => {
       within(textbox).getByRole('heading', { level: 2 })
     ).toHaveTextContent('Lineup')
 
-    await userEvent.keyboard('{End}!')
+    await userEvent.keyboard(`${LINE_END}!`)
 
     await waitFor(() => expect(onValueChange).toHaveBeenCalled())
     const saved = onValueChange.mock.lastCall![0] as EditorValue
@@ -1845,7 +1856,7 @@ describe('Editor and a stored value’s preset', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringMatching(/"rich".*"basic"/))
     warn.mockRestore()
 
-    await userEvent.keyboard('{End}!')
+    await userEvent.keyboard(`${LINE_END}!`)
 
     await waitFor(() => expect(onValueChange).toHaveBeenCalled())
     expect(onValueChange.mock.lastCall![0].preset).toBe('basic')
@@ -1904,7 +1915,7 @@ describe('Editor and a stored value’s preset', () => {
     const textbox = await focusedTextbox()
     expect(textbox).toHaveTextContent('Sold out')
 
-    await userEvent.keyboard('{End}!')
+    await userEvent.keyboard(`${LINE_END}!`)
 
     await waitFor(() => expect(onValueChange).toHaveBeenCalled())
     expect(lastSavedText(onValueChange)).toContain('Sold out!')

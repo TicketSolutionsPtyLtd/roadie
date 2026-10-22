@@ -5,7 +5,7 @@ import { reactCompilerPreset } from './react-compiler.config.ts'
 
 // Unbundle mode is load-bearing for RSC safety — see packages/components/tsdown.config.ts.
 export default defineConfig(({ watch }) => ({
-  entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}'],
+  entry: ['src/**/*.{ts,tsx}', '!**/*.test.{ts,tsx}', '!**/testUtils.ts'],
   unbundle: true,
   // With one subpath, the common base would be src/schema and drop it from dist.
   root: 'src',

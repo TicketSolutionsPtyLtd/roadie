@@ -19,8 +19,8 @@ import {
   type EmbedProvider,
   defaultEmbedProviders
 } from '../schema'
+import { LINE_START, MOD } from './testUtils'
 
-const MOD = /^(Mac|iP)/.test(navigator.platform) ? 'Meta' : 'Control'
 const LABEL = 'Event description'
 const CROWD = '/images/crowd.webp'
 const STAGE = '/images/stage.webp'
@@ -116,7 +116,7 @@ async function clickEmbed() {
 async function selectWithArrows() {
   const textbox = await screen.findByRole('textbox', { name: LABEL })
   await userEvent.click(within(textbox).getByText('Sold out'))
-  await userEvent.keyboard('{Home}{ArrowUp}')
+  await userEvent.keyboard(`${LINE_START}{ArrowUp}`)
   return textbox
 }
 
