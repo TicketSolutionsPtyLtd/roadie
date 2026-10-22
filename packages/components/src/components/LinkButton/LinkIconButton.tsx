@@ -14,7 +14,10 @@ export type LinkIconButtonSize = 'xs' | 'sm' | 'md' | 'lg'
  * @deprecated Use `'xs' | 'sm' | 'md' | 'lg'` instead.
  */
 export type LinkIconButtonSizeLegacy =
-  'icon-xs' | 'icon-sm' | 'icon-md' | 'icon-lg'
+  | 'icon-xs'
+  | 'icon-sm'
+  | 'icon-md'
+  | 'icon-lg'
 
 const SIZE_MAP: Record<
   LinkIconButtonSize | LinkIconButtonSizeLegacy,

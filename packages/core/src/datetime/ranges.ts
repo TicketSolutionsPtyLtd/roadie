@@ -74,7 +74,10 @@ export type DateRangeValue = AbsoluteRange | RelativeRange
  * Roadie works out dates only for its own; see `isBuiltInComparison`.
  */
 export type Comparison<App extends string = never> =
-  'previous-period' | 'previous-year' | AbsoluteRange | App
+  | 'previous-period'
+  | 'previous-year'
+  | AbsoluteRange
+  | App
 
 export type DateRangeOptions = {
   now: Instantish
@@ -289,7 +292,8 @@ function resolveNamed(
 }
 
 type AbsoluteEnd =
-  { kind: 'date'; date: string } | { kind: 'instant'; epoch: number }
+  | { kind: 'date'; date: string }
+  | { kind: 'instant'; epoch: number }
 
 function parseEnd(value: string, timeZone: string): AbsoluteEnd {
   if (isPlainDate(value)) return { kind: 'date', date: value }

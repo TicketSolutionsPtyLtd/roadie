@@ -47,6 +47,7 @@ export function labelFromItems(items: Items, value: unknown): ReactNode {
       ? (value as LabelledItem).value
       : value
   const match = flat.find((item) => (item as LabelledItem)?.value === key) as
-    LabelledItem | undefined
+    | LabelledItem
+    | undefined
   return match?.label ?? undefined
 }

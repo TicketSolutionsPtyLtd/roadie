@@ -28,7 +28,9 @@ import { navigatorMenuPopupClass } from './variants'
 
 // Each folded row set is its own surface, so a row folded in both opens one popup.
 export type NavigatorMenuSurface =
-  'vertical' | 'horizontal' | `overflow-${keyof NavigatorOverflowSets}`
+  | 'vertical'
+  | 'horizontal'
+  | `overflow-${keyof NavigatorOverflowSets}`
 
 export const menuId = (surface: NavigatorMenuSurface, value: string) =>
   `${surface}:${value}`

@@ -24,7 +24,8 @@ import { describeFilter } from './clock'
 
 /** What a search suggestion does once taken. */
 export type SearchValue =
-  { type: 'filter'; filter: RecordFilter } | { type: 'field'; field: string }
+  | { type: 'filter'; filter: RecordFilter }
+  | { type: 'field'; field: string }
 
 export type SearchSuggestion = QueryFieldSuggestion<SearchValue>
 export type SearchGroup = QueryFieldSuggestionGroup<SearchValue>

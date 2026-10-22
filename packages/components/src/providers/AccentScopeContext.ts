@@ -7,7 +7,9 @@ export const AccentScopeContext = createContext<CSSProperties | null>(null)
 AccentScopeContext.displayName = 'AccentScopeContext'
 
 type StyleProp<State> =
-  CSSProperties | ((state: State) => CSSProperties | undefined) | undefined
+  | CSSProperties
+  | ((state: State) => CSSProperties | undefined)
+  | undefined
 
 /**
  * Props that carry a nested `ThemeProvider`'s accent onto a portal, which

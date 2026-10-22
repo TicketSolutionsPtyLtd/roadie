@@ -651,7 +651,9 @@ export function statusSentence(
 
 /** Markdown inline content, flattened to text, code, and links so the client renders it without a parser. */
 export type Inline = (
-  string | { code: string } | { text: string; href: string }
+  | string
+  | { code: string }
+  | { text: string; href: string }
 )[]
 
 /** A highlight, such as a new component or a breaking change, drawn as a card. */

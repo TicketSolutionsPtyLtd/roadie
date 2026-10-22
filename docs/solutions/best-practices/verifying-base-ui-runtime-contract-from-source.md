@@ -100,16 +100,14 @@ import { cva } from 'class-variance-authority'
 // `data-[active]:` belongs in the base class string (it's a runtime
 // selector keyed off Base UI's attribute, not an author-controlled
 // CVA option).
-const tabsTabVariants = cva(
-  'text-subtle data-[selected]:text-strong',
-  { variants: { size: { sm: 'h-8 px-3', md: 'h-10 px-4' } } }
-)
+const tabsTabVariants = cva('text-subtle data-[selected]:text-strong', {
+  variants: { size: { sm: 'h-8 px-3', md: 'h-10 px-4' } }
+})
 
 // Right — confirmed via TabsTabDataAttributes (`active = "data-active"`).
-const tabsTabVariants = cva(
-  'text-subtle data-[active]:text-strong',
-  { variants: { size: { sm: 'h-8 px-3', md: 'h-10 px-4' } } }
-)
+const tabsTabVariants = cva('text-subtle data-[active]:text-strong', {
+  variants: { size: { sm: 'h-8 px-3', md: 'h-10 px-4' } }
+})
 ```
 
 The wrong version compiles and renders nothing — Tailwind generates the selector, but the attribute is never present, so the variant never matches.

@@ -5,7 +5,14 @@ export type SortableEdge = 'top' | 'bottom' | 'left' | 'right'
 export type TextDirection = 'ltr' | 'rtl'
 
 export type MoveDirection =
-  'up' | 'down' | 'top' | 'bottom' | 'left' | 'right' | 'start' | 'end'
+  | 'up'
+  | 'down'
+  | 'top'
+  | 'bottom'
+  | 'left'
+  | 'right'
+  | 'start'
+  | 'end'
 
 export type MenuMove = {
   direction: MoveDirection

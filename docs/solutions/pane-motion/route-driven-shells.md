@@ -72,7 +72,7 @@ Three shapes were measured, not inferred, and it worked in none of them:
 - **A docs page-root step.** A pane is held, and it draws the page you are going
   to. `/components` to `/components/button` slid a pane reading
   `"Components"` over `"An interactive control that triggers an action when
-pressed"`: the old chrome with the new body. That is worse than no animation,
+  pressed"`: the old chrome with the new body. That is worse than no animation,
   and worse than the DOM clone it replaced, which copied the real thing.
 - **A single page, panes owned by the app.** The content is right, and it still
   does not animate. A click is a discrete event, so React flushes the effect

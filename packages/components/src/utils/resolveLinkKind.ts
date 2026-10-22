@@ -17,7 +17,11 @@ import { isUnsafeHref } from '@oztix/roadie-core/utils'
  *   classifying invalid hrefs is the caller's responsibility.
  */
 export type ResolvedLinkKind =
-  'button' | 'external' | 'protocol' | 'internal' | 'unsafe'
+  | 'button'
+  | 'external'
+  | 'protocol'
+  | 'internal'
+  | 'unsafe'
 
 const EXTERNAL_PATTERN = /^(https?:)?\/\//i
 const PROTOCOL_PATTERN = /^(mailto|tel|sms):/i

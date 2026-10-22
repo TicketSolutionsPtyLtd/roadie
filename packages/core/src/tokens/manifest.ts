@@ -29,7 +29,11 @@ export type Intent = (typeof INTENTS)[number]
 const KIND_ORDER = ['variable', 'utility', 'class', 'variant', 'keyframes']
 
 export type TokenKind =
-  'variable' | 'utility' | 'variant' | 'keyframes' | 'class'
+  | 'variable'
+  | 'utility'
+  | 'variant'
+  | 'keyframes'
+  | 'class'
 
 type ModeValue = { light?: string; dark?: string }
 

@@ -11,7 +11,8 @@ export { RECORDS_REQUEST_VERSION }
 
 /** A page, zero-based, or rows `start` to `end`, `end` exclusive. */
 export type RecordsRequestPaging =
-  { page: number; pageSize: number } | { start: number; end: number }
+  | { page: number; pageSize: number }
+  | { start: number; end: number }
 
 /**
  * What a server reads to search, filter, sort, export or act on records: the

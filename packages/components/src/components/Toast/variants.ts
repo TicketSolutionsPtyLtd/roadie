@@ -5,7 +5,10 @@ import { intentVariants } from '../../variants'
 export type ToastIntent = 'neutral' | 'success' | 'danger' | 'warning' | 'info'
 
 export type ToastPosition =
-  'bottom-end' | 'bottom-center' | 'top-end' | 'top-center'
+  | 'bottom-end'
+  | 'bottom-center'
+  | 'top-end'
+  | 'top-center'
 
 export type ToastSide = 'top' | 'bottom'
 

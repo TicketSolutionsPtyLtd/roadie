@@ -48,7 +48,9 @@ export const browserInstances = browsers.map((browser) => ({
 }))
 
 const quarantineMode = process.env.ROADIE_QUARANTINE as
-  'skip' | 'only' | undefined
+  | 'skip'
+  | 'only'
+  | undefined
 
 const active = quarantined.filter(({ browser }) => browsers.includes(browser))
 

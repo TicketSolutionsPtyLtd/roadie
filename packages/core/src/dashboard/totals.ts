@@ -6,7 +6,8 @@ import type { TableCell, TableColumn, TableRow } from './schema'
  * the rows may be only a page. Without one, the row reads "Totals".
  */
 export type TableTotals =
-  'sum' | { label?: string; values?: Record<string, TableCell> }
+  | 'sum'
+  | { label?: string; values?: Record<string, TableCell> }
 
 export type ResolvedTotals = {
   label: string

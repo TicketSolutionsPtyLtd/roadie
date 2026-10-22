@@ -13,7 +13,8 @@ import type { BaseUIEvent } from '@base-ui/react/types'
 import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect'
 
 type Handler<E extends SyntheticEvent> =
-  ((event: BaseUIEvent<E>) => void) | undefined
+  | ((event: BaseUIEvent<E>) => void)
+  | undefined
 
 /** How far a finger may drift before a tap reads as a scroll. */
 const SLOP = 10

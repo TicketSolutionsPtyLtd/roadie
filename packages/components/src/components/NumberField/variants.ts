@@ -6,7 +6,10 @@ import { buttonVariants } from '../Button/Button'
 export type NumberFieldSize = 'sm' | 'md' | 'lg'
 export type NumberFieldEmphasis = 'normal' | 'subtle' | 'subtler'
 export type NumberFieldStepperEmphasis =
-  'strong' | 'normal' | 'subtle' | 'subtler'
+  | 'strong'
+  | 'normal'
+  | 'subtle'
+  | 'subtler'
 
 export const numberFieldGroupVariants = cva(
   'flex w-full items-center rounded-lg font-sans text-base',

@@ -1,7 +1,9 @@
 import { cn } from '@oztix/roadie-core/utils'
 
 type StateClassName<State> =
-  string | ((state: State) => string | undefined) | undefined
+  | string
+  | ((state: State) => string | undefined)
+  | undefined
 
 /** `cn` for Base UI's `className`, keeping a state callback a callback. */
 export function mergeClassName<State>(

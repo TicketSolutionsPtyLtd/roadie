@@ -5,7 +5,11 @@ import { createContext } from 'react'
 export type ToolbarSize = 'sm' | 'md' | 'lg'
 
 export type ToolbarEmphasis =
-  'normal' | 'subtle' | 'subtler' | 'raised' | 'floating'
+  | 'normal'
+  | 'subtle'
+  | 'subtler'
+  | 'raised'
+  | 'floating'
 
 export type ToolbarContextValue = {
   size: ToolbarSize
