@@ -12,10 +12,10 @@
       ]
     },
     "lint": {
-      "inputs": ["$TURBO_EXTENDS$", "oxlint.config.ts"]
+      "inputs": ["$TURBO_DEFAULT$"]
     },
     "lint:fix": {
-      "inputs": ["$TURBO_EXTENDS$", "oxlint.config.ts"]
+      "inputs": ["$TURBO_DEFAULT$"]
     }
   }
 }
