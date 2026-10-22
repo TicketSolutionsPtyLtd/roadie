@@ -65,7 +65,9 @@ In `oxlint.config.ts`, import the preset and extend it.
 ```ts
 import { defineConfig } from 'oxlint'
 
-import recommended from '@oztix/roadie-lint-plugin/oxlint/recommended.json' with { type: 'json' }
+import recommended from '@oztix/roadie-lint-plugin/oxlint/recommended.json' with {
+  type: 'json'
+}
 
 export default defineConfig({ extends: [recommended] })
 ```
@@ -74,7 +76,9 @@ The preset turns every rule on as an error and loads the plugin under the name `
 
 ```json
 {
-  "jsPlugins": [{ "name": "roadie", "specifier": "@oztix/roadie-lint-plugin" }],
+  "jsPlugins": [
+    { "name": "roadie", "specifier": "@oztix/roadie-lint-plugin" }
+  ],
   "rules": {
     "roadie/no-dark-variant": "error",
     "roadie/phosphor-icon-weight": "warn"
@@ -126,6 +130,8 @@ In oxlint, `settings` goes at the top level of the config. Oxlint fails to load 
 
 ```json
 {
-  "settings": { "roadie": { "phosphorIcons": ["HeartIcon", "StarIcon"] } }
+  "settings": {
+    "roadie": { "phosphorIcons": ["HeartIcon", "StarIcon"] }
+  }
 }
 ```
