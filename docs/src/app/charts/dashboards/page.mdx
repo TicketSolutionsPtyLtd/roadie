@@ -794,7 +794,9 @@ to those days. It's called for each line and bar card, so return `true` where x
 is the period's timeline, such as sales each day, and not where it's another,
 such as shows coming up. Releasing the drag is the Apply: `onPeriodChange`
 gets the range with the current comparison, and the toolbar shows the new
-dates. The keyboard does the same with Shift and an arrow key, then Enter.
+dates. A period covers whole days, so a drag across hourly bars sets the days
+they fall on. The keyboard does the same with Shift and an arrow key, then
+Enter.
 
 It needs `onPeriodChange`, and does nothing while `periodProps.disabled` is
 set. To give a way back, add a button to the toolbar through
@@ -820,8 +822,7 @@ function Sales() {
       {
         title: 'Sales',
         cards: [
-          { id: 'sold', kind: 'stat', size: 'stat', label: 'Tickets sold', value: days.reduce((sum, { sold }) => sum + sold, 0) },
-          { id: 'daily', kind: 'chart', size: 'full', label: 'Tickets sold each day', source: 'Oztix sales.', plot: { kind: 'line', data: days, x: 'day', y: 'sold' } }
+          { id: 'daily', kind: 'chart', size: 'full', label: 'Tickets sold', value: days.reduce((sum, { sold }) => sum + sold, 0), source: 'Oztix sales.', plot: { kind: 'line', data: days, x: 'day', y: 'sold' } }
         ]
       }
     ]

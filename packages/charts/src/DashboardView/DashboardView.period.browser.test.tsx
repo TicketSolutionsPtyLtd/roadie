@@ -80,8 +80,11 @@ function renderDashboard(props: DashboardViewProps) {
   }
 }
 
-/** Selects 2 to 4 October with the keyboard and applies it. */
-async function selectRange(view: ReturnType<typeof renderDashboard>) {
+/** Selects the second to fourth x with the keyboard and applies it. */
+async function selectRange(
+  view: ReturnType<typeof renderDashboard>,
+  announcement = 'Selected 2 to 4 October, 3 days. Enter to apply.'
+) {
   await afterResize()
   await expect.poll(() => view.brush()).not.toBeNull()
   view.svg().focus()
@@ -89,9 +92,7 @@ async function selectRange(view: ReturnType<typeof renderDashboard>) {
   await userEvent.keyboard(
     '{ArrowRight}{Shift>}{ArrowRight}{ArrowRight}{/Shift}'
   )
-  await expect
-    .poll(() => view.live().textContent)
-    .toBe('Selected 2 to 4 October, 3 days. Enter to apply.')
+  await expect.poll(() => view.live().textContent).toBe(announcement)
   await userEvent.keyboard('{Enter}')
 }
 
@@ -122,6 +123,36 @@ describe('DashboardView setting the period from a chart', () => {
       })
     }
   )
+
+  it('sets whole days from an hourly card', async () => {
+    const hours = Array.from({ length: 8 }, (_, i) => ({
+      hour: new Date(Date.UTC(2026, 9, 2, 22 + i)).toISOString().slice(0, 16),
+      scans: 40 + i * 10
+    }))
+    const onPeriodChange = vi.fn()
+    const view = renderDashboard({
+      spec: dashboard({
+        ...barCard,
+        plot: {
+          kind: 'bar',
+          data: hours,
+          x: 'hour',
+          y: 'scans',
+          interval: 'hour'
+        }
+      }),
+      onPeriodChange,
+      selectsPeriod: () => true
+    })
+    await selectRange(
+      view,
+      'Selected Friday, 2 October 2026, 11:00pm to Saturday, 3 October 2026, 1:00am. Enter to apply.'
+    )
+    expect(onPeriodChange).toHaveBeenCalledExactlyOnceWith({
+      range: { start: '2026-10-02', end: '2026-10-03' },
+      compare: 'previous-year'
+    })
+  })
 
   it('leaves out compare when the period has none', async () => {
     const onPeriodChange = vi.fn()

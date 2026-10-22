@@ -119,6 +119,12 @@ const isTimeCard = (card: DashboardCard): card is ChartCard =>
   card.kind === 'chart' &&
   (card.plot.kind === 'line' || card.plot.kind === 'bar')
 
+// A dashboard period covers whole days, so an hourly card's range widens.
+const wholeDays = ({ start, end }: AbsoluteRange): AbsoluteRange => ({
+  start: start.slice(0, 10),
+  end: end.slice(0, 10)
+})
+
 const isRange = (value: DashboardPeriodSpec['range'], range: AbsoluteRange) =>
   typeof value === 'object' &&
   'start' in value &&
@@ -238,7 +244,8 @@ export function DashboardView({
   const { period } = spec
   const selectPeriod =
     period && onPeriodChange && !periodProps?.disabled
-      ? (range: AbsoluteRange) => {
+      ? (selected: AbsoluteRange) => {
+          const range = wholeDays(selected)
           if (isRange(period.range, range)) return
           onPeriodChange(
             period.compare ? { range, compare: period.compare } : { range }
