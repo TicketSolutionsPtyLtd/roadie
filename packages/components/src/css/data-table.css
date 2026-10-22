@@ -54,9 +54,15 @@
 
 /* A table row doesn't shrink on press like a card does. Its own outline is
    hidden by cells, and WebKit never paints it, so the overlay draws the
-   ring inset instead. */
+   ring inset instead, and the title link's own ring gives way to it. */
 [data-slot='data-table'] tr:is([data-linked], [data-group]) {
   transform: none;
+  outline: none;
+}
+
+[data-slot='data-table']
+  tr:is([data-linked], [data-group])
+  [data-interactive-target]:focus-visible {
   outline: none;
 }
 

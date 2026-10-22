@@ -381,6 +381,33 @@ describe('DataTable row links', () => {
     expect(parseFloat(ring.outlineWidth)).toBe(4)
   })
 
+  it("underlines the title in the link's accent only while the row is hovered", async () => {
+    const { container } = renderLinked(600)
+    const row = container.querySelector<HTMLElement>('tbody tr')!
+    const link = row.querySelector('a')!
+    const underline = () => {
+      const style = getComputedStyle(link)
+      return style.textDecorationLine === 'none'
+        ? 'none'
+        : style.textDecorationColor
+    }
+    expect(['none', 'rgba(0, 0, 0, 0)']).toContain(underline())
+    await userEvent.hover(row.querySelector('td:last-child')!, { force: true })
+    await expect.poll(underline).not.toBe('rgba(0, 0, 0, 0)')
+    expect(underline()).not.toBe('none')
+    expect(underline()).not.toBe(getComputedStyle(link).color)
+  })
+
+  it('rings the row once on keyboard focus, not the title as well', async () => {
+    const { container } = renderLinked(600)
+    await userEvent.keyboard('{Shift}')
+    const link = container.querySelector<HTMLElement>('tbody tr a')!
+    link.focus({ focusVisible: true })
+    await new Promise(requestAnimationFrame)
+    expect(getComputedStyle(link).outlineStyle).toBe('none')
+    expect(getComputedStyle(link, '::after').outlineStyle).toBe('solid')
+  })
+
   it('tints the row on hover without shrinking it', async () => {
     const { container } = renderLinked(600)
     const row = container.querySelector<HTMLElement>('tbody tr')!
