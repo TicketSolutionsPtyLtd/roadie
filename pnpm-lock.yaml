@@ -342,6 +342,9 @@ importers:
       eslint-plugin-mdx:
         specifier: 3.8.1
         version: 3.8.1(eslint@9.39.5(jiti@2.7.0)(supports-color@9.4.0))(supports-color@9.4.0)
+      eslint-plugin-oxlint:
+        specifier: 1.88.0
+        version: 1.88.0(oxlint@1.88.0)
       eslint-plugin-react-hooks:
         specifier: 7.1.1
         version: 7.1.1(eslint@9.39.5(jiti@2.7.0)(supports-color@9.4.0))(supports-color@9.4.0)
@@ -4615,6 +4618,11 @@ packages:
     engines: {node: '>=18.0.0'}
     peerDependencies:
       eslint: '>=8.0.0'
+
+  eslint-plugin-oxlint@1.88.0:
+    resolution: {integrity: sha512-5njQn7i07e3mTMzoj4acolSZZXqnd3H1S3JcV8lUJfpavoB2UvRKNiq9fZXYFLY4iHvsckUK2yQxnJn44ImjnA==}
+    peerDependencies:
+      oxlint: ~1.88.0
 
   eslint-plugin-react-hooks@7.1.1:
     resolution: {integrity: sha512-f2I7Gw6JbvCexzIInuSbZpfdQ44D7iqdWX01FKLvrPgqxoE7oMj8clOfto8U6vYiz4yd5oKu39rRSVOe1zRu0g==}
@@ -11886,6 +11894,11 @@ snapshots:
       - bluebird
       - remark-lint-file-extension
       - supports-color
+
+  eslint-plugin-oxlint@1.88.0(oxlint@1.88.0):
+    dependencies:
+      jsonc-parser: 3.3.1
+      oxlint: 1.88.0
 
   eslint-plugin-react-hooks@7.1.1(eslint@9.39.5(jiti@2.7.0)(supports-color@9.4.0))(supports-color@9.4.0):
     dependencies:

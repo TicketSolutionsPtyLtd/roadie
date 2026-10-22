@@ -16,8 +16,8 @@
     "start": "next start",
     "format": "prettier --ignore-path ../.prettierignore --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",
     "format:check": "prettier --ignore-path ../.prettierignore --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "oxlint --report-unused-disable-directives-severity=warn . && eslint '**/*.{md,mdx}'",
+    "lint:fix": "oxlint --report-unused-disable-directives-severity=warn --fix . && eslint '**/*.{md,mdx}' --fix",
     "typecheck": "tsc --noEmit && tsc --noEmit -p scripts"
   },
   "dependencies": {
@@ -61,6 +61,7 @@
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.2",
     "eslint-plugin-mdx": "3.8.1",
+    "eslint-plugin-oxlint": "1.88.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "github-slugger": "2.0.0",
     "jsdom": "30.1.3",

@@ -10,6 +10,12 @@
         "$TURBO_ROOT$/.changeset/*.md",
         "$TURBO_ROOT$/packages/*/CHANGELOG.md"
       ]
+    },
+    "lint": {
+      "inputs": ["$TURBO_EXTENDS$", "oxlint.config.ts"]
+    },
+    "lint:fix": {
+      "inputs": ["$TURBO_EXTENDS$", "oxlint.config.ts"]
     }
   }
 }

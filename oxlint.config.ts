@@ -144,8 +144,6 @@ export default defineConfig({
     'react-hooks': { additionalEffectHooks: '^useIsomorphicLayoutEffect$' }
   },
   ignorePatterns: [
-    // ESLint lints docs/ until INNO-1384.
-    'docs/**',
     '**/node_modules/**',
     '**/dist/**',
     '**/build/**',

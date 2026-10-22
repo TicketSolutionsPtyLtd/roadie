@@ -1,12 +1,17 @@
+// Oxlint lints this app's JS and TS (oxlint.config.ts). ESLint stays for
+// Markdown and MDX only, because oxlint has no processors to lint live fences
+// as code, so this config keeps the live-fence processor and the MDX rules.
 import prettierConfig from 'eslint-config-prettier'
 import {
   createRemarkProcessor,
   flatCodeBlocks,
   flat as mdxFlat
 } from 'eslint-plugin-mdx'
+import oxlint from 'eslint-plugin-oxlint'
 import reactHooks from 'eslint-plugin-react-hooks'
 import { readFileSync } from 'fs'
 import { createRequire } from 'module'
+import { fileURLToPath } from 'url'
 
 import published from '@oztix/roadie-eslint-plugin'
 
@@ -107,6 +112,21 @@ const liveFenceProcessor = {
   }
 }
 
+const MARKDOWN = ['**/*.{md,mdx}', '**/*.{md,mdx}/**']
+
+// Oxlint never sees fences, so its rules stay on for them. Elsewhere, such as
+// a .tsx open in an editor, ESLint leaves oxlint's rules to oxlint.
+const oxlintRules = (
+  await oxlint.buildFromConfigFile(
+    fileURLToPath(new URL('./oxlint.config.ts', import.meta.url))
+  )
+).map((block) =>
+  // A block with only ignores is a global ignore, so it stays as it is.
+  block.rules
+    ? { ...block, ignores: [...(block.ignores ?? []), ...MARKDOWN] }
+    : block
+)
+
 const config = [
   // Ignore generated files and Next.js build artifacts
   {
@@ -131,13 +151,6 @@ const config = [
     processor: liveFenceProcessor
   },
   flatCodeBlocks,
-
-  // The docs app is a Roadie consumer whose code readers copy.
-  {
-    files: ['src/**/*.{js,jsx,mjs,ts,tsx,mts,cts}'],
-    plugins: { roadie },
-    rules: published.configs.recommended.rules
-  },
 
   // Live examples are copyable consumer code, so they follow package rules.
   {
@@ -183,12 +196,6 @@ const config = [
     }
   },
 
-  {
-    files: ['**/*.test.{ts,tsx}', 'e2e/**/*.ts'],
-    plugins: { roadie },
-    rules: { 'roadie/no-fixed-sleep': 'error' }
-  },
-
   // MDX settings and rules
   {
     files: ['**/*.mdx'],
@@ -199,32 +206,7 @@ const config = [
     }
   },
 
-  // Next.js generated files
-  {
-    files: ['**/next-env.d.ts'],
-    rules: {
-      '@typescript-eslint/triple-slash-reference': 'off'
-    }
-  },
-
-  // MDX components file
-  {
-    files: ['**/mdx-components.tsx'],
-    languageOptions: {
-      globals: {
-        MDXProvidedComponents: 'readonly'
-      }
-    }
-  },
-
-  // Docs-specific overrides
-  {
-    files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
-    rules: {
-      // Allow any types in docs examples
-      '@typescript-eslint/no-explicit-any': 'off'
-    }
-  },
+  ...oxlintRules,
 
   // Prettier config (must be last to override conflicting rules)
   prettierConfig

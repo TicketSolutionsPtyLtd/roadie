@@ -76,7 +76,7 @@ export function useDocHeadings(enabled = true): DocHeadings {
   useEffect(() => {
     // Clear on every bail-out, or the last page's headings linger.
     if (route === '/' || !enabled) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reading DOM state on mount
+      // eslint-disable-next-line react/set-state-in-effect -- reading DOM state on mount
       setHeadings([])
       return
     }
