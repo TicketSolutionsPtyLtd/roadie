@@ -70,7 +70,9 @@ export type EditorBlockMenu = {
 }
 
 export type EditorToolbarItem =
-  EditorControl | EditorBlockMenu | typeof SEPARATOR
+  | EditorControl
+  | EditorBlockMenu
+  | typeof SEPARATOR
 
 const bold: EditorControl = {
   label: 'Bold',
