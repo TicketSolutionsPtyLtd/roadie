@@ -14,6 +14,7 @@ import { Editor, type EditorProps, useEditorContext } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import { renderEditorValue } from '../render'
 import type { EditorValue, JSONContent } from '../schema'
+import { MOD } from './testUtils'
 
 const LABEL = 'Event description'
 
@@ -53,8 +54,6 @@ const setTimes: EditorValue = {
     ]
   }
 }
-
-const MOD = /^(Mac|iP)/.test(navigator.platform) ? 'Meta' : 'Control'
 
 function TableEditor(props: Partial<EditorProps>) {
   return <Editor aria-label={LABEL} preset='rich' {...props} />

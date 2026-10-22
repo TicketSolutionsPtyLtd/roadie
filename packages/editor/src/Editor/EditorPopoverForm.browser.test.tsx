@@ -11,8 +11,8 @@ import {
   type EmbedProvider,
   defaultEmbedProviders
 } from '../schema'
+import { LINE_END, MOD, selectAll } from './testUtils'
 
-const MOD = /^(Mac|iP)/.test(navigator.platform) ? 'Meta' : 'Control'
 const LABEL = 'Event description'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
 const CROWD_ALT = 'The crowd at sunset'
@@ -109,15 +109,13 @@ const POPOVERS: Popover[] = [
     async open(textbox) {
       await userEvent.click(textbox)
       await waitFor(() => expect(textbox).toHaveFocus())
-      await userEvent.keyboard(
-        '{Home}{Shift>}{ArrowRight}{ArrowRight}{ArrowRight}{ArrowRight}{/Shift}'
-      )
+      await selectAll()
       await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
       return openField('Link')
     },
     typed: TICKETS,
     submitLabel: 'Save link',
-    saved: (textbox) => within(textbox).findByRole('link', { name: 'Sold' })
+    saved: (textbox) => within(textbox).findByRole('link', { name: 'Sold out' })
   },
   {
     name: 'Embed',
@@ -364,7 +362,7 @@ describe('Editor link popover', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Close' }))
 
     await waitFor(() => expect(textbox).toHaveFocus())
-    expect(document.getSelection()?.toString()).toBe('Sold')
+    expect(document.getSelection()?.toString()).toBe('Sold out')
   })
 
   it('shows Remove link between the check and close buttons', async () => {
@@ -504,7 +502,7 @@ describe.each(PREFILLED)('Editor popover opened by $name', (popover) => {
   it('places the caret where a later click lands', async () => {
     const textbox = await renderEditor(popover.value)
     const field = (await popover.open(textbox)) as HTMLInputElement
-    await userEvent.keyboard('{End}')
+    await userEvent.keyboard(LINE_END)
     screen.getByRole('button', { name: 'Close' }).focus()
 
     await userEvent.click(field)
