@@ -6,7 +6,7 @@
       "inputs": ["$TURBO_EXTENDS$", "test/**"]
     },
     "test": {
-      "inputs": ["$TURBO_EXTENDS$", "test/**"]
+      "inputs": ["$TURBO_EXTENDS$", "test/**", "oxlint/**"]
     }
   }
 }

@@ -1,7 +1,7 @@
 import { matchesGlob } from 'node:path'
 import { type OxlintOverride, defineConfig } from 'oxlint'
 
-import published from '@oztix/roadie-eslint-plugin'
+import published from '@oztix/roadie-lint-plugin'
 
 // Globs resolve from this file's folder, so docs/ has its own config.
 const roadie = { name: 'roadie', specifier: './eslint/roadie-plugin.js' }

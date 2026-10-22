@@ -12,7 +12,7 @@ import { readFileSync } from 'fs'
 import { createRequire } from 'module'
 import { fileURLToPath } from 'url'
 
-import published from '@oztix/roadie-eslint-plugin'
+import published from '@oztix/roadie-lint-plugin'
 
 import roadie from '../eslint/roadie-plugin.js'
 import { startsWithJsx } from './src/lib/fence-layout.mjs'

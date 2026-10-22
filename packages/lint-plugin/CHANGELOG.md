@@ -1,4 +1,4 @@
-# @oztix/roadie-eslint-plugin
+# @oztix/roadie-lint-plugin
 
 ## 0.1.1
 

@@ -1,0 +1,18 @@
+{
+  "jsPlugins": [
+    {
+      "name": "roadie",
+      "specifier": "@oztix/roadie-lint-plugin"
+    }
+  ],
+  "rules": {
+    "roadie/phosphor-icon-suffix": "error",
+    "roadie/phosphor-icon-size-prop": "error",
+    "roadie/phosphor-icon-weight": "error",
+    "roadie/no-dark-variant": "error",
+    "roadie/no-hex-colour-class": "error",
+    "roadie/no-arbitrary-z-index": "error",
+    "roadie/no-arbitrary-radius": "error",
+    "roadie/card-content": "error"
+  }
+}
