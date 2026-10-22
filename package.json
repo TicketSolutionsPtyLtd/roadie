@@ -64,6 +64,7 @@
   ],
   "lint-staged": {
     "*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}": "oxlint --fix --no-error-on-unmatched-pattern",
+    "docs/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}": "eslint --fix --no-warn-ignored --flag v10_config_lookup_from_file",
     "*.mdx": "eslint --no-warn-ignored --flag v10_config_lookup_from_file",
     "*": "prettier --write --ignore-unknown"
   }
