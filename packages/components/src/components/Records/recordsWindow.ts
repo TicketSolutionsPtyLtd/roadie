@@ -29,7 +29,8 @@ type RangeRecords = Pick<
 >
 
 export type WindowRecords = (
-  { rows: readonly RecordsRow<object>[] } | { range: RangeRecords }
+  | { rows: readonly RecordsRow<object>[] }
+  | { range: RangeRecords }
 ) & {
   /** Records in each window row, as in a grid. */
   columns?: number

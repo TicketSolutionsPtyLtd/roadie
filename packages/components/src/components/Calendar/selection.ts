@@ -7,7 +7,10 @@ export type CalendarMode = 'single' | 'multiple' | 'range'
 
 /** A date or null in single mode, a list in multiple mode, a range in range mode. */
 export type CalendarSelection =
-  string | null | readonly string[] | CalendarDateRange
+  | string
+  | null
+  | readonly string[]
+  | CalendarDateRange
 
 export type SelectOptions = {
   required?: boolean

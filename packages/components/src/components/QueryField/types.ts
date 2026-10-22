@@ -1,7 +1,13 @@
 import type { ReactNode } from 'react'
 
 export type QueryFieldIntent =
-  'neutral' | 'brand' | 'accent' | 'danger' | 'success' | 'warning' | 'info'
+  | 'neutral'
+  | 'brand'
+  | 'accent'
+  | 'danger'
+  | 'success'
+  | 'warning'
+  | 'info'
 
 export type QueryFieldChip = {
   id: string
@@ -76,7 +82,8 @@ export type QueryFieldSearchSuggestion = {
 }
 
 export type QueryFieldAccepted<Value = unknown> =
-  QueryFieldSuggestion<Value> | QueryFieldSearchSuggestion
+  | QueryFieldSuggestion<Value>
+  | QueryFieldSearchSuggestion
 
 export type QueryFieldSuggestionGroup<Value = unknown> = {
   id: string

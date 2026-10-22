@@ -3,7 +3,12 @@ import { cva } from 'class-variance-authority'
 export type TooltipEmphasis = 'strong' | 'floating'
 
 export type TooltipSide =
-  'top' | 'bottom' | 'left' | 'right' | 'inline-start' | 'inline-end'
+  | 'top'
+  | 'bottom'
+  | 'left'
+  | 'right'
+  | 'inline-start'
+  | 'inline-end'
 
 // --tooltip-* feed the portaled arrow; data-[instant] skips a flickery scale-in.
 export const tooltipPopupVariants = cva(

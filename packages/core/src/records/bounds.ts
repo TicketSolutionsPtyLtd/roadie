@@ -6,7 +6,8 @@ const WALL_CLOCK =
   /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/
 
 export type Bound =
-  { kind: 'date'; date: string } | { kind: 'instant'; at: number }
+  | { kind: 'date'; date: string }
+  | { kind: 'instant'; at: number }
 
 /**
  * One end of a range, or a row's own time. A wall-clock time without an

@@ -76,7 +76,7 @@
 - 99111f3: Dashboards gain a period and a comparison.
 
   `@oztix/roadie-core/dashboard`: a description can carry `period: { range,
-compare?, history? }` (`DashboardPeriodSpec`), where `range` is a
+  compare?, history? }` (`DashboardPeriodSpec`), where `range` is a
   `DateRangeValue`, `compare` a `Comparison` or the app's own, such as
   `'similar'`, and `history` what `resolveComparison` said about the data. A
   delta marked `comparison: true` follows it. `validateDashboard` checks the
@@ -779,7 +779,7 @@ compare?, history? }` (`DashboardPeriodSpec`), where `range` is a
     and `locale`, and stays still for people who prefer reduced motion.
 
 - 10ae9b5: Add `OTPField`, a one-time code input with one slot per character. `<OTPField
-length={6} />` renders every slot, and `groupSize={3}` splits them 3-3 with a
+  length={6} />` renders every slot, and `groupSize={3}` splits them 3-3 with a
   separator. Compose `OTPField.Input` and `OTPField.Separator` for other layouts.
   Slots look like `Input` and match its 32, 40 and 48px heights. Pasting a full
   code fills every slot, the first slot offers `autoComplete='one-time-code'`,
@@ -812,7 +812,7 @@ length={6} />` renders every slot, and `groupSize={3}` splits them 3-3 with a
   are unchanged.
 
 - f2eac42: Add `Slider`, for picking a number or a range by dragging. `<Slider
-label='Price' defaultValue={[20, 80]} />` renders the label, the value, the
+  label='Price' defaultValue={[20, 80]} />` renders the label, the value, the
   track and one thumb per value. `format` takes `Intl.NumberFormat` options,
   such as AUD currency, and formats in `en-AU` unless you pass a `locale`.
   Inside `Field` it takes its name, helper or error text, and `invalid` and

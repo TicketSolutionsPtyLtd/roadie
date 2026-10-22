@@ -11,7 +11,12 @@ export type RecordColumnWidth = { min: number; grow?: number }
  * each detail under the title. `hidden` leaves it to the wide table.
  */
 export type RecordTableNarrow =
-  'title' | 'description' | 'leading' | 'trailing' | 'detail' | 'hidden'
+  | 'title'
+  | 'description'
+  | 'leading'
+  | 'trailing'
+  | 'detail'
+  | 'hidden'
 
 /** How the table presents one field. */
 export type RecordTableColumn<Row extends object = object> = RecordPart<Row> & {

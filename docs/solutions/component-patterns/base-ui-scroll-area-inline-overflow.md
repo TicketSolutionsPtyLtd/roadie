@@ -52,7 +52,7 @@ gestural horizontal scroll) is what matters, and that behaviour holds.
   why `Navigator.Pane` — which owns a sticky `Pane.Header` — opts out.
 - **`ScrollArea.Viewport` is a real tab stop whenever it overflows** (Base UI
   gives it `tabIndex=0`), and Roadie's `focus-visible:outline-2
-focus-visible:-outline-offset-2` draws a ring around the _entire pane_, not
+  focus-visible:-outline-offset-2` draws a ring around the _entire pane_, not
   a small control. Confirmed in a real Chromium render: the ring is genuinely
   there (computed `outline: oklch(...) solid 2px`, `outline-offset: -2px`),
   visible on close inspection, but at normal viewing distance against

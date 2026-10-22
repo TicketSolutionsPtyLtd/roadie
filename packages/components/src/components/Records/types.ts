@@ -28,7 +28,8 @@ export type RecordsRow<Row> = { id: string; row: Row }
 
 /** Asks before running. Danger actions confirm by default, and any action given an object confirms. `false` skips it. */
 export type RecordsActionConfirm =
-  false | { title?: string; description?: string; confirmLabel?: string }
+  | false
+  | { title?: string; description?: string; confirmLabel?: string }
 
 /** What an action acts on, taken when it runs. */
 export type RecordsActionContext = {

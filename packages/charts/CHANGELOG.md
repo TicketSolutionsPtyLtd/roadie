@@ -7,7 +7,7 @@
 - 99111f3: Dashboards gain a period and a comparison.
 
   `@oztix/roadie-core/dashboard`: a description can carry `period: { range,
-compare?, history? }` (`DashboardPeriodSpec`), where `range` is a
+  compare?, history? }` (`DashboardPeriodSpec`), where `range` is a
   `DateRangeValue`, `compare` a `Comparison` or the app's own, such as
   `'similar'`, and `history` what `resolveComparison` said about the data. A
   delta marked `comparison: true` follows it. `validateDashboard` checks the

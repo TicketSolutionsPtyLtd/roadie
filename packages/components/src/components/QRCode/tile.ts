@@ -7,7 +7,8 @@ const MAX_CLEARED_SHARE = 0.1
 export type Tile = { start: number; end: number }
 
 export type TileResult =
-  { tile: Tile; reason?: never } | { tile: null; reason: string }
+  | { tile: Tile; reason?: never }
+  | { tile: null; reason: string }
 
 export function getTile({ size, isFunction }: QRMatrix): TileResult {
   const start = (size - TILE_MODULES) / 2

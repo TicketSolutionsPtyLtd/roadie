@@ -217,7 +217,9 @@ export type CalendarRangeProps = CalendarBaseProps & {
 }
 
 export type CalendarProps =
-  CalendarSingleProps | CalendarMultipleProps | CalendarRangeProps
+  | CalendarSingleProps
+  | CalendarMultipleProps
+  | CalendarRangeProps
 
 type AnyCalendarProps = CalendarBaseProps & {
   mode?: CalendarMode

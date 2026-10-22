@@ -74,7 +74,13 @@ export type RecordSelection =
  * later as a `near` operator, never `within`, which dates use.
  */
 export type RecordFieldType =
-  'text' | 'option' | 'location' | 'number' | 'money' | 'date' | 'boolean'
+  | 'text'
+  | 'option'
+  | 'location'
+  | 'number'
+  | 'money'
+  | 'date'
+  | 'boolean'
 
 /**
  * How a date field is compared. `event` and `access` compare the venue-local
@@ -84,7 +90,13 @@ export type RecordMoment = 'event' | 'access' | 'timestamp' | 'date'
 
 /** What kind of place a location's option is. Open to others. */
 export type RecordPlaceKind =
-  'venue' | 'suburb' | 'city' | 'region' | 'state' | 'country' | (string & {})
+  | 'venue'
+  | 'suburb'
+  | 'city'
+  | 'region'
+  | 'state'
+  | 'country'
+  | (string & {})
 
 export type RecordOption = {
   value: string

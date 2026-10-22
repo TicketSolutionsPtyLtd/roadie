@@ -24,7 +24,7 @@ function toggleDark(): void {
 <template>
   <!-- Toolbar sits above the drawer's z-70 overlay. -->
   <div
-    class="fixed top-4 left-4 z-[100] flex items-center gap-3 rounded-xl emphasis-raised px-3 py-2"
+    class="fixed top-4 left-4 z-[100] flex emphasis-raised items-center gap-3 rounded-xl px-3 py-2"
   >
     <span class="text-ui-meta font-bold text-strong">Cart drawer harness</span>
     <button
