@@ -85,7 +85,7 @@ pnpm test
 Ensure your changes pass:
 
 - TypeScript compilation
-- ESLint rules (`pnpm lint`)
+- Lint rules (`pnpm lint`)
 - Unit tests
 - Visual regression tests
 - Accessibility checks
@@ -240,7 +240,7 @@ All workflows use Turborepo for intelligent caching and parallelization.
 ## Style Guide
 
 - Use TypeScript for all new code
-- Follow the project's ESLint and Prettier configuration
+- Follow the project's lint and Prettier configuration
 - Use styled-components for styling
 - Follow semantic HTML principles
 - Maintain mobile-first responsive design

@@ -119,6 +119,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "oxlint src",
     "format": "prettier --write src",
+    "format:check": "prettier --check src",
     "size": "size-limit",
     "size:check": "size-limit --limit"
   },
