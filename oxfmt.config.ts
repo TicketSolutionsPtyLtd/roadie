@@ -59,8 +59,7 @@ export default defineConfig({
     '!.vscode/extensions.json',
     '.playwright-mcp/',
     // The formatter rewrites the live tsx fences, which are the content here:
-    // it turns {/* comments */} into blocks and reorders the Tailwind classes
-    // on the pages that teach class order.
+    // it turns {/* comments */} into blocks with a `;` before the next line.
     'docs/**/*.mdx',
     'docs/plans/',
     'docs/brainstorms/',
