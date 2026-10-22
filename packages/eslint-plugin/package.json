@@ -32,8 +32,8 @@
   },
   "scripts": {
     "test": "vitest run",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
     "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{js,json,md}\"",
     "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{js,json,md}\"",
     "typecheck": "tsc --noEmit"

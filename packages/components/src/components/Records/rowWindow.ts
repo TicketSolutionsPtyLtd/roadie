@@ -161,7 +161,7 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
   const usesWindow = scroller.ready && scroller.element === null
   // Both hooks stay mounted so the body never remounts mid-measurement. The
   // compiler skips this hook; callers get items read fresh each render.
-  // eslint-disable-next-line react-hooks/incompatible-library
+  // eslint-disable-next-line react/incompatible-library
   const elementVirtualizer = useVirtualizer({
     count,
     getScrollElement: () => scroller.element,

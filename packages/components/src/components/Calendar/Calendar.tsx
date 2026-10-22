@@ -1177,7 +1177,7 @@ export function Calendar(props: CalendarProps) {
           disabled={navDisabled}
           onChange={(value) => {
             // Only on a change event, never in render.
-            // eslint-disable-next-line react-hooks/refs
+            // eslint-disable-next-line react/refs
             pickMonth(addMonths(month, value - monthNumber - index))
           }}
           options={labels.months.map((name, i) => ({

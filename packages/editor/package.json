@@ -51,7 +51,7 @@
     "test": "vitest run --project node",
     "test:browser": "vitest run --project 'browser (*)' ${ROADIE_SHARD:+--shard=$ROADIE_SHARD --passWithNoTests}",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src",
+    "lint": "oxlint src",
     "format": "prettier --write src",
     "size": "size-limit",
     "size:check": "size-limit --limit"
