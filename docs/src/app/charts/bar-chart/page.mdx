@@ -70,7 +70,7 @@ import { BarChart } from '@oztix/roadie-charts/bar-chart'
 
 ### Selecting a range
 
-`onRangeSelect` reports the bars a drag covers, inclusive and in the venue's wall time. On hourly bars both ends carry the time, such as `'2026-11-14T18:00'`. On weekly bars the range ends on the last day of the last week.
+`onRangeSelect` reports the bars a drag covers, inclusive and in the venue's wall time. On hourly bars both ends carry the time, such as `'2026-11-14T18:00'`. On weekly bars the range ends on the last day of the last week. On a dashboard, [`selectsPeriod`](/charts/dashboards#set-the-period-from-a-chart) sets the period from it.
 
 ```tsx-live-noinline
 function Zoom() {

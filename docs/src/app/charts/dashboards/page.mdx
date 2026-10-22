@@ -787,6 +787,68 @@ function SalesDashboard({ spec }: { spec: DashboardSpec }) {
 }
 ```
 
+### Set the period from a chart
+
+`selectsPeriod` lets someone drag across a line or bar card to set the period
+to those days. It's called for each line and bar card, so return `true` where x
+is the period's timeline, such as sales each day, and not where it's another,
+such as shows coming up. Releasing the drag is the Apply: `onPeriodChange`
+gets the range with the current comparison, and the toolbar shows the new
+dates. The keyboard does the same with Shift and an arrow key, then Enter.
+
+It needs `onPeriodChange`, and does nothing while `periodProps.disabled` is
+set. To give a way back, add a button to the toolbar through
+`periodProps.children`. Drag across the chart here, then reset it.
+
+```tsx-live-noinline
+// Daily sales from 1 August to Wed 7 Oct 2026.
+const SALES = Array.from({ length: 68 }, (_, i) => ({
+  day: new Date(Date.UTC(2026, 7, 1 + i)).toISOString().slice(0, 10),
+  sold: 80 + ((i * 37) % 60) + i * 2
+}))
+const LAST_30_DAYS = { start: '2026-09-08', end: '2026-10-07' }
+
+function Sales() {
+  const [period, setPeriod] = useState({ range: LAST_30_DAYS, compare: 'previous-period' })
+  const { start, end } = period.range
+  const days = SALES.filter(({ day }) => day >= start && day <= end)
+  const spec = {
+    version: 1,
+    title: 'Sales',
+    period,
+    sections: [
+      {
+        title: 'Sales',
+        cards: [
+          { id: 'sold', kind: 'stat', size: 'stat', label: 'Tickets sold', value: days.reduce((sum, { sold }) => sum + sold, 0) },
+          { id: 'daily', kind: 'chart', size: 'full', label: 'Tickets sold each day', source: 'Oztix sales.', plot: { kind: 'line', data: days, x: 'day', y: 'sold' } }
+        ]
+      }
+    ]
+  }
+  return (
+    <DashboardView
+      spec={spec}
+      onPeriodChange={setPeriod}
+      selectsPeriod={(card) => card.id === 'daily'}
+      periodProps={{
+        today: '2026-10-07',
+        timeZone: 'Australia/Melbourne',
+        dataStart: '2026-08-01',
+        dataEnd: '2026-10-07',
+        children: (
+          <Button size='lg' disabled={start === LAST_30_DAYS.start && end === LAST_30_DAYS.end} onClick={() => setPeriod({ ...period, range: LAST_30_DAYS })}>
+            Reset
+          </Button>
+        )
+      }}
+    />
+  )
+}
+
+render(<Sales />)
+```
+
 ## Describe it as data
 
 Any dashboard can be written as a JSON description with its numbers inline.
