@@ -162,9 +162,9 @@ describe('DashboardView setting the period from a chart', () => {
       selectsPeriod: () => true
     })
     await selectRange(view)
-    expect(onPeriodChange).toHaveBeenCalledExactlyOnceWith({
-      range: { start: '2026-10-02', end: '2026-10-04' }
-    })
+    expect(onPeriodChange.mock.calls).toStrictEqual([
+      [{ range: { start: '2026-10-02', end: '2026-10-04' } }]
+    ])
   })
 
   it('skips a range that is already the period', async () => {
