@@ -1,6 +1,3 @@
-/* eslint-disable no-undef -- type-only DOM names like ResizeObserverCallback
-   are not runtime globals, so no-undef false-positives on them; TypeScript
-   already checks undefined references. */
 import { render } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick } from 'vue'

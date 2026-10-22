@@ -17,7 +17,7 @@ and utilities (`packages/core`), React components on Base UI
 4. Roadie conventions below.
 
 Give a concrete failing input for each finding. Skip style nits Prettier or
-ESLint already enforce.
+the linters already enforce.
 
 ## Conventions to enforce
 

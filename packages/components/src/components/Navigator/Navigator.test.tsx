@@ -775,29 +775,20 @@ describe('Navigator.Brand', () => {
 })
 
 describe('render fan-out', () => {
-  const counts = { tile: 0, row: 0, detail: 0 }
-  const TileIcon = () => {
-    counts.tile++
-    return <svg />
-  }
+  const TileIcon = vi.fn(() => <svg />)
   const ListItem = List.Item
+  const Row = vi.fn((props: Parameters<typeof ListItem>[0]) => (
+    <ListItem {...props} />
+  ))
   beforeEach(() => {
-    List.Item = Object.assign(
-      (props: Parameters<typeof ListItem>[0]) => {
-        counts.row++
-        return <ListItem {...props} />
-      },
-      { displayName: ListItem.displayName }
-    )
+    List.Item = Object.assign(Row, { displayName: ListItem.displayName })
   })
   afterEach(() => {
     List.Item = ListItem
   })
-  const Detail = () => {
-    counts.detail++
-    return null
-  }
-  const reset = () => Object.assign(counts, { tile: 0, row: 0, detail: 0 })
+  const Detail = vi.fn(() => null)
+  const reset = () =>
+    [TileIcon, Row, Detail].forEach((mock) => mock.mockClear())
   // Hoisted, as a memoised app would: consumer content is not Navigator's to re-render.
   const detail = <Detail />
   const rows = Array.from({ length: 20 }, (_, index) => `/s/r${index}`)
@@ -845,7 +836,9 @@ describe('render fan-out', () => {
     reset()
     rerender(<App value='/s/r3' />)
     await flushViewportMeasurement()
-    expect(counts).toEqual({ tile: 0, row: 0, detail: 0 })
+    expect(TileIcon).not.toHaveBeenCalled()
+    expect(Row).not.toHaveBeenCalled()
+    expect(Detail).not.toHaveBeenCalled()
   })
 
   it('re-renders only the two rows whose current changes on a new value', async () => {
@@ -854,8 +847,8 @@ describe('render fan-out', () => {
     reset()
     rerender(<App value='/s/r7' />)
     await flushViewportMeasurement()
-    expect(counts.row).toBe(2)
-    expect(counts.detail).toBe(0)
+    expect(Row).toHaveBeenCalledTimes(2)
+    expect(Detail).not.toHaveBeenCalled()
   })
 
   it('re-renders no row when the vertical navigation expands', async () => {
@@ -864,8 +857,8 @@ describe('render fan-out', () => {
     reset()
     rerender(<App value='/s/r3' expanded />)
     await flushViewportMeasurement()
-    expect(counts.row).toBe(0)
-    expect(counts.detail).toBe(0)
+    expect(Row).not.toHaveBeenCalled()
+    expect(Detail).not.toHaveBeenCalled()
   })
 
   it('calls the handler from the latest render, though the tree kept its identity', async () => {

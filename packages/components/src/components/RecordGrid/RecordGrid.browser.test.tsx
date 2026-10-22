@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import {
   afterAll,
@@ -175,8 +175,7 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
   it('loads ranges by rows of cards, opens at a row, and keeps it across a resize', async () => {
     const spans: { start: number; end: number }[] = []
     const warn = vi.spyOn(console, 'warn')
-    let resize = (_: number) => {}
-    function Ranged() {
+    function Ranged({ width }: { width: number }) {
       const show = useMemo(() => {
         const sample = testShows(1)[0]!
         return (index: number): TestShow => ({
@@ -186,8 +185,6 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
         })
       }, [])
       const [position, setPosition] = useState<RecordPosition>({ row: 91 })
-      const [width, setWidth] = useState(900)
-      resize = setWidth
       return (
         <div style={{ width }}>
           <RecordGrid
@@ -211,7 +208,7 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
         </div>
       )
     }
-    const { container } = render(<Ranged />)
+    const { container, rerender } = render(<Ranged width={900} />)
     const viewport = container.querySelector<HTMLElement>(
       '[data-slot="record-grid-viewport"]'
     )!
@@ -227,7 +224,7 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
     expect(spans.some(({ start }) => start >= 1000)).toBe(false)
     expect(cards(container).length).toBeLessThan(200)
     // Two columns at 600px: record 91 sits in grid row 45.
-    await act(async () => resize(600))
+    rerender(<Ranged width={600} />)
     await framed(() => inTopRow('show-91')).toBe(true)
     expect(
       warn.mock.calls.some(([message]) =>
@@ -239,10 +236,7 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
 
   it('keeps a windowed grid whole as its columns change', async () => {
     const warn = vi.spyOn(console, 'warn')
-    let resize = (_: number) => {}
-    function Long() {
-      const [width, setWidth] = useState(900)
-      resize = setWidth
+    function Long({ width }: { width: number }) {
       return (
         <div style={{ width }}>
           <RecordGrid
@@ -255,9 +249,9 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
         </div>
       )
     }
-    const { container } = render(<Long />)
+    const { container, rerender } = render(<Long width={900} />)
     await framed(() => cards(container).length).toBeGreaterThan(0)
-    await act(async () => resize(600))
+    rerender(<Long width={600} />)
     await framed(() => tops(cards(container).slice(0, 4)).length).toBe(2)
     const rows = tops(cards(container))
     for (let index = 1; index < rows.length; index++)

@@ -374,8 +374,8 @@
     "test:ui": "vitest --ui --project jsdom",
     "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",
     "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,json,css,md}\"",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
     "typecheck": "tsc --noEmit",
     "size": "size-limit",
     "size:check": "size-limit --limit"
