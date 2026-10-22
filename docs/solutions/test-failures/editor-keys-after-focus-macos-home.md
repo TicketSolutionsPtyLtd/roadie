@@ -38,9 +38,10 @@ Two causes, each with the same test step: click into the editor, then
 `{Home}{Shift>}{ArrowRight}×4{/Shift}`.
 
 - **macOS key bindings.** On macOS, Home and End don't move the caret in a
-  contenteditable in Firefox or WebKit. Line start is Cmd+Left. Playwright's
-  Chromium maps Home to a line-start command, so only Chromium passed. On
-  Linux all three engines move the caret.
+  contenteditable in Firefox or WebKit. Line start is Cmd+Left. Chromium
+  still moves the caret on Home, though Playwright sends it as
+  `scrollToBeginningOfDocument` (`macEditingCommands.ts`), so only Chromium
+  passed. On Linux all three engines move the caret.
 - **ProseMirror's focus sync.** When the editor takes focus,
   `handlers.focus` in prosemirror-view sets a 20ms timer. If the DOM
   selection then differs from the last one ProseMirror read, the timer
