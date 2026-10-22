@@ -326,11 +326,16 @@ describe('DataTable row links', () => {
     }
   )
 
-  it.each([true, false])(
-    'follows the row link from a later pinned cell (title pinned: %s)',
-    async (pin) => {
+  it.each([
+    [true, 600],
+    [false, 600],
+    [true, 280],
+    [false, 280]
+  ])(
+    'follows the row link from a later pinned cell (title pinned: %s, at %ipx)',
+    async (pin, width) => {
       const { container } = render(
-        <div style={{ width: 600 }}>
+        <div style={{ width }}>
           <DataTable
             columns={linkColumns.map((column) =>
               column.key === 'show'
@@ -344,6 +349,11 @@ describe('DataTable row links', () => {
           />
         </div>
       )
+      const scroller = container.querySelector<HTMLElement>(
+        '[data-slot=data-table-scroller]'
+      )!
+      scroller.scrollLeft = scroller.scrollWidth
+      expect(scroller.scrollLeft > 0).toBe(width < 600)
       const row = container.querySelector('tbody tr')!
       const pinned = row.querySelector('td[data-pin]:last-child')!
       expect(linkAt(pinned)?.getAttribute('href')).toBe('#brisbane')
