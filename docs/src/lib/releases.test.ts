@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { readFileSync, readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
@@ -13,6 +14,7 @@ import {
   byKind,
   cardOf,
   classify,
+  getReleaseHistory,
   groupReleases,
   linkPages,
   pageCreatedDates,
@@ -1306,4 +1308,25 @@ describe('RELEASED_PACKAGES', () => {
       expect.arrayContaining(published)
     )
   })
+})
+
+// A shallow checkout dates no release, so only a full clone can check this.
+const shallow =
+  execFileSync('git', ['rev-parse', '--is-shallow-repository'], {
+    encoding: 'utf8'
+  }).trim() === 'true'
+
+describe('getReleaseHistory', () => {
+  it.skipIf(shallow)(
+    'dates a release made before its package folder was renamed',
+    () => {
+      const release = getReleaseHistory().releases.find(({ packages }) =>
+        packages.some(
+          ({ name, version }) =>
+            name === '@oztix/roadie-lint-plugin' && version === '0.1.1'
+        )
+      )
+      expect(release?.date).toBe('2026-10-20')
+    }
+  )
 })
