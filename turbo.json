@@ -5,7 +5,6 @@
     "**/.env.*local",
     "pnpm-lock.yaml",
     ".nvmrc",
-    "eslint.config.js",
     "eslint/**"
   ],
   "tasks": {

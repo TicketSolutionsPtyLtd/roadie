@@ -252,164 +252,25 @@ for (const [name, { valid, invalid }] of Object.entries(cases)) {
   })
 }
 
-describe('import boundaries in eslint.config.js', () => {
+describe('where no-fixed-sleep applies in docs', () => {
   const eslint = new ESLint({
-    cwd: fileURLToPath(new URL('..', import.meta.url))
+    cwd: fileURLToPath(new URL('../docs/', import.meta.url))
   })
-
-  // The first lint loads the config and parsers, which can take over 5s.
-  beforeAll(
-    () => eslint.lintText('', { filePath: 'packages/core/src/index.ts' }),
-    60_000
-  )
-
-  const ruleHits = async (code, filePath) => {
-    const [result] = await eslint.lintText(code, { filePath })
-    return result.messages
-      .map((message) => message.ruleId)
-      .filter((ruleId) =>
-        /no-restricted-imports|no-dynamic-/.test(ruleId ?? '')
-      )
-  }
-
-  it.each([
-    [
-      "import Link from 'next/link'\n",
-      'packages/components/src/components/Button/index.tsx'
-    ],
-    [
-      "import Link from 'next/link'\n",
-      'packages/components/src/components/Sortable/dnd/index.ts'
-    ],
-    [
-      "import { useRouter } from 'next/navigation'\n",
-      'packages/widgets/src/cart-drawer/react/CartDrawer.tsx'
-    ],
-    [
-      "export const load = () => import('next/navigation')\n",
-      'packages/widgets/src/cart-drawer/react/CartDrawer.tsx'
-    ],
-    [
-      "export const load = () => import('next/link')\n",
-      'packages/components/src/components/Button/index.tsx'
-    ],
-    [
-      "export const load = () => import('next/link')\n",
-      'packages/core/src/dashboard/layout.ts'
-    ],
-    ["import { z } from 'zod'\n", 'packages/core/src/dashboard/layout.ts'],
-    [
-      "export const load = () => import('zod')\n",
-      'packages/core/src/dashboard/cells.ts'
-    ],
-    [
-      "export const load = () => import('./schema')\n",
-      'packages/core/src/dashboard/totals.ts'
-    ],
-    [
-      "import { tableColumnSchema } from './schema'\n",
-      'packages/core/src/dashboard/totals.ts'
-    ]
-  ])('flags %s in %s', async (code, filePath) => {
-    expect(await ruleHits(code, filePath)).toHaveLength(1)
-  })
-
-  it.each([
-    ["import Link from 'next/link'\n", 'docs/src/app/page.tsx'],
-    [
-      "import { useRouter } from 'next/navigation'\n",
-      'packages/widgets/src/cart-drawer/vue/useCart.ts'
-    ],
-    [
-      "import type { TableColumn } from './schema'\n",
-      'packages/core/src/dashboard/cells.ts'
-    ],
-    ["import { z } from 'zod'\n", 'packages/core/src/dashboard/validate.ts'],
-    [
-      "export const load = () => import('zod')\n",
-      'packages/core/src/dashboard/validate.ts'
-    ]
-  ])('allows %s in %s', async (code, filePath) => {
-    expect(await ruleHits(code, filePath)).toEqual([])
-  })
-})
-
-describe('where no-layout-fake-in-jsdom applies', () => {
-  const eslint = new ESLint({
-    cwd: fileURLToPath(new URL('..', import.meta.url))
-  })
-  const fake = "vi.spyOn(window, 'getComputedStyle')\n"
-
-  beforeAll(
-    () => eslint.lintText('', { filePath: 'packages/core/src/index.ts' }),
-    60_000
-  )
-
-  it.each([
-    ['packages/components/src/components/Badge/Badge.test.tsx', 1],
-    ['packages/widgets/src/cart-drawer/vue/useCart.test.ts', 1],
-    ['packages/components/src/components/Badge/Badge.browser.test.tsx', 0],
-    ['packages/components/src/components/Badge/index.tsx', 0]
-  ])('%s: %i', async (filePath, hits) => {
-    const [result] = await eslint.lintText(fake, { filePath })
-    expect(
-      result.messages.filter(
-        ({ ruleId }) => ruleId === 'roadie/no-layout-fake-in-jsdom'
-      )
-    ).toHaveLength(hits)
-  })
-})
-
-describe('where no-fixed-sleep applies', () => {
-  const root = fileURLToPath(new URL('..', import.meta.url))
-  const linters = {
-    root: new ESLint({ cwd: root }),
-    docs: new ESLint({ cwd: `${root}docs` })
-  }
   const sleep =
     'export const settle = (ms: number) =>\n  new Promise((resolve) => setTimeout(resolve, ms))\n'
 
-  beforeAll(
-    () =>
-      Promise.all(
-        Object.values(linters).map((linter) =>
-          linter.lintText('', { filePath: 'src/index.ts' })
-        )
-      ),
-    60_000
-  )
-
-  const sleeps = async (config, filePath) => {
-    const [result] = await linters[config].lintText(sleep, { filePath })
-    return result.messages.filter(
-      ({ ruleId }) => ruleId === 'roadie/no-fixed-sleep'
-    ).length
-  }
+  beforeAll(() => eslint.lintText('', { filePath: 'src/index.ts' }), 60_000)
 
   it.each([
-    ['root', 'packages/components/src/components/Badge/Badge.test.tsx', 1],
-    [
-      'root',
-      'packages/components/src/components/Badge/Badge.browser.test.tsx',
-      1
-    ],
-    ['root', 'packages/components/src/components/Badge/index.tsx', 0],
-    ['root', 'packages/components/src/components/Pane/testUtils.ts', 1],
-    ['root', 'packages/components/src/checks/testUtils.tsx', 1],
-    ['root', 'packages/components/src/utils/touchTestUtils.ts', 1],
-    ['root', 'packages/charts/src/plot/browserTesting.tsx', 1],
-    ['root', 'packages/widgets/vitest.setup.ts', 1],
-    [
-      'root',
-      'packages/components/src/components/RecordTable/renderCounter.ts',
-      1
-    ],
-    ['docs', 'src/components/OnThisPage.test.tsx', 1],
-    ['docs', 'e2e/live-examples.e2e.test.ts', 1],
-    ['docs', 'e2e/serveExport.ts', 1],
-    ['docs', 'src/components/landOn.ts', 0]
-  ])('%s config, %s: %i', async (config, filePath, hits) => {
-    expect(await sleeps(config, filePath)).toBe(hits)
+    ['src/components/OnThisPage.test.tsx', 1],
+    ['e2e/live-examples.e2e.test.ts', 1],
+    ['e2e/serveExport.ts', 1],
+    ['src/components/landOn.ts', 0]
+  ])('%s: %i', async (filePath, hits) => {
+    const [result] = await eslint.lintText(sleep, { filePath })
+    expect(
+      result.messages.filter(({ ruleId }) => ruleId === 'roadie/no-fixed-sleep')
+    ).toHaveLength(hits)
   })
 })
 
