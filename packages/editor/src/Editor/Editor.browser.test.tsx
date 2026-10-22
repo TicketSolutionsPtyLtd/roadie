@@ -22,7 +22,13 @@ import {
   type EmbedProvider,
   defaultEmbedProviders
 } from '../schema'
-import { LINE_END, LINE_START, MOD, selectAll } from './testUtils'
+import {
+  LINE_END,
+  LINE_START,
+  MOD,
+  selectAll,
+  selectParagraph
+} from './testUtils'
 
 const LABEL = 'Event description'
 
@@ -801,6 +807,17 @@ function linksIn(value: EditorValue) {
   return hrefs
 }
 
+const soldOutThenDoors: EditorValue = {
+  ...soldOut,
+  doc: {
+    type: 'doc',
+    content: [
+      ...soldOut.doc.content!,
+      { type: 'paragraph', content: [{ type: 'text', text: 'Doors 7pm' }] }
+    ]
+  }
+}
+
 async function selectSoldOut() {
   const textbox = await focusedTextbox()
   await selectAll()
@@ -833,11 +850,12 @@ describe('Editor links', () => {
     render(
       <Editor
         aria-label={LABEL}
-        defaultValue={soldOut}
+        defaultValue={soldOutThenDoors}
         onValueChange={onValueChange}
       />
     )
-    const textbox = await selectSoldOut()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await selectParagraph(within(textbox).getByText('Sold out'))
 
     await userEvent.click(screen.getByRole('button', { name: 'Link' }))
     await userEvent.type(

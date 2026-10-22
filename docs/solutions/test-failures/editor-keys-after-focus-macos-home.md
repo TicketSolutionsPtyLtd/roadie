@@ -60,8 +60,12 @@ Two causes, each with the same test step: click into the editor, then
   End elsewhere. Use them for every line move in an editor test.
 - `selectAll`: Mod+A, which ProseMirror runs as a command in its keydown
   handler. Its state, the DOM and its last-read selection change together,
-  so the focus timer has nothing to undo. The link tests select "Sold out"
-  this way instead of building the selection from native Shift+Arrow moves.
+  so the focus timer has nothing to undo. The link popover tests select
+  "Sold out" this way instead of building the selection from native
+  Shift+Arrow moves.
+- `selectParagraph`: a triple click, which ProseMirror also turns into its
+  own selection. "links the selection to a typed address" uses it on the
+  first of two paragraphs, so a link on more than the selection fails.
 
 Native caret moves right after a click still carry the race. Prefer a
 ProseMirror command, or a step the test waits on, such as a toolbar
