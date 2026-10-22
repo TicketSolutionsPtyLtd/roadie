@@ -206,6 +206,24 @@ describe('range selection over bars', () => {
     await expect.poll(() => shadedShare(chart)).toEqual([0, 1, 1, 1, 0])
   })
 
+  it('moves a held range of bars by dragging inside it', async () => {
+    const onRangeSelect = vi.fn()
+    const chart = renderChart(
+      <BarChart data={bars} x='day' y='sold' onRangeSelect={onRangeSelect} />
+    )
+    await afterResize()
+    const at = await pointPositions(chart, 5)
+    await drag(at[0]!, at[2]!)
+    await expect.poll(() => onRangeSelect.mock.calls.length).toBe(1)
+    await drag(at[1]!, at[2]!)
+    await expect.poll(() => onRangeSelect.mock.calls.length).toBe(2)
+    expect(onRangeSelect).toHaveBeenLastCalledWith({
+      start: '2026-10-02',
+      end: '2026-10-04'
+    })
+    await expect.poll(() => shadedShare(chart)).toEqual([0, 1, 1, 1, 0])
+  })
+
   it('shades whole bars from Shift+Arrow', async () => {
     const chart = renderChart(
       <BarChart data={bars} x='day' y='sold' onRangeSelect={() => {}} />
