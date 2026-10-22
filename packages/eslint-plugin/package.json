@@ -34,8 +34,8 @@
     "test": "vitest run",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
-    "format": "prettier --ignore-path ../../.prettierignore --write \"**/*.{js,json,md}\"",
-    "format:check": "prettier --ignore-path ../../.prettierignore --check \"**/*.{js,json,md}\"",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {

@@ -218,6 +218,8 @@ export default defineConfig({
     'no-useless-escape': 'error',
     'no-with': 'error',
     'require-yield': 'error',
+    // oxfmt sorts the declarations; this sorts the names inside each one.
+    'sort-imports': ['error', { ignoreDeclarationSort: true }],
     'use-isnan': 'error',
     'valid-typeof': 'error'
   },

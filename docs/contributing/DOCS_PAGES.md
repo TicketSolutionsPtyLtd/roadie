@@ -147,8 +147,9 @@ component the status of the page that documents it.
 
 ## Editing
 
-- Edit `.mdx` by hand and never run Prettier on it. It rewrites the code in
-  fences, so `.prettierignore` skips `docs/**/*.mdx`. Formatting `.md` is fine.
+- Edit `.mdx` by hand and never run a formatter on it. It rewrites the code in
+  fences, so `oxfmt.config.ts` ignores `docs/**/*.mdx`. Formatting `.md` is
+  fine.
 - `pnpm --filter docs lint` checks the MDX and its live fences, which get the
   `roadie/*` package rules. `roadie/no-mdx-layout-class` skips every fence.
 - `roadie/no-fence-layout-wrapper` fails a fence whose root is a layout `div`

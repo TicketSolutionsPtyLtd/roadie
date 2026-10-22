@@ -1,0 +1,5 @@
+# Formatting-only commits that `git blame` skips. GitHub reads this file; for
+# local blame, run `git config blame.ignoreRevsFile .git-blame-ignore-revs`.
+
+# style: reformat with oxfmt ahead of the switch to it (INNO-1391) (#622)
+5a4b6428b31614525d855632313031321eca22d1

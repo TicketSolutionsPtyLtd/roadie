@@ -119,7 +119,7 @@
       "cache": false
     },
     "format:check": {
-      "inputs": ["**/*.{js,jsx,ts,tsx,md,mdx,json,css}"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/oxfmt.config.ts"],
       "outputs": []
     }
   }

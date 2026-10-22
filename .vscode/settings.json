@@ -9,31 +9,32 @@
   "javascript.validate.enable": true,
 
   // Formatting settings
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,
 
   // Language-specific formatting
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[typescriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[javascriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
 
-  // ESLint settings
   "editor.codeActionsOnSave": {
+    "source.fixAll.oxc": "explicit",
+    // ESLint still lints docs Markdown and MDX.
     "source.fixAll.eslint": "explicit"
   },
 
@@ -46,10 +47,6 @@
   // Ensure consistent line endings
   "files.eol": "\n",
 
-  // Enable Prettier and ESLint integration
-  "prettier.requireConfig": true,
-  "prettier.configPath": ".prettierrc",
-
   // EditorConfig settings
   "editor.detectIndentation": false,
   "editor.insertSpaces": true,
@@ -59,6 +56,5 @@
   "editor.rulers": [80],
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
-  "files.trimFinalNewlines": true,
-  "prettier.jsxSingleQuote": false
+  "files.trimFinalNewlines": true
 }
