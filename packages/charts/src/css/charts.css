@@ -206,6 +206,14 @@
   stroke: none;
 }
 
+/* ChartPlot draws a band axis's range over whole bars; the brush's own
+   selection stays as the target for dragging the range along. */
+[data-slot='chart-plot-host'][data-range-shape='bands']
+  [data-chart-brush]
+  .selection {
+  fill-opacity: 0;
+}
+
 /* The handles are 24px hit areas, so they only show while in use. */
 [data-slot='chart-plot-host'] [data-chart-brush] .handle {
   fill: var(--chart-highlight);

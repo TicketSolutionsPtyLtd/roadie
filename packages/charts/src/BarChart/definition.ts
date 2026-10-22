@@ -230,7 +230,8 @@ export const barChart: ChartDefinition<BarChartProps> = {
       options: {
         hasTime: isHourly(props),
         bucketDays: props.interval === 'week' ? 7 : 1
-      }
+      },
+      bands: true
     }
   },
   summary(props) {

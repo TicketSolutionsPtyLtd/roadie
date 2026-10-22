@@ -12,7 +12,11 @@ import {
   useState
 } from 'react'
 
-import type { ChartRenderContext, ChartSvgRenderer } from '@tanstack/charts'
+import type {
+  ChartControl,
+  ChartRenderContext,
+  ChartSvgRenderer
+} from '@tanstack/charts'
 import type {
   BrushRange,
   BrushXChange
@@ -109,6 +113,36 @@ function keepFocusInPlot(context: ChartRenderContext | null) {
   const plot = context?.surface.element
   if (plot instanceof SVGElement && inBrush(plot.ownerDocument.activeElement))
     plot.focus()
+}
+
+// brushX puts each value at its band's centre, which leaves half of each end
+// bar out, so a band axis shades the range itself.
+function rangeBand(range: BrushRange<RangeValue>): ChartControl {
+  return {
+    id: 'range-band',
+    resolve({ chart, scales }) {
+      const x = scales.x
+      if (!x) return {}
+      const half = x.bandwidth / 2
+      const [left, right] = [x.map(range.start), x.map(range.end)].sort(
+        (a, b) => a - b
+      )
+      return {
+        nodes: [
+          {
+            kind: 'rect',
+            key: 'range-band',
+            ariaHidden: true,
+            x: left! - half,
+            y: chart.y,
+            width: right! - left! + 2 * half,
+            height: chart.height,
+            style: { fill: cssPaint.highlight, fillOpacity: 0.16 }
+          }
+        ]
+      }
+    }
+  }
 }
 
 function spans(axis: RangeAxis, range: BrushRange<RangeValue>) {
@@ -232,9 +266,14 @@ export function ChartPlot<P>({
         return ms === null ? String(value) : spokenValue(ms, rangeAxis.options)
       }
     })
+    const band = rangeAxis.bands && selection && rangeBand(selection.range)
     return {
       ...drawing.definition,
-      controls: [...(drawing.definition.controls ?? []), brush]
+      controls: [
+        ...(drawing.definition.controls ?? []),
+        ...(band ? [band] : []),
+        brush
+      ]
     }
   }, [drawing, rangeAxis, brushX, selection, onRangeSelect])
   const fail = drawing ? undefined : card?.fail
@@ -401,6 +440,7 @@ export function ChartPlot<P>({
         ref={hostRef}
         data-slot='chart-plot-host'
         data-range={rangeAxis ? (selection ? 'held' : 'empty') : undefined}
+        data-range-shape={rangeAxis?.bands ? 'bands' : undefined}
         className='relative'
         onKeyDownCapture={onKeyDownCapture}
         onFocusCapture={onFocusCapture}
