@@ -326,6 +326,38 @@ describe('DataTable row links', () => {
     }
   )
 
+  it.each([true, false])(
+    'follows the row link from a later pinned cell (title pinned: %s)',
+    async (pin) => {
+      const { container } = render(
+        <div style={{ width: 600 }}>
+          <DataTable
+            columns={linkColumns.map((column) =>
+              column.key === 'show'
+                ? { ...column, pin }
+                : column.key === 'gross'
+                  ? { ...column, pin: true }
+                  : column
+            )}
+            rows={linkRows}
+            getRowHref={(row) => `#${String(row.city).toLowerCase()}`}
+          />
+        </div>
+      )
+      const row = container.querySelector('tbody tr')!
+      const pinned = row.querySelector('td[data-pin]:last-child')!
+      expect(linkAt(pinned)?.getAttribute('href')).toBe('#brisbane')
+      const followed = new Promise<string>((resolve) =>
+        row.querySelector('a')!.addEventListener('click', (event) => {
+          event.preventDefault()
+          resolve((event.currentTarget as HTMLAnchorElement).hash)
+        })
+      )
+      await userEvent.click(pinned, { force: true })
+      expect(await followed).toBe('#brisbane')
+    }
+  )
+
   it('rings the row on keyboard focus', async () => {
     const { container } = renderLinked(600)
     const row = container.querySelector<HTMLElement>('tbody tr')!

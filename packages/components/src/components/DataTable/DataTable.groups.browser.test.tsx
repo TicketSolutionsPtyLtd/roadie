@@ -111,6 +111,48 @@ describe('DataTable grouped rows', () => {
     )
   })
 
+  it('toggles a group from a later pinned cell', async () => {
+    const { container } = render(
+      <DataTable
+        columns={columns.map((column) =>
+          column.key === 'scans' ? { ...column, pin: true } : column
+        )}
+        rows={rows}
+        groupBy={['pool']}
+      />
+    )
+    const toggle = screen.getByRole('button', { name: 'General' })
+    const pinned = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-group] > td[data-pin]'
+    )!
+    await userEvent.click(pinned, { force: true })
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('keeps a number column end-aligned when grouping leaves it first', () => {
+    const { container } = render(
+      <DataTable
+        columns={[
+          { key: 'pool', header: 'Pool', kind: 'text' },
+          { key: 'scans', header: 'Scans', kind: 'number' },
+          { key: 'gate', header: 'Gate', kind: 'text' }
+        ]}
+        rows={rows}
+        groupBy={['pool']}
+        defaultExpanded
+      />
+    )
+    const header = container.querySelector('thead th')!
+    const ends = ['250', '150'].map((figure) => {
+      const range = document.createRange()
+      range.selectNodeContents(screen.getByText(figure))
+      return range.getBoundingClientRect().right
+    })
+    const padding = parseFloat(getComputedStyle(header).paddingRight)
+    const headerEnd = header.getBoundingClientRect().right - padding
+    for (const end of ends) expect(end).toBeCloseTo(headerEnd, 0)
+  })
+
   it("grows a group's rows open and shrinks them shut, like an Accordion", async () => {
     const { container } = render(
       <DataTable columns={columns} rows={rows} groupBy={['pool']} />

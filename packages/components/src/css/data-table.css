@@ -100,6 +100,16 @@
   inset-inline: -100cqi;
 }
 
+/* A pinned cell paints above the overlay, so presses pass through it to the
+   overlay as they do on any other cell. A target inside it takes them back. */
+[data-slot='data-table'] tr:is([data-linked], [data-group]) > [data-pin] {
+  pointer-events: none;
+
+  & [data-interactive-target] {
+    pointer-events: auto;
+  }
+}
+
 [data-slot='data-table'] table[data-overlay-clip] {
   overflow-x: clip;
 }
