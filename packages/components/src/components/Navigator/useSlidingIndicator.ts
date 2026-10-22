@@ -115,7 +115,9 @@ export function useSlidingIndicator(
     measuredIntentRef.current = intent
   })
 
-  // No deps: the pill can move without the value changing.
+  // No deps: the pill can move without the value changing. oxlint doesn't
+  // count additionalHooks as effects, so it rejects the Effect Event here.
+  // eslint-disable-next-line react/rules-of-hooks
   useIsomorphicLayoutEffect(() => measure())
 
   useEffect(() => {

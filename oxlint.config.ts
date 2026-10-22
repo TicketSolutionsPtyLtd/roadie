@@ -137,10 +137,6 @@ export default defineConfig({
   env: { builtin: true },
   // ESLint 9 warns on these by default; oxlint doesn't.
   options: { reportUnusedDisableDirectives: 'warn' },
-  // Overrides can't hold settings.
-  settings: {
-    'react-hooks': { additionalEffectHooks: '^useIsomorphicLayoutEffect$' }
-  },
   ignorePatterns: [
     // ESLint lints docs/ until INNO-1384.
     'docs/**',
@@ -269,7 +265,11 @@ export default defineConfig({
       plugins: ['react'],
       rules: {
         'react/rules-of-hooks': 'error',
-        'react/exhaustive-deps': 'warn',
+        // oxlint ignores ESLint's react-hooks.additionalEffectHooks setting.
+        'react/exhaustive-deps': [
+          'warn',
+          { additionalHooks: '^useIsomorphicLayoutEffect$' }
+        ],
         'react/static-components': 'error',
         'react/use-memo': 'error',
         'react/void-use-memo': 'error',
