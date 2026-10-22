@@ -28,6 +28,13 @@ export const seed = [Link, draggable, observeElementRect, z, schema, router]
 const TYPE_IMPORT = `import type { Schema } from './schema'
 export type { Schema }
 `
+const DYNAMIC = `export const load = () => [
+  import('next/link'),
+  import('next/navigation'),
+  import('zod'),
+  import('./schema')
+]
+`
 const ENV = `export const dev = import.meta.env.DEV
 `
 const JSDOM = `import css from './button.css?raw'
@@ -151,6 +158,36 @@ export { seed }
   )
 })
 
+describe('oxlint dynamic import rules', () => {
+  const link = ['nextLink', 'no-dynamic-next-link']
+  const zodFree = [
+    'nextLink',
+    'no-dynamic-next-link',
+    'no-dynamic-zod-import',
+    'schema',
+    'zod'
+  ]
+  const cases = [
+    [`${components}/Button/index.tsx`, link],
+    [
+      'packages/widgets/src/cart-drawer/react/CartDrawer.tsx',
+      ['nextLink', 'no-dynamic-next-import', 'no-dynamic-next-link', 'skinNext']
+    ],
+    [`${dashboard}/layout.ts`, zodFree],
+    [`${dashboard}/cells.ts`, zodFree],
+    [`${dashboard}/totals.ts`, zodFree],
+    [`${dashboard}/validate.ts`, link]
+  ]
+  let found
+  beforeAll(() => {
+    found = lintSeeds(cases.map(([path]) => [path, DYNAMIC]))
+  })
+
+  it.each(cases)('%s reports %j', (path, expected) => {
+    expect(found.get(path)).toEqual(expected)
+  })
+})
+
 const JSDOM_RULES = [
   'no-css-class-in-jsdom',
   'no-css-source-in-jsdom',
@@ -163,6 +200,14 @@ describe('oxlint excludeFiles exceptions', () => {
     ['packages/core/src/seed.test.ts', ENV, []],
     ['packages/core/src/seed.test.tsx', ENV, []],
     ['packages/charts/src/seed.test.tsx', JSDOM, JSDOM_RULES],
+    [`${components}/Badge/Badge.test.tsx`, JSDOM, JSDOM_RULES],
+    [
+      'packages/widgets/src/cart-drawer/vue/useCart.test.ts',
+      JSDOM,
+      JSDOM_RULES
+    ],
+    [`${components}/Badge/Badge.browser.test.tsx`, JSDOM, []],
+    [`${components}/Badge/index.tsx`, JSDOM, []],
     ['packages/charts/src/seed.browser.test.tsx', JSDOM, []],
     ['packages/charts/src/seed.browser.test.ts', JSDOM, []],
     [
@@ -191,6 +236,32 @@ describe('oxlint excludeFiles exceptions', () => {
   })
 
   it.each(cases)('%s reports %j', (path, _source, expected) => {
+    expect(found.get(path)).toEqual(expected)
+  })
+})
+
+describe('where oxlint applies no-fixed-sleep', () => {
+  const sleep = `export const settle = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms))
+`
+  const cases = [
+    [`${components}/Badge/Badge.test.tsx`, ['no-fixed-sleep']],
+    [`${components}/Badge/Badge.browser.test.tsx`, ['no-fixed-sleep']],
+    [`${components}/Badge/index.tsx`, []],
+    [`${components}/Pane/testUtils.ts`, ['no-fixed-sleep']],
+    ['packages/components/src/checks/testUtils.tsx', ['no-fixed-sleep']],
+    ['packages/components/src/utils/touchTestUtils.ts', ['no-fixed-sleep']],
+    [`${charts}/plot/browserTesting.tsx`, ['no-fixed-sleep']],
+    ['packages/widgets/vitest.setup.ts', ['no-fixed-sleep']],
+    [`${components}/RecordTable/renderCounter.ts`, ['no-fixed-sleep']],
+    [`${components}/RecordTable/index.tsx`, []]
+  ]
+  let found
+  beforeAll(() => {
+    found = lintSeeds(cases.map(([path]) => [path, sleep]))
+  })
+
+  it.each(cases)('%s reports %j', (path, expected) => {
     expect(found.get(path)).toEqual(expected)
   })
 })
