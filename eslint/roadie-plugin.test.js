@@ -1,5 +1,15 @@
 import typescriptParser from '@typescript-eslint/parser'
 import { ESLint, RuleTester } from 'eslint'
+import { spawnSync } from 'node:child_process'
+import {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync
+} from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
 
@@ -252,25 +262,56 @@ for (const [name, { valid, invalid }] of Object.entries(cases)) {
   })
 }
 
-describe('where no-fixed-sleep applies in docs', () => {
-  const eslint = new ESLint({
-    cwd: fileURLToPath(new URL('../docs/', import.meta.url))
-  })
-  const sleep =
-    'export const settle = (ms: number) =>\n  new Promise((resolve) => setTimeout(resolve, ms))\n'
+const SLEEP =
+  'export const settle = (ms: number) =>\n  new Promise((resolve) => setTimeout(resolve, ms))\n'
 
-  beforeAll(() => eslint.lintText('', { filePath: 'src/index.ts' }), 60_000)
+describe('where no-fixed-sleep applies in docs/oxlint.config.ts', () => {
+  const PATHS = [
+    'src/components/OnThisPage.test.tsx',
+    'e2e/live-examples.e2e.test.ts',
+    'e2e/serveExport.ts',
+    'src/components/landOn.ts'
+  ]
+  let hits
+
+  // Oxlint lints only files on disk, so the seeds go in a scratch docs/ beside
+  // a link to eslint/, where the config's jsPlugins path points.
+  beforeAll(() => {
+    const root = fileURLToPath(new URL('..', import.meta.url))
+    const scratch = mkdtempSync(join(tmpdir(), 'roadie-docs-oxlint-'))
+    try {
+      const docs = join(scratch, 'docs')
+      mkdirSync(docs)
+      writeFileSync(
+        join(docs, 'oxlint.config.ts'),
+        `export { default } from '${join(root, 'docs/oxlint.config.ts')}'\n`
+      )
+      symlinkSync(join(root, 'eslint'), join(scratch, 'eslint'))
+      for (const path of PATHS) {
+        mkdirSync(dirname(join(docs, path)), { recursive: true })
+        writeFileSync(join(docs, path), SLEEP)
+      }
+      const { stdout, stderr } = spawnSync(
+        join(root, 'node_modules/.bin/oxlint'),
+        ['-f', 'json', ...PATHS],
+        { cwd: docs, encoding: 'utf8' }
+      )
+      if (!stdout) throw new Error(stderr)
+      hits = JSON.parse(stdout)
+        .diagnostics.filter(({ code }) => code === 'roadie(no-fixed-sleep)')
+        .map(({ filename }) => filename)
+    } finally {
+      rmSync(scratch, { recursive: true, force: true })
+    }
+  }, 60_000)
 
   it.each([
-    ['src/components/OnThisPage.test.tsx', 1],
-    ['e2e/live-examples.e2e.test.ts', 1],
-    ['e2e/serveExport.ts', 1],
-    ['src/components/landOn.ts', 0]
-  ])('%s: %i', async (filePath, hits) => {
-    const [result] = await eslint.lintText(sleep, { filePath })
-    expect(
-      result.messages.filter(({ ruleId }) => ruleId === 'roadie/no-fixed-sleep')
-    ).toHaveLength(hits)
+    [PATHS[0], 1],
+    [PATHS[1], 1],
+    [PATHS[2], 1],
+    [PATHS[3], 0]
+  ])('%s: %i', (path, count) => {
+    expect(hits.filter((filename) => filename === path)).toHaveLength(count)
   })
 })
 
