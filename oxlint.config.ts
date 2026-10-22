@@ -94,7 +94,8 @@ const sampleOf = (glob: string) =>
 
 // The last matching override replaces no-restricted-imports' options, so every
 // glob a boundary names gets a block restating each boundary its files sit in,
-// ordered from the widest glob to the narrowest.
+// ordered from the widest glob to the narrowest. Globs must nest: a file in two
+// globs that don't gets only the later block's boundaries.
 function importBoundaryOverrides(boundaries: Restriction[]): OxlintOverride[] {
   const globs = [
     ...new Set(boundaries.flatMap((b) => [...b.files, ...(b.except ?? [])]))
@@ -137,6 +138,11 @@ export default defineConfig({
   env: { builtin: true },
   // ESLint 9 warns on these by default; oxlint doesn't.
   options: { reportUnusedDisableDirectives: 'warn' },
+  // Overrides can't hold settings. rules-of-hooks reads this; exhaustive-deps
+  // doesn't, so it gets additionalHooks too.
+  settings: {
+    'react-hooks': { additionalEffectHooks: '^useIsomorphicLayoutEffect$' }
+  },
   ignorePatterns: [
     // ESLint lints docs/ until INNO-1384.
     'docs/**',
@@ -265,7 +271,6 @@ export default defineConfig({
       plugins: ['react'],
       rules: {
         'react/rules-of-hooks': 'error',
-        // oxlint ignores ESLint's react-hooks.additionalEffectHooks setting.
         'react/exhaustive-deps': [
           'warn',
           { additionalHooks: '^useIsomorphicLayoutEffect$' }
