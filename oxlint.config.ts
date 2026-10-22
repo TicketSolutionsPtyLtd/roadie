@@ -135,6 +135,8 @@ export default defineConfig({
   jsPlugins: [roadie],
   categories: { correctness: 'off' },
   env: { builtin: true },
+  // ESLint 9 warns on these by default; oxlint doesn't.
+  options: { reportUnusedDisableDirectives: 'warn' },
   // Overrides can't hold settings.
   settings: {
     'react-hooks': { additionalEffectHooks: '^useIsomorphicLayoutEffect$' }
