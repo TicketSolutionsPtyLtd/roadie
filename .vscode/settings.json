@@ -33,7 +33,9 @@
   },
 
   "editor.codeActionsOnSave": {
-    "source.fixAll.oxc": "explicit"
+    "source.fixAll.oxc": "explicit",
+    // ESLint still lints docs Markdown and MDX.
+    "source.fixAll.eslint": "explicit"
   },
 
   // File associations
