@@ -18,9 +18,9 @@ export const RELEASED_PACKAGES = [
   { name: '@oztix/roadie-editor', label: 'Editor', dir: 'editor' },
   { name: '@oztix/roadie-widgets', label: 'Widgets', dir: 'widgets' },
   {
-    name: '@oztix/roadie-eslint-plugin',
-    label: 'ESLint plugin',
-    dir: 'eslint-plugin'
+    name: '@oztix/roadie-lint-plugin',
+    label: 'Lint plugin',
+    dir: 'lint-plugin'
   }
 ] as const
 
@@ -95,8 +95,13 @@ const SECTION_BUMPS: Record<string, Bump> = {
 const utcDate = (seconds: number) =>
   new Date(seconds * 1000).toISOString().slice(0, 10)
 
+/** Former name → current name, for changelog entries written before a rename. */
+const RENAMED: Record<string, string> = {
+  '@oztix/roadie-eslint-plugin': '@oztix/roadie-lint-plugin'
+}
+
 const packageOf = (name: string) =>
-  RELEASED_PACKAGES.find((pkg) => pkg.name === name)
+  RELEASED_PACKAGES.find((pkg) => pkg.name === (RENAMED[name] ?? name))
 const labelOf = (name: string) => packageOf(name)?.label ?? name
 
 function entryFrom(raw: string, bump: Bump): ChangelogEntry | null {
@@ -817,7 +822,7 @@ const keysOf = (names: string[]) =>
 /** The page that introduces a package with no component page of its own. */
 export const PACKAGE_PAGES: Record<string, string> = {
   '@oztix/roadie-editor': '/components/editor',
-  '@oztix/roadie-eslint-plugin': '/overview/linting'
+  '@oztix/roadie-lint-plugin': '/overview/linting'
 }
 
 function firstReleaseCard(
@@ -1229,6 +1234,8 @@ function readCommits(dir: string): PackageChangelog['commits'] {
     '-p',
     '--unified=0',
     '--no-color',
+    // Follows a package folder's rename back to its older releases.
+    '--follow',
     '--',
     `packages/${dir}/CHANGELOG.md`
   ])

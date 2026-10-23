@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { readFileSync, readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
@@ -13,6 +14,7 @@ import {
   byKind,
   cardOf,
   classify,
+  getReleaseHistory,
   groupReleases,
   linkPages,
   pageCreatedDates,
@@ -168,7 +170,7 @@ describe('classify', () => {
     ['Refine the shadow scale.', 'minor', 'changed'],
     ['Add a `title` to `Kbd`.', 'patch', 'new'],
     ['`Remove` button labels read better.', 'patch', 'fixed'],
-    ['First release of `@oztix/roadie-eslint-plugin`.', 'patch', 'new']
+    ['First release of `@oztix/roadie-lint-plugin`.', 'patch', 'new']
   ] as const)('%s (%s) is %s', (summary, bump, kind) => {
     expect(classify(summary, bump)).toBe(kind)
   })
@@ -1011,9 +1013,9 @@ describe('cardOf', () => {
     expect(
       cardOf(
         change(
-          'First release of `@oztix/roadie-eslint-plugin` through the release workflow.',
+          'First release of `@oztix/roadie-lint-plugin` through the release workflow.',
           {
-            packages: ['@oztix/roadie-eslint-plugin'],
+            packages: ['@oztix/roadie-lint-plugin'],
             details:
               'The package holds ESLint rules that catch Roadie mistakes. Add it.'
           }
@@ -1022,13 +1024,31 @@ describe('cardOf', () => {
         pageInfo
       )
     ).toMatchObject({
-      title: 'ESLint plugin',
+      title: 'Lint plugin',
       description: [
         'The package holds ESLint rules that catch Roadie mistakes.'
       ],
       href: '/overview/linting',
       breaking: false,
-      packages: ['eslint-plugin']
+      packages: ['lint-plugin']
+    })
+  })
+
+  // 0.1.1's changelog entry, released before the rename, keeps the old name.
+  it('cards a first release under a former name as the package it became', () => {
+    expect(
+      cardOf(
+        change('First release of `@oztix/roadie-eslint-plugin`.', {
+          packages: ['@oztix/roadie-lint-plugin'],
+          details: 'The package holds ESLint rules that catch Roadie mistakes.'
+        }),
+        pages,
+        pageInfo
+      )
+    ).toMatchObject({
+      title: 'Lint plugin',
+      href: '/overview/linting',
+      packages: ['lint-plugin']
     })
   })
 
@@ -1288,4 +1308,25 @@ describe('RELEASED_PACKAGES', () => {
       expect.arrayContaining(published)
     )
   })
+})
+
+// A shallow checkout dates no release, so only a full clone can check this.
+const shallow =
+  execFileSync('git', ['rev-parse', '--is-shallow-repository'], {
+    encoding: 'utf8'
+  }).trim() === 'true'
+
+describe('getReleaseHistory', () => {
+  it.skipIf(shallow)(
+    'dates a release made before its package folder was renamed',
+    () => {
+      const release = getReleaseHistory().releases.find(({ packages }) =>
+        packages.some(
+          ({ name, version }) =>
+            name === '@oztix/roadie-lint-plugin' && version === '0.1.1'
+        )
+      )
+      expect(release?.date).toBe('2026-10-20')
+    }
+  )
 })

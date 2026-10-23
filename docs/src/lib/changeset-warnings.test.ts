@@ -88,8 +88,8 @@ describe('changesetWarnings', () => {
   })
 
   it('warns when a first release has no details to describe its card', () => {
-    const warnings = warn('First release of `@oztix/roadie-eslint-plugin`.', {
-      '@oztix/roadie-eslint-plugin': 'minor'
+    const warnings = warn('First release of `@oztix/roadie-lint-plugin`.', {
+      '@oztix/roadie-lint-plugin': 'minor'
     })
     expect(warnings).toHaveLength(1)
     expect(warnings[0]!.message).toMatch(/no details/)
@@ -107,8 +107,8 @@ describe('changesetWarnings', () => {
   it('stays quiet for a first release with details and a page', () => {
     expect(
       warn(
-        'First release of `@oztix/roadie-eslint-plugin` through the release workflow.\n\nESLint rules that catch Roadie mistakes.',
-        { '@oztix/roadie-eslint-plugin': 'patch' }
+        'First release of `@oztix/roadie-lint-plugin` through the release workflow.\n\nESLint rules that catch Roadie mistakes.',
+        { '@oztix/roadie-lint-plugin': 'patch' }
       )
     ).toEqual([])
   })

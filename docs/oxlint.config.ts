@@ -1,6 +1,6 @@
 import { type OxlintOverride, defineConfig } from 'oxlint'
 
-import published from '@oztix/roadie-eslint-plugin'
+import published from '@oztix/roadie-lint-plugin'
 
 // MDX and its live fences lint with ESLint (eslint.config.js).
 export default defineConfig({

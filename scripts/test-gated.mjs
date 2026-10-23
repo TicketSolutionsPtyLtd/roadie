@@ -16,7 +16,7 @@ const PACKAGES = [
   'charts',
   'editor',
   'widgets',
-  'eslint-plugin',
+  'lint-plugin',
   'docs'
 ]
 const usage = `Usage: pnpm test:gated <${PACKAGES.join('|')}> [files] [--all] [--all-browsers] [vitest args]

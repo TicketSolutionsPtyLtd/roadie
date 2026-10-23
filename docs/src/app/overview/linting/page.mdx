@@ -1,25 +1,27 @@
 export const metadata = {
   title: 'Linting',
   description:
-    'Catch Roadie mistakes in your app at lint time with @oztix/roadie-eslint-plugin.'
+    'Catch Roadie mistakes in your app at lint time with @oztix/roadie-lint-plugin, in ESLint or oxlint.'
 }
 
-`@oztix/roadie-eslint-plugin` checks the Roadie conventions a rule can be sure of: Phosphor icon imports, sizes, and weights, colour classes, arbitrary radius and z-index values, and a `Card` without `Card.Content`. Calls that need judgement, such as which emphasis a surface takes, stay with review.
+`@oztix/roadie-lint-plugin` checks the Roadie conventions a rule can be sure of: Phosphor icon imports, sizes, and weights, colour classes, arbitrary radius and z-index values, and a `Card` without `Card.Content`. Calls that need judgement, such as which emphasis a surface takes, stay with review. It runs in ESLint and in oxlint, with the same rule IDs in both.
 
 ## Install
 
 ```bash
-pnpm add -D @oztix/roadie-eslint-plugin
+pnpm add -D @oztix/roadie-lint-plugin
 ```
 
-It works with flat config (`eslint.config.js`) only, on ESLint 9 and 10.
+It works with ESLint 9 and 10 on flat config (`eslint.config.js`), and with oxlint 1.88 or later. Both are optional peer dependencies, so install the one your app lints with.
 
-## Turn on the rules
+Before 0.2.0, the package was `@oztix/roadie-eslint-plugin`. To move, change the name in `package.json` and in your config's import. The rules and their IDs are the same.
+
+## Turn on the rules in ESLint
 
 Add the recommended config to your config array.
 
 ```js
-import roadie from '@oztix/roadie-eslint-plugin'
+import roadie from '@oztix/roadie-lint-plugin'
 
 export default [
   // Your other configs
@@ -32,7 +34,7 @@ It turns every rule on as an error for JavaScript and TypeScript files, and turn
 To choose rules yourself, register the plugin as `roadie` and name each rule.
 
 ```js
-import roadie from '@oztix/roadie-eslint-plugin'
+import roadie from '@oztix/roadie-lint-plugin'
 
 export default [
   {
@@ -45,6 +47,46 @@ export default [
   }
 ]
 ```
+
+## Turn on the rules in oxlint
+
+In `.oxlintrc.json`, extend the recommended preset by its path. Oxlint's `extends` takes a file path, not a package name.
+
+```json
+{
+  "extends": [
+    "./node_modules/@oztix/roadie-lint-plugin/oxlint/recommended.json"
+  ]
+}
+```
+
+In `oxlint.config.ts`, import the preset and extend it.
+
+```ts
+import { defineConfig } from 'oxlint'
+
+import recommended from '@oztix/roadie-lint-plugin/oxlint/recommended.json' with {
+  type: 'json'
+}
+
+export default defineConfig({ extends: [recommended] })
+```
+
+The preset turns every rule on as an error and loads the plugin under the name `roadie`. To choose rules yourself, load it in `jsPlugins` with that name and name each rule.
+
+```json
+{
+  "jsPlugins": [
+    { "name": "roadie", "specifier": "@oztix/roadie-lint-plugin" }
+  ],
+  "rules": {
+    "roadie/no-dark-variant": "error",
+    "roadie/phosphor-icon-weight": "warn"
+  }
+}
+```
+
+Without `name`, oxlint names the plugin after its package, so every rule ID would start with `@oztix/roadie-lint-plugin/` instead of `roadie/`.
 
 ## Rules
 
@@ -74,7 +116,7 @@ Two icon rules skip a case on purpose. `roadie/phosphor-icon-weight` skips an ic
 The Phosphor rules find icons by their import. Code that gets icons another way, such as a live code editor with icons in scope, names them in `settings.roadie.phosphorIcons`.
 
 ```js
-import roadie from '@oztix/roadie-eslint-plugin'
+import roadie from '@oztix/roadie-lint-plugin'
 
 export default [
   roadie.configs.recommended,
@@ -82,4 +124,14 @@ export default [
     settings: { roadie: { phosphorIcons: ['HeartIcon', 'StarIcon'] } }
   }
 ]
+```
+
+In oxlint, `settings` goes at the top level of the config. Oxlint fails to load a config with `settings` inside `overrides`.
+
+```json
+{
+  "settings": {
+    "roadie": { "phosphorIcons": ["HeartIcon", "StarIcon"] }
+  }
+}
 ```

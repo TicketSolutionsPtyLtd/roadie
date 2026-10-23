@@ -4,7 +4,7 @@ export const metadata = {
     'Set up Claude Code and other coding agents to build with Roadie: the plugin, its skills, and the docs agents read.'
 }
 
-Roadie ships three things for coding agents. A Claude Code plugin teaches an agent how to build with Roadie. A markdown copy of the docs pages, indexed in `llms.txt`, lets any agent read the docs. A manifest in each package lists the exact API of the version you installed. The [ESLint plugin](/overview/linting) then catches what slips through.
+Roadie ships three things for coding agents. A Claude Code plugin teaches an agent how to build with Roadie. A markdown copy of the docs pages, indexed in `llms.txt`, lets any agent read the docs. A manifest in each package lists the exact API of the version you installed. The [lint plugin](/overview/linting) then catches what slips through.
 
 ## Install the Claude Code plugin
 
@@ -131,4 +131,4 @@ The skills are plain `SKILL.md` files in the repo's [`skills` folder](https://gi
 
 ## Lint what agents write
 
-Agents make the same mistakes people do, only faster. The [ESLint plugin](/overview/linting) catches the ones a rule can be sure of, such as wrong icon weights and hardcoded colours, so add it to any app where agents write code. `/roadie:audit` installs it for you.
+Agents make the same mistakes people do, only faster. The [lint plugin](/overview/linting) catches the ones a rule can be sure of, such as wrong icon weights and hardcoded colours, so add it to any app where agents write code. `/roadie:audit` installs it for you.

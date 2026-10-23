@@ -7,7 +7,7 @@ description: Use when auditing a codebase for Roadie design system compliance â€
 
 Scan a codebase for violations of Roadie design system conventions, report findings grouped by severity, and fix them.
 
-This skill runs in any consumer repo that uses `@oztix/roadie-core` and `@oztix/roadie-components`. You do not need the Roadie source repo checked out locally. The checks a lint rule can make live in `@oztix/roadie-eslint-plugin`, so the skill runs ESLint for those and keeps the greps for the rest.
+This skill runs in any consumer repo that uses `@oztix/roadie-core` and `@oztix/roadie-components`. You do not need the Roadie source repo checked out locally. The checks a lint rule can make live in `@oztix/roadie-lint-plugin`, so the skill runs ESLint for those and keeps the greps for the rest.
 
 ## Prerequisites
 
@@ -20,12 +20,12 @@ This skill runs in any consumer repo that uses `@oztix/roadie-core` and `@oztix/
 
 ## Run the lint rules first
 
-`@oztix/roadie-eslint-plugin` checks Phosphor icons (their import names, `size` props, and weights), `dark:` variants, hex colours in class strings, arbitrary z-index and radius classes, and a `Card` without `Card.Content`. This skill doesn't grep for any of those.
+`@oztix/roadie-lint-plugin` checks Phosphor icons (their import names, `size` props, and weights), `dark:` variants, hex colours in class strings, arbitrary z-index and radius classes, and a `Card` without `Card.Content`. This skill doesn't grep for any of those.
 
 The plugin needs ESLint 9 or 10 with a flat config. A repo on a legacy `.eslintrc` can't load it, so skip this section and say in the report that the rules below didn't run.
 
-1. If `package.json` lacks `@oztix/roadie-eslint-plugin`, install it as a dev dependency with the repo's package manager, such as `pnpm add -D @oztix/roadie-eslint-plugin`.
-2. If the flat config (`eslint.config.*`) doesn't include it, add `roadie.configs.recommended` from `import roadie from '@oztix/roadie-eslint-plugin'` to its array. A repo with no ESLint config also needs `eslint`, an `eslint.config.js` holding that config, and typescript-eslint's parser for TypeScript files.
+1. If `package.json` lacks `@oztix/roadie-lint-plugin`, install it as a dev dependency with the repo's package manager, such as `pnpm add -D @oztix/roadie-lint-plugin`. If it has `@oztix/roadie-eslint-plugin`, the package's name before 0.2.0, remove that and change the config's import to the new name.
+2. If the flat config (`eslint.config.*`) doesn't include it, add `roadie.configs.recommended` from `import roadie from '@oztix/roadie-lint-plugin'` to its array. A repo with no ESLint config also needs `eslint`, an `eslint.config.js` holding that config, and typescript-eslint's parser for TypeScript files.
 3. The icon rules find icons by their `@phosphor-icons/react` import. If the app imports icons from its own module, name them in `settings.roadie.phosphorIcons`, as the linting guide shows, or those rules miss them.
 4. Run ESLint on the target directory, such as `pnpm exec eslint src`, and report every `roadie/*` hit under its rule ID, at the severity in the table below.
 

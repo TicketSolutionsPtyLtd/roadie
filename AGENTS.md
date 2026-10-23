@@ -25,15 +25,15 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 - The editor is [Tiptap](https://tiptap.dev/) v3, MIT parts only, in
   `@oztix/roadie-editor`; `roadie-components` never depends on Tiptap.
 
-| Path                      | Package                                                                                                                |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `packages/core/`          | `@oztix/roadie-core`: foundations, CSS plus framework-agnostic logic (records, datetime, colour generator, dashboards) |
-| `packages/components/`    | `@oztix/roadie-components`                                                                                             |
-| `packages/charts/`        | `@oztix/roadie-charts`: charts, legends, and dashboard views                                                           |
-| `packages/editor/`        | `@oztix/roadie-editor`: the rich-text editor and its saved format                                                      |
-| `packages/widgets/`       | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins                                                          |
-| `packages/eslint-plugin/` | `@oztix/roadie-eslint-plugin`: lint rules for apps on Roadie                                                           |
-| `docs/`                   | The docs site                                                                                                          |
+| Path                    | Package                                                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `packages/core/`        | `@oztix/roadie-core`: foundations, CSS plus framework-agnostic logic (records, datetime, colour generator, dashboards) |
+| `packages/components/`  | `@oztix/roadie-components`                                                                                             |
+| `packages/charts/`      | `@oztix/roadie-charts`: charts, legends, and dashboard views                                                           |
+| `packages/editor/`      | `@oztix/roadie-editor`: the rich-text editor and its saved format                                                      |
+| `packages/widgets/`     | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins                                                          |
+| `packages/lint-plugin/` | `@oztix/roadie-lint-plugin`: ESLint and oxlint rules for apps on Roadie                                                |
+| `docs/`                 | The docs site                                                                                                          |
 
 Root scripts: `pnpm dev`, `build`, `test`, `test:browser`, `typecheck`, `lint`,
 and `format`. Scope one with `--filter`:
@@ -56,7 +56,7 @@ pnpm --filter docs dev
   consumer's class can't override the component's.
 - `packages/core/src/css/roadie.css` imports every sheet in order, and each
   sheet's header says what it owns.
-- Every package but the ESLint plugin builds `dist/roadie.manifest.json`
+- Every package but the lint plugin builds `dist/roadie.manifest.json`
   from `exports`, props, `@deprecated` tags, and docs pages
   (`packages/core/scripts/manifest/`). A component with no docs fails it;
   link it in `elsewhere.ts`.
