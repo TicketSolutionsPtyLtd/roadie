@@ -84,6 +84,22 @@ describe('DataTable groupBy', () => {
       expect(bodyRows(container)[0]).toEqual(['', 'General', '700', ''])
     })
 
+    it("indents a group's rows in the text column", () => {
+      render(
+        <DataTable
+          columns={gated}
+          rows={gatedRows}
+          groupBy={['pool']}
+          defaultExpanded
+        />
+      )
+      const row = screen.getByRole('cell', { name: 'GA' }).closest('tr')!
+      const indented = [...row.querySelectorAll('td')].map(
+        (cell) => !!cell.querySelector('[data-slot="data-table-indent"]')
+      )
+      expect(indented).toEqual([false, true, false, false])
+    })
+
     it('sorts groups by their label in the text column', () => {
       const { container } = render(
         <DataTable

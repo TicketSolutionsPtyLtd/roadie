@@ -142,6 +142,23 @@ describe('RecordTable totals', () => {
     ])
   })
 
+  it('labels a column that shows no total when there is no title', () => {
+    const column = tableColumns<TestShow>(showFields)
+    render(
+      <Table
+        totals
+        columns={[
+          column.field('sold'),
+          { ...column.field('gross'), total: false }
+        ]}
+      />
+    )
+    const cells = [
+      ...totalsRow().querySelectorAll('[role="rowheader"], [role="cell"]')
+    ].map((cell) => cell.getAttribute('role'))
+    expect(cells).toEqual(['cell', 'rowheader'])
+  })
+
   it("doesn't sum money whose rows name their own currency", () => {
     render(
       <Table
