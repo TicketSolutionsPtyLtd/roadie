@@ -67,7 +67,7 @@ push too. Run tests through the host's gated runner as `/roadie:test` says
 The ready run in CI runs Chromium, plus WebKit and Firefox only with the
 `full-browsers` label (Roadie: PR workflow sections 5 and 7), so before the
 demo run the browser tests you touched in WebKit and Firefox locally (in
-Roadie, `ROADIE_BROWSERS=webkit,firefox pnpm test:gated <package> <files>`).
+Roadie, `pnpm test:gated <package> <files> --all-browsers`).
 
 ## 5. Wire what's new
 
