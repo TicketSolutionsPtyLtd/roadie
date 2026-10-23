@@ -22,10 +22,11 @@ const turn = (severity, ruleSet) =>
   )
 
 const languageOptions = { parserOptions: { ecmaFeatures: { jsx: true } } }
+const EXTENSIONS = '{js,jsx,mjs,cjs,ts,tsx,mts,cts}'
 
 plugin.configs.recommended = {
   name: `${name}/recommended`,
-  files: ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}'],
+  files: [`**/*.${EXTENSIONS}`],
   plugins: { roadie: plugin },
   languageOptions,
   rules: turn('error', recommendedRules)
@@ -34,7 +35,8 @@ plugin.configs.recommended = {
 plugin.configs.testing = [
   {
     name: `${name}/testing`,
-    files: ['**/*.test.{js,jsx,ts,tsx}'],
+    // Not *.spec.*, which Playwright runs in a real browser.
+    files: [`**/*.test.${EXTENSIONS}`],
     plugins: { roadie: plugin },
     languageOptions,
     rules: turn('error', jsdomRules)
@@ -42,7 +44,7 @@ plugin.configs.testing = [
   // A browser test is where layout and CSS get tested.
   {
     name: `${name}/testing/browser`,
-    files: ['**/*.browser.test.{js,jsx,ts,tsx}'],
+    files: [`**/*.browser.test.${EXTENSIONS}`],
     rules: turn('off', jsdomRules)
   }
 ]

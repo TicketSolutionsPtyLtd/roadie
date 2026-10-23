@@ -113,7 +113,7 @@ Two icon rules skip a case on purpose. `roadie/phosphor-icon-weight` skips an ic
 
 ## Testing
 
-The testing preset catches jsdom tests that check layout or CSS. jsdom has no layout engine and doesn't evaluate CSS, so those tests pass whatever the page looks like. The preset turns its rules on for `*.test.{js,jsx,ts,tsx}` files and off for `*.browser.test.*` files, such as tests in Vitest's browser mode, which is where those checks belong.
+The testing preset catches jsdom tests that check layout or CSS. jsdom has no layout engine and doesn't evaluate CSS, so those tests pass whatever the page looks like. The preset turns its rules on for `*.test.*` files and off for `*.browser.test.*` files, such as tests in Vitest's browser mode, which is where those checks belong. It leaves `*.spec.*` files alone, because Playwright runs those in a real browser. If your jsdom tests are named `*.spec.*`, name the rules in a config of your own for those files.
 
 In ESLint, spread it into your config array.
 
@@ -123,7 +123,7 @@ import roadie from '@oztix/roadie-lint-plugin'
 export default [roadie.configs.recommended, ...roadie.configs.testing]
 ```
 
-In oxlint, extend it after the recommended preset. In `oxlint.config.ts`, import `@oztix/roadie-lint-plugin/oxlint/testing.json` and add it to `extends` the same way.
+In `.oxlintrc.json`, extend it after the recommended preset.
 
 ```json
 {
@@ -133,6 +133,8 @@ In oxlint, extend it after the recommended preset. In `oxlint.config.ts`, import
   ]
 }
 ```
+
+In `oxlint.config.ts`, import `@oztix/roadie-lint-plugin/oxlint/testing.json` and add it to `extends` after `recommended`.
 
 | Rule                      | Fails                                                                                                                       | Fix                                                                |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |

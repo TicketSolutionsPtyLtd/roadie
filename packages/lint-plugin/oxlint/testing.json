@@ -7,7 +7,7 @@
   ],
   "overrides": [
     {
-      "files": ["**/*.test.{js,jsx,ts,tsx}"],
+      "files": ["**/*.test.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
       "rules": {
         "roadie/no-css-source-in-jsdom": "error",
         "roadie/no-css-class-in-jsdom": "error",
@@ -15,7 +15,7 @@
       }
     },
     {
-      "files": ["**/*.browser.test.{js,jsx,ts,tsx}"],
+      "files": ["**/*.browser.test.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
       "rules": {
         "roadie/no-css-source-in-jsdom": "off",
         "roadie/no-css-class-in-jsdom": "off",
