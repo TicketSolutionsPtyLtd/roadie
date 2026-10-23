@@ -191,6 +191,23 @@ describe('DataTable groupBy', () => {
     ])
   })
 
+  it('sorts groups by the sums of a number column that comes first', () => {
+    const { container } = render(
+      <DataTable
+        columns={[columns[2]!, columns[0]!, columns[1]!]}
+        rows={rows}
+        groupBy={['pool']}
+        sortable
+        defaultSort={{ key: 'scans', direction: 'descending' }}
+      />
+    )
+    expect(bodyRows(container).map(([, label]) => label)).toEqual([
+      'General',
+      'Premium',
+      'Comp'
+    ])
+  })
+
   it('sorts nested groups by their own sums', () => {
     const { container } = render(
       <DataTable

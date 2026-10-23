@@ -51,6 +51,18 @@ describe('DataTable grouped rows', () => {
     expect(north).toBeCloseTo(ga, 0)
   })
 
+  it('lines rows up with their group label after a sum that comes first', () => {
+    render(
+      <DataTable
+        columns={[columns[3]!, ...columns.slice(0, 3)]}
+        rows={rows}
+        groupBy={['pool', 'type']}
+        defaultExpanded
+      />
+    )
+    expect(textStart('North')).toBeCloseTo(textStart('GA'), 0)
+  })
+
   it('turns the caret when its group opens', () => {
     render(
       <DataTable
@@ -151,6 +163,41 @@ describe('DataTable grouped rows', () => {
     const padding = parseFloat(getComputedStyle(header).paddingRight)
     const headerEnd = header.getBoundingClientRect().right - padding
     for (const end of ends) expect(end).toBeCloseTo(headerEnd, 0)
+  })
+
+  it('keeps the sums of a number column grouping leaves first', () => {
+    const { container } = render(
+      <DataTable
+        columns={[columns[0]!, columns[3]!, columns[2]!]}
+        rows={rows}
+        groupBy={['pool']}
+        totals
+      />
+    )
+    const texts = (selector: string) =>
+      [...container.querySelectorAll(selector)].map((cell) => cell.textContent)
+    expect(texts('thead th')).toEqual(['Scans', 'Pool / Gate'])
+    expect(texts('[data-slot=data-table-group] > td')).toEqual([
+      '400',
+      'General'
+    ])
+    expect(texts('tfoot > tr > *')).toEqual(['400', 'Totals for 2 records'])
+  })
+
+  it('adds no scroll width from a later pinned group label', () => {
+    const { container } = render(
+      <div style={{ width: 600 }}>
+        <DataTable
+          columns={[columns[0]!, columns[3]!, { ...columns[2]!, pin: true }]}
+          rows={rows}
+          groupBy={['pool']}
+        />
+      </div>
+    )
+    const scroller = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-scroller]'
+    )!
+    expect(scroller.scrollWidth).toBe(scroller.clientWidth)
   })
 
   it("grows a group's rows open and shrinks them shut, like an Accordion", async () => {

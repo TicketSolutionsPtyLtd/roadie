@@ -642,10 +642,9 @@ because actions aren’t part of the JSON.
 - For a report’s “Totals for 12 events” line, give a table card
   `totals: { label: 'Totals for 12 events' }`, or `'sum'` for “Totals for 12
   records”. It adds up the number columns, except those with `total: false`,
-  and its label takes the first column, which then never hides, so lead with a
-  text column. For a page of server rows or an average, pass
-  `{ label, values }` instead. `cardTable(card)` returns the row summed, for a
-  CSV.
+  and its label takes the first column without a sum, which then never hides.
+  For a page of server rows or an average, pass `{ label, values }` instead.
+  `cardTable(card)` returns the row summed, for a CSV.
 - To group rows, such as scans by ticket pool and then ticket type, give a
   table card `groupBy` with the keys of text or status columns, outermost
   first. Groups start closed; `defaultExpanded: true` opens them all, or give

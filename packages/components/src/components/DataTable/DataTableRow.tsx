@@ -5,6 +5,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { Table } from '../Table'
 import { DataTableCellContent } from './DataTableCell'
+import { labelIndexOf } from './groups'
 import { type KeyedRow, cellOf } from './sort'
 
 export const alignOf = (column: TableColumn): 'start' | 'end' =>
@@ -28,7 +29,7 @@ export function DataTableRow({
   row: KeyedRow
   titleKey?: string
   plain: boolean
-  /** A grouped row's level, which indents its first cell and lets it collapse. */
+  /** A grouped row's level, which indents its label cell and lets it collapse. */
   depth?: number
   rowProps?: ComponentProps<'tr'>
 }) {
@@ -38,6 +39,7 @@ export function DataTableRow({
     titleKey !== undefined &&
     cellOf(row, titleKey) != null &&
     cellOf(row, titleKey) !== ''
+  const labelIndex = labelIndexOf(columns)
   return (
     <Table.Row
       {...rowProps}
@@ -62,7 +64,7 @@ export function DataTableRow({
               content
             ) : (
               <DataTableCollapse>
-                {index === 0 ? (
+                {index === labelIndex ? (
                   <DataTableIndent
                     depth={depth}
                     className={cn(alignOf(column) === 'end' && 'justify-end')}

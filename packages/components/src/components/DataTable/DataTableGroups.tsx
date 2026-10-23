@@ -18,7 +18,8 @@ import {
   type DataTableExpanded,
   buildGroups,
   flattenNodes,
-  groupKey
+  groupKey,
+  labelIndexOf
 } from './groups'
 import { type DataTableSort, type KeyedRow, cellOf } from './sort'
 
@@ -68,6 +69,7 @@ export function DataTableGroups({
     buildGroups(rows, columns, groupColumns, sort),
     isOpen
   )
+  const labelIndex = labelIndexOf(columns)
   const last = entries.findLastIndex(({ collapsed }) => !collapsed)
   // Closed groups keep their rows, collapsed, so they open and close like an
   // Accordion. Collapsed rows are hidden from screen readers and the keyboard.
@@ -104,7 +106,7 @@ export function DataTableGroups({
             {columns.map((column, index) => (
               <Table.Cell key={column.key} {...cellAttributes(column)}>
                 <DataTableCollapse>
-                  {index === 0 ? (
+                  {index === labelIndex ? (
                     <DataTableIndent depth={node.depth}>
                       <button
                         type='button'

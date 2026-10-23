@@ -108,11 +108,22 @@ describe('DataTable totals row', () => {
     expect(footer(container)[2]).toBe('$324,300.50')
   })
 
-  it('never hides the first column, which holds the label', () => {
+  it('never hides the column that holds the label', () => {
     const { container } = render(
       <DataTable
         totals
         columns={[{ ...columns[0]!, priority: 2 }, ...columns.slice(1)]}
+        rows={rows}
+      />
+    )
+    expect(container.querySelector('[data-priority]')).toBeNull()
+  })
+
+  it('never hides the label column when a sum comes first', () => {
+    const { container } = render(
+      <DataTable
+        totals
+        columns={[columns[1]!, { ...columns[0]!, priority: 2 }]}
         rows={rows}
       />
     )

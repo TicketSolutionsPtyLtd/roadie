@@ -102,9 +102,27 @@ describe('validateDashboard grouped tables', () => {
         path: `${at}.groupBy`,
         severity: 'warning',
         message:
-          'The first column left holds the group labels. Lead with a text or status column'
+          'The group labels go in the first column left without a sum. Make it a text or status column'
       })
     ])
+  })
+
+  it('warns when the grouping leaves the totals label only a sum', () => {
+    expect(
+      problems({ groupBy: ['pool', 'type'], totals: 'sum' })
+    ).toContainEqual({
+      path: `${at}.totals`,
+      severity: 'warning',
+      message:
+        'The label goes in the first column without a sum, and every column has one. Add a text column'
+    })
+  })
+
+  it('puts the group labels after a sum that comes first', () => {
+    const table = scansTable({ groupBy: ['pool'] })
+    const card = table.sections[0]!.cards[0]!
+    card.columns = [card.columns[0]!, card.columns[2]!, card.columns[1]!]
+    expect(validateDashboard(table).problems).toEqual([])
   })
 
   it('warns about a path deeper than the grouping', () => {

@@ -196,15 +196,34 @@ describe('validateDashboard totals rows', () => {
     ])
   })
 
-  it('warns when the first column, which holds the label, is a sum', () => {
+  it('puts the label after a sum that comes first', () => {
     const table = reportTable('sum')
     const card = table.sections[0]!.cards[0]!
     card.columns = [card.columns[1]!, card.columns[0]!]
+    expect(validateDashboard(table).problems).toEqual([])
+  })
+
+  it('warns when every column is a sum, so the label covers the first', () => {
+    const table = reportTable('sum')
+    const card = table.sections[0]!.cards[0]!
+    card.columns = [card.columns[1]!]
     expect(validateDashboard(table).problems).toEqual([
       {
         path: 'sections[0].cards[0].totals',
         message:
-          'The first column holds the label, so its sum never shows. Lead with a text column',
+          'The label goes in the first column without a sum, and every column has one. Add a text column',
+        severity: 'warning'
+      }
+    ])
+  })
+
+  it('warns when a value is given for the label column', () => {
+    const table = reportTable({ label: 'All shows', values: { show: 2 } })
+    expect(validateDashboard(table).problems).toEqual([
+      {
+        path: 'sections[0].cards[0].totals',
+        message:
+          'The label goes in the first column without a sum, so its value never shows. Leave it out of values',
         severity: 'warning'
       }
     ])
