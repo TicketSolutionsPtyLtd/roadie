@@ -14,7 +14,7 @@ pnpm add -D @oztix/roadie-lint-plugin oxlint
 
 It needs oxlint 1.88 or later. Both oxlint and ESLint are optional peer dependencies, so an app installs only the one it lints with. [If your app can't move to oxlint yet](#if-your-app-cant-move-to-oxlint-yet) covers ESLint.
 
-Before 0.2.0, the package was `@oztix/roadie-eslint-plugin`. To move, change the name in `package.json` and in your config. The rules and their IDs are the same.
+Before 0.2.0, the package was `@oztix/roadie-eslint-plugin`. That name is deprecated: its last release, 0.1.2, re-exports this package and warns once when it loads, outside production. To move, change the name in `package.json` and in your config. The rules and their IDs are the same.
 
 ## Turn on the rules
 

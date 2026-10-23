@@ -6,6 +6,7 @@ import {
   type Change,
   type PageIndex,
   RELEASED_PACKAGES,
+  RENAMED,
   type ReleaseCard,
   type ReleaseItem,
   addedPages,
@@ -1302,6 +1303,15 @@ describe('RELEASED_PACKAGES', () => {
           readFileSync(new URL(`${entry.name}/package.json`, packages), 'utf8')
         ) as { name: string; private?: boolean }
         return pkg.private ? [] : [{ name: pkg.name, dir: entry.name }]
+      })
+      // A former name's last release is announced under its successor.
+      .map(({ name, dir }) => {
+        const successor = RELEASED_PACKAGES.find(
+          (pkg) => pkg.name === RENAMED[name]
+        )
+        return successor
+          ? { name: successor.name, dir: successor.dir }
+          : { name, dir }
       })
     expect(published.length).toBeGreaterThan(0)
     expect(RELEASED_PACKAGES.map(({ name, dir }) => ({ name, dir }))).toEqual(
