@@ -96,7 +96,7 @@ const utcDate = (seconds: number) =>
   new Date(seconds * 1000).toISOString().slice(0, 10)
 
 /** Former name → current name, for changelog entries written before a rename. */
-const RENAMED: Record<string, string> = {
+export const RENAMED: Record<string, string> = {
   '@oztix/roadie-eslint-plugin': '@oztix/roadie-lint-plugin'
 }
 
