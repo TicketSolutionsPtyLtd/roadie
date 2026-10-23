@@ -7,7 +7,7 @@ description: Use when auditing a codebase for Roadie design system compliance �
 
 Scan a codebase for violations of Roadie design system conventions, report findings grouped by severity, and fix them.
 
-This skill runs in any consumer repo that uses `@oztix/roadie-core` and `@oztix/roadie-components`. You do not need the Roadie source repo checked out locally. The checks a lint rule can make live in `@oztix/roadie-lint-plugin`, so the skill runs ESLint for those and keeps the greps for the rest.
+This skill runs in any consumer repo that uses `@oztix/roadie-core` and `@oztix/roadie-components`. You do not need the Roadie source repo checked out locally. The checks a lint rule can make live in `@oztix/roadie-lint-plugin`, so the skill runs oxlint for those, or ESLint when oxlint can't run, and keeps the greps for the rest.
 
 ## Prerequisites
 
@@ -22,12 +22,15 @@ This skill runs in any consumer repo that uses `@oztix/roadie-core` and `@oztix/
 
 `@oztix/roadie-lint-plugin` checks Phosphor icons (their import names, `size` props, and weights), `dark:` variants, hex colours in class strings, arbitrary z-index and radius classes, and a `Card` without `Card.Content`. This skill doesn't grep for any of those.
 
-The plugin needs ESLint 9 or 10 with a flat config. A repo on a legacy `.eslintrc` can't load it, so skip this section and say in the report that the rules below didn't run.
+Run the rules in oxlint. Fall back to ESLint only when oxlint can't run.
 
-1. If `package.json` lacks `@oztix/roadie-lint-plugin`, install it as a dev dependency with the repo's package manager, such as `pnpm add -D @oztix/roadie-lint-plugin`. If it has `@oztix/roadie-eslint-plugin`, the package's name before 0.2.0, remove that and change the config's import to the new name.
-2. If the flat config (`eslint.config.*`) doesn't include it, add `roadie.configs.recommended` from `import roadie from '@oztix/roadie-lint-plugin'` to its array. A repo with no ESLint config also needs `eslint`, an `eslint.config.js` holding that config, and typescript-eslint's parser for TypeScript files.
-3. The icon rules find icons by their `@phosphor-icons/react` import. If the app imports icons from its own module, name them in `settings.roadie.phosphorIcons`, as the linting guide shows, or those rules miss them.
-4. Run ESLint on the target directory, such as `pnpm exec eslint src`, and report every `roadie/*` hit under its rule ID, at the severity in the table below.
+1. If `package.json` lacks `@oztix/roadie-lint-plugin`, install it as a dev dependency with the repo's package manager, such as `pnpm add -D @oztix/roadie-lint-plugin`. If it has `@oztix/roadie-eslint-plugin`, the package's name before 0.2.0, remove that and change the config to the new name.
+2. The icon rules find icons by their `@phosphor-icons/react` import. If the app imports icons from its own module, name them in `settings.roadie.phosphorIcons`, as the linting guide shows, or those rules miss them.
+3. Run oxlint on the target directory:
+   - **The app lints with oxlint** (`.oxlintrc.json` or `oxlint.config.*`). If its config doesn't extend the plugin's preset, add `./node_modules/@oztix/roadie-lint-plugin/oxlint/recommended.json` to `extends`. Then run its oxlint, such as `pnpm exec oxlint src`.
+   - **It doesn't.** Run oxlint once with a config outside the repo, so nothing in the app changes. That works for an app on ESLint flat config or a legacy `.eslintrc` too. Write a temporary `.oxlintrc.json` whose `extends` holds the absolute path to the app's `node_modules/@oztix/roadie-lint-plugin/oxlint/recommended.json`, plus `settings` from step 2 if any, then run oxlint with it from the app's root through the repo's package manager, such as `pnpm dlx oxlint@^1.88.0 -c <temp config> src` or `npx oxlint@^1.88.0 -c <temp config> src`. Keep the config for the re-scan, then delete it. Suggest moving the app to oxlint in the report.
+4. **Only when oxlint can't run** (it fails to load the plugin, or the app can't fetch it): if the app has an ESLint 9 or 10 flat config (`eslint.config.*`), add `roadie.configs.recommended` from `import roadie from '@oztix/roadie-lint-plugin'` to its array and run its ESLint, such as `pnpm exec eslint src`. With neither, skip this section and say in the report that the rules below didn't run, and why.
+5. Report every `roadie` hit under its rule ID, at the severity in the table below. Oxlint prints the ID as `roadie(no-dark-variant)`; report it as `roadie/no-dark-variant`.
 
 | Rule                             | Severity |
 | -------------------------------- | -------- |
@@ -40,7 +43,7 @@ The plugin needs ESLint 9 or 10 with a flat config. A repo on a legacy `.eslintr
 | `roadie/no-arbitrary-radius`     | Warning  |
 | `roadie/card-content`            | Warning  |
 
-The [linting guide](https://ticketsolutionsptyltd.github.io/roadie/overview/linting/) says what each rule fails and how to fix it. `eslint --fix` fixes none of them, so fix each by hand.
+The [linting guide](https://ticketsolutionsptyltd.github.io/roadie/overview/linting/) says what each rule fails and how to fix it. Neither `oxlint --fix` nor `eslint --fix` fixes any of them, so fix each by hand.
 
 ## Exclude paths
 
@@ -54,7 +57,7 @@ All scans must skip generated/vendored files. When using the Grep tool, set `pat
 
 ```dot
 digraph audit {
-  "Scan (ESLint, then batched greps)" -> "Group by severity";
+  "Scan (oxlint, then batched greps)" -> "Group by severity";
   "Group by severity" -> "Report to user";
   "Report to user" -> "User picks what to fix";
   "User picks what to fix" -> "Fix issues";
@@ -62,10 +65,10 @@ digraph audit {
 }
 ```
 
-1. **Scan** the target directory with ESLint (see Run the lint rules first), then the checks below — run independent checks in parallel by issuing multiple Grep tool calls in a single message (see Parallelization guide)
+1. **Scan** the target directory with oxlint, or ESLint when oxlint can't run (see Run the lint rules first), then the checks below — run independent checks in parallel by issuing multiple Grep tool calls in a single message (see Parallelization guide)
 2. **Report** findings grouped by severity with file paths and line numbers
 3. **Ask** the user which categories to fix (or fix all if instructed)
-4. **Fix** issues, then re-run ESLint and the greps to confirm no regressions
+4. **Fix** issues, then re-run the same lint command and the greps to confirm no regressions
 
 ## Severity levels
 
