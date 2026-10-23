@@ -1,54 +1,22 @@
 export const metadata = {
   title: 'Linting',
   description:
-    'Catch Roadie mistakes in your app at lint time with @oztix/roadie-lint-plugin, in ESLint or oxlint.'
+    'Catch Roadie mistakes in your app at lint time with @oztix/roadie-lint-plugin in oxlint, or in ESLint until your app can move.'
 }
 
-`@oztix/roadie-lint-plugin` checks the Roadie conventions a rule can be sure of: Phosphor icon imports, sizes, and weights, colour classes, arbitrary radius and z-index values, a `Card` without `Card.Content`, and jsdom tests that check what only a browser can. Calls that need judgement, such as which emphasis a surface takes, stay with review. It runs in ESLint and in oxlint, with the same rule IDs in both.
+`@oztix/roadie-lint-plugin` checks the Roadie conventions a rule can be sure of: Phosphor icon imports, sizes, and weights, colour classes, arbitrary radius and z-index values, a `Card` without `Card.Content`, and jsdom tests that check what only a browser can. Calls that need judgement, such as which emphasis a surface takes, stay with review. Lint with oxlint. ESLint runs the same rules, with the same rule IDs, for an app that can't move to oxlint yet.
 
 ## Install
 
 ```bash
-pnpm add -D @oztix/roadie-lint-plugin
+pnpm add -D @oztix/roadie-lint-plugin oxlint
 ```
 
-It works with ESLint 9 and 10 on flat config (`eslint.config.js`), and with oxlint 1.88 or later. Both are optional peer dependencies, so install the one your app lints with.
+It needs oxlint 1.88 or later. Both oxlint and ESLint are optional peer dependencies, so an app installs only the one it lints with. [If your app can't move to oxlint yet](#if-your-app-cant-move-to-oxlint-yet) covers ESLint.
 
-Before 0.2.0, the package was `@oztix/roadie-eslint-plugin`. To move, change the name in `package.json` and in your config's import. The rules and their IDs are the same.
+Before 0.2.0, the package was `@oztix/roadie-eslint-plugin`. To move, change the name in `package.json` and in your config. The rules and their IDs are the same.
 
-## Turn on the rules in ESLint
-
-Add the recommended config to your config array.
-
-```js
-import roadie from '@oztix/roadie-lint-plugin'
-
-export default [
-  // Your other configs
-  roadie.configs.recommended
-]
-```
-
-It turns every rule in the [Rules](#rules) table on as an error for JavaScript and TypeScript files, and turns on JSX parsing. TypeScript files still need the parser your config gives them, such as typescript-eslint's.
-
-To choose rules yourself, register the plugin as `roadie` and name each rule.
-
-```js
-import roadie from '@oztix/roadie-lint-plugin'
-
-export default [
-  {
-    files: ['src/**/*.{ts,tsx}'],
-    plugins: { roadie },
-    rules: {
-      'roadie/no-dark-variant': 'error',
-      'roadie/phosphor-icon-weight': 'warn'
-    }
-  }
-]
-```
-
-## Turn on the rules in oxlint
+## Turn on the rules
 
 In `.oxlintrc.json`, extend the recommended preset by its path. Oxlint's `extends` takes a file path, not a package name.
 
@@ -115,14 +83,6 @@ Two icon rules skip a case on purpose. `roadie/phosphor-icon-weight` skips an ic
 
 The testing preset catches jsdom tests that check layout or CSS. jsdom has no layout engine and doesn't evaluate CSS, so those tests pass whatever the page looks like. The preset turns its rules on for `*.test.*` files and off for `*.browser.test.*` files, such as tests in Vitest's browser mode, which is where those checks belong. It leaves `*.spec.*` files alone, because Playwright runs those in a real browser. If your jsdom tests are named `*.spec.*`, name the rules in a config of your own for those files.
 
-In ESLint, spread it into your config array.
-
-```js
-import roadie from '@oztix/roadie-lint-plugin'
-
-export default [roadie.configs.recommended, ...roadie.configs.testing]
-```
-
 In `.oxlintrc.json`, extend it after the recommended preset.
 
 ```json
@@ -136,6 +96,8 @@ In `.oxlintrc.json`, extend it after the recommended preset.
 
 In `oxlint.config.ts`, import `@oztix/roadie-lint-plugin/oxlint/testing.json` and add it to `extends` after `recommended`.
 
+In ESLint, spread `configs.testing` into your config array, as [If your app can't move to oxlint yet](#if-your-app-cant-move-to-oxlint-yet) shows.
+
 | Rule                      | Fails                                                                                                                       | Fix                                                                |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | `no-css-class-in-jsdom`   | A `calc()`, container query, or breakpoint class in `toHaveClass`, such as `md:grid`                                        | Measure it in a browser test                                       |
@@ -148,19 +110,6 @@ A `matchMedia` fake that answers only a preference, such as `prefers-reduced-mot
 
 The Phosphor rules find icons by their import. Code that gets icons another way, such as a live code editor with icons in scope, names them in `settings.roadie.phosphorIcons`.
 
-```js
-import roadie from '@oztix/roadie-lint-plugin'
-
-export default [
-  roadie.configs.recommended,
-  {
-    settings: { roadie: { phosphorIcons: ['HeartIcon', 'StarIcon'] } }
-  }
-]
-```
-
-In oxlint, `settings` goes at the top level of the config. Oxlint fails to load a config with `settings` inside `overrides`.
-
 ```json
 {
   "settings": {
@@ -168,3 +117,59 @@ In oxlint, `settings` goes at the top level of the config. Oxlint fails to load 
   }
 }
 ```
+
+`settings` goes at the top level of the config. Oxlint fails to load a config with `settings` inside `overrides`.
+
+## If your app can't move to oxlint yet
+
+Lint with ESLint 9 or 10 on flat config (`eslint.config.js`) until it can. The rules and their IDs are the same, so moving later changes only the config. Install the plugin without oxlint.
+
+```bash
+pnpm add -D @oztix/roadie-lint-plugin
+```
+
+Add the recommended config to your config array.
+
+```js
+import roadie from '@oztix/roadie-lint-plugin'
+
+export default [
+  // Your other configs
+  roadie.configs.recommended
+]
+```
+
+It turns every rule in the [Rules](#rules) table on as an error for JavaScript and TypeScript files, and turns on JSX parsing. TypeScript files still need the parser your config gives them, such as typescript-eslint's.
+
+To choose rules yourself, register the plugin as `roadie` and name each rule.
+
+```js
+import roadie from '@oztix/roadie-lint-plugin'
+
+export default [
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    plugins: { roadie },
+    rules: {
+      'roadie/no-dark-variant': 'error',
+      'roadie/phosphor-icon-weight': 'warn'
+    }
+  }
+]
+```
+
+Spread the [testing](#testing) preset into the array after the recommended config, and put the `settings` from [Icons without an import](#icons-without-an-import) in a config of its own.
+
+```js
+import roadie from '@oztix/roadie-lint-plugin'
+
+export default [
+  roadie.configs.recommended,
+  ...roadie.configs.testing,
+  {
+    settings: { roadie: { phosphorIcons: ['HeartIcon', 'StarIcon'] } }
+  }
+]
+```
+
+An app on a legacy `.eslintrc` can't load the plugin in ESLint. Move it to oxlint, or to flat config.

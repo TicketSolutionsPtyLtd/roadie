@@ -1,7 +1,7 @@
 {
   "name": "@oztix/roadie-lint-plugin",
   "version": "0.1.1",
-  "description": "Lint rules that catch Roadie Design System mistakes in apps, for ESLint and oxlint",
+  "description": "Lint rules that catch Roadie Design System mistakes in apps, for oxlint and ESLint",
   "type": "module",
   "repository": {
     "type": "git",
@@ -12,11 +12,11 @@
   "bugs": "https://github.com/TicketSolutionsPtyLtd/roadie/issues",
   "license": "ISC",
   "keywords": [
+    "oxlint",
+    "oxlint-plugin",
     "eslint",
     "eslintplugin",
     "eslint-plugin",
-    "oxlint",
-    "oxlint-plugin",
     "roadie"
   ],
   "exports": {
