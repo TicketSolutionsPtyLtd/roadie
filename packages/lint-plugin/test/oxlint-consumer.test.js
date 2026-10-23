@@ -1,12 +1,15 @@
 import { execFileSync, spawnSync } from 'node:child_process'
-import { readFileSync, readdirSync, rmSync } from 'node:fs'
+import { readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import {
   BROWSER_TEST_MISTAKE_RULES,
+  FIXABLE,
+  FIXED,
   MISTAKE_RULES,
   TEST_MISTAKE_RULES,
+  addRoadie,
   createApp
 } from './app.js'
 
@@ -48,6 +51,7 @@ beforeAll(() => {
     ],
     { cwd: app, encoding: 'utf8', stdio: 'pipe' }
   )
+  addRoadie(app)
 }, 60_000)
 
 afterAll(() => rmSync(app, { recursive: true, force: true }))
@@ -55,13 +59,18 @@ afterAll(() => rmSync(app, { recursive: true, force: true }))
 describe.each(Object.keys(CONFIGS))(
   'an app on oxlint with the presets in %s',
   (config) => {
-    const lint = (file) => {
-      // oxlint exits 1 when it reports an error, so read the report either way.
-      const { stdout } = spawnSync(
+    // oxlint exits 1 when it reports an error, so read the report either way.
+    const oxlint = (...args) =>
+      spawnSync(
         join(app, 'node_modules/.bin/oxlint'),
-        ['-c', config, '-f', 'json', file],
-        { cwd: app, encoding: 'utf8' }
+        ['-c', config, ...args],
+        {
+          cwd: app,
+          encoding: 'utf8'
+        }
       )
+    const lint = (file) => {
+      const { stdout } = oxlint('-f', 'json', file)
       // oxlint writes rule IDs as roadie(rule), and ESLint as roadie/rule.
       return JSON.parse(stdout)
         .diagnostics.map(({ code }) => code.replace(/^(\w+)\((.+)\)$/, '$1/$2'))
@@ -84,6 +93,13 @@ describe.each(Object.keys(CONFIGS))(
       expect(lint('src/Ticket.browser.test.jsx')).toEqual(
         BROWSER_TEST_MISTAKE_RULES
       )
+    })
+
+    it('fixes a class to its canonical form', () => {
+      const file = join(app, 'src/Fixable.jsx')
+      writeFileSync(file, FIXABLE)
+      oxlint('--fix', 'src/Fixable.jsx')
+      expect(readFileSync(file, 'utf8')).toBe(FIXED)
     })
   }
 )

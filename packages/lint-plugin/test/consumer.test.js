@@ -8,8 +8,10 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import {
   BROWSER_TEST_MISTAKE_RULES,
+  FIXED,
   MISTAKE_RULES,
   TEST_MISTAKE_RULES,
+  addRoadie,
   createApp
 } from './app.js'
 
@@ -30,6 +32,7 @@ beforeAll(() => {
     cwd: app,
     stdio: 'ignore'
   })
+  addRoadie(app)
 }, 60_000)
 
 afterAll(() => rmSync(app, { recursive: true, force: true }))
@@ -59,6 +62,13 @@ describe.each([
     expect(await lint('src/Ticket.browser.test.jsx')).toEqual(
       BROWSER_TEST_MISTAKE_RULES
     )
+  })
+
+  it('fixes a class to its canonical form', async () => {
+    const [result] = await new ESLint({ cwd: app, fix: true }).lintFiles([
+      'src/Fixable.jsx'
+    ])
+    expect(result.output).toBe(FIXED)
   })
 })
 

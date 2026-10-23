@@ -1,8 +1,11 @@
 import { staticString } from './ast.js'
+import { canonicalClasses } from './tailwind.js'
 
 const COLORS =
   'https://ticketsolutionsptyltd.github.io/roadie/foundations/colors'
 const SHAPE = 'https://ticketsolutionsptyltd.github.io/roadie/foundations/shape'
+const LINTING =
+  'https://ticketsolutionsptyltd.github.io/roadie/overview/linting'
 const ELEVATION =
   'https://ticketsolutionsptyltd.github.io/roadie/foundations/elevation'
 
@@ -111,7 +114,81 @@ export function classRule(description, pattern, message) {
   }
 }
 
+// A token at a template's ${…} edge is part of a class, such as p-${size}.
+function wholeTokens({ node, text }) {
+  const isTemplate = node.type === 'TemplateElement'
+  const tokens = [...text.matchAll(/\S+/g)]
+  return tokens.filter(({ index, 0: token }) => {
+    const touchesStart = index === 0 && isTemplate && !isHead(node)
+    const touchesEnd =
+      index + token.length === text.length && isTemplate && !node.tail
+    return !touchesStart && !touchesEnd
+  })
+}
+
+const isHead = (node) => node.parent?.quasis?.[0] === node
+
+// The utility after the last variant colon outside brackets, without !.
+function utilityOf(token) {
+  let depth = 0
+  let start = 0
+  for (let i = 0; i < token.length; i++) {
+    if ('[('.includes(token[i])) depth++
+    else if ('])'.includes(token[i])) depth--
+    else if (token[i] === ':' && depth === 0) start = i + 1
+  }
+  return token.slice(start).replace(/^!/, '')
+}
+
+// Roadie's hide tier is -1, so Tailwind writes z-1 as -z-hide, which reads
+// as a different tier. An arbitrary value, such as top-[-1px], may still
+// become a negative class, such as -top-px.
+const negatesATier = (token, canonical) =>
+  utilityOf(canonical).startsWith('-') && !/^-|[[(]/.test(utilityOf(token))
+
+const canonicalClass = {
+  meta: {
+    type: 'suggestion',
+    fixable: 'code',
+    docs: { description: 'Tailwind classes in their canonical form.' },
+    schema: []
+  },
+  create: (context) =>
+    classStrings(context, (parts) => {
+      const found = parts.flatMap((part) =>
+        wholeTokens(part).map((match) => ({ part, match }))
+      )
+      const canonical = canonicalClasses(
+        context.filename,
+        found.map(({ match }) => match[0])
+      )
+      if (!canonical) return
+      found.forEach(({ part: { node, text }, match }, i) => {
+        const token = match[0]
+        if (!canonical[i] || canonical[i] === token) return
+        if (negatesATier(token, canonical[i])) return
+        // An escape makes the source differ from the text, so there's no fix.
+        const offset = context.sourceCode.getText(node).indexOf(text)
+        const start = node.range[0] + offset + match.index
+        context.report({
+          node,
+          message: `Replace {{token}} with {{canonical}}, its canonical form. See ${LINTING}.`,
+          data: { token, canonical: canonical[i] },
+          fix:
+            offset < 0
+              ? null
+              : (fixer) =>
+                  fixer.replaceTextRange(
+                    [start, start + token.length],
+                    canonical[i]
+                  )
+        })
+      })
+    })
+}
+
 export const classRules = {
+  'canonical-class': canonicalClass,
   'no-dark-variant': classRule(
     'No dark: variants.',
     /(^|:)dark:/,
