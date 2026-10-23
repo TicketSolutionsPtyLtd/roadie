@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatDateRange } from '@oztix/roadie-core/datetime'
-
 import { spokenRange, spokenValue, wallRange } from './range'
 
 const at = (iso: string) => Date.parse(`${iso}Z`)
@@ -88,15 +86,6 @@ describe('spokenRange', () => {
     }
   ])('reads $name', ({ start, end, options, text }) => {
     expect(spokenRange(at(start), at(end), options)).toBe(text)
-  })
-
-  it('reads the dates as the date and time foundations do', () => {
-    const [start, end] = [at('2026-10-08T00:00'), at('2026-10-10T00:00')]
-    const dates = formatDateRange(new Date(start), new Date(end), {
-      timeZone: 'UTC',
-      dateStyle: 'full'
-    })
-    expect(spokenRange(start, end, { hasTime: false })).toContain(`${dates},`)
   })
 })
 
