@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
@@ -103,6 +105,35 @@ describe('RadioGroup', () => {
       </RadioGroup>
     )
     expect(getByText('(optional)')).toBeInTheDocument()
+  })
+
+  it.each([
+    [
+      'its invalid prop',
+      (items: ReactNode) => <RadioGroup invalid>{items}</RadioGroup>
+    ],
+    [
+      'an invalid Field',
+      (items: ReactNode) => (
+        <Field invalid>
+          <RadioGroup>{items}</RadioGroup>
+        </Field>
+      )
+    ]
+  ])('marks the group invalid from %s', (_, wrap) => {
+    const { getByRole } = render(
+      wrap(<RadioGroup.Item value='email' label='Email' />)
+    )
+    expect(getByRole('radiogroup')).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('leaves a valid group unmarked', () => {
+    const { getByRole } = render(
+      <RadioGroup>
+        <RadioGroup.Item value='email' label='Email' />
+      </RadioGroup>
+    )
+    expect(getByRole('radiogroup')).not.toHaveAttribute('aria-invalid')
   })
 
   it('inherits invalid from Field context', () => {

@@ -52,6 +52,7 @@ export function RadioGroupRoot({
         data-slot='radio-group'
         className={cn(radioGroupVariants({ direction, size, className }))}
         disabled={disabled ?? fieldContext.disabled}
+        aria-invalid={resolvedInvalid || undefined}
         aria-labelledby={
           labelId ?? ((inField && fieldContext.labelId) || undefined)
         }

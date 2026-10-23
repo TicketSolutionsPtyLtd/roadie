@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { RadioGroup, type RadioGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
@@ -173,5 +174,103 @@ describe('RadioGroup spacing', () => {
     expect(sm).toBeLessThanOrEqual(2)
     expect(md).toBeGreaterThan(sm)
     expect(lg).toBeGreaterThan(md)
+  })
+})
+
+describe('RadioGroup disabled', () => {
+  const row = (name: string) =>
+    screen
+      .getByRole('radio', { name })
+      .closest('[data-slot="radio-group-item"]')!
+
+  it.each([
+    ['a disabled group', { disabled: true }, {}],
+    ['a disabled item', {}, { disabled: true }]
+  ] as const)('dims %s and ignores presses on it', (_, group, item) => {
+    render(
+      <RadioGroup {...group}>
+        <RadioGroup.Item value='floor' label='Floor' {...item} />
+      </RadioGroup>
+    )
+    const style = getComputedStyle(row('Floor'))
+    expect(style.opacity).toBe('0.5')
+    expect(style.pointerEvents).toBe('none')
+  })
+})
+
+describe('RadioGroup invalid', () => {
+  const swatch = (scale: string) => {
+    const el = document.createElement('span')
+    el.style.color = `var(--color-${scale})`
+    document.body.append(el)
+    const { color } = getComputedStyle(el)
+    el.remove()
+    return color
+  }
+
+  function expectDangerCircles() {
+    const [border, tint, chosenTint] = [
+      swatch('danger-9'),
+      swatch('danger-2'),
+      swatch('danger-3')
+    ]
+    const chosen = screen.getByRole('radio', { name: 'Floor' })
+    const empty = screen.getByRole('radio', { name: 'Balcony' })
+    expect(getComputedStyle(empty).borderColor).toBe(border)
+    expect(getComputedStyle(empty).backgroundColor).toBe(tint)
+    expect(getComputedStyle(chosen).borderColor).toBe(border)
+    expect(getComputedStyle(chosen).backgroundColor).toBe(chosenTint)
+    expect(getComputedStyle(chosen.firstElementChild!).backgroundColor).toBe(
+      border
+    )
+  }
+
+  const items = (
+    <>
+      <RadioGroup.Item value='floor' label='Floor' />
+      <RadioGroup.Item value='balcony' label='Balcony' />
+    </>
+  )
+
+  it('draws every circle in danger, with a danger dot on the chosen one', () => {
+    render(
+      <RadioGroup invalid defaultValue='floor'>
+        {items}
+      </RadioGroup>
+    )
+    expectDangerCircles()
+  })
+
+  it('draws danger circles when its Field is invalid', () => {
+    render(
+      <Field invalid>
+        <RadioGroup defaultValue='floor'>{items}</RadioGroup>
+      </Field>
+    )
+    expectDangerCircles()
+  })
+
+  it('colours the focus ring danger, as an invalid field does', () => {
+    render(
+      <>
+        <input className='is-interactive-field' aria-invalid='true' />
+        <RadioGroup invalid>{items}</RadioGroup>
+      </>
+    )
+    const field = screen.getByRole('textbox')
+    const circle = screen.getByRole('radio', { name: 'Floor' })
+    expect(getComputedStyle(circle).outlineColor).toBe(
+      getComputedStyle(field).outlineColor
+    )
+  })
+
+  it('keeps the pale accent tint and accent dot when valid', () => {
+    render(<RadioGroup defaultValue='floor'>{items}</RadioGroup>)
+    const chosen = screen.getByRole('radio', { name: 'Floor' })
+    expect(getComputedStyle(chosen).borderColor).toBe(swatch('accent-9'))
+    expect(getComputedStyle(chosen).backgroundColor).toBe(swatch('accent-3'))
+    expect(getComputedStyle(chosen.firstElementChild!).backgroundColor).toBe(
+      swatch('accent-9')
+    )
   })
 })
