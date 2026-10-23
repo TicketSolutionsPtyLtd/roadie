@@ -43,6 +43,25 @@ describe.each(Object.keys(plugin.configs))('the %s preset', (name) => {
   })
 })
 
+const LINTING =
+  'https://ticketsolutionsptyltd.github.io/roadie/overview/linting'
+
+// Editors link a reported rule ID to its docs.url.
+it('links each rule to the section of the linting guide for its preset', () => {
+  const section = (config, anchor) =>
+    Object.keys(config.rules).map((id) => [id, `${LINTING}#${anchor}`])
+  const urls = Object.entries(plugin.rules).map(([rule, { meta }]) => [
+    `roadie/${rule}`,
+    meta.docs.url
+  ])
+  expect(Object.fromEntries(urls)).toEqual(
+    Object.fromEntries([
+      ...section(plugin.configs.recommended, 'rules'),
+      ...section(plugin.configs.testing[0], 'testing')
+    ])
+  )
+})
+
 describe('the testing preset', () => {
   const eslint = new ESLint({
     overrideConfigFile: true,

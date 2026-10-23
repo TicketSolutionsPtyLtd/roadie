@@ -7,8 +7,29 @@ import { jsdomRules, testRules } from './testing.js'
 
 const { name, version } = createRequire(import.meta.url)('../package.json')
 
-const recommendedRules = { ...phosphorRules, ...classRules, ...cardRules }
-const rules = { ...recommendedRules, ...jsdomRules, ...testRules }
+const LINTING =
+  'https://ticketsolutionsptyltd.github.io/roadie/overview/linting'
+
+const linked = (ruleSet, section) =>
+  Object.fromEntries(
+    Object.entries(ruleSet).map(([id, rule]) => [
+      id,
+      {
+        ...rule,
+        meta: {
+          ...rule.meta,
+          docs: { ...rule.meta.docs, url: `${LINTING}#${section}` }
+        }
+      }
+    ])
+  )
+
+const recommendedRules = linked(
+  { ...phosphorRules, ...classRules, ...cardRules },
+  'rules'
+)
+const testingRules = linked({ ...jsdomRules, ...testRules }, 'testing')
+const rules = { ...recommendedRules, ...testingRules }
 
 const plugin = {
   meta: { name, version },
@@ -38,7 +59,7 @@ plugin.configs.testing = [
     files: [`**/*.test.${EXTENSIONS}`],
     plugins: { roadie: plugin },
     languageOptions,
-    rules: { ...turn('error', jsdomRules), ...turn('error', testRules) }
+    rules: turn('error', testingRules)
   },
   // Vitest's browser mode, and Playwright's specs and e2e folders, run in a
   // real browser, which is where layout and CSS get tested.
