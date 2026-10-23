@@ -51,6 +51,18 @@ describe('DataTable grouped rows', () => {
     expect(north).toBeCloseTo(ga, 0)
   })
 
+  it('lines rows up with their group label after a sum that comes first', () => {
+    render(
+      <DataTable
+        columns={[columns[3]!, ...columns.slice(0, 3)]}
+        rows={rows}
+        groupBy={['pool', 'type']}
+        defaultExpanded
+      />
+    )
+    expect(textStart('North')).toBeCloseTo(textStart('GA'), 0)
+  })
+
   it('turns the caret when its group opens', () => {
     render(
       <DataTable

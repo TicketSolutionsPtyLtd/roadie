@@ -119,6 +119,17 @@ describe('DataTable totals row', () => {
     expect(container.querySelector('[data-priority]')).toBeNull()
   })
 
+  it('never hides the label column when a sum comes first', () => {
+    const { container } = render(
+      <DataTable
+        totals
+        columns={[columns[1]!, { ...columns[0]!, priority: 2 }]}
+        rows={rows}
+      />
+    )
+    expect(container.querySelector('[data-priority]')).toBeNull()
+  })
+
   it('sums in the given order however the rows are sorted', () => {
     const { container } = render(
       <DataTable
