@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { Checkbox, type CheckboxProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { CheckboxGroup } from '../CheckboxGroup'
+import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
@@ -114,6 +115,44 @@ describe('Checkbox colour', () => {
       expect(getComputedStyle(box).boxShadow).not.toContain('inset')
     }
   )
+
+  function expectDangerFill(box: HTMLElement) {
+    const strong = getComputedStyle(screen.getByTestId('danger'))
+    expect(getComputedStyle(box).backgroundColor).toBe(strong.backgroundColor)
+    expect(getComputedStyle(box).borderColor).toBe(strong.backgroundColor)
+    expect(getComputedStyle(box.querySelector('svg')!).color).toBe(strong.color)
+  }
+
+  const dangerSwatch = (
+    <span data-testid='danger' className='emphasis-strong intent-danger'>
+      Danger
+    </span>
+  )
+
+  it.each([
+    ['ticked', { defaultChecked: true }],
+    ['indeterminate', { indeterminate: true }]
+  ] as const)('fills an invalid %s box with danger', (_, state) => {
+    render(
+      <>
+        {dangerSwatch}
+        <Checkbox label='Rock' invalid {...state} />
+      </>
+    )
+    expectDangerFill(screen.getByRole('checkbox', { name: 'Rock' }))
+  })
+
+  it('fills a ticked box with danger when its Field is invalid', () => {
+    render(
+      <>
+        {dangerSwatch}
+        <Field invalid>
+          <Checkbox label='Agree' defaultChecked />
+        </Field>
+      </>
+    )
+    expectDangerFill(screen.getByRole('checkbox', { name: 'Agree' }))
+  })
 
   it('keeps an empty box sunken', () => {
     render(<Checkbox label='Rock' />)
