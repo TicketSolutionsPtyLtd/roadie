@@ -53,12 +53,23 @@ const listColumns = [
 ]
 
 type CardProps = Pick<ComponentProps<typeof Card>, 'emphasis' | 'variant'>
+// Card has no strong emphasis, so a strong surface is a plain element.
+type SurfaceProps = CardProps | { emphasis: 'strong'; variant?: never }
 
 function Surface({
   cardLink = false,
   children,
   ...props
-}: CardProps & { cardLink?: boolean; children: ReactNode }) {
+}: SurfaceProps & { cardLink?: boolean; children: ReactNode }) {
+  if (props.emphasis === 'strong') {
+    return (
+      <div style={{ padding: 24, width: 360 }}>
+        <div className='is-interactive-within grid emphasis-strong gap-4 rounded-xl p-4'>
+          {children}
+        </div>
+      </div>
+    )
+  }
   return (
     <div style={{ padding: 24, width: 360 }}>
       <Card {...props}>
@@ -79,7 +90,8 @@ const groupedTable = (
   <DataTable caption='Scans' columns={columns} rows={rows} groupBy={['pool']} />
 )
 
-const card = () => document.querySelector<HTMLElement>('[data-slot=card]')!
+const card = () =>
+  document.querySelector<HTMLElement>('.is-interactive-within')!
 const groupToggle = () =>
   document.querySelector<HTMLElement>(
     '[data-slot=data-table-group] [data-interactive-target]'
@@ -126,20 +138,22 @@ async function focusByKeyboard(element: HTMLElement) {
   await frame()
 }
 
-const surfaces: [string, CardProps][] = [
+const surfaces: [string, SurfaceProps][] = [
+  ['strong', { emphasis: 'strong' }],
   ['normal', { emphasis: 'normal' }],
   ['raised', { emphasis: 'raised' }],
   ['subtle', { emphasis: 'subtle' }],
   ['subtler', { emphasis: 'subtler' }],
   ['raised ticket', { variant: 'ticket', emphasis: 'raised' }],
   ['normal ticket', { variant: 'ticket', emphasis: 'normal' }],
+  ['subtle ticket', { variant: 'ticket', emphasis: 'subtle' }],
   ['subtler ticket', { variant: 'ticket', emphasis: 'subtler' }]
 ]
 
 describe('is-interactive-within around another is-interactive-within', () => {
   describe.each(surfaces)(
     'a %s card around a grouped DataTable',
-    (_name: string, props: CardProps) => {
+    (_name: string, props: SurfaceProps) => {
       it('stays still while a group toggle is pressed', async () => {
         render(<Surface {...props}>{groupedTable}</Surface>)
         const rest = look(card())
@@ -177,7 +191,9 @@ describe('is-interactive-within around another is-interactive-within', () => {
           </>
         )
         const [nested, plain] = [
-          ...document.querySelectorAll<HTMLElement>('[data-slot=card]')
+          ...document.querySelectorAll<HTMLElement>(
+            '[style] > .is-interactive-within'
+          )
         ]
 
         expect(look(nested!)).toEqual(look(plain!))
