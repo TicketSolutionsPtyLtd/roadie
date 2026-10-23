@@ -348,7 +348,7 @@ export function RecordTableContent({
         tabIndex={-1}
         className={cn(
           'isolate outline-none',
-          boxed && 'grid grow',
+          boxed && 'grid grow items-start',
           dimmed && 'opacity-60'
         )}
       >
@@ -594,7 +594,10 @@ export function RecordTableContent({
                 data-slot='record-table-scroller'
                 {...rowsSurvivor}
                 tabIndex={-1}
-                className={cn('isolate grid', dimmed && 'opacity-60')}
+                className={cn(
+                  'isolate grid items-start',
+                  dimmed && 'opacity-60'
+                )}
               >
                 {body}
               </div>
@@ -709,7 +712,7 @@ function NarrowState({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   useKeepFocusInTable(ref)
   return (
-    <div ref={ref} className='grid content-center'>
+    <div ref={ref} className='grid content-center self-stretch'>
       {children}
     </div>
   )

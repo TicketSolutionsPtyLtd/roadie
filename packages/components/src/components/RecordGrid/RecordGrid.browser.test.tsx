@@ -370,23 +370,50 @@ describe('RecordGrid in a fill box', () => {
           <RecordGrid {...props} fields={showFields} card={grid} fill />
         </Parent>
       )
+      const { container: unboxed } = render(
+        <div style={{ width: 900 }}>
+          <RecordGrid {...props} fields={showFields} card={grid} />
+        </div>
+      )
       await framed(() =>
         stateOffCentre(container, 'record-grid', state)
       ).toBeLessThanOrEqual(2)
+      const height = (within: HTMLElement) =>
+        rect(within.querySelector(`[data-slot="${state}"]`)!).height
+      expect(height(container)).toBeCloseTo(height(unboxed), 0)
     })
 
-  it('keeps cards at the top', async () => {
-    const { container } = render(
-      <Parent>
-        <RecordGrid data={testShows(3)} fields={showFields} card={grid} fill />
-      </Parent>
-    )
-    const scroller = container.querySelector(
-      '[data-slot="record-grid-scroller"]'
-    )!
-    await framed(() => cards(container).length).toBeGreaterThan(0)
-    expect(
-      Math.abs(rect(cards(container)[0]!).top - rect(scroller).top)
-    ).toBeLessThanOrEqual(1)
-  })
+  for (const [what, item, props] of [
+    ['cards', 'record-grid-card', { data: testShows(3) }],
+    [
+      'loading placeholders',
+      'record-table-placeholder-row',
+      { data: [], loading: true }
+    ]
+  ] as const)
+    it(`keeps ${what} at the top, at their own height`, async () => {
+      const first = (container: HTMLElement) =>
+        container.querySelector(`[data-slot="${item}"]`)
+      const { container: boxed } = render(
+        <Parent>
+          <RecordGrid {...props} fields={showFields} card={grid} fill />
+        </Parent>
+      )
+      const { container: unboxed } = render(
+        <div style={{ width: 900 }}>
+          <RecordGrid {...props} fields={showFields} card={grid} />
+        </div>
+      )
+      await framed(() => first(boxed) && first(unboxed)).toBeTruthy()
+      const scroller = boxed.querySelector(
+        '[data-slot="record-grid-scroller"]'
+      )!
+      expect(
+        Math.abs(rect(first(boxed)!).top - rect(scroller).top)
+      ).toBeLessThanOrEqual(1)
+      expect(rect(first(boxed)!).height).toBeCloseTo(
+        rect(first(unboxed)!).height,
+        0
+      )
+    })
 })

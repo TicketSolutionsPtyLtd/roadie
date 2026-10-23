@@ -30,7 +30,7 @@ export function StateRow({
   useKeepFocusInTable(ref)
   return (
     // Centred in whatever height a box gives the rows.
-    <div ref={ref} role='rowgroup' className='grid content-center'>
+    <div ref={ref} role='rowgroup' className='grid content-center self-stretch'>
       <div role='row' className='block'>
         <div role='cell' aria-colspan={columns} className='block'>
           {children}

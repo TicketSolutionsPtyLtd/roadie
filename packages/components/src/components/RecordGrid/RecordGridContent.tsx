@@ -210,7 +210,7 @@ export function RecordGridContent({
         tabIndex={-1}
         className={cn(
           'isolate outline-none',
-          boxed && 'grid grow',
+          boxed && 'grid grow items-start',
           dimmed && 'opacity-60'
         )}
       >
@@ -247,7 +247,7 @@ function GridState({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   useKeepFocusInTable(ref)
   return (
-    <div ref={ref} className='grid content-center'>
+    <div ref={ref} className='grid content-center self-stretch'>
       {children}
     </div>
   )
