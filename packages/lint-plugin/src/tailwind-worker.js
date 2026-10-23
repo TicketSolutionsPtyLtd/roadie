@@ -36,7 +36,6 @@ async function loadDesignSystem(stylesheet, app) {
   const tailwind = require(
     resolveFrom([app, dirname(stylesheet)], ['tailwindcss'])
   )
-  if (!tailwind.__unstable__loadDesignSystem) return null
   const designSystem = await tailwind.__unstable__loadDesignSystem(
     readFileSync(stylesheet, 'utf8'),
     {
