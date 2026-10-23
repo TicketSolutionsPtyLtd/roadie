@@ -101,8 +101,12 @@ const printMedia: BrowserCommand<[active: boolean]> = ({ page }, active) =>
 const parkPointer: BrowserCommand<[]> = ({ page }) => page.mouse.move(0, 0)
 
 // Firefox stops firing focus events in a window that isn't focused, which
-// files run one after another can leave it in.
-const focusPage: BrowserCommand<[]> = ({ page }) => page.bringToFront()
+// files run one after another can leave it in. Focusing the window alone
+// leaves focus on the runner's page until something clicks the test frame.
+const focusPage: BrowserCommand<[]> = async ({ page, frame }) => {
+  await page.bringToFront()
+  await (await (await frame()).frameElement()).focus()
+}
 
 type PointerStep =
   | { type: 'move'; x: number; y: number; steps?: number }

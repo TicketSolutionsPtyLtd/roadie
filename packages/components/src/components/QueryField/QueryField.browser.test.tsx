@@ -101,6 +101,14 @@ const input = () =>
   screen.getByRole<HTMLInputElement>('combobox', { name: 'Search orders' })
 const group = () => document.querySelector('[data-slot=query-field]')!
 const box = (element: Element) => element.getBoundingClientRect()
+
+// The popup opens at 95% scale until Base UI drops its starting style a few
+// frames later, so measure only after that.
+async function openedPopup() {
+  const popup = document.querySelector('[data-slot=combobox-popup]')!
+  await expect.poll(() => popup.hasAttribute('data-starting-style')).toBe(false)
+  return popup
+}
 const shown = (element: Element | null) =>
   !!element && getComputedStyle(element).display !== 'none'
 
@@ -497,6 +505,7 @@ describe('QueryField', () => {
     )
     await userEvent.click(input())
     await screen.findByRole('button', { name: 'not' })
+    await openedPopup()
     for (const name of ['not', 'or']) {
       const item = screen.getByRole('button', { name })
       expect(box(item).height).toBeGreaterThanOrEqual(32)
@@ -565,6 +574,7 @@ describe('QueryField', () => {
         return { top, height }
       })
     await expect.poll(() => hinted('Brisbane')).toBe(true)
+    await openedPopup()
     const resting = rows()
     expect(resting[0]!.height).toBe(resting[1]!.height)
 
@@ -636,7 +646,7 @@ describe('QueryField', () => {
     await userEvent.click(input())
     await screen.findByRole('option', { name: /Iguana Teapot Hall/ })
     const toggle = screen.getByRole('group', { name: 'Operator' })
-    const popup = document.querySelector('[data-slot=combobox-popup]')!
+    const popup = await openedPopup()
     expect(toggle.scrollWidth).toBeGreaterThan(toggle.clientWidth)
     expect(box(toggle).right).toBeLessThanOrEqual(box(popup).right)
     await expect.poll(() => toggle.scrollLeft).toBeGreaterThan(0)
@@ -688,7 +698,7 @@ describe('QueryField', () => {
       )
       await userEvent.click(input())
       await screen.findByRole('option', { name: /Gooseberry/ })
-      const popup = document.querySelector('[data-slot=combobox-popup]')!
+      const popup = await openedPopup()
       await expect
         .poll(() => box(popup).width)
         .toBeLessThanOrEqual(box(group()).width + 0.5)
@@ -755,7 +765,7 @@ describe('QueryField', () => {
     )
     await userEvent.click(input())
     await screen.findByRole('option', { name: 'Venue 0' })
-    const popup = document.querySelector('[data-slot=combobox-popup]')!
+    const popup = await openedPopup()
     const toggle = screen.getByRole('group', { name: 'Operator' })
     const resting = box(toggle).top - box(popup).top
     popup.scrollTop = popup.scrollHeight
