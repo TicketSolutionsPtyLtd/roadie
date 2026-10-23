@@ -14,6 +14,7 @@ import roadieCss from '../../vitest.browser.css?inline'
 import { BarChart } from '../BarChart'
 import { Chart } from '../Chart'
 import { LineChart } from '../LineChart'
+import { StackedArea } from '../StackedArea'
 import { loadBrandFont, useStylesheet } from '../testUtils'
 import { afterResize } from './browserTesting'
 
@@ -21,6 +22,10 @@ const days = Array.from({ length: 8 }, (_, i) => ({
   day: `2026-10-0${i + 1}`,
   sold: [120, 180, 150, 240, 310, 260, 400, 380][i]!
 }))
+const channels = days.flatMap((d) => [
+  { ...d, channel: 'Email' },
+  { ...d, sold: d.sold / 2, channel: 'Social' }
+])
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -95,6 +100,27 @@ describe('range selection by pointer', () => {
     const onRangeSelect = vi.fn()
     const chart = renderChart(
       <LineChart data={days} x='day' y='sold' onRangeSelect={onRangeSelect} />
+    )
+    await afterResize()
+    const at = await pointPositions(chart, 8)
+    await drag(at[2]!, at[5]!)
+    await expect.poll(() => onRangeSelect.mock.calls.length).toBe(1)
+    expect(onRangeSelect).toHaveBeenCalledWith({
+      start: '2026-10-03',
+      end: '2026-10-06'
+    })
+  })
+
+  it('reports the dragged days of a stacked area', async () => {
+    const onRangeSelect = vi.fn()
+    const chart = renderChart(
+      <StackedArea
+        data={channels}
+        x='day'
+        y='sold'
+        series='channel'
+        onRangeSelect={onRangeSelect}
+      />
     )
     await afterResize()
     const at = await pointPositions(chart, 8)
@@ -478,6 +504,17 @@ describe('range selection off', () => {
         data={days.map((d, i) => ({ ...d, day: i }))}
         x='day'
         y='sold'
+        onRangeSelect={() => {}}
+      />
+    ],
+    [
+      'on a numeric stacked area',
+      <StackedArea
+        key='d'
+        data={channels.map((d) => ({ ...d, day: Number(d.day.slice(-2)) }))}
+        x='day'
+        y='sold'
+        series='channel'
         onRangeSelect={() => {}}
       />
     ],

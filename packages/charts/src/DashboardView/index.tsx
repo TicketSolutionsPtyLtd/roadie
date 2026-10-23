@@ -11,7 +11,6 @@ import { DataTable } from '@oztix/roadie-components/data-table'
 import { StatTile } from '@oztix/roadie-components/stat-tile'
 import type {
   CardSize,
-  ChartCard,
   DashboardCard,
   DashboardPeriodSpec,
   DashboardSpec,
@@ -50,15 +49,10 @@ export type DashboardViewProps = {
    * Called with the period and comparison chosen in the toolbar, without
    * `history`: resolve them, fetch, and pass back a spec with the new
    * `period`. Without it the period shows read-only, as when the page sets it.
+   * It also takes the range dragged across a card whose plot sets
+   * `selectsPeriod`, with the current comparison.
    */
   onPeriodChange?: (period: DashboardPeriodValue<string>) => void
-  /**
-   * Lets a drag across a `line` or `bar` card with dated x set the period,
-   * keeping its comparison. Called for each of those cards: return `true`
-   * where x is the period's timeline, such as sales each day, and not where
-   * it's another, such as shows coming up. Needs `onPeriodChange`.
-   */
-  selectsPeriod?: (card: ChartCard) => boolean
   /**
    * The period toolbar's other props: `presets`, `timeZone`, `today`,
    * `locale`, `weekStart`, `fiscalYearStart`, `dataStart`, `dataEnd`,
@@ -115,9 +109,27 @@ function headline(
   }
 }
 
-const isTimeCard = (card: DashboardCard): card is ChartCard =>
+const selectsPeriod = (card: DashboardCard) =>
   card.kind === 'chart' &&
-  (card.plot.kind === 'line' || card.plot.kind === 'bar')
+  'selectsPeriod' in card.plot &&
+  card.plot.selectsPeriod === true
+
+declare const process: { env?: { NODE_ENV?: string } } | undefined
+
+const warned = new Set<string>()
+
+function warnUnwired(spec: DashboardSpec) {
+  if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
+    return
+  for (const section of spec.sections)
+    for (const card of section.cards) {
+      if (!selectsPeriod(card) || warned.has(card.id)) continue
+      warned.add(card.id)
+      console.warn(
+        `DashboardView: card "${card.id}" sets selectsPeriod, but there's no onPeriodChange, so a drag can't set the period`
+      )
+    }
+}
 
 // A dashboard period covers whole days, so an hourly card's range widens.
 const wholeDays = ({ start, end }: AbsoluteRange): AbsoluteRange => ({
@@ -237,11 +249,11 @@ export function DashboardView({
   cardActions,
   getRowHref,
   onPeriodChange,
-  selectsPeriod,
   periodProps,
   className
 }: DashboardViewProps) {
   const { period } = spec
+  if (!onPeriodChange) warnUnwired(spec)
   const selectPeriod =
     period && onPeriodChange && !periodProps?.disabled
       ? (selected: AbsoluteRange) => {
@@ -253,9 +265,7 @@ export function DashboardView({
         }
       : undefined
   const rangeSelectFor = (card: DashboardCard) =>
-    selectPeriod && isTimeCard(card) && selectsPeriod?.(card)
-      ? selectPeriod
-      : undefined
+    selectsPeriod(card) ? selectPeriod : undefined
   return (
     <Dashboard className={className}>
       {period && (

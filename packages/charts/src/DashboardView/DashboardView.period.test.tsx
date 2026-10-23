@@ -303,3 +303,48 @@ describe('DashboardView periods', () => {
     expect(html).toContain('data-slot="dashboard-period"')
   })
 })
+
+describe('DashboardView cards that set the period', () => {
+  const selecting = (id: string): DashboardCard => ({
+    id,
+    kind: 'chart',
+    size: 'full',
+    label: 'Tickets sold each day',
+    source: 'Oztix sales.',
+    plot: {
+      kind: 'line',
+      data: [
+        { day: '2026-10-01', sold: 120 },
+        { day: '2026-10-02', sold: 180 }
+      ],
+      x: 'day',
+      y: 'sold',
+      selectsPeriod: true
+    }
+  })
+  const withCard = (card: DashboardCard): DashboardSpec => ({
+    ...dashboard({ range: 'this-month' }),
+    sections: [{ title: 'Sales', cards: [card] }]
+  })
+
+  it('warns in development when the app can’t change the period', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<DashboardView spec={withCard(selecting('daily-unwired'))} />)
+    expect(warn).toHaveBeenCalledExactlyOnceWith(
+      expect.stringContaining('"daily-unwired" sets selectsPeriod')
+    )
+    warn.mockRestore()
+  })
+
+  it('stays quiet when the app takes the period', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <DashboardView
+        spec={withCard(selecting('daily-wired'))}
+        onPeriodChange={() => {}}
+      />
+    )
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+})

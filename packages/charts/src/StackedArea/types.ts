@@ -4,6 +4,7 @@ import type {
   PlotX
 } from '@oztix/roadie-core/dashboard'
 import type { ValueFormat, XFormat } from '@oztix/roadie-core/dataviz'
+import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
 
 export type StackedAreaProps = {
   /** Rows of plain values, one per time and series. Dates are ISO strings in venue wall time. */
@@ -30,5 +31,7 @@ export type StackedAreaProps = {
   annotations?: PlotAnnotation[]
   /** Marks today with a labelled dot on the top of the stack, read as the total. */
   today?: PlotX
+  /** Lets a drag across dated x select a range, inclusive and in venue wall time. */
+  onRangeSelect?: (range: AbsoluteRange) => void
   className?: string
 }

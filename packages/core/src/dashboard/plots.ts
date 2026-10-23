@@ -47,6 +47,7 @@ const common = {
   takeaway: z.string().min(1).optional()
 }
 const measured = { data: z.array(plotRow), x: field, y: field, ...common }
+const selectsPeriod = z.boolean().optional()
 
 const lineShape = {
   kind: z.literal('line'),
@@ -74,7 +75,8 @@ const lineShape = {
     .optional(),
   target: z.number().optional(),
   today: plotX.optional(),
-  xFormat: xFormat.optional()
+  xFormat: xFormat.optional(),
+  selectsPeriod
 }
 
 const barShape = {
@@ -88,7 +90,8 @@ const barShape = {
       label: shortLabel,
       format: valueFormat.optional()
     })
-    .optional()
+    .optional(),
+  selectsPeriod
 }
 
 export const linePlotSchema = z.strictObject(lineShape)
@@ -122,7 +125,8 @@ export const stackedAreaPlotSchema = z.strictObject({
   xFormat: xFormat.optional(),
   mode: z.enum(['count', 'share']).optional(),
   annotations: z.array(annotation).optional(),
-  today: plotX.optional()
+  today: plotX.optional(),
+  selectsPeriod
 })
 
 export const histogramPlotSchema = z.strictObject({
@@ -181,8 +185,8 @@ export const smallMultiplesPlotSchema = z.strictObject({
   data: z.array(plotRow),
   by: field,
   chart: z.discriminatedUnion('kind', [
-    linePlotSchema.omit({ data: true }),
-    barPlotSchema.omit({ data: true })
+    linePlotSchema.omit({ data: true, selectsPeriod: true }),
+    barPlotSchema.omit({ data: true, selectsPeriod: true })
   ]),
   shared: z.boolean().optional(),
   takeaway: z.string().min(1).optional()
@@ -239,7 +243,8 @@ export type SmallMultiplesPlot = z.infer<typeof smallMultiplesPlotSchema>
 export type ChartPlot = z.infer<typeof chartPlotSchema>
 export type Plot = z.infer<typeof plotSchema>
 export type ChartPlotKind = ChartPlot['kind']
+// selectsPeriod is DashboardView's, so the chart components don't take it.
 export type PlotProps<K extends ChartPlotKind> = Omit<
   Extract<ChartPlot, { kind: K }>,
-  'kind'
+  'kind' | 'selectsPeriod'
 >
