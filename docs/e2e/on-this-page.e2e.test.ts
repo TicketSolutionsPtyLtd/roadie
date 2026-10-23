@@ -133,6 +133,18 @@ describe('On this page', () => {
     expect(await activeHeading(page, last!)).toBe(last)
   }, 60_000)
 
+  // A display: none heading sits at the top of the viewport, above the line.
+  it('passes over a hidden heading', async () => {
+    const page = await open('/components/kbd/', 1280)
+    await page
+      .locator('#docs-content :is(h2, h3)', { hasText: /^Sizes$/ })
+      .evaluate((heading) => {
+        heading.style.display = 'none'
+      })
+    await scrollTo(page, 'Emphasis', 'past')
+    expect(await activeHeading(page, 'Emphasis')).toBe('Emphasis')
+  }, 60_000)
+
   it('follows a scroll made while a clicked heading is still landing', async () => {
     const page = await open('/components/kbd/', 1280)
     await nav(page).getByRole('link', { name: 'Default', exact: true }).click()

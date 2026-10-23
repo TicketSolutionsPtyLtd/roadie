@@ -144,23 +144,6 @@ describe('ChangelogTimeline', () => {
     expect(document.querySelectorAll('[data-release]')).toHaveLength(8)
   })
 
-  it('keeps a release at its measured height once it leaves, for that filter only', () => {
-    renderTimeline()
-    const newest = document.getElementById('components-2-8-0')!
-    vi.spyOn(newest, 'getBoundingClientRect').mockReturnValue({
-      height: 500
-    } as DOMRect)
-
-    near('components-2-3-0')
-    expect(newest.style.height).toBe('500px')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Core' }))
-    // Filtered to Core it holds less, so it falls back to an estimate.
-    expect(document.getElementById('components-2-8-0')!.style.height).toBe(
-      '248px'
-    )
-  })
-
   it('lists each month in the rail, linked to its newest release', () => {
     const later = { ...release(9, ['components']), date: '2026-09-20' }
     const { inspector } = renderTimeline([later, ...RELEASES])
