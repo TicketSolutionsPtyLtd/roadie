@@ -156,7 +156,9 @@ Every PR is checked against these before review. Fix every real hit.
   wait while the 1-minute load is above the core count. Run tests with
   `pnpm test:gated <package>`, never vitest or `pnpm test` directly. It
   waits for the load, runs the changed tests in Chromium on half the cores,
-  and stops after 10 minutes. A draft PR runs no browser tests in CI, and
+  and stops after 10 minutes. It runs the Vitest projects CI runs, read from
+  the package's `test` and `test:browser` scripts; the CPU-throttled perf
+  tests run only with `--perf`. A draft PR runs no browser tests in CI, and
   marking it ready runs them once, in Chromium only. WebKit and Firefox run
   on `main` and nightly, or on the PR with the `full-browsers` label. The pre-push hook also waits for
   the load before it typechecks and tests, and fails the push after 30
