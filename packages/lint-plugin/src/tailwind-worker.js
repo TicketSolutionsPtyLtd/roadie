@@ -18,24 +18,28 @@ function resolveFrom(dirs, candidates, accept = () => true) {
       }
     }
   }
-  throw new Error(`Can't resolve ${candidates[0]}`)
+  return undefined
 }
 
 // require skips the style condition, so tailwindcss resolves to its JS entry.
-const cssPath = (id, base, app) =>
-  id.startsWith('.')
-    ? join(base, id)
-    : resolveFrom([base, app], [id, `${id}/index.css`, `${id}.css`], (path) =>
-        path.endsWith('.css')
-      )
+function cssPath(id, base, app) {
+  if (id.startsWith('.')) return join(base, id)
+  const path = resolveFrom(
+    [base, app],
+    [id, `${id}/index.css`, `${id}.css`],
+    (candidate) => candidate.endsWith('.css')
+  )
+  if (!path) throw new Error(`Can't resolve ${id}`)
+  return path
+}
 
 // An app's pnpm store hides tailwindcss from Roadie's own folder, so each
 // import resolves from the importing sheet, then from the app.
 async function loadDesignSystem(stylesheet, app) {
-  const require = createRequire(join(app, 'noop.js'))
-  const tailwind = require(
-    resolveFrom([app, dirname(stylesheet)], ['tailwindcss'])
-  )
+  // tailwindcss is an optional peer, so an app may have Roadie without it.
+  const entry = resolveFrom([app, dirname(stylesheet)], ['tailwindcss'])
+  if (!entry) return null
+  const tailwind = createRequire(join(app, 'noop.js'))(entry)
   const designSystem = await tailwind.__unstable__loadDesignSystem(
     readFileSync(stylesheet, 'utf8'),
     {

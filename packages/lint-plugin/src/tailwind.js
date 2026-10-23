@@ -12,6 +12,7 @@ const TIMEOUT = 60_000
 let channel
 const stylesheets = new Map()
 const answers = new Map()
+const skipped = new Set()
 
 function startWorker() {
   const { port1, port2 } = new MessageChannel()
@@ -39,7 +40,7 @@ function ask(request) {
     // Its late reply would answer the next request, so start a fresh worker.
     channel.worker.terminate()
     channel = undefined
-    throw new Error("Tailwind's design system took over a minute to load")
+    return null
   }
   const { result, error } = receiveMessageOnPort(port).message
   if (error) throw new Error(error)
@@ -61,19 +62,23 @@ function roadieStylesheet(app) {
 
 /**
  * Tailwind's canonical form of each class, by Roadie's theme, resolved from
- * the linted file. Undefined where Roadie isn't installed, or where Tailwind
- * predates canonical classes.
+ * the linted file. Undefined where Roadie isn't installed, where Tailwind
+ * isn't or predates canonical classes, or where it took over a minute to load.
  */
 export function canonicalClasses(filename, classes) {
   const app = dirname(filename)
   const stylesheet = roadieStylesheet(app)
-  if (!stylesheet) return undefined
+  if (!stylesheet || skipped.has(stylesheet)) return undefined
   if (!answers.has(stylesheet)) answers.set(stylesheet, new Map())
   const known = answers.get(stylesheet)
   const unknown = [...new Set(classes)].filter((name) => !known.has(name))
   if (unknown.length > 0) {
     const result = ask({ stylesheet, app, classes: unknown })
-    if (!result) return undefined
+    if (!result) {
+      // Skip the rest of the run rather than ask again for every file.
+      skipped.add(stylesheet)
+      return undefined
+    }
     unknown.forEach((name, i) => known.set(name, result[i]))
   }
   return classes.map((name) => known.get(name))

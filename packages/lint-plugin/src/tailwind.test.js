@@ -43,14 +43,25 @@ it('skips a file with no Roadie installed', () => {
   expect(canonicalIn(join(tempApp(), 'Fixture.tsx'))).toBe('undefined')
 })
 
-it('skips a file when Tailwind predates canonical classes', () => {
+const ROADIE = {
+  'node_modules/@oztix/roadie-core/package.json': JSON.stringify({
+    name: '@oztix/roadie-core',
+    exports: { './css': './roadie.css' }
+  }),
+  'node_modules/@oztix/roadie-core/roadie.css': "@import 'tailwindcss';"
+}
+
+function appWith(files) {
   const app = tempApp()
-  const files = {
-    'node_modules/@oztix/roadie-core/package.json': JSON.stringify({
-      name: '@oztix/roadie-core',
-      exports: { './css': './roadie.css' }
-    }),
-    'node_modules/@oztix/roadie-core/roadie.css': "@import 'tailwindcss';",
+  for (const [file, content] of Object.entries({ ...ROADIE, ...files })) {
+    mkdirSync(dirname(join(app, file)), { recursive: true })
+    writeFileSync(join(app, file), content)
+  }
+  return app
+}
+
+it('skips a file when Tailwind predates canonical classes', () => {
+  const app = appWith({
     'node_modules/tailwindcss/package.json': JSON.stringify({
       name: 'tailwindcss',
       main: 'index.js'
@@ -58,10 +69,11 @@ it('skips a file when Tailwind predates canonical classes', () => {
     // 4.1.14's design system, which has no canonicalizeCandidates.
     'node_modules/tailwindcss/index.js':
       'exports.__unstable__loadDesignSystem = async () => ({})'
-  }
-  for (const [file, content] of Object.entries(files)) {
-    mkdirSync(dirname(join(app, file)), { recursive: true })
-    writeFileSync(join(app, file), content)
-  }
+  })
   expect(canonicalIn(join(app, 'Fixture.tsx'))).toBe('undefined')
+})
+
+// tailwindcss is an optional peer, and roadie-core doesn't depend on it.
+it('skips a file when the app has Roadie but no Tailwind', () => {
+  expect(canonicalIn(join(appWith({}), 'Fixture.tsx'))).toBe('undefined')
 })
