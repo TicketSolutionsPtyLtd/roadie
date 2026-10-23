@@ -1,4 +1,5 @@
 export {
+  END_OF_NIGHT_HOUR,
   durationMilliseconds,
   formatDateTime,
   formatCountdown,

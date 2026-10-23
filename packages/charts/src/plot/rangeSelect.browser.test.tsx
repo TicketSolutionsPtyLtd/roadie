@@ -272,7 +272,9 @@ describe('range selection by keyboard', () => {
     )
     await expect
       .poll(() => chart.live().textContent)
-      .toBe('Selected 2 to 4 October, 3 days. Enter to apply.')
+      .toBe(
+        'Selected Friday, 2 to Sunday, 4 October 2026, 3 days. Enter to apply.'
+      )
     expect(onRangeSelect).not.toHaveBeenCalled()
     await userEvent.keyboard('{Enter}')
     expect(onRangeSelect).toHaveBeenCalledExactlyOnceWith({
@@ -303,7 +305,9 @@ describe('range selection by keyboard', () => {
     await userEvent.keyboard('{Shift>}{ArrowRight}{/Shift}')
     await expect
       .poll(() => chart.live().textContent)
-      .toBe('Selected 7 to 20 September, 2 weeks. Enter to apply.')
+      .toBe(
+        'Selected Monday, 7 to Sunday, 20 September 2026, 2 weeks. Enter to apply.'
+      )
     await userEvent.keyboard('{Enter}')
     expect(onRangeSelect).toHaveBeenCalledExactlyOnceWith({
       start: '2026-09-07',
@@ -322,11 +326,15 @@ describe('range selection by keyboard', () => {
     await userEvent.keyboard('{ArrowRight}{ArrowRight}{Shift>}{End}{/Shift}')
     await expect
       .poll(() => chart.live().textContent)
-      .toBe('Selected 3 to 8 October, 6 days. Enter to apply.')
+      .toBe(
+        'Selected Saturday, 3 to Thursday, 8 October 2026, 6 days. Enter to apply.'
+      )
     await userEvent.keyboard('{Shift>}{Home}{/Shift}')
     await expect
       .poll(() => chart.live().textContent)
-      .toBe('Selected 1 to 3 October, 3 days. Enter to apply.')
+      .toBe(
+        'Selected Thursday, 1 to Saturday, 3 October 2026, 3 days. Enter to apply.'
+      )
     await userEvent.keyboard('{Enter}')
     expect(onRangeSelect).toHaveBeenCalledExactlyOnceWith({
       start: '2026-10-01',

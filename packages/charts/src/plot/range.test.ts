@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { formatDateRange } from '@oztix/roadie-core/datetime'
+
 import { spokenRange, spokenValue, wallRange } from './range'
 
 const at = (iso: string) => Date.parse(`${iso}Z`)
@@ -47,21 +49,21 @@ describe('spokenRange', () => {
       start: '2026-10-08T00:00',
       end: '2026-10-10T00:00',
       options: { hasTime: false },
-      text: 'Selected 8 to 10 October, 3 days. Enter to apply.'
+      text: 'Selected Thursday, 8 to Saturday, 10 October 2026, 3 days. Enter to apply.'
     },
     {
       name: 'days across months',
       start: '2026-09-28T00:00',
       end: '2026-10-04T00:00',
       options: { hasTime: false },
-      text: 'Selected 28 September to 4 October, 7 days. Enter to apply.'
+      text: 'Selected Monday, 28 September to Sunday, 4 October 2026, 7 days. Enter to apply.'
     },
     {
       name: 'weeks',
       start: '2026-09-28T00:00',
       end: '2026-10-05T00:00',
       options: { hasTime: false, bucketDays: 7 },
-      text: 'Selected 28 September to 11 October, 2 weeks. Enter to apply.'
+      text: 'Selected Monday, 28 September to Sunday, 11 October 2026, 2 weeks. Enter to apply.'
     },
     {
       name: 'times in one day',
@@ -71,14 +73,30 @@ describe('spokenRange', () => {
       text: 'Selected Saturday, 3 October 2026, 6:00pm to 9:45pm. Enter to apply.'
     },
     {
+      name: 'days across years',
+      start: '2026-12-28T00:00',
+      end: '2027-01-03T00:00',
+      options: { hasTime: false },
+      text: 'Selected Monday, 28 December 2026 to Sunday, 3 January 2027, 7 days. Enter to apply.'
+    },
+    {
       name: 'times across days',
       start: '2026-10-03T22:00',
       end: '2026-10-04T01:00',
       options: { hasTime: true },
-      text: 'Selected Saturday, 3 October 2026, 10:00pm to Sunday, 4 October 2026, 1:00am. Enter to apply.'
+      text: 'Selected Saturday, 3, 10:00pm to Sunday, 4 October 2026, 1:00am. Enter to apply.'
     }
   ])('reads $name', ({ start, end, options, text }) => {
     expect(spokenRange(at(start), at(end), options)).toBe(text)
+  })
+
+  it('reads the dates as the date and time foundations do', () => {
+    const [start, end] = [at('2026-10-08T00:00'), at('2026-10-10T00:00')]
+    const dates = formatDateRange(new Date(start), new Date(end), {
+      timeZone: 'UTC',
+      dateStyle: 'full'
+    })
+    expect(spokenRange(start, end, { hasTime: false })).toContain(`${dates},`)
   })
 })
 

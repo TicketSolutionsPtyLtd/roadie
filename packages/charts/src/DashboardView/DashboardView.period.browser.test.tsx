@@ -83,7 +83,7 @@ function renderDashboard(props: DashboardViewProps) {
 /** Selects the second to fourth x with the keyboard and applies it. */
 async function selectRange(
   view: ReturnType<typeof renderDashboard>,
-  announcement = 'Selected 2 to 4 October, 3 days. Enter to apply.'
+  announcement = 'Selected Friday, 2 to Sunday, 4 October 2026, 3 days. Enter to apply.'
 ) {
   await afterResize()
   await expect.poll(() => view.brush()).not.toBeNull()
@@ -146,7 +146,7 @@ describe('DashboardView setting the period from a chart', () => {
     })
     await selectRange(
       view,
-      'Selected Friday, 2 October 2026, 11:00pm to Saturday, 3 October 2026, 1:00am. Enter to apply.'
+      'Selected Friday, 2, 11:00pm to Saturday, 3 October 2026, 1:00am. Enter to apply.'
     )
     expect(onPeriodChange).toHaveBeenCalledExactlyOnceWith({
       range: { start: '2026-10-02', end: '2026-10-03' },

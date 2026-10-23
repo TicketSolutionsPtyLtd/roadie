@@ -29,10 +29,6 @@ const clockAt = (ms: number, timeStyle: 'medium' | 'numeric') =>
   formatTimeOfDay({ epochMilliseconds: ms }, { timeZone: 'UTC', timeStyle }) ??
   ''
 
-// A night runs to 6am, as the date and time foundations count a late show.
-/** The hour an `eventTime` day starts: a night runs to 6am. */
-export const EVENT_DAY_START_HOUR = END_OF_NIGHT_HOUR
-
 const NIGHT_END = END_OF_NIGHT_HOUR * HOUR
 
 // The day and the clock read the same rounded instant, so they never disagree.

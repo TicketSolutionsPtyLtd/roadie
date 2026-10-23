@@ -91,7 +91,7 @@ const MIDDOT = '·'
 /** Intl joins a date and a time with a comma; so do we. */
 const DATE_TIME_SEPARATOR = ', '
 
-/** An end at or before this hour belongs to the previous night's programme. */
+/** An end at or before this hour belongs to the previous night's programme, and a chart's event day starts here. */
 export const END_OF_NIGHT_HOUR = 6
 
 /** Past this, a day count stops being information. */

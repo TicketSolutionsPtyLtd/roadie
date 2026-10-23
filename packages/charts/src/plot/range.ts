@@ -1,10 +1,12 @@
-import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
+import {
+  type AbsoluteRange,
+  formatDateRange
+} from '@oztix/roadie-core/datetime'
 
-import { clock, spokenX } from './time'
+import { spokenX } from './time'
 import { nounFor } from './words'
 
 const DAY = 86_400_000
-const LOCALE = 'en-AU'
 
 export type RangeOptions = {
   hasTime: boolean
@@ -46,27 +48,12 @@ export function wallRange(
   }
 }
 
-const part = (ms: number, options: Intl.DateTimeFormatOptions) =>
-  new Intl.DateTimeFormat(LOCALE, { timeZone: 'UTC', ...options }).format(ms)
-
-const dayMonth = (ms: number) =>
-  `${part(ms, { day: 'numeric' })} ${part(ms, { month: 'long' })}`
-
-function spokenDays(start: number, end: number) {
-  const sameMonth =
-    part(start, { month: 'long', year: 'numeric' }) ===
-    part(end, { month: 'long', year: 'numeric' })
-  return sameMonth
-    ? `${part(start, { day: 'numeric' })} to ${dayMonth(end)}`
-    : `${dayMonth(start)} to ${dayMonth(end)}`
-}
-
-function spokenTimes(start: number, end: number) {
-  const sameDay = Math.floor(start / DAY) === Math.floor(end / DAY)
-  return sameDay
-    ? `${spokenX(start, true)} to ${clock(end)}`
-    : `${spokenX(start, true)} to ${spokenX(end, true)}`
-}
+const spokenDates = (start: number, end: number, hasTime: boolean) =>
+  formatDateRange(new Date(start), new Date(end), {
+    timeZone: 'UTC',
+    dateStyle: 'full',
+    timeStyle: hasTime ? 'medium' : undefined
+  }) ?? ''
 
 export function spokenRange(from: number, to: number, options: RangeOptions) {
   const [start, end] = ordered(from, to)
@@ -74,9 +61,10 @@ export function spokenRange(from: number, to: number, options: RangeOptions) {
   const days = Math.round((last - start) / DAY) + 1
   const weeks = options.bucketDays === 7
   const count = weeks ? days / 7 : days
+  const dates = spokenDates(start, last, options.hasTime)
   const span = options.hasTime
-    ? spokenTimes(start, last)
-    : `${spokenDays(start, last)}, ${count} ${nounFor(count, weeks ? 'weeks' : 'days')}`
+    ? dates
+    : `${dates}, ${count} ${nounFor(count, weeks ? 'weeks' : 'days')}`
   return `Selected ${span}. Enter to apply.`
 }
 

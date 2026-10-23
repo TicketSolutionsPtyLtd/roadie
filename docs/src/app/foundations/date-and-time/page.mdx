@@ -37,6 +37,7 @@ one, not things you call yourself.
 | Time remaining, ticking    | [`<Countdown>`](/components/countdown)          | `seconds`, `display`                    | `formatDuration`, `formatCountdown` |
 | A calendar tile            | [`<CalendarTile>`](/components/calendar-tile)   | `month`, `day`, `weekday`               | `formatGlyph`                       |
 | A chart axis tick          | [`<DateTime render>`](/components/date-time)    | `dateStyle` `short`, `timeStyle` `numeric` | `formatDateTime`                 |
+| Days to an event, or the event clock, on a chart | [`<LineChart xFormat>`](/charts/line-chart#days-out) | `daysOut`, `eventTime` | `formatX` from `/dataviz` |
 
 On the docs site, a table gives what each component reads for a show at
 7:30pm on Friday 27 November 2026 in Sydney, worked out by the formatter
@@ -606,7 +607,10 @@ follow from that.
 
 First, a set that ends at or before 6am belongs to the night before. A show
 running 10pm to 3am is one night out, not two. `formatDurationDays` applies
-this, so a festival doesn't gain a day on one screen and not another.
+this, so a festival doesn't gain a day on one screen and not another. A
+chart's [event clock](/charts/line-chart#event-clock) starts each day at the
+same hour. Code that needs the cutoff reads `END_OF_NIGHT_HOUR` from
+`@oztix/roadie-core/datetime` rather than writing 6.
 
 Second, `12:00am` is ambiguous to a lot of readers. In prose, prefer the word.
 In a table or a row of times, keep the digits so the column aligns.
