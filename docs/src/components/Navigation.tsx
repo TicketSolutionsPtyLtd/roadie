@@ -31,6 +31,7 @@ import { useRoute } from '@/lib/route'
 import type { SourceLink } from '@/lib/source-links'
 import type { PageStatus } from '@/lib/status'
 import { relatedLinks } from '@/lib/token-families'
+import { getAssetPath } from '@/utils/getAssetPath'
 
 import { Navigator, Pane } from '@oztix/roadie-components'
 import { serializeNavigatorExpandedCookie } from '@oztix/roadie-core/navigator'
@@ -188,8 +189,18 @@ export function DocsNavigator({
   if (route.startsWith('/debug/bare') || route.startsWith('/examples/'))
     return children
 
+  const hasTwin = markdownTwins[route] === true
+
   return (
     <>
+      {/* Hoisted into the head. Kept outside the pane's Suspense boundary, which can client-render and append a second copy. */}
+      {hasTwin ? (
+        <link
+          rel='alternate'
+          type='text/markdown'
+          href={getAssetPath(`${route}.md`)}
+        />
+      ) : null}
       <Suspense fallback={null}>
         <NavQueryFlags onChange={reportQuery} />
       </Suspense>
@@ -304,10 +315,7 @@ export function DocsNavigator({
               {sourceLinks[route] ? (
                 <SourceMenu {...sourceLinks[route]} />
               ) : null}
-              <AgentMenu
-                route={route}
-                hasTwin={markdownTwins[route] === true}
-              />
+              <AgentMenu route={route} hasTwin={hasTwin} />
               {showInspector ? (
                 <Pane.InspectorTrigger aria-label='On this page'>
                   <ListDashesIcon weight='bold' className='size-5' />

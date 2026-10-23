@@ -43,42 +43,36 @@ export function AgentMenu({
     )
 
   return (
-    <>
-      {/* React hoists this into the head. */}
-      {hasTwin ? (
-        <link rel='alternate' type='text/markdown' href={getAssetPath(twin)} />
-      ) : null}
-      <Menu>
-        <Menu.Trigger
-          render={
-            <IconButton aria-label='Use with AI' emphasis='normal'>
-              <RobotIcon weight='bold' className='size-5' />
-            </IconButton>
-          }
-        />
-        <Menu.Content align='end'>
-          {hasTwin ? (
-            <>
-              <Menu.Item icon={<CopyIcon weight='bold' />} onClick={copy}>
-                Copy page as Markdown
-              </Menu.Item>
-              <Menu.Item href={twin} icon={<FileTextIcon weight='bold' />}>
-                View as Markdown
-              </Menu.Item>
-            </>
-          ) : null}
-          <Menu.Item href='/llms.txt' icon={<ListBulletsIcon weight='bold' />}>
-            llms.txt
-          </Menu.Item>
-          <Menu.Separator />
-          <Menu.Item
-            href='/overview/ai'
-            icon={<BookOpenTextIcon weight='bold' />}
-          >
-            Building with AI
-          </Menu.Item>
-        </Menu.Content>
-      </Menu>
-    </>
+    <Menu>
+      <Menu.Trigger
+        render={
+          <IconButton aria-label='Use with AI' emphasis='normal'>
+            <RobotIcon weight='bold' className='size-5' />
+          </IconButton>
+        }
+      />
+      <Menu.Content align='end'>
+        {hasTwin ? (
+          <>
+            <Menu.Item icon={<CopyIcon weight='bold' />} onClick={copy}>
+              Copy page as Markdown
+            </Menu.Item>
+            <Menu.Item href={twin} icon={<FileTextIcon weight='bold' />}>
+              View as Markdown
+            </Menu.Item>
+          </>
+        ) : null}
+        <Menu.Item href='/llms.txt' icon={<ListBulletsIcon weight='bold' />}>
+          llms.txt
+        </Menu.Item>
+        <Menu.Separator />
+        <Menu.Item
+          href='/overview/ai'
+          icon={<BookOpenTextIcon weight='bold' />}
+        >
+          Building with AI
+        </Menu.Item>
+      </Menu.Content>
+    </Menu>
   )
 }

@@ -32,6 +32,17 @@ async function open(path: string) {
   return page
 }
 
+const chunksOf = async (route: string) =>
+  (await readFile(join(OUT_DIR, route, 'index.html'), 'utf-8')).match(
+    /\/_next\/static\/chunks\/[^"\\]+\.js/g
+  ) ?? []
+
+// The chunks a page loads that the shell doesn't, which hold its content's code.
+async function pageChunks(route: string, shellRoute: string) {
+  const shell = new Set(await chunksOf(shellRoute))
+  return (await chunksOf(route)).filter((chunk) => !shell.has(chunk))
+}
+
 const fetchText = (page: Page, path: string) =>
   page.evaluate(async (url) => (await fetch(url)).text(), `${BASE_PATH}${path}`)
 
@@ -152,6 +163,37 @@ describe('Markdown twins', () => {
       'Building with AI'
     ])
     expect(await fetchText(page, '/llms.txt')).toMatch(/^# Roadie\n/)
+  }, 60_000)
+
+  // Code that lands after the shell hydrates leaves the pane's content dehydrated, so it client-renders.
+  it('keeps one head link when the page’s own code arrives late', async () => {
+    const held = await pageChunks('foundations/colors', 'tokens')
+    expect(held.length).toBeGreaterThan(0)
+    let release = () => {}
+    const released = new Promise<void>((resolve) => (release = resolve))
+    const context = await browser.newContext()
+    await serveExport(context)
+    await context.route(
+      (url) => held.some((chunk) => url.pathname.endsWith(chunk)),
+      async (route) => {
+        await released
+        await route.fallback()
+      }
+    )
+    const page = await context.newPage()
+    await page.goto(`${ORIGIN}${BASE_PATH}/foundations/colors/`, {
+      waitUntil: 'commit'
+    })
+    await page
+      .locator('[data-slot="navigator"][data-pending="visible"]')
+      .waitFor({ state: 'attached' })
+    release()
+
+    await page.getByRole('button', { name: 'Use with AI' }).click()
+    await page.getByRole('menu').waitFor()
+    expect(await page.locator('head link[type="text/markdown"]').count()).toBe(
+      1
+    )
   }, 60_000)
 
   it('follows client navigation, updating or dropping the head link', async () => {
