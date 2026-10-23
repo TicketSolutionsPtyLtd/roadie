@@ -20,7 +20,6 @@
         "scripts/**",
         "$TURBO_ROOT$/docs/eslint.config.js",
         "$TURBO_ROOT$/docs/oxlint.config.ts",
-        "$TURBO_ROOT$/oxlint.config.ts",
         "$TURBO_ROOT$/packages/lint-plugin/oxlint/**",
         "$TURBO_ROOT$/packages/lint-plugin/src/**",
         "$TURBO_ROOT$/skills/audit/**",

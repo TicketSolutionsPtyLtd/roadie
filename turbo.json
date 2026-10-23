@@ -5,7 +5,8 @@
     "**/.env.*local",
     "pnpm-lock.yaml",
     ".nvmrc",
-    "eslint/**"
+    "eslint/**",
+    "oxlint.config.ts"
   ],
   "tasks": {
     "prepare": {
@@ -59,7 +60,6 @@
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,mdx}",
         "eslint.config.js",
-        "$TURBO_ROOT$/oxlint.config.ts",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**",
         "package.json"
       ],
@@ -70,7 +70,6 @@
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,mdx}",
         "eslint.config.js",
-        "$TURBO_ROOT$/oxlint.config.ts",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**",
         "package.json"
       ],
