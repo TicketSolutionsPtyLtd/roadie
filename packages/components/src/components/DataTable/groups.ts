@@ -3,7 +3,10 @@ import type {
   TableColumn,
   TableRow
 } from '@oztix/roadie-core/dashboard'
-import { resolveTableTotals } from '@oztix/roadie-core/dashboard-layout'
+import {
+  isSummable,
+  resolveTableTotals
+} from '@oztix/roadie-core/dashboard-layout'
 
 import { isDev } from '../../utils/isDev'
 import {
@@ -62,6 +65,13 @@ export function groupColumnsOf(
   return grouped
 }
 
+/** The column for the totals and group labels: the first one a total never fills, else the first. */
+export const labelIndexOf = (columns: readonly TableColumn[]) =>
+  Math.max(
+    0,
+    columns.findIndex((column) => !isSummable(column))
+  )
+
 export const groupKey = (path: readonly string[]) => JSON.stringify(path)
 
 const pathValue = (cell: TableCell | undefined) =>
@@ -74,7 +84,7 @@ function sortGroups(
   groupColumn: TableColumn,
   sort: DataTableSort | undefined
 ) {
-  const [labelColumn] = columns
+  const labelColumn = columns[labelIndexOf(columns)]
   if (!sort || !labelColumn) return groups
   const rows: TableRow[] = groups.map((group) => ({
     ...group.values,

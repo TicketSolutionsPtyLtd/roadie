@@ -108,7 +108,7 @@ describe('DataTable totals row', () => {
     expect(footer(container)[2]).toBe('$324,300.50')
   })
 
-  it('never hides the first column, which holds the label', () => {
+  it('never hides the column that holds the label', () => {
     const { container } = render(
       <DataTable
         totals

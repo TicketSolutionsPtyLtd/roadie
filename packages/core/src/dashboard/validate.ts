@@ -344,19 +344,29 @@ function totalsProblems(
         'No number column to sum, so the row shows only its label. Pass values'
       )
     )
-  const first = card.columns[0]
-  if (
-    first &&
-    (given.values ? Object.hasOwn(given.values, first.key) : isSummable(first))
+  const label = labelColumnOf(
+    card.columns.filter((column) => !card.groupBy?.includes(column.key))
   )
+  if (given.values && label && Object.hasOwn(given.values, label.key))
     problems.push(
       warning(
         at,
-        'The first column holds the label, so its sum never shows. Lead with a text column'
+        'The label goes in the first column without a sum, so its value never shows. Leave it out of values'
+      )
+    )
+  else if (!given.values && label && isSummable(label))
+    problems.push(
+      warning(
+        at,
+        'The label goes in the first column without a sum, and every column has one. Add a text column'
       )
     )
   return problems
 }
+
+// DataTable puts the totals and group labels in the first column a total never fills.
+const labelColumnOf = (columns: readonly TableColumn[]) =>
+  columns.find((column) => !isSummable(column)) ?? columns[0]
 
 const isGroupable = (column: TableColumn) =>
   column.kind === 'text' || column.kind === 'status'
@@ -400,11 +410,11 @@ function groupProblems(
         'Leave at least one column ungrouped to show the rows'
       )
     )
-  else if (!isGroupable(shown[0]!))
+  else if (!isGroupable(labelColumnOf(shown)!))
     problems.push(
       warning(
         `${path}.groupBy`,
-        'The first column left holds the group labels. Lead with a text or status column'
+        'The group labels go in the first column left without a sum. Make it a text or status column'
       )
     )
   if (Array.isArray(defaultExpanded))

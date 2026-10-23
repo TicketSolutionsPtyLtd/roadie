@@ -153,6 +153,41 @@ describe('DataTable grouped rows', () => {
     for (const end of ends) expect(end).toBeCloseTo(headerEnd, 0)
   })
 
+  it('keeps the sums of a number column grouping leaves first', () => {
+    const { container } = render(
+      <DataTable
+        columns={[columns[0]!, columns[3]!, columns[2]!]}
+        rows={rows}
+        groupBy={['pool']}
+        totals
+      />
+    )
+    const texts = (selector: string) =>
+      [...container.querySelectorAll(selector)].map((cell) => cell.textContent)
+    expect(texts('thead th')).toEqual(['Scans', 'Pool / Gate'])
+    expect(texts('[data-slot=data-table-group] > td')).toEqual([
+      '400',
+      'General'
+    ])
+    expect(texts('tfoot > tr > *')).toEqual(['400', 'Totals for 2 records'])
+  })
+
+  it('adds no scroll width from a later pinned group label', () => {
+    const { container } = render(
+      <div style={{ width: 600 }}>
+        <DataTable
+          columns={[columns[0]!, columns[3]!, { ...columns[2]!, pin: true }]}
+          rows={rows}
+          groupBy={['pool']}
+        />
+      </div>
+    )
+    const scroller = container.querySelector<HTMLElement>(
+      '[data-slot=data-table-scroller]'
+    )!
+    expect(scroller.scrollWidth).toBe(scroller.clientWidth)
+  })
+
   it("grows a group's rows open and shrinks them shut, like an Accordion", async () => {
     const { container } = render(
       <DataTable columns={columns} rows={rows} groupBy={['pool']} />
