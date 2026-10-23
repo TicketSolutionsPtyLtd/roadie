@@ -67,6 +67,57 @@ describe('DataTable groupBy', () => {
     ).toEqual(['Ticket pool / Ticket type', 'Scans', 'Share'])
   })
 
+  describe('after a status column', () => {
+    const gated: DataTableColumn[] = [
+      { key: 'gate', header: 'Gate', kind: 'status' },
+      ...columns
+    ]
+    const gatedRows = rows.map((row) => ({ ...row, gate: 'open' }))
+
+    it('labels the groups in the text column', () => {
+      const { container } = render(
+        <DataTable columns={gated} rows={gatedRows} groupBy={['pool']} />
+      )
+      expect(
+        screen.getAllByRole('columnheader').map((cell) => cell.textContent)
+      ).toEqual(['Gate', 'Ticket pool / Ticket type', 'Scans', 'Share'])
+      expect(bodyRows(container)[0]).toEqual(['', 'General', '700', ''])
+    })
+
+    it("indents a group's rows in the text column", () => {
+      render(
+        <DataTable
+          columns={gated}
+          rows={gatedRows}
+          groupBy={['pool']}
+          defaultExpanded
+        />
+      )
+      const row = screen.getByRole('cell', { name: 'GA' }).closest('tr')!
+      const indented = [...row.querySelectorAll('td')].map(
+        (cell) => !!cell.querySelector('[data-slot="data-table-indent"]')
+      )
+      expect(indented).toEqual([false, true, false, false])
+    })
+
+    it('sorts groups by their label in the text column', () => {
+      const { container } = render(
+        <DataTable
+          sortable
+          defaultSort={{ key: 'type', direction: 'ascending' }}
+          columns={gated}
+          rows={gatedRows}
+          groupBy={['pool']}
+        />
+      )
+      expect(bodyRows(container).map((row) => row[1])).toEqual([
+        'Comp',
+        'General',
+        'Premium'
+      ])
+    })
+  })
+
   it('expands and collapses a group when its caret is pressed', async () => {
     const user = userEvent.setup()
     const { container } = render(

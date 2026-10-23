@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { CaretRightIcon } from '@phosphor-icons/react/ssr'
 
 import type { TableColumn } from '@oztix/roadie-core/dashboard'
+import { tableLabelIndex } from '@oztix/roadie-core/dashboard-layout'
 
 import { Table } from '../Table'
 import { DataTableCellContent } from './DataTableCell'
@@ -18,8 +19,7 @@ import {
   type DataTableExpanded,
   buildGroups,
   flattenNodes,
-  groupKey,
-  labelIndexOf
+  groupKey
 } from './groups'
 import { type DataTableSort, type KeyedRow, cellOf } from './sort'
 
@@ -69,7 +69,7 @@ export function DataTableGroups({
     buildGroups(rows, columns, groupColumns, sort),
     isOpen
   )
-  const labelIndex = labelIndexOf(columns)
+  const labelIndex = tableLabelIndex(columns)
   const last = entries.findLastIndex(({ collapsed }) => !collapsed)
   // Closed groups keep their rows, collapsed, so they open and close like an
   // Accordion. Collapsed rows are hidden from screen readers and the keyboard.

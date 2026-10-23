@@ -130,6 +130,21 @@ describe('DataTable totals row', () => {
     expect(container.querySelector('[data-priority]')).toBeNull()
   })
 
+  it('puts the label in the text column after a status column', () => {
+    const { container } = render(
+      <DataTable
+        totals
+        columns={[
+          { key: 'state', header: 'State', kind: 'status' },
+          { ...columns[0]!, pin: false },
+          columns[1]!
+        ]}
+        rows={rows.map((row) => ({ ...row, state: 'on_sale' }))}
+      />
+    )
+    expect(footer(container)).toEqual(['', 'Totals for 3 records', '4,050'])
+  })
+
   it('sums in the given order however the rows are sorted', () => {
     const { container } = render(
       <DataTable
