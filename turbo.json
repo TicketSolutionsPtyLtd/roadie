@@ -60,6 +60,7 @@
         "src/**/*.{js,jsx,ts,tsx,mdx}",
         "eslint.config.js",
         "$TURBO_ROOT$/oxlint.config.ts",
+        "$TURBO_ROOT$/packages/lint-plugin/oxlint/**",
         "package.json"
       ],
       "outputs": []
@@ -70,6 +71,7 @@
         "src/**/*.{js,jsx,ts,tsx,mdx}",
         "eslint.config.js",
         "$TURBO_ROOT$/oxlint.config.ts",
+        "$TURBO_ROOT$/packages/lint-plugin/oxlint/**",
         "package.json"
       ],
       "outputs": ["src/**/*"]

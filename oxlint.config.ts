@@ -2,6 +2,7 @@ import { matchesGlob } from 'node:path'
 import { type OxlintOverride, defineConfig } from 'oxlint'
 
 import published from '@oztix/roadie-lint-plugin'
+import testing from '@oztix/roadie-lint-plugin/oxlint/testing.json' with { type: 'json' }
 
 // Globs resolve from this file's folder, so docs/ has its own config.
 const roadie = { name: 'roadie', specifier: './eslint/roadie-plugin.js' }
@@ -122,7 +123,6 @@ function importBoundaryOverrides(boundaries: Restriction[]): OxlintOverride[] {
     })
 }
 
-const BROWSER_TESTS = '**/*.browser.test.{ts,tsx}'
 const PACKAGE_TESTS = ['packages/**/*.test.{ts,tsx}']
 
 const roadieRules = (
@@ -321,34 +321,36 @@ export default defineConfig({
       { 'roadie/no-fixed-sleep': 'error' }
     ),
     roadieRules(PACKAGE_TESTS, { 'roadie/no-cva-output-assertion': 'error' }),
-    roadieRules(PACKAGE_TESTS, { 'roadie/no-css-class-in-jsdom': 'error' }, [
-      BROWSER_TESTS
-    ]),
-    roadieRules(PACKAGE_TESTS, { 'roadie/no-layout-fake-in-jsdom': 'error' }, [
-      BROWSER_TESTS,
-      // Has its own setup (INNO-1238).
-      'packages/widgets/src/cart-drawer/vue/useCartDrawerDrag.test.ts'
-    ]),
-    roadieRules(PACKAGE_TESTS, { 'roadie/no-css-source-in-jsdom': 'error' }, [
-      BROWSER_TESTS,
-      // Parity tests: each checks a generated file or a mirrored constant
-      // against the CSS it comes from, not rendered behaviour.
-      'packages/core/src/utils/cn.test.ts',
-      // palette.ts mirrors tokens.css.
-      'packages/core/src/dataviz/parity.test.ts',
-      // DEFAULT_ACCENT_COLOR mirrors the accent step 9 in tokens.css.
-      'packages/core/src/theme/parity.test.ts',
-      // The audit and charts skills mirror palette.ts and tokens.css.
-      'packages/core/src/dataviz/skill-parity.test.ts',
-      // The motion skill names every token and utility in motion.css.
-      'packages/core/src/css/motion-skill-parity.test.ts',
-      // tokens.json is generated from every sheet roadie.css imports.
-      'packages/core/src/tokens/manifest.test.ts',
-      // NAVIGATOR_EXPANDED_SCOPE mirrors the variant so jsdom tests can match it.
-      'packages/core/src/css/navigator-variant.test.ts',
-      // safelist.html must name every @utility in charts.css.
-      'packages/charts/src/css/safelist.test.ts'
-    ]),
+    ...(testing.overrides as OxlintOverride[]),
+    roadieRules(
+      [
+        // Has its own setup (INNO-1238).
+        'packages/widgets/src/cart-drawer/vue/useCartDrawerDrag.test.ts'
+      ],
+      { 'roadie/no-layout-fake-in-jsdom': 'off' }
+    ),
+    roadieRules(
+      [
+        // Parity tests: each checks a generated file or a mirrored constant
+        // against the CSS it comes from, not rendered behaviour.
+        'packages/core/src/utils/cn.test.ts',
+        // palette.ts mirrors tokens.css.
+        'packages/core/src/dataviz/parity.test.ts',
+        // DEFAULT_ACCENT_COLOR mirrors the accent step 9 in tokens.css.
+        'packages/core/src/theme/parity.test.ts',
+        // The audit and charts skills mirror palette.ts and tokens.css.
+        'packages/core/src/dataviz/skill-parity.test.ts',
+        // The motion skill names every token and utility in motion.css.
+        'packages/core/src/css/motion-skill-parity.test.ts',
+        // tokens.json is generated from every sheet roadie.css imports.
+        'packages/core/src/tokens/manifest.test.ts',
+        // NAVIGATOR_EXPANDED_SCOPE mirrors the variant so jsdom tests can match it.
+        'packages/core/src/css/navigator-variant.test.ts',
+        // safelist.html must name every @utility in charts.css.
+        'packages/charts/src/css/safelist.test.ts'
+      ],
+      { 'roadie/no-css-source-in-jsdom': 'off' }
+    ),
     roadieRules(['packages/widgets/src/cart-drawer/react/**/*.{ts,tsx}'], {
       'roadie/no-dynamic-next-import': 'error'
     }),

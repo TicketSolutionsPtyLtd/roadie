@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { MISTAKE_RULES, createApp } from './app.js'
+import { MISTAKE_RULES, TEST_MISTAKE_RULES, createApp } from './app.js'
 
 const { devDependencies } = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8')
@@ -12,14 +12,16 @@ const { devDependencies } = JSON.parse(
 const CONFIGS = {
   '.oxlintrc.json': JSON.stringify({
     extends: [
-      './node_modules/@oztix/roadie-lint-plugin/oxlint/recommended.json'
+      './node_modules/@oztix/roadie-lint-plugin/oxlint/recommended.json',
+      './node_modules/@oztix/roadie-lint-plugin/oxlint/testing.json'
     ]
   }),
   'oxlint.config.ts': `import { defineConfig } from 'oxlint'
 
 import recommended from '@oztix/roadie-lint-plugin/oxlint/recommended.json' with { type: 'json' }
+import testing from '@oztix/roadie-lint-plugin/oxlint/testing.json' with { type: 'json' }
 
-export default defineConfig({ extends: [recommended] })
+export default defineConfig({ extends: [recommended, testing] })
 `
 }
 
@@ -46,7 +48,7 @@ beforeAll(() => {
 afterAll(() => rmSync(app, { recursive: true, force: true }))
 
 describe.each(Object.keys(CONFIGS))(
-  'an app on oxlint with the preset in %s',
+  'an app on oxlint with the presets in %s',
   (config) => {
     const lint = (file) => {
       // oxlint exits 1 when it reports an error, so read the report either way.
@@ -67,6 +69,14 @@ describe.each(Object.keys(CONFIGS))(
 
     it('passes code that follows Roadie', () => {
       expect(lint('src/Clean.jsx')).toEqual([])
+    })
+
+    it('reports each jsdom mistake in a test', () => {
+      expect(lint('src/Ticket.test.jsx')).toEqual(TEST_MISTAKE_RULES)
+    })
+
+    it('allows them in a browser test', () => {
+      expect(lint('src/Ticket.browser.test.jsx')).toEqual([])
     })
   }
 )

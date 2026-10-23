@@ -1,18 +1,36 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import plugin from '../src/index.js'
 
+const oxlintDir = new URL('../oxlint/', import.meta.url)
+
 const oxlintPreset = (name) =>
-  JSON.parse(
-    readFileSync(new URL(`../oxlint/${name}.json`, import.meta.url), 'utf8')
+  JSON.parse(readFileSync(new URL(`${name}.json`, oxlintDir), 'utf8'))
+
+// Top-level rules apply to every file oxlint lints.
+const EVERY_SOURCE = ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}']
+
+const oxlintScopes = ({ rules, overrides = [] }) => [
+  ...(rules ? [{ files: EVERY_SOURCE, rules }] : []),
+  ...overrides
+]
+
+const eslintScopes = (config) =>
+  [config].flat().map(({ files, rules }) => ({ files, rules }))
+
+it('ships an oxlint preset for each ESLint config, and no other', () => {
+  const presets = readdirSync(oxlintDir).map((file) =>
+    file.replace(/\.json$/, '')
   )
+  expect(presets.sort()).toEqual(Object.keys(plugin.configs).sort())
+})
 
 describe.each(Object.keys(plugin.configs))('the %s preset', (name) => {
   const preset = oxlintPreset(name)
 
-  it('turns on the same rules in oxlint as in ESLint', () => {
-    expect(preset.rules).toEqual(plugin.configs[name].rules)
+  it('turns on the same rules for the same files in oxlint as in ESLint', () => {
+    expect(oxlintScopes(preset)).toEqual(eslintScopes(plugin.configs[name]))
   })
 
   // Given a bare specifier, oxlint names the plugin after the package, which

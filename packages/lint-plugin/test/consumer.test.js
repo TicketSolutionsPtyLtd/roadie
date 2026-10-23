@@ -6,11 +6,11 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { MISTAKE_RULES, createApp } from './app.js'
+import { MISTAKE_RULES, TEST_MISTAKE_RULES, createApp } from './app.js'
 
 const CONFIG = `import roadie from '@oztix/roadie-lint-plugin'
 
-export default [roadie.configs.recommended]
+export default [roadie.configs.recommended, ...roadie.configs.testing]
 `
 
 let app
@@ -32,7 +32,7 @@ afterAll(() => rmSync(app, { recursive: true, force: true }))
 describe.each([
   ['ESLint 9', ESLint9],
   ['ESLint 10', ESLint10]
-])('an app on %s with the recommended config', (_, ESLint) => {
+])('an app on %s with the recommended and testing configs', (_, ESLint) => {
   const lint = async (file) => {
     const [result] = await new ESLint({ cwd: app }).lintFiles([file])
     return result.messages.map(({ ruleId }) => ruleId).sort()
@@ -44,6 +44,14 @@ describe.each([
 
   it('passes code that follows Roadie', async () => {
     expect(await lint('src/Clean.jsx')).toEqual([])
+  })
+
+  it('reports each jsdom mistake in a test', async () => {
+    expect(await lint('src/Ticket.test.jsx')).toEqual(TEST_MISTAKE_RULES)
+  })
+
+  it('allows them in a browser test', async () => {
+    expect(await lint('src/Ticket.browser.test.jsx')).toEqual([])
   })
 })
 

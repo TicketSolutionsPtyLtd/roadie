@@ -41,6 +41,24 @@ export const MISTAKE_RULES = [
   'roadie/phosphor-icon-weight'
 ]
 
+// One of each jsdom mistake, in a jsdom test and in a browser test.
+export const TEST_MISTAKES = `import { readFileSync } from 'node:fs'
+import { expect, it, vi } from 'vitest'
+
+it('lays out the ticket on a phone', () => {
+  const css = readFileSync('./ticket.css', 'utf8')
+  vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(375)
+  expect(document.body).toHaveClass('md:grid')
+  expect(css).toBeTruthy()
+})
+`
+
+export const TEST_MISTAKE_RULES = [
+  'roadie/no-css-class-in-jsdom',
+  'roadie/no-css-source-in-jsdom',
+  'roadie/no-layout-fake-in-jsdom'
+]
+
 // Packs the package as npm would publish it into a fresh app, with the
 // fixtures in src/, so the app can reach only the published files and exports.
 export function createApp(prefix, files) {
@@ -55,7 +73,12 @@ export function createApp(prefix, files) {
     JSON.stringify({ name: 'consumer', private: true, type: 'module' })
   )
   mkdirSync(join(app, 'src'))
-  const appFiles = { 'src/Mistakes.jsx': MISTAKES, 'src/Clean.jsx': CLEAN }
+  const appFiles = {
+    'src/Mistakes.jsx': MISTAKES,
+    'src/Clean.jsx': CLEAN,
+    'src/Ticket.test.jsx': TEST_MISTAKES,
+    'src/Ticket.browser.test.jsx': TEST_MISTAKES
+  }
   for (const [file, content] of Object.entries({ ...appFiles, ...files }))
     writeFileSync(join(app, file), content)
   return { app, packed: JSON.parse(output) }

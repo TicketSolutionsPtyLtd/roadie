@@ -70,7 +70,8 @@ the `full-browsers` label on the PR (PR workflow sections 5 and 7).
 ## 4. Tests that lie
 
 Patterns the INNO-1130 audit found in Roadie (October 2026), since fixed.
-Roadie's lint rules (`eslint/roadie-plugin.js`) now fail the first five.
+Roadie's lint rules now fail the first five. The three jsdom rules ship in
+the `testing` preset of `@oztix/roadie-lint-plugin`, so apps can turn them on.
 
 | Anti-pattern                                              | Lint rule                        | Instead                                                            |
 | --------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------ |

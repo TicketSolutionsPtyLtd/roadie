@@ -4,7 +4,7 @@ export const metadata = {
     'Catch Roadie mistakes in your app at lint time with @oztix/roadie-lint-plugin, in ESLint or oxlint.'
 }
 
-`@oztix/roadie-lint-plugin` checks the Roadie conventions a rule can be sure of: Phosphor icon imports, sizes, and weights, colour classes, arbitrary radius and z-index values, and a `Card` without `Card.Content`. Calls that need judgement, such as which emphasis a surface takes, stay with review. It runs in ESLint and in oxlint, with the same rule IDs in both.
+`@oztix/roadie-lint-plugin` checks the Roadie conventions a rule can be sure of: Phosphor icon imports, sizes, and weights, colour classes, arbitrary radius and z-index values, a `Card` without `Card.Content`, and jsdom tests that check what only a browser can. Calls that need judgement, such as which emphasis a surface takes, stay with review. It runs in ESLint and in oxlint, with the same rule IDs in both.
 
 ## Install
 
@@ -29,7 +29,7 @@ export default [
 ]
 ```
 
-It turns every rule on as an error for JavaScript and TypeScript files, and turns on JSX parsing. TypeScript files still need the parser your config gives them, such as typescript-eslint's.
+It turns every rule in the [Rules](#rules) table on as an error for JavaScript and TypeScript files, and turns on JSX parsing. TypeScript files still need the parser your config gives them, such as typescript-eslint's.
 
 To choose rules yourself, register the plugin as `roadie` and name each rule.
 
@@ -72,7 +72,7 @@ import recommended from '@oztix/roadie-lint-plugin/oxlint/recommended.json' with
 export default defineConfig({ extends: [recommended] })
 ```
 
-The preset turns every rule on as an error and loads the plugin under the name `roadie`. To choose rules yourself, load it in `jsPlugins` with that name and name each rule.
+The preset turns every rule in the [Rules](#rules) table on as an error and loads the plugin under the name `roadie`. To choose rules yourself, load it in `jsPlugins` with that name and name each rule.
 
 ```json
 {
@@ -110,6 +110,37 @@ The class rules read `className`, any prop ending in `ClassName`, and the argume
 Two icon rules skip a case on purpose. `roadie/phosphor-icon-weight` skips an icon passed to `Navigator.Item`, including one in a fallback such as `icon={icons[href] ?? <HouseIcon />}`, because Navigator sets its own weight. An icon built elsewhere, such as in a map of icons, still fails, so disable the rule around it and say why. `roadie/phosphor-icon-size-prop` allows `size='100%'`, which fills an SVG around the icon, such as a QR code's centre mark.
 
 `roadie/card-content` judges a `Card` imported by name from `@oztix/roadie-components`, not through a namespace import, and only when it can see every part. A card whose children include your own component, an expression such as a `map`, or a fragment passes, since any of those might render `Card.Content`. Card warns in development when it renders without one, which catches the rest.
+
+## Testing
+
+The testing preset catches jsdom tests that check layout or CSS. jsdom has no layout engine and doesn't evaluate CSS, so those tests pass whatever the page looks like. The preset turns its rules on for `*.test.{js,jsx,ts,tsx}` files and off for `*.browser.test.*` files, such as tests in Vitest's browser mode, which is where those checks belong.
+
+In ESLint, spread it into your config array.
+
+```js
+import roadie from '@oztix/roadie-lint-plugin'
+
+export default [roadie.configs.recommended, ...roadie.configs.testing]
+```
+
+In oxlint, extend it after the recommended preset. In `oxlint.config.ts`, import `@oztix/roadie-lint-plugin/oxlint/testing.json` and add it to `extends` the same way.
+
+```json
+{
+  "extends": [
+    "./node_modules/@oztix/roadie-lint-plugin/oxlint/recommended.json",
+    "./node_modules/@oztix/roadie-lint-plugin/oxlint/testing.json"
+  ]
+}
+```
+
+| Rule                      | Fails                                                                                                                       | Fix                                                                |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `no-css-class-in-jsdom`   | A `calc()`, container query, or breakpoint class in `toHaveClass`, such as `md:grid`                                        | Measure it in a browser test                                       |
+| `no-css-source-in-jsdom`  | Reading CSS source, with a `?raw` import or `readFileSync`                                                                  | Set up the condition in a browser test and read the computed style |
+| `no-layout-fake-in-jsdom` | A faked layout read, such as `getBoundingClientRect` or `offsetWidth`, or a `matchMedia` fake that answers a viewport query | A browser test at a real width                                     |
+
+A `matchMedia` fake that answers only a preference, such as `prefers-reduced-motion`, passes, because it fakes a setting, not layout. A test that checks a generated file against the CSS it comes from is a fair reason to read CSS source. Turn `roadie/no-css-source-in-jsdom` off for that file in a config after the preset, and say why in a comment.
 
 ## Icons without an import
 
