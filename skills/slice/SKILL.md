@@ -38,7 +38,10 @@ workflow win over anything here.
 - **Vertical.** Each slice is a behaviour someone can use or read, with its
   tests and docs, never a layer (all the types, then all the tests).
 - **Under the threshold.** Estimate each slice's lines from the files it
-  touches, tests included. One that might run over splits again.
+  touches, tests included. One that might run over splits again. A move
+  counts as free only when git pairs it as a rename, which takes a whole
+  file changed by less than half. Moving part of a file into another counts
+  twice, as lines deleted and lines added.
 - **Shippable alone.** Once it merges, `main` builds, passes, and documents
   what it ships: no flag nothing reads, no export no page shows, and no docs
   pointing at code `main` doesn't have.
