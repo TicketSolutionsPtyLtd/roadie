@@ -3,9 +3,9 @@
 Lint rules that catch [Roadie Design System](https://github.com/TicketSolutionsPtyLtd/roadie)
 mistakes in apps: Phosphor icon imports, sizes, and weights, `dark:` variants,
 hex colour classes, arbitrary radius and z-index values, and a `Card`
-without `Card.Content`. Its `testing` preset catches jsdom tests that check
-what only a browser can, such as layout or CSS. Lint with oxlint 1.88 or
-later.
+without `Card.Content`. Its `testing` preset catches tests that sleep,
+assert class strings, or check in jsdom what only a browser can, such as
+layout or CSS. Lint with oxlint 1.88 or later.
 
 ```bash
 pnpm add -D @oztix/roadie-lint-plugin oxlint

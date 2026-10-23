@@ -3,7 +3,12 @@ import { readFileSync, readdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { MISTAKE_RULES, TEST_MISTAKE_RULES, createApp } from './app.js'
+import {
+  BROWSER_TEST_MISTAKE_RULES,
+  MISTAKE_RULES,
+  TEST_MISTAKE_RULES,
+  createApp
+} from './app.js'
 
 const { devDependencies } = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8')
@@ -71,12 +76,14 @@ describe.each(Object.keys(CONFIGS))(
       expect(lint('src/Clean.jsx')).toEqual([])
     })
 
-    it('reports each jsdom mistake in a test', () => {
+    it('reports each testing mistake in a test', () => {
       expect(lint('src/Ticket.test.jsx')).toEqual(TEST_MISTAKE_RULES)
     })
 
-    it('allows them in a browser test', () => {
-      expect(lint('src/Ticket.browser.test.jsx')).toEqual([])
+    it('allows only the jsdom ones in a browser test', () => {
+      expect(lint('src/Ticket.browser.test.jsx')).toEqual(
+        BROWSER_TEST_MISTAKE_RULES
+      )
     })
   }
 )

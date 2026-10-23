@@ -12,10 +12,16 @@
       ]
     },
     "lint": {
-      "inputs": ["$TURBO_DEFAULT$"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**"
+      ]
     },
     "lint:fix": {
-      "inputs": ["$TURBO_DEFAULT$"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**"
+      ]
     }
   }
 }

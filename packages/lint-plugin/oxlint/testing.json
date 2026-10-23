@@ -11,15 +11,22 @@
       "rules": {
         "roadie/no-css-source-in-jsdom": "error",
         "roadie/no-css-class-in-jsdom": "error",
-        "roadie/no-layout-fake-in-jsdom": "error"
+        "roadie/no-layout-fake-in-jsdom": "error",
+        "roadie/no-fixed-sleep": "error",
+        "roadie/no-cva-output-assertion": "error"
       }
     },
     {
-      "files": ["**/*.browser.test.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
+      "files": [
+        "**/*.browser.test.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
+        "**/*.spec.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
+        "**/e2e/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"
+      ],
       "rules": {
         "roadie/no-css-source-in-jsdom": "off",
         "roadie/no-css-class-in-jsdom": "off",
-        "roadie/no-layout-fake-in-jsdom": "off"
+        "roadie/no-layout-fake-in-jsdom": "off",
+        "roadie/no-fixed-sleep": "error"
       }
     }
   ]

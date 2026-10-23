@@ -21,22 +21,6 @@ function mdxContentRule(rule) {
   }
 }
 
-// JSX means the value was rendered, which is what a test should assert on.
-const EXPRESSION_EDGE = /Function|Statement$|Declaration$|^JSX|^Program$/
-
-const isExpect = (callee) =>
-  callee.name === 'expect' || callee.object?.name === 'expect'
-
-// expect(…) or expect.soft(…), or a matcher chained on it such as expect(…).not.toBe(…).
-function isAssertion(call) {
-  let node = call
-  while (node.type === 'CallExpression' || node.type === 'MemberExpression') {
-    if (node.type === 'CallExpression' && isExpect(node.callee)) return true
-    node = node.type === 'CallExpression' ? node.callee : node.object
-  }
-  return false
-}
-
 // Classes the fence options reproduce: layout=, gap=, width=, and a caption.
 const FENCE_LAYOUT_CLASS =
   /^(grid|flex|flex-row|flex-wrap|items-center|gap-[123468]|w-(40|48|64|72|80|140|180)|max-w-(full|40|48|64|72|80|140|180))$/
@@ -76,63 +60,6 @@ const isCaption = (node) => {
     tokens.every((token) => CAPTION_CLASS.has(token))
   )
 }
-
-// No delay, or 0, only yields to the next task.
-const isDelay = (node) =>
-  node !== undefined &&
-  !(node.type === 'Literal' && typeof node.value === 'number' && node.value < 1)
-
-const isNewPromise = (node) =>
-  node.type === 'NewExpression' && node.callee.name === 'Promise'
-
-const isFunction = (node) =>
-  /^(Arrow)?Function(Expression|Declaration)$/.test(node.type)
-
-/** The declaration of a function that resolves when `promise` does, such as `const wait = (ms) => withFrames(() => new Promise(…))`. */
-function sleepHelper(promise) {
-  let node = promise
-  for (;;) {
-    const { parent } = node
-    if (
-      parent.type === 'AwaitExpression' ||
-      (parent.type === 'CallExpression' && parent.arguments.includes(node)) ||
-      (isFunction(parent) && parent.body === node)
-    ) {
-      node = parent
-    } else if (
-      (parent.type === 'ReturnStatement' ||
-        (parent.type === 'ExpressionStatement' &&
-          node.type === 'AwaitExpression')) &&
-      parent.parent.type === 'BlockStatement' &&
-      parent.parent.body.length === 1 &&
-      isFunction(parent.parent.parent)
-    ) {
-      node = parent.parent.parent
-    } else {
-      return undefined
-    }
-    if (node.type === 'FunctionDeclaration') return node
-    if (
-      isFunction(node) &&
-      node.parent.type === 'VariableDeclarator' &&
-      node.parent.id.type === 'Identifier'
-    )
-      return node.parent
-  }
-}
-
-const callsTo = (declaration, sourceCode) =>
-  sourceCode
-    .getDeclaredVariables(declaration)
-    .filter((variable) => variable.name === declaration.id.name)
-    .flatMap((variable) => variable.references)
-    .map((reference) => reference.identifier)
-    .filter(
-      (identifier) =>
-        identifier.parent.type === 'CallExpression' &&
-        identifier.parent.callee === identifier
-    )
-    .map((identifier) => identifier.parent)
 
 const rules = {
   ...published.rules,
@@ -192,92 +119,7 @@ const rules = {
     'Zod-free modules do not import zod or ./schema dynamically.',
     'ImportExpression[source.value=/^(zod|\\.\\x2Fschema)$/]',
     'Keep this module zod-free; import only types from ./schema.'
-  ),
-  'no-fixed-sleep': {
-    meta: {
-      type: 'problem',
-      docs: { description: 'Tests wait on a condition, not a fixed time.' },
-      schema: []
-    },
-    create(context) {
-      const { sourceCode } = context
-      const report = (node) =>
-        context.report({
-          node,
-          message:
-            'Wait on a condition with expect.poll or waitFor, not a fixed sleep. See docs/contributing/PR_WORKFLOW.md section 2.'
-        })
-      return {
-        "CallExpression[callee.name='setTimeout'], CallExpression[callee.property.name='setTimeout']"(
-          node
-        ) {
-          if (!isDelay(node.arguments[1])) return
-          const promise = sourceCode.getAncestors(node).findLast(isNewPromise)
-          if (!promise) return
-          report(node)
-          const helper = sleepHelper(promise)
-          if (helper) callsTo(helper, sourceCode).forEach(report)
-        },
-        "CallExpression[callee.property.name='waitForTimeout']": report,
-        // esquery regexes cannot contain a slash.
-        'ImportDeclaration[source.value=/^(node:)?timers\\x2Fpromises$/]':
-          report,
-        "Property[key.name='type'][value.value='wait']": report
-      }
-    }
-  },
-  'no-cva-output-assertion': {
-    meta: {
-      type: 'problem',
-      docs: { description: 'Tests do not assert CVA output.' },
-      schema: []
-    },
-    create(context) {
-      const { sourceCode } = context
-      const reported = new WeakSet()
-      const report = (node) => {
-        if (reported.has(node)) return
-        reported.add(node)
-        context.report({
-          node,
-          message:
-            'Assert what a user sees, not the class string a variants function returns. See docs/contributing/CODING_STANDARDS.md, Test at the public interface.'
-        })
-      }
-      // One binding deep: past that, the value is usually markup or an element built from the classes.
-      const followBinding = (declaration) => {
-        for (const variable of sourceCode.getDeclaredVariables(declaration)) {
-          for (const reference of variable.references) {
-            if (reference.isRead()) follow(reference.identifier, false)
-          }
-        }
-      }
-      const follow = (node, mayBind = true) => {
-        let child = node
-        for (let parent = node.parent; parent; parent = parent.parent) {
-          if (
-            parent.type === 'CallExpression' &&
-            parent.arguments.includes(child) &&
-            isAssertion(parent)
-          ) {
-            return report(node)
-          }
-          const bound =
-            (parent.type === 'VariableDeclarator' && parent.init === child) ||
-            (parent.type === 'ForOfStatement' && parent.right === child)
-          if (bound) {
-            if (mayBind) followBinding(parent.left ?? parent)
-            return
-          }
-          if (EXPRESSION_EDGE.test(parent.type)) return
-          child = parent
-        }
-      }
-      return {
-        'CallExpression[callee.name=/Variants$/]': (node) => follow(node)
-      }
-    }
-  }
+  )
 }
 
 export default { meta: { name: 'roadie' }, rules }
