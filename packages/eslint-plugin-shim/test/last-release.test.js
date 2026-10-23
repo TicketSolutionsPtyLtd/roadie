@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-import { pendingBumps, rereleasesShim } from './lastRelease.js'
+import { nextShimVersion, pendingBumps } from './lastRelease.js'
 
 const read = (path) =>
   JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'))
@@ -14,19 +14,23 @@ const changesets = readdirSync(changesetDir)
 const PLUGIN = '@oztix/roadie-lint-plugin'
 const SHIM = '@oztix/roadie-eslint-plugin'
 
+const LAST_RELEASE = '0.1.2'
+
 // The README promises 0.1.2 is this name's last release. Changesets bumps the
 // shim whenever its dependency on the new name leaves its range, so a minor
 // of the new name would publish an undeprecated 0.1.3.
 it('stays at its last release until the shim is removed', () => {
   const bumps = pendingBumps(changesets)
+  const next = nextShimVersion({
+    shimVersion: read('../package.json').version,
+    shimBump: bumps[SHIM],
+    pluginVersion: read('../../lint-plugin/package.json').version,
+    pluginBump: bumps[PLUGIN]
+  })
   expect(
-    rereleasesShim({
-      pluginVersion: read('../../lint-plugin/package.json').version,
-      pluginBump: bumps[PLUGIN],
-      shimBump: bumps[SHIM]
-    }),
-    `A ${bumps[PLUGIN]} of ${PLUGIN} would release ${SHIM} again. Remove packages/eslint-plugin-shim before it merges.`
-  ).toBe(false)
+    next,
+    `${SHIM} would release ${next}, but its README promises ${LAST_RELEASE} is its last release. Remove packages/eslint-plugin-shim instead.`
+  ).toBe(LAST_RELEASE)
 })
 
 describe('pendingBumps', () => {
@@ -40,22 +44,23 @@ describe('pendingBumps', () => {
   })
 })
 
-describe('rereleasesShim', () => {
+describe('nextShimVersion', () => {
   it.each([
-    ['0.2.0', 'minor', undefined, true],
-    ['0.2.0', 'major', undefined, true],
-    ['0.2.0', 'patch', undefined, false],
-    ['0.2.0', undefined, undefined, false],
-    ['1.0.0', 'minor', undefined, false],
-    ['1.0.0', 'major', undefined, true],
-    // The release that ships 0.1.2 bumps both on purpose.
-    ['0.1.1', 'minor', 'patch', false]
+    ['0.1.2', undefined, '0.2.0', 'minor', '0.1.3'],
+    ['0.1.2', undefined, '0.2.0', 'major', '0.1.3'],
+    ['0.1.2', undefined, '0.2.0', 'patch', '0.1.2'],
+    ['0.1.2', undefined, '0.2.0', undefined, '0.1.2'],
+    ['0.1.2', undefined, '1.0.0', 'minor', '0.1.2'],
+    ['0.1.2', undefined, '1.0.0', 'major', '0.1.3'],
+    ['0.1.2', 'patch', '0.2.0', undefined, '0.1.3'],
+    ['0.1.2', 'minor', '0.2.0', 'minor', '0.2.0'],
+    ['0.1.1', 'patch', '0.1.1', 'minor', '0.1.2']
   ])(
-    'at %s, a %s of the new name with a %s of the shim: %s',
-    (pluginVersion, pluginBump, shimBump, expected) => {
-      expect(rereleasesShim({ pluginVersion, pluginBump, shimBump })).toBe(
-        expected
-      )
+    'shim %s with a %s, new name %s with a %s: %s',
+    (shimVersion, shimBump, pluginVersion, pluginBump, expected) => {
+      expect(
+        nextShimVersion({ shimVersion, shimBump, pluginVersion, pluginBump })
+      ).toBe(expected)
     }
   )
 })
