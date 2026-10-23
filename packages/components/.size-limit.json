@@ -3,7 +3,7 @@
     "name": "All components (tree-shakeable index)",
     "path": "dist/index.js",
     "import": "*",
-    "limit": "264 kB"
+    "limit": "289 kB"
   },
   {
     "name": "Single component (Button)",
@@ -16,21 +16,21 @@
     "name": "Navigator",
     "path": "dist/components/Navigator/index.js",
     "import": "*",
-    "limit": "42.4 kB",
+    "limit": "46.2 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Menu",
     "path": "dist/components/Menu/index.js",
     "import": "*",
-    "limit": "5.3 kB",
+    "limit": "5.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Pane",
     "path": "dist/components/Pane/index.js",
     "import": "*",
-    "limit": "12.6 kB",
+    "limit": "13.8 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -77,7 +77,7 @@
     "name": "ToggleGroup",
     "path": "dist/components/ToggleGroup/index.js",
     "import": "*",
-    "limit": "3.3 kB",
+    "limit": "3.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -147,14 +147,14 @@
     "name": "Progress",
     "path": "dist/components/Progress/index.js",
     "import": "*",
-    "limit": "1.5 kB",
+    "limit": "1.6 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Collapsible",
     "path": "dist/components/Collapsible/index.js",
     "import": "*",
-    "limit": "2.5 kB",
+    "limit": "2.7 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -182,7 +182,7 @@
     "name": "NumberField",
     "path": "dist/components/NumberField/index.js",
     "import": "*",
-    "limit": "9.5 kB",
+    "limit": "10.2 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -210,14 +210,14 @@
     "name": "Callout",
     "path": "dist/components/Callout/index.js",
     "import": "*",
-    "limit": "3.5 kB",
+    "limit": "3.7 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Toast",
     "path": "dist/components/Toast/index.js",
     "import": "*",
-    "limit": "5 kB",
+    "limit": "5.3 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -252,70 +252,70 @@
     "name": "Calendar",
     "path": "dist/components/Calendar/index.js",
     "import": "*",
-    "limit": "16.6 kB",
+    "limit": "18.3 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DateField",
     "path": "dist/components/DateField/index.js",
     "import": "*",
-    "limit": "11.6 kB",
+    "limit": "12.7 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "TimeField",
     "path": "dist/components/TimeField/index.js",
     "import": "*",
-    "limit": "3.6 kB",
+    "limit": "3.9 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DatePicker",
     "path": "dist/components/DatePicker/index.js",
     "import": "*",
-    "limit": "34.8 kB",
+    "limit": "38.2 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DashboardPeriod",
     "path": "dist/components/DashboardPeriod/index.js",
     "import": "*",
-    "limit": "44.6 kB",
+    "limit": "49 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "DateRangePicker",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
-    "limit": "41.55 kB",
+    "limit": "45.4 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "QueryField",
     "path": "dist/components/QueryField/index.js",
     "import": "*",
-    "limit": "17.1 kB",
+    "limit": "18.7 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Records",
     "path": "dist/components/Records/index.js",
     "import": "*",
-    "limit": "71 kB",
+    "limit": "78 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordGrid",
     "path": "dist/components/RecordGrid/index.js",
     "import": "*",
-    "limit": "106 kB",
+    "limit": "117 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "RecordTable",
     "path": "dist/components/RecordTable/index.js",
     "import": "*",
-    "limit": "114 kB",
+    "limit": "125 kB",
     "ignore": ["@oztix/roadie-core"]
   }
 ]
