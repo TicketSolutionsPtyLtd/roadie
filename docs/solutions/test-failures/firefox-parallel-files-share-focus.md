@@ -67,3 +67,7 @@ the unfocused window. It runs a third of the suite, so check `uptime` first:
 ```bash
 ROADIE_BROWSERS=firefox ROADIE_SHARD=1/3 pnpm --filter @oztix/roadie-components test:browser
 ```
+
+With the window focused, the same test still flaked, for a reason in the
+component:
+[an observer's scroll undid the focus scroll](../component-patterns/observer-scroll-overrides-focus.md).
