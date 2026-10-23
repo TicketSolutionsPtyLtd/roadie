@@ -474,7 +474,7 @@ function selectsPeriodProblems(
   if (!period)
     return [warning(at, 'The dashboard has no period for a drag to set')]
   const xs = plot.data.map((row) => row[plot.x]).filter((v) => v != null)
-  return xs.length > 0 && !xs.every(isWallTime)
+  return !xs.every(isWallTime)
     ? [warning(at, `"${plot.x}" isn't dated, so a drag can't set the period`)]
     : []
 }
