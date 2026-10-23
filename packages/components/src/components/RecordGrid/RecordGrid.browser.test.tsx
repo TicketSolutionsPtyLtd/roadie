@@ -20,7 +20,13 @@ import { nudgeFrames, withFrames } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import {
+  type TestShow,
+  boxStates,
+  showFields,
+  stateOffCentre,
+  testShows
+} from '../Records/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -350,4 +356,64 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
         .toBe('Configure table')
     )
   })
+})
+
+describe('RecordGrid in a fill box', () => {
+  const Parent = ({ children }: { children: React.ReactNode }) => (
+    <div style={{ width: 900, height: 600 }}>{children}</div>
+  )
+
+  for (const [name, state, props] of boxStates)
+    it(`centres the ${name} state in the box`, async () => {
+      const { container } = render(
+        <Parent>
+          <RecordGrid {...props} fields={showFields} card={grid} fill />
+        </Parent>
+      )
+      const { container: unboxed } = render(
+        <div style={{ width: 900 }}>
+          <RecordGrid {...props} fields={showFields} card={grid} />
+        </div>
+      )
+      await framed(() =>
+        stateOffCentre(container, 'record-grid', state)
+      ).toBeLessThanOrEqual(2)
+      const height = (within: HTMLElement) =>
+        rect(within.querySelector(`[data-slot="${state}"]`)!).height
+      expect(height(container)).toBeCloseTo(height(unboxed), 0)
+    })
+
+  for (const [what, item, props] of [
+    ['cards', 'record-grid-card', { data: testShows(3) }],
+    [
+      'loading placeholders',
+      'record-table-placeholder-row',
+      { data: [], loading: true }
+    ]
+  ] as const)
+    it(`keeps ${what} at the top, at their own height`, async () => {
+      const first = (container: HTMLElement) =>
+        container.querySelector(`[data-slot="${item}"]`)
+      const { container: boxed } = render(
+        <Parent>
+          <RecordGrid {...props} fields={showFields} card={grid} fill />
+        </Parent>
+      )
+      const { container: unboxed } = render(
+        <div style={{ width: 900 }}>
+          <RecordGrid {...props} fields={showFields} card={grid} />
+        </div>
+      )
+      await framed(() => first(boxed) && first(unboxed)).toBeTruthy()
+      const scroller = boxed.querySelector(
+        '[data-slot="record-grid-scroller"]'
+      )!
+      expect(
+        Math.abs(rect(first(boxed)!).top - rect(scroller).top)
+      ).toBeLessThanOrEqual(1)
+      expect(rect(first(boxed)!).height).toBeCloseTo(
+        rect(first(unboxed)!).height,
+        0
+      )
+    })
 })

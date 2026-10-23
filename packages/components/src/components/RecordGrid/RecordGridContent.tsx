@@ -184,7 +184,8 @@ export function RecordGridContent({
       data-slot='record-grid'
       data-records-content=''
       onKeyDown={leaveSelectOnEscape(records)}
-      className={cn('w-full', !boxed && className)}
+      // In a box, it fills the box, so a state can centre in what's left.
+      className={cn('w-full', boxed ? 'flex min-h-full flex-col' : className)}
     >
       {dimmed && (
         // Zero height, so the cards don't move; sticks under the toolbar.
@@ -207,7 +208,11 @@ export function RecordGridContent({
         data-slot='record-grid-scroller'
         {...rowsSurvivor}
         tabIndex={-1}
-        className={cn('isolate outline-none', dimmed && 'opacity-60')}
+        className={cn(
+          'isolate outline-none',
+          boxed && 'grid grow items-start',
+          dimmed && 'opacity-60'
+        )}
       >
         {body}
       </div>
@@ -241,7 +246,11 @@ RecordGridContent.displayName = 'RecordGridContent'
 function GridState({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   useKeepFocusInTable(ref)
-  return <div ref={ref}>{children}</div>
+  return (
+    <div ref={ref} className='grid content-center self-stretch'>
+      {children}
+    </div>
+  )
 }
 
 function GridSkeleton({
