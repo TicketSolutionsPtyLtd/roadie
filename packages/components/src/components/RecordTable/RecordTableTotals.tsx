@@ -1,7 +1,8 @@
+import { labelColumnIndex } from '@oztix/roadie-core/dashboard-layout'
 import { formatRecordValue } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
-import type { RecordsResolvedTotals } from '../Records/totals'
+import { type RecordsResolvedTotals, isSummedField } from '../Records/totals'
 import {
   actionsCellClass,
   cellClass,
@@ -48,14 +49,14 @@ export function RecordTableTotalsRow({
   actions: boolean
   rowIndex?: number
 }) {
-  // The title column has no total and never hides; a thumbnail is too narrow.
-  const title = titleColumn(columns)
-  const labelIndex = title
-    ? columns.indexOf(title)
-    : Math.max(
-        0,
-        columns.findIndex((column) => column.kind !== 'image')
-      )
+  // A thumbnail is too narrow for the label.
+  const labelIndex = labelColumnIndex(
+    columns,
+    titleColumn(columns),
+    (column) =>
+      column.kind === 'image' ||
+      (column.total !== false && isSummedField(column.field))
+  )
   return (
     <div
       role='row'

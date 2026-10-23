@@ -1,6 +1,10 @@
 import type { ComponentProps, ReactNode } from 'react'
 
 import type { ResolvedTotals, TableColumn } from '@oztix/roadie-core/dashboard'
+import {
+  tableLabelIndex,
+  tableTitleColumn
+} from '@oztix/roadie-core/dashboard-layout'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
@@ -10,7 +14,7 @@ import { DataTableGroups } from './DataTableGroups'
 import { DataTableRow, alignOf, cellAttributes } from './DataTableRow'
 import { DataTableFrame, DataTableShowAll } from './DataTableShowAll'
 import { SortIcon } from './SortIcon'
-import { type DataTableExpanded, groupColumnsOf, labelIndexOf } from './groups'
+import { type DataTableExpanded, groupColumnsOf } from './groups'
 import {
   type DataTableSort,
   type DataTableSortDirection,
@@ -33,10 +37,6 @@ export type DataTableViewProps = Omit<ComponentProps<'div'>, 'children'> & {
   groupBy?: readonly string[]
   defaultExpanded?: DataTableExpanded
 }
-
-const titleColumn = (columns: readonly TableColumn[]) =>
-  columns.find((column) => column.pin && column.kind === 'text') ??
-  columns.find((column) => column.kind === 'text')
 
 const warnedTitlePriority = new Set<string>()
 
@@ -98,10 +98,10 @@ export function DataTableView({
 }: DataTableViewProps) {
   const groupColumns = groupColumnsOf(allColumns, groupBy)
   const visible = allColumns.filter((column) => !groupColumns.includes(column))
-  const title = titleColumn(visible)
+  const title = tableTitleColumn(visible)
   const linksRows = rows.some(({ href }) => href)
   if (linksRows && title?.priority !== undefined) warnTitlePriority(title.key)
-  const labelIndex = labelIndexOf(visible)
+  const labelIndex = tableLabelIndex(visible)
   const labelHeader = [...groupColumns, visible[labelIndex]]
     .map((column) => column?.header)
     .join(' / ')

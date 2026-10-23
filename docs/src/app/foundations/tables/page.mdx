@@ -118,6 +118,9 @@ copy.
 - A RecordTable shows its totals under the headings, since its last row is
   only the end of a page. A DataTable shows them in its footer, under every
   row, as an invoice does.
+- The label, such as "Totals for 1,234 shows", goes in the title column. With
+  no title, it takes the first column without a sum, so it never covers a
+  total. RecordTable and DataTable follow the same rule.
 - Add up counts and amounts only. Work a ratio out from the sums, such as
   total sold over total capacity, never by adding up or averaging each row's.
 - See [Totals](/components/record-table#totals) on the RecordTable page and

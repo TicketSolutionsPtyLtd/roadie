@@ -28,7 +28,10 @@ export type RecordTableColumn<Row extends object = object> = RecordPart<Row> & {
   narrow?: RecordTableNarrow
   /** Hides the column as the table narrows: 3 below 64rem, then 2 below 56rem, then 1 below 48rem. Ignored on a pinned column. */
   priority?: 1 | 2 | 3
-  /** `false` shows no total under this column, as for an id held as a number. */
+  /**
+   * `false` shows no total under this column, as for an id held as a number.
+   * The sum still runs.
+   */
   total?: false
 }
 

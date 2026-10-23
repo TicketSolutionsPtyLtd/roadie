@@ -128,6 +128,20 @@ describe('RecordTable totals', () => {
     ])
   })
 
+  it('labels the first column without a sum when there is no title', () => {
+    const column = tableColumns<TestShow>(showFields)
+    render(
+      <Table totals columns={[column.field('sold'), column.field('starts')]} />
+    )
+    const cells = [
+      ...totalsRow().querySelectorAll('[role="rowheader"], [role="cell"]')
+    ].map((cell) => [cell.getAttribute('role'), cell.textContent])
+    expect(cells).toEqual([
+      ['cell', count.format(soldOf(SHOWS))],
+      ['rowheader', 'Totals for 120 shows']
+    ])
+  })
+
   it("doesn't sum money whose rows name their own currency", () => {
     render(
       <Table

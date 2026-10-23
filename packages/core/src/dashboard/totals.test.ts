@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import type { TableColumn, TableRow } from './schema'
-import { isSummable, resolveTableTotals } from './totals'
+import {
+  isSummable,
+  resolveTableTotals,
+  tableLabelIndex,
+  totalsLabel
+} from './totals'
 import { validateDashboard } from './validate'
 
 const columns: TableColumn[] = [
@@ -24,6 +29,45 @@ describe('isSummable', () => {
       'sold',
       'gross'
     ])
+  })
+})
+
+describe('totalsLabel', () => {
+  const shows = { one: 'show', other: 'shows' }
+
+  it.each([
+    [1, true, 'Totals for 1 show'],
+    [0, true, 'Totals for 0 shows'],
+    [12345, true, 'Totals for 12,345 shows'],
+    [10000, false, 'Totals for 10,000+ shows']
+  ])('labels %i records, exact %s, as %j', (count, exact, label) => {
+    expect(totalsLabel(count, shows, exact)).toBe(label)
+  })
+
+  it('counts exactly unless told otherwise', () => {
+    expect(totalsLabel(2, shows)).toBe('Totals for 2 shows')
+  })
+})
+
+describe('tableLabelIndex', () => {
+  const status: TableColumn = { key: 'state', header: 'State', kind: 'status' }
+  const show: TableColumn = { key: 'show', header: 'Show', kind: 'text' }
+  const venue: TableColumn = { key: 'venue', header: 'Venue', kind: 'text' }
+  const sold: TableColumn = { key: 'sold', header: 'Sold', kind: 'number' }
+  const share: TableColumn = {
+    key: 'share',
+    header: 'Share',
+    kind: 'number',
+    format: 'percent'
+  }
+
+  it.each([
+    ['the first text column', [status, sold, show, venue], 2],
+    ['the pinned text column', [show, { ...venue, pin: true }, sold], 1],
+    ['the first column without a sum, with no text', [sold, share, status], 1],
+    ['the first column when every column has a sum', [sold], 0]
+  ])('puts the label in %s', (_, columns, index) => {
+    expect(tableLabelIndex(columns)).toBe(index)
   })
 })
 
@@ -211,7 +255,7 @@ describe('validateDashboard totals rows', () => {
       {
         path: 'sections[0].cards[0].totals',
         message:
-          'The label goes in the first column without a sum, and every column has one. Add a text column',
+          'Every column has a sum, so the label covers the first. Add a text column',
         severity: 'warning'
       }
     ])
@@ -223,9 +267,31 @@ describe('validateDashboard totals rows', () => {
       {
         path: 'sections[0].cards[0].totals',
         message:
-          'The label goes in the first column without a sum, so its value never shows. Leave it out of values',
+          'The label goes in the "show" column, so its value never shows. Leave it out of values',
         severity: 'warning'
       }
+    ])
+  })
+
+  it('puts the label in the text column after a column without a sum', () => {
+    const table = reportTable({ label: 'All shows', values: { state: 2 } })
+    const card = table.sections[0]!.cards[0]!
+    card.columns = [
+      { key: 'state', header: 'State', kind: 'status' },
+      ...card.columns
+    ]
+    expect(validateDashboard(table).problems).toEqual([])
+  })
+
+  it('warns when a value is given for a text column after the first', () => {
+    const table = reportTable({ label: 'All shows', values: { show: 2 } })
+    const card = table.sections[0]!.cards[0]!
+    card.columns = [
+      { key: 'state', header: 'State', kind: 'status' },
+      ...card.columns
+    ]
+    expect(validateDashboard(table).problems).toEqual([
+      expect.objectContaining({ path: 'sections[0].cards[0].totals' })
     ])
   })
 

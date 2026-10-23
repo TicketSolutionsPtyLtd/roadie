@@ -1,11 +1,11 @@
 import type { CSSProperties, ComponentProps, ReactNode } from 'react'
 
 import type { TableColumn } from '@oztix/roadie-core/dashboard'
+import { tableLabelIndex } from '@oztix/roadie-core/dashboard-layout'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Table } from '../Table'
 import { DataTableCellContent } from './DataTableCell'
-import { labelIndexOf } from './groups'
 import { type KeyedRow, cellOf } from './sort'
 
 export const alignOf = (column: TableColumn): 'start' | 'end' =>
@@ -39,7 +39,7 @@ export function DataTableRow({
     titleKey !== undefined &&
     cellOf(row, titleKey) != null &&
     cellOf(row, titleKey) !== ''
-  const labelIndex = labelIndexOf(columns)
+  const labelIndex = tableLabelIndex(columns)
   return (
     <Table.Row
       {...rowProps}

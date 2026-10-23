@@ -31,7 +31,7 @@ import {
   type TableData,
   dashboardSchema
 } from './schema'
-import { isSummable } from './totals'
+import { isSummable, tableLabelIndex } from './totals'
 
 export type DashboardProblem = {
   path: string
@@ -351,22 +351,21 @@ function totalsProblems(
     problems.push(
       warning(
         at,
-        'The label goes in the first column without a sum, so its value never shows. Leave it out of values'
+        `The label goes in the "${label.key}" column, so its value never shows. Leave it out of values`
       )
     )
   else if (!given.values && label && isSummable(label))
     problems.push(
       warning(
         at,
-        'The label goes in the first column without a sum, and every column has one. Add a text column'
+        'Every column has a sum, so the label covers the first. Add a text column'
       )
     )
   return problems
 }
 
-// DataTable puts the totals and group labels in the first column a total never fills.
 const labelColumnOf = (columns: readonly TableColumn[]) =>
-  columns.find((column) => !isSummable(column)) ?? columns[0]
+  columns[tableLabelIndex(columns)]
 
 const isGroupable = (column: TableColumn) =>
   column.kind === 'text' || column.kind === 'status'
@@ -414,7 +413,7 @@ function groupProblems(
     problems.push(
       warning(
         `${path}.groupBy`,
-        'The group labels go in the first column left without a sum. Make it a text or status column'
+        'With no text column, the group labels go in the first column without a sum. Add a text column, or make that one a status column'
       )
     )
   if (Array.isArray(defaultExpanded))

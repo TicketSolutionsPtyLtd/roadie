@@ -102,7 +102,7 @@ describe('validateDashboard grouped tables', () => {
         path: `${at}.groupBy`,
         severity: 'warning',
         message:
-          'The group labels go in the first column left without a sum. Make it a text or status column'
+          'With no text column, the group labels go in the first column without a sum. Add a text column, or make that one a status column'
       })
     ])
   })
@@ -114,7 +114,7 @@ describe('validateDashboard grouped tables', () => {
       path: `${at}.totals`,
       severity: 'warning',
       message:
-        'The label goes in the first column without a sum, and every column has one. Add a text column'
+        'Every column has a sum, so the label covers the first. Add a text column'
     })
   })
 
@@ -122,6 +122,16 @@ describe('validateDashboard grouped tables', () => {
     const table = scansTable({ groupBy: ['pool'] })
     const card = table.sections[0]!.cards[0]!
     card.columns = [card.columns[0]!, card.columns[2]!, card.columns[1]!]
+    expect(validateDashboard(table).problems).toEqual([])
+  })
+
+  it('puts the group labels in a text column after a meter column', () => {
+    const table = scansTable({ groupBy: ['pool'] })
+    const card = table.sections[0]!.cards[0]!
+    card.columns = [
+      { key: 'gate', header: 'Gate', kind: 'meter' },
+      ...card.columns
+    ]
     expect(validateDashboard(table).problems).toEqual([])
   })
 
