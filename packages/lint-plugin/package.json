@@ -27,7 +27,8 @@
   "files": [
     "src",
     "oxlint",
-    "!src/**/*.test.js"
+    "!src/**/*.test.js",
+    "!src/internal.js"
   ],
   "publishConfig": {
     "access": "public"
