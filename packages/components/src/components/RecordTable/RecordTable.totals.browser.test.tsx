@@ -143,20 +143,25 @@ describe('RecordTable totals', () => {
     await expect
       .poll(() => screen.queryByRole('toolbar', { name: 'Bulk actions' }))
       .not.toBeNull()
-    slot(container, 'pane-viewport').scrollTop = 1500
-    // The pane header collapses as it scrolls, over a transition.
+    // The pane header collapses as it scrolls, over a slow transition.
     await expect
-      .poll(() => {
-        const header = slot(container, 'pane-header')
-        const toolbar = rect(slot(container, 'records-header'))
-        const head = rect(slot(container, 'record-table-head'))
-        return [
-          header.dataset.collapsed,
-          ...[toolbar.top - rect(header).bottom, head.top - toolbar.bottom].map(
-            Math.round
-          )
-        ]
-      })
+      .poll(
+        () => {
+          slot(container, 'pane-viewport').scrollTop = 1500
+          const header = slot(container, 'pane-header')
+          const toolbar = rect(slot(container, 'records-header'))
+          const head = rect(slot(container, 'record-table-head'))
+          // abs: toEqual tells -0 from 0.
+          return [
+            header.dataset.collapsed,
+            ...[
+              toolbar.top - rect(header).bottom,
+              head.top - toolbar.bottom
+            ].map((gap) => Math.abs(Math.round(gap)))
+          ]
+        },
+        { timeout: 5000 }
+      )
       .toEqual(['true', 0, 0])
   })
 
