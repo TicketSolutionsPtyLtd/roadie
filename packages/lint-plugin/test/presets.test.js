@@ -1,3 +1,4 @@
+import { ESLint } from 'eslint'
 import { readFileSync, readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
@@ -40,4 +41,25 @@ describe.each(Object.keys(plugin.configs))('the %s preset', (name) => {
       { name: 'roadie', specifier: plugin.meta.name }
     ])
   })
+})
+
+describe('the testing preset', () => {
+  const eslint = new ESLint({
+    overrideConfigFile: true,
+    overrideConfig: plugin.configs.testing
+  })
+  const severity = async (file) => {
+    const { rules = {} } = (await eslint.calculateConfigForFile(file)) ?? {}
+    return rules['roadie/no-layout-fake-in-jsdom']?.[0]
+  }
+
+  it.each(['a.test.js', 'a.test.tsx', 'a.test.mts', 'a.test.cjs'])(
+    'turns the jsdom rules on in %s',
+    async (file) => expect(await severity(file)).toBe(2)
+  )
+
+  it.each(['a.browser.test.tsx', 'a.browser.test.mts', 'a.spec.ts'])(
+    'leaves the jsdom rules off in %s',
+    async (file) => expect(await severity(file)).not.toBe(2)
+  )
 })
