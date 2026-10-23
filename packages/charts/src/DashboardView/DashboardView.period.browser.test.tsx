@@ -32,13 +32,29 @@ const lineCard: ChartCard = {
   size: 'full',
   label: 'Tickets sold each day',
   source: 'Oztix sales.',
-  plot: { kind: 'line', data: days, x: 'day', y: 'sold' }
+  plot: { kind: 'line', data: days, x: 'day', y: 'sold', selectsPeriod: true }
 }
 const barCard: ChartCard = {
   ...lineCard,
   id: 'daily-bars',
   label: 'Orders each day',
-  plot: { kind: 'bar', data: days, x: 'day', y: 'sold' }
+  plot: { kind: 'bar', data: days, x: 'day', y: 'sold', selectsPeriod: true }
+}
+const areaCard: ChartCard = {
+  ...lineCard,
+  id: 'daily-channels',
+  label: 'Tickets sold by channel',
+  plot: {
+    kind: 'stacked-area',
+    data: days.flatMap((d) => [
+      { ...d, channel: 'Email' },
+      { ...d, sold: d.sold / 2, channel: 'Social' }
+    ]),
+    x: 'day',
+    y: 'sold',
+    series: 'channel',
+    selectsPeriod: true
+  }
 }
 
 const dashboard = (
@@ -106,15 +122,15 @@ async function settled(view: ReturnType<typeof renderDashboard>) {
 describe('DashboardView setting the period from a chart', () => {
   it.each([
     ['line', lineCard],
-    ['bar', barCard]
+    ['bar', barCard],
+    ['stacked area', areaCard]
   ])(
     'sets the period from a %s card, keeping the comparison',
     async (_, card) => {
       const onPeriodChange = vi.fn()
       const view = renderDashboard({
         spec: dashboard(card),
-        onPeriodChange,
-        selectsPeriod: () => true
+        onPeriodChange
       })
       await selectRange(view)
       expect(onPeriodChange).toHaveBeenCalledExactlyOnceWith({
@@ -138,11 +154,11 @@ describe('DashboardView setting the period from a chart', () => {
           data: hours,
           x: 'hour',
           y: 'scans',
-          interval: 'hour'
+          interval: 'hour',
+          selectsPeriod: true
         }
       }),
-      onPeriodChange,
-      selectsPeriod: () => true
+      onPeriodChange
     })
     await selectRange(
       view,
@@ -158,8 +174,7 @@ describe('DashboardView setting the period from a chart', () => {
     const onPeriodChange = vi.fn()
     const view = renderDashboard({
       spec: dashboard(lineCard, { range: 'this-month' }),
-      onPeriodChange,
-      selectsPeriod: () => true
+      onPeriodChange
     })
     await selectRange(view)
     expect(onPeriodChange.mock.calls).toStrictEqual([
@@ -173,27 +188,16 @@ describe('DashboardView setting the period from a chart', () => {
       spec: dashboard(lineCard, {
         range: { start: '2026-10-02', end: '2026-10-04' }
       }),
-      onPeriodChange,
-      selectsPeriod: () => true
+      onPeriodChange
     })
     await selectRange(view)
     expect(onPeriodChange).not.toHaveBeenCalled()
   })
 
-  it('asks selectsPeriod about each line and bar card', async () => {
-    const selectsPeriod = vi.fn((card: ChartCard) => card.id === 'daily')
-    const ranked: ChartCard = {
-      id: 'ranked',
-      kind: 'chart',
-      size: 'full',
-      label: 'Top suburbs',
-      source: 'Oztix sales.',
-      plot: {
-        kind: 'ranked-bars',
-        data: [{ suburb: 'Fitzroy', buyers: 4 }],
-        x: 'suburb',
-        y: 'buyers'
-      }
+  it('draws a range select only on cards that set the period', async () => {
+    const unselected: ChartCard = {
+      ...barCard,
+      plot: { kind: 'bar', data: days, x: 'day', y: 'sold' }
     }
     render(
       <DashboardView
@@ -201,16 +205,11 @@ describe('DashboardView setting the period from a chart', () => {
           version: 1,
           title: 'Sales',
           period: { range: 'this-month' },
-          sections: [{ title: 'Sales', cards: [lineCard, barCard, ranked] }]
+          sections: [{ title: 'Sales', cards: [lineCard, unselected] }]
         }}
         onPeriodChange={() => {}}
-        selectsPeriod={selectsPeriod}
       />
     )
-    expect(selectsPeriod.mock.calls.map(([card]) => card.id).sort()).toEqual([
-      'daily',
-      'daily-bars'
-    ])
     await afterResize()
     const brushIn = (name: string) =>
       screen.getByRole('article', { name }).querySelector('[data-chart-brush]')
@@ -219,15 +218,20 @@ describe('DashboardView setting the period from a chart', () => {
   })
 
   it.each<[string, Partial<DashboardViewProps>]>([
-    ['without selectsPeriod', { onPeriodChange: () => {} }],
-    ['without onPeriodChange', { selectsPeriod: () => true }],
+    [
+      'without selectsPeriod',
+      {
+        spec: dashboard({
+          ...lineCard,
+          plot: { kind: 'line', data: days, x: 'day', y: 'sold' }
+        }),
+        onPeriodChange: () => {}
+      }
+    ],
+    ['without onPeriodChange', {}],
     [
       'while the period is disabled',
-      {
-        onPeriodChange: () => {},
-        selectsPeriod: () => true,
-        periodProps: { disabled: true }
-      }
+      { onPeriodChange: () => {}, periodProps: { disabled: true } }
     ]
   ])('draws no range select %s', async (_, props) => {
     const view = renderDashboard({ spec: dashboard(lineCard), ...props })
@@ -238,8 +242,7 @@ describe('DashboardView setting the period from a chart', () => {
   it('draws no range select without a period', async () => {
     const view = renderDashboard({
       spec: { ...dashboard(lineCard), period: undefined },
-      onPeriodChange: () => {},
-      selectsPeriod: () => true
+      onPeriodChange: () => {}
     })
     await settled(view)
     expect(view.brush()).toBeNull()

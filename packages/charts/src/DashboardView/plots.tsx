@@ -54,7 +54,11 @@ function StaticPlotView({ plot }: { plot: StaticPlot }) {
   )
 }
 
-function withoutKind<T extends { kind: string }>({ kind: _kind, ...props }: T) {
+function chartProps<T extends { kind: string; selectsPeriod?: boolean }>({
+  kind: _kind,
+  selectsPeriod: _selectsPeriod,
+  ...props
+}: T) {
   return props
 }
 
@@ -67,25 +71,25 @@ function ChartPlotView({
 }: { plot: ChartPlot } & RangeSelect): ReactElement {
   switch (plot.kind) {
     case 'line':
-      return <LineChart {...withoutKind(plot)} onRangeSelect={onRangeSelect} />
+      return <LineChart {...chartProps(plot)} onRangeSelect={onRangeSelect} />
     case 'bar':
-      return <BarChart {...withoutKind(plot)} onRangeSelect={onRangeSelect} />
+      return <BarChart {...chartProps(plot)} onRangeSelect={onRangeSelect} />
     case 'ranked-bars':
-      return <RankedBars {...withoutKind(plot)} />
+      return <RankedBars {...chartProps(plot)} />
     case 'stacked-bars':
-      return <StackedBars {...withoutKind(plot)} />
+      return <StackedBars {...chartProps(plot)} />
     case 'stacked-area':
-      return <StackedArea {...withoutKind(plot)} />
+      return <StackedArea {...chartProps(plot)} onRangeSelect={onRangeSelect} />
     case 'histogram':
-      return <Histogram {...withoutKind(plot)} />
+      return <Histogram {...chartProps(plot)} />
     case 'funnel':
-      return <Funnel {...withoutKind(plot)} />
+      return <Funnel {...chartProps(plot)} />
     case 'heatmap':
-      return <Heatmap {...withoutKind(plot)} />
+      return <Heatmap {...chartProps(plot)} />
     case 'scatter':
-      return <Scatter {...withoutKind(plot)} />
+      return <Scatter {...chartProps(plot)} />
     case 'small-multiples':
-      return <SmallMultiples {...withoutKind(plot)} />
+      return <SmallMultiples {...chartProps(plot)} />
   }
 }
 

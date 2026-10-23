@@ -6,11 +6,11 @@ import type { StackedAreaProps } from './types'
 
 describe('StackedArea props', () => {
   it('match the stacked-area plot schema both ways', () => {
-    expectTypeOf<Omit<StackedAreaProps, 'className'>>().toExtend<
-      PlotProps<'stacked-area'>
-    >()
+    expectTypeOf<
+      Omit<StackedAreaProps, 'className' | 'onRangeSelect'>
+    >().toExtend<PlotProps<'stacked-area'>>()
     expectTypeOf<PlotProps<'stacked-area'>>().toExtend<
-      Omit<StackedAreaProps, 'className'>
+      Omit<StackedAreaProps, 'className' | 'onRangeSelect'>
     >()
   })
 })

@@ -788,18 +788,20 @@ function SalesDashboard({ spec }: { spec: DashboardSpec }) {
 
 ### Set the period from a chart
 
-`selectsPeriod` lets someone drag across a line or bar card to set the period
-to those days. It's called for each line and bar card, so return `true` where x
-is the period's timeline, such as sales each day, and not where it's another,
-such as shows coming up. Releasing the drag is the Apply: `onPeriodChange`
-gets the range with the current comparison, and the toolbar shows the new
-dates. A period covers whole days, so a drag across hourly bars sets the days
-they fall on. The keyboard does the same with Shift and an arrow key, then
-Enter.
+`selectsPeriod: true` on a `line`, `bar`, or `stacked-area` plot lets someone
+drag across the card to set the period to those days. Set it where x is the
+period's timeline, such as sales each day, and not where it's another, such as
+shows coming up. Releasing the drag is the Apply: `onPeriodChange` gets the
+range with the current comparison, and the toolbar shows the new dates. A
+period covers whole days, so a drag across hourly bars sets the days they fall
+on. The keyboard does the same with Shift and an arrow key, then Enter.
 
-It needs `onPeriodChange`, and does nothing while `periodProps.disabled` is
-set. To give a way back, add a button to the toolbar through
-`periodProps.children`. Drag across the chart here, then reset it.
+It needs a `period` in the description and `onPeriodChange` on
+`DashboardView`, and does nothing while `periodProps.disabled` is set.
+`validateDashboard` warns when x isn't dated or there's no period, and
+`DashboardView` warns in development when there's no `onPeriodChange`. To give
+a way back, add a button to the toolbar through `periodProps.children`. Drag
+across the chart here, then reset it.
 
 ```tsx-live-noinline
 // Daily sales from 1 August to Wed 7 Oct 2026.
@@ -821,7 +823,7 @@ function Sales() {
       {
         title: 'Sales',
         cards: [
-          { id: 'daily', kind: 'chart', size: 'full', label: 'Tickets sold', value: days.reduce((sum, { sold }) => sum + sold, 0), source: 'Oztix sales.', plot: { kind: 'line', data: days, x: 'day', y: 'sold' } }
+          { id: 'daily', kind: 'chart', size: 'full', label: 'Tickets sold', value: days.reduce((sum, { sold }) => sum + sold, 0), source: 'Oztix sales.', plot: { kind: 'line', data: days, x: 'day', y: 'sold', selectsPeriod: true } }
         ]
       }
     ]
@@ -830,7 +832,6 @@ function Sales() {
     <DashboardView
       spec={spec}
       onPeriodChange={setPeriod}
-      selectsPeriod={(card) => card.id === 'daily'}
       periodProps={{
         today: '2026-10-07',
         timeZone: 'Australia/Melbourne',

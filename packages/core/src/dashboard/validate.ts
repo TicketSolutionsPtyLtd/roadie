@@ -464,6 +464,21 @@ function plotProblems(plot: ChartPlot, path: string) {
   return problems
 }
 
+function selectsPeriodProblems(
+  plot: ChartPlot,
+  path: string,
+  period: DashboardPeriodSpec | undefined
+) {
+  if (!('selectsPeriod' in plot) || !plot.selectsPeriod) return []
+  const at = `${path}.plot.selectsPeriod`
+  if (!period)
+    return [warning(at, 'The dashboard has no period for a drag to set')]
+  const xs = plot.data.map((row) => row[plot.x]).filter((v) => v != null)
+  return xs.length > 0 && !xs.every(isWallTime)
+    ? [warning(at, `"${plot.x}" isn't dated, so a drag can't set the period`)]
+    : []
+}
+
 function secondaryProblems(table: TableData, path: string) {
   return table.columns.flatMap((column, i) =>
     column.secondaryKey && column.kind !== 'text' && column.kind !== 'status'
@@ -699,7 +714,10 @@ function cardProblems(
   if (card.kind === 'note')
     problems.push(...copyProblems(path, 'body', card.body))
   if (card.kind === 'chart' && card.plot.kind !== 'static')
-    problems.push(...plotProblems(card.plot, path))
+    problems.push(
+      ...plotProblems(card.plot, path),
+      ...selectsPeriodProblems(card.plot, path, period)
+    )
   if (card.kind === 'chart')
     card.legend?.forEach((item, i) => {
       if (item.median && item.shape !== 'band')

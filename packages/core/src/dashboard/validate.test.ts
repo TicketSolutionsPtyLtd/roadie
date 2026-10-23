@@ -1193,3 +1193,87 @@ describe('validateDashboard periods', () => {
     ).toEqual([{ path: 'sections[0].cards[0].context', severity: 'warning' }])
   })
 })
+
+describe('validateDashboard checks which cards set the period', () => {
+  const withPeriod = (plot: Record<string, unknown>) => ({
+    ...spec([chartCard(plot)]),
+    period: { range: 'this-month' }
+  })
+  const daily = { kind: 'line', data: rows, x: 'day', y: 'sold' }
+  const problems = (input: unknown) =>
+    validateDashboard(input).problems.map(({ path, severity }) => ({
+      path,
+      severity
+    }))
+
+  it.each([
+    ['line', daily],
+    ['bar', { ...daily, kind: 'bar' }],
+    ['stacked-area', { ...daily, kind: 'stacked-area', series: 'channel' }]
+  ])('accepts selectsPeriod on a dated %s plot', (_, plot) => {
+    const result = validateDashboard(
+      withPeriod({ ...plot, selectsPeriod: true })
+    )
+    expect(result.ok).toBe(true)
+    expect(result.problems).toEqual([])
+  })
+
+  it('accepts selectsPeriod before the data arrives', () => {
+    expect(
+      problems(withPeriod({ ...daily, data: [], selectsPeriod: true }))
+    ).toEqual([])
+  })
+
+  it.each([
+    ['a plot without a time axis', { ...daily, kind: 'ranked-bars' }],
+    [
+      'a small multiples chart',
+      {
+        kind: 'small-multiples',
+        data: rows,
+        by: 'channel',
+        chart: { kind: 'line', x: 'day', y: 'sold', selectsPeriod: true }
+      }
+    ]
+  ])('rejects selectsPeriod on %s', (_, plot) => {
+    expect(
+      validateDashboard(withPeriod({ selectsPeriod: true, ...plot })).ok
+    ).toBe(false)
+  })
+
+  it('rejects a selectsPeriod that is not a boolean', () => {
+    expect(
+      problems(withPeriod({ ...daily, selectsPeriod: 'yes' }))
+    ).toContainEqual({
+      path: 'sections[0].cards[0].plot.selectsPeriod',
+      severity: 'error'
+    })
+  })
+
+  it('warns when x is not dated, so a drag can never set the period', () => {
+    expect(
+      problems(
+        withPeriod({
+          kind: 'bar',
+          data: [
+            { tier: 'GA', sold: 300 },
+            { tier: 'VIP', sold: 80 }
+          ],
+          x: 'tier',
+          y: 'sold',
+          selectsPeriod: true
+        })
+      )
+    ).toEqual([
+      { path: 'sections[0].cards[0].plot.selectsPeriod', severity: 'warning' }
+    ])
+  })
+
+  it('warns when the dashboard has no period to set', () => {
+    expect(
+      problems(spec([chartCard({ ...daily, selectsPeriod: true })]))
+    ).toEqual([
+      { path: 'sections[0].cards[0].plot.selectsPeriod', severity: 'warning' }
+    ])
+  })
+})
