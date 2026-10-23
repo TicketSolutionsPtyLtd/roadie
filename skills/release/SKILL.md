@@ -91,6 +91,15 @@ Fail blocks the merge; attention needs the maintainer to look.
    applied once, none is already on npm (`npm view <pkg>@<next> version`
    returns 404), and no major is unannounced. Attention for a `0.x` minor,
    which a `^0.y` range won't pick up.
+6. **Dist-tags and shims.** `npm view <pkg> dist-tags` for each package
+   with a pending bump. Attention for a tag other than `latest` that points
+   below the next version, such as the `stage` tag a placeholder publish
+   leaves, and for a placeholder version that isn't deprecated. Fail when the
+   Version Packages PR bumps a deprecated package's re-export shim past its
+   last release: Changesets bumps a dependent whenever its dependency leaves
+   the dependent's range, so a `0.x` minor of the new name releases the old
+   name too. Roadie's shim has a guard test for this
+   (`packages/eslint-plugin-shim/test/last-release.test.js`).
 
 ## 4. Status candidates (required)
 

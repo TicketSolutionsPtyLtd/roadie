@@ -147,6 +147,13 @@ jobs:
         if: github.event_name == 'pull_request'
         run: node scripts/check-plugin-release.mjs --base HEAD^1
 
+      # turbo --affected tests no package when a PR changes only .changeset/,
+      # so the shim's last-release guard runs here on every PR. It goes when
+      # packages/eslint-plugin-shim does.
+      - name: Check the old plugin name stays at its last release
+        if: github.event_name == 'pull_request'
+        run: pnpm --filter @oztix/roadie-eslint-plugin exec vitest run test/last-release.test.js
+
       # Warning only, on the changesets this PR adds, edits, or renames: wording
       # that keeps a new component or package off the changelog's highlight
       # cards. HEAD^1 is the base for the same reason as the size check.

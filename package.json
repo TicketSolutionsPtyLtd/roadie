@@ -51,7 +51,7 @@
   ],
   "lint-staged": {
     "*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}": "oxlint --fix --no-error-on-unmatched-pattern",
-    "docs/**/*.mdx": "eslint --no-warn-ignored --flag v10_config_lookup_from_file",
+    "docs/**/*.{md,mdx}": "eslint --no-warn-ignored --flag v10_config_lookup_from_file",
     "*": "oxfmt --no-error-on-unmatched-pattern"
   }
 }
