@@ -22,9 +22,10 @@ describe('test:gated stays in step with CI', () => {
       join(repoRoot, '.github/workflows/ci.yml'),
       'utf8'
     )
+    // One turbo call can run several tasks, as in `turbo lint typecheck`.
     const ciTestTasks = new Set(
-      [...workflow.matchAll(/pnpm turbo (?:run )?(test[\w:]*)/g)].map(
-        ([, task]) => task
+      [...workflow.matchAll(/pnpm turbo (?:run )?([\w: ]+)/g)].flatMap(
+        ([, tasks]) => tasks.split(' ').filter((task) => /^test\b/.test(task))
       )
     )
     assert.deepEqual([...ciTestTasks].sort(), [...CI_SCRIPTS].sort())
