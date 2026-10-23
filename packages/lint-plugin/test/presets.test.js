@@ -44,7 +44,7 @@ describe.each(Object.keys(plugin.configs))('the %s preset', (name) => {
 })
 
 const LINTING =
-  'https://ticketsolutionsptyltd.github.io/roadie/overview/linting'
+  'https://ticketsolutionsptyltd.github.io/roadie/overview/linting/'
 
 // Editors link a reported rule ID to its docs.url.
 it('links each rule to the section of the linting guide for its preset', () => {

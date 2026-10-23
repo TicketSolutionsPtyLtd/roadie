@@ -21,6 +21,7 @@
   ],
   "exports": {
     ".": "./src/index.js",
+    "./internal": "./src/internal.js",
     "./oxlint/*.json": "./oxlint/*.json"
   },
   "files": [

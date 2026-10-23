@@ -1,10 +1,9 @@
 import { staticString } from './ast.js'
+import { docsPage } from './docs.js'
 
-const COLORS =
-  'https://ticketsolutionsptyltd.github.io/roadie/foundations/colors'
-const SHAPE = 'https://ticketsolutionsptyltd.github.io/roadie/foundations/shape'
-const ELEVATION =
-  'https://ticketsolutionsptyltd.github.io/roadie/foundations/elevation'
+const COLORS = docsPage('foundations/colors')
+const SHAPE = docsPage('foundations/shape')
+const ELEVATION = docsPage('foundations/elevation')
 
 const CLASS_ATTRIBUTE = /^className$|ClassName$/
 const CLASS_FUNCTIONS = new Set(['cn', 'clsx', 'cva', 'cx', 'tv', 'twMerge'])

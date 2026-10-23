@@ -2,13 +2,13 @@ import { createRequire } from 'node:module'
 
 import { cardRules } from './card.js'
 import { classRules } from './classes.js'
+import { docsPage } from './docs.js'
 import { phosphorRules } from './phosphor.js'
 import { jsdomRules, testRules } from './testing.js'
 
 const { name, version } = createRequire(import.meta.url)('../package.json')
 
-const LINTING =
-  'https://ticketsolutionsptyltd.github.io/roadie/overview/linting'
+const LINTING = docsPage('overview/linting')
 
 const linked = (ruleSet, section) =>
   Object.fromEntries(
