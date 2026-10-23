@@ -65,11 +65,11 @@ async function scrollToTop(page: Page) {
 describe('Changelog', () => {
   it('holds a release at its measured height once it scrolls away, for that filter only', async () => {
     const core = await open('/overview/changelog/?package=core')
-    const coreSlugs = new Set(await releaseSlugs(core))
+    // Far enough down, in both views, that the top is more than a screen away.
+    const coreSlugs = new Set((await releaseSlugs(core)).slice(8))
     await core.close()
 
     const page = await open('/overview/changelog/')
-    // Far enough down that the top of the page is more than a screen away.
     const slug = (await releaseSlugs(page))
       .slice(8)
       .find((candidate) => coreSlugs.has(candidate))
