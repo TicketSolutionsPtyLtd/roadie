@@ -193,7 +193,7 @@ export function DocsNavigator({
 
   return (
     <>
-      {/* Hoisted into the head. Kept outside the pane's Suspense boundary, which can client-render and append a second copy. */}
+      {/* Outside the pane's Suspense boundary, whose client render would append a second copy to the head. */}
       {hasTwin ? (
         <link
           rel='alternate'
