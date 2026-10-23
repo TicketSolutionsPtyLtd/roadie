@@ -11,6 +11,7 @@ import { isEmptyNode } from '../../utils/isEmptyNode'
 import { useFieldContext } from '../Field'
 import { CheckboxGroupContext } from './CheckboxGroupContext'
 import {
+  type CheckboxSize,
   checkboxSizes,
   checkboxTrailingClassName,
   checkboxVariants
@@ -25,7 +26,7 @@ export type CheckboxProps = CheckboxPrimitive.Root.Props &
     /** Ignored inside a `CheckboxGroup`, which sets it for every item. */
     emphasis?: 'subtler' | 'normal'
     /** Ignored inside a `CheckboxGroup`, which sets it for every item. @default 'md' */
-    size?: 'sm' | 'md' | 'lg'
+    size?: CheckboxSize
     /** End of the row: a count, `Badge`, or value. Left out of the accessible name. */
     trailing?: ReactNode
     /** Marks the box invalid. A lone checkbox in a `Field` follows the Field's `invalid`. */
