@@ -31,19 +31,21 @@ describe('test:gated stays in step with CI', () => {
   })
 
   test('runs the components projects CI runs, without perf', () => {
-    const { projectArgs, env } = gatedProjects({
-      scripts: components,
-      files: ['src/components/Checkbox/index.tsx'],
-      perf: false,
-      vitestArgs: []
-    })
-    assert.deepEqual(projectArgs, [
-      '--project',
-      'jsdom',
-      '--project',
-      'browser*'
-    ])
-    assert.deepEqual(env, {})
+    for (const files of [['src/components/Checkbox/index.tsx'], []]) {
+      const { projectArgs, env } = gatedProjects({
+        scripts: components,
+        files,
+        perf: false,
+        vitestArgs: []
+      })
+      assert.deepEqual(projectArgs, [
+        '--project',
+        'jsdom',
+        '--project',
+        'browser*'
+      ])
+      assert.deepEqual(env, {})
+    }
   })
 
   test('runs perf with its script env on --perf or perf files alone', () => {
