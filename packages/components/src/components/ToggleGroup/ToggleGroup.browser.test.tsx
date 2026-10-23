@@ -5,12 +5,14 @@ import { commands, userEvent } from 'vitest/browser'
 import { ToggleGroup, type ToggleGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
-import { useStylesheet } from '../Pane/testUtils'
+import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Toggle } from '../Toggle'
 
 let removeStylesheet = () => {}
-beforeAll(() => {
+// A late font swap resizes items after the group has scrolled to them.
+beforeAll(async () => {
   removeStylesheet = useStylesheet(roadieCss)
+  await loadBrandFont()
 })
 afterAll(() => removeStylesheet())
 afterEach(async () => {
