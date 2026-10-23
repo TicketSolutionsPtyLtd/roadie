@@ -250,6 +250,20 @@ describe('RadioGroup invalid', () => {
     expectDangerCircles()
   })
 
+  it('colours the focus ring danger, as an invalid field does', () => {
+    render(
+      <>
+        <input className='is-interactive-field' aria-invalid='true' />
+        <RadioGroup invalid>{items}</RadioGroup>
+      </>
+    )
+    const field = screen.getByRole('textbox')
+    const circle = screen.getByRole('radio', { name: 'Floor' })
+    expect(getComputedStyle(circle).outlineColor).toBe(
+      getComputedStyle(field).outlineColor
+    )
+  })
+
   it('keeps the pale accent tint and accent dot when valid', () => {
     render(<RadioGroup defaultValue='floor'>{items}</RadioGroup>)
     const chosen = screen.getByRole('radio', { name: 'Floor' })
