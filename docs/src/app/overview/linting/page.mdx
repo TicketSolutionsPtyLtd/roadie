@@ -96,6 +96,8 @@ In `.oxlintrc.json`, extend it after the recommended preset.
 
 In `oxlint.config.ts`, import `@oztix/roadie-lint-plugin/oxlint/testing.json` and add it to `extends` after `recommended`.
 
+In ESLint, spread `configs.testing` into your config array, as [If your app can't move to oxlint yet](#if-your-app-cant-move-to-oxlint-yet) shows.
+
 | Rule                      | Fails                                                                                                                       | Fix                                                                |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | `no-css-class-in-jsdom`   | A `calc()`, container query, or breakpoint class in `toHaveClass`, such as `md:grid`                                        | Measure it in a browser test                                       |
@@ -156,7 +158,7 @@ export default [
 ]
 ```
 
-Spread the testing preset into the array after it, and put `settings` in a config of its own.
+Spread the [testing](#testing) preset into the array after the recommended config, and put the `settings` from [Icons without an import](#icons-without-an-import) in a config of its own.
 
 ```js
 import roadie from '@oztix/roadie-lint-plugin'

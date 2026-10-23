@@ -32,7 +32,7 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 | `packages/charts/`      | `@oztix/roadie-charts`: charts, legends, and dashboard views                                                           |
 | `packages/editor/`      | `@oztix/roadie-editor`: the rich-text editor and its saved format                                                      |
 | `packages/widgets/`     | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins                                                          |
-| `packages/lint-plugin/` | `@oztix/roadie-lint-plugin`: ESLint and oxlint rules for apps on Roadie                                                |
+| `packages/lint-plugin/` | `@oztix/roadie-lint-plugin`: oxlint and ESLint rules for apps on Roadie                                                |
 | `docs/`                 | The docs site                                                                                                          |
 
 Root scripts: `pnpm dev`, `build`, `test`, `test:browser`, `typecheck`, `lint`,
