@@ -41,21 +41,29 @@ export const MISTAKE_RULES = [
   'roadie/phosphor-icon-weight'
 ]
 
-// One of each jsdom mistake, in a jsdom test and in a browser test.
+// One of each testing mistake, in a jsdom test and in a browser test.
 export const TEST_MISTAKES = `import { readFileSync } from 'node:fs'
 import { expect, it, vi } from 'vitest'
 
-it('lays out the ticket on a phone', () => {
+it('lays out the ticket on a phone', async () => {
   const css = readFileSync('./ticket.css', 'utf8')
   vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(375)
+  await new Promise((resolve) => setTimeout(resolve, 100))
   expect(document.body).toHaveClass('md:grid')
+  expect(buttonVariants()).toContain('h-12')
   expect(css).toBeTruthy()
 })
 `
 
+export const BROWSER_TEST_MISTAKE_RULES = [
+  'roadie/no-cva-output-assertion',
+  'roadie/no-fixed-sleep'
+]
+
 export const TEST_MISTAKE_RULES = [
   'roadie/no-css-class-in-jsdom',
   'roadie/no-css-source-in-jsdom',
+  ...BROWSER_TEST_MISTAKE_RULES,
   'roadie/no-layout-fake-in-jsdom'
 ]
 

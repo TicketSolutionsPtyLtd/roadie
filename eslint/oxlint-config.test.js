@@ -265,3 +265,22 @@ describe('where oxlint applies no-fixed-sleep', () => {
     expect(found.get(path)).toEqual(expected)
   })
 })
+
+describe('where oxlint applies no-cva-output-assertion', () => {
+  const assertion = `import { expect } from 'vitest'
+expect(buttonVariants()).toContain('h-12')
+`
+  const cases = [
+    [`${components}/Badge/Badge.test.tsx`, ['no-cva-output-assertion']],
+    [`${components}/Badge/Badge.browser.test.tsx`, ['no-cva-output-assertion']],
+    [`${components}/Badge/index.tsx`, []]
+  ]
+  let found
+  beforeAll(() => {
+    found = lintSeeds(cases.map(([path]) => [path, assertion]))
+  })
+
+  it.each(cases)('%s reports %j', (path, expected) => {
+    expect(found.get(path)).toEqual(expected)
+  })
+})

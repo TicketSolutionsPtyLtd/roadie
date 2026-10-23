@@ -123,8 +123,6 @@ function importBoundaryOverrides(boundaries: Restriction[]): OxlintOverride[] {
     })
 }
 
-const PACKAGE_TESTS = ['packages/**/*.test.{ts,tsx}']
-
 const roadieRules = (
   files: string[],
   rules: OxlintOverride['rules'],
@@ -309,9 +307,9 @@ export default defineConfig({
       { 'roadie/no-import-meta-env': 'error' },
       ['**/*.test.{ts,tsx}']
     ),
+    // The testing preset covers the tests; these are the helpers they wait in.
     roadieRules(
       [
-        'packages/**/*.test.{ts,tsx}',
         'packages/**/testUtils.{ts,tsx}',
         'packages/**/*TestUtils.{ts,tsx}',
         'packages/**/browserTesting.tsx',
@@ -320,7 +318,6 @@ export default defineConfig({
       ],
       { 'roadie/no-fixed-sleep': 'error' }
     ),
-    roadieRules(PACKAGE_TESTS, { 'roadie/no-cva-output-assertion': 'error' }),
     ...(testing.overrides as OxlintOverride[]),
     roadieRules(
       [

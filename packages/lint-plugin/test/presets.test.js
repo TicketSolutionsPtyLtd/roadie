@@ -48,18 +48,33 @@ describe('the testing preset', () => {
     overrideConfigFile: true,
     overrideConfig: plugin.configs.testing
   })
-  const severity = async (file) => {
+  const on = async (file) => {
     const { rules = {} } = (await eslint.calculateConfigForFile(file)) ?? {}
-    return rules['roadie/no-layout-fake-in-jsdom']?.[0]
+    return Object.keys(rules)
+      .filter((rule) => rules[rule][0] === 2)
+      .map((rule) => rule.replace('roadie/', ''))
+      .sort()
   }
+  const ALL = [
+    'no-css-class-in-jsdom',
+    'no-css-source-in-jsdom',
+    'no-cva-output-assertion',
+    'no-fixed-sleep',
+    'no-layout-fake-in-jsdom'
+  ]
 
-  it.each(['a.test.js', 'a.test.tsx', 'a.test.mts', 'a.test.cjs'])(
-    'turns the jsdom rules on in %s',
-    async (file) => expect(await severity(file)).toBe(2)
-  )
-
-  it.each(['a.browser.test.tsx', 'a.browser.test.mts', 'a.spec.ts'])(
-    'leaves the jsdom rules off in %s',
-    async (file) => expect(await severity(file)).not.toBe(2)
+  it.each([
+    ['a.test.js', ALL],
+    ['a.test.tsx', ALL],
+    ['a.test.mts', ALL],
+    ['a.test.cjs', ALL],
+    ['a.browser.test.tsx', ['no-cva-output-assertion', 'no-fixed-sleep']],
+    ['a.browser.test.mts', ['no-cva-output-assertion', 'no-fixed-sleep']],
+    ['a.spec.ts', ['no-fixed-sleep']],
+    ['e2e/checkout.e2e.test.ts', ['no-cva-output-assertion', 'no-fixed-sleep']],
+    ['e2e/serve.ts', ['no-fixed-sleep']],
+    ['src/Ticket.tsx', []]
+  ])('turns on in %s: %j', async (file, rules) =>
+    expect(await on(file)).toEqual(rules)
   )
 })

@@ -3,12 +3,12 @@ import { createRequire } from 'node:module'
 import { cardRules } from './card.js'
 import { classRules } from './classes.js'
 import { phosphorRules } from './phosphor.js'
-import { jsdomRules } from './testing.js'
+import { jsdomRules, testRules } from './testing.js'
 
 const { name, version } = createRequire(import.meta.url)('../package.json')
 
 const recommendedRules = { ...phosphorRules, ...classRules, ...cardRules }
-const rules = { ...recommendedRules, ...jsdomRules }
+const rules = { ...recommendedRules, ...jsdomRules, ...testRules }
 
 const plugin = {
   meta: { name, version },
@@ -35,17 +35,23 @@ plugin.configs.recommended = {
 plugin.configs.testing = [
   {
     name: `${name}/testing`,
-    // Not *.spec.*, which Playwright runs in a real browser.
     files: [`**/*.test.${EXTENSIONS}`],
     plugins: { roadie: plugin },
     languageOptions,
-    rules: turn('error', jsdomRules)
+    rules: { ...turn('error', jsdomRules), ...turn('error', testRules) }
   },
-  // A browser test is where layout and CSS get tested.
+  // Vitest's browser mode, and Playwright's specs and e2e folders, run in a
+  // real browser, which is where layout and CSS get tested.
   {
     name: `${name}/testing/browser`,
-    files: [`**/*.browser.test.${EXTENSIONS}`],
-    rules: turn('off', jsdomRules)
+    files: [
+      `**/*.browser.test.${EXTENSIONS}`,
+      `**/*.spec.${EXTENSIONS}`,
+      `**/e2e/**/*.${EXTENSIONS}`
+    ],
+    plugins: { roadie: plugin },
+    languageOptions,
+    rules: { ...turn('off', jsdomRules), 'roadie/no-fixed-sleep': 'error' }
   }
 ]
 
