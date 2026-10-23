@@ -4,7 +4,7 @@
  */
 import { rowInstant } from './bounds'
 import { eventRows } from './testFields'
-import type { RecordFilter } from './types'
+import type { RecordFilter, RecordFilterOperator } from './types'
 
 export const VIEWER = 'Australia/Sydney'
 export type Row = Record<string, unknown>
@@ -42,7 +42,20 @@ export const msRow: Row = {
   created: Date.parse('2026-10-03T01:59:59.700Z')
 }
 
-export const FILTERS: RecordFilter[] = [
+type Uncovered<F extends RecordFilter> = Exclude<
+  RecordFilterOperator,
+  F['operator']
+>
+
+// Won't compile while an operator has no case, so a new one can't skip the adapters.
+function everyOperator<F extends RecordFilter>(
+  filters: F[] &
+    ([Uncovered<F>] extends [never] ? unknown : { uncovered: Uncovered<F> })
+): RecordFilter[] {
+  return filters
+}
+
+export const FILTERS = everyOperator([
   {
     field: 'created',
     operator: 'between',
@@ -139,4 +152,4 @@ export const FILTERS: RecordFilter[] = [
   },
   { field: 'birthday', operator: 'on', value: '1990-10-03' },
   { field: 'birthday', operator: 'within', value: 'past' }
-]
+])

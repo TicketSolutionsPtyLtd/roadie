@@ -1,4 +1,5 @@
 import type {
+  TableCard,
   TableCell,
   TableColumn,
   TableRow
@@ -16,8 +17,14 @@ import {
   sortedRowOrder
 } from './sort'
 
+type ReadonlyPaths<T> = T extends (infer Path extends unknown[])[]
+  ? readonly Readonly<Path>[]
+  : T
+
 /** Opens every group with `true`, or the groups at these paths of values, outermost first. */
-export type DataTableExpanded = boolean | readonly (readonly string[])[]
+export type DataTableExpanded = ReadonlyPaths<
+  NonNullable<TableCard['defaultExpanded']>
+>
 
 export type DataTableGroupNode = {
   kind: 'group'
