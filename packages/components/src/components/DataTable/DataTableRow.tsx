@@ -63,7 +63,12 @@ export function DataTableRow({
             ) : (
               <DataTableCollapse>
                 {index === 0 ? (
-                  <DataTableIndent depth={depth}>{content}</DataTableIndent>
+                  <DataTableIndent
+                    depth={depth}
+                    className={cn(alignOf(column) === 'end' && 'justify-end')}
+                  >
+                    {content}
+                  </DataTableIndent>
                 ) : (
                   content
                 )}

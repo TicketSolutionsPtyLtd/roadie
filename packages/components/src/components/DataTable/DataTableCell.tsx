@@ -7,7 +7,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { Badge } from '../Badge'
 import { Delta } from '../Delta'
-import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
+import { Link } from '../Link'
 import { Meter } from '../Meter'
 import { SPARKLINE_MIN_POINTS, Sparkline } from '../Sparkline'
 
@@ -79,16 +79,14 @@ export function DataTableCellContent({
     return (
       <WithSecondary secondary={secondary}>
         {href ? (
-          <RoadieRoutedLink
+          <Link
             href={href}
+            emphasis='subtle'
             data-interactive-target=''
-            className={cn(
-              primaryClass,
-              'justify-self-start no-underline underline-offset-2 hover:underline'
-            )}
+            className={cn(primaryClass, 'justify-self-start')}
           >
             {String(value)}
-          </RoadieRoutedLink>
+          </Link>
         ) : (
           <span className={primaryClass}>{String(value)}</span>
         )}
