@@ -166,7 +166,7 @@
     {
       "name": "cart-drawer/core",
       "path": "dist/cart-drawer/core/index.js",
-      "limit": "2.1 KB",
+      "limit": "2.3 KB",
       "ignore": [
         "@oztix/roadie-core"
       ]
@@ -189,7 +189,7 @@
     {
       "name": "cart-drawer/vue",
       "path": "dist/cart-drawer/vue/index.js",
-      "limit": "14.5 KB",
+      "limit": "15.3 KB",
       "ignore": [
         "vue",
         "focus-trap",

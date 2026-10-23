@@ -140,23 +140,23 @@
     {
       "name": "datetime",
       "path": "dist/datetime/index.js",
-      "limit": "8.8 KB"
+      "limit": "9.6 KB"
     },
     {
       "name": "records",
       "path": "dist/records/index.js",
-      "limit": "40.55 KB"
+      "limit": "44.5 KB"
     },
     {
       "name": "records without validation",
       "path": "dist/records/index.js",
       "import": "{ matchesRecordQuery, resolveRecordQuery, parseRecordQuery, recordViewToSearchParams, equalRecordViews }",
-      "limit": "14.5 KB"
+      "limit": "15.8 KB"
     },
     {
       "name": "records/json-schema",
       "path": "dist/records/json-schema/index.js",
-      "limit": "24.9 KB"
+      "limit": "27.3 KB"
     },
     {
       "name": "records/elasticsearch",

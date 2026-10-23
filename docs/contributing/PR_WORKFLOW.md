@@ -64,9 +64,10 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
 - **Wire new public subpaths everywhere they ship from:** an `exports`
   entry in `package.json`; for JavaScript, a `tsdown.config.ts` entry unless
   a wildcard already covers it (components does) and a Size Limit budget
-  about 10% above what you measure (`.size-limit.json`, or the `size-limit`
-  field in `package.json` for core and widgets). New `@utility` classes also
-  go in `src/css/safelist.html`.
+  (`.size-limit.json`, or the `size-limit` field in `package.json` for core
+  and widgets). Set a new budget, or raise one, to about 10% above what you
+  measure, never just above it, or the next small change crosses it again.
+  New `@utility` classes also go in `src/css/safelist.html`.
 - **Changing Turbo config?** Read the installed turbo's `docs/README.md`
   first; the installed version may differ from what you know.
 - **Changesets.** `minor` for a new export, `patch` for a fix, per package
