@@ -19,6 +19,40 @@ import roadie from '../eslint/roadie-plugin.js'
 const SLEEP =
   'export const settle = (ms: number) =>\n  new Promise((resolve) => setTimeout(resolve, ms))\n'
 
+// Oxlint lints only files on disk, so the seeds go in a scratch docs/ beside
+// a link to eslint/, where the config's jsPlugins path points. Returns each
+// seed's rule IDs.
+function lintSeeds(seeds) {
+  const root = fileURLToPath(new URL('..', import.meta.url))
+  const scratch = mkdtempSync(join(tmpdir(), 'roadie-docs-oxlint-'))
+  try {
+    const docs = join(scratch, 'docs')
+    mkdirSync(docs)
+    writeFileSync(
+      join(docs, 'oxlint.config.ts'),
+      `export { default } from '${join(root, 'docs/oxlint.config.ts')}'\n`
+    )
+    symlinkSync(join(root, 'eslint'), join(scratch, 'eslint'))
+    for (const [path, source] of seeds) {
+      mkdirSync(dirname(join(docs, path)), { recursive: true })
+      writeFileSync(join(docs, path), source)
+    }
+    const { stdout, stderr } = spawnSync(
+      join(root, 'node_modules/.bin/oxlint'),
+      ['-f', 'json', ...seeds.map(([path]) => path)],
+      { cwd: docs, encoding: 'utf8' }
+    )
+    if (!stdout) throw new Error(stderr)
+    const found = new Map(seeds.map(([path]) => [path, []]))
+    for (const { filename, code } of JSON.parse(stdout).diagnostics) {
+      found.get(filename).push(code)
+    }
+    return found
+  } finally {
+    rmSync(scratch, { recursive: true, force: true })
+  }
+}
+
 describe('where no-fixed-sleep applies in docs/oxlint.config.ts', () => {
   const PATHS = [
     'src/components/OnThisPage.test.tsx',
@@ -26,37 +60,10 @@ describe('where no-fixed-sleep applies in docs/oxlint.config.ts', () => {
     'e2e/serveExport.ts',
     'src/components/landOn.ts'
   ]
-  let hits
+  let found
 
-  // Oxlint lints only files on disk, so the seeds go in a scratch docs/ beside
-  // a link to eslint/, where the config's jsPlugins path points.
   beforeAll(() => {
-    const root = fileURLToPath(new URL('..', import.meta.url))
-    const scratch = mkdtempSync(join(tmpdir(), 'roadie-docs-oxlint-'))
-    try {
-      const docs = join(scratch, 'docs')
-      mkdirSync(docs)
-      writeFileSync(
-        join(docs, 'oxlint.config.ts'),
-        `export { default } from '${join(root, 'docs/oxlint.config.ts')}'\n`
-      )
-      symlinkSync(join(root, 'eslint'), join(scratch, 'eslint'))
-      for (const path of PATHS) {
-        mkdirSync(dirname(join(docs, path)), { recursive: true })
-        writeFileSync(join(docs, path), SLEEP)
-      }
-      const { stdout, stderr } = spawnSync(
-        join(root, 'node_modules/.bin/oxlint'),
-        ['-f', 'json', ...PATHS],
-        { cwd: docs, encoding: 'utf8' }
-      )
-      if (!stdout) throw new Error(stderr)
-      hits = JSON.parse(stdout)
-        .diagnostics.filter(({ code }) => code === 'roadie(no-fixed-sleep)')
-        .map(({ filename }) => filename)
-    } finally {
-      rmSync(scratch, { recursive: true, force: true })
-    }
+    found = lintSeeds(PATHS.map((path) => [path, SLEEP]))
   }, 60_000)
 
   it.each([
@@ -65,9 +72,22 @@ describe('where no-fixed-sleep applies in docs/oxlint.config.ts', () => {
     [PATHS[2], 1],
     [PATHS[3], 0]
   ])('%s: %i', (path, count) => {
-    expect(hits.filter((filename) => filename === path)).toHaveLength(count)
+    expect(
+      found.get(path).filter((code) => code === 'roadie(no-fixed-sleep)')
+    ).toHaveLength(count)
   })
 })
+
+it("applies Roadie's recommended rules to the docs app's code", () => {
+  const path = 'src/components/Seed.tsx'
+  const seed =
+    "export const Seed = () => <div className='dark:bg-normal z-[5]' />\n"
+  expect(
+    lintSeeds([[path, seed]])
+      .get(path)
+      .sort()
+  ).toEqual(['roadie(no-arbitrary-z-index)', 'roadie(no-dark-variant)'])
+}, 60_000)
 
 describe('docs/eslint.config.js on MDX', () => {
   const docs = fileURLToPath(new URL('.', import.meta.url))
