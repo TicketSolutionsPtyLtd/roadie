@@ -126,7 +126,16 @@ add one.
 If `<base>` moved (`git merge-base --is-ancestor origin/<base> HEAD` fails
 after a fetch), rebase locally as in step 4 and wait for CI. Don't rely on
 `gh pr update-branch --rebase`: it fails on any conflict. Resolve conflicts
-keeping both sides' intent, then rerun the host's checks for those files.
+keeping both sides' intent. A clean rebase can still break a file, such as an
+MDX fence, so before pushing run lint and typecheck on every file both sides
+touched, docs MDX included (in Roadie, `pnpm --filter docs lint`). Right after
+the rebase, this lists them:
+
+```bash
+comm -12 <(git diff --name-only ORIG_HEAD...origin/<base> | sort) \
+  <(git diff --name-only origin/<base>...HEAD | sort)
+```
+
 When several PRs touch the same shared file (such as a row in
 `skills/README.md`), merge them one at a time, rebasing each the same way
 after the previous one merges.

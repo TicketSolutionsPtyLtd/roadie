@@ -81,12 +81,17 @@ for (const [size, [width, height]] of Object.entries(sizes)) {
     await page.goto(url)
     await settle(page)
     if (section) {
+      // A hidden match (Roadie's docs nav is built from List rows) can't scroll.
+      const target = page.locator(section).filter({ visible: true }).first()
       // Works inside scroll containers, and wakes lazy content near it.
-      await page
-        .locator(section)
-        .first()
-        .evaluate((el) => el.scrollIntoView({ block: 'center' }))
+      await target.evaluate((el) => el.scrollIntoView({ block: 'center' }))
       await settle(page)
+      const inView = await target.evaluate((el) => {
+        const { top, bottom } = el.getBoundingClientRect()
+        return bottom > 0 && top < innerHeight
+      })
+      if (!inView)
+        throw new Error(`${section} is not in view at ${size} ${mode}`)
     }
     // A resting pointer or leftover focus shows a hover or focus fill, which
     // reads as a colour change.

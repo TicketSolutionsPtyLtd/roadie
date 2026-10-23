@@ -28,7 +28,8 @@ Follow the template's headings in its order. If it has no Evidence or Merge
 danger section, add both after "What changes" (or its equivalent).
 
 **What changes.** Only what the diff does. A body that claims more, or
-describes another PR, is a review finding. Prefer a small table or pseudocode
+describes another PR, is a review finding. The changeset and every number in
+the body are claims too: check each against a test or a measurement first. Prefer a small table or pseudocode
 to a long paragraph.
 
 **Evidence.** Proof a reader can check, one line per claim:

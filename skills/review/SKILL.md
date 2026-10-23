@@ -110,13 +110,21 @@ disagree.
   real failure never happens, awaits nothing, or asserts in jsdom what only a
   browser decides (layout, `calc()`, container queries), or asserts inside a
   callback or loop that never runs, or checks only the final state, so a
-  brief jump or flash on the way passes.
+  brief jump or flash on the way passes. Three forms keep slipping: an
+  assertion the default layout already meets (a block `<ul>` always fills
+  its frame), one on the wrong element (a class that lands on the label, not
+  the box), and a threshold that zero or no change meets (a gap "at most
+  2px" passes at 0).
 - Missing: a bug-hunt fix or new branch of behaviour with no test that
   fails without it.
 
 Mutation-check every place a new prop or branch acts, not just one (both
-Start and End, every click of a pager): break it
-and run the tests. If they still pass, that place is untested. A test that
+Start and End, every click of a pager), plus every new class or style rule
+and every element a test asserts on: break it and run the tests. If they
+still pass, that place is untested. Break and restore in one command
+(`cp <file> <file>.orig && <break it> && <run the tests>; mv <file>.orig <file>`)
+or in a copy, so no mutated file sits in a worktree a preview or screenshots
+also run from. A test that
 passes under every mutation you try is a cannot-fail finding: find why (such
 as an interaction started during a settle that's always ignored), then fix or
 delete it. A gap that existed before the diff gets a follow-up ticket, not a

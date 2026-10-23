@@ -64,8 +64,10 @@ while the 1-minute load is over the host's limit (Roadie: PR workflow section
 5). Roadie's pre-push hook waits for load itself; elsewhere check before every
 push too. Run tests through the host's gated runner as `/roadie:test` says
 (in Roadie, `pnpm test:gated`), never `vitest` or the whole suite directly.
-The ready run in CI runs Chromium, plus WebKit and Firefox with the
-`full-browsers` label (Roadie: PR workflow sections 5 and 7).
+The ready run in CI runs Chromium, plus WebKit and Firefox only with the
+`full-browsers` label (Roadie: PR workflow sections 5 and 7), so before the
+demo run the browser tests you touched in WebKit and Firefox locally (in
+Roadie, `ROADIE_BROWSERS=webkit,firefox pnpm test:gated <package> <files>`).
 
 ## 5. Wire what's new
 
@@ -90,6 +92,11 @@ bump and held-release rules from the host workflow (Roadie: PR workflow
 section 2). Released includes a private package Changesets versions, such as
 Roadie's `roadie-skills` for `skills/`. Tests, docs, and internal tooling need
 none; say why under the PR's Checks.
+
+Before committing a changeset, a docs line, or a spec number, check each claim
+against a test or a measurement: "wraps" when it truncates, "at every size"
+when one size didn't change, and a row height that leaves out a border all
+shipped that way.
 
 ## 8. Explore gate
 
