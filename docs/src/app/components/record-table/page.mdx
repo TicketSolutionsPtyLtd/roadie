@@ -972,7 +972,7 @@ actions={[
 
 ### Totals
 
-`totals` adds a row of totals under the headings, over every record the search and filters match, not just the page. It reads "Totals for 1,234 shows" from `recordName` and the count, and changes as people search and filter. Use it when the totals belong to columns people read down. For two or three headline numbers, show StatTiles above the table instead.
+`totals` adds a row of totals under the headings, over every record the search and filters match, not just the page. It reads "Totals for 1,234 shows" from `recordName` and the count, in the title column that carries the row link, and changes as people search and filter. Use it when the totals belong to columns people read down. For two or three headline numbers, show StatTiles above the table instead.
 
 `totals` (or `'sum'`) adds up the number and money fields in the browser. Shares, indexes, and points don't add up, so they stay blank, and so does money whose rows name their own currency through `currencyKey`. Give a column `total: false` to leave it blank too, as for an id held as a number. Each total reads in its field's format.
 
