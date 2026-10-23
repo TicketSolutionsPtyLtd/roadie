@@ -81,7 +81,8 @@ for (const [size, [width, height]] of Object.entries(sizes)) {
     await page.goto(url)
     await settle(page)
     if (section) {
-      // A hidden match (Roadie's docs nav is built from List rows) can't scroll.
+      // The first match can be hidden (on a phone, Roadie's docs nav of List
+      // rows), and a hidden element can't scroll.
       const target = page.locator(section).filter({ visible: true }).first()
       // Works inside scroll containers, and wakes lazy content near it.
       await target.evaluate((el) => el.scrollIntoView({ block: 'center' }))

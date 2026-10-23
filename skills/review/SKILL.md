@@ -124,10 +124,9 @@ and every element a test asserts on: break it and run the tests. If they
 still pass, that place is untested. Break and restore in one command
 (`cp <file> <file>.orig && <break it> && <run the tests>; mv <file>.orig <file>`)
 or in a copy, so no mutated file sits in a worktree a preview or screenshots
-also run from. A test that
-passes under every mutation you try is a cannot-fail finding: find why (such
-as an interaction started during a settle that's always ignored), then fix or
-delete it. A gap that existed before the diff gets a follow-up ticket, not a
+also run from. A test that passes under every mutation you try is a
+cannot-fail finding: find why (such as an interaction started during a settle
+that's always ignored), then fix or delete it. A gap that existed before the diff gets a follow-up ticket, not a
 fix in this PR.
 
 ## In an app that uses Roadie
