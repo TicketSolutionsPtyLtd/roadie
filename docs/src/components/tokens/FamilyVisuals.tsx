@@ -32,7 +32,7 @@ const sentence = (text: string) =>
 export function ScaleGrid() {
   return (
     <div className='overflow-x-auto'>
-      <table className='w-full min-w-[30rem] table-fixed border-separate border-spacing-0.5 text-xs'>
+      <table className='w-full min-w-120 table-fixed border-separate border-spacing-0.5 text-xs'>
         <caption className='sr-only'>Color scales by step</caption>
         <thead>
           <tr>
@@ -104,7 +104,7 @@ export function IntentMatrix({ roles }: { roles: TokenEntry[] }) {
   return (
     <figure className='grid gap-2'>
       <div className='overflow-x-auto'>
-        <table className='w-full min-w-[30rem] table-fixed border-separate border-spacing-1 text-xs'>
+        <table className='w-full min-w-120 table-fixed border-separate border-spacing-1 text-xs'>
           <thead>
             <tr>
               <th

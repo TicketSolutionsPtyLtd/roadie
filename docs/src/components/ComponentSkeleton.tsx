@@ -839,7 +839,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-1.5 w-24' />
           <Skel className='h-1.5 w-full' />
           <Skel className='h-1.5 w-16' />
-          <div className='absolute end-1.5 top-2 h-8 w-1 rounded-full bg-strong opacity-40' />
+          <div className='absolute inset-e-1.5 top-2 h-8 w-1 rounded-full bg-strong opacity-40' />
         </div>
       )
     case 'drawer':
@@ -890,8 +890,8 @@ export function ComponentSkeleton({ name }: { name: string }) {
           </div>
           <div className='relative h-1.5 rounded-full bg-strong/15'>
             <div className='absolute inset-y-0 right-1/4 left-1/5 rounded-full bg-strong intent-accent' />
-            <div className='absolute top-1/2 left-1/5 size-4 -translate-1/2 rounded-full bg-[var(--color-neutral-light-0)] shadow-sm' />
-            <div className='absolute top-1/2 right-1/4 size-4 translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-neutral-light-0)] shadow-sm' />
+            <div className='absolute top-1/2 left-1/5 size-4 -translate-1/2 rounded-full bg-(--color-neutral-light-0) shadow-sm' />
+            <div className='absolute top-1/2 right-1/4 size-4 translate-x-1/2 -translate-y-1/2 rounded-full bg-(--color-neutral-light-0) shadow-sm' />
           </div>
         </div>
       )

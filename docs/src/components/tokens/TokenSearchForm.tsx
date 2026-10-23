@@ -41,7 +41,7 @@ export function TokenSearchForm({ count }: { count: number }) {
         <MagnifyingGlassIcon
           aria-hidden
           weight='bold'
-          className='pointer-events-none absolute start-4 top-1/2 size-5 -translate-y-1/2 text-subtle'
+          className='pointer-events-none absolute inset-s-4 top-1/2 size-5 -translate-y-1/2 text-subtle'
         />
       </Field>
     </form>

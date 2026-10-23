@@ -131,7 +131,7 @@ export function ViewCodeShade({
     <>
       <div
         aria-hidden
-        className='pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--intent-bg-sunken)] to-transparent'
+        className='pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-t from-(--intent-bg-sunken) to-transparent'
       />
       <button
         type='button'

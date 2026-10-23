@@ -90,7 +90,7 @@ const titles = {
 
 function Destinations() {
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <DemoRouter initialPath='/account/tickets'>
         {(path) => (
           <Navigator value={path} className='h-full'>
@@ -135,7 +135,7 @@ const titles = {
 
 function SecondaryNav() {
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <DemoRouter initialPath='/account/settings/profile'>
         {(path) => (
           <Navigator value={path} className='h-full'>
@@ -240,7 +240,7 @@ function EventPane({ event }) {
 
 function DrillDown() {
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <DemoRouter initialPath='/account/tickets'>
         {(path) => {
           const [, , destination, eventId] = path.split('/')
@@ -385,7 +385,7 @@ function TicketPane({ event, ticket }) {
 
 function ThreePanes() {
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <DemoRouter initialPath='/account/tickets'>
         {(path) => {
           const [, , destination, eventId, ticketId] = path.split('/')
@@ -812,7 +812,7 @@ function EmptyDetail() {
   const [selected, setSelected] = useState(null)
   const event = events.find(({ id }) => id === selected)
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <Navigator className='h-full'>
         <Pane column='list'>
           <Pane.Header>

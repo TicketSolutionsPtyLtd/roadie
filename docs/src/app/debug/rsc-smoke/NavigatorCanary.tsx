@@ -36,7 +36,7 @@ export function NavigatorCanary() {
   return (
     <div
       ref={ref}
-      className='h-[32rem] overflow-hidden rounded-2xl border border-subtle'
+      className='h-128 overflow-hidden rounded-2xl border border-subtle'
     >
       <Navigator value='catalogue-vinyl'>
         <Navigator.Primary aria-label='Canary primary'>

@@ -300,7 +300,10 @@ export default defineConfig({
     },
     roadieRules(['packages/**/*.{ts,tsx}'], {
       ...(published.configs.recommended.rules as OxlintOverride['rules']),
-      'roadie/no-dynamic-next-link': 'error'
+      'roadie/no-dynamic-next-link': 'error',
+      // An app's own Tailwind compiles these classes, and the canonical form
+      // can need a newer one, such as inset-s-0 (4.2) for start-0.
+      'roadie/canonical-class': 'off'
     }),
     roadieRules(
       ['packages/*/src/**/*.{ts,tsx}'],

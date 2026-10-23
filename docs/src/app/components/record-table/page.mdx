@@ -238,10 +238,10 @@ function EventsPane() {
 
 render(
   <div className='grid grid-cols-1 gap-4'>
-    <div className='h-[36rem] rounded-2xl bg-sunken p-3'>
+    <div className='h-144 rounded-2xl bg-sunken p-3'>
       <EventsPane />
     </div>
-    <div className='mx-auto h-[44rem] w-[390px] max-w-full rounded-4xl bg-sunken p-3'>
+    <div className='mx-auto h-176 w-97.5 max-w-full rounded-4xl bg-sunken p-3'>
       <EventsPane />
     </div>
   </div>
@@ -813,7 +813,7 @@ function EventViews() {
 }
 
 render(
-  <div className='h-[40rem] overflow-hidden rounded-2xl border border-subtle'>
+  <div className='h-160 overflow-hidden rounded-2xl border border-subtle'>
     <EventViews />
   </div>
 )
@@ -1357,7 +1357,7 @@ function NarrowEvents() {
         <ToggleGroup.Item value='narrow'>360px</ToggleGroup.Item>
         <ToggleGroup.Item value='wide'>Wide</ToggleGroup.Item>
       </ToggleGroup>
-      <div className={narrow ? 'w-full max-w-[360px] px-3' : undefined}>
+      <div className={narrow ? 'w-full max-w-90 px-3' : undefined}>
         <RecordTable
           caption='Events'
           data={events}
@@ -1412,7 +1412,7 @@ const columns = [
 ]
 
 render(
-  <div className='w-full max-w-[360px] px-3'>
+  <div className='w-full max-w-90 px-3'>
     <RecordTable
       caption='Events'
       data={events}
@@ -1455,7 +1455,7 @@ const columns = [
 ]
 
 render(
-  <div className='w-full max-w-[360px] px-3'>
+  <div className='w-full max-w-90 px-3'>
     <RecordTable
       caption='Orders'
       data={orders}

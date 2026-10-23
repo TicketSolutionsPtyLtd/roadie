@@ -317,7 +317,7 @@ export function DocsNavigator({
           </Pane.Header>
           <div
             id='docs-content'
-            className={`mx-auto grid w-full gap-0 py-6 md:py-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6 ${isWide ? '' : 'max-w-[50rem]'}`}
+            className={`mx-auto grid w-full gap-0 py-6 md:py-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6 ${isWide ? '' : 'max-w-200'}`}
           >
             {/* The homepage and debug routes have no metadata.title and keep their own h1. */}
             {pageTitles[route] ? (

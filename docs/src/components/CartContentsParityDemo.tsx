@@ -143,7 +143,7 @@ export function CartContentsParityDemo() {
               footer, centred empty state); "drawer" is the body-only list. The
               Vue bridge wrapper is display:contents so both skins lay out as a
               direct child. px-4 lets the day headers full-bleed. */}
-          <div className='h-[28rem] overflow-y-auto rounded-xl border border-subtle bg-normal px-4'>
+          <div className='h-112 overflow-y-auto rounded-xl border border-subtle bg-normal px-4'>
             {shared &&
               (skin === 'react' ? (
                 <CartContents {...shared} />

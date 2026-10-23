@@ -146,7 +146,7 @@ export function ChartPreview({ name }: { name: string }) {
       return (
         <div className='grid w-36 emphasis-raised gap-2 rounded-lg p-3'>
           <Skel className='h-2 w-16' />
-          <p className='text-lg/none font-semibold text-strong'>2,480</p>
+          <p className='text-lg/tightest font-semibold text-strong'>2,480</p>
           <Skel className='h-1.5 w-full' />
           <Skel className='h-1.5 w-20' />
         </div>
@@ -156,7 +156,7 @@ export function ChartPreview({ name }: { name: string }) {
         <div className='grid w-36 emphasis-raised gap-2 rounded-lg p-3'>
           <Skel className='h-2 w-16' />
           <div className='flex items-end justify-between gap-2'>
-            <p className='text-lg/none font-semibold text-strong'>8,412</p>
+            <p className='text-lg/tightest font-semibold text-strong'>8,412</p>
             <Spark />
           </div>
           <div className='flex items-center gap-1.5'>
@@ -179,7 +179,7 @@ export function ChartPreview({ name }: { name: string }) {
       )
     case 'delta':
       return (
-        <div className='grid gap-2 text-lg/none font-semibold tabular-nums'>
+        <div className='grid gap-2 text-lg/tightest font-semibold tabular-nums'>
           <span className='flex items-center gap-0.5 text-chart-status-good'>
             <ArrowUpIcon weight='bold' className='size-4' aria-hidden />
             214
@@ -425,7 +425,7 @@ export function ChartPreview({ name }: { name: string }) {
           </svg>
           <div className='absolute top-1 left-24 grid gap-1 rounded-md emphasis-floating px-2 py-1.5'>
             <Skel className='h-1.5 w-10' />
-            <p className='text-xs/none font-semibold text-strong'>1,204</p>
+            <p className='text-xs/tightest font-semibold text-strong'>1,204</p>
           </div>
         </div>
       )
