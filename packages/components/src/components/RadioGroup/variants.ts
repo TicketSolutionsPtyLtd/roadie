@@ -24,7 +24,7 @@ export const radioGroupVariants = cva('flex flex-wrap', {
 })
 
 export const radioGroupItemVariants = cva(
-  'flex cursor-pointer select-none items-center',
+  'flex cursor-pointer select-none items-center has-[[data-disabled]]:pointer-events-none has-[[data-disabled]]:opacity-50',
   {
     variants: {
       emphasis: {
