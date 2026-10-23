@@ -6,7 +6,14 @@
       "inputs": ["$TURBO_EXTENDS$", "index.js", "test/**"]
     },
     "test": {
-      "inputs": ["$TURBO_EXTENDS$", "index.js", "index.d.ts", "test/**"]
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "index.js",
+        "index.d.ts",
+        "test/**",
+        "$TURBO_ROOT$/.changeset/*.md",
+        "$TURBO_ROOT$/packages/lint-plugin/package.json"
+      ]
     }
   }
 }
