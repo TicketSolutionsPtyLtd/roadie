@@ -87,6 +87,34 @@ and focus states as `is-interactive` while its main link is hovered, pressed,
 or focused. It does nothing until a target is present. `Card` applies it for
 you when it holds a `Card.Link`.
 
+Surfaces can nest. A target belongs to the nearest surface around it, so a
+card around a grouped `DataTable` or `RecordTable` list rows stays still while
+one of those rows is hovered, pressed, or focused.
+
+```tsx-live width=80
+<Card emphasis='raised'>
+  <Card.Content>
+    <Card.Title>
+      <Card.Link href='#is-interactive-within'>Scans by gate</Card.Link>
+    </Card.Title>
+    <DataTable
+      caption='Scans by gate'
+      columns={[
+        { key: 'pool', header: 'Pool', kind: 'text' },
+        { key: 'gate', header: 'Gate', kind: 'text' },
+        { key: 'scans', header: 'Scans', kind: 'number' }
+      ]}
+      rows={[
+        { pool: 'General', gate: 'North', scans: 250 },
+        { pool: 'General', gate: 'South', scans: 150 },
+        { pool: 'VIP', gate: 'Side', scans: 40 }
+      ]}
+      groupBy={['pool']}
+    />
+  </Card.Content>
+</Card>
+```
+
 ```tsx-live width=80
 <Card emphasis='raised'>
   <Card.Content>
