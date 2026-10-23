@@ -102,8 +102,7 @@ const input = () =>
 const group = () => document.querySelector('[data-slot=query-field]')!
 const box = (element: Element) => element.getBoundingClientRect()
 
-// The popup opens at 95% scale until Base UI drops its starting style a few
-// frames later, so measure only after that.
+// Base UI holds the popup at 95% scale for a few frames after it opens.
 async function openedPopup() {
   const popup = document.querySelector('[data-slot=combobox-popup]')!
   await expect.poll(() => popup.hasAttribute('data-starting-style')).toBe(false)

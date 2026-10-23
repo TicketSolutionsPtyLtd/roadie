@@ -9,8 +9,7 @@ import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Toggle } from '../Toggle'
 
 let removeStylesheet = () => {}
-// Items measured in a fallback font change width once the brand font swaps
-// in, after the group has scrolled to them.
+// A late font swap resizes items after the group has scrolled to them.
 beforeAll(async () => {
   removeStylesheet = useStylesheet(roadieCss)
   await loadBrandFont()
