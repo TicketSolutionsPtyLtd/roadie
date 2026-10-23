@@ -536,6 +536,47 @@ describe('QueryField', () => {
     await expect.poll(() => fill('Brisbane')).toBe(resting)
   })
 
+  it('keeps every row one height as the Enter hint moves, by key or pointer', async () => {
+    const cities: QueryFieldSuggestionGroup[] = [
+      {
+        id: 'values',
+        label: 'City',
+        items: ['Brisbane', 'Hobart', 'Perth'].map((city) => ({
+          id: city,
+          label: city,
+          kind: 'filter' as const,
+          value: city
+        }))
+      }
+    ]
+    render(
+      <Harness
+        pendingChip={{ id: 'city', label: 'City is' }}
+        suggest={() => cities}
+      />
+    )
+    await userEvent.type(input(), 'b')
+    const option = (name: string) =>
+      screen.getByRole('option', { name: new RegExp(name) })
+    const hinted = (name: string) => shown(option(name).querySelector('kbd'))
+    const rows = () =>
+      ['Brisbane', 'Hobart', 'Perth'].map((name) => {
+        const { top, height } = box(option(name))
+        return { top, height }
+      })
+    await expect.poll(() => hinted('Brisbane')).toBe(true)
+    const resting = rows()
+    expect(resting[0]!.height).toBe(resting[1]!.height)
+
+    await userEvent.keyboard('{ArrowDown}')
+    await expect.poll(() => hinted('Hobart')).toBe(true)
+    expect(rows()).toEqual(resting)
+
+    await pointAt(option('Perth'))
+    await expect.poll(() => hinted('Perth')).toBe(true)
+    expect(rows()).toEqual(resting)
+  })
+
   it('lists the search Enter takes first, and Down moves to the next row', async () => {
     render(<Harness />)
     await userEvent.type(input(), 'igua')

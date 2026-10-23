@@ -918,6 +918,9 @@ export function QueryField<Value = unknown>({
                       <Combobox.Item
                         key={itemKey(item)}
                         value={item}
+                        // Fits the Enter keycap, so the row it moves to grows
+                        // no taller and the rows below stay put.
+                        className='min-h-8'
                         // Chips hold the field's value, so Base UI never selects a row.
                         aria-selected={
                           item.kind !== 'search' && !!item.selected
