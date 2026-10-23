@@ -27,7 +27,7 @@ export function revealItem(group: HTMLElement, item: HTMLElement) {
 
 /**
  * Keeps an indicator over the group's pressed item via CSS variables, and the
- * item in view when the group scrolls.
+ * focused item, or else the pressed one, in view as the group changes.
  * Offsets, not bounding rects, so a mid-press scale doesn't skew them.
  */
 export function followPressedItem(
@@ -51,7 +51,7 @@ export function followPressedItem(
         '--pressed-item-height',
         `${item.offsetHeight}px`
       )
-      revealItem(group, item)
+      revealItem(group, group.querySelector<HTMLElement>(':focus') ?? item)
     }
     onReadyChange(item !== null)
   }

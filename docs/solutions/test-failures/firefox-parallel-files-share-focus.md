@@ -67,3 +67,22 @@ the unfocused window. It runs a third of the suite, so check `uptime` first:
 ```bash
 ROADIE_BROWSERS=firefox ROADIE_SHARD=1/3 pnpm --filter @oztix/roadie-components test:browser
 ```
+
+## A late resize undid the scroll
+
+With the window focused, the same test still failed about one run in five in
+Firefox (`expected 0 to be greater than or equal to 172`), only in the single
+group. The track scrolled to `Year` on `End`, then straight back to the
+start. The pill's `ResizeObserver` delivered its first callback after the
+keypress, and that callback scrolled the pressed item, `Day`, into view. A
+real resize did the same to a user: shrink the window while focus sits on
+another item, and the focused item went out of view.
+
+Fix the component, not the wait: `followPressedItem` now reveals the focused
+item, and the pressed one only when focus is outside the group. "keeps the
+item focus is on in view as the group resizes" in
+`ToggleGroup.browser.test.tsx` resizes the group after `End` and fails in
+every engine without the fix.
+
+An observer that scrolls should ask where the user is (the focused element)
+before it scrolls to where the state is.
