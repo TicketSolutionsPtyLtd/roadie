@@ -43,7 +43,12 @@ it('skips a file with no Roadie installed', () => {
   expect(canonicalIn(join(tempApp(), 'Fixture.tsx'))).toBe('undefined')
 })
 
-it('skips a file when Tailwind predates canonical classes', () => {
+// A Tailwind before 4.1.15 has no canonicalizeCandidates, and Tailwind 3 has
+// no design system to load.
+it.each([
+  ['4.1.14', 'exports.__unstable__loadDesignSystem = async () => ({})'],
+  ['3', 'module.exports = {}']
+])('skips a file on Tailwind %s', (_, entry) => {
   const app = tempApp()
   const files = {
     'node_modules/@oztix/roadie-core/package.json': JSON.stringify({
@@ -55,9 +60,7 @@ it('skips a file when Tailwind predates canonical classes', () => {
       name: 'tailwindcss',
       main: 'index.js'
     }),
-    // 4.1.14's design system, which has no canonicalizeCandidates.
-    'node_modules/tailwindcss/index.js':
-      'exports.__unstable__loadDesignSystem = async () => ({})'
+    'node_modules/tailwindcss/index.js': entry
   }
   for (const [file, content] of Object.entries(files)) {
     mkdirSync(dirname(join(app, file)), { recursive: true })

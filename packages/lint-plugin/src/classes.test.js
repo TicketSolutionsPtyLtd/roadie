@@ -118,6 +118,11 @@ runRuleCases({
         "<div className='-mb-(--gap)' />"
       ),
       fixed(
+        "<div className='mt-[calc(-1*var(--gap))] mx-[-.5rem]' />",
+        "<div className='-mt-(--gap) -mx-2' />",
+        2
+      ),
+      fixed(
         "<div className='[margin-top:-4px]' />",
         "<div className='-mt-1' />"
       )
