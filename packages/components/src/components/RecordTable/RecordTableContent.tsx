@@ -71,7 +71,7 @@ function MeasuredWidth({
   children: ReactNode
 }) {
   return measured ? (
-    <ScrollArea.Content>{children}</ScrollArea.Content>
+    <ScrollArea.Content className='grid grow'>{children}</ScrollArea.Content>
   ) : (
     children
   )
@@ -346,7 +346,11 @@ export function RecordTableContent({
         data-slot='record-table-scroller'
         {...rowsSurvivor}
         tabIndex={-1}
-        className={cn('isolate outline-none', dimmed && 'opacity-60')}
+        className={cn(
+          'isolate outline-none',
+          boxed && 'grid grow',
+          dimmed && 'opacity-60'
+        )}
       >
         {narrowState ?? (
           <RecordTableNarrowRows
@@ -388,9 +392,13 @@ export function RecordTableContent({
       aria-label={
         boxed || narrow ? undefined : `${caption ?? 'Table'}, scrolls sideways`
       }
-      // Full width: a size container takes no width from its rows. Clipped
-      // in a box, so narrow rows never scroll it sideways.
-      className={cn('w-full', boxed ? narrow && 'overflow-x-clip' : className)}
+      // Full width: a size container takes no width from its rows. In a
+      // box, full height too, so a state centres in it, and clipped, so
+      // narrow rows never scroll it sideways.
+      className={cn(
+        'w-full',
+        boxed ? ['flex flex-col', narrow && 'overflow-x-clip'] : className
+      )}
     >
       {narrowBody || (
         <MeasuredWidth measured={boxed}>
@@ -402,7 +410,10 @@ export function RecordTableContent({
             aria-rowcount={state ? undefined : rowCount}
             aria-busy={busy || range?.loading || undefined}
             data-slot='record-table-content'
-            className='text-sm tabular-nums'
+            className={cn(
+              'text-sm tabular-nums',
+              boxed && 'grid grid-rows-[auto_1fr]'
+            )}
             style={style}
           >
             <div
@@ -583,7 +594,7 @@ export function RecordTableContent({
                 data-slot='record-table-scroller'
                 {...rowsSurvivor}
                 tabIndex={-1}
-                className={cn('isolate', dimmed && 'opacity-60')}
+                className={cn('isolate grid', dimmed && 'opacity-60')}
               >
                 {body}
               </div>
@@ -645,7 +656,9 @@ export function RecordTableContent({
         aria-label={`${caption ?? 'Table'}, scrolls`}
         style={fill ? undefined : { maxHeight }}
       >
-        <ScrollArea.Content fitWidth={false}>{content}</ScrollArea.Content>
+        <ScrollArea.Content fitWidth={false} className='grid min-h-full'>
+          {content}
+        </ScrollArea.Content>
       </ScrollArea.Viewport>
       {/* Starts under the sticky header, as a pane's does under its own. */}
       <ScrollArea.Scrollbar
@@ -695,5 +708,9 @@ function useKeepFocusShown(
 function NarrowState({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   useKeepFocusInTable(ref)
-  return <div ref={ref}>{children}</div>
+  return (
+    <div ref={ref} className='grid content-center'>
+      {children}
+    </div>
+  )
 }

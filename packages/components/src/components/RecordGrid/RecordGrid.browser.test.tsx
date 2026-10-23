@@ -20,7 +20,13 @@ import { nudgeFrames, withFrames } from '../../css/testUtils'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { tableColumns, tableLayout } from '../RecordTable'
 import { Records, useRecords } from '../Records'
-import { type TestShow, showFields, testShows } from '../Records/testUtils'
+import {
+  type TestShow,
+  boxStates,
+  showFields,
+  stateOffCentre,
+  testShows
+} from '../Records/testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -349,5 +355,38 @@ describe('RecordGrid in a browser', { timeout: 30_000 }, () => {
         .poll(() => document.activeElement?.getAttribute('aria-label'))
         .toBe('Configure table')
     )
+  })
+})
+
+describe('RecordGrid in a fill box', () => {
+  const Parent = ({ children }: { children: React.ReactNode }) => (
+    <div style={{ width: 900, height: 600 }}>{children}</div>
+  )
+
+  for (const [name, state, props] of boxStates)
+    it(`centres the ${name} state in the box`, async () => {
+      const { container } = render(
+        <Parent>
+          <RecordGrid {...props} fields={showFields} card={grid} fill />
+        </Parent>
+      )
+      await framed(() =>
+        stateOffCentre(container, 'record-grid', state)
+      ).toBeLessThanOrEqual(2)
+    })
+
+  it('keeps cards at the top', async () => {
+    const { container } = render(
+      <Parent>
+        <RecordGrid data={testShows(3)} fields={showFields} card={grid} fill />
+      </Parent>
+    )
+    const scroller = container.querySelector(
+      '[data-slot="record-grid-scroller"]'
+    )!
+    await framed(() => cards(container).length).toBeGreaterThan(0)
+    expect(
+      Math.abs(rect(cards(container)[0]!).top - rect(scroller).top)
+    ).toBeLessThanOrEqual(1)
   })
 })
