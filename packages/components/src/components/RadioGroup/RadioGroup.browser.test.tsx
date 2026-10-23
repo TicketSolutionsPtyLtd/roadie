@@ -1,5 +1,13 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 
 import { RadioGroup, type RadioGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -302,6 +310,20 @@ describe('RadioGroup invalid', () => {
   )
 
   it('fills the chosen circle with danger and tints the rest like an invalid checkbox', () => {
+    render(
+      <>
+        {swatches}
+        <RadioGroup invalid defaultValue='floor'>
+          {items}
+        </RadioGroup>
+      </>
+    )
+    expectDangerCircles()
+  })
+
+  it('tints the empty circles like an invalid checkbox in dark mode', () => {
+    document.documentElement.classList.add('dark')
+    onTestFinished(() => document.documentElement.classList.remove('dark'))
     render(
       <>
         {swatches}
