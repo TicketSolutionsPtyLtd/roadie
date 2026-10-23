@@ -83,14 +83,6 @@ export default defineConfig({
       files: ['src/**/*.{js,jsx,mjs,ts,tsx,mts,cts}'],
       rules: published.configs.recommended.rules as OxlintOverride['rules']
     },
-    ...(testing.overrides as OxlintOverride[]),
-    {
-      // These fake layout reads, and the docs have no browser test runner yet.
-      files: [
-        'src/components/OnThisPage.test.tsx',
-        'src/components/changelog/ChangelogTimeline.test.tsx'
-      ],
-      rules: { 'roadie/no-layout-fake-in-jsdom': 'off' }
-    }
+    ...(testing.overrides as OxlintOverride[])
   ]
 })
