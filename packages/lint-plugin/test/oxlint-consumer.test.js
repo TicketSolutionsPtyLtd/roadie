@@ -31,7 +31,8 @@ export default defineConfig({ extends: [recommended, testing] })
 }
 
 // An app with oxlint and no ESLint. oxlint comes from the store the
-// workspace install already filled, so the install needs no network.
+// workspace install already filled. A frozen install fetches no registry
+// metadata, so on a fresh CI store pnpm may still need the network for it.
 let app
 let installOutput
 beforeAll(() => {
@@ -42,7 +43,7 @@ beforeAll(() => {
     [
       'add',
       '-D',
-      '--offline',
+      '--prefer-offline',
       packed.filename,
       `oxlint@${devDependencies.oxlint}`
     ],
