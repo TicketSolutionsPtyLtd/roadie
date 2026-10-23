@@ -46,10 +46,11 @@ export function RadioGroupItem({
     <Radio.Root
       className={cn(
         sizes.circle,
-        'flex shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] duration-moderate data-[checked]:border-[var(--color-accent-9)] data-[checked]:bg-[var(--color-accent-3)] data-[invalid]:border-[var(--color-danger-9)] data-[invalid]:bg-[var(--color-danger-2)] data-[invalid]:outline-[color-mix(in_oklch,var(--color-danger-9)_var(--focus-ring-opacity),transparent)] data-[invalid]:data-[checked]:bg-[var(--color-danger-3)]',
+        'flex shrink-0 items-center justify-center rounded-full border border-subtle emphasis-sunken outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-[background-color,border-color,outline-width,outline-color] duration-moderate data-[invalid]:data-[unchecked]:border-[var(--intent-9)] data-[invalid]:data-[unchecked]:bg-[var(--intent-2)] data-[invalid]:outline-[color-mix(in_oklch,var(--intent-9)_var(--focus-ring-opacity),transparent)] data-[invalid]:intent-danger data-[checked]:border-[var(--intent-bg-strong)] data-[checked]:bg-[var(--intent-bg-strong)] data-[checked]:shadow-none data-[checked]:intent-accent data-[invalid]:data-[checked]:intent-danger',
         emphasis !== 'normal' &&
           'focus-visible:outline-[length:var(--focus-ring-width)]'
       )}
+      // aria-invalid belongs on the radiogroup; ARIA doesn't support it on a radio.
       data-invalid={invalid || undefined}
       aria-labelledby={labelId}
       aria-describedby={descriptionId}
@@ -58,8 +59,7 @@ export function RadioGroupItem({
       <Radio.Indicator
         className={cn(
           sizes.dot,
-          'rounded-full',
-          invalid ? 'bg-[var(--color-danger-9)]' : 'bg-[var(--color-accent-9)]'
+          'rounded-full bg-[var(--intent-text-on-strong)]'
         )}
       />
     </Radio.Root>

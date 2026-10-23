@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { RadioGroup, type RadioGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Checkbox } from '../Checkbox'
 import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -198,33 +199,7 @@ describe('RadioGroup disabled', () => {
   })
 })
 
-describe('RadioGroup invalid', () => {
-  const swatch = (scale: string) => {
-    const el = document.createElement('span')
-    el.style.color = `var(--color-${scale})`
-    document.body.append(el)
-    const { color } = getComputedStyle(el)
-    el.remove()
-    return color
-  }
-
-  function expectDangerCircles() {
-    const [border, tint, chosenTint] = [
-      swatch('danger-9'),
-      swatch('danger-2'),
-      swatch('danger-3')
-    ]
-    const chosen = screen.getByRole('radio', { name: 'Floor' })
-    const empty = screen.getByRole('radio', { name: 'Balcony' })
-    expect(getComputedStyle(empty).borderColor).toBe(border)
-    expect(getComputedStyle(empty).backgroundColor).toBe(tint)
-    expect(getComputedStyle(chosen).borderColor).toBe(border)
-    expect(getComputedStyle(chosen).backgroundColor).toBe(chosenTint)
-    expect(getComputedStyle(chosen.firstElementChild!).backgroundColor).toBe(
-      border
-    )
-  }
-
+describe('RadioGroup colour', () => {
   const items = (
     <>
       <RadioGroup.Item value='floor' label='Floor' />
@@ -232,20 +207,120 @@ describe('RadioGroup invalid', () => {
     </>
   )
 
-  it('draws every circle in danger, with a danger dot on the chosen one', () => {
+  function expectFilledLike(circle: HTMLElement, swatch: HTMLElement) {
+    const fill = getComputedStyle(swatch)
+    expect(getComputedStyle(circle).backgroundColor).toBe(fill.backgroundColor)
+    expect(getComputedStyle(circle).borderColor).toBe(fill.backgroundColor)
+    expect(getComputedStyle(circle.firstElementChild!).backgroundColor).toBe(
+      fill.color
+    )
+    expect(getComputedStyle(circle).boxShadow).not.toContain('inset')
+  }
+
+  it('fills the chosen circle like a ticked checkbox, whatever the intent around it', () => {
     render(
-      <RadioGroup invalid defaultValue='floor'>
-        {items}
-      </RadioGroup>
+      <div className='intent-brand-secondary'>
+        <Checkbox label='Rock' defaultChecked />
+        <RadioGroup defaultValue='floor'>{items}</RadioGroup>
+      </div>
+    )
+    const ticked = getComputedStyle(
+      screen.getByRole('checkbox', { name: 'Rock' })
+    )
+    const tick = getComputedStyle(
+      screen.getByRole('checkbox', { name: 'Rock' }).querySelector('svg')!
+    )
+    const chosen = screen.getByRole('radio', { name: 'Floor' })
+    expect(getComputedStyle(chosen).backgroundColor).toBe(
+      ticked.backgroundColor
+    )
+    expect(getComputedStyle(chosen).borderColor).toBe(ticked.borderColor)
+    expect(getComputedStyle(chosen.firstElementChild!).backgroundColor).toBe(
+      tick.color
+    )
+    expect(getComputedStyle(chosen).boxShadow).toBe(ticked.boxShadow)
+  })
+
+  it('fills the chosen circle with the accent strong colour, dot in its label colour', () => {
+    render(
+      <>
+        <span data-testid='strong' className='emphasis-strong intent-accent'>
+          Strong
+        </span>
+        <RadioGroup defaultValue='floor'>{items}</RadioGroup>
+      </>
+    )
+    expectFilledLike(
+      screen.getByRole('radio', { name: 'Floor' }),
+      screen.getByTestId('strong')
+    )
+  })
+
+  it('keeps an empty circle sunken', () => {
+    render(<RadioGroup defaultValue='floor'>{items}</RadioGroup>)
+    expect(
+      getComputedStyle(screen.getByRole('radio', { name: 'Balcony' })).boxShadow
+    ).toContain('inset')
+  })
+})
+
+describe('RadioGroup invalid', () => {
+  const items = (
+    <>
+      <RadioGroup.Item value='floor' label='Floor' />
+      <RadioGroup.Item value='balcony' label='Balcony' />
+    </>
+  )
+
+  function expectDangerCircles() {
+    const danger = getComputedStyle(screen.getByTestId('danger'))
+    const emptyBox = getComputedStyle(
+      screen.getByRole('checkbox', { name: 'Rock' })
+    )
+    const chosen = screen.getByRole('radio', { name: 'Floor' })
+    const empty = screen.getByRole('radio', { name: 'Balcony' })
+    expect(getComputedStyle(empty).borderColor).toBe(emptyBox.borderColor)
+    expect(getComputedStyle(empty).backgroundColor).toBe(
+      emptyBox.backgroundColor
+    )
+    expect(getComputedStyle(chosen).backgroundColor).toBe(
+      danger.backgroundColor
+    )
+    expect(getComputedStyle(chosen).borderColor).toBe(danger.backgroundColor)
+    expect(getComputedStyle(chosen.firstElementChild!).backgroundColor).toBe(
+      danger.color
+    )
+  }
+
+  const swatches = (
+    <>
+      <span data-testid='danger' className='emphasis-strong intent-danger'>
+        Danger
+      </span>
+      <Checkbox label='Rock' invalid />
+    </>
+  )
+
+  it('fills the chosen circle with danger and tints the rest like an invalid checkbox', () => {
+    render(
+      <>
+        {swatches}
+        <RadioGroup invalid defaultValue='floor'>
+          {items}
+        </RadioGroup>
+      </>
     )
     expectDangerCircles()
   })
 
   it('draws danger circles when its Field is invalid', () => {
     render(
-      <Field invalid>
-        <RadioGroup defaultValue='floor'>{items}</RadioGroup>
-      </Field>
+      <>
+        {swatches}
+        <Field invalid>
+          <RadioGroup defaultValue='floor'>{items}</RadioGroup>
+        </Field>
+      </>
     )
     expectDangerCircles()
   })
@@ -261,16 +336,6 @@ describe('RadioGroup invalid', () => {
     const circle = screen.getByRole('radio', { name: 'Floor' })
     expect(getComputedStyle(circle).outlineColor).toBe(
       getComputedStyle(field).outlineColor
-    )
-  })
-
-  it('keeps the pale accent tint and accent dot when valid', () => {
-    render(<RadioGroup defaultValue='floor'>{items}</RadioGroup>)
-    const chosen = screen.getByRole('radio', { name: 'Floor' })
-    expect(getComputedStyle(chosen).borderColor).toBe(swatch('accent-9'))
-    expect(getComputedStyle(chosen).backgroundColor).toBe(swatch('accent-3'))
-    expect(getComputedStyle(chosen.firstElementChild!).backgroundColor).toBe(
-      swatch('accent-9')
     )
   })
 })
