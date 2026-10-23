@@ -1,0 +1,12 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "lint": {
+      "inputs": ["$TURBO_EXTENDS$", "index.js", "test/**"]
+    },
+    "test": {
+      "inputs": ["$TURBO_EXTENDS$", "index.js", "index.d.ts", "test/**"]
+    }
+  }
+}
