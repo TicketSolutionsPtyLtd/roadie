@@ -51,7 +51,6 @@ beforeAll(() => {
 
 afterAll(() => rmSync(app, { recursive: true, force: true }))
 
-// Imports the shim twice and the new name once, in one Node process.
 const load = (NODE_ENV) => {
   const env = { ...process.env, NODE_ENV }
   if (NODE_ENV === undefined) delete env.NODE_ENV
