@@ -30,6 +30,7 @@ any lockfile change gives.
 ## Fix
 
 Install consumer apps with `--prefer-offline`. It takes packages from the store
-and fetches only the metadata the store lacks. Keep `--offline` out of tests
-that CI runs, and check a new consumer test on a branch that changes the
-lockfile, where the cache misses.
+and fetches only the metadata the store lacks. Keep `--offline` for installs
+whose every spec is a local tarball, as `consumer.test.js` and the shim's
+`shim.test.js` do, since those resolve nothing from the registry. Check a new
+consumer test on a branch that changes the lockfile, where the cache misses.
