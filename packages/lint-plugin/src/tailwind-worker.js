@@ -36,6 +36,7 @@ async function loadDesignSystem(stylesheet, app) {
   const tailwind = require(
     resolveFrom([app, dirname(stylesheet)], ['tailwindcss'])
   )
+  if (!tailwind.__unstable__loadDesignSystem) return null
   const designSystem = await tailwind.__unstable__loadDesignSystem(
     readFileSync(stylesheet, 'utf8'),
     {
@@ -53,10 +54,8 @@ async function loadDesignSystem(stylesheet, app) {
       }
     }
   )
-  if (!designSystem.canonicalizeCandidates) {
-    throw new Error('roadie/canonical-class needs Tailwind CSS 4.1.15 or later')
-  }
-  return designSystem
+  // Tailwind added canonical classes in 4.1.15.
+  return designSystem.canonicalizeCandidates ? designSystem : null
 }
 
 async function canonical({ stylesheet, app, classes }) {
@@ -64,6 +63,7 @@ async function canonical({ stylesheet, app, classes }) {
     designSystems.set(stylesheet, loadDesignSystem(stylesheet, app))
   }
   const designSystem = await designSystems.get(stylesheet)
+  if (!designSystem) return null
   // One at a time: a batch comes back deduplicated, so it can't be zipped.
   return classes.map(
     (name) => designSystem.canonicalizeCandidates([name], { rem: 16 })[0]

@@ -140,11 +140,13 @@ function utilityOf(token) {
   return token.slice(start).replace(/^!/, '')
 }
 
-// Roadie's hide tier is -1, so Tailwind writes z-1 as -z-hide, which reads
-// as a different tier. An arbitrary value, such as top-[-1px], may still
-// become a negative class, such as -top-px.
+// Roadie's hide tier is -1, so Tailwind writes z-1 and z-[1] as -z-hide,
+// which reads as a different tier. A negative value, such as top-[-1px], may
+// still become a negative class, such as -top-px.
+const NEGATIVE = /^-|[[(:*_,]-[\d.]/
+
 const negatesATier = (token, canonical) =>
-  utilityOf(canonical).startsWith('-') && !/^-|[[(]/.test(utilityOf(token))
+  utilityOf(canonical).startsWith('-') && !NEGATIVE.test(utilityOf(token))
 
 const canonicalClass = {
   meta: {

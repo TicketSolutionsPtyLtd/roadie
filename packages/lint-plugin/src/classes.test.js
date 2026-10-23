@@ -78,8 +78,10 @@ runRuleCases({
       "<div className='p-4 rounded-lg emphasis-subtle is-interactive' />",
       "<div className='hover:bg-subtle data-[state=open]:flex' />",
       '<div className={`p-${size} w-[50%]`} />',
+      'cn(`flex-shrink-0${suffix} ${prefix}flex-shrink-0`)',
       "const id = 'p-[16px]'",
-      "<div className='relative z-1 hover:z-1' />"
+      "<div className='relative z-1 hover:z-1' />",
+      "<div className='z-[1] hover:[z-index:1]' />"
     ].map((code) => ({ code, filename })),
     invalid: [
       fixed("<div className='p-[16px]' />", "<div className='p-4' />"),
@@ -114,6 +116,10 @@ runRuleCases({
       fixed(
         "<div className='mb-[calc(var(--gap)*-1)]' />",
         "<div className='-mb-(--gap)' />"
+      ),
+      fixed(
+        "<div className='[margin-top:-4px]' />",
+        "<div className='-mt-1' />"
       )
     ]
   }

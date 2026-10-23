@@ -16,13 +16,16 @@ const answers = new Map()
 function startWorker() {
   const { port1, port2 } = new MessageChannel()
   const signal = new Int32Array(new SharedArrayBuffer(4))
+  // A flag such as --input-type stops the worker booting, and this thread,
+  // blocked on its answer, would never hear why.
   const worker = new Worker(new URL('./tailwind-worker.js', import.meta.url), {
+    execArgv: [],
     workerData: { port: port2, signal },
     transferList: [port2]
   })
   worker.unref()
   port1.unref()
-  return { port: port1, signal }
+  return { worker, port: port1, signal }
 }
 
 // Lint rules are synchronous and Tailwind loads its design system
@@ -33,6 +36,9 @@ function ask(request) {
   Atomics.store(signal, 0, 0)
   port.postMessage(request)
   if (Atomics.wait(signal, 0, 0, TIMEOUT) === 'timed-out') {
+    // Its late reply would answer the next request, so start a fresh worker.
+    channel.worker.terminate()
+    channel = undefined
     throw new Error("Tailwind's design system took over a minute to load")
   }
   const { result, error } = receiveMessageOnPort(port).message
@@ -55,7 +61,8 @@ function roadieStylesheet(app) {
 
 /**
  * Tailwind's canonical form of each class, by Roadie's theme, resolved from
- * the linted file. Undefined where Roadie isn't installed.
+ * the linted file. Undefined where Roadie isn't installed, or where Tailwind
+ * predates canonical classes.
  */
 export function canonicalClasses(filename, classes) {
   const app = dirname(filename)
@@ -66,6 +73,7 @@ export function canonicalClasses(filename, classes) {
   const unknown = [...new Set(classes)].filter((name) => !known.has(name))
   if (unknown.length > 0) {
     const result = ask({ stylesheet, app, classes: unknown })
+    if (!result) return undefined
     unknown.forEach((name, i) => known.set(name, result[i]))
   }
   return classes.map((name) => known.get(name))
