@@ -6,6 +6,7 @@ import type {
   StaticPlot,
   StaticPlotImage
 } from '@oztix/roadie-core/dashboard'
+import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
 
 import { BarChart } from '../BarChart'
 import { Funnel } from '../Funnel'
@@ -57,13 +58,18 @@ function withoutKind<T extends { kind: string }>({ kind: _kind, ...props }: T) {
   return props
 }
 
+type RangeSelect = { onRangeSelect?: (range: AbsoluteRange) => void }
+
 // The explicit return type makes a new plot kind without a case fail the build.
-function ChartPlotView({ plot }: { plot: ChartPlot }): ReactElement {
+function ChartPlotView({
+  plot,
+  onRangeSelect
+}: { plot: ChartPlot } & RangeSelect): ReactElement {
   switch (plot.kind) {
     case 'line':
-      return <LineChart {...withoutKind(plot)} />
+      return <LineChart {...withoutKind(plot)} onRangeSelect={onRangeSelect} />
     case 'bar':
-      return <BarChart {...withoutKind(plot)} />
+      return <BarChart {...withoutKind(plot)} onRangeSelect={onRangeSelect} />
     case 'ranked-bars':
       return <RankedBars {...withoutKind(plot)} />
     case 'stacked-bars':
@@ -85,13 +91,17 @@ function ChartPlotView({ plot }: { plot: ChartPlot }): ReactElement {
 
 export function PlotView({
   plot,
-  takeaway
+  takeaway,
+  onRangeSelect
 }: {
   plot: Plot
   takeaway?: string
-}) {
+} & RangeSelect) {
   if (plot.kind === 'static') return <StaticPlotView plot={plot} />
   return (
-    <ChartPlotView plot={{ ...plot, takeaway: plot.takeaway ?? takeaway }} />
+    <ChartPlotView
+      plot={{ ...plot, takeaway: plot.takeaway ?? takeaway }}
+      onRangeSelect={onRangeSelect}
+    />
   )
 }

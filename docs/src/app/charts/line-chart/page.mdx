@@ -104,7 +104,7 @@ Name the series that tells the story. It draws in the highlight at 2px and the r
 
 ### Selecting a range
 
-`onRangeSelect` lets someone drag across dated x to pick a range, such as to zoom the page to those days. The range is inclusive, in the venue's wall time: `'2026-10-03'` for days, or `'2026-10-03T18:00'` for times. It fits straight into `DateRangePicker` or `onPeriodChange`.
+`onRangeSelect` lets someone drag across dated x to pick a range, such as to zoom the page to those days. The range is inclusive, in the venue's wall time: `'2026-10-03'` for days, or `'2026-10-03T18:00'` for times. It fits straight into `DateRangePicker`, and on a dashboard, [`selectsPeriod`](/charts/dashboards#set-the-period-from-a-chart) passes it to `onPeriodChange`.
 
 ```tsx-live-noinline
 function Zoom() {

@@ -11,6 +11,7 @@ import { DataTable } from '@oztix/roadie-components/data-table'
 import { StatTile } from '@oztix/roadie-components/stat-tile'
 import type {
   CardSize,
+  ChartCard,
   DashboardCard,
   DashboardPeriodSpec,
   DashboardSpec,
@@ -18,6 +19,7 @@ import type {
   TableRow
 } from '@oztix/roadie-core/dashboard'
 import {
+  type AbsoluteRange,
   type Comparison,
   type DescribeComparisonOptions,
   describeComparison,
@@ -50,6 +52,13 @@ export type DashboardViewProps = {
    * `period`. Without it the period shows read-only, as when the page sets it.
    */
   onPeriodChange?: (period: DashboardPeriodValue<string>) => void
+  /**
+   * Lets a drag across a `line` or `bar` card with dated x set the period,
+   * keeping its comparison. Called for each of those cards: return `true`
+   * where x is the period's timeline, such as sales each day, and not where
+   * it's another, such as shows coming up. Needs `onPeriodChange`.
+   */
+  selectsPeriod?: (card: ChartCard) => boolean
   /**
    * The period toolbar's other props: `presets`, `timeZone`, `today`,
    * `locale`, `weekStart`, `fiscalYearStart`, `dataStart`, `dataEnd`,
@@ -106,6 +115,22 @@ function headline(
   }
 }
 
+const isTimeCard = (card: DashboardCard): card is ChartCard =>
+  card.kind === 'chart' &&
+  (card.plot.kind === 'line' || card.plot.kind === 'bar')
+
+// A dashboard period covers whole days, so an hourly card's range widens.
+const wholeDays = ({ start, end }: AbsoluteRange): AbsoluteRange => ({
+  start: start.slice(0, 10),
+  end: end.slice(0, 10)
+})
+
+const isRange = (value: DashboardPeriodSpec['range'], range: AbsoluteRange) =>
+  typeof value === 'object' &&
+  'start' in value &&
+  value.start === range.start &&
+  value.end === range.end
+
 const cardProps = (card: DashboardCard, actions: ReactNode) => ({
   actions,
   label: card.label,
@@ -122,6 +147,7 @@ type CardProps = {
   size: CardSize
   actions: ReactNode
   getRowHref?: DashboardViewProps['getRowHref']
+  onRangeSelect?: (range: AbsoluteRange) => void
   period?: DashboardPeriodSpec
   timeZone?: string
   locale?: string
@@ -132,6 +158,7 @@ function Card({
   size,
   actions,
   getRowHref,
+  onRangeSelect,
   period,
   timeZone,
   locale
@@ -198,6 +225,7 @@ function Card({
                 ? undefined
                 : (card.plot.takeaway ?? card.takeaway)
             }
+            onRangeSelect={onRangeSelect}
           />
         </Chart>
       )
@@ -209,10 +237,25 @@ export function DashboardView({
   cardActions,
   getRowHref,
   onPeriodChange,
+  selectsPeriod,
   periodProps,
   className
 }: DashboardViewProps) {
   const { period } = spec
+  const selectPeriod =
+    period && onPeriodChange && !periodProps?.disabled
+      ? (selected: AbsoluteRange) => {
+          const range = wholeDays(selected)
+          if (isRange(period.range, range)) return
+          onPeriodChange(
+            period.compare ? { range, compare: period.compare } : { range }
+          )
+        }
+      : undefined
+  const rangeSelectFor = (card: DashboardCard) =>
+    selectPeriod && isTimeCard(card) && selectsPeriod?.(card)
+      ? selectPeriod
+      : undefined
   return (
     <Dashboard className={className}>
       {period && (
@@ -236,6 +279,7 @@ export function DashboardView({
               size={card.size}
               actions={cardActions?.(card)}
               getRowHref={getRowHref}
+              onRangeSelect={rangeSelectFor(card)}
               period={period}
               timeZone={periodProps?.timeZone}
               locale={periodProps?.locale}
