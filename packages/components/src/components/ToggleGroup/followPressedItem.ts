@@ -25,6 +25,16 @@ export function revealItem(group: HTMLElement, item: HTMLElement) {
   markScrollEdges(group)
 }
 
+// activeElement, not `:focus`, which stops matching while the window is blurred.
+function focusedItem(group: HTMLElement) {
+  const focused = group.ownerDocument.activeElement
+  return focused instanceof HTMLElement &&
+    focused !== group &&
+    group.contains(focused)
+    ? focused
+    : null
+}
+
 /**
  * Keeps an indicator over the group's pressed item via CSS variables, and the
  * focused item, or else the pressed one, in view as the group changes.
@@ -51,7 +61,7 @@ export function followPressedItem(
         '--pressed-item-height',
         `${item.offsetHeight}px`
       )
-      revealItem(group, group.querySelector<HTMLElement>(':focus') ?? item)
+      revealItem(group, focusedItem(group) ?? item)
     }
     onReadyChange(item !== null)
   }

@@ -447,8 +447,19 @@ describe('an edge fade', () => {
     await userEvent.tab()
     await userEvent.keyboard('{End}')
     expect(screen.getByRole('button', { name: 'Year' })).toHaveFocus()
+    await expect
+      .poll(() => group.scrollLeft)
+      .toBeGreaterThanOrEqual(group.scrollWidth - group.clientWidth - 1)
     group.parentElement!.style.width = `${NARROW - 20}px`
-    await settled()
+    // Observers run in the order they were made, so the group's own has run
+    // by the time this one first reports the new size.
+    await new Promise<void>((resolve) => {
+      const observer = new ResizeObserver(() => {
+        observer.disconnect()
+        resolve()
+      })
+      observer.observe(group)
+    })
     expect(group.scrollLeft).toBeGreaterThanOrEqual(
       group.scrollWidth - group.clientWidth - 1
     )
