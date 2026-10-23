@@ -49,13 +49,20 @@ shard's order, the ToggleGroup edge-fade test failed every Firefox CI run
 Fix the test and the component separately:
 
 - In a test that relies on focus events, focus the page first with the
-  `focusPage` browser command (`page.bringToFront()`, in
-  `packages/components/vitest.config.ts`), then wait for it:
+  `focusPage` browser command (in `packages/components/vitest.config.ts`),
+  then wait for it:
 
   ```ts
   await commands.focusPage()
   await expect.poll(() => document.hasFocus()).toBe(true)
   ```
+
+  `focusPage` brings the window to the front and then focuses the test's
+  iframe. Bringing the window forward alone leaves focus on the runner's
+  page, so `document.hasFocus()` in the test frame stays false until
+  something clicks into it. A test run alone with `-t`, with no earlier
+  click in the file, waited out the poll every time in Firefox
+  (INNO-1449).
 
 - In a component, update state that follows a scroll you caused yourself
   synchronously, rather than waiting for the `scroll` event. ToggleGroup's
