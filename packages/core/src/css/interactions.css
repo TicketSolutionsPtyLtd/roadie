@@ -322,7 +322,13 @@
 /* A surface whose main link sits inside it, such as a card that also holds
    other actions. Mark that link with data-interactive-target: its overlay
    covers the surface, other controls sit above it, and the surface takes the
-   link's hover, press and focus states. Inert until a target is present. */
+   link's hover, press and focus states. Inert until a target is present.
+
+   A target belongs to the nearest surface around it, so a card holding table
+   rows that are surfaces of their own ignores their targets. Each state rule
+   ends on the surface itself, so the :not(:has()) adds nothing to the
+   invalidation set. @scope can't do this: its lower limit doesn't bound a
+   :has() argument. */
 @utility is-interactive-within {
   outline: 0 solid transparent;
   transition: var(--interactive-transition);
@@ -353,11 +359,15 @@
     z-index: var(--interactive-within-control-z, revert-layer);
   }
 
-  &:has([data-interactive-target]:active) {
+  &:has([data-interactive-target]:active):not(
+      :has(.is-interactive-within [data-interactive-target]:active)
+    ) {
     transform: scale(0.99);
   }
 
-  &:has([data-interactive-target]:focus-visible) {
+  &:has([data-interactive-target]:focus-visible):not(
+      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+    ) {
     outline: var(--focus-ring-width) solid
       color-mix(
         in oklch,
@@ -367,7 +377,10 @@
     outline-offset: 0;
   }
 
-  .dark &:has([data-interactive-target]:focus-visible) {
+  .dark
+    &:has([data-interactive-target]:focus-visible):not(
+      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+    ) {
     outline-color: color-mix(
       in oklch,
       var(--intent-9) var(--focus-ring-opacity-dark),

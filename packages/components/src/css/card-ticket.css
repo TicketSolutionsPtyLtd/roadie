@@ -225,15 +225,20 @@
 
     &.is-interactive:hover,
     &.is-interactive:focus-visible,
-    &.is-interactive-within:has(
-        [data-interactive-target]:is(:hover, :focus-visible)
+    &.is-interactive-within:has([data-interactive-target]:hover):not(
+        :has(.is-interactive-within [data-interactive-target]:hover)
+      ),
+    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
+        :has(.is-interactive-within [data-interactive-target]:focus-visible)
       ) {
       --card-shadow-8: var(--card-shadow-color);
       transform: translateY(-1px);
     }
     &.is-interactive:active,
     &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active) {
+    &.is-interactive-within:has([data-interactive-target]:active):not(
+        :has(.is-interactive-within [data-interactive-target]:active)
+      ) {
       --card-shadow-4: transparent;
       --card-shadow-8: transparent;
       transform: translateY(0) scale(0.99);
@@ -246,8 +251,11 @@
 
     &.is-interactive:hover,
     &.is-interactive:focus-visible,
-    &.is-interactive-within:has(
-        [data-interactive-target]:is(:hover, :focus-visible)
+    &.is-interactive-within:has([data-interactive-target]:hover):not(
+        :has(.is-interactive-within [data-interactive-target]:hover)
+      ),
+    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
+        :has(.is-interactive-within [data-interactive-target]:focus-visible)
       ) {
       --card-fill: var(--intent-2);
       --card-shadow-2: var(--card-shadow-color);
@@ -255,7 +263,9 @@
     }
     &.is-interactive:active,
     &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active) {
+    &.is-interactive-within:has([data-interactive-target]:active):not(
+        :has(.is-interactive-within [data-interactive-target]:active)
+      ) {
       --card-fill: var(--intent-3);
       --card-shadow-2: transparent;
       transform: translateY(0) scale(0.99);
@@ -267,14 +277,19 @@
 
     &.is-interactive:hover,
     &.is-interactive:focus-visible,
-    &.is-interactive-within:has(
-        [data-interactive-target]:is(:hover, :focus-visible)
+    &.is-interactive-within:has([data-interactive-target]:hover):not(
+        :has(.is-interactive-within [data-interactive-target]:hover)
+      ),
+    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
+        :has(.is-interactive-within [data-interactive-target]:focus-visible)
       ) {
       --card-fill: var(--intent-4a);
     }
     &.is-interactive:active,
     &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active) {
+    &.is-interactive-within:has([data-interactive-target]:active):not(
+        :has(.is-interactive-within [data-interactive-target]:active)
+      ) {
       --card-fill: var(--intent-5a);
     }
   }
@@ -283,19 +298,26 @@
     --card-fill: var(--intent-bg-subtler);
 
     &.is-interactive,
-    &.is-interactive-within:has([data-interactive-target]) {
+    &.is-interactive-within:has([data-interactive-target]):not(
+        :has(.is-interactive-within [data-interactive-target])
+      ) {
       --card-fill: transparent;
     }
     &.is-interactive:hover,
     &.is-interactive:focus-visible,
-    &.is-interactive-within:has(
-        [data-interactive-target]:is(:hover, :focus-visible)
+    &.is-interactive-within:has([data-interactive-target]:hover):not(
+        :has(.is-interactive-within [data-interactive-target]:hover)
+      ),
+    &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
+        :has(.is-interactive-within [data-interactive-target]:focus-visible)
       ) {
       --card-fill: var(--intent-3a);
     }
     &.is-interactive:active,
     &.is-interactive.is-active,
-    &.is-interactive-within:has([data-interactive-target]:active) {
+    &.is-interactive-within:has([data-interactive-target]:active):not(
+        :has(.is-interactive-within [data-interactive-target]:active)
+      ) {
       --card-fill: var(--intent-4a);
     }
   }

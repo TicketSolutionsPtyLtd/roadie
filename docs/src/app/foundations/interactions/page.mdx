@@ -87,6 +87,10 @@ and focus states as `is-interactive` while its main link is hovered, pressed,
 or focused. It does nothing until a target is present. `Card` applies it for
 you when it holds a `Card.Link`.
 
+Surfaces can nest. A target belongs to the nearest surface around it, so a
+card around a grouped `DataTable` or `RecordTable` list rows stays still while
+one of those rows is hovered, pressed, or focused.
+
 ```tsx-live width=80
 <Card emphasis='raised'>
   <Card.Content>
