@@ -1,8 +1,9 @@
 import { spawn } from 'node:child_process'
-import { existsSync, lstatSync, readdirSync } from 'node:fs'
+import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs'
 import { availableParallelism, constants } from 'node:os'
 import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 
+import { gatedProjects } from './lib/ci-projects.mjs'
 import {
   killGroup,
   repoRoot,
@@ -20,9 +21,12 @@ const PACKAGES = [
   'eslint-plugin-shim',
   'docs'
 ]
-const usage = `Usage: pnpm test:gated <${PACKAGES.join('|')}> [files] [--all] [--all-browsers] [vitest args]
-Runs the tests related to the files or folders given, or to the changes since origin/main.
+const usage = `Usage: pnpm test:gated <${PACKAGES.join('|')}> [files] [--all] [--all-browsers] [--perf] [vitest args]
+Runs the tests related to the files or folders given, or to the changes since origin/main,
+in the projects CI runs (the package's test and test:browser scripts).
 --all runs the whole suite, --all-browsers runs WebKit and Firefox too.
+--perf runs the package's test:perf projects instead, as do perf test files given alone.
+--project picks the projects yourself.
 Example: pnpm test:gated components src/components/Badge/index.tsx --project 'browser*'`
 
 const timeoutMin = Number(process.env.ROADIE_TEST_TIMEOUT_MIN) || 10
@@ -43,8 +47,9 @@ if (!existsSync(join(cwd, 'package.json'))) {
 
 const all = rest.includes('--all')
 const allBrowsers = rest.includes('--all-browsers')
+const perf = rest.includes('--perf')
 const passThrough = rest.filter(
-  (arg) => arg !== '--all' && arg !== '--all-browsers'
+  (arg) => arg !== '--all' && arg !== '--all-browsers' && arg !== '--perf'
 )
 const firstFlag = passThrough.findIndex((arg) => arg.startsWith('-'))
 const fileArgs =
@@ -98,6 +103,15 @@ function withFolderContents(path) {
 }
 
 const files = fileArgs.map(packageRelative).flatMap(withFolderContents)
+const { scripts = {} } = JSON.parse(
+  readFileSync(join(cwd, 'package.json'), 'utf8')
+)
+const projects = gatedProjects({ scripts, files, perf, vitestArgs })
+if (!projects) {
+  console.error(`${pkg} has no test:perf script.\n\n${usage}`)
+  process.exit(2)
+}
+
 const maxWorkers = Math.max(1, Math.floor(availableParallelism() / 2))
 
 const callerSetsNoTests = vitestArgs.some((arg) =>
@@ -122,17 +136,23 @@ const args = [
   'exec',
   'vitest',
   ...selection,
+  ...projects.projectArgs,
   `--maxWorkers=${maxWorkers}`,
   ...vitestArgs
 ]
 const env = {
   ...process.env,
+  ...projects.env,
   ROADIE_BROWSERS: allBrowsers
     ? 'chromium,webkit,firefox'
     : process.env.ROADIE_BROWSERS || 'chromium'
 }
+const shownEnv = Object.entries({
+  ...projects.env,
+  ROADIE_BROWSERS: env.ROADIE_BROWSERS
+}).map(([name, value]) => `${name}=${value}`)
 console.log(
-  `ROADIE_BROWSERS=${env.ROADIE_BROWSERS} pnpm ${args.join(' ')} (in ${pkg}, ${timeoutMin} min limit)`
+  `${shownEnv.join(' ')} pnpm ${args.join(' ')} (in ${pkg}, ${timeoutMin} min limit)`
 )
 
 const child = spawn('pnpm', args, {

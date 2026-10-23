@@ -159,7 +159,8 @@ These rules aren't on those pages.
   WebKit, and Firefox. jsdom can't evaluate `calc()` or container queries, so
   don't assert rule text there.
 - Iterate with `pnpm test:gated <package> <file or folder>` (load-gated,
-  Chromium only), never `vitest` or the whole suite directly.
+  Chromium only, the projects CI runs), never `vitest` or the whole suite
+  directly. Perf tests run only with `--perf`.
 - Dev-only warnings check `process.env.NODE_ENV` behind a
   `typeof process !== 'undefined'` guard
   ([why](docs/solutions/build-errors/cross-bundler-dev-env-check.md)).

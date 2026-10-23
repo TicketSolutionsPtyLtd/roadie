@@ -124,6 +124,10 @@ jobs:
       - name: Check component docs
         run: node scripts/check-component-docs.mjs
 
+      # Root scripts belong to no turbo package, so turbo test skips them.
+      - name: Test repo scripts
+        run: node --test 'scripts/**/*.test.mjs'
+
       # Warning only. On a pull_request the checkout is a merge commit whose
       # first parent is the base, so HEAD^1 diffs just this PR without a full
       # clone, even if main moves after the merge ref is built. Anything but an
