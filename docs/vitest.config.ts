@@ -1,13 +1,14 @@
 import { fileURLToPath } from 'url'
 import { defineConfig } from 'vitest/config'
 
-// The docs' own logic, not its pages. Components are tested where they live.
+// The docs' own logic and lint configs, not its pages. Components are tested
+// where they live.
 export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) }
   },
   oxc: { jsx: { runtime: 'automatic' } },
   test: {
-    include: ['src/**/*.test.{ts,tsx}']
+    include: ['src/**/*.test.{ts,tsx}', 'lint-config.test.js']
   }
 })
