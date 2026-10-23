@@ -1,7 +1,7 @@
 import { staticString } from './ast.js'
+import { docsPage } from './docs.js'
 
-const ICONOGRAPHY =
-  'https://ticketsolutionsptyltd.github.io/roadie/foundations/iconography'
+const ICONOGRAPHY = docsPage('foundations/iconography')
 
 const PHOSPHOR = /^@phosphor-icons\/react(\/.*)?$/
 const PHOSPHOR_NON_ICONS = /^(Icon|SSR)[A-Z]|^Icon$|Context$|Props$|Weight$/

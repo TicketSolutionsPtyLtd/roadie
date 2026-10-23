@@ -21,12 +21,14 @@
   ],
   "exports": {
     ".": "./src/index.js",
+    "./internal": "./src/internal.js",
     "./oxlint/*.json": "./oxlint/*.json"
   },
   "files": [
     "src",
     "oxlint",
-    "!src/**/*.test.js"
+    "!src/**/*.test.js",
+    "!src/internal.js"
   ],
   "publishConfig": {
     "access": "public"

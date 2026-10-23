@@ -1,9 +1,9 @@
 import published from '@oztix/roadie-lint-plugin'
-
-// The package's helpers, not its public API.
-import { staticString } from '../packages/lint-plugin/src/ast.js'
-import { classRule } from '../packages/lint-plugin/src/classes.js'
-import { selectorRule } from '../packages/lint-plugin/src/testing.js'
+import {
+  classRule,
+  selectorRule,
+  staticString
+} from '@oztix/roadie-lint-plugin/internal'
 
 const LAYOUT_CLASS =
   /(^|:|!)-?(grid|flex|inline|inline-flex|inline-grid|block|inline-block|flow-root|contents|hidden|container|grow|shrink|absolute|relative|fixed|sticky|(gap|space|[mp][trblxyse]?|w|h|min|max-[wh]|grid-(cols|rows|flow)|col|row|flex|basis|grow|shrink|order|columns|items|justify|place|self|inset|top|right|bottom|left|start|end)-.+)!?$/

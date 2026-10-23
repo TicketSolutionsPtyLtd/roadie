@@ -1,7 +1,7 @@
 import { staticString } from './ast.js'
+import { docsPage } from './docs.js'
 
-const TESTING =
-  'https://ticketsolutionsptyltd.github.io/roadie/overview/linting#testing'
+const TESTING = `${docsPage('overview/linting')}#testing`
 
 export function selectorRule(description, selector, message) {
   return {

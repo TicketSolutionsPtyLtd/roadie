@@ -1,4 +1,6 @@
-const CARD = 'https://ticketsolutionsptyltd.github.io/roadie/components/card'
+import { docsPage } from './docs.js'
+
+const CARD = docsPage('components/card')
 const ROADIE_CARD = /^@oztix\/roadie-components(\/card)?$/
 
 function cardPart(name, cards) {
