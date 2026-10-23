@@ -29,7 +29,7 @@ export function DataTableRow({
   row: KeyedRow
   titleKey?: string
   plain: boolean
-  /** A grouped row's level, which indents its first cell and lets it collapse. */
+  /** A grouped row's level, which indents its label cell and lets it collapse. */
   depth?: number
   rowProps?: ComponentProps<'tr'>
 }) {
