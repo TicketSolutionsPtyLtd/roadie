@@ -2,7 +2,10 @@
 title: Grouped tables, totals, and stacked areas
 summary: Insight pages can group and total their tables, chart part of a whole over time, compare events by days out or on the event clock, and set a dashboard's period by dragging across a chart.
 highlights:
-  - StackedArea
+  - title: StackedArea
+    description: A chart for part of a whole over time, such as scans by gate, with a share mode, a today marker, and annotations.
+    href: /charts/stacked-area
+    packages: [core, charts]
   - title: Grouped tables
     description: DataTable groups rows by one or more columns, with a total for each group, and RecordTable gains a totals row.
     href: /foundations/tables
