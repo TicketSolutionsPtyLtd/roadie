@@ -1,5 +1,19 @@
 # roadie-skills
 
+## 0.5.1
+
+### Patch Changes
+
+- 5c1b2fd: `/roadie:audit` installs the lint plugin by its new name, `@oztix/roadie-lint-plugin`, and swaps an app off `@oztix/roadie-eslint-plugin`.
+- f02f183: `/roadie:audit` runs the lint plugin in oxlint, and falls back to ESLint only when oxlint can't run. An app without an oxlint config gets a one-off run from a temporary config, so an app on a legacy `.eslintrc` is checked too.
+- 6483954: `/roadie:charts` routes part of a whole over time to `StackedArea` and lists the `stacked-area` plot kind.
+- 835ccfe: `/roadie:release` checks dist-tags, flagging a `stage` tag or an undeprecated placeholder left from a first publish, and fails when a renamed package's shim would release again.
+- 5531c2b: `/roadie:release` says npm can take up to about 10 minutes to show a large package after Publish, so wait before treating a missing version as a failed publish.
+- 966da48: `/roadie:test` and `/roadie:review` name three tests that can't fail (an assertion the default layout meets, one on the wrong element, and a threshold zero meets), and review mutation-checks every new class and asserted element, restoring the file in the same command. `/roadie:implement` checks changeset, docs, and spec claims against a test or a measurement and runs touched browser tests in WebKit and Firefox before the demo, `/roadie:pr` treats the changeset and numbers as claims, `/roadie:shepherd` lints and typechecks the files both sides touched after a rebase, and `/roadie:demo`'s `shoot.mjs` scrolls to the first visible match and fails if it isn't in view.
+- 873faa0: `/roadie:spec` makes a tool migration's test seam a parity check that seeds every form the old config catches, and `/roadie:slice` counts a partial move as both deleted and added lines when estimating a slice's size.
+- 8c8c72d: `/roadie:review` formats files no package lints with the host repo's formatter, not always Prettier.
+- 32f8eff: `/roadie:test` says the five testing lint rules ship in the `testing` preset of `@oztix/roadie-lint-plugin`, so an app can turn them on too.
+
 ## 0.5.0
 
 ### Minor Changes

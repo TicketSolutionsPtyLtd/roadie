@@ -1,5 +1,22 @@
 # @oztix/roadie-core
 
+## 2.12.0
+
+### Minor Changes
+
+- 574a12a: Add `selectsPeriod` to the `line`, `bar`, and `stacked-area` plots of a dashboard description, so a drag across that card, or Shift with an arrow key and then Enter, sets the dashboard's period. `DashboardView` passes the range to `onPeriodChange` with the current comparison, and `validateDashboard` warns when x isn't dated or there's no period. Dashboards without it don't change.
+- 15435ad: Add `groupBy` and `defaultExpanded` to `DataTable`. Rows group by one or more text or status columns, outermost first. Each group gets a row that sums its number columns the way `totals` does, which opens and closes like an Accordion when anywhere on it is pressed, and every level's label sits indented in the title column, or the first column without a sum when there's no text column. Groups start closed: `defaultExpanded` opens them all, or the groups at the paths of values you give. Sorting orders groups by their sums, or by label, at every level. Dashboard `table` cards take the same two fields, `DashboardView` passes them on, and `validateDashboard` checks them.
+- 6115664: Show the total of a number column that comes first in `DataTable`. The totals label, each group's label, and the grouped header now go in the title column, the pinned text column or else the first text column, as in `RecordTable`. A table with no text column puts them in the first column without a sum, so the label never covers a total. `validateDashboard` follows the same rule: it warns about a totals row only when every column has a sum, or when `values` gives one for the label's column, and about grouped rows only when there's no text column and the label's column isn't status. In core, `tableLabelIndex(columns)` finds the label's column, `tableTitleColumn(columns)` the title, and `labelColumnIndex` applies the rule to columns of another shape; `totalsLabel(count, recordName, exact)` writes "Totals for 1,234 shows", with a + after a count that's a floor.
+- b15d667: Add `xFormat` to LineChart and the dashboard `line` plot, with a `daysOut` format for comparing events by days to the event. Ticks read "30d", and tooltips, tables and screen readers say "30 days before" and "Event day". Core adds `XFormat` and `formatX` to `@oztix/roadie-core/dataviz`.
+- 7835e36: Add an `eventTime` x format to LineChart and the dashboard `line` plot, for comparing events on their own clock. `x` is hours from midnight starting the first event day, and a day runs to 6am. Ticks read "Day 2" and "19:00", and tooltips, tables and screen readers say "Day 2, 7:15pm". Core exports `END_OF_NIGHT_HOUR` from `@oztix/roadie-core/datetime`, the 6am cutoff that both a late show's night and an `eventTime` day share.
+- 4d0f1bb: Add `toElasticsearch` on `@oztix/roadie-core/records/elasticsearch`, which turns a records request into Elasticsearch query DSL (`query`, `sort`, `from`, and `size`) that means the same as `matchesRecordQuery`. `paths` maps a field to the path filters and sort read, such as a `keyword` sub-field, and `searchFields` sets what search reads. `except` leaves out one field's chips, so a page can count that field's values against every other filter. It needs Elasticsearch 7.10 or later, or OpenSearch.
+- 764944f: Add `mode`, `today` and `annotations` to StackedArea and the dashboard `stacked-area` plot. `mode='share'` stacks every time to 100%, `today` marks the top of the stack with a dot that reads the total, and annotations work as on LineChart.
+- 6483954: Add `StackedArea` (`@oztix/roadie-charts/stacked-area`), a chart for part of a whole over time, such as scans by gate. The largest layer stacks at the bottom, past 6 the smallest roll into Other on top, and the tooltip opens with the total. Dashboards take it as plot kind `stacked-area`, with `/static` and `/tables` support. `ChartTooltip` rows take `shape: 'none'` for a row with no key, such as a total.
+
+### Patch Changes
+
+- 0e0bd9a: Fix an `is-interactive-within` surface taking the hover, press and focus ring of a nested surface's target. A `Card` around a grouped `DataTable`, linked `DataTable` rows or `RecordTable` list rows now stays still when one of those rows is hovered, pressed or focused, and a subtler card keeps its tint. A target now belongs to the nearest `is-interactive-within` around it.
+
 ## 2.11.0
 
 ### Minor Changes

@@ -1,5 +1,38 @@
 # @oztix/roadie-components
 
+## 2.17.0
+
+### Minor Changes
+
+- 68fc47c: Add `size` (`sm`, `md`, `lg`) to `Checkbox`, `CheckboxGroup`, and `RadioGroup`, and `trailing` to `Checkbox` and `RadioGroup.Item` for a count or value at the end of the row. The default `md` box is now 20px, down from 24px, which also makes RecordTable's and Records' selection checkboxes smaller; pass `size='lg'` to keep the old size. A ticked or indeterminate checkbox and a chosen radio now fill with the accent's strong colour, with the icon or dot in the text colour for strong, and drop the sunken inset of an empty box. Stacked items in a `CheckboxGroup` or `RadioGroup` sit 2px apart at `sm` and 4px at `md`, down from 8px, and stay 8px apart at `lg`. A radio's dot is now half its circle at every size.
+- 1cc7929: `DataCard` and `Chart` take `controls`: switches for what the card's body shows, such as a chart's Cumulative, Incremental and Percentage modes. They sit in a full-width row under the headline, wrap on a narrow card, and stay in place in every state and in a chart's Table view. `StatTile` doesn't take them.
+- 15435ad: Add `groupBy` and `defaultExpanded` to `DataTable`. Rows group by one or more text or status columns, outermost first. Each group gets a row that sums its number columns the way `totals` does, which opens and closes like an Accordion when anywhere on it is pressed, and every level's label sits indented in the title column, or the first column without a sum when there's no text column. Groups start closed: `defaultExpanded` opens them all, or the groups at the paths of values you give. Sorting orders groups by their sums, or by label, at every level. Dashboard `table` cards take the same two fields, `DashboardView` passes them on, and `validateDashboard` checks them.
+- bc66b29: Add `totals` to `RecordTable` and `useRecords`: a row of totals under the headings, over every record the search and filters match. `totals` sums the number and money fields in the browser; with server data, pass the server's sums as `{ values }`, or resolve them from `loadRange` beside `rowCount`. It labels itself "Totals for 1,234 shows" from `recordName`, and reads as one line above the rows on a phone. A column's `total: false` leaves it blank. Tables without `totals` don't change.
+
+### Patch Changes
+
+- 4d0f1bb: Fix an open `Accordion` item growing past its container when it holds wide content, such as a code block, so it no longer pushes a phone page sideways.
+- e823161: RecordTable and RecordGrid in a `fill` box centre their empty and error states in the space under the header, instead of showing them at the top. Rows, cards, and loading placeholders still start at the top.
+- a889d8d: Fix a ticked or indeterminate `Checkbox` that's `invalid`, which now fills with danger instead of the accent, so the error still shows.
+- 6bb2332: Fix pressing a later pinned `DataTable` cell in a linked or grouped row, which now follows the row's link or toggles its group like any other cell. A number column that `groupBy` leaves first also keeps its figures end-aligned, and a linked row's title is a subtle `Link`, underlined in the accent colour while the row is hovered or focused.
+- 6115664: Show the total of a number column that comes first in `DataTable`. The totals label, each group's label, and the grouped header now go in the title column, the pinned text column or else the first text column, as in `RecordTable`. A table with no text column puts them in the first column without a sum, so the label never covers a total. `validateDashboard` follows the same rule: it warns about a totals row only when every column has a sum, or when `values` gives one for the label's column, and about grouped rows only when there's no text column and the label's column isn't status. In core, `tableLabelIndex(columns)` finds the label's column, `tableTitleColumn(columns)` the title, and `labelColumnIndex` applies the rule to columns of another shape; `totalsLabel(count, recordName, exact)` writes "Totals for 1,234 shows", with a + after a count that's a floor.
+- 37e78f5: A `List` row with long text no longer widens the list past its container on a narrow screen; the title truncates and the trailing slot stays in view.
+- 0e0bd9a: Fix an `is-interactive-within` surface taking the hover, press and focus ring of a nested surface's target. A `Card` around a grouped `DataTable`, linked `DataTable` rows or `RecordTable` list rows now stays still when one of those rows is hovered, pressed or focused, and a subtler card keeps its tint. A target now belongs to the nearest `is-interactive-within` around it.
+- 4ed0b1d: Fix the rows in a `QueryField` or `Records.Search` list jumping as the highlight moves. The row with the Enter hint was 1px taller than the rest, so every row below it shifted. Each row is now tall enough for the hint.
+- bb51c0a: `RadioGroup` now dims a disabled group or item and ignores presses on its row, like `Checkbox`. An invalid group, from `invalid` or its `Field`, draws its empty circles with a danger border and tint, fills the chosen one with danger like an invalid ticked `Checkbox`, and sets `aria-invalid` on the `radiogroup`.
+- 3ea2509: RecordTable puts the totals label in the title column, or with no title in the first column without a sum that isn't an image, as `DataTable` does, so the label no longer covers a summed column's total, and in the title column it no longer hides with a column's `priority`. With `totals` and records selected, the bulk actions bar's focus rings are no longer clipped at the top.
+- 7fdb3fd: Fix a scrolling `ToggleGroup` jumping back to its pressed item when it resized while keyboard focus was on another item, which hid the focused item. It now keeps the focused item in view, and the pressed one when focus is elsewhere.
+- Updated dependencies [574a12a]
+- Updated dependencies [15435ad]
+- Updated dependencies [6115664]
+- Updated dependencies [b15d667]
+- Updated dependencies [7835e36]
+- Updated dependencies [0e0bd9a]
+- Updated dependencies [4d0f1bb]
+- Updated dependencies [764944f]
+- Updated dependencies [6483954]
+  - @oztix/roadie-core@2.12.0
+
 ## 2.16.0
 
 ### Minor Changes
