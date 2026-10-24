@@ -98,8 +98,9 @@ Fail blocks the merge; attention needs the maintainer to look.
    Version Packages PR bumps a deprecated package's re-export shim past its
    last release: Changesets bumps a dependent whenever its dependency leaves
    the dependent's range, so a `0.x` minor of the new name releases the old
-   name too. Roadie's shim has a guard test for this
-   (`packages/eslint-plugin-shim/test/last-release.test.js`).
+   name too. While a shim lives in the repo, keep a test that fails when
+   the pending changesets would release it again, and remove the shim
+   before the new name's next minor.
 
 ## 4. Status candidates (required)
 
