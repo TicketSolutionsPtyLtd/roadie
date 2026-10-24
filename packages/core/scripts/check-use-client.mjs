@@ -11,14 +11,25 @@ const sourceFiles = readdirSync('src', { recursive: true, withFileTypes: true })
   .map((entry) => relative('src', join(entry.parentPath, entry.name)))
   .filter((name) => /\.tsx?$/.test(name) && !name.endsWith('.d.ts'))
 
-const offenders = sourceFiles.filter((name) => {
-  if (!/^['"]use client['"]/.test(readFileSync(join('src', name), 'utf8')))
-    return false
-  const output = join('dist', name.replace(/\.tsx?$/, '.js'))
+const toOutput = (name) => join('dist', name.replace(/\.tsx?$/, '.js'))
+
+const emitted = sourceFiles
+  .filter((name) =>
+    /^['"]use client['"]/.test(readFileSync(join('src', name), 'utf8'))
+  )
   // Tests and other excluded entries never emit.
-  if (!existsSync(output)) return false
-  return !readFileSync(output, 'utf8').startsWith('"use client";')
-})
+  .filter((name) => existsSync(toOutput(name)))
+
+if (emitted.length === 0) {
+  console.error(
+    'ERROR: no "use client" source has a dist file. Run after the build, from a package root whose src/ maps 1:1 onto dist/.'
+  )
+  process.exit(1)
+}
+
+const offenders = emitted.filter(
+  (name) => !readFileSync(toOutput(name), 'utf8').startsWith('"use client";')
+)
 
 if (offenders.length > 0) {
   console.error('ERROR: these dist files lost their "use client" directive:')
