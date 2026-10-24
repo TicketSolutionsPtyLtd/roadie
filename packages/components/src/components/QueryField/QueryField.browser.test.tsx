@@ -101,6 +101,13 @@ const input = () =>
   screen.getByRole<HTMLInputElement>('combobox', { name: 'Search orders' })
 const group = () => document.querySelector('[data-slot=query-field]')!
 const box = (element: Element) => element.getBoundingClientRect()
+
+// Base UI holds the popup at 95% scale for a few frames after it opens.
+async function openedPopup() {
+  const popup = document.querySelector('[data-slot=combobox-popup]')!
+  await expect.poll(() => popup.hasAttribute('data-starting-style')).toBe(false)
+  return popup
+}
 const shown = (element: Element | null) =>
   !!element && getComputedStyle(element).display !== 'none'
 
@@ -497,6 +504,7 @@ describe('QueryField', () => {
     )
     await userEvent.click(input())
     await screen.findByRole('button', { name: 'not' })
+    await openedPopup()
     for (const name of ['not', 'or']) {
       const item = screen.getByRole('button', { name })
       expect(box(item).height).toBeGreaterThanOrEqual(32)
@@ -534,6 +542,48 @@ describe('QueryField', () => {
     const resting = fill('Hobart')
     await pointAt(screen.getByRole('option', { name: /Hobart/ }))
     await expect.poll(() => fill('Brisbane')).toBe(resting)
+  })
+
+  it('keeps every row one height as the Enter hint moves, by key or pointer', async () => {
+    const cities: QueryFieldSuggestionGroup[] = [
+      {
+        id: 'values',
+        label: 'City',
+        items: ['Brisbane', 'Hobart', 'Perth'].map((city) => ({
+          id: city,
+          label: city,
+          kind: 'filter' as const,
+          value: city
+        }))
+      }
+    ]
+    render(
+      <Harness
+        pendingChip={{ id: 'city', label: 'City is' }}
+        suggest={() => cities}
+      />
+    )
+    await userEvent.type(input(), 'b')
+    const option = (name: string) =>
+      screen.getByRole('option', { name: new RegExp(name) })
+    const hinted = (name: string) => shown(option(name).querySelector('kbd'))
+    const rows = () =>
+      ['Brisbane', 'Hobart', 'Perth'].map((name) => {
+        const { top, height } = box(option(name))
+        return { top, height }
+      })
+    await expect.poll(() => hinted('Brisbane')).toBe(true)
+    await openedPopup()
+    const resting = rows()
+    expect(resting[0]!.height).toBe(resting[1]!.height)
+
+    await userEvent.keyboard('{ArrowDown}')
+    await expect.poll(() => hinted('Hobart')).toBe(true)
+    expect(rows()).toEqual(resting)
+
+    await pointAt(option('Perth'))
+    await expect.poll(() => hinted('Perth')).toBe(true)
+    expect(rows()).toEqual(resting)
   })
 
   it('lists the search Enter takes first, and Down moves to the next row', async () => {
@@ -595,7 +645,7 @@ describe('QueryField', () => {
     await userEvent.click(input())
     await screen.findByRole('option', { name: /Iguana Teapot Hall/ })
     const toggle = screen.getByRole('group', { name: 'Operator' })
-    const popup = document.querySelector('[data-slot=combobox-popup]')!
+    const popup = await openedPopup()
     expect(toggle.scrollWidth).toBeGreaterThan(toggle.clientWidth)
     expect(box(toggle).right).toBeLessThanOrEqual(box(popup).right)
     await expect.poll(() => toggle.scrollLeft).toBeGreaterThan(0)
@@ -647,7 +697,7 @@ describe('QueryField', () => {
       )
       await userEvent.click(input())
       await screen.findByRole('option', { name: /Gooseberry/ })
-      const popup = document.querySelector('[data-slot=combobox-popup]')!
+      const popup = await openedPopup()
       await expect
         .poll(() => box(popup).width)
         .toBeLessThanOrEqual(box(group()).width + 0.5)
@@ -714,7 +764,7 @@ describe('QueryField', () => {
     )
     await userEvent.click(input())
     await screen.findByRole('option', { name: 'Venue 0' })
-    const popup = document.querySelector('[data-slot=combobox-popup]')!
+    const popup = await openedPopup()
     const toggle = screen.getByRole('group', { name: 'Operator' })
     const resting = box(toggle).top - box(popup).top
     popup.scrollTop = popup.scrollHeight

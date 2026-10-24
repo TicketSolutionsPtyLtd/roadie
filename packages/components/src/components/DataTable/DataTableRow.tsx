@@ -1,6 +1,7 @@
 import type { CSSProperties, ComponentProps, ReactNode } from 'react'
 
 import type { TableColumn } from '@oztix/roadie-core/dashboard'
+import { tableLabelIndex } from '@oztix/roadie-core/dashboard-layout'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { Table } from '../Table'
@@ -28,7 +29,7 @@ export function DataTableRow({
   row: KeyedRow
   titleKey?: string
   plain: boolean
-  /** A grouped row's level, which indents its first cell and lets it collapse. */
+  /** A grouped row's level, which indents its label cell and lets it collapse. */
   depth?: number
   rowProps?: ComponentProps<'tr'>
 }) {
@@ -38,6 +39,7 @@ export function DataTableRow({
     titleKey !== undefined &&
     cellOf(row, titleKey) != null &&
     cellOf(row, titleKey) !== ''
+  const labelIndex = tableLabelIndex(columns)
   return (
     <Table.Row
       {...rowProps}
@@ -62,7 +64,7 @@ export function DataTableRow({
               content
             ) : (
               <DataTableCollapse>
-                {index === 0 ? (
+                {index === labelIndex ? (
                   <DataTableIndent
                     depth={depth}
                     className={cn(alignOf(column) === 'end' && 'justify-end')}

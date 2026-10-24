@@ -119,7 +119,7 @@ Narrow the table and lower-priority columns hide behind Show all columns first. 
 
 ### Totals row
 
-Pass `totals` to add a totals row as the table's footer, such as a report's line for all its events. The first column holds its label and never hides while the totals show, so lead with a text column. `recordName` names the rows in the default label, as in "Totals for 4 events".
+Pass `totals` to add a totals row as the table's footer, such as a report's line for all its events. Its label goes in the title column, the pinned text column or else the first text column, as on a RecordTable. With no text column, it goes in the first column without a sum, so a number column that comes first keeps its total. The label's column never hides while the totals show. `recordName` names the rows in the default label, as in "Totals for 4 events".
 
 `totals` adds up every number column over all the rows you pass, not only the ones in view, so the figure holds however the table sorts or narrows. Plain number columns sum too, so give a column that doesn't add up, such as capacity, `total: false`. Shares, indexes, points, deltas, meters, sparklines and text stay blank, and currency sums round to the cent.
 
@@ -161,7 +161,7 @@ When the server pages or filters the rows, or a figure is an average rather than
 
 ### Grouped rows
 
-Pass `groupBy` to group rows by one or more text or status columns, outermost first, such as scans by ticket pool and then ticket type. Each group gets a row that sums its number columns the way `totals` does, with a caret that opens it, from anywhere on the row. Groups open and close like an Accordion. The first column holds every level's label, indented, and the grouped columns are hidden.
+Pass `groupBy` to group rows by one or more text or status columns, outermost first, such as scans by ticket pool and then ticket type. Each group gets a row that sums its number columns the way `totals` does, with a caret that opens it, from anywhere on the row. Groups open and close like an Accordion. The title column, or the first column without a sum when there's no text column, holds every level's label, indented, and the grouped columns are hidden.
 
 Groups start closed. `defaultExpanded` opens every group, which a PDF or report needs, or only the groups you list, each as its path of values: `[['General'], ['General', 'GA']]`. A path holds the values in the rows, so a status column's key rather than its label, and `''` for an empty value. Sorting orders the groups by their sums, or by label, at every level.
 

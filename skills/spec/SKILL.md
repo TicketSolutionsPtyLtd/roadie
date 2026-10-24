@@ -63,6 +63,12 @@ commands, files a user reads). A small table beats a paragraph.
 boundary table: one line per behaviour, naming the boundary and the test
 type. Never an internal function or a class string. Skills, docs, and config
 have no unit seam; name the trial, check, or CI run that proves them instead.
+For a tool migration (a linter, formatter, bundler, or test runner), the
+seam is a parity check: seed one violation of every form the old config
+catches, such as deep and shallow imports, each hook name a rule reads from
+its options or settings, nested configs, and files a processor lints, then
+show each one fires in the new tool. A clean run on a clean repo proves
+nothing. The seeds become the first slice's guard test.
 
 **Demo.** What to show and how. For UI, the page or story, the states to
 show, and the preview the host workflow asks for (Roadie's section 5). For

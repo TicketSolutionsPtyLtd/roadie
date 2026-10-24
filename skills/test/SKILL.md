@@ -50,9 +50,10 @@ browser test is only for what CSS or the browser itself decides.
    Leave refactoring to `/roadie:review`.
 
 Testing code that already exists? Still one test at a time: write it, break
-the behaviour, watch it fail, then restore it. A prop can act in more than
-one place (a picker's `weekStart` sets the calendar and reads "end of week"),
-and a rule can have several conditions, so break each one.
+the behaviour, watch it fail, then restore it. Break every place the change
+acts: each place a prop acts (a picker's `weekStart` sets the calendar and
+reads "end of week"), each condition of a rule, each new class or style rule,
+and the element each assertion reads.
 
 Iterate on the file you're writing, through the repo's load-gated runner,
 never `vitest` or the whole suite directly. In Roadie that's
@@ -112,7 +113,11 @@ helpers for the common ones:
 
 For each new test, answer yes to all three, or rewrite it:
 
-- Would it fail if the behaviour were deleted?
+- Would it fail if the behaviour were deleted? Three forms pass anyway: an
+  assertion the default layout already meets (a block `<ul>` always fills its
+  frame), one on the wrong element (a class that lands on the label, not the
+  box), and a threshold that zero or no change meets (a gap "at most 2px"
+  passes at 0).
 - Would it still pass if an internal were renamed?
 - Does its name say what a user can do?
 

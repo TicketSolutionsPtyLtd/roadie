@@ -1,6 +1,10 @@
 import type { ComponentProps, ReactNode } from 'react'
 
 import type { ResolvedTotals, TableColumn } from '@oztix/roadie-core/dashboard'
+import {
+  tableLabelIndex,
+  tableTitleColumn
+} from '@oztix/roadie-core/dashboard-layout'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { isDev } from '../../utils/isDev'
@@ -33,10 +37,6 @@ export type DataTableViewProps = Omit<ComponentProps<'div'>, 'children'> & {
   groupBy?: readonly string[]
   defaultExpanded?: DataTableExpanded
 }
-
-const titleColumn = (columns: readonly TableColumn[]) =>
-  columns.find((column) => column.pin && column.kind === 'text') ??
-  columns.find((column) => column.kind === 'text')
 
 const warnedTitlePriority = new Set<string>()
 
@@ -98,20 +98,27 @@ export function DataTableView({
 }: DataTableViewProps) {
   const groupColumns = groupColumnsOf(allColumns, groupBy)
   const visible = allColumns.filter((column) => !groupColumns.includes(column))
-  const title = titleColumn(visible)
+  const title = tableTitleColumn(visible)
   const linksRows = rows.some(({ href }) => href)
   if (linksRows && title?.priority !== undefined) warnTitlePriority(title.key)
-  const labelHeader = [...groupColumns, visible[0]]
+  const labelIndex = tableLabelIndex(visible)
+  const labelHeader = [...groupColumns, visible[labelIndex]]
     .map((column) => column?.header)
     .join(' / ')
-  // The title holds the row links and the first column the labels, so neither hides.
+  // The title holds the row links and the label column the labels, so neither hides.
   const columns = visible.map((column, index) => {
-    if (index === 0 && groupColumns.length)
+    if (index === labelIndex && groupColumns.length)
       return { ...column, header: labelHeader, priority: undefined }
-    return (linksRows && column === title) || (footer && index === 0)
+    return (linksRows && column === title) || (footer && index === labelIndex)
       ? { ...column, priority: undefined }
       : column
   })
+  // A pinned overlay target after the first cell overhangs the table.
+  const laterPinned = (column: TableColumn | undefined) =>
+    !!column?.pin && column !== visible[0]
+  const overlayClip =
+    (linksRows && laterPinned(title)) ||
+    (groupColumns.length > 0 && laterPinned(visible[labelIndex]))
   const hasPriorities = columns.some((column) => column.priority !== undefined)
   const header = (column: TableColumn): ReactNode => {
     const control = sortControl?.(column)
@@ -133,11 +140,7 @@ export function DataTableView({
         tabIndex={0}
         aria-label={`${caption ?? 'Table'}, scrolls sideways`}
       >
-        <Table
-          data-overlay-clip={
-            title?.pin && title !== visible[0] && linksRows ? '' : undefined
-          }
-        >
+        <Table data-overlay-clip={overlayClip ? '' : undefined}>
           {caption && <caption className='sr-only'>{caption}</caption>}
           <Table.Head>
             <Table.Row>
@@ -184,7 +187,7 @@ export function DataTableView({
               <Table.Row>
                 {columns.map((column, index) => {
                   const { align, ...attributes } = cellAttributes(column)
-                  if (index === 0)
+                  if (index === labelIndex)
                     return (
                       <th
                         key={column.key}

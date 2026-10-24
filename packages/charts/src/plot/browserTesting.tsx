@@ -42,11 +42,25 @@ export async function nudgeFrames() {
   await new Promise(requestAnimationFrame)
 }
 
-/** Waits for the width band, which a ResizeObserver sets after the first paint. */
-export const afterResize = () =>
-  new Promise((resolve) =>
+/**
+ * Waits for the width band, which a ResizeObserver sets after the first paint.
+ * Under load React commits it frames late, while the engine has already drawn
+ * at the real width, so labels sit where the default band put them
+ * (docs/solutions/test-failures/chart-labels-placed-before-measure.md).
+ * ChartPlot hides each plot until it is measured.
+ */
+export async function afterResize() {
+  await new Promise((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(resolve))
   )
+  await expect
+    .poll(() =>
+      document.querySelector(
+        '[data-slot=chart-plot-host] .ts-chart-host.opacity-0'
+      )
+    )
+    .toBeNull()
+}
 
 export function expectFillsPlot(container: HTMLElement, height: number) {
   const plot = container.querySelector('[data-slot=chart-plot]')!

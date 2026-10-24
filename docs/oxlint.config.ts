@@ -1,6 +1,6 @@
 import { type OxlintOverride, defineConfig } from 'oxlint'
 
-import published from '@oztix/roadie-lint-plugin'
+import recommended from '@oztix/roadie-lint-plugin/oxlint/recommended.json' with { type: 'json' }
 import testing from '@oztix/roadie-lint-plugin/oxlint/testing.json' with { type: 'json' }
 
 // MDX and its live fences lint with ESLint (eslint.config.js).
@@ -81,16 +81,8 @@ export default defineConfig({
     {
       // The docs app is a Roadie consumer whose code readers copy.
       files: ['src/**/*.{js,jsx,mjs,ts,tsx,mts,cts}'],
-      rules: published.configs.recommended.rules as OxlintOverride['rules']
+      rules: recommended.rules as OxlintOverride['rules']
     },
-    ...(testing.overrides as OxlintOverride[]),
-    {
-      // These fake layout reads, and the docs have no browser test runner yet.
-      files: [
-        'src/components/OnThisPage.test.tsx',
-        'src/components/changelog/ChangelogTimeline.test.tsx'
-      ],
-      rules: { 'roadie/no-layout-fake-in-jsdom': 'off' }
-    }
+    ...(testing.overrides as OxlintOverride[])
   ]
 })

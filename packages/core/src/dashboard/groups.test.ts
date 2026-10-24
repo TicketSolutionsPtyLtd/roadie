@@ -102,9 +102,37 @@ describe('validateDashboard grouped tables', () => {
         path: `${at}.groupBy`,
         severity: 'warning',
         message:
-          'The first column left holds the group labels. Lead with a text or status column'
+          'With no text column, the group labels go in the first column without a sum. Add a text column, or make that one a status column'
       })
     ])
+  })
+
+  it('warns when the grouping leaves the totals label only a sum', () => {
+    expect(
+      problems({ groupBy: ['pool', 'type'], totals: 'sum' })
+    ).toContainEqual({
+      path: `${at}.totals`,
+      severity: 'warning',
+      message:
+        'Every column has a sum, so the label covers the first. Add a text column'
+    })
+  })
+
+  it('puts the group labels after a sum that comes first', () => {
+    const table = scansTable({ groupBy: ['pool'] })
+    const card = table.sections[0]!.cards[0]!
+    card.columns = [card.columns[0]!, card.columns[2]!, card.columns[1]!]
+    expect(validateDashboard(table).problems).toEqual([])
+  })
+
+  it('puts the group labels in a text column after a meter column', () => {
+    const table = scansTable({ groupBy: ['pool'] })
+    const card = table.sections[0]!.cards[0]!
+    card.columns = [
+      { key: 'gate', header: 'Gate', kind: 'meter' },
+      ...card.columns
+    ]
+    expect(validateDashboard(table).problems).toEqual([])
   })
 
   it('warns about a path deeper than the grouping', () => {

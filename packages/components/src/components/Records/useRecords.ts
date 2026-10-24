@@ -11,6 +11,7 @@ import {
   useSyncExternalStore
 } from 'react'
 
+import { totalsLabel } from '@oztix/roadie-core/dashboard-layout'
 import { type Instantish, viewerTimeZone } from '@oztix/roadie-core/datetime'
 import {
   RECORDS_REQUEST_VERSION,
@@ -46,8 +47,7 @@ import {
 import {
   type RecordsResolvedTotals,
   type RecordsTotals,
-  sumRecords,
-  totalsLabel
+  sumRecords
 } from './totals'
 import type {
   RecordName,
@@ -635,7 +635,7 @@ export function useRecordsState<Row extends object>({
   )
   const given = totalsOption === undefined || summing ? undefined : totalsOption
   const served = given?.values ? given : ranged ? range.totals : undefined
-  const defaultLabel = totalsLabel(resultCount, resultCountExact, recordName)
+  const defaultLabel = totalsLabel(resultCount, recordName, resultCountExact)
   const label = given?.label ?? served?.label ?? defaultLabel
   const totals = useMemo<RecordsResolvedTotals | undefined>(() => {
     if (served?.values) return { label, values: served.values }

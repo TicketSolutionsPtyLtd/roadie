@@ -21,14 +21,18 @@
   box-shadow: var(--rim-light-subtle);
 
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible) {
+  &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
+      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+    ) {
     background-color: var(--intent-bg-strong-hover);
     transform: translateY(-1px);
     box-shadow: var(--rim-light-subtle), var(--shadow-sm);
   }
   @media (hover: hover) {
     &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover) {
+    &.is-interactive-within:has([data-interactive-target]:hover):not(
+        :has(.is-interactive-within [data-interactive-target]:hover)
+      ) {
       background-color: var(--intent-bg-strong-hover);
       transform: translateY(-1px);
       box-shadow: var(--rim-light-subtle), var(--shadow-sm);
@@ -36,7 +40,9 @@
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
-  &.is-interactive-within:has([data-interactive-target]:active) {
+  &.is-interactive-within:has([data-interactive-target]:active):not(
+      :has(.is-interactive-within [data-interactive-target]:active)
+    ) {
     background-color: var(--intent-bg-strong-active);
     transform: translateY(0) scale(0.99);
     box-shadow: none;
@@ -49,14 +55,18 @@
   border: 1px solid var(--intent-border-normal);
 
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible) {
+  &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
+      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+    ) {
     background-color: var(--intent-2);
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
   }
   @media (hover: hover) {
     &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover) {
+    &.is-interactive-within:has([data-interactive-target]:hover):not(
+        :has(.is-interactive-within [data-interactive-target]:hover)
+      ) {
       background-color: var(--intent-2);
       transform: translateY(-1px);
       box-shadow: var(--shadow-sm);
@@ -64,7 +74,9 @@
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
-  &.is-interactive-within:has([data-interactive-target]:active) {
+  &.is-interactive-within:has([data-interactive-target]:active):not(
+      :has(.is-interactive-within [data-interactive-target]:active)
+    ) {
     background-color: var(--intent-3);
     transform: translateY(0) scale(0.99);
     box-shadow: none;
@@ -87,18 +99,24 @@
   }
 
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible) {
+  &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
+      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+    ) {
     background-color: var(--intent-4a);
   }
   @media (hover: hover) {
     &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover) {
+    &.is-interactive-within:has([data-interactive-target]:hover):not(
+        :has(.is-interactive-within [data-interactive-target]:hover)
+      ) {
       background-color: var(--intent-4a);
     }
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
-  &.is-interactive-within:has([data-interactive-target]:active) {
+  &.is-interactive-within:has([data-interactive-target]:active):not(
+      :has(.is-interactive-within [data-interactive-target]:active)
+    ) {
     background-color: var(--intent-5a);
   }
 }
@@ -109,23 +127,33 @@
   border-width: 1px;
   border-style: solid;
 
+  /* No selector can find a target outside nested surfaces, so a surface with
+     its own target and nested ones keeps its rest tint. */
   &.is-interactive,
-  &.is-interactive-within:has([data-interactive-target]) {
+  &.is-interactive-within:has([data-interactive-target]):not(
+      :has(.is-interactive-within [data-interactive-target])
+    ) {
     background-color: transparent;
   }
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible) {
+  &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
+      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+    ) {
     background-color: var(--intent-3a);
   }
   @media (hover: hover) {
     &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover) {
+    &.is-interactive-within:has([data-interactive-target]:hover):not(
+        :has(.is-interactive-within [data-interactive-target]:hover)
+      ) {
       background-color: var(--intent-3a);
     }
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
-  &.is-interactive-within:has([data-interactive-target]:active) {
+  &.is-interactive-within:has([data-interactive-target]:active):not(
+      :has(.is-interactive-within [data-interactive-target]:active)
+    ) {
     background-color: var(--intent-4a);
   }
 }
@@ -155,13 +183,17 @@
   color: var(--intent-text-normal);
 
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible) {
+  &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
+      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+    ) {
     transform: translateY(-1px);
     box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-lg);
   }
   @media (hover: hover) {
     &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover) {
+    &.is-interactive-within:has([data-interactive-target]:hover):not(
+        :has(.is-interactive-within [data-interactive-target]:hover)
+      ) {
       transform: translateY(-1px);
       box-shadow:
         var(--rim-light-own, var(--rim-light-strong)), var(--shadow-lg);
@@ -169,7 +201,9 @@
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
-  &.is-interactive-within:has([data-interactive-target]:active) {
+  &.is-interactive-within:has([data-interactive-target]:active):not(
+      :has(.is-interactive-within [data-interactive-target]:active)
+    ) {
     transform: translateY(0) scale(0.99);
     box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-sm);
   }

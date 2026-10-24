@@ -9,14 +9,14 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { useFieldContext } from '../Field'
 import { RadioGroupContext, type RadioGroupEmphasis } from './RadioGroupContext'
-import { radioGroupVariants } from './variants'
+import { type RadioGroupSize, radioGroupVariants } from './variants'
 
 export type RadioGroupRootProps = RadioGroupPrimitive.Props &
   RefAttributes<HTMLDivElement> &
   VariantProps<typeof radioGroupVariants> & {
     emphasis?: RadioGroupEmphasis
     /** Sets every item's size. @default 'md' */
-    size?: 'sm' | 'md' | 'lg'
+    size?: RadioGroupSize
     invalid?: boolean
     required?: boolean
   }
@@ -52,6 +52,7 @@ export function RadioGroupRoot({
         data-slot='radio-group'
         className={cn(radioGroupVariants({ direction, size, className }))}
         disabled={disabled ?? fieldContext.disabled}
+        aria-invalid={resolvedInvalid || undefined}
         aria-labelledby={
           labelId ?? ((inField && fieldContext.labelId) || undefined)
         }

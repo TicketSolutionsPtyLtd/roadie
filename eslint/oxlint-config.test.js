@@ -102,6 +102,18 @@ const components = 'packages/components/src/components'
 const charts = 'packages/charts/src'
 const dashboard = 'packages/core/src/dashboard'
 
+const MISTAKES =
+  "export const Seed = () => <div className='dark:bg-normal z-[5]' />\n"
+
+it("applies Roadie's recommended rules to every package", () => {
+  const seeds = ['charts', 'components', 'core', 'editor', 'widgets'].map(
+    (pkg) => [`packages/${pkg}/src/seed.tsx`, MISTAKES]
+  )
+  for (const labels of lintSeeds(seeds).values()) {
+    expect(labels).toEqual(['no-arbitrary-z-index', 'no-dark-variant'])
+  }
+})
+
 describe('oxlint import boundaries', () => {
   const cases = [
     ['packages/editor/src/seed.ts', ['nextLink']],

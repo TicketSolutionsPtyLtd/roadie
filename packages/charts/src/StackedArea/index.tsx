@@ -6,7 +6,12 @@ import type { StackedAreaProps } from './types'
 
 export function StackedArea(props: StackedAreaProps) {
   return (
-    <ChartPlot chart={stackedArea} props={props} className={props.className} />
+    <ChartPlot
+      chart={stackedArea}
+      props={props}
+      onRangeSelect={props.onRangeSelect}
+      className={props.className}
+    />
   )
 }
 StackedArea.displayName = 'StackedArea'

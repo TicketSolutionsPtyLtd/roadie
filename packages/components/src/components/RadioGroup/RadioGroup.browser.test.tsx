@@ -1,8 +1,18 @@
 import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 
 import { RadioGroup, type RadioGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Checkbox } from '../Checkbox'
+import { Field } from '../Field'
 import { useStylesheet } from '../Pane/testUtils'
 
 let removeStylesheet = () => {}
@@ -173,5 +183,181 @@ describe('RadioGroup spacing', () => {
     expect(sm).toBeLessThanOrEqual(2)
     expect(md).toBeGreaterThan(sm)
     expect(lg).toBeGreaterThan(md)
+  })
+})
+
+describe('RadioGroup disabled', () => {
+  const row = (name: string) =>
+    screen
+      .getByRole('radio', { name })
+      .closest('[data-slot="radio-group-item"]')!
+
+  it.each([
+    ['a disabled group', { disabled: true }, {}],
+    ['a disabled item', {}, { disabled: true }]
+  ] as const)('dims %s and ignores presses on it', (_, group, item) => {
+    render(
+      <RadioGroup {...group}>
+        <RadioGroup.Item value='floor' label='Floor' {...item} />
+      </RadioGroup>
+    )
+    const style = getComputedStyle(row('Floor'))
+    expect(style.opacity).toBe('0.5')
+    expect(style.pointerEvents).toBe('none')
+  })
+})
+
+describe('RadioGroup colour', () => {
+  const items = (
+    <>
+      <RadioGroup.Item value='floor' label='Floor' />
+      <RadioGroup.Item value='balcony' label='Balcony' />
+    </>
+  )
+
+  function expectFilledLike(circle: HTMLElement, swatch: HTMLElement) {
+    const fill = getComputedStyle(swatch)
+    expect(getComputedStyle(circle).backgroundColor).toBe(fill.backgroundColor)
+    expect(getComputedStyle(circle).borderColor).toBe(fill.backgroundColor)
+    expect(getComputedStyle(circle.firstElementChild!).backgroundColor).toBe(
+      fill.color
+    )
+    expect(getComputedStyle(circle).boxShadow).not.toContain('inset')
+  }
+
+  it('fills the chosen circle like a ticked checkbox, whatever the intent around it', () => {
+    render(
+      <div className='intent-brand-secondary'>
+        <Checkbox label='Rock' defaultChecked />
+        <RadioGroup defaultValue='floor'>{items}</RadioGroup>
+      </div>
+    )
+    const ticked = getComputedStyle(
+      screen.getByRole('checkbox', { name: 'Rock' })
+    )
+    const tick = getComputedStyle(
+      screen.getByRole('checkbox', { name: 'Rock' }).querySelector('svg')!
+    )
+    const chosen = screen.getByRole('radio', { name: 'Floor' })
+    expect(getComputedStyle(chosen).backgroundColor).toBe(
+      ticked.backgroundColor
+    )
+    expect(getComputedStyle(chosen).borderColor).toBe(ticked.borderColor)
+    expect(getComputedStyle(chosen.firstElementChild!).backgroundColor).toBe(
+      tick.color
+    )
+    expect(getComputedStyle(chosen).boxShadow).toBe(ticked.boxShadow)
+  })
+
+  it('fills the chosen circle with the accent strong colour, dot in its label colour', () => {
+    render(
+      <>
+        <span data-testid='strong' className='emphasis-strong intent-accent'>
+          Strong
+        </span>
+        <RadioGroup defaultValue='floor'>{items}</RadioGroup>
+      </>
+    )
+    expectFilledLike(
+      screen.getByRole('radio', { name: 'Floor' }),
+      screen.getByTestId('strong')
+    )
+  })
+
+  it('keeps an empty circle sunken', () => {
+    render(<RadioGroup defaultValue='floor'>{items}</RadioGroup>)
+    expect(
+      getComputedStyle(screen.getByRole('radio', { name: 'Balcony' })).boxShadow
+    ).toContain('inset')
+  })
+})
+
+describe('RadioGroup invalid', () => {
+  const items = (
+    <>
+      <RadioGroup.Item value='floor' label='Floor' />
+      <RadioGroup.Item value='balcony' label='Balcony' />
+    </>
+  )
+
+  function expectDangerCircles() {
+    const danger = getComputedStyle(screen.getByTestId('danger'))
+    const emptyBox = getComputedStyle(
+      screen.getByRole('checkbox', { name: 'Rock' })
+    )
+    const chosen = screen.getByRole('radio', { name: 'Floor' })
+    const empty = screen.getByRole('radio', { name: 'Balcony' })
+    expect(getComputedStyle(empty).borderColor).toBe(emptyBox.borderColor)
+    expect(getComputedStyle(empty).backgroundColor).toBe(
+      emptyBox.backgroundColor
+    )
+    expect(getComputedStyle(chosen).backgroundColor).toBe(
+      danger.backgroundColor
+    )
+    expect(getComputedStyle(chosen).borderColor).toBe(danger.backgroundColor)
+    expect(getComputedStyle(chosen.firstElementChild!).backgroundColor).toBe(
+      danger.color
+    )
+  }
+
+  const swatches = (
+    <>
+      <span data-testid='danger' className='emphasis-strong intent-danger'>
+        Danger
+      </span>
+      <Checkbox label='Rock' invalid />
+    </>
+  )
+
+  it('fills the chosen circle with danger and tints the rest like an invalid checkbox', () => {
+    render(
+      <>
+        {swatches}
+        <RadioGroup invalid defaultValue='floor'>
+          {items}
+        </RadioGroup>
+      </>
+    )
+    expectDangerCircles()
+  })
+
+  it('tints the empty circles like an invalid checkbox in dark mode', () => {
+    document.documentElement.classList.add('dark')
+    onTestFinished(() => document.documentElement.classList.remove('dark'))
+    render(
+      <>
+        {swatches}
+        <RadioGroup invalid defaultValue='floor'>
+          {items}
+        </RadioGroup>
+      </>
+    )
+    expectDangerCircles()
+  })
+
+  it('draws danger circles when its Field is invalid', () => {
+    render(
+      <>
+        {swatches}
+        <Field invalid>
+          <RadioGroup defaultValue='floor'>{items}</RadioGroup>
+        </Field>
+      </>
+    )
+    expectDangerCircles()
+  })
+
+  it('colours the focus ring danger, as an invalid field does', () => {
+    render(
+      <>
+        <input className='is-interactive-field' aria-invalid='true' />
+        <RadioGroup invalid>{items}</RadioGroup>
+      </>
+    )
+    const field = screen.getByRole('textbox')
+    const circle = screen.getByRole('radio', { name: 'Floor' })
+    expect(getComputedStyle(circle).outlineColor).toBe(
+      getComputedStyle(field).outlineColor
+    )
   })
 })

@@ -108,7 +108,7 @@ describe('DataTable totals row', () => {
     expect(footer(container)[2]).toBe('$324,300.50')
   })
 
-  it('never hides the first column, which holds the label', () => {
+  it('never hides the column that holds the label', () => {
     const { container } = render(
       <DataTable
         totals
@@ -117,6 +117,32 @@ describe('DataTable totals row', () => {
       />
     )
     expect(container.querySelector('[data-priority]')).toBeNull()
+  })
+
+  it('never hides the label column when a sum comes first', () => {
+    const { container } = render(
+      <DataTable
+        totals
+        columns={[columns[1]!, { ...columns[0]!, priority: 2 }]}
+        rows={rows}
+      />
+    )
+    expect(container.querySelector('[data-priority]')).toBeNull()
+  })
+
+  it('puts the label in the text column after a status column', () => {
+    const { container } = render(
+      <DataTable
+        totals
+        columns={[
+          { key: 'state', header: 'State', kind: 'status' },
+          { ...columns[0]!, pin: false },
+          columns[1]!
+        ]}
+        rows={rows.map((row) => ({ ...row, state: 'on_sale' }))}
+      />
+    )
+    expect(footer(container)).toEqual(['', 'Totals for 3 records', '4,050'])
   })
 
   it('sums in the given order however the rows are sorted', () => {

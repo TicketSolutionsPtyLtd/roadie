@@ -1,7 +1,7 @@
 import { matchesGlob } from 'node:path'
 import { type OxlintOverride, defineConfig } from 'oxlint'
 
-import published from '@oztix/roadie-lint-plugin'
+import recommended from '@oztix/roadie-lint-plugin/oxlint/recommended.json' with { type: 'json' }
 import testing from '@oztix/roadie-lint-plugin/oxlint/testing.json' with { type: 'json' }
 
 // Globs resolve from this file's folder, so docs/ has its own config.
@@ -299,7 +299,7 @@ export default defineConfig({
       rules: { 'react/set-state-in-effect': 'warn' }
     },
     roadieRules(['packages/**/*.{ts,tsx}'], {
-      ...(published.configs.recommended.rules as OxlintOverride['rules']),
+      ...(recommended.rules as OxlintOverride['rules']),
       'roadie/no-dynamic-next-link': 'error',
       // An app's own Tailwind compiles these classes, and the canonical form
       // can need a newer one, such as inset-s-0 (4.2) for start-0.

@@ -1,7 +1,7 @@
 import { ESLint as ESLint9 } from 'eslint'
 import { ESLint as ESLint10 } from 'eslint-v10'
 import { execFileSync } from 'node:child_process'
-import { rmSync } from 'node:fs'
+import { existsSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -77,4 +77,11 @@ it('names the installed version, so a cached lint reruns after an upgrade', asyn
   const entry = join(app, 'node_modules/@oztix/roadie-lint-plugin/src/index.js')
   const { default: installed } = await import(pathToFileURL(entry).href)
   expect(installed.meta).toEqual({ name: packed.name, version: packed.version })
+})
+
+// The repo's own rules import ./internal through the workspace link.
+it('leaves the repo-only factories out of the published package', () => {
+  const installed = join(app, 'node_modules/@oztix/roadie-lint-plugin')
+  expect(existsSync(join(installed, 'src/index.js'))).toBe(true)
+  expect(existsSync(join(installed, 'src/internal.js'))).toBe(false)
 })

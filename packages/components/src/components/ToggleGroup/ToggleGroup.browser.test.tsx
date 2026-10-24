@@ -5,12 +5,14 @@ import { commands, userEvent } from 'vitest/browser'
 import { ToggleGroup, type ToggleGroupProps } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { setHoverCapable } from '../../css/testUtils'
-import { useStylesheet } from '../Pane/testUtils'
+import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Toggle } from '../Toggle'
 
 let removeStylesheet = () => {}
-beforeAll(() => {
+// A late font swap resizes items after the group has scrolled to them.
+beforeAll(async () => {
   removeStylesheet = useStylesheet(roadieCss)
+  await loadBrandFont()
 })
 afterAll(() => removeStylesheet())
 afterEach(async () => {
@@ -426,6 +428,44 @@ describe('an edge fade', () => {
       await expect.poll(() => group.scrollLeft).toBeLessThanOrEqual(1)
       await expect.poll(fades).toEqual(['0px', '24px'])
     })
+
+  it('keeps the item focus is on in view as the group resizes', async () => {
+    const labels = ['Day', 'Week', 'Month', 'Quarter', 'Year']
+    render(
+      <div style={{ width: NARROW }}>
+        <ToggleGroup aria-label='Date range' defaultValue={['Day']}>
+          {labels.map((label) => (
+            <ToggleGroup.Item key={label} value={label}>
+              {label}
+            </ToggleGroup.Item>
+          ))}
+        </ToggleGroup>
+      </div>
+    )
+    const group = screen.getByRole('group')
+    await expectPillOver('Day')
+    await commands.focusPage()
+    await expect.poll(() => document.hasFocus()).toBe(true)
+    await userEvent.tab()
+    await userEvent.keyboard('{End}')
+    expect(screen.getByRole('button', { name: 'Year' })).toHaveFocus()
+    await expect
+      .poll(() => group.scrollLeft)
+      .toBeGreaterThanOrEqual(group.scrollWidth - group.clientWidth - 1)
+    group.parentElement!.style.width = `${NARROW - 20}px`
+    // Observers run in the order they were made, so the group's own has run
+    // by the time this one first reports the new size.
+    await new Promise<void>((resolve) => {
+      const observer = new ResizeObserver(() => {
+        observer.disconnect()
+        resolve()
+      })
+      observer.observe(group)
+    })
+    expect(group.scrollLeft).toBeGreaterThanOrEqual(
+      group.scrollWidth - group.clientWidth - 1
+    )
+  })
 })
 
 it('keeps the same height at every emphasis', () => {

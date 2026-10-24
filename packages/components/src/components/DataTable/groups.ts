@@ -1,9 +1,13 @@
 import type {
+  TableCard,
   TableCell,
   TableColumn,
   TableRow
 } from '@oztix/roadie-core/dashboard'
-import { resolveTableTotals } from '@oztix/roadie-core/dashboard-layout'
+import {
+  resolveTableTotals,
+  tableLabelIndex
+} from '@oztix/roadie-core/dashboard-layout'
 
 import { isDev } from '../../utils/isDev'
 import {
@@ -13,8 +17,14 @@ import {
   sortedRowOrder
 } from './sort'
 
+type ReadonlyPaths<T> = T extends (infer Path extends unknown[])[]
+  ? readonly Readonly<Path>[]
+  : T
+
 /** Opens every group with `true`, or the groups at these paths of values, outermost first. */
-export type DataTableExpanded = boolean | readonly (readonly string[])[]
+export type DataTableExpanded = ReadonlyPaths<
+  NonNullable<TableCard['defaultExpanded']>
+>
 
 export type DataTableGroupNode = {
   kind: 'group'
@@ -74,7 +84,7 @@ function sortGroups(
   groupColumn: TableColumn,
   sort: DataTableSort | undefined
 ) {
-  const [labelColumn] = columns
+  const labelColumn = columns[tableLabelIndex(columns)]
   if (!sort || !labelColumn) return groups
   const rows: TableRow[] = groups.map((group) => ({
     ...group.values,

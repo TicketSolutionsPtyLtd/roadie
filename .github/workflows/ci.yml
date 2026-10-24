@@ -124,6 +124,10 @@ jobs:
       - name: Check component docs
         run: node scripts/check-component-docs.mjs
 
+      # Root scripts belong to no turbo package, so turbo test skips them.
+      - name: Test repo scripts
+        run: node --test 'scripts/**/*.test.mjs'
+
       # Warning only. On a pull_request the checkout is a merge commit whose
       # first parent is the base, so HEAD^1 diffs just this PR without a full
       # clone, even if main moves after the merge ref is built. Anything but an
@@ -146,6 +150,13 @@ jobs:
       - name: Check plugin release
         if: github.event_name == 'pull_request'
         run: node scripts/check-plugin-release.mjs --base HEAD^1
+
+      # turbo --affected tests no package when a PR changes only .changeset/,
+      # so the shim's last-release guard runs here on every PR. It goes when
+      # packages/eslint-plugin-shim does.
+      - name: Check the old plugin name stays at its last release
+        if: github.event_name == 'pull_request'
+        run: pnpm --filter @oztix/roadie-eslint-plugin exec vitest run test/last-release.test.js
 
       # Warning only, on the changesets this PR adds, edits, or renames: wording
       # that keeps a new component or package off the changelog's highlight

@@ -31,7 +31,7 @@ import {
   type TableData,
   dashboardSchema
 } from './schema'
-import { isSummable } from './totals'
+import { isSummable, tableLabelIndex } from './totals'
 
 export type DashboardProblem = {
   path: string
@@ -344,19 +344,28 @@ function totalsProblems(
         'No number column to sum, so the row shows only its label. Pass values'
       )
     )
-  const first = card.columns[0]
-  if (
-    first &&
-    (given.values ? Object.hasOwn(given.values, first.key) : isSummable(first))
+  const label = labelColumnOf(
+    card.columns.filter((column) => !card.groupBy?.includes(column.key))
   )
+  if (given.values && label && Object.hasOwn(given.values, label.key))
     problems.push(
       warning(
         at,
-        'The first column holds the label, so its sum never shows. Lead with a text column'
+        `The label goes in the "${label.key}" column, so its value never shows. Leave it out of values`
+      )
+    )
+  else if (!given.values && label && isSummable(label))
+    problems.push(
+      warning(
+        at,
+        'Every column has a sum, so the label covers the first. Add a text column'
       )
     )
   return problems
 }
+
+const labelColumnOf = (columns: readonly TableColumn[]) =>
+  columns[tableLabelIndex(columns)]
 
 const isGroupable = (column: TableColumn) =>
   column.kind === 'text' || column.kind === 'status'
@@ -400,11 +409,11 @@ function groupProblems(
         'Leave at least one column ungrouped to show the rows'
       )
     )
-  else if (!isGroupable(shown[0]!))
+  else if (!isGroupable(labelColumnOf(shown)!))
     problems.push(
       warning(
         `${path}.groupBy`,
-        'The first column left holds the group labels. Lead with a text or status column'
+        'With no text column, the group labels go in the first column without a sum. Add a text column, or make that one a status column'
       )
     )
   if (Array.isArray(defaultExpanded))
@@ -452,6 +461,21 @@ function plotProblems(plot: ChartPlot, path: string) {
       ...annotationProblems(plot.chart, plot.data, `${plotPath}.chart`)
     )
   return problems
+}
+
+function selectsPeriodProblems(
+  plot: ChartPlot,
+  path: string,
+  period: DashboardPeriodSpec | undefined
+) {
+  if (!('selectsPeriod' in plot) || !plot.selectsPeriod) return []
+  const at = `${path}.plot.selectsPeriod`
+  if (!period)
+    return [warning(at, 'The dashboard has no period for a drag to set')]
+  const xs = plot.data.map((row) => row[plot.x]).filter((v) => v != null)
+  return !xs.every(isWallTime)
+    ? [warning(at, `"${plot.x}" isn't dated, so a drag can't set the period`)]
+    : []
 }
 
 function secondaryProblems(table: TableData, path: string) {
@@ -689,7 +713,10 @@ function cardProblems(
   if (card.kind === 'note')
     problems.push(...copyProblems(path, 'body', card.body))
   if (card.kind === 'chart' && card.plot.kind !== 'static')
-    problems.push(...plotProblems(card.plot, path))
+    problems.push(
+      ...plotProblems(card.plot, path),
+      ...selectsPeriodProblems(card.plot, path, period)
+    )
   if (card.kind === 'chart')
     card.legend?.forEach((item, i) => {
       if (item.median && item.shape !== 'band')

@@ -34,6 +34,37 @@ export const isSummable = (column: TableColumn) =>
 
 const count = new Intl.NumberFormat('en-AU')
 
+/** "Totals for 1,234 shows", with a + after a count that's only a floor. */
+export const totalsLabel = (
+  records: number,
+  { one, other }: RecordName,
+  exact = true
+) =>
+  `Totals for ${count.format(records)}${exact ? '' : '+'} ${records === 1 ? one : other}`
+
+/** A table's title: its pinned text column, else its first text column. */
+export const tableTitleColumn = (columns: readonly TableColumn[]) =>
+  columns.find((column) => column.pin && column.kind === 'text') ??
+  columns.find((column) => column.kind === 'text')
+
+/** Where a totals or group label goes: the title column, else the first column not skipped, else the first. */
+export function labelColumnIndex<Column>(
+  columns: readonly Column[],
+  title: Column | undefined,
+  skip: (column: Column) => boolean
+) {
+  const titleIndex = title === undefined ? -1 : columns.indexOf(title)
+  if (titleIndex >= 0) return titleIndex
+  return Math.max(
+    0,
+    columns.findIndex((column) => !skip(column))
+  )
+}
+
+/** A table's label column: its title, else the first column a total never fills, else the first. */
+export const tableLabelIndex = (columns: readonly TableColumn[]) =>
+  labelColumnIndex(columns, tableTitleColumn(columns), isSummable)
+
 function sum(column: TableColumn, rows: readonly TableRow[]) {
   let total = 0
   let any = false
@@ -61,9 +92,7 @@ export function resolveTableTotals(
   // Values come from elsewhere, so the rows here may not be the ones counted.
   if (given.values)
     return { label: given.label ?? 'Totals', values: given.values }
-  const label =
-    given.label ??
-    `Totals for ${count.format(rows.length)} ${rows.length === 1 ? recordName.one : recordName.other}`
+  const label = given.label ?? totalsLabel(rows.length, recordName)
   const values: Record<string, TableCell> = Object.create(null)
   for (const column of columns) {
     if (!isSummable(column)) continue

@@ -106,6 +106,59 @@ describe('RecordTable totals', () => {
     expect(totals()).toMatchObject({ sold: '', gross: '' })
   })
 
+  it('labels the title column, never a summed or hiding one before it', () => {
+    const column = tableColumns<TestShow>(showFields)
+    render(
+      <Table
+        totals
+        columns={[
+          column.field('sold'),
+          column.field('city', { priority: 1 }),
+          column.field('show', { narrow: 'title' })
+        ]}
+      />
+    )
+    const cells = [
+      ...totalsRow().querySelectorAll('[role="rowheader"], [role="cell"]')
+    ].map((cell) => [cell.getAttribute('role'), cell.textContent])
+    expect(cells).toEqual([
+      ['cell', count.format(soldOf(SHOWS))],
+      ['cell', ''],
+      ['rowheader', 'Totals for 120 shows']
+    ])
+  })
+
+  it('labels the first column without a sum when there is no title', () => {
+    const column = tableColumns<TestShow>(showFields)
+    render(
+      <Table totals columns={[column.field('sold'), column.field('starts')]} />
+    )
+    const cells = [
+      ...totalsRow().querySelectorAll('[role="rowheader"], [role="cell"]')
+    ].map((cell) => [cell.getAttribute('role'), cell.textContent])
+    expect(cells).toEqual([
+      ['cell', count.format(soldOf(SHOWS))],
+      ['rowheader', 'Totals for 120 shows']
+    ])
+  })
+
+  it('labels a column that shows no total when there is no title', () => {
+    const column = tableColumns<TestShow>(showFields)
+    render(
+      <Table
+        totals
+        columns={[
+          column.field('sold'),
+          { ...column.field('gross'), total: false }
+        ]}
+      />
+    )
+    const cells = [
+      ...totalsRow().querySelectorAll('[role="rowheader"], [role="cell"]')
+    ].map((cell) => cell.getAttribute('role'))
+    expect(cells).toEqual(['cell', 'rowheader'])
+  })
+
   it("doesn't sum money whose rows name their own currency", () => {
     render(
       <Table

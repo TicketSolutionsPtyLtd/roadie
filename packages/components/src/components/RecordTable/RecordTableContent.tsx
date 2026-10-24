@@ -71,7 +71,7 @@ function MeasuredWidth({
   children: ReactNode
 }) {
   return measured ? (
-    <ScrollArea.Content>{children}</ScrollArea.Content>
+    <ScrollArea.Content className='grid grow'>{children}</ScrollArea.Content>
   ) : (
     children
   )
@@ -134,6 +134,7 @@ export function RecordTableContent({
   const rowsSurvivor = useSurvivor('rows')
   const frameRef = useRef<HTMLDivElement>(null)
   const headRef = useRef<HTMLDivElement>(null)
+  const totalsClipRef = useRef<HTMLDivElement>(null)
   const scrollerRef = useRef<HTMLDivElement>(null)
   // In its own box, one viewport scrolls both ways; otherwise only the rows scroll sideways.
   const boxed = fill || Boolean(maxHeight)
@@ -250,10 +251,11 @@ export function RecordTableContent({
       ?.querySelector<HTMLElement>('[data-slot="record-table-page-checkbox"]')
       ?.focus()
   }, [barShown])
-  // The head scrolls only with the header row; back, it rejoins the rows.
+  // Whichever clips, the head or the totals under the bar, takes the rows' scroll.
   useLayoutEffect(() => {
-    if (!barShown && scrollerRef.current)
-      syncScroll(scrollerRef.current, headRef)
+    const scroller = scrollerRef.current
+    if (!scroller) return
+    syncScroll(scroller, barShown ? totalsClipRef : headRef)
   }, [barShown])
   const columnCount =
     columns.length + (selectable ? 1 : 0) + (hasRowActions ? 1 : 0)
@@ -344,7 +346,11 @@ export function RecordTableContent({
         data-slot='record-table-scroller'
         {...rowsSurvivor}
         tabIndex={-1}
-        className={cn('isolate outline-none', dimmed && 'opacity-60')}
+        className={cn(
+          'isolate outline-none',
+          boxed && 'grid grow items-start',
+          dimmed && 'opacity-60'
+        )}
       >
         {narrowState ?? (
           <RecordTableNarrowRows
@@ -386,9 +392,13 @@ export function RecordTableContent({
       aria-label={
         boxed || narrow ? undefined : `${caption ?? 'Table'}, scrolls sideways`
       }
-      // Full width: a size container takes no width from its rows. Clipped
-      // in a box, so narrow rows never scroll it sideways.
-      className={cn('w-full', boxed ? narrow && 'overflow-x-clip' : className)}
+      // Full width: a size container takes no width from its rows. In a
+      // box, full height too, so a state centres in it, and clipped, so
+      // narrow rows never scroll it sideways.
+      className={cn(
+        'w-full',
+        boxed ? ['flex flex-col', narrow && 'overflow-x-clip'] : className
+      )}
     >
       {narrowBody || (
         <MeasuredWidth measured={boxed}>
@@ -400,7 +410,10 @@ export function RecordTableContent({
             aria-rowcount={state ? undefined : rowCount}
             aria-busy={busy || range?.loading || undefined}
             data-slot='record-table-content'
-            className='text-sm tabular-nums'
+            className={cn(
+              'text-sm tabular-nums',
+              boxed && 'grid grid-rows-[auto_1fr]'
+            )}
             style={style}
           >
             <div
@@ -417,9 +430,8 @@ export function RecordTableContent({
               className={cn(
                 'sticky z-docked',
                 surfaceClass,
-                // The bar fits the frame, so nothing to clip but its focus
-                // rings, unless the totals under it scroll with the columns.
-                !boxed && (!barShown || totals) && 'overflow-hidden'
+                // The bar fits the frame, so nothing to clip but its focus rings.
+                !boxed && !barShown && 'overflow-hidden'
               )}
             >
               <div
@@ -548,15 +560,23 @@ export function RecordTableContent({
                 )}
               </div>
               {totals && (
-                <RecordTableTotalsRow
-                  totals={totals}
-                  columns={columns}
-                  timeZone={records.timeZone}
-                  layout={layout}
-                  select={selectable}
-                  actions={hasRowActions}
-                  rowIndex={partial ? 2 : undefined}
-                />
+                <div
+                  ref={totalsClipRef}
+                  role='none'
+                  data-slot='record-table-totals-clip'
+                  // Under the bar, the head no longer clips the totals as they scroll with the columns.
+                  className={cn(!boxed && barShown && 'overflow-hidden')}
+                >
+                  <RecordTableTotalsRow
+                    totals={totals}
+                    columns={columns}
+                    timeZone={records.timeZone}
+                    layout={layout}
+                    select={selectable}
+                    actions={hasRowActions}
+                    rowIndex={partial ? 2 : undefined}
+                  />
+                </div>
               )}
               {progress && (
                 <div
@@ -574,7 +594,10 @@ export function RecordTableContent({
                 data-slot='record-table-scroller'
                 {...rowsSurvivor}
                 tabIndex={-1}
-                className={cn('isolate', dimmed && 'opacity-60')}
+                className={cn(
+                  'isolate grid items-start',
+                  dimmed && 'opacity-60'
+                )}
               >
                 {body}
               </div>
@@ -593,7 +616,10 @@ export function RecordTableContent({
                   tabIndex={0}
                   className={cn('isolate', dimmed && 'opacity-60')}
                   style={SIDEWAYS_ONLY}
-                  onScroll={(event) => syncScroll(event.currentTarget, headRef)}
+                  onScroll={(event) => {
+                    syncScroll(event.currentTarget, headRef)
+                    syncScroll(event.currentTarget, totalsClipRef)
+                  }}
                 >
                   <ScrollArea.Content>{body}</ScrollArea.Content>
                 </ScrollArea.Viewport>
@@ -633,7 +659,9 @@ export function RecordTableContent({
         aria-label={`${caption ?? 'Table'}, scrolls`}
         style={fill ? undefined : { maxHeight }}
       >
-        <ScrollArea.Content fitWidth={false}>{content}</ScrollArea.Content>
+        <ScrollArea.Content fitWidth={false} className='grid min-h-full'>
+          {content}
+        </ScrollArea.Content>
       </ScrollArea.Viewport>
       {/* Starts under the sticky header, as a pane's does under its own. */}
       <ScrollArea.Scrollbar
@@ -683,5 +711,9 @@ function useKeepFocusShown(
 function NarrowState({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   useKeepFocusInTable(ref)
-  return <div ref={ref}>{children}</div>
+  return (
+    <div ref={ref} className='grid content-center self-stretch'>
+      {children}
+    </div>
+  )
 }

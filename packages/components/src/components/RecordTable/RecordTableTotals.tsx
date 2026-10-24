@@ -1,13 +1,15 @@
+import { labelColumnIndex } from '@oztix/roadie-core/dashboard-layout'
 import { formatRecordValue } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
-import type { RecordsResolvedTotals } from '../Records/totals'
+import { type RecordsResolvedTotals, isSummedField } from '../Records/totals'
 import {
   actionsCellClass,
   cellClass,
   pinStyle,
   rowClass,
-  selectCellClass
+  selectCellClass,
+  titleColumn
 } from './RecordTableRow'
 import { type ColumnLayout, priorityProps } from './layout'
 import type { RecordTableColumn } from './types'
@@ -47,10 +49,13 @@ export function RecordTableTotalsRow({
   actions: boolean
   rowIndex?: number
 }) {
-  // A thumbnail column is too narrow for the label.
-  const labelIndex = Math.max(
-    0,
-    columns.findIndex((column) => column.kind !== 'image')
+  // A thumbnail is too narrow for the label.
+  const labelIndex = labelColumnIndex(
+    columns,
+    titleColumn(columns),
+    (column) =>
+      column.kind === 'image' ||
+      (column.total !== false && isSummedField(column.field))
   )
   return (
     <div

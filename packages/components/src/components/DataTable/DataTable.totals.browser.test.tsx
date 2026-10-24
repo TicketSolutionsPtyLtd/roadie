@@ -48,4 +48,20 @@ describe('DataTable totals row', () => {
         .map((cell) => cell.textContent)
     ).toEqual(['Totals for 2 records', '213'])
   })
+  it('sums a number column that comes first, with the label in the next column', () => {
+    const { container } = render(
+      <DataTable
+        columns={[columns[2]!, columns[0]!, columns[3]!]}
+        rows={rows}
+        totals
+      />
+    )
+    const cells = [...container.querySelectorAll('tfoot > tr > *')]
+    expect(cells.map((cell) => cell.textContent)).toEqual([
+      '301,400',
+      'Totals for 2 records',
+      '213'
+    ])
+    expect(cells[1]).toHaveAttribute('scope', 'row')
+  })
 })

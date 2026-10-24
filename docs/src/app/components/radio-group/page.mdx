@@ -126,17 +126,32 @@ part of the radio's name, so screen readers announce the label alone.
   <RadioGroup.Item value='a' label='Option A' />
   <RadioGroup.Item value='b' label='Option B' />
 </RadioGroup>
-{/* Disabled */}
-<RadioGroup disabled>
+{/* Invalid */}
+<RadioGroup invalid>
   <RadioGroup.Item value='a' label='Option A' />
   <RadioGroup.Item value='b' label='Option B' />
+</RadioGroup>
+{/* Invalid and chosen */}
+<RadioGroup invalid defaultValue='a'>
+  <RadioGroup.Item value='a' label='Option A' />
+  <RadioGroup.Item value='b' label='Option B' />
+</RadioGroup>
+{/* Disabled */}
+<RadioGroup disabled defaultValue='a'>
+  <RadioGroup.Item value='a' label='Option A' />
+  <RadioGroup.Item value='b' label='Option B' />
+</RadioGroup>
+{/* One item disabled */}
+<RadioGroup>
+  <RadioGroup.Item value='a' label='Option A' />
+  <RadioGroup.Item value='b' label='Option B' disabled />
 </RadioGroup>
 ```
 
 ## Accessibility
 
 - **Keyboard**: `Arrow Up`/`Arrow Down` moves between radio items. `Space` selects the focused item. Base UI manages roving tabindex.
-- **ARIA**: Base UI Radio sets `role="radiogroup"` on the root and `role="radio"` with `aria-checked` on each item automatically.
+- **ARIA**: Base UI Radio sets `role="radiogroup"` on the root and `role="radio"` with `aria-checked` on each item automatically. An invalid group, from `invalid` or its `Field`, sets `aria-invalid` on the `radiogroup`.
 - **Grouping**: Wrap in a `Fieldset` with a `Legend` to provide a group label for screen readers.
 
 <PropsDefinitions component='RadioGroup' />

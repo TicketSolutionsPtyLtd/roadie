@@ -29,7 +29,8 @@ export function StateRow({
   // Retry or Clear replaces the state, and its button with it.
   useKeepFocusInTable(ref)
   return (
-    <div ref={ref} role='rowgroup'>
+    // Centred in whatever height a box gives the rows.
+    <div ref={ref} role='rowgroup' className='grid content-center self-stretch'>
       <div role='row' className='block'>
         <div role='cell' aria-colspan={columns} className='block'>
           {children}

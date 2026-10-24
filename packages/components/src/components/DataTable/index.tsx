@@ -54,7 +54,8 @@ export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
   /** Plain numbers only, for a chart's table view. */
   plain?: boolean
   /**
-   * Adds a totals row as the table's footer, its label in the first column.
+   * Adds a totals row as the table's footer, its label in the title column,
+   * else the first column without a sum.
    * `true` or `'sum'` adds up the number columns over every row, except
    * shares, indexes and points, and any column with `total: false`. Give
    * `values`, with a `label`, to show your own, such as the server's totals.
@@ -68,7 +69,8 @@ export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
   /**
    * Groups rows by these text or status columns, outermost first. Each group
    * row sums the number columns the way `totals` does and expands to show its
-   * rows, labelled in the first column. The grouped columns are hidden.
+   * rows, labelled in the title column, else the first column without a
+   * sum. The grouped columns are hidden.
    */
   groupBy?: readonly string[]
   /**

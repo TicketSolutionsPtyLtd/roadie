@@ -149,6 +149,14 @@ export const stackedArea: ChartDefinition<StackedAreaProps> = {
   kind: 'stacked-area',
   build,
   table: stackedAreaTable,
+  rangeAxis(props) {
+    if (!isTimeField(props.data, props.x)) return null
+    return {
+      values: timesOf(stackLayers(props)),
+      msOf: Number,
+      options: { hasTime: hasTimeOfDay(props.data[0]?.[props.x]) }
+    }
+  },
   summary(props) {
     if (props.takeaway) return props.takeaway
     const largest = largestOverall(stackLayers(props))
