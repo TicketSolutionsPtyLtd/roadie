@@ -22,7 +22,10 @@ import { reactCompilerPreset } from './react-compiler.config.ts'
 //
 // Rolldown preserves module-level `'use client'` directives on per-file
 // outputs natively, so leaves that carry the directive still emit with
-// `"use client";` at the top. Verify after build with:
+// `"use client";` at the top. Rolldown still warns MODULE_LEVEL_DIRECTIVE for
+// each one, written for bundled output, so `suppressWarnings` drops exactly that
+// message and `check:use-client` fails the build if a leaf loses the directive.
+// Verify after build with:
 //   head -c 13 dist/components/Fieldset/FieldsetRoot.js   # → "use client";
 export default defineConfig(({ watch }) => ({
   // paneColumns is the model the browser tests measure the stylesheet against,
@@ -36,6 +39,7 @@ export default defineConfig(({ watch }) => ({
     '!**/renderCounter.ts'
   ],
   unbundle: true,
+  suppressWarnings: 'module level directive "use client"',
   format: ['esm'],
   platform: 'neutral',
   dts: {
