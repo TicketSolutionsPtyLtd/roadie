@@ -86,7 +86,11 @@ it("applies Roadie's recommended rules to the docs app's code", () => {
     lintSeeds([[path, seed]])
       .get(path)
       .sort()
-  ).toEqual(['roadie(no-arbitrary-z-index)', 'roadie(no-dark-variant)'])
+  ).toEqual([
+    'roadie(canonical-class)',
+    'roadie(no-arbitrary-z-index)',
+    'roadie(no-dark-variant)'
+  ])
 }, 60_000)
 
 describe('docs/eslint.config.js on MDX', () => {
