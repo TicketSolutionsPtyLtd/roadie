@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url'
+
 import { runRuleCases } from '../test/ruleCases.js'
 
 runRuleCases({
@@ -60,6 +62,70 @@ runRuleCases({
         code: "<div className='[--x:1em] rounded-(--x) rounded-[3px]' />",
         errors: 2
       }
+    ]
+  }
+})
+
+// The core package resolves Roadie's stylesheet and Tailwind, as an app does.
+const filename = fileURLToPath(
+  new URL('../../core/src/Fixture.tsx', import.meta.url)
+)
+const fixed = (code, output, errors = 1) => ({ code, output, errors, filename })
+
+runRuleCases({
+  'canonical-class': {
+    valid: [
+      "<div className='p-4 rounded-lg emphasis-subtle is-interactive' />",
+      "<div className='hover:bg-subtle data-[state=open]:flex' />",
+      '<div className={`p-${size} w-[50%]`} />',
+      'cn(`flex-shrink-0${suffix} ${prefix}flex-shrink-0`)',
+      "const id = 'p-[16px]'",
+      "<div className='relative z-1 hover:z-1' />",
+      "<div className='z-[1] hover:[z-index:1]' />"
+    ].map((code) => ({ code, filename })),
+    invalid: [
+      fixed("<div className='p-[16px]' />", "<div className='p-4' />"),
+      fixed(
+        "<div className='flex-shrink-0 !flex hover:mt-[0.5rem]' />",
+        "<div className='shrink-0 flex! hover:mt-2' />",
+        3
+      ),
+      fixed(
+        "cn('bg-[var(--x)]', open && 'z-[10]')",
+        "cn('bg-(--x)', open && 'z-10')",
+        2
+      ),
+      fixed(
+        "const variants = { sm: 'h-[1px]' }; cva('', { variants: { size: variants } }); cn(variants.sm)",
+        "const variants = { sm: 'h-px' }; cva('', { variants: { size: variants } }); cn(variants.sm)"
+      ),
+      fixed(
+        'cn(`size-[16px] ${open} [&>*]:p-4`)',
+        'cn(`size-4 ${open} *:p-4`)',
+        2
+      ),
+      fixed(
+        "<div className='overflow-ellipsis' />",
+        "<div className='text-ellipsis' />"
+      ),
+      fixed(
+        "<div className='top-[-1px] md:order-[-1] z-[80]' />",
+        "<div className='-top-px md:-order-1 z-alert' />",
+        3
+      ),
+      fixed(
+        "<div className='mb-[calc(var(--gap)*-1)]' />",
+        "<div className='-mb-(--gap)' />"
+      ),
+      fixed(
+        "<div className='mt-[calc(-1*var(--gap))] mx-[-.5rem]' />",
+        "<div className='-mt-(--gap) -mx-2' />",
+        2
+      ),
+      fixed(
+        "<div className='[margin-top:-4px]' />",
+        "<div className='-mt-1' />"
+      )
     ]
   }
 })

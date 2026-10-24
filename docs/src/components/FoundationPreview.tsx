@@ -132,7 +132,7 @@ export function FoundationPreview({ name }: { name: string }) {
     case 'prose':
       return (
         <div className='grid w-40 gap-1.5'>
-          <p className='text-sm/none font-bold text-strong'>Heading</p>
+          <p className='text-sm/tightest font-bold text-strong'>Heading</p>
           <Skel className='h-1.5 w-full' />
           <Skel className='h-1.5 w-32' />
           <div className='grid gap-1.5 ps-2'>
@@ -202,7 +202,7 @@ export function FoundationPreview({ name }: { name: string }) {
           </div>
           <div className='grid emphasis-raised content-start gap-1 rounded-lg p-1.5'>
             <Skel className='h-1 w-8' />
-            <p className='text-sm/none font-semibold text-strong'>8,412</p>
+            <p className='text-sm/tightest font-semibold text-strong'>8,412</p>
           </div>
           <div className='grid divide-y divide-subtle rounded-lg bg-normal px-1.5'>
             {['w-8', 'w-6'].map((width) => (

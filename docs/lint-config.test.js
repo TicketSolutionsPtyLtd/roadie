@@ -86,7 +86,11 @@ it("applies Roadie's recommended rules to the docs app's code", () => {
     lintSeeds([[path, seed]])
       .get(path)
       .sort()
-  ).toEqual(['roadie(no-arbitrary-z-index)', 'roadie(no-dark-variant)'])
+  ).toEqual([
+    'roadie(canonical-class)',
+    'roadie(no-arbitrary-z-index)',
+    'roadie(no-dark-variant)'
+  ])
 }, 60_000)
 
 describe('docs/eslint.config.js on MDX', () => {
@@ -106,11 +110,15 @@ describe('docs/eslint.config.js on MDX', () => {
     }
   })
 
+  // A class in a fence makes roadie/canonical-class load Tailwind's design
+  // system here, not in the first test.
   beforeAll(
     () =>
       Promise.all(
         [eslint, guardOnly].map((linter) =>
-          linter.lintText('', { filePath: 'src/app/sample/page.mdx' })
+          linter.lintText("```tsx-live\n<div className='p-4' />\n```\n", {
+            filePath: 'src/app/sample/page.mdx'
+          })
         )
       ),
     60_000

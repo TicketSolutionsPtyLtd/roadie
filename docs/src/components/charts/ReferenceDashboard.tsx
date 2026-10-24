@@ -25,7 +25,7 @@ export function ReferenceDashboard({
   return (
     <div className='grid gap-8'>
       {view ?? <DashboardView spec={spec} cardActions={cardActions} />}
-      <div className='mx-auto grid w-full max-w-[50rem] gap-6'>
+      <div className='mx-auto grid w-full max-w-200 gap-6'>
         <h2 className='text-display-ui-4 text-strong'>As data</h2>
         <CodePreview language='json'>
           {JSON.stringify(spec, null, 2)}

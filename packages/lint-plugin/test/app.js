@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, symlinkSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -10,7 +11,7 @@ export const MISTAKES = `import { Heart, StarIcon } from '@phosphor-icons/react'
 import { Card } from '@oztix/roadie-components/card'
 
 export const Ticket = () => (
-  <div className='dark:bg-strong z-[5] rounded-[10px] bg-[#ff0000]'>
+  <div className='dark:bg-strong z-[-1] rounded-[10px] bg-[#ff0000] p-[16px]'>
     <Heart weight='bold' className='size-4' />
     <StarIcon size={16} />
     <Card><Card.Header>Midnight Frequency</Card.Header></Card>
@@ -31,6 +32,7 @@ export const Ticket = () => (
 `
 
 export const MISTAKE_RULES = [
+  'roadie/canonical-class',
   'roadie/card-content',
   'roadie/no-arbitrary-radius',
   'roadie/no-arbitrary-z-index',
@@ -67,6 +69,31 @@ export const TEST_MISTAKE_RULES = [
   'roadie/no-layout-fake-in-jsdom'
 ]
 
+export const FIXABLE =
+  "export const Gap = () => <div className='flex-shrink-0 p-[16px]' />\n"
+export const FIXED =
+  "export const Gap = () => <div className='shrink-0 p-4' />\n"
+
+// Roadie's stylesheet stands in for @oztix/roadie-core, and Tailwind links in
+// from the workspace, so canonical-class can load a theme with no network.
+// Run it after the install, which would prune both.
+export function addRoadie(app) {
+  const core = join(app, 'node_modules/@oztix/roadie-core')
+  mkdirSync(core, { recursive: true })
+  writeFileSync(
+    join(core, 'package.json'),
+    JSON.stringify({
+      name: '@oztix/roadie-core',
+      exports: { './css': './roadie.css' }
+    })
+  )
+  writeFileSync(join(core, 'roadie.css'), "@import 'tailwindcss';\n")
+  const tailwind = createRequire(
+    join(packageDir, '../core/package.json')
+  ).resolve('tailwindcss/package.json')
+  symlinkSync(join(tailwind, '..'), join(app, 'node_modules/tailwindcss'))
+}
+
 // Packs the package as npm would publish it into a fresh app, with the
 // fixtures in src/, so the app can reach only the published files and exports.
 export function createApp(prefix, files) {
@@ -85,7 +112,8 @@ export function createApp(prefix, files) {
     'src/Mistakes.jsx': MISTAKES,
     'src/Clean.jsx': CLEAN,
     'src/Ticket.test.jsx': TEST_MISTAKES,
-    'src/Ticket.browser.test.jsx': TEST_MISTAKES
+    'src/Ticket.browser.test.jsx': TEST_MISTAKES,
+    'src/Fixable.jsx': FIXABLE
   }
   for (const [file, content] of Object.entries({ ...appFiles, ...files }))
     writeFileSync(join(app, file), content)

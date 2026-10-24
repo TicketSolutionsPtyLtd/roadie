@@ -103,7 +103,7 @@ function ConsumerNav() {
     { title: 'Haystack Moonbeam Night Market', description: 'Sat 20 Sept · Lighthouse Fig Lawn' }
   ]
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Main'>
           <Navigator.Brand />
@@ -164,7 +164,7 @@ function GroupedNav() {
     messages: 'Messages'
   }
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Admin'>
           <Navigator.Brand />
@@ -230,7 +230,7 @@ function SecondaryNav() {
     '/settings': 'Settings'
   }
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <DemoRouter initialPath='/events/upcoming'>
         {(path) => (
           <Navigator value={path} className='h-full'>
@@ -284,7 +284,7 @@ hides empty groups. Cancel or Escape clears the search and leaves the field.
 ```tsx-live-noinline-expand
 function SearchableNav() {
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <DemoRouter initialPath='/events'>
         {(path) => (
           <Navigator value={path} className='h-full'>
@@ -355,7 +355,7 @@ function OverviewNav() {
     '/components': 'Components'
   }
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <DemoRouter initialPath='/'>
         {(path) => (
           <Navigator value={path} className='h-full'>
@@ -427,7 +427,7 @@ and its `query` prop lets your pane keep search.
 ```tsx-live-noinline-expand
 function OwnListPaneNav() {
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <DemoRouter initialPath='/components'>
         {(path) => (
           <Navigator value={path} className='h-full'>
@@ -499,7 +499,7 @@ a shorter window.
 function PriorityNav() {
   const [active, setActive] = useState('discover')
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Main'>
           <Navigator.Brand />
@@ -562,7 +562,7 @@ optional `icon` and `description`.
 function MenuNav() {
   const [signedOut, setSignedOut] = useState(false)
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <DemoRouter initialPath='/discover'>
         {(path) => (
           <Navigator value={path} className='h-full'>
@@ -621,7 +621,7 @@ readers announce it.
 function BadgeNav() {
   const [active, setActive] = useState('/home')
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <Navigator value={active} onValueChange={setActive} className='h-full'>
         <Navigator.Primary aria-label='Main'>
           <Navigator.Brand />
@@ -659,7 +659,7 @@ function ExpandedNav() {
   const [active, setActive] = useState('discover')
   const [expanded, setExpanded] = useState(true)
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <Navigator
         value={active}
         onValueChange={setActive}
@@ -785,7 +785,7 @@ new URL would. Narrow your viewport and tap Events on one of its pages.
 function ListFromUrlNav() {
   const [showList, setShowList] = useState(false)
   return (
-    <div className='h-[30rem] overflow-hidden rounded-2xl border border-subtle'>
+    <div className='h-120 overflow-hidden rounded-2xl border border-subtle'>
       <DemoRouter
         initialPath='/events/upcoming'
         onNavigate={() => setShowList(false)}

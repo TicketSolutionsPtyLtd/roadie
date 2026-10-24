@@ -73,7 +73,7 @@ Render both scrollbars plus a `Corner` so they don't overlap where they meet.
 <ScrollArea className='h-48 rounded-xl border border-subtle'>
   <ScrollArea.Viewport className='p-4'>
     <ScrollArea.Content>
-      <div className='grid w-[48rem] gap-3'>
+      <div className='grid w-3xl gap-3'>
         {Array.from({ length: 20 }, (_, i) => (
           <p key={i}>Row {i + 1} is wide enough to overflow both axes</p>
         ))}
