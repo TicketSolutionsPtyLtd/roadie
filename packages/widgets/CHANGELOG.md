@@ -1,5 +1,21 @@
 # @oztix/roadie-widgets
 
+## 3.7.1
+
+### Patch Changes
+
+- 07bf5b8: Update `CartContents` to stable, so a breaking change to it only comes in a major version.
+- Updated dependencies [574a12a]
+- Updated dependencies [15435ad]
+- Updated dependencies [6115664]
+- Updated dependencies [b15d667]
+- Updated dependencies [7835e36]
+- Updated dependencies [0e0bd9a]
+- Updated dependencies [4d0f1bb]
+- Updated dependencies [764944f]
+- Updated dependencies [6483954]
+  - @oztix/roadie-core@2.12.0
+
 ## 3.7.0
 
 ### Minor Changes

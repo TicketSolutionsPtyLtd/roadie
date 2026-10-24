@@ -1,5 +1,35 @@
 # @oztix/roadie-charts
 
+## 0.3.0
+
+### Minor Changes
+
+- 05fb8c3: Add `onRangeSelect` to `LineChart`, `BarChart`, and `StackedArea`, so a drag across dated x, or Shift with an arrow key and then Enter, selects a range. It reports an inclusive `AbsoluteRange` in the venue's wall time, such as `{ start: '2026-10-03', end: '2026-10-10' }`, which fits straight into `DateRangePicker` or `onPeriodChange`. Charts without it don't change.
+- 574a12a: Add `selectsPeriod` to the `line`, `bar`, and `stacked-area` plots of a dashboard description, so a drag across that card, or Shift with an arrow key and then Enter, sets the dashboard's period. `DashboardView` passes the range to `onPeriodChange` with the current comparison, and `validateDashboard` warns when x isn't dated or there's no period. Dashboards without it don't change.
+- 15435ad: Add `groupBy` and `defaultExpanded` to `DataTable`. Rows group by one or more text or status columns, outermost first. Each group gets a row that sums its number columns the way `totals` does, which opens and closes like an Accordion when anywhere on it is pressed, and every level's label sits indented in the title column, or the first column without a sum when there's no text column. Groups start closed: `defaultExpanded` opens them all, or the groups at the paths of values you give. Sorting orders groups by their sums, or by label, at every level. Dashboard `table` cards take the same two fields, `DashboardView` passes them on, and `validateDashboard` checks them.
+- b15d667: Add `xFormat` to LineChart and the dashboard `line` plot, with a `daysOut` format for comparing events by days to the event. Ticks read "30d", and tooltips, tables and screen readers say "30 days before" and "Event day". Core adds `XFormat` and `formatX` to `@oztix/roadie-core/dataviz`.
+- 7835e36: Add an `eventTime` x format to LineChart and the dashboard `line` plot, for comparing events on their own clock. `x` is hours from midnight starting the first event day, and a day runs to 6am. Ticks read "Day 2" and "19:00", and tooltips, tables and screen readers say "Day 2, 7:15pm". Core exports `END_OF_NIGHT_HOUR` from `@oztix/roadie-core/datetime`, the 6am cutoff that both a late show's night and an `eventTime` day share.
+- 764944f: Add `mode`, `today` and `annotations` to StackedArea and the dashboard `stacked-area` plot. `mode='share'` stacks every time to 100%, `today` marks the top of the stack with a dot that reads the total, and annotations work as on LineChart.
+- 6483954: Add `StackedArea` (`@oztix/roadie-charts/stacked-area`), a chart for part of a whole over time, such as scans by gate. The largest layer stacks at the bottom, past 6 the smallest roll into Other on top, and the tooltip opens with the total. Dashboards take it as plot kind `stacked-area`, with `/static` and `/tables` support. `ChartTooltip` rows take `shape: 'none'` for a row with no key, such as a total.
+
+### Patch Changes
+
+- 15e61f5: `BarChart` with `onRangeSelect` now shades the selected bars whole, from the first bar's left edge to the last bar's right edge, instead of from centre to centre.
+- c233778: Clicking a chart no longer draws a focus ring around it in Chrome. Tabbing to a chart still shows the focus ring.
+- e5b935a: Update chart time ticks, tooltips, tables and spoken points to the date and time foundations. Ticks read "19:30" and "27 Nov", and tooltips read "Fri 27 Nov 2026, 7:30pm", the same strings `<DateTime>` gives.
+- b15d667: LineChart's `today` dot now sits on the highlighted series, as the forecast cone does, instead of always on the first series. A numeric x axis no longer borrows the y `format`, so days stop rendering as percentages.
+- 56fae75: LineChart and StackedArea keep an annotation label clear of the today label. A label that would cross it reads on the other side of its rule, or drops a line when neither side is clear.
+- Updated dependencies [574a12a]
+- Updated dependencies [15435ad]
+- Updated dependencies [6115664]
+- Updated dependencies [b15d667]
+- Updated dependencies [7835e36]
+- Updated dependencies [0e0bd9a]
+- Updated dependencies [4d0f1bb]
+- Updated dependencies [764944f]
+- Updated dependencies [6483954]
+  - @oztix/roadie-core@2.12.0
+
 ## 0.2.0
 
 ### Minor Changes
