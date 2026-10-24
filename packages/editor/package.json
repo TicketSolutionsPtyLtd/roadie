@@ -44,8 +44,9 @@
     "./roadie.manifest.json": "./dist/roadie.manifest.json"
   },
   "scripts": {
-    "build": "tsdown && pnpm generate:manifest && pnpm check:exports",
+    "build": "tsdown && pnpm check:use-client && pnpm generate:manifest && pnpm check:exports",
     "generate:manifest": "node ../core/scripts/manifest/generate.ts",
+    "check:use-client": "node ../core/scripts/check-use-client.mjs",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run --project node",
