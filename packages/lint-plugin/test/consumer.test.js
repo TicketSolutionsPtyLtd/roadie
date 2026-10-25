@@ -1,5 +1,5 @@
-import { ESLint as ESLint9 } from 'eslint'
-import { ESLint as ESLint10 } from 'eslint-v10'
+import { ESLint as ESLint10 } from 'eslint'
+import { ESLint as ESLint9 } from 'eslint-v9'
 import { execFileSync } from 'node:child_process'
 import { existsSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
