@@ -24,8 +24,8 @@ is only a warning, so they get the new minor, such as a new `error` in
 
 - Release the rename, run `npm deprecate` on the old name, then remove
   `packages/eslint-plugin-shim` before any later minor of the new name merges.
-- `packages/eslint-plugin-shim/test/last-release.test.js` reads the pending
-  changesets and fails when the shim would release past 0.1.2. CI runs it on
+- Until the shim was removed (INNO-1390), a guard test read the pending
+  changesets and failed when the shim would release past 0.1.2. CI ran it on
   every PR, since a PR that only adds a changeset affects no package.
 - `/roadie:release` fails a Version Packages PR that bumps a shim past its last
   release.
