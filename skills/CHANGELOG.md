@@ -1,5 +1,11 @@
 # roadie-skills
 
+## 0.5.2
+
+### Patch Changes
+
+- f041392: `/roadie:release` no longer points at Roadie's shim guard test, which went with the shim. It says to keep such a test while a rename shim lives in the repo.
+
 ## 0.5.1
 
 ### Patch Changes

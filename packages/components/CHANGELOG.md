@@ -1,5 +1,11 @@
 # @oztix/roadie-components
 
+## 2.17.1
+
+### Patch Changes
+
+- 716f3f2: Update `@tanstack/react-virtual` to 3.14.22, which Records uses to window long lists of records.
+
 ## 2.17.0
 
 ### Minor Changes
