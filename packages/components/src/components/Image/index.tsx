@@ -193,6 +193,12 @@ export function Image({
   const [seen, setSeen] = useState(false)
   const visible = !deferred || !canObserve || seen
   const [loaded, setLoaded] = useState(false)
+  const fromServerHtml = useSyncExternalStore(
+    subscribeNever,
+    () => false,
+    () => true
+  )
+  const [fadeIn] = useState(() => !fromServerHtml || !visible)
   const innerRef = useRef<HTMLImageElement | null>(null)
 
   useEffect(() => {
@@ -283,8 +289,8 @@ export function Image({
           ? {
               position: 'absolute',
               inset: 0,
-              opacity: loaded ? 1 : 0,
-              transition: FADE
+              opacity: loaded || !fadeIn ? 1 : 0,
+              transition: fadeIn ? FADE : undefined
             }
           : aspectRatio
             ? { aspectRatio, ...style }
