@@ -9,7 +9,7 @@ import {
 import { formatRecordValue } from '@oztix/roadie-core/records'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
+import { Link } from '../Link'
 import { RecordPartValue } from '../Records/RecordPartValue'
 import { RecordsRowActions } from '../Records/RecordsRowActions'
 import { RecordsRowCheckbox } from '../Records/RecordsRowCheckbox'
@@ -26,6 +26,8 @@ const cellOverflowClass =
 
 export const rowClass =
   'grid min-w-(--record-table-min-width) grid-cols-(--record-table-columns)'
+
+const titleClampClass = 'line-clamp-2 min-w-0 wrap-anywhere'
 
 const isFigure = (column: RecordTableColumn) =>
   column.field.type === 'number' || column.field.type === 'money'
@@ -183,12 +185,14 @@ export const RecordTableRow = memo(function RecordTableRow({
         </div>
       )}
       {columns.map((column, index) => {
+        const isTitle = column === title
+        const clamps = isTitle && !column.cell
         const content = (
           <RecordPartValue
             part={column}
             row={record}
             timeZone={timeZone}
-            className='min-w-0 truncate'
+            className={clamps ? undefined : 'min-w-0 truncate'}
           />
         )
         return (
@@ -201,18 +205,27 @@ export const RecordTableRow = memo(function RecordTableRow({
               cellClass(column),
               cellOverflowClass,
               // On the cell, so a custom cell inherits it and an empty value stays muted.
-              column === title && 'font-semibold text-strong'
+              isTitle && 'font-semibold text-strong',
+              // Pinned cells are already sticky.
+              linked && isTitle && !column.pin && 'relative'
             )}
             style={pinStyle(layout.pinnedStart[index])}
           >
-            {linked && column === title ? (
-              <RoadieRoutedLink
+            {linked && isTitle ? (
+              <Link
                 href={href}
+                emphasis='subtle'
                 data-row-link=''
-                className='min-w-0 truncate text-inherit no-underline hover:underline'
+                // A custom cell lays itself out, as it does unlinked.
+                className={cn(
+                  'is-focusable-overlay',
+                  clamps ? titleClampClass : 'flex min-w-0'
+                )}
               >
                 {content}
-              </RoadieRoutedLink>
+              </Link>
+            ) : clamps ? (
+              <span className={titleClampClass}>{content}</span>
             ) : (
               content
             )}

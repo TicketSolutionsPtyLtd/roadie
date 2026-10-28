@@ -74,3 +74,14 @@
     padding-inline-end: var(--content-inset);
   }
 }
+
+/* As in a DataTable, the title link rings its overlay inset
+   (is-focusable-overlay), so the title's clamp and the cell's clip can't cut
+   it. The overlay spans the cell, which positions it, and clicks pass
+   through, so the rest of the cell still selects the row. */
+[data-slot='record-table-row'] [data-row-link]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
