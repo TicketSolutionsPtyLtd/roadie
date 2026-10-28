@@ -73,6 +73,81 @@ describe('DashboardPeriod layout', TIMEOUT, () => {
     expect(middle(box(own))).toBeCloseTo(middle(box(picker())), 0)
     expect(box(picker()).width).toBeLessThan(box(group).width)
   })
+
+  it('keeps its whole button in a flex row beside another control', () => {
+    render(
+      <div className='flex items-center gap-2'>
+        <DashboardPeriod
+          today={TODAY}
+          defaultValue={{ range: 'this-month', compare: 'previous-year' }}
+        />
+        <button type='button'>Export</button>
+      </div>
+    )
+    const group = screen.getByRole('group', { name: 'Dashboard period' })
+    const label = picker().querySelector<HTMLElement>(
+      '[data-slot="date-range-picker-suffix"]'
+    )!.previousElementSibling as HTMLElement
+    expect(box(group).width).toBeGreaterThanOrEqual(box(picker()).width)
+    expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth)
+  })
+
+  it('narrows to a flex row thinner than 20rem', () => {
+    render(
+      <div className='flex items-center gap-2' style={{ width: 280 }}>
+        <DashboardPeriod
+          today={TODAY}
+          defaultValue={{ range: 'this-month', compare: 'previous-year' }}
+        />
+      </div>
+    )
+    const group = screen.getByRole('group', { name: 'Dashboard period' })
+    expect(box(group).width).toBeCloseTo(280, 0)
+  })
+
+  it('narrows an auto grid track to fit a grid thinner than 20rem', () => {
+    render(
+      <div
+        className='grid grid-cols-[auto_1fr] items-center gap-2'
+        style={{ width: 280 }}
+      >
+        <DashboardPeriod
+          today={TODAY}
+          defaultValue={{ range: 'this-month', compare: 'previous-year' }}
+        />
+        <button type='button'>Export</button>
+      </div>
+    )
+    const exportButton = screen.getByRole('button', { name: 'Export' })
+    expect(box(exportButton).right).toBeLessThanOrEqual(
+      box(exportButton.parentElement!).right
+    )
+  })
+
+  for (const [parent, className] of [
+    ['an inline-flex parent', 'inline-flex items-center gap-2'],
+    ['an auto grid track', 'grid grid-cols-[auto_1fr] items-center gap-2']
+  ] as const) {
+    it(`keeps its whole button in ${parent}`, () => {
+      render(
+        <div style={{ width: 1100 }}>
+          <div className={className}>
+            <DashboardPeriod
+              today={TODAY}
+              defaultValue={{ range: 'this-month', compare: 'previous-year' }}
+            />
+            <button type='button'>Export</button>
+          </div>
+        </div>
+      )
+      const group = screen.getByRole('group', { name: 'Dashboard period' })
+      const label = picker().querySelector<HTMLElement>(
+        '[data-slot="date-range-picker-suffix"]'
+      )!.previousElementSibling as HTMLElement
+      expect(box(group).width).toBeGreaterThanOrEqual(320)
+      expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth)
+    })
+  }
 })
 
 for (const [width, height] of [
