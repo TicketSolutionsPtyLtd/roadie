@@ -4,7 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { hydrateWithoutClock, withoutClock } from '../../utils/testUtils'
 import { _tickerState } from '../../utils/ticker'
-import { DateTime } from './index'
+import { DateTime, type DateTimeProps } from './index'
+
+// Consumers extend and wrap the props, so they must stay one interface.
+export interface ExtendedDateTimeProps extends DateTimeProps {
+  label?: string
+}
+export const VenueDateTime = (props: Omit<DateTimeProps, 'timeZone'>) => (
+  <DateTime timeZone='Australia/Brisbane' {...props} />
+)
 
 const BNE = 'Australia/Brisbane'
 // Fri 27 Nov 2026, 7:30pm Brisbane
@@ -288,6 +296,143 @@ describe('DateTime across midnight', () => {
     )
     // Falls through to the normal range path.
     expect(container.textContent).toContain('29 Nov')
+  })
+})
+
+describe('DateTime stacked', () => {
+  const lines = (time: Element) =>
+    [...time.children].map((line) => line.textContent)
+
+  it('puts the time under the date in one element carrying the instant', () => {
+    const { container } = render(
+      <DateTime at={at} timeZone={BNE} timeStyle='medium' stacked />
+    )
+    const times = container.querySelectorAll('time')
+    expect(times).toHaveLength(1)
+    expect(times[0]).toHaveAttribute('dateTime', '2026-11-27T19:30:00+10:00')
+    expect(lines(times[0]!)).toEqual(['Fri 27 Nov 2026, ', '7:30pm'])
+  })
+
+  it('reads the same as the inline text, not the date run into the time', () => {
+    const { container: inline } = render(
+      <DateTime at={at} timeZone={BNE} timeStyle='medium' />
+    )
+    const { container } = render(
+      <DateTime at={at} timeZone={BNE} timeStyle='medium' stacked />
+    )
+    expect(container.textContent).toBe(inline.textContent)
+    expect(container.querySelector('.sr-only')).toHaveTextContent(',')
+  })
+
+  it('keeps each style meaning what it means inline', () => {
+    const { container } = render(
+      <DateTime
+        at={at}
+        timeZone={BNE}
+        dateStyle='medium'
+        timeStyle='long'
+        stacked
+      />
+    )
+    expect(lines(container.querySelector('time')!)).toEqual([
+      '27 Nov 2026, ',
+      '7:30pm AEST'
+    ])
+  })
+
+  it('merges a caller’s class with the stacking', () => {
+    render(
+      <DateTime
+        at={at}
+        timeZone={BNE}
+        timeStyle='medium'
+        stacked
+        className='text-sm'
+      />
+    )
+    expect(screen.getByText('7:30pm').closest('time')).toHaveClass(
+      'grid',
+      'text-sm'
+    )
+  })
+
+  it('says the date once over a time range on one day', () => {
+    const { container } = render(
+      <DateTime
+        at={at}
+        to={new Date('2026-11-27T13:00:00Z')}
+        timeZone={BNE}
+        timeStyle='medium'
+        stacked
+      />
+    )
+    const times = [...container.querySelectorAll('time')]
+    expect(lines(container.firstElementChild!)).toEqual([
+      'Fri 27 Nov 2026, ',
+      '7:30pm to 11:00pm'
+    ])
+    expect(times.map((time) => time.getAttribute('dateTime'))).toEqual([
+      '2026-11-27T19:30:00+10:00',
+      '2026-11-27T23:00:00+10:00'
+    ])
+  })
+
+  it('says the date once over one night crossing midnight', () => {
+    const { container } = render(
+      <DateTime
+        at={new Date('2026-11-28T12:00:00Z')}
+        to={new Date('2026-11-28T17:00:00Z')}
+        timeZone={BNE}
+        timeStyle='medium'
+        sameNight
+        stacked
+      />
+    )
+    expect(lines(container.firstElementChild!)).toEqual([
+      'Sat 28 Nov 2026, ',
+      '10:00pm to 3:00am'
+    ])
+    expect(container.querySelectorAll('time')[1]).toHaveAttribute(
+      'dateTime',
+      '2026-11-29T03:00:00+10:00'
+    )
+  })
+
+  it('stays inline across days, where one date can’t head both times', () => {
+    const to = new Date('2026-11-29T12:00:00Z')
+    const { container: inline } = render(
+      <DateTime at={at} to={to} timeZone={BNE} timeStyle='medium' />
+    )
+    const { container } = render(
+      <DateTime at={at} to={to} timeZone={BNE} timeStyle='medium' stacked />
+    )
+    expect(container.innerHTML).toBe(inline.innerHTML)
+  })
+
+  it('collapses a range ending at the same time to one stacked moment', () => {
+    const { container } = render(
+      <DateTime at={at} to={at} timeZone={BNE} timeStyle='medium' stacked />
+    )
+    expect(container.querySelectorAll('time')).toHaveLength(1)
+    expect(container.textContent).toBe('Fri 27 Nov 2026, 7:30pm')
+  })
+
+  it('stays a date alone without a time to put under it', () => {
+    const { container: inline } = render(<DateTime at={at} timeZone={BNE} />)
+    const { container } = render(<DateTime at={at} timeZone={BNE} stacked />)
+    expect(container.innerHTML).toBe(inline.innerHTML)
+  })
+
+  it('stays one relative phrase, with no date to stack', () => {
+    const recent = new Date(Date.now() - 3 * 60_000)
+    const { container: inline } = render(
+      <DateTime at={recent} timeZone={BNE} timeStyle='short' relative />
+    )
+    const { container } = render(
+      <DateTime at={recent} timeZone={BNE} timeStyle='short' stacked relative />
+    )
+    expect(container.innerHTML).toBe(inline.innerHTML)
+    expect(container.textContent).toBe('3 minutes ago')
   })
 })
 

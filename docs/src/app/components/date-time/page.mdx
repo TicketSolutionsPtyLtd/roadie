@@ -67,6 +67,28 @@ Renders the `long` style. The `timeZone` is the venue's for an event time, and t
 />
 ```
 
+### Stacked
+
+`stacked` puts the time on a line under the date, for a dense table column. It's still one `time` element, and its `dateTime` carries the full instant. It needs a `timeStyle`, which formats the time as it would inline. Without one, or with `relative`, it renders on one line as if `stacked` were not set. A range on one day, or one night with `sameNight`, says the date once over the two times. A range across days stays on one line.
+
+```tsx-live layout=stack gap=4
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  timeZone='Australia/Brisbane'
+  dateStyle='medium'
+  timeStyle='medium'
+  stacked
+/>
+<DateTime
+  at={new Date('2026-11-27T09:30:00Z')}
+  to={new Date('2026-11-27T13:00:00Z')}
+  timeZone='Australia/Brisbane'
+  dateStyle='medium'
+  timeStyle='medium'
+  stacked
+/>
+```
+
 ### Venue timezone
 
 The same instant, in two venues. This is why `timeZone` is required.
@@ -163,6 +185,8 @@ import { viewerTimeZone } from '@oztix/roadie-core/datetime'
 ```
 
 Use `relative` only for timestamps. Something a person has to turn up to wants a date, not a countdown.
+
+Use `stacked` where a column is too narrow for the date and time on one line, rather than a bare time under a separate date. The time line is quieter than the date, and a screen reader still hears one phrase, `27 Nov 2026, 7:30pm`.
 
 ### Picking a style
 
@@ -268,6 +292,15 @@ The `dateTime` attribute is set for you. With a time it carries the zone's offse
 ```html
 <time datetime="2026-11-27T19:30:00+10:00">Fri 27 Nov 2026, 7:30pm</time>
 <time datetime="2026-11-27">Fri 27 Nov 2026</time>
+```
+
+A stacked moment is still one element. A visually hidden comma keeps the two lines from running together when read aloud.
+
+```html
+<time datetime="2026-11-27T19:30:00+10:00" class="grid">
+  <span>27 Nov 2026<span class="sr-only">, </span></span>
+  <span class="text-subtle">7:30pm</span>
+</time>
 ```
 
 Writing that value by hand is easy to get wrong, and wrong silently. A local time with no offset parses to a different instant in every timezone.
