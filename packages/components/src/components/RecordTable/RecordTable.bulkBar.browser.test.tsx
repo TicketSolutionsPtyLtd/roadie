@@ -374,7 +374,11 @@ describe('RecordTable floating bulk bar on narrow records', () => {
     render(<Narrow bulkActions={[compare]} />)
     await frame()
     await frame()
-    expect(shownLabel('Compare')).toBeGreaterThan(20)
+    const button = rect(action('Compare'))
+    const label = rect(within(action('Compare')).getByText('Compare'))
+    expect(label.width).toBeGreaterThan(20)
+    expect(label.left).toBeGreaterThanOrEqual(button.left)
+    expect(label.right).toBeLessThanOrEqual(button.right)
   })
 
   it('shows only the icons of several actions, still named', async () => {
