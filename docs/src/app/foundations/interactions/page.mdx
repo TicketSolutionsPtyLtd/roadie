@@ -152,6 +152,31 @@ tonight's program to see the ring.
 </div>
 ```
 
+### `is-focusable-overlay`
+
+For a link whose `::after` overlay covers a surface that can't show a ring of
+its own, such as a table row, whose cells hide its outline. It draws the same
+ring inset on the overlay instead of on the link, so a line clamp or a cell
+that clips can't cut it. The overlay is yours to position, or
+`is-interactive-within`'s on its target. Leave it off a `Card.Link` or any
+target whose surface already rings, or the ring shows twice. `DataTable` uses
+it on its title links. Tab into a show to see the ring around its row.
+
+```tsx-live width=80
+<DataTable
+  caption='Tonight'
+  getRowHref={(row) => `#${row.id}`}
+  columns={[
+    { key: 'show', header: 'Show', kind: 'text' },
+    { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
+  ]}
+  rows={[
+    { id: 'lampshade-disco', show: 'Lampshade Disco', gross: 18400 },
+    { id: 'marzipan-thunderclap', show: 'Marzipan Thunderclap', gross: 23100 }
+  ]}
+/>
+```
+
 ### `is-interactive-field`
 
 For form inputs, such as text fields, textareas, and selects. Provides
@@ -322,8 +347,8 @@ when building custom interactive UI.
 
 - Never hand-roll hover or focus states. Use `is-interactive`,
   `is-interactive-field`, `is-interactive-field-group`,
-  `is-interactive-within`, or `is-focusable`, so every control moves and
-  focuses the same way.
+  `is-interactive-within`, `is-focusable`, or `is-focusable-overlay`, so
+  every control moves and focuses the same way.
 
 ### Keyboard and focus
 

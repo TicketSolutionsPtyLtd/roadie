@@ -83,7 +83,10 @@ export function DataTableCellContent({
             href={href}
             emphasis='subtle'
             data-interactive-target=''
-            className={cn(primaryClass, 'justify-self-start')}
+            className={cn(
+              primaryClass,
+              'is-focusable-overlay justify-self-start'
+            )}
           >
             {String(value)}
           </Link>

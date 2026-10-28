@@ -53,36 +53,11 @@
 }
 
 /* A table row doesn't shrink on press like a card does. Its own outline is
-   hidden by cells, and WebKit never paints it, so the overlay draws the
-   ring inset instead, and the title link's own ring gives way to it. */
+   hidden by cells, and WebKit never paints it, so the title link or caret
+   rings its overlay inset instead, with is-focusable-overlay. */
 [data-slot='data-table'] tr:is([data-linked], [data-group]) {
   transform: none;
   outline: none;
-}
-
-[data-slot='data-table']
-  tr:is([data-linked], [data-group])
-  [data-interactive-target]:focus-visible {
-  outline: none;
-}
-
-[data-slot='data-table']
-  tr:is([data-linked], [data-group])
-  [data-interactive-target]:focus-visible::after {
-  outline: var(--focus-ring-width) solid
-    color-mix(in oklch, var(--intent-9) var(--focus-ring-opacity), transparent);
-  outline-offset: calc(var(--focus-ring-width) * -1);
-}
-
-.dark
-  [data-slot='data-table']
-  tr:is([data-linked], [data-group])
-  [data-interactive-target]:focus-visible::after {
-  outline-color: color-mix(
-    in oklch,
-    var(--intent-9) var(--focus-ring-opacity-dark),
-    transparent
-  );
 }
 
 /* A sticky cell is the overlay's containing block. A pinned title in the
