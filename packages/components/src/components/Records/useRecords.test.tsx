@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 
 import type {
   RecordPosition,
@@ -10,6 +10,7 @@ import type {
 import { type TestShow, showFields, testShows } from './testUtils'
 import {
   type RecordsInstance,
+  type RecordsSetSelecting,
   type UseRecordsOptions,
   useRecords,
   useRecordsState
@@ -52,6 +53,30 @@ describe('useRecords', () => {
     const forged: RecordsInstance<TestShow> = handBuilt
     expect(Object.getOwnPropertySymbols(records)).toHaveLength(1)
     expect(Object.getOwnPropertySymbols(forged)).toHaveLength(0)
+  })
+
+  it('lets an app enter and leave Select mode, but not read it', async () => {
+    expectTypeOf<
+      RecordsInstance['setSelecting']
+    >().toEqualTypeOf<RecordsSetSelecting>()
+    expectTypeOf<RecordsSetSelecting>().toEqualTypeOf<
+      (value: boolean) => void
+    >()
+    // Whether it shows depends on the layout, which only the parts know.
+    expectTypeOf<RecordsInstance>().not.toHaveProperty('selecting')
+    const { result } = renderHook(() =>
+      useRecords({
+        data: shows,
+        fields: showFields,
+        getRowId: (row) => row.id,
+        selectable: true
+      })
+    )
+    await act(() => result.current.setSelecting(true))
+    await act(() => result.current.toggleRow('show-1'))
+    expect(result.current.selectedCount).toBe(1)
+    await act(() => result.current.setSelecting(false))
+    expect(result.current.selectedCount).toBe(0)
   })
 
   it('pages rows 50 at a time', () => {

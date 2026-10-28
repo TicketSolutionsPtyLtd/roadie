@@ -60,10 +60,11 @@ describe('Records.Status', () => {
     expect(status()).toHaveTextContent('24 results')
   })
 
-  it('says when Select mode starts', () => {
+  // RecordsSelectMode.test.tsx covers the announcement where Select mode shows.
+  it('keeps quiet about Select mode where no layout selects through it', () => {
     render(<Shows selectable />)
     act(() => holder.records!.setSelecting(true))
-    expect(status()).toHaveTextContent('Select mode, 0 selected')
+    expect(status()).not.toHaveTextContent('Select mode')
   })
 
   it('waits for a server search to load before announcing its count', () => {

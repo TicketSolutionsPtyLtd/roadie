@@ -18,7 +18,7 @@ import {
   useRecordsContext
 } from './context'
 import type { AnyRecordLayout } from './layouts'
-import { leaveSelectOnEscape } from './selectMode'
+import { useLeaveSelectOnEscape } from './selectMode'
 import { matchKey } from './selection'
 import type { RecordsInstance, RecordsState } from './useRecords'
 
@@ -122,8 +122,8 @@ function RecordsRootElement({
   onKeyDown,
   ...props
 }: ComponentProps<'div'>) {
-  const { records, contentFill } = useRecordsContext()
-  const leaveSelect = leaveSelectOnEscape(records)
+  const { contentFill } = useRecordsContext()
+  const leaveSelect = useLeaveSelectOnEscape()
   return (
     <div
       data-slot='records'

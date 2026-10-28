@@ -1473,6 +1473,8 @@ render(
 )
 ```
 
+To start Select mode from your own control, such as a Select orders item in a phone's More menu, call `setSelecting(true)` on what `useRecords` returns. `setSelecting(false)` leaves and clears the selection, as Done does. Records that aren't `selectable` never enter it. A wide table already has a checkbox per record, so there the mode waits and shows once the table narrows.
+
 ## Guidelines
 
 <Guidelines>
@@ -1735,6 +1737,7 @@ Holds the view, position, and selection, and searches, filters, sorts, and pages
 | `selectPage` | `(value: boolean) => void` | Picks or drops every record on the page. |
 | `selectAllMatching` | `() => void` | Picks every record the search and filters match. |
 | `clearSelection` | `() => void` | Drops the selection. |
+| `setSelecting` | `(value: boolean) => void` | Enters or leaves Select mode, where a tap selects a record rather than opening it. Leaving clears the selection. Records that aren't `selectable` never enter it. |
 | `loading` | `boolean` | Whether a load is under way. |
 | `error` | `boolean \| string` | Whether the load failed, or its message. |
 | `onRetry` | `(() => void) \| undefined` | Loads again. |

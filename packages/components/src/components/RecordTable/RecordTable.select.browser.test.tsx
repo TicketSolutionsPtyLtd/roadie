@@ -1,11 +1,14 @@
+import { useState } from 'react'
+
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
-import { RecordTable } from '.'
+import { RecordTable, tableLayout } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Menu } from '../Menu'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
+import { Records, useRecords } from '../Records'
 import { showFields, testShows } from '../Records/testUtils'
 import { ALL, WIDE_BOX, frame, rect, slot, wideColumns } from './testUtils'
 
@@ -272,5 +275,44 @@ describe('RecordTable Select mode on narrow rows in a browser', () => {
     expect(
       within(bar).getByRole('button', { name: 'Export orders' })
     ).toBeVisible()
+  })
+})
+
+describe('RecordTable Select mode from an app control in a browser', () => {
+  it('waits on a wide table and shows once the table narrows', async () => {
+    const layouts = [tableLayout(narrowColumns)]
+    function AppMenu() {
+      const [width, setWidth] = useState(WIDE_BOX)
+      const records = useRecords({
+        data: testShows(8),
+        fields: showFields,
+        getRowId: (row) => row.id,
+        selectable: true
+      })
+      return (
+        <>
+          <button type='button' onClick={() => records.setSelecting(true)}>
+            Select shows
+          </button>
+          <button type='button' onClick={() => setWidth(360)}>
+            Narrow
+          </button>
+          <div style={{ width }}>
+            <Records.Root records={records} layouts={layouts} caption='Shows'>
+              <Records.Header />
+              <Records.Content />
+            </Records.Root>
+          </div>
+        </>
+      )
+    }
+    const { container } = render(<AppMenu />)
+    await userEvent.click(screen.getByRole('button', { name: 'Select shows' }))
+    expect(screen.getByRole('table', { name: 'Shows' })).toBeVisible()
+    expect(screen.queryByRole('group', { name: 'Select mode' })).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Narrow' }))
+    await expect.poll(() => listRows(container).length).toBe(8)
+    expect(screen.getByRole('group', { name: 'Select mode' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Done' })).toBeVisible()
   })
 })

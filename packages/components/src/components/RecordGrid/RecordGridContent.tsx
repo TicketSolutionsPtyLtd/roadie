@@ -33,7 +33,7 @@ import {
   useRangeWindow,
   useRowWindow
 } from '../Records/rowWindow'
-import { leaveSelectOnEscape } from '../Records/selectMode'
+import { useLeaveSelectOnEscape } from '../Records/selectMode'
 import { useStickyTop } from '../Records/stickyTop'
 import { useKeepFocusInTable } from '../Records/tableFocus'
 import type {
@@ -83,6 +83,7 @@ export function RecordGridContent({
   config
 }: RecordGridContentProps) {
   const { records, caption, toolbar, setContentFill } = useRecordsContext()
+  const leaveSelect = useLeaveSelectOnEscape()
   const rowsSurvivor = useSurvivor('rows')
   const frameRef = useRef<HTMLDivElement>(null)
   const boxed = fill || Boolean(maxHeight)
@@ -183,7 +184,7 @@ export function RecordGridContent({
       ref={frameRef}
       data-slot='record-grid'
       data-records-content=''
-      onKeyDown={leaveSelectOnEscape(records)}
+      onKeyDown={leaveSelect}
       // In a box, it fills the box, so a state can centre in what's left.
       className={cn('w-full', boxed ? 'flex min-h-full flex-col' : className)}
     >

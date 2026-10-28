@@ -26,7 +26,7 @@ import { useRecordsContext } from '../Records/context'
 import type { RecordsContentProps } from '../Records/layouts'
 import { useNarrow } from '../Records/narrow'
 import { VIRTUALISE_AFTER } from '../Records/recordsWindow'
-import { leaveSelectOnEscape } from '../Records/selectMode'
+import { useLeaveSelectOnEscape } from '../Records/selectMode'
 import { pageState } from '../Records/selection'
 import { firstDirection } from '../Records/sortOptions'
 import { useStickyTop } from '../Records/stickyTop'
@@ -131,6 +131,7 @@ export function RecordTableContent({
     bulkMounted,
     setBulkSlot
   } = useRecordsContext()
+  const leaveSelect = useLeaveSelectOnEscape()
   const rowsSurvivor = useSurvivor('rows')
   const frameRef = useRef<HTMLDivElement>(null)
   const headRef = useRef<HTMLDivElement>(null)
@@ -386,7 +387,7 @@ export function RecordTableContent({
       data-slot='record-table-frame'
       data-records-content=''
       data-narrow={narrow ? '' : undefined}
-      onKeyDown={leaveSelectOnEscape(records)}
+      onKeyDown={leaveSelect}
       // In a box, the viewport is the region: it holds the focus.
       role={boxed || narrow ? undefined : 'region'}
       aria-label={

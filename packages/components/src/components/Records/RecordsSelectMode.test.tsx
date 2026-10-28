@@ -198,6 +198,50 @@ describe('Records Select mode', () => {
   })
 })
 
+describe('Records Select mode from an app menu', () => {
+  function Menu({ selectable }: { selectable: boolean }) {
+    const records = useRecords({
+      data: testShows(12),
+      fields: showFields,
+      getRowId: (row) => row.id,
+      selectable,
+      defaultView: { layout: { type: 'grid' } }
+    })
+    return (
+      <>
+        <button type='button' onClick={() => records.setSelecting(true)}>
+          Select shows
+        </button>
+        <Records.Root records={records} layouts={layouts}>
+          <Records.Header />
+          <Records.Content />
+          <Records.Status />
+        </Records.Root>
+      </>
+    )
+  }
+
+  it('enters Select mode from a control outside the records', async () => {
+    const user = userEvent.setup()
+    render(<Menu selectable />)
+    await user.click(screen.getByRole('button', { name: 'Select shows' }))
+    expect(screen.getByRole('group', { name: 'Select mode' })).toBeVisible()
+    expect(toggle()).toHaveTextContent('Done')
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Select mode, 0 selected'
+    )
+  })
+
+  it('stays out of Select mode when records are not selectable', async () => {
+    const user = userEvent.setup()
+    render(<Menu selectable={false} />)
+    await user.click(screen.getByRole('button', { name: 'Select shows' }))
+    expect(screen.queryByRole('group', { name: 'Select mode' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Done' })).toBeNull()
+    expect(screen.getByRole('status')).not.toHaveTextContent('Select mode')
+  })
+})
+
 describe('Records floating bulk actions', () => {
   it('keeps focus with the records after clearing under a Provider', async () => {
     const user = userEvent.setup()

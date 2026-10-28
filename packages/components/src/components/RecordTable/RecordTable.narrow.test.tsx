@@ -1,10 +1,12 @@
 import { useRef } from 'react'
 
 import { render, screen } from '@testing-library/react'
+import { userEvent } from '@testing-library/user-event'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import { RecordTable, tableColumns } from '.'
+import { RecordTable, tableColumns, tableLayout } from '.'
+import { Records, useRecords } from '../Records'
 import { useNarrow } from '../Records/narrow'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 
@@ -41,5 +43,51 @@ describe('RecordTable Select mode', () => {
     )
     expect(screen.getByRole('table', { name: 'Shows' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Select' })).toBeNull()
+  })
+
+  it('keeps the selection and stays quiet when an app enters Select mode on a wide table', async () => {
+    const user = userEvent.setup()
+    const layouts = [
+      tableLayout([
+        column.field('show', { pin: true, narrow: 'title' }),
+        column.field('city', { narrow: 'description' })
+      ])
+    ]
+    function Menu() {
+      const records = useRecords({
+        data: testShows(6),
+        fields: showFields,
+        getRowId: (row) => row.id,
+        selectable: true
+      })
+      return (
+        <>
+          <button type='button' onClick={() => records.setSelecting(true)}>
+            Select shows
+          </button>
+          <Records.Root records={records} layouts={layouts} caption='Shows'>
+            <Records.Header />
+            <Records.Content />
+            <Records.Status />
+          </Records.Root>
+        </>
+      )
+    }
+    render(<Menu />)
+    await user.click(screen.getByRole('button', { name: 'Select shows' }))
+    expect(screen.getByRole('status')).not.toHaveTextContent('Select mode')
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    )
+    screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' }).focus()
+    await user.keyboard('{Escape}')
+    expect(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    ).toBeChecked()
+    screen.getByRole('combobox', { name: 'Search and filter' }).focus()
+    await user.keyboard('{Escape}')
+    expect(
+      screen.getByRole('checkbox', { name: 'Select Ocean Alley 1' })
+    ).toBeChecked()
   })
 })

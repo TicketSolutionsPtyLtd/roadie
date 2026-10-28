@@ -263,7 +263,16 @@ export type RecordsInstance<Row extends object = object> = Pick<
   | 'onRetry'
   | 'timeZone'
   | 'now'
->
+> & { setSelecting: RecordsSetSelecting }
+
+/**
+ * Enters or leaves Select mode, where a tap selects a record rather than
+ * opening it, such as from a Select item in an app's own menu. Leaving clears
+ * the selection. Records that aren't `selectable` never enter it. A wide
+ * table, which has a checkbox per record, shows Select mode once the table
+ * narrows.
+ */
+export type RecordsSetSelecting = (value: boolean) => void
 
 const RECORD: RecordName = { one: 'record', other: 'records' }
 const PAGE_SIZE = 50
