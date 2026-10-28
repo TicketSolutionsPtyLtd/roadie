@@ -1,4 +1,4 @@
-import { formatMachine, resolveDateRange } from '@oztix/roadie-core/datetime'
+import { formatMachine, zonedInstant } from '@oztix/roadie-core/datetime'
 
 export type DateTimeParts = { date: string | null; time: string | null }
 
@@ -43,14 +43,11 @@ export function joinValue(
 ): string | null {
   if (granularity === 'day') return date
   if (!date || !time) return null
-  const wallClock = `${date}T${time}`
-  const range = resolveDateRange(
-    { start: wallClock, end: wallClock },
-    { now: new Date(0), timeZone }
-  )
-  if (range.kind !== 'instants' || range.start === null) return null
-  return formatMachine(new Date(range.start), {
-    timeZone,
-    timeStyle: 'numeric'
-  })
+  let instant: Date
+  try {
+    instant = zonedInstant(`${date}T${time}`, timeZone)
+  } catch {
+    return null
+  }
+  return formatMachine(instant, { timeZone, timeStyle: 'numeric' })
 }

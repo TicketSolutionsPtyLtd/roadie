@@ -284,6 +284,39 @@ describe('resolveDateRange: instants', () => {
     }
   )
 
+  // 2am to 3am doesn't exist in Sydney on 4 Oct 2026; the clocks jump at
+  // 16:00Z, and an end in the gap reads as the jump, as a records bound does.
+  it.each([
+    [
+      'a start in the gap, from the jump',
+      '2026-10-04T02:30',
+      '2026-10-04T04:00',
+      '2026-10-03T16:00:00Z',
+      '2026-10-03T17:00:00Z'
+    ],
+    [
+      'an end in the gap, at the jump',
+      '2026-10-04T01:30',
+      '2026-10-04T02:30',
+      '2026-10-03T15:30:00Z',
+      '2026-10-03T16:00:00Z'
+    ],
+    [
+      'a range that runs on the clock to the end of the gap',
+      '2026-10-04T02:59',
+      '2026-10-04T03:00',
+      '2026-10-03T16:00:00Z',
+      '2026-10-03T16:00:00Z'
+    ]
+  ])('reads %s', (_, start, end, from, to) => {
+    expect(
+      resolveDateRange(
+        { start, end },
+        { now: FRIDAY, timeZone: 'Australia/Sydney' }
+      )
+    ).toEqual(instants(from, to))
+  })
+
   it('reads the Lord Howe autumn changeover, a half hour back', () => {
     expect(
       resolveDateRange(
@@ -505,14 +538,23 @@ describe('resolveComparison', () => {
     expect((range!.end as number) - (range!.start as number)).toBe(20 * 60_000)
   })
 
-  it('keeps a previous-year window open across a skipped hour', () => {
-    const { range } = resolveComparison(
-      { start: '2027-10-04T02:30', end: '2027-10-04T03:30' },
-      'previous-year',
-      SYDNEY
-    )
-    expect((range!.end as number) - (range!.start as number)).toBe(3_600_000)
-  })
+  // 2am to 3am didn't exist in Sydney on 4 Oct 2026; a year-earlier start in
+  // the gap reads as the jump at 16:00Z, as resolveDateRange reads it.
+  it.each([
+    ['2027-10-04T03:30', '2026-10-03T16:30:00Z'],
+    ['2027-10-04T05:00', '2026-10-03T18:00:00Z']
+  ])(
+    'starts a previous-year window in a skipped hour at the jump, to %s',
+    (end, to) => {
+      expect(
+        resolveComparison(
+          { start: '2027-10-04T02:30', end },
+          'previous-year',
+          SYDNEY
+        )
+      ).toEqual(available(instants('2026-10-03T16:00:00Z', to)))
+    }
+  )
 
   it('has nothing to compare an open-ended range against', () => {
     const none = { status: 'unavailable', range: null }

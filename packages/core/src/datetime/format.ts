@@ -1,9 +1,9 @@
 /**
  * Roadie's date and time vocabulary. See /foundations/date-and-time.
  *
- * `dateStyle` and `timeStyle` are orthogonal and either may be omitted, as in
- * `Intl.DateTimeFormat`. Strings are assembled from Intl parts rather than a
- * locale pattern: the locale supplies the words, the rules supply the shape.
+ * `dateStyle` defaults to `long`; `timeStyle` may be omitted. Strings are
+ * assembled from Intl parts rather than a locale pattern: the locale supplies
+ * the words, the rules supply the shape.
  */
 
 export type DateContext = 'standalone' | 'list'
