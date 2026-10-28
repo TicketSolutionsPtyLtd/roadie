@@ -65,7 +65,6 @@ export function RecordsSelect({ className }: RecordsSelectProps) {
       <Button
         ref={toggleRef}
         {...survivor}
-        className='transition-[scale]!'
         onClick={() => records.setSelecting(!selecting)}
       >
         {selecting ? 'Done' : 'Select'}

@@ -704,6 +704,19 @@ describe('RecordTable Select mode in a browser', () => {
     ).toBeInTheDocument()
   })
 
+  it('fades and presses Done like Select all, as one row of buttons', async () => {
+    const user = userEvent.setup()
+    inBox(<RecordTable {...selectSix} />)
+    await enterSelect(user)
+    const bar = screen.getByRole('group', { name: 'Select mode' })
+    const transition = (name: string) =>
+      getComputedStyle(within(bar).getByRole('button', { name }))
+        .transitionProperty
+    expect(transition('Done')).toContain('background-color')
+    expect(transition('Done')).toContain('transform')
+    expect(transition('Done')).toBe(transition('Select all'))
+  })
+
   it('floats the bulk actions, with each Select mode control once', async () => {
     const user = userEvent.setup()
     inBox(
