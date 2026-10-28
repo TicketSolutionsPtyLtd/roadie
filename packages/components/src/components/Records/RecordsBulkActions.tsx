@@ -25,7 +25,7 @@ import { useBulkActions } from './useBulkActions'
 
 let warnedUnselectable = false
 
-// Tailwind's md container, in rem: below it actions show their icons only.
+// Tailwind's md container, in rem: below it several actions show their icons only.
 const COMPACT_BELOW = 28
 const MORE = 'More actions'
 // The bar's inset from the records' edges, each side, in px.
@@ -237,6 +237,8 @@ function FloatingBulkBar({
     }
   }, [])
 
+  // A lone action has room for its word, and a lone icon is hard to read.
+  const iconOnly = compact && actions.length > 1
   const labels = actions.map((action) => action.label).join('\n')
   // A layout effect's own update lands before paint.
   useLayoutEffect(() => {
@@ -260,12 +262,12 @@ function FloatingBulkBar({
             'aria-busy': running === index || undefined,
             onClick: () => start(index)
           })}
-      // Icon-only on narrow records, sized like an IconButton.
-      className={action.icon && compact ? 'size-8 min-w-8 px-0' : undefined}
+      // Sized like an IconButton.
+      className={action.icon && iconOnly ? 'size-8 min-w-8 px-0' : undefined}
     >
       {action.icon}
       {action.icon ? (
-        <span className={compact ? 'sr-only' : undefined}>{action.label}</span>
+        <span className={iconOnly ? 'sr-only' : undefined}>{action.label}</span>
       ) : (
         action.label
       )}

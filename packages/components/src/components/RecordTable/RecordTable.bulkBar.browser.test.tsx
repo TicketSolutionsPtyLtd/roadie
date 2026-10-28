@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 
+import { ArchiveIcon, ScalesIcon } from '@phosphor-icons/react'
 import { act, cleanup, render, screen, within } from '@testing-library/react'
 import {
   afterAll,
@@ -334,5 +335,54 @@ describe('RecordTable selection bar', () => {
     expect(document.activeElement).toBe(
       screen.getByRole('checkbox', { name: 'Select page' })
     )
+  })
+})
+
+describe('RecordTable floating bulk bar on narrow records', () => {
+  const compare: RecordsBulkAction = {
+    label: 'Compare',
+    icon: <ScalesIcon weight='bold' className='size-4' aria-hidden />,
+    onAction: () => {}
+  }
+  const archive: RecordsBulkAction = {
+    label: 'Archive',
+    icon: <ArchiveIcon weight='bold' className='size-4' aria-hidden />,
+    onAction: () => {}
+  }
+  function Narrow({ bulkActions }: { bulkActions: RecordsBulkAction[] }) {
+    return (
+      <div style={{ width: 360 }}>
+        <RecordTable
+          caption='Shows'
+          data={testShows(8)}
+          fields={showFields}
+          columns={wideColumns}
+          getRowId={(row) => row.id}
+          defaultSelection={{ ids: ['show-0'] }}
+          bulkActions={bulkActions}
+        />
+      </div>
+    )
+  }
+  const floating = () => screen.getByRole('group', { name: 'Bulk actions' })
+  const action = (name: string) =>
+    within(floating()).getByRole('button', { name })
+  const shownLabel = (name: string) =>
+    rect(within(action(name)).getByText(name)).width
+
+  it('shows the label of a lone icon action', async () => {
+    render(<Narrow bulkActions={[compare]} />)
+    await frame()
+    await frame()
+    expect(shownLabel('Compare')).toBeGreaterThan(20)
+  })
+
+  it('shows only the icons of several actions, still named', async () => {
+    render(<Narrow bulkActions={[compare, archive]} />)
+    await frame()
+    await frame()
+    const button = rect(action('Compare'))
+    expect(button.width).toBeCloseTo(button.height, 0)
+    expect(shownLabel('Compare')).toBeLessThanOrEqual(1)
   })
 })
