@@ -1461,10 +1461,11 @@ describe('QueryField operators', () => {
     expect(pressed()).toEqual(['is'])
     expect(document.activeElement).toBe(input())
     await userEvent.tab({ shift: true })
-    expect(pressed()).toEqual(['is'])
     expect(document.activeElement).toBe(
       screen.getByRole('button', { name: 'Before' })
     )
+    // The operators close with the list as focus leaves, so read the chip.
+    expect(input()).toHaveAccessibleDescription('Venue is')
   })
 
   it('reads the new operator through the pending chip it describes the input with', async () => {
