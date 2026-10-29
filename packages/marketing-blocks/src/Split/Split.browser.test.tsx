@@ -102,6 +102,15 @@ describe('Split layout', () => {
     expect(isAbove(lockup(), heading())).toBe(true)
   })
 
+  it('crops a sized feature-row photo to 8 by 5', async () => {
+    await renderAt(DESKTOP, PRESETS['feature-row'])
+
+    const { width, height } = box(
+      screen.getByRole('img', { name: /team members/ })
+    )
+    expect(width / height).toBeCloseTo(8 / 5, 1)
+  })
+
   it('gives a feature-row with no image the whole panel for its text', async () => {
     const { container } = await renderAt(DESKTOP, {
       ...PRESETS['feature-row'],
