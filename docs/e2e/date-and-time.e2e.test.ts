@@ -98,6 +98,7 @@ describe('Date and time foundation', () => {
       ['Table column, date identifies the row', '27 Nov 2026'],
       ['Table column, weekday is a variable', 'Fri 27 Nov 2026'],
       ['Table column, with time', '27 Nov 2026 19:30'],
+      ['Table column, time under the date', '27 Nov 2026 and 19:30'],
       ['Export cell', '2026-11-27 19:30']
     ])
     expect(await rowsOf(page, 'machine-value-reads')).toEqual([
