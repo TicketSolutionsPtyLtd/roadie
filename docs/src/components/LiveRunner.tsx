@@ -107,6 +107,7 @@ import {
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { Editor, useEditorContext } from '@oztix/roadie-editor/editor'
 import { renderEditorValue } from '@oztix/roadie-editor/render'
+import { MarketingBlocksProvider } from '@oztix/roadie-marketing-blocks/provider'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
@@ -220,6 +221,7 @@ const scope = {
   Editor,
   useEditorContext,
   renderEditorValue,
+  MarketingBlocksProvider,
   LegendKey,
   lineChartTable,
   addDays,

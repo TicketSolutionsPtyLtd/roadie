@@ -74,6 +74,11 @@ export const CHARTS: Catalogue = {
   ]
 }
 
+export const BLOCKS: Catalogue = {
+  route: '/blocks',
+  categories: ['Openers', 'Content', 'Proof', 'Actions']
+}
+
 export const WIDGETS: Catalogue = { route: '/roadie-widgets', categories: [] }
 
 export const BRAND: Catalogue = { route: '/brand', categories: ['Brand'] }
@@ -85,6 +90,7 @@ const CATALOGUES = [
   CONTENT,
   TOKENS,
   CHARTS,
+  BLOCKS,
   WIDGETS
 ]
 
@@ -94,7 +100,8 @@ export const CATALOGUE_PAGES = {
   foundations: FOUNDATIONS,
   content: CONTENT,
   components: COMPONENTS,
-  charts: CHARTS
+  charts: CHARTS,
+  blocks: BLOCKS
 }
 
 const APP_DIR = join(process.cwd(), 'src/app')

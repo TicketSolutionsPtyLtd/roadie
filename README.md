@@ -4,15 +4,16 @@ A design system for Oztix's applications, built on Tailwind CSS v4 with semantic
 
 ## Packages
 
-| Package                                           | Description                                                                            |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| [`@oztix/roadie-core`](packages/core)             | CSS foundation: tokens, intents, emphasis, elevation, typography, interactions, motion |
-| [`@oztix/roadie-components`](packages/components) | React components built on Base UI                                                      |
-| [`@oztix/roadie-charts`](packages/charts)         | Chart types, chart cards and dashboards                                                |
-| [`@oztix/roadie-editor`](packages/editor)         | Rich-text editor on Tiptap, and its saved format                                       |
-| [`@oztix/roadie-widgets`](packages/widgets)       | Shared widgets with React and Vue skins, such as the cart drawer                       |
-| [`docs`](docs)                                    | Documentation site: Next.js with live code examples                                    |
-| [`skills`](skills)                                | Claude Code plugin with Roadie skills, such as `/roadie:audit`                         |
+| Package                                                       | Description                                                                            |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [`@oztix/roadie-core`](packages/core)                         | CSS foundation: tokens, intents, emphasis, elevation, typography, interactions, motion |
+| [`@oztix/roadie-components`](packages/components)             | React components built on Base UI                                                      |
+| [`@oztix/roadie-charts`](packages/charts)                     | Chart types, chart cards and dashboards                                                |
+| [`@oztix/roadie-editor`](packages/editor)                     | Rich-text editor on Tiptap, and its saved format                                       |
+| [`@oztix/roadie-marketing-blocks`](packages/marketing-blocks) | Page sections for marketing sites, with presets and tracking                           |
+| [`@oztix/roadie-widgets`](packages/widgets)                   | Shared widgets with React and Vue skins, such as the cart drawer                       |
+| [`docs`](docs)                                                | Documentation site: Next.js with live code examples                                    |
+| [`skills`](skills)                                            | Claude Code plugin with Roadie skills, such as `/roadie:audit`                         |
 
 ## Quick start
 

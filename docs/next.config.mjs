@@ -28,6 +28,7 @@ const nextConfig = {
     '@oztix/roadie-components',
     '@oztix/roadie-core',
     '@oztix/roadie-editor',
+    '@oztix/roadie-marketing-blocks',
     '@oztix/roadie-widgets'
   ]
 }

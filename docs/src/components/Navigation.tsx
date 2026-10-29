@@ -22,6 +22,7 @@ import {
   PaintBrushIcon,
   PaletteIcon,
   PencilLineIcon,
+  RowsIcon,
   SparkleIcon,
   SquaresFourIcon
 } from '@phosphor-icons/react'
@@ -95,6 +96,7 @@ const DESTINATION_ICONS: Record<string, ReactNode> = {
   '/tokens': <PaletteIcon />,
   '/components': <CubeIcon />,
   '/charts': <ChartLineIcon />,
+  '/blocks': <RowsIcon />,
   '/roadie-widgets': <SquaresFourIcon />
 }
 /* eslint-enable roadie/phosphor-icon-weight */

@@ -9,7 +9,7 @@ export type ExportTarget = string | { [condition: string]: string }
 export type Entry = {
   subpath: string
   target: string
-  kind: 'js' | 'css' | 'json'
+  kind: 'js' | 'css' | 'json' | 'asset'
   source?: string
 }
 
@@ -48,6 +48,8 @@ export function exportEntries(
     const target = targetOf(value)
     if (target.endsWith('.css')) return { subpath, target, kind: 'css' }
     if (target.endsWith('.json')) return { subpath, target, kind: 'json' }
+    // Files shipped as they are, such as images, have no API to read.
+    if (!target.startsWith('./dist/')) return { subpath, target, kind: 'asset' }
     return {
       subpath,
       target,

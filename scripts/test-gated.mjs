@@ -16,6 +16,7 @@ const PACKAGES = [
   'components',
   'charts',
   'editor',
+  'marketing-blocks',
   'widgets',
   'lint-plugin',
   'docs'

@@ -1,0 +1,114 @@
+export const metadata = {
+  title: 'Blocks',
+  description:
+    'Designed page sections that marketing composes into pages, from any CMS',
+  status: 'alpha'
+}
+
+import { CatalogueIndex } from '@/components/CatalogueIndex'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Designed page sections that marketing composes into pages, from any CMS.
+
+<CatalogueIndex name='blocks' />
+
+## Setup
+
+Blocks ship from `@oztix/roadie-marketing-blocks`, one subpath per block.
+Import its stylesheet after the components' stylesheet:
+
+```css
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-marketing-blocks/css';
+```
+
+Blocks take plain props, such as strings, `{ src, alt }` images, and
+`{ label, href }` actions, so a CMS maps its content onto them. The package
+knows nothing about any CMS. Rich text arrives already rendered, as
+children or a `body`, and the block sets it in `Prose`.
+
+## Presets
+
+Every block has at most two variants, and editors pick a named `preset`
+rather than setting options. A preset fills in the variant, the surface, and
+the layout, so pages stay consistent however many marketing adds. A new look
+is a new preset, raised as a block request, not a prop.
+
+The first action in a block is the strong one and the rest are normal, so
+emphasis is never an option either.
+
+`@oztix/roadie-marketing-blocks/catalogue` lists every block, its presets,
+and each preset's thumbnail. It has no React, so a Studio config can build
+its block picker from it:
+
+```ts
+import { catalogue } from '@oztix/roadie-marketing-blocks/catalogue'
+
+for (const block of catalogue) {
+  console.log(block.import, block.presets.map((preset) => preset.name))
+}
+```
+
+## Thumbnails
+
+Each preset has a wireframe at
+`@oztix/roadie-marketing-blocks/thumbnails/<block>-<preset>.svg`, the file
+the catalogue names. Point the Studio's insert menu `previewImageUrl` at it.
+Wireframes read the Roadie colour variables when they're inline, and fall
+back to light-mode colours as an image.
+
+## Tracking
+
+Wrap the site in `MarketingBlocksProvider` and pass `onBlockEvent`. Every block
+reports a `view` once, when half of it is on screen, and a `click` for each
+link or button inside it. Each event names the block, its variant and preset,
+and its `position` on the page, and a click adds the control's label and href.
+
+```tsx
+'use client'
+
+import { MarketingBlocksProvider } from '@oztix/roadie-marketing-blocks/provider'
+import { usePostHog } from 'posthog-js/react'
+
+export function BlockTracking({ children }: { children: React.ReactNode }) {
+  const posthog = usePostHog()
+  return (
+    <MarketingBlocksProvider
+      onBlockEvent={({ action, ...properties }) =>
+        posthog?.capture(`website:block_${action}`, properties)
+      }
+    >
+      {children}
+    </MarketingBlocksProvider>
+  )
+}
+```
+
+Pass each block its `position`, counting from 1, as the page renders them.
+Blocks outside a provider render the same and report nothing.
+
+## Images
+
+Blocks draw images with Roadie's `Image`. To use `next/image` or a CMS's
+image URL builder instead, pass `renderImage`. It receives the image with the
+`sizes` the block's layout needs, and `priority` for an image above the fold.
+
+```tsx
+<MarketingBlocksProvider
+  renderImage={(image) => <NextImage {...image} />}
+>
+  {children}
+</MarketingBlocksProvider>
+```
+
+## Guidelines
+
+- **Answer first.** Open every block with a sentence that works as a direct
+  answer, such as what the service does, not why we care.
+- **Compose, don't style.** If a page needs a look no preset has, raise a
+  block request rather than reaching for `className`.
+- **One opener.** Only the first block on a page renders its title as the
+  page's `h1`.
+
+<PropsDefinitions component='MarketingBlocksProvider' />

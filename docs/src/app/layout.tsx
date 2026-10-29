@@ -9,6 +9,7 @@ import {
 } from '@/components/Navigation'
 import { Providers } from '@/components/Providers'
 import {
+  BLOCKS,
   BRAND,
   CHARTS,
   COMPONENTS,
@@ -99,6 +100,7 @@ async function getNavigationItems(): Promise<NavigationDestination[]> {
       searchable: true
     }),
     await catalogueDestination('Charts', CHARTS, { overview: true }),
+    await catalogueDestination('Blocks', BLOCKS, { overview: true }),
     {
       title: 'Widgets',
       href: WIDGETS.route,

@@ -16,6 +16,11 @@ export const RELEASED_PACKAGES = [
   { name: '@oztix/roadie-core', label: 'Core', dir: 'core' },
   { name: '@oztix/roadie-charts', label: 'Charts', dir: 'charts' },
   { name: '@oztix/roadie-editor', label: 'Editor', dir: 'editor' },
+  {
+    name: '@oztix/roadie-marketing-blocks',
+    label: 'Marketing blocks',
+    dir: 'marketing-blocks'
+  },
   { name: '@oztix/roadie-widgets', label: 'Widgets', dir: 'widgets' },
   {
     name: '@oztix/roadie-lint-plugin',
@@ -806,7 +811,7 @@ export type PageInfo = (
   route: string
 ) => { title: string; description?: string } | undefined
 
-const ART_ROUTE = /^\/(components|charts|foundations)\/[\w-]+$/
+const ART_ROUTE = /^\/(components|charts|blocks|foundations)\/[\w-]+$/
 
 const artOf = (href: string | undefined) => {
   const route = href?.split('#')[0]
@@ -822,6 +827,7 @@ const keysOf = (names: string[]) =>
 /** The page that introduces a package with no component page of its own. */
 export const PACKAGE_PAGES: Record<string, string> = {
   '@oztix/roadie-editor': '/components/editor',
+  '@oztix/roadie-marketing-blocks': '/blocks',
   '@oztix/roadie-lint-plugin': '/overview/linting'
 }
 
