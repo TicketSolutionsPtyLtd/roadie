@@ -51,7 +51,9 @@ function SlashMenuList({
   const current = shown[index]
   const optionId = (at: number) => `${listId}-${at}`
 
-  const insert = (item: EditorSlashItem) => item.run(editor, ui, match)
+  // Read at the key, since the last render can be a character behind.
+  const insert = (item: EditorSlashItem) =>
+    item.run(editor, ui, slashMatch(editor.state) ?? match)
   const close = () => editor.view.dispatch(closeSlashMenu(editor.state))
 
   useEffect(() => {

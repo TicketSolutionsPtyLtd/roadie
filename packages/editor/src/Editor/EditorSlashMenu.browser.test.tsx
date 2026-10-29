@@ -210,6 +210,17 @@ describe('Editor.SlashMenu', () => {
     expect(textbox).toHaveFocus()
   })
 
+  it('closes when the caret moves before the /', async () => {
+    render(blocks())
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    await listbox()
+    await userEvent.keyboard('{ArrowLeft}')
+
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+  })
+
   it('closes when focus leaves the editor', async () => {
     render(blocks())
     const textbox = await focusedTextbox()
