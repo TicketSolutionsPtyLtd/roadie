@@ -1,3 +1,4 @@
+import { expect } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 const MAC = /^(Mac|iP)/.test(navigator.platform)
@@ -31,12 +32,15 @@ export async function clickIntoEditor(target: Element) {
       : new Promise<void>((resolve) => {
           editor.addEventListener(
             'focus',
-            // Ordered after ProseMirror's own 20ms timer, not a guessed wait.
+            // Ordered after ProseMirror's own 20ms timer (prosemirror-view
+            // 1.42), not a guessed wait.
             // eslint-disable-next-line roadie/no-fixed-sleep
             () => setTimeout(resolve, 20),
             { once: true }
           )
         })
   await userEvent.click(target)
+  // A click that never focuses the editor fails here, not on a timeout.
+  await expect.poll(() => document.activeElement).toBe(editor)
   await synced
 }
