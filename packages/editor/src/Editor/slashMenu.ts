@@ -1,5 +1,10 @@
 import { Extension } from '@tiptap/core'
-import { type EditorState, Plugin, PluginKey } from '@tiptap/pm/state'
+import {
+  type EditorState,
+  Plugin,
+  PluginKey,
+  TextSelection
+} from '@tiptap/pm/state'
 
 /** The typed `/` and what follows it, which the slash menu filters by. */
 export type SlashMatch = {
@@ -95,9 +100,12 @@ export const SlashMenu = Extension.create<SlashMenuOptions>({
               $from.parent.type.name === 'paragraph' &&
               $from.parent.content.size === 0
             if (text !== '/' || !empty || !menu()) return false
+            // Typed straight after a click, the state can still hold the
+            // caret where it was, so it's put after the `/` here.
+            const tr = view.state.tr.insertText(text, from)
             view.dispatch(
-              view.state.tr
-                .insertText(text, from)
+              tr
+                .setSelection(TextSelection.create(tr.doc, from + 1))
                 .setMeta(slashMenuKey, $from.before())
             )
             return true

@@ -1,8 +1,10 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
+import { TextSelection } from '@tiptap/pm/state'
+import type { Editor as TiptapEditor } from '@tiptap/react'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
-import { Editor } from '.'
+import { Editor, useEditorContext } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, JSONContent } from '../schema'
 import { MOD } from './testUtils'
@@ -175,6 +177,44 @@ describe('Editor.SlashMenu', () => {
 
     await waitFor(() => expect(textbox).toHaveTextContent('/'))
     expect(screen.queryByRole('listbox')).toBe(null)
+  })
+
+  it('opens on a / typed before the editor has read where the click put the caret', async () => {
+    let editor: TiptapEditor | null = null
+    function Capture() {
+      editor = useEditorContext().editor
+      return null
+    }
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={valueOf(
+          'blocks',
+          { type: 'paragraph', content: [text('Doors 7pm')] },
+          { type: 'paragraph' }
+        )}
+      >
+        <Editor.Content />
+        <Editor.SlashMenu />
+        <Capture />
+      </Editor>
+    )
+    await focusedTextbox()
+    await waitFor(() => expect(editor).not.toBe(null))
+    const view = editor!.view
+    // The state still holds the caret in the first paragraph, while the
+    // browser types into the empty one after it.
+    view.dispatch(
+      view.state.tr.setSelection(TextSelection.create(view.state.doc, 1))
+    )
+    const empty = view.state.doc.child(0).nodeSize + 1
+    view.someProp('handleTextInput', (handle) =>
+      handle(view, empty, empty, '/', () =>
+        view.state.tr.insertText('/', empty)
+      )
+    )
+
+    expect(await listbox()).toBeVisible()
   })
 
   it('moves through the blocks with the arrow keys, wrapping at each end', async () => {
