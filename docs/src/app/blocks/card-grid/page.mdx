@@ -18,7 +18,7 @@ import { CardGrid } from '@oztix/roadie-marketing-blocks/card-grid'
 
 ## Examples
 
-Each preset takes the same `items`, and shows the parts of an item its look uses. Columns follow the block's own width, so a card grid in a narrow layout stacks as it would on a phone.
+Each preset takes the same `items`, and shows the parts of an item its look uses. Give an item an `href` and its title links to it, with the whole card to click. `actions` adds links under the cards. Columns follow the block's own width, so a card grid in a narrow layout stacks as it would on a phone.
 
 ### Features
 
@@ -88,6 +88,7 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
       image: { src: '/brand/photography/06.webp', alt: 'A panel of four speakers on stage at an industry talk', width: 1280, height: 854 }
     }
   ]}
+  actions={[{ label: 'See all our services', href: '#services' }]}
 />
 ```
 
@@ -105,6 +106,7 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
       subtitle: 'Festivals, tours, and concerts.',
       description: 'We sell millions of live music tickets each year.',
       illustration: 'NoteMusic',
+      href: '#live-music',
       image: { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 }
     },
     {
@@ -112,6 +114,7 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
       subtitle: 'Hospitality, performance, and outdoors.',
       description: 'From intimate rooms to major outdoor complexes.',
       illustration: 'MapPin',
+      href: '#venues',
       image: { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun', width: 1280, height: 854 }
     },
     {
@@ -119,17 +122,74 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
       subtitle: 'Competition, motorsports, and racing.',
       description: 'From grassroots clubs to elite codes.',
       illustration: 'Football',
+      href: '#sports',
       image: { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd', width: 1280, height: 854 }
     }
   ]}
 />
 ```
 
-### Values
+### Steps
 
-```tsx-live-expand id=values
+```tsx-live-expand id=steps
 <CardGrid
-  preset='values'
+  preset='steps'
+  title='Make sure your show is seen'
+  description='There’s mostly nothing to do. To make sure your event shows up against the right artist:'
+  items={[
+    {
+      title: 'Name the artist',
+      description: 'Put the artist’s name in the event title, spelled the same way every time. That’s how the act gets matched.',
+      illustration: 'NoteMusic'
+    },
+    {
+      title: 'Check the essentials',
+      description: 'Fill in the artist name, start time, venue, and event name.',
+      illustration: 'Ticket'
+    },
+    {
+      title: 'List tributes as tributes',
+      description: 'Running a tribute show? Don’t list it as the original artist, so it reaches the right fans.',
+      illustration: 'Heart'
+    }
+  ]}
+/>
+```
+
+### Links
+
+```tsx-live-expand id=links
+<CardGrid
+  preset='links'
+  title='How can we help?'
+  items={[
+    {
+      title: 'New clients',
+      description: 'Looking at ticketing for your venue or event? Chat to us about what you need.',
+      illustration: 'Hand',
+      href: '#sales'
+    },
+    {
+      title: 'Existing clients',
+      description: 'Need help with your venue or event? Our client support team is here.',
+      illustration: 'MapPin',
+      href: '#client-support'
+    },
+    {
+      title: 'Ticket buyers',
+      description: 'Can’t find the answer in our FAQs? Contact our ticket buyer support team.',
+      illustration: 'Ticket',
+      href: '#ticket-buyer-support'
+    }
+  ]}
+/>
+```
+
+### Alternating rows
+
+```tsx-live-expand id=alternating-rows
+<CardGrid
+  preset='alternating-rows'
   title='Our values'
   description='Five principles shape how we partner with you.'
   items={[
@@ -155,11 +215,11 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 />
 ```
 
-### Team
+### Portraits
 
-```tsx-live-expand id=team
+```tsx-live-expand id=portraits
 <CardGrid
-  preset='team'
+  preset='portraits'
   title='Leadership you can count on'
   items={[
     { title: 'Mia Tran', subtitle: 'Head of Partnerships', image: { src: '/brand/photography/05.webp', alt: '', width: 1280, height: 854 } },
@@ -192,8 +252,10 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 | `features`   | Three benefits of one offer, each with a photo and an illustration                     |
 | `services`   | Up to four services or pillars, each with a short subtitle                             |
 | `industries` | Who a page is for, in multiples of three, each with a photo and a line of examples     |
-| `values`     | A few statements that need a sentence or two each, such as values or principles        |
-| `team`       | People, by name and role, with a square photo each                                     |
+| `steps`      | How something works, in three or four numbered steps                                   |
+| `links`      | Places to go next, such as contact options, each card a link                           |
+| `alternating-rows` | A few statements that need a sentence or two each, such as values or the steps of a story |
+| `portraits`  | People, such as the team, speakers, or artists, by name and role with a square photo   |
 | `lists`      | Two to four short lists that need no images, such as policies or certifications        |
 
 <Guidelines>
@@ -220,6 +282,6 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 
 ## Tracking
 
-Card grid reports a `view` once half of it is on screen. Its cards hold no links, so it reports no clicks.
+Card grid reports a `view` once half of it is on screen, and a `click` on a card or an action, labelled with the card's title or the action's label.
 
 <PropsDefinitions component='CardGrid' />

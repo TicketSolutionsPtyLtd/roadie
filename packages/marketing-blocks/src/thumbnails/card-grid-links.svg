@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" width="240" height="160" fill="none">
+  <rect x="0" y="0" width="240" height="160" rx="8" style="fill: var(--color-neutral-1, #f5f8fb)" />
+  <rect x="76" y="18" width="88" height="8" rx="2" style="fill: var(--color-neutral-11, #3b4b5b)" />
+  <rect x="92" y="31" width="56" height="4" rx="2" style="fill: var(--color-neutral-7, #a9b8c7)" />
+  <rect x="20" y="52" width="62" height="80" rx="6" style="fill: var(--color-neutral-3, #e8eef4)" />
+  <rect x="28" y="60" width="14" height="14" rx="7" style="fill: var(--color-neutral-5, #d7e2ed)" />
+  <rect x="28" y="82" width="40" height="6" rx="1" style="fill: var(--color-neutral-11, #3b4b5b)" />
+  <rect x="28" y="94" width="46" height="3" rx="2" style="fill: var(--color-neutral-7, #a9b8c7)" />
+  <rect x="28" y="101" width="40" height="3" rx="2" style="fill: var(--color-neutral-7, #a9b8c7)" />
+  <rect x="90" y="52" width="62" height="80" rx="6" style="fill: var(--color-neutral-3, #e8eef4)" />
+  <rect x="98" y="60" width="14" height="14" rx="7" style="fill: var(--color-neutral-5, #d7e2ed)" />
+  <rect x="98" y="82" width="40" height="6" rx="1" style="fill: var(--color-neutral-11, #3b4b5b)" />
+  <rect x="98" y="94" width="46" height="3" rx="2" style="fill: var(--color-neutral-7, #a9b8c7)" />
+  <rect x="98" y="101" width="40" height="3" rx="2" style="fill: var(--color-neutral-7, #a9b8c7)" />
+  <rect x="160" y="52" width="62" height="80" rx="6" style="fill: var(--color-neutral-3, #e8eef4)" />
+  <rect x="168" y="60" width="14" height="14" rx="7" style="fill: var(--color-neutral-5, #d7e2ed)" />
+  <rect x="168" y="82" width="40" height="6" rx="1" style="fill: var(--color-neutral-11, #3b4b5b)" />
+  <rect x="168" y="94" width="46" height="3" rx="2" style="fill: var(--color-neutral-7, #a9b8c7)" />
+  <rect x="168" y="101" width="40" height="3" rx="2" style="fill: var(--color-neutral-7, #a9b8c7)" />
+</svg>

@@ -55,8 +55,10 @@ describe('CardGrid columns', () => {
     ['features', 3, 3],
     ['services', 4, 4],
     ['industries', 6, 3],
-    ['team', 4, 4],
-    ['lists', 3, 3]
+    ['portraits', 4, 4],
+    ['lists', 3, 3],
+    ['steps', 4, 4],
+    ['links', 3, 3]
   ])(
     '%s stacks on a phone and fills its columns on a desktop',
     (preset, count, desktop) => {
@@ -113,7 +115,7 @@ describe('CardGrid features', () => {
   })
 })
 
-describe('CardGrid values', () => {
+describe('CardGrid alternating rows', () => {
   const sides = () =>
     cards().map((row) => {
       const text = within(row).getByRole('heading').getBoundingClientRect()
@@ -123,13 +125,13 @@ describe('CardGrid values', () => {
     })
 
   it('sets each image below its text on a phone', () => {
-    render(<Block preset='values' width={375} count={3} />)
+    render(<Block preset='alternating-rows' width={375} count={3} />)
 
     expect(sides()).toEqual(['below', 'below', 'below'])
   })
 
   it('alternates the image’s side on a desktop, starting on the left', () => {
-    render(<Block preset='values' width={1280} count={3} />)
+    render(<Block preset='alternating-rows' width={1280} count={3} />)
 
     expect(sides()).toEqual(['left', 'right', 'left'])
   })
@@ -138,7 +140,7 @@ describe('CardGrid values', () => {
     render(
       <div style={{ width: 1280 }}>
         <CardGrid
-          preset='values'
+          preset='alternating-rows'
           title='Our values'
           description={'We live our values in every event setup, every support call, and every challenge we solve together. '.repeat(
             3
@@ -166,8 +168,8 @@ describe('CardGrid images', () => {
     ['features', 1.78],
     ['services', 1.33],
     ['industries', 1],
-    ['values', 1],
-    ['team', 1]
+    ['alternating-rows', 1],
+    ['portraits', 1]
   ])('crops a sized 4:3 photo to the %s shape', (preset, shape) => {
     render(<Block preset={preset} width={1280} count={1} />)
 
@@ -185,17 +187,58 @@ describe('CardGrid spacing', () => {
     return Math.round(heading.top - section.top)
   }
 
-  it.each<CardGridPreset>(['services', 'industries', 'values', 'lists'])(
-    '%s leaves the space above it to the page',
-    (preset) => {
-      expect(gap(preset)).toBe(0)
-    }
-  )
+  it.each<CardGridPreset>([
+    'services',
+    'industries',
+    'steps',
+    'links',
+    'alternating-rows',
+    'lists'
+  ])('%s leaves the space above it to the page', (preset) => {
+    expect(gap(preset)).toBe(0)
+  })
 
-  it.each<CardGridPreset>(['features', 'team'])(
+  it.each<CardGridPreset>(['features', 'portraits'])(
     '%s pads its title inside its raised surface',
     (preset) => {
       expect(gap(preset)).toBeGreaterThan(0)
+    }
+  )
+})
+
+describe('CardGrid card links', () => {
+  it.each<CardGridPreset>([
+    'features',
+    'services',
+    'industries',
+    'alternating-rows',
+    'portraits',
+    'lists',
+    'steps',
+    'links'
+  ])(
+    'makes a linked %s card one hit area, from its image to its last line',
+    (preset) => {
+      render(
+        <div style={{ width: 1280 }}>
+          <CardGrid
+            preset={preset}
+            title='Section'
+            items={[{ ...items[0]!, href: '#live-music' }]}
+          />
+        </div>
+      )
+
+      const card = cards()[0]!
+      const link = screen.getByRole('link', { name: 'Live music' })
+      const { left, top, right, bottom } = card.getBoundingClientRect()
+      for (const [x, y] of [
+        // Inside the rounded corners, which clip the portrait card's hit area.
+        [left + 12, top + 12],
+        [right - 12, bottom - 12],
+        [(left + right) / 2, (top + bottom) / 2]
+      ] as const)
+        expect(link.contains(document.elementFromPoint(x, y))).toBe(true)
     }
   )
 })
@@ -206,7 +249,7 @@ describe('CardGrid views', () => {
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
         <CardGrid
-          preset='values'
+          preset='alternating-rows'
           position={4}
           title='Our values'
           items={items.slice(0, 1)}
@@ -220,7 +263,7 @@ describe('CardGrid views', () => {
           action: 'view',
           block: 'card-grid',
           variant: 'list',
-          preset: 'values',
+          preset: 'alternating-rows',
           position: 4
         }),
       { timeout: 2000 }
@@ -233,9 +276,11 @@ describe('CardGrid accessibility', () => {
     'features',
     'services',
     'industries',
-    'values',
-    'team',
-    'lists'
+    'alternating-rows',
+    'portraits',
+    'lists',
+    'steps',
+    'links'
   ])('%s has no axe violations', async (preset) => {
     const { container } = render(
       <main>

@@ -28,17 +28,31 @@ export const cardGridDefinition = {
       variant: 'grid'
     },
     {
-      name: 'values',
-      title: 'Values',
+      name: 'steps',
+      title: 'Steps',
       description:
-        'Rows of a marked title and description beside a square image, alternating sides.',
+        'Numbered cards for how something works, each a step’s number, title, and description.',
+      variant: 'grid'
+    },
+    {
+      name: 'links',
+      title: 'Links',
+      description:
+        'Compact raised cards that each link somewhere, such as contact options, with an illustration, title, and description.',
+      variant: 'grid'
+    },
+    {
+      name: 'alternating-rows',
+      title: 'Alternating rows',
+      description:
+        'Rows of a marked title and description beside a square image, alternating sides, for values or the steps of a story.',
       variant: 'list'
     },
     {
-      name: 'team',
-      title: 'Team',
+      name: 'portraits',
+      title: 'Portraits',
       description:
-        'Square photos on a raised surface, with each name and role marked over the photo.',
+        'Square photos of people, such as the team, speakers, or artists, on a raised surface with each name and role marked over the photo.',
       variant: 'grid'
     },
     {

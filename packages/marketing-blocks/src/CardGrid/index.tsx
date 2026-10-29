@@ -1,9 +1,11 @@
 import { type ReactNode, useId } from 'react'
 
+import { Card } from '@oztix/roadie-components/card'
 import { Mark } from '@oztix/roadie-components/mark'
 import { cn } from '@oztix/roadie-core/utils'
 
-import type { BlockImage } from '../Provider'
+import type { BlockAction, BlockImage } from '../Provider'
+import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
@@ -17,23 +19,25 @@ import { cardGridDefinition } from './definition'
 export type CardGridPreset = (typeof cardGridDefinition.presets)[number]['name']
 
 export type CardGridItem = {
-  /** The card's heading, or a person's name in `team`. */
+  /** The card's heading, or a person's name in `portraits`. */
   title: string
-  /** A short line under the title, or a person's role in `team`. */
+  /** A short line under the title, or a person's role in `portraits`. */
   subtitle?: string
-  /** Every preset but `team` and `lists` shows it. */
+  /** Every preset but `portraits` and `lists` shows it. */
   description?: string
-  /** Every preset but `lists` shows it. */
+  /** Every preset but `links` and `lists` shows it. */
   image?: BlockImage
-  /** Shown by `features`, `services`, and `industries`. */
+  /** Shown by `features`, `services`, `industries`, `steps`, and `links`. */
   illustration?: SpotIllustrationName
   /** The list `lists` shows under the title. */
   points?: readonly string[]
+  /** The item's own page. Its title becomes the link, and the whole card the place to click. */
+  href?: string
 }
 
 export type CardGridProps = {
   /**
-   * The look: `features`, `services`, `industries`, `team`, and `lists` are grids, and `values` is a list of alternating rows.
+   * The look. `alternating-rows` is a list of rows; every other preset is a grid of cards, and `steps` numbers them.
    * @default 'features'
    */
   preset?: CardGridPreset
@@ -49,9 +53,19 @@ export type CardGridProps = {
   /** A sentence under the title. */
   description?: string
   items: readonly CardGridItem[]
+  /** Links under the cards, such as to see them all. The first is the strong one. */
+  actions?: readonly BlockAction[]
 }
 
 type CardProps = { item: CardGridItem; index: number }
+
+// The surface a linked card's title link covers. Nothing between them is positioned, so the link's overlay reaches the card's edges.
+const CARD = 'is-interactive-within'
+
+function CardTitle({ item }: { item: CardGridItem }) {
+  if (!item.href) return item.title
+  return <Card.Link href={item.href}>{item.title}</Card.Link>
+}
 
 const MARK_CYCLE = ['info', 'brand', 'brand-secondary'] as const
 const markIntent = (index: number) => MARK_CYCLE[index % MARK_CYCLE.length]
@@ -96,7 +110,12 @@ function CardImage({
 
 function FeatureCard({ item }: CardProps) {
   return (
-    <li className='@container/card grid items-center gap-8 @2xl/card:grid-cols-2'>
+    <li
+      className={cn(
+        CARD,
+        '@container/card grid items-center gap-8 rounded-2xl @2xl/card:grid-cols-2'
+      )}
+    >
       <CardImage
         image={item.image}
         sizes='(min-width: 1024px) 33vw, 100vw'
@@ -107,7 +126,9 @@ function FeatureCard({ item }: CardProps) {
           name={item.illustration}
           className='relative -mt-20 size-20 @2xl/card:mt-0 @2xl/card:size-16'
         />
-        <h3 className='text-display-prose-4 text-strong'>{item.title}</h3>
+        <h3 className='text-display-prose-4 text-strong'>
+          <CardTitle item={item} />
+        </h3>
         {item.subtitle && (
           <p className='text-lg font-medium text-strong'>{item.subtitle}</p>
         )}
@@ -121,24 +142,26 @@ function FeatureCard({ item }: CardProps) {
 
 function ServiceCard({ item }: CardProps) {
   return (
-    <li className='grid min-w-0 content-start gap-6'>
+    <li className={cn(CARD, 'grid min-w-0 content-start gap-6 rounded-2xl')}>
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw'
         className='aspect-video w-full rounded-2xl @3xl:aspect-4/3'
       />
       <div className='grid @3xl:pt-2'>
-        <Mark
-          render={<h3 />}
-          intent='info'
-          className='relative text-display-prose-4'
-        >
-          {item.title}
+        <div className='grid justify-self-start'>
+          <Mark
+            render={<h3 />}
+            intent='info'
+            className='col-start-1 row-start-1 text-display-prose-4'
+          >
+            <CardTitle item={item} />
+          </Mark>
           <Illustration
             name={item.illustration}
-            className='absolute -top-20 left-2 @3xl:-top-6 @3xl:-right-6 @3xl:left-auto'
+            className='z-1 col-start-1 row-start-1 -mt-20 ml-2 self-start justify-self-start @3xl:-mt-6 @3xl:-mr-6 @3xl:ml-0 @3xl:justify-self-end'
           />
-        </Mark>
+        </div>
         {item.subtitle && (
           <Mark
             render={<p />}
@@ -156,20 +179,20 @@ function ServiceCard({ item }: CardProps) {
 
 function IndustryCard({ item, index }: CardProps) {
   return (
-    <li className='grid grid-rows-[auto_1fr]'>
+    <li className={cn(CARD, 'grid grid-rows-[auto_1fr] rounded-2xl')}>
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw'
         className='aspect-square w-full rounded-2xl'
       />
-      <div className='dark relative -mt-6 grid content-start gap-4 rounded-2xl bg-normal p-6 text-normal intent-neutral'>
+      <div className='dark z-1 -mt-6 grid content-start gap-4 rounded-2xl bg-normal p-6 text-normal intent-neutral'>
         <Illustration name={item.illustration} className='-mt-16 size-16' />
         <Mark
           render={<h3 />}
           intent={markIntent(index)}
           className='text-display-prose-4'
         >
-          {item.title}
+          <CardTitle item={item} />
         </Mark>
         <div className='grid gap-1'>
           {item.subtitle && (
@@ -184,12 +207,13 @@ function IndustryCard({ item, index }: CardProps) {
   )
 }
 
-function ValueRow({ item, index }: CardProps) {
+function AlternatingRow({ item, index }: CardProps) {
   const imageFirst = index % 2 === 0
   return (
     <li
       className={cn(
-        'grid items-start gap-x-12 gap-y-4 @3xl:items-center',
+        CARD,
+        'grid items-start gap-x-12 gap-y-4 rounded-3xl @3xl:items-center',
         imageFirst ? '@3xl:grid-cols-[2fr_3fr]' : '@3xl:grid-cols-[3fr_2fr]'
       )}
     >
@@ -200,7 +224,7 @@ function ValueRow({ item, index }: CardProps) {
             intent={markIntent(index)}
             className='px-3 text-display-prose-4'
           >
-            {item.title}
+            <CardTitle item={item} />
           </Mark>
           {item.subtitle && (
             <Mark
@@ -228,17 +252,22 @@ function ValueRow({ item, index }: CardProps) {
   )
 }
 
-function TeamCard({ item }: CardProps) {
+function PortraitCard({ item }: CardProps) {
   return (
-    <li className='dark relative grid aspect-square overflow-hidden rounded-2xl'>
+    <li
+      className={cn(
+        CARD,
+        'dark relative grid aspect-square overflow-hidden rounded-2xl'
+      )}
+    >
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 25vw, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw'
         className='absolute inset-0 size-full'
       />
-      <div className='relative grid self-end p-4'>
+      <div className='z-1 grid self-end p-4'>
         <Mark render={<h3 />} intent='neutral' className='text-display-ui-4'>
-          {item.title}
+          <CardTitle item={item} />
         </Mark>
         {item.subtitle && (
           <Mark
@@ -255,8 +284,10 @@ function TeamCard({ item }: CardProps) {
 
 function ListColumn({ item }: CardProps) {
   return (
-    <li className='grid content-start gap-4'>
-      <h3 className='text-display-prose-5 text-strong'>{item.title}</h3>
+    <li className={cn(CARD, 'grid content-start gap-4 rounded-2xl')}>
+      <h3 className='text-display-prose-5 text-strong'>
+        <CardTitle item={item} />
+      </h3>
       {item.points && item.points.length > 0 && (
         <ul className='grid gap-2'>
           {item.points.map((point, index) => (
@@ -270,48 +301,117 @@ function ListColumn({ item }: CardProps) {
   )
 }
 
+function StepCard({ item, index }: CardProps) {
+  return (
+    <li className={cn(CARD, 'grid content-start gap-4 rounded-2xl')}>
+      {item.image && (
+        <CardImage
+          image={item.image}
+          sizes='(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw'
+          className='aspect-video w-full rounded-2xl'
+        />
+      )}
+      <div className='flex items-end justify-between gap-4'>
+        <Mark
+          aria-hidden
+          render={<span />}
+          intent='brand-secondary'
+          className='px-3 py-1 text-display-prose-2 tabular-nums'
+        >
+          {index + 1}
+        </Mark>
+        <Illustration name={item.illustration} className='size-12' />
+      </div>
+      <div className='grid gap-2'>
+        <h3 className='text-display-prose-4 text-strong'>
+          <CardTitle item={item} />
+        </h3>
+        {item.description && (
+          <p className='text-lg text-subtle'>{item.description}</p>
+        )}
+      </div>
+    </li>
+  )
+}
+
+function LinkCard({ item }: CardProps) {
+  return (
+    <li
+      className={cn(
+        CARD,
+        'grid content-start gap-4 rounded-2xl p-6 emphasis-raised'
+      )}
+    >
+      <Illustration name={item.illustration} className='size-12' />
+      <div className='grid gap-2'>
+        <h3 className='text-display-prose-5 text-strong'>
+          <CardTitle item={item} />
+        </h3>
+        {item.description && <p className='text-subtle'>{item.description}</p>}
+      </div>
+    </li>
+  )
+}
+
 type Look = {
-  Card: (props: CardProps) => ReactNode
+  Item: (props: CardProps) => ReactNode
   /** The grid or list of cards. */
   list: string
   align: 'center' | 'start'
   /** Sits the block on a raised surface. */
   raised?: boolean
+  /** Numbers the cards, as an ordered list. */
+  ordered?: boolean
 }
 
 // Columns follow the block's own width, not the viewport's, so a block in a narrow layout stays narrow.
 const LOOKS: Record<CardGridPreset, Look> = {
   features: {
-    Card: FeatureCard,
+    Item: FeatureCard,
     list: 'grid gap-12 @5xl:grid-cols-3',
     align: 'center',
     raised: true
   },
   services: {
-    Card: ServiceCard,
+    Item: ServiceCard,
     list: 'grid gap-12 @3xl:grid-cols-2 @7xl:grid-cols-4',
     align: 'center'
   },
   industries: {
-    Card: IndustryCard,
+    Item: IndustryCard,
     list: 'grid gap-12 @3xl:grid-cols-2 @7xl:grid-cols-3',
     align: 'center'
   },
-  values: { Card: ValueRow, list: 'grid gap-20', align: 'start' },
-  team: {
-    Card: TeamCard,
+  steps: {
+    Item: StepCard,
+    list: 'grid gap-12 @3xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4',
+    align: 'center',
+    ordered: true
+  },
+  links: {
+    Item: LinkCard,
+    list: 'grid gap-6 @3xl:grid-cols-2 @5xl:grid-cols-3',
+    align: 'center'
+  },
+  'alternating-rows': {
+    Item: AlternatingRow,
+    list: 'grid gap-20',
+    align: 'start'
+  },
+  portraits: {
+    Item: PortraitCard,
     list: 'grid gap-8 @xl:grid-cols-2 @3xl:grid-cols-3 @7xl:grid-cols-4',
     align: 'start',
     raised: true
   },
   lists: {
-    Card: ListColumn,
+    Item: ListColumn,
     list: 'grid gap-8 @3xl:auto-cols-fr @3xl:grid-flow-col',
     align: 'start'
   }
 }
 
-/** Like items, such as benefits, services, values, or people, as cards in columns or alternating rows. */
+/** Like items, such as benefits, services, steps, contact options, values, or people, as cards in columns or alternating rows. */
 export function CardGrid({
   preset,
   position,
@@ -320,10 +420,12 @@ export function CardGrid({
   title,
   titleHighlight,
   description,
-  items
+  items,
+  actions
 }: CardGridProps) {
   const { name, variant } = presetOf(cardGridDefinition, preset)
-  const { Card, list, align, raised } = LOOKS[name]
+  const { Item, list, align, raised, ordered } = LOOKS[name]
+  const List = ordered ? 'ol' : 'ul'
   const headingId = useId()
   const markedEyebrow = name === 'industries' && eyebrow
 
@@ -364,11 +466,15 @@ export function CardGrid({
             className='w-full'
           />
         </div>
-        <ul className={list}>
+        <List className={list}>
           {items.map((item, index) => (
-            <Card key={`${index}-${item.title}`} item={item} index={index} />
+            <Item key={`${index}-${item.title}`} item={item} index={index} />
           ))}
-        </ul>
+        </List>
+        <BlockActions
+          actions={actions}
+          className={cn(align === 'center' && 'justify-center')}
+        />
       </div>
     </BlockRoot>
   )
