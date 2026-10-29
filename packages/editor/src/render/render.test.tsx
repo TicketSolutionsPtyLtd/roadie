@@ -256,6 +256,32 @@ describe.each(renderers)('%s', (_, render) => {
     )
   })
 
+  it.each([
+    ['no content', {}],
+    ['empty content', { content: [] }]
+  ])(
+    'renders nothing for an email button with %s, never a link with no name',
+    (_, content) => {
+      expect(
+        render({
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              paragraph(text('Doors 7pm')),
+              {
+                type: 'button',
+                attrs: { href: 'https://www.oztix.com.au' },
+                ...content
+              }
+            ]
+          }
+        })
+      ).toBe('<p>Doors 7pm</p>')
+    }
+  )
+
   it('drops attributes the mapping doesn’t read', () => {
     const injected = {
       onclick: 'alert(1)',
