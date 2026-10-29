@@ -1,6 +1,12 @@
 'use client'
 
-import { type ComponentProps, type MouseEvent, useEffect, useRef } from 'react'
+import {
+  type ComponentProps,
+  type MouseEvent,
+  useEffect,
+  useImperativeHandle,
+  useRef
+} from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -15,6 +21,17 @@ export type BlockRootProps = Omit<ComponentProps<'section'>, 'onClick'> & {
 }
 
 const VIEWED_AT = 0.5
+// A block over twice the screen's height never shows half of itself, so it also counts once it fills half the screen.
+const THRESHOLDS = Array.from(
+  { length: 11 },
+  (_, step) => (step * VIEWED_AT) / 10
+)
+
+function isViewed(entry: IntersectionObserverEntry) {
+  if (entry.intersectionRatio >= VIEWED_AT) return true
+  const screen = entry.rootBounds?.height ?? window.innerHeight
+  return entry.intersectionRect.height >= screen * VIEWED_AT
+}
 
 /** The section every block renders in: names the block for analytics and reports its views and clicks. */
 export function BlockRoot({
@@ -24,10 +41,12 @@ export function BlockRoot({
   position,
   className,
   children,
+  ref: forwardedRef,
   ...props
 }: BlockRootProps) {
   const { onBlockEvent } = useMarketingBlocks()
   const ref = useRef<HTMLElement>(null)
+  useImperativeHandle(forwardedRef, () => ref.current!)
   const identity = { block, variant, preset, position }
   const latest = useRef({ onBlockEvent, identity })
   latest.current = { onBlockEvent, identity }
@@ -40,12 +59,11 @@ export function BlockRoot({
       return
     const observer = new IntersectionObserver(
       (entries) => {
-        if (!entries.some((entry) => entry.intersectionRatio >= VIEWED_AT))
-          return
+        if (!entries.some(isViewed)) return
         observer.disconnect()
         latest.current.onBlockEvent?.(event('view', latest.current.identity))
       },
-      { threshold: VIEWED_AT }
+      { threshold: THRESHOLDS }
     )
     observer.observe(element)
     return () => observer.disconnect()

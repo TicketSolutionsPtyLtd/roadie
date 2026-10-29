@@ -61,7 +61,8 @@ back to light-mode colours as an image.
 ## Tracking
 
 Wrap the site in `MarketingBlocksProvider` and pass `onBlockEvent`. Every block
-reports a `view` once, when half of it is on screen, and a `click` for each
+reports a `view` once, when half of it is on screen (or, for a block taller
+than twice the screen, when it fills half the screen), and a `click` for each
 link or button inside it. Each event names the block, its variant and preset,
 and its `position` on the page, and a click adds the control's label and href.
 

@@ -18,7 +18,7 @@ export type BlockAction = {
   href: string
 }
 
-/** What a block reports: a view once it's half on screen, or a click on a link or button inside it. */
+/** What a block reports: a view once half of it, or half the screen, shows it, or a click on a link or button inside it. */
 export type BlockEvent = {
   action: 'view' | 'click'
   /** The block's name, such as `hero`. */
