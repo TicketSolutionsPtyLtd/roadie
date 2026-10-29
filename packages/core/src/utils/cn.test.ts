@@ -87,6 +87,11 @@ describe('cn', () => {
     )
   })
 
+  it('lets a consumer’s prose size replace a component’s', () => {
+    expect(cn('prose prose-sm', 'prose-lg')).toBe('prose prose-lg')
+    expect(cn('prose-lg', 'prose-sm')).toBe('prose-sm')
+  })
+
   it('dedupes Roadie named duration tokens', () => {
     expect(cn('duration-fast', 'duration-slow')).toBe('duration-slow')
     expect(cn('duration-moderate', 'duration-normal')).toBe('duration-normal')
