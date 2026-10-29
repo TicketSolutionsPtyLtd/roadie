@@ -9,6 +9,7 @@ import {
   DotsSixVerticalIcon,
   TrashIcon
 } from '@phosphor-icons/react'
+import { closeHistory } from '@tiptap/pm/history'
 import { NodeSelection, type Transaction } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 import { createPortal } from 'react-dom'
@@ -147,7 +148,8 @@ export function EditorBlockHandle({
 
   const run = (action: (pos: number) => Transaction | null) => {
     const tr = action(shown)
-    if (tr) editor.view.dispatch(tr)
+    // Its own undo step, even straight after the last.
+    if (tr) editor.view.dispatch(closeHistory(tr))
   }
 
   const onDragStart = (event: React.DragEvent) => {

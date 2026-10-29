@@ -201,6 +201,26 @@ describe('Editor block handle', () => {
     )
   })
 
+  it('undoes each block action on its own, however quickly they follow', async () => {
+    const onValueChange = renderLineup()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+
+    await openMenuOn('Doors')
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Move down' }))
+    await openMenuOn('Headliner')
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Move up' }))
+    await waitFor(() => expect(textbox).toHaveFocus())
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(order(onValueChange).map(([id]) => id)).toEqual([
+        'support',
+        'doors',
+        'headliner'
+      ])
+    )
+  })
+
   it('takes no Tab stop, which would move focus off the block it shows for', async () => {
     render(
       <>
