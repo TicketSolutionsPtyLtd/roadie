@@ -20,5 +20,6 @@ export const DOCUMENTED_SUBPATHS: DocumentedSubpaths = {
   '@oztix/roadie-core/records': '/foundations/records/',
   '@oztix/roadie-core/records/meilisearch': '/foundations/records/',
   '@oztix/roadie-core/records/elasticsearch': '/foundations/records/',
-  '@oztix/roadie-core/records/json-schema': '/foundations/records/'
+  '@oztix/roadie-core/records/json-schema': '/foundations/records/',
+  '@oztix/roadie-editor/email': '/components/editor/#sending-email'
 }
