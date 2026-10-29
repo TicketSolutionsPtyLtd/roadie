@@ -1,4 +1,4 @@
-import { formatType, splitDeprecation } from './components'
+import { formatType, isOurs, splitDeprecation } from './components'
 
 describe('splitDeprecation', () => {
   it.each([
@@ -50,5 +50,21 @@ describe('formatType', () => {
     [{ name: 'boolean' }, 'boolean']
   ])('formats %j', (type, expected) => {
     expect(formatType(type)).toBe(expected)
+  })
+})
+
+describe('isOurs', () => {
+  it.each([
+    'packages/components/src/components/Button/Button.tsx',
+    'packages/marketing-blocks/src/Provider/index.tsx',
+    'packages/editor/dist/Editor/index.d.ts'
+  ])('keeps props declared in %s', (file) => {
+    expect(isOurs(`/repo/${file}`)).toBe(true)
+  })
+
+  it('drops props declared in a dependency', () => {
+    expect(isOurs('/repo/node_modules/@base-ui/react/button/Button.d.ts')).toBe(
+      false
+    )
   })
 })
