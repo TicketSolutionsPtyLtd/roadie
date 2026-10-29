@@ -193,6 +193,17 @@ describe('Editor email block handle', () => {
     await expectGripBeside(block)
   })
 
+  it('keeps the caret block’s grip when the pointer comes straight to it', async () => {
+    renderNewsletter()
+    await userEvent.click(await line('Right one'))
+    await userEvent.hover(document.body, { position: { x: 1, y: 1 } })
+    await expectGripBeside(await line('Right one'))
+
+    await userEvent.hover(await grip())
+
+    await expectGripBeside(await line('Right one'))
+  })
+
   it('shows a section’s grip beside the whole section', async () => {
     renderNewsletter()
 

@@ -188,11 +188,13 @@ export function EditorBlockHandle({
     if (!wrapper || !host) return
     let current: number | null = null
     const onMove = (event: MouseEvent) => {
+      // On the handle, whichever block it shows for stays: on touch that's
+      // the caret's, with no hover before the tap.
+      if (host.contains(event.target as Node)) return
       const keep =
         current != null &&
         blockAt(editor.state, current, containers) === current &&
-        (host.contains(event.target as Node) ||
-          inGutterOf(editor, current, event))
+        inGutterOf(editor, current, event)
       if (!keep) current = blockAtPointer(editor, event, containers)
       setHovered(current)
     }
