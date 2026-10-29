@@ -90,9 +90,12 @@ const splitSelectorList = (list: string) => {
   )
 }
 
+const SIZE_UTILITIES = new Set(['.prose-sm', '.prose-lg'])
+
 const isProse = (selector: string) =>
   /(^|[\s,(>+~])\.prose(\b|-)/.test(selector) &&
-  !/\.text-display-prose/.test(selector)
+  !/\.text-display-prose/.test(selector) &&
+  !SIZE_UTILITIES.has(selector)
 
 let css = ''
 let rules: Rule[] = []
@@ -118,6 +121,18 @@ describe('prose.css', () => {
   it('puts every rule in the components layer', () => {
     for (const { selector, layers } of proseRules) {
       expect(layers, selector).toContain('components')
+    }
+  })
+
+  it('ships the sizes as utilities that set only --prose-* variables', () => {
+    for (const selector of SIZE_UTILITIES) {
+      const rule = rules.find((r) => r.selector === selector)
+      expect(rule?.layers, selector).toEqual(['utilities'])
+      const properties = [...(rule?.body ?? '').matchAll(/([\w-]+)\s*:/g)]
+      expect(properties.length, selector).toBeGreaterThan(0)
+      for (const [, property] of properties) {
+        expect(property, selector).toMatch(/^--prose-/)
+      }
     }
   })
 
