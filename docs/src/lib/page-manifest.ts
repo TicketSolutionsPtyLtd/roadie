@@ -123,6 +123,8 @@ type PageMetadata = Record<string, unknown> & {
   alsoIn?: Placement[]
   /** Widens the content column past the standard reading width. */
   wide?: boolean
+  /** Keeps the reading column but runs live examples to the pane's width, for blocks shown at page scale. */
+  wideExamples?: boolean
   /** The token family a page lists; its markdown twin is built from the token manifest. */
   tokenFamily?: string
   /** The reference dashboard a page shows; its twin is built from `dashboard-examples.ts`. */
@@ -330,15 +332,19 @@ export async function getPageTitles(): Promise<Record<string, string>> {
   return titles
 }
 
+/** `true` widens the whole page; `examples` widens only its live examples. */
+export type PageWidth = true | 'examples'
+
 async function collectPageWide(
   dir: string,
   route: string,
-  out: Record<string, boolean>
+  out: Record<string, PageWidth>
 ): Promise<void> {
   for (const file of ['page.mdx', 'page.tsx']) {
     const metadata = await readPageMetadata(join(dir, file))
     if (metadata === undefined) continue
     if (metadata?.wide) out[route] = true
+    else if (metadata?.wideExamples) out[route] = 'examples'
     return
   }
 }
@@ -346,7 +352,7 @@ async function collectPageWide(
 async function walkPageWide(
   dir: string,
   route: string,
-  out: Record<string, boolean>
+  out: Record<string, PageWidth>
 ): Promise<void> {
   await collectPageWide(dir, route, out)
   const entries = await readdir(dir, { withFileTypes: true })
@@ -363,9 +369,9 @@ async function walkPageWide(
   )
 }
 
-/** Routes whose `metadata.wide` opts out of the standard reading-width column. */
-export async function getPageWide(): Promise<Record<string, boolean>> {
-  const wide: Record<string, boolean> = {}
+/** Routes whose `metadata.wide` opts out of the standard reading-width column, or whose `wideExamples` widens only the examples. */
+export async function getPageWide(): Promise<Record<string, PageWidth>> {
+  const wide: Record<string, PageWidth> = {}
   await walkPageWide(APP_DIR, '/', wide)
   return wide
 }
