@@ -7,6 +7,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { useDocHeadings } from './OnThisPage'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/charts/meter' }))
+// Landing's scroll timers would fire after jsdom closes, and these tests are about ids.
+vi.mock('./landOn', () => ({ landOn() {} }))
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = () => {}
