@@ -173,6 +173,29 @@ describe('Editor block handle', () => {
     await waitFor(() => expect(order(onValueChange)).toEqual(expected))
   })
 
+  it('leaves an empty paragraph when the only block is deleted', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          ...lineup,
+          doc: { type: 'doc', content: [block('doors', 'Doors 7pm')] }
+        }}
+        onValueChange={onValueChange}
+      />
+    )
+
+    await openMenuOn('Doors')
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }))
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content
+      ).toEqual([{ type: 'paragraph', attrs: { blockId: expect.any(String) } }])
+    )
+  })
+
   it('duplicates a block below it, with an id of its own', async () => {
     const onValueChange = renderLineup()
 

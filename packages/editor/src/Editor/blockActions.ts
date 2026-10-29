@@ -64,22 +64,13 @@ export function duplicateBlock(state: EditorState, pos: number) {
   return selectBlock(state.tr.insert(to, withoutIds(node)), to).scrollIntoView()
 }
 
-/** Removes the block at `pos`, leaving an empty paragraph if it was the only one. */
+/** Removes the block at `pos`; ProseMirror refills a doc left empty. */
 export function deleteBlock(state: EditorState, pos: number) {
   const node = state.doc.nodeAt(pos)
   if (!node) return null
-  const tr = state.tr
-  if (state.doc.childCount === 1) {
-    tr.replaceWith(
-      0,
-      state.doc.content.size,
-      state.schema.nodes.paragraph!.create()
-    )
-  } else {
-    tr.delete(pos, pos + node.nodeSize)
-  }
-  const at = Math.min(pos, tr.doc.content.size - 1)
+  const tr = state.tr.delete(pos, pos + node.nodeSize)
+  const at = Math.min(pos, tr.doc.content.size)
   return tr
-    .setSelection(TextSelection.near(tr.doc.resolve(Math.max(at, 0))))
+    .setSelection(TextSelection.near(tr.doc.resolve(at)))
     .scrollIntoView()
 }

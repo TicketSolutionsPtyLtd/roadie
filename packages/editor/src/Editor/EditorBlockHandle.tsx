@@ -134,11 +134,13 @@ export function EditorBlockHandle({
   useEffect(() => {
     const follow = ({ transaction }: { transaction: Transaction }) => {
       if (!transaction.docChanged) return
-      setHovered((pos) => {
+      const map = (pos: number | null) => {
         if (pos == null) return pos
         const mapped = transaction.mapping.mapResult(pos)
         return mapped.deleted ? null : mapped.pos
-      })
+      }
+      setHovered(map)
+      setMenuAt(map)
     }
     editor.on('transaction', follow)
     return () => {
