@@ -140,7 +140,7 @@ const UTILITY_RULES: Rule[] = [
   [/^rim-light$/, 'elevation', 'Rim light'],
   [/^text-display-/, 'typography', 'Display styles'],
   [/^text-(ui|ui-meta|prose|code)$/, 'typography', 'Body styles'],
-  [/^prose$/, 'typography', 'Prose'],
+  [/^prose(-sm|-lg)?$/, 'typography', 'Prose'],
   [/^(animate-|motion-[\w]+-(in|out)$)/, 'motion', 'Animations'],
   [
     /^(motion-(scale|slide|drawer|toast)$|is-disclosure-animated$)/,

@@ -432,7 +432,7 @@
   }
 }
 
-/* Prose's sm and lg sizes, for `.prose` markup without the component. */
+/* Prose's sm size, for `.prose` markup without the component. */
 @utility prose-sm {
   --prose-size: var(--text-sm);
   --prose-flow: 1em;
@@ -450,6 +450,7 @@
   --prose-h6-weight: 600;
 }
 
+/* Prose's lg size, for `.prose` markup without the component. */
 @utility prose-lg {
   --prose-size: var(--text-lg);
   --prose-h1-size: var(--text-5xl);
