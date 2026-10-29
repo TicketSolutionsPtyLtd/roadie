@@ -61,7 +61,7 @@ export type CurrencyFormatOptions = {
   decimals?: number
   /** Drops the decimals from a whole amount: $1,200 instead of $1,200.00. @default true */
   trimZeros?: boolean
-  /** Short form, such as NZD 1.2M, with at most one decimal place. */
+  /** Short form with at most one decimal place. Intl capitalises the suffix: $1.2M, not formatValue's $1.2m. */
   compact?: boolean
 }
 
