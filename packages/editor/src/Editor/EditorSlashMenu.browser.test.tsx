@@ -210,6 +210,33 @@ describe('Editor.SlashMenu', () => {
     expect(textbox).toHaveFocus()
   })
 
+  it('closes when focus leaves the editor', async () => {
+    render(blocks())
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    await listbox()
+    textbox.blur()
+
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+    expect(textbox).not.toHaveAttribute('aria-controls')
+  })
+
+  it('leaves Shift+Enter to break the line, inserting nothing', async () => {
+    const onValueChange = vi.fn()
+    render(blocks(onValueChange))
+    await focusedTextbox()
+
+    await userEvent.keyboard('/quote{Shift>}{Enter}{/Shift}')
+
+    await waitFor(() =>
+      expect(lastDoc(onValueChange).content![0]).toMatchObject({
+        type: 'paragraph',
+        content: [text('/quote'), { type: 'hardBreak' }]
+      })
+    )
+  })
+
   it.each([
     ['Text', 'paragraph'],
     ['Heading 2', 'heading'],

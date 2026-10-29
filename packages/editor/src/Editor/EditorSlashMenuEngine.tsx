@@ -60,7 +60,10 @@ function SlashMenuList({
         close()
         return true
       }
-      if (event.key === 'Enter' && current) {
+      const modified =
+        event.shiftKey || event.altKey || event.ctrlKey || event.metaKey
+      // Shift+Enter breaks the line, and Mod+Enter is the app's to take.
+      if (event.key === 'Enter' && current && !modified) {
         insert(current)
         return true
       }
