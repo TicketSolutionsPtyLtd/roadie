@@ -15,7 +15,7 @@
     "name": "mosaic",
     "path": "dist/Mosaic/index.js",
     "import": "*",
-    "limit": "2.65 kB",
+    "limit": "2.9 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -41,6 +41,6 @@
     "name": "catalogue",
     "path": "dist/catalogue/index.js",
     "import": "*",
-    "limit": "480 B"
+    "limit": "550 B"
   }
 ]

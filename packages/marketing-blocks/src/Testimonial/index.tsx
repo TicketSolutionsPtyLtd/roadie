@@ -16,7 +16,7 @@ export type TestimonialPerson = {
   /** The person quoted. */
   name: string
   /** Their job title, such as `Head of Programming`. */
-  role: string
+  role?: string
   /** A square portrait. */
   image?: BlockImage
 }
@@ -148,7 +148,9 @@ function Citation({
       <div className='grid justify-items-start gap-2'>
         <div className='grid'>
           <p className='text-display-ui-4 text-strong'>{person.name}</p>
-          <p className='text-base text-subtle @3xl:text-lg'>{person.role}</p>
+          {person.role && (
+            <p className='text-base text-subtle @3xl:text-lg'>{person.role}</p>
+          )}
           {organisation && !logo && (
             <p className='text-base text-subtle @3xl:text-lg'>
               {organisation.name}

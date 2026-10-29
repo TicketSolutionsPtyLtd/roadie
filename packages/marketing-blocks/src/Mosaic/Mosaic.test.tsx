@@ -4,10 +4,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Mosaic } from '.'
 import { MarketingBlocksProvider } from '../Provider'
-import { partnerTiers } from './fixtures'
+import { logoStrip, partnerTiers } from './fixtures'
 
 describe('Mosaic', () => {
-  it('renders partner-tiers as a section named by its start-aligned heading', () => {
+  it('renders tiers as a section named by its start-aligned heading', () => {
     render(<Mosaic {...partnerTiers} position={3} />)
 
     const section = screen.getByRole('region', {
@@ -15,7 +15,7 @@ describe('Mosaic', () => {
     })
     expect(section).toHaveAttribute('data-block', 'mosaic')
     expect(section).toHaveAttribute('data-variant', 'static')
-    expect(section).toHaveAttribute('data-preset', 'partner-tiers')
+    expect(section).toHaveAttribute('data-preset', 'tiers')
     expect(section).toHaveAttribute('data-position', '3')
     expect(
       screen.getByRole('heading', { level: 2, name: 'Industry partnerships' })
@@ -49,6 +49,24 @@ describe('Mosaic', () => {
     expect(tile!.textContent).toBe('Kazoo Hollow Room')
     expect(within(tile!).queryByRole('img')).toBeNull()
     expect(tile!.querySelector('[data-slot=mark]')).toBeNull()
+  })
+
+  it('sets a tile without a photo on a plain surface', () => {
+    const first = partnerTiers.tiles[0]!
+    render(
+      <Mosaic
+        {...partnerTiers}
+        tiles={[{ ...first, image: undefined }]}
+        logoTile={undefined}
+      />
+    )
+
+    const [tile] = screen.getAllByRole('listitem')
+    expect(tile!.querySelectorAll('img')).toHaveLength(1)
+    expect(
+      within(tile!).getByRole('img', { name: first.logo.alt })
+    ).toBeInTheDocument()
+    expect(within(tile!).getByText(first.label)).toBeInTheDocument()
   })
 
   it('marks featured partners so they span two columns', () => {
@@ -142,5 +160,66 @@ describe('Mosaic', () => {
 
     expect(screen.queryByRole('link')).toBeNull()
     expect(onBlockEvent).not.toHaveBeenCalled()
+  })
+
+  describe('logo-strip', () => {
+    it('renders the logo-strip preset in the static variant', () => {
+      render(<Mosaic {...logoStrip} />)
+
+      const section = screen.getByRole('region', { name: logoStrip.title })
+      expect(section).toHaveAttribute('data-variant', 'static')
+      expect(section).toHaveAttribute('data-preset', 'logo-strip')
+    })
+
+    it('lists each tile as its logo, or its name where it has none', () => {
+      render(<Mosaic {...logoStrip} />)
+
+      const items = screen.getAllByRole('listitem')
+      expect(items).toHaveLength(logoStrip.tiles.length)
+      expect(
+        screen.getAllByRole('img').map((img) => img.getAttribute('alt'))
+      ).toEqual(
+        logoStrip.tiles.flatMap((tile) => (tile.logo ? [tile.logo.alt] : []))
+      )
+      expect(items.at(-1)).toHaveTextContent('Velcro Pelican Productions')
+    })
+
+    it('ignores photos, labels, featuring and the logo tile', () => {
+      render(
+        <Mosaic
+          {...logoStrip}
+          tiles={partnerTiers.tiles}
+          logoTile={partnerTiers.logoTile}
+        />
+      )
+
+      expect(screen.getAllByRole('listitem')).toHaveLength(
+        partnerTiers.tiles.length
+      )
+      expect(document.querySelectorAll('img')).toHaveLength(
+        partnerTiers.tiles.length
+      )
+      expect(screen.queryByText(partnerTiers.tiles[0]!.label)).toBeNull()
+      expect(screen.queryByRole('heading', { level: 3 })).toBeNull()
+      expect(document.querySelector('[data-featured]')).toBeNull()
+    })
+
+    it('falls back to the name for a logo with no alt text', () => {
+      render(
+        <Mosaic
+          {...logoStrip}
+          tiles={[
+            {
+              name: 'Kerosene Pony Collective',
+              logo: { ...logoStrip.tiles[0]!.logo!, alt: '' }
+            }
+          ]}
+        />
+      )
+
+      expect(
+        screen.getByRole('img', { name: 'Kerosene Pony Collective' })
+      ).toBeInTheDocument()
+    })
   })
 })

@@ -14,7 +14,7 @@ describe('Testimonial', () => {
       name: 'Our partners say it best'
     })
     expect(section).toHaveAttribute('data-block', 'testimonial')
-    expect(section).toHaveAttribute('data-variant', 'one')
+    expect(section).toHaveAttribute('data-variant', 'single')
     expect(section).toHaveAttribute('data-preset', 'quote')
     expect(section).toHaveAttribute('data-position', '4')
     expect(
@@ -55,6 +55,19 @@ describe('Testimonial', () => {
       within(caption).getByRole('img', { name: 'Thimble Orbit Presents' })
     ).toBeInTheDocument()
     expect(within(caption).queryByText('Thimble Orbit Presents')).toBeNull()
+  })
+
+  it('leaves out the role when there is none', () => {
+    render(<Testimonial {...quote} person={{ name: 'Mia Tran' }} />)
+
+    const caption = screen.getByRole('figure').querySelector('figcaption')!
+    expect(caption).toHaveTextContent('Mia Tran')
+    expect(caption).not.toHaveTextContent('Head of Programming')
+    expect(
+      within(caption)
+        .getAllByText(/./, { selector: 'p' })
+        .map((line) => line.textContent)
+    ).toEqual(['Mia Tran'])
   })
 
   it('names the organisation in text when it has no logo', () => {

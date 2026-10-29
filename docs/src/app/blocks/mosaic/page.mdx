@@ -19,7 +19,7 @@ import { Mosaic } from '@oztix/roadie-marketing-blocks/mosaic'
 
 ## Examples
 
-### Partner tiers
+### Tiers
 
 Each partner is a tile with its photo behind, its logo, and its level as the
 tile's `label`. Featured tiles span two columns at half height, and the tiles
@@ -27,9 +27,9 @@ pack densely, so a square tile fills the gap a wide one leaves. A `logoTile`
 closes the grid with the remaining logos, titled "Also supporting" unless
 you give it a title.
 
-```tsx-live id=partner-tiers
+```tsx-live id=tiers
 <Mosaic
-  preset='partner-tiers'
+  preset='tiers'
   title='Industry partnerships'
   description="We back Australia's live events industry through partnerships that strengthen it."
   tiles={[
@@ -82,18 +82,39 @@ you give it a title.
 />
 ```
 
+### Logo strip
+
+A wrapping, centred row of logos at one height, with no photos, for partner
+logos or certifications. It reads each tile's `logo`, or shows its `name`
+where it has none, and leaves out photos, labels, featuring, and the logo
+tile.
+
+```tsx-live id=logo-strip
+<Mosaic
+  preset='logo-strip'
+  title='Trusted by organisers across Australia'
+  tiles={[
+    { name: 'Kerosene Pony Collective', logo: { src: '/blocks/kerosene-pony-collective-badge.svg', alt: 'Kerosene Pony Collective', width: 240, height: 80 } },
+    { name: 'Wishbone Ferret Collective', logo: { src: '/blocks/wishbone-ferret-collective-badge.svg', alt: 'Wishbone Ferret Collective', width: 240, height: 80 } },
+    { name: 'Hairpin Bicycle Presents', logo: { src: '/blocks/hairpin-bicycle-presents-badge.svg', alt: 'Hairpin Bicycle Presents', width: 240, height: 80 } },
+    { name: 'Thimble Orbit Presents', logo: { src: '/blocks/thimble-orbit-presents-badge.svg', alt: 'Thimble Orbit Presents', width: 240, height: 80 } }
+  ]}
+/>
+```
+
 ## Guidelines
 
 <Guidelines>
 
 <Guideline title='Pick the preset for the content'>
   <Guideline.Do>
-    Use partner tiers, today's only preset, for partners and sponsors with a
-    level each. Venues, events, or clients in a mosaic would be new presets,
-    raised as a block request.
+    Use tiers, as partner tiers are today, for partners and sponsors with a
+    level each, and logo strip for a row of partner logos or certifications.
+    Venues, events, or clients in a mosaic would be new presets, raised as a
+    block request.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't put venues or events in partner tiers; their labels aren't levels.
+    Don't put venues or events in tiers; their labels aren't levels.
   </Guideline.Dont>
 </Guideline>
 
@@ -117,15 +138,17 @@ you give it a title.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Give every tile a light logo and a photo'>
+<Guideline title='Match the logo to its surface'>
   <Guideline.Do>
     Use a light or white logo on a transparent background over a photo from
     the partner's event. The photo is decorative and isn't read out, so the
     logo's alt text names the partner.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't put a dark logo on a tile; it sinks into the shade behind it. Dark
-    logos belong in the `logoTile`, which stays light in both themes.
+    Don't put a dark logo on a tiers tile; it sinks into the shade behind it.
+    Dark logos belong in the `logoTile`, which stays light in both themes,
+    and logo strip logos need their own background, since the page's
+    changes with the theme.
   </Guideline.Dont>
 </Guideline>
 

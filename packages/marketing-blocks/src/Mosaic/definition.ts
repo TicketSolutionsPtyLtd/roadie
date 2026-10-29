@@ -7,10 +7,17 @@ export const mosaicDefinition = {
     'A dense grid of photo tiles, each with a logo and a label, some twice as wide.',
   presets: [
     {
-      name: 'partner-tiers',
-      title: 'Partner tiers',
+      name: 'tiers',
+      title: 'Tiers',
       description:
-        "Each partner's logo over a photo with its level, featured partners wider, then the others supporting.",
+        'Photo tiles with a logo and a level, the wider ones featured, such as partner tiers.',
+      variant: 'static'
+    },
+    {
+      name: 'logo-strip',
+      title: 'Logo strip',
+      description:
+        'A wrapping, centred row of logos at one height, with no photos, such as partners or certifications.',
       variant: 'static'
     }
   ]

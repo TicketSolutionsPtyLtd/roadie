@@ -15,13 +15,13 @@ export type MosaicPreset = (typeof mosaicDefinition.presets)[number]['name']
 export type MosaicTile = {
   /** What the tile shows, such as a partner's name: its accessible name, and the logo's alt text when that's empty. */
   name: string
-  /** Marked at the foot of the tile, such as a partnership level like `Presenting partner`. */
+  /** Marked at the foot of the tile, such as a partnership level like `Presenting partner`. `logo-strip` doesn't show it. */
   label?: string
-  /** A logo drawn light over the photo. */
+  /** A logo drawn light over the photo. Without one, the tile shows its `name` as text. */
   logo?: BlockImage
-  /** A photo filling the tile, such as from the partner's event. Decorative, so its alt text isn't read. */
-  image: BlockImage
-  /** Spans two columns at half height, for the tiles to lead with. */
+  /** A photo filling the tile, such as from the partner's event. Decorative, so its alt text isn't read. Without one, `tiers` sets the tile on a plain surface. */
+  image?: BlockImage
+  /** Spans two columns at half height, for the tiles to lead with. `tiers` only. */
   featured?: boolean
 }
 
@@ -37,8 +37,8 @@ export type MosaicLogoTile = {
 
 export type MosaicProps = {
   /**
-   * The look to render. `partner-tiers` is the only one so far.
-   * @default 'partner-tiers'
+   * The look to render: `tiers` for photo tiles, or `logo-strip` for a row of logos alone.
+   * @default 'tiers'
    */
   preset?: MosaicPreset
   /** The block's place on the page, counting from 1, reported with its events. */
@@ -55,7 +55,7 @@ export type MosaicProps = {
   description?: string
   /** The photo tiles, in order. */
   tiles: readonly MosaicTile[]
-  /** A last, wide tile of logos. */
+  /** A last, wide tile of logos. `tiers` only. */
   logoTile?: MosaicLogoTile
 }
 
@@ -71,6 +71,7 @@ const WIDE = 'col-span-2'
 const HALF_HEIGHT = 'pt-[calc(50%-var(--tile-gap)/2)]'
 const TILE_SIZES = '(min-width: 768px) 25vw, 50vw'
 const WIDE_SIZES = '(min-width: 768px) 50vw, 100vw'
+const STRIP_LOGO_HEIGHT = 48
 
 /** A dense grid of photo tiles, each with a logo and a marked label, some two columns wide, closed by an optional tile of logos. */
 export function Mosaic({
@@ -98,18 +99,26 @@ export function Mosaic({
       <div className='container-8xl grid gap-12'>
         <BlockHeading
           id={headingId}
-          align='start'
+          align={name === 'logo-strip' ? 'center' : 'start'}
           eyebrow={eyebrow}
           title={title}
           titleHighlight={titleHighlight}
           description={description}
         />
-        <ul className={GRID}>
-          {tiles.map((tile, index) => (
-            <PhotoTile key={`${index}-${tile.name}`} {...tile} />
-          ))}
-          {logoTile && <LogosTile {...logoTile} />}
-        </ul>
+        {name === 'logo-strip' ? (
+          <ul className='flex flex-wrap items-center justify-center gap-x-12 gap-y-8'>
+            {tiles.map((tile, index) => (
+              <StripLogo key={`${index}-${tile.name}`} {...tile} />
+            ))}
+          </ul>
+        ) : (
+          <ul className={GRID}>
+            {tiles.map((tile, index) => (
+              <PhotoTile key={`${index}-${tile.name}`} {...tile} />
+            ))}
+            {logoTile && <LogosTile {...logoTile} />}
+          </ul>
+        )}
       </div>
     </BlockRoot>
   )
@@ -119,17 +128,21 @@ function PhotoTile({ name, label, logo, image, featured }: MosaicTile) {
   return (
     <li
       data-featured={featured || undefined}
-      className={cn(TILE, featured && WIDE)}
+      className={cn(TILE, featured && WIDE, !image && 'emphasis-raised')}
     >
-      <BlockImg
-        image={{ ...image, alt: '' }}
-        sizes={featured ? WIDE_SIZES : TILE_SIZES}
-        className='absolute inset-0 -z-1 size-full object-cover'
-      />
-      <div
-        aria-hidden
-        className='absolute inset-0 -z-1 bg-linear-to-b from-transparent from-40% to-(--color-neutral-light-13)/80 to-90%'
-      />
+      {image && (
+        <>
+          <BlockImg
+            image={{ ...image, alt: '' }}
+            sizes={featured ? WIDE_SIZES : TILE_SIZES}
+            className='absolute inset-0 -z-1 size-full object-cover'
+          />
+          <div
+            aria-hidden
+            className='absolute inset-0 -z-1 bg-linear-to-b from-transparent from-40% to-(--color-neutral-light-13)/80 to-90%'
+          />
+        </>
+      )}
       <div className={cn(STACKED, featured ? HALF_HEIGHT : SQUARE)} />
       <div
         className={cn(
@@ -144,7 +157,7 @@ function PhotoTile({ name, label, logo, image, featured }: MosaicTile) {
             className='h-auto max-w-3/4 object-contain'
           />
         ) : (
-          <p className='sr-only'>{name}</p>
+          <p className='text-display-ui-4 text-strong'>{name}</p>
         )}
         {label && (
           <Mark
@@ -184,6 +197,22 @@ function LogosTile({ title = 'Also supporting', logos }: MosaicLogoTile) {
           ))}
         </div>
       </div>
+    </li>
+  )
+}
+
+function StripLogo({ name, logo }: MosaicTile) {
+  return (
+    <li>
+      {logo ? (
+        <BlockImg
+          image={{ ...logo, alt: logo.alt || name }}
+          sizes={`${STRIP_LOGO_HEIGHT * ((logo.width ?? 1) / (logo.height ?? 1))}px`}
+          className='h-12 w-auto object-contain'
+        />
+      ) : (
+        <p className='text-display-ui-4 text-strong'>{name}</p>
+      )}
     </li>
   )
 }

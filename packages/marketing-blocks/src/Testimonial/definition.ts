@@ -10,7 +10,7 @@ export const testimonialDefinition = {
       title: 'Quote',
       description:
         "One large quote with the person's photo, role and organisation, over an optional background photo.",
-      variant: 'one'
+      variant: 'single'
     }
   ]
 } as const satisfies BlockDefinition
