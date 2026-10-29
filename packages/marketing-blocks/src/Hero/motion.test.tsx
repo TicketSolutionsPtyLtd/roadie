@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Hero } from '.'
-import { pageHero } from './fixtures'
+import { bento } from './fixtures'
 
 const observers = new Set<IntersectionObserverCallback>()
 
@@ -66,9 +66,9 @@ describe('Hero photo cycling', () => {
     reduced = false
   })
 
-  it('moves to the next people photo every four seconds while on screen', () => {
+  it('moves to the next primary photo every four seconds while on screen', () => {
     reduceMotion(false)
-    render(<Hero {...pageHero()} eventImages={[]} />)
+    render(<Hero {...bento()} secondaryImages={[]} />)
     act(() => intersect(true))
 
     act(() => vi.advanceTimersByTime(3999))
@@ -84,7 +84,7 @@ describe('Hero photo cycling', () => {
 
   it('holds still off screen', () => {
     reduceMotion(false)
-    render(<Hero {...pageHero()} />)
+    render(<Hero {...bento()} />)
 
     act(() => vi.advanceTimersByTime(10000))
 
@@ -97,7 +97,7 @@ describe('Hero photo cycling', () => {
     const pause = vi
       .spyOn(HTMLMediaElement.prototype, 'pause')
       .mockImplementation(() => {})
-    const { container } = render(<Hero {...pageHero()} />)
+    const { container } = render(<Hero {...bento()} />)
     act(() => intersect(true))
 
     act(() => vi.advanceTimersByTime(10000))
@@ -105,13 +105,13 @@ describe('Hero photo cycling', () => {
     expect(shown('The Oztix team at Antler Kettle Hall')).not.toBeNull()
     expect(shown('A band on stage at Kazoo Hollow Room')).not.toBeNull()
     expect(
-      container.querySelectorAll('[data-slot=hero-people] img')
+      container.querySelectorAll('[data-slot=hero-primary] img')
     ).toHaveLength(1)
     expect(pause).toHaveBeenCalled()
   })
 
   it('shows the first photos again when the viewer turns on reduced motion mid-cycle', () => {
-    render(<Hero {...pageHero()} eventImages={[]} />)
+    render(<Hero {...bento()} secondaryImages={[]} />)
     act(() => intersect(true))
     act(() => vi.advanceTimersByTime(4000))
     expect(shown('Event crew waving at Jumbuck Orchard Park')).not.toBeNull()
@@ -128,7 +128,7 @@ describe('Hero photo cycling', () => {
     const play = vi
       .spyOn(HTMLMediaElement.prototype, 'play')
       .mockResolvedValue(undefined)
-    render(<Hero {...pageHero()} />)
+    render(<Hero {...bento()} />)
     expect(play).not.toHaveBeenCalled()
 
     act(() => reduceMotion(false))

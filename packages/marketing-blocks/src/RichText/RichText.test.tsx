@@ -115,6 +115,35 @@ describe('RichText', () => {
     })
   })
 
+  it.each(['statement', 'article-body'] as const)(
+    'shows its actions as links after the body in %s, first one first',
+    (preset) => {
+      render(
+        <RichText
+          {...articleBody}
+          preset={preset}
+          actions={[
+            { label: 'Talk to us', href: '/contact/sales' },
+            { label: 'Read our story', href: '/about' }
+          ]}
+        />
+      )
+
+      const actions = screen.getAllByRole('link', {
+        name: /Talk to us|Read our story/
+      })
+      expect(actions.map((link) => link.getAttribute('href'))).toEqual([
+        '/contact/sales',
+        '/about'
+      ])
+      const body = screen.getByText(/every ticket is refunded/)
+      expect(
+        body.compareDocumentPosition(actions[0]!) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy()
+    }
+  )
+
   it('falls back to statement with no preset', () => {
     render(<RichText {...articleBody} preset={undefined} />)
 

@@ -4,11 +4,11 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Hero } from '.'
 import { MarketingBlocksProvider } from '../Provider'
-import { pageHeader, pageHero } from './fixtures'
+import { bento, imageHero, titleOnly } from './fixtures'
 
 describe('Hero', () => {
   it('opens the page with its title as the h1, marking the highlighted words', () => {
-    render(<Hero {...pageHero()} />)
+    render(<Hero {...bento()} />)
 
     const heading = screen.getByRole('heading', {
       level: 1,
@@ -22,18 +22,18 @@ describe('Hero', () => {
     ).toBe(heading.closest('section'))
   })
 
-  it('names the page-hero preset and its media variant', () => {
-    render(<Hero {...pageHero()} position={1} />)
+  it('names the bento preset and its media variant', () => {
+    render(<Hero {...bento()} position={1} />)
 
     const section = screen.getByRole('region')
     expect(section).toHaveAttribute('data-block', 'hero')
     expect(section).toHaveAttribute('data-variant', 'media')
-    expect(section).toHaveAttribute('data-preset', 'page-hero')
+    expect(section).toHaveAttribute('data-preset', 'bento')
     expect(section).toHaveAttribute('data-position', '1')
   })
 
   it('shows the subtitle and each action as a link, first one first', () => {
-    render(<Hero {...pageHero()} />)
+    render(<Hero {...bento()} />)
 
     expect(screen.getByText(/Australian owned and hosted/)).toBeInTheDocument()
     const links = screen.getAllByRole('link')
@@ -44,8 +44,8 @@ describe('Hero', () => {
     expect(links[0]).toHaveAttribute('href', '/contact/sales')
   })
 
-  it('shows the first people and event photos with their alt text, loaded only once seen', () => {
-    render(<Hero {...pageHero()} />)
+  it('shows the first primary and secondary photos with their alt text, loaded only once seen', () => {
+    render(<Hero {...bento()} />)
 
     for (const name of [
       'The Oztix team at Antler Kettle Hall',
@@ -63,7 +63,7 @@ describe('Hero', () => {
   })
 
   it('draws the background photo as decoration, loaded first', () => {
-    const { container } = render(<Hero {...pageHero()} />)
+    const { container } = render(<Hero {...bento()} />)
 
     const background = container.querySelector('[data-slot=hero-heading] img')
     expect(background).toHaveAttribute('alt', '')
@@ -71,7 +71,7 @@ describe('Hero', () => {
   })
 
   it('plays the video muted and looping, with its poster and both sources', () => {
-    const { container } = render(<Hero {...pageHero()} />)
+    const { container } = render(<Hero {...bento()} />)
 
     const video = container.querySelector('video')!
     expect(video).toHaveAttribute('autoplay')
@@ -98,7 +98,7 @@ describe('Hero', () => {
           />
         )}
       >
-        <Hero {...pageHero()} />
+        <Hero {...bento()} />
       </MarketingBlocksProvider>
     )
 
@@ -110,10 +110,10 @@ describe('Hero', () => {
       drawn
         .filter((img) => img.dataset.priority === 'true')
         .map((img) => img.dataset.src)
-    ).toEqual([pageHero().backgroundImage!.src])
+    ).toEqual([bento().backgroundImage!.src])
     expect(
       container.querySelector(
-        `[data-slot=hero-video] img[data-src="${pageHero().video!.poster.src}"]`
+        `[data-slot=hero-video] img[data-src="${bento().video!.poster.src}"]`
       )
     ).toHaveAttribute('alt', '')
     expect(container.querySelector('video')).not.toHaveAttribute('poster')
@@ -123,7 +123,7 @@ describe('Hero', () => {
     const onBlockEvent = vi.fn()
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
-        <Hero {...pageHero()} position={1} />
+        <Hero {...bento()} position={1} />
       </MarketingBlocksProvider>
     )
 
@@ -133,47 +133,92 @@ describe('Hero', () => {
       action: 'click',
       block: 'hero',
       variant: 'media',
-      preset: 'page-hero',
+      preset: 'bento',
       position: 1,
       label: 'Talk to us',
       href: '/contact/sales'
     })
   })
 
-  describe('page-header', () => {
-    it('shows the eyebrow and the title as the h1, with no media', () => {
-      const { container } = render(<Hero {...pageHeader} />)
+  describe('image', () => {
+    it('sets the title as the h1 beside its one photo, loaded first', () => {
+      const { container } = render(<Hero {...imageHero()} />)
 
       expect(
-        screen.getByRole('heading', { level: 1, name: pageHeader.title })
+        screen.getByRole('heading', {
+          level: 1,
+          name: 'Sell more tickets with Spotify'
+        })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('img', {
+          name: 'A crowd singing along at Xylophone Tide Festival'
+        })
+      ).toHaveAttribute('fetchpriority', 'high')
+      expect(container.querySelectorAll('img')).toHaveLength(1)
+      expect(container.querySelector('video')).toBeNull()
+      expect(screen.getByRole('link', { name: 'Talk to us' })).toHaveAttribute(
+        'href',
+        '/contact/sales'
+      )
+    })
+
+    it('names the image preset and the media variant', () => {
+      render(<Hero {...imageHero()} />)
+
+      const section = screen.getByRole('region')
+      expect(section).toHaveAttribute('data-variant', 'media')
+      expect(section).toHaveAttribute('data-preset', 'image')
+    })
+
+    it('draws its photo with the provider’s renderImage', () => {
+      render(
+        <MarketingBlocksProvider
+          renderImage={({ alt, priority }) => (
+            <img alt={alt} data-priority={priority} src='/optimised.webp' />
+          )}
+        >
+          <Hero {...imageHero()} />
+        </MarketingBlocksProvider>
+      )
+
+      expect(
+        screen.getByRole('img', {
+          name: 'A crowd singing along at Xylophone Tide Festival'
+        })
+      ).toHaveAttribute('data-priority', 'true')
+    })
+  })
+
+  describe('title', () => {
+    it('shows the eyebrow and the title as the h1, with no media', () => {
+      const { container } = render(<Hero {...titleOnly} />)
+
+      expect(
+        screen.getByRole('heading', { level: 1, name: titleOnly.title })
       ).toBeInTheDocument()
       expect(screen.getByText('Our mission')).not.toHaveRole('heading')
       expect(container.querySelector('img, video')).toBeNull()
     })
 
-    it('names the page-header preset and its text variant', () => {
-      render(<Hero {...pageHeader} />)
+    it('names the title preset and its text variant', () => {
+      render(<Hero {...titleOnly} />)
 
-      const section = screen.getByRole('region', { name: pageHeader.title })
+      const section = screen.getByRole('region', { name: titleOnly.title })
       expect(section).toHaveAttribute('data-variant', 'text')
-      expect(section).toHaveAttribute('data-preset', 'page-header')
+      expect(section).toHaveAttribute('data-preset', 'title')
     })
 
     it('ignores media given to it', () => {
-      const { container } = render(
-        <Hero {...pageHero()} preset='page-header' />
-      )
+      const { container } = render(<Hero {...bento()} preset='title' />)
 
       expect(container.querySelector('img, video')).toBeNull()
     })
   })
 
-  it('falls back to page-hero with no preset', () => {
-    render(<Hero {...pageHero()} preset={undefined} />)
+  it('falls back to bento with no preset', () => {
+    render(<Hero {...bento()} preset={undefined} />)
 
-    expect(screen.getByRole('region')).toHaveAttribute(
-      'data-preset',
-      'page-hero'
-    )
+    expect(screen.getByRole('region')).toHaveAttribute('data-preset', 'bento')
   })
 })

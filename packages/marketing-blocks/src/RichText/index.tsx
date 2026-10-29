@@ -2,6 +2,8 @@ import { type ReactNode, useId } from 'react'
 
 import { Prose } from '@oztix/roadie-components/prose'
 
+import type { BlockAction } from '../Provider'
+import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import {
@@ -34,6 +36,8 @@ export type RichTextProps = {
   description?: string
   /** The rich text, already rendered, such as paragraphs from a CMS. Set in `Prose`; headings inside start at `h3`. */
   body?: ReactNode
+  /** Links after the body. The first is the strong one. */
+  actions?: readonly BlockAction[]
   /**
    * The spot illustration above the title in `statement`.
    * @default 'Heart'
@@ -74,6 +78,7 @@ function Statement({
   titleHighlight,
   description,
   body,
+  actions,
   illustration = 'Heart'
 }: PresetProps) {
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
@@ -100,6 +105,7 @@ function Statement({
           {body}
         </Prose>
       )}
+      <BlockActions actions={actions} className='justify-center' />
     </div>
   )
 }
@@ -110,7 +116,8 @@ function ArticleBody({
   title,
   titleHighlight,
   description,
-  body
+  body,
+  actions
 }: PresetProps) {
   return (
     <div className='container-3xl grid gap-6'>
@@ -127,6 +134,7 @@ function ArticleBody({
         <Intro eyebrow={eyebrow} description={description} />
       )}
       {body && <Prose size='lg'>{body}</Prose>}
+      <BlockActions actions={actions} />
     </div>
   )
 }

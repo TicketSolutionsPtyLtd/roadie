@@ -11,8 +11,8 @@ export const pathPhoto: Photo = (alt) => ({
   height: 800
 })
 
-export const pageHero = (photo: Photo = pathPhoto): HeroProps => ({
-  preset: 'page-hero',
+export const bento = (photo: Photo = pathPhoto): HeroProps => ({
+  preset: 'bento',
   title: 'Australia’s ticketing partner',
   titleHighlight: 'Australia’s',
   description:
@@ -27,18 +27,28 @@ export const pageHero = (photo: Photo = pathPhoto): HeroProps => ({
     fallbackSrc: '/videos/showreel-h264.mp4',
     poster: photo('Highlights from Ochre Kite Weekender')
   },
-  peopleImages: [
+  primaryImages: [
     photo('The Oztix team at Antler Kettle Hall'),
     photo('Event crew waving at Jumbuck Orchard Park')
   ],
-  eventImages: [
+  secondaryImages: [
     photo('A band on stage at Kazoo Hollow Room'),
     photo('The gates opening at Apricot Cyclone Fest')
   ]
 })
 
-export const pageHeader: HeroProps = {
-  preset: 'page-header',
+export const imageHero = (photo: Photo = pathPhoto): HeroProps => ({
+  preset: 'image',
+  title: 'Sell more tickets with Spotify',
+  titleHighlight: 'Spotify',
+  description:
+    'Your events show on artist profiles, so fans find them where they already listen.',
+  actions: [{ label: 'Talk to us', href: '/contact/sales' }],
+  image: photo('A crowd singing along at Xylophone Tide Festival')
+})
+
+export const titleOnly: HeroProps = {
+  preset: 'title',
   eyebrow: 'Our mission',
   title:
     'We empower venues and event organisers to create thriving events and communities through genuine partnerships.'

@@ -6,15 +6,21 @@ export const heroDefinition = {
   description: "Opens a page with its title, as the page's main heading.",
   presets: [
     {
-      name: 'page-hero',
-      title: 'Page hero',
+      name: 'bento',
+      title: 'Bento',
       description:
-        'A title panel over a photo, beside a video and cycling photos of people and events.',
+        'The page hero for landing pages: a title panel over a photo, beside a video and two panels of cycling photos.',
       variant: 'media'
     },
     {
-      name: 'page-header',
-      title: 'Page header',
+      name: 'image',
+      title: 'Image',
+      description: 'A title beside one photo, for industry and service pages.',
+      variant: 'media'
+    },
+    {
+      name: 'title',
+      title: 'Title only',
       description: 'An eyebrow and a large title, with no media.',
       variant: 'text'
     }

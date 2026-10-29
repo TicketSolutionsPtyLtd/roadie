@@ -15,13 +15,13 @@
     "name": "catalogue",
     "path": "dist/catalogue/index.js",
     "import": "*",
-    "limit": "540 B"
+    "limit": "590 B"
   },
   {
     "name": "hero",
     "path": "dist/Hero/index.js",
     "import": "*",
-    "limit": "3.75 kB",
+    "limit": "4.1 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -34,7 +34,7 @@
     "name": "rich-text",
     "path": "dist/RichText/index.js",
     "import": "*",
-    "limit": "2.25 kB",
+    "limit": "2.55 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",

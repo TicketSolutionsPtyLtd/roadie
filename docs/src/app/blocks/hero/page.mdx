@@ -18,16 +18,16 @@ import { Hero } from '@oztix/roadie-marketing-blocks/hero'
 
 ## Examples
 
-### Page hero
+### Bento
 
-The title sits over a photo, beside a muted, looping video. From a tablet
-width, event photos fill the panel beside the video, and from a desktop
-width, people photos sit beside the title. Each set of photos crossfades
+The page hero for landing pages. The title sits over a photo, beside a muted, looping video. From a tablet
+width, `secondaryImages` fill the panel beside the video, and from a desktop
+width, `primaryImages` sit beside the title. Each set of photos crossfades
 while it's on screen.
 
-```tsx-live-expand id=page-hero
+```tsx-live-expand id=bento
 <Hero
-  preset='page-hero'
+  preset='bento'
   title='Australia’s ticketing partner'
   titleHighlight='Australia’s'
   description='Australian owned and hosted, nationwide 7 days a week. Built on partnerships, powered by people and service.'
@@ -40,12 +40,12 @@ while it's on screen.
     src: '/blocks/hero-reel.mp4',
     poster: { src: '/brand/photography/01.webp', alt: 'Highlights from Velvet Dingo Fest', width: 1280, height: 854 }
   }}
-  peopleImages={[
+  primaryImages={[
     { src: '/brand/photography/03.webp', alt: 'Two Oztix team members working at their desks', width: 1280, height: 1007 },
     { src: '/brand/photography/04.webp', alt: 'Event staff scanning tickets at the gate', width: 1280, height: 1007 },
     { src: '/brand/photography/11.webp', alt: 'Three Oztix team members on a couch', width: 1280, height: 911 }
   ]}
-  eventImages={[
+  secondaryImages={[
     { src: '/brand/photography/12.webp', alt: 'A crowd in a laneway strung with bunting', width: 1280, height: 854 },
     { src: '/brand/photography/07.webp', alt: 'Guests on the terrace at Lighthouse Fig Lawn', width: 1280, height: 854 },
     { src: '/brand/photography/06.webp', alt: 'A panel talking on stage at Ochre Kite Weekender', width: 1280, height: 854 }
@@ -53,14 +53,30 @@ while it's on screen.
 />
 ```
 
-### Page header
+### Image
 
-An eyebrow and a large title, for a page whose first block carries the
-media.
+A title beside one photo, for industry and service pages. From a desktop
+width the text takes about two fifths and the photo the rest; below that,
+the photo sits above the text. The photo keeps its own shape.
 
-```tsx-live id=page-header
+```tsx-live-expand id=image
 <Hero
-  preset='page-header'
+  preset='image'
+  title='Sell more tickets with Spotify'
+  titleHighlight='Spotify'
+  description='Your events show on artist profiles, so fans find them where they already listen.'
+  actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+  image={{ src: '/brand/photography/10.webp', alt: 'A band posing in front of an Oztix backdrop', width: 1280, height: 834 }}
+/>
+```
+
+### Title only
+
+An eyebrow and a large title, for a page that opens on its text.
+
+```tsx-live id=title
+<Hero
+  preset='title'
   eyebrow='Our mission'
   title='We empower venues and event organisers to create thriving events and communities through genuine partnerships.'
 />
@@ -91,18 +107,19 @@ media.
 
 <Guideline title='Pick the preset by its media'>
   <Guideline.Do>
-    Use Page hero on a landing page with a background photo, a video, and at
-    least two photos each of people and events.
+    Use Bento on a landing page with a background photo, a video, and at
+    least two photos for each cycling panel, such as people and events. Use
+    Image for an industry or service page with one strong photo, and Title
+    only for a page that opens on its text, such as About.
   </Guideline.Do>
   <Guideline.Dont>
-    Use Page hero without its photos, which leaves panels empty. Use Page
-    header for a page that opens on its text, such as About.
+    Use Bento without its photos, which leaves panels empty.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Describe the photos that carry meaning'>
   <Guideline.Do>
-    Give people and event photos, and the video’s poster, `alt` text that says
+    Give the cycling photos, and the video’s poster, `alt` text that says
     what they show.
   </Guideline.Do>
   <Guideline.Dont>
