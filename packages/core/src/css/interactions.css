@@ -303,6 +303,36 @@
   }
 }
 
+/* is-focusable's ring drawn inset on the element's ::after overlay instead of
+   on the element, so the overlay's box is what's ringed, and a clamp or a
+   clipping cell can't cut it. The overlay is the caller's, such as an
+   is-interactive-within target's. Still an outline, so forced colours keep it.
+   The doubled :focus-visible outranks is-focusable's ring (and a link-* that
+   applies it) wherever Tailwind sorts them. */
+@utility is-focusable-overlay {
+  &:focus-visible:focus-visible {
+    outline: none;
+  }
+
+  &:focus-visible::after {
+    outline: var(--focus-ring-width) solid
+      color-mix(
+        in oklch,
+        var(--intent-9) var(--focus-ring-opacity),
+        transparent
+      );
+    outline-offset: calc(var(--focus-ring-width) * -1);
+  }
+
+  .dark &:focus-visible::after {
+    outline-color: color-mix(
+      in oklch,
+      var(--intent-9) var(--focus-ring-opacity-dark),
+      transparent
+    );
+  }
+}
+
 @utility is-interactive {
   cursor: pointer;
   @apply is-focusable;

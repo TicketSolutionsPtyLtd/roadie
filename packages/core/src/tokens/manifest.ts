@@ -134,7 +134,7 @@ const UTILITY_RULES: Rule[] = [
     'emphasis',
     'Emphasis presets'
   ],
-  [/^is-(interactive|focusable$)/, 'emphasis', 'Interaction states'],
+  [/^is-(interactive|focusable(-overlay)?$)/, 'emphasis', 'Interaction states'],
   [/^surface-floating$/, 'emphasis', 'Internal surfaces'],
   [/^(inset-)?shadow-/, 'elevation', 'Shadows'],
   [/^rim-light$/, 'elevation', 'Rim light'],
