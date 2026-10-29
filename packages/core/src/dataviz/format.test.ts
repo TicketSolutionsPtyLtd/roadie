@@ -21,6 +21,8 @@ describe('currencyFormat', () => {
     [{ decimals: 3, trimZeros: false }, 1.5, '$1.500'],
     [{ decimals: Number.NaN }, 19.95, '$19.95'],
     [{ decimals: -1 }, 19.95, '$20'],
+    [{ decimals: 1.6, trimZeros: false }, 1.5, '$1.50'],
+    [{ decimals: 150, trimZeros: false }, 1.5, `$1.5${'0'.repeat(19)}`],
     [{ currency: 'aud' }, 1200, '$1,200'],
     [{ currency: 'NZD' }, 12_500, 'NZD 12,500'],
     [{ currency: 'NZD' }, -1234.5, '-NZD 1,234.50'],
@@ -33,6 +35,23 @@ describe('currencyFormat', () => {
       .format(value)
       .replace(/\u00a0/g, ' ')
     expect(normalizeMinusSign(text)).toBe(expected)
+  })
+
+  it('reads dollars as $ in any locale', () => {
+    const read = (options: CurrencyFormatOptions) =>
+      new Intl.NumberFormat('en-US', currencyFormat(options)).format(1200)
+    expect(read({})).toBe('$1,200')
+    expect(read({ currency: 'aud' })).toBe('$1,200')
+    expect(read({ currency: 'NZD' })).toBe('NZ$1,200')
+  })
+
+  it('lets older Safari build a compact format for any currency', () => {
+    // Older Safari throws when the maximum is under the currency's minimum;
+    // current engines don't, so only the options can show it.
+    expect(currencyFormat({ currency: 'KWD', compact: true })).toMatchObject({
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1
+    })
   })
 
   it("returns options NumberFlow's format prop accepts", () => {
