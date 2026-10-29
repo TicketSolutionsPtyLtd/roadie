@@ -4,6 +4,7 @@ import {
   type ComponentProps,
   type MouseEvent,
   useEffect,
+  useEffectEvent,
   useImperativeHandle,
   useRef
 } from 'react'
@@ -48,8 +49,9 @@ export function BlockRoot({
   const ref = useRef<HTMLElement>(null)
   useImperativeHandle(forwardedRef, () => ref.current!)
   const identity = { block, variant, preset, position }
-  const latest = useRef({ onBlockEvent, identity })
-  latest.current = { onBlockEvent, identity }
+  const reportView = useEffectEvent(() =>
+    onBlockEvent?.(event('view', identity))
+  )
 
   const tracking = onBlockEvent != null
 
@@ -61,7 +63,7 @@ export function BlockRoot({
       (entries) => {
         if (!entries.some(isViewed)) return
         observer.disconnect()
-        latest.current.onBlockEvent?.(event('view', latest.current.identity))
+        reportView()
       },
       { threshold: THRESHOLDS }
     )
