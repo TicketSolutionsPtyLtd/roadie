@@ -10,6 +10,7 @@ import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import type { EditorValue, JSONContent } from '../schema'
+import { selectParagraph } from './testUtils'
 
 const LABEL = 'Newsletter'
 
@@ -86,6 +87,7 @@ describe('Editor insert menu', () => {
       '2 columns',
       '3 columns',
       '4 columns',
+      'Button',
       'Spacer',
       'Divider'
     ])
@@ -221,13 +223,13 @@ describe('Editor insert menu', () => {
       content: [{ type: 'text', text: 'Get tickets' }]
     }
     const onValueChange = renderEmail({ defaultValue: email(button) })
-    await userEvent.dblClick(await screen.findByText('Get tickets'))
+    await selectParagraph(await screen.findByText('Get tickets'))
 
     await userEvent.keyboard('/')
 
     await waitFor(() =>
       expect(onValueChange).toHaveBeenLastCalledWith(
-        email({ ...button, content: [{ type: 'text', text: 'Get /' }] }, p())
+        email({ ...button, content: [{ type: 'text', text: '/' }] }, p())
       )
     )
     expect(screen.queryByRole('listbox')).toBe(null)

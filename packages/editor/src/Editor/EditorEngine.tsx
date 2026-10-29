@@ -41,6 +41,7 @@ import { BLOCK_ID, BLOCK_ID_TYPES } from '../schema/presetShapes'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorBlockHandle } from './EditorBlockHandle'
 import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
+import { EditorButtonPopover } from './EditorButtonPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
 import { EditorEmbedPopover } from './EditorEmbedPopover'
@@ -286,6 +287,7 @@ export function EditorEngine({
   const [editingLink, setEditingLink] = useState(false)
   const [editingAlt, setEditingAlt] = useState(false)
   const [editingEmbed, setEditingEmbed] = useState(false)
+  const [editingButton, setEditingButton] = useState(false)
   const providersRef = useRef(embedProviders)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
@@ -486,6 +488,11 @@ export function EditorEngine({
         setEditingEmbed(true)
       }
     },
+    editButton: () => {
+      if (editor?.isEditable && editor.schema.nodes.button) {
+        setEditingButton(true)
+      }
+    },
     pickImage: canUpload ? () => fileInputRef.current?.click() : undefined,
     replaceImage: canUpload ? () => replaceInputRef.current?.click() : undefined
   }
@@ -570,6 +577,11 @@ export function EditorEngine({
           editor={editor}
           open={editingAlt}
           onOpenChange={setEditingAlt}
+        />
+        <EditorButtonPopover
+          editor={editor}
+          open={editingButton}
+          onOpenChange={setEditingButton}
         />
         <EditorEmbedPopover
           editor={editor}
