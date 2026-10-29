@@ -7,15 +7,15 @@ import {
   DESKTOP,
   PHONE,
   axeViolations,
+  photo,
   withBrowserPage
-} from '../_shared/testUtils'
+} from '../_test/browser'
 
 withBrowserPage()
 
-const images = Array.from({ length: 6 }, (_, index) => ({
-  src: `/brand/photography/0${index + 1}.webp`,
-  alt: `Photo ${index + 1} of a gig`
-}))
+const images = Array.from({ length: 6 }, (_, index) =>
+  photo(`Photo ${index + 1} of a gig`)
+)
 
 function Gallery() {
   return <Media preset='gallery' title='Our people' images={images} />
@@ -42,6 +42,21 @@ describe('Media gallery', () => {
 
     expect(tile().width).toBe(width)
     expect(tile().height).toBeCloseTo((width * 16) / 9, 0)
+    const img = screen
+      .getByRole('img', { name: 'Photo 1 of a gig' })
+      .getBoundingClientRect()
+    expect([img.width, img.height]).toEqual([tile().width, tile().height])
+  })
+
+  it('keeps phone-sized tiles in a narrow column on a desktop', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(
+      <div style={{ width: 400 }}>
+        <Gallery />
+      </div>
+    )
+
+    expect(tile().width).toBe(140)
   })
 
   it('names each photo once, however many copies fill the width', async () => {

@@ -106,4 +106,13 @@ describe('CtaBand', () => {
       href: 'https://studio.oztix.com.au'
     })
   })
+
+  it('renders without actions', () => {
+    render(<CtaBand preset='talk-to-us' title='Talk to our team' />)
+
+    expect(
+      screen.getByRole('region', { name: 'Talk to our team' })
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+  })
 })

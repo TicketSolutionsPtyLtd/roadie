@@ -22,7 +22,7 @@ import { CtaBand } from '@oztix/roadie-marketing-blocks/cta-band'
 
 The pitch and actions sit beside a tilted photo that breaks out of the top of the panel. On a phone, the photo sits above the copy.
 
-```tsx-live -expand
+```tsx-live-expand id=studio-cta
 <CtaBand
   preset='studio-cta'
   title='Explore an Oztix partnership'
@@ -40,7 +40,9 @@ The pitch and actions sit beside a tilted photo that breaks out of the top of th
   ]}
   image={{
     src: '/brand/photography/05.webp',
-    alt: 'Three partners smiling together at a laneway event'
+    alt: 'Three partners smiling together at a laneway event',
+    width: 1280,
+    height: 854
   }}
 />
 ```
@@ -49,7 +51,7 @@ The pitch and actions sit beside a tilted photo that breaks out of the top of th
 
 The heading, copy, and actions are centred in the panel, with no photo.
 
-```tsx-live -expand
+```tsx-live-expand id=talk-to-us
 <CtaBand
   preset='talk-to-us'
   title='Talk to our team'

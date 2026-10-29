@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { Media } from '.'
 import { MarketingBlocksProvider } from '../Provider'
@@ -51,5 +51,18 @@ describe('Media', () => {
     const img = screen.getByRole('img', { name: 'Fans at the front barrier' })
     expect(img).toHaveAttribute('src', '/optimised.webp')
     expect(img.getAttribute('data-sizes')).toMatch(/px/)
+  })
+
+  it('shows the same photo twice when it’s listed twice', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const repeated = [images[0]!, images[0]!]
+    const { rerender } = render(<Media title='Our people' images={repeated} />)
+    rerender(<Media title='Our people' images={[...repeated, images[1]!]} />)
+
+    expect(
+      screen.getAllByRole('img', { name: 'Fans at the front barrier' })
+    ).toHaveLength(2)
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
   })
 })

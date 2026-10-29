@@ -22,7 +22,7 @@ export type CtaBandProps = {
   preset?: CtaBandPreset
   /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
-  /** The section's `id`, for linking to it. */
+  /** An id for linking to the block. */
   id?: string
   /** A short line above the title. */
   eyebrow?: string
@@ -35,7 +35,7 @@ export type CtaBandProps = {
   /** A paragraph or two of rich text, set in `Prose`. */
   body?: ReactNode
   /** The links to act on. The first is the strong one. */
-  actions: BlockAction[]
+  actions?: readonly BlockAction[]
   /** The photo beside the pitch, in `studio-cta` only. Portrait, about 2:3. */
   image?: BlockImage
 }
@@ -54,61 +54,68 @@ export function CtaBand({
   image
 }: CtaBandProps) {
   const headingId = useId()
-  const preset = presetOf(ctaBandDefinition, presetName)
-  const split = preset.variant === 'split'
+  const { name, variant } = presetOf(ctaBandDefinition, presetName)
+  const split = variant === 'split'
   const photo = split ? image : undefined
 
   return (
     <BlockRoot
       block={ctaBandDefinition.name}
-      variant={preset.variant}
-      preset={preset.name}
+      variant={variant}
+      preset={name}
       position={position}
       id={id}
       aria-labelledby={headingId}
-      className='py-24 lg:py-32 xl:px-2'
     >
-      <div className='relative container-8xl grid gap-12 bg-raised py-12 md:py-16 xl:rounded-3xl'>
-        {photo && (
-          <div className='relative -mt-24 w-2/5 max-w-95 -rotate-5 md:absolute md:end-16 md:-top-1/3 md:mt-0 md:w-1/3 md:rotate-5 xl:-top-1/2'>
-            <div className='aspect-380/555 overflow-hidden rounded-2xl border-4 border-(--color-neutral-light-0) shadow-lg'>
-              <BlockImg
-                image={photo}
-                sizes='(max-width: 768px) 40vw, 380px'
-                className='size-full object-cover'
-              />
-            </div>
-            <HighFive
-              outline
-              className='absolute -end-12 -bottom-12 size-24 xl:-start-12 xl:end-auto'
-            />
-          </div>
-        )}
+      <div className='@7xl:px-2'>
         <div
+          data-slot='cta-band-panel'
           className={cn(
-            'grid gap-12',
-            split ? 'md:max-w-7/12' : 'justify-items-center text-center'
+            'relative container-8xl grid gap-12 bg-raised py-12 @3xl:py-16 @7xl:rounded-3xl',
+            photo && 'mt-14 @3xl:mt-28 @7xl:mt-36'
           )}
         >
-          <div className='grid gap-8'>
-            <BlockHeading
-              id={headingId}
-              eyebrow={eyebrow}
-              title={title}
-              titleHighlight={titleHighlight}
-              description={description}
-              align={split ? 'start' : 'center'}
-            />
-            {body && (
-              <Prose size='lg' className='max-w-2xl text-pretty'>
-                {body}
-              </Prose>
+          {photo && (
+            <div className='relative -mt-24 w-2/5 max-w-95 -rotate-5 @3xl:absolute @3xl:end-16 @3xl:-top-24 @3xl:mt-0 @3xl:w-1/3 @3xl:rotate-5 @7xl:-top-32'>
+              <div className='aspect-380/555 overflow-hidden rounded-2xl border-4 border-(--color-neutral-light-0) shadow-lg'>
+                <BlockImg
+                  image={photo}
+                  sizes='(max-width: 768px) 40vw, 380px'
+                  className='size-full object-cover'
+                />
+              </div>
+              <HighFive
+                outline
+                className='absolute -end-12 -bottom-12 size-24 @7xl:-start-12 @7xl:end-auto'
+              />
+            </div>
+          )}
+          <div
+            className={cn(
+              'grid gap-12',
+              split ? '@3xl:max-w-7/12' : 'justify-items-center text-center'
             )}
+          >
+            <div className='grid gap-8'>
+              <BlockHeading
+                id={headingId}
+                eyebrow={eyebrow}
+                title={title}
+                titleHighlight={titleHighlight}
+                description={description}
+                align={split ? 'start' : 'center'}
+              />
+              {body && (
+                <Prose size='lg' className='max-w-2xl text-pretty'>
+                  {body}
+                </Prose>
+              )}
+            </div>
+            <BlockActions
+              actions={actions}
+              className={split ? undefined : 'justify-center'}
+            />
           </div>
-          <BlockActions
-            actions={actions}
-            className={split ? undefined : 'justify-center'}
-          />
         </div>
       </div>
     </BlockRoot>

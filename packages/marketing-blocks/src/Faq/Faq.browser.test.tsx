@@ -8,7 +8,7 @@ import {
   PHONE,
   axeViolations,
   withBrowserPage
-} from '../_shared/testUtils'
+} from '../_test/browser'
 
 withBrowserPage()
 

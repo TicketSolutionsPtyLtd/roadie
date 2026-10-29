@@ -22,7 +22,7 @@ import { Faq } from '@oztix/roadie-marketing-blocks/faq'
 
 A heading over questions that open to their answers, one at a time. Answers are rich text, set in `Prose`.
 
-```tsx-live -expand
+```tsx-live-expand id=faq
 <Faq
   preset='faq'
   title='Questions, answered'
@@ -69,6 +69,12 @@ A heading over questions that open to their answers, one at a time. Answers are 
 </Guideline>
 
 </Guidelines>
+
+## Accessibility
+
+- **Keyboard**: each question is a native `<summary>`, so `Tab` reaches it and `Enter` or `Space` opens it. Opening one closes the others.
+- **Screen readers**: each question is an `h3` under the block's `h2`, so people can jump between questions by heading. The browser announces whether each one is open.
+- **Links**: links in an answer are reachable only once the question is open.
 
 ## Tracking
 

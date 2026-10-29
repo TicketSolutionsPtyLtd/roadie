@@ -19,7 +19,7 @@ export type MediaProps = {
   preset?: MediaPreset
   /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
-  /** The section's `id`, for linking to it. */
+  /** An id for linking to the block. */
   id?: string
   /** A short line above the title. */
   eyebrow?: string
@@ -30,7 +30,7 @@ export type MediaProps = {
   /** A sentence under the title. */
   description?: string
   /** Photos of people and events, cropped to portrait 9:16 tiles. Never logos. */
-  images: BlockImage[]
+  images: readonly BlockImage[]
 }
 
 const MARQUEE_SPEED = 40
@@ -47,17 +47,17 @@ export function Media({
   images
 }: MediaProps) {
   const headingId = useId()
-  const preset = presetOf(mediaDefinition, presetName)
+  const { name, variant } = presetOf(mediaDefinition, presetName)
 
   return (
     <BlockRoot
       block={mediaDefinition.name}
-      variant={preset.variant}
-      preset={preset.name}
+      variant={variant}
+      preset={name}
       position={position}
       id={id}
       aria-labelledby={headingId}
-      className='grid gap-12 py-24 lg:py-32'
+      className='grid gap-12'
     >
       <BlockHeading
         id={headingId}
@@ -68,10 +68,10 @@ export function Media({
         className='container-8xl'
       />
       <Marquee speed={MARQUEE_SPEED}>
-        {images.map((image) => (
+        {images.map((image, index) => (
           <div
-            key={image.src}
-            className='aspect-9/16 w-35 shrink-0 overflow-hidden rounded-3xl md:w-45 lg:w-55'
+            key={`${index}-${image.src}`}
+            className='aspect-9/16 w-35 shrink-0 overflow-hidden rounded-3xl @3xl:w-45 @5xl:w-55'
           >
             <BlockImg
               image={image}

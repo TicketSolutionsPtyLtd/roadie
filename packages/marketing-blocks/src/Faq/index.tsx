@@ -25,7 +25,7 @@ export type FaqProps = {
   preset?: FaqPreset
   /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
-  /** The section's `id`, for linking to it. */
+  /** An id for linking to the block. */
   id?: string
   /** A short line above the title. */
   eyebrow?: string
@@ -36,7 +36,7 @@ export type FaqProps = {
   /** A sentence under the title. */
   description?: string
   /** The questions, in the order people ask them. */
-  items: FaqItem[]
+  items: readonly FaqItem[]
 }
 
 /** Answers the questions people ask before they buy or sign up. */
@@ -51,17 +51,16 @@ export function Faq({
   items
 }: FaqProps) {
   const headingId = useId()
-  const preset = presetOf(faqDefinition, presetName)
+  const { name, variant } = presetOf(faqDefinition, presetName)
 
   return (
     <BlockRoot
       block={faqDefinition.name}
-      variant={preset.variant}
-      preset={preset.name}
+      variant={variant}
+      preset={name}
       position={position}
       id={id}
       aria-labelledby={headingId}
-      className='py-24 lg:py-32'
     >
       <div className='container-3xl grid gap-8'>
         <BlockHeading
@@ -73,8 +72,8 @@ export function Faq({
           align='start'
         />
         <Accordion emphasis='subtler' className='-mx-4 w-auto gap-1'>
-          {items.map(({ question, answer }) => (
-            <Accordion.Item key={question}>
+          {items.map(({ question, answer }, index) => (
+            <Accordion.Item key={`${index}-${question}`}>
               <Accordion.Trigger>
                 <h3 className='text-display-ui-6 text-strong'>{question}</h3>
               </Accordion.Trigger>

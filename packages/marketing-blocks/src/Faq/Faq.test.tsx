@@ -83,4 +83,17 @@ describe('Faq', () => {
       href: 'mailto:admin@oztix.com.au'
     })
   })
+
+  it('lists a question twice when it’s asked twice', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const repeated = [items[0]!, items[0]!]
+    const { rerender } = render(<Faq title='Questions' items={repeated} />)
+    rerender(<Faq title='Questions' items={[...repeated, items[1]!]} />)
+
+    expect(
+      screen.getAllByRole('heading', { name: 'Does it cost anything?' })
+    ).toHaveLength(2)
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
+  })
 })

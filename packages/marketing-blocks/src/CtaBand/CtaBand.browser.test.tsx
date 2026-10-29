@@ -7,8 +7,9 @@ import {
   DESKTOP,
   PHONE,
   axeViolations,
+  photo,
   withBrowserPage
-} from '../_shared/testUtils'
+} from '../_test/browser'
 
 withBrowserPage()
 
@@ -20,15 +21,17 @@ const props: CtaBandProps = {
     { label: 'Talk to us', href: '/contact/sales' },
     { label: 'Create my event', href: 'https://studio.oztix.com.au' }
   ],
-  image: { src: '/brand/photography/04.webp', alt: 'Hands up at a gig' }
+  image: photo('Hands up at a gig')
 }
 
 function boxes() {
   const heading = screen.getByRole('heading', { level: 2 })
+  const section = heading.closest('section')!
   return {
-    panel: heading
-      .closest('section')!
-      .firstElementChild!.getBoundingClientRect(),
+    section: section.getBoundingClientRect(),
+    panel: section
+      .querySelector('[data-slot=cta-band-panel]')!
+      .getBoundingClientRect(),
     heading: heading.getBoundingClientRect(),
     photo: screen
       .getByRole('img', { name: 'Hands up at a gig' })
@@ -41,8 +44,21 @@ describe('CtaBand studio CTA', () => {
     await page.viewport(PHONE.width, PHONE.height)
     render(<CtaBand preset='studio-cta' {...props} />)
 
-    const { panel, heading, photo } = boxes()
+    const { section, panel, heading, photo } = boxes()
     expect(photo.top).toBeLessThan(panel.top)
+    expect(photo.top).toBeGreaterThanOrEqual(section.top)
+    expect(photo.bottom).toBeLessThanOrEqual(heading.top)
+  })
+
+  it('sets the photo above the copy in a narrow column on a desktop', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(
+      <div style={{ width: 400 }}>
+        <CtaBand preset='studio-cta' {...props} />
+      </div>
+    )
+
+    const { heading, photo } = boxes()
     expect(photo.bottom).toBeLessThanOrEqual(heading.top)
   })
 
@@ -50,8 +66,9 @@ describe('CtaBand studio CTA', () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     render(<CtaBand preset='studio-cta' {...props} />)
 
-    const { panel, heading, photo } = boxes()
+    const { section, panel, heading, photo } = boxes()
     expect(photo.top).toBeLessThan(panel.top)
+    expect(photo.top).toBeGreaterThanOrEqual(section.top)
     expect(photo.left).toBeGreaterThan(heading.left + heading.width / 2)
     expect(photo.left).toBeGreaterThanOrEqual(
       screen
@@ -67,6 +84,18 @@ describe('CtaBand studio CTA', () => {
   })
 })
 
+describe('CtaBand studio CTA photo', () => {
+  it('crops a landscape photo to the portrait frame', async () => {
+    render(<CtaBand preset='studio-cta' {...props} />)
+
+    const img = screen.getByRole('img', { name: 'Hands up at a gig' })
+    const frame = img.parentElement!
+    expect(img.offsetWidth).toBe(frame.clientWidth)
+    expect(img.offsetHeight).toBe(frame.clientHeight)
+    expect(frame.clientHeight).toBeGreaterThan(frame.clientWidth)
+  })
+})
+
 describe('CtaBand talk to us', () => {
   it('centres the heading and actions in the panel', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
@@ -75,7 +104,8 @@ describe('CtaBand talk to us', () => {
     const heading = screen.getByRole('heading', { level: 2 })
     const panel = heading
       .closest('section')!
-      .firstElementChild!.getBoundingClientRect()
+      .querySelector('[data-slot=cta-band-panel]')!
+      .getBoundingClientRect()
     const centre = (box: DOMRect) => box.left + box.width / 2
     const links = screen
       .getAllByRole('link')
