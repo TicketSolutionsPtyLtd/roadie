@@ -101,6 +101,34 @@ describe('BlockRoot views', () => {
     })
   })
 
+  it('waits while a block is only partly on screen', async () => {
+    const onBlockEvent = vi.fn()
+    const { container } = render(<Page onBlockEvent={onBlockEvent} />)
+    const section = container.querySelector('section')!
+
+    // 30% of the 400px block shows at the bottom of the screen.
+    window.scrollTo(0, section.offsetTop - window.innerHeight + 120)
+    await nextIntersection(section)
+    expect(seen(onBlockEvent)).toHaveLength(0)
+  })
+
+  it('reports a view of a block thirty screens tall once it reaches the middle of the screen', async () => {
+    const onBlockEvent = vi.fn()
+    const { container } = render(
+      <Page onBlockEvent={onBlockEvent} height='3000vh' />
+    )
+    const section = container.querySelector('section')!
+
+    window.scrollTo(0, section.offsetTop - window.innerHeight * 0.8)
+    await nextIntersection(section)
+    expect(seen(onBlockEvent)).toHaveLength(0)
+
+    window.scrollTo(0, section.offsetTop + window.innerHeight * 10)
+    await vi.waitFor(() => expect(seen(onBlockEvent)).toHaveLength(1), {
+      timeout: 2000
+    })
+  })
+
   it('still reports views when the block passes its own ref', async () => {
     const onBlockEvent = vi.fn()
     const sectionRef = createRef<HTMLElement>()
