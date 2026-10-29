@@ -44,7 +44,10 @@ const partnerSpotlight = {
   description: 'Sell your tickets through our resale partner.',
   body: <p>The safest way to resell tickets to any event you can't make.</p>,
   actions: [{ label: 'Resell my tickets', href: 'https://resale.example.com' }],
-  partnerLogo: { src: '/partner.svg', alt: 'Partner logo', width: 208 }
+  partner: {
+    name: 'Partner',
+    logo: { src: '/partner.svg', alt: 'Partner logo', width: 208 }
+  }
 } as const
 
 describe('Split', () => {
@@ -135,6 +138,20 @@ describe('Split', () => {
         "The safest way to resell tickets to any event you can't make."
       )
     ).toBeInTheDocument()
+  })
+
+  it("names the partner's logo by the partner when the logo has no alt", () => {
+    render(
+      <Split
+        {...partnerSpotlight}
+        partner={{ name: 'Partner', logo: { src: '/partner.svg', alt: '' } }}
+      />
+    )
+
+    expect(screen.getByRole('img', { name: 'Partner' })).toHaveAttribute(
+      'src',
+      '/partner.svg'
+    )
   })
 
   it('falls back to feature-row with no preset', () => {

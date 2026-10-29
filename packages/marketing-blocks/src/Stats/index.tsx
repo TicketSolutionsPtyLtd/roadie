@@ -2,21 +2,22 @@ import { useId } from 'react'
 
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
+import { type StatItem, StatList } from '../_shared/StatList'
 import { presetOf } from '../_shared/presets'
-import { type StatItem, StatList } from './StatList'
-import { statsDefinition } from './definition'
+import { type StatsPreset, statsDefinition } from './definition'
 
-export type { SpotIllustrationName, StatItem } from './StatList'
+export type { StatItem } from '../_shared/StatList'
+export type { StatsPreset } from './definition'
 
 export type StatsProps = {
   /**
    * The named look. `company-facts` sets a heading over a wrapping row of stats.
    * @default 'company-facts'
    */
-  preset?: 'company-facts'
+  preset?: StatsPreset
   /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
-  /** The section's id, for linking to it as an anchor. */
+  /** An id for linking to the block. */
   id?: string
   /** A short line above the title. */
   eyebrow?: string

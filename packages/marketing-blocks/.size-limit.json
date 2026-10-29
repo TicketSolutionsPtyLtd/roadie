@@ -15,7 +15,7 @@
     "name": "split",
     "path": "dist/Split/index.js",
     "import": "*",
-    "limit": "3 kB",
+    "limit": "3.15 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -27,7 +27,7 @@
     "name": "stats",
     "path": "dist/Stats/index.js",
     "import": "*",
-    "limit": "2.1 kB",
+    "limit": "2.2 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",

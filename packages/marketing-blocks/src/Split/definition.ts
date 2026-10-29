@@ -1,6 +1,6 @@
 import type { BlockDefinition } from '../catalogue'
 
-export const splitDefinition: BlockDefinition = {
+export const splitDefinition = {
   name: 'split',
   title: 'Split',
   description:
@@ -28,4 +28,7 @@ export const splitDefinition: BlockDefinition = {
       variant: 'media'
     }
   ]
-}
+} as const satisfies BlockDefinition
+
+/** A Split preset's name. */
+export type SplitPreset = (typeof splitDefinition.presets)[number]['name']

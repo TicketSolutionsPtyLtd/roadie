@@ -1,15 +1,4 @@
-import {
-  FlowerSpiral,
-  Heart,
-  HighFive,
-  MapPin,
-  Ticket
-} from '@oztix/roadie-components/spot-illustrations'
-
-const ILLUSTRATIONS = { FlowerSpiral, Heart, HighFive, MapPin, Ticket }
-
-/** A spot illustration a stat can show, by its component's name. */
-export type SpotIllustrationName = keyof typeof ILLUSTRATIONS
+import { SPOT_ILLUSTRATIONS, type SpotIllustrationName } from './illustrations'
 
 export type StatItem = {
   /** The number as written, such as `7 million+`. */
@@ -23,11 +12,11 @@ export type StatItem = {
 export function StatList({ items }: { items: readonly StatItem[] }) {
   return (
     <ul className='grid grid-cols-[repeat(auto-fill,minmax(min(20rem,100%),1fr))] gap-x-8 gap-y-2'>
-      {items.map(({ value, label, illustration }) => {
-        const Illustration = illustration && ILLUSTRATIONS[illustration]
+      {items.map(({ value, label, illustration }, index) => {
+        const Illustration = illustration && SPOT_ILLUSTRATIONS[illustration]
         return (
           <li
-            key={`${value}-${label}`}
+            key={`${index}-${value}-${label}`}
             className='flex items-center gap-4 py-1'
           >
             {Illustration && (

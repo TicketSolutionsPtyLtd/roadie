@@ -58,6 +58,16 @@ describe('Stats', () => {
     expect(section).toHaveAttribute('id', 'numbers')
   })
 
+  it('shows repeated stats once each, without a key clash', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const repeated = { value: '20+', label: 'years in ticketing' }
+    render(<Stats title={facts.title} items={[repeated, repeated]} />)
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(2)
+    expect(consoleError).not.toHaveBeenCalled()
+    consoleError.mockRestore()
+  })
+
   it('leaves the description out when there is none', () => {
     render(<Stats title={facts.title} items={facts.items} />)
 

@@ -1,6 +1,6 @@
 import type { BlockDefinition } from '../catalogue'
 
-export const statsDefinition: BlockDefinition = {
+export const statsDefinition = {
   name: 'stats',
   title: 'Stats',
   description:
@@ -14,4 +14,7 @@ export const statsDefinition: BlockDefinition = {
       variant: 'typed-in'
     }
   ]
-}
+} as const satisfies BlockDefinition
+
+/** A Stats preset's name. */
+export type StatsPreset = (typeof statsDefinition.presets)[number]['name']

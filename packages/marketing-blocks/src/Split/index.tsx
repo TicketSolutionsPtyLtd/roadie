@@ -6,15 +6,23 @@ import { Heart } from '@oztix/roadie-components/spot-illustrations'
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction, BlockImage } from '../Provider'
-import { type StatItem, StatList } from '../Stats/StatList'
 import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading, type BlockHeadingProps } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
+import { type StatItem, StatList } from '../_shared/StatList'
 import { presetOf } from '../_shared/presets'
-import { splitDefinition } from './definition'
+import { type SplitPreset, splitDefinition } from './definition'
 
-export type { SpotIllustrationName, StatItem } from '../Stats/StatList'
+export type { StatItem } from '../_shared/StatList'
+export type { SplitPreset } from './definition'
+
+/** The partner a `partner-spotlight` features. */
+export type SplitPartner = {
+  /** The partner's name, which names the logo when it has no alt text. */
+  name: string
+  logo: BlockImage
+}
 
 /** The stats beside a `text-and-stats` split. */
 export type SplitStats = {
@@ -28,13 +36,13 @@ export type SplitStats = {
 
 export type SplitProps = {
   /**
-   * The named look. `feature-row` sets an image beside the heading on a tinted panel, `text-and-stats` sets long-form text beside `stats`, and `partner-spotlight` opens a partner page with the Oztix logo and `partnerLogo` joined by a heart, its title as the page's `h1`.
+   * The named look. `feature-row` sets an image beside the heading on a tinted panel, `text-and-stats` sets long-form text beside `stats`, and `partner-spotlight` opens a partner page with the Oztix logo and the `partner` logo joined by a heart, its title as the page's `h1`.
    * @default 'feature-row'
    */
-  preset?: 'feature-row' | 'text-and-stats' | 'partner-spotlight'
+  preset?: SplitPreset
   /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
-  /** The section's id, for linking to it as an anchor. */
+  /** An id for linking to the block. */
   id?: string
   /** A short line above the title. */
   eyebrow?: string
@@ -50,31 +58,31 @@ export type SplitProps = {
   actions?: readonly BlockAction[]
   /** The `feature-row` image, shown before the text. */
   image?: BlockImage
-  /** The partner's logo in a `partner-spotlight`, under the Oztix logo. */
-  partnerLogo?: BlockImage
+  /** The partner in a `partner-spotlight`, whose logo sits under the Oztix logo. */
+  partner?: SplitPartner
   /** The `text-and-stats` aside, which wraps below the text on narrow widths. */
   stats?: SplitStats
 }
 
-type Preset = NonNullable<SplitProps['preset']>
-
 const CONTENT: Record<
-  Preset,
+  SplitPreset,
   {
     level: BlockHeadingProps['level']
+    size: BlockHeadingProps['size']
     gap: string
     prose: 'md' | 'lg'
     proseClassName?: string
   }
 > = {
-  'feature-row': { level: 2, gap: 'gap-4', prose: 'md' },
+  'feature-row': { level: 2, size: 3, gap: 'gap-4', prose: 'md' },
   'text-and-stats': {
     level: 2,
+    size: 2,
     gap: 'gap-6',
     prose: 'lg',
     proseClassName: 'max-w-[60ch] [&>h3]:text-display-prose-5'
   },
-  'partner-spotlight': { level: 1, gap: 'gap-8', prose: 'md' }
+  'partner-spotlight': { level: 1, size: 2, gap: 'gap-8', prose: 'md' }
 }
 
 /** Text beside an image, a partner lockup, or the numbers that back it up. */
@@ -89,11 +97,11 @@ export function Split({
   body,
   actions,
   image,
-  partnerLogo,
+  partner,
   stats
 }: SplitProps) {
   const { name, variant } = presetOf(splitDefinition, preset)
-  const layout = CONTENT[name as Preset]
+  const layout = CONTENT[name]
   const headingId = useId()
 
   const content = (
@@ -101,6 +109,7 @@ export function Split({
       <BlockHeading
         id={headingId}
         level={layout.level}
+        size={layout.size}
         align='start'
         eyebrow={eyebrow}
         title={title}
@@ -133,13 +142,18 @@ export function Split({
       )}
       {name === 'partner-spotlight' && (
         <div className='container-8xl flex flex-wrap gap-16 @5xl:gap-24'>
-          {partnerLogo && <PartnerLockup partnerLogo={partnerLogo} />}
+          {partner && <PartnerLockup {...partner} />}
           <div className='grow basis-100'>{content}</div>
         </div>
       )}
       {name === 'feature-row' && (
         <div className='container-8xl'>
-          <div className='grid items-center gap-12 rounded-2xl emphasis-subtle p-6 intent-info @3xl:grid-cols-[2fr_3fr]'>
+          <div
+            className={cn(
+              'grid items-center gap-12 rounded-2xl emphasis-subtle p-6 intent-info',
+              image && '@3xl:grid-cols-[2fr_3fr]'
+            )}
+          >
             {image && (
               <BlockImg
                 image={image}
@@ -168,12 +182,13 @@ function StatsAside({ title, description, items }: SplitStats) {
 }
 
 // The logos sit the same height either side of a short middle row, so the heart, centred across all three, overlaps both.
-function PartnerLockup({ partnerLogo }: { partnerLogo: BlockImage }) {
+function PartnerLockup({ name, logo }: SplitPartner) {
   return (
     <div className='grid grow basis-50 grid-rows-[auto_1.5rem_auto] content-start justify-items-center'>
       <Logo size='xl' className='col-start-1 row-start-1' />
       <BlockImg
-        image={partnerLogo}
+        image={{ ...logo, alt: logo.alt || name }}
+        sizes='16rem'
         className='col-start-1 row-start-3 h-12 w-auto'
       />
       <Heart

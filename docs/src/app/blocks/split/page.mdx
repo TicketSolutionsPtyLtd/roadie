@@ -6,6 +6,7 @@ export const metadata = {
   category: 'Content'
 }
 
+import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 Text beside an image, a partner lockup, or the numbers that back it up.
@@ -23,7 +24,7 @@ import { Split } from '@oztix/roadie-marketing-blocks/split'
 An image beside a heading and short description, on a tinted panel. The
 image comes first, and the text wraps below it on narrow screens.
 
-```tsx-live
+```tsx-live-expand id=feature-row
 <Split
   preset='feature-row'
   title='Specialist teams powering venues and event organisers'
@@ -43,7 +44,7 @@ Long-form text at a readable measure, with the numbers that back it up
 beside it. The stats wrap below the text on narrow screens. They draw the
 same way as the [Stats](/blocks/stats) block.
 
-```tsx-live
+```tsx-live-expand id=text-and-stats
 <Split
   preset='text-and-stats'
   title='Who we are'
@@ -82,7 +83,7 @@ Opens a partner page: the Oztix logo and the partner's logo joined by a
 heart, beside the page title, text, and action. Its title is the page's
 `h1`, so it's always the first block on the page.
 
-```tsx-live
+```tsx-live-expand id=partner-spotlight
 <Split
   preset='partner-spotlight'
   title='Resell my tickets'
@@ -96,26 +97,45 @@ heart, beside the page title, text, and action. Its title is the page's
     </>
   }
   actions={[{ label: 'Resell my tickets', href: 'https://www.example.com' }]}
-  partnerLogo={{
-    src: '/blocks/partner-logo.svg',
-    alt: 'Partner logo',
-    width: 208,
-    height: 60
+  partner={{
+    name: 'Partner',
+    logo: { src: '/blocks/partner-logo.svg', alt: '', width: 208, height: 60 }
   }}
 />
 ```
 
 ## Guidelines
 
-- **Answer first.** Open the text with a sentence that answers the page's
-  question, such as what the partnership lets someone do, then back it up.
-- **Feature row** suits a short point with a photo that shows it, such as the
-  teams behind a service. Keep it to a heading and one or two sentences.
-- **Text and stats** suits an about page: a few short sections under `h3`
-  headings, with three to six numbers that prove them. Write each value as it
-  should read, such as `7 million+`.
-- **Partner spotlight** opens a page about one partner. Use the partner's own
-  logo artwork, at its natural width, and one action that goes to them.
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Open the text with a sentence that answers the page's question, such as what the partnership lets someone do, then back it up.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't open with why the partnership matters to us before saying what it does.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pick the preset for the content'>
+  <Guideline.Do>
+    Use feature row for a short point with a photo that shows it, text and stats for an about page with three to six numbers that prove it, and partner spotlight to open a page about one partner.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put partner spotlight anywhere but the top of the page. Its title is the page's `h1`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Write stats as they should read'>
+  <Guideline.Do>
+    Round each value and write it as it reads, such as `7 million+`, with a label that says what it counts.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't add an illustration that doesn't match its label.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
 
 ## Tracking
 

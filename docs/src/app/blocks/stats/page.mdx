@@ -6,6 +6,7 @@ export const metadata = {
   category: 'Content'
 }
 
+import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 Key numbers as they were written, each with a spot illustration and a label.
@@ -23,7 +24,7 @@ import { Stats } from '@oztix/roadie-marketing-blocks/stats'
 A heading over the numbers, which wrap as many to a row as fit. Each value is
 a string, so it reads exactly as the editor wrote it.
 
-```tsx-live
+```tsx-live-expand id=company-facts
 <Stats
   preset='company-facts'
   title='By the numbers'
@@ -40,16 +41,36 @@ a string, so it reads exactly as the editor wrote it.
 
 ## Guidelines
 
-- **Answer first.** Say what the numbers prove in the title or description,
-  such as `The impact of genuine partnerships`, before the numbers do.
-- **Company facts** suits three to six numbers that change rarely, such as
-  tickets sold or years in business. Round them and write them as they
-  should read, such as `7 million+`, since the block shows each value as
-  written.
-- Give each stat a short label that says what it counts, and an
-  illustration only when it matches the label.
-- To set stats beside long-form text, use [Split](/blocks/split)'s
-  `text-and-stats` preset instead.
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Say what the numbers prove in the title or description, such as `The impact of genuine partnerships`, before the numbers do.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't title the block with a bare label, such as `Stats`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep to a few numbers that change rarely'>
+  <Guideline.Do>
+    Show three to six numbers, such as tickets sold or years in business, rounded and written as they should read, such as `7 million+`.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't show live or precise figures. The block shows each value exactly as written.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Set stats beside text with Split'>
+  <Guideline.Do>
+    Use [Split](/blocks/split)'s `text-and-stats` preset to set stats beside long-form text.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't stack a Stats block under a text block to fake the aside.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
 
 ## Tracking
 

@@ -1,15 +1,16 @@
-import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
 
 import { Stats, type StatsProps } from '.'
-import { axeViolations, useBlockStyles } from '../_shared/browserTesting'
+import {
+  DESKTOP,
+  PHONE,
+  atWidth,
+  axeViolations,
+  withBrowserPage
+} from '../_test/browser'
 
-let removeStyles = () => {}
-beforeAll(() => {
-  removeStyles = useBlockStyles()
-})
-afterAll(() => removeStyles())
-afterEach(() => cleanup())
+withBrowserPage()
 
 const facts: StatsProps = {
   title: 'By the numbers',
@@ -22,12 +23,15 @@ const facts: StatsProps = {
   ]
 }
 
-function statsPerRowAt(width: number) {
-  render(
-    <div style={{ width }}>
-      <Stats {...facts} />
-    </div>
-  )
+async function statsPerRowAt({
+  width,
+  height
+}: {
+  width: number
+  height: number
+}) {
+  await atWidth(width, height)
+  render(<Stats {...facts} />)
   const tops = screen
     .getAllByRole('listitem')
     .map((item) => Math.round(item.getBoundingClientRect().top))
@@ -35,12 +39,12 @@ function statsPerRowAt(width: number) {
 }
 
 describe('Stats layout', () => {
-  it('stacks the stats one to a row on phones', () => {
-    expect(statsPerRowAt(375)).toBe(1)
+  it('stacks the stats one to a row on phones', async () => {
+    expect(await statsPerRowAt(PHONE)).toBe(1)
   })
 
-  it('sets the stats three to a row on wide screens', () => {
-    expect(statsPerRowAt(1280)).toBe(3)
+  it('sets the stats three to a row on wide screens', async () => {
+    expect(await statsPerRowAt(DESKTOP)).toBe(3)
   })
 
   it('sets each illustration beside its value', () => {
