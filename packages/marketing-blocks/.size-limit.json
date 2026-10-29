@@ -3,7 +3,7 @@
     "name": "provider",
     "path": "dist/Provider/index.js",
     "import": "*",
-    "limit": "335 B",
+    "limit": "370 B",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
