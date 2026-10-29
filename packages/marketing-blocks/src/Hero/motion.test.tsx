@@ -191,4 +191,34 @@ describe('Hero photo cycling', () => {
 
     expect(screen.queryByRole('button')).toBeNull()
   })
+
+  describe('video poster', () => {
+    const poster = (container: HTMLElement) =>
+      container.querySelector<HTMLElement>('[data-slot=hero-video-poster]')!
+
+    it('covers the video until it is actually playing, then steps aside', () => {
+      const { container } = render(<Hero {...bento()} />)
+      expect(poster(container)).toBeVisible()
+
+      act(() => fireEvent.playing(container.querySelector('video')!))
+
+      expect(poster(container)).not.toBeVisible()
+    })
+
+    it('stays over the video for viewers who reduce motion', () => {
+      reduceMotion(true)
+      const { container } = render(<Hero {...bento()} />)
+
+      expect(poster(container)).toBeVisible()
+    })
+
+    it('keeps the current frame, not the poster, when paused after playing', () => {
+      const { container } = render(<Hero {...bento()} />)
+      act(() => fireEvent.playing(container.querySelector('video')!))
+
+      act(() => fireEvent.click(toggle(/pause/i)))
+
+      expect(poster(container)).not.toBeVisible()
+    })
+  })
 })

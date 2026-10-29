@@ -164,6 +164,23 @@ describe('Hero bento image sizes', () => {
   )
 })
 
+describe('Hero bento video poster', () => {
+  it('shows the poster over the video for viewers who reduce motion', async () => {
+    await commands.reducedMotion(true)
+    await showAt(DESKTOP.width)
+    const frame = box('video')
+
+    const top = document.elementFromPoint(
+      frame.left + frame.width / 2,
+      frame.top + frame.height / 2
+    )!
+    expect(
+      top.closest('[data-slot=hero-video-poster]'),
+      top.outerHTML
+    ).not.toBeNull()
+  })
+})
+
 describe('Hero bento pause toggle', () => {
   it('shows a pause control over the bento that turns to play when pressed', async () => {
     await showAt(PHONE.width)
