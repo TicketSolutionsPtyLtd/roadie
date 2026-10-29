@@ -54,6 +54,8 @@ import type { EditorRootProps } from './EditorRoot'
 import { EditorSlashMenuEngine } from './EditorSlashMenuEngine'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
+import { type BlockContainers, TOP_LEVEL } from './blockActions'
+import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
@@ -102,7 +104,11 @@ const BlockMenuShortcut = Extension.create<BlockMenuShortcutOptions>({
   }
 })
 
-const BLOCK_HANDLE_PRESETS: ReadonlySet<Preset> = new Set(['blocks'])
+// The nodes whose children each get a block handle, in each preset with one.
+const BLOCK_HANDLE_CONTAINERS: Partial<Record<Preset, BlockContainers>> = {
+  blocks: TOP_LEVEL,
+  email: new Set(['doc', 'section', 'column'])
+}
 
 type AltTextShortcutOptions = { onEditAlt: () => void }
 
@@ -339,7 +345,9 @@ export function EditorEngine({
   const editable = !readOnly && !disabled && !unreadable
   useFieldControlError(uploadError ?? (unreadable ? UNREADABLE : null))
   const holdsImages = presetHoldsImages(preset)
-  const hasBlockHandle = BLOCK_HANDLE_PRESETS.has(preset)
+  const blockContainers = BLOCK_HANDLE_CONTAINERS[preset]
+  const hasBlockHandle = blockContainers !== undefined
+  const insertItems = presetInsertItems[preset] ?? []
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
@@ -364,8 +372,9 @@ export function EditorEngine({
           return Boolean(openBlockMenuRef.current)
         }
       }),
+      ...(blockContainers ? [BlockDrag] : []),
       InsertMenu.configure({
-        items: presetInsertItems[preset] ?? [],
+        items: insertItems,
         ui: () => uiRef.current!,
         onChange: setInsertMenu
       })
@@ -389,7 +398,9 @@ export function EditorEngine({
           editorContentClass(size, emphasis),
           'min-w-0 outline-none',
           // Room for the block handle at each block's start.
-          hasBlockHandle && emphasis !== 'subtler' && 'ps-10',
+          hasBlockHandle &&
+            emphasis !== 'subtler' &&
+            (insertItems.length > 0 ? 'ps-15' : 'ps-10'),
           preset === 'email' && EMAIL_CANVAS
         )
       },
@@ -562,8 +573,13 @@ export function EditorEngine({
             toolbarRef={nodeToolbarRef}
           />
         ) : null}
-        {editor && hasBlockHandle ? (
-          <EditorBlockHandle editor={editor} openMenuRef={openBlockMenuRef} />
+        {editor && blockContainers ? (
+          <EditorBlockHandle
+            editor={editor}
+            openMenuRef={openBlockMenuRef}
+            containers={blockContainers}
+            canAdd={insertItems.length > 0}
+          />
         ) : null}
         {editor ? (
           <EditorInsertMenu

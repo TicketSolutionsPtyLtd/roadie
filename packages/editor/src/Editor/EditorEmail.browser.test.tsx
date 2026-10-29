@@ -1,12 +1,30 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
+import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, JSONContent } from '../schema'
 import { LINE_END } from './testUtils'
 
 const LABEL = 'Newsletter'
+
+// Unstyled, the block handle beside the caret's block sits in the flow.
+let style: HTMLStyleElement
+beforeAll(() => {
+  style = document.createElement('style')
+  style.textContent = roadieCss
+  document.head.append(style)
+})
+afterAll(() => style.remove())
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
 
 const p = (text: string): JSONContent => ({
