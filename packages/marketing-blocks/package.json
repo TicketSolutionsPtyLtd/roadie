@@ -30,9 +30,17 @@
       "style": "./src/css/marketing-blocks.css",
       "default": "./src/css/marketing-blocks.css"
     },
+    "./hero": {
+      "types": "./dist/Hero/index.d.ts",
+      "import": "./dist/Hero/index.js"
+    },
     "./provider": {
       "types": "./dist/Provider/index.d.ts",
       "import": "./dist/Provider/index.js"
+    },
+    "./rich-text": {
+      "types": "./dist/RichText/index.d.ts",
+      "import": "./dist/RichText/index.js"
     },
     "./catalogue": {
       "types": "./dist/catalogue/index.d.ts",

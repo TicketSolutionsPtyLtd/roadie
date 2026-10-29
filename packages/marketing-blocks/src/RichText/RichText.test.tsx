@@ -1,0 +1,110 @@
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+
+import { RichText } from '.'
+import { MarketingBlocksProvider } from '../Provider'
+import { articleBody, statement } from './testUtils'
+
+describe('RichText', () => {
+  describe('statement', () => {
+    it('titles the section with an h2, marking the highlighted words', () => {
+      render(<RichText {...statement} />)
+
+      const heading = screen.getByRole('heading', {
+        level: 2,
+        name: statement.title
+      })
+      expect(screen.getByRole('region', { name: statement.title })).toBe(
+        heading.closest('section')
+      )
+      expect(screen.getByText('Australian-owned').closest('mark')).not.toBe(
+        null
+      )
+    })
+
+    it('names the statement preset and the prose variant', () => {
+      render(<RichText {...statement} position={3} />)
+
+      const section = screen.getByRole('region')
+      expect(section).toHaveAttribute('data-block', 'rich-text')
+      expect(section).toHaveAttribute('data-variant', 'prose')
+      expect(section).toHaveAttribute('data-preset', 'statement')
+      expect(section).toHaveAttribute('data-position', '3')
+    })
+
+    it('shows each paragraph of the body in Prose, under a decorative illustration', () => {
+      const { container } = render(<RichText {...statement} />)
+
+      expect(screen.getByText(/largest independent ticketing/)).toBeVisible()
+      expect(screen.getByText(/every size, stage and ambition/)).toBeVisible()
+      expect(container.querySelector('.prose')).toContainElement(
+        screen.getByText(/every size, stage and ambition/)
+      )
+      expect(container.querySelector('svg')).toHaveAttribute(
+        'aria-hidden',
+        'true'
+      )
+    })
+  })
+
+  describe('article-body', () => {
+    it('sets the body in Prose under its title', () => {
+      const { container } = render(<RichText {...articleBody} />)
+
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'How refunds work' })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Booking fees' })
+      ).toBeInTheDocument()
+      expect(container.querySelector('.prose')).toContainElement(
+        screen.getByRole('link', { name: 'Read the refund policy' })
+      )
+      expect(container.querySelector('svg')).toBeNull()
+      expect(screen.getByRole('region')).toHaveAttribute(
+        'data-preset',
+        'article-body'
+      )
+    })
+
+    it('renders with no title, and no heading of its own', () => {
+      render(<RichText {...articleBody} title={undefined} />)
+
+      expect(screen.queryByRole('heading', { level: 2 })).toBeNull()
+      expect(screen.getByText(/every ticket is refunded/)).toBeInTheDocument()
+    })
+
+    it('reports a click on a link in the body through the provider', async () => {
+      const onBlockEvent = vi.fn()
+      render(
+        <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
+          <RichText {...articleBody} position={2} />
+        </MarketingBlocksProvider>
+      )
+
+      await userEvent.click(
+        screen.getByRole('link', { name: 'Read the refund policy' })
+      )
+
+      expect(onBlockEvent).toHaveBeenCalledWith({
+        action: 'click',
+        block: 'rich-text',
+        variant: 'prose',
+        preset: 'article-body',
+        position: 2,
+        label: 'Read the refund policy',
+        href: '/refunds'
+      })
+    })
+  })
+
+  it('falls back to statement with no preset', () => {
+    render(<RichText {...articleBody} preset={undefined} />)
+
+    expect(screen.getByRole('region')).toHaveAttribute(
+      'data-preset',
+      'statement'
+    )
+  })
+})

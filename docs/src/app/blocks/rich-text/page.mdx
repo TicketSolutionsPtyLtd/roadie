@@ -1,0 +1,88 @@
+export const metadata = {
+  title: 'Rich text',
+  description: 'A title and rich text, from a short statement to an article',
+  status: 'alpha',
+  category: 'Content'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A title and rich text, from a short statement to an article.
+
+## Import
+
+```tsx
+import { RichText } from '@oztix/roadie-marketing-blocks/rich-text'
+```
+
+## Examples
+
+### Statement
+
+A centred illustration, title, and a few large paragraphs, with generous
+space around them.
+
+```tsx-live id=statement -expand
+<RichText
+  preset='statement'
+  title='We’re Australian-owned, Australian-hosted, and operate 7 days a week nationwide.'
+  body={
+    <>
+      <p>
+        As Australia’s largest independent ticketing company, our mission for
+        20+ years remains the same: to create thriving events and communities
+        through genuine partnerships that focus on your goals.
+      </p>
+      <p>
+        Our clients range from national brands and independent operators to
+        corporate, government, and not-for-profit organisers.
+      </p>
+    </>
+  }
+/>
+```
+
+### Article body
+
+Long-form text set in `Prose` at a reading width. The title is optional,
+and the body can carry its own headings from `h3`.
+
+```tsx-live id=article-body
+<RichText
+  preset='article-body'
+  title='How refunds work'
+  body={
+    <>
+      <p>
+        When an event is cancelled, every ticket is refunded to the card it
+        was bought with, within 10 business days.
+      </p>
+      <h3>Booking fees</h3>
+      <p>
+        Booking fees come back too. If the event is postponed, tickets carry
+        over to the new date, and anyone who can't make it can ask for a
+        refund.
+      </p>
+    </>
+  }
+/>
+```
+
+## Guidelines
+
+- **Answer first.** Open with the sentence that answers the reader's
+  question, such as what Oztix is, before the story behind it.
+- **Statement for a short belief.** One title and two or three paragraphs.
+  Anything longer is an article body.
+- **Article body for reading.** Policies, guides, and stories, with headings
+  from `h3` inside the body, since the block's title is the `h2`.
+- **Rendered text in.** Pass `body` already rendered, such as Portable Text
+  from the CMS. The block sets it in `Prose`, so it brings no styles of its
+  own.
+
+## Tracking
+
+Reports a view when half the block is on screen, and a click on each link in
+the body.
+
+<PropsDefinitions component='RichText' />

@@ -1,0 +1,87 @@
+export const metadata = {
+  title: 'Hero',
+  description: "Opens a page with its title, as the page's main heading",
+  status: 'alpha',
+  category: 'Openers'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Opens a page with its title, as the page's main heading.
+
+## Import
+
+```tsx
+import { Hero } from '@oztix/roadie-marketing-blocks/hero'
+```
+
+## Examples
+
+### Page hero
+
+The title sits over a photo, beside a muted, looping video. From a tablet
+width, event photos fill the panel beside the video, and from a desktop
+width, people photos sit beside the title. Each set of photos crossfades
+while it's on screen.
+
+```tsx-live id=page-hero -expand
+<Hero
+  preset='page-hero'
+  title='Australia’s ticketing partner'
+  titleHighlight='Australia’s'
+  description='Australian owned and hosted, nationwide 7 days a week. Built on partnerships, powered by people and service.'
+  actions={[
+    { label: 'Talk to us', href: '/contact/sales' },
+    { label: 'Create my event', href: 'https://studio.oztix.com.au' }
+  ]}
+  backgroundImage={{ src: '/brand/photography/08.webp', alt: '', width: 1280, height: 850 }}
+  video={{
+    src: '/blocks/hero-reel.mp4',
+    poster: { src: '/brand/photography/01.webp', alt: 'Highlights from Velvet Dingo Fest', width: 1280, height: 854 }
+  }}
+  peopleImages={[
+    { src: '/brand/photography/03.webp', alt: 'Two Oztix team members working at their desks', width: 1280, height: 1007 },
+    { src: '/brand/photography/04.webp', alt: 'Event staff scanning tickets at the gate', width: 1280, height: 1007 },
+    { src: '/brand/photography/11.webp', alt: 'Three Oztix team members on a couch', width: 1280, height: 911 }
+  ]}
+  eventImages={[
+    { src: '/brand/photography/12.webp', alt: 'A crowd in a laneway strung with bunting', width: 1280, height: 854 },
+    { src: '/brand/photography/07.webp', alt: 'Guests on the terrace at Lighthouse Fig Lawn', width: 1280, height: 854 },
+    { src: '/brand/photography/06.webp', alt: 'A panel talking on stage at Ochre Kite Weekender', width: 1280, height: 854 }
+  ]}
+/>
+```
+
+### Page header
+
+An eyebrow and a large title, for a page whose first block carries the
+media.
+
+```tsx-live id=page-header
+<Hero
+  preset='page-header'
+  eyebrow='Our mission'
+  title='We empower venues and event organisers to create thriving events and communities through genuine partnerships.'
+/>
+```
+
+## Guidelines
+
+- **Answer first.** The title says what the page offers, such as "Australia’s
+  ticketing partner", and the description backs it up in a sentence.
+- **One hero, first.** The title is the page's `h1`, so a page has one hero
+  and it's the first block.
+- **Page hero for landing pages.** It needs a background photo, a video, and
+  at least two photos each of people and events, or its panels sit empty.
+  Use Page header for pages that open on their text, such as About.
+- **Photos describe themselves.** The background is decoration, so its `alt`
+  is empty. People and event photos, and the video's poster, say what they
+  show.
+- **Mark one or two words.** `titleHighlight` marks the words the title turns
+  on, not a whole phrase.
+
+## Tracking
+
+Reports a view when half the hero is on screen, and a click on each action.
+
+<PropsDefinitions component='Hero' />
