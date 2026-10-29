@@ -460,15 +460,6 @@ importers:
 
   packages/components:
     dependencies:
-      '@atlaskit/pragmatic-drag-and-drop':
-        specifier: 4.0.0
-        version: 4.0.0
-      '@atlaskit/pragmatic-drag-and-drop-auto-scroll':
-        specifier: 3.2.1
-        version: 3.2.1
-      '@atlaskit/pragmatic-drag-and-drop-hitbox':
-        specifier: 3.0.0
-        version: 3.0.0
       '@number-flow/react':
         specifier: 0.6.2
         version: 0.6.2(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -497,6 +488,15 @@ importers:
       '@ark-ui/react':
         specifier: 5.39.3
         version: 5.39.3(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@atlaskit/pragmatic-drag-and-drop':
+        specifier: 4.0.0
+        version: 4.0.0
+      '@atlaskit/pragmatic-drag-and-drop-auto-scroll':
+        specifier: 3.2.1
+        version: 3.2.1
+      '@atlaskit/pragmatic-drag-and-drop-hitbox':
+        specifier: 3.0.0
+        version: 3.0.0
       '@babel/core':
         specifier: 7.29.7
         version: 7.29.7(supports-color@9.4.0)
