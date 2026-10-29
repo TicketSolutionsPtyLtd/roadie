@@ -186,6 +186,26 @@ Set `placeholder='blur'` to show a tiny preview until the full image loads. An i
 
 For non-Oztix images, or to override the auto preview, pass `blurDataURL`. It takes a data URI or any small image URL.
 
+To fade server-rendered images in as well, add `getImageFadeScript()` to the app's `<head>`. It runs before React does, so each image fades in as soon as its bytes arrive, which also hides a large image drawing in strips. Without the script, those images show at once with no fade. The script is the same on every page, so a strict Content Security Policy can allow it by hash or with the request's nonce.
+
+```tsx
+// app/layout.tsx
+import { getImageFadeScript } from '@oztix/roadie-core/image'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang='en' suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: getImageFadeScript() }} />
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+`suppressHydrationWarning` on `<html>` covers the attribute the script sets there. An image that fails to load stays on its preview.
+
 ### Deferred loading in carousels
 
 Embla mounts every slide in the DOM, so native `loading='lazy'` over-fetches off-screen slides. Set `defer` to hold the `src` until the tile nears the viewport (via IntersectionObserver). Layout is still reserved from `width` and `height`.

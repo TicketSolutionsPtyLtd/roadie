@@ -1,0 +1,16 @@
+/* ═══════════════════════════════════════════════════════════
+   Image
+   The pre-hydration fade for a server-rendered blur Image.
+   `getImageFadeScript()` sets both attributes; without it,
+   nothing here matches and the image shows at once.
+   ═══════════════════════════════════════════════════════════ */
+
+@layer components {
+  [data-image-fade] [data-slot='image-blur'] img {
+    transition: opacity var(--duration-slower) var(--ease-standard);
+
+    &:not([data-loaded]) {
+      opacity: 0;
+    }
+  }
+}

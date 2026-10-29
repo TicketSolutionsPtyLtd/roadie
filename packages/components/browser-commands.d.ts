@@ -27,6 +27,9 @@ declare module 'vitest/browser' {
       /** Keeps the finger still at `to` this long before lifting. */
       options?: { holdMs?: number }
     ) => Promise<void>
+    /** Holds every request for `url` until `releaseImage`, which answers with a pixel. */
+    holdImage: (url: string) => Promise<void>
+    releaseImage: (url: string) => Promise<void>
   }
 }
 

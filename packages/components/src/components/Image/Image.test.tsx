@@ -4,6 +4,8 @@ import { act, render } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 
+import { getImageFadeScript } from '@oztix/roadie-core/image'
+
 import { Image } from '.'
 import { hydrateWithoutClock } from '../../utils/testUtils'
 
@@ -332,7 +334,7 @@ describe('Image', () => {
       expect(lqip.style.backgroundImage).toContain('data:image/png;base64,abc')
     })
 
-    it('shows a server-rendered image without waiting for hydration', () => {
+    it('leaves a server-rendered image to the stylesheet, shown without the fade script', () => {
       const container = document.createElement('div')
       container.innerHTML = renderToString(
         <Image
@@ -346,7 +348,8 @@ describe('Image', () => {
       )
       const img = container.querySelector('img')!
       expect(img.getAttribute('src')).toContain('width=1200')
-      expect(img.style.opacity).toBe('1')
+      expect(img.style.opacity).toBe('')
+      expect(img.style.transition).toBe('')
     })
 
     it('hydrates a server-rendered image without a mismatch, still shown', async () => {
@@ -364,7 +367,56 @@ describe('Image', () => {
       )
       expect(onRecoverableError).not.toHaveBeenCalled()
       expect(consoleError).not.toHaveBeenCalled()
-      expect(container.querySelector('img')!.style.opacity).toBe('1')
+      expect(container.querySelector('img')!.style.opacity).toBe('')
+    })
+
+    describe('with the fade script', () => {
+      function runFadeScript() {
+        new Function(getImageFadeScript())()
+        onTestFinished(() =>
+          document.documentElement.removeAttribute('data-image-fade')
+        )
+      }
+
+      it('marks the document so the stylesheet gates blur images', () => {
+        runFadeScript()
+        expect(document.documentElement).toHaveAttribute('data-image-fade')
+      })
+
+      it('marks a blur image loaded before hydration, and hydrates without a mismatch', async () => {
+        runFadeScript()
+        const consoleError = vi.spyOn(console, 'error')
+        onTestFinished(() => consoleError.mockRestore())
+        const { container, onRecoverableError } = await hydrateWithoutClock(
+          <Image
+            src={OZTIX}
+            alt='Hero'
+            width={1200}
+            height={600}
+            priority
+            placeholder='blur'
+          />,
+          (server) => {
+            const img = server.querySelector('img')!
+            expect(img).not.toHaveAttribute('data-loaded')
+            img.dispatchEvent(new Event('load'))
+            expect(img).toHaveAttribute('data-loaded')
+          }
+        )
+        expect(onRecoverableError).not.toHaveBeenCalled()
+        expect(consoleError).not.toHaveBeenCalled()
+        expect(container.querySelector('img')).toHaveAttribute('data-loaded')
+      })
+
+      it('leaves an image without a blur placeholder alone', () => {
+        runFadeScript()
+        const { container } = render(
+          <Image src={OZTIX} alt='Logo' width={600} />
+        )
+        const img = container.querySelector('img')!
+        img.dispatchEvent(new Event('load'))
+        expect(img).not.toHaveAttribute('data-loaded')
+      })
     })
 
     it('keeps a deferred image hidden in the server HTML until its src arrives', () => {

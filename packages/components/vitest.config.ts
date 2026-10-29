@@ -185,6 +185,26 @@ const swipe: BrowserCommand<
   await session.detach()
 }
 
+// A held image answers only once released, as on a slow network.
+const PIXEL_GIF = 'R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
+const heldImages = new Map<string, () => void>()
+
+const holdImage: BrowserCommand<[url: string]> = async ({ page }, url) => {
+  const released = new Promise<void>((resolve) => heldImages.set(url, resolve))
+  await page.route(url, async (route) => {
+    await released
+    await route.fulfill({
+      contentType: 'image/gif',
+      body: Buffer.from(PIXEL_GIF, 'base64')
+    })
+  })
+}
+
+const releaseImage: BrowserCommand<[url: string]> = (_, url) => {
+  heldImages.get(url)?.()
+  heldImages.delete(url)
+}
+
 const throttleCpu: BrowserCommand<[rate: number]> = async ({ page }, rate) => {
   if (page.context().browser()?.browserType().name() !== 'chromium') return
   const session = await page.context().newCDPSession(page)
@@ -229,7 +249,9 @@ const browserTest = {
     focusPage,
     pointer,
     tap,
-    swipe
+    swipe,
+    holdImage,
+    releaseImage
   }
 }
 

@@ -275,6 +275,8 @@ export function Image({
       loading={loading ?? (priority ? 'eager' : 'lazy')}
       fetchPriority={priority ? 'high' : fetchPriority}
       decoding={decoding ?? 'async'}
+      // getImageFadeScript() marks a server-rendered image before hydration.
+      suppressHydrationWarning={Boolean(lqip) && !fadeIn}
       onLoad={(event) => {
         setLoaded(true)
         onLoad?.(event)
@@ -289,7 +291,7 @@ export function Image({
           ? {
               position: 'absolute',
               inset: 0,
-              opacity: loaded || !fadeIn ? 1 : 0,
+              opacity: fadeIn ? (loaded ? 1 : 0) : undefined,
               transition: fadeIn ? FADE : undefined
             }
           : aspectRatio

@@ -34,8 +34,14 @@ export function withoutClock<T>(read: () => T): T {
   }
 }
 
-/** Server-renders `element` without a clock, then hydrates it. */
-export async function hydrateWithoutClock(element: ReactElement): Promise<{
+/**
+ * Server-renders `element` without a clock, then hydrates it. `beforeHydrate`
+ * runs on the server HTML first, as a script in the page would.
+ */
+export async function hydrateWithoutClock(
+  element: ReactElement,
+  beforeHydrate?: (container: HTMLDivElement) => void
+): Promise<{
   container: HTMLDivElement
   serverHtml: string
   onRecoverableError: Mock
@@ -45,6 +51,7 @@ export async function hydrateWithoutClock(element: ReactElement): Promise<{
   const serverHtml = container.innerHTML
   document.body.append(container)
   onTestFinished(() => container.remove())
+  beforeHydrate?.(container)
   const onRecoverableError = vi.fn()
   const root = await act(async () =>
     hydrateRoot(container, element, { onRecoverableError })

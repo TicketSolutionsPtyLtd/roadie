@@ -8,3 +8,4 @@ export {
   type OztixImageFormat,
   type OztixImageOptions
 } from './image'
+export { getImageFadeScript } from './fade'
