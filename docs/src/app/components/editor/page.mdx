@@ -646,6 +646,50 @@ render(
 )
 ```
 
+### Importing existing HTML
+
+`htmlToEditorValue(html, preset)` from `@oztix/roadie-editor/schema` reads
+HTML, such as CKEditor output, into a value the editor opens. Use it once, the
+first time someone edits legacy content, then save the `EditorValue`.
+
+```tsx
+import { htmlToEditorValue } from '@oztix/roadie-editor/schema'
+```
+
+- Text is kept, and styles, fonts, sizes, colours and classes are dropped.
+- In a paragraph, one `<br>` is a line break, and two or more start a new
+  paragraph, as CKEditor writes them.
+- `h1` reads as `h2`, and anything else the preset can't hold keeps its text.
+- Images the preset can't load, such as base64 `data:` images, iframes no
+  embed provider reads, and video and audio are dropped and listed in
+  `dropped`, so you can warn before the legacy content is overwritten.
+
+Iframes become embeds when a provider reads their player address. If the
+editor has its own `embedProviders`, pass the same list:
+`htmlToEditorValue(html, 'rich', { embedProviders })`.
+
+It needs a browser, so call it in a client component.
+
+```tsx-live-prose-noinline
+const legacy =
+  '<h1>Ochre Kite Weekender</h1>' +
+  '<span style="color:#c00;font-size:18px">Gates open 11am</span><br>' +
+  'Last entry 7pm<br><br>' +
+  '<img src="data:image/png;base64,iVBORw0KGgo=">' +
+  '<iframe src="https://www.youtube.com/embed/sBzrzS1Ag_g"></iframe>'
+
+const { value, dropped } = htmlToEditorValue(legacy, 'rich')
+
+render(
+  <div className='grid gap-3'>
+    <Editor aria-label='Event description' preset='rich' defaultValue={value} />
+    <p className='text-subtle text-display-ui-6'>
+      Not imported: {dropped.map(({ kind }) => kind).join(', ') || 'nothing'}
+    </p>
+  </div>
+)
+```
+
 ## Guidelines
 
 - The editor's code loads after the page, so `Editor` shows a skeleton the
