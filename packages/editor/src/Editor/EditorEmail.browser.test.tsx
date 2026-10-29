@@ -250,4 +250,39 @@ describe('Editor with the email preset', () => {
       'data-invalid'
     )
   })
+
+  it('loads with a leading image unselected, until it is clicked', async () => {
+    const { container } = render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'image',
+                attrs: {
+                  src: 'https://example.test/header.webp',
+                  alt: 'A crowd'
+                }
+              },
+              p('Doors 7pm')
+            ]
+          }
+        }}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await waitFor(() => expect(textbox).toHaveTextContent('Doors 7pm'))
+    const image = await screen.findByAltText('A crowd')
+    const view = image.closest('[data-slot="editor-image"]')!
+
+    expect(view).not.toHaveAttribute('data-selected')
+    expect(container.querySelector('.ProseMirror-selectednode')).toBeNull()
+
+    await userEvent.click(image)
+    await waitFor(() => expect(view).toHaveAttribute('data-selected'))
+  })
 })

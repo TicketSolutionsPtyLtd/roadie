@@ -11,7 +11,7 @@ import {
 } from '@tiptap/core'
 import type { UniqueID } from '@tiptap/extension-unique-id'
 import { Placeholder } from '@tiptap/extensions'
-import { NodeSelection } from '@tiptap/pm/state'
+import { NodeSelection, Selection } from '@tiptap/pm/state'
 import {
   type ReactNodeViewProps,
   ReactNodeViewRenderer,
@@ -438,6 +438,16 @@ export function EditorEngine({
         firstEnabled?.focus()
         return Boolean(firstEnabled)
       }
+    },
+    // ProseMirror starts at the doc's first selectable place, which selects a
+    // leading image or embed, ring and all, before anyone touches it.
+    onCreate: ({ editor: created }) => {
+      const { state } = created
+      const firstText = Selection.findFrom(state.doc.resolve(0), 1, true)
+      if (!firstText || state.selection.eq(firstText)) return
+      created.view.dispatch(
+        state.tr.setSelection(firstText).setMeta('addToHistory', false)
+      )
     },
     onUpdate: ({ editor: updated }) =>
       onValueChange?.({
