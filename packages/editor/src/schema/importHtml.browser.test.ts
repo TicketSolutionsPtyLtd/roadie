@@ -329,6 +329,25 @@ describe('htmlToEditorValue', () => {
           id: '4uLU6hMCjMI75M1A2tKUQC',
           params: { type: 'track' }
         }
+      ],
+      [
+        'SoundCloud',
+        'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&amp;color=%23ff5500&amp;auto_play=false&amp;show_comments=true',
+        { provider: 'soundcloud', id: 'tracks:293', params: null }
+      ],
+      [
+        'Deezer',
+        'https://widget.deezer.com/widget/dark/album/302127',
+        { provider: 'deezer', id: '302127', params: { type: 'album' } }
+      ],
+      [
+        'Apple Music',
+        'https://embed.music.apple.com/au/album/the-heart-is-a-muscle/1233719556?i=1233720954',
+        {
+          provider: 'apple-music',
+          id: '1233719556',
+          params: { type: 'album', storefront: 'au', track: '1233720954' }
+        }
       ]
     ])('reads a %s player as an embed', (_, src, attrs) => {
       const { value, dropped } = htmlToEditorValue(
