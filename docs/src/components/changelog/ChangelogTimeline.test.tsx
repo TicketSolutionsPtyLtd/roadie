@@ -52,6 +52,7 @@ beforeAll(() => {
 
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
   vi.restoreAllMocks()
   window.history.replaceState(null, '', '/')
   navigation.search = new URLSearchParams()
@@ -166,6 +167,8 @@ describe('ChangelogTimeline', () => {
   })
 
   it('jumps to a month from the rail, rendered or not', () => {
+    // landOn's scroll timers would otherwise fire after jsdom closes.
+    vi.useFakeTimers()
     const scrolled: Element[] = []
     vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(function (
       this: Element
@@ -178,6 +181,8 @@ describe('ChangelogTimeline', () => {
 
     expect(scrolled[0]).toBe(document.getElementById('components-2-2-0'))
     expect(window.location.hash).toBe('#components-2-2-0')
+    act(() => vi.runAllTimers())
+    expect(vi.getTimerCount()).toBe(0)
   })
 
   it('narrows the history to one package, retitled for it, and puts it in the URL', () => {
