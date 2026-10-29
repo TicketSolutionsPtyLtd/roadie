@@ -2,6 +2,7 @@ import type { Icon } from '@phosphor-icons/react'
 import {
   ArrowsVerticalIcon,
   ColumnsIcon,
+  CursorClickIcon,
   ImageIcon,
   ListBulletsIcon,
   ListNumbersIcon,
@@ -18,7 +19,7 @@ import type { Editor } from '@tiptap/react'
 import type { Preset } from '../schema'
 import { COLUMN_COUNTS } from '../schema/emailAttrs'
 import type { EditorControlUi } from './controls'
-import { insertBlock } from './emailEditing'
+import { buttonBlock, insertBlock } from './emailEditing'
 
 /** One choice in the insert menu that `/` opens. */
 export type EditorInsertItem = {
@@ -126,6 +127,14 @@ const image: EditorInsertItem = {
   available: ({ pickImage }) => Boolean(pickImage)
 }
 
+const button: EditorInsertItem = {
+  label: 'Button',
+  icon: CursorClickIcon,
+  keywords: ['link', 'call to action'],
+  run: (_editor, { editButton }) => editButton(),
+  enabled: (editor) => editor.can().command(insertBlock(buttonBlock('')))
+}
+
 const spacer = block('Spacer', ArrowsVerticalIcon, { type: 'spacer' }, [
   'space',
   'gap'
@@ -148,6 +157,7 @@ export const presetInsertItems: Partial<
     section,
     ...columns,
     image,
+    button,
     spacer,
     divider
   ]
