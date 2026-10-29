@@ -12,6 +12,8 @@ export type BlockImage = {
   alt: string
   width?: number
   height?: number
+  /** A tiny blurred copy to show while the image loads, as static imports and CMS image metadata give one. */
+  blurDataURL?: string
 }
 
 /** A link a block shows as a button. The first in a block is the strong one. */
@@ -29,6 +31,8 @@ export type BlockEvent = {
   preset: string
   /** The block's place on the page, counting from 1. */
   position?: number
+  /** The block's `id`, when it has one, so two blocks of one kind can be told apart. */
+  id?: string
   /** A clicked link's or button's accessible name. */
   label?: string
   /** A clicked link's destination. */

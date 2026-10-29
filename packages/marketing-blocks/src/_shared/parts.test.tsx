@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { MarketingBlocksProvider } from '../Provider'
 import { BlockActions } from './BlockActions'
@@ -78,6 +78,28 @@ describe('BlockActions', () => {
   })
 })
 
+describe('BlockActions on another site', () => {
+  it('marks an external link as opening elsewhere', () => {
+    render(
+      <BlockActions
+        actions={[
+          { label: 'Talk to us', href: '/contact/sales' },
+          { label: 'Resell with Tixel', href: 'https://tixel.com' }
+        ]}
+      />
+    )
+
+    expect(
+      screen
+        .getByRole('link', { name: /Resell with Tixel/ })
+        .querySelector('svg')
+    ).not.toBeNull()
+    expect(
+      screen.getByRole('link', { name: 'Talk to us' }).querySelector('svg')
+    ).toBeNull()
+  })
+})
+
 describe('BlockImg', () => {
   const image = { src: '/crowd.jpg', alt: 'A crowd at a gig', width: 800 }
 
@@ -87,6 +109,21 @@ describe('BlockImg', () => {
     expect(
       screen.getByRole('img', { name: 'A crowd at a gig' })
     ).toHaveAttribute('src', '/crowd.jpg')
+  })
+
+  it('passes blur data on to renderImage', () => {
+    const renderImage = vi.fn(() => null)
+    render(
+      <MarketingBlocksProvider renderImage={renderImage}>
+        <BlockImg
+          image={{ ...image, blurDataURL: 'data:image/png;base64,AA' }}
+        />
+      </MarketingBlocksProvider>
+    )
+
+    expect(renderImage).toHaveBeenCalledWith(
+      expect.objectContaining({ blurDataURL: 'data:image/png;base64,AA' })
+    )
   })
 
   it("draws with the provider's renderImage when given", () => {
