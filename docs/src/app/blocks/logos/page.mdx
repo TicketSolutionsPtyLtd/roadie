@@ -1,0 +1,127 @@
+export const metadata = {
+  title: 'Logos',
+  description:
+    'Shows the organisations behind Oztix, as logo tiles over their photos',
+  status: 'alpha',
+  category: 'Proof'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Shows the organisations behind Oztix, as logo tiles over their photos.
+
+## Import
+
+```tsx
+import { Logos } from '@oztix/roadie-marketing-blocks/logos'
+```
+
+## Examples
+
+### Partner tiers
+
+Each partner is a tile with its photo behind, its logo, and its level marked
+underneath. Featured partners span two columns at half height, and the tiles
+pack densely, so a square tile fills the gap a wide one leaves. An `also`
+tile closes the grid with the remaining logos.
+
+```tsx-live id=partner-tiers
+<Logos
+  preset='partner-tiers'
+  title='Industry partnerships'
+  description="We back Australia's live events industry through partnerships that strengthen it."
+  partners={[
+    {
+      name: 'Ochre Kite Weekender',
+      level: 'Presenting partner',
+      logo: { src: '/blocks/ochre-kite-weekender.svg', alt: 'Ochre Kite Weekender logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/01.webp', alt: '' },
+      featured: true
+    },
+    {
+      name: 'Velvet Dingo Fest',
+      level: 'Sponsor',
+      logo: { src: '/blocks/velvet-dingo-fest.svg', alt: 'Velvet Dingo Fest logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/02.webp', alt: '' }
+    },
+    {
+      name: 'Thimble Orbit Presents',
+      level: 'Category partner',
+      logo: { src: '/blocks/thimble-orbit-presents.svg', alt: 'Thimble Orbit Presents logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/03.webp', alt: '' }
+    },
+    {
+      name: 'Apricot Cyclone Fest',
+      level: 'Major partner',
+      logo: { src: '/blocks/apricot-cyclone-fest.svg', alt: 'Apricot Cyclone Fest logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/06.webp', alt: '' },
+      featured: true
+    },
+    {
+      name: 'Kazoo Hollow Room',
+      level: 'Ticketing partner',
+      logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/07.webp', alt: '' }
+    },
+    {
+      name: 'Doodlebug Anvil Productions',
+      level: 'Supporter',
+      logo: { src: '/blocks/doodlebug-anvil-productions.svg', alt: 'Doodlebug Anvil Productions logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/08.webp', alt: '' }
+    }
+  ]}
+  also={{
+    logos: [
+      { src: '/blocks/kerosene-pony-collective.svg', alt: 'Kerosene Pony Collective', width: 120, height: 40 },
+      { src: '/blocks/wishbone-ferret-collective.svg', alt: 'Wishbone Ferret Collective', width: 120, height: 40 },
+      { src: '/blocks/hairpin-bicycle-presents.svg', alt: 'Hairpin Bicycle Presents', width: 120, height: 40 }
+    ]
+  }}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Title the block with what the partnerships are, such as "Industry
+    partnerships", and say in the description what they do.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't open with a slogan the logos have to explain.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Feature the few that lead'>
+  <Guideline.Do>
+    Feature the presenting and major partners, about one in four tiles, so
+    the wide tiles read as the top tier.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't feature every partner; the grid loses its tiers and its rhythm.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Give every tile a light logo and a photo'>
+  <Guideline.Do>
+    Use a light or white logo on a transparent background over a photo from
+    the partner's event. The photo is decorative and isn't read out, so the
+    logo's alt text names the partner.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put a dark logo on a tile; it sinks into the shade behind it. Dark
+    logos belong in the `also` tile, which stays light in both themes.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Logos reports a `view` once half of it is on screen. It holds no links, so
+it reports no clicks.
+
+<PropsDefinitions component='Logos' />

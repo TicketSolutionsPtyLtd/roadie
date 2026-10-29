@@ -1,0 +1,89 @@
+export const metadata = {
+  title: 'Testimonial',
+  description: 'Lets a client say why they work with Oztix, in their words',
+  status: 'alpha',
+  category: 'Proof'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Lets a client say why they work with Oztix, in their words.
+
+## Import
+
+```tsx
+import { Testimonial } from '@oztix/roadie-marketing-blocks/testimonial'
+```
+
+## Examples
+
+### Quote
+
+The quote sits large and centred under the heading, with the person's
+portrait, name, role, and organisation under it. The quote and citation
+share one `figure`, so they're read together. A `backgroundImage` fades
+behind the whole block.
+
+```tsx-live id=quote
+<Testimonial
+  preset='quote'
+  title='Our partners say it best'
+  description='Why venues and event organisers partner with Oztix'
+  quote='Oztix are attuned to what we need and quick to respond, and their marketing sells tickets, plain and simple.'
+  person={{
+    name: 'Mia Tran',
+    role: 'Head of Programming',
+    image: { src: '/brand/photography/04.webp', alt: 'Portrait of Mia Tran', width: 120, height: 120 }
+  }}
+  organisation={{
+    name: 'Thimble Orbit Presents',
+    logo: { src: '/blocks/thimble-orbit-presents-badge.svg', alt: 'Thimble Orbit Presents logo', width: 120, height: 40 }
+  }}
+  backgroundImage={{ src: '/brand/photography/05.webp', alt: '' }}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Pick a quote that says what Oztix did for them, such as selling more
+    tickets, in its first sentence.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't open with praise that could be about anyone.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep it to two or three lines'>
+  <Guideline.Do>
+    Trim the quote to the sentence or two that carry it, with the person's
+    agreement. The block draws the quotation marks.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't paste a whole review; at this size, a long quote reads as a wall.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Name a real person'>
+  <Guideline.Do>
+    Give the person's name, role, and organisation, with a square portrait
+    and the organisation's logo on its own background, so it reads in both
+    themes.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't quote "a happy client"; an unnamed quote doesn't persuade.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Testimonial reports a `view` once half of it is on screen. It holds no
+links, so it reports no clicks.
+
+<PropsDefinitions component='Testimonial' />

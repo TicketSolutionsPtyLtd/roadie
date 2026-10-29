@@ -30,9 +30,17 @@
       "style": "./src/css/marketing-blocks.css",
       "default": "./src/css/marketing-blocks.css"
     },
+    "./logos": {
+      "types": "./dist/Logos/index.d.ts",
+      "import": "./dist/Logos/index.js"
+    },
     "./provider": {
       "types": "./dist/Provider/index.d.ts",
       "import": "./dist/Provider/index.js"
+    },
+    "./testimonial": {
+      "types": "./dist/Testimonial/index.d.ts",
+      "import": "./dist/Testimonial/index.js"
     },
     "./catalogue": {
       "types": "./dist/catalogue/index.d.ts",
