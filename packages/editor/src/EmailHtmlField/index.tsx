@@ -31,9 +31,10 @@ export type EmailHtmlFieldProps = {
 
 type PreviewWidth = 'desktop' | 'phone'
 
+// Pixels, not rem: mail clients lay an email out in CSS pixels.
 const PREVIEW_WIDTH: Record<PreviewWidth, string> = {
-  desktop: 'w-150',
-  phone: 'w-93.75'
+  desktop: 'w-[600px]',
+  phone: 'w-[375px]'
 }
 
 const noSubscription = () => () => {}

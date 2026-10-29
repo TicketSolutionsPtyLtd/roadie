@@ -143,6 +143,18 @@ describe('EmailHtmlField', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Desktop' }))
       expect(preview().getBoundingClientRect().width).toBe(600)
     })
+
+    it('keeps the email at 600 pixels under a larger root font size', async () => {
+      document.documentElement.style.fontSize = '20px'
+      try {
+        render(<InField defaultValue={EMAIL} />)
+        expect(preview().getBoundingClientRect().width).toBe(600)
+        await userEvent.click(screen.getByRole('button', { name: 'Phone' }))
+        expect(preview().getBoundingClientRect().width).toBe(375)
+      } finally {
+        document.documentElement.style.fontSize = ''
+      }
+    })
   })
 
   describe('warnings', () => {
