@@ -67,6 +67,30 @@ describe('Testimonial quote layout', () => {
     expect(background.height).toBeCloseTo(section.height, 0)
   })
 
+  it('crops a sized portrait and background to their frames', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { container } = render(
+      <Testimonial
+        {...quote}
+        person={{
+          ...quote.person,
+          image: photo('Portrait of Mia Tran', 400, 800)
+        }}
+        backgroundImage={photo('', 400, 400)}
+      />
+    )
+
+    const portrait = screen.getByRole('img', { name: 'Portrait of Mia Tran' })
+    const frame = rectOf(portrait.parentElement!)
+    expect(rectOf(portrait).height).toBeLessThanOrEqual(frame.height)
+    expect(rectOf(portrait).width).toBeCloseTo(rectOf(portrait).height, 0)
+
+    const section = rectOf(container.querySelector('section')!)
+    const background = rectOf(container.querySelector('section > img')!)
+    expect(background.width).toBeCloseTo(section.width, 0)
+    expect(background.height).toBeCloseTo(section.height, 0)
+  })
+
   it('pads only inside a background photo, and sits flush without one', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const { container, rerender } = render(<Testimonial {...quote} />)

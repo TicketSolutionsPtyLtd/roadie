@@ -72,6 +72,30 @@ describe('Logos partner-tiers layout', () => {
   })
 })
 
+describe('Logos photos', () => {
+  it('fills each tile with its photo whatever shape the photo is', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const [featured, square] = offline(partnerTiers).partners
+    render(
+      <Logos
+        {...partnerTiers}
+        partners={[
+          { ...featured!, image: photo('', 400, 1200) },
+          { ...square!, image: photo('', 1200, 400) }
+        ]}
+        also={undefined}
+      />
+    )
+
+    for (const tile of document.querySelectorAll('li')) {
+      const frame = tile.getBoundingClientRect()
+      const image = tile.querySelector('img')!.getBoundingClientRect()
+      expect(image.width).toBeCloseTo(frame.width, 0)
+      expect(image.height).toBeCloseTo(frame.height, 0)
+    }
+  })
+})
+
 describe('Logos accessibility', () => {
   it.each(widths)(
     'partner-tiers has no axe violations at $name width',
