@@ -90,6 +90,28 @@ describe('BlockRoot', () => {
     )
   })
 
+  it("reports the block's id, so two blocks of one kind can be told apart", async () => {
+    const onBlockEvent = vi.fn()
+    render(
+      <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
+        <BlockRoot
+          block='card-grid'
+          variant='grid'
+          preset='features'
+          id='why-oztix'
+        >
+          <a href='/about'>About us</a>
+        </BlockRoot>
+      </MarketingBlocksProvider>
+    )
+
+    await userEvent.click(screen.getByRole('link', { name: 'About us' }))
+
+    expect(onBlockEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'why-oztix' })
+    )
+  })
+
   it('ignores clicks that land on nothing interactive', async () => {
     const onBlockEvent = vi.fn()
     render(
