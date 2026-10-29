@@ -22,13 +22,36 @@ and to draw images your way.
 
 Each block is a folder in `src/` with:
 
-- `definition.ts`: its `BlockDefinition` (name, title, description, and presets, at most two variants), with no React, added to `DEFINITIONS` in `src/catalogue/index.ts`
-- `index.tsx`: the block, rendered in `BlockRoot` from `src/_shared/`, taking `preset`, `position`, and plain data props
-- a co-located test, and a `*.browser.test.tsx` for layout and axe
+- `definition.ts`: `export const <block>Definition = { … } as const satisfies BlockDefinition`
+  (name, title, description, and presets, at most two variants), with no React, added to
+  `DEFINITIONS` in `src/catalogue/index.ts`. Export
+  `type <Block>Preset = (typeof <block>Definition.presets)[number]['name']` and type the
+  `preset` prop with it, so a renamed preset fails typecheck.
+- `index.tsx`: the block, rendered in `BlockRoot` from `src/_shared/`, reading its preset
+  with `const { name, variant } = presetOf(<block>Definition, preset)`, and taking `preset`,
+  `position`, `id`, and plain data props
+- a co-located test, and a `*.browser.test.tsx` for layout and axe, using the helpers in
+  `src/_test/browser.ts`. Shared test data goes in `fixtures.ts`. Neither ships.
 - a wireframe per preset in `src/thumbnails/<block>-<preset>.svg`
 - a docs page at `docs/src/app/blocks/<block>/page.mdx`
 
 Run `pnpm generate:exports` after adding the folder.
+
+### Rules every block follows
+
+- **Its own width, not the screen's.** `BlockRoot` is a container, so layout uses container
+  queries (`@3xl:`, `@5xl:`, `@7xl:`), never viewport breakpoints. A block in a Studio
+  preview pane or a narrow column lays out as it would on a phone.
+- **No outer vertical padding.** The page spaces blocks with its gap. A block pads only
+  inside a surface it draws, such as a raised panel.
+- **Shared names.** Illustrations take `SpotIllustrationName` from `src/_shared/illustrations.ts`
+  (re-exported from `/provider`), headings go through `BlockHeading` (its `size` sets a
+  preset's title step), and images through `BlockImg` with the `sizes` the layout needs.
+- **Prop shapes.** Array props are `readonly`, `actions` is optional, `preset` has a
+  `@default`, and `position` and `id` keep the wording: "The block's place on the page,
+  counting from 1, reported with its events." and "An id for linking to the block."
+- **Keys.** List keys use the item's index with its content, so repeated content stays
+  distinct.
 
 ### Thumbnails
 

@@ -4,6 +4,8 @@ import type { ReactNode } from 'react'
 
 import { MarketingBlocksContext } from '../_shared/context'
 
+export type { SpotIllustrationName } from '../_shared/illustrations'
+
 /** An image a block shows, as a CMS or a static import gives it. */
 export type BlockImage = {
   src: string

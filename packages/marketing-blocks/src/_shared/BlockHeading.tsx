@@ -9,10 +9,19 @@ export type BlockHeadingProps = {
   description?: string
   /** 1 only for the block that opens the page. */
   level?: 1 | 2
+  /** The title's `text-display-prose-*` step, when the preset sets one other than the level's. */
+  size?: 1 | 2 | 3 | 4
   align?: 'center' | 'start'
   id?: string
   className?: string
 }
+
+const TITLE_SIZE = {
+  1: 'text-display-prose-1',
+  2: 'text-display-prose-2',
+  3: 'text-display-prose-3',
+  4: 'text-display-prose-4'
+} as const
 
 export function BlockHeading({
   eyebrow,
@@ -20,6 +29,7 @@ export function BlockHeading({
   titleHighlight,
   description,
   level = 2,
+  size = level,
   align = 'center',
   id,
   className
@@ -36,10 +46,7 @@ export function BlockHeading({
       {eyebrow && <p className='text-display-prose-5 text-strong'>{eyebrow}</p>}
       <Heading
         id={id}
-        className={cn(
-          'max-w-4xl text-balance text-strong',
-          level === 1 ? 'text-display-prose-1' : 'text-display-prose-2'
-        )}
+        className={cn('max-w-4xl text-balance text-strong', TITLE_SIZE[size])}
       >
         {titleHighlight ? (
           <Highlight
