@@ -46,12 +46,15 @@ import { EditorContext } from './EditorContext'
 import { EditorEmbedPopover } from './EditorEmbedPopover'
 import { EditorEmbedView } from './EditorEmbedView'
 import { EditorImageView } from './EditorImageView'
+import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
 import type { EditorRootProps } from './EditorRoot'
 import { EditorSlashMenuEngine } from './EditorSlashMenuEngine'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
+import type { EditorControlUi } from './controls'
+import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
 import {
   ImageUpload,
@@ -60,6 +63,8 @@ import {
   replaceImage,
   uploadImages
 } from './imageUpload'
+import { presetInsertItems } from './insertItems'
+import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { SlashMenu, type SlashMenuHandle } from './slashMenu'
 import { resolvedPreset } from './startingValue'
@@ -134,7 +139,7 @@ function forEditor(extension: Extensions[number]) {
 const editorExtensions = Object.fromEntries(
   Object.entries(presets).map(([preset, extensions]) => [
     preset,
-    withTableEditing(extensions).map(forEditor)
+    withEmailEditing(withTableEditing(extensions)).map(forEditor)
   ])
 ) as Record<Preset, typeof presets.basic>
 
@@ -197,6 +202,11 @@ function readsDoc(schema: Schema, doc: JSONContent) {
 function presetHoldsImages(preset: Preset) {
   return presets[preset].some(({ name }) => name === 'image')
 }
+
+// At most an email's width, so an author sees the lines a reader will. Its
+// columns query it as a container.
+const EMAIL_CANVAS =
+  '@container mx-auto w-full max-w-[600px] [--prose-measure:none]'
 
 function holdsDoc(editor: TiptapEditor, doc: JSONContent) {
   try {
@@ -278,6 +288,8 @@ export function EditorEngine({
   const [editingEmbed, setEditingEmbed] = useState(false)
   const providersRef = useRef(embedProviders)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
+  const uiRef = useRef<EditorControlUi | null>(null)
   const uploadRef = useRef<UploadImage | undefined>(onUploadImage)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
@@ -316,7 +328,8 @@ export function EditorEngine({
   const hasBlockHandle = BLOCK_HANDLE_PRESETS.has(preset)
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
-    onError: setUploadError
+    onError: setUploadError,
+    httpsOnly: preset === 'email'
   }
 
   const editor = useEditor({
@@ -336,6 +349,11 @@ export function EditorEngine({
           openBlockMenuRef.current?.()
           return Boolean(openBlockMenuRef.current)
         }
+      }),
+      InsertMenu.configure({
+        items: presetInsertItems[preset] ?? [],
+        ui: () => uiRef.current!,
+        onChange: setInsertMenu
       })
     ],
     content: readableDoc,
@@ -357,7 +375,8 @@ export function EditorEngine({
           editorContentClass(size, emphasis),
           'min-w-0 outline-none',
           // Room for the block handle at each block's start.
-          hasBlockHandle && emphasis !== 'subtler' && 'ps-10'
+          hasBlockHandle && emphasis !== 'subtler' && 'ps-10',
+          preset === 'email' && EMAIL_CANVAS
         )
       },
       handleDOMEvents: {
@@ -470,6 +489,9 @@ export function EditorEngine({
     pickImage: canUpload ? () => fileInputRef.current?.click() : undefined,
     replaceImage: canUpload ? () => replaceInputRef.current?.click() : undefined
   }
+  useEffect(() => {
+    uiRef.current = ui
+  })
 
   return (
     <EditorContext
@@ -523,6 +545,13 @@ export function EditorEngine({
         ) : null}
         {editor && hasBlockHandle ? (
           <EditorBlockHandle editor={editor} openMenuRef={openBlockMenuRef} />
+        ) : null}
+        {editor ? (
+          <EditorInsertMenu
+            editor={editor}
+            state={insertMenu}
+            id={`${contentId}-insert`}
+          />
         ) : null}
         {editor?.schema.nodes.table ? (
           <EditorTableToolbar

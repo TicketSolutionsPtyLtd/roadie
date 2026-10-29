@@ -7,6 +7,7 @@ import {
 } from '@tiptap/pm/state'
 import { Decoration, DecorationSet, type EditorView } from '@tiptap/pm/view'
 
+import { isEmailImageSrc } from '../schema/emailAttrs'
 import { isSafeImageSrc } from '../schema/imageSrc'
 
 export type UploadImage = (file: File) => Promise<{ src: string; alt?: string }>
@@ -15,6 +16,8 @@ export type ImageUploadOptions = {
   /** The latest `onUploadImage`, read when a file arrives. */
   upload: () => UploadImage | undefined
   onError: (message: string | null) => void
+  /** Accepts only https sources, as for an email, which loads its images in a mail client. */
+  httpsOnly?: boolean
 }
 
 type Upload = { id: object }
@@ -24,6 +27,8 @@ const uploads = new PluginKey<DecorationSet>('imageUploads')
 
 const UNUSABLE_SRC =
   'The image couldn’t be added, as it isn’t served over https or from this site.'
+const NOT_HTTPS =
+  'The image couldn’t be added, as an email’s images must be served over https.'
 const FAILED = 'The image couldn’t be uploaded. Try again.'
 
 function placeholder() {
@@ -66,7 +71,7 @@ function upload(
   view: EditorView,
   files: readonly File[],
   pos: number,
-  { upload: current, onError }: ImageUploadOptions,
+  { upload: current, onError, httpsOnly = false }: ImageUploadOptions,
   place: Place
 ) {
   const uploadImage = current()
@@ -90,12 +95,13 @@ function upload(
       resolve(uploadImage(file))
     }).then(
       ({ src, alt = '' }) => {
-        if (isSafeImageSrc(src)) {
+        const usable = httpsOnly ? isEmailImageSrc(src) : isSafeImageSrc(src)
+        if (usable) {
           settle({ src, alt })
           return
         }
         settle()
-        onError(UNUSABLE_SRC)
+        onError(httpsOnly ? NOT_HTTPS : UNUSABLE_SRC)
       },
       (error: unknown) => {
         settle()
@@ -132,7 +138,7 @@ export const ImageUpload = Extension.create<ImageUploadOptions>({
   name: 'imageUpload',
 
   addOptions() {
-    return { upload: () => undefined, onError: () => {} }
+    return { upload: () => undefined, onError: () => {}, httpsOnly: false }
   },
 
   addProseMirrorPlugins() {
