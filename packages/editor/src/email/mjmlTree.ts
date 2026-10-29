@@ -83,10 +83,7 @@ function columns(node: JSONContent, theme: EmailTheme) {
   )
 }
 
-// A section is an `mj-wrapper` of rows, and a run of blocks outside columns,
-// in a section or not, is a full-width row of its own. Columns sit side by
-// side from 480px and stack below it, and MJML's conditional tables hold them
-// side by side in Outlook on Windows.
+// MJML stacks columns below 480px, and its conditional tables hold them in Outlook.
 function rows(nodes: JSONContent[], theme: EmailTheme): MjmlNode[] {
   const built: MjmlNode[] = []
   let run: JSONContent[] = []
@@ -111,6 +108,7 @@ function rows(nodes: JSONContent[], theme: EmailTheme): MjmlNode[] {
   endRun()
   return built
 }
+
 function head({ text, fontFamily, button, buttonText, divider }: EmailTheme) {
   return mj('mj-head', {}, [
     mj('mj-attributes', {}, [

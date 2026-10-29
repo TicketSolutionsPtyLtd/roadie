@@ -674,12 +674,13 @@ const nextConfig = { serverExternalPackages: ['mjml'] }
   `text`, `link`, `button`, `buttonText`, and `divider` as hex colours, and
   `fontFamily` as a stack of web-safe fonts. Mail clients don't read CSS
   variables, so the default is Roadie's light scales as hex. Keep the kit in
-  the app, never in the saved value. A colour that isn't hex throws.
+  the app, never in the saved value. A colour that isn't hex, or a font
+  stack with more than names, quotes, and commas, throws.
 - A section, and a run of blocks outside columns, fill the email's 600 pixel
   width. Columns sit side by side from 480 pixels and stack on a phone, and
   stay side by side in Outlook on Windows.
-- `text` writes each link as its text then its href in brackets, and leaves
-  out images and spacers.
+- `text` writes each link as its text then its href in brackets, unless the
+  two match, and leaves out images, spacers, and dividers.
 
 It reads the value into the email preset first, as `migrate` does, so a value
 from another preset renders too, keeping its text. A link or button needs an
