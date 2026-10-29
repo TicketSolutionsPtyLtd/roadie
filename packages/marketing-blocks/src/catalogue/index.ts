@@ -24,7 +24,7 @@ export type CatalogueBlock = Omit<BlockDefinition, 'presets'> & {
   /** The subpath to import the block from. */
   import: string
   presets: readonly (BlockPreset & {
-    /** The preset's wireframe, as a subpath of the package. */
+    /** The preset's wireframe, a file in the package's `thumbnails` folder (`@oztix/roadie-marketing-blocks/thumbnails/<file>`). */
     thumbnail: string
   })[]
 }
@@ -41,7 +41,7 @@ function entry(definition: BlockDefinition): CatalogueBlock {
     import: `${PACKAGE}/${definition.name}`,
     presets: definition.presets.map((preset) => ({
       ...preset,
-      thumbnail: `${PACKAGE}/thumbnails/${thumbnailFile(definition.name, preset.name)}`
+      thumbnail: thumbnailFile(definition.name, preset.name)
     }))
   }
 }

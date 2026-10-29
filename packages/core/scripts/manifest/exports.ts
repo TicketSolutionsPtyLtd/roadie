@@ -49,7 +49,7 @@ export function exportEntries(
     if (target.endsWith('.css')) return { subpath, target, kind: 'css' }
     if (target.endsWith('.json')) return { subpath, target, kind: 'json' }
     // Files shipped as they are, such as images, have no API to read.
-    if (!target.startsWith('./dist/')) return { subpath, target, kind: 'asset' }
+    if (!target.endsWith('.js')) return { subpath, target, kind: 'asset' }
     return {
       subpath,
       target,

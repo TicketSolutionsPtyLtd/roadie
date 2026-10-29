@@ -15,9 +15,8 @@ export function BlockPreview({ name }: { name: string }) {
   const block = catalogue.find((entry) => entry.name === name)
   const preset = block?.presets[0]
   if (!preset) return name === 'blocks' ? <BlocksArt /> : null
-  const file = preset.thumbnail.split('/').at(-1)!
   // Inlined, not an <img>, so the wireframe's colour variables follow the docs theme.
-  const svg = readFileSync(join(THUMBNAILS, file), 'utf8')
+  const svg = readFileSync(join(THUMBNAILS, preset.thumbnail), 'utf8')
   return (
     <div
       aria-hidden

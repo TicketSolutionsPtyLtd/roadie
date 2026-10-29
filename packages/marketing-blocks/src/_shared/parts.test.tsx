@@ -52,6 +52,25 @@ describe('BlockActions', () => {
     expect(links[0]).toHaveAttribute('href', '/contact/sales')
   })
 
+  it('makes the first action the strong accent one and the rest normal', () => {
+    render(
+      <BlockActions
+        actions={[
+          { label: 'Talk to us', href: '/contact/sales' },
+          { label: 'See pricing', href: '/pricing' },
+          { label: 'Read the guide', href: '/guide' }
+        ]}
+      />
+    )
+
+    const [first, ...rest] = screen.getAllByRole('link')
+    expect(first).toHaveClass('intent-accent', 'emphasis-strong')
+    for (const link of rest) {
+      expect(link).toHaveClass('emphasis-normal')
+      expect(link).not.toHaveClass('intent-accent')
+    }
+  })
+
   it('renders nothing with no actions', () => {
     const { container } = render(<BlockActions actions={[]} />)
 
