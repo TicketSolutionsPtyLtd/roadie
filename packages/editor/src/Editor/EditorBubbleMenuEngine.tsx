@@ -2,7 +2,7 @@
 
 import { use, useEffect, useRef, useState } from 'react'
 
-import type { EditorState } from '@tiptap/pm/state'
+import { type EditorState, NodeSelection } from '@tiptap/pm/state'
 import { CellSelection } from '@tiptap/pm/tables'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 import { BubbleMenu, type BubbleMenuProps } from '@tiptap/react/menus'
@@ -22,6 +22,8 @@ const PLUGIN_KEY = 'editorBubbleMenu'
 /** Whether the selection is text the menu's marks can format. */
 export function selectsText({ selection, doc }: EditorState) {
   if (selection.empty) return false
+  // A Mod-click selects the block, which has its own text.
+  if (selection instanceof NodeSelection) return false
   if (selection instanceof CellSelection) return false
   if (selection.$from.parent.type.spec.code) return false
   return doc.textBetween(selection.from, selection.to).length > 0
@@ -68,10 +70,14 @@ function SelectionMenu({
     editor,
     selector: ({ editor: current }) => current.isEditable
   })
-  const inTable = useEditorState({
+  // Table actions sit above the table, or below one that starts the
+  // content, so in a table this takes the other side of the selection.
+  const placement = useEditorState({
     editor,
-    selector: ({ editor: current }) =>
-      selectedTable(current.state) !== undefined
+    selector: ({ editor: current }) => {
+      const table = selectedTable(current.state)
+      return table && table.pos > 0 ? 'bottom' : 'top'
+    }
   })
 
   // The plugin asks shouldShow only when the selection or doc changes. Focus
@@ -105,8 +111,7 @@ function SelectionMenu({
       shouldShow={shouldShow}
       ref={menuRef}
       options={{
-        // Table actions sit above the table, so in one this goes below.
-        placement: inTable ? 'bottom' : 'top',
+        placement,
         offset: 8,
         // The plugin makes its element a tab stop; the toolbar inside is the one.
         onShow: () => {

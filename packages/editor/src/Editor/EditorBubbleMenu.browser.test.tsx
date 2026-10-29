@@ -209,6 +209,55 @@ describe('Editor.BubbleMenu', () => {
     await noMenu()
   })
 
+  it('stays above text in a table that starts the content, clear of the table actions below it', async () => {
+    const [, table] = withTable.doc.content ?? []
+    render(
+      <BubbleEditor
+        defaultValue={{
+          ...withTable,
+          doc: {
+            type: 'doc',
+            content: [table!, paragraph('Gates open at 4pm')]
+          }
+        }}
+      />
+    )
+    const textbox = await selectText('Gates open at 4pm')
+    await menu()
+    await userEvent.keyboard('{ArrowRight}')
+    await noMenu()
+    const text = within(textbox).getByText('9pm')
+    await userEvent.click(text)
+    const actions = await screen.findByRole('toolbar', {
+      name: 'Table actions'
+    })
+    await userEvent.keyboard(
+      `${LINE_END}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}`
+    )
+    const bubble = await menu()
+
+    await waitFor(() =>
+      expect(bubble.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        text.getBoundingClientRect().top
+      )
+    )
+    const a = bubble.getBoundingClientRect()
+    const b = actions.getBoundingClientRect()
+    expect(b.top).toBeGreaterThanOrEqual(a.bottom)
+  })
+
+  it('hides when a Mod-click selects the block', async () => {
+    render(<BubbleEditor />)
+    const textbox = await selectText('Gates open at 4pm')
+    await menu()
+
+    await userEvent.click(within(textbox).getByText('Ochre Kite Weekender'), {
+      modifiers: ['ControlOrMeta']
+    })
+
+    await noMenu()
+  })
+
   it('hides when an image is selected', async () => {
     render(
       <BubbleEditor
@@ -251,10 +300,11 @@ describe('Editor.BubbleMenu', () => {
 
   it('goes below text in a table, clear of the table actions', async () => {
     render(<BubbleEditor defaultValue={withTable} />)
-    const textbox = await screen.findByRole('textbox', { name: LABEL })
-    const text = within(textbox).getByText('Time')
     // A double or triple click in a cell selects the cell, so the keys
-    // select text once the editor has focus.
+    // select text, once the menu has shown long after the editor took focus.
+    const textbox = await selectText('Gates open at 4pm')
+    await menu()
+    const text = within(textbox).getByText('Time')
     await userEvent.click(text)
     const table = await screen.findByRole('toolbar', { name: 'Table actions' })
     await userEvent.keyboard(
