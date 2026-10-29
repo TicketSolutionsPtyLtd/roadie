@@ -9,6 +9,7 @@ import {
   type Node,
   getSchema
 } from '@tiptap/core'
+import type { UniqueID } from '@tiptap/extension-unique-id'
 import { Placeholder } from '@tiptap/extensions'
 import { NodeSelection } from '@tiptap/pm/state'
 import {
@@ -27,6 +28,7 @@ import {
 } from '@oztix/roadie-components/field'
 import { cn } from '@oztix/roadie-core/utils'
 
+import type { EditorBlock } from '../extensions'
 import {
   CURRENT_VERSION,
   type Preset,
@@ -35,6 +37,7 @@ import {
   migrate,
   presets
 } from '../schema'
+import { BLOCK_ID, BLOCK_ID_TYPES } from '../schema/presetShapes'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
@@ -124,16 +127,44 @@ const editorExtensions = Object.fromEntries(
 const UNREADABLE =
   'This content couldn’t be loaded, so it can’t be edited here.'
 
-const schemas = new Map<Preset, ReturnType<typeof getSchema>>()
+type Schema = ReturnType<typeof getSchema>
 
-// Tiptap swaps content its schema can't read for an empty document, which the
-// next save would store, so the editor checks first.
-function readsDoc(preset: Preset, doc: JSONContent) {
+const schemas = new Map<Preset, Schema>()
+
+function presetSchema(preset: Preset) {
   let schema = schemas.get(preset)
   if (!schema) {
     schema = getSchema(presets[preset])
     schemas.set(preset, schema)
   }
+  return schema
+}
+
+/** An app's blocks, only in the preset that takes them, as Tiptap nodes. */
+function blocksFor(preset: Preset, blocks: readonly EditorBlock[] = []) {
+  return preset === 'blocks' ? blocks : []
+}
+
+// Each app block is an id-carrying block too, so UniqueID needs its name.
+function withBlocks(extensions: Extensions, blocks: readonly EditorBlock[]) {
+  if (blocks.length === 0) return extensions
+  const names = blocks.map(({ node }) => node.name)
+  return [
+    ...extensions.map((extension) =>
+      extension.name === 'uniqueID'
+        ? (extension as typeof UniqueID).configure({
+            attributeName: BLOCK_ID,
+            types: [...BLOCK_ID_TYPES, ...names]
+          })
+        : extension
+    ),
+    ...blocks.map(({ node }) => node)
+  ]
+}
+
+// Tiptap swaps content its schema can't read for an empty document, which the
+// next save would store, so the editor checks first.
+function readsDoc(schema: Schema, doc: JSONContent) {
   try {
     schema.nodeFromJSON(doc)
     return true
@@ -210,6 +241,7 @@ export function EditorEngine({
   onUploadImage,
   embedProviders = defaultEmbedProviders,
   resolveUrl,
+  extensions: extensionsProp,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy
 }: EditorRootProps) {
@@ -236,12 +268,23 @@ export function EditorEngine({
   const describedBy = fieldInput['aria-describedby']
   const preset = resolvedPreset({ preset: presetProp, value, defaultValue })
   const storedPreset = (value ?? defaultValue)?.preset
-  const valueDoc = value && migrate(value, preset).doc
+  // Tiptap fixes its schema when it creates the editor, so these are read once.
+  const [blocks] = useState(() => blocksFor(preset, extensionsProp))
+  const [schema] = useState(() =>
+    blocks.length > 0
+      ? getSchema(withBlocks(presets[preset], blocks))
+      : presetSchema(preset)
+  )
+  const customBlocks = blocks.map(({ node }) => node.name)
+  const valueDoc = value && migrate(value, preset, { customBlocks }).doc
   const [defaultDoc] = useState(
-    () => migrate(defaultValue ?? createEmptyValue(preset), preset).doc
+    () =>
+      migrate(defaultValue ?? createEmptyValue(preset), preset, {
+        customBlocks
+      }).doc
   )
   const shownDoc = valueDoc ?? defaultDoc
-  const unreadable = !readsDoc(preset, shownDoc)
+  const unreadable = !readsDoc(schema, shownDoc)
   // Tiptap would warn of content it can't read and show an empty doc anyway.
   const readableDoc = unreadable ? createEmptyValue(preset).doc : shownDoc
   const editable = !readOnly && !disabled && !unreadable
@@ -255,7 +298,7 @@ export function EditorEngine({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      ...editorExtensions[preset],
+      ...withBlocks(editorExtensions[preset], blocks),
       Placeholder.configure({
         placeholder: () => placeholderRef.current ?? ''
       }),
@@ -320,6 +363,15 @@ export function EditorEngine({
       })
   })
 
+  const leftOut = preset !== 'blocks' && Boolean(extensionsProp?.length)
+  useEffect(() => {
+    if (leftOut && isDev()) {
+      console.warn(
+        `Editor: extensions are for the blocks preset, so the "${preset}" editor leaves them out.`
+      )
+    }
+  }, [leftOut, preset])
+
   useEffect(() => {
     if (presetProp && storedPreset && presetProp !== storedPreset && isDev()) {
       console.warn(
@@ -382,6 +434,7 @@ export function EditorEngine({
         toolbarRef,
         ...ui,
         embedProviders,
+        blocks,
         TiptapContent,
         ToolbarEngine: EditorToolbarEngine,
         SlashMenuEngine: EditorSlashMenuEngine,

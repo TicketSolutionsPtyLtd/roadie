@@ -31,6 +31,7 @@ import type { ChainedCommands } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
 import type { Editor } from '@tiptap/react'
 
+import type { EditorBlock } from '../extensions'
 import type { Preset } from '../schema'
 import { HEADING_LEVELS } from '../schema/headings'
 import type { SlashMatch } from './slashMenu'
@@ -480,4 +481,19 @@ export const presetSlashItems: Record<Preset, readonly EditorSlashItem[]> = {
   basic: [],
   rich: [],
   blocks: blockSlashItems
+}
+
+/** The slash menu's entry for an app's own block, inserted in place of the `/`. */
+export function customSlashItem({
+  node,
+  label,
+  icon,
+  keywords
+}: EditorBlock): EditorSlashItem {
+  return slashBlock(
+    label,
+    icon,
+    (chain) => chain.insertContent({ type: node.name }),
+    keywords
+  )
 }

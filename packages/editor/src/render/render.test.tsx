@@ -579,3 +579,73 @@ describe('renderEditorHtml', () => {
     )
   })
 })
+
+describe('renderEditorValue with an app’s own blocks', () => {
+  const card: JSONContent = {
+    type: 'eventCard',
+    attrs: { title: 'Ochre Kite Weekender', blockId: 'c1' }
+  }
+  const value = {
+    version: 1,
+    preset: 'blocks',
+    doc: { type: 'doc', content: [card, paragraph(text('Doors 7pm'))] }
+  }
+  const nodeMapping = {
+    eventCard: ({ attrs }: { attrs: Record<string, unknown> }) => (
+      <aside>{String(attrs.title)}</aside>
+    )
+  }
+
+  it('renders a block through its nodeMapping entry, given its attrs', () => {
+    expect(
+      contentOf(renderToString(renderEditorValue(value, { nodeMapping })))
+    ).toBe('<aside>Ochre Kite Weekender</aside><p>Doors 7pm</p>')
+  })
+
+  it('escapes what the entry renders from its attrs', () => {
+    const risky = {
+      ...value,
+      doc: {
+        type: 'doc',
+        content: [{ type: 'eventCard', attrs: { title: '<img src=x>' } }]
+      }
+    }
+
+    expect(
+      contentOf(renderToString(renderEditorValue(risky, { nodeMapping })))
+    ).toBe('<aside>&lt;img src=x&gt;</aside>')
+  })
+
+  it('drops a block no entry renders, keeping the rest', () => {
+    expect(contentOf(renderToString(renderEditorValue(value)))).toBe(
+      '<p>Doors 7pm</p>'
+    )
+  })
+
+  it('never lets an entry replace one of the preset’s own nodes', () => {
+    expect(
+      contentOf(
+        renderToString(
+          renderEditorValue(value, {
+            nodeMapping: { ...nodeMapping, paragraph: () => <b>taken</b> }
+          })
+        )
+      )
+    ).toBe('<aside>Ochre Kite Weekender</aside><p>Doors 7pm</p>')
+  })
+})
+
+describe('renderEditorHtml and an app’s own blocks', () => {
+  it('drops them, as it takes no nodeMapping', () => {
+    const value = {
+      version: 1,
+      preset: 'blocks',
+      doc: {
+        type: 'doc',
+        content: [{ type: 'eventCard', attrs: { title: 'Ochre Kite' } }]
+      }
+    }
+
+    expect(contentOf(renderEditorHtml(value))).toBe('<p></p>')
+  })
+})

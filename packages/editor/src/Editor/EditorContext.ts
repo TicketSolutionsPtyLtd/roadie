@@ -4,6 +4,7 @@ import { type ComponentType, type RefObject, createContext } from 'react'
 
 import type { EditorContent, Editor as TiptapEditor } from '@tiptap/react'
 
+import type { EditorBlock } from '../extensions'
 import type { EmbedProvider, Preset } from '../schema'
 import type { EditorSlashMenuProps } from './EditorSlashMenu'
 import type { EditorToolbarProps } from './EditorToolbar'
@@ -25,6 +26,8 @@ export type EditorContextValue = {
   /** Opens the embed editor at the selection, or on the selected embed. */
   editEmbed: () => void
   embedProviders: readonly EmbedProvider[]
+  /** The app's own blocks, which the slash menu offers after the preset's. */
+  blocks: readonly EditorBlock[]
   /** Opens the file picker for `onUploadImage`, or undefined without it. */
   pickImage: (() => void) | undefined
   /** Opens the file picker to replace the selected image, or undefined without `onUploadImage`. */

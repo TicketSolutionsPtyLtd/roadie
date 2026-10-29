@@ -22,6 +22,9 @@ import {
 } from './elements'
 import type { RenderEditorOptions } from './renderEditorValue'
 
+/** An app's own blocks need React, so this renderer drops them. */
+export type RenderEditorHtmlOptions = Omit<RenderEditorOptions, 'nodeMapping'>
+
 // Roadie's Link opens these in a new tab (`resolveLinkKind` in components).
 const EXTERNAL_HREF = /^(https?:)?\/\//i
 
@@ -105,7 +108,7 @@ function renderDoc(
  */
 export function renderEditorHtml(
   value: StoredEditorValue | EditorValue,
-  { size, className, embedProviders }: RenderEditorOptions = {}
+  { size, className, embedProviders }: RenderEditorHtmlOptions = {}
 ): string {
   const { preset, doc } = migrate(value)
   const classes = escapeHTMLAttribute(cn(proseVariants({ size, className })))

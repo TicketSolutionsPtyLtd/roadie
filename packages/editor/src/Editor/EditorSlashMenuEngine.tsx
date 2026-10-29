@@ -14,6 +14,7 @@ import type { EditorSlashMenuProps } from './EditorSlashMenu'
 import {
   type EditorControlUi,
   type EditorSlashItem,
+  customSlashItem,
   presetSlashItems
 } from './controls'
 import { type SlashMatch, closeSlashMenu, slashMatch } from './slashMenu'
@@ -179,9 +180,10 @@ export function EditorSlashMenuEngine(props: EditorSlashMenuProps) {
     selector: ({ editor: current }) =>
       current?.isEditable ? slashMatch(current.state) : null
   })
-  const items = presetSlashItems[preset].filter(
-    (item) => item.available?.(ui) ?? true
-  )
+  const items = [
+    ...presetSlashItems[preset],
+    ...context.blocks.map(customSlashItem)
+  ].filter((item) => item.available?.(ui) ?? true)
   // Registered while mounted, so a `/` opens nothing without the menu.
   const hasItems = items.length > 0
   useEffect(() => {
