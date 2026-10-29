@@ -427,6 +427,52 @@ blocks in a `status`.
 | `Enter` | Insert the active block in place of the `/` |
 | `Escape` | Close the menu, keeping the `/` |
 
+#### Block handle
+
+A grip shows at the start of the block under the pointer, or of the block
+with the caret while the editor has focus. Drag it to move the block; a line
+shows where it will land. Click or tap it, or press `Mod+/` in the text, for
+the block's menu: Move up, Move down, Duplicate, and Delete. Each is one step
+to undo, a moved block keeps its `blockId`, and a copy gets one of its own.
+On a touch screen the grip shows beside the block you're typing in, and its
+menu moves the block.
+
+```tsx-live-prose
+<Editor
+  aria-label='Set times'
+  preset='blocks'
+  defaultValue={{
+    version: 1,
+    preset: 'blocks',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Set times' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Doors, 7pm' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'The Saltbush Echoes, 8pm' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Velvet Kookaburra, 9:30pm' }] }
+      ]
+    }
+  }}
+/>
+```
+
+A framed editor makes room for the grip at the start of its text. A
+`subtler` editor keeps its text in line with the page, so the grip hangs
+outside it: give it room at the start.
+
+The grip is a button named Block actions. It takes no Tab stop, since it
+shows only beside the caret's block; `Mod+/` opens its menu instead. The
+menu's items are `menuitem`s. Move up and Move down are disabled at
+the first and last blocks. Closing the menu puts focus back in the text.
+
+| Keys | Action |
+| --- | --- |
+| `Mod+/` | Open the menu for the block with the caret |
+| `ArrowDown`, `ArrowUp` | In the menu, move between actions |
+| `Enter` | Run the action |
+| `Escape` | Close the menu, back to the text |
+
 ### Emphasis
 
 `emphasis` sets the frame. The toolbar takes its own
