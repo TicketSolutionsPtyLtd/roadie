@@ -1,5 +1,16 @@
-import { Fragment, useId } from 'react'
+'use client'
 
+import {
+  type FocusEvent,
+  Fragment,
+  type ReactNode,
+  useId,
+  useState
+} from 'react'
+
+import { PauseIcon, PlayIcon } from '@phosphor-icons/react/ssr'
+
+import { IconButton } from '@oztix/roadie-components/button'
 import { Carousel } from '@oztix/roadie-components/carousel'
 import { Marquee } from '@oztix/roadie-components/marquee'
 
@@ -96,14 +107,51 @@ export function Gallery({
       ) : (
         <>
           <div className='container-8xl'>{heading}</div>
-          <Marquee speed={MARQUEE_SPEED}>
+          <PausableMarquee>
             {tiles.map(({ key, tile }) => (
               <Fragment key={key}>{tile}</Fragment>
             ))}
-          </Marquee>
+          </PausableMarquee>
         </>
       )}
     </BlockRoot>
+  )
+}
+
+// WCAG 2.2.2: motion past five seconds needs a way to stop it.
+function PausableMarquee({ children }: { children: ReactNode }) {
+  const [stopped, setStopped] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const leave = (event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false)
+  }
+
+  return (
+    <div
+      className='grid grid-cols-1 gap-4'
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={leave}
+    >
+      <Marquee speed={MARQUEE_SPEED} paused={stopped || hovered || focused}>
+        {children}
+      </Marquee>
+      <div className='container-8xl flex justify-end'>
+        <IconButton
+          size='icon-sm'
+          aria-label={stopped ? 'Play gallery' : 'Pause gallery'}
+          onClick={() => setStopped(!stopped)}
+        >
+          {stopped ? (
+            <PlayIcon weight='bold' className='size-4 text-subtle' />
+          ) : (
+            <PauseIcon weight='bold' className='size-4 text-subtle' />
+          )}
+        </IconButton>
+      </div>
+    </div>
   )
 }
 

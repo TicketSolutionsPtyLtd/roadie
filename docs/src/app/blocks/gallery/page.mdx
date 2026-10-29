@@ -42,7 +42,7 @@ The default. A heading with previous and next controls over portrait photos that
 
 ### Marquee
 
-The same photos scrolling past on their own. They hold still for anyone who prefers reduced motion.
+The same photos scrolling past on their own, with a button to pause them. They hold still while someone points at or tabs into them, and for anyone who prefers reduced motion.
 
 ```tsx-live-expand id=marquee
 <Gallery
@@ -91,10 +91,10 @@ The same photos scrolling past on their own. They hold still for anyone who pref
 ## Accessibility
 
 - **Carousel**: the heading names the carousel, and each photo is a slide named by its place, such as "2 of 7". Previous and next are buttons, and photos out of view are inert, so `Tab` skips them.
-- **Marquee**: each photo is read out once, though the marquee repeats them to fill the width. It holds still under reduced motion.
+- **Marquee**: each photo is read out once, though the marquee repeats them to fill the width. A pause button stops the motion, which also stops on hover, on focus, and under reduced motion.
 
 ## Tracking
 
-Reports a view once half the gallery is on screen, and in the carousel a click on previous or next with its label.
+Reports a view once half the gallery is on screen, and a click on the carousel's previous or next, or the marquee's pause, with its label.
 
 <PropsDefinitions component='Gallery' />

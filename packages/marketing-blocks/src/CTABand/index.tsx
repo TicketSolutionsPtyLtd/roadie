@@ -96,7 +96,7 @@ export function CTABand({
               split ? '@xl:max-w-7/12' : 'justify-items-center text-center'
             )}
           >
-            <div className='grid gap-8'>
+            <div className='grid min-w-0 gap-8'>
               <BlockHeading
                 id={headingId}
                 eyebrow={eyebrow}

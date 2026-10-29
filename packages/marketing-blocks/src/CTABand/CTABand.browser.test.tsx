@@ -106,6 +106,29 @@ describe('CTABand with photo, its photo', () => {
   })
 })
 
+describe('CTABand long words', () => {
+  it.each(['with-photo', 'centred'] as const)(
+    'keeps the %s panel within a phone screen',
+    async (preset) => {
+      await page.viewport(PHONE.width, PHONE.height)
+      render(
+        <CTABand
+          preset={preset}
+          {...props}
+          body={<p>Rock'n'roll at Wooloomooloomooloomooloomooloo</p>}
+        />
+      )
+
+      const panel = document
+        .querySelector('[data-slot=cta-band-panel]')!
+        .getBoundingClientRect()
+      const body = screen.getByText(/Wooloomooloo/).getBoundingClientRect()
+      expect(panel.width).toBeLessThanOrEqual(PHONE.width)
+      expect(body.right).toBeLessThanOrEqual(panel.right)
+    }
+  )
+})
+
 describe('CTABand body', () => {
   it.each(['with-photo', 'centred'] as const)(
     'sets the %s body in subtle text, closing on a medium-weight line',

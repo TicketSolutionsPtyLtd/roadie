@@ -8,7 +8,8 @@ export const faqDefinition = {
     {
       name: 'accordion',
       title: 'Accordion',
-      description: 'Questions that open to their answers, one at a time.',
+      description:
+        'Questions that open to their answers one at a time, for what people ask before they buy or sign up.',
       variant: 'accordion'
     }
   ]

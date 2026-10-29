@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Gallery } from '.'
@@ -102,4 +103,32 @@ describe('Gallery', () => {
       error.mockRestore()
     }
   )
+
+  const track = () =>
+    document.querySelector<HTMLElement>('[data-slot=marquee]')!
+      .lastElementChild as HTMLElement
+
+  it('pauses and plays the marquee from its button', async () => {
+    render(<Gallery preset='marquee' title={TITLE} images={images} />)
+
+    expect(track().style.animationPlayState).toBe('running')
+    await userEvent.click(screen.getByRole('button', { name: 'Pause gallery' }))
+    expect(track().style.animationPlayState).toBe('paused')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Play gallery' }))
+    const button = screen.getByRole('button', { name: 'Pause gallery' })
+    expect(button).toHaveFocus()
+    await userEvent.unhover(button)
+    fireEvent.blur(button)
+    expect(track().style.animationPlayState).toBe('running')
+  })
+
+  it('holds the marquee still while focus is inside it', () => {
+    render(<Gallery preset='marquee' title={TITLE} images={images} />)
+
+    fireEvent.focus(screen.getByRole('button', { name: 'Pause gallery' }))
+    expect(track().style.animationPlayState).toBe('paused')
+    fireEvent.blur(screen.getByRole('button', { name: 'Pause gallery' }))
+    expect(track().style.animationPlayState).toBe('running')
+  })
 })

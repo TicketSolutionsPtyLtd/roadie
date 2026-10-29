@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
 
 import { Gallery, type GalleryPreset } from '.'
@@ -96,6 +96,28 @@ describe('Gallery', () => {
       .toEqual(['running'])
   })
 
+  it('holds the marquee photos still while hovered', async () => {
+    render(<Photos />)
+    await expect
+      .poll(() =>
+        track()
+          .getAnimations()
+          .map(({ playState }) => playState)
+      )
+      .toEqual(['running'])
+
+    onTestFinished(() => commands.parkPointer())
+    await userEvent.hover(document.querySelector('[data-slot=marquee]')!)
+
+    await expect
+      .poll(() =>
+        track()
+          .getAnimations()
+          .map(({ playState }) => playState)
+      )
+      .toEqual(['paused'])
+  })
+
   it('holds the marquee photos still under reduced motion', async () => {
     await commands.reducedMotion(true)
     render(<Photos />)
@@ -114,7 +136,7 @@ describe('Gallery', () => {
     }
   )
 
-  it('steps the carousel with its controls and reports each step', async () => {
+  it('steps the carousel with its next control and reports the click', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     const onBlockEvent = vi.fn()
     render(
