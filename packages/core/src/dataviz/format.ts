@@ -1,3 +1,9 @@
+import {
+  HOUSE_CURRENCY,
+  currencyFormat,
+  isHouseCurrency
+} from '../number/currency'
+
 export type ValueFormat =
   | 'number'
   | 'compact'
@@ -54,15 +60,22 @@ function compact(value: number) {
   return `${sign}${number(compactUnit(abs, 1_000_000))}m`
 }
 
-function currency(value: number) {
-  const round = Number.isInteger(value)
-  return numberFormat({
-    style: 'currency',
-    currency: 'AUD',
-    currencyDisplay: 'narrowSymbol',
-    minimumFractionDigits: round ? 0 : 2,
-    maximumFractionDigits: round ? 0 : 2
-  }).format(value)
+function currency(value: number, code = HOUSE_CURRENCY) {
+  // Firefox before 116 ignores trailingZeroDisplay and would show $1,200.00.
+  const decimals = Number.isInteger(value) ? 0 : undefined
+  return numberFormat(currencyFormat({ currency: code, decimals })).format(
+    value
+  )
+}
+
+// Intl's compact reads $118.4K; the house suffix is lowercase.
+function compactCurrency(value: number, code = HOUSE_CURRENCY) {
+  if (Math.abs(value) < 1_000) return currency(value, code)
+  if (!isHouseCurrency(code))
+    return numberFormat(
+      currencyFormat({ currency: code, compact: true })
+    ).format(value)
+  return `${value < 0 ? '-' : ''}$${compact(Math.abs(value))}`
 }
 
 function percent(value: number) {
@@ -76,22 +89,31 @@ function percent(value: number) {
 const points = (value: number) =>
   `${number(value)} ${Math.abs(value) === 1 ? 'pt' : 'pts'}`
 
-const FORMATTERS: Record<ValueFormat, (value: number) => string> = {
+const FORMATTERS: Record<
+  ValueFormat,
+  (value: number, currencyCode?: string) => string
+> = {
   number: (value) => number(value),
   compact,
   percent,
   currency,
-  compactCurrency: (value) =>
-    Math.abs(value) >= 1_000
-      ? `${value < 0 ? '-' : ''}$${compact(Math.abs(value))}`
-      : currency(value),
+  compactCurrency,
   points,
   index: (value) => number(Math.round(value), 0)
 }
 
 export function formatValue(value: number, format: ValueFormat = 'number') {
+  return formatValueInCurrency(value, format)
+}
+
+/** `formatValue`, with money in the given currency. Core only. */
+export function formatValueInCurrency(
+  value: number,
+  format: ValueFormat = 'number',
+  currencyCode?: string
+) {
   if (!Number.isFinite(value)) return NOT_AVAILABLE
-  return normalizeMinusSign(FORMATTERS[format](value))
+  return normalizeMinusSign(FORMATTERS[format](value, currencyCode))
 }
 
 export function formatDelta(value: number, format: ValueFormat = 'number') {

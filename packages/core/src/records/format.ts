@@ -1,4 +1,4 @@
-import { formatValue, normalizeMinusSign } from '../dataviz/format'
+import { formatValue, formatValueInCurrency } from '../dataviz/format'
 import {
   type FormatOptions,
   type Instantish,
@@ -33,33 +33,13 @@ function labelsOf(field: RecordField) {
 
 const list = (value: unknown) => (Array.isArray(value) ? value : [value])
 
-const MONEY_FORMATS = new Set(['currency', 'compactCurrency'])
-
 function money(value: number, field: RecordField, row: object) {
   const code = field.currency ?? read(row, field.currencyKey)
-  const format = field.format ?? 'currency'
-  if (
-    typeof code !== 'string' ||
-    code.toUpperCase() === 'AUD' ||
-    !MONEY_FORMATS.has(format) ||
-    !Number.isFinite(value)
+  return formatValueInCurrency(
+    value,
+    field.format ?? 'currency',
+    typeof code === 'string' ? code : undefined
   )
-    return formatValue(value, format)
-  const compact = format === 'compactCurrency' && Math.abs(value) >= 1_000
-  try {
-    return normalizeMinusSign(
-      new Intl.NumberFormat('en-AU', {
-        style: 'currency',
-        currency: code,
-        notation: compact ? 'compact' : 'standard',
-        maximumFractionDigits: compact ? 1 : undefined,
-        minimumFractionDigits:
-          compact || Number.isInteger(value) ? 0 : undefined
-      }).format(value)
-    )
-  } catch {
-    return formatValue(value, format)
-  }
 }
 
 const UTC_MIDNIGHT = 'T00:00:00Z'
