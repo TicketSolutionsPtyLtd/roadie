@@ -49,9 +49,17 @@ function SelectionMenu({
     editAlt,
     editEmbed,
     pickImage,
-    replaceImage
+    replaceImage,
+    editButton
   } = use(EditorContext)!
-  const ui = { editLink, editAlt, editEmbed, pickImage, replaceImage }
+  const ui = {
+    editLink,
+    editAlt,
+    editEmbed,
+    pickImage,
+    replaceImage,
+    editButton
+  }
   const controls = selectionControls[preset]
   const menuRef = useRef<HTMLDivElement>(null)
   const editingLinkRef = useRef(editingLink)

@@ -265,7 +265,9 @@ const inlineControls = [bold, italic, underline, link] as const
 /** The controls in the menu over a text selection. */
 export const selectionControls: Record<Preset, readonly EditorControl[]> = {
   basic: inlineControls,
-  rich: inlineControls
+  rich: inlineControls,
+  blocks: inlineControls,
+  email: inlineControls
 }
 
 const altText: EditorControl = {
@@ -548,11 +550,15 @@ const blockSlashItems: readonly EditorSlashItem[] = [
   slashBlock('Table', TableIcon, (chain) => chain.insertTable(NEW_TABLE))
 ]
 
-/** The blocks each preset's slash menu offers; only `blocks` has one. */
+/**
+ * The blocks each preset's slash menu offers; only `blocks` has one. Email
+ * inserts through its own menu, so its `/` stays with that.
+ */
 export const presetSlashItems: Record<Preset, readonly EditorSlashItem[]> = {
   basic: [],
   rich: [],
-  blocks: blockSlashItems
+  blocks: blockSlashItems,
+  email: []
 }
 
 /** The slash menu's entry for an app's own block, inserted in place of the `/`. */
