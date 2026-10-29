@@ -23,6 +23,12 @@ export function HeroVideo({
   const ref = useRef<HTMLVideoElement>(null)
   const { moving } = useHeroMotion()
   const [started, setStarted] = useState(false)
+  // Read in the event, so a `playing` that lands after a pause never hides the poster.
+  const movingRef = useRef(moving)
+
+  useEffect(() => {
+    movingRef.current = moving
+  }, [moving])
 
   useEffect(() => {
     const video = ref.current
@@ -41,7 +47,9 @@ export function HeroVideo({
         muted
         playsInline
         aria-label={poster.alt}
-        onPlaying={() => setStarted(true)}
+        onPlaying={() => {
+          if (movingRef.current) setStarted(true)
+        }}
         className='absolute inset-0 size-full object-cover'
       >
         <source src={src} type={fallbackSrc ? AV1 : undefined} />

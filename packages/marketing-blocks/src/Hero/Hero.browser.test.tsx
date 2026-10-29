@@ -1,5 +1,9 @@
+import { act } from 'react'
+
 import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { hydrateRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { commands, page } from 'vitest/browser'
 
 import { Hero } from '.'
@@ -178,6 +182,57 @@ describe('Hero bento video poster', () => {
       top.closest('[data-slot=hero-video-poster]'),
       top.outerHTML
     ).not.toBeNull()
+  })
+})
+
+describe('Hero bento through hydration', () => {
+  async function hydrate() {
+    const ui = <Hero {...bento(photo)} />
+    const container = document.createElement('div')
+    container.innerHTML = renderToString(ui)
+    document.body.append(container)
+    onTestFinished(() => container.remove())
+    const root = await act(async () => hydrateRoot(container, ui))
+    onTestFinished(() => act(() => root.unmount()))
+    // A few frames, so any effect the server render scheduled has run.
+    for (let frame = 0; frame < 5; frame++)
+      await new Promise(requestAnimationFrame)
+    return container
+  }
+
+  it('never starts the video, and keeps its poster and first photos, for viewers who reduce motion', async () => {
+    await commands.reducedMotion(true)
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const play = vi.spyOn(HTMLMediaElement.prototype, 'play')
+    onTestFinished(() => play.mockRestore())
+
+    const container = await hydrate()
+
+    expect(play).not.toHaveBeenCalled()
+    expect(
+      container.querySelector('[data-slot=hero-video-poster]')
+    ).not.toHaveAttribute('hidden')
+    expect(
+      container.querySelectorAll('[data-slot=hero-primary] img')
+    ).toHaveLength(1)
+    expect(
+      container.querySelector('button')!.getAttribute('aria-label')
+    ).toMatch(/play/i)
+  })
+
+  it('starts moving once the client confirms motion is welcome', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const play = vi
+      .spyOn(HTMLMediaElement.prototype, 'play')
+      .mockResolvedValue(undefined)
+    onTestFinished(() => play.mockRestore())
+
+    const container = await hydrate()
+
+    expect(play).toHaveBeenCalled()
+    expect(
+      container.querySelector('button')!.getAttribute('aria-label')
+    ).toMatch(/pause/i)
   })
 })
 
