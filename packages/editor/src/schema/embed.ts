@@ -178,11 +178,16 @@ function soundcloudResource(url: URL) {
   return urnKind === kind ? `${kind}:${number}` : null
 }
 
+// A private track's player won't load without its secret token, which the
+// value doesn't keep, so it's refused rather than saved broken.
+const isPrivate = (url: URL) => url.searchParams.has('secret_token')
+
 function soundcloudPlayerTrack(url: URL) {
   if (url.hostname !== 'w.soundcloud.com') return null
   if (url.pathname !== '/player' && url.pathname !== '/player/') return null
   const track = webUrl(url.searchParams.get('url') ?? '')
-  return track && (soundcloudResource(track) ?? soundcloudPermalink(track))
+  if (!track || isPrivate(url) || isPrivate(track)) return null
+  return soundcloudResource(track) ?? soundcloudPermalink(track)
 }
 
 const soundcloudTrackUrl = (id: string) =>
