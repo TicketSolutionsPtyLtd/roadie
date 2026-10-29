@@ -114,6 +114,7 @@ export function plotFields(plot: ChartPlot): FieldRef[] {
       add('x', plot.x)
       add('y', plot.y)
       add('line.y', plot.line?.y)
+      add('comparison.y', plot.comparison?.y)
       break
     case 'ranked-bars':
       add('x', plot.x)
