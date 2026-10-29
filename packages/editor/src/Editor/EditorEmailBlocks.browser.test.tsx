@@ -224,6 +224,33 @@ describe('Editor email blocks', () => {
     )
   })
 
+  it.each([
+    ['below a button', 'Buy tickets', 'Button actions', 'button', 'below'],
+    ['above columns', 'Lineup', 'Columns actions', 'columns', 'above']
+  ] as const)(
+    'places the toolbar %s',
+    async (_, text, toolbarName, type, side) => {
+      renderEmail(
+        email(
+          p('Doors 7pm'),
+          button('https://oztix.com.au', 'Buy tickets'),
+          columns(['Lineup'], ['Tickets'])
+        )
+      )
+      await clickText(text)
+
+      const toolbar = await screen.findByRole('toolbar', { name: toolbarName })
+      const node = document.querySelector(`[data-type="${type}"]`)!
+      await waitFor(() => {
+        const bar = toolbar.getBoundingClientRect()
+        const box = node.getBoundingClientRect()
+        expect(Math.round(bar.left)).toBe(Math.round(box.left))
+        if (side === 'below') expect(bar.top).toBeGreaterThanOrEqual(box.bottom)
+        else expect(bar.bottom).toBeLessThanOrEqual(box.top)
+      })
+    }
+  )
+
   it('sets a selected spacer’s height', async () => {
     const onValueChange = renderEmail(
       email(p('Doors 7pm'), { type: 'spacer', attrs: { height: 40 } }, p())
