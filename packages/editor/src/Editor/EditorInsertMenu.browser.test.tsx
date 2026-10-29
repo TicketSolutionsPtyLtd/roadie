@@ -279,7 +279,7 @@ describe('Editor insert menu', () => {
     expect(names).not.toContain('2 columns')
   })
 
-  it('offers only the lists in a list', async () => {
+  it('offers only the other list type in a list', async () => {
     renderEmail({
       defaultValue: email({
         type: 'bulletList',
@@ -290,10 +290,7 @@ describe('Editor insert menu', () => {
 
     await userEvent.keyboard('{End} /')
 
-    expect(optionNames(await insertMenu())).toEqual([
-      'Bulleted list',
-      'Numbered list'
-    ])
+    expect(optionNames(await insertMenu())).toEqual(['Numbered list'])
   })
 
   it('offers Image with onUploadImage', async () => {

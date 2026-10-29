@@ -150,7 +150,7 @@ function presetHoldsImages(preset: Preset) {
 }
 
 // At most an email's width, so an author sees the lines a reader will. Its
-// columns stack below MJML's breakpoint, as they do on a phone.
+// columns query it as a container.
 const EMAIL_CANVAS =
   '@container mx-auto w-full max-w-[600px] [--prose-measure:none]'
 

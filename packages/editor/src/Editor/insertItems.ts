@@ -64,14 +64,17 @@ const bulletList: EditorInsertItem = {
   label: 'Bulleted list',
   icon: ListBulletsIcon,
   run: (editor) => editor.chain().focus().toggleBulletList().run(),
-  enabled: (editor) => editor.can().toggleBulletList()
+  // In its own list, the toggle would take the line out of it.
+  enabled: (editor) =>
+    !editor.isActive('bulletList') && editor.can().toggleBulletList()
 }
 
 const orderedList: EditorInsertItem = {
   label: 'Numbered list',
   icon: ListNumbersIcon,
   run: (editor) => editor.chain().focus().toggleOrderedList().run(),
-  enabled: (editor) => editor.can().toggleOrderedList()
+  enabled: (editor) =>
+    !editor.isActive('orderedList') && editor.can().toggleOrderedList()
 }
 
 function block(
