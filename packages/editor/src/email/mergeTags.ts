@@ -46,12 +46,16 @@ function tokenFor(
       `The variable "${variable.key}" has no ${syntax} token.`
     )
   }
-  const output = syntax === 'liquid' && /^\{\{[\s\S]*\}\}$/.exec(token)
+  // `{{-` and `-}}` trim whitespace, so they stay outside the default.
+  const output =
+    syntax === 'liquid' && /^\{\{(-?)([\s\S]*?)(-?)\}\}$/.exec(token)
   if (!output || !fallback) return { html: token, text: token }
-  const filter = token.slice(2, -2).trim()
+  const [, open, filter, close] = output
+  const withDefault = (quoted: string) =>
+    `{{${open} ${filter!.trim()} | default: ${quoted} ${close}}}`
   return {
-    html: `{{ ${filter} | default: "${escapeHtml(fallback)}" }}`,
-    text: `{{ ${filter} | default: ${liquidString(untokenedText(fallback))} }}`
+    html: withDefault(`"${escapeHtml(fallback)}"`),
+    text: withDefault(liquidString(untokenedText(fallback)))
   }
 }
 
@@ -74,7 +78,7 @@ export function mergeTags({ syntax, variables = [], values }: MergeTagOptions) {
     const preview = value || shownFallback
     filled.push(
       values
-        ? { html: escapeHtml(preview), text: preview }
+        ? { html: escapeHtml(preview), text: untokenedText(preview) }
         : tokenFor(variable, shownFallback, syntax)
     )
     return `${filled.length - 1}`

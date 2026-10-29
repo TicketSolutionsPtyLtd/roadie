@@ -416,6 +416,46 @@ describe('renderEmail', () => {
       expect(plain).toBe('Hi <Ashley & co>!')
     })
 
+    it('fills a value that reads as a token so no sender fills it', async () => {
+      const { html, text: plain } = await renderEmail(greeting(), {
+        variables,
+        values: { first_name: '{{ secret }} #Code#' }
+      })
+      expect(html).toContain(
+        'Hi &#123;&#123; secret &#125;&#125; &#35;Code&#35;!'
+      )
+      expect(plain).not.toContain('{{')
+      expect(plain).not.toContain('#Code#')
+      expect(plain.replaceAll('​', '')).toBe('Hi {{ secret }} #Code#!')
+    })
+
+    it('keeps a Liquid token’s whitespace control around its default', async () => {
+      const { html } = await renderEmail(greeting('there'), {
+        syntax: 'liquid',
+        variables: [
+          {
+            key: 'first_name',
+            label: 'First name',
+            tokens: { liquid: '{{- customer.first_name -}}' }
+          }
+        ]
+      })
+      expect(html).toContain(
+        'Hi {{- customer.first_name | default: "there" -}}!'
+      )
+    })
+
+    it('fills a variable keyed like an object’s own property from values alone', async () => {
+      const { text: plain } = await renderEmail(
+        email(p(text('Hi '), tag('constructor', 'there'))),
+        {
+          variables: [{ key: 'constructor', label: 'Odd', tokens: {} }],
+          values: {}
+        }
+      )
+      expect(plain).toBe('Hi there')
+    })
+
     it.each([
       ['its fallback', 'there', 'Hi there!'],
       ['nothing without a fallback', undefined, 'Hi !']
