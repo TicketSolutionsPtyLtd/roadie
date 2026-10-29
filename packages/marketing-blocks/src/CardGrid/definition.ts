@@ -7,38 +7,38 @@ export const cardGridDefinition = {
     'A set of like items, such as benefits, services, values, or people, as cards in columns or rows.',
   presets: [
     {
-      name: 'features',
-      title: 'Features',
+      name: 'illustrated-cards',
+      title: 'Illustrated cards',
       description:
-        'Three benefits on a raised surface, each an image with an illustration, a title, and a description.',
+        'Cards on a raised surface, each an image with an illustration over it, a title, and a description, for benefits or features.',
       variant: 'grid'
     },
     {
-      name: 'services',
-      title: 'Services',
+      name: 'marked-cards',
+      title: 'Marked cards',
       description:
-        'Up to four services in columns, each an image above a marked title and subtitle.',
+        'Up to four cards in columns, each an image above a marked title and subtitle, for services.',
       variant: 'grid'
     },
     {
-      name: 'industries',
-      title: 'Industries',
+      name: 'overlap-cards',
+      title: 'Overlap cards',
       description:
-        'Square images, each with a dark panel holding an illustration, a marked title, and a description.',
+        'Square images, each overlapped by a dark panel holding an illustration, a marked title, and a description, for industries.',
       variant: 'grid'
     },
     {
-      name: 'steps',
-      title: 'Steps',
+      name: 'numbered-cards',
+      title: 'Numbered cards',
       description:
-        'Numbered cards for how something works, each a step’s number, title, and description.',
+        'Cards numbered in order, each a number, title, and description, for how it works.',
       variant: 'grid'
     },
     {
-      name: 'links',
-      title: 'Links',
+      name: 'link-cards',
+      title: 'Link cards',
       description:
-        'Compact raised cards that each link somewhere, such as contact options, with an illustration, title, and description.',
+        'Compact raised cards that each link somewhere, with an illustration, title, and description, for contact options or browse links.',
       variant: 'grid'
     },
     {

@@ -20,11 +20,11 @@ import { CardGrid } from '@oztix/roadie-marketing-blocks/card-grid'
 
 Each preset takes the same `items`, and shows the parts of an item its look uses. Give an item an `href` and its title links to it, with the whole card to click. `actions` adds links under the cards. Columns follow the block's own width, so a card grid in a narrow layout stacks as it would on a phone.
 
-### Features
+### Illustrated cards
 
-```tsx-live-expand id=features
+```tsx-live-expand id=illustrated-cards
 <CardGrid
-  preset='features'
+  preset='illustrated-cards'
   title='Great events need great partners'
   titleHighlight='partners'
   description='Not just great ticketing software.'
@@ -51,11 +51,11 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 />
 ```
 
-### Services
+### Marked cards
 
-```tsx-live-expand id=services
+```tsx-live-expand id=marked-cards
 <CardGrid
-  preset='services'
+  preset='marked-cards'
   title='Our partnership services'
   description="We're an end-to-end ticketing company, offering more than a platform."
   items={[
@@ -92,11 +92,11 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 />
 ```
 
-### Industries
+### Overlap cards
 
-```tsx-live-expand id=industries
+```tsx-live-expand id=overlap-cards
 <CardGrid
-  preset='industries'
+  preset='overlap-cards'
   eyebrow='How does Oztix partner?'
   title='We understand your industry'
   description='And what makes venues and events succeed.'
@@ -129,11 +129,11 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 />
 ```
 
-### Steps
+### Numbered cards
 
-```tsx-live-expand id=steps
+```tsx-live-expand id=numbered-cards
 <CardGrid
-  preset='steps'
+  preset='numbered-cards'
   title='Make sure your show is seen'
   description='There’s mostly nothing to do. To make sure your event shows up against the right artist:'
   items={[
@@ -156,11 +156,11 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 />
 ```
 
-### Links
+### Link cards
 
-```tsx-live-expand id=links
+```tsx-live-expand id=link-cards
 <CardGrid
-  preset='links'
+  preset='link-cards'
   title='How can we help?'
   items={[
     {
@@ -249,11 +249,11 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 
 | Preset       | Suits                                                                                  |
 | ------------ | -------------------------------------------------------------------------------------- |
-| `features`   | Three benefits of one offer, each with a photo and an illustration                     |
-| `services`   | Up to four services or pillars, each with a short subtitle                             |
-| `industries` | Who a page is for, in multiples of three, each with a photo and a line of examples     |
-| `steps`      | How something works, in three or four numbered steps                                   |
-| `links`      | Places to go next, such as contact options, each card a link                           |
+| `illustrated-cards`   | Three benefits of one offer, each with a photo and an illustration                     |
+| `marked-cards`   | Up to four services or pillars, each with a short subtitle                             |
+| `overlap-cards` | Who a page is for, in multiples of three, each with a photo and a line of examples     |
+| `numbered-cards`      | How something works, in three or four numbered steps                                   |
+| `link-cards`      | Places to go next, such as contact options, each card a link                           |
 | `alternating-rows` | A few statements that need a sentence or two each, such as values or the steps of a story |
 | `portraits`  | People, such as the team, speakers, or artists, by name and role with a square photo   |
 | `lists`      | Two to four short lists that need no images, such as policies or certifications        |

@@ -25,9 +25,9 @@ export type CardGridItem = {
   subtitle?: string
   /** Every preset but `portraits` and `lists` shows it. */
   description?: string
-  /** Every preset but `links` and `lists` shows it. */
+  /** Every preset but `link-cards` and `lists` shows it. */
   image?: BlockImage
-  /** Shown by `features`, `services`, `industries`, `steps`, and `links`. */
+  /** Shown by `illustrated-cards`, `marked-cards`, `overlap-cards`, `numbered-cards`, and `link-cards`. */
   illustration?: SpotIllustrationName
   /** The list `lists` shows under the title. */
   points?: readonly string[]
@@ -37,8 +37,8 @@ export type CardGridItem = {
 
 export type CardGridProps = {
   /**
-   * The look. `alternating-rows` is a list of rows; every other preset is a grid of cards, and `steps` numbers them.
-   * @default 'features'
+   * The look. `alternating-rows` is a list of rows; every other preset is a grid of cards, and `numbered-cards` numbers them.
+   * @default 'illustrated-cards'
    */
   preset?: CardGridPreset
   /** The block's place on the page, counting from 1, reported with its events. */
@@ -366,29 +366,29 @@ type Look = {
 
 // Columns follow the block's own width, not the viewport's, so a block in a narrow layout stays narrow.
 const LOOKS: Record<CardGridPreset, Look> = {
-  features: {
+  'illustrated-cards': {
     Item: FeatureCard,
     list: 'grid gap-12 @5xl:grid-cols-3',
     align: 'center',
     raised: true
   },
-  services: {
+  'marked-cards': {
     Item: ServiceCard,
     list: 'grid gap-12 @3xl:grid-cols-2 @7xl:grid-cols-4',
     align: 'center'
   },
-  industries: {
+  'overlap-cards': {
     Item: IndustryCard,
     list: 'grid gap-12 @3xl:grid-cols-2 @7xl:grid-cols-3',
     align: 'center'
   },
-  steps: {
+  'numbered-cards': {
     Item: StepCard,
     list: 'grid gap-12 @3xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4',
     align: 'center',
     ordered: true
   },
-  links: {
+  'link-cards': {
     Item: LinkCard,
     list: 'grid gap-6 @3xl:grid-cols-2 @5xl:grid-cols-3',
     align: 'center'
@@ -427,7 +427,7 @@ export function CardGrid({
   const { Item, list, align, raised, ordered } = LOOKS[name]
   const List = ordered ? 'ol' : 'ul'
   const headingId = useId()
-  const markedEyebrow = name === 'industries' && eyebrow
+  const markedEyebrow = name === 'overlap-cards' && eyebrow
 
   return (
     <BlockRoot

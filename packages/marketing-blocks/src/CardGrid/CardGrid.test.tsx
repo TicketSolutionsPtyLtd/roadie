@@ -55,14 +55,14 @@ describe('CardGrid', () => {
     const section = screen.getByRole('region', {
       name: 'Great events need great partners'
     })
-    expect(section).toHaveAttribute('data-preset', 'features')
+    expect(section).toHaveAttribute('data-preset', 'illustrated-cards')
     expect(section).toHaveAttribute('data-variant', 'grid')
   })
 
   it.each([
-    'features',
-    'services',
-    'industries',
+    'illustrated-cards',
+    'marked-cards',
+    'overlap-cards',
     'alternating-rows',
     'portraits'
   ] as const)('shows %s items as titled cards with their images', (preset) => {
@@ -80,11 +80,11 @@ describe('CardGrid', () => {
   })
 
   it.each([
-    'features',
-    'services',
-    'industries',
-    'steps',
-    'links',
+    'illustrated-cards',
+    'marked-cards',
+    'overlap-cards',
+    'numbered-cards',
+    'link-cards',
     'alternating-rows'
   ] as const)('shows each %s item’s description', (preset) => {
     render(<CardGrid preset={preset} title='Section' items={values} />)
@@ -105,7 +105,7 @@ describe('CardGrid', () => {
   it('renders the section heading with its eyebrow, highlight, and description', () => {
     render(
       <CardGrid
-        preset='industries'
+        preset='overlap-cards'
         eyebrow='How does Oztix partner?'
         title='We understand your industry'
         titleHighlight='industry'
@@ -129,7 +129,7 @@ describe('CardGrid', () => {
 
   it('draws each named illustration, hidden from assistive tech', () => {
     const { container } = render(
-      <CardGrid preset='features' title='Section' items={benefits} />
+      <CardGrid preset='illustrated-cards' title='Section' items={benefits} />
     )
 
     const illustrations = container.querySelectorAll('svg[aria-hidden="true"]')
@@ -199,14 +199,14 @@ describe('CardGrid', () => {
   })
 
   it.each([
-    'features',
-    'services',
-    'industries',
+    'illustrated-cards',
+    'marked-cards',
+    'overlap-cards',
     'alternating-rows',
     'portraits',
     'lists',
-    'steps',
-    'links'
+    'numbered-cards',
+    'link-cards'
   ] as const)(
     'links a %s card by its title and reports the title alone as the click label',
     async (preset) => {
@@ -257,7 +257,7 @@ describe('CardGrid', () => {
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
         <CardGrid
-          preset='services'
+          preset='marked-cards'
           title='Our partnership services'
           items={values}
           actions={[
@@ -290,7 +290,7 @@ describe('CardGrid', () => {
   it('numbers steps as an ordered list, in order', () => {
     render(
       <CardGrid
-        preset='steps'
+        preset='numbered-cards'
         title='Make sure your show is seen'
         items={[
           {
@@ -323,7 +323,7 @@ describe('CardGrid', () => {
   it('shows links as titled cards, each with its illustration and no image', () => {
     const { container } = render(
       <CardGrid
-        preset='links'
+        preset='link-cards'
         title='How can we help?'
         items={[
           {

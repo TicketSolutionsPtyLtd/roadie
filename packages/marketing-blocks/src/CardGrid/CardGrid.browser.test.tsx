@@ -52,13 +52,13 @@ const columns = () =>
 
 describe('CardGrid columns', () => {
   it.each<[CardGridPreset, number, number]>([
-    ['features', 3, 3],
-    ['services', 4, 4],
-    ['industries', 6, 3],
+    ['illustrated-cards', 3, 3],
+    ['marked-cards', 4, 4],
+    ['overlap-cards', 6, 3],
     ['portraits', 4, 4],
     ['lists', 3, 3],
-    ['steps', 4, 4],
-    ['links', 3, 3]
+    ['numbered-cards', 4, 4],
+    ['link-cards', 3, 3]
   ])(
     '%s stacks on a phone and fills its columns on a desktop',
     (preset, count, desktop) => {
@@ -74,14 +74,14 @@ describe('CardGrid columns', () => {
   )
 
   it('takes its columns from its own width, not the window’s', () => {
-    render(<Block preset='services' width={600} />)
+    render(<Block preset='marked-cards' width={600} />)
 
     expect(window.innerWidth).toBeGreaterThan(1280)
     expect(columns()).toBe(1)
   })
 
   it('sets services in two columns at a tablet’s width', () => {
-    render(<Block preset='services' width={800} />)
+    render(<Block preset='marked-cards' width={800} />)
 
     expect(columns()).toBe(2)
   })
@@ -95,17 +95,17 @@ describe('CardGrid features', () => {
 
   it('centres each card on a phone and starts it when the card is wide', () => {
     const { unmount } = render(
-      <Block preset='features' width={375} count={3} />
+      <Block preset='illustrated-cards' width={375} count={3} />
     )
     expect(alignment()).toBe('center')
     unmount()
 
-    render(<Block preset='features' width={900} count={3} />)
+    render(<Block preset='illustrated-cards' width={900} count={3} />)
     expect(alignment()).toBe('start')
   })
 
   it('overlaps each image with its illustration', () => {
-    render(<Block preset='features' width={375} count={1} />)
+    render(<Block preset='illustrated-cards' width={375} count={1} />)
 
     const image = screen.getByRole('img').getBoundingClientRect()
     const illustration = cards()[0]!
@@ -165,9 +165,9 @@ describe('CardGrid images', () => {
   }
 
   it.each<[CardGridPreset, number]>([
-    ['features', 1.78],
-    ['services', 1.33],
-    ['industries', 1],
+    ['illustrated-cards', 1.78],
+    ['marked-cards', 1.33],
+    ['overlap-cards', 1],
     ['alternating-rows', 1],
     ['portraits', 1]
   ])('crops a sized 4:3 photo to the %s shape', (preset, shape) => {
@@ -188,17 +188,17 @@ describe('CardGrid spacing', () => {
   }
 
   it.each<CardGridPreset>([
-    'services',
-    'industries',
-    'steps',
-    'links',
+    'marked-cards',
+    'overlap-cards',
+    'numbered-cards',
+    'link-cards',
     'alternating-rows',
     'lists'
   ])('%s leaves the space above it to the page', (preset) => {
     expect(gap(preset)).toBe(0)
   })
 
-  it.each<CardGridPreset>(['features', 'portraits'])(
+  it.each<CardGridPreset>(['illustrated-cards', 'portraits'])(
     '%s pads its title inside its raised surface',
     (preset) => {
       expect(gap(preset)).toBeGreaterThan(0)
@@ -208,14 +208,14 @@ describe('CardGrid spacing', () => {
 
 describe('CardGrid card links', () => {
   it.each<CardGridPreset>([
-    'features',
-    'services',
-    'industries',
+    'illustrated-cards',
+    'marked-cards',
+    'overlap-cards',
     'alternating-rows',
     'portraits',
     'lists',
-    'steps',
-    'links'
+    'numbered-cards',
+    'link-cards'
   ])(
     'makes a linked %s card one hit area, from its image to its last line',
     (preset) => {
@@ -273,14 +273,14 @@ describe('CardGrid views', () => {
 
 describe('CardGrid accessibility', () => {
   it.each<CardGridPreset>([
-    'features',
-    'services',
-    'industries',
+    'illustrated-cards',
+    'marked-cards',
+    'overlap-cards',
     'alternating-rows',
     'portraits',
     'lists',
-    'steps',
-    'links'
+    'numbered-cards',
+    'link-cards'
   ])('%s has no axe violations', async (preset) => {
     const { container } = render(
       <main>
