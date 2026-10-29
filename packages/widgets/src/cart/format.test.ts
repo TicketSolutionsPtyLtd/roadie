@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
   currencyPrefix,
@@ -95,12 +95,13 @@ describe('formatDayHeader', () => {
   // non-UTC zones. Run it under a behind-UTC zone to prove the key's day is
   // preserved — a UTC-parse impl would render the 14th here.
   describe('under a non-UTC timezone (America/New_York)', () => {
-    const original = process.env.TZ
+    // stubEnv deletes an unset TZ on restore; assigning `undefined` writes the
+    // string 'undefined', which Windows can't resolve as a zone.
     beforeAll(() => {
-      process.env.TZ = 'America/New_York'
+      vi.stubEnv('TZ', 'America/New_York')
     })
     afterAll(() => {
-      process.env.TZ = original
+      vi.unstubAllEnvs()
     })
     it('keeps the venue-local day (no UTC off-by-one)', () => {
       const out = formatDayHeader('2026-06-15', { locale: 'en-AU' })
@@ -244,12 +245,11 @@ describe('formatEventSchedule', () => {
     // Forcing the runner tz proves the time is the VENUE's, not the runner's:
     // the same instant reads differently with vs without eventTimeZone.
     describe('under a runner tz that differs from the venue', () => {
-      const original = process.env.TZ
       beforeAll(() => {
-        process.env.TZ = 'America/New_York'
+        vi.stubEnv('TZ', 'America/New_York')
       })
       afterAll(() => {
-        process.env.TZ = original
+        vi.unstubAllEnvs()
       })
       it('uses venue-local (Brisbane), not runner-local (New York)', () => {
         const base = {
