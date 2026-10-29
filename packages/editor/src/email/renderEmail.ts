@@ -6,10 +6,11 @@ import {
   type StoredEditorValue,
   migrate
 } from '../schema/value'
+import { type MergeTagOptions, mergeTags, untokenedText } from './mergeTags'
 import { mjmlTree } from './mjmlTree'
 import { type EmailTheme, emailTheme } from './theme'
 
-export type RenderEmailOptions = {
+export type RenderEmailOptions = MergeTagOptions & {
   /** An app's brand kit, over `defaultEmailTheme`. */
   theme?: Partial<EmailTheme>
 }
@@ -24,19 +25,29 @@ export type RenderedEmail = {
 /**
  * Renders a saved value as an email, reading it into the email preset first.
  * Runs on the server only: MJML needs Node.
+ *
+ * Each variable is written as its token in `syntax`, from `variables`, for
+ * the sending system to fill, or with `values` as its value for a preview.
+ * Throws on a variable `variables` doesn't list, or one with no token in
+ * `syntax`.
  */
 export async function renderEmail(
   value: StoredEditorValue | EditorValue,
-  { theme }: RenderEmailOptions = {}
+  { theme, ...options }: RenderEmailOptions = {}
 ): Promise<RenderedEmail> {
   const { doc } = migrate(value, 'email')
+  const { tag, fill } = mergeTags(options)
+  const tree = mjmlTree(doc, { theme: emailTheme(theme), tag })
   // Strict, since a tree MJML refuses is Roadie's bug, never the author's.
-  const { html } = await mjml2html(mjmlTree(doc, emailTheme(theme)), {
+  const { html } = await mjml2html(tree, {
     validationLevel: 'strict',
     fonts: {},
     keepComments: false
   })
-  return { html, text: plainText(html) }
+  return {
+    html: fill(html, 'html'),
+    text: fill(untokenedText(plainText(html)), 'text')
+  }
 }
 
 // A spacer's hair space would otherwise leave lines of whitespace.

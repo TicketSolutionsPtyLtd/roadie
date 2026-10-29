@@ -23,7 +23,7 @@ export type NodeShape = {
    * other gives way to its children.
    */
   holds?: readonly string[]
-  /** Inline content of text alone, with no marks. */
+  /** Inline content with no marks: text, and the preset's variables. */
   plainText?: true
 }
 
@@ -92,7 +92,8 @@ export const presetShapes = {
       button: { content: 'inline', attrs: ['href'], plainText: true },
       image: { content: 'none', attrs: ['src', 'alt', 'width'] },
       spacer: { content: 'none', attrs: ['height'] },
-      horizontalRule: { content: 'none' }
+      horizontalRule: { content: 'none' },
+      variable: { inline: true, content: 'none', attrs: ['key', 'fallback'] }
     },
     marks,
     httpsImages: true
