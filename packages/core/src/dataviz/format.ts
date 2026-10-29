@@ -97,7 +97,8 @@ export function currencyFormat({
   trimZeros = true,
   compact = false
 }: CurrencyFormatOptions = {}): Intl.NumberFormatOptions {
-  const requested = currency.toUpperCase()
+  const requested =
+    typeof currency === 'string' ? currency.toUpperCase() : HOUSE_CURRENCY
   const units = currencyMinorUnits(requested)
   const code = units === null ? HOUSE_CURRENCY : requested
   const symbol: Intl.NumberFormatOptions = {

@@ -37,6 +37,9 @@ describe('currencyFormat', () => {
 
   it('falls back to dollars for a code Intl does not know', () => {
     expect(currencyFormat({ currency: 'not-a-code' })).toEqual(currencyFormat())
+    // Untyped callers can pass null from a record.
+    const untyped = { currency: null } as unknown as CurrencyFormatOptions
+    expect(currencyFormat(untyped)).toEqual(currencyFormat())
   })
 })
 
