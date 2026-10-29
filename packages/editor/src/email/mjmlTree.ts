@@ -20,7 +20,6 @@ export type MjmlNode = {
   content?: string
 }
 
-/** What the tree is built with: the text's context, and each block's rule. */
 export type TreeContext = TextContext & { showsWhen: ShowsWhen }
 
 type Context = TreeContext & {
