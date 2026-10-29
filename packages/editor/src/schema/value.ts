@@ -21,6 +21,7 @@ import {
   isPreset,
   presetShapes
 } from './presetShapes'
+import { showWhenRule } from './showWhen'
 import { isSpan } from './spans'
 
 export const CURRENT_VERSION = 1
@@ -139,6 +140,14 @@ function withoutRepeatedIds(
     kept.content = node.content.map((child) => withoutRepeatedIds(child, seen))
   }
   return kept
+}
+
+// Only the preset's shape decides which nodes keep a rule.
+function withRule(attrs: Record<string, unknown> | undefined, stored: unknown) {
+  const rest = { ...attrs }
+  delete rest.showWhen
+  const showWhen = isObject(stored) ? showWhenRule(stored.showWhen) : undefined
+  return showWhen ? { ...rest, showWhen } : rest
 }
 
 function isSafeNode(node: unknown, shape: PresetShape): node is JSONContent {
@@ -341,7 +350,10 @@ function cleaned(
   }
   const { type, text, marks, content, attrs: stored } = node
   const attrs = picked(
-    withBlockId(cleanedAttrs({ type, attrs: stored }), stored),
+    withRule(
+      withBlockId(cleanedAttrs({ type, attrs: stored }), stored),
+      stored
+    ),
     nodeShape.attrs
   )
   // Built from known keys, as the saved format keeps nothing else. Only
@@ -445,7 +457,9 @@ function withCustomBlocks(
  * https images, a width from 1 to 600 (none fills the column), and a
  * spacer's height rounded into 8 to 160 pixels. Gives an empty column a
  * paragraph. Keeps a variable only with a key, and its fallback only when
- * it's text; a button's label keeps its variables, unmarked.
+ * it's text; a button's label keeps its variables, unmarked. Keeps a
+ * section's or an email block's `showWhen` only when it's a whole rule,
+ * dropping a malformed one and keeping its block.
  */
 export function migrate(
   value: StoredEditorValue,

@@ -6,6 +6,7 @@ import {
   type StoredEditorValue,
   migrate
 } from '../schema/value'
+import { conditions } from './conditions'
 import { type MergeTagOptions, mergeTags, untokenedText } from './mergeTags'
 import { mjmlTree } from './mjmlTree'
 import { type EmailTheme, emailTheme } from './theme'
@@ -30,14 +31,24 @@ export type RenderedEmail = {
  * the sending system to fill, or with `values` as its value for a preview.
  * Throws on a variable `variables` doesn't list, or one with no token in
  * `syntax`.
+ *
+ * A block with a `showWhen` rule is wrapped in a Liquid `if` with
+ * `syntax: 'liquid'`, or shown only when its rule holds with `values`.
+ * Throws on a rule in the `ae` syntax, which has no conditions, on a rule
+ * naming a variable `variables` doesn't list or whose Liquid token isn't a
+ * plain variable, and on a value a Liquid string can't hold.
  */
 export async function renderEmail(
   value: StoredEditorValue | EditorValue,
   { theme, ...options }: RenderEmailOptions = {}
 ): Promise<RenderedEmail> {
   const { doc } = migrate(value, 'email')
-  const { tag, fill } = mergeTags(options)
-  const tree = mjmlTree(doc, { theme: emailTheme(theme), tag })
+  const { tag, hold, fill } = mergeTags(options)
+  const tree = mjmlTree(doc, {
+    theme: emailTheme(theme),
+    tag,
+    showsWhen: conditions(options, hold)
+  })
   // Strict, since a tree MJML refuses is Roadie's bug, never the author's.
   const { html } = await mjml2html(tree, {
     validationLevel: 'strict',

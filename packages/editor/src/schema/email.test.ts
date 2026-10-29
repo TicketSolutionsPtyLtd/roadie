@@ -99,11 +99,12 @@ describe('presets.email', () => {
   })
 
   it.each([
-    ['button', ['href']],
-    ['image', ['src', 'alt', 'width']],
-    ['spacer', ['height']],
+    ['button', ['href', 'showWhen']],
+    ['image', ['src', 'alt', 'width', 'showWhen']],
+    ['spacer', ['height', 'showWhen']],
+    ['horizontalRule', ['showWhen']],
     ['variable', ['key', 'fallback']],
-    ['section', []],
+    ['section', ['showWhen']],
     ['columns', []],
     ['column', []]
   ])('saves only these attrs of a %s', (name, attrs) => {
@@ -111,7 +112,7 @@ describe('presets.email', () => {
   })
 
   it('reads a newsletter with sections, columns, a button, an image, a spacer and a divider', () => {
-    expect(parse(newsletter).toJSON()).toEqual(newsletter)
+    expect(readEmail(parse(newsletter).toJSON())).toEqual(newsletter)
   })
 
   it.each([
@@ -461,5 +462,153 @@ describe('a variable in the email preset', () => {
         'rich'
       ).doc
     ).toEqual(doc(p('Hi ')))
+  })
+})
+
+const nearlySoldOut = { key: 'tickets_left', op: 'lessThan', value: 20 }
+const ruled = (node: JSONContent, showWhen: unknown): JSONContent => ({
+  ...node,
+  attrs: { ...node.attrs, showWhen }
+})
+const spacer: JSONContent = { type: 'spacer', attrs: { height: 32 } }
+const divider: JSONContent = { type: 'horizontalRule' }
+
+describe('a rule for showing a block in the email preset', () => {
+  it.each([
+    ['section', section(p('Only 20 tickets left'))],
+    ['button', button(tickets)],
+    ['image', image(poster)],
+    ['spacer', spacer],
+    ['divider', divider]
+  ])('sits on a %s', (_name, node) => {
+    const value = doc(ruled(node, nearlySoldOut))
+    expect(() => parse(value)).not.toThrow()
+    expect(readEmail(value)).toEqual(value)
+  })
+
+  it.each([
+    ['exists', { key: 'vip', op: 'exists' }],
+    ['equals text', { key: 'ticket_type', op: 'equals', value: 'VIP' }],
+    ['equals a number', { key: 'tickets_left', op: 'equals', value: 0 }],
+    ['notEquals', { key: 'ticket_type', op: 'notEquals', value: 'VIP' }],
+    ['lessThan', nearlySoldOut],
+    ['greaterThan', { key: 'tickets_left', op: 'greaterThan', value: -1.5 }]
+  ])('keeps a rule that %s', (_name, rule) => {
+    const value = doc(ruled(button(tickets), rule))
+    expect(readEmail(value)).toEqual(value)
+  })
+
+  it('keeps only a rule’s key, op and value', () => {
+    expect(
+      readEmail(
+        doc(
+          ruled(divider, { op: 'exists', key: 'vip', value: 'x', liquid: '' }),
+          ruled(divider, { ...nearlySoldOut, token: '{{ x }}' })
+        )
+      )
+    ).toEqual(
+      doc(
+        ruled(divider, { key: 'vip', op: 'exists' }),
+        ruled(divider, nearlySoldOut)
+      )
+    )
+  })
+
+  it.each([
+    ['isn’t an object', 'tickets_left < 20'],
+    ['is a list', [nearlySoldOut]],
+    ['has no key', { op: 'exists' }],
+    ['has an empty key', { key: '', op: 'exists' }],
+    ['has a key that isn’t text', { key: 7, op: 'exists' }],
+    ['has an unknown op', { key: 'tickets_left', op: 'atMost', value: 20 }],
+    ['equals nothing', { key: 'ticket_type', op: 'equals' }],
+    ['equals empty text', { key: 'ticket_type', op: 'equals', value: '' }],
+    ['equals a list', { key: 'ticket_type', op: 'equals', value: ['VIP'] }],
+    [
+      'compares with text',
+      { key: 'tickets_left', op: 'lessThan', value: '20' }
+    ],
+    ['compares with NaN', { key: 'tickets_left', op: 'lessThan', value: NaN }],
+    [
+      'compares with infinity',
+      { key: 'tickets_left', op: 'greaterThan', value: Infinity }
+    ]
+  ])('drops a rule that %s, keeping its block', (_name, rule) => {
+    expect(readEmail(doc(ruled(button(tickets), rule)))).toEqual(
+      doc(button(tickets))
+    )
+    expect(readEmail(doc(ruled(divider, rule)))).toEqual(doc(divider))
+  })
+
+  it('reads a block with no rule as it was', () => {
+    expect(readEmail(newsletter)).toEqual(newsletter)
+    expect(readEmail(doc(divider))).toEqual(doc({ type: 'horizontalRule' }))
+  })
+
+  it.each([
+    ['columns', columns(column(p('a')), column(p('b')))],
+    ['a paragraph', p('a')]
+  ])('never keeps a rule on %s', (_name, node) => {
+    expect(readEmail(doc(ruled(node, nearlySoldOut)))).toEqual(doc(node))
+  })
+
+  it('never keeps a rule on a column', () => {
+    const row = (first: JSONContent) => doc(columns(first, column(p('b'))))
+    expect(readEmail(row(ruled(column(p('a')), nearlySoldOut)))).toEqual(
+      row(column(p('a')))
+    )
+  })
+
+  it('drops a rule read into the rich preset, keeping its block', () => {
+    expect(
+      migrate(
+        {
+          version: 1,
+          preset: 'email',
+          doc: doc(ruled(divider, nearlySoldOut))
+        },
+        'rich'
+      ).doc
+    ).toEqual(doc(divider))
+  })
+
+  it.each([
+    ['a rule', JSON.stringify(nearlySoldOut), nearlySoldOut],
+    ['a malformed rule', JSON.stringify({ key: 'vip', op: 'is' }), undefined],
+    ['text that isn’t JSON', '{ key: vip', undefined],
+    ['no rule', null, undefined]
+  ])('reads a pasted block with %s', (_name, attribute, read) => {
+    const element = {
+      getAttribute: (name: string) =>
+        name === 'data-show-when' ? attribute : null
+    } as unknown as HTMLElement
+    const [rule] = schema.nodes.horizontalRule!.spec.parseDOM ?? []
+    const attrs = rule?.getAttrs?.(element)
+    expect(attrs && attrs.showWhen).toEqual(read)
+  })
+
+  it.each([
+    ['section', section(p('a')), 'div'],
+    ['button', button(tickets), 'a'],
+    ['image', image(poster), 'img'],
+    ['spacer', spacer, 'div'],
+    ['divider', divider, 'hr']
+  ])('writes a %s’s rule for pasting elsewhere', (_name, node, tag) => {
+    const parsed = parse(doc(ruled(node, nearlySoldOut))).firstChild!
+    const [written, attributes] = parsed.type.spec.toDOM!(parsed) as [
+      string,
+      Record<string, string>
+    ]
+    expect(written).toBe(tag)
+    expect(JSON.parse(attributes['data-show-when']!)).toEqual(nearlySoldOut)
+  })
+
+  it('writes nothing for a block with no rule', () => {
+    const parsed = parse(doc(divider)).firstChild!
+    const [, attributes = {}] = parsed.type.spec.toDOM!(parsed) as [
+      string,
+      Record<string, string>?
+    ]
+    expect(attributes).not.toHaveProperty('data-show-when')
   })
 })

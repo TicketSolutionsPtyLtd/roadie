@@ -1,6 +1,8 @@
 import type { JSONContent } from '@tiptap/core'
 
 import { EMAIL_WIDTH } from '../schema/emailAttrs'
+import type { ShowWhen } from '../schema/showWhen'
+import type { ShowsWhen } from './conditions'
 import {
   type TextContext,
   escapeHtml,
@@ -18,7 +20,9 @@ export type MjmlNode = {
   content?: string
 }
 
-type Context = TextContext & {
+export type TreeContext = TextContext & { showsWhen: ShowsWhen }
+
+type Context = TreeContext & {
   /** Each block's padding, narrower beside other columns. */
   padding: string
 }
@@ -38,8 +42,32 @@ const leaf = (
   content: string
 ): MjmlNode => ({ tagName, attributes, content })
 
+const raw = (content: string): MjmlNode => ({
+  tagName: 'mj-raw',
+  attributes: {},
+  content
+})
+
+// The rule is checked before the block is built, so a block that renders as
+// nothing still can't name a variable the app lacks.
+function shownNodes(
+  { attrs }: JSONContent,
+  { showsWhen }: TreeContext,
+  build: () => MjmlNode[]
+) {
+  const rule = attrs?.showWhen as ShowWhen | undefined
+  const shows = rule ? showsWhen(rule) : true
+  if (shows === false) return []
+  const built = build()
+  if (shows === true || built.length === 0) return built
+  return [raw(shows.open), ...built, raw(shows.close)]
+}
+
+const blockNodes = (node: JSONContent, context: Context) =>
+  shownNodes(node, context, () => blockContent(node, context))
+
 // A node `migrate` let through but this list doesn't know renders as nothing.
-function blockNodes(node: JSONContent, context: Context) {
+function blockContent(node: JSONContent, context: Context) {
   const { type, attrs = {} } = node
   const { padding } = context
   switch (type) {
@@ -76,7 +104,7 @@ const column = (blocks: JSONContent[], context: Context) =>
     blocks.flatMap((block) => blockNodes(block, context))
   )
 
-function columns(node: JSONContent, text: TextContext) {
+function columns(node: JSONContent, text: TreeContext) {
   const context = { ...text, padding: COLUMN_BLOCK_PADDING }
   return mj(
     'mj-section',
@@ -86,14 +114,13 @@ function columns(node: JSONContent, text: TextContext) {
 }
 
 // MJML stacks columns below 480px, and its conditional tables hold them in Outlook.
-function rows(nodes: JSONContent[], text: TextContext): MjmlNode[] {
+function rows(nodes: JSONContent[], text: TreeContext): MjmlNode[] {
   const built: MjmlNode[] = []
   let run: JSONContent[] = []
   const endRun = () => {
-    if (run.length === 0) return
-    built.push(
-      mj('mj-section', {}, [column(run, { ...text, padding: BLOCK_PADDING })])
-    )
+    const runColumn = column(run, { ...text, padding: BLOCK_PADDING })
+    if (runColumn.children?.length)
+      built.push(mj('mj-section', {}, [runColumn]))
     run = []
   }
   for (const node of nodes) {
@@ -102,7 +129,11 @@ function rows(nodes: JSONContent[], text: TextContext): MjmlNode[] {
       built.push(columns(node, text))
     } else if (node.type === 'section') {
       endRun()
-      built.push(mj('mj-wrapper', {}, rows(node.content ?? [], text)))
+      built.push(
+        ...shownNodes(node, text, () => [
+          mj('mj-wrapper', {}, rows(node.content ?? [], text))
+        ])
+      )
     } else {
       run.push(node)
     }
@@ -137,7 +168,7 @@ function head({ text, fontFamily, button, buttonText, divider }: EmailTheme) {
 }
 
 /** An email preset's doc as MJML's tree. */
-export function mjmlTree(doc: JSONContent, text: TextContext): MjmlNode {
+export function mjmlTree(doc: JSONContent, text: TreeContext): MjmlNode {
   const { theme } = text
   return mj('mjml', {}, [
     head(theme),
