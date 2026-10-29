@@ -1,0 +1,362 @@
+export const metadata = {
+  title: 'Basic and Rich',
+  description: 'The basic and rich presets, for event descriptions and simple fields',
+  status: 'alpha',
+  category: 'Editor',
+  order: 1,
+}
+
+The `basic` and `rich` presets, for event descriptions and simple fields, with
+links, images, embeds, and tables.
+
+## Import
+
+```tsx
+import { Editor } from '@oztix/roadie-editor/editor'
+```
+
+`basic` is the default preset. Set `preset='rich'` for headings, quotes,
+dividers, images, embeds, and tables. The [Editor](/components/editor) page
+covers the toolbar, emphasis, sizes, states, and forms, which work the same in
+each.
+
+## Examples
+
+### Default
+
+`defaultValue` takes an `EditorValue` from `@oztix/roadie-editor/schema`. The
+`basic` preset holds paragraphs, bulleted and numbered lists, bold, italic,
+underline, and links.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  defaultValue={{
+    version: 1,
+    preset: 'basic',
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', marks: [{ type: 'bold' }], text: 'Ochre Kite Weekender' },
+            { type: 'text', text: ' returns to Jumbuck Orchard Park, Brisbane, for two days in the sun.' }
+          ]
+        },
+        {
+          type: 'bulletList',
+          content: [
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Gates open 11am' }] }] },
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Last entry 7pm' }] }] }
+          ]
+        },
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', marks: [{ type: 'italic' }], text: 'All ages. Under 16s need a guardian.' }
+          ]
+        }
+      ]
+    }
+  }}
+/>
+```
+
+### Links
+
+Select text and press `Mod+K`, or use the Link control, to link it. Type a
+web address such as `oztix.com.au` and the editor adds `https://`. With
+nothing selected, saving inserts the address as linked text. Typing or pasting
+a web address links it as you go.
+
+The Link, Embed, Edit link, and Alt text popovers are one row: an input, a
+check button that saves, and Close. Enter saves and Escape closes. Editing a
+link adds Remove link between the two.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  defaultValue={{
+    version: 1,
+    preset: 'basic',
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Feathered Anchor Sessions plays the Kazoo Hollow Room on Friday. ' },
+            {
+              type: 'text',
+              marks: [{ type: 'link', attrs: { href: 'https://www.oztix.com.au/feathered-anchor-sessions' } }],
+              text: 'Get tickets'
+            }
+          ]
+        }
+      ]
+    }
+  }}
+/>
+```
+
+A link that could run script, such as a `javascript:` address, never reaches
+the saved value. The link editor refuses it, pasted HTML keeps only its text,
+and `migrate` drops it from a stored value.
+
+### Rich preset
+
+`preset='rich'` adds headings 2 to 4, quotes, and dividers to the basic
+preset, for an event page. The Block type menu leads the toolbar and names
+the block at the caret, then come the basic controls, from Bold, Italic, and
+Underline to the lists. Markdown works as you type: `## `, `### `, and
+`#### ` start a heading, `> ` a quote, and `---` a divider.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  preset='rich'
+  defaultValue={{
+    version: 1,
+    preset: 'rich',
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', marks: [{ type: 'bold' }], text: 'Ochre Kite Weekender' },
+            { type: 'text', text: ' returns to Jumbuck Orchard Park, Brisbane, for two days in the sun.' }
+          ]
+        },
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Lineup' }] },
+        {
+          type: 'bulletList',
+          content: [
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Velvet Kookaburra' }] }] },
+            { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'The Saltbush Echoes' }] }] }
+          ]
+        },
+        { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text: 'Getting there' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Shuttles leave Brisbane city every 20 minutes from 10am.' }] },
+        { type: 'horizontalRule' },
+        {
+          type: 'blockquote',
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Bring a hat, sunscreen, and a refillable bottle.' }] }]
+        }
+      ]
+    }
+  }}
+/>
+```
+
+The page owns its `h1`, so pasted `h1` becomes a heading 2, and `h5` and
+`h6` become a heading 4.
+
+### Images
+
+The rich preset holds images. Pass `onUploadImage` to add the Image control:
+it uploads a file the person picks, pastes, or drops, and resolves to where
+the image is served. A placeholder shows while it uploads, and a rejection's
+message shows in `Field.ErrorText`. Without `onUploadImage` there's no Image
+control, and image files are ignored.
+
+```tsx-live-prose-noinline
+function uploadImage(file) {
+  // Send the file to your storage and resolve to where it's served.
+  return new Promise((resolve) =>
+    setTimeout(() => resolve({ src: '/brand/photography/04.webp' }), 1000)
+  )
+}
+
+render(
+  <Field>
+    <Field.Label>Event description</Field.Label>
+    <Editor
+      preset='rich'
+      onUploadImage={uploadImage}
+      defaultValue={{
+        version: 1,
+        preset: 'rich',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'paragraph',
+              content: [{ type: 'text', text: 'Show your ticket on your phone at the Kazoo Hollow Room door.' }]
+            },
+            {
+              type: 'image',
+              attrs: { src: '/brand/photography/04.webp', alt: 'A staff member scans a ticket on a phone at the door' }
+            }
+          ]
+        }
+      }}
+    />
+    <Field.ErrorText />
+  </Field>
+)
+```
+
+An image saves only its `src` and `alt`. The `src` must be `https` or a path
+on the same site, such as `/images/poster.webp`; any other address is refused
+when it's inserted, pasted, or loaded.
+
+Click an image, or move onto it with the arrow keys, to edit it in place. A
+toolbar by the image has Alt text, Replace image (with `onUploadImage`, which
+uploads the new file the same way and keeps the alt text), and Remove image.
+An image with no alt text shows a No alt text badge until it has some; Enter
+on a selected image opens Alt text too.
+
+### Embeds
+
+The rich preset embeds videos and tracks from YouTube, Vimeo, Spotify,
+SoundCloud, Deezer, Apple Music, and TikTok. Paste a share link alone on an
+empty line, or use the Embed control.
+The editor shows each player at its own shape, under a cover, so a click
+selects it rather than playing it, and Backspace or Delete removes it. A
+player with a ratio is no taller than 36rem, so a portrait one, such as
+TikTok's, stays narrow at the start of the line, in the editor and in
+`/render`.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  preset='rich'
+  defaultValue={{
+    version: 1,
+    preset: 'rich',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'Warm up for the Ochre Kite Weekender.' }] },
+        { type: 'embed', attrs: { provider: 'youtube', id: 'sBzrzS1Ag_g', params: null } },
+        { type: 'embed', attrs: { provider: 'spotify', id: '5INjqkS1o8h1imAzPqGZBb', params: { type: 'artist' } } },
+        { type: 'embed', attrs: { provider: 'vimeo', id: '1084537', params: null } },
+        { type: 'embed', attrs: { provider: 'tiktok', id: '6718335390845095173', params: null } },
+        { type: 'embed', attrs: { provider: 'soundcloud', id: 'gangofyouths/forbearance-alternate', params: null } },
+        { type: 'embed', attrs: { provider: 'deezer', id: '45534641', params: { type: 'album' } } },
+        { type: 'embed', attrs: { provider: 'apple-music', id: '1233719556', params: { type: 'album', storefront: 'au' } } }
+      ]
+    }
+  }}
+/>
+```
+
+An embed saves only its provider, its id, and the params its provider reads,
+never a URL, so `/render` builds the player's address from
+`defaultEmbedProviders` and a provider can move its player without a
+migration. Players run in a sandboxed `iframe`, and a look-alike host such as
+`youtube.com.evil.test` is never embedded.
+
+- `embedProviders` sets the providers the editor reads links from, starting
+  from `defaultEmbedProviders`. Pass the same list to `/render`, or it drops
+  the embeds it doesn't know.
+- `resolveUrl` turns a link no provider reads, such as a TikTok or SoundCloud
+  short link, into one it can, when it's entered in the Embed control.
+  Resolve it on your server.
+
+Click an embed, or move onto it with the arrow keys, to edit it in place. A
+toolbar by the embed has Edit link and Remove embed. Edit link starts from the
+embed's share link, from its provider's optional `shareUrl`, and replaces the
+embed with the new link's player. It refuses a link no provider reads, as the
+Embed control does.
+
+### Tables
+
+The rich preset holds tables. The Table control inserts one of three rows
+and three columns, with a header row. Tab moves to the next cell, adding a
+row after the last, and Shift+Tab moves back, leaving the editor from the
+first cell. While the caret is in a table, a toolbar at its start edge, above
+it, or below it when a table comes first, has its actions: a Row menu with
+Insert above, Insert below, and Delete row, a Column menu with Insert before,
+Insert after, and Delete column, the Header row toggle, and Delete table.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  preset='rich'
+  defaultValue={{
+    version: 1,
+    preset: 'rich',
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'table',
+          content: [
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Time' }] }] },
+                { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Act' }] }] }
+              ]
+            },
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: '7pm' }] }] },
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'The Saltbush Echoes' }] }] }
+              ]
+            },
+            {
+              type: 'tableRow',
+              content: [
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: '9pm' }] }] },
+                { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Velvet Kookaburra' }] }] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }}
+/>
+```
+
+A cell holds paragraphs, with bold, italic, underline, and links, but no
+headings, lists, images, embeds, or other tables, so a list pasted into a
+cell, as from Word, keeps each item as a paragraph. A table saves no widths or
+styles, only each cell's `colspan` and `rowspan`, and a wide one scrolls
+sideways in the editor and in `/render`, so it never widens the page on a
+phone.
+
+## Accessibility
+
+- A selected image or embed has its own `toolbar`, named Image actions or
+  Embed actions, with the same keys as Formatting. It shows only while the
+  node is selected and the editor has focus, and never while read-only or
+  disabled. Each action is one step to undo.
+- An image's alt text is edited in a popover with a named input, opened by
+  Enter on a selected image or its Alt text action. Escape closes it and
+  returns focus to the image. An upload in progress is a `status`, and an upload error
+  shows in `Field.ErrorText`, or under the editor outside a `Field`.
+- An embed's player is titled with its provider and id, and takes no Tab
+  stop in the editor. Arrow keys select an embed or an image, and Backspace
+  or Delete removes it. The Embed control's popover has a named input,
+  and a link it can't embed shows its error under the row.
+- While the caret is in a table, a `toolbar` named Table actions shows above
+  it, or below it when above would cover Formatting, with the same keys as
+  Formatting, and never while read-only or disabled. Row and Column open
+  menus whose items are `menuitem`s, and a menu returns focus to the cell
+  when it closes. Header row is a toggle that reports `aria-pressed`, and
+  Delete row and Delete column are disabled when they'd delete the last one.
+  Alt+F10 in a table moves focus to its first action, and Escape back to the
+  cell. In a table, Tab and Shift+Tab move between cells instead of nesting.
+  Tab in the last cell adds a row, and Shift+Tab in the first leaves the
+  editor, as it does from any text.
+- In the rich preset, the Block type menu's trigger is named for the block at
+  the caret, such as "Block type: Heading 2". Its items are radio items, with
+  the current type checked, and choosing one puts focus back in the text.
+
+| Keys | Action |
+| --- | --- |
+| `Mod+Alt+0` | Paragraph, in the rich preset |
+| `Mod+Alt+2` to `Mod+Alt+4` | Heading 2 to 4, in the rich preset |
+| `Mod+Shift+B` | Quote, in the rich preset |
+| `Enter` | On a selected image, edit its alt text |
+| `Tab` | In a table, move to the next cell, adding a row after the last |
+| `Shift+Tab` | In a table, move to the cell before, or leave the editor from the first |
+
+Every preset's other keys are on the [Editor](/components/editor#accessibility)
+page.

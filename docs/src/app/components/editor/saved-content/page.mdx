@@ -1,0 +1,159 @@
+export const metadata = {
+  title: 'Saved content',
+  description: 'Store, migrate, render, and import the EditorValue an editor saves',
+  status: 'alpha',
+  category: 'Editor',
+  order: 4,
+}
+
+Store, migrate, render, and import the `EditorValue` an editor saves.
+
+## Import
+
+```tsx
+import { createEmptyValue, migrate } from '@oztix/roadie-editor/schema'
+import { renderEditorHtml, renderEditorValue } from '@oztix/roadie-editor/render'
+```
+
+## EditorValue
+
+Every preset saves an `EditorValue`: the `version` of the saved format, the
+`preset` it was written in, and the `doc` as Tiptap JSON. Save it as JSON,
+never as HTML, so the value stays the source of truth.
+
+```tsx
+type EditorValue = {
+  version: number
+  preset: 'basic' | 'rich' | 'blocks' | 'email'
+  doc: JSONContent
+}
+```
+
+`createEmptyValue(preset)` gives an empty value with one paragraph, at
+`CURRENT_VERSION`.
+
+## migrate
+
+`migrate(value, preset)` reads a stored value back, up to `CURRENT_VERSION`.
+Pass a stored value through it before it goes back in an editor. It reads the
+value in `preset` when given, or in the value's own preset, keeping the text
+of anything that preset can't hold.
+
+- It keeps only the nodes, marks, and attributes the preset saves, and drops
+  links and images to an unsafe address.
+- It throws a `RangeError` on a version or preset this package doesn't know,
+  so a newer value is never read as an older one.
+- `{ customBlocks }` names an app's own blocks to keep, as
+  [Blocks](/components/editor/blocks#custom-blocks) says.
+
+The editor, `/render`, and `renderEmail` each run it for you.
+
+## Rendering saved content
+
+`@oztix/roadie-editor/render` turns a saved `EditorValue` into the page's
+content, with none of the editor's code. It works in a server component and
+on the client.
+
+```tsx
+import { renderEditorHtml, renderEditorValue } from '@oztix/roadie-editor/render'
+```
+
+- `renderEditorValue(value, { size, className })` returns React elements in
+  `Prose` at `size`, so pass the editor's size. Links render through `Link`,
+  so internal hrefs route through the Link given to `RoadieProvider`.
+- `renderEditorHtml(value, { size, className })` returns the same content as
+  an HTML string in a `.prose` element, for a consumer that isn't React.
+  External links get `target="_blank"` and `rel="noopener noreferrer"`, as
+  `Link` gives them.
+- Both render images with `loading="lazy"`, and embeds as a lazy, sandboxed
+  `iframe` whose address they rebuild from the provider. Pass
+  `embedProviders` if the editor has its own, or embeds from any other
+  provider drop.
+- Both render tables in a `.prose-scroll`, so a wide table scrolls on a
+  phone rather than widening the page, with a first row of header cells in a
+  `thead`, unless one spans down, as a `thead` would clip it.
+
+Both run `migrate` first, so a value from a newer package, or with a preset
+this one doesn't know, throws. They render only the nodes, marks, and
+attributes the value's preset defines, and keep only the text of the rest. A link to an unsafe
+href, such as `javascript:`, keeps its text and loses its link. Neither
+renders raw HTML, so the saved JSON stays the source of truth.
+
+The same value in the editor, then rendered:
+
+```tsx-live-prose-noinline
+const description = {
+  version: 1,
+  preset: 'basic',
+  doc: {
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: [
+          { type: 'text', marks: [{ type: 'bold' }], text: 'Ochre Kite Weekender' },
+          { type: 'text', text: ' returns to Jumbuck Orchard Park, Brisbane.' }
+        ]
+      },
+      {
+        type: 'bulletList',
+        content: [
+          { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Gates open 11am' }] }] },
+          { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Last entry 7pm' }] }] }
+        ]
+      }
+    ]
+  }
+}
+
+render(
+  <>
+    <Editor aria-label='Event description' defaultValue={description} />
+    {renderEditorValue(description)}
+  </>
+)
+```
+
+## Importing existing HTML
+
+`htmlToEditorValue(html, preset)` from `@oztix/roadie-editor/schema` reads
+HTML, such as CKEditor output, into a value the editor opens. Use it once, the
+first time someone edits legacy content, then save the `EditorValue`.
+
+```tsx
+import { htmlToEditorValue } from '@oztix/roadie-editor/schema'
+```
+
+- Text is kept, and styles, fonts, sizes, colours and classes are dropped.
+- In a paragraph, one `<br>` is a line break, and two or more start a new
+  paragraph, as CKEditor writes them.
+- `h1` reads as `h2`, and anything else the preset can't hold keeps its text.
+- Images the preset can't load, such as base64 `data:` images, iframes no
+  embed provider reads, and video and audio are dropped and listed in
+  `dropped`, so you can warn before the legacy content is overwritten.
+
+Iframes become embeds when a provider reads their player address. If the
+editor has its own `embedProviders`, pass the same list:
+`htmlToEditorValue(html, 'rich', { embedProviders })`.
+
+It needs a browser, so call it in a client component.
+
+```tsx-live-prose-noinline
+const legacy =
+  '<h1>Ochre Kite Weekender</h1>' +
+  '<span style="color:#c00;font-size:18px">Gates open 11am</span><br>' +
+  'Last entry 7pm<br><br>' +
+  '<img src="data:image/png;base64,iVBORw0KGgo=">' +
+  '<iframe src="https://www.youtube.com/embed/sBzrzS1Ag_g"></iframe>'
+
+const { value, dropped } = htmlToEditorValue(legacy, 'rich')
+
+render(
+  <div className='grid gap-3'>
+    <Editor aria-label='Event description' preset='rich' defaultValue={value} />
+    <p className='text-subtle text-display-ui-6'>
+      Not imported: {dropped.map(({ kind }) => kind).join(', ') || 'nothing'}
+    </p>
+  </div>
+)
+```

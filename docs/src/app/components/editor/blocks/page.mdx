@@ -1,0 +1,243 @@
+export const metadata = {
+  title: 'Blocks',
+  description: 'The blocks preset, for CMS pages built from blocks',
+  status: 'alpha',
+  category: 'Editor',
+  order: 2,
+}
+
+The `blocks` preset, for CMS pages built from blocks, with the slash menu,
+drag and the block menu, and custom blocks.
+
+## Import
+
+```tsx
+import { Editor } from '@oztix/roadie-editor/editor'
+```
+
+The [Editor](/components/editor) page covers the toolbar, emphasis, sizes,
+states, and forms, and [Basic and Rich](/components/editor/basic-and-rich)
+the images, embeds, and tables this preset holds too.
+
+## Examples
+
+### Default
+
+`preset='blocks'` holds everything the rich preset does, for a page built
+from blocks, and every block keeps an id. Type `/` in the empty paragraph to
+add a block.
+
+```tsx-live-prose
+<Editor
+  aria-label='Page'
+  preset='blocks'
+  defaultValue={{
+    version: 1,
+    preset: 'blocks',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Two days in the sun at Jumbuck Orchard Park, Brisbane.' }] },
+        { type: 'paragraph' }
+      ]
+    }
+  }}
+/>
+```
+
+Every block but a table's rows and cells saves a `blockId`, so it keeps its
+identity as it moves. The editor gives a block without one an id when it
+loads, splits, or is pasted, and `onValueChange` reports it. Copying a block
+gives the copy an id of its own. `/render` never writes ids into the page.
+
+### Slash menu
+
+Type `/` in an empty paragraph to open the slash menu, then type to filter
+it. The arrow keys move through the blocks, Enter or a tap inserts one in
+place of the `/`, and Escape closes the menu and leaves the `/` as text. A
+`/` after text, in a list, or in a quote is only text. Image shows with
+`onUploadImage` and opens the file picker, and Embed opens the Embed popover.
+
+With no children, a `blocks` editor renders `Editor.Toolbar`,
+`Editor.Content`, then `Editor.SlashMenu`. Pass your own children to change
+the toolbar, and place `<Editor.SlashMenu />` yourself, or `/` is only text.
+
+```tsx-live-prose
+<Editor aria-label='Page' preset='blocks'>
+  <Editor.Toolbar emphasis='subtler' />
+  <Editor.Content />
+  <Editor.SlashMenu />
+</Editor>
+```
+
+The menu is a `listbox` named Blocks. Focus stays in the text, which points
+at the active `option` through `aria-activedescendant` and at the list
+through `aria-controls`. A filter that matches nothing says No matching
+blocks in a `status`.
+
+| Keys | Action |
+| --- | --- |
+| `/` | In an empty paragraph, open the slash menu |
+| `ArrowDown`, `ArrowUp` | Move to the next or previous block, wrapping |
+| `Enter` | Insert the active block in place of the `/` |
+| `Escape` | Close the menu, keeping the `/` |
+
+### Block handle
+
+A grip shows at the start of the block under the pointer, or of the block
+with the caret while the editor has focus. Drag it to move the block; a line
+shows where it will land. Click or tap it, or press `Mod+/` in the text, for
+the block's menu: Move up, Move down, Duplicate, and Delete. Each is one step
+to undo, a moved block keeps its `blockId`, and a copy gets one of its own.
+On a touch screen the grip shows beside the block you're typing in, and its
+menu moves the block.
+
+```tsx-live-prose
+<Editor
+  aria-label='Set times'
+  preset='blocks'
+  defaultValue={{
+    version: 1,
+    preset: 'blocks',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Set times' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Doors, 7pm' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'The Saltbush Echoes, 8pm' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Velvet Kookaburra, 9:30pm' }] }
+      ]
+    }
+  }}
+/>
+```
+
+A framed editor makes room for the grip at the start of its text. A
+`subtler` editor keeps its text in line with the page, so the grip hangs
+outside it: give it room at the start.
+
+The grip is a button named Block actions. It takes no Tab stop, since it
+shows only beside the caret's block; `Mod+/` opens its menu instead. The
+menu's items are `menuitem`s. Move up and Move down are disabled at
+the first and last blocks. Closing the menu puts focus back in the text.
+
+| Keys | Action |
+| --- | --- |
+| `Mod+/` | Open the menu for the block with the caret |
+| `ArrowDown`, `ArrowUp` | In the menu, move between actions |
+| `Enter` | Run the action |
+| `Escape` | Close the menu, back to the text |
+
+### Custom blocks
+
+An app adds its own blocks, such as a call to action or an event feed, with
+`extensions`. Build each from `@oztix/roadie-editor/extensions`, which
+re-exports Tiptap's `Node`, `Mark`, `Extension`, and `mergeAttributes`, so
+the app never installs Tiptap or drifts from Roadie's version:
+
+```tsx
+import {
+  Node,
+  NodeViewWrapper,
+  reactNodeView
+} from '@oztix/roadie-editor/extensions'
+```
+
+- A block is an atom (`group: 'block'`, `atom: true`). Its attrs are all it
+  saves, so keep them to its inputs, such as `{ label, href }`, never
+  rendered content.
+- `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
+  it in place. The component gets `node.attrs` and `updateAttributes`, and
+  wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
+  them, not the text around the block. A read-only or disabled editor
+  ignores its `updateAttributes`.
+- Pass `{ node, label, icon, keywords }` in `extensions` to show it in the
+  slash menu. The editor reads `extensions` once, when it's created.
+- Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
+  block that gets its `attrs`. Read each as untrusted input. A block with no
+  entry is dropped, never shown raw, and so is every custom block in
+  `renderEditorHtml`.
+- `migrate(value, 'blocks', { customBlocks: ['callToAction'] })` keeps them
+  in a stored value. The editor and `renderEditorValue` pass these for you.
+- A block can't take the name of one of the preset's own nodes or marks;
+  the editor leaves it out.
+- `/extensions` brings Tiptap with it, so import your blocks where the
+  editor loads, not on every page. Keep `nodeMapping` in a file of its own,
+  so a server page that renders saved content doesn't import Tiptap.
+
+```tsx-live-prose-noinline
+function CallToActionView({ node, updateAttributes }) {
+  return (
+    <NodeViewWrapper className='grid gap-2 rounded-xl emphasis-subtle p-3'>
+      <Field>
+        <Field.Label>Button</Field.Label>
+        <Field.Input
+          value={node.attrs.label}
+          onChange={(event) => updateAttributes({ label: event.target.value })}
+        />
+      </Field>
+      <Field>
+        <Field.Label>Link</Field.Label>
+        <Field.Input
+          value={node.attrs.href}
+          onChange={(event) => updateAttributes({ href: event.target.value })}
+        />
+      </Field>
+    </NodeViewWrapper>
+  )
+}
+
+const callToAction = {
+  label: 'Call to action',
+  icon: TicketIcon,
+  keywords: ['button'],
+  node: Node.create({
+    name: 'callToAction',
+    group: 'block',
+    atom: true,
+    addAttributes: () => ({
+      label: { default: 'Get tickets' },
+      href: { default: '/events/ochre-kite-weekender' }
+    }),
+    renderHTML: ({ HTMLAttributes }) => ['div', mergeAttributes(HTMLAttributes)],
+    addNodeView: () => reactNodeView(CallToActionView)
+  })
+}
+
+const nodeMapping = {
+  callToAction: ({ attrs }) => (
+    <Button href={String(attrs.href)} intent='brand' emphasis='strong'>
+      {String(attrs.label)}
+    </Button>
+  )
+}
+
+function Page() {
+  const [value, setValue] = useState({
+    version: 1,
+    preset: 'blocks',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        { type: 'callToAction', attrs: { label: 'Get tickets', href: '/events/ochre-kite-weekender' } },
+        { type: 'paragraph' }
+      ]
+    }
+  })
+  return (
+    <>
+      <Editor
+        aria-label='Page'
+        extensions={[callToAction]}
+        value={value}
+        onValueChange={setValue}
+      />
+      {renderEditorValue(value, { nodeMapping })}
+    </>
+  )
+}
+
+render(<Page />)
+```
