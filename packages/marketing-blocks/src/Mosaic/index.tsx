@@ -8,39 +8,39 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
-import { logosDefinition } from './definition'
+import { mosaicDefinition } from './definition'
 
-export type LogosPreset = (typeof logosDefinition.presets)[number]['name']
+export type MosaicPreset = (typeof mosaicDefinition.presets)[number]['name']
 
-export type LogosPartner = {
-  /** The partner's name, read out when its logo has no alt text. */
+export type MosaicTile = {
+  /** What the tile shows, such as a partner's name: its accessible name, and the logo's alt text when that's empty. */
   name: string
-  /** The partnership level, such as `Presenting partner`, marked under the logo. */
-  level: string
-  /** The partner's logo, drawn light over the photo. */
-  logo: BlockImage
-  /** A photo behind the logo, such as from the partner's event. Decorative, so its alt text isn't read. */
+  /** Marked at the foot of the tile, such as a partnership level like `Presenting partner`. */
+  label?: string
+  /** A logo drawn light over the photo. */
+  logo?: BlockImage
+  /** A photo filling the tile, such as from the partner's event. Decorative, so its alt text isn't read. */
   image: BlockImage
-  /** Spans two columns at half height, for the partners to lead with. */
+  /** Spans two columns at half height, for the tiles to lead with. */
   featured?: boolean
 }
 
-export type LogosAlso = {
+export type MosaicLogoTile = {
   /**
    * The tile's title.
    * @default 'Also supporting'
    */
   title?: string
-  /** Smaller logos of the partners without a tile of their own. */
+  /** Smaller logos of those without a tile of their own. */
   logos: readonly BlockImage[]
 }
 
-export type LogosProps = {
+export type MosaicProps = {
   /**
    * The look to render. `partner-tiers` is the only one so far.
    * @default 'partner-tiers'
    */
-  preset?: LogosPreset
+  preset?: MosaicPreset
   /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
   /** An id for linking to the block. */
@@ -53,10 +53,10 @@ export type LogosProps = {
   titleHighlight?: string | string[]
   /** A sentence under the title. */
   description?: string
-  /** A tile per partner, in order. */
-  partners: readonly LogosPartner[]
-  /** A last, wide tile of the remaining logos. */
-  also?: LogosAlso
+  /** The photo tiles, in order. */
+  tiles: readonly MosaicTile[]
+  /** A last, wide tile of logos. */
+  logoTile?: MosaicLogoTile
 }
 
 // The half-height tile's padding is a percentage of its own width, two
@@ -72,8 +72,8 @@ const HALF_HEIGHT = 'pt-[calc(50%-var(--tile-gap)/2)]'
 const TILE_SIZES = '(min-width: 768px) 25vw, 50vw'
 const WIDE_SIZES = '(min-width: 768px) 50vw, 100vw'
 
-/** Logo tiles of the organisations behind Oztix: each over a photo with its partnership level, then the rest together. */
-export function Logos({
+/** A dense grid of photo tiles, each with a logo and a marked label, some two columns wide, closed by an optional tile of logos. */
+export function Mosaic({
   preset,
   position,
   id,
@@ -81,14 +81,14 @@ export function Logos({
   title,
   titleHighlight,
   description,
-  partners,
-  also
-}: LogosProps) {
-  const { name, variant } = presetOf(logosDefinition, preset)
+  tiles,
+  logoTile
+}: MosaicProps) {
+  const { name, variant } = presetOf(mosaicDefinition, preset)
   const headingId = useId()
   return (
     <BlockRoot
-      block={logosDefinition.name}
+      block={mosaicDefinition.name}
       variant={variant}
       preset={name}
       position={position}
@@ -105,17 +105,17 @@ export function Logos({
           description={description}
         />
         <ul className={GRID}>
-          {partners.map((partner, index) => (
-            <PartnerTile key={`${index}-${partner.name}`} {...partner} />
+          {tiles.map((tile, index) => (
+            <PhotoTile key={`${index}-${tile.name}`} {...tile} />
           ))}
-          {also && <AlsoTile {...also} />}
+          {logoTile && <LogosTile {...logoTile} />}
         </ul>
       </div>
     </BlockRoot>
   )
 }
 
-function PartnerTile({ name, level, logo, image, featured }: LogosPartner) {
+function PhotoTile({ name, label, logo, image, featured }: MosaicTile) {
   return (
     <li
       data-featured={featured || undefined}
@@ -137,24 +137,30 @@ function PartnerTile({ name, level, logo, image, featured }: LogosPartner) {
           'grid content-end justify-items-start gap-1.5 p-1.5 @xl:p-2 @3xl:p-3'
         )}
       >
-        <BlockImg
-          image={{ ...logo, alt: logo.alt || name }}
-          sizes='(min-width: 768px) 15vw, 30vw'
-          className='h-auto max-w-3/4 object-contain'
-        />
-        <Mark
-          render={<p />}
-          intent='neutral'
-          className='text-display-ui-6 font-bold'
-        >
-          {level}
-        </Mark>
+        {logo ? (
+          <BlockImg
+            image={{ ...logo, alt: logo.alt || name }}
+            sizes='(min-width: 768px) 15vw, 30vw'
+            className='h-auto max-w-3/4 object-contain'
+          />
+        ) : (
+          <p className='sr-only'>{name}</p>
+        )}
+        {label && (
+          <Mark
+            render={<p />}
+            intent='neutral'
+            className='text-display-ui-6 font-bold'
+          >
+            {label}
+          </Mark>
+        )}
       </div>
     </li>
   )
 }
 
-function AlsoTile({ title = 'Also supporting', logos }: LogosAlso) {
+function LogosTile({ title = 'Also supporting', logos }: MosaicLogoTile) {
   return (
     <li className={cn(TILE, WIDE, 'emphasis-inverted')}>
       <div className={cn(STACKED, HALF_HEIGHT)} />

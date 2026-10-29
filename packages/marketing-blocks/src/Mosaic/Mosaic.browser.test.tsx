@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Logos, type LogosProps } from '.'
+import { Mosaic, type MosaicProps } from '.'
 import {
   DESKTOP,
   atWidth,
@@ -14,16 +14,16 @@ import { partnerTiers } from './fixtures'
 
 withBrowserPage()
 
-const offline = (props: LogosProps): LogosProps => ({
+const offline = (props: MosaicProps): MosaicProps => ({
   ...props,
-  partners: props.partners.map((partner) => ({
+  tiles: props.tiles.map((partner) => ({
     ...partner,
     image: photo(''),
-    logo: photo(partner.logo.alt, 240, 80)
+    logo: partner.logo && photo(partner.logo.alt, 240, 80)
   })),
-  also: props.also && {
-    ...props.also,
-    logos: props.also.logos.map((logo) => photo(logo.alt, 240, 80))
+  logoTile: props.logoTile && {
+    ...props.logoTile,
+    logos: props.logoTile.logos.map((logo) => photo(logo.alt, 240, 80))
   }
 })
 
@@ -37,7 +37,7 @@ const columns = () =>
     .gridTemplateColumns.split(' ')
     .filter((track) => parseFloat(track) > 0).length
 
-describe('Logos partner-tiers layout', () => {
+describe('Mosaic partner-tiers layout', () => {
   it.each([
     { ...widths[0], columns: 2 },
     { ...widths[1], columns: 4 }
@@ -45,7 +45,7 @@ describe('Logos partner-tiers layout', () => {
     'fits $columns columns at $name width',
     async ({ width, height, columns: expected }) => {
       await atWidth(width, height)
-      render(<Logos {...offline(partnerTiers)} />)
+      render(<Mosaic {...offline(partnerTiers)} />)
 
       const [featured, square] = tiles()
       expect(columns()).toBe(expected)
@@ -57,12 +57,12 @@ describe('Logos partner-tiers layout', () => {
 
   it('packs a square partner into the gap a wide tile leaves', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
-    const [featured, square] = offline(partnerTiers).partners
+    const [featured, square] = offline(partnerTiers).tiles
     render(
-      <Logos
+      <Mosaic
         {...partnerTiers}
-        partners={[featured!, square!, featured!, square!]}
-        also={undefined}
+        tiles={[featured!, square!, featured!, square!]}
+        logoTile={undefined}
       />
     )
 
@@ -72,18 +72,18 @@ describe('Logos partner-tiers layout', () => {
   })
 })
 
-describe('Logos photos', () => {
+describe('Mosaic photos', () => {
   it('fills each tile with its photo whatever shape the photo is', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
-    const [featured, square] = offline(partnerTiers).partners
+    const [featured, square] = offline(partnerTiers).tiles
     render(
-      <Logos
+      <Mosaic
         {...partnerTiers}
-        partners={[
+        tiles={[
           { ...featured!, image: photo('', 400, 1200) },
           { ...square!, image: photo('', 1200, 400) }
         ]}
-        also={undefined}
+        logoTile={undefined}
       />
     )
 
@@ -96,14 +96,14 @@ describe('Logos photos', () => {
   })
 })
 
-describe('Logos accessibility', () => {
+describe('Mosaic accessibility', () => {
   it.each(widths)(
     'partner-tiers has no axe violations at $name width',
     async ({ width, height }) => {
       await atWidth(width, height)
       const { container } = render(
         <main>
-          <Logos {...offline(partnerTiers)} />
+          <Mosaic {...offline(partnerTiers)} />
         </main>
       )
 

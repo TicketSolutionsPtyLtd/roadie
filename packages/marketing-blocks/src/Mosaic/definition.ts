@@ -1,10 +1,10 @@
 import type { BlockDefinition } from '../catalogue'
 
-export const logosDefinition = {
-  name: 'logos',
-  title: 'Logos',
+export const mosaicDefinition = {
+  name: 'mosaic',
+  title: 'Mosaic',
   description:
-    'Shows the organisations behind Oztix, as logo tiles over their photos.',
+    'A dense grid of photo tiles, each with a logo and a label, some twice as wide.',
   presets: [
     {
       name: 'partner-tiers',

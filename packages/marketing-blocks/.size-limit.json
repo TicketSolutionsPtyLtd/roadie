@@ -12,8 +12,8 @@
     ]
   },
   {
-    "name": "logos",
-    "path": "dist/Logos/index.js",
+    "name": "mosaic",
+    "path": "dist/Mosaic/index.js",
     "import": "*",
     "limit": "2.65 kB",
     "ignore": [

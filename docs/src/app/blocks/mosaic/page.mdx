@@ -1,7 +1,7 @@
 export const metadata = {
-  title: 'Logos',
+  title: 'Mosaic',
   description:
-    'Shows the organisations behind Oztix, as logo tiles over their photos',
+    'A dense grid of photo tiles, each with a logo and a label, some twice as wide',
   status: 'alpha',
   category: 'Proof'
 }
@@ -9,69 +9,70 @@ export const metadata = {
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Shows the organisations behind Oztix, as logo tiles over their photos.
+A dense grid of photo tiles, each with a logo and a label, some twice as wide.
 
 ## Import
 
 ```tsx
-import { Logos } from '@oztix/roadie-marketing-blocks/logos'
+import { Mosaic } from '@oztix/roadie-marketing-blocks/mosaic'
 ```
 
 ## Examples
 
 ### Partner tiers
 
-Each partner is a tile with its photo behind, its logo, and its level marked
-underneath. Featured partners span two columns at half height, and the tiles
-pack densely, so a square tile fills the gap a wide one leaves. An `also`
-tile closes the grid with the remaining logos.
+Each partner is a tile with its photo behind, its logo, and its level as the
+tile's `label`. Featured tiles span two columns at half height, and the tiles
+pack densely, so a square tile fills the gap a wide one leaves. A `logoTile`
+closes the grid with the remaining logos, titled "Also supporting" unless
+you give it a title.
 
 ```tsx-live id=partner-tiers
-<Logos
+<Mosaic
   preset='partner-tiers'
   title='Industry partnerships'
   description="We back Australia's live events industry through partnerships that strengthen it."
-  partners={[
+  tiles={[
     {
       name: 'Ochre Kite Weekender',
-      level: 'Presenting partner',
+      label: 'Presenting partner',
       logo: { src: '/blocks/ochre-kite-weekender.svg', alt: 'Ochre Kite Weekender logo', width: 180, height: 60 },
       image: { src: '/brand/photography/01.webp', alt: '', width: 800, height: 800 },
       featured: true
     },
     {
       name: 'Velvet Dingo Fest',
-      level: 'Sponsor',
+      label: 'Sponsor',
       logo: { src: '/blocks/velvet-dingo-fest.svg', alt: 'Velvet Dingo Fest logo', width: 180, height: 60 },
       image: { src: '/brand/photography/02.webp', alt: '', width: 800, height: 800 }
     },
     {
       name: 'Thimble Orbit Presents',
-      level: 'Category partner',
+      label: 'Category partner',
       logo: { src: '/blocks/thimble-orbit-presents.svg', alt: 'Thimble Orbit Presents logo', width: 180, height: 60 },
       image: { src: '/brand/photography/03.webp', alt: '', width: 800, height: 800 }
     },
     {
       name: 'Apricot Cyclone Fest',
-      level: 'Major partner',
+      label: 'Major partner',
       logo: { src: '/blocks/apricot-cyclone-fest.svg', alt: 'Apricot Cyclone Fest logo', width: 180, height: 60 },
       image: { src: '/brand/photography/06.webp', alt: '', width: 800, height: 800 },
       featured: true
     },
     {
       name: 'Kazoo Hollow Room',
-      level: 'Ticketing partner',
+      label: 'Ticketing partner',
       logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 180, height: 60 },
       image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 }
     },
     {
       name: 'Doodlebug Anvil Productions',
-      level: 'Supporter',
+      label: 'Supporter',
       logo: { src: '/blocks/doodlebug-anvil-productions.svg', alt: 'Doodlebug Anvil Productions logo', width: 180, height: 60 },
       image: { src: '/brand/photography/08.webp', alt: '', width: 800, height: 800 }
     }
   ]}
-  also={{
+  logoTile={{
     logos: [
       { src: '/blocks/kerosene-pony-collective.svg', alt: 'Kerosene Pony Collective', width: 120, height: 40 },
       { src: '/blocks/wishbone-ferret-collective.svg', alt: 'Wishbone Ferret Collective', width: 120, height: 40 },
@@ -84,6 +85,17 @@ tile closes the grid with the remaining logos.
 ## Guidelines
 
 <Guidelines>
+
+<Guideline title='Pick the preset for the content'>
+  <Guideline.Do>
+    Use partner tiers, today's only preset, for partners and sponsors with a
+    level each. Venues, events, or clients in a mosaic would be new presets,
+    raised as a block request.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put venues or events in partner tiers; their labels aren't levels.
+  </Guideline.Dont>
+</Guideline>
 
 <Guideline title='Answer first'>
   <Guideline.Do>
@@ -113,7 +125,7 @@ tile closes the grid with the remaining logos.
   </Guideline.Do>
   <Guideline.Dont>
     Don't put a dark logo on a tile; it sinks into the shade behind it. Dark
-    logos belong in the `also` tile, which stays light in both themes.
+    logos belong in the `logoTile`, which stays light in both themes.
   </Guideline.Dont>
 </Guideline>
 
@@ -121,7 +133,7 @@ tile closes the grid with the remaining logos.
 
 ## Tracking
 
-Logos reports a `view` once half of it is on screen. It holds no links, so
+Mosaic reports a `view` once half of it is on screen. It holds no links, so
 it reports no clicks.
 
-<PropsDefinitions component='Logos' />
+<PropsDefinitions component='Mosaic' />

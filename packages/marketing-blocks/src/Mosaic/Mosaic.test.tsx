@@ -2,18 +2,18 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Logos } from '.'
+import { Mosaic } from '.'
 import { MarketingBlocksProvider } from '../Provider'
 import { partnerTiers } from './fixtures'
 
-describe('Logos', () => {
+describe('Mosaic', () => {
   it('renders partner-tiers as a section named by its start-aligned heading', () => {
-    render(<Logos {...partnerTiers} position={3} />)
+    render(<Mosaic {...partnerTiers} position={3} />)
 
     const section = screen.getByRole('region', {
       name: 'Industry partnerships'
     })
-    expect(section).toHaveAttribute('data-block', 'logos')
+    expect(section).toHaveAttribute('data-block', 'mosaic')
     expect(section).toHaveAttribute('data-variant', 'static')
     expect(section).toHaveAttribute('data-preset', 'partner-tiers')
     expect(section).toHaveAttribute('data-position', '3')
@@ -23,7 +23,7 @@ describe('Logos', () => {
   })
 
   it('lists each partner as its logo and level, with the photo behind left unread', () => {
-    render(<Logos {...partnerTiers} />)
+    render(<Mosaic {...partnerTiers} />)
 
     const [first] = screen.getAllByRole('listitem')
     expect(
@@ -34,40 +34,57 @@ describe('Logos', () => {
     expect(first!.querySelectorAll('img')).toHaveLength(2)
   })
 
+  it('names a tile with no logo or label by its name alone', () => {
+    render(
+      <Mosaic
+        {...partnerTiers}
+        tiles={[
+          { name: 'Kazoo Hollow Room', image: partnerTiers.tiles[1]!.image }
+        ]}
+        logoTile={undefined}
+      />
+    )
+
+    const [tile] = screen.getAllByRole('listitem')
+    expect(tile!.textContent).toBe('Kazoo Hollow Room')
+    expect(within(tile!).queryByRole('img')).toBeNull()
+    expect(tile!.querySelector('[data-slot=mark]')).toBeNull()
+  })
+
   it('marks featured partners so they span two columns', () => {
-    render(<Logos {...partnerTiers} />)
+    render(<Mosaic {...partnerTiers} />)
 
     const featured = screen
       .getAllByRole('listitem')
       .filter((item) => item.hasAttribute('data-featured'))
     expect(featured).toHaveLength(
-      partnerTiers.partners.filter((partner) => partner.featured).length
+      partnerTiers.tiles.filter((partner) => partner.featured).length
     )
   })
 
   it('keeps repeated partners and logos as distinct tiles', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const partner = partnerTiers.partners[0]!
-    const logo = partnerTiers.also.logos[0]!
+    const partner = partnerTiers.tiles[0]!
+    const logo = partnerTiers.logoTile.logos[0]!
     render(
-      <Logos
+      <Mosaic
         {...partnerTiers}
-        partners={[partner, partner]}
-        also={{ logos: [logo, logo] }}
+        tiles={[partner, partner]}
+        logoTile={{ logos: [logo, logo] }}
       />
     )
 
-    expect(screen.getAllByText(partner.level)).toHaveLength(2)
+    expect(screen.getAllByText(partner.label)).toHaveLength(2)
     expect(screen.getAllByRole('img', { name: logo.alt })).toHaveLength(2)
     expect(error).not.toHaveBeenCalled()
     error.mockRestore()
   })
 
   it('ends with the also-supporting logos, titled "Also supporting" by default', () => {
-    render(<Logos {...partnerTiers} />)
+    render(<Mosaic {...partnerTiers} />)
 
     const items = screen.getAllByRole('listitem')
-    expect(items).toHaveLength(partnerTiers.partners.length + 1)
+    expect(items).toHaveLength(partnerTiers.tiles.length + 1)
     const also = items.at(-1)!
     expect(
       within(also).getByRole('heading', { level: 3, name: 'Also supporting' })
@@ -76,24 +93,27 @@ describe('Logos', () => {
       within(also)
         .getAllByRole('img')
         .map((img) => img.getAttribute('alt'))
-    ).toEqual(partnerTiers.also!.logos.map((logo) => logo.alt))
+    ).toEqual(partnerTiers.logoTile!.logos.map((logo) => logo.alt))
   })
 
   it('titles the also tile as given, and leaves it out with no also', () => {
     const { rerender } = render(
-      <Logos
+      <Mosaic
         {...partnerTiers}
-        also={{ title: 'Friends of Oztix', logos: partnerTiers.also!.logos }}
+        logoTile={{
+          title: 'Friends of Oztix',
+          logos: partnerTiers.logoTile!.logos
+        }}
       />
     )
     expect(
       screen.getByRole('heading', { level: 3, name: 'Friends of Oztix' })
     ).toBeInTheDocument()
 
-    rerender(<Logos {...partnerTiers} also={undefined} />)
+    rerender(<Mosaic {...partnerTiers} logoTile={undefined} />)
     expect(screen.queryByRole('heading', { level: 3 })).toBeNull()
     expect(screen.getAllByRole('listitem')).toHaveLength(
-      partnerTiers.partners.length
+      partnerTiers.tiles.length
     )
   })
 
@@ -102,7 +122,7 @@ describe('Logos', () => {
       <MarketingBlocksProvider
         renderImage={({ alt }) => <img alt={alt} src='/optimised.webp' />}
       >
-        <Logos {...partnerTiers} />
+        <Mosaic {...partnerTiers} />
       </MarketingBlocksProvider>
     )
 
@@ -114,7 +134,7 @@ describe('Logos', () => {
     const onBlockEvent = vi.fn()
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
-        <Logos {...partnerTiers} position={2} />
+        <Mosaic {...partnerTiers} position={2} />
       </MarketingBlocksProvider>
     )
 

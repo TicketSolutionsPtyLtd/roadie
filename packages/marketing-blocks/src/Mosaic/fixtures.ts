@@ -1,4 +1,4 @@
-import type { LogosProps } from '.'
+import type { MosaicProps } from '.'
 
 const photo = (n: string) => ({
   src: `/brand/photography/${n}.webp`,
@@ -18,31 +18,31 @@ export const partnerTiers = {
   title: 'Industry partnerships',
   description:
     "We back Australia's live events industry through partnerships that strengthen it.",
-  partners: [
+  tiles: [
     {
       name: 'Ochre Kite Weekender',
-      level: 'Presenting partner',
+      label: 'Presenting partner',
       logo: logo('Ochre Kite Weekender'),
       image: photo('01'),
       featured: true
     },
     {
       name: 'Velvet Dingo Fest',
-      level: 'Sponsor',
+      label: 'Sponsor',
       logo: logo('Velvet Dingo Fest'),
       image: photo('02')
     },
     {
       name: 'Thimble Orbit Presents',
-      level: 'Category partner',
+      label: 'Category partner',
       logo: logo('Thimble Orbit Presents'),
       image: photo('03')
     }
   ],
-  also: {
+  logoTile: {
     logos: [
       logo('Kerosene Pony Collective'),
       logo('Wishbone Ferret Collective')
     ]
   }
-} satisfies LogosProps
+} satisfies MosaicProps

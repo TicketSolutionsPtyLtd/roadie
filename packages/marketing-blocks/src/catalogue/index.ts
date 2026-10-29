@@ -1,4 +1,4 @@
-import { logosDefinition } from '../Logos/definition'
+import { mosaicDefinition } from '../Mosaic/definition'
 import { testimonialDefinition } from '../Testimonial/definition'
 
 /** A named configuration of a block: what editors pick in the Studio instead of setting options. */
@@ -46,7 +46,7 @@ function entry(definition: BlockDefinition): CatalogueBlock {
 }
 
 const DEFINITIONS: readonly BlockDefinition[] = [
-  logosDefinition,
+  mosaicDefinition,
   testimonialDefinition
 ]
 
