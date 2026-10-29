@@ -103,7 +103,11 @@ const NODES: Record<string, ToElement> = {
   table: () => ({ tag: 'table' }),
   tableRow: () => ({ tag: 'tr' }),
   tableHeader: cellOf('th'),
-  tableCell: cellOf('td')
+  tableCell: cellOf('td'),
+  // An email's layout renders with renderEmail; on a page its text flows.
+  section: () => null,
+  columns: () => null,
+  column: () => null
 }
 
 // Nodes `withTableSections` adds around a saved table's rows, never saved.

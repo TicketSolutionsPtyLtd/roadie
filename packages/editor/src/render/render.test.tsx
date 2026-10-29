@@ -220,6 +220,39 @@ describe.each(renderers)('%s', (_, render) => {
     expect(render(valueOf(paragraph(text('Kept', mark))))).toBe('<p>Kept</p>')
   })
 
+  it('renders an email’s text in order, leaving its layout, buttons and spacers to renderEmail', () => {
+    const column = (value: string) => ({
+      type: 'column',
+      content: [paragraph(text(value))]
+    })
+
+    expect(
+      render({
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'section',
+              content: [
+                {
+                  type: 'columns',
+                  content: [column('Doors 7pm'), column('All ages')]
+                },
+                {
+                  type: 'button',
+                  attrs: { href: 'https://www.oztix.com.au', label: 'Go' }
+                },
+                { type: 'spacer', attrs: { height: 32 } }
+              ]
+            }
+          ]
+        }
+      })
+    ).toBe('<p>Doors 7pm</p><p>All ages</p>')
+  })
+
   it('drops attributes the mapping doesn’t read', () => {
     const injected = {
       onclick: 'alert(1)',
@@ -269,8 +302,8 @@ describe.each(renderers)('%s', (_, render) => {
   it.each([
     [
       'an unknown preset',
-      { version: 1, preset: 'email', doc: { type: 'doc' } },
-      /preset "email"/
+      { version: 1, preset: 'fancy', doc: { type: 'doc' } },
+      /preset "fancy"/
     ],
     [
       'a newer version',
