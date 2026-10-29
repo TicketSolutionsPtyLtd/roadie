@@ -21,11 +21,9 @@ export {
 } from './palette'
 export { paletteScores, validatePalette } from './validate'
 export {
-  type CurrencyFormatOptions,
   type DeltaSentiment,
   type GoodWhen,
   type ValueFormat,
-  currencyFormat,
   deltaSentiment,
   describeDelta,
   formatDelta,

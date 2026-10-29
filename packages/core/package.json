@@ -45,6 +45,10 @@
       "types": "./dist/datetime/index.d.ts",
       "import": "./dist/datetime/index.js"
     },
+    "./number": {
+      "types": "./dist/number/index.d.ts",
+      "import": "./dist/number/index.js"
+    },
     "./dataviz": {
       "types": "./dist/dataviz/index.d.ts",
       "import": "./dist/dataviz/index.js"
