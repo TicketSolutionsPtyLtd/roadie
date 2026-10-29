@@ -20,7 +20,17 @@ export type BlockImage = {
 export type BlockAction = {
   label: string
   href: string
+  /** An icon that says where the link goes. `external` and `arrow-right` follow the label; the rest lead it. */
+  icon?: BlockActionIcon
 }
+
+export type BlockActionIcon =
+  | 'arrow-right'
+  | 'calendar'
+  | 'chat'
+  | 'email'
+  | 'external'
+  | 'phone'
 
 /** What a block reports: a view once half of it, or half the screen, shows it, or a click on a link or button inside it. */
 export type BlockEvent = {
