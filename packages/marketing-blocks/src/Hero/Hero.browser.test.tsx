@@ -1,24 +1,19 @@
-import { cleanup, render } from '@testing-library/react'
-import axe from 'axe-core'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { render } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
 
 import { Hero } from '.'
-import roadieCss from '../../vitest.browser.css?inline'
-import { pageHeader, pageHero } from './testUtils'
+import {
+  DESKTOP,
+  PHONE,
+  atWidth,
+  axeViolations,
+  photo,
+  widths,
+  withBrowserPage
+} from '../_test/browser'
+import { pageHeader, pageHero } from './fixtures'
 
-let style: HTMLStyleElement
-
-beforeAll(() => {
-  style = document.createElement('style')
-  style.textContent = roadieCss
-  document.head.append(style)
-})
-
-afterAll(async () => {
-  style.remove()
-  await page.viewport(1920, 1080)
-})
+withBrowserPage()
 
 const panel = (slot: string) =>
   document.querySelector<HTMLElement>(`[data-slot=hero-${slot}]`)!
@@ -26,15 +21,14 @@ const panel = (slot: string) =>
 const box = (slot: string) => panel(slot).getBoundingClientRect()
 const shown = (slot: string) => getComputedStyle(panel(slot)).display !== 'none'
 
-async function showAt(width: number, ui = <Hero {...pageHero} />) {
-  cleanup()
-  await page.viewport(width, 900)
-  render(ui)
+async function showAt(width: number, ui = <Hero {...pageHero(photo)} />) {
+  await atWidth(width, 900)
+  return render(ui)
 }
 
 describe('Hero page-hero layout', () => {
   it('stacks the title over the video on a phone, with no photo panels', async () => {
-    await showAt(390)
+    await showAt(PHONE.width)
 
     expect(shown('people')).toBe(false)
     expect(shown('events')).toBe(false)
@@ -55,7 +49,7 @@ describe('Hero page-hero layout', () => {
   })
 
   it('puts the people photos beside the title, and events beside the video, on a desktop', async () => {
-    await showAt(1280)
+    await showAt(DESKTOP.width)
 
     expect(box('people').top).toBeCloseTo(box('heading').top, 0)
     expect(box('people').left).toBeGreaterThan(box('heading').right)
@@ -66,8 +60,20 @@ describe('Hero page-hero layout', () => {
     expect(box('video').right).toBeCloseTo(box('people').right, 0)
   })
 
+  it('crops sized photos to fill each panel, whatever their own shape', async () => {
+    await showAt(DESKTOP.width)
+
+    for (const slot of ['heading', 'people', 'events', 'video']) {
+      const frame = box(slot)
+      const image = panel(slot).querySelector('img')!.getBoundingClientRect()
+      expect(image.width, slot).toBeCloseTo(frame.width, 0)
+      expect(image.height, slot).toBeCloseTo(frame.height, 0)
+    }
+    expect(box('video').width / box('video').height).toBeCloseTo(16 / 9, 1)
+  })
+
   it('keeps its title the same light colour in both themes, over the photo', async () => {
-    await showAt(1280)
+    await showAt(DESKTOP.width)
     const title = document.querySelector('h1')!
     const light = getComputedStyle(title).color
 
@@ -88,37 +94,23 @@ describe('Hero page-header layout', () => {
   it('starts its title at the page edge and holds it to a readable width', async () => {
     await showAt(1920, <Hero {...pageHeader} />)
 
-    const title = document.querySelector('h1')!.getBoundingClientRect()
-    expect(title.width).toBeLessThanOrEqual(1024)
-    expect(getComputedStyle(document.querySelector('h1')!).textAlign).toBe(
-      'start'
-    )
+    const title = document.querySelector('h1')!
+    expect(title.getBoundingClientRect().width).toBeLessThanOrEqual(1024)
+    expect(getComputedStyle(title).textAlign).toBe('start')
   })
 })
 
-async function seriousViolations() {
-  const { violations } = await axe.run(document, {
-    resultTypes: ['violations'],
-    // Roadie measures contrast with APCA instead (docs/decisions/0010-apca-contrast.md).
-    rules: { 'color-contrast': { enabled: false } }
-  })
-  return violations
-    .filter(({ impact }) => impact === 'serious' || impact === 'critical')
-    .map(
-      ({ id, nodes }) => `${id}: ${nodes.map(({ html }) => html).join(', ')}`
-    )
-}
-
 describe.each([
-  ['page-hero', pageHero],
+  ['page-hero', pageHero(photo)],
   ['page-header', pageHeader]
 ])('Hero %s accessibility', (_, props) => {
-  it.each([390, 1280])(
-    'has no serious axe violations at %ipx',
-    async (width) => {
-      await showAt(width, <Hero {...props} />)
+  it.each(widths)(
+    'has no axe violations on a $name',
+    async ({ width, height }) => {
+      await atWidth(width, height)
+      const { container } = render(<Hero {...props} />)
 
-      expect(await seriousViolations()).toEqual([])
+      expect(await axeViolations(container)).toEqual([])
     }
   )
 })

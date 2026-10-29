@@ -5,6 +5,7 @@ export const metadata = {
   category: 'Openers'
 }
 
+import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 Opens a page with its title, as the page's main heading.
@@ -24,7 +25,7 @@ width, event photos fill the panel beside the video, and from a desktop
 width, people photos sit beside the title. Each set of photos crossfades
 while it's on screen.
 
-```tsx-live id=page-hero -expand
+```tsx-live-expand id=page-hero
 <Hero
   preset='page-hero'
   title='Australia’s ticketing partner'
@@ -67,18 +68,57 @@ media.
 
 ## Guidelines
 
-- **Answer first.** The title says what the page offers, such as "Australia’s
-  ticketing partner", and the description backs it up in a sentence.
-- **One hero, first.** The title is the page's `h1`, so a page has one hero
-  and it's the first block.
-- **Page hero for landing pages.** It needs a background photo, a video, and
-  at least two photos each of people and events, or its panels sit empty.
-  Use Page header for pages that open on their text, such as About.
-- **Photos describe themselves.** The background is decoration, so its `alt`
-  is empty. People and event photos, and the video's poster, say what they
-  show.
-- **Mark one or two words.** `titleHighlight` marks the words the title turns
-  on, not a whole phrase.
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Say what the page offers in the title, such as “Australia’s ticketing
+    partner”, and back it up in one sentence.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Open with a slogan that makes the reader scroll to learn what the page is.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='One hero, first on the page'>
+  <Guideline.Do>
+    Start the page with the hero. Its title is the page’s `h1`.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Put a second hero lower down. Use a block with an `h2` instead.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pick the preset by its media'>
+  <Guideline.Do>
+    Use Page hero on a landing page with a background photo, a video, and at
+    least two photos each of people and events.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Use Page hero without its photos, which leaves panels empty. Use Page
+    header for a page that opens on its text, such as About.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Describe the photos that carry meaning'>
+  <Guideline.Do>
+    Give people and event photos, and the video’s poster, `alt` text that says
+    what they show.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Describe the background photo. It’s decoration, so the hero drops its
+    `alt`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Mark one or two words'>
+  <Guideline.Do>
+    Mark the word the title turns on with `titleHighlight`.
+  </Guideline.Do>
+  <Guideline.Dont>Mark a whole phrase.</Guideline.Dont>
+</Guideline>
+
+</Guidelines>
 
 ## Tracking
 

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { RichText } from '.'
 import { MarketingBlocksProvider } from '../Provider'
-import { articleBody, statement } from './testUtils'
+import { articleBody, statement } from './fixtures'
 
 describe('RichText', () => {
   describe('statement', () => {
@@ -73,6 +73,22 @@ describe('RichText', () => {
 
       expect(screen.queryByRole('heading', { level: 2 })).toBeNull()
       expect(screen.getByText(/every ticket is refunded/)).toBeInTheDocument()
+    })
+
+    it('keeps its eyebrow and description with no title', () => {
+      render(
+        <RichText
+          {...articleBody}
+          title={undefined}
+          eyebrow='Refunds'
+          description='What happens to your tickets when plans change.'
+        />
+      )
+
+      expect(screen.getByText('Refunds')).toBeInTheDocument()
+      expect(
+        screen.getByText('What happens to your tickets when plans change.')
+      ).toBeInTheDocument()
     })
 
     it('reports a click on a link in the body through the provider', async () => {

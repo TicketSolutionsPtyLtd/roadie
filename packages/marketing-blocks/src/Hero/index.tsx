@@ -1,16 +1,16 @@
 import { type ReactNode, useId } from 'react'
 
 import { Highlight } from '@oztix/roadie-components/highlight'
-import {
-  HighFive,
-  NoteMusic,
-  Ticket
-} from '@oztix/roadie-components/spot-illustrations'
 
 import type { BlockAction, BlockImage } from '../Provider'
 import { BlockActions } from '../_shared/BlockActions'
+import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
+import {
+  SPOT_ILLUSTRATIONS,
+  type SpotIllustrationName
+} from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
 import { HeroVideo } from './HeroVideo'
 import { ImageCycler } from './ImageCycler'
@@ -27,10 +27,6 @@ export type HeroVideoSource = {
   poster: BlockImage
 }
 
-const ILLUSTRATIONS = { HighFive, NoteMusic, Ticket }
-
-export type HeroIllustration = keyof typeof ILLUSTRATIONS
-
 export type HeroProps = {
   /**
    * `page-hero` sets the title over a photo beside a video and cycling photos;
@@ -38,9 +34,9 @@ export type HeroProps = {
    * @default 'page-hero'
    */
   preset?: HeroPreset
-  /** The block's place on the page, counting from 1. */
+  /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
-  /** The section's anchor, such as `top`. */
+  /** An id for linking to the block. */
   id?: string
   /** A short line above the title, in `page-header`. */
   eyebrow?: string
@@ -64,7 +60,7 @@ export type HeroProps = {
    * The spot illustration after the title in `page-hero`.
    * @default 'HighFive'
    */
-  illustration?: HeroIllustration
+  illustration?: SpotIllustrationName
 }
 
 /** Opens a page with its title as the page's `h1`. */
@@ -93,6 +89,8 @@ type PresetProps = Omit<HeroProps, 'preset' | 'position' | 'id'> & {
   headingId: string
 }
 
+// Not BlockHeading: this title sits on the fixed-dark overlay in fixed light
+// text, with the illustration inline in the h1.
 function Title({
   headingId,
   title,
@@ -106,7 +104,11 @@ function Title({
   return (
     <h1 id={headingId} className={className}>
       {titleHighlight ? (
-        <Highlight text={title} query={titleHighlight} />
+        <Highlight
+          text={title}
+          query={titleHighlight}
+          intent='brand-secondary'
+        />
       ) : (
         title
       )}
@@ -124,22 +126,18 @@ function PageHeader({
   actions
 }: PresetProps) {
   return (
-    <div className='container-8xl'>
-      <div className='grid max-w-5xl justify-items-start gap-4'>
-        {eyebrow && (
-          <p className='text-display-prose-5 text-strong'>{eyebrow}</p>
-        )}
-        <Title
-          headingId={headingId}
-          title={title}
-          titleHighlight={titleHighlight}
-          className='text-display-prose-2 text-balance text-strong'
-        />
-        {description && (
-          <p className='text-xl text-balance text-subtle'>{description}</p>
-        )}
-        <BlockActions actions={actions} />
-      </div>
+    <div className='container-8xl grid justify-items-start gap-6'>
+      <BlockHeading
+        id={headingId}
+        level={1}
+        size={2}
+        align='start'
+        eyebrow={eyebrow}
+        title={title}
+        titleHighlight={titleHighlight}
+        description={description}
+      />
+      <BlockActions actions={actions} />
     </div>
   )
 }
@@ -158,7 +156,7 @@ function PageHero({
   eventImages = [],
   illustration = 'HighFive'
 }: PresetProps) {
-  const Illustration = ILLUSTRATIONS[illustration]
+  const Illustration = SPOT_ILLUSTRATIONS[illustration]
   return (
     <div className='container-8xl'>
       <div className='grid grid-cols-1 gap-4 @3xl:grid-cols-9 @3xl:gap-2.5 @5xl:gap-3 @7xl:gap-4'>

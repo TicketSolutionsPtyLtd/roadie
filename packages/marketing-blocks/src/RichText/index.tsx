@@ -1,23 +1,17 @@
 import { type ReactNode, useId } from 'react'
 
-import { Highlight } from '@oztix/roadie-components/highlight'
 import { Prose } from '@oztix/roadie-components/prose'
-import {
-  Heart,
-  HighFive,
-  MapPin
-} from '@oztix/roadie-components/spot-illustrations'
 
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
+import {
+  SPOT_ILLUSTRATIONS,
+  type SpotIllustrationName
+} from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
 import { richTextDefinition } from './definition'
 
 export type RichTextPreset = (typeof richTextDefinition.presets)[number]['name']
-
-const ILLUSTRATIONS = { Heart, HighFive, MapPin }
-
-export type RichTextIllustration = keyof typeof ILLUSTRATIONS
 
 export type RichTextProps = {
   /**
@@ -26,9 +20,9 @@ export type RichTextProps = {
    * @default 'statement'
    */
   preset?: RichTextPreset
-  /** The block's place on the page, counting from 1. */
+  /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
-  /** The section's anchor, such as `our-mission`. */
+  /** An id for linking to the block. */
   id?: string
   /** A short line above the title. */
   eyebrow?: string
@@ -44,7 +38,7 @@ export type RichTextProps = {
    * The spot illustration above the title in `statement`.
    * @default 'Heart'
    */
-  illustration?: RichTextIllustration
+  illustration?: SpotIllustrationName
 }
 
 /** A title and rich text, from a short statement to an article. */
@@ -82,31 +76,21 @@ function Statement({
   body,
   illustration = 'Heart'
 }: PresetProps) {
-  const Illustration = ILLUSTRATIONS[illustration]
+  const Illustration = SPOT_ILLUSTRATIONS[illustration]
   return (
-    <div className='container-8xl grid justify-items-center gap-4 py-8 text-center @3xl:py-16 @5xl:py-32'>
+    <div className='container-8xl grid justify-items-center gap-4 text-center'>
       <Illustration outline className='size-16' />
-      {eyebrow && <p className='text-display-prose-5 text-strong'>{eyebrow}</p>}
-      {title && (
-        <h2
+      {title ? (
+        <BlockHeading
           id={headingId}
-          className='max-w-4xl text-display-prose-4 text-balance text-strong'
-        >
-          {titleHighlight ? (
-            <Highlight
-              text={title}
-              query={titleHighlight}
-              intent='brand-secondary'
-            />
-          ) : (
-            title
-          )}
-        </h2>
-      )}
-      {description && (
-        <p className='max-w-3xl text-xl text-balance text-subtle'>
-          {description}
-        </p>
+          size={4}
+          eyebrow={eyebrow}
+          title={title}
+          titleHighlight={titleHighlight}
+          description={description}
+        />
+      ) : (
+        <Intro eyebrow={eyebrow} description={description} />
       )}
       {body && (
         <Prose
@@ -129,8 +113,8 @@ function ArticleBody({
   body
 }: PresetProps) {
   return (
-    <div className='container-3xl grid gap-6 py-8 @3xl:py-12'>
-      {title && (
+    <div className='container-3xl grid gap-6'>
+      {title ? (
         <BlockHeading
           id={headingId}
           align='start'
@@ -139,8 +123,28 @@ function ArticleBody({
           titleHighlight={titleHighlight}
           description={description}
         />
+      ) : (
+        <Intro eyebrow={eyebrow} description={description} />
       )}
       {body && <Prose size='lg'>{body}</Prose>}
+    </div>
+  )
+}
+
+/** The eyebrow and description BlockHeading would set, for a block with no title. */
+function Intro({
+  eyebrow,
+  description
+}: Pick<PresetProps, 'eyebrow' | 'description'>) {
+  if (!eyebrow && !description) return null
+  return (
+    <div className='grid gap-2'>
+      {eyebrow && <p className='text-display-prose-5 text-strong'>{eyebrow}</p>}
+      {description && (
+        <p className='max-w-3xl text-xl text-balance text-subtle'>
+          {description}
+        </p>
+      )}
     </div>
   )
 }

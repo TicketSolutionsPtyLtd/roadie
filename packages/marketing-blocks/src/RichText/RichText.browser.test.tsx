@@ -1,32 +1,17 @@
-import type { ReactElement } from 'react'
-
-import { cleanup, render } from '@testing-library/react'
-import axe from 'axe-core'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { render } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
 
 import { RichText } from '.'
-import roadieCss from '../../vitest.browser.css?inline'
-import { articleBody, statement } from './testUtils'
+import {
+  DESKTOP,
+  atWidth,
+  axeViolations,
+  widths,
+  withBrowserPage
+} from '../_test/browser'
+import { articleBody, statement } from './fixtures'
 
-let style: HTMLStyleElement
-
-beforeAll(() => {
-  style = document.createElement('style')
-  style.textContent = roadieCss
-  document.head.append(style)
-})
-
-afterAll(async () => {
-  style.remove()
-  await page.viewport(1920, 1080)
-})
-
-async function showAt(width: number, ui: ReactElement) {
-  cleanup()
-  await page.viewport(width, 900)
-  return render(ui)
-}
+withBrowserPage()
 
 const centreOf = (element: Element) => {
   const { left, width } = element.getBoundingClientRect()
@@ -35,7 +20,8 @@ const centreOf = (element: Element) => {
 
 describe('RichText statement', () => {
   it('centres its paragraphs under the title, at the xl text size', async () => {
-    const { container } = await showAt(1280, <RichText {...statement} />)
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { container } = render(<RichText {...statement} />)
     const [first] = container.querySelectorAll('.prose p')
     const title = container.querySelector('h2')!
     const probe = document.createElement('p')
@@ -49,11 +35,24 @@ describe('RichText statement', () => {
     )
     probe.remove()
   })
+
+  it('leaves the space around it to the page', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { container } = render(<RichText {...statement} />)
+    const section = container.querySelector('section')!
+    const illustration = section.querySelector('svg')!
+
+    expect(illustration.getBoundingClientRect().top).toBeCloseTo(
+      section.getBoundingClientRect().top,
+      0
+    )
+  })
 })
 
 describe('RichText article-body', () => {
   it('holds the body to a reading width on a wide screen', async () => {
-    const { container } = await showAt(1920, <RichText {...articleBody} />)
+    await atWidth(1920, 1080)
+    const { container } = render(<RichText {...articleBody} />)
     const paragraph = container.querySelector('.prose p')!
 
     expect(paragraph.getBoundingClientRect().width).toBeLessThan(800)
@@ -61,29 +60,17 @@ describe('RichText article-body', () => {
   })
 })
 
-async function seriousViolations() {
-  const { violations } = await axe.run(document, {
-    resultTypes: ['violations'],
-    // Roadie measures contrast with APCA instead (docs/decisions/0010-apca-contrast.md).
-    rules: { 'color-contrast': { enabled: false } }
-  })
-  return violations
-    .filter(({ impact }) => impact === 'serious' || impact === 'critical')
-    .map(
-      ({ id, nodes }) => `${id}: ${nodes.map(({ html }) => html).join(', ')}`
-    )
-}
-
 describe.each([
   ['statement', statement],
   ['article-body', articleBody]
 ])('RichText %s accessibility', (_, props) => {
-  it.each([390, 1280])(
-    'has no serious axe violations at %ipx',
-    async (width) => {
-      await showAt(width, <RichText {...props} />)
+  it.each(widths)(
+    'has no axe violations on a $name',
+    async ({ width, height }) => {
+      await atWidth(width, height)
+      const { container } = render(<RichText {...props} />)
 
-      expect(await seriousViolations()).toEqual([])
+      expect(await axeViolations(container)).toEqual([])
     }
   )
 })

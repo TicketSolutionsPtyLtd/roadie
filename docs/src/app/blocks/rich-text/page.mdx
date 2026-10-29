@@ -5,6 +5,7 @@ export const metadata = {
   category: 'Content'
 }
 
+import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
 A title and rich text, from a short statement to an article.
@@ -22,7 +23,7 @@ import { RichText } from '@oztix/roadie-marketing-blocks/rich-text'
 A centred illustration, title, and a few large paragraphs, with generous
 space around them.
 
-```tsx-live id=statement -expand
+```tsx-live-expand id=statement
 <RichText
   preset='statement'
   title='We’re Australian-owned, Australian-hosted, and operate 7 days a week nationwide.'
@@ -70,15 +71,46 @@ and the body can carry its own headings from `h3`.
 
 ## Guidelines
 
-- **Answer first.** Open with the sentence that answers the reader's
-  question, such as what Oztix is, before the story behind it.
-- **Statement for a short belief.** One title and two or three paragraphs.
-  Anything longer is an article body.
-- **Article body for reading.** Policies, guides, and stories, with headings
-  from `h3` inside the body, since the block's title is the `h2`.
-- **Rendered text in.** Pass `body` already rendered, such as Portable Text
-  from the CMS. The block sets it in `Prose`, so it brings no styles of its
-  own.
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Open with the sentence that answers the reader’s question, such as what
+    Oztix is.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Lead with the story behind the answer.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep a statement short'>
+  <Guideline.Do>
+    Give a statement one title and two or three paragraphs.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Run a statement long. Longer text is an article body.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Start body headings at h3'>
+  <Guideline.Do>
+    Use `h3` and below inside an article body, since the block’s title is the
+    `h2`.
+  </Guideline.Do>
+  <Guideline.Dont>Put an `h1` or `h2` in the body.</Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pass rendered text'>
+  <Guideline.Do>
+    Pass `body` already rendered, such as Portable Text from the CMS. The block
+    sets it in `Prose`.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Style the body’s text yourself. Prose sets it.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
 
 ## Tracking
 

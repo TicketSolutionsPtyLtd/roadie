@@ -27,6 +27,7 @@ export function ImageCycler({ images, interval, sizes }: ImageCyclerProps) {
   const [onScreen, setOnScreen] = useState(false)
   const reducedMotion = useReducedMotion()
   const cycles = images.length > 1 && !reducedMotion
+  const current = cycles ? step : 0
 
   useEffect(() => {
     const element = ref.current
@@ -50,19 +51,17 @@ export function ImageCycler({ images, interval, sizes }: ImageCyclerProps) {
 
   return (
     <div ref={ref} className='absolute inset-0'>
-      {SLOTS.map((slot) => {
-        const active = step % 2 === slot
+      {(cycles ? SLOTS : SLOTS.slice(0, 1)).map((slot) => {
+        const active = current % 2 === slot
         // A slot keeps the image it last showed while it fades out; slot 1
         // starts on the second image so the first change is already loaded.
-        const shown = Math.max(active ? step : step - 1, slot)
+        const shown = Math.max(active ? current : current - 1, slot)
         const image = images[shown % images.length]!
-        if (slot === 1 && !cycles) return null
         return (
           <BlockImg
             key={slot}
             image={{ ...image, alt: active ? image.alt : '' }}
             sizes={sizes}
-            priority={slot === 0}
             className={cn(
               'absolute inset-0 size-full object-cover transition-opacity duration-slowest',
               active ? 'opacity-100' : 'opacity-0'
