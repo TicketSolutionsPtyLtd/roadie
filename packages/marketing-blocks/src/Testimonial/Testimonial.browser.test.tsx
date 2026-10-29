@@ -49,7 +49,7 @@ describe('Testimonial quote layout', () => {
     }
   )
 
-  it('centres the quote in a reading measure, with the background photo spanning the block', async () => {
+  it('centres the quote in a 42rem measure, as on the website, with the background photo spanning the block', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const { container } = render(<Testimonial {...quote} />)
 
@@ -58,7 +58,7 @@ describe('Testimonial quote layout', () => {
     const background = rectOf(
       container.querySelector(`img[src="${quote.backgroundImage.src}"]`)!
     )
-    expect(blockquote.width).toBeLessThanOrEqual(896)
+    expect(blockquote.width).toBeLessThanOrEqual(672)
     expect(blockquote.left - section.left).toBeCloseTo(
       section.right - blockquote.right,
       0

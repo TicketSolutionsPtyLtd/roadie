@@ -120,7 +120,7 @@ function Quote({ children }: { children: string }) {
   return (
     <blockquote
       className={
-        'isolate text-center text-display-prose-5 leading-tight text-balance text-strong @3xl:text-display-prose-4 ' +
+        'isolate max-w-2xl text-center text-display-prose-5 leading-tight text-balance text-strong @3xl:text-display-prose-4 ' +
         'before:relative before:-z-1 before:-mb-[0.45em] before:block before:text-[10em] before:leading-[0.5] before:text-subtler before:opacity-50 before:content-[open-quote] before:intent-info after:content-[no-close-quote]'
       }
     >
