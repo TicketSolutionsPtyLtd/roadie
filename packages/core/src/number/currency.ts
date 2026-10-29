@@ -1,5 +1,5 @@
 export type CurrencyFormatOptions = {
-  /** An ISO 4217 code. Dollars read as `$`; any other code names itself. @default 'AUD' */
+  /** An ISO 4217 code. Dollars read as `$`; in `en-AU`, any other code names itself. @default 'AUD' */
   currency?: string
   /** Decimal places. @default the currency's own, 2 for dollars */
   decimals?: number
