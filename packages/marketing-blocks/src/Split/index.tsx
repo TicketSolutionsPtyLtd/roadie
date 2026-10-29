@@ -72,9 +72,18 @@ const CONTENT: Record<
     gap: string
     prose: 'md' | 'lg'
     proseClassName?: string
+    contentClassName?: string
   }
 > = {
-  'tinted-panel': { level: 2, size: 3, gap: 'gap-4', prose: 'md' },
+  'tinted-panel': {
+    level: 2,
+    size: 3,
+    gap: 'gap-4',
+    prose: 'md',
+    proseClassName: 'text-subtle',
+    // The panel's tint is info, but its text reads as neutral, as on the live site.
+    contentClassName: 'intent-neutral [&_h2]:intent-info'
+  },
   'media-text': { level: 2, size: 2, gap: 'gap-6', prose: 'md' },
   'text-and-stats': {
     level: 2,
@@ -106,7 +115,13 @@ export function Split({
   const headingId = useId()
 
   const content = (
-    <div className={cn('grid content-start', layout.gap)}>
+    <div
+      className={cn(
+        'grid min-w-0 grid-cols-1 content-start wrap-break-word',
+        layout.gap,
+        layout.contentClassName
+      )}
+    >
       <BlockHeading
         id={headingId}
         level={layout.level}
@@ -136,29 +151,39 @@ export function Split({
       aria-labelledby={headingId}
     >
       {name === 'text-and-stats' && (
-        <div className='container-8xl flex flex-wrap gap-x-24 gap-y-12'>
-          <div className='grow-999 basis-[60ch]'>{content}</div>
+        <div
+          className={cn(
+            'container-8xl grid grid-cols-1 gap-12 @5xl:gap-x-24',
+            stats && '@3xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)]'
+          )}
+        >
+          {content}
           {stats && <StatsAside {...stats} />}
         </div>
       )}
       {name === 'logo-lockup' && (
-        <div className='container-8xl flex flex-wrap gap-16 @5xl:gap-24'>
+        <div
+          className={cn(
+            'container-8xl grid grid-cols-1 gap-8 @xl:gap-16 @5xl:gap-24',
+            partner && '@xl:grid-cols-[auto_minmax(0,1fr)]'
+          )}
+        >
           {partner && <PartnerLockup {...partner} />}
-          <div className='grow basis-100'>{content}</div>
+          {content}
         </div>
       )}
       {name === 'media-text' && (
         <div
           className={cn(
-            'container-8xl grid items-center gap-8 @5xl:gap-16',
-            image && '@3xl:grid-cols-2'
+            'container-8xl grid grid-cols-1 items-center gap-8 @5xl:gap-16',
+            image && '@xl:grid-cols-2'
           )}
         >
           {image && (
-            <div className='aspect-4/3 overflow-hidden rounded-2xl'>
+            <div className='aspect-4/3 min-w-0 overflow-hidden rounded-2xl'>
               <BlockImg
                 image={image}
-                sizes='(min-width: 48rem) 50vw, 100vw'
+                sizes='(min-width: 40rem) 50vw, 100vw'
                 className='size-full object-cover'
               />
             </div>
@@ -170,15 +195,15 @@ export function Split({
         <div className='container-8xl'>
           <div
             className={cn(
-              'grid items-center gap-12 rounded-2xl emphasis-subtle p-6 intent-info',
-              image && '@3xl:grid-cols-[2fr_3fr]'
+              'grid grid-cols-1 items-center gap-6 rounded-2xl emphasis-subtle p-6 intent-info @3xl:gap-12',
+              image && '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
             )}
           >
             {image && (
-              <div className='aspect-8/5 overflow-hidden rounded-xl'>
+              <div className='aspect-8/5 min-w-0 overflow-hidden rounded-xl'>
                 <BlockImg
                   image={image}
-                  sizes='(min-width: 48rem) 40vw, 100vw'
+                  sizes='(min-width: 40rem) 40vw, 100vw'
                   className='size-full object-cover'
                 />
               </div>
@@ -193,7 +218,7 @@ export function Split({
 
 function StatsAside({ title, description, items }: SplitStats) {
   return (
-    <div className='grid grow basis-80 content-start gap-4'>
+    <div className='grid min-w-0 content-start gap-4'>
       <div className='grid gap-0.5'>
         <h3 className='text-display-prose-4 text-strong'>{title}</h3>
         {description && <p className='text-subtle'>{description}</p>}
@@ -206,7 +231,7 @@ function StatsAside({ title, description, items }: SplitStats) {
 // The logos sit the same height either side of a short middle row, so the heart, centred across all three, overlaps both.
 function PartnerLockup({ name, logo }: SplitPartner) {
   return (
-    <div className='grid grow basis-50 grid-rows-[auto_1.5rem_auto] content-start justify-items-center'>
+    <div className='grid grid-rows-[auto_1.5rem_auto] content-start justify-items-center'>
       <Logo size='xl' className='col-start-1 row-start-1' />
       <BlockImg
         image={{ ...logo, alt: logo.alt || name }}

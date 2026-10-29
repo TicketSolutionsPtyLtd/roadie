@@ -173,6 +173,78 @@ describe('Split layout', () => {
   })
 })
 
+const MID = { width: 640, height: 800 }
+
+describe('Split at a mid width', () => {
+  it.each([
+    ['tinted-panel', /team members/, 2],
+    ['media-text', /event listing/, 2],
+    ['logo-lockup', 'Partner logo', 1]
+  ] as const)(
+    'sets the %s media beside the text at 640px',
+    async (preset, name, level) => {
+      await renderAt(MID, PRESETS[preset])
+
+      expect(
+        isBeside(
+          screen.getByRole('img', { name }),
+          screen.getByRole('heading', { level })
+        )
+      ).toBe(true)
+    }
+  )
+
+  it('keeps the text-and-stats aside below the text at 640px, where a stat would not fit beside it', async () => {
+    await renderAt(MID, PRESETS['text-and-stats'])
+
+    expect(
+      isAbove(
+        screen.getByText(/hosted in Australia/),
+        screen.getByRole('heading', { name: 'By the numbers' })
+      )
+    ).toBe(true)
+  })
+
+  it.each(Object.values(PRESETS))(
+    'keeps a long unbroken word inside the block as $preset at 640px',
+    async (props) => {
+      const { container } = await renderAt(MID, {
+        ...props,
+        body: <p>{'ticketing'.repeat(20)}</p>
+      })
+
+      const section = container.querySelector('section')!
+      expect(section.scrollWidth).toBeLessThanOrEqual(section.clientWidth)
+    }
+  )
+})
+
+describe('Split tinted panel', () => {
+  it('sets the description and body in neutral subtle text on the tinted panel', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(
+      <>
+        <p className='text-subtle'>Neutral reference</p>
+        <Split
+          {...PRESETS['tinted-panel']}
+          body={<p>Body copy on the panel.</p>}
+        />
+      </>
+    )
+
+    const neutral = getComputedStyle(
+      screen.getByText('Neutral reference')
+    ).color
+    expect(
+      getComputedStyle(screen.getByText(PRESETS['tinted-panel'].description))
+        .color
+    ).toBe(neutral)
+    expect(
+      getComputedStyle(screen.getByText('Body copy on the panel.')).color
+    ).toBe(neutral)
+  })
+})
+
 describe('Split accessibility', () => {
   it.each(Object.values(PRESETS))(
     'has no axe violations as $preset',

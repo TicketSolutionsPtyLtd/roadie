@@ -43,8 +43,14 @@ describe('Stats layout', () => {
     expect(await statsPerRowAt(PHONE)).toBe(1)
   })
 
-  it('sets the stats three to a row on wide screens', async () => {
-    expect(await statsPerRowAt(DESKTOP)).toBe(3)
+  it('sets the stats two to a row at 640px, each inside its column', async () => {
+    expect(await statsPerRowAt({ width: 640, height: 800 })).toBe(2)
+    for (const item of screen.getAllByRole('listitem'))
+      expect(item.scrollWidth).toBeLessThanOrEqual(item.clientWidth)
+  })
+
+  it('sets the stats four to a row on wide screens', async () => {
+    expect(await statsPerRowAt(DESKTOP)).toBe(4)
   })
 
   it('sets a value written as words a step smaller than a figure, within two lines', async () => {

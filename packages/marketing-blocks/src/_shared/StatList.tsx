@@ -16,13 +16,13 @@ const isPhrase = (value: string) => value.trim().split(/\s+/).length > 2
 /** The stats in a wrapping grid, each an illustration, a large value, and its label. */
 export function StatList({ items }: { items: readonly StatItem[] }) {
   return (
-    <ul className='grid grid-cols-[repeat(auto-fill,minmax(min(20rem,100%),1fr))] gap-x-8 gap-y-2'>
+    <ul className='grid grid-cols-[repeat(auto-fill,minmax(min(16rem,100%),1fr))] gap-x-8 gap-y-2'>
       {items.map(({ value, label, illustration }, index) => {
         const Illustration = illustration && SPOT_ILLUSTRATIONS[illustration]
         return (
           <li
             key={`${index}-${value}-${label}`}
-            className='flex items-center gap-4 py-1'
+            className='flex min-w-0 items-center gap-4 py-1'
           >
             {Illustration && (
               <Illustration outline className='size-16 shrink-0' />
