@@ -104,7 +104,6 @@ const BlockMenuShortcut = Extension.create<BlockMenuShortcutOptions>({
   }
 })
 
-// The nodes whose children each get a block handle, in each preset with one.
 const BLOCK_HANDLE_CONTAINERS: Partial<Record<Preset, BlockContainers>> = {
   blocks: TOP_LEVEL,
   email: new Set(['doc', 'section', 'column'])
