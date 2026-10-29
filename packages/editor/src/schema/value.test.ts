@@ -1073,3 +1073,70 @@ describe('migrate and nodes or marks outside the preset', () => {
     ).not.toThrow()
   })
 })
+
+describe('migrate and block ids', () => {
+  const withId = (id: unknown, text = 'Doors 7pm') => ({
+    type: 'paragraph',
+    attrs: { blockId: id },
+    content: [textOf(text)]
+  })
+
+  it('keeps each block’s id in a blocks value', () => {
+    const stored = docOf(
+      {
+        type: 'heading',
+        attrs: { level: 2, blockId: 'b1' },
+        content: [textOf('Lineup')]
+      },
+      withId('b2'),
+      {
+        type: 'embed',
+        attrs: {
+          provider: 'youtube',
+          id: 'exampleVid1',
+          params: null,
+          blockId: 'b3'
+        }
+      }
+    )
+
+    expect(migrate({ version: 1, preset: 'blocks', doc: stored }).doc).toEqual(
+      stored
+    )
+  })
+
+  it.each([
+    ['a number', 7],
+    ['an empty string', ''],
+    ['null', null]
+  ])('drops an id that is %s, so the editor gives it one', (_, id) => {
+    expect(
+      migrate({ version: 1, preset: 'blocks', doc: docOf(withId(id)) }).doc
+    ).toEqual(docOf(para('Doors 7pm')))
+  })
+
+  it('drops every repeat of an id after the first, nested ones too', () => {
+    const stored = docOf(withId('b1', 'Doors 7pm'), {
+      type: 'blockquote',
+      attrs: { blockId: 'b2' },
+      content: [withId('b1', 'All ages')]
+    })
+
+    expect(migrate({ version: 1, preset: 'blocks', doc: stored }).doc).toEqual(
+      docOf(withId('b1', 'Doors 7pm'), {
+        type: 'blockquote',
+        attrs: { blockId: 'b2' },
+        content: [para('All ages')]
+      })
+    )
+  })
+
+  it('drops ids from a value read into the rich preset', () => {
+    expect(
+      migrate(
+        { version: 1, preset: 'blocks', doc: docOf(withId('b1')) },
+        'rich'
+      ).doc
+    ).toEqual(docOf(para('Doors 7pm')))
+  })
+})

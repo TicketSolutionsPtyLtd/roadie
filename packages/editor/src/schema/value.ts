@@ -6,6 +6,7 @@ import { embedAttrs } from './embedAttrs'
 import { headingLevel } from './headings'
 import { isSafeImageSrc } from './imageSrc'
 import {
+  BLOCK_ID,
   type NodeContent,
   type Preset,
   type PresetShape,
@@ -83,6 +84,38 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
     }
   }
   return attrs
+}
+
+// An id that isn't a string, or is empty, is dropped, so the editor gives the
+// block a new one.
+function withBlockId(attrs: JSONContent['attrs'], stored: unknown) {
+  const kept = { ...attrs }
+  delete kept[BLOCK_ID]
+  const id = isObject(stored) ? stored[BLOCK_ID] : undefined
+  return typeof id === 'string' && id !== ''
+    ? { ...kept, [BLOCK_ID]: id }
+    : kept
+}
+
+// A repeated id would make two blocks one to drag or link to, so each block
+// after the first to use it loses it.
+function withoutRepeatedIds(
+  node: JSONContent,
+  seen = new Set<unknown>()
+): JSONContent {
+  const kept = { ...node }
+  const id: unknown = node.attrs?.[BLOCK_ID]
+  if (id !== undefined && seen.has(id)) {
+    const attrs = { ...node.attrs }
+    delete attrs[BLOCK_ID]
+    delete kept.attrs
+    if (Object.keys(attrs).length > 0) kept.attrs = attrs
+  }
+  seen.add(id)
+  if (node.content) {
+    kept.content = node.content.map((child) => withoutRepeatedIds(child, seen))
+  }
+  return kept
 }
 
 function isSafeNode(node: unknown): node is JSONContent {
@@ -240,7 +273,10 @@ function cleaned(
   if (!nodeShape)
     return paragraphsAround(childrenOf(node.content, shape), shape)
   const { type, text, marks, content, attrs: stored } = node
-  const attrs = picked(cleanedAttrs({ type, attrs: stored }), nodeShape.attrs)
+  const attrs = picked(
+    withBlockId(cleanedAttrs({ type, attrs: stored }), stored),
+    nodeShape.attrs
+  )
   // Built from known keys, as the saved format keeps nothing else. Only
   // inline nodes take marks.
   const kept: JSONContent = {
@@ -282,8 +318,10 @@ function cleaned(
  * empty. Keeps only the keys, attrs, and first of each mark the preset saves,
  * marks only on inline nodes and an ordered list's start only when whole,
  * starts every list item with a paragraph, drops a list or quote left empty,
- * and gives an empty doc one paragraph. Keeps only cells in a table's rows,
- * and only paragraphs in a cell, unwrapping other blocks to their text;
+ * and gives an empty doc one paragraph. Keeps a block's `blockId` only when
+ * it's a non-empty string no earlier block uses. Keeps only cells in a
+ * table's rows, and only paragraphs in a cell, unwrapping other blocks to
+ * their text;
  * keeps a cell's spans only when whole, positive and no more than HTML
  * allows (1,000 columns, 65,534 rows), gives an empty cell a paragraph, and
  * drops a row with no cells and a table with no rows.
@@ -315,7 +353,7 @@ export function migrate(
     shape,
     shape.nodes.doc
   )
-  return { version, preset, doc: cleanedDoc }
+  return { version, preset, doc: withoutRepeatedIds(cleanedDoc) }
 }
 
 export function createEmptyValue(preset: Preset): EditorValue {
