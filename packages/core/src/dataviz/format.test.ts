@@ -1,12 +1,44 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  type CurrencyFormatOptions,
+  currencyFormat,
   deltaSentiment,
   describeDelta,
   formatDelta,
   formatValue,
   normalizeMinusSign
 } from './format'
+
+describe('currencyFormat', () => {
+  it.each<[CurrencyFormatOptions, number, string]>([
+    [{}, 1200, '$1,200'],
+    [{}, 19.95, '$19.95'],
+    [{}, 19.5, '$19.50'],
+    [{}, -1200, '-$1,200'],
+    [{ trimZeros: false }, 1200, '$1,200.00'],
+    [{ decimals: 0 }, 19.95, '$20'],
+    [{ decimals: 3, trimZeros: false }, 1.5, '$1.500'],
+    [{ decimals: Number.NaN }, 19.95, '$19.95'],
+    [{ decimals: -1 }, 19.95, '$20'],
+    [{ currency: 'aud' }, 1200, '$1,200'],
+    [{ currency: 'NZD' }, 12_500, 'NZD 12,500'],
+    [{ currency: 'NZD' }, -1234.5, '-NZD 1,234.50'],
+    [{ currency: 'JPY' }, 1234.5, 'JPY 1,235'],
+    [{ currency: 'KWD' }, 1.5, 'KWD 1.500'],
+    [{ currency: 'NZD', compact: true }, 1_234_567, 'NZD 1.2M'],
+    [{ currency: 'NZD', compact: true }, 12_000, 'NZD 12K']
+  ])('reads %o %s as %s', (options, value, expected) => {
+    const text = new Intl.NumberFormat('en-AU', currencyFormat(options))
+      .format(value)
+      .replace(/\u00a0/g, ' ')
+    expect(normalizeMinusSign(text)).toBe(expected)
+  })
+
+  it('falls back to dollars for a code Intl does not know', () => {
+    expect(currencyFormat({ currency: 'not-a-code' })).toEqual(currencyFormat())
+  })
+})
 
 describe('formatValue', () => {
   it.each([

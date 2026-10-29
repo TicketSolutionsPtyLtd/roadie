@@ -54,15 +54,91 @@ function compact(value: number) {
   return `${sign}${number(compactUnit(abs, 1_000_000))}m`
 }
 
-function currency(value: number) {
-  const round = Number.isInteger(value)
-  return numberFormat({
+export type CurrencyFormatOptions = {
+  /** An ISO 4217 code. Dollars read as `$`; any other code names itself. @default 'AUD' */
+  currency?: string
+  /** Decimal places. @default the currency's own, 2 for dollars */
+  decimals?: number
+  /** Drops the decimals from a whole amount: $1,200 instead of $1,200.00. @default true */
+  trimZeros?: boolean
+  /** Short form, such as NZD 1.2M, with at most one decimal place. */
+  compact?: boolean
+}
+
+const HOUSE_CURRENCY = 'AUD'
+const MAX_INTL_DECIMALS = 20
+const minorUnits = new Map<string, number | null>()
+
+function currencyMinorUnits(code: string) {
+  if (!minorUnits.has(code))
+    try {
+      minorUnits.set(
+        code,
+        new Intl.NumberFormat(LOCALE, {
+          style: 'currency',
+          currency: code
+        }).resolvedOptions().maximumFractionDigits ?? null
+      )
+    } catch {
+      minorUnits.set(code, null)
+    }
+  return minorUnits.get(code) ?? null
+}
+
+/**
+ * How money reads, as options for `Intl.NumberFormat` or NumberFlow's
+ * `format`, in the caller's locale: the symbol, decimal places, trimmed
+ * whole amounts, and the compact form. A code Intl doesn't know reads as
+ * dollars.
+ */
+export function currencyFormat({
+  currency = HOUSE_CURRENCY,
+  decimals,
+  trimZeros = true,
+  compact = false
+}: CurrencyFormatOptions = {}): Intl.NumberFormatOptions {
+  const requested = currency.toUpperCase()
+  const units = currencyMinorUnits(requested)
+  const code = units === null ? HOUSE_CURRENCY : requested
+  const symbol: Intl.NumberFormatOptions = {
     style: 'currency',
-    currency: 'AUD',
-    currencyDisplay: 'narrowSymbol',
-    minimumFractionDigits: round ? 0 : 2,
-    maximumFractionDigits: round ? 0 : 2
-  }).format(value)
+    currency: code,
+    currencyDisplay: code === HOUSE_CURRENCY ? 'narrowSymbol' : 'symbol'
+  }
+  // Older Safari throws when the maximum is under the currency's minimum.
+  if (compact)
+    return {
+      ...symbol,
+      notation: 'compact',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1
+    }
+  const places =
+    decimals !== undefined && Number.isFinite(decimals)
+      ? Math.min(Math.max(Math.round(decimals), 0), MAX_INTL_DECIMALS)
+      : (units ?? 2)
+  return {
+    ...symbol,
+    minimumFractionDigits: places,
+    maximumFractionDigits: places,
+    trailingZeroDisplay: trimZeros ? 'stripIfInteger' : 'auto'
+  }
+}
+
+const isHouseCurrency = (code: string) =>
+  currencyFormat({ currency: code }).currency === HOUSE_CURRENCY
+
+const currency = (value: number, code = HOUSE_CURRENCY) =>
+  numberFormat(currencyFormat({ currency: code })).format(value)
+
+// Intl's compact reads $118.4K; the house suffix is lowercase.
+function compactCurrency(value: number, code = HOUSE_CURRENCY) {
+  if (Math.abs(value) < 1_000) return currency(value, code)
+  if (!isHouseCurrency(code))
+    return numberFormat(
+      currencyFormat({ currency: code, compact: true })
+    ).format(value)
+  return `${value < 0 ? '-' : ''}$${compact(Math.abs(value))}`
 }
 
 function percent(value: number) {
@@ -76,22 +152,31 @@ function percent(value: number) {
 const points = (value: number) =>
   `${number(value)} ${Math.abs(value) === 1 ? 'pt' : 'pts'}`
 
-const FORMATTERS: Record<ValueFormat, (value: number) => string> = {
+const FORMATTERS: Record<
+  ValueFormat,
+  (value: number, currencyCode?: string) => string
+> = {
   number: (value) => number(value),
   compact,
   percent,
   currency,
-  compactCurrency: (value) =>
-    Math.abs(value) >= 1_000
-      ? `${value < 0 ? '-' : ''}$${compact(Math.abs(value))}`
-      : currency(value),
+  compactCurrency,
   points,
   index: (value) => number(Math.round(value), 0)
 }
 
 export function formatValue(value: number, format: ValueFormat = 'number') {
+  return formatValueInCurrency(value, format)
+}
+
+/** `formatValue`, with money in the given currency. Core only. */
+export function formatValueInCurrency(
+  value: number,
+  format: ValueFormat = 'number',
+  currencyCode?: string
+) {
   if (!Number.isFinite(value)) return NOT_AVAILABLE
-  return normalizeMinusSign(FORMATTERS[format](value))
+  return normalizeMinusSign(FORMATTERS[format](value, currencyCode))
 }
 
 export function formatDelta(value: number, format: ValueFormat = 'number') {
