@@ -91,8 +91,8 @@ export function Testimonial({
       )}
       <div
         className={cn(
-          'container-4xl grid justify-items-center gap-16',
-          backgroundImage && 'py-12 @3xl:py-16 @5xl:py-20'
+          'container-4xl grid justify-items-center gap-16 *:min-w-0',
+          backgroundImage && 'py-12 @xl:py-16 @3xl:py-20'
         )}
       >
         <BlockHeading
@@ -102,7 +102,7 @@ export function Testimonial({
           titleHighlight={titleHighlight}
           description={description}
         />
-        <figure className='grid justify-items-center gap-8'>
+        <figure className='grid justify-items-center gap-8 *:min-w-0'>
           <Quote>{quote}</Quote>
           <Citation person={person} organisation={organisation} />
         </figure>
@@ -120,7 +120,7 @@ function Quote({ children }: { children: string }) {
   return (
     <blockquote
       className={
-        'isolate max-w-2xl text-center text-display-prose-5 leading-tight text-balance text-strong @3xl:text-display-prose-4 ' +
+        'isolate max-w-2xl text-center text-display-prose-5 leading-tight text-balance text-strong @xl:text-display-prose-4 ' +
         'before:relative before:-z-1 before:-mb-[0.45em] before:block before:text-[10em] before:leading-[0.5] before:text-subtler before:opacity-50 before:content-[open-quote] before:intent-info after:content-[no-close-quote]'
       }
     >
@@ -135,9 +135,9 @@ function Citation({
 }: Pick<TestimonialProps, 'person' | 'organisation'>) {
   const logo = organisation?.logo
   return (
-    <figcaption className='flex items-start gap-4 @3xl:gap-6 @5xl:gap-8'>
+    <figcaption className='flex items-start gap-4 @xl:gap-6 @3xl:gap-8'>
       {person.image && (
-        <div className='aspect-square w-20 shrink-0 overflow-clip rounded-xl border-4 border-normal intent-info @5xl:w-30'>
+        <div className='aspect-square w-20 shrink-0 overflow-clip rounded-xl border-4 border-normal intent-info @xl:w-30'>
           <BlockImg
             image={person.image}
             sizes='120px'
@@ -149,10 +149,10 @@ function Citation({
         <div className='grid'>
           <p className='text-display-ui-4 text-strong'>{person.name}</p>
           {person.role && (
-            <p className='text-base text-subtle @3xl:text-lg'>{person.role}</p>
+            <p className='text-base text-subtle @xl:text-lg'>{person.role}</p>
           )}
           {organisation && !logo && (
-            <p className='text-base text-subtle @3xl:text-lg'>
+            <p className='text-base text-subtle @xl:text-lg'>
               {organisation.name}
             </p>
           )}

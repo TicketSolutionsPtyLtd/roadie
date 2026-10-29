@@ -29,6 +29,7 @@ const rectOf = (element: Element) => element.getBoundingClientRect()
 describe('Testimonial quote layout', () => {
   it.each([
     { ...widths[0], portrait: 80 },
+    { name: 'mid', width: 640, height: 900, portrait: 120 },
     { ...widths[1], portrait: 120 }
   ])(
     'sets a $portrait px portrait beside the name at $name width',

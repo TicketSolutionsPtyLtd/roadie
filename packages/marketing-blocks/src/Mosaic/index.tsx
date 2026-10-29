@@ -59,10 +59,12 @@ export type MosaicProps = {
   logoTile?: MosaicLogoTile
 }
 
-// The half-height tile's padding is a percentage of its own width, two
-// columns and a gap, so it subtracts half the gap to match a square tile.
+// Tiles are at least 11rem, so a column joins for every 11rem of block, from
+// two on a phone to four at most. The half-height tile's padding is a
+// percentage of its own width, two columns and a gap, so it subtracts half
+// the gap to match a square tile.
 const GRID =
-  'grid grid-flow-row-dense gap-(--tile-gap) [--tile-gap:--spacing(2)] grid-cols-[repeat(auto-fit,minmax(min(13.25rem,calc(50%-var(--tile-gap)/2)),1fr))] @xl:[--tile-gap:--spacing(4)] @3xl:[--tile-gap:--spacing(8)] @3xl:grid-cols-[repeat(auto-fit,minmax(min(15.625rem,calc(25%-var(--tile-gap)*3/4)),1fr))]'
+  'grid grid-flow-row-dense gap-(--tile-gap) *:min-w-0 [--tile-gap:--spacing(2)] grid-cols-[repeat(auto-fit,minmax(min(max(11rem,calc(25%-var(--tile-gap)*3/4)),calc(50%-var(--tile-gap)/2)),1fr))] @xl:[--tile-gap:--spacing(4)] @3xl:[--tile-gap:--spacing(8)]'
 const TILE =
   'dark relative isolate grid overflow-hidden rounded-xl @3xl:rounded-3xl'
 const STACKED = 'col-start-1 row-start-1'
@@ -96,7 +98,7 @@ export function Mosaic({
       id={id}
       aria-labelledby={headingId}
     >
-      <div className='container-8xl grid gap-12'>
+      <div className='container-8xl grid gap-12 *:min-w-0'>
         <BlockHeading
           id={headingId}
           align={name === 'logo-strip' ? 'center' : 'start'}
@@ -157,13 +159,13 @@ function PhotoTile({ name, label, logo, image, featured }: MosaicTile) {
             className='h-auto max-w-3/4 object-contain'
           />
         ) : (
-          <p className='text-display-ui-4 text-strong'>{name}</p>
+          <p className='text-display-ui-4 break-words text-strong'>{name}</p>
         )}
         {label && (
           <Mark
             render={<p />}
             intent='neutral'
-            className='text-display-ui-6 font-bold'
+            className='px-1.5 py-0.5 text-sm font-semibold @xl:text-base'
           >
             {label}
           </Mark>
@@ -211,7 +213,7 @@ function StripLogo({ name, logo }: MosaicTile) {
           className='h-12 w-auto object-contain'
         />
       ) : (
-        <p className='text-display-ui-4 text-strong'>{name}</p>
+        <p className='text-display-ui-4 break-words text-strong'>{name}</p>
       )}
     </li>
   )

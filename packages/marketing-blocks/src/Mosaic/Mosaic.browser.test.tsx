@@ -12,6 +12,8 @@ import {
 } from '../_test/browser'
 import { logoStrip, partnerTiers } from './fixtures'
 
+const MID = { name: 'mid', width: 640, height: 900 } as const
+
 withBrowserPage()
 
 const offline = (props: MosaicProps): MosaicProps => ({
@@ -40,6 +42,7 @@ const columns = () =>
 describe('Mosaic tiers layout', () => {
   it.each([
     { ...widths[0], columns: 2 },
+    { ...MID, columns: 3 },
     { ...widths[1], columns: 4 }
   ])(
     'fits $columns columns at $name width',
@@ -69,6 +72,43 @@ describe('Mosaic tiers layout', () => {
     const [first, , wide, last] = tiles()
     expect(Math.round(last!.top)).toBe(Math.round(first!.top))
     expect(wide!.top).toBeGreaterThan(first!.bottom)
+  })
+})
+
+describe('Mosaic tiers labels', () => {
+  it('sets a level on one light line on a phone, as on the website', async () => {
+    await atWidth(widths[0].width, widths[0].height)
+    render(<Mosaic {...offline(partnerTiers)} />)
+
+    const label = screen.getByText('Category partner')
+    const style = getComputedStyle(label)
+    expect(Number(style.fontWeight)).toBeLessThanOrEqual(600)
+    expect(label.getBoundingClientRect().height).toBeLessThan(
+      parseFloat(style.lineHeight) * 1.5 + parseFloat(style.paddingTop) * 2
+    )
+  })
+
+  it('keeps a long unbroken name inside its block', async () => {
+    await atWidth(widths[0].width, widths[0].height)
+    const { container } = render(
+      <Mosaic
+        {...offline(partnerTiers)}
+        tiles={[
+          {
+            name: 'Supercalifragilisticexpialidociousproductions',
+            label: 'Supercalifragilisticexpialidociouspartner',
+            image: photo('')
+          },
+          ...offline(partnerTiers).tiles
+        ]}
+      />
+    )
+
+    const section = container.querySelector('section')!
+    for (const item of container.querySelectorAll('li'))
+      expect(item.getBoundingClientRect().right).toBeLessThanOrEqual(
+        section.getBoundingClientRect().right
+      )
   })
 })
 
@@ -145,6 +185,24 @@ describe('Mosaic logo-strip layout', () => {
       expect(getComputedStyle(heading).textAlign).toBe('center')
     }
   )
+
+  it('fits three 3:1 logos to a row at 640px', async () => {
+    await atWidth(MID.width, MID.height)
+    render(
+      <Mosaic
+        {...offline(logoStrip)}
+        tiles={['A', 'B', 'C', 'D'].map((name) => ({
+          name,
+          logo: photo(`${name} logo`, 300, 100)
+        }))}
+      />
+    )
+
+    const tops = [...document.querySelectorAll('li')].map((item) =>
+      Math.round(item.getBoundingClientRect().top)
+    )
+    expect(tops.filter((top) => top === tops[0])).toHaveLength(3)
+  })
 
   it('wraps onto more rows at phone width', async () => {
     const rows = () =>
