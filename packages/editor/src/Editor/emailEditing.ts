@@ -101,16 +101,33 @@ export function setColumnCount(count: number) {
       tr.insert(end, added)
       return true
     }
+    const { from } = tr.selection
     let keptEnd = pos + 1
     const moved: PMNode[] = []
-    node.forEach((child, _offset, index) => {
-      if (index < count) keptEnd += child.nodeSize
-      else child.forEach((block) => !isEmptyLine(block) && moved.push(block))
+    let movedSize = 0
+    let caretInMoved: number | undefined
+    node.forEach((child, offset, index) => {
+      if (index < count) {
+        keptEnd += child.nodeSize
+        return
+      }
+      child.forEach((block, blockOffset) => {
+        if (isEmptyLine(block)) return
+        const start = pos + 2 + offset + blockOffset
+        if (from > start && from < start + block.nodeSize) {
+          caretInMoved = movedSize + from - start
+        }
+        moved.push(block)
+        movedSize += block.nodeSize
+      })
     })
-    const inRemoved = tr.selection.from > keptEnd
+    const inRemoved = from > keptEnd
     tr.delete(keptEnd, end)
     tr.insert(keptEnd - 1, moved)
-    if (inRemoved) {
+    if (caretInMoved !== undefined) {
+      tr.setSelection(TextSelection.create(tr.doc, keptEnd - 1 + caretInMoved))
+    } else if (inRemoved) {
+      // The caret's empty line was dropped.
       const bias = moved.length > 0 ? 1 : -1
       tr.setSelection(TextSelection.near(tr.doc.resolve(keptEnd - 1), bias))
     }

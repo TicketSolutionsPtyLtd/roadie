@@ -201,6 +201,29 @@ describe('Editor email blocks', () => {
     await saved(onValueChange, value)
   })
 
+  it('keeps typing in its line when that line’s column is removed', async () => {
+    const onValueChange = renderEmail(
+      email(
+        columns(['Lineup'], ['Tickets'], ['Getting there', 'Parking']),
+        p('Doors 7pm')
+      )
+    )
+    await clickText('Parking')
+    await userEvent.keyboard(LINE_END)
+
+    await choose('Columns: 3 columns', '2 columns')
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    await userEvent.keyboard(' on site')
+
+    await saved(
+      onValueChange,
+      email(
+        columns(['Lineup'], ['Tickets', 'Getting there', 'Parking on site']),
+        p('Doors 7pm')
+      )
+    )
+  })
+
   it('sets a selected spacer’s height', async () => {
     const onValueChange = renderEmail(
       email(p('Doors 7pm'), { type: 'spacer', attrs: { height: 40 } }, p())
