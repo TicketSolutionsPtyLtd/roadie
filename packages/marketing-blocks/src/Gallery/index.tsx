@@ -74,10 +74,10 @@ export function Gallery({
       id={id}
       // The carousel is the landmark the heading names; naming both repeats it.
       aria-labelledby={name === 'carousel' ? undefined : headingId}
-      className='grid gap-12'
+      className='grid grid-cols-1 gap-12'
     >
       {name === 'carousel' ? (
-        <Carousel className='container-8xl'>
+        <Carousel className='container-8xl min-w-0'>
           <Carousel.Header>
             <Carousel.Title id={headingId} render={() => heading} />
             <Carousel.Controls>
@@ -109,10 +109,10 @@ export function Gallery({
 
 function PhotoTile({ image }: { image: BlockImage }) {
   return (
-    <div className='aspect-9/16 w-35 shrink-0 overflow-hidden rounded-3xl @3xl:w-45 @5xl:w-55'>
+    <div className='aspect-9/16 w-35 shrink-0 overflow-hidden rounded-3xl @xl:w-45 @4xl:w-55'>
       <BlockImg
         image={image}
-        sizes='(max-width: 768px) 140px, (max-width: 1024px) 180px, 220px'
+        sizes='(max-width: 640px) 140px, (max-width: 960px) 180px, 220px'
         className='size-full object-cover'
       />
     </div>

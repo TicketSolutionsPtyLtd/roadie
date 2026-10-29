@@ -67,7 +67,7 @@ export function FAQ({
       id={id}
       aria-labelledby={headingId}
     >
-      <div className='container-3xl grid gap-8'>
+      <div className='container-3xl grid grid-cols-1 gap-8'>
         <BlockHeading
           id={headingId}
           eyebrow={eyebrow}

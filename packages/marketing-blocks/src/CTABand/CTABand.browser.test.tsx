@@ -50,6 +50,16 @@ describe('CTABand with photo', () => {
     expect(photo.bottom).toBeLessThanOrEqual(heading.top)
   })
 
+  it('sets the photo beside the copy on a mid-width screen', async () => {
+    await page.viewport(640, 800)
+    render(<CTABand preset='with-photo' {...props} />)
+
+    const { section, panel, heading, photo } = boxes()
+    expect(photo.top).toBeLessThan(panel.top)
+    expect(photo.top).toBeGreaterThanOrEqual(section.top)
+    expect(photo.left).toBeGreaterThan(heading.left + heading.width / 2)
+  })
+
   it('sets the photo above the copy in a narrow column on a desktop', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     render(

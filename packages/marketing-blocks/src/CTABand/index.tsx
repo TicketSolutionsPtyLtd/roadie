@@ -71,12 +71,12 @@ export function CTABand({
         <div
           data-slot='cta-band-panel'
           className={cn(
-            'relative container-8xl grid gap-12 bg-raised py-12 @3xl:py-16 @7xl:rounded-3xl',
-            photo && 'mt-14 @3xl:mt-28 @7xl:mt-36'
+            'relative container-8xl grid grid-cols-1 gap-12 bg-raised py-12 @xl:py-16 @7xl:rounded-3xl',
+            photo && 'mt-14 @xl:mt-28 @7xl:mt-36'
           )}
         >
           {photo && (
-            <div className='relative -mt-24 w-2/5 max-w-95 -rotate-5 @3xl:absolute @3xl:end-16 @3xl:-top-24 @3xl:mt-0 @3xl:w-1/3 @3xl:rotate-5 @7xl:-top-32'>
+            <div className='relative -mt-24 w-2/5 max-w-95 -rotate-5 @xl:absolute @xl:end-8 @xl:-top-24 @xl:mt-0 @xl:w-1/3 @xl:rotate-5 @3xl:end-16 @7xl:-top-32'>
               <div className='aspect-380/555 overflow-hidden rounded-2xl border-4 border-(--color-neutral-light-0) shadow-lg'>
                 <BlockImg
                   image={photo}
@@ -92,8 +92,8 @@ export function CTABand({
           )}
           <div
             className={cn(
-              'grid gap-12',
-              split ? '@3xl:max-w-7/12' : 'justify-items-center text-center'
+              'grid grid-cols-1 gap-12',
+              split ? '@xl:max-w-7/12' : 'justify-items-center text-center'
             )}
           >
             <div className='grid gap-8'>
