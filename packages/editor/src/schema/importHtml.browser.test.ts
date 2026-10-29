@@ -190,6 +190,34 @@ describe('htmlToEditorValue', () => {
     ])
   })
 
+  it.each([
+    [
+      'an image',
+      '<img src="https://cdn.oztix.com.au/poster.jpg">',
+      { kind: 'image', src: 'https://cdn.oztix.com.au/poster.jpg' }
+    ],
+    [
+      'a player',
+      '<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>',
+      { kind: 'embed', src: 'https://www.youtube.com/embed/dQw4w9WgXcQ' }
+    ]
+  ])(
+    'reports %s in a table cell, which holds only text',
+    (_, media, report) => {
+      const { value, dropped } = htmlToEditorValue(
+        `<table><tbody><tr><td>Poster${media}</td></tr></tbody></table>`,
+        'rich'
+      )
+
+      expect(value.doc.content?.[0]?.content?.[0]?.content?.[0]).toEqual({
+        type: 'tableCell',
+        attrs: { colspan: 1, rowspan: 1 },
+        content: [paragraph(text('Poster'))]
+      })
+      expect(dropped).toEqual([report])
+    }
+  )
+
   it('keeps a table’s text in basic', () => {
     expect(
       blocks(

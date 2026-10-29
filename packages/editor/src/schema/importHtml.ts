@@ -38,7 +38,8 @@ function embedFor(iframe: Element, preset: Preset) {
 }
 
 // The schema would skip these quietly, so each is swapped or removed here,
-// where what's lost can be reported.
+// where what's lost can be reported. A cell holds only paragraphs, so no
+// image or embed survives in one.
 function keptMedia(body: HTMLElement, preset: Preset) {
   const dropped: DroppedContent[] = []
   const canHoldImages = Object.hasOwn(presetShapes[preset].nodes, 'image')
@@ -47,11 +48,12 @@ function keptMedia(body: HTMLElement, preset: Preset) {
   )) {
     if (!element.isConnected) continue
     const src = element.getAttribute('src')
+    const inCell = element.closest('td, th') !== null
     if (element.localName === 'img') {
-      if (canHoldImages && isSafeImageSrc(src)) continue
+      if (canHoldImages && !inCell && isSafeImageSrc(src)) continue
       dropped.push(report('image', src))
     } else if (element.localName === 'iframe') {
-      const embed = embedFor(element, preset)
+      const embed = inCell ? null : embedFor(element, preset)
       if (embed) {
         element.replaceWith(embed)
         continue
