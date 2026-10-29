@@ -27,6 +27,15 @@ beforeAll(() => {
 afterAll(() => style.remove())
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
 
+// Computed colours can be oklch, so a canvas turns any of them into RGB.
+function luminance(color: string) {
+  const context = document.createElement('canvas').getContext('2d')!
+  context.fillStyle = color
+  context.fillRect(0, 0, 1, 1)
+  const [r = 0, g = 0, b = 0] = context.getImageData(0, 0, 1, 1).data
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+}
+
 const p = (text: string): JSONContent => ({
   type: 'paragraph',
   content: [{ type: 'text', text }]
@@ -221,6 +230,44 @@ describe('Editor with the email preset', () => {
     expect(unknown.closest('[data-slot="editor-variable"]')).toHaveAttribute(
       'data-invalid'
     )
+  })
+
+  it('shows a merge tag in a button so it reads against the button’s fill', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        variables={[
+          {
+            key: 'first_name',
+            label: 'First name',
+            tokens: { ae: '#FirstName#' }
+          }
+        ]}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'button',
+                attrs: { href: TICKETS },
+                content: [
+                  { type: 'text', text: 'See your tickets, ' },
+                  { type: 'variable', attrs: { key: 'first_name' } }
+                ]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    const chip = await screen.findByText('First name')
+    const button = chip.closest('[data-slot="editor-variable"]')!.parentElement!
+
+    const fill = luminance(getComputedStyle(button).backgroundColor)
+    const chipFill = luminance(getComputedStyle(chip).backgroundColor)
+    expect(Math.abs(fill - chipFill)).toBeGreaterThan(0.5)
   })
 
   it('shows a merge tag by its key when the editor lists no variables', async () => {

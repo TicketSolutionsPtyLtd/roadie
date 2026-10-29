@@ -9,11 +9,21 @@ import { Badge } from '@oztix/roadie-components/badge'
 import { EditorContext } from './EditorContext'
 
 /** A merge tag in the editor: a chip with its variable's label. */
-export function EditorVariableView({ node, selected }: ReactNodeViewProps) {
+export function EditorVariableView({
+  node,
+  selected,
+  editor,
+  getPos
+}: ReactNodeViewProps) {
   const variables = use(EditorContext)?.variables
   const key = String(node.attrs.key)
   const variable = variables?.find((listed) => listed.key === key)
   const invalid = variables !== undefined && !variable
+  const pos = getPos()
+  // A button is a strong fill, where a subtle chip disappears.
+  const inButton =
+    pos !== undefined &&
+    editor.state.doc.resolve(pos).parent.type.name === 'button'
 
   return (
     <NodeViewWrapper
@@ -27,6 +37,7 @@ export function EditorVariableView({ node, selected }: ReactNodeViewProps) {
         intent={invalid ? 'danger' : 'accent'}
         emphasis='subtle'
         size='sm'
+        className={inButton && !invalid ? 'emphasis-raised' : undefined}
         contentEditable={false}
       >
         {variable?.label ?? key}
