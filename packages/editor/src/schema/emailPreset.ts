@@ -11,6 +11,7 @@ import {
 } from './emailAttrs'
 import { RichHeading } from './headings'
 import { Image } from './image'
+import { showWhenRule } from './showWhen'
 
 // Text blocks stay in StarterKit's `block` group, so a list item, which holds
 // `paragraph block*`, never holds a layout or an email block.
@@ -28,6 +29,27 @@ const layoutNode = (name: string, group: string | undefined, content: string) =>
     renderHTML: () => ['div', { 'data-type': name }, 0]
   })
 
+function pastedRule(element: HTMLElement) {
+  try {
+    return showWhenRule(JSON.parse(element.getAttribute('data-show-when')!))
+  } catch {
+    return undefined
+  }
+}
+
+// Undefined, not null, so a block with no rule saves what it did before rules.
+const showWhen = {
+  showWhen: {
+    default: undefined,
+    parseHTML: pastedRule,
+    renderHTML: ({ showWhen: rule }: Record<string, unknown>) =>
+      rule ? { 'data-show-when': JSON.stringify(rule) } : {}
+  }
+}
+
+const shownWhen = ({ 'data-show-when': rule }: Record<string, unknown>) =>
+  rule ? { 'data-show-when': String(rule) } : {}
+
 const EmailDoc = Node.create({
   name: 'doc',
   topNode: true,
@@ -38,7 +60,14 @@ export const Section = layoutNode(
   'section',
   LAYOUT,
   `(block | ${EMAIL_BLOCK} | columns)+`
-)
+).extend({
+  addAttributes: () => showWhen,
+  renderHTML: ({ HTMLAttributes }) => [
+    'div',
+    { 'data-type': 'section', ...shownWhen(HTMLAttributes) },
+    0
+  ]
+})
 export const Columns = layoutNode('columns', LAYOUT, 'column{2,4}')
 export const Column = layoutNode(
   'column',
@@ -101,7 +130,7 @@ export const Button = Node.create({
   marks: '',
   defining: true,
   addAttributes() {
-    return { href: { default: null } }
+    return { href: { default: null }, ...showWhen }
   },
   parseHTML() {
     // Above the link mark's rule, which would otherwise read it as linked text.
@@ -116,8 +145,16 @@ export const Button = Node.create({
       }
     ]
   },
-  renderHTML({ node }) {
-    return ['a', { 'data-type': 'button', href: node.attrs.href }, 0]
+  renderHTML({ node, HTMLAttributes }) {
+    return [
+      'a',
+      {
+        'data-type': 'button',
+        href: node.attrs.href,
+        ...shownWhen(HTMLAttributes)
+      },
+      0
+    ]
   }
 })
 
@@ -126,7 +163,7 @@ export const Spacer = Node.create({
   group: EMAIL_BLOCK,
   atom: true,
   addAttributes() {
-    return { height: { default: SPACER_HEIGHT.default } }
+    return { height: { default: SPACER_HEIGHT.default }, ...showWhen }
   },
   parseHTML() {
     return [
@@ -141,10 +178,14 @@ export const Spacer = Node.create({
       }
     ]
   },
-  renderHTML({ node }) {
+  renderHTML({ node, HTMLAttributes }) {
     return [
       'div',
-      { 'data-type': 'spacer', 'data-height': String(node.attrs.height) }
+      {
+        'data-type': 'spacer',
+        'data-height': String(node.attrs.height),
+        ...shownWhen(HTMLAttributes)
+      }
     ]
   }
 })
@@ -153,8 +194,9 @@ export const Spacer = Node.create({
 const Divider = Node.create({
   name: 'horizontalRule',
   group: EMAIL_BLOCK,
+  addAttributes: () => showWhen,
   parseHTML: () => [{ tag: 'hr' }],
-  renderHTML: () => ['hr']
+  renderHTML: ({ HTMLAttributes }) => ['hr', shownWhen(HTMLAttributes)]
 })
 
 // An email loads its images in a mail client, so only https reaches one.
@@ -167,7 +209,8 @@ const EmailImage = Image.extend({
         default: null,
         parseHTML: (element) =>
           imageWidth(Number(element.getAttribute('width')))
-      }
+      },
+      ...showWhen
     }
   },
   parseHTML() {
@@ -179,9 +222,12 @@ const EmailImage = Image.extend({
       }
     ]
   },
-  renderHTML({ node }) {
+  renderHTML({ node, HTMLAttributes }) {
     const { src, alt, width } = node.attrs
-    return ['img', { src, alt, ...(width && { width }) }]
+    return [
+      'img',
+      { src, alt, ...(width && { width }), ...shownWhen(HTMLAttributes) }
+    ]
   },
   addCommands() {
     return {
