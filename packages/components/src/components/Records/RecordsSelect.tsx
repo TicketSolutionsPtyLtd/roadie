@@ -6,7 +6,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { Button } from '../Button'
 import { isSelecting, useRecordsContext } from './context'
-import { leaveSelectOnEscape } from './selectMode'
+import { useLeaveSelectOnEscape } from './selectMode'
 import { pageState } from './selection'
 import { useSurvivor } from './useBulkActions'
 
@@ -22,6 +22,7 @@ export function RecordsSelect({ className }: RecordsSelectProps) {
   const { records, selectMode, setSelectControls } = useRecordsContext()
   const toggleRef = useRef<HTMLButtonElement>(null)
   const survivor = useSurvivor('selection')
+  const leaveSelect = useLeaveSelectOnEscape()
   const shown = selectMode && records.selectable
   const selecting = shown && isSelecting(records, selectMode)
 
@@ -47,7 +48,7 @@ export function RecordsSelect({ className }: RecordsSelectProps) {
       role={selecting ? 'group' : undefined}
       aria-label={selecting ? 'Select mode' : undefined}
       data-slot='records-select'
-      onKeyDown={leaveSelectOnEscape(records)}
+      onKeyDown={leaveSelect}
       className={cn('flex shrink-0 items-center gap-2', className)}
     >
       {selecting && (

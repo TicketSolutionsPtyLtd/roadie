@@ -67,8 +67,8 @@ export const isSelecting = (
   records: Pick<RecordsState, 'selecting' | 'selectable' | 'selectedCount'>,
   selectMode: boolean
 ) =>
-  records.selecting ||
-  (selectMode && records.selectable && records.selectedCount > 0)
+  selectMode &&
+  (records.selecting || (records.selectable && records.selectedCount > 0))
 
 /** The layout the view names, or the first one given. */
 export const activeLayout = (

@@ -45,7 +45,11 @@ Records.ViewActions = RecordsViewActions
 export { Records, RecordValue }
 export { useRecords } from './useRecords'
 export { downloadCsv } from './csv'
-export type { RecordsInstance, UseRecordsOptions } from './useRecords'
+export type {
+  RecordsInstance,
+  RecordsSetSelecting,
+  UseRecordsOptions
+} from './useRecords'
 export type {
   RecordName,
   RecordViewDefaults,

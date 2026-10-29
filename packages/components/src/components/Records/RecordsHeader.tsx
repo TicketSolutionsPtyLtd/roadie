@@ -15,7 +15,7 @@ import {
 import { useRecordsContext } from './context'
 import { useNarrow } from './narrow'
 import { SearchFocusContext } from './searchFocus'
-import { leaveSelectOnEscape } from './selectMode'
+import { useLeaveSelectOnEscape } from './selectMode'
 import { useStickyTop } from './stickyTop'
 import { surfaceClass, useSurface } from './surface'
 import type { RecordsAction } from './types'
@@ -46,7 +46,8 @@ export function RecordsHeader<Row extends object>({
   viewActions,
   className
 }: RecordsHeaderProps<Row>) {
-  const { records, toolbar, setToolbar } = useRecordsContext()
+  const { toolbar, setToolbar } = useRecordsContext()
+  const leaveSelect = useLeaveSelectOnEscape()
   const ref = useRef<HTMLDivElement>(null)
   const top = useStickyTop(ref, null)
   useSurface(ref)
@@ -88,7 +89,7 @@ export function RecordsHeader<Row extends object>({
       data-slot='records-header'
       data-search-focused={narrow && searchFocused ? '' : undefined}
       style={{ top }}
-      onKeyDown={leaveSelectOnEscape(records)}
+      onKeyDown={leaveSelect}
       className={cn(
         // Its padding takes the place of the gap below, so the surface reaches the content while stuck.
         'sticky z-docked mb-[calc(var(--records-gap,0px)*-1)] flex flex-wrap items-start gap-2 pb-3',
