@@ -112,6 +112,23 @@ describe('BlockRoot', () => {
     )
   })
 
+  it('keeps the outer tracking when an inner provider only draws images', async () => {
+    const onBlockEvent = vi.fn()
+    render(
+      <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
+        <MarketingBlocksProvider renderImage={() => null}>
+          <Block />
+        </MarketingBlocksProvider>
+      </MarketingBlocksProvider>
+    )
+
+    await userEvent.click(screen.getByRole('link', { name: 'Talk to us' }))
+
+    expect(onBlockEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'click' })
+    )
+  })
+
   it('ignores clicks that land on nothing interactive', async () => {
     const onBlockEvent = vi.fn()
     render(

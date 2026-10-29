@@ -58,6 +58,10 @@ Run `pnpm generate:exports` after adding the folder.
   counting from 1, reported with its events." and "An id for linking to the block."
 - **Keys.** List keys use the item's index with its content, so repeated content stays
   distinct.
+- **Room for an overhang.** CTA band's `with-photo` keeps a top margin for the photo that
+  breaks out of its panel; like `statement`'s breathing room, it's part of the preset's look.
+- **Preset types live in `definition.ts`,** derived from the definition, and the block's
+  `index.tsx` re-exports them. Keep each `preset` prop's `@default` the definition's first preset.
 
 ### Thumbnails
 
