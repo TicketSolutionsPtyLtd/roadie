@@ -47,6 +47,34 @@ describe('Stats layout', () => {
     expect(await statsPerRowAt(DESKTOP)).toBe(3)
   })
 
+  it('sets a value written as words a step smaller than a figure, within two lines', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(
+      <Stats
+        title='By the numbers'
+        items={[
+          { value: '33,000,000+', label: 'tickets sold' },
+          { value: '7 million+', label: 'fans each year' },
+          {
+            value: 'Service company of the year 2025',
+            label: 'Australian Event Awards',
+            illustration: 'Heart'
+          }
+        ]}
+      />
+    )
+
+    const size = (text: string) =>
+      parseFloat(getComputedStyle(screen.getByText(text)).fontSize)
+    expect(size('7 million+')).toBe(size('33,000,000+'))
+    expect(size('Service company of the year 2025')).toBeLessThan(
+      size('33,000,000+')
+    )
+    const words = screen.getByText('Service company of the year 2025')
+    const lineHeight = parseFloat(getComputedStyle(words).lineHeight)
+    expect(words.getBoundingClientRect().height).toBeLessThan(lineHeight * 2.5)
+  })
+
   it('sets each illustration beside its value', () => {
     const { container } = render(<Stats {...facts} />)
 
