@@ -129,8 +129,10 @@ export type ImageProps = Omit<
    */
   params?: OztixImageOptions['params']
   /**
-   * Blur-up placeholder: show a tiny low-quality preview, then fade the full
-   * image in on load. `'blur'` wraps the image in a positioned element. The
+   * Blur-up placeholder: show a tiny low-quality preview until the full image
+   * loads. An image whose `src` is in the server HTML shows as soon as it
+   * downloads; one that mounts on the client, or a `defer`red one, fades in.
+   * `'blur'` wraps the image in a positioned element. The
    * preview is derived from the Oztix proxy by default; pass `blurDataURL` for
    * non-Oztix images or to override.
    */
@@ -243,8 +245,9 @@ export function Image({
     : undefined
 
   // Keep `loaded` in sync with the requested image: reset when the source
-  // changes (re-show the tint/blur and re-run the fade-in), but mark loaded
-  // immediately for a cached image that finished before onLoad attached.
+  // changes (re-show the tint/blur, and re-run the fade-in where there is
+  // one), but mark loaded immediately for a cached image that finished
+  // before onLoad attached.
   useEffect(() => {
     setLoaded(
       Boolean(innerRef.current?.complete && innerRef.current.currentSrc)

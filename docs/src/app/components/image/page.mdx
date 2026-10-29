@@ -170,7 +170,7 @@ Phones (under 640px) load a real 600×800 portrait crop in a 3:4 box. Wider scre
 
 ### Blur-up placeholder
 
-Set `placeholder='blur'` to show a tiny preview until the full image loads. An image in the server HTML shows as soon as it downloads, without waiting for hydration; one that mounts on the client fades in. Use it as the default treatment for content imagery. The preview comes from the Oztix proxy automatically. Pass `width` and `height` so layout is reserved while it loads.
+Set `placeholder='blur'` to show a tiny preview until the full image loads. An image whose `src` is in the server HTML shows as soon as it downloads, without waiting for hydration. One that mounts on the client, or a `defer`red one, fades in. Use it as the default treatment for content imagery. The preview comes from the Oztix proxy automatically. Pass `width` and `height` so layout is reserved while it loads.
 
 ```tsx-live
 <Image
