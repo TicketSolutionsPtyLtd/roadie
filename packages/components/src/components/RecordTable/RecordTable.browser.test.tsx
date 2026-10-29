@@ -1,5 +1,6 @@
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import { RecordTable } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -9,6 +10,7 @@ import { showFields, testShows } from '../Records/testUtils'
 import { tableColumns } from './columns'
 import {
   ALL,
+  ROW_PX,
   WIDE_BOX,
   frame,
   rect,
@@ -16,6 +18,7 @@ import {
   slot,
   wideColumns
 } from './testUtils'
+import type { RecordTableColumn } from './types'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -181,7 +184,7 @@ describe('RecordTable columns', () => {
     ['16px', 48],
     ['20px', 60]
   ])(
-    'keeps a long title on one line inside a row, at a %s root %ipx tall',
+    'clamps a long title to two lines inside a row, at a %s root %ipx tall',
     async (rootSize, height) => {
       document.documentElement.style.fontSize = rootSize
       try {
@@ -203,8 +206,9 @@ describe('RecordTable columns', () => {
         )
         expect(rect(row!).height).toBe(height)
         const title = row!.querySelector('[role="cell"] > span')!
+        expect(rect(title).top).toBeGreaterThanOrEqual(rect(row!).top)
         expect(rect(title).bottom).toBeLessThanOrEqual(rect(next!).top)
-        expect(title.scrollWidth).toBeGreaterThan(title.clientWidth)
+        expect(title.scrollHeight).toBeGreaterThan(title.clientHeight)
       } finally {
         document.documentElement.style.fontSize = ''
       }
@@ -514,5 +518,149 @@ describe('RecordTable status badges', () => {
     expect(rect(badge).right).toBeLessThanOrEqual(
       rect(badge.closest('[role="cell"]')!).right + 0.5
     )
+  })
+})
+
+describe('RecordTable title links', () => {
+  const LONG_TITLE =
+    'Ball Park Music with Julia Jacklin, Alex Lahey and Middle Kids at Kazoo Hollow Room, early and late shows'
+  const titled = (count: number) =>
+    testShows(count).map((show, index) =>
+      index === 0 ? { ...show, show: LONG_TITLE } : show
+    )
+  const titleColumns = (cell?: RecordTableColumn['cell'], pin = true) => [
+    tableColumns(showFields).field('show', {
+      pin,
+      width: { min: 12 },
+      cell
+    }),
+    ...showColumns.slice(1)
+  ]
+  const truncateCell: RecordTableColumn['cell'] = ({ value }) => (
+    <span data-custom='' className='truncate'>
+      {String(value)}
+    </span>
+  )
+  const flexCell: RecordTableColumn['cell'] = ({ value }) => (
+    <span data-custom='' className='flex items-center gap-1'>
+      <span>*</span>
+      <span>{String(value)}</span>
+    </span>
+  )
+  const renderTitles = ({
+    linked = true,
+    cell,
+    pin
+  }: {
+    linked?: boolean
+    cell?: RecordTableColumn['cell']
+    pin?: boolean
+  } = {}) =>
+    render(
+      <div style={{ width: 900 }}>
+        <RecordTable
+          data={titled(4)}
+          fields={showFields}
+          columns={titleColumns(cell, pin)}
+          getRowHref={linked ? (row) => `#${row.id}` : undefined}
+        />
+      </div>
+    )
+  const titleOf = (container: HTMLElement, row = 0) =>
+    container
+      .querySelectorAll('[data-slot="record-table-row"]')
+      [row]!.querySelector<HTMLElement>('[role="cell"]')!
+  const lineHeight = (element: Element) =>
+    parseFloat(getComputedStyle(element).lineHeight)
+
+  it("keeps a linked title in the cell's strong text, underlined only on hover", async () => {
+    const { container } = renderTitles()
+    const cell = titleOf(container, 1)
+    const link = cell.querySelector('a')!
+    const style = getComputedStyle(link)
+    expect(style.color).toBe(getComputedStyle(cell).color)
+    expect(style.fontWeight).toBe(getComputedStyle(cell).fontWeight)
+    expect(style.backgroundImage).toBe('none')
+    expect(style.textDecorationColor).toBe('rgba(0, 0, 0, 0)')
+    await userEvent.hover(link)
+    await expect
+      .poll(() => getComputedStyle(link).textDecorationColor)
+      .not.toBe('rgba(0, 0, 0, 0)')
+  })
+
+  it.each([
+    ['linked', true],
+    ['unlinked', false]
+  ])(
+    'wraps a long %s title onto two lines and clamps it there',
+    (_, linked) => {
+      const { container } = renderTitles({ linked })
+      const clamp = titleOf(container).firstElementChild as HTMLElement
+      expect(rect(clamp).height).toBeCloseTo(2 * lineHeight(clamp), 0)
+      expect(clamp.scrollHeight).toBeGreaterThan(clamp.clientHeight)
+    }
+  )
+
+  it.each([
+    ['pinned', true],
+    ['unpinned', false]
+  ])('rings a focused %s title once, around its whole cell', async (_, pin) => {
+    const { container } = renderTitles({ pin })
+    const cell = titleOf(container)
+    const link = cell.querySelector('a')!
+    await userEvent.keyboard('{Shift}')
+    link.focus({ focusVisible: true })
+    const ring = () => getComputedStyle(link, '::after')
+    await expect.poll(() => ring().outlineWidth).toBe('4px')
+    expect(ring().outlineStyle).toBe('solid')
+    expect(parseFloat(ring().outlineOffset)).toBe(-4)
+    expect(parseFloat(ring().width)).toBeCloseTo(rect(cell).width, 0)
+    expect(parseFloat(ring().height)).toBeCloseTo(rect(cell).height, 0)
+    expect(ring().pointerEvents).toBe('none')
+    expect(getComputedStyle(link).outlineStyle).toBe('none')
+    expect(getComputedStyle(cell).outlineStyle).toBe('none')
+  })
+
+  it('keeps a long linked title inside its 48px row', () => {
+    const { container } = renderTitles()
+    for (const row of container.querySelectorAll<HTMLElement>(
+      '[data-slot="record-table-row"]'
+    )) {
+      const bounds = rect(row)
+      expect(bounds.height).toBe(ROW_PX)
+      const title = rect(row.querySelector('[role="cell"]')!.firstElementChild!)
+      expect(title.top).toBeGreaterThanOrEqual(bounds.top)
+      expect(title.bottom).toBeLessThanOrEqual(bounds.bottom)
+    }
+  })
+
+  it.each([
+    ['truncating', truncateCell],
+    ['flex', flexCell]
+  ])('lays out a %s custom title cell the same, linked or not', (_, cell) => {
+    const layout = (linked: boolean) => {
+      const { container, unmount } = renderTitles({ linked, cell })
+      const value = titleOf(container).querySelector('[data-custom]')!
+      const style = getComputedStyle(value)
+      const box = rect(value)
+      const result = {
+        width: Math.round(box.width),
+        height: Math.round(box.height),
+        textOverflow: style.textOverflow,
+        clipped: value.scrollWidth > value.clientWidth
+      }
+      unmount()
+      return result
+    }
+    expect(layout(true)).toEqual(layout(false))
+  })
+
+  it('keeps a truncating custom title cell to one line, with an ellipsis', () => {
+    const { container } = renderTitles({ cell: truncateCell })
+    const value =
+      titleOf(container).querySelector<HTMLElement>('[data-custom]')!
+    expect(rect(value).height).toBeLessThan(1.5 * lineHeight(value))
+    expect(getComputedStyle(value).textOverflow).toBe('ellipsis')
+    expect(value.scrollWidth).toBeGreaterThan(value.clientWidth)
   })
 })
