@@ -4,6 +4,8 @@ import type { ComponentProps } from 'react'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import type { PageWidth } from '@/lib/page-manifest'
+
 import { Toast } from '@oztix/roadie-components/toast'
 
 import { DocsNavigator, type NavigationDestination } from './Navigation'
@@ -57,7 +59,7 @@ const destinations: NavigationDestination[] = [
 
 function renderAt(
   route: string,
-  pageWide: Record<string, boolean> = {},
+  pageWide: Record<string, PageWidth> = {},
   pageStatus: Record<string, PageStatusInfo> = {},
   props: Partial<ComponentProps<typeof DocsNavigator>> = {}
 ) {
@@ -92,6 +94,13 @@ describe('DocsNavigator header', () => {
   it('gives a wide page Back to its section too', () => {
     renderAt('/charts/show-dashboard', { '/charts/show-dashboard': true })
     expect(backToCharts()?.getAttribute('href')).toBe('/charts')
+  })
+
+  it('keeps the reading column on a page with wide examples, and marks it for them', () => {
+    renderAt('/blocks/hero', { '/blocks/hero': 'examples' })
+    const content = document.getElementById('docs-content')!
+    expect(content.hasAttribute('data-wide-examples')).toBe(true)
+    expect(content.className).toContain('max-w-200')
   })
 
   it('gives a section overview no Back', () => {
