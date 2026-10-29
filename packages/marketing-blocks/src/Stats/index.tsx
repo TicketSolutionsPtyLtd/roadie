@@ -11,8 +11,8 @@ export type { StatsPreset } from './definition'
 
 export type StatsProps = {
   /**
-   * The named look. `company-facts` sets a heading over a wrapping row of stats.
-   * @default 'company-facts'
+   * The named look. `figures` sets a heading over a wrapping row of figures.
+   * @default 'figures'
    */
   preset?: StatsPreset
   /** The block's place on the page, counting from 1, reported with its events. */

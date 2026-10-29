@@ -36,7 +36,7 @@ export type SplitStats = {
 
 export type SplitProps = {
   /**
-   * The named look. `feature-row` sets an image beside the heading on a tinted panel, `text-and-stats` sets long-form text beside `stats`, and `partner-spotlight` opens a partner page with the Oztix logo and the `partner` logo joined by a heart, its title as the page's `h1`.
+   * The named look. `feature-row` sets an image beside the heading on a tinted panel, `media-text` sets a plain image beside the heading, body, and actions, `text-and-stats` sets long-form text beside `stats`, and `partner-spotlight` opens a partner page with the Oztix logo and the `partner` logo joined by a heart, its title as the page's `h1`.
    * @default 'feature-row'
    */
   preset?: SplitPreset
@@ -56,7 +56,7 @@ export type SplitProps = {
   body?: ReactNode
   /** Links under the text, as buttons. The first is the strong one. */
   actions?: readonly BlockAction[]
-  /** The `feature-row` image, shown before the text. */
+  /** The `feature-row` or `media-text` image, shown before the text. */
   image?: BlockImage
   /** The partner in a `partner-spotlight`, whose logo sits under the Oztix logo. */
   partner?: SplitPartner
@@ -75,6 +75,7 @@ const CONTENT: Record<
   }
 > = {
   'feature-row': { level: 2, size: 3, gap: 'gap-4', prose: 'md' },
+  'media-text': { level: 2, size: 2, gap: 'gap-6', prose: 'md' },
   'text-and-stats': {
     level: 2,
     size: 2,
@@ -144,6 +145,25 @@ export function Split({
         <div className='container-8xl flex flex-wrap gap-16 @5xl:gap-24'>
           {partner && <PartnerLockup {...partner} />}
           <div className='grow basis-100'>{content}</div>
+        </div>
+      )}
+      {name === 'media-text' && (
+        <div
+          className={cn(
+            'container-8xl grid items-center gap-8 @5xl:gap-16',
+            image && '@3xl:grid-cols-2'
+          )}
+        >
+          {image && (
+            <div className='aspect-4/3 overflow-hidden rounded-2xl'>
+              <BlockImg
+                image={image}
+                sizes='(min-width: 48rem) 50vw, 100vw'
+                className='size-full object-cover'
+              />
+            </div>
+          )}
+          {content}
         </div>
       )}
       {name === 'feature-row' && (

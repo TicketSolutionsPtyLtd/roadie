@@ -88,7 +88,7 @@ describe('Stats layout', () => {
 })
 
 describe('Stats accessibility', () => {
-  it('has no axe violations as company-facts', async () => {
+  it('has no axe violations as figures', async () => {
     const { container } = render(<Stats {...facts} />)
 
     expect(await axeViolations(container)).toEqual([])

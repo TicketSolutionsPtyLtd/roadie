@@ -7,10 +7,10 @@ export const statsDefinition = {
     'Key numbers as they were written, each with a spot illustration and a label.',
   presets: [
     {
-      name: 'company-facts',
-      title: 'Company facts',
+      name: 'figures',
+      title: 'Figures',
       description:
-        'A heading over a wrapping row of numbers, such as tickets sold and organisers served.',
+        'A heading over a wrapping row of figures, such as company facts, results, or a local audience.',
       variant: 'typed-in'
     }
   ]

@@ -21,6 +21,13 @@ const PRESETS = {
       'Teams in innovation, operations, marketing, events, and finance.',
     image: photo('Two team members working together at a desk', 1280, 1007)
   },
+  'media-text': {
+    preset: 'media-text',
+    title: 'Get your gig on Spotify',
+    body: <p>Your events show on artist profiles where fans already listen.</p>,
+    actions: [{ label: 'Set it up', href: '/spotify' }],
+    image: photo('An event listing on an artist profile', 1200, 1000)
+  },
   'text-and-stats': {
     preset: 'text-and-stats',
     title: 'Who we are',
@@ -78,6 +85,30 @@ describe('Split layout', () => {
     cleanup()
     await renderAt(PHONE, PRESETS['feature-row'])
     expect(isAbove(image(), heading())).toBe(true)
+  })
+
+  it('sets the media-text image beside the text in equal halves on wide screens, and above it on phones', async () => {
+    await renderAt(DESKTOP, PRESETS['media-text'])
+    const image = () => screen.getByRole('img', { name: /event listing/ })
+    const heading = () => screen.getByRole('heading', { level: 2 })
+    expect(isBeside(image(), heading())).toBe(true)
+    expect(box(image()).width).toBeCloseTo(
+      box(heading().parentElement!).width,
+      -1
+    )
+
+    cleanup()
+    await renderAt(PHONE, PRESETS['media-text'])
+    expect(isAbove(image(), heading())).toBe(true)
+  })
+
+  it('crops a sized media-text photo to 4 by 3', async () => {
+    await renderAt(DESKTOP, PRESETS['media-text'])
+
+    const { width, height } = box(
+      screen.getByRole('img', { name: /event listing/ })
+    )
+    expect(width / height).toBeCloseTo(4 / 3, 1)
   })
 
   it('sets the text-and-stats aside beside the text on wide screens, and wraps it below on phones', async () => {

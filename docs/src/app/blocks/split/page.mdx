@@ -38,6 +38,31 @@ image comes first, and the text wraps below it on narrow screens.
 />
 ```
 
+### Media and text
+
+A plain image beside the heading, text, and actions, with no panel. The image
+comes first, cropped to 4 by 3, and the text wraps below it on narrow screens.
+
+```tsx-live-expand id=media-text
+<Split
+  preset='media-text'
+  title='Sell more tickets with your partners'
+  body={
+    <p>
+      List your events where your audience already spends time, and every sale
+      still lands in your Oztix reports.
+    </p>
+  }
+  actions={[{ label: 'Talk to us', href: '/contact' }]}
+  image={{
+    src: '/brand/photography/05.webp',
+    alt: 'Three partners smiling together at a laneway event',
+    width: 1280,
+    height: 854
+  }}
+/>
+```
+
 ### Text and stats
 
 Long-form text at a readable measure, with the numbers that back it up
@@ -119,7 +144,7 @@ heart, beside the page title, text, and action. Its title is the page's
 
 <Guideline title='Pick the preset for the content'>
   <Guideline.Do>
-    Use feature row for a short point with a photo that shows it, text and stats for an about page with three to six numbers that prove it, and partner spotlight to open a page about one partner.
+    Use feature row for a short point with a photo that shows it, media and text for a longer section beside a photo, text and stats for an about page with three to six numbers that prove it, and partner spotlight to open a page about one partner.
   </Guideline.Do>
   <Guideline.Dont>
     Don't put partner spotlight anywhere but the top of the page. Its title is the page's `h1`.

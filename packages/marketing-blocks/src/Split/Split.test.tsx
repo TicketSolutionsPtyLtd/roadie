@@ -18,6 +18,19 @@ const featureRow = {
   }
 } as const
 
+const mediaText = {
+  preset: 'media-text',
+  title: 'Get your gig on Spotify',
+  body: <p>Your events show on artist profiles where fans already listen.</p>,
+  actions: [{ label: 'Set it up', href: '/spotify' }],
+  image: {
+    src: '/spotify.webp',
+    alt: 'An event listing on an artist profile',
+    width: 1200,
+    height: 900
+  }
+} as const
+
 const textAndStats = {
   preset: 'text-and-stats',
   title: 'Who we are',
@@ -78,6 +91,28 @@ describe('Split', () => {
     expect(
       image.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
+  })
+
+  it('renders media-text as a media split with its image first, then heading, body and action', () => {
+    render(<Split {...mediaText} />)
+
+    const section = screen.getByRole('region', { name: mediaText.title })
+    expect(section).toHaveAttribute('data-variant', 'media')
+    expect(section).toHaveAttribute('data-preset', 'media-text')
+    const image = within(section).getByRole('img', {
+      name: mediaText.image.alt
+    })
+    const heading = within(section).getByRole('heading', {
+      level: 2,
+      name: mediaText.title
+    })
+    expect(
+      image.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(within(section).getByText(/fans already listen/)).toBeInTheDocument()
+    expect(
+      within(section).getByRole('link', { name: 'Set it up' })
+    ).toHaveAttribute('href', '/spotify')
   })
 
   it('renders text-and-stats as a stats split, with the body, action and stats aside', () => {

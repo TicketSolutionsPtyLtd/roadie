@@ -14,6 +14,13 @@ export const splitDefinition = {
       variant: 'media'
     },
     {
+      name: 'media-text',
+      title: 'Media and text',
+      description:
+        'A plain image beside a heading, text, and actions, with no panel.',
+      variant: 'media'
+    },
+    {
       name: 'text-and-stats',
       title: 'Text and stats',
       description:
