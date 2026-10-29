@@ -110,21 +110,16 @@ function CardImage({
 
 function FeatureCard({ item }: CardProps) {
   return (
-    <li
-      className={cn(
-        CARD,
-        '@container/card grid items-center gap-8 rounded-2xl @2xl/card:grid-cols-2'
-      )}
-    >
+    <li className={cn(CARD, 'grid content-start gap-8 rounded-2xl')}>
       <CardImage
         image={item.image}
         sizes='(min-width: 1024px) 33vw, 100vw'
         className='aspect-video w-full rounded-2xl'
       />
-      <div className='grid justify-items-center gap-2 text-center @2xl/card:justify-items-start @2xl/card:text-start'>
+      <div className='grid justify-items-center gap-2 text-center'>
         <Illustration
           name={item.illustration}
-          className='relative -mt-20 size-20 @2xl/card:mt-0 @2xl/card:size-16'
+          className='relative -mt-20 size-20'
         />
         <h3 className='text-display-prose-4 text-strong'>
           <CardTitle item={item} />
@@ -374,7 +369,7 @@ const PAGE_PADDING = 'px-6 @3xl:px-8 @5xl:px-12'
 const LOOKS: Record<CardGridPreset, Look> = {
   'illustrated-cards': {
     Item: FeatureCard,
-    list: 'grid grid-cols-1 gap-12 @5xl:grid-cols-3',
+    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @4xl:grid-cols-3',
     align: 'center',
     raised: true
   },
@@ -413,7 +408,7 @@ const LOOKS: Record<CardGridPreset, Look> = {
   },
   lists: {
     Item: ListColumn,
-    list: 'grid grid-cols-1 gap-8 @3xl:auto-cols-[minmax(0,1fr)] @3xl:grid-flow-col @3xl:grid-cols-none',
+    list: 'grid grid-cols-1 gap-8 @xl:grid-cols-2 @4xl:auto-cols-[minmax(0,1fr)] @4xl:grid-flow-col @4xl:grid-cols-none',
     align: 'start'
   }
 }

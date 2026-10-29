@@ -78,7 +78,7 @@ describe('CardGrid columns', () => {
     ['marked-cards', 1],
     ['overlap-cards', 1],
     ['portraits', 2],
-    ['lists', 1],
+    ['lists', 2],
     ['numbered-cards', 1],
     ['link-cards', 2]
   ])('%s fits %i column(s) of at least 15rem at 640px', (preset, expected) => {
@@ -137,22 +137,41 @@ describe('CardGrid columns', () => {
   })
 })
 
+describe('CardGrid at 960px', () => {
+  it.each<[CardGridPreset, number, number]>([
+    ['illustrated-cards', 3, 3],
+    ['lists', 3, 3]
+  ])('fits %s in %i columns', (preset, count, expected) => {
+    render(<Block preset={preset} width={960} count={count} />)
+
+    expect(columns()).toBe(expected)
+  })
+
+  it('fits illustrated cards two to a row from 42rem', () => {
+    render(<Block preset='illustrated-cards' width={700} count={3} />)
+
+    expect(columns()).toBe(2)
+  })
+})
+
 describe('CardGrid features', () => {
   const alignment = () =>
     getComputedStyle(
       screen.getAllByRole('heading', { level: 3 })[0]!.parentElement!
     ).textAlign
 
-  it('centres each card on a phone and starts it when the card is wide', () => {
-    const { unmount } = render(
-      <Block preset='illustrated-cards' width={375} count={3} />
-    )
-    expect(alignment()).toBe('center')
-    unmount()
+  it.each([375, 640, 960])(
+    'centres each card under its image at %ipx',
+    (width) => {
+      render(<Block preset='illustrated-cards' width={width} count={3} />)
 
-    render(<Block preset='illustrated-cards' width={900} count={3} />)
-    expect(alignment()).toBe('start')
-  })
+      expect(alignment()).toBe('center')
+      const card = cards()[0]!
+      const image = within(card).getByRole('img').getBoundingClientRect()
+      const title = within(card).getByRole('heading').getBoundingClientRect()
+      expect(title.top).toBeGreaterThanOrEqual(image.bottom - 1)
+    }
+  )
 
   it('overlaps each image with its illustration', () => {
     render(<Block preset='illustrated-cards' width={375} count={1} />)
