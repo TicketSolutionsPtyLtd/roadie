@@ -147,6 +147,11 @@
       "limit": "9.7 KB"
     },
     {
+      "name": "number",
+      "path": "dist/number/index.js",
+      "limit": "420 B"
+    },
+    {
       "name": "records",
       "path": "dist/records/index.js",
       "limit": "44.5 KB"
