@@ -219,6 +219,41 @@ describe('Split at a mid width', () => {
   )
 })
 
+const WIDE = { width: 1440, height: 900 }
+
+describe('Split at 1440px, as on the live site', () => {
+  it('splits logo-lockup in halves: the lockup centred in the left, the title from the middle', async () => {
+    const { container } = await renderAt(WIDE, PRESETS['logo-lockup'])
+
+    const section = box(container.querySelector('section')!)
+    const middle = section.left + section.width / 2
+    const oztix = box(screen.getByRole('img', { name: 'Oztix' }))
+    const partner = box(screen.getByRole('img', { name: 'Partner logo' }))
+    const heading = box(screen.getByRole('heading', { level: 1 }))
+
+    expect(heading.left).toBeGreaterThanOrEqual(middle)
+    expect(heading.left).toBeLessThan(middle + 64)
+    const lockupMiddle = (oztix.left + oztix.right) / 2
+    expect(Math.abs(lockupMiddle - (section.left + middle) / 2)).toBeLessThan(
+      48
+    )
+    expect(oztix.height).toBeCloseTo(60, -1)
+    expect(partner.height).toBeCloseTo(oztix.height, 0)
+  })
+
+  it('gives text-and-stats a growing text column and a stats aside of about 20rem at the end', async () => {
+    const { container } = await renderAt(WIDE, PRESETS['text-and-stats'])
+
+    const section = box(container.querySelector('section')!)
+    const aside = box(
+      screen.getByRole('heading', { name: 'By the numbers' }).parentElement!
+        .parentElement!
+    )
+    expect(aside.width).toBeCloseTo(320, -1)
+    expect(aside.left).toBeGreaterThan(section.left + section.width * 0.7)
+  })
+})
+
 describe('Split tinted panel', () => {
   it('sets the description and body in neutral subtle text on the tinted panel', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)

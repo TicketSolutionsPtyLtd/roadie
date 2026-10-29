@@ -154,7 +154,7 @@ export function Split({
         <div
           className={cn(
             'container-8xl grid grid-cols-1 gap-12 @5xl:gap-x-24',
-            stats && '@3xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)]'
+            stats && '@3xl:grid-cols-[minmax(0,1fr)_20rem]'
           )}
         >
           {content}
@@ -165,7 +165,7 @@ export function Split({
         <div
           className={cn(
             'container-8xl grid grid-cols-1 gap-8 @xl:gap-16 @5xl:gap-24',
-            partner && '@xl:grid-cols-[auto_minmax(0,1fr)]'
+            partner && '@xl:grid-cols-[auto_minmax(0,1fr)] @3xl:grid-cols-2'
           )}
         >
           {partner && <PartnerLockup {...partner} />}
@@ -231,12 +231,12 @@ function StatsAside({ title, description, items }: SplitStats) {
 // The logos sit the same height either side of a short middle row, so the heart, centred across all three, overlaps both.
 function PartnerLockup({ name, logo }: SplitPartner) {
   return (
-    <div className='grid grid-rows-[auto_1.5rem_auto] content-start justify-items-center'>
-      <Logo size='xl' className='col-start-1 row-start-1' />
+    <div className='grid grid-rows-[auto_1.5rem_auto] content-start justify-items-center justify-self-center'>
+      <Logo className='col-start-1 row-start-1 text-[3.75rem]' />
       <BlockImg
         image={{ ...logo, alt: logo.alt || name }}
         sizes='16rem'
-        className='col-start-1 row-start-3 h-12 w-auto'
+        className='col-start-1 row-start-3 h-15 w-auto'
       />
       <Heart
         outline
