@@ -27,7 +27,7 @@ export function StatList({ items }: { items: readonly StatItem[] }) {
             {Illustration && (
               <Illustration outline className='size-16 shrink-0' />
             )}
-            <div>
+            <div className='min-w-0'>
               <p
                 className={cn(
                   'text-strong',

@@ -53,10 +53,11 @@ export function Stats({
       id={id}
       aria-labelledby={headingId}
     >
-      <div className='container-8xl grid gap-8'>
+      <div className='container-8xl grid grid-cols-1 gap-8 *:min-w-0'>
         <BlockHeading
           id={headingId}
           align='start'
+          className='grid-cols-1'
           eyebrow={eyebrow}
           title={title}
           titleHighlight={titleHighlight}

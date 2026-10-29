@@ -17,14 +17,14 @@ export const splitDefinition = {
       name: 'media-text',
       title: 'Media and text',
       description:
-        'A plain image beside a heading, text, and actions, with no panel.',
+        'A plain image beside a heading, text, and actions, with no panel, such as a section about a product or partnership.',
       variant: 'media'
     },
     {
       name: 'text-and-stats',
       title: 'Text and stats',
       description:
-        'Long-form text with a column of key numbers beside it, which wraps below on narrow screens.',
+        'Long-form text with a column of key figures beside it, such as an about page backing its story with numbers. The figures wrap below on narrow screens.',
       variant: 'stats'
     },
     {

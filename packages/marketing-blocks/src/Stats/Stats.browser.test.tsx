@@ -49,6 +49,36 @@ describe('Stats layout', () => {
       expect(item.scrollWidth).toBeLessThanOrEqual(item.clientWidth)
   })
 
+  it('keeps a long figure inside its column at 640px', async () => {
+    await atWidth(640, 800)
+    render(
+      <Stats
+        title='By the numbers'
+        items={[
+          {
+            value: '1,000,000,000,000+',
+            label: 'tickets scanned',
+            illustration: 'Ticket'
+          },
+          { value: '22,000+', label: 'event organisers' }
+        ]}
+      />
+    )
+
+    for (const item of screen.getAllByRole('listitem'))
+      expect(item.scrollWidth).toBeLessThanOrEqual(item.clientWidth)
+  })
+
+  it('keeps a long word in the heading inside the block on phones', async () => {
+    await atWidth(PHONE.width, PHONE.height)
+    const { container } = render(
+      <Stats {...facts} title={'Ticketing'.repeat(8)} />
+    )
+
+    const section = container.querySelector('section')!
+    expect(section.scrollWidth).toBeLessThanOrEqual(section.clientWidth)
+  })
+
   it('sets the stats four to a row on wide screens', async () => {
     expect(await statsPerRowAt(DESKTOP)).toBe(4)
   })

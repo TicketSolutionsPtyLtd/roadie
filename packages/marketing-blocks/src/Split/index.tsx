@@ -232,6 +232,7 @@ function StatsAside({ title, description, items }: SplitStats) {
 function PartnerLockup({ name, logo }: SplitPartner) {
   return (
     <div className='grid grid-rows-[auto_1.5rem_auto] content-start justify-items-center justify-self-center'>
+      {/* Logo's largest size is 48px; the live lockup sets both logos at 60px. */}
       <Logo className='col-start-1 row-start-1 text-[3.75rem]' />
       <BlockImg
         image={{ ...logo, alt: logo.alt || name }}
