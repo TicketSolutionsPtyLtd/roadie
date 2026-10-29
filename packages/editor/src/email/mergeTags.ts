@@ -16,15 +16,15 @@ export type MergeTag = (attrs: Record<string, unknown>) => string
 type Filled = { html: string; text: string }
 
 // Private-use characters, which escapeHtml strips from what an author typed.
-const PLACEHOLDER = /(\d+)/g
+const PLACEHOLDER = /\uE000(\d+)\uE001/g
 
 // A zero-width space splits text that reads as a token, so no sender fills it.
 export const untokenedText = (text: string) =>
   text
-    .replace(/\{(?=[{%])/g, '{​')
-    .replace(/([%}])(?=\})/g, '$1​')
-    .replace(/#(?=\w+#)/g, '#​')
-    .replace(/\[(?=\w+\])/g, '[​')
+    .replace(/\{(?=[{%])/g, '{\u200B')
+    .replace(/([%}])(?=\})/g, '$1\u200B')
+    .replace(/#(?=\w+#)/g, '#\u200B')
+    .replace(/\[(?=\w+\])/g, '[\u200B')
 
 // Liquid strings have no escapes, so the quote is one the text doesn't hold.
 const liquidString = (text: string) =>
@@ -81,7 +81,7 @@ export function mergeTags({ syntax, variables = [], values }: MergeTagOptions) {
         ? { html: escapeHtml(preview), text: untokenedText(preview) }
         : tokenFor(variable, shownFallback, syntax)
     )
-    return `${filled.length - 1}`
+    return `\uE000${filled.length - 1}\uE001`
   }
   const fill = (output: string, part: keyof Filled) =>
     output.replace(PLACEHOLDER, (_match, index) => filled[Number(index)]![part])
