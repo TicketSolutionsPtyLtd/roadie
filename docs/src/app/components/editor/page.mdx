@@ -152,6 +152,36 @@ A link that could run script, such as a `javascript:` address, never reaches
 the saved value. The link editor refuses it, pasted HTML keeps only its text,
 and `migrate` drops it from a stored value.
 
+### Selection menu
+
+Add `Editor.BubbleMenu` among the parts to show Bold, Italic, Underline and
+Link above selected text, close to it on a phone or in a long document. It
+shows while text is selected and the editor has focus, and hides when the
+selection collapses, on a selected image or embed, while the link editor is
+open, and when the editor is read-only or disabled. Children go after the
+preset's controls, as in `Editor.Toolbar`.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  defaultValue={{
+    version: 1,
+    preset: 'basic',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'Ochre Kite Weekender opens at Jumbuck Orchard Park on Saturday.' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Select a few words to format them from the menu.' }] }
+      ]
+    }
+  }}
+>
+  <Editor.Toolbar />
+  <Editor.Content />
+  <Editor.BubbleMenu />
+</Editor>
+```
+
 ### Rich preset
 
 `preset='rich'` adds headings 2 to 4, quotes, and dividers to the basic
@@ -681,6 +711,10 @@ render(
   Embed actions, with the same keys as Formatting. It shows only while the
   node is selected and the editor has focus, and never while read-only or
   disabled. Each action is one step to undo.
+- The selection menu is a `toolbar` named Selection formatting, with the same
+  keys as Formatting. It shows only while text is selected and the editor has
+  focus. Alt+F10 moves focus to its first control while it shows, and Escape
+  moves focus back to the selection.
 - An image's alt text is edited in a popover with a named input, opened by
   Enter on a selected image or its Alt text action. Escape closes it and
   returns focus to the image. An upload in progress is a `status`, and an upload error
@@ -728,7 +762,7 @@ render(
 | `Mod+Z` | Undo |
 | `Mod+Shift+Z` | Redo |
 | `Shift+Enter` | Line break |
-| `Alt+F10` | Move focus to the toolbar's first enabled control, a selected image's or embed's first action, or in a table its first table action |
+| `Alt+F10` | Move focus to the toolbar's first enabled control, the selection menu's while it shows, a selected image's or embed's first action, or in a table its first table action |
 | `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image or embed |
 
 `Mod` is `⌘` on Apple devices and `Ctrl` elsewhere, and `Alt` is `⌥` on

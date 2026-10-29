@@ -1,0 +1,257 @@
+import { render, screen, waitFor, within } from '@testing-library/react'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
+
+import { Toolbar } from '@oztix/roadie-components/toolbar'
+
+import { Editor, type EditorProps } from '.'
+import roadieCss from '../../vitest.browser.css?inline'
+import type { EditorValue } from '../schema'
+import { MOD, selectParagraph } from './testUtils'
+
+const LABEL = 'Event description'
+const MENU = 'Selection formatting'
+const CROWD = '/images/crowd.webp'
+
+let style: HTMLStyleElement
+beforeAll(() => {
+  style = document.createElement('style')
+  style.textContent = roadieCss
+  document.head.append(style)
+})
+afterAll(() => style.remove())
+
+const paragraph = (text: string) => ({
+  type: 'paragraph',
+  content: [{ type: 'text', text }]
+})
+
+const lineup: EditorValue = {
+  version: 1,
+  preset: 'rich',
+  doc: {
+    type: 'doc',
+    content: [paragraph('Ochre Kite Weekender'), paragraph('Gates open at 4pm')]
+  }
+}
+
+function BubbleEditor({ children, ...props }: Partial<EditorProps>) {
+  return (
+    <Editor aria-label={LABEL} defaultValue={lineup} {...props}>
+      <Editor.Toolbar />
+      <Editor.Content />
+      <Editor.BubbleMenu>{children}</Editor.BubbleMenu>
+    </Editor>
+  )
+}
+
+const lastValue = (onValueChange: ReturnType<typeof vi.fn>) =>
+  onValueChange.mock.lastCall![0] as EditorValue
+
+async function selectText(text: string) {
+  const textbox = await screen.findByRole('textbox', { name: LABEL })
+  await selectParagraph(within(textbox).getByText(text))
+  return textbox
+}
+
+const menu = () => screen.findByRole('toolbar', { name: MENU })
+const noMenu = () =>
+  waitFor(() =>
+    expect(screen.queryByRole('toolbar', { name: MENU })).toBe(null)
+  )
+
+const itemsOf = (toolbar: HTMLElement) =>
+  within(toolbar)
+    .getAllByRole('button')
+    .map((button) => button.getAttribute('aria-label') ?? button.textContent)
+
+describe('Editor.BubbleMenu', () => {
+  it('shows the inline marks and Link over a text selection', async () => {
+    render(<BubbleEditor />)
+    await selectText('Gates open at 4pm')
+
+    const toolbar = await menu()
+    await waitFor(() => expect(toolbar).toBeVisible())
+    expect(itemsOf(toolbar)).toEqual(['Bold', 'Italic', 'Underline', 'Link'])
+  })
+
+  it('shows nothing until the part is added', async () => {
+    render(<Editor aria-label={LABEL} defaultValue={lineup} />)
+    await selectText('Gates open at 4pm')
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Bold' })).toBeEnabled()
+    )
+    expect(screen.queryByRole('toolbar', { name: MENU })).toBe(null)
+  })
+
+  it('hides when the selection collapses', async () => {
+    render(<BubbleEditor />)
+    await selectText('Gates open at 4pm')
+    await menu()
+
+    await userEvent.keyboard('{ArrowRight}')
+
+    await noMenu()
+  })
+
+  it('bolds the selection from the menu, and presses Bold', async () => {
+    const onValueChange = vi.fn()
+    render(<BubbleEditor onValueChange={onValueChange} />)
+    await selectText('Gates open at 4pm')
+
+    const toolbar = await menu()
+    const bold = within(toolbar).getByRole('button', { name: 'Bold' })
+    await userEvent.click(bold)
+
+    await waitFor(() =>
+      expect(lastValue(onValueChange).doc.content?.[1]).toEqual({
+        type: 'paragraph',
+        content: [
+          { type: 'text', marks: [{ type: 'bold' }], text: 'Gates open at 4pm' }
+        ]
+      })
+    )
+    expect(bold).toHaveAttribute('aria-pressed', 'true')
+    expect(toolbar).toBeVisible()
+  })
+
+  it('moves focus to the menu with Alt+F10 and back to the selection with Escape', async () => {
+    const onValueChange = vi.fn()
+    render(<BubbleEditor onValueChange={onValueChange} />)
+    const textbox = await selectText('Gates open at 4pm')
+    const toolbar = await menu()
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    expect(within(toolbar).getByRole('button', { name: 'Bold' })).toHaveFocus()
+    await userEvent.keyboard('{ArrowRight}')
+    const italic = within(toolbar).getByRole('button', { name: 'Italic' })
+    expect(italic).toHaveFocus()
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() =>
+      expect(lastValue(onValueChange).doc.content?.[1]?.content?.[0]).toEqual({
+        type: 'text',
+        marks: [{ type: 'italic' }],
+        text: 'Gates open at 4pm'
+      })
+    )
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}{Escape}')
+    await waitFor(() => expect(textbox).toHaveFocus())
+    await userEvent.keyboard('Doors at 5pm')
+    await waitFor(() =>
+      expect(lastValue(onValueChange).doc.content?.[1]?.content).toEqual([
+        { type: 'text', marks: [{ type: 'italic' }], text: 'Doors at 5pm' }
+      ])
+    )
+  })
+
+  it('opens the link editor from Link, hiding while it’s open', async () => {
+    render(<BubbleEditor />)
+    await selectText('Gates open at 4pm')
+    const toolbar = await menu()
+
+    await userEvent.click(within(toolbar).getByRole('button', { name: 'Link' }))
+
+    const url = await screen.findByRole('textbox', { name: 'Link' })
+    await waitFor(() => expect(url).toHaveFocus())
+    await noMenu()
+  })
+
+  it('hides while the link editor opened with Mod+K is open', async () => {
+    render(<BubbleEditor />)
+    await selectText('Gates open at 4pm')
+    await menu()
+
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+
+    await screen.findByRole('textbox', { name: 'Link' })
+    await noMenu()
+  })
+
+  it('stays hidden on a selected image', async () => {
+    render(
+      <BubbleEditor
+        defaultValue={{
+          version: 1,
+          preset: 'rich',
+          doc: {
+            type: 'doc',
+            content: [
+              { type: 'image', attrs: { src: CROWD, alt: 'The crowd' } },
+              paragraph('Gates open at 4pm')
+            ]
+          }
+        }}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(textbox.querySelector('img')!)
+
+    await screen.findByRole('toolbar', { name: 'Image actions' })
+    expect(screen.queryByRole('toolbar', { name: MENU })).toBe(null)
+  })
+
+  it('stays hidden while read-only', async () => {
+    render(<BubbleEditor readOnly />)
+    await selectText('Gates open at 4pm')
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute(
+        'aria-disabled',
+        'true'
+      )
+    )
+    expect(screen.queryByRole('toolbar', { name: MENU })).toBe(null)
+  })
+
+  it('puts its children after the preset controls', async () => {
+    render(
+      <BubbleEditor>
+        <Toolbar.Button>Highlight</Toolbar.Button>
+      </BubbleEditor>
+    )
+    await selectText('Gates open at 4pm')
+
+    expect(itemsOf(await menu()).at(-1)).toBe('Highlight')
+  })
+
+  it('sits just above the selection in a scrolled container', async () => {
+    const filler = Array.from({ length: 12 }, (_, index) =>
+      paragraph(`Set time ${index + 1}`)
+    )
+    render(
+      <div style={{ height: 400, overflow: 'auto' }} data-testid='scroller'>
+        <BubbleEditor
+          defaultValue={{
+            version: 1,
+            preset: 'rich',
+            doc: {
+              type: 'doc',
+              content: [...filler, paragraph('Gates open at 4pm'), ...filler]
+            }
+          }}
+        />
+      </div>
+    )
+    const scroller = screen.getByTestId('scroller')
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const target = within(textbox).getByText('Gates open at 4pm')
+    target.scrollIntoView({ block: 'center' })
+    await selectParagraph(target)
+    const toolbar = await menu()
+
+    const expectAbove = () => {
+      const text = target.getBoundingClientRect()
+      const bar = toolbar.getBoundingClientRect()
+      expect(bar.bottom).toBeLessThanOrEqual(text.top)
+      expect(text.top - bar.bottom).toBeLessThan(24)
+      expect(bar.right).toBeGreaterThan(text.left)
+      expect(bar.left).toBeLessThan(text.right)
+    }
+    await waitFor(expectAbove)
+
+    scroller.scrollTop += 40
+    await waitFor(expectAbove)
+  })
+})
