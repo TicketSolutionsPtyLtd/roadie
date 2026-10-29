@@ -448,7 +448,7 @@ import {
 - `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
   it in place. The component gets `node.attrs` and `updateAttributes`, and
   wraps what it renders in `NodeViewWrapper`. Inputs in it take their own
-  keys.
+  keys. A read-only or disabled editor ignores its `updateAttributes`.
 - Pass `{ node, label, icon, keywords }` in `extensions` to show it in the
   slash menu. The editor reads `extensions` once, when it's created.
 - Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
@@ -482,7 +482,7 @@ function CallToActionView({ node, updateAttributes }) {
 
 const callToAction = {
   label: 'Call to action',
-  icon: Ticket,
+  icon: TicketIcon,
   keywords: ['button'],
   node: Node.create({
     name: 'callToAction',

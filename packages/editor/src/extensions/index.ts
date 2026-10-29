@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentType } from 'react'
+import { type ComponentType, createElement } from 'react'
 
 import type { Icon } from '@phosphor-icons/react'
 import { Node } from '@tiptap/core'
@@ -17,9 +17,24 @@ export type EditorNodeViewProps = ReactNodeViewProps
 /**
  * Renders a node with a React component in the editor. Return it from the
  * node's `addNodeView`, and wrap the component's output in `NodeViewWrapper`.
+ * A read-only or disabled editor ignores its `updateAttributes` and
+ * `deleteNode`.
  */
 export function reactNodeView(component: ComponentType<EditorNodeViewProps>) {
-  return ReactNodeViewRenderer(component)
+  // Tiptap runs a view's commands even when the editor isn't editable.
+  function EditableOnly(props: EditorNodeViewProps) {
+    const { editor, updateAttributes, deleteNode } = props
+    return createElement(component, {
+      ...props,
+      updateAttributes: (attributes) => {
+        if (editor.isEditable) updateAttributes(attributes)
+      },
+      deleteNode: () => {
+        if (editor.isEditable) deleteNode()
+      }
+    })
+  }
+  return ReactNodeViewRenderer(EditableOnly)
 }
 
 /** An app's own block, for the `blocks` editor's `extensions`. */

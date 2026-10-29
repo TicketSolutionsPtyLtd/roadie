@@ -129,6 +129,38 @@ describe('Editor extensions', () => {
     ).toContain('<aside>Event <!-- -->okw-2026</aside>')
   })
 
+  it.each([
+    ['read-only', { readOnly: true }],
+    ['disabled', { disabled: true }]
+  ])('leaves an app’s block as it is in a %s editor', async (_, props) => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        {...props}
+        extensions={[eventCard]}
+        onValueChange={onValueChange}
+        defaultValue={{
+          version: 1,
+          preset: 'blocks',
+          doc: {
+            type: 'doc',
+            content: [{ type: 'eventCard', attrs: { eventId: 'okw' } }]
+          }
+        }}
+      />
+    )
+
+    const input = await screen.findByRole('textbox', { name: 'Event' })
+    await userEvent.type(input, '-2026')
+
+    expect(input).toHaveValue('okw')
+    const savedIds = onValueChange.mock.calls.map(
+      ([saved]) => (saved as EditorValue).doc.content![0]!.attrs!.eventId
+    )
+    expect(savedIds.filter((id) => id !== 'okw')).toEqual([])
+  })
+
   it('keeps an app’s block through a controlled value', async () => {
     function Controlled() {
       const [value, setValue] = useState<EditorValue>({
