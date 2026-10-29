@@ -13,10 +13,10 @@ export const richTextDefinition = {
       variant: 'prose'
     },
     {
-      name: 'article-body',
-      title: 'Article body',
+      name: 'long-form',
+      title: 'Long form',
       description:
-        'Long-form rich text at a reading width, with an optional title.',
+        'Rich text at a reading width with an optional title, such as an article, policy or FAQ answer page.',
       variant: 'prose'
     }
   ]

@@ -18,7 +18,7 @@ export type RichTextPreset = (typeof richTextDefinition.presets)[number]['name']
 export type RichTextProps = {
   /**
    * `statement` centres a title and a few large paragraphs under an
-   * illustration; `article-body` sets long-form text at a reading width.
+   * illustration; `long-form` sets long-form text at a reading width.
    * @default 'statement'
    */
   preset?: RichTextPreset
@@ -28,7 +28,7 @@ export type RichTextProps = {
   id?: string
   /** A short line above the title. */
   eyebrow?: string
-  /** The section's `h2`. Optional in `article-body`, where the body can carry its own headings. */
+  /** The section's `h2`. Optional in `long-form`, where the body can carry its own headings. */
   title?: string
   /** Words in the title to mark, such as `Australian-owned`. */
   titleHighlight?: string | string[]
@@ -58,8 +58,8 @@ export function RichText({ preset, position, id, ...content }: RichTextProps) {
       id={id}
       aria-labelledby={content.title ? headingId : undefined}
     >
-      {name === 'article-body' ? (
-        <ArticleBody headingId={headingId} {...content} />
+      {name === 'long-form' ? (
+        <LongForm headingId={headingId} {...content} />
       ) : (
         <Statement headingId={headingId} {...content} />
       )}
@@ -110,7 +110,7 @@ function Statement({
   )
 }
 
-function ArticleBody({
+function LongForm({
   headingId,
   eyebrow,
   title,

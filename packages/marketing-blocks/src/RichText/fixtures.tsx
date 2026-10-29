@@ -19,8 +19,8 @@ export const statement: RichTextProps = {
   )
 }
 
-export const articleBody: RichTextProps = {
-  preset: 'article-body',
+export const longForm: RichTextProps = {
+  preset: 'long-form',
   title: 'How refunds work',
   body: (
     <>

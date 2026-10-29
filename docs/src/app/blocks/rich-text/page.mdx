@@ -43,14 +43,14 @@ space around them.
 />
 ```
 
-### Article body
+### Long form
 
 Long-form text set in `Prose` at a reading width. The title is optional,
 and the body can carry its own headings from `h3`.
 
-```tsx-live id=article-body
+```tsx-live id=long-form
 <RichText
-  preset='article-body'
+  preset='long-form'
   title='How refunds work'
   body={
     <>
@@ -88,13 +88,13 @@ and the body can carry its own headings from `h3`.
     Give a statement one title and two or three paragraphs.
   </Guideline.Do>
   <Guideline.Dont>
-    Run a statement long. Longer text is an article body.
+    Run a statement long. Longer text is long form.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Start body headings at h3'>
   <Guideline.Do>
-    Use `h3` and below inside an article body, since the block’s title is the
+    Use `h3` and below inside long form, since the block’s title is the
     `h2`.
   </Guideline.Do>
   <Guideline.Dont>Put an `h1` or `h2` in the body.</Guideline.Dont>

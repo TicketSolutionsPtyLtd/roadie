@@ -9,7 +9,7 @@ import {
   widths,
   withBrowserPage
 } from '../_test/browser'
-import { articleBody, statement } from './fixtures'
+import { longForm, statement } from './fixtures'
 
 withBrowserPage()
 
@@ -49,10 +49,10 @@ describe('RichText statement', () => {
   })
 })
 
-describe('RichText article-body', () => {
+describe('RichText long-form', () => {
   it('holds the body to a reading width on a wide screen', async () => {
     await atWidth(1920, 1080)
-    const { container } = render(<RichText {...articleBody} />)
+    const { container } = render(<RichText {...longForm} />)
     const paragraph = container.querySelector('.prose p')!
 
     expect(paragraph.getBoundingClientRect().width).toBeLessThan(800)
@@ -62,7 +62,7 @@ describe('RichText article-body', () => {
 
 describe.each([
   ['statement', statement],
-  ['article-body', articleBody]
+  ['long-form', longForm]
 ])('RichText %s accessibility', (_, props) => {
   it.each(widths)(
     'has no axe violations on a $name',

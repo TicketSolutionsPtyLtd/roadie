@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { RichText } from '.'
 import { MarketingBlocksProvider } from '../Provider'
-import { articleBody, statement } from './fixtures'
+import { longForm, statement } from './fixtures'
 
 describe('RichText', () => {
   describe('statement', () => {
@@ -48,9 +48,9 @@ describe('RichText', () => {
     })
   })
 
-  describe('article-body', () => {
+  describe('long-form', () => {
     it('sets the body in Prose under its title', () => {
-      const { container } = render(<RichText {...articleBody} />)
+      const { container } = render(<RichText {...longForm} />)
 
       expect(
         screen.getByRole('heading', { level: 2, name: 'How refunds work' })
@@ -64,12 +64,12 @@ describe('RichText', () => {
       expect(container.querySelector('svg')).toBeNull()
       expect(screen.getByRole('region')).toHaveAttribute(
         'data-preset',
-        'article-body'
+        'long-form'
       )
     })
 
     it('renders with no title, and no heading of its own', () => {
-      render(<RichText {...articleBody} title={undefined} />)
+      render(<RichText {...longForm} title={undefined} />)
 
       expect(screen.queryByRole('heading', { level: 2 })).toBeNull()
       expect(screen.getByText(/every ticket is refunded/)).toBeInTheDocument()
@@ -78,7 +78,7 @@ describe('RichText', () => {
     it('keeps its eyebrow and description with no title', () => {
       render(
         <RichText
-          {...articleBody}
+          {...longForm}
           title={undefined}
           eyebrow='Refunds'
           description='What happens to your tickets when plans change.'
@@ -95,7 +95,7 @@ describe('RichText', () => {
       const onBlockEvent = vi.fn()
       render(
         <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
-          <RichText {...articleBody} position={2} />
+          <RichText {...longForm} position={2} />
         </MarketingBlocksProvider>
       )
 
@@ -107,7 +107,7 @@ describe('RichText', () => {
         action: 'click',
         block: 'rich-text',
         variant: 'prose',
-        preset: 'article-body',
+        preset: 'long-form',
         position: 2,
         label: 'Read the refund policy',
         href: '/refunds'
@@ -115,12 +115,12 @@ describe('RichText', () => {
     })
   })
 
-  it.each(['statement', 'article-body'] as const)(
+  it.each(['statement', 'long-form'] as const)(
     'shows its actions as links after the body in %s, first one first',
     (preset) => {
       render(
         <RichText
-          {...articleBody}
+          {...longForm}
           preset={preset}
           actions={[
             { label: 'Talk to us', href: '/contact/sales' },
@@ -145,7 +145,7 @@ describe('RichText', () => {
   )
 
   it('falls back to statement with no preset', () => {
-    render(<RichText {...articleBody} preset={undefined} />)
+    render(<RichText {...longForm} preset={undefined} />)
 
     expect(screen.getByRole('region')).toHaveAttribute(
       'data-preset',
