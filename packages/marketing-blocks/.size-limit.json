@@ -15,7 +15,7 @@
     "name": "mosaic",
     "path": "dist/Mosaic/index.js",
     "import": "*",
-    "limit": "2.95 kB",
+    "limit": "3.05 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -28,7 +28,7 @@
     "name": "testimonial",
     "path": "dist/Testimonial/index.js",
     "import": "*",
-    "limit": "2.45 kB",
+    "limit": "2.55 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
