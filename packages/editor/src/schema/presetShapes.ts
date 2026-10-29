@@ -23,6 +23,8 @@ export type NodeShape = {
    * other gives way to its children.
    */
   holds?: readonly string[]
+  /** Inline content of text alone, with no marks. */
+  plainText?: true
 }
 
 export type PresetShape = {
@@ -87,7 +89,7 @@ export const presetShapes = {
       section: { content: 'blocks', holds: [...emailBlocks, 'columns'] },
       columns: { content: 'columns' },
       column: { content: 'blocks', holds: emailBlocks },
-      button: { content: 'none', attrs: ['href', 'label'] },
+      button: { content: 'inline', attrs: ['href'], plainText: true },
       image: { content: 'none', attrs: ['src', 'alt', 'width'] },
       spacer: { content: 'none', attrs: ['height'] },
       horizontalRule: { content: 'none' }

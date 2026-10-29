@@ -23,9 +23,10 @@ const section = (...content: JSONContent[]): JSONContent => ({
   type: 'section',
   content
 })
-const button = (href: unknown, label: unknown = 'Get tickets') => ({
+const button = (href: unknown, label = 'Get tickets'): JSONContent => ({
   type: 'button',
-  attrs: { href, label }
+  attrs: { href },
+  content: [text(label)]
 })
 const image = (src: string, width: unknown = null) => ({
   type: 'image',
@@ -97,7 +98,7 @@ describe('presets.email', () => {
   })
 
   it.each([
-    ['button', ['href', 'label']],
+    ['button', ['href']],
     ['image', ['src', 'alt', 'width']],
     ['spacer', ['height']],
     ['section', []],
@@ -148,8 +149,7 @@ describe('presets.email', () => {
   const pastedImage = (src: string) => ({
     getAttribute: (name: string) => (name === 'src' ? src : null)
   })
-  const pastedButton = (href: string, label: string) => ({
-    textContent: label,
+  const pastedButton = (href: string) => ({
     getAttribute: (name: string) => (name === 'href' ? href : null)
   })
 
@@ -162,17 +162,31 @@ describe('presets.email', () => {
   })
 
   it.each([
-    [tickets, 'Get tickets', { href: tickets, label: 'Get tickets' }],
-    [
-      'mailto:hello@example.com',
-      'Email us',
-      { href: 'mailto:hello@example.com', label: 'Email us' }
-    ],
-    ['javascript:alert(1)', 'Get tickets', false],
-    ['/ochre-kite-weekender', 'Get tickets', false],
-    [tickets, '  ', false]
-  ])('reads a pasted button to %s labelled "%s" as %j', (href, label, read) => {
-    expect(pastedAttrs('button', pastedButton(href, label))).toEqual(read)
+    [tickets, { href: tickets }],
+    ['mailto:hello@example.com', { href: 'mailto:hello@example.com' }],
+    ['tel:+61700000000', { href: 'tel:+61700000000' }],
+    ['javascript:alert(1)', false],
+    ['/ochre-kite-weekender', false],
+    ['mailto:', false],
+    ['https://', false]
+  ])('reads a pasted button to %s as %j', (href, read) => {
+    expect(pastedAttrs('button', pastedButton(href))).toEqual(read)
+  })
+
+  it('holds a button’s label as unmarked text', () => {
+    const marked = doc({
+      type: 'button',
+      attrs: { href: tickets },
+      content: [{ type: 'text', text: 'Go', marks: [{ type: 'bold' }] }]
+    })
+
+    expect(() => parse(marked)).toThrow()
+  })
+
+  it('reads a pasted spacer with no height at the default height', () => {
+    expect(pastedAttrs('spacer', { getAttribute: () => null })).toEqual({
+      height: 32
+    })
   })
 
   it('reads a pasted h1 as an h2', () => {
@@ -254,19 +268,37 @@ describe('migrate and the email preset', () => {
     ['data:text/html,<script>alert(1)</script>'],
     ['/ochre-kite-weekender'],
     ['ftp://example.com'],
+    ['mailto:'],
     [null]
   ])('reads a button to %j as a paragraph of its label', (href) => {
     expect(readEmail(doc(button(href)))).toEqual(doc(p('Get tickets')))
   })
 
-  it.each([[''], ['   '], [42]])(
-    'drops a button labelled %j with nothing to keep',
-    (label) => {
-      expect(readEmail(doc(p('a'), button(tickets, label)))).toEqual(
-        doc(p('a'))
-      )
-    }
-  )
+  it('keeps a button’s label as unmarked text', () => {
+    const stored = doc({
+      type: 'button',
+      attrs: { href: tickets, label: 'Old' },
+      content: [
+        { type: 'text', text: 'Get ', marks: [{ type: 'bold' }] },
+        { type: 'hardBreak' },
+        text('tickets')
+      ]
+    })
+
+    expect(readEmail(stored)).toEqual(
+      doc({
+        type: 'button',
+        attrs: { href: tickets },
+        content: [text('Get '), text('tickets')]
+      })
+    )
+  })
+
+  it('drops a button with no text and no link', () => {
+    expect(
+      readEmail(doc(p('a'), { type: 'button', attrs: { href: null } }))
+    ).toEqual(doc(p('a')))
+  })
 
   it.each([
     ['mailto:hello@example.com'],

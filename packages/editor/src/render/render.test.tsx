@@ -220,7 +220,7 @@ describe.each(renderers)('%s', (_, render) => {
     expect(render(valueOf(paragraph(text('Kept', mark))))).toBe('<p>Kept</p>')
   })
 
-  it('renders an email’s text in order, leaving its layout, buttons and spacers to renderEmail', () => {
+  it('renders an email’s text and buttons in order, leaving its layout and spacers to renderEmail', () => {
     const column = (value: string) => ({
       type: 'column',
       content: [paragraph(text(value))]
@@ -242,7 +242,8 @@ describe.each(renderers)('%s', (_, render) => {
                 },
                 {
                   type: 'button',
-                  attrs: { href: 'https://www.oztix.com.au', label: 'Go' }
+                  attrs: { href: 'https://www.oztix.com.au' },
+                  content: [text('Go')]
                 },
                 { type: 'spacer', attrs: { height: 32 } }
               ]
@@ -250,7 +251,9 @@ describe.each(renderers)('%s', (_, render) => {
           ]
         }
       })
-    ).toBe('<p>Doors 7pm</p><p>All ages</p>')
+    ).toBe(
+      '<p>Doors 7pm</p><p>All ages</p><a href="https://www.oztix.com.au" target="_blank" rel="noopener noreferrer" data-slot="link" class="link-normal">Go</a>'
+    )
   })
 
   it('drops attributes the mapping doesn’t read', () => {

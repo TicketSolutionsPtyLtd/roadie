@@ -7,7 +7,7 @@ export const COLUMN_COUNTS = [2, 3, 4] as const
 
 export const SPACER_HEIGHT = { min: 8, max: 160, default: 32 } as const
 
-const EMAIL_PROTOCOL = /^(https?|mailto|tel):/i
+const EMAIL_PROTOCOL = /^(https?:\/\/|mailto:|tel:)\S/i
 
 /**
  * Whether a button may link to `href`. An email opens outside the site, so it

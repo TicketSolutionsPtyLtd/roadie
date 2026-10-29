@@ -160,21 +160,19 @@ function paragraphsAround(nodes: JSONContent[], shape: PresetShape) {
   )
 }
 
-const labelOf = ({ attrs }: JSONContent) =>
-  typeof attrs?.label === 'string' ? attrs.label.trim() : ''
-
-function textParagraph(text: string): JSONContent[] {
-  return text ? [{ type: 'paragraph', content: [{ type: 'text', text }] }] : []
+// A block the node can't hold gives way to its children, and a button to its
+// text in a paragraph.
+function buttonText({ content }: JSONContent): JSONContent[] {
+  return content?.length ? [{ type: 'paragraph', content }] : []
 }
 
-// A block the node can't hold gives way to its children, and a button to its label.
 function heldWithin(
   node: JSONContent,
   holds: readonly string[],
   shape: PresetShape
 ): JSONContent[] {
   if (isInline(node, shape) || holds.includes(node.type ?? '')) return [node]
-  if (node.type === 'button') return textParagraph(labelOf(node))
+  if (node.type === 'button') return buttonText(node)
   return (node.content ?? []).flatMap((child) =>
     heldWithin(child, holds, shape)
   )
@@ -291,13 +289,9 @@ function cleaned(
   nodeShape = shapeOf(node, shape)
 ): JSONContent[] {
   if (!nodeShape) {
-    if (node.type === 'button') return textParagraph(labelOf(node))
     return paragraphsAround(childrenOf(node.content, shape), shape)
   }
   const { type, text, marks, content, attrs: stored } = node
-  if (type === 'button' && !(isEmailHref(stored?.href) && labelOf(node))) {
-    return textParagraph(labelOf(node))
-  }
   const attrs = picked(cleanedAttrs({ type, attrs: stored }), nodeShape.attrs)
   // Built from known keys, as the saved format keeps nothing else. Only
   // inline nodes take marks.
@@ -310,14 +304,16 @@ function cleaned(
   }
   if (nodeShape.content === 'none') return [kept]
   if (nodeShape.content === 'inline') {
-    return [
-      Array.isArray(content)
-        ? {
-            ...kept,
-            content: fitted(childrenOf(content, shape), 'inline', shape)
-          }
-        : kept
-    ]
+    const inline = fitted(childrenOf(content, shape), 'inline', shape)
+    const held = nodeShape.plainText
+      ? inline.flatMap(({ type, text: value }) =>
+          type === 'text' ? [{ type, text: value }] : []
+        )
+      : inline
+    if (type === 'button' && !isEmailHref(stored?.href)) {
+      return buttonText({ content: held })
+    }
+    return [Array.isArray(content) ? { ...kept, content: held } : kept]
   }
   const children = fitted(
     childrenOf(content, shape),
@@ -364,8 +360,8 @@ function cleaned(
  * In the email preset, a layout block where it can't sit, such as a column
  * outside columns or a section in a section, gives way to its blocks, and
  * columns outside two to four stack as their blocks. Keeps a button only with
- * a label and an https, http, mailto or tel href, and its label as a paragraph
- * otherwise, or where a button can't sit. Keeps only https images, a width
+ * an https, http, mailto or tel href, and only its unmarked text, which
+ * becomes a paragraph otherwise, or where a button can't sit. Keeps only https images, a width
  * from 1 to 600 (none fills the column), and a spacer's height rounded into 8
  * to 160 pixels. Gives an empty column a paragraph.
  */

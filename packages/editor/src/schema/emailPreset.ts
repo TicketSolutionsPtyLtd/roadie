@@ -46,13 +46,15 @@ export const Column = layoutNode(
   `(block | ${EMAIL_BLOCK})+`
 )
 
+// The label is the button's text, not an attr, so a merge tag can sit in it.
 export const Button = Node.create({
   name: 'button',
   group: EMAIL_BLOCK,
-  atom: true,
-  draggable: true,
+  content: 'text*',
+  marks: '',
+  defining: true,
   addAttributes() {
-    return { href: { default: null }, label: { default: '' } }
+    return { href: { default: null } }
   },
   parseHTML() {
     // Above the link mark's rule, which would otherwise read it as linked text.
@@ -62,18 +64,13 @@ export const Button = Node.create({
         priority: 60,
         getAttrs: (element) => {
           const href = element.getAttribute('href')
-          const label = element.textContent?.trim()
-          return isEmailHref(href) && label ? { href, label } : false
+          return isEmailHref(href) ? { href } : false
         }
       }
     ]
   },
   renderHTML({ node }) {
-    return [
-      'a',
-      { 'data-type': 'button', href: node.attrs.href },
-      node.attrs.label
-    ]
+    return ['a', { 'data-type': 'button', href: node.attrs.href }, 0]
   }
 })
 
@@ -88,9 +85,12 @@ export const Spacer = Node.create({
     return [
       {
         tag: 'div[data-type="spacer"]',
-        getAttrs: (element) => ({
-          height: spacerHeight(Number(element.getAttribute('data-height')))
-        })
+        getAttrs: (element) => {
+          const height = element.getAttribute('data-height')
+          return {
+            height: spacerHeight(height === null ? null : Number(height))
+          }
+        }
       }
     ]
   },

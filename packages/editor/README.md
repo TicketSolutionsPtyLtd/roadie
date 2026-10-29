@@ -69,7 +69,7 @@ const description: EditorValue = {
   until someone writes it.
   `presets.email` holds the basic preset's text plus headings 2 to 4, and
   layout blocks: sections (`section`), columns (`columns`, holding two to
-  four `column`s), buttons (`button`, saving only `href` and `label`), images
+  four `column`s), buttons (`button`, saving only `href`, with its label as unmarked text), images
   (`image`, saving only `src`, `alt`, and `width`), spacers (`spacer`, saving
   only `height`), and dividers (`horizontalRule`). A button links to https,
   http, mailto, or tel, an image's `src` is https only, its `width` is 1 to

@@ -30,7 +30,8 @@ const layout = (lead: string): JSONContent => ({
                 p('All ages.'),
                 {
                   type: 'button',
-                  attrs: { href: TICKETS, label: 'Get tickets' }
+                  attrs: { href: TICKETS },
+                  content: [{ type: 'text', text: 'Get tickets' }]
                 }
               ]
             }
@@ -113,7 +114,8 @@ describe('Editor with the email preset', () => {
             p('Doors 7pm'),
             {
               type: 'button',
-              attrs: { href: TICKETS, label: 'Get tickets' }
+              attrs: { href: TICKETS },
+              content: [{ type: 'text', text: 'Get tickets' }]
             }
           ])
         }
