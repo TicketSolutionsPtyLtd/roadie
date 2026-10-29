@@ -189,18 +189,43 @@ export function futureLadderRows(): Row[] {
 }
 
 export function dataFormatRows(): Row[] {
-  const rows: [string, Omit<FormatOptions, 'timeZone'>][] = [
-    ['Axis tick', { dateStyle: 'short', timeStyle: 'numeric' }],
-    ['Tooltip', { dateStyle: 'long', timeStyle: 'medium' }],
-    ['Table column, date identifies the row', { dateStyle: 'medium' }],
-    ['Table column, weekday is a variable', { dateStyle: 'long' }],
-    ['Table column, with time', { dateStyle: 'medium', timeStyle: 'numeric' }],
-    ['Export cell', { dateStyle: 'iso', timeStyle: 'numeric' }]
+  const reads = (options: Omit<FormatOptions, 'timeZone'>) => [
+    text(formatDateTime(STARTS_AT, zoned(options)))
   ]
-  return rows.map(([name, options]) => ({
-    name,
-    reads: [text(formatDateTime(STARTS_AT, zoned(options)))]
-  }))
+  const stacked = zoned({ dateStyle: 'medium', timeStyle: 'numeric' })
+  return [
+    {
+      name: 'Axis tick',
+      reads: reads({ dateStyle: 'short', timeStyle: 'numeric' })
+    },
+    {
+      name: 'Tooltip',
+      reads: reads({ dateStyle: 'long', timeStyle: 'medium' })
+    },
+    {
+      name: 'Table column, date identifies the row',
+      reads: reads({ dateStyle: 'medium' })
+    },
+    {
+      name: 'Table column, weekday is a variable',
+      reads: reads({ dateStyle: 'long' })
+    },
+    {
+      name: 'Table column, with time',
+      reads: reads({ dateStyle: 'medium', timeStyle: 'numeric' })
+    },
+    {
+      name: 'Table column, time under the date',
+      reads: [
+        text(formatDateTime(STARTS_AT, { ...stacked, timeStyle: undefined })),
+        text(formatTimeOfDay(STARTS_AT, stacked))
+      ]
+    },
+    {
+      name: 'Export cell',
+      reads: reads({ dateStyle: 'iso', timeStyle: 'numeric' })
+    }
+  ]
 }
 
 /** A Brisbane show at 7:30pm, so the offset is the same all year. */

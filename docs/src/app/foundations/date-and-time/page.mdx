@@ -779,6 +779,7 @@ nothing that repeats what the surrounding structure already says.
 | Table column, date identifies the row  | `dateStyle` `medium`                       | An order or settlement date. The weekday isn't what the reader is comparing.     |
 | Table column, weekday is a variable    | `dateStyle` `long`                         | An events list. The weekday is a dimension the reader analyses down the column.  |
 | Table column, with time                | Add `timeStyle` `numeric`                  | Two fixed-width fields. The column aligns and sorts.                             |
+| Table column, time under the date      | Add `stacked` to DateTime                  | A narrow column. One `time` element still carries the instant.                   |
 | Export cell                            | `dateStyle` `iso`, `timeStyle` `numeric`   | Sorts lexicographically. Unambiguous in any locale.                              |
 | Sort or group key                      | Not a display format                       | Key on the instant. A formatted string isn't a key.                              |
 

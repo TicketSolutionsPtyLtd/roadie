@@ -15,6 +15,7 @@ import {
   formatTimeOfDay,
   separators
 } from '@oztix/roadie-core/datetime'
+import { cn } from '@oztix/roadie-core/utils'
 
 import { type RoadieRenderProp, resolveRender } from '../../utils/resolveRender'
 import { subscribeToTicker } from '../../utils/ticker'
@@ -64,6 +65,13 @@ export interface DateTimeProps extends Omit<
   /** Overrides the relative cutoff. Defaults to seven days. */
   cutoffMs?: number
   /**
+   * Put the time on a line under the date, as in a dense table column. Still
+   * one `time` element carrying the full instant. Ignored without a
+   * `timeStyle`, since there is no time to stack, and with `relative`, which
+   * is one phrase. A range stacks only within one day or one night.
+   */
+  stacked?: boolean
+  /**
    * The range is one night, even though it crosses midnight. Says the date once
    * and leaves the end a bare time, while both `time` elements keep their real
    * instant.
@@ -105,6 +113,7 @@ export function DateTime({
   cutoffMs,
   sameNight,
   showDuration,
+  stacked,
   render,
   ...props
 }: DateTimeProps) {
@@ -142,6 +151,47 @@ export function DateTime({
     // the client swaps in after mount. No hydration mismatch to suppress.
     () => null
   )
+
+  if (
+    stacked &&
+    timeStyle &&
+    !relative &&
+    (!to || sharesDate(at, to, opts, sameNight))
+  ) {
+    const date = formatDateTime(at, { ...opts, timeStyle: undefined })
+    const start = formatTimeOfDay(at, opts)
+    const end = to ? formatTimeOfDay(to, opts) : null
+    if (date === null || start === null) return null
+
+    const isRange = to && end !== null && end !== start
+    const children = (
+      <>
+        <span>
+          {date}
+          <span className='sr-only'>{separators.dateTime}</span>
+        </span>
+        <span className='text-subtle'>
+          {isRange ? (
+            <>
+              <time dateTime={machine ?? undefined}>{start}</time>
+              {` ${separators.range} `}
+              <time dateTime={formatMachine(to, opts) ?? undefined}>{end}</time>
+            </>
+          ) : (
+            start
+          )}
+        </span>
+      </>
+    )
+    const className = cn('grid', props.className)
+    return isRange
+      ? resolveRender('span', { ...props, className, children }, render)
+      : resolveRender(
+          'time',
+          { ...props, className, dateTime: machine ?? undefined, children },
+          render
+        )
+  }
 
   // One night crossing midnight says the date once, so `render` swaps the
   // wrapper rather than the `time` elements inside it.
@@ -211,3 +261,16 @@ export function DateTime({
 }
 
 DateTime.displayName = 'DateTime'
+
+/** One date can head both ends of a range within one day or one night. */
+function sharesDate(
+  at: Instantish,
+  to: Instantish,
+  opts: FormatOptions,
+  sameNight: boolean | undefined
+) {
+  const dateOnly = { ...opts, timeStyle: undefined }
+  return (
+    sameNight || formatMachine(at, dateOnly) === formatMachine(to, dateOnly)
+  )
+}
