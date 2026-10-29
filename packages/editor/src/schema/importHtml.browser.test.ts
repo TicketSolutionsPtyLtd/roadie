@@ -377,15 +377,36 @@ describe('htmlToEditorValue', () => {
   })
 
   it.each([
-    ['a video', '<video src="https://cdn.oztix.com.au/a.mp4"></video>'],
-    ['an audio player', '<audio src="https://cdn.oztix.com.au/a.mp3"></audio>'],
-    ['an object', '<object data="https://cdn.oztix.com.au/a.swf"></object>'],
-    ['an embed element', '<embed src="https://cdn.oztix.com.au/a.swf">']
-  ])('drops and reports %s', (_, media) => {
+    [
+      'a video',
+      '<video src="https://cdn.oztix.com.au/a.mp4"></video>',
+      'https://cdn.oztix.com.au/a.mp4'
+    ],
+    [
+      'an audio player',
+      '<audio src="https://cdn.oztix.com.au/a.mp3"></audio>',
+      'https://cdn.oztix.com.au/a.mp3'
+    ],
+    [
+      'an object',
+      '<object data="https://cdn.oztix.com.au/a.swf"></object>',
+      'https://cdn.oztix.com.au/a.swf'
+    ],
+    [
+      'an embed element',
+      '<embed src="https://cdn.oztix.com.au/a.swf">',
+      'https://cdn.oztix.com.au/a.swf'
+    ],
+    [
+      'a video with only sources',
+      '<video><source src="https://cdn.oztix.com.au/a.mp4"></video>',
+      undefined
+    ]
+  ])('drops and reports %s', (_, media, src) => {
     const { value, dropped } = htmlToEditorValue(`<p>Watch</p>${media}`, 'rich')
 
     expect(value.doc.content).toEqual([paragraph(text('Watch'))])
-    expect(dropped).toEqual([{ kind: 'media' }])
+    expect(dropped).toEqual([src ? { kind: 'media', src } : { kind: 'media' }])
   })
 
   it('reports media inside media once', () => {
@@ -394,7 +415,10 @@ describe('htmlToEditorValue', () => {
       'rich'
     )
 
-    expect(dropped).toEqual([{ kind: 'media' }, { kind: 'media' }])
+    expect(dropped).toEqual([
+      { kind: 'media', src: 'https://cdn.oztix.com.au/a.swf' },
+      { kind: 'media' }
+    ])
   })
 
   it('reports each dropped item in document order', () => {

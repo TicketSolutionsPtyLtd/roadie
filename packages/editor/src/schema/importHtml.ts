@@ -62,7 +62,7 @@ function keptMedia(body: HTMLElement, preset: Preset) {
       }
       dropped.push(report('embed', src))
     } else {
-      dropped.push({ kind: 'media' })
+      dropped.push(report('media', src ?? element.getAttribute('data')))
     }
     element.remove()
   }
@@ -128,8 +128,9 @@ function splitAtBreaks(node: JSONContent): JSONContent {
 
 /**
  * Reads HTML, such as CKEditor output, into a value in `preset`, through
- * `migrate`, so the result always loads. Text is always kept; styles, fonts,
- * colours and classes are dropped. Two or more `<br>` start a new paragraph.
+ * `migrate`, so the result always loads. Text is kept, except fallback text
+ * inside a dropped media element; styles, fonts, colours and classes are
+ * dropped. Two or more `<br>` in a paragraph start a new one.
  * Images the preset can't hold or load, iframes no embed provider reads, and
  * video, audio and plugin elements are dropped and listed in `dropped`, in
  * document order, so an app can warn before overwriting legacy content.
