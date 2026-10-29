@@ -141,8 +141,15 @@ function presetSchema(preset: Preset) {
 }
 
 /** An app's blocks, only in the preset that takes them, as Tiptap nodes. */
+/** Whether a block's name is one the preset's own nodes or marks use. */
+function takenName(preset: Preset, { node }: EditorBlock) {
+  const { nodes, marks } = presetSchema(preset)
+  return Object.hasOwn(nodes, node.name) || Object.hasOwn(marks, node.name)
+}
+
 function blocksFor(preset: Preset, blocks: readonly EditorBlock[] = []) {
-  return preset === 'blocks' ? blocks : []
+  if (preset !== 'blocks') return []
+  return blocks.filter((block) => !takenName(preset, block))
 }
 
 // Each app block is an id-carrying block too, so UniqueID needs its name.
@@ -364,13 +371,23 @@ export function EditorEngine({
   })
 
   const leftOut = preset !== 'blocks' && Boolean(extensionsProp?.length)
+  const taken = (preset === 'blocks' ? (extensionsProp ?? []) : [])
+    .filter((block) => takenName(preset, block))
+    .map(({ node }) => node.name)
+    .join(', ')
   useEffect(() => {
-    if (leftOut && isDev()) {
+    if (!isDev()) return
+    if (leftOut) {
       console.warn(
         `Editor: extensions are for the blocks preset, so the "${preset}" editor leaves them out.`
       )
     }
-  }, [leftOut, preset])
+    if (taken) {
+      console.warn(
+        `Editor: the blocks preset already has ${taken}, so the editor leaves out the extensions of that name.`
+      )
+    }
+  }, [leftOut, preset, taken])
 
   useEffect(() => {
     if (presetProp && storedPreset && presetProp !== storedPreset && isDev()) {

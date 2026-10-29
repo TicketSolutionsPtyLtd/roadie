@@ -447,8 +447,9 @@ import {
   rendered content.
 - `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
   it in place. The component gets `node.attrs` and `updateAttributes`, and
-  wraps what it renders in `NodeViewWrapper`. Inputs in it take their own
-  keys. A read-only or disabled editor ignores its `updateAttributes`.
+  wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
+  them, not the text around the block. A read-only or disabled editor
+  ignores its `updateAttributes`.
 - Pass `{ node, label, icon, keywords }` in `extensions` to show it in the
   slash menu. The editor reads `extensions` once, when it's created.
 - Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
@@ -457,6 +458,11 @@ import {
   `renderEditorHtml`.
 - `migrate(value, 'blocks', { customBlocks: ['callToAction'] })` keeps them
   in a stored value. The editor and `renderEditorValue` pass these for you.
+- A block can't take the name of one of the preset's own nodes or marks;
+  the editor leaves it out.
+- `/extensions` brings Tiptap with it, so import your blocks where the
+  editor loads, not on every page. Keep `nodeMapping` in a file of its own,
+  so a server page that renders saved content doesn't import Tiptap.
 
 ```tsx-live-prose-noinline
 function CallToActionView({ node, updateAttributes }) {

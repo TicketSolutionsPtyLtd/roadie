@@ -215,6 +215,40 @@ describe('Editor extensions', () => {
     expect(html).toContain('eventCard')
   })
 
+  it('leaves out a block named for one of the preset’s own nodes', async () => {
+    vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const taken: EditorBlock = {
+      ...eventCard,
+      node: EventCard.extend({ name: 'paragraph' })
+    }
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        extensions={[taken]}
+        onValueChange={onValueChange}
+      />
+    )
+    await focusedTextbox()
+
+    await userEvent.keyboard('Doors 7pm')
+
+    await waitFor(() =>
+      expect(lastValue(onValueChange).doc.content![0]).toMatchObject({
+        type: 'paragraph',
+        content: [{ type: 'text', text: 'Doors 7pm' }]
+      })
+    )
+    expect(screen.queryByRole('textbox', { name: 'Event' })).toBe(null)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringMatching(/already has paragraph/)
+    )
+    warn.mockRestore()
+    vi.unstubAllGlobals()
+  })
+
   it('leaves an app’s blocks out of other presets', async () => {
     // A browser has no `process`; a consumer's bundler supplies NODE_ENV.
     vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
