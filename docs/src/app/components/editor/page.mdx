@@ -258,8 +258,9 @@ on a selected image opens Alt text too.
 
 ### Embeds
 
-The rich preset embeds videos and tracks from YouTube, Vimeo, Spotify, and
-TikTok. Paste a share link alone on an empty line, or use the Embed control.
+The rich preset embeds videos and tracks from YouTube, Vimeo, Spotify,
+SoundCloud, Deezer, Apple Music, and TikTok. Paste a share link alone on an
+empty line, or use the Embed control.
 The editor shows each player at its own shape, under a cover, so a click
 selects it rather than playing it, and Backspace or Delete removes it. A
 player with a ratio is no taller than 36rem, so a portrait one, such as
@@ -280,7 +281,10 @@ TikTok's, stays narrow at the start of the line, in the editor and in
         { type: 'embed', attrs: { provider: 'youtube', id: 'sBzrzS1Ag_g', params: null } },
         { type: 'embed', attrs: { provider: 'spotify', id: '5INjqkS1o8h1imAzPqGZBb', params: { type: 'artist' } } },
         { type: 'embed', attrs: { provider: 'vimeo', id: '1084537', params: null } },
-        { type: 'embed', attrs: { provider: 'tiktok', id: '6718335390845095173', params: null } }
+        { type: 'embed', attrs: { provider: 'tiktok', id: '6718335390845095173', params: null } },
+        { type: 'embed', attrs: { provider: 'soundcloud', id: 'gangofyouths/forbearance-alternate', params: null } },
+        { type: 'embed', attrs: { provider: 'deezer', id: '45534641', params: { type: 'album' } } },
+        { type: 'embed', attrs: { provider: 'apple-music', id: '1233719556', params: { type: 'album', storefront: 'au' } } }
       ]
     }
   }}
@@ -296,9 +300,9 @@ migration. Players run in a sandboxed `iframe`, and a look-alike host such as
 - `embedProviders` sets the providers the editor reads links from, starting
   from `defaultEmbedProviders`. Pass the same list to `/render`, or it drops
   the embeds it doesn't know.
-- `resolveUrl` turns a link no provider reads, such as a TikTok short link,
-  into one it can, when it's entered in the Embed control. Resolve it on
-  your server.
+- `resolveUrl` turns a link no provider reads, such as a TikTok or SoundCloud
+  short link, into one it can, when it's entered in the Embed control.
+  Resolve it on your server.
 
 Click an embed, or move onto it with the arrow keys, to edit it in place. A
 toolbar by the embed has Edit link and Remove embed. Edit link starts from the
