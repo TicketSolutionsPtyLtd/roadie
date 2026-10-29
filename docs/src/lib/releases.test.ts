@@ -911,6 +911,7 @@ const pages: PageIndex = new Map([
   ['OTPField', { title: 'OTP field', href: '/components/otp-field' }],
   ['Badge', { title: 'Badge', href: '/components/badge' }],
   ['Card', { title: 'Card', href: '/components/card' }],
+  ['Calendar', { title: 'Calendar', href: '/components/calendar' }],
   [
     '@oztix/roadie-components/date-field',
     { title: 'Date field', href: '/components/date-field' }
@@ -948,7 +949,10 @@ describe('addedPages', () => {
     ['a prop', 'Add `hideLabel` to `Badge`.'],
     ['a part', 'Add `Card.Link`, the card’s main link.'],
     ['no opening name', 'Add the dashboard components: `Card`.'],
-    ['no verb that adds', '`Badge` now wraps.']
+    ['no verb that adds', '`Badge` now wraps.'],
+    ['a variant of a component', 'Add `Badge` `tag` variant.'],
+    ['support in a component', 'Add `Badge` support for icons.'],
+    ['a part of two components', 'Add `Badge` and `Calendar` icons.']
   ])('finds no new component in %s', (_, summary) => {
     expect(addedPages(summary, pages)).toBeNull()
   })
@@ -1052,6 +1056,32 @@ describe('cardOf', () => {
       packages: ['lint-plugin']
     })
   })
+
+  it.each([
+    [
+      'Calendar',
+      'Add `Calendar` (`@oztix/roadie-components/calendar`), a month grid for choosing a date.'
+    ],
+    [
+      'Date field and Time field',
+      'Add `DateField` and `TimeField`, typed fields.'
+    ],
+    ['Badge', 'Add `Badge` for scanning tickets at the gate.'],
+    ['Card', 'Add `Card` compound built on Base UI.']
+  ])('cards %s, named and then said what it is', (title, summary) => {
+    expect(cardOf(change(summary), pages, pageInfo)?.title).toBe(title)
+  })
+
+  it.each([
+    'Add `Badge` `tag` variant.',
+    'Add `Badge` support for icons.',
+    'Add `Badge` and `Calendar` icons.'
+  ])(
+    'lists an addition to a component rather than carding it: %s',
+    (summary) => {
+      expect(cardOf(change(summary), pages, pageInfo)).toBeNull()
+    }
+  )
 
   it('lists a fix or a smaller addition rather than carding it', () => {
     expect(

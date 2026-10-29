@@ -765,6 +765,39 @@ export function ownPage(name: string, index: PageIndex): PageLink | undefined {
 const ADDS = /^(?:Add|Adds|Added|Introduces?|New)\s+(?:the\s+)?/
 
 /**
+ * What, after the names a change opens with, makes it a part of them rather
+ * than them: another name, as in "Add `Badge` `tag` variant", or a word such
+ * as "variant", "support", or "icons".
+ */
+const NAMES_A_PART =
+  /^(?:`|(?:variant|prop|support|icon|option|slot|part|size|style|emphasis|intent|state|mode|colou?r|label|layout|hook|utility|class|token|attribute|event|callback|type)s?\b)/i
+
+/**
+ * The names a phrase opens with, such as "`DateField` (`…/date-field`) and
+ * `TimeField`", past their import paths, and what it says after them, or
+ * nothing when what follows names a part of them.
+ */
+export function openingNames(
+  text: string
+): { names: string[]; rest: string } | null {
+  const names: string[] = []
+  let rest = text
+  for (;;) {
+    const code = rest.match(/^`([^`\n]+)`/)
+    if (!code) break
+    names.push(code[1]!.trim())
+    rest = rest
+      .slice(code[0].length)
+      .replace(/^\s*(?:\(`[^`]+`\)|(?:at|from)\s+`[^`]+`)/, '')
+    const separator = rest.match(/^(?:,\s*and\s+|\s+and\s+|,\s*)(?=`)/)
+    if (!separator) break
+    rest = rest.slice(separator[0].length)
+  }
+  rest = rest.trim()
+  return names.length > 0 && !NAMES_A_PART.test(rest) ? { names, rest } : null
+}
+
+/**
  * The pages of what a change adds, when it opens by naming them, such as
  * "Add `DateField` (`…/date-field`) and `TimeField`, typed fields", and what
  * it says after the names.
@@ -774,22 +807,15 @@ export function addedPages(
   index: PageIndex
 ): { pages: PageLink[]; rest: string } | null {
   const lead = summary.match(ADDS)
-  if (!lead) return null
-  let rest = summary.slice(lead[0].length)
+  const opening = lead && openingNames(summary.slice(lead[0].length))
+  if (!opening) return null
   const pages: PageLink[] = []
-  for (;;) {
-    const code = rest.match(/^`([^`\n]+)`/)
-    if (!code) break
-    const page = ownPage(code[1]!.trim(), index)
+  for (const name of opening.names) {
+    const page = ownPage(name, index)
     if (!page) return null
     if (!pages.some((known) => known.href === page.href)) pages.push(page)
-    rest = rest.slice(code[0].length)
-    rest = rest.replace(/^\s*(?:\(`[^`]+`\)|(?:at|from)\s+`[^`]+`)/, '')
-    const separator = rest.match(/^(?:,\s*and\s+|\s+and\s+|,\s*)(?=`)/)
-    if (!separator) break
-    rest = rest.slice(separator[0].length)
   }
-  return pages.length > 0 ? { pages, rest: rest.trim() } : null
+  return { pages, rest: opening.rest }
 }
 
 export const plainText = (inline: Inline) =>
