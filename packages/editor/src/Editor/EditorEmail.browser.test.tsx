@@ -174,4 +174,80 @@ describe('Editor with the email preset', () => {
       })
     )
   })
+
+  it('shows a merge tag as a chip with its label, not as text to edit', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        variables={[
+          {
+            key: 'first_name',
+            label: 'First name',
+            tokens: { ae: '#FirstName#' }
+          }
+        ]}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'paragraph',
+                content: [
+                  { type: 'text', text: 'Hi ' },
+                  { type: 'variable', attrs: { key: 'first_name' } },
+                  { type: 'text', text: ' and ' },
+                  { type: 'variable', attrs: { key: 'event_name' } }
+                ]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await waitFor(() =>
+      expect(textbox).toHaveTextContent('Hi First name and event_name')
+    )
+
+    const known = screen.getByText('First name')
+    expect(known.isContentEditable).toBe(false)
+    expect(known.closest('[data-slot="editor-variable"]')).not.toHaveAttribute(
+      'data-invalid'
+    )
+    const unknown = screen.getByText('event_name')
+    expect(unknown.isContentEditable).toBe(false)
+    expect(unknown.closest('[data-slot="editor-variable"]')).toHaveAttribute(
+      'data-invalid'
+    )
+  })
+
+  it('shows a merge tag by its key when the editor lists no variables', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'paragraph',
+                content: [{ type: 'variable', attrs: { key: 'first_name' } }]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    await screen.findByRole('textbox', { name: LABEL })
+
+    const chip = await screen.findByText('first_name')
+    expect(chip.isContentEditable).toBe(false)
+    expect(chip.closest('[data-slot="editor-variable"]')).not.toHaveAttribute(
+      'data-invalid'
+    )
+  })
 })

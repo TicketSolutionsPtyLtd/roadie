@@ -32,12 +32,16 @@ buttons, spacers, and dividers.
 
 This newsletter has a header image, a hero, two event cards, a lineup in
 three columns, a section shown only when tickets are running low, and a
-footer. Its greeting and button hold a merge tag, `first_name`.
+footer. Its greeting and button hold a merge tag, `first_name`, which shows
+as a chip with the label from `variables`.
 
 ```tsx-live-prose
 <Editor
   aria-label='Newsletter'
   preset='email'
+  variables={[
+    { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } }
+  ]}
   defaultValue={{
     version: 1,
     preset: 'email',
@@ -263,7 +267,9 @@ const welcome = {
 
 The app lists the variables its sending system fills, each with a label and
 its token in each syntax. A filter, such as a date format, belongs in the
-token, never in the template.
+token, never in the template. Pass the same list to `Editor` as `variables`:
+each merge tag shows as a chip with its label, and one whose key isn't listed
+shows as invalid.
 
 ```tsx
 import { type EditorVariable, renderEmail } from '@oztix/roadie-editor/email'

@@ -54,6 +54,7 @@ import type { EditorRootProps } from './EditorRoot'
 import { EditorSlashMenuEngine } from './EditorSlashMenuEngine'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
+import { EditorVariableView } from './EditorVariableView'
 import { type BlockContainers, TOP_LEVEL } from './blockActions'
 import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
@@ -130,7 +131,8 @@ const AltTextShortcut = Extension.create<AltTextShortcutOptions>({
 
 const NODE_VIEWS: Record<string, ComponentType<ReactNodeViewProps>> = {
   image: EditorImageView,
-  embed: EditorEmbedView
+  embed: EditorEmbedView,
+  variable: EditorVariableView
 }
 
 function forEditor(extension: Extensions[number]) {
@@ -291,6 +293,7 @@ export function EditorEngine({
   embedProviders = defaultEmbedProviders,
   resolveUrl,
   extensions: extensionsProp,
+  variables,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy
 }: EditorRootProps) {
@@ -535,6 +538,7 @@ export function EditorEngine({
         ...ui,
         editingLink,
         embedProviders,
+        variables,
         blocks,
         TiptapContent,
         ToolbarEngine: EditorToolbarEngine,
