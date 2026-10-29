@@ -204,6 +204,30 @@ describe('Editor email block handle', () => {
     await expectGripBeside(await line('Right one'))
   })
 
+  it('opens the caret block’s menu when the pointer comes straight to its grip', async () => {
+    const onValueChange = renderNewsletter()
+    await userEvent.click(await line('Right one'))
+    await userEvent.hover(document.body, { position: { x: 1, y: 1 } })
+    await expectGripBeside(await line('Right one'))
+
+    await userEvent.click(await grip())
+    await chooseMove('Move down')
+
+    await expectOutline(
+      onValueChange,
+      {
+        section: [
+          'Alpha one',
+          'Alpha two',
+          { columns: [{ column: ['Left one'] }, { column: [''] }] },
+          'Right one'
+        ]
+      },
+      { section: ['Bravo one'] },
+      'Closing'
+    )
+  })
+
   it('shows a section’s grip beside the whole section', async () => {
     renderNewsletter()
 

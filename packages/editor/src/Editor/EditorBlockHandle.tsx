@@ -1,6 +1,12 @@
 'use client'
 
-import { type RefObject, useEffect, useLayoutEffect, useState } from 'react'
+import {
+  type RefObject,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from 'react'
 
 import {
   ArrowDownIcon,
@@ -183,14 +189,25 @@ export function EditorBlockHandle({
     selector: ({ editor: current }) => current.isEditable
   })
   const shown = menuAt ?? hovered ?? caretBlock
+  const shownRef = useRef(shown)
+  useLayoutEffect(() => {
+    shownRef.current = shown
+  })
 
   useEffect(() => {
     if (!wrapper || !host) return
     let current: number | null = null
+    // On the handle, its block stays, even once the editor loses focus: on
+    // touch that's the caret's block, with no hover before the tap.
+    const pin = () => {
+      current = shownRef.current
+      setHovered(current)
+    }
     const onMove = (event: MouseEvent) => {
-      // On the handle, whichever block it shows for stays: on touch that's
-      // the caret's, with no hover before the tap.
-      if (host.contains(event.target as Node)) return
+      if (host.contains(event.target as Node)) {
+        pin()
+        return
+      }
       const keep =
         current != null &&
         blockAt(editor.state, current, containers) === current &&
@@ -204,9 +221,11 @@ export function EditorBlockHandle({
     }
     wrapper.addEventListener('mousemove', onMove)
     wrapper.addEventListener('mouseleave', onLeave)
+    host.addEventListener('pointerdown', pin)
     return () => {
       wrapper.removeEventListener('mousemove', onMove)
       wrapper.removeEventListener('mouseleave', onLeave)
+      host.removeEventListener('pointerdown', pin)
     }
   }, [editor, wrapper, host, containers])
 
