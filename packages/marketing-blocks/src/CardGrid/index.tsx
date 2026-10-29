@@ -1,47 +1,20 @@
-import { type ComponentType, type ReactNode, useId } from 'react'
+import { type ReactNode, useId } from 'react'
 
 import { Mark } from '@oztix/roadie-components/mark'
-import {
-  ArrowUpRight,
-  CowboyHat,
-  Cursor,
-  FlowerSpiral,
-  Football,
-  Hand,
-  Heart,
-  HighFive,
-  MapPin,
-  NoteMusic,
-  type SpotIllustrationComponentProps,
-  Ticket,
-  WineGlass
-} from '@oztix/roadie-components/spot-illustrations'
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockImage } from '../Provider'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
+import {
+  SPOT_ILLUSTRATIONS,
+  type SpotIllustrationName
+} from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
 import { cardGridDefinition } from './definition'
 
-const ILLUSTRATIONS = {
-  ArrowUpRight,
-  CowboyHat,
-  Cursor,
-  FlowerSpiral,
-  Football,
-  Hand,
-  Heart,
-  HighFive,
-  MapPin,
-  NoteMusic,
-  Ticket,
-  WineGlass
-} satisfies Record<string, ComponentType<SpotIllustrationComponentProps>>
-
-/** A spot illustration, by its export name in `@oztix/roadie-components/spot-illustrations`. */
-export type SpotIllustrationName = keyof typeof ILLUSTRATIONS
+export type CardGridPreset = (typeof cardGridDefinition.presets)[number]['name']
 
 export type CardGridItem = {
   /** The card's heading, or a person's name in `team`. */
@@ -59,11 +32,14 @@ export type CardGridItem = {
 }
 
 export type CardGridProps = {
-  /** The look: `features`, `services`, `industries`, `team`, and `lists` are grids, and `values` is a list of alternating rows. Defaults to `features`. */
-  preset?: 'features' | 'services' | 'industries' | 'values' | 'team' | 'lists'
-  /** The block's place on the page, counting from 1, for tracking. */
+  /**
+   * The look: `features`, `services`, `industries`, `team`, and `lists` are grids, and `values` is a list of alternating rows.
+   * @default 'features'
+   */
+  preset?: CardGridPreset
+  /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
-  /** The section's anchor, for links to it. */
+  /** An id for linking to the block. */
   id?: string
   /** A short line above the title. */
   eyebrow?: string
@@ -75,7 +51,6 @@ export type CardGridProps = {
   items: readonly CardGridItem[]
 }
 
-type Preset = NonNullable<CardGridProps['preset']>
 type CardProps = { item: CardGridItem; index: number }
 
 const MARK_CYCLE = ['info', 'brand', 'brand-secondary'] as const
@@ -89,10 +64,11 @@ function Illustration({
   className: string
 }) {
   if (!name) return null
-  const Drawing = ILLUSTRATIONS[name]
+  const Drawing = SPOT_ILLUSTRATIONS[name]
   return <Drawing outline className={className} />
 }
 
+// The frame sets the shape, so a sized photo is cropped to it rather than keeping its own ratio.
 function CardImage({
   image,
   sizes,
@@ -102,13 +78,19 @@ function CardImage({
   sizes: string
   className: string
 }) {
-  if (!image) return <div aria-hidden className={cn('bg-subtle', className)} />
   return (
-    <BlockImg
-      image={image}
-      sizes={sizes}
-      className={cn('object-cover', className)}
-    />
+    <div
+      aria-hidden={!image || undefined}
+      className={cn('relative overflow-hidden bg-subtle', className)}
+    >
+      {image && (
+        <BlockImg
+          image={image}
+          sizes={sizes}
+          className='absolute inset-0 size-full object-cover'
+        />
+      )}
+    </div>
   )
 }
 
@@ -277,8 +259,8 @@ function ListColumn({ item }: CardProps) {
       <h3 className='text-display-prose-5 text-strong'>{item.title}</h3>
       {item.points && item.points.length > 0 && (
         <ul className='grid gap-2'>
-          {item.points.map((point) => (
-            <li key={point} className='text-lg font-medium'>
+          {item.points.map((point, index) => (
+            <li key={`${index}-${point}`} className='text-lg font-medium'>
               {point}
             </li>
           ))}
@@ -298,7 +280,7 @@ type Look = {
 }
 
 // Columns follow the block's own width, not the viewport's, so a block in a narrow layout stays narrow.
-const LOOKS: Record<Preset, Look> = {
+const LOOKS: Record<CardGridPreset, Look> = {
   features: {
     Card: FeatureCard,
     list: 'grid gap-12 @5xl:grid-cols-3',
@@ -341,7 +323,7 @@ export function CardGrid({
   items
 }: CardGridProps) {
   const { name, variant } = presetOf(cardGridDefinition, preset)
-  const { Card, list, align, raised } = LOOKS[name as Preset]
+  const { Card, list, align, raised } = LOOKS[name]
   const headingId = useId()
   const markedEyebrow = name === 'industries' && eyebrow
 
@@ -357,8 +339,8 @@ export function CardGrid({
     >
       <div
         className={cn(
-          'mx-auto grid w-full max-w-8xl gap-12 px-6 py-16 @3xl:px-8 @5xl:px-12 @5xl:py-20',
-          raised && 'bg-raised @7xl:rounded-3xl'
+          'mx-auto grid w-full max-w-8xl gap-12 px-6 @3xl:px-8 @5xl:px-12',
+          raised && 'bg-raised py-16 @5xl:py-20 @7xl:rounded-3xl'
         )}
       >
         <div className='grid justify-items-center gap-4'>

@@ -1,5 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { CardGrid, type CardGridItem } from '.'
 import { MarketingBlocksProvider } from '../Provider'
@@ -152,6 +152,26 @@ describe('CardGrid', () => {
         .map((item) => item.textContent)
     ).toEqual(['ISO 9001:2015 certified', '99.99% SLA uptime'])
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  })
+
+  it('keeps repeated points and items apart', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <CardGrid
+        preset='lists'
+        title='Policies'
+        items={[
+          { title: 'Policies', points: ['Reviewed yearly', 'Reviewed yearly'] },
+          { title: 'Policies', points: ['Reviewed yearly'] }
+        ]}
+      />
+    )
+
+    expect(screen.getAllByText('Reviewed yearly')).toHaveLength(3)
+    expect(
+      error.mock.calls.filter(([message]) => String(message).includes('key'))
+    ).toEqual([])
+    error.mockRestore()
   })
 
   it("draws images with the provider's renderImage", () => {

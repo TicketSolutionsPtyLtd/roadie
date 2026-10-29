@@ -1,30 +1,11 @@
-import { cleanup, render, screen, within } from '@testing-library/react'
-import axe from 'axe-core'
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi
-} from 'vitest'
+import { render, screen, within } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 
-import { CardGrid, type CardGridItem, type CardGridProps } from '.'
-import roadieCss from '../../vitest.browser.css?inline'
+import { CardGrid, type CardGridItem, type CardGridPreset } from '.'
 import { MarketingBlocksProvider } from '../Provider'
+import { axeViolations, photo, withBrowserPage } from '../_test/browser'
 
-let stylesheet: HTMLStyleElement
-beforeAll(() => {
-  stylesheet = document.createElement('style')
-  stylesheet.textContent = roadieCss
-  document.head.append(stylesheet)
-})
-afterAll(() => stylesheet.remove())
-afterEach(() => cleanup())
-
-const PIXEL =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 3'/%3E"
+withBrowserPage()
 
 const items: CardGridItem[] = [
   'Live music',
@@ -38,18 +19,16 @@ const items: CardGridItem[] = [
   subtitle: 'Festivals, tours, and concerts',
   description: 'We sell millions of tickets each year.',
   illustration: 'Ticket',
-  image: { src: PIXEL, alt: `${title} photo ${index + 1}` },
+  image: photo(`${title} photo ${index + 1}`, 400, 300),
   points: ['ISO 9001:2015 certified', '99.99% SLA uptime']
 }))
-
-type Preset = NonNullable<CardGridProps['preset']>
 
 function Block({
   preset,
   width,
   count = 4
 }: {
-  preset: Preset
+  preset: CardGridPreset
   width: number
   count?: number
 }) {
@@ -72,7 +51,7 @@ const columns = () =>
     .size
 
 describe('CardGrid columns', () => {
-  it.each<[Preset, number, number]>([
+  it.each<[CardGridPreset, number, number]>([
     ['features', 3, 3],
     ['services', 4, 4],
     ['industries', 6, 3],
@@ -156,6 +135,50 @@ describe('CardGrid values', () => {
   })
 })
 
+describe('CardGrid images', () => {
+  const ratio = (image: HTMLElement) => {
+    const { width, height } = image.getBoundingClientRect()
+    return Math.round((width / height) * 100) / 100
+  }
+
+  it.each<[CardGridPreset, number]>([
+    ['features', 1.78],
+    ['services', 1.33],
+    ['industries', 1],
+    ['values', 1],
+    ['team', 1]
+  ])('crops a sized 4:3 photo to the %s shape', (preset, shape) => {
+    render(<Block preset={preset} width={1280} count={1} />)
+
+    expect(ratio(screen.getByRole('img'))).toBe(shape)
+  })
+})
+
+describe('CardGrid spacing', () => {
+  const gap = (preset: CardGridPreset) => {
+    render(<Block preset={preset} width={1280} count={1} />)
+    const section = screen.getByRole('region').getBoundingClientRect()
+    const heading = screen
+      .getByRole('heading', { level: 2 })
+      .getBoundingClientRect()
+    return Math.round(heading.top - section.top)
+  }
+
+  it.each<CardGridPreset>(['services', 'industries', 'values', 'lists'])(
+    '%s leaves the space above it to the page',
+    (preset) => {
+      expect(gap(preset)).toBe(0)
+    }
+  )
+
+  it.each<CardGridPreset>(['features', 'team'])(
+    '%s pads its title inside its raised surface',
+    (preset) => {
+      expect(gap(preset)).toBeGreaterThan(0)
+    }
+  )
+})
+
 describe('CardGrid views', () => {
   it('reports its view with the variant its preset picks', async () => {
     const onBlockEvent = vi.fn()
@@ -185,7 +208,7 @@ describe('CardGrid views', () => {
 })
 
 describe('CardGrid accessibility', () => {
-  it.each<Preset>([
+  it.each<CardGridPreset>([
     'features',
     'services',
     'industries',
@@ -207,9 +230,6 @@ describe('CardGrid accessibility', () => {
       </main>
     )
 
-    const results = await axe.run(container)
-    expect(results.violations.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual(
-      []
-    )
+    expect(await axeViolations(container)).toEqual([])
   })
 })
