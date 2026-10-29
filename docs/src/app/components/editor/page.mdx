@@ -663,7 +663,8 @@ const { html, text } = await renderEmail(template, {
 ```
 
 It runs on the server only, since MJML, the renderer behind it, needs Node.
-A Next.js app keeps MJML out of its server bundle:
+A Next.js app keeps MJML out of its server bundle, and adds `mjml` to its own
+dependencies too, so Next can resolve it from the app:
 
 ```ts
 // next.config.ts
