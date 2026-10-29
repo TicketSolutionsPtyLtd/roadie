@@ -14,9 +14,9 @@ import {
   type SpotIllustrationName
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
-import { cardGridDefinition } from './definition'
+import { type CardGridPreset, cardGridDefinition } from './definition'
 
-export type CardGridPreset = (typeof cardGridDefinition.presets)[number]['name']
+export type { CardGridPreset }
 
 export type CardGridItem = {
   /** The card's heading, or a person's name in `portraits`. */
@@ -154,7 +154,7 @@ function ServiceCard({ item }: CardProps) {
           </Mark>
           <Illustration
             name={item.illustration}
-            className='z-1 col-start-1 row-start-1 -mt-20 ml-2 self-start justify-self-start @2xl:-mt-6 @2xl:-mr-6 @2xl:ml-0 @2xl:justify-self-end'
+            className='pointer-events-none z-1 col-start-1 row-start-1 -mt-20 ml-2 self-start justify-self-start @2xl:-mt-6 @2xl:-mr-6 @2xl:ml-0 @2xl:justify-self-end'
           />
         </div>
         {item.subtitle && (
@@ -408,7 +408,7 @@ const LOOKS: Record<CardGridPreset, Look> = {
   },
   lists: {
     Item: ListColumn,
-    list: 'grid grid-cols-1 gap-8 @xl:grid-cols-2 @4xl:auto-cols-[minmax(0,1fr)] @4xl:grid-flow-col @4xl:grid-cols-none',
+    list: 'grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-8',
     align: 'start'
   }
 }
@@ -443,13 +443,13 @@ export function CardGrid({
     >
       <div
         className={cn(
-          'mx-auto grid w-full max-w-8xl grid-cols-1 gap-12',
+          'mx-auto grid w-full max-w-8xl grid-cols-1 gap-12 wrap-anywhere',
           PAGE_PADDING,
           raised && 'bg-raised py-16 @5xl:py-20 @7xl:rounded-3xl',
           inset && 'rounded-3xl px-6 py-8 @3xl:px-8 @3xl:py-12'
         )}
       >
-        <div className='grid justify-items-center gap-4'>
+        <div className='grid min-w-0 grid-cols-1 justify-items-center gap-4'>
           {markedEyebrow && (
             <Mark
               render={<p />}

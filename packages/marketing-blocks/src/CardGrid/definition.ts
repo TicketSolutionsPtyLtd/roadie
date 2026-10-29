@@ -52,15 +52,18 @@ export const cardGridDefinition = {
       name: 'portraits',
       title: 'Portraits',
       description:
-        'Square photos of people, such as the team, speakers, or artists, on a raised surface with each name and role marked over the photo.',
+        'Square photos on an inset raised surface, each with a name and role marked over it, for the team, speakers, or artists.',
       variant: 'grid'
     },
     {
       name: 'lists',
       title: 'Lists',
       description:
-        'Columns of short lists, each under its own title, with no images.',
+        'Columns of short lists, each under its own title, with no images, for policies, certifications, or other short facts.',
       variant: 'grid'
     }
   ]
 } as const satisfies BlockDefinition
+
+/** A CardGrid preset's name. */
+export type CardGridPreset = (typeof cardGridDefinition.presets)[number]['name']

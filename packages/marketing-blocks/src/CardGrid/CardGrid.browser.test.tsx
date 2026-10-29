@@ -137,6 +137,46 @@ describe('CardGrid columns', () => {
   })
 })
 
+describe('CardGrid lists', () => {
+  it.each([
+    [768, 2],
+    [1024, 3]
+  ])(
+    'wraps six lists into columns of at least 15rem at %ipx',
+    (width, expected) => {
+      render(<Block preset='lists' width={width} count={6} />)
+
+      expect(columns()).toBe(expected)
+      for (const card of cards())
+        expect(card.getBoundingClientRect().width).toBeGreaterThanOrEqual(240)
+    }
+  )
+})
+
+describe('CardGrid long words', () => {
+  it('keeps its heading inside the block on a phone', () => {
+    render(
+      <div style={{ width: 375 }}>
+        <CardGrid
+          preset='marked-cards'
+          title={'Ticketverkaufsplattformen'.repeat(3)}
+          description={'Ticketverkaufsplattformen'.repeat(3)}
+          items={items.slice(0, 1)}
+        />
+      </div>
+    )
+
+    const block = screen.getByRole('region').getBoundingClientRect()
+    const heading = screen.getByRole('heading', { level: 2 })
+    expect(
+      heading.parentElement!.parentElement!.getBoundingClientRect().right
+    ).toBeLessThanOrEqual(block.right)
+    expect(heading.getBoundingClientRect().right).toBeLessThanOrEqual(
+      block.right
+    )
+  })
+})
+
 describe('CardGrid at 960px', () => {
   it.each<[CardGridPreset, number, number]>([
     ['illustrated-cards', 3, 3],
@@ -296,6 +336,13 @@ describe('CardGrid spacing', () => {
   )
 })
 
+const illustrationCentre = (card: HTMLElement): [number, number][] => {
+  const drawing = card.querySelector('svg')
+  if (!drawing) return []
+  const { left, top, right, bottom } = drawing.getBoundingClientRect()
+  return [[(left + right) / 2, (top + bottom) / 2]]
+}
+
 describe('CardGrid card links', () => {
   it.each<CardGridPreset>([
     'illustrated-cards',
@@ -307,7 +354,7 @@ describe('CardGrid card links', () => {
     'numbered-cards',
     'link-cards'
   ])(
-    'makes a linked %s card one hit area, from its image to its last line',
+    'makes a linked %s card one hit area, from its image and illustration to its last line',
     (preset) => {
       render(
         <div style={{ width: 1280 }}>
@@ -326,7 +373,8 @@ describe('CardGrid card links', () => {
         // Inside the rounded corners, which clip the portrait card's hit area.
         [left + 12, top + 12],
         [right - 12, bottom - 12],
-        [(left + right) / 2, (top + bottom) / 2]
+        [(left + right) / 2, (top + bottom) / 2],
+        ...illustrationCentre(card)
       ] as const)
         expect(link.contains(document.elementFromPoint(x, y))).toBe(true)
     }

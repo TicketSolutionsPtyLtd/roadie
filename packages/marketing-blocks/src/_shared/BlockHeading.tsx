@@ -41,7 +41,7 @@ export function BlockHeading({
   return (
     <div
       className={cn(
-        'grid gap-2',
+        'grid min-w-0 grid-cols-1 gap-2',
         align === 'center' ? 'justify-items-center text-center' : 'text-start',
         className
       )}
@@ -49,7 +49,10 @@ export function BlockHeading({
       {eyebrow && <p className='text-display-prose-5 text-strong'>{eyebrow}</p>}
       <Heading
         id={id}
-        className={cn('max-w-5xl text-balance text-strong', TITLE_SIZE[size])}
+        className={cn(
+          'max-w-5xl text-balance wrap-anywhere text-strong',
+          TITLE_SIZE[size]
+        )}
       >
         {titleHighlight ? (
           <Highlight
@@ -64,7 +67,7 @@ export function BlockHeading({
       {description && (
         <p
           className={cn(
-            'text-xl text-subtle',
+            'text-xl wrap-anywhere text-subtle',
             wide ? 'text-pretty' : 'max-w-3xl text-balance'
           )}
         >
