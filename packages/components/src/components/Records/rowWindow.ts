@@ -9,7 +9,12 @@ import {
   useState
 } from 'react'
 
-import { useVirtualizer, useWindowVirtualizer } from '@tanstack/react-virtual'
+import {
+  type VirtualItem,
+  type Virtualizer,
+  useVirtualizer,
+  useWindowVirtualizer
+} from '@tanstack/react-virtual'
 
 import type { WindowView } from './recordsWindow'
 import {
@@ -41,6 +46,27 @@ const exactHeight = (
   entry: ResizeObserverEntry | undefined
 ) =>
   entry?.borderBoxSize?.[0]?.blockSize ?? element.getBoundingClientRect().height
+
+/**
+ * Keeps the rows on screen still when a row above them changes size. virtual-core
+ * corrects a row's second measurement only while scrolling down, but a range
+ * row's placeholder is measured under the row's key, so the record that replaces
+ * it is a second measurement, and scrolling up over it would move the rows below.
+ */
+export function correctsRowsAbove(
+  item: Pick<VirtualItem, 'key' | 'start' | 'end'>,
+  _delta: number,
+  instance: Pick<
+    Virtualizer<Element | Window, Element>,
+    'scrollOffset' | 'itemSizeCache'
+  >
+) {
+  const offset = instance.scrollOffset ?? 0
+  return (
+    item.start < offset &&
+    (item.end <= offset || !instance.itemSizeCache.has(item.key))
+  )
+}
 
 const stuckBottom = (element: HTMLElement) =>
   (parseFloat(getComputedStyle(element).top) || 0) + element.offsetHeight
@@ -191,6 +217,13 @@ export function useRowWindow<Body extends HTMLElement = HTMLDivElement>({
     enabled: usesWindow
   })
   const virtualizer = usesWindow ? windowVirtualizer : elementVirtualizer
+
+  useLayoutEffect(() => {
+    elementVirtualizer.shouldAdjustScrollPositionOnItemSizeChange =
+      correctsRowsAbove
+    windowVirtualizer.shouldAdjustScrollPositionOnItemSizeChange =
+      correctsRowsAbove
+  }, [elementVirtualizer, windowVirtualizer])
 
   useLayoutEffect(() => {
     virtualizer.measure()

@@ -2,7 +2,15 @@ import { type ReactNode, useState } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 
 import {
   type RecordPosition,
@@ -148,12 +156,12 @@ async function scrollAndCheck(
   for (const card of cards(container)) seen.add(card.dataset.rowId!)
 }
 
-function Ranged({ row = 0 }: { row?: number }) {
+function Ranged({ row = 0, pageSize }: { row?: number; pageSize?: number }) {
   const [view, setView] = useState<RecordView>({
     query: { search: '', filters: [], sort: [] },
     layout: { type: 'table' }
   })
-  const [position, setPosition] = useState<RecordPosition>({ row })
+  const [position, setPosition] = useState<RecordPosition>({ row, pageSize })
   return (
     <div
       data-testid='box'
@@ -267,6 +275,80 @@ describe('RecordTable narrow cards in a browser', () => {
       expectNoOverlap(container)
     }
   }, 120_000)
+
+  // Each range above loads as the list scrolls up to it, after its
+  // placeholders were measured above the fold under the records' keys. They're
+  // shorter than the estimate here, as a banner card's can be, so they're cached.
+  it('keeps the cards still as ranges above load while scrolling up', async () => {
+    const removeShorter = useStylesheet(
+      '[data-slot="record-table-placeholder-row"] > div { block-size: 9rem }'
+    )
+    onTestFinished(removeShorter)
+    const { container } = render(<Ranged row={200} pageSize={25} />)
+    await expect
+      .poll(() =>
+        cards(container).some((card) => card.dataset.rowId === 'show-200')
+      )
+      .toBe(true)
+    await cardsAtRest(container)
+    const scroller = box(container)
+    for (let step = 0; step < 30; step++) {
+      const before = anchor(container)
+      scroller.scrollTop -= 150
+      await cardsAtRest(container)
+      const moved = cards(container).find(
+        (element) => element.dataset.rowId === before.id
+      )
+      expect(moved).toBeDefined()
+      expect(
+        Math.abs(moved!.getBoundingClientRect().top - (before.top + 150))
+      ).toBeLessThanOrEqual(2)
+      expectNoOverlap(container)
+    }
+  })
+
+  it('grows a card across the top edge downward, keeping its top still', async () => {
+    const { container } = render(
+      <div
+        data-testid='box'
+        style={{ width: 360, height: 600, overflowY: 'auto' }}
+      >
+        <RecordTable
+          caption='Shows'
+          data={noted(200)}
+          fields={fields}
+          columns={cardColumns}
+          getRowId={(row) => row.id}
+          defaultPosition={{ pageSize: 10_000 }}
+        />
+      </div>
+    )
+    await expect.poll(() => cards(container).length).toBeGreaterThan(0)
+    const scroller = box(container)
+    scroller.scrollTop = 1000
+    await cardsAtRest(container)
+    const edge = scroller.getBoundingClientRect().top
+    const atEdge = () =>
+      cards(container).find((card) => {
+        const { top, bottom } = card.getBoundingClientRect()
+        return top < edge && bottom > edge
+      })!
+    const { top, bottom } = atEdge().getBoundingClientRect()
+    scroller.scrollTop += (top + bottom) / 2 - edge
+    await cardsAtRest(container)
+    const straddling = atEdge()
+    const before = straddling.getBoundingClientRect()
+    onTestFinished(
+      useStylesheet(
+        `[data-row-id="${straddling.dataset.rowId}"] { padding-block-end: 5rem }`
+      )
+    )
+    await cardsAtRest(container)
+    const after = straddling.getBoundingClientRect()
+    expect(after.height - before.height).toBeGreaterThan(60)
+    expect(Math.abs(after.top - before.top)).toBeLessThanOrEqual(1)
+    expectNoOverlap(container)
+  })
 
   it('lands a restored range row under the toolbar once cards are measured', async () => {
     const { container } = render(<Ranged row={120} />)
