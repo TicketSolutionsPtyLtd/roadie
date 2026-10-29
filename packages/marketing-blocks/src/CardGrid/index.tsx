@@ -185,12 +185,12 @@ function IndustryCard({ item, index }: CardProps) {
 }
 
 function ValueRow({ item, index }: CardProps) {
-  const flipped = index % 2 === 1
+  const imageFirst = index % 2 === 0
   return (
     <li
       className={cn(
         'grid items-start gap-x-12 gap-y-4 @3xl:items-center',
-        flipped ? '@3xl:grid-cols-[2fr_3fr]' : '@3xl:grid-cols-[3fr_2fr]'
+        imageFirst ? '@3xl:grid-cols-[2fr_3fr]' : '@3xl:grid-cols-[3fr_2fr]'
       )}
     >
       <div className='grid gap-4'>
@@ -221,7 +221,7 @@ function ValueRow({ item, index }: CardProps) {
         sizes='(min-width: 768px) 40vw, 100vw'
         className={cn(
           'aspect-square w-full max-w-80 rounded-3xl @3xl:max-w-none',
-          flipped && '@3xl:-order-1'
+          imageFirst && '@3xl:-order-1'
         )}
       />
     </li>
@@ -360,6 +360,7 @@ export function CardGrid({
             titleHighlight={titleHighlight}
             description={description}
             align={align}
+            wide={align === 'start'}
             className='w-full'
           />
         </div>

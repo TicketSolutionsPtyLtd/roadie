@@ -12,6 +12,8 @@ export type BlockHeadingProps = {
   /** The title's `text-display-prose-*` step, when the preset sets one other than the level's. */
   size?: 1 | 2 | 3 | 4
   align?: 'center' | 'start'
+  /** Runs the description the heading's full width instead of balancing it to a measure. */
+  wide?: boolean
   id?: string
   className?: string
 }
@@ -31,6 +33,7 @@ export function BlockHeading({
   level = 2,
   size = level,
   align = 'center',
+  wide = false,
   id,
   className
 }: BlockHeadingProps) {
@@ -59,7 +62,12 @@ export function BlockHeading({
         )}
       </Heading>
       {description && (
-        <p className='max-w-3xl text-xl text-balance text-subtle'>
+        <p
+          className={cn(
+            'text-xl text-subtle',
+            wide ? 'text-pretty' : 'max-w-3xl text-balance'
+          )}
+        >
           {description}
         </p>
       )}

@@ -128,10 +128,31 @@ describe('CardGrid values', () => {
     expect(sides()).toEqual(['below', 'below', 'below'])
   })
 
-  it('alternates the image’s side on a desktop', () => {
+  it('alternates the image’s side on a desktop, starting on the left', () => {
     render(<Block preset='values' width={1280} count={3} />)
 
-    expect(sides()).toEqual(['right', 'left', 'right'])
+    expect(sides()).toEqual(['left', 'right', 'left'])
+  })
+
+  it('runs its description the full width of the block', () => {
+    render(
+      <div style={{ width: 1280 }}>
+        <CardGrid
+          preset='values'
+          title='Our values'
+          description={'We live our values in every event setup, every support call, and every challenge we solve together. '.repeat(
+            3
+          )}
+          items={items.slice(0, 1)}
+        />
+      </div>
+    )
+
+    const list = cards()[0]!.parentElement!.getBoundingClientRect()
+    const description = screen
+      .getByText(/We live our values/)
+      .getBoundingClientRect()
+    expect(description.width).toBeGreaterThan(list.width - 2)
   })
 })
 
