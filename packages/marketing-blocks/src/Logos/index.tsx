@@ -26,18 +26,24 @@ export type LogosPartner = {
 }
 
 export type LogosAlso = {
-  /** The tile's title. Defaults to `Also supporting`. */
+  /**
+   * The tile's title.
+   * @default 'Also supporting'
+   */
   title?: string
   /** Smaller logos of the partners without a tile of their own. */
   logos: readonly BlockImage[]
 }
 
 export type LogosProps = {
-  /** The look to render. `partner-tiers` is the only one so far. */
+  /**
+   * The look to render. `partner-tiers` is the only one so far.
+   * @default 'partner-tiers'
+   */
   preset?: LogosPreset
-  /** The block's order on the page, counting from 1, reported with its events. */
+  /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
-  /** The section's id, for linking to it. */
+  /** An id for linking to the block. */
   id?: string
   /** A short line above the title. */
   eyebrow?: string
@@ -99,8 +105,8 @@ export function Logos({
           description={description}
         />
         <ul className={GRID}>
-          {partners.map((partner) => (
-            <PartnerTile key={partner.name} {...partner} />
+          {partners.map((partner, index) => (
+            <PartnerTile key={`${index}-${partner.name}`} {...partner} />
           ))}
           {also && <AlsoTile {...also} />}
         </ul>
@@ -162,9 +168,9 @@ function AlsoTile({ title = 'Also supporting', logos }: LogosAlso) {
           {title}
         </Mark>
         <div className='flex flex-wrap items-center justify-center gap-2'>
-          {logos.map((logo) => (
+          {logos.map((logo, index) => (
             <BlockImg
-              key={logo.src}
+              key={`${index}-${logo.src}`}
               image={logo}
               sizes='(min-width: 768px) 8vw, 20vw'
               className='h-auto max-w-1/5 object-contain'

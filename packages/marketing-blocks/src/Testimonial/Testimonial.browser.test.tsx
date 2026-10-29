@@ -1,26 +1,28 @@
-import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { render, screen } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
 
 import { Testimonial } from '.'
-import roadieCss from '../../vitest.browser.css?inline'
 import {
+  DESKTOP,
   atWidth,
   axeViolations,
-  useStylesheet,
-  widths
-} from '../_shared/testUtils'
-import { quote } from './testUtils'
+  photo,
+  widths,
+  withBrowserPage
+} from '../_test/browser'
+import { quote as fixture } from './fixtures'
 
-let removeStylesheet = () => {}
-beforeAll(() => {
-  removeStylesheet = useStylesheet(roadieCss)
-})
-afterEach(() => cleanup())
-afterAll(async () => {
-  removeStylesheet()
-  await page.viewport(1920, 1080)
-})
+withBrowserPage()
+
+const quote = {
+  ...fixture,
+  person: { ...fixture.person, image: photo('Portrait of Mia Tran', 128, 128) },
+  organisation: {
+    ...fixture.organisation,
+    logo: photo('Thimble Orbit Presents logo', 120, 40)
+  },
+  backgroundImage: photo('', 1600, 900)
+}
 
 const rectOf = (element: Element) => element.getBoundingClientRect()
 
@@ -34,19 +36,21 @@ describe('Testimonial quote layout', () => {
       await atWidth(width, height)
       render(<Testimonial {...quote} />)
 
-      const photo = rectOf(
+      const photoBox = rectOf(
         screen.getByRole('img', { name: 'Portrait of Mia Tran' }).parentElement!
       )
       const name = rectOf(screen.getByText('Mia Tran'))
-      expect(photo.width).toBeCloseTo(portrait, 0)
-      expect(photo.height).toBeCloseTo(portrait, 0)
-      expect(name.left).toBeGreaterThan(photo.right)
-      expect(Math.round(name.top)).toBeGreaterThanOrEqual(Math.round(photo.top))
+      expect(photoBox.width).toBeCloseTo(portrait, 0)
+      expect(photoBox.height).toBeCloseTo(portrait, 0)
+      expect(name.left).toBeGreaterThan(photoBox.right)
+      expect(Math.round(name.top)).toBeGreaterThanOrEqual(
+        Math.round(photoBox.top)
+      )
     }
   )
 
   it('centres the quote in a reading measure, with the background photo spanning the block', async () => {
-    await atWidth(1280, 800)
+    await atWidth(DESKTOP.width, DESKTOP.height)
     const { container } = render(<Testimonial {...quote} />)
 
     const section = rectOf(container.querySelector('section')!)
@@ -61,6 +65,19 @@ describe('Testimonial quote layout', () => {
     )
     expect(background.width).toBeCloseTo(section.width, 0)
     expect(background.height).toBeCloseTo(section.height, 0)
+  })
+
+  it('pads only inside a background photo, and sits flush without one', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { container, rerender } = render(<Testimonial {...quote} />)
+    const gapAbove = () =>
+      rectOf(screen.getByRole('heading', { level: 2 })).top -
+      rectOf(container.querySelector('section')!).top
+
+    expect(gapAbove()).toBeGreaterThan(0)
+
+    rerender(<Testimonial {...quote} backgroundImage={undefined} />)
+    expect(gapAbove()).toBe(0)
   })
 })
 

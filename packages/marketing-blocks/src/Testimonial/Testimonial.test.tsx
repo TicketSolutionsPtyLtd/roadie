@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Testimonial } from '.'
 import { MarketingBlocksProvider } from '../Provider'
-import { quote } from './testUtils'
+import { quote } from './fixtures'
 
 describe('Testimonial', () => {
   it('renders quote as a section named by its heading', () => {
@@ -79,6 +79,20 @@ describe('Testimonial', () => {
     expect(images).toHaveLength(3)
     for (const img of images)
       expect(img).toHaveAttribute('src', '/optimised.webp')
+  })
+
+  it('gives every image the sizes its layout needs', () => {
+    const renderImage = vi.fn(({ alt }: { alt: string }) => (
+      <img alt={alt} src='/optimised.webp' />
+    ))
+    render(
+      <MarketingBlocksProvider renderImage={renderImage}>
+        <Testimonial {...quote} />
+      </MarketingBlocksProvider>
+    )
+
+    for (const [image] of renderImage.mock.calls)
+      expect(image, image.alt).toHaveProperty('sizes', expect.any(String))
   })
 
   it('reports no click from the quote, which holds no links', async () => {

@@ -1,5 +1,7 @@
 import { useId } from 'react'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 import type { BlockImage } from '../Provider'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
@@ -27,11 +29,14 @@ export type TestimonialOrganisation = {
 }
 
 export type TestimonialProps = {
-  /** The look to render. `quote` is the only one so far. */
+  /**
+   * The look to render. `quote` is the only one so far.
+   * @default 'quote'
+   */
   preset?: TestimonialPreset
-  /** The block's order on the page, counting from 1, reported with its events. */
+  /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
-  /** The section's id, for linking to it. */
+  /** An id for linking to the block. */
   id?: string
   /** A short line above the title. */
   eyebrow?: string
@@ -47,7 +52,7 @@ export type TestimonialProps = {
   person: TestimonialPerson
   /** Where they work. */
   organisation?: TestimonialOrganisation
-  /** A photo faded behind the whole block. Decorative, so its alt text isn't read. */
+  /** A photo faded behind the whole block, which then pads its content. Decorative, so its alt text isn't read. */
   backgroundImage?: BlockImage
 }
 
@@ -84,7 +89,12 @@ export function Testimonial({
           className='absolute inset-0 -z-1 size-full object-cover opacity-10'
         />
       )}
-      <div className='container-4xl grid justify-items-center gap-16 py-12 @3xl:py-16 @5xl:py-20'>
+      <div
+        className={cn(
+          'container-4xl grid justify-items-center gap-16',
+          backgroundImage && 'py-12 @3xl:py-16 @5xl:py-20'
+        )}
+      >
         <BlockHeading
           id={headingId}
           eyebrow={eyebrow}
@@ -101,6 +111,8 @@ export function Testimonial({
   )
 }
 
+const LOGO_WIDTH = 160
+
 // The glyph's negative margin tucks the quote's first line into its lower
 // half, as a typeset pull quote does.
 function Quote({ children }: { children: string }) {
@@ -108,7 +120,7 @@ function Quote({ children }: { children: string }) {
     <blockquote
       className={
         'isolate text-center text-display-prose-5 leading-tight text-balance text-strong @3xl:text-display-prose-4 ' +
-        'before:relative before:-z-1 before:-mb-[0.45em] before:block before:text-[10em] before:leading-[0.5] before:text-(--color-info-7) before:opacity-80 before:content-[open-quote] after:content-[no-close-quote]'
+        'before:relative before:-z-1 before:-mb-[0.45em] before:block before:text-[10em] before:leading-[0.5] before:text-subtler before:opacity-50 before:content-[open-quote] before:intent-info after:content-[no-close-quote]'
       }
     >
       <p>{children}</p>
@@ -145,6 +157,7 @@ function Citation({
         {logo && (
           <BlockImg
             image={{ ...logo, alt: logo.alt || organisation.name }}
+            sizes={`${logo.width ?? LOGO_WIDTH}px`}
             className='rounded-md'
           />
         )}

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Logos } from '.'
 import { MarketingBlocksProvider } from '../Provider'
-import { partnerTiers } from './testUtils'
+import { partnerTiers } from './fixtures'
 
 describe('Logos', () => {
   it('renders partner-tiers as a section named by its start-aligned heading', () => {
@@ -43,6 +43,24 @@ describe('Logos', () => {
     expect(featured).toHaveLength(
       partnerTiers.partners.filter((partner) => partner.featured).length
     )
+  })
+
+  it('keeps repeated partners and logos as distinct tiles', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const partner = partnerTiers.partners[0]!
+    const logo = partnerTiers.also.logos[0]!
+    render(
+      <Logos
+        {...partnerTiers}
+        partners={[partner, partner]}
+        also={{ logos: [logo, logo] }}
+      />
+    )
+
+    expect(screen.getAllByText(partner.level)).toHaveLength(2)
+    expect(screen.getAllByRole('img', { name: logo.alt })).toHaveLength(2)
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
   })
 
   it('ends with the also-supporting logos, titled "Also supporting" by default', () => {

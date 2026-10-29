@@ -1,25 +1,30 @@
-import { cleanup, render } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { render } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
 
-import { Logos } from '.'
-import roadieCss from '../../vitest.browser.css?inline'
+import { Logos, type LogosProps } from '.'
 import {
+  DESKTOP,
   atWidth,
   axeViolations,
-  useStylesheet,
-  widths
-} from '../_shared/testUtils'
-import { partnerTiers } from './testUtils'
+  photo,
+  widths,
+  withBrowserPage
+} from '../_test/browser'
+import { partnerTiers } from './fixtures'
 
-let removeStylesheet = () => {}
-beforeAll(() => {
-  removeStylesheet = useStylesheet(roadieCss)
-})
-afterEach(() => cleanup())
-afterAll(async () => {
-  removeStylesheet()
-  await page.viewport(1920, 1080)
+withBrowserPage()
+
+const offline = (props: LogosProps): LogosProps => ({
+  ...props,
+  partners: props.partners.map((partner) => ({
+    ...partner,
+    image: photo(''),
+    logo: photo(partner.logo.alt, 240, 80)
+  })),
+  also: props.also && {
+    ...props.also,
+    logos: props.also.logos.map((logo) => photo(logo.alt, 240, 80))
+  }
 })
 
 const tiles = () =>
@@ -40,7 +45,7 @@ describe('Logos partner-tiers layout', () => {
     'fits $columns columns at $name width',
     async ({ width, height, columns: expected }) => {
       await atWidth(width, height)
-      render(<Logos {...partnerTiers} />)
+      render(<Logos {...offline(partnerTiers)} />)
 
       const [featured, square] = tiles()
       expect(columns()).toBe(expected)
@@ -51,15 +56,12 @@ describe('Logos partner-tiers layout', () => {
   )
 
   it('packs a square partner into the gap a wide tile leaves', async () => {
-    await atWidth(1280, 800)
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const [featured, square] = offline(partnerTiers).partners
     render(
       <Logos
         {...partnerTiers}
-        partners={[
-          ...partnerTiers.partners.slice(0, 2),
-          { ...partnerTiers.partners[0]!, name: 'Wide' },
-          { ...partnerTiers.partners[1]!, name: 'Last' }
-        ]}
+        partners={[featured!, square!, featured!, square!]}
         also={undefined}
       />
     )
@@ -77,7 +79,7 @@ describe('Logos accessibility', () => {
       await atWidth(width, height)
       const { container } = render(
         <main>
-          <Logos {...partnerTiers} />
+          <Logos {...offline(partnerTiers)} />
         </main>
       )
 
