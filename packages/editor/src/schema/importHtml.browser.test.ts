@@ -388,6 +388,15 @@ describe('htmlToEditorValue', () => {
     expect(dropped).toEqual([{ kind: 'media' }])
   })
 
+  it('reports media inside media once', () => {
+    const { dropped } = htmlToEditorValue(
+      '<object data="https://cdn.oztix.com.au/a.swf"><embed src="https://cdn.oztix.com.au/a.swf"></object><video><img src="data:image/gif;base64,R0lGOD"></video>',
+      'rich'
+    )
+
+    expect(dropped).toEqual([{ kind: 'media' }, { kind: 'media' }])
+  })
+
   it('reports each dropped item in document order', () => {
     const { dropped } = htmlToEditorValue(
       '<img src="data:image/gif;base64,R0lGOD"><iframe src="https://evil.example/x"></iframe><video></video>',
