@@ -553,3 +553,25 @@ describe('Carousel autoplay', () => {
     stillShowingFirst()
   })
 })
+
+describe.each<CarouselContentOverflow>(['subtle', 'hidden', 'visible'])(
+  'the track with %s overflow',
+  (overflow) => {
+    const ringWidth = () =>
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--focus-ring-width')
+        .trim()
+
+    it('shows a focus ring inside its box when the keyboard reaches it', async () => {
+      render(<Shows overflow={overflow} />)
+      await userEvent.tab()
+      expect(content()).toHaveFocus()
+      await expect
+        .poll(() => {
+          const style = getComputedStyle(content())
+          return [style.outlineStyle, style.outlineWidth, style.outlineOffset]
+        })
+        .toEqual(['solid', ringWidth(), `-${ringWidth()}`])
+    })
+  }
+)

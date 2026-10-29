@@ -20,7 +20,7 @@ import { cva } from 'class-variance-authority'
 // bleed needed to let `shadow-md` (~6–10px) escape the viewport box on
 // `Card` slides without the clip region eating the tint.
 export const carouselContentVariants = cva(
-  'relative focus-visible:outline-none',
+  'relative is-focusable focus-visible:-outline-offset-(--focus-ring-width)',
   {
     variants: {
       direction: {
