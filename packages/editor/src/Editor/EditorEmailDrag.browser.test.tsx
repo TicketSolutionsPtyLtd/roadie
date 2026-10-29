@@ -350,6 +350,41 @@ describe('Editor email block handle', () => {
     })
   })
 
+  it('hides the drop line over a place that can’t hold the dragged block', async () => {
+    renderNewsletter()
+    await hoverSection('Bravo one')
+    const handle = await grip()
+    const dataTransfer = new DataTransfer()
+    const dragOver = async (text: string) => {
+      const target = await line(text)
+      const { left, width, bottom } = target.getBoundingClientRect()
+      const event = new DragEvent('dragover', {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+        clientX: left + width / 2,
+        clientY: bottom - 2
+      })
+      target.dispatchEvent(event)
+      return event
+    }
+    const dropLine = () =>
+      document.querySelector('.prosemirror-dropcursor-block')
+    handle.dispatchEvent(
+      new DragEvent('dragstart', { bubbles: true, dataTransfer })
+    )
+
+    await dragOver('Closing')
+    await waitFor(() => expect(dropLine()).not.toBe(null))
+    const refused = await dragOver('Left one')
+
+    expect(refused.dataTransfer!.dropEffect).toBe('none')
+    await waitFor(() => expect(dropLine()).toBe(null))
+    handle.dispatchEvent(
+      new DragEvent('dragend', { bubbles: true, dataTransfer })
+    )
+  })
+
   it('adds a block after its own from the add button', async () => {
     const onValueChange = renderNewsletter()
     await hoverBlock('Alpha one')

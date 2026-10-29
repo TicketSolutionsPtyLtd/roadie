@@ -23,6 +23,10 @@ function refused(view: EditorView, pos: number) {
   )
 }
 
+// A disabled drop cursor keeps its last line, and leaving the editor clears it.
+const clearDropLine = (view: EditorView) =>
+  view.dom.dispatchEvent(new DragEvent('dragleave'))
+
 const pointerPos = (view: EditorView, event: MouseEvent) =>
   view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos
 
@@ -52,6 +56,7 @@ export const BlockDrag = Extension.create({
               const pos = pointerPos(view, event)
               if (pos !== undefined && refused(view, pos)) {
                 event.dataTransfer!.dropEffect = 'none'
+                clearDropLine(view)
               }
               return false
             }
