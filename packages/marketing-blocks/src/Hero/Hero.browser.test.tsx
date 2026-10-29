@@ -1,7 +1,9 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { commands, page } from 'vitest/browser'
 
 import { Hero } from '.'
+import { MarketingBlocksProvider } from '../Provider'
 import {
   DESKTOP,
   PHONE,
@@ -98,6 +100,91 @@ describe('Hero bento layout', () => {
 })
 
 const SLOTS = ['heading', 'primary', 'secondary', 'video']
+
+describe('Hero bento with a panel missing', () => {
+  it('spans the title across the top row with no primary photos', async () => {
+    await showAt(DESKTOP.width, <Hero {...bento(photo)} primaryImages={[]} />)
+
+    expect(box('heading').left).toBeCloseTo(box('secondary').left, 0)
+    expect(box('heading').right).toBeCloseTo(box('video').right, 0)
+  })
+
+  it('spans the secondary photos across the lower row with no video', async () => {
+    await showAt(DESKTOP.width, <Hero {...bento(photo)} video={undefined} />)
+
+    expect(box('secondary').left).toBeCloseTo(box('heading').left, 0)
+    expect(box('secondary').right).toBeCloseTo(box('primary').right, 0)
+    expect(box('secondary').height).toBeGreaterThan(100)
+  })
+
+  it('spans the video across the lower row with no secondary photos', async () => {
+    await showAt(DESKTOP.width, <Hero {...bento(photo)} secondaryImages={[]} />)
+
+    expect(box('video').left).toBeCloseTo(box('heading').left, 0)
+    expect(box('video').right).toBeCloseTo(box('primary').right, 0)
+  })
+})
+
+// Candidates labelled by width, so the one the browser picks says what `sizes` asked for.
+const CANDIDATES = [100, 300, 600, 1200]
+
+function withCandidates() {
+  return (
+    <MarketingBlocksProvider
+      renderImage={({ alt, sizes, className }) => (
+        <img
+          alt={alt}
+          sizes={sizes}
+          className={className}
+          srcSet={CANDIDATES.map((w) => `/__candidate/${w}.png ${w}w`).join(
+            ', '
+          )}
+        />
+      )}
+    >
+      <Hero {...bento(photo)} />
+    </MarketingBlocksProvider>
+  )
+}
+
+describe('Hero bento image sizes', () => {
+  it.each([
+    [600, 'secondary'],
+    [920, 'primary']
+  ])(
+    'asks for at least the panel’s width at %ipx, in the %s panel',
+    async (width, slot) => {
+      await showAt(width, withCandidates())
+      const img = panel(slot).querySelector('img')!
+
+      await expect.poll(() => img.currentSrc).not.toBe('')
+      const chosen = Number(/(\d+)\.png/.exec(img.currentSrc)![1])
+      expect(chosen).toBeGreaterThanOrEqual(panel(slot).clientWidth)
+    }
+  )
+})
+
+describe('Hero bento pause toggle', () => {
+  it('shows a pause control over the bento that turns to play when pressed', async () => {
+    await showAt(PHONE.width)
+    const button = page.getByRole('button', { name: /pause/i })
+    await expect.element(button).toBeVisible()
+
+    await button.click()
+    await expect
+      .element(page.getByRole('button', { name: /play/i }))
+      .toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('starts on play for viewers who reduce motion', async () => {
+    await commands.reducedMotion(true)
+    await showAt(DESKTOP.width)
+
+    await expect
+      .element(page.getByRole('button', { name: /play/i }))
+      .toBeVisible()
+  })
+})
 
 describe('Hero bento frames and scrim', () => {
   it.each([

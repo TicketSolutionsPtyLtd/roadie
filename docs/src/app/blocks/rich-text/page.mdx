@@ -46,8 +46,9 @@ space around them.
 
 ### Long form
 
-Long-form text set in `Prose` at a reading width. The title is optional,
-and the body can carry its own headings from `h3`.
+Long-form text set in `Prose` at a reading width. The title is optional.
+Under a title, the body's headings start at `h3`; with no title, they start
+at `h2`, so no level is skipped after the page's `h1`.
 
 ```tsx-live id=long-form
 <RichText
@@ -93,12 +94,15 @@ and the body can carry its own headings from `h3`.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Start body headings at h3'>
+<Guideline title='Start body headings one level below the title'>
   <Guideline.Do>
-    Use `h3` and below inside long form, since the block’s title is the
-    `h2`.
+    Start the body’s headings at `h3` under the block’s `h2` title, or at
+    `h2` when the block has no title.
   </Guideline.Do>
-  <Guideline.Dont>Put an `h1` or `h2` in the body.</Guideline.Dont>
+  <Guideline.Dont>
+    Put an `h1` in the body, or skip a level, such as an `h3` straight after
+    the page’s `h1`.
+  </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Pass rendered text'>

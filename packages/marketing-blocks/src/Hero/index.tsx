@@ -1,6 +1,7 @@
 import { type ReactNode, useId } from 'react'
 
 import { Highlight } from '@oztix/roadie-components/highlight'
+import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction, BlockImage } from '../Provider'
 import { BlockActions } from '../_shared/BlockActions'
@@ -12,11 +13,12 @@ import {
   type SpotIllustrationName
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
+import { HeroMotionProvider, HeroMotionToggle } from './HeroMotion'
 import { HeroVideo } from './HeroVideo'
 import { ImageCycler } from './ImageCycler'
-import { heroDefinition } from './definition'
+import { type HeroPreset, heroDefinition } from './definition'
 
-export type HeroPreset = (typeof heroDefinition.presets)[number]['name']
+export type { HeroPreset } from './definition'
 
 export type HeroVideoSource = {
   /** The clip, tried first. With a `fallbackSrc`, an AV1 MP4. */
@@ -39,7 +41,7 @@ export type HeroProps = {
   position?: number
   /** An id for linking to the block. */
   id?: string
-  /** A short line above the title, in `title`. */
+  /** A short line above the title, in `image` and `title`. */
   eyebrow?: string
   /** The page's `h1`. */
   title: string
@@ -202,80 +204,106 @@ function Bento({
   illustration = 'HighFive'
 }: PresetProps) {
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
+  const hasPrimary = primaryImages.length > 0
+  const hasSecondary = secondaryImages.length > 0
+  const moves =
+    video != null || primaryImages.length > 1 || secondaryImages.length > 1
   return (
-    <div className='mx-auto w-full max-w-8xl px-4 @xl:px-6 @7xl:px-2'>
-      <div className='grid grid-cols-1 gap-4 *:min-w-0 @xl:grid-cols-9 @xl:gap-2.5 @4xl:gap-3 @7xl:gap-4'>
-        <div
-          data-slot='hero-heading'
-          className={`${PANEL} grid @xl:col-span-9 @4xl:col-span-6`}
-        >
-          {backgroundImage && (
-            <BlockImg
-              image={{ ...backgroundImage, alt: '' }}
-              sizes='(min-width: 960px) 66vw, 100vw'
-              priority
-              className='absolute inset-0 size-full object-cover'
-            />
-          )}
+    <HeroMotionProvider>
+      <div className='mx-auto w-full max-w-8xl px-4 @xl:px-6 @7xl:px-2'>
+        <div className='relative grid grid-cols-1 gap-4 *:min-w-0 @xl:grid-cols-9 @xl:gap-2.5 @4xl:gap-3 @7xl:gap-4'>
           <div
-            data-slot='hero-scrim'
-            className='relative grid gap-8 bg-(--color-brand-light-13)/60 px-6 py-8 text-(--color-neutral-light-0) @xl:px-8 @xl:py-10 @4xl:px-10 @4xl:py-12'
+            data-slot='hero-heading'
+            className={cn(
+              PANEL,
+              'grid @xl:col-span-9',
+              hasPrimary && '@4xl:col-span-6'
+            )}
           >
-            <div className='grid content-center gap-2'>
-              <Title
-                headingId={headingId}
-                title={title}
-                titleHighlight={titleHighlight}
-                className='text-display-prose-1 text-balance'
-              >
-                {' '}
-                <Illustration
-                  outline
-                  className='inline-block size-12 align-middle @xl:size-16 @4xl:size-20'
-                />
-              </Title>
-              {description && (
-                <p className='text-lg font-medium text-balance'>
-                  {description}
-                </p>
-              )}
+            {backgroundImage && (
+              <BlockImg
+                image={{ ...backgroundImage, alt: '' }}
+                sizes={hasPrimary ? '(min-width: 1024px) 66vw, 100vw' : '100vw'}
+                priority
+                className='absolute inset-0 size-full object-cover'
+              />
+            )}
+            <div
+              data-slot='hero-scrim'
+              className='relative grid gap-8 bg-(--color-brand-light-13)/60 px-6 py-8 text-(--color-neutral-light-0) @xl:px-8 @xl:py-10 @4xl:px-10 @4xl:py-12'
+            >
+              <div className='grid content-center gap-2'>
+                <Title
+                  headingId={headingId}
+                  title={title}
+                  titleHighlight={titleHighlight}
+                  className='text-display-prose-1 text-balance'
+                >
+                  {' '}
+                  <Illustration
+                    outline
+                    className='inline-block size-12 align-middle @xl:size-16 @4xl:size-20'
+                  />
+                </Title>
+                {description && (
+                  <p className='text-lg font-medium text-balance'>
+                    {description}
+                  </p>
+                )}
+              </div>
+              <BlockActions actions={actions} className='gap-2' />
             </div>
-            <BlockActions actions={actions} className='gap-2' />
           </div>
+          {hasPrimary && (
+            <div
+              data-slot='hero-primary'
+              className={`${PANEL} hidden @4xl:col-span-3 @4xl:block`}
+            >
+              <ImageCycler
+                images={primaryImages}
+                interval={4000}
+                sizes='33vw'
+              />
+            </div>
+          )}
+          {hasSecondary && (
+            <div
+              data-slot='hero-secondary'
+              className={cn(
+                PANEL,
+                'hidden @xl:block',
+                video ? '@xl:col-span-4' : '@xl:col-span-9 @xl:aspect-21/9'
+              )}
+            >
+              <ImageCycler
+                images={secondaryImages}
+                interval={5000}
+                sizes={video ? '45vw' : '100vw'}
+              />
+            </div>
+          )}
+          {video && (
+            <div
+              data-slot='hero-video'
+              className={cn(
+                PANEL,
+                'aspect-video',
+                hasSecondary ? '@xl:col-span-5' : '@xl:col-span-9'
+              )}
+            >
+              <HeroVideo
+                {...video}
+                sizes={
+                  hasSecondary ? '(min-width: 576px) 55vw, 100vw' : '100vw'
+                }
+              />
+            </div>
+          )}
+          {moves && (
+            <HeroMotionToggle className='absolute end-3 bottom-3 @xl:end-4 @xl:bottom-4' />
+          )}
         </div>
-        {primaryImages.length > 0 && (
-          <div
-            data-slot='hero-primary'
-            className={`${PANEL} hidden @4xl:col-span-3 @4xl:block`}
-          >
-            <ImageCycler
-              images={primaryImages}
-              interval={4000}
-              sizes='(min-width: 960px) 33vw, 0px'
-            />
-          </div>
-        )}
-        {secondaryImages.length > 0 && (
-          <div
-            data-slot='hero-secondary'
-            className={`${PANEL} hidden @xl:col-span-4 @xl:block`}
-          >
-            <ImageCycler
-              images={secondaryImages}
-              interval={5000}
-              sizes='(min-width: 640px) 45vw, 0px'
-            />
-          </div>
-        )}
-        {video && (
-          <div
-            data-slot='hero-video'
-            className={`${PANEL} aspect-video @xl:col-span-5`}
-          >
-            <HeroVideo {...video} />
-          </div>
-        )}
       </div>
-    </div>
+    </HeroMotionProvider>
   )
 }

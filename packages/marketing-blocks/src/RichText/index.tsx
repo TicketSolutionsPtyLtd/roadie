@@ -11,9 +11,9 @@ import {
   type SpotIllustrationName
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
-import { richTextDefinition } from './definition'
+import { type RichTextPreset, richTextDefinition } from './definition'
 
-export type RichTextPreset = (typeof richTextDefinition.presets)[number]['name']
+export type { RichTextPreset } from './definition'
 
 export type RichTextProps = {
   /**
@@ -34,7 +34,7 @@ export type RichTextProps = {
   titleHighlight?: string | string[]
   /** A sentence under the title. */
   description?: string
-  /** The rich text, already rendered, such as paragraphs from a CMS. Set in `Prose`; headings inside start at `h3`. */
+  /** The rich text, already rendered, such as paragraphs from a CMS. Set in `Prose`. Its headings start at `h3` under a title, or `h2` with none. */
   body?: ReactNode
   /** Links after the body. The first is the strong one. */
   actions?: readonly BlockAction[]

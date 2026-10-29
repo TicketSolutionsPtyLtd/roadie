@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Hero } from '.'
@@ -50,11 +50,22 @@ function stubMatchMedia() {
 
 const shown = (name: string) => screen.queryByRole('img', { name })
 
+let play: ReturnType<typeof vi.spyOn>
+let pause: ReturnType<typeof vi.spyOn>
+
+const toggle = (name: RegExp) => screen.getByRole('button', { name })
+
 describe('Hero photo cycling', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.stubGlobal('IntersectionObserver', OnScreenObserver)
     stubMatchMedia()
+    play = vi
+      .spyOn(HTMLMediaElement.prototype, 'play')
+      .mockResolvedValue(undefined)
+    pause = vi
+      .spyOn(HTMLMediaElement.prototype, 'pause')
+      .mockImplementation(() => {})
   })
 
   afterEach(() => {
@@ -92,11 +103,8 @@ describe('Hero photo cycling', () => {
     expect(shown('A band on stage at Kazoo Hollow Room')).not.toBeNull()
   })
 
-  it('holds the first photos, and pauses the video, for viewers who reduce motion', () => {
+  it('holds the first photos, and leaves the video paused, for viewers who reduce motion', () => {
     reduceMotion(true)
-    const pause = vi
-      .spyOn(HTMLMediaElement.prototype, 'pause')
-      .mockImplementation(() => {})
     const { container } = render(<Hero {...bento()} />)
     act(() => intersect(true))
 
@@ -107,32 +115,80 @@ describe('Hero photo cycling', () => {
     expect(
       container.querySelectorAll('[data-slot=hero-primary] img')
     ).toHaveLength(1)
-    expect(pause).toHaveBeenCalled()
+    expect(play).not.toHaveBeenCalled()
   })
 
-  it('shows the first photos again when the viewer turns on reduced motion mid-cycle', () => {
+  it('holds the photo it’s on, never a blank, when the viewer turns on reduced motion mid-cycle', () => {
     render(<Hero {...bento()} secondaryImages={[]} />)
     act(() => intersect(true))
     act(() => vi.advanceTimersByTime(4000))
     expect(shown('Event crew waving at Jumbuck Orchard Park')).not.toBeNull()
 
     act(() => reduceMotion(true))
+    act(() => vi.advanceTimersByTime(8000))
 
-    expect(shown('The Oztix team at Antler Kettle Hall')).not.toBeNull()
-    expect(shown('Event crew waving at Jumbuck Orchard Park')).toBeNull()
+    expect(shown('Event crew waving at Jumbuck Orchard Park')).not.toBeNull()
+    expect(pause).toHaveBeenCalled()
   })
 
   it('plays the video when the viewer turns reduced motion back off', () => {
     reduceMotion(true)
-    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
-    const play = vi
-      .spyOn(HTMLMediaElement.prototype, 'play')
-      .mockResolvedValue(undefined)
     render(<Hero {...bento()} />)
     expect(play).not.toHaveBeenCalled()
 
     act(() => reduceMotion(false))
 
     expect(play).toHaveBeenCalledOnce()
+  })
+
+  it('starts the video from an effect, not the autoplay attribute, so it never plays before hydration', () => {
+    const { container } = render(<Hero {...bento()} />)
+
+    expect(container.querySelector('video')).not.toHaveAttribute('autoplay')
+    expect(play).toHaveBeenCalledOnce()
+  })
+
+  it('pauses and plays the video and the photos with one toggle', () => {
+    render(<Hero {...bento()} secondaryImages={[]} />)
+    act(() => intersect(true))
+    expect(toggle(/pause/i)).toHaveAttribute('aria-pressed', 'false')
+
+    act(() => fireEvent.click(toggle(/pause/i)))
+    act(() => vi.advanceTimersByTime(8000))
+
+    expect(pause).toHaveBeenCalled()
+    expect(shown('The Oztix team at Antler Kettle Hall')).not.toBeNull()
+    expect(toggle(/play/i)).toHaveAttribute('aria-pressed', 'true')
+
+    play.mockClear()
+    act(() => fireEvent.click(toggle(/play/i)))
+    act(() => vi.advanceTimersByTime(4000))
+
+    expect(play).toHaveBeenCalledOnce()
+    expect(shown('Event crew waving at Jumbuck Orchard Park')).not.toBeNull()
+  })
+
+  it('starts paused for viewers who reduce motion, and plays when asked', () => {
+    reduceMotion(true)
+    render(<Hero {...bento()} />)
+    expect(play).not.toHaveBeenCalled()
+
+    act(() => fireEvent.click(toggle(/play/i)))
+
+    expect(play).toHaveBeenCalledOnce()
+    expect(toggle(/pause/i)).toBeInTheDocument()
+  })
+
+  it('has no toggle when nothing in it moves', () => {
+    render(
+      <Hero
+        {...bento()}
+        video={undefined}
+        primaryImages={bento().primaryImages!.slice(0, 1)}
+        secondaryImages={[]}
+      />
+    )
+
+    expect(screen.queryByRole('button')).toBeNull()
   })
 })

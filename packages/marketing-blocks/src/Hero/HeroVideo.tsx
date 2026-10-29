@@ -4,42 +4,41 @@ import { useEffect, useRef } from 'react'
 
 import type { HeroVideoSource } from '.'
 import { BlockImg } from '../_shared/BlockImg'
-import { useReducedMotion } from './useReducedMotion'
+import { useHeroMotion } from './HeroMotion'
 
 const AV1 = 'video/mp4; codecs=av01.0.05M.08'
 
 /**
- * A muted, looping clip that plays on its own, and stays on its poster for
- * viewers who reduce motion. The poster is an image under the video rather
+ * A muted, looping clip that plays while the hero's motion is on. It starts
+ * from an effect rather than `autoPlay`, so it never plays before hydration
+ * has read the viewer's motion preference. The poster is an image under the video rather
  * than its `poster` attribute, so the provider's `renderImage` draws it.
  */
-export function HeroVideo({ src, fallbackSrc, poster }: HeroVideoSource) {
+export function HeroVideo({
+  src,
+  fallbackSrc,
+  poster,
+  sizes
+}: HeroVideoSource & { sizes: string }) {
   const ref = useRef<HTMLVideoElement>(null)
-  const reducedMotion = useReducedMotion()
-  const pausedForMotion = useRef(false)
+  const { moving } = useHeroMotion()
 
   useEffect(() => {
     const video = ref.current
     if (!video) return
-    if (reducedMotion) {
-      video.pause()
-      pausedForMotion.current = true
-    } else if (pausedForMotion.current) {
-      pausedForMotion.current = false
-      void video.play()?.catch(() => {})
-    }
-  }, [reducedMotion])
+    if (moving) void video.play()?.catch(() => {})
+    else video.pause()
+  }, [moving])
 
   return (
     <>
       <BlockImg
         image={{ ...poster, alt: '' }}
-        sizes='(min-width: 768px) 55vw, 100vw'
+        sizes={sizes}
         className='absolute inset-0 size-full object-cover'
       />
       <video
         ref={ref}
-        autoPlay
         loop
         muted
         playsInline

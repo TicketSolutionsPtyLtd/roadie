@@ -24,8 +24,9 @@ import { Hero } from '@oztix/roadie-marketing-blocks/hero'
 The page hero for landing pages. The title sits over a photo, beside a
 muted, looping video. Once the block is about 36rem wide, `secondaryImages`
 fill the panel beside the video, and from about 56rem, `primaryImages` sit
-beside the title. Each set of photos crossfades
-while it's on screen.
+beside the title. Each set of photos crossfades while it's on screen. A
+button in the corner pauses and plays the video and photos together, and
+they start paused for viewers who reduce motion.
 
 ```tsx-live-expand id=bento
 <Hero
@@ -73,7 +74,7 @@ photo keeps its own shape.
 />
 ```
 
-### Title only
+### Title
 
 An eyebrow and a large title, for a page that opens on its text.
 
@@ -113,7 +114,7 @@ An eyebrow and a large title, for a page that opens on its text.
     Use Bento on a landing page with a background photo, a video, and at
     least two photos for each cycling panel, such as people and events. Use
     Image for an industry or service page with one strong photo, and Title
-    only for a page that opens on its text, such as About.
+    for a page that opens on its text, such as About.
   </Guideline.Do>
   <Guideline.Dont>
     Use Bento without its photos, which leaves panels empty.
@@ -142,6 +143,6 @@ An eyebrow and a large title, for a page that opens on its text.
 
 ## Tracking
 
-Reports a view when half the hero is on screen, and a click on each action.
+Reports a view when half the hero is on screen, and a click on each action and on the pause button.
 
 <PropsDefinitions component='Hero' />

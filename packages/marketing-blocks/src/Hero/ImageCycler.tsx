@@ -6,7 +6,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockImage } from '../Provider'
 import { BlockImg } from '../_shared/BlockImg'
-import { useReducedMotion } from './useReducedMotion'
+import { useHeroMotion } from './HeroMotion'
 
 export type ImageCyclerProps = {
   images: readonly BlockImage[]
@@ -19,15 +19,17 @@ const SLOTS = [0, 1] as const
 
 /**
  * Crossfades through images in two stacked slots while it's on screen, so at
- * most two load at once. Holds the first image for viewers who reduce motion.
+ * most two load at once. Holds still while the hero's motion is paused.
  */
 export function ImageCycler({ images, interval, sizes }: ImageCyclerProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [step, setStep] = useState(0)
   const [onScreen, setOnScreen] = useState(false)
-  const reducedMotion = useReducedMotion()
-  const cycles = images.length > 1 && !reducedMotion
-  const current = cycles ? step : 0
+  const { moving } = useHeroMotion()
+  const cycles = images.length > 1 && moving
+  // Paused, it holds the image it's on; the second slot loads only once needed.
+  const slots =
+    images.length > 1 && (cycles || step > 0) ? SLOTS : SLOTS.slice(0, 1)
 
   useEffect(() => {
     const element = ref.current
@@ -51,11 +53,11 @@ export function ImageCycler({ images, interval, sizes }: ImageCyclerProps) {
 
   return (
     <div ref={ref} className='absolute inset-0'>
-      {(cycles ? SLOTS : SLOTS.slice(0, 1)).map((slot) => {
-        const active = current % 2 === slot
+      {slots.map((slot) => {
+        const active = step % 2 === slot
         // A slot keeps the image it last showed while it fades out; slot 1
         // starts on the second image so the first change is already loaded.
-        const shown = Math.max(active ? current : current - 1, slot)
+        const shown = Math.max(active ? step : step - 1, slot)
         const image = images[shown % images.length]!
         return (
           <BlockImg

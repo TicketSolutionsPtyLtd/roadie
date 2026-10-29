@@ -9,7 +9,7 @@ export const richTextDefinition = {
       name: 'statement',
       title: 'Statement',
       description:
-        'A centred illustration, title, and a few large balanced paragraphs.',
+        'A centred illustration, title, and a few large balanced paragraphs, for a mission or a short belief between busier blocks.',
       variant: 'prose'
     },
     {
@@ -21,3 +21,5 @@ export const richTextDefinition = {
     }
   ]
 } as const satisfies BlockDefinition
+
+export type RichTextPreset = (typeof richTextDefinition.presets)[number]['name']

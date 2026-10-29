@@ -20,9 +20,12 @@ export const heroDefinition = {
     },
     {
       name: 'title',
-      title: 'Title only',
-      description: 'An eyebrow and a large title, with no media.',
+      title: 'Title',
+      description:
+        'An eyebrow and a large title, with no media, for a page that opens on its text, such as About or a policy.',
       variant: 'text'
     }
   ]
 } as const satisfies BlockDefinition
+
+export type HeroPreset = (typeof heroDefinition.presets)[number]['name']

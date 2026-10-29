@@ -1,10 +1,19 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Hero } from '.'
 import { MarketingBlocksProvider } from '../Provider'
 import { bento, imageHero, titleOnly } from './fixtures'
+
+beforeEach(() => {
+  vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined)
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {})
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 describe('Hero', () => {
   it('opens the page with its title as the h1, marking the highlighted words', () => {
@@ -70,11 +79,10 @@ describe('Hero', () => {
     expect(background).toHaveAttribute('fetchpriority', 'high')
   })
 
-  it('plays the video muted and looping, with its poster and both sources', () => {
+  it('sets the video muted and looping, with its poster and both sources', () => {
     const { container } = render(<Hero {...bento()} />)
 
     const video = container.querySelector('video')!
-    expect(video).toHaveAttribute('autoplay')
     expect(video).toHaveAttribute('loop')
     expect(video).toHaveAttribute('playsinline')
     expect(video.muted).toBe(true)
