@@ -14,8 +14,8 @@ import {
 withBrowserPage()
 
 const PRESETS = {
-  'feature-row': {
-    preset: 'feature-row',
+  'tinted-panel': {
+    preset: 'tinted-panel',
     title: 'Specialist teams powering venues and event organisers',
     description:
       'Teams in innovation, operations, marketing, events, and finance.',
@@ -51,8 +51,8 @@ const PRESETS = {
       ]
     }
   },
-  'partner-spotlight': {
-    preset: 'partner-spotlight',
+  'logo-lockup': {
+    preset: 'logo-lockup',
     title: 'Resell my tickets',
     description: 'Sell your tickets through our resale partner.',
     body: <p>The safest way to resell tickets to any event you can't make.</p>,
@@ -76,14 +76,14 @@ const isAbove = (first: Element, second: Element) =>
   box(first).bottom <= box(second).top
 
 describe('Split layout', () => {
-  it('sets the feature-row image beside the text on wide screens, and above it on phones', async () => {
-    await renderAt(DESKTOP, PRESETS['feature-row'])
+  it('sets the tinted-panel image beside the text on wide screens, and above it on phones', async () => {
+    await renderAt(DESKTOP, PRESETS['tinted-panel'])
     const image = () => screen.getByRole('img', { name: /team members/ })
     const heading = () => screen.getByRole('heading', { level: 2 })
     expect(isBeside(image(), heading())).toBe(true)
 
     cleanup()
-    await renderAt(PHONE, PRESETS['feature-row'])
+    await renderAt(PHONE, PRESETS['tinted-panel'])
     expect(isAbove(image(), heading())).toBe(true)
   })
 
@@ -123,18 +123,18 @@ describe('Split layout', () => {
   })
 
   it('sets the partner lockup beside the title on wide screens, and above it on phones', async () => {
-    await renderAt(DESKTOP, PRESETS['partner-spotlight'])
+    await renderAt(DESKTOP, PRESETS['logo-lockup'])
     const lockup = () => screen.getByRole('img', { name: 'Partner logo' })
     const heading = () => screen.getByRole('heading', { level: 1 })
     expect(isBeside(lockup(), heading())).toBe(true)
 
     cleanup()
-    await renderAt(PHONE, PRESETS['partner-spotlight'])
+    await renderAt(PHONE, PRESETS['logo-lockup'])
     expect(isAbove(lockup(), heading())).toBe(true)
   })
 
-  it('crops a sized feature-row photo to 8 by 5', async () => {
-    await renderAt(DESKTOP, PRESETS['feature-row'])
+  it('crops a sized tinted-panel photo to 8 by 5', async () => {
+    await renderAt(DESKTOP, PRESETS['tinted-panel'])
 
     const { width, height } = box(
       screen.getByRole('img', { name: /team members/ })
@@ -142,9 +142,9 @@ describe('Split layout', () => {
     expect(width / height).toBeCloseTo(8 / 5, 1)
   })
 
-  it('gives a feature-row with no image the whole panel for its text', async () => {
+  it('gives a tinted-panel with no image the whole panel for its text', async () => {
     const { container } = await renderAt(DESKTOP, {
-      ...PRESETS['feature-row'],
+      ...PRESETS['tinted-panel'],
       image: undefined
     })
 
@@ -154,7 +154,7 @@ describe('Split layout', () => {
   })
 
   it('overlaps the heart on both logos, centred between them', async () => {
-    const { container } = await renderAt(DESKTOP, PRESETS['partner-spotlight'])
+    const { container } = await renderAt(DESKTOP, PRESETS['logo-lockup'])
 
     const oztix = box(screen.getByRole('img', { name: 'Oztix' }))
     const partner = box(screen.getByRole('img', { name: 'Partner logo' }))

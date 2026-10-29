@@ -7,10 +7,10 @@ export const splitDefinition = {
     'Text beside an image, a partner lockup, or the numbers that back it up.',
   presets: [
     {
-      name: 'feature-row',
-      title: 'Feature row',
+      name: 'tinted-panel',
+      title: 'Tinted panel',
       description:
-        'An image beside a heading and short description, on a tinted panel.',
+        'An image beside a heading on a tinted panel, such as a team or feature highlight.',
       variant: 'media'
     },
     {
@@ -28,10 +28,10 @@ export const splitDefinition = {
       variant: 'stats'
     },
     {
-      name: 'partner-spotlight',
-      title: 'Partner spotlight',
+      name: 'logo-lockup',
+      title: 'Logo lockup',
       description:
-        "Opens a partner page: the Oztix logo and the partner's logo joined by a heart, beside the page title, text, and action.",
+        "The Oztix and a partner's logos joined by a heart, beside the page title, for a partner page.",
       variant: 'media'
     }
   ]

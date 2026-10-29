@@ -17,7 +17,7 @@ import { type SplitPreset, splitDefinition } from './definition'
 export type { StatItem } from '../_shared/StatList'
 export type { SplitPreset } from './definition'
 
-/** The partner a `partner-spotlight` features. */
+/** The partner a `logo-lockup` features. */
 export type SplitPartner = {
   /** The partner's name, which names the logo when it has no alt text. */
   name: string
@@ -36,8 +36,8 @@ export type SplitStats = {
 
 export type SplitProps = {
   /**
-   * The named look. `feature-row` sets an image beside the heading on a tinted panel, `media-text` sets a plain image beside the heading, body, and actions, `text-and-stats` sets long-form text beside `stats`, and `partner-spotlight` opens a partner page with the Oztix logo and the `partner` logo joined by a heart, its title as the page's `h1`.
-   * @default 'feature-row'
+   * The named look. `tinted-panel` sets an image beside the heading on a tinted panel, `media-text` sets a plain image beside the heading, body, and actions, `text-and-stats` sets long-form text beside `stats`, and `logo-lockup` opens a partner page with the Oztix logo and the `partner` logo joined by a heart, its title as the page's `h1`.
+   * @default 'tinted-panel'
    */
   preset?: SplitPreset
   /** The block's place on the page, counting from 1, reported with its events. */
@@ -56,9 +56,9 @@ export type SplitProps = {
   body?: ReactNode
   /** Links under the text, as buttons. The first is the strong one. */
   actions?: readonly BlockAction[]
-  /** The `feature-row` or `media-text` image, shown before the text. */
+  /** The `tinted-panel` or `media-text` image, shown before the text. */
   image?: BlockImage
-  /** The partner in a `partner-spotlight`, whose logo sits under the Oztix logo. */
+  /** The partner in a `logo-lockup`, whose logo sits under the Oztix logo. */
   partner?: SplitPartner
   /** The `text-and-stats` aside, which wraps below the text on narrow widths. */
   stats?: SplitStats
@@ -74,7 +74,7 @@ const CONTENT: Record<
     proseClassName?: string
   }
 > = {
-  'feature-row': { level: 2, size: 3, gap: 'gap-4', prose: 'md' },
+  'tinted-panel': { level: 2, size: 3, gap: 'gap-4', prose: 'md' },
   'media-text': { level: 2, size: 2, gap: 'gap-6', prose: 'md' },
   'text-and-stats': {
     level: 2,
@@ -83,7 +83,7 @@ const CONTENT: Record<
     prose: 'lg',
     proseClassName: 'max-w-[60ch] [&>h3]:text-display-prose-5'
   },
-  'partner-spotlight': { level: 1, size: 2, gap: 'gap-8', prose: 'md' }
+  'logo-lockup': { level: 1, size: 2, gap: 'gap-8', prose: 'md' }
 }
 
 /** Text beside an image, a partner lockup, or the numbers that back it up. */
@@ -141,7 +141,7 @@ export function Split({
           {stats && <StatsAside {...stats} />}
         </div>
       )}
-      {name === 'partner-spotlight' && (
+      {name === 'logo-lockup' && (
         <div className='container-8xl flex flex-wrap gap-16 @5xl:gap-24'>
           {partner && <PartnerLockup {...partner} />}
           <div className='grow basis-100'>{content}</div>
@@ -166,7 +166,7 @@ export function Split({
           {content}
         </div>
       )}
-      {name === 'feature-row' && (
+      {name === 'tinted-panel' && (
         <div className='container-8xl'>
           <div
             className={cn(

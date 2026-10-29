@@ -19,14 +19,14 @@ import { Split } from '@oztix/roadie-marketing-blocks/split'
 
 ## Examples
 
-### Feature row
+### Tinted panel
 
 An image beside a heading and short description, on a tinted panel. The
 image comes first, and the text wraps below it on narrow screens.
 
-```tsx-live-expand id=feature-row
+```tsx-live-expand id=tinted-panel
 <Split
-  preset='feature-row'
+  preset='tinted-panel'
   title='Specialist teams powering venues and event organisers'
   description='Behind our leadership are teams in innovation, operations, marketing, events, content, and finance, all working to deliver on our partnership promise.'
   image={{
@@ -102,15 +102,15 @@ same way as the [Stats](/blocks/stats) block.
 />
 ```
 
-### Partner spotlight
+### Logo lockup
 
 Opens a partner page: the Oztix logo and the partner's logo joined by a
 heart, beside the page title, text, and action. Its title is the page's
 `h1`, so it's always the first block on the page.
 
-```tsx-live-expand id=partner-spotlight
+```tsx-live-expand id=logo-lockup
 <Split
-  preset='partner-spotlight'
+  preset='logo-lockup'
   title='Resell my tickets'
   description='Sell your Oztix tickets through our resale partner.'
   body={
@@ -144,10 +144,10 @@ heart, beside the page title, text, and action. Its title is the page's
 
 <Guideline title='Pick the preset for the content'>
   <Guideline.Do>
-    Use feature row for a short point with a photo that shows it, media and text for a longer section beside a photo, text and stats for an about page with three to six numbers that prove it, and partner spotlight to open a page about one partner.
+    Use tinted panel for a short point with a photo that shows it, media and text for a longer section beside a photo, text and stats for an about page with three to six numbers that prove it, and logo lockup to open a page about one partner.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't put partner spotlight anywhere but the top of the page. Its title is the page's `h1`.
+    Don't put logo lockup anywhere but the top of the page. Its title is the page's `h1`.
   </Guideline.Dont>
 </Guideline>
 

@@ -6,7 +6,7 @@ import { Split } from '.'
 import { MarketingBlocksProvider } from '../Provider'
 
 const featureRow = {
-  preset: 'feature-row',
+  preset: 'tinted-panel',
   title: 'Specialist teams powering venues and event organisers',
   description:
     'Teams in innovation, operations, marketing, events, and finance, all working to one partnership promise.',
@@ -52,7 +52,7 @@ const textAndStats = {
 } as const
 
 const partnerSpotlight = {
-  preset: 'partner-spotlight',
+  preset: 'logo-lockup',
   title: 'Resell my tickets',
   description: 'Sell your tickets through our resale partner.',
   body: <p>The safest way to resell tickets to any event you can't make.</p>,
@@ -64,13 +64,13 @@ const partnerSpotlight = {
 } as const
 
 describe('Split', () => {
-  it('renders feature-row as a media split with its heading, description and image', () => {
+  it('renders tinted-panel as a media split with its heading, description and image', () => {
     render(<Split {...featureRow} position={4} />)
 
     const section = screen.getByRole('region', { name: featureRow.title })
     expect(section).toHaveAttribute('data-block', 'split')
     expect(section).toHaveAttribute('data-variant', 'media')
-    expect(section).toHaveAttribute('data-preset', 'feature-row')
+    expect(section).toHaveAttribute('data-preset', 'tinted-panel')
     expect(section).toHaveAttribute('data-position', '4')
     expect(
       within(section).getByRole('heading', { level: 2, name: featureRow.title })
@@ -83,7 +83,7 @@ describe('Split', () => {
     ).toHaveAttribute('src', '/team.webp')
   })
 
-  it('puts the feature-row image before the heading in reading order', () => {
+  it('puts the tinted-panel image before the heading in reading order', () => {
     render(<Split {...featureRow} />)
 
     const image = screen.getByRole('img', { name: featureRow.image.alt })
@@ -150,12 +150,12 @@ describe('Split', () => {
     expect(screen.queryByRole('heading', { name: 'By the numbers' })).toBeNull()
   })
 
-  it('opens the page with partner-spotlight: its title is the h1, beside both logos', () => {
+  it('opens the page with logo-lockup: its title is the h1, beside both logos', () => {
     render(<Split {...partnerSpotlight} />)
 
     const section = screen.getByRole('region', { name: 'Resell my tickets' })
     expect(section).toHaveAttribute('data-variant', 'media')
-    expect(section).toHaveAttribute('data-preset', 'partner-spotlight')
+    expect(section).toHaveAttribute('data-preset', 'logo-lockup')
     expect(
       within(section).getByRole('heading', {
         level: 1,
@@ -189,12 +189,12 @@ describe('Split', () => {
     )
   })
 
-  it('falls back to feature-row with no preset', () => {
+  it('falls back to tinted-panel with no preset', () => {
     render(<Split title={featureRow.title} image={featureRow.image} />)
 
     expect(
       screen.getByRole('region', { name: featureRow.title })
-    ).toHaveAttribute('data-preset', 'feature-row')
+    ).toHaveAttribute('data-preset', 'tinted-panel')
   })
 
   it('reports a click on its action with the label and href', async () => {
@@ -213,7 +213,7 @@ describe('Split', () => {
       action: 'click',
       block: 'split',
       variant: 'media',
-      preset: 'partner-spotlight',
+      preset: 'logo-lockup',
       position: 1,
       label: expect.stringContaining('Resell my tickets'),
       href: 'https://resale.example.com'
