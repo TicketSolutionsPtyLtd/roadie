@@ -1,3 +1,6 @@
+import { splitDefinition } from '../Split/definition'
+import { statsDefinition } from '../Stats/definition'
+
 /** A named configuration of a block: what editors pick in the Studio instead of setting options. */
 export type BlockPreset = {
   /** Kebab-case, as a block's `preset` prop takes it. */
@@ -42,7 +45,10 @@ function entry(definition: BlockDefinition): CatalogueBlock {
   }
 }
 
-const DEFINITIONS: readonly BlockDefinition[] = []
+const DEFINITIONS: readonly BlockDefinition[] = [
+  splitDefinition,
+  statsDefinition
+]
 
 /** Every block and its presets, for a CMS's block picker. Has no React, so it runs on a server or in a Studio config. */
 export const catalogue: readonly CatalogueBlock[] = DEFINITIONS.map(entry)

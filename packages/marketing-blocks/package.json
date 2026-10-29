@@ -34,6 +34,14 @@
       "types": "./dist/Provider/index.d.ts",
       "import": "./dist/Provider/index.js"
     },
+    "./split": {
+      "types": "./dist/Split/index.d.ts",
+      "import": "./dist/Split/index.js"
+    },
+    "./stats": {
+      "types": "./dist/Stats/index.d.ts",
+      "import": "./dist/Stats/index.js"
+    },
     "./catalogue": {
       "types": "./dist/catalogue/index.d.ts",
       "import": "./dist/catalogue/index.js"

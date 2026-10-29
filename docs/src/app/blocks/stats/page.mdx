@@ -1,0 +1,59 @@
+export const metadata = {
+  title: 'Stats',
+  description:
+    'Key numbers as they were written, each with a spot illustration and a label',
+  status: 'alpha',
+  category: 'Content'
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Key numbers as they were written, each with a spot illustration and a label.
+
+## Import
+
+```tsx
+import { Stats } from '@oztix/roadie-marketing-blocks/stats'
+```
+
+## Examples
+
+### Company facts
+
+A heading over the numbers, which wrap as many to a row as fit. Each value is
+a string, so it reads exactly as the editor wrote it.
+
+```tsx-live
+<Stats
+  preset='company-facts'
+  title='By the numbers'
+  description='The impact of genuine partnerships'
+  items={[
+    { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
+    { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
+    { value: '20+', label: 'years in ticketing', illustration: 'Heart' },
+    { value: '50+', label: 'full-time team', illustration: 'HighFive' },
+    { value: '7 million+', label: 'fans each year', illustration: 'FlowerSpiral' }
+  ]}
+/>
+```
+
+## Guidelines
+
+- **Answer first.** Say what the numbers prove in the title or description,
+  such as `The impact of genuine partnerships`, before the numbers do.
+- **Company facts** suits three to six numbers that change rarely, such as
+  tickets sold or years in business. Round them and write them as they
+  should read, such as `7 million+`, since the block shows each value as
+  written.
+- Give each stat a short label that says what it counts, and an
+  illustration only when it matches the label.
+- To set stats beside long-form text, use [Split](/blocks/split)'s
+  `text-and-stats` preset instead.
+
+## Tracking
+
+Stats reports a view once it's half on screen. It has no links, so it
+reports no clicks.
+
+<PropsDefinitions component='Stats' />
