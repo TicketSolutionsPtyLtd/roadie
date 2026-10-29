@@ -78,25 +78,46 @@ describe('BlockActions', () => {
   })
 })
 
-describe('BlockActions on another site', () => {
-  it('marks an external link as opening elsewhere', () => {
+describe('BlockActions icons', () => {
+  it('shows the icon an action names, and none otherwise', () => {
     render(
       <BlockActions
         actions={[
-          { label: 'Talk to us', href: '/contact/sales' },
-          { label: 'Resell with Tixel', href: 'https://tixel.com' }
+          { label: 'Contact sales', href: '/contact/sales', icon: 'chat' },
+          { label: 'Create my event', href: 'https://studio.oztix.com.au' },
+          {
+            label: 'Resell with Tixel',
+            href: 'https://tixel.com',
+            icon: 'external'
+          }
+        ]}
+      />
+    )
+
+    const icon = (name: string) =>
+      screen.getByRole('link', { name }).querySelector('svg')
+    expect(icon('Contact sales')).not.toBeNull()
+    expect(icon('Create my event')).toBeNull()
+    expect(icon('Resell with Tixel')).not.toBeNull()
+  })
+
+  it('puts an external or arrow icon after the label, and others before it', () => {
+    render(
+      <BlockActions
+        actions={[
+          { label: 'Contact sales', href: '/contact/sales', icon: 'chat' },
+          { label: 'Learn more', href: '/about', icon: 'arrow-right' }
         ]}
       />
     )
 
     expect(
-      screen
-        .getByRole('link', { name: /Resell with Tixel/ })
-        .querySelector('svg')
-    ).not.toBeNull()
+      screen.getByRole('link', { name: 'Contact sales' }).firstElementChild
+        ?.tagName
+    ).toBe('svg')
     expect(
-      screen.getByRole('link', { name: 'Talk to us' }).querySelector('svg')
-    ).toBeNull()
+      screen.getByRole('link', { name: 'Learn more' }).lastElementChild?.tagName
+    ).toBe('svg')
   })
 })
 

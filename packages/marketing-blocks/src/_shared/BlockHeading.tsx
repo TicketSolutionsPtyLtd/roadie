@@ -49,7 +49,7 @@ export function BlockHeading({
       {eyebrow && <p className='text-display-prose-5 text-strong'>{eyebrow}</p>}
       <Heading
         id={id}
-        className={cn('max-w-4xl text-balance text-strong', TITLE_SIZE[size])}
+        className={cn('max-w-5xl text-balance text-strong', TITLE_SIZE[size])}
       >
         {titleHighlight ? (
           <Highlight

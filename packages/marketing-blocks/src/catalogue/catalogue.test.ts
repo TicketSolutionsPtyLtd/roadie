@@ -6,7 +6,10 @@ import { catalogue, thumbnailFile } from '.'
 
 const SRC = join(import.meta.dirname, '..')
 const toKebab = (pascal: string) =>
-  pascal.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
+  pascal
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase()
 const NOT_BLOCKS = new Set(['Provider'])
 
 describe('catalogue', () => {
