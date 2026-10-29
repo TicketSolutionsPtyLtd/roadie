@@ -94,14 +94,24 @@ Blocks outside a provider render the same and report nothing.
 Blocks draw images with Roadie's `Image`. To use `next/image` or a CMS's
 image URL builder instead, pass `renderImage`. It receives the image with the
 `sizes` the block's layout needs, and `priority` for an image above the fold.
+`next/image` needs a `width` and `height`, so give every block image both.
 
 ```tsx
 <MarketingBlocksProvider
-  renderImage={(image) => <NextImage {...image} />}
+  renderImage={({ priority, ...image }) => (
+    <NextImage
+      {...image}
+      loading={priority ? 'eager' : undefined}
+      fetchPriority={priority ? 'high' : undefined}
+    />
+  )}
 >
   {children}
 </MarketingBlocksProvider>
 ```
+
+Both `onBlockEvent` and `renderImage` are functions, so render the provider
+from a client component, as in the tracking example.
 
 ## Guidelines
 
