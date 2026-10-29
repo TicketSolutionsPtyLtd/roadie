@@ -97,6 +97,33 @@ describe('a server-rendered blur Image, before hydration', () => {
     expect(opacity(img)).toBe(1)
   })
 
+  it('shows an image that loaded before the fade script ran', async () => {
+    // A fresh document, so no fade-script listener from an earlier test sees the load.
+    const frame = document.createElement('iframe')
+    document.body.append(frame)
+    onTestFinished(() => frame.remove())
+    const page = frame.contentWindow as typeof window
+    page.document.head.innerHTML = `<style>${roadieCss}</style>`
+    page.document.body.innerHTML = renderToString(
+      <Image
+        src={PIXEL}
+        alt='Hero'
+        width={600}
+        height={300}
+        priority
+        placeholder='blur'
+        blurDataURL={PIXEL}
+      />
+    )
+    const img = page.document.querySelector('img')!
+    await expect.poll(() => img.complete).toBe(true)
+
+    new page.Function(getImageFadeScript())()
+
+    for (const animation of img.getAnimations()) animation.finish()
+    expect(Number(page.getComputedStyle(img).opacity)).toBe(1)
+  })
+
   it('shows at once without the fade script', async () => {
     const src = `https://roadie.test/plain-${crypto.randomUUID()}.gif`
     const img = await serverRender(src)
