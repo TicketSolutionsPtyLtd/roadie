@@ -6,7 +6,7 @@ import { Prose } from '@oztix/roadie-components/prose'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
-import { type FaqPreset, faq } from './definition'
+import { type FaqPreset, faqDefinition } from './definition'
 
 export type { FaqPreset } from './definition'
 
@@ -51,11 +51,11 @@ export function Faq({
   items
 }: FaqProps) {
   const headingId = useId()
-  const preset = presetOf(faq, presetName)
+  const preset = presetOf(faqDefinition, presetName)
 
   return (
     <BlockRoot
-      block={faq.name}
+      block={faqDefinition.name}
       variant={preset.variant}
       preset={preset.name}
       position={position}

@@ -7,7 +7,7 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
-import { type MediaPreset, media } from './definition'
+import { type MediaPreset, mediaDefinition } from './definition'
 
 export type { MediaPreset } from './definition'
 
@@ -47,11 +47,11 @@ export function Media({
   images
 }: MediaProps) {
   const headingId = useId()
-  const preset = presetOf(media, presetName)
+  const preset = presetOf(mediaDefinition, presetName)
 
   return (
     <BlockRoot
-      block={media.name}
+      block={mediaDefinition.name}
       variant={preset.variant}
       preset={preset.name}
       position={position}

@@ -1,6 +1,6 @@
 import type { BlockDefinition } from '../catalogue'
 
-export const ctaBand = {
+export const ctaBandDefinition = {
   name: 'cta-band',
   title: 'CTA band',
   description: 'Closes a page with a short pitch and the next step to take.',
@@ -21,4 +21,4 @@ export const ctaBand = {
   ]
 } as const satisfies BlockDefinition
 
-export type CtaBandPreset = (typeof ctaBand.presets)[number]['name']
+export type CtaBandPreset = (typeof ctaBandDefinition.presets)[number]['name']

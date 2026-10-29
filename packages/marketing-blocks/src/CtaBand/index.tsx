@@ -10,7 +10,7 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
-import { type CtaBandPreset, ctaBand } from './definition'
+import { type CtaBandPreset, ctaBandDefinition } from './definition'
 
 export type { CtaBandPreset } from './definition'
 
@@ -54,13 +54,13 @@ export function CtaBand({
   image
 }: CtaBandProps) {
   const headingId = useId()
-  const preset = presetOf(ctaBand, presetName)
+  const preset = presetOf(ctaBandDefinition, presetName)
   const split = preset.variant === 'split'
   const photo = split ? image : undefined
 
   return (
     <BlockRoot
-      block={ctaBand.name}
+      block={ctaBandDefinition.name}
       variant={preset.variant}
       preset={preset.name}
       position={position}

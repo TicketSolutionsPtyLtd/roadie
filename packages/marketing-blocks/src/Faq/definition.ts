@@ -1,6 +1,6 @@
 import type { BlockDefinition } from '../catalogue'
 
-export const faq = {
+export const faqDefinition = {
   name: 'faq',
   title: 'FAQ',
   description: 'Answers the questions people ask before they buy or sign up.',
@@ -14,4 +14,4 @@ export const faq = {
   ]
 } as const satisfies BlockDefinition
 
-export type FaqPreset = (typeof faq.presets)[number]['name']
+export type FaqPreset = (typeof faqDefinition.presets)[number]['name']

@@ -1,6 +1,6 @@
 import type { BlockDefinition } from '../catalogue'
 
-export const media = {
+export const mediaDefinition = {
   name: 'media',
   title: 'Media',
   description: 'Shows the people and events behind a page in photos.',
@@ -15,4 +15,4 @@ export const media = {
   ]
 } as const satisfies BlockDefinition
 
-export type MediaPreset = (typeof media.presets)[number]['name']
+export type MediaPreset = (typeof mediaDefinition.presets)[number]['name']
