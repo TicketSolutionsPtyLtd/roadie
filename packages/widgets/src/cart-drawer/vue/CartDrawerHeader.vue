@@ -3,8 +3,8 @@ import NumberFlow from '@number-flow/vue'
 import { PhBag, PhX } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
-import { priceFormat } from '../../cart'
 import CartUrgencyBadge from '../../cart-contents/vue/CartUrgencyBadge.vue'
+import { priceFormat } from '../../cart/price'
 
 const props = defineProps<{
   ticketCount: number

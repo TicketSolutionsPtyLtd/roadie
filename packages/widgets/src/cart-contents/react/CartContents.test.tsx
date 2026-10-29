@@ -32,6 +32,7 @@ const details = (events: CartEvent[]): CartDetails => ({
 describe('CartContents', () => {
   it.each([
     ['en-AU', 'AUD', /^\$1,200\.00$/],
+    ['en-US', 'AUD', /^\$1,200\.00$/],
     ['de-DE', 'EUR', /^1\.200,00 €$/],
     ['en-AU', 'JPY', /^JPY 1,200$/]
   ])(

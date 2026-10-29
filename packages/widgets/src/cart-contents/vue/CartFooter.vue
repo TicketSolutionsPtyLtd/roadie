@@ -3,7 +3,8 @@ import NumberFlow from '@number-flow/vue'
 import { PhBag } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
-import { formatCurrency, priceFormat } from '../../cart'
+import { formatCurrency } from '../../cart'
+import { priceFormat } from '../../cart/price'
 
 const props = withDefaults(
   defineProps<{

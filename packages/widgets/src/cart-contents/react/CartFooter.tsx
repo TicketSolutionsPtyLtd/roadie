@@ -6,7 +6,8 @@ import { type MotionStyle, m } from 'motion/react'
 
 import { Button } from '@oztix/roadie-components'
 
-import { formatCurrency, priceFormat } from '../../cart'
+import { formatCurrency } from '../../cart'
+import { priceFormat } from '../../cart/price'
 
 export type CartFooterProps = {
   cartTotal: number

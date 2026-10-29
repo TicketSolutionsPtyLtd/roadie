@@ -9,9 +9,9 @@ import { type MotionValue, m, useTransform } from 'motion/react'
 import { IconButton } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { priceFormat } from '../../cart'
 import { CartFooter } from '../../cart-contents/react/CartFooter'
 import { CartUrgencyBadge } from '../../cart-contents/react/CartUrgencyBadge'
+import { priceFormat } from '../../cart/price'
 
 type CartDrawerHeaderProps = {
   ticketCount: number
