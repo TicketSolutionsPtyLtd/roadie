@@ -9,9 +9,8 @@ export default defineConfig(({ watch }) => ({
   entry: [
     'src/**/*.{ts,tsx}',
     '!**/*.test.{ts,tsx}',
-    '!**/testUtils.{ts,tsx}',
-
-    '!**/browserTesting.tsx'
+    '!**/fixtures.{ts,tsx}',
+    '!src/_test/**'
   ],
   unbundle: true,
   suppressWarnings: 'module level directive "use client"',

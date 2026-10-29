@@ -1,10 +1,10 @@
-import type { BlockDefinition, BlockPreset } from '../catalogue'
+import type { BlockDefinition } from '../catalogue'
 
 /** The preset a block renders: the one named, or the block's first. */
-export function presetOf(
-  definition: BlockDefinition,
+export function presetOf<Definition extends BlockDefinition>(
+  definition: Definition,
   name: string | undefined
-): BlockPreset {
+): Definition['presets'][number] {
   const preset =
     definition.presets.find((candidate) => candidate.name === name) ??
     definition.presets[0]
