@@ -103,22 +103,39 @@ const catalogueMarkdown: Record<string, string> = Object.fromEntries(
   await Promise.all(
     Object.entries(CATALOGUE_PAGES).map(async ([name, catalogue]) => [
       name,
-      (await getCatalogue(catalogue))
-        .map((group) =>
-          [
-            `## ${group.name}`,
-            group.entries
-              .map((entry) =>
-                linkLine({
-                  title: entry.title,
-                  url: pageUrl(entry.href),
-                  description: entry.description || undefined
-                })
-              )
-              .join('\n')
-          ].join('\n\n')
+      (
+        await Promise.all(
+          (await getCatalogue(catalogue)).map(async (group) => {
+            const overview = group.overviewHref
+              ? await metadataOf(group.overviewHref)
+              : undefined
+            const links = [
+              ...(group.overviewHref
+                ? [
+                    {
+                      title: overview?.title ?? group.name,
+                      href: group.overviewHref,
+                      description: overview?.description
+                    }
+                  ]
+                : []),
+              ...group.entries
+            ]
+            return [
+              `## ${group.name}`,
+              links
+                .map((entry) =>
+                  linkLine({
+                    title: entry.title,
+                    url: pageUrl(entry.href),
+                    description: entry.description || undefined
+                  })
+                )
+                .join('\n')
+            ].join('\n\n')
+          })
         )
-        .join('\n\n')
+      ).join('\n\n')
     ])
   )
 )
