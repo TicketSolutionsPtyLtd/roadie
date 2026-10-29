@@ -277,6 +277,14 @@ describe('parseEmbedUrl', () => {
       'https://w.soundcloud.com/player/?url=https%3A%2F%2Fw.soundcloud.com%2Fplayer%2F%3Furl%3Dhttps%253A%2F%2Fapi.soundcloud.com%2Ftracks%2F293'
     ],
     ['a SoundCloud player with no track', 'https://w.soundcloud.com/player/'],
+    [
+      'a private SoundCloud player',
+      'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293%3Fsecret_token%3Ds-AbCdE&color=%23ff5500'
+    ],
+    [
+      'a private SoundCloud player with its token outside the track',
+      'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&secret_token=s-AbCdE'
+    ],
     ['a Deezer look-alike', 'https://deezer.com.evil.test/track/3135556'],
     ['a Deezer artist', 'https://www.deezer.com/en/artist/27'],
     ['a Deezer short link', 'https://link.deezer.com/s/30abcdEFgh'],
