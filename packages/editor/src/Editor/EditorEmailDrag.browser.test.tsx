@@ -539,6 +539,37 @@ describe('Editor email block handle', () => {
     )
   })
 
+  it('moves the caret’s whole section by keyboard', async () => {
+    const onValueChange = renderNewsletter()
+    await openMenuOn('Bravo one')
+
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Select section' })
+    )
+    await chooseMove('Move up')
+
+    await expectOutline(
+      onValueChange,
+      { section: ['Bravo one'] },
+      {
+        section: [
+          'Alpha one',
+          'Alpha two',
+          { columns: [{ column: ['Left one'] }, { column: ['Right one'] }] }
+        ]
+      },
+      'Closing'
+    )
+  })
+
+  it('offers no parent to select for a top-level block', async () => {
+    renderNewsletter()
+
+    await openMenuOn('Closing')
+
+    expect(screen.queryByRole('menuitem', { name: /^Select/ })).toBe(null)
+  })
+
   it('moves a section past the section above it by keyboard', async () => {
     const onValueChange = renderNewsletter()
     await hoverSection('Bravo one')

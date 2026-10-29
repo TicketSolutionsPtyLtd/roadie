@@ -30,6 +30,21 @@ export function blockAt(
   return null
 }
 
+/** Where the block holding the block at `pos` starts, if it has one. */
+export function parentBlock(
+  state: EditorState,
+  pos: number,
+  containers: BlockContainers = TOP_LEVEL
+): number | null {
+  const $pos = state.doc.resolve(pos)
+  for (let depth = $pos.depth; depth >= 1; depth--) {
+    if (containers.has($pos.node(depth - 1).type.name)) {
+      return $pos.before(depth)
+    }
+  }
+  return null
+}
+
 /**
  * Every place `node` could go, in reading order: each gap between the
  * children of a container that can hold it, outside the node itself.

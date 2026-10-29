@@ -8,6 +8,7 @@ import {
   CopySimpleIcon,
   DotsSixVerticalIcon,
   PlusIcon,
+  SelectionPlusIcon,
   TrashIcon
 } from '@phosphor-icons/react'
 import { closeHistory } from '@tiptap/pm/history'
@@ -29,7 +30,8 @@ import {
   canMoveBlock,
   deleteBlock,
   duplicateBlock,
-  moveBlock
+  moveBlock,
+  parentBlock
 } from './blockActions'
 import { draggedBlocks } from './blockDrag'
 import { focusEditor } from './focusEditor'
@@ -135,6 +137,11 @@ function addAfter(editor: TiptapEditor, pos: number) {
   focusEditor(editor)
 }
 
+const PARENT_LABELS: Record<string, string> = {
+  section: 'Select section',
+  columns: 'Select columns'
+}
+
 type EditorBlockHandleProps = {
   editor: TiptapEditor
   /** Set while mounted, so Mod+/ opens the caret block's menu. */
@@ -183,6 +190,7 @@ export function EditorBlockHandle({
     const onMove = (event: MouseEvent) => {
       const keep =
         current != null &&
+        blockAt(editor.state, current, containers) === current &&
         (host.contains(event.target as Node) ||
           inGutterOf(editor, current, event))
       if (!keep) current = blockAtPointer(editor, event, containers)
@@ -233,6 +241,9 @@ export function EditorBlockHandle({
   }, [editor, wrapper, shown, doc])
 
   if (!wrapper || !editable || shown == null || !place) return null
+
+  const parent = parentBlock(editor.state, shown, containers)
+  const parentName = parent === null ? null : doc.nodeAt(parent)!.type.name
 
   const run = (action: (pos: number) => Transaction | null) => {
     const tr = action(shown)
@@ -337,6 +348,16 @@ export function EditorBlockHandle({
           >
             Move down
           </Menu.Item>
+          {parent !== null ? (
+            <Menu.Item
+              icon={<SelectionPlusIcon weight='bold' />}
+              // Stays open on the parent, the keyboard's way to a section.
+              closeOnClick={false}
+              onClick={() => setMenuAt(parent)}
+            >
+              {PARENT_LABELS[parentName!] ?? 'Select parent block'}
+            </Menu.Item>
+          ) : null}
           <Menu.Item
             icon={<CopySimpleIcon weight='bold' />}
             onClick={() => run((pos) => duplicateBlock(editor.state, pos))}
