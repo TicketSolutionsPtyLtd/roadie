@@ -18,7 +18,7 @@ import {
   startOfWeek,
   toPlainDate
 } from './plainDate'
-import { epochOf, startOfDayInstant, wallClockOf, zonedInstant } from './zone'
+import { epochOf, startOfDayInstant, wallClockOf, wallInstant } from './zone'
 
 export type RollingRange = {
   direction: 'next' | 'past'
@@ -319,8 +319,8 @@ function parseEnd(value: string, timeZone: string): AbsoluteEnd {
     }
     return { kind: 'instant', epoch }
   }
-  // A date-time with no offset is a wall-clock time in the given zone.
-  return { kind: 'instant', epoch: zonedInstant(clock, timeZone) }
+  // A wall-clock time in the given zone; one skipped by DST reads as the jump.
+  return { kind: 'instant', epoch: wallInstant(clock, timeZone) }
 }
 
 export function resolveAbsolute(
@@ -460,7 +460,7 @@ function previousYearInstant(
   options: ComparisonOptions
 ): number {
   const clock = wallClockOf(epoch, options.timeZone)
-  return zonedInstant(
+  return wallInstant(
     { ...clock, date: yearEarlier(clock.date, options.alignWeekday) },
     options.timeZone
   )

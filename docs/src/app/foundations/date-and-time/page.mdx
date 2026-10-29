@@ -1025,6 +1025,12 @@ come back as plain dates, read in the zone you pass. Hour windows, `upcoming`,
 Friday night in Sydney it's still Friday evening in Perth, and both are right
 about their own weekend.
 
+An end with a time and no offset is read in the zone you pass. If daylight
+saving skips that time, the end is the moment the clocks jump, as
+[records filters](/foundations/records#dates) read it. It doesn't move on by the
+size of the jump the way `zonedInstant` does, so a range never misses the
+minutes just after the jump.
+
 `DateRangePicker`, `DashboardPeriod`, and `Calendar` take `timeZone` to decide
 which day is today, and default to the viewer's. Pass the venue's when the
 range filters event times.
@@ -1193,6 +1199,36 @@ attribute. See [DateTime](/components/date-time#without-react).
 
 Skip relative time on the server. It's stale the moment it's sent, and there's
 nothing to re-render it.
+
+### A stored wall-clock time has no offset yet
+
+An event time is often stored as the venue's wall-clock time and its zone,
+such as `2026-11-27T19:30` in `Australia/Brisbane`. It names one instant only
+once it's read in that zone. In JavaScript, `zonedInstant` does that and
+returns a `Date`, which every formatter and `<DateTime>` take as it is.
+
+```tsx
+import { formatMachine, zonedInstant } from '@oztix/roadie-core/datetime'
+
+const timeZone = 'Australia/Brisbane'
+const doors = zonedInstant('2026-11-27T19:30', timeZone)
+
+formatMachine(doors, { timeZone, timeStyle: 'medium' })
+// '2026-11-27T19:30:00+10:00'
+```
+
+It takes the string as `YYYY-MM-DDTHH:mm`, with seconds optional. Anything
+else throws a `RangeError`, so bad data fails where it's read, not as a wrong
+time on screen. That includes an offset, a `Z`, fractional seconds, a space
+for the `T`, a date that doesn't exist, such as 31 February, and 24:00.
+
+Daylight saving leaves two cases. A time the clocks skip moves on by the size
+of the jump, so 2:30am on the morning they go forward an hour reads as
+3:30am. A time the clocks repeat, such as 2:30am on the morning they go back,
+takes the first of the two.
+
+In another language, do the same with its own time zone library. Read the
+stored wall-clock time in the venue's zone, never the server's.
 
 ## Accessibility
 

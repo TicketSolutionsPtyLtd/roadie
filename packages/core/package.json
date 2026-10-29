@@ -140,7 +140,7 @@
     {
       "name": "datetime",
       "path": "dist/datetime/index.js",
-      "limit": "9.6 KB"
+      "limit": "9.7 KB"
     },
     {
       "name": "records",

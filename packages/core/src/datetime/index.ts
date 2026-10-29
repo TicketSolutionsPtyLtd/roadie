@@ -82,3 +82,5 @@ export type {
   DatePhraseSuggestion,
   DatePhraseValue
 } from './parse'
+
+export { zonedInstant } from './zone'
