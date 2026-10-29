@@ -76,7 +76,8 @@ Two causes, each with the same test step: click into the editor, then
   runs after ProseMirror's own, and sets a timer of the same 20ms there.
   Timers of equal delay run in the order they're set, so it fires only
   after the sync. It waits on that event, not a guessed time. It resolves
-  at once if the editor already has focus, as no sync is pending then.
+  at once if the editor already has focus, since the sync ran when it took
+  focus, so don't call it within 20ms of a `focus()` call.
   `focusedTextbox` in `Editor.browser.test.tsx` uses it.
 
 Linux WebKit has a separate flake in these files. In CI's image, about one
