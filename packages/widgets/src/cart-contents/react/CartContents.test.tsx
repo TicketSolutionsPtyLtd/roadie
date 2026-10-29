@@ -30,6 +30,31 @@ const details = (events: CartEvent[]): CartDetails => ({
 })
 
 describe('CartContents', () => {
+  it.each([
+    ['en-AU', 'AUD', /^\$1,200\.00$/],
+    ['de-DE', 'EUR', /^1\.200,00 €$/],
+    ['en-AU', 'JPY', /^JPY 1,200$/]
+  ])(
+    'reads the subtotal in %s %s as the prices read',
+    (locale, currency, shown) => {
+      const tickets = [{ name: 'GA', quantity: 1, priceEach: 1200 }]
+      render(
+        <CartContents
+          container='page'
+          cart={details([ev({ tickets, subtotal: 1200, total: 1200 })])}
+          onNavigate={vi.fn()}
+          browseHref='/events'
+          checkoutUrl='/outlet/extras/c1'
+          locale={locale}
+          currency={currency}
+        />
+      )
+      expect(screen.getByText('Subtotal').nextElementSibling).toHaveTextContent(
+        shown
+      )
+    }
+  )
+
   it('renders the empty state with browseHref when no tickets', async () => {
     const onNavigate = vi.fn()
     render(

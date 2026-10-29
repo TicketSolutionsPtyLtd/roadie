@@ -68,13 +68,15 @@ export function formatSeatRange(seats: CartSeat[] | undefined): string | null {
   return parts.join(' · ')
 }
 
+/** How a price reads, as text or animated in NumberFlow, so the two match. */
+export const priceFormat = (currency: string) =>
+  ({ style: 'currency', currency }) as const
+
 export function formatCurrency(amount: number, opts: CurrencyOptions): string {
-  return amount.toLocaleString(opts.locale, {
-    style: 'currency',
-    currency: opts.currency
-  })
+  return amount.toLocaleString(opts.locale, priceFormat(opts.currency))
 }
 
+/** @deprecated Pass `locales` and `priceFormat(currency)` to NumberFlow, which places the symbol itself. */
 export function currencyPrefix(locale: string, currency: string): string {
   const parts = new Intl.NumberFormat(locale, {
     style: 'currency',

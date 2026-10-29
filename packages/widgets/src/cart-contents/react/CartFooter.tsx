@@ -6,7 +6,7 @@ import { type MotionStyle, m } from 'motion/react'
 
 import { Button } from '@oztix/roadie-components'
 
-import { currencyPrefix, formatCurrency } from '../../cart'
+import { formatCurrency, priceFormat } from '../../cart'
 
 export type CartFooterProps = {
   cartTotal: number
@@ -45,8 +45,8 @@ export function CartFooter({
           <span className='text-ui font-bold text-strong'>Subtotal</span>
           <NumberFlow
             value={cartTotal}
-            prefix={currencyPrefix(locale, currency)}
-            format={{ minimumFractionDigits: 2 }}
+            locales={locale}
+            format={priceFormat(currency)}
             className='text-ui font-bold text-strong'
           />
         </div>

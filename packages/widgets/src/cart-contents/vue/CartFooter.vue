@@ -3,9 +3,7 @@ import NumberFlow from '@number-flow/vue'
 import { PhBag } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
-import { currencyPrefix, formatCurrency } from '../../cart'
-
-const PRICE_FORMAT = { minimumFractionDigits: 2 }
+import { formatCurrency, priceFormat } from '../../cart'
 
 const props = withDefaults(
   defineProps<{
@@ -26,7 +24,6 @@ const emit = defineEmits<{
   checkout: []
 }>()
 
-const pricePrefix = computed(() => currencyPrefix(props.locale, props.currency))
 const feesLabel = computed(() =>
   props.bookingFees > 0
     ? `Incl. ${formatCurrency(props.bookingFees, {
@@ -45,8 +42,8 @@ const feesLabel = computed(() =>
         <span class="text-ui font-bold text-strong">
           <NumberFlow
             :value="cartTotal"
-            :prefix="pricePrefix"
-            :format="PRICE_FORMAT"
+            :locales="locale"
+            :format="priceFormat(currency)"
           />
         </span>
       </div>

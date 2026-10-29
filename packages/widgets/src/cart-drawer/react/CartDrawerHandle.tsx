@@ -9,7 +9,7 @@ import { type MotionValue, m, useTransform } from 'motion/react'
 import { IconButton } from '@oztix/roadie-components'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { currencyPrefix } from '../../cart'
+import { priceFormat } from '../../cart'
 import { CartFooter } from '../../cart-contents/react/CartFooter'
 import { CartUrgencyBadge } from '../../cart-contents/react/CartUrgencyBadge'
 
@@ -56,7 +56,6 @@ export function CartDrawerHeader({
   const priceOpacity = useTransform(progress, [0, 1], [1, 0])
   const closeOpacity = useTransform(progress, [0.5, 0.7], [0, 1])
   const closeScale = useTransform(progress, [0.5, 0.7], [0.8, 1])
-  const prefix = currencyPrefix(locale, currency)
 
   return (
     <div
@@ -145,8 +144,8 @@ export function CartDrawerHeader({
         >
           <NumberFlow
             value={cartTotal}
-            prefix={prefix}
-            format={{ minimumFractionDigits: 2 }}
+            locales={locale}
+            format={priceFormat(currency)}
             className='text-ui font-bold text-strong'
           />
         </m.div>

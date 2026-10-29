@@ -3,10 +3,8 @@ import NumberFlow from '@number-flow/vue'
 import { PhBag, PhX } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 
-import { currencyPrefix } from '../../cart'
+import { priceFormat } from '../../cart'
 import CartUrgencyBadge from '../../cart-contents/vue/CartUrgencyBadge.vue'
-
-const PRICE_FORMAT = { minimumFractionDigits: 2 }
 
 const props = defineProps<{
   ticketCount: number
@@ -25,34 +23,6 @@ const emit = defineEmits<{
   toggle: []
   dragStart: [e: PointerEvent]
 }>()
-
-const pricePrefix = computed(() => currencyPrefix(props.locale, props.currency))
-const priceSuffix = computed(() => {
-  const parts = new Intl.NumberFormat(props.locale, {
-    style: 'currency',
-    currency: props.currency
-  }).formatToParts(0)
-
-  let suffix = ''
-  let seenNumber = false
-  for (const part of parts) {
-    const isNumberPart =
-      part.type === 'integer' ||
-      part.type === 'group' ||
-      part.type === 'decimal' ||
-      part.type === 'fraction'
-
-    if (isNumberPart) {
-      seenNumber = true
-      continue
-    }
-
-    if (seenNumber && (part.type === 'currency' || part.type === 'literal')) {
-      suffix += part.value
-    }
-  }
-  return suffix
-})
 
 const titleAreaHeight = computed(() => 32 + props.progress * 44)
 const titleLeft = computed(() =>
@@ -161,9 +131,8 @@ function onGrabberKeydown(e: KeyboardEvent) {
         >
           <NumberFlow
             :value="cartTotal"
-            :prefix="pricePrefix"
-            :suffix="priceSuffix"
-            :format="PRICE_FORMAT"
+            :locales="locale"
+            :format="priceFormat(currency)"
           />
         </span>
       </div>
