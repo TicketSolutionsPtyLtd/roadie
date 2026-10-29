@@ -526,7 +526,7 @@ describe('renderEditorValue', () => {
     )
 
     expect(html).toMatch(
-      /^<div data-slot="prose"[^>]* class="prose [^"]*text-lg[^"]* mt-4"/
+      /^<div data-slot="prose"[^>]* class="prose prose-lg mt-4"/
     )
   })
 
