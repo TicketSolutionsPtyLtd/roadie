@@ -95,6 +95,25 @@ describe('Editor email blocks', () => {
     )
   })
 
+  it('keeps the link form under the caret as its container scrolls', async () => {
+    render(
+      <div data-testid='scroller' style={{ height: 300, overflowY: 'auto' }}>
+        <Editor aria-label={LABEL} preset='email' />
+        <div style={{ height: 1000 }} />
+      </div>
+    )
+    await insertButton()
+    const popup = () => document.querySelector('[data-slot="popover-popup"]')!
+    await waitFor(() => expect(popup()).toBeInTheDocument())
+    const before = popup().getBoundingClientRect().top
+
+    screen.getByTestId('scroller').scrollTop = 100
+
+    await waitFor(() =>
+      expect(popup().getBoundingClientRect().top).toBeCloseTo(before - 100, 0)
+    )
+  })
+
   it.each(['/tickets', 'javascript:alert(1)'])(
     'refuses %s as a button link',
     async (href) => {

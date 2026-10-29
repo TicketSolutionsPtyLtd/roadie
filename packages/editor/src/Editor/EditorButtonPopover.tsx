@@ -82,8 +82,10 @@ export function EditorButtonPopover({
   const inputRef = useRef<HTMLInputElement>(null)
   if (!editor) return null
   const { from, to } = editor.state.selection
+  // The element lets the popover follow a scrolling container around the editor.
   const anchor = {
-    getBoundingClientRect: () => posToDOMRect(editor.view, from, to)
+    getBoundingClientRect: () => posToDOMRect(editor.view, from, to),
+    contextElement: editor.view.dom
   }
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
