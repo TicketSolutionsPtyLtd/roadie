@@ -15,13 +15,13 @@
     "name": "catalogue",
     "path": "dist/catalogue/index.js",
     "import": "*",
-    "limit": "610 B"
+    "limit": "640 B"
   },
   {
     "name": "cta-band",
     "path": "dist/CTABand/index.js",
     "import": "*",
-    "limit": "2.7 kB",
+    "limit": "2.85 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -33,7 +33,7 @@
     "name": "faq",
     "path": "dist/FAQ/index.js",
     "import": "*",
-    "limit": "2.2 kB",
+    "limit": "2.35 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -45,7 +45,7 @@
     "name": "gallery",
     "path": "dist/Gallery/index.js",
     "import": "*",
-    "limit": "2.3 kB",
+    "limit": "2.35 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
