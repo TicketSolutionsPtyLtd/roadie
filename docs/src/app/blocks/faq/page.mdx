@@ -13,7 +13,7 @@ Answers the questions people ask before they buy or sign up.
 ## Import
 
 ```tsx
-import { Faq } from '@oztix/roadie-marketing-blocks/faq'
+import { FAQ } from '@oztix/roadie-marketing-blocks/faq'
 ```
 
 ## Examples
@@ -23,7 +23,7 @@ import { Faq } from '@oztix/roadie-marketing-blocks/faq'
 A heading over questions that open to their answers, one at a time. Answers are rich text, set in `Prose`.
 
 ```tsx-live-expand id=faq
-<Faq
+<FAQ
   preset='faq'
   title='Questions, answered'
   items={[
@@ -40,6 +40,7 @@ A heading over questions that open to their answers, one at a time. Answers are 
       answer: <p>Email <a href='mailto:admin@oztix.com.au'>admin@oztix.com.au</a> or call 1300 469 849.</p>
     }
   ]}
+  actions={[{ label: 'See all FAQs', href: '/frequently-asked-questions' }]}
 />
 ```
 
@@ -78,6 +79,6 @@ A heading over questions that open to their answers, one at a time. Answers are 
 
 ## Tracking
 
-Reports a view once half the block is on screen, and a click for each link in an answer with its label and href. Opening a question isn’t a click.
+Reports a view once half the block is on screen, and a click for each link in an answer or action with its label and href. Opening a question isn’t a click.
 
-<PropsDefinitions component='Faq' />
+<PropsDefinitions component='FAQ' />

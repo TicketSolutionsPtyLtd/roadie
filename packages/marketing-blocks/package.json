@@ -31,16 +31,16 @@
       "default": "./src/css/marketing-blocks.css"
     },
     "./cta-band": {
-      "types": "./dist/CtaBand/index.d.ts",
-      "import": "./dist/CtaBand/index.js"
+      "types": "./dist/CTABand/index.d.ts",
+      "import": "./dist/CTABand/index.js"
     },
     "./faq": {
-      "types": "./dist/Faq/index.d.ts",
-      "import": "./dist/Faq/index.js"
+      "types": "./dist/FAQ/index.d.ts",
+      "import": "./dist/FAQ/index.js"
     },
-    "./media": {
-      "types": "./dist/Media/index.d.ts",
-      "import": "./dist/Media/index.js"
+    "./gallery": {
+      "types": "./dist/Gallery/index.d.ts",
+      "import": "./dist/Gallery/index.js"
     },
     "./provider": {
       "types": "./dist/Provider/index.d.ts",

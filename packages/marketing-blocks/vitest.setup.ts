@@ -8,6 +8,19 @@ class ResizeObserverMock {
   disconnect() {}
 }
 
+// Carousel's Embla needs one; it reports nothing, so no block view fires in jsdom.
+class IntersectionObserverMock {
+  readonly root = null
+  readonly rootMargin = ''
+  readonly thresholds: readonly number[] = []
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return []
+  }
+}
+
 // jsdom has no media queries; nothing matches, as on a narrow screen.
 function matchNothing(query: string) {
   return {
@@ -26,6 +39,10 @@ beforeAll(() => {
   if (typeof globalThis.ResizeObserver === 'undefined') {
     globalThis.ResizeObserver =
       ResizeObserverMock as unknown as typeof ResizeObserver
+  }
+  if (typeof globalThis.IntersectionObserver === 'undefined') {
+    globalThis.IntersectionObserver =
+      IntersectionObserverMock as unknown as typeof IntersectionObserver
   }
   if (typeof window.matchMedia === 'undefined') window.matchMedia = matchNothing
 })

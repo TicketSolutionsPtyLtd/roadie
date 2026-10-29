@@ -10,16 +10,16 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
-import { type CtaBandPreset, ctaBandDefinition } from './definition'
+import { type CTABandPreset, ctaBandDefinition } from './definition'
 
-export type { CtaBandPreset } from './definition'
+export type { CTABandPreset } from './definition'
 
-export type CtaBandProps = {
+export type CTABandProps = {
   /**
-   * `studio-cta` sets the pitch beside a tilted photo; `talk-to-us` centres it with no photo.
-   * @default 'studio-cta'
+   * `with-photo` sets the pitch beside a tilted photo; `centred` centres it with no photo.
+   * @default 'with-photo'
    */
-  preset?: CtaBandPreset
+  preset?: CTABandPreset
   /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
   /** An id for linking to the block. */
@@ -36,12 +36,12 @@ export type CtaBandProps = {
   body?: ReactNode
   /** The links to act on. The first is the strong one. */
   actions?: readonly BlockAction[]
-  /** The photo beside the pitch, in `studio-cta` only. Portrait, about 2:3. */
+  /** The photo beside the pitch, in `with-photo` only. Portrait, about 2:3. */
   image?: BlockImage
 }
 
 /** Closes a page with a short pitch and the next step to take. */
-export function CtaBand({
+export function CTABand({
   preset: presetName,
   position,
   id,
@@ -52,7 +52,7 @@ export function CtaBand({
   body,
   actions,
   image
-}: CtaBandProps) {
+}: CTABandProps) {
   const headingId = useId()
   const { name, variant } = presetOf(ctaBandDefinition, presetName)
   const split = variant === 'split'
@@ -106,7 +106,10 @@ export function CtaBand({
                 align={split ? 'start' : 'center'}
               />
               {body && (
-                <Prose size='lg' className='max-w-2xl text-pretty'>
+                <Prose
+                  size='lg'
+                  className='max-w-2xl text-pretty text-subtle [&>p:last-child]:font-medium'
+                >
                   {body}
                 </Prose>
               )}

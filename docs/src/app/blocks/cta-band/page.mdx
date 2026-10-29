@@ -13,18 +13,18 @@ Closes a page with a short pitch and the next step to take.
 ## Import
 
 ```tsx
-import { CtaBand } from '@oztix/roadie-marketing-blocks/cta-band'
+import { CTABand } from '@oztix/roadie-marketing-blocks/cta-band'
 ```
 
 ## Examples
 
-### Studio CTA
+### With photo
 
 The pitch and actions sit beside a tilted photo that breaks out of the top of the panel. On a phone, the photo sits above the copy.
 
-```tsx-live-expand id=studio-cta
-<CtaBand
-  preset='studio-cta'
+```tsx-live-expand id=with-photo
+<CTABand
+  preset='with-photo'
   title='Explore an Oztix partnership'
   titleHighlight='partnership'
   description='We’re always excited to welcome new partners into the Oztix community.'
@@ -47,13 +47,13 @@ The pitch and actions sit beside a tilted photo that breaks out of the top of th
 />
 ```
 
-### Talk to us
+### Centred
 
 The heading, copy, and actions are centred in the panel, with no photo.
 
-```tsx-live-expand id=talk-to-us
-<CtaBand
-  preset='talk-to-us'
+```tsx-live-expand id=centred
+<CTABand
+  preset='centred'
   title='Talk to our team'
   body={<p>Tell us about your venue or festival, and we’ll find the setup that sells the most tickets.</p>}
   actions={[
@@ -69,10 +69,10 @@ The heading, copy, and actions are centred in the panel, with no photo.
 
 <Guideline title='Pick the preset for the page'>
   <Guideline.Do>
-    Use `studio-cta` to close a page that sells Oztix, with a photo of people at an event.
+    Use `with-photo` to close a page that sells Oztix, with a photo of people at an event.
   </Guideline.Do>
   <Guideline.Do>
-    Use `talk-to-us` where a photo would compete with the page, such as after an FAQ.
+    Use `centred` where a photo would compete with the page, such as after an FAQ.
   </Guideline.Do>
 </Guideline>
 
@@ -97,4 +97,4 @@ The heading, copy, and actions are centred in the panel, with no photo.
 
 Reports a view once half the band is on screen, and a click for each action with its label and href.
 
-<PropsDefinitions component='CtaBand' />
+<PropsDefinitions component='CTABand' />

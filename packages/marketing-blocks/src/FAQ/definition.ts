@@ -14,4 +14,4 @@ export const faqDefinition = {
   ]
 } as const satisfies BlockDefinition
 
-export type FaqPreset = (typeof faqDefinition.presets)[number]['name']
+export type FAQPreset = (typeof faqDefinition.presets)[number]['name']

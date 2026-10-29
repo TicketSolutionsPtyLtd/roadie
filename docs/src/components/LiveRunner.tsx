@@ -107,9 +107,9 @@ import {
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { Editor, useEditorContext } from '@oztix/roadie-editor/editor'
 import { renderEditorValue } from '@oztix/roadie-editor/render'
-import { CtaBand } from '@oztix/roadie-marketing-blocks/cta-band'
-import { Faq } from '@oztix/roadie-marketing-blocks/faq'
-import { Media } from '@oztix/roadie-marketing-blocks/media'
+import { CTABand } from '@oztix/roadie-marketing-blocks/cta-band'
+import { FAQ } from '@oztix/roadie-marketing-blocks/faq'
+import { Gallery } from '@oztix/roadie-marketing-blocks/gallery'
 import { MarketingBlocksProvider } from '@oztix/roadie-marketing-blocks/provider'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
@@ -225,9 +225,9 @@ const scope = {
   useEditorContext,
   renderEditorValue,
   MarketingBlocksProvider,
-  CtaBand,
-  Faq,
-  Media,
+  CTABand,
+  FAQ,
+  Gallery,
   LegendKey,
   lineChartTable,
   addDays,

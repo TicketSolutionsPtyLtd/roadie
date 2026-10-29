@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { page } from 'vitest/browser'
 
-import { CtaBand, type CtaBandProps } from '.'
+import { CTABand, type CTABandProps } from '.'
 import {
   DESKTOP,
   PHONE,
@@ -13,7 +13,7 @@ import {
 
 withBrowserPage()
 
-const props: CtaBandProps = {
+const props: CTABandProps = {
   title: 'Explore an Oztix partnership',
   titleHighlight: 'partnership',
   body: <p>Let’s start with a get-to-know-you conversation.</p>,
@@ -39,10 +39,10 @@ function boxes() {
   }
 }
 
-describe('CtaBand studio CTA', () => {
+describe('CTABand with photo', () => {
   it('sets the photo above the copy on a phone, breaking out of the panel', async () => {
     await page.viewport(PHONE.width, PHONE.height)
-    render(<CtaBand preset='studio-cta' {...props} />)
+    render(<CTABand preset='with-photo' {...props} />)
 
     const { section, panel, heading, photo } = boxes()
     expect(photo.top).toBeLessThan(panel.top)
@@ -54,7 +54,7 @@ describe('CtaBand studio CTA', () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     render(
       <div style={{ width: 400 }}>
-        <CtaBand preset='studio-cta' {...props} />
+        <CTABand preset='with-photo' {...props} />
       </div>
     )
 
@@ -64,7 +64,7 @@ describe('CtaBand studio CTA', () => {
 
   it('sets the photo beside the copy on a desktop, breaking out of the panel', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
-    render(<CtaBand preset='studio-cta' {...props} />)
+    render(<CTABand preset='with-photo' {...props} />)
 
     const { section, panel, heading, photo } = boxes()
     expect(photo.top).toBeLessThan(panel.top)
@@ -78,15 +78,15 @@ describe('CtaBand studio CTA', () => {
   })
 
   it('has no axe violations', async () => {
-    const { container } = render(<CtaBand preset='studio-cta' {...props} />)
+    const { container } = render(<CTABand preset='with-photo' {...props} />)
 
     expect(await axeViolations(container)).toEqual([])
   })
 })
 
-describe('CtaBand studio CTA photo', () => {
+describe('CTABand with photo, its photo', () => {
   it('crops a landscape photo to the portrait frame', async () => {
-    render(<CtaBand preset='studio-cta' {...props} />)
+    render(<CTABand preset='with-photo' {...props} />)
 
     const img = screen.getByRole('img', { name: 'Hands up at a gig' })
     const frame = img.parentElement!
@@ -96,10 +96,44 @@ describe('CtaBand studio CTA photo', () => {
   })
 })
 
-describe('CtaBand talk to us', () => {
+describe('CTABand body', () => {
+  it.each(['with-photo', 'centred'] as const)(
+    'sets the %s body in subtle text, closing on a medium-weight line',
+    (preset) => {
+      render(
+        <CTABand
+          preset={preset}
+          title='Explore an Oztix partnership'
+          body={
+            <>
+              <p>Let’s start with a conversation.</p>
+              <p>Ready to move fast? We’re on it.</p>
+            </>
+          }
+        />
+      )
+      const subtle = document.createElement('span')
+      subtle.className = 'text-subtle'
+      document.body.append(subtle)
+      onTestFinished(() => subtle.remove())
+
+      const opening = getComputedStyle(
+        screen.getByText('Let’s start with a conversation.')
+      )
+      const closing = getComputedStyle(
+        screen.getByText('Ready to move fast? We’re on it.')
+      )
+      expect(opening.color).toBe(getComputedStyle(subtle).color)
+      expect(opening.fontWeight).toBe('400')
+      expect(closing.fontWeight).toBe('500')
+    }
+  )
+})
+
+describe('CTABand centred', () => {
   it('centres the heading and actions in the panel', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
-    render(<CtaBand preset='talk-to-us' {...props} />)
+    render(<CTABand preset='centred' {...props} />)
 
     const heading = screen.getByRole('heading', { level: 2 })
     const panel = heading
@@ -123,7 +157,7 @@ describe('CtaBand talk to us', () => {
   })
 
   it('has no axe violations', async () => {
-    const { container } = render(<CtaBand preset='talk-to-us' {...props} />)
+    const { container } = render(<CTABand preset='centred' {...props} />)
 
     expect(await axeViolations(container)).toEqual([])
   })

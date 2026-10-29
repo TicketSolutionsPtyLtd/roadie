@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Faq } from '.'
+import { FAQ } from '.'
 import { MarketingBlocksProvider } from '../Provider'
 
 const items = [
@@ -20,10 +20,10 @@ const items = [
   }
 ]
 
-describe('Faq', () => {
+describe('FAQ', () => {
   it('renders the heading and each question as a heading of its own', () => {
     render(
-      <Faq
+      <FAQ
         preset='faq'
         position={5}
         title='Questions, answered'
@@ -44,7 +44,7 @@ describe('Faq', () => {
   })
 
   it('opens a question to its answer, set as prose', async () => {
-    render(<Faq title='Questions, answered' items={items} />)
+    render(<FAQ title='Questions, answered' items={items} />)
 
     const question = screen
       .getByRole('heading', { name: 'Does it cost anything?' })
@@ -64,7 +64,7 @@ describe('Faq', () => {
     const onBlockEvent = vi.fn()
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
-        <Faq position={2} title='Questions, answered' items={items} />
+        <FAQ position={2} title='Questions, answered' items={items} />
       </MarketingBlocksProvider>
     )
 
@@ -87,13 +87,33 @@ describe('Faq', () => {
   it('lists a question twice when it’s asked twice', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     const repeated = [items[0]!, items[0]!]
-    const { rerender } = render(<Faq title='Questions' items={repeated} />)
-    rerender(<Faq title='Questions' items={[...repeated, items[1]!]} />)
+    const { rerender } = render(<FAQ title='Questions' items={repeated} />)
+    rerender(<FAQ title='Questions' items={[...repeated, items[1]!]} />)
 
     expect(
       screen.getAllByRole('heading', { name: 'Does it cost anything?' })
     ).toHaveLength(2)
     expect(error).not.toHaveBeenCalled()
     error.mockRestore()
+  })
+
+  it('links on from under the questions', () => {
+    render(
+      <FAQ
+        title='Questions, answered'
+        items={items}
+        actions={[
+          { label: 'See all FAQs', href: '/frequently-asked-questions' }
+        ]}
+      />
+    )
+
+    const link = screen.getByRole('link', { name: 'See all FAQs' })
+    expect(link).toHaveAttribute('href', '/frequently-asked-questions')
+    expect(
+      screen
+        .getByRole('heading', { name: 'Who do I contact?' })
+        .compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
   })
 })

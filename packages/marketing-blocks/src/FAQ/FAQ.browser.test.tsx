@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
-import { Faq } from '.'
+import { FAQ } from '.'
 import {
   DESKTOP,
   PHONE,
@@ -27,13 +27,13 @@ const items = [
   }
 ]
 
-describe('Faq', () => {
+describe('FAQ', () => {
   it.each([
     ['a phone', PHONE],
     ['a desktop', DESKTOP]
   ])('lines the questions up with the heading on %s', async (_, size) => {
     await page.viewport(size.width, size.height)
-    render(<Faq title='Questions, answered' items={items} />)
+    render(<FAQ title='Questions, answered' items={items} />)
 
     const heading = screen.getByRole('heading', { level: 2 })
     const question = screen.getByRole('heading', {
@@ -47,7 +47,7 @@ describe('Faq', () => {
 
   it('has no axe violations, with a question open', async () => {
     const { container } = render(
-      <Faq title='Questions, answered' items={items} />
+      <FAQ title='Questions, answered' items={items} />
     )
     await userEvent.click(screen.getByText('Who do I contact?'))
 

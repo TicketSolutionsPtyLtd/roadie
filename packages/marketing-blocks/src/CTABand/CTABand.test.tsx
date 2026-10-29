@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { CtaBand } from '.'
+import { CTABand } from '.'
 import { MarketingBlocksProvider } from '../Provider'
 
 const actions = [
@@ -15,11 +15,11 @@ const image = {
   alt: 'A crowd with their hands up at a gig'
 }
 
-describe('CtaBand', () => {
+describe('CTABand', () => {
   it('renders the studio CTA as a split panel with its photo and actions', () => {
     render(
-      <CtaBand
-        preset='studio-cta'
+      <CTABand
+        preset='with-photo'
         position={6}
         title='Explore an Oztix partnership'
         titleHighlight='partnership'
@@ -35,7 +35,7 @@ describe('CtaBand', () => {
     })
     expect(section).toHaveAttribute('data-block', 'cta-band')
     expect(section).toHaveAttribute('data-variant', 'split')
-    expect(section).toHaveAttribute('data-preset', 'studio-cta')
+    expect(section).toHaveAttribute('data-preset', 'with-photo')
     expect(section).toHaveAttribute('data-position', '6')
     expect(screen.getByText('partnership').closest('mark')).not.toBeNull()
     expect(
@@ -54,8 +54,8 @@ describe('CtaBand', () => {
 
   it('renders talk to us centred, without a photo even when given one', () => {
     render(
-      <CtaBand
-        preset='talk-to-us'
+      <CTABand
+        preset='centred'
         title='Talk to our team'
         body={<p>We’ll find the right setup for your venue.</p>}
         actions={actions.slice(0, 1)}
@@ -65,7 +65,7 @@ describe('CtaBand', () => {
 
     const section = screen.getByRole('region', { name: 'Talk to our team' })
     expect(section).toHaveAttribute('data-variant', 'centred')
-    expect(section).toHaveAttribute('data-preset', 'talk-to-us')
+    expect(section).toHaveAttribute('data-preset', 'centred')
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Talk to us' })).toHaveAttribute(
       'href',
@@ -74,19 +74,19 @@ describe('CtaBand', () => {
   })
 
   it('falls back to the studio CTA with no preset', () => {
-    render(<CtaBand title='Sell more tickets' actions={actions} />)
+    render(<CTABand title='Sell more tickets' actions={actions} />)
 
     expect(
       screen.getByRole('region', { name: 'Sell more tickets' })
-    ).toHaveAttribute('data-preset', 'studio-cta')
+    ).toHaveAttribute('data-preset', 'with-photo')
   })
 
   it('reports a click on an action', async () => {
     const onBlockEvent = vi.fn()
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
-        <CtaBand
-          preset='talk-to-us'
+        <CTABand
+          preset='centred'
           position={3}
           title='Talk to our team'
           actions={actions}
@@ -100,7 +100,7 @@ describe('CtaBand', () => {
       action: 'click',
       block: 'cta-band',
       variant: 'centred',
-      preset: 'talk-to-us',
+      preset: 'centred',
       position: 3,
       label: 'Create my event',
       href: 'https://studio.oztix.com.au'
@@ -108,7 +108,7 @@ describe('CtaBand', () => {
   })
 
   it('renders without actions', () => {
-    render(<CtaBand preset='talk-to-us' title='Talk to our team' />)
+    render(<CTABand preset='centred' title='Talk to our team' />)
 
     expect(
       screen.getByRole('region', { name: 'Talk to our team' })

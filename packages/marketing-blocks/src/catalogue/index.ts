@@ -1,6 +1,6 @@
-import { ctaBandDefinition } from '../CtaBand/definition'
-import { faqDefinition } from '../Faq/definition'
-import { mediaDefinition } from '../Media/definition'
+import { ctaBandDefinition } from '../CTABand/definition'
+import { faqDefinition } from '../FAQ/definition'
+import { galleryDefinition } from '../Gallery/definition'
 
 /** A named configuration of a block: what editors pick in the Studio instead of setting options. */
 export type BlockPreset = {
@@ -48,7 +48,7 @@ function entry(definition: BlockDefinition): CatalogueBlock {
 
 const DEFINITIONS: readonly BlockDefinition[] = [
   faqDefinition,
-  mediaDefinition,
+  galleryDefinition,
   ctaBandDefinition
 ]
 

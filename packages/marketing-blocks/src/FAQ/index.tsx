@@ -3,26 +3,28 @@ import { type ReactNode, useId } from 'react'
 import { Accordion } from '@oztix/roadie-components/accordion'
 import { Prose } from '@oztix/roadie-components/prose'
 
+import type { BlockAction } from '../Provider'
+import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
-import { type FaqPreset, faqDefinition } from './definition'
+import { type FAQPreset, faqDefinition } from './definition'
 
-export type { FaqPreset } from './definition'
+export type { FAQPreset } from './definition'
 
-export type FaqItem = {
+export type FAQItem = {
   /** The question as people ask it. */
   question: string
   /** The answer as rich text, set in `Prose`. Open with the direct answer. */
   answer: ReactNode
 }
 
-export type FaqProps = {
+export type FAQProps = {
   /**
    * `faq` lists the questions in an accordion, one open at a time.
    * @default 'faq'
    */
-  preset?: FaqPreset
+  preset?: FAQPreset
   /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
   /** An id for linking to the block. */
@@ -36,11 +38,13 @@ export type FaqProps = {
   /** A sentence under the title. */
   description?: string
   /** The questions, in the order people ask them. */
-  items: readonly FaqItem[]
+  items: readonly FAQItem[]
+  /** Links under the questions, such as to every FAQ. The first is the strong one. */
+  actions?: readonly BlockAction[]
 }
 
 /** Answers the questions people ask before they buy or sign up. */
-export function Faq({
+export function FAQ({
   preset: presetName,
   position,
   id,
@@ -48,8 +52,9 @@ export function Faq({
   title,
   titleHighlight,
   description,
-  items
-}: FaqProps) {
+  items,
+  actions
+}: FAQProps) {
   const headingId = useId()
   const { name, variant } = presetOf(faqDefinition, presetName)
 
@@ -83,6 +88,7 @@ export function Faq({
             </Accordion.Item>
           ))}
         </Accordion>
+        <BlockActions actions={actions} />
       </div>
     </BlockRoot>
   )

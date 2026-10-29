@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Media',
+  title: 'Gallery',
   description: 'Shows the people and events behind a page in photos',
   status: 'alpha',
   category: 'Proof',
@@ -13,18 +13,39 @@ Shows the people and events behind a page in photos.
 ## Import
 
 ```tsx
-import { Media } from '@oztix/roadie-marketing-blocks/media'
+import { Gallery } from '@oztix/roadie-marketing-blocks/gallery'
 ```
 
 ## Examples
 
-### Gallery
+### Carousel
 
-A heading over portrait photos that scroll past in a marquee. The photos hold still for anyone who prefers reduced motion.
+The default. A heading with previous and next controls over portrait photos that people step through, or swipe on a touch screen.
 
-```tsx-live-expand id=gallery
-<Media
-  preset='gallery'
+```tsx-live-expand id=carousel
+<Gallery
+  preset='carousel'
+  title='Join thousands of partners who trust Oztix'
+  description='From festivals to local venues, we help event organisers sell more tickets.'
+  images={[
+    { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 },
+    { src: '/brand/photography/09.webp', alt: 'Four musicians posing together in front of an Oztix backdrop', width: 1201, height: 801 },
+    { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun', width: 1280, height: 854 },
+    { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd', width: 1280, height: 854 },
+    { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 },
+    { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above', width: 1280, height: 850 },
+    { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting', width: 1280, height: 854 }
+  ]}
+/>
+```
+
+### Marquee
+
+The same photos scrolling past on their own. They hold still for anyone who prefers reduced motion.
+
+```tsx-live-expand id=marquee
+<Gallery
+  preset='marquee'
   title='Join thousands of partners who trust Oztix'
   description='From festivals to local venues, we help event organisers sell more tickets.'
   images={[
@@ -66,8 +87,13 @@ A heading over portrait photos that scroll past in a marquee. The photos hold st
 
 </Guidelines>
 
+## Accessibility
+
+- **Carousel**: the heading names the carousel, and each photo is a slide named by its place, such as "2 of 7". Previous and next are buttons, and photos out of view are inert, so `Tab` skips them.
+- **Marquee**: each photo is read out once, though the marquee repeats them to fill the width. It holds still under reduced motion.
+
 ## Tracking
 
-Reports a view once half the gallery is on screen. It has no links, so it reports no clicks.
+Reports a view once half the gallery is on screen, and in the carousel a click on previous or next with its label.
 
-<PropsDefinitions component='Media' />
+<PropsDefinitions component='Gallery' />
