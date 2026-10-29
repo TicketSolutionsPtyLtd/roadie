@@ -76,7 +76,7 @@ export function BlockRoot({
     const control = clicked.target.closest('a, button')
     if (!control || !clicked.currentTarget.contains(control)) return
     const label =
-      control.getAttribute('aria-label') ?? control.textContent?.trim()
+      control.getAttribute('aria-label') || control.textContent?.trim()
     const href = control.getAttribute('href')
     onBlockEvent({
       ...event('click', identity),

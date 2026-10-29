@@ -52,11 +52,14 @@ for (const block of catalogue) {
 
 ## Thumbnails
 
-Each preset has a wireframe at
-`@oztix/roadie-marketing-blocks/thumbnails/<block>-<preset>.svg`, the file
-the catalogue names. Point the Studio's insert menu `previewImageUrl` at it.
-Wireframes read the Roadie colour variables when they're inline, and fall
-back to light-mode colours as an image.
+Each preset has a wireframe in the package's `thumbnails` folder, and the
+catalogue gives its file name as `thumbnail`. A Studio serves them as
+static files: copy
+`node_modules/@oztix/roadie-marketing-blocks/src/thumbnails/` into its
+`static/blocks/` folder at build, then point the insert menu's
+`previewImageUrl` at `/static/blocks/<thumbnail>`. Wireframes read the Roadie
+colour variables when they're inline, and fall back to light-mode colours as
+an image.
 
 ## Tracking
 
