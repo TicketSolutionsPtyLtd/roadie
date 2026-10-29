@@ -281,6 +281,11 @@ describe('htmlToEditorValue', () => {
         { provider: 'vimeo', id: '76979871', params: null }
       ],
       [
+        'protocol-relative YouTube',
+        '//www.youtube.com/embed/dQw4w9WgXcQ',
+        { provider: 'youtube', id: 'dQw4w9WgXcQ', params: null }
+      ],
+      [
         'Spotify',
         'https://open.spotify.com/embed/track/4uLU6hMCjMI75M1A2tKUQC',
         {

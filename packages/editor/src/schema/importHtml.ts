@@ -27,7 +27,9 @@ function report(kind: DroppedContent['kind'], src: string | null) {
 
 function embedFor(iframe: Element, preset: Preset) {
   if (!Object.hasOwn(presetShapes[preset].nodes, 'embed')) return null
-  const value = parseEmbedUrl(iframe.getAttribute('src') ?? '')
+  // Old embed code, YouTube's among it, writes players protocol-relative.
+  const src = (iframe.getAttribute('src') ?? '').trim()
+  const value = parseEmbedUrl(src.startsWith('//') ? `https:${src}` : src)
   if (!value) return null
   const embed = iframe.ownerDocument.createElement('div')
   embed.dataset.embed = ''
