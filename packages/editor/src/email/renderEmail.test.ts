@@ -762,6 +762,17 @@ describe('renderEmail', () => {
       }
     )
 
+    it('checks a rule keyed like an object’s own property from values alone', async () => {
+      const keyed: EditorVariable[] = [
+        { key: 'constructor', label: 'Constructor', tokens: {} }
+      ]
+      const { text: plain } = await renderEmail(
+        offer({ key: 'constructor', op: 'exists' }),
+        { variables: keyed, values: {} }
+      )
+      expect(plain).toBe('Before\n\nAfter')
+    })
+
     it('hides a section and everything in it in a preview', async () => {
       const { html, text: plain } = await renderEmail(
         email(
