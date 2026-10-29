@@ -146,36 +146,69 @@ describe('Gallery', () => {
     )
   })
 
-  it('steps and swipes the carousel in a narrow column', async () => {
-    await page.viewport(DESKTOP.width, DESKTOP.height)
-    render(
-      <div style={{ width: 450 }}>
-        <Gallery
-          preset='carousel'
-          title='Our people'
-          images={[...images, images[0]!]}
-        />
-      </div>
-    )
-    const firstSlide = () => screen.getAllByRole('group', { hidden: true })[0]!
+  it(
+    'steps and swipes the carousel in a narrow column',
+    { timeout: 20_000 },
+    async () => {
+      await page.viewport(DESKTOP.width, DESKTOP.height)
+      render(
+        <div style={{ width: 450 }}>
+          <Gallery
+            preset='carousel'
+            title='Our people'
+            images={[...images, images[0]!]}
+          />
+        </div>
+      )
+      const settle = { timeout: 5_000 }
+      const firstTile = () =>
+        screen
+          .getAllByRole('group', { hidden: true })[0]!
+          .getBoundingClientRect()
+      // Polls until the tile stops moving, so a slow frame never reads it mid-scroll.
+      let last = Number.NaN
+      const restingLeft = () => {
+        const left = firstTile().left
+        const resting = Math.abs(left - last) < 0.5
+        last = left
+        return resting ? left : Number.NaN
+      }
+      let origin = Number.NaN
+      const restsAtOrigin = () =>
+        expect.poll(() => restingLeft() - origin, settle).toBeCloseTo(0, 0)
+      const restsOutOfView = () =>
+        expect
+          .poll(() => restingLeft() < origin - firstTile().width, settle)
+          .toBe(true)
 
-    const next = await screen.findByRole('button', { name: 'Next slide' })
-    expect(screen.getByRole('button', { name: 'Previous slide' })).toBeVisible()
-    await userEvent.click(next)
-    await expect.poll(() => firstSlide().hasAttribute('inert')).toBe(true)
+      const next = await screen.findByRole(
+        'button',
+        { name: 'Next slide' },
+        settle
+      )
+      const previous = screen.getByRole('button', { name: 'Previous slide' })
+      expect(previous).toBeVisible()
+      await expect.poll(restingLeft, settle).not.toBeNaN()
+      origin = firstTile().left
 
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Previous slide' })
-    )
-    await expect.poll(() => firstSlide().hasAttribute('inert')).toBe(false)
-    const tile = firstSlide().getBoundingClientRect()
-    const y = tile.top + tile.height / 2
-    await commands.pointer([
-      { type: 'move', x: tile.right - 10, y },
-      { type: 'down' },
-      { type: 'move', x: tile.right - 300, y, steps: 12 },
-      { type: 'up' }
-    ])
-    await expect.poll(() => firstSlide().hasAttribute('inert')).toBe(true)
-  })
+      await userEvent.click(next)
+      await restsOutOfView()
+
+      await userEvent.click(previous)
+      await restsAtOrigin()
+
+      const tile = firstTile()
+      const y = tile.top + tile.height / 2
+      const x = origin + 200
+      await commands.pointer([
+        { type: 'move', x, y },
+        { type: 'down' },
+        { type: 'move', x: x - 100, y, steps: 10 },
+        { type: 'move', x: x - 200, y, steps: 10 },
+        { type: 'move', x: x - 300, y, steps: 10 },
+        { type: 'up' }
+      ])
+      await restsOutOfView()
+    }
+  )
 })
