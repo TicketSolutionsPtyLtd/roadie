@@ -6,9 +6,9 @@ export const faqDefinition = {
   description: 'Answers the questions people ask before they buy or sign up.',
   presets: [
     {
-      name: 'faq',
-      title: 'FAQ',
-      description: 'A heading over questions that open to their answers.',
+      name: 'accordion',
+      title: 'Accordion',
+      description: 'Questions that open to their answers, one at a time.',
       variant: 'accordion'
     }
   ]

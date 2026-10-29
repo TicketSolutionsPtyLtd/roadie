@@ -21,8 +21,8 @@ export type FAQItem = {
 
 export type FAQProps = {
   /**
-   * `faq` lists the questions in an accordion, one open at a time.
-   * @default 'faq'
+   * `accordion` lists the questions in an accordion, one open at a time.
+   * @default 'accordion'
    */
   preset?: FAQPreset
   /** The block's place on the page, counting from 1, reported with its events. */

@@ -24,7 +24,7 @@ describe('FAQ', () => {
   it('renders the heading and each question as a heading of its own', () => {
     render(
       <FAQ
-        preset='faq'
+        preset='accordion'
         position={5}
         title='Questions, answered'
         items={items}
@@ -34,7 +34,7 @@ describe('FAQ', () => {
     const section = screen.getByRole('region', { name: 'Questions, answered' })
     expect(section).toHaveAttribute('data-block', 'faq')
     expect(section).toHaveAttribute('data-variant', 'accordion')
-    expect(section).toHaveAttribute('data-preset', 'faq')
+    expect(section).toHaveAttribute('data-preset', 'accordion')
     expect(section).toHaveAttribute('data-position', '5')
     expect(
       screen
@@ -77,7 +77,7 @@ describe('FAQ', () => {
       action: 'click',
       block: 'faq',
       variant: 'accordion',
-      preset: 'faq',
+      preset: 'accordion',
       position: 2,
       label: 'admin@oztix.com.au',
       href: 'mailto:admin@oztix.com.au'
