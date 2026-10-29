@@ -23,7 +23,13 @@ import {
   defaultEmbedProviders,
   htmlToEditorValue
 } from '../schema'
-import { LINE_END, LINE_START, MOD, selectParagraph } from './testUtils'
+import {
+  LINE_END,
+  LINE_START,
+  MOD,
+  clickIntoEditor,
+  selectParagraph
+} from './testUtils'
 
 const LABEL = 'Event description'
 
@@ -69,8 +75,8 @@ afterAll(() => style.remove())
 
 async function focusedTextbox() {
   const textbox = await screen.findByRole('textbox', { name: LABEL })
-  await userEvent.click(textbox)
-  await waitFor(() => expect(textbox).toHaveFocus())
+  await clickIntoEditor(textbox)
+  expect(textbox).toHaveFocus()
   return textbox
 }
 
@@ -448,7 +454,7 @@ describe('Editor toolbar', () => {
     })
     expect(underline).toHaveAttribute('aria-pressed', 'false')
 
-    await userEvent.click(within(textbox).getByText('no refunds'))
+    await clickIntoEditor(within(textbox).getByText('no refunds'))
     await waitFor(() =>
       expect(underline).toHaveAttribute('aria-pressed', 'true')
     )
@@ -494,7 +500,7 @@ describe('Editor toolbar', () => {
     })
     expect(bold).toHaveAttribute('aria-pressed', 'false')
 
-    await userEvent.click(within(textbox).getByText('Jumbuck Orchard Park'))
+    await clickIntoEditor(within(textbox).getByText('Jumbuck Orchard Park'))
     await waitFor(() => expect(bold).toHaveAttribute('aria-pressed', 'true'))
 
     await userEvent.keyboard(LINE_START)
@@ -1477,7 +1483,7 @@ describe('Editor images', () => {
     const textbox = await screen.findByRole('textbox', { name: LABEL })
     expect(await within(textbox).findByText('No alt text')).toBeVisible()
 
-    await userEvent.click(within(textbox).getByText('Sold out'))
+    await clickIntoEditor(within(textbox).getByText('Sold out'))
     await userEvent.keyboard(`${LINE_START}{ArrowUp}{Enter}`)
     const field = await screen.findByRole('textbox', { name: 'Alt text' })
     await waitFor(() => expect(field).toHaveFocus())
@@ -1503,7 +1509,7 @@ describe('Editor images', () => {
     const textbox = await screen.findByRole('textbox', { name: LABEL })
     expect(within(textbox).queryByText('No alt text')).toBe(null)
 
-    await userEvent.click(within(textbox).getByText('Sold out'))
+    await clickIntoEditor(within(textbox).getByText('Sold out'))
     await userEvent.keyboard(`${LINE_START}{ArrowUp}{Enter}`)
 
     expect(
@@ -1768,7 +1774,7 @@ describe('Editor embeds', () => {
     )
     const textbox = await screen.findByRole('textbox', { name: LABEL })
     await within(textbox).findByTitle('YouTube embed exampleVid1')
-    await userEvent.click(within(textbox).getByText('Sold out'))
+    await clickIntoEditor(within(textbox).getByText('Sold out'))
 
     await userEvent.keyboard(`${LINE_START}{ArrowUp}{Delete}`)
 
