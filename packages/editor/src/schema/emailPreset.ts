@@ -55,9 +55,11 @@ export const Button = Node.create({
     return { href: { default: null }, label: { default: '' } }
   },
   parseHTML() {
+    // Above the link mark's rule, which would otherwise read it as linked text.
     return [
       {
         tag: 'a[data-type="button"]',
+        priority: 60,
         getAttrs: (element) => {
           const href = element.getAttribute('href')
           const label = element.textContent?.trim()
