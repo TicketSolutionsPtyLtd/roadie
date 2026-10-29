@@ -128,8 +128,22 @@ export function currencyFormat({
 const isHouseCurrency = (code: string) =>
   currencyFormat({ currency: code }).currency === HOUSE_CURRENCY
 
-const currency = (value: number, code = HOUSE_CURRENCY) =>
-  numberFormat(currencyFormat({ currency: code })).format(value)
+// Firefox before 116 ignores trailingZeroDisplay and would show $1,200.00.
+let intlStripsWholeAmounts: boolean | undefined
+const stripsWholeAmounts = () =>
+  (intlStripsWholeAmounts ??=
+    numberFormat({
+      minimumFractionDigits: 2,
+      trailingZeroDisplay: 'stripIfInteger'
+    }).format(1) === '1')
+
+function currency(value: number, code = HOUSE_CURRENCY) {
+  const decimals =
+    Number.isInteger(value) && !stripsWholeAmounts() ? 0 : undefined
+  return numberFormat(currencyFormat({ currency: code, decimals })).format(
+    value
+  )
+}
 
 // Intl's compact reads $118.4K; the house suffix is lowercase.
 function compactCurrency(value: number, code = HOUSE_CURRENCY) {
