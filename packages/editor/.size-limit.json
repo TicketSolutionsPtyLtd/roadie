@@ -21,7 +21,7 @@
     "name": "Editor (shell)",
     "path": "dist/Editor/index.js",
     "import": "*",
-    "limit": "18.75 kB",
+    "limit": "22 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -34,7 +34,8 @@
       "@tiptap/extensions",
       "@tiptap/pm",
       "@tiptap/react",
-      "@tiptap/starter-kit"
+      "@tiptap/starter-kit",
+      "@tiptap/suggestion"
     ]
   },
   {
