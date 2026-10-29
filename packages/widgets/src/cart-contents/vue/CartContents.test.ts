@@ -1,8 +1,30 @@
 import { fireEvent, render } from '@testing-library/vue'
 import { describe, expect, it, vi } from 'vitest'
+import { h } from 'vue'
 
 import type { CartDetails, CartEvent } from '../../cart'
 import CartContents from './CartContents.vue'
+
+// @number-flow/vue is a Web Component jsdom never upgrades, so it shows no
+// digits. Stub it with the text it would show, formatted with Intl as it does.
+vi.mock('@number-flow/vue', () => ({
+  default: {
+    props: ['value', 'locales', 'format', 'prefix', 'suffix'],
+    setup(props: {
+      value: number
+      locales?: string
+      format?: Intl.NumberFormatOptions
+      prefix?: string
+      suffix?: string
+    }) {
+      return () =>
+        h(
+          'span',
+          `${props.prefix ?? ''}${new Intl.NumberFormat(props.locales, props.format).format(props.value)}${props.suffix ?? ''}`
+        )
+    }
+  }
+}))
 
 function makeEvent(over: Partial<CartEvent> = {}): CartEvent {
   return {
@@ -33,6 +55,35 @@ function makeDetails(over: Partial<CartDetails> = {}): CartDetails {
 }
 
 describe('CartContents', () => {
+  it.each([
+    ['en-AU', 'AUD', /^\$1,200\.00$/],
+    ['en-US', 'AUD', /^\$1,200\.00$/],
+    ['de-DE', 'EUR', /^1\.200,00 €$/],
+    ['en-AU', 'JPY', /^JPY 1,200$/]
+  ])(
+    'reads the subtotal in %s %s as the prices read',
+    (locale, currency, shown) => {
+      const event = makeEvent({
+        tickets: [{ name: 'GA', quantity: 1, priceEach: 1200 }],
+        subtotal: 1200,
+        total: 1200
+      })
+      const { getByText } = render(CartContents, {
+        props: {
+          container: 'page',
+          cart: makeDetails({ cartTotal: 1200, events: [event] }),
+          onNavigate: vi.fn(),
+          browseHref: '/events',
+          checkoutUrl: '/outlet/extras/c1',
+          locale,
+          currency
+        }
+      })
+
+      expect(getByText('Subtotal').nextElementSibling).toHaveTextContent(shown)
+    }
+  )
+
   it('shows the empty state with browseHref when there are no tickets', async () => {
     const onNavigate = vi.fn()
     const { getByText } = render(CartContents, {

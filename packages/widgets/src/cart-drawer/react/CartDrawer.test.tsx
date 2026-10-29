@@ -318,6 +318,21 @@ describe('CartDrawer', () => {
     expect(onNavigate).not.toHaveBeenCalledWith('/events')
   })
 
+  it('reads the handle and footer totals as the line total reads', async () => {
+    renderDrawer(
+      <CartDrawer
+        cart={mockCart()}
+        collectionId='col-1'
+        onNavigate={vi.fn()}
+        browseHref='/events'
+        locale='de-DE'
+        currency='EUR'
+      />
+    )
+    // The line total, the handle total, and the footer subtotal.
+    expect(await screen.findAllByText('50,00 €')).toHaveLength(3)
+  })
+
   it('footer shows the summed booking fees when the cart has fees', async () => {
     // makeDetails has one event with bookingFees: 5 → "Incl. $5.00 booking fees".
     const cart = mockCart()
