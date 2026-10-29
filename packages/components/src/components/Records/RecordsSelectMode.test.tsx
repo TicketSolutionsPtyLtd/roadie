@@ -100,6 +100,20 @@ describe('Records Select mode', () => {
     expect(toggle()).toHaveTextContent('Done')
   })
 
+  it('gives Select all and Done the default emphasis, like the rest of the header', async () => {
+    const user = userEvent.setup()
+    render(<Shows />)
+    await user.click(toggle())
+    for (const button of [
+      screen.getByRole('button', { name: 'Select all' }),
+      toggle()
+    ]) {
+      expect(button).toHaveClass('emphasis-normal')
+      expect(button).not.toHaveClass('emphasis-strong')
+      expect(button).not.toHaveClass('emphasis-subtler')
+    }
+  })
+
   it('leaves with Done or Escape and clears, keeping focus on the toggle', async () => {
     const user = userEvent.setup()
     render(<Shows />)

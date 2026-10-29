@@ -52,7 +52,6 @@ export function RecordsSelect({ className }: RecordsSelectProps) {
     >
       {selecting && (
         <Button
-          emphasis='subtler'
           disabled={pageIds.length === 0}
           // Clears every page too, as after the bulk bar's Select all N.
           onClick={() =>
@@ -66,9 +65,6 @@ export function RecordsSelect({ className }: RecordsSelectProps) {
       <Button
         ref={toggleRef}
         {...survivor}
-        emphasis={selecting ? 'strong' : 'normal'}
-        // The switch to Done is instant; a colour fade flashes grey.
-        className='transition-[scale]!'
         onClick={() => records.setSelecting(!selecting)}
       >
         {selecting ? 'Done' : 'Select'}
