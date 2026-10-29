@@ -21,7 +21,7 @@ export function ComboboxClear({
     <ComboboxPrimitive.Clear
       data-slot='combobox-clear'
       className={cn(
-        'shrink-0 cursor-pointer text-subtle hover:text-normal',
+        'shrink-0 rounded-full emphasis-subtler text-subtle is-interactive',
         FIRST_ROW,
         className
       )}
