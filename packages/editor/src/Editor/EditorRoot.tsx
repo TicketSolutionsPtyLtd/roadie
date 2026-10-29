@@ -69,7 +69,10 @@ export type EditorRootProps = {
   resolveUrl?: (url: string) => Promise<string>
   'aria-label'?: string
   'aria-labelledby'?: string
-  /** Replaces the default parts, `<Editor.Toolbar />` then `<Editor.Content />`. */
+  /**
+   * Replaces the default parts: `<Editor.Toolbar />`, `<Editor.Content />`,
+   * then `<Editor.SlashMenu />`.
+   */
   children?: ReactNode
 }
 

@@ -368,7 +368,10 @@ phone.
 ### Blocks preset
 
 `preset='blocks'` holds everything the rich preset does, for a page built
-from blocks, and every block keeps an id as it moves.
+from blocks. Type `/` in an empty paragraph to open the slash menu, then type
+to filter it. The arrow keys move through the blocks, Enter or a tap inserts
+one in place of the `/`, and Escape closes the menu and leaves the `/` as
+text. Image needs `onUploadImage`, and Embed opens the Embed popover.
 
 ```tsx-live-prose
 <Editor
@@ -393,6 +396,10 @@ Every block but a table's rows and cells saves a `blockId`, so it keeps its
 identity as it moves. The editor gives a block without one an id when it
 loads, splits, or is pasted, and `onValueChange` reports it. Copying a block
 gives the copy an id of its own. `/render` never writes ids into the page.
+
+With no children, a `blocks` editor renders `Editor.Toolbar`,
+`Editor.Content`, then `Editor.SlashMenu`. Pass your own children to change
+the toolbar, and place `<Editor.SlashMenu />` yourself, or `/` is only text.
 
 ### Emphasis
 
@@ -579,7 +586,8 @@ form submits it. A disabled editor leaves it out, as a disabled input does.
 
 #### Custom controls
 
-With no children, `Editor` renders `Editor.Toolbar` then `Editor.Content`.
+With no children, `Editor` renders `Editor.Toolbar` then `Editor.Content`,
+and in the blocks preset `Editor.SlashMenu`.
 Pass them yourself to add controls: `Editor.Toolbar` renders the preset's
 controls, then its children. A `Toolbar.Button` child joins the toolbar's
 arrow order, and `useEditorContext()` gives it the editor to run commands on.
@@ -731,6 +739,10 @@ render(
 - In the rich preset, the Block type menu's trigger is named for the block at
   the caret, such as "Block type: Heading 2". Its items are radio items, with
   the current type checked, and choosing one puts focus back in the text.
+- In the blocks preset, the slash menu is a `listbox` named Blocks. Focus
+  stays in the text, which points at the active `option` through
+  `aria-activedescendant` and at the list through `aria-controls`. A filter
+  that matches nothing says No matching blocks in a `status`.
 - Each control carries its shortcut in `aria-keyshortcuts`.
 - The link editor is a popover by the selection, with an input named Link. It
   takes focus when it opens, Enter or the Save link button saves, and Escape
@@ -751,14 +763,16 @@ render(
 | `Mod+Alt+0` | Paragraph, in the rich preset |
 | `Mod+Alt+2` to `Mod+Alt+4` | Heading 2 to 4, in the rich preset |
 | `Mod+Shift+B` | Quote, in the rich preset |
-| `Enter` | On a selected image, edit its alt text |
+| `/` | In an empty paragraph in the blocks preset, open the slash menu |
+| `ArrowDown`, `ArrowUp` | In the slash menu, move to the next or previous block, wrapping |
+| `Enter` | In the slash menu, insert the active block. On a selected image, edit its alt text |
 | `Tab` | In a table, move to the next cell, adding a row after the last |
 | `Shift+Tab` | In a table, move to the cell before, or leave the editor from the first |
 | `Mod+Z` | Undo |
 | `Mod+Shift+Z` | Redo |
 | `Shift+Enter` | Line break |
 | `Alt+F10` | Move focus to the toolbar's first enabled control, a selected image's or embed's first action, or in a table its first table action |
-| `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image or embed |
+| `Escape` | In the slash menu, close it and keep the `/`. In a toolbar, move focus back to the text, where the caret was, or to the selected image or embed |
 
 `Mod` is `⌘` on Apple devices and `Ctrl` elsewhere, and `Alt` is `⌥` on
 Apple devices.
