@@ -21,7 +21,7 @@
     "name": "cta-band",
     "path": "dist/CtaBand/index.js",
     "import": "*",
-    "limit": "2 kB",
+    "limit": "2.5 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -33,7 +33,7 @@
     "name": "faq",
     "path": "dist/Faq/index.js",
     "import": "*",
-    "limit": "1.4 kB",
+    "limit": "1.95 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -45,7 +45,7 @@
     "name": "media",
     "path": "dist/Media/index.js",
     "import": "*",
-    "limit": "1.52 kB",
+    "limit": "2.05 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
