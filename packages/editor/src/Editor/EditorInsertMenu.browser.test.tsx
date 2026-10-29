@@ -199,6 +199,40 @@ describe('Editor insert menu', () => {
     expect(options[2]).toHaveAttribute('aria-selected', 'true')
   })
 
+  it('makes the first match active again as the filter changes', async () => {
+    const onValueChange = renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    await insertMenu()
+    await userEvent.keyboard('{ArrowUp}div{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'horizontalRule' }, p())
+      )
+    )
+  })
+
+  it('types / as text in a button label', async () => {
+    const button: JSONContent = {
+      type: 'button',
+      attrs: { href: 'https://example.com/tickets' },
+      content: [{ type: 'text', text: 'Get tickets' }]
+    }
+    const onValueChange = renderEmail({ defaultValue: email(button) })
+    await userEvent.dblClick(await screen.findByText('Get tickets'))
+
+    await userEvent.keyboard('/')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ ...button, content: [{ type: 'text', text: 'Get /' }] }, p())
+      )
+    )
+    expect(screen.queryByRole('listbox')).toBe(null)
+  })
+
   it('closes on Escape, keeping what was typed', async () => {
     const onValueChange = renderEmail()
     const textbox = await focusedTextbox()
