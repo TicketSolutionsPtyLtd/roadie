@@ -60,7 +60,7 @@ export type CardGridProps = {
 type CardProps = { item: CardGridItem; index: number }
 
 // The surface a linked card's title link covers. Nothing between them is positioned, so the link's overlay reaches the card's edges.
-const CARD = 'is-interactive-within'
+const CARD = 'is-interactive-within min-w-0'
 
 function CardTitle({ item }: { item: CardGridItem }) {
   if (!item.href) return item.title
@@ -146,9 +146,9 @@ function ServiceCard({ item }: CardProps) {
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw'
-        className='aspect-video w-full rounded-2xl @3xl:aspect-4/3'
+        className='aspect-video w-full rounded-2xl @2xl:aspect-4/3'
       />
-      <div className='grid @3xl:pt-2'>
+      <div className='grid @2xl:pt-2'>
         <div className='grid justify-self-start'>
           <Mark
             render={<h3 />}
@@ -159,7 +159,7 @@ function ServiceCard({ item }: CardProps) {
           </Mark>
           <Illustration
             name={item.illustration}
-            className='z-1 col-start-1 row-start-1 -mt-20 ml-2 self-start justify-self-start @3xl:-mt-6 @3xl:-mr-6 @3xl:ml-0 @3xl:justify-self-end'
+            className='z-1 col-start-1 row-start-1 -mt-20 ml-2 self-start justify-self-start @2xl:-mt-6 @2xl:-mr-6 @2xl:ml-0 @2xl:justify-self-end'
           />
         </div>
         {item.subtitle && (
@@ -213,8 +213,10 @@ function AlternatingRow({ item, index }: CardProps) {
     <li
       className={cn(
         CARD,
-        'grid items-start gap-x-12 gap-y-4 rounded-3xl @3xl:items-center',
-        imageFirst ? '@3xl:grid-cols-[2fr_3fr]' : '@3xl:grid-cols-[3fr_2fr]'
+        'grid items-start gap-x-12 gap-y-4 rounded-3xl @xl:items-center',
+        imageFirst
+          ? '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
+          : '@xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'
       )}
     >
       <div className='grid gap-4'>
@@ -244,8 +246,8 @@ function AlternatingRow({ item, index }: CardProps) {
         image={item.image}
         sizes='(min-width: 768px) 40vw, 100vw'
         className={cn(
-          'aspect-square w-full max-w-80 rounded-3xl @3xl:max-w-none',
-          imageFirst && '@3xl:-order-1'
+          'aspect-square w-full max-w-80 rounded-3xl @xl:max-w-none',
+          imageFirst && '@xl:-order-1'
         )}
       />
     </li>
@@ -362,51 +364,56 @@ type Look = {
   raised?: boolean
   /** Numbers the cards, as an ordered list. */
   ordered?: boolean
+  /** Keeps the raised surface inside the page's padding, rounded at every width. */
+  inset?: boolean
 }
+
+const PAGE_PADDING = 'px-6 @3xl:px-8 @5xl:px-12'
 
 // Columns follow the block's own width, not the viewport's, so a block in a narrow layout stays narrow.
 const LOOKS: Record<CardGridPreset, Look> = {
   'illustrated-cards': {
     Item: FeatureCard,
-    list: 'grid gap-12 @5xl:grid-cols-3',
+    list: 'grid grid-cols-1 gap-12 @5xl:grid-cols-3',
     align: 'center',
     raised: true
   },
   'marked-cards': {
     Item: ServiceCard,
-    list: 'grid gap-12 @3xl:grid-cols-2 @7xl:grid-cols-4',
+    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @7xl:grid-cols-4',
     align: 'center'
   },
   'overlap-cards': {
     Item: IndustryCard,
-    list: 'grid gap-12 @3xl:grid-cols-2 @7xl:grid-cols-3',
+    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @5xl:grid-cols-3',
     align: 'center'
   },
   'numbered-cards': {
     Item: StepCard,
-    list: 'grid gap-12 @3xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4',
+    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4',
     align: 'center',
     ordered: true
   },
   'link-cards': {
     Item: LinkCard,
-    list: 'grid gap-6 @3xl:grid-cols-2 @5xl:grid-cols-3',
+    list: 'grid grid-cols-1 gap-6 @xl:grid-cols-2 @4xl:grid-cols-3',
     align: 'center'
   },
   'alternating-rows': {
     Item: AlternatingRow,
-    list: 'grid gap-20',
+    list: 'grid grid-cols-1 gap-20',
     align: 'start'
   },
   portraits: {
     Item: PortraitCard,
-    list: 'grid gap-8 @xl:grid-cols-2 @3xl:grid-cols-3 @7xl:grid-cols-4',
+    list: 'grid grid-cols-1 gap-8 @xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4',
     align: 'start',
-    raised: true
+    raised: true,
+    inset: true
   },
   lists: {
     Item: ListColumn,
-    list: 'grid gap-8 @3xl:auto-cols-fr @3xl:grid-flow-col',
+    list: 'grid grid-cols-1 gap-8 @3xl:auto-cols-[minmax(0,1fr)] @3xl:grid-flow-col @3xl:grid-cols-none',
     align: 'start'
   }
 }
@@ -424,7 +431,7 @@ export function CardGrid({
   actions
 }: CardGridProps) {
   const { name, variant } = presetOf(cardGridDefinition, preset)
-  const { Item, list, align, raised, ordered } = LOOKS[name]
+  const { Item, list, align, raised, ordered, inset } = LOOKS[name]
   const List = ordered ? 'ol' : 'ul'
   const headingId = useId()
   const markedEyebrow = name === 'overlap-cards' && eyebrow
@@ -437,12 +444,14 @@ export function CardGrid({
       position={position}
       id={id}
       aria-labelledby={headingId}
-      className={cn(raised && '@7xl:px-2')}
+      className={cn(inset ? PAGE_PADDING : raised && '@7xl:px-2')}
     >
       <div
         className={cn(
-          'mx-auto grid w-full max-w-8xl gap-12 px-6 @3xl:px-8 @5xl:px-12',
-          raised && 'bg-raised py-16 @5xl:py-20 @7xl:rounded-3xl'
+          'mx-auto grid w-full max-w-8xl grid-cols-1 gap-12',
+          PAGE_PADDING,
+          raised && 'bg-raised py-16 @5xl:py-20 @7xl:rounded-3xl',
+          inset && 'rounded-3xl px-6 py-8 @3xl:px-8 @3xl:py-12'
         )}
       >
         <div className='grid justify-items-center gap-4'>

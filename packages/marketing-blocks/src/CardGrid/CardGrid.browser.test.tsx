@@ -73,6 +73,56 @@ describe('CardGrid columns', () => {
     }
   )
 
+  it.each<[CardGridPreset, number]>([
+    ['illustrated-cards', 1],
+    ['marked-cards', 1],
+    ['overlap-cards', 1],
+    ['portraits', 2],
+    ['lists', 1],
+    ['numbered-cards', 1],
+    ['link-cards', 2]
+  ])('%s fits %i column(s) of at least 15rem at 640px', (preset, expected) => {
+    render(<Block preset={preset} width={640} count={4} />)
+
+    expect(columns()).toBe(expected)
+    expect(cards()[0]!.getBoundingClientRect().width).toBeGreaterThanOrEqual(
+      240
+    )
+  })
+
+  it.each<CardGridPreset>([
+    'illustrated-cards',
+    'marked-cards',
+    'overlap-cards',
+    'numbered-cards',
+    'link-cards',
+    'alternating-rows',
+    'portraits',
+    'lists'
+  ])('keeps a %s card inside the block when its text won’t wrap', (preset) => {
+    render(
+      <div style={{ width: 375 }}>
+        <CardGrid
+          preset={preset}
+          title='Section'
+          items={[
+            {
+              ...items[0]!,
+              title: 'Unbreakable'.repeat(20),
+              description: 'x'.repeat(200),
+              points: ['y'.repeat(200)]
+            }
+          ]}
+        />
+      </div>
+    )
+
+    const block = screen.getByRole('region').getBoundingClientRect()
+    expect(cards()[0]!.getBoundingClientRect().right).toBeLessThanOrEqual(
+      block.right
+    )
+  })
+
   it('takes its columns from its own width, not the window’s', () => {
     render(<Block preset='marked-cards' width={600} />)
 
@@ -130,6 +180,12 @@ describe('CardGrid alternating rows', () => {
     expect(sides()).toEqual(['below', 'below', 'below'])
   })
 
+  it('sets text beside its image from 640px', () => {
+    render(<Block preset='alternating-rows' width={640} count={3} />)
+
+    expect(sides()).toEqual(['left', 'right', 'left'])
+  })
+
   it('alternates the image’s side on a desktop, starting on the left', () => {
     render(<Block preset='alternating-rows' width={1280} count={3} />)
 
@@ -174,6 +230,21 @@ describe('CardGrid images', () => {
     render(<Block preset={preset} width={1280} count={1} />)
 
     expect(ratio(screen.getByRole('img'))).toBe(shape)
+  })
+})
+
+describe('CardGrid portraits', () => {
+  it('insets its raised panel inside the page’s padding, with rounded corners', () => {
+    render(<Block preset='portraits' width={1440} count={4} />)
+
+    const section = screen.getByRole('region')
+    const panel = section.firstElementChild!
+    expect(panel.getBoundingClientRect().left).toBeGreaterThan(
+      section.getBoundingClientRect().left
+    )
+    expect(
+      parseFloat(getComputedStyle(panel).borderTopLeftRadius)
+    ).toBeGreaterThan(0)
   })
 })
 
