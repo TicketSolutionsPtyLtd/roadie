@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 
-import { MarketingBlocksContext } from '../_shared/context'
+import { MarketingBlocksContext, useMarketingBlocks } from '../_shared/context'
 
 export type { SpotIllustrationName } from '../_shared/illustrations'
 
@@ -32,7 +32,7 @@ export type BlockActionIcon =
   | 'external'
   | 'phone'
 
-/** What a block reports: a view once half of it, or half the screen, shows it, or a click on a link or button inside it. */
+/** What a block reports: a view once half of it is on screen (or, for a block too tall for that, once it reaches the middle of the screen), or a click on a link or button inside it. */
 export type BlockEvent = {
   action: 'view' | 'click'
   /** The block's name, such as `hero`. */
@@ -65,14 +65,20 @@ export type MarketingBlocksProviderProps = {
   children?: ReactNode
 }
 
-/** Sends block events and draws block images for every block inside it. */
+/** Sends block events and draws block images for every block inside it. A provider inside another keeps whatever it doesn't set from the outer one. */
 export function MarketingBlocksProvider({
   onBlockEvent,
   renderImage,
   children
 }: MarketingBlocksProviderProps) {
+  const outer = useMarketingBlocks()
   return (
-    <MarketingBlocksContext value={{ onBlockEvent, renderImage }}>
+    <MarketingBlocksContext
+      value={{
+        onBlockEvent: onBlockEvent ?? outer.onBlockEvent,
+        renderImage: renderImage ?? outer.renderImage
+      }}
+    >
       {children}
     </MarketingBlocksContext>
   )
