@@ -71,6 +71,25 @@ describe('BlockRoot', () => {
     expect(onBlockEvent.mock.calls[0]![0]).not.toHaveProperty('href')
   })
 
+  it('falls back to the text when a control has an empty aria-label', async () => {
+    const onBlockEvent = vi.fn()
+    render(
+      <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
+        <BlockRoot block='hero' variant='media' preset='page-hero'>
+          <a href='/about' aria-label=''>
+            About us
+          </a>
+        </BlockRoot>
+      </MarketingBlocksProvider>
+    )
+
+    await userEvent.click(screen.getByText('About us'))
+
+    expect(onBlockEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ label: 'About us' })
+    )
+  })
+
   it('ignores clicks that land on nothing interactive', async () => {
     const onBlockEvent = vi.fn()
     render(
