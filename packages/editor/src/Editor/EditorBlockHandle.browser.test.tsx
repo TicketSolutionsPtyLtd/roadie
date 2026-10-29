@@ -102,6 +102,41 @@ describe('Editor block handle', () => {
     await expectHandleBeside('Headliner')
   })
 
+  it('stays beside the hovered block while typing in one above it', async () => {
+    renderLineup()
+    await userEvent.click(await paragraph('Doors'))
+    await userEvent.hover(await paragraph('Headliner'))
+    await expectHandleBeside('Headliner')
+
+    await userEvent.keyboard('x')
+
+    await expectHandleBeside('Headliner')
+  })
+
+  it('makes room for the grip inside a framed editor, before the text', async () => {
+    renderLineup()
+    const row = await paragraph('Doors')
+    await userEvent.hover(row)
+    await expectHandleBeside('Doors')
+
+    const grip = (await handle()).getBoundingClientRect()
+    const frame = row.closest('[data-slot="editor"]')!.getBoundingClientRect()
+    expect(grip.left).toBeGreaterThanOrEqual(frame.left)
+    expect(grip.right).toBeLessThanOrEqual(row.getBoundingClientRect().left)
+  })
+
+  it('takes a click below the blocks of a tall editor into the text', async () => {
+    renderLineup({ className: 'h-96' })
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const frame = textbox.closest('[data-slot="editor"]') as HTMLElement
+
+    await userEvent.click(frame, {
+      position: { x: frame.offsetWidth / 2, y: frame.offsetHeight - 8 }
+    })
+
+    expect(textbox).toHaveFocus()
+  })
+
   it.each([
     [
       'Move up',

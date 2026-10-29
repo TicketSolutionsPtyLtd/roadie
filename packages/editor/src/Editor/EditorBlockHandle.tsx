@@ -41,6 +41,8 @@ function useHandleHost(editor: TiptapEditor) {
   useEffect(() => {
     const box = document.createElement('div')
     box.dataset.slot = 'editor-block-handle-host'
+    // As a grid item it would take a share of a tall wrapper from the text.
+    box.style.display = 'contents'
     // Tiptap emits create just before it sets isInitialized.
     const mount = () => {
       editor.view.dom.parentElement?.append(box)
@@ -128,6 +130,21 @@ export function EditorBlockHandle({
       wrapper.removeEventListener('mouseleave', onLeave)
     }
   }, [editor, wrapper])
+
+  useEffect(() => {
+    const follow = ({ transaction }: { transaction: Transaction }) => {
+      if (!transaction.docChanged) return
+      setHovered((pos) => {
+        if (pos == null) return pos
+        const mapped = transaction.mapping.mapResult(pos)
+        return mapped.deleted ? null : mapped.pos
+      })
+    }
+    editor.on('transaction', follow)
+    return () => {
+      editor.off('transaction', follow)
+    }
+  }, [editor])
 
   useEffect(() => {
     openMenuRef.current = () => {
