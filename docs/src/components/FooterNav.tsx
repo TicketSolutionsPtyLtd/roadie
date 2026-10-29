@@ -46,22 +46,21 @@ export function FooterNav({ items }: FooterNavProps) {
   return (
     <div className='mt-12 flex w-full flex-row justify-between border-t border-subtle pt-12'>
       {prev && (
-        <Link href={prev.href} className='group grid gap-1 no-underline'>
+        <Link
+          href={prev.href}
+          className='is-interactive -mx-3 grid gap-1 rounded-xl emphasis-subtler p-3'
+        >
           <span className='text-sm text-subtle'>Previous page</span>
-          <span className='text-normal intent-accent group-hover:text-accent-11'>
-            &larr; {prev.title}
-          </span>
+          <span className='text-normal intent-accent'>&larr; {prev.title}</span>
         </Link>
       )}
       {next && (
         <Link
           href={next.href}
-          className='group ml-auto grid gap-1 text-right no-underline'
+          className='is-interactive -mx-3 ml-auto grid gap-1 rounded-xl emphasis-subtler p-3 text-right'
         >
           <span className='text-sm text-subtle'>Next page</span>
-          <span className='text-normal intent-accent group-hover:text-accent-11'>
-            {next.title} &rarr;
-          </span>
+          <span className='text-normal intent-accent'>{next.title} &rarr;</span>
         </Link>
       )}
     </div>

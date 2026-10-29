@@ -29,10 +29,7 @@ export function LatestRelease() {
           </p>
         ) : null}
         <h3 className='text-display-ui-4 text-strong'>
-          <Link
-            href={latest.href}
-            className='underline-offset-4 hover:underline'
-          >
+          <Link href={latest.href} className='link-subtle'>
             {title}
           </Link>
         </h3>
@@ -55,10 +52,7 @@ export function LatestRelease() {
           <ArrowRightIcon weight='bold' className='size-4' />
         </Button>
         {pending ? (
-          <Link
-            href={pending.href}
-            className='text-sm text-subtle underline-offset-4 hover:underline'
-          >
+          <Link href={pending.href} className='text-sm text-subtle link-subtle'>
             Coming next: {pending.headlines.all.title}
           </Link>
         ) : null}

@@ -65,7 +65,7 @@ function Layer({
         <Code>{code}</Code>
         <Link
           href={href}
-          className='inline-flex items-center gap-1 text-sm font-medium text-strong underline-offset-4 hover:underline'
+          className='inline-flex items-center gap-1 text-sm font-medium text-strong link-subtle'
         >
           {linkLabel}
           <ArrowRightIcon weight='bold' className='size-3' />
