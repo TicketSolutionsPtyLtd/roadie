@@ -39,6 +39,11 @@ Run `pnpm generate:exports` after adding the folder.
 
 ### Rules every block follows
 
+- **Breakpoints for the content.** Pick each container breakpoint for the block's own
+  content, never by translating the site's viewport ones: a block's container is
+  narrower than the screen by the page padding, so `md` is not `@3xl`. Text beside an
+  image goes side by side from about `@xl` (36rem); a grid adds a column for roughly
+  every 18rem of card. Test the switch in a browser test at a mid width, such as 640px.
 - **Its own width, not the screen's.** `BlockRoot` is a container, so layout uses container
   queries (`@3xl:`, `@5xl:`, `@7xl:`), never viewport breakpoints. A block in a Studio
   preview pane or a narrow column lays out as it would on a phone.
