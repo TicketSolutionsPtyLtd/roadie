@@ -8,6 +8,7 @@ import { isSafeImageSrc } from './imageSrc'
 import {
   BLOCK_ID,
   type NodeContent,
+  type NodeShape,
   type Preset,
   type PresetShape,
   isPreset,
@@ -36,8 +37,11 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function picked(attrs: unknown, names: readonly string[] = []) {
+function picked(attrs: unknown, names: NodeShape['attrs'] = []) {
   if (!isObject(attrs)) return undefined
+  if (names === 'stored') {
+    return Object.keys(attrs).length > 0 ? { ...attrs } : undefined
+  }
   const kept = names.filter((name) => Object.hasOwn(attrs, name))
   if (kept.length === 0) return undefined
   return Object.fromEntries(kept.map((name) => [name, attrs[name]]))
@@ -89,7 +93,7 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
 // An id that isn't a string, or is empty, is dropped, so the editor gives the
 // block a new one.
 function withBlockId(attrs: JSONContent['attrs'], stored: unknown) {
-  const kept = { ...attrs }
+  const kept = isObject(attrs) ? { ...attrs } : {}
   delete kept[BLOCK_ID]
   const id = isObject(stored) ? stored[BLOCK_ID] : undefined
   return typeof id === 'string' && id !== ''
@@ -301,6 +305,29 @@ function cleaned(
   return children.length > 0 ? [{ ...kept, content: children }] : []
 }
 
+export type MigrateOptions = {
+  /**
+   * An app's own blocks to keep, by node name: atoms whose stored attrs are
+   * kept as they are, with no content or marks. A name the preset already
+   * uses is ignored.
+   */
+  customBlocks?: readonly string[]
+}
+
+// An app's blocks join the preset's nodes as atoms that keep their attrs.
+function withCustomBlocks(
+  shape: PresetShape,
+  names: readonly string[]
+): PresetShape {
+  const nodes: Record<string, NodeShape> = { ...shape.nodes }
+  for (const name of names) {
+    if (!Object.hasOwn(nodes, name)) {
+      nodes[name] = { content: 'none', attrs: 'stored' }
+    }
+  }
+  return { ...shape, nodes }
+}
+
 /**
  * Brings a stored value up to `CURRENT_VERSION`, in `preset` when given or
  * the value's own preset otherwise. Throws a RangeError on a preset or
@@ -324,11 +351,13 @@ function cleaned(
  * their text;
  * keeps a cell's spans only when whole, positive and no more than HTML
  * allows (1,000 columns, 65,534 rows), gives an empty cell a paragraph, and
- * drops a row with no cells and a table with no rows.
+ * drops a row with no cells and a table with no rows. Drops an app's own
+ * block unless `customBlocks` names it.
  */
 export function migrate(
   value: StoredEditorValue,
-  preset: Preset = value?.preset as Preset
+  preset: Preset = value?.preset as Preset,
+  { customBlocks = [] }: MigrateOptions = {}
 ): EditorValue {
   if (!isObject(value)) {
     throw new RangeError('An EditorValue must be an object.')
@@ -347,7 +376,7 @@ export function migrate(
   if (!isObject(doc)) {
     throw new RangeError('An EditorValue’s doc must be an object.')
   }
-  const shape = presetShapes[preset]
+  const shape = withCustomBlocks(presetShapes[preset], customBlocks)
   const [cleanedDoc = createEmptyValue(preset).doc] = cleaned(
     { ...doc, type: 'doc' },
     shape,

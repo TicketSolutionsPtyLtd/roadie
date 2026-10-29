@@ -16,7 +16,8 @@ export type NodeContent =
 export type NodeShape = {
   inline?: true
   content: NodeContent
-  attrs?: readonly string[]
+  /** The attrs it saves, or `stored` for an app's block, which keeps its own. */
+  attrs?: readonly string[] | 'stored'
 }
 
 export type PresetShape = {

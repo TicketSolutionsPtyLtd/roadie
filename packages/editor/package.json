@@ -33,6 +33,10 @@
       "types": "./dist/Editor/index.d.ts",
       "import": "./dist/Editor/index.js"
     },
+    "./extensions": {
+      "types": "./dist/extensions/index.d.ts",
+      "import": "./dist/extensions/index.js"
+    },
     "./render": {
       "types": "./dist/render/index.d.ts",
       "import": "./dist/render/index.js"

@@ -13,6 +13,7 @@ export { type Preset, presets } from './presets'
 export {
   CURRENT_VERSION,
   type EditorValue,
+  type MigrateOptions,
   type StoredEditorValue,
   createEmptyValue,
   migrate

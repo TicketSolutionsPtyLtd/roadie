@@ -106,6 +106,12 @@ import {
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { Editor, useEditorContext } from '@oztix/roadie-editor/editor'
+import {
+  Node,
+  NodeViewWrapper,
+  mergeAttributes,
+  reactNodeView
+} from '@oztix/roadie-editor/extensions'
 import { renderEditorValue } from '@oztix/roadie-editor/render'
 import { htmlToEditorValue } from '@oztix/roadie-editor/schema'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
@@ -222,6 +228,10 @@ const scope = {
   useEditorContext,
   renderEditorValue,
   htmlToEditorValue,
+  Node,
+  NodeViewWrapper,
+  mergeAttributes,
+  reactNodeView,
   LegendKey,
   lineChartTable,
   addDays,
