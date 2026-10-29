@@ -119,7 +119,12 @@ describe('presets.email', () => {
       'five columns',
       doc(columns(...Array.from({ length: 5 }, () => column(p('x')))))
     ],
-    ['columns in a column', doc(columns(column(columns()), column(p('x'))))],
+    [
+      'columns in a column',
+      doc(
+        columns(column(columns(column(p('x')), column(p('y')))), column(p('z')))
+      )
+    ],
     ['a button in a list item', doc(list([p('x'), button(tickets)]))],
     ['an image in a list item', doc(list([p('x'), image(poster)]))],
     [
