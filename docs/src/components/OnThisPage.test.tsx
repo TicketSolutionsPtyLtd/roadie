@@ -7,8 +7,6 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { useDocHeadings } from './OnThisPage'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/charts/meter' }))
-// Landing's scroll timers would fire after jsdom closes, and these tests are about ids.
-vi.mock('./landOn', () => ({ landOn() {} }))
 
 beforeAll(() => {
   Element.prototype.scrollIntoView = () => {}
@@ -18,6 +16,7 @@ beforeAll(() => {
 afterEach(() => {
   cleanup()
   document.body.innerHTML = ''
+  window.history.replaceState(null, '', '/')
 })
 
 function mountPage() {
@@ -28,6 +27,18 @@ function mountPage() {
   document.body.append(content)
   const { result } = renderHook(() => useDocHeadings())
   return { content, result }
+}
+
+// landOn's timers would fire after jsdom closes; faking them file-wide stalls waitFor.
+function landing<T>(start: () => T) {
+  vi.useFakeTimers()
+  try {
+    const started = start()
+    act(() => vi.runAllTimers())
+    return started
+  } finally {
+    vi.useRealTimers()
+  }
 }
 
 const event = {
@@ -52,7 +63,7 @@ describe('useDocHeadings', () => {
 
   it('gives a heading its id when its link is followed', () => {
     const { content, result } = mountPage()
-    act(() => result.current.onSelect(event, 'meter-2'))
+    landing(() => act(() => result.current.onSelect(event, 'meter-2')))
     expect(content.querySelectorAll('h3')[1]?.id).toBe('meter-2')
     expect(window.location.hash).toBe('#meter-2')
   })
@@ -66,7 +77,7 @@ describe('useDocHeadings', () => {
         'stattile'
       ])
     )
-    act(() => result.current.onSelect(event, 'stattile'))
+    landing(() => act(() => result.current.onSelect(event, 'stattile')))
     expect(content.querySelector('h3')?.id).toBe('stattile')
   })
 
@@ -82,15 +93,14 @@ describe('useDocHeadings', () => {
         'stattile'
       ])
     )
-    act(() => result.current.onSelect(event, 'stattile'))
+    landing(() => act(() => result.current.onSelect(event, 'stattile')))
     expect(next.querySelector('h3')?.id).toBe('stattile')
   })
 
   it('lands a hash on a heading that has no id in the markup', () => {
     window.history.replaceState(null, '', '#meter-2')
-    const { content } = mountPage()
+    const { content } = landing(mountPage)
     expect(content.querySelectorAll('h3')[1]?.id).toBe('meter-2')
-    window.history.replaceState(null, '', '#')
   })
 
   it('leaves out headings inside a live example as it renders', async () => {

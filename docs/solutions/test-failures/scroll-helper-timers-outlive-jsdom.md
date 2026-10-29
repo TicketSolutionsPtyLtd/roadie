@@ -47,10 +47,13 @@ Don't leave a scroll helper's timers running at the end of a jsdom test.
   the assertions, `expect(vi.getTimerCount()).toBe(0)`, and
   `vi.useRealTimers()` in `afterEach`. Fake timers also fake `performance` and
   `requestAnimationFrame`, so the settle loop ends.
-- When the test doesn't care about scrolling, mock the helper
-  (`vi.mock('./landOn', () => ({ landOn() {} }))`). Don't turn on fake timers
-  file-wide where tests use `waitFor` on a hook's result: its polling interval
-  is faked and nothing else wakes it.
+- When the file also uses `waitFor` on a hook's result, fake timers only
+  around the call that starts the landing, as `OnThisPage.test.tsx`'s
+  `landing()` does. File-wide, they fake `waitFor`'s polling interval and
+  nothing else wakes it. Don't mock the helper instead, since
+  `CODING_STANDARDS.md` rules out mocking the repo's own modules.
+- Reset the URL hash in `afterEach`. A hash left by one test makes the next
+  mount land on it with real timers.
 
 Never wait for the timers with a sleep.
 
