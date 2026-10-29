@@ -27,9 +27,17 @@ runRuleCases({
     ]
   },
   'no-hex-colour-class': {
-    valid: ["<div className='bg-normal' />", "const id = '#main'"],
+    valid: [
+      "<div className='bg-normal' />",
+      "const id = '#main'",
+      "const HREF = '/faq#abc'; cn(path === HREF && 'bg-strong')",
+      "cn(path === '/faq#abc' && 'bg-strong')",
+      "cn(path === '/faq#abc' ? 'bg-strong' : 'bg-subtle')"
+    ],
     invalid: [
       "<div className='bg-[#fff]' />",
+      "cn(path === '/faq#abc' ? 'bg-[#fff]' : 'bg-subtle')",
+      "cn(path === '/faq#abc' ? 'bg-strong' : 'bg-[#fff]')",
       'cva(`text-[#1a2b3c]`, { variants: {} })'
     ]
   },
@@ -61,7 +69,8 @@ runRuleCases({
       {
         code: "<div className='[--x:1em] rounded-(--x) rounded-[3px]' />",
         errors: 2
-      }
+      },
+      "const pad = '[--r:10px]'; cn(pad); <div className={cn('rounded-(--r)', pad)} />"
     ]
   }
 })

@@ -48,6 +48,15 @@ function constClassData(sourceCode, identifier) {
   return CLASS_DATA.has(init?.type) ? init : undefined
 }
 
+// A condition picks classes without being one, as in cn(path === HREF && 'p-2').
+function conditionOf(node) {
+  if (node.type === 'ConditionalExpression') return node.test
+  if (node.type === 'LogicalExpression' && node.operator === '&&') {
+    return node.left
+  }
+  return undefined
+}
+
 function stringParts(root, sourceCode) {
   const { visitorKeys } = sourceCode
   const parts = []
@@ -61,9 +70,11 @@ function stringParts(root, sourceCode) {
     } else if (node.type === 'TemplateElement') {
       parts.push({ node, text: node.value.cooked ?? node.value.raw })
     }
+    const condition = conditionOf(node)
     for (const key of visitorKeys[node.type] ?? []) {
-      const child = node[key]
-      for (const each of [child].flat()) visit(each, followed)
+      for (const child of [node[key]].flat()) {
+        if (child !== condition) visit(child, followed)
+      }
     }
   }
   visit(root, false)
@@ -72,17 +83,20 @@ function stringParts(root, sourceCode) {
 
 function classStrings(context, checkParts) {
   // className={cn('…')} reaches each string through both visitors, and a
-  // constant through every use.
-  const checked = new WeakSet()
+  // constant through every use, so each problem is reported once. Every use
+  // is still read, since a later one can give a string its meaning.
+  const reported = new WeakMap()
+  const firstReport = (node, id) => {
+    const ids = reported.get(node) ?? new Set()
+    reported.set(node, ids)
+    if (ids.has(id)) return false
+    ids.add(id)
+    return true
+  }
   const check = (roots) =>
     checkParts(
-      roots
-        .flatMap((root) => stringParts(root, context.sourceCode))
-        .filter(({ node }) => {
-          if (checked.has(node)) return false
-          checked.add(node)
-          return true
-        })
+      roots.flatMap((root) => stringParts(root, context.sourceCode)),
+      firstReport
     )
   return {
     JSXAttribute(node) {
@@ -95,10 +109,10 @@ function classStrings(context, checkParts) {
 }
 
 const classPattern = (context, pattern, message) =>
-  classStrings(context, (parts) => {
+  classStrings(context, (parts, firstReport) => {
     for (const { node, text } of parts) {
-      for (const token of text.split(/\s+/)) {
-        if (pattern.test(token)) {
+      for (const [i, token] of text.split(/\s+/).entries()) {
+        if (pattern.test(token) && firstReport(node, i)) {
           context.report({ node, message, data: { token } })
         }
       }
@@ -154,7 +168,7 @@ const canonicalClass = {
     schema: []
   },
   create: (context) =>
-    classStrings(context, (parts) => {
+    classStrings(context, (parts, firstReport) => {
       const found = parts.flatMap((part) =>
         wholeTokens(part).map((match) => ({ part, match }))
       )
@@ -167,6 +181,7 @@ const canonicalClass = {
         const token = match[0]
         if (!canonical[i] || canonical[i] === token) return
         if (negatesATier(token, canonical[i])) return
+        if (!firstReport(node, match.index)) return
         // An escape makes the source differ from the text, so there's no fix.
         const offset = context.sourceCode.getText(node).indexOf(text)
         const start = node.range[0] + offset + match.index
@@ -221,14 +236,14 @@ export const classRules = {
         ARBITRARY_RADIUS,
         `Replace {{token}} with a named radius tier. See ${SHAPE}.`
       )
-      const variables = classStrings(context, (parts) => {
+      const variables = classStrings(context, (parts, firstReport) => {
         const tokens = parts.flatMap(({ node, text }) =>
-          text.split(/\s+/).map((token) => ({ node, token }))
+          text.split(/\s+/).map((token, i) => ({ node, token, i }))
         )
         const read = radiusVariables(tokens.map(({ token }) => token))
-        for (const { node, token } of tokens) {
+        for (const { node, token, i } of tokens) {
           const [, name, value] = VARIABLE_ASSIGNMENT.exec(token) ?? []
-          if (read.has(name) && hasRawLength(value)) {
+          if (read.has(name) && hasRawLength(value) && firstReport(node, i)) {
             reportRawRadius(node, name, value)
           }
         }
