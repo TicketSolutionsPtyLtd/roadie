@@ -663,6 +663,8 @@ const { html, text } = await renderEmail(template, {
 ```
 
 It runs on the server only, since MJML, the renderer behind it, needs Node.
+[Why Roadie renders email with MJML](https://oztix.atlassian.net/wiki/spaces/ID/pages/1211957251)
+is in the Decision log.
 A Next.js app keeps MJML out of its server bundle, and adds `mjml` to its own
 dependencies too, so Next can resolve it from the app:
 
