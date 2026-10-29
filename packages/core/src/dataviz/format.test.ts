@@ -59,6 +59,7 @@ describe('formatValue', () => {
 
   it('keeps decimal places between none and four', () => {
     expect(formatValue(1.23456789, 'number', { decimals: 9 })).toBe('1.2346')
+    expect(formatValue(1.23456789, 'currency', { decimals: 9 })).toBe('$1.2346')
     expect(formatValue(1.5, 'number', { decimals: -1 })).toBe('2')
     expect(formatValue(1.25, 'number', { decimals: 1.6 })).toBe('1.25')
   })
