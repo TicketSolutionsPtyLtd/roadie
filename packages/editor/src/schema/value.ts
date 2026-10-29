@@ -2,6 +2,13 @@ import type { JSONContent } from '@tiptap/core'
 
 import { isUnsafeHref } from '@oztix/roadie-core/utils'
 
+import {
+  COLUMN_COUNTS,
+  imageWidth,
+  isEmailHref,
+  isEmailImageSrc,
+  spacerHeight
+} from './emailAttrs'
 import { embedAttrs } from './embedAttrs'
 import { headingLevel } from './headings'
 import { isSafeImageSrc } from './imageSrc'
@@ -77,8 +84,13 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
   if (type === 'heading') return { ...attrs, level: headingLevel(attrs?.level) }
   if (type === 'image') {
     const alt: unknown = attrs?.alt
-    return { ...attrs, alt: typeof alt === 'string' ? alt : '' }
+    return {
+      ...attrs,
+      alt: typeof alt === 'string' ? alt : '',
+      width: imageWidth(attrs?.width)
+    }
   }
+  if (type === 'spacer') return { height: spacerHeight(attrs?.height) }
   if (type === 'embed') return embedAttrs(attrs) ?? undefined
   if (type === 'orderedList') {
     const { start, type: listType } = attrs ?? {}
@@ -122,11 +134,15 @@ function withoutRepeatedIds(
   return kept
 }
 
-function isSafeNode(node: unknown): node is JSONContent {
+function isSafeNode(node: unknown, shape: PresetShape): node is JSONContent {
   if (!isObject(node)) return false
   const { type, attrs, text } = node as JSONContent
   if (type === 'text') return typeof text === 'string' && text !== ''
-  if (type === 'image') return isSafeImageSrc(attrs?.src)
+  if (type === 'image') {
+    return shape.httpsImages
+      ? isEmailImageSrc(attrs?.src)
+      : isSafeImageSrc(attrs?.src)
+  }
   if (type === 'embed') return embedAttrs(attrs) !== null
   return true
 }
@@ -181,6 +197,24 @@ function paragraphsAround(nodes: JSONContent[], shape: PresetShape) {
   )
 }
 
+function buttonText({ content }: JSONContent): JSONContent[] {
+  return content?.length ? [{ type: 'paragraph', content }] : []
+}
+
+// A block the node can't hold gives way to its children, and a button to its
+// text in a paragraph.
+function heldWithin(
+  node: JSONContent,
+  holds: readonly string[],
+  shape: PresetShape
+): JSONContent[] {
+  if (isInline(node, shape) || holds.includes(node.type ?? '')) return [node]
+  if (node.type === 'button') return buttonText(node)
+  return (node.content ?? []).flatMap((child) =>
+    heldWithin(child, holds, shape)
+  )
+}
+
 function paragraphFirst(blocks: JSONContent[]) {
   return blocks[0]?.type === 'paragraph'
     ? blocks
@@ -224,10 +258,25 @@ function cellsOf(node: JSONContent, shape: PresetShape): JSONContent[] {
 function fitted(
   nodes: JSONContent[],
   content: NodeContent,
-  shape: PresetShape
+  shape: PresetShape,
+  holds?: readonly string[]
 ) {
   if (content === 'inline') {
     return nodes.flatMap((node) => inlineWithin(node, shape))
+  }
+  if (content === 'columns') {
+    return wrapRuns(
+      nodes,
+      ({ type }) => type !== 'column',
+      (run) => ({ type: 'column', content: run })
+    ).flatMap((column) => cleaned(column, shape))
+  }
+  if (holds) {
+    const held = paragraphsAround(
+      nodes.flatMap((node) => heldWithin(node, holds, shape)),
+      shape
+    )
+    return content === 'paragraphFirst' ? paragraphFirst(held) : held
   }
   const blocks = paragraphsAround(nodes, shape)
   if (content === 'listItems') {
@@ -261,7 +310,9 @@ function fitted(
 
 function childrenOf(content: unknown, shape: PresetShape) {
   if (!Array.isArray(content)) return []
-  return content.filter(isSafeNode).flatMap((child) => cleaned(child, shape))
+  return content
+    .filter((child) => isSafeNode(child, shape))
+    .flatMap((child) => cleaned(child, shape))
 }
 
 // JSON skips the schema's parseHTML checks, so stored values are checked here.
@@ -274,8 +325,9 @@ function cleaned(
   shape: PresetShape,
   nodeShape = shapeOf(node, shape)
 ): JSONContent[] {
-  if (!nodeShape)
+  if (!nodeShape) {
     return paragraphsAround(childrenOf(node.content, shape), shape)
+  }
   const { type, text, marks, content, attrs: stored } = node
   const attrs = picked(
     withBlockId(cleanedAttrs({ type, attrs: stored }), stored),
@@ -292,16 +344,33 @@ function cleaned(
   }
   if (nodeShape.content === 'none') return [kept]
   if (nodeShape.content === 'inline') {
-    return [
-      Array.isArray(content)
-        ? {
-            ...kept,
-            content: fitted(childrenOf(content, shape), 'inline', shape)
-          }
-        : kept
-    ]
+    const inline = fitted(childrenOf(content, shape), 'inline', shape)
+    const held = nodeShape.plainText
+      ? inline.flatMap(({ type, text: value }) =>
+          type === 'text' ? [{ type, text: value }] : []
+        )
+      : inline
+    if (type === 'button' && !isEmailHref(stored?.href)) {
+      return buttonText({ content: held })
+    }
+    return [Array.isArray(content) ? { ...kept, content: held } : kept]
   }
-  const children = fitted(childrenOf(content, shape), nodeShape.content, shape)
+  const children = fitted(
+    childrenOf(content, shape),
+    nodeShape.content,
+    shape,
+    nodeShape.holds
+  )
+  if (type === 'column' && children.length === 0) {
+    return [{ ...kept, content: [{ type: 'paragraph' }] }]
+  }
+  // Columns outside the counts the schema holds stack as their blocks.
+  if (
+    nodeShape.content === 'columns' &&
+    !(COLUMN_COUNTS as readonly number[]).includes(children.length)
+  ) {
+    return children.flatMap((column) => column.content ?? [])
+  }
   return children.length > 0 ? [{ ...kept, content: children }] : []
 }
 
@@ -353,6 +422,15 @@ function withCustomBlocks(
  * allows (1,000 columns, 65,534 rows), gives an empty cell a paragraph, and
  * drops a row with no cells and a table with no rows. Drops an app's own
  * block unless `customBlocks` names it.
+ *
+ * In the email preset, a layout block where it can't sit, such as a column
+ * outside columns or a section in a section, gives way to its blocks, and
+ * columns outside two to four stack as their blocks. Keeps a button only with
+ * an https, http, mailto or tel href, and only its unmarked text, which
+ * becomes a paragraph otherwise, or where a button can't sit. Keeps only
+ * https images, a width from 1 to 600 (none fills the column), and a
+ * spacer's height rounded into 8 to 160 pixels. Gives an empty column a
+ * paragraph.
  */
 export function migrate(
   value: StoredEditorValue,

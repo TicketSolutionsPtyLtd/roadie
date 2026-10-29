@@ -244,7 +244,14 @@ const richControls: readonly EditorToolbarItem[] = [
 export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
   basic: [...basicControls, SEPARATOR, ...history],
   rich: richControls,
-  blocks: richControls
+  blocks: richControls,
+  email: [
+    { ...blockType, types: [paragraph, ...headings] },
+    SEPARATOR,
+    ...basicControls,
+    SEPARATOR,
+    ...history
+  ]
 }
 
 const inlineControls = [bold, italic, underline, link] as const
