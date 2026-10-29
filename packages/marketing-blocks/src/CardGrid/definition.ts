@@ -1,6 +1,6 @@
 import type { BlockDefinition } from '../catalogue'
 
-export const cardGrid = {
+export const cardGridDefinition = {
   name: 'card-grid',
   title: 'Card grid',
   description:

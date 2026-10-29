@@ -23,7 +23,7 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
-import { cardGrid } from './definition'
+import { cardGridDefinition } from './definition'
 
 const ILLUSTRATIONS = {
   ArrowUpRight,
@@ -340,14 +340,14 @@ export function CardGrid({
   description,
   items
 }: CardGridProps) {
-  const { name, variant } = presetOf(cardGrid, preset)
+  const { name, variant } = presetOf(cardGridDefinition, preset)
   const { Card, list, align, raised } = LOOKS[name as Preset]
   const headingId = useId()
   const markedEyebrow = name === 'industries' && eyebrow
 
   return (
     <BlockRoot
-      block={cardGrid.name}
+      block={cardGridDefinition.name}
       variant={variant}
       preset={name}
       position={position}
