@@ -218,21 +218,24 @@ const basicControls = [
 
 const history = [undo, redo] as const
 
+const richControls: readonly EditorToolbarItem[] = [
+  blockType,
+  SEPARATOR,
+  ...basicControls,
+  SEPARATOR,
+  divider,
+  image,
+  embed,
+  table,
+  SEPARATOR,
+  ...history
+]
+
 // Each preset lists only controls for extensions it holds.
 export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
   basic: [...basicControls, SEPARATOR, ...history],
-  rich: [
-    blockType,
-    SEPARATOR,
-    ...basicControls,
-    SEPARATOR,
-    divider,
-    image,
-    embed,
-    table,
-    SEPARATOR,
-    ...history
-  ]
+  rich: richControls,
+  blocks: richControls
 }
 
 const altText: EditorControl = {
