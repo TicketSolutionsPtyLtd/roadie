@@ -9,6 +9,7 @@ const BLUR_IMAGE = '[data-slot=image-blur] img'
  */
 export function getImageFadeScript(): string {
   // `load` doesn't bubble, so the listener captures it. The document is marked
-  // last, so a script that throws never leaves images hidden.
+  // last, so a script that throws leaves images shown without the fade, which
+  // is the intended fallback; the catch keeps that quiet on every page view.
   return `try{var d=document,s='${BLUR_IMAGE}',m=function(i){i.setAttribute('data-loaded','')};d.addEventListener('load',function(e){var t=e.target;t.matches&&t.matches(s)&&m(t)},true);[].forEach.call(d.querySelectorAll(s),function(i){i.complete&&i.currentSrc&&m(i)});d.documentElement.setAttribute('data-image-fade','')}catch(x){}`
 }
