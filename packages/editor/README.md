@@ -138,6 +138,21 @@ wide one scrolls on a phone rather than widening the page, with a first row
 of header cells in a `thead`, unless one spans down, as a `thead` would clip
 it.
 
+## Sending a stored value as email
+
+```ts
+import { renderEmail } from '@oztix/roadie-editor/email'
+
+const { html, text } = await renderEmail(value, { theme })
+```
+
+It reads the value into the email preset, builds MJML's JSON tree from it in
+`src/email/mjmlTree.ts`, and renders that with MJML on the server, then
+writes the plain text from the HTML. Text goes into the tree already escaped,
+since MJML writes its content and attributes as given. MJML stays behind
+`renderEmail`: nothing exported names it, so the renderer can change without
+a migration.
+
 ## Changing the format
 
 Node names, mark names and their attributes are public API: products store
@@ -147,7 +162,7 @@ them. Any change to them, in any preset:
 2. adds a step to `migrate` that turns the previous version into the new one.
 
 A new node or mark also needs its entry in `src/render/elements.ts`, or the
-renderers drop it.
+renderers drop it, and an email node its entry in `src/email/mjmlTree.ts`.
 
 A value is never rewritten in place without a version bump.
 
