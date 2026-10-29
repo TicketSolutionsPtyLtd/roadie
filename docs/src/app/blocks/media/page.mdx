@@ -1,0 +1,73 @@
+export const metadata = {
+  title: 'Media',
+  description: 'Shows the people and events behind a page in photos',
+  status: 'alpha',
+  category: 'Proof',
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Shows the people and events behind a page in photos.
+
+## Import
+
+```tsx
+import { Media } from '@oztix/roadie-marketing-blocks/media'
+```
+
+## Examples
+
+### Gallery
+
+A heading over portrait photos that scroll past in a marquee. The photos hold still for anyone who prefers reduced motion.
+
+```tsx-live -expand
+<Media
+  preset='gallery'
+  title='Join thousands of partners who trust Oztix'
+  description='From festivals to local venues, we help event organisers sell more tickets.'
+  images={[
+    { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it' },
+    { src: '/brand/photography/09.webp', alt: 'Four musicians posing together in front of an Oztix backdrop' },
+    { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun' },
+    { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd' },
+    { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event' },
+    { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above' },
+    { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting' }
+  ]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Show people and events'>
+  <Guideline.Do>
+    Use photos of crowds, artists, and partners at their events, which crop well to a tall portrait tile.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don’t put logos in the gallery. Logos are a still list in the Logos block.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Title the gallery with what the photos prove, such as who already trusts Oztix.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Describe every photo'>
+  <Guideline.Do>
+    Write alt text that says what’s in the photo, since the block names each one once to screen readers.
+  </Guideline.Do>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Reports a view once half the gallery is on screen. It has no links, so it reports no clicks.
+
+<PropsDefinitions component='Media' />

@@ -1,0 +1,77 @@
+export const metadata = {
+  title: 'FAQ',
+  description: 'Answers the questions people ask before they buy or sign up',
+  status: 'alpha',
+  category: 'Content',
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Answers the questions people ask before they buy or sign up.
+
+## Import
+
+```tsx
+import { Faq } from '@oztix/roadie-marketing-blocks/faq'
+```
+
+## Examples
+
+### FAQ
+
+A heading over questions that open to their answers, one at a time. Answers are rich text, set in `Prose`.
+
+```tsx-live -expand
+<Faq
+  preset='faq'
+  title='Questions, answered'
+  items={[
+    {
+      question: 'Does it cost anything?',
+      answer: <p>No. There’s no fee to list your events on Spotify, and your settlement is unchanged.</p>
+    },
+    {
+      question: 'Do I need to do anything?',
+      answer: <p>Make sure the artist’s name is in your event title and the core details are filled in. The event shows up within about 24 hours.</p>
+    },
+    {
+      question: 'Who can I talk to?',
+      answer: <p>Email <a href='mailto:admin@oztix.com.au'>admin@oztix.com.au</a> or call 1300 469 849.</p>
+    }
+  ]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Open each answer with the direct answer, such as “No” or “Within 24 hours”, then the detail.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don’t open an answer by restating the question.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Ask questions the way people do'>
+  <Guideline.Do>
+    Write each question in the words a buyer or organiser would type into a search.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Keep structured data in the site'>
+  <Guideline.Do>
+    Generate the page’s FAQ structured data from the same items. The block renders none.
+  </Guideline.Do>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Reports a view once half the block is on screen, and a click for each link in an answer with its label and href. Opening a question isn’t a click.
+
+<PropsDefinitions component='Faq' />

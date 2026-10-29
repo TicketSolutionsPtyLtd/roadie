@@ -76,8 +76,14 @@ export function Marquee({
 
   const gapPx = `${gap}px`
 
+  // Only the first copy is read out; the rest are there to fill the width.
   const repeatedChildren = Array.from({ length: repeats }, (_, i) => (
-    <div key={i} className='flex shrink-0 items-center' style={{ gap: gapPx }}>
+    <div
+      key={i}
+      className='flex shrink-0 items-center'
+      style={{ gap: gapPx }}
+      aria-hidden={i > 0 || undefined}
+    >
       {children}
     </div>
   ))

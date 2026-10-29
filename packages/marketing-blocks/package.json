@@ -30,6 +30,18 @@
       "style": "./src/css/marketing-blocks.css",
       "default": "./src/css/marketing-blocks.css"
     },
+    "./cta-band": {
+      "types": "./dist/CtaBand/index.d.ts",
+      "import": "./dist/CtaBand/index.js"
+    },
+    "./faq": {
+      "types": "./dist/Faq/index.d.ts",
+      "import": "./dist/Faq/index.js"
+    },
+    "./media": {
+      "types": "./dist/Media/index.d.ts",
+      "import": "./dist/Media/index.js"
+    },
     "./provider": {
       "types": "./dist/Provider/index.d.ts",
       "import": "./dist/Provider/index.js"
