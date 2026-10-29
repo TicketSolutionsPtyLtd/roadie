@@ -28,6 +28,9 @@ export async function renderEmail(
   { theme }: RenderEmailOptions = {}
 ): Promise<RenderedEmail> {
   if (content?.kind === 'html') {
+    if (typeof content.html !== 'string') {
+      throw new TypeError('An HTML email needs its html as a string.')
+    }
     return { html: content.html, text: plainText(content.html) }
   }
   if (content?.kind !== 'design') {

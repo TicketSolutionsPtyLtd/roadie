@@ -386,4 +386,11 @@ describe('renderEmail with HTML', () => {
       renderEmail({ kind: 'mjml', html: pasted })
     ).rejects.toThrow(TypeError)
   })
+
+  it('refuses HTML content without its HTML', async () => {
+    await expect(
+      // @ts-expect-error Content read back from storage can be missing a field.
+      renderEmail({ kind: 'html' })
+    ).rejects.toThrow(TypeError)
+  })
 })
