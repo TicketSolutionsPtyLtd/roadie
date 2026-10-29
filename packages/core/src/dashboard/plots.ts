@@ -10,7 +10,7 @@ const safeUrl = z
   .string()
   .min(1)
   .refine((url) => !isUnsafeImageSrc(url), {
-    message: 'Use an http(s) or relative image URL'
+    message: 'Use an http(s), relative or blob: image URL'
   })
 const plotImage = { src: safeUrl, srcDark: safeUrl.optional() }
 
