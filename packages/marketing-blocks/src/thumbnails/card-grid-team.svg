@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" width="240" height="160" fill="none">
+  <rect x="0" y="0" width="240" height="160" rx="8" style="fill: var(--color-neutral-1, #f5f8fb)" />
+  <rect x="8" y="8" width="224" height="144" rx="6" style="fill: var(--color-neutral-3, #e8eef4)" />
+  <rect x="20" y="22" width="80" height="8" rx="2" style="fill: var(--color-neutral-11, #3b4b5b)" />
+  <rect x="20" y="35" width="120" height="4" rx="2" style="fill: var(--color-neutral-7, #a9b8c7)" />
+  <rect x="20" y="56" width="44" height="44" rx="4" style="fill: var(--color-neutral-5, #d7e2ed)" />
+  <rect x="24" y="86" width="26" height="5" rx="1" style="fill: var(--color-neutral-11, #3b4b5b)" />
+  <rect x="24" y="93" width="20" height="4" rx="1" style="fill: var(--color-neutral-1, #f5f8fb)" />
+  <rect x="72" y="56" width="44" height="44" rx="4" style="fill: var(--color-neutral-5, #d7e2ed)" />
+  <rect x="76" y="86" width="26" height="5" rx="1" style="fill: var(--color-neutral-11, #3b4b5b)" />
+  <rect x="76" y="93" width="20" height="4" rx="1" style="fill: var(--color-neutral-1, #f5f8fb)" />
+  <rect x="124" y="56" width="44" height="44" rx="4" style="fill: var(--color-neutral-5, #d7e2ed)" />
+  <rect x="128" y="86" width="26" height="5" rx="1" style="fill: var(--color-neutral-11, #3b4b5b)" />
+  <rect x="128" y="93" width="20" height="4" rx="1" style="fill: var(--color-neutral-1, #f5f8fb)" />
+  <rect x="176" y="56" width="44" height="44" rx="4" style="fill: var(--color-neutral-5, #d7e2ed)" />
+  <rect x="180" y="86" width="26" height="5" rx="1" style="fill: var(--color-neutral-11, #3b4b5b)" />
+  <rect x="180" y="93" width="20" height="4" rx="1" style="fill: var(--color-neutral-1, #f5f8fb)" />
+  <rect x="20" y="106" width="44" height="38" rx="4" style="fill: var(--color-neutral-5, #d7e2ed)" />
+  <rect x="72" y="106" width="44" height="38" rx="4" style="fill: var(--color-neutral-5, #d7e2ed)" />
+  <rect x="124" y="106" width="44" height="38" rx="4" style="fill: var(--color-neutral-5, #d7e2ed)" />
+  <rect x="176" y="106" width="44" height="38" rx="4" style="fill: var(--color-neutral-5, #d7e2ed)" />
+</svg>

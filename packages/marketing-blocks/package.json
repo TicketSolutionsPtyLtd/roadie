@@ -30,6 +30,10 @@
       "style": "./src/css/marketing-blocks.css",
       "default": "./src/css/marketing-blocks.css"
     },
+    "./card-grid": {
+      "types": "./dist/CardGrid/index.d.ts",
+      "import": "./dist/CardGrid/index.js"
+    },
     "./provider": {
       "types": "./dist/Provider/index.d.ts",
       "import": "./dist/Provider/index.js"

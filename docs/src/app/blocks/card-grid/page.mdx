@@ -1,0 +1,225 @@
+export const metadata = {
+  title: 'Card grid',
+  description: 'Like items, such as benefits, services, values, or people, as cards in columns or alternating rows',
+  status: 'alpha',
+  category: 'Content',
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Like items, such as benefits, services, values, or people, as cards in columns or alternating rows.
+
+## Import
+
+```tsx
+import { CardGrid } from '@oztix/roadie-marketing-blocks/card-grid'
+```
+
+## Examples
+
+Each preset takes the same `items`, and shows the parts of an item its look uses. Columns follow the block's own width, so a card grid in a narrow layout stacks as it would on a phone.
+
+### Features
+
+```tsx-live-expand id=features
+<CardGrid
+  preset='features'
+  title='Great events need great partners'
+  titleHighlight='partners'
+  description='Not just great ticketing software.'
+  items={[
+    {
+      title: 'You sell more tickets',
+      description: "Reach Australia's largest event database, with marketing that drives attendance.",
+      illustration: 'Ticket',
+      image: { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above' }
+    },
+    {
+      title: 'Your events run smoothly',
+      description: 'Specialists and reliable systems back every decision, from setup to event day.',
+      illustration: 'Heart',
+      image: { src: '/brand/photography/04.webp', alt: 'A staff member in a blue vest scanning a ticket on a phone at an event entry' }
+    },
+    {
+      title: 'You grow year after year',
+      description: 'Partners who know your industry help you build lasting events, not one-off sales.',
+      illustration: 'ArrowUpRight',
+      image: { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it' }
+    }
+  ]}
+/>
+```
+
+### Services
+
+```tsx-live-expand id=services
+<CardGrid
+  preset='services'
+  title='Our partnership services'
+  description="We're an end-to-end ticketing company, offering more than a platform."
+  items={[
+    {
+      title: 'Expert people',
+      subtitle: 'on your team',
+      description: 'Industry specialists who become an extension of your team.',
+      illustration: 'Heart',
+      image: { src: '/brand/photography/03.webp', alt: 'Two team members working together at a desk with large monitors' }
+    },
+    {
+      title: 'Service excellence',
+      subtitle: '7 days a week',
+      description: 'Operational support nationwide, 7 days a week.',
+      illustration: 'Hand',
+      image: { src: '/brand/photography/04.webp', alt: 'A staff member in a blue vest scanning a ticket on a phone at an event entry' }
+    },
+    {
+      title: 'Marketing reach',
+      subtitle: 'driving ticket sales',
+      description: 'A database that reaches a quarter of the country.',
+      illustration: 'ArrowUpRight',
+      image: { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above' }
+    },
+    {
+      title: 'Trusted platform',
+      subtitle: 'proven to perform',
+      description: 'A secure platform, hosted in Australia.',
+      illustration: 'Cursor',
+      image: { src: '/brand/photography/06.webp', alt: 'A panel of four speakers on stage at an industry talk' }
+    }
+  ]}
+/>
+```
+
+### Industries
+
+```tsx-live-expand id=industries
+<CardGrid
+  preset='industries'
+  eyebrow='How does Oztix partner?'
+  title='We understand your industry'
+  description='And what makes venues and events succeed.'
+  items={[
+    {
+      title: 'Live music',
+      subtitle: 'Festivals, tours, and concerts.',
+      description: 'We sell millions of live music tickets each year.',
+      illustration: 'NoteMusic',
+      image: { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it' }
+    },
+    {
+      title: 'Venues',
+      subtitle: 'Hospitality, performance, and outdoors.',
+      description: 'From intimate rooms to major outdoor complexes.',
+      illustration: 'MapPin',
+      image: { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun' }
+    },
+    {
+      title: 'Sports',
+      subtitle: 'Competition, motorsports, and racing.',
+      description: 'From grassroots clubs to elite codes.',
+      illustration: 'Football',
+      image: { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd' }
+    }
+  ]}
+/>
+```
+
+### Values
+
+```tsx-live-expand id=values
+<CardGrid
+  preset='values'
+  title='Our values'
+  description='Five principles shape how we partner with you.'
+  items={[
+    {
+      title: 'Proactive touch',
+      subtitle: 'See it coming, solve it early',
+      description: 'We spot issues before they become problems, and opportunities before you need to ask.',
+      image: { src: '/brand/photography/03.webp', alt: 'Two team members working together at a desk with large monitors' }
+    },
+    {
+      title: 'Positive energy',
+      subtitle: 'Lift spirits, spark connections',
+      description: 'We love what we do, and that flows through to your team and your customers.',
+      image: { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event' }
+    },
+    {
+      title: 'Integrity and ownership',
+      subtitle: 'Own decisions, build trust',
+      description: "We do what we say we'll do, and own it when something doesn't work.",
+      image: { src: '/brand/photography/11.webp', alt: 'Three people sitting together on a couch in a bar lined with gig posters' }
+    }
+  ]}
+/>
+```
+
+### Team
+
+```tsx-live-expand id=team
+<CardGrid
+  preset='team'
+  title='Leadership you can count on'
+  items={[
+    { title: 'Mia Tran', subtitle: 'Head of Partnerships', image: { src: '/brand/photography/05.webp', alt: 'Mia Tran' } },
+    { title: 'Sam Okafor', subtitle: 'Operations Manager', image: { src: '/brand/photography/09.webp', alt: 'Sam Okafor' } },
+    { title: 'Priya Shah', subtitle: 'Head of Data', image: { src: '/brand/photography/03.webp', alt: 'Priya Shah' } },
+    { title: 'Leo Park', subtitle: 'Marketing Manager', image: { src: '/brand/photography/11.webp', alt: 'Leo Park' } }
+  ]}
+/>
+```
+
+### Lists
+
+```tsx-live-expand id=lists
+<CardGrid
+  preset='lists'
+  title='Social and corporate governance'
+  description="We're committed to positive impact beyond ticketing."
+  items={[
+    { title: 'People and community', points: ['Diversity', 'Indigenous support', 'Inclusive hiring'] },
+    { title: 'Environment', points: ['An environmental management policy'] },
+    { title: 'Security and compliance', points: ['ISO 9001:2015 certified', 'PCI DSS Level 2 compliant', '99.99% uptime'] }
+  ]}
+/>
+```
+
+## Guidelines
+
+| Preset       | Suits                                                                                  |
+| ------------ | -------------------------------------------------------------------------------------- |
+| `features`   | Three benefits of one offer, each with a photo and an illustration                     |
+| `services`   | Up to four services or pillars, each with a short subtitle                             |
+| `industries` | Who a page is for, in multiples of three, each with a photo and a line of examples     |
+| `values`     | A few statements that need a sentence or two each, such as values or principles        |
+| `team`       | People, by name and role, with a square photo each                                     |
+| `lists`      | Two to four short lists that need no images, such as policies or certifications        |
+
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Title each card with the answer, such as "You sell more tickets", and let the description back it up.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't title a card with a teaser, such as "Why it matters", that makes readers open the description.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep the cards alike'>
+  <Guideline.Do>
+    Give every item the same parts, at about the same length, so the cards line up.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't mix a card with an image and a card without one in a preset that shows images.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Card grid reports a `view` once half of it is on screen. Its cards hold no links, so it reports no clicks.
+
+<PropsDefinitions component='CardGrid' />
