@@ -433,7 +433,8 @@ describe('presetShapes', () => {
                 ? 'inline'
                 : (contentKinds[type.spec.content ?? ''] ?? 'blocks'),
             ...(attrsOf(type.spec).length > 0 && { attrs: attrsOf(type.spec) }),
-            ...(type.spec.marks === '' && { plainText: true })
+            ...(type.spec.marks === '' &&
+              type.spec.content === 'text*' && { plainText: true })
           }
         ])
       )

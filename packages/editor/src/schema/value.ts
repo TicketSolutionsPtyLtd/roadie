@@ -160,12 +160,12 @@ function paragraphsAround(nodes: JSONContent[], shape: PresetShape) {
   )
 }
 
-// A block the node can't hold gives way to its children, and a button to its
-// text in a paragraph.
 function buttonText({ content }: JSONContent): JSONContent[] {
   return content?.length ? [{ type: 'paragraph', content }] : []
 }
 
+// A block the node can't hold gives way to its children, and a button to its
+// text in a paragraph.
 function heldWithin(
   node: JSONContent,
   holds: readonly string[],
@@ -361,9 +361,10 @@ function cleaned(
  * outside columns or a section in a section, gives way to its blocks, and
  * columns outside two to four stack as their blocks. Keeps a button only with
  * an https, http, mailto or tel href, and only its unmarked text, which
- * becomes a paragraph otherwise, or where a button can't sit. Keeps only https images, a width
- * from 1 to 600 (none fills the column), and a spacer's height rounded into 8
- * to 160 pixels. Gives an empty column a paragraph.
+ * becomes a paragraph otherwise, or where a button can't sit. Keeps only
+ * https images, a width from 1 to 600 (none fills the column), and a
+ * spacer's height rounded into 8 to 160 pixels. Gives an empty column a
+ * paragraph.
  */
 export function migrate(
   value: StoredEditorValue,
