@@ -110,6 +110,8 @@ async function expectGripBeside(block: Element) {
     expect(centre).toBeGreaterThan(top)
     expect(centre).toBeLessThan(bottom)
     expect(handle.right).toBeLessThanOrEqual(left)
+    // Not an outer block's grip, which sits further out.
+    expect(handle.right).toBeGreaterThan(left - 8)
   })
 }
 
@@ -175,6 +177,20 @@ describe('Editor email block handle', () => {
     await userEvent.hover(handle)
 
     await expectGripBeside(await line('Right one'))
+  })
+
+  it('keeps a nested block’s grip while the pointer crosses its column’s padding', async () => {
+    renderNewsletter()
+    const block = await hoverBlock('Right one')
+    const column = block.closest('[data-type="column"]')!
+    const offset =
+      block.getBoundingClientRect().top - column.getBoundingClientRect().top
+
+    await userEvent.hover(column, {
+      position: { x: 4, y: offset + block.offsetHeight / 2 }
+    })
+
+    await expectGripBeside(block)
   })
 
   it('shows a section’s grip beside the whole section', async () => {
@@ -425,6 +441,25 @@ describe('Editor email block handle', () => {
       },
       { section: ['Bravo one'] },
       'Closing'
+    )
+  })
+
+  it('moves a block into an empty column in place of its empty line', async () => {
+    const onValueChange = renderNewsletter(
+      newsletter(section(columns([p('Left one'), p('Left two')], [p()])))
+    )
+
+    await openMenuOn('Left two')
+    await chooseMove('Move down')
+
+    await expectOutline(
+      onValueChange,
+      {
+        section: [
+          { columns: [{ column: ['Left one'] }, { column: ['Left two'] }] }
+        ]
+      },
+      ''
     )
   })
 
