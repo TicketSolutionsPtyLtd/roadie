@@ -1,16 +1,13 @@
 import { convert } from 'html-to-text'
 import mjml2html from 'mjml'
 
-import {
-  type EditorValue,
-  type StoredEditorValue,
-  migrate
-} from '../schema/value'
+import type { StoredEmailContent } from '../schema/emailContent'
+import { migrate } from '../schema/value'
 import { mjmlTree } from './mjmlTree'
 import { type EmailTheme, emailTheme } from './theme'
 
 export type RenderEmailOptions = {
-  /** An app's brand kit, over `defaultEmailTheme`. */
+  /** An app's brand kit, over `defaultEmailTheme`. HTML ignores it. */
   theme?: Partial<EmailTheme>
 }
 
@@ -22,14 +19,23 @@ export type RenderedEmail = {
 }
 
 /**
- * Renders a saved value as an email, reading it into the email preset first.
- * Runs on the server only: MJML needs Node.
+ * Renders a saved email. A design is read into the email preset first; HTML
+ * is sent as written, with a plain-text part. Runs on the server only: MJML
+ * needs Node.
  */
 export async function renderEmail(
-  value: StoredEditorValue | EditorValue,
+  content: StoredEmailContent,
   { theme }: RenderEmailOptions = {}
 ): Promise<RenderedEmail> {
-  const { doc } = migrate(value, 'email')
+  if (content?.kind === 'html') {
+    return { html: content.html, text: plainText(content.html) }
+  }
+  if (content?.kind !== 'design') {
+    throw new TypeError(
+      `Unknown email kind ${JSON.stringify((content as { kind?: unknown })?.kind)}; expected 'design' or 'html'.`
+    )
+  }
+  const { doc } = migrate(content.value, 'email')
   // Strict, since a tree MJML refuses is Roadie's bug, never the author's.
   const { html } = await mjml2html(mjmlTree(doc, emailTheme(theme)), {
     validationLevel: 'strict',

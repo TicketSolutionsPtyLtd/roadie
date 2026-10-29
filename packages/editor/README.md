@@ -143,7 +143,7 @@ it.
 ```ts
 import { renderEmail } from '@oztix/roadie-editor/email'
 
-const { html, text } = await renderEmail(value, { theme })
+const { html, text } = await renderEmail({ kind: 'design', value }, { theme })
 ```
 
 It reads the value into the email preset, builds MJML's JSON tree from it in
@@ -152,6 +152,11 @@ writes the plain text from the HTML. Text goes into the tree already escaped,
 since MJML writes its content and attributes as given. MJML stays behind
 `renderEmail`: nothing exported names it, so the renderer can change without
 a migration.
+
+An email kept as HTML (`{ kind: 'html', html }`) skips all of that: its HTML
+goes out byte for byte, and only the plain text is written. `EmailHtmlField`
+(`@oztix/roadie-editor/email-html-field`) edits it on the client, and imports
+nothing from `/email`, which needs Node.
 
 ## Changing the format
 

@@ -1,3 +1,4 @@
+export type { EmailContent, StoredEmailContent } from '../schema/emailContent'
 export {
   type RenderEmailOptions,
   type RenderedEmail,

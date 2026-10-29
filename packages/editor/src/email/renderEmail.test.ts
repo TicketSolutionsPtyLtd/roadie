@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import type { JSONContent, StoredEditorValue } from '../schema'
+import type {
+  JSONContent,
+  StoredEditorValue,
+  StoredEmailContent
+} from '../schema'
 import { defaultEmailTheme, renderEmail } from './index'
 
 const text = (value: string, marks?: JSONContent['marks']): JSONContent => ({
@@ -31,10 +35,9 @@ const columns = (...content: JSONContent[]) => ({ type: 'columns', content })
 const section = (...content: JSONContent[]) => ({ type: 'section', content })
 const link = (href: string) => [{ type: 'link', attrs: { href } }]
 
-const email = (...content: JSONContent[]): StoredEditorValue => ({
-  version: 1,
-  preset: 'email',
-  doc: { type: 'doc', content }
+const email = (...content: JSONContent[]): StoredEmailContent => ({
+  kind: 'design',
+  value: { version: 1, preset: 'email', doc: { type: 'doc', content } }
 })
 
 const body = (html: string) => html.slice(html.indexOf('<body'))
@@ -329,10 +332,50 @@ describe('renderEmail', () => {
         ]
       }
     }
-    const { html, text: plain } = await renderEmail(rich)
+    const { html, text: plain } = await renderEmail({
+      kind: 'design',
+      value: rich
+    })
     expect(html).toContain('<h2 ')
     expect(html).not.toContain('<blockquote')
     expect(html).not.toContain('<img')
     expect(plain).toBe('LINEUP\n\nBest weekend of the year.')
+  })
+})
+
+describe('renderEmail with HTML', () => {
+  const pasted = [
+    '<!doctype html><html><head><meta charset="utf-8"></head><body>',
+    '<!--[if mso]><table role="presentation"><tr><td><![endif]-->',
+    '<table width="600"><tr><td><font face="Arial" color="#333333">',
+    'Hi #FirstName#, {{ first_name }} &amp; friends,</font>',
+    `<p><a href="${tickets}" data-tracking="||CampaignId||">Get tickets</a></p>`,
+    `<img src="${poster}" alt="The crowd at sunset">`,
+    '</td></tr></table>',
+    '<!--[if mso]></td></tr></table><![endif]-->',
+    '</body></html>'
+  ].join('\n')
+
+  it('sends the HTML as written, merge tags and Outlook blocks included', async () => {
+    const { html } = await renderEmail({ kind: 'html', html: pasted })
+    expect(html).toBe(pasted)
+  })
+
+  it('writes the plain text from the HTML, with links and without images', async () => {
+    const { text: plain } = await renderEmail({ kind: 'html', html: pasted })
+    expect(plain).toBe(
+      [
+        'Hi #FirstName#, {{ first_name }} & friends,',
+        '',
+        `Get tickets [${tickets}]`
+      ].join('\n')
+    )
+  })
+
+  it('refuses content of another kind', async () => {
+    await expect(
+      // @ts-expect-error A kind read back from storage can be anything.
+      renderEmail({ kind: 'mjml', html: pasted })
+    ).rejects.toThrow(TypeError)
   })
 })

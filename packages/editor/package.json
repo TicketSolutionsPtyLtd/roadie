@@ -33,6 +33,10 @@
       "types": "./dist/Editor/index.d.ts",
       "import": "./dist/Editor/index.js"
     },
+    "./email-html-field": {
+      "types": "./dist/EmailHtmlField/index.d.ts",
+      "import": "./dist/EmailHtmlField/index.js"
+    },
     "./email": {
       "types": "./dist/email/index.d.ts",
       "import": "./dist/email/index.js"
