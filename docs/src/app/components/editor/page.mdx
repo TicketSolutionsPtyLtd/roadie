@@ -464,14 +464,14 @@ function CallToActionView({ node, updateAttributes }) {
     <NodeViewWrapper className='grid gap-2 rounded-xl emphasis-subtle p-3'>
       <Field>
         <Field.Label>Button</Field.Label>
-        <Input
+        <Field.Input
           value={node.attrs.label}
           onChange={(event) => updateAttributes({ label: event.target.value })}
         />
       </Field>
       <Field>
         <Field.Label>Link</Field.Label>
-        <Input
+        <Field.Input
           value={node.attrs.href}
           onChange={(event) => updateAttributes({ href: event.target.value })}
         />
