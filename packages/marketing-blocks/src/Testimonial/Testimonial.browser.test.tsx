@@ -91,6 +91,25 @@ describe('Testimonial quote layout', () => {
     expect(background.height).toBeCloseTo(section.height, 0)
   })
 
+  it('keeps a large organisation logo to a small mark under the role', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(
+      <Testimonial
+        {...quote}
+        organisation={{
+          name: 'Thimble Orbit Presents',
+          logo: photo('Thimble Orbit Presents logo', 400, 200)
+        }}
+      />
+    )
+
+    const logo = rectOf(
+      screen.getByRole('img', { name: 'Thimble Orbit Presents logo' })
+    )
+    expect(logo.height).toBeLessThanOrEqual(48)
+    expect(logo.width).toBeCloseTo(logo.height * 2, 0)
+  })
+
   it('pads only inside a background photo, and sits flush without one', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const { container, rerender } = render(<Testimonial {...quote} />)

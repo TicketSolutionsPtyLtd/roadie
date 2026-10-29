@@ -24,7 +24,7 @@ export type TestimonialPerson = {
 export type TestimonialOrganisation = {
   /** Shown as text when there's no logo, and read out when the logo has no alt text. */
   name: string
-  /** The organisation's logo, under the person's role. */
+  /** The organisation's logo, at most 48px tall under the person's role. Its name stands in when the logo has no alt text. */
   logo?: BlockImage
 }
 
@@ -111,6 +111,7 @@ export function Testimonial({
   )
 }
 
+// The logo is a small mark under the role, as on the website, whatever its file's size.
 const LOGO_WIDTH = 160
 
 // The glyph's negative margin tucks the quote's first line into its lower
@@ -157,8 +158,8 @@ function Citation({
         {logo && (
           <BlockImg
             image={{ ...logo, alt: logo.alt || organisation.name }}
-            sizes={`${logo.width ?? LOGO_WIDTH}px`}
-            className='rounded-md'
+            sizes={`${LOGO_WIDTH}px`}
+            className='h-auto max-h-12 w-auto max-w-40 rounded-md object-contain'
           />
         )}
       </div>

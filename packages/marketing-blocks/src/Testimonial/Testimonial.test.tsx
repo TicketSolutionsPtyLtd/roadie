@@ -39,6 +39,24 @@ describe('Testimonial', () => {
     ).toBeInTheDocument()
   })
 
+  it('reads the organisation from its logo, with no name as text', () => {
+    render(
+      <Testimonial
+        {...quote}
+        organisation={{
+          name: 'Thimble Orbit Presents',
+          logo: { ...quote.organisation.logo, alt: '' }
+        }}
+      />
+    )
+
+    const caption = screen.getByRole('figure').querySelector('figcaption')!
+    expect(
+      within(caption).getByRole('img', { name: 'Thimble Orbit Presents' })
+    ).toBeInTheDocument()
+    expect(within(caption).queryByText('Thimble Orbit Presents')).toBeNull()
+  })
+
   it('names the organisation in text when it has no logo', () => {
     render(
       <Testimonial
