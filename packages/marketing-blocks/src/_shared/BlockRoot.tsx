@@ -48,7 +48,7 @@ export function BlockRoot({
   const { onBlockEvent } = useMarketingBlocks()
   const ref = useRef<HTMLElement>(null)
   useImperativeHandle(forwardedRef, () => ref.current!)
-  const identity = { block, variant, preset, position }
+  const identity = { block, variant, preset, position, id: props.id }
   const reportView = useEffectEvent(() =>
     onBlockEvent?.(event('view', identity))
   )
@@ -103,13 +103,14 @@ export function BlockRoot({
 
 function event(
   action: BlockEvent['action'],
-  { block, variant, preset, position }: Omit<BlockEvent, 'action'>
+  { block, variant, preset, position, id }: Omit<BlockEvent, 'action'>
 ): BlockEvent {
   return {
     action,
     block,
     variant,
     preset,
-    ...(position != null && { position })
+    ...(position != null && { position }),
+    ...(id && { id })
   }
 }

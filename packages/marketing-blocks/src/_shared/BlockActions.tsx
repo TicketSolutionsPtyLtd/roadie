@@ -1,3 +1,5 @@
+import { ArrowSquareOutIcon } from '@phosphor-icons/react'
+
 import { Button } from '@oztix/roadie-components/button'
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -15,15 +17,22 @@ export function BlockActions({ actions = [], className }: BlockActionsProps) {
     <div className={cn('flex flex-wrap gap-4', className)}>
       {actions.map(({ label, href }, index) => (
         <Button
-          key={`${href}-${label}`}
+          key={`${index}-${href}-${label}`}
           href={href}
           size='lg'
           intent={index === 0 ? 'accent' : undefined}
           emphasis={index === 0 ? 'strong' : 'normal'}
         >
           {label}
+          {isExternal(href) && (
+            <ArrowSquareOutIcon weight='bold' className='size-4' aria-hidden />
+          )}
         </Button>
       ))}
     </div>
   )
+}
+
+function isExternal(href: string) {
+  return /^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(href)
 }
