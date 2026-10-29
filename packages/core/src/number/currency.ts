@@ -37,8 +37,8 @@ function currencyMinorUnits(code: string) {
 /**
  * How money reads, as options for `Intl.NumberFormat` or NumberFlow's
  * `format`, in the caller's locale: the symbol, decimal places, trimmed
- * whole amounts, and the compact form. A code Intl doesn't know reads as
- * dollars.
+ * whole amounts, and the compact form. A code that isn't three letters
+ * reads as dollars.
  */
 export function currencyFormat({
   currency = HOUSE_CURRENCY,

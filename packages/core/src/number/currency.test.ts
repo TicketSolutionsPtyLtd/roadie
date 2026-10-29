@@ -21,6 +21,7 @@ describe('currencyFormat', () => {
     [{ currency: 'NZD' }, -1234.5, '-NZD 1,234.50'],
     [{ currency: 'JPY' }, 1234.5, 'JPY 1,235'],
     [{ currency: 'KWD' }, 1.5, 'KWD 1.500'],
+    [{ currency: 'XYZ' }, 1200, 'XYZ 1,200'],
     [{ currency: 'NZD', compact: true }, 1_234_567, 'NZD 1.2M'],
     [{ currency: 'NZD', compact: true }, 12_000, 'NZD 12K']
   ])('reads %o %s as %s', (options, value, expected) => {
