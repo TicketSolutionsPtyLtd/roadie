@@ -59,16 +59,30 @@ export function BlockRoot({
     const element = ref.current
     if (!tracking || !element || typeof IntersectionObserver === 'undefined')
       return
-    const observer = new IntersectionObserver(
+    const viewed = () => {
+      ratio.disconnect()
+      middle.disconnect()
+      reportView()
+    }
+    const ratio = new IntersectionObserver(
       (entries) => {
-        if (!entries.some(isViewed)) return
-        observer.disconnect()
-        reportView()
+        if (entries.some(isViewed)) viewed()
       },
       { threshold: THRESHOLDS }
     )
-    observer.observe(element)
-    return () => observer.disconnect()
+    // A block many screens tall never shows enough of itself to cross a ratio threshold, so it also counts once it reaches the middle of the screen.
+    const middle = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) viewed()
+      },
+      { rootMargin: '-50% 0px -50% 0px' }
+    )
+    ratio.observe(element)
+    middle.observe(element)
+    return () => {
+      ratio.disconnect()
+      middle.disconnect()
+    }
   }, [tracking])
 
   const handleClick = (clicked: MouseEvent<HTMLElement>) => {
