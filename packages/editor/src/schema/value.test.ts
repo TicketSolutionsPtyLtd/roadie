@@ -1073,3 +1073,163 @@ describe('migrate and nodes or marks outside the preset', () => {
     ).not.toThrow()
   })
 })
+
+describe('migrate and block ids', () => {
+  const withId = (id: unknown, text = 'Doors 7pm') => ({
+    type: 'paragraph',
+    attrs: { blockId: id },
+    content: [textOf(text)]
+  })
+
+  it('keeps each block’s id in a blocks value', () => {
+    const stored = docOf(
+      {
+        type: 'heading',
+        attrs: { level: 2, blockId: 'b1' },
+        content: [textOf('Lineup')]
+      },
+      withId('b2'),
+      {
+        type: 'embed',
+        attrs: {
+          provider: 'youtube',
+          id: 'exampleVid1',
+          params: null,
+          blockId: 'b3'
+        }
+      }
+    )
+
+    expect(migrate({ version: 1, preset: 'blocks', doc: stored }).doc).toEqual(
+      stored
+    )
+  })
+
+  it.each([
+    ['a number', 7],
+    ['an empty string', ''],
+    ['null', null]
+  ])('drops an id that is %s, so the editor gives it one', (_, id) => {
+    expect(
+      migrate({ version: 1, preset: 'blocks', doc: docOf(withId(id)) }).doc
+    ).toEqual(docOf(para('Doors 7pm')))
+  })
+
+  it('drops every repeat of an id after the first, nested ones too', () => {
+    const stored = docOf(withId('b1', 'Doors 7pm'), {
+      type: 'blockquote',
+      attrs: { blockId: 'b2' },
+      content: [withId('b1', 'All ages')]
+    })
+
+    expect(migrate({ version: 1, preset: 'blocks', doc: stored }).doc).toEqual(
+      docOf(withId('b1', 'Doors 7pm'), {
+        type: 'blockquote',
+        attrs: { blockId: 'b2' },
+        content: [para('All ages')]
+      })
+    )
+  })
+
+  it('drops ids from a value read into the rich preset', () => {
+    expect(
+      migrate(
+        { version: 1, preset: 'blocks', doc: docOf(withId('b1')) },
+        'rich'
+      ).doc
+    ).toEqual(docOf(para('Doors 7pm')))
+  })
+})
+
+describe('migrate and an app’s own blocks', () => {
+  const card = (attrs?: unknown, extra: object = {}) => ({
+    type: 'eventCard',
+    ...(attrs !== undefined && { attrs }),
+    ...extra
+  })
+  const blocksOf = (...content: object[]) => ({
+    version: 1,
+    preset: 'blocks',
+    doc: docOf(...content)
+  })
+
+  it('keeps a named block with its attrs as stored', () => {
+    const attrs = { eventId: 'okw-2026', layout: { columns: 2 }, blockId: 'c1' }
+
+    expect(
+      migrate(blocksOf(card(attrs), para('Doors 7pm')), 'blocks', {
+        customBlocks: ['eventCard']
+      }).doc
+    ).toEqual(docOf(card(attrs), para('Doors 7pm')))
+  })
+
+  it('drops a block no customBlocks names', () => {
+    expect(
+      migrate(blocksOf(card({ eventId: 'okw' }), para('Doors'))).doc
+    ).toEqual(docOf(para('Doors')))
+  })
+
+  it('keeps no content, marks or keys of its own on it', () => {
+    expect(
+      migrate(
+        blocksOf(
+          card(
+            { eventId: 'okw' },
+            {
+              content: [para('Sold out')],
+              marks: [{ type: 'bold' }],
+              text: 'x',
+              html: '<script></script>'
+            }
+          )
+        ),
+        'blocks',
+        { customBlocks: ['eventCard'] }
+      ).doc
+    ).toEqual(docOf(card({ eventId: 'okw' })))
+  })
+
+  it.each([
+    ['a list', ['okw']],
+    ['a string', 'okw'],
+    ['an empty object', {}]
+  ])('saves no attrs that are %s', (_, attrs) => {
+    expect(
+      migrate(blocksOf(card(attrs)), 'blocks', { customBlocks: ['eventCard'] })
+        .doc
+    ).toEqual(docOf(card()))
+  })
+
+  it('drops an id the block can’t keep, and a repeat of one', () => {
+    expect(
+      migrate(
+        blocksOf(
+          card({ eventId: 'a', blockId: 7 }),
+          card({ eventId: 'b', blockId: 'c1' }),
+          card({ eventId: 'c', blockId: 'c1' })
+        ),
+        'blocks',
+        { customBlocks: ['eventCard'] }
+      ).doc
+    ).toEqual(
+      docOf(
+        card({ eventId: 'a' }),
+        card({ eventId: 'b', blockId: 'c1' }),
+        card({ eventId: 'c' })
+      )
+    )
+  })
+
+  it('never lets a name take over one of the preset’s nodes', () => {
+    const stored = blocksOf({
+      type: 'paragraph',
+      attrs: { onclick: 'x' },
+      content: [textOf('Doors')]
+    })
+
+    expect(
+      migrate(stored, 'blocks', { customBlocks: ['paragraph', 'text', 'doc'] })
+        .doc
+    ).toEqual(docOf(para('Doors')))
+  })
+})

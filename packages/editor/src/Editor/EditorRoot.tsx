@@ -6,6 +6,7 @@ import { useFieldContext } from '@oztix/roadie-components/field'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
 import { cn } from '@oztix/roadie-core/utils'
 
+import type { EditorBlock } from '../extensions'
 import type { EditorValue, EmbedProvider, Preset } from '../schema'
 import { loadedEngine, preloadEditor, subscribeToEngine } from './load'
 import { resolvedPreset, startingValue } from './startingValue'
@@ -67,9 +68,19 @@ export type EditorRootProps = {
    * Called when one is entered in the Embed control; run it on your server.
    */
   resolveUrl?: (url: string) => Promise<string>
+  /**
+   * An app's own blocks, from `@oztix/roadie-editor/extensions`, for the
+   * `blocks` preset. Each saves its attrs, shows in the slash menu, and
+   * renders with `/render`'s matching `nodeMapping` entry. Read once, when
+   * the editor is created.
+   */
+  extensions?: readonly EditorBlock[]
   'aria-label'?: string
   'aria-labelledby'?: string
-  /** Replaces the default parts, `<Editor.Toolbar />` then `<Editor.Content />`. */
+  /**
+   * Replaces the default parts: `<Editor.Toolbar />`, `<Editor.Content />`,
+   * then `<Editor.SlashMenu />`.
+   */
   children?: ReactNode
 }
 

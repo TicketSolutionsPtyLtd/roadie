@@ -87,6 +87,106 @@ describe('parseEmbedUrl', () => {
     [
       'https://www.tiktok.com/player/v1/7000000000000000001',
       { provider: 'tiktok', id: '7000000000000000001' }
+    ],
+    [
+      'https://soundcloud.com/forss/flickermood',
+      { provider: 'soundcloud', id: 'forss/flickermood' }
+    ],
+    [
+      'https://m.soundcloud.com/forss/flickermood?si=abc&utm_source=clipboard',
+      { provider: 'soundcloud', id: 'forss/flickermood' }
+    ],
+    [
+      'https://www.soundcloud.com/forss/sets/soulhack',
+      { provider: 'soundcloud', id: 'forss/sets/soulhack' }
+    ],
+    [
+      'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&color=%23ff5500&auto_play=false',
+      { provider: 'soundcloud', id: 'tracks:293' }
+    ],
+    [
+      'https://w.soundcloud.com/player?url=https://api.soundcloud.com/playlists/18',
+      { provider: 'soundcloud', id: 'playlists:18' }
+    ],
+    [
+      'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/soundcloud%253Atracks%253A293',
+      { provider: 'soundcloud', id: 'tracks:293' }
+    ],
+    [
+      'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fforss%2Fflickermood',
+      { provider: 'soundcloud', id: 'forss/flickermood' }
+    ],
+    [
+      'https://www.deezer.com/en/track/3135556',
+      { provider: 'deezer', id: '3135556', params: { type: 'track' } }
+    ],
+    [
+      'https://deezer.com/album/302127',
+      { provider: 'deezer', id: '302127', params: { type: 'album' } }
+    ],
+    [
+      'https://www.deezer.com/pt-br/playlist/908622995?utm_source=share',
+      { provider: 'deezer', id: '908622995', params: { type: 'playlist' } }
+    ],
+    [
+      'https://widget.deezer.com/widget/dark/track/3135556?tracklist=false',
+      { provider: 'deezer', id: '3135556', params: { type: 'track' } }
+    ],
+    [
+      'https://music.apple.com/au/album/the-heart-is-a-muscle/1233719556?i=1233720954',
+      {
+        provider: 'apple-music',
+        id: '1233719556',
+        params: { type: 'album', storefront: 'au', track: '1233720954' }
+      }
+    ],
+    [
+      'https://music.apple.com/au/album/go-farther-in-lightness/1233719556',
+      {
+        provider: 'apple-music',
+        id: '1233719556',
+        params: { type: 'album', storefront: 'au' }
+      }
+    ],
+    [
+      'https://music.apple.com/us/playlist/todays-hits/pl.f4d106fed2bd41149aaacabb233eb5eb',
+      {
+        provider: 'apple-music',
+        id: 'pl.f4d106fed2bd41149aaacabb233eb5eb',
+        params: { type: 'playlist', storefront: 'us' }
+      }
+    ],
+    [
+      'https://music.apple.com/au/playlist/road-trip/pl.u-AbCd123EfGh',
+      {
+        provider: 'apple-music',
+        id: 'pl.u-AbCd123EfGh',
+        params: { type: 'playlist', storefront: 'au' }
+      }
+    ],
+    [
+      'https://music.apple.com/au/song/the-heart-is-a-muscle/1233720954',
+      {
+        provider: 'apple-music',
+        id: '1233720954',
+        params: { type: 'song', storefront: 'au' }
+      }
+    ],
+    [
+      'https://embed.music.apple.com/au/album/1233719556?i=1233720954',
+      {
+        provider: 'apple-music',
+        id: '1233719556',
+        params: { type: 'album', storefront: 'au', track: '1233720954' }
+      }
+    ],
+    [
+      'https://geo.music.apple.com/au/album/the-heart-is-a-muscle/1233719556?i=1233720954&ls',
+      {
+        provider: 'apple-music',
+        id: '1233719556',
+        params: { type: 'album', storefront: 'au', track: '1233720954' }
+      }
     ]
   ])('reads %s', (url, expected) => {
     expect(parseEmbedUrl(url)).toEqual(expected)
@@ -126,7 +226,95 @@ describe('parseEmbedUrl', () => {
     ['a short Spotify id', 'https://open.spotify.com/track/exampleT'],
     ['a TikTok profile', 'https://www.tiktok.com/@oztix'],
     ['a TikTok short link', 'https://vm.tiktok.com/ZMabcdef/'],
-    ['an Instagram post', 'https://www.instagram.com/p/C1a2b3c4d5e/']
+    ['an Instagram post', 'https://www.instagram.com/p/C1a2b3c4d5e/'],
+    [
+      'a SoundCloud look-alike suffix',
+      'https://soundcloud.com.evil.test/forss/flickermood'
+    ],
+    [
+      'a SoundCloud look-alike prefix',
+      'https://evilsoundcloud.com/forss/flickermood'
+    ],
+    ['a SoundCloud short link', 'https://on.soundcloud.com/AbCdE12345'],
+    ['a SoundCloud profile', 'https://soundcloud.com/forss'],
+    ['a SoundCloud profile’s likes', 'https://soundcloud.com/forss/likes'],
+    ['a SoundCloud profile’s playlists', 'https://soundcloud.com/forss/sets'],
+    ['a SoundCloud search', 'https://soundcloud.com/search/sounds?q=forss'],
+    [
+      'a private SoundCloud link',
+      'https://soundcloud.com/forss/flickermood/s-AbCdE'
+    ],
+    [
+      'a SoundCloud permalink with markup',
+      'https://soundcloud.com/forss/flicker"><a'
+    ],
+    [
+      'a SoundCloud player of another host',
+      'https://w.soundcloud.com/player/?url=https%3A//evil.test/tracks/293'
+    ],
+    [
+      'a SoundCloud player of a look-alike API host',
+      'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com.evil.test/tracks/293'
+    ],
+    [
+      'a SoundCloud player of a javascript: URL',
+      'https://w.soundcloud.com/player/?url=javascript:alert(1)//api.soundcloud.com/tracks/293'
+    ],
+    [
+      'a SoundCloud player of a non-numeric track',
+      'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293%22%3E%3Ca'
+    ],
+    [
+      'a SoundCloud player whose URN names another kind',
+      'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/soundcloud%253Aplaylists%253A18'
+    ],
+    [
+      'a SoundCloud player of a user',
+      'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/users/1'
+    ],
+    [
+      'a SoundCloud player inside a player',
+      'https://w.soundcloud.com/player/?url=https%3A%2F%2Fw.soundcloud.com%2Fplayer%2F%3Furl%3Dhttps%253A%2F%2Fapi.soundcloud.com%2Ftracks%2F293'
+    ],
+    ['a SoundCloud player with no track', 'https://w.soundcloud.com/player/'],
+    [
+      'a private SoundCloud player',
+      'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293%3Fsecret_token%3Ds-AbCdE&color=%23ff5500'
+    ],
+    [
+      'a private SoundCloud player with its token outside the track',
+      'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&secret_token=s-AbCdE'
+    ],
+    ['a Deezer look-alike', 'https://deezer.com.evil.test/track/3135556'],
+    ['a Deezer artist', 'https://www.deezer.com/en/artist/27'],
+    ['a Deezer short link', 'https://link.deezer.com/s/30abcdEFgh'],
+    ['a Deezer id with markup', 'https://www.deezer.com/track/31"><a'],
+    ['a Deezer language with markup', 'https://www.deezer.com/e"n/track/31'],
+    [
+      'a Deezer artist player',
+      'https://widget.deezer.com/widget/dark/artist/27'
+    ],
+    [
+      'an Apple Music look-alike',
+      'https://music.apple.com.evil.test/au/album/x/1233719556'
+    ],
+    [
+      'an Apple Music artist',
+      'https://music.apple.com/au/artist/gang-of-youths/1012345678'
+    ],
+    [
+      'an Apple Music storefront that isn’t a country',
+      'https://music.apple.com/australia/album/x/1233719556'
+    ],
+    [
+      'an Apple Music track with markup',
+      'https://music.apple.com/au/album/x/1233719556?i=1%22%3E%3Ca'
+    ],
+    [
+      'an Apple Music playlist id with markup',
+      'https://music.apple.com/au/playlist/x/pl.u-"><a'
+    ],
+    ['an iTunes Store link', 'https://itunes.apple.com/au/album/x/id1233719556']
   ])('refuses %s', (_, url) => {
     expect(parseEmbedUrl(url)).toBeNull()
   })
@@ -157,6 +345,38 @@ describe('embedSrc', () => {
     [
       { provider: 'tiktok', id: '7000000000000000001' },
       'https://www.tiktok.com/player/v1/7000000000000000001'
+    ],
+    [
+      { provider: 'soundcloud', id: 'forss/flickermood' },
+      'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fforss%2Fflickermood'
+    ],
+    [
+      { provider: 'soundcloud', id: 'forss/sets/soulhack' },
+      'https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fforss%2Fsets%2Fsoulhack'
+    ],
+    [
+      { provider: 'soundcloud', id: 'tracks:293' },
+      'https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F293'
+    ],
+    [
+      { provider: 'deezer', id: '3135556', params: { type: 'track' } },
+      'https://widget.deezer.com/widget/auto/track/3135556'
+    ],
+    [
+      {
+        provider: 'apple-music',
+        id: '1233719556',
+        params: { type: 'album', storefront: 'au', track: '1233720954' }
+      },
+      'https://embed.music.apple.com/au/album/1233719556?i=1233720954'
+    ],
+    [
+      {
+        provider: 'apple-music',
+        id: 'pl.f4d106fed2bd41149aaacabb233eb5eb',
+        params: { type: 'playlist', storefront: 'us' }
+      },
+      'https://embed.music.apple.com/us/playlist/pl.f4d106fed2bd41149aaacabb233eb5eb'
     ]
   ])('builds the player URL for %o', (value, src) => {
     expect(embedSrc(value)).toBe(src)
@@ -185,7 +405,44 @@ describe('embedSrc', () => {
       'a Spotify value with no type',
       { provider: 'spotify', id: 'exampleTrack0000000001' }
     ],
-    ['a value from Object.prototype', { provider: 'toString', id: 'x' }]
+    ['a value from Object.prototype', { provider: 'toString', id: 'x' }],
+    [
+      'a SoundCloud id that would add a query',
+      { provider: 'soundcloud', id: 'forss/x&auto_play=true' }
+    ],
+    [
+      'a SoundCloud id that would climb the path',
+      { provider: 'soundcloud', id: '../../tracks/293' }
+    ],
+    [
+      'a SoundCloud id of another API resource',
+      { provider: 'soundcloud', id: 'users:1' }
+    ],
+    [
+      'a Deezer type outside the list',
+      { provider: 'deezer', id: '27', params: { type: 'artist' } }
+    ],
+    ['a Deezer value with no type', { provider: 'deezer', id: '3135556' }],
+    [
+      'an Apple Music storefront that would climb the path',
+      {
+        provider: 'apple-music',
+        id: '1233719556',
+        params: { type: 'album', storefront: '../x' }
+      }
+    ],
+    [
+      'an Apple Music value with no storefront',
+      { provider: 'apple-music', id: '1233719556', params: { type: 'album' } }
+    ],
+    [
+      'an Apple Music track that would add a query',
+      {
+        provider: 'apple-music',
+        id: '1233719556',
+        params: { type: 'album', storefront: 'au', track: '1&app=itunes' }
+      }
+    ]
   ])('refuses %s', (_, value) => {
     expect(embedSrc(value)).toBeNull()
   })
@@ -221,6 +478,34 @@ describe('embedShareUrl', () => {
     [
       { provider: 'tiktok', id: '7000000000000000001' },
       'https://www.tiktok.com/@_/video/7000000000000000001'
+    ],
+    [
+      { provider: 'soundcloud', id: 'forss/sets/soulhack' },
+      'https://soundcloud.com/forss/sets/soulhack'
+    ],
+    [
+      { provider: 'soundcloud', id: 'playlists:18' },
+      'https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2F18'
+    ],
+    [
+      { provider: 'deezer', id: '908622995', params: { type: 'playlist' } },
+      'https://www.deezer.com/playlist/908622995'
+    ],
+    [
+      {
+        provider: 'apple-music',
+        id: '1233719556',
+        params: { type: 'album', storefront: 'au', track: '1233720954' }
+      },
+      'https://music.apple.com/au/album/1233719556?i=1233720954'
+    ],
+    [
+      {
+        provider: 'apple-music',
+        id: 'pl.u-AbCd123EfGh',
+        params: { type: 'playlist', storefront: 'au' }
+      },
+      'https://music.apple.com/au/playlist/pl.u-AbCd123EfGh'
     ]
   ])('gives the share URL for %o, which reads back as it', (value, url) => {
     expect(embedShareUrl(value)).toBe(url)
@@ -286,7 +571,10 @@ describe('defaultEmbedProviders', () => {
       youtube: '16:9',
       vimeo: '16:9',
       spotify: { height: 352 },
-      tiktok: '9:16'
+      tiktok: '9:16',
+      soundcloud: { height: 166 },
+      deezer: { height: 300 },
+      'apple-music': { height: 450 }
     })
   })
 })

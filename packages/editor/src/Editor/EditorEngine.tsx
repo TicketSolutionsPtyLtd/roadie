@@ -9,6 +9,7 @@ import {
   type Node,
   getSchema
 } from '@tiptap/core'
+import type { UniqueID } from '@tiptap/extension-unique-id'
 import { Placeholder } from '@tiptap/extensions'
 import { NodeSelection } from '@tiptap/pm/state'
 import {
@@ -27,6 +28,7 @@ import {
 } from '@oztix/roadie-components/field'
 import { cn } from '@oztix/roadie-core/utils'
 
+import type { EditorBlock } from '../extensions'
 import {
   CURRENT_VERSION,
   type Preset,
@@ -35,17 +37,25 @@ import {
   migrate,
   presets
 } from '../schema'
+import { BLOCK_ID, BLOCK_ID_TYPES } from '../schema/presetShapes'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
+import { EditorBlockHandle } from './EditorBlockHandle'
+import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
+import { EditorButtonPopover } from './EditorButtonPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
 import { EditorEmbedPopover } from './EditorEmbedPopover'
 import { EditorEmbedView } from './EditorEmbedView'
 import { EditorImageView } from './EditorImageView'
+import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
 import type { EditorRootProps } from './EditorRoot'
+import { EditorSlashMenuEngine } from './EditorSlashMenuEngine'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
+import type { EditorControlUi } from './controls'
+import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
 import {
   ImageUpload,
@@ -54,7 +64,10 @@ import {
   replaceImage,
   uploadImages
 } from './imageUpload'
+import { presetInsertItems } from './insertItems'
+import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
+import { SlashMenu, type SlashMenuHandle } from './slashMenu'
 import { resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
 import {
@@ -78,6 +91,18 @@ const LinkShortcut = Extension.create<LinkShortcutOptions>({
     }
   }
 })
+
+type BlockMenuShortcutOptions = { open: () => boolean }
+
+// Notion's shortcut for a block's actions.
+const BlockMenuShortcut = Extension.create<BlockMenuShortcutOptions>({
+  name: 'blockMenuShortcut',
+  addKeyboardShortcuts() {
+    return { 'Mod-/': () => this.options.open() }
+  }
+})
+
+const BLOCK_HANDLE_PRESETS: ReadonlySet<Preset> = new Set(['blocks'])
 
 type AltTextShortcutOptions = { onEditAlt: () => void }
 
@@ -115,23 +140,58 @@ function forEditor(extension: Extensions[number]) {
 const editorExtensions = Object.fromEntries(
   Object.entries(presets).map(([preset, extensions]) => [
     preset,
-    withTableEditing(extensions).map(forEditor)
+    withEmailEditing(withTableEditing(extensions)).map(forEditor)
   ])
 ) as Record<Preset, typeof presets.basic>
 
 const UNREADABLE =
   'This content couldn’t be loaded, so it can’t be edited here.'
 
-const schemas = new Map<Preset, ReturnType<typeof getSchema>>()
+type Schema = ReturnType<typeof getSchema>
 
-// Tiptap swaps content its schema can't read for an empty document, which the
-// next save would store, so the editor checks first.
-function readsDoc(preset: Preset, doc: JSONContent) {
+const schemas = new Map<Preset, Schema>()
+
+function presetSchema(preset: Preset) {
   let schema = schemas.get(preset)
   if (!schema) {
     schema = getSchema(presets[preset])
     schemas.set(preset, schema)
   }
+  return schema
+}
+
+/** An app's blocks, only in the preset that takes them, as Tiptap nodes. */
+/** Whether a block's name is one the preset's own nodes or marks use. */
+function takenName(preset: Preset, { node }: EditorBlock) {
+  const { nodes, marks } = presetSchema(preset)
+  return Object.hasOwn(nodes, node.name) || Object.hasOwn(marks, node.name)
+}
+
+function blocksFor(preset: Preset, blocks: readonly EditorBlock[] = []) {
+  if (preset !== 'blocks') return []
+  return blocks.filter((block) => !takenName(preset, block))
+}
+
+// Each app block is an id-carrying block too, so UniqueID needs its name.
+function withBlocks(extensions: Extensions, blocks: readonly EditorBlock[]) {
+  if (blocks.length === 0) return extensions
+  const names = blocks.map(({ node }) => node.name)
+  return [
+    ...extensions.map((extension) =>
+      extension.name === 'uniqueID'
+        ? (extension as typeof UniqueID).configure({
+            attributeName: BLOCK_ID,
+            types: [...BLOCK_ID_TYPES, ...names]
+          })
+        : extension
+    ),
+    ...blocks.map(({ node }) => node)
+  ]
+}
+
+// Tiptap swaps content its schema can't read for an empty document, which the
+// next save would store, so the editor checks first.
+function readsDoc(schema: Schema, doc: JSONContent) {
   try {
     schema.nodeFromJSON(doc)
     return true
@@ -144,12 +204,28 @@ function presetHoldsImages(preset: Preset) {
   return presets[preset].some(({ name }) => name === 'image')
 }
 
+// At most an email's width, so an author sees the lines a reader will. Its
+// columns query it as a container.
+const EMAIL_CANVAS =
+  '@container mx-auto w-full max-w-[600px] [--prose-measure:none]'
+
 function holdsDoc(editor: TiptapEditor, doc: JSONContent) {
   try {
     return editor.state.doc.eq(editor.schema.nodeFromJSON(doc))
   } catch {
     return false
   }
+}
+
+// A block's rule defaults to undefined, so a node with no other attrs saves
+// none, as it did before rules.
+function savedDoc(json: JSONContent): JSONContent {
+  const saved = { ...json }
+  if (saved.attrs && Object.values(saved.attrs).every((v) => v === undefined)) {
+    delete saved.attrs
+  }
+  if (saved.content) saved.content = saved.content.map(savedDoc)
+  return saved
 }
 
 type FormValueProps = {
@@ -173,7 +249,8 @@ function FormValue({
     selector: ({ editor: current }) => current?.state.doc ?? null,
     equalityFn: Object.is
   })
-  const doc: JSONContent | null = unreadDoc ?? editorDoc?.toJSON() ?? null
+  const doc: JSONContent | null =
+    unreadDoc ?? (editorDoc ? savedDoc(editorDoc.toJSON()) : null)
   if (!doc) return null
   return (
     <input
@@ -208,18 +285,25 @@ export function EditorEngine({
   onUploadImage,
   embedProviders = defaultEmbedProviders,
   resolveUrl,
+  extensions: extensionsProp,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy
 }: EditorRootProps) {
   const placeholderRef = useRef(placeholder)
   const toolbarRef = useRef<HTMLDivElement>(null)
+  const bubbleMenuRef = useRef<HTMLDivElement>(null)
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
+  const slashMenuRef = useRef<SlashMenuHandle>(null)
+  const openBlockMenuRef = useRef<(() => void) | null>(null)
   const [editingLink, setEditingLink] = useState(false)
   const [editingAlt, setEditingAlt] = useState(false)
   const [editingEmbed, setEditingEmbed] = useState(false)
+  const [editingButton, setEditingButton] = useState(false)
   const providersRef = useRef(embedProviders)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
+  const uiRef = useRef<EditorControlUi | null>(null)
   const uploadRef = useRef<UploadImage | undefined>(onUploadImage)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
@@ -233,33 +317,58 @@ export function EditorEngine({
   const describedBy = fieldInput['aria-describedby']
   const preset = resolvedPreset({ preset: presetProp, value, defaultValue })
   const storedPreset = (value ?? defaultValue)?.preset
-  const valueDoc = value && migrate(value, preset).doc
+  // Tiptap fixes its schema when it creates the editor, so these are read once.
+  const [blocks] = useState(() => blocksFor(preset, extensionsProp))
+  const [schema] = useState(() =>
+    blocks.length > 0
+      ? getSchema(withBlocks(presets[preset], blocks))
+      : presetSchema(preset)
+  )
+  const customBlocks = blocks.map(({ node }) => node.name)
+  const valueDoc = value && migrate(value, preset, { customBlocks }).doc
   const [defaultDoc] = useState(
-    () => migrate(defaultValue ?? createEmptyValue(preset), preset).doc
+    () =>
+      migrate(defaultValue ?? createEmptyValue(preset), preset, {
+        customBlocks
+      }).doc
   )
   const shownDoc = valueDoc ?? defaultDoc
-  const unreadable = !readsDoc(preset, shownDoc)
+  const unreadable = !readsDoc(schema, shownDoc)
   // Tiptap would warn of content it can't read and show an empty doc anyway.
   const readableDoc = unreadable ? createEmptyValue(preset).doc : shownDoc
   const editable = !readOnly && !disabled && !unreadable
   useFieldControlError(uploadError ?? (unreadable ? UNREADABLE : null))
   const holdsImages = presetHoldsImages(preset)
+  const hasBlockHandle = BLOCK_HANDLE_PRESETS.has(preset)
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
-    onError: setUploadError
+    onError: setUploadError,
+    httpsOnly: preset === 'email'
   }
 
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      ...editorExtensions[preset],
+      ...withBlocks(editorExtensions[preset], blocks),
       Placeholder.configure({
         placeholder: () => placeholderRef.current ?? ''
       }),
       LinkShortcut.configure({ onEditLink: () => setEditingLink(true) }),
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       ImageUpload.configure(uploads),
-      EmbedPaste.configure({ providers: () => providersRef.current })
+      EmbedPaste.configure({ providers: () => providersRef.current }),
+      SlashMenu.configure({ menu: () => slashMenuRef.current }),
+      BlockMenuShortcut.configure({
+        open: () => {
+          openBlockMenuRef.current?.()
+          return Boolean(openBlockMenuRef.current)
+        }
+      }),
+      InsertMenu.configure({
+        items: presetInsertItems[preset] ?? [],
+        ui: () => uiRef.current!,
+        onChange: setInsertMenu
+      })
     ],
     content: readableDoc,
     editable,
@@ -276,7 +385,13 @@ export function EditorEngine({
         ...((readOnly || unreadable) && { 'aria-readonly': 'true' }),
         ...(disabled && { 'aria-disabled': 'true' }),
         // A grid item, which would otherwise grow to fit a wide table.
-        class: cn(editorContentClass(size, emphasis), 'min-w-0 outline-none')
+        class: cn(
+          editorContentClass(size, emphasis),
+          'min-w-0 outline-none',
+          // Room for the block handle at each block's start.
+          hasBlockHandle && emphasis !== 'subtler' && 'ps-10',
+          preset === 'email' && EMAIL_CANVAS
+        )
       },
       handleDOMEvents: {
         // ProseMirror draws its selection only while focused, so a press that
@@ -296,11 +411,14 @@ export function EditorEngine({
       },
       handleKeyDown: (view, event) => {
         if (!event.altKey || event.key !== 'F10') return false
+        // The selection menu is in the document only while it shows.
         const toolbar = selectedNodeType(view.state)
           ? nodeToolbarRef.current
-          : selectedTable(view.state)
-            ? tableToolbarRef.current
-            : toolbarRef.current
+          : bubbleMenuRef.current?.isConnected
+            ? bubbleMenuRef.current
+            : selectedTable(view.state)
+              ? tableToolbarRef.current
+              : toolbarRef.current
         const firstEnabled = toolbar?.querySelector<HTMLElement>(
           'button:not([aria-disabled="true"])'
         )
@@ -312,9 +430,28 @@ export function EditorEngine({
       onValueChange?.({
         version: CURRENT_VERSION,
         preset,
-        doc: updated.getJSON()
+        doc: savedDoc(updated.getJSON())
       })
   })
+
+  const leftOut = preset !== 'blocks' && Boolean(extensionsProp?.length)
+  const taken = (preset === 'blocks' ? (extensionsProp ?? []) : [])
+    .filter((block) => takenName(preset, block))
+    .map(({ node }) => node.name)
+    .join(', ')
+  useEffect(() => {
+    if (!isDev()) return
+    if (leftOut) {
+      console.warn(
+        `Editor: extensions are for the blocks preset, so the "${preset}" editor leaves them out.`
+      )
+    }
+    if (taken) {
+      console.warn(
+        `Editor: the blocks preset already has ${taken}, so the editor leaves out the extensions of that name.`
+      )
+    }
+  }, [leftOut, preset, taken])
 
   useEffect(() => {
     if (presetProp && storedPreset && presetProp !== storedPreset && isDev()) {
@@ -363,9 +500,17 @@ export function EditorEngine({
         setEditingEmbed(true)
       }
     },
+    editButton: () => {
+      if (editor?.isEditable && editor.schema.nodes.button) {
+        setEditingButton(true)
+      }
+    },
     pickImage: canUpload ? () => fileInputRef.current?.click() : undefined,
     replaceImage: canUpload ? () => replaceInputRef.current?.click() : undefined
   }
+  useEffect(() => {
+    uiRef.current = ui
+  })
 
   return (
     <EditorContext
@@ -376,10 +521,16 @@ export function EditorEngine({
         emphasis,
         contentId,
         toolbarRef,
+        bubbleMenuRef,
         ...ui,
+        editingLink,
         embedProviders,
+        blocks,
         TiptapContent,
-        ToolbarEngine: EditorToolbarEngine
+        ToolbarEngine: EditorToolbarEngine,
+        BubbleMenuEngine: EditorBubbleMenuEngine,
+        SlashMenuEngine: EditorSlashMenuEngine,
+        slashMenuRef
       }}
     >
       <div
@@ -400,6 +551,7 @@ export function EditorEngine({
           <>
             <EditorToolbarEngine />
             <EditorContent />
+            <EditorSlashMenuEngine />
           </>
         )}
         {editor ? (
@@ -408,6 +560,16 @@ export function EditorEngine({
             size={size}
             ui={ui}
             toolbarRef={nodeToolbarRef}
+          />
+        ) : null}
+        {editor && hasBlockHandle ? (
+          <EditorBlockHandle editor={editor} openMenuRef={openBlockMenuRef} />
+        ) : null}
+        {editor ? (
+          <EditorInsertMenu
+            editor={editor}
+            state={insertMenu}
+            id={`${contentId}-insert`}
           />
         ) : null}
         {editor?.schema.nodes.table ? (
@@ -427,6 +589,11 @@ export function EditorEngine({
           editor={editor}
           open={editingAlt}
           onOpenChange={setEditingAlt}
+        />
+        <EditorButtonPopover
+          editor={editor}
+          open={editingButton}
+          onOpenChange={setEditingButton}
         />
         <EditorEmbedPopover
           editor={editor}

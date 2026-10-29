@@ -1,5 +1,5 @@
 import { getExtensionField, getSchema } from '@tiptap/core'
-import { Node } from '@tiptap/pm/model'
+import { type ContentMatch, Node, type NodeType } from '@tiptap/pm/model'
 import { describe, expect, it } from 'vitest'
 
 import { type JSONContent, type Preset, presets } from './index'
@@ -408,6 +408,7 @@ describe('presets.rich', () => {
 
 const contentKinds: Record<string, string> = {
   'listItem+': 'listItems',
+  'column{2,4}': 'columns',
   'paragraph block*': 'paragraphFirst',
   'tableRow+': 'tableRows',
   '(tableCell | tableHeader)*': 'tableCells',
@@ -431,7 +432,11 @@ describe('presetShapes', () => {
               : type.inlineContent
                 ? 'inline'
                 : (contentKinds[type.spec.content ?? ''] ?? 'blocks'),
-            ...(attrsOf(type.spec).length > 0 && { attrs: attrsOf(type.spec) })
+            ...(attrsOf(type.spec).length > 0 && { attrs: attrsOf(type.spec) }),
+            ...(type.spec.marks === '' &&
+              /^(text\*|\(text \| variable\)\*)$/.test(
+                type.spec.content ?? ''
+              ) && { plainText: true })
           }
         ])
       )
@@ -439,8 +444,98 @@ describe('presetShapes', () => {
         Object.values(marks).map((type) => [type.name, attrsOf(type.spec)])
       )
 
-      expect(presetShapes[preset].nodes).toEqual(shapes)
+      const withoutHolds = Object.fromEntries(
+        Object.entries(presetShapes[preset].nodes).map(
+          ([name, { holds: _holds, ...shape }]) => [name, shape]
+        )
+      )
+
+      expect(withoutHolds).toEqual(shapes)
       expect(presetShapes[preset].marks).toEqual(markAttrs)
+    }
+  )
+})
+
+const blocks = getSchema(presets.blocks)
+const UNNUMBERED = [
+  'doc',
+  'text',
+  'hardBreak',
+  'tableRow',
+  'tableHeader',
+  'tableCell'
+]
+
+describe('presets.blocks', () => {
+  it('holds the rich preset’s nodes and marks', () => {
+    expect(Object.keys(blocks.nodes).sort()).toEqual(
+      Object.keys(rich.nodes).sort()
+    )
+    expect(Object.keys(blocks.marks).sort()).toEqual(
+      Object.keys(rich.marks).sort()
+    )
+  })
+
+  it.each(Object.keys(rich.nodes).filter((name) => !UNNUMBERED.includes(name)))(
+    'saves a blockId on each %s, then its own attrs',
+    (name) => {
+      expect(Object.keys(blocks.nodes[name]!.spec.attrs ?? {})).toEqual([
+        'blockId',
+        ...Object.keys(rich.nodes[name]!.spec.attrs ?? {})
+      ])
+    }
+  )
+
+  it.each(UNNUMBERED)('saves no blockId on a %s', (name) => {
+    expect(blocks.nodes[name]!.spec.attrs ?? {}).not.toHaveProperty('blockId')
+  })
+})
+
+// Every block a node can hold, read from its content expression.
+function heldBy(type: NodeType) {
+  const held = new Set<string>()
+  const seen = new Set<ContentMatch>()
+  const visit = (match: ContentMatch) => {
+    if (seen.has(match)) return
+    seen.add(match)
+    for (let index = 0; index < match.edgeCount; index++) {
+      const { type: child, next } = match.edge(index)
+      if (!child.isInline) held.add(child.name)
+      visit(next)
+    }
+  }
+  visit(type.contentMatch)
+  return [...held].sort()
+}
+
+const NEVER_HELD_BY_DEFAULT = new Set([
+  'doc',
+  'listItem',
+  'tableRow',
+  'tableHeader',
+  'tableCell',
+  'column'
+])
+
+describe('presetShapes holds', () => {
+  it.each(Object.keys(presets) as Preset[])(
+    'lists the blocks each node of the %s preset holds',
+    (preset) => {
+      const { nodes } = getSchema(presets[preset])
+      const blocks = Object.values(nodes)
+        .filter(
+          (type) => !type.isInline && !NEVER_HELD_BY_DEFAULT.has(type.name)
+        )
+        .map((type) => type.name)
+
+      for (const [name, shape] of Object.entries(presetShapes[preset].nodes)) {
+        if (shape.content !== 'blocks' && shape.content !== 'paragraphFirst') {
+          continue
+        }
+        const holds: readonly string[] = 'holds' in shape ? shape.holds : blocks
+
+        expect([...holds].sort(), name).toEqual(heldBy(nodes[name]!))
+      }
     }
   )
 })
