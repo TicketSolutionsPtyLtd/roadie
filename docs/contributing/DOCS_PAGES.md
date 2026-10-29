@@ -43,8 +43,9 @@ with its skeleton and the rules on top of these.
   `docs/src/lib/page-manifest.ts`. `order`, `hidden`, `alsoIn`, `wide`, and
   `wideExamples` are optional, and component, chart, and widget pages add
   `status`. `wide` widens the whole page and drops the "On this page" rail;
-  `wideExamples` keeps the reading column and rail and runs only the live
-  examples to the pane's width, for blocks shown at page scale.
+  `wideExamples` keeps the prose at reading width and runs only the live
+  examples to the pane's width, for blocks shown at page scale. It drops the
+  rail too, since the rail leaves the pane no wider than the reading column.
 
 ## Status
 
