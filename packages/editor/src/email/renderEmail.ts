@@ -50,4 +50,5 @@ function plainText(html: string) {
   })
     .replace(/[^\S\n]+$/gm, '')
     .replace(/\n{3,}/g, '\n\n')
+    .replace(/^\n+|\n+$/g, '')
 }

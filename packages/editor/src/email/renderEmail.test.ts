@@ -178,6 +178,7 @@ describe('renderEmail', () => {
         'Before\n\nOchre Kite Weekender\n\nFriday\n\nSaturday\n\nAfter'
       )
       expect(html.match(/class="mj-column-per-100 /g)).toHaveLength(3)
+      expect(html.match(/padding:16px 0;/g)).toHaveLength(1)
       expect(body(html)).toMatchSnapshot()
     })
   })
@@ -253,6 +254,25 @@ describe('renderEmail', () => {
       )
     })
 
+    it('escapes a link’s and a button’s href, and a button’s label', async () => {
+      const { html } = await renderEmail(
+        email(
+          p(text('Map', link('https://www.oztix.com.au/"><script>x</script>'))),
+          button('https://www.oztix.com.au/?a=1&b="><img>', 'Go <b>')
+        )
+      )
+      expect(html).not.toContain('<script>')
+      expect(html).not.toContain('<img>')
+      expect(html).not.toContain('<b>')
+      expect(html).toContain(
+        'href="https://www.oztix.com.au/&quot;&gt;&lt;script&gt;x&lt;/script&gt;"'
+      )
+      expect(html).toContain(
+        'href="https://www.oztix.com.au/?a=1&amp;b=&quot;&gt;&lt;img&gt;"'
+      )
+      expect(html).toContain('Go &lt;b&gt;')
+    })
+
     it('drops a node the email preset doesn’t hold, keeping its text', async () => {
       const { html, text: plain } = await renderEmail(
         email(
@@ -272,6 +292,25 @@ describe('renderEmail', () => {
         })
       ).rejects.toThrow(TypeError)
     })
+
+    it('refuses a font stack that could leave its style', async () => {
+      await expect(
+        renderEmail(email(p(text('Hi'))), {
+          theme: { fontFamily: 'Arial;"><script>' }
+        })
+      ).rejects.toThrow(TypeError)
+    })
+  })
+
+  it('starts and ends the plain text at its words', async () => {
+    const { text: plain } = await renderEmail(
+      email(
+        { type: 'spacer', attrs: { height: 48 } },
+        p(text('Doors open 7pm.')),
+        { type: 'spacer', attrs: { height: 48 } }
+      )
+    )
+    expect(plain).toBe('Doors open 7pm.')
   })
 
   it('reads a value from another preset into the email preset first', async () => {
