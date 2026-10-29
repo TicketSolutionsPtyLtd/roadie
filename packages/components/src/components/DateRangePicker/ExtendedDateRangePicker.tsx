@@ -98,10 +98,17 @@ function summarise(
 
 type View = 'periods' | 'calendar'
 
+// Only this trigger leads with an icon, so it gets more room than a Select.
+const triggerInset = {
+  sm: 'gap-2 px-2',
+  md: 'gap-2.5 px-3',
+  lg: 'gap-3 px-3.5'
+}
+
 // Two lines in exactly a large control's height, with fixed line heights so
 // every engine's font metrics land on 48px.
 const twoLineClasses = {
-  button: 'h-12 px-2',
+  button: 'h-12',
   first: 'truncate text-base leading-5',
   second: 'text-sm leading-4'
 }
@@ -691,7 +698,8 @@ export function ExtendedDateRangePicker({
             data-slot='date-range-picker-trigger'
             className={cn(
               selectTriggerVariants({ size, emphasis }),
-              'gap-2 data-readonly:cursor-default',
+              triggerInset[size],
+              'data-readonly:cursor-default',
               twoLines && twoLineClasses.button
             )}
           >

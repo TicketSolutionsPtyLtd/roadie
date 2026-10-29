@@ -195,7 +195,12 @@ function compared(
   }
 }
 
-/** A dashboard's period, with what it compares with, in one picker. */
+/**
+ * A dashboard's period, with what it compares with, in one picker. Its layout
+ * follows its own width, so in an `inline-flex` parent or an `auto` grid track
+ * it takes 20rem rather than its content's width. An `auto` track narrows it to
+ * fit the grid; an `inline-flex` parent doesn't.
+ */
 export function DashboardPeriod<App extends string = never>({
   value: valueProp,
   defaultValue,
@@ -461,7 +466,9 @@ export function DashboardPeriod<App extends string = never>({
       aria-label={ariaLabel}
       data-slot='dashboard-period'
       className={cn(
-        '@container flex flex-wrap items-center gap-2 *:min-w-0',
+        // An inline-size container has no content width to give a flex row,
+        // an inline-flex parent, or an auto grid track, so it states one.
+        '@container flex min-w-[min(var(--container-xs),100%)] flex-wrap items-center gap-2 [contain-intrinsic-inline-size:var(--container-xs)] *:min-w-0',
         className
       )}
       {...props}

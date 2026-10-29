@@ -91,6 +91,34 @@ function Period({
   )
 }
 
+describe('DateRangePicker button', TIMEOUT, () => {
+  it.each([
+    ['sm', 8, 8],
+    ['md', 12, 10],
+    ['lg', 14, 12]
+  ] as const)(
+    'gives its %s calendar icon %ipx from the edge and %ipx before the dates',
+    (size, inset, gap) => {
+      render(
+        <Field>
+          <Field.Label>Sales period</Field.Label>
+          <DateRangePicker
+            size={size}
+            today={TODAY}
+            defaultValue='last-week'
+            className='w-fit'
+          />
+        </Field>
+      )
+      const button = trigger()
+      const icon = button.querySelector('svg')!
+      const dates = icon.nextElementSibling!
+      expect(box(icon).left - box(button).left - button.clientLeft).toBe(inset)
+      expect(box(dates).left - box(icon).right).toBe(gap)
+    }
+  )
+})
+
 describe('DateRangePicker on a wide screen', TIMEOUT, () => {
   beforeAll(() => page.viewport(1440, 900))
   afterAll(() => page.viewport(1920, 1080))

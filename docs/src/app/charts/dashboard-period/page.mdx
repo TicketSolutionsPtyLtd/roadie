@@ -179,6 +179,13 @@ Pass the app’s other controls, such as a channel filter, as `children`, and th
 </DashboardPeriod>
 ```
 
+In a flex row of your own, it keeps at least 20rem, or the row’s width when that’s less, so its button never shrinks to nothing. It can’t size itself to its content, because its layout follows its own width, so an `inline-flex` parent or an `auto` grid track gives it 20rem. An `auto` track narrows it when the grid has less room, but an `inline-flex` parent keeps 20rem and overflows a narrower container. To fit a phone, use a `1fr` track or a row that fills its parent.
+
+```tsx-live layout=row
+<DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }} />
+<Button size='lg'>Export</Button>
+```
+
 ### In a dashboard
 
 Give a dashboard description a `period`, and [DashboardView](/charts/dashboards#periods-and-comparisons) shows this toolbar above its sections. Its `onPeriodChange` gets the new period: resolve it with `resolveDateRange` and `resolveComparison`, fetch, and pass back a description with the new `period` and its `history`. A delta marked `comparison: true` follows the comparison. Here sales data starts on 1 March 2026, so month to date has nothing to compare with a year back. Choose the previous period to see the deltas.
