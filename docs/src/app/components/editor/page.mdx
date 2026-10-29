@@ -822,7 +822,8 @@ const preview = await renderEmail(nearlySoldOut, {
   `exists` takes no `value`. `equals` and `notEquals` take text or a number,
   and `lessThan` and `greaterThan` a number.
 - A number is compared as a number and text as text, as Liquid compares
-  them, so `20` and `'20'` are different rules.
+  them, so `20` and `'20'` are different rules. The sender's value must be
+  the same type as the rule's.
 - Columns and text blocks take no rule. To show a paragraph only to some
   recipients, put it in a section with the rule.
 - With `syntax: 'liquid'`, the block is wrapped in `{% if %}` and
@@ -831,7 +832,8 @@ const preview = await renderEmail(nearlySoldOut, {
   takes no filters in a condition.
 - With `values`, the block shows only when its rule holds. A missing or
   empty value doesn't exist, and a value that isn't a number is never less
-  or greater than one.
+  or greater than one. A preview value is a number when it's written in
+  decimal digits.
 - The `ae` syntax has no conditions, so a rule throws there, as does a rule
   naming a variable `variables` doesn't list, or text holding both quote
   marks or `%}`, which a Liquid string can't hold.

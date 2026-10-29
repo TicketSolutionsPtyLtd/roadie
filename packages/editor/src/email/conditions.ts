@@ -38,13 +38,25 @@ function liquidLiteral(value: string | number) {
 const BARE_PATH =
   /^\{\{-?\s*([A-Za-z_](?:[\w-]*\w)?(?:\.[A-Za-z_](?:[\w-]*\w)?)*)\s*-?\}\}$/
 
+const LIQUID_KEYWORDS = new Set([
+  'and',
+  'or',
+  'contains',
+  'empty',
+  'blank',
+  'nil',
+  'null',
+  'true',
+  'false'
+])
+
 // Liquid takes no filters in an `if`, and a filtered value isn't the raw one.
 function liquidPath({ key, tokens }: EditorVariable) {
   if (!tokens.liquid) {
     throw new RangeError(`The variable "${key}" has no liquid token.`)
   }
   const path = BARE_PATH.exec(tokens.liquid)?.[1]
-  if (!path) {
+  if (!path || LIQUID_KEYWORDS.has(path.split('.')[0]!)) {
     throw new RangeError(
       `The variable "${key}" can’t be in a condition: its Liquid token isn’t a plain variable.`
     )
@@ -57,8 +69,9 @@ function liquidCondition(path: string, rule: ShowWhen) {
   return `${path} ${OPERATORS[rule.op]} ${liquidLiteral(rule.value)}`
 }
 
+// Liquid reads only decimal numbers, never hex or exponents.
 const numberIn = (value: string | undefined) =>
-  value?.trim() && Number.isFinite(Number(value)) ? Number(value) : undefined
+  /^\s*-?\d+(\.\d+)?\s*$/.test(String(value)) ? Number(value) : undefined
 
 const matches = (value: string | undefined, wanted: string | number) =>
   typeof wanted === 'number' ? numberIn(value) === wanted : value === wanted

@@ -677,6 +677,31 @@ describe('renderEmail', () => {
       ).rejects.toThrow('"event_date"')
     })
 
+    it.each(['{{ empty }}', '{{ and }}', '{{ true.x }}'])(
+      'refuses a variable whose Liquid token %s is a keyword',
+      async (liquidToken) => {
+        await expect(
+          renderEmail(offer({ key: 'odd', op: 'exists' }), {
+            syntax: 'liquid',
+            variables: [
+              { key: 'odd', label: 'Odd', tokens: { liquid: liquidToken } }
+            ]
+          })
+        ).rejects.toThrow('"odd"')
+      }
+    )
+
+    it.each(['0x10', '1e1', ' '])(
+      'reads %j as no number in a preview, as Liquid does',
+      async (tickets_left) => {
+        const { text: plain } = await renderEmail(
+          offer({ key: 'tickets_left', op: 'greaterThan', value: 0 }),
+          { variables, values: { tickets_left } }
+        )
+        expect(plain).toBe('Before\n\nAfter')
+      }
+    )
+
     it('refuses a variable with no Liquid token', async () => {
       await expect(
         liquid(offer({ key: 'first_name', op: 'exists' }))
