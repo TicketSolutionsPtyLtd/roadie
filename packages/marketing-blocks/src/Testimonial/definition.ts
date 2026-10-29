@@ -14,3 +14,6 @@ export const testimonialDefinition = {
     }
   ]
 } as const satisfies BlockDefinition
+
+export type TestimonialPreset =
+  (typeof testimonialDefinition.presets)[number]['name']

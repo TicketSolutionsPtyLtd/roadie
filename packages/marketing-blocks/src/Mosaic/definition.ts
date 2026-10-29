@@ -4,7 +4,7 @@ export const mosaicDefinition = {
   name: 'mosaic',
   title: 'Mosaic',
   description:
-    'A dense grid of photo tiles, each with a logo and a label, some twice as wide.',
+    'Logos in a grid, as photo tiles with a label or as a strip of logos alone.',
   presets: [
     {
       name: 'tiers',
@@ -22,3 +22,5 @@ export const mosaicDefinition = {
     }
   ]
 } as const satisfies BlockDefinition
+
+export type MosaicPreset = (typeof mosaicDefinition.presets)[number]['name']

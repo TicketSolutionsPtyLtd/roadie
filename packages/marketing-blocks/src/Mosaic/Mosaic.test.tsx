@@ -204,6 +204,30 @@ describe('Mosaic', () => {
       expect(document.querySelector('[data-featured]')).toBeNull()
     })
 
+    it('gives a logo with no height a valid sizes', () => {
+      const renderImage = vi.fn(({ alt }: { alt: string }) => (
+        <img alt={alt} src='/optimised.webp' />
+      ))
+      render(
+        <MarketingBlocksProvider renderImage={renderImage}>
+          <Mosaic
+            {...logoStrip}
+            tiles={[
+              {
+                name: 'Kerosene Pony Collective',
+                logo: { ...logoStrip.tiles[0]!.logo!, height: 0 }
+              }
+            ]}
+          />
+        </MarketingBlocksProvider>
+      )
+
+      expect(renderImage.mock.calls[0]![0]).toHaveProperty(
+        'sizes',
+        expect.stringMatching(/^\d+(\.\d+)?px$/)
+      )
+    })
+
     it('falls back to the name for a logo with no alt text', () => {
       render(
         <Mosaic

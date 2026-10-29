@@ -8,16 +8,16 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
-import { mosaicDefinition } from './definition'
+import { type MosaicPreset, mosaicDefinition } from './definition'
 
-export type MosaicPreset = (typeof mosaicDefinition.presets)[number]['name']
+export type { MosaicPreset } from './definition'
 
 export type MosaicTile = {
-  /** What the tile shows, such as a partner's name: its accessible name, and the logo's alt text when that's empty. */
+  /** Who the tile is for, such as a partner's name: shown as text when there's no logo, and the logo's alt text when that's empty. */
   name: string
   /** Marked at the foot of the tile, such as a partnership level like `Presenting partner`. `logo-strip` doesn't show it. */
   label?: string
-  /** A logo drawn light over the photo. Without one, the tile shows its `name` as text. */
+  /** The tile's logo. On `tiers` it sits over the photo's dark shade, so a light or white logo suits it. Without one, the tile shows its `name` as text. */
   logo?: BlockImage
   /** A photo filling the tile, such as from the partner's event. Decorative, so its alt text isn't read. Without one, `tiers` sets the tile on a plain surface. */
   image?: BlockImage
@@ -64,7 +64,7 @@ export type MosaicProps = {
 // percentage of its own width, two columns and a gap, so it subtracts half
 // the gap to match a square tile.
 const GRID =
-  'grid grid-flow-row-dense gap-(--tile-gap) *:min-w-0 [--tile-gap:--spacing(2)] grid-cols-[repeat(auto-fit,minmax(min(max(11rem,calc(25%-var(--tile-gap)*3/4)),calc(50%-var(--tile-gap)/2)),1fr))] @xl:[--tile-gap:--spacing(4)] @3xl:[--tile-gap:--spacing(8)]'
+  'grid grid-flow-row-dense gap-(--tile-gap) *:min-w-0 [--tile-gap:--spacing(2)] grid-cols-[repeat(auto-fill,minmax(min(max(11rem,calc(25%-var(--tile-gap)*3/4)),calc(50%-var(--tile-gap)/2)),1fr))] @xl:[--tile-gap:--spacing(4)] @3xl:[--tile-gap:--spacing(8)]'
 const TILE =
   'dark relative isolate grid overflow-hidden rounded-xl @3xl:rounded-3xl'
 const STACKED = 'col-start-1 row-start-1'
@@ -75,7 +75,7 @@ const TILE_SIZES = '(min-width: 768px) 25vw, 50vw'
 const WIDE_SIZES = '(min-width: 768px) 50vw, 100vw'
 const STRIP_LOGO_HEIGHT = 48
 
-/** A dense grid of photo tiles, each with a logo and a marked label, some two columns wide, closed by an optional tile of logos. */
+/** Logos in a grid: as photo tiles with a marked label, some two columns wide, or as a strip of logos alone. */
 export function Mosaic({
   preset,
   position,
@@ -203,13 +203,20 @@ function LogosTile({ title = 'Also supporting', logos }: MosaicLogoTile) {
   )
 }
 
+// A logo without both dimensions has no ratio to size by, so it asks for a
+// width that fits most wordmarks at the strip's height.
+function stripLogoSizes({ width, height }: BlockImage) {
+  const ratio = width && height ? width / height : 4
+  return `${Math.round(STRIP_LOGO_HEIGHT * ratio)}px`
+}
+
 function StripLogo({ name, logo }: MosaicTile) {
   return (
     <li>
       {logo ? (
         <BlockImg
           image={{ ...logo, alt: logo.alt || name }}
-          sizes={`${STRIP_LOGO_HEIGHT * ((logo.width ?? 1) / (logo.height ?? 1))}px`}
+          sizes={stripLogoSizes(logo)}
           className='h-12 w-auto object-contain'
         />
       ) : (

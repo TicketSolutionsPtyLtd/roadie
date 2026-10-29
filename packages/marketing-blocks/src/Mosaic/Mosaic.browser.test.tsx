@@ -58,6 +58,28 @@ describe('Mosaic tiers layout', () => {
     }
   )
 
+  it.each([1, 2])(
+    'keeps %i tiles at the four-column size at desktop width',
+    async (count) => {
+      await atWidth(DESKTOP.width, DESKTOP.height)
+      const square = offline(partnerTiers).tiles[1]!
+      render(
+        <Mosaic
+          {...partnerTiers}
+          tiles={Array.from({ length: count }, () => square)}
+          logoTile={undefined}
+        />
+      )
+
+      const list = document.querySelector('ul')!.getBoundingClientRect()
+      const gap = parseFloat(
+        getComputedStyle(document.querySelector('ul')!).columnGap
+      )
+      for (const tile of tiles())
+        expect(tile.width).toBeCloseTo((list.width - gap * 3) / 4, 0)
+    }
+  )
+
   it('packs a square partner into the gap a wide tile leaves', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const [featured, square] = offline(partnerTiers).tiles

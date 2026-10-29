@@ -7,10 +7,9 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
-import { testimonialDefinition } from './definition'
+import { type TestimonialPreset, testimonialDefinition } from './definition'
 
-export type TestimonialPreset =
-  (typeof testimonialDefinition.presets)[number]['name']
+export type { TestimonialPreset } from './definition'
 
 export type TestimonialPerson = {
   /** The person quoted. */
