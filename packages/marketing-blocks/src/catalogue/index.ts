@@ -29,7 +29,7 @@ export type CatalogueBlock = Omit<BlockDefinition, 'presets'> & {
 
 const PACKAGE = '@oztix/roadie-marketing-blocks'
 
-export function thumbnailFile(block: string, preset: string): string {
+function thumbnailFile(block: string, preset: string): string {
   return `${block}-${preset}.svg`
 }
 

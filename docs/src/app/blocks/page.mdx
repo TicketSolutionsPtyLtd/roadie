@@ -25,8 +25,8 @@ Import its stylesheet after the components' stylesheet:
 
 Blocks take plain props, such as strings, `{ src, alt }` images, and
 `{ label, href }` actions, so a CMS maps its content onto them. The package
-knows nothing about any CMS. Rich text arrives already rendered, as
-children or a `body`, and the block sets it in `Prose`.
+knows nothing about any CMS. Rich text arrives already rendered, as a
+`body` or an FAQ `answer`, and the block sets it in `Prose`.
 
 ## Presets
 
@@ -64,10 +64,12 @@ an image.
 ## Tracking
 
 Wrap the site in `MarketingBlocksProvider` and pass `onBlockEvent`. Every block
-reports a `view` once, when half of it is on screen (or, for a block taller
-than twice the screen, when it fills half the screen), and a `click` for each
-link or button inside it. Each event names the block, its variant and preset,
-and its `position` on the page, and a click adds the control's label and href.
+reports a `view` once: when half of it is on screen, or, for a block too tall
+for that, when it reaches the middle of the screen. It reports a `click` for
+each link or button inside it. Each event names the block, its variant and
+preset, its `position` on the page, and its `id` when it has one, and a click
+adds the control's label and href. A provider inside another keeps whatever it
+doesn't set, such as the outer `onBlockEvent`.
 
 ```tsx
 'use client'

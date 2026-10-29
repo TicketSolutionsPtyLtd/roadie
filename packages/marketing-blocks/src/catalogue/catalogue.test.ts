@@ -2,7 +2,7 @@ import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { catalogue, thumbnailFile } from '.'
+import { catalogue } from '.'
 
 const SRC = join(import.meta.dirname, '..')
 const toKebab = (pascal: string) =>
@@ -24,12 +24,13 @@ describe('catalogue', () => {
 
   it.each(
     catalogue.flatMap((block) =>
-      block.presets.map((preset) => [block.name, preset.name])
+      block.presets.map((preset) => [
+        `${block.name} ${preset.name}`,
+        preset.thumbnail
+      ])
     )
-  )('has a thumbnail for %s %s', (block, preset) => {
-    expect(
-      existsSync(join(SRC, 'thumbnails', thumbnailFile(block, preset)))
-    ).toBe(true)
+  )('has a thumbnail for %s', (_, thumbnail) => {
+    expect(existsSync(join(SRC, 'thumbnails', thumbnail))).toBe(true)
   })
 
   it('keeps every block to two variants and unique preset names', () => {
@@ -43,7 +44,7 @@ describe('catalogue', () => {
 
   it('has a block for every thumbnail', () => {
     const expected = catalogue.flatMap((block) =>
-      block.presets.map((preset) => thumbnailFile(block.name, preset.name))
+      block.presets.map((preset) => preset.thumbnail)
     )
     const files = readdirSync(join(SRC, 'thumbnails')).filter((file) =>
       file.endsWith('.svg')
