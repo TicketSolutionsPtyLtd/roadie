@@ -41,7 +41,7 @@ export function BlockHeading({
   return (
     <div
       className={cn(
-        'grid gap-2',
+        'grid min-w-0 grid-cols-1 gap-2',
         align === 'center' ? 'justify-items-center text-center' : 'text-start',
         className
       )}
