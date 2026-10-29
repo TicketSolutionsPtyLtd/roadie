@@ -69,14 +69,24 @@ function keptMedia(body: HTMLElement, preset: Preset) {
   return dropped
 }
 
-// Cells run together as inline text in a preset with no table, so each
-// becomes a block of its own.
-function cellsAsBlocks(body: HTMLElement, preset: Preset) {
-  if (Object.hasOwn(presetShapes[preset].nodes, 'table')) return
+const BLOCKS_IN_CELL =
+  'ul, ol, li, h1, h2, h3, h4, h5, h6, blockquote, table, caption, thead, tbody, tfoot, tr, td, th'
+
+function asTextBlock(element: Element) {
+  const block = element.ownerDocument.createElement('div')
+  block.append(...element.childNodes)
+  element.replaceWith(block)
+}
+
+// A cell holds only paragraphs, and the schema would lift any other block
+// out past its table, so each becomes a block of text where it stands. With
+// no table in the preset, cells would run together, so each cell does.
+function cellsAsText(body: HTMLElement, preset: Preset) {
+  const canHoldTables = Object.hasOwn(presetShapes[preset].nodes, 'table')
   for (const cell of body.querySelectorAll('td, th')) {
-    const block = cell.ownerDocument.createElement('div')
-    block.append(...cell.childNodes)
-    cell.replaceWith(block)
+    if (!cell.isConnected) continue
+    if (!canHoldTables) asTextBlock(cell)
+    else cell.querySelectorAll(BLOCKS_IN_CELL).forEach(asTextBlock)
   }
 }
 
@@ -138,7 +148,7 @@ export function htmlToEditorValue(
   }
   const { body } = new DOMParser().parseFromString(html, 'text/html')
   const dropped = keptMedia(body, preset)
-  cellsAsBlocks(body, preset)
+  cellsAsText(body, preset)
   const doc = splitAtBreaks(
     SchemaParser.fromSchema(schemaFor(preset)).parse(body).toJSON()
   )

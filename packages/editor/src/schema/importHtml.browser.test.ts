@@ -218,6 +218,38 @@ describe('htmlToEditorValue', () => {
     }
   )
 
+  it('keeps the text of other blocks in a table cell, in its cell', () => {
+    const cell = (...content: JSONContent[]) => ({
+      type: 'tableCell',
+      attrs: { colspan: 1, rowspan: 1 },
+      content
+    })
+
+    expect(
+      blocks(
+        '<table><tbody><tr><td><h1>Doors</h1><ul><li>7pm</li><li>9pm</li></ul></td><td><blockquote>All ages</blockquote><table><tbody><tr><td>Bar</td></tr></tbody></table></td></tr></tbody></table><p>Tickets</p>'
+      )
+    ).toEqual([
+      {
+        type: 'table',
+        content: [
+          {
+            type: 'tableRow',
+            content: [
+              cell(
+                paragraph(text('Doors')),
+                paragraph(text('7pm')),
+                paragraph(text('9pm'))
+              ),
+              cell(paragraph(text('All ages')), paragraph(text('Bar')))
+            ]
+          }
+        ]
+      },
+      paragraph(text('Tickets'))
+    ])
+  })
+
   it('keeps a table’s text in basic', () => {
     expect(
       blocks(
