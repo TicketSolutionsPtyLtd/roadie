@@ -1,7 +1,11 @@
 import { type JSONContent, getSchema } from '@tiptap/core'
 import { type Schema, DOMParser as SchemaParser } from '@tiptap/pm/model'
 
-import { parseEmbedUrl } from './embed'
+import {
+  type EmbedProvider,
+  defaultEmbedProviders,
+  parseEmbedUrl
+} from './embed'
 import { isSafeImageSrc } from './imageSrc'
 import { type Preset, isPreset, presetShapes } from './presetShapes'
 import { presets } from './presets'
@@ -25,11 +29,18 @@ function report(kind: DroppedContent['kind'], src: string | null) {
   return src && !/^\s*data:/i.test(src) ? { kind, src } : { kind }
 }
 
-function embedFor(iframe: Element, preset: Preset) {
+function embedFor(
+  iframe: Element,
+  preset: Preset,
+  providers: readonly EmbedProvider[]
+) {
   if (!Object.hasOwn(presetShapes[preset].nodes, 'embed')) return null
   // Old embed code, YouTube's among it, writes players protocol-relative.
   const src = (iframe.getAttribute('src') ?? '').trim()
-  const value = parseEmbedUrl(src.startsWith('//') ? `https:${src}` : src)
+  const value = parseEmbedUrl(
+    src.startsWith('//') ? `https:${src}` : src,
+    providers
+  )
   if (!value) return null
   const embed = iframe.ownerDocument.createElement('div')
   embed.dataset.embed = ''
@@ -42,7 +53,11 @@ function embedFor(iframe: Element, preset: Preset) {
 // The schema would skip these quietly, so each is swapped or removed here,
 // where what's lost can be reported. A cell holds only paragraphs, so no
 // image or embed survives in one.
-function keptMedia(body: HTMLElement, preset: Preset) {
+function keptMedia(
+  body: HTMLElement,
+  preset: Preset,
+  providers: readonly EmbedProvider[]
+) {
   const dropped: DroppedContent[] = []
   const canHoldImages = Object.hasOwn(presetShapes[preset].nodes, 'image')
   for (const element of body.querySelectorAll(
@@ -55,7 +70,7 @@ function keptMedia(body: HTMLElement, preset: Preset) {
       if (canHoldImages && !inCell && isSafeImageSrc(src)) continue
       dropped.push(report('image', src))
     } else if (element.localName === 'iframe') {
-      const embed = inCell ? null : embedFor(element, preset)
+      const embed = inCell ? null : embedFor(element, preset, providers)
       if (embed) {
         element.replaceWith(embed)
         continue
@@ -135,11 +150,17 @@ function splitAtBreaks(node: JSONContent): JSONContent {
  * video, audio and plugin elements are dropped and listed in `dropped`, in
  * document order, so an app can warn before overwriting legacy content.
  *
+ * Iframes become embeds when one of `embedProviders` reads their player URL;
+ * pass the editor's own providers if it has them.
+ *
  * Needs a browser's `DOMParser`. Throws a RangeError on an unknown preset.
  */
 export function htmlToEditorValue(
   html: string,
-  preset: Preset
+  preset: Preset,
+  {
+    embedProviders = defaultEmbedProviders
+  }: { embedProviders?: readonly EmbedProvider[] } = {}
 ): { value: EditorValue; dropped: DroppedContent[] } {
   if (!isPreset(preset)) {
     throw new RangeError(`Unknown EditorValue preset "${preset}".`)
@@ -148,7 +169,7 @@ export function htmlToEditorValue(
     throw new Error('htmlToEditorValue needs a browser’s DOMParser.')
   }
   const { body } = new DOMParser().parseFromString(html, 'text/html')
-  const dropped = keptMedia(body, preset)
+  const dropped = keptMedia(body, preset, embedProviders)
   cellsAsText(body, preset)
   const doc = splitAtBreaks(
     SchemaParser.fromSchema(schemaFor(preset)).parse(body).toJSON()

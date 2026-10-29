@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { type JSONContent, htmlToEditorValue } from './index'
+import {
+  type EmbedProvider,
+  type JSONContent,
+  htmlToEditorValue
+} from './index'
 
 const text = (value: string, marks?: JSONContent['marks']): JSONContent => ({
   type: 'text',
@@ -373,6 +377,47 @@ describe('htmlToEditorValue', () => {
 
       expect(value.doc.content).toEqual([paragraph(text('Watch'))])
       expect(dropped).toEqual([report])
+    })
+  })
+
+  describe('embedProviders', () => {
+    const venueTv: EmbedProvider = {
+      name: 'venuetv',
+      id: /^\d+$/,
+      aspect: '16:9',
+      match: (url) =>
+        url.hostname === 'tv.oztix.com.au'
+          ? { id: url.pathname.slice(1) }
+          : null,
+      src: ({ id }) => `https://tv.oztix.com.au/${id}`
+    }
+
+    it('reads an app provider’s player as an embed', () => {
+      const { value, dropped } = htmlToEditorValue(
+        '<iframe src="https://tv.oztix.com.au/42"></iframe>',
+        'rich',
+        { embedProviders: [venueTv] }
+      )
+
+      expect(value.doc.content).toEqual([
+        {
+          type: 'embed',
+          attrs: { provider: 'venuetv', id: '42', params: null }
+        }
+      ])
+      expect(dropped).toEqual([])
+    })
+
+    it('replaces the default providers', () => {
+      const { dropped } = htmlToEditorValue(
+        '<iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>',
+        'rich',
+        { embedProviders: [venueTv] }
+      )
+
+      expect(dropped).toEqual([
+        { kind: 'embed', src: 'https://www.youtube.com/embed/dQw4w9WgXcQ' }
+      ])
     })
   })
 

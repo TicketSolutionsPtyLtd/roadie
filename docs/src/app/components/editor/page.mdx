@@ -664,6 +664,10 @@ import { htmlToEditorValue } from '@oztix/roadie-editor/schema'
   embed provider reads, and video and audio are dropped and listed in
   `dropped`, so you can warn before the legacy content is overwritten.
 
+Iframes become embeds when a provider reads their player address. If the
+editor has its own `embedProviders`, pass the same list:
+`htmlToEditorValue(html, 'rich', { embedProviders })`.
+
 It needs a browser, so call it in a client component.
 
 ```tsx-live-prose-noinline
