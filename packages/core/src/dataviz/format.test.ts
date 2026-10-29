@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 
 import {
   type CurrencyFormatOptions,
@@ -33,6 +33,14 @@ describe('currencyFormat', () => {
       .format(value)
       .replace(/\u00a0/g, ' ')
     expect(normalizeMinusSign(text)).toBe(expected)
+  })
+
+  it("returns options NumberFlow's format prop accepts", () => {
+    // number-flow's Format type: no scientific or engineering notation.
+    type NumberFlowFormat = Omit<Intl.NumberFormatOptions, 'notation'> & {
+      notation?: 'standard' | 'compact'
+    }
+    expectTypeOf(currencyFormat()).toExtend<NumberFlowFormat>()
   })
 
   it('falls back to dollars for a code Intl does not know', () => {

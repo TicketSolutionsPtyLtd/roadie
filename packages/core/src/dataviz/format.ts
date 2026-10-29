@@ -65,6 +65,11 @@ export type CurrencyFormatOptions = {
   compact?: boolean
 }
 
+// NumberFlow's format prop rejects scientific and engineering notation.
+type CurrencyFormat = Intl.NumberFormatOptions & {
+  notation?: 'standard' | 'compact'
+}
+
 const HOUSE_CURRENCY = 'AUD'
 const MAX_INTL_DECIMALS = 20
 const minorUnits = new Map<string, number | null>()
@@ -96,12 +101,12 @@ export function currencyFormat({
   decimals,
   trimZeros = true,
   compact = false
-}: CurrencyFormatOptions = {}): Intl.NumberFormatOptions {
+}: CurrencyFormatOptions = {}): CurrencyFormat {
   const requested =
     typeof currency === 'string' ? currency.toUpperCase() : HOUSE_CURRENCY
   const units = currencyMinorUnits(requested)
   const code = units === null ? HOUSE_CURRENCY : requested
-  const symbol: Intl.NumberFormatOptions = {
+  const symbol: CurrencyFormat = {
     style: 'currency',
     currency: code,
     currencyDisplay: code === HOUSE_CURRENCY ? 'narrowSymbol' : 'symbol'
