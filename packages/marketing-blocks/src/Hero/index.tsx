@@ -55,9 +55,9 @@ export type HeroProps = {
   backgroundImage?: BlockImage
   /** The clip beside the title in `bento`. */
   video?: HeroVideoSource
-  /** Photos that cycle in `bento`'s panel beside the title, shown from a desktop width. */
+  /** Photos that cycle in `bento`'s panel beside the title, shown once the block is about 56rem wide. */
   primaryImages?: readonly BlockImage[]
-  /** Photos that cycle in `bento`'s lower panel beside the video, shown from a tablet width. */
+  /** Photos that cycle in `bento`'s lower panel beside the video, shown once the block is about 36rem wide. */
   secondaryImages?: readonly BlockImage[]
   /**
    * The spot illustration after the title in `bento`.
@@ -131,7 +131,7 @@ function TitleOnly({
   actions
 }: PresetProps) {
   return (
-    <div className='container-8xl grid justify-items-start gap-6'>
+    <div className='container-8xl grid justify-items-start gap-6 *:min-w-0'>
       <BlockHeading
         id={headingId}
         level={1}
@@ -157,8 +157,8 @@ function ImageHero({
   image
 }: PresetProps) {
   return (
-    <div className='container-8xl grid gap-8 @5xl:grid-cols-5 @5xl:items-center @5xl:gap-16'>
-      <div className='grid justify-items-start gap-6 @5xl:col-span-2'>
+    <div className='container-8xl grid gap-8 *:min-w-0 @xl:grid-cols-2 @xl:items-center @4xl:grid-cols-5 @4xl:gap-16'>
+      <div className='grid justify-items-start gap-6 @4xl:col-span-2'>
         <BlockHeading
           id={headingId}
           level={1}
@@ -171,10 +171,10 @@ function ImageHero({
         <BlockActions actions={actions} />
       </div>
       {image && (
-        <div className='order-first overflow-clip rounded-xl @5xl:order-last @5xl:col-span-3'>
+        <div className='order-first overflow-clip rounded-xl @xl:order-last @4xl:col-span-3'>
           <BlockImg
             image={image}
-            sizes='(min-width: 1024px) 60vw, 100vw'
+            sizes='(min-width: 960px) 60vw, (min-width: 640px) 50vw, 100vw'
             priority
             className='h-auto w-full'
           />
@@ -187,7 +187,7 @@ function ImageHero({
 // Fixed white frames and a fixed navy scrim, as the photos sit the same in
 // both themes. 60% keeps body text at APCA Lc 75 over even a white photo.
 const PANEL =
-  'relative overflow-clip rounded-3xl border-4 border-(--color-neutral-light-0) bg-subtle @3xl:border-6 @5xl:border-8'
+  'relative overflow-clip rounded-3xl border-4 border-(--color-neutral-light-0) bg-subtle @xl:border-6 @4xl:border-8'
 
 function Bento({
   headingId,
@@ -203,23 +203,23 @@ function Bento({
 }: PresetProps) {
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
   return (
-    <div className='mx-auto w-full max-w-8xl px-4 @3xl:px-6 @7xl:px-2'>
-      <div className='grid grid-cols-1 gap-4 @3xl:grid-cols-9 @3xl:gap-2.5 @5xl:gap-3 @7xl:gap-4'>
+    <div className='mx-auto w-full max-w-8xl px-4 @xl:px-6 @7xl:px-2'>
+      <div className='grid grid-cols-1 gap-4 *:min-w-0 @xl:grid-cols-9 @xl:gap-2.5 @4xl:gap-3 @7xl:gap-4'>
         <div
           data-slot='hero-heading'
-          className={`${PANEL} grid @3xl:col-span-9 @5xl:col-span-6`}
+          className={`${PANEL} grid @xl:col-span-9 @4xl:col-span-6`}
         >
           {backgroundImage && (
             <BlockImg
               image={{ ...backgroundImage, alt: '' }}
-              sizes='(min-width: 1024px) 66vw, 100vw'
+              sizes='(min-width: 960px) 66vw, 100vw'
               priority
               className='absolute inset-0 size-full object-cover'
             />
           )}
           <div
             data-slot='hero-scrim'
-            className='relative grid gap-8 bg-(--color-brand-light-13)/60 px-6 py-8 text-(--color-neutral-light-0) @3xl:px-8 @3xl:py-10 @5xl:px-10 @5xl:py-12'
+            className='relative grid gap-8 bg-(--color-brand-light-13)/60 px-6 py-8 text-(--color-neutral-light-0) @xl:px-8 @xl:py-10 @4xl:px-10 @4xl:py-12'
           >
             <div className='grid content-center gap-2'>
               <Title
@@ -231,7 +231,7 @@ function Bento({
                 {' '}
                 <Illustration
                   outline
-                  className='inline-block size-12 align-middle @3xl:size-16 @5xl:size-20'
+                  className='inline-block size-12 align-middle @xl:size-16 @4xl:size-20'
                 />
               </Title>
               {description && (
@@ -246,31 +246,31 @@ function Bento({
         {primaryImages.length > 0 && (
           <div
             data-slot='hero-primary'
-            className={`${PANEL} hidden @5xl:col-span-3 @5xl:block`}
+            className={`${PANEL} hidden @4xl:col-span-3 @4xl:block`}
           >
             <ImageCycler
               images={primaryImages}
               interval={4000}
-              sizes='(min-width: 1024px) 25vw, 0px'
+              sizes='(min-width: 960px) 33vw, 0px'
             />
           </div>
         )}
         {secondaryImages.length > 0 && (
           <div
             data-slot='hero-secondary'
-            className={`${PANEL} hidden @3xl:col-span-4 @3xl:block`}
+            className={`${PANEL} hidden @xl:col-span-4 @xl:block`}
           >
             <ImageCycler
               images={secondaryImages}
               interval={5000}
-              sizes='(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 0px'
+              sizes='(min-width: 640px) 45vw, 0px'
             />
           </div>
         )}
         {video && (
           <div
             data-slot='hero-video'
-            className={`${PANEL} aspect-video @3xl:col-span-5`}
+            className={`${PANEL} aspect-video @xl:col-span-5`}
           >
             <HeroVideo {...video} />
           </div>

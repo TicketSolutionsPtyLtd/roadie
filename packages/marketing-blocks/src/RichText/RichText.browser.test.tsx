@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { RichText } from '.'
 import {
   DESKTOP,
+  PHONE,
   atWidth,
   axeViolations,
   widths,
@@ -36,16 +37,27 @@ describe('RichText statement', () => {
     probe.remove()
   })
 
-  it('leaves the space around it to the page', async () => {
-    await atWidth(DESKTOP.width, DESKTOP.height)
+  it('runs its title the full width, with no measure', async () => {
+    await atWidth(1440, 900)
+    const { container } = render(<RichText {...statement} />)
+
+    expect(getComputedStyle(container.querySelector('h2')!).maxWidth).toBe(
+      'none'
+    )
+  })
+
+  it.each([
+    [PHONE.width, 32],
+    [640, 64],
+    [DESKTOP.width, 128]
+  ])('breathes above and below at %ipx, as its look', async (width, space) => {
+    await atWidth(width, 900)
     const { container } = render(<RichText {...statement} />)
     const section = container.querySelector('section')!
-    const illustration = section.querySelector('svg')!
+    const content = section.firstElementChild!
 
-    expect(illustration.getBoundingClientRect().top).toBeCloseTo(
-      section.getBoundingClientRect().top,
-      0
-    )
+    expect(parseFloat(getComputedStyle(content).paddingTop)).toBe(space)
+    expect(parseFloat(getComputedStyle(content).paddingBottom)).toBe(space)
   })
 })
 

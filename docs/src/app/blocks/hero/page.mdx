@@ -2,6 +2,7 @@ export const metadata = {
   title: 'Hero',
   description: "Opens a page with its title, as the page's main heading",
   status: 'alpha',
+  wide: true,
   category: 'Openers'
 }
 
@@ -20,9 +21,10 @@ import { Hero } from '@oztix/roadie-marketing-blocks/hero'
 
 ### Bento
 
-The page hero for landing pages. The title sits over a photo, beside a muted, looping video. From a tablet
-width, `secondaryImages` fill the panel beside the video, and from a desktop
-width, `primaryImages` sit beside the title. Each set of photos crossfades
+The page hero for landing pages. The title sits over a photo, beside a
+muted, looping video. Once the block is about 36rem wide, `secondaryImages`
+fill the panel beside the video, and from about 56rem, `primaryImages` sit
+beside the title. Each set of photos crossfades
 while it's on screen.
 
 ```tsx-live-expand id=bento
@@ -55,9 +57,10 @@ while it's on screen.
 
 ### Image
 
-A title beside one photo, for industry and service pages. From a desktop
-width the text takes about two fifths and the photo the rest; below that,
-the photo sits above the text. The photo keeps its own shape.
+A title beside one photo, for industry and service pages. Once the block is
+about 36rem wide, the text and photo sit side by side, and from about 56rem
+the text takes two fifths. Below that, the photo sits above the text. The
+photo keeps its own shape.
 
 ```tsx-live-expand id=image
 <Hero

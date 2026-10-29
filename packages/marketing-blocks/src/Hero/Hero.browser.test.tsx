@@ -36,8 +36,8 @@ describe('Hero bento layout', () => {
     expect(box('video').width).toBeCloseTo(box('heading').width, 0)
   })
 
-  it('sets the secondary photos beside the video under a full-width title on a tablet', async () => {
-    await showAt(820)
+  it('sets the secondary photos beside the video under a full-width title at 640px', async () => {
+    await showAt(640)
 
     expect(shown('primary')).toBe(false)
     expect(box('secondary').top).toBeCloseTo(box('video').top, 0)
@@ -46,6 +46,13 @@ describe('Hero bento layout', () => {
     expect(box('heading').width).toBeGreaterThan(
       box('video').right - box('secondary').left - 1
     )
+  })
+
+  it('puts the primary photos beside the title from 960px', async () => {
+    await showAt(960)
+
+    expect(box('primary').top).toBeCloseTo(box('heading').top, 0)
+    expect(box('primary').left).toBeGreaterThan(box('heading').right)
   })
 
   it('puts the primary photos beside the title, and secondary beside the video, on a desktop', async () => {
@@ -95,7 +102,7 @@ const SLOTS = ['heading', 'primary', 'secondary', 'video']
 describe('Hero bento frames and scrim', () => {
   it.each([
     [PHONE.width, '4px'],
-    [820, '6px'],
+    [640, '6px'],
     [DESKTOP.width, '8px']
   ])('frames each panel in fixed white at %ipx', async (width, border) => {
     await showAt(width)
@@ -167,6 +174,15 @@ describe('Hero image layout', () => {
   const parts = () => ({
     title: document.querySelector('h1')!.parentElement!.getBoundingClientRect(),
     photo: document.querySelector('img')!.getBoundingClientRect()
+  })
+
+  it('sets the text beside the photo at 640px, in halves', async () => {
+    await showAt(640, <Hero {...imageHero(photo)} />)
+    const { title, photo: image } = parts()
+
+    expect(title.right).toBeLessThan(image.left)
+    expect(image.top).toBeLessThan(title.bottom)
+    expect(image.width / (title.width + image.width)).toBeCloseTo(0.5, 1)
   })
 
   it('sets the photo above the text on a phone, at its own shape', async () => {

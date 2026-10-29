@@ -83,10 +83,12 @@ function Statement({
 }: PresetProps) {
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
   return (
-    <div className='container-8xl grid justify-items-center gap-4 text-center'>
+    // The breathing room is this preset's look, the one block with outer padding.
+    <div className='container-8xl grid justify-items-center gap-4 py-8 text-center *:min-w-0 @xl:py-16 @4xl:py-32'>
       <Illustration outline className='size-16' />
       {title ? (
         <BlockHeading
+          className='[&>h2]:max-w-none'
           id={headingId}
           size={4}
           eyebrow={eyebrow}
@@ -120,7 +122,7 @@ function LongForm({
   actions
 }: PresetProps) {
   return (
-    <div className='container-3xl grid gap-6'>
+    <div className='container-3xl grid gap-6 *:min-w-0'>
       {title ? (
         <BlockHeading
           id={headingId}

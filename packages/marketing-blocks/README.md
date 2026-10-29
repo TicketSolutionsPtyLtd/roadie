@@ -48,7 +48,8 @@ Run `pnpm generate:exports` after adding the folder.
   queries (`@3xl:`, `@5xl:`, `@7xl:`), never viewport breakpoints. A block in a Studio
   preview pane or a narrow column lays out as it would on a phone.
 - **No outer vertical padding.** The page spaces blocks with its gap. A block pads only
-  inside a surface it draws, such as a raised panel.
+  inside a surface it draws, such as a raised panel. The one exception is RichText's
+  `statement`, whose generous space above and below is its look.
 - **Shared names.** Illustrations take `SpotIllustrationName` from `src/_shared/illustrations.ts`
   (re-exported from `/provider`), headings go through `BlockHeading` (its `size` sets a
   preset's title step), and images through `BlockImg` with the `sizes` the layout needs.
