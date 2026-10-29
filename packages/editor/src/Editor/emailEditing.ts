@@ -53,7 +53,7 @@ export function insertBlock(content: JSONContent) {
   }
 }
 
-export const BUTTON_LABEL = 'Button'
+const BUTTON_LABEL = 'Button'
 
 export const buttonBlock = (href: string): JSONContent => ({
   type: 'button',

@@ -31,7 +31,7 @@ const HOLDING = new Set<EditorNodeType>(['button', 'columns'])
  * The node with its own toolbar: a selected image, embed or spacer, or the
  * button or columns holding the selection.
  */
-export function selectedNode(
+function selectedNode(
   state: EditorState
 ): { type: EditorNodeType; pos: number } | undefined {
   const { selection } = state

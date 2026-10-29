@@ -288,7 +288,7 @@ const removeButton: EditorControl = {
 }
 
 /** Named spacer heights, in pixels within the spacer's 8 to 160. */
-export const SPACER_HEIGHTS = [
+const SPACER_HEIGHTS = [
   ['Small', 16],
   ['Medium', 32],
   ['Large', 64],
