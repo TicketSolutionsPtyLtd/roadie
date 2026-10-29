@@ -114,16 +114,20 @@ describe('formatRecordValue', () => {
     ).toBe('$12,500')
   })
 
-  it('reads an amount it cannot show as not available', () => {
+  it.each<[number, RecordField['format'], string]>([
+    [Number.POSITIVE_INFINITY, undefined, 'Not available'],
+    [-1234.5, undefined, '-NZD\u00a01,234.50'],
+    [1_234_567, 'compactCurrency', 'NZD\u00a01.2M'],
+    [999.5, 'compactCurrency', 'NZD\u00a0999.50']
+  ])('reads %s as %s in NZD: %s', (value, format, expected) => {
     const gross: RecordField = {
       key: 'gross',
       label: 'Gross',
       type: 'money',
-      currency: 'NZD'
+      currency: 'NZD',
+      format
     }
-    expect(
-      formatRecordValue({ gross: Number.POSITIVE_INFINITY }, gross, options)
-    ).toBe('Not available')
+    expect(formatRecordValue({ gross: value }, gross, options)).toBe(expected)
   })
 
   it('shows text it cannot format as given', () => {
