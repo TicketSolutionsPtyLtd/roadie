@@ -141,6 +141,28 @@ describe('dashboardSchema', () => {
     expect(dashboardSchema.safeParse(spec([card])).success).toBe(true)
   })
 
+  it('takes decimal places on card values and deltas', () => {
+    const options = { decimals: 2, trimZeros: true }
+    const cards = [
+      { ...stat, ...options, delta: { ...stat.delta, ...options } },
+      { ...chart, ...options },
+      {
+        ...chart,
+        plot: {
+          kind: 'bar',
+          data: [{ day: '2026-10-01', sold: 4, share: 0.5 }],
+          x: 'day',
+          y: 'sold',
+          line: { y: 'share', label: 'Share', format: 'percent', ...options }
+        }
+      }
+    ]
+    expect(dashboardSchema.safeParse(spec(cards)).success).toBe(true)
+    expect(
+      dashboardSchema.safeParse(spec([{ ...stat, decimals: 5 }])).success
+    ).toBe(false)
+  })
+
   it('rejects an unknown key on a card', () => {
     const result = dashboardSchema.safeParse(
       spec([{ ...stat, lable: 'Tickets sold' }])

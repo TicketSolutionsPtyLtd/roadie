@@ -4,6 +4,7 @@ import {
   axisFormat,
   finiteOrNull,
   fullFormat,
+  fullValue,
   gridTicks,
   labelFormat,
   valueDomain
@@ -77,13 +78,40 @@ describe('value domains', () => {
     expect(fullFormat(undefined)).toBe('number')
   })
 
+  it('ticks whole money without cents', () => {
+    expect(axisFormat('currency', 5_000)(2_500)).toBe('$2,500')
+    expect(axisFormat('currency', 5_000)(1_557.5)).toBe('$1,557.50')
+  })
+
   it('labels a value on the plot compactly past 10,000', () => {
-    expect(labelFormat('number', 24_000)).toBe('24k')
-    expect(labelFormat('number', 9_000)).toBe('9,000')
-    expect(labelFormat(undefined, 1_464)).toBe('1,464')
-    expect(labelFormat('currency', 118_400)).toBe('$118.4k')
-    expect(labelFormat('currency', -118_400)).toBe('-$118.4k')
-    expect(labelFormat('percent', 0.68)).toBe('68%')
+    expect(labelFormat({ format: 'number' }, 24_000)).toBe('24k')
+    expect(labelFormat({ format: 'number' }, 9_000)).toBe('9,000')
+    expect(labelFormat({}, 1_464)).toBe('1,464')
+    expect(labelFormat({ format: 'currency' }, 118_400)).toBe('$118.4k')
+    expect(labelFormat({ format: 'currency' }, -118_400)).toBe('-$118.4k')
+    expect(labelFormat({ format: 'percent' }, 0.68)).toBe('68%')
+  })
+
+  it('labels a value to its decimal places until it goes compact', () => {
+    expect(labelFormat({ format: 'currency' }, 634)).toBe('$634.00')
+    expect(labelFormat({ format: 'currency', trimZeros: true }, 634)).toBe(
+      '$634'
+    )
+    expect(labelFormat({ format: 'percent', decimals: 2 }, 0.0127)).toBe(
+      '1.27%'
+    )
+    expect(labelFormat({ format: 'number', decimals: 2 }, 24_000)).toBe('24k')
+  })
+
+  it('reads a value in full to its decimal places', () => {
+    expect(fullValue({ format: 'percent', decimals: 2 }, 0.1266)).toBe('12.66%')
+    expect(fullValue({ format: 'compactCurrency' }, 118_400)).toBe(
+      '$118,400.00'
+    )
+    expect(
+      fullValue({ format: 'compactCurrency', trimZeros: true }, 118_400)
+    ).toBe('$118,400')
+    expect(fullValue({}, 1_842.5)).toBe('1,842.5')
   })
 
   it('reads only finite numbers', () => {

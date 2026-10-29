@@ -6,6 +6,7 @@ import type { CardSize, CardState } from '@oztix/roadie-core/dashboard-layout'
 import {
   type GoodWhen,
   type ValueFormat,
+  type ValueFormatOptions,
   formatValue
 } from '@oztix/roadie-core/dataviz'
 import { cn } from '@oztix/roadie-core/utils'
@@ -17,12 +18,13 @@ import { DataCardMoreButton } from './DataCardMoreButton'
 
 export type { DataCardMoreButtonProps } from './DataCardMoreButton'
 
+/** Without its own `format`, a delta takes the card's format and places. */
 export type DataCardDelta = {
   value: number
   format?: ValueFormat
   goodWhen?: GoodWhen
   baseline?: number
-}
+} & ValueFormatOptions
 
 export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> & {
   /** Fixed name for the card. People and agents refer to the card by it. */
@@ -30,6 +32,10 @@ export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> & {
   value?: number | string
   /** @default 'number' */
   format?: ValueFormat
+  /** Fixed decimal places for number, percent, points, and currency, from none to four. @default 2 for currency */
+  decimals?: number
+  /** Drops the decimals from a whole value: $1,200 instead of $1,200.00. */
+  trimZeros?: boolean
   delta?: DataCardDelta
   /** One sentence, used when there is no single headline number. */
   takeaway?: string
@@ -63,11 +69,19 @@ const LINE = 'min-w-0 truncate'
 function Headline({
   value,
   format,
+  decimals,
+  trimZeros,
   delta,
   takeaway
-}: Pick<DataCardProps, 'value' | 'format' | 'delta' | 'takeaway'>) {
+}: Pick<
+  DataCardProps,
+  'value' | 'format' | 'decimals' | 'trimZeros' | 'delta' | 'takeaway'
+>) {
   if (value !== undefined) {
-    const shown = typeof value === 'number' ? formatValue(value, format) : value
+    const shown =
+      typeof value === 'number'
+        ? formatValue(value, format, { decimals, trimZeros })
+        : value
     return (
       <p
         data-slot='data-card-value-row'
@@ -83,7 +97,11 @@ function Headline({
         {delta && (
           <Delta
             {...delta}
-            format={delta.format ?? format}
+            {...(delta.format === undefined && {
+              format,
+              decimals: delta.decimals ?? decimals,
+              trimZeros: delta.trimZeros ?? trimZeros
+            })}
             className='shrink-0'
           />
         )}
@@ -115,6 +133,8 @@ export function DataCard({
   label,
   value,
   format,
+  decimals,
+  trimZeros,
   delta,
   takeaway,
   context,
@@ -177,6 +197,8 @@ export function DataCard({
                 <Headline
                   value={value}
                   format={format}
+                  decimals={decimals}
+                  trimZeros={trimZeros}
                   delta={delta}
                   takeaway={takeaway}
                 />

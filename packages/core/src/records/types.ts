@@ -140,6 +140,10 @@ export type RecordField = {
   match?: string
   /** How a number or money field's values read. Defaults to `number`, or `currency` for money. */
   format?: ValueFormat
+  /** Fixed decimal places for number, percent, points, and money, from none to four. @default 2 for money */
+  decimals?: number
+  /** Drops the decimals from a whole value: $1,200 instead of $1,200.00. */
+  trimZeros?: boolean
   /** A fixed ISO 4217 code. */
   currency?: string
   /** The row key holding the ISO 4217 code. */

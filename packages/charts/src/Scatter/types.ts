@@ -24,6 +24,10 @@ export type ScatterProps = {
   y: string
   /** Format of y. @default 'number' */
   format?: ValueFormat
+  /** Fixed decimal places of y, for number, percent, points, and currency, from none to four. Axis ticks stay short. @default 2 for currency */
+  decimals?: number
+  /** Drops the decimals from a whole y value: $1,200 instead of $1,200.00. */
+  trimZeros?: boolean
   /** Format of x. @default 'number' */
   xFormat?: ValueFormat
   /** The headline sentence. It becomes the plot's accessible name. */

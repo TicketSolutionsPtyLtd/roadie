@@ -168,3 +168,27 @@ describe('histogram bins for whole numbers', () => {
     expect(order).toContain('data-ts-key="median:number:2.5')
   })
 })
+
+describe('histogram decimal places', () => {
+  const spend: HistogramProps = {
+    data: [10, 24, 24, 40].map((spend) => ({ spend })),
+    x: 'spend',
+    format: 'currency',
+    trimZeros: true,
+    binWidth: 10,
+    median: true
+  }
+  const bin = { x: 20, y: 2, series: 'Spend', index: 1 }
+
+  it('reads values to the decimal places on the plot, in the tooltip, aloud and in the table', () => {
+    expect(svgOf(spend)).toMatch(/>Median \$24</)
+    expect(histogram.summary(spend)).toBe(
+      'The median is $24, and the most common is $20 to $29'
+    )
+    expect(histogram.tooltip([bin], spend, paint).title).toBe('$20 to $29')
+    expect(histogram.describe(bin, spend)).toBe('$20 to $29, 2 of 4')
+    expect(histogramTable(spend).rows.map((r) => r.range)).toContain(
+      '$20 to $29'
+    )
+  })
+})

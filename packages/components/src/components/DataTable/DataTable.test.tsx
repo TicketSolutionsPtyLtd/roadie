@@ -89,6 +89,82 @@ describe('DataTable', () => {
     expect(screen.getByText('77%')).toBeInTheDocument()
   })
 
+  it('shows numbers, meters and sparklines to the column’s decimal places', () => {
+    render(
+      <DataTable
+        columns={[
+          {
+            key: 's',
+            header: 'Sold',
+            kind: 'number',
+            format: 'percent',
+            decimals: 2
+          },
+          {
+            key: 'g',
+            header: 'Gross',
+            kind: 'number',
+            format: 'currency',
+            trimZeros: true
+          },
+          { key: 'm', header: 'Sell-through', kind: 'meter', decimals: 1 },
+          { key: 'd', header: 'Daily', kind: 'sparkline', decimals: 2 }
+        ]}
+        rows={[{ s: 0.0127, g: 3116, m: 0.5, d: [1, 2, 30] }]}
+        plain
+      />
+    )
+    for (const text of ['1.27%', '$3,116', '50.0%', '30.00'])
+      expect(screen.getByText(text)).toBeInTheDocument()
+  })
+
+  it('reads a meter against its max to the column’s decimal places', () => {
+    render(
+      <DataTable
+        columns={[
+          {
+            key: 'n',
+            header: 'Scanned',
+            kind: 'meter',
+            max: 800,
+            decimals: 1
+          }
+        ]}
+        rows={[{ n: 412 }]}
+      />
+    )
+    expect(screen.getByRole('meter', { name: 'Scanned' })).toHaveAttribute(
+      'aria-valuetext',
+      '412.0 of 800.0'
+    )
+  })
+
+  it('shows a delta cell to the column’s decimal places', () => {
+    render(
+      <DataTable
+        columns={[
+          {
+            key: 'd',
+            header: 'Change',
+            kind: 'delta',
+            format: 'percent',
+            decimals: 2
+          },
+          {
+            key: 'g',
+            header: 'Gross change',
+            kind: 'delta',
+            format: 'currency',
+            trimZeros: true
+          }
+        ]}
+        rows={[{ d: 0.0127, g: 1200 }]}
+      />
+    )
+    expect(screen.getByText('up 1.27%, better')).toBeInTheDocument()
+    expect(screen.getByText('up $1,200, better')).toBeInTheDocument()
+  })
+
   it('links sortable headers and marks the sorted column', () => {
     render(
       <DataTable

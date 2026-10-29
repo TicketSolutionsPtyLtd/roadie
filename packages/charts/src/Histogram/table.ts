@@ -1,8 +1,6 @@
-import { formatValue } from '@oztix/roadie-core/dataviz'
-
 import type { ChartTable } from '../Chart'
 import { fieldLabel } from '../plot/table'
-import { fullFormat } from '../plot/values'
+import { fullValue } from '../plot/values'
 import type { Bin } from './bin'
 import { binValues, histogramValues } from './bin'
 import type { HistogramProps } from './types'
@@ -12,10 +10,10 @@ import type { HistogramProps } from './types'
  * never holds its upper edge: "1", "3 to 4". Other data names both edges.
  */
 export function binLabel(
-  props: Pick<HistogramProps, 'format'>,
+  props: Pick<HistogramProps, 'format' | 'decimals' | 'trimZeros'>,
   { from, to, whole }: Pick<Bin, 'from' | 'to' | 'whole'>
 ) {
-  const shown = (value: number) => formatValue(value, fullFormat(props.format))
+  const shown = (value: number) => fullValue(props, value)
   const last = whole ? to - 1 : to
   return last === from ? shown(from) : `${shown(from)} to ${shown(last)}`
 }

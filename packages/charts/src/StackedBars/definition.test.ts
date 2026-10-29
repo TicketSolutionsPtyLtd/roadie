@@ -269,3 +269,60 @@ describe('stackedBars summary with Other', () => {
     )
   })
 })
+
+describe('stackedBars decimal places', () => {
+  const gross: StackedBarsProps = {
+    data: [
+      { show: 'A', type: 'GA', gross: 1200 },
+      { show: 'A', type: 'VIP', gross: 600 }
+    ],
+    x: 'show',
+    y: 'gross',
+    series: 'type',
+    format: 'currency',
+    trimZeros: true
+  }
+  const ga = { x: 'A', y: 1200, series: 'GA', index: 0 }
+  const values = (props: StackedBarsProps) =>
+    stackedBars.tooltip([ga], props, paint).rows.map((r) => r.value)
+
+  it('reads values to the decimal places in the tooltip, aloud and in the table', () => {
+    expect(values(gross)).toEqual(['$1,200', '$600'])
+    expect(values({ ...gross, mode: 'share' })).toEqual([
+      '67% ($1,200)',
+      '33% ($600)'
+    ])
+    expect(stackedBars.describe(ga, gross)).toBe('A, GA, $1,200 gross')
+    const columns = stackedBarsTable(gross).columns
+    expect(columns.find((c) => c.key === 'GA')).toMatchObject({
+      trimZeros: true
+    })
+    expect(columns.at(-1)).toMatchObject({ header: 'Total', trimZeros: true })
+  })
+})
+
+describe('stackedBars shares to decimal places', () => {
+  it('reads shares to the decimal places in share mode', () => {
+    const share: StackedBarsProps = {
+      data: [
+        { show: 'A', type: 'GA', gross: 1200 },
+        { show: 'A', type: 'VIP', gross: 600 }
+      ],
+      x: 'show',
+      y: 'gross',
+      series: 'type',
+      format: 'currency',
+      trimZeros: true,
+      decimals: 1,
+      mode: 'share'
+    }
+    const ga = { x: 'A', y: 1200, series: 'GA', index: 0 }
+    expect(
+      stackedBars.tooltip([ga], share, paint).rows.map((r) => r.value)
+    ).toEqual(['66.7% ($1,200)', '33.3% ($600)'])
+    expect(stackedBars.describe(ga, share)).toMatch(/, 66\.7% of the bar$/)
+    expect(
+      stackedBarsTable(share).columns.find((c) => c.key === 'GA')
+    ).toMatchObject({ format: 'percent', decimals: 1, trimZeros: true })
+  })
+})

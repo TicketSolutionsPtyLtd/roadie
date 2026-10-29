@@ -229,6 +229,52 @@ describe('rankedBars', () => {
   })
 })
 
+describe('rankedBars decimal places', () => {
+  const payments: RankedBarsProps = {
+    data: [
+      { method: 'Card', value: 3116 },
+      { method: 'Cash', value: 634 }
+    ],
+    x: 'method',
+    y: 'value',
+    format: 'currency'
+  }
+  const card = { x: 'Card', y: 3116, series: 'Value', index: 0 }
+  const tip = (props: RankedBarsProps) =>
+    rankedBars.tooltip([card], props, paint).rows[0]?.value
+
+  it('reads money with cents in the labels, tooltip and aloud', () => {
+    expect(svgOf(payments)).toMatch(/>\$634\.00</)
+    expect(tip(payments)).toBe('$3,116.00')
+    expect(rankedBars.describe(card, payments)).toContain('$3,116.00')
+  })
+
+  it('trims zeros from whole money when asked', () => {
+    const trimmed = { ...payments, trimZeros: true }
+    expect(tip(trimmed)).toBe('$3,116')
+    expect(svgOf(trimmed)).toMatch(/>\$634</)
+    expect(rankedBars.describe(card, trimmed)).toBe('Card, $3,116 value')
+    expect(rankedBars.summary(trimmed)).toBe(
+      'Card leads with $3,116 value, ahead of Cash with $634'
+    )
+  })
+
+  it('passes the decimal places to the table', () => {
+    const columns = rankedBarsTable({
+      ...payments,
+      reference: { field: 'value', label: 'Last tour' },
+      decimals: 0,
+      trimZeros: true
+    }).columns
+    expect(columns[1]).toMatchObject({
+      format: 'currency',
+      decimals: 0,
+      trimZeros: true
+    })
+    expect(columns.at(-1)).toMatchObject({ header: 'Last tour', decimals: 0 })
+  })
+})
+
 describe('rankedBarsTable', () => {
   it('lists every original row, not the rollup, largest first', () => {
     const table = rankedBarsTable(channelExample)
@@ -306,5 +352,33 @@ describe('rankedBars with repeated names', () => {
       { channel: 'Email', orders: 8, similar: 6 },
       { channel: 'Social', orders: 6, similar: null }
     ])
+  })
+})
+
+describe('rankedBars shares to decimal places', () => {
+  const shares: RankedBarsProps = {
+    data: [
+      { method: 'Card', value: 3116 },
+      { method: 'Cash', value: 634 }
+    ],
+    x: 'method',
+    y: 'value',
+    format: 'currency',
+    decimals: 2,
+    share: true
+  }
+  const card = { x: 'Card', y: 3116, series: 'Value', index: 0 }
+
+  it('reads shares to the decimal places on the plot, in the tooltip, aloud and in the table', () => {
+    expect(svgOf(shares)).toMatch(/>83\.09%</)
+    expect(
+      rankedBars.tooltip([card], shares, paint).rows.map((r) => r.value)
+    ).toEqual(['$3,116.00', '83.09%'])
+    expect(rankedBars.describe(card, shares)).toMatch(/, 83\.09% of the total$/)
+    expect(rankedBarsTable(shares).columns.at(-1)).toMatchObject({
+      header: 'Share',
+      format: 'percent',
+      decimals: 2
+    })
   })
 })

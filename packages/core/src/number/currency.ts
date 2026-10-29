@@ -3,7 +3,7 @@ export type CurrencyFormatOptions = {
   currency?: string
   /** Decimal places. @default the currency's own, 2 for dollars */
   decimals?: number
-  /** Drops the decimals from a whole amount: $1,200 instead of $1,200.00. @default true */
+  /** Drops the decimals from a whole amount: $1,200 instead of $1,200.00. */
   trimZeros?: boolean
   /** Short form with at most one decimal place. Intl capitalises the suffix: $1.2M, not formatValue's $1.2m. */
   compact?: boolean
@@ -43,7 +43,7 @@ function currencyMinorUnits(code: string) {
 export function currencyFormat({
   currency = HOUSE_CURRENCY,
   decimals,
-  trimZeros = true,
+  trimZeros = false,
   compact = false
 }: CurrencyFormatOptions = {}): CurrencyFormat {
   const requested =

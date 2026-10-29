@@ -1,4 +1,8 @@
-import { type ValueFormat, formatValue } from '@oztix/roadie-core/dataviz'
+import {
+  type ValueFormat,
+  type ValueFormatOptions,
+  formatValue
+} from '@oztix/roadie-core/dataviz'
 
 export const COMPACT_FROM = 10_000
 const STEPS = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]
@@ -80,15 +84,36 @@ const shownFormat = (format: ValueFormat | undefined, size: number) => {
   return Math.abs(size) >= COMPACT_FROM ? (COMPACT[base] ?? base) : base
 }
 
+/** The props that decide how a chart's values read. */
+export type ValueStyle = { format?: ValueFormat } & ValueFormatOptions
+
+// Ticks stay short, so whole money drops its cents and decimals don't apply.
 export function axisFormat(format: ValueFormat | undefined, max: number) {
   const shown = shownFormat(format, max)
-  return (value: number) => formatValue(value, shown)
+  return (value: number) => formatValue(value, shown, { trimZeros: true })
 }
 
-export const labelFormat = (format: ValueFormat | undefined, value: number) =>
-  formatValue(value, shownFormat(format, value))
+export const labelFormat = (style: ValueStyle, value: number) =>
+  formatValue(value, shownFormat(style.format, value), style)
 
 export function fullFormat(format: ValueFormat | undefined): ValueFormat {
   if (format === 'compact' || format === undefined) return 'number'
   return format === 'compactCurrency' ? 'currency' : format
 }
+
+/** A value read in full, in a tooltip, a table, or aloud. */
+export const fullValue = (style: ValueStyle, value: number) =>
+  formatValue(value, fullFormat(style.format), style)
+
+/** A share of the whole reads as a percent, to the chart's decimal places. */
+export const shareStyle = ({
+  decimals,
+  trimZeros
+}: ValueStyle): ValueStyle => ({
+  format: 'percent',
+  decimals,
+  trimZeros
+})
+
+export const shareValue = (style: ValueStyle, share: number) =>
+  fullValue(shareStyle(style), share)

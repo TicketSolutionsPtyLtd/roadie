@@ -8,13 +8,16 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
 
 // In oxlint, the last matching override replaces no-restricted-imports'
 // options, and excludeFiles isn't documented, so a config edit can drop a
 // boundary or an exception without an error.
 const root = fileURLToPath(new URL('..', import.meta.url))
+const oxlint = join(root, 'node_modules/oxlint/bin/oxlint')
+// Oxlint reports Windows paths with backslashes; the seeds use slashes.
+const slashed = (path) => path.replaceAll('\\', '/')
 
 // Each group import is deep, since a group's `*` stops at a slash.
 const IMPORTS = `import Link from 'next/link'
@@ -72,23 +75,25 @@ function lintSeeds(seeds) {
   try {
     writeFileSync(
       join(scratch, 'oxlint.config.ts'),
-      `export { default } from '${join(root, 'oxlint.config.ts')}'\n`
+      `export { default } from '${pathToFileURL(join(root, 'oxlint.config.ts'))}'\n`
     )
-    // The config names its JS plugin by a path relative to itself.
-    symlinkSync(join(root, 'eslint'), join(scratch, 'eslint'))
+    // The config names its JS plugin by a path relative to itself. A junction
+    // links a folder on Windows without admin rights; elsewhere it's ignored.
+    symlinkSync(join(root, 'eslint'), join(scratch, 'eslint'), 'junction')
     for (const [path, source] of seeds) {
       mkdirSync(dirname(join(scratch, path)), { recursive: true })
       writeFileSync(join(scratch, path), source)
     }
+    // Node runs oxlint's script itself, since Windows can't run the .bin shim.
     const { stdout, stderr } = spawnSync(
-      join(root, 'node_modules/.bin/oxlint'),
-      ['-f', 'json', ...seeds.map(([path]) => path)],
+      process.execPath,
+      [oxlint, '-f', 'json', ...seeds.map(([path]) => path)],
       { cwd: scratch, encoding: 'utf8' }
     )
     if (!stdout) throw new Error(stderr)
     const labels = new Map(seeds.map(([path]) => [path, new Set()]))
     for (const diagnostic of JSON.parse(stdout).diagnostics) {
-      labels.get(diagnostic.filename).add(labelOf(diagnostic))
+      labels.get(slashed(diagnostic.filename)).add(labelOf(diagnostic))
     }
     return new Map(
       [...labels].map(([path, found]) => [path, [...found].sort()])

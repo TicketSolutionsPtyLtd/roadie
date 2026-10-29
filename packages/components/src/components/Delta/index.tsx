@@ -6,6 +6,7 @@ import {
   type DeltaSentiment,
   type GoodWhen,
   type ValueFormat,
+  type ValueFormatOptions,
   deltaSentiment,
   describeDelta,
   formatDelta,
@@ -17,6 +18,10 @@ export type DeltaProps = Omit<ComponentProps<'span'>, 'children'> & {
   value: number
   /** @default 'number' */
   format?: ValueFormat
+  /** Fixed decimal places for number, percent, points, and currency, from none to four. @default 2 for currency */
+  decimals?: number
+  /** Drops the decimals from a whole value: $1,200 instead of $1,200.00. */
+  trimZeros?: boolean
   /** @default 'up' */
   goodWhen?: GoodWhen
   /** Show `value` itself and read direction from `value - baseline` (pace index 112 vs 100). */
@@ -43,12 +48,15 @@ const SENTIMENT_CLASS: Record<DeltaSentiment, string> = {
 export function Delta({
   value,
   format = 'number',
+  decimals,
+  trimZeros,
   goodWhen = 'up',
   baseline,
   context,
   className,
   ...props
 }: DeltaProps) {
+  const options: ValueFormatOptions = { decimals, trimZeros }
   const change = baseline === undefined ? value : value - baseline
   const direction = directionOf(change)
   const available = direction !== 'none'
@@ -63,13 +71,13 @@ export function Delta({
     : direction === 'flat'
       ? 'No change'
       : baseline === undefined
-        ? formatDelta(value, format)
-        : formatValue(value, format)
+        ? formatDelta(value, format, options)
+        : formatValue(value, format, options)
   const spoken = !available
     ? NOT_AVAILABLE
     : baseline === undefined
-      ? describeDelta(change, format, goodWhen)
-      : `${formatValue(value, format)}, ${describeDelta(change, format, goodWhen)}`
+      ? describeDelta(change, format, goodWhen, options)
+      : `${formatValue(value, format, options)}, ${describeDelta(change, format, goodWhen, options)}`
   return (
     <span
       data-slot='delta'

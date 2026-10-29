@@ -366,10 +366,12 @@ charts. For a copy review, run `/roadie:content`.
   27 to Sun 29 Nov". `validateDashboard` flags dashes and title case.
 - **Australian spelling**: colour, visualise, organise, cancelled.
 - **Numbers**: numerals, commas for thousands, `68%` closed up, `$19.95`,
-  `$1,200`. Use the `format` prop (`number`, `compact`, `percent`, `currency`,
+  and `$1,200.00`, since full amounts in a chart show cents so they line up.
+  Use the `format` prop (`number`, `compact`, `percent`, `currency`,
   `compactCurrency`, `points`, or `index`) rather than formatting values
   yourself; `formatValue` from `@oztix/roadie-core/dataviz` covers strings
-  outside a chart.
+  outside a chart. Set `decimals` when a small difference matters, as `1.27%`
+  sold, and `trimZeros` to drop the cents from whole amounts.
 - **Dates and times**: "Fri 27 Nov", "7:30pm", in the venue's time zone, from
   `@oztix/roadie-core/datetime` or the `DateTime` component. 24-hour time only
   on dense axes and in exports.

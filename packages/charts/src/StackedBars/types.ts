@@ -19,6 +19,10 @@ export type StackedBarsProps = {
   palette?: 'categorical' | 'pair' | 'trio'
   /** @default 'number' */
   format?: ValueFormat
+  /** Fixed decimal places for number, percent, points, and currency, from none to four. Shares follow it too. Axis ticks stay short. @default 2 for currency */
+  decimals?: number
+  /** Drops the decimals from a whole value: $1,200 instead of $1,200.00. */
+  trimZeros?: boolean
   /** The headline sentence. It becomes the plot's accessible name. */
   takeaway?: string
   /** `share` stacks every bar to 100%. @default 'count' */

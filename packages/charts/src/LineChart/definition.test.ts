@@ -652,3 +652,86 @@ describe('LineChart on an event clock', () => {
     expect(lineChart.tooltip([point], clock, paint).title).toBe('Day 1, 2:00am')
   })
 })
+
+describe('lineChart decimal places', () => {
+  const sold: LineChartProps = {
+    data: [
+      { day: '2026-11-01', sold: 0.0127 },
+      { day: '2026-11-02', sold: 0.1266 }
+    ],
+    x: 'day',
+    y: 'sold',
+    format: 'percent',
+    decimals: 2
+  }
+  const point = {
+    x: Date.UTC(2026, 10, 2),
+    y: 0.1266,
+    series: 'Sold',
+    index: 1
+  }
+
+  it('reads values to the decimal places in the tooltip, aloud and in the table', () => {
+    expect(lineChart.tooltip([point], sold, paint).rows[0]?.value).toBe(
+      '12.66%'
+    )
+    expect(lineChart.describe(point, sold)).toContain('12.66%')
+    expect(lineChart.summary(sold)).toContain('from 1.27% to 12.66%')
+    expect(lineChartTable(sold).columns[1]).toMatchObject({
+      format: 'percent',
+      decimals: 2
+    })
+  })
+
+  it('labels the line end to the decimal places', () => {
+    expect(svgOf(sold)).toMatch(/>12\.66%</)
+  })
+
+  it('reads the target, band, today and forecast to the decimal places', () => {
+    const pace = { ...paceExample, decimals: 2 }
+    const svg = svgOf(pace)
+    expect(svg).toMatch(/>Target 85\.00%</)
+    expect(svg).toMatch(/>Similar shows \d+\.\d\d%</)
+    expect(svg).toMatch(/>Today \d+\.\d\d%</)
+    expect(
+      lineChart.legend(pace, paint, plotFrame(160, 'narrow')).at(-1)?.label
+    ).toBe('Target 85.00%')
+    const table = lineChartTable(pace)
+    expect(table.columns.slice(1, 4)).toEqual([
+      expect.objectContaining({ header: 'Sold', decimals: 2 }),
+      expect.objectContaining({ header: 'Forecast', decimals: 2 }),
+      expect.objectContaining({ header: 'Similar shows', decimals: 2 })
+    ])
+    expect(table.rows[0]?.bandRange).toBe('7.00% to 22.00%')
+  })
+
+  it('names the leading series to the decimal places', () => {
+    expect(
+      lineChart.summary({
+        ...salesByTypeExample,
+        takeaway: undefined,
+        decimals: 1
+      })
+    ).toMatch(/, with \d+\.\d orders on /)
+  })
+
+  it('trims zeros from whole money when asked', () => {
+    const gross: LineChartProps = {
+      ...sold,
+      data: [
+        { day: '2026-11-01', sold: 1200 },
+        { day: '2026-11-02', sold: 3116 }
+      ],
+      format: 'currency',
+      decimals: undefined
+    }
+    const at = { ...point, y: 3116 }
+    expect(lineChart.tooltip([at], gross, paint).rows[0]?.value).toBe(
+      '$3,116.00'
+    )
+    expect(
+      lineChart.tooltip([at], { ...gross, trimZeros: true }, paint).rows[0]
+        ?.value
+    ).toBe('$3,116')
+  })
+})

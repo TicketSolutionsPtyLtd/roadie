@@ -72,13 +72,58 @@ describe('cellText', () => {
         { key: 'g', header: 'Gross', kind: 'number', format: 'currency' },
         1200
       )
-    ).toBe('$1,200')
+    ).toBe('$1,200.00')
     expect(
       cellText({ key: 'm', header: 'Sell-through', kind: 'meter' }, 0.5)
     ).toBe('50%')
     expect(
       cellText({ key: 's', header: 'Daily', kind: 'sparkline' }, [1, 2, 30])
     ).toBe('30')
+  })
+
+  it('formats to the column’s decimal places', () => {
+    expect(
+      cellText(
+        {
+          key: 's',
+          header: 'Sold',
+          kind: 'number',
+          format: 'percent',
+          decimals: 2
+        },
+        0.0127
+      )
+    ).toBe('1.27%')
+    expect(
+      cellText(
+        {
+          key: 'g',
+          header: 'Gross',
+          kind: 'number',
+          format: 'currency',
+          trimZeros: true
+        },
+        1200
+      )
+    ).toBe('$1,200')
+    expect(
+      cellText(
+        { key: 'm', header: 'Sold', kind: 'meter', max: 1, decimals: 1 },
+        0.5
+      )
+    ).toBe('50.0%')
+    expect(
+      cellText(
+        { key: 'm', header: 'Scanned', kind: 'meter', max: 800, decimals: 1 },
+        412
+      )
+    ).toBe('412.0 of 800.0')
+    expect(
+      cellText(
+        { key: 'd', header: 'Daily', kind: 'sparkline', decimals: 2 },
+        [1, 2, 30]
+      )
+    ).toBe('30.00')
   })
 
   it('leaves an empty cell empty', () => {

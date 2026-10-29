@@ -58,3 +58,19 @@ describe('Delta', () => {
     expect(delta).not.toHaveTextContent('No change')
   })
 })
+
+describe('Delta decimal places', () => {
+  it('shows and speaks the change to its decimal places', () => {
+    render(<Delta value={-0.0127} format='percent' decimals={2} />)
+    expect(screen.getByText('1.27%')).toHaveAttribute('aria-hidden')
+    expect(screen.getByText('down 1.27%, worse')).toHaveClass('sr-only')
+  })
+
+  it('trims zeros from a whole amount, against a baseline too', () => {
+    render(<Delta value={1200} format='currency' baseline={1000} trimZeros />)
+    expect(screen.getByText('$1,200')).toHaveAttribute('aria-hidden')
+    expect(
+      screen.getByText('$1,200, up $200, better', { selector: '.sr-only' })
+    ).toBeInTheDocument()
+  })
+})

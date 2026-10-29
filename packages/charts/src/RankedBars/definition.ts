@@ -3,8 +3,6 @@ import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 
-import { formatValue } from '@oztix/roadie-core/dataviz'
-
 import {
   categoryFit,
   categoryLabelMark,
@@ -14,7 +12,7 @@ import { textRoom } from '../plot/endLabels'
 import { asList, emphasisColor, seriesMarkId } from '../plot/series'
 import { fieldLabel } from '../plot/table'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
-import { fullFormat, labelFormat, valueDomain } from '../plot/values'
+import { fullValue, labelFormat, shareValue, valueDomain } from '../plot/values'
 import { describeValue } from '../plot/words'
 import { type Ranked, rank, rankable } from './rank'
 import { rankedBarsTable } from './table'
@@ -59,13 +57,10 @@ function byMark<T extends Pick<Ranked, 'name' | 'isOther'>>(
   return [...marks.entries()]
 }
 
-const full = (props: RankedBarsProps, value: number) =>
-  formatValue(value, fullFormat(props.format))
+const full = (props: RankedBarsProps, value: number) => fullValue(props, value)
 
 const barLabel = (props: RankedBarsProps, bar: Ranked) =>
-  props.share
-    ? formatValue(bar.share, 'percent')
-    : labelFormat(props.format, bar.value)
+  props.share ? shareValue(props, bar.share) : labelFormat(props, bar.value)
 
 function bars(props: RankedBarsProps) {
   const ranked = rank(props)
@@ -180,7 +175,7 @@ export const rankedBars: ChartDefinition<RankedBarsProps> = {
     const [first, second] = rankable(props)
     const measure = fieldLabel(props.y)
     if (!first) return `${measure} by ${fieldLabel(props.x).toLowerCase()}`
-    const lead = `${first.name} leads with ${describeValue(first.value, props.format, measure.toLowerCase())}`
+    const lead = `${first.name} leads with ${describeValue(first.value, props, measure.toLowerCase())}`
     return second
       ? `${lead}, ahead of ${second.name} with ${full(props, second.value)}`
       : lead
@@ -195,9 +190,9 @@ export const rankedBars: ChartDefinition<RankedBarsProps> = {
     const noun = fieldLabel(props.y).toLowerCase()
     const parts = [
       String(datum.x),
-      describeValue(bar?.value ?? null, props.format, noun),
+      describeValue(bar?.value ?? null, props, noun),
       ...(props.share && bar
-        ? [`${formatValue(bar.share, 'percent')} of the total`]
+        ? [`${shareValue(props, bar.share)} of the total`]
         : []),
       ...(props.reference && bar?.reference != null
         ? [
@@ -220,7 +215,7 @@ export const rankedBars: ChartDefinition<RankedBarsProps> = {
           shape: 'swatch'
         },
         ...(props.share
-          ? [{ label: 'Share', value: formatValue(bar.share, 'percent') }]
+          ? [{ label: 'Share', value: shareValue(props, bar.share) }]
           : []),
         ...(props.reference && bar.reference !== null
           ? [

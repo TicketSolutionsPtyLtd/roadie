@@ -101,7 +101,9 @@ export function DataTableCellContent({
     if (!Array.isArray(value)) return <Muted>{NOT_AVAILABLE}</Muted>
     if (plain)
       return (
-        <span>{formatValue(value.at(-1) ?? Number.NaN, column.format)}</span>
+        <span>
+          {formatValue(value.at(-1) ?? Number.NaN, column.format, column)}
+        </span>
       )
     if (value.length < SPARKLINE_MIN_POINTS)
       return <Muted>Not enough history</Muted>
@@ -114,8 +116,8 @@ export function DataTableCellContent({
     const max = column.max ?? 1
     const shown =
       max === 1
-        ? formatValue(value, column.format ?? 'percent')
-        : `${formatValue(value, column.format)} of ${formatValue(max, column.format)}`
+        ? formatValue(value, column.format ?? 'percent', column)
+        : `${formatValue(value, column.format, column)} of ${formatValue(max, column.format, column)}`
     if (plain) return <span>{shown}</span>
     return (
       <span className='inline-flex items-center gap-2'>
@@ -137,10 +139,12 @@ export function DataTableCellContent({
       <Delta
         value={value}
         format={column.format}
+        decimals={column.decimals}
+        trimZeros={column.trimZeros}
         goodWhen={column.goodWhen}
         baseline={column.baseline}
       />
     )
 
-  return <span>{formatValue(value, column.format)}</span>
+  return <span>{formatValue(value, column.format, column)}</span>
 }
