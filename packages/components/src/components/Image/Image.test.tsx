@@ -1,9 +1,11 @@
 import { createRef } from 'react'
 
 import { act, render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { renderToString } from 'react-dom/server'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { Image } from '.'
+import { hydrateWithoutClock } from '../../utils/testUtils'
 
 const OZTIX =
   'https://assets.oztix.com.au/image/1226ab55-3d53-47f0-ab4c-cddcf02bb001.png'
@@ -328,6 +330,51 @@ describe('Image', () => {
         '[aria-hidden="true"]'
       ) as HTMLElement
       expect(lqip.style.backgroundImage).toContain('data:image/png;base64,abc')
+    })
+
+    it('shows a server-rendered image without waiting for hydration', () => {
+      const container = document.createElement('div')
+      container.innerHTML = renderToString(
+        <Image
+          src={OZTIX}
+          alt='Hero'
+          width={1200}
+          height={600}
+          priority
+          placeholder='blur'
+        />
+      )
+      const img = container.querySelector('img')!
+      expect(img.getAttribute('src')).toContain('width=1200')
+      expect(img.style.opacity).toBe('1')
+    })
+
+    it('hydrates a server-rendered image without a mismatch, still shown', async () => {
+      const consoleError = vi.spyOn(console, 'error')
+      onTestFinished(() => consoleError.mockRestore())
+      const { container, onRecoverableError } = await hydrateWithoutClock(
+        <Image
+          src={OZTIX}
+          alt='Hero'
+          width={1200}
+          height={600}
+          priority
+          placeholder='blur'
+        />
+      )
+      expect(onRecoverableError).not.toHaveBeenCalled()
+      expect(consoleError).not.toHaveBeenCalled()
+      expect(container.querySelector('img')!.style.opacity).toBe('1')
+    })
+
+    it('keeps a deferred image hidden in the server HTML until its src arrives', () => {
+      const container = document.createElement('div')
+      container.innerHTML = renderToString(
+        <Image src={OZTIX} alt='Tile' width={300} placeholder='blur' defer />
+      )
+      const img = container.querySelector('img')!
+      expect(img).not.toHaveAttribute('src')
+      expect(img.style.opacity).toBe('0')
     })
 
     it('falls back to a bare <img> for non-Oztix images with no blurDataURL', () => {
