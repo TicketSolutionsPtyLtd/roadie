@@ -319,8 +319,9 @@ function cleaned(
  * marks only on inline nodes and an ordered list's start only when whole,
  * starts every list item with a paragraph, drops a list or quote left empty,
  * and gives an empty doc one paragraph. Keeps a block's `blockId` only when
- * it's a non-empty string not already used by an earlier block. Keeps only cells in a table's rows,
- * and only paragraphs in a cell, unwrapping other blocks to their text;
+ * it's a non-empty string no earlier block uses. Keeps only cells in a
+ * table's rows, and only paragraphs in a cell, unwrapping other blocks to
+ * their text;
  * keeps a cell's spans only when whole, positive and no more than HTML
  * allows (1,000 columns, 65,534 rows), gives an empty cell a paragraph, and
  * drops a row with no cells and a table with no rows.
