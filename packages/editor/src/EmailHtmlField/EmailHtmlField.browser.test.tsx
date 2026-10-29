@@ -88,6 +88,21 @@ describe('EmailHtmlField', () => {
         .poll(() => source().value)
         .toBe('<p>Doors open <b>7pm</b>.</p>')
     })
+
+    it('changes nothing in a read-only field', async () => {
+      const onValueChange = vi.fn()
+      render(
+        <EmailHtmlField
+          aria-label={LABEL}
+          readOnly
+          defaultValue={EMAIL}
+          onValueChange={onValueChange}
+        />
+      )
+      paste(source(), { 'text/html': '<b>7pm</b>', 'text/plain': '7pm' })
+      expect(source().value).toBe(EMAIL)
+      expect(onValueChange).not.toHaveBeenCalled()
+    })
   })
 
   describe('preview', () => {

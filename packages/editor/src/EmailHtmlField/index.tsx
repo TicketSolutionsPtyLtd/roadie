@@ -114,6 +114,7 @@ export function EmailHtmlField({
 EmailHtmlField.displayName = 'EmailHtmlField'
 
 function pasteHtml(event: ClipboardEvent<HTMLTextAreaElement>) {
+  if (event.currentTarget.readOnly) return
   const html = event.clipboardData.getData('text/html')
   if (!html) return
   const text = event.clipboardData.getData('text/plain')
