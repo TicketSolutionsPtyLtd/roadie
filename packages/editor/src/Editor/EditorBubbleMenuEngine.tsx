@@ -2,7 +2,7 @@
 
 import { use, useEffect, useRef, useState } from 'react'
 
-import { type EditorState, NodeSelection } from '@tiptap/pm/state'
+import type { EditorState } from '@tiptap/pm/state'
 import { CellSelection } from '@tiptap/pm/tables'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 import { BubbleMenu, type BubbleMenuProps } from '@tiptap/react/menus'
@@ -14,6 +14,7 @@ import { EditorContext } from './EditorContext'
 import { useRepositionOnResize } from './EditorNodeToolbar'
 import { Control, stateOf } from './EditorToolbarEngine'
 import { selectionControls } from './controls'
+import { selectedTable } from './table'
 import { EDITOR_TOOLBAR_SIZE } from './variants'
 
 const PLUGIN_KEY = 'editorBubbleMenu'
@@ -21,7 +22,6 @@ const PLUGIN_KEY = 'editorBubbleMenu'
 /** Whether the selection is text the menu's marks can format. */
 export function selectsText({ selection, doc }: EditorState) {
   if (selection.empty) return false
-  if (selection instanceof NodeSelection) return false
   if (selection instanceof CellSelection) return false
   if (selection.$from.parent.type.spec.code) return false
   return doc.textBetween(selection.from, selection.to).length > 0
@@ -35,6 +35,7 @@ export function EditorBubbleMenuEngine(props: EditorBubbleMenuProps) {
 function SelectionMenu({
   editor,
   children,
+  onKeyDownCapture,
   ...props
 }: EditorBubbleMenuProps & { editor: TiptapEditor }) {
   const {
@@ -63,14 +64,26 @@ function SelectionMenu({
         : null
   })
 
+  const editable = useEditorState({
+    editor,
+    selector: ({ editor: current }) => current.isEditable
+  })
+  const inTable = useEditorState({
+    editor,
+    selector: ({ editor: current }) =>
+      selectedTable(current.state) !== undefined
+  })
+
+  // The plugin asks shouldShow only when the selection or doc changes. Focus
+  // moves to the link editor, but a click on the menu's Link keeps the menu
+  // from hiding on that blur, and turning read-only changes neither.
   useEffect(() => {
     editingLinkRef.current = editingLink
-    // Focus moves to the link editor, but a click on the menu's Link keeps
-    // the menu from hiding on that blur.
-    if (editingLink && !editor.isDestroyed) {
-      editor.view.dispatch(editor.state.tr.setMeta(PLUGIN_KEY, 'hide'))
-    }
-  }, [editor, editingLink])
+    if ((editable && !editingLink) || editor.isDestroyed) return
+    editor.view.dispatch(
+      editor.state.tr.setMeta(PLUGIN_KEY, 'hide').setMeta('addToHistory', false)
+    )
+  }, [editor, editingLink, editable])
 
   useRepositionOnResize(editor, menuRef, PLUGIN_KEY)
 
@@ -92,7 +105,8 @@ function SelectionMenu({
       shouldShow={shouldShow}
       ref={menuRef}
       options={{
-        placement: 'top',
+        // Table actions sit above the table, so in one this goes below.
+        placement: inTable ? 'bottom' : 'top',
         offset: 8,
         // The plugin makes its element a tab stop; the toolbar inside is the one.
         onShow: () => {
@@ -111,10 +125,11 @@ function SelectionMenu({
           size={EDITOR_TOOLBAR_SIZE[size]}
           emphasis='floating'
           // Captured, as an open tooltip keeps Escape from bubbling.
+          {...props}
           onKeyDownCapture={(event) => {
+            onKeyDownCapture?.(event)
             if (event.key === 'Escape') editor.commands.focus()
           }}
-          {...props}
         >
           {controls.map((control, index) => (
             <Control

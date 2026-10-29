@@ -7,7 +7,7 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 import { Editor, type EditorProps } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
-import { MOD, selectParagraph } from './testUtils'
+import { LINE_END, MOD, selectParagraph } from './testUtils'
 
 const LABEL = 'Event description'
 const MENU = 'Selection formatting'
@@ -32,6 +32,35 @@ const lineup: EditorValue = {
   doc: {
     type: 'doc',
     content: [paragraph('Ochre Kite Weekender'), paragraph('Gates open at 4pm')]
+  }
+}
+
+const cell = (type: string, text: string) => ({
+  type,
+  content: [paragraph(text)]
+})
+
+const withTable: EditorValue = {
+  version: 1,
+  preset: 'rich',
+  doc: {
+    type: 'doc',
+    content: [
+      paragraph('Gates open at 4pm'),
+      {
+        type: 'table',
+        content: [
+          {
+            type: 'tableRow',
+            content: [cell('tableHeader', 'Time'), cell('tableHeader', 'Act')]
+          },
+          {
+            type: 'tableRow',
+            content: [cell('tableCell', '9pm'), cell('tableCell', 'Ochre Kite')]
+          }
+        ]
+      }
+    ]
   }
 }
 
@@ -169,7 +198,18 @@ describe('Editor.BubbleMenu', () => {
     await noMenu()
   })
 
-  it('stays hidden on a selected image', async () => {
+  it('stays hidden on a cell selection', async () => {
+    render(<BubbleEditor defaultValue={withTable} />)
+    const textbox = await selectText('Gates open at 4pm')
+    await menu()
+
+    await selectParagraph(within(textbox).getByText('Time'))
+
+    await screen.findByRole('toolbar', { name: 'Table actions' })
+    await noMenu()
+  })
+
+  it('hides when an image is selected', async () => {
     render(
       <BubbleEditor
         defaultValue={{
@@ -178,31 +218,63 @@ describe('Editor.BubbleMenu', () => {
           doc: {
             type: 'doc',
             content: [
-              { type: 'image', attrs: { src: CROWD, alt: 'The crowd' } },
-              paragraph('Gates open at 4pm')
+              paragraph('Gates open at 4pm'),
+              { type: 'image', attrs: { src: CROWD, alt: 'The crowd' } }
             ]
           }
         }}
       />
     )
-    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const textbox = await selectText('Gates open at 4pm')
+    await menu()
+
     await userEvent.click(textbox.querySelector('img')!)
 
     await screen.findByRole('toolbar', { name: 'Image actions' })
-    expect(screen.queryByRole('toolbar', { name: MENU })).toBe(null)
+    await noMenu()
   })
 
-  it('stays hidden while read-only', async () => {
-    render(<BubbleEditor readOnly />)
+  it.each<[string, Partial<EditorProps>]>([
+    ['read-only', { readOnly: true }],
+    ['disabled', { disabled: true }]
+  ])('hides when the editor turns %s from the menu', async (_, props) => {
+    const { rerender } = render(<BubbleEditor />)
     await selectText('Gates open at 4pm')
+    const toolbar = await menu()
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    expect(toolbar).toContainElement(document.activeElement as HTMLElement)
+
+    rerender(<BubbleEditor {...props} />)
+
+    await noMenu()
+  })
+
+  it('goes below text in a table, clear of the table actions', async () => {
+    render(<BubbleEditor defaultValue={withTable} />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const text = within(textbox).getByText('Time')
+    // A double or triple click in a cell selects the cell, so the keys
+    // select text once the editor has focus.
+    await userEvent.click(text)
+    const table = await screen.findByRole('toolbar', { name: 'Table actions' })
+    await userEvent.keyboard(
+      `${LINE_END}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}`
+    )
+    const bubble = await menu()
 
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute(
-        'aria-disabled',
-        'true'
+      expect(bubble.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        text.getBoundingClientRect().bottom
       )
     )
-    expect(screen.queryByRole('toolbar', { name: MENU })).toBe(null)
+    const a = bubble.getBoundingClientRect()
+    const b = table.getBoundingClientRect()
+    const overlaps =
+      a.left < b.right &&
+      b.left < a.right &&
+      a.top < b.bottom &&
+      b.top < a.bottom
+    expect(overlaps).toBe(false)
   })
 
   it('puts its children after the preset controls', async () => {
