@@ -91,6 +91,13 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
     }
   }
   if (type === 'spacer') return { height: spacerHeight(attrs?.height) }
+  if (type === 'variable') {
+    const fallback: unknown = attrs?.fallback
+    return {
+      key: attrs?.key,
+      ...(typeof fallback === 'string' && fallback !== '' && { fallback })
+    }
+  }
   if (type === 'embed') return embedAttrs(attrs) ?? undefined
   if (type === 'orderedList') {
     const { start, type: listType } = attrs ?? {}
@@ -144,8 +151,12 @@ function isSafeNode(node: unknown, shape: PresetShape): node is JSONContent {
       : isSafeImageSrc(attrs?.src)
   }
   if (type === 'embed') return embedAttrs(attrs) !== null
+  if (type === 'variable') return isText(attrs?.key)
   return true
 }
+
+const isText = (value: unknown): value is string =>
+  typeof value === 'string' && value !== ''
 
 // A doc is the root only, so one below it gives way to its blocks.
 function shapeOf({ type }: JSONContent, shape: PresetShape) {
@@ -346,8 +357,10 @@ function cleaned(
   if (nodeShape.content === 'inline') {
     const inline = fitted(childrenOf(content, shape), 'inline', shape)
     const held = nodeShape.plainText
-      ? inline.flatMap(({ type, text: value }) =>
-          type === 'text' ? [{ type, text: value }] : []
+      ? inline.flatMap(({ marks: _marks, ...unmarked }) =>
+          unmarked.type === 'text' || unmarked.type === 'variable'
+            ? [unmarked]
+            : []
         )
       : inline
     if (type === 'button' && !isEmailHref(stored?.href)) {
@@ -426,11 +439,13 @@ function withCustomBlocks(
  * In the email preset, a layout block where it can't sit, such as a column
  * outside columns or a section in a section, gives way to its blocks, and
  * columns outside two to four stack as their blocks. Keeps a button only with
- * an https, http, mailto or tel href, and only its unmarked text, which
- * becomes a paragraph otherwise, or where a button can't sit. Keeps only
+ * an https, http, mailto or tel href, and only its unmarked text and
+ * variables, which become a paragraph otherwise, or where a button can't
+ * sit. Keeps only
  * https images, a width from 1 to 600 (none fills the column), and a
  * spacer's height rounded into 8 to 160 pixels. Gives an empty column a
- * paragraph.
+ * paragraph. Keeps a variable only with a key, and its fallback only when
+ * it's text; a button's label keeps its variables, unmarked.
  */
 export function migrate(
   value: StoredEditorValue,

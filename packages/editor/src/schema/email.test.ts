@@ -87,7 +87,8 @@ describe('presets.email', () => {
       'paragraph',
       'section',
       'spacer',
-      'text'
+      'text',
+      'variable'
     ])
     expect(Object.keys(schema.marks).sort()).toEqual([
       'bold',
@@ -101,6 +102,7 @@ describe('presets.email', () => {
     ['button', ['href']],
     ['image', ['src', 'alt', 'width']],
     ['spacer', ['height']],
+    ['variable', ['key', 'fallback']],
     ['section', []],
     ['columns', []],
     ['column', []]
@@ -365,5 +367,99 @@ describe('migrate and the email preset', () => {
         list([p('Bar')], [p('Food trucks')])
       )
     )
+  })
+})
+
+const variable = (attrs: Record<string, unknown>): JSONContent => ({
+  type: 'variable',
+  attrs
+})
+const hi = (attrs: Record<string, unknown>): JSONContent => ({
+  type: 'paragraph',
+  content: [text('Hi '), variable(attrs)]
+})
+const greeting = (attrs: Record<string, unknown>) => doc(hi(attrs))
+
+describe('a variable in the email preset', () => {
+  it('sits inline in text and in a button’s label', () => {
+    expect(() =>
+      parse(
+        doc(hi({ key: 'first_name', fallback: 'there' }), {
+          type: 'button',
+          attrs: { href: tickets },
+          content: [text('Tickets for '), variable({ key: 'first_name' })]
+        })
+      )
+    ).not.toThrow()
+  })
+
+  it.each([
+    [
+      { 'data-key': 'first_name', 'data-fallback': 'there' },
+      { key: 'first_name', fallback: 'there' }
+    ],
+    [{ 'data-key': 'first_name' }, { key: 'first_name' }],
+    [{ 'data-key': '' }, false]
+  ])('reads a pasted variable with %j as %j', (attributes, read) => {
+    const element = {
+      getAttribute: (name: string) =>
+        (attributes as Record<string, string>)[name] ?? null
+    } as unknown as HTMLElement
+    const [rule] = schema.nodes.variable!.spec.parseDOM ?? []
+    const attrs = rule?.getAttrs?.(element)
+    expect(attrs === false ? false : JSON.parse(JSON.stringify(attrs))).toEqual(
+      read
+    )
+  })
+
+  it('keeps its key and a fallback that is text', () => {
+    expect(
+      readEmail(
+        greeting({ key: 'first_name', fallback: 'there', token: '#x#' })
+      )
+    ).toEqual(greeting({ key: 'first_name', fallback: 'there' }))
+  })
+
+  it.each([
+    ['an empty fallback', ''],
+    ['a fallback that isn’t text', 7],
+    ['no fallback', null]
+  ])('drops %s', (_name, fallback) => {
+    expect(readEmail(greeting({ key: 'first_name', fallback }))).toEqual(
+      greeting({ key: 'first_name' })
+    )
+  })
+
+  it.each([
+    ['no key', {}],
+    ['an empty key', { key: '' }],
+    ['a key that isn’t text', { key: 7 }]
+  ])('drops a variable with %s', (_name, attrs) => {
+    expect(readEmail(greeting(attrs))).toEqual(doc(p('Hi ')))
+  })
+
+  it('keeps a variable in a button’s label, unmarked', () => {
+    const label = (marks?: JSONContent['marks']) => ({
+      type: 'button',
+      attrs: { href: tickets },
+      content: [
+        text('Tickets for '),
+        { ...variable({ key: 'first_name' }), ...(marks && { marks }) }
+      ]
+    })
+    expect(readEmail(doc(label([{ type: 'bold' }])))).toEqual(doc(label()))
+  })
+
+  it('drops a variable read into the rich preset, keeping the text around it', () => {
+    expect(
+      migrate(
+        {
+          version: 1,
+          preset: 'email',
+          doc: greeting({ key: 'first_name' })
+        },
+        'rich'
+      ).doc
+    ).toEqual(doc(p('Hi ')))
   })
 })

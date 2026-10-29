@@ -46,11 +46,58 @@ export const Column = layoutNode(
   `(block | ${EMAIL_BLOCK})+`
 )
 
+const textAttr = (element: HTMLElement, name: string) =>
+  element.getAttribute(name) || undefined
+
+/**
+ * A merge tag, saved as its key alone: the sending system's syntax is
+ * chosen when the email renders.
+ */
+export const Variable = Node.create({
+  name: 'variable',
+  group: 'inline',
+  inline: true,
+  atom: true,
+  selectable: true,
+  addAttributes() {
+    // Undefined, not null, so a value saves no fallback key it doesn't have.
+    return {
+      key: { default: undefined },
+      fallback: { default: undefined }
+    }
+  },
+  parseHTML() {
+    return [
+      {
+        tag: 'span[data-type="variable"]',
+        getAttrs: (element) => {
+          const key = textAttr(element, 'data-key')
+          return key
+            ? { key, fallback: textAttr(element, 'data-fallback') }
+            : false
+        }
+      }
+    ]
+  },
+  renderHTML({ node }) {
+    const { key, fallback } = node.attrs
+    return [
+      'span',
+      {
+        'data-type': 'variable',
+        'data-key': key,
+        ...(fallback && { 'data-fallback': fallback })
+      },
+      String(key)
+    ]
+  }
+})
+
 // The label is the button's text, not an attr, so a merge tag can sit in it.
 export const Button = Node.create({
   name: 'button',
   group: EMAIL_BLOCK,
-  content: 'text*',
+  content: '(text | variable)*',
   marks: '',
   defining: true,
   addAttributes() {
@@ -166,5 +213,6 @@ export const email: Extensions = [
   Button,
   EmailImage,
   Spacer,
-  Divider
+  Divider,
+  Variable
 ]

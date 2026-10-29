@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { JSONContent, StoredEditorValue } from '../schema'
+import type { EditorVariable, JSONContent, StoredEditorValue } from '../schema'
 import { defaultEmailTheme, renderEmail } from './index'
 
 const text = (value: string, marks?: JSONContent['marks']): JSONContent => ({
@@ -334,5 +334,192 @@ describe('renderEmail', () => {
     expect(html).not.toContain('<blockquote')
     expect(html).not.toContain('<img')
     expect(plain).toBe('LINEUP\n\nBest weekend of the year.')
+  })
+
+  describe('merge tags', () => {
+    const variables: EditorVariable[] = [
+      {
+        key: 'first_name',
+        label: 'First name',
+        tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' }
+      },
+      {
+        key: 'event_date',
+        label: 'Event date',
+        tokens: { liquid: '{{ event.date | date: "%-d %B" }}' }
+      }
+    ]
+    const tag = (key: string, fallback?: string): JSONContent => ({
+      type: 'variable',
+      attrs: { key, ...(fallback !== undefined && { fallback }) }
+    })
+    const greeting = (fallback?: string) =>
+      email(p(text('Hi '), tag('first_name', fallback), text('!')))
+
+    it('writes each variable as its AE token, in the HTML and the plain text', async () => {
+      const { html, text: plain } = await renderEmail(greeting(), {
+        syntax: 'ae',
+        variables
+      })
+      expect(html).toContain('<p style="margin:0">Hi #FirstName#!</p>')
+      expect(plain).toBe('Hi #FirstName#!')
+    })
+
+    it('writes each variable as its Liquid token, filters and all, unescaped', async () => {
+      const { html, text: plain } = await renderEmail(
+        email(p(text('Doors open '), tag('event_date'))),
+        { syntax: 'liquid', variables }
+      )
+      expect(html).toContain('Doors open {{ event.date | date: "%-d %B" }}</p>')
+      expect(plain).toBe('Doors open {{ event.date | date: "%-d %B" }}')
+    })
+
+    it('gives a Liquid token the fallback as its default, escaped for the HTML', async () => {
+      const { html, text: plain } = await renderEmail(
+        greeting('<b>"Mate"</b>'),
+        { syntax: 'liquid', variables }
+      )
+      expect(html).toContain(
+        'Hi {{ customer.first_name | default: "&lt;b&gt;&quot;Mate&quot;&lt;/b&gt;" }}!'
+      )
+      expect(plain).toBe(
+        `Hi {{ customer.first_name | default: '<b>"Mate"</b>' }}!`
+      )
+    })
+
+    it('writes an AE token alone, which has no default', async () => {
+      const { text: plain } = await renderEmail(greeting('there'), {
+        syntax: 'ae',
+        variables
+      })
+      expect(plain).toBe('Hi #FirstName#!')
+    })
+
+    it('writes a variable in a button’s label', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'button',
+          attrs: { href: tickets },
+          content: [text('Tickets for '), tag('first_name')]
+        }),
+        { syntax: 'ae', variables }
+      )
+      expect(html).toMatch(/>\s*Tickets for #FirstName#\s*</)
+    })
+
+    it('fills each variable with its value for a preview, escaped for the HTML', async () => {
+      const { html, text: plain } = await renderEmail(greeting('there'), {
+        variables,
+        values: { first_name: '<Ashley & co>' }
+      })
+      expect(html).toContain('Hi &lt;Ashley &amp; co&gt;!')
+      expect(plain).toBe('Hi <Ashley & co>!')
+    })
+
+    it('fills a value that reads as a token so no sender fills it', async () => {
+      const { html, text: plain } = await renderEmail(greeting(), {
+        variables,
+        values: { first_name: '{{ secret }} #Code#' }
+      })
+      expect(html).toContain(
+        'Hi &#123;&#123; secret &#125;&#125; &#35;Code&#35;!'
+      )
+      expect(plain).not.toContain('{{')
+      expect(plain).not.toContain('#Code#')
+      expect(plain.replaceAll('​', '')).toBe('Hi {{ secret }} #Code#!')
+    })
+
+    it('keeps a Liquid token’s whitespace control around its default', async () => {
+      const { html } = await renderEmail(greeting('there'), {
+        syntax: 'liquid',
+        variables: [
+          {
+            key: 'first_name',
+            label: 'First name',
+            tokens: { liquid: '{{- customer.first_name -}}' }
+          }
+        ]
+      })
+      expect(html).toContain(
+        'Hi {{- customer.first_name | default: "there" -}}!'
+      )
+    })
+
+    it('fills a variable keyed like an object’s own property from values alone', async () => {
+      const { text: plain } = await renderEmail(
+        email(p(text('Hi '), tag('constructor', 'there'))),
+        {
+          variables: [{ key: 'constructor', label: 'Odd', tokens: {} }],
+          values: {}
+        }
+      )
+      expect(plain).toBe('Hi there')
+    })
+
+    it.each([
+      ['its fallback', 'there', 'Hi there!'],
+      ['nothing without a fallback', undefined, 'Hi !']
+    ])(
+      'fills a variable with no value with %s',
+      async (_name, fallback, read) => {
+        const { text: plain } = await renderEmail(greeting(fallback), {
+          variables,
+          values: { first_name: '' }
+        })
+        expect(plain).toBe(read)
+      }
+    )
+
+    it('refuses a variable the app doesn’t list', async () => {
+      await expect(
+        renderEmail(email(p(tag('ticket_type'))), {
+          syntax: 'liquid',
+          variables,
+          values: {}
+        })
+      ).rejects.toThrow('"ticket_type"')
+    })
+
+    it('refuses a variable with no token in the syntax', async () => {
+      await expect(
+        renderEmail(email(p(tag('event_date'))), { syntax: 'ae', variables })
+      ).rejects.toThrow('"event_date" has no ae token')
+    })
+
+    it('refuses merge tags with neither a syntax nor values', async () => {
+      await expect(renderEmail(greeting(), { variables })).rejects.toThrow(
+        TypeError
+      )
+    })
+
+    it('writes typed text that reads as a token so no sender fills it', async () => {
+      const typed =
+        'Use {{ code }}, {% if vip %}, #FirstName# or [ViewInBrowserLink], \uE0000\uE001 #1 fan'
+      const { html, text: plain } = await renderEmail(
+        email(
+          p(
+            text(typed),
+            text(' map', link('https://www.oztix.com.au/?q={{id}}'))
+          )
+        ),
+        { syntax: 'liquid', variables, values: { first_name: 'Ashley' } }
+      )
+      for (const token of [
+        '{{',
+        '{%',
+        '%}',
+        '}}',
+        '#FirstName#',
+        '[ViewInBrowserLink]',
+        'Ashley'
+      ]) {
+        expect(html).not.toContain(token)
+        expect(plain).not.toContain(token)
+      }
+      expect(html).toContain('Use &#123;&#123; code &#125;&#125;')
+      expect(plain.replaceAll('\u200B', '')).toBe(
+        'Use {{ code }}, {% if vip %}, #FirstName# or [ViewInBrowserLink], 0 #1 fan map\n[https://www.oztix.com.au/?q={{id}}]'
+      )
+    })
   })
 })

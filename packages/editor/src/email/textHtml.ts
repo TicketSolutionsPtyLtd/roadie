@@ -2,6 +2,7 @@ import type { JSONContent } from '@tiptap/core'
 
 import { isEmailHref } from '../schema/emailAttrs'
 import { headingLevel } from '../schema/headings'
+import type { MergeTag } from './mergeTags'
 import type { EmailTheme } from './theme'
 
 const ESCAPES: Record<string, string> = {
@@ -9,12 +10,26 @@ const ESCAPES: Record<string, string> = {
   '<': '&lt;',
   '>': '&gt;',
   '"': '&quot;',
-  "'": '&#39;'
+  "'": '&#39;',
+  '{': '&#123;',
+  '}': '&#125;',
+  '#': '&#35;',
+  '[': '&#91;',
+  ']': '&#93;'
 }
 
-/** Escapes text and attribute values, since MJML writes both as given. */
+/**
+ * Escapes text and attribute values, since MJML writes both as given. Token
+ * characters are escaped too, so a sending system fills only the variables,
+ * and a merge tag's placeholder can't be typed.
+ */
 export const escapeHtml = (value: string) =>
-  value.replace(/[&<>"']/g, (char) => ESCAPES[char]!)
+  value
+    .replace(/[\uE000\uE001]/g, '')
+    .replace(/[&<>"'{}#[\]]/g, (char) => ESCAPES[char]!)
+
+/** What text is written with: the theme, and where each variable goes. */
+export type TextContext = { theme: EmailTheme; tag: MergeTag }
 
 const HEADING_SIZES: Record<number, string> = {
   2: 'font-size:24px;line-height:32px',
@@ -26,7 +41,7 @@ const ORDERED_LIST_TYPES = new Set(['1', 'a', 'A', 'i', 'I'])
 
 type Mark = NonNullable<JSONContent['marks']>[number]
 
-function marked(html: string, { type, attrs }: Mark, theme: EmailTheme) {
+function marked(html: string, { type, attrs }: Mark, { theme }: TextContext) {
   if (type === 'bold') return `<strong>${html}</strong>`
   if (type === 'italic') return `<em>${html}</em>`
   if (type === 'underline') return `<u>${html}</u>`
@@ -37,14 +52,26 @@ function marked(html: string, { type, attrs }: Mark, theme: EmailTheme) {
   return html
 }
 
-function inlineHtml(nodes: JSONContent[] = [], theme: EmailTheme): string {
+function unmarkedHtml(node: JSONContent, context: TextContext) {
+  if (node.type === 'variable') return context.tag(node.attrs ?? {})
+  return node.type === 'text' && typeof node.text === 'string'
+    ? escapeHtml(node.text)
+    : ''
+}
+
+/** Inline content as HTML, with its marks. */
+export function inlineHtml(
+  nodes: JSONContent[] = [],
+  context: TextContext
+): string {
   return nodes
     .map((node) => {
       if (node.type === 'hardBreak') return '<br>'
-      if (node.type !== 'text' || typeof node.text !== 'string') return ''
+      const html = unmarkedHtml(node, context)
+      if (!html) return ''
       return (node.marks ?? []).reduce(
-        (html, mark) => marked(html, mark, theme),
-        escapeHtml(node.text)
+        (marks, mark) => marked(marks, mark, context),
+        html
       )
     })
     .join('')
@@ -66,10 +93,10 @@ const LIST_STYLE = 'margin:0;padding:0 0 0 24px'
  * padding alone spaces blocks in every client. An empty paragraph keeps its
  * line, as it does in the editor.
  */
-export function textBlockHtml(node: JSONContent, theme: EmailTheme): string {
-  const inline = inlineHtml(node.content, theme)
+export function textBlockHtml(node: JSONContent, context: TextContext): string {
+  const inline = inlineHtml(node.content, context)
   const blocks = () =>
-    (node.content ?? []).map((child) => textBlockHtml(child, theme)).join('')
+    (node.content ?? []).map((child) => textBlockHtml(child, context)).join('')
   switch (node.type) {
     case 'paragraph':
       return `<p style="margin:0">${inline || '&nbsp;'}</p>`

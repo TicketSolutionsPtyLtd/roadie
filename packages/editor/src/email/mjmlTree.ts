@@ -1,7 +1,12 @@
 import type { JSONContent } from '@tiptap/core'
 
 import { EMAIL_WIDTH } from '../schema/emailAttrs'
-import { escapeHtml, textBlockHtml } from './textHtml'
+import {
+  type TextContext,
+  escapeHtml,
+  inlineHtml,
+  textBlockHtml
+} from './textHtml'
 import type { EmailTheme } from './theme'
 
 /** A node of MJML's JSON tree, which it reads in place of its XML. */
@@ -13,8 +18,7 @@ export type MjmlNode = {
   content?: string
 }
 
-type Context = {
-  theme: EmailTheme
+type Context = TextContext & {
   /** Each block's padding, narrower beside other columns. */
   padding: string
 }
@@ -34,18 +38,16 @@ const leaf = (
   content: string
 ): MjmlNode => ({ tagName, attributes, content })
 
-const textOf = (node: JSONContent) =>
-  (node.content ?? []).map(({ text }) => text ?? '').join('')
-
 // A node `migrate` let through but this list doesn't know renders as nothing.
-function blockNodes(node: JSONContent, { theme, padding }: Context) {
+function blockNodes(node: JSONContent, context: Context) {
   const { type, attrs = {} } = node
+  const { padding } = context
   switch (type) {
     case 'button': {
-      const label = textOf(node)
+      const label = inlineHtml(node.content, context)
       if (label === '') return []
       const href = escapeHtml(String(attrs.href))
-      return [leaf('mj-button', { href, padding }, escapeHtml(label))]
+      return [leaf('mj-button', { href, padding }, label)]
     }
     case 'image':
       return [
@@ -61,7 +63,7 @@ function blockNodes(node: JSONContent, { theme, padding }: Context) {
     case 'horizontalRule':
       return [mj('mj-divider', { padding })]
     default: {
-      const html = textBlockHtml(node, theme)
+      const html = textBlockHtml(node, context)
       return html ? [leaf('mj-text', { padding }, html)] : []
     }
   }
@@ -74,8 +76,8 @@ const column = (blocks: JSONContent[], context: Context) =>
     blocks.flatMap((block) => blockNodes(block, context))
   )
 
-function columns(node: JSONContent, theme: EmailTheme) {
-  const context = { theme, padding: COLUMN_BLOCK_PADDING }
+function columns(node: JSONContent, text: TextContext) {
+  const context = { ...text, padding: COLUMN_BLOCK_PADDING }
   return mj(
     'mj-section',
     {},
@@ -84,23 +86,23 @@ function columns(node: JSONContent, theme: EmailTheme) {
 }
 
 // MJML stacks columns below 480px, and its conditional tables hold them in Outlook.
-function rows(nodes: JSONContent[], theme: EmailTheme): MjmlNode[] {
+function rows(nodes: JSONContent[], text: TextContext): MjmlNode[] {
   const built: MjmlNode[] = []
   let run: JSONContent[] = []
   const endRun = () => {
     if (run.length === 0) return
     built.push(
-      mj('mj-section', {}, [column(run, { theme, padding: BLOCK_PADDING })])
+      mj('mj-section', {}, [column(run, { ...text, padding: BLOCK_PADDING })])
     )
     run = []
   }
   for (const node of nodes) {
     if (node.type === 'columns') {
       endRun()
-      built.push(columns(node, theme))
+      built.push(columns(node, text))
     } else if (node.type === 'section') {
       endRun()
-      built.push(mj('mj-wrapper', {}, rows(node.content ?? [], theme)))
+      built.push(mj('mj-wrapper', {}, rows(node.content ?? [], text)))
     } else {
       run.push(node)
     }
@@ -135,13 +137,14 @@ function head({ text, fontFamily, button, buttonText, divider }: EmailTheme) {
 }
 
 /** An email preset's doc as MJML's tree. */
-export function mjmlTree(doc: JSONContent, theme: EmailTheme): MjmlNode {
+export function mjmlTree(doc: JSONContent, text: TextContext): MjmlNode {
+  const { theme } = text
   return mj('mjml', {}, [
     head(theme),
     mj(
       'mj-body',
       { width: `${EMAIL_WIDTH}px`, 'background-color': theme.background },
-      rows(doc.content ?? [], theme)
+      rows(doc.content ?? [], text)
     )
   ])
 }
