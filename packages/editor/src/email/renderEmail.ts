@@ -51,6 +51,9 @@ function plainText(html: string) {
     wordwrap: 78,
     selectors: [
       { selector: 'img', format: 'skip' },
+      // A layout table's cells are columns, not words of one line.
+      { selector: 'td', format: 'paragraph' },
+      { selector: 'th', format: 'paragraph' },
       { selector: 'a', options: { hideLinkHrefIfSameAsText: true } }
     ]
   })

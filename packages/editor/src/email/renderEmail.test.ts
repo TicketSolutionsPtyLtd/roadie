@@ -372,6 +372,14 @@ describe('renderEmail with HTML', () => {
     )
   })
 
+  it('keeps the cells of a layout table apart in the plain text', async () => {
+    const { text: plain } = await renderEmail({
+      kind: 'html',
+      html: '<table><tr><td>Doors open 7pm</td><td>Tickets from $49</td></tr></table>'
+    })
+    expect(plain).toBe('Doors open 7pm\n\nTickets from $49')
+  })
+
   it('refuses content of another kind', async () => {
     await expect(
       // @ts-expect-error A kind read back from storage can be anything.
