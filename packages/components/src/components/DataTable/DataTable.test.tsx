@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DataTable, type DataTableColumn, sortDataTableRows } from '.'
-import { compareText, sortValue } from './sort'
+import { compareText, sortValueOf } from './sort'
 
 const columns: DataTableColumn[] = [
   {
@@ -366,6 +366,33 @@ describe('DataTable sorting', () => {
     expect(shownOrder()[0]).toBe('Ocean Alley')
   })
 
+  it('returns to the given order when a controlled sort is cleared', () => {
+    const given = sortRows.map((row) => String(row.show))
+    const { rerender } = render(
+      <DataTable
+        sortable
+        sort={{ key: 'show', direction: 'descending' }}
+        onSortChange={() => {}}
+        columns={sortColumns}
+        rows={sortRows}
+      />
+    )
+    expect(shownOrder()).not.toEqual(given)
+    rerender(
+      <DataTable
+        sortable
+        sort={null}
+        onSortChange={() => {}}
+        columns={sortColumns}
+        rows={sortRows}
+      />
+    )
+    expect(shownOrder()).toEqual(given)
+    expect(header('Show')).not.toHaveAttribute('aria-sort')
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
+    expect(shownOrder()).toEqual(given)
+  })
+
   it('keeps row keys with their rows', () => {
     const { container } = render(
       <DataTable
@@ -435,10 +462,10 @@ describe('shared sort helpers', () => {
 
   it('treats missing values as undefined', () => {
     const number = { key: 'gross', header: 'Gross', kind: 'number' } as const
-    expect(sortValue(number, 'On sale soon')).toBeUndefined()
-    expect(sortValue(number, null)).toBeUndefined()
-    expect(sortValue(number, 12)).toBe(12)
+    expect(sortValueOf(number)('On sale soon')).toBeUndefined()
+    expect(sortValueOf(number)(null)).toBeUndefined()
+    expect(sortValueOf(number)(12)).toBe(12)
     const text = { key: 'show', header: 'Show', kind: 'text' } as const
-    expect(sortValue(text, 42)).toBe('42')
+    expect(sortValueOf(text)(42)).toBe('42')
   })
 })
