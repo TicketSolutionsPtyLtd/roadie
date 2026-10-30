@@ -32,7 +32,7 @@ export type CarouselContentProps = ComponentProps<'div'> & {
    *
    * - `subtle` (default): slides bleed past the edges by the gutter width
    *   and fade to the page background via `::before` / `::after`
-   *   gradients. Good for most carousels: gives a clear scroll hint
+   *   gradients. Good for most carousels. It gives a clear scroll hint
    *   without half-clipped cards.
    * - `hidden`: slides are hard-clipped at the viewport edge.
    * - `visible`: slides can extend indefinitely. Useful on wide screens

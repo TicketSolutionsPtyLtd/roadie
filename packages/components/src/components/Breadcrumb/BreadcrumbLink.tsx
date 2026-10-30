@@ -20,7 +20,7 @@ export type BreadcrumbLinkProps<T extends ElementType = 'a'> = {
   href?: string
   /**
    * Force external-link treatment when `href` is set. Has no effect
-   * when `render` is set: the consumer's element owns its own
+   * when `render` is set. The consumer's element owns its own
    * target/rel.
    */
   external?: boolean

@@ -13,7 +13,7 @@ import { horizontalScrollClass } from '../../variants'
 // - normal:  full segmented control: tinted track + raised pill.
 // - subtle:  ghost segmented: no track background, just the
 //             tinted pill behind the active tab.
-// - subtler: underline: flat row with a sliding bottom bar
+// - subtler: underline, a flat row with a sliding bottom bar
 //             (left-edge bar in vertical mode).
 //
 // `strong` and `normal` are intentionally byte-identical at the list

@@ -38,7 +38,7 @@ type CardOwnProps<T extends ElementType = 'div'> = {
   href?: string
   /**
    * Force external-link treatment when `href` is set. Has no effect
-   * when `render` is set: the consumer's element is responsible for
+   * when `render` is set. The consumer's element is responsible for
    * its own target/rel.
    */
   external?: boolean
