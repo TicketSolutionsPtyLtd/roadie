@@ -183,7 +183,7 @@ export const stackedBars: ChartDefinition<StackedBarsProps> = {
       const band = fieldLabel(props.x).toLowerCase()
       const someEmpty = stackCategories(props).length > categories.length
       return someEmpty
-        ? `${leader} is the largest ${kind} in every ${band} with ${fieldLabel(props.y).toLowerCase()}`
+        ? `${leader} is the largest ${kind} in every ${band} with data`
         : `${leader} is the largest ${kind} in every ${band}`
     }
     const overall = largestOverall(segments)

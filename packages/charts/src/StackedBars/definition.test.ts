@@ -184,7 +184,7 @@ describe('stackedBars', () => {
       ])
       expect(
         stackedBars.summary({ data, x: 'band', y: 'sales', series: 'type' })
-      ).toBe('GA is the largest type in every band with sales')
+      ).toBe('GA is the largest type in every band with data')
     }
   )
 
