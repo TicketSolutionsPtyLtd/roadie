@@ -195,14 +195,20 @@ function compared(
   }
 }
 
+// Whether a range is open-ended doesn't depend on the day, so the server can tell.
+const ANY_DAY: ComparisonOptions = { now: new Date(0), timeZone: 'UTC' }
+
 /** An open-ended range, such as upcoming, has nothing of Roadie's to compare with. */
 function hasSpan(
   range: DateRangeValue | null,
   options: ComparisonOptions | null
 ): boolean {
-  if (!options || !range) return true
+  if (!range) return true
   try {
-    return resolveComparison(range, 'previous-period', options).range !== null
+    return (
+      resolveComparison(range, 'previous-period', options ?? ANY_DAY).range !==
+      null
+    )
   } catch {
     return true
   }

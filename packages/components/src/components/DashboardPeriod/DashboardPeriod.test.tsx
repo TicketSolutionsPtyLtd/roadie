@@ -362,6 +362,16 @@ describe('DashboardPeriod', () => {
     const html = renderToString(<DashboardPeriod value={THIS_MONTH} />)
     expect(html).toContain('vs previous period')
   })
+
+  it('renders no comparison on the server for an open-ended range', () => {
+    const html = renderToString(
+      <DashboardPeriod
+        value={{ range: 'upcoming', compare: 'previous-period' }}
+      />
+    )
+    expect(html).toContain('Upcoming')
+    expect(html).not.toContain('vs previous period')
+  })
 })
 
 // An app's own presets with fixed dates, ending yesterday.
