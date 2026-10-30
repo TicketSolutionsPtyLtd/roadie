@@ -145,14 +145,8 @@ describe('validateDashboard', () => {
   })
 
   it.each([
-    [
-      'Sell-through by each ticket type at every venue this season so far',
-      false
-    ],
-    [
-      'Sell-through by each ticket type at every venue this season so far.',
-      true
-    ]
+    ['Sell-through by each ticket type at every venue on this tour', false],
+    ['Sell-through by each ticket type at every venue on this tour.', true]
   ])('warns about a table label past two lines: %s', (label, warns) => {
     expect(label.length - COPY_LIMITS.md.label).toBe(warns ? 1 : 0)
     expect(paths(spec([tableLabelled(label), tableLabelled('Shows')]))).toEqual(

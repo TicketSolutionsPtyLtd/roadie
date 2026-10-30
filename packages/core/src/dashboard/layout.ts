@@ -23,14 +23,15 @@ export type ColumnKind = (typeof COLUMN_KINDS)[number]
 
 // Measured at each size's narrowest width. A stat label and every context
 // line get one line. Table and note labels get two, with realistic word
-// breaks; chart labels use CHART_LABEL_LIMITS.
+// breaks, less about 10% because Linux Chromium sets them wider than macOS;
+// chart labels use CHART_LABEL_LIMITS.
 export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
   {
     stat: { label: 19, context: 20 },
-    sm: { label: 66, context: 34 },
-    md: { label: 66, context: 34 },
-    lg: { label: 80, context: 39 },
-    full: { label: 80, context: 39 }
+    sm: { label: 60, context: 34 },
+    md: { label: 60, context: 34 },
+    lg: { label: 72, context: 39 },
+    full: { label: 72, context: 39 }
   }
 
 // Two lines beside the Chart/Table icon switch, measured at each size's

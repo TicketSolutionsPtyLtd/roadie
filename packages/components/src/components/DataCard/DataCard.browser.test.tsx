@@ -104,13 +104,11 @@ describe('DataCard copy fits its lines', () => {
       width: 292,
       cases: [
         {
-          label:
-            'Sell-through by each ticket type at every venue this season so far',
+          label: 'Sell-through by each ticket type at every venue on this tour',
           context: 'Ahead of 38 similar shows, 4 weeks'
         },
         {
-          label:
-            'Sales pace against similar shows in the same week, before show day',
+          label: 'Sales pace against similar shows in the week before the show',
           context: 'GA is 1,210 sold, VIP is 232 sold'
         }
       ]
@@ -121,12 +119,12 @@ describe('DataCard copy fits its lines', () => {
       cases: [
         {
           label:
-            'Top buyers by postcode, with their orders, tickets and total spend since on sale',
+            'Top buyers by postcode, with their orders and their total spend to today',
           context: 'Ahead of 38 similar shows, last 4 weeks'
         },
         {
           label:
-            'Sell-through by each ticket type at every venue on this tour so far, by state',
+            'Sell-through by every ticket type at every venue on this tour, by region',
           context: 'GA is 1,210 sold and VIP is 232 sold'
         }
       ]

@@ -251,7 +251,7 @@ if (!result.ok)
   `lg`. Never `lg` then `md`. Change a size, never the order, to fill a gap.
 - Copy limits: a stat label 19 characters, a chart label 42 at `sm` and `md`
   and 50 at `lg` and `full`, 14 to 42 beside a More button. Table and note
-  labels get 66 at `sm` and `md` and 80 at `lg` and `full`. Card labels wrap
+  labels get 60 at `sm` and `md` and 72 at `lg` and `full`. Card labels wrap
   to two lines, then truncate; stat labels stay on one. They're
   `COPY_LIMITS`, `CHART_LABEL_LIMITS`, and `ACTIONS_LABEL_LIMITS` in the
   zod-free `@oztix/roadie-core/dashboard-layout`. Import from there when UI
