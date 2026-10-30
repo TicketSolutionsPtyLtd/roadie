@@ -24,6 +24,8 @@ export type ListItemProps = {
   current?: ListItemCurrent
   /** Inside a `Sortable`, makes the row reorderable: a drag handle leads, and the row is no longer a link or button. */
   value?: string
+  /** Names a reorderable row in its handle and announcements when `title` isn't plain text. */
+  label?: string
   className?: string
   onClick?: (event: MouseEvent<HTMLElement>) => void
 }
@@ -40,6 +42,7 @@ export function ListItem({
   href,
   current = false,
   value,
+  label,
   className,
   onClick
 }: ListItemProps) {
@@ -95,6 +98,7 @@ export function ListItem({
   return (
     <ListItemSortable
       value={value}
+      label={label ?? (typeof title === 'string' ? title : undefined)}
       title={title}
       description={description}
       leading={leading}

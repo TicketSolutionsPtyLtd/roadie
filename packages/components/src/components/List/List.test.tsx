@@ -621,3 +621,37 @@ describe('List.Item interaction', () => {
     expect(item('SKU')).not.toHaveClass('is-interactive')
   })
 })
+
+describe('a reorderable List.Item without a plain title', () => {
+  const rich = (
+    <>
+      <strong>SKU</strong> code
+    </>
+  )
+
+  it('names its handle from label', () => {
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title={rich} label='SKU code' />
+        </List>
+      </Sortable>
+    )
+    expect(
+      screen.getByRole('button', { name: 'Reorder SKU code' })
+    ).toBeInTheDocument()
+  })
+
+  it('warns when it has no label', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title={rich} />
+        </List>
+      </Sortable>
+    )
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('label'))
+    warn.mockRestore()
+  })
+})
