@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect } from 'react'
+import { use, useEffect, useRef } from 'react'
 
 import { CaretDownIcon, PushPinSlashIcon } from '@phosphor-icons/react'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
@@ -22,6 +22,7 @@ import {
   presetControls
 } from './controls'
 import { focusEditor } from './focusEditor'
+import { useStickyTop } from './toolbarMode'
 import { EDITOR_DOCKED_BAR, EDITOR_TOOLBAR_SIZE } from './variants'
 
 export type ControlState = {
@@ -223,6 +224,8 @@ export function EditorToolbarEngine({
     toolbarRef
   } = context
   const floating = toolbar === 'floating'
+  const barRef = useRef<HTMLDivElement>(null)
+  const top = useStickyTop(barRef, !floating)
   const ui = controlUi(context)
   const items = availableItems(presetControls[preset], ui)
   const states = useEditorState({
@@ -240,7 +243,9 @@ export function EditorToolbarEngine({
   if (floating) return null
   return (
     <div
+      ref={barRef}
       data-slot='editor-toolbar'
+      style={{ top }}
       // Above the text that scrolls under it, below the editor's popups.
       className={cn(
         'sticky top-0 z-sticky shrink-0 border-b border-subtler',

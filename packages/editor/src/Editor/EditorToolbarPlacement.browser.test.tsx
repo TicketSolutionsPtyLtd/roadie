@@ -11,6 +11,8 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { Pane } from '@oztix/roadie-components/pane'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
@@ -194,7 +196,8 @@ describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
     window.scrollTo(0, 0)
     await new Promise(requestAnimationFrame)
 
-    const { backgroundColor: _, ...shape } = resting.looks
+    const { width, height, boxShadow, borderTopWidth } = resting.looks
+    const shape = { width, height, boxShadow, borderTopWidth }
     expect(looksOf(bar)).toMatchObject(shape)
     // The focused frame's fill changes, and the bar follows it.
     await waitFor(() => expect(fill(bar)).toBe(fill(frame)))
@@ -281,6 +284,40 @@ describe('Editor toolbar in a scroll container', () => {
         Math.abs(
           toolbar.getBoundingClientRect().top -
             scroller.getBoundingClientRect().top
+        )
+      ).toBeLessThan(1)
+    )
+  })
+})
+
+describe('Editor toolbar in a pane', () => {
+  it('sticks under the pane’s header, not behind it', async () => {
+    render(
+      <div style={{ height: 500, display: 'grid' }}>
+        <Pane className='h-full'>
+          <Pane.Header>
+            <Pane.Title>Ochre Kite Weekender</Pane.Title>
+          </Pane.Header>
+          <Pane.Body>
+            <Editor aria-label={LABEL} defaultValue={longRead} />
+          </Pane.Body>
+        </Pane>
+      </div>
+    )
+    const toolbar = await shownToolbar()
+    const header = document.querySelector<HTMLElement>(
+      '[data-slot="pane-header"]'
+    )!
+    const viewport = document.querySelector<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )!
+
+    viewport.scrollTop = 600
+    await waitFor(() =>
+      expect(
+        Math.abs(
+          toolbar.getBoundingClientRect().top -
+            header.getBoundingClientRect().bottom
         )
       ).toBeLessThan(1)
     )

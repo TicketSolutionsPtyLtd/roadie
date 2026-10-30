@@ -1,6 +1,11 @@
 'use client'
 
-import { useState, useSyncExternalStore } from 'react'
+import {
+  type RefObject,
+  useLayoutEffect,
+  useState,
+  useSyncExternalStore
+} from 'react'
 
 import type { EditorToolbarMode } from './variants'
 
@@ -43,4 +48,32 @@ export function useToolbarMode({
     pinnable: pinnable && !phone,
     setToolbar
   }
+}
+
+const STAYS_PUT = new Set(['visible', 'clip'])
+
+/**
+ * The docked bar's `top`: under a pane's sticky header when the pane is what
+ * scrolls it, as in the docs, and at the top of any other scroll box.
+ */
+export function useStickyTop(
+  ref: RefObject<HTMLElement | null>,
+  /** Changes when the bar mounts again. */
+  shown: boolean
+) {
+  const [top, setTop] = useState<string>()
+  useLayoutEffect(() => {
+    for (
+      let element = ref.current?.parentElement ?? null;
+      element;
+      element = element.parentElement
+    ) {
+      const { overflowX, overflowY } = getComputedStyle(element)
+      if (STAYS_PUT.has(overflowX) && STAYS_PUT.has(overflowY)) continue
+      if (element.dataset.slot === 'pane-viewport')
+        setTop('var(--pane-header-height, 0px)')
+      return
+    }
+  }, [ref, shown])
+  return top
 }
