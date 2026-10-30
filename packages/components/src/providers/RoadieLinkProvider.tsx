@@ -37,7 +37,7 @@ export type RoadieLinkProviderProps = {
  * when no provider is wired or `Link` is `null`.
  *
  * Mount once at the app root, alongside `ThemeProvider`. Pass a stable
- * Link reference — swapping it across renders triggers a dev warning.
+ * Link reference; swapping it across renders triggers a dev warning.
  */
 export function RoadieLinkProvider({
   Link,

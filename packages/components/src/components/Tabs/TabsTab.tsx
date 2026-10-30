@@ -28,7 +28,7 @@ export type TabsTabHrefProps = {
    * Note: pressing Enter on a focused link-tab triggers native browser
    * navigation immediately. For controlled `Tabs.value`, derive the
    * value from the route (e.g. `usePathname()`) rather than from
-   * controlled local state — otherwise the active-tab indicator can
+   * controlled local state, otherwise the active-tab indicator can
    * flicker between selection and route change.
    */
   href?: string
@@ -63,7 +63,7 @@ export function TabsTab({
   )
 
   // Consumer `render` wins. Pair `href` + `render` warns once via Button
-  // (not here — Tabs.Tab consumers are advanced; warn would be noise).
+  // (not here: Tabs.Tab consumers are advanced; warn would be noise).
   const synthesizedRender =
     !props.render && href !== undefined ? (
       <RoadieRoutedLink
@@ -81,7 +81,7 @@ export function TabsTab({
   // consumer-provided non-button render). Without this Base UI emits a
   // dev warning per node_modules/.../use-button/useButton.js. Apply
   // AFTER {...props} so a consumer's explicit `nativeButton` doesn't
-  // accidentally override our intent — the synthesized non-button
+  // accidentally override our intent; the synthesized non-button
   // render is canonical here.
   return (
     <TabsPrimitive.Tab

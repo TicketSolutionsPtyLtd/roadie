@@ -13,7 +13,7 @@ let scrollLockCount = 0
 let prevOverflow = ''
 
 /**
- * Acquire the body scroll lock. Returns a release fn (idempotent — safe to call
+ * Acquire the body scroll lock. Returns a release fn (idempotent, safe to call
  * more than once). The body unlocks only when the last holder releases.
  */
 export function lockBodyScroll(): () => void {

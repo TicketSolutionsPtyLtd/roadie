@@ -18,7 +18,7 @@ export interface CartExpiryState {
 }
 
 // Vue mirror of the React useCartExpiry hook. One-shot warning keyed on
-// expiresAtUtc (a server-side extension re-arms it). Call from setup() — it
+// expiresAtUtc (a server-side extension re-arms it). Call from setup(): it
 // registers lifecycle hooks for the timer.
 export function useCartExpiry(
   expiresAtUtc: MaybeRefOrGetter<string | undefined>

@@ -20,7 +20,7 @@ export interface CartEvent {
   eventEndAtUtc?: string
   eventDateKey: string
   eventEndDateKey?: string
-  /** Must be an IANA id — Windows ids aren't accepted by `Intl`, convert upstream. */
+  /** Must be an IANA id. Windows ids aren't accepted by `Intl`, so convert upstream. */
   eventTimeZone?: string
   eventDateDisplay?: string
   tickets: CartTicket[]

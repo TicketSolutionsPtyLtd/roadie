@@ -1,4 +1,4 @@
-// Server-safe subpath entry — no 'use client'. See COMPOUND_PATTERNS.md.
+// Server-safe subpath entry, no 'use client'. See COMPOUND_PATTERNS.md.
 import { CalloutActions } from './CalloutActions'
 import { CalloutDescription } from './CalloutDescription'
 import { CalloutIcon } from './CalloutIcon'

@@ -28,7 +28,7 @@ const BANNED: Array<{ name: string; re: RegExp }> = [
     re: /eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}/
   },
   {
-    // Known provider key prefixes — these shapes never occur in normal code.
+    // Known provider key prefixes: these shapes never occur in normal code.
     name: 'provider key prefix',
     re: /\b(?:(?:sk|pk)_(?:live|test)_[A-Za-z0-9]{8,}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16})\b/
   },
@@ -41,7 +41,7 @@ const BANNED: Array<{ name: string; re: RegExp }> = [
   }
 ]
 
-// RFC 6761 reserved sentinel TLDs are not real hosts — allow them (e.g. the
+// RFC 6761 reserved sentinel TLDs are not real hosts. Allow them (e.g. the
 // `https://x.invalid` base used purely as a URL-parser origin reference), but
 // ONLY as the host's final label. Checking the whole match let a `.test` in a
 // path/query whitelist a real malicious host (`https://evil.com/x.test"`).
@@ -95,9 +95,9 @@ describe('secret-guard: no hardcoded hosts or keys in cart source', () => {
     expect(offenders, offenders.join('\n')).toEqual([])
   })
 
-  // Positive detection — every pattern must actually catch its target shape.
+  // Positive detection: every pattern must actually catch its target shape.
   // The secret-shaped samples are assembled from fragments at runtime so no
-  // contiguous token literal sits in this file — otherwise external secret
+  // contiguous token literal sits in this file. Otherwise external secret
   // scanners flag the test fixtures themselves (they match the whole token,
   // not split concatenations). The guard sees the joined runtime value.
   const jwtSample = [

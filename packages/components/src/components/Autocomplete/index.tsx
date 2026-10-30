@@ -1,6 +1,6 @@
 // Subpath entry for `@oztix/roadie-components/autocomplete`.
 //
-// NO `'use client'` — server-safe property-assignment layer.
+// NO `'use client'`: server-safe property-assignment layer.
 // See docs/contributing/COMPOUND_PATTERNS.md.
 import { AutocompleteClear } from './AutocompleteClear'
 import { AutocompleteCollection } from './AutocompleteCollection'

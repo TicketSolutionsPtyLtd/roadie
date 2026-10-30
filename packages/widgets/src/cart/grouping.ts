@@ -6,7 +6,7 @@ export interface DayGroup {
 }
 
 // The cart payload is untrusted (see client.ts trust-seam). A consumer that
-// omits the ordering/grouping keys must degrade gracefully — show its items —
+// omits the ordering/grouping keys must degrade gracefully (show its items),
 // not crash the whole list with "Cannot read properties of undefined (reading
 // 'localeCompare')". Missing keys are coerced to '' so compares are safe;
 // undated events then trail in a final '' day group rather than jumping to top.

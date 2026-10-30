@@ -32,7 +32,7 @@ import {
  * Development-mode check that works across consumer bundlers.
  *
  * Uses `process.env.NODE_ENV` rather than `import.meta.env.DEV` because
- * the latter is Vite-specific — Next.js, Webpack, Rollup, and friends
+ * the latter is Vite-specific: Next.js, Webpack, Rollup, and friends
  * don't populate it, so the dev-only warnings would never fire in those
  * consumer runtimes. Every mainstream bundler replaces
  * `process.env.NODE_ENV` with a string literal at build time; the
@@ -55,7 +55,7 @@ function isDevEnvironment(): boolean {
  * bailed out (e.g. snapList was empty at init time in a test environment).
  * Wrap direct plugin calls so a defensive bail-out doesn't crash the host,
  * and surface the failure via `console.warn` in dev so it isn't swallowed
- * silently — Roadie's React state stays authoritative for isPlaying /
+ * silently. Roadie's React state stays authoritative for isPlaying /
  * userPaused regardless, but the warning makes plugin regressions
  * debuggable.
  */
@@ -119,7 +119,7 @@ export function CarouselRoot({
   const axis: 'x' | 'y' = direction === 'vertical' ? 'y' : 'x'
   const hasAutoPlay = autoPlay !== false
 
-  // Dev warnings — moved to effects so React 19 strict-mode double-invoke
+  // Dev warnings, moved to effects so React 19 strict-mode double-invoke
   // doesn't fire them twice during render.
   useEffect(() => {
     if (!isDevEnvironment()) return
@@ -224,7 +224,7 @@ export function CarouselRoot({
     }
   }, [api, onSlidesInView])
 
-  // Focus drop guard — when a select event fires, if focus was inside the
+  // Focus drop guard: when a select event fires, if focus was inside the
   // previous (about-to-become-inert) slide, move focus to the new slide's
   // wrapper so it doesn't drop to <body>.
   useEffect(() => {

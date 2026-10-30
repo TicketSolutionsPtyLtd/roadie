@@ -111,7 +111,7 @@ describe('Carousel', () => {
       </Carousel>
     )
     await waitFor(() => expect(ref.current?.api).toBeTruthy())
-    // Just asserting the api is live with the custom opts — exhaustive
+    // Just asserting the api is live with the custom opts. Exhaustive
     // option-coverage belongs to Embla's own tests.
     expect(ref.current?.carousel.state.slideCount).toBe(3)
   })
@@ -359,7 +359,7 @@ describe('Carousel', () => {
   })
 
   it('Carousel.TitleLink preserves trailing arrow when render element has its own children', () => {
-    // Regression: COR-001 — element-form render carrying children would
+    // Regression: COR-001: element-form render carrying children would
     // drop the decorative ArrowRightIcon because mergeProps' override
     // rule replaced default children with render-element children.
     const { getByText, container } = render(

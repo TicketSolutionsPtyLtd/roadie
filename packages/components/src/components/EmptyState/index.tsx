@@ -1,4 +1,4 @@
-// Server-safe subpath entry — no 'use client'. See COMPOUND_PATTERNS.md.
+// Server-safe subpath entry, no 'use client'. See COMPOUND_PATTERNS.md.
 import { EmptyStateActions } from './EmptyStateActions'
 import { EmptyStateDescription } from './EmptyStateDescription'
 import { EmptyStateIconTile } from './EmptyStateIconTile'

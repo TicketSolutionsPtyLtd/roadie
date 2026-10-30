@@ -4,7 +4,7 @@
 // shimmed `process` on the client. See:
 //   docs/solutions/build-errors/cross-bundler-dev-env-check.md
 //
-// Do NOT replace with `import.meta.env.DEV` — that's Vite-only and will
+// Do NOT replace with `import.meta.env.DEV`: that's Vite-only and will
 // silently never fire in Next.js or Webpack consumers, including the
 // Roadie docs site itself.
 

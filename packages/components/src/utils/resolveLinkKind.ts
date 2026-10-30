@@ -2,18 +2,18 @@ import { isUnsafeHref } from '@oztix/roadie-core/utils'
 
 /**
  * Classifies an `href` so smart-href components can pick the right
- * element and routing strategy. Pure, server-safe, no React imports —
+ * element and routing strategy. Pure, server-safe, no React imports;
  * runs identically on the server and client.
  *
  * - `undefined` → `'button'` (caller renders `<button>` instead of an anchor)
  * - `https://…`, `http://…`, `//…` → `'external'` (renders `<a target rel>`)
  * - `mailto:`, `tel:`, `sms:` → `'protocol'` (renders plain `<a>`, no target)
  * - `javascript:`, `data:`, `vbscript:`, `blob:`, `file:` → `'unsafe'`
- *   (caller refuses to render the href to avoid XSS — falls back to
+ *   (caller refuses to render the href to avoid XSS, falls back to
  *   `href='#'` and logs a dev warning). These protocols never have a
  *   legitimate place in consumer-app navigation.
  * - everything else → `'internal'` (renders the configured `Link` if present,
- *   else plain `<a>`). Empty string passes through as `'internal'` —
+ *   else plain `<a>`). Empty string passes through as `'internal'`;
  *   classifying invalid hrefs is the caller's responsibility.
  */
 export type ResolvedLinkKind =

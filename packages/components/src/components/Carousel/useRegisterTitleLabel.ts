@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { useCarouselContext } from './CarouselContext'
 
 // Register this title as the carousel's accessible name. The cleanup
-// only clears labelId if it still points at *this* title — guards
+// only clears labelId if it still points at *this* title. This guards
 // against responsive remounts where two titles fight over labelId.
 export function useRegisterTitleLabel(titleId: string) {
   const { setLabelId } = useCarouselContext()

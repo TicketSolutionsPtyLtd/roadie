@@ -1,6 +1,6 @@
 // Subpath entry for `@oztix/roadie-components/select`.
 //
-// NO `'use client'` — server-safe property-assignment layer.
+// NO `'use client'`: server-safe property-assignment layer.
 // See docs/contributing/COMPOUND_PATTERNS.md.
 import { SelectContent } from './SelectContent'
 import { SelectErrorText } from './SelectErrorText'
