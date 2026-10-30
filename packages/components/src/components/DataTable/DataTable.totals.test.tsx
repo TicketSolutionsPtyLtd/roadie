@@ -2,7 +2,12 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
-import { DataTable, type DataTableColumn, type DataTableTotals } from '.'
+import {
+  DataTable,
+  type DataTableColumn,
+  type DataTableRecordName,
+  type DataTableTotals
+} from '.'
 
 const columns: DataTableColumn[] = [
   { key: 'show', header: 'Show', kind: 'text', pin: true },
@@ -50,6 +55,8 @@ const footer = (container: HTMLElement) => {
   return [...tfoot!.querySelectorAll('th, td')].map((cell) => cell.textContent)
 }
 
+const events: DataTableRecordName = { one: 'event', other: 'events' }
+
 describe('DataTable totals row', () => {
   it('sums number columns over every row in a footer row', () => {
     const { container } = render(
@@ -72,7 +79,7 @@ describe('DataTable totals row', () => {
         columns={columns}
         rows={rows}
         totals='sum'
-        recordName={{ one: 'event', other: 'events' }}
+        recordName={events}
       />
     )
     const label = within(container.querySelector('tfoot')!).getByText(
