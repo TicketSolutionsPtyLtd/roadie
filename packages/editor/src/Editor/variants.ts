@@ -65,9 +65,18 @@ export const EDITOR_TOOLBAR_HEIGHT: Record<EditorSize, string> = {
 // the bar lays it on the normal surface. A subtler editor has no box for a
 // divider to close, so its bar has none, and keeps a gap above the first line.
 export const EDITOR_DOCKED_BAR: Record<EditorEmphasis, string> = {
-  normal: 'rounded-t-lg bg-inherit border-b border-subtler p-1',
+  normal: 'rounded-t-lg bg-inherit border-b border-subtler',
   subtle:
-    'rounded-t-lg bg-normal bg-linear-to-b from-(--intent-bg-subtle) to-(--intent-bg-subtle) border-b border-subtler p-1',
+    'rounded-t-lg bg-normal bg-linear-to-b from-(--intent-bg-subtle) to-(--intent-bg-subtle) border-b border-subtler',
   // A clear edge keeps every bar one height, which the skeleton holds.
-  subtler: 'mb-3 bg-normal border-b border-transparent py-1'
+  subtler: 'mb-3 bg-normal border-b border-transparent'
+}
+
+// On the toolbar's own surface, so a fill its emphasis sets reaches the bar's
+// edges and corners, and a control's hover clears them. A subtler bar lines
+// up with the text, so it pads only above and below.
+export const EDITOR_DOCKED_BAR_INSET: Record<EditorEmphasis, string> = {
+  normal: 'rounded-t-lg p-1',
+  subtle: 'rounded-t-lg p-1',
+  subtler: 'py-1'
 }

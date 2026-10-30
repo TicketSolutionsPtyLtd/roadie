@@ -175,6 +175,38 @@ describe('Editor emphasis', () => {
     )
   })
 
+  it.each(['subtle', 'raised'] as const)(
+    'fills the whole docked bar with a %s toolbar, padding and all',
+    async (toolbarEmphasis) => {
+      render(
+        <Editor aria-label={LABEL} emphasis='subtle'>
+          <Editor.Toolbar emphasis={toolbarEmphasis} />
+          <Editor.Content />
+        </Editor>
+      )
+      await loadedTextbox()
+      const toolbar = screen.getByRole('toolbar', { name: 'Formatting' })
+      const surface = toolbar
+        .closest<HTMLElement>('[data-slot="toolbar-surface"]')!
+        .getBoundingClientRect()
+      const bar = toolbar
+        .closest<HTMLElement>('[data-slot="editor-toolbar"]')!
+        .getBoundingClientRect()
+      const button = toolbar.querySelector('button')!.getBoundingClientRect()
+
+      expect(surface.top).toBeCloseTo(bar.top, 0)
+      expect(surface.left).toBeCloseTo(bar.left, 0)
+      expect(surface.right).toBeCloseTo(bar.right, 0)
+      expect(button.top - surface.top).toBeGreaterThanOrEqual(4)
+      expect(button.left - surface.left).toBeGreaterThanOrEqual(4)
+      const corner = (element: Element) =>
+        getComputedStyle(element).borderTopLeftRadius
+      expect(corner(toolbar.closest('[data-slot="toolbar-surface"]')!)).toBe(
+        corner(toolbar.closest('[data-slot="editor-toolbar"]')!)
+      )
+    }
+  )
+
   it('shows subtler content on the page, with no box', async () => {
     render(
       <Editor

@@ -176,7 +176,10 @@ describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
     }
     const { borderBottomWidth, borderBottomColor } = getComputedStyle(bar)
 
-    expect(getComputedStyle(surfaceOf(toolbar)).borderTopLeftRadius).toBe('0px')
+    // Rounded as the frame is, so its fill doesn't poke past the corners.
+    expect(getComputedStyle(surfaceOf(toolbar)).borderTopLeftRadius).toBe(
+      getComputedStyle(bar).borderTopLeftRadius
+    )
     expect(borderBottomWidth).toBe('1px')
     expect(borderBottomColor).not.toBe(TRANSPARENT)
     const fill = (element: HTMLElement) =>
@@ -252,7 +255,8 @@ describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
       const surface = surfaceOf(await shownToolbar())
       const resting = looksOf(surface)
 
-      expect(resting.height).toBe(CONTROL_HEIGHT)
+      // A control, with the bar's padding above and below it.
+      expect(resting.height).toBe(CONTROL_HEIGHT + 8)
       expect(resting.borderTopWidth).toBe('0px')
       expect(resting.boxShadow).toBe('none')
       if (emphasis === 'subtler')
