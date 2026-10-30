@@ -668,6 +668,32 @@ describe('a reorderable List.Item without a plain title', () => {
     ).toBeInTheDocument()
   })
 
+  it('names its handle from a string title when label is empty', () => {
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title='SKU' label='' />
+        </List>
+      </Sortable>
+    )
+    expect(
+      screen.getByRole('button', { name: 'Reorder SKU' })
+    ).toBeInTheDocument()
+  })
+
+  it('warns when its label is empty', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title={rich} label='' />
+        </List>
+      </Sortable>
+    )
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('label'))
+    warn.mockRestore()
+  })
+
   it('warns when it has no label', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
