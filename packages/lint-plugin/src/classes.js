@@ -49,6 +49,10 @@ function constClassData(sourceCode, identifier) {
 }
 
 // A condition picks classes without being one, as in cn(path === HREF && 'p-2').
+// Only + builds a class from operands; any other operator tests them.
+const isComparison = (node) =>
+  node.type === 'BinaryExpression' && node.operator !== '+'
+
 function conditionOf(node) {
   if (node.type === 'ConditionalExpression') return node.test
   if (node.type === 'LogicalExpression' && node.operator === '&&') {
@@ -62,7 +66,7 @@ function stringParts(root, sourceCode) {
   const parts = []
   // Bindings are followed one level, so a constant built from another isn't.
   const visit = (node, followed) => {
-    if (!node || typeof node.type !== 'string') return
+    if (!node || typeof node.type !== 'string' || isComparison(node)) return
     if (node.type === 'Identifier' && !followed) {
       visit(constClassData(sourceCode, node), true)
     } else if (node.type === 'Literal' && typeof node.value === 'string') {

@@ -32,7 +32,9 @@ runRuleCases({
       "const id = '#main'",
       "const HREF = '/faq#abc'; cn(path === HREF && 'bg-strong')",
       "cn(path === '/faq#abc' && 'bg-strong')",
-      "cn(path === '/faq#abc' ? 'bg-strong' : 'bg-subtle')"
+      "cn(path === '/faq#abc' ? 'bg-strong' : 'bg-subtle')",
+      "cn('p-2', { 'bg-strong': hash !== '#abc' })",
+      "cn(path === '/faq#abc' || 'bg-strong')"
     ],
     invalid: [
       "<div className='bg-[#fff]' />",
