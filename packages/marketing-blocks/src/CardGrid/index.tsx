@@ -580,6 +580,7 @@ export function CardGrid({
         </List>
         <BlockActions
           actions={actions}
+          intent={intent}
           className={cn(align === 'center' && 'justify-center')}
         />
       </div>

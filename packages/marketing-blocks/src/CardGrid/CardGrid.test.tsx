@@ -354,6 +354,21 @@ describe('CardGrid', () => {
     const cardsOf = () =>
       within(screen.getAllByRole('list')[0]!).getAllByRole('listitem')
 
+    it('gives its strong action the block’s intent', () => {
+      render(
+        <CardGrid
+          intent='brand'
+          title='Section'
+          items={values}
+          actions={[{ label: 'See them all', href: '/all' }]}
+        />
+      )
+
+      expect(screen.getByRole('link', { name: 'See them all' })).toHaveClass(
+        'intent-brand'
+      )
+    })
+
     it('sets the block’s intent on its section', () => {
       render(<CardGrid intent='brand' title='Section' items={values} />)
 
