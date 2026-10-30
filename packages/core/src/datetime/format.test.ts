@@ -238,6 +238,25 @@ describe('locales', () => {
     }
   })
 
+  it.each([
+    ['fa', 'نوامبر'],
+    ['ps', 'نومبر'],
+    ['ar-SA', 'نوفمبر']
+  ])(
+    'names the Gregorian month in %s, matching the day and year',
+    (locale, month) => {
+      expect(formatMedium(start, { ...bne, locale })).toBe(`27 ${month} 2026`)
+    }
+  )
+
+  it('keeps the month marker in Japanese', () => {
+    expect(formatMedium(start, { ...bne, locale: 'ja' })).toBe('27 11月 2026')
+  })
+
+  it('names the month on its own in a locale that inflects it', () => {
+    expect(formatMedium(start, { ...bne, locale: 'ru' })).toMatch(/^27 нояб/)
+  })
+
   it('keeps the numbers Latin while the words follow the locale', () => {
     const out = formatMedium(start, { ...bne, locale: 'ar-EG' })
     expect(out).toMatch(/^27 /)

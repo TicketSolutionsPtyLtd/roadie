@@ -162,17 +162,16 @@ function zoneParts(
   const date = toDate(value)
   if (Number.isNaN(date.getTime())) return null
   try {
-    const long = dateTimeFormat(locale, {
-      timeZone,
-      weekday: 'long',
-      month: 'long'
-    }).formatToParts(date)
-
-    const short = dateTimeFormat(locale, {
-      timeZone,
-      weekday: 'short',
-      month: 'short'
-    }).formatToParts(date)
+    // Gregorian, so the names match the day and year read below (fa and ps
+    // default to the Persian calendar).
+    const words = (options: Intl.DateTimeFormatOptions) =>
+      dateTimeFormat(locale, { timeZone, calendar: 'gregory', ...options })
+    const long = words({ weekday: 'long' }).formatToParts(date)
+    const short = words({ weekday: 'short' }).formatToParts(date)
+    // A month on its own: the standalone form, and ja's 月, which Intl puts
+    // in a literal beside the month part.
+    const monthLong = words({ month: 'long' }).format(date)
+    const monthShort = words({ month: 'short' }).format(date)
 
     // Latin digits. Reading numbers from the localised pass yields '٢٧' under
     // ar-EG, which Number() turns into NaN.
@@ -204,8 +203,8 @@ function zoneParts(
       weekdayLong: pick(long, 'weekday'),
       weekdayShort: trimAbbreviation(pick(short, 'weekday')),
       day,
-      monthLong: pick(long, 'month'),
-      monthShort: trimAbbreviation(pick(short, 'month')),
+      monthLong,
+      monthShort: trimAbbreviation(monthShort),
       monthNumber,
       year,
       hour,
