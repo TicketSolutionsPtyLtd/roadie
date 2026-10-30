@@ -143,11 +143,25 @@ describe('DashboardPeriod', () => {
     for (const name of [
       /^Next 30 days/,
       /^Next 90 days/,
+      /^Upcoming/,
       /^Last 30 days/,
       /^Last 12 months/,
       /^This financial year/
     ])
       expect(within(dialog).getByRole('button', { name })).toBeInTheDocument()
+  })
+
+  it('turns Compare off for the default Upcoming preset', async () => {
+    render(<DashboardPeriod today={TODAY} defaultValue={THIS_MONTH} />)
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).toBeChecked()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    expect(compareSwitch(dialog)).toHaveAccessibleDescription(
+      'Nothing to compare'
+    )
   })
 
   it('applies a comparison chosen with the same range', async () => {
