@@ -34,6 +34,21 @@
   }
 }
 
+/* The block a block menu is open on takes the chosen tint, as a selected
+   row does, so it's clear which block the menu acts on. */
+[data-slot='editor-content'] [data-menu-block] {
+  border-radius: var(--radius-md);
+  background-color: var(--intent-5);
+  box-shadow: 0 0 0 calc(var(--spacing) * 1.5) var(--intent-5);
+}
+
+@media (forced-colors: active) {
+  [data-slot='editor-content'] [data-menu-block] {
+    outline: 2px solid Highlight;
+    outline-offset: calc(var(--spacing) * 1.5);
+  }
+}
+
 /* A boxed editor isn't a text field, so it keeps only the field's invalid
    edge and fill. */
 [data-slot='editor'][aria-invalid='true']:not([data-emphasis='subtler']) {

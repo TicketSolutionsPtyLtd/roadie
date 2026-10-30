@@ -68,7 +68,7 @@ import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
 import { focusEditor } from './focusEditor'
-import { FocusedBlock } from './focusedBlock'
+import { FocusedBlock, MenuBlock } from './focusedBlock'
 import {
   ImageUpload,
   type UploadImage,
@@ -80,7 +80,7 @@ import { presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { SlashMenu, type SlashMenuHandle } from './slashMenu'
-import { resolvedPreset } from './startingValue'
+import { presetLook, resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
 import { useToolbarMode } from './toolbarMode'
 import {
@@ -296,7 +296,7 @@ export function EditorEngine({
   disabled: disabledProp = false,
   name,
   size = 'md',
-  emphasis = 'normal',
+  emphasis: emphasisProp,
   className,
   children,
   onUploadImage,
@@ -318,9 +318,13 @@ export function EditorEngine({
   const tableToolbarRef = useRef<HTMLDivElement>(null)
   const slashMenuRef = useRef<SlashMenuHandle>(null)
   const openBubbleMenuRef = useRef<(() => boolean) | null>(null)
+  const look = presetLook(
+    resolvedPreset({ preset: presetProp, value, defaultValue })
+  )
+  const emphasis = emphasisProp ?? look.emphasis
   const { toolbar, pinnable, setToolbar } = useToolbarMode({
     toolbar: toolbarProp,
-    defaultToolbar,
+    defaultToolbar: defaultToolbar ?? look.toolbar,
     onToolbarChange,
     pinnable: pinnableProp
   })
@@ -397,7 +401,7 @@ export function EditorEngine({
           return Boolean(openBlockMenuRef.current)
         }
       }),
-      ...(blockContainers ? [BlockDrag] : []),
+      ...(blockContainers ? [BlockDrag, MenuBlock] : []),
       FocusedBlock.configure({ containers: blockContainers ?? TOP_LEVEL }),
       InsertMenu.configure({
         items: insertItems,

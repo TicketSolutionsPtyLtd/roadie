@@ -14,7 +14,7 @@ import type {
   Preset
 } from '../schema'
 import { loadedEngine, preloadEditor, subscribeToEngine } from './load'
-import { resolvedPreset, startingValue } from './startingValue'
+import { presetLook, resolvedPreset, startingValue } from './startingValue'
 import {
   EDITOR_MIN_HEIGHT,
   EDITOR_TOOLBAR_HEIGHT,
@@ -53,7 +53,7 @@ export type EditorRootProps = {
    * The frame. `normal` and `subtle` match `Textarea`'s look; `raised` lifts
    * it off the page like a card; `subtler` has none, for content edited in
    * place on the page. Focus shows on the caret's block, not the frame.
-   * @default 'normal'
+   * @default 'normal', or 'subtler' for the blocks preset
    */
   emphasis?: EditorEmphasis
   className?: string
@@ -66,7 +66,7 @@ export type EditorRootProps = {
   toolbar?: EditorToolbarMode
   /**
    * The starting toolbar, for an editor that pins and unpins on its own.
-   * @default 'docked'
+   * @default 'docked', or 'floating' for the blocks preset
    */
   defaultToolbar?: EditorToolbarMode
   /** Called with the toolbar someone pins (`docked`) or unpins (`floating`). */
@@ -135,8 +135,10 @@ export function EditorRoot(props: EditorRootProps) {
 
   if (!engine) {
     const size = props.size ?? 'md'
-    const emphasis = props.emphasis ?? 'normal'
-    const floating = (props.toolbar ?? props.defaultToolbar) === 'floating'
+    const look = presetLook(resolvedPreset(props))
+    const emphasis = props.emphasis ?? look.emphasis
+    const floating =
+      (props.toolbar ?? props.defaultToolbar ?? look.toolbar) === 'floating'
     const toolbarRoom = (
       <div
         className={cn(

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
 
@@ -12,7 +12,8 @@ const LABEL = 'Page'
 let style: HTMLStyleElement
 beforeAll(() => {
   style = document.createElement('style')
-  style.textContent = roadieCss
+  // A blocks page has no box, so its grip sits in the page's gutter.
+  style.textContent = `${roadieCss} body { padding-inline: 64px; }`
   document.head.append(style)
 })
 afterAll(() => style.remove())
@@ -113,8 +114,23 @@ describe('Editor block handle', () => {
     await expectHandleBeside('Headliner')
   })
 
-  it('makes room for the grip inside a framed editor, before the text', async () => {
+  it('marks its block as chosen while its menu is open, and names its type', async () => {
     renderLineup()
+    const row = await paragraph('Support')
+    const menu = await openMenuOn('Support')
+
+    expect(row).toHaveAttribute('data-menu-block')
+    expect(getComputedStyle(row).backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
+    await waitFor(() =>
+      expect(within(menu).getByRole('group', { name: 'Text' })).toBeVisible()
+    )
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(row).not.toHaveAttribute('data-menu-block'))
+  })
+
+  it('makes room for the grip inside a framed editor, before the text', async () => {
+    renderLineup({ emphasis: 'normal' })
     const row = await paragraph('Doors')
     await userEvent.hover(row)
     await expectHandleBeside('Doors')

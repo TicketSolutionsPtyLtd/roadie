@@ -27,6 +27,10 @@ the images, embeds, and tables this preset holds too.
 from blocks, and every block keeps an id. Type `/` in the empty paragraph to
 add a block.
 
+A page is edited in place, so a `blocks` editor opens with
+`emphasis='subtler'`, with no box, and `toolbar='floating'`: select text to
+format it. Pass `emphasis` or `toolbar` to change either.
+
 ```tsx-live-prose
 <Editor
   aria-label='Page'
@@ -90,7 +94,9 @@ blocks in a `status`.
 A grip shows at the start of the block under the pointer, or of the block
 with the caret while the editor has focus. Drag it to move the block; a line
 shows where it will land. Click or tap it, or press `Mod+/` in the text, for
-the block's menu: Move up, Move down, Duplicate, and Delete. Each is one step
+the block's menu: Move up, Move down, Duplicate, and Delete. The menu opens
+beside the grip, headed by the block's type, and the block takes the chosen
+tint while it's open, so it's clear which block it acts on. Each is one step
 to undo, a moved block keeps its `blockId`, and a copy gets one of its own.
 On a touch screen the grip shows beside the block you're typing in, and its
 menu moves the block.
