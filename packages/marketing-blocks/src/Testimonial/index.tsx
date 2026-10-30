@@ -154,7 +154,8 @@ export function Testimonial({
         {name === 'carousel' ? (
           <Carousel className={cn('grid w-full', gap)}>
             <Carousel.Title id={headingId} render={() => heading} />
-            <Carousel.Content overflow='hidden'>
+            {/* Clipped sideways only, so the quote mark rising above each quote shows. */}
+            <Carousel.Content overflow='hidden' className='overflow-y-visible'>
               {quotes.map((item, index) => (
                 <Carousel.Item
                   key={`${index}-${item.person.name}`}
@@ -209,8 +210,6 @@ function QuoteFigure({
 // The logo is a small mark under the role, as on the website, whatever its file's size.
 const LOGO_WIDTH = 160
 
-// The glyph's negative margin tucks the quote's first line into its lower
-// half, as a typeset pull quote does.
 function Quote({
   children,
   intent,
@@ -226,7 +225,13 @@ function Quote({
         'isolate max-w-2xl text-display-prose-5',
         align === 'center' ? 'text-center' : 'text-start',
         'leading-tight text-balance @xl:text-display-prose-4',
-        'before:relative before:-z-1 before:-mb-[0.45em] before:block before:text-[10em] before:leading-[0.5] before:text-subtler before:opacity-50 before:content-[open-quote] after:content-[no-close-quote]',
+        'before:relative before:-z-1 before:block before:text-subtler before:opacity-50 before:content-[open-quote] after:content-[no-close-quote]',
+        // Centred, the mark tucks behind the first line, as a typeset pull quote
+        // does; at the start edge it would cover the opening words, so it sits
+        // smaller, clear above them.
+        align === 'center'
+          ? 'before:-mb-[0.45em] before:text-[10em] before:leading-[0.5]'
+          : 'before:mt-[0.35em] before:mb-0 before:text-[5em] before:leading-[0.3]',
         intentClass(intent ?? 'info')
       )}
     >

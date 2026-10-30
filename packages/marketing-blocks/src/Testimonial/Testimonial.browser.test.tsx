@@ -355,6 +355,25 @@ describe('Testimonial contrast', () => {
   })
 })
 
+describe('Testimonial quote mark', () => {
+  const mark = () =>
+    getComputedStyle(screen.getByRole('blockquote'), '::before')
+
+  it('tucks the mark behind a centred quote', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(<Testimonial {...quote} />)
+
+    expect(parseFloat(mark().marginBottom)).toBeLessThan(0)
+  })
+
+  it('sets the mark clear above a start-aligned quote', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(<Testimonial {...quote} align='start' />)
+
+    expect(parseFloat(mark().marginBottom)).toBeGreaterThanOrEqual(0)
+  })
+})
+
 describe('Testimonial carousel', () => {
   it('steps through the quotes with dots alone', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
@@ -378,6 +397,17 @@ describe('Testimonial carousel', () => {
         return Math.abs(left - viewport.left) < 2
       })
       .toBe(true)
+  })
+
+  it('clips the slides sideways only, so the quote mark above each quote shows', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(<Testimonial {...carousel} image={undefined} />)
+
+    const viewport = getComputedStyle(
+      document.querySelector('[data-slot=carousel-content]')!
+    )
+    expect(viewport.overflowX).toBe('clip')
+    expect(viewport.overflowY).toBe('visible')
   })
 
   it('centres the dots under the quote', async () => {

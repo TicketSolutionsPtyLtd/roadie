@@ -161,10 +161,11 @@ export function CTABand({
               'grid grid-cols-1',
               bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' }),
               image && [
-                '@xl:max-w-7/12',
+                '@xl:max-w-7/12 content-center',
                 // The photo beside the copy is out of flow, so the copy keeps the panel tall
                 // enough for it: a third of the block wide at 380:555, less its overhang, plus
-                // the illustration below it, less the panel's padding.
+                // the illustration below it, less the panel's padding. Its rows pack at the
+                // centre of that height, so short copy keeps its gaps.
                 '@xl:min-h-[calc(min(48.7cqw,555px)-9rem)] @7xl:min-h-[calc(min(48.7cqw,555px)-11rem)]'
               ],
               centred && 'justify-items-center text-center'

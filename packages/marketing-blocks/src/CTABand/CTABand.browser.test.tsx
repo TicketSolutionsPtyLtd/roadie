@@ -135,6 +135,22 @@ describe('CTABand with photo', () => {
     }
   )
 
+  it('keeps its usual gaps with short copy, centring it beside the photo', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(<CTABand {...props} tilted={false} />)
+
+    const { panel, heading } = boxes()
+    const link = screen
+      .getByRole('link', { name: 'Talk to us' })
+      .getBoundingClientRect()
+    const body = screen.getByText(/get-to-know-you/).getBoundingClientRect()
+    expect(body.top - heading.bottom).toBeLessThanOrEqual(56)
+    expect(link.top - body.bottom).toBeLessThanOrEqual(56)
+    const above = heading.top - panel.top
+    const below = panel.bottom - link.bottom
+    expect(Math.abs(above - below)).toBeLessThan(4)
+  })
+
   it('keeps the photo above a contained panel’s foot, with short copy', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     const { container } = render(
