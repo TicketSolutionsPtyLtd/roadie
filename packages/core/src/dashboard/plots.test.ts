@@ -129,6 +129,25 @@ describe('chart plot schemas', () => {
     ).toBe(false)
   })
 
+  it.each(Object.entries(valid).filter(([kind]) => kind !== 'small-multiples'))(
+    'takes decimal places and trimmed zeros on a %s plot',
+    (_, plot) => {
+      expect(
+        chartPlotSchema.safeParse({
+          ...plot,
+          decimals: 2,
+          trailingZeroDisplay: 'stripIfInteger'
+        }).success
+      ).toBe(true)
+    }
+  )
+
+  it.each([-1, 5, 1.5])('rejects %s decimal places', (decimals) => {
+    expect(chartPlotSchema.safeParse({ ...valid.line, decimals }).success).toBe(
+      false
+    )
+  })
+
   it('rejects pies', () => {
     expect(plotSchema.safeParse({ kind: 'pie', data: [] }).success).toBe(false)
   })

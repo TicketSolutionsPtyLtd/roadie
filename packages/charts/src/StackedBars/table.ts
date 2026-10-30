@@ -2,6 +2,7 @@ import type { TableRow } from '@oztix/roadie-core/dashboard'
 
 import type { ChartTable } from '../Chart'
 import { valueColumn, xColumn } from '../plot/table'
+import { shareStyle } from '../plot/values'
 import { seriesOrder, tableParts } from './stack'
 import type { StackedBarsProps } from './types'
 
@@ -20,9 +21,9 @@ export function stackedBarsTable(props: StackedBarsProps): ChartTable {
   const columns = [
     xColumn(props.x),
     ...names.map((name) =>
-      valueColumn(name, name, share ? 'percent' : props.format)
+      valueColumn(name, name, share ? shareStyle(props) : props)
     ),
-    valueColumn(totalKey, 'Total', props.format)
+    valueColumn(totalKey, 'Total', props)
   ]
   const rows = [...new Set(parts.map((p) => p.x))].map((category) => {
     const own = parts.filter((p) => p.x === category)

@@ -6,6 +6,7 @@ import {
   type DeltaSentiment,
   type GoodWhen,
   type ValueFormat,
+  type ValueFormatOptions,
   deltaSentiment,
   describeDelta,
   formatDelta,
@@ -13,17 +14,18 @@ import {
 } from '@oztix/roadie-core/dataviz'
 import { cn } from '@oztix/roadie-core/utils'
 
-export type DeltaProps = Omit<ComponentProps<'span'>, 'children'> & {
-  value: number
-  /** @default 'number' */
-  format?: ValueFormat
-  /** @default 'up' */
-  goodWhen?: GoodWhen
-  /** Show `value` itself and read direction from `value - baseline` (pace index 112 vs 100). */
-  baseline?: number
-  /** Spoken suffix, e.g. "on last week". */
-  context?: string
-}
+export type DeltaProps = Omit<ComponentProps<'span'>, 'children'> &
+  ValueFormatOptions & {
+    value: number
+    /** @default 'number' */
+    format?: ValueFormat
+    /** @default 'up' */
+    goodWhen?: GoodWhen
+    /** Show `value` itself and read direction from `value - baseline` (pace index 112 vs 100). */
+    baseline?: number
+    /** Spoken suffix, e.g. "on last week". */
+    context?: string
+  }
 
 const NOT_AVAILABLE = 'Not available'
 
@@ -43,12 +45,15 @@ const SENTIMENT_CLASS: Record<DeltaSentiment, string> = {
 export function Delta({
   value,
   format = 'number',
+  decimals,
+  trailingZeroDisplay,
   goodWhen = 'up',
   baseline,
   context,
   className,
   ...props
 }: DeltaProps) {
+  const options: ValueFormatOptions = { decimals, trailingZeroDisplay }
   const change = baseline === undefined ? value : value - baseline
   const direction = directionOf(change)
   const available = direction !== 'none'
@@ -63,13 +68,13 @@ export function Delta({
     : direction === 'flat'
       ? 'No change'
       : baseline === undefined
-        ? formatDelta(value, format)
-        : formatValue(value, format)
+        ? formatDelta(value, format, options)
+        : formatValue(value, format, options)
   const spoken = !available
     ? NOT_AVAILABLE
     : baseline === undefined
-      ? describeDelta(change, format, goodWhen)
-      : `${formatValue(value, format)}, ${describeDelta(change, format, goodWhen)}`
+      ? describeDelta(change, format, goodWhen, options)
+      : `${formatValue(value, format, options)}, ${describeDelta(change, format, goodWhen, options)}`
   return (
     <span
       data-slot='delta'
