@@ -4,11 +4,13 @@ import { describe, expect, it } from 'vitest'
 
 // Each file's lines with a hover class, each with its why beside it, except
 // RecordTableRow: its hover tints a surface variable its sticky cells share,
-// which no utility sets.
+// which no utility sets; and List: a hovered row hides the dividers either
+// side of it through a variable.
 const ALLOWED = new Map([
   ['components/Card/CardImage.tsx', 1],
   ['components/Carousel/CarouselTitleLink.tsx', 1],
   ['components/DataTable/SortIcon.tsx', 1],
+  ['components/List/variants.ts', 2],
   ['components/RecordTable/RecordTableRow.tsx', 2],
   ['components/ScrollArea/variants.ts', 1],
   ['components/Steps/StepsIndicator.tsx', 1]
@@ -17,7 +19,7 @@ const ALLOWED = new Map([
 // A Tailwind hover variant, after any other variant, on a named group, or in
 // an arbitrary selector, but not a `(hover:hover)` media gate.
 const HOVER_CLASS =
-  /(?:^|[\s'"`:\]*])(?:group-|peer-|has-|in-|not-)?hover(?:\/[\w-]+)?:(?=[\w[(!*-])|\[&:hover\]/
+  /(?:^|[\s'"`:\]*])(?:group-|peer-|has-|in-|not-)?hover(?:\/[\w-]+)?:(?=[\w[(!*-])|\[(?![^\]]*@media)[^\]\s]*:hover(?![a-z])[^\]\s]*\]/
 
 const SOURCES = import.meta.glob<string>(
   ['./**/*.{ts,tsx}', '!./**/*.test.{ts,tsx}'],
@@ -54,6 +56,9 @@ describe('component hover states', () => {
     "'data-selected:hover:[--x:1]'",
     "'data-[state=open]:hover:bg-subtle'",
     "'[&:hover]:underline'",
+    "'[&:hover_svg]:text-normal'",
+    "'[&_a:hover]:underline'",
+    "'has-[:hover]:bg-subtle'",
     "'*:hover:underline'"
   ])('catches %s', (line) => {
     expect(HOVER_CLASS.test(line)).toBe(true)
