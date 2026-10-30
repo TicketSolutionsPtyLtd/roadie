@@ -359,9 +359,10 @@ describe('combined without keys', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('combined'))
   })
 
-  it('stays quiet with keys', () => {
+  it('stays quiet with keys, or without combined', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(<Kbd combined keys={['mod', 'k']} />)
+    render(<Kbd>K</Kbd>)
     expect(warn).not.toHaveBeenCalled()
   })
 })
