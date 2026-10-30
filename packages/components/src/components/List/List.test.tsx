@@ -621,3 +621,120 @@ describe('List.Item interaction', () => {
     expect(item('SKU')).not.toHaveClass('is-interactive')
   })
 })
+
+describe('a reorderable List.Item without a plain title', () => {
+  const rich = (
+    <>
+      <strong>SKU</strong> code
+    </>
+  )
+
+  it('names its handle from label', () => {
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title={rich} label='SKU code' />
+        </List>
+      </Sortable>
+    )
+    expect(
+      screen.getByRole('button', { name: 'Reorder SKU code' })
+    ).toBeInTheDocument()
+  })
+
+  it('names its handle from label over a string title', () => {
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title='SKU' label='Stock keeping unit' />
+        </List>
+      </Sortable>
+    )
+    expect(
+      screen.getByRole('button', { name: 'Reorder Stock keeping unit' })
+    ).toBeInTheDocument()
+  })
+
+  it('names its handle from a number title', () => {
+    render(
+      <Sortable items={['row']} onReorder={() => {}}>
+        <List>
+          <List.Item value='row' title={42} />
+        </List>
+      </Sortable>
+    )
+    expect(
+      screen.getByRole('button', { name: 'Reorder 42' })
+    ).toBeInTheDocument()
+  })
+
+  it('names its handle from a string title when label is empty', () => {
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title='SKU' label='' />
+        </List>
+      </Sortable>
+    )
+    expect(
+      screen.getByRole('button', { name: 'Reorder SKU' })
+    ).toBeInTheDocument()
+  })
+
+  it('warns when its label is empty', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title={rich} label='' />
+        </List>
+      </Sortable>
+    )
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('label'))
+    warn.mockRestore()
+  })
+
+  it('warns when its label and string title are both empty', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title='' label='' />
+        </List>
+      </Sortable>
+    )
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('label'))
+    warn.mockRestore()
+  })
+
+  it('warns when it has no label', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title={rich} />
+        </List>
+      </Sortable>
+    )
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('label'))
+    warn.mockRestore()
+  })
+
+  it('stays quiet with a string title, or outside a Sortable', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title='SKU' />
+        </List>
+      </Sortable>
+    )
+    render(
+      <List>
+        <List.Item value='sku' title={rich} />
+      </List>
+    )
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+})
