@@ -10,7 +10,7 @@ import {
   photo,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, textContrast, themes } from '../_test/contrast'
+import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 
 withBrowserPage()
 
@@ -199,7 +199,7 @@ describe('CTABand centred', () => {
 
 describe('CTABand intent and emphasis', () => {
   const EMPHASES = ['raised', 'subtle', 'strong', 'inverted'] as const
-  const cases = themes.flatMap((theme) =>
+  const cases = MODES.flatMap((theme) =>
     EMPHASES.flatMap((emphasis) =>
       (['neutral', 'brand', 'accent'] as const).map(
         (intent) => [emphasis, intent, theme] as const
@@ -210,8 +210,8 @@ describe('CTABand intent and emphasis', () => {
   it.each(cases)(
     'keeps its text readable on a %s %s panel in %s mode',
     async (emphasis, intent, theme) => {
-      document.documentElement.classList.toggle('dark', theme === 'dark')
-      onTestFinished(() => document.documentElement.classList.remove('dark'))
+      setMode(theme)
+      onTestFinished(() => setMode('light'))
       const { container } = render(
         <CTABand
           preset='centred'

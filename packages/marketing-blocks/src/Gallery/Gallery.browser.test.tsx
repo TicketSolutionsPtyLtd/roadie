@@ -11,7 +11,7 @@ import {
   photo,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, textContrast, themes } from '../_test/contrast'
+import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 
 withBrowserPage()
 
@@ -236,7 +236,7 @@ describe('Gallery', () => {
   )
 
   it.each(
-    themes.flatMap((theme) =>
+    MODES.flatMap((theme) =>
       (['neutral', 'brand', 'accent'] as const).map(
         (intent) => [intent, theme] as const
       )
@@ -244,8 +244,8 @@ describe('Gallery', () => {
   )(
     'keeps its heading readable with a %s intent in %s mode',
     async (intent, theme) => {
-      document.documentElement.classList.toggle('dark', theme === 'dark')
-      onTestFinished(() => document.documentElement.classList.remove('dark'))
+      setMode(theme)
+      onTestFinished(() => setMode('light'))
       const { container } = render(
         <Gallery
           preset='marquee'

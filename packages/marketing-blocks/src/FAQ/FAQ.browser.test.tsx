@@ -9,7 +9,7 @@ import {
   axeViolations,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, textContrast, themes } from '../_test/contrast'
+import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 
 withBrowserPage()
 
@@ -57,7 +57,7 @@ describe('FAQ', () => {
 })
 
 describe('FAQ intent and emphasis', () => {
-  const cases = themes.flatMap((theme) =>
+  const cases = MODES.flatMap((theme) =>
     (['subtler', 'subtle', 'normal'] as const).flatMap((emphasis) =>
       (['neutral', 'brand', 'accent'] as const).map(
         (intent) => [emphasis, intent, theme] as const
@@ -68,8 +68,8 @@ describe('FAQ intent and emphasis', () => {
   it.each(cases)(
     'keeps its text readable on %s %s questions in %s mode',
     async (emphasis, intent, theme) => {
-      document.documentElement.classList.toggle('dark', theme === 'dark')
-      onTestFinished(() => document.documentElement.classList.remove('dark'))
+      setMode(theme)
+      onTestFinished(() => setMode('light'))
       const { container } = render(
         <FAQ
           intent={intent}
