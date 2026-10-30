@@ -884,6 +884,32 @@ describe('QueryField', () => {
     expect(screen.getByText('No suggestions')).toBeInTheDocument()
   })
 
+  it('says it is loading again while a failed request retries', async () => {
+    const requests: PromiseWithResolvers<QueryFieldSuggestionGroup[]>[] = []
+    render(
+      <Harness
+        pendingChip={{ id: 'venue', label: 'Venue is' }}
+        suggest={(text) => {
+          if (!text) return Promise.resolve<QueryFieldSuggestionGroup[]>([])
+          requests.push(Promise.withResolvers())
+          return requests.at(-1)!.promise
+        }}
+      />
+    )
+    await userEvent.click(input())
+    await userEvent.keyboard('z')
+    await screen.findByText('Loading suggestions')
+    await act(async () => requests.at(-1)!.reject(new Error('offline')))
+    expect(screen.getByText('No suggestions')).toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(input()).toHaveAttribute('aria-expanded', 'false')
+    )
+    await userEvent.keyboard('{ArrowDown}')
+    expect(await screen.findByText('Loading suggestions')).toBeInTheDocument()
+    expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
+  })
+
   it('opens no list with nothing to suggest, hint, or text', async () => {
     render(<Harness initialChips={[scope]} suggest={() => []} />)
     await userEvent.click(input())
