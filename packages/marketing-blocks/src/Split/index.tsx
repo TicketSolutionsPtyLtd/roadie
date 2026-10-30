@@ -12,6 +12,12 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { type StatItem, StatList } from '../_shared/StatList'
 import { presetOf } from '../_shared/presets'
+import {
+  type BlockEmphasis,
+  type BlockIntent,
+  emphasisClass,
+  intentClass
+} from '../_shared/surface'
 import { type SplitPreset, splitDefinition } from './definition'
 
 export type { StatItem } from '../_shared/StatList'
@@ -23,6 +29,12 @@ export type SplitPartner = {
   name: string
   logo: BlockImage
 }
+
+/** The panels a Split can sit on: the ones its text stays readable on in both themes. */
+export type SplitEmphasis = Extract<
+  BlockEmphasis,
+  'subtle' | 'subtler' | 'raised' | 'normal'
+>
 
 /** The stats beside a `text-and-stats` split. */
 export type SplitStats = {
@@ -62,6 +74,14 @@ export type SplitProps = {
   partner?: SplitPartner
   /** The `text-and-stats` aside, which wraps below the text on narrow widths. */
   stats?: SplitStats
+  /**
+   * The block's intent, which its highlights, actions, and panel take. `tinted-panel` defaults to `info` on its panel.
+   */
+  intent?: BlockIntent
+  /**
+   * The panel the block sits on. `tinted-panel` defaults to `subtle`; `media-text` and `text-and-stats` have no panel unless one is set. `logo-lockup` never has one, since it opens the page.
+   */
+  emphasis?: SplitEmphasis
 }
 
 const CONTENT: Record<
@@ -72,7 +92,9 @@ const CONTENT: Record<
     gap: string
     prose: 'md' | 'lg'
     proseClassName?: string
-    contentClassName?: string
+    emphasis?: SplitEmphasis
+    intent?: BlockIntent
+    panelGap?: string
   }
 > = {
   'tinted-panel': {
@@ -81,8 +103,8 @@ const CONTENT: Record<
     gap: 'gap-4',
     prose: 'md',
     proseClassName: 'text-subtle',
-    // The panel's tint is info, but its text reads as neutral, as on the live site.
-    contentClassName: 'intent-neutral [&_h2]:intent-info'
+    emphasis: 'subtle',
+    intent: 'info'
   },
   'media-text': { level: 2, size: 2, gap: 'gap-6', prose: 'md' },
   'text-and-stats': {
@@ -108,18 +130,31 @@ export function Split({
   actions,
   image,
   partner,
-  stats
+  stats,
+  intent,
+  emphasis
 }: SplitProps) {
   const { name, variant } = presetOf(splitDefinition, preset)
   const layout = CONTENT[name]
   const headingId = useId()
+  const panelEmphasis =
+    name === 'logo-lockup' ? undefined : (emphasis ?? layout.emphasis)
+  const panelIntent = intent ?? layout.intent
+  const panel =
+    panelEmphasis &&
+    cn(
+      'rounded-2xl p-6',
+      emphasisClass(panelEmphasis),
+      intentClass(panelIntent)
+    )
 
   const content = (
     <div
       className={cn(
         'grid min-w-0 grid-cols-1 content-start wrap-break-word',
         layout.gap,
-        layout.contentClassName
+        // On a panel the heading keeps the panel's intent, and the rest of the text reads as neutral, as on the live site.
+        panel && ['intent-neutral', HEADING_INTENT[panelIntent ?? 'neutral']]
       )}
     >
       <BlockHeading
@@ -127,6 +162,7 @@ export function Split({
         level={layout.level}
         size={layout.size}
         align='start'
+        intent={intent}
         eyebrow={eyebrow}
         title={title}
         titleHighlight={titleHighlight}
@@ -148,17 +184,21 @@ export function Split({
       preset={name}
       position={position}
       id={id}
+      intent={intent}
       aria-labelledby={headingId}
     >
       {name === 'text-and-stats' && (
-        <div
-          className={cn(
-            'container-8xl grid grid-cols-1 gap-12 @5xl:gap-x-24',
-            stats && '@3xl:grid-cols-[minmax(0,1fr)_20rem]'
-          )}
-        >
-          {content}
-          {stats && <StatsAside {...stats} />}
+        <div className='container-8xl'>
+          <div
+            className={cn(
+              'grid grid-cols-1 gap-12 @5xl:gap-x-24',
+              stats && '@3xl:grid-cols-[minmax(0,1fr)_20rem]',
+              panel
+            )}
+          >
+            {content}
+            {stats && <StatsAside {...stats} />}
+          </div>
         </div>
       )}
       {name === 'logo-lockup' && (
@@ -173,30 +213,39 @@ export function Split({
         </div>
       )}
       {name === 'media-text' && (
-        <div
-          className={cn(
-            'container-8xl grid grid-cols-1 items-center gap-8 @5xl:gap-16',
-            image && '@xl:grid-cols-2'
-          )}
-        >
-          {image && (
-            <div className='aspect-4/3 min-w-0 overflow-hidden rounded-2xl'>
-              <BlockImg
-                image={image}
-                sizes='(min-width: 40rem) 50vw, 100vw'
-                className='size-full object-cover'
-              />
-            </div>
-          )}
-          {content}
+        <div className='container-8xl'>
+          <div
+            className={cn(
+              'grid grid-cols-1 items-center gap-8 @5xl:gap-16',
+              image && '@xl:grid-cols-2',
+              panel
+            )}
+          >
+            {image && (
+              <div
+                className={cn(
+                  'aspect-4/3 min-w-0 overflow-hidden',
+                  panel ? 'rounded-xl' : 'rounded-2xl'
+                )}
+              >
+                <BlockImg
+                  image={image}
+                  sizes='(min-width: 40rem) 50vw, 100vw'
+                  className='size-full object-cover'
+                />
+              </div>
+            )}
+            {content}
+          </div>
         </div>
       )}
       {name === 'tinted-panel' && (
         <div className='container-8xl'>
           <div
             className={cn(
-              'grid grid-cols-1 items-center gap-6 rounded-2xl emphasis-subtle p-6 intent-info @3xl:gap-12',
-              image && '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
+              'grid grid-cols-1 items-center gap-6 @3xl:gap-12',
+              image && '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]',
+              panel
             )}
           >
             {image && (
@@ -214,6 +263,19 @@ export function Split({
       )}
     </BlockRoot>
   )
+}
+
+// Literal class names, so Tailwind finds them.
+const HEADING_INTENT: Record<BlockIntent, string> = {
+  neutral: '[&_h2]:intent-neutral',
+  brand: '[&_h2]:intent-brand',
+  'brand-secondary': '[&_h2]:intent-brand-secondary',
+  'brand-purple': '[&_h2]:intent-brand-purple',
+  accent: '[&_h2]:intent-accent',
+  info: '[&_h2]:intent-info',
+  success: '[&_h2]:intent-success',
+  warning: '[&_h2]:intent-warning',
+  danger: '[&_h2]:intent-danger'
 }
 
 function StatsAside({ title, description, items }: SplitStats) {

@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Stats, type StatsProps } from '.'
+import { Stats, type StatsEmphasis, type StatsProps } from '.'
+import type { BlockIntent } from '../_shared/surface'
 import {
   DESKTOP,
   PHONE,
@@ -9,6 +10,7 @@ import {
   axeViolations,
   withBrowserPage
 } from '../_test/browser'
+import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 
 withBrowserPage()
 
@@ -129,4 +131,90 @@ describe('Stats accessibility', () => {
 
     expect(await axeViolations(container)).toEqual([])
   })
+})
+
+const EMPHASES: (StatsEmphasis | undefined)[] = [
+  undefined,
+  'raised',
+  'subtle',
+  'subtler'
+]
+const INTENTS: (BlockIntent | undefined)[] = [
+  undefined,
+  'neutral',
+  'brand',
+  'brand-secondary',
+  'brand-purple',
+  'accent',
+  'info',
+  'success',
+  'warning',
+  'danger'
+]
+
+describe('Stats contrast on every band', () => {
+  it.each(
+    MODES.flatMap((mode) =>
+      EMPHASES.map((emphasis) => ({
+        mode,
+        emphasis,
+        band: emphasis ?? 'no band'
+      }))
+    )
+  )(
+    'keeps the figures readable on $band in $mode mode, for every intent',
+    async ({ mode, emphasis }) => {
+      await atWidth(DESKTOP.width, DESKTOP.height)
+      setMode(mode)
+      try {
+        for (const intent of INTENTS) {
+          const { unmount } = render(
+            <Stats {...facts} intent={intent} emphasis={emphasis} />
+          )
+          const at = `${intent ?? 'no'} intent`
+          for (const element of [
+            screen.getByRole('heading', { level: 2 }),
+            screen.getByText('33,000,000+')
+          ])
+            expect(textContrast(element), at).toBeGreaterThanOrEqual(
+              MINIMUM_LC.large
+            )
+          for (const element of [
+            screen.getByText('The impact of genuine partnerships'),
+            screen.getByText('tickets sold')
+          ])
+            expect(textContrast(element), at).toBeGreaterThanOrEqual(
+              MINIMUM_LC.body
+            )
+          unmount()
+        }
+      } finally {
+        setMode('light')
+      }
+    }
+  )
+
+  it("sets the figures in the intent's strong text colour", async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { unmount } = render(<Stats {...facts} />)
+    const neutral = getComputedStyle(screen.getByText('33,000,000+')).color
+    unmount()
+
+    render(<Stats {...facts} intent='brand' />)
+
+    expect(getComputedStyle(screen.getByText('33,000,000+')).color).not.toBe(
+      neutral
+    )
+  })
+
+  it.each(EMPHASES.slice(1))(
+    'has no axe violations on %s',
+    async (emphasis) => {
+      const { container } = render(
+        <Stats {...facts} intent='brand' emphasis={emphasis} />
+      )
+
+      expect(await axeViolations(container)).toEqual([])
+    }
+  )
 })

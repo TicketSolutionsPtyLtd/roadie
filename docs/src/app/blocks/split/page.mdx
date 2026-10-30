@@ -130,6 +130,46 @@ heart, beside the page title, text, and action. Its title is the page's
 />
 ```
 
+### Intent and emphasis
+
+`intent` colours the highlights, actions, and panel, and `emphasis` sets the
+panel: `subtle`, `subtler`, `raised`, or `normal`. Tinted panel defaults to a
+subtle info panel. Media and text and text and stats have no panel until you
+set one, and logo lockup never has one.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Brand, subtle panel */}
+<Split
+  preset='media-text'
+  intent='brand'
+  emphasis='subtle'
+  title='Sell more tickets with your partners'
+  titleHighlight='more tickets'
+  body={<p>List your events where your audience already spends time.</p>}
+  actions={[{ label: 'Talk to us', href: '/contact' }]}
+  image={{
+    src: '/brand/photography/05.webp',
+    alt: 'Three partners smiling together at a laneway event',
+    width: 1280,
+    height: 854
+  }}
+/>
+{/* Success, raised panel */}
+<Split
+  preset='tinted-panel'
+  intent='success'
+  emphasis='raised'
+  title='Payouts within days of your event'
+  description='Settlement runs automatically once the doors close, so your money arrives without chasing it.'
+  image={{
+    src: '/brand/photography/04.webp',
+    alt: 'A staff member in a blue vest scanning a ticket on a phone at an event entry',
+    width: 1280,
+    height: 1007
+  }}
+/>
+```
+
 ## Guidelines
 
 <Guidelines>
@@ -158,6 +198,15 @@ heart, beside the page title, text, and action. Its title is the page's
   </Guideline.Do>
   <Guideline.Dont>
     Don't add an illustration that doesn't match its label.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep the defaults unless the page needs a change of pace'>
+  <Guideline.Do>
+    Set an intent to match the page's brand or a campaign, or a panel to separate a section from the ones around it.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put every Split on a panel, or give neighbouring blocks different intents. Each change loses its point when everything changes.
   </Guideline.Dont>
 </Guideline>
 

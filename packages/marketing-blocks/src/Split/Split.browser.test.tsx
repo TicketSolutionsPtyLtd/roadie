@@ -1,7 +1,8 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Split, type SplitPreset, type SplitProps } from '.'
+import { Split, type SplitEmphasis, type SplitPreset, type SplitProps } from '.'
+import type { BlockIntent } from '../_shared/surface'
 import {
   DESKTOP,
   PHONE,
@@ -10,6 +11,7 @@ import {
   photo,
   withBrowserPage
 } from '../_test/browser'
+import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 
 withBrowserPage()
 
@@ -289,4 +291,79 @@ describe('Split accessibility', () => {
       expect(await axeViolations(container)).toEqual([])
     }
   )
+})
+
+const EMPHASES: SplitEmphasis[] = ['subtle', 'subtler', 'raised', 'normal']
+const INTENTS: (BlockIntent | undefined)[] = [
+  undefined,
+  'neutral',
+  'brand',
+  'brand-secondary',
+  'brand-purple',
+  'accent',
+  'info',
+  'success',
+  'warning',
+  'danger'
+]
+
+describe('Split contrast on every panel', () => {
+  it.each(
+    MODES.flatMap((mode) =>
+      EMPHASES.flatMap((emphasis) =>
+        (['tinted-panel', 'text-and-stats'] as const).map((preset) => ({
+          mode,
+          emphasis,
+          preset
+        }))
+      )
+    )
+  )(
+    'keeps $preset text readable on $emphasis in $mode mode, for every intent',
+    async ({ mode, emphasis, preset }) => {
+      setMode(mode)
+      try {
+        for (const intent of INTENTS) {
+          const { container, unmount } = await renderAt(DESKTOP, {
+            ...PRESETS[preset],
+            description: 'A sentence under the title.',
+            body: <p>Body text on the panel.</p>,
+            intent,
+            emphasis
+          })
+          const at = `${intent ?? 'default'} intent`
+          const large = [
+            screen.getByRole('heading', { level: 2 }),
+            ...container.querySelectorAll('h3, li p:first-child')
+          ]
+          const body = [
+            screen.getByText('A sentence under the title.'),
+            screen.getByText('Body text on the panel.'),
+            ...container.querySelectorAll('li p:last-child')
+          ]
+          for (const element of large)
+            expect(textContrast(element), at).toBeGreaterThanOrEqual(
+              MINIMUM_LC.large
+            )
+          for (const element of body)
+            expect(textContrast(element), at).toBeGreaterThanOrEqual(
+              MINIMUM_LC.body
+            )
+          unmount()
+        }
+      } finally {
+        setMode('light')
+      }
+    }
+  )
+
+  it.each(EMPHASES)('has no axe violations on %s', async (emphasis) => {
+    const { container } = await renderAt(DESKTOP, {
+      ...PRESETS['media-text'],
+      intent: 'brand',
+      emphasis
+    })
+
+    expect(await axeViolations(container)).toEqual([])
+  })
 })

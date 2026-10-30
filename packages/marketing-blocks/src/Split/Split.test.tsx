@@ -233,4 +233,59 @@ describe('Split', () => {
       screen.getByRole('img', { name: featureRow.image.alt })
     ).toHaveAttribute('src', '/optimised.webp')
   })
+
+  describe('intent and emphasis', () => {
+    const panelOf = (section: HTMLElement) =>
+      [...section.querySelectorAll('[class*="emphasis-"]')].find(
+        (element) => !element.closest('a, button')
+      ) ?? null
+
+    it('sets the intent on the block', () => {
+      render(<Split {...mediaText} intent='brand' />)
+
+      expect(
+        screen.getByRole('region', { name: mediaText.title })
+      ).toHaveAttribute('data-intent', 'brand')
+    })
+
+    it('draws tinted-panel on a subtle info panel by default', () => {
+      render(<Split {...featureRow} />)
+
+      const section = screen.getByRole('region', { name: featureRow.title })
+      expect(section).not.toHaveAttribute('data-intent')
+      expect(panelOf(section)).toHaveClass('emphasis-subtle', 'intent-info')
+    })
+
+    it("lets intent and emphasis override tinted-panel's defaults", () => {
+      render(<Split {...featureRow} intent='success' emphasis='raised' />)
+
+      const panel = panelOf(
+        screen.getByRole('region', { name: featureRow.title })
+      )
+      expect(panel).toHaveClass('emphasis-raised', 'intent-success')
+      expect(panel).not.toHaveClass('intent-info')
+    })
+
+    it('draws media-text and text-and-stats with no panel unless an emphasis is set', () => {
+      render(<Split {...mediaText} />)
+      render(<Split {...textAndStats} emphasis='subtler' />)
+
+      expect(
+        panelOf(screen.getByRole('region', { name: mediaText.title }))
+      ).toBeNull()
+      expect(
+        panelOf(screen.getByRole('region', { name: textAndStats.title }))
+      ).toHaveClass('emphasis-subtler')
+    })
+
+    it('never draws a panel behind logo-lockup, which opens the page', () => {
+      render(<Split {...partnerSpotlight} intent='brand' emphasis='subtle' />)
+
+      const section = screen.getByRole('region', {
+        name: partnerSpotlight.title
+      })
+      expect(section).toHaveAttribute('data-intent', 'brand')
+      expect(panelOf(section)).toBeNull()
+    })
+  })
 })

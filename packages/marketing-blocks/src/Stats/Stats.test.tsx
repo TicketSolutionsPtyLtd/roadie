@@ -86,4 +86,24 @@ describe('Stats', () => {
 
     expect(onBlockEvent).not.toHaveBeenCalled()
   })
+
+  it('sets the intent on the block, and draws no band by default', () => {
+    render(<Stats {...facts} intent='brand' />)
+
+    const section = screen.getByRole('region', { name: 'By the numbers' })
+    expect(section).toHaveAttribute('data-intent', 'brand')
+    expect(section.querySelector('[class*="emphasis-"]')).toBeNull()
+  })
+
+  it('draws a band behind the figures in the emphasis given', () => {
+    render(<Stats {...facts} emphasis='subtle' />)
+
+    const section = screen.getByRole('region', { name: 'By the numbers' })
+    expect(section.querySelector('[class*="emphasis-"]')).toHaveClass(
+      'emphasis-subtle'
+    )
+    expect(section.querySelector('.emphasis-subtle')).toContainElement(
+      screen.getByText('33,000,000+')
+    )
+  })
 })

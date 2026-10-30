@@ -40,6 +40,35 @@ a string, so it reads exactly as the editor wrote it.
 />
 ```
 
+### Intent and emphasis
+
+`intent` sets the figures, heading, and highlights in its strong text colour,
+and `emphasis` draws a band behind them: `raised`, `subtle`, or `subtler`.
+There's no band by default.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Brand, subtle band */}
+<Stats
+  intent='brand'
+  emphasis='subtle'
+  title='Your audience in Brisbane'
+  items={[
+    { value: '180,000+', label: 'ticket buyers', illustration: 'Ticket' },
+    { value: '1,200+', label: 'events a year', illustration: 'MapPin' },
+    { value: '4.8 out of 5', label: 'average rating', illustration: 'Heart' }
+  ]}
+/>
+{/* Raised band */}
+<Stats
+  emphasis='raised'
+  title='Results from last season'
+  items={[
+    { value: '98%', label: 'tickets scanned on time', illustration: 'HighFive' },
+    { value: '12 minutes', label: 'average wait to get in', illustration: 'FlowerSpiral' }
+  ]}
+/>
+```
+
 ## Guidelines
 
 <Guidelines>
@@ -68,6 +97,15 @@ a string, so it reads exactly as the editor wrote it.
   </Guideline.Do>
   <Guideline.Dont>
     Don't stack a Stats block under a text block to fake the aside.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Add a band only to set the figures apart'>
+  <Guideline.Do>
+    Draw a band, or set an intent, when the figures follow other plain blocks and need to stand apart.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't band Stats beside a block that already sits on a panel. Two surfaces in a row read as one.
   </Guideline.Dont>
 </Guideline>
 

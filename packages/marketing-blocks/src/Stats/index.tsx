@@ -1,13 +1,26 @@
 import { useId } from 'react'
 
+import { cn } from '@oztix/roadie-core/utils'
+
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { type StatItem, StatList } from '../_shared/StatList'
 import { presetOf } from '../_shared/presets'
+import {
+  type BlockEmphasis,
+  type BlockIntent,
+  emphasisClass
+} from '../_shared/surface'
 import { type StatsPreset, statsDefinition } from './definition'
 
 export type { StatItem } from '../_shared/StatList'
 export type { StatsPreset } from './definition'
+
+/** The bands Stats can sit on: the ones its figures stay readable on in both themes. */
+export type StatsEmphasis = Extract<
+  BlockEmphasis,
+  'raised' | 'subtle' | 'subtler'
+>
 
 export type StatsProps = {
   /**
@@ -29,6 +42,10 @@ export type StatsProps = {
   description?: string
   /** The stats, each a value as written, its label, and an optional spot illustration. */
   items: readonly StatItem[]
+  /** The block's intent. The figures, heading, and highlights take its strong text colour. */
+  intent?: BlockIntent
+  /** A band behind the heading and figures. There's none by default. */
+  emphasis?: StatsEmphasis
 }
 
 /** Key numbers as they were written, each with a spot illustration and a label. */
@@ -40,7 +57,9 @@ export function Stats({
   title,
   titleHighlight,
   description,
-  items
+  items,
+  intent,
+  emphasis
 }: StatsProps) {
   const { name, variant } = presetOf(statsDefinition, preset)
   const headingId = useId()
@@ -51,19 +70,28 @@ export function Stats({
       preset={name}
       position={position}
       id={id}
+      intent={intent}
       aria-labelledby={headingId}
     >
-      <div className='container-8xl grid grid-cols-1 gap-8 *:min-w-0'>
-        <BlockHeading
-          id={headingId}
-          align='start'
-          className='grid-cols-1'
-          eyebrow={eyebrow}
-          title={title}
-          titleHighlight={titleHighlight}
-          description={description}
-        />
-        <StatList items={items} />
+      <div className='container-8xl'>
+        <div
+          className={cn(
+            'grid grid-cols-1 gap-8 *:min-w-0',
+            emphasis && ['rounded-2xl p-6 @3xl:p-10', emphasisClass(emphasis)]
+          )}
+        >
+          <BlockHeading
+            id={headingId}
+            intent={intent}
+            align='start'
+            className='grid-cols-1'
+            eyebrow={eyebrow}
+            title={title}
+            titleHighlight={titleHighlight}
+            description={description}
+          />
+          <StatList items={items} />
+        </div>
       </div>
     </BlockRoot>
   )
