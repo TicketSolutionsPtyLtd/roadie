@@ -26,7 +26,7 @@ related_files:
 
 ## Symptom
 
-When testing a Carousel compound built on `embla-carousel@9.0.0-rc02` under Vitest + jsdom, switching the Roadie `slidesToScroll` default from Embla's native `1` to `'auto'` made 7 of 30 existing Carousel tests fail with assertions that couldn't have been wrong — `Previous` / `Next` buttons not rendering, `selectedIndex` frozen at 0, `Dots` missing entirely:
+When testing a Carousel compound built on `embla-carousel@9.0.0-rc02` under Vitest + jsdom, switching the Roadie `slidesToScroll` default from Embla's native `1` to `'auto'` made 7 of 30 existing Carousel tests fail with assertions that couldn't have been wrong (`Previous` / `Next` buttons not rendering, `selectedIndex` frozen at 0, `Dots` missing entirely):
 
 ```
 FAIL  Carousel > renders Previous and Next nav buttons
@@ -48,7 +48,7 @@ carousel.state.canScroll // → false
 carousel.state.canGoToNext // → false
 ```
 
-`canScroll` was false, so `Carousel.Previous` / `.Next` / `.Dots` all auto-hid themselves. The carousel was essentially inert. The same fixture with `slidesToScroll: 1` (Embla's default) had been passing for weeks — only the change to `'auto'` tripped it.
+`canScroll` was false, so `Carousel.Previous` / `.Next` / `.Dots` all auto-hid themselves. The carousel was essentially inert. The same fixture with `slidesToScroll: 1` (Embla's default) had been passing for weeks. Only the change to `'auto'` tripped it.
 
 ## What didn't work
 
@@ -65,11 +65,11 @@ HTMLElement.prototype.getBoundingClientRect = function () {
 }
 ```
 
-The debug probe showed no change — `snapList` was still `[0]`. The stub was being installed but Embla wasn't reading from it.
+The debug probe showed no change: `snapList` was still `[0]`. The stub was being installed but Embla wasn't reading from it.
 
 ## Root cause
 
-Embla v9's internal `NodeHandler.getRect` — which is what populates the `containerRect` and `slideRects` that feed `ScrollSnaps`, `SlidesToScroll`, and the whole snap-computation chain — reads layout via the **four offset properties directly**, not `getBoundingClientRect`:
+Embla v9's internal `NodeHandler.getRect` (which is what populates the `containerRect` and `slideRects` that feed `ScrollSnaps`, `SlidesToScroll`, and the whole snap-computation chain) reads layout via the **four offset properties directly**, not `getBoundingClientRect`:
 
 ```js
 // node_modules/embla-carousel@9.0.0-rc02/.../embla-carousel.esm.js ≈ line 1550
@@ -170,23 +170,23 @@ goToNext: () => {
 }
 ```
 
-Deterministic regardless of what `api.selectedSnap()` reports — if the real `onSelect` handler ran during the call, skip the optimistic path; otherwise fall back.
+Deterministic regardless of what `api.selectedSnap()` reports: if the real `onSelect` handler ran during the call, skip the optimistic path; otherwise fall back.
 
 ## Prevention
 
 - **When stubbing layout for Embla (or any DOM library) in jsdom, start from the library's source.** Grep the installed package for `offsetLeft` / `getBoundingClientRect` / `clientRect` / `DOMRect` before writing stubs. An assumption about which API the library reads is cheaper to verify once than to debug later.
 - **If slide positions matter for your test, stub `offsetLeft` per-slide.** Prototype-level getters with `this`-aware logic let you return different values per element without touching global setup. The same pattern works for `offsetTop` in vertical layouts.
 - **Scope layout stubs to a `beforeAll` / `afterAll` inside the specific test file that needs them.** The package-wide `vitest.setup.ts` originally contained the Carousel layout stubs and they silently changed the layout characteristics of every other component's tests (flagged in an earlier review). Test-file-local stubs with paired restores don't leak across files.
-- **Treat `api.selectedSnap()` before/after as unreliable**. If you need to detect whether a library callback ran during a synchronous call, use a ref flag set inside the callback itself — not a state comparison on the library's getter.
+- **Treat `api.selectedSnap()` before/after as unreliable**. If you need to detect whether a library callback ran during a synchronous call, use a ref flag set inside the callback itself, not a state comparison on the library's getter.
 
 ## Related files
 
-- `packages/components/src/components/Carousel/Carousel.test.tsx` — `stubPerInstanceOffsetLeft()` definition and `beforeAll` registration.
-- `packages/components/src/components/Carousel/index.tsx` — `onSelectFiredRef` flow inside `onSelect` and each navigation action.
-- `packages/components/vitest.setup.ts` — package-wide setup that intentionally does NOT touch `HTMLElement` layout properties (layout stubs live per-test-file).
-- Embla source: `node_modules/.pnpm/embla-carousel@9.0.0-rc02/node_modules/embla-carousel/esm/embla-carousel.esm.js` — search for `function getRect` and `NodeHandler`.
+- `packages/components/src/components/Carousel/Carousel.test.tsx`: `stubPerInstanceOffsetLeft()` definition and `beforeAll` registration.
+- `packages/components/src/components/Carousel/index.tsx`: `onSelectFiredRef` flow inside `onSelect` and each navigation action.
+- `packages/components/vitest.setup.ts`: package-wide setup that intentionally does NOT touch `HTMLElement` layout properties (layout stubs live per-test-file).
+- Embla source: `node_modules/.pnpm/embla-carousel@9.0.0-rc02/node_modules/embla-carousel/esm/embla-carousel.esm.js`: search for `function getRect` and `NodeHandler`.
 
 ## References
 
 - Embla Carousel v9 options reference: https://www.embla-carousel.com/api/options/
-- PR #34 (`feat/carousel-component`), commit `b8a680e` — the `slidesToScroll: 'auto'` default change that surfaced the issue and the test-file fix.
+- PR #34 (`feat/carousel-component`), commit `b8a680e`: the `slidesToScroll: 'auto'` default change that surfaced the issue and the test-file fix.

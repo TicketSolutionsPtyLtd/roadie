@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 
 import { normalizeMinusSign } from '../dataviz/format'
 import { type CurrencyFormatOptions, currencyFormat } from './currency'
@@ -62,5 +62,25 @@ describe('currencyFormat', () => {
     // Untyped callers can pass null from a record.
     const untyped = { currency: null } as unknown as CurrencyFormatOptions
     expect(currencyFormat(untyped)).toEqual(currencyFormat())
+  })
+})
+
+describe('currency formatter reuse', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('reads each currency’s decimals once', () => {
+    const NumberFormat = vi.spyOn(Intl, 'NumberFormat')
+    currencyFormat({ currency: 'JPY' })
+    const built = NumberFormat.mock.calls.length
+    currencyFormat({ currency: 'JPY' })
+    expect(NumberFormat.mock.calls.length).toBe(built)
+  })
+
+  it('keeps no entry for a code Intl rejects', () => {
+    const NumberFormat = vi.spyOn(Intl, 'NumberFormat')
+    currencyFormat({ currency: 'dollars' })
+    const tried = NumberFormat.mock.calls.length
+    currencyFormat({ currency: 'dollars' })
+    expect(NumberFormat.mock.calls.length).toBe(tried * 2)
   })
 })
