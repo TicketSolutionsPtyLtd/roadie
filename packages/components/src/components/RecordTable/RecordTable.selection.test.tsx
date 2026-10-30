@@ -66,6 +66,19 @@ describe('RecordTable checkbox column', () => {
     expect(count()).toBe('4')
   })
 
+  it('selects from a click on the padding around the box, and a range with shift', async () => {
+    const user = userEvent.setup()
+    render(<Selectable />)
+    const label = (name: string) =>
+      screen.getByRole('checkbox', { name }).closest('label')!
+    await user.click(label('Select Ball Park Music 1'))
+    expect(count()).toBe('1')
+    await user.keyboard('{Shift>}')
+    await user.click(label('Select Alex Lahey 1'))
+    await user.keyboard('{/Shift}')
+    expect(count()).toBe('4')
+  })
+
   it('shows a mixed page checkbox, then selects the page', async () => {
     render(<Selectable />)
     await userEvent.click(
@@ -129,11 +142,11 @@ describe('RecordTable checkbox column', () => {
     await user.click(
       screen.getByRole('checkbox', { name: 'Select Ball Park Music 1' })
     )
-    screen.getByRole('checkbox', { name: 'Select Alex Lahey 1' }).focus()
+    const box = screen.getByRole('checkbox', { name: 'Select Alex Lahey 1' })
+    box.focus()
     await user.keyboard('{Shift>}{Tab}{/Shift}')
-    await user.click(
-      screen.getByRole('checkbox', { name: 'Select Alex Lahey 1' })
-    )
+    // A click with no press, as assistive tech sends, so nothing else resets it.
+    fireEvent.click(box)
     expect(count()).toBe('2')
   })
 
