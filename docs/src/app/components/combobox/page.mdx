@@ -271,7 +271,8 @@ function ComboboxRichItems() {
 Set `multiple` to pick more than one value. `Combobox.Value` hands the current
 values to a function; render a `Combobox.Chip` for each one inside
 `Combobox.Chips`, with the input last. Put the text in `Combobox.ChipLabel` so a
-long value truncates. The input group grows as the chips wrap. A chip with
+long value truncates. The input group grows as the chips wrap, and `Combobox.Clear`
+and `Combobox.Trigger` stay on its first row. A chip with
 focus shows as selected. Set `selected` on `Combobox.Chip` to show it selected
 while focus stays in the input, as QueryField does while it edits a chip.
 
