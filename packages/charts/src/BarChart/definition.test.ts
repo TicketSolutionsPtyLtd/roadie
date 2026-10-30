@@ -1,4 +1,4 @@
-import { createChartScene } from '@tanstack/charts'
+import { type SceneNode, createChartScene } from '@tanstack/charts'
 import { renderChartSvg as renderSceneSvg } from '@tanstack/charts/svg'
 import { describe, expect, it } from 'vitest'
 
@@ -25,6 +25,13 @@ const svgOf = (props: BarChartProps, frame = plotFrame(220, 'default')) =>
   renderSceneSvg(sceneOf(props, frame), {
     ariaLabel: barChart.summary(props)
   })
+
+function nodesOf(nodes: readonly SceneNode[], prefix: string): SceneNode[] {
+  return nodes.flatMap((node) => [
+    ...(node.key.startsWith(prefix) ? [node] : []),
+    ...(node.kind === 'group' ? nodesOf(node.children, prefix) : [])
+  ])
+}
 
 describe('barChart', () => {
   it('draws one bar per x under the series-1 key', () => {
@@ -235,6 +242,29 @@ describe('barChart comparison', () => {
     expect(underlay).toBeLessThan(svg.search(/data-ts-key="comparison:/))
   })
 
+  it.each([3, 21])(
+    'marks the comparison a little past each side of %i bars',
+    (count) => {
+      const props = {
+        ...comparisonExample,
+        data: comparisonExample.data.slice(0, count)
+      }
+      const scene = sceneOf(props)
+      const bars = nodesOf(scene.nodes, 'series-1:')
+      const ticks = nodesOf(scene.nodes, 'comparison:')
+      expect(ticks).toHaveLength(count)
+      ticks.forEach((tick, i) => {
+        const bar = bars[i]!
+        if (tick.kind !== 'rule' || bar.kind !== 'rect')
+          throw new Error('expected a rule over a rect')
+        expect(bar.x - tick.x1).toBeGreaterThanOrEqual(4)
+        expect(bar.x - tick.x1).toBeLessThanOrEqual(8)
+        expect(tick.x2 - (bar.x + bar.width)).toBeGreaterThanOrEqual(4)
+        expect(tick.x2 - (bar.x + bar.width)).toBeLessThanOrEqual(8)
+      })
+    }
+  )
+
   it('keeps focus on the bars', () => {
     expect(
       new Set(sceneOf(comparisonExample).points.map((p) => p.markId))
@@ -279,6 +309,29 @@ describe('barChart comparison', () => {
     expect(barChart.describe(day(2), comparisonExample)).toBe(
       'Sunday, 27 September 2026, 9 orders, previous period 10'
     )
+  })
+
+  it.each([
+    ['LY orders', 'LY orders 10'],
+    ['GA share', 'GA share 10'],
+    ['Previous period', 'previous period 10']
+  ])('speaks %s in the same case as the line', (label, spoken) => {
+    const props = {
+      ...comparisonExample,
+      comparison: { y: 'lastPeriod', label },
+      line: { y: 'lastPeriod', label }
+    }
+    expect(barChart.describe(day(2), props)).toBe(
+      `Sunday, 27 September 2026, 9 orders, ${spoken}, ${spoken}`
+    )
+  })
+
+  it('leaves the comparison out of the legend when it has no values', () => {
+    const empty = {
+      ...comparisonExample,
+      data: comparisonExample.data.map((row) => ({ ...row, lastPeriod: null }))
+    }
+    expect(barChart.legend(empty, paint, plotFrame(220, 'default'))).toEqual([])
   })
 
   it('leaves a bar with no comparison value unmarked and unspoken', () => {
