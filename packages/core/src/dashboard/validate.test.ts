@@ -278,6 +278,29 @@ describe('validateDashboard with chart plots', () => {
     ).toContain('sections[0].cards[0].plot.comparison.y')
   })
 
+  it.each(['day', 'sold'])(
+    'warns on a bar comparison against its own %s, which the chart ignores',
+    (field) => {
+      const result = validateDashboard(
+        spec([
+          chartCard({
+            kind: 'bar',
+            data: rows,
+            x: 'day',
+            y: 'sold',
+            comparison: { y: field }
+          })
+        ])
+      )
+      expect(result.problems).toContainEqual(
+        expect.objectContaining({
+          path: 'sections[0].cards[0].plot.comparison.y',
+          severity: 'warning'
+        })
+      )
+    }
+  )
+
   it('needs a table for a static plot', () => {
     expect(
       paths(spec([chartCard({ kind: 'static', src: '/a.svg', alt: 'Pace' })]))

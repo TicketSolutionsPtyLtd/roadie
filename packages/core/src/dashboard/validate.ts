@@ -449,6 +449,16 @@ function plotProblems(plot: ChartPlot, path: string) {
         `${count} series. The smallest will roll into Other after ${SERIES_CAP}`
       )
     )
+  if (
+    plot.kind === 'bar' &&
+    (plot.comparison?.y === plot.x || plot.comparison?.y === plot.y)
+  )
+    problems.push(
+      warning(
+        `${plotPath}.comparison.y`,
+        `"${plot.comparison.y}" is the chart's own x or y, so the chart leaves the comparison out. Name another field`
+      )
+    )
   problems.push(...copyProblems(plotPath, 'takeaway', plot.takeaway))
   problems.push(...duplicateProblems(plot, plotPath))
   if (
