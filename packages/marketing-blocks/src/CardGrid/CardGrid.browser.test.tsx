@@ -326,6 +326,42 @@ describe('CardGrid portraits', () => {
   })
 })
 
+describe('CardGrid overlap cards', () => {
+  const lightness = (element: Element) => {
+    const [r, g, b] = getComputedStyle(element)
+      .backgroundColor.match(/[\d.]+/g)!
+      .map(Number)
+    return getComputedStyle(element).backgroundColor.startsWith('oklch')
+      ? r!
+      : (r! + g! + b!) / 765
+  }
+
+  it.each(MODES)(
+    'draws its panels in the page’s %s mode, set apart from the page',
+    (mode) => {
+      setMode(mode)
+      onTestFinished(() => setMode('light'))
+      render(
+        <div className='bg-normal'>
+          <CardGrid preset='overlap-cards' title='Section' items={items} />
+        </div>
+      )
+
+      const panel = screen.getByRole('heading', {
+        name: 'Live music'
+      }).parentElement!
+      if (mode === 'light') expect(lightness(panel)).toBeGreaterThan(0.6)
+      else expect(lightness(panel)).toBeLessThan(0.4)
+      const style = getComputedStyle(panel)
+      const setApart =
+        style.boxShadow !== 'none' ||
+        style.backgroundColor !==
+          getComputedStyle(panel.closest('.bg-normal')!).backgroundColor
+      expect(setApart).toBe(true)
+    }
+  )
+})
+
 describe('CardGrid spacing', () => {
   const gap = (look: Look) => {
     render(<Block look={look} width={1280} count={1} />)

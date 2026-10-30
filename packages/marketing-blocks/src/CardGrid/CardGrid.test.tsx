@@ -445,6 +445,26 @@ describe('CardGrid', () => {
       for (const card of cardsOf()) expect(card).toHaveClass(expected)
     })
 
+    it.each([
+      [undefined, 'emphasis-raised'],
+      ['subtle', 'emphasis-subtle']
+    ] as const)(
+      'draws overlap-cards panels as %s',
+      (itemEmphasis, expected) => {
+        render(
+          <CardGrid
+            preset='overlap-cards'
+            itemEmphasis={itemEmphasis}
+            title='Section'
+            items={values}
+          />
+        )
+
+        for (const heading of screen.getAllByRole('heading', { level: 3 }))
+          expect(heading.parentElement).toHaveClass(expected)
+      }
+    )
+
     it('draws numbered cards on their item emphasis', () => {
       render(
         <CardGrid

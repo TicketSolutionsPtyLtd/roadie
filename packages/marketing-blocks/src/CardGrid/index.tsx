@@ -67,7 +67,7 @@ export type CardGridProps = {
   emphasis?: BlockEmphasis
   /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `portraits` is inset and the other presets are bands. */
   inset?: boolean
-  /** Every card's surface. Unset, cards have none, though a linked card with none takes `subtler`. `overlap-cards` and `portraits` ignore it, since they draw their own panel or photo. */
+  /** Every card's surface. Unset, cards have none, though a linked card with none takes `subtler`. `overlap-cards` draws its panels on it, `raised` by default, and `portraits` ignores it, since it draws a photo. */
   itemEmphasis?: ItemEmphasis
   /** The heading's alignment, and in `cards`, the card text's too. Unset, `cards` centres the heading and starts the card text, `marked-cards` and `overlap-cards` centre the heading, and `portraits` and `lists` start it. */
   align?: BlockAlign
@@ -321,7 +321,7 @@ function ServiceCard(props: CardProps) {
 }
 
 function IndustryCard(props: CardProps) {
-  const { item } = props
+  const { item, itemEmphasis } = props
   return (
     <li className='group/tile is-interactive-within grid min-w-0 grid-rows-[auto_1fr] rounded-2xl'>
       <CardImage
@@ -330,7 +330,12 @@ function IndustryCard(props: CardProps) {
         className='aspect-square w-full rounded-2xl'
         grows={!!item.href}
       />
-      <div className='dark z-1 -mt-6 grid content-start gap-4 rounded-2xl bg-normal p-6 text-normal intent-neutral'>
+      <div
+        className={cn(
+          'z-1 -mt-6 grid content-start gap-4 rounded-2xl p-6 intent-neutral',
+          emphasisClass(itemEmphasis ?? 'raised')
+        )}
+      >
         <Illustration name={item.illustration} className='-mt-16 size-16' />
         <Mark
           render={<h3 />}
