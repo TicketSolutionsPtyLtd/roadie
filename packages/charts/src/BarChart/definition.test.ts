@@ -224,6 +224,11 @@ describe('barChart comparison', () => {
     expect(svg).toMatch(
       new RegExp(`data-ts-key="comparison:[^"]*"[^>]*stroke="${paint.context}"`)
     )
+    expect(svg).toMatch(
+      new RegExp(
+        `data-ts-key="comparison-underlay:[^"]*"[^>]*stroke="${paint.surface}"`
+      )
+    )
     const bars = svg.search(/<path[^>]*data-ts-key="series-1:/)
     const underlay = svg.search(/data-ts-key="comparison-underlay:/)
     expect(bars).toBeLessThan(underlay)
@@ -273,6 +278,24 @@ describe('barChart comparison', () => {
   it('speaks the comparison with the bar', () => {
     expect(barChart.describe(day(2), comparisonExample)).toBe(
       'Sunday, 27 September 2026, 9 orders, previous period 10'
+    )
+  })
+
+  it('leaves a bar with no comparison value unmarked and unspoken', () => {
+    const gap = {
+      ...comparisonExample,
+      data: comparisonExample.data.map((row, i) =>
+        i === 2 ? { ...row, lastPeriod: null } : row
+      )
+    }
+    expect(
+      svgOf(gap).match(/<line[^>]*data-ts-key="comparison:/g)
+    ).toHaveLength(comparisonExample.data.length - 1)
+    expect(barChart.tooltip([day(2)], gap, paint).rows).toEqual([
+      expect.objectContaining({ label: 'Orders', value: '9' })
+    ])
+    expect(barChart.describe(day(2), gap)).toBe(
+      'Sunday, 27 September 2026, 9 orders'
     )
   })
 
