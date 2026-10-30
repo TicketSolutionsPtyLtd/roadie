@@ -137,17 +137,37 @@ describe('DashboardPeriod', () => {
     expect(compareDates(dialog)).toHaveTextContent('9 Aug to 7 Sept 2026')
   })
 
-  it('offers the spec’s dashboard presets by default', async () => {
+  it('offers the spec’s dashboard presets by default, in order', async () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
     const dialog = await openPicker()
-    for (const name of [
+    const presets = [
       /^Next 30 days/,
       /^Next 90 days/,
+      /^Upcoming/,
       /^Last 30 days/,
       /^Last 12 months/,
       /^This financial year/
-    ])
-      expect(within(dialog).getByRole('button', { name })).toBeInTheDocument()
+    ].map((name) => within(dialog).getByRole('button', { name }))
+    presets.reduce((previous, preset) => {
+      expect(
+        previous.compareDocumentPosition(preset) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy()
+      return preset
+    })
+  })
+
+  it('turns Compare off for the default Upcoming preset', async () => {
+    render(<DashboardPeriod today={TODAY} defaultValue={THIS_MONTH} />)
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).toBeChecked()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    expect(compareSwitch(dialog)).toHaveAccessibleDescription(
+      'Nothing to compare'
+    )
   })
 
   it('applies a comparison chosen with the same range', async () => {

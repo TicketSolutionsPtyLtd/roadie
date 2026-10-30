@@ -89,8 +89,10 @@ thread:
 - **Real, fix it.** Test-first with `/roadie:test`; reply naming the commit
   and the test. A docs-only fix needs no test. If the fix is significant (new logic, state, or API), one
   fresh `/roadie:review` of the fix commits.
-- **Real Minor, defer it.** File it as the host's follow-up rule says (Roadie
-  section 9) and reply with the link.
+- **Real Minor the host defers, file it.** In Roadie, that's a Minor in code
+  the PR doesn't touch; one in code the PR changes is fixed like any other.
+  File it as the host's follow-up rule says (Roadie section 9) and reply with
+  the link.
 - **Stands.** Reply with why, citing the rule or decision.
 
 Reply and resolve with
