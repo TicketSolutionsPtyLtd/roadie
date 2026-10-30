@@ -171,11 +171,11 @@ function Illustration({
   return <Drawing outline className={className} />
 }
 
-// The frame sets the shape, so a sized photo is cropped to it rather than keeping its own ratio.
 // A tile that draws its own photo has no surface to tint, so a linked one grows its photo instead.
 const GROWS_ON_HOVER =
   'transition-transform duration-moderate ease-standard motion-safe:group-hover/tile:scale-105 motion-safe:group-has-[[data-interactive-target]:focus-visible]/tile:scale-105'
 
+// The frame sets the shape, so a sized photo is cropped to it rather than keeping its own ratio.
 function CardImage({
   image,
   sizes,
@@ -405,7 +405,6 @@ function ListColumn({ item, itemEmphasis }: CardProps) {
 
 type Look = {
   Item: (props: CardProps) => ReactNode
-  /** The grid of cards. */
   list: string
   align?: BlockAlign
   /** The surface when `emphasis` is unset. */
