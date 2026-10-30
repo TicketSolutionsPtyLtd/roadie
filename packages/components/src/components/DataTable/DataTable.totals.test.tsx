@@ -95,7 +95,7 @@ describe('DataTable totals row', () => {
     const cells = footer(container)
     expect(cells[0]).toBe('All Brisbane shows')
     expect(cells[1]).toBe('')
-    expect(cells[2]).toBe('$500,000')
+    expect(cells[2]).toBe('$500,000.00')
     expect(cells[4]).toContain('104')
   })
 

@@ -1,7 +1,10 @@
 import type { PlotRow } from '@oztix/roadie-core/dashboard'
-import type { ValueFormat } from '@oztix/roadie-core/dataviz'
+import type {
+  ValueFormat,
+  ValueFormatOptions
+} from '@oztix/roadie-core/dataviz'
 
-export type HistogramProps = {
+export type HistogramProps = ValueFormatOptions & {
   /** Rows of plain values, one per order or buyer. */
   data: PlotRow[]
   /** Numeric field to bin, such as days before the show. */

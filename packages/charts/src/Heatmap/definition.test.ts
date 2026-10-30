@@ -234,3 +234,28 @@ describe('heatmap summary on a diverging scale', () => {
     )
   })
 })
+
+describe('heatmap decimal places', () => {
+  const sold: Parameters<typeof heatmap.build>[0] = {
+    data: [
+      { day: 'Fri', hour: '6pm', sold: 0.1266 },
+      { day: 'Sat', hour: '6pm', sold: 0.0127 }
+    ],
+    rows: 'day',
+    columns: 'hour',
+    value: 'sold',
+    format: 'percent',
+    decimals: 2
+  }
+  const friday = { x: '6pm', y: 0.1266, series: 'Fri', index: 0 }
+
+  it('reads values to the decimal places in the tooltip, aloud and in the table', () => {
+    expect(heatmap.tooltip([friday], sold, paint).rows[0]?.value).toBe('12.66%')
+    expect(heatmap.describe(friday, sold)).toBe('Fri, 6pm, 12.66% sold')
+    expect(heatmap.summary(sold)).toBe('Sold peak on Fri at 6pm, with 12.66%')
+    expect(heatmapTable(sold).columns[1]).toMatchObject({
+      format: 'percent',
+      decimals: 2
+    })
+  })
+})

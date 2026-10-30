@@ -11,7 +11,7 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
 
 import roadie from '../eslint/roadie-plugin.js'
@@ -30,22 +30,29 @@ function lintSeeds(seeds) {
     mkdirSync(docs)
     writeFileSync(
       join(docs, 'oxlint.config.ts'),
-      `export { default } from '${join(root, 'docs/oxlint.config.ts')}'\n`
+      `export { default } from '${pathToFileURL(join(root, 'docs/oxlint.config.ts'))}'\n`
     )
-    symlinkSync(join(root, 'eslint'), join(scratch, 'eslint'))
+    // A junction links a folder on Windows without admin rights.
+    symlinkSync(join(root, 'eslint'), join(scratch, 'eslint'), 'junction')
     for (const [path, source] of seeds) {
       mkdirSync(dirname(join(docs, path)), { recursive: true })
       writeFileSync(join(docs, path), source)
     }
+    // Node runs oxlint's script itself, since Windows can't run the .bin shim.
     const { stdout, stderr } = spawnSync(
-      join(root, 'node_modules/.bin/oxlint'),
-      ['-f', 'json', ...seeds.map(([path]) => path)],
+      process.execPath,
+      [
+        join(root, 'node_modules/oxlint/bin/oxlint'),
+        '-f',
+        'json',
+        ...seeds.map(([path]) => path)
+      ],
       { cwd: docs, encoding: 'utf8' }
     )
     if (!stdout) throw new Error(stderr)
     const found = new Map(seeds.map(([path]) => [path, []]))
     for (const { filename, code } of JSON.parse(stdout).diagnostics) {
-      found.get(filename).push(code)
+      found.get(filename.replaceAll('\\', '/')).push(code)
     }
     return found
   } finally {

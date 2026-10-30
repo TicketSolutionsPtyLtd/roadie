@@ -68,6 +68,30 @@ import { BarChart } from '@oztix/roadie-charts/bar-chart'
 </Chart>
 ```
 
+### Comparison
+
+`comparison` draws a field on the same rows, such as last period's orders, as a quiet bar to the left of each bar, so each pair reads from then to now and both start at zero. A legend names the two bars, and the tooltip and Table view show both values. Printed or under forced colours, the comparison bar takes a texture of its own. On a dashboard, line [the rows up with the period](/charts/dashboards#periods-and-comparisons) first.
+
+```tsx-live width=140
+<Chart label='Orders by day' source='Oztix sales.' size='md'>
+  <BarChart
+    data={[
+      { day: '2026-10-01', orders: 15, lastPeriod: 12 },
+      { day: '2026-10-02', orders: 12, lastPeriod: 11 },
+      { day: '2026-10-03', orders: 9, lastPeriod: 10 },
+      { day: '2026-10-04', orders: 7, lastPeriod: 6 },
+      { day: '2026-10-05', orders: 7, lastPeriod: 8 },
+      { day: '2026-10-06', orders: 8, lastPeriod: 7 },
+      { day: '2026-10-07', orders: 10, lastPeriod: 9 }
+    ]}
+    x='day'
+    y='orders'
+    comparison={{ y: 'lastPeriod', label: 'Previous period' }}
+    takeaway='Ahead of the previous period on most days'
+  />
+</Chart>
+```
+
 ### Selecting a range
 
 `onRangeSelect` reports the bars a drag covers, inclusive and in the venue's wall time. On hourly bars both ends carry the time, such as `'2026-11-14T18:00'`. On weekly bars the range ends on the last day of the last week. On a dashboard, [`selectsPeriod`](/charts/dashboards#set-the-period-from-a-chart) sets the period from it.
@@ -124,6 +148,7 @@ render(<Zoom />)
 - The plot is one tab stop. Left and right arrows move between bars, and each bar is read out with its time, such as "Monday, 3 August 2026, 9:00am, 1,840 orders".
 - With `line`, each bar is read out with the second measure too, such as "Saturday, 14 November 2026, 6:00pm, 300 scans, inside 48%".
 - With `onRangeSelect`, Shift with the left or right arrow selects bars from the focused one, the range is read out, and Enter applies it. Escape clears it.
-- The Table tab lists every bar and the `line` measure in full.
+- With `comparison`, each bar is read out with it too, such as "Saturday, 3 October 2026, 9 orders, previous period 10".
+- The Table tab lists every bar, the `line` measure, and the comparison in full.
 
 <PropsDefinitions component='BarChart' />

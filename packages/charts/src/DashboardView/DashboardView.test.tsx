@@ -147,6 +147,25 @@ describe('DashboardView row links', () => {
     )
   })
 
+  it('passes the period to row links, so they can open the same dates', () => {
+    const period = {
+      range: 'this-month' as const,
+      compare: 'previous-year' as const
+    }
+    const getRowHref = vi.fn(() => undefined)
+    render(
+      <DashboardView
+        spec={{ ...tableDashboard, period }}
+        getRowHref={getRowHref}
+      />
+    )
+    expect(getRowHref).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      period
+    )
+  })
+
   it('renders row links on the server', () => {
     expect(
       renderToString(
@@ -178,6 +197,75 @@ const lineDashboard = {
     }
   ]
 }
+
+describe('DashboardView decimal places', () => {
+  it('reads card values and deltas to the spec’s places', () => {
+    const spec: DashboardSpec = {
+      version: 1,
+      title: 'Sales',
+      sections: [
+        {
+          title: 'At a glance',
+          cards: [
+            {
+              id: 'gross',
+              kind: 'stat',
+              size: 'stat',
+              label: 'Gross',
+              value: 3116,
+              format: 'currency',
+              trailingZeroDisplay: 'stripIfInteger',
+              delta: { value: 0.0127, format: 'percent', decimals: 2 }
+            },
+            {
+              id: 'scanned',
+              kind: 'stat',
+              size: 'stat',
+              label: 'Scanned',
+              value: 0.4183,
+              format: 'percent',
+              decimals: 2,
+              trailingZeroDisplay: 'stripIfInteger',
+              delta: { value: 0.01 }
+            },
+            {
+              id: 'sold',
+              kind: 'table',
+              size: 'md',
+              label: 'Sold',
+              value: 0.1266,
+              format: 'percent',
+              decimals: 2,
+              trailingZeroDisplay: 'stripIfInteger',
+              delta: { value: 0.02 },
+              columns: [{ key: 'day', header: 'Day', kind: 'text' }],
+              rows: [{ day: 'Fri' }],
+              source: 'Oztix sales.'
+            },
+            {
+              id: 'pace',
+              kind: 'chart',
+              size: 'full',
+              label: 'Pace',
+              source: 'Oztix sales.',
+              value: 0.0531,
+              format: 'percent',
+              decimals: 2,
+              trailingZeroDisplay: 'stripIfInteger',
+              delta: { value: 0.03 },
+              plot: { kind: 'line', ...paceExample }
+            }
+          ]
+        }
+      ]
+    }
+    render(<DashboardView spec={spec} />)
+    for (const text of ['$3,116', '41.83%', '12.66%', '5.31%'])
+      expect(screen.getByText(text)).toBeInTheDocument()
+    for (const delta of [/^1\.27%$/, /^1%$/, /^2%$/, /^3%$/])
+      expect(screen.getByText(delta)).toBeInTheDocument()
+  })
+})
 
 describe('DashboardView with a line plot', () => {
   it('renders a real chart named by its takeaway', () => {

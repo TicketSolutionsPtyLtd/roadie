@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { BarChart } from '.'
 import { renderChartSvg } from '../static'
 import { barChart } from './definition'
-import { onSaleExample, scanRateExample } from './examples'
+import { comparisonExample, onSaleExample, scanRateExample } from './examples'
 
 // Focus layers exist only in the live chart; the static file drops them.
 const keysOf = (markup: string) =>
@@ -29,9 +29,20 @@ describe('BarChart static output', () => {
     }
   )
 
+  it('matches the comparison snapshot', async () => {
+    await expect(
+      renderChartSvg(barChart, comparisonExample, {
+        mode: 'light',
+        width: 640,
+        height: 220
+      })
+    ).toMatchFileSnapshot('./__snapshots__/comparison-light.svg')
+  })
+
   it.each([
     ['on-sale', onSaleExample],
-    ['scan rate', scanRateExample]
+    ['scan rate', scanRateExample],
+    ['comparison', comparisonExample]
   ])('draws the same marks as the React render for %s', (_, props) => {
     const staticSvg = renderChartSvg(barChart, props, {
       mode: 'light',
