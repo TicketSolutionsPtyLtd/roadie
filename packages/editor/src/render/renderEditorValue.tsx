@@ -27,6 +27,12 @@ import {
   withTableSections
 } from './elements'
 
+/** Renders one of an app's own blocks from its stored attrs. */
+export type EditorBlockRenderer = (props: {
+  /** As stored, so read each one as untrusted input. */
+  attrs: Record<string, unknown>
+}) => ReactNode
+
 export type RenderEditorOptions = {
   /** The `Prose` size, matching the editor's. @default 'md' */
   size?: 'sm' | 'md' | 'lg'
@@ -36,6 +42,12 @@ export type RenderEditorOptions = {
    * @default defaultEmbedProviders
    */
   embedProviders?: readonly EmbedProvider[]
+  /**
+   * Renders an app's own blocks, by node name, matching the editor's
+   * `extensions`. A block with no entry is dropped. An entry can't replace
+   * one of the preset's own nodes.
+   */
+  nodeMapping?: Readonly<Record<string, EditorBlockRenderer>>
 }
 
 type RendererProps = {
@@ -86,9 +98,14 @@ function renderers(
 function renderDoc(
   doc: EditorValue['doc'],
   { nodes, marks }: Elements,
-  context: RenderContext
+  context: RenderContext,
+  blocks: Readonly<Record<string, EditorBlockRenderer>>
 ) {
   const nodeMapping = renderers(nodes, ({ node }) => node.attrs, context)
+  for (const [name, render] of Object.entries(blocks)) {
+    if (name in nodeMapping || name === 'text') continue
+    nodeMapping[name] = ({ node }) => render({ attrs: { ...node.attrs } })
+  }
   nodeMapping.text = ({ node }) =>
     typeof node.text === 'string' ? node.text : null
   return renderJSONContentToReactElement({
@@ -107,12 +124,24 @@ function renderDoc(
  */
 export function renderEditorValue(
   value: StoredEditorValue | EditorValue,
-  { size, className, embedProviders }: RenderEditorOptions = {}
+  {
+    size,
+    className,
+    embedProviders,
+    nodeMapping = {}
+  }: RenderEditorOptions = {}
 ): ReactElement {
-  const { preset, doc } = migrate(value)
+  const { preset, doc } = migrate(value, undefined, {
+    customBlocks: Object.keys(nodeMapping)
+  })
   return (
     <Prose size={size} className={className}>
-      {renderDoc(doc, presetElementsFor(preset), { embedProviders })}
+      {renderDoc(
+        doc,
+        presetElementsFor(preset),
+        { embedProviders },
+        nodeMapping
+      )}
     </Prose>
   )
 }

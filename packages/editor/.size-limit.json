@@ -18,6 +18,13 @@
     ]
   },
   {
+    "name": "extensions",
+    "path": "dist/extensions/index.js",
+    "import": "*",
+    "limit": "77 kB",
+    "ignore": ["react", "react-dom"]
+  },
+  {
     "name": "Editor (shell)",
     "path": "dist/Editor/index.js",
     "import": "*",

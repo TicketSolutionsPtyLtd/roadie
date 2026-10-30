@@ -473,6 +473,119 @@ the first and last blocks. Closing the menu puts focus back in the text.
 | `Enter` | Run the action |
 | `Escape` | Close the menu, back to the text |
 
+#### Custom blocks
+
+An app adds its own blocks, such as a call to action or an event feed, with
+`extensions`. Build each from `@oztix/roadie-editor/extensions`, which
+re-exports Tiptap's `Node`, `Mark`, `Extension`, and `mergeAttributes`, so
+the app never installs Tiptap or drifts from Roadie's version:
+
+```tsx
+import {
+  Node,
+  NodeViewWrapper,
+  reactNodeView
+} from '@oztix/roadie-editor/extensions'
+```
+
+- A block is an atom (`group: 'block'`, `atom: true`). Its attrs are all it
+  saves, so keep them to its inputs, such as `{ label, href }`, never
+  rendered content.
+- `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
+  it in place. The component gets `node.attrs` and `updateAttributes`, and
+  wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
+  them, not the text around the block. A read-only or disabled editor
+  ignores its `updateAttributes`.
+- Pass `{ node, label, icon, keywords }` in `extensions` to show it in the
+  slash menu. The editor reads `extensions` once, when it's created.
+- Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
+  block that gets its `attrs`. Read each as untrusted input. A block with no
+  entry is dropped, never shown raw, and so is every custom block in
+  `renderEditorHtml`.
+- `migrate(value, 'blocks', { customBlocks: ['callToAction'] })` keeps them
+  in a stored value. The editor and `renderEditorValue` pass these for you.
+- A block can't take the name of one of the preset's own nodes or marks;
+  the editor leaves it out.
+- `/extensions` brings Tiptap with it, so import your blocks where the
+  editor loads, not on every page. Keep `nodeMapping` in a file of its own,
+  so a server page that renders saved content doesn't import Tiptap.
+
+```tsx-live-prose-noinline
+function CallToActionView({ node, updateAttributes }) {
+  return (
+    <NodeViewWrapper className='grid gap-2 rounded-xl emphasis-subtle p-3'>
+      <Field>
+        <Field.Label>Button</Field.Label>
+        <Field.Input
+          value={node.attrs.label}
+          onChange={(event) => updateAttributes({ label: event.target.value })}
+        />
+      </Field>
+      <Field>
+        <Field.Label>Link</Field.Label>
+        <Field.Input
+          value={node.attrs.href}
+          onChange={(event) => updateAttributes({ href: event.target.value })}
+        />
+      </Field>
+    </NodeViewWrapper>
+  )
+}
+
+const callToAction = {
+  label: 'Call to action',
+  icon: TicketIcon,
+  keywords: ['button'],
+  node: Node.create({
+    name: 'callToAction',
+    group: 'block',
+    atom: true,
+    addAttributes: () => ({
+      label: { default: 'Get tickets' },
+      href: { default: '/events/ochre-kite-weekender' }
+    }),
+    renderHTML: ({ HTMLAttributes }) => ['div', mergeAttributes(HTMLAttributes)],
+    addNodeView: () => reactNodeView(CallToActionView)
+  })
+}
+
+const nodeMapping = {
+  callToAction: ({ attrs }) => (
+    <Button href={String(attrs.href)} intent='brand' emphasis='strong'>
+      {String(attrs.label)}
+    </Button>
+  )
+}
+
+function Page() {
+  const [value, setValue] = useState({
+    version: 1,
+    preset: 'blocks',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        { type: 'callToAction', attrs: { label: 'Get tickets', href: '/events/ochre-kite-weekender' } },
+        { type: 'paragraph' }
+      ]
+    }
+  })
+  return (
+    <>
+      <Editor
+        aria-label='Page'
+        extensions={[callToAction]}
+        value={value}
+        onValueChange={setValue}
+      />
+      {renderEditorValue(value, { nodeMapping })}
+    </>
+  )
+}
+
+render(<Page />)
+```
+
 ### Emphasis
 
 `emphasis` sets the frame. The toolbar takes its own
