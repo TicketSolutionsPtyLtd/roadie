@@ -152,6 +152,28 @@ describe('formatValue', () => {
   })
 })
 
+describe('a value that rounds to zero', () => {
+  it.each([
+    ['number', -0.04, '0'],
+    ['number', -0, '0'],
+    ['compact', -0.04, '0'],
+    ['percent', -0.0001, '0%'],
+    ['currency', -0.001, '$0'],
+    ['currency', -0, '$0'],
+    ['compactCurrency', -0.001, '$0'],
+    ['points', -0.04, '0 pts'],
+    ['index', -0.4, '0']
+  ] as const)('reads %s %d without a minus', (format, value, expected) => {
+    expect(formatValue(value, format)).toBe(expected)
+  })
+
+  it('keeps the minus on a value that shows', () => {
+    expect(formatValue(-0.4, 'number')).toBe('-0.4')
+    expect(formatValue(-0.06, 'compact')).toBe('-0.1')
+    expect(formatValue(-0.4, 'currency')).toBe('-$0.40')
+  })
+})
+
 describe('normalizeMinusSign', () => {
   it('replaces the Unicode minus with an ASCII hyphen', () => {
     expect(normalizeMinusSign('−$1,200')).toBe('-$1,200')
