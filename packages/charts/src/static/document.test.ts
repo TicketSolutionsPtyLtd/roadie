@@ -5,6 +5,7 @@ import { chartHex } from '@oztix/roadie-core/dataviz'
 
 import { ChartDocumentError, renderChartDocument } from '.'
 import { scanRateExample } from '../BarChart/examples'
+import { ticketTypeExample } from '../DonutChart/examples'
 import { checkoutExample } from '../Funnel/examples'
 import { whenFansBuyExample } from '../Heatmap/examples'
 import { leadTimeExample } from '../Histogram/examples'
@@ -48,6 +49,7 @@ const plots: Record<ChartDocument['plot']['kind'], ChartDocument['plot']> = {
   line: { kind: 'line', ...paceExample },
   bar: { kind: 'bar', ...scanRateExample },
   'ranked-bars': { kind: 'ranked-bars', ...channelExample },
+  donut: { kind: 'donut', ...ticketTypeExample },
   'stacked-bars': { kind: 'stacked-bars', ...ticketMixExample },
   'stacked-area': { kind: 'stacked-area', ...scansByGateExample },
   histogram: { kind: 'histogram', ...leadTimeExample },

@@ -59,6 +59,17 @@ const valid = {
       { label: 'Bought', value: 1464 }
     ]
   },
+  donut: {
+    kind: 'donut',
+    data: [
+      { type: 'GA', tickets: 1240 },
+      { type: 'VIP', tickets: 310 }
+    ],
+    x: 'type',
+    y: 'tickets',
+    total: 'Tickets',
+    highlight: 'VIP'
+  },
   heatmap: {
     kind: 'heatmap',
     data: [{ weekday: 'Mon', hour: '7pm', orders: 42 }],
@@ -178,6 +189,23 @@ describe('chart plot schemas', () => {
         chart: { kind: 'funnel', steps: valid.funnel.steps }
       }).success
     ).toBe(false)
+  })
+
+  it.each([
+    ['a sort', { sort: false }],
+    ['a limit', { limit: 3 }],
+    ['a colour', { color: '#ff0000' }]
+  ])('rejects %s on a donut', (_, extra) => {
+    expect(
+      chartPlotSchema.safeParse({ ...valid.donut, ...extra }).success
+    ).toBe(false)
+  })
+
+  it('caps the donut centre label', () => {
+    const total = 'x'.repeat(ANNOTATION_LABEL_LIMIT + 1)
+    expect(chartPlotSchema.safeParse({ ...valid.donut, total }).success).toBe(
+      false
+    )
   })
 
   it('needs at least two funnel steps', () => {
