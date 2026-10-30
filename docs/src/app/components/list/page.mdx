@@ -260,8 +260,11 @@ a chevron by default; suppress it with `chevron={false}`.
 ### Custom rows
 
 For a row `List.Item` can't render, such as one with its own controls, build
-it from `listItemVariants` and give it `data-slot='list-item'`, so the list
-draws its divider, padding and contained card around it. `interactive`
+it from `listItemVariants`. It gives the row its shape, emphasis, side padding
+and minimum height, and fits it into a contained list. Give it
+`data-slot='list-item'` too, so a contained list with groups squares it off.
+The row brings no divider or vertical padding of its own, so add the padding
+as the example does. `interactive`
 (default `true`) adds the hover, press and focus states of a clickable row;
 pass `false` for a row whose link or control sits inside it. `selected`
 tints the row as `current` does.
