@@ -15,6 +15,7 @@ import type { NavigatorItemProps } from './NavigatorItem'
 import { NavigatorMenu, type NavigatorMenuProps } from './NavigatorMenu'
 import { NavigatorSecondary } from './NavigatorSecondary'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
+import { flattenChildren, settled } from './childrenInPlace'
 
 /** An item's label, apart from its Secondary and Menu. A second menu is ignored. */
 export function splitItemChildren(children: ReactNode): {
@@ -26,17 +27,18 @@ export function splitItemChildren(children: ReactNode): {
   const secondary: ReactNode[] = []
   let menu: ReactElement<NavigatorMenuProps> | undefined
 
-  Children.toArray(children).forEach((child) => {
-    if (!isValidElement(child)) {
+  flattenChildren(children).forEach((child) => {
+    const element = settled(child)
+    if (!isValidElement(element)) {
       label.push(child)
       return
     }
-    if (child.type === NavigatorSecondary) {
-      secondary.push(child)
+    if (element.type === NavigatorSecondary) {
+      secondary.push(element)
       return
     }
-    if (child.type === NavigatorMenu) {
-      menu ??= child as ReactElement<NavigatorMenuProps>
+    if (element.type === NavigatorMenu) {
+      menu ??= element as ReactElement<NavigatorMenuProps>
       return
     }
     label.push(child)
@@ -46,7 +48,8 @@ export function splitItemChildren(children: ReactNode): {
 }
 
 /** The plain text of a label, for accessible names and search. */
-export function textOf(node: ReactNode): string {
+export function textOf(child: ReactNode): string {
+  const node = settled(child)
   if (typeof node === 'string' || typeof node === 'number') return String(node)
   if (Array.isArray(node)) return node.map(textOf).join('')
   if (isValidElement<{ children?: ReactNode }>(node)) {
