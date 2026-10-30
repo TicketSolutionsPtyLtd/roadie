@@ -82,7 +82,7 @@ export function SmallMultiples(props: SmallMultiplesProps) {
             {panel.key}
           </figcaption>
           <PanelPlot
-            chart={props.chart}
+            chart={panel.chart}
             name={panel.key}
             rows={panel.rows}
             domain={domain}

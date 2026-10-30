@@ -3,7 +3,7 @@ import type { TableRow } from '@oztix/roadie-core/dashboard'
 import type { ChartTable } from '../Chart'
 import { valueColumn, xColumn } from '../plot/table'
 import { shareStyle } from '../plot/values'
-import { seriesOrder, tableParts } from './stack'
+import { seriesOrder, stackCategories, tableParts } from './stack'
 import type { StackedBarsProps } from './types'
 
 export function unusedKey(base: string, taken: readonly string[]) {
@@ -12,7 +12,7 @@ export function unusedKey(base: string, taken: readonly string[]) {
   return key
 }
 
-/** Every value the data measures, including the zeros the bars leave out. */
+/** Every value the data measures, including the zeros the bars leave out, and every category. */
 export function stackedBarsTable(props: StackedBarsProps): ChartTable {
   const parts = tableParts(props)
   const names = seriesOrder(parts)
@@ -25,8 +25,9 @@ export function stackedBarsTable(props: StackedBarsProps): ChartTable {
     ),
     valueColumn(totalKey, 'Total', props)
   ]
-  const rows = [...new Set(parts.map((p) => p.x))].map((category) => {
+  const rows = stackCategories(props).map((category) => {
     const own = parts.filter((p) => p.x === category)
+    if (own.length === 0) return { [props.x]: category }
     const total = own.reduce((sum, p) => sum + p.y, 0)
     const row: TableRow = { [props.x]: category }
     for (const p of own) row[p.series] = share ? (total ? p.y / total : 0) : p.y

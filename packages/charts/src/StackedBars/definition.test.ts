@@ -67,6 +67,53 @@ describe('stackedBars', () => {
     ])
   })
 
+  it('draws no legend for a single series', () => {
+    expect(
+      stackedBars.legend(
+        {
+          data: [
+            { band: '18 to 24', gender: 'All', sold: 40 },
+            { band: '25 to 34', gender: 'All', sold: 60 }
+          ],
+          x: 'band',
+          y: 'sold',
+          series: 'gender'
+        },
+        paint,
+        frame
+      )
+    ).toEqual([])
+  })
+
+  it.each([
+    ['horizontal', 0],
+    ['vertical', 0],
+    ['horizontal', null],
+    ['vertical', null]
+  ] as const)(
+    'keeps an ordered category with nothing in it, as an empty %s slot (%s)',
+    (orientation, nothing) => {
+      const bands = ['18 to 24', '25 to 34', '35 to 44']
+      const svg = svgOf({
+        data: bands.flatMap((band, i) => [
+          { band, type: 'GA', sold: i === 1 ? nothing : 10 },
+          { band, type: 'VIP', sold: i === 1 ? nothing : 5 }
+        ]),
+        x: 'band',
+        y: 'sold',
+        series: 'type',
+        orientation
+      })
+      const across = orientation === 'vertical' ? 'x' : 'y'
+      const drawnAt = bands.map((band) => {
+        const tag = svg.match(new RegExp(`<text[^>]*>${band}<`))?.[0] ?? ''
+        return Number(tag.match(new RegExp(` ${across}="([\\d.]+)"`))?.[1])
+      })
+      expect(drawnAt.every(Number.isFinite)).toBe(true)
+      expect(drawnAt).toEqual([...drawnAt].sort((a, b) => a - b))
+    }
+  )
+
   it('labels the share axis in percent', () => {
     expect(svgOf(presaleExample)).toContain('>100%<')
   })
@@ -128,6 +175,19 @@ describe('stackedBars', () => {
     ).toBe('Kazoo Hollow Room, Presale, 820 sold, 56% of the bar')
   })
 
+  it.each([0, null])(
+    'names the leader only across bands with values (%s in one)',
+    (nothing) => {
+      const data = ['18 to 24', '25 to 34', '35 to 44'].flatMap((band, i) => [
+        { band, type: 'GA', sales: i === 1 ? nothing : 10 },
+        { band, type: 'VIP', sales: i === 1 ? nothing : 5 }
+      ])
+      expect(
+        stackedBars.summary({ data, x: 'band', y: 'sales', series: 'type' })
+      ).toBe('GA is the largest type in every band with data')
+    }
+  )
+
   it('lists every segment of the bar in the tooltip', () => {
     const tooltip = stackedBars.tooltip(
       [{ x: 'Kazoo Hollow Room', y: 820, series: 'Presale', index: 0 }],
@@ -169,6 +229,24 @@ describe('stackedBarsTable', () => {
   it('shows zeros the bars leave out', () => {
     const table = stackedBarsTable(ticketMixExample)
     expect(table.rows.map((row) => row['Early bird'])).toEqual([300, 0, 0])
+  })
+
+  it('lists a category with no values, in data order, with empty cells', () => {
+    const table = stackedBarsTable({
+      data: [
+        { band: '18 to 24', type: 'GA', sales: 10 },
+        { band: '25 to 34', type: 'GA', sales: null },
+        { band: '35 to 44', type: 'GA', sales: 4 }
+      ],
+      x: 'band',
+      y: 'sales',
+      series: 'type'
+    })
+    expect(table.rows).toEqual([
+      { band: '18 to 24', GA: 10, total: 10 },
+      { band: '25 to 34' },
+      { band: '35 to 44', GA: 4, total: 4 }
+    ])
   })
 
   it('keeps a column for a series that is zero everywhere', () => {

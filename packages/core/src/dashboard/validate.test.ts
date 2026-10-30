@@ -697,6 +697,41 @@ describe('validateDashboard checks annotations against the data', () => {
     ])
   })
 
+  it.each([
+    ['first', '2026-08-03T08:00'],
+    ['last', '2026-08-03T11:00']
+  ])(
+    'warns on a stacked area annotation at a %s time with no value, which the chart drops',
+    (_, at) => {
+      expect(
+        problemsAt({
+          kind: 'stacked-area',
+          data: [
+            { time: '2026-08-03T08:00', orders: null, gate: 'Main' },
+            ...hourly.map((row) => ({ ...row, gate: 'Main' })),
+            { time: '2026-08-03T11:00', orders: 300, gate: '' }
+          ],
+          x: 'time',
+          y: 'orders',
+          series: 'gate',
+          annotations: [{ at, label: 'Presale' }]
+        })
+      ).toHaveLength(1)
+    }
+  )
+
+  it('accepts a line annotation at a first time with no value, which the line keeps', () => {
+    expect(
+      problemsAt({
+        kind: 'line',
+        data: [{ time: '2026-08-03T08:00', orders: null }, ...hourly],
+        x: 'time',
+        y: 'orders',
+        annotations: [{ at: '2026-08-03T08:00', label: 'Presale' }]
+      })
+    ).toEqual([])
+  })
+
   it('warns on a date outside hourly data', () => {
     expect(
       problemsAt({
@@ -775,6 +810,35 @@ describe('validateDashboard checks annotations against the data', () => {
       ])
     )
   })
+
+  it.each([
+    ['warns on', '2026-09-10', 1],
+    ['accepts', '2026-09-02', 0],
+    ['accepts', '2026-09-21', 0]
+  ] as const)(
+    '%s a small multiples annotation at %s, by whether a panel places it',
+    (_, at, warnings) => {
+      const days = (gate: string, from: number) =>
+        [0, 1, 2].map((d) => ({
+          gate,
+          day: `2026-09-${String(from + d).padStart(2, '0')}`,
+          scans: 10 + d
+        }))
+      expect(
+        problemsAt({
+          kind: 'small-multiples',
+          data: [...days('North gate', 1), ...days('South gate', 20)],
+          by: 'gate',
+          chart: {
+            kind: 'line',
+            x: 'day',
+            y: 'scans',
+            annotations: [{ at, label: 'Gates open' }]
+          }
+        })
+      ).toHaveLength(warnings)
+    }
+  )
 })
 
 describe('validateDashboard checks repeated names', () => {
