@@ -28,6 +28,8 @@ with its skeleton and the rules on top of these.
   `/tokens/`, the reference
   dashboards (`/charts/audience-dashboard`, `/charts/portfolio-dashboard`, and
   `/charts/show-dashboard`), `/examples/`, `/debug/`, and redirects.
+- A heading in a `.tsx` page or component needs an `id` where it renders to
+  appear in On this page; MDX headings get theirs from `rehype-slug`.
 - The foundations pages other than Accessibility, Colors, Date and time,
   Elevation, Forms, Iconography, Interactions, Layout, Linking, Motion,
   Navigation, Performance, Prose, Records, Shape, Tables, Theming, Typography,
