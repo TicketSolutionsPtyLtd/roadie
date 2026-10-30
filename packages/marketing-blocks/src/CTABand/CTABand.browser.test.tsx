@@ -3,6 +3,7 @@ import { describe, expect, it, onTestFinished } from 'vitest'
 import { page } from 'vitest/browser'
 
 import { CTABand, type CTABandProps } from '.'
+import type { BlockIntent } from '../_shared/surface'
 import {
   DESKTOP,
   PHONE,
@@ -10,9 +11,28 @@ import {
   photo,
   withBrowserPage
 } from '../_test/browser'
-import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import {
+  MINIMUM_FILL_LC,
+  MINIMUM_LC,
+  MODES,
+  fillContrast,
+  setMode,
+  textContrast
+} from '../_test/contrast'
 
 withBrowserPage()
+
+const INTENTS = [
+  'neutral',
+  'brand',
+  'brand-secondary',
+  'brand-purple',
+  'accent',
+  'info',
+  'success',
+  'warning',
+  'danger'
+] as const satisfies readonly BlockIntent[]
 
 const props: CTABandProps = {
   title: 'Explore an Oztix partnership',
@@ -201,9 +221,7 @@ describe('CTABand intent and emphasis', () => {
   const EMPHASES = ['raised', 'subtle', 'strong', 'inverted'] as const
   const cases = MODES.flatMap((theme) =>
     EMPHASES.flatMap((emphasis) =>
-      (['neutral', 'brand', 'accent'] as const).map(
-        (intent) => [emphasis, intent, theme] as const
-      )
+      INTENTS.map((intent) => [emphasis, intent, theme] as const)
     )
   )
 
@@ -219,20 +237,30 @@ describe('CTABand intent and emphasis', () => {
           emphasis={emphasis}
           eyebrow='For organisers'
           title='Talk to our team'
+          titleHighlight='team'
           description='We’ll find the right setup.'
-          body={<p>Tell us about your venue.</p>}
+          body={
+            <p>
+              Read <a href='/guide'>the setup guide</a> or run{' '}
+              <code>oztix import</code>.
+            </p>
+          }
           actions={props.actions}
         />
       )
 
       const large = [
         screen.getByRole('heading', { level: 2 }),
-        screen.getByText('For organisers')
+        screen.getByText('For organisers'),
+        screen.getByText('team')
       ]
+      const guide = screen.getByRole('link', { name: 'the setup guide' })
       const body = [
         screen.getByText('We’ll find the right setup.'),
-        screen.getByText('Tell us about your venue.'),
-        ...screen.getAllByRole('link')
+        guide,
+        screen.getByText('oztix import'),
+        screen.getByRole('link', { name: 'Talk to us' }),
+        screen.getByRole('link', { name: 'Create my event' })
       ]
       for (const element of large)
         expect(
@@ -244,15 +272,40 @@ describe('CTABand intent and emphasis', () => {
           textContrast(element),
           element.textContent!
         ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
-
-      const panel = getComputedStyle(
-        container.querySelector('[data-slot=cta-band-panel]')!
-      ).backgroundColor
-      const first = getComputedStyle(
-        screen.getByRole('link', { name: 'Talk to us' })
-      ).backgroundColor
-      expect(first).not.toBe(panel)
+      expect(getComputedStyle(guide).textDecorationColor).toBe(
+        getComputedStyle(guide).color
+      )
       expect(await axeViolations(container)).toEqual([])
+    }
+  )
+
+  it.each(
+    MODES.flatMap((theme) =>
+      (['strong', 'inverted'] as const).flatMap((emphasis) =>
+        INTENTS.map((intent) => [emphasis, intent, theme] as const)
+      )
+    )
+  )(
+    'sets the strong action apart from a %s %s panel in %s mode',
+    (emphasis, intent, theme) => {
+      setMode(theme)
+      onTestFinished(() => setMode('light'))
+      const { container } = render(
+        <CTABand
+          preset='centred'
+          intent={intent}
+          emphasis={emphasis}
+          title='Talk to our team'
+          actions={props.actions}
+        />
+      )
+
+      expect(
+        fillContrast(
+          screen.getByRole('link', { name: 'Talk to us' }),
+          container.querySelector('[data-slot=cta-band-panel]')!
+        )
+      ).toBeGreaterThanOrEqual(MINIMUM_FILL_LC)
     }
   )
 })

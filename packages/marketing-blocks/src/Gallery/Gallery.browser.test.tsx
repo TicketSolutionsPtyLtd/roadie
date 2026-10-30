@@ -4,6 +4,7 @@ import { commands, page, userEvent } from 'vitest/browser'
 
 import { Gallery, type GalleryPreset } from '.'
 import { MarketingBlocksProvider } from '../Provider'
+import type { BlockIntent } from '../_shared/surface'
 import {
   DESKTOP,
   PHONE,
@@ -14,6 +15,18 @@ import {
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 
 withBrowserPage()
+
+const INTENTS = [
+  'neutral',
+  'brand',
+  'brand-secondary',
+  'brand-purple',
+  'accent',
+  'info',
+  'success',
+  'warning',
+  'danger'
+] as const satisfies readonly BlockIntent[]
 
 const MID = { width: 640, height: 800 }
 
@@ -236,11 +249,7 @@ describe('Gallery', () => {
   )
 
   it.each(
-    MODES.flatMap((theme) =>
-      (['neutral', 'brand', 'accent'] as const).map(
-        (intent) => [intent, theme] as const
-      )
-    )
+    MODES.flatMap((theme) => INTENTS.map((intent) => [intent, theme] as const))
   )(
     'keeps its heading readable with a %s intent in %s mode',
     async (intent, theme) => {

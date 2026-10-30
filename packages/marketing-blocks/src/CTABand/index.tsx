@@ -25,12 +25,14 @@ export type CTABandEmphasis = Extract<
   'raised' | 'subtle' | 'strong' | 'inverted'
 >
 
-// On a filled panel the heading and copy take the panel's own text colour.
+// On a filled panel the copy takes the panel's text colour; marks, links and code
+// lose fills and decorations that would vanish into it.
+const FILLED_PARTS =
+  '[&_mark]:bg-transparent [&_mark]:text-inherit [&_mark]:underline [&_mark]:decoration-2 [&_a]:decoration-current [&_code]:bg-transparent [&_code]:text-inherit'
+
 const FILLED_TEXT: Partial<Record<CTABandEmphasis, string>> = {
-  strong:
-    '[--intent-text-strong:var(--intent-text-on-strong)] [--intent-text-normal:var(--intent-text-on-strong)] [--intent-text-subtle:var(--intent-text-on-strong)]',
-  inverted:
-    '[--intent-text-strong:var(--intent-text-inverted)] [--intent-text-normal:var(--intent-text-inverted)] [--intent-text-subtle:var(--intent-text-inverted)]'
+  strong: `[--intent-text-strong:var(--intent-text-on-strong)] [--intent-text-normal:var(--intent-text-on-strong)] [--intent-text-subtle:var(--intent-text-on-strong)] ${FILLED_PARTS}`,
+  inverted: `[--intent-text-strong:var(--intent-text-inverted)] [--intent-text-normal:var(--intent-text-inverted)] [--intent-text-subtle:var(--intent-text-inverted)] ${FILLED_PARTS}`
 }
 
 export type CTABandProps = {
@@ -60,7 +62,7 @@ export type CTABandProps = {
   /** The block's intent, for the panel's tint and the highlighted words. */
   intent?: BlockIntent
   /**
-   * The panel's surface. On `strong`, the strong action switches intent so it stands apart from the panel.
+   * The panel's surface. On `strong` and `inverted`, the strong action takes an intent that stands apart from the panel.
    * @default 'raised'
    */
   emphasis?: CTABandEmphasis
@@ -85,13 +87,6 @@ export function CTABand({
   const { name, variant } = presetOf(ctaBandDefinition, presetName)
   const split = variant === 'split'
   const photo = split ? image : undefined
-  // A strong action in the panel's own intent would merge into a strong panel.
-  const actionIntent =
-    emphasis === 'strong'
-      ? (intent ?? 'neutral') === 'neutral'
-        ? 'accent'
-        : 'neutral'
-      : intent
 
   return (
     <BlockRoot
@@ -154,7 +149,12 @@ export function CTABand({
             </div>
             <BlockActions
               actions={actions}
-              intent={actionIntent}
+              intent={intent}
+              fill={
+                emphasis === 'strong' || emphasis === 'inverted'
+                  ? emphasis
+                  : undefined
+              }
               className={split ? undefined : 'justify-center'}
             />
           </div>

@@ -3,6 +3,7 @@ import { describe, expect, it, onTestFinished } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import { FAQ } from '.'
+import type { BlockIntent } from '../_shared/surface'
 import {
   DESKTOP,
   PHONE,
@@ -12,6 +13,18 @@ import {
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 
 withBrowserPage()
+
+const INTENTS = [
+  'neutral',
+  'brand',
+  'brand-secondary',
+  'brand-purple',
+  'accent',
+  'info',
+  'success',
+  'warning',
+  'danger'
+] as const satisfies readonly BlockIntent[]
 
 const items = [
   {
@@ -59,9 +72,7 @@ describe('FAQ', () => {
 describe('FAQ intent and emphasis', () => {
   const cases = MODES.flatMap((theme) =>
     (['subtler', 'subtle', 'normal'] as const).flatMap((emphasis) =>
-      (['neutral', 'brand', 'accent'] as const).map(
-        (intent) => [emphasis, intent, theme] as const
-      )
+      INTENTS.map((intent) => [emphasis, intent, theme] as const)
     )
   )
 

@@ -21,7 +21,7 @@
     "name": "cta-band",
     "path": "dist/CTABand/index.js",
     "import": "*",
-    "limit": "3.25 kB",
+    "limit": "3.35 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
