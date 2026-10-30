@@ -11,11 +11,12 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import { presetOf } from '../_shared/presets'
-import type {
-  BlockAlign,
-  BlockEmphasis,
-  BlockIntent,
-  BlockSize
+import {
+  type BlockAlign,
+  type BlockEmphasis,
+  type BlockIntent,
+  type BlockSize,
+  bySize
 } from '../_shared/surface'
 import { type MosaicPreset, mosaicDefinition } from './definition'
 
@@ -86,7 +87,7 @@ export type MosaicProps = {
    */
   align?: BlockAlign
   /**
-   * `md` sets the title a step smaller, with tighter spacing.
+   * `md` and `sm` set the title one and two steps smaller, with tighter spacing.
    * @default 'lg'
    */
   size?: BlockSize
@@ -147,7 +148,10 @@ export function Mosaic({
       <BlockSurface
         emphasis={emphasis}
         inset={inset}
-        className={cn('grid *:min-w-0', size === 'md' ? 'gap-8' : 'gap-12')}
+        className={cn(
+          'grid *:min-w-0',
+          bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' })
+        )}
       >
         <BlockHeading
           id={headingId}

@@ -11,11 +11,12 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import { presetOf } from '../_shared/presets'
-import type {
-  BlockAlign,
-  BlockEmphasis,
-  BlockIntent,
-  BlockSize
+import {
+  type BlockAlign,
+  type BlockEmphasis,
+  type BlockIntent,
+  type BlockSize,
+  bySize
 } from '../_shared/surface'
 import { type CTABandPreset, ctaBandDefinition } from './definition'
 
@@ -72,7 +73,7 @@ export type CTABandProps = {
    */
   align?: BlockAlign
   /**
-   * `md` sets the title a step smaller, with tighter spacing and smaller body text.
+   * `md` and `sm` set the title one and two steps smaller, with tighter spacing and smaller body text.
    * @default 'lg'
    */
   size?: BlockSize
@@ -114,7 +115,10 @@ export function CTABand({
         <BlockSurface
           emphasis={emphasis}
           inset={inset}
-          className={cn('grid grid-cols-1', size === 'md' ? 'gap-8' : 'gap-12')}
+          className={cn(
+            'grid grid-cols-1',
+            bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' })
+          )}
         >
           {image && (
             <div className='relative -mt-24 w-2/5 max-w-95 -rotate-5 @xl:absolute @xl:end-8 @xl:-top-24 @xl:mt-0 @xl:w-1/3 @xl:rotate-5 @3xl:end-16 @7xl:-top-32'>
@@ -134,7 +138,7 @@ export function CTABand({
           <div
             className={cn(
               'grid grid-cols-1',
-              size === 'md' ? 'gap-8' : 'gap-12',
+              bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' }),
               image && '@xl:max-w-7/12',
               centred && 'justify-items-center text-center'
             )}
@@ -142,7 +146,7 @@ export function CTABand({
             <div
               className={cn(
                 'grid min-w-0',
-                size === 'md' ? 'gap-6' : 'gap-8',
+                bySize(size, { sm: 'gap-4', md: 'gap-6', lg: 'gap-8' }),
                 FILLED_TEXT[emphasis]
               )}
             >
@@ -158,7 +162,7 @@ export function CTABand({
               />
               {body && (
                 <Prose
-                  size={size === 'md' ? 'md' : 'lg'}
+                  size={bySize(size, { sm: 'md', md: 'md', lg: 'lg' })}
                   className='max-w-2xl text-pretty text-subtle [&>p:last-child]:font-medium'
                 >
                   {body}

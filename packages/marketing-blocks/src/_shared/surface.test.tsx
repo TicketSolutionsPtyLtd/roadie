@@ -104,10 +104,12 @@ describe('BlockSurface', () => {
 })
 
 describe('titleStep', () => {
-  it('keeps the preset step at lg and drops one step at md', () => {
+  it('keeps the preset step at lg, drops one at md and two at sm, down to 6', () => {
     expect(titleStep(2, undefined)).toBe(2)
     expect(titleStep(2, 'lg')).toBe(2)
     expect(titleStep(2, 'md')).toBe(3)
-    expect(titleStep(5, 'md')).toBe(5)
+    expect(titleStep(2, 'sm')).toBe(4)
+    expect(titleStep(5, 'sm')).toBe(6)
+    expect(titleStep(6, 'md')).toBe(6)
   })
 })

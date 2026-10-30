@@ -22,11 +22,12 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BLEED, BlockSurface, PAGE_GUTTER } from '../_shared/BlockSurface'
 import { presetOf } from '../_shared/presets'
-import type {
-  BlockAlign,
-  BlockEmphasis,
-  BlockIntent,
-  BlockSize
+import {
+  type BlockAlign,
+  type BlockEmphasis,
+  type BlockIntent,
+  type BlockSize,
+  bySize
 } from '../_shared/surface'
 import { type GalleryPreset, galleryDefinition } from './definition'
 
@@ -65,7 +66,7 @@ export type GalleryProps = {
    */
   align?: BlockAlign
   /**
-   * `md` sets the title a step smaller, with tighter spacing.
+   * `md` and `sm` set the title one and two steps smaller, with tighter spacing.
    * @default 'lg'
    */
   size?: BlockSize
@@ -98,7 +99,7 @@ export function Gallery({
   const headingId = useId()
   const { name, variant } = presetOf(galleryDefinition, presetName)
   const align = alignProp ?? ALIGN[name]
-  const gap = size === 'md' ? 'gap-8' : 'gap-12'
+  const gap = bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' })
 
   const heading = (
     <BlockHeading

@@ -62,13 +62,15 @@ Run `pnpm generate:exports` after adding the folder.
   the props override them, so a new look is a preset, never a new prop.
   - `intent` goes to `BlockRoot` and `BlockHeading`, so marks, tints,
     highlights, and the strong action inherit it.
-  - `emphasis` is a `BlockEmphasis` (`subtler`, `subtle`, or `raised`), the
+  - `emphasis` is a `BlockEmphasis` (`subtler`, `subtle`, `normal`, or `raised`), the
     surface behind the block. A CTA band adds `strong` and `inverted`. Each
     must keep APCA contrast in both themes.
   - `itemEmphasis` is every item's surface at once (cards, questions), never
     per item, and an item may take its own `intent`.
-  - `align` and `size` are the preset's alignment and scale; `md` sets the
-    title a step smaller.
+  - `align` and `size` are the preset's alignment and scale; each step down
+    from `lg` (`md`, then `sm`) sets the title a step smaller, with smaller
+    descriptions and body text and tighter spacing. Pick each value with
+    `bySize`, so no size falls through to another's.
   - Hero opens the page and takes no surface.
 - **Data names.** One image is `image` and many are `images`, wherever the
   preset puts them. Items use `title`, `description`, `image`, `illustration`,

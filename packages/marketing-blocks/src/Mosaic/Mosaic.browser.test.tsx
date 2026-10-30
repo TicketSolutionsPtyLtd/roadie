@@ -190,13 +190,17 @@ describe('Mosaic align and size', () => {
     expect(textAlignOf(heading())).toBe('center')
   })
 
-  it('sets the title smaller at md', async () => {
+  it('sets the title smaller at md, and again at sm', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const { rerender } = render(<Mosaic {...offline(partnerTiers)} />)
     const large = fontSizeOf(heading())
 
     rerender(<Mosaic {...offline(partnerTiers)} size='md' />)
     expect(fontSizeOf(heading())).toBeLessThan(large)
+    const medium = fontSizeOf(heading())
+
+    rerender(<Mosaic {...offline(partnerTiers)} size='sm' />)
+    expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
 })
 
@@ -346,7 +350,7 @@ describe('Mosaic contrast', () => {
 
   it.each(
     MODES.flatMap((mode) =>
-      (['subtler', 'subtle', 'raised'] as const).flatMap((emphasis) =>
+      (['subtler', 'subtle', 'normal', 'raised'] as const).flatMap((emphasis) =>
         INTENTS.map((intent) => ({
           mode,
           emphasis,

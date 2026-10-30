@@ -120,7 +120,7 @@ under the block's heading, and the images wrap below the text on phones.
 ### Intent and emphasis
 
 `intent` colours the highlights, actions, and marks. `emphasis` sets the
-surface behind the block: `subtle`, `subtler`, or `raised`. On a surface, the
+surface behind the block: `subtle`, `subtler`, `normal`, or `raised`. On a surface, the
 title takes the intent and the rest of the text stays neutral. `media-text`
 draws its surface as a panel inside the page's padding, and
 `alternating-rows` as a full-width band. `itemEmphasis` sets every row's
@@ -143,11 +143,11 @@ surface in `alternating-rows`.
     height: 854
   }}
 />
-{/* Success, raised band */}
+{/* Success, normal band */}
 <Split
   preset='alternating-rows'
   intent='success'
-  emphasis='raised'
+  emphasis='normal'
   title='How payouts work'
   items={[
     {
@@ -166,7 +166,7 @@ surface in `alternating-rows`.
 
 ### Align, size, and inset
 
-`size='md'` sets the title a step smaller and tightens the gaps. In
+`size='md'` or `'sm'` sets the title one or two steps smaller and tightens the gaps. In
 `media-text`, it narrows the image to two fifths, cropped 8 by 5, with the
 body in subtle text: a short point with a photo, on a tinted panel. `align`
 centres the heading, text, and actions, and `inset={false}` runs a surface

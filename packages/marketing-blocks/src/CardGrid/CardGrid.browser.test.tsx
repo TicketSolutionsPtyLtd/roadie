@@ -279,7 +279,7 @@ describe('CardGrid align and size', () => {
     }
   )
 
-  it('sets the title smaller at md', () => {
+  it('sets the title smaller at md, and again at sm', () => {
     const { rerender } = render(<Block look='cards' width={1280} />)
     const large = fontSizeOf(heading())
 
@@ -289,6 +289,14 @@ describe('CardGrid align and size', () => {
       </div>
     )
     expect(fontSizeOf(heading())).toBeLessThan(large)
+    const medium = fontSizeOf(heading())
+
+    rerender(
+      <div style={{ width: 1280 }}>
+        <CardGrid {...propsOf('cards')} size='sm' />
+      </div>
+    )
+    expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
 })
 
@@ -546,7 +554,7 @@ describe('CardGrid contrast', () => {
   }))
 
   const PRESETS = LOOK_NAMES.filter((look) => look !== 'illustrated')
-  const SECTIONS = [undefined, 'raised', 'subtle', 'subtler'] as const
+  const SECTIONS = [undefined, 'raised', 'normal', 'subtle', 'subtler'] as const
   const CARDS = [undefined, 'raised', 'subtle', 'subtler', 'normal'] as const
   const INTENTS = [
     'neutral',

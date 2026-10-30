@@ -43,13 +43,17 @@ describe('Testimonial align and size', () => {
     expect(textAlignOf(screen.getByRole('blockquote'))).toBe('start')
   })
 
-  it('sets the title smaller at md', async () => {
+  it('sets the title smaller at md, and again at sm', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const { rerender } = render(<Testimonial {...quote} />)
     const large = fontSizeOf(heading())
 
     rerender(<Testimonial {...quote} size='md' />)
     expect(fontSizeOf(heading())).toBeLessThan(large)
+    const medium = fontSizeOf(heading())
+
+    rerender(<Testimonial {...quote} size='sm' />)
+    expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
 
   it('centres its action under the quote', async () => {
@@ -190,26 +194,27 @@ describe('Testimonial contrast', () => {
   afterEach(() => setMode('light'))
 
   const cases = MODES.flatMap((theme) =>
-    ([undefined, 'raised', 'subtle', 'subtler'] as const).flatMap((emphasis) =>
-      (
-        [
-          undefined,
-          'neutral',
-          'brand',
-          'brand-secondary',
-          'brand-purple',
-          'accent',
-          'info',
-          'success',
-          'warning',
-          'danger'
-        ] as const
-      ).map((intent) => ({
-        theme,
-        emphasis: emphasis ?? 'none',
-        intent: intent ?? 'none',
-        props: { emphasis, intent }
-      }))
+    ([undefined, 'raised', 'normal', 'subtle', 'subtler'] as const).flatMap(
+      (emphasis) =>
+        (
+          [
+            undefined,
+            'neutral',
+            'brand',
+            'brand-secondary',
+            'brand-purple',
+            'accent',
+            'info',
+            'success',
+            'warning',
+            'danger'
+          ] as const
+        ).map((intent) => ({
+          theme,
+          emphasis: emphasis ?? 'none',
+          intent: intent ?? 'none',
+          props: { emphasis, intent }
+        }))
     )
   )
 

@@ -84,12 +84,12 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 />
 ```
 
-Cards with no images are compact. Raised, with an `href` on each, they're places to go next:
+Cards with no images are compact. Boxed, with an `href` on each, they're places to go next:
 
 ```tsx-live-expand id=link-cards
 <CardGrid
   preset='cards'
-  itemEmphasis='raised'
+  itemEmphasis='normal'
   title='How can we help?'
   items={[
     {
@@ -232,7 +232,7 @@ Each photo is overlapped by a panel holding an illustration, a marked title, and
 <CardGrid
   intent='brand'
   emphasis='subtle'
-  itemEmphasis='raised'
+  itemEmphasis='normal'
   title='How can we help?'
   items={[
     { title: 'New clients', description: 'Chat to us about your venue or event.', illustration: 'Hand', href: '#sales' },
@@ -259,7 +259,7 @@ Numbered cards on normal cards, with one step marked as the one that matters mos
 
 ### Align, size, and inset
 
-`align` lines up the heading, and in `cards`, the card text too. Unset, `cards` centres the heading and starts the card text. `size='md'` sets the title a step smaller, for a section that supports its neighbours. A surface runs full width as a band, and `inset` draws it as a panel inside the page's padding instead, as `portraits` does by default:
+`align` lines up the heading, and in `cards`, the card text too. Unset, `cards` centres the heading and starts the card text. `size='md'` or `'sm'` sets the title one or two steps smaller, for a section that supports its neighbours. A surface runs full width as a band, and `inset` draws it as a panel inside the page's padding instead, as `portraits` does by default:
 
 ```tsx-live-expand id=align-size-inset
 <CardGrid

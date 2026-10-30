@@ -47,7 +47,7 @@ A heading over questions that open to their answers, one at a time. Answers are 
 
 ### Intent and emphasis
 
-`intent` tints the highlighted words, the strong action, and any question surface. `itemEmphasis` sets the questions' surface: `subtler` by default, `subtle` to tint each question, or `normal` to box them. `emphasis` sets a `subtler`, `subtle`, or `raised` band behind the whole block, full width and rounded once the block is wide.
+`intent` tints the highlighted words, the strong action, and any question surface. `itemEmphasis` sets the questions' surface: `subtler` by default, `subtle` to tint each question, or `normal` to box them. `emphasis` sets a `subtler`, `subtle`, `normal`, or `raised` band behind the whole block, full width and rounded once the block is wide.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
 {/* Subtle questions */}
@@ -84,11 +84,11 @@ A heading over questions that open to their answers, one at a time. Answers are 
 
 ### Inset, align, and size
 
-`inset` draws the surface as a rounded panel inside the page padding instead of a band. `align='center'` centres the heading and actions; the questions always start. `size='md'` sets the title a step smaller, with tighter gaps.
+`inset` draws the surface as a rounded panel inside the page padding instead of a band. `align='center'` centres the heading and actions; the questions always start. `size='md'` or `'sm'` sets the title one or two steps smaller, with tighter gaps.
 
 ```tsx-live-expand id=inset-align-and-size
 <FAQ
-  emphasis='raised'
+  emphasis='normal'
   inset
   align='center'
   size='md'
@@ -128,7 +128,7 @@ A heading over questions that open to their answers, one at a time. Answers are 
 
 <Guideline title='Give the questions a surface only on a busy page'>
   <Guideline.Do>
-    Keep `subtler` questions on most pages. Use `subtle` or `normal` when the FAQ sits beside other content and needs its own edge, and `raised` on a band.
+    Keep `subtler` questions on most pages. Use `subtle` or `normal` when the FAQ sits beside other content and needs its own edge, and `normal` or `raised` on a band.
   </Guideline.Do>
 </Guideline>
 

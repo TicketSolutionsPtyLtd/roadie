@@ -14,6 +14,7 @@ import {
   type BlockEmphasis,
   type BlockIntent,
   type BlockSize,
+  bySize,
   intentClass
 } from '../_shared/surface'
 import { type TestimonialPreset, testimonialDefinition } from './definition'
@@ -76,7 +77,7 @@ export type TestimonialProps = {
    */
   align?: BlockAlign
   /**
-   * `md` sets the title a step smaller, with tighter gaps.
+   * `md` and `sm` set the title one and two steps smaller, with tighter gaps.
    * @default 'lg'
    */
   size?: BlockSize
@@ -130,7 +131,7 @@ export function Testimonial({
         }
         className={cn(
           'grid *:min-w-0',
-          size === 'md' ? 'gap-10' : 'gap-16',
+          bySize(size, { sm: 'gap-8', md: 'gap-10', lg: 'gap-16' }),
           centred && 'justify-items-center'
         )}
       >

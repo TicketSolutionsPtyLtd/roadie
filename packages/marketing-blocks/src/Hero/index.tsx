@@ -17,7 +17,12 @@ import {
   type SpotIllustrationName
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
-import type { BlockAlign, BlockIntent, BlockSize } from '../_shared/surface'
+import {
+  type BlockAlign,
+  type BlockIntent,
+  type BlockSize,
+  bySize
+} from '../_shared/surface'
 import { HeroMotionProvider, HeroMotionToggle } from './HeroMotion'
 import { HeroVideo } from './HeroVideo'
 import { ImageCycler } from './ImageCycler'
@@ -95,7 +100,7 @@ export type HeroProps = {
    */
   align?: BlockAlign
   /**
-   * `md` sets the title a step smaller, with tighter spacing.
+   * `md` and `sm` set the title one and two steps smaller, with tighter spacing.
    * @default 'lg'
    */
   size?: BlockSize
@@ -186,7 +191,7 @@ function TitleOnly({
       className={cn(
         'grid *:min-w-0',
         ALIGN_ITEMS[align],
-        size === 'md' ? 'gap-4' : 'gap-6'
+        bySize(size, { sm: 'gap-3', md: 'gap-4', lg: 'gap-6' })
       )}
     >
       <BlockHeading
@@ -234,7 +239,7 @@ function PartnerHero({
       <div
         className={cn(
           'grid min-w-0 grid-cols-1 content-start wrap-break-word',
-          size === 'md' ? 'gap-6' : 'gap-8'
+          bySize(size, { sm: 'gap-4', md: 'gap-6', lg: 'gap-8' })
         )}
       >
         <BlockHeading
@@ -302,14 +307,14 @@ function ImageHero({
     <BlockSurface
       className={cn(
         'grid gap-8 *:min-w-0 @xl:grid-cols-2 @xl:items-center @4xl:grid-cols-5',
-        size === 'md' ? '@4xl:gap-12' : '@4xl:gap-16'
+        bySize(size, { sm: '@4xl:gap-8', md: '@4xl:gap-12', lg: '@4xl:gap-16' })
       )}
     >
       <div
         className={cn(
           'grid @4xl:col-span-2',
           ALIGN_ITEMS[align],
-          size === 'md' ? 'gap-4' : 'gap-6'
+          bySize(size, { sm: 'gap-3', md: 'gap-4', lg: 'gap-6' })
         )}
       >
         <BlockHeading
@@ -427,9 +432,11 @@ function Bento({
                   intent={intent}
                   className={cn(
                     'text-balance',
-                    size === 'md'
-                      ? 'text-display-prose-2'
-                      : 'text-display-prose-1'
+                    bySize(size, {
+                      sm: 'text-display-prose-3',
+                      md: 'text-display-prose-2',
+                      lg: 'text-display-prose-1'
+                    })
                   )}
                 >
                   {' '}

@@ -21,6 +21,7 @@ import {
   type BlockIntent,
   type BlockSize,
   type ItemEmphasis,
+  bySize,
   emphasisClass,
   intentClass
 } from '../_shared/surface'
@@ -72,7 +73,7 @@ export type CardGridProps = {
   /** The heading's alignment, and in `cards`, the card text's too. Unset, `cards` centres the heading and starts the card text, `marked-cards` and `overlap-cards` centre the heading, and `portraits` and `lists` start it. */
   align?: BlockAlign
   /**
-   * `md` sets the title a step smaller and tightens the gap under the heading.
+   * `md` and `sm` set the title one and two steps smaller and tightens the gap under the heading.
    * @default 'lg'
    */
   size?: BlockSize
@@ -501,7 +502,7 @@ export function CardGrid({
         inset={inset ?? look.inset}
         className={cn(
           'grid grid-cols-1 wrap-anywhere',
-          size === 'md' ? 'gap-8' : 'gap-12'
+          bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' })
         )}
       >
         <div className='grid min-w-0 grid-cols-1 justify-items-center gap-4'>

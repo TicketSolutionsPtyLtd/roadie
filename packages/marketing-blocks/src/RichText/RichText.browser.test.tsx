@@ -99,14 +99,45 @@ describe('RichText align and size', () => {
   it.each([
     ['statement', statement],
     ['long-form', longForm]
-  ])('sets the %s title smaller at md', async (_, props) => {
+  ])('sets the %s title smaller at md, and again at sm', async (_, props) => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const { rerender } = render(<RichText {...props} />)
     const large = fontSizeOf(heading())
 
     rerender(<RichText {...props} size='md' />)
     expect(fontSizeOf(heading())).toBeLessThan(large)
+    const medium = fontSizeOf(heading())
+
+    rerender(<RichText {...props} size='sm' />)
+    expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
+
+  it.each([
+    ['statement', statement],
+    ['long-form', longForm]
+  ])(
+    'sets the %s description and body smaller at md, and again at sm',
+    async (_, preset) => {
+      await atWidth(DESKTOP.width, DESKTOP.height)
+      const props = { ...preset, description: 'A line under the title.' }
+      const textSizes = () => ({
+        description: fontSizeOf(screen.getByText(props.description)),
+        body: fontSizeOf(document.querySelector('.prose p')!)
+      })
+      const { rerender } = render(<RichText {...props} />)
+      const large = textSizes()
+
+      rerender(<RichText {...props} size='md' />)
+      const medium = textSizes()
+      expect(medium.description).toBeLessThan(large.description)
+      expect(medium.body).toBeLessThan(large.body)
+
+      rerender(<RichText {...props} size='sm' />)
+      const small = textSizes()
+      expect(small.description).toBeLessThan(medium.description)
+      expect(small.body).toBeLessThanOrEqual(medium.body)
+    }
+  )
 })
 
 describe.each([
@@ -168,8 +199,8 @@ describe('RichText statement band shape', () => {
 })
 
 describe.each(
-  ([undefined, 'subtle', 'subtler', 'raised'] as const).flatMap((emphasis) =>
-    [false, true].map((inset) => [emphasis, inset] as const)
+  ([undefined, 'subtle', 'subtler', 'normal', 'raised'] as const).flatMap(
+    (emphasis) => [false, true].map((inset) => [emphasis, inset] as const)
   )
 )('RichText statement on a %s surface, inset %s', (emphasis, inset) => {
   it.each(MODES)(

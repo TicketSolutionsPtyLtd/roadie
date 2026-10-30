@@ -283,7 +283,7 @@ describe('Gallery', () => {
 
   it.each(
     MODES.flatMap((theme) =>
-      (['subtler', 'subtle', 'raised'] as const).flatMap((emphasis) =>
+      (['subtler', 'subtle', 'normal', 'raised'] as const).flatMap((emphasis) =>
         INTENTS.map((intent) => [emphasis, intent, theme] as const)
       )
     )
@@ -346,13 +346,17 @@ describe('Gallery align and size', () => {
     }
   )
 
-  it('sets the title smaller at md', async () => {
+  it('sets the title smaller at md, and again at sm', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     const { rerender } = render(<Photos />)
     const large = fontSizeOf(heading())
 
     rerender(<Gallery title='Our people' images={images} size='md' />)
     expect(fontSizeOf(heading())).toBeLessThan(large)
+    const medium = fontSizeOf(heading())
+
+    rerender(<Gallery title='Our people' images={images} size='sm' />)
+    expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
 })
 

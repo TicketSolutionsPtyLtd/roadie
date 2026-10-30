@@ -63,9 +63,9 @@ The same photos scrolling past on their own, with a button to pause them. They h
 
 ### Intent and emphasis
 
-`intent` colours the highlighted words, the marquee's pause control, and the strong action. Without an `emphasis`, the photos sit on the page and the marquee runs the block's full width. `subtler`, `subtle`, or `raised` draws a full-width band behind them, with the marquee running edge to edge, and `inset` draws it as a rounded panel inside the page's padding instead.
+`intent` colours the highlighted words, the marquee's pause control, and the strong action. Without an `emphasis`, the photos sit on the page and the marquee runs the block's full width. `subtler`, `subtle`, `normal`, or `raised` draws a full-width band behind them, with the marquee running edge to edge, and `inset` draws it as a rounded panel inside the page's padding instead.
 
-`align` overrides the heading's alignment, which starts beside the carousel's controls and centres over the marquee. `size='md'` sets the title a step smaller with tighter spacing, and `actions` go under the photos, lined up with the heading.
+`align` overrides the heading's alignment, which starts beside the carousel's controls and centres over the marquee. `size='md'` or `'sm'` sets the title one or two steps smaller with tighter spacing, and `actions` go under the photos, lined up with the heading.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
 {/* Brand, subtle band, action */}
@@ -82,10 +82,10 @@ The same photos scrolling past on their own, with a button to pause them. They h
     { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting', width: 1280, height: 854 }
   ]}
 />
-{/* Raised panel, centred, small */}
+{/* Normal panel, centred, small */}
 <Gallery
   preset='carousel'
-  emphasis='raised'
+  emphasis='normal'
   inset
   align='center'
   size='md'

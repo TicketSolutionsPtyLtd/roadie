@@ -522,19 +522,28 @@ describe('Hero size', () => {
     ['image', imageHero(photo)],
     ['title', titleOnly],
     ['partner', partnerHero(photo)]
-  ] as const)('sets the %s title smaller at md', async (_, props) => {
-    await showAt(DESKTOP.width, <Hero {...props} />)
-    const large = parseFloat(
-      getComputedStyle(document.querySelector('h1')!).fontSize
-    )
+  ] as const)(
+    'sets the %s title smaller at md, and again at sm',
+    async (_, props) => {
+      await showAt(DESKTOP.width, <Hero {...props} />)
+      const large = parseFloat(
+        getComputedStyle(document.querySelector('h1')!).fontSize
+      )
 
-    cleanup()
-    await showAt(DESKTOP.width, <Hero {...props} size='md' />)
-    const medium = parseFloat(
-      getComputedStyle(document.querySelector('h1')!).fontSize
-    )
-    expect(medium).toBeLessThan(large)
-  })
+      cleanup()
+      await showAt(DESKTOP.width, <Hero {...props} size='md' />)
+      const medium = parseFloat(
+        getComputedStyle(document.querySelector('h1')!).fontSize
+      )
+      expect(medium).toBeLessThan(large)
+
+      cleanup()
+      await showAt(DESKTOP.width, <Hero {...props} size='sm' />)
+      expect(
+        parseFloat(getComputedStyle(document.querySelector('h1')!).fontSize)
+      ).toBeLessThan(medium)
+    }
+  )
 })
 
 describe.each(MODES)('Hero contrast in %s mode', (mode) => {

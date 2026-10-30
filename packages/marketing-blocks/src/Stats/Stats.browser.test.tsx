@@ -139,6 +139,7 @@ describe('Stats accessibility', () => {
 const EMPHASES: (BlockEmphasis | undefined)[] = [
   undefined,
   'raised',
+  'normal',
   'subtle',
   'subtler'
 ]
@@ -234,13 +235,17 @@ describe('Stats align and size', () => {
     expect(textAlignOf(heading())).toBe('center')
   })
 
-  it('sets the title smaller at md', async () => {
+  it('sets the title smaller at md, and again at sm', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const { rerender } = render(<Stats {...facts} />)
     const large = fontSizeOf(heading())
 
     rerender(<Stats {...facts} size='md' />)
     expect(fontSizeOf(heading())).toBeLessThan(large)
+    const medium = fontSizeOf(heading())
+
+    rerender(<Stats {...facts} size='sm' />)
+    expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
 
   it('lines its action up with a centred heading', async () => {

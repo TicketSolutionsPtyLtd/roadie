@@ -49,7 +49,7 @@ the whole block.
 
 `intent` tints the quote mark, the portrait's border, and highlighted words.
 Without one, the quote mark and portrait are info and highlights are
-brand-secondary. `emphasis` sets a `raised`, `subtle`, or `subtler` band
+brand-secondary. `emphasis` sets a `raised`, `normal`, `subtle`, or `subtler` band
 behind the block, full width and rounded once the block is wide, which then
 pads its content. With an `image` too, the photo fades over the band's
 colour.
@@ -74,12 +74,12 @@ colour.
 
 `inset` draws the surface as a rounded panel inside the page padding instead
 of a band. `align='start'` lines the heading and quote up on the left, which
-centre by default. `size='md'` sets the title a step smaller, with tighter
+centre by default. `size='md'` or `'sm'` sets the title one or two steps smaller, with tighter
 gaps. `actions` link on from under the quote.
 
 ```tsx-live id=inset-align-size-and-actions
 <Testimonial
-  emphasis='raised'
+  emphasis='normal'
   inset
   align='start'
   size='md'

@@ -9,11 +9,12 @@ import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import { type StatItem, StatList } from '../_shared/StatList'
 import { presetOf } from '../_shared/presets'
-import type {
-  BlockAlign,
-  BlockEmphasis,
-  BlockIntent,
-  BlockSize
+import {
+  type BlockAlign,
+  type BlockEmphasis,
+  type BlockIntent,
+  type BlockSize,
+  bySize
 } from '../_shared/surface'
 import { type StatsPreset, statsDefinition } from './definition'
 
@@ -58,7 +59,7 @@ export type StatsProps = {
    */
   align?: BlockAlign
   /**
-   * `md` sets the title a step smaller, with tighter gaps.
+   * `md` and `sm` set the title one and two steps smaller, with tighter gaps.
    * @default 'lg'
    */
   size?: BlockSize
@@ -98,7 +99,7 @@ export function Stats({
         inset={inset}
         className={cn(
           'grid grid-cols-1 *:min-w-0',
-          size === 'md' ? 'gap-6' : 'gap-8'
+          bySize(size, { sm: 'gap-4', md: 'gap-6', lg: 'gap-8' })
         )}
       >
         <BlockHeading

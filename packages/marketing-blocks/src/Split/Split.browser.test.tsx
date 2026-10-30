@@ -94,13 +94,18 @@ const isAbove = (first: Element, second: Element) =>
 describe('Split align and size', () => {
   const heading = () => screen.getByRole('heading', { level: 2 })
 
-  it('sets the title smaller at md', async () => {
+  it('sets the title smaller at md, and again at sm', async () => {
     await renderAt(DESKTOP, LOOKS['media-text'])
     const large = fontSizeOf(heading())
 
     cleanup()
     await renderAt(DESKTOP, { ...LOOKS['media-text'], size: 'md' })
     expect(fontSizeOf(heading())).toBeLessThan(large)
+    const medium = fontSizeOf(heading())
+
+    cleanup()
+    await renderAt(DESKTOP, { ...LOOKS['media-text'], size: 'sm' })
+    expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
 
   it('sets the body of a stats split smaller at md', async () => {
@@ -369,7 +374,7 @@ describe('Split accessibility', () => {
   )
 })
 
-const EMPHASES: BlockEmphasis[] = ['subtle', 'subtler', 'raised']
+const EMPHASES: BlockEmphasis[] = ['subtle', 'subtler', 'normal', 'raised']
 const INTENTS: (BlockIntent | undefined)[] = [
   undefined,
   'neutral',

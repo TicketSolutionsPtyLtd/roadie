@@ -10,12 +10,13 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import { presetOf } from '../_shared/presets'
-import type {
-  BlockAlign,
-  BlockEmphasis,
-  BlockIntent,
-  BlockSize,
-  ItemEmphasis
+import {
+  type BlockAlign,
+  type BlockEmphasis,
+  type BlockIntent,
+  type BlockSize,
+  type ItemEmphasis,
+  bySize
 } from '../_shared/surface'
 import { type FAQPreset, faqDefinition } from './definition'
 
@@ -70,7 +71,7 @@ export type FAQProps = {
    */
   align?: BlockAlign
   /**
-   * `md` sets the title a step smaller, with tighter gaps.
+   * `md` and `sm` set the title one and two steps smaller, with tighter gaps.
    * @default 'lg'
    */
   size?: BlockSize
@@ -111,7 +112,10 @@ export function FAQ({
         emphasis={emphasis}
         inset={inset}
         width='3xl'
-        className={cn('grid grid-cols-1', size === 'md' ? 'gap-6' : 'gap-8')}
+        className={cn(
+          'grid grid-cols-1',
+          bySize(size, { sm: 'gap-4', md: 'gap-6', lg: 'gap-8' })
+        )}
       >
         <BlockHeading
           id={headingId}

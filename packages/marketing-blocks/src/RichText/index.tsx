@@ -5,7 +5,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction } from '../Provider'
 import { BlockActions } from '../_shared/BlockActions'
-import { BlockHeading } from '../_shared/BlockHeading'
+import { BlockHeading, descriptionClass } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import {
@@ -13,11 +13,12 @@ import {
   type SpotIllustrationName
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
-import type {
-  BlockAlign,
-  BlockEmphasis,
-  BlockIntent,
-  BlockSize
+import {
+  type BlockAlign,
+  type BlockEmphasis,
+  type BlockIntent,
+  type BlockSize,
+  bySize
 } from '../_shared/surface'
 import { type RichTextPreset, richTextDefinition } from './definition'
 
@@ -67,7 +68,7 @@ export type RichTextProps = {
    */
   align?: BlockAlign
   /**
-   * `md` sets the title a step smaller, with tighter gaps.
+   * `md` and `sm` set the title one and two steps smaller, with tighter gaps.
    * @default 'lg'
    */
   size?: BlockSize
@@ -100,6 +101,13 @@ type PresetProps = Omit<RichTextProps, 'preset' | 'position' | 'id'> & {
   headingId: string
 }
 
+// The statement's body runs a step above Prose's own lg.
+const STATEMENT_BODY: Record<BlockSize, string> = {
+  sm: '',
+  md: '',
+  lg: '[--prose-size:var(--text-xl)]'
+}
+
 const STATEMENT_ALIGN: Record<BlockAlign, string> = {
   center: 'justify-items-center text-center',
   start: 'text-start'
@@ -128,7 +136,7 @@ function Statement({
       inset={inset}
       className={cn(
         'grid *:min-w-0',
-        size === 'md' ? 'gap-3' : 'gap-4',
+        bySize(size, { sm: 'gap-2', md: 'gap-3', lg: 'gap-4' }),
         STATEMENT_ALIGN[align],
         // The breathing room is this preset's look, the one block with outer
         // padding. On a surface, the surface pads it, with a little more once wide.
@@ -150,13 +158,14 @@ function Statement({
           description={description}
         />
       ) : (
-        <Intro eyebrow={eyebrow} description={description} />
+        <Intro eyebrow={eyebrow} description={description} size={size} />
       )}
       {body && (
         <Prose
-          size='lg'
+          size={bySize(size, { sm: 'md', md: 'lg', lg: 'lg' })}
           className={cn(
-            'text-balance text-subtle [--prose-size:var(--text-xl)]',
+            'text-balance text-subtle',
+            STATEMENT_BODY[size ?? 'lg'],
             align === 'center' && '*:mx-auto'
           )}
         >
@@ -193,7 +202,7 @@ function LongForm({
       width='3xl'
       className={cn(
         'grid *:min-w-0',
-        size === 'md' ? 'gap-4' : 'gap-6',
+        bySize(size, { sm: 'gap-3', md: 'gap-4', lg: 'gap-6' }),
         align === 'center' && 'text-center'
       )}
     >
@@ -209,9 +218,13 @@ function LongForm({
           description={description}
         />
       ) : (
-        <Intro eyebrow={eyebrow} description={description} />
+        <Intro eyebrow={eyebrow} description={description} size={size} />
       )}
-      {body && <Prose size='lg'>{body}</Prose>}
+      {body && (
+        <Prose size={bySize(size, { sm: 'md', md: 'md', lg: 'lg' })}>
+          {body}
+        </Prose>
+      )}
       <BlockActions
         actions={actions}
         intent={intent}
@@ -224,14 +237,20 @@ function LongForm({
 /** The eyebrow and description BlockHeading would set, for a block with no title. */
 function Intro({
   eyebrow,
-  description
-}: Pick<PresetProps, 'eyebrow' | 'description'>) {
+  description,
+  size
+}: Pick<PresetProps, 'eyebrow' | 'description' | 'size'>) {
   if (!eyebrow && !description) return null
   return (
     <div className='grid gap-2'>
       {eyebrow && <p className='text-display-prose-5 text-strong'>{eyebrow}</p>}
       {description && (
-        <p className='max-w-3xl text-xl text-balance text-subtle'>
+        <p
+          className={cn(
+            'max-w-3xl text-balance text-subtle',
+            descriptionClass(size)
+          )}
+        >
           {description}
         </p>
       )}

@@ -19,6 +19,7 @@ import {
   type BlockIntent,
   type BlockSize,
   type ItemEmphasis,
+  bySize,
   emphasisClass,
   intentClass
 } from '../_shared/surface'
@@ -96,7 +97,7 @@ export type SplitProps = {
    */
   align?: BlockAlign
   /**
-   * `md` sets the title a step smaller and tightens the gaps. In `media-text`, it narrows the image to two fifths, cropped 8 by 5, and sets the body in subtle text.
+   * `md` and `sm` set the title one and two steps smaller and tightens the gaps. In `media-text`, it narrows the image to two fifths, cropped 8 by 5, and sets the body in subtle text.
    * @default 'lg'
    */
   size?: BlockSize
@@ -172,7 +173,7 @@ export function Split({
           <ul
             className={cn(
               'grid grid-cols-1',
-              size === 'md' ? 'gap-12' : 'gap-20'
+              bySize(size, { sm: 'gap-8', md: 'gap-12', lg: 'gap-20' })
             )}
           >
             {items.map((row, index) => (
@@ -225,7 +226,7 @@ function MediaText({
   heading: ReactNode
   actions: ReactNode
 }) {
-  const compact = size === 'md'
+  const compact = size === 'sm' || size === 'md'
   const media = stats ? undefined : image
   const content = (
     <div

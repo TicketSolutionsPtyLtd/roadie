@@ -169,7 +169,7 @@ describe('FAQ align and size', () => {
     ).toBeLessThan(2)
   })
 
-  it('sets the title smaller at md', async () => {
+  it('sets the title smaller at md, and again at sm', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     const { rerender } = render(
       <FAQ title='Questions, answered' items={items} />
@@ -178,6 +178,10 @@ describe('FAQ align and size', () => {
 
     rerender(<FAQ size='md' title='Questions, answered' items={items} />)
     expect(fontSizeOf(heading())).toBeLessThan(large)
+    const medium = fontSizeOf(heading())
+
+    rerender(<FAQ size='sm' title='Questions, answered' items={items} />)
+    expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
 })
 
@@ -216,7 +220,8 @@ describe('FAQ intent and emphasis', () => {
     ['subtler', 'subtle'],
     ['raised', 'subtle'],
     ['subtle', 'normal'],
-    ['raised', 'normal']
+    ['raised', 'normal'],
+    ['normal', 'subtler']
   ] as const satisfies readonly (readonly [
     BlockEmphasis | undefined,
     FAQItemEmphasis

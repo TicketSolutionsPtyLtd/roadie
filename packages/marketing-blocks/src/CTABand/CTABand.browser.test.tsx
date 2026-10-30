@@ -202,7 +202,7 @@ describe('CTABand inset with photo', () => {
 })
 
 describe('CTABand size', () => {
-  it('sets the title and body smaller at md', async () => {
+  it('sets the title smaller at md, and again at sm, and the body smaller at md', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     const { rerender } = render(<CTABand {...props} />)
     const sizes = () => ({
@@ -219,6 +219,9 @@ describe('CTABand size', () => {
     const medium = sizes()
     expect(medium.title).toBeLessThan(large.title)
     expect(medium.body).toBeLessThan(large.body)
+
+    rerender(<CTABand {...props} size='sm' />)
+    expect(sizes().title).toBeLessThan(medium.title)
   })
 })
 
@@ -296,6 +299,7 @@ describe('CTABand centred', () => {
 describe('CTABand intent and emphasis', () => {
   const EMPHASES = [
     'raised',
+    'normal',
     'subtle',
     'subtler',
     'strong',

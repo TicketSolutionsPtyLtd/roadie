@@ -43,7 +43,7 @@ a string, so it reads exactly as the editor wrote it.
 ### Intent and emphasis
 
 `intent` sets the figures, heading, and highlights in its strong text colour,
-and `emphasis` draws a surface behind them: `raised`, `subtle`, or `subtler`.
+and `emphasis` draws a surface behind them: `raised`, `normal`, `subtle`, or `subtler`.
 There's none by default. The surface is a rounded panel inside the page
 padding; `inset={false}` runs it full width as a band instead.
 
@@ -59,9 +59,9 @@ padding; `inset={false}` runs it full width as a band instead.
     { value: '4.8 out of 5', label: 'average rating', illustration: 'Heart' }
   ]}
 />
-{/* Raised band */}
+{/* Normal band */}
 <Stats
-  emphasis='raised'
+  emphasis='normal'
   inset={false}
   title='Results from last season'
   items={[
@@ -74,7 +74,7 @@ padding; `inset={false}` runs it full width as a band instead.
 ### Align, size, and actions
 
 `align='center'` centres the heading and the actions over the figures, which
-start by default. `size='md'` sets the title a step smaller, with tighter
+start by default. `size='md'` or `'sm'` sets the title one or two steps smaller, with tighter
 gaps. `actions` link on from under the figures.
 
 ```tsx-live-expand id=align-size-and-actions

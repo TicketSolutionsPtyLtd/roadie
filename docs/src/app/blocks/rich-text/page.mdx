@@ -75,7 +75,7 @@ at `h2`, so no level is skipped after the page's `h1`.
 ### Intent and emphasis
 
 `intent` colours the highlighted words and the strong action in both
-presets. `emphasis`, `subtle`, `subtler`, or `raised`, sets the block on a
+presets. `emphasis`, `subtle`, `subtler`, `normal`, or `raised`, sets the block on a
 band that runs the full width and rounds once the block is wide. A statement
 keeps its space inside the band.
 
@@ -116,13 +116,13 @@ keeps its space inside the band.
 
 `inset` draws the surface as a rounded panel inside the page padding instead
 of a band. `align` sets the heading and text: a statement centres by
-default and long form starts. `size='md'` sets the title a step smaller, with
+default and long form starts. `size='md'` or `'sm'` sets the title one or two steps smaller, with
 tighter gaps.
 
 ```tsx-live-expand id=inset-align-and-size
 <RichText
   preset='statement'
-  emphasis='raised'
+  emphasis='normal'
   inset
   align='start'
   size='md'
