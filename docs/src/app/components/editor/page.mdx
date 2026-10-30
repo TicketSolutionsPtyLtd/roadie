@@ -763,6 +763,77 @@ from another preset renders too, keeping its text. A link or button needs an
 https, http, mailto, or tel href, since a mail client can't open a path on the
 site, so any other keeps its text and loses its link.
 
+#### Merge tags
+
+A merge tag, such as the customer's first name, is a `variable` node in the
+email preset. It saves only its key and an optional fallback, never the token
+a sending system reads, so one template sends from either system.
+
+```ts
+const welcome = {
+  version: 1,
+  preset: 'email',
+  doc: {
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: [
+          { type: 'text', text: 'Hi ' },
+          { type: 'variable', attrs: { key: 'first_name', fallback: 'there' } },
+          { type: 'text', text: ', your tickets are ready.' }
+        ]
+      }
+    ]
+  }
+}
+```
+
+The app lists the variables its sending system fills, each with a label and
+its token in each syntax. A filter, such as a date format, belongs in the
+token, never in the template.
+
+```tsx
+import { type EditorVariable, renderEmail } from '@oztix/roadie-editor/email'
+
+const variables: EditorVariable[] = [
+  {
+    key: 'first_name',
+    label: 'First name',
+    tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' }
+  },
+  {
+    key: 'event_date',
+    label: 'Event date',
+    tokens: { liquid: '{{ event.date | date: "%-d %B" }}' }
+  }
+]
+
+// Hi {{ customer.first_name | default: "there" }}, your tickets are ready.
+const { html, text } = await renderEmail(welcome, {
+  syntax: 'liquid',
+  variables
+})
+
+// Hi Ashley, your tickets are ready.
+const preview = await renderEmail(welcome, {
+  variables,
+  values: { first_name: 'Ashley' }
+})
+```
+
+- `syntax` is `ae` for `#Token#` or `liquid` for `{{ }}`. Each variable is
+  written as its token, unescaped, in the HTML and the plain text alike.
+- A Liquid token gets the fallback as its `default`. An AE token has no
+  default, so the sending system's own applies.
+- With `values`, each variable is filled with its value, escaped, or its
+  fallback when the value is missing or empty. A preview needs no `syntax`.
+- A variable `variables` doesn't list, or one with no token in `syntax`,
+  throws, so a template never asks for a value the sender can't fill.
+- Text an author typed that reads as a token, such as `{{ code }}` or
+  `#FirstName#`, is written so no sending system fills it.
+- A variable never goes in a link's or a button's href.
+
 ## Guidelines
 
 - The editor's code loads after the page, so `Editor` shows a skeleton the

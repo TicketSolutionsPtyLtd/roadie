@@ -69,12 +69,15 @@ const description: EditorValue = {
   until someone writes it.
   `presets.email` holds the basic preset's text plus headings 2 to 4, and
   layout blocks: sections (`section`), columns (`columns`, holding two to
-  four `column`s), buttons (`button`, saving only `href`, with its label as unmarked text), images
+  four `column`s), buttons (`button`, saving only `href`, with its label as unmarked text and
+  variables), images
   (`image`, saving only `src`, `alt`, and `width`), spacers (`spacer`, saving
   only `height`), and dividers (`horizontalRule`). A button links to https,
   http, mailto, or tel, an image's `src` is https only, its `width` is 1 to
   600 pixels or `null` to fill its column, and a spacer is 8 to 160 pixels
-  high. A list item holds text blocks only.
+  high. A list item holds text blocks only. A merge tag is an inline
+  `variable`, saving only `key` and, when it has one, `fallback`; its token
+  is chosen when the email renders.
 - `doc` is Tiptap's JSON, with Tiptap's default names (`paragraph`,
   `bulletList`, `bold`…), so any Tiptap or ProseMirror tool reads it.
 
@@ -149,7 +152,9 @@ const { html, text } = await renderEmail(value, { theme })
 It reads the value into the email preset, builds MJML's JSON tree from it in
 `src/email/mjmlTree.ts`, and renders that with MJML on the server, then
 writes the plain text from the HTML. Text goes into the tree already escaped,
-since MJML writes its content and attributes as given. MJML stays behind
+since MJML writes its content and attributes as given. Each variable goes in
+as a private-use placeholder, written as its token or value once MJML is done
+(`src/email/mergeTags.ts`), so a token is never escaped and a value always is. MJML stays behind
 `renderEmail`: nothing exported names it, so the renderer can change without
 a migration.
 
