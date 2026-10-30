@@ -258,11 +258,10 @@ single number, such as a channel mix or a table.
 
 ## Copy that fits
 
-Copy is sized for the card’s narrowest width. Past its limit, a stat label and
-any context line truncate on one line, and other card labels wrap to a second
-line, then truncate. Table and note labels are sized for one line. On the docs
-site, a table gives the label and context limits for `stat` and `md` cards,
-from `COPY_LIMITS`.
+Copy is sized for the card’s narrowest width. A stat label and any context line
+get one line and truncate past it. Other card labels get two lines, then
+truncate. On the docs site, a table gives the label and context limits for
+`stat` and `md` cards, from `COPY_LIMITS`.
 
 <CopyLimits />
 
@@ -624,13 +623,12 @@ the card.
 
 ### Label room
 
-More takes room from the label. A chart label wraps to two lines beside it,
+More takes room from the label. A card label wraps to two lines beside it,
 then truncates, and a stat label truncates on one line, so the values in a row
-of stat tiles line up. Beside More, keep chart labels to 29 characters at `sm`
-and `md` and 42 at `lg` and `full`, and stat labels to 14.
-`ACTIONS_LABEL_LIMITS` holds them. Table and note labels keep their
-`COPY_LIMITS`. `validateDashboard` can’t check this, because actions aren’t
-part of the JSON.
+of stat tiles line up. Beside More, keep chart, table, and note labels to 29
+characters at `sm` and `md` and 42 at `lg` and `full`, and stat labels to 14.
+`ACTIONS_LABEL_LIMITS` holds them. `validateDashboard` can’t check this,
+because actions aren’t part of the JSON.
 
 ## Tables on dashboards
 

@@ -56,6 +56,9 @@ describe('dataviz parity', () => {
       `a stat label ${COPY_LIMITS.stat.label} characters, a chart label ${CHART_LABEL_LIMITS.sm} at \`sm\` and \`md\` and ${CHART_LABEL_LIMITS.lg} at \`lg\` and \`full\`, ${ACTIONS_LABEL_LIMITS.stat} to ${ACTIONS_LABEL_LIMITS.lg} beside a More button`
     )
     expect(CHARTS_SKILL).toContain(
+      `Table and note labels get ${COPY_LIMITS.sm.label} at \`sm\` and \`md\` and ${COPY_LIMITS.lg.label} at \`lg\` and \`full\`.`
+    )
+    expect(CHARTS_SKILL).toContain(
       `--chart-${palette.categorical.light.length}`
     )
   })

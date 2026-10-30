@@ -98,41 +98,69 @@ describe('DataCard copy never wraps', () => {
     }
   })
 
-  it('keeps md-length label and context on one line at 292px tablet width', () => {
-    const cases = [
-      {
-        label: 'Sell-through by each ticket type',
-        context: 'Ahead of 38 similar shows, 4 weeks'
-      },
-      {
-        label: 'Sales pace against similar shows',
-        context: 'GA is 1,210 sold, VIP is 232 sold'
-      }
-    ]
-    expect(Math.max(...cases.map((c) => c.label.length))).toBe(
-      COPY_LIMITS.md.label
-    )
-    expect(Math.max(...cases.map((c) => c.context.length))).toBe(
-      COPY_LIMITS.md.context
-    )
-    for (const { label: labelCopy, context: contextCopy } of cases) {
-      const { container, unmount } = render(
-        <div style={{ width: 292 }}>
-          <DataCard
-            size='md'
-            label={labelCopy}
-            value={1842}
-            context={contextCopy}
-          />
-        </div>
-      )
-      const label = container.querySelector('[data-slot=data-card-label]')!
-      const context = container.querySelector('[data-slot=data-card-context]')!
-      expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth)
-      expect(context.scrollWidth).toBeLessThanOrEqual(context.clientWidth)
-      unmount()
+  it.each([
+    {
+      size: 'md' as const,
+      width: 292,
+      cases: [
+        {
+          label:
+            'Sell-through by each ticket type at every venue this season so far',
+          context: 'Ahead of 38 similar shows, 4 weeks'
+        },
+        {
+          label:
+            'Sales pace against similar shows in the same week, before show day',
+          context: 'GA is 1,210 sold, VIP is 232 sold'
+        }
+      ]
+    },
+    {
+      size: 'lg' as const,
+      width: 328,
+      cases: [
+        {
+          label:
+            'Top buyers by postcode, with their orders, tickets and total spend since on sale',
+          context: 'Ahead of 38 similar shows, last 4 weeks'
+        },
+        {
+          label:
+            'Sell-through by each ticket type at every venue on this tour so far, by state',
+          context: 'GA is 1,210 sold and VIP is 232 sold'
+        }
+      ]
     }
-  })
+  ])(
+    'keeps a $size-length label within two lines and context on one at $width px',
+    ({ size, width, cases }) => {
+      expect(Math.max(...cases.map((c) => c.label.length))).toBe(
+        COPY_LIMITS[size].label
+      )
+      expect(Math.max(...cases.map((c) => c.context.length))).toBe(
+        COPY_LIMITS[size].context
+      )
+      for (const { label: labelCopy, context: contextCopy } of cases) {
+        const { container, unmount } = render(
+          <div style={{ width }}>
+            <DataCard
+              size={size}
+              label={labelCopy}
+              value={1842}
+              context={contextCopy}
+            />
+          </div>
+        )
+        const label = container.querySelector('[data-slot=data-card-label]')!
+        const context = container.querySelector(
+          '[data-slot=data-card-context]'
+        )!
+        expect(label.scrollHeight).toBeLessThanOrEqual(label.clientHeight)
+        expect(context.scrollWidth).toBeLessThanOrEqual(context.clientWidth)
+        unmount()
+      }
+    }
+  )
 
   it('keeps the context line full width when actions are present', () => {
     const { container } = render(

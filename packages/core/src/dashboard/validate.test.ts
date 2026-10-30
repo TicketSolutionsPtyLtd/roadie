@@ -134,12 +134,40 @@ describe('validateDashboard', () => {
     source: 'Oztix sales.'
   })
 
-  it('gives a chart label two lines, past COPY_LIMITS', () => {
+  it('gives a chart label two lines beside its switch', () => {
     const label = 'Sales pace against similar shows this week'
-    expect(label.length).toBeGreaterThan(COPY_LIMITS.md.label)
     expect(label.length).toBeLessThanOrEqual(CHART_LABEL_LIMITS.md)
+    expect(CHART_LABEL_LIMITS.md).toBeLessThan(COPY_LIMITS.md.label)
     expect(paths(spec([chartLabelled(label)]))).not.toContain(
       'sections[0].cards[0].label'
+    )
+  })
+
+  const tableLabelled = (label: string) => ({
+    id: 't',
+    kind: 'table',
+    size: 'md',
+    label,
+    source: 'Oztix sales.',
+    columns: [{ key: 'a', header: 'A', kind: 'number' }],
+    rows: []
+  })
+
+  it.each([
+    [
+      'Sell-through by each ticket type at every venue this season so far',
+      false
+    ],
+    [
+      'Sell-through by each ticket type at every venue this season so far.',
+      true
+    ]
+  ])('warns about a table label past two lines: %s', (label, warns) => {
+    expect(label.length - COPY_LIMITS.md.label).toBe(warns ? 1 : 0)
+    expect(paths(spec([tableLabelled(label), tableLabelled('Shows')]))).toEqual(
+      warns
+        ? expect.arrayContaining(['sections[0].cards[0].label'])
+        : expect.not.arrayContaining(['sections[0].cards[0].label'])
     )
   })
 
