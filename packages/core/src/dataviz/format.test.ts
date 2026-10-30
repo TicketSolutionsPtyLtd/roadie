@@ -161,8 +161,8 @@ describe('a value that rounds to zero', () => {
     ['number', -0, '0'],
     ['compact', -0.04, '0'],
     ['percent', -0.0001, '0%'],
-    ['currency', -0.001, '$0'],
-    ['currency', -0, '$0'],
+    ['currency', -0.001, '$0.00'],
+    ['currency', -0, '$0.00'],
     ['compactCurrency', -0.001, '$0'],
     ['points', -0.04, '0 pts'],
     ['index', -0.4, '0']
@@ -170,10 +170,13 @@ describe('a value that rounds to zero', () => {
     expect(formatValue(value, format)).toBe(expected)
   })
 
-  it.each(['currency', 'compactCurrency'] as const)(
+  it.each([
+    ['currency', 'EUR\u00a00.00'],
+    ['compactCurrency', 'EUR\u00a00']
+  ] as const)(
     'reads %s in another currency without a minus',
-    (format) => {
-      expect(formatValueInCurrency(-0.001, format, 'EUR')).toBe('EUR\u00a00')
+    (format, expected) => {
+      expect(formatValueInCurrency(-0.001, format, 'EUR')).toBe(expected)
     }
   )
 
@@ -195,10 +198,10 @@ describe('a value that rounds to zero', () => {
     vi.resetModules()
     const { formatValue: fresh } = await import('./format')
     expect(fresh(-0.04, 'number')).toBe('0')
-    expect(fresh(-0.001, 'currency')).toBe('$0')
+    expect(fresh(-0.001, 'currency')).toBe('$0.00')
     expect(fresh(-0.0001, 'percent')).toBe('0%')
     expect(fresh(-0.4, 'index')).toBe('0')
-    expect(fresh(-1200, 'currency')).toBe('-$1,200')
+    expect(fresh(-1200, 'currency')).toBe('-$1,200.00')
   })
 })
 
