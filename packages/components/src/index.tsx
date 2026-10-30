@@ -353,7 +353,6 @@ export {
   DataTable,
   type DataTableColumn,
   type DataTableProps,
-  type DataTableRecordName,
   type DataTableRow,
   type DataTableSort,
   type DataTableSortDirection,
