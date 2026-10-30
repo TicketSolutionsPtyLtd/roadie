@@ -65,7 +65,7 @@ export function barYExtent(props: BarChartProps): readonly [number, number] {
 }
 
 export const comparisonLabel = (props: Pick<BarChartProps, 'comparison'>) =>
-  props.comparison && (props.comparison.label ?? fieldLabel(props.comparison.y))
+  props.comparison && (props.comparison.label || fieldLabel(props.comparison.y))
 
 export const hasBars = (bars: readonly Bar[]) => bars.some((b) => b.y !== null)
 

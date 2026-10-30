@@ -288,6 +288,11 @@
     fill: var(--chart-texture-8, url(#roadie-texture-8));
   }
   .ts-chart
+    .ts-chart__bar:is([data-ts-key='comparison'])
+    :is(path, rect):not([fill='none']) {
+    fill: var(--chart-texture-2, url(#roadie-texture-2));
+  }
+  .ts-chart
     .ts-chart__line:is([data-ts-key^='series-2'], [data-ts-key^='comparison'])
     path {
     stroke-dasharray: 6 3;

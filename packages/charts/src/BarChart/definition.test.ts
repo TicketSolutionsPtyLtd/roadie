@@ -223,47 +223,108 @@ describe('barChart comparison', () => {
     index: i
   })
 
-  it('marks every bar with a context tick, cased in the surface, over the bar', () => {
+  const rectsOf = (props: BarChartProps, prefix: string) =>
+    nodesOf(sceneOf(props).nodes, prefix).flatMap((node) =>
+      node.kind === 'rect' ? [node] : []
+    )
+
+  it('draws a context bar beside every bar', () => {
     const svg = svgOf(comparisonExample)
-    expect(svg.match(/<line[^>]*data-ts-key="comparison:[^"]*"/g)).toHaveLength(
+    expect(svg.match(/<path[^>]*data-ts-key="comparison:[^"]*"/g)).toHaveLength(
       comparisonExample.data.length
     )
     expect(svg).toMatch(
-      new RegExp(`data-ts-key="comparison:[^"]*"[^>]*stroke="${paint.context}"`)
+      new RegExp(`data-ts-key="comparison:[^"]*"[^>]*fill="${paint.context}"`)
     )
-    expect(svg).toMatch(
-      new RegExp(
-        `data-ts-key="comparison-underlay:[^"]*"[^>]*stroke="${paint.surface}"`
-      )
-    )
-    const bars = svg.search(/<path[^>]*data-ts-key="series-1:/)
-    const underlay = svg.search(/data-ts-key="comparison-underlay:/)
-    expect(bars).toBeLessThan(underlay)
-    expect(underlay).toBeLessThan(svg.search(/data-ts-key="comparison:/))
   })
 
   it.each([3, 21])(
-    'marks the comparison a little past each side of %i bars',
+    'pairs the comparison to the left of each of %i bars, both from zero',
     (count) => {
       const props = {
         ...comparisonExample,
         data: comparisonExample.data.slice(0, count)
       }
-      const scene = sceneOf(props)
-      const bars = nodesOf(scene.nodes, 'series-1:')
-      const ticks = nodesOf(scene.nodes, 'comparison:')
-      expect(ticks).toHaveLength(count)
-      ticks.forEach((tick, i) => {
+      const bars = rectsOf(props, 'series-1:')
+      const compared = rectsOf(props, 'comparison:')
+      expect(compared).toHaveLength(count)
+      compared.forEach((before, i) => {
         const bar = bars[i]!
-        if (tick.kind !== 'rule' || bar.kind !== 'rect')
-          throw new Error('expected a rule over a rect')
-        expect(bar.x - tick.x1).toBeGreaterThanOrEqual(4)
-        expect(bar.x - tick.x1).toBeLessThanOrEqual(8)
-        expect(tick.x2 - (bar.x + bar.width)).toBeGreaterThanOrEqual(4)
-        expect(tick.x2 - (bar.x + bar.width)).toBeLessThanOrEqual(8)
+        const gap = bar.x - (before.x + before.width)
+        expect(gap).toBeGreaterThanOrEqual(2)
+        expect(gap).toBeLessThanOrEqual(6)
+        expect(before.y + before.height).toBeCloseTo(bar.y + bar.height)
+        expect(bar.width).toBeLessThanOrEqual(48)
+        expect(before.width).toBeCloseTo(bar.width)
       })
     }
   )
+
+  it('keeps 48 hourly pairs visible on a phone', () => {
+    const data = Array.from({ length: 48 }, (_, i) => ({
+      time: `2026-11-${14 + Math.floor(i / 24)}T${String(i % 24).padStart(2, '0')}:00`,
+      orders: 10,
+      before: 8
+    }))
+    const props: BarChartProps = {
+      data,
+      x: 'time',
+      y: 'orders',
+      interval: 'hour',
+      comparison: { y: 'before' }
+    }
+    const frame = plotFrame(220, 'narrow', undefined, 320)
+    const scene = createChartScene(barChart.build(props, paint, frame), {
+      width: 320,
+      height: frame.height
+    })
+    const rects = (prefix: string) =>
+      nodesOf(scene.nodes, prefix).flatMap((n) =>
+        n.kind === 'rect' ? [n] : []
+      )
+    for (const rect of [...rects('series-1:'), ...rects('comparison:')])
+      expect(rect.width).toBeGreaterThanOrEqual(1.5)
+  })
+
+  it('keeps a pair of wide bars at 48px each', () => {
+    const props = {
+      ...comparisonExample,
+      data: comparisonExample.data.slice(0, 3)
+    }
+    for (const rect of [
+      ...rectsOf(props, 'series-1:'),
+      ...rectsOf(props, 'comparison:')
+    ])
+      expect(rect.width).toBeCloseTo(48)
+  })
+
+  it('draws the second measure line alongside the comparison', () => {
+    const props = {
+      ...comparisonExample,
+      line: { y: 'lastPeriod', label: 'Last period' }
+    }
+    const svg = svgOf(props)
+    expect(svg).toMatch(/<path[^>]*data-ts-key="line:/)
+    expect(svg.match(/<path[^>]*data-ts-key="comparison:/g)).toHaveLength(
+      comparisonExample.data.length
+    )
+  })
+
+  it('pairs hourly bars under an annotation', () => {
+    const props: BarChartProps = {
+      ...onSaleExample,
+      data: onSaleExample.data.map((row) => ({ ...row, before: 100 })),
+      comparison: { y: 'before', label: 'Last tour' },
+      annotations: [
+        { at: onSaleExample.data[1]!.time as string, label: 'On sale' }
+      ]
+    }
+    const svg = svgOf(props)
+    expect(svg.match(/<path[^>]*data-ts-key="comparison:/g)).toHaveLength(
+      onSaleExample.data.length
+    )
+    expect(svg).toContain('>On sale<')
+  })
 
   it('keeps focus on the bars', () => {
     expect(
@@ -284,10 +345,10 @@ describe('barChart comparison', () => {
     expect(
       barChart
         .legend(comparisonExample, paint, plotFrame(220, 'default'))
-        .map((i) => [i.label, i.shape, i.color])
+        .map((i) => [i.label, i.shape, i.color, i.slot])
     ).toEqual([
-      ['Orders', 'swatch', paint.categorical[0]],
-      ['Previous period', 'line', paint.context]
+      ['Orders', 'swatch', paint.categorical[0], 1],
+      ['Previous period', 'swatch', paint.context, 2]
     ])
   })
 
@@ -301,7 +362,7 @@ describe('barChart comparison', () => {
   ])('names the comparison by %s in the tooltip', (_, props, name) => {
     expect(barChart.tooltip([day(2)], props, paint).rows).toEqual([
       expect.objectContaining({ label: 'Orders', value: '9' }),
-      { label: name, value: '10', color: paint.context, shape: 'line' }
+      { label: name, value: '10', color: paint.context, shape: 'swatch' }
     ])
   })
 
@@ -314,6 +375,7 @@ describe('barChart comparison', () => {
   it.each([
     ['LY orders', 'LY orders 10'],
     ['GA share', 'GA share 10'],
+    ['Q3 orders', 'Q3 orders 10'],
     ['Previous period', 'previous period 10']
   ])('speaks %s in the same case as the line', (label, spoken) => {
     const props = {
@@ -324,6 +386,23 @@ describe('barChart comparison', () => {
     expect(barChart.describe(day(2), props)).toBe(
       `Sunday, 27 September 2026, 9 orders, ${spoken}, ${spoken}`
     )
+  })
+
+  it('names a comparison with a blank label by its field', () => {
+    const props = {
+      ...comparisonExample,
+      comparison: { y: 'lastPeriod', label: '' }
+    }
+    expect(
+      barChart
+        .legend(props, paint, plotFrame(220, 'default'))
+        .map((i) => i.label)
+    ).toEqual(['Orders', 'Last period'])
+    expect(barChart.tooltip([day(2)], props, paint).rows[1]).toMatchObject({
+      label: 'Last period',
+      value: '10'
+    })
+    expect(barChartTable(props).columns.at(-1)?.header).toBe('Last period')
   })
 
   it('leaves the comparison out of the legend when it has no values', () => {
@@ -342,7 +421,7 @@ describe('barChart comparison', () => {
       )
     }
     expect(
-      svgOf(gap).match(/<line[^>]*data-ts-key="comparison:/g)
+      svgOf(gap).match(/<path[^>]*data-ts-key="comparison:/g)
     ).toHaveLength(comparisonExample.data.length - 1)
     expect(barChart.tooltip([day(2)], gap, paint).rows).toEqual([
       expect.objectContaining({ label: 'Orders', value: '9' })
@@ -364,6 +443,9 @@ describe('barChart comparison', () => {
   ])('leaves out a comparison against %s', (_, y, data) => {
     const props = { ...comparisonExample, data, comparison: { y } }
     expect(svgOf(props)).not.toMatch(/data-ts-key="comparison/)
+    const boxes = (p: BarChartProps) =>
+      rectsOf(p, 'series-1:').map(({ x, width }) => [x, width])
+    expect(boxes(props)).toEqual(boxes(dailyOrdersExample))
     expect(barChart.legend(props, paint, plotFrame(220, 'default'))).toEqual([])
     expect(barChart.tooltip([day(2)], props, paint).rows).toHaveLength(1)
     expect(barChart.describe(day(2), props)).toBe(

@@ -70,7 +70,7 @@ import { BarChart } from '@oztix/roadie-charts/bar-chart'
 
 ### Comparison
 
-`comparison` marks a field on the same rows, such as last period's orders, with a quiet tick a little wider than each bar, so the bars still start at zero. A legend names the bars and the tick, and the tooltip and Table view show both values. On a dashboard, line [the rows up with the period](/charts/dashboards#periods-and-comparisons) first.
+`comparison` draws a field on the same rows, such as last period's orders, as a quiet bar to the left of each bar, so each pair reads from then to now and both start at zero. A legend names the two bars, and the tooltip and Table view show both values. Printed or under forced colours, the comparison bar takes a texture of its own. On a dashboard, line [the rows up with the period](/charts/dashboards#periods-and-comparisons) first.
 
 ```tsx-live width=140
 <Chart label='Orders by day' source='Oztix sales.' size='md'>

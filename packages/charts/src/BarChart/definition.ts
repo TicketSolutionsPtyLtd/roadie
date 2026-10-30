@@ -1,4 +1,11 @@
-import { barY, defineChart, lineY, text, tickY } from '@tanstack/charts'
+import {
+  type ConfiguredScaleLike,
+  barY,
+  defineChart,
+  lineY,
+  text
+} from '@tanstack/charts'
+import { group } from '@tanstack/charts/group'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
@@ -7,7 +14,6 @@ import { formatValue } from '@oztix/roadie-core/dataviz'
 
 import { annotationMarks, annotationsOnBars } from '../plot/annotations'
 import { plotSpan, textRoom } from '../plot/endLabels'
-import type { PlotSpan } from '../plot/frame'
 import { fieldLabel } from '../plot/table'
 import {
   formatTimeTick,
@@ -55,7 +61,10 @@ const LINE_WIDTH = 2
 const BAR_PADDING = 0.2
 const BAR_INSET = 1
 const BAR_MAX = 48
-const TICK_OVERHANG = 6
+const PAIR_PADDING = 0.3
+const PAIR_GAP = 0.1
+const COMPARED = 'comparison'
+const CURRENT = 'current'
 const SHARE_DOMAIN: readonly [number, number] = [0, 1]
 
 const isHourly = (props: BarChartProps) => props.interval === 'hour'
@@ -116,32 +125,37 @@ const lineMark = (
     })
   )
 
-/** The drawn bar's width, from the band scale's step over the plotting area. */
-function barWidth({ width, left, right }: PlotSpan, count: number) {
-  const step =
-    Math.max(width - left - right, 1) / Math.max(count + BAR_PADDING, 1)
-  const band = step * (1 - BAR_PADDING)
-  return Math.min(Math.max(band - BAR_INSET * 2, 0), BAR_MAX)
+type PairKey = typeof COMPARED | typeof CURRENT
+
+/**
+ * Splits a slot into the comparison then the current bar, each capped like a
+ * lone bar and centred as a pair, so wide slots keep the two together. The
+ * gap between them shrinks with the slot, so it never eats a thin bar.
+ */
+function pairScale(): ConfiguredScaleLike<PairKey> {
+  let width = 0
+  let gap = 0
+  let middle = 0
+  const scale = (key: PairKey) =>
+    key === COMPARED ? middle - gap / 2 - width : middle + gap / 2
+  const pair: ConfiguredScaleLike<PairKey> = Object.assign(scale, {
+    bandwidth: () => width,
+    copy: pairScale,
+    domain: () => [COMPARED, CURRENT] as const,
+    // The engine sets the slot's range in place and ignores the return.
+    range(next: Iterable<number>) {
+      const [start = 0, end = 0] = next
+      const span = Math.abs(end - start)
+      gap = Math.min(BAR_INSET * 2, span * PAIR_GAP)
+      width = Math.min((span - gap) / 2, BAR_MAX)
+      middle = span / 2
+      return pair
+    }
+  })
+  return pair
 }
 
-const comparisonTick = (
-  data: readonly (Pick<Bar, 'comparison'> & { x: string })[],
-  id: string,
-  stroke: string,
-  strokeWidth: number,
-  length: number
-) =>
-  decorative(
-    tickY(data, {
-      id,
-      x: 'x',
-      y: 'comparison',
-      key: 'x',
-      stroke,
-      strokeWidth,
-      length
-    })
-  )
+const pairLayout = group({ scale: pairScale() })
 
 // A share reads against the whole, so percent lines always run to 100%.
 const lineDomain = (
@@ -166,7 +180,7 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
   const end = lineLabel(props, bars)
   const rightMargin = end ? textRoom([end.text], frame, LABEL_PADDING) : 8
   const span = plotSpan(frame, gridTicks(yDomain).map(format), rightMargin)
-  const tickLength = barWidth(span, keys.length) + TICK_OVERHANG * 2
+  const paired = hasComparison(bars)
 
   return defineChart({
     marks: [
@@ -184,34 +198,32 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
         frame,
         span
       ),
+      // Comparison first, so each pair reads then → now.
+      ...(paired
+        ? [
+            decorative(
+              barY(data, {
+                id: 'comparison',
+                x: 'x',
+                y: 'comparison',
+                z: () => COMPARED,
+                layout: pairLayout,
+                fill: paint.context,
+                radius: { end: 2 }
+              })
+            )
+          ]
+        : []),
       barY(data, {
         id: 'series-1',
         x: 'x',
         y: 'y',
+        ...(paired
+          ? { z: () => CURRENT, layout: pairLayout }
+          : { inset: BAR_INSET, maxThickness: BAR_MAX }),
         fill: paint.categorical[0]!,
-        inset: BAR_INSET,
-        maxThickness: BAR_MAX,
         radius: { end: 2 }
       }),
-      // A level across each slot, so the bars still start at zero.
-      ...(hasComparison(bars)
-        ? [
-            comparisonTick(
-              data,
-              'comparison-underlay',
-              paint.surface,
-              LINE_WIDTH + 2,
-              tickLength
-            ),
-            comparisonTick(
-              data,
-              'comparison',
-              paint.context,
-              LINE_WIDTH,
-              tickLength
-            )
-          ]
-        : []),
       // The bars carry both measures in words and the tooltip, so the line
       // adds no keyboard stops of its own.
       ...(line
@@ -242,7 +254,9 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
     ],
     scales: {
       x: {
-        scale: scaleBand<string>().domain(keys).padding(BAR_PADDING),
+        scale: scaleBand<string>()
+          .domain(keys)
+          .padding(paired ? PAIR_PADDING : BAR_PADDING),
         axis: {
           line: false,
           ticks: {
@@ -323,9 +337,15 @@ export const barChart: ChartDefinition<BarChartProps> = {
       {
         label: fieldLabel(props.y),
         shape: 'swatch' as const,
-        color: paint.categorical[0]!
+        color: paint.categorical[0]!,
+        slot: 1
       },
-      { label: comparison, shape: 'line' as const, color: paint.context }
+      {
+        label: comparison,
+        shape: 'swatch' as const,
+        color: paint.context,
+        slot: 2
+      }
     ]
   },
   describe(datum, props) {
@@ -386,7 +406,7 @@ export const barChart: ChartDefinition<BarChartProps> = {
                 label: comparison,
                 value: shown(bar.comparison),
                 color: paint.context,
-                shape: 'line' as const
+                shape: 'swatch' as const
               }
             ]
           : [])
