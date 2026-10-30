@@ -645,7 +645,8 @@ Whether a price shows cents depends on what the reader does with it:
 In code, `currencyFormat` from `@oztix/roadie-core/number` gives
 `Intl.NumberFormat` and NumberFlow the symbol and the places. It shows cents on
 every amount by default. For copy, pass
-`trailingZeroDisplay: 'stripIfInteger'` so a round price has none. Format in the
+`trailingZeroDisplay: 'stripIfInteger'` so a round price has none, unless
+another price in the same list has cents. Format in the
 `en-AU` locale for the commas, the symbol's place, and a code such as NZD in
 place of another currency's symbol.
 

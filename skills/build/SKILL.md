@@ -382,7 +382,8 @@ label, or a copy review, run `/roadie:content`.
   `toLocaleString`. Money keeps its cents in a cart, checkout, receipt,
   chart, or table. In copy, such as a headline, sentence, or listing, pass
   `trailingZeroDisplay: 'stripIfInteger'` with `currency` so a round price has
-  no cents. Record fields format their own.
+  no cents, unless another price in the same list has them. Record fields
+  format their own.
 - **Errors** say what happened and what to do: "Enter an event name.", not
   "Invalid input".
 - **Sample data** never uses a real venue, event, or promoter, because
