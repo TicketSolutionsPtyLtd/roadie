@@ -11,6 +11,7 @@ import { Button } from '@oztix/roadie-components/button'
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction, BlockActionIcon } from '../Provider'
+import type { BlockIntent } from './surface'
 
 const ICONS = {
   'arrow-right': ArrowRightIcon,
@@ -25,11 +26,17 @@ const TRAILING = new Set<BlockActionIcon>(['arrow-right', 'external'])
 
 export type BlockActionsProps = {
   actions?: readonly BlockAction[]
+  /** The block's intent, which the strong action takes; accent without one. */
+  intent?: BlockIntent
   className?: string
 }
 
 /** A block's links as buttons: the first strong, the rest normal, so emphasis is never an option. */
-export function BlockActions({ actions = [], className }: BlockActionsProps) {
+export function BlockActions({
+  actions = [],
+  intent,
+  className
+}: BlockActionsProps) {
   if (actions.length === 0) return null
   return (
     <div className={cn('flex flex-wrap gap-4', className)}>
@@ -43,7 +50,7 @@ export function BlockActions({ actions = [], className }: BlockActionsProps) {
           <Button
             key={`${index}-${href}-${label}`}
             href={href}
-            intent={index === 0 ? 'accent' : undefined}
+            intent={index === 0 ? (intent ?? 'accent') : undefined}
             emphasis={index === 0 ? 'strong' : 'normal'}
           >
             {!trailing && glyph}
