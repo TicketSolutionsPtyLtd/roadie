@@ -112,7 +112,7 @@ describe('formatRecordValue', () => {
       key: 'gross',
       label: 'Gross',
       type: 'money',
-      trimZeros: true
+      trailingZeroDisplay: 'stripIfInteger'
     }
     expect(formatRecordValue({ gross: 12_500 }, gross, options)).toBe('$12,500')
     const nzd = { ...gross, currency: 'NZD' }
@@ -125,7 +125,7 @@ describe('formatRecordValue', () => {
     expect(
       formatRecordValue(
         { gross: 12_500.5 },
-        { ...nzd, trimZeros: undefined, decimals: 0 },
+        { ...nzd, trailingZeroDisplay: undefined, decimals: 0 },
         options
       )
     ).toBe('NZD 12,501')
@@ -185,7 +185,7 @@ describe('formatRecordValue', () => {
       label: 'Gross',
       type: 'money',
       currency: 'dollars',
-      trimZeros: true
+      trailingZeroDisplay: 'stripIfInteger'
     }
     expect(formatRecordValue({ gross: 12_500 }, gross, options)).toBe('$12,500')
   })

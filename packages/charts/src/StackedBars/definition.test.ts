@@ -280,7 +280,7 @@ describe('stackedBars decimal places', () => {
     y: 'gross',
     series: 'type',
     format: 'currency',
-    trimZeros: true
+    trailingZeroDisplay: 'stripIfInteger'
   }
   const ga = { x: 'A', y: 1200, series: 'GA', index: 0 }
   const values = (props: StackedBarsProps) =>
@@ -295,9 +295,12 @@ describe('stackedBars decimal places', () => {
     expect(stackedBars.describe(ga, gross)).toBe('A, GA, $1,200 gross')
     const columns = stackedBarsTable(gross).columns
     expect(columns.find((c) => c.key === 'GA')).toMatchObject({
-      trimZeros: true
+      trailingZeroDisplay: 'stripIfInteger'
     })
-    expect(columns.at(-1)).toMatchObject({ header: 'Total', trimZeros: true })
+    expect(columns.at(-1)).toMatchObject({
+      header: 'Total',
+      trailingZeroDisplay: 'stripIfInteger'
+    })
   })
 })
 
@@ -312,7 +315,7 @@ describe('stackedBars shares to decimal places', () => {
       y: 'gross',
       series: 'type',
       format: 'currency',
-      trimZeros: true,
+      trailingZeroDisplay: 'stripIfInteger',
       decimals: 1,
       mode: 'share'
     }
@@ -323,6 +326,10 @@ describe('stackedBars shares to decimal places', () => {
     expect(stackedBars.describe(ga, share)).toMatch(/, 66\.7% of the bar$/)
     expect(
       stackedBarsTable(share).columns.find((c) => c.key === 'GA')
-    ).toMatchObject({ format: 'percent', decimals: 1, trimZeros: true })
+    ).toMatchObject({
+      format: 'percent',
+      decimals: 1,
+      trailingZeroDisplay: 'stripIfInteger'
+    })
   })
 })

@@ -140,7 +140,7 @@ function number(value: number, field: RecordField | undefined): string {
   // A filter reads as a sentence, where a whole price has no cents.
   return formatValueInCurrency(value, numberFormat(field), field?.currency, {
     decimals: field?.decimals,
-    trimZeros: true
+    trailingZeroDisplay: 'stripIfInteger'
   })
 }
 

@@ -1,17 +1,16 @@
 import type { PlotRow } from '@oztix/roadie-core/dashboard'
-import type { ValueFormat } from '@oztix/roadie-core/dataviz'
+import type {
+  ValueFormat,
+  ValueFormatOptions
+} from '@oztix/roadie-core/dataviz'
 
-export type HistogramProps = {
+export type HistogramProps = ValueFormatOptions & {
   /** Rows of plain values, one per order or buyer. */
   data: PlotRow[]
   /** Numeric field to bin, such as days before the show. */
   x: string
   /** Format of the binned values. Counts are always whole numbers. @default 'number' */
   format?: ValueFormat
-  /** Fixed decimal places for number, percent, points, and currency, from none to four. Axis ticks stay short. @default 2 for currency */
-  decimals?: number
-  /** Drops the decimals from a whole value: $1,200 instead of $1,200.00. */
-  trimZeros?: boolean
   /** The headline sentence. It becomes the plot's accessible name. */
   takeaway?: string
   /**

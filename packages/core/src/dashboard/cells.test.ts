@@ -101,7 +101,7 @@ describe('cellText', () => {
           header: 'Gross',
           kind: 'number',
           format: 'currency',
-          trimZeros: true
+          trailingZeroDisplay: 'stripIfInteger'
         },
         1200
       )

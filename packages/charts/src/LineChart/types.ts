@@ -3,12 +3,16 @@ import type {
   PlotRow,
   PlotX
 } from '@oztix/roadie-core/dashboard'
-import type { ValueFormat, XFormat } from '@oztix/roadie-core/dataviz'
+import type {
+  ValueFormat,
+  ValueFormatOptions,
+  XFormat
+} from '@oztix/roadie-core/dataviz'
 import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
 
 export type LineChartPalette = 'categorical' | 'pair' | 'trio'
 
-export type LineChartProps = {
+export type LineChartProps = ValueFormatOptions & {
   /** Rows of plain values. Dates are ISO strings in venue wall time. */
   data: PlotRow[]
   /** Field along the bottom: an ISO date or a number. */
@@ -23,10 +27,6 @@ export type LineChartProps = {
   palette?: LineChartPalette
   /** @default 'number' */
   format?: ValueFormat
-  /** Fixed decimal places for number, percent, points, and currency, from none to four. Axis ticks stay short. @default 2 for currency */
-  decimals?: number
-  /** Drops the decimals from a whole value: $1,200 instead of $1,200.00. */
-  trimZeros?: boolean
   /** The headline sentence. It becomes the plot's accessible name. */
   takeaway?: string
   /** Dated markers with labels of 20 characters at most. */

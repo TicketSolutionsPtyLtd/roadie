@@ -193,7 +193,7 @@ describe('funnel decimal places', () => {
       { label: 'Paid', value: 600 }
     ],
     format: 'currency',
-    trimZeros: true
+    trailingZeroDisplay: 'stripIfInteger'
   }
   const paid = { x: 'Paid', y: 600, series: 'Steps', index: 1 }
 
@@ -213,8 +213,14 @@ describe('funnel decimal places', () => {
       'Paid, $600, 50% of the previous step, 50% of the first'
     )
     const columns = funnelTable(gross).columns
-    expect(columns[1]).toMatchObject({ key: 'count', trimZeros: true })
-    expect(columns[4]).toMatchObject({ key: 'dropped', trimZeros: true })
+    expect(columns[1]).toMatchObject({
+      key: 'count',
+      trailingZeroDisplay: 'stripIfInteger'
+    })
+    expect(columns[4]).toMatchObject({
+      key: 'dropped',
+      trailingZeroDisplay: 'stripIfInteger'
+    })
   })
 })
 

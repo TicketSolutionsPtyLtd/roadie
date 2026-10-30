@@ -140,7 +140,7 @@ export function DataTableCellContent({
         value={value}
         format={column.format}
         decimals={column.decimals}
-        trimZeros={column.trimZeros}
+        trailingZeroDisplay={column.trailingZeroDisplay}
         goodWhen={column.goodWhen}
         baseline={column.baseline}
       />

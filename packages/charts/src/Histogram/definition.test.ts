@@ -174,7 +174,7 @@ describe('histogram decimal places', () => {
     data: [10, 24, 24, 40].map((spend) => ({ spend })),
     x: 'spend',
     format: 'currency',
-    trimZeros: true,
+    trailingZeroDisplay: 'stripIfInteger',
     binWidth: 10,
     median: true
   }

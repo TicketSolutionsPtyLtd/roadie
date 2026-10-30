@@ -94,9 +94,12 @@ describe('value domains', () => {
 
   it('labels a value to its decimal places until it goes compact', () => {
     expect(labelFormat({ format: 'currency' }, 634)).toBe('$634.00')
-    expect(labelFormat({ format: 'currency', trimZeros: true }, 634)).toBe(
-      '$634'
-    )
+    expect(
+      labelFormat(
+        { format: 'currency', trailingZeroDisplay: 'stripIfInteger' },
+        634
+      )
+    ).toBe('$634')
     expect(labelFormat({ format: 'percent', decimals: 2 }, 0.0127)).toBe(
       '1.27%'
     )
@@ -109,7 +112,10 @@ describe('value domains', () => {
       '$118,400.00'
     )
     expect(
-      fullValue({ format: 'compactCurrency', trimZeros: true }, 118_400)
+      fullValue(
+        { format: 'compactCurrency', trailingZeroDisplay: 'stripIfInteger' },
+        118_400
+      )
     ).toBe('$118,400')
     expect(fullValue({}, 1_842.5)).toBe('1,842.5')
   })

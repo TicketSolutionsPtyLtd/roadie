@@ -137,12 +137,15 @@ describe('dashboardSchema', () => {
   })
 
   it('accepts a reserved data binding', () => {
-    const card = { ...stat, data: { source: 'oztix.sales', params: { id: 1 } } }
+    const card = {
+      ...stat,
+      data: { source: 'oztix.sales', params: { id: 1 } }
+    }
     expect(dashboardSchema.safeParse(spec([card])).success).toBe(true)
   })
 
   it('takes decimal places on card values and deltas', () => {
-    const options = { decimals: 2, trimZeros: true }
+    const options = { decimals: 2, trailingZeroDisplay: 'stripIfInteger' }
     const cards = [
       { ...stat, ...options, delta: { ...stat.delta, ...options } },
       { ...chart, ...options },

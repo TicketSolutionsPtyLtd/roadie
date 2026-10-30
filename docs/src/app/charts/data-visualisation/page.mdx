@@ -191,9 +191,9 @@ shows.
   up and counts down to the event, and `xFormat='eventTime'` compares times on
   the [event clock](/charts/line-chart#event-clock).
 - Values read to their format's places. When a small difference matters, such
-  as 1.27% sold, set `decimals` on the chart or card, and set `trimZeros` to
-  drop the cents from whole amounts. Shares follow the same places. Axis ticks
-  stay short either way.
+  as 1.27% sold, set `decimals` on the chart or card. To drop the cents from
+  whole amounts, set `trailingZeroDisplay` to `'stripIfInteger'`. Shares
+  follow the same places. Axis ticks stay short either way.
 
 ## Writing for charts
 

@@ -67,7 +67,14 @@ describe('Delta decimal places', () => {
   })
 
   it('trims zeros from a whole amount, against a baseline too', () => {
-    render(<Delta value={1200} format='currency' baseline={1000} trimZeros />)
+    render(
+      <Delta
+        value={1200}
+        format='currency'
+        baseline={1000}
+        trailingZeroDisplay='stripIfInteger'
+      />
+    )
     expect(screen.getByText('$1,200')).toHaveAttribute('aria-hidden')
     expect(
       screen.getByText('$1,200, up $200, better', { selector: '.sr-only' })

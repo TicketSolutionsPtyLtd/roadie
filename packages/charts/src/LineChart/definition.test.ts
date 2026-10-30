@@ -730,8 +730,11 @@ describe('lineChart decimal places', () => {
       '$3,116.00'
     )
     expect(
-      lineChart.tooltip([at], { ...gross, trimZeros: true }, paint).rows[0]
-        ?.value
+      lineChart.tooltip(
+        [at],
+        { ...gross, trailingZeroDisplay: 'stripIfInteger' },
+        paint
+      ).rows[0]?.value
     ).toBe('$3,116')
   })
 })

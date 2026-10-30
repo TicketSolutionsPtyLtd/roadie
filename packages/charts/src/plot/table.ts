@@ -30,14 +30,14 @@ export const xColumn = (field: string): TableColumn => ({
 export const valueColumn = (
   key: string,
   header: string,
-  { format, decimals, trimZeros }: ValueStyle = {}
+  { format, decimals, trailingZeroDisplay }: ValueStyle = {}
 ): TableColumn => ({
   key,
   header,
   kind: 'number',
   format: fullFormat(format),
   ...(decimals !== undefined && { decimals }),
-  ...(trimZeros !== undefined && { trimZeros })
+  ...(trailingZeroDisplay !== undefined && { trailingZeroDisplay })
 })
 
 export function xCell(

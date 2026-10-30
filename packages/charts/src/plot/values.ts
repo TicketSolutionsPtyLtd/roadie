@@ -90,7 +90,8 @@ export type ValueStyle = { format?: ValueFormat } & ValueFormatOptions
 // Ticks stay short, so whole money drops its cents and decimals don't apply.
 export function axisFormat(format: ValueFormat | undefined, max: number) {
   const shown = shownFormat(format, max)
-  return (value: number) => formatValue(value, shown, { trimZeros: true })
+  return (value: number) =>
+    formatValue(value, shown, { trailingZeroDisplay: 'stripIfInteger' })
 }
 
 export const labelFormat = (style: ValueStyle, value: number) =>
@@ -108,11 +109,11 @@ export const fullValue = (style: ValueStyle, value: number) =>
 /** A share of the whole reads as a percent, to the chart's decimal places. */
 export const shareStyle = ({
   decimals,
-  trimZeros
+  trailingZeroDisplay
 }: ValueStyle): ValueStyle => ({
   format: 'percent',
   decimals,
-  trimZeros
+  trailingZeroDisplay
 })
 
 export const shareValue = (style: ValueStyle, share: number) =>

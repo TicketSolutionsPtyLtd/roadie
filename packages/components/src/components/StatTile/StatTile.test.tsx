@@ -63,7 +63,7 @@ describe('StatTile decimal places', () => {
         label='Gross'
         value={3116}
         format='currency'
-        trimZeros
+        trailingZeroDisplay='stripIfInteger'
         delta={{ value: 200 }}
       />
     )
@@ -77,7 +77,7 @@ describe('StatTile decimal places', () => {
         label='Gross'
         value={3116}
         format='currency'
-        trimZeros
+        trailingZeroDisplay='stripIfInteger'
         delta={{ value: 0.04, format: 'percent', decimals: 2 }}
       />
     )

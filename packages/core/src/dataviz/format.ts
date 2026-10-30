@@ -3,6 +3,11 @@ import {
   currencyFormat,
   isHouseCurrency
 } from '../number/currency'
+import {
+  type TrailingZeroDisplay,
+  decimalPlaces,
+  fractionDigits
+} from '../number/places'
 
 export type ValueFormat =
   | 'number'
@@ -13,10 +18,10 @@ export type ValueFormat =
   | 'points'
   | 'index'
 export type ValueFormatOptions = {
-  /** Decimal places, always shown, from none to four: 2 reads 1.27% and $3,116.00. Number, percent, points, and currency only. @default the currency's own for currency */
+  /** Fixed decimal places for number, percent, points, and currency, from none to four: 2 reads 1.27% and $3,116.00. A chart's shares follow it, and its axis ticks stay short. Compact formats and index ignore it. @default the currency's own for currency */
   decimals?: number
-  /** Drops the decimals from a whole value: $3,116 instead of $3,116.00. */
-  trimZeros?: boolean
+  /** `stripIfInteger` drops the decimals from a whole value: $3,116 instead of $3,116.00. @default 'auto' */
+  trailingZeroDisplay?: TrailingZeroDisplay
 }
 export type GoodWhen = 'up' | 'down' | 'neither'
 export type DeltaSentiment = 'good' | 'bad' | 'neutral'
@@ -44,27 +49,13 @@ export function normalizeMinusSign(text: string) {
 const number = (value: number, maximumFractionDigits = 1) =>
   numberFormat({ maximumFractionDigits }).format(value)
 
-const MAX_DECIMALS = 4
-
-const clampDecimals = (decimals: number) =>
-  Math.min(Math.max(Math.round(decimals), 0), MAX_DECIMALS)
-
-export function fractionDigits(
-  decimals: number,
-  trimZeros = false
-): Intl.NumberFormatOptions {
-  const places = clampDecimals(decimals)
-  return {
-    minimumFractionDigits: places,
-    maximumFractionDigits: places,
-    trailingZeroDisplay: trimZeros ? 'stripIfInteger' : 'auto'
-  }
-}
-
-const plain = (value: number, { decimals, trimZeros }: FormatterOptions) =>
+const plain = (
+  value: number,
+  { decimals, trailingZeroDisplay }: FormatterOptions
+) =>
   decimals === undefined
     ? number(value)
-    : numberFormat(fractionDigits(decimals, trimZeros)).format(value)
+    : numberFormat(fractionDigits(decimals, trailingZeroDisplay)).format(value)
 
 const roundToOneDecimal = (value: number) => Math.round(value * 10) / 10
 
@@ -92,20 +83,15 @@ function compact(value: number) {
 
 function currency(
   value: number,
-  { decimals, trimZeros = false, currencyCode }: FormatterOptions
+  { decimals, trailingZeroDisplay, currencyCode }: FormatterOptions
 ) {
   // Firefox before 116 ignores trailingZeroDisplay and would show $1,200.00.
-  const places =
-    trimZeros && Number.isInteger(value)
-      ? 0
-      : decimals === undefined
-        ? undefined
-        : clampDecimals(decimals)
+  const strip = trailingZeroDisplay === 'stripIfInteger'
   return numberFormat(
     currencyFormat({
       currency: currencyCode ?? HOUSE_CURRENCY,
-      decimals: places,
-      trimZeros
+      decimals: strip && Number.isInteger(value) ? 0 : decimals,
+      trailingZeroDisplay
     })
   ).format(value)
 }
@@ -114,7 +100,10 @@ function currency(
 function compactCurrency(value: number, { currencyCode }: FormatterOptions) {
   const code = currencyCode ?? HOUSE_CURRENCY
   if (Math.abs(value) < 1_000)
-    return currency(value, { currencyCode: code, trimZeros: true })
+    return currency(value, {
+      currencyCode: code,
+      trailingZeroDisplay: 'stripIfInteger'
+    })
   if (!isHouseCurrency(code))
     return numberFormat(
       currencyFormat({ currency: code, compact: true })
@@ -122,11 +111,14 @@ function compactCurrency(value: number, { currencyCode }: FormatterOptions) {
   return `${value < 0 ? '-' : ''}$${compact(Math.abs(value))}`
 }
 
-function percent(value: number, { decimals, trimZeros }: FormatterOptions) {
+function percent(
+  value: number,
+  { decimals, trailingZeroDisplay }: FormatterOptions
+) {
   if (decimals !== undefined)
     return numberFormat({
       style: 'percent',
-      ...fractionDigits(decimals, trimZeros)
+      ...fractionDigits(decimals, trailingZeroDisplay)
     }).format(value)
   const digits = Math.abs(value) < 0.1 && !Number.isInteger(value * 100) ? 1 : 0
   return numberFormat({
@@ -168,13 +160,13 @@ export function formatValueInCurrency(
   value: number,
   format: ValueFormat = 'number',
   currencyCode?: string,
-  { decimals, trimZeros }: ValueFormatOptions = {}
+  { decimals, trailingZeroDisplay }: ValueFormatOptions = {}
 ) {
   if (!Number.isFinite(value)) return NOT_AVAILABLE
   return normalizeMinusSign(
     FORMATTERS[format](value, {
-      decimals: Number.isNaN(decimals) ? undefined : decimals,
-      trimZeros,
+      decimals: decimalPlaces(decimals),
+      trailingZeroDisplay,
       currencyCode
     })
   )

@@ -10,7 +10,7 @@ import type { HistogramProps } from './types'
  * never holds its upper edge: "1", "3 to 4". Other data names both edges.
  */
 export function binLabel(
-  props: Pick<HistogramProps, 'format' | 'decimals' | 'trimZeros'>,
+  props: Pick<HistogramProps, 'format' | 'decimals' | 'trailingZeroDisplay'>,
   { from, to, whole }: Pick<Bin, 'from' | 'to' | 'whole'>
 ) {
   const shown = (value: number) => fullValue(props, value)

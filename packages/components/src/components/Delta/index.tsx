@@ -14,21 +14,18 @@ import {
 } from '@oztix/roadie-core/dataviz'
 import { cn } from '@oztix/roadie-core/utils'
 
-export type DeltaProps = Omit<ComponentProps<'span'>, 'children'> & {
-  value: number
-  /** @default 'number' */
-  format?: ValueFormat
-  /** Fixed decimal places for number, percent, points, and currency, from none to four. @default 2 for currency */
-  decimals?: number
-  /** Drops the decimals from a whole value: $1,200 instead of $1,200.00. */
-  trimZeros?: boolean
-  /** @default 'up' */
-  goodWhen?: GoodWhen
-  /** Show `value` itself and read direction from `value - baseline` (pace index 112 vs 100). */
-  baseline?: number
-  /** Spoken suffix, e.g. "on last week". */
-  context?: string
-}
+export type DeltaProps = Omit<ComponentProps<'span'>, 'children'> &
+  ValueFormatOptions & {
+    value: number
+    /** @default 'number' */
+    format?: ValueFormat
+    /** @default 'up' */
+    goodWhen?: GoodWhen
+    /** Show `value` itself and read direction from `value - baseline` (pace index 112 vs 100). */
+    baseline?: number
+    /** Spoken suffix, e.g. "on last week". */
+    context?: string
+  }
 
 const NOT_AVAILABLE = 'Not available'
 
@@ -49,14 +46,14 @@ export function Delta({
   value,
   format = 'number',
   decimals,
-  trimZeros,
+  trailingZeroDisplay,
   goodWhen = 'up',
   baseline,
   context,
   className,
   ...props
 }: DeltaProps) {
-  const options: ValueFormatOptions = { decimals, trimZeros }
+  const options: ValueFormatOptions = { decimals, trailingZeroDisplay }
   const change = baseline === undefined ? value : value - baseline
   const direction = directionOf(change)
   const available = direction !== 'none'

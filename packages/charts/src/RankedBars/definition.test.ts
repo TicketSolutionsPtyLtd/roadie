@@ -250,7 +250,10 @@ describe('rankedBars decimal places', () => {
   })
 
   it('trims zeros from whole money when asked', () => {
-    const trimmed = { ...payments, trimZeros: true }
+    const trimmed = {
+      ...payments,
+      trailingZeroDisplay: 'stripIfInteger' as const
+    }
     expect(tip(trimmed)).toBe('$3,116')
     expect(svgOf(trimmed)).toMatch(/>\$634</)
     expect(rankedBars.describe(card, trimmed)).toBe('Card, $3,116 value')
@@ -264,12 +267,12 @@ describe('rankedBars decimal places', () => {
       ...payments,
       reference: { field: 'value', label: 'Last tour' },
       decimals: 0,
-      trimZeros: true
+      trailingZeroDisplay: 'stripIfInteger'
     }).columns
     expect(columns[1]).toMatchObject({
       format: 'currency',
       decimals: 0,
-      trimZeros: true
+      trailingZeroDisplay: 'stripIfInteger'
     })
     expect(columns.at(-1)).toMatchObject({ header: 'Last tour', decimals: 0 })
   })

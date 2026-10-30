@@ -195,7 +195,7 @@ describe('DashboardView decimal places', () => {
               label: 'Gross',
               value: 3116,
               format: 'currency',
-              trimZeros: true,
+              trailingZeroDisplay: 'stripIfInteger',
               delta: { value: 0.0127, format: 'percent', decimals: 2 }
             },
             {
@@ -206,7 +206,7 @@ describe('DashboardView decimal places', () => {
               value: 0.4183,
               format: 'percent',
               decimals: 2,
-              trimZeros: true,
+              trailingZeroDisplay: 'stripIfInteger',
               delta: { value: 0.01 }
             },
             {
@@ -217,7 +217,7 @@ describe('DashboardView decimal places', () => {
               value: 0.1266,
               format: 'percent',
               decimals: 2,
-              trimZeros: true,
+              trailingZeroDisplay: 'stripIfInteger',
               delta: { value: 0.02 },
               columns: [{ key: 'day', header: 'Day', kind: 'text' }],
               rows: [{ day: 'Fri' }],
@@ -232,7 +232,7 @@ describe('DashboardView decimal places', () => {
               value: 0.0531,
               format: 'percent',
               decimals: 2,
-              trimZeros: true,
+              trailingZeroDisplay: 'stripIfInteger',
               delta: { value: 0.03 },
               plot: { kind: 'line', ...paceExample }
             }

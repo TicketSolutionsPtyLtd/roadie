@@ -105,7 +105,7 @@ describe('DataTable', () => {
             header: 'Gross',
             kind: 'number',
             format: 'currency',
-            trimZeros: true
+            trailingZeroDisplay: 'stripIfInteger'
           },
           { key: 'm', header: 'Sell-through', kind: 'meter', decimals: 1 },
           { key: 'd', header: 'Daily', kind: 'sparkline', decimals: 2 }
@@ -155,7 +155,7 @@ describe('DataTable', () => {
             header: 'Gross change',
             kind: 'delta',
             format: 'currency',
-            trimZeros: true
+            trailingZeroDisplay: 'stripIfInteger'
           }
         ]}
         rows={[{ d: 0.0127, g: 1200 }]}

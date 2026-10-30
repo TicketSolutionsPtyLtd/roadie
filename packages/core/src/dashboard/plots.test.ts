@@ -133,8 +133,11 @@ describe('chart plot schemas', () => {
     'takes decimal places and trimmed zeros on a %s plot',
     (_, plot) => {
       expect(
-        chartPlotSchema.safeParse({ ...plot, decimals: 2, trimZeros: true })
-          .success
+        chartPlotSchema.safeParse({
+          ...plot,
+          decimals: 2,
+          trailingZeroDisplay: 'stripIfInteger'
+        }).success
       ).toBe(true)
     }
   )

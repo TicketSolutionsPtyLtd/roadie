@@ -371,7 +371,7 @@ charts. For a copy review, run `/roadie:content`.
   `compactCurrency`, `points`, or `index`) rather than formatting values
   yourself; `formatValue` from `@oztix/roadie-core/dataviz` covers strings
   outside a chart. Set `decimals` when a small difference matters, as `1.27%`
-  sold, and `trimZeros` to drop the cents from whole amounts.
+  sold, and `trailingZeroDisplay: 'stripIfInteger'` to drop the cents from whole amounts.
 - **Dates and times**: "Fri 27 Nov", "7:30pm", in the venue's time zone, from
   `@oztix/roadie-core/datetime` or the `DateTime` component. 24-hour time only
   on dense axes and in exports.

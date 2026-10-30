@@ -1,5 +1,5 @@
 import type { TableStatus } from '../dashboard/cells'
-import type { ValueFormat } from '../dataviz/format'
+import type { ValueFormat, ValueFormatOptions } from '../dataviz/format'
 import type { Instantish } from '../datetime/format'
 import type { RelativeRange } from '../datetime/ranges'
 import type { RECORD_VIEW_VERSION } from './versions'
@@ -111,7 +111,7 @@ export type RecordOption = {
  * What a record field holds. Every per-row fact is a key, not a function, so
  * one definition works in the browser, on a server and in an adapter.
  */
-export type RecordField = {
+export type RecordField = ValueFormatOptions & {
   key: string
   label: string
   type: RecordFieldType
@@ -140,10 +140,6 @@ export type RecordField = {
   match?: string
   /** How a number or money field's values read. Defaults to `number`, or `currency` for money. */
   format?: ValueFormat
-  /** Fixed decimal places for number, percent, points, and money, from none to four. @default 2 for money */
-  decimals?: number
-  /** Drops the decimals from a whole value: $1,200 instead of $1,200.00. */
-  trimZeros?: boolean
   /** A fixed ISO 4217 code. */
   currency?: string
   /** The row key holding the ISO 4217 code. */

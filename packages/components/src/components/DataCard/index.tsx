@@ -26,43 +26,40 @@ export type DataCardDelta = {
   baseline?: number
 } & ValueFormatOptions
 
-export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> & {
-  /** Fixed name for the card. People and agents refer to the card by it. */
-  label: string
-  value?: number | string
-  /** @default 'number' */
-  format?: ValueFormat
-  /** Fixed decimal places for number, percent, points, and currency, from none to four. @default 2 for currency */
-  decimals?: number
-  /** Drops the decimals from a whole value: $1,200 instead of $1,200.00. */
-  trimZeros?: boolean
-  delta?: DataCardDelta
-  /** One sentence, used when there is no single headline number. */
-  takeaway?: string
-  context?: string
-  source?: string
-  /**
-   * Controls at the top right, after the label. Shown in every state, so an
-   * action such as refresh still works on a card that failed to load.
-   */
-  actions?: ReactNode
-  /**
-   * Switches for what the body shows, such as a chart's mode or measure, in a
-   * full-width row under the headline. Shown in every state, so a switch
-   * stays put while the new view loads.
-   */
-  controls?: ReactNode
-  size?: CardSize
-  /** @default 'ready' */
-  state?: CardState
-  emptyMessage?: string
-  errorMessage?: string
-  errorAction?: ReactNode
-  staleLabel?: string
-  /** Body height while loading, such as the plot height. */
-  bodyHeight?: string
-  children?: ReactNode
-}
+export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> &
+  ValueFormatOptions & {
+    /** Fixed name for the card. People and agents refer to the card by it. */
+    label: string
+    value?: number | string
+    /** @default 'number' */
+    format?: ValueFormat
+    delta?: DataCardDelta
+    /** One sentence, used when there is no single headline number. */
+    takeaway?: string
+    context?: string
+    source?: string
+    /**
+     * Controls at the top right, after the label. Shown in every state, so an
+     * action such as refresh still works on a card that failed to load.
+     */
+    actions?: ReactNode
+    /**
+     * Switches for what the body shows, such as a chart's mode or measure, in a
+     * full-width row under the headline. Shown in every state, so a switch
+     * stays put while the new view loads.
+     */
+    controls?: ReactNode
+    size?: CardSize
+    /** @default 'ready' */
+    state?: CardState
+    emptyMessage?: string
+    errorMessage?: string
+    errorAction?: ReactNode
+    staleLabel?: string
+    /** Body height while loading, such as the plot height. */
+    bodyHeight?: string
+    children?: ReactNode
+  }
 
 const LINE = 'min-w-0 truncate'
 
@@ -70,17 +67,17 @@ function Headline({
   value,
   format,
   decimals,
-  trimZeros,
+  trailingZeroDisplay,
   delta,
   takeaway
 }: Pick<
   DataCardProps,
-  'value' | 'format' | 'decimals' | 'trimZeros' | 'delta' | 'takeaway'
+  'value' | 'format' | 'decimals' | 'trailingZeroDisplay' | 'delta' | 'takeaway'
 >) {
   if (value !== undefined) {
     const shown =
       typeof value === 'number'
-        ? formatValue(value, format, { decimals, trimZeros })
+        ? formatValue(value, format, { decimals, trailingZeroDisplay })
         : value
     return (
       <p
@@ -100,7 +97,8 @@ function Headline({
             {...(delta.format === undefined && {
               format,
               decimals: delta.decimals ?? decimals,
-              trimZeros: delta.trimZeros ?? trimZeros
+              trailingZeroDisplay:
+                delta.trailingZeroDisplay ?? trailingZeroDisplay
             })}
             className='shrink-0'
           />
@@ -134,7 +132,7 @@ export function DataCard({
   value,
   format,
   decimals,
-  trimZeros,
+  trailingZeroDisplay,
   delta,
   takeaway,
   context,
@@ -198,7 +196,7 @@ export function DataCard({
                   value={value}
                   format={format}
                   decimals={decimals}
-                  trimZeros={trimZeros}
+                  trailingZeroDisplay={trailingZeroDisplay}
                   delta={delta}
                   takeaway={takeaway}
                 />

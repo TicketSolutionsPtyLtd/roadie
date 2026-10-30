@@ -62,6 +62,7 @@ describe('formatValue', () => {
     expect(formatValue(1.23456789, 'currency', { decimals: 9 })).toBe('$1.2346')
     expect(formatValue(1.5, 'number', { decimals: -1 })).toBe('2')
     expect(formatValue(1.25, 'number', { decimals: 1.6 })).toBe('1.25')
+    expect(formatValue(1.5, 'number', { decimals: Infinity })).toBe('1.5')
   })
 
   it('reads decimal places that are not a number as unset', () => {
@@ -83,9 +84,12 @@ describe('formatValue', () => {
   ] as const)(
     'trims %s as %s with %o to "%s"',
     (value, format, options, expected) => {
-      expect(formatValue(value, format, { ...options, trimZeros: true })).toBe(
-        expected
-      )
+      expect(
+        formatValue(value, format, {
+          ...options,
+          trailingZeroDisplay: 'stripIfInteger'
+        })
+      ).toBe(expected)
     }
   )
 
@@ -95,7 +99,9 @@ describe('formatValue', () => {
     [0.995, '$1.00', '$1']
   ])('trims only the zeros %s shows at two places', (value, full, trimmed) => {
     expect(formatValue(value, 'currency')).toBe(full)
-    expect(formatValue(value, 'currency', { trimZeros: true })).toBe(trimmed)
+    expect(
+      formatValue(value, 'currency', { trailingZeroDisplay: 'stripIfInteger' })
+    ).toBe(trimmed)
   })
 
   it('keeps small compact currency short', () => {
@@ -161,7 +167,9 @@ describe('formatDelta', () => {
 
   it('takes the same options as the value', () => {
     expect(formatDelta(-0.0127, 'percent', { decimals: 2 })).toBe('1.27%')
-    expect(formatDelta(-1200, 'currency', { trimZeros: true })).toBe('$1,200')
+    expect(
+      formatDelta(-1200, 'currency', { trailingZeroDisplay: 'stripIfInteger' })
+    ).toBe('$1,200')
   })
 })
 
@@ -191,18 +199,23 @@ describe('describeDelta', () => {
     expect(describeDelta(1, 'points', 'up', { decimals: 1 })).toBe(
       'up 1.0 points, better'
     )
-    expect(describeDelta(1200, 'currency', 'up', { trimZeros: true })).toBe(
-      'up $1,200, better'
-    )
+    expect(
+      describeDelta(1200, 'currency', 'up', {
+        trailingZeroDisplay: 'stripIfInteger'
+      })
+    ).toBe('up $1,200, better')
   })
 })
 
 describe('points', () => {
   it('names one point only when it reads as 1', () => {
     expect(formatValue(1, 'points', { decimals: 2 })).toBe('1.00 pts')
-    expect(formatValue(1, 'points', { decimals: 2, trimZeros: true })).toBe(
-      '1 pt'
-    )
+    expect(
+      formatValue(1, 'points', {
+        decimals: 2,
+        trailingZeroDisplay: 'stripIfInteger'
+      })
+    ).toBe('1 pt')
     expect(formatValue(0.96, 'points')).toBe('1 pt')
     expect(formatValue(-1, 'points')).toBe('-1 pt')
   })
@@ -244,15 +257,19 @@ describe('formatter reuse', () => {
     )
     vi.resetModules()
     const { formatValue: fresh } = await import('./format')
-    expect(fresh(1200, 'currency', { trimZeros: true })).toBe('$1,200')
+    expect(
+      fresh(1200, 'currency', { trailingZeroDisplay: 'stripIfInteger' })
+    ).toBe('$1,200')
     expect(fresh(1200, 'currency')).toBe('$1,200.00')
-    expect(fresh(19.5, 'currency', { trimZeros: true })).toBe('$19.50')
+    expect(
+      fresh(19.5, 'currency', { trailingZeroDisplay: 'stripIfInteger' })
+    ).toBe('$19.50')
     expect(fresh(640, 'compactCurrency')).toBe('$640')
   })
 
   it('keeps each option set on its own formatter', () => {
     const interleaved = [
-      formatValue(1200, 'currency', { trimZeros: true }),
+      formatValue(1200, 'currency', { trailingZeroDisplay: 'stripIfInteger' }),
       formatValue(19.95, 'currency'),
       formatValue(0.77, 'percent'),
       formatValue(0.045, 'percent'),
