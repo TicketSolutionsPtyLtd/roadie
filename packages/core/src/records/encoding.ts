@@ -7,6 +7,16 @@ const ROLLING = /^(next|past)-(\d+)-(hour|day|week|month)$/
 const PERIOD =
   /^(day|week|month|quarter|year)\.(-?\d+)((?:\.fiscal)?)((?:\.to-date)?)$/
 
+// Meilisearch, inside quotes, pairs each backslash with the next character and
+// then unescapes only \", so an odd run of backslashes before a quote or at
+// the end has no faithful encoding there.
+const ODD_BACKSLASHES = /(?:^|[^\\])(?:\\\\)*\\(?:"|$)/
+
+/** Whether text holds a backslash a search index can't read back. */
+export function hasUnquotableBackslash(text: string): boolean {
+  return ODD_BACKSLASHES.test(text)
+}
+
 export function escapeItem(text: string): string {
   return text.replace(/%/g, '%25').replace(/,/g, '%2C')
 }

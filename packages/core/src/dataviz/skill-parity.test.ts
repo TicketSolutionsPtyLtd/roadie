@@ -7,7 +7,9 @@ import {
   CARD_SIZES,
   CHART_LABEL_LIMITS,
   CHART_PLOT_KINDS,
-  COPY_LIMITS
+  COPY_LIMITS,
+  chartDocumentSchema,
+  dashboardSchema
 } from '../dashboard'
 import { palette } from './palette'
 
@@ -56,7 +58,24 @@ describe('dataviz parity', () => {
       `a stat label ${COPY_LIMITS.stat.label} characters, a chart label ${CHART_LABEL_LIMITS.sm} at \`sm\` and \`md\` and ${CHART_LABEL_LIMITS.lg} at \`lg\` and \`full\`, ${ACTIONS_LABEL_LIMITS.stat} to ${ACTIONS_LABEL_LIMITS.lg} beside a More button`
     )
     expect(CHARTS_SKILL).toContain(
+      `Table and note labels get ${COPY_LIMITS.sm.label} at \`sm\` and \`md\` and ${COPY_LIMITS.lg.label} at \`lg\` and \`full\`.`
+    )
+    expect(CHARTS_SKILL).toContain(
       `--chart-${palette.categorical.light.length}`
     )
+  })
+
+  it('teaches the charts skill the card keys a chart document leaves out', () => {
+    const chartCard =
+      dashboardSchema.shape.sections.element.shape.cards.element.options.find(
+        (card) => card.shape.kind.value === 'chart'
+      )!
+    const dropped = Object.keys(chartCard.shape).filter(
+      (key) => !(key in chartDocumentSchema.shape)
+    )
+    const [, list] =
+      /It is a chart card without (.+?): `version: 1`/.exec(CHARTS_SKILL) ?? []
+    const taught = [...(list ?? '').matchAll(/`(\w+)`/g)].map((m) => m[1]!)
+    expect(taught.toSorted()).toEqual(dropped.toSorted())
   })
 })

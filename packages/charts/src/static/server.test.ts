@@ -15,3 +15,20 @@ it('draws a chart without React, as a server component does', async () => {
     })
   ).toMatch(/^<svg /)
 })
+
+it('draws a chart document without React', async () => {
+  const { renderChartDocument } = await import('.')
+  const { paceExample } = await import('../LineChart/examples')
+  expect(
+    renderChartDocument(
+      {
+        version: 1,
+        kind: 'chart',
+        label: 'Tickets sold',
+        source: 'Oztix sales.',
+        plot: { kind: 'line', ...paceExample }
+      },
+      { mode: 'light', width: 640, height: 360 }
+    )
+  ).toMatch(/^<svg /)
+})

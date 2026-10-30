@@ -70,6 +70,7 @@ export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> &
   }
 
 const LINE = 'min-w-0 truncate'
+const TWO_LINES = 'min-w-0 line-clamp-2 wrap-break-word'
 
 function Headline({
   value,
@@ -183,14 +184,17 @@ export function DataCard({
               id={labelId}
               title={label}
               data-slot='data-card-label'
-              className={cn(LINE, 'text-sm font-semibold text-subtle')}
+              className={cn(
+                isStat ? LINE : TWO_LINES,
+                'text-sm font-semibold text-subtle'
+              )}
             >
               {label}
             </h3>
             {actions && (
               <div
                 data-slot='data-card-actions'
-                className='flex h-0 items-center gap-1 self-center *:self-center'
+                className='flex items-center gap-1 self-start *:self-center'
               >
                 {actions}
               </div>

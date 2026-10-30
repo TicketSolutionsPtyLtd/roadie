@@ -124,20 +124,43 @@ describe('validateDashboard', () => {
     )
   })
 
+  const chartLabelled = (label: string) => ({
+    id: 'p',
+    kind: 'chart',
+    size: 'md',
+    label,
+    plot: { kind: 'static', src: '/p.svg', alt: 'Pace' },
+    table: { columns: [{ key: 'a', header: 'A', kind: 'number' }], rows: [] },
+    source: 'Oztix sales.'
+  })
+
+  const tableLabelled = (label: string) => ({
+    id: 't',
+    kind: 'table',
+    size: 'md',
+    label,
+    source: 'Oztix sales.',
+    columns: [{ key: 'a', header: 'A', kind: 'number' }],
+    rows: []
+  })
+
+  it.each([
+    ['Sell-through by each ticket type at every venue on this tour', false],
+    ['Sell-through by each ticket type at every venue on this tour.', true]
+  ])('warns about a table label past two lines: %s', (label, warns) => {
+    expect(label.length - COPY_LIMITS.md.label).toBe(warns ? 1 : 0)
+    expect(paths(spec([tableLabelled(label), tableLabelled('Shows')]))).toEqual(
+      warns
+        ? expect.arrayContaining(['sections[0].cards[0].label'])
+        : expect.not.arrayContaining(['sections[0].cards[0].label'])
+    )
+  })
+
   it('warns when a chart label exceeds the chart limit but not COPY_LIMITS', () => {
-    const label = 'Sales pace vs similar shows'
-    expect(label.length).toBeLessThanOrEqual(COPY_LIMITS.md.label)
+    const label = 'Sales pace against similar shows, this week and last'
     expect(label.length).toBeGreaterThan(CHART_LABEL_LIMITS.md)
-    const chart = {
-      id: 'p',
-      kind: 'chart',
-      size: 'md',
-      label,
-      plot: { kind: 'static', src: '/p.svg', alt: 'Pace' },
-      table: { columns: [{ key: 'a', header: 'A', kind: 'number' }], rows: [] },
-      source: 'Oztix sales.'
-    }
-    const result = validateDashboard(spec([chart]))
+    expect(label.length).toBeLessThanOrEqual(COPY_LIMITS.md.label)
+    const result = validateDashboard(spec([chartLabelled(label)]))
     expect(result.problems).toContainEqual(
       expect.objectContaining({
         path: 'sections[0].cards[0].label',
@@ -1597,5 +1620,22 @@ describe('validateDashboard checks which cards set the period', () => {
     ).toEqual([
       { path: 'sections[0].cards[0].plot.selectsPeriod', severity: 'warning' }
     ])
+  })
+
+  it('reports a plot field no row has, even one every object inherits', () => {
+    const card = {
+      id: 'sold',
+      kind: 'chart',
+      size: 'full',
+      label: 'Tickets sold',
+      source: 'Oztix sales.',
+      plot: {
+        kind: 'line',
+        data: [{ day: '2026-10-01', sold: 1 }],
+        x: 'day',
+        y: 'constructor'
+      }
+    }
+    expect(paths(spec([card]))).toContain('sections[0].cards[0].plot.y')
   })
 })
