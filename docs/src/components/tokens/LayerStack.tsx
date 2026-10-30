@@ -6,7 +6,6 @@ import Link from 'next/link'
 
 import { ArrowDownIcon, ArrowRightIcon } from '@phosphor-icons/react'
 import type { Intent } from '@roadie-core/tokens'
-import { slug } from 'github-slugger'
 
 import { Code } from '@oztix/roadie-components/code'
 import { Select } from '@oztix/roadie-components/select'
@@ -27,6 +26,7 @@ const sentence = (text: string) => text[0]!.toUpperCase() + text.slice(1)
 
 function Layer({
   step,
+  id,
   title,
   body,
   code,
@@ -36,6 +36,7 @@ function Layer({
   children
 }: {
   step: number
+  id: string
   title: string
   body: string
   code: string
@@ -51,7 +52,7 @@ function Layer({
           {step}
         </span>
         <div className='grid gap-1'>
-          <h3 id={slug(title)} className='text-display-ui-5 text-strong'>
+          <h3 id={id} className='text-display-ui-5 text-strong'>
             {title}
           </h3>
           <p className='text-sm text-subtle'>{body}</p>
@@ -119,6 +120,7 @@ export function LayerStack() {
         <Layer
           intent={intent}
           step={1}
+          id='scale'
           title='Scale'
           body='Fourteen OKLCH steps per palette, from the lightest surface to the strongest text. Dark mode swaps the values, never the step numbers.'
           code={`--color-${intent}-0 … 13`}
@@ -139,6 +141,7 @@ export function LayerStack() {
         <Layer
           intent={intent}
           step={2}
+          id='intent'
           title='Intent'
           body='Picks the scale. It sets variables and nothing else, and children inherit them.'
           code={`intent-${intent}`}
@@ -165,6 +168,7 @@ export function LayerStack() {
         <Layer
           intent={intent}
           step={3}
+          id='semantic-utilities'
           title='Semantic utilities'
           body='One property each, named by role rather than step: bg-*, text-* and border-*.'
           code='bg-subtle text-normal border-subtle'
@@ -182,6 +186,7 @@ export function LayerStack() {
         <Layer
           intent={intent}
           step={4}
+          id='emphasis-presets'
           title='Emphasis presets'
           body='Background, text, border and shadow in one class, for anything that needs to stand out by a set amount.'
           code='emphasis-strong'
@@ -203,6 +208,7 @@ export function LayerStack() {
         <Layer
           intent={intent}
           step={5}
+          id='interaction-states'
           title='Interaction states'
           body='Hover, press, focus ring and disabled, coloured by the same intent.'
           code='is-interactive'

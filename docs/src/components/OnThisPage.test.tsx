@@ -37,16 +37,11 @@ afterEach(() => {
 const PAGE =
   '<h2 id="api-reference">API reference</h2><h3 id="meter">Meter</h3><h3 id="api-meter">Meter</h3>'
 
-function addContent(html = PAGE) {
+function mountPage(html = PAGE) {
   const content = document.createElement('div')
   content.id = 'docs-content'
   content.innerHTML = html
   document.body.append(content)
-  return content
-}
-
-function mountPage(html?: string) {
-  const content = addContent(html)
   const { result } = renderHook(() => useDocHeadings())
   return { content, result }
 }
@@ -82,6 +77,7 @@ describe('useDocHeadings', () => {
   // The layout's effect can run before the page content hydrates, so writing
   // ids then makes React report a hydration mismatch.
   it('lists only headings that render with an id, and never writes one', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { content, result } = mountPage(`${PAGE}<h3>Unanchored</h3>`)
     expect(result.current.headings.map((h) => h.id)).toEqual([
       'api-reference',
@@ -91,6 +87,17 @@ describe('useDocHeadings', () => {
     landing(() => act(() => result.current.onSelect(event, 'api-meter')))
     expect(content.querySelectorAll('[id]')).toHaveLength(3)
     expect(window.location.hash).toBe('#api-meter')
+    vi.restoreAllMocks()
+  })
+
+  it('warns of a heading it leaves out for want of a unique id', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mountPage(`${PAGE}<h3>No id</h3><h3 id="meter">Meter again</h3>`)
+    expect(warn.mock.calls.map(([message]) => message)).toEqual([
+      'On this page leaves out "No id": give its heading an id where it renders.',
+      'On this page leaves out "Meter again": give its heading an id no other heading has.'
+    ])
+    warn.mockRestore()
   })
 
   it('follows headings the page replaces after collecting', async () => {

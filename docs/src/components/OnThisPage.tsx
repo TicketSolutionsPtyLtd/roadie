@@ -53,6 +53,21 @@ const useActiveHeading = () =>
     () => null
   )
 
+const warned = new Set<string>()
+
+function warnUnlinkable(heading: HTMLHeadingElement, text: string) {
+  if (
+    typeof process === 'undefined' ||
+    process.env.NODE_ENV === 'production' ||
+    warned.has(text)
+  )
+    return
+  warned.add(text)
+  console.warn(
+    `On this page leaves out "${text}": give its heading ${heading.id ? 'an id no other heading has' : 'an id where it renders'}.`
+  )
+}
+
 /** Headings and a scroll-to handler, lifted so the inspector renders only with two or more. Off while a page fills the inspector itself. */
 export function useDocHeadings(enabled = true): DocHeadings {
   const route = useRoute()
@@ -89,16 +104,18 @@ export function useDocHeadings(enabled = true): DocHeadings {
     let frame = 0
     let afterLock: ReturnType<typeof setTimeout> | undefined
     // Found again only on a resize, so a scroll frame reads positions alone.
-    let pane: Element | null = null
+    let pane: Element | null | undefined
     let paddingTop = 0
-    const resized = new ResizeObserver(() => {
-      measure()
+    // Content grows with every example that mounts, so it looks again only while nothing scrolls yet.
+    const resized = new ResizeObserver((entries) => {
+      if (!pane || entries.some(({ target }) => target !== mainEl)) measure()
       scheduleHighlight()
     })
     const measure = () => {
       const next = scrollParentOf(mainEl)
       if (next !== pane) {
-        resized.unobserve(pane ?? document.documentElement)
+        if (pane !== undefined)
+          resized.unobserve(pane ?? document.documentElement)
         resized.observe(next ?? document.documentElement)
         pane = next
       }
@@ -144,12 +161,16 @@ export function useDocHeadings(enabled = true): DocHeadings {
       // Only headings rendered with an id: writing one after render breaks hydration.
       mainEl.querySelectorAll<HTMLHeadingElement>(selector).forEach((el) => {
         const text = el.textContent?.trim() ?? ''
-        if (!el.id || !text) return
+        if (!text) return
 
         // Skip example headings (Roadie parts carry data-slot) inside the content only.
         const slot = el.closest('[data-slot], [data-live-example]')
         if (slot && mainEl.contains(slot)) return
 
+        if (!el.id || elements.has(el.id)) {
+          warnUnlinkable(el, text)
+          return
+        }
         elements.set(el.id, el)
         collected.push({
           id: el.id,
@@ -186,6 +207,12 @@ export function useDocHeadings(enabled = true): DocHeadings {
     // Next's router moves the hash with pushState, which fires no hashchange.
     const navigation = 'navigation' in window ? window.navigation : undefined
     navigation?.addEventListener('currententrychange', followHash)
+    // A document that scrolls keeps its box when only the viewport's height changes.
+    const onWindowResize = () => {
+      measure()
+      scheduleHighlight()
+    }
+    window.addEventListener('resize', onWindowResize)
     // Capture hears the pane's scroll as well as the window's.
     document.addEventListener('scroll', scheduleHighlight, {
       capture: true,
@@ -215,6 +242,7 @@ export function useDocHeadings(enabled = true): DocHeadings {
       document.removeEventListener('scroll', scheduleHighlight, {
         capture: true
       })
+      window.removeEventListener('resize', onWindowResize)
       resized.disconnect()
       cancelAnimationFrame(frame)
       clearTimeout(afterLock)
@@ -244,7 +272,8 @@ export function useDocHeadings(enabled = true): DocHeadings {
       // The pane scrolls, not the window; its scroll-pt keeps the heading clear.
       landOn(target, true)
       setActiveHeading(id)
-      seenHashRef.current = `#${id}`
+      // Compared with location.hash, which percent-encodes.
+      seenHashRef.current = new URL(`#${id}`, window.location.href).hash
       window.history.replaceState(null, '', `#${id}`)
     },
     []

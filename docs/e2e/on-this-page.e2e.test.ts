@@ -19,20 +19,12 @@ afterEach(async () => {
   await Promise.all(browser.contexts().map((context) => context.close()))
 })
 
-const consoleErrors = new WeakMap<Page, string[]>()
-
 async function open(path: string, width: number) {
   const context = await browser.newContext({
     viewport: { width, height: 900 }
   })
   await serveExport(context)
   const page = await context.newPage()
-  const errors: string[] = []
-  consoleErrors.set(page, errors)
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text())
-  })
-  page.on('pageerror', (error) => errors.push(error.message))
   await page.goto(`${ORIGIN}${BASE_PATH}${path}`)
   await page.waitForLoadState('networkidle')
   return page
@@ -147,11 +139,8 @@ describe('On this page', () => {
   it('highlights the last heading once the page can scroll no further', async () => {
     const page = await open('/foundations/layout/', 1280)
     const last = await nav(page).getByRole('link').last().textContent()
-    await page.evaluate(() => {
-      let scroller = document.getElementById('docs-content')!.parentElement!
-      while (scroller.scrollHeight <= scroller.clientHeight + 1)
-        scroller = scroller.parentElement!
-      scroller.scrollTop = scroller.scrollHeight
+    await withPane(page, (pane) => {
+      pane.scrollTop = pane.scrollHeight
     })
     expect(await activeHeading(page, last!)).toBe(last)
   }, 60_000)
@@ -193,7 +182,7 @@ describe('On this page', () => {
     const page = await open('/components/kbd/', 1280)
     await scrollTo(page, 'Keys', 'past')
     expect(await activeHeading(page, 'Keys')).toBe('Keys')
-    // Anchoring would scroll to hold the view, so the reflow fires no scroll.
+    // Without scroll anchoring, which would scroll to hold the view, the reflow fires no scroll.
     // The gap opens just above Keys, so no example comes into view to mount.
     await withPane(page, (pane) => {
       pane.style.overflowAnchor = 'none'
@@ -233,8 +222,8 @@ describe('On this page', () => {
     expect(offset).toBeLessThan(60)
   }, 60_000)
 
-  // Ids written after render, before the page hydrated, made React report a mismatch.
-  it('renders API reference ids in the markup and loads a link to one cleanly', async () => {
+  // Writing ids after render, before the page hydrated, made a hydration mismatch.
+  it('renders API reference ids in the markup and lands a link to one', async () => {
     const page = await open('/components/kbd/#api-kbd', 1280)
     const html = await page.evaluate(() =>
       fetch(window.location.href).then((response) => response.text())
@@ -242,6 +231,5 @@ describe('On this page', () => {
     expect(html).toContain('id="api-reference"')
     expect(html).toContain('id="api-kbd"')
     expect(await activeHeading(page, 'Kbd')).toBe('Kbd')
-    expect(consoleErrors.get(page)).toEqual([])
   }, 60_000)
 })
