@@ -66,6 +66,21 @@ function warnDropped({ at, label }: PlotAnnotation) {
   console.warn(message)
 }
 
+function xOnAxis(
+  at: PlotAnnotation['at'],
+  [start, end]: readonly [number, number],
+  isTime: boolean
+) {
+  const x = isTime ? parseX(at) : finiteOrNull(at)
+  return x === null || x < start || x > end ? null : x
+}
+
+export const isOnAxis = (
+  at: PlotAnnotation['at'],
+  domain: readonly [number, number],
+  isTime: boolean
+) => xOnAxis(at, domain, isTime) !== null
+
 /** Places annotations on a continuous x axis, dropping any outside `domain`. */
 export function annotationsOnAxis(
   annotations: readonly PlotAnnotation[] = [],
@@ -74,8 +89,8 @@ export function annotationsOnAxis(
   y: number
 ): PlacedAnnotation[] {
   return annotations.flatMap(({ at, label }) => {
-    const x = isTime ? parseX(at) : finiteOrNull(at)
-    if (x === null || x < start || x > end) {
+    const x = xOnAxis(at, [start, end], isTime)
+    if (x === null) {
       warnDropped({ at, label })
       return []
     }
