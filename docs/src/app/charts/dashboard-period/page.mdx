@@ -148,7 +148,7 @@ render(<Fixed />)
 
 ### With the data’s dates
 
-Pass the same `dataStart`, `dataEnd` and `alignWeekday` you give `resolveComparison`, and the comparison shows the dates the app will fetch, or “Not enough history” or “Nothing to compare” when the data can’t cover them. A range with no end, such as Upcoming, has no span to step back by, so Previous period and Previous year turn off, and Apply drops them. Here sales data runs to today, so this month compares with the same days of last month, and the previous year lines up weekdays.
+Pass the same `dataStart`, `dataEnd` and `alignWeekday` you give `resolveComparison`, and the comparison shows the dates the app will fetch, or “Not enough history” or “Nothing to compare” when the data can’t cover them. A range with no end, such as Upcoming, has no span to step back by, so Previous period, Previous year and Custom dates turn off, and Apply drops them. Here sales data runs to today, so this month compares with the same days of last month, and the previous year lines up weekdays.
 
 ```tsx-live
 <DashboardPeriod

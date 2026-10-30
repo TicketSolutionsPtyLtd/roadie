@@ -195,10 +195,7 @@ function compared(
   }
 }
 
-const stepsBack = (choice: string) =>
-  choice === 'previous-period' || choice === 'previous-year'
-
-/** An open-ended range, such as upcoming, has no span to step back by. */
+/** An open-ended range, such as upcoming, has nothing of Roadie's to compare with. */
 function hasSpan(
   range: DateRangeValue | null,
   options: ComparisonOptions | null
@@ -369,8 +366,7 @@ export function DashboardPeriod<App extends string = never>({
     choice: string,
     range: DateRangeValue | null
   ): Comparison<App> | undefined {
-    if (stepsBack(choice))
-      return hasSpan(range, options) ? (choice as Comparison<App>) : undefined
+    if (RESERVED.includes(choice) && !hasSpan(range, options)) return undefined
     if (choice !== 'custom') return choice as Comparison<App>
     return (
       lastCustom ??
@@ -519,7 +515,7 @@ export function DashboardPeriod<App extends string = never>({
           const nextRange = range ?? value.range
           const kept =
             compare &&
-            stepsBack(choiceOf(compare)) &&
+            isBuiltInComparison(compare) &&
             !hasSpan(nextRange, options)
               ? undefined
               : compare

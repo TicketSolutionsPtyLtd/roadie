@@ -719,6 +719,65 @@ describe('DashboardPeriod compare options', () => {
     expect(onValueChange).toHaveBeenCalledWith({ range: 'upcoming' })
   })
 
+  it('drops custom dates on Apply when the range turns open-ended', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        defaultValue={{
+          range: 'this-month',
+          compare: { start: '2026-09-01', end: '2026-09-30' }
+        }}
+        presets={[{ value: 'this-month' }, { value: 'upcoming' }]}
+        compareOptions={['none', 'previous-period', 'custom']}
+        onValueChange={onValueChange}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    expect(choice(dialog, 'Custom dates')).toBeDisabled()
+    await apply(dialog)
+    expect(onValueChange).toHaveBeenCalledWith({ range: 'upcoming' })
+  })
+
+  it('turns Compare back on with a choice that has dates, not the last one', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        defaultValue={{ range: 'this-month', compare: 'previous-period' }}
+        presets={[{ value: 'this-month' }, { value: 'upcoming' }]}
+        compareOptions={['none', 'previous-period', SIMILAR]}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(compareSwitch(dialog))
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    await userEvent.click(compareSwitch(dialog))
+    expect(choice(dialog, 'Similar venues')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+  })
+
+  it('drops a previous period it was given with an open-ended range on Apply', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming', compare: 'previous-period' }}
+        onValueChange={onValueChange}
+      />
+    )
+    const dialog = await openPicker()
+    expect(choice(dialog, 'Previous period')).toBeDisabled()
+    await apply(dialog)
+    expect(onValueChange).toHaveBeenCalledWith({ range: 'upcoming' })
+  })
+
   it('leaves out app values that are Roadie’s, and repeats, with a warning', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
