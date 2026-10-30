@@ -98,6 +98,14 @@ describe('paging', () => {
       { resultCount: 900, pageCount: 1, outOfRange: false }
     ],
     [
+      'marks a range floor inexact',
+      {
+        ranged: true,
+        range: { total: 900, rowCount: 900, rowCountExact: false }
+      },
+      { resultCountExact: false, pageCount: 1 }
+    ],
+    [
       'counts the loaded records in range mode before a total',
       { ranged: true, loaded: 40 },
       { resultCount: 40, resultCountExact: true }
