@@ -61,7 +61,7 @@ export const sortValueOf = (column: TableColumn) => {
 export function sortedRowOrder(
   rows: readonly TableRow[],
   columns: readonly TableColumn[],
-  sort: DataTableSort | undefined
+  sort: DataTableSort | null | undefined
 ): number[] {
   const order = rows.map((_, index) => index)
   const column = columns.find((candidate) => candidate.key === sort?.key)
@@ -88,5 +88,5 @@ export function sortedRowOrder(
 export const sortDataTableRows = <Row extends TableRow>(
   rows: readonly Row[],
   columns: readonly TableColumn[],
-  sort: DataTableSort | undefined
+  sort: DataTableSort | null | undefined
 ): Row[] => sortedRowOrder(rows, columns, sort).map((index) => rows[index]!)

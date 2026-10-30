@@ -434,6 +434,10 @@ describe('DataTable sorting', () => {
     ])
   })
 
+  it('keeps the given order on a server with no sort', () => {
+    expect(sortDataTableRows(sortRows, sortColumns, null)).toEqual(sortRows)
+  })
+
   it('links unsorted number headers largest first', () => {
     render(
       <DataTable
