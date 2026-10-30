@@ -7,6 +7,7 @@ import {
 import {
   type ResolvedDateRange,
   addDays,
+  formatLong,
   isBuiltInComparison,
   plainDateOf,
   resolveComparison,
@@ -227,15 +228,10 @@ function peakSentence(rows: readonly PlotRow[]) {
     undefined
   )
   if (!peak) return 'No sales in this period'
-  const when = new Date(`${String(peak.day)}T00:00:00Z`).toLocaleDateString(
-    'en-AU',
-    {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      timeZone: 'UTC'
-    }
-  )
+  const when = formatLong(new Date(`${String(peak.day)}T00:00:00Z`), {
+    timeZone: 'UTC',
+    locale: 'en-AU'
+  })
   return `Sales peaked at ${peak.sold} on ${when}`
 }
 
