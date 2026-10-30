@@ -291,7 +291,12 @@ describe('Toolbar layout', () => {
       </Toolbar>
     )
     const separator = screen.getByRole('separator').getBoundingClientRect()
+    const bold = screen
+      .getByRole('button', { name: 'Bold' })
+      .getBoundingClientRect()
     expect(separator.height).toBeGreaterThan(separator.width)
+    expect(separator.top - bold.top).toBe(6)
+    expect(bold.bottom - separator.bottom).toBe(6)
   })
 
   it('draws a separator across a vertical toolbar', () => {
@@ -303,7 +308,12 @@ describe('Toolbar layout', () => {
       </Toolbar>
     )
     const separator = screen.getByRole('separator').getBoundingClientRect()
+    const bold = screen
+      .getByRole('button', { name: 'Bold' })
+      .getBoundingClientRect()
     expect(separator.width).toBeGreaterThan(separator.height)
+    expect(separator.left - bold.left).toBe(6)
+    expect(bold.right - separator.right).toBe(6)
   })
 
   it('stacks a vertical toolbar in a column', () => {
