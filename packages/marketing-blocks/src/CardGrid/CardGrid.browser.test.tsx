@@ -4,7 +4,7 @@ import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { CardGrid, type CardGridItem, type CardGridPreset } from '.'
 import { MarketingBlocksProvider } from '../Provider'
 import { axeViolations, photo, withBrowserPage } from '../_test/browser'
-import { apcaLc, over, shownFill } from '../_test/contrast'
+import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 
 withBrowserPage()
 
@@ -440,10 +440,9 @@ describe('CardGrid accessibility', () => {
 })
 
 describe('CardGrid contrast', () => {
-  // Dark mode as a page sets it, on the root, so every token resolves dark.
-  const inMode = (mode: 'light' | 'dark') => {
-    document.documentElement.classList.toggle('dark', mode === 'dark')
-    onTestFinished(() => document.documentElement.classList.remove('dark'))
+  const inMode = (mode: (typeof MODES)[number]) => {
+    setMode(mode)
+    onTestFinished(() => setMode('light'))
   }
 
   const lowContrast = (root: Element) =>
@@ -454,12 +453,11 @@ describe('CardGrid contrast', () => {
         .join('')
       if (!text) return []
       const style = getComputedStyle(element)
-      const background = shownFill(element)
-      const lc = Math.abs(apcaLc(over(background, style.color), background))
+      const lc = textContrast(element)
       const size = parseFloat(style.fontSize)
       const large =
         size >= 24 || (size >= 18.6 && Number(style.fontWeight) >= 700)
-      return lc >= (large ? 45 : 60)
+      return lc >= (large ? MINIMUM_LC.large : MINIMUM_LC.body)
         ? []
         : [`${text.slice(0, 30)}: Lc ${Math.round(lc)}`]
     })
@@ -469,7 +467,7 @@ describe('CardGrid contrast', () => {
     href: index === 0 ? '#first' : undefined
   }))
 
-  const cases = (['light', 'dark'] as const).flatMap((mode) => [
+  const cases = MODES.flatMap((mode) => [
     ...(
       [
         'illustrated-cards',
@@ -526,13 +524,12 @@ describe('CardGrid contrast', () => {
     }
   )
 
-  it.each(['light', 'dark'] as const)(
+  it.each(MODES)(
     'has no axe violations on every surface in %s mode',
     async (mode) => {
+      inMode(mode)
       const { container } = render(
-        <main
-          className={cn('bg-normal text-normal', mode === 'dark' && 'dark')}
-        >
+        <main className='bg-normal text-normal'>
           <h1>Page</h1>
           <CardGrid
             preset='link-cards'
