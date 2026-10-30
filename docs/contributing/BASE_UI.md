@@ -445,7 +445,26 @@ re-export, subpath generator, and RSC canary page. See
 `packages/components/src/components/Fieldset/` for the reference
 implementation.
 
-## 12. Reference links
+## 12. Upgrading Base UI
+
+Roadie leans on a few Base UI behaviours its types don't promise. When you
+bump `@base-ui/react`, check each one still holds, and drop a workaround
+once Base UI makes it unnecessary:
+
+- **`autoHighlight='always'` on Combobox.** Base UI types `'always'` for
+  Autocomplete only. Roadie's `Combobox.Root` passes it to Base UI's Combobox
+  under a cast (`Combobox/ComboboxRoot.tsx`), and it's public on Combobox. Run
+  the Combobox and QueryField highlight tests; if they fail, Combobox stopped
+  honouring it.
+- **No way to clear a highlight.** Base UI keeps its highlight's index as the
+  list changes under it, so QueryField renders the list once with no items to
+  drop it (`dropHighlight` in `QueryField/QueryField.tsx`). If Base UI adds a
+  controlled highlight or a clear action, use it and remove the extra render.
+- **Focus guards in WebKit** stay nameless buttons
+  ([decision 0012](../decisions/0012-base-ui-focus-guards.md)). Recheck the
+  accepted violation in `packages/components/src/checks/testUtils.tsx`.
+
+## 13. Reference links
 
 - Quick start: https://base-ui.com/react/overview/quick-start
 - Styling / data attrs: https://base-ui.com/react/overview/styling
