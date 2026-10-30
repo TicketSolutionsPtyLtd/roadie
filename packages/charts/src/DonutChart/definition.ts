@@ -297,6 +297,7 @@ export const donutChart: ChartDefinition<DonutChartProps> = {
   kind: 'donut',
   build,
   table: donutChartTable,
+  categoryAxis: () => 'ring',
   summary(props) {
     if (props.takeaway) return props.takeaway
     const parts = donutParts(props)

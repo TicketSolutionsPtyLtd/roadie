@@ -264,6 +264,31 @@ export function ChartPreview({ name }: { name: string }) {
           ))}
         </div>
       )
+    case 'donut-chart':
+      return (
+        <svg viewBox='0 0 64 64' className='size-16' aria-hidden='true'>
+          {/* pathLength 100 makes each dash a percent; the offset starts at 12 o'clock. */}
+          {[
+            { stroke: 'stroke-chart-1', share: 52, start: 0 },
+            { stroke: 'stroke-chart-2', share: 22, start: 52 },
+            { stroke: 'stroke-chart-3', share: 14, start: 74 },
+            { stroke: 'stroke-chart-4', share: 12, start: 88 }
+          ].map(({ stroke, share, start }) => (
+            <circle
+              key={stroke}
+              cx={32}
+              cy={32}
+              r={24}
+              pathLength={100}
+              fill='none'
+              strokeWidth={12}
+              strokeDasharray={`${share - 1} ${101 - share}`}
+              strokeDashoffset={25 - start}
+              className={stroke}
+            />
+          ))}
+        </svg>
+      )
     case 'stacked-bars':
       return (
         <div className='grid w-40 gap-1.5'>

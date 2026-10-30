@@ -45,18 +45,19 @@ export function TicketsSold() {
 }
 ```
 
-| Chart            | Subpath            | For                                               |
-| ---------------- | ------------------ | ------------------------------------------------- |
-| `LineChart`      | `/line-chart`      | Change over time, pace against similar shows      |
-| `BarChart`       | `/bar-chart`       | Bars over time, with an optional second measure   |
-| `RankedBars`     | `/ranked-bars`     | Channels, places and brackets, largest first      |
-| `StackedBars`    | `/stacked-bars`    | Parts of a whole across categories                |
-| `StackedArea`    | `/stacked-area`    | Parts of a whole over time, such as scans by gate |
-| `Histogram`      | `/histogram`       | How a number spreads, such as booking lead time   |
-| `Funnel`         | `/funnel`          | Conversion and drop-off between steps             |
-| `Heatmap`        | `/heatmap`         | Two categories at once, such as day by hour       |
-| `Scatter`        | `/scatter`         | Points by two measures, with named quadrants      |
-| `SmallMultiples` | `/small-multiples` | One small chart per gate, show or channel         |
+| Chart            | Subpath            | For                                                  |
+| ---------------- | ------------------ | ---------------------------------------------------- |
+| `LineChart`      | `/line-chart`      | Change over time, pace against similar shows         |
+| `BarChart`       | `/bar-chart`       | Bars over time, with an optional second measure      |
+| `RankedBars`     | `/ranked-bars`     | Channels, places and brackets, largest first         |
+| `StackedBars`    | `/stacked-bars`    | Parts of a whole across categories                   |
+| `DonutChart`     | `/donut-chart`     | One whole in two to five parts, such as ticket types |
+| `StackedArea`    | `/stacked-area`    | Parts of a whole over time, such as scans by gate    |
+| `Histogram`      | `/histogram`       | How a number spreads, such as booking lead time      |
+| `Funnel`         | `/funnel`          | Conversion and drop-off between steps                |
+| `Heatmap`        | `/heatmap`         | Two categories at once, such as day by hour          |
+| `Scatter`        | `/scatter`         | Points by two measures, with named quadrants         |
+| `SmallMultiples` | `/small-multiples` | One small chart per gate, show or channel            |
 
 Charts take no colour props. Where a chart offers them, `highlight` brings one
 series forward and `palette` picks a different set.
