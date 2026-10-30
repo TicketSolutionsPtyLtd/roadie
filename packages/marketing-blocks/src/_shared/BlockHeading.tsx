@@ -35,7 +35,10 @@ const TITLE_STEP: Record<TitleStep, string> = {
 }
 
 /** A title's step at a block's size: `md` is one step smaller than the preset's. */
-export function titleStep(step: TitleStep, size: BlockSize | undefined): TitleStep {
+export function titleStep(
+  step: TitleStep,
+  size: BlockSize | undefined
+): TitleStep {
   return size === 'md' ? (Math.min(step + 1, 5) as TitleStep) : step
 }
 

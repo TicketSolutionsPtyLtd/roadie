@@ -21,8 +21,10 @@ export type BlockSurfaceProps = {
 export type BlockWidth = '3xl' | '4xl' | '8xl'
 
 // Literal class names, so Tailwind finds them. Padding follows the block's own width, not the screen's.
-const PAGE_PADDING =
-  'px-(--block-gutter) [--block-gutter:--spacing(6)] @3xl:[--block-gutter:--spacing(8)] @5xl:[--block-gutter:--spacing(12)]'
+/** Sets the page's gutter, for content that runs edge to edge outside a frame but lines its controls up with the page. */
+export const PAGE_GUTTER =
+  '[--block-gutter:--spacing(6)] @3xl:[--block-gutter:--spacing(8)] @5xl:[--block-gutter:--spacing(12)]'
+const PAGE_PADDING = `px-(--block-gutter) ${PAGE_GUTTER}`
 const PANEL_PADDING =
   'px-(--block-gutter) py-8 [--block-gutter:--spacing(6)] @3xl:py-12 @3xl:[--block-gutter:--spacing(10)]'
 
@@ -45,7 +47,11 @@ export function BlockSurface({
 }: BlockSurfaceProps) {
   const drawn = emphasis != null || backdrop != null
   if (!drawn) {
-    return <div className={cn(MEASURE[width], PAGE_PADDING, className)}>{children}</div>
+    return (
+      <div className={cn(MEASURE[width], PAGE_PADDING, className)}>
+        {children}
+      </div>
+    )
   }
   if (inset) {
     return (
@@ -78,7 +84,9 @@ export function BlockSurface({
         )}
       >
         {backdrop}
-        <div className={cn(MEASURE[width], PAGE_PADDING, className)}>{children}</div>
+        <div className={cn(MEASURE[width], PAGE_PADDING, className)}>
+          {children}
+        </div>
       </div>
     </div>
   )

@@ -26,7 +26,7 @@ import {
 } from '../_shared/surface'
 import { type CardGridPreset, cardGridDefinition } from './definition'
 
-export type { CardGridPreset }
+export type { CardGridPreset } from './definition'
 
 export type CardGridItem = {
   /** The card's heading, or a person's name in `portraits`. */

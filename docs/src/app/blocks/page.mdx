@@ -53,8 +53,8 @@ for (const block of catalogue) {
 
 ## Shared props
 
-Every block takes the same props for colour, surface, and scale, with the
-same values, so a page reads as one design. A preset sets their defaults, so a
+Every block takes the same props for colour, surface, and scale where they
+apply, with the same values, so a page reads as one design. A preset sets their defaults, so a
 page looks right without any of them.
 
 | Prop | Values | Sets |
@@ -62,7 +62,7 @@ page looks right without any of them.
 | `intent` | Roadie's intents | Highlighted words, marks, tints, and the strong action |
 | `emphasis` | `subtler`, `subtle`, `raised` | The surface behind the block. A CTA band adds `strong` and `inverted` |
 | `inset` | `true` or `false` | The surface as a panel inside the page padding, not a full-width band |
-| `itemEmphasis` | `subtler`, `subtle`, `raised`, `normal` | Every card's or question's surface |
+| `itemEmphasis` | `subtler`, `subtle`, `raised`, `normal` | Every card's, row's, or question's surface, in Card grid, Split, and FAQ. FAQ has no `raised` |
 | `align` | `start`, `center` | Where the heading and text line up |
 | `size` | `md`, `lg` | `md` sets the title a step smaller, with tighter spacing |
 | `actions` | `{ label, href, icon }` links | Buttons under the content; the first is the strong one |

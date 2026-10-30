@@ -7,7 +7,9 @@ import {
   DESKTOP,
   atWidth,
   axeViolations,
+  fontSizeOf,
   photo,
+  textAlignOf,
   widths,
   withBrowserPage
 } from '../_test/browser'
@@ -174,6 +176,27 @@ describe('Mosaic tiles without a logo', () => {
     const name = screen.getByText('Kazoo Hollow Room').getBoundingClientRect()
     expect(name.width).toBeGreaterThan(40)
     expect(name.height).toBeGreaterThan(16)
+  })
+})
+
+describe('Mosaic align and size', () => {
+  const heading = () => screen.getByRole('heading', { level: 2 })
+
+  it('starts the tiers heading by default, and centres it when asked', () => {
+    const { rerender } = render(<Mosaic {...offline(partnerTiers)} />)
+    expect(textAlignOf(heading())).toBe('start')
+
+    rerender(<Mosaic {...offline(partnerTiers)} align='center' />)
+    expect(textAlignOf(heading())).toBe('center')
+  })
+
+  it('sets the title smaller at md', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { rerender } = render(<Mosaic {...offline(partnerTiers)} />)
+    const large = fontSizeOf(heading())
+
+    rerender(<Mosaic {...offline(partnerTiers)} size='md' />)
+    expect(fontSizeOf(heading())).toBeLessThan(large)
   })
 })
 

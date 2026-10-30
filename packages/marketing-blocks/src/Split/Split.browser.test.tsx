@@ -8,7 +8,10 @@ import {
   PHONE,
   atWidth,
   axeViolations,
+  centreOf,
+  fontSizeOf,
   photo,
+  textAlignOf,
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
@@ -87,6 +90,39 @@ const isBeside = (first: Element, second: Element) =>
   box(first).right <= box(second).left
 const isAbove = (first: Element, second: Element) =>
   box(first).bottom <= box(second).top
+
+describe('Split align and size', () => {
+  const heading = () => screen.getByRole('heading', { level: 2 })
+
+  it('sets the title smaller at md', async () => {
+    await renderAt(DESKTOP, LOOKS['media-text'])
+    const large = fontSizeOf(heading())
+
+    cleanup()
+    await renderAt(DESKTOP, { ...LOOKS['media-text'], size: 'md' })
+    expect(fontSizeOf(heading())).toBeLessThan(large)
+  })
+
+  it('sets the body of a stats split smaller at md', async () => {
+    const body = () => screen.getByText(/hosted in Australia/)
+    await renderAt(DESKTOP, LOOKS['text-and-stats'])
+    const large = fontSizeOf(body())
+
+    cleanup()
+    await renderAt(DESKTOP, { ...LOOKS['text-and-stats'], size: 'md' })
+    expect(fontSizeOf(body())).toBeLessThan(large)
+  })
+
+  it('centres the heading and actions when align is center', async () => {
+    await renderAt(DESKTOP, { ...LOOKS['media-text'], align: 'center' })
+
+    expect(textAlignOf(heading())).toBe('center')
+    const link = screen.getByRole('link', { name: 'Set it up' })
+    expect(
+      Math.abs(centreOf(link) - centreOf(heading().parentElement!))
+    ).toBeLessThan(2)
+  })
+})
 
 describe('Split layout', () => {
   it('sets the tinted-panel image beside the text on wide screens, and above it on phones', async () => {

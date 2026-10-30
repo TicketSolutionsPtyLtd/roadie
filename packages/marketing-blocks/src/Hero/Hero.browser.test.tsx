@@ -14,6 +14,7 @@ import {
   atWidth,
   axeViolations,
   photo,
+  textAlignOf,
   widths,
   withBrowserPage
 } from '../_test/browser'
@@ -489,8 +490,35 @@ describe('Hero partner layout', () => {
   })
 })
 
+describe('Hero align', () => {
+  const heading = () => screen.getByRole('heading', { level: 1 })
+
+  it.each([
+    ['image', imageHero(photo)],
+    ['title', titleOnly],
+    ['partner', partnerHero(photo)]
+  ] as const)(
+    'starts the %s text by default, and centres it when asked',
+    async (_, props) => {
+      await showAt(DESKTOP.width, <Hero {...props} />)
+      expect(textAlignOf(heading())).toBe('start')
+
+      cleanup()
+      await showAt(DESKTOP.width, <Hero {...props} align='center' />)
+      expect(textAlignOf(heading())).toBe('center')
+    }
+  )
+
+  it('centres the bento title over its photo when asked', async () => {
+    await showAt(DESKTOP.width, <Hero {...bento(photo)} align='center' />)
+
+    expect(textAlignOf(heading())).toBe('center')
+  })
+})
+
 describe('Hero size', () => {
   it.each([
+    ['bento', bento(photo)],
     ['image', imageHero(photo)],
     ['title', titleOnly],
     ['partner', partnerHero(photo)]

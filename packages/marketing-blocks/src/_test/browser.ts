@@ -54,3 +54,17 @@ export async function axeViolations(element: Element) {
     nodes.map(({ html }) => `${id}: ${html}`)
   )
 }
+
+export const textAlignOf = (element: Element) =>
+  getComputedStyle(element).textAlign
+
+export const fontSizeOf = (element: Element) =>
+  parseFloat(getComputedStyle(element).fontSize)
+
+/** The horizontal centre of the elements' combined box. */
+export function centreOf(...elements: Element[]) {
+  const boxes = elements.map((element) => element.getBoundingClientRect())
+  const left = Math.min(...boxes.map((box) => box.left))
+  const right = Math.max(...boxes.map((box) => box.right))
+  return (left + right) / 2
+}

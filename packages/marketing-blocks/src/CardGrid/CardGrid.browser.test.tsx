@@ -9,7 +9,13 @@ import {
   type CardGridProps
 } from '.'
 import { MarketingBlocksProvider } from '../Provider'
-import { axeViolations, photo, withBrowserPage } from '../_test/browser'
+import {
+  axeViolations,
+  fontSizeOf,
+  photo,
+  textAlignOf,
+  withBrowserPage
+} from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 
 withBrowserPage()
@@ -248,6 +254,41 @@ describe('CardGrid illustrated cards', () => {
       .querySelector('svg')!
       .getBoundingClientRect()
     expect(illustration.top).toBeLessThan(image.bottom)
+  })
+})
+
+describe('CardGrid align and size', () => {
+  const heading = () => screen.getByRole('heading', { level: 2 })
+  const cardTitle = () => screen.getAllByRole('heading', { level: 3 })[0]!
+
+  it('centres the heading and starts the card text when align is unset', () => {
+    render(<Block look='cards' width={1280} />)
+
+    expect(textAlignOf(heading())).toBe('center')
+    expect(textAlignOf(cardTitle())).toBe('start')
+  })
+
+  it.each(['cards', 'marked-cards'] as const)(
+    'starts the %s heading when align is start',
+    (preset) => {
+      render(
+        <CardGrid preset={preset} align='start' title='Section' items={items} />
+      )
+
+      expect(textAlignOf(heading())).toBe('start')
+    }
+  )
+
+  it('sets the title smaller at md', () => {
+    const { rerender } = render(<Block look='cards' width={1280} />)
+    const large = fontSizeOf(heading())
+
+    rerender(
+      <div style={{ width: 1280 }}>
+        <CardGrid {...propsOf('cards')} size='md' />
+      </div>
+    )
+    expect(fontSizeOf(heading())).toBeLessThan(large)
   })
 })
 

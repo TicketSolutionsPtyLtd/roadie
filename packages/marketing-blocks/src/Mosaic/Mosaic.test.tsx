@@ -341,27 +341,6 @@ describe('Mosaic', () => {
   })
 
   describe('shared props', () => {
-    const heading = () =>
-      screen.getByRole('heading', { level: 2 }).parentElement
-
-    it.each([
-      ['tiers', partnerTiers, 'text-start'],
-      ['logo-strip', logoStrip, 'text-center']
-    ] as const)(
-      'lines the %s heading up by its preset',
-      (_, props, expected) => {
-        render(<Mosaic {...props} />)
-
-        expect(heading()).toHaveClass(expected)
-      }
-    )
-
-    it('lines the heading up as asked', () => {
-      render(<Mosaic {...partnerTiers} align='center' />)
-
-      expect(heading()).toHaveClass('text-center')
-    })
-
     it('marks a tile in its own intent over the block’s', () => {
       const [first, second] = partnerTiers.tiles
       render(
@@ -404,15 +383,6 @@ describe('Mosaic', () => {
 
       rerender(<Mosaic {...logoStrip} emphasis='raised' inset />)
       expect(surface()).toHaveAttribute('data-shape', 'panel')
-    })
-
-    it('sets the title a step smaller at md', () => {
-      const { rerender } = render(<Mosaic {...partnerTiers} />)
-      const title = () => screen.getByRole('heading', { level: 2 })
-      expect(title()).toHaveClass('text-display-prose-2')
-
-      rerender(<Mosaic {...partnerTiers} size='md' />)
-      expect(title()).toHaveClass('text-display-prose-3')
     })
   })
 })

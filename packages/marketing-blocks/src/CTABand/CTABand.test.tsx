@@ -51,7 +51,7 @@ describe('CTABand', () => {
     ).toEqual(['/contact/sales', 'https://studio.oztix.com.au'])
   })
 
-  it('renders talk to us centred without a photo', () => {
+  it('renders talk to us without a photo', () => {
     render(
       <CTABand
         title='Talk to our team'
@@ -61,42 +61,10 @@ describe('CTABand', () => {
     )
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Talk to our team' }).parentElement
-    ).toHaveClass('text-center')
     expect(screen.getByRole('link', { name: 'Talk to us' })).toHaveAttribute(
       'href',
       '/contact/sales'
     )
-  })
-
-  it('starts the copy beside a photo', () => {
-    render(<CTABand title='Talk to our team' image={image} />)
-
-    expect(
-      screen.getByRole('heading', { name: 'Talk to our team' }).parentElement
-    ).toHaveClass('text-start')
-  })
-
-  it.each([
-    ['with a photo', image, 'center', 'text-center'],
-    ['without a photo', undefined, 'start', 'text-start']
-  ] as const)('lines the copy up as asked %s', (_, photo, align, expected) => {
-    render(<CTABand title='Talk to our team' image={photo} align={align} />)
-
-    expect(
-      screen.getByRole('heading', { name: 'Talk to our team' }).parentElement
-    ).toHaveClass(expected)
-  })
-
-  it('sets the title a step smaller at md', () => {
-    const { rerender } = render(<CTABand title='Talk to our team' />)
-    const heading = () =>
-      screen.getByRole('heading', { name: 'Talk to our team' })
-    expect(heading()).toHaveClass('text-display-prose-2')
-
-    rerender(<CTABand title='Talk to our team' size='md' />)
-    expect(heading()).toHaveClass('text-display-prose-3')
   })
 
   it('draws a band by default, and an inset panel when asked', () => {

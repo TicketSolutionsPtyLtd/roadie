@@ -122,7 +122,10 @@ describe('Split', () => {
       within(section).getByRole('link', { name: 'Meet the team' })
     ).toHaveAttribute('href', '/about/team')
     expect(
-      within(section).getByRole('heading', { level: 3, name: 'By the numbers' })
+      within(section).getByRole('heading', {
+        level: 3,
+        name: 'By the numbers'
+      })
     ).toBeInTheDocument()
     expect(
       within(section).getByText('The impact of genuine partnerships')
@@ -132,37 +135,6 @@ describe('Split', () => {
         .getAllByRole('listitem')
         .map((item) => item.textContent)
     ).toEqual(['33,000,000+tickets sold', '22,000+event organisers'])
-  })
-
-  it('sets the body of a stats split in large prose, and in medium at size md', () => {
-    const large = '[--prose-size:var(--text-lg)]'
-    const prose = () => screen.getByText(/hosted in Australia/).parentElement
-    const { unmount } = render(<Split {...textAndStats} />)
-    expect(prose()).toHaveClass(large)
-    unmount()
-
-    render(<Split {...textAndStats} size='md' />)
-    expect(prose()).not.toHaveClass(large)
-  })
-
-  it.each([
-    [undefined, 'text-display-prose-2'],
-    ['md', 'text-display-prose-3']
-  ] as const)('sets the title at size %s as %s', (size, step) => {
-    render(<Split {...mediaText} size={size} />)
-
-    expect(screen.getByRole('heading', { level: 2 })).toHaveClass(step)
-  })
-
-  it('centres the heading and actions when align is center', () => {
-    render(<Split {...mediaText} align='center' />)
-
-    expect(screen.getByRole('heading', { level: 2 }).parentElement).toHaveClass(
-      'text-center'
-    )
-    expect(
-      screen.getByRole('link', { name: 'Set it up' }).parentElement
-    ).toHaveClass('justify-center')
   })
 
   it('reports a click on its action with the label and href', async () => {

@@ -8,6 +8,9 @@ import {
   DESKTOP,
   PHONE,
   axeViolations,
+  centreOf,
+  fontSizeOf,
+  textAlignOf,
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
@@ -66,6 +69,48 @@ describe('FAQ', () => {
     await userEvent.click(screen.getByText('Who do I contact?'))
 
     expect(await axeViolations(container)).toEqual([])
+  })
+})
+
+describe('FAQ align and size', () => {
+  const actions = [
+    { label: 'See all FAQs', href: '/frequently-asked-questions' }
+  ]
+  const heading = () => screen.getByRole('heading', { level: 2 })
+
+  it('starts the heading by default', () => {
+    render(<FAQ title='Questions, answered' items={items} actions={actions} />)
+
+    expect(textAlignOf(heading())).toBe('start')
+  })
+
+  it('centres the heading and the actions when asked', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(
+      <FAQ
+        align='center'
+        title='Questions, answered'
+        items={items}
+        actions={actions}
+      />
+    )
+
+    expect(textAlignOf(heading())).toBe('center')
+    const link = screen.getByRole('link', { name: 'See all FAQs' })
+    expect(
+      Math.abs(centreOf(link) - centreOf(heading().parentElement!))
+    ).toBeLessThan(2)
+  })
+
+  it('sets the title smaller at md', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    const { rerender } = render(
+      <FAQ title='Questions, answered' items={items} />
+    )
+    const large = fontSizeOf(heading())
+
+    rerender(<FAQ size='md' title='Questions, answered' items={items} />)
+    expect(fontSizeOf(heading())).toBeLessThan(large)
   })
 })
 

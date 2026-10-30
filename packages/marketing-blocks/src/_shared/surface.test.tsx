@@ -71,7 +71,6 @@ describe('BlockSurface', () => {
     expect(
       container.querySelector('[data-slot=block-surface]')
     ).not.toBeInTheDocument()
-    expect(container.firstElementChild).toHaveClass('max-w-4xl', 'px-(--block-gutter)')
   })
 
   it('draws a full-width band by default', () => {
@@ -80,10 +79,10 @@ describe('BlockSurface', () => {
     )
     const surface = container.querySelector('[data-slot=block-surface]')
     expect(surface).toHaveAttribute('data-shape', 'band')
-    expect(surface).toHaveClass('emphasis-subtle', '@7xl:rounded-3xl')
+    expect(surface).toHaveClass('emphasis-subtle')
   })
 
-  it('draws an inset panel, rounded at every width', () => {
+  it('draws an inset panel when asked', () => {
     const { container } = render(
       <BlockSurface emphasis='raised' inset>
         Content
@@ -91,7 +90,7 @@ describe('BlockSurface', () => {
     )
     const surface = container.querySelector('[data-slot=block-surface]')
     expect(surface).toHaveAttribute('data-shape', 'panel')
-    expect(surface).toHaveClass('emphasis-raised', 'rounded-3xl')
+    expect(surface).toHaveClass('emphasis-raised')
   })
 
   it('pads a backdrop as a surface, with no emphasis', () => {

@@ -8,6 +8,9 @@ import {
   PHONE,
   atWidth,
   axeViolations,
+  centreOf,
+  fontSizeOf,
+  textAlignOf,
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
@@ -217,6 +220,43 @@ describe('Stats contrast on every band', () => {
     )
 
     expect(await axeViolations(container)).toEqual([])
+  })
+})
+
+describe('Stats align and size', () => {
+  const heading = () => screen.getByRole('heading', { level: 2 })
+
+  it('starts the heading by default, and centres it when asked', () => {
+    const { rerender } = render(<Stats {...facts} />)
+    expect(textAlignOf(heading())).toBe('start')
+
+    rerender(<Stats {...facts} align='center' />)
+    expect(textAlignOf(heading())).toBe('center')
+  })
+
+  it('sets the title smaller at md', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { rerender } = render(<Stats {...facts} />)
+    const large = fontSizeOf(heading())
+
+    rerender(<Stats {...facts} size='md' />)
+    expect(fontSizeOf(heading())).toBeLessThan(large)
+  })
+
+  it('lines its action up with a centred heading', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(
+      <Stats
+        {...facts}
+        align='center'
+        actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+      />
+    )
+
+    const link = screen.getByRole('link', { name: 'Talk to us' })
+    expect(
+      Math.abs(centreOf(link) - centreOf(heading().parentElement!))
+    ).toBeLessThan(2)
   })
 })
 

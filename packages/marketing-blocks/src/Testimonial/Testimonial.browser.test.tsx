@@ -6,7 +6,10 @@ import {
   DESKTOP,
   atWidth,
   axeViolations,
+  centreOf,
+  fontSizeOf,
   photo,
+  textAlignOf,
   widths,
   withBrowserPage
 } from '../_test/browser'
@@ -26,6 +29,44 @@ const quote = {
 }
 
 const rectOf = (element: Element) => element.getBoundingClientRect()
+
+describe('Testimonial align and size', () => {
+  const heading = () => screen.getByRole('heading', { level: 2 })
+
+  it('centres the heading and quote by default, and starts them when asked', () => {
+    const { rerender } = render(<Testimonial {...quote} />)
+    expect(textAlignOf(heading())).toBe('center')
+    expect(textAlignOf(screen.getByRole('blockquote'))).toBe('center')
+
+    rerender(<Testimonial {...quote} align='start' />)
+    expect(textAlignOf(heading())).toBe('start')
+    expect(textAlignOf(screen.getByRole('blockquote'))).toBe('start')
+  })
+
+  it('sets the title smaller at md', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { rerender } = render(<Testimonial {...quote} />)
+    const large = fontSizeOf(heading())
+
+    rerender(<Testimonial {...quote} size='md' />)
+    expect(fontSizeOf(heading())).toBeLessThan(large)
+  })
+
+  it('centres its action under the quote', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(
+      <Testimonial
+        {...quote}
+        actions={[{ label: 'Read the case study', href: '/case-studies' }]}
+      />
+    )
+
+    const link = screen.getByRole('link', { name: 'Read the case study' })
+    expect(
+      Math.abs(centreOf(link) - centreOf(heading().parentElement!))
+    ).toBeLessThan(2)
+  })
+})
 
 describe('Testimonial quote layout', () => {
   it.each([

@@ -21,7 +21,10 @@ describe('Stats', () => {
 
     const section = screen.getByRole('region', { name: 'By the numbers' })
     expect(
-      within(section).getByRole('heading', { level: 2, name: 'By the numbers' })
+      within(section).getByRole('heading', {
+        level: 2,
+        name: 'By the numbers'
+      })
     ).toBeInTheDocument()
     expect(
       within(section).getByText('The impact of genuine partnerships')
@@ -115,28 +118,7 @@ describe('Stats', () => {
     ).toHaveAttribute('data-shape', 'band')
   })
 
-  it('starts the heading by default, and centres it when asked', () => {
-    const { rerender } = render(<Stats {...facts} />)
-    const heading = () => screen.getByRole('heading', { level: 2 })
-    expect(heading().parentElement).toHaveClass('text-start')
-
-    rerender(<Stats {...facts} align='center' />)
-    expect(heading().parentElement).toHaveClass('text-center')
-  })
-
-  it('sets the title a step smaller at md', () => {
-    const { rerender } = render(<Stats {...facts} />)
-    expect(screen.getByRole('heading', { level: 2 })).toHaveClass(
-      'text-display-prose-2'
-    )
-
-    rerender(<Stats {...facts} size='md' />)
-    expect(screen.getByRole('heading', { level: 2 })).toHaveClass(
-      'text-display-prose-3'
-    )
-  })
-
-  it('links on from under the figures, aligned with the heading', () => {
+  it('links on from under the figures', () => {
     render(
       <Stats
         {...facts}
@@ -147,7 +129,6 @@ describe('Stats', () => {
 
     const link = screen.getByRole('link', { name: 'Talk to us' })
     expect(link).toHaveAttribute('href', '/contact/sales')
-    expect(link.parentElement).toHaveClass('justify-center')
     expect(
       screen.getByText('20+').compareDocumentPosition(link) &
         Node.DOCUMENT_POSITION_FOLLOWING

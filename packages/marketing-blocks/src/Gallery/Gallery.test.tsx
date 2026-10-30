@@ -147,36 +147,6 @@ describe('Gallery', () => {
   })
 
   describe('shared props', () => {
-    const heading = () => screen.getByRole('heading', { name: TITLE })
-
-    it.each([
-      ['carousel', 'text-start'],
-      ['marquee', 'text-center']
-    ] as const)('lines the %s heading up by its preset', (preset, expected) => {
-      render(<Gallery preset={preset} title={TITLE} images={images} />)
-
-      expect(heading().parentElement).toHaveClass(expected)
-    })
-
-    it.each([
-      ['carousel', 'center', 'text-center'],
-      ['marquee', 'start', 'text-start']
-    ] as const)(
-      'lines the %s heading up as asked',
-      (preset, align, expected) => {
-        render(
-          <Gallery
-            preset={preset}
-            align={align}
-            title={TITLE}
-            images={images}
-          />
-        )
-
-        expect(heading().parentElement).toHaveClass(expected)
-      }
-    )
-
     it.each(['carousel', 'marquee'] as const)(
       'sets the %s actions under the photos, the first strong',
       (preset) => {
@@ -240,13 +210,5 @@ describe('Gallery', () => {
         expect(surface()).toHaveAttribute('data-shape', 'panel')
       }
     )
-
-    it('sets the title a step smaller at md', () => {
-      const { rerender } = render(<Gallery title={TITLE} images={images} />)
-      expect(heading()).toHaveClass('text-display-prose-2')
-
-      rerender(<Gallery title={TITLE} images={images} size='md' />)
-      expect(heading()).toHaveClass('text-display-prose-3')
-    })
   })
 })

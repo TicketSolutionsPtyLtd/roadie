@@ -53,7 +53,7 @@ export type StatsProps = {
    */
   inset?: boolean
   /**
-   * The heading's alignment.
+   * The heading's and actions' alignment. The figures always start.
    * @default 'start'
    */
   align?: BlockAlign

@@ -306,49 +306,6 @@ describe('Hero', () => {
     })
   })
 
-  describe('align and size', () => {
-    const headingOf = () => screen.getByRole('heading', { level: 1 })
-
-    it.each([
-      ['image', imageHero()],
-      ['title', titleOnly],
-      ['partner', partnerHero()]
-    ] as const)(
-      'starts the %s text by default, and centres it when asked',
-      (_, props) => {
-        const { rerender } = render(<Hero {...props} />)
-        expect(headingOf().parentElement).toHaveClass('text-start')
-
-        rerender(<Hero {...props} align='center' />)
-        expect(headingOf().parentElement).toHaveClass('text-center')
-      }
-    )
-
-    it('centres the bento title over its photo when asked', () => {
-      const { container } = render(<Hero {...bento()} align='center' />)
-
-      expect(container.querySelector('[data-slot=hero-scrim]')).toHaveClass(
-        'text-center'
-      )
-    })
-
-    it.each([
-      ['bento', bento(), 'text-display-prose-1', 'text-display-prose-2'],
-      ['image', imageHero(), 'text-display-prose-1', 'text-display-prose-2'],
-      ['title', titleOnly, 'text-display-prose-2', 'text-display-prose-3'],
-      ['partner', partnerHero(), 'text-display-prose-2', 'text-display-prose-3']
-    ] as const)(
-      'sets the %s title a step smaller at md',
-      (_, props, lg, md) => {
-        const { rerender } = render(<Hero {...props} />)
-        expect(headingOf()).toHaveClass(lg)
-
-        rerender(<Hero {...props} size='md' />)
-        expect(headingOf()).toHaveClass(md)
-      }
-    )
-  })
-
   it('falls back to bento with no preset', () => {
     render(<Hero {...bento()} preset={undefined} />)
 

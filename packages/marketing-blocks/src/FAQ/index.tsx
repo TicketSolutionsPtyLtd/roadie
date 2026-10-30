@@ -123,10 +123,7 @@ export function FAQ({
           size={size}
           intent={intent}
         />
-        <Accordion
-          emphasis={itemEmphasis}
-          className='-mx-4 w-auto gap-1'
-        >
+        <Accordion emphasis={itemEmphasis} className='-mx-4 w-auto gap-1'>
           {items.map(({ question, answer }, index) => (
             <Accordion.Item key={`${index}-${question}`}>
               <Accordion.Trigger>

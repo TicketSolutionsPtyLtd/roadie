@@ -188,7 +188,7 @@ describe('Testimonial', () => {
     })
   })
 
-  describe('inset, align, size and actions', () => {
+  describe('inset and actions', () => {
     it('draws the surface as a panel when inset', () => {
       const { container } = render(
         <Testimonial {...quote} emphasis='raised' inset />
@@ -197,32 +197,6 @@ describe('Testimonial', () => {
       expect(
         container.querySelector('[data-slot=block-surface]')
       ).toHaveAttribute('data-shape', 'panel')
-    })
-
-    it('centres the heading and quote by default, and starts them when asked', () => {
-      const { rerender } = render(<Testimonial {...quote} />)
-      expect(
-        screen.getByRole('heading', { level: 2 }).parentElement
-      ).toHaveClass('text-center')
-      expect(screen.getByRole('blockquote')).toHaveClass('text-center')
-
-      rerender(<Testimonial {...quote} align='start' />)
-      expect(
-        screen.getByRole('heading', { level: 2 }).parentElement
-      ).toHaveClass('text-start')
-      expect(screen.getByRole('blockquote')).toHaveClass('text-start')
-    })
-
-    it('sets the title a step smaller at md', () => {
-      const { rerender } = render(<Testimonial {...quote} />)
-      expect(screen.getByRole('heading', { level: 2 })).toHaveClass(
-        'text-display-prose-2'
-      )
-
-      rerender(<Testimonial {...quote} size='md' />)
-      expect(screen.getByRole('heading', { level: 2 })).toHaveClass(
-        'text-display-prose-3'
-      )
     })
 
     it('links on from under the quote', () => {
@@ -235,7 +209,6 @@ describe('Testimonial', () => {
 
       const link = screen.getByRole('link', { name: 'Read the case study' })
       expect(link).toHaveAttribute('href', '/case-studies')
-      expect(link.parentElement).toHaveClass('justify-center')
       expect(
         screen.getByRole('figure').compareDocumentPosition(link) &
           Node.DOCUMENT_POSITION_FOLLOWING

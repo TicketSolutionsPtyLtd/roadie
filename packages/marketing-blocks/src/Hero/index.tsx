@@ -11,6 +11,7 @@ import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
+import { BlockSurface } from '../_shared/BlockSurface'
 import {
   SPOT_ILLUSTRATIONS,
   type SpotIllustrationName
@@ -181,9 +182,9 @@ function TitleOnly({
   size
 }: PresetProps) {
   return (
-    <div
+    <BlockSurface
       className={cn(
-        'container-8xl grid *:min-w-0',
+        'grid *:min-w-0',
         ALIGN_ITEMS[align],
         size === 'md' ? 'gap-4' : 'gap-6'
       )}
@@ -205,7 +206,7 @@ function TitleOnly({
         intent={intent}
         className={ALIGN_ACTIONS[align]}
       />
-    </div>
+    </BlockSurface>
   )
 }
 
@@ -223,9 +224,9 @@ function PartnerHero({
   size
 }: PresetProps) {
   return (
-    <div
+    <BlockSurface
       className={cn(
-        'container-8xl grid grid-cols-1 gap-8 @xl:gap-16 @5xl:gap-24',
+        'grid grid-cols-1 gap-8 @xl:gap-16 @5xl:gap-24',
         partner && '@xl:grid-cols-[auto_minmax(0,1fr)] @3xl:grid-cols-2'
       )}
     >
@@ -233,7 +234,6 @@ function PartnerHero({
       <div
         className={cn(
           'grid min-w-0 grid-cols-1 content-start wrap-break-word',
-
           size === 'md' ? 'gap-6' : 'gap-8'
         )}
       >
@@ -263,7 +263,7 @@ function PartnerHero({
           className={ALIGN_ACTIONS[align]}
         />
       </div>
-    </div>
+    </BlockSurface>
   )
 }
 
@@ -299,9 +299,9 @@ function ImageHero({
   size
 }: PresetProps) {
   return (
-    <div
+    <BlockSurface
       className={cn(
-        'container-8xl grid gap-8 *:min-w-0 @xl:grid-cols-2 @xl:items-center @4xl:grid-cols-5',
+        'grid gap-8 *:min-w-0 @xl:grid-cols-2 @xl:items-center @4xl:grid-cols-5',
         size === 'md' ? '@4xl:gap-12' : '@4xl:gap-16'
       )}
     >
@@ -339,7 +339,7 @@ function ImageHero({
           />
         </div>
       )}
-    </div>
+    </BlockSurface>
   )
 }
 

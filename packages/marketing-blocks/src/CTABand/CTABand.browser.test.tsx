@@ -9,6 +9,7 @@ import {
   PHONE,
   axeViolations,
   photo,
+  textAlignOf,
   withBrowserPage
 } from '../_test/browser'
 import {
@@ -219,6 +220,44 @@ describe('CTABand size', () => {
     expect(medium.title).toBeLessThan(large.title)
     expect(medium.body).toBeLessThan(large.body)
   })
+})
+
+describe('CTABand align', () => {
+  it.each([
+    {
+      look: 'without a photo',
+      image: undefined,
+      align: undefined,
+      expected: 'center'
+    },
+    {
+      look: 'beside a photo',
+      image: props.image,
+      align: undefined,
+      expected: 'start'
+    },
+    {
+      look: 'beside a photo',
+      image: props.image,
+      align: 'center',
+      expected: 'center'
+    },
+    {
+      look: 'without a photo',
+      image: undefined,
+      align: 'start',
+      expected: 'start'
+    }
+  ] as const)(
+    'sets the copy $look to the $expected, with align $align',
+    ({ image, align, expected }) => {
+      render(<CTABand {...props} image={image} align={align} />)
+
+      expect(textAlignOf(screen.getByRole('heading', { level: 2 }))).toBe(
+        expected
+      )
+    }
+  )
 })
 
 describe('CTABand centred', () => {

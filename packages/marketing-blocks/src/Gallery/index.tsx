@@ -20,7 +20,7 @@ import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
-import { BLEED, BlockSurface } from '../_shared/BlockSurface'
+import { BLEED, BlockSurface, PAGE_GUTTER } from '../_shared/BlockSurface'
 import { presetOf } from '../_shared/presets'
 import type {
   BlockAlign,
@@ -172,7 +172,7 @@ export function Gallery({
       ) : onPage ? (
         <>
           <BlockSurface>{heading}</BlockSurface>
-          {marquee}
+          <div className={PAGE_GUTTER}>{marquee}</div>
           {actions && actions.length > 0 && (
             <BlockSurface>{blockActions}</BlockSurface>
           )}
@@ -218,7 +218,7 @@ function PausableMarquee({
       <Marquee speed={MARQUEE_SPEED} paused={stopped || hovered || focused}>
         {children}
       </Marquee>
-      <div className='container-8xl flex justify-end'>
+      <div className='mx-auto flex w-full max-w-8xl justify-end px-(--block-gutter)'>
         <IconButton
           size='icon-sm'
           intent={intent}

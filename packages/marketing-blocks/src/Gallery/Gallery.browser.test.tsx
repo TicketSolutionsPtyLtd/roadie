@@ -9,7 +9,9 @@ import {
   DESKTOP,
   PHONE,
   axeViolations,
+  fontSizeOf,
   photo,
+  textAlignOf,
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
@@ -318,6 +320,40 @@ describe('Gallery', () => {
       expect(await axeViolations(container)).toEqual([])
     }
   )
+})
+
+describe('Gallery align and size', () => {
+  const heading = () => screen.getByRole('heading', { level: 2 })
+
+  it.each([
+    { preset: 'carousel', align: undefined, expected: 'start' },
+    { preset: 'marquee', align: undefined, expected: 'center' },
+    { preset: 'carousel', align: 'center', expected: 'center' },
+    { preset: 'marquee', align: 'start', expected: 'start' }
+  ] as const)(
+    'sets the $preset heading to the $expected, with align $align',
+    ({ preset, align, expected }) => {
+      render(
+        <Gallery
+          preset={preset}
+          align={align}
+          title='Our people'
+          images={images}
+        />
+      )
+
+      expect(textAlignOf(heading())).toBe(expected)
+    }
+  )
+
+  it('sets the title smaller at md', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    const { rerender } = render(<Photos />)
+    const large = fontSizeOf(heading())
+
+    rerender(<Gallery title='Our people' images={images} size='md' />)
+    expect(fontSizeOf(heading())).toBeLessThan(large)
+  })
 })
 
 describe('Gallery surfaces', () => {

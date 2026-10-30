@@ -186,44 +186,6 @@ describe('FAQ', () => {
     }
   )
 
-  it('starts the heading by default, and centres it and the actions when asked', () => {
-    const actions = [
-      { label: 'See all FAQs', href: '/frequently-asked-questions' }
-    ]
-    const { rerender } = render(
-      <FAQ title='Questions, answered' items={items} actions={actions} />
-    )
-    const heading = () => screen.getByRole('heading', { level: 2 })
-    expect(heading().parentElement).toHaveClass('text-start')
-
-    rerender(
-      <FAQ
-        align='center'
-        title='Questions, answered'
-        items={items}
-        actions={actions}
-      />
-    )
-    expect(heading().parentElement).toHaveClass('text-center')
-    expect(
-      screen.getByRole('link', { name: 'See all FAQs' }).parentElement
-    ).toHaveClass('justify-center')
-  })
-
-  it('sets the title a step smaller at md', () => {
-    const { rerender } = render(
-      <FAQ title='Questions, answered' items={items} />
-    )
-    expect(screen.getByRole('heading', { level: 2 })).toHaveClass(
-      'text-display-prose-2'
-    )
-
-    rerender(<FAQ size='md' title='Questions, answered' items={items} />)
-    expect(screen.getByRole('heading', { level: 2 })).toHaveClass(
-      'text-display-prose-3'
-    )
-  })
-
   it('gives its strong action the block’s intent', () => {
     render(
       <FAQ

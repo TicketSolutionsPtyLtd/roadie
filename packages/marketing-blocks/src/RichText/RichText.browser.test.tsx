@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { RichText } from '.'
@@ -7,6 +7,9 @@ import {
   PHONE,
   atWidth,
   axeViolations,
+  centreOf,
+  fontSizeOf,
+  textAlignOf,
   widths,
   withBrowserPage
 } from '../_test/browser'
@@ -14,11 +17,6 @@ import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 import { longForm, statement } from './fixtures'
 
 withBrowserPage()
-
-const centreOf = (element: Element) => {
-  const { left, width } = element.getBoundingClientRect()
-  return left + width / 2
-}
 
 describe('RichText statement', () => {
   it('centres its paragraphs under the title, at the xl text size', async () => {
@@ -69,6 +67,45 @@ describe('RichText long-form', () => {
 
     expect(paragraph.getBoundingClientRect().width).toBeLessThan(800)
     expect(getComputedStyle(paragraph).textAlign).toBe('start')
+  })
+})
+
+describe('RichText align and size', () => {
+  const heading = () => screen.getByRole('heading', { level: 2 })
+
+  it('starts a statement’s text and actions when asked', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(
+      <RichText
+        {...statement}
+        align='start'
+        actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+      />
+    )
+
+    expect(textAlignOf(heading())).toBe('start')
+    expect(
+      screen.getByRole('link', { name: 'Talk to us' }).getBoundingClientRect()
+        .left
+    ).toBeCloseTo(heading().getBoundingClientRect().left, 0)
+  })
+
+  it('centres long form when asked', () => {
+    render(<RichText {...longForm} align='center' />)
+
+    expect(textAlignOf(heading())).toBe('center')
+  })
+
+  it.each([
+    ['statement', statement],
+    ['long-form', longForm]
+  ])('sets the %s title smaller at md', async (_, props) => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { rerender } = render(<RichText {...props} />)
+    const large = fontSizeOf(heading())
+
+    rerender(<RichText {...props} size='md' />)
+    expect(fontSizeOf(heading())).toBeLessThan(large)
   })
 })
 
