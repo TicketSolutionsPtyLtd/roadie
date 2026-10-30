@@ -50,6 +50,7 @@ import {
 } from '../plot/values'
 import {
   describeValue,
+  lowerFirst,
   plural,
   spokenPoint,
   trendSentence,
@@ -75,11 +76,6 @@ const EMPTY = 'Not enough data yet to show a trend'
 const FORECAST_LABEL = 'Forecast'
 const TYPICAL_RANGE = 'Typical range'
 const DAY = 86_400_000
-
-const lowerFirst = (text: string) =>
-  /^[A-Z]{2,}s?\b/.test(text)
-    ? text
-    : text.charAt(0).toLowerCase() + text.slice(1)
 
 function comparisonAt(props: LineChartProps, x: number | string) {
   const label = comparisonLabel(props)
