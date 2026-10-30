@@ -62,7 +62,7 @@ In a config, each rule takes the `roadie/` prefix, such as `roadie/no-dark-varia
 
 | Rule                      | Fails                                                                    | Fix                                                           |
 | ------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------- |
-| `phosphor-icon-suffix`    | A Phosphor import by its bare name, such as `Heart`                      | Import `HeartIcon`                                            |
+| `phosphor-icon-suffix`    | A Phosphor icon imported or used by its bare name, such as `Heart`       | `HeartIcon`                                                   |
 | `phosphor-icon-size-prop` | The `size` prop on a Phosphor icon                                       | A `size-*` class                                              |
 | `phosphor-icon-weight`    | A Phosphor icon with no weight, or one other than bold, fill, or duotone | `weight='bold'`                                               |
 | `no-dark-variant`         | A `dark:` variant                                                        | A semantic colour utility                                     |
@@ -115,7 +115,7 @@ A `matchMedia` fake that answers only a preference, such as `prefers-reduced-mot
 
 ## Icons without an import
 
-The Phosphor rules find icons by their import. Code that gets icons another way, such as a live code editor with icons in scope, names them in `settings.roadie.phosphorIcons`.
+The Phosphor rules find icons by their import. Code that gets icons another way, such as a live code editor with icons in scope, names them in `settings.roadie.phosphorIcons`. Put icons in that scope by their Icon-suffixed names: a bare name in the list, such as `Heart`, fails `roadie/phosphor-icon-suffix` where the code renders it, as `<Heart />`, or passes it as a prop, as `icon={Heart}`.
 
 ```json
 {

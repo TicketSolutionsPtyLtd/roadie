@@ -61,10 +61,10 @@
     }
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "8.72.0",
+    "@typescript-eslint/parser": "8.72.1",
     "eslint": "10.13.0",
     "eslint-v9": "npm:eslint@9.39.5",
-    "oxlint": "1.89.0",
+    "oxlint": "1.90.0",
     "typescript": "6.0.3",
     "vitest": "5.0.5"
   }

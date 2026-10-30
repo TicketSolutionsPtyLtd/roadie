@@ -41,13 +41,13 @@ A design system that accepts an `href` prop on link-shaped components
 boundary for any href that flows through the app. If the system passes
 the href straight to `<a href={value}>`, every consumer is responsible
 for sanitizing user-controlled URLs before they reach the design
-system — and that responsibility is silently distributed across every
+system, and that responsibility is silently distributed across every
 call site. One forgotten validation and `javascript:alert(document.cookie)`
 ships.
 
 The original Roadie `resolveLinkKind` classified hrefs into `'button' |
 'external' | 'protocol' | 'internal'` and let everything that wasn't
-`https://`, `mailto:`, etc. fall through to `'internal'` — including
+`https://`, `mailto:`, etc. fall through to `'internal'`, including
 `javascript:`, `data:`, `vbscript:`, `blob:`, and `file:`. An
 adversarial code-review subagent flagged this with 0.97 confidence as
 the highest-severity issue in the PR.
@@ -55,7 +55,7 @@ the highest-severity issue in the PR.
 ## Guidance
 
 Classify dangerous protocols explicitly and refuse to render them.
-Don't accept `javascript:` or `data:` as a valid `href` shape — the
+Don't accept `javascript:` or `data:` as a valid `href` shape: the
 design system is the right place to draw that line.
 
 ```ts
@@ -70,7 +70,7 @@ export type ResolvedLinkKind =
 const EXTERNAL_PATTERN = /^(https?:)?\/\//i
 const PROTOCOL_PATTERN = /^(mailto|tel|sms):/i
 const UNSAFE_PATTERN = /^\s*(javascript|data|vbscript|blob|file):/i
-//                     ^^^ leading whitespace stripped — `\tjavascript:` is still unsafe
+//                     ^^^ leading whitespace stripped: `\tjavascript:` is still unsafe
 
 export function resolveLinkKind(href: string | undefined): ResolvedLinkKind {
   if (href === undefined) return 'button'
@@ -144,7 +144,7 @@ N apps × 1 enforcement point.
 that does nothing (anchor jumps to top of page, but no script
 execution, no exfiltration, no navigation to attacker-controlled
 content). Consumers who need an unsafe URL have an explicit escape
-hatch — pass `render={<a href={sanitized} />}` after their own
+hatch: pass `render={<a href={sanitized} />}` after their own
 sanitization step.
 
 **Browser-level mitigations exist but aren't enough.** Modern CSPs
@@ -165,12 +165,12 @@ from caller code**:
 - Any prop that ends up as `<form action={…}>`
 
 Skip when the href is a literal in the component itself (e.g., a
-`<Button href='/account'>` hardcoded in a layout) — the threat model
+`<Button href='/account'>` hardcoded in a layout): the threat model
 is user-controlled values, not constants.
 
 ## Examples
 
-### Before — silent XSS path
+### Before: silent XSS path
 
 ```tsx
 // CMS-driven link, value from JSON ↓
@@ -181,7 +181,7 @@ return <Button href={url}>Get tickets</Button>
 // → click executes, cookies exfiltrated
 ```
 
-### After — design-system boundary catches it
+### After: design-system boundary catches it
 
 ```tsx
 const url = collection.callToActionHref
@@ -192,7 +192,7 @@ return <Button href={url}>Get tickets</Button>
 // → click is inert, console shows the rejected href in dev
 ```
 
-### Escape hatch — for the rare legitimate case
+### Escape hatch: for the rare legitimate case
 
 ```tsx
 // If a consumer genuinely needs to render an unsafe protocol (e.g., a
@@ -207,23 +207,23 @@ The escape hatch is deliberately verbose so it shows up in code review.
 
 ## Related Solutions
 
-- [Avoid the `use` prefix on pure helpers](./use-prefix-non-hook-forward-compat-hazard.md) —
+- [Avoid the `use` prefix on pure helpers](./use-prefix-non-hook-forward-compat-hazard.md):
   another design-system authoring lesson from the same Roadie review pass.
-- [Cross-bundler dev-env check](../build-errors/cross-bundler-dev-env-check.md) —
+- [Cross-bundler dev-env check](../build-errors/cross-bundler-dev-env-check.md):
   the `isDev()` guard used here for the dev-only warning is a
   cross-bundler-safe variant of `process.env.NODE_ENV`.
 
 ## Prevention
 
 - **List dangerous protocols once, in one helper.** Don't scatter
-  `if (href.startsWith('javascript:'))` checks across components — one
+  `if (href.startsWith('javascript:'))` checks across components. One
   central regex is testable and auditable.
 - **Match case-insensitively and strip leading whitespace** before
   testing. `JavaScript:`, `\tjavascript:`, and `javascript:` are all
   the same threat.
 - **Test the negative cases too.** `/javascript-tutorial` and
-  `https://example.com/data:foo` must continue to classify correctly
-  — false positives are also bugs.
+  `https://example.com/data:foo` must continue to classify correctly.
+  False positives are also bugs.
 - **Keep `'unsafe'` as a distinct kind, not a special case in
   `'internal'` / `'protocol'`.** Future contributors reading the type
   union see the security stance immediately.
