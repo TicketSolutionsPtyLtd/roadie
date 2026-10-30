@@ -148,11 +148,13 @@ describe('DashboardPeriod', () => {
       /^Last 12 months/,
       /^This financial year/
     ].map((name) => within(dialog).getByRole('button', { name }))
-    for (const [index, preset] of presets.slice(1).entries())
+    presets.reduce((previous, preset) => {
       expect(
-        presets[index].compareDocumentPosition(preset) &
+        previous.compareDocumentPosition(preset) &
           Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy()
+      return preset
+    })
   })
 
   it('turns Compare off for the default Upcoming preset', async () => {
