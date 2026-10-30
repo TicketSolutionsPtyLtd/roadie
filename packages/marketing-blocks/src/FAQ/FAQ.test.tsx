@@ -84,6 +84,24 @@ describe('FAQ', () => {
     })
   })
 
+  it('doesn’t report opening a question as a click', async () => {
+    const onBlockEvent = vi.fn()
+    render(
+      <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
+        <FAQ title='Questions, answered' items={items} />
+      </MarketingBlocksProvider>
+    )
+
+    await userEvent.click(screen.getByText('Who do I contact?'))
+
+    expect(
+      screen.getByRole('link', { name: 'admin@oztix.com.au' })
+    ).toBeVisible()
+    expect(onBlockEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'click' })
+    )
+  })
+
   it('lists a question twice when it’s asked twice', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     const repeated = [items[0]!, items[0]!]
