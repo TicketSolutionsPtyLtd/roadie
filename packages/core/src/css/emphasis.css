@@ -128,8 +128,11 @@
   border-style: solid;
 
   /* No selector can find a target outside nested surfaces, so a surface with
-     its own target and nested ones keeps its rest tint. */
-  &.is-interactive,
+     its own target and nested ones keeps its rest tint. Separate rules, as a
+     lowered list becomes an :is() as specific as its :has(), outranking hover. */
+  &.is-interactive {
+    background-color: transparent;
+  }
   &.is-interactive-within:has([data-interactive-target]):not(
       :has(.is-interactive-within [data-interactive-target])
     ) {

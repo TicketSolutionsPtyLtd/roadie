@@ -35,7 +35,10 @@ export const toggleGroupItemVariants = cva(
     'rounded-full font-semibold whitespace-nowrap select-none',
     // Pulled in by a pixel so the ring fits the track's padding, which clips it.
     'focus-visible:-outline-offset-1',
-    'not-data-[pressed]:is-unselected',
+    // Unpressed items take a subtler button's hover fill, over any track. A
+    // fixed border keeps their size as they're pressed, and the padding gives
+    // its width back.
+    'border not-data-[pressed]:emphasis-subtler not-data-[pressed]:is-unselected',
     'data-[icon-only]:aspect-square data-[icon-only]:px-0',
     'group-data-[orientation=vertical]/toggle-group:justify-start group-data-[orientation=vertical]/toggle-group:rounded-lg',
     '[&_svg]:shrink-0'
@@ -43,15 +46,14 @@ export const toggleGroupItemVariants = cva(
   {
     variants: {
       size: {
-        sm: "h-6 px-2.5 text-xs [&_svg:not([class*='size-'])]:size-3.5",
-        md: "h-8 px-3 text-sm [&_svg:not([class*='size-'])]:size-4",
-        lg: "h-10 px-4 text-base [&_svg:not([class*='size-'])]:size-5"
+        sm: "h-6 px-[calc(--spacing(2.5)-1px)] text-xs [&_svg:not([class*='size-'])]:size-3.5",
+        md: "h-8 px-[calc(--spacing(3)-1px)] text-sm [&_svg:not([class*='size-'])]:size-4",
+        lg: "h-10 px-[calc(--spacing(4)-1px)] text-base [&_svg:not([class*='size-'])]:size-5"
       },
       emphasis: {
         normal: 'data-[pressed]:is-selected-label-on-strong',
         subtle: 'data-[pressed]:is-selected-label-on-strong',
-        subtler:
-          'border not-data-[pressed]:emphasis-subtler data-[pressed]:is-selected-label'
+        subtler: 'data-[pressed]:is-selected-label'
       },
       raisePressed: { true: '', false: '' }
     },

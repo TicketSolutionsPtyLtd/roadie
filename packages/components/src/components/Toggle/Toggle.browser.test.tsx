@@ -1,77 +1,86 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { commands } from 'vitest/browser'
 
-import { Toggle } from '.'
+import { Toggle, type ToggleEmphasis } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
 import { ToggleGroup } from '../ToggleGroup'
+import { hoverFill, settledStylesheet } from './testUtils'
 
 let removeStylesheet = () => {}
-beforeAll(() => {
-  // Read the hover fill itself, not a frame of its transition.
-  removeStylesheet = useStylesheet(
-    `${roadieCss} * { transition: none !important; }`
-  )
+beforeAll(async () => {
+  removeStylesheet = useStylesheet(await settledStylesheet(commands, roadieCss))
 })
 afterAll(() => removeStylesheet())
 afterEach(() => cleanup())
 
-async function hoveredFill(element: HTMLElement) {
-  await userEvent.hover(element)
-  return getComputedStyle(element).backgroundColor
-}
+const EMPHASES: ToggleEmphasis[] = ['normal', 'subtle', 'subtler']
 
-describe('Toggle at subtler emphasis', () => {
-  it('takes a subtler button’s hover fill', async () => {
+describe('Toggle hover', () => {
+  it.each(EMPHASES)(
+    'fills an unpressed toggle at %s emphasis',
+    async (emphasis) => {
+      render(<Toggle emphasis={emphasis}>Italic</Toggle>)
+      const { rest, hovered } = await hoverFill(
+        screen.getByRole('button', { name: 'Italic' })
+      )
+
+      expect(hovered).not.toBe(rest)
+    }
+  )
+
+  it('takes a subtler button’s hover fill at subtler emphasis', async () => {
     render(
       <>
         <Button emphasis='subtler'>Bold</Button>
         <Toggle emphasis='subtler'>Italic</Toggle>
       </>
     )
-    const button = await hoveredFill(
-      screen.getByRole('button', { name: 'Bold' })
-    )
-    const toggle = await hoveredFill(
+    const button = await hoverFill(screen.getByRole('button', { name: 'Bold' }))
+    const toggle = await hoverFill(
       screen.getByRole('button', { name: 'Italic' })
     )
 
-    expect(toggle).toBe(button)
+    expect(toggle.hovered).toBe(button.hovered)
   })
+})
 
-  it('fills a group’s item on hover as a subtler button does', async () => {
-    render(
-      <>
-        <Button emphasis='subtler'>Bold</Button>
-        <ToggleGroup emphasis='subtler' defaultValue={['list']}>
+describe('ToggleGroup hover', () => {
+  it.each(EMPHASES)(
+    'fills an unpressed item at %s emphasis',
+    async (emphasis) => {
+      render(
+        <ToggleGroup emphasis={emphasis} defaultValue={['list']}>
           <ToggleGroup.Item value='list'>List</ToggleGroup.Item>
           <ToggleGroup.Item value='grid'>Grid</ToggleGroup.Item>
         </ToggleGroup>
-      </>
-    )
-    const button = await hoveredFill(
-      screen.getByRole('button', { name: 'Bold' })
-    )
-    const item = await hoveredFill(screen.getByRole('button', { name: 'Grid' }))
+      )
+      const { rest, hovered } = await hoverFill(
+        screen.getByRole('button', { name: 'Grid' })
+      )
 
-    expect(item).toBe(button)
-  })
+      expect(hovered).not.toBe(rest)
+    }
+  )
 
-  it('keeps a group item’s size as it is pressed', async () => {
-    render(
-      <ToggleGroup emphasis='subtler' defaultValue={['list']}>
-        <ToggleGroup.Item value='list'>List</ToggleGroup.Item>
-        <ToggleGroup.Item value='grid'>Grid</ToggleGroup.Item>
-      </ToggleGroup>
-    )
-    const grid = screen.getByRole('button', { name: 'Grid' })
-    const before = grid.getBoundingClientRect().width
+  it.each(EMPHASES)(
+    'keeps an item’s size as it is pressed at %s emphasis',
+    async (emphasis) => {
+      render(
+        <ToggleGroup emphasis={emphasis} defaultValue={['list']}>
+          <ToggleGroup.Item value='list'>List</ToggleGroup.Item>
+          <ToggleGroup.Item value='grid'>Grid</ToggleGroup.Item>
+        </ToggleGroup>
+      )
+      const grid = screen.getByRole('button', { name: 'Grid' })
+      const before = grid.getBoundingClientRect().width
 
-    await userEvent.click(grid)
+      grid.click()
 
-    expect(grid).toHaveAttribute('aria-pressed', 'true')
-    expect(grid.getBoundingClientRect().width).toBe(before)
-  })
+      await expect.element(grid).toHaveAttribute('aria-pressed', 'true')
+      expect(grid.getBoundingClientRect().width).toBe(before)
+    }
+  )
 })

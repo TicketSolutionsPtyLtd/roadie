@@ -526,6 +526,26 @@ describe('Prose', () => {
     expect(style(get(container, '#opted-out')).fontStyle).toBe('normal')
   })
 
+  it('keeps text inside emphasis italic, under other marks', () => {
+    const container = renderWide(
+      <Prose>
+        <p>
+          <strong>
+            <em>
+              <u id='underlined'>No refunds</u> or{' '}
+              <a id='link' href='/refunds'>
+                exchanges
+              </a>
+            </em>
+          </strong>
+        </p>
+      </Prose>
+    )
+    for (const id of ['#underlined', '#link']) {
+      expect(style(get(container, id)).fontStyle).toBe('italic')
+    }
+  })
+
   it('takes its colours from the scheme, with no rules of its own', () => {
     const container = renderWide(
       <Prose>
