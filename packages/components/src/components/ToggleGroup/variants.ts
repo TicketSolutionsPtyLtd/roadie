@@ -50,7 +50,8 @@ export const toggleGroupItemVariants = cva(
       emphasis: {
         normal: 'data-[pressed]:is-selected-label-on-strong',
         subtle: 'data-[pressed]:is-selected-label-on-strong',
-        subtler: 'data-[pressed]:is-selected-label'
+        subtler:
+          'border not-data-[pressed]:emphasis-subtler data-[pressed]:is-selected-label'
       },
       raisePressed: { true: '', false: '' }
     },
