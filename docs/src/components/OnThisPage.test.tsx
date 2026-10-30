@@ -159,6 +159,17 @@ describe('useDocHeadings', () => {
     expect(scrolledTo).toEqual([content.querySelector('#meter')])
   })
 
+  it("keeps the reader's place when the URL changes but its hash doesn't", () => {
+    window.history.replaceState(null, '', '#meter')
+    const navigation = stubNavigation()
+    const { content } = landing(mountPage)
+    landing(() => {
+      window.history.pushState(null, '', '?view=grid#meter')
+      navigation.dispatchEvent(new Event('currententrychange'))
+    })
+    expect(scrolledTo).toEqual([content.querySelector('#meter')])
+  })
+
   it('leaves the landing to a clicked heading when its hash reaches the URL', () => {
     const navigation = stubNavigation()
     const { content, result } = mountPage()
