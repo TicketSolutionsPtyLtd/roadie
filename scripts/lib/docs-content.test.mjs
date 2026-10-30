@@ -46,6 +46,7 @@ describe('externalImageFindings', () => {
       check("srcSet='/a.png 1x, https://example.com/a@2x.png 2x'"),
       [1]
     )
+    assert.deepEqual(check("<img src='https://' />"), [1])
   })
 
   test('passes relative paths and the Oztix asset host', () => {

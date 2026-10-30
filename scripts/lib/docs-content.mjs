@@ -47,7 +47,7 @@ const IMAGE_SOURCE =
 
 export function externalImageHost(url) {
   if (!/^(?:https?:)?\/\//i.test(url)) return null
-  const { hostname } = new URL(url, 'https://localhost')
+  const hostname = URL.parse(url, 'https://localhost')?.hostname || url
   return IMAGE_HOSTS.includes(hostname) ? null : hostname
 }
 

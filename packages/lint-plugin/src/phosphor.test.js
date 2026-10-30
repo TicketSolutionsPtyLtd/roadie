@@ -14,6 +14,10 @@ runRuleCases({
       {
         code: '<Heart />',
         settings: { roadie: { phosphorIcons: ['HeartIcon'] } }
+      },
+      {
+        code: '<Provider value={IconContext} />',
+        settings: { roadie: { phosphorIcons: ['IconContext'] } }
       }
     ],
     invalid: [
