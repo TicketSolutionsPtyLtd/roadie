@@ -169,9 +169,20 @@ function zoneParts(
     const long = words({ weekday: 'long' }).formatToParts(date)
     const short = words({ weekday: 'short' }).formatToParts(date)
     // A month on its own: the standalone form, and ja's 月, which Intl puts
-    // in a literal beside the month part.
-    const monthLong = words({ month: 'long' }).format(date)
-    const monthShort = words({ month: 'short' }).format(date)
+    // in a literal after the month. dz's literal before it would double the
+    // long name's prefix.
+    const month = (style: 'long' | 'short') => {
+      const parts = words({ month: style }).formatToParts(date)
+      const at = parts.findIndex((p) => p.type === 'month')
+      return at < 0
+        ? ''
+        : parts
+            .slice(at)
+            .map((p) => p.value)
+            .join('')
+    }
+    const monthLong = month('long')
+    const monthShort = month('short')
 
     // Latin digits. Reading numbers from the localised pass yields '٢٧' under
     // ar-EG, which Number() turns into NaN.

@@ -253,8 +253,14 @@ describe('locales', () => {
     expect(formatMedium(start, { ...bne, locale: 'ja' })).toBe('27 11月 2026')
   })
 
+  it('drops a literal Intl puts before the month', () => {
+    expect(formatMedium(start, { ...bne, locale: 'dz' })).toBe('27 ཟླ་༡༡ 2026')
+  })
+
   it('names the month on its own in a locale that inflects it', () => {
-    expect(formatMedium(start, { ...bne, locale: 'ru' })).toMatch(/^27 нояб/)
+    expect(formatFull(start, { ...bne, locale: 'ru' })).toMatch(
+      /, 27 ноябрь 2026$/
+    )
   })
 
   it('keeps the numbers Latin while the words follow the locale', () => {
