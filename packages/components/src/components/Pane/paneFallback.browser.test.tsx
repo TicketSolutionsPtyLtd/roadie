@@ -60,8 +60,11 @@ describe('without container style queries', () => {
   const shapes = rowShapes().filter(
     ({ spec }) => !spec.panes.some((pane) => pane.depth === 'deep')
   )
+  // One test per variant (16 reached sets each) keeps every case under the
+  // timeout on a slow CI runner: each width is a forced layout, and four
+  // levels is 192 shapes in all.
   const families = Map.groupBy(shapes, (shape) =>
-    shape.name.replace(/ \/ .*/, '')
+    shape.name.replace(/ \/ reached \d+/, '')
   )
 
   it.each([...families.keys()])(
@@ -70,8 +73,14 @@ describe('without container style queries', () => {
       const problems: string[] = []
       for (const { name, spec } of families.get(family)!) {
         const positioned = withRegisteredPositions(spec)
+        // The tiers are container queries, so resizing one mount reaches every
+        // width without parsing and restyling the row again for each.
+        const content = mount(
+          contentMarkup(rowMarkup(positioned)),
+          TIER_WIDTHS[0]!
+        )
         for (const width of TIER_WIDTHS) {
-          const content = mount(contentMarkup(rowMarkup(positioned)), width)
+          content.parentElement!.style.width = `${width}px`
           const frame = content.getBoundingClientRect()
           const panes = Array.from(
             content.querySelectorAll<HTMLElement>(
