@@ -184,9 +184,10 @@ export function Chart({
   // before this one, so it never sees this flag turn true without a report.
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
-  // The failure belongs to the plot that caused it, so new children retry.
+  // The failure belongs to the plot that caused it, so new children retry,
+  // and gives way to the app's own state while it has no data to draw.
   const [failedOn, setFailedOn] = useState<ReactNode>(null)
-  const failed = failedOn !== null && failedOn === children
+  const failed = failedOn !== null && failedOn === children && hasData(state)
   const fail = useCallback(() => setFailedOn(children), [children])
   const { patterns, style: patternStyle } = useChartPatterns()
   const [shownView, setShownView] = useState(view)

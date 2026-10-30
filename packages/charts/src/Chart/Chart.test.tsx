@@ -348,6 +348,57 @@ describe('Chart when its plot cannot draw', () => {
   })
 })
 
+describe('Chart whose plot failed, then whose data failed', () => {
+  it("shows the app's error message over the draw error", () => {
+    const plot = (
+      <ChartPlot chart={brokenChart} props={{ points: testPoints }} />
+    )
+    const { rerender } = render(
+      <Chart label='Tickets sold' source='Oztix sales.' size='md'>
+        {plot}
+      </Chart>
+    )
+    expect(screen.getByText("This chart couldn't be drawn")).toBeVisible()
+    rerender(
+      <Chart
+        label='Tickets sold'
+        source='Oztix sales.'
+        size='md'
+        state='error'
+        errorMessage='Sales are offline'
+      >
+        {plot}
+      </Chart>
+    )
+    expect(screen.getByText('Sales are offline')).toBeVisible()
+  })
+
+  it('shows loading while the app refetches', () => {
+    const plot = (
+      <ChartPlot chart={brokenChart} props={{ points: testPoints }} />
+    )
+    const { rerender } = render(
+      <Chart label='Tickets sold' source='Oztix sales.' size='md'>
+        {plot}
+      </Chart>
+    )
+    rerender(
+      <Chart
+        label='Tickets sold'
+        source='Oztix sales.'
+        size='md'
+        state='loading'
+      >
+        {plot}
+      </Chart>
+    )
+    expect(document.querySelector('[data-slot=data-card]')).toHaveAttribute(
+      'data-state',
+      'loading'
+    )
+  })
+})
+
 describe('Chart when its plot throws', () => {
   function Broken(): never {
     throw new Error('No scale range')
