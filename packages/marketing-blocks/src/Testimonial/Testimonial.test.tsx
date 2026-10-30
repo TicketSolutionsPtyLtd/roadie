@@ -138,4 +138,57 @@ describe('Testimonial', () => {
 
     expect(onBlockEvent).not.toHaveBeenCalled()
   })
+
+  describe('intent and emphasis', () => {
+    it('tints the quote mark and portrait info by default, with no band', () => {
+      const { container } = render(<Testimonial {...quote} />)
+
+      const section = container.querySelector('section')!
+      expect(section).not.toHaveAttribute('data-intent')
+      expect(section.className).not.toMatch(/emphasis-/)
+      expect(screen.getByRole('blockquote')).toHaveClass('intent-info')
+      expect(
+        screen.getByRole('img', { name: 'Portrait of Mia Tran' }).parentElement
+      ).toHaveClass('intent-info')
+    })
+
+    it('carries its intent to the section, quote mark, and portrait', () => {
+      const { container } = render(<Testimonial {...quote} intent='brand' />)
+
+      expect(container.querySelector('section')).toHaveAttribute(
+        'data-intent',
+        'brand'
+      )
+      expect(screen.getByRole('blockquote')).toHaveClass('intent-brand')
+      expect(
+        screen.getByRole('img', { name: 'Portrait of Mia Tran' }).parentElement
+      ).toHaveClass('intent-brand')
+    })
+
+    it.each(['raised', 'subtle', 'subtler'] as const)(
+      'draws a %s band behind the quote',
+      (emphasis) => {
+        const { container } = render(
+          <Testimonial
+            {...quote}
+            backgroundImage={undefined}
+            emphasis={emphasis}
+          />
+        )
+
+        expect(container.querySelector('section')).toHaveClass(
+          `emphasis-${emphasis}`
+        )
+      }
+    )
+
+    it('fades the background photo over the band when both are set', () => {
+      const { container } = render(<Testimonial {...quote} emphasis='subtle' />)
+
+      expect(container.querySelector('section')).toHaveClass('emphasis-subtle')
+      expect(
+        container.querySelector(`img[src="${quote.backgroundImage.src}"]`)
+      ).toBeInTheDocument()
+    })
+  })
 })

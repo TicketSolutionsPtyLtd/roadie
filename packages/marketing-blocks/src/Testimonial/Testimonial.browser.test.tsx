@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import { Testimonial } from '.'
 import {
@@ -10,6 +10,7 @@ import {
   widths,
   withBrowserPage
 } from '../_test/browser'
+import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 import { quote as fixture } from './fixtures'
 
 withBrowserPage()
@@ -139,4 +140,83 @@ describe('Testimonial accessibility', () => {
       expect(await axeViolations(container)).toEqual([])
     }
   )
+})
+
+describe('Testimonial contrast', () => {
+  afterEach(() => setMode('light'))
+
+  const cases = MODES.flatMap((theme) =>
+    ([undefined, 'raised', 'subtle', 'subtler'] as const).flatMap((emphasis) =>
+      ([undefined, 'brand', 'danger'] as const).map((intent) => ({
+        theme,
+        emphasis: emphasis ?? 'none',
+        intent: intent ?? 'none',
+        props: { emphasis, intent }
+      }))
+    )
+  )
+
+  it.each(cases)(
+    'keeps APCA contrast in $theme mode, emphasis $emphasis, intent $intent',
+    async ({ theme, props }) => {
+      await atWidth(DESKTOP.width, DESKTOP.height)
+      setMode(theme)
+      render(
+        <div className='bg-normal'>
+          <Testimonial
+            {...quote}
+            {...props}
+            organisation={{ name: 'Thimble Orbit Presents' }}
+            backgroundImage={undefined}
+          />
+        </div>
+      )
+
+      const large = [
+        screen.getByRole('heading', { level: 2 }),
+        screen.getByRole('blockquote').querySelector('p')!
+      ]
+      const body = [
+        screen.getByText(quote.description),
+        screen.getByText('Mia Tran'),
+        screen.getByText('Head of Programming'),
+        screen.getByText('Thimble Orbit Presents')
+      ]
+      for (const element of large)
+        expect(
+          textContrast(element),
+          element.textContent!
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+      for (const element of body)
+        expect(
+          textContrast(element),
+          element.textContent!
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+    }
+  )
+
+  it.each(['raised', 'subtle', 'subtler'] as const)(
+    'has no axe violations on a %s band',
+    async (emphasis) => {
+      const { container } = render(
+        <main>
+          <Testimonial {...quote} emphasis={emphasis} intent='brand' />
+        </main>
+      )
+
+      expect(await axeViolations(container)).toEqual([])
+    }
+  )
+
+  it('pads its content inside the band', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { container } = render(
+      <Testimonial {...quote} backgroundImage={undefined} emphasis='subtle' />
+    )
+
+    expect(
+      screen.getByRole('heading', { level: 2 }).getBoundingClientRect().top -
+        container.querySelector('section')!.getBoundingClientRect().top
+    ).toBeGreaterThan(0)
+  })
 })

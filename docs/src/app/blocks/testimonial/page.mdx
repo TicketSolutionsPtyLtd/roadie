@@ -45,9 +45,43 @@ behind the whole block.
 />
 ```
 
+### Intent and emphasis
+
+`intent` tints the quote mark, the portrait's border, and highlighted words;
+without one they're info. `emphasis` sets a `raised`, `subtle`, or `subtler`
+band behind the block, which then pads its content. With a
+`backgroundImage` too, the photo fades over the band's colour.
+
+```tsx-live id=intent-and-emphasis
+<Testimonial
+  intent='brand'
+  emphasis='subtle'
+  title='Our partners say it best'
+  titleHighlight='say it best'
+  quote='Oztix are attuned to what we need and quick to respond, and their marketing sells tickets, plain and simple.'
+  person={{
+    name: 'Mia Tran',
+    role: 'Head of Programming',
+    image: { src: '/brand/photography/04.webp', alt: 'Portrait of Mia Tran', width: 120, height: 120 }
+  }}
+  organisation={{ name: 'Thimble Orbit Presents' }}
+/>
+```
+
 ## Guidelines
 
 <Guidelines>
+
+<Guideline title='Keep the defaults unless the page has a reason'>
+  <Guideline.Do>
+    Add a band when the testimonial follows another block on the plain page
+    background and needs setting apart, and match `intent` to the page's
+    colour.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't band two blocks in a row; the page loses its rhythm.
+  </Guideline.Dont>
+</Guideline>
 
 <Guideline title='Answer first'>
   <Guideline.Do>

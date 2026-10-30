@@ -7,6 +7,12 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
+import {
+  type BlockEmphasis,
+  type BlockIntent,
+  emphasisClass,
+  intentClass
+} from '../_shared/surface'
 import { type TestimonialPreset, testimonialDefinition } from './definition'
 
 export type { TestimonialPreset } from './definition'
@@ -51,9 +57,19 @@ export type TestimonialProps = {
   person: TestimonialPerson
   /** Where they work. */
   organisation?: TestimonialOrganisation
-  /** A photo faded behind the whole block, which then pads its content. Decorative, so its alt text isn't read. */
+  /** A photo faded behind the whole block, which then pads its content. Decorative, so its alt text isn't read. Over an `emphasis` band, it fades over the band's colour. */
   backgroundImage?: BlockImage
+  /** The block's intent: it tints the quote mark, the portrait's border, and highlighted words. Info for the quote mark and portrait without one. */
+  intent?: BlockIntent
+  /** A band behind the whole block, which then pads its content. None by default. */
+  emphasis?: TestimonialEmphasis
 }
+
+/** The bands a testimonial's text stays readable on in both themes. */
+export type TestimonialEmphasis = Extract<
+  BlockEmphasis,
+  'raised' | 'subtle' | 'subtler'
+>
 
 /** A client's quote, large and centred, with their portrait, role, and organisation. */
 export function Testimonial({
@@ -67,7 +83,9 @@ export function Testimonial({
   quote,
   person,
   organisation,
-  backgroundImage
+  backgroundImage,
+  intent,
+  emphasis
 }: TestimonialProps) {
   const { name, variant } = presetOf(testimonialDefinition, preset)
   const headingId = useId()
@@ -79,7 +97,8 @@ export function Testimonial({
       position={position}
       id={id}
       aria-labelledby={headingId}
-      className='relative isolate grid'
+      intent={intent}
+      className={cn('relative isolate grid', emphasisClass(emphasis))}
     >
       {backgroundImage && (
         <BlockImg
@@ -91,19 +110,24 @@ export function Testimonial({
       <div
         className={cn(
           'container-4xl grid justify-items-center gap-16 *:min-w-0',
-          backgroundImage && 'py-12 @xl:py-16 @3xl:py-20'
+          (backgroundImage || emphasis) && 'py-12 @xl:py-16 @3xl:py-20'
         )}
       >
         <BlockHeading
           id={headingId}
+          intent={intent}
           eyebrow={eyebrow}
           title={title}
           titleHighlight={titleHighlight}
           description={description}
         />
         <figure className='grid justify-items-center gap-8 *:min-w-0'>
-          <Quote>{quote}</Quote>
-          <Citation person={person} organisation={organisation} />
+          <Quote intent={intent}>{quote}</Quote>
+          <Citation
+            person={person}
+            organisation={organisation}
+            intent={intent}
+          />
         </figure>
       </div>
     </BlockRoot>
@@ -115,28 +139,43 @@ const LOGO_WIDTH = 160
 
 // The glyph's negative margin tucks the quote's first line into its lower
 // half, as a typeset pull quote does.
-function Quote({ children }: { children: string }) {
+function Quote({
+  children,
+  intent
+}: {
+  children: string
+  intent?: BlockIntent
+}) {
   return (
     <blockquote
-      className={
-        'isolate max-w-2xl text-center text-display-prose-5 leading-tight text-balance text-strong @xl:text-display-prose-4 ' +
-        'before:relative before:-z-1 before:-mb-[0.45em] before:block before:text-[10em] before:leading-[0.5] before:text-subtler before:opacity-50 before:content-[open-quote] before:intent-info after:content-[no-close-quote]'
-      }
+      className={cn(
+        'isolate max-w-2xl text-center text-display-prose-5 leading-tight text-balance @xl:text-display-prose-4',
+        'before:relative before:-z-1 before:-mb-[0.45em] before:block before:text-[10em] before:leading-[0.5] before:text-subtler before:opacity-50 before:content-[open-quote] after:content-[no-close-quote]',
+        intentClass(intent ?? 'info')
+      )}
     >
-      <p>{children}</p>
+      <p className={cn(intentClass(intent ?? 'neutral'), 'text-strong')}>
+        {children}
+      </p>
     </blockquote>
   )
 }
 
 function Citation({
   person,
-  organisation
-}: Pick<TestimonialProps, 'person' | 'organisation'>) {
+  organisation,
+  intent
+}: Pick<TestimonialProps, 'person' | 'organisation' | 'intent'>) {
   const logo = organisation?.logo
   return (
     <figcaption className='flex items-start gap-4 @xl:gap-6 @3xl:gap-8'>
       {person.image && (
-        <div className='aspect-square w-20 shrink-0 overflow-clip rounded-xl border-4 border-normal intent-info @xl:w-30'>
+        <div
+          className={cn(
+            'aspect-square w-20 shrink-0 overflow-clip rounded-xl border-4 border-normal @xl:w-30',
+            intentClass(intent ?? 'info')
+          )}
+        >
           <BlockImg
             image={person.image}
             sizes='120px'

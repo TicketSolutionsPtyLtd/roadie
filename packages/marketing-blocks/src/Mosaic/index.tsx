@@ -1,5 +1,6 @@
-import { useId } from 'react'
+import { type ReactNode, useId } from 'react'
 
+import { Card } from '@oztix/roadie-components/card'
 import { Mark } from '@oztix/roadie-components/mark'
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -8,6 +9,7 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
+import { type BlockIntent } from '../_shared/surface'
 import { type MosaicPreset, mosaicDefinition } from './definition'
 
 export type { MosaicPreset } from './definition'
@@ -23,6 +25,8 @@ export type MosaicTile = {
   image?: BlockImage
   /** Spans two columns at half height, for the tiles to lead with. `tiers` only. */
   featured?: boolean
+  /** Where the tile goes. Its name, or its logo, becomes the link, and the whole tile takes the click. */
+  href?: string
 }
 
 export type MosaicLogoTile = {
@@ -57,6 +61,11 @@ export type MosaicProps = {
   tiles: readonly MosaicTile[]
   /** A last, wide tile of logos. `tiers` only. */
   logoTile?: MosaicLogoTile
+  /**
+   * The block's intent: the tier labels' marks and highlighted words take it.
+   * @default 'neutral'
+   */
+  intent?: BlockIntent
 }
 
 // Tiles are at least 11rem, so a column joins for every 11rem of block, from
@@ -85,7 +94,8 @@ export function Mosaic({
   titleHighlight,
   description,
   tiles,
-  logoTile
+  logoTile,
+  intent
 }: MosaicProps) {
   const { name, variant } = presetOf(mosaicDefinition, preset)
   const headingId = useId()
@@ -97,11 +107,13 @@ export function Mosaic({
       position={position}
       id={id}
       aria-labelledby={headingId}
+      intent={intent}
     >
       <div className='container-8xl grid gap-12 *:min-w-0'>
         <BlockHeading
           id={headingId}
           align={name === 'logo-strip' ? 'center' : 'start'}
+          intent={intent}
           eyebrow={eyebrow}
           title={title}
           titleHighlight={titleHighlight}
@@ -116,7 +128,11 @@ export function Mosaic({
         ) : (
           <ul className={GRID}>
             {tiles.map((tile, index) => (
-              <PhotoTile key={`${index}-${tile.name}`} {...tile} />
+              <PhotoTile
+                key={`${index}-${tile.name}`}
+                {...tile}
+                intent={intent}
+              />
             ))}
             {logoTile && <LogosTile {...logoTile} />}
           </ul>
@@ -126,11 +142,24 @@ export function Mosaic({
   )
 }
 
-function PhotoTile({ name, label, logo, image, featured }: MosaicTile) {
+function PhotoTile({
+  name,
+  label,
+  logo,
+  image,
+  featured,
+  href,
+  intent
+}: MosaicTile & { intent?: BlockIntent }) {
   return (
     <li
       data-featured={featured || undefined}
-      className={cn(TILE, featured && WIDE, !image && 'emphasis-raised')}
+      className={cn(
+        TILE,
+        featured && WIDE,
+        !image && 'emphasis-raised',
+        href && 'is-interactive-within'
+      )}
     >
       {image && (
         <>
@@ -152,19 +181,21 @@ function PhotoTile({ name, label, logo, image, featured }: MosaicTile) {
           'grid content-end justify-items-start gap-1.5 p-1.5 @xl:p-2 @3xl:p-3'
         )}
       >
-        {logo ? (
-          <BlockImg
-            image={{ ...logo, alt: logo.alt || name }}
-            sizes='(min-width: 768px) 15vw, 30vw'
-            className='h-auto max-w-3/4 object-contain'
-          />
-        ) : (
-          <p className='text-display-ui-4 break-words text-strong'>{name}</p>
-        )}
+        <Linked href={href} name={name} logo={logo}>
+          {logo ? (
+            <BlockImg
+              image={{ ...logo, alt: logo.alt || name }}
+              sizes='(min-width: 768px) 15vw, 30vw'
+              className='h-auto max-w-3/4 object-contain'
+            />
+          ) : (
+            <p className='text-display-ui-4 break-words text-strong'>{name}</p>
+          )}
+        </Linked>
         {label && (
           <Mark
             render={<p />}
-            intent='neutral'
+            intent={intent ?? 'neutral'}
             className='px-1.5 py-0.5 text-sm font-semibold @xl:text-base'
           >
             {label}
@@ -210,18 +241,48 @@ function stripLogoSizes({ width, height }: BlockImage) {
   return `${Math.round(STRIP_LOGO_HEIGHT * ratio)}px`
 }
 
-function StripLogo({ name, logo }: MosaicTile) {
+function StripLogo({ name, logo, href }: MosaicTile) {
   return (
     <li>
-      {logo ? (
-        <BlockImg
-          image={{ ...logo, alt: logo.alt || name }}
-          sizes={stripLogoSizes(logo)}
-          className='h-12 w-auto object-contain'
-        />
-      ) : (
-        <p className='text-display-ui-4 break-words text-strong'>{name}</p>
-      )}
+      <Linked
+        href={href}
+        name={name}
+        logo={logo}
+        className='is-interactive block rounded-md'
+      >
+        {logo ? (
+          <BlockImg
+            image={{ ...logo, alt: logo.alt || name }}
+            sizes={stripLogoSizes(logo)}
+            className='h-12 w-auto object-contain'
+          />
+        ) : (
+          <p className='text-display-ui-4 break-words text-strong'>{name}</p>
+        )}
+      </Linked>
     </li>
+  )
+}
+
+// A logo link is named by the tile, so a click reports the name, not the alt text.
+function Linked({
+  href,
+  name,
+  logo,
+  className,
+  children
+}: Pick<MosaicTile, 'href' | 'name' | 'logo'> & {
+  className?: string
+  children: ReactNode
+}) {
+  if (!href) return children
+  return (
+    <Card.Link
+      href={href}
+      aria-label={logo ? name : undefined}
+      className={className}
+    >
+      {children}
+    </Card.Link>
   )
 }

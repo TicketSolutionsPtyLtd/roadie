@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import { Mosaic, type MosaicProps } from '.'
 import {
@@ -10,6 +10,7 @@ import {
   widths,
   withBrowserPage
 } from '../_test/browser'
+import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 import { logoStrip, partnerTiers } from './fixtures'
 
 const MID = { name: 'mid', width: 640, height: 900 } as const
@@ -264,6 +265,76 @@ describe('Mosaic accessibility', () => {
       const { container } = render(
         <main>
           <Mosaic {...offline(logoStrip)} />
+        </main>
+      )
+
+      expect(await axeViolations(container)).toEqual([])
+    }
+  )
+})
+
+const INTENTS = [
+  undefined,
+  'brand',
+  'brand-secondary',
+  'brand-purple',
+  'accent',
+  'info',
+  'success',
+  'warning',
+  'danger'
+] as const
+
+describe('Mosaic contrast', () => {
+  afterEach(() => setMode('light'))
+
+  it.each(
+    MODES.flatMap((mode) =>
+      INTENTS.map((intent) => ({
+        mode,
+        intent: intent ?? 'none',
+        props: { intent }
+      }))
+    )
+  )(
+    'keeps tier labels and heading readable in $mode mode, intent $intent',
+    async ({ mode, props }) => {
+      setMode(mode)
+      render(
+        <div className='bg-normal'>
+          <Mosaic {...offline(partnerTiers)} {...props} />
+        </div>
+      )
+
+      expect(
+        textContrast(screen.getByRole('heading', { level: 2 }))
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+      expect(
+        textContrast(screen.getByText(partnerTiers.description))
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      for (const tile of partnerTiers.tiles)
+        expect(
+          textContrast(screen.getByText(tile.label)),
+          tile.label
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+    }
+  )
+
+  it.each(['tiers', 'logo-strip'] as const)(
+    'has no axe violations with linked %s tiles',
+    async (preset) => {
+      const props = preset === 'tiers' ? partnerTiers : logoStrip
+      const { container } = render(
+        <main>
+          <Mosaic
+            {...offline(props)}
+            preset={preset}
+            intent='brand'
+            tiles={offline(props).tiles.map((tile) => ({
+              ...tile,
+              href: '/partners'
+            }))}
+          />
         </main>
       )
 

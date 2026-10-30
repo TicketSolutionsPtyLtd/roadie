@@ -103,9 +103,59 @@ tile.
 />
 ```
 
+### Intent and emphasis
+
+Mosaic takes an `intent`, which its tier labels and highlighted words follow,
+and no `emphasis`, since its tiles draw their own surface. Give a tile an
+`href` and its name or logo becomes the link, with the whole tile as the hit
+area; tiles without one stay still.
+
+```tsx-live id=intent-and-emphasis
+<Mosaic
+  preset='tiers'
+  intent='brand'
+  title='Festival partners'
+  titleHighlight='partners'
+  tiles={[
+    {
+      name: 'Ochre Kite Weekender',
+      label: 'Presenting partner',
+      href: '/partners/ochre-kite-weekender',
+      logo: { src: '/blocks/ochre-kite-weekender.svg', alt: 'Ochre Kite Weekender logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/01.webp', alt: '', width: 800, height: 800 },
+      featured: true
+    },
+    {
+      name: 'Velvet Dingo Fest',
+      label: 'Sponsor',
+      href: '/partners/velvet-dingo-fest',
+      logo: { src: '/blocks/velvet-dingo-fest.svg', alt: 'Velvet Dingo Fest logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/02.webp', alt: '', width: 800, height: 800 }
+    },
+    {
+      name: 'Kazoo Hollow Room',
+      label: 'Venue partner',
+      logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 }
+    }
+  ]}
+/>
+```
+
 ## Guidelines
 
 <Guidelines>
+
+<Guideline title='Keep the defaults unless the page has a reason'>
+  <Guideline.Do>
+    Set an `intent` when the page's own colour runs through it, such as a
+    brand campaign, and give a tile an `href` when it has its own page.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't change the intent block by block to add variety; the labels then
+    read as meaning something.
+  </Guideline.Dont>
+</Guideline>
 
 <Guideline title='Pick the preset for the content'>
   <Guideline.Do>

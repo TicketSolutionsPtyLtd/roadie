@@ -246,4 +246,96 @@ describe('Mosaic', () => {
       ).toBeInTheDocument()
     })
   })
+
+  describe('intent and links', () => {
+    it('marks tier labels neutral by default, and in the block intent', () => {
+      const { container, rerender } = render(<Mosaic {...partnerTiers} />)
+      const label = () => screen.getByText(partnerTiers.tiles[0]!.label)
+
+      expect(container.querySelector('section')).not.toHaveAttribute(
+        'data-intent'
+      )
+      expect(label()).toHaveClass('intent-neutral')
+
+      rerender(<Mosaic {...partnerTiers} intent='brand' />)
+      expect(container.querySelector('section')).toHaveAttribute(
+        'data-intent',
+        'brand'
+      )
+      expect(label()).toHaveClass('intent-brand')
+    })
+
+    it('makes a linked tile one link named by the tile, reported by name', async () => {
+      const onBlockEvent = vi.fn()
+      const [first, second] = partnerTiers.tiles
+      render(
+        <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
+          <Mosaic
+            {...partnerTiers}
+            tiles={[{ ...first!, href: '/partners/ochre-kite' }, second!]}
+            logoTile={undefined}
+          />
+        </MarketingBlocksProvider>
+      )
+
+      const [linked, plain] = screen.getAllByRole('listitem')
+      const link = within(linked!).getByRole('link', { name: first!.name })
+      expect(link).toHaveAttribute('data-interactive-target')
+      expect(linked).toHaveClass('is-interactive-within')
+      expect(plain).not.toHaveClass('is-interactive-within')
+      expect(within(plain!).queryByRole('link')).toBeNull()
+
+      await userEvent.click(link)
+      expect(onBlockEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'click',
+          label: first!.name,
+          href: '/partners/ochre-kite'
+        })
+      )
+    })
+
+    it('links a tile without a logo through its name', () => {
+      render(
+        <Mosaic
+          {...partnerTiers}
+          tiles={[
+            {
+              name: 'Kazoo Hollow Room',
+              href: '/venues/kazoo-hollow-room',
+              image: partnerTiers.tiles[1]!.image
+            }
+          ]}
+          logoTile={undefined}
+        />
+      )
+
+      expect(
+        screen.getByRole('link', { name: 'Kazoo Hollow Room' })
+      ).toHaveTextContent('Kazoo Hollow Room')
+    })
+
+    it('makes a linked strip logo the link itself, interactive, reported by name', async () => {
+      const onBlockEvent = vi.fn()
+      const [first, second] = logoStrip.tiles
+      render(
+        <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
+          <Mosaic
+            {...logoStrip}
+            tiles={[{ ...first!, href: 'https://example.com' }, second!]}
+          />
+        </MarketingBlocksProvider>
+      )
+
+      const link = screen.getByRole('link', { name: first!.name })
+      expect(link).toHaveClass('is-interactive')
+      expect(within(link).getByRole('img')).toBeInTheDocument()
+      expect(screen.getAllByRole('link')).toHaveLength(1)
+
+      await userEvent.click(link)
+      expect(onBlockEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ label: first!.name })
+      )
+    })
+  })
 })
