@@ -8,6 +8,14 @@ import { richTextDefinition } from '../RichText/definition'
 import { splitDefinition } from '../Split/definition'
 import { statsDefinition } from '../Stats/definition'
 import { testimonialDefinition } from '../Testimonial/definition'
+import type { BlockAlign, SurfaceEmphasis } from '../_shared/surface'
+
+/** What a preset sets when its block's props leave them unset. */
+export type BlockPresetDefaults = {
+  align?: BlockAlign
+  emphasis?: SurfaceEmphasis
+  contained?: boolean
+}
 
 /** A named configuration of a block: what editors pick in the Studio instead of setting options. */
 export type BlockPreset = {
@@ -17,6 +25,7 @@ export type BlockPreset = {
   description: string
   /** One of the block's two variants at most. */
   variant: string
+  defaults?: BlockPresetDefaults
 }
 
 export type BlockDefinition = {

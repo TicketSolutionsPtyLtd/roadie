@@ -33,6 +33,24 @@ export function bySize<T>(
   return values[size ?? 'lg']
 }
 
+// Literal class names, so Tailwind finds them. Each step down a size closes the gap a step.
+const GAP = {
+  tight: { sm: 'gap-2', md: 'gap-3', lg: 'gap-4' },
+  snug: { sm: 'gap-3', md: 'gap-4', lg: 'gap-6' },
+  normal: { sm: 'gap-4', md: 'gap-6', lg: 'gap-8' },
+  loose: { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' },
+  wide: { sm: 'gap-8', md: 'gap-10', lg: 'gap-16' },
+  wider: { sm: 'gap-8', md: 'gap-12', lg: 'gap-20' }
+} as const satisfies Record<string, Record<BlockSize, string>>
+
+/** A spacing step between a block's parts. */
+export type BlockGap = keyof typeof GAP
+
+/** The gap class for a spacing step at a block's size. */
+export function gapOf(size: BlockSize | undefined, gap: BlockGap): string {
+  return bySize(size, GAP[gap])
+}
+
 // Literal class names, so Tailwind finds them in this file.
 const INTENT_CLASS: Record<BlockIntent, string> = {
   neutral: 'intent-neutral',

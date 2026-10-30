@@ -11,7 +11,7 @@ import { Button } from '@oztix/roadie-components/button'
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction, BlockActionIcon } from '../Provider'
-import type { BlockIntent } from './surface'
+import type { BlockAlign, BlockIntent } from './surface'
 
 const ICONS = {
   'arrow-right': ArrowRightIcon,
@@ -46,6 +46,8 @@ export type BlockActionsProps = {
   intent?: BlockIntent
   /** The filled surface the actions sit on, so the strong action picks an intent that stands out from it. */
   fill?: ActionFill
+  /** Lines the actions up with the heading. */
+  align?: BlockAlign
   className?: string
 }
 
@@ -54,11 +56,18 @@ export function BlockActions({
   actions = [],
   intent,
   fill,
+  align = 'start',
   className
 }: BlockActionsProps) {
   if (actions.length === 0) return null
   return (
-    <div className={cn('flex flex-wrap gap-4', className)}>
+    <div
+      className={cn(
+        'flex flex-wrap gap-4',
+        align === 'center' && 'justify-center',
+        className
+      )}
+    >
       {actions.map(({ label, href, icon }, index) => {
         const Icon = icon && ICONS[icon]
         const glyph = Icon && (
