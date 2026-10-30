@@ -43,6 +43,35 @@ describe('donutChartTable', () => {
     expect(table.rows).toHaveLength(6)
   })
 
+  it('keeps a value field named share apart from the share column', () => {
+    const table = donutChartTable({
+      data: [
+        { channel: 'Web', share: 60 },
+        { channel: 'Box office', share: 40 }
+      ],
+      x: 'channel',
+      y: 'share'
+    })
+    expect(table.columns.map((c) => c.header)).toEqual([
+      'Channel',
+      'Share',
+      'Share'
+    ])
+    expect(new Set(table.columns.map((c) => c.key)).size).toBe(3)
+    expect(table.rows[0]).toMatchObject({ channel: 'Web', share: 60 })
+    expect(Object.values(table.rows[0]!)).toContain(0.6)
+  })
+
+  it('has no total row when nothing has a value', () => {
+    const table = donutChartTable({
+      data: [{ type: 'GA', tickets: 0 }],
+      x: 'type',
+      y: 'tickets'
+    })
+    expect(table.rows).toEqual([])
+    expect(table.totals).toBeUndefined()
+  })
+
   it('reads values in the chart format and shares to its decimal places', () => {
     const table = donutChartTable({
       ...ticketTypeExample,
