@@ -176,7 +176,7 @@ export function Kbd({
   const platform = useKeyPlatform()
   useDevWarning(
     combined &&
-      !keys &&
+      !keys?.length &&
       "[Roadie] Kbd `combined` joins `keys` in one keycap, so it changes nothing without them. Pass `keys`, such as {['mod', 'k']}."
   )
   const hidden = announce ? undefined : true

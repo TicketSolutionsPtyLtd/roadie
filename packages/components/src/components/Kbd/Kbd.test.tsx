@@ -356,6 +356,8 @@ describe('combined without keys', () => {
   it('warns that it changes nothing', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(<Kbd combined>K</Kbd>)
+    render(<Kbd combined keys={[]} />)
+    expect(warn).toHaveBeenCalledTimes(2)
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('combined'))
   })
 
