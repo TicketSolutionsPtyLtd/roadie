@@ -693,18 +693,40 @@ function useKeepFocusShown(
   useLayoutEffect(() => {
     const frame = frameRef.current
     if (!frame) return
+    // Chromium blurs a focused element that stops rendering, and under load
+    // that can land before this observer runs, leaving focus on the page.
+    let blurred: Element | null = null
+    const onFocusOut = (event: FocusEvent) => {
+      blurred = event.relatedTarget ? null : (event.target as Element)
+    }
+    const onFocusIn = () => {
+      blurred = null
+    }
     const observer = new ResizeObserver(() => {
       const active = document.activeElement
-      if (!active || !frame.contains(active)) return
-      const cell = active.closest('[data-priority]')
+      const held =
+        active && frame.contains(active)
+          ? active
+          : (!active || active === document.body) && blurred?.isConnected
+            ? blurred
+            : null
+      blurred = null
+      if (!held) return
+      const cell = held.closest('[data-priority]')
       if (!cell || getComputedStyle(cell).display !== 'none') return
       ;(
-        tableFocusTarget(active) ??
+        tableFocusTarget(held) ??
         frame.querySelector<HTMLElement>('[data-slot="record-table-scroller"]')
       )?.focus({ preventScroll: true })
     })
     observer.observe(frame)
-    return () => observer.disconnect()
+    frame.addEventListener('focusout', onFocusOut)
+    document.addEventListener('focusin', onFocusIn)
+    return () => {
+      observer.disconnect()
+      frame.removeEventListener('focusout', onFocusOut)
+      document.removeEventListener('focusin', onFocusIn)
+    }
   }, [frameRef, placement])
 }
 
