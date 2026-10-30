@@ -396,6 +396,10 @@ function Bento({
   const hasSecondary = secondaryImages.length > 0
   const moves =
     video != null || primaryImages.length > 1 || secondaryImages.length > 1
+  // The photo panels are hidden on narrow blocks, so their cycling alone shows no control there.
+  const toggleHidden =
+    video == null &&
+    (secondaryImages.length > 1 ? 'hidden @xl:block' : 'hidden @4xl:block')
   return (
     <HeroMotionProvider>
       <div className='mx-auto w-full max-w-8xl px-4 @xl:px-6 @7xl:px-2'>
@@ -505,7 +509,14 @@ function Bento({
             </div>
           )}
           {moves && (
-            <HeroMotionToggle className='absolute end-3 bottom-3 @xl:end-4 @xl:bottom-4' />
+            <div
+              className={cn(
+                'absolute end-3 bottom-3 @xl:end-4 @xl:bottom-4',
+                toggleHidden
+              )}
+            >
+              <HeroMotionToggle />
+            </div>
           )}
         </div>
       </div>

@@ -267,7 +267,37 @@ describe('Hero bento pause toggle', () => {
     await button.click()
     await expect
       .element(page.getByRole('button', { name: /play/i }))
-      .toHaveAttribute('aria-pressed', 'true')
+      .not.toHaveAttribute('aria-pressed')
+  })
+
+  it('hides the pause control on a phone when only the hidden photos move', async () => {
+    await showAt(PHONE.width, <Hero {...bento(photo)} video={undefined} />)
+
+    await expect
+      .element(
+        page.getByRole('button', { name: /pause/i, includeHidden: true })
+      )
+      .not.toBeVisible()
+  })
+
+  it('hides the pause control until the cycling title-panel photos show', async () => {
+    const props = bento(photo)
+    const images = props.images!.slice(0, 3)
+    await showAt(640, <Hero {...props} video={undefined} images={images} />)
+
+    await expect
+      .element(
+        page.getByRole('button', { name: /pause/i, includeHidden: true })
+      )
+      .not.toBeVisible()
+  })
+
+  it('shows the pause control once the moving photos show', async () => {
+    await showAt(DESKTOP.width, <Hero {...bento(photo)} video={undefined} />)
+
+    await expect
+      .element(page.getByRole('button', { name: /pause/i }))
+      .toBeVisible()
   })
 
   it('starts on play for viewers who reduce motion', async () => {
