@@ -50,7 +50,8 @@ const twMerge = extendTailwindMerge<
         'z-modal',
         'z-popover',
         'z-toast',
-        'z-tooltip'
+        'z-tooltip',
+        'z-alert'
       ],
       'font-size': [
         {
