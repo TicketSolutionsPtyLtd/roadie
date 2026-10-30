@@ -363,4 +363,16 @@ describe('validateRecordView', () => {
       { field: 'created', operator: 'within', value: 'last-quarter' }
     ])
   })
+
+  it.each([
+    { field: 'name', operator: 'contains', value: 'ends in \\' },
+    { field: 'venue', operator: 'is', values: ['holds \\" here'] }
+  ])('refuses a value no search index can read back: %j', (filter) => {
+    expect(errors(view([filter]))).toEqual([
+      expect.objectContaining({
+        path: expect.stringMatching(/^query\.filters\[0\]\.value/),
+        message: expect.stringContaining('backslash')
+      })
+    ])
+  })
 })

@@ -2,6 +2,7 @@ import type { core } from 'zod'
 
 import { isPlainDate } from '../datetime/plainDate'
 import { canonicalDateRange, resolveAbsolute } from '../datetime/ranges'
+import { hasUnquotableBackslash } from './encoding'
 import {
   fieldIndex,
   isDateList,
@@ -88,6 +89,15 @@ function dateProblem(field: RecordField, value: string): string | null {
 }
 
 function valueProblem(filter: RecordFilter, field: RecordField): string | null {
+  const texts =
+    'values' in filter
+      ? filter.values
+      : 'value' in filter && typeof filter.value === 'string'
+        ? [filter.value]
+        : []
+  if (texts.some(hasUnquotableBackslash)) {
+    return 'A value can’t end in a backslash or hold one before a quote'
+  }
   switch (filter.operator) {
     case 'on':
       if (dateValueKind(filter.value) === 'date-time') {

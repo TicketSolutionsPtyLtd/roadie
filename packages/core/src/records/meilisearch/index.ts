@@ -19,6 +19,7 @@
  * - `contains` needs Meilisearch's `containsFilter` experimental feature.
  * - `searchableAttributes` lists the fields marked `searchable`.
  */
+import { hasUnquotableBackslash } from '../encoding'
 import { fieldIndex, momentOf } from '../fields'
 import type {
   RecordsPageRequest,
@@ -65,13 +66,8 @@ const RESERVED = new Set([
   'FALSE'
 ])
 
-// Inside quotes Meilisearch pairs each backslash with the next character and
-// then unescapes only \", so an odd run of backslashes before a quote or at
-// the end has no faithful encoding.
-const ODD_BACKSLASHES = /(?:^|[^\\])(?:\\\\)*\\(?:"|$)/
-
 function quote(text: string): string {
-  if (ODD_BACKSLASHES.test(text)) {
+  if (hasUnquotableBackslash(text)) {
     throw new Error(
       `Meilisearch filters cannot hold a backslash before a quote or at the end: ${text}`
     )
@@ -164,8 +160,10 @@ function overlapExpression(
   }
   const scale = epoch === 'seconds' ? 1000 : 1
   // Inward, so a coarser index never widens the window.
-  const from = range.start === null ? null : Math.ceil(range.start / scale)
+  let from = range.start === null ? null : Math.ceil(range.start / scale)
   const to = range.end === null ? null : Math.floor(range.end / scale)
+  // A window inside one stored unit keeps that unit rather than none.
+  if (from !== null && to !== null && from > to) from = to
   return rangeExpression(
     attribute(field.key),
     attribute(field.end ?? field.key),
