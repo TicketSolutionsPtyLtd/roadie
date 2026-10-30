@@ -642,6 +642,19 @@ describe('a reorderable List.Item without a plain title', () => {
     ).toBeInTheDocument()
   })
 
+  it('names its handle from label over a string title', () => {
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title='SKU' label='Stock keeping unit' />
+        </List>
+      </Sortable>
+    )
+    expect(
+      screen.getByRole('button', { name: 'Reorder Stock keeping unit' })
+    ).toBeInTheDocument()
+  })
+
   it('names its handle from a number title', () => {
     render(
       <Sortable items={['row']} onReorder={() => {}}>
