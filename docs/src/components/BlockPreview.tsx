@@ -20,7 +20,7 @@ export function BlockPreview({ name }: { name: string }) {
   return (
     <div
       aria-hidden
-      className='w-56 [&_svg]:h-auto [&_svg]:w-full'
+      className='w-40 overflow-hidden rounded-lg border border-subtler [&_svg]:h-auto [&_svg]:w-full'
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   )
