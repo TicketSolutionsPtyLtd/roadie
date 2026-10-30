@@ -9,11 +9,11 @@ import {
 } from '../datetime/ranges'
 import {
   type DashboardProblem,
+  columnProblems,
   copyProblems,
   error,
   headlineCopyProblems,
   plotProblems,
-  quoted,
   schemaProblems,
   valueOrTakeawayProblems,
   warning
@@ -31,7 +31,6 @@ import {
   type DashboardPeriodSpec,
   type DashboardSpec,
   type TableColumn,
-  type TableData,
   dashboardSchema
 } from './schema'
 import { isSummable, tableLabelIndex } from './totals'
@@ -49,8 +48,6 @@ const ALLOWED_SIZES: Record<CardKind, readonly CardSize[]> = {
   chart: ['sm', 'md', 'lg', 'full'],
   note: ['sm', 'md', 'lg', 'full']
 }
-
-const MAX_VISUAL_COLUMNS = 2
 
 function totalsProblems(
   card: Extract<DashboardCard, { kind: 'table' }>,
@@ -180,55 +177,6 @@ function selectsPeriodProblems(
   return !xs.every(isWallTime)
     ? [warning(at, `"${plot.x}" isn't dated, so a drag can't set the period`)]
     : []
-}
-
-function secondaryProblems(table: TableData, path: string) {
-  return table.columns.flatMap((column, i) =>
-    column.secondaryKey && column.kind !== 'text' && column.kind !== 'status'
-      ? [
-          warning(
-            `${path}[${i}].secondaryKey`,
-            'Only a text or status column shows a second line'
-          )
-        ]
-      : []
-  )
-}
-
-function statusProblems(table: TableData, path: string) {
-  return table.columns.flatMap((column, i) => {
-    const at = `${path}[${i}].status`
-    if (column.kind !== 'status')
-      return column.status
-        ? [warning(at, 'Only a status column shows a status map')]
-        : []
-    const unknown = [
-      ...new Set(
-        table.rows.flatMap((row) => {
-          const cell = Object.hasOwn(row, column.key)
-            ? row[column.key]
-            : undefined
-          // A table shows any other cell as its string, as it does here.
-          const key =
-            cell === null || cell === undefined || cell === ''
-              ? undefined
-              : String(cell)
-          return key !== undefined &&
-            !(column.status && Object.hasOwn(column.status, key))
-            ? [key]
-            : []
-        })
-      )
-    ]
-    return unknown.length
-      ? [
-          warning(
-            at,
-            `${quoted(unknown)} ${unknown.length === 1 ? 'has' : 'have'} no status, so ${unknown.length === 1 ? 'it shows' : 'they show'} as neutral`
-          )
-        ]
-      : []
-  })
 }
 
 const BUILT_IN_COMPARISONS = ['previous-period', 'previous-year'] as const
@@ -373,33 +321,10 @@ function cardProblems(
   if (card.kind === 'chart' || card.kind === 'table')
     problems.push(...valueOrTakeawayProblems(card, path))
 
-  const columns =
-    card.kind === 'table'
-      ? card.columns
-      : card.kind === 'chart'
-        ? (card.table?.columns ?? [])
-        : []
-  const visual = columns.filter(
-    (column) => column.kind === 'sparkline' || column.kind === 'meter'
-  )
-  if (visual.length > MAX_VISUAL_COLUMNS)
-    problems.push(
-      error(
-        `${path}.${card.kind === 'chart' ? 'table.columns' : 'columns'}`,
-        `At most ${MAX_VISUAL_COLUMNS} sparkline or meter columns`
-      )
-    )
-
   if (card.kind === 'table')
-    problems.push(
-      ...statusProblems(card, `${path}.columns`),
-      ...secondaryProblems(card, `${path}.columns`)
-    )
+    problems.push(...columnProblems(card, `${path}.columns`))
   if (card.kind === 'chart' && card.table)
-    problems.push(
-      ...statusProblems(card.table, `${path}.table.columns`),
-      ...secondaryProblems(card.table, `${path}.table.columns`)
-    )
+    problems.push(...columnProblems(card.table, `${path}.table.columns`))
 
   problems.push(
     ...headlineCopyProblems(

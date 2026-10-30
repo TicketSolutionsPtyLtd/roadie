@@ -99,11 +99,55 @@ describe('validateChartDocument', () => {
         data: sold.map((row) => ({ ...row, venue: 'Kazoo Hollow Room' })),
         by: 'venue',
         chart: { kind: 'line', x: 'day', y: 'sold' }
-      },
-      { kind: 'static', src: '/sold.svg', alt: 'Sales rise over October' }
+      }
     ]
     for (const plot of plots)
       expect(validateChartDocument(withPlot(plot)).problems).toEqual([])
+  })
+
+  const staticPlot = {
+    kind: 'static',
+    src: '/sold.svg',
+    alt: 'Sales rise over October'
+  }
+  const soldTable = {
+    columns: [
+      { key: 'day', header: 'Day', kind: 'text' },
+      { key: 'sold', header: 'Sold', kind: 'number' }
+    ],
+    rows: sold
+  }
+
+  it('takes a static plot with the table behind it', () => {
+    expect(
+      validateChartDocument(doc({ plot: staticPlot, table: soldTable }))
+        .problems
+    ).toEqual([])
+  })
+
+  it('needs a table with a static plot, like a chart card', () => {
+    expect(problemAt(withPlot(staticPlot), 'table')).toEqual({
+      path: 'table',
+      message: 'A static plot needs a table',
+      severity: 'error'
+    })
+  })
+
+  it("checks a table's columns as a chart card does", () => {
+    const table = {
+      columns: [
+        { key: 'day', header: 'Day', kind: 'number', secondaryKey: 'note' },
+        { key: 'sold', header: 'Sold', kind: 'number', status: {} }
+      ],
+      rows: sold
+    }
+    const paths = validateChartDocument(doc({ table })).problems.map(
+      (p) => p.path
+    )
+    expect(paths).toEqual([
+      'table.columns[1].status',
+      'table.columns[0].secondaryKey'
+    ])
   })
 
   it('rejects selectsPeriod, since a document has no period', () => {

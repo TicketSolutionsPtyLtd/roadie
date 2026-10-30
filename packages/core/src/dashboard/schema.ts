@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { type core, z } from 'zod'
 
 import { dateRangeSchemas } from '../datetime/rangeSchema'
 import { STATUS_INTENTS } from './cells'
@@ -141,6 +141,19 @@ const tableCard = z.strictObject({
   source: z.string().min(1)
 })
 
+function staticNeedsTable(payload: {
+  value: { plot: { kind: string }; table?: unknown }
+  issues: core.$ZodRawIssue[]
+}) {
+  if (payload.value.plot.kind === 'static' && !payload.value.table)
+    payload.issues.push({
+      code: 'custom',
+      message: 'A static plot needs a table',
+      path: ['table'],
+      input: payload.value
+    })
+}
+
 const chartCard = z
   .strictObject({
     ...base,
@@ -154,15 +167,7 @@ const chartCard = z
   })
   // .check() keeps chartCard a ZodObject (a .refine() wrapper wouldn't),
   // which the discriminatedUnion above needs.
-  .check((payload) => {
-    if (payload.value.plot.kind === 'static' && !payload.value.table)
-      payload.issues.push({
-        code: 'custom',
-        message: 'A static plot needs a table',
-        path: ['table'],
-        input: payload.value
-      })
-  })
+  .check(staticNeedsTable)
 
 const noteCard = z.strictObject({
   ...base,
@@ -239,17 +244,21 @@ const documentPlot = z.discriminatedUnion('kind', [
  *
  * @beta The shape may change until the documents package agrees with it.
  */
-export const chartDocumentSchema = z.strictObject({
-  version: z.literal(1),
-  kind: z.literal('chart'),
-  label: z.string().min(1),
-  context: z.string().optional(),
-  ...headline,
-  // A document has no period, so its delta can't follow one.
-  delta: delta.omit({ comparison: true }).optional(),
-  source: z.string().min(1),
-  plot: documentPlot
-})
+export const chartDocumentSchema = z
+  .strictObject({
+    version: z.literal(1),
+    kind: z.literal('chart'),
+    label: z.string().min(1),
+    context: z.string().optional(),
+    ...headline,
+    // A document has no period, so its delta can't follow one.
+    delta: delta.omit({ comparison: true }).optional(),
+    source: z.string().min(1),
+    plot: documentPlot,
+    /** The numbers behind the plot. A static plot needs one. */
+    table: tableData.optional()
+  })
+  .check(staticNeedsTable)
 
 export type DeltaSpec = z.infer<typeof delta>
 export type DashboardPeriodSpec = z.infer<typeof period>

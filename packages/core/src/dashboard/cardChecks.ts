@@ -8,6 +8,7 @@ import {
   type SmallMultiplesPlot,
   type StackedAreaPlot
 } from './plots'
+import type { TableData } from './schema'
 
 export type DashboardProblem = {
   path: string
@@ -351,7 +352,7 @@ export function plotProblems(plot: ChartPlot, plotPath: string) {
   const problems: DashboardProblem[] = []
   if ('data' in plot && plot.data.length > 0)
     for (const { key, field } of plotFields(plot))
-      if (!plot.data.some((row) => field in row))
+      if (!plot.data.some((row) => Object.hasOwn(row, field)))
         problems.push(
           error(`${plotPath}.${key}`, `No row has a "${field}" field`)
         )
@@ -413,4 +414,73 @@ export function plotProblems(plot: ChartPlot, plotPath: string) {
       )
     )
   return problems
+}
+
+const MAX_VISUAL_COLUMNS = 2
+
+function secondaryProblems(table: TableData, path: string) {
+  return table.columns.flatMap((column, i) =>
+    column.secondaryKey && column.kind !== 'text' && column.kind !== 'status'
+      ? [
+          warning(
+            `${path}[${i}].secondaryKey`,
+            'Only a text or status column shows a second line'
+          )
+        ]
+      : []
+  )
+}
+
+function statusProblems(table: TableData, path: string) {
+  return table.columns.flatMap((column, i) => {
+    const at = `${path}[${i}].status`
+    if (column.kind !== 'status')
+      return column.status
+        ? [warning(at, 'Only a status column shows a status map')]
+        : []
+    const unknown = [
+      ...new Set(
+        table.rows.flatMap((row) => {
+          const cell = Object.hasOwn(row, column.key)
+            ? row[column.key]
+            : undefined
+          // A table shows any other cell as its string, as it does here.
+          const key =
+            cell === null || cell === undefined || cell === ''
+              ? undefined
+              : String(cell)
+          return key !== undefined &&
+            !(column.status && Object.hasOwn(column.status, key))
+            ? [key]
+            : []
+        })
+      )
+    ]
+    return unknown.length
+      ? [
+          warning(
+            at,
+            `${quoted(unknown)} ${unknown.length === 1 ? 'has' : 'have'} no status, so ${unknown.length === 1 ? 'it shows' : 'they show'} as neutral`
+          )
+        ]
+      : []
+  })
+}
+
+export function columnProblems(table: TableData, path: string) {
+  const visual = table.columns.filter(
+    (column) => column.kind === 'sparkline' || column.kind === 'meter'
+  )
+  return [
+    ...(visual.length > MAX_VISUAL_COLUMNS
+      ? [
+          error(
+            path,
+            `At most ${MAX_VISUAL_COLUMNS} sparkline or meter columns`
+          )
+        ]
+      : []),
+    ...statusProblems(table, path),
+    ...secondaryProblems(table, path)
+  ]
 }

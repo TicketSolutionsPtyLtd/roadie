@@ -1,5 +1,6 @@
 import {
   type DashboardProblem,
+  columnProblems,
   headlineCopyProblems,
   plotProblems,
   schemaProblems,
@@ -28,6 +29,7 @@ export function validateChartDocument(input: unknown): ChartDocumentValidation {
   const problems = [
     ...valueOrTakeawayProblems(document, ''),
     ...headlineCopyProblems(document, ''),
+    ...(document.table ? columnProblems(document.table, 'table.columns') : []),
     ...(document.plot.kind === 'static'
       ? []
       : plotProblems(document.plot, 'plot'))
