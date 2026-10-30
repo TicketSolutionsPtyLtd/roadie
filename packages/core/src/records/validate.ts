@@ -177,24 +177,27 @@ function filterProblems(
   const problem = valueProblem(filter, field)
   if (problem) return [error(`${path}.value`, problem)]
   // Only Meilisearch can't hold it, so the view stays valid everywhere else.
-  return unquotable(filter)
-    ? [
+  const at = unquotableAt(filter)
+  return at === null
+    ? []
+    : [
         warning(
-          `${path}.value`,
+          `${path}${at}`,
           'Meilisearch can’t filter by a value that ends in a backslash or holds one before a quote'
         )
       ]
-    : []
 }
 
-function unquotable(filter: RecordFilter): boolean {
-  const texts =
-    'values' in filter
-      ? filter.values
-      : 'value' in filter && typeof filter.value === 'string'
-        ? [filter.value]
-        : []
-  return texts.some(hasUnquotableBackslash)
+function unquotableAt(filter: RecordFilter): string | null {
+  if ('values' in filter) {
+    const i = filter.values.findIndex(hasUnquotableBackslash)
+    return i === -1 ? null : `.values[${i}]`
+  }
+  return 'value' in filter &&
+    typeof filter.value === 'string' &&
+    hasUnquotableBackslash(filter.value)
+    ? '.value'
+    : null
 }
 
 function layoutProblems(

@@ -383,5 +383,11 @@ describe('recordViewFromSearchParams', () => {
     )
     expect(read.source).toBe('url')
     expect(read.view.query.filters).toEqual(view.query.filters)
+    expect(read.problems).toEqual([
+      expect.objectContaining({
+        severity: 'warning',
+        path: 'query.filters[0].value'
+      })
+    ])
   })
 })
