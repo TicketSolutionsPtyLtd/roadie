@@ -256,6 +256,11 @@ describe('Roadie CSS and :has() invalidation', () => {
     )
     expect(broad).toHaveLength(3)
     expect(broad.join(' ')).not.toContain('.narrow')
+    // Engines serialize a nested rule with its implicit `&`, so this path
+    // only runs when one doesn't.
+    expect(broadAfterHas(nested('[data-slot="r"]', '.p:has(.q)'))).toEqual([
+      '[data-slot="r"]'
+    ])
   })
 
   it('spots a later-sibling :has() with nothing else to match on', () => {
