@@ -30,6 +30,11 @@ export type ListItemProps = {
   onClick?: (event: MouseEvent<HTMLElement>) => void
 }
 
+const plainText = (title: ReactNode) =>
+  typeof title === 'string' || typeof title === 'number'
+    ? String(title)
+    : undefined
+
 export type ListItemCurrent = boolean | 'page' | 'step' | 'location'
 
 /** A row in a `List`: a link when `href` is set, otherwise a `<button>`. */
@@ -98,7 +103,7 @@ export function ListItem({
   return (
     <ListItemSortable
       value={value}
-      label={label ?? (typeof title === 'string' ? title : undefined)}
+      label={label ?? plainText(title)}
       title={title}
       description={description}
       leading={leading}

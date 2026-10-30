@@ -642,6 +642,19 @@ describe('a reorderable List.Item without a plain title', () => {
     ).toBeInTheDocument()
   })
 
+  it('names its handle from a number title', () => {
+    render(
+      <Sortable items={['row']} onReorder={() => {}}>
+        <List>
+          <List.Item value='row' title={42} />
+        </List>
+      </Sortable>
+    )
+    expect(
+      screen.getByRole('button', { name: 'Reorder 42' })
+    ).toBeInTheDocument()
+  })
+
   it('warns when it has no label', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
