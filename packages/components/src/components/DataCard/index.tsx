@@ -1,6 +1,10 @@
 import { type ComponentProps, type ReactNode, useId } from 'react'
 
-import { ClockCountdownIcon } from '@phosphor-icons/react/ssr'
+import {
+  ChartBarIcon,
+  ClockCountdownIcon,
+  WarningIcon
+} from '@phosphor-icons/react/ssr'
 
 import type { CardSize, CardState } from '@oztix/roadie-core/dashboard-layout'
 import {
@@ -13,6 +17,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { cardVariants } from '../Card/variants'
 import { Delta } from '../Delta'
+import { EmptyState } from '../EmptyState'
 import { Skeleton } from '../Skeleton'
 import { DataCardMoreButton } from './DataCardMoreButton'
 
@@ -56,7 +61,10 @@ export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> &
     errorMessage?: string
     errorAction?: ReactNode
     staleLabel?: string
-    /** Body height while loading, such as the plot height. */
+    /**
+     * Body height while loading, and the least an empty or error state takes,
+     * such as the plot height.
+     */
     bodyHeight?: string
     children?: ReactNode
   }
@@ -152,6 +160,7 @@ export function DataCard({
 }: DataCardProps) {
   const labelId = useId()
   const showContent = state === 'ready' || state === 'stale'
+  const isStat = size === 'stat'
   // An article, not a named section: a dashboard repeats labels such as
   // "Tickets sold" across sections, and landmark names must be unique.
   return (
@@ -233,17 +242,37 @@ export function DataCard({
             {children}
           </div>
         )}
-        {state === 'empty' && (
-          <p className='text-sm text-subtle'>{emptyMessage}</p>
-        )}
-        {state === 'error' && (
-          <div className='grid justify-items-start gap-2'>
-            <p className='text-sm text-subtle'>
-              {errorMessage ??
-                `We couldn't load ${sentenceCaseInline(label)}. Try again in a minute.`}
-            </p>
-            {errorAction}
-          </div>
+        {(state === 'empty' || state === 'error') && (
+          <EmptyState
+            size='sm'
+            intent={state === 'error' ? 'danger' : undefined}
+            // Fills the body's place, so the card keeps its loading height.
+            className={cn('content-center', (isStat || bodyHeight) && 'py-0')}
+            style={{ minHeight: bodyHeight }}
+          >
+            {!isStat && (
+              <EmptyState.IconTile aria-hidden>
+                {state === 'error' ? (
+                  <WarningIcon weight='duotone' />
+                ) : (
+                  <ChartBarIcon weight='duotone' />
+                )}
+              </EmptyState.IconTile>
+            )}
+            {/* A card can't know the page's heading outline. */}
+            <EmptyState.Title
+              render={<p />}
+              className={isStat ? 'text-sm' : undefined}
+            >
+              {state === 'empty'
+                ? emptyMessage
+                : (errorMessage ??
+                  `We couldn't load ${sentenceCaseInline(label)}. Try again in a minute.`)}
+            </EmptyState.Title>
+            {state === 'error' && errorAction && (
+              <EmptyState.Actions>{errorAction}</EmptyState.Actions>
+            )}
+          </EmptyState>
         )}
         {(showContent || state === 'loading') &&
           (source || (state === 'stale' && staleLabel)) && (
