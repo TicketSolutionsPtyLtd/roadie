@@ -14,7 +14,7 @@ export function heatmapTable(props: HeatmapProps): ChartTable {
   return {
     columns: [
       { key: props.rows, header: fieldLabel(props.rows), kind: 'text' },
-      ...columns.map((c) => valueColumn(c, c, props.format))
+      ...columns.map((c) => valueColumn(c, c, props))
     ],
     rows: labelsOf(props, props.rows).map((row) => {
       const out: TableRow = { [props.rows]: row }

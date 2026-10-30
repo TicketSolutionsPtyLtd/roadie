@@ -65,7 +65,7 @@ describe('buildManifest', () => {
     ])
   })
 
-  it('describes a component with its docs page, first live example, and props and literals in declaration order', () => {
+  it('describes a component with its docs page, first live example, and props and literals in declaration order, including props it shares from core', () => {
     const pill = manifest.components.find((c) => c.name === 'Pill')
     expect(pill).toEqual({
       name: 'Pill',
@@ -76,6 +76,11 @@ describe('buildManifest', () => {
       description: 'A small rounded label.',
       example: "<Pill label='New' />",
       props: [
+        {
+          name: 'places',
+          type: 'number',
+          description: 'Fixed decimal places.'
+        },
         {
           name: 'tone',
           type: '"neutral" | "danger"',

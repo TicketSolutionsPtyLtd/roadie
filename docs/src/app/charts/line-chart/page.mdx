@@ -178,6 +178,28 @@ To compare scans across events on different dates, line them up on the event's o
 </Chart>
 ```
 
+### Decimal places
+
+When a small difference matters, set `decimals`. The tooltip, end label, table, and screen readers then read "12.66%" where the format alone reads "13%". The ticks stay short.
+
+```tsx-live width=140
+<Chart label='Sold' source='Oztix sales.' size='md'>
+  <LineChart
+    data={[
+      { day: '2026-10-01', sold: 0.0127 },
+      { day: '2026-10-08', sold: 0.0412 },
+      { day: '2026-10-15', sold: 0.0738 },
+      { day: '2026-10-22', sold: 0.0981 },
+      { day: '2026-10-29', sold: 0.1266 }
+    ]}
+    x='day'
+    y='sold'
+    format='percent'
+    decimals={2}
+  />
+</Chart>
+```
+
 ### States
 
 ```tsx-live layout=stack width=140
