@@ -5,6 +5,7 @@ import {
   describeDelta,
   formatDelta,
   formatValue,
+  formatValueInCurrency,
   normalizeMinusSign
 } from './format'
 
@@ -149,6 +150,58 @@ describe('formatValue', () => {
     for (const format of formats) {
       expect(formatValue(-1234.5, format)).not.toContain('−')
     }
+  })
+})
+
+describe('a value that rounds to zero', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it.each([
+    ['number', -0.04, '0'],
+    ['number', -0, '0'],
+    ['compact', -0.04, '0'],
+    ['percent', -0.0001, '0%'],
+    ['currency', -0.001, '$0.00'],
+    ['currency', -0, '$0.00'],
+    ['compactCurrency', -0.001, '$0'],
+    ['points', -0.04, '0 pts'],
+    ['index', -0.4, '0']
+  ] as const)('reads %s %d without a minus', (format, value, expected) => {
+    expect(formatValue(value, format)).toBe(expected)
+  })
+
+  it.each([
+    ['currency', 'EUR\u00a00.00'],
+    ['compactCurrency', 'EUR\u00a00']
+  ] as const)(
+    'reads %s in another currency without a minus',
+    (format, expected) => {
+      expect(formatValueInCurrency(-0.001, format, 'EUR')).toBe(expected)
+    }
+  )
+
+  it('keeps the minus on a value that shows', () => {
+    expect(formatValue(-0.4, 'number')).toBe('-0.4')
+    expect(formatValue(-0.06, 'compact')).toBe('-0.1')
+    expect(formatValue(-0.4, 'currency')).toBe('-$0.40')
+  })
+
+  it('reads every format where Intl rejects signDisplay negative', async () => {
+    const { NumberFormat } = Intl
+    vi.spyOn(Intl, 'NumberFormat').mockImplementation(
+      function (locales, options) {
+        if (options?.signDisplay === 'negative')
+          throw new RangeError('signDisplay')
+        return new NumberFormat(locales, options)
+      }
+    )
+    vi.resetModules()
+    const { formatValue: fresh } = await import('./format')
+    expect(fresh(-0.04, 'number')).toBe('0')
+    expect(fresh(-0.001, 'currency')).toBe('$0.00')
+    expect(fresh(-0.0001, 'percent')).toBe('0%')
+    expect(fresh(-0.4, 'index')).toBe('0')
+    expect(fresh(-1200, 'currency')).toBe('-$1,200.00')
   })
 })
 

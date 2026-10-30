@@ -22,6 +22,18 @@ type CurrencyFormat = Intl.NumberFormatOptions & {
 }
 
 export const HOUSE_CURRENCY = 'AUD'
+
+// Firefox before 116 and Safari before 15.4 throw on 'negative'; there an
+// amount that rounds to zero keeps its minus.
+const zeroWithoutMinus: Pick<Intl.NumberFormatOptions, 'signDisplay'> = (() => {
+  try {
+    new Intl.NumberFormat('en-AU', { signDisplay: 'negative' })
+    return { signDisplay: 'negative' }
+  } catch {
+    return {}
+  }
+})()
+
 // The shared cache is bounded, and a code Intl rejects throws before it's
 // cached, so codes read from row data can't grow it.
 function currencyMinorUnits(code: string) {
@@ -56,7 +68,8 @@ export function currencyFormat({
   const symbol: CurrencyFormat = {
     style: 'currency',
     currency: code,
-    currencyDisplay: code === HOUSE_CURRENCY ? 'narrowSymbol' : 'symbol'
+    currencyDisplay: code === HOUSE_CURRENCY ? 'narrowSymbol' : 'symbol',
+    ...zeroWithoutMinus
   }
   // Older Safari throws when the maximum is under the currency's minimum.
   if (compact)

@@ -156,13 +156,16 @@ export function formatValueInCurrency(
   { decimals, trailingZeroDisplay }: ValueFormatOptions = {}
 ) {
   if (!Number.isFinite(value)) return NOT_AVAILABLE
-  return normalizeMinusSign(
+  const text = normalizeMinusSign(
     FORMATTERS[format](value, {
       decimals: decimalPlaces(decimals),
       trailingZeroDisplay,
       currencyCode
     })
   )
+  // A value that rounds to zero keeps Intl's minus (-0, -$0). signDisplay
+  // 'negative' would drop it, but engines before 2023 throw on that value.
+  return /[1-9]/.test(text) ? text : text.replace('-', '')
 }
 
 export function formatDelta(
