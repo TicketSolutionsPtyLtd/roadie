@@ -6,6 +6,7 @@ import roadieCss from '../../vitest.browser.css?inline'
 import { Accordion } from '../components/Accordion'
 import { Breadcrumb } from '../components/Breadcrumb'
 import { Collapsible } from '../components/Collapsible'
+import { Combobox } from '../components/Combobox'
 import { navigatorItemVariants } from '../components/Navigator/variants'
 import { useStylesheet } from '../components/Pane/testUtils'
 
@@ -115,6 +116,23 @@ describe('a Collapsible trigger in quiet text', () => {
     expect(getComputedStyle(trigger).color).toBe(
       getComputedStyle(trigger.parentElement!).color
     )
+  })
+})
+
+describe('a Combobox clear button', () => {
+  it('tints on hover and clears at rest', async () => {
+    render(
+      <Combobox items={['Rock', 'Jazz']} defaultValue='Rock'>
+        <Combobox.InputGroup>
+          <Combobox.Input aria-label='Genre' />
+          <Combobox.Clear aria-label='Clear genre' />
+        </Combobox.InputGroup>
+      </Combobox>
+    )
+    const clear = await screen.findByRole('button', { name: 'Clear genre' })
+    expect(background(clear)).toBe(TRANSPARENT)
+    await hover(clear)
+    await expect.poll(() => background(clear)).not.toBe(TRANSPARENT)
   })
 })
 
