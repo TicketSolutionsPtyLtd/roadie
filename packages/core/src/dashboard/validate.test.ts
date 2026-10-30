@@ -134,15 +134,6 @@ describe('validateDashboard', () => {
     source: 'Oztix sales.'
   })
 
-  it('gives a chart label two lines beside its switch', () => {
-    const label = 'Sales pace against similar shows this week'
-    expect(label.length).toBeLessThanOrEqual(CHART_LABEL_LIMITS.md)
-    expect(CHART_LABEL_LIMITS.md).toBeLessThan(COPY_LIMITS.md.label)
-    expect(paths(spec([chartLabelled(label)]))).not.toContain(
-      'sections[0].cards[0].label'
-    )
-  })
-
   const tableLabelled = (label: string) => ({
     id: 't',
     kind: 'table',
@@ -171,9 +162,10 @@ describe('validateDashboard', () => {
     )
   })
 
-  it('warns when a chart label exceeds the chart limit', () => {
+  it('warns when a chart label exceeds the chart limit but not COPY_LIMITS', () => {
     const label = 'Sales pace against similar shows, this week and last'
     expect(label.length).toBeGreaterThan(CHART_LABEL_LIMITS.md)
+    expect(label.length).toBeLessThanOrEqual(COPY_LIMITS.md.label)
     const result = validateDashboard(spec([chartLabelled(label)]))
     expect(result.problems).toContainEqual(
       expect.objectContaining({

@@ -29,7 +29,7 @@ function lines(root: HTMLElement) {
   ]
 }
 
-describe('DataCard copy never wraps', () => {
+describe('DataCard copy fits its lines', () => {
   for (const width of WIDTHS)
     it(`stays on one line at ${width}px`, () => {
       const { container } = render(

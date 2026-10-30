@@ -22,7 +22,8 @@ export type CardState = (typeof CARD_STATES)[number]
 export type ColumnKind = (typeof COLUMN_KINDS)[number]
 
 // Measured at each size's narrowest width. A stat label and every context
-// line get one line; other labels get two, with realistic word breaks.
+// line get one line. Table and note labels get two, with realistic word
+// breaks; chart labels use CHART_LABEL_LIMITS.
 export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
   {
     stat: { label: 19, context: 20 },
