@@ -1,4 +1,5 @@
 export * from './cells'
+export * from './chartDocument'
 export * from './comparison'
 export * from './fields'
 export * from './layout'
