@@ -64,13 +64,22 @@ const withTable: EditorValue = {
   }
 }
 
+// Room above the editor, as a floating one has no bar there, so the menu
+// takes its place above the selection rather than flipping over the text below.
 function BubbleEditor({ children, ...props }: Partial<EditorProps>) {
   return (
-    <Editor aria-label={LABEL} defaultValue={lineup} {...props}>
-      <Editor.Toolbar />
-      <Editor.Content />
-      <Editor.BubbleMenu>{children}</Editor.BubbleMenu>
-    </Editor>
+    <div style={{ paddingTop: 96 }}>
+      <Editor
+        aria-label={LABEL}
+        defaultValue={lineup}
+        toolbar='floating'
+        {...props}
+      >
+        <Editor.Toolbar />
+        <Editor.Content />
+        <Editor.BubbleMenu>{children}</Editor.BubbleMenu>
+      </Editor>
+    </div>
   )
 }
 
@@ -95,23 +104,39 @@ const itemsOf = (toolbar: HTMLElement) =>
     .map((button) => button.getAttribute('aria-label') ?? button.textContent)
 
 describe('Editor.BubbleMenu', () => {
-  it('shows the inline marks and Link over a text selection', async () => {
+  it('shows the preset’s text controls and a More menu over a text selection', async () => {
     render(<BubbleEditor />)
     await selectText('Gates open at 4pm')
 
     const toolbar = await menu()
     await waitFor(() => expect(toolbar).toBeVisible())
-    expect(itemsOf(toolbar)).toEqual(['Bold', 'Italic', 'Underline', 'Link'])
+    expect(itemsOf(toolbar)).toEqual([
+      'Block type: Paragraph',
+      'Bold',
+      'Italic',
+      'Underline',
+      'Link',
+      'Bulleted list',
+      'Numbered list',
+      'More'
+    ])
   })
 
-  it('shows nothing until the part is added', async () => {
-    render(<Editor aria-label={LABEL} defaultValue={lineup} />)
-    await selectText('Gates open at 4pm')
+  it('shows nothing in a floating editor until the part is added', async () => {
+    render(
+      <Editor aria-label={LABEL} defaultValue={lineup} toolbar='floating'>
+        <Editor.Toolbar />
+        <Editor.Content />
+      </Editor>
+    )
+    const textbox = await selectText('Gates open at 4pm')
+    await waitFor(() => expect(textbox).toHaveFocus())
 
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Bold' })).toBeEnabled()
+    expect(document.querySelector('[data-slot="editor-bubble-menu"]')).toBe(
+      null
     )
     expect(screen.queryByRole('toolbar', { name: MENU })).toBe(null)
+    expect(screen.queryByRole('toolbar', { name: 'Formatting' })).toBe(null)
   })
 
   it('hides when the selection collapses', async () => {
@@ -152,8 +177,10 @@ describe('Editor.BubbleMenu', () => {
     const toolbar = await menu()
 
     await userEvent.keyboard('{Alt>}{F10}{/Alt}')
-    expect(within(toolbar).getByRole('button', { name: 'Bold' })).toHaveFocus()
-    await userEvent.keyboard('{ArrowRight}')
+    expect(
+      within(toolbar).getByRole('button', { name: /^Block type/ })
+    ).toHaveFocus()
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}')
     const italic = within(toolbar).getByRole('button', { name: 'Italic' })
     expect(italic).toHaveFocus()
     await userEvent.keyboard('{Enter}')
@@ -251,7 +278,7 @@ describe('Editor.BubbleMenu', () => {
     const textbox = await selectText('Gates open at 4pm')
     await menu()
 
-    await userEvent.click(within(textbox).getByText('Ochre Kite Weekender'), {
+    await userEvent.click(within(textbox).getByText('Gates open at 4pm'), {
       modifiers: ['ControlOrMeta']
     })
 
@@ -327,7 +354,7 @@ describe('Editor.BubbleMenu', () => {
     expect(overlaps).toBe(false)
   })
 
-  it('puts its children after the preset controls', async () => {
+  it('puts its children after the preset controls, before More', async () => {
     render(
       <BubbleEditor>
         <Toolbar.Button>Highlight</Toolbar.Button>
@@ -335,7 +362,7 @@ describe('Editor.BubbleMenu', () => {
     )
     await selectText('Gates open at 4pm')
 
-    expect(itemsOf(await menu()).at(-1)).toBe('Highlight')
+    expect(itemsOf(await menu()).slice(-2)).toEqual(['Highlight', 'More'])
   })
 
   it('sits just above the selection in a scrolled container', async () => {

@@ -11,6 +11,8 @@ import {
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { Pane } from '@oztix/roadie-components/pane'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
@@ -59,21 +61,14 @@ afterEach(async () => {
 const PLACEHOLDER = 'Tell people about the night'
 
 const barOf = (toolbar: HTMLElement) =>
-  toolbar.closest<HTMLElement>('[data-slot="toolbar-surface"]')!
+  toolbar.closest<HTMLElement>('[data-slot="editor-toolbar"]')!
 const frameOf = (element: HTMLElement) =>
   element.closest<HTMLElement>('[data-slot="editor"]')!
-const surfaceOf = barOf
+const surfaceOf = (toolbar: HTMLElement) =>
+  toolbar.closest<HTMLElement>('[data-slot="toolbar-surface"]')!
 const TRANSPARENT = 'rgba(0, 0, 0, 0)'
 
 const lastLine = (textbox: HTMLElement) => textbox.lastElementChild!
-
-function expectBordered(surface: HTMLElement) {
-  const { borderTopWidth, borderTopColor, backgroundColor } =
-    getComputedStyle(surface)
-  expect(borderTopWidth).toBe('1px')
-  expect(borderTopColor).not.toBe(TRANSPARENT)
-  expect(backgroundColor).not.toBe(TRANSPARENT)
-}
 
 const TOOLBAR_EMPHASES = [
   'normal',
@@ -83,8 +78,8 @@ const TOOLBAR_EMPHASES = [
   'floating'
 ] as const
 
-// A size-sm control, the bar's padding, and its border.
-const DEFAULT_BAR_HEIGHT = 32 + 2 * 4 + 2
+// A size-sm control, with no inset or border around it.
+const CONTROL_HEIGHT = 32
 
 function placeholderOffset(textbox: HTMLElement) {
   const empty = textbox.querySelector<HTMLElement>('.is-editor-empty')!
@@ -156,20 +151,13 @@ const pageTop = (element: HTMLElement) =>
 
 function looksOf(surface: HTMLElement) {
   const { width, height } = surface.getBoundingClientRect()
-  const { boxShadow, backgroundColor, borderTopColor, borderTopWidth } =
+  const { boxShadow, backgroundColor, borderTopWidth } =
     getComputedStyle(surface)
-  return {
-    width,
-    height,
-    boxShadow,
-    backgroundColor,
-    borderTopColor,
-    borderTopWidth
-  }
+  return { width, height, boxShadow, backgroundColor, borderTopWidth }
 }
 
 describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
-  it('sits in flow at the top, the same focused or not, and scrolls away with the text', async () => {
+  it('runs flat across the top edge, the same focused or not', async () => {
     await onScreen(size, touch)
     render(
       <>
@@ -180,44 +168,82 @@ describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
     const textbox = await screen.findByRole('textbox', { name: LABEL })
     const toolbar = await shownToolbar()
     const bar = barOf(toolbar)
-    const surface = surfaceOf(toolbar)
+    const frame = frameOf(textbox)
     const resting = {
-      looks: looksOf(surface),
+      looks: looksOf(bar),
       top: pageTop(toolbar),
       text: pageTop(textbox)
     }
+    const { borderBottomWidth, borderBottomColor } = getComputedStyle(bar)
 
-    expect(getComputedStyle(bar).position).not.toMatch(/sticky|fixed/)
-    expect(surface).toHaveClass('emphasis-normal')
-    expectBordered(surface)
+    // Rounded as the frame is, so its fill doesn't poke past the corners.
+    expect(getComputedStyle(surfaceOf(toolbar)).borderTopLeftRadius).toBe(
+      getComputedStyle(bar).borderTopLeftRadius
+    )
+    expect(borderBottomWidth).toBe('1px')
+    expect(borderBottomColor).not.toBe(TRANSPARENT)
+    const fill = (element: HTMLElement) =>
+      getComputedStyle(element).backgroundColor
+    expect(fill(bar)).not.toBe(TRANSPARENT)
+    expect(fill(bar)).toBe(fill(frame))
+    expect(bar.getBoundingClientRect().width).toBe(frame.clientWidth)
+    expect(bar.getBoundingClientRect().top).toBe(
+      frame.getBoundingClientRect().top + frame.clientTop
+    )
     expect(toolbar.getBoundingClientRect().bottom).toBeLessThanOrEqual(
       textbox.getBoundingClientRect().top + 1
     )
 
     await focusedTextbox()
+    // Clicking the text can scroll the page, which a sticky bar follows.
+    window.scrollTo(0, 0)
     await new Promise(requestAnimationFrame)
 
-    expect(getComputedStyle(bar).position).not.toMatch(/sticky|fixed/)
-    expect(looksOf(surface)).toEqual(resting.looks)
+    const { width, height, boxShadow, borderTopWidth } = resting.looks
+    const shape = { width, height, boxShadow, borderTopWidth }
+    expect(looksOf(bar)).toMatchObject(shape)
+    // The focused frame's fill changes, and the bar follows it.
+    await waitFor(() => expect(fill(bar)).toBe(fill(frame)))
     expect(pageTop(toolbar)).toBeCloseTo(resting.top, 1)
     expect(pageTop(textbox)).toBeCloseTo(resting.text, 1)
 
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
     await new Promise(requestAnimationFrame)
 
-    expect(looksOf(surface)).toEqual(resting.looks)
+    expect(looksOf(bar)).toMatchObject(shape)
+    await waitFor(() => expect(fill(bar)).toBe(fill(frame)))
     expect(pageTop(textbox)).toBeCloseTo(resting.text, 1)
+  })
 
-    await focusedTextbox()
-    window.scrollTo(0, resting.top + 300)
+  it('sticks to the top of the page while the text scrolls under it, then leaves with the editor', async () => {
+    await onScreen(size, touch)
+    render(
+      <>
+        <Editor aria-label={LABEL} defaultValue={longRead} />
+        <div style={{ height: 2000 }} />
+      </>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const toolbar = barOf(await shownToolbar())
+    const start = pageTop(toolbar)
 
+    window.scrollTo(0, start + 300)
+    await waitFor(() =>
+      expect(Math.abs(toolbar.getBoundingClientRect().top)).toBeLessThan(1)
+    )
+    expect(lastLine(textbox).getBoundingClientRect().top).toBeGreaterThan(0)
+
+    window.scrollTo(
+      0,
+      pageTop(frameOf(textbox)) + frameOf(textbox).offsetHeight + 100
+    )
     await waitFor(() =>
       expect(toolbar.getBoundingClientRect().bottom).toBeLessThan(0)
     )
   })
 
   it.each(TOOLBAR_EMPHASES)(
-    'takes the %s emphasis, the same focused or not',
+    'takes the %s emphasis as its fill, the same focused or not',
     async (emphasis) => {
       await onScreen(size, touch)
       render(
@@ -229,12 +255,13 @@ describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
       const surface = surfaceOf(await shownToolbar())
       const resting = looksOf(surface)
 
+      // A control, with the bar's padding above and below it.
+      expect(resting.height).toBe(CONTROL_HEIGHT + 8)
+      expect(resting.borderTopWidth).toBe('0px')
+      expect(resting.boxShadow).toBe('none')
       if (emphasis === 'subtler')
-        expect(surface.className).not.toMatch(/emphasis-/)
-      else expect(surface).toHaveClass(`emphasis-${emphasis}`)
-      if (emphasis === 'raised' || emphasis === 'floating')
-        expect(surface).toHaveClass('is-translucent')
-      expect(resting.height).toBe(DEFAULT_BAR_HEIGHT)
+        expect(resting.backgroundColor).toBe(TRANSPARENT)
+      else expect(resting.backgroundColor).not.toBe(TRANSPARENT)
 
       await focusedTextbox()
       await new Promise(requestAnimationFrame)
@@ -244,9 +271,66 @@ describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
   )
 })
 
+describe('Editor toolbar in a scroll container', () => {
+  it('sticks to the container’s top while the editor scrolls inside it', async () => {
+    render(
+      <div data-testid='scroller' style={{ height: 300, overflowY: 'auto' }}>
+        <p style={{ height: 120 }}>Ochre Kite Weekender</p>
+        <Editor aria-label={LABEL} defaultValue={longRead} />
+      </div>
+    )
+    const scroller = screen.getByTestId('scroller')
+    const toolbar = barOf(await shownToolbar())
+
+    scroller.scrollTop = 600
+    await waitFor(() =>
+      expect(
+        Math.abs(
+          toolbar.getBoundingClientRect().top -
+            scroller.getBoundingClientRect().top
+        )
+      ).toBeLessThan(1)
+    )
+  })
+})
+
+describe('Editor toolbar in a pane', () => {
+  it('sticks under the pane’s header, not behind it', async () => {
+    render(
+      <div style={{ height: 500, display: 'grid' }}>
+        <Pane className='h-full'>
+          <Pane.Header>
+            <Pane.Title>Ochre Kite Weekender</Pane.Title>
+          </Pane.Header>
+          <Pane.Body>
+            <Editor aria-label={LABEL} defaultValue={longRead} />
+          </Pane.Body>
+        </Pane>
+      </div>
+    )
+    const toolbar = barOf(await shownToolbar())
+    const header = document.querySelector<HTMLElement>(
+      '[data-slot="pane-header"]'
+    )!
+    const viewport = document.querySelector<HTMLElement>(
+      '[data-slot="pane-viewport"]'
+    )!
+
+    viewport.scrollTop = 600
+    await waitFor(() =>
+      expect(
+        Math.abs(
+          toolbar.getBoundingClientRect().top -
+            header.getBoundingClientRect().bottom
+        )
+      ).toBeLessThan(1)
+    )
+  })
+})
+
 describe('Editor toolbar on a phone', () => {
   it.each(['normal', 'subtle', 'subtler'] as const)(
-    'keeps a scrolling toolbar inside a %s editor’s frame, inset as on a larger screen',
+    'keeps a scrolling toolbar inside a %s editor’s frame, edge to edge',
     async (emphasis) => {
       await page.viewport(PHONE.width, PHONE.height)
       render(
@@ -259,10 +343,10 @@ describe('Editor toolbar on a phone', () => {
       const textbox = await focusedTextbox()
       const bar = barOf(await shownToolbar()).getBoundingClientRect()
       const frame = frameOf(textbox).getBoundingClientRect()
-      const inset = emphasis === 'subtler' ? 0 : 8
 
-      expect(bar.left - frame.left).toBeGreaterThanOrEqual(inset)
-      expect(frame.right - bar.right).toBeGreaterThanOrEqual(inset)
+      expect(bar.left).toBeGreaterThanOrEqual(frame.left)
+      expect(bar.right).toBeLessThanOrEqual(frame.right)
+      expect(frame.right - bar.right).toBeLessThanOrEqual(1)
     }
   )
 
@@ -297,20 +381,16 @@ describe('Editor toolbar on a phone', () => {
 })
 
 describe('Editor toolbar on a larger screen', () => {
-  it('hugs its controls, a size smaller than the editor', async () => {
+  it('holds its controls a size smaller than the editor, clear of the text', async () => {
     render(<Editor aria-label={LABEL} />)
     const textbox = await focusedTextbox()
     const toolbar = await shownToolbar()
-    const frame = frameOf(textbox)
 
-    expect(surfaceOf(toolbar).getBoundingClientRect().width).toBeLessThan(
-      frame.getBoundingClientRect().width / 2
-    )
     expect(
       within(toolbar)
         .getByRole('button', { name: 'Bold' })
         .getBoundingClientRect().height
-    ).toBe(32)
+    ).toBe(CONTROL_HEIGHT)
     expect(toolbar.getBoundingClientRect().bottom + 12).toBeLessThanOrEqual(
       lastLine(textbox).getBoundingClientRect().top
     )

@@ -12,9 +12,10 @@ export type EditorBubbleMenuProps = Omit<
 >
 
 /**
- * The preset's inline marks and Link, then `children`, in a menu over a text
- * selection. Alt+F10 moves focus to it while it shows, and Escape moves it
- * back.
+ * The floating toolbar, for `toolbar='floating'`: the preset's text controls,
+ * then `children`, then a … menu with the rest, over a text selection.
+ * Alt+F10 moves focus to it, opening it at the caret, and Escape moves it
+ * back. It renders nothing while the toolbar is docked.
  */
 export function EditorBubbleMenu(props: EditorBubbleMenuProps) {
   const context = use(EditorContext)

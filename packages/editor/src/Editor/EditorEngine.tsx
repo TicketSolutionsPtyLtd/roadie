@@ -1,6 +1,13 @@
 'use client'
 
-import { type ComponentType, useEffect, useId, useRef, useState } from 'react'
+import {
+  type ComponentType,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState
+} from 'react'
 
 import {
   Extension,
@@ -11,7 +18,13 @@ import {
 } from '@tiptap/core'
 import type { UniqueID } from '@tiptap/extension-unique-id'
 import { Placeholder } from '@tiptap/extensions'
-import { NodeSelection, Selection } from '@tiptap/pm/state'
+import { closeHistory } from '@tiptap/pm/history'
+import {
+  type EditorState,
+  NodeSelection,
+  Selection,
+  type Transaction
+} from '@tiptap/pm/state'
 import {
   type ReactNodeViewProps,
   ReactNodeViewRenderer,
@@ -55,11 +68,19 @@ import { EditorSlashMenuEngine } from './EditorSlashMenuEngine'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
 import { EditorVariableView } from './EditorVariableView'
-import { type BlockContainers, TOP_LEVEL } from './blockActions'
+import {
+  type BlockContainers,
+  TOP_LEVEL,
+  blockAt,
+  duplicateBlock,
+  moveBlock
+} from './blockActions'
 import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
+import { focusEditor } from './focusEditor'
+import { FocusedBlock, MenuBlock } from './focusedBlock'
 import {
   ImageUpload,
   type UploadImage,
@@ -71,8 +92,9 @@ import { presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { SlashMenu, type SlashMenuHandle } from './slashMenu'
-import { resolvedPreset } from './startingValue'
+import { presetLook, resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
+import { useToolbarMode } from './toolbarMode'
 import {
   EDITOR_FRAME,
   EDITOR_MIN_HEIGHT,
@@ -102,6 +124,34 @@ const BlockMenuShortcut = Extension.create<BlockMenuShortcutOptions>({
   name: 'blockMenuShortcut',
   addKeyboardShortcuts() {
     return { 'Mod-/': () => this.options.open() }
+  }
+})
+
+type BlockShortcutsOptions = { containers: BlockContainers }
+
+// Notion's keys, on the caret's block, each its own undo step.
+const BlockShortcuts = Extension.create<BlockShortcutsOptions>({
+  name: 'blockShortcuts',
+  addKeyboardShortcuts() {
+    const { containers } = this.options
+    const onCaretBlock =
+      (action: (state: EditorState, pos: number) => Transaction | null) =>
+      ({ editor }: { editor: TiptapEditor }) => {
+        const { state, view } = editor
+        const pos = blockAt(state, state.selection.from, containers)
+        const tr = pos === null ? null : action(state, pos)
+        if (tr) view.dispatch(closeHistory(tr))
+        return pos !== null
+      }
+    return {
+      'Mod-Shift-ArrowUp': onCaretBlock((state, pos) =>
+        moveBlock(state, pos, -1, containers)
+      ),
+      'Mod-Shift-ArrowDown': onCaretBlock((state, pos) =>
+        moveBlock(state, pos, 1, containers)
+      ),
+      'Mod-d': onCaretBlock(duplicateBlock)
+    }
   }
 })
 
@@ -286,7 +336,7 @@ export function EditorEngine({
   disabled: disabledProp = false,
   name,
   size = 'md',
-  emphasis = 'normal',
+  emphasis: emphasisProp,
   className,
   children,
   onUploadImage,
@@ -294,6 +344,10 @@ export function EditorEngine({
   resolveUrl,
   extensions: extensionsProp,
   variables,
+  toolbar: toolbarProp,
+  defaultToolbar,
+  onToolbarChange,
+  pinnable: pinnableProp = false,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy
 }: EditorRootProps) {
@@ -303,6 +357,19 @@ export function EditorEngine({
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
   const slashMenuRef = useRef<SlashMenuHandle>(null)
+  const openBubbleMenuRef = useRef<(() => boolean) | null>(null)
+  const look = presetLook(
+    resolvedPreset({ preset: presetProp, value, defaultValue })
+  )
+  const emphasis = emphasisProp ?? look.emphasis
+  const { toolbar, pinnable, setToolbar } = useToolbarMode({
+    toolbar: toolbarProp,
+    defaultToolbar: defaultToolbar ?? look.toolbar,
+    onToolbarChange,
+    pinnable: pinnableProp
+  })
+  const toolbarModeRef = useRef(toolbar)
+  const [toolbarExtras, setToolbarExtras] = useState<ReactNode>(null)
   const openBlockMenuRef = useRef<(() => void) | null>(null)
   const [editingLink, setEditingLink] = useState(false)
   const [editingAlt, setEditingAlt] = useState(false)
@@ -374,7 +441,14 @@ export function EditorEngine({
           return Boolean(openBlockMenuRef.current)
         }
       }),
-      ...(blockContainers ? [BlockDrag] : []),
+      ...(blockContainers
+        ? [
+            BlockDrag,
+            MenuBlock,
+            BlockShortcuts.configure({ containers: blockContainers })
+          ]
+        : []),
+      FocusedBlock.configure({ containers: blockContainers ?? TOP_LEVEL }),
       InsertMenu.configure({
         items: insertItems,
         ui: () => uiRef.current!,
@@ -424,15 +498,19 @@ export function EditorEngine({
       },
       handleKeyDown: (view, event) => {
         if (!event.altKey || event.key !== 'F10') return false
+        const onNode = selectedNodeType(view.state)
         // The selection menu is in the document only while it shows.
-        const toolbar = selectedNodeType(view.state)
+        const target = onNode
           ? nodeToolbarRef.current
           : bubbleMenuRef.current?.isConnected
             ? bubbleMenuRef.current
             : selectedTable(view.state)
               ? tableToolbarRef.current
               : toolbarRef.current
-        const firstEnabled = toolbar?.querySelector<HTMLElement>(
+        if (!target && toolbarModeRef.current === 'floating') {
+          return openBubbleMenuRef.current?.() ?? false
+        }
+        const firstEnabled = target?.querySelector<HTMLElement>(
           'button:not([aria-disabled="true"])'
         )
         firstEnabled?.focus()
@@ -493,6 +571,10 @@ export function EditorEngine({
   }, [editor, editable])
 
   useEffect(() => {
+    toolbarModeRef.current = toolbar
+  }, [toolbar])
+
+  useEffect(() => {
     uploadRef.current = onUploadImage
     providersRef.current = embedProviders
   }, [onUploadImage, embedProviders])
@@ -543,6 +625,16 @@ export function EditorEngine({
         size,
         emphasis,
         contentId,
+        toolbar,
+        pinnable,
+        setToolbar: (next) => {
+          setToolbar(next)
+          // The toolbar that held focus goes, so the text takes it.
+          if (editor) focusEditor(editor)
+        },
+        toolbarExtras,
+        setToolbarExtras,
+        openBubbleMenuRef,
         toolbarRef,
         bubbleMenuRef,
         ...ui,
@@ -575,6 +667,7 @@ export function EditorEngine({
           <>
             <EditorToolbarEngine />
             <EditorContent />
+            <EditorBubbleMenuEngine />
             <EditorSlashMenuEngine />
           </>
         )}

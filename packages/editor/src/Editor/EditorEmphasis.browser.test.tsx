@@ -81,22 +81,144 @@ function textStart(textbox: HTMLElement) {
 describe('Editor emphasis', () => {
   it.each<[EditorEmphasis, ReturnType<typeof frameLook>]>([
     ['normal', { border: '1px', filled: true, contentInset: 1 }],
-    ['subtle', { border: '1px', filled: true, contentInset: 1 }]
+    ['subtle', { border: '1px', filled: true, contentInset: 1 }],
+    ['raised', { border: '1px', filled: true, contentInset: 1 }]
   ])(
-    'keeps the %s field’s box, with a ring while focused',
+    'keeps the %s field’s box, with no ring while focused',
     async (emphasis, look) => {
       render(<Editor aria-label={LABEL} emphasis={emphasis} />)
       const textbox = await loadedTextbox()
+      const resting = getComputedStyle(frameOf(textbox)).borderTopColor
 
       expect(frameLook(textbox)).toEqual(look)
       expect(getComputedStyle(textbox).paddingInlineStart).toBe('12px')
 
       await userEvent.click(textbox)
-      await waitFor(() =>
-        expect(ringWidth(frameOf(textbox))).toBeGreaterThan(0)
+      await waitFor(() => expect(textbox).toHaveFocus())
+      expect(ringWidth(frameOf(textbox))).toBe(0)
+      expect(getComputedStyle(frameOf(textbox)).borderTopColor).toBe(resting)
+    }
+  )
+
+  it('shows focus on the caret’s block, and only while the editor has it', async () => {
+    render(
+      <>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={{
+            ...description,
+            doc: {
+              type: 'doc',
+              content: [
+                description.doc.content![0]!,
+                {
+                  type: 'paragraph',
+                  content: [{ type: 'text', text: 'All ages' }]
+                }
+              ]
+            }
+          }}
+        />
+        <button type='button'>Elsewhere</button>
+      </>
+    )
+    const textbox = await loadedTextbox()
+    const [first, second] = [...textbox.children] as HTMLElement[]
+    const tint = (block: HTMLElement) => getComputedStyle(block).boxShadow
+
+    expect(tint(first!)).toBe('none')
+    await userEvent.click(screen.getByText('All ages'))
+    await waitFor(() => expect(tint(second!)).not.toBe('none'))
+    expect(tint(first!)).toBe('none')
+
+    await userEvent.click(screen.getByText(/Doors 7pm/))
+    await waitFor(() => expect(tint(first!)).not.toBe('none'))
+    expect(tint(second!)).toBe('none')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Elsewhere' }))
+    await waitFor(() => expect(tint(first!)).toBe('none'))
+  })
+
+  it('marks the inner block of a layout, not the whole section', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'section',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Doors 7pm' }]
+                  },
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'All ages' }]
+                  }
+                ]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    await loadedTextbox()
+    const block = await screen.findByText('All ages')
+    await userEvent.click(block)
+
+    await waitFor(() =>
+      expect(block.closest('[data-focused-block]')).toBe(block)
+    )
+  })
+
+  it.each(['subtle', 'raised'] as const)(
+    'fills the whole docked bar with a %s toolbar, padding and all',
+    async (toolbarEmphasis) => {
+      render(
+        <Editor aria-label={LABEL} emphasis='subtle'>
+          <Editor.Toolbar emphasis={toolbarEmphasis} />
+          <Editor.Content />
+        </Editor>
+      )
+      await loadedTextbox()
+      const toolbar = screen.getByRole('toolbar', { name: 'Formatting' })
+      const surface = toolbar
+        .closest<HTMLElement>('[data-slot="toolbar-surface"]')!
+        .getBoundingClientRect()
+      const bar = toolbar
+        .closest<HTMLElement>('[data-slot="editor-toolbar"]')!
+        .getBoundingClientRect()
+      const button = toolbar.querySelector('button')!.getBoundingClientRect()
+
+      expect(surface.top).toBeCloseTo(bar.top, 0)
+      expect(surface.left).toBeCloseTo(bar.left, 0)
+      expect(surface.right).toBeCloseTo(bar.right, 0)
+      expect(button.top - surface.top).toBeGreaterThanOrEqual(4)
+      expect(button.left - surface.left).toBeGreaterThanOrEqual(4)
+      const corner = (element: Element) =>
+        getComputedStyle(element).borderTopLeftRadius
+      expect(corner(toolbar.closest('[data-slot="toolbar-surface"]')!)).toBe(
+        corner(toolbar.closest('[data-slot="editor-toolbar"]')!)
       )
     }
   )
+
+  it('raises a raised editor off the page, with its bar on the same fill', async () => {
+    render(<Editor aria-label={LABEL} emphasis='raised' />)
+    const textbox = await loadedTextbox()
+    const frame = frameOf(textbox)
+    const bar = frame.querySelector('[data-slot="editor-toolbar"]')!
+
+    expect(getComputedStyle(frame).boxShadow).not.toBe('none')
+    expect(getComputedStyle(bar).backgroundColor).toBe(
+      getComputedStyle(frame).backgroundColor
+    )
+  })
 
   it('shows subtler content on the page, with no box', async () => {
     render(

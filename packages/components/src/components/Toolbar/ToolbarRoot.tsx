@@ -37,6 +37,14 @@ export type ToolbarRootProps = Omit<
      * @default 'normal'
      */
     emphasis?: ToolbarEmphasis
+    /**
+     * Drops the inset, rounding, border and shadow, so the toolbar is as
+     * tall as its controls, for a bar docked along an edge. `emphasis` sets
+     * only its fill, and the parent draws any edge.
+     *
+     * @default false
+     */
+    flush?: boolean
   }
 
 // Sideways only, within the row: scrollIntoView would scroll the page too.
@@ -60,6 +68,7 @@ export function ToolbarRoot({
   hidden,
   size = 'md',
   emphasis,
+  flush = false,
   orientation = 'horizontal',
   onFocus,
   ...props
@@ -72,7 +81,7 @@ export function ToolbarRoot({
     <ToolbarContext value={contextValue}>
       <ScrollArea
         data-slot='toolbar-surface'
-        className={cn(toolbarSurfaceVariants({ emphasis }), className)}
+        className={cn(toolbarSurfaceVariants({ emphasis, flush }), className)}
         style={style}
         hidden={hidden}
       >
@@ -85,7 +94,7 @@ export function ToolbarRoot({
             <ToolbarPrimitive.Root
               data-slot='toolbar'
               orientation={orientation}
-              className={toolbarVariants({ orientation })}
+              className={toolbarVariants({ flush, orientation })}
               // Base UI scrolls the toolbar, not this viewport, and a native
               // focus leaves a half-hidden item where it is.
               onFocus={(event) => {

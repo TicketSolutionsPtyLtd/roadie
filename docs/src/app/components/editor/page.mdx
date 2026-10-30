@@ -55,10 +55,20 @@ control's tooltip shows its shortcut.
 
 ### Toolbar
 
-The toolbar is a bar at the top of the editor, a size smaller than the text.
-It scrolls away with a long description, and looks the same whether you're
-editing or not, so the text never moves. On a phone or touch screen its
-controls scroll sideways on one row when they don't fit.
+`toolbar` sets where the controls go. An editor shows one toolbar at a time.
+
+| Toolbar | Where | Use it for |
+| --- | --- | --- |
+| `docked` (default) | A flat bar across the top edge, which the text scrolls under | Most editors, where the controls should always show |
+| `floating` | A toolbar over the selected text, ending with a … menu | Content edited in place, where a bar adds noise |
+
+#### Docked
+
+The docked bar runs edge to edge inside the frame, with a divider under it,
+a size smaller than the text. It sticks to the top of the page, or of the
+scrolling box the editor is in, while you scroll a long description, and looks
+the same whether you're editing or not, so the text never moves. On a phone or
+touch screen its controls scroll sideways on one row when they don't fit.
 
 ```tsx-live-prose
 <Editor
@@ -85,50 +95,74 @@ controls scroll sideways on one row when they don't fit.
 />
 ```
 
-### Selection menu
+#### Floating
 
-Add `Editor.BubbleMenu` among the parts to show Bold, Italic, Underline and
-Link above selected text, close to it on a phone or in a long document. It
-shows while text is selected and the editor has focus, and hides when the
-selection collapses, on a selected image or embed, while the link editor is
-open, and when the editor is read-only or disabled. Children go after the
-preset's controls, as in `Editor.Toolbar`.
+With `toolbar='floating'` there's no bar. Select text and a toolbar shows over
+it with the text controls: block type, marks, link, and lists. Its … menu holds
+the rest: the inserts, Undo and Redo, and any custom controls. Alt+F10 opens it
+at the caret. On a phone or touch screen it docks instead, since a toolbar over
+the selection would sit under the finger.
 
 ```tsx-live-prose
 <Editor
   aria-label='Event description'
+  preset='rich'
+  toolbar='floating'
   defaultValue={{
     version: 1,
-    preset: 'basic',
+    preset: 'rich',
     doc: {
       type: 'doc',
       content: [
         { type: 'paragraph', content: [{ type: 'text', text: 'Ochre Kite Weekender opens at Jumbuck Orchard Park on Saturday.' }] },
-        { type: 'paragraph', content: [{ type: 'text', text: 'Select a few words to format them from the menu.' }] }
+        { type: 'paragraph', content: [{ type: 'text', text: 'Select a few words to format them.' }] }
       ]
     }
   }}
->
-  <Editor.Toolbar />
-  <Editor.Content />
-  <Editor.BubbleMenu />
-</Editor>
+/>
+```
+
+#### Pinnable
+
+`pinnable` lets people choose. The floating toolbar's … menu gets Pin toolbar
+to top, which docks it, and the docked bar gets Unpin toolbar. Control it with
+`toolbar` and `onToolbarChange`, so the app saves the choice, or start it with
+`defaultToolbar` and let it switch on its own.
+
+```tsx-live-prose-noinline
+function PinnableEditor() {
+  const [toolbar, setToolbar] = useState('floating')
+  return (
+    <Editor
+      aria-label='Event description'
+      placeholder='Select text to format it, or pin the toolbar'
+      pinnable
+      toolbar={toolbar}
+      onToolbarChange={setToolbar}
+    />
+  )
+}
+
+render(<PinnableEditor />)
 ```
 
 ### Emphasis
 
-`emphasis` sets the frame. The toolbar takes its own
-[emphasis](#toolbar-emphasis), so it's the same in each.
+`emphasis` sets the frame, and the docked bar takes its fill, or
+[its own](#toolbar-emphasis). Whatever the frame, focus shows on the block
+holding the caret, with a soft tint, not as a ring around the editor.
 
-| Emphasis           | Frame                                   | Use it for                                                |
-| ------------------ | --------------------------------------- | --------------------------------------------------------- |
-| `normal` (default) | A field's border, fill, and focus ring  | A form, beside other fields                               |
-| `subtle`           | A tint with no border, and a focus ring | A form on a busy surface, where a border adds noise       |
-| `subtler`          | None: the content sits on the page      | Content edited in place, such as an event page's sections |
+| Emphasis           | Frame                                  | Use it for                                                  |
+| ------------------ | -------------------------------------- | ----------------------------------------------------------- |
+| `normal` (default) | A field's border and fill              | A form, beside other fields                                 |
+| `subtle`           | A tint with no border                  | A form on a busy surface, where a border adds noise         |
+| `raised`           | A card's fill and shadow               | A document to write in, set apart from a sunken page        |
+| `subtler`          | None: the content sits on the page     | Content edited in place, such as an event page's sections   |
 
 ```tsx-live-prose layout=stack gap=2
 <Editor aria-label='Normal emphasis' emphasis='normal' placeholder='Normal emphasis' />
 <Editor aria-label='Subtle emphasis' emphasis='subtle' placeholder='Subtle emphasis' />
+<Editor aria-label='Raised emphasis' emphasis='raised' placeholder='Raised emphasis' />
 ```
 
 #### Subtler
@@ -179,24 +213,17 @@ hides the edge. A disabled one dims as a disabled field does.
 
 #### Toolbar emphasis
 
-`Editor.Toolbar` takes [Toolbar's `emphasis`](/components/toolbar#emphasis) for its bar, the same on every screen and
-whether you're editing or not. It's independent of the editor's own `emphasis`. To
-change it, pass the parts yourself:
-
-| Emphasis           | Bar                                      | Use it for                                   |
-| ------------------ | ---------------------------------------- | -------------------------------------------- |
-| `normal` (default) | A visible border on the normal surface   | Most editors, in a form or on the page       |
-| `subtle`           | A tint with no border                    | A busy surface, where a border adds noise    |
-| `subtler`          | No surface, just the controls            | A quiet bar, such as over a `subtler` editor |
-| `raised`           | A translucent raised surface             | An editor on a tinted surface                |
-| `floating`         | A translucent surface with a deep shadow | A bar that should read as above the content  |
+By default the docked bar takes the frame's fill, so it reads as part of the
+editor. To give it a fill of its own, pass the parts yourself and set
+[Toolbar's `emphasis`](/components/toolbar#emphasis) on `Editor.Toolbar`. The
+bar stays flat, with no border or shadow, whatever the emphasis.
 
 ```tsx-live-prose layout=stack gap=2
-<Editor aria-label='Subtler toolbar' placeholder='Subtler toolbar'>
-  <Editor.Toolbar emphasis='subtler' />
+<Editor aria-label='Subtle toolbar' placeholder='Subtle toolbar'>
+  <Editor.Toolbar emphasis='subtle' />
   <Editor.Content />
 </Editor>
-<Editor aria-label='Raised toolbar' placeholder='Raised toolbar'>
+<Editor aria-label='Raised toolbar' emphasis='subtle' placeholder='Raised toolbar'>
   <Editor.Toolbar emphasis='raised' />
   <Editor.Content />
 </Editor>
@@ -301,10 +328,14 @@ form submits it. A disabled editor leaves it out, as a disabled input does.
 
 #### Custom controls
 
-With no children, `Editor` renders `Editor.Toolbar` then `Editor.Content`.
-Pass them yourself to add controls: `Editor.Toolbar` renders the preset's
-controls, then its children. A `Toolbar.Button` child joins the toolbar's
-arrow order, and `useEditorContext()` gives it the editor to run commands on.
+With no children, `Editor` renders `Editor.Toolbar`, `Editor.Content`, and
+`Editor.BubbleMenu`, and each toolbar part shows only in its own `toolbar`
+mode. Pass them yourself to add controls: `Editor.Toolbar` renders the
+preset's controls, then its children. A `Toolbar.Button` child joins the
+toolbar's arrow order, and `useEditorContext()` gives it the editor to run
+commands on. In a floating editor, the children show in the … menu instead.
+Children of `Editor.BubbleMenu` go on the floating toolbar itself, before its
+… menu. Place both parts in a floating editor, as it docks on a phone.
 
 ```tsx-live-prose-noinline
 function DoorsTimeControl() {
@@ -351,21 +382,25 @@ render(
   text through `aria-describedby`.
 - An invalid or required field sets `aria-invalid` or `aria-required`. A
   read-only editor sets `aria-readonly`, and a disabled one `aria-disabled`.
-- A `subtler` editor has no focus ring: the caret shows
-  focus. While invalid it shows a danger edge at its start, beside
-  `aria-invalid` and the error text.
+- No editor has a focus ring: the caret and the tint on its block show
+  focus, and a selected image or embed takes the ring. An invalid `subtler`
+  editor shows a danger edge at its start, beside `aria-invalid` and the
+  error text.
 - Tab moves into and out of the editor. In a list, Tab nests an item under
   the one before it and Shift+Tab lifts it back out.
-- The toolbar is a `toolbar` named Formatting, with `aria-controls` set to
+- The docked bar is a `toolbar` named Formatting, with `aria-controls` set to
   the editable area. It takes one Tab stop, and the arrow keys move between its
   controls, scrolling the one with focus into view on a phone. Bold, italic, underline,
   link, and the lists are toggles that report
   `aria-pressed` for the text at the caret. Undo and Redo are disabled when
   there's nothing to undo or redo, and stay focusable.
-- The selection menu is a `toolbar` named Selection formatting, with the same
-  keys as Formatting. It shows only while text is selected and the editor has
-  focus. Alt+F10 moves focus to its first control while it shows, and Escape
-  moves focus back to the selection.
+- The floating toolbar is a `toolbar` named Selection formatting, with the same
+  keys as Formatting. It shows while text is selected and the editor has
+  focus. Alt+F10 moves focus to its first control, opening it at the caret
+  when nothing is selected, and Escape moves focus back to the text. Its More
+  button opens a menu with the rest of the controls.
+- Pin toolbar to top and Unpin toolbar put focus back in the text, as the
+  toolbar that held it goes.
 - Each control carries its shortcut in `aria-keyshortcuts`.
 - The link editor is a popover by the selection, with an input named Link. It
   takes focus when it opens, Enter or the Save link button saves, and Escape
@@ -386,7 +421,7 @@ render(
 | `Mod+Z` | Undo |
 | `Mod+Shift+Z` | Redo |
 | `Shift+Enter` | Line break |
-| `Alt+F10` | Move focus to the toolbar's first enabled control, the selection menu's while it shows, a selected image's, embed's, or spacer's first action, the first action of the button or columns holding the caret, or in a table its first table action |
+| `Alt+F10` | Move focus to the toolbar's first enabled control, the floating toolbar's, opening it at the caret, a selected image's, embed's, or spacer's first action, the first action of the button or columns holding the caret, or in a table its first table action |
 | `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image or embed |
 
 `Mod` is `⌘` on Apple devices and `Ctrl` elsewhere, and `Alt` is `⌥` on

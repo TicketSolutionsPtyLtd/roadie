@@ -1,11 +1,20 @@
 import { type ReactNode } from 'react'
 
-import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { cleanup, render, screen, within } from '@testing-library/react'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import { Toolbar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { focusRing } from '../../css/testUtils'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -410,6 +419,133 @@ describe('Toolbar layout', () => {
         reference
       )
       expect(height(screen.getByRole('link', { name: 'Help' }))).toBe(reference)
+    }
+  )
+})
+
+describe('Flush toolbar', () => {
+  const surfaceOf = (name: string) =>
+    screen
+      .getByRole('toolbar', { name })
+      .closest<HTMLElement>('[data-slot="toolbar-surface"]')!
+
+  it.each(['normal', 'subtle', 'subtler', 'raised', 'floating'] as const)(
+    'drops the inset, rounding, border and shadow at %s, so the parent draws the edge',
+    (emphasis) => {
+      render(
+        <Toolbar flush emphasis={emphasis} aria-label='History'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+        </Toolbar>
+      )
+      const surface = getComputedStyle(surfaceOf('History'))
+      const toolbar = getComputedStyle(screen.getByRole('toolbar'))
+
+      for (const style of [surface, toolbar]) {
+        expect(style.paddingTop).toBe('0px')
+        expect(style.paddingLeft).toBe('0px')
+      }
+      expect(surface.borderTopWidth).toBe('0px')
+      expect(surface.borderBottomWidth).toBe('0px')
+      expect(surface.borderTopLeftRadius).toBe('0px')
+      expect(surface.boxShadow).toBe('none')
+    }
+  )
+
+  it.each([
+    ['sm', 32],
+    ['md', 40],
+    ['lg', 48]
+  ] as const)('is as tall as its controls at %s', (size, height) => {
+    render(
+      <Toolbar flush size={size} aria-label='History'>
+        <Toolbar.Button>Undo</Toolbar.Button>
+        <Toolbar.Button>Redo</Toolbar.Button>
+      </Toolbar>
+    )
+    expect(surfaceOf('History').getBoundingClientRect().height).toBe(height)
+    expect(
+      screen.getByRole('button', { name: 'Undo' }).getBoundingClientRect()
+        .height
+    ).toBe(height)
+  })
+
+  it('fits a 36px header row with 8px gaps at sm', () => {
+    render(
+      <div
+        style={{ display: 'flex', height: 36, gap: 8, alignItems: 'center' }}
+      >
+        <p>3 selected</p>
+        <Toolbar flush size='sm' aria-label='Bulk actions'>
+          <Toolbar.Button>Archive</Toolbar.Button>
+          <Toolbar.Button>Delete</Toolbar.Button>
+        </Toolbar>
+      </div>
+    )
+    const row = surfaceOf('Bulk actions').parentElement!
+    expect(row.scrollHeight).toBe(36)
+    expect(surfaceOf('Bulk actions').getBoundingClientRect().height).toBe(32)
+  })
+
+  it('keeps the gap between its controls', () => {
+    render(
+      <>
+        <Toolbar aria-label='Inset'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+          <Toolbar.Button>Redo</Toolbar.Button>
+        </Toolbar>
+        <Toolbar flush aria-label='Flush'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+          <Toolbar.Button>Redo</Toolbar.Button>
+        </Toolbar>
+      </>
+    )
+    const gap = (name: string) => {
+      const toolbar = within(screen.getByRole('toolbar', { name }))
+      const box = (button: string) =>
+        toolbar.getByRole('button', { name: button }).getBoundingClientRect()
+      return box('Redo').left - box('Undo').right
+    }
+    expect(gap('Flush')).toBe(4)
+    expect(gap('Inset')).toBe(4)
+  })
+
+  it('starts its first control at its own edge', () => {
+    render(
+      <div style={{ display: 'grid', width: 600 }}>
+        <Toolbar flush className='w-full' aria-label='History'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+        </Toolbar>
+      </div>
+    )
+    const surface = surfaceOf('History').getBoundingClientRect()
+    const undo = screen
+      .getByRole('button', { name: 'Undo' })
+      .getBoundingClientRect()
+    expect(undo.left).toBe(surface.left)
+    expect(surface.width).toBe(600)
+  })
+
+  // With no inset, the scrolling row clips a ring drawn outside a control.
+  it.each(['Undo', 'Save draft'])(
+    'draws the focus ring inside %s',
+    async (name) => {
+      onTestFinished(useStylesheet('* { transition-duration: 0s !important }'))
+      render(
+        <Toolbar flush aria-label='History'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+          <Toolbar.Group aria-label='Draft'>
+            <Toolbar.Button>Save draft</Toolbar.Button>
+          </Toolbar.Group>
+        </Toolbar>
+      )
+      // Firefox shows no ring for scripted focus inside a composite, so the keys move it.
+      await userEvent.keyboard('{Tab}')
+      if (name === 'Save draft') await userEvent.keyboard('{ArrowRight}')
+      const control = screen.getByRole('button', { name })
+      expect(control).toHaveFocus()
+      const ring = focusRing(control)
+      expect(ring.width).toBe('4px')
+      expect(ring.offset).toBe('-4px')
     }
   )
 })
