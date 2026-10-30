@@ -12,8 +12,8 @@
 /* The tokens reference draws each utility by name from the manifest. */
 @source '../../../packages/core/src/css/safelist.html';
 
-/* A `wideExamples` page keeps its reading column but runs each live example to
-   the docs pane's width, centred on the column, so a block shows at page scale. */
+/* A `wideExamples` page keeps prose at reading width but runs each live example
+   to the docs pane's width, centred on the column, so a block shows at page scale. */
 #docs-content[data-wide-examples] [data-slot='live-example'] {
   --wide-example: max(100%, min(100cqw - 3rem, 80rem));
   width: var(--wide-example);

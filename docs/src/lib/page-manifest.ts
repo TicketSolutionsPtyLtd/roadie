@@ -123,7 +123,7 @@ type PageMetadata = Record<string, unknown> & {
   alsoIn?: Placement[]
   /** Widens the content column past the standard reading width. */
   wide?: boolean
-  /** Keeps the reading column but runs live examples to the pane's width, for blocks shown at page scale. */
+  /** Keeps prose at reading width but runs live examples to the pane's width, dropping the rail to make room, for blocks shown at page scale. */
   wideExamples?: boolean
   /** The token family a page lists; its markdown twin is built from the token manifest. */
   tokenFamily?: string
