@@ -1,22 +1,22 @@
 export const metadata = {
-  title: 'Dashboard period',
-  description: 'A dashboard’s period and what it compares with, in one picker',
-  status: 'beta',
-  category: 'Layout',
-  alsoIn: [{ route: '/components', category: 'Date and time' }]
-}
+  title: "Dashboard period",
+  description: "A dashboard’s period and what it compares with, in one picker",
+  status: "beta",
+  category: "Layout",
+  alsoIn: [{ route: "/components", category: "Date and time" }],
+};
 
-import { Button } from '@oztix/roadie-components/button'
-import { DashboardPeriod } from '@oztix/roadie-components/dashboard-period'
-import { PropsDefinitions } from '@/components/PropsDefinitions'
-import { Guideline, Guidelines } from '@/components/Guideline'
+import { Button } from "@oztix/roadie-components/button";
+import { DashboardPeriod } from "@oztix/roadie-components/dashboard-period";
+import { PropsDefinitions } from "@/components/PropsDefinitions";
+import { Guideline, Guidelines } from "@/components/Guideline";
 
 A dashboard’s period and what it compares with, in one picker.
 
 ## Import
 
 ```tsx
-import { DashboardPeriod } from '@oztix/roadie-components/dashboard-period'
+import { DashboardPeriod } from "@oztix/roadie-components/dashboard-period";
 ```
 
 ## Examples
@@ -148,7 +148,7 @@ render(<Fixed />)
 
 ### With the data’s dates
 
-Pass the same `dataStart`, `dataEnd` and `alignWeekday` you give `resolveComparison`, and the comparison shows the dates the app will fetch, or “Not enough history” or “Nothing to compare” when the data can’t cover them. A range with no end, such as Upcoming, has no span to step back by, so Previous period, Previous year and Custom dates turn off, and Apply drops them. Here sales data runs to today, so this month compares with the same days of last month, and the previous year lines up weekdays.
+Pass the same `dataStart`, `dataEnd` and `alignWeekday` you give `resolveComparison`, and the comparison shows the dates the app will fetch, or “Not enough history” or “Nothing to compare” when the data can’t cover them. A range with no end, such as Upcoming, has no span to step back by, so Previous period, Previous year and Custom dates turn off, the period reads no comparison even when the value holds one, and Apply drops them. Here sales data runs to today, so this month compares with the same days of last month, and the previous year lines up weekdays.
 
 ```tsx-live
 <DashboardPeriod
@@ -254,30 +254,62 @@ render(<Sales />)
 
 <Guidelines>
 
-<Guideline title='Compare like with like'>
-  <Guideline.Do code={`resolveComparison(range, compare, { now, timeZone, dataEnd: today })`}>
-    Pass `dataEnd` for data recorded as it happens, such as sales. A period still in progress then compares with the same days of the period before. Leave it out for dates known ahead, such as shows coming up.
+<Guideline title="Compare like with like">
+  <Guideline.Do
+    code={`resolveComparison(range, compare, { now, timeZone, dataEnd: today })`}
+  >
+    Pass `dataEnd` for data recorded as it happens, such as sales. A period
+    still in progress then compares with the same days of the period before.
+    Leave it out for dates known ahead, such as shows coming up.
   </Guideline.Do>
-  <Guideline.Dont code={`resolveComparison('this-month', 'previous-period', { now, timeZone })`}>
-    Don’t compare a month that’s two days old with a whole month. The delta looks like a fall.
+  <Guideline.Dont
+    code={`resolveComparison('this-month', 'previous-period', { now, timeZone })`}
+  >
+    Don’t compare a month that’s two days old with a whole month. The delta
+    looks like a fall.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Pair it with large controls'>
-  <Guideline.Do width={72} example={<DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }}><Button size='lg'>Export</Button></DashboardPeriod>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='lg'>Export</Button>\n</DashboardPeriod>`}>
-    Put large Buttons, IconButtons and Selects beside it, so the row shares one height.
+<Guideline title="Pair it with large controls">
+  <Guideline.Do
+    width={72}
+    example={
+      <DashboardPeriod
+        defaultValue={{ range: "last-month", compare: "previous-year" }}
+      >
+        <Button size="lg">Export</Button>
+      </DashboardPeriod>
+    }
+    code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='lg'>Export</Button>\n</DashboardPeriod>`}
+  >
+    Put large Buttons, IconButtons and Selects beside it, so the row shares one
+    height.
   </Guideline.Do>
-  <Guideline.Dont width={72} example={<DashboardPeriod defaultValue={{ range: 'last-month', compare: 'previous-year' }}><Button size='sm'>Export</Button></DashboardPeriod>} code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='sm'>Export</Button>\n</DashboardPeriod>`}>
+  <Guideline.Dont
+    width={72}
+    example={
+      <DashboardPeriod
+        defaultValue={{ range: "last-month", compare: "previous-year" }}
+      >
+        <Button size="sm">Export</Button>
+      </DashboardPeriod>
+    }
+    code={`<DashboardPeriod value={period} onValueChange={setPeriod}>\n  <Button size='sm'>Export</Button>\n</DashboardPeriod>`}
+  >
     Don't set small or medium controls beside it. They sit short of its edge.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Benchmarks are comparisons'>
-  <Guideline.Do code={`compareOptions={['previous-period', 'previous-year', { value: 'similar', label: 'Similar venues' }]}`}>
-    Add a benchmark such as similar venues to `compareOptions`, so it sits with the other comparisons and the button names it.
+<Guideline title="Benchmarks are comparisons">
+  <Guideline.Do
+    code={`compareOptions={['previous-period', 'previous-year', { value: 'similar', label: 'Similar venues' }]}`}
+  >
+    Add a benchmark such as similar venues to `compareOptions`, so it sits with
+    the other comparisons and the button names it.
   </Guideline.Do>
   <Guideline.Dont>
-    Don’t put a benchmark in its own toggle beside the period. Two controls then both say what the numbers compare with, and can disagree.
+    Don’t put a benchmark in its own toggle beside the period. Two controls then
+    both say what the numbers compare with, and can disagree.
   </Guideline.Dont>
 </Guideline>
 
@@ -291,4 +323,4 @@ render(<Sales />)
 - With Custom dates, a [DateRangePicker](/components/date-range-picker) named “Comparison dates” sits under the choices. It opens over the picker, a drawer over the drawer on a phone, and its dates wait for Apply with the rest.
 - Read only, the button shows a lock and doesn’t open.
 
-<PropsDefinitions component='DashboardPeriod' />
+<PropsDefinitions component="DashboardPeriod" />

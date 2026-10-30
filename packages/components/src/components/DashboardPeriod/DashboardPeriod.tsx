@@ -378,12 +378,14 @@ export function DashboardPeriod<App extends string = never>({
   const shown = value.compare
     ? compared(value.range, value.compare, options, locale)
     : null
-  const named = value.compare
-    ? isBuiltInComparison(value.compare)
-      ? (shown?.dates ??
-        BUILT_IN[choiceOf(value.compare) as keyof typeof BUILT_IN])
-      : appChoice(value.compare)?.label
-    : undefined
+  const named = !value.compare
+    ? undefined
+    : !isBuiltInComparison(value.compare)
+      ? appChoice(value.compare)?.label
+      : hasSpan(value.range, options)
+        ? (shown?.dates ??
+          BUILT_IN[choiceOf(value.compare) as keyof typeof BUILT_IN])
+        : undefined
   const suffix = named ? `vs ${inSentence(named, locale)}` : null
 
   const compareRow = (range: DateRangeValue | null) => {

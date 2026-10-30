@@ -778,6 +778,41 @@ describe('DashboardPeriod compare options', () => {
     expect(onValueChange).toHaveBeenCalledWith({ range: 'upcoming' })
   })
 
+  it.each([
+    ['the previous period', 'previous-period'],
+    ['the previous year', 'previous-year'],
+    ['custom dates', { start: '2026-09-01', end: '2026-09-30' }]
+  ] as const)(
+    'reads no comparison with %s it was given with an open-ended range',
+    (_, compare) => {
+      render(
+        <DashboardPeriod
+          today={TODAY}
+          value={{ range: 'upcoming', compare }}
+          compareOptions={[
+            'none',
+            'previous-period',
+            'previous-year',
+            'custom'
+          ]}
+        />
+      )
+      expect(picker()).toHaveTextContent('Upcoming')
+      expect(picker()).not.toHaveTextContent('vs')
+    }
+  )
+
+  it('still reads an app comparison with an open-ended range', () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming', compare: 'similar' }}
+        compareOptions={['none', 'previous-period', SIMILAR]}
+      />
+    )
+    expect(picker()).toHaveTextContent('vs similar venues')
+  })
+
   it('leaves out app values that are Roadie’s, and repeats, with a warning', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
