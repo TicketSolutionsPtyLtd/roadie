@@ -75,6 +75,29 @@ The label wraps to two lines, then truncates, so it keeps room beside the action
 />
 ```
 
+A long chart label wraps to two lines beside the Chart/Table switch and More, then truncates. The full label stays in its `title`.
+
+```tsx-live width=140
+<Chart
+  label='Tickets sold by ticket type across every venue this season, against target'
+  source='Oztix sales.'
+  size='md'
+  actions={
+    <DataCard.MoreButton label='Tickets sold by ticket type across every venue this season, against target' />
+  }
+>
+  <RankedBars
+    data={[
+      { type: 'General admission', sold: 1210 },
+      { type: 'VIP', sold: 232 },
+      { type: 'Early bird', sold: 400 }
+    ]}
+    x='type'
+    y='sold'
+  />
+</Chart>
+```
+
 ### Controls
 
 `controls` sit in a full-width row under the headline and wrap on a narrow card. Use them for switches that change what the body shows.
