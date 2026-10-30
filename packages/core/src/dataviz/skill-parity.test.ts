@@ -7,7 +7,8 @@ import {
   CARD_SIZES,
   CHART_LABEL_LIMITS,
   CHART_PLOT_KINDS,
-  COPY_LIMITS
+  COPY_LIMITS,
+  validateChartDocument
 } from '../dashboard'
 import { palette } from './palette'
 
@@ -58,5 +59,28 @@ describe('dataviz parity', () => {
     expect(CHARTS_SKILL).toContain(
       `--chart-${palette.categorical.light.length}`
     )
+  })
+
+  it('teaches the charts skill the card keys a chart document rejects', () => {
+    const [, list] =
+      /It is a chart card without (.+?): `version: 1`/.exec(CHARTS_SKILL) ?? []
+    const keys = [...(list ?? '').matchAll(/`(\w+)`/g)].map((m) => m[1]!)
+    expect(keys).toEqual(['id', 'size', 'state', 'table', 'legend', 'view'])
+    const doc = {
+      version: 1,
+      kind: 'chart',
+      label: 'Sales pace',
+      source: 'Oztix sales.',
+      plot: {
+        kind: 'funnel',
+        steps: [
+          { label: 'Viewed', value: 2 },
+          { label: 'Paid', value: 1 }
+        ]
+      }
+    }
+    expect(validateChartDocument(doc).ok).toBe(true)
+    for (const key of keys)
+      expect(validateChartDocument({ ...doc, [key]: 'md' }).ok).toBe(false)
   })
 })

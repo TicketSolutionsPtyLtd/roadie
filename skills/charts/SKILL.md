@@ -1,6 +1,6 @@
 ---
 name: charts
-description: Use when building or changing a chart, graph, stat tile, KPI row, sparkline, meter, dashboard table, or dashboard in an app that uses Roadie (`@oztix/roadie-charts`, `@oztix/roadie-components`, or `@oztix/roadie-core`). Use it in place of the generic dataviz skill there. Picks the Roadie chart for the job, or a table or StatTile instead, colours with Roadie's chart tokens, describes dashboards as data checked with validateDashboard, wires actions and row links from the app, and writes chart copy in the house style. Triggers on "chart", "graph", "plot", "dashboard", "visualise", "stat tile", "KPI", "sparkline", "heatmap", "chart colours".
+description: Use when building or changing a chart, graph, stat tile, KPI row, sparkline, meter, dashboard table, or dashboard in an app that uses Roadie (`@oztix/roadie-charts`, `@oztix/roadie-components`, or `@oztix/roadie-core`). Use it in place of the generic dataviz skill there. Picks the Roadie chart for the job, or a table or StatTile instead, colours with Roadie's chart tokens, describes dashboards as data checked with validateDashboard, writes a single chart as a chart document checked with validateChartDocument and drawn to SVG with renderChartDocument, wires actions and row links from the app, and writes chart copy in the house style. Triggers on "chart", "graph", "plot", "dashboard", "visualise", "stat tile", "KPI", "sparkline", "heatmap", "chart colours".
 ---
 
 # Roadie charts
@@ -350,6 +350,65 @@ anything from them. Use `/static` and `/tables` for everything else.
   `@oztix/roadie-charts/tables`, passed to `Chart`'s `table`.
 - A spec with `plot: { kind: 'static', src, alt }` needs a `table`.
 
+### One chart as a file
+
+When someone wants one chart to save, send, or put in a report, write a chart
+document rather than a one-card dashboard or a hand-made SVG. The format is in
+beta, so check the manifest lists `validateChartDocument` before you use it.
+
+1. **Write the document.** It is a chart card without `id`, `size`, `state`,
+   `table`, `legend`, or `view`: `version: 1`, `kind: 'chart'`, a `label`, a
+   `source`, and a `plot` of any kind, `static` and `small-multiples` among
+   them. Add a headline `value` with its `delta`, or a `takeaway`, not both.
+
+   ```ts
+   import {
+     type ChartDocument,
+     validateChartDocument
+   } from '@oztix/roadie-core/dashboard'
+
+   const doc: ChartDocument = {
+     version: 1,
+     kind: 'chart',
+     label: 'Sales pace',
+     takeaway: 'Tracking 16 points ahead of similar shows',
+     source: 'Oztix sales, pulled Thu 15 Oct.',
+     plot: { kind: 'line', data: pace, x: 'day', y: 'sold', format: 'percent' }
+   }
+   ```
+
+2. **Validate it.** `validateChartDocument(doc)` runs the chart card's checks
+   and returns `{ ok, problems }`, each with a `path` such as `plot.y`. Fix
+   every error, and read every warning. A document has no period, so leave out
+   `selectsPeriod` and a delta's `comparison`.
+
+   ```ts
+   const result = validateChartDocument(doc)
+   if (!result.ok)
+     throw new Error(
+       result.problems.map((p) => `${p.path}: ${p.message}`).join('\n')
+     )
+   ```
+
+3. **Render it.** `renderChartDocument(doc, { mode, width, height })` from
+   `@oztix/roadie-charts/static` returns one SVG string with the label and
+   headline above the plot and the source below. It runs on the server with no
+   React, validates again, and throws a `ChartDocumentError` whose `problems`
+   list what failed. Pass `accentHue` to match the app's accent.
+
+   ```ts
+   import { renderChartDocument } from '@oztix/roadie-charts/static'
+
+   const svg = renderChartDocument(doc, {
+     mode: 'light',
+     width: 640,
+     height: 360
+   })
+   ```
+
+Roadie stops at SVG. For a PDF, hand the SVG to the app's PDF step; never add a
+PDF library for it.
+
 ## 7. Copy
 
 Follow Roadie's [Content pages](https://ticketsolutionsptyltd.github.io/roadie/content)
@@ -382,7 +441,8 @@ charts. For a copy review, run `/roadie:content`.
 
 ## 8. Before you hand off
 
-- `validateDashboard` returns no errors and no warnings you haven't read.
+- `validateDashboard` returns no errors and no warnings you haven't read, and
+  so does `validateChartDocument` for a chart document.
 - The app typechecks and builds, and nothing imports from a chart subpath on
   the server except components.
 - Run `/roadie:audit` on the files you touched (colour checks A1 to A6 and the
