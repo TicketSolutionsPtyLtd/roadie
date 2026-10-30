@@ -9,7 +9,7 @@
     "name": "Single component (Button)",
     "path": "dist/index.js",
     "import": "{ Button }",
-    "limit": "2.5 kB",
+    "limit": "1.9 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
