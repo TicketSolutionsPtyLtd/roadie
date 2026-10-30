@@ -60,8 +60,9 @@ describe('without container style queries', () => {
   const shapes = rowShapes().filter(
     ({ spec }) => !spec.panes.some((pane) => pane.depth === 'deep')
   )
-  // One test per reached set keeps each under the timeout on a slow CI runner:
-  // every width is a forced layout, and a four-level family has 192 shapes.
+  // One test per variant (16 reached sets each) keeps every case under the
+  // timeout on a slow CI runner: each width is a forced layout, and four
+  // levels is 192 shapes in all.
   const families = Map.groupBy(shapes, (shape) =>
     shape.name.replace(/ \/ reached \d+/, '')
   )
