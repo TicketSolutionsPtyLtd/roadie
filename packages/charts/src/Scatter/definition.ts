@@ -67,6 +67,13 @@ function extent(
   return [low, format === 'percent' && max <= 1 ? Math.min(1, high) : high]
 }
 
+// Both axes are measures, so each needs its name; the ticks alone don't say what they count.
+const axisTitle = (text: string, paint: ChartPaint, frame: PlotFrame) => ({
+  text,
+  fontSize: frame.fontSize,
+  fill: paint.label
+})
+
 type Placed = ScatterPoint & PlotDatum & { labelAnchor: 'start' | 'end' }
 
 function quadrantMarks(
@@ -209,6 +216,7 @@ function build(props: ScatterProps, paint: ChartPaint, frame: PlotFrame) {
             size: 0,
             format: axisFormat(props.xFormat, xDomain[1])
           },
+          label: axisTitle(fieldLabel(props.x), paint, frame),
           tickLabels: {
             fontSize: frame.fontSize,
             anchor: ({ value }) =>
@@ -230,7 +238,8 @@ function build(props: ScatterProps, paint: ChartPaint, frame: PlotFrame) {
             size: 0,
             format: axisFormat(props.format, yDomain[1])
           },
-          tickLabels: { fontSize: frame.fontSize }
+          tickLabels: { fontSize: frame.fontSize },
+          label: axisTitle(fieldLabel(props.y), paint, frame)
         }
       }
     },

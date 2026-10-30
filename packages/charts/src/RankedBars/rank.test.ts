@@ -41,6 +41,32 @@ describe('rank', () => {
     )
   })
 
+  it('drops the rest instead of adding Other, keeping shares of the full total', () => {
+    const ranked = rank({ ...channelExample, other: false })
+    expect(ranked.map((r) => r.name)).toEqual([
+      'Email',
+      'Instagram',
+      'Direct',
+      'Venue site',
+      'TikTok',
+      'Google',
+      'Facebook',
+      'Partner'
+    ])
+    expect(ranked[0]!.share).toBeCloseTo(612 / 1828, 6)
+  })
+
+  it('keeps data order without sort, so ordered categories stay in order', () => {
+    const bands = ['18 to 24', '25 to 34', '35 to 44', '45 and over']
+    const ranked = rank({
+      data: bands.map((band, i) => ({ band, buyers: [40, 120, 80, 10][i]! })),
+      x: 'band',
+      y: 'buyers',
+      sort: false
+    })
+    expect(ranked.map((r) => r.name)).toEqual(bands)
+  })
+
   it('skips rows with no number or no name', () => {
     expect(
       rank({

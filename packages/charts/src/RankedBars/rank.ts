@@ -31,7 +31,7 @@ const byValue = (a: RankRow, b: RankRow) =>
       ? -1
       : b.value - a.value
 
-/** One row per name, largest first. Rows that share a name add up. */
+/** One row per name, largest first unless `sort` is off. Rows that share a name add up. */
 export function rankRows(props: RankedBarsProps): RankRow[] {
   const reference = props.reference?.field
   const rows = new Map<string, RankRow>()
@@ -52,10 +52,11 @@ export function rankRows(props: RankedBarsProps): RankRow[] {
         : { name, value, reference: ref, index }
     )
   })
-  return [...rows.values()].sort(byValue)
+  const all = [...rows.values()]
+  return props.sort === false ? all : all.sort(byValue)
 }
 
-/** Rows with a value, largest first, before the smallest roll into Other. */
+/** Rows with a value, in bar order, before the rest roll into Other. */
 export const rankable = (props: RankedBarsProps) =>
   rankRows(props).filter((r): r is Row => r.value !== null)
 
@@ -69,6 +70,7 @@ export function rank(props: RankedBarsProps): Ranked[] {
     isOther: false
   })
   if (rows.length <= limit) return rows.map(toRanked)
+  if (props.other === false) return rows.slice(0, limit).map(toRanked)
   const value = sum(rows.slice(limit - 1))
   return [
     ...rows.slice(0, limit - 1).map(toRanked),

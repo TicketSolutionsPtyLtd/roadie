@@ -60,6 +60,11 @@ describe('scatter', () => {
       expect(svg).toContain(`>${name}<`)
   })
 
+  it('titles both axes with their fields', () => {
+    expect(svg).toMatch(/>Pace<\/text>/)
+    expect(svg).toMatch(/>Sold<\/text>/)
+  })
+
   it('focuses only the points, all in one walk', () => {
     const points = sceneOf(portfolioExample).points
     expect(new Set(points.map((p) => p.markId))).toEqual(
