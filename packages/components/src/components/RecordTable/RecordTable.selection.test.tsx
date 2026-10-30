@@ -142,11 +142,11 @@ describe('RecordTable checkbox column', () => {
     await user.click(
       screen.getByRole('checkbox', { name: 'Select Ball Park Music 1' })
     )
-    screen.getByRole('checkbox', { name: 'Select Alex Lahey 1' }).focus()
+    const box = screen.getByRole('checkbox', { name: 'Select Alex Lahey 1' })
+    box.focus()
     await user.keyboard('{Shift>}{Tab}{/Shift}')
-    await user.click(
-      screen.getByRole('checkbox', { name: 'Select Alex Lahey 1' })
-    )
+    // A click with no press, as assistive tech sends, so nothing else resets it.
+    fireEvent.click(box)
     expect(count()).toBe('2')
   })
 
