@@ -5,7 +5,7 @@ Designed page sections that marketing composes into pages, from any CMS. The
 and the block catalogue.
 
 ```bash
-pnpm add @oztix/roadie-marketing-blocks @oztix/roadie-components @oztix/roadie-core
+pnpm add @oztix/roadie-marketing-blocks @oztix/roadie-components @oztix/roadie-core @phosphor-icons/react
 ```
 
 ```css
@@ -45,7 +45,8 @@ Run `pnpm generate:exports` after adding the folder.
   image goes side by side from about `@xl` (36rem); a grid adds a column for roughly
   every 18rem of card. Test the switch in a browser test at a mid width, such as 640px.
 - **Its own width, not the screen's.** `BlockRoot` is a container, so layout uses container
-  queries (`@3xl:`, `@5xl:`, `@7xl:`), never viewport breakpoints. A block in a Studio
+  queries (`@3xl:`, `@5xl:`, `@7xl:`), never viewport breakpoints, except to override a
+  wrapped component's own, such as `Carousel.Header`'s `md:`. A block in a Studio
   preview pane or a narrow column lays out as it would on a phone.
 - **No outer vertical padding.** The page spaces blocks with its gap. A block pads only
   inside a surface it draws, such as a raised panel. The one exception is RichText's
@@ -76,7 +77,7 @@ Run `pnpm generate:exports` after adding the folder.
   preset puts them. Items use `title`, `description`, `image`, `illustration`,
   `href`, and `intent`.
 - **Interaction follows links, never surfaces.** Card-like items build on Roadie's
-  `Card`. An item with `href` gets a `Card.Link` on its title (`data-interactive-target`),
+  `Card`, or match its surfaces where its layout doesn't fit. An item with `href` gets a `Card.Link` on its title (`data-interactive-target`),
   so the whole card is the hit area and the click reports the title. A card carries
   `is-interactive-within`, as `Card` does; it does nothing without a target, so an item
   without `href` shows no hover or focus state. A linked card with no surface takes
