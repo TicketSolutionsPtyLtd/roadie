@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { BlockHeading } from './BlockHeading'
+import { BlockHeading, titleStep } from './BlockHeading'
 import { BlockRoot } from './BlockRoot'
+import { BlockSurface } from './BlockSurface'
 import { emphasisClass } from './surface'
 
 describe('block intent and emphasis', () => {
@@ -59,5 +60,55 @@ describe('block intent and emphasis', () => {
     expect(emphasisClass('raised')).toBe('emphasis-raised')
     expect(emphasisClass('strong')).toBe('emphasis-strong')
     expect(emphasisClass(undefined)).toBe('')
+  })
+})
+
+describe('BlockSurface', () => {
+  it('sits the content on the page without an emphasis', () => {
+    const { container } = render(
+      <BlockSurface width='4xl'>Content</BlockSurface>
+    )
+    expect(
+      container.querySelector('[data-slot=block-surface]')
+    ).not.toBeInTheDocument()
+    expect(container.firstElementChild).toHaveClass('container-4xl')
+  })
+
+  it('draws a full-width band by default', () => {
+    const { container } = render(
+      <BlockSurface emphasis='subtle'>Content</BlockSurface>
+    )
+    const surface = container.querySelector('[data-slot=block-surface]')
+    expect(surface).toHaveAttribute('data-shape', 'band')
+    expect(surface).toHaveClass('emphasis-subtle', '@7xl:rounded-3xl')
+  })
+
+  it('draws an inset panel, rounded at every width', () => {
+    const { container } = render(
+      <BlockSurface emphasis='raised' inset>
+        Content
+      </BlockSurface>
+    )
+    const surface = container.querySelector('[data-slot=block-surface]')
+    expect(surface).toHaveAttribute('data-shape', 'panel')
+    expect(surface).toHaveClass('emphasis-raised', 'rounded-3xl')
+  })
+
+  it('pads a backdrop as a surface, with no emphasis', () => {
+    const { container } = render(
+      <BlockSurface backdrop={<img alt='' />}>Content</BlockSurface>
+    )
+    const surface = container.querySelector('[data-slot=block-surface]')
+    expect(surface).toHaveAttribute('data-shape', 'band')
+    expect(surface?.querySelector('img')).toBeInTheDocument()
+  })
+})
+
+describe('titleStep', () => {
+  it('keeps the preset step at lg and drops one step at md', () => {
+    expect(titleStep(2, undefined)).toBe(2)
+    expect(titleStep(2, 'lg')).toBe(2)
+    expect(titleStep(2, 'md')).toBe(3)
+    expect(titleStep(5, 'md')).toBe(5)
   })
 })

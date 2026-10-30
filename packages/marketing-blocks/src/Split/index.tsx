@@ -159,7 +159,7 @@ export function Split({
       <BlockHeading
         id={headingId}
         level={layout.level}
-        size={layout.size}
+        step={layout.size}
         align='start'
         intent={intent}
         eyebrow={eyebrow}

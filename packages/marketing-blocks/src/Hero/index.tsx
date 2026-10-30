@@ -148,7 +148,7 @@ function TitleOnly({
         id={headingId}
         intent={intent}
         level={1}
-        size={2}
+        step={2}
         align='start'
         eyebrow={eyebrow}
         title={title}

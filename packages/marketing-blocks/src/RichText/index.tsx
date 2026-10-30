@@ -119,7 +119,7 @@ function Statement({
             className='[&>h2]:max-w-none'
             id={headingId}
             intent={intent}
-            size={4}
+            step={4}
             eyebrow={eyebrow}
             title={title}
             titleHighlight={titleHighlight}

@@ -5,7 +5,13 @@ import type { ReactNode } from 'react'
 import { MarketingBlocksContext, useMarketingBlocks } from '../_shared/context'
 
 export type { SpotIllustrationName } from '../_shared/illustrations'
-export type { BlockEmphasis, BlockIntent } from '../_shared/surface'
+export type {
+  BlockAlign,
+  BlockEmphasis,
+  BlockIntent,
+  BlockSize,
+  ItemEmphasis
+} from '../_shared/surface'
 
 /** An image a block shows, as a CMS or a static import gives it. */
 export type BlockImage = {

@@ -1,7 +1,7 @@
 import { Highlight } from '@oztix/roadie-components/highlight'
 import { cn } from '@oztix/roadie-core/utils'
 
-import type { BlockIntent } from './surface'
+import type { BlockAlign, BlockIntent, BlockSize } from './surface'
 
 export type BlockHeadingProps = {
   eyebrow?: string
@@ -12,8 +12,10 @@ export type BlockHeadingProps = {
   /** 1 only for the block that opens the page. */
   level?: 1 | 2
   /** The title's `text-display-prose-*` step, when the preset sets one other than the level's. */
-  size?: 1 | 2 | 3 | 4
-  align?: 'center' | 'start'
+  step?: TitleStep
+  /** The block's size; `md` sets the title a step smaller. */
+  size?: BlockSize
+  align?: BlockAlign
   /** The block's intent; highlighted words take it, or brand-secondary without one. */
   intent?: BlockIntent
   /** Runs the description the heading's full width instead of balancing it to a measure. */
@@ -22,12 +24,20 @@ export type BlockHeadingProps = {
   className?: string
 }
 
-const TITLE_SIZE = {
+export type TitleStep = 1 | 2 | 3 | 4 | 5
+
+const TITLE_STEP: Record<TitleStep, string> = {
   1: 'text-display-prose-1',
   2: 'text-display-prose-2',
   3: 'text-display-prose-3',
-  4: 'text-display-prose-4'
-} as const
+  4: 'text-display-prose-4',
+  5: 'text-display-prose-5'
+}
+
+/** A title's step at a block's size: `md` is one step smaller than the preset's. */
+export function titleStep(step: TitleStep, size: BlockSize | undefined): TitleStep {
+  return size === 'md' ? (Math.min(step + 1, 5) as TitleStep) : step
+}
 
 export function BlockHeading({
   eyebrow,
@@ -35,7 +45,8 @@ export function BlockHeading({
   titleHighlight,
   description,
   level = 2,
-  size = level,
+  step = level,
+  size,
   align = 'center',
   intent,
   wide = false,
@@ -56,7 +67,7 @@ export function BlockHeading({
         id={id}
         className={cn(
           'max-w-5xl text-balance wrap-anywhere text-strong',
-          TITLE_SIZE[size]
+          TITLE_STEP[titleStep(step, size)]
         )}
       >
         {titleHighlight ? (
