@@ -352,6 +352,28 @@ describe('barChart comparison', () => {
     )
   })
 
+  it.each([
+    ['a field missing from every row', 'lastYear', comparisonExample.data],
+    [
+      'a field with no values',
+      'lastPeriod',
+      comparisonExample.data.map((row) => ({ ...row, lastPeriod: null }))
+    ],
+    ['the x field', 'day', comparisonExample.data],
+    ['the y field', 'orders', comparisonExample.data]
+  ])('leaves out a comparison against %s', (_, y, data) => {
+    const props = { ...comparisonExample, data, comparison: { y } }
+    expect(svgOf(props)).not.toMatch(/data-ts-key="comparison/)
+    expect(barChart.legend(props, paint, plotFrame(220, 'default'))).toEqual([])
+    expect(barChart.tooltip([day(2)], props, paint).rows).toHaveLength(1)
+    expect(barChart.describe(day(2), props)).toBe(
+      'Sunday, 27 September 2026, 9 orders'
+    )
+    const table = barChartTable(props)
+    expect(table.columns.map((c) => c.header)).toEqual(['Day', 'Orders'])
+    expect(table.rows[2]).toEqual(barChartTable(dailyOrdersExample).rows[2])
+  })
+
   it('tabulates the comparison after the bars', () => {
     const table = barChartTable(comparisonExample)
     expect(table.columns.map((c) => c.header)).toEqual([

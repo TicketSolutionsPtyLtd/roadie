@@ -15,6 +15,12 @@ export type Bar = {
 const addOrNull = (a: number | null, b: number | null) =>
   a === null ? b : b === null ? a : a + b
 
+// Against the chart's own x or y, a comparison has nothing to add.
+const comparedField = ({ comparison, x, y }: BarChartProps) =>
+  comparison && comparison.y !== x && comparison.y !== y
+    ? comparison.y
+    : undefined
+
 /**
  * One bar per x, in x order. Rows that share an x add up their bars and
  * comparisons; the line keeps the first non-null value, because a rate can't
@@ -22,6 +28,7 @@ const addOrNull = (a: number | null, b: number | null) =>
  */
 export function toBars(props: BarChartProps): Bar[] {
   const isTime = isTimeField(props.data, props.x)
+  const compared = comparedField(props)
   const bars = new Map<number | string, Bar>()
   props.data.forEach((row, index) => {
     const raw = row[props.x]
@@ -31,9 +38,7 @@ export function toBars(props: BarChartProps): Bar[] {
     const slot = isTime ? x : String(raw)
     const y = finiteOrNull(row[props.y])
     const line = props.line ? finiteOrNull(row[props.line.y]) : null
-    const comparison = props.comparison
-      ? finiteOrNull(row[props.comparison.y])
-      : null
+    const comparison = compared ? finiteOrNull(row[compared]) : null
     const seen = bars.get(slot)
     bars.set(
       slot,
@@ -63,3 +68,6 @@ export const comparisonLabel = (props: Pick<BarChartProps, 'comparison'>) =>
   props.comparison && (props.comparison.label ?? fieldLabel(props.comparison.y))
 
 export const hasBars = (bars: readonly Bar[]) => bars.some((b) => b.y !== null)
+
+export const hasComparison = (bars: readonly Bar[]) =>
+  bars.some((b) => b.comparison !== null)
