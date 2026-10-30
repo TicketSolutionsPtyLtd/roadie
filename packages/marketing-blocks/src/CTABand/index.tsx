@@ -10,9 +10,28 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
+import {
+  type BlockEmphasis,
+  type BlockIntent,
+  emphasisClass
+} from '../_shared/surface'
 import { type CTABandPreset, ctaBandDefinition } from './definition'
 
 export type { CTABandPreset } from './definition'
+
+/** The panels a CTA band's text and actions stay readable on, in light and dark mode. */
+export type CTABandEmphasis = Extract<
+  BlockEmphasis,
+  'raised' | 'subtle' | 'strong' | 'inverted'
+>
+
+// On a filled panel the heading and copy take the panel's own text colour.
+const FILLED_TEXT: Partial<Record<CTABandEmphasis, string>> = {
+  strong:
+    '[--intent-text-strong:var(--intent-text-on-strong)] [--intent-text-normal:var(--intent-text-on-strong)] [--intent-text-subtle:var(--intent-text-on-strong)]',
+  inverted:
+    '[--intent-text-strong:var(--intent-text-inverted)] [--intent-text-normal:var(--intent-text-inverted)] [--intent-text-subtle:var(--intent-text-inverted)]'
+}
 
 export type CTABandProps = {
   /**
@@ -38,6 +57,13 @@ export type CTABandProps = {
   actions?: readonly BlockAction[]
   /** The photo beside the pitch, in `with-photo` only. Portrait, about 2:3. */
   image?: BlockImage
+  /** The block's intent, for the panel's tint and the highlighted words. */
+  intent?: BlockIntent
+  /**
+   * The panel's surface. On `strong`, the first action takes a normal fill so it stands apart.
+   * @default 'raised'
+   */
+  emphasis?: CTABandEmphasis
 }
 
 /** Closes a page with a short pitch and the next step to take. */
@@ -51,7 +77,9 @@ export function CTABand({
   description,
   body,
   actions,
-  image
+  image,
+  intent,
+  emphasis = 'raised'
 }: CTABandProps) {
   const headingId = useId()
   const { name, variant } = presetOf(ctaBandDefinition, presetName)
@@ -66,12 +94,14 @@ export function CTABand({
       position={position}
       id={id}
       aria-labelledby={headingId}
+      intent={intent}
     >
       <div className='@7xl:px-2'>
         <div
           data-slot='cta-band-panel'
           className={cn(
-            'relative container-8xl grid grid-cols-1 gap-12 bg-raised py-12 @xl:py-16 @7xl:rounded-3xl',
+            'relative container-8xl grid grid-cols-1 gap-12 py-12 @xl:py-16 @7xl:rounded-3xl',
+            emphasisClass(emphasis),
             photo && 'mt-14 @xl:mt-28 @7xl:mt-36'
           )}
         >
@@ -96,7 +126,7 @@ export function CTABand({
               split ? '@xl:max-w-7/12' : 'justify-items-center text-center'
             )}
           >
-            <div className='grid min-w-0 gap-8'>
+            <div className={cn('grid min-w-0 gap-8', FILLED_TEXT[emphasis])}>
               <BlockHeading
                 id={headingId}
                 eyebrow={eyebrow}
@@ -104,6 +134,7 @@ export function CTABand({
                 titleHighlight={titleHighlight}
                 description={description}
                 align={split ? 'start' : 'center'}
+                intent={intent}
               />
               {body && (
                 <Prose
@@ -116,6 +147,7 @@ export function CTABand({
             </div>
             <BlockActions
               actions={actions}
+              onStrong={emphasis === 'strong'}
               className={split ? undefined : 'justify-center'}
             />
           </div>

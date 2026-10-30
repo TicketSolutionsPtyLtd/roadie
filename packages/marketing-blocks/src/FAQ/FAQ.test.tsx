@@ -116,4 +116,45 @@ describe('FAQ', () => {
         .compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
   })
+
+  it('sets its intent on the block', () => {
+    const { container } = render(
+      <FAQ intent='brand' title='Questions, answered' items={items} />
+    )
+
+    expect(container.querySelector('section')).toHaveAttribute(
+      'data-intent',
+      'brand'
+    )
+  })
+
+  it('draws the questions on a subtle surface when asked', () => {
+    const { container } = render(
+      <FAQ emphasis='subtle' title='Questions, answered' items={items} />
+    )
+
+    expect(container.querySelectorAll('details.emphasis-subtle')).toHaveLength(
+      2
+    )
+  })
+
+  it('draws the questions in a bordered box when asked', () => {
+    const { container } = render(
+      <FAQ emphasis='normal' title='Questions, answered' items={items} />
+    )
+
+    expect(container.querySelector('[data-slot=accordion]')).toHaveClass(
+      'emphasis-normal'
+    )
+  })
+
+  it('draws no surface by default', () => {
+    const { container } = render(
+      <FAQ title='Questions, answered' items={items} />
+    )
+
+    expect(
+      container.querySelector('.emphasis-subtle, .emphasis-normal')
+    ).toBeNull()
+  })
 })

@@ -10,6 +10,7 @@ import {
   photo,
   withBrowserPage
 } from '../_test/browser'
+import { MINIMUM_LC, textContrast, themes } from '../_test/contrast'
 
 withBrowserPage()
 
@@ -194,4 +195,64 @@ describe('CTABand centred', () => {
 
     expect(await axeViolations(container)).toEqual([])
   })
+})
+
+describe('CTABand intent and emphasis', () => {
+  const EMPHASES = ['raised', 'subtle', 'strong', 'inverted'] as const
+  const cases = themes.flatMap((theme) =>
+    EMPHASES.flatMap((emphasis) =>
+      (['neutral', 'brand', 'accent'] as const).map(
+        (intent) => [emphasis, intent, theme] as const
+      )
+    )
+  )
+
+  it.each(cases)(
+    'keeps its text readable on a %s %s panel in %s mode',
+    async (emphasis, intent, theme) => {
+      document.documentElement.classList.toggle('dark', theme === 'dark')
+      onTestFinished(() => document.documentElement.classList.remove('dark'))
+      const { container } = render(
+        <CTABand
+          preset='centred'
+          intent={intent}
+          emphasis={emphasis}
+          eyebrow='For organisers'
+          title='Talk to our team'
+          description='We’ll find the right setup.'
+          body={<p>Tell us about your venue.</p>}
+          actions={props.actions}
+        />
+      )
+
+      const large = [
+        screen.getByRole('heading', { level: 2 }),
+        screen.getByText('For organisers')
+      ]
+      const body = [
+        screen.getByText('We’ll find the right setup.'),
+        screen.getByText('Tell us about your venue.'),
+        ...screen.getAllByRole('link')
+      ]
+      for (const element of large)
+        expect(
+          textContrast(element),
+          element.textContent!
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+      for (const element of body)
+        expect(
+          textContrast(element),
+          element.textContent!
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+
+      const panel = getComputedStyle(
+        container.querySelector('[data-slot=cta-band-panel]')!
+      ).backgroundColor
+      const first = getComputedStyle(
+        screen.getByRole('link', { name: 'Talk to us' })
+      ).backgroundColor
+      expect(first).not.toBe(panel)
+      expect(await axeViolations(container)).toEqual([])
+    }
+  )
 })

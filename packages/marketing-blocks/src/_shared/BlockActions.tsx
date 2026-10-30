@@ -25,11 +25,17 @@ const TRAILING = new Set<BlockActionIcon>(['arrow-right', 'external'])
 
 export type BlockActionsProps = {
   actions?: readonly BlockAction[]
+  /** Set on a strong fill, where a strong button would merge into it; the first action takes a normal fill instead, as Callout's controls do. */
+  onStrong?: boolean
   className?: string
 }
 
 /** A block's links as buttons: the first strong, the rest normal, so emphasis is never an option. */
-export function BlockActions({ actions = [], className }: BlockActionsProps) {
+export function BlockActions({
+  actions = [],
+  onStrong = false,
+  className
+}: BlockActionsProps) {
   if (actions.length === 0) return null
   return (
     <div className={cn('flex flex-wrap gap-4', className)}>
@@ -44,7 +50,7 @@ export function BlockActions({ actions = [], className }: BlockActionsProps) {
             key={`${index}-${href}-${label}`}
             href={href}
             intent={index === 0 ? 'accent' : undefined}
-            emphasis={index === 0 ? 'strong' : 'normal'}
+            emphasis={index === 0 && !onStrong ? 'strong' : 'normal'}
           >
             {!trailing && glyph}
             {label}

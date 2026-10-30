@@ -8,9 +8,16 @@ import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
+import type { BlockEmphasis, BlockIntent } from '../_shared/surface'
 import { type FAQPreset, faqDefinition } from './definition'
 
 export type { FAQPreset } from './definition'
+
+/** The question surfaces an FAQ takes, in Roadie Accordion's own names. */
+export type FAQEmphasis = Extract<
+  BlockEmphasis,
+  'subtler' | 'subtle' | 'normal'
+>
 
 export type FAQItem = {
   /** The question as people ask it. */
@@ -41,6 +48,13 @@ export type FAQProps = {
   items: readonly FAQItem[]
   /** Links under the questions, such as to every FAQ. The first is the strong one. */
   actions?: readonly BlockAction[]
+  /** The block's intent, for the highlighted words, the questions' tint and the strong action. */
+  intent?: BlockIntent
+  /**
+   * The questions' surface: `subtler` lines them up on the page, `subtle` tints each one, and `normal` boxes them.
+   * @default 'subtler'
+   */
+  emphasis?: FAQEmphasis
 }
 
 /** Answers the questions people ask before they buy or sign up. */
@@ -53,7 +67,9 @@ export function FAQ({
   titleHighlight,
   description,
   items,
-  actions
+  actions,
+  intent,
+  emphasis = 'subtler'
 }: FAQProps) {
   const headingId = useId()
   const { name, variant } = presetOf(faqDefinition, presetName)
@@ -66,6 +82,7 @@ export function FAQ({
       position={position}
       id={id}
       aria-labelledby={headingId}
+      intent={intent}
     >
       <div className='container-3xl grid grid-cols-1 gap-8'>
         <BlockHeading
@@ -75,8 +92,9 @@ export function FAQ({
           titleHighlight={titleHighlight}
           description={description}
           align='start'
+          intent={intent}
         />
-        <Accordion emphasis='subtler' className='-mx-4 w-auto gap-1'>
+        <Accordion emphasis={emphasis} className='-mx-4 w-auto gap-1'>
           {items.map(({ question, answer }, index) => (
             <Accordion.Item key={`${index}-${question}`}>
               <Accordion.Trigger>

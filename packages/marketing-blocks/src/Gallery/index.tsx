@@ -19,6 +19,7 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { presetOf } from '../_shared/presets'
+import type { BlockIntent } from '../_shared/surface'
 import { type GalleryPreset, galleryDefinition } from './definition'
 
 export type { GalleryPreset } from './definition'
@@ -43,6 +44,8 @@ export type GalleryProps = {
   description?: string
   /** Photos of people and events, cropped to portrait 9:16 tiles. Never logos. */
   images: readonly BlockImage[]
+  /** The block's intent, for the highlighted words and the marquee's pause control. */
+  intent?: BlockIntent
 }
 
 const MARQUEE_SPEED = 40
@@ -56,7 +59,8 @@ export function Gallery({
   title,
   titleHighlight,
   description,
-  images
+  images,
+  intent
 }: GalleryProps) {
   const headingId = useId()
   const { name, variant } = presetOf(galleryDefinition, presetName)
@@ -69,6 +73,7 @@ export function Gallery({
       titleHighlight={titleHighlight}
       description={description}
       align={name === 'carousel' ? 'start' : 'center'}
+      intent={intent}
     />
   )
   const tiles = images.map((image, index) => ({
@@ -81,6 +86,7 @@ export function Gallery({
       block={galleryDefinition.name}
       variant={variant}
       preset={name}
+      intent={intent}
       position={position}
       id={id}
       // The carousel is the landmark the heading names; naming both repeats it.
@@ -107,7 +113,7 @@ export function Gallery({
       ) : (
         <>
           <div className='container-8xl'>{heading}</div>
-          <PausableMarquee>
+          <PausableMarquee intent={intent}>
             {tiles.map(({ key, tile }) => (
               <Fragment key={key}>{tile}</Fragment>
             ))}
@@ -119,7 +125,13 @@ export function Gallery({
 }
 
 // WCAG 2.2.2: motion past five seconds needs a way to stop it.
-function PausableMarquee({ children }: { children: ReactNode }) {
+function PausableMarquee({
+  intent,
+  children
+}: {
+  intent?: BlockIntent
+  children: ReactNode
+}) {
   const [stopped, setStopped] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
@@ -141,6 +153,7 @@ function PausableMarquee({ children }: { children: ReactNode }) {
       <div className='container-8xl flex justify-end'>
         <IconButton
           size='icon-sm'
+          intent={intent}
           aria-label={stopped ? 'Play gallery' : 'Pause gallery'}
           onClick={() => setStopped(!stopped)}
         >

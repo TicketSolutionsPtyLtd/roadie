@@ -45,6 +45,33 @@ A heading over questions that open to their answers, one at a time. Answers are 
 />
 ```
 
+### Intent and emphasis
+
+`intent` tints the highlighted words, the strong action, and any question surface. `emphasis` sets the questions' surface, in Accordion's names: `subtler` by default, `subtle` to tint each question, or `normal` to box them.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Subtle */}
+<FAQ
+  emphasis='subtle'
+  title='Questions, answered'
+  items={[
+    { question: 'Does it cost anything?', answer: <p>No. There’s no fee, and your settlement is unchanged.</p> },
+    { question: 'How fast is it?', answer: <p>About 24 hours.</p> }
+  ]}
+/>
+{/* Brand, normal */}
+<FAQ
+  intent='brand'
+  emphasis='normal'
+  title='Questions about refunds'
+  titleHighlight='refunds'
+  items={[
+    { question: 'Can I get a refund?', answer: <p>Yes, when the event is cancelled or rescheduled.</p> },
+    { question: 'How long does it take?', answer: <p>Up to 10 business days.</p> }
+  ]}
+/>
+```
+
 ## Guidelines
 
 <Guidelines>
@@ -67,6 +94,12 @@ A heading over questions that open to their answers, one at a time. Answers are 
 <Guideline title='Keep structured data in the site'>
   <Guideline.Do>
     Generate the page’s FAQ structured data from the same items. The block renders none.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Give the questions a surface only on a busy page'>
+  <Guideline.Do>
+    Keep `subtler` on most pages. Use `subtle` or `normal` when the FAQ sits beside other content and needs its own edge.
   </Guideline.Do>
 </Guideline>
 

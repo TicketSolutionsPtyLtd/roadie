@@ -61,6 +61,24 @@ The same photos scrolling past on their own, with a button to pause them. They h
 />
 ```
 
+### Intent
+
+`intent` colours the highlighted words and the marquee's pause control. The gallery draws no surface, so it takes no emphasis.
+
+```tsx-live-expand id=intent
+<Gallery
+  preset='marquee'
+  intent='brand'
+  title='Our people'
+  titleHighlight='people'
+  images={[
+    { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 },
+    { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 },
+    { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting', width: 1280, height: 854 }
+  ]}
+/>
+```
+
 ## Guidelines
 
 <Guidelines>
@@ -83,6 +101,12 @@ The same photos scrolling past on their own, with a button to pause them. They h
 <Guideline title='Describe every photo'>
   <Guideline.Do>
     Write alt text that says what’s in the photo, since the block names each one once to screen readers.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Match the intent to the page'>
+  <Guideline.Do>
+    Leave the intent unset on most pages. Set it to match a campaign page's intent, so the highlight and pause control follow.
   </Guideline.Do>
 </Guideline>
 

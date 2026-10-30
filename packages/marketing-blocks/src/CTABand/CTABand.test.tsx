@@ -115,4 +115,41 @@ describe('CTABand', () => {
     ).toBeInTheDocument()
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
+
+  it('sets its intent, and a raised panel by default', () => {
+    const { container } = render(
+      <CTABand preset='centred' intent='brand' title='Talk to our team' />
+    )
+
+    expect(container.querySelector('section')).toHaveAttribute(
+      'data-intent',
+      'brand'
+    )
+    expect(container.querySelector('[data-slot=cta-band-panel]')).toHaveClass(
+      'emphasis-raised'
+    )
+  })
+
+  it.each(['subtle', 'strong', 'inverted'] as const)(
+    'draws a %s panel when asked',
+    (emphasis) => {
+      const { container } = render(
+        <CTABand emphasis={emphasis} title='Talk to our team' />
+      )
+
+      expect(container.querySelector('[data-slot=cta-band-panel]')).toHaveClass(
+        `emphasis-${emphasis}`
+      )
+    }
+  )
+
+  it('sets the first action apart from a strong panel', () => {
+    render(
+      <CTABand emphasis='strong' title='Talk to our team' actions={actions} />
+    )
+
+    expect(screen.getByRole('link', { name: 'Talk to us' })).not.toHaveClass(
+      'emphasis-strong'
+    )
+  })
 })

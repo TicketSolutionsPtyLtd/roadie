@@ -11,6 +11,7 @@ import {
   photo,
   withBrowserPage
 } from '../_test/browser'
+import { MINIMUM_LC, textContrast, themes } from '../_test/contrast'
 
 withBrowserPage()
 
@@ -231,6 +232,41 @@ describe('Gallery', () => {
         { type: 'up' }
       ])
       await restsOutOfView()
+    }
+  )
+
+  it.each(
+    themes.flatMap((theme) =>
+      (['neutral', 'brand', 'accent'] as const).map(
+        (intent) => [intent, theme] as const
+      )
+    )
+  )(
+    'keeps its heading readable with a %s intent in %s mode',
+    async (intent, theme) => {
+      document.documentElement.classList.toggle('dark', theme === 'dark')
+      onTestFinished(() => document.documentElement.classList.remove('dark'))
+      const { container } = render(
+        <Gallery
+          preset='marquee'
+          intent={intent}
+          title='Our people'
+          titleHighlight='people'
+          description='From festivals to local venues.'
+          images={images}
+        />
+      )
+
+      expect(
+        textContrast(screen.getByRole('heading', { level: 2 }))
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+      expect(textContrast(screen.getByText('people'))).toBeGreaterThanOrEqual(
+        MINIMUM_LC.large
+      )
+      expect(
+        textContrast(screen.getByText('From festivals to local venues.'))
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      expect(await axeViolations(container)).toEqual([])
     }
   )
 })

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import { FAQ } from '.'
@@ -9,6 +9,7 @@ import {
   axeViolations,
   withBrowserPage
 } from '../_test/browser'
+import { MINIMUM_LC, textContrast, themes } from '../_test/contrast'
 
 withBrowserPage()
 
@@ -53,4 +54,44 @@ describe('FAQ', () => {
 
     expect(await axeViolations(container)).toEqual([])
   })
+})
+
+describe('FAQ intent and emphasis', () => {
+  const cases = themes.flatMap((theme) =>
+    (['subtler', 'subtle', 'normal'] as const).flatMap((emphasis) =>
+      (['neutral', 'brand', 'accent'] as const).map(
+        (intent) => [emphasis, intent, theme] as const
+      )
+    )
+  )
+
+  it.each(cases)(
+    'keeps its text readable on %s %s questions in %s mode',
+    async (emphasis, intent, theme) => {
+      document.documentElement.classList.toggle('dark', theme === 'dark')
+      onTestFinished(() => document.documentElement.classList.remove('dark'))
+      const { container } = render(
+        <FAQ
+          intent={intent}
+          emphasis={emphasis}
+          title='Questions, answered'
+          items={items}
+        />
+      )
+      await userEvent.click(screen.getByText('Does it cost anything?'))
+
+      expect(
+        textContrast(screen.getByRole('heading', { level: 2 }))
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+      for (const element of [
+        ...screen.getAllByRole('heading', { level: 3 }),
+        screen.getByText(/settlement is unchanged/)
+      ])
+        expect(
+          textContrast(element),
+          element.textContent!
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      expect(await axeViolations(container)).toEqual([])
+    }
+  )
 })

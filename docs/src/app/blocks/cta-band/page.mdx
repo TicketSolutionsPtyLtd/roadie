@@ -64,6 +64,33 @@ The heading, copy, and actions are centred in the panel, with no photo.
 />
 ```
 
+### Intent and emphasis
+
+`intent` tints the panel and the highlighted words, and `emphasis` sets the panel: `raised` by default, or `subtle`, `strong`, or `inverted`. On a `strong` panel the first action takes a normal fill, so it stays apart from the panel.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Brand, strong */}
+<CTABand
+  preset='centred'
+  intent='brand'
+  emphasis='strong'
+  title='List your next event with Oztix'
+  body={<p>Set up in minutes and start selling today.</p>}
+  actions={[
+    { label: 'Create my event', href: 'https://studio.oztix.com.au' },
+    { label: 'Contact sales', href: '/contact/sales' }
+  ]}
+/>
+{/* Inverted */}
+<CTABand
+  preset='centred'
+  emphasis='inverted'
+  title='Talk to our team'
+  body={<p>Tell us about your venue, and we’ll find the setup that sells the most tickets.</p>}
+  actions={[{ label: 'Contact sales', href: '/contact/sales' }]}
+/>
+```
+
 ## Guidelines
 
 <Guidelines>
@@ -89,6 +116,12 @@ The heading, copy, and actions are centred in the panel, with no photo.
 <Guideline title='Keep it short'>
   <Guideline.Do>
     Write a paragraph or two and at most two actions. The first is the strong one.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Change the panel for the page, not the band'>
+  <Guideline.Do>
+    Keep the raised panel unless the band closes a campaign page that needs it to stand out. Use `strong` or `inverted` at most once on a page.
   </Guideline.Do>
 </Guideline>
 

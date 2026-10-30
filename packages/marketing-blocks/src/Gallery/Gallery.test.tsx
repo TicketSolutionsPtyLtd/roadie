@@ -131,4 +131,18 @@ describe('Gallery', () => {
     fireEvent.blur(screen.getByRole('button', { name: 'Pause gallery' }))
     expect(track().style.animationPlayState).toBe('running')
   })
+
+  it('sets its intent on the block and the pause control', () => {
+    const { container } = render(
+      <Gallery preset='marquee' intent='brand' title={TITLE} images={images} />
+    )
+
+    expect(container.querySelector('section')).toHaveAttribute(
+      'data-intent',
+      'brand'
+    )
+    expect(screen.getByRole('button', { name: 'Pause gallery' })).toHaveClass(
+      'intent-brand'
+    )
+  })
 })
