@@ -10,7 +10,12 @@
  * tie goes to the future.
  */
 import { formatResolved, plainDateInstant, relativeLabel } from './describe'
-import { formatDateTime, formatTimeOfDay } from './format'
+import {
+  DEFAULT_LOCALE,
+  dateTimeFormat,
+  formatDateTime,
+  formatTimeOfDay
+} from './format'
 import {
   addDays,
   addMonths,
@@ -190,7 +195,7 @@ function parsePartial(text: string, bareDay: boolean): PartialDate | null {
 }
 
 function dateIn(year: number, month: number, day: number): string | null {
-  if (year < 0 || year > 9999) return null
+  if (year < 1 || year > 9999) return null
   const date = toPlainDate(year, month, day)
   return isPlainDate(date) ? date : null
 }
@@ -387,6 +392,20 @@ export function parseDatePhrase(
       dateStyle: 'long',
       locale: options.locale
     }) ?? date
+  // The locale names and orders the month and year; the year stays in Latin
+  // digits, as in every other label.
+  const monthLabel = (first: string) =>
+    dateTimeFormat(options.locale ?? DEFAULT_LOCALE, {
+      timeZone: 'UTC',
+      calendar: 'gregory',
+      year: 'numeric',
+      month: 'long'
+    })
+      .formatToParts(plainDateInstant(first))
+      .map((part) =>
+        part.type === 'year' ? String(plainDateParts(first).year) : part.value
+      )
+      .join('')
   const on = (date: string): DatePhraseSuggestion => ({
     label: formatDay(date),
     value: { on: date }
@@ -495,6 +514,15 @@ export function parseDatePhrase(
   m = COMPARED.exec(input)
   if (m) return compare(m[1] as Comparison, m[2]!, m[1] === 'since')
 
+  m = /^([a-z]+)(?: (\d{4}))?$/.exec(input)
+  const month = m ? nameIndex(MONTHS, m[1]!) : null
+  if (m && month) {
+    return monthsNamed(month, m[2], today).map((first) => ({
+      label: monthLabel(first),
+      value: { start: first, end: monthEnd(first) }
+    }))
+  }
+
   const date = parseDate(input, today)
   if (date) return [on(date)]
 
@@ -511,6 +539,36 @@ export function parseDatePhrase(
 }
 
 const COMPLETIONS = new WeakSet<DatePhraseSuggestion>()
+
+/**
+ * The first day of each month a bare month name can mean: that month of a
+ * given year, this month, or the closer of the coming and the last one, then
+ * the other, as a date with no year takes the closest.
+ */
+function monthsNamed(
+  month: number,
+  yearText: string | undefined,
+  today: string
+): string[] {
+  const { year } = plainDateParts(today)
+  if (yearText) {
+    const first = dateIn(Number(yearText), month, 1)
+    return first ? [first] : []
+  }
+  const thisYear = toPlainDate(year, month, 1)
+  const current = plainDateParts(today).month
+  if (month === current) return [thisYear]
+  const next = month > current ? thisYear : toPlainDate(year + 1, month, 1)
+  const last = addMonths(next, -12)
+  const ahead = (month - current + 12) % 12
+  return ahead <= 6 ? [next, last] : [last, next]
+}
+
+function monthEnd(first: string): string {
+  const { year, month } = plainDateParts(first)
+  return toPlainDate(year, month, daysInMonth(year, month))
+}
+
 const ONWARDS = /^(.+) (?:onwards?|and later)$/
 
 /**

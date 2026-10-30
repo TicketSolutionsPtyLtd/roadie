@@ -78,7 +78,7 @@ export type FormatOptions = {
   showYear?: boolean
 }
 
-const DEFAULT_LOCALE = 'en-AU'
+export const DEFAULT_LOCALE = 'en-AU'
 const DEFAULT_DATE_STYLE: DateStyle = 'long'
 
 /**

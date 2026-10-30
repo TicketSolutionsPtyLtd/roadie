@@ -389,6 +389,7 @@ export const PHRASES = [
   'in 2 weeks',
   'end of month',
   '14 mar',
+  'may',
   '1/12',
   'after 1 dec',
   'since fri',
