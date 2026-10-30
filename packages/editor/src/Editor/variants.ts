@@ -40,9 +40,15 @@ export const EDITOR_CONTENT_MIN_HEIGHT: Record<EditorSize, string> = {
 export function editorContentClass(size: EditorSize, emphasis: EditorEmphasis) {
   return cn(
     proseVariants({ size }),
+    // Text in a box runs its full width; a subtler editor's wraps where the
+    // published page's will.
     emphasis === 'subtler'
       ? 'min-h-[4lh]'
-      : [EDITOR_CONTENT_PADDING[size], EDITOR_CONTENT_MIN_HEIGHT[size]]
+      : [
+          EDITOR_CONTENT_PADDING[size],
+          EDITOR_CONTENT_MIN_HEIGHT[size],
+          '[--prose-measure:none]'
+        ]
   )
 }
 
