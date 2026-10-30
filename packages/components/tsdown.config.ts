@@ -34,7 +34,7 @@ export default defineConfig(({ watch }) => ({
   entry: [
     'src/**/*.{ts,tsx}',
     '!**/*.test.{ts,tsx}',
-    '!**/testUtils.{ts,tsx}',
+    '!**/{testUtils,*TestUtils}.{ts,tsx}',
     '!**/paneColumns.ts',
     '!**/renderCounter.ts'
   ],
