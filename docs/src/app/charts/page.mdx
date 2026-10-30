@@ -91,7 +91,8 @@ rejects `selectsPeriod`, since a document has no period.
 `renderChartDocument` from `@oztix/roadie-charts/static` draws the document as
 one SVG file, with the label and headline above the plot and the source below
 it. It validates first, and throws a `ChartDocumentError` that lists the
-problems. A `static` plot's image is linked by its `src`, not embedded, so give
+problems. Leave the plot at least 120px tall after the text, or it throws a
+`RangeError`. A `static` plot's image is linked by its `src`, not embedded, so give
 it a URL the file's reader can fetch. Roadie stops at SVG: turn the file into a
 PDF in the app.
 

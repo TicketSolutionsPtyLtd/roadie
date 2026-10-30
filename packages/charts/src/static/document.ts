@@ -79,6 +79,10 @@ const GAP = 12
 const LABEL_SIZE = 14
 const VALUE_SIZE = 28
 const LEADING = 1.4
+const DELTA_GAP = 8
+const MIN_PLOT_HEIGHT = 120
+// The width estimates are for regular text, and bold runs about this much wider.
+const BOLD_WIDTH = 1.08
 
 type Line = { text: string; size: number; fill: string; weight?: number }
 type Placed = Line & { x: number; y: number }
@@ -94,10 +98,15 @@ const wrapped = (
   frame: PlotFrame,
   style: Omit<Line, 'text'>
 ): Line[] =>
-  fitLines(text, width, sized(frame, style.size), 2).map((line) => ({
-    ...style,
-    text: line
-  }))
+  fitLines(text, room(width, style.weight), sized(frame, style.size), 2).map(
+    (line) => ({
+      ...style,
+      text: line
+    })
+  )
+
+const room = (width: number, weight = 400) =>
+  weight >= 600 ? width / BOLD_WIDTH : width
 
 const round = (n: number) => Math.round(n * 10) / 10
 
@@ -171,26 +180,34 @@ function headline(
         })
       : doc.value
   const y = top + VALUE_SIZE * LEADING - VALUE_SIZE * 0.3
+  const delta = doc.delta && deltaText(doc, doc.delta, paint)
+  const deltaRoom = delta
+    ? labelWidth(delta.shown, sized(frame, LABEL_SIZE)) * BOLD_WIDTH + DELTA_GAP
+    : 0
+  const valueFrame = sized(frame, VALUE_SIZE)
+  const [value = shown] = fitLines(
+    shown,
+    room(width - deltaRoom, 700),
+    valueFrame,
+    1
+  )
   let markup = textTag({
-    text: shown,
+    text: value,
     size: VALUE_SIZE,
     weight: 700,
     fill: paint.value,
     x: PADDING,
     y
   })
-  if (doc.delta) {
-    const { shown: delta, fill } = deltaText(doc, doc.delta, paint)
-    const x = PADDING + labelWidth(shown, sized(frame, VALUE_SIZE)) + 8
+  if (delta)
     markup += textTag({
-      text: delta,
+      text: delta.shown,
       size: LABEL_SIZE,
       weight: 600,
-      fill,
-      x,
+      fill: delta.fill,
+      x: PADDING + labelWidth(value, valueFrame) * BOLD_WIDTH + DELTA_GAP,
       y
     })
-  }
   return { markup, bottom: top + VALUE_SIZE * LEADING }
 }
 
@@ -253,7 +270,8 @@ function description({ plot, takeaway }: ChartDocument) {
 /**
  * Draws a chart document as one standalone SVG file: its label, context, and
  * headline above the plot, and its source below. Validates the document
- * first, and throws a `ChartDocumentError` if it has errors.
+ * first, and throws a `ChartDocumentError` if it has errors, or a
+ * `RangeError` if the size leaves the plot under 120px tall.
  *
  * @beta The chart document's shape may change until the documents package
  * agrees with it.
@@ -303,6 +321,10 @@ export function renderChartDocument(
     width: inner,
     height: round(Math.max(0, height - PADDING - sourceHeight - GAP - top))
   }
+  if (slot.height < MIN_PLOT_HEIGHT)
+    throw new RangeError(
+      `A ${width} by ${height} chart document leaves ${slot.height}px for its plot. Give it at least ${MIN_PLOT_HEIGHT}px`
+    )
   const plot = drawPlot(document.plot, document.takeaway, options, slot)
   return `<svg xmlns="${SVG_NS}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeXml(document.label)}" style="font-family:${FONT_FAMILY};font-variant-numeric:tabular-nums">${description(document)}<rect width="${width}" height="${height}" fill="${paint.surface}"/>${heading.markup}${lead.markup}${plot}${source.markup}</svg>`
 }

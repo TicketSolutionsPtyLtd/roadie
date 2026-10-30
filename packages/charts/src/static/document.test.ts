@@ -214,6 +214,28 @@ describe('renderChartDocument', () => {
     expect(label).toContain(second!.replace('…', ''))
   })
 
+  it('cuts a long headline value short to fit beside its delta', () => {
+    const value = 'Antler Kettle Hall and the Echidna Gaslight Theatre'
+    const svg = renderChartDocument(
+      document(plots.bar, { value, delta: { value: 12 } }),
+      { mode: 'light', width: 320, height: 360 }
+    )
+    const shown = textOf(svg)[1]!
+    expect(shown).toMatch(/…$/)
+    expect(value.startsWith(shown.slice(0, -1))).toBe(true)
+    expect(textOf(svg)[2]).toBe('↑ 12')
+  })
+
+  it('refuses a size that leaves no room for the plot', () => {
+    expect(() =>
+      renderChartDocument(document(plots.bar), {
+        mode: 'light',
+        width: 640,
+        height: 120
+      })
+    ).toThrow(RangeError)
+  })
+
   it('escapes its copy', () => {
     const svg = renderChartDocument(
       document(plots.bar, { label: 'Sales & <refunds>' }),
