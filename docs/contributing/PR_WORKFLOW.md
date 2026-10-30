@@ -321,8 +321,9 @@ It shows `CI result`, mirrored from main's CI, and needs no admin bypass
 
 ## 9. Nothing deferred is dropped
 
-A Minor finding in code the PR changes is fixed in that PR, not filed. Every
-Minor finding in code the PR doesn't touch becomes a Jira work item in the
+A Minor finding in code the PR changes, meaning any file in its diff, is fixed
+in that PR, not filed. Every Minor finding in a file the PR doesn't touch
+becomes a Jira work item in the
 **INNO** project with the **Roadie** component and the `follow-up` label,
 holding the file and line, the finding, and a link to the PR thread it came
 from. Add to the open `Roadie follow-ups: <area>` item before creating one,
