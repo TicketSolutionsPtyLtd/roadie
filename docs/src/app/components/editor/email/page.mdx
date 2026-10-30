@@ -30,39 +30,144 @@ they do on a phone. It holds the text blocks of the rich preset, without
 quotes, and an email's own blocks: sections, two to four columns, images,
 buttons, spacers, and dividers.
 
+This newsletter has a header image, a hero, two event cards, a lineup in
+three columns, a section shown only when tickets are running low, and a
+footer. Its greeting and button hold a merge tag, `first_name`, which shows
+as a chip with the label from `variables`.
+
 ```tsx-live-prose
 <Editor
   aria-label='Newsletter'
   preset='email'
+  variables={[
+    { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } }
+  ]}
   defaultValue={{
     version: 1,
     preset: 'email',
     doc: {
       type: 'doc',
       content: [
-        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        { type: 'image', attrs: { src: 'https://ticketsolutionsptyltd.github.io/roadie/brand/photography/01.webp', alt: 'A crowd in front of a festival stage under flags', width: 600 } },
+        {
+          type: 'section',
+          content: [
+            { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Two weeks until the Ochre Kite Weekender' }] },
+            {
+              type: 'paragraph',
+              content: [
+                { type: 'text', text: 'Hi ' },
+                { type: 'variable', attrs: { key: 'first_name', fallback: 'there' } },
+                { type: 'text', text: ', the gates open at Jumbuck Orchard Park on Saturday 14 March. Here’s what’s on, and how to get there.' }
+              ]
+            },
+            {
+              type: 'button',
+              attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender' },
+              content: [
+                { type: 'text', text: 'See your tickets, ' },
+                { type: 'variable', attrs: { key: 'first_name', fallback: 'friend' } }
+              ]
+            }
+          ]
+        },
         {
           type: 'section',
           content: [
             {
               type: 'columns',
               content: [
-                { type: 'column', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Saturday 14 March at Jumbuck Orchard Park, Brisbane.' }] }] },
-                { type: 'column', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Gates 11am. All ages.' }] }] }
+                {
+                  type: 'column',
+                  content: [
+                    { type: 'image', attrs: { src: 'https://ticketsolutionsptyltd.github.io/roadie/brand/photography/08.webp', alt: 'A packed crowd at an outdoor stage' } },
+                    { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+                    { type: 'paragraph', content: [{ type: 'text', text: 'Saturday 14 March, Jumbuck Orchard Park, Brisbane. Gates 11am, all ages.' }] },
+                    { type: 'button', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender' }, content: [{ type: 'text', text: 'Get tickets' }] }
+                  ]
+                },
+                {
+                  type: 'column',
+                  content: [
+                    { type: 'image', attrs: { src: 'https://ticketsolutionsptyltd.github.io/roadie/brand/photography/05.webp', alt: 'Friends smiling in the crowd at a night show' } },
+                    { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text: 'The Saltbush Echoes, late show' }] },
+                    { type: 'paragraph', content: [{ type: 'text', text: 'Friday 13 March, The Wattle Room, Fortitude Valley. Doors 8pm, 18+.' }] },
+                    { type: 'button', attrs: { href: 'https://www.oztix.com.au/saltbush-echoes' }, content: [{ type: 'text', text: 'Get tickets' }] }
+                  ]
+                }
               ]
             }
           ]
         },
-        { type: 'spacer', attrs: { height: 32 } },
-        { type: 'button', attrs: { href: 'https://oztix.com.au' }, content: [{ type: 'text', text: 'Buy tickets' }] },
         { type: 'horizontalRule' },
-        { type: 'paragraph', content: [{ type: 'text', text: 'See you there.' }] },
-        { type: 'paragraph' }
+        {
+          type: 'section',
+          content: [
+            { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text: 'The lineup' }] },
+            {
+              type: 'columns',
+              content: [
+                { type: 'column', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Velvet Kookaburra' }] }, { type: 'paragraph', content: [{ type: 'text', text: 'Marri Lane' }] }] },
+                { type: 'column', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'The Saltbush Echoes' }] }, { type: 'paragraph', content: [{ type: 'text', text: 'Dusty Banksia' }] }] },
+                { type: 'column', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Gumleaf Static' }] }, { type: 'paragraph', content: [{ type: 'text', text: 'Lowtide Choir' }] }] }
+              ]
+            }
+          ]
+        },
+        {
+          type: 'section',
+          attrs: { showWhen: { key: 'tickets_left', op: 'lessThan', value: 50 } },
+          content: [
+            { type: 'paragraph', content: [{ type: 'text', text: 'Bringing a friend? Fewer than 50 tickets are left, so grab theirs soon.' }] }
+          ]
+        },
+        { type: 'spacer', attrs: { height: 32 } },
+        {
+          type: 'section',
+          content: [
+            { type: 'paragraph', content: [{ type: 'text', text: 'You’re getting this email because you bought tickets on Oztix.' }] },
+            {
+              type: 'paragraph',
+              content: [
+                { type: 'text', text: 'View it in your browser', marks: [{ type: 'link', attrs: { href: 'https://www.oztix.com.au/email/ochre-kite-weekender' } }] },
+                { type: 'text', text: ' or ' },
+                { type: 'text', text: 'unsubscribe', marks: [{ type: 'link', attrs: { href: 'https://www.oztix.com.au/unsubscribe' } }] },
+                { type: 'text', text: '.' }
+              ]
+            }
+          ]
+        }
       ]
     }
   }}
 />
 ```
+
+### Moving and adding blocks
+
+A grip and an add button show at the start of the block under the pointer,
+or of the block with the caret while the editor has focus. Each block in a
+section or column has its own, and so does a whole section or row of
+columns: point at its outline to show it. A single column has none, as its
+menu sets how many columns there are.
+
+- **Drag the grip** to move the block. It lands in the section or column
+  under the pointer, where a line shows, or at the top level outside them.
+  A drop that place can't hold, such as a section in a column, shows no
+  line and moves nothing. A section or column left with no blocks keeps an
+  empty line.
+- **Click or tap the grip**, or press `Mod+/` in the text, for the block's
+  menu: Move up, Move down, Duplicate, and Delete. Move up and Move down go
+  to the next place the block can go, into and out of sections and columns,
+  so the keyboard reaches every place a drag does. For a block in a
+  section or row of columns, Select section or Select columns turns the
+  menu to the block holding it, to move a whole section by keyboard.
+- **The add button** opens the insert menu on a new line after the block,
+  with the same items as `/`. On an empty line, such as in an empty section
+  or column, it opens there.
+
+Each move is one step to undo. On a touch screen the grip shows beside the
+block you're typing in, and its menu moves the block.
 
 ### Composing a layout
 
@@ -162,7 +267,9 @@ const welcome = {
 
 The app lists the variables its sending system fills, each with a label and
 its token in each syntax. A filter, such as a date format, belongs in the
-token, never in the template.
+token, never in the template. Pass the same list to `Editor` as `variables`:
+each merge tag shows as a chip with its label, and one whose key isn't listed
+shows as invalid.
 
 ```tsx
 import { type EditorVariable, renderEmail } from '@oztix/roadie-editor/email'
@@ -295,9 +402,14 @@ const preview = await renderEmail(nearlySoldOut, {
   The Columns and Height menus' triggers are named for their current choice,
   such as "Columns: 2 columns".
 
+- The grip is a button named Block actions, and the add button is named Add
+  block. Neither takes a Tab stop, since they show only beside the caret's
+  block; `Mod+/` opens the block's menu, and `/` the insert menu.
+
 | Keys | Action |
 | --- | --- |
 | `/` | Open the insert menu, in the email preset |
+| `Mod+/` | Open the menu for the block with the caret |
 | `Enter` | In a button, start a new paragraph after it |
 
 Every preset's other keys are on the [Editor](/components/editor#accessibility)
