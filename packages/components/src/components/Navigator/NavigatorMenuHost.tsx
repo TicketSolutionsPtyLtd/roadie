@@ -61,15 +61,16 @@ function withCurrentHandlers(
   activate: (index: number) => void
 ) {
   let position = 0
-  return mapChildrenInPlace(children, (child) => {
+  return mapChildrenInPlace(children, (child, indexInList) => {
     const element = settled(child)
     if (!isValidElement(element) || element.type !== NavigatorMenuItem) {
       return child
     }
     const index = position++
-    // A clone skips JSX's key check, so it brings a key of its own.
+    // A clone skips JSX's key check, so it brings a key of its own. The
+    // prefixes keep a given key and a list position apart, as React's do.
     return cloneElement(element as ReactElement<NavigatorMenuItemProps>, {
-      key: element.key ?? `menu-item-${index}`,
+      key: element.key === null ? `.${indexInList}` : `$${element.key}`,
       onSelect: () => activate(index)
     })
   })

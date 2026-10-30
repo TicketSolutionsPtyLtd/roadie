@@ -26,7 +26,9 @@ import {
 // no key warning: one can be swallowed only after another has failed.
 let consoleError: MockInstance<typeof console.error>
 const keyWarnings = () =>
-  consoleError.mock.calls.filter((call) => /unique "key"/.test(String(call[0])))
+  consoleError.mock.calls.filter((call) =>
+    /unique "key"|same key/.test(String(call[0]))
+  )
 
 beforeEach(() => {
   consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -101,6 +103,73 @@ describe('Navigator key warnings', () => {
       expect(keyWarnings()).toEqual([])
     }
   )
+
+  it('names an item whose label reuses a key across two lists without a key warning', async () => {
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+            {[<span key='part'>Inbox</span>]}
+            {[<span key='part'>, 3 new</span>]}
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+
+    expect(
+      within(primaryOf('vertical')).getByRole('link', { name: 'Inbox, 3 new' })
+    ).toBeInTheDocument()
+    expect(keyWarnings()).toEqual([])
+  })
+
+  it("opens a menu whose item keys match unkeyed items' positions without a key warning", async () => {
+    const user = userEvent.setup()
+    render(
+      <Navigator value='/a'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='/a' href='/a' icon={<FakeIcon />}>
+            Inbox
+          </Navigator.Item>
+          <Navigator.Item value='account' icon={<FakeIcon />}>
+            Account
+            <Navigator.Menu>
+              <Navigator.MenuItem onSelect={() => {}}>
+                Profile
+              </Navigator.MenuItem>
+              <Navigator.MenuItem key='menu-item-0' onSelect={() => {}}>
+                Settings
+              </Navigator.MenuItem>
+              <Navigator.MenuItem key='0' onSelect={() => {}}>
+                Billing
+              </Navigator.MenuItem>
+              {[
+                <Navigator.MenuItem key='x' onSelect={() => {}}>
+                  Help
+                </Navigator.MenuItem>
+              ]}
+              {[
+                <Navigator.MenuItem key='x' onSelect={() => {}}>
+                  Log out
+                </Navigator.MenuItem>
+              ]}
+            </Navigator.Menu>
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    await flushViewportMeasurement()
+
+    await user.click(
+      within(primaryOf('vertical')).getByRole('button', { name: 'Account' })
+    )
+    const menu = await screen.findByRole('menu')
+
+    expect(within(menu).getAllByRole('menuitem')).toHaveLength(5)
+    expect(keyWarnings()).toEqual([])
+  })
 
   it.each([
     ['streamed', streamed],

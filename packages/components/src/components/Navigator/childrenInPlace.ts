@@ -4,28 +4,18 @@ import type { ReactNode } from 'react'
 // for a key warning when the original skipped JSX's key check, as a streamed
 // child does. These walks keep every child as given.
 
-/** Replaces each child, materialising iterables without re-keying their children. */
+/**
+ * Replaces each child, materialising iterables without re-keying their
+ * children. `index` is the child's position in its own list, as React's
+ * implicit key counts it.
+ */
 export function mapChildrenInPlace(
   children: ReactNode,
-  visit: (child: ReactNode) => ReactNode
+  visit: (child: ReactNode, index: number) => ReactNode
 ): ReactNode {
-  const walk = (node: ReactNode): ReactNode =>
-    isIterable(node) ? Array.from(node, walk) : visit(node)
-  return walk(children)
-}
-
-/** Every child that renders, in order, without re-keying it. */
-export function flattenChildren(children: ReactNode): ReactNode[] {
-  const flat: ReactNode[] = []
-  const walk = (node: ReactNode) => {
-    if (isIterable(node)) {
-      for (const child of node) walk(child)
-    } else if (node != null && typeof node !== 'boolean') {
-      flat.push(node)
-    }
-  }
-  walk(children)
-  return flat
+  const walk = (node: ReactNode, index: number): ReactNode =>
+    isIterable(node) ? Array.from(node, walk) : visit(node, index)
+  return walk(children, 0)
 }
 
 /** What a streamed child resolved to, when React can read it without suspending. */

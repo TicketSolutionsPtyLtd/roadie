@@ -15,7 +15,7 @@ import type { NavigatorItemProps } from './NavigatorItem'
 import { NavigatorMenu, type NavigatorMenuProps } from './NavigatorMenu'
 import { NavigatorSecondary } from './NavigatorSecondary'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
-import { flattenChildren, settled } from './childrenInPlace'
+import { mapChildrenInPlace, settled } from './childrenInPlace'
 
 /** An item's label, apart from its Secondary and Menu. A second menu is ignored. */
 export function splitItemChildren(children: ReactNode): {
@@ -23,26 +23,26 @@ export function splitItemChildren(children: ReactNode): {
   secondary: ReactNode[]
   menu?: ReactElement<NavigatorMenuProps>
 } {
-  const label: ReactNode[] = []
   const secondary: ReactNode[] = []
   let menu: ReactElement<NavigatorMenuProps> | undefined
 
-  flattenChildren(children).forEach((child) => {
+  // Nested lists stay whole, so a key repeated across two lists stays unique.
+  const parts = mapChildrenInPlace(children, (child) => {
     const element = settled(child)
-    if (!isValidElement(element)) {
-      label.push(child)
-      return
-    }
+    if (!isValidElement(element)) return child
     if (element.type === NavigatorSecondary) {
       secondary.push(element)
-      return
+      return null
     }
     if (element.type === NavigatorMenu) {
       menu ??= element as ReactElement<NavigatorMenuProps>
-      return
+      return null
     }
-    label.push(child)
+    return child
   })
+  const label = (Array.isArray(parts) ? parts : [parts]).filter(
+    (part) => part != null && typeof part !== 'boolean'
+  )
 
   return { label, secondary, menu }
 }
