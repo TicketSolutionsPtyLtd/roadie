@@ -1438,7 +1438,8 @@ describe('QueryField operators', () => {
     expect(screen.getByRole('listbox')).toBeInTheDocument()
     expect(onPendingChipCancel).not.toHaveBeenCalled()
     await userEvent.tab()
-    expect(await pressed()).toEqual(['has all of'])
+    // The operators close with the list as focus leaves, so read the chip.
+    expect(input()).toHaveAccessibleDescription('Venue has all of')
     // Clear is in the field, so only the Tab itself ends the step.
     expect(document.activeElement).toBe(
       screen.getByRole('button', { name: 'Clear' })
