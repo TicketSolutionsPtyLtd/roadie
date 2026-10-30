@@ -123,11 +123,17 @@ export function FAQ({
           size={size}
           intent={intent}
         />
-        <Accordion emphasis={itemEmphasis} className='-mx-4 w-auto gap-1'>
+        {/* Unboxed questions hang their inset, so the text lines up with the heading. */}
+        <Accordion
+          emphasis={itemEmphasis}
+          className={cn(
+            itemEmphasis === 'subtler' && '-mx-(--content-inset) w-auto'
+          )}
+        >
           {items.map(({ question, answer }, index) => (
             <Accordion.Item key={`${index}-${question}`}>
               <Accordion.Trigger>
-                <h3 className='text-display-ui-6 text-strong'>{question}</h3>
+                <h3>{question}</h3>
               </Accordion.Trigger>
               <Accordion.Content>
                 <Prose>{answer}</Prose>

@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
+import { Accordion } from '@oztix/roadie-components/accordion'
+
 import { FAQ, type FAQItemEmphasis } from '.'
 import type { BlockEmphasis, BlockIntent } from '../_shared/surface'
 import {
@@ -70,6 +72,71 @@ describe('FAQ', () => {
 
     expect(await axeViolations(container)).toEqual([])
   })
+})
+
+describe('FAQ questions', () => {
+  const rows = (root: Element) =>
+    [...root.querySelectorAll('summary')].map((summary) =>
+      summary.getBoundingClientRect()
+    )
+
+  it.each(['subtler', 'subtle', 'normal'] as const)(
+    'spaces %s questions as Accordion does',
+    async (itemEmphasis) => {
+      await page.viewport(DESKTOP.width, DESKTOP.height)
+      const { container } = render(
+        <>
+          <FAQ
+            itemEmphasis={itemEmphasis}
+            title='Questions, answered'
+            items={items}
+          />
+          <Accordion emphasis={itemEmphasis}>
+            {items.map(({ question, answer }) => (
+              <Accordion.Item key={question}>
+                <Accordion.Trigger>{question}</Accordion.Trigger>
+                <Accordion.Content>{answer}</Accordion.Content>
+              </Accordion.Item>
+            ))}
+          </Accordion>
+        </>
+      )
+
+      const [faq, accordion] = [
+        ...container.querySelectorAll('[data-slot=accordion]')
+      ].map(rows)
+      expect(faq![0]!.height).toBeCloseTo(accordion![0]!.height, 0)
+      expect(faq![1]!.top - faq![0]!.bottom).toBeCloseTo(
+        accordion![1]!.top - accordion![0]!.bottom,
+        0
+      )
+    }
+  )
+
+  it.each(['subtle', 'normal'] as const)(
+    'lines %s questions’ edges up with the heading',
+    async (itemEmphasis) => {
+      await page.viewport(DESKTOP.width, DESKTOP.height)
+      const { container } = render(
+        <FAQ
+          itemEmphasis={itemEmphasis}
+          title='Questions, answered'
+          items={items}
+        />
+      )
+
+      const heading = screen.getByRole('heading', { level: 2 })
+      const edge = container.querySelector(
+        itemEmphasis === 'normal'
+          ? '[data-slot=accordion]'
+          : '[data-slot=accordion-item]'
+      )!
+      expect(edge.getBoundingClientRect().left).toBeCloseTo(
+        heading.getBoundingClientRect().left,
+        0
+      )
+    }
+  )
 })
 
 describe('FAQ align and size', () => {
