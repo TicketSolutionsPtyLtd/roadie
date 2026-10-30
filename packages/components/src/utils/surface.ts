@@ -2,8 +2,6 @@
 
 import { type RefObject, useLayoutEffect } from 'react'
 
-// `--records-surface` keeps its name because a consumer may set it to pick
-// the colour, and settle() honours that.
 const AUTO = 'data-records-surface'
 
 // A translucent fill would let rows show through a sticky part, so only an
@@ -52,7 +50,10 @@ function watchSurface(part: HTMLElement) {
   return () => observer.disconnect()
 }
 
-/** The opaque colour sticky parts paint. */
+/**
+ * The opaque colour sticky parts paint. `--records-surface` keeps its name
+ * because consumers may set it.
+ */
 export const surfaceClass =
   'bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal)))'
 

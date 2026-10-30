@@ -28,9 +28,9 @@ import { reactCompilerPreset } from './react-compiler.config.ts'
 // Verify after build with:
 //   head -c 13 dist/components/Fieldset/FieldsetRoot.js   # → "use client";
 export default defineConfig(({ watch }) => ({
-  // Test helpers end in `testUtils` or `TestUtils`. paneColumns is the model
-  // the browser tests measure the stylesheet against, and renderCounter
-  // replaces React's DevTools hook for the perf tests, so neither is shipped.
+  // paneColumns is the model the browser tests measure the stylesheet against,
+  // and renderCounter replaces React's DevTools hook for the perf tests, so
+  // neither is shipped.
   entry: [
     'src/**/*.{ts,tsx}',
     '!**/*.test.{ts,tsx}',
