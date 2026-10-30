@@ -279,7 +279,8 @@ function OverflowMenu({
       />
       <Menu.Content
         finalFocus={() => {
-          editor.commands.focus()
+          // At once, as Firefox drops a caret move made before a deferred focus lands.
+          focusEditor(editor)
           return false
         }}
       >

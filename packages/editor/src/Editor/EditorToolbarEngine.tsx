@@ -76,7 +76,8 @@ export function BlockMenu({
       />
       <Menu.Content
         finalFocus={() => {
-          editor?.commands.focus()
+          // At once, as Firefox drops a caret move made before a deferred focus lands.
+          if (editor) focusEditor(editor)
           return false
         }}
       >
