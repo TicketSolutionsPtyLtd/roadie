@@ -8,6 +8,7 @@ import {
   decimalPlaces,
   fractionDigits
 } from '../number/places'
+import { intlFormatter } from '../utils/intlCache'
 
 export type ValueFormat =
   | 'number'
@@ -31,16 +32,8 @@ type FormatterOptions = ValueFormatOptions & { currencyCode?: string }
 const LOCALE = 'en-AU'
 const NOT_AVAILABLE = 'Not available'
 
-const formatters = new Map<string, Intl.NumberFormat>()
-
-function numberFormat(options: Intl.NumberFormatOptions) {
-  const key = JSON.stringify(options)
-  const cached = formatters.get(key)
-  if (cached) return cached
-  const formatter = new Intl.NumberFormat(LOCALE, options)
-  formatters.set(key, formatter)
-  return formatter
-}
+const numberFormat = (options: Intl.NumberFormatOptions) =>
+  intlFormatter(Intl.NumberFormat, LOCALE, options)
 
 export function normalizeMinusSign(text: string) {
   return text.replace(/−/g, '-')

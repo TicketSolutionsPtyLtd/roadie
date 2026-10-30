@@ -6,6 +6,8 @@
  * the words, the rules supply the shape.
  */
 
+import { intlFormatter } from '../utils/intlCache'
+
 export type DateContext = 'standalone' | 'list'
 
 /**
@@ -122,36 +124,13 @@ function trimAbbreviation(value: string): string {
   return value.replace(/\.$/, '')
 }
 
-// Keyed by the constructor too, so a replaced Intl.DateTimeFormat (a polyfill,
-// a test double) never serves formatters built by the old one.
-const formatters = new WeakMap<object, Map<string, Intl.DateTimeFormat>>()
-
-// Locale and time zone come from callers, so the cache drops its oldest
-// formatter rather than grow for the life of the process.
-const MAX_FORMATTERS = 200
-
 // Building a formatter costs far more than formatting with one, and a table
 // formats hundreds of values with the same few option sets.
 export function dateTimeFormat(
   locale: string,
   options: Intl.DateTimeFormatOptions
 ): Intl.DateTimeFormat {
-  const Format = Intl.DateTimeFormat
-  let cache = formatters.get(Format)
-  if (!cache) {
-    cache = new Map()
-    formatters.set(Format, cache)
-  }
-  const key = `${locale}|${JSON.stringify(options)}`
-  let formatter = cache.get(key)
-  if (!formatter) {
-    formatter = new Format(locale, options)
-    if (cache.size >= MAX_FORMATTERS) {
-      cache.delete(cache.keys().next().value as string)
-    }
-    cache.set(key, formatter)
-  }
-  return formatter
+  return intlFormatter(Intl.DateTimeFormat, locale, options)
 }
 
 function zoneParts(
@@ -672,7 +651,9 @@ export function formatRelative(
 
   try {
     // 'auto' is what turns -1 day into 'yesterday' rather than '1 day ago'.
-    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+    const rtf = intlFormatter(Intl.RelativeTimeFormat, locale, {
+      numeric: 'auto'
+    })
     const magnitude = Math.abs(elapsed)
     const [unit, ms]: [Intl.RelativeTimeFormatUnit, number] =
       magnitude < HOUR

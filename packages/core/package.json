@@ -135,7 +135,7 @@
     "react-docgen-typescript": "2.4.0",
     "size-limit": "14.3.0",
     "tailwindcss": "4.3.3",
-    "tsdown": "0.23.1",
+    "tsdown": "0.23.2",
     "typescript": "6.0.3",
     "vite": "8.3.5",
     "vitest": "5.0.5"
@@ -155,7 +155,7 @@
     {
       "name": "number",
       "path": "dist/number/index.js",
-      "limit": "420 B"
+      "limit": "500 B"
     },
     {
       "name": "records",
