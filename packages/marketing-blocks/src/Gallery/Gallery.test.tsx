@@ -116,19 +116,23 @@ describe('Gallery', () => {
     expect(track().style.animationPlayState).toBe('paused')
 
     await userEvent.click(screen.getByRole('button', { name: 'Play gallery' }))
-    const button = screen.getByRole('button', { name: 'Pause gallery' })
-    expect(button).toHaveFocus()
-    await userEvent.unhover(button)
-    fireEvent.blur(button)
+    expect(screen.getByRole('button', { name: 'Pause gallery' })).toHaveFocus()
     expect(track().style.animationPlayState).toBe('running')
   })
 
-  it('holds the marquee still while focus is inside it', () => {
-    render(<Gallery preset='marquee' title={TITLE} images={images} />)
+  it('holds the marquee still while focus is on a linked photo', () => {
+    render(
+      <Gallery
+        preset='marquee'
+        title={TITLE}
+        images={[{ ...images[0]!, href: '/photos' }, ...images.slice(1)]}
+      />
+    )
 
-    fireEvent.focus(screen.getByRole('button', { name: 'Pause gallery' }))
+    const link = screen.getAllByRole('link')[0]!
+    fireEvent.focus(link)
     expect(track().style.animationPlayState).toBe('paused')
-    fireEvent.blur(screen.getByRole('button', { name: 'Pause gallery' }))
+    fireEvent.blur(link)
     expect(track().style.animationPlayState).toBe('running')
   })
 

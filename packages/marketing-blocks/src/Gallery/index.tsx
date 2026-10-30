@@ -269,16 +269,18 @@ function PausableMarquee({
   }
 
   return (
-    <div
-      className='relative grid grid-cols-1'
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onFocus={() => setFocused(true)}
-      onBlur={leave}
-    >
-      <Marquee speed={MARQUEE_SPEED} paused={stopped || hovered || focused}>
-        {children}
-      </Marquee>
+    <div className='relative grid grid-cols-1'>
+      <div
+        className='grid grid-cols-1'
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onFocus={() => setFocused(true)}
+        onBlur={leave}
+      >
+        <Marquee speed={MARQUEE_SPEED} paused={stopped || hovered || focused}>
+          {children}
+        </Marquee>
+      </div>
       {/* Over the photos' lower corner, lined up with the page's content edge. */}
       <div className='pointer-events-none absolute inset-x-0 bottom-3 mx-auto flex w-full max-w-8xl justify-end px-(--block-gutter) *:pointer-events-auto'>
         <IconButton
