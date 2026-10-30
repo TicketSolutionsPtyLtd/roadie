@@ -5,6 +5,7 @@ import { type ComponentType, type RefObject, createContext } from 'react'
 import type { EditorContent, Editor as TiptapEditor } from '@tiptap/react'
 
 import type { EmbedProvider, Preset } from '../schema'
+import type { EditorBubbleMenuProps } from './EditorBubbleMenu'
 import type { EditorToolbarProps } from './EditorToolbar'
 import type { EditorEmphasis, EditorSize } from './variants'
 
@@ -16,8 +17,11 @@ export type EditorContextValue = {
   emphasis: EditorEmphasis
   contentId: string
   toolbarRef: RefObject<HTMLDivElement | null>
+  bubbleMenuRef: RefObject<HTMLDivElement | null>
   /** Opens the link editor on the selection. */
   editLink: () => void
+  /** Whether the link editor is open. */
+  editingLink: boolean
   /** Opens the alt text editor on the selected image. */
   editAlt: () => void
   /** Opens the embed editor at the selection, or on the selected embed. */
@@ -29,6 +33,7 @@ export type EditorContextValue = {
   replaceImage: (() => void) | undefined
   TiptapContent: typeof EditorContent
   ToolbarEngine: ComponentType<EditorToolbarProps>
+  BubbleMenuEngine: ComponentType<EditorBubbleMenuProps>
 }
 
 export const EditorContext = createContext<EditorContextValue | null>(null)
