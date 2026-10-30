@@ -931,6 +931,50 @@ function finish(options: ParseRecordQueryOptions) {
 }
 
 /**
+ * One chip for values joined by "or", as "melb or syd", since a chip's values
+ * OR. The first part reads in full, as an option field's is or is not, and
+ * each part after it as another of that field's values.
+ */
+function joinedValues(
+  input: string,
+  fields: readonly RecordField[],
+  options: ParseRecordQueryOptions
+): Candidate[] {
+  const parts = input.split(/ or /i)
+  if (parts.length < 2 || parts.some((part) => !part.trim())) return []
+  const [first = '', ...rest] = parts
+  const whole: [number, number] = [0, input.split(' ').length]
+  return readText(first, fields, options).flatMap(
+    ({ partial: _partial, ...candidate }) => {
+      if (candidate.kind !== 'filter' || candidate.remainder) return []
+      const filter = candidate.value
+      if (filter.operator !== 'is' && filter.operator !== 'is-not') return []
+      const field = fields.find((each) => each.key === filter.field)
+      if (!field || !isRecordOptionField(field)) return []
+      const values = new Set(filter.values)
+      let score = candidate.score
+      for (const part of rest) {
+        const [best] = optionReadings(field, part.toLowerCase()).sort(
+          (a, b) => b.quality - a.quality
+        )
+        if (!best || best.filter.operator !== 'is') return []
+        for (const value of best.filter.values) values.add(value)
+        score = Math.min(score, best.quality)
+      }
+      return [
+        {
+          ...candidate,
+          id: `filter:${encodeFilter({ ...filter, values: [...values] })}`,
+          value: { ...filter, values: [...values] },
+          score,
+          span: whole
+        }
+      ]
+    }
+  )
+}
+
+/**
  * Suggestions for typed text, best first, from field definitions alone, so
  * the same function serves one list screen or a search across entities.
  * Reads identifiers (a field's `match`, offered as exact), `field:value`,
@@ -945,7 +989,9 @@ function finish(options: ParseRecordQueryOptions) {
  * or after a field's name, `<field> is not`, `doesn't contain` or
  * `does not contain`, apostrophes optional, and `field:!value`,
  * `field:!=value` or `field:-value`; a date or a comparison has no
- * opposite, so reads nothing.
+ * opposite, so reads nothing. Option values joined by `or`, as
+ * `melb or syd`, read as one filter holding each; joined by `and`, they
+ * stay a filter each.
  * Filter labels read as `describeRecordFilter` writes chips. Empty text lists
  * the filterable fields. Free text is left to the caller, as a search.
  */
@@ -963,6 +1009,19 @@ export function parseRecordQuery(
       .map((field, i) => strip(fieldSuggestion(field, 0, '', [0, 0], i)))
   }
 
+  const joined = joinedValues(input, fields, options)
+  const read = readText(input, fields, options)
+  return (joined.length > 0 ? rank([...joined, ...read]) : read)
+    .slice(0, limit)
+    .map(strip)
+}
+
+/** Every reading of the whole text, best first. */
+function readText(
+  input: string,
+  fields: readonly RecordField[],
+  options: ParseRecordQueryOptions
+): Candidate[] {
   const words = input.split(' ')
   const whole: [number, number] = [0, words.length]
   const identifiers = identifierReadings(fields, input).map((reading, i) =>
@@ -982,8 +1041,6 @@ export function parseRecordQuery(
         )
       : [fieldSuggestion(field, 1, '', whole, 0)]
     return rank([...identifiers, ...readings])
-      .slice(0, limit)
-      .map(strip)
   }
 
   const spans = spanCandidates(words, fields, options)
@@ -1003,6 +1060,4 @@ export function parseRecordQuery(
     [...identifiers, ...spans, ...statements.candidates],
     statements.compared
   )
-    .slice(0, limit)
-    .map(strip)
 }

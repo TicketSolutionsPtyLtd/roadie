@@ -494,6 +494,76 @@ describe('parseRecordQuery', () => {
     })
   })
 
+  describe('values joined by "or"', () => {
+    const first = (text: string) => {
+      const [top] = parse(text)
+      return (
+        top && { label: top.label, value: top.value, remainder: top.remainder }
+      )
+    }
+
+    it.each([
+      ['city melb or syd', 'is', ['melbourne', 'sydney']],
+      ['melb or syd', 'is', ['melbourne', 'sydney']],
+      ['city is melb or syd', 'is', ['melbourne', 'sydney']],
+      ['city:melb or syd', 'is', ['melbourne', 'sydney']],
+      ['melb or syd or perth', 'is', ['melbourne', 'sydney', 'perth']],
+      ['not melb or syd', 'is-not', ['melbourne', 'sydney']],
+      [
+        'venue is not walrus or kettle',
+        'is-not',
+        ['quilted-walrus-room', 'antler-kettle-hall']
+      ],
+      ['jazz or folk', 'is', ['jazz', 'folk']]
+    ])(
+      'reads "%s" as one chip holding each value',
+      (text, operator, values) => {
+        expect(first(text)).toMatchObject({
+          value: { operator, values },
+          remainder: ''
+        })
+      }
+    )
+
+    it('labels the chip as it reads', () => {
+      expect(first('city melb or syd')?.label).toBe(
+        'City is in Melbourne or Sydney'
+      )
+    })
+
+    it('keeps values joined by "and" as a chip each', () => {
+      expect(first('city melb and syd')).toMatchObject({
+        value: { values: ['melbourne'] },
+        remainder: 'and syd'
+      })
+    })
+
+    it('reads no chip when a value after "or" is another field\'s', () => {
+      expect(first('melb or jazz')?.value).not.toMatchObject({
+        values: ['melbourne', 'jazz']
+      })
+    })
+
+    it('reads no chip that would drop words before the "or"', () => {
+      expect(parse('melb jazz or folk').map((s) => s.value)).not.toContainEqual(
+        expect.objectContaining({ values: ['jazz', 'folk'] })
+      )
+    })
+
+    it('adds no value to a chip that holds none, such as is empty', () => {
+      expect(first('city is empty or melb')).toMatchObject({
+        value: { field: 'city', operator: 'is-not-set' },
+        remainder: 'or melb'
+      })
+    })
+
+    it('keeps the same value once', () => {
+      expect(first('melb or melbourne')?.value).toMatchObject({
+        values: ['melbourne']
+      })
+    })
+  })
+
   describe('negation', () => {
     it.each([
       [
