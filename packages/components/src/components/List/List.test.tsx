@@ -654,4 +654,22 @@ describe('a reorderable List.Item without a plain title', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('label'))
     warn.mockRestore()
   })
+
+  it('stays quiet with a string title, or outside a Sortable', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title='SKU' />
+        </List>
+      </Sortable>
+    )
+    render(
+      <List>
+        <List.Item value='sku' title={rich} />
+      </List>
+    )
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
 })
