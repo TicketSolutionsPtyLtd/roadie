@@ -31,6 +31,7 @@ import { IconButton } from '@oztix/roadie-components/button'
 import { Menu } from '@oztix/roadie-components/menu'
 
 import {
+  BLOCK_ACTION_KEYS,
   type BlockContainers,
   blockAt,
   canMoveBlock,
@@ -374,6 +375,13 @@ export function EditorBlockHandle({
           // Beside the grip, as Notion's is, so the block stays in view.
           side='left'
           align='start'
+          // Delete acts on the block, as the menu's open on it.
+          onKeyDown={(event) => {
+            if (event.key !== 'Delete' && event.key !== 'Backspace') return
+            event.preventDefault()
+            run((pos) => deleteBlock(editor.state, pos))
+            setMenuAt(null)
+          }}
           finalFocus={() => {
             focusEditor(editor)
             return false
@@ -383,6 +391,7 @@ export function EditorBlockHandle({
             <Menu.GroupLabel>{blockLabel(doc.nodeAt(shown)!)}</Menu.GroupLabel>
             <Menu.Item
               icon={<ArrowUpIcon weight='bold' />}
+              shortcut={BLOCK_ACTION_KEYS.moveUp}
               disabled={!canMoveBlock(doc, shown, -1, containers)}
               onClick={() =>
                 run((pos) => moveBlock(editor.state, pos, -1, containers))
@@ -392,6 +401,7 @@ export function EditorBlockHandle({
             </Menu.Item>
             <Menu.Item
               icon={<ArrowDownIcon weight='bold' />}
+              shortcut={BLOCK_ACTION_KEYS.moveDown}
               disabled={!canMoveBlock(doc, shown, 1, containers)}
               onClick={() =>
                 run((pos) => moveBlock(editor.state, pos, 1, containers))
@@ -411,6 +421,7 @@ export function EditorBlockHandle({
             ) : null}
             <Menu.Item
               icon={<CopySimpleIcon weight='bold' />}
+              shortcut={BLOCK_ACTION_KEYS.duplicate}
               onClick={() => run((pos) => duplicateBlock(editor.state, pos))}
             >
               Duplicate
@@ -418,6 +429,7 @@ export function EditorBlockHandle({
             <Menu.Separator />
             <Menu.Item
               icon={<TrashIcon weight='bold' />}
+              shortcut={BLOCK_ACTION_KEYS.delete}
               intent='danger'
               onClick={() => run((pos) => deleteBlock(editor.state, pos))}
             >

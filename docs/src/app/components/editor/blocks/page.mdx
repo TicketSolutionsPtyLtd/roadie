@@ -95,7 +95,7 @@ A grip shows at the start of the block under the pointer, or of the block
 with the caret while the editor has focus. Drag it to move the block; a line
 shows where it will land. Click or tap it, or press `Mod+/` in the text, for
 the block's menu: Move up, Move down, Duplicate, and Delete. The menu opens
-beside the grip, headed by the block's type, and the block takes the chosen
+beside the grip, headed by the block's type, with each action's keys, and the block takes the chosen
 tint while it's open, so it's clear which block it acts on. Each is one step
 to undo, a moved block keeps its `blockId`, and a copy gets one of its own.
 On a touch screen the grip shows beside the block you're typing in, and its
@@ -133,8 +133,11 @@ the first and last blocks. Closing the menu puts focus back in the text.
 | Keys | Action |
 | --- | --- |
 | `Mod+/` | Open the menu for the block with the caret |
+| `Mod+Shift+ArrowUp`, `Mod+Shift+ArrowDown` | In the text, move the caret's block up or down |
+| `Mod+D` | In the text, duplicate the caret's block |
 | `ArrowDown`, `ArrowUp` | In the menu, move between actions |
 | `Enter` | Run the action |
+| `Delete`, `Backspace` | In the menu, delete its block |
 | `Escape` | Close the menu, back to the text |
 
 ### Custom blocks

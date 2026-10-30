@@ -243,6 +243,74 @@ describe('Editor block handle', () => {
     )
   })
 
+  it.each([
+    [
+      'Mod+Shift+Up moves it up',
+      `{${MOD}>}{Shift>}{ArrowUp}{/Shift}{/${MOD}}`,
+      ['doors', 'headliner', 'support']
+    ],
+    [
+      'Mod+Shift+Down moves it down',
+      `{${MOD}>}{Shift>}{ArrowDown}{/Shift}{/${MOD}}`,
+      ['doors', 'headliner', 'support']
+    ]
+  ] as const)('%s from the text', async (_, keys, expected) => {
+    const onValueChange = renderLineup()
+    const start = keys.includes('ArrowUp') ? 'Headliner' : 'Support'
+    await userEvent.click(await paragraph(start))
+
+    await userEvent.keyboard(keys)
+
+    await waitFor(() =>
+      expect(order(onValueChange).map(([id]) => id)).toEqual(expected)
+    )
+  })
+
+  it('duplicates the caret’s block with Mod+D', async () => {
+    const onValueChange = renderLineup()
+    await userEvent.click(await paragraph('Doors'))
+
+    await userEvent.keyboard(`{${MOD}>}d{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(order(onValueChange).map(([, text]) => text)).toEqual([
+        'Doors 7pm',
+        'Doors 7pm',
+        'Support 8pm',
+        'Headliner 9pm'
+      ])
+    )
+  })
+
+  it('deletes the block with Delete while its menu is open', async () => {
+    const onValueChange = renderLineup()
+    const menu = await openMenuOn('Support')
+    await waitFor(() => expect(menu).toBeVisible())
+
+    await userEvent.keyboard('{Delete}')
+
+    await waitFor(() =>
+      expect(order(onValueChange).map(([id]) => id)).toEqual([
+        'doors',
+        'headliner'
+      ])
+    )
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+  })
+
+  it('shows each action’s keys in the menu', async () => {
+    renderLineup()
+    const menu = await openMenuOn('Support')
+
+    for (const name of ['Move up', 'Move down', 'Duplicate', 'Delete']) {
+      expect(
+        within(menu)
+          .getByRole('menuitem', { name: new RegExp(`^${name}`) })
+          .querySelector('[data-slot="menu-item-shortcut"]')
+      ).not.toBeNull()
+    }
+  })
+
   it('moves the caret’s block by keyboard, from Mod+/, and undoes the move', async () => {
     const onValueChange = renderLineup()
     const textbox = await screen.findByRole('textbox', { name: LABEL })
