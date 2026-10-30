@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+// From the public entry, so the test fails if the export goes.
+import { plainDateParts } from '.'
 import {
   addDays,
   addMonths,
@@ -7,7 +9,6 @@ import {
   dayOfWeek,
   monthGrid,
   plainDateOf,
-  plainDateParts,
   startOfWeek
 } from './plainDate'
 
