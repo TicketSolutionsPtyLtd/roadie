@@ -1,4 +1,10 @@
-import { compareDates, dayNumber, isPlainDate } from '../datetime/plainDate'
+import { parseWallTime } from '../dataviz/wallTime'
+import {
+  addMonths,
+  dayNumber,
+  fromDayNumber,
+  plainDateParts
+} from '../datetime/plainDate'
 import {
   type ComparisonOptions,
   type ResolvedDateRange,
@@ -16,64 +22,87 @@ export type AlignComparisonOptions = ComparisonOptions & {
   x: string
   /** The field to carry over from the comparison rows. */
   y: string
+  /** The field naming each row's series, so each lines up with its own. */
+  series?: string
   /** The field the comparison value goes in on this period's rows. */
   as: string
 }
 
-type Slot = { day: string; time: string }
+const MS_PER_DAY = 86_400_000
+
+type Slot = { day: number; time: number }
 
 const slotOf = (value: PlotRow[string] | undefined): Slot | null => {
-  if (typeof value !== 'string') return null
-  const day = value.slice(0, 10)
-  return isPlainDate(day) ? { day, time: value.slice(10) } : null
+  const wall = parseWallTime(value)
+  if (wall === null) return null
+  const day = Math.floor(wall / MS_PER_DAY)
+  return { day, time: wall - day * MS_PER_DAY }
 }
 
-const within = (day: string, range: { start: string; end: string }) =>
-  compareDates(day, range.start) >= 0 && compareDates(day, range.end) <= 0
+type DayRange = { start: number; end: number }
 
-function datesOf(range: ResolvedDateRange | null) {
-  return range?.kind === 'dates' ? range : null
+function dayRange(range: ResolvedDateRange | null): DayRange | null {
+  return range?.kind === 'dates'
+    ? { start: dayNumber(range.start), end: dayNumber(range.end) }
+    : null
 }
 
-function comparisonDates(options: AlignComparisonOptions) {
+/** The same date a year earlier, or null for 29 February. */
+function sameDateYearEarlier(day: number): number | null {
+  const date = fromDayNumber(day)
+  const earlier = addMonths(date, -12)
+  return plainDateParts(earlier).day === plainDateParts(date).day
+    ? dayNumber(earlier)
+    : null
+}
+
+function comparisonDays(options: AlignComparisonOptions) {
   const { range, compare } = options.period
   if (!compare || !isBuiltInComparison(compare)) return null
   const resolved = resolveComparison(range, compare, options)
   if (resolved.status === 'unavailable') return null
-  const current = datesOf(resolveDateRange(range, options))
-  const compared = datesOf(resolved.range)
-  return current && compared ? { current, compared } : null
+  const current = dayRange(resolveDateRange(range, options))
+  const compared = dayRange(resolved.range)
+  if (!current || !compared) return null
+  const sameDates = compare === 'previous-year' && !options.alignWeekday
+  const first = options.dataStart ? dayNumber(options.dataStart) : -Infinity
+  return (day: number): number | null => {
+    if (day < current.start || day > current.end) return null
+    const then = sameDates
+      ? sameDateYearEarlier(day)
+      : compared.start + day - current.start
+    return then !== null && then >= first && then <= compared.end ? then : null
+  }
 }
 
 /**
- * This period's rows, each with last period's value under `as`, so a chart's
- * `comparison` can draw it. Rows line up day by day from each range's start,
- * at the same time of day, so a month lines up with a shorter one and the
- * previous year can keep its weekdays (`alignWeekday`). A row the comparison
- * doesn't cover, or that falls before `dataStart`, gets null.
+ * This period's rows, each with the comparison's value under `as`. Rows line
+ * up day by day from each range's start, at the same time of day, so a month
+ * lines up with a shorter one; the previous year keeps its dates, or its
+ * weekdays with `alignWeekday`. A row the comparison doesn't cover, or that
+ * falls before `dataStart`, gets null.
  */
 export function alignComparison(
   rows: readonly PlotRow[],
   comparisonRows: readonly PlotRow[],
   options: AlignComparisonOptions
 ): PlotRow[] {
-  const dates = comparisonDates(options)
+  const comparedDay = comparisonDays(options)
+  const keyOf = (row: PlotRow, day: number, time: number) =>
+    JSON.stringify([day, time, options.series && row[options.series]])
   const values = new Map<string, PlotRow[string]>()
   for (const row of comparisonRows) {
     const slot = slotOf(row[options.x])
-    const key = slot && `${dayNumber(slot.day)}${slot.time}`
+    const key = slot && keyOf(row, slot.day, slot.time)
     if (key && !values.has(key)) values.set(key, row[options.y] ?? null)
   }
-  const valueFor = (slot: Slot | null) => {
-    if (!dates || !slot || !within(slot.day, dates.current)) return null
-    const offset = dayNumber(slot.day) - dayNumber(dates.current.start)
-    const day = dayNumber(dates.compared.start) + offset
-    if (day > dayNumber(dates.compared.end)) return null
-    if (options.dataStart && day < dayNumber(options.dataStart)) return null
-    return values.get(`${day}${slot.time}`) ?? null
+  const valueFor = (row: PlotRow) => {
+    const slot = slotOf(row[options.x])
+    if (!slot || !comparedDay) return null
+    const day = comparedDay(slot.day)
+    return day === null
+      ? null
+      : (values.get(keyOf(row, day, slot.time)) ?? null)
   }
-  return rows.map((row) => ({
-    ...row,
-    [options.as]: valueFor(slotOf(row[options.x]))
-  }))
+  return rows.map((row) => ({ ...row, [options.as]: valueFor(row) }))
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { addDays } from '../datetime/plainDate'
+import { addDays, dayNumber } from '../datetime/plainDate'
 import { type AlignComparisonOptions, alignComparison } from './comparison'
 
 const timeZone = 'Australia/Melbourne'
@@ -26,6 +26,9 @@ const aligned = (
     as: 'lastPeriod',
     ...options
   }).map((row) => [row.day, row.lastPeriod])
+
+const dayCount = (start: string, end: string) =>
+  dayNumber(end) - dayNumber(start) + 1
 
 const week = { start: '2026-10-08', end: '2026-10-14' }
 
@@ -99,6 +102,11 @@ describe('alignComparison', () => {
       { range: week, compare: 'previous-period' as const },
       { dataStart: '2026-10-08' }
     ],
+    [
+      "a period the data hasn't reached",
+      { range: week, compare: 'previous-period' as const },
+      { dataEnd: '2026-10-07' }
+    ],
     ['no comparison', { range: week }, {}],
     ["an app's own comparison", { range: week, compare: 'similar' }, {}]
   ])('gives every row an empty comparison for %s', (_, period, extra) => {
@@ -146,6 +154,98 @@ describe('alignComparison', () => {
     ).toEqual([
       ['2026-09-30', null],
       ['2026-10-08', 9]
+    ])
+  })
+
+  it.each([
+    [
+      'a year after a leap year',
+      { start: '2025-02-27', end: '2025-03-02' },
+      [
+        ['2025-02-27', '2024-02-27'],
+        ['2025-02-28', '2024-02-28'],
+        ['2025-03-01', '2024-03-01'],
+        ['2025-03-02', '2024-03-02']
+      ]
+    ],
+    [
+      'a leap year',
+      { start: '2028-02-28', end: '2028-03-01' },
+      [
+        ['2028-02-28', '2027-02-28'],
+        ['2028-02-29', null],
+        ['2028-03-01', '2027-03-01']
+      ]
+    ]
+  ])('keeps the same dates last year in %s', (_, range, expected) => {
+    const lastYear = (start: string, end: string) =>
+      Array.from({ length: dayCount(start, end) }, (_, i) => ({
+        day: addDays(start, i),
+        sold: addDays(start, i)
+      }))
+    const rows = expected.map(([day]) => ({ day: day!, sold: 0 }))
+    expect(
+      aligned(rows, lastYear(addDays(range.start, -400), range.end), {
+        period: { range, compare: 'previous-year' }
+      })
+    ).toEqual(expected)
+  })
+
+  it.each([
+    ['an offset that changes with daylight saving', '+11:00', '+10:00'],
+    ['UTC written as Z', 'Z', 'Z']
+  ])('ignores %s, as charts do', (_, now, then) => {
+    expect(
+      aligned(
+        [{ day: `2026-10-08T10:00${now}`, sold: 1 }],
+        [{ day: `2026-10-01T10:00${then}`, sold: 5 }],
+        { period: { range: week, compare: 'previous-period' } }
+      )
+    ).toEqual([[`2026-10-08T10:00${now}`, 5]])
+  })
+
+  it('matches times written in different forms', () => {
+    expect(
+      aligned(
+        [
+          { day: '2026-10-08 10:00', sold: 1 },
+          { day: Date.UTC(2026, 9, 8, 11), sold: 2 }
+        ],
+        [
+          { day: '2026-10-01T10:00:00.000', sold: 5 },
+          { day: '2026-10-01T11:00', sold: 6 }
+        ],
+        { period: { range: week, compare: 'previous-period' } }
+      )
+    ).toEqual([
+      ['2026-10-08 10:00', 5],
+      [Date.UTC(2026, 9, 8, 11), 6]
+    ])
+  })
+
+  it('lines each series up with its own', () => {
+    const result = alignComparison(
+      [
+        { day: '2026-10-08', channel: 'Email', sold: 3 },
+        { day: '2026-10-08', channel: 'Web', sold: 5 }
+      ],
+      [
+        { day: '2026-10-01', channel: 'Web', sold: 7 },
+        { day: '2026-10-01', channel: 'Email', sold: 2 }
+      ],
+      {
+        now,
+        timeZone,
+        period: { range: week, compare: 'previous-period' },
+        x: 'day',
+        y: 'sold',
+        series: 'channel',
+        as: 'lastPeriod'
+      }
+    )
+    expect(result.map((row) => [row.channel, row.lastPeriod])).toEqual([
+      ['Email', 2],
+      ['Web', 7]
     ])
   })
 })

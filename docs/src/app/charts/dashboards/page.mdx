@@ -738,9 +738,11 @@ can list its own comparisons, such as similar venues, in
 To set this period's rows against the comparison's day by day, pass both sets
 of rows to `alignComparison` from `@oztix/roadie-core/dashboard`, with the
 period and the same options. Rows line up from each range's start, at the same
-time of day, so a month lines up with a shorter one and `alignWeekday` keeps
-Mondays with Mondays. A day the comparison doesn't cover, or one before
-`dataStart`, gets `null`.
+time of day, so a month lines up with a shorter one. The previous year keeps
+its dates, or its weekdays with `alignWeekday`, so Mondays line up with
+Mondays. For rows with a `series` field, as a line plot takes them, name it in
+`series` so each series lines up with its own. A day the comparison doesn't
+cover, or one before `dataStart`, gets `null`.
 
 ```ts
 const rows = alignComparison(sales.days(range), sales.days(compared.range), {
