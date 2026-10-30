@@ -39,8 +39,8 @@
 
     /* The parts read variables the card sets, not `&:has(footer) > *`: a
        selector after a :has() restyles its matches across the page whenever
-       anything changes, and `*` matches everything. */
-    /* Reset first, so a nested footer-less ticket doesn't inherit them. */
+       anything changes, and `*` matches everything. Reset first, so a nested
+       footer-less ticket doesn't inherit them. */
     --card-part-fill: initial;
     --card-part-transition: initial;
 
