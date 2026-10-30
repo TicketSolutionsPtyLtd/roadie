@@ -1,0 +1,119 @@
+export const metadata = {
+  title: 'Stats',
+  description:
+    'Key numbers as they were written, each with a spot illustration and a label',
+  status: 'alpha',
+  category: 'Content',
+  wideExamples: true
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Key numbers as they were written, each with a spot illustration and a label.
+
+## Import
+
+```tsx
+import { Stats } from '@oztix/roadie-marketing-blocks/stats'
+```
+
+## Examples
+
+### Figures
+
+A heading over the numbers, which wrap as many to a row as fit. Each value is
+a string, so it reads exactly as the editor wrote it.
+
+```tsx-live-expand id=figures
+<Stats
+  preset='figures'
+  title='By the numbers'
+  description='The impact of genuine partnerships'
+  items={[
+    { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
+    { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
+    { value: '20+', label: 'years in ticketing', illustration: 'Heart' },
+    { value: '50+', label: 'full-time team', illustration: 'HighFive' },
+    { value: '7 million+', label: 'fans each year', illustration: 'FlowerSpiral' }
+  ]}
+/>
+```
+
+### Intent and emphasis
+
+`intent` sets the figures, heading, and highlights in its strong text colour,
+and `emphasis` draws a band behind them: `raised`, `subtle`, or `subtler`.
+There's no band by default.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Brand, subtle band */}
+<Stats
+  intent='brand'
+  emphasis='subtle'
+  title='Your audience in Brisbane'
+  items={[
+    { value: '180,000+', label: 'ticket buyers', illustration: 'Ticket' },
+    { value: '1,200+', label: 'events a year', illustration: 'MapPin' },
+    { value: '4.8 out of 5', label: 'average rating', illustration: 'Heart' }
+  ]}
+/>
+{/* Raised band */}
+<Stats
+  emphasis='raised'
+  title='Results from last season'
+  items={[
+    { value: '98%', label: 'tickets scanned on time', illustration: 'HighFive' },
+    { value: '12 minutes', label: 'average wait to get in', illustration: 'FlowerSpiral' }
+  ]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Say what the numbers prove in the title or description, such as `The impact of genuine partnerships`, before the numbers do.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't title the block with a bare label, such as `Stats`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep to a few numbers that change rarely'>
+  <Guideline.Do>
+    Show three to six numbers, such as tickets sold or years in business, rounded and written as they should read, such as `7 million+`.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't show live or precise figures. The block shows each value exactly as written.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Set stats beside text with Split'>
+  <Guideline.Do>
+    Use [Split](/blocks/split)'s `text-and-stats` preset to set stats beside long-form text.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't stack a Stats block under a text block to fake the aside.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Add a band only to set the figures apart'>
+  <Guideline.Do>
+    Draw a band, or set an intent, when the figures follow other plain blocks and need to stand apart.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't band Stats beside a block that already sits on a panel. Two surfaces in a row read as one.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Stats reports a view once it's half on screen. It has no links, so it
+reports no clicks.
+
+<PropsDefinitions component='Stats' />

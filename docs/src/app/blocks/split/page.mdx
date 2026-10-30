@@ -1,0 +1,220 @@
+export const metadata = {
+  title: 'Split',
+  description:
+    'Text beside an image, a partner lockup, or the numbers that back it up',
+  status: 'alpha',
+  category: 'Content',
+  wideExamples: true
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Text beside an image, a partner lockup, or the numbers that back it up.
+
+## Import
+
+```tsx
+import { Split } from '@oztix/roadie-marketing-blocks/split'
+```
+
+## Examples
+
+### Tinted panel
+
+An image beside a heading and short description, on a tinted panel. The
+image comes first, and the text wraps below it on narrow screens.
+
+```tsx-live-expand id=tinted-panel
+<Split
+  preset='tinted-panel'
+  title='Specialist teams powering venues and event organisers'
+  description='Behind our leadership are teams in innovation, operations, marketing, events, content, and finance, all working to deliver on our partnership promise.'
+  image={{
+    src: '/brand/photography/03.webp',
+    alt: 'Two team members working together at a desk with large monitors',
+    width: 1280,
+    height: 1007
+  }}
+/>
+```
+
+### Media and text
+
+A plain image beside the heading, text, and actions, with no panel. The image
+comes first, cropped to 4 by 3, and the text wraps below it on narrow screens.
+
+```tsx-live-expand id=media-text
+<Split
+  preset='media-text'
+  title='Sell more tickets with your partners'
+  body={
+    <p>
+      List your events where your audience already spends time, and every sale
+      still lands in your Oztix reports.
+    </p>
+  }
+  actions={[{ label: 'Talk to us', href: '/contact' }]}
+  image={{
+    src: '/brand/photography/05.webp',
+    alt: 'Three partners smiling together at a laneway event',
+    width: 1280,
+    height: 854
+  }}
+/>
+```
+
+### Text and stats
+
+Long-form text at a readable measure, with the numbers that back it up
+beside it. The stats wrap below the text on narrow screens. They draw the
+same way as the [Stats](/blocks/stats) block.
+
+```tsx-live-expand id=text-and-stats
+<Split
+  preset='text-and-stats'
+  title='Who we are'
+  body={
+    <>
+      <h3>Australia's largest independent ticketing company</h3>
+      <p>
+        For over 20 years, we've partnered with event organisers to deliver
+        tickets across music, venues, shows, sports, and government events
+        nationwide.
+      </p>
+      <h3>Australian owned and operated</h3>
+      <p>
+        Our headquarters are in Brisbane, and our platform is hosted in
+        Australia, built and improved in-house by our full-time team.
+      </p>
+    </>
+  }
+  actions={[{ label: 'Meet the team', href: '/about' }]}
+  stats={{
+    title: 'By the numbers',
+    description: 'The impact of genuine partnerships',
+    items: [
+      { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
+      { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
+      { value: '20+', label: 'years in ticketing', illustration: 'Heart' },
+      { value: '50+', label: 'full-time team', illustration: 'HighFive' }
+    ]
+  }}
+/>
+```
+
+### Logo lockup
+
+Opens a partner page: the Oztix logo and the partner's logo joined by a
+heart, beside the page title, text, and action. Its title is the page's
+`h1`, so it's always the first block on the page.
+
+```tsx-live-expand id=logo-lockup
+<Split
+  preset='logo-lockup'
+  title='Resell my tickets'
+  description='Sell your Oztix tickets through our resale partner.'
+  body={
+    <>
+      <p>The safest way to resell tickets to any event you can't make.</p>
+      <p>
+        <strong>Only real tickets for real fans.</strong>
+      </p>
+    </>
+  }
+  actions={[{ label: 'Resell my tickets', href: 'https://www.example.com' }]}
+  partner={{
+    name: 'Partner',
+    logo: { src: '/blocks/partner-logo.svg', alt: '', width: 208, height: 60 }
+  }}
+/>
+```
+
+### Intent and emphasis
+
+`intent` colours the highlights, actions, and panel, and `emphasis` sets the
+panel: `subtle`, `subtler`, `raised`, or `normal`. Tinted panel defaults to a
+subtle info panel. Media and text and text and stats have no panel until you
+set one, and logo lockup never has one.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Brand, subtle panel */}
+<Split
+  preset='media-text'
+  intent='brand'
+  emphasis='subtle'
+  title='Sell more tickets with your partners'
+  titleHighlight='more tickets'
+  body={<p>List your events where your audience already spends time.</p>}
+  actions={[{ label: 'Talk to us', href: '/contact' }]}
+  image={{
+    src: '/brand/photography/05.webp',
+    alt: 'Three partners smiling together at a laneway event',
+    width: 1280,
+    height: 854
+  }}
+/>
+{/* Success, raised panel */}
+<Split
+  preset='tinted-panel'
+  intent='success'
+  emphasis='raised'
+  title='Payouts within days of your event'
+  description='Settlement runs automatically once the doors close, so your money arrives without chasing it.'
+  image={{
+    src: '/brand/photography/04.webp',
+    alt: 'A staff member in a blue vest scanning a ticket on a phone at an event entry',
+    width: 1280,
+    height: 1007
+  }}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Open the text with a sentence that answers the page's question, such as what the partnership lets someone do, then back it up.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't open with why the partnership matters to us before saying what it does.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pick the preset for the content'>
+  <Guideline.Do>
+    Use tinted panel for a short point with a photo that shows it, media and text for a longer section beside a photo, text and stats for an about page with three to six numbers that prove it, and logo lockup to open a page about one partner.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put logo lockup anywhere but the top of the page. Its title is the page's `h1`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Write stats as they should read'>
+  <Guideline.Do>
+    Round each value and write it as it reads, such as `7 million+`, with a label that says what it counts.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't add an illustration that doesn't match its label.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep the defaults unless the page needs a change of pace'>
+  <Guideline.Do>
+    Set an intent to match the page's brand or a campaign, or a panel to separate a section from the ones around it.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put every Split on a panel, or give neighbouring blocks different intents. Each change loses its point when everything changes.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Split reports a view once it's half on screen, and a click on each action,
+with its preset and position.
+
+<PropsDefinitions component='Split' />
