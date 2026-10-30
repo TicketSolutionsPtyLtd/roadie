@@ -8,6 +8,7 @@ export {
   embedSrc,
   parseEmbedUrl
 } from './embed'
+export { type DroppedContent, htmlToEditorValue } from './importHtml'
 export { type Preset, presets } from './presets'
 export {
   CURRENT_VERSION,

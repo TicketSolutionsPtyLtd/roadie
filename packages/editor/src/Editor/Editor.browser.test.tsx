@@ -20,7 +20,8 @@ import editorCss from '../css/editor.css?inline'
 import {
   type EditorValue,
   type EmbedProvider,
-  defaultEmbedProviders
+  defaultEmbedProviders,
+  htmlToEditorValue
 } from '../schema'
 import { LINE_END, LINE_START, MOD, selectParagraph } from './testUtils'
 
@@ -116,6 +117,26 @@ describe('Editor', () => {
     expect(within(textbox).getByText('Jumbuck Orchard Park').tagName).toBe(
       'STRONG'
     )
+  })
+
+  it('opens a value imported from CKEditor HTML', async () => {
+    const { value } = htmlToEditorValue(
+      '<h1>Lineup</h1><span style="color:red">Gates 11am</span><br>Last entry 7pm<br><br>All ages',
+      'rich'
+    )
+    render(<Editor aria-label={LABEL} preset='rich' defaultValue={value} />)
+
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await waitFor(() =>
+      expect(
+        within(textbox).getByRole('heading', { level: 2, name: 'Lineup' })
+      ).toBeInTheDocument()
+    )
+    const paragraphs = [...textbox.querySelectorAll('p')]
+    expect(paragraphs.map((paragraph) => paragraph.innerHTML)).toEqual([
+      'Gates 11am<br>Last entry 7pm',
+      'All ages'
+    ])
   })
 
   it('replaces its content when a controlled value changes', async () => {
