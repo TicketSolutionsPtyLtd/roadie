@@ -196,7 +196,10 @@ export function useDocHeadings(enabled = true): DocHeadings {
       } catch {
         return
       }
-      const target = id ? document.getElementById(id) : null
+      // API reference parts were linked by their bare slug before they had ids.
+      const target = id
+        ? (document.getElementById(id) ?? document.getElementById(`api-${id}`))
+        : null
       if (target && mainEl.contains(target)) landOn(target, false)
     }
     const followHash = () => {

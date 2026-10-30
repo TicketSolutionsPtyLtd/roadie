@@ -137,6 +137,17 @@ describe('useDocHeadings', () => {
     expect(scrolledTo).toEqual([content.querySelector('#api-meter')])
   })
 
+  // API reference parts were linked by their bare slug before they had ids.
+  it('lands an old link to an API reference part on the part', () => {
+    window.history.replaceState(null, '', '#kbd')
+    const { content } = landing(() =>
+      mountPage(
+        '<h2 id="api-reference">API reference</h2><h3 id="api-kbd">Kbd</h3>'
+      )
+    )
+    expect(scrolledTo).toEqual([content.querySelector('#api-kbd')])
+  })
+
   // Next's router changes the hash with pushState, which fires no hashchange.
   it('lands on a hash the router pushes', () => {
     const navigation = stubNavigation()
