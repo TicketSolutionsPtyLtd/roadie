@@ -89,7 +89,9 @@ export function pageForComponent(
 ): PageMatch | undefined {
   const listing = pages.filter((page) => page.components.includes(name))
   const named = pages.filter((page) => slugOf(page) === toKebab(name))
-  const own = named.find((page) => listing.includes(page)) ?? named[0]
+  const own = named.find((page) => listing.includes(page))
   if (own) return { page: own, own: true }
-  return listing[0] && { page: listing[0], own: false }
+  // A page that lists it, such as Records on RecordTable's, beats one that only shares its name.
+  if (listing[0]) return { page: listing[0], own: false }
+  return named[0] && { page: named[0], own: true }
 }
