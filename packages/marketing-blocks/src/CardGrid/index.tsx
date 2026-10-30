@@ -67,7 +67,7 @@ export type CardGridProps = {
   emphasis?: BlockEmphasis
   /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `portraits` is inset and the other presets are bands. */
   inset?: boolean
-  /** Every card's surface. Unset, cards have none, though a linked card with none takes `subtler`. `overlap-cards` draws its panels on it, `raised` by default, and `portraits` ignores it, since it draws a photo. */
+  /** Every card's surface. Unset, cards have none, though a linked card with none takes `subtler`. `overlap-cards` and `portraits` ignore it, since they draw an inverted panel or a photo. */
   itemEmphasis?: ItemEmphasis
   /** The heading's alignment, and in `cards`, the card text's too. Unset, `cards` centres the heading and starts the card text, `marked-cards` and `overlap-cards` centre the heading, and `portraits` and `lists` start it. */
   align?: BlockAlign
@@ -321,7 +321,7 @@ function ServiceCard(props: CardProps) {
 }
 
 function IndustryCard(props: CardProps) {
-  const { item, itemEmphasis } = props
+  const { item } = props
   return (
     <li className='group/tile is-interactive-within grid min-w-0 grid-rows-[auto_1fr] rounded-2xl'>
       <CardImage
@@ -330,12 +330,7 @@ function IndustryCard(props: CardProps) {
         className='aspect-square w-full rounded-2xl'
         grows={!!item.href}
       />
-      <div
-        className={cn(
-          'z-1 -mt-6 grid content-start gap-4 rounded-2xl p-6 intent-neutral',
-          emphasisClass(itemEmphasis ?? 'raised')
-        )}
-      >
+      <div className='z-1 -mt-6 grid content-start gap-4 rounded-2xl emphasis-inverted p-6 intent-neutral'>
         <Illustration name={item.illustration} className='-mt-16 size-16' />
         <Mark
           render={<h3 />}
@@ -346,11 +341,9 @@ function IndustryCard(props: CardProps) {
         </Mark>
         <div className='grid gap-1'>
           {item.subtitle && (
-            <p className='text-lg font-medium text-strong'>{item.subtitle}</p>
+            <p className='text-lg font-medium'>{item.subtitle}</p>
           )}
-          {item.description && (
-            <p className='text-subtle'>{item.description}</p>
-          )}
+          {item.description && <p>{item.description}</p>}
         </div>
       </div>
     </li>

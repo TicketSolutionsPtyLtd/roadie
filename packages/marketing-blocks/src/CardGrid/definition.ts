@@ -24,7 +24,7 @@ export const cardGridDefinition = {
       name: 'overlap-cards',
       title: 'Overlap cards',
       description:
-        'Square images, each overlapped by a raised panel holding an illustration, a marked title, and a description, for industries.',
+        'Square images, each overlapped by an inverted panel holding an illustration, a marked title, and a description, for industries.',
       variant: 'grid'
     },
     {

@@ -337,7 +337,7 @@ describe('CardGrid overlap cards', () => {
   }
 
   it.each(MODES)(
-    'draws its panels in the page’s %s mode, set apart from the page',
+    'inverts its panels against the page in %s mode, with readable text',
     (mode) => {
       setMode(mode)
       onTestFinished(() => setMode('light'))
@@ -350,14 +350,12 @@ describe('CardGrid overlap cards', () => {
       const panel = screen.getByRole('heading', {
         name: 'Live music'
       }).parentElement!
-      if (mode === 'light') expect(lightness(panel)).toBeGreaterThan(0.6)
-      else expect(lightness(panel)).toBeLessThan(0.4)
-      const style = getComputedStyle(panel)
-      const setApart =
-        style.boxShadow !== 'none' ||
-        style.backgroundColor !==
-          getComputedStyle(panel.closest('.bg-normal')!).backgroundColor
-      expect(setApart).toBe(true)
+      if (mode === 'light') expect(lightness(panel)).toBeLessThan(0.4)
+      else expect(lightness(panel)).toBeGreaterThan(0.6)
+      for (const text of within(panel).getAllByText(/Festivals|millions/))
+        expect(textContrast(text), text.textContent!).toBeGreaterThanOrEqual(
+          MINIMUM_LC.body
+        )
     }
   )
 })
