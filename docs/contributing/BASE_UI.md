@@ -449,9 +449,12 @@ implementation.
 
 Roadie leans on Base UI behaviours its types don't promise, and works around
 others. When you bump `@base-ui/react`, check each one still holds, and drop a
-workaround once Base UI makes it unnecessary. Run
+workaround once Base UI makes it unnecessary. Paths are in
+`packages/components/src/`. Run
 `pnpm test:gated components src/components/Combobox src/components/QueryField`
-for the first four.
+for the first four, and
+`pnpm test:gated components src/components/Slider src/components/Toast` for
+the next two.
 
 - **`autoHighlight='always'` on Combobox.** Base UI types `'always'` for
   Autocomplete only. Roadie's `Combobox.Root` passes it to Base UI's Combobox
@@ -461,24 +464,28 @@ for the first four.
   list changes under it, so QueryField renders the list once with no items to
   drop it (`dropHighlight` in `QueryField/QueryField.tsx`). If Base UI adds a
   controlled highlight or a clear action, use it and remove the extra render.
-- **Escape in a closed list.** Base UI clears every chip, so `Combobox.Root`
-  and QueryField cancel it and clear only the typed text.
+- **Escape in a closed list.** Base UI clears every chip. `Combobox.Root`
+  cancels it, so the chips stay, and QueryField stops it and clears only the
+  typed text.
 - **Modified Enter.** Base UI ignores it, so QueryField stops it submitting a
   form.
 - **Slider's input.** Base UI sets `aria-invalid` and the input id only from
-  its own Field, so `Slider/SliderThumb.tsx` sets them on the input it renders.
+  its own Field, so `Slider/SliderThumb.tsx` sets them on Base UI's input
+  itself, the id on the first thumb only.
 - **Toast timers.** Base UI reads the provider's timeout only when a timer
   starts, so `Toast/ToastProgress.tsx` keys its bar to the toast's own run.
 - **Still pointer moves in WebKit.** Base UI ignores them, and Playwright
   sends nothing else there, so browser tests hover with
-  `utils/pointerTestUtils.ts`.
+  `pointAt` in `utils/pointerTestUtils.ts`. Run
+  `pnpm test:gated components src/utils/pointerTestUtils.ts --all-browsers`.
 - **Focus guards in WebKit** stay nameless buttons
   ([decision 0012](../decisions/0012-base-ui-focus-guards.md)). Only WebKit
-  on a Mac shows it; Linux WebKit in CI gives them no role. Run
+  on Apple platforms makes them buttons; Linux WebKit in CI gives them no
+  role. Run
   `pnpm test:gated components src/checks/focusGuards.browser.test.tsx --all-browsers`
   on a Mac. If it fails, Base UI named or hid the guards, so remove the
-  `acceptedViolations` entry in `packages/components/src/checks/testUtils.tsx`
-  and update the decision.
+  `acceptedViolations` entry in `checks/testUtils.tsx` and update the
+  decision.
 
 ## 13. Reference links
 
