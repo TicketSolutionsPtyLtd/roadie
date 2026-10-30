@@ -936,7 +936,10 @@ describe('relative formatter reuse', () => {
     const RelativeTimeFormat = vi.spyOn(Intl, 'RelativeTimeFormat')
     const now = new Date('2026-10-30T00:00:00Z')
     for (let hours = 1; hours <= 20; hours++)
-      formatRelative(new Date(now.getTime() - hours * 3_600_000), { now })
+      formatRelative(new Date(now.getTime() - hours * 3_600_000), {
+        now,
+        timeZone: SYD
+      })
     expect(RelativeTimeFormat).toHaveBeenCalledTimes(1)
   })
 })
