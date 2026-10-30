@@ -69,7 +69,7 @@ function sum(column: TableColumn, rows: readonly TableRow[]) {
   let total = 0
   let any = false
   for (const row of rows) {
-    const value = row[column.key]
+    const value = Object.hasOwn(row, column.key) ? row[column.key] : undefined
     if (typeof value !== 'number' || !Number.isFinite(value)) continue
     total += value
     any = true
