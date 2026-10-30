@@ -90,7 +90,7 @@ describe('renderChartDocument', () => {
 
     it('draws the label above the plot and the source below it', () => {
       const texts = textOf(svg)
-      expect(texts.indexOf('Tickets sold')).toBeGreaterThanOrEqual(0)
+      expect(texts[0]).toBe('Tickets sold')
       expect(texts.at(-1)).toBe('Oztix sales, updated hourly.')
     })
   })
@@ -158,6 +158,30 @@ describe('renderChartDocument', () => {
       ...SIZE
     })
     expect(svg).toMatch(/^<svg [^>]*role="img" aria-label="Tickets sold"/)
+  })
+
+  // The file is one image to assistive tech, so its children go unread.
+  it("describes the file with a static plot's alt", () => {
+    const svg = renderChartDocument(document(plots.static), {
+      mode: 'light',
+      ...SIZE
+    })
+    expect(svg).toMatch(
+      /^<svg [^>]*><desc>Sales are ahead of similar shows<\/desc>/
+    )
+  })
+
+  it("describes the file with the plot's takeaway", () => {
+    const svg = renderChartDocument(
+      document(
+        { kind: 'line', ...paceExample, takeaway: undefined },
+        { takeaway: 'Sales are ahead & climbing' }
+      ),
+      { mode: 'light', ...SIZE }
+    )
+    expect(svg).toMatch(
+      /^<svg [^>]*><desc>Sales are ahead &amp; climbing<\/desc>/
+    )
   })
 
   it('wraps a long label rather than running off the edge', () => {

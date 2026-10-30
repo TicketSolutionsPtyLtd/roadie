@@ -244,6 +244,12 @@ function drawPlot(
   )
 }
 
+// The file is one image to assistive tech, so the plot's own name goes unread.
+function description({ plot, takeaway }: ChartDocument) {
+  const text = plot.kind === 'static' ? plot.alt : (plot.takeaway ?? takeaway)
+  return text ? `<desc>${escapeXml(text)}</desc>` : ''
+}
+
 /**
  * Draws a chart document as one standalone SVG file: its label, context, and
  * headline above the plot, and its source below. Validates the document
@@ -298,5 +304,5 @@ export function renderChartDocument(
     height: round(Math.max(0, height - PADDING - sourceHeight - GAP - top))
   }
   const plot = drawPlot(document.plot, document.takeaway, options, slot)
-  return `<svg xmlns="${SVG_NS}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeXml(document.label)}" style="font-family:${FONT_FAMILY};font-variant-numeric:tabular-nums"><rect width="${width}" height="${height}" fill="${paint.surface}"/>${heading.markup}${lead.markup}${plot}${source.markup}</svg>`
+  return `<svg xmlns="${SVG_NS}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeXml(document.label)}" style="font-family:${FONT_FAMILY};font-variant-numeric:tabular-nums">${description(document)}<rect width="${width}" height="${height}" fill="${paint.surface}"/>${heading.markup}${lead.markup}${plot}${source.markup}</svg>`
 }
