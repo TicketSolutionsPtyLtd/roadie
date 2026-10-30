@@ -504,6 +504,23 @@ describe('lineChart comparison', () => {
     )
   })
 
+  it('skips a day the comparison has no value for', () => {
+    const last = comparisonExample.data.length - 1
+    const props = {
+      ...comparisonExample,
+      data: comparisonExample.data.map((row, i) =>
+        i === 2 || i === last ? { ...row, lastPeriod: null } : row
+      )
+    }
+    expect(lineChart.tooltip([at(2)], props, paint).rows).toEqual([
+      expect.objectContaining({ label: 'Tickets' })
+    ])
+    expect(lineChart.describe(at(2), props)).toBe(
+      'Tuesday, 18 August 2026, 51 tickets'
+    )
+    expect(svgOf(props)).toContain('>Previous period 90</text>')
+  })
+
   it('tabulates the comparison after the series', () => {
     const table = lineChartTable(comparisonExample)
     expect(table.columns.map((c) => c.header)).toEqual([
