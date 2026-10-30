@@ -5,6 +5,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { Button, IconButton } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Badge } from '../Badge'
 import { useStylesheet } from '../Pane/testUtils'
 import { Toggle } from '../Toggle'
 
@@ -129,4 +130,29 @@ describe('Button width overrides', () => {
     )
     expect(width).toBe(height)
   })
+})
+
+describe('icons in a component inside a Button', () => {
+  const width = (testId: string) =>
+    screen.getByTestId(testId).getBoundingClientRect().width
+
+  it.each(['xs', 'md'] as const)(
+    'leaves a nested component to size its own icon at %s',
+    (size) => {
+      render(
+        <Button size={size}>
+          <svg data-testid='own' viewBox='0 0 16 16' />
+          Tickets
+          <Badge size='sm'>
+            <svg data-testid='nested' viewBox='0 0 16 16' />3
+          </Badge>
+        </Button>
+      )
+      const badgeFont = parseFloat(
+        getComputedStyle(screen.getByTestId('nested').parentElement!).fontSize
+      )
+      expect(width('nested')).toBeCloseTo(badgeFont, 0)
+      expect(width('own')).toBe(size === 'xs' ? 12 : 16)
+    }
+  )
 })
