@@ -9,6 +9,7 @@ import {
   useTypedQuery
 } from '../../utils/optionHighlight'
 import { useHeldWhileClosed, useRankedItems } from '../../utils/rankMatches'
+import { ComboboxReadOnlyContext } from './readOnly'
 
 export type ComboboxRootProps<
   Value = unknown,
@@ -78,30 +79,32 @@ export function ComboboxRoot<
   )
   return (
     <PointerHighlightContext value={byPointer}>
-      <ComboboxPrimitive.Root
-        onItemHighlighted={handleItemHighlighted}
-        autoHighlight={mode}
-        items={rankedItems}
-        onInputValueChange={(next, details) => {
-          onInputValueChange?.(next, details)
-          handleQueryChange(next, details)
-        }}
-        onValueChange={(next, details) => {
-          // Base UI's Escape in a closed list clears every chip, not just the
-          // text. Kept, the Escape did nothing, so a dialog around can close.
-          if (props.multiple && details.reason === 'escape-key') {
-            details.cancel()
-            details.allowPropagation()
-            return
-          }
-          onValueChange?.(next, details)
-          resetTyped(details)
-        }}
-        {...props}
-        // After the rest, so an explicit open={undefined} can't undo it.
-        open={open}
-        onOpenChange={handleOpenChange}
-      />
+      <ComboboxReadOnlyContext value={!!props.readOnly}>
+        <ComboboxPrimitive.Root
+          onItemHighlighted={handleItemHighlighted}
+          autoHighlight={mode}
+          items={rankedItems}
+          onInputValueChange={(next, details) => {
+            onInputValueChange?.(next, details)
+            handleQueryChange(next, details)
+          }}
+          onValueChange={(next, details) => {
+            // Base UI's Escape in a closed list clears every chip, not just the
+            // text. Kept, the Escape did nothing, so a dialog around can close.
+            if (props.multiple && details.reason === 'escape-key') {
+              details.cancel()
+              details.allowPropagation()
+              return
+            }
+            onValueChange?.(next, details)
+            resetTyped(details)
+          }}
+          {...props}
+          // After the rest, so an explicit open={undefined} can't undo it.
+          open={open}
+          onOpenChange={handleOpenChange}
+        />
+      </ComboboxReadOnlyContext>
     </PointerHighlightContext>
   )
 }
