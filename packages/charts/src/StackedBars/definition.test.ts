@@ -89,7 +89,7 @@ describe('stackedBars', () => {
     'keeps an ordered category with nothing in it, as an empty %s slot',
     (orientation) => {
       const bands = ['18 to 24', '25 to 34', '35 to 44']
-      const scene = sceneOf({
+      const svg = svgOf({
         data: bands.flatMap((band, i) => [
           { band, type: 'GA', sold: i === 1 ? 0 : 10 },
           { band, type: 'VIP', sold: i === 1 ? 0 : 5 }
@@ -99,8 +99,13 @@ describe('stackedBars', () => {
         series: 'type',
         orientation
       })
-      const labels = JSON.stringify(scene.nodes)
-      for (const band of bands) expect(labels).toContain(band)
+      const across = orientation === 'vertical' ? 'x' : 'y'
+      const drawnAt = bands.map((band) => {
+        const tag = svg.match(new RegExp(`<text[^>]*>${band}<`))?.[0] ?? ''
+        return Number(tag.match(new RegExp(` ${across}="([\\d.]+)"`))?.[1])
+      })
+      expect(drawnAt.every(Number.isFinite)).toBe(true)
+      expect(drawnAt).toEqual([...drawnAt].sort((a, b) => a - b))
     }
   )
 
