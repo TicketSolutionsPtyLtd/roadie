@@ -96,7 +96,7 @@ describe('validateChartDocument', () => {
       { kind: 'scatter', data: sold, x: 'sold', y: 'sold' },
       {
         kind: 'small-multiples',
-        data: sold.map((row) => ({ ...row, venue: 'The Tivoli' })),
+        data: sold.map((row) => ({ ...row, venue: 'Kazoo Hollow Room' })),
         by: 'venue',
         chart: { kind: 'line', x: 'day', y: 'sold' }
       },
