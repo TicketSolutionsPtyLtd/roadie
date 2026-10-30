@@ -1,5 +1,6 @@
 import { heroDefinition } from '../Hero/definition'
 import { richTextDefinition } from '../RichText/definition'
+import { cardGridDefinition } from '../CardGrid/definition'
 
 /** A named configuration of a block: what editors pick in the Studio instead of setting options. */
 export type BlockPreset = {
@@ -49,6 +50,7 @@ const DEFINITIONS: readonly BlockDefinition[] = [
   heroDefinition,
   richTextDefinition
 ]
+const DEFINITIONS: readonly BlockDefinition[] = [cardGridDefinition]
 
 /** Every block and its presets, for a CMS's block picker. Has no React, so it runs on a server or in a Studio config. */
 export const catalogue: readonly CatalogueBlock[] = DEFINITIONS.map(entry)

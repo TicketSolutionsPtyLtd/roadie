@@ -1,0 +1,330 @@
+export const metadata = {
+  title: 'Card grid',
+  description: 'Like items, such as benefits, services, values, or people, as cards in columns or alternating rows',
+  status: 'alpha',
+  category: 'Content',
+  wideExamples: true,
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Like items, such as benefits, services, values, or people, as cards in columns or alternating rows.
+
+## Import
+
+```tsx
+import { CardGrid } from '@oztix/roadie-marketing-blocks/card-grid'
+```
+
+## Examples
+
+Each preset takes the same `items`, and shows the parts of an item its look uses. Give an item an `href` and its title links to it, with the whole card to click. A linked card with no surface takes `subtler`, and a linked overlap card or portrait grows its photo on hover. `actions` adds links under the cards. Columns follow the block's own width, so a card grid in a narrow layout stacks as it would on a phone.
+
+### Illustrated cards
+
+```tsx-live-expand id=illustrated-cards
+<CardGrid
+  preset='illustrated-cards'
+  title='Great events need great partners'
+  titleHighlight='partners'
+  description='Not just great ticketing software.'
+  items={[
+    {
+      title: 'You sell more tickets',
+      description: "Reach Australia's largest event database, with marketing that drives attendance.",
+      illustration: 'Ticket',
+      image: { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above', width: 1280, height: 850 }
+    },
+    {
+      title: 'Your events run smoothly',
+      description: 'Specialists and reliable systems back every decision, from setup to event day.',
+      illustration: 'Heart',
+      image: { src: '/brand/photography/04.webp', alt: 'A staff member in a blue vest scanning a ticket on a phone at an event entry', width: 1280, height: 1007 }
+    },
+    {
+      title: 'You grow year after year',
+      description: 'Partners who know your industry help you build lasting events, not one-off sales.',
+      illustration: 'ArrowUpRight',
+      image: { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 }
+    }
+  ]}
+/>
+```
+
+### Marked cards
+
+```tsx-live-expand id=marked-cards
+<CardGrid
+  preset='marked-cards'
+  title='Our partnership services'
+  description="We're an end-to-end ticketing company, offering more than a platform."
+  items={[
+    {
+      title: 'Expert people',
+      subtitle: 'on your team',
+      description: 'Industry specialists who become an extension of your team.',
+      illustration: 'Heart',
+      image: { src: '/brand/photography/03.webp', alt: 'Two team members working together at a desk with large monitors', width: 1280, height: 1007 }
+    },
+    {
+      title: 'Service excellence',
+      subtitle: '7 days a week',
+      description: 'Operational support nationwide, 7 days a week.',
+      illustration: 'Hand',
+      image: { src: '/brand/photography/04.webp', alt: 'A staff member in a blue vest scanning a ticket on a phone at an event entry', width: 1280, height: 1007 }
+    },
+    {
+      title: 'Marketing reach',
+      subtitle: 'driving ticket sales',
+      description: 'A database that reaches a quarter of the country.',
+      illustration: 'ArrowUpRight',
+      image: { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above', width: 1280, height: 850 }
+    },
+    {
+      title: 'Trusted platform',
+      subtitle: 'proven to perform',
+      description: 'A secure platform, hosted in Australia.',
+      illustration: 'Cursor',
+      image: { src: '/brand/photography/06.webp', alt: 'A panel of four speakers on stage at an industry talk', width: 1280, height: 854 }
+    }
+  ]}
+  actions={[{ label: 'See all our services', href: '#services' }]}
+/>
+```
+
+### Overlap cards
+
+```tsx-live-expand id=overlap-cards
+<CardGrid
+  preset='overlap-cards'
+  eyebrow='How does Oztix partner?'
+  title='We understand your industry'
+  description='And what makes venues and events succeed.'
+  items={[
+    {
+      title: 'Live music',
+      subtitle: 'Festivals, tours, and concerts.',
+      description: 'We sell millions of live music tickets each year.',
+      illustration: 'NoteMusic',
+      href: '#live-music',
+      image: { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 }
+    },
+    {
+      title: 'Venues',
+      subtitle: 'Hospitality, performance, and outdoors.',
+      description: 'From intimate rooms to major outdoor complexes.',
+      illustration: 'MapPin',
+      href: '#venues',
+      image: { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun', width: 1280, height: 854 }
+    },
+    {
+      title: 'Sports',
+      subtitle: 'Competition, motorsports, and racing.',
+      description: 'From grassroots clubs to elite codes.',
+      illustration: 'Football',
+      href: '#sports',
+      image: { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd', width: 1280, height: 854 }
+    }
+  ]}
+/>
+```
+
+### Numbered cards
+
+```tsx-live-expand id=numbered-cards
+<CardGrid
+  preset='numbered-cards'
+  title='Make sure your show is seen'
+  description='There’s mostly nothing to do. To make sure your event shows up against the right artist:'
+  items={[
+    {
+      title: 'Name the artist',
+      description: 'Put the artist’s name in the event title, spelled the same way every time. That’s how the act gets matched.',
+      illustration: 'NoteMusic'
+    },
+    {
+      title: 'Check the essentials',
+      description: 'Fill in the artist name, start time, venue, and event name.',
+      illustration: 'Ticket'
+    },
+    {
+      title: 'List tributes as tributes',
+      description: 'Running a tribute show? Don’t list it as the original artist, so it reaches the right fans.',
+      illustration: 'Heart'
+    }
+  ]}
+/>
+```
+
+### Link cards
+
+```tsx-live-expand id=link-cards
+<CardGrid
+  preset='link-cards'
+  title='How can we help?'
+  items={[
+    {
+      title: 'New clients',
+      description: 'Looking at ticketing for your venue or event? Chat to us about what you need.',
+      illustration: 'Hand',
+      href: '#sales'
+    },
+    {
+      title: 'Existing clients',
+      description: 'Need help with your venue or event? Our client support team is here.',
+      illustration: 'MapPin',
+      href: '#client-support'
+    },
+    {
+      title: 'Ticket buyers',
+      description: 'Can’t find the answer in our FAQs? Contact our ticket buyer support team.',
+      illustration: 'Ticket',
+      href: '#ticket-buyer-support'
+    }
+  ]}
+/>
+```
+
+### Alternating rows
+
+```tsx-live-expand id=alternating-rows
+<CardGrid
+  preset='alternating-rows'
+  title='Our values'
+  description='Five principles shape how we partner with you.'
+  items={[
+    {
+      title: 'Proactive touch',
+      subtitle: 'See it coming, solve it early',
+      description: 'We spot issues before they become problems, and opportunities before you need to ask.',
+      image: { src: '/brand/photography/03.webp', alt: 'Two team members working together at a desk with large monitors', width: 1280, height: 1007 }
+    },
+    {
+      title: 'Positive energy',
+      subtitle: 'Lift spirits, spark connections',
+      description: 'We love what we do, and that flows through to your team and your customers.',
+      image: { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 }
+    },
+    {
+      title: 'Integrity and ownership',
+      subtitle: 'Own decisions, build trust',
+      description: "We do what we say we'll do, and own it when something doesn't work.",
+      image: { src: '/brand/photography/11.webp', alt: 'Three people sitting together on a couch in a bar lined with gig posters', width: 1280, height: 911 }
+    }
+  ]}
+/>
+```
+
+### Portraits
+
+```tsx-live-expand id=portraits
+<CardGrid
+  preset='portraits'
+  title='Leadership you can count on'
+  items={[
+    { title: 'Mia Tran', subtitle: 'Head of Partnerships', image: { src: '/brand/photography/05.webp', alt: '', width: 1280, height: 854 } },
+    { title: 'Sam Okafor', subtitle: 'Operations Manager', image: { src: '/brand/photography/09.webp', alt: '', width: 1201, height: 801 } },
+    { title: 'Priya Shah', subtitle: 'Head of Data', image: { src: '/brand/photography/03.webp', alt: '', width: 1280, height: 1007 } },
+    { title: 'Leo Park', subtitle: 'Marketing Manager', image: { src: '/brand/photography/11.webp', alt: '', width: 1280, height: 911 } }
+  ]}
+/>
+```
+
+### Lists
+
+```tsx-live-expand id=lists
+<CardGrid
+  preset='lists'
+  title='Social and corporate governance'
+  description="We're committed to positive impact beyond ticketing."
+  items={[
+    { title: 'People and community', points: ['Diversity', 'Indigenous support', 'Inclusive hiring'] },
+    { title: 'Environment', points: ['An environmental management policy'] },
+    { title: 'Security and compliance', points: ['ISO 9001:2015 certified', 'PCI DSS Level 2 compliant', '99.99% uptime'] }
+  ]}
+/>
+```
+
+### Intent and emphasis
+
+`intent` colours the block's marks, highlights, and first action, in place of the preset's own colours. `emphasis` sets the section's surface, `cardEmphasis` every card's, and an item's `intent` tints its own card. Link cards on a subtle brand section, for a support page:
+
+```tsx-live-expand id=intent-and-emphasis
+<CardGrid
+  preset='link-cards'
+  intent='brand'
+  emphasis='subtle'
+  title='How can we help?'
+  items={[
+    { title: 'New clients', description: 'Chat to us about your venue or event.', illustration: 'Hand', href: '#sales' },
+    { title: 'Existing clients', description: 'Our client support team is here.', illustration: 'MapPin', href: '#client-support' },
+    { title: 'Ticket buyers', description: 'Contact our ticket buyer support team.', illustration: 'Ticket', href: '#ticket-buyer-support' }
+  ]}
+/>
+```
+
+Numbered cards on normal cards, with one step marked as the one that matters most:
+
+```tsx-live-expand id=intent-and-emphasis-cards
+<CardGrid
+  preset='numbered-cards'
+  cardEmphasis='normal'
+  title='Make sure your show is seen'
+  items={[
+    { title: 'Name the artist', description: 'Spell it the same way every time.' },
+    { title: 'Check the essentials', description: 'Artist, start time, venue, and event name.' },
+    { title: 'List tributes as tributes', description: 'So the show reaches the right fans.', intent: 'warning' }
+  ]}
+/>
+```
+
+## Guidelines
+
+| Preset       | Suits                                                                                  |
+| ------------ | -------------------------------------------------------------------------------------- |
+| `illustrated-cards`   | Three benefits of one offer, each with a photo and an illustration                     |
+| `marked-cards`   | Up to four services or pillars, each with a short subtitle                             |
+| `overlap-cards` | Who a page is for, in multiples of three, each with a photo and a line of examples     |
+| `numbered-cards`      | How something works, in three or four numbered steps                                   |
+| `link-cards`      | Places to go next, such as contact options, each card a link                           |
+| `alternating-rows` | A few statements that need a sentence or two each, such as values or the steps of a story |
+| `portraits`  | People, such as the team, speakers, or artists, by name and role with a square photo   |
+| `lists`      | Two to four short lists that need no images, such as policies or certifications        |
+
+<Guidelines>
+
+<Guideline title='Change the defaults for a reason'>
+  <Guideline.Do>
+    Keep the preset's intent and emphasis unless the page needs the block to stand apart, such as a support section on a subtle surface, or a step the reader mustn't miss.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't give neighbouring blocks different surfaces or every card its own intent. The page reads as noise, and nothing stands out.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Title each card with the answer, such as "You sell more tickets", and let the description back it up.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't title a card with a teaser, such as "Why it matters", that makes readers open the description.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep the cards alike'>
+  <Guideline.Do>
+    Give every item the same parts, at about the same length, so the cards line up.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't mix a card with an image and a card without one in a preset that shows images.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Card grid reports a `view` once half of it is on screen, and a `click` on a card or an action, labelled with the card's title or the action's label.
+
+<PropsDefinitions component='CardGrid' />

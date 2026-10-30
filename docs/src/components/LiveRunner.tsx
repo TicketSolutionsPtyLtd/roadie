@@ -108,6 +108,7 @@ import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { Editor, useEditorContext } from '@oztix/roadie-editor/editor'
 import { renderEditorValue } from '@oztix/roadie-editor/render'
 import { Hero } from '@oztix/roadie-marketing-blocks/hero'
+import { CardGrid } from '@oztix/roadie-marketing-blocks/card-grid'
 import { MarketingBlocksProvider } from '@oztix/roadie-marketing-blocks/provider'
 import { RichText } from '@oztix/roadie-marketing-blocks/rich-text'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
@@ -226,6 +227,7 @@ const scope = {
   MarketingBlocksProvider,
   Hero,
   RichText,
+  CardGrid,
   LegendKey,
   lineChartTable,
   addDays,
