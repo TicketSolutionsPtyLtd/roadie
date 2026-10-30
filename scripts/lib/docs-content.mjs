@@ -11,6 +11,7 @@ export const EM_DASH_FILES = [
   ':(glob).changeset/*.md',
   ':(glob).github/**/*.md',
   ':(glob)skills/**/*.md',
+  ':(glob)packages/*/src/**/*.md',
   // Changesets writes the changelogs from changesets, which this covers.
   ':(exclude,glob)**/CHANGELOG.md'
 ]
