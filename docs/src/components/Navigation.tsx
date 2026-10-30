@@ -173,7 +173,9 @@ export function DocsNavigator({
   const [pageInspector, setPageInspector] = useState<ReactNode>(null)
   const toc = useDocHeadings(pageInspector === null)
   const showInspector =
-    (pageInspector !== null || toc.headings.length >= 2) && !isWide
+    (pageInspector !== null || toc.headings.length >= 2) &&
+    !isWide &&
+    !wideExamples
   // Held here so picking a heading can close the drawer the column yields into.
   const [tocRevealed, setTocRevealed] = useState(false)
   const inspectorSlot = useMemo(
