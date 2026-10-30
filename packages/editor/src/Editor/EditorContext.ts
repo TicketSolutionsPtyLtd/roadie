@@ -27,6 +27,8 @@ export type EditorContextValue = {
   pickImage: (() => void) | undefined
   /** Opens the file picker to replace the selected image, or undefined without `onUploadImage`. */
   replaceImage: (() => void) | undefined
+  /** Opens the button link editor, on the button at the selection if there is one. */
+  editButton: () => void
   TiptapContent: typeof EditorContent
   ToolbarEngine: ComponentType<EditorToolbarProps>
 }

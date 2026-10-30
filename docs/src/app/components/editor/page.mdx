@@ -365,6 +365,79 @@ styles, only each cell's `colspan` and `rowspan`, and a wide one scrolls
 sideways in the editor and in `/render`, so it never widens the page on a
 phone.
 
+### Email preset
+
+`preset='email'` is for composing an email. Its content sits in a canvas at
+most 600 pixels wide, an email's width, with each section and column
+outlined. Columns sit side by side from 480 pixels and stack below that, as
+they do on a phone. It holds the text blocks of the rich preset, without
+quotes, and an email's own blocks: sections, two to four columns, images,
+buttons, spacers, and dividers.
+
+#### Composing a layout
+
+Type `/` to insert a block at the caret. The list filters as you type, the
+arrow keys move through it, Enter inserts, and Escape closes it, keeping what
+you typed. A paragraph, heading, or list turns the caret's line into one. Any
+other block goes before an empty line, or after a line with text, and a
+section or columns puts the caret in its first line. Only the blocks that fit
+at the caret are offered, so there's no section or columns inside a column, and
+only the other list type inside a list. Image is offered with `onUploadImage`.
+
+#### Buttons, columns, and spacers
+
+Button asks for its link first, which must be a full web address, or a
+`mailto:` or `tel:` link, as an email opens outside your site. A bare domain,
+such as oztix.com.au, gets `https://`. The button's label is selected, so
+typing replaces it, and Enter in a button starts a new paragraph after it.
+
+Each of these blocks has its own toolbar:
+
+- **A button**, with the caret in it: Edit link and Remove button, below it.
+- **Columns**, with the caret in them: a menu of 2, 3, or 4 columns, above
+  them, or below when they start the content. Removing columns moves their
+  blocks into the last column left, and undo puts them back.
+- **A selected spacer**: a Height menu of Small (16px), Medium (32px), Large
+  (64px), and Extra large (96px), and Remove spacer.
+
+```tsx-live-prose
+<Editor
+  aria-label='Newsletter'
+  preset='email'
+  defaultValue={{
+    version: 1,
+    preset: 'email',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        {
+          type: 'section',
+          content: [
+            {
+              type: 'columns',
+              content: [
+                { type: 'column', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Saturday 14 March at Jumbuck Orchard Park, Brisbane.' }] }] },
+                { type: 'column', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Gates 11am. All ages.' }] }] }
+              ]
+            }
+          ]
+        },
+        { type: 'spacer', attrs: { height: 32 } },
+        { type: 'button', attrs: { href: 'https://oztix.com.au' }, content: [{ type: 'text', text: 'Buy tickets' }] },
+        { type: 'horizontalRule' },
+        { type: 'paragraph', content: [{ type: 'text', text: 'See you there.' }] },
+        { type: 'paragraph' }
+      ]
+    }
+  }}
+/>
+```
+
+An image the email shows must be served over https, as a mail client loads it
+from outside your site. An `onUploadImage` that resolves to a path on the site
+shows an error and adds nothing.
+
 ### Emphasis
 
 `emphasis` sets the frame. The toolbar takes its own
@@ -663,6 +736,8 @@ const { html, text } = await renderEmail(template, {
 ```
 
 It runs on the server only, since MJML, the renderer behind it, needs Node.
+[Why Roadie renders email with MJML](https://oztix.atlassian.net/wiki/spaces/ID/pages/1211957251)
+is in the Decision log.
 A Next.js app keeps MJML out of its server bundle, and adds `mjml` to its own
 dependencies too, so Next can resolve it from the app:
 
@@ -815,6 +890,13 @@ const preview = await renderEmail(welcome, {
 - In the rich preset, the Block type menu's trigger is named for the block at
   the caret, such as "Block type: Heading 2". Its items are radio items, with
   the current type checked, and choosing one puts focus back in the text.
+- In the email preset, `/` opens a `listbox` named Insert under the caret.
+  Focus stays in the text, which points `aria-activedescendant` at the active
+  option and `aria-controls` at the list.
+- In the email preset, a button's, a spacer's, or columns' own toolbar is
+  named for it, such as "Button actions", and Alt+F10 moves focus into it.
+  The Columns and Height menus' triggers are named for their current choice,
+  such as "Columns: 2 columns".
 - Each control carries its shortcut in `aria-keyshortcuts`.
 - The link editor is a popover by the selection, with an input named Link. It
   takes focus when it opens, Enter or the Save link button saves, and Escape
@@ -835,13 +917,15 @@ const preview = await renderEmail(welcome, {
 | `Mod+Alt+0` | Paragraph, in the rich preset |
 | `Mod+Alt+2` to `Mod+Alt+4` | Heading 2 to 4, in the rich preset |
 | `Mod+Shift+B` | Quote, in the rich preset |
+| `/` | Open the insert menu, in the email preset |
+| `Enter` | In a button, start a new paragraph after it |
 | `Enter` | On a selected image, edit its alt text |
 | `Tab` | In a table, move to the next cell, adding a row after the last |
 | `Shift+Tab` | In a table, move to the cell before, or leave the editor from the first |
 | `Mod+Z` | Undo |
 | `Mod+Shift+Z` | Redo |
 | `Shift+Enter` | Line break |
-| `Alt+F10` | Move focus to the toolbar's first enabled control, a selected image's or embed's first action, or in a table its first table action |
+| `Alt+F10` | Move focus to the toolbar's first enabled control, a selected image's, embed's, or spacer's first action, the first action of the button or columns holding the caret, or in a table its first table action |
 | `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image or embed |
 
 `Mod` is `⌘` on Apple devices and `Ctrl` elsewhere, and `Alt` is `⌥` on
