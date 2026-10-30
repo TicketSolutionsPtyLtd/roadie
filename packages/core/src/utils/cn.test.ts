@@ -150,6 +150,18 @@ describe('cn', () => {
     expect(cn('z-popover', 'z-tooltip')).toBe('z-tooltip')
   })
 
+  it('dedupes every z-index tier layering.css defines', () => {
+    const css = readFileSync(
+      fileURLToPath(new URL('../css/layering.css', import.meta.url)),
+      'utf8'
+    )
+    const tiers = [...css.matchAll(/--z-index-([a-z]+):/g)].map(
+      ([, tier]) => `z-${tier}`
+    )
+    expect(tiers).toContain('z-alert')
+    for (const tier of tiers) expect(cn('z-base', tier)).toBe(tier)
+  })
+
   it('dedupes a Roadie named z-index against a numeric z-index', () => {
     expect(cn('z-overlay', 'z-80')).toBe('z-80')
     expect(cn('z-40', 'z-tooltip')).toBe('z-tooltip')
