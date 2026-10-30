@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { addDays, dayNumber } from '../datetime/plainDate'
 import { type AlignComparisonOptions, alignComparison } from './comparison'
@@ -247,5 +247,84 @@ describe('alignComparison', () => {
       ['Email', 2],
       ['Web', 7]
     ])
+  })
+  it.each([
+    [
+      'a quarter',
+      { period: 'quarter' as const, offset: -3 },
+      [
+        ['2026-03-01', '2025-12-01'],
+        ['2026-03-31', '2025-12-31']
+      ]
+    ],
+    [
+      'a year',
+      'last-year' as const,
+      [
+        ['2025-03-01', '2024-03-01'],
+        ['2025-12-31', '2024-12-31']
+      ]
+    ],
+    [
+      'a month',
+      'last-month' as const,
+      [
+        ['2026-10-15', '2026-09-15'],
+        ['2026-10-31', null]
+      ]
+    ]
+  ])('lines the previous period of %s up by date', (_, range, expected) => {
+    const comparison = Array.from({ length: 1100 }, (_, i) => {
+      const day = addDays('2024-01-01', i)
+      return { day, sold: day }
+    })
+    const rows = expected.map(([day]) => ({ day: day!, sold: 0 }))
+    expect(
+      aligned(rows, comparison, {
+        period: { range, compare: 'previous-period' }
+      })
+    ).toEqual(expected)
+  })
+
+  it('keeps the first comparison value when rows repeat', () => {
+    expect(
+      aligned(
+        daysFrom(week.start, 1),
+        [
+          { day: '2026-10-01', sold: 2 },
+          { day: '2026-10-01', sold: 9 }
+        ],
+        { period: { range: week, compare: 'previous-period' } }
+      )
+    ).toEqual([['2026-10-08', 2]])
+  })
+
+  it.each([
+    ['a rolling hour window', { direction: 'past', amount: 6, unit: 'hour' }],
+    [
+      'a range with times',
+      { start: '2026-10-08T09:00', end: '2026-10-08T17:00' }
+    ]
+  ] as const)('warns in development that %s gets no comparison', (_, range) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const rows = aligned(
+      [{ day: '2026-10-08T10:00', sold: 1 }],
+      [{ day: '2026-10-08T09:00', sold: 5 }],
+      { period: { range, compare: 'previous-period' } }
+    )
+    expect(rows).toEqual([['2026-10-08T10:00', null]])
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('alignComparison')
+    )
+    warn.mockRestore()
+  })
+
+  it("doesn't warn for a range of dates", () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    aligned(daysFrom(week.start, 1), daysFrom('2026-10-01', 1), {
+      period: { range: week, compare: 'previous-period' }
+    })
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
   })
 })

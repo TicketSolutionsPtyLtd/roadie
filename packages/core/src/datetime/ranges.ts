@@ -413,9 +413,10 @@ export type ResolvedComparison =
   /** `range` is null when the range is open-ended or a single instant. */
   | { status: 'unavailable'; range: ResolvedDateRange | null }
 
-type CalendarUnit = { days: number } | { months: number }
+export type CalendarUnit = { days: number } | { months: number }
 
-function calendarUnit(value: DateRangeValue): CalendarUnit | null {
+/** The unit a calendar period steps by, or null for any other range. */
+export function calendarUnit(value: DateRangeValue): CalendarUnit | null {
   if (isAbsoluteRange(value) || isRollingRange(value)) return null
   const period = isPeriodRange(value) ? value : NAMED_PERIODS.get(value)
   if (!period) return value === 'this-weekend' ? { days: 7 } : null
