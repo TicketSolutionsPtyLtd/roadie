@@ -56,6 +56,36 @@ describe('rank', () => {
     expect(ranked[0]!.share).toBeCloseTo(612 / 1828, 6)
   })
 
+  const fiveBars = (order: string) =>
+    [...order].map((c) => ({
+      c,
+      v: { A: 50, B: 40, C: 30, D: 20, E: 10 }[c]!
+    }))
+
+  it.each([
+    ['ABCDE', true, 'E', ['A', 'B', 'E']],
+    ['ABCDE', true, ['D', 'E'], ['A', 'D', 'E']],
+    ['ABCDE', true, 'A', ['A', 'B', 'C']],
+    ['ABCDE', true, ['A', 'B', 'C', 'D'], ['A', 'B', 'C']],
+    ['CEADB', false, undefined, ['C', 'E', 'A']],
+    ['CEADB', false, 'B', ['C', 'A', 'B']],
+    ['CEADB', false, ['D', 'B'], ['A', 'D', 'B']]
+  ] as const)(
+    'keeps a highlighted bar past limit in place of the lowest other bar, data %s, sort %s, highlight %j',
+    (order, sort, highlight, names) => {
+      const ranked = rank({
+        data: fiveBars(order),
+        x: 'c',
+        y: 'v',
+        limit: 3,
+        other: false,
+        sort,
+        highlight: highlight as string | string[] | undefined
+      })
+      expect(ranked.map((r) => r.name)).toEqual(names)
+    }
+  )
+
   it('keeps data order without sort, so ordered categories stay in order', () => {
     const bands = ['18 to 24', '25 to 34', '35 to 44', '45 and over']
     const ranked = rank({

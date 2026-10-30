@@ -1,4 +1,4 @@
-import { OTHER } from '../plot/series'
+import { OTHER, asList } from '../plot/series'
 import { finiteOrNull } from '../plot/values'
 import type { RankedBarsProps } from './types'
 
@@ -60,6 +60,28 @@ export function rankRows(props: RankedBarsProps): RankRow[] {
 export const rankable = (props: RankedBarsProps) =>
   rankRows(props).filter((r): r is Row => r.value !== null)
 
+/** The first `limit` rows, each highlighted row past it taking the place of the lowest bar not highlighted. */
+function keepHighlighted(
+  rows: Row[],
+  limit: number,
+  highlighted: readonly string[]
+): Row[] {
+  const isContext = (row: Row) => !highlighted.includes(row.name)
+  const kept = rows.slice(0, limit)
+  for (const row of rows.slice(limit)) {
+    if (isContext(row)) continue
+    const lowest = kept
+      .filter(isContext)
+      .reduce<Row | null>(
+        (low, bar) => (!low || bar.value <= low.value ? bar : low),
+        null
+      )
+    if (!lowest) break
+    kept[kept.indexOf(lowest)] = row
+  }
+  return rows.filter((row) => kept.includes(row))
+}
+
 export function rank(props: RankedBarsProps): Ranked[] {
   const rows = rankable(props)
   const total = sum(rows) || 1
@@ -70,7 +92,8 @@ export function rank(props: RankedBarsProps): Ranked[] {
     isOther: false
   })
   if (rows.length <= limit) return rows.map(toRanked)
-  if (props.other === false) return rows.slice(0, limit).map(toRanked)
+  if (props.other === false)
+    return keepHighlighted(rows, limit, asList(props.highlight)).map(toRanked)
   const value = sum(rows.slice(limit - 1))
   return [
     ...rows.slice(0, limit - 1).map(toRanked),
