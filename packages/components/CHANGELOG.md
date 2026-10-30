@@ -1,5 +1,78 @@
 # @oztix/roadie-components
 
+## 2.18.0
+
+### Minor Changes
+
+- 5807ab1: Update `DataCard`'s empty and error states to use `EmptyState`, like the rest of Roadie: an icon tile above the message at every size but `stat`, the error in danger with `errorAction` under its message. The state takes the body's place, at least `bodyHeight` tall, so a card keeps its loading height and an empty stat tile doesn't stretch its row. A chart that can't be drawn now says "This chart couldn't be drawn" in its card, the same message and look it shows before hydration, so a server-rendered dashboard no longer flashes from one error to another. An app's own `state` of loading, empty or error still wins over an earlier draw failure.
+- fd2363d: Add the exports the root entry was missing, so what a component subpath exports also imports from `@oztix/roadie-components`. That's `useFieldControlError` and the types `CalendarDirection`, `CalendarLayout`, `CalendarView`, `DashboardPeriodCompareOption`, `DataTableExpanded`, `DataTableTotals`, `QueryFieldOperator`, `QueryFieldPendingChip`, `RecordTableNarrow`, `RecordTableNarrowLayout`, `TableLayoutOptions`, `RecordsActionContext`, `RecordsField`, `RecordsGivenTotals`, `RecordsOptionsProps`, `RecordsRange`, `RecordsRangeResult`, `RecordsResolvedTotals`, `RecordsSelectProps`, `RecordsSetSelecting`, `RecordsTotals`, `RecordsViewActionsProps`, `RecordsViewHandler`, and `SparklineGeometry`. The package also stops shipping its test helpers in `dist`.
+- 1ddb0e9: Add `decimals` and `trailingZeroDisplay` to `Delta`, `DataCard`, and `StatTile`, and to `DataTable` number, meter, sparkline, and delta columns, which format their values the way `formatValue` does with those options. A card's delta without its own `format` takes the card's format and places.
+- 64ae958: Add the `DataTableRecordName` type to `@oztix/roadie-components/data-table`, so typing `recordName` no longer needs a core import.
+- 3a5c438: Add `stacked` to `DateTime`, which puts the time on a line under the date for a dense table column. It's still one `time` element, and its `dateTime` carries the full instant, so a screen reader hears `27 Nov 2026, 7:30pm`. It needs a `timeStyle`. Without one, or with `relative`, it renders on one line as before. A range on one day, or one night with `sameNight`, says the date once over the two times. A range across days stays on one line.
+- 6817343: Add `label` to `List.Item`, naming a reorderable row in its Reorder handle and announcements when its `title` isn't plain text. Such a row with no `label` used to get an unnamed handle; it now warns in development.
+- 19c9a3e: Add `setSelecting` to what `useRecords` returns, so your own control, such as a Select item in a phone's More menu, can start Select mode. Its type is `RecordsSetSelecting`. `setSelecting(false)` leaves and clears the selection, as Done does, and records that aren't `selectable` never enter it.
+
+  On a wide table, which has a checkbox per record, Select mode now waits until the table narrows. Until then, the status doesn't announce it and Escape doesn't clear the selection.
+
+### Patch Changes
+
+- 5aecb81: Export the `DataTableRecordName` type from the package root, as `@oztix/roadie-components/data-table` already does.
+- 004c0c4: Fix `Calendar` reading a repeated announcement only once, such as "2 dates selected" after a parent changes several dates twice in a row. Its live region skips text that hasn't changed, so a repeat now changes it.
+- b0f142f: Update `DataCard` labels to wrap to two lines, then truncate, so a chart card's title such as "Tickets sold by ticket type" fits beside the Chart/Table switch and More. Actions sit on the label's first line, so they line up across a row of cards. A `stat` label still truncates on one line, so the values in a row of stat tiles line up. `COPY_LIMITS` labels grow to 60 characters at `sm` and `md` and 72 at `lg` and `full`, `CHART_LABEL_LIMITS` to 42 and 50, and `ACTIONS_LABEL_LIMITS` to 29 and 42, so `validateDashboard` warns about a card label only past two lines. Stat labels and context lines keep their one-line limits.
+- 8c02b3c: Fix `Combobox.Trigger` and `Combobox.Clear` centring on the whole input group once chips wrap onto several rows. Inside `Combobox.InputGroup` they now stay centred on the first row, as `QueryField`'s icon and Clear do.
+- 8c02b3c: Fix `Combobox.ChipRemove` looking clickable in a `readOnly` combobox, where it can't remove anything. It now renders nothing there.
+- 3832a39: Fix `DashboardPeriod` shrinking to nothing in a flex row beside other controls, an `inline-flex` parent, or an `auto` grid track. In a flex row it keeps at least 20rem, or the row's width when that's less; in an `inline-flex` parent or an `auto` track it takes 20rem, and an `auto` track narrows it when the grid has less room. The `DateRangePicker` button also gives its calendar icon more room at each size: 8px from the edge and before the dates at `sm`, 12px and 10px at `md`, and 14px and 12px at `lg`.
+- 5172b10: Fix `DashboardPeriod` offering Previous period and Previous year for a range with no end, such as Upcoming, which then showed "Nothing to compare" on every card. Those choices and Custom dates now turn off for such a range, Compare turns on with the first choice that has dates, and the period reads none of them for such a range, even one given from outside, and Apply drops it. In the picker, Compare shows off, with "Nothing to compare" under its label when no choice has dates, and the comparison comes back if the range gets an end again. An app's own comparison still reads.
+- 97c9577: Add Upcoming to `DashboardPeriod`'s default presets, after Next 90 days. Choosing it turns Compare off, since a range with no end has nothing to compare.
+- d8f4350: Fix a controlled `DataTable` that couldn't go back to its rows' own order: `sort={undefined}` handed control back to the table, so the last sort stayed. Pass `sort={null}` for a controlled table with no sort; `sortDataTableRows` takes `null` too, so a server table can hand both the same value. Sorting by a status column's `order` also reads its status map once per sort, not once per row.
+- e37fc60: Fix a server-rendered `Image` with `placeholder='blur'` staying hidden until React hydrates, which held an already-downloaded hero at its blurred preview for seconds on a slow phone. An image whose `src` is in the server HTML now shows as soon as the browser has it, over the blurred preview, without the fade. An image that mounts on the client, or a `defer`red one whose `src` arrives after hydration, still fades in.
+- 2e680e2: Reword prop descriptions and code comments without em dashes, so the props tables and editor hints follow the house punctuation. No behaviour changes.
+- 8a116ed: Fix `Kbd` quietly ignoring `combined` without `keys`. It now warns in development, since `combined` only joins `keys` into one keycap. The `separator` docs now say only a string with a word is read aloud; an element separator stays hidden.
+- a1e3436: `Records.BulkActions` keeps a lone action's label on narrow records, beside its icon. The floating bar now collapses actions to their icons only when there are several, since one action has room for its word and a lone icon is hard to read.
+- c9a92a1: Navigator no longer logs React's "Each child in a list should have a unique
+  key" warning when part of a `Navigator.Item` label or a `Navigator.MenuItem`
+  streams in. The item's label and its menu's items were copied with
+  `Children.toArray` and `Children.map`, and those re-keyed copies flagged a
+  child that had skipped JSX's key check, such as a promise React unwraps. They
+  now render as given, and a streamed menu item still runs its `onSelect`.
+- 8c02b3c: Fix `QueryField` reading "No suggestions" while it asks again for text whose last request failed, such as on reopening. It now reads "Loading suggestions" until the retry settles.
+- 816b18e: Fix range-mode cards in `RecordTable` and `RecordGrid` jumping while you scroll up. When records replaced their loading placeholders above the screen, the cards on screen moved by the difference in height. This started with `@tanstack/react-virtual` 3.14.22.
+- a30fd81: Fix `RecordTable` sizing a column with a custom `cell` for "Not available" when its values are empty; the custom cell shows its own empty state.
+- 6333798: Fix `RecordTable` sometimes dropping focus to the page when a narrower width hides the column holding it, on a busy device where the browser blurs the hidden control before the table sees the column go. Focus moves to the table, as it does otherwise.
+- 1e2822f: Update `RecordTable` row titles to wrap onto two lines before they're cut short, linked or not, instead of at one. A title linked with `getRowHref` keeps its strong text and underlines in the accent on hover, as a `DataTable` title does. A focused title rings its whole cell. A custom title `cell` now lays itself out the same way linked or not, so give it `truncate` to keep it on one line. Rows stay 48px tall, and narrow list rows are unchanged.
+- a78560e: Fix `roadie.manifest.json` linking `Records` to the records foundation page, which only shares its name, instead of the RecordTable page that documents its props. Agents reading the manifest now land on its API reference. `Records` no longer takes the foundation page's description as its `summary`, since that page isn't its own.
+- 98952de: `Records.Select` shows Select all and Done at the default emphasis, like the other controls in the header. Done was a strong button, so it competed with the page's main action, and Select all was subtler than the rest of the row. Select and Done also fade on hover and shrink on press, like other buttons, where before they changed state at once.
+- 643f167: Fix a `RecordTable` row checkbox ignoring a click on the padding around its box, or a press that slipped off the box as the page moved. The toggle now runs from the checkbox's change, so the whole label selects the row, with Shift still extending a range.
+- 4fdb8b6: Fix Node failing to import `@oztix/roadie-components` and `@oztix/roadie-components/sortable` with `ERR_UNSUPPORTED_DIR_IMPORT`, which broke Vitest in apps that don't inline Roadie. Sortable now bundles Pragmatic drag and drop, whose folder subpaths Node's ESM loader rejects, so the `@atlaskit/pragmatic-drag-and-drop` packages are no longer dependencies. The build now fails if Node can't import any subpath.
+- 4121e15: Fix toggling a `Sortable.Item`'s `disabled` rebuilding its drop target too, which cleared a drop line it was showing. Dragging and taking drops now register separately, so only the drag comes and goes with `disabled`. An item with no `Sortable.Handle` now takes drops too, where it used to ignore them.
+- 63698aa: Stop shipping the touch, pointer, and contrast test helpers, and the Vitest copy they bundled, in the published package. Nothing imported them, so nothing changes at runtime.
+- Updated dependencies [700daba]
+- Updated dependencies [8682b82]
+- Updated dependencies [b0f142f]
+- Updated dependencies [1b02fc5]
+- Updated dependencies [18b7674]
+- Updated dependencies [ef4073a]
+- Updated dependencies [7258634]
+- Updated dependencies [1ddb0e9]
+- Updated dependencies [b596cb6]
+- Updated dependencies [ba2a0a5]
+- Updated dependencies [6652cd3]
+- Updated dependencies [d10c7ea]
+- Updated dependencies [903a9c9]
+- Updated dependencies [f744bdf]
+- Updated dependencies [2de86a6]
+- Updated dependencies [2e680e2]
+- Updated dependencies [4775892]
+- Updated dependencies [d89065e]
+- Updated dependencies [149f822]
+- Updated dependencies [4766b86]
+- Updated dependencies [a30fd81]
+- Updated dependencies [8bb10ff]
+- Updated dependencies [64ae958]
+- Updated dependencies [1ddb0e9]
+- Updated dependencies [4766b86]
+  - @oztix/roadie-core@2.13.0
+
 ## 2.17.1
 
 ### Patch Changes

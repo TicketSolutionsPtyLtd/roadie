@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-lint-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Lint rules that catch Roadie Design System mistakes in apps, for oxlint and ESLint",
   "type": "module",
   "repository": {

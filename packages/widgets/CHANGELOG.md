@@ -1,5 +1,39 @@
 # @oztix/roadie-widgets
 
+## 3.7.2
+
+### Patch Changes
+
+- 1eaba6a: Fix the cart's animated subtotal and drawer total reading differently from its prices. Every cart price now reads through `currencyFormat` from `@oztix/roadie-core/number`, in the cart's `locale` and `currency`: a German euro cart reads `1.200,00 €`, an `en-AU` yen cart `JPY 1,200`, and an `en-US` Australian dollar cart `$1,200.00`, where it read `A$1,200.00` before. Deprecate `currencyPrefix`: pass `locales` and `currencyFormat({ currency })` to NumberFlow instead.
+- 2e680e2: Reword prop descriptions and code comments without em dashes, so the props tables and editor hints follow the house punctuation. No behaviour changes.
+- fd2363d: Import Roadie components from their own subpaths instead of the root entry, so a bundler or the Next.js compiler resolves only the components the cart renders, not the whole root entry.
+- Updated dependencies [700daba]
+- Updated dependencies [8682b82]
+- Updated dependencies [b0f142f]
+- Updated dependencies [1b02fc5]
+- Updated dependencies [18b7674]
+- Updated dependencies [ef4073a]
+- Updated dependencies [7258634]
+- Updated dependencies [1ddb0e9]
+- Updated dependencies [b596cb6]
+- Updated dependencies [ba2a0a5]
+- Updated dependencies [6652cd3]
+- Updated dependencies [d10c7ea]
+- Updated dependencies [903a9c9]
+- Updated dependencies [f744bdf]
+- Updated dependencies [2de86a6]
+- Updated dependencies [2e680e2]
+- Updated dependencies [4775892]
+- Updated dependencies [d89065e]
+- Updated dependencies [149f822]
+- Updated dependencies [4766b86]
+- Updated dependencies [a30fd81]
+- Updated dependencies [8bb10ff]
+- Updated dependencies [64ae958]
+- Updated dependencies [1ddb0e9]
+- Updated dependencies [4766b86]
+  - @oztix/roadie-core@2.13.0
+
 ## 3.7.1
 
 ### Patch Changes
