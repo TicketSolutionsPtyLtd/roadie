@@ -1,0 +1,215 @@
+export const metadata = {
+  title: 'Mosaic',
+  description:
+    'Logos in a grid, as photo tiles with a label or as a strip of logos alone',
+  status: 'alpha',
+  wideExamples: true,
+  category: 'Proof'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Logos in a grid, as photo tiles with a label or as a strip of logos alone.
+
+## Import
+
+```tsx
+import { Mosaic } from '@oztix/roadie-marketing-blocks/mosaic'
+```
+
+## Examples
+
+### Tiers
+
+Each partner is a tile with its photo behind, its logo, and its level as the
+tile's `label`. Featured tiles span two columns at half height, and the tiles
+pack densely, so a square tile fills the gap a wide one leaves. A `logoTile`
+closes the grid with the remaining logos, titled "Also supporting" unless
+you give it a title.
+
+```tsx-live id=tiers
+<Mosaic
+  preset='tiers'
+  title='Industry partnerships'
+  description="We back Australia's live events industry through partnerships that strengthen it."
+  tiles={[
+    {
+      name: 'Ochre Kite Weekender',
+      label: 'Presenting partner',
+      logo: { src: '/blocks/ochre-kite-weekender.svg', alt: 'Ochre Kite Weekender logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/01.webp', alt: '', width: 800, height: 800 },
+      featured: true
+    },
+    {
+      name: 'Velvet Dingo Fest',
+      label: 'Sponsor',
+      logo: { src: '/blocks/velvet-dingo-fest.svg', alt: 'Velvet Dingo Fest logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/02.webp', alt: '', width: 800, height: 800 }
+    },
+    {
+      name: 'Thimble Orbit Presents',
+      label: 'Category partner',
+      logo: { src: '/blocks/thimble-orbit-presents.svg', alt: 'Thimble Orbit Presents logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/03.webp', alt: '', width: 800, height: 800 }
+    },
+    {
+      name: 'Apricot Cyclone Fest',
+      label: 'Major partner',
+      logo: { src: '/blocks/apricot-cyclone-fest.svg', alt: 'Apricot Cyclone Fest logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/06.webp', alt: '', width: 800, height: 800 },
+      featured: true
+    },
+    {
+      name: 'Kazoo Hollow Room',
+      label: 'Ticketing partner',
+      logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 }
+    },
+    {
+      name: 'Doodlebug Anvil Productions',
+      label: 'Supporter',
+      logo: { src: '/blocks/doodlebug-anvil-productions.svg', alt: 'Doodlebug Anvil Productions logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/08.webp', alt: '', width: 800, height: 800 }
+    }
+  ]}
+  logoTile={{
+    logos: [
+      { src: '/blocks/kerosene-pony-collective.svg', alt: 'Kerosene Pony Collective', width: 120, height: 40 },
+      { src: '/blocks/wishbone-ferret-collective.svg', alt: 'Wishbone Ferret Collective', width: 120, height: 40 },
+      { src: '/blocks/hairpin-bicycle-presents.svg', alt: 'Hairpin Bicycle Presents', width: 120, height: 40 }
+    ]
+  }}
+/>
+```
+
+### Logo strip
+
+A wrapping, centred row of logos at one height, with no photos, for partner
+logos or certifications. It reads each tile's `logo`, or shows its `name`
+where it has none, and leaves out photos, labels, featuring, and the logo
+tile.
+
+```tsx-live id=logo-strip
+<Mosaic
+  preset='logo-strip'
+  title='Trusted by organisers across Australia'
+  tiles={[
+    { name: 'Kerosene Pony Collective', logo: { src: '/blocks/kerosene-pony-collective-badge.svg', alt: 'Kerosene Pony Collective', width: 240, height: 80 } },
+    { name: 'Wishbone Ferret Collective', logo: { src: '/blocks/wishbone-ferret-collective-badge.svg', alt: 'Wishbone Ferret Collective', width: 240, height: 80 } },
+    { name: 'Hairpin Bicycle Presents', logo: { src: '/blocks/hairpin-bicycle-presents-badge.svg', alt: 'Hairpin Bicycle Presents', width: 240, height: 80 } },
+    { name: 'Thimble Orbit Presents', logo: { src: '/blocks/thimble-orbit-presents-badge.svg', alt: 'Thimble Orbit Presents', width: 240, height: 80 } }
+  ]}
+/>
+```
+
+### Intent and emphasis
+
+Mosaic takes an `intent`, which its tier labels and highlighted words follow;
+without one, labels are neutral and highlights brand-secondary. It takes no
+`emphasis`, since its tiles draw their own surface. Give a tile an `href` and
+its name or logo becomes the link, with the whole tile as the hit area and its
+photo easing larger on hover; tiles without one stay still. A linked strip
+logo is a quiet card that tints on hover.
+
+```tsx-live id=intent-and-emphasis
+<Mosaic
+  preset='tiers'
+  intent='brand'
+  title='Festival partners'
+  titleHighlight='partners'
+  tiles={[
+    {
+      name: 'Ochre Kite Weekender',
+      label: 'Presenting partner',
+      href: '/partners/ochre-kite-weekender',
+      logo: { src: '/blocks/ochre-kite-weekender.svg', alt: 'Ochre Kite Weekender logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/01.webp', alt: '', width: 800, height: 800 },
+      featured: true
+    },
+    {
+      name: 'Velvet Dingo Fest',
+      label: 'Sponsor',
+      href: '/partners/velvet-dingo-fest',
+      logo: { src: '/blocks/velvet-dingo-fest.svg', alt: 'Velvet Dingo Fest logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/02.webp', alt: '', width: 800, height: 800 }
+    },
+    {
+      name: 'Kazoo Hollow Room',
+      label: 'Venue partner',
+      logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 180, height: 60 },
+      image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 }
+    }
+  ]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Keep the defaults unless the page has a reason'>
+  <Guideline.Do>
+    Set an `intent` when the page's own colour runs through it, such as a
+    brand campaign, and give a tile an `href` when it has its own page.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't change the intent block by block to add variety; the labels then
+    read as meaning something.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pick the preset for the content'>
+  <Guideline.Do>
+    Use tiers, as partner tiers are today, for partners and sponsors with a
+    level each, and logo strip for a row of partner logos or certifications.
+    Venues, events, or clients in a mosaic would be new presets, raised as a
+    block request.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put venues or events in tiers; their labels aren't levels.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Title the block with what the partnerships are, such as "Industry
+    partnerships", and say in the description what they do.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't open with a slogan the logos have to explain.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Feature the few that lead'>
+  <Guideline.Do>
+    Feature the presenting and major partners, about one in four tiles, so
+    the wide tiles read as the top tier.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't feature every partner; the grid loses its tiers and its rhythm.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Match the logo to its surface'>
+  <Guideline.Do>
+    Use a light or white logo on a transparent background over a photo from
+    the partner's event. The photo is decorative and isn't read out, so the
+    logo's alt text names the partner.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put a dark logo on a tiers tile; it sinks into the shade behind it.
+    Dark logos belong in the `logoTile`, which stays light in both themes,
+    and logo strip logos need their own background, since the page's
+    changes with the theme.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Mosaic reports a `view` once half of it is on screen. It holds no links, so
+it reports no clicks.
+
+<PropsDefinitions component='Mosaic' />

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" width="240" height="80">
+  <rect x="12" y="16" width="48" height="48" rx="12" fill="#0d1318"/>
+  <text x="74" y="38" textLength="152" lengthAdjust="spacingAndGlyphs" font-family="system-ui, sans-serif" font-size="22" font-weight="800" fill="#0d1318">WISHBONE FERRET</text>
+  <text x="74" y="60" font-family="system-ui, sans-serif" font-size="15" font-weight="600" letter-spacing="2" fill="#0d1318">COLLECTIVE</text>
+</svg>

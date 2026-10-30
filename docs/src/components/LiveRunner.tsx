@@ -113,6 +113,9 @@ import { MarketingBlocksProvider } from '@oztix/roadie-marketing-blocks/provider
 import { RichText } from '@oztix/roadie-marketing-blocks/rich-text'
 import { Split } from '@oztix/roadie-marketing-blocks/split'
 import { Stats } from '@oztix/roadie-marketing-blocks/stats'
+import { Mosaic } from '@oztix/roadie-marketing-blocks/mosaic'
+import { MarketingBlocksProvider } from '@oztix/roadie-marketing-blocks/provider'
+import { Testimonial } from '@oztix/roadie-marketing-blocks/testimonial'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
@@ -232,6 +235,8 @@ const scope = {
   CardGrid,
   Split,
   Stats,
+  Mosaic,
+  Testimonial,
   LegendKey,
   lineChartTable,
   addDays,
