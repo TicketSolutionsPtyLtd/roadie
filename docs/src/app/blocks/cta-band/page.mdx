@@ -1,0 +1,134 @@
+export const metadata = {
+  title: 'CTA band',
+  description: 'Closes a page with a short pitch and the next step to take',
+  status: 'alpha',
+  wideExamples: true,
+  category: 'Actions',
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Closes a page with a short pitch and the next step to take.
+
+## Import
+
+```tsx
+import { CTABand } from '@oztix/roadie-marketing-blocks/cta-band'
+```
+
+## Examples
+
+### With photo
+
+The pitch and actions sit beside a tilted photo that breaks out of the top of the panel. On a phone, the photo sits above the copy.
+
+```tsx-live-expand id=with-photo
+<CTABand
+  preset='with-photo'
+  title='Explore an Oztix partnership'
+  titleHighlight='partnership'
+  description='We’re always excited to welcome new partners into the Oztix community.'
+  body={
+    <>
+      <p>Let’s start with a get-to-know-you conversation, so we can understand your goals. Then we’ll show you a growth plan that suits your events.</p>
+      <p>Ready to move fast? We’re on it.</p>
+    </>
+  }
+  actions={[
+    { label: 'Contact sales', href: '/contact/sales' },
+    { label: 'Create my event', href: 'https://studio.oztix.com.au' }
+  ]}
+  image={{
+    src: '/brand/photography/05.webp',
+    alt: 'Three partners smiling together at a laneway event',
+    width: 1280,
+    height: 854
+  }}
+/>
+```
+
+### Centred
+
+The heading, copy, and actions are centred in the panel, with no photo.
+
+```tsx-live-expand id=centred
+<CTABand
+  preset='centred'
+  title='Talk to our team'
+  body={<p>Tell us about your venue or festival, and we’ll find the setup that sells the most tickets.</p>}
+  actions={[
+    { label: 'Contact sales', href: '/contact/sales' },
+    { label: 'See pricing', href: '/pricing' }
+  ]}
+/>
+```
+
+### Intent and emphasis
+
+`intent` tints the panel and the highlighted words, and `emphasis` sets the panel: `raised` by default, or `subtle`, `strong`, or `inverted`. On a `strong` or `inverted` panel, the first action switches to an intent that stands apart from the panel's fill, and highlighted words, links, and code take the panel's text colour.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Brand, strong */}
+<CTABand
+  preset='centred'
+  intent='brand'
+  emphasis='strong'
+  title='List your next event with Oztix'
+  body={<p>Set up in minutes and start selling today.</p>}
+  actions={[
+    { label: 'Create my event', href: 'https://studio.oztix.com.au' },
+    { label: 'Contact sales', href: '/contact/sales' }
+  ]}
+/>
+{/* Inverted */}
+<CTABand
+  preset='centred'
+  emphasis='inverted'
+  title='Talk to our team'
+  body={<p>Tell us about your venue, and we’ll find the setup that sells the most tickets.</p>}
+  actions={[{ label: 'Contact sales', href: '/contact/sales' }]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Pick the preset for the page'>
+  <Guideline.Do>
+    Use `with-photo` to close a page that sells Oztix, with a photo of people at an event.
+  </Guideline.Do>
+  <Guideline.Do>
+    Use `centred` where a photo would compete with the page, such as after an FAQ.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Open the body with what happens when someone acts, such as a call with our team.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don’t spend the body on why the action matters before saying what it is.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep it short'>
+  <Guideline.Do>
+    Write a paragraph or two and at most two actions. The first is the strong one.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Change the panel for the page, not the band'>
+  <Guideline.Do>
+    Keep the raised panel unless the band closes a campaign page that needs it to stand out. Use `strong` or `inverted` at most once on a page.
+  </Guideline.Do>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Reports a view once half the band is on screen, and a click for each action with its label and href.
+
+<PropsDefinitions component='CTABand' />

@@ -1,0 +1,124 @@
+export const metadata = {
+  title: 'Gallery',
+  description: 'Shows the people and events behind a page in photos',
+  status: 'alpha',
+  wideExamples: true,
+  category: 'Proof',
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Shows the people and events behind a page in photos.
+
+## Import
+
+```tsx
+import { Gallery } from '@oztix/roadie-marketing-blocks/gallery'
+```
+
+## Examples
+
+### Carousel
+
+The default. A heading with previous and next controls over portrait photos that people step through, or swipe on a touch screen.
+
+```tsx-live-expand id=carousel
+<Gallery
+  preset='carousel'
+  title='Join thousands of partners who trust Oztix'
+  description='From festivals to local venues, we help event organisers sell more tickets.'
+  images={[
+    { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 },
+    { src: '/brand/photography/09.webp', alt: 'Four musicians posing together in front of an Oztix backdrop', width: 1201, height: 801 },
+    { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun', width: 1280, height: 854 },
+    { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd', width: 1280, height: 854 },
+    { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 },
+    { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above', width: 1280, height: 850 },
+    { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting', width: 1280, height: 854 }
+  ]}
+/>
+```
+
+### Marquee
+
+The same photos scrolling past on their own, with a button to pause them. They hold still while someone points at or tabs into them, and for anyone who prefers reduced motion.
+
+```tsx-live-expand id=marquee
+<Gallery
+  preset='marquee'
+  title='Join thousands of partners who trust Oztix'
+  description='From festivals to local venues, we help event organisers sell more tickets.'
+  images={[
+    { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 },
+    { src: '/brand/photography/09.webp', alt: 'Four musicians posing together in front of an Oztix backdrop', width: 1201, height: 801 },
+    { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun', width: 1280, height: 854 },
+    { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd', width: 1280, height: 854 },
+    { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 },
+    { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above', width: 1280, height: 850 },
+    { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting', width: 1280, height: 854 }
+  ]}
+/>
+```
+
+### Intent and emphasis
+
+`intent` colours the highlighted words and the marquee's pause control. The gallery draws no surface, so it takes no emphasis.
+
+```tsx-live-expand id=intent-and-emphasis
+<Gallery
+  preset='marquee'
+  intent='brand'
+  title='Our people'
+  titleHighlight='people'
+  images={[
+    { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 },
+    { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 },
+    { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting', width: 1280, height: 854 }
+  ]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Show people and events'>
+  <Guideline.Do>
+    Use photos of crowds, artists, and partners at their events, which crop well to a tall portrait tile.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don’t put logos in the gallery. Logos are a still list in the Logos block.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Title the gallery with what the photos prove, such as who already trusts Oztix.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Describe every photo'>
+  <Guideline.Do>
+    Write alt text that says what’s in the photo, since the block names each one once to screen readers.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Match the intent to the page'>
+  <Guideline.Do>
+    Leave the intent unset on most pages. Set it to match a campaign page's intent, so the highlight and pause control follow.
+  </Guideline.Do>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- **Carousel**: the heading names the carousel, and each photo is a slide named by its place, such as "2 of 7". Previous and next are buttons, and photos out of view are inert, so `Tab` skips them.
+- **Marquee**: each photo is read out once, though the marquee repeats them to fill the width. A pause button stops the motion, which also stops on hover, on focus, and under reduced motion.
+
+## Tracking
+
+Reports a view once half the gallery is on screen, and a click on the carousel's previous or next, or the marquee's pause, with its label.
+
+<PropsDefinitions component='Gallery' />

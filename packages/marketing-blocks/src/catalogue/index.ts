@@ -5,6 +5,9 @@ import { splitDefinition } from '../Split/definition'
 import { statsDefinition } from '../Stats/definition'
 import { mosaicDefinition } from '../Mosaic/definition'
 import { testimonialDefinition } from '../Testimonial/definition'
+import { ctaBandDefinition } from '../CTABand/definition'
+import { faqDefinition } from '../FAQ/definition'
+import { galleryDefinition } from '../Gallery/definition'
 
 /** A named configuration of a block: what editors pick in the Studio instead of setting options. */
 export type BlockPreset = {
@@ -59,6 +62,9 @@ const DEFINITIONS: readonly BlockDefinition[] = [cardGridDefinition]
   statsDefinition
   mosaicDefinition,
   testimonialDefinition
+  faqDefinition,
+  galleryDefinition,
+  ctaBandDefinition
 ]
 
 /** Every block and its presets, for a CMS's block picker. Has no React, so it runs on a server or in a Studio config. */

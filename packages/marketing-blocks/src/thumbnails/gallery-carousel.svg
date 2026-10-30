@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none">
+  <rect width="240" height="160" rx="12" style="fill: var(--color-neutral-1, #f5f8fb)"/>
+  <rect x="24" y="20" width="104" height="10" rx="3" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <rect x="24" y="38" width="76" height="6" rx="3" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="180" y="22" width="16" height="16" rx="8" style="fill: var(--color-neutral-3, #e8eef4)"/>
+  <rect x="200" y="22" width="16" height="16" rx="8" style="fill: var(--color-neutral-3, #e8eef4)"/>
+  <rect x="24" y="60" width="44" height="78" rx="8" style="fill: var(--color-neutral-5, #d7e2ed)"/>
+  <rect x="76" y="60" width="44" height="78" rx="8" style="fill: var(--color-neutral-5, #d7e2ed)"/>
+  <rect x="128" y="60" width="44" height="78" rx="8" style="fill: var(--color-neutral-5, #d7e2ed)"/>
+  <rect x="180" y="60" width="44" height="78" rx="8" style="fill: var(--color-neutral-5, #d7e2ed)"/>
+  <rect x="232" y="60" width="44" height="78" rx="8" style="fill: var(--color-neutral-5, #d7e2ed)"/>
+</svg>

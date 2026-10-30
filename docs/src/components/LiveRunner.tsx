@@ -109,6 +109,9 @@ import { Editor, useEditorContext } from '@oztix/roadie-editor/editor'
 import { renderEditorValue } from '@oztix/roadie-editor/render'
 import { Hero } from '@oztix/roadie-marketing-blocks/hero'
 import { CardGrid } from '@oztix/roadie-marketing-blocks/card-grid'
+import { CTABand } from '@oztix/roadie-marketing-blocks/cta-band'
+import { FAQ } from '@oztix/roadie-marketing-blocks/faq'
+import { Gallery } from '@oztix/roadie-marketing-blocks/gallery'
 import { MarketingBlocksProvider } from '@oztix/roadie-marketing-blocks/provider'
 import { RichText } from '@oztix/roadie-marketing-blocks/rich-text'
 import { Split } from '@oztix/roadie-marketing-blocks/split'
@@ -237,6 +240,9 @@ const scope = {
   Stats,
   Mosaic,
   Testimonial,
+  CTABand,
+  FAQ,
+  Gallery,
   LegendKey,
   lineChartTable,
   addDays,

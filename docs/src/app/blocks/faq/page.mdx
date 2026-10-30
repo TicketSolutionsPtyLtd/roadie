@@ -1,0 +1,118 @@
+export const metadata = {
+  title: 'FAQ',
+  description: 'Answers the questions people ask before they buy or sign up',
+  status: 'alpha',
+  wideExamples: true,
+  category: 'Content',
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Answers the questions people ask before they buy or sign up.
+
+## Import
+
+```tsx
+import { FAQ } from '@oztix/roadie-marketing-blocks/faq'
+```
+
+## Examples
+
+### Accordion
+
+A heading over questions that open to their answers, one at a time. Answers are rich text, set in `Prose`.
+
+```tsx-live-expand id=accordion
+<FAQ
+  preset='accordion'
+  title='Questions, answered'
+  items={[
+    {
+      question: 'Does it cost anything?',
+      answer: <p>No. There’s no fee to list your events on Spotify, and your settlement is unchanged.</p>
+    },
+    {
+      question: 'Do I need to do anything?',
+      answer: <p>Make sure the artist’s name is in your event title and the core details are filled in. The event shows up within about 24 hours.</p>
+    },
+    {
+      question: 'Who can I talk to?',
+      answer: <p>Email <a href='mailto:admin@oztix.com.au'>admin@oztix.com.au</a> or call 1300 469 849.</p>
+    }
+  ]}
+  actions={[{ label: 'See all FAQs', href: '/frequently-asked-questions' }]}
+/>
+```
+
+### Intent and emphasis
+
+`intent` tints the highlighted words, the strong action, and any question surface. `emphasis` sets the questions' surface, in Accordion's names: `subtler` by default, `subtle` to tint each question, or `normal` to box them.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Subtle */}
+<FAQ
+  emphasis='subtle'
+  title='Questions, answered'
+  items={[
+    { question: 'Does it cost anything?', answer: <p>No. There’s no fee, and your settlement is unchanged.</p> },
+    { question: 'How fast is it?', answer: <p>About 24 hours.</p> }
+  ]}
+/>
+{/* Brand, normal */}
+<FAQ
+  intent='brand'
+  emphasis='normal'
+  title='Questions about refunds'
+  titleHighlight='refunds'
+  items={[
+    { question: 'Can I get a refund?', answer: <p>Yes, when the event is cancelled or rescheduled.</p> },
+    { question: 'How long does it take?', answer: <p>Up to 10 business days.</p> }
+  ]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Open each answer with the direct answer, such as “No” or “Within 24 hours”, then the detail.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don’t open an answer by restating the question.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Ask questions the way people do'>
+  <Guideline.Do>
+    Write each question in the words a buyer or organiser would type into a search.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Keep structured data in the site'>
+  <Guideline.Do>
+    Generate the page’s FAQ structured data from the same items. The block renders none.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Give the questions a surface only on a busy page'>
+  <Guideline.Do>
+    Keep `subtler` on most pages. Use `subtle` or `normal` when the FAQ sits beside other content and needs its own edge.
+  </Guideline.Do>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- **Keyboard**: each question is a native `<summary>`, so `Tab` reaches it and `Enter` or `Space` opens it. Opening one closes the others.
+- **Screen readers**: each question is an `h3` under the block's `h2`, so people can jump between questions by heading. The browser announces whether each one is open.
+- **Links**: links in an answer are reachable only once the question is open.
+
+## Tracking
+
+Reports a view once half the block is on screen, and a click for each link in an answer or action with its label and href. Opening a question isn’t a click.
+
+<PropsDefinitions component='FAQ' />
