@@ -357,9 +357,10 @@ document rather than a one-card dashboard or a hand-made SVG. The format is in
 beta, so check the manifest lists `validateChartDocument` before you use it.
 
 1. **Write the document.** It is a chart card without `id`, `size`, `state`,
-   `table`, `legend`, or `view`: `version: 1`, `kind: 'chart'`, a `label`, a
-   `source`, and a `plot` of any kind, `static` and `small-multiples` among
-   them. Add a headline `value` with its `delta`, or a `takeaway`, not both.
+   `legend`, or `view`: `version: 1`, `kind: 'chart'`, a `label`, a `source`,
+   and a `plot` of any kind, `static` and `small-multiples` among them. Add a
+   headline `value` with its `delta`, or a `takeaway`, not both. A `static`
+   plot also needs its `table`.
 
    ```ts
    import {
@@ -394,7 +395,8 @@ beta, so check the manifest lists `validateChartDocument` before you use it.
    `@oztix/roadie-charts/static` returns one SVG string with the label and
    headline above the plot and the source below. It runs on the server with no
    React, validates again, and throws a `ChartDocumentError` whose `problems`
-   list what failed. Pass `accentHue` to match the app's accent.
+   list what failed. Leave the plot at least 120px tall after the text, or it
+   throws a `RangeError`. Pass `accentHue` to match the app's accent.
 
    ```ts
    import { renderChartDocument } from '@oztix/roadie-charts/static'

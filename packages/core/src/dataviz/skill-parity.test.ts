@@ -65,7 +65,7 @@ describe('dataviz parity', () => {
     const [, list] =
       /It is a chart card without (.+?): `version: 1`/.exec(CHARTS_SKILL) ?? []
     const keys = [...(list ?? '').matchAll(/`(\w+)`/g)].map((m) => m[1]!)
-    expect(keys).toEqual(['id', 'size', 'state', 'table', 'legend', 'view'])
+    expect(keys).toEqual(['id', 'size', 'state', 'legend', 'view'])
     const doc = {
       version: 1,
       kind: 'chart',
