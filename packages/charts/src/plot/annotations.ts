@@ -60,7 +60,7 @@ const warned = new Set<string>()
 function warnDropped({ at, label }: PlotAnnotation) {
   if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
     return
-  const message = `Roadie chart: the annotation "${label}" at ${at} is outside the data, so it doesn't show`
+  const message = `Roadie chart: "${at}" is outside the data, so the annotation "${label}" won't show`
   if (warned.has(message)) return
   warned.add(message)
   console.warn(message)
