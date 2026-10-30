@@ -388,6 +388,18 @@ describe('parseDatePhrase: a month', () => {
     expect(may!.label).toMatch(/ 2027$/)
   })
 
+  it('orders the month and year as the locale does', () => {
+    const [may] = parseDatePhrase('may 2027', { ...SYDNEY, locale: 'ja' })
+    expect(may!.label).toBe('2027年5月')
+  })
+
+  it.each(['jan 0000', '14 jan 0000', '0000-01-14'])(
+    'reads nothing for year 0 in %j',
+    (text) => {
+      expect(parseDatePhrase(text, SYDNEY)).toEqual([])
+    }
+  )
+
   it('reads December 9999, the last month a date holds', () => {
     expect(parseDatePhrase('dec 9999', SYDNEY)).toEqual([
       month('December 9999', '9999-12-01', '9999-12-31')

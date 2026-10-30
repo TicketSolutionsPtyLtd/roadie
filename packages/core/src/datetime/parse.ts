@@ -195,7 +195,7 @@ function parsePartial(text: string, bareDay: boolean): PartialDate | null {
 }
 
 function dateIn(year: number, month: number, day: number): string | null {
-  if (year < 0 || year > 9999) return null
+  if (year < 1 || year > 9999) return null
   const date = toPlainDate(year, month, day)
   return isPlainDate(date) ? date : null
 }
@@ -392,14 +392,20 @@ export function parseDatePhrase(
       dateStyle: 'long',
       locale: options.locale
     }) ?? date
-  // The locale names the month; the year stays in Latin digits, as in every
-  // other label.
+  // The locale names and orders the month and year; the year stays in Latin
+  // digits, as in every other label.
   const monthLabel = (first: string) =>
-    `${dateTimeFormat(options.locale ?? DEFAULT_LOCALE, {
+    dateTimeFormat(options.locale ?? DEFAULT_LOCALE, {
       timeZone: 'UTC',
       calendar: 'gregory',
+      year: 'numeric',
       month: 'long'
-    }).format(plainDateInstant(first))} ${plainDateParts(first).year}`
+    })
+      .formatToParts(plainDateInstant(first))
+      .map((part) =>
+        part.type === 'year' ? String(plainDateParts(first).year) : part.value
+      )
+      .join('')
   const on = (date: string): DatePhraseSuggestion => ({
     label: formatDay(date),
     value: { on: date }
@@ -545,7 +551,10 @@ function monthsNamed(
   today: string
 ): string[] {
   const { year } = plainDateParts(today)
-  if (yearText) return [toPlainDate(Number(yearText), month, 1)]
+  if (yearText) {
+    const first = dateIn(Number(yearText), month, 1)
+    return first ? [first] : []
+  }
   const thisYear = toPlainDate(year, month, 1)
   const current = plainDateParts(today).month
   if (month === current) return [thisYear]
