@@ -284,8 +284,9 @@ the PR only when the review is clean.
 - **A bot or reviewer finding is a gap in the local review.** Fix the real
   ones yourself; `/roadie:retro` turns repeats into review classes.
 - **Triage instead of looping.** Critical and Important findings are always
-  fixed, however rare the case. A Minor one is fixed only if a real user
-  would hit it in normal use; the rest become Jira follow-ups (section 9).
+  fixed, however rare the case. A Minor one is fixed in this PR when it's in
+  code the PR changes; one in code the PR doesn't touch becomes a Jira
+  follow-up (section 9).
 - **Flaky tests**: a known flake may be re-run once. A flake seen on two
   unrelated PRs gets fixed at its root in its own PR. Until then it can go on
   the quarantine list in `vitest.browsers.config.ts`, with its ticket. CI
@@ -320,7 +321,8 @@ It shows `CI result`, mirrored from main's CI, and needs no admin bypass
 
 ## 9. Nothing deferred is dropped
 
-Every Minor finding not fixed in its own PR becomes a Jira work item in the
+A Minor finding in code the PR changes is fixed in that PR, not filed. Every
+Minor finding in code the PR doesn't touch becomes a Jira work item in the
 **INNO** project with the **Roadie** component and the `follow-up` label,
 holding the file and line, the finding, and a link to the PR thread it came
 from. Add to the open `Roadie follow-ups: <area>` item before creating one,
