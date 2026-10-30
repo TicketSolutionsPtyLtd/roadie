@@ -564,3 +564,42 @@ describe('matchesRecordQuery', () => {
     })
   })
 })
+
+describe('matchesRecordQuery on awkward rows', () => {
+  const query = (filters: RecordFilter[]) =>
+    resolveRecordQuery({ search: '', filters, sort: [] }, awkwardFields, {
+      now: new Date('2026-10-03T02:00:00Z'),
+      timeZone: SYDNEY
+    })
+  const awkwardFields = [
+    { key: 'constructor', label: 'Constructor', type: 'text' as const },
+    {
+      key: 'tags',
+      label: 'Tags',
+      type: 'option' as const,
+      multiple: true,
+      options: [{ value: 'null', label: 'Null' }]
+    }
+  ]
+  const matches = (row: object, filters: RecordFilter[]) =>
+    matchesRecordQuery(row, query(filters), awkwardFields)
+
+  it('reads no value from a key every object inherits', () => {
+    expect(
+      matches({}, [{ field: 'constructor', operator: 'is-not-set' }])
+    ).toBe(true)
+  })
+
+  it('never reads a null in a list as the word "null"', () => {
+    const row = { tags: [null] }
+    expect(
+      matches(row, [{ field: 'tags', operator: 'is', values: ['null'] }])
+    ).toBe(false)
+    expect(
+      matches(row, [{ field: 'tags', operator: 'has-all', values: ['null'] }])
+    ).toBe(false)
+    expect(
+      matches(row, [{ field: 'tags', operator: 'is-not', values: ['null'] }])
+    ).toBe(true)
+  })
+})
