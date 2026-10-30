@@ -16,7 +16,7 @@ import {
  * `<Carousel>` tree.
  *
  * For escape-hatch access to the underlying Embla instance, use
- * `useCarouselUnsafeEmbla()` — it is intentionally separate so raw-Embla
+ * `useCarouselUnsafeEmbla()`. It is intentionally separate so raw-Embla
  * coupling is greppable.
  */
 export function useCarousel(): UseCarouselReturn {

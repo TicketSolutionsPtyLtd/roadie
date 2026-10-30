@@ -244,7 +244,7 @@ describe('Tabs', () => {
   it('disabled tab cannot be activated by keyboard either', async () => {
     // Click-disabled is covered by an earlier test. This one pins
     // down that pressing Enter while focused on a disabled tab also
-    // does nothing — together they enforce the full disabled
+    // does nothing. Together they enforce the full disabled
     // contract through the wrapper.
     //
     // Whether arrow keys skip the disabled tab during navigation is
@@ -291,7 +291,7 @@ describe('Tabs', () => {
     // Roadie defaults `renderBeforeHydration` to `true` (override of
     // Base UI's default `false`). The SSR-semantic difference between
     // the two values is only observable during hydration of a
-    // server-rendered tree — jsdom + RTL renders client-only, so we
+    // server-rendered tree; jsdom + RTL renders client-only, so we
     // can't differentiate the two outputs here. The contract this
     // test pins down is "the consumer override is forwarded through
     // the wrapper without a type or runtime error".

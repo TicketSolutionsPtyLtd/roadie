@@ -46,7 +46,7 @@ export function CartExpiryDialogs({
         description='Your tickets are held for a little longer. Check out now to secure them.'
         actions={
           <>
-            {/* No intent — inherits the dialog's warning via the cascade. */}
+            {/* No intent: inherits the dialog's warning via the cascade. */}
             <Button onClick={onDismissWarning}>Keep browsing</Button>
             <Button
               emphasis='strong'
@@ -73,7 +73,7 @@ export function CartExpiryDialogs({
         title='Your hold has ended'
         description='Your tickets are no longer being held. Head back to browse and grab them again.'
         actions={
-          // Accent CTA against the danger framing — the way forward, not a warning.
+          // Accent CTA against the danger framing: the way forward, not a warning.
           <Button
             intent='accent'
             emphasis='strong'

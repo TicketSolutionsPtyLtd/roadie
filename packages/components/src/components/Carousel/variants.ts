@@ -2,11 +2,11 @@ import { cva } from 'class-variance-authority'
 
 // The `overflow` variant controls how slides escape the viewport box:
 //
-//   `hidden`  — slides are clipped at the viewport edge. Classic behaviour.
-//   `visible` — slides can extend indefinitely. Useful on wide screens
+//   `hidden`:  slides are clipped at the viewport edge. Classic behaviour.
+//   `visible`: slides can extend indefinitely. Useful on wide screens
 //               where you deliberately want peeking slides to remain fully
 //               rendered in the margin area.
-//   `subtle`  — the default. Slides bleed past the viewport edges by the
+//   `subtle`:  the default. Slides bleed past the viewport edges by the
 //               same amount as the inner gutter, and fade to the page
 //               background via `::before` / `::after` gradient overlays.
 //               Gives the scroll hint of `visible` without the reading
@@ -49,7 +49,7 @@ export const carouselContentVariants = cva(
       },
       {
         // Vertical subtle intentionally omits the negative block-axis
-        // margin — its axis collides with Carousel.Header sitting above
+        // margin: its axis collides with Carousel.Header sitting above
         // it, and pulling Content upward would overlap the header. The
         // py-4 padding creates the fade area inside Content's own box
         // and the Embla container's -mt-4 still lets items scroll
@@ -105,7 +105,7 @@ export const carouselDotsVariants = cva('flex items-center justify-center', {
 })
 
 // Literal union (rather than `VariantProps<typeof carouselContentVariants>`)
-// so that `react-docgen-typescript` — which can't drill into CVA's
-// conditional types — can extract the three values and surface them in
+// so that `react-docgen-typescript` (which can't drill into CVA's
+// conditional types) can extract the three values and surface them in
 // the docs site's <PropsDefinitions> table.
 export type CarouselContentOverflow = 'hidden' | 'visible' | 'subtle'

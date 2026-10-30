@@ -56,7 +56,7 @@ function resolveRootEl(
   return root instanceof HTMLElement ? root : null
 }
 
-// Only accept a consumer browseHref if it's a safe relative path — else a tainted host value could reach onNavigate.
+// Only accept a consumer browseHref if it's a safe relative path, else a tainted host value could reach onNavigate.
 const effectiveBrowseHref = computed(() =>
   typeof props.browseHref === 'string' && isSafeRelativePath(props.browseHref)
     ? props.browseHref
@@ -98,7 +98,7 @@ const {
         : 'closed'
 })
 
-// Must keep stable identity — an inline arrow re-fires every render and freezes
+// Must keep stable identity: an inline arrow re-fires every render and freezes
 // the tab via a ResizeObserver re-observe loop.
 const bindHeader = (el: Element | ComponentPublicInstance | null): void => {
   setHeaderElement(resolveRootEl(el))
@@ -199,7 +199,7 @@ watch(state, (next, prev) => {
 })
 
 // Controlled `open` (incl. v-model:open): snap only when the prop itself
-// changes — never off internal `state`, or a tap (which moves state before the
+// changes, never off internal `state`, or a tap (which moves state before the
 // parent echoes `open` back) would be reconciled away. Skip mid-drag without
 // consuming the prop so it reconciles once the drag releases.
 let prevOpen = props.open
@@ -340,7 +340,7 @@ function handleCheckout() {
   if (checkoutUrl.value) props.onNavigate(checkoutUrl.value)
 }
 
-// Navigates to the validated effectiveBrowseHref only — never a consumer URL — so it can't become an open redirect.
+// Navigates to the validated effectiveBrowseHref only (never a consumer URL), so it can't become an open redirect.
 function handleBrowse() {
   props.onNavigate(effectiveBrowseHref.value)
 }
@@ -418,7 +418,7 @@ const contentOpacity = computed(() =>
 
       <!-- Padding-less flex child so the collapsed drawer can shrink it to 0;
            the inner body owns scroll + pb-8 (clipped by overflow). Mirrors the
-           React skin — putting flex-1 on the padded body floors it at pb-8 (32px)
+           React skin: putting flex-1 on the padded body floors it at pb-8 (32px)
            and clips the footer when docked. -->
       <div
         class="relative min-h-0 flex-1"

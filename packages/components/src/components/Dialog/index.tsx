@@ -1,4 +1,4 @@
-// NO 'use client' — server-safe property-assignment layer.
+// NO 'use client': server-safe property-assignment layer.
 // See docs/contributing/COMPOUND_PATTERNS.md.
 import { DialogBackdrop } from './DialogBackdrop'
 import { DialogBody } from './DialogBody'

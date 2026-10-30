@@ -4,7 +4,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 // Mobile (default): a flex `justify-between` row. With the recommended
 // `<Title /><Dots /><Controls hidden on mobile />` arrangement that puts
-// the Title on the left and the Dots on the right — Controls vanish via
+// the Title on the left and the Dots on the right. Controls vanish via
 // their own responsive `hidden md:flex`.
 //
 // Desktop (md+): a three-column grid (`1fr auto 1fr`). Children are placed

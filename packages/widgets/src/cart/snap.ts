@@ -5,9 +5,9 @@ export interface DecideSnapTargetArgs {
   offset: number
   /** Drawer state at the start of the drag. */
   currentState: 'open' | 'closed'
-  /** Drawer y-position when closed (larger — drawer is near bottom of expanded range). */
+  /** Drawer y-position when closed (larger: drawer is near bottom of expanded range). */
   closedY: number
-  /** Drawer y-position when open (smaller — drawer is near top). Invariant: openY <= closedY. */
+  /** Drawer y-position when open (smaller: drawer is near top). Invariant: openY <= closedY. */
   openY: number
 }
 
@@ -16,7 +16,7 @@ export interface DecideSnapTargetArgs {
  * increases downward, so for a bottom drawer an upward flick has negative
  * velocity (open) and a downward flick has positive velocity (close).
  *
- * Rules (strict `<` / `>` on the velocity thresholds — exactly ±500 falls
+ * Rules (strict `<` / `>` on the velocity thresholds: exactly ±500 falls
  * through to the positional check):
  *   velocity < -500 → 'open'
  *   velocity > +500 → 'closed'

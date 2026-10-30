@@ -15,12 +15,12 @@ export type BreadcrumbLinkProps<T extends ElementType = 'a'> = {
    * route through the configured `RoadieLinkProvider`; external hrefs
    * (`http(s)://`, `//…`) render `<a target='_blank' rel='noopener noreferrer'>`;
    * `mailto:` / `tel:` / `sms:` render plain `<a>`. `render` always
-   * wins — pass it to bypass provider routing.
+   * wins. Pass it to bypass provider routing.
    */
   href?: string
   /**
    * Force external-link treatment when `href` is set. Has no effect
-   * when `render` is set — the consumer's element owns its own
+   * when `render` is set. The consumer's element owns its own
    * target/rel.
    */
   external?: boolean
@@ -29,7 +29,7 @@ export type BreadcrumbLinkProps<T extends ElementType = 'a'> = {
   /** Override the auto `rel='noopener noreferrer'` default on external hrefs. */
   rel?: string
   /**
-   * Escape hatch — swap the underlying element with full control over
+   * Escape hatch: swap the underlying element with full control over
    * the rendered shape.
    */
   render?: RoadieRenderProp
@@ -37,7 +37,7 @@ export type BreadcrumbLinkProps<T extends ElementType = 'a'> = {
 } & Omit<ComponentProps<T>, 'as' | 'className' | 'render'>
 
 /**
- * BreadcrumbLink stays server-safe — `RoadieRoutedLink` is the
+ * BreadcrumbLink stays server-safe: `RoadieRoutedLink` is the
  * `'use client'` boundary and only loads when `href` is set without
  * `render`. Pass `render` (element / component / function form) for
  * full control. The legacy `as` prop is `@deprecated`.
@@ -72,7 +72,7 @@ export function BreadcrumbLink<T extends ElementType = 'a'>({
     )
   }
 
-  // Legacy `as` path — back-compat only.
+  // Legacy `as` path, back-compat only.
   if (as) {
     const Component = as as ElementType
     const passthroughProps = {

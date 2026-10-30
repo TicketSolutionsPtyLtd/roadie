@@ -52,7 +52,7 @@ export async function getOklchChroma(hex: string): Promise<number> {
 // Each entry is [lightness, chroma_ratio] where chroma = ratio * peakChroma.
 // These match the CSS oklch() declarations in tokens.css.
 
-/** Light mode accent curve — L + chroma ratio (relative to peak at step 9) */
+/** Light mode accent curve: L + chroma ratio (relative to peak at step 9) */
 const ACCENT_LIGHT_CURVE: [number, number][] = [
   [1, 0],
   [0.984, 0.018],
@@ -88,7 +88,7 @@ const ACCENT_DARK_CURVE: [number, number][] = [
   [0.993, 0.018]
 ]
 
-/** Light mode neutral curve — L + fixed chroma (not ratio-based) */
+/** Light mode neutral curve: L + fixed chroma (not ratio-based) */
 const NEUTRAL_LIGHT_CURVE: [number, number][] = [
   [1, 0],
   [0.991, 0.004],

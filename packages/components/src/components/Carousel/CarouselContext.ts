@@ -32,7 +32,7 @@ export type CarouselState = {
   canGoToNext: boolean
   /**
    * True when there is somewhere to scroll to. False when every slide
-   * already fits in the viewport (snapCount <= 1) — in which case
+   * already fits in the viewport (snapCount <= 1), in which case
    * Previous / Next / Dots / Controls all hide themselves.
    */
   canScroll: boolean

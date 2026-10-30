@@ -44,7 +44,7 @@ describe('currencyPrefix', () => {
 })
 
 describe('formatTime', () => {
-  // Local time — construct via the local-time Date ctor so the assertion is
+  // Local time: construct via the local-time Date ctor so the assertion is
   // TZ-independent (matches how the skins parse the wall-clock hour).
   it.each<[number, number, string]>([
     [19, 0, '7pm'],
@@ -105,7 +105,7 @@ describe('formatDayHeader', () => {
   // The whole reason formatDayHeader parses with the local-date ctor (not
   // `new Date('YYYY-MM-DD')`, which is UTC midnight) is to avoid a day-shift in
   // non-UTC zones. Run it under a behind-UTC zone to prove the key's day is
-  // preserved — a UTC-parse impl would render the 14th here.
+  // preserved (a UTC-parse impl would render the 14th here).
   describe('under a non-UTC timezone (America/New_York)', () => {
     // stubEnv deletes an unset TZ on restore; assigning `undefined` writes the
     // string 'undefined', which Windows can't resolve as a zone.

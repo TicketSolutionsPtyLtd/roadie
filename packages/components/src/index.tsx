@@ -623,8 +623,8 @@ export {
 
 // Fieldset is the pilot for the Pattern A migration. The compound ships as
 // a namespace re-export backed by per-file leaves (tsdown unbundle mode);
-// this barrel line — and consumer code importing `{ Fieldset }` from
-// either the barrel or the `/fieldset` subpath — works in Next.js server
+// this barrel line (and consumer code importing `{ Fieldset }` from
+// either the barrel or the `/fieldset` subpath) works in Next.js server
 // components because Next follows the static re-export chain to each
 // leaf's `'use client'` module. See `docs/contributing/COMPOUND_PATTERNS.md`.
 export {

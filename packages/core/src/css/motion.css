@@ -25,7 +25,7 @@
   --ease-enter: cubic-bezier(0, 0, 0.2, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 
-  /* ═══ Spring approximation via linear() — transforms only ═══ */
+  /* ═══ Spring approximation via linear(), transforms only ═══ */
   --ease-spring: linear(
     0,
     0.006,
@@ -317,7 +317,7 @@
 /* ─── Enter/exit transitions ───
    Reusable, component-agnostic motions for any element that toggles
    `data-[starting-style]` on enter and `data-[ending-style]` on exit
-   (e.g. Base UI primitives — overlays, accordions, anything mounted with
+   (e.g. Base UI primitives: overlays, accordions, anything mounted with
    a transition). Transition-based (not keyframes) so the exit can run
    before unmount. The reduced-motion reset below disables them. */
 
@@ -335,7 +335,7 @@
   }
 }
 
-/* Fade + slide — up on enter, down on exit. */
+/* Fade + slide: up on enter, down on exit. */
 @utility motion-slide {
   transition-property: translate, opacity;
   transition-timing-function: var(--ease-standard);
@@ -348,7 +348,7 @@
   }
 }
 
-/* Drawer surface — slides off its anchored edge and tracks Base UI's live
+/* Drawer surface: slides off its anchored edge and tracks Base UI's live
    swipe offset. `transform`, not `translate`: Base UI writes an inline
    `transform` mid-swipe, which must override the resting value, not compose.
    A surface held off its edge sets `--drawer-float` so it travels clear. */

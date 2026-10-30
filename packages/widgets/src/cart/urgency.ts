@@ -4,7 +4,7 @@ export type UrgencyLevel = 'success' | 'warning' | 'danger' | 'expired'
  * Map remaining seconds to an urgency level. Thresholds confirmed against the
  * website's `CartUrgencyBadge.tsx` (<120 → danger, <300 → warning, else
  * success). `null` (no expiry) → success; `<= 0` → expired (the explicit
- * expired state is new — the website never modelled it; skins use it to fire
+ * expired state is new: the website never modelled it; skins use it to fire
  * `onExpire`).
  */
 export function urgencyLevel(remaining: number | null): UrgencyLevel {

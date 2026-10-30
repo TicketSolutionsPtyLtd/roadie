@@ -35,7 +35,7 @@ type CarouselTitleLinkOwnProps<T extends ElementType> = {
   /** Override the auto `rel='noopener noreferrer'` default on external hrefs. */
   rel?: string
   /**
-   * Escape hatch — swap the underlying element with full control over
+   * Escape hatch: swap the underlying element with full control over
    * the rendered shape.
    */
   render?: RoadieRenderProp
@@ -79,7 +79,7 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
     // Build the rendered element first with the consumer's text as
     // children. Then re-clone to APPEND the decorative trailing icon so
     // a render override that carries its own children
-    // (e.g. `render={<NextLink>See all</NextLink>}`) keeps the icon —
+    // (e.g. `render={<NextLink>See all</NextLink>}`) keeps the icon:
     // mergeProps' "override wins" rule would otherwise drop it.
     const baseElement = resolveRender(
       'a',
@@ -104,7 +104,7 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
     )
   }
 
-  // Legacy `as` path — back-compat only.
+  // Legacy `as` path, back-compat only.
   if (as) {
     const Component = as as ElementType
     const passthroughProps = {

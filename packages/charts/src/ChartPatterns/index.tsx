@@ -45,7 +45,7 @@ function defs(idFor: (slot: number) => string) {
 
 /**
  * Shared, page-wide texture patterns at fixed ids. Render once per page,
- * near the root — a second copy repeats the ids. `fill-texture-*` and the
+ * near the root. A second copy repeats the ids. `fill-texture-*` and the
  * forced-colours rules fall back to these ids when no closer instance has
  * set the `--chart-texture-*` custom properties (see `useChartPatterns`).
  */
@@ -58,7 +58,7 @@ ChartPatterns.displayName = 'ChartPatterns'
  * Textures scoped to one chart instance, so several charts on the same page
  * never repeat ids. Spread `style` onto an element that contains both the
  * plot and any legend swatches using `fill-texture-*` or `data-chart-texture`
- * — they read it through inheritance — and render `patterns` anywhere in
+ * (they read it through inheritance), and render `patterns` anywhere in
  * that same subtree.
  */
 export function useChartPatterns(): {
