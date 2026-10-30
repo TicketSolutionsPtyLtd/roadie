@@ -33,6 +33,7 @@ import {
 import { isDev } from '../../utils/isDev'
 import { applyQuery, isFiltered, toView } from './query'
 import { MAX_RANGE_ROWS } from './ranges'
+import { sameData } from './sameData'
 import {
   EMPTY_SELECTION,
   selectedCount as countSelected,
@@ -290,7 +291,7 @@ const whole = (value: number | undefined, min: number, fallback: number) =>
 function useEqualValue<T>(value: T): T {
   const [held, setHeld] = useState(value)
   if (held === value) return held
-  if (JSON.stringify(held) === JSON.stringify(value)) return held
+  if (sameData(held, value)) return held
   setHeld(value)
   return value
 }

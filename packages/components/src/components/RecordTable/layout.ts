@@ -51,9 +51,15 @@ const HEADER_EXTRA = 3
 // A badge's padding, in characters.
 const BADGE_EXTRA = 2
 
-const cellLength = (field: RecordField, row: object, timeZone: string) => {
+const cellLength = (
+  field: RecordField,
+  row: object,
+  timeZone: string,
+  custom: boolean
+) => {
   const text = formatRecordValue(row, field, { timeZone })
-  if (text === null) return NOT_AVAILABLE.length
+  // A custom cell shows its own empty state, not "Not available".
+  if (text === null) return custom ? 0 : NOT_AVAILABLE.length
   return text.length + (field.status ? BADGE_EXTRA : 0)
 }
 
@@ -73,12 +79,14 @@ export function columnWidths(
   timeZone: string
 ): RecordColumnWidth[] {
   const sample = rows.slice(0, SAMPLE_ROWS)
-  return columns.map(({ field, width }) => {
+  return columns.map(({ field, width, cell }) => {
     if (width) return width
     const header = field.label.length + HEADER_EXTRA
     const characters = Math.max(
       header,
-      typicalLength(sample.map((row) => cellLength(field, row, timeZone)))
+      typicalLength(
+        sample.map((row) => cellLength(field, row, timeZone, !!cell))
+      )
     )
     // Long text may truncate to about 60% of its typical length; short text, figures and dates never do.
     const shown =
