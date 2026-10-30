@@ -55,7 +55,7 @@ describe('formatRecordValue', () => {
     expect(formatRecordValue(row, field(key), options)).toBe(expected)
   })
 
-  it('keeps an end held as an instant after a plain start date', () => {
+  it('keeps an end held as an instant after a plain start date, as a date in the zone', () => {
     const run: RecordField = {
       key: 'opens',
       label: 'Run',
@@ -65,7 +65,7 @@ describe('formatRecordValue', () => {
     }
     expect(
       formatRecordValue(
-        { opens: '2026-10-03', closes: '2026-10-05T03:00:00Z' },
+        { opens: '2026-10-03', closes: '2026-10-04T20:00:00Z' },
         run,
         options
       )
