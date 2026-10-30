@@ -56,8 +56,8 @@ const compactUnit = (abs: number, divisor: number) =>
   roundToOneDecimal(abs / divisor)
 
 function compact(value: number) {
+  const sign = value < 0 ? '-' : ''
   const abs = Math.abs(value)
-  const sign = value < 0 && compactUnit(abs, 1) > 0 ? '-' : ''
   if (abs < 1_000) {
     const rounded = compactUnit(abs, 1)
     // Rounding can carry 999.95 up to the next unit.
@@ -156,13 +156,16 @@ export function formatValueInCurrency(
   { decimals, trailingZeroDisplay }: ValueFormatOptions = {}
 ) {
   if (!Number.isFinite(value)) return NOT_AVAILABLE
-  return normalizeMinusSign(
+  const text = normalizeMinusSign(
     FORMATTERS[format](value, {
       decimals: decimalPlaces(decimals),
       trailingZeroDisplay,
       currencyCode
     })
   )
+  // A value that rounds to zero keeps Intl's minus (-0, -$0). signDisplay
+  // 'negative' would drop it, but engines before 2023 throw on that value.
+  return /[1-9]/.test(text) ? text : text.replace('-', '')
 }
 
 export function formatDelta(
