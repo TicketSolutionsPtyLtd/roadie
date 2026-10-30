@@ -262,37 +262,24 @@ describe('validateDashboard with chart plots', () => {
     )
   })
 
-  it('checks the bar comparison field', () => {
-    expect(
-      paths(
-        spec([
-          chartCard({
-            kind: 'bar',
-            data: rows,
-            x: 'day',
-            y: 'sold',
-            comparison: { y: 'lastPeriod' }
-          })
-        ])
-      )
-    ).toContain('sections[0].cards[0].plot.comparison.y')
-  })
-
-  it('checks the comparison field', () => {
-    expect(
-      paths(
-        spec([
-          chartCard({
-            kind: 'line',
-            data: rows,
-            x: 'day',
-            y: 'sold',
-            comparison: { y: 'lastPeriod' }
-          })
-        ])
-      )
-    ).toContain('sections[0].cards[0].plot.comparison.y')
-  })
+  it.each(['line', 'bar'] as const)(
+    'checks the %s comparison field',
+    (kind) => {
+      expect(
+        paths(
+          spec([
+            chartCard({
+              kind,
+              data: rows,
+              x: 'day',
+              y: 'sold',
+              comparison: { y: 'lastPeriod' }
+            })
+          ])
+        )
+      ).toContain('sections[0].cards[0].plot.comparison.y')
+    }
+  )
 
   it('warns on a line comparison with series, which the chart ignores', () => {
     const result = validateDashboard(
@@ -320,7 +307,7 @@ describe('validateDashboard with chart plots', () => {
     ['line', 'sold'],
     ['bar', 'day'],
     ['bar', 'sold']
-  ])(
+  ] as const)(
     'warns on a %s comparison against its own %s, which the chart ignores',
     (kind, field) => {
       const result = validateDashboard(
@@ -909,6 +896,23 @@ describe('validateDashboard checks repeated names', () => {
     })
   })
 
+  it('asks for a limit when ranked bars leave Other off', () => {
+    const plot = {
+      kind: 'ranked-bars',
+      data: [{ channel: 'Email', orders: 5 }],
+      x: 'channel',
+      y: 'orders'
+    }
+    expect(problemsOf({ ...plot, other: false })).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.limit',
+        severity: 'warning'
+      })
+    )
+    expect(problemsOf({ ...plot, other: false, limit: 5 })).toEqual([])
+    expect(problemsOf(plot)).toEqual([])
+  })
+
   it('warns that repeated ranked names add up', () => {
     expect(
       problemsOf({
@@ -1371,83 +1375,6 @@ describe('validateDashboard periods', () => {
       )
     ).toEqual([{ path: 'sections[0].cards[0].context', severity: 'warning' }])
   })
-
-  const lastPeriod = rows.map((row) => ({ ...row, lastPeriod: 1 }))
-  const comparedPlots = [
-    [
-      'line',
-      'plot.comparison',
-      {
-        kind: 'line',
-        data: lastPeriod,
-        x: 'day',
-        y: 'sold',
-        comparison: { y: 'lastPeriod' }
-      }
-    ],
-    [
-      'bar',
-      'plot.comparison',
-      {
-        kind: 'bar',
-        data: lastPeriod,
-        x: 'day',
-        y: 'sold',
-        comparison: { y: 'lastPeriod' }
-      }
-    ],
-    [
-      'small-multiples',
-      'plot.chart.comparison',
-      {
-        kind: 'small-multiples',
-        data: lastPeriod,
-        by: 'channel',
-        chart: {
-          kind: 'line',
-          x: 'day',
-          y: 'sold',
-          comparison: { y: 'lastPeriod' }
-        }
-      }
-    ]
-  ] as const
-
-  it.each(comparedPlots)(
-    'needs a period for a %s plot’s comparison',
-    (_, key, plot) => {
-      expect(problems(spec([chartCard(plot)]))).toEqual([
-        { path: `sections[0].cards[0].${key}`, severity: 'error' }
-      ])
-    }
-  )
-
-  it.each(comparedPlots)(
-    'warns that a %s plot’s comparison hides with an app’s own comparison',
-    (_, key, plot) => {
-      const result = validateDashboard(
-        withPeriod({ range: 'this-month', compare: 'similar' }, [
-          chartCard(plot)
-        ])
-      )
-      expect(result.problems).toEqual([
-        expect.objectContaining({
-          path: `sections[0].cards[0].${key}`,
-          severity: 'warning',
-          message: expect.stringContaining('"similar"')
-        })
-      ])
-    }
-  )
-
-  it.each(comparedPlots)(
-    'passes a %s plot’s comparison with a period',
-    (_, __, plot) => {
-      expect(
-        problems(withPeriod({ range: 'this-month' }, [chartCard(plot)]))
-      ).toEqual([])
-    }
-  )
 })
 
 describe('validateDashboard checks which cards set the period', () => {

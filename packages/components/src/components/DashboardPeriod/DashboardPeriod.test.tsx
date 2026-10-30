@@ -362,6 +362,16 @@ describe('DashboardPeriod', () => {
     const html = renderToString(<DashboardPeriod value={THIS_MONTH} />)
     expect(html).toContain('vs previous period')
   })
+
+  it('renders no comparison on the server for an open-ended range', () => {
+    const html = renderToString(
+      <DashboardPeriod
+        value={{ range: 'upcoming', compare: 'previous-period' }}
+      />
+    )
+    expect(html).toContain('Upcoming')
+    expect(html).not.toContain('vs previous period')
+  })
 })
 
 // An app's own presets with fixed dates, ending yesterday.
@@ -670,17 +680,233 @@ describe('DashboardPeriod compare options', () => {
       <DashboardPeriod
         today={TODAY}
         value={{ range: 'upcoming' }}
-        compareOptions={['none', 'custom', 'previous-year']}
+        compareOptions={['none', 'custom', 'previous-year', SIMILAR]}
       />
     )
     const dialog = await openPicker()
     await userEvent.click(compareSwitch(dialog))
     expect(compareSwitch(dialog)).toBeChecked()
-    expect(choice(dialog, 'Previous year')).toHaveAttribute(
+    expect(choice(dialog, 'Similar venues')).toHaveAttribute(
       'aria-pressed',
       'true'
     )
     expect(choice(dialog, 'Custom dates')).toBeDisabled()
+  })
+
+  it('offers no previous period or year for an open-ended range', async () => {
+    const { unmount } = render(
+      <DashboardPeriod today={TODAY} value={{ range: 'upcoming' }} />
+    )
+    expect(compareSwitch(await openPicker())).toBeDisabled()
+    unmount()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming' }}
+        compareOptions={['previous-period', 'previous-year']}
+      />
+    )
+    const dialog = await openPicker()
+    expect(choice(dialog, 'Previous period')).toBeDisabled()
+    expect(choice(dialog, 'Previous year')).toBeDisabled()
+  })
+
+  it('drops the previous period on Apply when the range turns open-ended', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        defaultValue={{ range: 'this-month', compare: 'previous-period' }}
+        presets={[{ value: 'this-month' }, { value: 'upcoming' }]}
+        onValueChange={onValueChange}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    await apply(dialog)
+    expect(onValueChange).toHaveBeenCalledWith({ range: 'upcoming' })
+  })
+
+  it('drops custom dates on Apply when the range turns open-ended', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        defaultValue={{
+          range: 'this-month',
+          compare: { start: '2026-09-01', end: '2026-09-30' }
+        }}
+        presets={[{ value: 'this-month' }, { value: 'upcoming' }]}
+        compareOptions={['none', 'previous-period', 'custom']}
+        onValueChange={onValueChange}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    await apply(dialog)
+    expect(onValueChange).toHaveBeenCalledWith({ range: 'upcoming' })
+  })
+
+  it('turns Compare back on with a choice that has dates, not the last one', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        defaultValue={{ range: 'this-month', compare: 'previous-period' }}
+        presets={[{ value: 'this-month' }, { value: 'upcoming' }]}
+        compareOptions={['none', 'previous-period', SIMILAR]}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(compareSwitch(dialog))
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    await userEvent.click(compareSwitch(dialog))
+    expect(choice(dialog, 'Similar venues')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+  })
+
+  it('drops a previous period it was given with an open-ended range on Apply', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming', compare: 'previous-period' }}
+        onValueChange={onValueChange}
+      />
+    )
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    await apply(dialog)
+    expect(onValueChange).toHaveBeenCalledWith({ range: 'upcoming' })
+  })
+
+  it('shows Compare off, and why, for an open-ended range it was given a previous period with', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming', compare: 'previous-period' }}
+      />
+    )
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    expect(compareSwitch(dialog)).toBeDisabled()
+    expect(compareSwitch(dialog)).toHaveAccessibleDescription(
+      'Nothing to compare'
+    )
+  })
+
+  it('says why Compare turned off with the switch when the range loses its end', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        defaultValue={{ range: 'this-month', compare: 'previous-period' }}
+        presets={[{ value: 'this-month' }, { value: 'upcoming' }]}
+      />
+    )
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).not.toHaveAccessibleDescription()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    expect(compareSwitch(dialog)).toHaveAccessibleDescription(
+      'Nothing to compare'
+    )
+  })
+
+  it('says nothing about an open-ended range while an app choice can compare', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming', compare: 'previous-period' }}
+        compareOptions={['none', 'previous-period', SIMILAR]}
+      />
+    )
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    expect(compareSwitch(dialog)).toBeEnabled()
+    expect(compareSwitch(dialog)).not.toHaveAccessibleDescription()
+  })
+
+  it('selects no choice for an open-ended range without a Compare switch', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming', compare: 'previous-period' }}
+        compareOptions={['previous-period', 'previous-year']}
+      />
+    )
+    const dialog = await openPicker()
+    expect(choice(dialog, 'Previous period')).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+    expect(compareDates(dialog)).toHaveTextContent('Nothing to compare')
+  })
+
+  it('brings the previous period back when the range gets an end again', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        defaultValue={{ range: 'this-month', compare: 'previous-period' }}
+        presets={[{ value: 'this-month' }, { value: 'upcoming' }]}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^This month/ })
+    )
+    expect(compareSwitch(dialog)).toBeChecked()
+    expect(choice(dialog, 'Previous period')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+  })
+
+  it.each([
+    ['the previous period', 'previous-period'],
+    ['the previous year', 'previous-year'],
+    ['custom dates', { start: '2026-09-01', end: '2026-09-30' }]
+  ] as const)(
+    'reads no comparison with %s it was given with an open-ended range',
+    (_, compare) => {
+      render(
+        <DashboardPeriod
+          today={TODAY}
+          value={{ range: 'upcoming', compare }}
+          compareOptions={[
+            'none',
+            'previous-period',
+            'previous-year',
+            'custom'
+          ]}
+        />
+      )
+      expect(picker()).toHaveTextContent('Upcoming')
+      expect(picker()).not.toHaveTextContent('vs')
+    }
+  )
+
+  it('still reads an app comparison with an open-ended range', () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming', compare: 'similar' }}
+        compareOptions={['none', 'previous-period', SIMILAR]}
+      />
+    )
+    expect(picker()).toHaveTextContent('vs similar venues')
   })
 
   it('leaves out app values that are Roadie’s, and repeats, with a warning', async () => {

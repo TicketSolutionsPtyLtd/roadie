@@ -190,6 +190,10 @@ shows.
   [LineChart](/charts/line-chart#days-out) with `xFormat='daysOut'` lines them
   up and counts down to the event, and `xFormat='eventTime'` compares times on
   the [event clock](/charts/line-chart#event-clock).
+- Values read to their format's places. When a small difference matters, such
+  as 1.27% sold, set `decimals` on the chart or card. To drop the cents from
+  whole amounts, set `trailingZeroDisplay` to `'stripIfInteger'`. Shares
+  follow the same places. Axis ticks stay short either way.
 
 ## Writing for charts
 
@@ -203,7 +207,7 @@ each part of a chart.
 | Title                  | States the takeaway with a number or direction. Sentence case, active voice, no colon, no full stop. | Presales doubled after the lineup drop                                               | Presales over time                                |
 | Subtitle               | One full sentence with what was measured, where and when.                                            | Tickets sold per day across all Apricot Cyclone Fest ticket types.                   | tix/day, all TTs                                  |
 | Numbers                | Numerals for every value, commas for thousands, closed-up percent.                                   | 12,480 tickets, 68%                                                                  | twelve thousand, 68 %                             |
-| Money                  | Dollar sign with no space, cents only when the amount isn’t round.                                   | $19.95, $1,200                                                                       | $ 20.00                                           |
+| Money                  | Dollar sign with no space. Full amounts show cents, so figures line up, and compact amounts round.   | $19.95, $1,200.00, $118.4k                                                           | $ 20.00, $1200                                    |
 | Spans                  | Use “to”, never a dash.                                                                              | $50 to $100, Fri 27 to Sun 29 Nov                                                    | $50–$100                                          |
 | Dates and times        | Follow the date and time foundation. 24-hour time only on dense axes and in exports.                 | Fri 27 Nov, 7:30pm                                                                   | 27th Nov, 7:30 PM                                 |
 | Terms                  | Use house terms and one name per metric everywhere it appears.                                       | Ticket type, access code, scan rate                                                  | Ticket category, promo code, entries              |

@@ -8,6 +8,7 @@ import {
 import {
   type ComparisonOptions,
   type ResolvedDateRange,
+  calendarUnit,
   isBuiltInComparison,
   resolveComparison,
   resolveDateRange
@@ -47,13 +48,36 @@ function dayRange(range: ResolvedDateRange | null): DayRange | null {
     : null
 }
 
-/** The same date a year earlier, or null for 29 February. */
-function sameDateYearEarlier(day: number): number | null {
+/** The same date `months` earlier, or null when that month is too short. */
+function sameDateMonthsEarlier(day: number, months: number): number | null {
   const date = fromDayNumber(day)
-  const earlier = addMonths(date, -12)
+  const earlier = addMonths(date, -months)
   return plainDateParts(earlier).day === plainDateParts(date).day
     ? dayNumber(earlier)
     : null
+}
+
+declare const process: { env?: { NODE_ENV?: string } } | undefined
+
+const warned = new Set<string>()
+
+function warnInstants(period: AlignComparisonOptions['period']) {
+  if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
+    return
+  const key = JSON.stringify(period)
+  if (warned.has(key)) return
+  warned.add(key)
+  console.warn(
+    `Roadie's alignComparison lines up whole days, so the period ${key}, whose range or comparison has times, gets no comparison values.`
+  )
+}
+
+/** How many months back each day's match is, when the period is in months. */
+function monthsBack(options: AlignComparisonOptions): number | null {
+  const { range, compare } = options.period
+  if (compare === 'previous-year') return options.alignWeekday ? null : 12
+  const unit = compare === 'previous-period' ? calendarUnit(range) : null
+  return unit && 'months' in unit ? unit.months : null
 }
 
 function comparisonDays(options: AlignComparisonOptions) {
@@ -63,24 +87,32 @@ function comparisonDays(options: AlignComparisonOptions) {
   if (resolved.status === 'unavailable') return null
   const current = dayRange(resolveDateRange(range, options))
   const compared = dayRange(resolved.range)
-  if (!current || !compared) return null
-  const sameDates = compare === 'previous-year' && !options.alignWeekday
+  if (!current || !compared) {
+    warnInstants(options.period)
+    return null
+  }
+  const months = monthsBack(options)
   const first = options.dataStart ? dayNumber(options.dataStart) : -Infinity
   return (day: number): number | null => {
     if (day < current.start || day > current.end) return null
-    const then = sameDates
-      ? sameDateYearEarlier(day)
-      : compared.start + day - current.start
+    const then =
+      months === null
+        ? compared.start + day - current.start
+        : sameDateMonthsEarlier(day, months)
     return then !== null && then >= first && then <= compared.end ? then : null
   }
 }
 
 /**
- * This period's rows, each with the comparison's value under `as`. Rows line
- * up day by day from each range's start, at the same time of day, so a month
- * lines up with a shorter one; the previous year keeps its dates, or its
- * weekdays with `alignWeekday`. A row the comparison doesn't cover, or that
- * falls before `dataStart`, gets null.
+ * This period's rows, each with the comparison's value under `as`, at the
+ * same time of day. The previous period of a month, quarter or year keeps the
+ * day of the month, and the previous year keeps its dates, or its weekdays
+ * with `alignWeekday`; any other period lines up day by day from each range's
+ * start. A row the comparison doesn't cover, one before `dataStart`, or a day
+ * the earlier month lacks gets null. Where comparison rows repeat an x (and
+ * series), the first one counts. A period or comparison with times, such as
+ * the past 6 hours, resolves to instants rather than days, so every row gets
+ * null; it warns in development.
  */
 export function alignComparison(
   rows: readonly PlotRow[],

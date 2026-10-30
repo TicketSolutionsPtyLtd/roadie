@@ -98,6 +98,51 @@ describe('DataCard', () => {
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
   })
 
+  it.each([
+    ['empty', undefined],
+    ['error', 'danger']
+  ] as const)(
+    'shows the %s state as an empty state, with its icon tile',
+    (state, intent) => {
+      const { container } = render(
+        <DataCard label='Sales pace' size='md' state={state} />
+      )
+      const empty = container.querySelector('[data-slot=empty-state]')
+      expect(empty).not.toBeNull()
+      expect(empty?.classList.contains('intent-danger')).toBe(
+        intent === 'danger'
+      )
+      expect(
+        empty?.querySelector('[data-slot=empty-state-icon-tile]')
+      ).not.toBeNull()
+    }
+  )
+
+  it('keeps a stat tile’s empty state to its message', () => {
+    const { container } = render(
+      <DataCard label='Sold' size='stat' state='empty' />
+    )
+    expect(
+      container.querySelector('[data-slot=empty-state-icon-tile]')
+    ).toBeNull()
+    expect(
+      container.querySelector('[data-slot=empty-state-title]')
+    ).not.toBeNull()
+  })
+
+  it('puts the error action under the message', () => {
+    const { container } = render(
+      <DataCard
+        label='Sales pace'
+        state='error'
+        errorAction={<button type='button'>Retry</button>}
+      />
+    )
+    expect(
+      container.querySelector('[data-slot=empty-state-actions] button')
+    ).toHaveTextContent('Retry')
+  })
+
   it('marks stale data in the footer', () => {
     render(
       <DataCard

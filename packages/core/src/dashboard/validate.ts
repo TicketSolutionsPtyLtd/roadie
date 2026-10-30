@@ -450,6 +450,17 @@ function plotProblems(plot: ChartPlot, path: string) {
         `${count} series. The smallest will roll into Other after ${SERIES_CAP}`
       )
     )
+  if (
+    plot.kind === 'ranked-bars' &&
+    plot.other === false &&
+    plot.limit === undefined
+  )
+    problems.push(
+      warning(
+        `${plotPath}.limit`,
+        'Set limit too, so the label can say how many bars show'
+      )
+    )
   const chart = plot.kind === 'small-multiples' ? plot.chart : plot
   const chartPath =
     plot.kind === 'small-multiples' ? `${plotPath}.chart` : plotPath
@@ -654,44 +665,12 @@ function deltaProblems(
     : []
 }
 
-/** A plot's comparison follows the period, as a comparison delta does. */
-function plotComparisonProblems(
-  card: DashboardCard,
-  path: string,
-  period: DashboardPeriodSpec | undefined
-) {
-  if (card.kind !== 'chart') return []
-  const { plot } = card
-  const chart = plot.kind === 'small-multiples' ? plot.chart : plot
-  if ((chart.kind !== 'line' && chart.kind !== 'bar') || !chart.comparison)
-    return []
-  const comparisonPath = `${path}.plot${plot === chart ? '' : '.chart'}.comparison`
-  if (!period)
-    return [
-      error(
-        comparisonPath,
-        'Add a period to the dashboard, so this comparison has something to compare with'
-      )
-    ]
-  if (period.compare && !isBuiltInComparison(period.compare))
-    return [
-      warning(
-        comparisonPath,
-        `"${period.compare}" is the app's own comparison, so the chart leaves this comparison out. Leave out comparison`
-      )
-    ]
-  return []
-}
-
 function cardProblems(
   card: DashboardCard,
   path: string,
   period: DashboardPeriodSpec | undefined
 ) {
-  const problems: DashboardProblem[] = [
-    ...deltaProblems(card, path, period),
-    ...plotComparisonProblems(card, path, period)
-  ]
+  const problems: DashboardProblem[] = deltaProblems(card, path, period)
   if (!ALLOWED_SIZES[card.kind].includes(card.size))
     problems.push(
       error(

@@ -46,9 +46,14 @@ export type DashboardViewProps = {
   cardActions?: (card: DashboardCard) => ReactNode
   /**
    * Links a table card's row to its own page, such as a show to its event
-   * view. Like actions, links come from the app rather than the spec.
+   * view. Like actions, links come from the app rather than the spec. It gets
+   * the dashboard's period, so a link can open the same dates.
    */
-  getRowHref?: (card: TableCard, row: TableRow) => string | undefined
+  getRowHref?: (
+    card: TableCard,
+    row: TableRow,
+    period: DashboardPeriodSpec | undefined
+  ) => string | undefined
   /**
    * Called with the period and comparison chosen in the toolbar, without
    * `history`: resolve them, fetch, and pass back a spec with the new
@@ -72,19 +77,34 @@ export type DashboardViewPeriodProps = Omit<
   'value' | 'defaultValue' | 'onValueChange' | 'readOnly'
 >
 
+declare const process: { env?: { NODE_ENV?: string } } | undefined
+
+const warned = new Set<string>()
+
+function warnOnce(message: string) {
+  if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
+    return
+  if (warned.has(message)) return
+  warned.add(message)
+  console.error(message)
+}
+
 const HISTORY_MESSAGE = {
   partial: 'Not enough history',
   unavailable: 'Nothing to compare'
 } as const
 
+// validateDashboard rejects these; an unchecked spec still renders, and says why.
 function comparisonLine(
   compare: Comparison,
   where: DescribeComparisonOptions
 ): string {
   try {
     return describeComparison(compare, where)
-  } catch {
-    // validateDashboard rejects custom date-times; an unchecked spec still renders.
+  } catch (error) {
+    warnOnce(
+      `DashboardView: couldn't describe the comparison, so it reads "vs custom dates": ${error instanceof Error ? error.message : String(error)}`
+    )
     return 'vs custom dates'
   }
 }
@@ -170,10 +190,6 @@ const selectsPeriod = (card: DashboardCard) =>
   'selectsPeriod' in card.plot &&
   card.plot.selectsPeriod === true
 
-declare const process: { env?: { NODE_ENV?: string } } | undefined
-
-const warned = new Set<string>()
-
 function warnUnwired(spec: DashboardSpec) {
   if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
     return
@@ -246,6 +262,8 @@ function Card({
           {...common}
           value={card.value}
           format={card.format}
+          decimals={card.decimals}
+          trailingZeroDisplay={card.trailingZeroDisplay}
           delta={delta}
           trend={card.trend}
           reference={card.reference}
@@ -258,6 +276,8 @@ function Card({
           size={size}
           value={card.value}
           format={card.format}
+          decimals={card.decimals}
+          trailingZeroDisplay={card.trailingZeroDisplay}
           delta={delta}
           takeaway={card.takeaway}
         >
@@ -268,7 +288,7 @@ function Card({
             columns={card.columns}
             rows={card.rows}
             caption={card.label}
-            getRowHref={getRowHref && ((row) => getRowHref(card, row))}
+            getRowHref={getRowHref && ((row) => getRowHref(card, row, period))}
           />
         </DataCard>
       )
@@ -280,6 +300,8 @@ function Card({
           size={size}
           value={card.value}
           format={card.format}
+          decimals={card.decimals}
+          trailingZeroDisplay={card.trailingZeroDisplay}
           delta={delta}
           takeaway={card.takeaway}
           view={card.view}

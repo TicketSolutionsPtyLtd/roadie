@@ -656,8 +656,9 @@ because actions aren’t part of the JSON.
   `pin` column in place.
 - A sparkline cell needs 5 points. With fewer, it shows “Not enough history”.
 - To open a row, such as a show’s event view, pass `getRowHref` to
-  `DashboardView`. It gets the table card and the row and returns an href, or
-  nothing. Like actions, links come from the app, never the JSON.
+  `DashboardView`. It gets the table card, the row, and the dashboard's
+  period, and returns an href, or nothing. Like actions, links come from the
+  app, never the JSON.
 
 ```tsx
 <DashboardView
@@ -729,36 +730,54 @@ can list its own comparisons, such as similar venues, in
   is. Roadie works out no dates for it, so it counts as no comparison: deltas
   marked `comparison: true` hide and `history` is ignored. Give those cards a
   delta of their own, with a context line that names the benchmark.
-- To open a card’s records for the same dates, read `spec.period` in
-  `getRowHref`. A relative period becomes a records `within` filter, and
-  custom dates a `between` filter.
+- To open a card’s records for the same dates, use the period `getRowHref`
+  gets as its third argument. A relative period becomes a records `within`
+  filter, and custom dates a `between` filter.
 - A line or bar card’s plot can carry a `comparison`, a field on the same
-  rows, and it follows the period the way a comparison delta does, in small
-  multiples’ panels too. It’s drawn only while the period compares with
-  Roadie’s previous period, previous year or custom dates, and `history` isn’t
-  `unavailable`. It’s named by the comparison, such as “Previous period”, or
-  “Custom dates” when the dates are too long for a series label. Line the rows
-  up with `alignComparison`, below. The
-  [portfolio dashboard](/charts/portfolio-dashboard) draws its daily sales
-  this way.
+  rows ([line](/charts/line-chart#comparison),
+  [bar](/charts/bar-chart#comparison)), and it follows the period the way a
+  comparison delta does, in small multiples’ panels too. It’s drawn only
+  while the period compares with Roadie’s previous period, previous year or
+  custom dates, and `history` isn’t `unavailable`. It’s named by the
+  comparison, such as “Previous period”, or “Custom dates” when the dates are
+  too long for a series label. Line the rows up with `alignComparison`, below.
+  The [portfolio dashboard](/charts/portfolio-dashboard) draws its daily sales
+  this way. Other charts don’t draw one, so show it as a delta there and say
+  what it compares with.
 
 To set this period's rows against the comparison's day by day, pass both sets
 of rows to `alignComparison` from `@oztix/roadie-core/dashboard`, with the
-period and the same options. Rows line up from each range's start, at the same
-time of day, so a month lines up with a shorter one. The previous year keeps
-its dates, or its weekdays with `alignWeekday`, so Mondays line up with
-Mondays. For rows with a `series` field, as a line plot takes them, name it in
-`series` so each series lines up with its own. A day the comparison doesn't
-cover, or one before `dataStart`, gets `null`.
+period and the same options. Each row meets the comparison's row at the same
+time of day. The previous period of a month, quarter, or year keeps the day of
+the month, so 1 March meets 1 December, and a day the earlier month lacks,
+such as 31 October against September, gets `null`. The previous year keeps its
+dates, or its weekdays with `alignWeekday`, so Mondays line up with Mondays.
+Weeks, days, rolling ranges, and fixed dates line up day by day from each
+range's start. For rows with a `series` field, as a line plot takes them, name
+it in `series` so each series lines up with its own. A day the comparison
+doesn't cover, or one before `dataStart`, gets `null`, and where comparison
+rows repeat a day, the first one counts.
+
+It lines up whole days, so a period or comparison with times, such as the past
+6 hours or fixed dates with times, gives every row `null` and warns in
+development.
 
 ```ts
-const rows = alignComparison(sales.days(range), sales.days(compared.range), {
-  ...options,
-  period,
-  x: 'day',
-  y: 'sold',
-  as: 'lastPeriod'
-})
+const range = resolveDateRange(period.range, options)
+const compared =
+  period.compare && isBuiltInComparison(period.compare)
+    ? resolveComparison(period.range, period.compare, options)
+    : null
+// No comparison, or one with no dates, leaves the rows as they are.
+const rows = compared?.range
+  ? alignComparison(sales.days(range), sales.days(compared.range), {
+      ...options,
+      period,
+      x: 'day',
+      y: 'sold',
+      as: 'lastPeriod'
+    })
+  : sales.days(range)
 // [{ day: '2026-10-01', sold: 42, lastPeriod: 36 }, …]
 ```
 

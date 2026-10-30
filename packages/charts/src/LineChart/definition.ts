@@ -2,8 +2,6 @@ import { type ChartMark, areaY, defineChart, lineY } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 
-import { formatValue } from '@oztix/roadie-core/dataviz'
-
 import type { ChartLegendItem } from '../ChartLegend'
 import {
   type LinePoint,
@@ -44,7 +42,7 @@ import type {
 import {
   axisFormat,
   finiteOrNull,
-  fullFormat,
+  fullValue,
   gridTicks,
   labelFormat
 } from '../plot/values'
@@ -125,7 +123,7 @@ function endLabels(
   for (const style of series) {
     const last = lastValue(points, style.name)
     if (!last || last.y === null) continue
-    const value = labelFormat(props.format, last.y)
+    const value = labelFormat(props, last.y)
     const single = series.length === 1
     labels.push({
       text:
@@ -149,7 +147,7 @@ function endLabels(
     labels.push({ text: today.label, y: today.y, tone: 'value' })
   if (props.target !== undefined)
     labels.push({
-      text: `Target ${labelFormat(props.format, props.target)}`,
+      text: `Target ${labelFormat(props, props.target)}`,
       y: props.target,
       tone: 'value',
       pinned: true
@@ -158,7 +156,7 @@ function endLabels(
   const comparisonEnd = comparisonPoints(props).findLast((p) => p.y !== null)
   if (comparison && comparisonEnd?.y != null)
     labels.push({
-      text: `${comparison} ${labelFormat(props.format, comparisonEnd.y)}`,
+      text: `${comparison} ${labelFormat(props, comparisonEnd.y)}`,
       y: comparisonEnd.y,
       tone: 'label'
     })
@@ -166,7 +164,7 @@ function endLabels(
   const medianEnd = median ? lastFieldValue(props, median) : undefined
   if (medianEnd !== undefined)
     labels.push({
-      text: `${props.band?.label ?? TYPICAL_RANGE} ${labelFormat(props.format, medianEnd)}`,
+      text: `${props.band?.label ?? TYPICAL_RANGE} ${labelFormat(props, medianEnd)}`,
       y: medianEnd,
       tone: 'label'
     })
@@ -296,7 +294,7 @@ function todayPoint(
     : {
         x,
         y: point.y,
-        label: `Today ${labelFormat(props.format, point.y)}`
+        label: `Today ${labelFormat(props, point.y)}`
       }
 }
 
@@ -350,7 +348,7 @@ function aidKeys(
       ? []
       : [
           {
-            label: `Target ${labelFormat(props.format, props.target)}`,
+            label: `Target ${labelFormat(props, props.target)}`,
             shape: 'line' as const,
             color: paint.value
           }
@@ -484,7 +482,7 @@ export const lineChart: ChartDefinition<LineChartProps> = {
       const lead = names
         .map((name) => points.findLast((p) => p.series === name)!)
         .reduce((a, b) => (b.y! > a.y! ? b : a))
-      return `${lead.series} ends highest of ${names.length} ${plural(fieldLabel(props.series).toLowerCase())}, with ${describeValue(lead.y, props.format, seriesLabel(props).toLowerCase())} on ${label(lead.x)}`
+      return `${lead.series} ends highest of ${names.length} ${plural(fieldLabel(props.series).toLowerCase())}, with ${describeValue(lead.y, props, seriesLabel(props).toLowerCase())} on ${label(lead.x)}`
     }
     const first = points[0]
     const last = points.at(-1)
@@ -496,7 +494,7 @@ export const lineChart: ChartDefinition<LineChartProps> = {
       last: last.y,
       from: label(first.x),
       to: label(last.x),
-      format: props.format
+      style: props
     })
   },
   emptyMessage: (props) =>
@@ -525,7 +523,7 @@ export const lineChart: ChartDefinition<LineChartProps> = {
     )
     const value = describeValue(
       datum.y,
-      props.format,
+      props,
       seriesLabel(props).toLowerCase()
     )
     const compared = comparisonAt(props, datum.x)
@@ -535,9 +533,7 @@ export const lineChart: ChartDefinition<LineChartProps> = {
       ...(props.series ? [datum.series] : []),
       ...(isForecast(props, datum.x) ? ['forecast'] : []),
       ...(compared
-        ? [
-            `${lowerFirst(compared.label)} ${formatValue(compared.y, fullFormat(props.format))}`
-          ]
+        ? [`${lowerFirst(compared.label)} ${fullValue(props, compared.y)}`]
         : [])
     ]
     return parts.join(', ')
@@ -558,10 +554,7 @@ export const lineChart: ChartDefinition<LineChartProps> = {
           label: isForecast(props, d.x)
             ? `${d.series} ${FORECAST_LABEL.toLowerCase()}`
             : d.series,
-          value:
-            d.y === null
-              ? 'No data'
-              : formatValue(d.y, fullFormat(props.format)),
+          value: d.y === null ? 'No data' : fullValue(props, d.y),
           color: styled.find((s) => s.name === d.series)?.color,
           shape: 'line' as const
         })),
@@ -569,7 +562,7 @@ export const lineChart: ChartDefinition<LineChartProps> = {
           ? [
               {
                 label: compared.label,
-                value: formatValue(compared.y, fullFormat(props.format)),
+                value: fullValue(props, compared.y),
                 color: paint.context,
                 shape: 'line' as const
               }

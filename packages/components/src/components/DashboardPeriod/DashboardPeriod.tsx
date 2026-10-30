@@ -195,6 +195,25 @@ function compared(
   }
 }
 
+// Whether a range is open-ended doesn't depend on the day, so the server can tell.
+const ANY_DAY: ComparisonOptions = { now: new Date(0), timeZone: 'UTC' }
+
+/** An open-ended range, such as upcoming, has nothing of Roadie's to compare with. */
+function hasSpan(
+  range: DateRangeValue | null,
+  options: ComparisonOptions | null
+): boolean {
+  if (!range) return true
+  try {
+    return (
+      resolveComparison(range, 'previous-period', options ?? ANY_DAY).range !==
+      null
+    )
+  } catch {
+    return true
+  }
+}
+
 /**
  * A dashboard's period, with what it compares with, in one picker. Its layout
  * follows its own width, so in an `inline-flex` parent or an `auto` grid track
@@ -353,6 +372,7 @@ export function DashboardPeriod<App extends string = never>({
     choice: string,
     range: DateRangeValue | null
   ): Comparison<App> | undefined {
+    if (RESERVED.includes(choice) && !hasSpan(range, options)) return undefined
     if (choice !== 'custom') return choice as Comparison<App>
     return (
       lastCustom ??
@@ -364,42 +384,57 @@ export function DashboardPeriod<App extends string = never>({
   const shown = value.compare
     ? compared(value.range, value.compare, options, locale)
     : null
-  const named = value.compare
-    ? isBuiltInComparison(value.compare)
-      ? (shown?.dates ??
-        BUILT_IN[choiceOf(value.compare) as keyof typeof BUILT_IN])
-      : appChoice(value.compare)?.label
-    : undefined
+  const named = !value.compare
+    ? undefined
+    : !isBuiltInComparison(value.compare)
+      ? appChoice(value.compare)?.label
+      : hasSpan(value.range, options)
+        ? (shown?.dates ??
+          BUILT_IN[choiceOf(value.compare) as keyof typeof BUILT_IN])
+        : undefined
   const suffix = named ? `vs ${inSentence(named, locale)}` : null
 
   const compareRow = (range: DateRangeValue | null) => {
     const current = compare ? compared(range, compare, options, locale) : null
-    const choice = compare ? choiceOf(compare) : null
+    // Kept in the edit, so it comes back if the range gets an end again.
+    const blocked =
+      !!compare && isBuiltInComparison(compare) && !hasSpan(range, options)
+    const live = blocked ? undefined : compare
+    const choice = live ? choiceOf(live) : null
     const customDates =
-      customEditable && choice === 'custom' ? customOf(compare) : null
-    const line = compare
-      ? isBuiltInComparison(compare)
-        ? (current?.note ?? (customDates ? null : current?.dates))
-        : appChoice(compare)?.description
-      : null
-    const groupShown = !!compare || !switchShown
+      customEditable && choice === 'custom' ? customOf(live) : null
+    const anyDates = choices.some((option) =>
+      comparisonFor(option.value, range)
+    )
+    // Why Compare is off, read with the switch, or under the choices without one.
+    const reason = blocked && !anyDates ? current?.note : undefined
+    const line = blocked
+      ? switchShown
+        ? null
+        : reason
+      : live
+        ? isBuiltInComparison(live)
+          ? (current?.note ?? (customDates ? null : current?.dates))
+          : appChoice(live)?.description
+        : null
+    const groupShown = !!live || !switchShown
     return (
       <div data-slot='dashboard-period-compare' className='grid gap-3'>
         {switchShown && (
           <Switch
             label='Compare'
-            checked={!!compare}
-            disabled={
-              !compare &&
-              !choices.some((option) => comparisonFor(option.value, range))
-            }
+            description={reason}
+            checked={!!live}
+            disabled={!live && !anyDates}
             onCheckedChange={(on) =>
               editCompare(
                 on
-                  ? (lastChoice ??
+                  ? (lastChoice &&
+                      comparisonFor(choiceOf(lastChoice), range) &&
+                      lastChoice) ||
                       choices
                         .map((option) => comparisonFor(option.value, range))
-                        .find(Boolean))
+                        .find(Boolean)
                   : undefined
               )
             }
@@ -496,7 +531,14 @@ export function DashboardPeriod<App extends string = never>({
         valueSuffix={suffix}
         extra={choices.length > 0 ? compareRow : undefined}
         onApply={(range) => {
-          const next = periodOf(range ?? value.range, compare)
+          const nextRange = range ?? value.range
+          const kept =
+            compare &&
+            isBuiltInComparison(compare) &&
+            !hasSpan(nextRange, options)
+              ? undefined
+              : compare
+          const next = periodOf(nextRange, kept)
           if (
             !sameRange(next.range, value.range) ||
             !sameComparison(next.compare, value.compare)

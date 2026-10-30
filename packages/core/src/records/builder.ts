@@ -1,4 +1,4 @@
-import type { ValueFormat } from '../dataviz/format'
+import type { ValueFormat, ValueFormatOptions } from '../dataviz/format'
 import { identifierPattern } from './pattern'
 import type {
   RecordField,
@@ -29,7 +29,9 @@ export type OptionFieldOptions = Common & {
  * coordinates.
  */
 export type LocationFieldOptions = Common & { options?: RecordOption[] }
-export type NumberFieldOptions = Common & { format?: ValueFormat }
+export type NumberFieldOptions = Common & {
+  format?: ValueFormat
+} & ValueFormatOptions
 export type MoneyFieldOptions<Row> = NumberFieldOptions & {
   currency?: string
   currencyKey?: KeyOf<Row>
