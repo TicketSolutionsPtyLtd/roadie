@@ -77,7 +77,9 @@ const TYPICAL_RANGE = 'Typical range'
 const DAY = 86_400_000
 
 const lowerFirst = (text: string) =>
-  text.charAt(0).toLowerCase() + text.slice(1)
+  /^[A-Z]{2,}s?\b/.test(text)
+    ? text
+    : text.charAt(0).toLowerCase() + text.slice(1)
 
 function comparisonAt(props: LineChartProps, x: number | string) {
   const label = comparisonLabel(props)
@@ -319,7 +321,15 @@ function aidKeys(
   )
   return [
     ...(comparison
-      ? [{ label: comparison, shape: 'line' as const, color: paint.context }]
+      ? [
+          // Only beside a lone series, so it borrows series 2's dash.
+          {
+            label: comparison,
+            shape: 'line' as const,
+            color: paint.context,
+            slot: 2
+          }
+        ]
       : []),
     ...(forecastOwner
       ? [

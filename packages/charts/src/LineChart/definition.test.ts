@@ -465,6 +465,16 @@ describe('lineChart comparison', () => {
     )
   })
 
+  it('keeps an acronym in the spoken comparison', () => {
+    const props = {
+      ...comparisonExample,
+      comparison: { y: 'lastPeriod', label: 'LY tickets' }
+    }
+    expect(lineChart.describe(at(2), props)).toBe(
+      'Tuesday, 18 August 2026, 51 tickets, LY tickets 44'
+    )
+  })
+
   it('tabulates the comparison after the series', () => {
     const table = lineChartTable(comparisonExample)
     expect(table.columns.map((c) => c.header)).toEqual([
