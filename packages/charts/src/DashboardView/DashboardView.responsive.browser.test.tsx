@@ -95,10 +95,12 @@ describe('a donut card', () => {
     ]
   })
 
-  // A 390px phone leaves 358px; a 1440px desktop, about 1376px.
+  // A tablet gives sm and md half its width, the narrowest donut card. A
+  // 1440px desktop leaves about 1376px.
   it.each([
-    ['phone', 358, 'md'],
-    ['phone', 358, 'full'],
+    ['phone', PHONE_CONTENT_WIDTH, 'md'],
+    ['tablet', TABLET_CONTENT_WIDTH, 'sm'],
+    ['tablet', TABLET_CONTENT_WIDTH, 'md'],
     ['desktop', 1376, 'sm'],
     ['desktop', 1376, 'full']
   ] as const)(
