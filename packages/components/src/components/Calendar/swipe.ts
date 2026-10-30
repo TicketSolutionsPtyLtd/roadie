@@ -10,6 +10,8 @@ import {
 
 import { flushSync } from 'react-dom'
 
+import { plainDateParts } from '@oztix/roadie-core/datetime'
+
 import { durationToken, easingToken } from '../../utils/motionTokens'
 import { prefersReducedMotion } from '../../utils/reducedMotion'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
@@ -544,7 +546,7 @@ export function useSwipeToTurn(
         const row = document.createElement('div')
         for (const [date, box] of days) {
           const day = document.createElement('span')
-          day.textContent = String(Number(date.slice(8)))
+          day.textContent = String(plainDateParts(date).day)
           Object.assign(day.style, {
             position: 'absolute',
             display: 'grid',
