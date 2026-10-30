@@ -43,6 +43,7 @@ import {
   dayLabel,
   monthLabel,
   monthNames,
+  nextAnnouncement,
   rangeLabel,
   weekCaption,
   weekdayNames
@@ -777,15 +778,17 @@ export function Calendar(props: CalendarProps) {
     if (selectionMessage) messages.push(selectionMessage)
     setHeard({ mode, selectionKey, selection, month: shownMonthKey, view })
     if (toggledView) setToggledView(null)
-    if (messages.length) setAnnouncement(messages.join('. '))
+    if (messages.length) {
+      const message = messages.join('. ')
+      setAnnouncement((said) => nextAnnouncement(said, message))
+    }
   }
 
   function select(date: string) {
     if (isDayDisabled(date)) return
     if (isOutOfRange(date)) {
       const rule = lengthRule({ min, max })
-      // Changed text, so a second refusal is heard again.
-      setAnnouncement((said) => (said === rule ? `${rule}\u00a0` : rule))
+      setAnnouncement((said) => nextAnnouncement(said, rule))
       return
     }
     const next = selectDate(mode, selection, date, { required, min, max })
