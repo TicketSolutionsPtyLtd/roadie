@@ -32,7 +32,10 @@ describe('encodeFilter with stray values', () => {
     [{ field: 'a', operator: 'eq', value: null }, 'a:eq'],
     [{ field: 'a', operator: 'is-true', value: null }, 'a:is-true'],
     [{ field: 'a', operator: 'is-set', value: undefined }, 'a:is-set'],
-    [{ field: 'a', operator: 'near', value: 'x' }, 'a:near']
+    [{ field: 'a', operator: 'near', value: 'x' }, 'a:near'],
+    [{ field: 'a', operator: 'is-set', values: ['x'] }, 'a:is-set'],
+    [{ field: 'a', operator: 'is-true', values: null }, 'a:is-true'],
+    [{ field: 'a', operator: 'near', values: ['x'] }, 'a:near']
   ])('writes %j as %s', (filter, encoded) => {
     expect(encodeFilter(filter as unknown as RecordFilter)).toBe(encoded)
   })

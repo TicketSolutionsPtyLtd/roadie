@@ -70,15 +70,14 @@ export function decodeRange(text: string): RelativeRange | string {
 /** One chip as `field:operator[:value]`. */
 export function encodeFilter(filter: RecordFilter): string {
   const head = `${escapeKey(filter.field)}:${filter.operator}`
-  if ('values' in filter) return `${head}:${joinItems(filter.values)}`
   // A stored or hand-written filter may carry a stray value, which reads as none.
   if (
-    !('value' in filter) ||
-    filter.value == null ||
     !isRecordOperator(filter.operator) ||
     recordOperatorSpec(filter.operator).value === 'none'
   )
     return head
+  if ('values' in filter) return `${head}:${joinItems(filter.values)}`
+  if (!('value' in filter) || filter.value == null) return head
   const { value } = filter
   if (Array.isArray(value)) return `${head}:${joinItems(value.map(String))}`
   if (typeof value === 'object') return `${head}:${encodeRange(value)}`
