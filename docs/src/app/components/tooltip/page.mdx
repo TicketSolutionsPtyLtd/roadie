@@ -24,7 +24,7 @@ Pass the control to `Tooltip.Trigger` with `render`. The control keeps its own a
 
 ```tsx-live
 <Tooltip>
-  <Tooltip.Trigger render={<IconButton aria-label='Edit'><PencilSimple weight='bold' className='size-4' /></IconButton>} />
+  <Tooltip.Trigger render={<IconButton aria-label='Edit'><PencilSimpleIcon weight='bold' className='size-4' /></IconButton>} />
   <Tooltip.Content>
     <Tooltip.Arrow />
     Edit
@@ -98,10 +98,10 @@ Wrap related controls in `Tooltip.Provider`. The first tooltip waits for the del
 <Tooltip.Provider>
   <div className='flex gap-2'>
     {[
-      { label: 'Edit', Icon: PencilSimple },
-      { label: 'Favourite', Icon: Heart },
-      { label: 'Settings', Icon: Gear },
-      { label: 'Delete', Icon: Trash }
+      { label: 'Edit', Icon: PencilSimpleIcon },
+      { label: 'Favourite', Icon: HeartIcon },
+      { label: 'Settings', Icon: GearIcon },
+      { label: 'Delete', Icon: TrashIcon }
     ].map(({ label, Icon }) => (
       <Tooltip key={label}>
         <Tooltip.Trigger
