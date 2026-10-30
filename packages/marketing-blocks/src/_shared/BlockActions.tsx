@@ -5,7 +5,7 @@ import {
   ChatCircleDotsIcon,
   EnvelopeSimpleIcon,
   PhoneIcon
-} from '@phosphor-icons/react'
+} from '@phosphor-icons/react/ssr'
 
 import { Button } from '@oztix/roadie-components/button'
 import { cn } from '@oztix/roadie-core/utils'
