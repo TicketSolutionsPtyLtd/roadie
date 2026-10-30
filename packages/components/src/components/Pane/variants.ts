@@ -14,7 +14,9 @@ export const paneVariants = cva(
     '[--pane-radius:var(--radius-2xl)] max-md:[--pane-radius:var(--pane-radius-phone,0px)]',
     'overflow-hidden rounded-(--pane-radius)',
     // Published, not applied: chrome is sticky and the body scrolls, so each applies it.
-    '[--content-inset:--spacing(6)]'
+    '[--content-inset:--spacing(6)]',
+    // Each pane's own footer sets it inline, so a nested pane never reads its parent's.
+    '[--pane-footer-height:0px]'
   ],
   {
     variants: {
