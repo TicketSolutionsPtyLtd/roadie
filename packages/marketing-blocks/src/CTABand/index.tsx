@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from 'react'
+import type { ReactNode } from 'react'
 
 import { Prose } from '@oztix/roadie-components/prose'
 import { cn } from '@oztix/roadie-core/utils'
@@ -13,14 +13,15 @@ import {
   SPOT_ILLUSTRATIONS,
   type SpotIllustrationName
 } from '../_shared/illustrations'
-import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
   type BlockSize,
-  bySize
+  bySize,
+  gapOf
 } from '../_shared/surface'
+import { useBlock } from '../_shared/useBlock'
 import { type CTABandPreset, ctaBandDefinition } from './definition'
 
 export type { CTABandPreset } from './definition'
@@ -93,48 +94,23 @@ export type CTABandProps = {
 }
 
 /** Closes a page with a short pitch and the next step to take. */
-export function CTABand({
-  preset: presetName,
-  position,
-  id,
-  eyebrow,
-  title,
-  titleHighlight,
-  description,
-  body,
-  actions,
-  image,
-  tilted = true,
-  illustration = 'HighFive',
-  intent,
-  emphasis = 'raised',
-  contained,
-  align = image ? 'start' : 'center',
-  size
-}: CTABandProps) {
-  const headingId = useId()
-  const { name, variant } = presetOf(ctaBandDefinition, presetName)
-  const centred = align === 'center'
+export function CTABand(props: CTABandProps) {
+  const { body, image, tilted = true, illustration = 'HighFive', size } = props
+  // A photo beside the copy starts it; without one, the copy centres in the panel.
+  const block = useBlock(ctaBandDefinition, props, {
+    align: image ? 'start' : 'center'
+  })
+  const { emphasis } = block
+  const centred = block.align === 'center'
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
 
   return (
-    <BlockRoot
-      block={ctaBandDefinition.name}
-      variant={variant}
-      preset={name}
-      position={position}
-      id={id}
-      aria-labelledby={headingId}
-      intent={intent}
-    >
+    <BlockRoot {...block.root}>
       <div className={cn(image && 'pt-14 @xl:pt-28 @7xl:pt-36')}>
         <BlockSurface
           emphasis={emphasis}
-          contained={contained}
-          className={cn(
-            'grid grid-cols-1',
-            bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' })
-          )}
+          contained={block.contained}
+          className={cn('grid grid-cols-1', gapOf(size, 'loose'))}
         >
           {image && (
             <div
@@ -159,7 +135,7 @@ export function CTABand({
           <div
             className={cn(
               'grid grid-cols-1',
-              bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' }),
+              gapOf(size, 'loose'),
               image && [
                 '@xl:max-w-7/12 content-center',
                 // The photo beside the copy is out of flow, so the copy keeps the panel tall
@@ -174,20 +150,11 @@ export function CTABand({
             <div
               className={cn(
                 'grid min-w-0',
-                bySize(size, { sm: 'gap-4', md: 'gap-6', lg: 'gap-8' }),
-                FILLED_TEXT[emphasis]
+                gapOf(size, 'normal'),
+                emphasis && FILLED_TEXT[emphasis]
               )}
             >
-              <BlockHeading
-                id={headingId}
-                eyebrow={eyebrow}
-                title={title}
-                titleHighlight={titleHighlight}
-                description={description}
-                align={align}
-                size={size}
-                intent={intent}
-              />
+              <BlockHeading {...block.heading} />
               {body && (
                 <Prose
                   size={bySize(size, { sm: 'md', md: 'md', lg: 'lg' })}
@@ -198,14 +165,12 @@ export function CTABand({
               )}
             </div>
             <BlockActions
-              actions={actions}
-              intent={intent}
+              {...block.actions}
               fill={
                 emphasis === 'strong' || emphasis === 'inverted'
                   ? emphasis
                   : undefined
               }
-              className={centred ? 'justify-center' : undefined}
             />
           </div>
         </BlockSurface>

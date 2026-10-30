@@ -1,12 +1,6 @@
 'use client'
 
-import {
-  type FocusEvent,
-  Fragment,
-  type ReactNode,
-  useId,
-  useState
-} from 'react'
+import { type FocusEvent, Fragment, type ReactNode, useState } from 'react'
 
 import { PauseIcon, PlayIcon } from '@phosphor-icons/react/ssr'
 
@@ -22,14 +16,14 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BLEED, BlockSurface, PAGE_GUTTER } from '../_shared/BlockSurface'
-import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
   type BlockSize,
-  bySize
+  gapOf
 } from '../_shared/surface'
+import { useBlock } from '../_shared/useBlock'
 import { type GalleryPreset, galleryDefinition } from './definition'
 
 export type { GalleryPreset } from './definition'
@@ -84,12 +78,6 @@ export type GalleryProps = {
   size?: BlockSize
 }
 
-const ALIGN: Record<GalleryPreset, BlockAlign> = {
-  carousel: 'start',
-  marquee: 'center',
-  wrap: 'center'
-}
-
 // Literal class names, so Tailwind finds them. Widths step up with the block's own width.
 const CROPPED: Record<
   Exclude<GalleryRatio, 'natural'>,
@@ -114,51 +102,18 @@ const NATURAL_HEIGHT = 48
 const MARQUEE_SPEED = 40
 
 /** Shows the people, events, and partners behind a page in photos or logos. */
-export function Gallery({
-  preset: presetName,
-  position,
-  id,
-  eyebrow,
-  title,
-  titleHighlight,
-  description,
-  images,
-  ratio = 'portrait',
-  actions,
-  intent,
-  emphasis,
-  contained,
-  align: alignProp,
-  size
-}: GalleryProps) {
-  const headingId = useId()
-  const { name, variant } = presetOf(galleryDefinition, presetName)
-  const align = alignProp ?? ALIGN[name]
-  const gap = bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' })
-
-  const heading = (
-    <BlockHeading
-      id={headingId}
-      eyebrow={eyebrow}
-      title={title}
-      titleHighlight={titleHighlight}
-      description={description}
-      align={align}
-      size={size}
-      intent={intent}
-    />
-  )
+export function Gallery(props: GalleryProps) {
+  const { images, ratio = 'portrait', actions, intent, emphasis, size } = props
+  const block = useBlock(galleryDefinition, props)
+  const { name } = block
+  const headingId = block.heading.id
+  const gap = gapOf(size, 'loose')
+  const heading = <BlockHeading {...block.heading} />
   const tiles = images.map((image, index) => ({
     key: `${index}-${image.src}`,
     tile: <Tile image={image} ratio={ratio} />
   }))
-  const blockActions = (
-    <BlockActions
-      actions={actions}
-      intent={intent}
-      className={align === 'center' ? 'justify-center' : undefined}
-    />
-  )
+  const blockActions = <BlockActions {...block.actions} />
   const marquee = name === 'marquee' && (
     <PausableMarquee intent={intent}>
       {tiles.map(({ key, tile }) => (
@@ -171,20 +126,15 @@ export function Gallery({
 
   return (
     <BlockRoot
-      block={galleryDefinition.name}
-      variant={variant}
-      preset={name}
-      intent={intent}
-      position={position}
-      id={id}
+      {...block.root}
       // The carousel is the landmark the heading names; naming both repeats it.
       aria-labelledby={name === 'carousel' ? undefined : headingId}
       className={cn('grid grid-cols-1', gap)}
     >
       {name === 'carousel' ? (
         <BlockSurface
-          emphasis={emphasis}
-          contained={contained}
+          emphasis={block.emphasis}
+          contained={block.contained}
           className={cn('grid min-w-0 grid-cols-1', gap)}
         >
           <Carousel className='min-w-0'>
@@ -213,8 +163,8 @@ export function Gallery({
         </BlockSurface>
       ) : name === 'wrap' ? (
         <BlockSurface
-          emphasis={emphasis}
-          contained={contained}
+          emphasis={block.emphasis}
+          contained={block.contained}
           className={cn('grid grid-cols-1', gap)}
         >
           {heading}
@@ -240,8 +190,8 @@ export function Gallery({
         </>
       ) : (
         <BlockSurface
-          emphasis={emphasis}
-          contained={contained}
+          emphasis={block.emphasis}
+          contained={block.contained}
           className={cn('grid grid-cols-1', gap)}
         >
           {heading}

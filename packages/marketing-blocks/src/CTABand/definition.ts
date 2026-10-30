@@ -10,7 +10,8 @@ export const ctaBandDefinition = {
       title: 'Band',
       description:
         'A pitch and its actions on a panel: beside a tilted photo that breaks out of the top, such as the Studio CTA, or centred without one, such as “Talk to us”.',
-      variant: 'band'
+      variant: 'band',
+      defaults: { emphasis: 'raised' }
     }
   ]
 } as const satisfies BlockDefinition
