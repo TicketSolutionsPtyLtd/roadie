@@ -349,4 +349,121 @@ describe('CardGrid', () => {
     )
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
+
+  describe('intent and emphasis', () => {
+    const cardsOf = () =>
+      within(screen.getAllByRole('list')[0]!).getAllByRole('listitem')
+
+    it('sets the block’s intent on its section', () => {
+      render(<CardGrid intent='brand' title='Section' items={values} />)
+
+      const section = screen.getByRole('region', { name: 'Section' })
+      expect(section).toHaveAttribute('data-intent', 'brand')
+      expect(section).toHaveClass('intent-brand')
+    })
+
+    it.each([
+      ['illustrated-cards', undefined, 'emphasis-raised'],
+      ['portraits', undefined, 'emphasis-raised'],
+      ['illustrated-cards', 'subtle', 'emphasis-subtle'],
+      ['marked-cards', 'subtler', 'emphasis-subtler']
+    ] as const)('draws %s on a %s surface', (preset, emphasis, expected) => {
+      render(
+        <CardGrid
+          preset={preset}
+          emphasis={emphasis}
+          title='Section'
+          items={values}
+        />
+      )
+
+      expect(screen.getByRole('region').firstElementChild).toHaveClass(expected)
+    })
+
+    it('draws no section surface for presets without one', () => {
+      render(<CardGrid preset='marked-cards' title='Section' items={values} />)
+
+      expect(
+        screen.getByRole('region').firstElementChild!.className
+      ).not.toMatch(/emphasis-/)
+    })
+
+    it.each([
+      ['link-cards', undefined, 'emphasis-raised'],
+      ['marked-cards', 'subtle', 'emphasis-subtle'],
+      ['illustrated-cards', 'normal', 'emphasis-normal'],
+      ['numbered-cards', 'raised', 'emphasis-raised'],
+      ['alternating-rows', 'subtle', 'emphasis-subtle'],
+      ['lists', 'subtler', 'emphasis-subtler']
+    ] as const)('draws %s cards as %s', (preset, cardEmphasis, expected) => {
+      render(
+        <CardGrid
+          preset={preset}
+          cardEmphasis={cardEmphasis}
+          title='Section'
+          items={values}
+        />
+      )
+
+      for (const card of cardsOf()) expect(card).toHaveClass(expected)
+    })
+
+    it.each([
+      'illustrated-cards',
+      'marked-cards',
+      'numbered-cards',
+      'alternating-rows',
+      'lists'
+    ] as const)(
+      'gives a linked %s card with no surface the subtler one, and leaves the rest bare',
+      (preset) => {
+        render(
+          <CardGrid
+            preset={preset}
+            title='Section'
+            items={[{ ...values[0]!, href: '/values/proactive' }, values[1]!]}
+          />
+        )
+
+        const [linked, plain] = cardsOf()
+        expect(linked).toHaveClass('emphasis-subtler')
+        expect(plain!.className).not.toMatch(/emphasis-/)
+        expect(plain!.querySelector('[data-interactive-target]')).toBeNull()
+      }
+    )
+
+    it('tints a card in its item’s intent', () => {
+      render(
+        <CardGrid
+          preset='link-cards'
+          title='Section'
+          items={[{ ...values[0]!, intent: 'success' }, values[1]!]}
+        />
+      )
+
+      const [tinted, plain] = cardsOf()
+      expect(tinted).toHaveClass('intent-success')
+      expect(plain!.className).not.toMatch(/intent-success/)
+    })
+
+    it.each(['overlap-cards', 'alternating-rows'] as const)(
+      'lets an item’s intent replace the cycling mark in %s',
+      (preset) => {
+        render(
+          <CardGrid
+            preset={preset}
+            title='Section'
+            items={[{ ...values[0]!, intent: 'success' }, values[1]!]}
+          />
+        )
+
+        expect(
+          screen.getByRole('heading', { level: 3, name: 'Proactive touch' })
+        ).toHaveClass('intent-success')
+        expect(
+          screen.getByRole('heading', { level: 3, name: 'Positive energy' })
+        ).toHaveClass('intent-brand')
+      }
+    )
+  })
 })

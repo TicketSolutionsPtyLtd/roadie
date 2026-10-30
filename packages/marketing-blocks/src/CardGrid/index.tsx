@@ -14,9 +14,20 @@ import {
   type SpotIllustrationName
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
+import {
+  type BlockIntent,
+  emphasisClass,
+  intentClass
+} from '../_shared/surface'
 import { type CardGridPreset, cardGridDefinition } from './definition'
 
 export type { CardGridPreset }
+
+/** The section's surface. */
+export type CardGridEmphasis = 'raised' | 'subtle' | 'subtler'
+
+/** Every card's surface. */
+export type CardGridCardEmphasis = 'raised' | 'subtle' | 'subtler' | 'normal'
 
 export type CardGridItem = {
   /** The card's heading, or a person's name in `portraits`. */
@@ -33,6 +44,8 @@ export type CardGridItem = {
   points?: readonly string[]
   /** The item's own page. Its title becomes the link, and the whole card the place to click. */
   href?: string
+  /** Tints this card, or its marked title in `overlap-cards`, `alternating-rows`, and `portraits`, in place of the preset's. */
+  intent?: BlockIntent
 }
 
 export type CardGridProps = {
@@ -45,6 +58,18 @@ export type CardGridProps = {
   position?: number
   /** An id for linking to the block. */
   id?: string
+  /** The block's intent, which its marks, highlights, surfaces, and strong action take. */
+  intent?: BlockIntent
+  /**
+   * The section's surface. `illustrated-cards` and `portraits` sit on `raised`; the other presets have none.
+   * @default 'raised' for illustrated-cards and portraits
+   */
+  emphasis?: CardGridEmphasis
+  /**
+   * Every card's surface. `link-cards` are `raised`; the other presets' cards have none, and a linked card with none takes `subtler`. `overlap-cards` and `portraits` draw their own panel or photo, so it doesn't apply to them.
+   * @default 'raised' for link-cards
+   */
+  cardEmphasis?: CardGridCardEmphasis
   /** A short line above the title. */
   eyebrow?: string
   title: string
@@ -57,18 +82,67 @@ export type CardGridProps = {
   actions?: readonly BlockAction[]
 }
 
-type CardProps = { item: CardGridItem; index: number }
+type CardProps = {
+  item: CardGridItem
+  index: number
+  cardEmphasis: CardGridCardEmphasis | undefined
+}
 
-// The surface a linked card's title link covers. Nothing between them is positioned, so the link's overlay reaches the card's edges.
-const CARD = 'is-interactive-within min-w-0'
+// A linked card with no surface takes subtler, so its hover has somewhere to show.
+const surfaceOf = (
+  item: CardGridItem,
+  cardEmphasis: CardGridCardEmphasis | undefined
+) => cardEmphasis ?? (item.href ? 'subtler' : undefined)
 
 function CardTitle({ item }: { item: CardGridItem }) {
   if (!item.href) return item.title
   return <Card.Link href={item.href}>{item.title}</Card.Link>
 }
 
+/** A Roadie card as a list item. Nothing between its root and its title link is positioned, so the link's overlay reaches the card's edges. */
+function GridCard({
+  item,
+  cardEmphasis,
+  className,
+  children
+}: {
+  item: CardGridItem
+  cardEmphasis: CardGridCardEmphasis | undefined
+  className: string
+  children: ReactNode
+}) {
+  const surface = surfaceOf(item, cardEmphasis)
+  return (
+    <Card
+      render={<li />}
+      intent={item.intent}
+      emphasis={surface ?? null}
+      className='min-w-0'
+    >
+      <Card.Content className={cn(className, !surface && 'p-0')}>
+        {children}
+      </Card.Content>
+    </Card>
+  )
+}
+
+// Own-markup cards follow Card's surfaces, padding a surface as Card.Content does.
+function rowSurface(
+  item: CardGridItem,
+  cardEmphasis: CardGridCardEmphasis | undefined
+) {
+  const surface = surfaceOf(item, cardEmphasis)
+  return cn(
+    'is-interactive-within min-w-0',
+    intentClass(item.intent),
+    emphasisClass(surface),
+    surface === 'subtler' ? '-m-2 p-2' : surface && 'px-6 py-4'
+  )
+}
+
 const MARK_CYCLE = ['info', 'brand', 'brand-secondary'] as const
-const markIntent = (index: number) => MARK_CYCLE[index % MARK_CYCLE.length]
+const markIntent = (item: CardGridItem, index: number) =>
+  item.intent ?? MARK_CYCLE[index % MARK_CYCLE.length]
 
 function Illustration({
   name,
@@ -108,9 +182,13 @@ function CardImage({
   )
 }
 
-function FeatureCard({ item }: CardProps) {
+function FeatureCard({ item, cardEmphasis }: CardProps) {
   return (
-    <li className={cn(CARD, 'grid content-start gap-8 rounded-2xl')}>
+    <GridCard
+      item={item}
+      cardEmphasis={cardEmphasis}
+      className='grid content-start gap-8'
+    >
       <CardImage
         image={item.image}
         sizes='(min-width: 1024px) 33vw, 100vw'
@@ -131,13 +209,17 @@ function FeatureCard({ item }: CardProps) {
           <p className='text-lg text-subtle'>{item.description}</p>
         )}
       </div>
-    </li>
+    </GridCard>
   )
 }
 
-function ServiceCard({ item }: CardProps) {
+function ServiceCard({ item, cardEmphasis }: CardProps) {
   return (
-    <li className={cn(CARD, 'grid min-w-0 content-start gap-6 rounded-2xl')}>
+    <GridCard
+      item={item}
+      cardEmphasis={cardEmphasis}
+      className='grid content-start gap-6'
+    >
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw'
@@ -168,13 +250,13 @@ function ServiceCard({ item }: CardProps) {
         )}
       </div>
       {item.description && <p>{item.description}</p>}
-    </li>
+    </GridCard>
   )
 }
 
 function IndustryCard({ item, index }: CardProps) {
   return (
-    <li className={cn(CARD, 'grid grid-rows-[auto_1fr] rounded-2xl')}>
+    <li className='is-interactive-within grid min-w-0 grid-rows-[auto_1fr] rounded-2xl'>
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw'
@@ -184,7 +266,7 @@ function IndustryCard({ item, index }: CardProps) {
         <Illustration name={item.illustration} className='-mt-16 size-16' />
         <Mark
           render={<h3 />}
-          intent={markIntent(index)}
+          intent={markIntent(item, index)}
           className='text-display-prose-4'
         >
           <CardTitle item={item} />
@@ -202,12 +284,12 @@ function IndustryCard({ item, index }: CardProps) {
   )
 }
 
-function AlternatingRow({ item, index }: CardProps) {
+function AlternatingRow({ item, index, cardEmphasis }: CardProps) {
   const imageFirst = index % 2 === 0
   return (
     <li
       className={cn(
-        CARD,
+        rowSurface(item, cardEmphasis),
         'grid items-start gap-x-12 gap-y-4 rounded-3xl @xl:items-center',
         imageFirst
           ? '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
@@ -218,7 +300,7 @@ function AlternatingRow({ item, index }: CardProps) {
         <div className='grid'>
           <Mark
             render={<h3 />}
-            intent={markIntent(index)}
+            intent={markIntent(item, index)}
             className='px-3 text-display-prose-4'
           >
             <CardTitle item={item} />
@@ -251,12 +333,7 @@ function AlternatingRow({ item, index }: CardProps) {
 
 function PortraitCard({ item }: CardProps) {
   return (
-    <li
-      className={cn(
-        CARD,
-        'dark relative grid aspect-square overflow-hidden rounded-2xl'
-      )}
-    >
+    <li className='dark is-interactive-within relative grid aspect-square min-w-0 overflow-hidden rounded-2xl'>
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 25vw, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw'
@@ -269,6 +346,7 @@ function PortraitCard({ item }: CardProps) {
         {item.subtitle && (
           <Mark
             render={<p />}
+            intent={item.intent}
             className='max-w-full truncate px-2 py-1 font-medium'
           >
             {item.subtitle}
@@ -279,9 +357,14 @@ function PortraitCard({ item }: CardProps) {
   )
 }
 
-function ListColumn({ item }: CardProps) {
+function ListColumn({ item, cardEmphasis }: CardProps) {
   return (
-    <li className={cn(CARD, 'grid content-start gap-4 rounded-2xl')}>
+    <li
+      className={cn(
+        rowSurface(item, cardEmphasis),
+        'grid content-start gap-4 rounded-2xl'
+      )}
+    >
       <h3 className='text-display-prose-5 text-strong'>
         <CardTitle item={item} />
       </h3>
@@ -298,9 +381,13 @@ function ListColumn({ item }: CardProps) {
   )
 }
 
-function StepCard({ item, index }: CardProps) {
+function StepCard({ item, index, cardEmphasis }: CardProps) {
   return (
-    <li className={cn(CARD, 'grid content-start gap-4 rounded-2xl')}>
+    <GridCard
+      item={item}
+      cardEmphasis={cardEmphasis}
+      className='grid content-start gap-4'
+    >
       {item.image && (
         <CardImage
           image={item.image}
@@ -312,7 +399,7 @@ function StepCard({ item, index }: CardProps) {
         <Mark
           aria-hidden
           render={<span />}
-          intent='brand-secondary'
+          intent={item.intent ?? 'brand-secondary'}
           className='px-3 py-1 text-display-prose-2 tabular-nums'
         >
           {index + 1}
@@ -327,17 +414,16 @@ function StepCard({ item, index }: CardProps) {
           <p className='text-lg text-subtle'>{item.description}</p>
         )}
       </div>
-    </li>
+    </GridCard>
   )
 }
 
-function LinkCard({ item }: CardProps) {
+function LinkCard({ item, cardEmphasis }: CardProps) {
   return (
-    <li
-      className={cn(
-        CARD,
-        'grid content-start gap-4 rounded-2xl p-6 emphasis-raised'
-      )}
+    <GridCard
+      item={item}
+      cardEmphasis={cardEmphasis}
+      className='grid content-start gap-4'
     >
       <Illustration name={item.illustration} className='size-12' />
       <div className='grid gap-2'>
@@ -346,7 +432,7 @@ function LinkCard({ item }: CardProps) {
         </h3>
         {item.description && <p className='text-subtle'>{item.description}</p>}
       </div>
-    </li>
+    </GridCard>
   )
 }
 
@@ -355,11 +441,13 @@ type Look = {
   /** The grid or list of cards. */
   list: string
   align: 'center' | 'start'
-  /** Sits the block on a raised surface. */
-  raised?: boolean
+  /** The section's surface when `emphasis` is unset. */
+  emphasis?: CardGridEmphasis
+  /** The cards' surface when `cardEmphasis` is unset. */
+  cardEmphasis?: CardGridCardEmphasis
   /** Numbers the cards, as an ordered list. */
   ordered?: boolean
-  /** Keeps the raised surface inside the page's padding, rounded at every width. */
+  /** Keeps the surface inside the page's padding, rounded at every width. */
   inset?: boolean
 }
 
@@ -371,7 +459,7 @@ const LOOKS: Record<CardGridPreset, Look> = {
     Item: FeatureCard,
     list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @4xl:grid-cols-3',
     align: 'center',
-    raised: true
+    emphasis: 'raised'
   },
   'marked-cards': {
     Item: ServiceCard,
@@ -392,7 +480,8 @@ const LOOKS: Record<CardGridPreset, Look> = {
   'link-cards': {
     Item: LinkCard,
     list: 'grid grid-cols-1 gap-6 @xl:grid-cols-2 @4xl:grid-cols-3',
-    align: 'center'
+    align: 'center',
+    cardEmphasis: 'raised'
   },
   'alternating-rows': {
     Item: AlternatingRow,
@@ -403,7 +492,7 @@ const LOOKS: Record<CardGridPreset, Look> = {
     Item: PortraitCard,
     list: 'grid grid-cols-1 gap-8 @xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4',
     align: 'start',
-    raised: true,
+    emphasis: 'raised',
     inset: true
   },
   lists: {
@@ -418,6 +507,9 @@ export function CardGrid({
   preset,
   position,
   id,
+  intent,
+  emphasis,
+  cardEmphasis,
   eyebrow,
   title,
   titleHighlight,
@@ -426,7 +518,10 @@ export function CardGrid({
   actions
 }: CardGridProps) {
   const { name, variant } = presetOf(cardGridDefinition, preset)
-  const { Item, list, align, raised, ordered, inset } = LOOKS[name]
+  const look = LOOKS[name]
+  const { Item, list, align, ordered, inset } = look
+  const surface = emphasis ?? look.emphasis
+  const cards = cardEmphasis ?? look.cardEmphasis
   const List = ordered ? 'ol' : 'ul'
   const headingId = useId()
   const markedEyebrow = name === 'overlap-cards' && eyebrow
@@ -438,22 +533,24 @@ export function CardGrid({
       preset={name}
       position={position}
       id={id}
+      intent={intent}
       aria-labelledby={headingId}
-      className={cn(inset ? PAGE_PADDING : raised && '@7xl:px-2')}
+      className={cn(inset ? PAGE_PADDING : surface && '@7xl:px-2')}
     >
       <div
         className={cn(
           'mx-auto grid w-full max-w-8xl grid-cols-1 gap-12 wrap-anywhere',
           PAGE_PADDING,
-          raised && 'bg-raised py-16 @5xl:py-20 @7xl:rounded-3xl',
-          inset && 'rounded-3xl px-6 py-8 @3xl:px-8 @3xl:py-12'
+          surface &&
+            cn(emphasisClass(surface), 'py-16 @5xl:py-20 @7xl:rounded-3xl'),
+          surface && inset && 'rounded-3xl px-6 py-8 @3xl:px-8 @3xl:py-12'
         )}
       >
         <div className='grid min-w-0 grid-cols-1 justify-items-center gap-4'>
           {markedEyebrow && (
             <Mark
               render={<p />}
-              intent='brand-secondary'
+              intent={intent ?? 'brand-secondary'}
               className='justify-self-center px-2 py-1 text-display-prose-5'
             >
               {eyebrow}
@@ -465,6 +562,7 @@ export function CardGrid({
             title={title}
             titleHighlight={titleHighlight}
             description={description}
+            intent={intent}
             align={align}
             wide={align === 'start'}
             className='w-full'
@@ -472,7 +570,12 @@ export function CardGrid({
         </div>
         <List className={list}>
           {items.map((item, index) => (
-            <Item key={`${index}-${item.title}`} item={item} index={index} />
+            <Item
+              key={`${index}-${item.title}`}
+              item={item}
+              index={index}
+              cardEmphasis={cards}
+            />
           ))}
         </List>
         <BlockActions

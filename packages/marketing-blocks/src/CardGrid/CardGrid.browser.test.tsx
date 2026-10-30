@@ -1,9 +1,10 @@
 import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { CardGrid, type CardGridItem, type CardGridPreset } from '.'
 import { MarketingBlocksProvider } from '../Provider'
 import { axeViolations, photo, withBrowserPage } from '../_test/browser'
+import { apcaLc, over, shownFill } from '../_test/contrast'
 
 withBrowserPage()
 
@@ -436,4 +437,115 @@ describe('CardGrid accessibility', () => {
 
     expect(await axeViolations(container)).toEqual([])
   })
+})
+
+describe('CardGrid contrast', () => {
+  // Dark mode as a page sets it, on the root, so every token resolves dark.
+  const inMode = (mode: 'light' | 'dark') => {
+    document.documentElement.classList.toggle('dark', mode === 'dark')
+    onTestFinished(() => document.documentElement.classList.remove('dark'))
+  }
+
+  const lowContrast = (root: Element) =>
+    [...root.querySelectorAll('*')].flatMap((element) => {
+      const text = [...element.childNodes]
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent?.trim())
+        .join('')
+      if (!text) return []
+      const style = getComputedStyle(element)
+      const background = shownFill(element)
+      const lc = Math.abs(apcaLc(over(background, style.color), background))
+      const size = parseFloat(style.fontSize)
+      const large =
+        size >= 24 || (size >= 18.6 && Number(style.fontWeight) >= 700)
+      return lc >= (large ? 45 : 60)
+        ? []
+        : [`${text.slice(0, 30)}: Lc ${Math.round(lc)}`]
+    })
+
+  const linked = items.slice(0, 3).map((item, index) => ({
+    ...item,
+    href: index === 0 ? '#first' : undefined
+  }))
+
+  const cases = (['light', 'dark'] as const).flatMap((mode) => [
+    ...(
+      [
+        'illustrated-cards',
+        'marked-cards',
+        'overlap-cards',
+        'numbered-cards',
+        'link-cards',
+        'alternating-rows',
+        'portraits',
+        'lists'
+      ] as const
+    ).flatMap((preset) => [
+      { mode, preset, emphasis: undefined, cardEmphasis: undefined },
+      ...(['raised', 'subtle', 'subtler'] as const).map((emphasis) => ({
+        mode,
+        preset,
+        emphasis,
+        cardEmphasis: undefined
+      })),
+      ...(preset === 'overlap-cards' || preset === 'portraits'
+        ? []
+        : (['raised', 'subtle', 'subtler', 'normal'] as const).map(
+            (cardEmphasis) => ({
+              mode,
+              preset,
+              emphasis: undefined,
+              cardEmphasis
+            })
+          ))
+    ])
+  ])
+
+  it.each(cases)(
+    '$preset on $emphasis with $cardEmphasis cards reads in $mode mode',
+    ({ mode, preset, emphasis, cardEmphasis }) => {
+      inMode(mode)
+      render(
+        <div className='bg-normal text-normal'>
+          <CardGrid
+            preset={preset}
+            emphasis={emphasis}
+            cardEmphasis={cardEmphasis}
+            eyebrow='How does Oztix partner?'
+            title='We understand your industry'
+            titleHighlight='industry'
+            description='And what makes venues and events succeed.'
+            items={linked}
+            actions={[{ label: 'See them all', href: '#all' }]}
+          />
+        </div>
+      )
+
+      expect(lowContrast(screen.getByRole('region'))).toEqual([])
+    }
+  )
+
+  it.each(['light', 'dark'] as const)(
+    'has no axe violations on every surface in %s mode',
+    async (mode) => {
+      const { container } = render(
+        <main
+          className={cn('bg-normal text-normal', mode === 'dark' && 'dark')}
+        >
+          <h1>Page</h1>
+          <CardGrid
+            preset='link-cards'
+            intent='brand'
+            emphasis='subtle'
+            cardEmphasis='normal'
+            title='How can we help?'
+            items={linked}
+          />
+        </main>
+      )
+
+      expect(await axeViolations(container)).toEqual([])
+    }
+  )
 })
