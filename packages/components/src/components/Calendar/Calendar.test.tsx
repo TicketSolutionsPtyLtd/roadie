@@ -647,6 +647,23 @@ describe('Calendar', () => {
     await waitFor(() => expect(day('2027-04-01')).toHaveFocus())
   })
 
+  it('reads a month prop given without a day', () => {
+    render(<Calendar today={TODAY} month='2027-03' />)
+    expect(day('2027-03-14')).toBeInTheDocument()
+  })
+
+  it('reads start and end months given without a day', () => {
+    render(
+      <Calendar
+        today={TODAY}
+        startMonth='2027-01'
+        endMonth='2027-02'
+        numberOfMonths={3}
+      />
+    )
+    expect(screen.getAllByRole('grid')).toHaveLength(2)
+  })
+
   describe('announcements follow what the calendar shows', () => {
     it('stays quiet when the mode changes', () => {
       const { rerender } = render(

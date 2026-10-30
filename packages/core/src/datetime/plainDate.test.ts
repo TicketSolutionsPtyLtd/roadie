@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+// From the public entry, so the test fails if the export goes.
+import { plainDateParts } from '.'
 import {
   addDays,
   addMonths,
@@ -9,6 +11,19 @@ import {
   plainDateOf,
   startOfWeek
 } from './plainDate'
+
+describe('plainDateParts', () => {
+  it('reads an ISO date as numbers', () => {
+    expect(plainDateParts('0099-02-09')).toEqual({ year: 99, month: 2, day: 9 })
+  })
+
+  it.each(['2026-02-30', '2026-13-01', '2026-11', '2026-11-02T10:00'])(
+    'throws on %s',
+    (date) => {
+      expect(() => plainDateParts(date)).toThrow(RangeError)
+    }
+  )
+})
 
 describe('plainDateOf', () => {
   // 14:30Z on 2 Oct 2026 is late evening in Perth and past midnight further east.

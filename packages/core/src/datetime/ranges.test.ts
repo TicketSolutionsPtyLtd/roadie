@@ -177,6 +177,26 @@ describe('resolveDateRange: calendar ranges', () => {
     ).toEqual(dates('2028-01-16', '2028-02-15'))
   })
 
+  it('ends a rolling month at the month end when its date is missing', () => {
+    const range = (iso: string, direction: 'next' | 'past') =>
+      resolveDateRange(
+        { direction, amount: 1, unit: 'month' },
+        { now: at(iso), timeZone: 'Australia/Sydney' }
+      )
+    expect(range('2027-01-31T01:00:00Z', 'next')).toEqual(
+      dates('2027-01-31', '2027-02-28')
+    )
+    expect(range('2028-01-30T01:00:00Z', 'next')).toEqual(
+      dates('2028-01-30', '2028-02-29')
+    )
+    expect(range('2027-01-28T01:00:00Z', 'next')).toEqual(
+      dates('2027-01-28', '2027-02-27')
+    )
+    expect(range('2027-03-31T01:00:00Z', 'past')).toEqual(
+      dates('2027-03-01', '2027-03-31')
+    )
+  })
+
   it('takes this-week from a Monday in the previous month', () => {
     const now = at('2026-10-01T02:00:00Z')
     expect(

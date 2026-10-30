@@ -358,6 +358,7 @@ export {
   type DataTableSortDirection,
   sortDataTableRows,
   type DataTableExpanded,
+  type DataTableRecordName,
   type DataTableTotals
 } from './components/DataTable'
 

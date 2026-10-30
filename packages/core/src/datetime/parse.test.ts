@@ -348,6 +348,74 @@ describe('parseDatePhrase: dates', () => {
   })
 })
 
+describe('parseDatePhrase: a month', () => {
+  const month = (label: string, start: string, end: string) => ({
+    label,
+    value: { start, end }
+  })
+
+  it.each<[string, DatePhraseSuggestion[]]>([
+    [
+      'may',
+      [
+        month('May 2026', '2026-05-01', '2026-05-31'),
+        month('May 2027', '2027-05-01', '2027-05-31')
+      ]
+    ],
+    [
+      'Feb',
+      [
+        month('February 2027', '2027-02-01', '2027-02-28'),
+        month('February 2026', '2026-02-01', '2026-02-28')
+      ]
+    ],
+    [
+      'april',
+      [
+        month('April 2027', '2027-04-01', '2027-04-30'),
+        month('April 2026', '2026-04-01', '2026-04-30')
+      ]
+    ],
+    ['october', [month('October 2026', '2026-10-01', '2026-10-31')]],
+    ['may 2027', [month('May 2027', '2027-05-01', '2027-05-31')]],
+    ['feb 2028', [month('February 2028', '2028-02-01', '2028-02-29')]]
+  ])('%j', (text, expected) => {
+    expect(parseDatePhrase(text, SYDNEY)).toEqual(expected)
+  })
+
+  it('keeps the year in Latin digits', () => {
+    const [may] = parseDatePhrase('may 2027', { ...SYDNEY, locale: 'ar-EG' })
+    expect(may!.label).toMatch(/ 2027$/)
+  })
+
+  it('orders the month and year as the locale does', () => {
+    const [may] = parseDatePhrase('may 2027', { ...SYDNEY, locale: 'ja' })
+    expect(may!.label).toBe('2027年5月')
+  })
+
+  it.each(['jan 0000', '14 jan 0000', '0000-01-14'])(
+    'reads nothing for year 0 in %j',
+    (text) => {
+      expect(parseDatePhrase(text, SYDNEY)).toEqual([])
+    }
+  )
+
+  it('reads December 9999, the last month a date holds', () => {
+    expect(parseDatePhrase('dec 9999', SYDNEY)).toEqual([
+      month('December 9999', '9999-12-01', '9999-12-31')
+    ])
+    expect(parseDatePhrase('since dec 9999', SYDNEY)[0]!.value).toEqual({
+      after: '9999-11-30'
+    })
+  })
+
+  it('looks back from since, like a date with no year', () => {
+    expect(parseDatePhrase('since may', SYDNEY)[0]!.value).toEqual({
+      after: '2026-04-30'
+    })
+  })
+})
+
 describe('parseDatePhrase: comparisons', () => {
   it.each<[string, DatePhraseSuggestion[]]>([
     ['after today', one('After Fri 2 Oct 2026', { after: '2026-10-02' })],
