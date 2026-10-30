@@ -126,6 +126,26 @@ describe('CTABand with photo, its photo', () => {
     expect(img.offsetHeight).toBe(frame.clientHeight)
     expect(frame.clientHeight).toBeGreaterThan(frame.clientWidth)
   })
+
+  const turn = () =>
+    getComputedStyle(
+      screen.getByRole('img', { name: 'Hands up at a gig' }).parentElement!
+        .parentElement!
+    ).rotate
+
+  it('tilts the photo by default', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(<CTABand {...props} />)
+
+    expect(turn()).not.toMatch(/^(none|0deg)$/)
+  })
+
+  it('sets the photo straight when tilted is false', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(<CTABand {...props} tilted={false} />)
+
+    expect(turn()).toMatch(/^(none|0deg)$/)
+  })
 })
 
 describe('CTABand long words', () => {

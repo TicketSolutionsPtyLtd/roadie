@@ -1,7 +1,6 @@
 import { type ReactNode, useId } from 'react'
 
 import { Prose } from '@oztix/roadie-components/prose'
-import { HighFive } from '@oztix/roadie-components/spot-illustrations'
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction, BlockImage } from '../Provider'
@@ -10,6 +9,10 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
+import {
+  SPOT_ILLUSTRATIONS,
+  type SpotIllustrationName
+} from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
@@ -59,6 +62,16 @@ export type CTABandProps = {
   actions?: readonly BlockAction[]
   /** The photo beside the pitch, breaking out of the panel's top. Portrait, about 2:3. */
   image?: BlockImage
+  /**
+   * Turns the photo a few degrees, as if pinned to the page. `false` sets it straight.
+   * @default true
+   */
+  tilted?: boolean
+  /**
+   * The spot illustration at the photo's corner.
+   * @default 'HighFive'
+   */
+  illustration?: SpotIllustrationName
   /** The block's intent, for the panel's tint and the highlighted words. */
   intent?: BlockIntent
   /**
@@ -91,6 +104,8 @@ export function CTABand({
   body,
   actions,
   image,
+  tilted = true,
+  illustration = 'HighFive',
   intent,
   emphasis = 'raised',
   contained,
@@ -100,6 +115,7 @@ export function CTABand({
   const headingId = useId()
   const { name, variant } = presetOf(ctaBandDefinition, presetName)
   const centred = align === 'center'
+  const Illustration = SPOT_ILLUSTRATIONS[illustration]
 
   return (
     <BlockRoot
@@ -121,7 +137,12 @@ export function CTABand({
           )}
         >
           {image && (
-            <div className='relative -mt-24 w-2/5 max-w-95 -rotate-5 @xl:absolute @xl:end-8 @xl:-top-24 @xl:mt-0 @xl:w-1/3 @xl:rotate-5 @3xl:end-16 @7xl:-top-32'>
+            <div
+              className={cn(
+                'relative -mt-24 w-2/5 max-w-95 @xl:absolute @xl:end-8 @xl:-top-24 @xl:mt-0 @xl:w-1/3 @3xl:end-16 @7xl:-top-32',
+                tilted && '-rotate-5 @xl:rotate-5'
+              )}
+            >
               <div className='aspect-380/555 overflow-hidden rounded-2xl border-4 border-(--color-neutral-light-0) shadow-lg'>
                 <BlockImg
                   image={image}
@@ -129,7 +150,7 @@ export function CTABand({
                   className='size-full object-cover'
                 />
               </div>
-              <HighFive
+              <Illustration
                 outline
                 className='absolute -end-12 -bottom-12 size-24 @7xl:-start-12 @7xl:end-auto'
               />

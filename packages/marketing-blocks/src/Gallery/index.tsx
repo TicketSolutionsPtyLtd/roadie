@@ -153,7 +153,8 @@ export function Gallery({
           className={cn('grid min-w-0 grid-cols-1', gap)}
         >
           <Carousel className='min-w-0'>
-            <Carousel.Header>
+            {/* The heading takes the row, and the controls sit at its foot, just above the photos they move. */}
+            <Carousel.Header className='md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end'>
               <Carousel.Title id={headingId} render={() => heading} />
               <Carousel.Controls>
                 <Carousel.Previous />
@@ -210,7 +211,7 @@ function PausableMarquee({
 
   return (
     <div
-      className='grid grid-cols-1 gap-4'
+      className='relative grid grid-cols-1'
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onFocus={() => setFocused(true)}
@@ -219,7 +220,8 @@ function PausableMarquee({
       <Marquee speed={MARQUEE_SPEED} paused={stopped || hovered || focused}>
         {children}
       </Marquee>
-      <div className='mx-auto flex w-full max-w-8xl justify-end px-(--block-gutter)'>
+      {/* Over the photos' lower corner, lined up with the page's content edge. */}
+      <div className='pointer-events-none absolute inset-x-0 bottom-3 mx-auto flex w-full max-w-8xl justify-end px-(--block-gutter) *:pointer-events-auto'>
         <IconButton
           size='icon-sm'
           intent={intent}

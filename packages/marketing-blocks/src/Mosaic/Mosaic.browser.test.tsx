@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
 import { Mosaic, type MosaicProps } from '.'
@@ -177,6 +177,43 @@ describe('Mosaic tiles without a logo', () => {
     expect(name.width).toBeGreaterThan(40)
     expect(name.height).toBeGreaterThan(16)
   })
+  // Light text over the photo's dark shade, whatever the page's mode.
+  const lightness = (colour: string) => {
+    const [r, g, b] = colour.match(/[\d.]+/g)!.map(Number)
+    return colour.startsWith('oklch') ? r! : (r! + g! + b!) / 765
+  }
+
+  it.each(MODES)('set their name light over the photo in %s mode', (mode) => {
+    setMode(mode)
+    onTestFinished(() => setMode('light'))
+    render(
+      <Mosaic
+        {...partnerTiers}
+        tiles={[{ title: 'Kazoo Hollow Room', image: photo('') }]}
+        logoTile={undefined}
+      />
+    )
+
+    expect(
+      lightness(getComputedStyle(screen.getByText('Kazoo Hollow Room')).color)
+    ).toBeGreaterThan(0.8)
+  })
+
+  it.each(MODES)(
+    'draw the logo tile dark in %s mode, for light logos',
+    (mode) => {
+      setMode(mode)
+      onTestFinished(() => setMode('light'))
+      render(<Mosaic {...offline(partnerTiers)} />)
+
+      const tile = screen
+        .getByRole('heading', { name: 'Also supporting' })
+        .closest('li')!
+      expect(lightness(getComputedStyle(tile).backgroundColor)).toBeLessThan(
+        0.4
+      )
+    }
+  )
 })
 
 describe('Mosaic align and size', () => {

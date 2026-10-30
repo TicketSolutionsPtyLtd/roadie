@@ -322,6 +322,61 @@ describe('Gallery', () => {
   )
 })
 
+describe('Gallery controls', () => {
+  const marqueeBox = () =>
+    document.querySelector('[data-slot=marquee]')!.getBoundingClientRect()
+
+  it('gives the carousel heading the row, with its controls at the bottom edge', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(
+      <Gallery
+        preset='carousel'
+        title='Join thousands of partners who trust Oztix'
+        description='From festivals to local venues, we help event organisers sell more tickets.'
+        images={images}
+      />
+    )
+
+    const header = document
+      .querySelector('[data-slot=carousel-header]')!
+      .getBoundingClientRect()
+    const heading = screen
+      .getByRole('heading', { level: 2 })
+      .parentElement!.getBoundingClientRect()
+    const next = screen
+      .getByRole('button', { name: 'Next slide' })
+      .getBoundingClientRect()
+    expect(heading.width).toBeGreaterThan(header.width * 0.7)
+    expect(next.bottom).toBeCloseTo(heading.bottom, 0)
+  })
+
+  it.each([
+    ['on the page', undefined],
+    ['on a band', 'subtle']
+  ] as const)(
+    'puts the marquee’s pause control on the photos, %s',
+    async (_, emphasis) => {
+      await page.viewport(DESKTOP.width, DESKTOP.height)
+      render(
+        <Gallery
+          preset='marquee'
+          emphasis={emphasis}
+          title='Our people'
+          images={images}
+        />
+      )
+
+      const track = marqueeBox()
+      const pause = screen
+        .getByRole('button', { name: 'Pause gallery' })
+        .getBoundingClientRect()
+      expect(pause.top).toBeGreaterThan(track.top)
+      expect(pause.bottom).toBeLessThan(track.bottom)
+      expect(pause.right).toBeLessThan(track.right)
+    }
+  )
+})
+
 describe('Gallery align and size', () => {
   const heading = () => screen.getByRole('heading', { level: 2 })
 

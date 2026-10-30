@@ -207,7 +207,9 @@ function PhotoTile({
       className={cn(
         TILE,
         wide && WIDE,
-        !image && 'emphasis-raised',
+        // Over a photo's dark shade, text stays light in either mode. The intent
+        // resolves its colours again here, under the dark scale.
+        image ? 'dark intent-neutral' : 'emphasis-raised',
         href && 'group/tile is-interactive-within'
       )}
     >
@@ -258,7 +260,8 @@ function PhotoTile({
 
 function LogosTile({ title = 'Also supporting', logos }: MosaicLogoTile) {
   return (
-    <li className={cn(TILE, WIDE, 'emphasis-inverted')}>
+    // Dark in either mode, like the photo tiles, so light logos suit every tile.
+    <li className={cn(TILE, WIDE, 'dark emphasis-raised')}>
       <div className={cn(STACKED, HALF_HEIGHT)} />
       <div
         className={cn(

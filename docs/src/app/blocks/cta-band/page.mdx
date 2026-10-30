@@ -48,6 +48,27 @@ The one preset, shaped by its content. With an `image`, the pitch and actions st
 />
 ```
 
+`tilted={false}` sets the photo straight, and `illustration` picks the
+[spot illustration](/components/spot-illustration) at its corner, `HighFive` by
+default.
+
+```tsx-live-expand id=band-straight
+<CTABand
+  preset='band'
+  tilted={false}
+  illustration='Ticket'
+  title='Talk to a real person'
+  body={<p>Our support team answers seven days a week, from people who know your event.</p>}
+  actions={[{ label: 'Contact support', href: '/contact' }]}
+  image={{
+    src: '/brand/photography/03.webp',
+    alt: 'Two Oztix team members smiling at their desks',
+    width: 1280,
+    height: 1007
+  }}
+/>
+```
+
 Without one, the heading, copy, and actions are centred in the panel.
 
 ```tsx-live-expand id=band-centred

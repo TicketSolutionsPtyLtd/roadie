@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { CTABand } from '.'
 import { MarketingBlocksProvider } from '../Provider'
+import { SPOT_ILLUSTRATIONS } from '../_shared/illustrations'
 
 const actions = [
   { label: 'Talk to us', href: '/contact/sales' },
@@ -16,6 +17,28 @@ const image = {
 }
 
 describe('CTABand', () => {
+  it.each([
+    [undefined, 'HighFive'],
+    ['Ticket', 'Ticket']
+  ] as const)(
+    'draws the %s illustration by the photo as %s',
+    (illustration, expected) => {
+      const Expected = SPOT_ILLUSTRATIONS[expected]
+      const { container: reference } = render(<Expected outline />)
+      const { container } = render(
+        <CTABand
+          title='Explore an Oztix partnership'
+          image={image}
+          illustration={illustration}
+        />
+      )
+
+      expect(container.querySelector('svg')!.innerHTML).toBe(
+        reference.querySelector('svg')!.innerHTML
+      )
+    }
+  )
+
   it('renders the studio CTA as a band with its photo and actions', () => {
     render(
       <CTABand
