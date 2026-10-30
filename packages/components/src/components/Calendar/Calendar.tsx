@@ -268,17 +268,19 @@ const dayVariants = cva(
   }
 )
 
+// Lenient on purpose: a month prop such as '2026-11', read from a URL, still
+// names its month rather than throwing during render.
 function monthOf(date: string): string {
-  return addDays(date, 1 - plainDateParts(date).day)
+  return `${date.slice(0, 7)}-01`
 }
 
 function lastDayOf(month: string): string {
   return addDays(addMonths(month, 1), -1)
 }
 
-const yearOf = (date: string) => plainDateParts(date).year
+const yearOf = (date: string) => plainDateParts(monthOf(date)).year
 
-const monthNumberOf = (date: string) => plainDateParts(date).month
+const monthNumberOf = (date: string) => plainDateParts(monthOf(date)).month
 
 function between(date: string, start: string, end: string) {
   return compareDates(date, start) >= 0 && compareDates(date, end) <= 0
