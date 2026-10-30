@@ -358,8 +358,8 @@ describe('parseDatePhrase: a month', () => {
     [
       'may',
       [
-        month('May 2027', '2027-05-01', '2027-05-31'),
-        month('May 2026', '2026-05-01', '2026-05-31')
+        month('May 2026', '2026-05-01', '2026-05-31'),
+        month('May 2027', '2027-05-01', '2027-05-31')
       ]
     ],
     [
@@ -369,11 +369,29 @@ describe('parseDatePhrase: a month', () => {
         month('February 2026', '2026-02-01', '2026-02-28')
       ]
     ],
+    [
+      'april',
+      [
+        month('April 2027', '2027-04-01', '2027-04-30'),
+        month('April 2026', '2026-04-01', '2026-04-30')
+      ]
+    ],
     ['october', [month('October 2026', '2026-10-01', '2026-10-31')]],
     ['may 2027', [month('May 2027', '2027-05-01', '2027-05-31')]],
     ['feb 2028', [month('February 2028', '2028-02-01', '2028-02-29')]]
   ])('%j', (text, expected) => {
     expect(parseDatePhrase(text, SYDNEY)).toEqual(expected)
+  })
+
+  it('keeps the year in Latin digits', () => {
+    const [may] = parseDatePhrase('may 2027', { ...SYDNEY, locale: 'ar-EG' })
+    expect(may!.label).toMatch(/ 2027$/)
+  })
+
+  it('looks back from since, like a date with no year', () => {
+    expect(parseDatePhrase('since may', SYDNEY)[0]!.value).toEqual({
+      after: '2026-04-30'
+    })
   })
 })
 

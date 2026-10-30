@@ -1113,9 +1113,10 @@ typed phrases, best first.
   this month, then month to date.
 - A date with no year takes the occurrence closest to today, either way. In
   October, `14 mar` is next March and `20 sep` is last month.
-- A month on its own offers the coming one, then the last one, so in October
-  `may` offers May next year, then May this year. This month's name offers
-  this month, and `may 2027` that month.
+- A month on its own offers the closer of the coming and the last one, then
+  the other, so in October `may` offers May this year, then May next year,
+  and `feb` February next year first. This month's name offers this month,
+  and `may 2027` that month.
 - `after` and `before` take any day or range, so `after this weekend` is
   after its Sunday. `since`, `from`, `on or after`, `until`, `till`, and
   `on or before` take the day itself too, so `since fri` reads as after

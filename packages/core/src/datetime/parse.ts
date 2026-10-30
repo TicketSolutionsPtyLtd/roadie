@@ -392,13 +392,14 @@ export function parseDatePhrase(
       dateStyle: 'long',
       locale: options.locale
     }) ?? date
+  // The locale names the month; the year stays in Latin digits, as in every
+  // other label.
   const monthLabel = (first: string) =>
-    dateTimeFormat(options.locale ?? DEFAULT_LOCALE, {
+    `${dateTimeFormat(options.locale ?? DEFAULT_LOCALE, {
       timeZone: 'UTC',
       calendar: 'gregory',
-      month: 'long',
-      year: 'numeric'
-    }).format(plainDateInstant(first))
+      month: 'long'
+    }).format(plainDateInstant(first))} ${plainDateParts(first).year}`
   const on = (date: string): DatePhraseSuggestion => ({
     label: formatDay(date),
     value: { on: date }
@@ -535,7 +536,8 @@ const COMPLETIONS = new WeakSet<DatePhraseSuggestion>()
 
 /**
  * The first day of each month a bare month name can mean: that month of a
- * given year, this month, or the coming one and then the last one.
+ * given year, this month, or the closer of the coming and the last one, then
+ * the other, as a date with no year takes the closest.
  */
 function monthsNamed(
   month: number,
@@ -548,7 +550,9 @@ function monthsNamed(
   const current = plainDateParts(today).month
   if (month === current) return [thisYear]
   const next = month > current ? thisYear : toPlainDate(year + 1, month, 1)
-  return [next, addMonths(next, -12)]
+  const last = addMonths(next, -12)
+  const ahead = (month - current + 12) % 12
+  return ahead <= 6 ? [next, last] : [last, next]
 }
 
 const ONWARDS = /^(.+) (?:onwards?|and later)$/
