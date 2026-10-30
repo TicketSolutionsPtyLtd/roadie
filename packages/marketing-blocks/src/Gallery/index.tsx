@@ -196,7 +196,12 @@ export function Gallery({
                 <Carousel.Next />
               </Carousel.Controls>
             </Carousel.Header>
-            <Carousel.Content>
+            {/* On a surface the photos run to its edges, padded to start in line
+                with the heading, and clip there rather than fade to the page. */}
+            <Carousel.Content
+              overflow={onPage ? undefined : 'hidden'}
+              className={onPage ? undefined : cn(BLEED, 'px-(--block-gutter)')}
+            >
               {tiles.map(({ key, tile }) => (
                 <Carousel.Item key={key} className='basis-auto'>
                   {tile}

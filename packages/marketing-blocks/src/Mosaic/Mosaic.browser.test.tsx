@@ -7,6 +7,7 @@ import {
   DESKTOP,
   atWidth,
   axeViolations,
+  centreOf,
   fontSizeOf,
   photo,
   textAlignOf,
@@ -214,6 +215,18 @@ describe('Mosaic tiles without a logo', () => {
       )
     }
   )
+})
+
+describe('Mosaic logo tile', () => {
+  it('centres its title over the logos', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(<Mosaic {...offline(partnerTiers)} />)
+
+    const title = screen.getByRole('heading', { name: 'Also supporting' })
+    expect(
+      Math.abs(centreOf(title) - centreOf(title.closest('li')!))
+    ).toBeLessThan(2)
+  })
 })
 
 describe('Mosaic align and size', () => {

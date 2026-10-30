@@ -474,6 +474,35 @@ describe('Gallery surfaces', () => {
       .getBoundingClientRect()
     expect(heading.left).toBeGreaterThan(surfaceBox().left)
   })
+
+  it.each([
+    ['a band', false],
+    ['a contained panel', true]
+  ])(
+    'runs the carousel edge to edge of %s, starting in line with the heading',
+    async (_, contained) => {
+      await page.viewport(DESKTOP.width, DESKTOP.height)
+      render(
+        <Gallery
+          preset='carousel'
+          emphasis='subtle'
+          contained={contained}
+          title='Our people'
+          images={images}
+        />
+      )
+
+      const viewport = document
+        .querySelector('[data-slot=carousel-content]')!
+        .getBoundingClientRect()
+      expect(viewport.left).toBeCloseTo(surfaceBox().left, 0)
+      expect(viewport.right).toBeCloseTo(surfaceBox().right, 0)
+      expect(tile().left).toBeCloseTo(
+        screen.getByRole('heading', { level: 2 }).getBoundingClientRect().left,
+        0
+      )
+    }
+  )
 })
 
 describe('Gallery ratio', () => {

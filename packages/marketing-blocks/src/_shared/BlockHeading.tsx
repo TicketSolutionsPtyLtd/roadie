@@ -23,7 +23,7 @@ export type BlockHeadingProps = {
   align?: BlockAlign
   /** The block's intent; highlighted words take it, or brand-secondary without one. */
   intent?: BlockIntent
-  /** Runs the description the heading's full width instead of balancing it to a measure. */
+  /** Runs the description the heading's full width instead of to a measure. */
   wide?: boolean
   id?: string
   className?: string
@@ -98,7 +98,13 @@ export function BlockHeading({
           className={cn(
             'wrap-anywhere text-subtle',
             descriptionClass(size),
-            wide ? 'text-pretty' : 'max-w-3xl text-balance'
+            // Balanced lines suit a centred heading; beside a start-aligned one
+            // they read as cut short, so the lines fill a wider measure instead.
+            wide
+              ? 'text-pretty'
+              : align === 'center'
+                ? 'max-w-3xl text-balance'
+                : 'max-w-4xl text-pretty'
           )}
         >
           {description}

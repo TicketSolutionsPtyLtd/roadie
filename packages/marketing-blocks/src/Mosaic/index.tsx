@@ -255,7 +255,11 @@ function LogosTile({ title = 'Also supporting', logos }: MosaicLogoTile) {
           'grid content-center justify-items-center gap-1 p-2 @3xl:gap-2'
         )}
       >
-        <Mark render={<h3 />} intent='neutral' className='text-display-prose-5'>
+        <Mark
+          render={<h3 />}
+          intent='neutral'
+          className='justify-self-center text-display-prose-5'
+        >
           {title}
         </Mark>
         <div className='flex flex-wrap items-center justify-center gap-2'>
