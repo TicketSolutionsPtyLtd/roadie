@@ -1,6 +1,8 @@
 import { Highlight } from '@oztix/roadie-components/highlight'
 import { cn } from '@oztix/roadie-core/utils'
 
+import type { BlockIntent } from './surface'
+
 export type BlockHeadingProps = {
   eyebrow?: string
   title: string
@@ -12,6 +14,8 @@ export type BlockHeadingProps = {
   /** The title's `text-display-prose-*` step, when the preset sets one other than the level's. */
   size?: 1 | 2 | 3 | 4
   align?: 'center' | 'start'
+  /** The block's intent; highlighted words take it, or brand-secondary without one. */
+  intent?: BlockIntent
   /** Runs the description the heading's full width instead of balancing it to a measure. */
   wide?: boolean
   id?: string
@@ -33,6 +37,7 @@ export function BlockHeading({
   level = 2,
   size = level,
   align = 'center',
+  intent,
   wide = false,
   id,
   className
@@ -58,7 +63,7 @@ export function BlockHeading({
           <Highlight
             text={title}
             query={titleHighlight}
-            intent='brand-secondary'
+            intent={intent ?? 'brand-secondary'}
           />
         ) : (
           title
