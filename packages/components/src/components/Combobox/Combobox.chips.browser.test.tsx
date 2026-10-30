@@ -43,13 +43,15 @@ function Bands({
   disabled,
   size,
   chipClassName,
-  selected
+  selected,
+  controls
 }: {
   defaultValue: string[]
   disabled?: boolean
   size?: 'sm' | 'md' | 'lg'
   chipClassName?: string
   selected?: string
+  controls?: boolean
 }) {
   return (
     <div style={{ width: 320 }}>
@@ -78,6 +80,12 @@ function Bands({
               </Combobox.Chips>
             )}
           </Combobox.Value>
+          {controls && (
+            <>
+              <Combobox.Clear aria-label='Clear bands' />
+              <Combobox.Trigger aria-label='Show bands' />
+            </>
+          )}
         </Combobox.InputGroup>
       </Combobox>
     </div>
@@ -171,6 +179,23 @@ describe('Combobox chips', () => {
       expect(chipBox.bottom).toBeLessThanOrEqual(group.bottom)
     }
   })
+
+  it.each(['sm', 'md', 'lg'] as const)(
+    'keep Clear and the trigger on the first row as chips wrap, at %s',
+    (size) => {
+      render(<Bands defaultValue={bands} size={size} controls />)
+      const middle = (element: Element) => {
+        const { top, height } = box(element)
+        return top + height / 2
+      }
+      const firstRow = middle(chip(bands[0]!))
+      for (const name of ['Clear bands', 'Show bands'])
+        expect(middle(screen.getByRole('button', { name }))).toBeCloseTo(
+          firstRow,
+          0
+        )
+    }
+  )
 
   it('keep room to type after the last chip', () => {
     render(<Bands defaultValue={bands} />)
