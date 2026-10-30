@@ -66,6 +66,9 @@ show a number or a table, not a chart.
 | When (hour by weekday)       | `Heatmap`                                   | `heatmap`         |
 | Several items to scan        | `DataTable` (`/data-table`) in a `DataCard` |                   |
 
+A donut is for one whole only: never a grid of donuts, and never to compare
+groups or periods. Use `StackedBars` at 100% or `SmallMultiples` instead.
+
 `StatTile`, `Meter`, `Sparkline`, `DataCard`, `DataTable`, `Delta`, and
 `Dashboard` come from `@oztix/roadie-components`. The charts, `Chart`,
 `ChartLegend`, and `DashboardView` come from `@oztix/roadie-charts`.
