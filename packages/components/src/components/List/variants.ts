@@ -1,6 +1,5 @@
 import { cva } from 'class-variance-authority'
 
-// `:focus-visible`, which a click doesn't leave behind; child combinators skip nested groups.
 // :has() rows set --list-divider rather than style a descendant, since a
 // selector after a :has() restyles every match on the page.
 export const listSectionClass = [
@@ -8,6 +7,8 @@ export const listSectionClass = [
   // minmax(0,1fr) lets a row shrink below its text, so a long title truncates.
   'grid [&>li]:grid [&>li]:grid-cols-[minmax(0,1fr)] [--list-divider:initial]',
   '[&>li:last-child>*>[data-slot=list-item-content]]:after:bg-transparent',
+  // The divider hides beside a hovered, current or :focus-visible row (which a
+  // click doesn't leave behind); child combinators skip nested groups.
   '[&>li:is(:hover,:has(>:is(:focus-visible,[aria-current])))]:[--list-divider:transparent]',
   // `:has()` can't nest, and `:is()` hides the error, so these stay split.
   '[&>li:has(+li:hover)]:[--list-divider:transparent]',
