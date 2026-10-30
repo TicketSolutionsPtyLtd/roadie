@@ -461,7 +461,7 @@ function plotProblems(plot: ChartPlot, path: string) {
       )
     )
   if (
-    plot.kind === 'line' &&
+    (plot.kind === 'line' || plot.kind === 'bar') &&
     (plot.comparison?.y === plot.x || plot.comparison?.y === plot.y)
   )
     problems.push(

@@ -1,13 +1,14 @@
 import type { ChartTable } from '../Chart'
 import { fieldLabel, valueColumn, xCell, xColumn } from '../plot/table'
 import { isTimeField } from '../plot/time'
-import { comparisonLabel, toBars } from './bars'
+import { comparisonLabel, hasComparison, toBars } from './bars'
 import type { BarChartProps } from './types'
 
 export function barChartTable(props: BarChartProps): ChartTable {
   const isTime = isTimeField(props.data, props.x)
   const line = props.line
-  const comparison = props.comparison
+  const bars = toBars(props)
+  const comparison = hasComparison(bars) ? props.comparison : undefined
   const columns = [
     xColumn(props.x),
     valueColumn(props.y, fieldLabel(props.y), props.format),
@@ -22,7 +23,7 @@ export function barChartTable(props: BarChartProps): ChartTable {
         ]
       : [])
   ]
-  const rows = toBars(props).map((bar) => ({
+  const rows = bars.map((bar) => ({
     [props.x]: xCell(bar.key, isTime),
     [props.y]: bar.y,
     ...(line && { [line.y]: bar.line }),

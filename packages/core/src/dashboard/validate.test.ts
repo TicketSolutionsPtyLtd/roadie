@@ -315,13 +315,18 @@ describe('validateDashboard with chart plots', () => {
     )
   })
 
-  it.each(['day', 'sold'])(
-    'warns on a line comparison against its own %s, which the chart ignores',
-    (field) => {
+  it.each([
+    ['line', 'day'],
+    ['line', 'sold'],
+    ['bar', 'day'],
+    ['bar', 'sold']
+  ])(
+    'warns on a %s comparison against its own %s, which the chart ignores',
+    (kind, field) => {
       const result = validateDashboard(
         spec([
           chartCard({
-            kind: 'line',
+            kind,
             data: rows,
             x: 'day',
             y: 'sold',

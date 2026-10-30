@@ -30,7 +30,14 @@ import {
   valueDomain
 } from '../plot/values'
 import { describeValue, lowerFirst } from '../plot/words'
-import { type Bar, barYExtent, comparisonLabel, hasBars, toBars } from './bars'
+import {
+  type Bar,
+  barYExtent,
+  comparisonLabel,
+  hasBars,
+  hasComparison,
+  toBars
+} from './bars'
 import { barChartTable } from './table'
 import type { BarChartProps } from './types'
 
@@ -187,7 +194,7 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
         radius: { end: 2 }
       }),
       // A level across each slot, so the bars still start at zero.
-      ...(props.comparison
+      ...(hasComparison(bars)
         ? [
             comparisonTick(
               data,
@@ -311,8 +318,7 @@ export const barChart: ChartDefinition<BarChartProps> = {
   emptyMessage: (props) => (hasBars(toBars(props)) ? undefined : EMPTY),
   legend(props, paint) {
     const comparison = comparisonLabel(props)
-    if (!comparison || toBars(props).every((b) => b.comparison === null))
-      return []
+    if (!comparison || !hasComparison(toBars(props))) return []
     return [
       {
         label: fieldLabel(props.y),
