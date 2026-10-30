@@ -211,8 +211,8 @@ Empty is a real state: null, an empty string, and an empty list are all not
 set. Negative operators (is-not, not-contains, and neq) keep records where the
 field is empty, the way Meilisearch does. Check a view from storage or an API
 with `validateRecordView(view, fields)`. It rejects unknown fields and
-operators that don't fit, and says what would. It warns of a value that ends in
-a backslash or holds one before a quote, which `toMeilisearch` can't write and
+operators that don't fit, and says what would. It warns of a value with an unpaired
+backslash at its end or before a quote, which `toMeilisearch` can't write and
 throws on. A view carries its format as
 `version`, `RECORD_VIEW_VERSION`. A view saved without one reads as version 1,
 and a version this release doesn't know is rejected.
