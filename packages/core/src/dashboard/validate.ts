@@ -460,6 +460,16 @@ function plotProblems(plot: ChartPlot, path: string) {
         'A comparison draws only on a single series, so the chart leaves it out. Drop series or comparison'
       )
     )
+  if (
+    plot.kind === 'line' &&
+    (plot.comparison?.y === plot.x || plot.comparison?.y === plot.y)
+  )
+    problems.push(
+      warning(
+        `${plotPath}.comparison.y`,
+        `"${plot.comparison.y}" is the chart's own x or y, so the chart leaves the comparison out. Name another field`
+      )
+    )
   problems.push(...copyProblems(plotPath, 'takeaway', plot.takeaway))
   problems.push(...duplicateProblems(plot, plotPath))
   if (
