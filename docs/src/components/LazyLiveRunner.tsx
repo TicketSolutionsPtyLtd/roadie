@@ -14,7 +14,9 @@ import type { LiveRunnerProps } from './LiveRunner'
 // react-live and the example scope (every component, chart and widget) load
 // with the first example that nears the viewport, not with the page.
 export const loadLiveRunner = () => import('./LiveRunner')
-const LiveRunner = lazy(loadLiveRunner)
+// lazy() keeps a rejected load, so a retry swaps in a fresh one, shared with
+// the examples that mount after it.
+let LiveRunner = lazy(loadLiveRunner)
 
 type FailedProps = { failed: (reset: () => void) => ReactNode }
 
@@ -67,8 +69,8 @@ export function LazyLiveRunner({
         frame(
           <LiveExampleError
             onRetry={() => {
-              // lazy() keeps a rejected load, so a retry needs a fresh one.
-              setRunner(() => lazy(loadLiveRunner))
+              LiveRunner = lazy(loadLiveRunner)
+              setRunner(() => LiveRunner)
               reset()
             }}
           />

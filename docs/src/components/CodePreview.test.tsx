@@ -37,7 +37,7 @@ describe('CodePreview', () => {
     expect(document.body.textContent).toContain('<NumberField />')
   })
 
-  it('loads the example again on Try again', async () => {
+  it('loads the example again on Try again, and the examples after it', async () => {
     runner.failFirst = 1
     render(<Page />)
 
@@ -45,6 +45,10 @@ describe('CodePreview', () => {
     act(() => fireEvent.click(retry))
 
     await screen.findByText('Example rendered')
+    expect(screen.queryByText("We couldn't load this example")).toBeNull()
+
+    render(<Page />)
+    expect(await screen.findAllByText('Example rendered')).toHaveLength(2)
     expect(screen.queryByText("We couldn't load this example")).toBeNull()
   })
 })
