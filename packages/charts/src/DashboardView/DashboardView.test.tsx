@@ -147,6 +147,25 @@ describe('DashboardView row links', () => {
     )
   })
 
+  it('passes the period to row links, so they can open the same dates', () => {
+    const period = {
+      range: 'this-month' as const,
+      compare: 'previous-year' as const
+    }
+    const getRowHref = vi.fn(() => undefined)
+    render(
+      <DashboardView
+        spec={{ ...tableDashboard, period }}
+        getRowHref={getRowHref}
+      />
+    )
+    expect(getRowHref).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      period
+    )
+  })
+
   it('renders row links on the server', () => {
     expect(
       renderToString(
