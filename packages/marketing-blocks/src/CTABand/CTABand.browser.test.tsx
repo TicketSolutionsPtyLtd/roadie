@@ -51,7 +51,7 @@ function boxes() {
   return {
     section: section.getBoundingClientRect(),
     panel: section
-      .querySelector('[data-slot=cta-band-panel]')!
+      .querySelector('[data-slot=block-surface]')!
       .getBoundingClientRect(),
     heading: heading.getBoundingClientRect(),
     photo: screen
@@ -63,7 +63,7 @@ function boxes() {
 describe('CTABand with photo', () => {
   it('sets the photo above the copy on a phone, breaking out of the panel', async () => {
     await page.viewport(PHONE.width, PHONE.height)
-    render(<CTABand preset='with-photo' {...props} />)
+    render(<CTABand {...props} />)
 
     const { section, panel, heading, photo } = boxes()
     expect(photo.top).toBeLessThan(panel.top)
@@ -73,7 +73,7 @@ describe('CTABand with photo', () => {
 
   it('sets the photo beside the copy on a mid-width screen', async () => {
     await page.viewport(640, 800)
-    render(<CTABand preset='with-photo' {...props} />)
+    render(<CTABand {...props} />)
 
     const { section, panel, heading, photo } = boxes()
     expect(photo.top).toBeLessThan(panel.top)
@@ -85,7 +85,7 @@ describe('CTABand with photo', () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     render(
       <div style={{ width: 400 }}>
-        <CTABand preset='with-photo' {...props} />
+        <CTABand {...props} />
       </div>
     )
 
@@ -95,7 +95,7 @@ describe('CTABand with photo', () => {
 
   it('sets the photo beside the copy on a desktop, breaking out of the panel', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
-    render(<CTABand preset='with-photo' {...props} />)
+    render(<CTABand {...props} />)
 
     const { section, panel, heading, photo } = boxes()
     expect(photo.top).toBeLessThan(panel.top)
@@ -109,7 +109,7 @@ describe('CTABand with photo', () => {
   })
 
   it('has no axe violations', async () => {
-    const { container } = render(<CTABand preset='with-photo' {...props} />)
+    const { container } = render(<CTABand {...props} />)
 
     expect(await axeViolations(container)).toEqual([])
   })
@@ -117,7 +117,7 @@ describe('CTABand with photo', () => {
 
 describe('CTABand with photo, its photo', () => {
   it('crops a landscape photo to the portrait frame', async () => {
-    render(<CTABand preset='with-photo' {...props} />)
+    render(<CTABand {...props} />)
 
     const img = screen.getByRole('img', { name: 'Hands up at a gig' })
     const frame = img.parentElement!
@@ -128,35 +128,38 @@ describe('CTABand with photo, its photo', () => {
 })
 
 describe('CTABand long words', () => {
-  it.each(['with-photo', 'centred'] as const)(
-    'keeps the %s panel within a phone screen',
-    async (preset) => {
-      await page.viewport(PHONE.width, PHONE.height)
-      render(
-        <CTABand
-          preset={preset}
-          {...props}
-          body={<p>Rock'n'roll at Wooloomooloomooloomooloomooloo</p>}
-        />
-      )
+  it.each([
+    ['with a photo', props.image],
+    ['without a photo', undefined]
+  ])('keeps the panel %s within a phone screen', async (_, image) => {
+    await page.viewport(PHONE.width, PHONE.height)
+    render(
+      <CTABand
+        {...props}
+        image={image}
+        body={<p>Rock'n'roll at Wooloomooloomooloomooloomooloo</p>}
+      />
+    )
 
-      const panel = document
-        .querySelector('[data-slot=cta-band-panel]')!
-        .getBoundingClientRect()
-      const body = screen.getByText(/Wooloomooloo/).getBoundingClientRect()
-      expect(panel.width).toBeLessThanOrEqual(PHONE.width)
-      expect(body.right).toBeLessThanOrEqual(panel.right)
-    }
-  )
+    const panel = document
+      .querySelector('[data-slot=block-surface]')!
+      .getBoundingClientRect()
+    const body = screen.getByText(/Wooloomooloo/).getBoundingClientRect()
+    expect(panel.width).toBeLessThanOrEqual(PHONE.width)
+    expect(body.right).toBeLessThanOrEqual(panel.right)
+  })
 })
 
 describe('CTABand body', () => {
-  it.each(['with-photo', 'centred'] as const)(
-    'sets the %s body in subtle text, closing on a medium-weight line',
-    (preset) => {
+  it.each([
+    ['with a photo', props.image],
+    ['without a photo', undefined]
+  ])(
+    'sets the body %s in subtle text, closing on a medium-weight line',
+    (_, image) => {
       render(
         <CTABand
-          preset={preset}
+          image={image}
           title='Explore an Oztix partnership'
           body={
             <>
@@ -184,15 +187,49 @@ describe('CTABand body', () => {
   )
 })
 
+describe('CTABand inset with photo', () => {
+  it('keeps the photo breaking out of the top of an inset panel', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(<CTABand {...props} inset />)
+
+    const { section, panel, heading, photo } = boxes()
+    expect(photo.top).toBeLessThan(panel.top)
+    expect(photo.top).toBeGreaterThanOrEqual(section.top)
+    expect(photo.left).toBeGreaterThan(heading.left + heading.width / 2)
+    expect(panel.left).toBeGreaterThan(section.left)
+  })
+})
+
+describe('CTABand size', () => {
+  it('sets the title and body smaller at md', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    const { rerender } = render(<CTABand {...props} />)
+    const sizes = () => ({
+      title: parseFloat(
+        getComputedStyle(screen.getByRole('heading', { level: 2 })).fontSize
+      ),
+      body: parseFloat(
+        getComputedStyle(screen.getByText(/get-to-know-you/)).fontSize
+      )
+    })
+    const large = sizes()
+
+    rerender(<CTABand {...props} size='md' />)
+    const medium = sizes()
+    expect(medium.title).toBeLessThan(large.title)
+    expect(medium.body).toBeLessThan(large.body)
+  })
+})
+
 describe('CTABand centred', () => {
   it('centres the heading and actions in the panel', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
-    render(<CTABand preset='centred' {...props} />)
+    render(<CTABand {...props} image={undefined} />)
 
     const heading = screen.getByRole('heading', { level: 2 })
     const panel = heading
       .closest('section')!
-      .querySelector('[data-slot=cta-band-panel]')!
+      .querySelector('[data-slot=block-surface]')!
       .getBoundingClientRect()
     const centre = (box: DOMRect) => box.left + box.width / 2
     const links = screen
@@ -211,14 +248,20 @@ describe('CTABand centred', () => {
   })
 
   it('has no axe violations', async () => {
-    const { container } = render(<CTABand preset='centred' {...props} />)
+    const { container } = render(<CTABand {...props} image={undefined} />)
 
     expect(await axeViolations(container)).toEqual([])
   })
 })
 
 describe('CTABand intent and emphasis', () => {
-  const EMPHASES = ['raised', 'subtle', 'strong', 'inverted'] as const
+  const EMPHASES = [
+    'raised',
+    'subtle',
+    'subtler',
+    'strong',
+    'inverted'
+  ] as const
   const cases = MODES.flatMap((theme) =>
     EMPHASES.flatMap((emphasis) =>
       INTENTS.map((intent) => [emphasis, intent, theme] as const)
@@ -232,7 +275,6 @@ describe('CTABand intent and emphasis', () => {
       onTestFinished(() => setMode('light'))
       const { container } = render(
         <CTABand
-          preset='centred'
           intent={intent}
           emphasis={emphasis}
           eyebrow='For organisers'
@@ -292,7 +334,6 @@ describe('CTABand intent and emphasis', () => {
       onTestFinished(() => setMode('light'))
       const { container } = render(
         <CTABand
-          preset='centred'
           intent={intent}
           emphasis={emphasis}
           title='Talk to our team'
@@ -303,7 +344,7 @@ describe('CTABand intent and emphasis', () => {
       expect(
         fillContrast(
           screen.getByRole('link', { name: 'Talk to us' }),
-          container.querySelector('[data-slot=cta-band-panel]')!
+          container.querySelector('[data-slot=block-surface]')!
         )
       ).toBeGreaterThanOrEqual(MINIMUM_FILL_LC)
     }

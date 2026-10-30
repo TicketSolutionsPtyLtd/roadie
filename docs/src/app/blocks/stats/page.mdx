@@ -43,11 +43,12 @@ a string, so it reads exactly as the editor wrote it.
 ### Intent and emphasis
 
 `intent` sets the figures, heading, and highlights in its strong text colour,
-and `emphasis` draws a band behind them: `raised`, `subtle`, or `subtler`.
-There's no band by default.
+and `emphasis` draws a surface behind them: `raised`, `subtle`, or `subtler`.
+There's none by default. The surface is a rounded panel inside the page
+padding; `inset={false}` runs it full width as a band instead.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
-{/* Brand, subtle band */}
+{/* Brand, subtle panel */}
 <Stats
   intent='brand'
   emphasis='subtle'
@@ -61,11 +62,34 @@ There's no band by default.
 {/* Raised band */}
 <Stats
   emphasis='raised'
+  inset={false}
   title='Results from last season'
   items={[
     { value: '98%', label: 'tickets scanned on time', illustration: 'HighFive' },
     { value: '12 minutes', label: 'average wait to get in', illustration: 'FlowerSpiral' }
   ]}
+/>
+```
+
+### Align, size, and actions
+
+`align='center'` centres the heading and the actions over the figures, which
+start by default. `size='md'` sets the title a step smaller, with tighter
+gaps. `actions` link on from under the figures.
+
+```tsx-live-expand id=align-size-and-actions
+<Stats
+  emphasis='subtler'
+  align='center'
+  size='md'
+  title='By the numbers'
+  description='The impact of genuine partnerships'
+  items={[
+    { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
+    { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
+    { value: '20+', label: 'years in ticketing', illustration: 'Heart' }
+  ]}
+  actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
 />
 ```
 
@@ -93,19 +117,19 @@ There's no band by default.
 
 <Guideline title='Set stats beside text with Split'>
   <Guideline.Do>
-    Use [Split](/blocks/split)'s `text-and-stats` preset to set stats beside long-form text.
+    Use [Split](/blocks/split)'s `media-text` preset with `stats` to set stats beside long-form text.
   </Guideline.Do>
   <Guideline.Dont>
     Don't stack a Stats block under a text block to fake the aside.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Add a band only to set the figures apart'>
+<Guideline title='Add a surface only to set the figures apart'>
   <Guideline.Do>
-    Draw a band, or set an intent, when the figures follow other plain blocks and need to stand apart.
+    Draw a surface, or set an intent, when the figures follow other plain blocks and need to stand apart.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't band Stats beside a block that already sits on a panel. Two surfaces in a row read as one.
+    Don't draw a surface behind Stats beside a block that already sits on a panel. Two surfaces in a row read as one.
   </Guideline.Dont>
 </Guideline>
 
@@ -113,7 +137,7 @@ There's no band by default.
 
 ## Tracking
 
-Stats reports a view once it's half on screen. It has no links, so it
-reports no clicks.
+Stats reports a view once it's half on screen, and a click on each action
+with its label and href. The figures aren't links.
 
 <PropsDefinitions component='Stats' />

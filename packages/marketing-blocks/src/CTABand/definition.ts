@@ -6,17 +6,11 @@ export const ctaBandDefinition = {
   description: 'Closes a page with a short pitch and the next step to take.',
   presets: [
     {
-      name: 'with-photo',
-      title: 'With photo',
+      name: 'band',
+      title: 'Band',
       description:
-        'A pitch beside a tilted photo, such as the Studio CTA or “List your events”.',
-      variant: 'split'
-    },
-    {
-      name: 'centred',
-      title: 'Centred',
-      description: 'A short centred pitch, such as “Talk to us”.',
-      variant: 'centred'
+        'A pitch and its actions on a panel: beside a tilted photo that breaks out of the top, such as the Studio CTA, or centred without one, such as “Talk to us”.',
+      variant: 'band'
     }
   ]
 } as const satisfies BlockDefinition

@@ -182,23 +182,83 @@ describe('RichText', () => {
       }
     )
 
-    it('draws no band by default', () => {
+    it('draws no surface by default', () => {
       const { container } = render(<RichText {...statement} />)
 
-      expect(container.querySelector('[data-slot=statement-band]')).toBeNull()
+      expect(container.querySelector('[data-slot=block-surface]')).toBeNull()
     })
 
-    it.each(['subtle', 'subtler', 'raised'] as const)(
-      'draws a rounded %s band around the statement',
-      (emphasis) => {
-        const { container } = render(
-          <RichText {...statement} emphasis={emphasis} />
-        )
+    it.each([
+      ['statement', statement],
+      ['long-form', longForm]
+    ])('draws %s on the emphasis given, as a band', (_, props) => {
+      const { container } = render(<RichText {...props} emphasis='subtle' />)
 
-        const band = container.querySelector('[data-slot=statement-band]')
-        expect(band).toHaveClass(`emphasis-${emphasis}`)
-        expect(band).toContainElement(screen.getByRole('heading', { level: 2 }))
-      }
-    )
+      const surface = container.querySelector('[data-slot=block-surface]')
+      expect(surface).toHaveClass('emphasis-subtle')
+      expect(surface).toHaveAttribute('data-shape', 'band')
+      expect(surface).toContainElement(
+        screen.getByRole('heading', { level: 2 })
+      )
+    })
+
+    it('draws the surface as a panel when inset', () => {
+      const { container } = render(
+        <RichText {...statement} emphasis='raised' inset />
+      )
+
+      expect(
+        container.querySelector('[data-slot=block-surface]')
+      ).toHaveAttribute('data-shape', 'panel')
+    })
+  })
+
+  describe('align and size', () => {
+    it.each([
+      ['statement', statement, 'text-center'],
+      ['long-form', longForm, 'text-start']
+    ])('aligns %s to its preset by default', (_, props, alignment) => {
+      render(<RichText {...props} />)
+
+      expect(
+        screen.getByRole('heading', { level: 2 }).parentElement
+      ).toHaveClass(alignment)
+    })
+
+    it('starts a statement’s text and actions when asked', () => {
+      render(
+        <RichText
+          {...statement}
+          align='start'
+          actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+        />
+      )
+
+      expect(
+        screen.getByRole('heading', { level: 2 }).parentElement
+      ).toHaveClass('text-start')
+      expect(
+        screen.getByRole('link', { name: 'Talk to us' }).parentElement
+      ).not.toHaveClass('justify-center')
+    })
+
+    it('centres long form when asked', () => {
+      render(<RichText {...longForm} align='center' />)
+
+      expect(
+        screen.getByRole('heading', { level: 2 }).parentElement
+      ).toHaveClass('text-center')
+    })
+
+    it.each([
+      ['statement', statement, 'text-display-prose-4', 'text-display-prose-5'],
+      ['long-form', longForm, 'text-display-prose-2', 'text-display-prose-3']
+    ])('sets the %s title a step smaller at md', (_, props, lg, md) => {
+      const { rerender } = render(<RichText {...props} />)
+      expect(screen.getByRole('heading', { level: 2 })).toHaveClass(lg)
+
+      rerender(<RichText {...props} size='md' />)
+      expect(screen.getByRole('heading', { level: 2 })).toHaveClass(md)
+    })
   })
 })

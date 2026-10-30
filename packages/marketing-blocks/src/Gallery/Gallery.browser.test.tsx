@@ -278,4 +278,105 @@ describe('Gallery', () => {
       expect(await axeViolations(container)).toEqual([])
     }
   )
+
+  it.each(
+    MODES.flatMap((theme) =>
+      (['subtler', 'subtle', 'raised'] as const).flatMap((emphasis) =>
+        INTENTS.map((intent) => [emphasis, intent, theme] as const)
+      )
+    )
+  )(
+    'keeps its text readable on a %s %s surface in %s mode',
+    async (emphasis, intent, theme) => {
+      setMode(theme)
+      onTestFinished(() => setMode('light'))
+      const { container } = render(
+        <Gallery
+          preset='marquee'
+          intent={intent}
+          emphasis={emphasis}
+          title='Our people'
+          titleHighlight='people'
+          description='From festivals to local venues.'
+          images={images}
+          actions={[{ label: 'Become a partner', href: '/partners' }]}
+        />
+      )
+
+      expect(
+        textContrast(screen.getByRole('heading', { level: 2 }))
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+      expect(textContrast(screen.getByText('people'))).toBeGreaterThanOrEqual(
+        MINIMUM_LC.large
+      )
+      expect(
+        textContrast(screen.getByText('From festivals to local venues.'))
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      expect(
+        textContrast(screen.getByRole('link', { name: 'Become a partner' }))
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      expect(await axeViolations(container)).toEqual([])
+    }
+  )
+})
+
+describe('Gallery surfaces', () => {
+  const marqueeBox = () =>
+    document.querySelector('[data-slot=marquee]')!.getBoundingClientRect()
+  // The padding box, inside any border the emphasis draws.
+  const surfaceBox = () => {
+    const surface = document.querySelector('[data-slot=block-surface]')!
+    const { left } = surface.getBoundingClientRect()
+    return {
+      left: left + surface.clientLeft,
+      right: left + surface.clientLeft + surface.clientWidth
+    }
+  }
+
+  it('runs the marquee the full width of the block on the page', async () => {
+    await page.viewport(1920, 900)
+    const { container } = render(<Photos />)
+
+    expect(marqueeBox().width).toBeCloseTo(
+      container.querySelector('section')!.getBoundingClientRect().width,
+      0
+    )
+  })
+
+  it.each([
+    ['a band', false],
+    ['an inset panel', true]
+  ])('runs the marquee edge to edge of %s', async (_, inset) => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(
+      <Gallery
+        preset='marquee'
+        emphasis='subtle'
+        inset={inset}
+        title='Our people'
+        images={images}
+      />
+    )
+
+    expect(marqueeBox().left).toBeCloseTo(surfaceBox().left, 0)
+    expect(marqueeBox().right).toBeCloseTo(surfaceBox().right, 0)
+  })
+
+  it('keeps the carousel inside the surface', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(
+      <Gallery
+        preset='carousel'
+        emphasis='raised'
+        inset
+        title='Our people'
+        images={images}
+      />
+    )
+
+    const heading = screen
+      .getByRole('heading', { level: 2 })
+      .getBoundingClientRect()
+    expect(heading.left).toBeGreaterThan(surfaceBox().left)
+  })
 })

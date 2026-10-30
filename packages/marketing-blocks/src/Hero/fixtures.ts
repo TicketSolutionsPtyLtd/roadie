@@ -1,14 +1,14 @@
 import type { HeroProps } from '.'
 import type { BlockImage } from '../Provider'
 
-type Photo = (alt: string) => BlockImage
+type Photo = (alt: string, width?: number, height?: number) => BlockImage
 
 /** A photo at a path of its own, for jsdom, which can't load `_test/browser`'s `photo()`. */
-export const pathPhoto: Photo = (alt) => ({
+export const pathPhoto: Photo = (alt, width = 1200, height = 800) => ({
   src: `/photos/${alt.toLowerCase().replaceAll(/\W+/g, '-')}.webp`,
   alt,
-  width: 1200,
-  height: 800
+  width,
+  height
 })
 
 export const bento = (photo: Photo = pathPhoto): HeroProps => ({
@@ -21,17 +21,15 @@ export const bento = (photo: Photo = pathPhoto): HeroProps => ({
     { label: 'Talk to us', href: '/contact/sales' },
     { label: 'Create my event', href: 'https://studio.oztix.com.au' }
   ],
-  backgroundImage: photo('A crowd at Velvet Dingo Fest'),
+  image: photo('A crowd at Velvet Dingo Fest'),
   video: {
     src: '/videos/showreel-av1.mp4',
     fallbackSrc: '/videos/showreel-h264.mp4',
     poster: photo('Highlights from Ochre Kite Weekender')
   },
-  primaryImages: [
+  images: [
     photo('The Oztix team at Antler Kettle Hall'),
-    photo('Event crew waving at Jumbuck Orchard Park')
-  ],
-  secondaryImages: [
+    photo('Event crew waving at Jumbuck Orchard Park'),
     photo('A band on stage at Kazoo Hollow Room'),
     photo('The gates opening at Apricot Cyclone Fest')
   ]
@@ -53,3 +51,12 @@ export const titleOnly: HeroProps = {
   title:
     'We empower venues and event organisers to create thriving events and communities through genuine partnerships.'
 }
+
+export const partnerHero = (photo: Photo = pathPhoto): HeroProps => ({
+  preset: 'partner',
+  title: 'Resell my tickets',
+  description: 'Sell your tickets through our resale partner.',
+  body: "The safest way to resell tickets to any event you can't make.",
+  actions: [{ label: 'Resell my tickets', href: 'https://resale.example.com' }],
+  partner: { name: 'Partner', logo: photo('Partner logo', 208, 60) }
+})

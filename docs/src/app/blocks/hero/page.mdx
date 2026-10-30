@@ -21,12 +21,12 @@ import { Hero } from '@oztix/roadie-marketing-blocks/hero'
 
 ### Bento
 
-The page hero for landing pages. The title sits over a photo, beside a
-muted, looping video. Once the block is about 36rem wide, `secondaryImages`
-fill the panel beside the video, and from about 56rem, `primaryImages` sit
-beside the title. Each set of photos crossfades while it's on screen. A
-button in the corner pauses and plays the video and photos together, and
-they start paused for viewers who reduce motion.
+The page hero for landing pages. The title sits over the `image`, beside a
+muted, looping video. The `images` fill two panels in order: the first half
+sit beside the title from about 56rem, and the rest beside the video from
+about 36rem. Each panel's photos crossfade while it's on screen. A button in
+the corner pauses and plays the video and photos together, and they start
+paused for viewers who reduce motion.
 
 ```tsx-live-expand id=bento
 <Hero
@@ -38,17 +38,15 @@ they start paused for viewers who reduce motion.
     { label: 'Talk to us', href: '/contact/sales' },
     { label: 'Create my event', href: 'https://studio.oztix.com.au' }
   ]}
-  backgroundImage={{ src: '/brand/photography/08.webp', alt: '', width: 1280, height: 850 }}
+  image={{ src: '/brand/photography/08.webp', alt: '', width: 1280, height: 850 }}
   video={{
     src: '/blocks/hero-reel.mp4',
     poster: { src: '/brand/photography/01.webp', alt: 'Highlights from Velvet Dingo Fest', width: 1280, height: 854 }
   }}
-  primaryImages={[
+  images={[
     { src: '/brand/photography/03.webp', alt: 'Two Oztix team members working at their desks', width: 1280, height: 1007 },
     { src: '/brand/photography/04.webp', alt: 'Event staff scanning tickets at the gate', width: 1280, height: 1007 },
-    { src: '/brand/photography/11.webp', alt: 'Three Oztix team members on a couch', width: 1280, height: 911 }
-  ]}
-  secondaryImages={[
+    { src: '/brand/photography/11.webp', alt: 'Three Oztix team members on a couch', width: 1280, height: 911 },
     { src: '/brand/photography/12.webp', alt: 'A crowd in a laneway strung with bunting', width: 1280, height: 854 },
     { src: '/brand/photography/07.webp', alt: 'Guests on the terrace at Lighthouse Fig Lawn', width: 1280, height: 854 },
     { src: '/brand/photography/06.webp', alt: 'A panel talking on stage at Ochre Kite Weekender', width: 1280, height: 854 }
@@ -86,12 +84,41 @@ An eyebrow and a large title, for a page that opens on its text.
 />
 ```
 
+### Partner
+
+Opens a partner page: the Oztix logo and the `partner` logo, joined by a
+heart, beside the title, with `body` under it. Once the block is about 36rem
+wide, the lockup sits beside the text, and from about 48rem they take half
+each. On a phone, the lockup sits above the title.
+
+```tsx-live-expand id=partner
+<Hero
+  preset='partner'
+  title='Resell my tickets'
+  description='Sell your Oztix tickets through our resale partner.'
+  body={
+    <>
+      <p>The safest way to resell tickets to any event you can't make.</p>
+      <p>
+        <strong>Only real tickets for real fans.</strong>
+      </p>
+    </>
+  }
+  actions={[{ label: 'Resell my tickets', href: 'https://www.example.com' }]}
+  partner={{
+    name: 'Partner',
+    logo: { src: '/blocks/partner-logo.svg', alt: '', width: 208, height: 60 }
+  }}
+/>
+```
+
 ### Intent and emphasis
 
 `intent` colours the highlighted words and the strong action, and in Bento
 the tint over the photo too. Without one, the highlight is brand-secondary,
-the action accent, and the tint brand. The hero has no `emphasis`: its look
-comes from its preset.
+the action accent, and the tint brand. The hero opens the page, so it takes
+no `emphasis` or `inset`. `align` centres the title and text, which start by
+default, and `size='md'` sets the title a step smaller with tighter spacing.
 
 ```tsx-live id=intent-and-emphasis
 <Hero
@@ -101,6 +128,17 @@ comes from its preset.
   title='Ticketing built for festival weekends'
   titleHighlight='festival weekends'
   actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+/>
+```
+
+```tsx-live id=align-and-size
+<Hero
+  preset='title'
+  align='center'
+  size='md'
+  eyebrow='Our mission'
+  title='We empower venues and event organisers to create thriving events.'
+  actions={[{ label: 'Meet the team', href: '/about/team' }]}
 />
 ```
 
@@ -143,8 +181,9 @@ comes from its preset.
   <Guideline.Do>
     Use Bento on a landing page with a background photo, a video, and at
     least two photos for each cycling panel, such as people and events. Use
-    Image for an industry or service page with one strong photo, and Title
-    for a page that opens on its text, such as About.
+    Image for an industry or service page with one strong photo, Title for a
+    page that opens on its text, such as About, and Partner for a page about
+    working with one partner, such as resale.
   </Guideline.Do>
   <Guideline.Dont>
     Use Bento without its photos, which leaves panels empty.

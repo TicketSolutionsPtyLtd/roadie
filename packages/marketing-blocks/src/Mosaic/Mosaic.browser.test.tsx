@@ -119,8 +119,8 @@ describe('Mosaic tiers labels', () => {
         {...offline(partnerTiers)}
         tiles={[
           {
-            name: 'Supercalifragilisticexpialidociousproductions',
-            label: 'Supercalifragilisticexpialidociouspartner',
+            title: 'Supercalifragilisticexpialidociousproductions',
+            description: 'Supercalifragilisticexpialidociouspartner',
             image: photo('')
           },
           ...offline(partnerTiers).tiles
@@ -166,7 +166,7 @@ describe('Mosaic tiles without a logo', () => {
     render(
       <Mosaic
         {...partnerTiers}
-        tiles={[{ name: 'Kazoo Hollow Room', image: photo('') }]}
+        tiles={[{ title: 'Kazoo Hollow Room', image: photo('') }]}
         logoTile={undefined}
       />
     )
@@ -186,8 +186,8 @@ describe('Mosaic logo-strip layout', () => {
         <Mosaic
           {...offline(logoStrip)}
           tiles={[
-            { name: 'Wide', logo: photo('Wide logo', 600, 100) },
-            { name: 'Square', logo: photo('Square logo', 300, 300) }
+            { title: 'Wide', logo: photo('Wide logo', 600, 100) },
+            { title: 'Square', logo: photo('Square logo', 300, 300) }
           ]}
         />
       )
@@ -215,9 +215,9 @@ describe('Mosaic logo-strip layout', () => {
     render(
       <Mosaic
         {...offline(logoStrip)}
-        tiles={['A', 'B', 'C', 'D'].map((name) => ({
-          name,
-          logo: photo(`${name} logo`, 300, 100)
+        tiles={['A', 'B', 'C', 'D'].map((title) => ({
+          title,
+          logo: photo(`${title} logo`, 300, 100)
         }))}
       />
     )
@@ -315,9 +315,46 @@ describe('Mosaic contrast', () => {
       ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
       for (const tile of partnerTiers.tiles)
         expect(
-          textContrast(screen.getByText(tile.label)),
-          tile.label
+          textContrast(screen.getByText(tile.description)),
+          tile.description
         ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+    }
+  )
+
+  it.each(
+    MODES.flatMap((mode) =>
+      (['subtler', 'subtle', 'raised'] as const).flatMap((emphasis) =>
+        INTENTS.map((intent) => ({
+          mode,
+          emphasis,
+          intent: intent ?? 'none',
+          props: { intent }
+        }))
+      )
+    )
+  )(
+    'keeps the heading, description and action readable on a $emphasis surface in $mode mode, intent $intent',
+    async ({ mode, emphasis, props }) => {
+      setMode(mode)
+      render(
+        <Mosaic
+          {...offline(logoStrip)}
+          {...props}
+          emphasis={emphasis}
+          description='Partners across the country.'
+          actions={[{ label: 'Become a partner', href: '/partners' }]}
+        />
+      )
+
+      expect(
+        textContrast(screen.getByRole('heading', { level: 2 }))
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+      expect(
+        textContrast(screen.getByText('Partners across the country.'))
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+      expect(
+        textContrast(screen.getByRole('link', { name: 'Become a partner' }))
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
     }
   )
 
@@ -386,7 +423,7 @@ describe('Mosaic link hover', () => {
         tiles={[{ ...first!, href: '/partners' }]}
       />
     )
-    const link = screen.getByRole('link', { name: first!.name })
+    const link = screen.getByRole('link', { name: first!.title })
     const fill = () => getComputedStyle(link).backgroundColor
     const before = fill()
 

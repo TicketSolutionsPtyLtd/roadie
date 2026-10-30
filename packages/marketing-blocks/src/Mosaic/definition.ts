@@ -10,7 +10,7 @@ export const mosaicDefinition = {
       name: 'tiers',
       title: 'Tiers',
       description:
-        'Photo tiles with a logo and a level, the wider ones featured, such as partner tiers.',
+        'Photo tiles with a logo and a level, the large ones two columns wide, such as partner tiers.',
       variant: 'static'
     },
     {

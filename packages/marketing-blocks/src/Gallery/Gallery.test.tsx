@@ -145,4 +145,108 @@ describe('Gallery', () => {
       'intent-brand'
     )
   })
+
+  describe('shared props', () => {
+    const heading = () => screen.getByRole('heading', { name: TITLE })
+
+    it.each([
+      ['carousel', 'text-start'],
+      ['marquee', 'text-center']
+    ] as const)('lines the %s heading up by its preset', (preset, expected) => {
+      render(<Gallery preset={preset} title={TITLE} images={images} />)
+
+      expect(heading().parentElement).toHaveClass(expected)
+    })
+
+    it.each([
+      ['carousel', 'center', 'text-center'],
+      ['marquee', 'start', 'text-start']
+    ] as const)(
+      'lines the %s heading up as asked',
+      (preset, align, expected) => {
+        render(
+          <Gallery
+            preset={preset}
+            align={align}
+            title={TITLE}
+            images={images}
+          />
+        )
+
+        expect(heading().parentElement).toHaveClass(expected)
+      }
+    )
+
+    it.each(['carousel', 'marquee'] as const)(
+      'sets the %s actions under the photos, the first strong',
+      (preset) => {
+        render(
+          <Gallery
+            preset={preset}
+            intent='brand'
+            title={TITLE}
+            images={images}
+            actions={[
+              { label: 'Become a partner', href: '/partners' },
+              { label: 'See events', href: '/events' }
+            ]}
+          />
+        )
+
+        const links = screen.getAllByRole('link')
+        expect(links.map((link) => link.textContent)).toEqual([
+          'Become a partner',
+          'See events'
+        ])
+        expect(links[0]).toHaveClass('intent-brand')
+        const lastImage = screen.getAllByRole('img').at(-1)!
+        expect(
+          lastImage.compareDocumentPosition(links[0]!) &
+            Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy()
+      }
+    )
+
+    it.each(['carousel', 'marquee'] as const)(
+      'draws no surface on %s by default, and the emphasis asked for as a band or inset panel',
+      (preset) => {
+        const { container, rerender } = render(
+          <Gallery preset={preset} title={TITLE} images={images} />
+        )
+        const surface = () =>
+          container.querySelector('[data-slot=block-surface]')
+        expect(surface()).toBeNull()
+
+        rerender(
+          <Gallery
+            preset={preset}
+            emphasis='subtle'
+            title={TITLE}
+            images={images}
+          />
+        )
+        expect(surface()).toHaveClass('emphasis-subtle')
+        expect(surface()).toHaveAttribute('data-shape', 'band')
+
+        rerender(
+          <Gallery
+            preset={preset}
+            emphasis='raised'
+            inset
+            title={TITLE}
+            images={images}
+          />
+        )
+        expect(surface()).toHaveAttribute('data-shape', 'panel')
+      }
+    )
+
+    it('sets the title a step smaller at md', () => {
+      const { rerender } = render(<Gallery title={TITLE} images={images} />)
+      expect(heading()).toHaveClass('text-display-prose-2')
+
+      rerender(<Gallery title={TITLE} images={images} size='md' />)
+      expect(heading()).toHaveClass('text-display-prose-3')
+    })
+  })
 })

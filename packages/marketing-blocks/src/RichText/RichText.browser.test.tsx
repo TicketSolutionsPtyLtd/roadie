@@ -54,8 +54,7 @@ describe('RichText statement', () => {
   ])('breathes above and below at %ipx, as its look', async (width, space) => {
     await atWidth(width, 900)
     const { container } = render(<RichText {...statement} />)
-    const section = container.querySelector('section')!
-    const content = section.firstElementChild!.firstElementChild!
+    const content = container.querySelector('section')!.firstElementChild!
 
     expect(parseFloat(getComputedStyle(content).paddingTop)).toBe(space)
     expect(parseFloat(getComputedStyle(content).paddingBottom)).toBe(space)
@@ -101,68 +100,82 @@ const INTENTS = [
 ] as const
 
 describe('RichText statement band shape', () => {
-  it('runs the band the block’s full width, rounded once the block is wide', async () => {
+  it('rounds the band once the block is wide', async () => {
     await atWidth(1440, 900)
     const { container } = render(<RichText {...statement} emphasis='subtle' />)
-    const section = container.querySelector('section')!
-    const band = section.querySelector('[data-slot=statement-band]')!
+    const band = container.querySelector('[data-slot=block-surface]')!
 
-    expect(band.getBoundingClientRect().width).toBeCloseTo(
-      section.getBoundingClientRect().width,
-      0
-    )
     expect(getComputedStyle(band).borderTopLeftRadius).not.toBe('0px')
   })
 
   it('runs square to the edges on a phone', async () => {
     await atWidth(PHONE.width, PHONE.height)
     const { container } = render(<RichText {...statement} emphasis='subtle' />)
-    const band = container.querySelector('[data-slot=statement-band]')!
+    const band = container.querySelector('[data-slot=block-surface]')!
 
+    expect(band.getBoundingClientRect().width).toBe(PHONE.width)
     expect(getComputedStyle(band).borderTopLeftRadius).toBe('0px')
+  })
+
+  it('keeps its breathing room on a band once wide', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { container } = render(<RichText {...statement} emphasis='subtle' />)
+    const band = container.querySelector('[data-slot=block-surface]')!
+    const illustration = band.querySelector('svg')!
+
+    expect(
+      illustration.getBoundingClientRect().top -
+        band.getBoundingClientRect().top
+    ).toBeGreaterThanOrEqual(128)
   })
 })
 
-describe.each([undefined, 'subtle', 'subtler', 'raised'] as const)(
-  'RichText statement on a %s band',
-  (emphasis) => {
-    it.each(MODES)(
-      'keeps its body, title and mark readable under every intent in %s mode',
-      async (mode) => {
-        setMode(mode)
-        await atWidth(DESKTOP.width, DESKTOP.height)
+describe.each(
+  ([undefined, 'subtle', 'subtler', 'raised'] as const).flatMap((emphasis) =>
+    [false, true].map((inset) => [emphasis, inset] as const)
+  )
+)('RichText statement on a %s surface, inset %s', (emphasis, inset) => {
+  it.each(MODES)(
+    'keeps its body, title and mark readable under every intent in %s mode',
+    async (mode) => {
+      setMode(mode)
+      await atWidth(DESKTOP.width, DESKTOP.height)
 
-        for (const intent of INTENTS) {
-          const { container, unmount } = render(
-            <main className='bg-normal text-normal'>
-              <RichText {...statement} emphasis={emphasis} intent={intent} />
-            </main>
-          )
+      for (const intent of INTENTS) {
+        const { container, unmount } = render(
+          <main className='bg-normal text-normal'>
+            <RichText
+              {...statement}
+              emphasis={emphasis}
+              inset={inset}
+              intent={intent}
+            />
+          </main>
+        )
 
-          expect(
-            textContrast(container.querySelector('.prose p')!),
-            intent
-          ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
-          expect(
-            textContrast(container.querySelector('h2')!),
-            intent
-          ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
-          expect(
-            textContrast(container.querySelector('mark')!),
-            intent
-          ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
-          unmount()
-        }
-        setMode('light')
+        expect(
+          textContrast(container.querySelector('.prose p')!),
+          intent
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+        expect(
+          textContrast(container.querySelector('h2')!),
+          intent
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+        expect(
+          textContrast(container.querySelector('mark')!),
+          intent
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+        unmount()
       }
+      setMode('light')
+    }
+  )
+
+  it('has no axe violations', async () => {
+    const { container } = render(
+      <RichText {...statement} emphasis={emphasis} inset={inset} />
     )
 
-    it('has no axe violations', async () => {
-      const { container } = render(
-        <RichText {...statement} emphasis={emphasis} />
-      )
-
-      expect(await axeViolations(container)).toEqual([])
-    })
-  }
-)
+    expect(await axeViolations(container)).toEqual([])
+  })
+})

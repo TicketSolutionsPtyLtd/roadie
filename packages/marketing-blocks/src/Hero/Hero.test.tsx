@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Hero } from '.'
 import { MarketingBlocksProvider } from '../Provider'
-import { bento, imageHero, titleOnly } from './fixtures'
+import { bento, imageHero, partnerHero, pathPhoto, titleOnly } from './fixtures'
 
 beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined)
@@ -53,7 +53,25 @@ describe('Hero', () => {
     expect(links[0]).toHaveAttribute('href', '/contact/sales')
   })
 
-  it('shows the first primary and secondary photos with their alt text, loaded only once seen', () => {
+  it('fills the panel beside the title with the first half of its images, and the panel beside the video with the rest', () => {
+    const { container } = render(
+      <Hero
+        {...bento()}
+        images={['One', 'Two', 'Three', 'Four', 'Five'].map((alt) =>
+          pathPhoto(alt)
+        )}
+      />
+    )
+
+    const first = (slot: string) =>
+      container
+        .querySelector(`[data-slot=hero-${slot}] img`)
+        ?.getAttribute('alt')
+    expect(first('primary')).toBe('One')
+    expect(first('secondary')).toBe('Four')
+  })
+
+  it('shows the first photo of each panel with its alt text, loaded only once seen', () => {
     render(<Hero {...bento()} />)
 
     for (const name of [
@@ -118,7 +136,7 @@ describe('Hero', () => {
       drawn
         .filter((img) => img.dataset.priority === 'true')
         .map((img) => img.dataset.src)
-    ).toEqual([bento().backgroundImage!.src])
+    ).toEqual([bento().image!.src])
     expect(
       container.querySelector(
         `[data-slot=hero-video] img[data-src="${bento().video!.poster.src}"]`
@@ -224,6 +242,113 @@ describe('Hero', () => {
     })
   })
 
+  describe('partner', () => {
+    it('opens the page with its title as the h1, beside both logos', () => {
+      render(<Hero {...partnerHero()} />)
+
+      const section = screen.getByRole('region', { name: 'Resell my tickets' })
+      expect(section).toHaveAttribute('data-variant', 'text')
+      expect(section).toHaveAttribute('data-preset', 'partner')
+      expect(
+        within(section).getByRole('heading', {
+          level: 1,
+          name: 'Resell my tickets'
+        })
+      ).toBeInTheDocument()
+      expect(
+        within(section).getByRole('img', { name: 'Oztix' })
+      ).toBeInTheDocument()
+      expect(
+        within(section).getByRole('img', { name: 'Partner logo' })
+      ).toHaveAttribute('src', '/photos/partner-logo.webp')
+      expect(
+        within(section).getByText(
+          "The safest way to resell tickets to any event you can't make."
+        )
+      ).toBeInTheDocument()
+    })
+
+    it("names the partner's logo by the partner when the logo has no alt", () => {
+      render(
+        <Hero
+          {...partnerHero()}
+          partner={{ name: 'Partner', logo: { src: '/partner.svg', alt: '' } }}
+        />
+      )
+
+      expect(screen.getByRole('img', { name: 'Partner' })).toHaveAttribute(
+        'src',
+        '/partner.svg'
+      )
+    })
+
+    it('reports a click on its action', async () => {
+      const onBlockEvent = vi.fn()
+      render(
+        <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
+          <Hero {...partnerHero()} position={1} />
+        </MarketingBlocksProvider>
+      )
+
+      await userEvent.click(
+        screen.getByRole('link', { name: /Resell my tickets/ })
+      )
+
+      expect(onBlockEvent).toHaveBeenCalledWith({
+        action: 'click',
+        block: 'hero',
+        variant: 'text',
+        preset: 'partner',
+        position: 1,
+        label: expect.stringContaining('Resell my tickets'),
+        href: 'https://resale.example.com'
+      })
+    })
+  })
+
+  describe('align and size', () => {
+    const headingOf = () => screen.getByRole('heading', { level: 1 })
+
+    it.each([
+      ['image', imageHero()],
+      ['title', titleOnly],
+      ['partner', partnerHero()]
+    ] as const)(
+      'starts the %s text by default, and centres it when asked',
+      (_, props) => {
+        const { rerender } = render(<Hero {...props} />)
+        expect(headingOf().parentElement).toHaveClass('text-start')
+
+        rerender(<Hero {...props} align='center' />)
+        expect(headingOf().parentElement).toHaveClass('text-center')
+      }
+    )
+
+    it('centres the bento title over its photo when asked', () => {
+      const { container } = render(<Hero {...bento()} align='center' />)
+
+      expect(container.querySelector('[data-slot=hero-scrim]')).toHaveClass(
+        'text-center'
+      )
+    })
+
+    it.each([
+      ['bento', bento(), 'text-display-prose-1', 'text-display-prose-2'],
+      ['image', imageHero(), 'text-display-prose-1', 'text-display-prose-2'],
+      ['title', titleOnly, 'text-display-prose-2', 'text-display-prose-3'],
+      ['partner', partnerHero(), 'text-display-prose-2', 'text-display-prose-3']
+    ] as const)(
+      'sets the %s title a step smaller at md',
+      (_, props, lg, md) => {
+        const { rerender } = render(<Hero {...props} />)
+        expect(headingOf()).toHaveClass(lg)
+
+        rerender(<Hero {...props} size='md' />)
+        expect(headingOf()).toHaveClass(md)
+      }
+    )
+  })
+
   it('falls back to bento with no preset', () => {
     render(<Hero {...bento()} preset={undefined} />)
 
@@ -246,7 +371,7 @@ describe('Hero', () => {
       )
     })
 
-    it.each(['bento', 'image', 'title'] as const)(
+    it.each(['bento', 'image', 'title', 'partner'] as const)(
       'sets the %s preset’s intent on its marks and strong action',
       (preset) => {
         const props =
@@ -254,7 +379,9 @@ describe('Hero', () => {
             ? bento()
             : preset === 'image'
               ? imageHero()
-              : { ...titleOnly, titleHighlight: 'empower' }
+              : preset === 'partner'
+                ? { ...partnerHero(), titleHighlight: 'Resell' }
+                : { ...titleOnly, titleHighlight: 'empower' }
         const { container } = render(
           <Hero {...props} actions={bento().actions} intent='success' />
         )

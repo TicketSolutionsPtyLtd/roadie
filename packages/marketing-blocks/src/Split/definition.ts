@@ -4,35 +4,21 @@ export const splitDefinition = {
   name: 'split',
   title: 'Split',
   description:
-    'Text beside an image, a partner lockup, or the numbers that back it up.',
+    'Text beside an image or the numbers that back it up, or rows of text and images that alternate sides.',
   presets: [
-    {
-      name: 'tinted-panel',
-      title: 'Tinted panel',
-      description:
-        'An image beside a heading on a tinted panel, such as a team or feature highlight.',
-      variant: 'media'
-    },
     {
       name: 'media-text',
       title: 'Media and text',
       description:
-        'A plain image beside a heading, text, and actions, with no panel, such as a section about a product or partnership.',
+        'An image, or a column of key figures, beside a heading, text, and actions, such as a section about a product, a team, or a company backing its story with numbers.',
       variant: 'media'
     },
     {
-      name: 'text-and-stats',
-      title: 'Text and stats',
+      name: 'alternating-rows',
+      title: 'Alternating rows',
       description:
-        'Long-form text with a column of key figures beside it, such as an about page backing its story with numbers. The figures wrap below on narrow screens.',
-      variant: 'stats'
-    },
-    {
-      name: 'logo-lockup',
-      title: 'Logo lockup',
-      description:
-        "The Oztix and a partner's logos joined by a heart, beside the page title, for a partner page.",
-      variant: 'media'
+        'Rows of a marked title and description beside a square image, alternating sides, for values or the steps of a story.',
+      variant: 'rows'
     }
   ]
 } as const satisfies BlockDefinition

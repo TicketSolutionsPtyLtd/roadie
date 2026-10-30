@@ -3,7 +3,7 @@
     "name": "provider",
     "path": "dist/Provider/index.js",
     "import": "*",
-    "limit": "370 B",
+    "limit": "350 B",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -15,13 +15,13 @@
     "name": "catalogue",
     "path": "dist/catalogue/index.js",
     "import": "*",
-    "limit": "2.05 kB"
+    "limit": "1.85 kB"
   },
   {
     "name": "hero",
     "path": "dist/Hero/index.js",
     "import": "*",
-    "limit": "5.2 kB",
+    "limit": "5.55 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -34,7 +34,7 @@
     "name": "rich-text",
     "path": "dist/RichText/index.js",
     "import": "*",
-    "limit": "3.1 kB",
+    "limit": "3.35 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -47,7 +47,7 @@
     "name": "card-grid",
     "path": "dist/CardGrid/index.js",
     "import": "*",
-    "limit": "5.2 kB",
+    "limit": "5 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -59,7 +59,7 @@
     "name": "split",
     "path": "dist/Split/index.js",
     "import": "*",
-    "limit": "4 kB",
+    "limit": "4.4 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -71,7 +71,7 @@
     "name": "stats",
     "path": "dist/Stats/index.js",
     "import": "*",
-    "limit": "2.6 kB",
+    "limit": "3.2 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -83,7 +83,7 @@
     "name": "mosaic",
     "path": "dist/Mosaic/index.js",
     "import": "*",
-    "limit": "3.4 kB",
+    "limit": "4.05 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -96,7 +96,7 @@
     "name": "testimonial",
     "path": "dist/Testimonial/index.js",
     "import": "*",
-    "limit": "2.85 kB",
+    "limit": "3.45 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -109,7 +109,7 @@
     "name": "cta-band",
     "path": "dist/CTABand/index.js",
     "import": "*",
-    "limit": "3.35 kB",
+    "limit": "3.5 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -121,7 +121,7 @@
     "name": "faq",
     "path": "dist/FAQ/index.js",
     "import": "*",
-    "limit": "2.6 kB",
+    "limit": "2.95 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -133,7 +133,7 @@
     "name": "gallery",
     "path": "dist/Gallery/index.js",
     "import": "*",
-    "limit": "3.3 kB",
+    "limit": "4.05 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",

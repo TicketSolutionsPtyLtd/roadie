@@ -20,21 +20,21 @@ export const partnerTiers = {
     "We back Australia's live events industry through partnerships that strengthen it.",
   tiles: [
     {
-      name: 'Ochre Kite Weekender',
-      label: 'Presenting partner',
+      title: 'Ochre Kite Weekender',
+      description: 'Presenting partner',
       logo: logo('Ochre Kite Weekender'),
       image: photo('01'),
-      featured: true
+      size: 'lg'
     },
     {
-      name: 'Velvet Dingo Fest',
-      label: 'Sponsor',
+      title: 'Velvet Dingo Fest',
+      description: 'Sponsor',
       logo: logo('Velvet Dingo Fest'),
       image: photo('02')
     },
     {
-      name: 'Thimble Orbit Presents',
-      label: 'Category partner',
+      title: 'Thimble Orbit Presents',
+      description: 'Category partner',
       logo: logo('Thimble Orbit Presents'),
       image: photo('03')
     }
@@ -52,18 +52,18 @@ export const logoStrip = {
   title: 'Trusted by organisers across Australia',
   tiles: [
     {
-      name: 'Kerosene Pony Collective',
+      title: 'Kerosene Pony Collective',
       logo: logo('Kerosene Pony Collective')
     },
     {
-      name: 'Wishbone Ferret Collective',
+      title: 'Wishbone Ferret Collective',
       logo: logo('Wishbone Ferret Collective')
     },
     {
-      name: 'Hairpin Bicycle Presents',
+      title: 'Hairpin Bicycle Presents',
       logo: logo('Hairpin Bicycle Presents')
     },
-    { name: 'Thimble Orbit Presents', logo: logo('Thimble Orbit Presents') },
-    { name: 'Velcro Pelican Productions' }
+    { title: 'Thimble Orbit Presents', logo: logo('Thimble Orbit Presents') },
+    { title: 'Velcro Pelican Productions' }
   ]
 } satisfies MosaicProps

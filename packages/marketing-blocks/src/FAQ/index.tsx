@@ -2,22 +2,27 @@ import { type ReactNode, useId } from 'react'
 
 import { Accordion } from '@oztix/roadie-components/accordion'
 import { Prose } from '@oztix/roadie-components/prose'
+import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction } from '../Provider'
 import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
+import { BlockSurface } from '../_shared/BlockSurface'
 import { presetOf } from '../_shared/presets'
-import type { BlockEmphasis, BlockIntent } from '../_shared/surface'
+import type {
+  BlockAlign,
+  BlockEmphasis,
+  BlockIntent,
+  BlockSize,
+  ItemEmphasis
+} from '../_shared/surface'
 import { type FAQPreset, faqDefinition } from './definition'
 
 export type { FAQPreset } from './definition'
 
-/** The question surfaces an FAQ takes, in Roadie Accordion's own names. */
-export type FAQEmphasis = Extract<
-  BlockEmphasis,
-  'subtler' | 'subtle' | 'normal'
->
+/** The questions' surface, from the item emphases Accordion draws. */
+export type FAQItemEmphasis = Exclude<ItemEmphasis, 'raised'>
 
 export type FAQItem = {
   /** The question as people ask it. */
@@ -50,11 +55,25 @@ export type FAQProps = {
   actions?: readonly BlockAction[]
   /** The block's intent, for the highlighted words, the questions' tint and the strong action. */
   intent?: BlockIntent
+  /** The surface behind the block: a band, full width and rounded once the block is wide, or a panel with `inset`. None by default. */
+  emphasis?: BlockEmphasis
+  /** Draws the `emphasis` as a panel inside the page padding instead of a band. */
+  inset?: boolean
   /**
-   * The questions' surface: `subtler` lines them up on the page, `subtle` tints each one, and `normal` boxes them.
+   * The questions' surface: `subtler` lines them up on the page, `subtle` tints each one, and `normal` boxes them. Roadie's Accordion has no raised questions.
    * @default 'subtler'
    */
-  emphasis?: FAQEmphasis
+  itemEmphasis?: FAQItemEmphasis
+  /**
+   * The heading's and actions' alignment. The questions always start.
+   * @default 'start'
+   */
+  align?: BlockAlign
+  /**
+   * `md` sets the title a step smaller, with tighter gaps.
+   * @default 'lg'
+   */
+  size?: BlockSize
 }
 
 /** Answers the questions people ask before they buy or sign up. */
@@ -69,7 +88,11 @@ export function FAQ({
   items,
   actions,
   intent,
-  emphasis = 'subtler'
+  emphasis,
+  inset,
+  itemEmphasis = 'subtler',
+  align = 'start',
+  size
 }: FAQProps) {
   const headingId = useId()
   const { name, variant } = presetOf(faqDefinition, presetName)
@@ -84,17 +107,26 @@ export function FAQ({
       aria-labelledby={headingId}
       intent={intent}
     >
-      <div className='container-3xl grid grid-cols-1 gap-8'>
+      <BlockSurface
+        emphasis={emphasis}
+        inset={inset}
+        width='3xl'
+        className={cn('grid grid-cols-1', size === 'md' ? 'gap-6' : 'gap-8')}
+      >
         <BlockHeading
           id={headingId}
           eyebrow={eyebrow}
           title={title}
           titleHighlight={titleHighlight}
           description={description}
-          align='start'
+          align={align}
+          size={size}
           intent={intent}
         />
-        <Accordion emphasis={emphasis} className='-mx-4 w-auto gap-1'>
+        <Accordion
+          emphasis={itemEmphasis}
+          className='-mx-4 w-auto gap-1'
+        >
           {items.map(({ question, answer }, index) => (
             <Accordion.Item key={`${index}-${question}`}>
               <Accordion.Trigger>
@@ -106,8 +138,12 @@ export function FAQ({
             </Accordion.Item>
           ))}
         </Accordion>
-        <BlockActions actions={actions} intent={intent} />
-      </div>
+        <BlockActions
+          actions={actions}
+          intent={intent}
+          className={cn(align === 'center' && 'justify-center')}
+        />
+      </BlockSurface>
     </BlockRoot>
   )
 }

@@ -24,6 +24,13 @@ export const heroDefinition = {
       description:
         'An eyebrow and a large title, with no media, for a page that opens on its text, such as About or a policy.',
       variant: 'text'
+    },
+    {
+      name: 'partner',
+      title: 'Partner',
+      description:
+        "The Oztix and a partner's logos joined by a heart, beside the page title, for a partner page.",
+      variant: 'text'
     }
   ]
 } as const satisfies BlockDefinition

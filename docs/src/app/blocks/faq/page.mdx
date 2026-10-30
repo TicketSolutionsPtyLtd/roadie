@@ -47,28 +47,57 @@ A heading over questions that open to their answers, one at a time. Answers are 
 
 ### Intent and emphasis
 
-`intent` tints the highlighted words, the strong action, and any question surface. `emphasis` sets the questions' surface, in Accordion's names: `subtler` by default, `subtle` to tint each question, or `normal` to box them.
+`intent` tints the highlighted words, the strong action, and any question surface. `itemEmphasis` sets the questions' surface: `subtler` by default, `subtle` to tint each question, or `normal` to box them. `emphasis` sets a `subtler`, `subtle`, or `raised` band behind the whole block, full width and rounded once the block is wide.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
-{/* Subtle */}
+{/* Subtle questions */}
 <FAQ
-  emphasis='subtle'
+  itemEmphasis='subtle'
   title='Questions, answered'
   items={[
     { question: 'Does it cost anything?', answer: <p>No. There’s no fee, and your settlement is unchanged.</p> },
     { question: 'How fast is it?', answer: <p>About 24 hours.</p> }
   ]}
 />
-{/* Brand, normal */}
+{/* Brand, normal questions */}
 <FAQ
   intent='brand'
-  emphasis='normal'
+  itemEmphasis='normal'
   title='Questions about refunds'
   titleHighlight='refunds'
   items={[
     { question: 'Can I get a refund?', answer: <p>Yes, when the event is cancelled or rescheduled.</p> },
     { question: 'How long does it take?', answer: <p>Up to 10 business days.</p> }
   ]}
+/>
+{/* Boxed, on a band */}
+<FAQ
+  emphasis='subtle'
+  itemEmphasis='normal'
+  title='Questions about payouts'
+  items={[
+    { question: 'When do I get paid?', answer: <p>Within five business days of your event.</p> },
+    { question: 'Can I get paid early?', answer: <p>Yes. Ask your account manager about early settlement.</p> }
+  ]}
+/>
+```
+
+### Inset, align, and size
+
+`inset` draws the surface as a rounded panel inside the page padding instead of a band. `align='center'` centres the heading and actions; the questions always start. `size='md'` sets the title a step smaller, with tighter gaps.
+
+```tsx-live-expand id=inset-align-and-size
+<FAQ
+  emphasis='raised'
+  inset
+  align='center'
+  size='md'
+  title='Questions, answered'
+  items={[
+    { question: 'Does it cost anything?', answer: <p>No. There’s no fee, and your settlement is unchanged.</p> },
+    { question: 'How fast is it?', answer: <p>About 24 hours.</p> }
+  ]}
+  actions={[{ label: 'See all FAQs', href: '/frequently-asked-questions' }]}
 />
 ```
 
@@ -99,7 +128,7 @@ A heading over questions that open to their answers, one at a time. Answers are 
 
 <Guideline title='Give the questions a surface only on a busy page'>
   <Guideline.Do>
-    Keep `subtler` on most pages. Use `subtle` or `normal` when the FAQ sits beside other content and needs its own edge.
+    Keep `subtler` questions on most pages. Use `subtle` or `normal` when the FAQ sits beside other content and needs its own edge, and `raised` on a band.
   </Guideline.Do>
 </Guideline>
 

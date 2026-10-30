@@ -24,7 +24,7 @@ export const quote = {
       height: 40
     }
   },
-  backgroundImage: {
+  image: {
     src: '/brand/photography/05.webp',
     alt: '',
     width: 1600,

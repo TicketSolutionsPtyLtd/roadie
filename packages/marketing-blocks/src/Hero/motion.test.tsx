@@ -79,7 +79,7 @@ describe('Hero photo cycling', () => {
 
   it('moves to the next primary photo every four seconds while on screen', () => {
     reduceMotion(false)
-    render(<Hero {...bento()} secondaryImages={[]} />)
+    render(<Hero {...bento()} />)
     act(() => intersect(true))
 
     act(() => vi.advanceTimersByTime(3999))
@@ -119,7 +119,7 @@ describe('Hero photo cycling', () => {
   })
 
   it('holds the photo it’s on, never a blank, when the viewer turns on reduced motion mid-cycle', () => {
-    render(<Hero {...bento()} secondaryImages={[]} />)
+    render(<Hero {...bento()} />)
     act(() => intersect(true))
     act(() => vi.advanceTimersByTime(4000))
     expect(shown('Event crew waving at Jumbuck Orchard Park')).not.toBeNull()
@@ -149,7 +149,7 @@ describe('Hero photo cycling', () => {
   })
 
   it('pauses and plays the video and the photos with one toggle', () => {
-    render(<Hero {...bento()} secondaryImages={[]} />)
+    render(<Hero {...bento()} />)
     act(() => intersect(true))
     expect(toggle(/pause/i)).toHaveAttribute('aria-pressed', 'false')
 
@@ -184,8 +184,7 @@ describe('Hero photo cycling', () => {
       <Hero
         {...bento()}
         video={undefined}
-        primaryImages={bento().primaryImages!.slice(0, 1)}
-        secondaryImages={[]}
+        images={bento().images!.slice(0, 1)}
       />
     )
 

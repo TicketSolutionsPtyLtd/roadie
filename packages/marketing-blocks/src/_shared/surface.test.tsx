@@ -71,7 +71,7 @@ describe('BlockSurface', () => {
     expect(
       container.querySelector('[data-slot=block-surface]')
     ).not.toBeInTheDocument()
-    expect(container.firstElementChild).toHaveClass('container-4xl')
+    expect(container.firstElementChild).toHaveClass('max-w-4xl', 'px-(--block-gutter)')
   })
 
   it('draws a full-width band by default', () => {

@@ -16,10 +16,9 @@ const image = {
 }
 
 describe('CTABand', () => {
-  it('renders the studio CTA as a split panel with its photo and actions', () => {
+  it('renders the studio CTA as a band with its photo and actions', () => {
     render(
       <CTABand
-        preset='with-photo'
         position={6}
         title='Explore an Oztix partnership'
         titleHighlight='partnership'
@@ -34,8 +33,8 @@ describe('CTABand', () => {
       name: 'Explore an Oztix partnership'
     })
     expect(section).toHaveAttribute('data-block', 'cta-band')
-    expect(section).toHaveAttribute('data-variant', 'split')
-    expect(section).toHaveAttribute('data-preset', 'with-photo')
+    expect(section).toHaveAttribute('data-variant', 'band')
+    expect(section).toHaveAttribute('data-preset', 'band')
     expect(section).toHaveAttribute('data-position', '6')
     expect(screen.getByText('partnership').closest('mark')).not.toBeNull()
     expect(
@@ -52,45 +51,76 @@ describe('CTABand', () => {
     ).toEqual(['/contact/sales', 'https://studio.oztix.com.au'])
   })
 
-  it('renders talk to us centred, without a photo even when given one', () => {
+  it('renders talk to us centred without a photo', () => {
     render(
       <CTABand
-        preset='centred'
         title='Talk to our team'
         body={<p>We’ll find the right setup for your venue.</p>}
         actions={actions.slice(0, 1)}
-        image={image}
       />
     )
 
-    const section = screen.getByRole('region', { name: 'Talk to our team' })
-    expect(section).toHaveAttribute('data-variant', 'centred')
-    expect(section).toHaveAttribute('data-preset', 'centred')
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Talk to our team' }).parentElement
+    ).toHaveClass('text-center')
     expect(screen.getByRole('link', { name: 'Talk to us' })).toHaveAttribute(
       'href',
       '/contact/sales'
     )
   })
 
-  it('falls back to the studio CTA with no preset', () => {
+  it('starts the copy beside a photo', () => {
+    render(<CTABand title='Talk to our team' image={image} />)
+
+    expect(
+      screen.getByRole('heading', { name: 'Talk to our team' }).parentElement
+    ).toHaveClass('text-start')
+  })
+
+  it.each([
+    ['with a photo', image, 'center', 'text-center'],
+    ['without a photo', undefined, 'start', 'text-start']
+  ] as const)('lines the copy up as asked %s', (_, photo, align, expected) => {
+    render(<CTABand title='Talk to our team' image={photo} align={align} />)
+
+    expect(
+      screen.getByRole('heading', { name: 'Talk to our team' }).parentElement
+    ).toHaveClass(expected)
+  })
+
+  it('sets the title a step smaller at md', () => {
+    const { rerender } = render(<CTABand title='Talk to our team' />)
+    const heading = () =>
+      screen.getByRole('heading', { name: 'Talk to our team' })
+    expect(heading()).toHaveClass('text-display-prose-2')
+
+    rerender(<CTABand title='Talk to our team' size='md' />)
+    expect(heading()).toHaveClass('text-display-prose-3')
+  })
+
+  it('draws a band by default, and an inset panel when asked', () => {
+    const { container, rerender } = render(<CTABand title='Talk to our team' />)
+    const surface = () => container.querySelector('[data-slot=block-surface]')
+    expect(surface()).toHaveAttribute('data-shape', 'band')
+
+    rerender(<CTABand title='Talk to our team' inset />)
+    expect(surface()).toHaveAttribute('data-shape', 'panel')
+  })
+
+  it('falls back to band with no preset', () => {
     render(<CTABand title='Sell more tickets' actions={actions} />)
 
     expect(
       screen.getByRole('region', { name: 'Sell more tickets' })
-    ).toHaveAttribute('data-preset', 'with-photo')
+    ).toHaveAttribute('data-preset', 'band')
   })
 
   it('reports a click on an action', async () => {
     const onBlockEvent = vi.fn()
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
-        <CTABand
-          preset='centred'
-          position={3}
-          title='Talk to our team'
-          actions={actions}
-        />
+        <CTABand position={3} title='Talk to our team' actions={actions} />
       </MarketingBlocksProvider>
     )
 
@@ -99,8 +129,8 @@ describe('CTABand', () => {
     expect(onBlockEvent).toHaveBeenCalledWith({
       action: 'click',
       block: 'cta-band',
-      variant: 'centred',
-      preset: 'centred',
+      variant: 'band',
+      preset: 'band',
       position: 3,
       label: 'Create my event',
       href: 'https://studio.oztix.com.au'
@@ -108,7 +138,7 @@ describe('CTABand', () => {
   })
 
   it('renders without actions', () => {
-    render(<CTABand preset='centred' title='Talk to our team' />)
+    render(<CTABand title='Talk to our team' />)
 
     expect(
       screen.getByRole('region', { name: 'Talk to our team' })
@@ -118,26 +148,26 @@ describe('CTABand', () => {
 
   it('sets its intent, and a raised panel by default', () => {
     const { container } = render(
-      <CTABand preset='centred' intent='brand' title='Talk to our team' />
+      <CTABand intent='brand' title='Talk to our team' />
     )
 
     expect(container.querySelector('section')).toHaveAttribute(
       'data-intent',
       'brand'
     )
-    expect(container.querySelector('[data-slot=cta-band-panel]')).toHaveClass(
+    expect(container.querySelector('[data-slot=block-surface]')).toHaveClass(
       'emphasis-raised'
     )
   })
 
-  it.each(['subtle', 'strong', 'inverted'] as const)(
+  it.each(['subtler', 'subtle', 'strong', 'inverted'] as const)(
     'draws a %s panel when asked',
     (emphasis) => {
       const { container } = render(
         <CTABand emphasis={emphasis} title='Talk to our team' />
       )
 
-      expect(container.querySelector('[data-slot=cta-band-panel]')).toHaveClass(
+      expect(container.querySelector('[data-slot=block-surface]')).toHaveClass(
         `emphasis-${emphasis}`
       )
     }

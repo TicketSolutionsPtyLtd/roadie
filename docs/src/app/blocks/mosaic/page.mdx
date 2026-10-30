@@ -23,7 +23,7 @@ import { Mosaic } from '@oztix/roadie-marketing-blocks/mosaic'
 ### Tiers
 
 Each partner is a tile with its photo behind, its logo, and its level as the
-tile's `label`. Featured tiles span two columns at half height, and the tiles
+tile's `description`. Tiles with `size: 'lg'` span two columns at half height, and the tiles
 pack densely, so a square tile fills the gap a wide one leaves. A `logoTile`
 closes the grid with the remaining logos, titled "Also supporting" unless
 you give it a title.
@@ -35,40 +35,40 @@ you give it a title.
   description="We back Australia's live events industry through partnerships that strengthen it."
   tiles={[
     {
-      name: 'Ochre Kite Weekender',
-      label: 'Presenting partner',
+      title: 'Ochre Kite Weekender',
+      description: 'Presenting partner',
       logo: { src: '/blocks/ochre-kite-weekender.svg', alt: 'Ochre Kite Weekender logo', width: 180, height: 60 },
       image: { src: '/brand/photography/01.webp', alt: '', width: 800, height: 800 },
-      featured: true
+      size: 'lg'
     },
     {
-      name: 'Velvet Dingo Fest',
-      label: 'Sponsor',
+      title: 'Velvet Dingo Fest',
+      description: 'Sponsor',
       logo: { src: '/blocks/velvet-dingo-fest.svg', alt: 'Velvet Dingo Fest logo', width: 180, height: 60 },
       image: { src: '/brand/photography/02.webp', alt: '', width: 800, height: 800 }
     },
     {
-      name: 'Thimble Orbit Presents',
-      label: 'Category partner',
+      title: 'Thimble Orbit Presents',
+      description: 'Category partner',
       logo: { src: '/blocks/thimble-orbit-presents.svg', alt: 'Thimble Orbit Presents logo', width: 180, height: 60 },
       image: { src: '/brand/photography/03.webp', alt: '', width: 800, height: 800 }
     },
     {
-      name: 'Apricot Cyclone Fest',
-      label: 'Major partner',
+      title: 'Apricot Cyclone Fest',
+      description: 'Major partner',
       logo: { src: '/blocks/apricot-cyclone-fest.svg', alt: 'Apricot Cyclone Fest logo', width: 180, height: 60 },
       image: { src: '/brand/photography/06.webp', alt: '', width: 800, height: 800 },
-      featured: true
+      size: 'lg'
     },
     {
-      name: 'Kazoo Hollow Room',
-      label: 'Ticketing partner',
+      title: 'Kazoo Hollow Room',
+      description: 'Ticketing partner',
       logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 180, height: 60 },
       image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 }
     },
     {
-      name: 'Doodlebug Anvil Productions',
-      label: 'Supporter',
+      title: 'Doodlebug Anvil Productions',
+      description: 'Supporter',
       logo: { src: '/blocks/doodlebug-anvil-productions.svg', alt: 'Doodlebug Anvil Productions logo', width: 180, height: 60 },
       image: { src: '/brand/photography/08.webp', alt: '', width: 800, height: 800 }
     }
@@ -86,8 +86,8 @@ you give it a title.
 ### Logo strip
 
 A wrapping, centred row of logos at one height, with no photos, for partner
-logos or certifications. It reads each tile's `logo`, or shows its `name`
-where it has none, and leaves out photos, labels, featuring, and the logo
+logos or certifications. It reads each tile's `logo`, or shows its `title`
+where it has none, and leaves out photos, descriptions, sizes, and the logo
 tile.
 
 ```tsx-live id=logo-strip
@@ -95,20 +95,25 @@ tile.
   preset='logo-strip'
   title='Trusted by organisers across Australia'
   tiles={[
-    { name: 'Kerosene Pony Collective', logo: { src: '/blocks/kerosene-pony-collective-badge.svg', alt: 'Kerosene Pony Collective', width: 240, height: 80 } },
-    { name: 'Wishbone Ferret Collective', logo: { src: '/blocks/wishbone-ferret-collective-badge.svg', alt: 'Wishbone Ferret Collective', width: 240, height: 80 } },
-    { name: 'Hairpin Bicycle Presents', logo: { src: '/blocks/hairpin-bicycle-presents-badge.svg', alt: 'Hairpin Bicycle Presents', width: 240, height: 80 } },
-    { name: 'Thimble Orbit Presents', logo: { src: '/blocks/thimble-orbit-presents-badge.svg', alt: 'Thimble Orbit Presents', width: 240, height: 80 } }
+    { title: 'Kerosene Pony Collective', logo: { src: '/blocks/kerosene-pony-collective-badge.svg', alt: 'Kerosene Pony Collective', width: 240, height: 80 } },
+    { title: 'Wishbone Ferret Collective', logo: { src: '/blocks/wishbone-ferret-collective-badge.svg', alt: 'Wishbone Ferret Collective', width: 240, height: 80 } },
+    { title: 'Hairpin Bicycle Presents', logo: { src: '/blocks/hairpin-bicycle-presents-badge.svg', alt: 'Hairpin Bicycle Presents', width: 240, height: 80 } },
+    { title: 'Thimble Orbit Presents', logo: { src: '/blocks/thimble-orbit-presents-badge.svg', alt: 'Thimble Orbit Presents', width: 240, height: 80 } }
   ]}
 />
 ```
 
 ### Intent and emphasis
 
-Mosaic takes an `intent`, which its tier labels and highlighted words follow;
-without one, labels are neutral and highlights brand-secondary. It takes no
-`emphasis`, since its tiles draw their own surface. Give a tile an `href` and
-its name or logo becomes the link, with the whole tile as the hit area and its
+Mosaic takes an `intent`, which its tile descriptions, highlighted words, and
+strong action follow; without one, descriptions are neutral and highlights
+brand-secondary. A tile's own `intent` marks its description in place of the
+block's. `emphasis` draws a `subtler`, `subtle`, or `raised` band behind the
+block, or with `inset`, a rounded panel inside the page's padding. `align`
+overrides the heading's alignment, which starts for tiers and centres for a
+logo strip, and `size='md'` sets the title a step smaller with tighter
+spacing. `actions` go under the tiles. Give a tile an `href` and its title or
+logo becomes the link, with the whole tile as the hit area and its
 photo easing larger on hover; tiles without one stay still. A linked strip
 logo is a quiet card that tints on hover.
 
@@ -116,27 +121,30 @@ logo is a quiet card that tints on hover.
 <Mosaic
   preset='tiers'
   intent='brand'
+  emphasis='subtle'
+  actions={[{ label: 'Become a partner', href: '/partners' }]}
   title='Festival partners'
   titleHighlight='partners'
   tiles={[
     {
-      name: 'Ochre Kite Weekender',
-      label: 'Presenting partner',
+      title: 'Ochre Kite Weekender',
+      description: 'Presenting partner',
       href: '/partners/ochre-kite-weekender',
       logo: { src: '/blocks/ochre-kite-weekender.svg', alt: 'Ochre Kite Weekender logo', width: 180, height: 60 },
       image: { src: '/brand/photography/01.webp', alt: '', width: 800, height: 800 },
-      featured: true
+      size: 'lg'
     },
     {
-      name: 'Velvet Dingo Fest',
-      label: 'Sponsor',
+      title: 'Velvet Dingo Fest',
+      description: 'Sponsor',
       href: '/partners/velvet-dingo-fest',
       logo: { src: '/blocks/velvet-dingo-fest.svg', alt: 'Velvet Dingo Fest logo', width: 180, height: 60 },
       image: { src: '/brand/photography/02.webp', alt: '', width: 800, height: 800 }
     },
     {
-      name: 'Kazoo Hollow Room',
-      label: 'Venue partner',
+      title: 'Kazoo Hollow Room',
+      description: 'Venue partner',
+      intent: 'success',
       logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 180, height: 60 },
       image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 }
     }
@@ -181,13 +189,13 @@ logo is a quiet card that tints on hover.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Feature the few that lead'>
+<Guideline title='Make the few that lead large'>
   <Guideline.Do>
-    Feature the presenting and major partners, about one in four tiles, so
-    the wide tiles read as the top tier.
+    Set the presenting and major partners to `size: 'lg'`, about one in four
+    tiles, so the wide tiles read as the top tier.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't feature every partner; the grid loses its tiers and its rhythm.
+    Don't make every partner large; the grid loses its tiers and its rhythm.
   </Guideline.Dont>
 </Guideline>
 

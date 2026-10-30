@@ -2,7 +2,12 @@ import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 
-import { CardGrid, type CardGridItem, type CardGridPreset } from '.'
+import {
+  CardGrid,
+  type CardGridItem,
+  type CardGridPreset,
+  type CardGridProps
+} from '.'
 import { MarketingBlocksProvider } from '../Provider'
 import { axeViolations, photo, withBrowserPage } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
@@ -25,18 +30,44 @@ const items: CardGridItem[] = [
   points: ['ISO 9001:2015 certified', '99.99% SLA uptime']
 }))
 
+const withoutImages = items.map(({ image: _image, ...item }) => item)
+
+// The old presets `cards` replaces, each as the props that reproduce it.
+const LOOKS = {
+  cards: { preset: 'cards' },
+  illustrated: { preset: 'cards', align: 'center', emphasis: 'raised' },
+  numbered: { preset: 'cards', numbered: true },
+  link: { preset: 'cards', itemEmphasis: 'raised', items: withoutImages },
+  'marked-cards': { preset: 'marked-cards' },
+  'overlap-cards': { preset: 'overlap-cards' },
+  portraits: { preset: 'portraits' },
+  lists: { preset: 'lists' }
+} satisfies Record<string, Partial<CardGridProps>>
+
+type Look = keyof typeof LOOKS
+const LOOK_NAMES = Object.keys(LOOKS) as Look[]
+
+const propsOf = (look: Look, count = 4): CardGridProps => {
+  const props: Partial<CardGridProps> = LOOKS[look]
+  return {
+    title: 'Section',
+    ...props,
+    items: (props.items ?? items).slice(0, count)
+  }
+}
+
 function Block({
-  preset,
+  look,
   width,
   count = 4
 }: {
-  preset: CardGridPreset
+  look: Look
   width: number
   count?: number
 }) {
   return (
     <div style={{ width }}>
-      <CardGrid preset={preset} title='Section' items={items.slice(0, count)} />
+      <CardGrid {...propsOf(look, count)} />
     </div>
   )
 }
@@ -53,38 +84,38 @@ const columns = () =>
     .size
 
 describe('CardGrid columns', () => {
-  it.each<[CardGridPreset, number, number]>([
-    ['illustrated-cards', 3, 3],
+  it.each<[Look, number, number]>([
+    ['illustrated', 3, 3],
     ['marked-cards', 4, 4],
     ['overlap-cards', 6, 3],
     ['portraits', 4, 4],
     ['lists', 3, 3],
-    ['numbered-cards', 4, 4],
-    ['link-cards', 3, 3]
+    ['numbered', 4, 4],
+    ['link', 3, 3]
   ])(
     '%s stacks on a phone and fills its columns on a desktop',
-    (preset, count, desktop) => {
+    (look, count, desktop) => {
       const { unmount } = render(
-        <Block preset={preset} width={375} count={count} />
+        <Block look={look} width={375} count={count} />
       )
       expect(columns()).toBe(1)
       unmount()
 
-      render(<Block preset={preset} width={1280} count={count} />)
+      render(<Block look={look} width={1280} count={count} />)
       expect(columns()).toBe(desktop)
     }
   )
 
-  it.each<[CardGridPreset, number]>([
-    ['illustrated-cards', 1],
+  it.each<[Look, number]>([
+    ['illustrated', 1],
     ['marked-cards', 1],
     ['overlap-cards', 1],
     ['portraits', 2],
     ['lists', 2],
-    ['numbered-cards', 1],
-    ['link-cards', 2]
-  ])('%s fits %i column(s) of at least 15rem at 640px', (preset, expected) => {
-    render(<Block preset={preset} width={640} count={4} />)
+    ['numbered', 1],
+    ['link', 2]
+  ])('%s fits %i column(s) of at least 15rem at 640px', (look, expected) => {
+    render(<Block look={look} width={640} count={4} />)
 
     expect(columns()).toBe(expected)
     expect(cards()[0]!.getBoundingClientRect().width).toBeGreaterThanOrEqual(
@@ -92,48 +123,42 @@ describe('CardGrid columns', () => {
     )
   })
 
-  it.each<CardGridPreset>([
-    'illustrated-cards',
-    'marked-cards',
-    'overlap-cards',
-    'numbered-cards',
-    'link-cards',
-    'alternating-rows',
-    'portraits',
-    'lists'
-  ])('keeps a %s card inside the block when its text won’t wrap', (preset) => {
-    render(
-      <div style={{ width: 375 }}>
-        <CardGrid
-          preset={preset}
-          title='Section'
-          items={[
-            {
-              ...items[0]!,
-              title: 'Unbreakable'.repeat(20),
-              description: 'x'.repeat(200),
-              points: ['y'.repeat(200)]
-            }
-          ]}
-        />
-      </div>
-    )
+  it.each(LOOK_NAMES)(
+    'keeps a %s card inside the block when its text won’t wrap',
+    (look) => {
+      const props = propsOf(look, 1)
+      render(
+        <div style={{ width: 375 }}>
+          <CardGrid
+            {...props}
+            items={[
+              {
+                ...props.items[0]!,
+                title: 'Unbreakable'.repeat(20),
+                description: 'x'.repeat(200),
+                points: ['y'.repeat(200)]
+              }
+            ]}
+          />
+        </div>
+      )
 
-    const block = screen.getByRole('region').getBoundingClientRect()
-    expect(cards()[0]!.getBoundingClientRect().right).toBeLessThanOrEqual(
-      block.right
-    )
-  })
+      const block = screen.getByRole('region').getBoundingClientRect()
+      expect(cards()[0]!.getBoundingClientRect().right).toBeLessThanOrEqual(
+        block.right
+      )
+    }
+  )
 
   it('takes its columns from its own width, not the window’s', () => {
-    render(<Block preset='marked-cards' width={600} />)
+    render(<Block look='marked-cards' width={600} />)
 
     expect(window.innerWidth).toBeGreaterThan(1280)
     expect(columns()).toBe(1)
   })
 
   it('sets services in two columns at a tablet’s width', () => {
-    render(<Block preset='marked-cards' width={800} />)
+    render(<Block look='marked-cards' width={800} />)
 
     expect(columns()).toBe(2)
   })
@@ -146,7 +171,7 @@ describe('CardGrid lists', () => {
   ])(
     'wraps six lists into columns of at least 15rem at %ipx',
     (width, expected) => {
-      render(<Block preset='lists' width={width} count={6} />)
+      render(<Block look='lists' width={width} count={6} />)
 
       expect(columns()).toBe(expected)
       for (const card of cards())
@@ -180,23 +205,23 @@ describe('CardGrid long words', () => {
 })
 
 describe('CardGrid at 960px', () => {
-  it.each<[CardGridPreset, number, number]>([
-    ['illustrated-cards', 3, 3],
+  it.each<[Look, number, number]>([
+    ['illustrated', 3, 3],
     ['lists', 3, 3]
-  ])('fits %s in %i columns', (preset, count, expected) => {
-    render(<Block preset={preset} width={960} count={count} />)
+  ])('fits %s in %i columns', (look, count, expected) => {
+    render(<Block look={look} width={960} count={count} />)
 
     expect(columns()).toBe(expected)
   })
 
   it('fits illustrated cards two to a row from 42rem', () => {
-    render(<Block preset='illustrated-cards' width={700} count={3} />)
+    render(<Block look='illustrated' width={700} count={3} />)
 
     expect(columns()).toBe(2)
   })
 })
 
-describe('CardGrid features', () => {
+describe('CardGrid illustrated cards', () => {
   const alignment = () =>
     getComputedStyle(
       screen.getAllByRole('heading', { level: 3 })[0]!.parentElement!
@@ -205,7 +230,7 @@ describe('CardGrid features', () => {
   it.each([375, 640, 960])(
     'centres each card under its image at %ipx',
     (width) => {
-      render(<Block preset='illustrated-cards' width={width} count={3} />)
+      render(<Block look='illustrated' width={width} count={3} />)
 
       expect(alignment()).toBe('center')
       const card = cards()[0]!
@@ -216,7 +241,7 @@ describe('CardGrid features', () => {
   )
 
   it('overlaps each image with its illustration', () => {
-    render(<Block preset='illustrated-cards' width={375} count={1} />)
+    render(<Block look='illustrated' width={375} count={1} />)
 
     const image = screen.getByRole('img').getBoundingClientRect()
     const illustration = cards()[0]!
@@ -226,69 +251,20 @@ describe('CardGrid features', () => {
   })
 })
 
-describe('CardGrid alternating rows', () => {
-  const sides = () =>
-    cards().map((row) => {
-      const text = within(row).getByRole('heading').getBoundingClientRect()
-      const image = within(row).getByRole('img').getBoundingClientRect()
-      if (image.top >= text.bottom) return 'below'
-      return image.left > text.left ? 'right' : 'left'
-    })
-
-  it('sets each image below its text on a phone', () => {
-    render(<Block preset='alternating-rows' width={375} count={3} />)
-
-    expect(sides()).toEqual(['below', 'below', 'below'])
-  })
-
-  it('sets text beside its image from 640px', () => {
-    render(<Block preset='alternating-rows' width={640} count={3} />)
-
-    expect(sides()).toEqual(['left', 'right', 'left'])
-  })
-
-  it('alternates the image’s side on a desktop, starting on the left', () => {
-    render(<Block preset='alternating-rows' width={1280} count={3} />)
-
-    expect(sides()).toEqual(['left', 'right', 'left'])
-  })
-
-  it('runs its description the full width of the block', () => {
-    render(
-      <div style={{ width: 1280 }}>
-        <CardGrid
-          preset='alternating-rows'
-          title='Our values'
-          description={'We live our values in every event setup, every support call, and every challenge we solve together. '.repeat(
-            3
-          )}
-          items={items.slice(0, 1)}
-        />
-      </div>
-    )
-
-    const list = cards()[0]!.parentElement!.getBoundingClientRect()
-    const description = screen
-      .getByText(/We live our values/)
-      .getBoundingClientRect()
-    expect(description.width).toBeGreaterThan(list.width - 2)
-  })
-})
-
 describe('CardGrid images', () => {
   const ratio = (image: HTMLElement) => {
     const { width, height } = image.getBoundingClientRect()
     return Math.round((width / height) * 100) / 100
   }
 
-  it.each<[CardGridPreset, number]>([
-    ['illustrated-cards', 1.78],
+  it.each<[Look, number]>([
+    ['cards', 1.78],
+    ['numbered', 1.78],
     ['marked-cards', 1.33],
     ['overlap-cards', 1],
-    ['alternating-rows', 1],
     ['portraits', 1]
-  ])('crops a sized 4:3 photo to the %s shape', (preset, shape) => {
-    render(<Block preset={preset} width={1280} count={1} />)
+  ])('crops a sized 4:3 photo to the %s shape', (look, shape) => {
+    render(<Block look={look} width={1280} count={1} />)
 
     expect(ratio(screen.getByRole('img'))).toBe(shape)
   })
@@ -296,10 +272,10 @@ describe('CardGrid images', () => {
 
 describe('CardGrid portraits', () => {
   it('insets its raised panel inside the page’s padding, with rounded corners', () => {
-    render(<Block preset='portraits' width={1440} count={4} />)
+    render(<Block look='portraits' width={1440} count={4} />)
 
     const section = screen.getByRole('region')
-    const panel = section.firstElementChild!
+    const panel = section.querySelector('[data-slot="block-surface"]')!
     expect(panel.getBoundingClientRect().left).toBeGreaterThan(
       section.getBoundingClientRect().left
     )
@@ -310,8 +286,8 @@ describe('CardGrid portraits', () => {
 })
 
 describe('CardGrid spacing', () => {
-  const gap = (preset: CardGridPreset) => {
-    render(<Block preset={preset} width={1280} count={1} />)
+  const gap = (look: Look) => {
+    render(<Block look={look} width={1280} count={1} />)
     const section = screen.getByRole('region').getBoundingClientRect()
     const heading = screen
       .getByRole('heading', { level: 2 })
@@ -319,21 +295,21 @@ describe('CardGrid spacing', () => {
     return Math.round(heading.top - section.top)
   }
 
-  it.each<CardGridPreset>([
+  it.each<Look>([
+    'cards',
     'marked-cards',
     'overlap-cards',
-    'numbered-cards',
-    'link-cards',
-    'alternating-rows',
+    'numbered',
+    'link',
     'lists'
-  ])('%s leaves the space above it to the page', (preset) => {
-    expect(gap(preset)).toBe(0)
+  ])('%s leaves the space above it to the page', (look) => {
+    expect(gap(look)).toBe(0)
   })
 
-  it.each<CardGridPreset>(['illustrated-cards', 'portraits'])(
+  it.each<Look>(['illustrated', 'portraits'])(
     '%s pads its title inside its raised surface',
-    (preset) => {
-      expect(gap(preset)).toBeGreaterThan(0)
+    (look) => {
+      expect(gap(look)).toBeGreaterThan(0)
     }
   )
 })
@@ -346,24 +322,15 @@ const illustrationCentre = (card: HTMLElement): [number, number][] => {
 }
 
 describe('CardGrid card links', () => {
-  it.each<CardGridPreset>([
-    'illustrated-cards',
-    'marked-cards',
-    'overlap-cards',
-    'alternating-rows',
-    'portraits',
-    'lists',
-    'numbered-cards',
-    'link-cards'
-  ])(
+  it.each(LOOK_NAMES)(
     'makes a linked %s card one hit area, from its image and illustration to its last line',
-    (preset) => {
+    (look) => {
+      const props = propsOf(look, 1)
       render(
         <div style={{ width: 1280 }}>
           <CardGrid
-            preset={preset}
-            title='Section'
-            items={[{ ...items[0]!, href: '#live-music' }]}
+            {...props}
+            items={[{ ...props.items[0]!, href: '#live-music' }]}
           />
         </div>
       )
@@ -434,7 +401,7 @@ describe('CardGrid views', () => {
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
         <CardGrid
-          preset='alternating-rows'
+          preset='portraits'
           position={4}
           title='Our values'
           items={items.slice(0, 1)}
@@ -447,8 +414,8 @@ describe('CardGrid views', () => {
         expect(onBlockEvent).toHaveBeenCalledWith({
           action: 'view',
           block: 'card-grid',
-          variant: 'list',
-          preset: 'alternating-rows',
+          variant: 'grid',
+          preset: 'portraits',
           position: 4
         }),
       { timeout: 2000 }
@@ -457,26 +424,16 @@ describe('CardGrid views', () => {
 })
 
 describe('CardGrid accessibility', () => {
-  it.each<CardGridPreset>([
-    'illustrated-cards',
-    'marked-cards',
-    'overlap-cards',
-    'alternating-rows',
-    'portraits',
-    'lists',
-    'numbered-cards',
-    'link-cards'
-  ])('%s has no axe violations', async (preset) => {
+  it.each(LOOK_NAMES)('%s has no axe violations', async (look) => {
     const { container } = render(
       <main>
         <h1>Page</h1>
         <CardGrid
-          preset={preset}
+          {...propsOf(look, 3)}
           eyebrow='How does Oztix partner?'
           title='We understand your industry'
           titleHighlight='industry'
           description='And what makes venues and events succeed.'
-          items={items.slice(0, 3)}
         />
       </main>
     )
@@ -513,16 +470,7 @@ describe('CardGrid contrast', () => {
     href: index === 0 ? '#first' : undefined
   }))
 
-  const PRESETS = [
-    'illustrated-cards',
-    'marked-cards',
-    'overlap-cards',
-    'numbered-cards',
-    'link-cards',
-    'alternating-rows',
-    'portraits',
-    'lists'
-  ] as const
+  const PRESETS = LOOK_NAMES.filter((look) => look !== 'illustrated')
   const SECTIONS = [undefined, 'raised', 'subtle', 'subtler'] as const
   const CARDS = [undefined, 'raised', 'subtle', 'subtler', 'normal'] as const
   const INTENTS = [
@@ -536,14 +484,14 @@ describe('CardGrid contrast', () => {
     'warning',
     'danger'
   ] as const
-  const drawsOwnTiles = (preset: CardGridPreset) =>
-    preset === 'overlap-cards' || preset === 'portraits'
+  const drawsOwnTiles = (look: Look) =>
+    look === 'overlap-cards' || look === 'portraits'
 
   type Case = {
     mode: (typeof MODES)[number]
-    preset: CardGridPreset
+    preset: Look
     emphasis?: (typeof SECTIONS)[number]
-    cardEmphasis?: (typeof CARDS)[number]
+    itemEmphasis?: (typeof CARDS)[number]
     intent?: (typeof INTENTS)[number]
     itemIntent?: (typeof INTENTS)[number]
   }
@@ -551,11 +499,11 @@ describe('CardGrid contrast', () => {
   const surfaces: Case[] = MODES.flatMap((mode) =>
     PRESETS.flatMap((preset) =>
       SECTIONS.flatMap((emphasis) =>
-        (drawsOwnTiles(preset) ? [undefined] : CARDS).map((cardEmphasis) => ({
+        (drawsOwnTiles(preset) ? [undefined] : CARDS).map((itemEmphasis) => ({
           mode,
           preset,
           emphasis,
-          cardEmphasis
+          itemEmphasis
         }))
       )
     )
@@ -568,7 +516,7 @@ describe('CardGrid contrast', () => {
         (['default', 'subtle'] as const).flatMap((surface) => {
           const tint =
             surface === 'subtle'
-              ? { emphasis: 'subtle' as const, cardEmphasis: 'subtle' as const }
+              ? { emphasis: 'subtle' as const, itemEmphasis: 'subtle' as const }
               : {}
           return [
             { mode, preset, intent, ...tint },
@@ -582,29 +530,35 @@ describe('CardGrid contrast', () => {
   const renderCase = ({
     preset,
     emphasis,
-    cardEmphasis,
+    itemEmphasis,
     intent,
     itemIntent
-  }: Case) =>
-    render(
+  }: Case) => {
+    const props = propsOf(preset, 3)
+    return render(
       <div className='bg-normal text-normal'>
         <CardGrid
-          preset={preset}
+          {...props}
           intent={intent}
           emphasis={emphasis}
-          cardEmphasis={cardEmphasis}
+          itemEmphasis={itemEmphasis}
           eyebrow='How does Oztix partner?'
           title='We understand your industry'
           titleHighlight='industry'
           description='And what makes venues and events succeed.'
-          items={linked.map((item) => ({ ...item, intent: itemIntent }))}
+          items={props.items.map((item, index) => ({
+            ...item,
+            href: index === 0 ? '#first' : undefined,
+            intent: itemIntent
+          }))}
           actions={[{ label: 'See them all', href: '#all' }]}
         />
       </div>
     )
+  }
 
   it.each(surfaces)(
-    '$preset on a $emphasis section with $cardEmphasis cards reads in $mode mode',
+    '$preset on a $emphasis section with $itemEmphasis cards reads in $mode mode',
     (testCase) => {
       inMode(testCase.mode)
       renderCase(testCase)
@@ -631,10 +585,9 @@ describe('CardGrid contrast', () => {
         <main className='bg-normal text-normal'>
           <h1>Page</h1>
           <CardGrid
-            preset='link-cards'
             intent='brand'
             emphasis='subtle'
-            cardEmphasis='normal'
+            itemEmphasis='normal'
             title='How can we help?'
             items={linked}
           />

@@ -56,14 +56,23 @@ Run `pnpm generate:exports` after adding the folder.
 - **Prop shapes.** Array props are `readonly`, `actions` is optional, `preset` has a
   `@default`, and `position` and `id` keep the wording: "The block's place on the page,
   counting from 1, reported with its events." and "An id for linking to the block."
-- **Intent on every block, emphasis where it draws a surface.** Every block takes
-  `intent?: BlockIntent` and passes it to `BlockRoot` and `BlockHeading`, so marks,
-  tints, highlights, and the strong action inherit it. A block that draws a band or
-  panel takes `emphasis?` from a curated union of `BlockEmphasis`: only the presets its
-  content stays readable on in both themes, checked with APCA. A preset sets the
-  default intent and emphasis; the props override it. A grid of cards takes
-  `cardEmphasis?` for every card at once, never per card, and an item may take its own
-  `intent`. Never an emphasis option that hides content or breaks contrast.
+- **One set of shared props.** Every block takes `intent`, `emphasis`, `inset`,
+  `align`, `size`, and `actions` where they apply, with the same types from
+  `src/_shared/surface.ts`, and passes them through. A preset sets the defaults;
+  the props override them, so a new look is a preset, never a new prop.
+  - `intent` goes to `BlockRoot` and `BlockHeading`, so marks, tints,
+    highlights, and the strong action inherit it.
+  - `emphasis` is a `BlockEmphasis` (`subtler`, `subtle`, or `raised`), the
+    surface behind the block. A CTA band adds `strong` and `inverted`. Each
+    must keep APCA contrast in both themes.
+  - `itemEmphasis` is every item's surface at once (cards, questions), never
+    per item, and an item may take its own `intent`.
+  - `align` and `size` are the preset's alignment and scale; `md` sets the
+    title a step smaller.
+  - Hero opens the page and takes no surface.
+- **Data names.** One image is `image` and many are `images`, wherever the
+  preset puts them. Items use `title`, `description`, `image`, `illustration`,
+  `href`, and `intent`.
 - **Interaction follows links, never surfaces.** Card-like items build on Roadie's
   `Card`. An item with `href` gets a `Card.Link` on its title (`data-interactive-target`),
   so the whole card is the hit area and the click reports the title. A card carries
@@ -74,12 +83,12 @@ Run `pnpm generate:exports` after adding the folder.
 - **The strong action stands out from a filled surface.** Pass `fill` to `BlockActions`
   on a `strong` or `inverted` panel, or over a photo scrim, and it picks an intent that
   stands out (`strongActionIntent`, tested against every intent in both modes).
-- **One band shape.** A section band (a surface behind the whole block) runs full width
-  and rounds at `@7xl:rounded-3xl`, as Card grid and CTA band do. A panel inside a block's
-  content (Split, Stats) is `rounded-2xl`.
+- **One surface frame.** Every block draws its surface with `BlockSurface`,
+  never its own markup. A band runs full width and rounds at `@7xl:rounded-3xl`;
+  with `inset`, it's a panel inside the page padding, rounded at every width.
 - **Keys.** List keys use the item's index with its content, so repeated content stays
   distinct.
-- **Room for an overhang.** CTA band's `with-photo` keeps a top margin for the photo that
+- **Room for an overhang.** A CTA band with an `image` keeps a top margin for the photo that
   breaks out of its panel; like `statement`'s breathing room, it's part of the preset's look.
 - **Preset types live in `definition.ts`,** derived from the definition, and the block's
   `index.tsx` re-exports them. Keep each `preset` prop's `@default` the definition's first preset.

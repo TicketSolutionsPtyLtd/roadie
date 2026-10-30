@@ -86,15 +86,11 @@ describe('Testimonial', () => {
 
   it('draws the background photo behind, unread, only when given', () => {
     const { container, rerender } = render(<Testimonial {...quote} />)
-    const background = container.querySelector(
-      `img[src="${quote.backgroundImage.src}"]`
-    )
+    const background = container.querySelector(`img[src="${quote.image.src}"]`)
     expect(background).toHaveAttribute('alt', '')
 
-    rerender(<Testimonial {...quote} backgroundImage={undefined} />)
-    expect(
-      container.querySelector(`img[src="${quote.backgroundImage.src}"]`)
-    ).toBeNull()
+    rerender(<Testimonial {...quote} image={undefined} />)
+    expect(container.querySelector(`img[src="${quote.image.src}"]`)).toBeNull()
   })
 
   it("draws every image with the provider's renderImage", () => {
@@ -146,7 +142,7 @@ describe('Testimonial', () => {
       const section = container.querySelector('section')!
       expect(section).not.toHaveAttribute('data-intent')
       expect(
-        container.querySelector('[data-slot=band]')!.className
+        container.querySelector('[data-slot=block-surface]')!.className
       ).not.toMatch(/emphasis-/)
       expect(screen.getByRole('blockquote')).toHaveClass('intent-info')
       expect(
@@ -171,28 +167,79 @@ describe('Testimonial', () => {
       'draws a %s band behind the quote',
       (emphasis) => {
         const { container } = render(
-          <Testimonial
-            {...quote}
-            backgroundImage={undefined}
-            emphasis={emphasis}
-          />
+          <Testimonial {...quote} image={undefined} emphasis={emphasis} />
         )
 
-        expect(container.querySelector('[data-slot=band]')).toHaveClass(
-          `emphasis-${emphasis}`
-        )
+        expect(
+          container.querySelector('[data-slot=block-surface]')
+        ).toHaveClass(`emphasis-${emphasis}`)
       }
     )
 
     it('fades the background photo over the band when both are set', () => {
       const { container } = render(<Testimonial {...quote} emphasis='subtle' />)
 
-      expect(container.querySelector('[data-slot=band]')).toHaveClass(
+      expect(container.querySelector('[data-slot=block-surface]')).toHaveClass(
         'emphasis-subtle'
       )
       expect(
-        container.querySelector(`img[src="${quote.backgroundImage.src}"]`)
+        container.querySelector(`img[src="${quote.image.src}"]`)
       ).toBeInTheDocument()
+    })
+  })
+
+  describe('inset, align, size and actions', () => {
+    it('draws the surface as a panel when inset', () => {
+      const { container } = render(
+        <Testimonial {...quote} emphasis='raised' inset />
+      )
+
+      expect(
+        container.querySelector('[data-slot=block-surface]')
+      ).toHaveAttribute('data-shape', 'panel')
+    })
+
+    it('centres the heading and quote by default, and starts them when asked', () => {
+      const { rerender } = render(<Testimonial {...quote} />)
+      expect(
+        screen.getByRole('heading', { level: 2 }).parentElement
+      ).toHaveClass('text-center')
+      expect(screen.getByRole('blockquote')).toHaveClass('text-center')
+
+      rerender(<Testimonial {...quote} align='start' />)
+      expect(
+        screen.getByRole('heading', { level: 2 }).parentElement
+      ).toHaveClass('text-start')
+      expect(screen.getByRole('blockquote')).toHaveClass('text-start')
+    })
+
+    it('sets the title a step smaller at md', () => {
+      const { rerender } = render(<Testimonial {...quote} />)
+      expect(screen.getByRole('heading', { level: 2 })).toHaveClass(
+        'text-display-prose-2'
+      )
+
+      rerender(<Testimonial {...quote} size='md' />)
+      expect(screen.getByRole('heading', { level: 2 })).toHaveClass(
+        'text-display-prose-3'
+      )
+    })
+
+    it('links on from under the quote', () => {
+      render(
+        <Testimonial
+          {...quote}
+          actions={[{ label: 'Read the case study', href: '/case-studies' }]}
+        />
+      )
+
+      const link = screen.getByRole('link', { name: 'Read the case study' })
+      expect(link).toHaveAttribute('href', '/case-studies')
+      expect(link.parentElement).toHaveClass('justify-center')
+      expect(
+        screen.getByRole('figure').compareDocumentPosition(link) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy()
     })
   })
 })

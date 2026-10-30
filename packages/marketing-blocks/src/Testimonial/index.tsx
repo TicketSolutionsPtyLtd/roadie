@@ -2,15 +2,18 @@ import { useId } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import type { BlockImage } from '../Provider'
+import type { BlockAction, BlockImage } from '../Provider'
+import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
+import { BlockSurface } from '../_shared/BlockSurface'
 import { presetOf } from '../_shared/presets'
 import {
+  type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
-  emphasisClass,
+  type BlockSize,
   intentClass
 } from '../_shared/surface'
 import { type TestimonialPreset, testimonialDefinition } from './definition'
@@ -57,19 +60,27 @@ export type TestimonialProps = {
   person: TestimonialPerson
   /** Where they work. */
   organisation?: TestimonialOrganisation
-  /** A photo faded behind the whole block, which then pads its content. Decorative, so its alt text isn't read. Over an `emphasis` band, it fades over the band's colour. */
-  backgroundImage?: BlockImage
+  /** A photo faded behind the whole block, which then pads its content. Decorative, so its alt text isn't read. Over an `emphasis`, it fades over the surface's colour. */
+  image?: BlockImage
+  /** Links under the quote. The first is the strong one. */
+  actions?: readonly BlockAction[]
   /** The block's intent: it tints the quote mark, the portrait's border, and highlighted words. Info for the quote mark and portrait without one. */
   intent?: BlockIntent
-  /** A band behind the whole block, full width and rounded once the block is wide, which then pads its content. None by default. */
-  emphasis?: TestimonialEmphasis
+  /** The surface behind the whole block: a band, full width and rounded once the block is wide, or a panel with `inset`. None by default. */
+  emphasis?: BlockEmphasis
+  /** Draws the `emphasis` or `image` as a panel inside the page padding instead of a band. */
+  inset?: boolean
+  /**
+   * The heading's, quote's and citation's alignment.
+   * @default 'center'
+   */
+  align?: BlockAlign
+  /**
+   * `md` sets the title a step smaller, with tighter gaps.
+   * @default 'lg'
+   */
+  size?: BlockSize
 }
-
-/** The bands a testimonial's text stays readable on in both themes. */
-export type TestimonialEmphasis = Extract<
-  BlockEmphasis,
-  'raised' | 'subtle' | 'subtler'
->
 
 /** A client's quote, large and centred, with their portrait, role, and organisation. */
 export function Testimonial({
@@ -83,12 +94,17 @@ export function Testimonial({
   quote,
   person,
   organisation,
-  backgroundImage,
+  image,
+  actions,
   intent,
-  emphasis
+  emphasis,
+  inset,
+  align = 'center',
+  size
 }: TestimonialProps) {
   const { name, variant } = presetOf(testimonialDefinition, preset)
   const headingId = useId()
+  const centred = align === 'center'
   return (
     <BlockRoot
       block={testimonialDefinition.name}
@@ -98,48 +114,57 @@ export function Testimonial({
       id={id}
       aria-labelledby={headingId}
       intent={intent}
-      className='grid'
     >
-      {/* The band sits inside the section, since a container query can't style its own container. */}
-      <div
-        data-slot='band'
+      <BlockSurface
+        emphasis={emphasis}
+        inset={inset}
+        width='4xl'
+        backdrop={
+          image && (
+            <BlockImg
+              image={{ ...image, alt: '' }}
+              sizes='100vw'
+              className='absolute inset-0 -z-1 size-full object-cover opacity-10'
+            />
+          )
+        }
         className={cn(
-          'relative isolate grid',
-          emphasis && 'overflow-clip @7xl:rounded-3xl',
-          emphasisClass(emphasis)
+          'grid *:min-w-0',
+          size === 'md' ? 'gap-10' : 'gap-16',
+          centred && 'justify-items-center'
         )}
       >
-        {backgroundImage && (
-          <BlockImg
-            image={{ ...backgroundImage, alt: '' }}
-            sizes='100vw'
-            className='absolute inset-0 -z-1 size-full object-cover opacity-10'
-          />
-        )}
-        <div
+        <BlockHeading
+          id={headingId}
+          intent={intent}
+          align={align}
+          size={size}
+          eyebrow={eyebrow}
+          title={title}
+          titleHighlight={titleHighlight}
+          description={description}
+        />
+        <figure
           className={cn(
-            'container-4xl grid justify-items-center gap-16 *:min-w-0',
-            (backgroundImage || emphasis) && 'py-12 @xl:py-16 @3xl:py-20'
+            'grid gap-8 *:min-w-0',
+            centred && 'justify-items-center'
           )}
         >
-          <BlockHeading
-            id={headingId}
+          <Quote intent={intent} align={align}>
+            {quote}
+          </Quote>
+          <Citation
+            person={person}
+            organisation={organisation}
             intent={intent}
-            eyebrow={eyebrow}
-            title={title}
-            titleHighlight={titleHighlight}
-            description={description}
           />
-          <figure className='grid justify-items-center gap-8 *:min-w-0'>
-            <Quote intent={intent}>{quote}</Quote>
-            <Citation
-              person={person}
-              organisation={organisation}
-              intent={intent}
-            />
-          </figure>
-        </div>
-      </div>
+        </figure>
+        <BlockActions
+          actions={actions}
+          intent={intent}
+          className={cn(centred && 'justify-center')}
+        />
+      </BlockSurface>
     </BlockRoot>
   )
 }
@@ -151,15 +176,19 @@ const LOGO_WIDTH = 160
 // half, as a typeset pull quote does.
 function Quote({
   children,
-  intent
+  intent,
+  align
 }: {
   children: string
   intent?: BlockIntent
+  align: BlockAlign
 }) {
   return (
     <blockquote
       className={cn(
-        'isolate max-w-2xl text-center text-display-prose-5 leading-tight text-balance @xl:text-display-prose-4',
+        'isolate max-w-2xl text-display-prose-5',
+        align === 'center' ? 'text-center' : 'text-start',
+        'leading-tight text-balance @xl:text-display-prose-4',
         'before:relative before:-z-1 before:-mb-[0.45em] before:block before:text-[10em] before:leading-[0.5] before:text-subtler before:opacity-50 before:content-[open-quote] after:content-[no-close-quote]',
         intentClass(intent ?? 'info')
       )}

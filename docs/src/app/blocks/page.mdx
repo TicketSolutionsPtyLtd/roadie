@@ -32,11 +32,12 @@ knows nothing about any CMS. Rich text arrives already rendered, as a
 
 Every block has at most two variants, and editors pick a named `preset`
 rather than setting options. A preset fills in the variant, the surface, and
-the layout, so pages stay consistent however many marketing adds. A new look
-is a new preset, raised as a block request, not a prop.
+the layout, so pages stay consistent however many marketing adds. The
+[shared props](#shared-props) adjust colour, surface, and scale within it. A
+new look is a new preset, raised as a block request, not a prop.
 
-The first action in a block is the strong one and the rest are normal, so
-emphasis is never an option either.
+The first action in a block is the strong one and the rest are normal, so a
+button's emphasis is never an option either.
 
 `@oztix/roadie-marketing-blocks/catalogue` lists every block, its presets,
 and each preset's thumbnail. It has no React, so a Studio config can build
@@ -50,14 +51,25 @@ for (const block of catalogue) {
 }
 ```
 
-## Intent and emphasis
+## Shared props
 
-Every block takes an `intent`, Roadie's own: highlighted words, marks, tints,
-and the strong action inherit it, as any component in Roadie does. A block that
-draws a surface, such as a CTA band, a tinted panel, or a raised grid, also
-takes an `emphasis`, from only the presets its content reads on. Card grids take
-`cardEmphasis` for every card, and each item can take its own `intent`. A
-preset sets the defaults, so a page looks right without either.
+Every block takes the same props for colour, surface, and scale, with the
+same values, so a page reads as one design. A preset sets their defaults, so a
+page looks right without any of them.
+
+| Prop | Values | Sets |
+| --- | --- | --- |
+| `intent` | Roadie's intents | Highlighted words, marks, tints, and the strong action |
+| `emphasis` | `subtler`, `subtle`, `raised` | The surface behind the block. A CTA band adds `strong` and `inverted` |
+| `inset` | `true` or `false` | The surface as a panel inside the page padding, not a full-width band |
+| `itemEmphasis` | `subtler`, `subtle`, `raised`, `normal` | Every card's or question's surface |
+| `align` | `start`, `center` | Where the heading and text line up |
+| `size` | `md`, `lg` | `md` sets the title a step smaller, with tighter spacing |
+| `actions` | `{ label, href, icon }` links | Buttons under the content; the first is the strong one |
+
+Each item can take its own `intent`. A Hero opens the page, so it takes no
+surface. One image is always `image` and many are `images`, wherever the
+preset puts them.
 
 ## Interaction
 

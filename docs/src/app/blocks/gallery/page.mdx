@@ -63,18 +63,38 @@ The same photos scrolling past on their own, with a button to pause them. They h
 
 ### Intent and emphasis
 
-`intent` colours the highlighted words and the marquee's pause control. The gallery draws no surface, so it takes no emphasis.
+`intent` colours the highlighted words, the marquee's pause control, and the strong action. Without an `emphasis`, the photos sit on the page and the marquee runs the block's full width. `subtler`, `subtle`, or `raised` draws a full-width band behind them, with the marquee running edge to edge, and `inset` draws it as a rounded panel inside the page's padding instead.
 
-```tsx-live-expand id=intent-and-emphasis
+`align` overrides the heading's alignment, which starts beside the carousel's controls and centres over the marquee. `size='md'` sets the title a step smaller with tighter spacing, and `actions` go under the photos, lined up with the heading.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Brand, on a subtle band, with an action */}
 <Gallery
   preset='marquee'
   intent='brand'
+  emphasis='subtle'
   title='Our people'
   titleHighlight='people'
+  actions={[{ label: 'Join the team', href: '/careers' }]}
   images={[
     { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 },
     { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 },
     { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting', width: 1280, height: 854 }
+  ]}
+/>
+{/* Raised inset panel, centred and smaller */}
+<Gallery
+  preset='carousel'
+  emphasis='raised'
+  inset
+  align='center'
+  size='md'
+  title='Events our partners run'
+  images={[
+    { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun', width: 1280, height: 854 },
+    { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd', width: 1280, height: 854 },
+    { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above', width: 1280, height: 850 },
+    { src: '/brand/photography/09.webp', alt: 'Four musicians posing together in front of an Oztix backdrop', width: 1201, height: 801 }
   ]}
 />
 ```

@@ -23,8 +23,8 @@ import { Testimonial } from '@oztix/roadie-marketing-blocks/testimonial'
 
 The quote sits large and centred under the heading, with the person's
 portrait, name, role, and organisation under it. The quote and citation
-share one `figure`, so they're read together. A `backgroundImage` fades
-behind the whole block.
+share one `figure`, so they're read together. An `image` fades behind
+the whole block.
 
 ```tsx-live id=quote
 <Testimonial
@@ -41,7 +41,7 @@ behind the whole block.
     name: 'Thimble Orbit Presents',
     logo: { src: '/blocks/thimble-orbit-presents-badge.svg', alt: 'Thimble Orbit Presents logo', width: 120, height: 40 }
   }}
-  backgroundImage={{ src: '/brand/photography/05.webp', alt: '', width: 1600, height: 900 }}
+  image={{ src: '/brand/photography/05.webp', alt: '', width: 1600, height: 900 }}
 />
 ```
 
@@ -51,8 +51,8 @@ behind the whole block.
 Without one, the quote mark and portrait are info and highlights are
 brand-secondary. `emphasis` sets a `raised`, `subtle`, or `subtler` band
 behind the block, full width and rounded once the block is wide, which then
-pads its content. With a `backgroundImage` too, the photo fades over the
-band's colour.
+pads its content. With an `image` too, the photo fades over the band's
+colour.
 
 ```tsx-live id=intent-and-emphasis
 <Testimonial
@@ -67,6 +67,31 @@ band's colour.
     image: { src: '/brand/photography/04.webp', alt: 'Portrait of Mia Tran', width: 120, height: 120 }
   }}
   organisation={{ name: 'Thimble Orbit Presents' }}
+/>
+```
+
+### Inset, align, size, and actions
+
+`inset` draws the surface as a rounded panel inside the page padding instead
+of a band. `align='start'` lines the heading and quote up on the left, which
+centre by default. `size='md'` sets the title a step smaller, with tighter
+gaps. `actions` link on from under the quote.
+
+```tsx-live id=inset-align-size-and-actions
+<Testimonial
+  emphasis='raised'
+  inset
+  align='start'
+  size='md'
+  title='Our partners say it best'
+  quote='Oztix are attuned to what we need and quick to respond, and their marketing sells tickets, plain and simple.'
+  person={{
+    name: 'Mia Tran',
+    role: 'Head of Programming',
+    image: { src: '/brand/photography/04.webp', alt: 'Portrait of Mia Tran', width: 120, height: 120 }
+  }}
+  organisation={{ name: 'Thimble Orbit Presents' }}
+  actions={[{ label: 'Become a partner', href: '/contact/sales' }]}
 />
 ```
 
@@ -120,7 +145,7 @@ band's colour.
 
 ## Tracking
 
-Testimonial reports a `view` once half of it is on screen. It holds no
-links, so it reports no clicks.
+Testimonial reports a `view` once half of it is on screen, and a click on
+each action with its label and href. The quote holds no links.
 
 <PropsDefinitions component='Testimonial' />

@@ -2,8 +2,8 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
-import { FAQ } from '.'
-import type { BlockIntent } from '../_shared/surface'
+import { FAQ, type FAQItemEmphasis } from '.'
+import type { BlockEmphasis, BlockIntent } from '../_shared/surface'
 import {
   DESKTOP,
   PHONE,
@@ -69,22 +69,65 @@ describe('FAQ', () => {
   })
 })
 
+describe('FAQ on a surface', () => {
+  it.each([false, true])(
+    'lines the questions up with the heading on a surface, inset %s',
+    async (inset) => {
+      await page.viewport(DESKTOP.width, DESKTOP.height)
+      render(
+        <FAQ
+          emphasis='subtle'
+          inset={inset}
+          title='Questions, answered'
+          items={items}
+        />
+      )
+
+      const heading = screen.getByRole('heading', { level: 2 })
+      const question = screen.getByRole('heading', {
+        name: 'Does it cost anything?'
+      })
+      expect(question.getBoundingClientRect().left).toBeCloseTo(
+        heading.getBoundingClientRect().left,
+        0
+      )
+    }
+  )
+})
+
 describe('FAQ intent and emphasis', () => {
+  const surfaces = [
+    [undefined, 'subtler'],
+    [undefined, 'subtle'],
+    [undefined, 'normal'],
+    ['subtle', 'subtler'],
+    ['subtler', 'subtle'],
+    ['raised', 'subtle'],
+    ['subtle', 'normal'],
+    ['raised', 'normal']
+  ] as const satisfies readonly (readonly [
+    BlockEmphasis | undefined,
+    FAQItemEmphasis
+  ])[]
   const cases = MODES.flatMap((theme) =>
-    (['subtler', 'subtle', 'normal'] as const).flatMap((emphasis) =>
-      INTENTS.map((intent) => [emphasis, intent, theme] as const)
+    surfaces.flatMap(([emphasis, itemEmphasis]) =>
+      INTENTS.map(
+        (intent) =>
+          [emphasis ?? 'no', itemEmphasis, intent, theme, emphasis] as const
+      )
     )
   )
 
   it.each(cases)(
-    'keeps its text readable on %s %s questions in %s mode',
-    async (emphasis, intent, theme) => {
+    'keeps its text readable on a %s surface with %s %s questions in %s mode',
+    async (_, itemEmphasis, intent, theme, emphasis) => {
       setMode(theme)
       onTestFinished(() => setMode('light'))
       const { container } = render(
         <FAQ
           intent={intent}
           emphasis={emphasis}
+          itemEmphasis={itemEmphasis}
           title='Questions, answered'
           items={items}
         />

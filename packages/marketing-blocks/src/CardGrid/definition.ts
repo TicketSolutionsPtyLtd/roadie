@@ -4,13 +4,13 @@ export const cardGridDefinition = {
   name: 'card-grid',
   title: 'Card grid',
   description:
-    'A set of like items, such as benefits, services, values, or people, as cards in columns or rows.',
+    'A set of like items, such as benefits, services, steps, values, or people, as cards in columns.',
   presets: [
     {
-      name: 'illustrated-cards',
-      title: 'Illustrated cards',
+      name: 'cards',
+      title: 'Cards',
       description:
-        'Cards on a raised surface, each an image with an illustration over it, a title, and a description, for benefits or features.',
+        'Cards of a title and description, with an image, an illustration, or both, for benefits, features, steps, or places to go next. Numbered, they show the steps of how it works.',
       variant: 'grid'
     },
     {
@@ -26,27 +26,6 @@ export const cardGridDefinition = {
       description:
         'Square images, each overlapped by a dark panel holding an illustration, a marked title, and a description, for industries.',
       variant: 'grid'
-    },
-    {
-      name: 'numbered-cards',
-      title: 'Numbered cards',
-      description:
-        'Cards numbered in order, each a number, title, and description, for how it works.',
-      variant: 'grid'
-    },
-    {
-      name: 'link-cards',
-      title: 'Link cards',
-      description:
-        'Compact raised cards that each link somewhere, with an illustration, title, and description, for contact options or browse links.',
-      variant: 'grid'
-    },
-    {
-      name: 'alternating-rows',
-      title: 'Alternating rows',
-      description:
-        'Rows of a marked title and description beside a square image, alternating sides, for values or the steps of a story.',
-      variant: 'list'
     },
     {
       name: 'portraits',

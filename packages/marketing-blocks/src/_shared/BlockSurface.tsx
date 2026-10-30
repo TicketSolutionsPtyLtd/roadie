@@ -20,16 +20,18 @@ export type BlockSurfaceProps = {
 
 export type BlockWidth = '3xl' | '4xl' | '8xl'
 
-// Literal class names, so Tailwind finds them.
-const CONTAINER: Record<BlockWidth, string> = {
-  '3xl': 'container-3xl',
-  '4xl': 'container-4xl',
-  '8xl': 'container-8xl'
-}
+// Literal class names, so Tailwind finds them. Padding follows the block's own width, not the screen's.
+const PAGE_PADDING =
+  'px-(--block-gutter) [--block-gutter:--spacing(6)] @3xl:[--block-gutter:--spacing(8)] @5xl:[--block-gutter:--spacing(12)]'
+const PANEL_PADDING =
+  'px-(--block-gutter) py-8 [--block-gutter:--spacing(6)] @3xl:py-12 @3xl:[--block-gutter:--spacing(10)]'
+
+/** Runs a child to the surface's edges, past the padding the frame gives its content, such as a marquee. */
+export const BLEED = '-mx-(--block-gutter)'
 const MEASURE: Record<BlockWidth, string> = {
   '3xl': 'mx-auto w-full max-w-3xl',
   '4xl': 'mx-auto w-full max-w-4xl',
-  '8xl': 'w-full'
+  '8xl': 'mx-auto w-full max-w-8xl'
 }
 
 /** The frame every block draws its content in: on the page, on a full-width band, or on an inset panel. */
@@ -43,16 +45,18 @@ export function BlockSurface({
 }: BlockSurfaceProps) {
   const drawn = emphasis != null || backdrop != null
   if (!drawn) {
-    return <div className={cn(CONTAINER[width], className)}>{children}</div>
+    return <div className={cn(MEASURE[width], PAGE_PADDING, className)}>{children}</div>
   }
   if (inset) {
     return (
-      <div className='container-8xl'>
+      <div className={cn(MEASURE['8xl'], PAGE_PADDING)}>
         <div
           data-slot='block-surface'
           data-shape='panel'
           className={cn(
-            'relative isolate grid overflow-clip rounded-3xl px-6 py-8 @3xl:px-10 @3xl:py-12',
+            'relative isolate grid rounded-3xl',
+            PANEL_PADDING,
+            backdrop && 'overflow-clip',
             emphasisClass(emphasis)
           )}
         >
@@ -68,12 +72,13 @@ export function BlockSurface({
         data-slot='block-surface'
         data-shape='band'
         className={cn(
-          'relative isolate mx-auto grid w-full max-w-8xl overflow-clip py-12 @xl:py-16 @5xl:py-20 @7xl:rounded-3xl',
+          'relative isolate mx-auto grid w-full max-w-8xl py-12 @xl:py-16 @5xl:py-20 @7xl:rounded-3xl',
+          backdrop && 'overflow-clip',
           emphasisClass(emphasis)
         )}
       >
         {backdrop}
-        <div className={cn(CONTAINER[width], className)}>{children}</div>
+        <div className={cn(MEASURE[width], PAGE_PADDING, className)}>{children}</div>
       </div>
     </div>
   )

@@ -1,20 +1,24 @@
 import { type ReactNode, useId } from 'react'
 
-import { Logo } from '@oztix/roadie-components/logo'
+import { Card } from '@oztix/roadie-components/card'
+import { Mark } from '@oztix/roadie-components/mark'
 import { Prose } from '@oztix/roadie-components/prose'
-import { Heart } from '@oztix/roadie-components/spot-illustrations'
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction, BlockImage } from '../Provider'
 import { BlockActions } from '../_shared/BlockActions'
-import { BlockHeading, type BlockHeadingProps } from '../_shared/BlockHeading'
+import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
+import { BlockSurface } from '../_shared/BlockSurface'
 import { type StatItem, StatList } from '../_shared/StatList'
 import { presetOf } from '../_shared/presets'
 import {
+  type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
+  type BlockSize,
+  type ItemEmphasis,
   emphasisClass,
   intentClass
 } from '../_shared/surface'
@@ -23,20 +27,7 @@ import { type SplitPreset, splitDefinition } from './definition'
 export type { StatItem } from '../_shared/StatList'
 export type { SplitPreset } from './definition'
 
-/** The partner a `logo-lockup` features. */
-export type SplitPartner = {
-  /** The partner's name, which names the logo when it has no alt text. */
-  name: string
-  logo: BlockImage
-}
-
-/** The panels a Split can sit on: the ones its text stays readable on in both themes. */
-export type SplitEmphasis = Extract<
-  BlockEmphasis,
-  'subtle' | 'subtler' | 'raised' | 'normal'
->
-
-/** The stats beside a `text-and-stats` split. */
+/** The stats beside a `media-text` split, in place of its image. */
 export type SplitStats = {
   /** The aside's heading, such as `By the numbers`. */
   title: string
@@ -46,10 +37,25 @@ export type SplitStats = {
   items: readonly StatItem[]
 }
 
+/** A row of `alternating-rows`. */
+export type SplitRow = {
+  /** The row's heading, marked in the row's intent. */
+  title: string
+  /** A short line under the title. */
+  subtitle?: string
+  description?: string
+  /** A photo, cropped square, beside the text. */
+  image?: BlockImage
+  /** The row's own page. Its title becomes the link, and the whole row the place to click. */
+  href?: string
+  /** This row's intent, in place of the block's, which tints the row and marks its title. */
+  intent?: BlockIntent
+}
+
 export type SplitProps = {
   /**
-   * The named look. `tinted-panel` sets an image beside the heading on a tinted panel, `media-text` sets a plain image beside the heading, body, and actions, `text-and-stats` sets long-form text beside `stats`, and `logo-lockup` opens a partner page with the Oztix logo and the `partner` logo joined by a heart, its title as the page's `h1`.
-   * @default 'tinted-panel'
+   * The look. `media-text` sets an image, or `stats`, beside the heading, body, and actions. `alternating-rows` sets `items` as rows of text beside a square image, alternating sides.
+   * @default 'media-text'
    */
   preset?: SplitPreset
   /** The block's place on the page, counting from 1, reported with its events. */
@@ -64,59 +70,44 @@ export type SplitProps = {
   titleHighlight?: string | string[]
   /** A sentence under the title. */
   description?: string
-  /** Rich text under the heading, already rendered, such as from Portable Text. The block sets it in `Prose`. */
+  /** `media-text`'s rich text under the heading, already rendered, such as from Portable Text. The block sets it in `Prose`. */
   body?: ReactNode
   /** Links under the text, as buttons. The first is the strong one. */
   actions?: readonly BlockAction[]
-  /** The `tinted-panel` or `media-text` image, shown before the text. */
+  /** The `media-text` image, shown before the text. */
   image?: BlockImage
-  /** The partner in a `logo-lockup`, whose logo sits under the Oztix logo. */
-  partner?: SplitPartner
-  /** The `text-and-stats` aside, which wraps below the text on narrow widths. */
+  /** The `media-text` stats, in place of the image, beside long-form text. They wrap below the text on narrow widths. */
   stats?: SplitStats
+  /** The `alternating-rows` rows. */
+  items?: readonly SplitRow[]
   /**
-   * The block's intent, which its highlights, actions, and panel take. `tinted-panel` defaults to `info` on its panel.
+   * The block's intent, which its highlights, actions, and marks take. On a surface, the title takes it and the rest of the text stays neutral. Without one, `alternating-rows` marks its titles in a cycle of info, brand, and brand-secondary.
    */
   intent?: BlockIntent
+  /** The surface behind the block. Unset, it has none. */
+  emphasis?: BlockEmphasis
+  /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `media-text` is inset and `alternating-rows` is a band. */
+  inset?: boolean
+  /** Every row's surface in `alternating-rows`. Unset, rows have none, though a linked row with none takes `subtler`. */
+  itemEmphasis?: ItemEmphasis
   /**
-   * The panel the block sits on. `tinted-panel` defaults to `subtle`; `media-text` and `text-and-stats` have no panel unless one is set. `logo-lockup` ignores it, since it opens the page.
+   * The heading's and text's alignment.
+   * @default 'start'
    */
-  emphasis?: SplitEmphasis
+  align?: BlockAlign
+  /**
+   * `md` sets the title a step smaller and tightens the gaps. In `media-text`, it narrows the image to two fifths, cropped 8 by 5, and sets the body in subtle text.
+   * @default 'lg'
+   */
+  size?: BlockSize
 }
 
-const CONTENT: Record<
-  SplitPreset,
-  {
-    level: BlockHeadingProps['level']
-    size: BlockHeadingProps['size']
-    gap: string
-    prose: 'md' | 'lg'
-    proseClassName?: string
-    emphasis?: SplitEmphasis
-    intent?: BlockIntent
-  }
-> = {
-  'tinted-panel': {
-    level: 2,
-    size: 3,
-    gap: 'gap-4',
-    prose: 'md',
-    proseClassName: 'text-subtle',
-    emphasis: 'subtle',
-    intent: 'info'
-  },
-  'media-text': { level: 2, size: 2, gap: 'gap-6', prose: 'md' },
-  'text-and-stats': {
-    level: 2,
-    size: 2,
-    gap: 'gap-6',
-    prose: 'lg',
-    proseClassName: 'max-w-[60ch] [&>h3]:text-display-prose-5'
-  },
-  'logo-lockup': { level: 1, size: 2, gap: 'gap-8', prose: 'md' }
+const INSET: Record<SplitPreset, boolean> = {
+  'media-text': true,
+  'alternating-rows': false
 }
 
-/** Text beside an image, a partner lockup, or the numbers that back it up. */
+/** Text beside an image or the numbers that back it up, or rows of text and images that alternate sides. */
 export function Split({
   preset,
   position,
@@ -128,52 +119,37 @@ export function Split({
   body,
   actions,
   image,
-  partner,
   stats,
+  items = [],
   intent,
-  emphasis
+  emphasis,
+  inset,
+  itemEmphasis,
+  align = 'start',
+  size = 'lg'
 }: SplitProps) {
   const { name, variant } = presetOf(splitDefinition, preset)
-  const layout = CONTENT[name]
   const headingId = useId()
-  const panelEmphasis =
-    name === 'logo-lockup' ? undefined : (emphasis ?? layout.emphasis)
-  const panelIntent = intent ?? layout.intent
-  const panel =
-    panelEmphasis &&
-    cn(
-      'rounded-2xl p-6',
-      emphasisClass(panelEmphasis),
-      intentClass(panelIntent)
-    )
-
-  const content = (
-    <div
-      className={cn(
-        'grid min-w-0 grid-cols-1 content-start wrap-break-word',
-        layout.gap,
-        // On a panel the heading keeps the panel's intent, and the rest of the text reads as neutral, as on the live site.
-        panel && ['intent-neutral', HEADING_INTENT[panelIntent ?? 'neutral']]
-      )}
-    >
-      <BlockHeading
-        id={headingId}
-        level={layout.level}
-        step={layout.size}
-        align='start'
-        intent={intent}
-        eyebrow={eyebrow}
-        title={title}
-        titleHighlight={titleHighlight}
-        description={description}
-      />
-      {body && (
-        <Prose size={layout.prose} className={layout.proseClassName}>
-          {body}
-        </Prose>
-      )}
-      <BlockActions actions={actions} intent={intent} />
-    </div>
+  const heading = (
+    <BlockHeading
+      id={headingId}
+      step={2}
+      size={size}
+      align={align}
+      intent={intent}
+      eyebrow={eyebrow}
+      title={title}
+      titleHighlight={titleHighlight}
+      description={description}
+      wide={name === 'alternating-rows' && align === 'start'}
+    />
+  )
+  const blockActions = (
+    <BlockActions
+      actions={actions}
+      intent={intent}
+      className={cn(align === 'center' && 'justify-center')}
+    />
   )
 
   return (
@@ -186,81 +162,144 @@ export function Split({
       intent={intent}
       aria-labelledby={headingId}
     >
-      {name === 'text-and-stats' && (
-        <div className='container-8xl'>
-          <div
-            className={cn(
-              'grid grid-cols-1 gap-12 @5xl:gap-x-24',
-              stats && '@3xl:grid-cols-[minmax(0,1fr)_20rem]',
-              panel
-            )}
-          >
-            {content}
-            {stats && <StatsAside {...stats} />}
-          </div>
-        </div>
-      )}
-      {name === 'logo-lockup' && (
-        <div
-          className={cn(
-            'container-8xl grid grid-cols-1 gap-8 @xl:gap-16 @5xl:gap-24',
-            partner && '@xl:grid-cols-[auto_minmax(0,1fr)] @3xl:grid-cols-2'
-          )}
+      {name === 'alternating-rows' ? (
+        <BlockSurface
+          emphasis={emphasis}
+          inset={inset ?? INSET[name]}
+          className='grid grid-cols-1 gap-12 wrap-anywhere'
         >
-          {partner && <PartnerLockup {...partner} />}
-          {content}
-        </div>
-      )}
-      {name === 'media-text' && (
-        <div className='container-8xl'>
-          <div
+          {heading}
+          <ul
             className={cn(
-              'grid grid-cols-1 items-center gap-8 @5xl:gap-16',
-              image && '@xl:grid-cols-2',
-              panel
+              'grid grid-cols-1',
+              size === 'md' ? 'gap-12' : 'gap-20'
             )}
           >
-            {image && (
-              <div
-                className={cn(
-                  'aspect-4/3 min-w-0 overflow-hidden',
-                  panel ? 'rounded-xl' : 'rounded-2xl'
-                )}
-              >
-                <BlockImg
-                  image={image}
-                  sizes='(min-width: 40rem) 50vw, 100vw'
-                  className='size-full object-cover'
-                />
-              </div>
-            )}
-            {content}
-          </div>
-        </div>
-      )}
-      {name === 'tinted-panel' && (
-        <div className='container-8xl'>
-          <div
-            className={cn(
-              'grid grid-cols-1 items-center gap-6 @3xl:gap-12',
-              image && '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]',
-              panel
-            )}
-          >
-            {image && (
-              <div className='aspect-8/5 min-w-0 overflow-hidden rounded-xl'>
-                <BlockImg
-                  image={image}
-                  sizes='(min-width: 40rem) 40vw, 100vw'
-                  className='size-full object-cover'
-                />
-              </div>
-            )}
-            {content}
-          </div>
-        </div>
+            {items.map((row, index) => (
+              <AlternatingRow
+                key={`${index}-${row.title}`}
+                row={row}
+                index={index}
+                itemEmphasis={itemEmphasis}
+                blockIntent={intent}
+              />
+            ))}
+          </ul>
+          {blockActions}
+        </BlockSurface>
+      ) : (
+        <MediaText
+          emphasis={emphasis}
+          inset={inset ?? INSET[name]}
+          intent={intent}
+          align={align}
+          size={size}
+          image={image}
+          stats={stats}
+          body={body}
+          heading={heading}
+          actions={blockActions}
+        />
       )}
     </BlockRoot>
+  )
+}
+
+function MediaText({
+  emphasis,
+  inset,
+  intent,
+  align,
+  size,
+  image,
+  stats,
+  body,
+  heading,
+  actions
+}: Pick<
+  SplitProps,
+  'emphasis' | 'inset' | 'intent' | 'image' | 'stats' | 'body'
+> & {
+  align: BlockAlign
+  size: BlockSize
+  heading: ReactNode
+  actions: ReactNode
+}) {
+  const compact = size === 'md'
+  const media = stats ? undefined : image
+  const content = (
+    <div
+      className={cn(
+        'grid min-w-0 grid-cols-1 content-start wrap-break-word',
+        compact ? 'gap-4' : 'gap-6',
+        align === 'center' && 'justify-items-center text-center',
+        // On a surface the title keeps the block's intent, and the rest of the text reads as neutral, as on the live site.
+        emphasis && ['intent-neutral', HEADING_INTENT[intent ?? 'neutral']]
+      )}
+    >
+      {heading}
+      {body && (
+        <Prose
+          size={stats && !compact ? 'lg' : 'md'}
+          className={cn(
+            stats && 'max-w-[60ch] [&>h3]:text-display-prose-5',
+            compact && 'text-subtle'
+          )}
+        >
+          {body}
+        </Prose>
+      )}
+      {actions}
+    </div>
+  )
+
+  if (stats) {
+    return (
+      <BlockSurface
+        emphasis={emphasis}
+        inset={inset}
+        className='grid grid-cols-1 gap-12 @3xl:grid-cols-[minmax(0,1fr)_20rem] @5xl:gap-x-24'
+      >
+        {content}
+        <StatsAside {...stats} />
+      </BlockSurface>
+    )
+  }
+
+  return (
+    <BlockSurface
+      emphasis={emphasis}
+      inset={inset}
+      className={cn(
+        'grid grid-cols-1 items-center',
+        compact ? 'gap-6 @3xl:gap-12' : 'gap-8 @5xl:gap-16',
+        media &&
+          (compact
+            ? '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
+            : '@xl:grid-cols-2')
+      )}
+    >
+      {media && (
+        <div
+          className={cn(
+            'min-w-0 overflow-hidden',
+            compact ? 'aspect-8/5' : 'aspect-4/3',
+            emphasis ? 'rounded-xl' : 'rounded-2xl'
+          )}
+        >
+          <BlockImg
+            image={media}
+            sizes={
+              compact
+                ? '(min-width: 40rem) 40vw, 100vw'
+                : '(min-width: 40rem) 50vw, 100vw'
+            }
+            className='size-full object-cover'
+          />
+        </div>
+      )}
+      {content}
+    </BlockSurface>
   )
 }
 
@@ -289,21 +328,85 @@ function StatsAside({ title, description, items }: SplitStats) {
   )
 }
 
-// The logos sit the same height either side of a short middle row, so the heart, centred across all three, overlaps both.
-function PartnerLockup({ name, logo }: SplitPartner) {
+const MARK_CYCLE = ['info', 'brand', 'brand-secondary'] as const
+
+// A row follows Card's surfaces, padding a surface as Card.Content does. A linked row with none takes subtler, so its hover has somewhere to show.
+function rowSurface(row: SplitRow, itemEmphasis: ItemEmphasis | undefined) {
+  const surface = itemEmphasis ?? (row.href ? 'subtler' : undefined)
+  return cn(
+    'is-interactive-within min-w-0',
+    intentClass(row.intent),
+    emphasisClass(surface),
+    surface === 'subtler' ? '-m-2 p-2' : surface && 'px-6 py-4'
+  )
+}
+
+function AlternatingRow({
+  row,
+  index,
+  itemEmphasis,
+  blockIntent
+}: {
+  row: SplitRow
+  index: number
+  itemEmphasis: ItemEmphasis | undefined
+  blockIntent: BlockIntent | undefined
+}) {
+  const imageFirst = index % 2 === 0
   return (
-    <div className='grid grid-rows-[auto_1.5rem_auto] content-start justify-items-center justify-self-center'>
-      {/* Logo's largest size is 48px; the live lockup sets both logos at 60px. */}
-      <Logo className='col-start-1 row-start-1 text-[3.75rem]' />
-      <BlockImg
-        image={{ ...logo, alt: logo.alt || name }}
-        sizes='16rem'
-        className='col-start-1 row-start-3 h-15 w-auto'
-      />
-      <Heart
-        outline
-        className='col-start-1 row-span-full size-16 self-center'
-      />
-    </div>
+    <li
+      className={cn(
+        rowSurface(row, itemEmphasis),
+        'grid items-start gap-x-12 gap-y-4 rounded-3xl @xl:items-center',
+        imageFirst
+          ? '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
+          : '@xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'
+      )}
+    >
+      <div className='grid gap-4'>
+        <div className='grid'>
+          <Mark
+            render={<h3 />}
+            intent={
+              row.intent ?? blockIntent ?? MARK_CYCLE[index % MARK_CYCLE.length]
+            }
+            className='px-3 text-display-prose-4'
+          >
+            {row.href ? (
+              <Card.Link href={row.href}>{row.title}</Card.Link>
+            ) : (
+              row.title
+            )}
+          </Mark>
+          {row.subtitle && (
+            <Mark
+              render={<p />}
+              intent='neutral'
+              className='px-3 py-1 text-display-ui-5'
+            >
+              {row.subtitle}
+            </Mark>
+          )}
+        </div>
+        {row.description && (
+          <p className='text-lg text-subtle'>{row.description}</p>
+        )}
+      </div>
+      <div
+        aria-hidden={!row.image || undefined}
+        className={cn(
+          'relative aspect-square w-full max-w-80 overflow-hidden rounded-3xl bg-subtle @xl:max-w-none',
+          imageFirst && '@xl:-order-1'
+        )}
+      >
+        {row.image && (
+          <BlockImg
+            image={row.image}
+            sizes='(min-width: 768px) 40vw, 100vw'
+            className='absolute inset-0 size-full object-cover'
+          />
+        )}
+      </div>
+    </li>
   )
 }

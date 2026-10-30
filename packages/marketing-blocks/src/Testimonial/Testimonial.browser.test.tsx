@@ -22,7 +22,7 @@ const quote = {
     ...fixture.organisation,
     logo: photo('Thimble Orbit Presents logo', 120, 40)
   },
-  backgroundImage: photo('', 1600, 900)
+  image: photo('', 1600, 900)
 }
 
 const rectOf = (element: Element) => element.getBoundingClientRect()
@@ -55,10 +55,12 @@ describe('Testimonial quote layout', () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const { container } = render(<Testimonial {...quote} />)
 
-    const section = rectOf(container.querySelector('section')!)
+    const section = rectOf(
+      container.querySelector('[data-slot=block-surface]')!
+    )
     const blockquote = rectOf(screen.getByRole('blockquote'))
     const background = rectOf(
-      container.querySelector(`img[src="${quote.backgroundImage.src}"]`)!
+      container.querySelector(`img[src="${quote.image.src}"]`)!
     )
     expect(blockquote.width).toBeLessThanOrEqual(672)
     expect(blockquote.left - section.left).toBeCloseTo(
@@ -78,7 +80,7 @@ describe('Testimonial quote layout', () => {
           ...quote.person,
           image: photo('Portrait of Mia Tran', 400, 800)
         }}
-        backgroundImage={photo('', 400, 400)}
+        image={photo('', 400, 400)}
       />
     )
 
@@ -87,10 +89,9 @@ describe('Testimonial quote layout', () => {
     expect(rectOf(portrait).height).toBeLessThanOrEqual(frame.height)
     expect(rectOf(portrait).width).toBeCloseTo(rectOf(portrait).height, 0)
 
-    const section = rectOf(container.querySelector('section')!)
-    const background = rectOf(
-      container.querySelector('[data-slot=band] > img')!
-    )
+    const surface = container.querySelector('[data-slot=block-surface]')!
+    const section = rectOf(surface)
+    const background = rectOf(surface.querySelector(':scope > img')!)
     expect(background.width).toBeCloseTo(section.width, 0)
     expect(background.height).toBeCloseTo(section.height, 0)
   })
@@ -123,7 +124,7 @@ describe('Testimonial quote layout', () => {
 
     expect(gapAbove()).toBeGreaterThan(0)
 
-    rerender(<Testimonial {...quote} backgroundImage={undefined} />)
+    rerender(<Testimonial {...quote} image={undefined} />)
     expect(gapAbove()).toBe(0)
   })
 })
@@ -182,7 +183,7 @@ describe('Testimonial contrast', () => {
             {...quote}
             {...props}
             organisation={{ name: 'Thimble Orbit Presents' }}
-            backgroundImage={undefined}
+            image={undefined}
           />
         </div>
       )
@@ -227,21 +228,53 @@ describe('Testimonial contrast', () => {
     { ...widths[0], radius: '0px' },
     { name: 'wide', width: 1440, height: 900, radius: '24px' }
   ])(
-    'runs the band full width, rounding only once the block is wide ($name)',
+    'runs the band to the block’s edges, rounding only once the block is wide ($name)',
     async ({ width, height, radius }) => {
       await atWidth(width, height)
       const { container } = render(<Testimonial {...quote} emphasis='subtle' />)
 
-      const band = container.querySelector('[data-slot=band]')!
-      expect(band.getBoundingClientRect().width).toBeCloseTo(width, 0)
+      const band = container.querySelector('[data-slot=block-surface]')!
+      expect(band).toHaveAttribute('data-shape', 'band')
       expect(getComputedStyle(band).borderTopLeftRadius).toBe(radius)
+      if (radius === '0px')
+        expect(band.getBoundingClientRect().width).toBeCloseTo(width, 0)
+    }
+  )
+
+  it('keeps an inset panel inside the page padding, rounded on a phone', async () => {
+    await atWidth(widths[0].width, widths[0].height)
+    const { container } = render(
+      <Testimonial {...quote} emphasis='subtle' inset />
+    )
+
+    const panel = container.querySelector('[data-slot=block-surface]')!
+    expect(panel.getBoundingClientRect().width).toBeLessThan(widths[0].width)
+    expect(getComputedStyle(panel).borderTopLeftRadius).not.toBe('0px')
+  })
+
+  it.each([true, false])(
+    'has no axe violations with actions, inset %s',
+    async (inset) => {
+      const { container } = render(
+        <main>
+          <Testimonial
+            {...quote}
+            emphasis='raised'
+            inset={inset}
+            intent='brand'
+            actions={[{ label: 'Read the case study', href: '/case-studies' }]}
+          />
+        </main>
+      )
+
+      expect(await axeViolations(container)).toEqual([])
     }
   )
 
   it('pads its content inside the band', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const { container } = render(
-      <Testimonial {...quote} backgroundImage={undefined} emphasis='subtle' />
+      <Testimonial {...quote} image={undefined} emphasis='subtle' />
     )
 
     expect(

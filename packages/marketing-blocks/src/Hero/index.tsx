@@ -1,6 +1,9 @@
 import { type ReactNode, useId } from 'react'
 
 import { Highlight } from '@oztix/roadie-components/highlight'
+import { Logo } from '@oztix/roadie-components/logo'
+import { Prose } from '@oztix/roadie-components/prose'
+import { Heart } from '@oztix/roadie-components/spot-illustrations'
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction, BlockImage } from '../Provider'
@@ -13,7 +16,7 @@ import {
   type SpotIllustrationName
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
-import type { BlockIntent } from '../_shared/surface'
+import type { BlockAlign, BlockIntent, BlockSize } from '../_shared/surface'
 import { HeroMotionProvider, HeroMotionToggle } from './HeroMotion'
 import { HeroVideo } from './HeroVideo'
 import { ImageCycler } from './ImageCycler'
@@ -30,11 +33,19 @@ export type HeroVideoSource = {
   poster: BlockImage
 }
 
+/** The partner a `partner` hero features. */
+export type HeroPartner = {
+  /** The partner's name, which names the logo when it has no alt text. */
+  name: string
+  logo: BlockImage
+}
+
 export type HeroProps = {
   /**
    * `bento` sets the title over a photo beside a video and cycling photos;
    * `image` sets it beside one photo; `title` is an eyebrow and a large title
-   * alone.
+   * alone; `partner` sets it beside the Oztix and `partner` logos joined by a
+   * heart.
    * @default 'bento'
    */
   preset?: HeroPreset
@@ -42,7 +53,7 @@ export type HeroProps = {
   position?: number
   /** An id for linking to the block. */
   id?: string
-  /** A short line above the title, in `image` and `title`. */
+  /** A short line above the title, in `image`, `title`, and `partner`. */
   eyebrow?: string
   /** The page's `h1`. */
   title: string
@@ -50,29 +61,43 @@ export type HeroProps = {
   titleHighlight?: string | string[]
   /** A sentence under the title that says what the page offers. */
   description?: string
+  /** Rich text under the heading in `partner`, already rendered, such as from Portable Text. The block sets it in `Prose`. */
+  body?: ReactNode
   /** Links under the title. The first is the strong one. */
   actions?: readonly BlockAction[]
-  /** The photo beside the title in `image`, at its own shape. */
+  /** The one photo: behind the title in `bento`, where it's decorative so its `alt` can be empty, or beside it in `image`, at its own shape. */
   image?: BlockImage
-  /** The photo behind the title in `bento`. Decorative, so its `alt` can be empty. */
-  backgroundImage?: BlockImage
   /** The clip beside the title in `bento`. */
   video?: HeroVideoSource
-  /** Photos that cycle in `bento`'s panel beside the title, shown once the block is about 56rem wide. */
-  primaryImages?: readonly BlockImage[]
-  /** Photos that cycle in `bento`'s lower panel beside the video, shown once the block is about 36rem wide. */
-  secondaryImages?: readonly BlockImage[]
+  /**
+   * Photos that cycle in `bento`'s two panels, filling them in order: the
+   * first half, up to six, beside the title, shown once the block is about 56rem wide,
+   * and the rest beside the video, shown from about 36rem.
+   */
+  images?: readonly BlockImage[]
   /**
    * The spot illustration after the title in `bento`.
    * @default 'HighFive'
    */
   illustration?: SpotIllustrationName
+  /** The partner in `partner`, whose logo sits under the Oztix logo. */
+  partner?: HeroPartner
   /**
    * The hero's intent: its highlighted words, its strong action, and the
    * bento's photo tint take it. Without one, the highlight is brand-secondary,
    * the action accent, and the tint brand.
    */
   intent?: BlockIntent
+  /**
+   * Where the title and text line up.
+   * @default 'start'
+   */
+  align?: BlockAlign
+  /**
+   * `md` sets the title a step smaller, with tighter spacing.
+   * @default 'lg'
+   */
+  size?: BlockSize
 }
 
 /** Opens a page with its title as the page's `h1`. */
@@ -91,6 +116,8 @@ export function Hero({ preset, position, id, ...content }: HeroProps) {
     >
       {name === 'title' ? (
         <TitleOnly headingId={headingId} {...content} />
+      ) : name === 'partner' ? (
+        <PartnerHero headingId={headingId} {...content} />
       ) : name === 'image' ? (
         <ImageHero headingId={headingId} {...content} />
       ) : (
@@ -133,6 +160,15 @@ function Title({
   )
 }
 
+const ALIGN_ITEMS: Record<BlockAlign, string> = {
+  start: 'justify-items-start',
+  center: 'justify-items-center'
+}
+const ALIGN_ACTIONS: Record<BlockAlign, string | undefined> = {
+  start: undefined,
+  center: 'justify-center'
+}
+
 function TitleOnly({
   headingId,
   intent,
@@ -140,22 +176,112 @@ function TitleOnly({
   title,
   titleHighlight,
   description,
-  actions
+  actions,
+  align = 'start',
+  size
 }: PresetProps) {
   return (
-    <div className='container-8xl grid justify-items-start gap-6 *:min-w-0'>
+    <div
+      className={cn(
+        'container-8xl grid *:min-w-0',
+        ALIGN_ITEMS[align],
+        size === 'md' ? 'gap-4' : 'gap-6'
+      )}
+    >
       <BlockHeading
         id={headingId}
         intent={intent}
         level={1}
         step={2}
-        align='start'
+        size={size}
+        align={align}
         eyebrow={eyebrow}
         title={title}
         titleHighlight={titleHighlight}
         description={description}
       />
-      <BlockActions actions={actions} intent={intent} />
+      <BlockActions
+        actions={actions}
+        intent={intent}
+        className={ALIGN_ACTIONS[align]}
+      />
+    </div>
+  )
+}
+
+function PartnerHero({
+  headingId,
+  intent,
+  eyebrow,
+  title,
+  titleHighlight,
+  description,
+  body,
+  actions,
+  partner,
+  align = 'start',
+  size
+}: PresetProps) {
+  return (
+    <div
+      className={cn(
+        'container-8xl grid grid-cols-1 gap-8 @xl:gap-16 @5xl:gap-24',
+        partner && '@xl:grid-cols-[auto_minmax(0,1fr)] @3xl:grid-cols-2'
+      )}
+    >
+      {partner && <PartnerLockup {...partner} />}
+      <div
+        className={cn(
+          'grid min-w-0 grid-cols-1 content-start wrap-break-word',
+
+          size === 'md' ? 'gap-6' : 'gap-8'
+        )}
+      >
+        <BlockHeading
+          id={headingId}
+          level={1}
+          step={2}
+          size={size}
+          align={align}
+          intent={intent}
+          eyebrow={eyebrow}
+          title={title}
+          titleHighlight={titleHighlight}
+          description={description}
+        />
+        {body && (
+          <Prose
+            size='md'
+            className={align === 'center' ? 'text-center' : undefined}
+          >
+            {body}
+          </Prose>
+        )}
+        <BlockActions
+          actions={actions}
+          intent={intent}
+          className={ALIGN_ACTIONS[align]}
+        />
+      </div>
+    </div>
+  )
+}
+
+// The logos sit the same height either side of a short middle row, so the heart, centred across all three, overlaps both.
+function PartnerLockup({ name, logo }: HeroPartner) {
+  return (
+    <div className='grid grid-rows-[auto_1.5rem_auto] content-start justify-items-center justify-self-center'>
+      {/* Logo's largest size is 48px; the live lockup sets both logos at 60px. */}
+      <Logo className='col-start-1 row-start-1 text-[3.75rem]' />
+      <BlockImg
+        image={{ ...logo, alt: logo.alt || name }}
+        sizes='16rem'
+        className='col-start-1 row-start-3 h-15 w-auto'
+      />
+      <Heart
+        outline
+        className='col-start-1 row-span-full size-16 self-center'
+      />
     </div>
   )
 }
@@ -168,22 +294,40 @@ function ImageHero({
   titleHighlight,
   description,
   actions,
-  image
+  image,
+  align = 'start',
+  size
 }: PresetProps) {
   return (
-    <div className='container-8xl grid gap-8 *:min-w-0 @xl:grid-cols-2 @xl:items-center @4xl:grid-cols-5 @4xl:gap-16'>
-      <div className='grid justify-items-start gap-6 @4xl:col-span-2'>
+    <div
+      className={cn(
+        'container-8xl grid gap-8 *:min-w-0 @xl:grid-cols-2 @xl:items-center @4xl:grid-cols-5',
+        size === 'md' ? '@4xl:gap-12' : '@4xl:gap-16'
+      )}
+    >
+      <div
+        className={cn(
+          'grid @4xl:col-span-2',
+          ALIGN_ITEMS[align],
+          size === 'md' ? 'gap-4' : 'gap-6'
+        )}
+      >
         <BlockHeading
           id={headingId}
           intent={intent}
           level={1}
-          align='start'
+          size={size}
+          align={align}
           eyebrow={eyebrow}
           title={title}
           titleHighlight={titleHighlight}
           description={description}
         />
-        <BlockActions actions={actions} intent={intent} />
+        <BlockActions
+          actions={actions}
+          intent={intent}
+          className={ALIGN_ACTIONS[align]}
+        />
       </div>
       {image && (
         <div className='order-first overflow-clip rounded-xl @xl:order-last @4xl:col-span-3'>
@@ -219,6 +363,14 @@ const SCRIM: Record<BlockIntent, string> = {
 const PANEL =
   'relative overflow-clip rounded-3xl border-4 border-(--color-neutral-light-0) bg-subtle @xl:border-6 @4xl:border-8'
 
+// The title's panel is the smaller, so it takes half the photos, up to six.
+const TITLE_PANEL_PHOTOS = 6
+
+function bentoPanels(images: readonly BlockImage[]) {
+  const half = Math.min(Math.ceil(images.length / 2), TITLE_PANEL_PHOTOS)
+  return [images.slice(0, half), images.slice(half)] as const
+}
+
 function Bento({
   headingId,
   intent,
@@ -226,13 +378,15 @@ function Bento({
   titleHighlight,
   description,
   actions,
-  backgroundImage,
+  image,
   video,
-  primaryImages = [],
-  secondaryImages = [],
-  illustration = 'HighFive'
+  images = [],
+  illustration = 'HighFive',
+  align = 'start',
+  size
 }: PresetProps) {
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
+  const [primaryImages, secondaryImages] = bentoPanels(images)
   const hasPrimary = primaryImages.length > 0
   const hasSecondary = secondaryImages.length > 0
   const moves =
@@ -249,9 +403,9 @@ function Bento({
               hasPrimary && '@4xl:col-span-6'
             )}
           >
-            {backgroundImage && (
+            {image && (
               <BlockImg
-                image={{ ...backgroundImage, alt: '' }}
+                image={{ ...image, alt: '' }}
                 sizes={hasPrimary ? '(min-width: 1024px) 66vw, 100vw' : '100vw'}
                 priority
                 className='absolute inset-0 size-full object-cover'
@@ -261,6 +415,7 @@ function Bento({
               data-slot='hero-scrim'
               className={cn(
                 'relative grid gap-8 px-6 py-8 text-(--color-neutral-light-0) @xl:px-8 @xl:py-10 @4xl:px-10 @4xl:py-12',
+                align === 'center' && 'justify-items-center text-center',
                 SCRIM[intent ?? 'brand']
               )}
             >
@@ -270,7 +425,12 @@ function Bento({
                   title={title}
                   titleHighlight={titleHighlight}
                   intent={intent}
-                  className='text-display-prose-1 text-balance'
+                  className={cn(
+                    'text-balance',
+                    size === 'md'
+                      ? 'text-display-prose-2'
+                      : 'text-display-prose-1'
+                  )}
                 >
                   {' '}
                   <Illustration
@@ -288,7 +448,7 @@ function Bento({
                 actions={actions}
                 intent={intent}
                 fill='scrim'
-                className='gap-2'
+                className={cn('gap-2', ALIGN_ACTIONS[align])}
               />
             </div>
           </div>

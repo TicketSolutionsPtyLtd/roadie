@@ -2,11 +2,15 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Split } from '.'
+import { Split, type SplitRow } from '.'
 import { MarketingBlocksProvider } from '../Provider'
 
-const featureRow = {
-  preset: 'tinted-panel',
+const tintedPanel = {
+  preset: 'media-text',
+  size: 'md',
+  emphasis: 'subtle',
+  intent: 'info',
+  inset: true,
   title: 'Specialist teams powering venues and event organisers',
   description:
     'Teams in innovation, operations, marketing, events, and finance, all working to one partnership promise.',
@@ -32,7 +36,7 @@ const mediaText = {
 } as const
 
 const textAndStats = {
-  preset: 'text-and-stats',
+  preset: 'media-text',
   title: 'Who we are',
   body: (
     <>
@@ -51,54 +55,33 @@ const textAndStats = {
   }
 } as const
 
-const partnerSpotlight = {
-  preset: 'logo-lockup',
-  title: 'Resell my tickets',
-  description: 'Sell your tickets through our resale partner.',
-  body: <p>The safest way to resell tickets to any event you can't make.</p>,
-  actions: [{ label: 'Resell my tickets', href: 'https://resale.example.com' }],
-  partner: {
-    name: 'Partner',
-    logo: { src: '/partner.svg', alt: 'Partner logo', width: 208 }
+const values: SplitRow[] = [
+  {
+    title: 'Proactive touch',
+    subtitle: 'See it coming',
+    description: 'We spot issues early.',
+    image: { src: '/one.jpg', alt: 'A team at a desk' }
+  },
+  {
+    title: 'Positive energy',
+    subtitle: 'Lift spirits',
+    description: 'We love what we do.',
+    image: { src: '/two.jpg', alt: 'Three partners smiling' }
   }
-} as const
+]
+
+const surfaceOf = (section: HTMLElement) =>
+  section.querySelector('[data-slot="block-surface"]')
 
 describe('Split', () => {
-  it('renders tinted-panel as a media split with its heading, description and image', () => {
-    render(<Split {...featureRow} position={4} />)
-
-    const section = screen.getByRole('region', { name: featureRow.title })
-    expect(section).toHaveAttribute('data-block', 'split')
-    expect(section).toHaveAttribute('data-variant', 'media')
-    expect(section).toHaveAttribute('data-preset', 'tinted-panel')
-    expect(section).toHaveAttribute('data-position', '4')
-    expect(
-      within(section).getByRole('heading', { level: 2, name: featureRow.title })
-    ).toBeInTheDocument()
-    expect(
-      within(section).getByText(featureRow.description)
-    ).toBeInTheDocument()
-    expect(
-      within(section).getByRole('img', { name: featureRow.image.alt })
-    ).toHaveAttribute('src', '/team.webp')
-  })
-
-  it('puts the tinted-panel image before the heading in reading order', () => {
-    render(<Split {...featureRow} />)
-
-    const image = screen.getByRole('img', { name: featureRow.image.alt })
-    const heading = screen.getByRole('heading', { name: featureRow.title })
-    expect(
-      image.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy()
-  })
-
   it('renders media-text as a media split with its image first, then heading, body and action', () => {
-    render(<Split {...mediaText} />)
+    render(<Split {...mediaText} position={4} />)
 
     const section = screen.getByRole('region', { name: mediaText.title })
+    expect(section).toHaveAttribute('data-block', 'split')
     expect(section).toHaveAttribute('data-variant', 'media')
     expect(section).toHaveAttribute('data-preset', 'media-text')
+    expect(section).toHaveAttribute('data-position', '4')
     const image = within(section).getByRole('img', {
       name: mediaText.image.alt
     })
@@ -115,12 +98,20 @@ describe('Split', () => {
     ).toHaveAttribute('href', '/spotify')
   })
 
-  it('renders text-and-stats as a stats split, with the body, action and stats aside', () => {
-    render(<Split {...textAndStats} />)
+  it('falls back to media-text with no preset', () => {
+    render(<Split title={mediaText.title} image={mediaText.image} />)
+
+    expect(
+      screen.getByRole('region', { name: mediaText.title })
+    ).toHaveAttribute('data-preset', 'media-text')
+  })
+
+  it('sets stats in place of the image, with the body, action and stats aside', () => {
+    render(<Split {...textAndStats} image={mediaText.image} />)
 
     const section = screen.getByRole('region', { name: 'Who we are' })
-    expect(section).toHaveAttribute('data-variant', 'stats')
-    expect(section).toHaveAttribute('data-preset', 'text-and-stats')
+    expect(section).toHaveAttribute('data-variant', 'media')
+    expect(within(section).queryByRole('img')).toBeNull()
     expect(
       within(section).getByRole('heading', {
         level: 3,
@@ -143,80 +134,55 @@ describe('Split', () => {
     ).toEqual(['33,000,000+tickets sold', '22,000+event organisers'])
   })
 
-  it('renders text-and-stats without an aside when it has no stats', () => {
-    render(<Split {...textAndStats} stats={undefined} />)
+  it('sets the body of a stats split in large prose, and in medium at size md', () => {
+    const large = '[--prose-size:var(--text-lg)]'
+    const prose = () => screen.getByText(/hosted in Australia/).parentElement
+    const { unmount } = render(<Split {...textAndStats} />)
+    expect(prose()).toHaveClass(large)
+    unmount()
 
-    expect(screen.queryByRole('list')).toBeNull()
-    expect(screen.queryByRole('heading', { name: 'By the numbers' })).toBeNull()
+    render(<Split {...textAndStats} size='md' />)
+    expect(prose()).not.toHaveClass(large)
   })
 
-  it('opens the page with logo-lockup: its title is the h1, beside both logos', () => {
-    render(<Split {...partnerSpotlight} />)
+  it.each([
+    [undefined, 'text-display-prose-2'],
+    ['md', 'text-display-prose-3']
+  ] as const)('sets the title at size %s as %s', (size, step) => {
+    render(<Split {...mediaText} size={size} />)
 
-    const section = screen.getByRole('region', { name: 'Resell my tickets' })
-    expect(section).toHaveAttribute('data-variant', 'media')
-    expect(section).toHaveAttribute('data-preset', 'logo-lockup')
-    expect(
-      within(section).getByRole('heading', {
-        level: 1,
-        name: 'Resell my tickets'
-      })
-    ).toBeInTheDocument()
-    expect(
-      within(section).getByRole('img', { name: 'Oztix' })
-    ).toBeInTheDocument()
-    expect(
-      within(section).getByRole('img', { name: 'Partner logo' })
-    ).toHaveAttribute('src', '/partner.svg')
-    expect(
-      within(section).getByText(
-        "The safest way to resell tickets to any event you can't make."
-      )
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2 })).toHaveClass(step)
   })
 
-  it("names the partner's logo by the partner when the logo has no alt", () => {
-    render(
-      <Split
-        {...partnerSpotlight}
-        partner={{ name: 'Partner', logo: { src: '/partner.svg', alt: '' } }}
-      />
+  it('centres the heading and actions when align is center', () => {
+    render(<Split {...mediaText} align='center' />)
+
+    expect(screen.getByRole('heading', { level: 2 }).parentElement).toHaveClass(
+      'text-center'
     )
-
-    expect(screen.getByRole('img', { name: 'Partner' })).toHaveAttribute(
-      'src',
-      '/partner.svg'
-    )
-  })
-
-  it('falls back to tinted-panel with no preset', () => {
-    render(<Split title={featureRow.title} image={featureRow.image} />)
-
     expect(
-      screen.getByRole('region', { name: featureRow.title })
-    ).toHaveAttribute('data-preset', 'tinted-panel')
+      screen.getByRole('link', { name: 'Set it up' }).parentElement
+    ).toHaveClass('justify-center')
   })
 
   it('reports a click on its action with the label and href', async () => {
     const onBlockEvent = vi.fn()
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
-        <Split {...partnerSpotlight} position={1} />
+        <Split {...mediaText} position={1} />
       </MarketingBlocksProvider>
     )
 
-    await userEvent.click(
-      screen.getByRole('link', { name: /Resell my tickets/ })
-    )
+    await userEvent.click(screen.getByRole('link', { name: 'Set it up' }))
 
     expect(onBlockEvent).toHaveBeenCalledWith({
       action: 'click',
       block: 'split',
       variant: 'media',
-      preset: 'logo-lockup',
+      preset: 'media-text',
       position: 1,
-      label: expect.stringContaining('Resell my tickets'),
-      href: 'https://resale.example.com'
+      label: 'Set it up',
+      href: '/spotify'
     })
   })
 
@@ -225,21 +191,117 @@ describe('Split', () => {
       <MarketingBlocksProvider
         renderImage={({ alt }) => <img alt={alt} src='/optimised.webp' />}
       >
-        <Split {...featureRow} />
+        <Split {...tintedPanel} />
       </MarketingBlocksProvider>
     )
 
     expect(
-      screen.getByRole('img', { name: featureRow.image.alt })
+      screen.getByRole('img', { name: tintedPanel.image.alt })
     ).toHaveAttribute('src', '/optimised.webp')
   })
 
-  describe('intent and emphasis', () => {
-    const panelOf = (section: HTMLElement) =>
-      [...section.querySelectorAll('[class*="emphasis-"]')].find(
-        (element) => !element.closest('a, button')
-      ) ?? null
+  describe('alternating rows', () => {
+    it('renders its rows as h3s under the block’s h2, each with its image', () => {
+      render(
+        <Split preset='alternating-rows' title='Our values' items={values} />
+      )
 
+      const section = screen.getByRole('region', { name: 'Our values' })
+      expect(section).toHaveAttribute('data-variant', 'rows')
+      expect(section).toHaveAttribute('data-preset', 'alternating-rows')
+      expect(within(section).getAllByRole('listitem')).toHaveLength(2)
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Proactive touch' })
+      ).toBeInTheDocument()
+      expect(screen.getByText('Lift spirits')).toBeInTheDocument()
+      expect(screen.getByText('We love what we do.')).toBeInTheDocument()
+      expect(
+        screen.getByRole('img', { name: 'Three partners smiling' })
+      ).toHaveAttribute('src', '/two.jpg')
+    })
+
+    it('links a row by its title and reports the title alone as the click label', async () => {
+      const onBlockEvent = vi.fn()
+      render(
+        <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
+          <Split
+            preset='alternating-rows'
+            title='Our values'
+            items={[{ ...values[0]!, href: '/values/proactive' }, values[1]!]}
+          />
+        </MarketingBlocksProvider>
+      )
+
+      const link = screen.getByRole('link', { name: 'Proactive touch' })
+      expect(
+        screen.getByRole('heading', { level: 3, name: 'Proactive touch' })
+      ).toContainElement(link)
+      await userEvent.click(link)
+      expect(onBlockEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          label: 'Proactive touch',
+          href: '/values/proactive'
+        })
+      )
+    })
+
+    const markOf = (name: string) =>
+      screen.getByText(name).closest('[data-slot="mark"]')
+
+    it('cycles its title marks, or takes the block’s or a row’s intent', () => {
+      const three = [
+        values[0]!,
+        values[1]!,
+        { ...values[1]!, title: 'Third', intent: 'success' as const }
+      ]
+      const { unmount } = render(
+        <Split preset='alternating-rows' title='Values' items={three} />
+      )
+      expect(markOf('Proactive touch')).toHaveClass('intent-info')
+      expect(markOf('Positive energy')).toHaveClass('intent-brand')
+      expect(markOf('Third')).toHaveClass('intent-success')
+      unmount()
+
+      render(
+        <Split
+          preset='alternating-rows'
+          intent='danger'
+          title='Values'
+          items={three}
+        />
+      )
+      expect(markOf('Proactive touch')).toHaveClass('intent-danger')
+      expect(markOf('Positive energy')).toHaveClass('intent-danger')
+      expect(markOf('Third')).toHaveClass('intent-success')
+    })
+
+    it('draws every row on its item emphasis, and a linked bare row on subtler', () => {
+      const { unmount } = render(
+        <Split
+          preset='alternating-rows'
+          itemEmphasis='subtle'
+          title='Values'
+          items={values}
+        />
+      )
+      for (const row of screen.getAllByRole('listitem'))
+        expect(row).toHaveClass('emphasis-subtle')
+      unmount()
+
+      render(
+        <Split
+          preset='alternating-rows'
+          title='Values'
+          items={[{ ...values[0]!, href: '/values' }, values[1]!]}
+        />
+      )
+      const [linked, plain] = screen.getAllByRole('listitem')
+      expect(linked).toHaveClass('emphasis-subtler')
+      expect(plain!.className).not.toMatch(/emphasis-/)
+    })
+  })
+
+  describe('intent and emphasis', () => {
     it('sets the intent on the block', () => {
       render(<Split {...mediaText} intent='brand' />)
 
@@ -260,44 +322,45 @@ describe('Split', () => {
       )
     })
 
-    it('draws tinted-panel on a subtle info panel by default', () => {
-      render(<Split {...featureRow} />)
+    it('draws the tinted panel as a subtle inset panel in its intent', () => {
+      render(<Split {...tintedPanel} />)
 
-      const section = screen.getByRole('region', { name: featureRow.title })
-      expect(section).not.toHaveAttribute('data-intent')
-      expect(panelOf(section)).toHaveClass('emphasis-subtle', 'intent-info')
+      const section = screen.getByRole('region', { name: tintedPanel.title })
+      expect(section).toHaveClass('intent-info')
+      expect(surfaceOf(section)).toHaveClass('emphasis-subtle')
+      expect(surfaceOf(section)).toHaveAttribute('data-shape', 'panel')
     })
 
-    it("lets intent and emphasis override tinted-panel's defaults", () => {
-      render(<Split {...featureRow} intent='success' emphasis='raised' />)
-
-      const panel = panelOf(
-        screen.getByRole('region', { name: featureRow.title })
+    it.each([
+      ['media-text', undefined, 'panel'],
+      ['media-text', false, 'band'],
+      ['alternating-rows', undefined, 'band'],
+      ['alternating-rows', true, 'panel']
+    ] as const)('draws %s with inset %s as a %s', (preset, inset, shape) => {
+      render(
+        <Split
+          preset={preset}
+          emphasis='raised'
+          inset={inset}
+          title='Section'
+          image={mediaText.image}
+          items={values}
+        />
       )
-      expect(panel).toHaveClass('emphasis-raised', 'intent-success')
-      expect(panel).not.toHaveClass('intent-info')
+
+      expect(surfaceOf(screen.getByRole('region'))).toHaveAttribute(
+        'data-shape',
+        shape
+      )
     })
 
-    it('draws media-text and text-and-stats with no panel unless an emphasis is set', () => {
-      render(<Split {...mediaText} />)
-      render(<Split {...textAndStats} emphasis='subtler' />)
+    it.each(['media-text', 'alternating-rows'] as const)(
+      'draws %s with no surface unless an emphasis is set',
+      (preset) => {
+        render(<Split preset={preset} title='Section' items={values} />)
 
-      expect(
-        panelOf(screen.getByRole('region', { name: mediaText.title }))
-      ).toBeNull()
-      expect(
-        panelOf(screen.getByRole('region', { name: textAndStats.title }))
-      ).toHaveClass('emphasis-subtler')
-    })
-
-    it('never draws a panel behind logo-lockup, which opens the page', () => {
-      render(<Split {...partnerSpotlight} intent='brand' emphasis='subtle' />)
-
-      const section = screen.getByRole('region', {
-        name: partnerSpotlight.title
-      })
-      expect(section).toHaveAttribute('data-intent', 'brand')
-      expect(panelOf(section)).toBeNull()
-    })
+        expect(surfaceOf(screen.getByRole('region'))).toBeNull()
+      }
+    )
   })
 })

@@ -1,8 +1,8 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Split, type SplitEmphasis, type SplitPreset, type SplitProps } from '.'
-import type { BlockIntent } from '../_shared/surface'
+import { Split, type SplitProps } from '.'
+import type { BlockEmphasis, BlockIntent } from '../_shared/surface'
 import {
   DESKTOP,
   PHONE,
@@ -15,9 +15,14 @@ import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 
 withBrowserPage()
 
-const PRESETS = {
+// The old presets, each as the props that reproduce it.
+const LOOKS = {
   'tinted-panel': {
-    preset: 'tinted-panel',
+    preset: 'media-text',
+    size: 'md',
+    emphasis: 'subtle',
+    intent: 'info',
+    inset: true,
     title: 'Specialist teams powering venues and event organisers',
     description:
       'Teams in innovation, operations, marketing, events, and finance.',
@@ -31,7 +36,7 @@ const PRESETS = {
     image: photo('An event listing on an artist profile', 1200, 1000)
   },
   'text-and-stats': {
-    preset: 'text-and-stats',
+    preset: 'media-text',
     title: 'Who we are',
     body: (
       <>
@@ -53,15 +58,21 @@ const PRESETS = {
       ]
     }
   },
-  'logo-lockup': {
-    preset: 'logo-lockup',
-    title: 'Resell my tickets',
-    description: 'Sell your tickets through our resale partner.',
-    body: <p>The safest way to resell tickets to any event you can't make.</p>,
-    actions: [{ label: 'Resell my tickets', href: '/resell' }],
-    partner: { name: 'Partner', logo: photo('Partner logo', 208, 60) }
+  'alternating-rows': {
+    preset: 'alternating-rows',
+    title: 'Our values',
+    description: 'Five principles shape how we partner with you.',
+    actions: [{ label: 'Meet the team', href: '/about/team' }],
+    items: ['Proactive touch', 'Positive energy', 'Integrity'].map(
+      (title, index) => ({
+        title,
+        subtitle: 'See it coming, solve it early',
+        description: 'We spot issues before they become problems.',
+        image: photo(`${title} photo ${index + 1}`, 400, 300)
+      })
+    )
   }
-} satisfies Record<SplitPreset, SplitProps>
+} satisfies Record<string, SplitProps>
 
 async function renderAt(
   { width, height }: { width: number; height: number },
@@ -79,18 +90,18 @@ const isAbove = (first: Element, second: Element) =>
 
 describe('Split layout', () => {
   it('sets the tinted-panel image beside the text on wide screens, and above it on phones', async () => {
-    await renderAt(DESKTOP, PRESETS['tinted-panel'])
+    await renderAt(DESKTOP, LOOKS['tinted-panel'])
     const image = () => screen.getByRole('img', { name: /team members/ })
     const heading = () => screen.getByRole('heading', { level: 2 })
     expect(isBeside(image(), heading())).toBe(true)
 
     cleanup()
-    await renderAt(PHONE, PRESETS['tinted-panel'])
+    await renderAt(PHONE, LOOKS['tinted-panel'])
     expect(isAbove(image(), heading())).toBe(true)
   })
 
   it('sets the media-text image beside the text in equal halves on wide screens, and above it on phones', async () => {
-    await renderAt(DESKTOP, PRESETS['media-text'])
+    await renderAt(DESKTOP, LOOKS['media-text'])
     const image = () => screen.getByRole('img', { name: /event listing/ })
     const heading = () => screen.getByRole('heading', { level: 2 })
     expect(isBeside(image(), heading())).toBe(true)
@@ -100,12 +111,12 @@ describe('Split layout', () => {
     )
 
     cleanup()
-    await renderAt(PHONE, PRESETS['media-text'])
+    await renderAt(PHONE, LOOKS['media-text'])
     expect(isAbove(image(), heading())).toBe(true)
   })
 
   it('crops a sized media-text photo to 4 by 3', async () => {
-    await renderAt(DESKTOP, PRESETS['media-text'])
+    await renderAt(DESKTOP, LOOKS['media-text'])
 
     const { width, height } = box(
       screen.getByRole('img', { name: /event listing/ })
@@ -114,29 +125,18 @@ describe('Split layout', () => {
   })
 
   it('sets the text-and-stats aside beside the text on wide screens, and wraps it below on phones', async () => {
-    await renderAt(DESKTOP, PRESETS['text-and-stats'])
+    await renderAt(DESKTOP, LOOKS['text-and-stats'])
     const body = () => screen.getByText(/hosted in Australia/)
     const aside = () => screen.getByRole('heading', { name: 'By the numbers' })
     expect(isBeside(body(), aside())).toBe(true)
 
     cleanup()
-    await renderAt(PHONE, PRESETS['text-and-stats'])
+    await renderAt(PHONE, LOOKS['text-and-stats'])
     expect(isAbove(body(), aside())).toBe(true)
   })
 
-  it('sets the partner lockup beside the title on wide screens, and above it on phones', async () => {
-    await renderAt(DESKTOP, PRESETS['logo-lockup'])
-    const lockup = () => screen.getByRole('img', { name: 'Partner logo' })
-    const heading = () => screen.getByRole('heading', { level: 1 })
-    expect(isBeside(lockup(), heading())).toBe(true)
-
-    cleanup()
-    await renderAt(PHONE, PRESETS['logo-lockup'])
-    expect(isAbove(lockup(), heading())).toBe(true)
-  })
-
   it('crops a sized tinted-panel photo to 8 by 5', async () => {
-    await renderAt(DESKTOP, PRESETS['tinted-panel'])
+    await renderAt(DESKTOP, LOOKS['tinted-panel'])
 
     const { width, height } = box(
       screen.getByRole('img', { name: /team members/ })
@@ -146,7 +146,7 @@ describe('Split layout', () => {
 
   it('gives a tinted-panel with no image the whole panel for its text', async () => {
     const { container } = await renderAt(DESKTOP, {
-      ...PRESETS['tinted-panel'],
+      ...LOOKS['tinted-panel'],
       image: undefined
     })
 
@@ -154,50 +154,30 @@ describe('Split layout', () => {
     const heading = screen.getByRole('heading', { level: 2 }).parentElement!
     expect(box(heading).width).toBeGreaterThan(section.width * 0.8)
   })
-
-  it('overlaps the heart on both logos, centred between them', async () => {
-    const { container } = await renderAt(DESKTOP, PRESETS['logo-lockup'])
-
-    const oztix = box(screen.getByRole('img', { name: 'Oztix' }))
-    const partner = box(screen.getByRole('img', { name: 'Partner logo' }))
-    const heart = box(
-      [...container.querySelectorAll('svg')].find(
-        (svg) => !svg.closest('[role="img"]')
-      )!
-    )
-    expect(heart.top).toBeLessThan(oztix.bottom)
-    expect(heart.bottom).toBeGreaterThan(partner.top)
-    expect(oztix.height).toBeCloseTo(partner.height, 0)
-    expect((heart.left + heart.right) / 2).toBeCloseTo(
-      (partner.left + partner.right) / 2,
-      0
-    )
-  })
 })
 
 const MID = { width: 640, height: 800 }
 
 describe('Split at a mid width', () => {
   it.each([
-    ['tinted-panel', /team members/, 2],
-    ['media-text', /event listing/, 2],
-    ['logo-lockup', 'Partner logo', 1]
+    ['tinted-panel', /team members/],
+    ['media-text', /event listing/]
   ] as const)(
     'sets the %s media beside the text at 640px',
-    async (preset, name, level) => {
-      await renderAt(MID, PRESETS[preset])
+    async (look, name) => {
+      await renderAt(MID, LOOKS[look])
 
       expect(
         isBeside(
           screen.getByRole('img', { name }),
-          screen.getByRole('heading', { level })
+          screen.getByRole('heading', { level: 2 })
         )
       ).toBe(true)
     }
   )
 
   it('keeps the text-and-stats aside below the text at 640px, where a stat would not fit beside it', async () => {
-    await renderAt(MID, PRESETS['text-and-stats'])
+    await renderAt(MID, LOOKS['text-and-stats'])
 
     expect(
       isAbove(
@@ -207,7 +187,7 @@ describe('Split at a mid width', () => {
     ).toBe(true)
   })
 
-  it.each(Object.values(PRESETS))(
+  it.each(Object.values(LOOKS))(
     'keeps a long unbroken word inside the block as $preset at 640px',
     async (props) => {
       const { container } = await renderAt(MID, {
@@ -224,27 +204,8 @@ describe('Split at a mid width', () => {
 const WIDE = { width: 1440, height: 900 }
 
 describe('Split at 1440px, as on the live site', () => {
-  it('splits logo-lockup in halves: the lockup centred in the left, the title from the middle', async () => {
-    const { container } = await renderAt(WIDE, PRESETS['logo-lockup'])
-
-    const section = box(container.querySelector('section')!)
-    const middle = section.left + section.width / 2
-    const oztix = box(screen.getByRole('img', { name: 'Oztix' }))
-    const partner = box(screen.getByRole('img', { name: 'Partner logo' }))
-    const heading = box(screen.getByRole('heading', { level: 1 }))
-
-    expect(heading.left).toBeGreaterThanOrEqual(middle)
-    expect(heading.left).toBeLessThan(middle + 64)
-    const lockupMiddle = (oztix.left + oztix.right) / 2
-    expect(Math.abs(lockupMiddle - (section.left + middle) / 2)).toBeLessThan(
-      48
-    )
-    expect(oztix.height).toBeCloseTo(60, -1)
-    expect(partner.height).toBeCloseTo(oztix.height, 0)
-  })
-
   it('gives text-and-stats a growing text column and a stats aside of about 20rem at the end', async () => {
-    const { container } = await renderAt(WIDE, PRESETS['text-and-stats'])
+    const { container } = await renderAt(WIDE, LOOKS['text-and-stats'])
 
     const section = box(container.querySelector('section')!)
     const aside = box(
@@ -263,7 +224,7 @@ describe('Split tinted panel', () => {
       <>
         <p className='text-subtle'>Neutral reference</p>
         <Split
-          {...PRESETS['tinted-panel']}
+          {...LOOKS['tinted-panel']}
           body={<p>Body copy on the panel.</p>}
         />
       </>
@@ -273,7 +234,7 @@ describe('Split tinted panel', () => {
       screen.getByText('Neutral reference')
     ).color
     expect(
-      getComputedStyle(screen.getByText(PRESETS['tinted-panel'].description))
+      getComputedStyle(screen.getByText(LOOKS['tinted-panel'].description))
         .color
     ).toBe(neutral)
     expect(
@@ -282,10 +243,89 @@ describe('Split tinted panel', () => {
   })
 })
 
+describe('Split alternating rows', () => {
+  const rows = () => screen.getAllByRole('listitem')
+  const sides = () =>
+    rows().map((row) => {
+      const text = within(row).getByRole('heading').getBoundingClientRect()
+      const image = within(row).getByRole('img').getBoundingClientRect()
+      if (image.top >= text.bottom) return 'below'
+      return image.left > text.left ? 'right' : 'left'
+    })
+  const at = (width: number, props: Partial<SplitProps> = {}) =>
+    render(
+      <div style={{ width }}>
+        <Split {...LOOKS['alternating-rows']} {...props} />
+      </div>
+    )
+
+  it('sets each image below its text on a phone', () => {
+    at(375)
+
+    expect(sides()).toEqual(['below', 'below', 'below'])
+  })
+
+  it.each([640, 1280])(
+    'alternates the image’s side at %ipx, starting on the left',
+    (width) => {
+      at(width)
+
+      expect(sides()).toEqual(['left', 'right', 'left'])
+    }
+  )
+
+  it('crops a sized 4:3 photo square', () => {
+    at(1280)
+
+    const { width, height } = box(within(rows()[0]!).getByRole('img'))
+    expect(width / height).toBeCloseTo(1, 2)
+  })
+
+  it('runs its description the full width of the block', () => {
+    at(1280, {
+      description:
+        'We live our values in every event setup, every support call, and every challenge we solve together. '.repeat(
+          3
+        )
+    })
+
+    const list = box(rows()[0]!.parentElement!)
+    expect(box(screen.getByText(/We live our values/)).width).toBeGreaterThan(
+      list.width - 2
+    )
+  })
+
+  it('leaves the space above it to the page', () => {
+    at(1280)
+
+    expect(
+      Math.round(
+        box(screen.getByRole('heading', { level: 2 })).top -
+          box(screen.getByRole('region')).top
+      )
+    ).toBe(0)
+  })
+
+  it('makes a linked row one hit area', () => {
+    at(1280, {
+      items: [{ ...LOOKS['alternating-rows'].items[0]!, href: '#proactive' }]
+    })
+
+    const link = screen.getByRole('link', { name: 'Proactive touch' })
+    const { left, top, right, bottom } = box(rows()[0]!)
+    for (const [x, y] of [
+      [left + 12, top + 12],
+      [right - 12, bottom - 12],
+      [(left + right) / 2, (top + bottom) / 2]
+    ] as const)
+      expect(link.contains(document.elementFromPoint(x, y))).toBe(true)
+  })
+})
+
 describe('Split accessibility', () => {
-  it.each(Object.values(PRESETS))(
-    'has no axe violations as $preset',
-    async (props) => {
+  it.each(Object.entries(LOOKS))(
+    'has no axe violations as %s',
+    async (_look, props) => {
       const { container } = await renderAt(DESKTOP, props)
 
       expect(await axeViolations(container)).toEqual([])
@@ -293,7 +333,7 @@ describe('Split accessibility', () => {
   )
 })
 
-const EMPHASES: SplitEmphasis[] = ['subtle', 'subtler', 'raised', 'normal']
+const EMPHASES: BlockEmphasis[] = ['subtle', 'subtler', 'raised']
 const INTENTS: (BlockIntent | undefined)[] = [
   undefined,
   'neutral',
@@ -311,21 +351,21 @@ describe('Split contrast on every panel', () => {
   it.each(
     MODES.flatMap((mode) =>
       EMPHASES.flatMap((emphasis) =>
-        (['tinted-panel', 'text-and-stats'] as const).map((preset) => ({
+        (['tinted-panel', 'text-and-stats'] as const).map((look) => ({
           mode,
           emphasis,
-          preset
+          look
         }))
       )
     )
   )(
-    'keeps $preset text readable on $emphasis in $mode mode, for every intent',
-    async ({ mode, emphasis, preset }) => {
+    'keeps $look text readable on $emphasis in $mode mode, for every intent',
+    async ({ mode, emphasis, look }) => {
       setMode(mode)
       try {
         for (const intent of INTENTS) {
           const { container, unmount } = await renderAt(DESKTOP, {
-            ...PRESETS[preset],
+            ...LOOKS[look],
             description: 'A sentence under the title.',
             body: <p>Body text on the panel.</p>,
             intent,
@@ -357,9 +397,39 @@ describe('Split contrast on every panel', () => {
     }
   )
 
+  it.each(
+    MODES.flatMap((mode) => EMPHASES.map((emphasis) => ({ mode, emphasis })))
+  )(
+    'keeps alternating-rows text readable on $emphasis in $mode mode, for every intent',
+    async ({ mode, emphasis }) => {
+      setMode(mode)
+      try {
+        for (const intent of INTENTS) {
+          const { container, unmount } = await renderAt(DESKTOP, {
+            ...LOOKS['alternating-rows'],
+            intent,
+            emphasis
+          })
+          const at = `${intent ?? 'default'} intent`
+          for (const element of container.querySelectorAll('h2, h3'))
+            expect(textContrast(element), at).toBeGreaterThanOrEqual(
+              MINIMUM_LC.large
+            )
+          for (const element of container.querySelectorAll('li p'))
+            expect(textContrast(element), at).toBeGreaterThanOrEqual(
+              MINIMUM_LC.body
+            )
+          unmount()
+        }
+      } finally {
+        setMode('light')
+      }
+    }
+  )
+
   it.each(EMPHASES)('has no axe violations on %s', async (emphasis) => {
     const { container } = await renderAt(DESKTOP, {
-      ...PRESETS['media-text'],
+      ...LOOKS['media-text'],
       intent: 'brand',
       emphasis
     })

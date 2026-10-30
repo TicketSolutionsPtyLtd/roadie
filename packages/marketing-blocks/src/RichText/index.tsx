@@ -7,15 +7,17 @@ import type { BlockAction } from '../Provider'
 import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
+import { BlockSurface } from '../_shared/BlockSurface'
 import {
   SPOT_ILLUSTRATIONS,
   type SpotIllustrationName
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
-import {
-  type BlockEmphasis,
-  type BlockIntent,
-  emphasisClass
+import type {
+  BlockAlign,
+  BlockEmphasis,
+  BlockIntent,
+  BlockSize
 } from '../_shared/surface'
 import { type RichTextPreset, richTextDefinition } from './definition'
 
@@ -24,7 +26,8 @@ export type { RichTextPreset } from './definition'
 export type RichTextProps = {
   /**
    * `statement` centres a title and a few large paragraphs under an
-   * illustration; `long-form` sets long-form text at a reading width.
+   * illustration, with generous space around them; `long-form` sets
+   * long-form text at a reading width, aligned to the start.
    * @default 'statement'
    */
   preset?: RichTextPreset
@@ -54,19 +57,21 @@ export type RichTextProps = {
    * Without one, the highlight is brand-secondary and the action accent.
    */
   intent?: BlockIntent
+  /** The surface behind the block: a band, full width and rounded once the block is wide, or a panel with `inset`. None by default. */
+  emphasis?: BlockEmphasis
+  /** Draws the `emphasis` as a panel inside the page padding instead of a band. */
+  inset?: boolean
   /**
-   * A band behind `statement`, full width and rounded once the block is wide;
-   * none by default. Applies to `statement` only: `long-form` accepts it and
-   * ignores it, so a CMS can send it for either preset.
+   * The heading's and text's alignment.
+   * @default 'center' in `statement`, 'start' in `long-form`
    */
-  emphasis?: RichTextEmphasis
+  align?: BlockAlign
+  /**
+   * `md` sets the title a step smaller, with tighter gaps.
+   * @default 'lg'
+   */
+  size?: BlockSize
 }
-
-/** The surfaces a statement's text stays readable on, in both themes. */
-export type RichTextEmphasis = Extract<
-  BlockEmphasis,
-  'subtle' | 'subtler' | 'raised'
->
 
 /** A title and rich text, from a short statement to an article. */
 export function RichText({ preset, position, id, ...content }: RichTextProps) {
@@ -95,10 +100,18 @@ type PresetProps = Omit<RichTextProps, 'preset' | 'position' | 'id'> & {
   headingId: string
 }
 
+const STATEMENT_ALIGN: Record<BlockAlign, string> = {
+  center: 'justify-items-center text-center',
+  start: 'text-start'
+}
+
 function Statement({
   headingId,
   intent,
   emphasis,
+  inset,
+  align = 'center',
+  size,
   eyebrow,
   title,
   titleHighlight,
@@ -108,56 +121,64 @@ function Statement({
   illustration = 'Heart'
 }: PresetProps) {
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
-  // The breathing room is this preset's look, the one block with outer
-  // padding; a band keeps it inside, and runs full width like every section band.
-  const content = (
-    <div className='container-8xl'>
-      <div className='grid justify-items-center gap-4 py-8 text-center *:min-w-0 @xl:py-16 @4xl:py-32'>
-        <Illustration outline className='size-16' />
-        {title ? (
-          <BlockHeading
-            className='[&>h2]:max-w-none'
-            id={headingId}
-            intent={intent}
-            step={4}
-            eyebrow={eyebrow}
-            title={title}
-            titleHighlight={titleHighlight}
-            description={description}
-          />
-        ) : (
-          <Intro eyebrow={eyebrow} description={description} />
-        )}
-        {body && (
-          <Prose
-            size='lg'
-            className='text-balance text-subtle [--prose-size:var(--text-xl)] *:mx-auto'
-          >
-            {body}
-          </Prose>
-        )}
-        <BlockActions
-          actions={actions}
-          intent={intent}
-          className='justify-center'
-        />
-      </div>
-    </div>
-  )
-  if (!emphasis) return content
+  const onSurface = emphasis != null
   return (
-    <div
-      data-slot='statement-band'
-      className={cn('@7xl:rounded-3xl', emphasisClass(emphasis))}
+    <BlockSurface
+      emphasis={emphasis}
+      inset={inset}
+      className={cn(
+        'grid *:min-w-0',
+        size === 'md' ? 'gap-3' : 'gap-4',
+        STATEMENT_ALIGN[align],
+        // The breathing room is this preset's look, the one block with outer
+        // padding. On a surface, the surface pads it, with a little more once wide.
+        onSurface ? '@4xl:py-12' : 'py-8 @xl:py-16 @4xl:py-32'
+      )}
     >
-      {content}
-    </div>
+      <Illustration outline className='size-16' />
+      {title ? (
+        <BlockHeading
+          className='[&>h2]:max-w-none'
+          id={headingId}
+          intent={intent}
+          step={4}
+          size={size}
+          align={align}
+          eyebrow={eyebrow}
+          title={title}
+          titleHighlight={titleHighlight}
+          description={description}
+        />
+      ) : (
+        <Intro eyebrow={eyebrow} description={description} />
+      )}
+      {body && (
+        <Prose
+          size='lg'
+          className={cn(
+            'text-balance text-subtle [--prose-size:var(--text-xl)]',
+            align === 'center' && '*:mx-auto'
+          )}
+        >
+          {body}
+        </Prose>
+      )}
+      <BlockActions
+        actions={actions}
+        intent={intent}
+        className={cn(align === 'center' && 'justify-center')}
+      />
+    </BlockSurface>
   )
 }
 
 function LongForm({
   headingId,
   intent,
+  emphasis,
+  inset,
+  align = 'start',
+  size,
   eyebrow,
   title,
   titleHighlight,
@@ -166,12 +187,22 @@ function LongForm({
   actions
 }: PresetProps) {
   return (
-    <div className='container-3xl grid gap-6 *:min-w-0'>
+    <BlockSurface
+      emphasis={emphasis}
+      inset={inset}
+      width='3xl'
+      className={cn(
+        'grid *:min-w-0',
+        size === 'md' ? 'gap-4' : 'gap-6',
+        align === 'center' && 'text-center'
+      )}
+    >
       {title ? (
         <BlockHeading
           id={headingId}
           intent={intent}
-          align='start'
+          size={size}
+          align={align}
           eyebrow={eyebrow}
           title={title}
           titleHighlight={titleHighlight}
@@ -181,8 +212,12 @@ function LongForm({
         <Intro eyebrow={eyebrow} description={description} />
       )}
       {body && <Prose size='lg'>{body}</Prose>}
-      <BlockActions actions={actions} intent={intent} />
-    </div>
+      <BlockActions
+        actions={actions}
+        intent={intent}
+        className={cn(align === 'center' && 'justify-center')}
+      />
+    </BlockSurface>
   )
 }
 

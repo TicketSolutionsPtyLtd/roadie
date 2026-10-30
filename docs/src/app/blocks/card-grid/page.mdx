@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Card grid',
-  description: 'Like items, such as benefits, services, values, or people, as cards in columns or alternating rows',
+  description: 'Like items, such as benefits, services, steps, values, or people, as cards in columns',
   status: 'alpha',
   category: 'Content',
   wideExamples: true,
@@ -9,7 +9,7 @@ export const metadata = {
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Like items, such as benefits, services, values, or people, as cards in columns or alternating rows.
+Like items, such as benefits, services, steps, values, or people, as cards in columns. For rows of text beside images that alternate sides, use [Split](/blocks/split)'s `alternating-rows`.
 
 ## Import
 
@@ -21,11 +21,15 @@ import { CardGrid } from '@oztix/roadie-marketing-blocks/card-grid'
 
 Each preset takes the same `items`, and shows the parts of an item its look uses. Give an item an `href` and its title links to it, with the whole card to click. A linked card with no surface takes `subtler`, and a linked overlap card or portrait grows its photo on hover. `actions` adds links under the cards. Columns follow the block's own width, so a card grid in a narrow layout stacks as it would on a phone.
 
-### Illustrated cards
+### Cards
 
-```tsx-live-expand id=illustrated-cards
+`cards` shows what each item has. An image sits above the text, and an illustration overlaps the image's lower edge, or sits above the title when there's no image. On a raised surface with centred text, they show the benefits of one offer:
+
+```tsx-live-expand id=cards
 <CardGrid
-  preset='illustrated-cards'
+  preset='cards'
+  align='center'
+  emphasis='raised'
   title='Great events need great partners'
   titleHighlight='partners'
   description='Not just great ticketing software.'
@@ -47,6 +51,64 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
       description: 'Partners who know your industry help you build lasting events, not one-off sales.',
       illustration: 'ArrowUpRight',
       image: { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 }
+    }
+  ]}
+/>
+```
+
+`numbered` numbers the cards in order, as an ordered list, for how something works:
+
+```tsx-live-expand id=numbered-cards
+<CardGrid
+  preset='cards'
+  numbered
+  title='Make sure your show is seen'
+  description='There’s mostly nothing to do. To make sure your event shows up against the right artist:'
+  items={[
+    {
+      title: 'Name the artist',
+      description: 'Put the artist’s name in the event title, spelled the same way every time. That’s how the act gets matched.',
+      illustration: 'NoteMusic'
+    },
+    {
+      title: 'Check the essentials',
+      description: 'Fill in the artist name, start time, venue, and event name.',
+      illustration: 'Ticket'
+    },
+    {
+      title: 'List tributes as tributes',
+      description: 'Running a tribute show? Don’t list it as the original artist, so it reaches the right fans.',
+      illustration: 'Heart'
+    }
+  ]}
+/>
+```
+
+Cards with no images are compact. Raised, with an `href` on each, they're places to go next:
+
+```tsx-live-expand id=link-cards
+<CardGrid
+  preset='cards'
+  itemEmphasis='raised'
+  title='How can we help?'
+  items={[
+    {
+      title: 'New clients',
+      description: 'Looking at ticketing for your venue or event? Chat to us about what you need.',
+      illustration: 'Hand',
+      href: '#sales'
+    },
+    {
+      title: 'Existing clients',
+      description: 'Need help with your venue or event? Our client support team is here.',
+      illustration: 'MapPin',
+      href: '#client-support'
+    },
+    {
+      title: 'Ticket buyers',
+      description: 'Can’t find the answer in our FAQs? Contact our ticket buyer support team.',
+      illustration: 'Ticket',
+      href: '#ticket-buyer-support'
     }
   ]}
 />
@@ -130,92 +192,6 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 />
 ```
 
-### Numbered cards
-
-```tsx-live-expand id=numbered-cards
-<CardGrid
-  preset='numbered-cards'
-  title='Make sure your show is seen'
-  description='There’s mostly nothing to do. To make sure your event shows up against the right artist:'
-  items={[
-    {
-      title: 'Name the artist',
-      description: 'Put the artist’s name in the event title, spelled the same way every time. That’s how the act gets matched.',
-      illustration: 'NoteMusic'
-    },
-    {
-      title: 'Check the essentials',
-      description: 'Fill in the artist name, start time, venue, and event name.',
-      illustration: 'Ticket'
-    },
-    {
-      title: 'List tributes as tributes',
-      description: 'Running a tribute show? Don’t list it as the original artist, so it reaches the right fans.',
-      illustration: 'Heart'
-    }
-  ]}
-/>
-```
-
-### Link cards
-
-```tsx-live-expand id=link-cards
-<CardGrid
-  preset='link-cards'
-  title='How can we help?'
-  items={[
-    {
-      title: 'New clients',
-      description: 'Looking at ticketing for your venue or event? Chat to us about what you need.',
-      illustration: 'Hand',
-      href: '#sales'
-    },
-    {
-      title: 'Existing clients',
-      description: 'Need help with your venue or event? Our client support team is here.',
-      illustration: 'MapPin',
-      href: '#client-support'
-    },
-    {
-      title: 'Ticket buyers',
-      description: 'Can’t find the answer in our FAQs? Contact our ticket buyer support team.',
-      illustration: 'Ticket',
-      href: '#ticket-buyer-support'
-    }
-  ]}
-/>
-```
-
-### Alternating rows
-
-```tsx-live-expand id=alternating-rows
-<CardGrid
-  preset='alternating-rows'
-  title='Our values'
-  description='Five principles shape how we partner with you.'
-  items={[
-    {
-      title: 'Proactive touch',
-      subtitle: 'See it coming, solve it early',
-      description: 'We spot issues before they become problems, and opportunities before you need to ask.',
-      image: { src: '/brand/photography/03.webp', alt: 'Two team members working together at a desk with large monitors', width: 1280, height: 1007 }
-    },
-    {
-      title: 'Positive energy',
-      subtitle: 'Lift spirits, spark connections',
-      description: 'We love what we do, and that flows through to your team and your customers.',
-      image: { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 }
-    },
-    {
-      title: 'Integrity and ownership',
-      subtitle: 'Own decisions, build trust',
-      description: "We do what we say we'll do, and own it when something doesn't work.",
-      image: { src: '/brand/photography/11.webp', alt: 'Three people sitting together on a couch in a bar lined with gig posters', width: 1280, height: 911 }
-    }
-  ]}
-/>
-```
-
 ### Portraits
 
 ```tsx-live-expand id=portraits
@@ -248,13 +224,13 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 
 ### Intent and emphasis
 
-`intent` colours the block's marks, highlights, and first action, in place of the preset's own colours. `emphasis` sets the section's surface, `cardEmphasis` every card's, and an item's `intent` tints its own card. Link cards on a subtle brand section, for a support page:
+`intent` colours the block's marks, highlights, and first action, in place of the preset's own colours. `emphasis` sets the surface behind the block, `itemEmphasis` every card's, and an item's `intent` tints its own card. Compact cards on a subtle brand surface, for a support page:
 
 ```tsx-live-expand id=intent-and-emphasis
 <CardGrid
-  preset='link-cards'
   intent='brand'
   emphasis='subtle'
+  itemEmphasis='raised'
   title='How can we help?'
   items={[
     { title: 'New clients', description: 'Chat to us about your venue or event.', illustration: 'Hand', href: '#sales' },
@@ -268,8 +244,8 @@ Numbered cards on normal cards, with one step marked as the one that matters mos
 
 ```tsx-live-expand id=intent-and-emphasis-cards
 <CardGrid
-  preset='numbered-cards'
-  cardEmphasis='normal'
+  numbered
+  itemEmphasis='normal'
   title='Make sure your show is seen'
   items={[
     { title: 'Name the artist', description: 'Spell it the same way every time.' },
@@ -279,16 +255,32 @@ Numbered cards on normal cards, with one step marked as the one that matters mos
 />
 ```
 
+### Align, size, and inset
+
+`align` lines up the heading, and in `cards`, the card text too. Unset, `cards` centres the heading and starts the card text. `size='md'` sets the title a step smaller, for a section that supports its neighbours. A surface runs full width as a band, and `inset` draws it as a panel inside the page's padding instead, as `portraits` does by default:
+
+```tsx-live-expand id=align-size-inset
+<CardGrid
+  align='start'
+  size='md'
+  emphasis='subtler'
+  inset
+  title='Make sure your show is seen'
+  items={[
+    { title: 'Name the artist', description: 'Spell it the same way every time.', illustration: 'NoteMusic' },
+    { title: 'Check the essentials', description: 'Artist, start time, venue, and event name.', illustration: 'Ticket' },
+    { title: 'List tributes as tributes', description: 'So the show reaches the right fans.', illustration: 'Heart' }
+  ]}
+/>
+```
+
 ## Guidelines
 
 | Preset       | Suits                                                                                  |
 | ------------ | -------------------------------------------------------------------------------------- |
-| `illustrated-cards`   | Three benefits of one offer, each with a photo and an illustration                     |
+| `cards`   | Three benefits of one offer, each with a photo and an illustration; how something works, numbered in three or four steps; or places to go next, such as contact options, each card a link |
 | `marked-cards`   | Up to four services or pillars, each with a short subtitle                             |
 | `overlap-cards` | Who a page is for, in multiples of three, each with a photo and a line of examples     |
-| `numbered-cards`      | How something works, in three or four numbered steps                                   |
-| `link-cards`      | Places to go next, such as contact options, each card a link                           |
-| `alternating-rows` | A few statements that need a sentence or two each, such as values or the steps of a story |
 | `portraits`  | People, such as the team, speakers, or artists, by name and role with a square photo   |
 | `lists`      | Two to four short lists that need no images, such as policies or certifications        |
 
@@ -296,7 +288,7 @@ Numbered cards on normal cards, with one step marked as the one that matters mos
 
 <Guideline title='Change the defaults for a reason'>
   <Guideline.Do>
-    Keep the preset's intent and emphasis unless the page needs the block to stand apart, such as a support section on a subtle surface, or a step the reader mustn't miss.
+    Keep the preset's intent, emphasis, and alignment unless the page needs the block to stand apart, such as a support section on a subtle surface, or a step the reader mustn't miss.
   </Guideline.Do>
   <Guideline.Dont>
     Don't give neighbouring blocks different surfaces or every card its own intent. The page reads as noise, and nothing stands out.
@@ -317,7 +309,7 @@ Numbered cards on normal cards, with one step marked as the one that matters mos
     Give every item the same parts, at about the same length, so the cards line up.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't mix a card with an image and a card without one in a preset that shows images.
+    Don't mix a card with an image and a card without one. The cards won't line up.
   </Guideline.Dont>
 </Guideline>
 

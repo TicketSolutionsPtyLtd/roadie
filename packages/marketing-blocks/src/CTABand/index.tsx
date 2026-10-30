@@ -9,21 +9,20 @@ import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
+import { BlockSurface } from '../_shared/BlockSurface'
 import { presetOf } from '../_shared/presets'
-import {
-  type BlockEmphasis,
-  type BlockIntent,
-  emphasisClass
+import type {
+  BlockAlign,
+  BlockEmphasis,
+  BlockIntent,
+  BlockSize
 } from '../_shared/surface'
 import { type CTABandPreset, ctaBandDefinition } from './definition'
 
 export type { CTABandPreset } from './definition'
 
 /** The panels a CTA band's text and actions stay readable on, in light and dark mode. */
-export type CTABandEmphasis = Extract<
-  BlockEmphasis,
-  'raised' | 'subtle' | 'strong' | 'inverted'
->
+export type CTABandEmphasis = BlockEmphasis | 'strong' | 'inverted'
 
 // On a filled panel the copy takes the panel's text colour; marks, links and code
 // lose fills and decorations that would vanish into it.
@@ -37,8 +36,8 @@ const FILLED_TEXT: Partial<Record<CTABandEmphasis, string>> = {
 
 export type CTABandProps = {
   /**
-   * `with-photo` sets the pitch beside a tilted photo; `centred` centres it with no photo.
-   * @default 'with-photo'
+   * `band` sets the pitch on a panel: beside a tilted photo that breaks out of its top when there's an `image`, or centred without one.
+   * @default 'band'
    */
   preset?: CTABandPreset
   /** The block's place on the page, counting from 1, reported with its events. */
@@ -57,7 +56,7 @@ export type CTABandProps = {
   body?: ReactNode
   /** The links to act on. The first is the strong one. */
   actions?: readonly BlockAction[]
-  /** The photo beside the pitch, in `with-photo` only. Portrait, about 2:3. */
+  /** The photo beside the pitch, breaking out of the panel's top. Portrait, about 2:3. */
   image?: BlockImage
   /** The block's intent, for the panel's tint and the highlighted words. */
   intent?: BlockIntent
@@ -66,6 +65,17 @@ export type CTABandProps = {
    * @default 'raised'
    */
   emphasis?: CTABandEmphasis
+  /** Draws the panel inside the page's padding, rounded at every width, instead of as a full-width band. */
+  inset?: boolean
+  /**
+   * Where the heading, copy, and actions line up: `start` beside a photo, `center` without one.
+   */
+  align?: BlockAlign
+  /**
+   * `md` sets the title a step smaller, with tighter spacing and smaller body text.
+   * @default 'lg'
+   */
+  size?: BlockSize
 }
 
 /** Closes a page with a short pitch and the next step to take. */
@@ -81,12 +91,14 @@ export function CTABand({
   actions,
   image,
   intent,
-  emphasis = 'raised'
+  emphasis = 'raised',
+  inset,
+  align = image ? 'start' : 'center',
+  size
 }: CTABandProps) {
   const headingId = useId()
   const { name, variant } = presetOf(ctaBandDefinition, presetName)
-  const split = variant === 'split'
-  const photo = split ? image : undefined
+  const centred = align === 'center'
 
   return (
     <BlockRoot
@@ -98,20 +110,17 @@ export function CTABand({
       aria-labelledby={headingId}
       intent={intent}
     >
-      <div className='@7xl:px-2'>
-        <div
-          data-slot='cta-band-panel'
-          className={cn(
-            'relative container-8xl grid grid-cols-1 gap-12 py-12 @xl:py-16 @7xl:rounded-3xl',
-            emphasisClass(emphasis),
-            photo && 'mt-14 @xl:mt-28 @7xl:mt-36'
-          )}
+      <div className={cn(image && 'pt-14 @xl:pt-28 @7xl:pt-36')}>
+        <BlockSurface
+          emphasis={emphasis}
+          inset={inset}
+          className={cn('grid grid-cols-1', size === 'md' ? 'gap-8' : 'gap-12')}
         >
-          {photo && (
+          {image && (
             <div className='relative -mt-24 w-2/5 max-w-95 -rotate-5 @xl:absolute @xl:end-8 @xl:-top-24 @xl:mt-0 @xl:w-1/3 @xl:rotate-5 @3xl:end-16 @7xl:-top-32'>
               <div className='aspect-380/555 overflow-hidden rounded-2xl border-4 border-(--color-neutral-light-0) shadow-lg'>
                 <BlockImg
-                  image={photo}
+                  image={image}
                   sizes='(max-width: 768px) 40vw, 380px'
                   className='size-full object-cover'
                 />
@@ -124,23 +133,32 @@ export function CTABand({
           )}
           <div
             className={cn(
-              'grid grid-cols-1 gap-12',
-              split ? '@xl:max-w-7/12' : 'justify-items-center text-center'
+              'grid grid-cols-1',
+              size === 'md' ? 'gap-8' : 'gap-12',
+              image && '@xl:max-w-7/12',
+              centred && 'justify-items-center text-center'
             )}
           >
-            <div className={cn('grid min-w-0 gap-8', FILLED_TEXT[emphasis])}>
+            <div
+              className={cn(
+                'grid min-w-0',
+                size === 'md' ? 'gap-6' : 'gap-8',
+                FILLED_TEXT[emphasis]
+              )}
+            >
               <BlockHeading
                 id={headingId}
                 eyebrow={eyebrow}
                 title={title}
                 titleHighlight={titleHighlight}
                 description={description}
-                align={split ? 'start' : 'center'}
+                align={align}
+                size={size}
                 intent={intent}
               />
               {body && (
                 <Prose
-                  size='lg'
+                  size={size === 'md' ? 'md' : 'lg'}
                   className='max-w-2xl text-pretty text-subtle [&>p:last-child]:font-medium'
                 >
                   {body}
@@ -155,10 +173,10 @@ export function CTABand({
                   ? emphasis
                   : undefined
               }
-              className={split ? undefined : 'justify-center'}
+              className={centred ? 'justify-center' : undefined}
             />
           </div>
-        </div>
+        </BlockSurface>
       </div>
     </BlockRoot>
   )

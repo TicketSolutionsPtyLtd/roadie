@@ -1,6 +1,6 @@
 import { act } from 'react'
 
-import { render } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
@@ -19,12 +19,13 @@ import {
 } from '../_test/browser'
 import {
   MINIMUM_FILL_LC,
+  MINIMUM_LC,
   MODES,
   fillContrast,
   setMode,
   textContrast
 } from '../_test/contrast'
-import { bento, imageHero, titleOnly } from './fixtures'
+import { bento, imageHero, partnerHero, titleOnly } from './fixtures'
 
 withBrowserPage()
 
@@ -33,6 +34,16 @@ const panel = (slot: string) =>
 
 const box = (slot: string) => panel(slot).getBoundingClientRect()
 const shown = (slot: string) => getComputedStyle(panel(slot)).display !== 'none'
+
+const rect = (element: Element) => element.getBoundingClientRect()
+
+function isBeside(first: Element, second: Element) {
+  return rect(first).right <= rect(second).left
+}
+
+function isAbove(first: Element, second: Element) {
+  return rect(first).bottom <= rect(second).top
+}
 
 async function showAt(width: number, ui = <Hero {...bento(photo)} />) {
   await atWidth(width, 900)
@@ -113,10 +124,10 @@ describe('Hero bento layout', () => {
 const SLOTS = ['heading', 'primary', 'secondary', 'video']
 
 describe('Hero bento with a panel missing', () => {
-  it('spans the title across the top row with no primary photos', async () => {
-    await showAt(DESKTOP.width, <Hero {...bento(photo)} primaryImages={[]} />)
+  it('spans the title and the video across their rows with no images', async () => {
+    await showAt(DESKTOP.width, <Hero {...bento(photo)} images={[]} />)
 
-    expect(box('heading').left).toBeCloseTo(box('secondary').left, 0)
+    expect(box('heading').left).toBeCloseTo(box('video').left, 0)
     expect(box('heading').right).toBeCloseTo(box('video').right, 0)
   })
 
@@ -128,8 +139,11 @@ describe('Hero bento with a panel missing', () => {
     expect(box('secondary').height).toBeGreaterThan(100)
   })
 
-  it('spans the video across the lower row with no secondary photos', async () => {
-    await showAt(DESKTOP.width, <Hero {...bento(photo)} secondaryImages={[]} />)
+  it('spans the video across the lower row with one image, which goes beside the title', async () => {
+    await showAt(
+      DESKTOP.width,
+      <Hero {...bento(photo)} images={bento(photo).images!.slice(0, 1)} />
+    )
 
     expect(box('video').left).toBeCloseTo(box('heading').left, 0)
     expect(box('video').right).toBeCloseTo(box('primary').right, 0)
@@ -405,10 +419,124 @@ describe('Hero title layout', () => {
   })
 })
 
+describe('Hero partner layout', () => {
+  const lockup = () => screen.getByRole('img', { name: 'Partner logo' })
+  const heading = () => screen.getByRole('heading', { level: 1 })
+
+  it('sets the partner lockup beside the title on wide screens, and above it on phones', async () => {
+    await showAt(DESKTOP.width, <Hero {...partnerHero(photo)} />)
+    expect(isBeside(lockup(), heading())).toBe(true)
+
+    cleanup()
+    await showAt(PHONE.width, <Hero {...partnerHero(photo)} />)
+    expect(isAbove(lockup(), heading())).toBe(true)
+  })
+
+  it('sets the lockup beside the title at 640px', async () => {
+    await showAt(640, <Hero {...partnerHero(photo)} />)
+
+    expect(isBeside(lockup(), heading())).toBe(true)
+  })
+
+  it('overlaps the heart on both logos, centred between them', async () => {
+    const { container } = await showAt(
+      DESKTOP.width,
+      <Hero {...partnerHero(photo)} />
+    )
+
+    const oztix = rect(screen.getByRole('img', { name: 'Oztix' }))
+    const partner = rect(lockup())
+    const heart = rect(
+      [...container.querySelectorAll('svg')].find(
+        (svg) => !svg.closest('[role="img"]')
+      )!
+    )
+    expect(heart.top).toBeLessThan(oztix.bottom)
+    expect(heart.bottom).toBeGreaterThan(partner.top)
+    expect(oztix.height).toBeCloseTo(partner.height, 0)
+    expect((heart.left + heart.right) / 2).toBeCloseTo(
+      (partner.left + partner.right) / 2,
+      0
+    )
+  })
+
+  it('splits in halves at 1440px: the lockup centred in the left, the title from the middle', async () => {
+    const { container } = await showAt(1440, <Hero {...partnerHero(photo)} />)
+
+    const section = rect(container.querySelector('section')!)
+    const middle = section.left + section.width / 2
+    const oztix = rect(screen.getByRole('img', { name: 'Oztix' }))
+    const title = rect(heading())
+
+    expect(title.left).toBeGreaterThanOrEqual(middle)
+    expect(title.left).toBeLessThan(middle + 64)
+    const lockupMiddle = (oztix.left + oztix.right) / 2
+    expect(Math.abs(lockupMiddle - (section.left + middle) / 2)).toBeLessThan(
+      48
+    )
+    expect(oztix.height).toBeCloseTo(60, -1)
+    expect(rect(lockup()).height).toBeCloseTo(oztix.height, 0)
+  })
+
+  it('keeps a long unbroken word inside the block at 640px', async () => {
+    const { container } = await showAt(
+      640,
+      <Hero {...partnerHero(photo)} body={<p>{'ticketing'.repeat(20)}</p>} />
+    )
+
+    const section = container.querySelector('section')!
+    expect(section.scrollWidth).toBeLessThanOrEqual(section.clientWidth)
+  })
+})
+
+describe('Hero size', () => {
+  it.each([
+    ['image', imageHero(photo)],
+    ['title', titleOnly],
+    ['partner', partnerHero(photo)]
+  ] as const)('sets the %s title smaller at md', async (_, props) => {
+    await showAt(DESKTOP.width, <Hero {...props} />)
+    const large = parseFloat(
+      getComputedStyle(document.querySelector('h1')!).fontSize
+    )
+
+    cleanup()
+    await showAt(DESKTOP.width, <Hero {...props} size='md' />)
+    const medium = parseFloat(
+      getComputedStyle(document.querySelector('h1')!).fontSize
+    )
+    expect(medium).toBeLessThan(large)
+  })
+})
+
+describe.each(MODES)('Hero contrast in %s mode', (mode) => {
+  it.each([
+    ['image', imageHero(photo)],
+    ['title', titleOnly],
+    ['partner', partnerHero(photo)]
+  ] as const)(
+    'keeps the %s title and description readable',
+    async (_, props) => {
+      setMode(mode)
+      onTestFinished(() => setMode('light'))
+      await showAt(DESKTOP.width, <Hero {...props} />)
+
+      expect(
+        textContrast(document.querySelector('h1')!)
+      ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+      if (props.description)
+        expect(
+          textContrast(screen.getByText(props.description))
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+    }
+  )
+})
+
 describe.each([
   ['bento', bento(photo)],
   ['image', imageHero(photo)],
-  ['title', titleOnly]
+  ['title', titleOnly],
+  ['partner', partnerHero(photo)]
 ])('Hero %s accessibility', (_, props) => {
   it.each(widths)(
     'has no axe violations on a $name',

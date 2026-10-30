@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { Stats, type StatsEmphasis, type StatsProps } from '.'
-import type { BlockIntent } from '../_shared/surface'
+import { Stats, type StatsProps } from '.'
+import type { BlockEmphasis, BlockIntent } from '../_shared/surface'
 import {
   DESKTOP,
   PHONE,
@@ -133,7 +133,7 @@ describe('Stats accessibility', () => {
   })
 })
 
-const EMPHASES: (StatsEmphasis | undefined)[] = [
+const EMPHASES: (BlockEmphasis | undefined)[] = [
   undefined,
   'raised',
   'subtle',
@@ -207,14 +207,40 @@ describe('Stats contrast on every band', () => {
     )
   })
 
-  it.each(EMPHASES.slice(1))(
-    'has no axe violations on %s',
-    async (emphasis) => {
-      const { container } = render(
-        <Stats {...facts} intent='brand' emphasis={emphasis} />
-      )
+  it.each(
+    EMPHASES.slice(1).flatMap((emphasis) =>
+      [true, false].map((inset) => [emphasis, inset] as const)
+    )
+  )('has no axe violations on %s, inset %s', async (emphasis, inset) => {
+    const { container } = render(
+      <Stats {...facts} intent='brand' emphasis={emphasis} inset={inset} />
+    )
 
-      expect(await axeViolations(container)).toEqual([])
-    }
-  )
+    expect(await axeViolations(container)).toEqual([])
+  })
+})
+
+describe('Stats panel', () => {
+  it('pads the figures inside a rounded panel within the page padding', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { container } = render(<Stats {...facts} emphasis='subtle' />)
+    const section = container.querySelector('section')!.getBoundingClientRect()
+    const panel = container.querySelector('[data-slot=block-surface]')!
+    const heading = screen.getByRole('heading', { level: 2 })
+
+    expect(panel.getBoundingClientRect().left).toBeGreaterThan(section.left)
+    expect(getComputedStyle(panel).borderTopLeftRadius).not.toBe('0px')
+    expect(heading.getBoundingClientRect().left).toBeGreaterThan(
+      panel.getBoundingClientRect().left
+    )
+  })
+
+  it('keeps the heading where it was on no surface, flush with the block', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const { container } = render(<Stats {...facts} />)
+
+    expect(
+      screen.getByRole('heading', { level: 2 }).getBoundingClientRect().top
+    ).toBe(container.querySelector('section')!.getBoundingClientRect().top)
+  })
 })

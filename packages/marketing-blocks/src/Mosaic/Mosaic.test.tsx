@@ -39,7 +39,7 @@ describe('Mosaic', () => {
       <Mosaic
         {...partnerTiers}
         tiles={[
-          { name: 'Kazoo Hollow Room', image: partnerTiers.tiles[1]!.image }
+          { title: 'Kazoo Hollow Room', image: partnerTiers.tiles[1]!.image }
         ]}
         logoTile={undefined}
       />
@@ -66,17 +66,17 @@ describe('Mosaic', () => {
     expect(
       within(tile!).getByRole('img', { name: first.logo.alt })
     ).toBeInTheDocument()
-    expect(within(tile!).getByText(first.label)).toBeInTheDocument()
+    expect(within(tile!).getByText(first.description)).toBeInTheDocument()
   })
 
-  it('marks featured partners so they span two columns', () => {
+  it('marks large partners so they span two columns', () => {
     render(<Mosaic {...partnerTiers} />)
 
-    const featured = screen
+    const large = screen
       .getAllByRole('listitem')
-      .filter((item) => item.hasAttribute('data-featured'))
-    expect(featured).toHaveLength(
-      partnerTiers.tiles.filter((partner) => partner.featured).length
+      .filter((item) => item.getAttribute('data-size') === 'lg')
+    expect(large).toHaveLength(
+      partnerTiers.tiles.filter((partner) => partner.size === 'lg').length
     )
   })
 
@@ -92,7 +92,7 @@ describe('Mosaic', () => {
       />
     )
 
-    expect(screen.getAllByText(partner.label)).toHaveLength(2)
+    expect(screen.getAllByText(partner.description)).toHaveLength(2)
     expect(screen.getAllByRole('img', { name: logo.alt })).toHaveLength(2)
     expect(error).not.toHaveBeenCalled()
     error.mockRestore()
@@ -199,9 +199,9 @@ describe('Mosaic', () => {
       expect(document.querySelectorAll('img')).toHaveLength(
         partnerTiers.tiles.length
       )
-      expect(screen.queryByText(partnerTiers.tiles[0]!.label)).toBeNull()
+      expect(screen.queryByText(partnerTiers.tiles[0]!.description)).toBeNull()
       expect(screen.queryByRole('heading', { level: 3 })).toBeNull()
-      expect(document.querySelector('[data-featured]')).toBeNull()
+      expect(document.querySelector('[data-size]')).toBeNull()
     })
 
     it('gives a logo with no height a valid sizes', () => {
@@ -214,7 +214,7 @@ describe('Mosaic', () => {
             {...logoStrip}
             tiles={[
               {
-                name: 'Kerosene Pony Collective',
+                title: 'Kerosene Pony Collective',
                 logo: { ...logoStrip.tiles[0]!.logo!, height: 0 }
               }
             ]}
@@ -234,7 +234,7 @@ describe('Mosaic', () => {
           {...logoStrip}
           tiles={[
             {
-              name: 'Kerosene Pony Collective',
+              title: 'Kerosene Pony Collective',
               logo: { ...logoStrip.tiles[0]!.logo!, alt: '' }
             }
           ]}
@@ -250,7 +250,7 @@ describe('Mosaic', () => {
   describe('intent and links', () => {
     it('marks tier labels neutral by default, and in the block intent', () => {
       const { container, rerender } = render(<Mosaic {...partnerTiers} />)
-      const label = () => screen.getByText(partnerTiers.tiles[0]!.label)
+      const label = () => screen.getByText(partnerTiers.tiles[0]!.description)
 
       expect(container.querySelector('section')).not.toHaveAttribute(
         'data-intent'
@@ -279,7 +279,7 @@ describe('Mosaic', () => {
       )
 
       const [linked, plain] = screen.getAllByRole('listitem')
-      const link = within(linked!).getByRole('link', { name: first!.name })
+      const link = within(linked!).getByRole('link', { name: first!.title })
       expect(link).toHaveAttribute('data-interactive-target')
       expect(linked).toHaveClass('is-interactive-within')
       expect(plain).not.toHaveClass('is-interactive-within')
@@ -289,7 +289,7 @@ describe('Mosaic', () => {
       expect(onBlockEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           action: 'click',
-          label: first!.name,
+          label: first!.title,
           href: '/partners/ochre-kite'
         })
       )
@@ -301,7 +301,7 @@ describe('Mosaic', () => {
           {...partnerTiers}
           tiles={[
             {
-              name: 'Kazoo Hollow Room',
+              title: 'Kazoo Hollow Room',
               href: '/venues/kazoo-hollow-room',
               image: partnerTiers.tiles[1]!.image
             }
@@ -327,7 +327,7 @@ describe('Mosaic', () => {
         </MarketingBlocksProvider>
       )
 
-      const link = screen.getByRole('link', { name: first!.name })
+      const link = screen.getByRole('link', { name: first!.title })
       expect(link).toHaveClass('is-interactive', 'emphasis-subtler')
       expect(link).not.toHaveAttribute('data-interactive-target')
       expect(within(link).getByRole('img')).toBeInTheDocument()
@@ -335,8 +335,84 @@ describe('Mosaic', () => {
 
       await userEvent.click(link)
       expect(onBlockEvent).toHaveBeenCalledWith(
-        expect.objectContaining({ label: first!.name })
+        expect.objectContaining({ label: first!.title })
       )
+    })
+  })
+
+  describe('shared props', () => {
+    const heading = () =>
+      screen.getByRole('heading', { level: 2 }).parentElement
+
+    it.each([
+      ['tiers', partnerTiers, 'text-start'],
+      ['logo-strip', logoStrip, 'text-center']
+    ] as const)(
+      'lines the %s heading up by its preset',
+      (_, props, expected) => {
+        render(<Mosaic {...props} />)
+
+        expect(heading()).toHaveClass(expected)
+      }
+    )
+
+    it('lines the heading up as asked', () => {
+      render(<Mosaic {...partnerTiers} align='center' />)
+
+      expect(heading()).toHaveClass('text-center')
+    })
+
+    it('marks a tile in its own intent over the block’s', () => {
+      const [first, second] = partnerTiers.tiles
+      render(
+        <Mosaic
+          {...partnerTiers}
+          intent='brand'
+          tiles={[{ ...first!, intent: 'success' }, second!]}
+        />
+      )
+
+      expect(screen.getByText(first!.description)).toHaveClass('intent-success')
+      expect(screen.getByText(second!.description)).toHaveClass('intent-brand')
+    })
+
+    it('sets its actions under the tiles, the first strong in the block intent', () => {
+      render(
+        <Mosaic
+          {...partnerTiers}
+          intent='brand'
+          actions={[{ label: 'Become a partner', href: '/partners' }]}
+        />
+      )
+
+      const link = screen.getByRole('link', { name: 'Become a partner' })
+      expect(link).toHaveClass('intent-brand')
+      expect(
+        screen.getAllByRole('list')[0]!.compareDocumentPosition(link) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy()
+    })
+
+    it('draws no surface by default, and the emphasis asked for as a band or inset panel', () => {
+      const { container, rerender } = render(<Mosaic {...logoStrip} />)
+      const surface = () => container.querySelector('[data-slot=block-surface]')
+      expect(surface()).toBeNull()
+
+      rerender(<Mosaic {...logoStrip} emphasis='subtler' />)
+      expect(surface()).toHaveClass('emphasis-subtler')
+      expect(surface()).toHaveAttribute('data-shape', 'band')
+
+      rerender(<Mosaic {...logoStrip} emphasis='raised' inset />)
+      expect(surface()).toHaveAttribute('data-shape', 'panel')
+    })
+
+    it('sets the title a step smaller at md', () => {
+      const { rerender } = render(<Mosaic {...partnerTiers} />)
+      const title = () => screen.getByRole('heading', { level: 2 })
+      expect(title()).toHaveClass('text-display-prose-2')
+
+      rerender(<Mosaic {...partnerTiers} size='md' />)
+      expect(title()).toHaveClass('text-display-prose-3')
     })
   })
 })
