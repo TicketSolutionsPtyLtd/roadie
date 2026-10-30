@@ -85,8 +85,10 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   with a docs page of its own. An import path in brackets can follow a
   name. Then a comma and what it is, which becomes the card's description:
   "Add `Calendar` (`@oztix/roadie-components/calendar`), a month grid for
-  choosing a date." Something added to a component lists as a change, not
-  a card: "Add `Badge` `tag` variant." or "Add `Badge` support for icons."
+  choosing a date." After the names, only a comma or other punctuation,
+  "component", "compound", or "for" keeps it a card. Anything else reads
+  as a part of the component, so "Add `Badge` `tag` variant." and "Add
+  `Badge` support for icons." list as changes.
   A new package opens "First release of
   `@oztix/roadie-name`", with a paragraph after that sentence to describe
   it, and needs entries in `RELEASED_PACKAGES` and `PACKAGE_PAGES` in

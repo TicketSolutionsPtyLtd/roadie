@@ -765,12 +765,12 @@ export function ownPage(name: string, index: PageIndex): PageLink | undefined {
 const ADDS = /^(?:Add|Adds|Added|Introduces?|New)\s+(?:the\s+)?/
 
 /**
- * What, after the names a change opens with, makes it a part of them rather
- * than them: another name, as in "Add `Badge` `tag` variant", or a word such
- * as "variant", "support", or "icons".
+ * What can follow the names a change opens with while they stay its subject:
+ * the end, punctuation, "component", "compound", "for", or where they go.
+ * Anything else, such as "`tag` variant", "support for", or "icons", names a
+ * part of them.
  */
-const NAMES_A_PART =
-  /^(?:`|(?:variant|prop|support|icon|option|slot|part|size|style|emphasis|intent|state|mode|colou?r|label|layout|hook|utility|class|token|attribute|event|callback|type)s?\b)/i
+const ENDS_NAMING = /^(?:$|[,.:;—(]|(?:component|compound|for)\b|(?:to|in)\s+`)/
 
 /**
  * The names a phrase opens with, such as "`DateField` (`…/date-field`) and
@@ -794,7 +794,7 @@ export function openingNames(
     rest = rest.slice(separator[0].length)
   }
   rest = rest.trim()
-  return names.length > 0 && !NAMES_A_PART.test(rest) ? { names, rest } : null
+  return names.length > 0 && ENDS_NAMING.test(rest) ? { names, rest } : null
 }
 
 /**

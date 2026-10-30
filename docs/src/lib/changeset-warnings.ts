@@ -19,8 +19,6 @@ const FIRST_RELEASE = /^First release of `(@[^`]+)`/
 /** "Add a `Calendar` component" or "Add a new `Calendar`": an opening verb, then at most an article or "new". */
 const ADDS_LOOSELY =
   /^(?:Add|Adds|Added|Introduces?|New)\s+(?:(?:a|an|the|new)\s+)*/
-// Narrower than "not a part", so a loose opening such as "Add a `Badge` tag variant" stays quiet.
-const ENDS_NAMING = /^(?:$|[,.:;—(]|component\b|(?:to|in)\s+`)/
 
 const CARD_FORM =
   'Open with "Add `Name`", list only names with a docs page of their own, then a comma and what it is.'
@@ -71,8 +69,7 @@ export function changesetWarnings(
     const lead = summary.match(ADDS_LOOSELY)
     const opening = lead && openingNames(summary.slice(lead[0].length))
     const name = opening?.names[0]
-    if (!name || !ownPage(name, index) || !ENDS_NAMING.test(opening.rest))
-      return []
+    if (!name || !ownPage(name, index)) return []
     const change = toChange(
       {
         id: file,

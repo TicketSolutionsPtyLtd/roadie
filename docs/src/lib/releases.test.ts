@@ -952,7 +952,8 @@ describe('addedPages', () => {
     ['no verb that adds', '`Badge` now wraps.'],
     ['a variant of a component', 'Add `Badge` `tag` variant.'],
     ['support in a component', 'Add `Badge` support for icons.'],
-    ['a part of two components', 'Add `Badge` and `Calendar` icons.']
+    ['a part of two components', 'Add `Badge` and `Calendar` icons.'],
+    ['a part named by any word', 'Add `Badge` leading icon.']
   ])('finds no new component in %s', (_, summary) => {
     expect(addedPages(summary, pages)).toBeNull()
   })
