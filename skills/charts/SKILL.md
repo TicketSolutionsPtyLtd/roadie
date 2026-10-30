@@ -330,7 +330,9 @@ Handlers and hrefs never go in the JSON.
   no Download CSV.
 - At most one visible action, then More, always visible, never hover only.
 - Download CSV from `cardTable(card)` (`@oztix/roadie-charts/tables`). Copy as
-  image with `renderChartSvg`.
+  image with `renderChartSvg`. A server route that builds either itself
+  passes the card through `followPeriod(card, period, { timeZone, locale })`
+  from the same entry first, so a chart's comparison matches the Table view.
 - For a single card outside a spec, pass `actions` to `Chart`, `DataCard`, or
   `StatTile`.
 
