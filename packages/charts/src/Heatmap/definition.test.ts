@@ -86,6 +86,47 @@ describe('heatmap', () => {
     expect(sizes.every((size) => size === frame.fontSize)).toBe(true)
   })
 
+  it('keeps the data order of the axes when the first cells are empty', () => {
+    const svg = render({
+      data: [
+        { cohort: 'Oct', week: 'Week 0', returned: null },
+        { cohort: 'Oct', week: 'Week 1', returned: 4 },
+        { cohort: 'Sep', week: 'Week 0', returned: 9 },
+        { cohort: 'Sep', week: 'Week 1', returned: 6 }
+      ],
+      rows: 'cohort',
+      columns: 'week',
+      value: 'returned'
+    })
+    const ticks = [
+      ...svg.matchAll(
+        /data-ts-key="x-tick-label:[^"]*"[^>]*x="([\d.]+)"[^>]*>([^<]+)</g
+      )
+    ]
+      .sort((a, b) => Number(a[1]) - Number(b[1]))
+      .map((m) => m[2])
+    expect(ticks).toEqual(['Week 0', 'Week 1'])
+  })
+
+  it('draws a column with no values as an empty band', () => {
+    const svg = render({
+      data: [
+        { cohort: 'Oct', week: 'Week 0', returned: 3 },
+        { cohort: 'Oct', week: 'Week 1', returned: null },
+        { cohort: 'Oct', week: 'Week 2', returned: 4 }
+      ],
+      rows: 'cohort',
+      columns: 'week',
+      value: 'returned'
+    })
+    expect(
+      [...svg.matchAll(/data-ts-key="x-tick-label:[^"]*"[^>]*>([^<]+)</g)].map(
+        (m) => m[1]
+      )
+    ).toEqual(['Week 0', 'Week 1', 'Week 2'])
+    expect(svg.match(/data-ts-key="cells:[^"]*"/g)).toHaveLength(2)
+  })
+
   it('keys the low and high ends in the legend', () => {
     expect(
       heatmap

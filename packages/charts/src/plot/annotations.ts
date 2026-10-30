@@ -6,9 +6,9 @@ import type { PlotAnnotation } from '@oztix/roadie-core/dashboard'
 
 import { textWidth } from './endLabels'
 import { type PlotSpan, besideAnchor, spanPixel } from './frame'
+import { xOnAxis } from './onAxis'
 import { parseX } from './time'
 import type { ChartPaint, PlotFrame } from './types'
-import { finiteOrNull } from './values'
 
 /** `across` is how far along the plot the annotation sits, from 0 to 1. */
 export type PlacedAnnotation = {
@@ -53,6 +53,19 @@ const clash = (a: LabelBox, b: LabelBox | null) =>
   a.top < b.bottom &&
   b.top < a.bottom
 
+declare const process: { env?: { NODE_ENV?: string } } | undefined
+
+const warned = new Set<string>()
+
+function warnDropped({ at, label }: PlotAnnotation) {
+  if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
+    return
+  const message = `Roadie chart: "${at}" is outside the data, so the annotation "${label}" won't show`
+  if (warned.has(message)) return
+  warned.add(message)
+  console.warn(message)
+}
+
 /** Places annotations on a continuous x axis, dropping any outside `domain`. */
 export function annotationsOnAxis(
   annotations: readonly PlotAnnotation[] = [],
@@ -61,8 +74,11 @@ export function annotationsOnAxis(
   y: number
 ): PlacedAnnotation[] {
   return annotations.flatMap(({ at, label }) => {
-    const x = isTime ? parseX(at) : finiteOrNull(at)
-    if (x === null || x < start || x > end) return []
+    const x = xOnAxis(at, [start, end], isTime)
+    if (x === null) {
+      warnDropped({ at, label })
+      return []
+    }
     const across = end > start ? (x - start) / (end - start) : 0
     return [{ x, label, y, across }]
   })

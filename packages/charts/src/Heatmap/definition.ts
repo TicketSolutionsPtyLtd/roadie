@@ -5,7 +5,7 @@ import { fieldLabel } from '../plot/table'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
 import { fullValue } from '../plot/values'
 import { describeValue } from '../plot/words'
-import { type HeatCell, firstSeen, heatBuckets, heatCells } from './cells'
+import { type HeatCell, axisLabels, heatBuckets, heatCells } from './cells'
 import { heatmapTable } from './table'
 import type { HeatmapProps } from './types'
 
@@ -50,8 +50,8 @@ function build(props: HeatmapProps, paint: ChartPaint, frame: PlotFrame) {
       })
     ],
     scales: {
-      x: bandAxis(firstSeen(cells.map((c) => c.column)), frame),
-      y: bandAxis(firstSeen(cells.map((c) => c.row)), frame)
+      x: bandAxis(axisLabels(props, props.columns), frame),
+      y: bandAxis(axisLabels(props, props.rows), frame)
     },
     color: {
       domain: heatBuckets(props.scale ?? 'sequential'),
