@@ -1,10 +1,16 @@
+import {
+  type TrailingZeroDisplay,
+  decimalPlaces,
+  fractionDigits
+} from './places'
+
 export type CurrencyFormatOptions = {
   /** An ISO 4217 code. Dollars read as `$`; in `en-AU`, any other code names itself. @default 'AUD' */
   currency?: string
-  /** Decimal places. @default the currency's own, 2 for dollars */
+  /** Decimal places, from none to four. @default the currency's own, 2 for dollars */
   decimals?: number
-  /** Drops the decimals from a whole amount: $1,200 instead of $1,200.00. @default true */
-  trimZeros?: boolean
+  /** `stripIfInteger` drops the decimals from a whole amount: $1,200 instead of $1,200.00. @default 'auto' */
+  trailingZeroDisplay?: TrailingZeroDisplay
   /** Short form with at most one decimal place. Intl capitalises the suffix: $1.2M, not formatValue's $1.2m. */
   compact?: boolean
 }
@@ -15,7 +21,6 @@ type CurrencyFormat = Intl.NumberFormatOptions & {
 }
 
 export const HOUSE_CURRENCY = 'AUD'
-const MAX_INTL_DECIMALS = 20
 const minorUnits = new Map<string, number | null>()
 
 function currencyMinorUnits(code: string) {
@@ -43,7 +48,7 @@ function currencyMinorUnits(code: string) {
 export function currencyFormat({
   currency = HOUSE_CURRENCY,
   decimals,
-  trimZeros = true,
+  trailingZeroDisplay = 'auto',
   compact = false
 }: CurrencyFormatOptions = {}): CurrencyFormat {
   const requested =
@@ -63,16 +68,8 @@ export function currencyFormat({
       minimumFractionDigits: 0,
       maximumFractionDigits: 1
     }
-  const places =
-    decimals !== undefined && Number.isFinite(decimals)
-      ? Math.min(Math.max(Math.round(decimals), 0), MAX_INTL_DECIMALS)
-      : (units ?? 2)
-  return {
-    ...symbol,
-    minimumFractionDigits: places,
-    maximumFractionDigits: places,
-    trailingZeroDisplay: trimZeros ? 'stripIfInteger' : 'auto'
-  }
+  const places = decimalPlaces(decimals) ?? units ?? 2
+  return { ...symbol, ...fractionDigits(places, trailingZeroDisplay) }
 }
 
 export const isHouseCurrency = (code: string) =>

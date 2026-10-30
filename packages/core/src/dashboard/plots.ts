@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { valueFormat, xFormat } from './fields'
+import { valueFormat, valueFormatOptions, xFormat } from './fields'
 
 export const ANNOTATION_LABEL_LIMIT = 20
 export const SERIES_CAP = 6
@@ -44,6 +44,7 @@ const palette = z.enum(['categorical', 'pair', 'trio'])
 
 const common = {
   format: valueFormat.optional(),
+  ...valueFormatOptions,
   takeaway: z.string().min(1).optional()
 }
 const measured = { data: z.array(plotRow), x: field, y: field, ...common }
@@ -88,7 +89,8 @@ const barShape = {
     .strictObject({
       y: field,
       label: shortLabel,
-      format: valueFormat.optional()
+      format: valueFormat.optional(),
+      ...valueFormatOptions
     })
     .optional(),
   selectsPeriod

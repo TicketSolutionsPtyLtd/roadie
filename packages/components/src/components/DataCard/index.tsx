@@ -10,6 +10,7 @@ import type { CardSize, CardState } from '@oztix/roadie-core/dashboard-layout'
 import {
   type GoodWhen,
   type ValueFormat,
+  type ValueFormatOptions,
   formatValue
 } from '@oztix/roadie-core/dataviz'
 import { cn } from '@oztix/roadie-core/utils'
@@ -22,60 +23,70 @@ import { DataCardMoreButton } from './DataCardMoreButton'
 
 export type { DataCardMoreButtonProps } from './DataCardMoreButton'
 
+/** Without its own `format`, a delta takes the card's format and places. */
 export type DataCardDelta = {
   value: number
   format?: ValueFormat
   goodWhen?: GoodWhen
   baseline?: number
-}
+} & ValueFormatOptions
 
-export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> & {
-  /** Fixed name for the card. People and agents refer to the card by it. */
-  label: string
-  value?: number | string
-  /** @default 'number' */
-  format?: ValueFormat
-  delta?: DataCardDelta
-  /** One sentence, used when there is no single headline number. */
-  takeaway?: string
-  context?: string
-  source?: string
-  /**
-   * Controls at the top right, after the label. Shown in every state, so an
-   * action such as refresh still works on a card that failed to load.
-   */
-  actions?: ReactNode
-  /**
-   * Switches for what the body shows, such as a chart's mode or measure, in a
-   * full-width row under the headline. Shown in every state, so a switch
-   * stays put while the new view loads.
-   */
-  controls?: ReactNode
-  size?: CardSize
-  /** @default 'ready' */
-  state?: CardState
-  emptyMessage?: string
-  errorMessage?: string
-  errorAction?: ReactNode
-  staleLabel?: string
-  /**
-   * Body height while loading, and the least an empty or error state takes,
-   * such as the plot height.
-   */
-  bodyHeight?: string
-  children?: ReactNode
-}
+export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> &
+  ValueFormatOptions & {
+    /** Fixed name for the card. People and agents refer to the card by it. */
+    label: string
+    value?: number | string
+    /** @default 'number' */
+    format?: ValueFormat
+    delta?: DataCardDelta
+    /** One sentence, used when there is no single headline number. */
+    takeaway?: string
+    context?: string
+    source?: string
+    /**
+     * Controls at the top right, after the label. Shown in every state, so an
+     * action such as refresh still works on a card that failed to load.
+     */
+    actions?: ReactNode
+    /**
+     * Switches for what the body shows, such as a chart's mode or measure, in a
+     * full-width row under the headline. Shown in every state, so a switch
+     * stays put while the new view loads.
+     */
+    controls?: ReactNode
+    size?: CardSize
+    /** @default 'ready' */
+    state?: CardState
+    emptyMessage?: string
+    errorMessage?: string
+    errorAction?: ReactNode
+    staleLabel?: string
+    /**
+     * Body height while loading, and the least an empty or error state takes,
+     * such as the plot height.
+     */
+    bodyHeight?: string
+    children?: ReactNode
+  }
 
 const LINE = 'min-w-0 truncate'
 
 function Headline({
   value,
   format,
+  decimals,
+  trailingZeroDisplay,
   delta,
   takeaway
-}: Pick<DataCardProps, 'value' | 'format' | 'delta' | 'takeaway'>) {
+}: Pick<
+  DataCardProps,
+  'value' | 'format' | 'decimals' | 'trailingZeroDisplay' | 'delta' | 'takeaway'
+>) {
   if (value !== undefined) {
-    const shown = typeof value === 'number' ? formatValue(value, format) : value
+    const shown =
+      typeof value === 'number'
+        ? formatValue(value, format, { decimals, trailingZeroDisplay })
+        : value
     return (
       <p
         data-slot='data-card-value-row'
@@ -91,7 +102,12 @@ function Headline({
         {delta && (
           <Delta
             {...delta}
-            format={delta.format ?? format}
+            {...(delta.format === undefined && {
+              format,
+              decimals: delta.decimals ?? decimals,
+              trailingZeroDisplay:
+                delta.trailingZeroDisplay ?? trailingZeroDisplay
+            })}
             className='shrink-0'
           />
         )}
@@ -123,6 +139,8 @@ export function DataCard({
   label,
   value,
   format,
+  decimals,
+  trailingZeroDisplay,
   delta,
   takeaway,
   context,
@@ -186,6 +204,8 @@ export function DataCard({
                 <Headline
                   value={value}
                   format={format}
+                  decimals={decimals}
+                  trailingZeroDisplay={trailingZeroDisplay}
                   delta={delta}
                   takeaway={takeaway}
                 />
