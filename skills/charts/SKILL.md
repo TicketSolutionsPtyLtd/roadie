@@ -357,10 +357,12 @@ document rather than a one-card dashboard or a hand-made SVG. The format is in
 beta, so check the manifest lists `validateChartDocument` before you use it.
 
 1. **Write the document.** It is a chart card without `id`, `size`, `state`,
-   `legend`, or `view`: `version: 1`, `kind: 'chart'`, a `label`, a `source`,
-   and a `plot` of any kind, `static` and `small-multiples` among them. Add a
-   headline `value` with its `delta`, or a `takeaway`, not both. A `static`
-   plot also needs its `table`.
+   `emptyMessage`, `errorMessage`, `staleLabel`, `data`, `legend`, or `view`:
+   `version: 1`, `kind: 'chart'`, a `label`, a `source`, and a `plot` of any
+   kind, `static` and `small-multiples` among them. Add a headline `value`
+   with its `delta`, or a `takeaway`, not both. A `static` plot also needs its
+   `table`, and the SVG links its image by `src` rather than embedding it, so
+   give it a URL the file's reader can fetch.
 
    ```ts
    import {

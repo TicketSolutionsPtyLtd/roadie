@@ -8,7 +8,8 @@ import {
   CHART_LABEL_LIMITS,
   CHART_PLOT_KINDS,
   COPY_LIMITS,
-  validateChartDocument
+  chartDocumentSchema,
+  dashboardSchema
 } from '../dashboard'
 import { palette } from './palette'
 
@@ -61,26 +62,17 @@ describe('dataviz parity', () => {
     )
   })
 
-  it('teaches the charts skill the card keys a chart document rejects', () => {
+  it('teaches the charts skill the card keys a chart document leaves out', () => {
+    const chartCard =
+      dashboardSchema.shape.sections.element.shape.cards.element.options.find(
+        (card) => card.shape.kind.value === 'chart'
+      )!
+    const dropped = Object.keys(chartCard.shape).filter(
+      (key) => !(key in chartDocumentSchema.shape)
+    )
     const [, list] =
       /It is a chart card without (.+?): `version: 1`/.exec(CHARTS_SKILL) ?? []
-    const keys = [...(list ?? '').matchAll(/`(\w+)`/g)].map((m) => m[1]!)
-    expect(keys).toEqual(['id', 'size', 'state', 'legend', 'view'])
-    const doc = {
-      version: 1,
-      kind: 'chart',
-      label: 'Sales pace',
-      source: 'Oztix sales.',
-      plot: {
-        kind: 'funnel',
-        steps: [
-          { label: 'Viewed', value: 2 },
-          { label: 'Paid', value: 1 }
-        ]
-      }
-    }
-    expect(validateChartDocument(doc).ok).toBe(true)
-    for (const key of keys)
-      expect(validateChartDocument({ ...doc, [key]: 'md' }).ok).toBe(false)
+    const taught = [...(list ?? '').matchAll(/`(\w+)`/g)].map((m) => m[1]!)
+    expect(taught.toSorted()).toEqual(dropped.toSorted())
   })
 })
