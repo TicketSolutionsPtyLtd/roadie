@@ -120,7 +120,7 @@ export function ViewCodeShade({
         <button
           type='button'
           onClick={onToggle}
-          className='is-interactive rounded-full emphasis-subtler px-3 py-1 text-sm'
+          className='is-interactive rounded-full emphasis-subtler border-0 px-3 py-1 text-sm text-subtle'
         >
           Hide code
         </button>
