@@ -262,9 +262,17 @@ function resolveRolling(
   // Rolling windows count today, so "next 7 days" is today and six more.
   const far =
     unit === 'month'
-      ? addDays(addMonths(today, sign * amount), -sign)
+      ? monthsAway(today, sign * amount)
       : addDays(today, sign * (amount * (unit === 'week' ? 7 : 1) - 1))
   return sign > 0 ? dates(today, far) : dates(far, today)
+}
+
+// The day before the same date that many months away. A date the far month
+// lacks (31 Jan to Feb) was clamped to its last day, which is then the end.
+function monthsAway(today: string, months: number) {
+  const same = addMonths(today, months)
+  const clamped = plainDateParts(same).day < plainDateParts(today).day
+  return clamped && months > 0 ? same : addDays(same, -Math.sign(months))
 }
 
 function resolveNamed(

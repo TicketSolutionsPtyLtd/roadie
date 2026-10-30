@@ -10,7 +10,12 @@
  * tie goes to the future.
  */
 import { formatResolved, plainDateInstant, relativeLabel } from './describe'
-import { formatDateTime, formatTimeOfDay } from './format'
+import {
+  DEFAULT_LOCALE,
+  dateTimeFormat,
+  formatDateTime,
+  formatTimeOfDay
+} from './format'
 import {
   addDays,
   addMonths,
@@ -387,6 +392,13 @@ export function parseDatePhrase(
       dateStyle: 'long',
       locale: options.locale
     }) ?? date
+  const monthLabel = (first: string) =>
+    dateTimeFormat(options.locale ?? DEFAULT_LOCALE, {
+      timeZone: 'UTC',
+      calendar: 'gregory',
+      month: 'long',
+      year: 'numeric'
+    }).format(plainDateInstant(first))
   const on = (date: string): DatePhraseSuggestion => ({
     label: formatDay(date),
     value: { on: date }
@@ -495,6 +507,15 @@ export function parseDatePhrase(
   m = COMPARED.exec(input)
   if (m) return compare(m[1] as Comparison, m[2]!, m[1] === 'since')
 
+  m = /^([a-z]+)(?: (\d{4}))?$/.exec(input)
+  const month = m ? nameIndex(MONTHS, m[1]!) : null
+  if (m && month) {
+    return monthsNamed(month, m[2], today).map((first) => ({
+      label: monthLabel(first),
+      value: { start: first, end: addDays(addMonths(first, 1), -1) }
+    }))
+  }
+
   const date = parseDate(input, today)
   if (date) return [on(date)]
 
@@ -511,6 +532,25 @@ export function parseDatePhrase(
 }
 
 const COMPLETIONS = new WeakSet<DatePhraseSuggestion>()
+
+/**
+ * The first day of each month a bare month name can mean: that month of a
+ * given year, this month, or the coming one and then the last one.
+ */
+function monthsNamed(
+  month: number,
+  yearText: string | undefined,
+  today: string
+): string[] {
+  const { year } = plainDateParts(today)
+  if (yearText) return [toPlainDate(Number(yearText), month, 1)]
+  const thisYear = toPlainDate(year, month, 1)
+  const current = plainDateParts(today).month
+  if (month === current) return [thisYear]
+  const next = month > current ? thisYear : toPlainDate(year + 1, month, 1)
+  return [next, addMonths(next, -12)]
+}
+
 const ONWARDS = /^(.+) (?:onwards?|and later)$/
 
 /**
