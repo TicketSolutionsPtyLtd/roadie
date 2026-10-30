@@ -88,8 +88,8 @@ export function weight(selector: string, parent: Weight = [0, 0, 0]): Weight {
   return total
 }
 
-function uneven(sheet: CSSStyleSheet) {
-  const found: string[] = []
+function emphasisLists(sheet: CSSStyleSheet) {
+  const lists: { rule: string; weights: Set<string> }[] = []
   const walk = (rules: CSSRuleList, parent?: CSSStyleRule) => {
     for (const rule of rules) {
       let scope = parent
@@ -99,8 +99,10 @@ function uneven(sheet: CSSStyleSheet) {
           const weights = branches(rule.selectorText).map((branch) =>
             weight(branch, own).join(',')
           )
-          if (new Set(weights).size > 1)
-            found.push(`${parent.selectorText} { ${rule.selectorText} }`)
+          lists.push({
+            rule: `${parent.selectorText} { ${rule.selectorText} }`,
+            weights: new Set(weights)
+          })
         }
         scope = rule
       }
@@ -108,7 +110,7 @@ function uneven(sheet: CSSStyleSheet) {
     }
   }
   walk(sheet.cssRules)
-  return found
+  return lists
 }
 
 describe('emphasis selector lists under lowered nesting', () => {
@@ -123,6 +125,13 @@ describe('emphasis selector lists under lowered nesting', () => {
   it('gives every branch of an emphasis utility’s list the same weight', () => {
     const sheet = new CSSStyleSheet()
     sheet.replaceSync(roadieCss)
-    expect(uneven(sheet)).toEqual([])
+    const lists = emphasisLists(sheet)
+    // Nesting flattened before the sheet loads would leave nothing to check.
+    expect(
+      lists.some(({ rule }) => rule.includes('is-interactive-within'))
+    ).toBe(true)
+    expect(
+      lists.filter(({ weights }) => weights.size > 1).map(({ rule }) => rule)
+    ).toEqual([])
   })
 })
