@@ -200,11 +200,12 @@ describe('Editor emphasis', () => {
       expect(surface.right).toBeCloseTo(bar.right, 0)
       expect(button.top - surface.top).toBeGreaterThanOrEqual(4)
       expect(button.left - surface.left).toBeGreaterThanOrEqual(4)
-      const corner = (element: Element) =>
-        getComputedStyle(element).borderTopLeftRadius
-      expect(corner(toolbar.closest('[data-slot="toolbar-surface"]')!)).toBe(
-        corner(toolbar.closest('[data-slot="editor-toolbar"]')!)
+      // The bar clips the fill to its corners.
+      const barStyle = getComputedStyle(
+        toolbar.closest('[data-slot="editor-toolbar"]')!
       )
+      expect(barStyle.overflowX).toBe('clip')
+      expect(barStyle.borderTopLeftRadius).not.toBe('0px')
     }
   )
 

@@ -38,11 +38,11 @@ export const tabsListVariants = cva(
   {
     variants: {
       emphasis: {
-        strong: 'gap-1 rounded-full p-1 emphasis-subtle',
-        normal: 'gap-1 rounded-full p-1 emphasis-subtle',
-        subtle: 'gap-1 rounded-full p-1',
+        strong: 'rounded-full p-1 emphasis-subtle',
+        normal: 'rounded-full p-1 emphasis-subtle',
+        subtle: 'rounded-full p-1',
         subtler:
-          'gap-1 border-b border-subtle data-[orientation=vertical]:border-b-0 data-[orientation=vertical]:border-l data-[orientation=vertical]:border-l-subtle'
+          'border-b border-subtle data-[orientation=vertical]:border-b-0 data-[orientation=vertical]:border-l data-[orientation=vertical]:border-l-subtle'
       }
     },
     defaultVariants: { emphasis: 'normal' }
@@ -81,7 +81,7 @@ export const tabsTabVariants = cva(
         subtle: 'rounded-full data-[active]:is-selected-label',
         // Inset, because the scrolling list clips a ring drawn outside it.
         subtler:
-          'rounded-lg data-[active]:is-selected-label focus-visible:-outline-offset-(--focus-ring-width)'
+          'rounded-t-lg data-[orientation=vertical]:rounded-l-none data-[orientation=vertical]:rounded-r-lg data-[active]:is-selected-label focus-visible:-outline-offset-(--focus-ring-width)'
       },
       size: {
         sm: 'h-8 px-[calc(--spacing(3)-1px)] text-sm',

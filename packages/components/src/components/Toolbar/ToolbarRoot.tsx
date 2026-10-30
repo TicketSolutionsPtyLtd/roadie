@@ -38,9 +38,9 @@ export type ToolbarRootProps = Omit<
      */
     emphasis?: ToolbarEmphasis
     /**
-     * Drops the inset, rounding, border and shadow, so the toolbar is as
-     * tall as its controls, for a bar docked along an edge. `emphasis` sets
-     * only its fill, and the parent draws any edge.
+     * Drops the border, shadow and pill shape, for a bar docked along an
+     * edge. `emphasis` sets only its fill, and the parent draws any edge
+     * and clips the corners. The controls keep their inset.
      *
      * @default false
      */
@@ -94,7 +94,7 @@ export function ToolbarRoot({
             <ToolbarPrimitive.Root
               data-slot='toolbar'
               orientation={orientation}
-              className={toolbarVariants({ flush, orientation })}
+              className={toolbarVariants({ orientation })}
               // Base UI scrolls the toolbar, not this viewport, and a native
               // focus leaves a half-hidden item where it is.
               onFocus={(event) => {

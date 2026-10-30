@@ -83,4 +83,19 @@ describe('ToggleGroup hover', () => {
       expect(grid.getBoundingClientRect().width).toBe(before)
     }
   )
+
+  it.each(EMPHASES)('sets items side by side at %s emphasis', (emphasis) => {
+    render(
+      <ToggleGroup emphasis={emphasis} defaultValue={['list']}>
+        <ToggleGroup.Item value='list'>List</ToggleGroup.Item>
+        <ToggleGroup.Item value='grid'>Grid</ToggleGroup.Item>
+      </ToggleGroup>
+    )
+    const list = screen.getByRole('button', { name: 'List' })
+    const grid = screen.getByRole('button', { name: 'Grid' })
+
+    expect(grid.getBoundingClientRect().left).toBe(
+      list.getBoundingClientRect().right
+    )
+  })
 })

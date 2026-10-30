@@ -430,7 +430,7 @@ describe('Flush toolbar', () => {
       .closest<HTMLElement>('[data-slot="toolbar-surface"]')!
 
   it.each(['normal', 'subtle', 'subtler', 'raised', 'floating'] as const)(
-    'drops the inset, rounding, border and shadow at %s, so the parent draws the edge',
+    'drops the rounding, border and shadow at %s, so the parent draws the edge',
     (emphasis) => {
       render(
         <Toolbar flush emphasis={emphasis} aria-label='History'>
@@ -438,12 +438,7 @@ describe('Flush toolbar', () => {
         </Toolbar>
       )
       const surface = getComputedStyle(surfaceOf('History'))
-      const toolbar = getComputedStyle(screen.getByRole('toolbar'))
 
-      for (const style of [surface, toolbar]) {
-        expect(style.paddingTop).toBe('0px')
-        expect(style.paddingLeft).toBe('0px')
-      }
       expect(surface.borderTopWidth).toBe('0px')
       expect(surface.borderBottomWidth).toBe('0px')
       expect(surface.borderTopLeftRadius).toBe('0px')
@@ -455,36 +450,24 @@ describe('Flush toolbar', () => {
     ['sm', 32],
     ['md', 40],
     ['lg', 48]
-  ] as const)('is as tall as its controls at %s', (size, height) => {
-    render(
-      <Toolbar flush size={size} aria-label='History'>
-        <Toolbar.Button>Undo</Toolbar.Button>
-        <Toolbar.Button>Redo</Toolbar.Button>
-      </Toolbar>
-    )
-    expect(surfaceOf('History').getBoundingClientRect().height).toBe(height)
-    expect(
-      screen.getByRole('button', { name: 'Undo' }).getBoundingClientRect()
-        .height
-    ).toBe(height)
-  })
-
-  it('fits a 36px header row with 8px gaps at sm', () => {
-    render(
-      <div
-        style={{ display: 'flex', height: 36, gap: 8, alignItems: 'center' }}
-      >
-        <p>3 selected</p>
-        <Toolbar flush size='sm' aria-label='Bulk actions'>
-          <Toolbar.Button>Archive</Toolbar.Button>
-          <Toolbar.Button>Delete</Toolbar.Button>
+  ] as const)(
+    'insets its controls by 4px at %s, so a hover clears the edge',
+    (size, control) => {
+      render(
+        <Toolbar flush size={size} aria-label='History'>
+          <Toolbar.Button>Undo</Toolbar.Button>
         </Toolbar>
-      </div>
-    )
-    const row = surfaceOf('Bulk actions').parentElement!
-    expect(row.scrollHeight).toBe(36)
-    expect(surfaceOf('Bulk actions').getBoundingClientRect().height).toBe(32)
-  })
+      )
+      const surface = surfaceOf('History').getBoundingClientRect()
+      const undo = screen
+        .getByRole('button', { name: 'Undo' })
+        .getBoundingClientRect()
+
+      expect(undo.top - surface.top).toBe(4)
+      expect(undo.left - surface.left).toBe(4)
+      expect(surface.height).toBe(control + 8)
+    }
+  )
 
   it('keeps the gap between its controls', () => {
     render(
@@ -509,7 +492,7 @@ describe('Flush toolbar', () => {
     expect(gap('Inset')).toBe(4)
   })
 
-  it('starts its first control at its own edge', () => {
+  it('runs across its parent with w-full', () => {
     render(
       <div style={{ display: 'grid', width: 600 }}>
         <Toolbar flush className='w-full' aria-label='History'>
@@ -517,17 +500,12 @@ describe('Flush toolbar', () => {
         </Toolbar>
       </div>
     )
-    const surface = surfaceOf('History').getBoundingClientRect()
-    const undo = screen
-      .getByRole('button', { name: 'Undo' })
-      .getBoundingClientRect()
-    expect(undo.left).toBe(surface.left)
-    expect(surface.width).toBe(600)
+    expect(surfaceOf('History').getBoundingClientRect().width).toBe(600)
   })
 
-  // With no inset, the scrolling row clips a ring drawn outside a control.
+  // The inset holds the ring, where the scrolling row would clip it.
   it.each(['Undo', 'Save draft'])(
-    'draws the focus ring inside %s',
+    'draws the focus ring around %s within the inset',
     async (name) => {
       onTestFinished(useStylesheet('* { transition-duration: 0s !important }'))
       render(
@@ -544,8 +522,11 @@ describe('Flush toolbar', () => {
       const control = screen.getByRole('button', { name })
       expect(control).toHaveFocus()
       const ring = focusRing(control)
-      expect(ring.width).toBe('4px')
-      expect(ring.offset).toBe('-4px')
+      const surface = surfaceOf('History').getBoundingClientRect()
+      const box = control.getBoundingClientRect()
+      const width = parseFloat(ring.width) + parseFloat(ring.offset)
+      expect(box.top - width).toBeGreaterThanOrEqual(surface.top)
+      expect(box.bottom + width).toBeLessThanOrEqual(surface.bottom)
     }
   )
 })

@@ -11,7 +11,8 @@ const insetSurface: Record<ToolbarEmphasis, string> = {
   floating: 'emphasis-floating is-translucent border'
 }
 
-// The parent draws any edge, so a flush toolbar keeps only the fill.
+// The parent draws any edge and clips the corners, so a flush toolbar keeps
+// only the fill.
 const flushSurface: Record<ToolbarEmphasis, string> = {
   normal: 'bg-normal',
   subtle: 'bg-subtle',
@@ -35,13 +36,10 @@ export const toolbarSurfaceVariants = cva('w-fit max-w-full', {
   defaultVariants: { flush: false, emphasis: 'normal' }
 })
 
-export const toolbarVariants = cva('flex min-w-0 items-center gap-1', {
+// Inset alike, docked or not, so a control's hover and focus ring clear the
+// edges, where the scrolling row would clip them.
+export const toolbarVariants = cva('flex min-w-0 items-center gap-1 p-1', {
   variants: {
-    flush: {
-      false: 'p-1',
-      // Inset, because the scrolling row clips a ring drawn outside a control.
-      true: '**:focus-visible:-outline-offset-(--focus-ring-width)'
-    },
     orientation: {
       // Touch screens and phones keep one row and scroll it sideways.
       horizontal:
@@ -49,5 +47,5 @@ export const toolbarVariants = cva('flex min-w-0 items-center gap-1', {
       vertical: 'flex-col items-stretch *:w-auto'
     }
   },
-  defaultVariants: { flush: false, orientation: 'horizontal' }
+  defaultVariants: { orientation: 'horizontal' }
 })

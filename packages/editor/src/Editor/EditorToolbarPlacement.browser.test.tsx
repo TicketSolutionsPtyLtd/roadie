@@ -176,10 +176,11 @@ describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
     }
     const { borderBottomWidth, borderBottomColor } = getComputedStyle(bar)
 
-    // Rounded as the frame is, so its fill doesn't poke past the corners.
-    expect(getComputedStyle(surfaceOf(toolbar)).borderTopLeftRadius).toBe(
-      getComputedStyle(bar).borderTopLeftRadius
+    // Rounded as the frame is, and clipping the toolbar's fill to it.
+    expect(getComputedStyle(bar).borderTopLeftRadius).toBe(
+      getComputedStyle(frame).borderTopLeftRadius
     )
+    expect(getComputedStyle(bar).overflowX).toBe('clip')
     expect(borderBottomWidth).toBe('1px')
     expect(borderBottomColor).not.toBe(TRANSPARENT)
     const fill = (element: HTMLElement) =>

@@ -7,7 +7,7 @@ import { horizontalScrollClass } from '../../variants'
 // horizontal group that outgrows its container scrolls instead, as Tabs does.
 export const toggleGroupVariants = cva(
   [
-    'group/toggle-group relative inline-grid auto-cols-[minmax(max-content,1fr)] grid-flow-col gap-1 p-0.75',
+    'group/toggle-group relative inline-grid auto-cols-[minmax(max-content,1fr)] grid-flow-col p-0.75',
     horizontalScrollClass,
     // Fades a side that can still scroll, as `watchScrollEdges` marks it.
     '[--toggle-group-fade:24px] [--toggle-group-fade-left:0px] [--toggle-group-fade-right:0px]',

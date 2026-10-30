@@ -23,11 +23,7 @@ import {
 } from './controls'
 import { focusEditor } from './focusEditor'
 import { useStickyTop } from './toolbarMode'
-import {
-  EDITOR_DOCKED_BAR,
-  EDITOR_DOCKED_BAR_INSET,
-  EDITOR_TOOLBAR_SIZE
-} from './variants'
+import { EDITOR_DOCKED_BAR, EDITOR_TOOLBAR_SIZE } from './variants'
 
 export type ControlState = {
   pressed: boolean
@@ -264,11 +260,7 @@ export function EditorToolbarEngine({
         aria-controls={contentId}
         size={EDITOR_TOOLBAR_SIZE[size]}
         emphasis={emphasis}
-        className={cn(
-          'w-full',
-          EDITOR_DOCKED_BAR_INSET[editorEmphasis],
-          className
-        )}
+        className={cn('w-full', className)}
         // A press between controls keeps focus in the editor.
         onMouseDown={(event) => {
           onMouseDown?.(event)
