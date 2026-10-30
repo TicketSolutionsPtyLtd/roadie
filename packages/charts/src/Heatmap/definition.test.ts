@@ -108,6 +108,25 @@ describe('heatmap', () => {
     expect(ticks).toEqual(['Week 0', 'Week 1'])
   })
 
+  it('draws a column with no values as an empty band', () => {
+    const svg = render({
+      data: [
+        { cohort: 'Oct', week: 'Week 0', returned: 3 },
+        { cohort: 'Oct', week: 'Week 1', returned: null },
+        { cohort: 'Oct', week: 'Week 2', returned: 4 }
+      ],
+      rows: 'cohort',
+      columns: 'week',
+      value: 'returned'
+    })
+    expect(
+      [...svg.matchAll(/data-ts-key="x-tick-label:[^"]*"[^>]*>([^<]+)</g)].map(
+        (m) => m[1]
+      )
+    ).toEqual(['Week 0', 'Week 1', 'Week 2'])
+    expect(svg.match(/data-ts-key="cells:[^"]*"/g)).toHaveLength(2)
+  })
+
   it('keys the low and high ends in the legend', () => {
     expect(
       heatmap
