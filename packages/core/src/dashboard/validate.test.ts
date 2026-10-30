@@ -262,21 +262,24 @@ describe('validateDashboard with chart plots', () => {
     )
   })
 
-  it('checks the comparison field', () => {
-    expect(
-      paths(
-        spec([
-          chartCard({
-            kind: 'line',
-            data: rows,
-            x: 'day',
-            y: 'sold',
-            comparison: { y: 'lastPeriod' }
-          })
-        ])
-      )
-    ).toContain('sections[0].cards[0].plot.comparison.y')
-  })
+  it.each(['line', 'bar'] as const)(
+    'checks the %s comparison field',
+    (kind) => {
+      expect(
+        paths(
+          spec([
+            chartCard({
+              kind,
+              data: rows,
+              x: 'day',
+              y: 'sold',
+              comparison: { y: 'lastPeriod' }
+            })
+          ])
+        )
+      ).toContain('sections[0].cards[0].plot.comparison.y')
+    }
+  )
 
   it('warns on a line comparison with series, which the chart ignores', () => {
     const result = validateDashboard(
@@ -299,13 +302,18 @@ describe('validateDashboard with chart plots', () => {
     )
   })
 
-  it.each(['day', 'sold'])(
-    'warns on a line comparison against its own %s, which the chart ignores',
-    (field) => {
+  it.each([
+    ['line', 'day'],
+    ['line', 'sold'],
+    ['bar', 'day'],
+    ['bar', 'sold']
+  ] as const)(
+    'warns on a %s comparison against its own %s, which the chart ignores',
+    (kind, field) => {
       const result = validateDashboard(
         spec([
           chartCard({
-            kind: 'line',
+            kind,
             data: rows,
             x: 'day',
             y: 'sold',

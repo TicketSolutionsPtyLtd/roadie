@@ -98,6 +98,7 @@ const barShape = {
       ...valueFormatOptions
     })
     .optional(),
+  comparison,
   selectsPeriod
 }
 

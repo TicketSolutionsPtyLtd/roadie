@@ -67,6 +67,23 @@ describe('toBars', () => {
     ])
   })
 
+  it('adds up the comparison for rows that share an x', () => {
+    const bars = toBars({
+      data: [
+        { day: '2026-10-01', orders: 3, lastPeriod: 2 },
+        { day: '2026-10-01', orders: 4, lastPeriod: 5 },
+        { day: '2026-10-02', orders: 1, lastPeriod: null }
+      ],
+      x: 'day',
+      y: 'orders',
+      comparison: { y: 'lastPeriod' }
+    })
+    expect(bars.map((b) => [b.y, b.comparison])).toEqual([
+      [7, 7],
+      [1, null]
+    ])
+  })
+
   it('carries the line measure', () => {
     expect(
       toBars(scanRateExample).every((b) => typeof b.line === 'number')

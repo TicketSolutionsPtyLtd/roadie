@@ -28,6 +28,8 @@ export type BarChartProps = ValueFormatOptions & {
     label: string
     format?: ValueFormat
   } & ValueFormatOptions
+  /** A field on the same rows, such as last period's value, drawn as a quiet bar beside each bar. */
+  comparison?: { y: string; label?: string }
   /** Lets a drag across dated x select a range, inclusive and in venue wall time. */
   onRangeSelect?: (range: AbsoluteRange) => void
   className?: string
