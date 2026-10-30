@@ -12,7 +12,7 @@ export interface CartExpiryState {
   dismissWarning: () => void
 }
 
-// One-shot warning keyed on expiresAtUtc — a server-side extension re-arms it.
+// One-shot warning keyed on expiresAtUtc (a server-side extension re-arms it).
 // Core urgencyLevel encodes the bands ('danger' = warning window, 'expired' = 0).
 export function useCartExpiry(
   expiresAtUtc: string | undefined

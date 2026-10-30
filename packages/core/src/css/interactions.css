@@ -48,7 +48,7 @@
     --rim-light-own: 0 0 #0000;
   }
 
-  /* Hover — neutral tint */
+  /* Hover: neutral tint */
   @media (hover: hover) {
     &:hover {
       --rim-light-own: 0 0 #0000;
@@ -57,7 +57,7 @@
     }
   }
 
-  /* Focus — accent border + outline ring */
+  /* Focus: accent border + outline ring */
   &:focus {
     background-color: var(--field-focus-bg);
     border-color: var(--color-accent-9);
@@ -71,7 +71,7 @@
     }
   }
 
-  /* Invalid — danger border + outline ring */
+  /* Invalid: danger border + outline ring */
   &[aria-invalid='true'] {
     background-color: var(--color-danger-2);
     border-color: var(--color-danger-9);
@@ -155,7 +155,7 @@
     --rim-light-own: 0 0 #0000;
   }
 
-  /* Hover — neutral tint */
+  /* Hover: neutral tint */
   @media (hover: hover) {
     &:hover {
       --rim-light-own: 0 0 #0000;
@@ -164,7 +164,7 @@
     }
   }
 
-  /* Focus-within — accent border + outline ring */
+  /* Focus-within: accent border + outline ring */
   &:focus-within {
     background-color: var(--field-focus-bg);
     border-color: var(--color-accent-9);
@@ -178,7 +178,7 @@
     }
   }
 
-  /* Invalid — danger border + outline ring */
+  /* Invalid: danger border + outline ring */
   &[aria-invalid='true'] {
     background-color: var(--color-danger-2);
     border-color: var(--color-danger-9);

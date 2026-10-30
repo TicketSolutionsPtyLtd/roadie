@@ -1,4 +1,4 @@
-import { execFileSync, spawnSync } from 'node:child_process'
+import { spawnSync } from 'node:child_process'
 import { readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -10,7 +10,8 @@ import {
   MISTAKE_RULES,
   TEST_MISTAKE_RULES,
   addRoadie,
-  createApp
+  createApp,
+  runShim
 } from './app.js'
 
 const { devDependencies } = JSON.parse(
@@ -41,7 +42,7 @@ let installOutput
 beforeAll(() => {
   let packed
   ;({ app, packed } = createApp('roadie-oxlint-consumer-', CONFIGS))
-  installOutput = execFileSync(
+  installOutput = runShim(
     'pnpm',
     [
       'add',
@@ -63,8 +64,8 @@ describe.each(Object.keys(CONFIGS))(
     // oxlint exits 1 when it reports an error, so read the report either way.
     const oxlint = (...args) =>
       spawnSync(
-        join(app, 'node_modules/.bin/oxlint'),
-        ['-c', config, ...args],
+        process.execPath,
+        [join(app, 'node_modules/oxlint/bin/oxlint'), '-c', config, ...args],
         {
           cwd: app,
           encoding: 'utf8'

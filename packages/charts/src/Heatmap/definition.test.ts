@@ -86,6 +86,47 @@ describe('heatmap', () => {
     expect(sizes.every((size) => size === frame.fontSize)).toBe(true)
   })
 
+  it('keeps the data order of the axes when the first cells are empty', () => {
+    const svg = render({
+      data: [
+        { cohort: 'Oct', week: 'Week 0', returned: null },
+        { cohort: 'Oct', week: 'Week 1', returned: 4 },
+        { cohort: 'Sep', week: 'Week 0', returned: 9 },
+        { cohort: 'Sep', week: 'Week 1', returned: 6 }
+      ],
+      rows: 'cohort',
+      columns: 'week',
+      value: 'returned'
+    })
+    const ticks = [
+      ...svg.matchAll(
+        /data-ts-key="x-tick-label:[^"]*"[^>]*x="([\d.]+)"[^>]*>([^<]+)</g
+      )
+    ]
+      .sort((a, b) => Number(a[1]) - Number(b[1]))
+      .map((m) => m[2])
+    expect(ticks).toEqual(['Week 0', 'Week 1'])
+  })
+
+  it('draws a column with no values as an empty band', () => {
+    const svg = render({
+      data: [
+        { cohort: 'Oct', week: 'Week 0', returned: 3 },
+        { cohort: 'Oct', week: 'Week 1', returned: null },
+        { cohort: 'Oct', week: 'Week 2', returned: 4 }
+      ],
+      rows: 'cohort',
+      columns: 'week',
+      value: 'returned'
+    })
+    expect(
+      [...svg.matchAll(/data-ts-key="x-tick-label:[^"]*"[^>]*>([^<]+)</g)].map(
+        (m) => m[1]
+      )
+    ).toEqual(['Week 0', 'Week 1', 'Week 2'])
+    expect(svg.match(/data-ts-key="cells:[^"]*"/g)).toHaveLength(2)
+  })
+
   it('keys the low and high ends in the legend', () => {
     expect(
       heatmap
@@ -191,5 +232,30 @@ describe('heatmap summary on a diverging scale', () => {
     ).toBe(
       'Furthest ahead is Floor at Week 1, with 12%. Furthest behind is Floor at Week 4, with -8%'
     )
+  })
+})
+
+describe('heatmap decimal places', () => {
+  const sold: Parameters<typeof heatmap.build>[0] = {
+    data: [
+      { day: 'Fri', hour: '6pm', sold: 0.1266 },
+      { day: 'Sat', hour: '6pm', sold: 0.0127 }
+    ],
+    rows: 'day',
+    columns: 'hour',
+    value: 'sold',
+    format: 'percent',
+    decimals: 2
+  }
+  const friday = { x: '6pm', y: 0.1266, series: 'Fri', index: 0 }
+
+  it('reads values to the decimal places in the tooltip, aloud and in the table', () => {
+    expect(heatmap.tooltip([friday], sold, paint).rows[0]?.value).toBe('12.66%')
+    expect(heatmap.describe(friday, sold)).toBe('Fri, 6pm, 12.66% sold')
+    expect(heatmap.summary(sold)).toBe('Sold peak on Fri at 6pm, with 12.66%')
+    expect(heatmapTable(sold).columns[1]).toMatchObject({
+      format: 'percent',
+      decimals: 2
+    })
   })
 })

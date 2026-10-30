@@ -54,7 +54,7 @@ function browse() {
       </span>
     </template>
     <template #actions>
-      <!-- No intent — inherits the dialog's warning via the cascade. -->
+      <!-- No intent: inherits the dialog's warning via the cascade. -->
       <button
         type="button"
         class="is-interactive btn btn-md emphasis-normal"
@@ -73,7 +73,7 @@ function browse() {
     </template>
   </CartExpiryDialog>
 
-  <!-- Blocking; no dismiss — the only exit is back to browsing. -->
+  <!-- Blocking, no dismiss: the only exit is back to browsing. -->
   <CartExpiryDialog
     v-if="expired"
     :title-id="expiredTitleId"
@@ -85,7 +85,7 @@ function browse() {
       <PhClock weight="duotone" aria-hidden="true" />
     </template>
     <template #actions>
-      <!-- Accent CTA against the danger framing — the way forward. -->
+      <!-- Accent CTA against the danger framing: the way forward. -->
       <button
         type="button"
         class="is-interactive btn btn-md emphasis-strong intent-accent"

@@ -10,10 +10,12 @@ import { DataCard } from '@oztix/roadie-components/data-card'
 import { DataTable } from '@oztix/roadie-components/data-table'
 import { StatTile } from '@oztix/roadie-components/stat-tile'
 import type {
+  BarPlot,
   CardSize,
   DashboardCard,
   DashboardPeriodSpec,
   DashboardSpec,
+  LinePlot,
   TableCard,
   TableRow
 } from '@oztix/roadie-core/dashboard'
@@ -35,16 +37,23 @@ export type DashboardViewProps = {
   /**
    * Actions for each card, such as a More button, placed at its top right.
    * They carry handlers, so they come from the app rather than the spec.
-   * Return nothing to leave a card without actions. When this renders on the
+   * Return nothing to leave a card without actions. Each gets its card as
+   * drawn, with a chart's comparison following the period, so a CSV from
+   * `cardTable(card)` matches the Table view. When this renders on the
    * server, return a client component that owns the handlers, not inline
    * handlers.
    */
   cardActions?: (card: DashboardCard) => ReactNode
   /**
    * Links a table card's row to its own page, such as a show to its event
-   * view. Like actions, links come from the app rather than the spec.
+   * view. Like actions, links come from the app rather than the spec. It gets
+   * the dashboard's period, so a link can open the same dates.
    */
-  getRowHref?: (card: TableCard, row: TableRow) => string | undefined
+  getRowHref?: (
+    card: TableCard,
+    row: TableRow,
+    period: DashboardPeriodSpec | undefined
+  ) => string | undefined
   /**
    * Called with the period and comparison chosen in the toolbar, without
    * `history`: resolve them, fetch, and pass back a spec with the new
@@ -68,21 +77,88 @@ export type DashboardViewPeriodProps = Omit<
   'value' | 'defaultValue' | 'onValueChange' | 'readOnly'
 >
 
+declare const process: { env?: { NODE_ENV?: string } } | undefined
+
+const warned = new Set<string>()
+
+function warnOnce(message: string) {
+  if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
+    return
+  if (warned.has(message)) return
+  warned.add(message)
+  console.error(message)
+}
+
 const HISTORY_MESSAGE = {
   partial: 'Not enough history',
   unavailable: 'Nothing to compare'
 } as const
 
+// validateDashboard rejects these; an unchecked spec still renders, and says why.
 function comparisonLine(
   compare: Comparison,
   where: DescribeComparisonOptions
 ): string {
   try {
     return describeComparison(compare, where)
-  } catch {
-    // validateDashboard rejects custom date-times; an unchecked spec still renders.
+  } catch (error) {
+    warnOnce(
+      `DashboardView: couldn't describe the comparison, so it reads "vs custom dates": ${error instanceof Error ? error.message : String(error)}`
+    )
     return 'vs custom dates'
   }
+}
+
+// ANNOTATION_LABEL_LIMIT, which can't be imported without the spec's schemas.
+const SERIES_LABEL_LIMIT = 20
+
+/** "vs previous period" names a series as "Previous period". */
+function seriesName(line: string) {
+  const name = line
+    .replace(/^vs /, '')
+    .replace(/^\p{Ll}/u, (first) => first.toUpperCase())
+  return name.length > SERIES_LABEL_LIMIT ? 'Custom dates' : name
+}
+
+type Compared = Omit<LinePlot, 'data'> | Omit<BarPlot, 'data'>
+
+function followComparison<P extends Compared>(
+  plot: P,
+  period: DashboardPeriodSpec | undefined,
+  where: Pick<DescribeComparisonOptions, 'timeZone' | 'locale'>
+): P {
+  if (!plot.comparison) return plot
+  const compare = period?.compare
+  if (
+    !compare ||
+    !isBuiltInComparison(compare) ||
+    period.history === 'unavailable'
+  )
+    return { ...plot, comparison: undefined }
+  const label = seriesName(comparisonLine(compare, where))
+  return { ...plot, comparison: { ...plot.comparison, label } }
+}
+
+/**
+ * A line or bar plot's comparison, small multiples' panels too, follows the
+ * dashboard's, as a comparison delta does: drawn only with a comparison of
+ * Roadie's that the data covers, and named by it.
+ */
+function followPeriod(
+  card: DashboardCard,
+  period: DashboardPeriodSpec | undefined,
+  where: Pick<DescribeComparisonOptions, 'timeZone' | 'locale'>
+): DashboardCard {
+  if (card.kind !== 'chart') return card
+  const { plot } = card
+  if (plot.kind === 'line' || plot.kind === 'bar')
+    return { ...card, plot: followComparison(plot, period, where) }
+  if (plot.kind === 'small-multiples')
+    return {
+      ...card,
+      plot: { ...plot, chart: followComparison(plot.chart, period, where) }
+    }
+  return card
 }
 
 /**
@@ -113,10 +189,6 @@ const selectsPeriod = (card: DashboardCard) =>
   card.kind === 'chart' &&
   'selectsPeriod' in card.plot &&
   card.plot.selectsPeriod === true
-
-declare const process: { env?: { NODE_ENV?: string } } | undefined
-
-const warned = new Set<string>()
 
 function warnUnwired(spec: DashboardSpec) {
   if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
@@ -190,6 +262,8 @@ function Card({
           {...common}
           value={card.value}
           format={card.format}
+          decimals={card.decimals}
+          trailingZeroDisplay={card.trailingZeroDisplay}
           delta={delta}
           trend={card.trend}
           reference={card.reference}
@@ -202,6 +276,8 @@ function Card({
           size={size}
           value={card.value}
           format={card.format}
+          decimals={card.decimals}
+          trailingZeroDisplay={card.trailingZeroDisplay}
           delta={delta}
           takeaway={card.takeaway}
         >
@@ -212,7 +288,7 @@ function Card({
             columns={card.columns}
             rows={card.rows}
             caption={card.label}
-            getRowHref={getRowHref && ((row) => getRowHref(card, row))}
+            getRowHref={getRowHref && ((row) => getRowHref(card, row, period))}
           />
         </DataCard>
       )
@@ -224,6 +300,8 @@ function Card({
           size={size}
           value={card.value}
           format={card.format}
+          decimals={card.decimals}
+          trailingZeroDisplay={card.trailingZeroDisplay}
           delta={delta}
           takeaway={card.takeaway}
           view={card.view}
@@ -266,6 +344,10 @@ export function DashboardView({
       : undefined
   const rangeSelectFor = (card: DashboardCard) =>
     selectsPeriod(card) ? selectPeriod : undefined
+  const where = {
+    timeZone: periodProps?.timeZone,
+    locale: periodProps?.locale
+  }
   return (
     <Dashboard className={className}>
       {period && (
@@ -282,19 +364,22 @@ export function DashboardView({
           title={section.title}
           description={section.description}
         >
-          {section.cards.map((card) => (
-            <Card
-              key={card.id}
-              card={card}
-              size={card.size}
-              actions={cardActions?.(card)}
-              getRowHref={getRowHref}
-              onRangeSelect={rangeSelectFor(card)}
-              period={period}
-              timeZone={periodProps?.timeZone}
-              locale={periodProps?.locale}
-            />
-          ))}
+          {section.cards.map((card) => {
+            const shown = followPeriod(card, period, where)
+            return (
+              <Card
+                key={card.id}
+                card={shown}
+                size={card.size}
+                actions={cardActions?.(shown)}
+                getRowHref={getRowHref}
+                onRangeSelect={rangeSelectFor(card)}
+                period={period}
+                timeZone={periodProps?.timeZone}
+                locale={periodProps?.locale}
+              />
+            )
+          })}
         </Dashboard.Section>
       ))}
     </Dashboard>

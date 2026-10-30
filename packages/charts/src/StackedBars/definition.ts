@@ -12,9 +12,20 @@ import {
 import { OTHER, seriesMarkId, seriesStyles } from '../plot/series'
 import { fieldLabel } from '../plot/table'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
-import { axisFormat, fullFormat, gridTicks, valueDomain } from '../plot/values'
+import {
+  axisFormat,
+  fullValue,
+  gridTicks,
+  shareValue,
+  valueDomain
+} from '../plot/values'
 import { describeValue } from '../plot/words'
-import { type Segment, segmentNames, stackSegments } from './stack'
+import {
+  type Segment,
+  segmentNames,
+  stackCategories,
+  stackSegments
+} from './stack'
 import { stackedBarsTable } from './table'
 import type { StackedBarsProps } from './types'
 
@@ -38,7 +49,7 @@ function build(props: StackedBarsProps, paint: ChartPaint, frame: PlotFrame) {
     x: s.category,
     y: s.value
   }))
-  const categories = [...new Set(segments.map((s) => s.category))]
+  const categories = stackCategories(props)
   const domain: readonly [number, number] =
     props.mode === 'share'
       ? [0, 1]
@@ -174,8 +185,13 @@ export const stackedBars: ChartDefinition<StackedBarsProps> = {
     const categories = [...new Set(segments.map((s) => s.category))]
     const leaders = new Set(categories.map((c) => largestIn(segments, c)))
     const [leader] = leaders
-    if (leaders.size === 1 && leader)
-      return `${leader} is the largest ${kind} in every ${fieldLabel(props.x).toLowerCase()}`
+    if (leaders.size === 1 && leader) {
+      const band = fieldLabel(props.x).toLowerCase()
+      const someEmpty = stackCategories(props).length > categories.length
+      return someEmpty
+        ? `${leader} is the largest ${kind} in every ${band} with data`
+        : `${leader} is the largest ${kind} in every ${band}`
+    }
     const overall = largestOverall(segments)
     return overall
       ? `${overall} is the largest ${kind} overall`
@@ -183,27 +199,30 @@ export const stackedBars: ChartDefinition<StackedBarsProps> = {
   },
   emptyMessage: (props) =>
     stackSegments(props).length === 0 ? EMPTY : undefined,
-  legend: (props, paint) =>
-    styles(props, paint).map((s) => ({
+  legend(props, paint) {
+    const series = styles(props, paint)
+    // One series needs no key: the label already names it.
+    if (series.length < 2) return []
+    return series.map((s) => ({
       label: s.name,
       shape: 'swatch' as const,
       color: s.color,
       slot: s.slot
-    })),
+    }))
+  },
   describe(datum, props) {
     const segment = stackSegments(props).find(
       (s) => s.category === datum.x && s.series === datum.series
     )
     const noun = fieldLabel(props.y).toLowerCase()
-    const base = `${datum.x}, ${datum.series}, ${describeValue(segment?.value ?? null, fullFormat(props.format), noun)}`
+    const base = `${datum.x}, ${datum.series}, ${describeValue(segment?.value ?? null, props, noun)}`
     return props.mode === 'share' && segment
-      ? `${base}, ${percent(segment.share)} of the bar`
+      ? `${base}, ${shareValue(props, segment.share)} of the bar`
       : base
   },
   tooltip(data, props, paint) {
     const category = String(data[0]?.x ?? '')
     const colours = new Map(styles(props, paint).map((s) => [s.name, s.color]))
-    const format = fullFormat(props.format)
     return {
       title: category,
       rows: stackSegments(props)
@@ -212,8 +231,8 @@ export const stackedBars: ChartDefinition<StackedBarsProps> = {
           label: s.series,
           value:
             props.mode === 'share'
-              ? `${percent(s.share)} (${formatValue(s.value, format)})`
-              : formatValue(s.value, format),
+              ? `${shareValue(props, s.share)} (${fullValue(props, s.value)})`
+              : fullValue(props, s.value),
           color: colours.get(s.series),
           shape: 'swatch' as const
         }))

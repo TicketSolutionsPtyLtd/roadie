@@ -1,3 +1,5 @@
+import { readFile, readdir } from 'fs/promises'
+import { join } from 'path'
 import { type Browser, type Page, chromium, firefox, webkit } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
@@ -15,12 +17,34 @@ afterAll(async () => {
   await browser?.close()
 })
 
-async function open(path: string, width: number) {
+async function open(
+  path: string,
+  width: number,
+  prepare?: (page: Page) => Promise<unknown>
+) {
   const context = await browser.newContext({
     viewport: { width, height: 844 }
   })
   await serveExport(context)
   const page = await context.newPage()
+  // Where each example sat as it mounted. Read later, a rendered example's
+  // top includes every block above it that grew when it rendered.
+  await page.addInitScript(() => {
+    const tops: number[] = []
+    Object.assign(window, { mountedTops: tops })
+    new MutationObserver((records) => {
+      for (const record of records)
+        for (const node of record.addedNodes) {
+          if (!(node instanceof Element)) continue
+          const rendered = node.matches('[data-live-example=rendered]')
+            ? [node]
+            : node.querySelectorAll('[data-live-example=rendered]')
+          for (const example of rendered)
+            tops.push(example.getBoundingClientRect().top)
+        }
+    }).observe(document, { childList: true, subtree: true })
+  })
+  await prepare?.(page)
   const errors: string[] = []
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text())
@@ -41,9 +65,7 @@ const examples = (page: Page) =>
       pending: nodes.filter((node) =>
         node.matches('[data-live-example=pending]')
       ).length,
-      renderedTops: nodes
-        .filter((node) => node.matches('[data-live-example=rendered]'))
-        .map((node) => node.getBoundingClientRect().top),
+      mountedTops: (window as unknown as { mountedTops: number[] }).mountedTops,
       inputs: document.querySelectorAll('[data-slot=number-field-input]').length
     }
   })
@@ -111,6 +133,19 @@ const landedOffset = async (page: Page, id: string) =>
     ? Infinity
     : Math.abs(await headingOffset(page, id))
 
+/** The built chunk that holds LiveRunner, found by a string only it renders. */
+async function liveRunnerChunk() {
+  const dir = join(import.meta.dirname, '../out/_next/static/chunks')
+  for (const name of await readdir(dir)) {
+    if (!name.endsWith('.js')) continue
+    if (
+      (await readFile(join(dir, name), 'utf8')).includes('Full-width example')
+    )
+      return name
+  }
+  throw new Error('No chunk holds LiveRunner')
+}
+
 const sideways = (page: Page) =>
   page.evaluate(
     () =>
@@ -123,21 +158,50 @@ describe('live examples', () => {
     const { page, errors } = await open('/components/number-field/', 390)
     const onLoad = await examples(page)
 
-    expect(onLoad.pending).toBeGreaterThan(8)
+    // Counts would tie this to how many examples the page has and how tall
+    // they are; the reach is what matters, so check positions, not totals.
+    expect(onLoad.pending).toBeGreaterThan(0)
     // A screen and a half ahead of an 844px viewport (the observer's 150%
-    // root margin), plus the example straddling it.
-    for (const top of onLoad.renderedTops)
-      expect(top).toBeLessThan(844 * 2.5 + 50)
+    // root margin), plus a quarter screen: an example queued in reach can be
+    // pushed past it by the ones above growing as they render, and the
+    // observer reports it leaving only after its turn has come.
+    expect(onLoad.mountedTops).toHaveLength(onLoad.rendered)
+    for (const top of onLoad.mountedTops) expect(top).toBeLessThan(844 * 2.75)
 
     await scrollThrough(page)
     const afterScroll = await examples(page)
-    // Examples scrolled past before their turn wait until they're back in reach.
-    expect(afterScroll.rendered).toBeGreaterThan(onLoad.rendered + 8)
+    // scrollThrough waits on every screen, so each example came into view.
+    expect(afterScroll).toMatchObject({
+      pending: 0,
+      rendered: onLoad.rendered + onLoad.pending
+    })
     expect(afterScroll.inputs).toBeGreaterThan(onLoad.inputs)
     expect(await sideways(page)).toBe(false)
     expect(errors).toEqual([])
     await page.context().close()
   }, 120_000)
+
+  it('show an error state when the runner fails to load, then load on Try again', async () => {
+    const chunk = await liveRunnerChunk()
+    let failing = true
+    const { page } = await open('/components/number-field/', 1280, (page) =>
+      page.route(`**/${chunk}`, (route) =>
+        failing ? route.abort() : route.fallback()
+      )
+    )
+    const failed = page.getByText("We couldn't load this example")
+
+    await failed.first().waitFor()
+    expect(await examples(page)).toMatchObject({ rendered: 0 })
+    expect(
+      await page.getByRole('heading', { name: 'Accessibility' }).count()
+    ).toBe(1)
+
+    failing = false
+    await page.getByRole('button', { name: 'Try again' }).first().click()
+    await page.locator('[data-live-example=rendered]').first().waitFor()
+    await page.context().close()
+  }, 60_000)
 
   it('let On this page land on a heading past every pending example', async () => {
     const { page, errors } = await open('/components/number-field/', 1280)

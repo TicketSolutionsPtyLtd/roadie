@@ -85,3 +85,12 @@ export function weekCaption(
       : label(start)
   return `${from} to ${label(end)}`
 }
+
+/**
+ * The live region's next text. A screen reader skips a region whose text
+ * hasn't changed, so a repeat, such as a second refused press, gains a
+ * no-break space.
+ */
+export function nextAnnouncement(said: string, message: string): string {
+  return said === message ? `${message}\u00a0` : message
+}

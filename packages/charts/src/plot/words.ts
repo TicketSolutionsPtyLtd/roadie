@@ -1,20 +1,15 @@
-import {
-  type ValueFormat,
-  type XFormat,
-  formatValue,
-  formatX
-} from '@oztix/roadie-core/dataviz'
+import { type XFormat, formatX } from '@oztix/roadie-core/dataviz'
 
 import { spokenX } from './time'
-import { fullFormat } from './values'
+import { type ValueStyle, fullValue } from './values'
 
 export function describeValue(
   value: number | null,
-  format: ValueFormat | undefined,
+  style: ValueStyle,
   noun: string
 ) {
   if (value === null || !Number.isFinite(value)) return 'no data'
-  return `${formatValue(value, fullFormat(format))} ${noun}`
+  return `${fullValue(style, value)} ${noun}`
 }
 
 // Without a format, a numeric x reads as written, so a year stays 2024.
@@ -37,17 +32,17 @@ export function trendSentence({
   last,
   from,
   to,
-  format
+  style
 }: {
   noun: string
   first: number
   last: number
   from: string
   to: string
-  format?: ValueFormat
+  style: ValueStyle
 }) {
   const verb = last > first ? 'rose' : last < first ? 'fell' : 'held'
-  const value = (v: number) => formatValue(v, fullFormat(format))
+  const value = (v: number) => fullValue(style, v)
   return verb === 'held'
     ? `${noun} held at ${value(last)} between ${from} and ${to}`
     : `${noun} ${verb} from ${value(first)} to ${value(last)} between ${from} and ${to}`
@@ -91,3 +86,9 @@ export function plural(noun: string) {
 /** The noun that goes with a count: "1 ticket", "2 tickets". */
 export const nounFor = (count: number, noun: string) =>
   count === 1 ? singular(noun) : plural(noun)
+
+/** Lowercases the first letter to run on in a sentence, unless it opens an acronym. */
+export const lowerFirst = (text: string) =>
+  /^[A-Z][A-Z\d]+s?\b/.test(text)
+    ? text
+    : text.charAt(0).toLowerCase() + text.slice(1)

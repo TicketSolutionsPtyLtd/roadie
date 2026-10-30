@@ -12,20 +12,20 @@ export type DateContext = 'standalone' | 'list'
  * How much of the date is spelled out. Each step drops one thing.
  *
  * - `full`   Friday, 27 November 2026
- * - `long`   Fri 27 Nov 2026 — the default
- * - `medium` 27 Nov 2026 — drops the weekday
- * - `short`  27 Nov — never carries a year
- * - `iso`    2026-11-27 — exports and filenames, never shown to a customer
+ * - `long`   Fri 27 Nov 2026 (the default)
+ * - `medium` 27 Nov 2026 (drops the weekday)
+ * - `short`  27 Nov (never carries a year)
+ * - `iso`    2026-11-27 (exports and filenames, never shown to a customer)
  */
 export type DateStyle = 'full' | 'long' | 'medium' | 'short' | 'iso'
 
 /**
  * The same ladder as `DateStyle`. Omit for no time at all.
  *
- * - `long`    7:30pm AEDT — the reader may be in another zone
- * - `medium`  7:30pm — the default, drops the zone
- * - `short`   7:30pm, 7pm — drops the zero minutes
- * - `numeric` 19:30 — data contexts only, never prose
+ * - `long`    7:30pm AEDT (the reader may be in another zone)
+ * - `medium`  7:30pm (the default, drops the zone)
+ * - `short`   7:30pm, 7pm (drops the zero minutes)
+ * - `numeric` 19:30 (data contexts only, never prose)
  */
 export type TimeStyle = 'long' | 'medium' | 'short' | 'numeric'
 
@@ -162,17 +162,27 @@ function zoneParts(
   const date = toDate(value)
   if (Number.isNaN(date.getTime())) return null
   try {
-    const long = dateTimeFormat(locale, {
-      timeZone,
-      weekday: 'long',
-      month: 'long'
-    }).formatToParts(date)
-
-    const short = dateTimeFormat(locale, {
-      timeZone,
-      weekday: 'short',
-      month: 'short'
-    }).formatToParts(date)
+    // Gregorian, so the names match the day and year read below (fa and ps
+    // default to the Persian calendar).
+    const words = (options: Intl.DateTimeFormatOptions) =>
+      dateTimeFormat(locale, { timeZone, calendar: 'gregory', ...options })
+    const long = words({ weekday: 'long' }).formatToParts(date)
+    const short = words({ weekday: 'short' }).formatToParts(date)
+    // A month on its own: the standalone form, and ja's 月, which Intl puts
+    // in a literal after the month. dz's literal before it would double the
+    // long name's prefix.
+    const month = (style: 'long' | 'short') => {
+      const parts = words({ month: style }).formatToParts(date)
+      const at = parts.findIndex((p) => p.type === 'month')
+      return at < 0
+        ? ''
+        : parts
+            .slice(at)
+            .map((p) => p.value)
+            .join('')
+    }
+    const monthLong = month('long')
+    const monthShort = month('short')
 
     // Latin digits. Reading numbers from the localised pass yields '٢٧' under
     // ar-EG, which Number() turns into NaN.
@@ -204,8 +214,8 @@ function zoneParts(
       weekdayLong: pick(long, 'weekday'),
       weekdayShort: trimAbbreviation(pick(short, 'weekday')),
       day,
-      monthLong: pick(long, 'month'),
-      monthShort: trimAbbreviation(pick(short, 'month')),
+      monthLong,
+      monthShort: trimAbbreviation(monthShort),
       monthNumber,
       year,
       hour,

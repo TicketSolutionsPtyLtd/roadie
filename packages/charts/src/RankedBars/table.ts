@@ -2,6 +2,7 @@ import type { TableRow } from '@oztix/roadie-core/dashboard'
 
 import type { ChartTable } from '../Chart'
 import { fieldLabel, valueColumn, xColumn } from '../plot/table'
+import { shareStyle } from '../plot/values'
 import { rankRows } from './rank'
 import type { RankedBarsProps } from './types'
 
@@ -13,11 +14,9 @@ export function rankedBarsTable(props: RankedBarsProps): ChartTable {
   const reference = props.reference
   const columns = [
     xColumn(props.x),
-    valueColumn(props.y, fieldLabel(props.y), props.format),
-    ...(props.share ? [valueColumn(SHARE, 'Share', 'percent')] : []),
-    ...(reference
-      ? [valueColumn(reference.field, reference.label, props.format)]
-      : [])
+    valueColumn(props.y, fieldLabel(props.y), props),
+    ...(props.share ? [valueColumn(SHARE, 'Share', shareStyle(props))] : []),
+    ...(reference ? [valueColumn(reference.field, reference.label, props)] : [])
   ]
   return {
     columns,

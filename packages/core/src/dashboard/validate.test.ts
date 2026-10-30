@@ -262,6 +262,74 @@ describe('validateDashboard with chart plots', () => {
     )
   })
 
+  it.each(['line', 'bar'] as const)(
+    'checks the %s comparison field',
+    (kind) => {
+      expect(
+        paths(
+          spec([
+            chartCard({
+              kind,
+              data: rows,
+              x: 'day',
+              y: 'sold',
+              comparison: { y: 'lastPeriod' }
+            })
+          ])
+        )
+      ).toContain('sections[0].cards[0].plot.comparison.y')
+    }
+  )
+
+  it('warns on a line comparison with series, which the chart ignores', () => {
+    const result = validateDashboard(
+      spec([
+        chartCard({
+          kind: 'line',
+          data: rows.map((row) => ({ ...row, type: 'GA', lastPeriod: 1 })),
+          x: 'day',
+          y: 'sold',
+          series: 'type',
+          comparison: { y: 'lastPeriod' }
+        })
+      ])
+    )
+    expect(result.problems).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.comparison',
+        severity: 'warning'
+      })
+    )
+  })
+
+  it.each([
+    ['line', 'day'],
+    ['line', 'sold'],
+    ['bar', 'day'],
+    ['bar', 'sold']
+  ] as const)(
+    'warns on a %s comparison against its own %s, which the chart ignores',
+    (kind, field) => {
+      const result = validateDashboard(
+        spec([
+          chartCard({
+            kind,
+            data: rows,
+            x: 'day',
+            y: 'sold',
+            comparison: { y: field }
+          })
+        ])
+      )
+      expect(result.problems).toContainEqual(
+        expect.objectContaining({
+          path: 'sections[0].cards[0].plot.comparison.y',
+          severity: 'warning'
+        })
+      )
+    }
+  )
+
   it('needs a table for a static plot', () => {
     expect(
       paths(spec([chartCard({ kind: 'static', src: '/a.svg', alt: 'Pace' })]))
@@ -567,6 +635,104 @@ describe('validateDashboard checks every chart plot kind', () => {
     ).toContain('sections[0].cards[0].plot.chart.y')
   })
 
+  it.each([
+    [
+      'line.y',
+      { kind: 'bar', x: 'day', y: 'sold', line: { y: 'rate', label: 'Rate' } }
+    ],
+    [
+      'comparison.y',
+      { kind: 'bar', x: 'day', y: 'sold', comparison: { y: 'lastPeriod' } }
+    ],
+    [
+      'comparison.y',
+      { kind: 'line', x: 'day', y: 'sold', comparison: { y: 'lastPeriod' } }
+    ],
+    ['series', { kind: 'line', x: 'day', y: 'sold', series: 'type' }],
+    [
+      'band.low',
+      { kind: 'line', x: 'day', y: 'sold', band: { low: 'low', high: 'sold' } }
+    ],
+    [
+      'band.high',
+      { kind: 'line', x: 'day', y: 'sold', band: { low: 'sold', high: 'high' } }
+    ],
+    [
+      'band.median',
+      {
+        kind: 'line',
+        x: 'day',
+        y: 'sold',
+        band: { low: 'sold', high: 'sold', median: 'median' }
+      }
+    ],
+    [
+      'forecast.low',
+      {
+        kind: 'line',
+        x: 'day',
+        y: 'sold',
+        forecast: { from: '2026-10-01', low: 'low', high: 'sold' }
+      }
+    ],
+    [
+      'forecast.high',
+      {
+        kind: 'line',
+        x: 'day',
+        y: 'sold',
+        forecast: { from: '2026-10-01', low: 'sold', high: 'high' }
+      }
+    ]
+  ] as const)('small-multiples: names a missing panel %s', (key, chart) => {
+    const venueRows = [
+      { venue: 'Kazoo Hollow Room', day: '2026-10-01', sold: 120 },
+      { venue: 'Antler Kettle Hall', day: '2026-10-02', sold: 90 }
+    ]
+    expect(
+      paths(
+        spec([
+          chartCard({
+            kind: 'small-multiples',
+            data: venueRows,
+            by: 'venue',
+            chart
+          })
+        ])
+      )
+    ).toContain(`sections[0].cards[0].plot.chart.${key}`)
+  })
+
+  it('warns on a small-multiples line panel with comparison and series', () => {
+    const result = validateDashboard(
+      spec([
+        chartCard({
+          kind: 'small-multiples',
+          data: rows.map((row) => ({
+            ...row,
+            venue: 'Kazoo Hollow Room',
+            type: 'GA',
+            lastPeriod: 1
+          })),
+          by: 'venue',
+          chart: {
+            kind: 'line',
+            x: 'day',
+            y: 'sold',
+            series: 'type',
+            comparison: { y: 'lastPeriod' }
+          }
+        })
+      ])
+    )
+    expect(result.problems).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.chart.comparison',
+        severity: 'warning'
+      })
+    )
+  })
+
   it('static: valid passes with a table, invalid needs a table', () => {
     expect(
       validateDashboard(
@@ -627,6 +793,41 @@ describe('validateDashboard checks annotations against the data', () => {
         path: 'sections[0].cards[0].plot.annotations[0].at'
       })
     ])
+  })
+
+  it.each([
+    ['first', '2026-08-03T08:00'],
+    ['last', '2026-08-03T11:00']
+  ])(
+    'warns on a stacked area annotation at a %s time with no value, which the chart drops',
+    (_, at) => {
+      expect(
+        problemsAt({
+          kind: 'stacked-area',
+          data: [
+            { time: '2026-08-03T08:00', orders: null, gate: 'Main' },
+            ...hourly.map((row) => ({ ...row, gate: 'Main' })),
+            { time: '2026-08-03T11:00', orders: 300, gate: '' }
+          ],
+          x: 'time',
+          y: 'orders',
+          series: 'gate',
+          annotations: [{ at, label: 'Presale' }]
+        })
+      ).toHaveLength(1)
+    }
+  )
+
+  it('accepts a line annotation at a first time with no value, which the line keeps', () => {
+    expect(
+      problemsAt({
+        kind: 'line',
+        data: [{ time: '2026-08-03T08:00', orders: null }, ...hourly],
+        x: 'time',
+        y: 'orders',
+        annotations: [{ at: '2026-08-03T08:00', label: 'Presale' }]
+      })
+    ).toEqual([])
   })
 
   it('warns on a date outside hourly data', () => {
@@ -707,6 +908,35 @@ describe('validateDashboard checks annotations against the data', () => {
       ])
     )
   })
+
+  it.each([
+    ['warns on', '2026-09-10', 1],
+    ['accepts', '2026-09-02', 0],
+    ['accepts', '2026-09-21', 0]
+  ] as const)(
+    '%s a small multiples annotation at %s, by whether a panel places it',
+    (_, at, warnings) => {
+      const days = (gate: string, from: number) =>
+        [0, 1, 2].map((d) => ({
+          gate,
+          day: `2026-09-${String(from + d).padStart(2, '0')}`,
+          scans: 10 + d
+        }))
+      expect(
+        problemsAt({
+          kind: 'small-multiples',
+          data: [...days('North gate', 1), ...days('South gate', 20)],
+          by: 'gate',
+          chart: {
+            kind: 'line',
+            x: 'day',
+            y: 'scans',
+            annotations: [{ at, label: 'Gates open' }]
+          }
+        })
+      ).toHaveLength(warnings)
+    }
+  )
 })
 
 describe('validateDashboard checks repeated names', () => {
@@ -728,6 +958,23 @@ describe('validateDashboard checks repeated names', () => {
       message: 'Step labels must differ. "Paid" repeats',
       severity: 'error'
     })
+  })
+
+  it('asks for a limit when ranked bars leave Other off', () => {
+    const plot = {
+      kind: 'ranked-bars',
+      data: [{ channel: 'Email', orders: 5 }],
+      x: 'channel',
+      y: 'orders'
+    }
+    expect(problemsOf({ ...plot, other: false })).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.limit',
+        severity: 'warning'
+      })
+    )
+    expect(problemsOf({ ...plot, other: false, limit: 5 })).toEqual([])
+    expect(problemsOf(plot)).toEqual([])
   })
 
   it('warns that repeated ranked names add up', () => {

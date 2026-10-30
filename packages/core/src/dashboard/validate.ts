@@ -109,11 +109,13 @@ export function plotFields(plot: ChartPlot): FieldRef[] {
       add('band.median', plot.band?.median)
       add('forecast.low', plot.forecast?.low)
       add('forecast.high', plot.forecast?.high)
+      add('comparison.y', plot.comparison?.y)
       break
     case 'bar':
       add('x', plot.x)
       add('y', plot.y)
       add('line.y', plot.line?.y)
+      add('comparison.y', plot.comparison?.y)
       break
     case 'ranked-bars':
       add('x', plot.x)
@@ -142,8 +144,8 @@ export function plotFields(plot: ChartPlot): FieldRef[] {
       break
     case 'small-multiples':
       add('by', plot.by)
-      add('chart.x', plot.chart.x)
-      add('chart.y', plot.chart.y)
+      for (const ref of plotFields({ ...plot.chart, data: plot.data }))
+        add(`chart.${ref.key}`, ref.field)
       break
     case 'funnel':
       break
@@ -178,6 +180,22 @@ function minMax(values: readonly number[]): [number, number] {
   return [min, max]
 }
 
+// A stacked area drops a row with no value or series, so its x span comes from
+// the rest; lines and bars keep a slot for a missing value.
+const drawnRows = (chart: AnnotatedChart, data: readonly PlotRow[]) =>
+  chart.kind === 'stacked-area'
+    ? data.filter((row) => {
+        const y = row[chart.y]
+        const series = row[chart.series]
+        return (
+          typeof y === 'number' &&
+          Number.isFinite(y) &&
+          series != null &&
+          String(series) !== ''
+        )
+      })
+    : data
+
 // Mirrors how the charts place annotations: by wall time on a time axis, where
 // a bar covers its whole interval, and by exact value otherwise.
 function annotationFits(
@@ -185,7 +203,9 @@ function annotationFits(
   chart: AnnotatedChart,
   data: readonly PlotRow[]
 ) {
-  const xs = data.map((row) => row[chart.x]).filter((v) => v != null)
+  const xs = drawnRows(chart, data)
+    .map((row) => row[chart.x])
+    .filter((v) => v != null)
   if (xs.length === 0) return true
   if (xs.every(isWallTime)) {
     const time = parseWallTime(at)
@@ -203,16 +223,37 @@ function annotationFits(
   return typeof at === 'number' && at >= low && at <= high
 }
 
+// Small multiples draw each panel from its own rows, so an annotation needs one
+// panel that places it, not just a place somewhere in all the data.
+function panelRows(data: readonly PlotRow[], by: string) {
+  const panels = new Map<string, PlotRow[]>()
+  for (const row of data) {
+    const key = row[by]
+    if (key == null) continue
+    const rows = panels.get(String(key)) ?? []
+    rows.push(row)
+    panels.set(String(key), rows)
+  }
+  return [...panels.values()]
+}
+
+const fitsAnyPanel = (
+  at: string | number,
+  chart: AnnotatedChart,
+  panels: readonly (readonly PlotRow[])[]
+) =>
+  panels.length === 0 || panels.some((rows) => annotationFits(at, chart, rows))
+
 function annotationProblems(
   chart: AnnotatedChart,
-  data: readonly PlotRow[],
+  panels: readonly (readonly PlotRow[])[],
   path: string
 ) {
   return (chart.annotations ?? []).flatMap((annotation, i) => {
     const at = `${path}.annotations[${i}]`
     return [
       ...copyProblems(at, 'label', annotation.label),
-      ...(annotationFits(annotation.at, chart, data)
+      ...(fitsAnyPanel(annotation.at, chart, panels)
         ? []
         : [
             warning(
@@ -448,6 +489,37 @@ function plotProblems(plot: ChartPlot, path: string) {
         `${count} series. The smallest will roll into Other after ${SERIES_CAP}`
       )
     )
+  if (
+    plot.kind === 'ranked-bars' &&
+    plot.other === false &&
+    plot.limit === undefined
+  )
+    problems.push(
+      warning(
+        `${plotPath}.limit`,
+        'Set limit too, so the label can say how many bars show'
+      )
+    )
+  const chart = plot.kind === 'small-multiples' ? plot.chart : plot
+  const chartPath =
+    plot.kind === 'small-multiples' ? `${plotPath}.chart` : plotPath
+  if (chart.kind === 'line' && chart.comparison && chart.series)
+    problems.push(
+      warning(
+        `${chartPath}.comparison`,
+        'A comparison draws only on a single series, so the chart leaves it out. Drop series or comparison'
+      )
+    )
+  if (
+    (plot.kind === 'line' || plot.kind === 'bar') &&
+    (plot.comparison?.y === plot.x || plot.comparison?.y === plot.y)
+  )
+    problems.push(
+      warning(
+        `${plotPath}.comparison.y`,
+        `"${plot.comparison.y}" is the chart's own x or y, so the chart leaves the comparison out. Name another field`
+      )
+    )
   problems.push(...copyProblems(plotPath, 'takeaway', plot.takeaway))
   problems.push(...duplicateProblems(plot, plotPath))
   if (
@@ -455,10 +527,14 @@ function plotProblems(plot: ChartPlot, path: string) {
     plot.kind === 'bar' ||
     plot.kind === 'stacked-area'
   )
-    problems.push(...annotationProblems(plot, plot.data, plotPath))
+    problems.push(...annotationProblems(plot, [plot.data], plotPath))
   if (plot.kind === 'small-multiples')
     problems.push(
-      ...annotationProblems(plot.chart, plot.data, `${plotPath}.chart`)
+      ...annotationProblems(
+        plot.chart,
+        panelRows(plot.data, plot.by),
+        `${plotPath}.chart`
+      )
     )
   return problems
 }

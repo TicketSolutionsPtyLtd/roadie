@@ -34,7 +34,7 @@ export default defineConfig(({ watch }) => ({
   entry: [
     'src/**/*.{ts,tsx}',
     '!**/*.test.{ts,tsx}',
-    '!**/testUtils.{ts,tsx}',
+    '!**/{testUtils,*TestUtils}.{ts,tsx}',
     '!**/paneColumns.ts',
     '!**/renderCounter.ts'
   ],
@@ -59,7 +59,13 @@ export default defineConfig(({ watch }) => ({
   outDir: 'dist',
   outExtensions: () => ({ js: '.js' }),
   plugins: [babel({ presets: [reactCompilerPreset] })],
+  // Pragmatic drag and drop ships folder subpaths and extensionless imports
+  // with no `exports` map, which Node's ESM loader rejects, so it's bundled.
+  // Its folders point at the ESM build through `module`, which the neutral
+  // platform doesn't read by default.
+  inputOptions: { resolve: { mainFields: ['module', 'main'] } },
   deps: {
+    alwaysBundle: [/^@atlaskit\//],
     neverBundle: [
       'react',
       'react-dom',

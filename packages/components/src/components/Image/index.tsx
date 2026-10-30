@@ -46,7 +46,7 @@ function buildSrcSet(
   opts: OztixImageOptions
 ): string | undefined {
   if (width == null || width <= 0 || !isOztixImageUrl(src)) return undefined
-  // Cap at the proxy's 4000px limit — larger candidates are dropped server-side.
+  // Cap at the proxy's 4000px limit; larger candidates are dropped server-side.
   const ladder = [
     ...new Set(
       (widths ?? [width, width * 2])
@@ -66,7 +66,7 @@ function buildSrcSet(
     .join(', ')
 }
 
-/** A breakpoint-specific `<source>` for art direction — a different URL/crop per media query. */
+/** A breakpoint-specific `<source>` for art direction: a different URL/crop per media query. */
 export type ImageSource = {
   /** `<source media>` query, e.g. `'(max-width: 767px)'`. */
   media: string

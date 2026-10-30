@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 
 import { labelWidth } from '../plot/categoryLabels'
 import { plotFrame } from '../plot/frame'
@@ -83,5 +83,40 @@ describe('renderSmallMultiplesSvg with nothing to split', () => {
     )
     expect(svg).toContain('aria-label="Nothing to show for this period yet"')
     expect(svg).toContain('>Nothing to show for this period yet<')
+  })
+})
+
+describe('renderSmallMultiplesSvg with an annotation', () => {
+  const days = (gate: string, from: number) =>
+    [0, 1, 2].map((d) => ({
+      gate,
+      day: `2026-09-${String(from + d).padStart(2, '0')}`,
+      scans: 10 + d
+    }))
+  const warningsFor = (at: string) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
+    renderSmallMultiplesSvg(
+      {
+        data: [...days('North gate', 1), ...days('South gate', 20)],
+        by: 'gate',
+        chart: {
+          kind: 'line',
+          x: 'day',
+          y: 'scans',
+          annotations: [{ at, label: 'Gates open' }]
+        }
+      },
+      { mode: 'light', width: 640 }
+    )
+    return warn
+  }
+
+  it('on one panel says nothing about the panels it misses', () => {
+    expect(warningsFor('2026-09-02')).not.toHaveBeenCalled()
+  })
+
+  it('on no panel warns that it will not show', () => {
+    expect(warningsFor('2026-09-10')).toHaveBeenCalledTimes(1)
   })
 })

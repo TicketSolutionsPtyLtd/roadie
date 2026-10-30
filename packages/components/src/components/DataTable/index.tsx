@@ -21,6 +21,7 @@ import {
 export type DataTableColumn = TableColumn
 export type DataTableRow = TableRow
 export type DataTableTotals = true | TableTotals
+export type DataTableRecordName = RecordName
 export type { DataTableExpanded, DataTableSort, DataTableSortDirection }
 export { sortDataTableRows } from './sort'
 

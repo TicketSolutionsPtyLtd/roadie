@@ -474,7 +474,7 @@ describe('CartDrawer', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Remove' }))
 
     expect(await screen.findByText('Network down')).toBeInTheDocument()
-    // Row still mounted — remove is non-optimistic.
+    // Row still mounted: remove is non-optimistic.
     expect(screen.getByText('Night Show')).toBeInTheDocument()
     const body = document.getElementById('cart-drawer-body')!
     await waitFor(() => expect(body).toHaveAttribute('aria-busy', 'false'))

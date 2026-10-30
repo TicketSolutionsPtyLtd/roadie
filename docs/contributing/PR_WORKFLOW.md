@@ -85,7 +85,11 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   with a docs page of its own. An import path in brackets can follow a
   name. Then a comma and what it is, which becomes the card's description:
   "Add `Calendar` (`@oztix/roadie-components/calendar`), a month grid for
-  choosing a date." A new package opens "First release of
+  choosing a date." After the names, only a comma or other punctuation,
+  "component", "compound", or "for" keeps it a card. Anything else reads
+  as a part of the component, so "Add `Badge` `tag` variant." and "Add
+  `Badge` support for icons." list as changes.
+  A new package opens "First release of
   `@oztix/roadie-name`", with a paragraph after that sentence to describe
   it, and needs entries in `RELEASED_PACKAGES` and `PACKAGE_PAGES` in
   `docs/src/lib/releases.ts`. CI warns when a changeset misses a card
@@ -152,6 +156,20 @@ Every PR is checked against these before review. Fix every real hit.
   touched package that has one (`pnpm --filter <package> size`; `docs`
   has none).
 - Rebuild before browser tests; stale `dist` misleads the `:has()` guard.
+- **Docs e2e tests** (`docs/e2e/`) drive the static export in `docs/out`
+  with Playwright, so build the docs first, with the base path CI uses, and
+  pass the same base path to the tests:
+
+  ```bash
+  NEXT_PUBLIC_BASE_PATH=/roadie pnpm turbo build --filter=docs
+  NEXT_PUBLIC_BASE_PATH=/roadie pnpm --filter docs test:e2e
+  ```
+
+  They run in Chromium; set `E2E_BROWSER=firefox` or `E2E_BROWSER=webkit`
+  for another engine (`pnpm exec playwright install <engine>` once). Add a
+  file path after `test:e2e` to run one file. Rebuild after any change the
+  tests read, since they never see your source, only `out`.
+
 - **Keep the machine cool.** Check `uptime` before starting an agent, and
   wait while the 1-minute load is above the core count. Run tests with
   `pnpm test:gated <package>`, never vitest or `pnpm test` directly. It

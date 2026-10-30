@@ -8,6 +8,8 @@ import { Chart } from '.'
 import { CHART_TEXTURE_COUNT } from '../ChartPatterns'
 import { LineChart } from '../LineChart'
 import { paceExample } from '../LineChart/examples'
+import { ChartPlot } from '../plot/ChartPlot'
+import { brokenChart, testPoints } from '../plot/testChart'
 import { ChartCardContext } from './context'
 
 const textureCount = (container: HTMLElement, slot: number) =>
@@ -315,6 +317,88 @@ describe('Chart with a reporting plot', () => {
   })
 })
 
+describe('Chart when its plot cannot draw', () => {
+  const card = (
+    <Chart label='Tickets sold' source='Oztix sales.' size='md'>
+      <ChartPlot chart={brokenChart} props={{ points: testPoints }} />
+    </Chart>
+  )
+  const stateOf = (root: ParentNode) => {
+    // The plot's own state names its slot; the card's keeps EmptyState's.
+    const empty = root.querySelector(
+      '[data-slot=chart-error], [data-slot=empty-state]'
+    )
+    return {
+      text: empty?.textContent,
+      danger: empty?.classList.contains('intent-danger'),
+      tile: !!empty?.querySelector('[data-slot=empty-state-icon-tile]')
+    }
+  }
+
+  it('shows the same error before and after hydration, with no flash', () => {
+    const server = document.createElement('div')
+    server.innerHTML = renderToString(card)
+    render(card)
+    expect(stateOf(server)).toEqual({
+      text: "This chart couldn't be drawn",
+      danger: true,
+      tile: true
+    })
+    expect(stateOf(document.body)).toEqual(stateOf(server))
+  })
+})
+
+describe('Chart whose plot failed, then whose data failed', () => {
+  it("shows the app's error message over the draw error", () => {
+    const plot = (
+      <ChartPlot chart={brokenChart} props={{ points: testPoints }} />
+    )
+    const { rerender } = render(
+      <Chart label='Tickets sold' source='Oztix sales.' size='md'>
+        {plot}
+      </Chart>
+    )
+    expect(screen.getByText("This chart couldn't be drawn")).toBeVisible()
+    rerender(
+      <Chart
+        label='Tickets sold'
+        source='Oztix sales.'
+        size='md'
+        state='error'
+        errorMessage='Sales are offline'
+      >
+        {plot}
+      </Chart>
+    )
+    expect(screen.getByText('Sales are offline')).toBeVisible()
+  })
+
+  it('shows loading while the app refetches', () => {
+    const plot = (
+      <ChartPlot chart={brokenChart} props={{ points: testPoints }} />
+    )
+    const { rerender } = render(
+      <Chart label='Tickets sold' source='Oztix sales.' size='md'>
+        {plot}
+      </Chart>
+    )
+    rerender(
+      <Chart
+        label='Tickets sold'
+        source='Oztix sales.'
+        size='md'
+        state='loading'
+      >
+        {plot}
+      </Chart>
+    )
+    expect(document.querySelector('[data-slot=data-card]')).toHaveAttribute(
+      'data-state',
+      'loading'
+    )
+  })
+})
+
 describe('Chart when its plot throws', () => {
   function Broken(): never {
     throw new Error('No scale range')
@@ -335,7 +419,7 @@ describe('Chart when its plot throws', () => {
       'data-state',
       'error'
     )
-    expect(screen.getByText(/We couldn't load tickets sold/)).toBeVisible()
+    expect(screen.getByText("This chart couldn't be drawn")).toBeVisible()
     expect(screen.getByText('Rest of the dashboard')).toBeInTheDocument()
   })
 

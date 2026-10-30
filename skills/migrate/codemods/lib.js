@@ -329,12 +329,16 @@ export function reporter(api) {
   return report
 }
 
-const PROLOGUE = /^(?:\s*(['"])use [a-z ]+\1;?[ \t]*\n)+\s*/
+const PROLOGUE = /^(?:\s*(['"])use [a-z ]+\1;?[ \t]*\r?\n)+\s*/
 
 // Recast reprints the whole program when a statement is added, which drops
-// the blank line after a 'use client' directive.
+// the blank line after a 'use client' directive. It also ends lines the OS
+// way unless told, so a file keeps its own line endings.
 export function print(root, source) {
-  const output = root.toSource({ quote: 'single' })
+  const output = root.toSource({
+    quote: 'single',
+    lineTerminator: source.includes('\r\n') ? '\r\n' : '\n'
+  })
   const before = PROLOGUE.exec(source)
   const after = PROLOGUE.exec(output)
   return before && after ? before[0] + output.slice(after[0].length) : output

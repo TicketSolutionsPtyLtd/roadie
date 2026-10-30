@@ -20,7 +20,7 @@ type StepsItemInternalProps = StepsItemProps & {
 
 export function StepsItem({ className, invalid, ...props }: StepsItemProps) {
   // Ark UI's types lose `index` in the HTMLProps intersection (upstream bug).
-  // Cast is safe — index is required by the Zag.js state machine at runtime.
+  // Cast is safe: index is required by the Zag.js state machine at runtime.
   const Item = ArkSteps.Item as React.ComponentType<
     Omit<StepsItemInternalProps, 'invalid'>
   >

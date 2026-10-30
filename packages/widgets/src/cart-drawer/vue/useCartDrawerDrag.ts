@@ -74,7 +74,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
 
   // Spring the height like the React skin (same damping/stiffness) instead of
   // an instant set + CSS transition. Driving the ref each frame means `progress`
-  // — and every progress-derived surface — ramps with the spring rather than
+  // (and every progress-derived surface) ramps with the spring rather than
   // snapping 0↔1 on toggle.
   let heightAnim: AnimationPlaybackControls | null = null
   const stopHeightAnim = () => {
@@ -167,7 +167,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
       cancelRaf()
     }
 
-    // (Re)observe ONLY a genuinely new element — re-observing on every render
+    // (Re)observe ONLY a genuinely new element: re-observing on every render
     // fires the callback and recurses into a freeze. Null teardown is handled
     // by disconnect() in onScopeDispose, so ignoring null calls won't leak.
     const setElement = (el: HTMLElement | null) => {
@@ -221,7 +221,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     motionQuery?.removeEventListener('change', onMotionChange)
   })
 
-  // Imperative state set (no spring) — mirrors React's layout-effect snap.
+  // Imperative state set (no spring). Mirrors React's layout-effect snap.
   const setState = (next: 'open' | 'closed') => {
     state.value = next
     stopHeightAnim()
@@ -254,7 +254,7 @@ export function useCartDrawerDrag(opts: Options = {}): UseCartDrawerDragReturn {
     let lastTime = Date.now()
     let velocity = 0
     isDragging.value = true
-    // Hand the height over to the pointer — cancel any in-flight snap spring.
+    // Hand the height over to the pointer: cancel any in-flight snap spring.
     stopHeightAnim()
 
     const detach = () => {

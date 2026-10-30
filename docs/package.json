@@ -16,8 +16,8 @@
     "start": "next start",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "lint": "oxlint --report-unused-disable-directives-severity=warn . && eslint '**/*.{md,mdx}'",
-    "lint:fix": "oxlint --report-unused-disable-directives-severity=warn --fix . && eslint '**/*.{md,mdx}' --fix",
+    "lint": "oxlint --report-unused-disable-directives-severity=warn . && eslint \"**/*.{md,mdx}\"",
+    "lint:fix": "oxlint --report-unused-disable-directives-severity=warn --fix . && eslint \"**/*.{md,mdx}\" --fix",
     "typecheck": "tsc --noEmit && tsc --noEmit -p scripts"
   },
   "dependencies": {

@@ -14,12 +14,12 @@ describe('lockBodyScroll (Vue) — refcounted body scroll lock', () => {
     const release2 = lockBodyScroll()
     expect(document.body.style.overflow).toBe('hidden')
 
-    // First holder releases — a second holder is still active, so the body
+    // First holder releases. A second holder is still active, so the body
     // MUST stay locked. (This is the composition the inlined save/restore broke.)
     release1()
     expect(document.body.style.overflow).toBe('hidden')
 
-    // Last holder releases — now the body unlocks.
+    // Last holder releases. Now the body unlocks.
     release2()
     expect(document.body.style.overflow).toBe('')
   })

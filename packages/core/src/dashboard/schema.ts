@@ -2,13 +2,14 @@ import { z } from 'zod'
 
 import { dateRangeSchemas } from '../datetime/rangeSchema'
 import { STATUS_INTENTS } from './cells'
-import { goodWhen, valueFormat } from './fields'
+import { goodWhen, valueFormat, valueFormatOptions } from './fields'
 import { CARD_SIZES, CARD_STATES, COLUMN_KINDS } from './layout'
 import { plotSchema } from './plots'
 
 const delta = z.strictObject({
   value: z.number(),
   format: valueFormat.optional(),
+  ...valueFormatOptions,
   goodWhen: goodWhen.optional(),
   baseline: z.number().optional(),
   /** Compares with the dashboard's period comparison, and follows it. */
@@ -26,6 +27,7 @@ const column = z.strictObject({
   header: z.string().min(1),
   kind: z.enum(COLUMN_KINDS),
   format: valueFormat.optional(),
+  ...valueFormatOptions,
   goodWhen: goodWhen.optional(),
   baseline: z.number().optional(),
   target: z.number().optional(),
@@ -82,6 +84,7 @@ const base = {
 const headline = {
   value: z.union([z.number(), z.string()]).optional(),
   format: valueFormat.optional(),
+  ...valueFormatOptions,
   delta: delta.optional(),
   takeaway: z.string().optional()
 }
@@ -91,6 +94,7 @@ const statCard = z.strictObject({
   kind: z.literal('stat'),
   value: z.union([z.number(), z.string()]),
   format: valueFormat.optional(),
+  ...valueFormatOptions,
   delta: delta.optional(),
   trend: z.array(z.number()).optional(),
   reference: z

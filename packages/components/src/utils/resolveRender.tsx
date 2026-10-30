@@ -15,14 +15,14 @@ import { cn } from '@oztix/roadie-core/utils'
  * Roadie surface, regardless of whether the underlying primitive is
  * Base UI or in-house.
  *
- * - **Element form:** `<a href='/x' className='extra' />` — swap the
+ * - **Element form:** `<a href='/x' className='extra' />`: swap the
  *   underlying tag, optionally with extra props that merge with the
  *   component's defaults.
- * - **Component form:** `<NextLink href='/x' />` — swap the rendered
+ * - **Component form:** `<NextLink href='/x' />`: swap the rendered
  *   component entirely. The component must accept the props the
  *   default element would have received.
  * - **Function form:** `(defaultProps) => <a {...defaultProps} data-x />`
- *   — full control with the default props in hand.
+ *   for full control with the default props in hand.
  */
 export type RoadieRenderProp<P = Record<string, unknown>> =
   | ReactElement
@@ -99,7 +99,7 @@ function mergeProps(defaults: AnyProps, overrides: AnyProps): AnyProps {
  * (Card, Breadcrumb.Link, Carousel.TitleLink) so they behave
  * consistently with Base UI consumers like Button and Tabs.Tab.
  *
- * **This is not a React hook** — it never calls hooks internally and is
+ * **This is not a React hook**: it never calls hooks internally and is
  * safe to call inside conditional branches. Named without the `use`
  * prefix on purpose, so `eslint-plugin-react-hooks` and the rules of
  * hooks don't apply to call sites.
@@ -123,6 +123,6 @@ export function resolveRender<P extends AnyProps>(
     return cloneElement(render, merged)
   }
 
-  // Fallback — shouldn't be reachable with proper typing.
+  // Fallback: shouldn't be reachable with proper typing.
   return createElement(defaultElement, defaultProps)
 }

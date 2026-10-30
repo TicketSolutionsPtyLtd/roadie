@@ -7,7 +7,7 @@ export interface ExpiryWatcher {
 
 /**
  * Poll until `expiresAtUtc` reaches the expired state, then fire `onExpire`
- * exactly once. Returns a stop handle. Pure scheduling — both skins wire it to
+ * exactly once. Returns a stop handle. Pure scheduling: both skins wire it to
  * their lifecycle (React effect cleanup / Vue onBeforeUnmount) and recreate it
  * when the expiry changes, which resets the once-latch.
  *

@@ -68,7 +68,8 @@ runRuleCases({
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon />",
       "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.MenuItem icon={<HeartIcon />} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <Button icon={custom ?? <HeartIcon />} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={render(<HeartIcon />)} />"
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={render(<HeartIcon />)} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={x ? <HeartIcon weight='thin' /> : null} />"
     ]
   }
 })

@@ -22,14 +22,7 @@ export const quarantined: Quarantined[] = [
     file: 'packages/components/src/components/Calendar/Calendar.browser.test.tsx',
     test: 'Calendar dragged with a mouse > still chooses a range by clicks, with its preview',
     why: 'No data-range-preview right after the hover, on #283 and #290',
-    ticket: 'https://oztix.atlassian.net/browse/INNO-1043'
-  },
-  {
-    browser: 'webkit',
-    file: 'packages/components/src/components/Select/Select.browser.test.tsx',
-    test: 'Select options on a touch screen > still highlight the option a keyboard moves to',
-    why: 'Focus stays on the trigger after ArrowDown, on #262 and #275',
-    ticket: 'https://oztix.atlassian.net/browse/INNO-1043'
+    ticket: 'https://oztix.atlassian.net/browse/INNO-1498'
   }
 ]
 

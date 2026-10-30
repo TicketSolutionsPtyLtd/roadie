@@ -355,12 +355,13 @@
     "access": "public"
   },
   "scripts": {
-    "build": "pnpm generate:exports && tsdown && pnpm check:use-client && pnpm generate:manifest && pnpm check:dts && pnpm check:exports",
+    "build": "pnpm generate:exports && tsdown && pnpm check:use-client && pnpm generate:manifest && pnpm check:dts && pnpm check:node-esm && pnpm check:exports",
     "build:quiet": "pnpm generate:exports && tsdown --log-level warn && pnpm generate:manifest",
     "generate:exports": "node scripts/generate-package-exports.mjs",
     "generate:manifest": "node ../core/scripts/manifest/generate.ts",
     "check:dts": "node scripts/check-dts.mjs",
     "check:use-client": "node ../core/scripts/check-use-client.mjs",
+    "check:node-esm": "node scripts/check-node-esm.mjs",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
     "build:spotillustration": "node scripts/svg-to-spot-illustration.cjs",
     "build:pattern": "node scripts/pattern-shapes.mjs",
@@ -390,9 +391,6 @@
     "react-dom": "^19.2.0"
   },
   "dependencies": {
-    "@atlaskit/pragmatic-drag-and-drop": "4.0.0",
-    "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "3.2.1",
-    "@atlaskit/pragmatic-drag-and-drop-hitbox": "3.0.0",
     "@number-flow/react": "0.6.2",
     "@oztix/roadie-core": "workspace:*",
     "@tanstack/react-virtual": "3.14.22",
@@ -404,6 +402,9 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@ark-ui/react": "5.39.3",
+    "@atlaskit/pragmatic-drag-and-drop": "4.0.0",
+    "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "3.2.1",
+    "@atlaskit/pragmatic-drag-and-drop-hitbox": "3.0.0",
     "@babel/core": "7.29.7",
     "@base-ui/react": "1.9.0",
     "@phosphor-icons/react": "2.1.10",
@@ -430,6 +431,7 @@
     "size-limit": "14.3.0",
     "svgo": "4.1.0",
     "tsdown": "0.23.1",
+    "typescript": "6.0.3",
     "vite": "8.3.5",
     "vitest": "5.0.5"
   },

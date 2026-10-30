@@ -92,7 +92,7 @@ export function useCartDrawerDrag(
   // Held in a ref so an unmount mid-drag can detach listeners and avoid a leak.
   const dragCleanupRef = useRef<(() => void) | null>(null)
 
-  // Only measure while fully closed — morphing sizes would inflate closedHeight.
+  // Only measure while fully closed: morphing sizes would inflate closedHeight.
   const isClosedEnoughToMeasure = useCallback(
     () => dragProgress.get() < MEASURE_PROGRESS_MAX,
     [dragProgress]

@@ -33,25 +33,26 @@ import {
 } from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
 
+import {
+  type CalendarMatchers,
+  matchesDate,
+  modifierAttribute
+} from '../../pickers/matchers'
 import { mergeRefs } from '../../utils/mergeRefs'
+import { surfaceClass, useSurface } from '../../utils/surface'
 import { useIsomorphicLayoutEffect } from '../../utils/useIsomorphicLayoutEffect'
 import { IconButton } from '../Button/IconButton'
-import { surfaceClass, useSurface } from '../Records/surface'
 import { ToggleGroup } from '../ToggleGroup'
 import { dateForKey } from './keys'
 import {
   dayLabel,
   monthLabel,
   monthNames,
+  nextAnnouncement,
   rangeLabel,
   weekCaption,
   weekdayNames
 } from './labels'
-import {
-  type CalendarMatchers,
-  matchesDate,
-  modifierAttribute
-} from './matchers'
 import {
   type CalendarDateRange,
   type CalendarMode,
@@ -777,15 +778,17 @@ export function Calendar(props: CalendarProps) {
     if (selectionMessage) messages.push(selectionMessage)
     setHeard({ mode, selectionKey, selection, month: shownMonthKey, view })
     if (toggledView) setToggledView(null)
-    if (messages.length) setAnnouncement(messages.join('. '))
+    if (messages.length) {
+      const message = messages.join('. ')
+      setAnnouncement((said) => nextAnnouncement(said, message))
+    }
   }
 
   function select(date: string) {
     if (isDayDisabled(date)) return
     if (isOutOfRange(date)) {
       const rule = lengthRule({ min, max })
-      // Changed text, so a second refusal is heard again.
-      setAnnouncement((said) => (said === rule ? `${rule}\u00a0` : rule))
+      setAnnouncement((said) => nextAnnouncement(said, rule))
       return
     }
     const next = selectDate(mode, selection, date, { required, min, max })

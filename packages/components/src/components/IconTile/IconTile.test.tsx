@@ -68,7 +68,7 @@ describe('IconTile', () => {
         <svg />
       </IconTile>
     )
-    // strong inverts its own text — no text-subtle
+    // strong inverts its own text, no text-subtle
     expect(getByTestId('tile')).not.toHaveClass('text-subtle')
 
     for (const emphasis of ['normal', 'subtle', 'subtler'] as const) {

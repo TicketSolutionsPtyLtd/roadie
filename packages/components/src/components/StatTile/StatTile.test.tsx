@@ -41,3 +41,60 @@ describe('StatTile', () => {
     )
   })
 })
+
+describe('StatTile decimal places', () => {
+  it('reads the value and an inherited delta to the card’s places', () => {
+    render(
+      <StatTile
+        label='Sold'
+        value={0.0127}
+        format='percent'
+        decimals={2}
+        delta={{ value: 0.0031 }}
+      />
+    )
+    expect(screen.getByText('1.27%')).toBeInTheDocument()
+    expect(screen.getByText(/^0\.31%$/)).toBeInTheDocument()
+  })
+
+  it('trims zeros from an inherited delta when the card does', () => {
+    render(
+      <StatTile
+        label='Gross'
+        value={3116}
+        format='currency'
+        trailingZeroDisplay='stripIfInteger'
+        delta={{ value: 200 }}
+      />
+    )
+    expect(screen.getByText('$3,116')).toBeInTheDocument()
+    expect(screen.getByText(/^\$200$/)).toBeInTheDocument()
+  })
+
+  it('keeps a delta with its own format to its own places', () => {
+    render(
+      <StatTile
+        label='Gross'
+        value={3116}
+        format='currency'
+        trailingZeroDisplay='stripIfInteger'
+        delta={{ value: 0.04, format: 'percent', decimals: 2 }}
+      />
+    )
+    expect(screen.getByText(/^4\.00%$/)).toBeInTheDocument()
+  })
+
+  it('keeps a delta with its own format to its format’s places', () => {
+    render(
+      <StatTile
+        label='Gross'
+        value={3116.4}
+        format='currency'
+        decimals={0}
+        delta={{ value: 0.042, format: 'percent' }}
+      />
+    )
+    expect(screen.getByText('$3,116')).toBeInTheDocument()
+    expect(screen.getByText(/^4\.2%$/)).toBeInTheDocument()
+  })
+})

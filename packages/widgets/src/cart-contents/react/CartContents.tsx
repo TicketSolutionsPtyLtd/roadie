@@ -3,7 +3,7 @@
 import { BagIcon, CalendarBlankIcon } from '@phosphor-icons/react'
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'motion/react'
 
-import { Separator } from '@oztix/roadie-components'
+import { Separator } from '@oztix/roadie-components/separator'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { type CartDetails, formatDayHeader, groupEventsByDay } from '../../cart'
@@ -19,7 +19,7 @@ export type CartContentsProps = {
   onNavigate: (href: string) => void
   /** App-specific browse target for the empty state. */
   browseHref: string
-  /** Pre-validated checkout URL. Null when the safety check failed — CTA disabled. */
+  /** Pre-validated checkout URL. Null when the safety check failed (CTA disabled). */
   checkoutUrl: string | null
   locale: string
   currency: string
@@ -28,7 +28,7 @@ export type CartContentsProps = {
   container?: CartContainer
   /** Optional per-event remove handler. Receives the `eventId`. */
   onRemoveEvent?: (eventId: string) => void
-  /** True while a remove is in flight — disables the trash triggers. */
+  /** True while a remove is in flight. Disables the trash triggers. */
   busy?: boolean
   /** Event currently being removed. Dims the list and shows a "Removing…"
    * overlay on that event until it leaves `cart`. Set it for the duration of

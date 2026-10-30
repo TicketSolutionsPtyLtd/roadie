@@ -5,10 +5,10 @@ export type CartDrawerProps = {
   /** Core cart client (host + fetch injected by the consuming app). */
   cart: CartClient
   collectionId: string
-  /** REQUIRED — routing is the consumer's job. No silent no-op fallback. */
+  /** Required. Routing is the consumer's job. No silent no-op fallback. */
   onNavigate: (href: string) => void
   /**
-   * Empty-state "Browse" target. Optional — when omitted, `CartDrawer` builds
+   * Empty-state "Browse" target. Optional. When omitted, `CartDrawer` builds
    * a safe default from `collectionId` via `buildBrowseHref` (see
    * `core/url.ts`). Pass this only if you need to override the default
    * collection-cart route. Unsafe values (failing `isSafeRelativePath`) fall
@@ -16,7 +16,7 @@ export type CartDrawerProps = {
    */
   browseHref?: string
   /**
-   * Where the drawer is mounted — decides what the open-state secondary button
+   * Where the drawer is mounted. Decides what the open-state secondary button
    * ("Browse events") does:
    *   - `'event'`      → navigate to the collection page to browse more events.
    *   - `'collection'` → just close the drawer (the collection page is already
@@ -42,7 +42,7 @@ export type CartDrawerProps = {
   /** Lock body scroll while open. Default true. */
   lockBodyScroll?: boolean
   /**
-   * Controlled open state — supports `v-model:open`. When provided, the drawer
+   * Controlled open state. Supports `v-model:open`. When provided, the drawer
    * animates to match it, so any UI (e.g. a "View cart" button) can open/close
    * it. Omit for uncontrolled (tap/drag) behaviour seeded by `initialState`.
    */
@@ -53,7 +53,7 @@ export type CartDrawerProps = {
   onOpenChange?: (open: boolean) => void
   /** Fires when the urgency countdown hits expiry (design finding #10). */
   onExpire?: () => void
-  /** Reports the docked (closed) drawer height in px — a non-CSS-var
+  /** Reports the docked (closed) drawer height in px, a non-CSS-var
    * alternative to the `--cart-drawer-height` documentElement side effect
    * (design finding #5). */
   onHeightChange?: (px: number) => void

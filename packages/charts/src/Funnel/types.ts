@@ -1,8 +1,11 @@
-import type { ValueFormat } from '@oztix/roadie-core/dataviz'
+import type {
+  ValueFormat,
+  ValueFormatOptions
+} from '@oztix/roadie-core/dataviz'
 
 export type FunnelStep = { label: string; value: number }
 
-export type FunnelProps = {
+export type FunnelProps = ValueFormatOptions & {
   /** Each step, in order, with how many reached it. At least two. */
   steps: FunnelStep[]
   /** @default 'number' */

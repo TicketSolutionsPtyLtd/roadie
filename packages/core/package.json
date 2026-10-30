@@ -147,6 +147,12 @@
       "limit": "9.7 KB"
     },
     {
+      "name": "datetime formatting only",
+      "path": "dist/datetime/index.js",
+      "import": "{ formatDateTime, formatDateRange, formatRelative, formatDuration }",
+      "limit": "2.25 KB"
+    },
+    {
       "name": "number",
       "path": "dist/number/index.js",
       "limit": "420 B"

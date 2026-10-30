@@ -90,6 +90,10 @@ Ensure your changes pass:
 - Visual regression tests
 - Accessibility checks
 
+The docs site has end-to-end tests that run against its built output. Section
+5 of [`PR_WORKFLOW.md`](docs/contributing/PR_WORKFLOW.md) has the steps,
+including the base path and `E2E_BROWSER`.
+
 ## Documentation
 
 - Update component documentation in `docs/`

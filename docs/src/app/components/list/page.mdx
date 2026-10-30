@@ -257,6 +257,37 @@ a chevron by default; suppress it with `chevron={false}`.
 </List>
 ```
 
+### Custom rows
+
+For a row `List.Item` can't render, such as one with its own controls, build
+it from `listItemVariants`. It gives the row its shape, emphasis, side padding
+and minimum height, and fits it into a contained list. Give it
+`data-slot='list-item'` too, so a contained list with groups squares it off.
+The row brings no divider or vertical padding of its own, so add the padding
+as the example does. `interactive` (default `true`) adds the hover, press
+and focus states of a clickable row. For a row whose link or control sits
+inside it, pass `false`, add `is-interactive-within` to the row, and mark its
+main link `data-interactive-target`, so the row still tints when that link is
+hovered, pressed or focused. `selected` tints the row as `current` does.
+
+```tsx-live
+<List contained emphasis='subtle'>
+  <li>
+    <a href='#' data-slot='list-item' className={listItemVariants()}>
+      <span className='flex flex-1 items-center py-3'>Upcoming shows</span>
+    </a>
+  </li>
+  <li>
+    <div
+      data-slot='list-item'
+      className={listItemVariants({ interactive: false, selected: true })}
+    >
+      <span className='flex flex-1 items-center py-3'>Selected venue</span>
+    </div>
+  </li>
+</List>
+```
+
 ### Reorderable
 
 Wrap the list in [`Sortable`](/components/sortable) and give each row a

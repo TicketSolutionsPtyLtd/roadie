@@ -19,7 +19,7 @@ const ev = (over: Partial<CartEvent>): CartEvent => ({
 describe('groupEventsByDay', () => {
   it('groups by venue-local eventDateKey, not UTC', () => {
     // 22:00 Sydney on 2026-06-15 is 12:00Z on the 15th, but a 23:30 local
-    // event can be next-day UTC — eventDateKey keeps it on the local day.
+    // event can be next-day UTC: eventDateKey keeps it on the local day.
     const events = [
       ev({
         eventId: 'a',
@@ -83,7 +83,7 @@ describe('groupEventsByDay', () => {
 
 // Defence-in-depth: the cart payload is untrusted (client.ts trust-seam). A
 // consumer that omits the ordering/grouping keys (e.g. an app that doesn't map
-// the API's date fields) must still see its items — not a thrown
+// the API's date fields) must still see its items, not a thrown
 // "Cannot read properties of undefined (reading 'localeCompare')" that blanks
 // the whole list. These assert graceful degradation, never a throw, never a
 // dropped item.

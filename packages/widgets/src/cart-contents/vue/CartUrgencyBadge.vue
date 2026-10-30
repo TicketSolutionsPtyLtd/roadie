@@ -69,7 +69,7 @@ watch(
   { immediate: true }
 )
 
-// Animate the badge clear (width + gap). WAAPI isn't in jsdom — fall back instant.
+// Animate the badge clear (width + gap). WAAPI isn't in jsdom. Fall back instant.
 function animateTime(
   node: HTMLElement,
   from: { width: string; opacity: number; marginLeft: string },

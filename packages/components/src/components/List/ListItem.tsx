@@ -12,9 +12,9 @@ export type ListItemProps = {
   title: ReactNode
   /** Secondary line beneath the title. */
   description?: ReactNode
-  /** Leading slot — an `IconTile`, `Image`, or avatar. */
+  /** Leading slot: an `IconTile`, `Image`, or avatar. */
   leading?: ReactNode
-  /** Trailing slot — a count, `Badge`, value, or selected check. */
+  /** Trailing slot: a count, `Badge`, value, or selected check. */
   trailing?: ReactNode
   /** Show the drill-in chevron; defaults to whether `href` is set. */
   chevron?: boolean

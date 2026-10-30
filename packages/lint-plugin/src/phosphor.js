@@ -160,16 +160,16 @@ export const phosphorRules = {
         if (node.name.type !== 'JSXIdentifier' || !icons.has(node.name.name)) {
           return
         }
-        if (isNavigatorItemIcon(node)) return
         const weight = node.attributes.find(
           (attribute) =>
             attribute.type === 'JSXAttribute' &&
             attribute.name.name === 'weight'
         )
         if (!weight) {
-          if (node.attributes.some((a) => a.type === 'JSXSpreadAttribute')) {
-            return
-          }
+          const spread = node.attributes.some(
+            (a) => a.type === 'JSXSpreadAttribute'
+          )
+          if (spread || isNavigatorItemIcon(node)) return
           context.report({
             node,
             message: `Set weight='bold', since Phosphor defaults to regular. See ${ICONOGRAPHY}.`
