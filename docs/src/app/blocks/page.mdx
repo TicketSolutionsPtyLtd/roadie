@@ -50,6 +50,21 @@ for (const block of catalogue) {
 }
 ```
 
+## Intent and emphasis
+
+Every block takes an `intent`, Roadie's own: highlighted words, marks, tints,
+and the strong action inherit it, as any component in Roadie does. A block that
+draws a surface, such as a CTA band, a tinted panel, or a raised grid, also
+takes an `emphasis`, from only the presets its content reads on. Card grids take
+`cardEmphasis` for every card, and each item can take its own `intent`. A
+preset sets the defaults, so a page looks right without either.
+
+## Interaction
+
+A card or tile with an `href` links from its title, and the whole card is the
+hit area, with Roadie's hover and focus states. One without an `href` has
+none. Sections, panels, and figures are never interactive.
+
 ## Thumbnails
 
 Each preset has a wireframe in the package's `thumbnails` folder, and the

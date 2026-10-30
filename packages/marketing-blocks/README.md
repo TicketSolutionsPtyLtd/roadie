@@ -55,6 +55,20 @@ Run `pnpm generate:exports` after adding the folder.
 - **Prop shapes.** Array props are `readonly`, `actions` is optional, `preset` has a
   `@default`, and `position` and `id` keep the wording: "The block's place on the page,
   counting from 1, reported with its events." and "An id for linking to the block."
+- **Intent on every block, emphasis where it draws a surface.** Every block takes
+  `intent?: BlockIntent` and passes it to `BlockRoot` and `BlockHeading`, so marks,
+  tints, highlights, and the strong action inherit it. A block that draws a band or
+  panel takes `emphasis?` from a curated union of `BlockEmphasis`: only the presets its
+  content stays readable on in both themes, checked with APCA. A preset sets the
+  default intent and emphasis; the props override it. A grid of cards takes
+  `cardEmphasis?` for every card at once, never per card, and an item may take its own
+  `intent`. Never an emphasis option that hides content or breaks contrast.
+- **Interaction follows links, never surfaces.** Card-like items build on Roadie's
+  `Card`. An item with `href` gets a `Card.Link` on its title (`data-interactive-target`)
+  and `is-interactive-within` on the card, so the whole card is the hit area and the
+  click reports the title. An item without `href` gets no hover or focus state. A linked
+  card with no surface takes `subtler`, so its hover has somewhere to show. Sections,
+  panels, and stats are never interactive.
 - **Keys.** List keys use the item's index with its content, so repeated content stays
   distinct.
 - **Room for an overhang.** CTA band's `with-photo` keeps a top margin for the photo that
