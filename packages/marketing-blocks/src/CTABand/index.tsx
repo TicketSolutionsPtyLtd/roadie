@@ -60,7 +60,7 @@ export type CTABandProps = {
   /** The block's intent, for the panel's tint and the highlighted words. */
   intent?: BlockIntent
   /**
-   * The panel's surface. On `strong`, the first action takes a normal fill so it stands apart.
+   * The panel's surface. On `strong`, the strong action switches intent so it stands apart from the panel.
    * @default 'raised'
    */
   emphasis?: CTABandEmphasis
@@ -85,6 +85,13 @@ export function CTABand({
   const { name, variant } = presetOf(ctaBandDefinition, presetName)
   const split = variant === 'split'
   const photo = split ? image : undefined
+  // A strong action in the panel's own intent would merge into a strong panel.
+  const actionIntent =
+    emphasis === 'strong'
+      ? (intent ?? 'neutral') === 'neutral'
+        ? 'accent'
+        : 'neutral'
+      : intent
 
   return (
     <BlockRoot
@@ -147,7 +154,7 @@ export function CTABand({
             </div>
             <BlockActions
               actions={actions}
-              onStrong={emphasis === 'strong'}
+              intent={actionIntent}
               className={split ? undefined : 'justify-center'}
             />
           </div>

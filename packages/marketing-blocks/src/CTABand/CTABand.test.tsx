@@ -143,13 +143,35 @@ describe('CTABand', () => {
     }
   )
 
-  it('sets the first action apart from a strong panel', () => {
+  it.each([
+    [undefined, 'intent-accent'],
+    ['brand', 'intent-neutral'],
+    ['accent', 'intent-neutral']
+  ] as const)(
+    'sets the strong action apart from a strong %s panel',
+    (intent, actionIntent) => {
+      render(
+        <CTABand
+          emphasis='strong'
+          intent={intent}
+          title='Talk to our team'
+          actions={actions}
+        />
+      )
+
+      expect(screen.getByRole('link', { name: 'Talk to us' })).toHaveClass(
+        actionIntent
+      )
+    }
+  )
+
+  it('gives the strong action the block’s intent on other panels', () => {
     render(
-      <CTABand emphasis='strong' title='Talk to our team' actions={actions} />
+      <CTABand intent='brand' title='Talk to our team' actions={actions} />
     )
 
-    expect(screen.getByRole('link', { name: 'Talk to us' })).not.toHaveClass(
-      'emphasis-strong'
+    expect(screen.getByRole('link', { name: 'Talk to us' })).toHaveClass(
+      'intent-brand'
     )
   })
 })

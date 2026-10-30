@@ -106,7 +106,7 @@ export function FAQ({
             </Accordion.Item>
           ))}
         </Accordion>
-        <BlockActions actions={actions} />
+        <BlockActions actions={actions} intent={intent} />
       </div>
     </BlockRoot>
   )
