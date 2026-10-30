@@ -17,6 +17,20 @@ import { ticketMixExample } from '../StackedBars/examples'
 
 const SIZE = { width: 640, height: 360 }
 
+// A static plot is only an image, so its document carries the numbers too.
+const paceTable = {
+  columns: [
+    { key: 'week', header: 'Week', kind: 'text' as const },
+    {
+      key: 'sold',
+      header: 'Sold',
+      kind: 'number' as const,
+      format: 'percent' as const
+    }
+  ],
+  rows: [{ week: '15 Oct', sold: 0.61 }]
+}
+
 const document = (
   plot: ChartDocument['plot'],
   extra: Partial<ChartDocument> = {}
@@ -26,6 +40,7 @@ const document = (
   label: 'Tickets sold',
   source: 'Oztix sales, updated hourly.',
   plot,
+  ...(plot.kind === 'static' && { table: paceTable }),
   ...extra
 })
 

@@ -60,8 +60,9 @@ const { columns, rows } = lineChartTable(pace)
 
 A chart document is one chart card without the dashboard around it, saved as
 JSON: a `label`, a `source`, and a `plot` that takes any kind a chart card
-does. Add a headline `value` with its `delta`, or a `takeaway`, not both. The
-format is in beta, and its shape may change.
+does. Add a headline `value` with its `delta`, or a `takeaway`, not both. A
+`static` plot also needs the `table` behind it. The format is in beta, and its
+shape may change.
 
 ```json
 {
