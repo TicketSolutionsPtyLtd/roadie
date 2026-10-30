@@ -399,6 +399,11 @@ export default function LiveRunner({
 }: LiveRunnerProps) {
   const theme = useCodeTheme()
   const isBleedX = /^(?:tsx|jsx)-live-bleed-x/.test(language)
+  // Prose runs no wider than the page, so it clips rather than scrolls, and
+  // a sticky part, such as an editor's toolbar, sticks in the page.
+  const overflow = /-prose\b/.test(language)
+    ? 'overflow-clip'
+    : 'overflow-x-auto overflow-y-hidden'
   const highlightLanguage = highlightLanguageOf(language)
   // A long block stays static until first opened; LiveEditor renders every token.
   const showEditor = editorOpened || !canCollapse(code)
@@ -439,7 +444,7 @@ export default function LiveRunner({
               // fence wrapper. overflow-y-hidden stops a sub-pixel vertical overflow
               // flickering a scrollbar under animated examples, since a non-visible
               // overflow-x forces the other axis to auto.
-              `min-w-0 overflow-x-auto overflow-y-hidden bg-normal font-sans whitespace-normal ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`
+              `min-w-0 ${overflow} bg-normal font-sans whitespace-normal ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`
         }
       />
       <LiveError

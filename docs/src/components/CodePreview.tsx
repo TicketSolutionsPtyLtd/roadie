@@ -148,7 +148,8 @@ function LiveExample({
       // A `.prose` inside an escape stays unstyled, so a typesetting demo
       // escapes only its chrome, inside LiveRunner and CodePanel.
       data-not-prose={!typesets || undefined}
-      className={`relative ${BLOCK_SPACING} min-w-0 overflow-hidden rounded-xl border border-subtle`}
+      // Clipped, not hidden, so an example's sticky part sticks in the page.
+      className={`relative ${BLOCK_SPACING} min-w-0 overflow-clip rounded-xl border border-subtle`}
     >
       {near ? (
         <Suspense fallback={placeholder}>

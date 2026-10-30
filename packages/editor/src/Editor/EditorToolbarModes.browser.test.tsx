@@ -209,6 +209,21 @@ describe('Floating toolbar’s More menu', () => {
     expect(within(menu).queryByText('Pin toolbar to top')).toBe(null)
   })
 
+  it('closes on Escape, and hides once the selection collapses', async () => {
+    render(<Page toolbar='floating' />)
+    const textbox = await selectText()
+    await moreMenu()
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    await waitFor(() => expect(textbox).toHaveFocus())
+    await userEvent.keyboard('{ArrowRight}')
+
+    await waitFor(() =>
+      expect(screen.queryByRole('toolbar', { name: FLOATING })).toBe(null)
+    )
+  })
+
   it('inserts after the selected text, keeping it', async () => {
     const onValueChange = vi.fn()
     render(<Page toolbar='floating' onValueChange={onValueChange} />)
