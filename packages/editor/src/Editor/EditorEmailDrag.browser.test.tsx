@@ -420,6 +420,45 @@ describe('Editor email block handle', () => {
     )
   })
 
+  it('draws the drop line as Sortable does, thick and in the accent colour', async () => {
+    renderNewsletter()
+    await hoverSection('Bravo one')
+    const handle = await grip()
+    const dataTransfer = new DataTransfer()
+    const target = await line('Closing')
+    const { left, width, bottom } = target.getBoundingClientRect()
+    handle.dispatchEvent(
+      new DragEvent('dragstart', { bubbles: true, dataTransfer })
+    )
+    target.dispatchEvent(
+      new DragEvent('dragover', {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+        clientX: left + width / 2,
+        clientY: bottom - 2
+      })
+    )
+    const dropLine = await waitFor(() => {
+      const found = document.querySelector<HTMLElement>(
+        '.prosemirror-dropcursor-block'
+      )
+      expect(found).not.toBe(null)
+      return found!
+    })
+    const accent = document.createElement('div')
+    accent.className = 'intent-accent bg-strong'
+    document.body.append(accent)
+
+    const style = getComputedStyle(dropLine)
+    expect(style.backgroundColor).toBe(getComputedStyle(accent).backgroundColor)
+    expect(dropLine.getBoundingClientRect().height).toBe(2)
+    expect(style.borderTopLeftRadius).not.toBe('0px')
+    handle.dispatchEvent(
+      new DragEvent('dragend', { bubbles: true, dataTransfer })
+    )
+  })
+
   it('adds a block after its own from the add button', async () => {
     const onValueChange = renderNewsletter()
     await hoverBlock('Alpha one')

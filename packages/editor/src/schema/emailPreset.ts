@@ -1,7 +1,7 @@
 import { type Extensions, Node } from '@tiptap/core'
 import { StarterKit } from '@tiptap/starter-kit'
 
-import { SafeLink, notInStarterKit } from './basicPreset'
+import { SafeLink, starterKitOptions } from './basicPreset'
 import {
   SPACER_HEIGHT,
   imageWidth,
@@ -244,7 +244,7 @@ const EmailImage = Image.extend({
 // so changing one bumps CURRENT_VERSION and adds a migrate step.
 export const email: Extensions = [
   StarterKit.configure({
-    ...notInStarterKit,
+    ...starterKitOptions,
     document: false,
     blockquote: false,
     heading: false,

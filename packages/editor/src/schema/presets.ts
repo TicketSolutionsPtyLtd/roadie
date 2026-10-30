@@ -2,7 +2,7 @@ import type { Extensions } from '@tiptap/core'
 import { UniqueID } from '@tiptap/extension-unique-id'
 import { StarterKit } from '@tiptap/starter-kit'
 
-import { SafeLink, basic, notInStarterKit } from './basicPreset'
+import { SafeLink, basic, starterKitOptions } from './basicPreset'
 import { email } from './emailPreset'
 import { Embed } from './embedNode'
 import { RichHeading } from './headings'
@@ -13,7 +13,7 @@ import { Table, TableCell, TableHeader, TableRow } from './table'
 // Each name and attribute these extensions produce is saved in `EditorValue`,
 // so changing one bumps CURRENT_VERSION and adds a migrate step.
 const rich: Extensions = [
-  StarterKit.configure({ ...notInStarterKit, heading: false }),
+  StarterKit.configure({ ...starterKitOptions, heading: false }),
   RichHeading,
   SafeLink,
   Image,
