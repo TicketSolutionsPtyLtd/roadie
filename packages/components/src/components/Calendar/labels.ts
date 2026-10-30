@@ -88,7 +88,7 @@ export function weekCaption(
 
 /**
  * The live region's next text. A screen reader skips a region whose text
- * hasn't changed, so a repeat, such as a second "Selection cleared", gains a
+ * hasn't changed, so a repeat, such as a second refused press, gains a
  * no-break space.
  */
 export function nextAnnouncement(said: string, message: string): string {
