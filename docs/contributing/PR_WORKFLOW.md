@@ -152,6 +152,20 @@ Every PR is checked against these before review. Fix every real hit.
   touched package that has one (`pnpm --filter <package> size`; `docs`
   has none).
 - Rebuild before browser tests; stale `dist` misleads the `:has()` guard.
+- **Docs e2e tests** (`docs/e2e/`) drive the static export in `docs/out`
+  with Playwright, so build the docs first, with the base path CI uses, and
+  pass the same base path to the tests:
+
+  ```bash
+  NEXT_PUBLIC_BASE_PATH=/roadie pnpm turbo build --filter=docs
+  NEXT_PUBLIC_BASE_PATH=/roadie pnpm --filter docs test:e2e
+  ```
+
+  They run in Chromium; set `E2E_BROWSER=firefox` or `E2E_BROWSER=webkit`
+  for another engine (`pnpm exec playwright install <engine>` once). Add a
+  file path after `test:e2e` to run one file. Rebuild after any change the
+  tests read, since they never see your source, only `out`.
+
 - **Keep the machine cool.** Check `uptime` before starting an agent, and
   wait while the 1-minute load is above the core count. Run tests with
   `pnpm test:gated <package>`, never vitest or `pnpm test` directly. It
