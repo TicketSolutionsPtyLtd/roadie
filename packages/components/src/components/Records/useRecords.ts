@@ -31,8 +31,17 @@ import {
 } from '@oztix/roadie-core/records'
 
 import { isDev } from '../../utils/isDev'
+import {
+  identifyRows,
+  loadedRows,
+  paging,
+  rowIndexes,
+  setupWarnings,
+  whole
+} from './listState'
 import { applyQuery, isFiltered, toView } from './query'
 import { MAX_RANGE_ROWS } from './ranges'
+import { sameData } from './sameData'
 import {
   EMPTY_SELECTION,
   selectedCount as countSelected,
@@ -281,16 +290,11 @@ const SEARCH_DEBOUNCE_MS = 250
 const indexId = (_: unknown, index: number) => String(index)
 const noSubscription = () => () => {}
 
-const whole = (value: number | undefined, min: number, fallback: number) =>
-  value === undefined || !Number.isFinite(value)
-    ? fallback
-    : Math.max(min, Math.floor(value))
-
 /** The last value equal by content, so a new but equal object keeps memos. */
 function useEqualValue<T>(value: T): T {
   const [held, setHeld] = useState(value)
   if (held === value) return held
-  if (JSON.stringify(held) === JSON.stringify(value)) return held
+  if (sameData(held, value)) return held
   setHeld(value)
   return value
 }
@@ -476,32 +480,8 @@ export function useRecordsState<Row extends object>({
   })
   const data: readonly (Row | undefined)[] = ranged ? range.rows : dataOption
 
-  // The records held, gaps left out, each with its index in `data`.
-  const loaded = useMemo(() => {
-    const rows: Row[] = []
-    const at: number[] = []
-    data.forEach((row, index) => {
-      if (row === undefined) return
-      rows.push(row)
-      at.push(index)
-    })
-    // Without gaps, `data` itself, as the consumer passed it.
-    return {
-      rows: rows.length === data.length ? (data as readonly Row[]) : rows,
-      at
-    }
-  }, [data])
-  // Every index a record sits at, so a record listed twice keeps both.
-  const indexesOf = useMemo(() => {
-    const indexes = new Map<Row, number[]>()
-    loaded.rows.forEach((row, k) => {
-      const index = loaded.at[k]!
-      const held = indexes.get(row)
-      if (held) held.push(index)
-      else indexes.set(row, [index])
-    })
-    return indexes
-  }, [loaded])
+  const loaded = useMemo(() => loadedRows(data), [data])
+  const indexesOf = useMemo(() => rowIndexes(loaded), [loaded])
   const matching = useMemo(() => {
     if (server) return loaded.rows
     if (awaitingClock) return []
@@ -536,32 +516,16 @@ export function useRecordsState<Row extends object>({
       warned.current.add(message)
       console.warn(message)
     }
-    if (skipped.length > 0)
-      warn(`[Roadie] Records skipped part of the view:\n${skipped.join('\n')}`)
-    if (unidentified)
-      warn(
-        '[Roadie] Records in server mode need getRowId to select: index ids repeat on every page.'
-      )
-    if (rangeUnidentified)
-      warn(
-        '[Roadie] Records with loadRange need getRowId, so a selection survives refetching.'
-      )
-    if (rangePaged)
-      warn(
-        '[Roadie] Records with loadRange ignore the page: the list scrolls, and position.row keeps the place.'
-      )
-    if (countCapped || rangeCapped)
-      warn(
-        '[Roadie] Records with loadRange stop at 300,000 rows. Filter the list or use paged server mode.'
-      )
-    if (sumsPage)
-      warn(
-        "[Roadie] Records totals can't sum in server mode: the list holds only a page. Pass the server's totals as { values }."
-      )
-    if (sumsRanges)
-      warn(
-        "[Roadie] Records totals can't sum with loadRange: the list holds only the ranges loaded. Leave totals out, or pass only a label, and resolve each range with the server's totals beside rowCount."
-      )
+    for (const message of setupWarnings({
+      skipped,
+      unidentified,
+      rangeUnidentified,
+      rangePaged,
+      capped: countCapped || rangeCapped,
+      sumsPage,
+      sumsRanges
+    }))
+      warn(message)
   }, [
     skipped,
     unidentified,
@@ -573,42 +537,60 @@ export function useRecordsState<Row extends object>({
     sumsRanges
   ])
 
-  const resultCount = ranged
-    ? (range.total ?? loaded.rows.length)
-    : server
-      ? whole(count, 0, 0)
-      : matching.length
-  const resultCountExact = ranged
-    ? range.rowCount === undefined || range.rowCountExact
-    : count === undefined || rowCountExact
-  // A range list is one long page. Past a floor the server stopped counting
-  // at, only whole pages within it can be fetched.
-  const pageCount = ranged
-    ? 1
-    : Math.max(
-        1,
-        (resultCountExact ? Math.ceil : Math.floor)(
-          resultCount / position.pageSize
-        )
-      )
-  const lastPage = pageCount - 1
-  // A count from a pending or failed fetch would wipe a deep-linked page.
-  const outOfRange = !ranged && !busy && !error && position.page > lastPage
+  const { page, pageSize, row } = position
+  const settled = !busy && !error
+  const { total: rangeTotal, rowCount: rangeRowCount } = range
+  const rangeRowCountExact = range.rowCountExact
+  const matched = matching.length
+  const loadedCount = loaded.rows.length
+  const { resultCount, resultCountExact, pageCount, lastPage, outOfRange } =
+    useMemo(
+      () =>
+        paging({
+          ranged,
+          server,
+          count,
+          countExact: rowCountExact,
+          range: {
+            total: rangeTotal,
+            rowCount: rangeRowCount,
+            rowCountExact: rangeRowCountExact
+          },
+          matched,
+          loaded: loadedCount,
+          page,
+          pageSize,
+          settled
+        }),
+      [
+        ranged,
+        server,
+        count,
+        rowCountExact,
+        rangeTotal,
+        rangeRowCount,
+        rangeRowCountExact,
+        matched,
+        loadedCount,
+        page,
+        pageSize,
+        settled
+      ]
+    )
   // Clamped during render, not in an effect, so the stale page never paints.
   if (!controlledPosition && outOfRange)
     setOwnPosition({ ...position, page: lastPage })
   // A controlled position belongs to the parent, so the clamp is only reported.
   const clampedPage = outOfRange ? lastPage : undefined
-  const { pageSize, row } = position
   // By content, as a new `fields` list each render resolves a new query.
   const request = useEqualValue(
     useMemo<RecordsRequest>(
       () => ({
         version: RECORDS_REQUEST_VERSION,
         query: resolvedQuery,
-        ...(server && !ranged && { page: position.page, pageSize })
+        ...(server && !ranged && { page, pageSize })
       }),
-      [resolvedQuery, server, ranged, position.page, pageSize]
+      [resolvedQuery, server, ranged, page, pageSize]
     )
   )
   // Hydration renders the server's UTC and clockless request first.
@@ -626,15 +608,10 @@ export function useRecordsState<Row extends object>({
       onPositionChange?.({ page: clampedPage, pageSize, row })
   }, [controlled, clampedPage, pageSize, row, onPositionChange])
 
-  const matchingRows = useMemo(() => {
-    // A repeated record sorts with equal keys, so its copies keep their order.
-    const seen = new Map<Row, number>()
-    return matching.map((row) => {
-      const taken = seen.get(row) ?? 0
-      seen.set(row, taken + 1)
-      return { id: getRowId(row, indexesOf.get(row)?.[taken] ?? 0), row }
-    })
-  }, [matching, indexesOf, getRowId])
+  const matchingRows = useMemo(
+    () => identifyRows(matching, indexesOf, getRowId),
+    [matching, indexesOf, getRowId]
+  )
   const byIndex = useMemo(
     () =>
       ranged

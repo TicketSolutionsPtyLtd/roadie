@@ -364,4 +364,30 @@ describe('recordViewFromSearchParams', () => {
     const text = recordViewToSearchParams(literal).toString()
     expect(recordViewFromSearchParams(text, eventFields).view).toEqual(literal)
   })
+
+  it('keeps a view whose value Meilisearch can’t hold, such as a Windows path', () => {
+    const view: RecordView = {
+      query: {
+        search: '',
+        filters: [
+          { field: 'name', operator: 'contains', value: 'C:\\' },
+          { field: 'city', operator: 'is', values: ['melbourne'] }
+        ],
+        sort: []
+      },
+      layout: { type: 'table' }
+    }
+    const read = recordViewFromSearchParams(
+      recordViewToSearchParams(view),
+      eventFields
+    )
+    expect(read.source).toBe('url')
+    expect(read.view.query.filters).toEqual(view.query.filters)
+    expect(read.problems).toEqual([
+      expect.objectContaining({
+        severity: 'warning',
+        path: 'query.filters[0].value'
+      })
+    ])
+  })
 })

@@ -228,6 +228,8 @@ export function Chart({
           }
           {...props}
           errorMessage={failed ? DRAW_ERROR : props.errorMessage}
+          // Reloading the data rarely fixes a chart that couldn't draw it.
+          errorAction={failed ? undefined : props.errorAction}
         >
           <div className='grid gap-3'>
             {report && (

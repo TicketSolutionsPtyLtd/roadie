@@ -49,6 +49,7 @@ describe('tables entry', () => {
       'barChartTable',
       'cardTable',
       'donutChartTable',
+      'followPeriod',
       'funnelTable',
       'heatmapTable',
       'histogramTable',

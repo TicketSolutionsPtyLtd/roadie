@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react'
+import { type ReactNode, useContext, useEffect } from 'react'
 
 import { fireEvent, render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
@@ -345,6 +345,48 @@ describe('Chart when its plot cannot draw', () => {
       tile: true
     })
     expect(stateOf(document.body)).toEqual(stateOf(server))
+  })
+})
+
+describe('Chart error actions', () => {
+  const card = (plot: ReactNode, state?: 'error') => (
+    <Chart
+      label='Tickets sold'
+      source='Oztix sales.'
+      size='md'
+      state={state}
+      actions={<button type='button'>More</button>}
+      errorAction={<button type='button'>Retry</button>}
+    >
+      {plot}
+    </Chart>
+  )
+  const brokenPlot = (
+    <ChartPlot chart={brokenChart} props={{ points: testPoints }} />
+  )
+
+  it('leaves out errorAction when the plot cannot draw, and keeps actions', () => {
+    render(card(brokenPlot))
+    expect(screen.getByText("This chart couldn't be drawn")).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'More' })).toBeVisible()
+  })
+
+  it('leaves out errorAction when the plot throws', () => {
+    function Broken(): never {
+      throw new Error('No scale range')
+    }
+    const quiet = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(card(<Broken />))
+    quiet.mockRestore()
+    expect(screen.getByText("This chart couldn't be drawn")).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull()
+  })
+
+  it('shows errorAction once the data fails to load after a draw error', () => {
+    const { rerender } = render(card(brokenPlot))
+    rerender(card(brokenPlot, 'error'))
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible()
   })
 })
 
