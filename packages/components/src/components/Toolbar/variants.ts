@@ -37,7 +37,11 @@ export const toolbarSurfaceVariants = cva('w-fit max-w-full', {
 
 export const toolbarVariants = cva('flex min-w-0 items-center gap-1', {
   variants: {
-    flush: { false: 'p-1', true: '' },
+    flush: {
+      false: 'p-1',
+      // Inset, because the scrolling row clips a ring drawn outside a control.
+      true: '**:focus-visible:-outline-offset-(--focus-ring-width)'
+    },
     orientation: {
       // Touch screens and phones keep one row and scroll it sideways.
       horizontal:

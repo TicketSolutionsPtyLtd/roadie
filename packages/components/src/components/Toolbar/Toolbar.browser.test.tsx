@@ -1,11 +1,20 @@
 import { type ReactNode } from 'react'
 
 import { cleanup, render, screen, within } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import { Toolbar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { focusAfterKey, focusRing } from '../../css/testUtils'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -515,6 +524,26 @@ describe('Flush toolbar', () => {
     expect(undo.left).toBe(surface.left)
     expect(surface.width).toBe(600)
   })
+
+  // With no inset, the scrolling row clips a ring drawn outside a control.
+  it.each(['Undo', 'Save draft'])(
+    'draws the focus ring inside %s',
+    async (name) => {
+      onTestFinished(useStylesheet('* { transition-duration: 0s !important }'))
+      render(
+        <Toolbar flush aria-label='History'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+          <Toolbar.Group aria-label='Draft'>
+            <Toolbar.Button>Save draft</Toolbar.Button>
+          </Toolbar.Group>
+        </Toolbar>
+      )
+      const control = await focusAfterKey(screen.getByRole('button', { name }))
+      const ring = focusRing(control)
+      expect(ring.width).toBe('4px')
+      expect(ring.offset).toBe('-4px')
+    }
+  )
 })
 
 describe('Toolbar on a phone', () => {
