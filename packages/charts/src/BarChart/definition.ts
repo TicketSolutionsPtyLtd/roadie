@@ -7,6 +7,7 @@ import { formatValue } from '@oztix/roadie-core/dataviz'
 
 import { annotationMarks, annotationsOnBars } from '../plot/annotations'
 import { plotSpan, textRoom } from '../plot/endLabels'
+import type { PlotSpan } from '../plot/frame'
 import { fieldLabel } from '../plot/table'
 import {
   formatTimeTick,
@@ -28,7 +29,7 @@ import {
   labelFormat,
   valueDomain
 } from '../plot/values'
-import { describeValue } from '../plot/words'
+import { describeValue, lowerFirst } from '../plot/words'
 import { type Bar, barYExtent, comparisonLabel, hasBars, toBars } from './bars'
 import { barChartTable } from './table'
 import type { BarChartProps } from './types'
@@ -44,7 +45,10 @@ const TICK_TARGET: Record<WidthBand, number> = {
 }
 const LABEL_PADDING = 12
 const LINE_WIDTH = 2
-const TICK_SPAN = 0.8
+const BAR_PADDING = 0.2
+const BAR_INSET = 1
+const BAR_MAX = 48
+const TICK_OVERHANG = 6
 const SHARE_DOMAIN: readonly [number, number] = [0, 1]
 
 const isHourly = (props: BarChartProps) => props.interval === 'hour'
@@ -105,25 +109,31 @@ const lineMark = (
     })
   )
 
+/** The drawn bar's width, from the band scale's step over the plotting area. */
+function barWidth({ width, left, right }: PlotSpan, count: number) {
+  const step =
+    Math.max(width - left - right, 1) / Math.max(count + BAR_PADDING, 1)
+  const band = step * (1 - BAR_PADDING)
+  return Math.min(Math.max(band - BAR_INSET * 2, 0), BAR_MAX)
+}
+
 const comparisonTick = (
   data: readonly (Pick<Bar, 'comparison'> & { x: string })[],
   id: string,
   stroke: string,
-  strokeWidth: number
+  strokeWidth: number,
+  length: number
 ) =>
   decorative(
-    tickY(
-      data.filter((d) => d.comparison !== null),
-      {
-        id,
-        x: 'x',
-        y: 'comparison',
-        key: 'x',
-        stroke,
-        strokeWidth,
-        span: TICK_SPAN
-      }
-    )
+    tickY(data, {
+      id,
+      x: 'x',
+      y: 'comparison',
+      key: 'x',
+      stroke,
+      strokeWidth,
+      length
+    })
   )
 
 // A share reads against the whole, so percent lines always run to 100%.
@@ -148,6 +158,8 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
   const line = props.line
   const end = lineLabel(props, bars)
   const rightMargin = end ? textRoom([end.text], frame, LABEL_PADDING) : 8
+  const span = plotSpan(frame, gridTicks(yDomain).map(format), rightMargin)
+  const tickLength = barWidth(span, keys.length) + TICK_OVERHANG * 2
 
   return defineChart({
     marks: [
@@ -163,15 +175,15 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
         ),
         paint,
         frame,
-        plotSpan(frame, gridTicks(yDomain).map(format), rightMargin)
+        span
       ),
       barY(data, {
         id: 'series-1',
         x: 'x',
         y: 'y',
         fill: paint.categorical[0]!,
-        inset: 1,
-        maxThickness: 48,
+        inset: BAR_INSET,
+        maxThickness: BAR_MAX,
         radius: { end: 2 }
       }),
       // A level across each slot, so the bars still start at zero.
@@ -181,9 +193,16 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
               data,
               'comparison-underlay',
               paint.surface,
-              LINE_WIDTH + 2
+              LINE_WIDTH + 2,
+              tickLength
             ),
-            comparisonTick(data, 'comparison', paint.context, LINE_WIDTH)
+            comparisonTick(
+              data,
+              'comparison',
+              paint.context,
+              LINE_WIDTH,
+              tickLength
+            )
           ]
         : []),
       // The bars carry both measures in words and the tooltip, so the line
@@ -216,7 +235,7 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
     ],
     scales: {
       x: {
-        scale: scaleBand<string>().domain(keys).padding(0.2),
+        scale: scaleBand<string>().domain(keys).padding(BAR_PADDING),
         axis: {
           line: false,
           ticks: {
@@ -292,7 +311,8 @@ export const barChart: ChartDefinition<BarChartProps> = {
   emptyMessage: (props) => (hasBars(toBars(props)) ? undefined : EMPTY),
   legend(props, paint) {
     const comparison = comparisonLabel(props)
-    if (!comparison) return []
+    if (!comparison || toBars(props).every((b) => b.comparison === null))
+      return []
     return [
       {
         label: fieldLabel(props.y),
@@ -313,7 +333,7 @@ export const barChart: ChartDefinition<BarChartProps> = {
     const bar = line && barAt(props, key)
     if (line && bar)
       parts.push(
-        `${line.label.toLowerCase()} ${
+        `${lowerFirst(line.label)} ${
           bar.line === null
             ? 'no data'
             : formatValue(bar.line, fullFormat(line.format))
@@ -323,7 +343,7 @@ export const barChart: ChartDefinition<BarChartProps> = {
     const compared = barAt(props, key)?.comparison
     if (comparison && compared != null)
       parts.push(
-        `${comparison.charAt(0).toLowerCase()}${comparison.slice(1)} ${formatValue(compared, fullFormat(props.format))}`
+        `${lowerFirst(comparison)} ${formatValue(compared, fullFormat(props.format))}`
       )
     return parts.join(', ')
   },
