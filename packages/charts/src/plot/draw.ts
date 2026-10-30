@@ -11,7 +11,7 @@ import type {
   PlotFrame
 } from './types'
 
-export const DRAW_ERROR = "This chart couldn't be drawn"
+export { DRAW_ERROR } from './drawError'
 
 export type Drawing = {
   definition: EngineDefinition

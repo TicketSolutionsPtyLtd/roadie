@@ -1,10 +1,13 @@
 import type { PlotRow } from '@oztix/roadie-core/dashboard'
-import type { ValueFormat } from '@oztix/roadie-core/dataviz'
+import type {
+  ValueFormat,
+  ValueFormatOptions
+} from '@oztix/roadie-core/dataviz'
 
 export type StackedBarsMode = 'count' | 'share'
 export type StackedBarsOrientation = 'horizontal' | 'vertical'
 
-export type StackedBarsProps = {
+export type StackedBarsProps = ValueFormatOptions & {
   /** Rows of plain values, one per category and segment. */
   data: PlotRow[]
   /** Field that names each bar. */

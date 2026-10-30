@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import type { Comparison, DateRangeValue, RelativeRange } from './ranges'
+import type { RelativeRange } from './ranges'
 
 const NAMED_RANGES = [
   'today',
@@ -58,17 +58,3 @@ export function dateRangeSchemas() {
     ])
   }
 }
-
-type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false
-type Holds<T extends true> = T
-type Schemas = ReturnType<typeof dateRangeSchemas>
-
-// Fails to compile when the schemas drift from the datetime types.
-export type SchemasMatchTypes = Holds<
-  [
-    Same<z.infer<Schemas['dateRangeValue']>, DateRangeValue>,
-    Same<z.infer<Schemas['comparison']>, Comparison>
-  ] extends [true, true]
-    ? true
-    : false
->

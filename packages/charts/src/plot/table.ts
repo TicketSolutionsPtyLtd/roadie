@@ -1,12 +1,8 @@
 import type { PlotCell, PlotX, TableColumn } from '@oztix/roadie-core/dashboard'
-import {
-  type ValueFormat,
-  type XFormat,
-  formatX
-} from '@oztix/roadie-core/dataviz'
+import { type XFormat, formatX } from '@oztix/roadie-core/dataviz'
 
 import { formatTimeCell, hasTimeOfDay, parseX } from './time'
-import { fullFormat } from './values'
+import { type ValueStyle, fullFormat } from './values'
 
 // Two or more capitals, with an optional plural s: AUD, URLs.
 const ACRONYM = /^[A-Z]{2,}s?$/
@@ -34,8 +30,15 @@ export const xColumn = (field: string): TableColumn => ({
 export const valueColumn = (
   key: string,
   header: string,
-  format?: ValueFormat
-): TableColumn => ({ key, header, kind: 'number', format: fullFormat(format) })
+  { format, decimals, trailingZeroDisplay }: ValueStyle = {}
+): TableColumn => ({
+  key,
+  header,
+  kind: 'number',
+  format: fullFormat(format),
+  ...(decimals !== undefined && { decimals }),
+  ...(trailingZeroDisplay !== undefined && { trailingZeroDisplay })
+})
 
 export function xCell(
   value: PlotCell | PlotX,

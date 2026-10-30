@@ -9,6 +9,7 @@ import roadieCss from '../../../vitest.browser.css?inline'
 import { Meter } from '../Meter'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { Sparkline } from '../Sparkline'
+import { StatTile } from '../StatTile'
 
 let removeStylesheet = () => {}
 beforeAll(async () => {
@@ -251,6 +252,61 @@ describe('DataCard copy never wraps', () => {
 
     expect(Math.abs(readyHeight - loadingHeight)).toBeLessThan(1)
   })
+
+  for (const width of [158, 240])
+    it(`keeps an empty or failed stat tile as tall as a loading one at ${width}px`, () => {
+      const heightOf = (state: 'loading' | 'empty' | 'error') => {
+        const { container, unmount } = render(
+          <div style={{ width }}>
+            <StatTile label='Tickets sold' value={1842} state={state} />
+          </div>
+        )
+        const height = container
+          .querySelector('[data-slot=data-card]')!
+          .getBoundingClientRect().height
+        unmount()
+        return height
+      }
+      const loading = heightOf('loading')
+      expect(heightOf('empty')).toBeLessThanOrEqual(loading)
+      expect(heightOf('error')).toBeLessThanOrEqual(loading)
+    })
+
+  for (const [size, bodyHeight] of [
+    ['sm', '160px'],
+    ['md', '220px']
+  ] as const)
+    it(`keeps an empty or failed ${size} card within its loading height`, () => {
+      const measure = (state: 'loading' | 'empty' | 'error') => {
+        const { container, unmount } = render(
+          <div style={{ width: 343 }}>
+            <DataCard
+              label='Sales pace'
+              size={size}
+              state={state}
+              bodyHeight={bodyHeight}
+              errorAction={<button type='button'>Retry</button>}
+            />
+          </div>
+        )
+        const heightOf = (slot: string) =>
+          container
+            .querySelector(`[data-slot=${slot}]`)
+            ?.getBoundingClientRect().height ?? 0
+        const sizes = {
+          card: heightOf('data-card'),
+          body: heightOf('empty-state')
+        }
+        unmount()
+        return sizes
+      }
+      const loading = measure('loading').card
+      for (const state of ['empty', 'error'] as const) {
+        const { card, body } = measure(state)
+        expect(card).toBeLessThanOrEqual(loading)
+        expect(body).toBeGreaterThanOrEqual(Number.parseFloat(bodyHeight))
+      }
+    })
 
   it('truncates awkward copy on one line', () => {
     const { container } = render(

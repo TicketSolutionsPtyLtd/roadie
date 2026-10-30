@@ -1,4 +1,5 @@
 export * from './cells'
+export * from './comparison'
 export * from './fields'
 export * from './layout'
 export * from './plots'

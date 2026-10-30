@@ -27,6 +27,7 @@ import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useChartPatterns } from '../ChartPatterns'
+import { DRAW_ERROR } from '../plot/drawError'
 import { ChartCardContext, type ChartReport, PLOT_HEIGHTS } from './context'
 
 export type ChartTable = {
@@ -179,9 +180,10 @@ export function Chart({
   // before this one, so it never sees this flag turn true without a report.
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
-  // The failure belongs to the plot that caused it, so new children retry.
+  // The failure belongs to the plot that caused it, so new children retry,
+  // and gives way to the app's own state while it has no data to draw.
   const [failedOn, setFailedOn] = useState<ReactNode>(null)
-  const failed = failedOn !== null && failedOn === children
+  const failed = failedOn !== null && failedOn === children && hasData(state)
   const fail = useCallback(() => setFailedOn(children), [children])
   const { patterns, style: patternStyle } = useChartPatterns()
   const [shownView, setShownView] = useState(view)
@@ -225,6 +227,7 @@ export function Chart({
             ) : undefined
           }
           {...props}
+          errorMessage={failed ? DRAW_ERROR : props.errorMessage}
         >
           <div className='grid gap-3'>
             {report && (

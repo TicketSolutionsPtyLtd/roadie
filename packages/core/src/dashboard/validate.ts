@@ -109,11 +109,13 @@ export function plotFields(plot: ChartPlot): FieldRef[] {
       add('band.median', plot.band?.median)
       add('forecast.low', plot.forecast?.low)
       add('forecast.high', plot.forecast?.high)
+      add('comparison.y', plot.comparison?.y)
       break
     case 'bar':
       add('x', plot.x)
       add('y', plot.y)
       add('line.y', plot.line?.y)
+      add('comparison.y', plot.comparison?.y)
       break
     case 'ranked-bars':
       add('x', plot.x)
@@ -446,6 +448,34 @@ function plotProblems(plot: ChartPlot, path: string) {
       warning(
         `${plotPath}.series`,
         `${count} series. The smallest will roll into Other after ${SERIES_CAP}`
+      )
+    )
+  if (
+    plot.kind === 'ranked-bars' &&
+    plot.other === false &&
+    plot.limit === undefined
+  )
+    problems.push(
+      warning(
+        `${plotPath}.limit`,
+        'Set limit too, so the label can say how many bars show'
+      )
+    )
+  if (plot.kind === 'line' && plot.comparison && plot.series)
+    problems.push(
+      warning(
+        `${plotPath}.comparison`,
+        'A comparison draws only on a single series, so the chart leaves it out. Drop series or comparison'
+      )
+    )
+  if (
+    (plot.kind === 'line' || plot.kind === 'bar') &&
+    (plot.comparison?.y === plot.x || plot.comparison?.y === plot.y)
+  )
+    problems.push(
+      warning(
+        `${plotPath}.comparison.y`,
+        `"${plot.comparison.y}" is the chart's own x or y, so the chart leaves the comparison out. Name another field`
       )
     )
   problems.push(...copyProblems(plotPath, 'takeaway', plot.takeaway))

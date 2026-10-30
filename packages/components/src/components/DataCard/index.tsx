@@ -1,73 +1,92 @@
 import { type ComponentProps, type ReactNode, useId } from 'react'
 
-import { ClockCountdownIcon } from '@phosphor-icons/react/ssr'
+import {
+  ChartBarIcon,
+  ClockCountdownIcon,
+  WarningIcon
+} from '@phosphor-icons/react/ssr'
 
 import type { CardSize, CardState } from '@oztix/roadie-core/dashboard-layout'
 import {
   type GoodWhen,
   type ValueFormat,
+  type ValueFormatOptions,
   formatValue
 } from '@oztix/roadie-core/dataviz'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { cardVariants } from '../Card/variants'
 import { Delta } from '../Delta'
+import { EmptyState } from '../EmptyState'
 import { Skeleton } from '../Skeleton'
 import { DataCardMoreButton } from './DataCardMoreButton'
 
 export type { DataCardMoreButtonProps } from './DataCardMoreButton'
 
+/** Without its own `format`, a delta takes the card's format and places. */
 export type DataCardDelta = {
   value: number
   format?: ValueFormat
   goodWhen?: GoodWhen
   baseline?: number
-}
+} & ValueFormatOptions
 
-export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> & {
-  /** Fixed name for the card. People and agents refer to the card by it. */
-  label: string
-  value?: number | string
-  /** @default 'number' */
-  format?: ValueFormat
-  delta?: DataCardDelta
-  /** One sentence, used when there is no single headline number. */
-  takeaway?: string
-  context?: string
-  source?: string
-  /**
-   * Controls at the top right, after the label. Shown in every state, so an
-   * action such as refresh still works on a card that failed to load.
-   */
-  actions?: ReactNode
-  /**
-   * Switches for what the body shows, such as a chart's mode or measure, in a
-   * full-width row under the headline. Shown in every state, so a switch
-   * stays put while the new view loads.
-   */
-  controls?: ReactNode
-  size?: CardSize
-  /** @default 'ready' */
-  state?: CardState
-  emptyMessage?: string
-  errorMessage?: string
-  errorAction?: ReactNode
-  staleLabel?: string
-  /** Body height while loading, such as the plot height. */
-  bodyHeight?: string
-  children?: ReactNode
-}
+export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> &
+  ValueFormatOptions & {
+    /** Fixed name for the card. People and agents refer to the card by it. */
+    label: string
+    value?: number | string
+    /** @default 'number' */
+    format?: ValueFormat
+    delta?: DataCardDelta
+    /** One sentence, used when there is no single headline number. */
+    takeaway?: string
+    context?: string
+    source?: string
+    /**
+     * Controls at the top right, after the label. Shown in every state, so an
+     * action such as refresh still works on a card that failed to load.
+     */
+    actions?: ReactNode
+    /**
+     * Switches for what the body shows, such as a chart's mode or measure, in a
+     * full-width row under the headline. Shown in every state, so a switch
+     * stays put while the new view loads.
+     */
+    controls?: ReactNode
+    size?: CardSize
+    /** @default 'ready' */
+    state?: CardState
+    emptyMessage?: string
+    errorMessage?: string
+    errorAction?: ReactNode
+    staleLabel?: string
+    /**
+     * Body height while loading, and the least an empty or error state takes,
+     * such as the plot height.
+     */
+    bodyHeight?: string
+    children?: ReactNode
+  }
 
 const LINE = 'min-w-0 truncate'
 
 function Headline({
   value,
   format,
+  decimals,
+  trailingZeroDisplay,
   delta,
   takeaway
-}: Pick<DataCardProps, 'value' | 'format' | 'delta' | 'takeaway'>) {
+}: Pick<
+  DataCardProps,
+  'value' | 'format' | 'decimals' | 'trailingZeroDisplay' | 'delta' | 'takeaway'
+>) {
   if (value !== undefined) {
-    const shown = typeof value === 'number' ? formatValue(value, format) : value
+    const shown =
+      typeof value === 'number'
+        ? formatValue(value, format, { decimals, trailingZeroDisplay })
+        : value
     return (
       <p
         data-slot='data-card-value-row'
@@ -83,7 +102,12 @@ function Headline({
         {delta && (
           <Delta
             {...delta}
-            format={delta.format ?? format}
+            {...(delta.format === undefined && {
+              format,
+              decimals: delta.decimals ?? decimals,
+              trailingZeroDisplay:
+                delta.trailingZeroDisplay ?? trailingZeroDisplay
+            })}
             className='shrink-0'
           />
         )}
@@ -115,6 +139,8 @@ export function DataCard({
   label,
   value,
   format,
+  decimals,
+  trailingZeroDisplay,
   delta,
   takeaway,
   context,
@@ -134,6 +160,7 @@ export function DataCard({
 }: DataCardProps) {
   const labelId = useId()
   const showContent = state === 'ready' || state === 'stale'
+  const isStat = size === 'stat'
   // An article, not a named section: a dashboard repeats labels such as
   // "Tickets sold" across sections, and landmark names must be unique.
   return (
@@ -177,6 +204,8 @@ export function DataCard({
                 <Headline
                   value={value}
                   format={format}
+                  decimals={decimals}
+                  trailingZeroDisplay={trailingZeroDisplay}
                   delta={delta}
                   takeaway={takeaway}
                 />
@@ -213,17 +242,37 @@ export function DataCard({
             {children}
           </div>
         )}
-        {state === 'empty' && (
-          <p className='text-sm text-subtle'>{emptyMessage}</p>
-        )}
-        {state === 'error' && (
-          <div className='grid justify-items-start gap-2'>
-            <p className='text-sm text-subtle'>
-              {errorMessage ??
-                `We couldn't load ${sentenceCaseInline(label)}. Try again in a minute.`}
-            </p>
-            {errorAction}
-          </div>
+        {(state === 'empty' || state === 'error') && (
+          <EmptyState
+            size='sm'
+            intent={state === 'error' ? 'danger' : undefined}
+            // Fills the body's place, so the card keeps its loading height.
+            className={cn('content-center', (isStat || bodyHeight) && 'py-0')}
+            style={{ minHeight: bodyHeight }}
+          >
+            {!isStat && (
+              <EmptyState.IconTile aria-hidden>
+                {state === 'error' ? (
+                  <WarningIcon weight='duotone' />
+                ) : (
+                  <ChartBarIcon weight='duotone' />
+                )}
+              </EmptyState.IconTile>
+            )}
+            {/* A card can't know the page's heading outline. */}
+            <EmptyState.Title
+              render={<p />}
+              className={isStat ? 'text-sm' : undefined}
+            >
+              {state === 'empty'
+                ? emptyMessage
+                : (errorMessage ??
+                  `We couldn't load ${sentenceCaseInline(label)}. Try again in a minute.`)}
+            </EmptyState.Title>
+            {state === 'error' && errorAction && (
+              <EmptyState.Actions>{errorAction}</EmptyState.Actions>
+            )}
+          </EmptyState>
         )}
         {(showContent || state === 'loading') &&
           (source || (state === 'stale' && staleLabel)) && (
