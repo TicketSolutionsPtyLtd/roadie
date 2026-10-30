@@ -735,6 +735,24 @@ can list its own comparisons, such as similar venues, in
 - No chart draws a comparison series yet. Show the comparison as a delta, and
   say what it compares with.
 
+To set this period's rows against the comparison's day by day, pass both sets
+of rows to `alignComparison` from `@oztix/roadie-core/dashboard`, with the
+period and the same options. Rows line up from each range's start, at the same
+time of day, so a month lines up with a shorter one and `alignWeekday` keeps
+Mondays with Mondays. A day the comparison doesn't cover, or one before
+`dataStart`, gets `null`.
+
+```ts
+const rows = alignComparison(sales.days(range), sales.days(compared.range), {
+  ...options,
+  period,
+  x: 'day',
+  y: 'sold',
+  as: 'lastPeriod'
+})
+// [{ day: '2026-10-01', sold: 42, lastPeriod: 36 }, …]
+```
+
 On the docs site, a table gives the dates the previous period and the previous
 year cover for last month, month to date, this month, the last 30 days, and
 this financial year, worked out by `resolveComparison` on Wed 7 Oct 2026 in

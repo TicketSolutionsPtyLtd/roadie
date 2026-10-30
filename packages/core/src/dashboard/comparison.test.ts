@@ -1,0 +1,151 @@
+import { describe, expect, it } from 'vitest'
+
+import { addDays } from '../datetime/plainDate'
+import { type AlignComparisonOptions, alignComparison } from './comparison'
+
+const timeZone = 'Australia/Melbourne'
+const now = new Date(Date.UTC(2026, 10, 15))
+
+const daysFrom = (start: string, count: number, value = (i: number) => i + 1) =>
+  Array.from({ length: count }, (_, i) => ({
+    day: addDays(start, i),
+    sold: value(i)
+  }))
+
+const aligned = (
+  rows: Record<string, unknown>[],
+  previous: Record<string, unknown>[],
+  options: Partial<AlignComparisonOptions> &
+    Pick<AlignComparisonOptions, 'period'>
+) =>
+  alignComparison(rows as never, previous as never, {
+    now,
+    timeZone,
+    x: 'day',
+    y: 'sold',
+    as: 'lastPeriod',
+    ...options
+  }).map((row) => [row.day, row.lastPeriod])
+
+const week = { start: '2026-10-08', end: '2026-10-14' }
+
+describe('alignComparison', () => {
+  it.each([
+    [
+      'previous period',
+      { range: week, compare: 'previous-period' as const },
+      {},
+      '2026-10-01'
+    ],
+    [
+      'previous year, same dates',
+      { range: week, compare: 'previous-year' as const },
+      {},
+      '2025-10-08'
+    ],
+    [
+      'previous year, same weekday',
+      { range: week, compare: 'previous-year' as const },
+      { alignWeekday: true },
+      '2025-10-09'
+    ]
+  ])(
+    'lines %s up day by day from each start',
+    (_, period, extra, comparisonStart) => {
+      const previous = daysFrom(comparisonStart, 7, (i) => 100 + i)
+      expect(
+        aligned(daysFrom(week.start, 7), previous, { period, ...extra })
+      ).toEqual(daysFrom(week.start, 7).map((r, i) => [r.day, 100 + i]))
+    }
+  )
+
+  it('leaves the days a shorter month lacks without a value', () => {
+    const october = daysFrom('2026-10-01', 31)
+    const september = daysFrom('2026-09-01', 30, (i) => 100 + i)
+    const rows = aligned(october, september, {
+      period: {
+        range: { period: 'month', offset: -1 },
+        compare: 'previous-period'
+      }
+    })
+    expect(rows[0]).toEqual(['2026-10-01', 100])
+    expect(rows[29]).toEqual(['2026-10-30', 129])
+    expect(rows[30]).toEqual(['2026-10-31', null])
+  })
+
+  it('gives no value before the data starts, for partial history', () => {
+    const rows = aligned(
+      daysFrom(week.start, 7),
+      daysFrom('2026-10-01', 7, () => 0),
+      {
+        period: { range: week, compare: 'previous-period' },
+        dataStart: '2026-10-04'
+      }
+    )
+    expect(rows.map(([, value]) => value)).toEqual([
+      null,
+      null,
+      null,
+      0,
+      0,
+      0,
+      0
+    ])
+  })
+
+  it.each([
+    [
+      'unavailable history',
+      { range: week, compare: 'previous-period' as const },
+      { dataStart: '2026-10-08' }
+    ],
+    ['no comparison', { range: week }, {}],
+    ["an app's own comparison", { range: week, compare: 'similar' }, {}]
+  ])('gives every row an empty comparison for %s', (_, period, extra) => {
+    const rows = aligned(daysFrom(week.start, 3), daysFrom('2026-10-01', 7), {
+      period,
+      ...extra
+    })
+    expect(rows.map(([, value]) => value)).toEqual([null, null, null])
+  })
+
+  it('matches times of day on hourly rows', () => {
+    const hours = (day: string, values: number[]) =>
+      values.map((sold, i) => ({ day: `${day}T${10 + i}:00`, sold }))
+    expect(
+      aligned(hours('2026-10-08', [1, 2]), hours('2026-10-01', [5, 6]), {
+        period: { range: week, compare: 'previous-period' }
+      })
+    ).toEqual([
+      ['2026-10-08T10:00', 5],
+      ['2026-10-08T11:00', 6]
+    ])
+  })
+
+  it('keeps every field of this period and leaves the rows given alone', () => {
+    const rows = [{ day: '2026-10-08', sold: 3, channel: 'Email' }]
+    const result = alignComparison(rows, [{ day: '2026-10-01', sold: 2 }], {
+      now,
+      timeZone,
+      period: { range: week, compare: 'previous-period' },
+      x: 'day',
+      y: 'sold',
+      as: 'lastPeriod'
+    })
+    expect(result).toEqual([{ ...rows[0], lastPeriod: 2 }])
+    expect(rows[0]).not.toHaveProperty('lastPeriod')
+  })
+
+  it('skips rows outside the period and keeps their place', () => {
+    expect(
+      aligned(
+        [{ day: '2026-09-30', sold: 1 }, ...daysFrom(week.start, 1)],
+        daysFrom('2026-09-23', 14),
+        { period: { range: week, compare: 'previous-period' } }
+      )
+    ).toEqual([
+      ['2026-09-30', null],
+      ['2026-10-08', 9]
+    ])
+  })
+})
