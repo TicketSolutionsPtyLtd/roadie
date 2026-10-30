@@ -406,10 +406,12 @@ export function DashboardPeriod<App extends string = never>({
     const anyDates = choices.some((option) =>
       comparisonFor(option.value, range)
     )
+    // Why Compare is off, read with the switch, or under the choices without one.
+    const reason = blocked && !anyDates ? current?.note : undefined
     const line = blocked
-      ? anyDates
+      ? switchShown
         ? null
-        : current?.note
+        : reason
       : live
         ? isBuiltInComparison(live)
           ? (current?.note ?? (customDates ? null : current?.dates))
@@ -421,6 +423,7 @@ export function DashboardPeriod<App extends string = never>({
         {switchShown && (
           <Switch
             label='Compare'
+            description={reason}
             checked={!!live}
             disabled={!live && !anyDates}
             onCheckedChange={(on) =>
@@ -437,9 +440,8 @@ export function DashboardPeriod<App extends string = never>({
             }
           />
         )}
-        {/* Always mounted, so a screen reader hears it change. */}
-        <div className='grid gap-2'>
-          {groupShown && (
+        {groupShown && (
+          <div className='grid gap-2'>
             <ToggleGroup
               aria-label='Compare with'
               size='sm'
@@ -463,32 +465,32 @@ export function DashboardPeriod<App extends string = never>({
                 </ToggleGroup.Item>
               ))}
             </ToggleGroup>
-          )}
-          {customDates && (
-            <DateRangePicker
-              aria-label='Comparison dates'
-              size='sm'
-              presets={[]}
-              value={customDates}
-              onValueChange={(next) => {
-                if (next && isAbsoluteRange(next)) editCompare(next)
-              }}
-              disabled={readOnly || disabled}
-              timeZone={timeZone}
-              today={todayProp}
-              weekStart={weekStart}
-              fiscalYearStart={fiscalYearStart}
-              locale={locale}
-            />
-          )}
-          <p
-            data-slot='dashboard-period-compare-dates'
-            aria-live='polite'
-            className='text-sm text-subtle'
-          >
-            {line}
-          </p>
-        </div>
+            {customDates && (
+              <DateRangePicker
+                aria-label='Comparison dates'
+                size='sm'
+                presets={[]}
+                value={customDates}
+                onValueChange={(next) => {
+                  if (next && isAbsoluteRange(next)) editCompare(next)
+                }}
+                disabled={readOnly || disabled}
+                timeZone={timeZone}
+                today={todayProp}
+                weekStart={weekStart}
+                fiscalYearStart={fiscalYearStart}
+                locale={locale}
+              />
+            )}
+            <p
+              data-slot='dashboard-period-compare-dates'
+              aria-live='polite'
+              className='text-sm text-subtle'
+            >
+              {line}
+            </p>
+          </div>
+        )}
       </div>
     )
   }

@@ -798,10 +798,12 @@ describe('DashboardPeriod compare options', () => {
     const dialog = await openPicker()
     expect(compareSwitch(dialog)).not.toBeChecked()
     expect(compareSwitch(dialog)).toBeDisabled()
-    expect(compareDates(dialog)).toHaveTextContent('Nothing to compare')
+    expect(compareSwitch(dialog)).toHaveAccessibleDescription(
+      'Nothing to compare'
+    )
   })
 
-  it('says nothing to compare in the same live region as the dates', async () => {
+  it('says why Compare turned off with the switch when the range loses its end', async () => {
     render(
       <DashboardPeriod
         today={TODAY}
@@ -810,12 +812,13 @@ describe('DashboardPeriod compare options', () => {
       />
     )
     const dialog = await openPicker()
-    const region = compareDates(dialog)
+    expect(compareSwitch(dialog)).not.toHaveAccessibleDescription()
     await userEvent.click(
       within(dialog).getByRole('button', { name: /^Upcoming/ })
     )
-    expect(compareDates(dialog)).toBe(region)
-    expect(region).toHaveTextContent('Nothing to compare')
+    expect(compareSwitch(dialog)).toHaveAccessibleDescription(
+      'Nothing to compare'
+    )
   })
 
   it('says nothing about an open-ended range while an app choice can compare', async () => {
@@ -829,7 +832,7 @@ describe('DashboardPeriod compare options', () => {
     const dialog = await openPicker()
     expect(compareSwitch(dialog)).not.toBeChecked()
     expect(compareSwitch(dialog)).toBeEnabled()
-    expect(compareDates(dialog)).toBeEmptyDOMElement()
+    expect(compareSwitch(dialog)).not.toHaveAccessibleDescription()
   })
 
   it('selects no choice for an open-ended range without a Compare switch', async () => {
