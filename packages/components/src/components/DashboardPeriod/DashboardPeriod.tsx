@@ -396,23 +396,38 @@ export function DashboardPeriod<App extends string = never>({
 
   const compareRow = (range: DateRangeValue | null) => {
     const current = compare ? compared(range, compare, options, locale) : null
-    const choice = compare ? choiceOf(compare) : null
+    // Kept in the edit, so it comes back if the range gets an end again.
+    const blocked =
+      !!compare && isBuiltInComparison(compare) && !hasSpan(range, options)
+    const live = blocked ? undefined : compare
+    const choice = live ? choiceOf(live) : null
     const customDates =
-      customEditable && choice === 'custom' ? customOf(compare) : null
-    const line = compare
-      ? isBuiltInComparison(compare)
-        ? (current?.note ?? (customDates ? null : current?.dates))
-        : appChoice(compare)?.description
-      : null
-    const groupShown = !!compare || !switchShown
+      customEditable && choice === 'custom' ? customOf(live) : null
+    const line = blocked
+      ? current?.note
+      : live
+        ? isBuiltInComparison(live)
+          ? (current?.note ?? (customDates ? null : current?.dates))
+          : appChoice(live)?.description
+        : null
+    const groupShown = !!live || !switchShown
+    const datesLine = (
+      <p
+        data-slot='dashboard-period-compare-dates'
+        aria-live='polite'
+        className='text-sm text-subtle'
+      >
+        {line}
+      </p>
+    )
     return (
       <div data-slot='dashboard-period-compare' className='grid gap-3'>
         {switchShown && (
           <Switch
             label='Compare'
-            checked={!!compare}
+            checked={!!live}
             disabled={
-              !compare &&
+              !live &&
               !choices.some((option) => comparisonFor(option.value, range))
             }
             onCheckedChange={(on) =>
@@ -471,15 +486,10 @@ export function DashboardPeriod<App extends string = never>({
                 locale={locale}
               />
             )}
-            <p
-              data-slot='dashboard-period-compare-dates'
-              aria-live='polite'
-              className='text-sm text-subtle'
-            >
-              {line}
-            </p>
+            {datesLine}
           </div>
         )}
+        {!groupShown && blocked && datesLine}
       </div>
     )
   }

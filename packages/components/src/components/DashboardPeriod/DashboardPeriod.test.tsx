@@ -747,7 +747,7 @@ describe('DashboardPeriod compare options', () => {
     await userEvent.click(
       within(dialog).getByRole('button', { name: /^Upcoming/ })
     )
-    expect(choice(dialog, 'Custom dates')).toBeDisabled()
+    expect(compareSwitch(dialog)).not.toBeChecked()
     await apply(dialog)
     expect(onValueChange).toHaveBeenCalledWith({ range: 'upcoming' })
   })
@@ -783,9 +783,61 @@ describe('DashboardPeriod compare options', () => {
       />
     )
     const dialog = await openPicker()
-    expect(choice(dialog, 'Previous period')).toBeDisabled()
+    expect(compareSwitch(dialog)).not.toBeChecked()
     await apply(dialog)
     expect(onValueChange).toHaveBeenCalledWith({ range: 'upcoming' })
+  })
+
+  it('shows Compare off, and why, for an open-ended range it was given a previous period with', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming', compare: 'previous-period' }}
+      />
+    )
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    expect(compareSwitch(dialog)).toBeDisabled()
+    expect(compareDates(dialog)).toHaveTextContent('Nothing to compare')
+  })
+
+  it('selects no choice for an open-ended range without a Compare switch', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming', compare: 'previous-period' }}
+        compareOptions={['previous-period', 'previous-year']}
+      />
+    )
+    const dialog = await openPicker()
+    expect(choice(dialog, 'Previous period')).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+    expect(compareDates(dialog)).toHaveTextContent('Nothing to compare')
+  })
+
+  it('brings the previous period back when the range gets an end again', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        defaultValue={{ range: 'this-month', compare: 'previous-period' }}
+        presets={[{ value: 'this-month' }, { value: 'upcoming' }]}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^This month/ })
+    )
+    expect(compareSwitch(dialog)).toBeChecked()
+    expect(choice(dialog, 'Previous period')).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
   })
 
   it.each([
