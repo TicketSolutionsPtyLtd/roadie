@@ -544,6 +544,19 @@ describe('parseRecordQuery', () => {
       })
     })
 
+    it('reads no chip that would drop words before the "or"', () => {
+      expect(parse('melb jazz or folk').map((s) => s.value)).not.toContainEqual(
+        expect.objectContaining({ values: ['jazz', 'folk'] })
+      )
+    })
+
+    it('adds no value to a chip that holds none, such as is empty', () => {
+      expect(first('city is empty or melb')).toMatchObject({
+        value: { field: 'city', operator: 'is-not-set' },
+        remainder: 'or melb'
+      })
+    })
+
     it('keeps the same value once', () => {
       expect(first('melb or melbourne')?.value).toMatchObject({
         values: ['melbourne']
