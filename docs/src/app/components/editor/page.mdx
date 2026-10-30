@@ -368,7 +368,8 @@ phone.
 ### Blocks preset
 
 `preset='blocks'` holds everything the rich preset does, for a page built
-from blocks, and every block keeps an id as it moves.
+from blocks, and every block keeps an id. Type `/` in the empty paragraph to
+add a block.
 
 ```tsx-live-prose
 <Editor
@@ -393,6 +394,38 @@ Every block but a table's rows and cells saves a `blockId`, so it keeps its
 identity as it moves. The editor gives a block without one an id when it
 loads, splits, or is pasted, and `onValueChange` reports it. Copying a block
 gives the copy an id of its own. `/render` never writes ids into the page.
+
+#### Slash menu
+
+Type `/` in an empty paragraph to open the slash menu, then type to filter
+it. The arrow keys move through the blocks, Enter or a tap inserts one in
+place of the `/`, and Escape closes the menu and leaves the `/` as text. A
+`/` after text, in a list, or in a quote is only text. Image shows with
+`onUploadImage` and opens the file picker, and Embed opens the Embed popover.
+
+With no children, a `blocks` editor renders `Editor.Toolbar`,
+`Editor.Content`, then `Editor.SlashMenu`. Pass your own children to change
+the toolbar, and place `<Editor.SlashMenu />` yourself, or `/` is only text.
+
+```tsx-live-prose
+<Editor aria-label='Page' preset='blocks'>
+  <Editor.Toolbar emphasis='subtler' />
+  <Editor.Content />
+  <Editor.SlashMenu />
+</Editor>
+```
+
+The menu is a `listbox` named Blocks. Focus stays in the text, which points
+at the active `option` through `aria-activedescendant` and at the list
+through `aria-controls`. A filter that matches nothing says No matching
+blocks in a `status`.
+
+| Keys | Action |
+| --- | --- |
+| `/` | In an empty paragraph, open the slash menu |
+| `ArrowDown`, `ArrowUp` | Move to the next or previous block, wrapping |
+| `Enter` | Insert the active block in place of the `/` |
+| `Escape` | Close the menu, keeping the `/` |
 
 ### Emphasis
 

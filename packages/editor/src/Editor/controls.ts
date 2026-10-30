@@ -11,6 +11,7 @@ import {
   ListNumbersIcon,
   MinusIcon,
   PencilSimpleIcon,
+  QuotesIcon,
   RowsPlusBottomIcon,
   RowsPlusTopIcon,
   SquareSplitVerticalIcon,
@@ -18,14 +19,21 @@ import {
   TableIcon,
   TextAaIcon,
   TextBIcon,
+  TextHFourIcon,
+  TextHThreeIcon,
+  TextHTwoIcon,
   TextItalicIcon,
+  TextTIcon,
   TextUnderlineIcon,
   TrashIcon
 } from '@phosphor-icons/react'
+import type { ChainedCommands } from '@tiptap/core'
+import { closeHistory } from '@tiptap/pm/history'
 import type { Editor } from '@tiptap/react'
 
 import type { Preset } from '../schema'
 import { HEADING_LEVELS } from '../schema/headings'
+import type { SlashMatch } from './slashMenu'
 import { hasHeaderRow, leavesAColumn, leavesARow, selectedTable } from './table'
 
 /** What a control can open in the editor's own UI. */
@@ -369,4 +377,107 @@ export function ariaKeyShortcuts(keys: readonly string[]) {
       key === 'mod' ? mod : (ARIA_KEY_NAMES[key] ?? key.toUpperCase())
     )
     .join('+')
+}
+
+/** A block the slash menu inserts in place of the typed `/` and its query. */
+export type EditorSlashItem = {
+  label: string
+  icon: Icon
+  /** Other words it's found by. */
+  keywords?: readonly string[]
+  run: (editor: Editor, ui: EditorControlUi, match: SlashMatch) => void
+  available?: (ui: EditorControlUi) => boolean
+}
+
+// One undo step of its own, so undo returns to the typed `/`.
+function replacingSlash(
+  editor: Editor,
+  { from, to }: SlashMatch
+): ChainedCommands {
+  return editor
+    .chain()
+    .focus()
+    .command(({ tr }) => {
+      closeHistory(tr)
+      return true
+    })
+    .deleteRange({ from, to })
+}
+
+function slashBlock(
+  label: string,
+  icon: Icon,
+  insert: (chain: ChainedCommands) => ChainedCommands,
+  keywords?: readonly string[]
+): EditorSlashItem {
+  return {
+    label,
+    icon,
+    keywords,
+    run: (editor, _ui, match) => insert(replacingSlash(editor, match)).run()
+  }
+}
+
+const HEADING_ICONS = {
+  2: TextHTwoIcon,
+  3: TextHThreeIcon,
+  4: TextHFourIcon
+} as const
+
+const blockSlashItems: readonly EditorSlashItem[] = [
+  slashBlock('Text', TextTIcon, (chain) => chain, ['paragraph']),
+  ...HEADING_LEVELS.map((level) =>
+    slashBlock(
+      `Heading ${level}`,
+      HEADING_ICONS[level],
+      (chain) => chain.setHeading({ level }),
+      ['title']
+    )
+  ),
+  slashBlock(
+    'Bulleted list',
+    ListBulletsIcon,
+    (chain) => chain.toggleBulletList(),
+    ['unordered']
+  ),
+  slashBlock(
+    'Numbered list',
+    ListNumbersIcon,
+    (chain) => chain.toggleOrderedList(),
+    ['ordered']
+  ),
+  slashBlock('Quote', QuotesIcon, (chain) => chain.wrapIn('blockquote'), [
+    'blockquote'
+  ]),
+  slashBlock('Divider', MinusIcon, (chain) => chain.setHorizontalRule(), [
+    'rule',
+    'line'
+  ]),
+  {
+    label: 'Image',
+    icon: ImageIcon,
+    keywords: ['photo', 'picture'],
+    run: (editor, ui, match) => {
+      replacingSlash(editor, match).run()
+      ui.pickImage?.()
+    },
+    available: ({ pickImage }) => Boolean(pickImage)
+  },
+  {
+    label: 'Embed',
+    icon: FilmStripIcon,
+    keywords: ['video', 'audio', 'youtube', 'spotify'],
+    run: (editor, ui, match) => {
+      replacingSlash(editor, match).run()
+      ui.editEmbed()
+    }
+  },
+  slashBlock('Table', TableIcon, (chain) => chain.insertTable(NEW_TABLE))
+]
+
+/** The blocks each preset's slash menu offers; only `blocks` has one. */
+export const presetSlashItems: Record<Preset, readonly EditorSlashItem[]> = {
+  basic: [],
+  rich: [],
+  blocks: blockSlashItems
 }
