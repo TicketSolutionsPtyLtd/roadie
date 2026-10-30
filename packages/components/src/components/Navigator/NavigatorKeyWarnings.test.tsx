@@ -109,6 +109,7 @@ describe('Navigator key warnings', () => {
     'opens a menu with a %s item and selects it without a key warning',
     async (_, arrive) => {
       const archive = vi.fn()
+      const logOut = vi.fn()
       const user = userEvent.setup()
       render(
         <Navigator value='/a'>
@@ -128,19 +129,30 @@ describe('Navigator key warnings', () => {
                     Archive
                   </Navigator.MenuItem>
                 )}
+                <Navigator.MenuItem onSelect={logOut}>
+                  Log out
+                </Navigator.MenuItem>
               </Navigator.Menu>
             </Navigator.Item>
           </Navigator.Primary>
         </Navigator>
       )
       await flushViewportMeasurement()
+      const choose = async (name: string) => {
+        await user.click(
+          within(primaryOf('vertical')).getByRole('button', {
+            name: 'Account'
+          })
+        )
+        const menu = await screen.findByRole('menu')
+        await user.click(within(menu).getByRole('menuitem', { name }))
+      }
 
-      await user.click(
-        within(primaryOf('vertical')).getByRole('button', { name: 'Account' })
-      )
-      const menu = await screen.findByRole('menu')
-      await user.click(within(menu).getByRole('menuitem', { name: 'Archive' }))
-
+      await choose('Archive')
+      expect(archive).toHaveBeenCalledOnce()
+      // An item after a streamed one still runs its own handler, not its neighbour's.
+      await choose('Log out')
+      expect(logOut).toHaveBeenCalledOnce()
       expect(archive).toHaveBeenCalledOnce()
       expect(keyWarnings()).toEqual([])
     }
