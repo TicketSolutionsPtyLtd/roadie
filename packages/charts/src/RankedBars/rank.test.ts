@@ -68,10 +68,10 @@ describe('rank', () => {
     ['ABCDE', true, 'A', ['A', 'B', 'C']],
     ['ABCDE', true, ['A', 'B', 'C', 'D'], ['A', 'B', 'C']],
     ['CEADB', false, undefined, ['C', 'E', 'A']],
-    ['CEADB', false, 'B', ['C', 'A', 'B']],
-    ['CEADB', false, ['D', 'B'], ['A', 'D', 'B']]
+    ['CEADB', false, 'B', ['C', 'E', 'B']],
+    ['CEADB', false, ['D', 'B'], ['C', 'D', 'B']]
   ] as const)(
-    'keeps a highlighted bar past limit in place of the lowest other bar, data %s, sort %s, highlight %j',
+    'keeps a highlighted bar past limit in place of the last other bar, data %s, sort %s, highlight %j',
     (order, sort, highlight, names) => {
       const ranked = rank({
         data: fiveBars(order),

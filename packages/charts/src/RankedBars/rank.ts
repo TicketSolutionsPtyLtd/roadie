@@ -60,7 +60,7 @@ export function rankRows(props: RankedBarsProps): RankRow[] {
 export const rankable = (props: RankedBarsProps) =>
   rankRows(props).filter((r): r is Row => r.value !== null)
 
-/** The first `limit` rows, each highlighted row past it taking the place of the lowest bar not highlighted. */
+/** The first `limit` rows, each highlighted row past it taking the place of the last bar not highlighted. */
 function keepHighlighted(
   rows: Row[],
   limit: number,
@@ -70,14 +70,9 @@ function keepHighlighted(
   const kept = rows.slice(0, limit)
   for (const row of rows.slice(limit)) {
     if (isContext(row)) continue
-    const lowest = kept
-      .filter(isContext)
-      .reduce<Row | null>(
-        (low, bar) => (!low || bar.value <= low.value ? bar : low),
-        null
-      )
-    if (!lowest) break
-    kept[kept.indexOf(lowest)] = row
+    const last = kept.findLast(isContext)
+    if (!last) break
+    kept[kept.indexOf(last)] = row
   }
   return rows.filter((row) => kept.includes(row))
 }
