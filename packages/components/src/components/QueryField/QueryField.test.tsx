@@ -1349,7 +1349,7 @@ function OperatorStep(props: HarnessProps) {
 }
 
 const operatorGroup = () => screen.queryByRole('group', { name: 'Operator' })
-// Found, not queried: on a slow runner the group renders a tick after a keyboard step.
+// Found, not queried: on a slow CI runner the group was once absent when read.
 const findOperatorGroup = () => screen.findByRole('group', { name: 'Operator' })
 const pressed = async () =>
   within(await findOperatorGroup())
