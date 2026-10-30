@@ -1,5 +1,8 @@
+'use client'
+
 import { useId } from 'react'
 
+import { Carousel } from '@oztix/roadie-components/carousel'
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction, BlockImage } from '../Provider'
@@ -37,9 +40,18 @@ export type TestimonialOrganisation = {
   logo?: BlockImage
 }
 
+export type TestimonialQuote = {
+  /** The quote, without quotation marks; the block draws them. */
+  quote: string
+  /** Who said it. */
+  person: TestimonialPerson
+  /** Where they work. */
+  organisation?: TestimonialOrganisation
+}
+
 export type TestimonialProps = {
   /**
-   * The look to render. `quote` is the only one so far.
+   * `quote` shows one quote, large; `carousel` steps through them all, one at a time, with dots.
    * @default 'quote'
    */
   preset?: TestimonialPreset
@@ -55,12 +67,8 @@ export type TestimonialProps = {
   titleHighlight?: string | string[]
   /** A sentence under the title. */
   description?: string
-  /** The quote, without quotation marks; the block draws them. */
-  quote: string
-  /** Who said it. */
-  person: TestimonialPerson
-  /** Where they work. */
-  organisation?: TestimonialOrganisation
+  /** The quotes, in order. `quote` shows the first; `carousel` steps through them all. */
+  quotes: readonly TestimonialQuote[]
   /** A photo faded behind the whole block, which then pads its content. Decorative, so its alt text isn't read. Over an `emphasis`, it fades over the surface's colour. */
   image?: BlockImage
   /** Links under the quote. The first is the strong one. */
@@ -83,7 +91,7 @@ export type TestimonialProps = {
   size?: BlockSize
 }
 
-/** A client's quote, large and centred, with their portrait, role, and organisation. */
+/** Clients' quotes, large and centred, with their portrait, role, and organisation: one, or several in a carousel. */
 export function Testimonial({
   preset,
   position,
@@ -92,9 +100,7 @@ export function Testimonial({
   title,
   titleHighlight,
   description,
-  quote,
-  person,
-  organisation,
+  quotes,
   image,
   actions,
   intent,
@@ -106,6 +112,19 @@ export function Testimonial({
   const { name, variant } = presetOf(testimonialDefinition, preset)
   const headingId = useId()
   const centred = align === 'center'
+  const heading = (
+    <BlockHeading
+      id={headingId}
+      intent={intent}
+      align={align}
+      size={size}
+      eyebrow={eyebrow}
+      title={title}
+      titleHighlight={titleHighlight}
+      description={description}
+    />
+  )
+  const gap = bySize(size, { sm: 'gap-8', md: 'gap-10', lg: 'gap-16' })
   return (
     <BlockRoot
       block={testimonialDefinition.name}
@@ -113,7 +132,8 @@ export function Testimonial({
       preset={name}
       position={position}
       id={id}
-      aria-labelledby={headingId}
+      // The carousel is the landmark the heading names; naming both repeats it.
+      aria-labelledby={name === 'carousel' ? undefined : headingId}
       intent={intent}
     >
       <BlockSurface
@@ -129,37 +149,31 @@ export function Testimonial({
             />
           )
         }
-        className={cn(
-          'grid *:min-w-0',
-          bySize(size, { sm: 'gap-8', md: 'gap-10', lg: 'gap-16' }),
-          centred && 'justify-items-center'
-        )}
+        className={cn('grid *:min-w-0', gap, centred && 'justify-items-center')}
       >
-        <BlockHeading
-          id={headingId}
-          intent={intent}
-          align={align}
-          size={size}
-          eyebrow={eyebrow}
-          title={title}
-          titleHighlight={titleHighlight}
-          description={description}
-        />
-        <figure
-          className={cn(
-            'grid gap-8 *:min-w-0',
-            centred && 'justify-items-center'
-          )}
-        >
-          <Quote intent={intent} align={align}>
-            {quote}
-          </Quote>
-          <Citation
-            person={person}
-            organisation={organisation}
-            intent={intent}
-          />
-        </figure>
+        {name === 'carousel' ? (
+          <Carousel className={cn('grid w-full', gap)}>
+            <Carousel.Title id={headingId} render={() => heading} />
+            <Carousel.Content overflow='hidden'>
+              {quotes.map((item, index) => (
+                <Carousel.Item
+                  key={`${index}-${item.person.name}`}
+                  className='basis-full'
+                >
+                  <QuoteFigure {...item} intent={intent} align={align} />
+                </Carousel.Item>
+              ))}
+            </Carousel.Content>
+            <Carousel.Dots className='justify-self-center' />
+          </Carousel>
+        ) : (
+          <>
+            {heading}
+            {quotes[0] && (
+              <QuoteFigure {...quotes[0]} intent={intent} align={align} />
+            )}
+          </>
+        )}
         <BlockActions
           actions={actions}
           intent={intent}
@@ -167,6 +181,28 @@ export function Testimonial({
         />
       </BlockSurface>
     </BlockRoot>
+  )
+}
+
+function QuoteFigure({
+  quote,
+  person,
+  organisation,
+  intent,
+  align
+}: TestimonialQuote & { intent?: BlockIntent; align: BlockAlign }) {
+  return (
+    <figure
+      className={cn(
+        'grid gap-8 *:min-w-0',
+        align === 'center' && 'justify-items-center'
+      )}
+    >
+      <Quote intent={intent} align={align}>
+        {quote}
+      </Quote>
+      <Citation person={person} organisation={organisation} intent={intent} />
+    </figure>
   )
 }
 
@@ -205,7 +241,9 @@ function Citation({
   person,
   organisation,
   intent
-}: Pick<TestimonialProps, 'person' | 'organisation' | 'intent'>) {
+}: Pick<TestimonialQuote, 'person' | 'organisation'> & {
+  intent?: BlockIntent
+}) {
   const logo = organisation?.logo
   return (
     <figcaption className='flex items-start gap-4 @xl:gap-6 @3xl:gap-8'>

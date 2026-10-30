@@ -109,6 +109,43 @@ describe('CTABand with photo', () => {
     )
   })
 
+  it.each([
+    ['a phone', PHONE],
+    ['a mid-width screen', { width: 640, height: 800 }],
+    ['a desktop', DESKTOP]
+  ])(
+    'keeps the photo and its illustration above the panel’s foot, with short copy, on %s',
+    async (_, size) => {
+      await page.viewport(size.width, size.height)
+      const { container } = render(
+        <CTABand
+          {...props}
+          body={undefined}
+          actions={undefined}
+          tilted={false}
+        />
+      )
+
+      const { panel, photo } = boxes()
+      const illustration = container
+        .querySelector('svg')!
+        .getBoundingClientRect()
+      expect(photo.bottom).toBeLessThanOrEqual(panel.bottom)
+      expect(illustration.bottom).toBeLessThanOrEqual(panel.bottom)
+    }
+  )
+
+  it('keeps the photo above a contained panel’s foot, with short copy', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    const { container } = render(
+      <CTABand {...props} body={undefined} actions={undefined} contained />
+    )
+
+    const { panel } = boxes()
+    const illustration = container.querySelector('svg')!.getBoundingClientRect()
+    expect(illustration.bottom).toBeLessThanOrEqual(panel.bottom)
+  })
+
   it('has no axe violations', async () => {
     const { container } = render(<CTABand {...props} />)
 

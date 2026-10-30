@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 
 import { Testimonial } from '.'
 import {
@@ -14,17 +15,26 @@ import {
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
-import { quote as fixture } from './fixtures'
+import { carousel, quote as fixture } from './fixtures'
 
 withBrowserPage()
 
+const first = fixture.quotes[0]!
 const quote = {
   ...fixture,
-  person: { ...fixture.person, image: photo('Portrait of Mia Tran', 128, 128) },
-  organisation: {
-    ...fixture.organisation,
-    logo: photo('Thimble Orbit Presents logo', 120, 40)
-  },
+  quotes: [
+    {
+      ...first,
+      person: {
+        ...first.person,
+        image: photo('Portrait of Mia Tran', 128, 128)
+      },
+      organisation: {
+        ...first.organisation,
+        logo: photo('Thimble Orbit Presents logo', 120, 40)
+      }
+    }
+  ],
   image: photo('', 1600, 900)
 }
 
@@ -121,10 +131,15 @@ describe('Testimonial quote layout', () => {
     const { container } = render(
       <Testimonial
         {...quote}
-        person={{
-          ...quote.person,
-          image: photo('Portrait of Mia Tran', 400, 800)
-        }}
+        quotes={[
+          {
+            ...quote.quotes[0]!,
+            person: {
+              ...quote.quotes[0]!.person,
+              image: photo('Portrait of Mia Tran', 400, 800)
+            }
+          }
+        ]}
         image={photo('', 400, 400)}
       />
     )
@@ -146,10 +161,15 @@ describe('Testimonial quote layout', () => {
     render(
       <Testimonial
         {...quote}
-        organisation={{
-          name: 'Thimble Orbit Presents',
-          logo: photo('Thimble Orbit Presents logo', 400, 200)
-        }}
+        quotes={[
+          {
+            ...quote.quotes[0]!,
+            organisation: {
+              name: 'Thimble Orbit Presents',
+              logo: photo('Thimble Orbit Presents logo', 400, 200)
+            }
+          }
+        ]}
       />
     )
 
@@ -228,7 +248,12 @@ describe('Testimonial contrast', () => {
           <Testimonial
             {...quote}
             {...props}
-            organisation={{ name: 'Thimble Orbit Presents' }}
+            quotes={[
+              {
+                ...quote.quotes[0]!,
+                organisation: { name: 'Thimble Orbit Presents' }
+              }
+            ]}
             image={undefined}
           />
         </div>
@@ -327,5 +352,57 @@ describe('Testimonial contrast', () => {
       screen.getByRole('heading', { level: 2 }).getBoundingClientRect().top -
         container.querySelector('section')!.getBoundingClientRect().top
     ).toBeGreaterThan(0)
+  })
+})
+
+describe('Testimonial carousel', () => {
+  it('steps through the quotes with dots alone', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(<Testimonial {...carousel} image={undefined} />)
+
+    const dots = await screen.findAllByRole('button', {
+      name: /^Go to slide \d$/
+    })
+    expect(dots).toHaveLength(carousel.quotes.length)
+    expect(screen.queryByRole('button', { name: /next|previous/i })).toBeNull()
+
+    await userEvent.click(dots[1]!)
+    const second = screen.getByText(carousel.quotes[1]!.quote)
+    await expect
+      .poll(() => {
+        const slide = second.closest('[aria-roledescription=slide]')!
+        const { left } = slide.getBoundingClientRect()
+        const viewport = document
+          .querySelector('[data-slot=carousel-content]')!
+          .getBoundingClientRect()
+        return Math.abs(left - viewport.left) < 2
+      })
+      .toBe(true)
+  })
+
+  it('centres the dots under the quote', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(<Testimonial {...carousel} image={undefined} />)
+
+    const dots = await screen.findByRole('group', {
+      name: 'Choose slide to display'
+    })
+    expect(
+      Math.abs(
+        centreOf(dots) -
+          centreOf(screen.getAllByRole('figure', { hidden: true })[0]!)
+      )
+    ).toBeLessThan(2)
+  })
+
+  it('has no axe violations', async () => {
+    const { container } = render(
+      <main>
+        <Testimonial {...carousel} image={undefined} />
+      </main>
+    )
+
+    await screen.findAllByRole('button', { name: /^Go to slide \d$/ })
+    expect(await axeViolations(container)).toEqual([])
   })
 })

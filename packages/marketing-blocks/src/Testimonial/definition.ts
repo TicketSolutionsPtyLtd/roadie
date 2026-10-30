@@ -11,6 +11,13 @@ export const testimonialDefinition = {
       description:
         "One large quote with the person's photo, role and organisation, over an optional background photo.",
       variant: 'single'
+    },
+    {
+      name: 'carousel',
+      title: 'Carousel',
+      description:
+        'Several quotes, one at a time, stepped through with dots or a swipe, over an optional background photo.',
+      variant: 'carousel'
     }
   ]
 } as const satisfies BlockDefinition

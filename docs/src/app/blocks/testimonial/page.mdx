@@ -31,17 +31,50 @@ the whole block.
   preset='quote'
   title='Our partners say it best'
   description='Why venues and event organisers partner with Oztix'
-  quote='Oztix are attuned to what we need and quick to respond, and their marketing sells tickets, plain and simple.'
-  person={{
-    name: 'Mia Tran',
-    role: 'Head of Programming',
-    image: { src: '/brand/photography/04.webp', alt: 'Portrait of Mia Tran', width: 120, height: 120 }
-  }}
-  organisation={{
-    name: 'Thimble Orbit Presents',
-    logo: { src: '/blocks/thimble-orbit-presents-badge.svg', alt: 'Thimble Orbit Presents logo', width: 214, height: 48 }
-  }}
+  quotes={[
+    {
+      quote: 'Oztix are attuned to what we need and quick to respond, and their marketing sells tickets, plain and simple.',
+      person: {
+        name: 'Mia Tran',
+        role: 'Head of Programming',
+        image: { src: '/brand/photography/04.webp', alt: 'Portrait of Mia Tran', width: 120, height: 120 }
+      },
+      organisation: {
+        name: 'Thimble Orbit Presents',
+        logo: { src: '/blocks/thimble-orbit-presents-badge.svg', alt: 'Thimble Orbit Presents logo', width: 214, height: 48 }
+      }
+    }
+  ]}
   image={{ src: '/brand/photography/05.webp', alt: '', width: 1600, height: 900 }}
+/>
+```
+
+### Carousel
+
+Several quotes, one at a time, under one heading. Dots under the quote step
+between them, and a swipe does too on a touch screen.
+
+```tsx-live id=carousel
+<Testimonial
+  preset='carousel'
+  title='Our partners say it best'
+  quotes={[
+    {
+      quote: 'Oztix are attuned to what we need and quick to respond, and their marketing sells tickets, plain and simple.',
+      person: { name: 'Mia Tran', role: 'Head of Programming', image: { src: '/brand/photography/04.webp', alt: 'Portrait of Mia Tran', width: 120, height: 120 } },
+      organisation: { name: 'Thimble Orbit Presents' }
+    },
+    {
+      quote: 'Our crowd buys earlier now, and the support team answers before we finish asking.',
+      person: { name: 'Sam Okafor', role: 'Venue Manager' },
+      organisation: { name: 'Kazoo Hollow Room' }
+    },
+    {
+      quote: 'Settlement lands when they say it will, which is all a festival needs to plan next year.',
+      person: { name: 'Priya Shah', role: 'Festival Director' },
+      organisation: { name: 'Ochre Kite Weekender' }
+    }
+  ]}
 />
 ```
 
@@ -60,13 +93,17 @@ colour.
   emphasis='subtle'
   title='Our partners say it best'
   titleHighlight='say it best'
-  quote='Oztix are attuned to what we need and quick to respond, and their marketing sells tickets, plain and simple.'
-  person={{
-    name: 'Mia Tran',
-    role: 'Head of Programming',
-    image: { src: '/brand/photography/04.webp', alt: 'Portrait of Mia Tran', width: 120, height: 120 }
-  }}
-  organisation={{ name: 'Thimble Orbit Presents' }}
+  quotes={[
+    {
+      quote: 'Oztix are attuned to what we need and quick to respond, and their marketing sells tickets, plain and simple.',
+      person: {
+        name: 'Mia Tran',
+        role: 'Head of Programming',
+        image: { src: '/brand/photography/04.webp', alt: 'Portrait of Mia Tran', width: 120, height: 120 }
+      },
+      organisation: { name: 'Thimble Orbit Presents' }
+    }
+  ]}
 />
 ```
 
@@ -84,13 +121,17 @@ gaps. `actions` link on from under the quote.
   align='start'
   size='md'
   title='Our partners say it best'
-  quote='Oztix are attuned to what we need and quick to respond, and their marketing sells tickets, plain and simple.'
-  person={{
-    name: 'Mia Tran',
-    role: 'Head of Programming',
-    image: { src: '/brand/photography/04.webp', alt: 'Portrait of Mia Tran', width: 120, height: 120 }
-  }}
-  organisation={{ name: 'Thimble Orbit Presents' }}
+  quotes={[
+    {
+      quote: 'Oztix are attuned to what we need and quick to respond, and their marketing sells tickets, plain and simple.',
+      person: {
+        name: 'Mia Tran',
+        role: 'Head of Programming',
+        image: { src: '/brand/photography/04.webp', alt: 'Portrait of Mia Tran', width: 120, height: 120 }
+      },
+      organisation: { name: 'Thimble Orbit Presents' }
+    }
+  ]}
   actions={[{ label: 'Become a partner', href: '/contact/sales' }]}
 />
 ```
@@ -142,6 +183,11 @@ gaps. `actions` link on from under the quote.
 </Guideline>
 
 </Guidelines>
+
+## Accessibility
+
+- **Quote**: the quote and its citation share one `figure`, so they're read together.
+- **Carousel**: the heading names the carousel, and each quote is a slide named by its place, such as "2 of 3". Each dot is a button that goes to its slide, and quotes out of view are inert, so `Tab` skips them.
 
 ## Tracking
 

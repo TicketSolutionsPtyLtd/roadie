@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Testimonial } from '.'
 import { MarketingBlocksProvider } from '../Provider'
-import { quote } from './fixtures'
+import { carousel, quote } from './fixtures'
 
 describe('Testimonial', () => {
   it('renders quote as a section named by its heading', () => {
@@ -27,7 +27,7 @@ describe('Testimonial', () => {
 
     const figure = screen.getByRole('figure')
     const blockquote = within(figure).getByRole('blockquote')
-    expect(blockquote).toHaveTextContent(quote.quote)
+    expect(blockquote).toHaveTextContent(quote.quotes[0]!.quote)
     const caption = figure.querySelector('figcaption')!
     expect(caption).toHaveTextContent('Mia Tran')
     expect(caption).toHaveTextContent('Head of Programming')
@@ -43,10 +43,15 @@ describe('Testimonial', () => {
     render(
       <Testimonial
         {...quote}
-        organisation={{
-          name: 'Thimble Orbit Presents',
-          logo: { ...quote.organisation.logo, alt: '' }
-        }}
+        quotes={[
+          {
+            ...quote.quotes[0]!,
+            organisation: {
+              name: 'Thimble Orbit Presents',
+              logo: { ...quote.quotes[0]!.organisation.logo, alt: '' }
+            }
+          }
+        ]}
       />
     )
 
@@ -58,7 +63,12 @@ describe('Testimonial', () => {
   })
 
   it('leaves out the role when there is none', () => {
-    render(<Testimonial {...quote} person={{ name: 'Mia Tran' }} />)
+    render(
+      <Testimonial
+        {...quote}
+        quotes={[{ ...quote.quotes[0]!, person: { name: 'Mia Tran' } }]}
+      />
+    )
 
     const caption = screen.getByRole('figure').querySelector('figcaption')!
     expect(caption).toHaveTextContent('Mia Tran')
@@ -74,8 +84,13 @@ describe('Testimonial', () => {
     render(
       <Testimonial
         {...quote}
-        person={{ name: 'Mia Tran', role: 'Head of Programming' }}
-        organisation={{ name: 'Thimble Orbit Presents' }}
+        quotes={[
+          {
+            ...quote.quotes[0]!,
+            person: { name: 'Mia Tran', role: 'Head of Programming' },
+            organisation: { name: 'Thimble Orbit Presents' }
+          }
+        ]}
       />
     )
 
@@ -214,5 +229,38 @@ describe('Testimonial', () => {
           Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy()
     })
+  })
+})
+
+describe('Testimonial carousel', () => {
+  it('renders each quote as a slide, in its own figure', () => {
+    render(<Testimonial {...carousel} />)
+
+    const section = screen.getByRole('region', { name: carousel.title })
+    expect(section.closest('section')).toHaveAttribute(
+      'data-preset',
+      'carousel'
+    )
+    expect(section.closest('section')).toHaveAttribute(
+      'data-variant',
+      'carousel'
+    )
+    expect(screen.getAllByRole('figure', { hidden: true })).toHaveLength(
+      carousel.quotes.length
+    )
+    expect(
+      screen
+        .getAllByRole('group', { hidden: true })
+        .map((slide) => slide.getAttribute('aria-label'))
+    ).toEqual(['1 of 3', '2 of 3', '3 of 3'])
+  })
+
+  it('shows the first quote alone in the quote preset', () => {
+    render(<Testimonial {...carousel} preset='quote' />)
+
+    expect(screen.getAllByRole('figure')).toHaveLength(1)
+    expect(screen.getByRole('blockquote')).toHaveTextContent(
+      carousel.quotes[0]!.quote
+    )
   })
 })
