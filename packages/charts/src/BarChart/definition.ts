@@ -10,8 +10,6 @@ import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 
-import { formatValue } from '@oztix/roadie-core/dataviz'
-
 import { annotationMarks, annotationsOnBars } from '../plot/annotations'
 import { plotSpan, textRoom } from '../plot/endLabels'
 import { fieldLabel } from '../plot/table'
@@ -29,8 +27,9 @@ import type {
   WidthBand
 } from '../plot/types'
 import {
+  type ValueStyle,
   axisFormat,
-  fullFormat,
+  fullValue,
   gridTicks,
   labelFormat,
   valueDomain
@@ -100,7 +99,7 @@ function lineLabel(props: BarChartProps, bars: readonly Bar[]) {
   return {
     key: last.key,
     value: last.line,
-    text: `${line.label} ${labelFormat(line.format, last.line)}`
+    text: `${line.label} ${labelFormat(line, last.line)}`
   }
 }
 
@@ -317,7 +316,7 @@ export const barChart: ChartDefinition<BarChartProps> = {
       undefined
     )
     if (peak?.y == null) return `${noun} by ${props.interval ?? 'day'}`
-    const value = formatValue(peak.y, fullFormat(props.format))
+    const value = fullValue(props, peak.y)
     const ms = parseX(peak.key)
     const when =
       ms === null
@@ -353,24 +352,20 @@ export const barChart: ChartDefinition<BarChartProps> = {
     const ms = parseX(key)
     const parts = [
       ms === null ? key : spoken(props, ms),
-      describeValue(datum.y, props.format, fieldLabel(props.y).toLowerCase())
+      describeValue(datum.y, props, fieldLabel(props.y).toLowerCase())
     ]
     const line = props.line
     const bar = line && barAt(props, key)
     if (line && bar)
       parts.push(
         `${lowerFirst(line.label)} ${
-          bar.line === null
-            ? 'no data'
-            : formatValue(bar.line, fullFormat(line.format))
+          bar.line === null ? 'no data' : fullValue(line, bar.line)
         }`
       )
     const comparison = comparisonLabel(props)
     const compared = barAt(props, key)?.comparison
     if (comparison && compared != null)
-      parts.push(
-        `${lowerFirst(comparison)} ${formatValue(compared, fullFormat(props.format))}`
-      )
+      parts.push(`${lowerFirst(comparison)} ${fullValue(props, compared)}`)
     return parts.join(', ')
   },
   tooltip(data, props, paint) {
@@ -379,8 +374,10 @@ export const barChart: ChartDefinition<BarChartProps> = {
     const bar = barAt(props, key)
     const line = props.line
     const comparison = comparisonLabel(props)
-    const shown = (value: number | null | undefined, format = props.format) =>
-      value == null ? 'No data' : formatValue(value, fullFormat(format))
+    const shown = (
+      value: number | null | undefined,
+      style: ValueStyle = props
+    ) => (value == null ? 'No data' : fullValue(style, value))
     return {
       title: ms === null ? key : title(props, ms),
       rows: [
@@ -394,7 +391,7 @@ export const barChart: ChartDefinition<BarChartProps> = {
           ? [
               {
                 label: line.label,
-                value: shown(bar?.line, line.format),
+                value: shown(bar?.line, line),
                 color: paint.value,
                 shape: 'line' as const
               }

@@ -159,6 +159,22 @@ Pass the same `dataStart`, `dataEnd` and `alignWeekday` you give `resolveCompari
 />
 ```
 
+### With a range that has no end
+
+A range with no end, such as all upcoming shows, has no span to step back by. Previous period, Previous year and Custom dates turn off, the period reads none of them even when the value holds one, and Apply drops them. An app’s own comparison still reads. This dashboard of shows on sale offers Upcoming as a preset, and its value asks for the previous period too. The button shows only “Upcoming”, and in the picker Compare is off and says there’s nothing to compare. Choose Next 30 days and the previous period comes back.
+
+```tsx-live
+<DashboardPeriod
+  today='2026-10-07'
+  presets={[
+    { value: 'upcoming' },
+    { value: { direction: 'next', amount: 30, unit: 'day' } },
+    { value: { direction: 'next', amount: 90, unit: 'day' } }
+  ]}
+  defaultValue={{ range: 'upcoming', compare: 'previous-period' }}
+/>
+```
+
 ### With your own controls
 
 Pass the app’s other controls, such as a channel filter, as `children`, and they sit after the period. On a narrow container they stack.

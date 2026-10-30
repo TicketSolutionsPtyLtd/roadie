@@ -137,7 +137,11 @@ function numberFormat(field: RecordField | undefined): ValueFormat {
 }
 
 function number(value: number, field: RecordField | undefined): string {
-  return formatValueInCurrency(value, numberFormat(field), field?.currency)
+  // A filter reads as a sentence, where a whole price has no cents.
+  return formatValueInCurrency(value, numberFormat(field), field?.currency, {
+    decimals: field?.decimals,
+    trailingZeroDisplay: 'stripIfInteger'
+  })
 }
 
 // Plain dates format in UTC, so today is read in the viewer's zone and

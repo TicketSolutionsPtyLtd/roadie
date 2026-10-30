@@ -262,29 +262,58 @@ describe('validateDashboard with chart plots', () => {
     )
   })
 
-  it('checks the bar comparison field', () => {
-    expect(
-      paths(
-        spec([
-          chartCard({
-            kind: 'bar',
-            data: rows,
-            x: 'day',
-            y: 'sold',
-            comparison: { y: 'lastPeriod' }
-          })
-        ])
-      )
-    ).toContain('sections[0].cards[0].plot.comparison.y')
+  it.each(['line', 'bar'] as const)(
+    'checks the %s comparison field',
+    (kind) => {
+      expect(
+        paths(
+          spec([
+            chartCard({
+              kind,
+              data: rows,
+              x: 'day',
+              y: 'sold',
+              comparison: { y: 'lastPeriod' }
+            })
+          ])
+        )
+      ).toContain('sections[0].cards[0].plot.comparison.y')
+    }
+  )
+
+  it('warns on a line comparison with series, which the chart ignores', () => {
+    const result = validateDashboard(
+      spec([
+        chartCard({
+          kind: 'line',
+          data: rows.map((row) => ({ ...row, type: 'GA', lastPeriod: 1 })),
+          x: 'day',
+          y: 'sold',
+          series: 'type',
+          comparison: { y: 'lastPeriod' }
+        })
+      ])
+    )
+    expect(result.problems).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.comparison',
+        severity: 'warning'
+      })
+    )
   })
 
-  it.each(['day', 'sold'])(
-    'warns on a bar comparison against its own %s, which the chart ignores',
-    (field) => {
+  it.each([
+    ['line', 'day'],
+    ['line', 'sold'],
+    ['bar', 'day'],
+    ['bar', 'sold']
+  ] as const)(
+    'warns on a %s comparison against its own %s, which the chart ignores',
+    (kind, field) => {
       const result = validateDashboard(
         spec([
           chartCard({
-            kind: 'bar',
+            kind,
             data: rows,
             x: 'day',
             y: 'sold',
@@ -767,6 +796,23 @@ describe('validateDashboard checks repeated names', () => {
       message: 'Step labels must differ. "Paid" repeats',
       severity: 'error'
     })
+  })
+
+  it('asks for a limit when ranked bars leave Other off', () => {
+    const plot = {
+      kind: 'ranked-bars',
+      data: [{ channel: 'Email', orders: 5 }],
+      x: 'channel',
+      y: 'orders'
+    }
+    expect(problemsOf({ ...plot, other: false })).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.limit',
+        severity: 'warning'
+      })
+    )
+    expect(problemsOf({ ...plot, other: false, limit: 5 })).toEqual([])
+    expect(problemsOf(plot)).toEqual([])
   })
 
   it('warns that repeated ranked names add up', () => {

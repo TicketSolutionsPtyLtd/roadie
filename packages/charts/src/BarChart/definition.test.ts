@@ -506,3 +506,52 @@ describe('barChart annotations', () => {
     }
   })
 })
+
+describe('barChart decimal places', () => {
+  const sold: BarChartProps = {
+    data: [
+      { day: '2026-11-01', sold: 0.0127 },
+      { day: '2026-11-02', sold: 0.1266 }
+    ],
+    x: 'day',
+    y: 'sold',
+    format: 'percent',
+    decimals: 2
+  }
+  const bar = { x: '2026-11-02', y: 0.1266, series: 'Sold', index: 1 }
+
+  it('reads values to the decimal places in the tooltip, aloud and in the table', () => {
+    expect(barChart.tooltip([bar], sold, paint).rows[0]?.value).toBe('12.66%')
+    expect(barChart.describe(bar, sold)).toContain('12.66% sold')
+    expect(barChart.summary(sold)).toBe(
+      'Sold peaked at 12.66% on Mon 2 Nov 2026'
+    )
+    expect(barChartTable(sold).columns[1]).toMatchObject({
+      format: 'percent',
+      decimals: 2
+    })
+  })
+})
+
+describe('barChart line decimal places', () => {
+  it('reads the line to its own decimal places', () => {
+    const props: BarChartProps = {
+      data: [
+        { day: '2026-11-01', sold: 120, share: 0.0127 },
+        { day: '2026-11-02', sold: 184, share: 0.1266 }
+      ],
+      x: 'day',
+      y: 'sold',
+      line: { y: 'share', label: 'Share', format: 'percent', decimals: 2 }
+    }
+    const bar = { x: '2026-11-02', y: 184, series: 'Sold', index: 1 }
+    expect(
+      barChart.tooltip([bar], props, paint).rows.map((r) => r.value)
+    ).toEqual(['184', '12.66%'])
+    expect(barChart.describe(bar, props)).toContain('share 12.66%')
+    expect(barChartTable(props).columns.at(-1)).toMatchObject({
+      format: 'percent',
+      decimals: 2
+    })
+  })
+})

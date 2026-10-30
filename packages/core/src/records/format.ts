@@ -38,7 +38,8 @@ function money(value: number, field: RecordField, row: object) {
   return formatValueInCurrency(
     value,
     field.format ?? 'currency',
-    typeof code === 'string' ? code : undefined
+    typeof code === 'string' ? code : undefined,
+    field
   )
 }
 
@@ -109,7 +110,7 @@ export function formatRecordValue(
       if (typeof value !== 'number') return String(value)
       return field.type === 'money'
         ? money(value, field, row)
-        : formatValue(value, field.format)
+        : formatValue(value, field.format, field)
     case 'boolean':
       return typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)
     case 'option':

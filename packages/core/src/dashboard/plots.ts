@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { valueFormat, xFormat } from './fields'
+import { valueFormat, valueFormatOptions, xFormat } from './fields'
 
 export const ANNOTATION_LABEL_LIMIT = 20
 export const SERIES_CAP = 6
@@ -44,6 +44,7 @@ const palette = z.enum(['categorical', 'pair', 'trio'])
 
 const common = {
   format: valueFormat.optional(),
+  ...valueFormatOptions,
   takeaway: z.string().min(1).optional()
 }
 const measured = { data: z.array(plotRow), x: field, y: field, ...common }
@@ -77,6 +78,7 @@ const lineShape = {
       high: field.optional()
     })
     .optional(),
+  comparison,
   target: z.number().optional(),
   today: plotX.optional(),
   xFormat: xFormat.optional(),
@@ -92,7 +94,8 @@ const barShape = {
     .strictObject({
       y: field,
       label: shortLabel,
-      format: valueFormat.optional()
+      format: valueFormat.optional(),
+      ...valueFormatOptions
     })
     .optional(),
   comparison,
@@ -107,6 +110,8 @@ export const rankedBarsPlotSchema = z.strictObject({
   ...measured,
   highlight: highlight.optional(),
   limit: z.number().int().min(1).max(20).optional(),
+  other: z.boolean().optional(),
+  sort: z.boolean().optional(),
   reference: z.strictObject({ field, label: shortLabel }).optional(),
   share: z.boolean().optional()
 })
