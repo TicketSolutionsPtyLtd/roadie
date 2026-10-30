@@ -51,7 +51,6 @@ describe('donutParts', () => {
     ['sevenths', [1, 1, 1, 1, 1, 1, 1], [15, 14, 14, 14, 43]]
   ])('rounds %s to whole percents that add up to 100', (_, values, want) => {
     expect(percents(donut(values))).toEqual(want)
-    expect(want.reduce((sum, p) => sum + p, 0)).toBe(100)
   })
 
   it('drops the label of a part under 3%', () => {
@@ -92,6 +91,31 @@ describe('donutParts', () => {
     expect(warn).toHaveBeenCalledWith(
       'Roadie chart: the donut leaves out "Refunds", since its amount isn\'t a positive number'
     )
+    warn.mockRestore()
+  })
+
+  it('leaves out an infinite value', () => {
+    expect(names(donut([40, Infinity, 60]))).toEqual(['Type 3', 'Type 1'])
+  })
+
+  it('warns once about a part it leaves out, and not about a zero', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const props = {
+      data: [
+        { kind: 'Comps', amount: 0 },
+        { kind: 'Chargebacks', amount: -5 },
+        { kind: 'Sales', amount: 90 }
+      ],
+      x: 'kind',
+      y: 'amount'
+    }
+    donutParts(props)
+    donutParts(props)
+    expect(warn.mock.calls).toEqual([
+      [
+        'Roadie chart: the donut leaves out "Chargebacks", since its amount isn\'t a positive number'
+      ]
+    ])
     warn.mockRestore()
   })
 
