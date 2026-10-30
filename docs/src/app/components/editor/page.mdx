@@ -149,17 +149,20 @@ render(<PinnableEditor />)
 ### Emphasis
 
 `emphasis` sets the frame, and the docked bar takes its fill, or
-[its own](#toolbar-emphasis).
+[its own](#toolbar-emphasis). Whatever the frame, focus shows on the block
+holding the caret, with a soft tint, not as a ring around the editor.
 
-| Emphasis           | Frame                                   | Use it for                                                |
-| ------------------ | --------------------------------------- | --------------------------------------------------------- |
-| `normal` (default) | A field's border, fill, and focus ring  | A form, beside other fields                               |
-| `subtle`           | A tint with no border, and a focus ring | A form on a busy surface, where a border adds noise       |
-| `subtler`          | None: the content sits on the page      | Content edited in place, such as an event page's sections |
+| Emphasis           | Frame                                  | Use it for                                                  |
+| ------------------ | -------------------------------------- | ----------------------------------------------------------- |
+| `normal` (default) | A field's border and fill              | A form, beside other fields                                 |
+| `subtle`           | A tint with no border                  | A form on a busy surface, where a border adds noise         |
+| `raised`           | A card's fill and shadow               | A document to write in, set apart from a sunken page        |
+| `subtler`          | None: the content sits on the page     | Content edited in place, such as an event page's sections   |
 
 ```tsx-live-prose layout=stack gap=2
 <Editor aria-label='Normal emphasis' emphasis='normal' placeholder='Normal emphasis' />
 <Editor aria-label='Subtle emphasis' emphasis='subtle' placeholder='Subtle emphasis' />
+<Editor aria-label='Raised emphasis' emphasis='raised' placeholder='Raised emphasis' />
 ```
 
 #### Subtler
@@ -379,9 +382,10 @@ render(
   text through `aria-describedby`.
 - An invalid or required field sets `aria-invalid` or `aria-required`. A
   read-only editor sets `aria-readonly`, and a disabled one `aria-disabled`.
-- A `subtler` editor has no focus ring: the caret shows
-  focus. While invalid it shows a danger edge at its start, beside
-  `aria-invalid` and the error text.
+- No editor has a focus ring: the caret and the tint on its block show
+  focus, and a selected image or embed takes the ring. An invalid `subtler`
+  editor shows a danger edge at its start, beside `aria-invalid` and the
+  error text.
 - Tab moves into and out of the editor. In a list, Tab nests an item under
   the one before it and Shift+Tab lifts it back out.
 - The docked bar is a `toolbar` named Formatting, with `aria-controls` set to

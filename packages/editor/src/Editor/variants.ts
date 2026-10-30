@@ -2,7 +2,7 @@ import { proseVariants } from '@oztix/roadie-components/prose'
 import { cn } from '@oztix/roadie-core/utils'
 
 export type EditorSize = 'sm' | 'md' | 'lg'
-export type EditorEmphasis = 'normal' | 'subtle' | 'subtler'
+export type EditorEmphasis = 'normal' | 'subtle' | 'raised' | 'subtler'
 
 export const EDITOR_MIN_HEIGHT: Record<EditorSize, string> = {
   sm: 'min-h-20',
@@ -18,6 +18,8 @@ const DISABLED =
 export const EDITOR_FRAME: Record<EditorEmphasis, string> = {
   normal: `emphasis-field ${DISABLED}`,
   subtle: `bg-subtle text-normal border border-transparent ${DISABLED}`,
+  // The rim and shadow are its edge; the clear border keeps it one size.
+  raised: `emphasis-raised border border-transparent ${DISABLED}`,
   subtler: `text-normal ${DISABLED}`
 }
 
@@ -68,6 +70,7 @@ export const EDITOR_DOCKED_BAR: Record<EditorEmphasis, string> = {
   normal: 'rounded-t-lg bg-inherit border-b border-subtler',
   subtle:
     'rounded-t-lg bg-normal bg-linear-to-b from-(--intent-bg-subtle) to-(--intent-bg-subtle) border-b border-subtler',
+  raised: 'rounded-t-lg bg-inherit border-b border-subtler',
   // A clear edge keeps every bar one height, which the skeleton holds.
   subtler: 'mb-3 bg-normal border-b border-transparent'
 }
@@ -78,5 +81,6 @@ export const EDITOR_DOCKED_BAR: Record<EditorEmphasis, string> = {
 export const EDITOR_DOCKED_BAR_INSET: Record<EditorEmphasis, string> = {
   normal: 'rounded-t-lg p-1',
   subtle: 'rounded-t-lg p-1',
+  raised: 'rounded-t-lg p-1',
   subtler: 'py-1'
 }

@@ -50,8 +50,9 @@ export type EditorRootProps = {
    */
   size?: EditorSize
   /**
-   * The frame. `normal` and `subtle` match `Textarea`'s; `subtler` has none,
-   * for content edited in place on the page.
+   * The frame. `normal` and `subtle` match `Textarea`'s look; `raised` lifts
+   * it off the page like a card; `subtler` has none, for content edited in
+   * place on the page. Focus shows on the caret's block, not the frame.
    * @default 'normal'
    */
   emphasis?: EditorEmphasis

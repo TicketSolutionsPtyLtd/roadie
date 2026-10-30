@@ -6,4 +6,4 @@ Add `toolbar` to `Editor`, `'docked'` (the default) or `'floating'`, with `pinna
 
 The docked toolbar looks different in every existing editor: it's now a flat bar across the editor's top edge, with a divider under it in a boxed editor, that sticks to the top of the scroll container while the text scrolls. It takes the frame's fill, and `Editor.Toolbar`'s `emphasis` sets only its fill.
 
-Focus shows differently too. An editor isn't a text field, so its frame no longer rings or tints while focused; the block holding the caret takes a tint instead, marked with `data-focused-block`. An invalid editor keeps its danger edge and fill.
+Focus shows differently too. An editor isn't a text field, so its frame no longer rings or tints while focused; the block holding the caret takes a tint instead, marked with `data-focused-block`. An invalid editor keeps its danger edge and fill. `emphasis='raised'` is new: a card's fill and shadow, for a document to write in.

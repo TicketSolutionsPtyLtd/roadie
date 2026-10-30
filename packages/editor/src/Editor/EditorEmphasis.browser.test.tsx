@@ -81,7 +81,8 @@ function textStart(textbox: HTMLElement) {
 describe('Editor emphasis', () => {
   it.each<[EditorEmphasis, ReturnType<typeof frameLook>]>([
     ['normal', { border: '1px', filled: true, contentInset: 1 }],
-    ['subtle', { border: '1px', filled: true, contentInset: 1 }]
+    ['subtle', { border: '1px', filled: true, contentInset: 1 }],
+    ['raised', { border: '1px', filled: true, contentInset: 1 }]
   ])(
     'keeps the %s field’s box, with no ring while focused',
     async (emphasis, look) => {
@@ -206,6 +207,18 @@ describe('Editor emphasis', () => {
       )
     }
   )
+
+  it('raises a raised editor off the page, with its bar on the same fill', async () => {
+    render(<Editor aria-label={LABEL} emphasis='raised' />)
+    const textbox = await loadedTextbox()
+    const frame = frameOf(textbox)
+    const bar = frame.querySelector('[data-slot="editor-toolbar"]')!
+
+    expect(getComputedStyle(frame).boxShadow).not.toBe('none')
+    expect(getComputedStyle(bar).backgroundColor).toBe(
+      getComputedStyle(frame).backgroundColor
+    )
+  })
 
   it('shows subtler content on the page, with no box', async () => {
     render(
