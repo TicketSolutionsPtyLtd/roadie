@@ -143,7 +143,7 @@ describe('icons in a component inside a Button', () => {
         <Button size={size}>
           <svg data-testid='own' viewBox='0 0 16 16' />
           Tickets
-          <Badge size='sm'>
+          <Badge size='md'>
             <svg data-testid='nested' viewBox='0 0 16 16' />3
           </Badge>
         </Button>
@@ -155,4 +155,14 @@ describe('icons in a component inside a Button', () => {
       expect(width('own')).toBe(size === 'xs' ? 12 : 16)
     }
   )
+
+  it('lets a w-* and h-* class size the button’s own icon', () => {
+    render(
+      <Button size='xs'>
+        <svg data-testid='own' className='h-6 w-6' viewBox='0 0 16 16' />
+        Tickets
+      </Button>
+    )
+    expect(width('own')).toBe(24)
+  })
 })
