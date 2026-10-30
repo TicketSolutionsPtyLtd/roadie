@@ -538,6 +538,27 @@ describe('parseDatePhrase: comparisons', () => {
     expect(parseDatePhrase(text, options)).toEqual(expected)
   })
 
+  it.each(['mar 1-14', '1-14 mar', 'mar 1 - 14', '1st–14th mar'])(
+    'reads "%s", days joined by a dash, as the days between',
+    (text) => {
+      expect(parseDatePhrase(text, SYDNEY)).toEqual(
+        one('1 to 14 Mar 2027', { start: '2027-03-01', end: '2027-03-14' })
+      )
+    }
+  )
+
+  it('reads a dashed range with its year', () => {
+    expect(parseDatePhrase('mar 1-14 2028', SYDNEY)).toEqual(
+      one('1 to 14 Mar 2028', { start: '2028-03-01', end: '2028-03-14' })
+    )
+  })
+
+  it('reads a dashed range with its year, the month last', () => {
+    expect(parseDatePhrase('1-14 mar 2028', SYDNEY)).toEqual(
+      one('1 to 14 Mar 2028', { start: '2028-03-01', end: '2028-03-14' })
+    )
+  })
+
   it('keeps "from" to "to" a range', () => {
     expect(parseDatePhrase('from 1 to 14 mar', SYDNEY)).toEqual(
       one('1 to 14 Mar 2027', { start: '2027-03-01', end: '2027-03-14' })
