@@ -268,10 +268,11 @@ the PR only when the review is clean.
   or API) gets a fresh review of the fix commits (section 6).
 - **One-way doors** always get the maintainer's review: removing or renaming
   a public export, prop, intent, or subpath; changing a token's value or
-  meaning; the shared CSS cascade, layers, base styles, or `.prose` output;
-  and release contents. Merge danger opens with the door. A one-way door
-  names the item it hits; anything else is a two-way door, which says why a
-  revert undoes it.
+  meaning; the shared CSS cascade, layers, or base styles; and release
+  contents. `.prose` output is a two-way door, since a revert restores it,
+  unless the change edits the cascade, layers, or base styles. Merge danger
+  opens with the door. A one-way door names the item it hits; anything else
+  is a two-way door, which says why a revert undoes it.
 - A Copilot review the maintainer requests reads
   `.github/copilot-instructions.md`; update that file when a convention or a
   deliberate decision changes, and keep it under 4,000 characters (Copilot
