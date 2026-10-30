@@ -461,6 +461,22 @@ describe('validateDashboard checks every chart plot kind', () => {
     ).toContain('sections[0].cards[0].plot.reference.field')
   })
 
+  it('donut: valid passes, invalid names the missing field', () => {
+    const donutRows = [
+      { type: 'GA', tickets: 1240 },
+      { type: 'VIP', tickets: 310 }
+    ]
+    const donut = (x: string, y: string) =>
+      spec([chartCard({ kind: 'donut', data: donutRows, x, y })])
+    expect(validateDashboard(donut('type', 'tickets')).ok).toBe(true)
+    expect(paths(donut('section', 'tickets'))).toContain(
+      'sections[0].cards[0].plot.x'
+    )
+    expect(paths(donut('type', 'sold'))).toContain(
+      'sections[0].cards[0].plot.y'
+    )
+  })
+
   it('stacked-bars: valid passes, invalid names the missing field', () => {
     const stackedRows = [
       { show: 'Fri', type: 'GA', sold: 900 },
