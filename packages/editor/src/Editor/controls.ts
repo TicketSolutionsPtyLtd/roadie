@@ -84,9 +84,17 @@ export type EditorBlockMenu = {
   fallback?: (editor: Editor) => string
 }
 
+/** Toggles of which one at most is pressed, sharing one sliding fill. */
+export type EditorChoiceGroup = {
+  kind: 'choice'
+  label: string
+  controls: readonly EditorControl[]
+}
+
 export type EditorToolbarItem =
   | EditorControl
   | EditorBlockMenu
+  | EditorChoiceGroup
   | typeof SEPARATOR
 
 const bold: EditorControl = {
@@ -135,6 +143,12 @@ const orderedList: EditorControl = {
   shortcut: ['mod', 'shift', '7'],
   run: (editor) => editor.chain().focus().toggleOrderedList().run(),
   pressed: (editor) => editor.isActive('orderedList')
+}
+
+const lists: EditorChoiceGroup = {
+  kind: 'choice',
+  label: 'List',
+  controls: [bulletList, orderedList]
 }
 
 const undo: EditorControl = {
@@ -221,15 +235,7 @@ const blockType: EditorBlockMenu = {
   types: [paragraph, ...headings, quote]
 }
 
-const basicControls = [
-  bold,
-  italic,
-  underline,
-  link,
-  SEPARATOR,
-  bulletList,
-  orderedList
-] as const
+const basicControls = [bold, italic, underline, link, SEPARATOR, lists] as const
 
 const history = [undo, redo] as const
 

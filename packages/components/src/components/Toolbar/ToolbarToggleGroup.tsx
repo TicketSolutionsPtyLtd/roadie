@@ -16,7 +16,8 @@ export type ToolbarToggleGroupProps = Omit<
 > &
   RefAttributes<HTMLDivElement>
 
-const PRESSED_TOGGLE = '[data-slot="toolbar-toggle"][data-pressed]'
+// By place, not slot: a Tooltip.Trigger around a toggle sets its own slot.
+const PRESSED_TOGGLE = ':scope > [data-pressed]'
 
 /**
  * Toolbar toggles that share one value. With one pressed at a time, its fill
@@ -51,7 +52,7 @@ export function ToolbarToggleGroup({
         className={cn(
           'group/toolbar-toggle-group relative flex flex-wrap items-center gap-1',
           // Toggles only: the indicator takes the pressed toggle's width.
-          'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:data-[slot=toolbar-toggle]:w-auto',
+          'data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch data-[orientation=vertical]:*:not-data-[slot=toolbar-toggle-group-indicator]:w-auto',
           className
         )}
         disabled={disabled}

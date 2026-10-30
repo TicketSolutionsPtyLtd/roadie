@@ -14,6 +14,7 @@ import { EditorContext, type EditorContextValue } from './EditorContext'
 import type { EditorToolbarProps } from './EditorToolbar'
 import {
   type EditorBlockMenu,
+  type EditorChoiceGroup,
   type EditorControl,
   type EditorControlUi,
   type EditorToolbarItem,
@@ -29,21 +30,37 @@ export type ControlState = {
   pressed: boolean
   enabled: boolean
   current?: string
+  /** A choice group's own controls. */
+  choices?: readonly ControlState[]
 }
 
-export function stateOf(item: EditorToolbarItem, editor: TiptapEditor) {
+export function stateOf(
+  item: EditorToolbarItem,
+  editor: TiptapEditor
+): ControlState | undefined {
   if (item === SEPARATOR) return undefined
-  if ('kind' in item) {
-    const current = item.types.find((type) => type.active(editor))
+  if (!('kind' in item)) {
+    return {
+      pressed: item.pressed?.(editor) ?? false,
+      enabled: editor.isEditable && (item.enabled?.(editor) ?? true)
+    }
+  }
+  if (item.kind === 'choice') {
+    const choices = item.controls.map(
+      (control) => stateOf(control, editor) as ControlState
+    )
     return {
       pressed: false,
       enabled: editor.isEditable,
-      current: current?.label ?? item.fallback?.(editor) ?? item.types[0]?.label
+      current: item.controls.find((_, index) => choices[index]?.pressed)?.label,
+      choices
     }
   }
+  const current = item.types.find((type) => type.active(editor))
   return {
-    pressed: item.pressed?.(editor) ?? false,
-    enabled: editor.isEditable && (item.enabled?.(editor) ?? true)
+    pressed: false,
+    enabled: editor.isEditable,
+    current: current?.label ?? item.fallback?.(editor) ?? item.types[0]?.label
   }
 }
 
@@ -109,9 +126,11 @@ type ControlProps = {
   state: ControlState | undefined
   editor: TiptapEditor | null
   ui: EditorControlUi
+  /** Its value in a choice group, which presses it and runs it instead. */
+  choice?: string
 }
 
-export function Control({ control, state, editor, ui }: ControlProps) {
+export function Control({ control, state, editor, ui, choice }: ControlProps) {
   const { label, icon: Icon, shortcut } = control
   const run = () => {
     if (!editor) return
@@ -129,7 +148,9 @@ export function Control({ control, state, editor, ui }: ControlProps) {
     <Tooltip>
       <Tooltip.Trigger
         render={
-          control.pressed ? (
+          choice !== undefined ? (
+            <Toolbar.Toggle {...shared} value={choice} />
+          ) : control.pressed ? (
             <Toolbar.Toggle
               {...shared}
               pressed={state?.pressed ?? false}
@@ -142,6 +163,45 @@ export function Control({ control, state, editor, ui }: ControlProps) {
       />
       <Tooltip.Content shortcut={shortcut}>{label}</Tooltip.Content>
     </Tooltip>
+  )
+}
+
+type ChoiceGroupProps = {
+  group: EditorChoiceGroup
+  state: ControlState | undefined
+  editor: TiptapEditor | null
+  ui: EditorControlUi
+}
+
+/**
+ * One `Toolbar.ToggleGroup`, so its fill slides to the control chosen. Pressing
+ * the chosen one again runs it to turn it off.
+ */
+export function ChoiceGroup({ group, state, editor, ui }: ChoiceGroupProps) {
+  const current = state?.current
+  return (
+    <Toolbar.ToggleGroup
+      aria-label={group.label}
+      value={current ? [current] : []}
+      onValueChange={(next) => {
+        const chosen = next[0] ?? current
+        const control = group.controls.find((item) => item.label === chosen)
+        if (!editor || !control) return
+        focusEditor(editor)
+        control.run(editor, ui)
+      }}
+    >
+      {group.controls.map((control, index) => (
+        <Control
+          key={control.label}
+          control={control}
+          state={state?.choices?.[index]}
+          editor={editor}
+          ui={ui}
+          choice={control.label}
+        />
+      ))}
+    </Toolbar.ToggleGroup>
   )
 }
 
@@ -184,13 +244,23 @@ export function ToolbarItems({
     item === SEPARATOR ? (
       <Toolbar.Separator key={index} />
     ) : 'kind' in item ? (
-      <BlockMenu
-        key={item.label}
-        menu={item}
-        state={states?.[index]}
-        editor={editor}
-        onOpenChange={onMenuOpenChange}
-      />
+      item.kind === 'choice' ? (
+        <ChoiceGroup
+          key={item.label}
+          group={item}
+          state={states?.[index]}
+          editor={editor}
+          ui={ui}
+        />
+      ) : (
+        <BlockMenu
+          key={item.label}
+          menu={item}
+          state={states?.[index]}
+          editor={editor}
+          onOpenChange={onMenuOpenChange}
+        />
+      )
     ) : (
       <Control
         key={item.label}

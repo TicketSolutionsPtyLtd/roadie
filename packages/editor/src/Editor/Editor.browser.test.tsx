@@ -370,11 +370,16 @@ describe('Editor', () => {
   })
 })
 
-function toolbarItems(toolbar: HTMLElement) {
-  return Array.from(toolbar.children, (item) =>
+// A group's controls list in their place, as the toolbar's arrow keys reach them.
+function toolbarItems(toolbar: HTMLElement): string[] {
+  return Array.from(toolbar.children).flatMap((item) =>
     item.getAttribute('role') === 'separator'
       ? '|'
-      : (item.getAttribute('aria-label') ?? item.textContent)
+      : item.getAttribute('role') === 'group'
+        ? toolbarItems(item as HTMLElement)
+        : item.getAttribute('aria-hidden') === 'true'
+          ? []
+          : (item.getAttribute('aria-label') ?? item.textContent ?? '')
   )
 }
 
@@ -543,6 +548,40 @@ describe('Editor toolbar', () => {
       expect(within(textbox).getByText('Sold out').closest('li')).toBe(null)
     )
     expect(control).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('slides one fill between the list controls as the list changes type', async () => {
+    render(<Editor aria-label={LABEL} defaultValue={soldOut} />)
+    const textbox = await focusedTextbox()
+    const lists = screen.getByRole('group', { name: 'List' })
+    const bulleted = within(lists).getByRole('button', {
+      name: 'Bulleted list'
+    })
+    const numbered = within(lists).getByRole('button', {
+      name: 'Numbered list'
+    })
+    const fill = () =>
+      lists.querySelector<HTMLElement>(
+        '[data-slot="toolbar-toggle-group-indicator"][data-ready]'
+      )
+    const listTag = () =>
+      within(textbox).getByText('Sold out').closest('li')?.parentElement
+        ?.tagName
+
+    await userEvent.click(bulleted)
+    await waitFor(() => expect(listTag()).toBe('UL'))
+    await waitFor(() => expect(fill()).not.toBe(null))
+
+    await userEvent.click(numbered)
+
+    await waitFor(() => expect(listTag()).toBe('OL'))
+    expect(numbered).toHaveAttribute('aria-pressed', 'true')
+    expect(bulleted).toHaveAttribute('aria-pressed', 'false')
+    await waitFor(() =>
+      expect(fill()!.style.getPropertyValue('--pressed-item-left')).toBe(
+        `${numbered.offsetLeft}px`
+      )
+    )
   })
 
   it('enables Undo and Redo only when there is something to undo or redo', async () => {

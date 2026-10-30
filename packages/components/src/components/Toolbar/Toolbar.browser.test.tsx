@@ -17,6 +17,7 @@ import roadieCss from '../../../vitest.browser.css?inline'
 import { focusRing } from '../../css/testUtils'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
+import { Tooltip } from '../Tooltip'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -139,6 +140,34 @@ describe('Toolbar layout', () => {
       }
     }
   )
+
+  it('slides its fill to a toggle that is also a tooltip trigger', async () => {
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.ToggleGroup aria-label='List' defaultValue={['bulleted']}>
+          {['bulleted', 'numbered'].map((value) => (
+            <Tooltip key={value}>
+              <Tooltip.Trigger
+                render={<Toolbar.Toggle value={value}>{value}</Toolbar.Toggle>}
+              />
+              <Tooltip.Content>{value}</Tooltip.Content>
+            </Tooltip>
+          ))}
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const indicator = document.querySelector<HTMLElement>(
+      '[data-slot="toolbar-toggle-group-indicator"]'
+    )!
+    await expect.poll(() => indicator.hasAttribute('data-ready')).toBe(true)
+
+    const numbered = screen.getByRole('button', { name: 'numbered' })
+    numbered.click()
+
+    await expect
+      .poll(() => indicator.style.getPropertyValue('--pressed-item-left'))
+      .toBe(`${numbered.offsetLeft}px`)
+  })
 
   it('slides one pressed fill between the toggles of a single-value group', async () => {
     const icon = <svg viewBox='0 0 16 16' className='size-4' />
