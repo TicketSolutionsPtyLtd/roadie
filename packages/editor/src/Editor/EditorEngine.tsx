@@ -1,6 +1,13 @@
 'use client'
 
-import { type ComponentType, useEffect, useId, useRef, useState } from 'react'
+import {
+  type ComponentType,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState
+} from 'react'
 
 import {
   Extension,
@@ -59,6 +66,7 @@ import { type BlockContainers, TOP_LEVEL } from './blockActions'
 import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
+import { focusEditor } from './focusEditor'
 import { EmbedPaste } from './embedPaste'
 import {
   ImageUpload,
@@ -73,6 +81,7 @@ import { isDev } from './isDev'
 import { SlashMenu, type SlashMenuHandle } from './slashMenu'
 import { resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
+import { useToolbarMode } from './toolbarMode'
 import {
   EDITOR_FRAME,
   EDITOR_MIN_HEIGHT,
@@ -294,6 +303,10 @@ export function EditorEngine({
   resolveUrl,
   extensions: extensionsProp,
   variables,
+  toolbar: toolbarProp,
+  defaultToolbar,
+  onToolbarChange,
+  pinnable: pinnableProp = false,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy
 }: EditorRootProps) {
@@ -303,6 +316,15 @@ export function EditorEngine({
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
   const slashMenuRef = useRef<SlashMenuHandle>(null)
+  const openBubbleMenuRef = useRef<(() => boolean) | null>(null)
+  const { toolbar, pinnable, setToolbar } = useToolbarMode({
+    toolbar: toolbarProp,
+    defaultToolbar,
+    onToolbarChange,
+    pinnable: pinnableProp
+  })
+  const toolbarModeRef = useRef(toolbar)
+  const [toolbarExtras, setToolbarExtras] = useState<ReactNode>(null)
   const openBlockMenuRef = useRef<(() => void) | null>(null)
   const [editingLink, setEditingLink] = useState(false)
   const [editingAlt, setEditingAlt] = useState(false)
@@ -424,15 +446,19 @@ export function EditorEngine({
       },
       handleKeyDown: (view, event) => {
         if (!event.altKey || event.key !== 'F10') return false
+        const onNode = selectedNodeType(view.state)
         // The selection menu is in the document only while it shows.
-        const toolbar = selectedNodeType(view.state)
+        const target = onNode
           ? nodeToolbarRef.current
           : bubbleMenuRef.current?.isConnected
             ? bubbleMenuRef.current
             : selectedTable(view.state)
               ? tableToolbarRef.current
               : toolbarRef.current
-        const firstEnabled = toolbar?.querySelector<HTMLElement>(
+        if (!target && toolbarModeRef.current === 'floating') {
+          return openBubbleMenuRef.current?.() ?? false
+        }
+        const firstEnabled = target?.querySelector<HTMLElement>(
           'button:not([aria-disabled="true"])'
         )
         firstEnabled?.focus()
@@ -493,6 +519,10 @@ export function EditorEngine({
   }, [editor, editable])
 
   useEffect(() => {
+    toolbarModeRef.current = toolbar
+  }, [toolbar])
+
+  useEffect(() => {
     uploadRef.current = onUploadImage
     providersRef.current = embedProviders
   }, [onUploadImage, embedProviders])
@@ -543,6 +573,16 @@ export function EditorEngine({
         size,
         emphasis,
         contentId,
+        toolbar,
+        pinnable,
+        setToolbar: (next) => {
+          setToolbar(next)
+          // The toolbar that held focus goes, so the text takes it.
+          if (editor) focusEditor(editor)
+        },
+        toolbarExtras,
+        setToolbarExtras,
+        openBubbleMenuRef,
         toolbarRef,
         bubbleMenuRef,
         ...ui,
@@ -575,6 +615,7 @@ export function EditorEngine({
           <>
             <EditorToolbarEngine />
             <EditorContent />
+            <EditorBubbleMenuEngine />
             <EditorSlashMenuEngine />
           </>
         )}

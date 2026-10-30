@@ -18,9 +18,9 @@ import { resolvedPreset, startingValue } from './startingValue'
 import {
   EDITOR_MIN_HEIGHT,
   EDITOR_TOOLBAR_HEIGHT,
-  EDITOR_TOOLBAR_ROOM,
   type EditorEmphasis,
   type EditorSize,
+  type EditorToolbarMode,
   editorContentClass
 } from './variants'
 
@@ -57,6 +57,25 @@ export type EditorRootProps = {
   emphasis?: EditorEmphasis
   className?: string
   /**
+   * Where the formatting controls go. `docked` is a bar across the editor's
+   * top edge that sticks while the text scrolls. `floating` is a toolbar over
+   * the selected text, ending with a … menu for the rest. On a phone or touch
+   * screen a floating editor docks.
+   */
+  toolbar?: EditorToolbarMode
+  /**
+   * The starting toolbar, for an editor that pins and unpins on its own.
+   * @default 'docked'
+   */
+  defaultToolbar?: EditorToolbarMode
+  /** Called with the toolbar someone pins (`docked`) or unpins (`floating`). */
+  onToolbarChange?: (toolbar: EditorToolbarMode) => void
+  /**
+   * Adds Pin toolbar to top to the floating toolbar's … menu, and Unpin
+   * toolbar to the docked bar.
+   */
+  pinnable?: boolean
+  /**
    * Uploads an image the person picks, pastes, or drops, and resolves to
    * where it's served: https, or a path on this site. Without it the editor
    * has no image control and ignores image files. A rejection's message shows
@@ -90,7 +109,8 @@ export type EditorRootProps = {
   'aria-labelledby'?: string
   /**
    * Replaces the default parts: `<Editor.Toolbar />`, `<Editor.Content />`,
-   * then `<Editor.SlashMenu />`.
+   * `<Editor.BubbleMenu />`, then `<Editor.SlashMenu />`. Each toolbar part
+   * renders only in its own `toolbar` mode.
    */
   children?: ReactNode
 }
@@ -115,11 +135,14 @@ export function EditorRoot(props: EditorRootProps) {
   if (!engine) {
     const size = props.size ?? 'md'
     const emphasis = props.emphasis ?? 'normal'
+    const floating = (props.toolbar ?? props.defaultToolbar) === 'floating'
     const toolbarRoom = (
       <div
         className={cn(
-          EDITOR_TOOLBAR_ROOM[emphasis],
-          'h-(--editor-toolbar-height)'
+          'h-(--editor-toolbar-height)',
+          emphasis === 'subtler' && 'mb-3',
+          // A floating editor docks on a phone, so only there it keeps room.
+          floating && 'hidden max-sm:block pointer-coarse:block'
         )}
       />
     )

@@ -1,8 +1,8 @@
 'use client'
 
-import { use } from 'react'
+import { use, useEffect } from 'react'
 
-import { CaretDownIcon } from '@phosphor-icons/react'
+import { CaretDownIcon, PushPinSlashIcon } from '@phosphor-icons/react'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Menu } from '@oztix/roadie-components/menu'
@@ -10,7 +10,7 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 import { Tooltip } from '@oztix/roadie-components/tooltip'
 import { cn } from '@oztix/roadie-core/utils'
 
-import { EditorContext } from './EditorContext'
+import { EditorContext, type EditorContextValue } from './EditorContext'
 import type { EditorToolbarProps } from './EditorToolbar'
 import {
   type EditorBlockMenu,
@@ -22,7 +22,7 @@ import {
   presetControls
 } from './controls'
 import { focusEditor } from './focusEditor'
-import { EDITOR_TOOLBAR_ROOM, EDITOR_TOOLBAR_SIZE } from './variants'
+import { EDITOR_DOCKED_BAR, EDITOR_TOOLBAR_SIZE } from './variants'
 
 export type ControlState = {
   pressed: boolean
@@ -50,12 +50,13 @@ type BlockMenuProps = {
   menu: EditorBlockMenu
   state: ControlState | undefined
   editor: TiptapEditor | null
+  onOpenChange?: (open: boolean) => void
 }
 
-export function BlockMenu({ menu, state, editor }: BlockMenuProps) {
+export function BlockMenu({ menu, state, editor, onOpenChange }: BlockMenuProps) {
   const current = state?.current ?? menu.types[0]?.label
   return (
-    <Menu>
+    <Menu onOpenChange={onOpenChange}>
       <Menu.Trigger
         render={
           <Toolbar.Button
@@ -137,57 +138,116 @@ export function Control({ control, state, editor, ui }: ControlProps) {
   )
 }
 
+/** What the controls open in the editor's own UI, from its context. */
+export function controlUi(context: EditorContextValue): EditorControlUi {
+  const { editLink, editAlt, editEmbed, pickImage, replaceImage, editButton } =
+    context
+  return { editLink, editAlt, editEmbed, pickImage, replaceImage, editButton }
+}
+
+/** The items a preset can show, leaving out controls its UI can't run. */
+export function availableItems<Item extends EditorToolbarItem>(
+  items: readonly Item[],
+  ui: EditorControlUi
+) {
+  return items.filter(
+    (item) =>
+      item === SEPARATOR || 'kind' in item || (item.available?.(ui) ?? true)
+  )
+}
+
+type ToolbarItemsProps = {
+  items: readonly EditorToolbarItem[]
+  states: readonly (ControlState | undefined)[] | null | undefined
+  editor: TiptapEditor | null
+  ui: EditorControlUi
+  onMenuOpenChange?: (open: boolean) => void
+}
+
+export function ToolbarItems({
+  items,
+  states,
+  editor,
+  ui,
+  onMenuOpenChange
+}: ToolbarItemsProps) {
+  return items.map((item, index) =>
+    item === SEPARATOR ? (
+      <Toolbar.Separator key={index} />
+    ) : 'kind' in item ? (
+      <BlockMenu
+        key={item.label}
+        menu={item}
+        state={states?.[index]}
+        editor={editor}
+        onOpenChange={onMenuOpenChange}
+      />
+    ) : (
+      <Control
+        key={item.label}
+        control={item}
+        state={states?.[index]}
+        editor={editor}
+        ui={ui}
+      />
+    )
+  )
+}
+
 export function EditorToolbarEngine({
-  emphasis = 'normal',
+  emphasis = 'subtler',
   className,
   children,
   onKeyDown,
   onMouseDown,
   ...props
 }: EditorToolbarProps) {
+  const context = use(EditorContext)!
   const {
     editor,
     preset,
     size,
     emphasis: editorEmphasis,
     contentId,
-    toolbarRef,
-    editLink,
-    editAlt,
-    editEmbed,
-    pickImage,
-    replaceImage,
-    editButton
-  } = use(EditorContext)!
-  const toolbarSize = EDITOR_TOOLBAR_SIZE[size]
-  const ui = {
-    editLink,
-    editAlt,
-    editEmbed,
-    pickImage,
-    replaceImage,
-    editButton
-  }
-  const items = presetControls[preset].filter(
-    (item) =>
-      item === SEPARATOR || 'kind' in item || (item.available?.(ui) ?? true)
-  )
+    toolbar,
+    pinnable,
+    setToolbar,
+    setToolbarExtras,
+    toolbarRef
+  } = context
+  const floating = toolbar === 'floating'
+  const ui = controlUi(context)
+  const items = availableItems(presetControls[preset], ui)
   const states = useEditorState({
     editor,
     selector: ({ editor: current }) =>
-      current ? items.map((item) => stateOf(item, current)) : []
+      current && !floating ? items.map((item) => stateOf(item, current)) : []
   })
 
+  useEffect(() => {
+    if (!floating) return
+    setToolbarExtras(children)
+    return () => setToolbarExtras(null)
+  }, [floating, children, setToolbarExtras])
+
+  if (floating) return null
   return (
-    // The room goes outside the toolbar, whose surface is at most as wide as this.
-    <div className={cn('shrink-0', EDITOR_TOOLBAR_ROOM[editorEmphasis])}>
+    <div
+      data-slot='editor-toolbar'
+      // Above the text that scrolls under it, below the editor's popups.
+      className={cn(
+        'sticky top-0 z-sticky shrink-0 border-b border-subtler',
+        EDITOR_DOCKED_BAR[editorEmphasis]
+      )}
+    >
       <Toolbar
         ref={toolbarRef}
+        flush
         aria-label='Formatting'
         aria-controls={contentId}
-        size={toolbarSize}
+        size={EDITOR_TOOLBAR_SIZE[size]}
         emphasis={emphasis}
-        className={className}
+        className={cn('w-full', className)}
         // A press between controls keeps focus in the editor.
         onMouseDown={(event) => {
           onMouseDown?.(event)
@@ -202,27 +262,28 @@ export function EditorToolbarEngine({
         }}
         {...props}
       >
-        {items.map((item, index) =>
-          item === SEPARATOR ? (
-            <Toolbar.Separator key={index} />
-          ) : 'kind' in item ? (
-            <BlockMenu
-              key={item.label}
-              menu={item}
-              state={states?.[index]}
-              editor={editor}
-            />
-          ) : (
-            <Control
-              key={item.label}
-              control={item}
-              state={states?.[index]}
-              editor={editor}
-              ui={ui}
-            />
-          )
-        )}
+        <ToolbarItems items={items} states={states} editor={editor} ui={ui} />
         {children}
+        {pinnable ? (
+          <Tooltip>
+            <Tooltip.Trigger
+              render={
+                <Toolbar.Button
+                  aria-label='Unpin toolbar'
+                  className='ms-auto'
+                  onClick={() => setToolbar('floating')}
+                >
+                  <PushPinSlashIcon
+                    weight='bold'
+                    className='size-4'
+                    aria-hidden
+                  />
+                </Toolbar.Button>
+              }
+            />
+            <Tooltip.Content>Unpin toolbar</Tooltip.Content>
+          </Tooltip>
+        ) : null}
       </Toolbar>
     </div>
   )

@@ -49,17 +49,21 @@ export const EDITOR_TOOLBAR_SIZE: Record<EditorSize, EditorSize> = {
   lg: 'md'
 }
 
-// The toolbar's height at its size: a control, the toolbar's padding, and its border.
+export type EditorToolbarMode = 'docked' | 'floating'
+
+// The docked bar's height at its size: a control and the divider under it.
 export const EDITOR_TOOLBAR_HEIGHT: Record<EditorSize, string> = {
-  sm: '[--editor-toolbar-height:calc(--spacing(10)+2px)]',
-  md: '[--editor-toolbar-height:calc(--spacing(10)+2px)]',
-  lg: '[--editor-toolbar-height:calc(--spacing(12)+2px)]'
+  sm: '[--editor-toolbar-height:calc(--spacing(8)+1px)]',
+  md: '[--editor-toolbar-height:calc(--spacing(8)+1px)]',
+  lg: '[--editor-toolbar-height:calc(--spacing(10)+1px)]'
 }
 
-// A subtler editor has no padding, so its toolbar starts where the text does
-// and keeps its own gap above the first line.
-export const EDITOR_TOOLBAR_ROOM: Record<EditorEmphasis, string> = {
-  normal: 'mx-2 mt-2 mb-1',
-  subtle: 'mx-2 mt-2 mb-1',
-  subtler: 'mb-3'
+// Sticky, so each fill is opaque and matches the frame the text scrolls
+// under. A subtle frame is a tint on the page, so the bar lays it on the
+// normal surface. A subtler editor's bar keeps a gap above the first line.
+export const EDITOR_DOCKED_BAR: Record<EditorEmphasis, string> = {
+  normal: 'rounded-t-lg bg-sunken',
+  subtle:
+    'rounded-t-lg bg-normal bg-linear-to-b from-(--intent-bg-subtle) to-(--intent-bg-subtle)',
+  subtler: 'mb-3 bg-normal'
 }
