@@ -58,7 +58,10 @@ export type DataCardProps = Omit<ComponentProps<'article'>, 'title'> & {
   errorMessage?: string
   errorAction?: ReactNode
   staleLabel?: string
-  /** Body height while loading, such as the plot height. */
+  /**
+   * Body height while loading, and the least an empty or error state takes,
+   * such as the plot height.
+   */
   bodyHeight?: string
   children?: ReactNode
 }
@@ -139,6 +142,7 @@ export function DataCard({
 }: DataCardProps) {
   const labelId = useId()
   const showContent = state === 'ready' || state === 'stale'
+  const isStat = size === 'stat'
   // An article, not a named section: a dashboard repeats labels such as
   // "Tickets sold" across sections, and landmark names must be unique.
   return (
@@ -222,10 +226,11 @@ export function DataCard({
           <EmptyState
             size='sm'
             intent={state === 'error' ? 'danger' : undefined}
-            className='content-center'
+            // Fills the body's place, so the card keeps its loading height.
+            className={cn('content-center', (isStat || bodyHeight) && 'py-0')}
+            style={{ minHeight: bodyHeight }}
           >
-            {/* A stat tile's body is one line high, with no room for a tile. */}
-            {size !== 'stat' && (
+            {!isStat && (
               <EmptyState.IconTile aria-hidden>
                 {state === 'error' ? (
                   <WarningIcon weight='duotone' />
@@ -235,7 +240,10 @@ export function DataCard({
               </EmptyState.IconTile>
             )}
             {/* A card can't know the page's heading outline. */}
-            <EmptyState.Title render={<p />}>
+            <EmptyState.Title
+              render={<p />}
+              className={isStat ? 'text-sm' : undefined}
+            >
               {state === 'empty'
                 ? emptyMessage
                 : (errorMessage ??
