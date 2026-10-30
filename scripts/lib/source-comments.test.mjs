@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
-import { commentEmDashFindings } from './source-comments.mjs'
+import { trackedFiles } from './docs-content.mjs'
+import {
+  SOURCE_COMMENT_FILES,
+  commentEmDashFindings
+} from './source-comments.mjs'
 
 const DASH = '—'
 const lines = (file, source) =>
@@ -45,5 +49,17 @@ describe('commentEmDashFindings', () => {
       `<style>/* Style ${DASH} comment */</style>`
     ].join('\n')
     assert.deepEqual(lines('a.vue', source), [1, 3, 6])
+  })
+
+  test('reads package source, not package scripts', () => {
+    const files = trackedFiles(SOURCE_COMMENT_FILES)
+    for (const file of [
+      'packages/components/src/components/Badge/index.tsx',
+      'packages/core/src/css/roadie.css',
+      'packages/lint-plugin/src/phosphor.js',
+      'packages/widgets/src/cart-drawer/vue/CartDrawer.vue'
+    ])
+      assert.ok(files.includes(file), file)
+    assert.ok(!files.some((file) => file.startsWith('packages/core/scripts/')))
   })
 })

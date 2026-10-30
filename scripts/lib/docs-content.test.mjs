@@ -32,6 +32,15 @@ describe('emDashFindings', () => {
       assert.ok(files.includes(file), file)
     assert.ok(!files.some((file) => file.endsWith('CHANGELOG.md')))
   })
+
+  test('covers package READMEs and markdown in package source', () => {
+    const files = trackedFiles(EM_DASH_FILES)
+    for (const file of [
+      'packages/widgets/README.md',
+      'packages/core/src/fonts/README.md'
+    ])
+      assert.ok(files.includes(file), file)
+  })
 })
 
 describe('externalImageFindings', () => {
