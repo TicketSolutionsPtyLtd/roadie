@@ -553,6 +553,12 @@ describe('parseDatePhrase: comparisons', () => {
     )
   })
 
+  it('reads a dashed range with its year, the month last', () => {
+    expect(parseDatePhrase('1-14 mar 2028', SYDNEY)).toEqual(
+      one('1 to 14 Mar 2028', { start: '2028-03-01', end: '2028-03-14' })
+    )
+  })
+
   it('keeps "from" to "to" a range', () => {
     expect(parseDatePhrase('from 1 to 14 mar', SYDNEY)).toEqual(
       one('1 to 14 Mar 2027', { start: '2027-03-01', end: '2027-03-14' })
