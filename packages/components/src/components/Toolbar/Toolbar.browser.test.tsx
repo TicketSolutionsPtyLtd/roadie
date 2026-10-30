@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
@@ -462,7 +462,9 @@ describe('Flush toolbar', () => {
 
   it('fits a 36px header row with 8px gaps at sm', () => {
     render(
-      <div style={{ display: 'flex', height: 36, gap: 8, alignItems: 'center' }}>
+      <div
+        style={{ display: 'flex', height: 36, gap: 8, alignItems: 'center' }}
+      >
         <p>3 selected</p>
         <Toolbar flush size='sm' aria-label='Bulk actions'>
           <Toolbar.Button>Archive</Toolbar.Button>
@@ -489,10 +491,10 @@ describe('Flush toolbar', () => {
       </>
     )
     const gap = (name: string) => {
-      const [undo, redo] = Array.from(
-        screen.getByRole('toolbar', { name }).querySelectorAll('button')
-      ).map((button) => button.getBoundingClientRect())
-      return redo.left - undo.right
+      const toolbar = within(screen.getByRole('toolbar', { name }))
+      const box = (button: string) =>
+        toolbar.getByRole('button', { name: button }).getBoundingClientRect()
+      return box('Redo').left - box('Undo').right
     }
     expect(gap('Flush')).toBe(4)
     expect(gap('Inset')).toBe(4)
