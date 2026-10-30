@@ -13,12 +13,15 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockEvent } from '../Provider'
 import { useMarketingBlocks } from './context'
+import { type BlockIntent, intentClass } from './surface'
 
 export type BlockRootProps = Omit<ComponentProps<'section'>, 'onClick'> & {
   block: string
   variant: string
   preset: string
   position?: number
+  /** Sets the block's intent, so its marks, tints, and strong action inherit it. */
+  intent?: BlockIntent
 }
 
 const VIEWED_AT = 0.5
@@ -40,6 +43,7 @@ export function BlockRoot({
   variant,
   preset,
   position,
+  intent,
   className,
   children,
   ref: forwardedRef,
@@ -106,7 +110,8 @@ export function BlockRoot({
       data-variant={variant}
       data-preset={preset}
       data-position={position}
-      className={cn('@container', className)}
+      data-intent={intent}
+      className={cn('@container', intentClass(intent), className)}
       onClick={handleClick}
       {...props}
     >
