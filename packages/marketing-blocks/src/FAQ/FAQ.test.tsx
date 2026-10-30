@@ -157,4 +157,21 @@ describe('FAQ', () => {
       container.querySelector('.emphasis-subtle, .emphasis-normal')
     ).toBeNull()
   })
+
+  it('gives its strong action the block’s intent', () => {
+    render(
+      <FAQ
+        intent='brand'
+        title='Questions, answered'
+        items={items}
+        actions={[
+          { label: 'See all FAQs', href: '/frequently-asked-questions' }
+        ]}
+      />
+    )
+
+    expect(screen.getByRole('link', { name: 'See all FAQs' })).toHaveClass(
+      'intent-brand'
+    )
+  })
 })
