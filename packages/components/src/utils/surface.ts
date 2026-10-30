@@ -50,7 +50,10 @@ function watchSurface(part: HTMLElement) {
   return () => observer.disconnect()
 }
 
-/** The opaque colour sticky parts paint. */
+/**
+ * The opaque colour sticky parts paint. `--records-surface` keeps its name
+ * because consumers may set it.
+ */
 export const surfaceClass =
   'bg-(--records-surface,var(--pane-surface,var(--intent-bg-normal)))'
 

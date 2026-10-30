@@ -9,10 +9,7 @@ import {
   viewerTimeZone
 } from '@oztix/roadie-core/datetime'
 
-import {
-  type CalendarMatchers,
-  matchesDate
-} from '../components/Calendar/matchers'
+import { type CalendarMatchers, matchesDate } from './matchers'
 import type { ReadResult } from './useTypedValue'
 
 export type DateStyle = 'full' | 'long' | 'medium'

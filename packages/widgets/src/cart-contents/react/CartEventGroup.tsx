@@ -11,7 +11,9 @@ import {
   TrashIcon
 } from '@phosphor-icons/react'
 
-import { Badge, Button, IconButton, Popover } from '@oztix/roadie-components'
+import { Badge } from '@oztix/roadie-components/badge'
+import { Button, IconButton } from '@oztix/roadie-components/button'
+import { Popover } from '@oztix/roadie-components/popover'
 import { cn } from '@oztix/roadie-core/utils'
 
 import {

@@ -8,5 +8,5 @@ export {
   type CalendarSingleProps,
   type CalendarView
 } from './Calendar'
-export type { CalendarMatcher, CalendarMatchers } from './matchers'
+export type { CalendarMatcher, CalendarMatchers } from '../../pickers/matchers'
 export type { CalendarDateRange, CalendarMode } from './selection'
