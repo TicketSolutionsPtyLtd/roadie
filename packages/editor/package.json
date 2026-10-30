@@ -72,6 +72,7 @@
     "@tiptap/react": "3.32.0",
     "@tiptap/starter-kit": "3.32.0",
     "@tiptap/static-renderer": "3.32.0",
+    "@tiptap/suggestion": "3.32.0",
     "html-to-text": "10.0.1",
     "mjml": "5.4.1"
   },
