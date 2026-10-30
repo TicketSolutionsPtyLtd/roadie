@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from 'react'
+import type { ReactNode } from 'react'
 
 import { Card } from '@oztix/roadie-components/card'
 import { Mark } from '@oztix/roadie-components/mark'
@@ -14,17 +14,21 @@ import {
   SPOT_ILLUSTRATIONS,
   type SpotIllustrationName
 } from '../_shared/illustrations'
-import { presetOf } from '../_shared/presets'
+import {
+  cycledMarkIntent,
+  itemSurface,
+  itemSurfaceClass,
+  markIntent
+} from '../_shared/items'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
   type BlockSize,
   type ItemEmphasis,
-  bySize,
-  emphasisClass,
-  intentClass
+  gapOf
 } from '../_shared/surface'
+import { useBlock } from '../_shared/useBlock'
 import { type CardGridPreset, cardGridDefinition } from './definition'
 
 export type { CardGridPreset } from './definition'
@@ -101,12 +105,6 @@ type CardProps = {
   centred: boolean
 }
 
-// A linked card with no surface takes subtler, so its hover has somewhere to show.
-const surfaceOf = (
-  item: CardGridItem,
-  itemEmphasis: ItemEmphasis | undefined
-) => itemEmphasis ?? (item.href ? 'subtler' : undefined)
-
 function CardTitle({ item }: { item: CardGridItem }) {
   if (!item.href) return item.title
   return <Card.Link href={item.href}>{item.title}</Card.Link>
@@ -124,7 +122,7 @@ function GridCard({
   className: string
   children: ReactNode
 }) {
-  const surface = surfaceOf(item, itemEmphasis)
+  const surface = itemSurface(item, itemEmphasis)
   return (
     <Card
       render={<li />}
@@ -138,26 +136,6 @@ function GridCard({
     </Card>
   )
 }
-
-// Own-markup cards follow Card's surfaces, padding a surface as Card.Content does.
-function rowSurface(
-  item: CardGridItem,
-  itemEmphasis: ItemEmphasis | undefined
-) {
-  const surface = surfaceOf(item, itemEmphasis)
-  return cn(
-    'is-interactive-within min-w-0',
-    intentClass(item.intent),
-    emphasisClass(surface),
-    surface === 'subtler' ? '-m-2 p-2' : surface && 'px-6 py-4'
-  )
-}
-
-const MARK_CYCLE = ['info', 'brand', 'brand-secondary'] as const
-const cycledIntent = ({ item, index, blockIntent }: CardProps) =>
-  item.intent ?? blockIntent ?? MARK_CYCLE[index % MARK_CYCLE.length]
-const markIntent = ({ item, blockIntent }: CardProps, fallback: BlockIntent) =>
-  item.intent ?? blockIntent ?? fallback
 
 function Illustration({
   name,
@@ -242,7 +220,11 @@ function PlainCard(props: CardProps) {
           <Mark
             aria-hidden
             render={<span />}
-            intent={markIntent(props, 'brand-secondary')}
+            intent={markIntent(
+              props.item,
+              props.blockIntent,
+              'brand-secondary'
+            )}
             className='px-3 py-1 text-display-prose-2 tabular-nums'
           >
             {index + 1}
@@ -296,7 +278,7 @@ function ServiceCard(props: CardProps) {
         <div className='grid justify-self-start'>
           <Mark
             render={<h3 />}
-            intent={markIntent(props, 'info')}
+            intent={markIntent(props.item, props.blockIntent, 'info')}
             className='col-start-1 row-start-1 text-display-prose-4'
           >
             <CardTitle item={item} />
@@ -335,7 +317,7 @@ function IndustryCard(props: CardProps) {
         <Illustration name={item.illustration} className='-mt-16 size-16' />
         <Mark
           render={<h3 />}
-          intent={cycledIntent(props)}
+          intent={cycledMarkIntent(props.item, props.blockIntent, props.index)}
           className='text-display-prose-4'
         >
           <CardTitle item={item} />
@@ -368,7 +350,7 @@ function PortraitCard(props: CardProps) {
         {item.subtitle && (
           <Mark
             render={<p />}
-            intent={markIntent(props, 'info')}
+            intent={markIntent(props.item, props.blockIntent, 'info')}
             className='max-w-full truncate px-2 py-1 font-medium'
           >
             {item.subtitle}
@@ -383,7 +365,7 @@ function ListColumn({ item, itemEmphasis }: CardProps) {
   return (
     <li
       className={cn(
-        rowSurface(item, itemEmphasis),
+        itemSurfaceClass(item, itemEmphasis),
         'grid content-start gap-4 rounded-2xl'
       )}
     >
@@ -406,11 +388,6 @@ function ListColumn({ item, itemEmphasis }: CardProps) {
 type Look = {
   Item: (props: CardProps) => ReactNode
   list: string
-  align?: BlockAlign
-  /** The surface when `emphasis` is unset. */
-  emphasis?: BlockEmphasis
-  /** Keeps the surface inside the page's padding when `contained` is unset. */
-  contained?: boolean
 }
 
 // Columns follow the block's own width, not the viewport's, so a block in a narrow layout stays narrow.
@@ -421,25 +398,19 @@ const LOOKS: Record<CardGridPreset, Look> = {
   },
   'marked-cards': {
     Item: ServiceCard,
-    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @7xl:grid-cols-4',
-    align: 'center'
+    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @7xl:grid-cols-4'
   },
   'overlap-cards': {
     Item: IndustryCard,
-    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @5xl:grid-cols-3',
-    align: 'center'
+    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @5xl:grid-cols-3'
   },
   portraits: {
     Item: PortraitCard,
-    list: 'grid grid-cols-1 gap-8 @xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4',
-    align: 'start',
-    emphasis: 'raised',
-    contained: true
+    list: 'grid grid-cols-1 gap-8 @xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4'
   },
   lists: {
     Item: ListColumn,
-    list: 'grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-8',
-    align: 'start'
+    list: 'grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-8'
   }
 }
 
@@ -459,50 +430,31 @@ function listOf(
 }
 
 /** Like items, such as benefits, services, steps, contact options, values, or people, as cards in columns. */
-export function CardGrid({
-  preset,
-  position,
-  id,
-  intent,
-  emphasis,
-  contained,
-  itemEmphasis,
-  align,
-  size,
-  numbered = false,
-  eyebrow,
-  title,
-  titleHighlight,
-  description,
-  items,
-  actions
-}: CardGridProps) {
-  const { name, variant } = presetOf(cardGridDefinition, preset)
+export function CardGrid(props: CardGridProps) {
+  const {
+    intent,
+    itemEmphasis,
+    align,
+    size,
+    numbered = false,
+    eyebrow,
+    items
+  } = props
+  const block = useBlock(cardGridDefinition, props)
+  const { name } = block
   const look = LOOKS[name]
   const { Item } = look
   const ordered = name === 'cards' && numbered
-  const headingAlign = align ?? look.align ?? 'center'
+  const headingAlign = block.align
   const List = ordered ? 'ol' : 'ul'
-  const headingId = useId()
   const markedEyebrow = name === 'overlap-cards' && eyebrow
 
   return (
-    <BlockRoot
-      block={cardGridDefinition.name}
-      variant={variant}
-      preset={name}
-      position={position}
-      id={id}
-      intent={intent}
-      aria-labelledby={headingId}
-    >
+    <BlockRoot {...block.root}>
       <BlockSurface
-        emphasis={emphasis ?? look.emphasis}
-        contained={contained ?? look.contained}
-        className={cn(
-          'grid grid-cols-1 wrap-anywhere',
-          bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' })
-        )}
+        emphasis={block.emphasis}
+        contained={block.contained}
+        className={cn('grid grid-cols-1 wrap-anywhere', gapOf(size, 'loose'))}
       >
         <div className='grid min-w-0 grid-cols-1 justify-items-center gap-4'>
           {markedEyebrow && (
@@ -520,14 +472,8 @@ export function CardGrid({
             </Mark>
           )}
           <BlockHeading
-            id={headingId}
+            {...block.heading}
             eyebrow={markedEyebrow ? undefined : eyebrow}
-            title={title}
-            titleHighlight={titleHighlight}
-            description={description}
-            intent={intent}
-            align={headingAlign}
-            size={size}
             wide={headingAlign === 'start'}
             className='w-full'
           />
@@ -545,11 +491,7 @@ export function CardGrid({
             />
           ))}
         </List>
-        <BlockActions
-          actions={actions}
-          intent={intent}
-          className={cn(headingAlign === 'center' && 'justify-center')}
-        />
+        <BlockActions {...block.actions} />
       </BlockSurface>
     </BlockRoot>
   )
