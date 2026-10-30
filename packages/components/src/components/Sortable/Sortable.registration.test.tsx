@@ -11,7 +11,8 @@ vi.mock('./dnd', async (importOriginal) => {
   const actual = await importOriginal<typeof dnd>()
   return {
     ...actual,
-    sortableItem: vi.fn(actual.sortableItem),
+    sortableDropTarget: vi.fn(actual.sortableDropTarget),
+    sortableDraggable: vi.fn(actual.sortableDraggable),
     sortableMonitor: vi.fn(actual.sortableMonitor)
   }
 })
@@ -39,7 +40,8 @@ describe('Sortable registration', () => {
   it('keeps the monitor and each item registered across re-renders and moves', async () => {
     const user = userEvent.setup()
     render(<Columns />)
-    await waitFor(() => expect(dnd.sortableItem).toHaveBeenCalledTimes(3))
+    await waitFor(() => expect(dnd.sortableDraggable).toHaveBeenCalledTimes(3))
+    expect(dnd.sortableDropTarget).toHaveBeenCalledTimes(3)
     expect(dnd.sortableMonitor).toHaveBeenCalledTimes(1)
 
     await user.click(screen.getByRole('button', { name: 'Re-render' }))
@@ -52,7 +54,8 @@ describe('Sortable registration', () => {
       expect(screen.queryByRole('menu')).not.toBeInTheDocument()
     )
 
-    expect(dnd.sortableItem).toHaveBeenCalledTimes(3)
+    expect(dnd.sortableDraggable).toHaveBeenCalledTimes(3)
+    expect(dnd.sortableDropTarget).toHaveBeenCalledTimes(3)
     expect(dnd.sortableMonitor).toHaveBeenCalledTimes(1)
   })
 })
@@ -68,26 +71,51 @@ describe('Sortable teardown', () => {
         ))}
       </Sortable>
     )
-    vi.mocked(dnd.sortableItem).mockClear()
+    vi.mocked(dnd.sortableDraggable).mockClear()
+    vi.mocked(dnd.sortableDropTarget).mockClear()
     const { rerender } = render(view(false))
-    await waitFor(() => expect(dnd.sortableItem).toHaveBeenCalledTimes(2))
-    const options = vi.mocked(dnd.sortableItem).mock.calls[0]![0]
+    await waitFor(() => expect(dnd.sortableDraggable).toHaveBeenCalledTimes(2))
+    const drag = vi.mocked(dnd.sortableDraggable).mock.calls[0]![0]
+    const target = vi.mocked(dnd.sortableDropTarget).mock.calls[0]![0]
     act(() => {
-      options.onDraggingChange(true)
-      options.onDropEdgeChange('bottom')
+      drag.onDraggingChange(true)
+      target.onDropEdgeChange('bottom')
     })
     const item = document.querySelector('[data-slot="sortable-item"]')!
     expect(item).toHaveAttribute('data-dragging')
     rerender(view(true))
     expect(item).not.toHaveAttribute('data-dragging')
-    expect(item).not.toHaveAttribute('data-drop-edge')
+  })
+
+  it('keeps its drop target while disabled toggles, so a hovered edge stays', async () => {
+    const view = (disabled: boolean) => (
+      <Sortable items={['A', 'B']} onReorder={() => {}}>
+        <Sortable.Item value='A' label='A' disabled={disabled}>
+          <Sortable.Handle />
+        </Sortable.Item>
+        <Sortable.Item value='B' label='B'>
+          <Sortable.Handle />
+        </Sortable.Item>
+      </Sortable>
+    )
+    vi.mocked(dnd.sortableDropTarget).mockClear()
+    const { rerender } = render(view(false))
+    await waitFor(() => expect(dnd.sortableDropTarget).toHaveBeenCalledTimes(2))
+    const target = vi.mocked(dnd.sortableDropTarget).mock.calls[0]![0]
+    act(() => target.onDropEdgeChange('bottom'))
+    rerender(view(true))
+    rerender(view(false))
+    expect(dnd.sortableDropTarget).toHaveBeenCalledTimes(2)
+    expect(
+      document.querySelector('[data-slot="sortable-item"]')
+    ).toHaveAttribute('data-drop-edge', 'bottom')
   })
 })
 
 describe('Sortable unknown values', () => {
   it('does not register an item whose value is not in items', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    vi.mocked(dnd.sortableItem).mockClear()
+    vi.mocked(dnd.sortableDropTarget).mockClear()
     render(
       <Sortable items={['A']} onReorder={() => {}}>
         {['A', 'Z'].map((value) => (
@@ -97,9 +125,11 @@ describe('Sortable unknown values', () => {
         ))}
       </Sortable>
     )
-    await waitFor(() => expect(dnd.sortableItem).toHaveBeenCalled())
+    await waitFor(() => expect(dnd.sortableDropTarget).toHaveBeenCalled())
     expect(
-      vi.mocked(dnd.sortableItem).mock.calls.map(([options]) => options.value)
+      vi
+        .mocked(dnd.sortableDropTarget)
+        .mock.calls.map(([options]) => options.value)
     ).toEqual(['A'])
     warn.mockRestore()
   })
@@ -121,25 +151,30 @@ describe('Sortable disabled items', () => {
     </Sortable>
   )
   const onReorder = vi.fn()
+  const registered = (
+    mock: typeof dnd.sortableDropTarget | typeof dnd.sortableDraggable,
+    value: string
+  ) => vi.mocked(mock).mock.calls.some(([options]) => options.value === value)
   const lastCall = (value: string) =>
-    vi
-      .mocked(dnd.sortableItem)
-      .mock.calls.map(([options]) => options)
-      .filter((options) => options.value === value)
-      .at(-1)
+    registered(dnd.sortableDropTarget, value) ? value : undefined
+  const clear = () => {
+    vi.mocked(dnd.sortableDropTarget).mockClear()
+    vi.mocked(dnd.sortableDraggable).mockClear()
+  }
 
   it('registers a disabled item as a drop target that does not drag', async () => {
-    vi.mocked(dnd.sortableItem).mockClear()
+    clear()
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(view(['A']))
     await waitFor(() => expect(lastCall('B')).toBeDefined())
-    expect(lastCall('A')?.draggable).toBe(false)
-    expect(lastCall('B')?.draggable).toBe(true)
+    expect(registered(dnd.sortableDropTarget, 'A')).toBe(true)
+    expect(registered(dnd.sortableDraggable, 'A')).toBe(false)
+    expect(registered(dnd.sortableDraggable, 'B')).toBe(true)
     warn.mockRestore()
   })
 
   it('registers an item once its value joins items', async () => {
-    vi.mocked(dnd.sortableItem).mockClear()
+    clear()
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { rerender } = render(view([]))
     await waitFor(() => expect(lastCall('B')).toBeDefined())

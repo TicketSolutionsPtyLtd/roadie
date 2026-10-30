@@ -22,7 +22,7 @@ import {
   type SortableItemContextValue,
   useSortableRoot
 } from './SortableContext'
-import { sortableItem } from './dnd'
+import { sortableDraggable, sortableDropTarget } from './dnd'
 import { type SortableEdge, dropIndex } from './order'
 import { sortableDropIndicatorVariants, sortableItemVariants } from './variants'
 
@@ -76,16 +76,15 @@ export function SortableItem({
     position.current = { items, index, dir }
   })
 
+  // Separate, so toggling disabled leaves the drop target, and any edge it
+  // shows, in place.
   useEffect(() => {
-    if (!element || !handle || !listed) return
-    const cleanup = sortableItem({
+    if (!element || !listed) return
+    const cleanup = sortableDropTarget({
       element,
-      handle,
       group,
       value,
       axis,
-      draggable: !disabled,
-      onDraggingChange: setDragging,
       onDropEdgeChange: setDropEdge,
       movesTo: (source, edge) => {
         const { items, index, dir } = position.current
@@ -93,13 +92,27 @@ export function SortableItem({
         return dropIndex({ from, target: index, edge, axis, dir }) !== from
       }
     })
+    return () => {
+      cleanup()
+      setDropEdge(null)
+    }
+  }, [element, group, value, axis, listed])
+
+  useEffect(() => {
+    if (!element || !handle || disabled) return
+    const cleanup = sortableDraggable({
+      element,
+      handle,
+      group,
+      value,
+      onDraggingChange: setDragging
+    })
     // A drag torn down mid-flight never gets its drop, so reset here.
     return () => {
       cleanup()
       setDragging(false)
-      setDropEdge(null)
     }
-  }, [element, handle, group, value, axis, disabled, listed])
+  }, [element, handle, group, value, disabled])
 
   useDevWarning(
     !listed &&
