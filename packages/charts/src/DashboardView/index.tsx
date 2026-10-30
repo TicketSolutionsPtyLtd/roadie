@@ -22,7 +22,6 @@ import {
   type Comparison,
   type DescribeComparisonOptions,
   describeComparison,
-  isAbsoluteRange,
   isBuiltInComparison
 } from '@oztix/roadie-core/datetime'
 
@@ -74,27 +73,36 @@ export type DashboardViewPeriodProps = Omit<
   'value' | 'defaultValue' | 'onValueChange' | 'readOnly'
 >
 
+declare const process: { env?: { NODE_ENV?: string } } | undefined
+
+const warned = new Set<string>()
+
+function warnOnce(message: string) {
+  if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
+    return
+  if (warned.has(message)) return
+  warned.add(message)
+  console.error(message)
+}
+
 const HISTORY_MESSAGE = {
   partial: 'Not enough history',
   unavailable: 'Nothing to compare'
 } as const
 
-// validateDashboard rejects custom date-times; an unchecked spec still renders.
-const unplaced = (
-  compare: Comparison,
-  { timeZone }: DescribeComparisonOptions
-) =>
-  !timeZone &&
-  isAbsoluteRange(compare) &&
-  `${compare.start}${compare.end}`.includes('T')
-
+// validateDashboard rejects these; an unchecked spec still renders, and says why.
 function comparisonLine(
   compare: Comparison,
   where: DescribeComparisonOptions
 ): string {
-  return unplaced(compare, where)
-    ? 'vs custom dates'
-    : describeComparison(compare, where)
+  try {
+    return describeComparison(compare, where)
+  } catch (error) {
+    warnOnce(
+      `DashboardView: couldn't describe the comparison, so it reads "vs custom dates": ${error instanceof Error ? error.message : String(error)}`
+    )
+    return 'vs custom dates'
+  }
 }
 
 /**
@@ -125,10 +133,6 @@ const selectsPeriod = (card: DashboardCard) =>
   card.kind === 'chart' &&
   'selectsPeriod' in card.plot &&
   card.plot.selectsPeriod === true
-
-declare const process: { env?: { NODE_ENV?: string } } | undefined
-
-const warned = new Set<string>()
 
 function warnUnwired(spec: DashboardSpec) {
   if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')

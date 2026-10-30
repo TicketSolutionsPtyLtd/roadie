@@ -264,18 +264,20 @@ describe('DashboardView periods', () => {
     expect(contextIn('Tickets sold')).toBe('vs custom dates')
   })
 
-  it('lets a malformed comparison fail rather than calling it custom dates', () => {
+  it('names a malformed comparison as custom dates, with a development error', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    expect(() =>
-      render(
-        <DashboardView
-          spec={dashboard({
-            range: 'this-month',
-            compare: { start: 'not a date', end: '2026-09-02' }
-          })}
-        />
-      )
-    ).toThrow(RangeError)
+    render(
+      <DashboardView
+        spec={dashboard({
+          range: 'this-month',
+          compare: { start: 'not a date', end: '2026-09-02' }
+        })}
+      />
+    )
+    expect(contextIn('Tickets sold')).toBe('vs custom dates')
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining("couldn't describe the comparison")
+    )
     error.mockRestore()
   })
 
