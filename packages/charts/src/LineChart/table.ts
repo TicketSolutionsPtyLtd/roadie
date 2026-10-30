@@ -3,12 +3,11 @@ import type {
   TableColumn,
   TableRow
 } from '@oztix/roadie-core/dashboard'
-import { type ValueFormat, formatValue } from '@oztix/roadie-core/dataviz'
 
 import type { ChartTable } from '../Chart'
 import { valueColumn, xCell, xColumn } from '../plot/table'
 import { isTimeField, parseX } from '../plot/time'
-import { finiteOrNull, fullFormat } from '../plot/values'
+import { type ValueStyle, finiteOrNull, fullValue } from '../plot/values'
 import {
   comparisonLabel,
   comparisonPoints,
@@ -21,12 +20,11 @@ import type { LineChartProps } from './types'
 const FORECAST = 'Forecast'
 const NOT_APPLICABLE = ''
 
-function rangeText(low: PlotCell, high: PlotCell, format?: ValueFormat) {
+function rangeText(low: PlotCell, high: PlotCell, style: ValueStyle) {
   const from = finiteOrNull(low)
   const to = finiteOrNull(high)
   if (from === null || to === null) return null
-  const shown = fullFormat(format)
-  return `${formatValue(from, shown)} to ${formatValue(to, shown)}`
+  return `${fullValue(style, from)} to ${fullValue(style, to)}`
 }
 
 export function lineChartTable(props: LineChartProps): ChartTable {
@@ -46,24 +44,22 @@ export function lineChartTable(props: LineChartProps): ChartTable {
   const comparison = compared.length ? props.comparison : undefined
   const columns = [
     xColumn(props.x),
-    ...series.map((name) => valueColumn(keyOf(name), name, props.format)),
+    ...series.map((name) => valueColumn(keyOf(name), name, props)),
     ...forecasting.map((name) =>
-      valueColumn(forecastHeader(name), forecastHeader(name), props.format)
+      valueColumn(forecastHeader(name), forecastHeader(name), props)
     ),
     ...(comparison
       ? [
           valueColumn(
             comparison.y,
             comparisonLabel(props) ?? comparison.y,
-            props.format
+            props
           )
         ]
       : []),
     ...(band
       ? [
-          ...(band.median
-            ? [valueColumn('bandMedian', bandLabel, props.format)]
-            : []),
+          ...(band.median ? [valueColumn('bandMedian', bandLabel, props)] : []),
           // Formatted text, which DataTable mutes and aligns like the values.
           {
             key: 'bandRange',
@@ -86,7 +82,7 @@ export function lineChartTable(props: LineChartProps): ChartTable {
       cells.bandRange = rangeText(
         row[band.low] ?? null,
         row[band.high] ?? null,
-        props.format
+        props
       )
       if (band.median) cells.bandMedian = row[band.median] ?? null
     }

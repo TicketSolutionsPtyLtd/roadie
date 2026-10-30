@@ -3,12 +3,16 @@ import type {
   PlotRow,
   PlotX
 } from '@oztix/roadie-core/dashboard'
-import type { ValueFormat, XFormat } from '@oztix/roadie-core/dataviz'
+import type {
+  ValueFormat,
+  ValueFormatOptions,
+  XFormat
+} from '@oztix/roadie-core/dataviz'
 import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
 
 export type LineChartPalette = 'categorical' | 'pair' | 'trio'
 
-export type LineChartProps = {
+export type LineChartProps = ValueFormatOptions & {
   /** Rows of plain values. Dates are ISO strings in venue wall time. */
   data: PlotRow[]
   /** Field along the bottom: an ISO date or a number. */

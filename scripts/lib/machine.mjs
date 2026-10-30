@@ -53,9 +53,31 @@ export function run(command, args, options = {}) {
   return execFileSync(command, args, { encoding: 'utf8', ...options })?.trim()
 }
 
+export const isWindows = process.platform === 'win32'
+
+const SAFE_FOR_CMD = /^[\w./:=@,+-]+$/
+
+/**
+ * How to start a package manager such as pnpm or npm. Windows reaches it
+ * through a .cmd shim, which Node runs only in a shell, so it gets one command
+ * line with each argument quoted for cmd.
+ */
+export function shimCommand(command, args, platform = process.platform) {
+  if (platform !== 'win32') return { command, args, shell: false }
+  const quoted = args.map((arg) =>
+    SAFE_FOR_CMD.test(arg) ? arg : `"${arg.replaceAll('"', '\\"')}"`
+  )
+  return { command: [command, ...quoted].join(' '), args: [], shell: true }
+}
+
+// Windows has no process groups, so it kills the child's tree instead.
 export function killGroup(pid, signal) {
   try {
-    process.kill(-pid, signal)
+    if (isWindows)
+      execFileSync('taskkill', ['/pid', String(pid), '/t', '/f'], {
+        stdio: 'ignore'
+      })
+    else process.kill(-pid, signal)
   } catch {
     // ESRCH: the group has already exited.
   }

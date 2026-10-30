@@ -627,21 +627,37 @@ dates, times, durations, and spans. These are the everyday shapes.
 
 ### Prices
 
-Put the dollar sign against the number, show cents only when the amount isn't
-round, and use commas for thousands. A range uses "to" with the highest price
-last, and a starting price uses "from".
+Put the dollar sign against the number and use commas for thousands. A range
+uses "to" with the highest price last, and a starting price uses "from".
 
-In code, `currencyFormat` from `@oztix/roadie-core/number` applies the symbol
-and cents rules to `Intl.NumberFormat` and NumberFlow. Format in the `en-AU`
-locale for the commas, the symbol's place, and a code such as NZD in place of
-another currency's symbol.
+Whether a price shows cents depends on what the reader does with it:
+
+- **Always show cents where amounts are added up or compared.** That covers
+  carts, checkout, orders, receipts, refunds, payouts, and every full amount
+  in a chart or table, so the figures line up and a total matches its parts, as
+  [Data visualisation](/charts/data-visualisation#writing-for-charts) says.
+- **Drop the cents from a round price in copy.** That covers a headline, a
+  sentence, an event listing, or a marketing page, where `$50` reads faster
+  than `$50.00`.
+- **Show cents on every price in a list once one of them has cents.** Write
+  `$50.00 and $19.95`, not `$50 and $19.95`.
+
+In code, `currencyFormat` from `@oztix/roadie-core/number` gives
+`Intl.NumberFormat` and NumberFlow the symbol and the places. It shows cents on
+every amount by default. For copy, pass
+`trailingZeroDisplay: 'stripIfInteger'` so a round price has none, unless
+another price in the same list has cents. Format in the
+`en-AU` locale for the commas, the symbol's place, and a code such as NZD in
+place of another currency's symbol.
 
 <PairTable>
 
-| Write                 | Not                  |
-| --------------------- | -------------------- |
-| $50, $19.95, $1,000   | $50.00, $ 50, $1000  |
-| $50 to $100, from $30 | $50&ndash;$100, $50+ |
+| Write                                 | Not                                  |
+| ------------------------------------- | ------------------------------------ |
+| Tickets from $50, $1,000              | Tickets from $50.00, $ 50, $1000     |
+| $50 to $100, from $30                 | $50&ndash;$100, $50+                 |
+| Booking fee $31.00, Subtotal $336.50  | Booking fee $31, Subtotal $336.50    |
+| $50.00 and $19.95                     | $50 and $19.95                       |
 
 </PairTable>
 
