@@ -1,6 +1,10 @@
 import { type ComponentProps, type ReactNode, useId } from 'react'
 
-import { ClockCountdownIcon } from '@phosphor-icons/react/ssr'
+import {
+  ChartBarIcon,
+  ClockCountdownIcon,
+  WarningIcon
+} from '@phosphor-icons/react/ssr'
 
 import type { CardSize, CardState } from '@oztix/roadie-core/dashboard-layout'
 import {
@@ -12,6 +16,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { cardVariants } from '../Card/variants'
 import { Delta } from '../Delta'
+import { EmptyState } from '../EmptyState'
 import { Skeleton } from '../Skeleton'
 import { DataCardMoreButton } from './DataCardMoreButton'
 
@@ -213,17 +218,33 @@ export function DataCard({
             {children}
           </div>
         )}
-        {state === 'empty' && (
-          <p className='text-sm text-subtle'>{emptyMessage}</p>
-        )}
-        {state === 'error' && (
-          <div className='grid justify-items-start gap-2'>
-            <p className='text-sm text-subtle'>
-              {errorMessage ??
-                `We couldn't load ${sentenceCaseInline(label)}. Try again in a minute.`}
-            </p>
-            {errorAction}
-          </div>
+        {(state === 'empty' || state === 'error') && (
+          <EmptyState
+            size='sm'
+            intent={state === 'error' ? 'danger' : undefined}
+            className='content-center'
+          >
+            {/* A stat tile's body is one line high, with no room for a tile. */}
+            {size !== 'stat' && (
+              <EmptyState.IconTile aria-hidden>
+                {state === 'error' ? (
+                  <WarningIcon weight='duotone' />
+                ) : (
+                  <ChartBarIcon weight='duotone' />
+                )}
+              </EmptyState.IconTile>
+            )}
+            {/* A card can't know the page's heading outline. */}
+            <EmptyState.Title render={<p />}>
+              {state === 'empty'
+                ? emptyMessage
+                : (errorMessage ??
+                  `We couldn't load ${sentenceCaseInline(label)}. Try again in a minute.`)}
+            </EmptyState.Title>
+            {state === 'error' && errorAction && (
+              <EmptyState.Actions>{errorAction}</EmptyState.Actions>
+            )}
+          </EmptyState>
         )}
         {(showContent || state === 'loading') &&
           (source || (state === 'stale' && staleLabel)) && (

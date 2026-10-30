@@ -93,6 +93,8 @@ Put at most one visible action first and `DataCard.MoreButton` last. More passes
 
 ### States
 
+Empty and error show an `EmptyState`, with an icon tile above the message at every size but `stat`, whose body is one line high. The error is in danger, with `errorAction` under its message.
+
 ```tsx-live layout=stack width=72
 {/* Ready */}
 <DataCard label='Tickets sold' value={1842} delta={{ value: 214 }} context='This week, of 2,400' source='Oztix sales.' />

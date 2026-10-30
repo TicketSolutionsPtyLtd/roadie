@@ -26,3 +26,6 @@ export const PLOT_HEIGHTS: Record<CardSize, number> = {
 export const ChartCardContext = createContext<ChartCardContextValue | null>(
   null
 )
+
+/** Shown by the plot and its card alike, so a server render matches the hydrated one. */
+export const DRAW_ERROR = "This chart couldn't be drawn"
