@@ -93,7 +93,7 @@ Put at most one visible action first and `DataCard.MoreButton` last. More passes
 
 ### States
 
-Empty and error show an `EmptyState` in the body’s place, at least `bodyHeight` tall, so the card keeps its loading height. It has an icon tile above the message at every size but `stat`, whose body is one line high. The error is in danger, with `errorAction` under its message.
+Empty and error show an `EmptyState` in the body’s place, at least `bodyHeight` tall, so the card keeps its loading height. It has an icon tile above the message at every size but `stat`, whose body is one line high. The error is in danger, with `errorAction` under its message. When a `Chart` can’t draw data that loaded, it says “This chart couldn’t be drawn” and leaves `errorAction` out, because loading the data again rarely fixes it. Its `actions` stay.
 
 ```tsx-live layout=stack width=72
 {/* Ready */}
