@@ -194,12 +194,14 @@ describe('On this page', () => {
     await scrollTo(page, 'Keys', 'past')
     expect(await activeHeading(page, 'Keys')).toBe('Keys')
     // Anchoring would scroll to hold the view, so the reflow fires no scroll.
+    // The gap opens just above Keys, so no example comes into view to mount.
     await withPane(page, (pane) => {
       pane.style.overflowAnchor = 'none'
-      const heading = [...document.querySelectorAll('#docs-content h3')].find(
-        (node) => node.textContent === 'Default'
-      ) as HTMLElement
-      heading.style.marginBottom = '2000px'
+      const keys = [...document.querySelectorAll('#docs-content h3')].find(
+        (node) => node.textContent === 'Keys'
+      )!
+      ;(keys.previousElementSibling as HTMLElement).style.marginBottom =
+        '2000px'
     })
     expect(await activeHeading(page, 'Default')).toBe('Default')
   }, 60_000)
