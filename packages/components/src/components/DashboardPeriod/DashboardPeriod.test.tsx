@@ -670,17 +670,53 @@ describe('DashboardPeriod compare options', () => {
       <DashboardPeriod
         today={TODAY}
         value={{ range: 'upcoming' }}
-        compareOptions={['none', 'custom', 'previous-year']}
+        compareOptions={['none', 'custom', 'previous-year', SIMILAR]}
       />
     )
     const dialog = await openPicker()
     await userEvent.click(compareSwitch(dialog))
     expect(compareSwitch(dialog)).toBeChecked()
-    expect(choice(dialog, 'Previous year')).toHaveAttribute(
+    expect(choice(dialog, 'Similar venues')).toHaveAttribute(
       'aria-pressed',
       'true'
     )
     expect(choice(dialog, 'Custom dates')).toBeDisabled()
+  })
+
+  it('offers no previous period or year for an open-ended range', async () => {
+    const { unmount } = render(
+      <DashboardPeriod today={TODAY} value={{ range: 'upcoming' }} />
+    )
+    expect(compareSwitch(await openPicker())).toBeDisabled()
+    unmount()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming' }}
+        compareOptions={['previous-period', 'previous-year']}
+      />
+    )
+    const dialog = await openPicker()
+    expect(choice(dialog, 'Previous period')).toBeDisabled()
+    expect(choice(dialog, 'Previous year')).toBeDisabled()
+  })
+
+  it('drops the previous period on Apply when the range turns open-ended', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        defaultValue={{ range: 'this-month', compare: 'previous-period' }}
+        presets={[{ value: 'this-month' }, { value: 'upcoming' }]}
+        onValueChange={onValueChange}
+      />
+    )
+    const dialog = await openPicker()
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    await apply(dialog)
+    expect(onValueChange).toHaveBeenCalledWith({ range: 'upcoming' })
   })
 
   it('leaves out app values that are Roadie’s, and repeats, with a warning', async () => {

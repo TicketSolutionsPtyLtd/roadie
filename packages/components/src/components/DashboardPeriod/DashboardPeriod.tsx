@@ -195,6 +195,22 @@ function compared(
   }
 }
 
+const stepsBack = (choice: string) =>
+  choice === 'previous-period' || choice === 'previous-year'
+
+/** An open-ended range, such as upcoming, has no span to step back by. */
+function hasSpan(
+  range: DateRangeValue | null,
+  options: ComparisonOptions | null
+): boolean {
+  if (!options || !range) return true
+  try {
+    return resolveComparison(range, 'previous-period', options).range !== null
+  } catch {
+    return true
+  }
+}
+
 /**
  * A dashboard's period, with what it compares with, in one picker. Its layout
  * follows its own width, so in an `inline-flex` parent or an `auto` grid track
@@ -353,6 +369,8 @@ export function DashboardPeriod<App extends string = never>({
     choice: string,
     range: DateRangeValue | null
   ): Comparison<App> | undefined {
+    if (stepsBack(choice))
+      return hasSpan(range, options) ? (choice as Comparison<App>) : undefined
     if (choice !== 'custom') return choice as Comparison<App>
     return (
       lastCustom ??
@@ -396,10 +414,12 @@ export function DashboardPeriod<App extends string = never>({
             onCheckedChange={(on) =>
               editCompare(
                 on
-                  ? (lastChoice ??
+                  ? (lastChoice &&
+                      comparisonFor(choiceOf(lastChoice), range) &&
+                      lastChoice) ||
                       choices
                         .map((option) => comparisonFor(option.value, range))
-                        .find(Boolean))
+                        .find(Boolean)
                   : undefined
               )
             }
@@ -496,7 +516,14 @@ export function DashboardPeriod<App extends string = never>({
         valueSuffix={suffix}
         extra={choices.length > 0 ? compareRow : undefined}
         onApply={(range) => {
-          const next = periodOf(range ?? value.range, compare)
+          const nextRange = range ?? value.range
+          const kept =
+            compare &&
+            stepsBack(choiceOf(compare)) &&
+            !hasSpan(nextRange, options)
+              ? undefined
+              : compare
+          const next = periodOf(nextRange, kept)
           if (
             !sameRange(next.range, value.range) ||
             !sameComparison(next.compare, value.compare)
