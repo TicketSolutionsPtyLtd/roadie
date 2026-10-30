@@ -56,8 +56,8 @@ const compactUnit = (abs: number, divisor: number) =>
   roundToOneDecimal(abs / divisor)
 
 function compact(value: number) {
-  const sign = value < 0 ? '-' : ''
   const abs = Math.abs(value)
+  const sign = value < 0 && compactUnit(abs, 1) > 0 ? '-' : ''
   if (abs < 1_000) {
     const rounded = compactUnit(abs, 1)
     // Rounding can carry 999.95 up to the next unit.
