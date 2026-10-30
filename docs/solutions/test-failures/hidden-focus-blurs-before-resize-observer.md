@@ -30,8 +30,10 @@ table and returned.
 ## Fix
 
 The hook remembers an element inside the table that blurred to nothing
-(`focusout` with no `relatedTarget`) until focus lands anywhere else, and the
-observer restores from it when its column is hidden. The test "keeps focus in
+(`focusout` with no `relatedTarget`) while its column was already hidden, until
+focus lands anywhere else or the observer next runs, and the observer restores
+from it. A blur from a click on blank page happens while the column still
+shows, so it's never held. The test "keeps focus in
 the table when the hidden column blurs first" calls `blur()` itself before the
 frames, which reproduces the batch failure on every run.
 

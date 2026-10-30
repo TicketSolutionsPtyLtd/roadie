@@ -685,6 +685,11 @@ export function RecordTableContent({
 }
 RecordTableContent.displayName = 'RecordTableContent'
 
+function inHiddenColumn(element: Element) {
+  const cell = element.closest('[data-priority]')
+  return !!cell && getComputedStyle(cell).display === 'none'
+}
+
 /** Moves focus to the table when a priority tier hides the column holding it, which CSS does without unmounting it. */
 function useKeepFocusShown(
   frameRef: RefObject<HTMLElement | null>,
@@ -695,9 +700,11 @@ function useKeepFocusShown(
     if (!frame) return
     // Chromium blurs a focused element that stops rendering, and under load
     // that can land before this observer runs, leaving focus on the page.
+    // Only that blur is held, so a click on blank page keeps focus there.
     let blurred: Element | null = null
     const onFocusOut = (event: FocusEvent) => {
-      blurred = event.relatedTarget ? null : (event.target as Element)
+      const target = event.target as Element
+      blurred = !event.relatedTarget && inHiddenColumn(target) ? target : null
     }
     const onFocusIn = () => {
       blurred = null
@@ -711,9 +718,7 @@ function useKeepFocusShown(
             ? blurred
             : null
       blurred = null
-      if (!held) return
-      const cell = held.closest('[data-priority]')
-      if (!cell || getComputedStyle(cell).display !== 'none') return
+      if (!held || !inHiddenColumn(held)) return
       ;(
         tableFocusTarget(held) ??
         frame.querySelector<HTMLElement>('[data-slot="record-table-scroller"]')

@@ -181,4 +181,22 @@ describe('RecordTable column priority in a browser', () => {
       .poll(() => document.activeElement?.getAttribute('data-slot'))
       .toBe('record-table-scroller')
   })
+
+  it('leaves focus on the page when it left before the column hid', async () => {
+    render(
+      <div data-testid='box' style={{ width: 1100 }}>
+        <RecordTable
+          caption='Shows'
+          data={testShows(8)}
+          fields={showFields}
+          columns={columns}
+        />
+      </div>
+    )
+    const gross = await screen.findByRole('button', { name: 'Gross' })
+    gross.focus()
+    gross.blur()
+    await resize(960)
+    expect(document.activeElement).toBe(document.body)
+  })
 })
