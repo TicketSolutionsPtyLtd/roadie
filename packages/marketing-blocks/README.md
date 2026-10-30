@@ -27,9 +27,10 @@ Each block is a folder in `src/` with:
   `DEFINITIONS` in `src/catalogue/index.ts`. Export
   `type <Block>Preset = (typeof <block>Definition.presets)[number]['name']` and type the
   `preset` prop with it, so a renamed preset fails typecheck.
-- `index.tsx`: the block, rendered in `BlockRoot` from `src/_shared/`, reading its preset
-  with `const { name, variant } = presetOf(<block>Definition, preset)`, and taking `preset`,
-  `position`, `id`, and plain data props
+- `index.tsx`: the block, framed by `const block = useBlock(<block>Definition, props)` from
+  `src/_shared/useBlock.ts`, which resolves the preset, alignment, and surface and hands
+  back the props for `BlockRoot`, `BlockHeading`, and `BlockActions`, so the block renders
+  only its own body. It takes `preset`, `position`, `id`, and plain data props.
 - a co-located test, and a `*.browser.test.tsx` for layout and axe, using the helpers in
   `src/_test/browser.ts`. Shared test data goes in `fixtures.ts`. Neither ships.
 - a wireframe per preset in `src/thumbnails/<block>-<preset>.svg`
@@ -59,8 +60,10 @@ Run `pnpm generate:exports` after adding the folder.
   counting from 1, reported with its events." and "An id for linking to the block."
 - **One set of shared props.** Every block takes `intent`, `emphasis`, `contained`,
   `align`, `size`, and `actions` where they apply, with the same types from
-  `src/_shared/surface.ts`, and passes them through. A preset sets the defaults;
-  the props override them, so a new look is a preset, never a new prop.
+  `src/_shared/surface.ts`, and passes them through. A preset sets the defaults in its
+  definition's `defaults` (`align`, `emphasis`, `contained`); the props override them, so a
+  new look is a preset, never a new prop. A default the content decides, such as CTABand
+  starting beside its photo, goes to `useBlock` as a fallback.
   - `intent` goes to `BlockRoot` and `BlockHeading`, so marks, tints,
     highlights, and the strong action inherit it.
   - `emphasis` is a `BlockEmphasis` (`subtler`, `subtle`, `normal`, or `raised`), the
@@ -70,8 +73,11 @@ Run `pnpm generate:exports` after adding the folder.
     per item, and an item may take its own `intent`.
   - `align` and `size` are the preset's alignment and scale; each step down
     from `lg` (`md`, then `sm`) sets the title a step smaller, with smaller
-    descriptions and body text and tighter spacing. Pick each value with
-    `bySize`, so no size falls through to another's.
+    descriptions and body text and tighter spacing. Space a block's parts with
+    `gapOf(size, step)`, and pick any other value with `bySize`, so no size falls
+    through to another's.
+  - An item's surface and mark follow `src/_shared/items.ts`: a linked item with no
+    surface takes `subtler`, and a mark takes the item's intent, then the block's.
   - Hero opens the page and takes no surface.
 - **Data names.** One image is `image` and many are `images`, wherever the
   preset puts them. Items use `title`, `description`, `image`, `illustration`,

@@ -48,7 +48,9 @@ export function useBlock<
     name: preset.name as Definition['presets'][number]['name'],
     align,
     // A preset's default emphasis is one its block's own props accept.
-    emphasis: (props.emphasis ?? defaults.emphasis) as Props['emphasis'],
+    emphasis: (props.emphasis ?? defaults.emphasis) as
+      | Extract<Props['emphasis'], SurfaceEmphasis>
+      | undefined,
     contained: props.contained ?? defaults.contained ?? false,
     root: {
       block: definition.name,

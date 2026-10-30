@@ -10,27 +10,31 @@ export const heroDefinition = {
       title: 'Bento',
       description:
         'The page hero for landing pages: a title panel over a photo, beside a video and two panels of cycling photos.',
-      variant: 'media'
+      variant: 'media',
+      defaults: { align: 'start' }
     },
     {
       name: 'image',
       title: 'Image',
       description: 'A title beside one photo, for industry and service pages.',
-      variant: 'media'
+      variant: 'media',
+      defaults: { align: 'start' }
     },
     {
       name: 'title',
       title: 'Title',
       description:
         'An eyebrow and a large title, with no media, for a page that opens on its text, such as About or a policy.',
-      variant: 'text'
+      variant: 'text',
+      defaults: { align: 'start' }
     },
     {
       name: 'partner',
       title: 'Partner',
       description:
         "The Oztix and a partner's logos joined by a heart, beside the page title, for a partner page.",
-      variant: 'text'
+      variant: 'text',
+      defaults: { align: 'start' }
     }
   ]
 } as const satisfies BlockDefinition

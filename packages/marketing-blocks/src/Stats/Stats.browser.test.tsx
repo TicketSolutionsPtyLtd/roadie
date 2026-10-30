@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react'
+
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -14,8 +16,13 @@ import {
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
+
+describeBlockFrame('stats', 'figures', Stats as ComponentType<never>, {
+  items: [{ value: '7 million+', label: 'tickets sold' }]
+})
 
 const facts: StatsProps = {
   title: 'By the numbers',

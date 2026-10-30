@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react'
+
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { page } from 'vitest/browser'
@@ -20,8 +22,11 @@ import {
   setMode,
   textContrast
 } from '../_test/contrast'
+import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
+
+describeBlockFrame('cta-band', 'band', CTABand as ComponentType<never>, {})
 
 const INTENTS = [
   'neutral',

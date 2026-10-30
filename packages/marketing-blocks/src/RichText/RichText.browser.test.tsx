@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react'
+
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -14,9 +16,17 @@ import {
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { describeBlockFrame } from '../_test/frame'
 import { longForm, statement } from './fixtures'
 
 withBrowserPage()
+
+describeBlockFrame(
+  'rich-text',
+  'statement',
+  RichText as ComponentType<never>,
+  {}
+)
 
 describe('RichText statement', () => {
   it('centres its paragraphs under the title, at the xl text size', async () => {

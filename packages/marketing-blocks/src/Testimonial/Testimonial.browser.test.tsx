@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react'
+
 import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
@@ -15,9 +17,17 @@ import {
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { describeBlockFrame } from '../_test/frame'
 import { carousel, quote as fixture } from './fixtures'
 
 withBrowserPage()
+
+describeBlockFrame(
+  'testimonial',
+  'quote',
+  Testimonial as ComponentType<never>,
+  { quotes: [{ quote: 'Brilliant.', person: { name: 'Mia Tran' } }] }
+)
 
 const first = fixture.quotes[0]!
 const quote = {

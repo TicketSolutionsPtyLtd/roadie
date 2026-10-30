@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react'
+
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
@@ -15,8 +17,13 @@ import {
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
+
+describeBlockFrame('split', 'media-text', Split as ComponentType<never>, {
+  image: photo('A crowd')
+})
 
 // The old presets, each as the props that reproduce it.
 const LOOKS = {

@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react'
+
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
@@ -17,8 +19,13 @@ import {
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
+
+describeBlockFrame('card-grid', 'cards', CardGrid as ComponentType<never>, {
+  items: [{ title: 'Fast payouts' }]
+})
 
 const items: CardGridItem[] = [
   'Live music',

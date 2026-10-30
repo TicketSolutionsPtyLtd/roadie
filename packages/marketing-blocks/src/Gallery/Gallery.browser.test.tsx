@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react'
+
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { commands, page, userEvent } from 'vitest/browser'
@@ -15,8 +17,14 @@ import {
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
+
+describeBlockFrame('gallery', 'wrap', Gallery as ComponentType<never>, {
+  preset: 'wrap',
+  images: [photo('A crowd')]
+})
 
 const INTENTS = [
   'neutral',

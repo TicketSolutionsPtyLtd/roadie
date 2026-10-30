@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react'
+
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -16,8 +18,13 @@ import {
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
+
+describeBlockFrame('faq', 'accordion', FAQ as ComponentType<never>, {
+  items: [{ question: 'Does it cost anything?', answer: <p>No.</p> }]
+})
 
 const INTENTS = [
   'neutral',

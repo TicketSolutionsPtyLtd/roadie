@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from 'react'
+import type { ReactNode } from 'react'
 
 import { Highlight } from '@oztix/roadie-components/highlight'
 import { Logo } from '@oztix/roadie-components/logo'
@@ -16,13 +16,14 @@ import {
   SPOT_ILLUSTRATIONS,
   type SpotIllustrationName
 } from '../_shared/illustrations'
-import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockIntent,
   type BlockSize,
-  bySize
+  bySize,
+  gapOf
 } from '../_shared/surface'
+import { type BlockFrame, useBlock } from '../_shared/useBlock'
 import { HeroMotionProvider, HeroMotionToggle } from './HeroMotion'
 import { HeroVideo } from './HeroVideo'
 import { ImageCycler } from './ImageCycler'
@@ -107,35 +108,24 @@ export type HeroProps = {
 }
 
 /** Opens a page with its title as the page's `h1`. */
-export function Hero({ preset, position, id, ...content }: HeroProps) {
-  const headingId = useId()
-  const { name, variant } = presetOf(heroDefinition, preset)
+export function Hero(props: HeroProps) {
+  const block = useBlock(heroDefinition, props)
   return (
-    <BlockRoot
-      block={heroDefinition.name}
-      intent={content.intent}
-      variant={variant}
-      preset={name}
-      position={position}
-      id={id}
-      aria-labelledby={headingId}
-    >
-      {name === 'title' ? (
-        <TitleOnly headingId={headingId} {...content} />
-      ) : name === 'partner' ? (
-        <PartnerHero headingId={headingId} {...content} />
-      ) : name === 'image' ? (
-        <ImageHero headingId={headingId} {...content} />
+    <BlockRoot {...block.root}>
+      {block.name === 'title' ? (
+        <TitleOnly {...props} block={block} />
+      ) : block.name === 'partner' ? (
+        <PartnerHero {...props} block={block} />
+      ) : block.name === 'image' ? (
+        <ImageHero {...props} block={block} />
       ) : (
-        <Bento headingId={headingId} {...content} />
+        <Bento {...props} block={block} />
       )}
     </BlockRoot>
   )
 }
 
-type PresetProps = Omit<HeroProps, 'preset' | 'position' | 'id'> & {
-  headingId: string
-}
+type PresetProps = HeroProps & { block: BlockFrame }
 
 // Not BlockHeading: this title sits on the fixed-dark overlay in fixed light
 // text, with the illustration inline in the h1.
@@ -146,7 +136,8 @@ function Title({
   className,
   children,
   intent
-}: Pick<PresetProps, 'headingId' | 'title' | 'titleHighlight' | 'intent'> & {
+}: Pick<PresetProps, 'title' | 'titleHighlight' | 'intent'> & {
+  headingId: string
   className: string
   children?: ReactNode
 }) {
@@ -170,64 +161,23 @@ const ALIGN_ITEMS: Record<BlockAlign, string> = {
   start: 'justify-items-start',
   center: 'justify-items-center'
 }
-const ALIGN_ACTIONS: Record<BlockAlign, string | undefined> = {
-  start: undefined,
-  center: 'justify-center'
-}
 
-function TitleOnly({
-  headingId,
-  intent,
-  eyebrow,
-  title,
-  titleHighlight,
-  description,
-  actions,
-  align = 'start',
-  size
-}: PresetProps) {
+function TitleOnly({ block, size }: PresetProps) {
   return (
     <BlockSurface
       className={cn(
         'grid *:min-w-0',
-        ALIGN_ITEMS[align],
-        bySize(size, { sm: 'gap-3', md: 'gap-4', lg: 'gap-6' })
+        ALIGN_ITEMS[block.align],
+        gapOf(size, 'snug')
       )}
     >
-      <BlockHeading
-        id={headingId}
-        intent={intent}
-        level={1}
-        step={2}
-        size={size}
-        align={align}
-        eyebrow={eyebrow}
-        title={title}
-        titleHighlight={titleHighlight}
-        description={description}
-      />
-      <BlockActions
-        actions={actions}
-        intent={intent}
-        className={ALIGN_ACTIONS[align]}
-      />
+      <BlockHeading {...block.heading} level={1} step={2} />
+      <BlockActions {...block.actions} />
     </BlockSurface>
   )
 }
 
-function PartnerHero({
-  headingId,
-  intent,
-  eyebrow,
-  title,
-  titleHighlight,
-  description,
-  body,
-  actions,
-  partner,
-  align = 'start',
-  size
-}: PresetProps) {
+function PartnerHero({ block, body, partner, size }: PresetProps) {
   return (
     <BlockSurface
       className={cn(
@@ -239,34 +189,19 @@ function PartnerHero({
       <div
         className={cn(
           'grid min-w-0 grid-cols-1 content-start wrap-break-word',
-          bySize(size, { sm: 'gap-4', md: 'gap-6', lg: 'gap-8' })
+          gapOf(size, 'normal')
         )}
       >
-        <BlockHeading
-          id={headingId}
-          level={1}
-          step={2}
-          size={size}
-          align={align}
-          intent={intent}
-          eyebrow={eyebrow}
-          title={title}
-          titleHighlight={titleHighlight}
-          description={description}
-        />
+        <BlockHeading {...block.heading} level={1} step={2} />
         {body && (
           <Prose
             size='md'
-            className={align === 'center' ? 'text-center' : undefined}
+            className={block.align === 'center' ? 'text-center' : undefined}
           >
             {body}
           </Prose>
         )}
-        <BlockActions
-          actions={actions}
-          intent={intent}
-          className={ALIGN_ACTIONS[align]}
-        />
+        <BlockActions {...block.actions} />
       </div>
     </BlockSurface>
   )
@@ -291,18 +226,7 @@ function PartnerLockup({ name, logo }: HeroPartner) {
   )
 }
 
-function ImageHero({
-  headingId,
-  intent,
-  eyebrow,
-  title,
-  titleHighlight,
-  description,
-  actions,
-  image,
-  align = 'start',
-  size
-}: PresetProps) {
+function ImageHero({ block, image, size }: PresetProps) {
   return (
     <BlockSurface
       className={cn(
@@ -313,26 +237,12 @@ function ImageHero({
       <div
         className={cn(
           'grid @4xl:col-span-2',
-          ALIGN_ITEMS[align],
-          bySize(size, { sm: 'gap-3', md: 'gap-4', lg: 'gap-6' })
+          ALIGN_ITEMS[block.align],
+          gapOf(size, 'snug')
         )}
       >
-        <BlockHeading
-          id={headingId}
-          intent={intent}
-          level={1}
-          size={size}
-          align={align}
-          eyebrow={eyebrow}
-          title={title}
-          titleHighlight={titleHighlight}
-          description={description}
-        />
-        <BlockActions
-          actions={actions}
-          intent={intent}
-          className={ALIGN_ACTIONS[align]}
-        />
+        <BlockHeading {...block.heading} level={1} />
+        <BlockActions {...block.actions} />
       </div>
       {image && (
         <div className='order-first overflow-clip rounded-xl @xl:order-last @4xl:col-span-3'>
@@ -377,19 +287,18 @@ function bentoPanels(images: readonly BlockImage[]) {
 }
 
 function Bento({
-  headingId,
+  block,
   intent,
   title,
   titleHighlight,
   description,
-  actions,
   image,
   video,
   images = [],
   illustration = 'HighFive',
-  align = 'start',
   size
 }: PresetProps) {
+  const { align } = block
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
   const [primaryImages, secondaryImages] = bentoPanels(images)
   const hasPrimary = primaryImages.length > 0
@@ -430,7 +339,7 @@ function Bento({
             >
               <div className='grid content-center gap-2'>
                 <Title
-                  headingId={headingId}
+                  headingId={block.heading.id}
                   title={title}
                   titleHighlight={titleHighlight}
                   intent={intent}
@@ -455,12 +364,7 @@ function Bento({
                   </p>
                 )}
               </div>
-              <BlockActions
-                actions={actions}
-                intent={intent}
-                fill='scrim'
-                className={cn('gap-2', ALIGN_ACTIONS[align])}
-              />
+              <BlockActions {...block.actions} fill='scrim' className='gap-2' />
             </div>
           </div>
           {hasPrimary && (

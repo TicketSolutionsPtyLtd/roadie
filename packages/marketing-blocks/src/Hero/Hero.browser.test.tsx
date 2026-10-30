@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react'
 import { act } from 'react'
 
 import { cleanup, render, screen } from '@testing-library/react'
@@ -26,9 +27,14 @@ import {
   setMode,
   textContrast
 } from '../_test/contrast'
+import { describeBlockFrame } from '../_test/frame'
 import { bento, imageHero, partnerHero, titleOnly } from './fixtures'
 
 withBrowserPage()
+
+describeBlockFrame('hero', 'title', Hero as ComponentType<never>, {
+  preset: 'title'
+})
 
 const panel = (slot: string) =>
   document.querySelector<HTMLElement>(`[data-slot=hero-${slot}]`)!

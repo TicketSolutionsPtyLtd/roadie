@@ -1,3 +1,5 @@
+import type { ComponentType } from 'react'
+
 import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, onTestFinished } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
@@ -15,11 +17,16 @@ import {
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
+import { describeBlockFrame } from '../_test/frame'
 import { partnerTiers } from './fixtures'
 
 const MID = { name: 'mid', width: 640, height: 900 } as const
 
 withBrowserPage()
+
+describeBlockFrame('mosaic', 'tiers', Mosaic as ComponentType<never>, {
+  tiles: [{ title: 'Kazoo Hollow Room' }]
+})
 
 const offline = (props: MosaicProps): MosaicProps => ({
   ...props,
