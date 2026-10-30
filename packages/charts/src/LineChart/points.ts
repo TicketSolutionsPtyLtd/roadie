@@ -51,10 +51,14 @@ export function comparisonLabel(
   return comparison && (comparison.label ?? fieldLabel(comparison.y))
 }
 
-/** The comparison in x order, added up like the line; none with series. */
+/**
+ * The comparison in x order, added up like the line. None with series, against
+ * the chart's own x or y, or with no value to draw.
+ */
 export function comparisonPoints(props: LineChartProps): ComparisonPoint[] {
   const field = props.comparison?.y
-  if (!field || props.series) return []
+  if (!field || props.series || field === props.x || field === props.y)
+    return []
   const isTime = isTimeField(props.data, props.x)
   const points = props.data
     .map((row) => ({
@@ -63,6 +67,7 @@ export function comparisonPoints(props: LineChartProps): ComparisonPoint[] {
     }))
     .filter((p): p is ComparisonPoint => p.x !== null)
     .sort((a, b) => a.x - b.x)
+  if (points.every((p) => p.y === null)) return []
   if (!props.cumulative) return points
   let total = 0
   return points.map((p) => {

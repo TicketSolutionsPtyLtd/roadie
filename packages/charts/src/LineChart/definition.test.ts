@@ -415,6 +415,35 @@ describe('lineChart comparison', () => {
     expect(svg).not.toMatch(keyOf('comparison'))
   })
 
+  it.each([
+    ['a field missing from every row', 'lastYear', comparisonExample.data],
+    [
+      'a field with no values',
+      'lastPeriod',
+      comparisonExample.data.map((row) => ({ ...row, lastPeriod: null }))
+    ],
+    ['the x field', 'day', comparisonExample.data],
+    ['the y field', 'tickets', comparisonExample.data]
+  ])('leaves out a comparison against %s', (_, y, data) => {
+    const props = {
+      ...comparisonExample,
+      data,
+      comparison: { y, label: 'Previous period' }
+    }
+    const svg = svgOf(props)
+    expect(svg).not.toMatch(keyOf('comparison'))
+    expect(svg).not.toContain('Previous period')
+    expect(
+      lineChart
+        .legend(props, paint, plotFrame(160, 'narrow'))
+        .map((i) => i.label)
+    ).toEqual(['Tickets'])
+    expect(lineChartTable(props).columns.map((c) => c.header)).toEqual([
+      'Day',
+      'Tickets'
+    ])
+  })
+
   it('counts the comparison in the y domain', () => {
     const higher = {
       ...comparisonExample,
