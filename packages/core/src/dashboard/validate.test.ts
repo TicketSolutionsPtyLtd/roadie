@@ -997,8 +997,19 @@ describe('validateDashboard checks repeated names', () => {
     expect(problemsOf(donut(tickets))).toEqual([])
   })
 
+  it('takes a donut with five parts and a row with no name', () => {
+    const plot = donut([60, 50, 40, 30, 20])
+    const nameless = [
+      { type: null, sold: 10 },
+      { type: '', sold: 10 }
+    ]
+    expect(problemsOf({ ...plot, data: [...plot.data, ...nameless] })).toEqual(
+      []
+    )
+  })
+
   it('counts a repeated donut part once', () => {
-    const plot = donut([60, 40])
+    const plot = donut([60, 50, 40, 30, 20])
     const repeated = { ...plot, data: [...plot.data, plot.data[0]!] }
     expect(problemsOf(repeated)).toEqual([
       expect.objectContaining({
