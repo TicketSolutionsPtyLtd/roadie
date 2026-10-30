@@ -4,7 +4,9 @@ import { type ReactNode } from 'react'
 
 import { XIcon } from '@phosphor-icons/react'
 
-import { Dialog, IconButton, IconTile } from '@oztix/roadie-components'
+import { IconButton } from '@oztix/roadie-components/button'
+import { Dialog } from '@oztix/roadie-components/dialog'
+import { IconTile } from '@oztix/roadie-components/icon-tile'
 
 export type CartExpiryDialogProps = {
   open: boolean

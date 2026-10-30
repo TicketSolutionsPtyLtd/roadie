@@ -3,7 +3,7 @@
 import { BagIcon, CalendarBlankIcon } from '@phosphor-icons/react'
 import { AnimatePresence, LazyMotion, domAnimation, m } from 'motion/react'
 
-import { Separator } from '@oztix/roadie-components'
+import { Separator } from '@oztix/roadie-components/separator'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { type CartDetails, formatDayHeader, groupEventsByDay } from '../../cart'

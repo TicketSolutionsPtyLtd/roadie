@@ -66,7 +66,10 @@ export {
   type CalendarMultipleProps,
   type CalendarProps,
   type CalendarRangeProps,
-  type CalendarSingleProps
+  type CalendarSingleProps,
+  type CalendarDirection,
+  type CalendarLayout,
+  type CalendarView
 } from './components/Calendar'
 
 export {
@@ -310,7 +313,8 @@ export {
   SPARKLINE_MIN_POINTS,
   sparklineGeometry,
   type SparklineProps,
-  type SparklineReference
+  type SparklineReference,
+  type SparklineGeometry
 } from './components/Sparkline'
 
 export {
@@ -352,7 +356,9 @@ export {
   type DataTableRow,
   type DataTableSort,
   type DataTableSortDirection,
-  sortDataTableRows
+  sortDataTableRows,
+  type DataTableExpanded,
+  type DataTableTotals
 } from './components/DataTable'
 
 export {
@@ -392,7 +398,8 @@ export {
   DashboardPeriod,
   type DashboardPeriodProps,
   type DashboardPeriodValue,
-  dashboardPeriodPresets
+  dashboardPeriodPresets,
+  type DashboardPeriodCompareOption
 } from './components/DashboardPeriod'
 export {
   DateRangePicker,
@@ -419,7 +426,8 @@ export {
   type FieldInputProps,
   type FieldTextareaProps,
   type FieldHelperTextProps,
-  type FieldErrorTextProps
+  type FieldErrorTextProps,
+  useFieldControlError
 } from './components/Field'
 export {
   Select,
@@ -510,7 +518,9 @@ export {
   type QueryFieldIntent,
   type QueryFieldSearchSuggestion,
   type QueryFieldSuggestion,
-  type QueryFieldSuggestionGroup
+  type QueryFieldSuggestionGroup,
+  type QueryFieldOperator,
+  type QueryFieldPendingChip
 } from './components/QueryField'
 export {
   Records,
@@ -534,7 +544,19 @@ export {
   type RecordsRow,
   type RecordsSearchProps,
   type RecordsHeaderProps,
-  type UseRecordsOptions
+  type UseRecordsOptions,
+  type RecordsActionContext,
+  type RecordsField,
+  type RecordsGivenTotals,
+  type RecordsOptionsProps,
+  type RecordsRange,
+  type RecordsRangeResult,
+  type RecordsResolvedTotals,
+  type RecordsSelectProps,
+  type RecordsSetSelecting,
+  type RecordsTotals,
+  type RecordsViewActionsProps,
+  type RecordsViewHandler
 } from './components/Records'
 export {
   RecordGrid,
@@ -555,7 +577,10 @@ export {
   type RecordTableColumnOptions,
   type RecordTableProps,
   type TableLayoutConfig,
-  type TableLayoutDefinition
+  type TableLayoutDefinition,
+  type RecordTableNarrow,
+  type RecordTableNarrowLayout,
+  type TableLayoutOptions
 } from './components/RecordTable'
 export {
   NumberField,

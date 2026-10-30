@@ -3,7 +3,7 @@
 import NumberFlow from '@number-flow/react'
 import { ClockIcon } from '@phosphor-icons/react'
 
-import { Button } from '@oztix/roadie-components'
+import { Button } from '@oztix/roadie-components/button'
 
 import { CartExpiryDialog } from './CartExpiryDialog'
 

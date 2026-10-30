@@ -6,7 +6,7 @@ import NumberFlow from '@number-flow/react'
 import { BagIcon, XIcon } from '@phosphor-icons/react'
 import { type MotionValue, m, useTransform } from 'motion/react'
 
-import { IconButton } from '@oztix/roadie-components'
+import { IconButton } from '@oztix/roadie-components/button'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { CartFooter } from '../../cart-contents/react/CartFooter'

@@ -2,6 +2,8 @@
 
 import { type RefObject, useLayoutEffect } from 'react'
 
+// `--records-surface` keeps its name because a consumer may set it to pick
+// the colour, and settle() honours that.
 const AUTO = 'data-records-surface'
 
 // A translucent fill would let rows show through a sticky part, so only an
