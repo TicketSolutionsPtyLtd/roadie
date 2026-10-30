@@ -30,9 +30,29 @@
       "style": "./src/css/marketing-blocks.css",
       "default": "./src/css/marketing-blocks.css"
     },
+    "./cta-band": {
+      "types": "./dist/CTABand/index.d.ts",
+      "import": "./dist/CTABand/index.js"
+    },
+    "./card-grid": {
+      "types": "./dist/CardGrid/index.d.ts",
+      "import": "./dist/CardGrid/index.js"
+    },
+    "./faq": {
+      "types": "./dist/FAQ/index.d.ts",
+      "import": "./dist/FAQ/index.js"
+    },
+    "./gallery": {
+      "types": "./dist/Gallery/index.d.ts",
+      "import": "./dist/Gallery/index.js"
+    },
     "./hero": {
       "types": "./dist/Hero/index.d.ts",
       "import": "./dist/Hero/index.js"
+    },
+    "./mosaic": {
+      "types": "./dist/Mosaic/index.d.ts",
+      "import": "./dist/Mosaic/index.js"
     },
     "./provider": {
       "types": "./dist/Provider/index.d.ts",
@@ -41,6 +61,18 @@
     "./rich-text": {
       "types": "./dist/RichText/index.d.ts",
       "import": "./dist/RichText/index.js"
+    },
+    "./split": {
+      "types": "./dist/Split/index.d.ts",
+      "import": "./dist/Split/index.js"
+    },
+    "./stats": {
+      "types": "./dist/Stats/index.d.ts",
+      "import": "./dist/Stats/index.js"
+    },
+    "./testimonial": {
+      "types": "./dist/Testimonial/index.d.ts",
+      "import": "./dist/Testimonial/index.js"
     },
     "./catalogue": {
       "types": "./dist/catalogue/index.d.ts",

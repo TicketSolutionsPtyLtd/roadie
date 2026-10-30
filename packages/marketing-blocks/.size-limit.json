@@ -15,7 +15,7 @@
     "name": "catalogue",
     "path": "dist/catalogue/index.js",
     "import": "*",
-    "limit": "700 B"
+    "limit": "2.05 kB"
   },
   {
     "name": "hero",

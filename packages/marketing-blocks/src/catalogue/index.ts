@@ -1,13 +1,13 @@
-import { heroDefinition } from '../Hero/definition'
-import { richTextDefinition } from '../RichText/definition'
-import { cardGridDefinition } from '../CardGrid/definition'
-import { splitDefinition } from '../Split/definition'
-import { statsDefinition } from '../Stats/definition'
-import { mosaicDefinition } from '../Mosaic/definition'
-import { testimonialDefinition } from '../Testimonial/definition'
 import { ctaBandDefinition } from '../CTABand/definition'
+import { cardGridDefinition } from '../CardGrid/definition'
 import { faqDefinition } from '../FAQ/definition'
 import { galleryDefinition } from '../Gallery/definition'
+import { heroDefinition } from '../Hero/definition'
+import { mosaicDefinition } from '../Mosaic/definition'
+import { richTextDefinition } from '../RichText/definition'
+import { splitDefinition } from '../Split/definition'
+import { statsDefinition } from '../Stats/definition'
+import { testimonialDefinition } from '../Testimonial/definition'
 
 /** A named configuration of a block: what editors pick in the Studio instead of setting options. */
 export type BlockPreset = {
@@ -55,13 +55,12 @@ function entry(definition: BlockDefinition): CatalogueBlock {
 
 const DEFINITIONS: readonly BlockDefinition[] = [
   heroDefinition,
-  richTextDefinition
-]
-const DEFINITIONS: readonly BlockDefinition[] = [cardGridDefinition]
+  richTextDefinition,
   splitDefinition,
-  statsDefinition
+  cardGridDefinition,
+  statsDefinition,
   mosaicDefinition,
-  testimonialDefinition
+  testimonialDefinition,
   faqDefinition,
   galleryDefinition,
   ctaBandDefinition
