@@ -38,6 +38,12 @@ const background = (element: Element) =>
 
 const TRANSPARENT = 'rgba(0, 0, 0, 0)'
 
+function textLeft(element: Element) {
+  const range = document.createRange()
+  range.selectNodeContents(element.firstChild!)
+  return range.getBoundingClientRect().left
+}
+
 describe('an Accordion trigger', () => {
   function Faq() {
     return (
@@ -81,6 +87,18 @@ describe('a Collapsible trigger', () => {
     expect(background(trigger)).toBe(TRANSPARENT)
     await hover(trigger)
     await expect.poll(() => background(trigger)).not.toBe(TRANSPARENT)
+  })
+
+  it('keeps its text in line with the panel below', () => {
+    render(
+      <Collapsible defaultOpen>
+        <Collapsible.Trigger>Show all ticket types</Collapsible.Trigger>
+        <Collapsible.Panel>Concession</Collapsible.Panel>
+      </Collapsible>
+    )
+    expect(textLeft(screen.getByText('Show all ticket types'))).toBe(
+      textLeft(screen.getByText('Concession'))
+    )
   })
 })
 

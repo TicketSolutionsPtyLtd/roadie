@@ -28,7 +28,7 @@ export function CollapsibleTrigger({
         'group/collapsible-trigger',
         // A rendered element, such as Button, brings its own styles.
         !props.render &&
-          'is-interactive -mx-1.5 inline-flex items-center gap-1.5 rounded-md emphasis-subtler px-1.5 py-0.5 font-medium',
+          'is-interactive -mx-1.5 inline-flex items-center gap-1.5 rounded-md emphasis-subtler border-0 px-1.5 py-0.5 font-medium',
         className
       )}
       {...props}
