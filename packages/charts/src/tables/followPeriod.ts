@@ -28,7 +28,8 @@ function warnOnce(message: string) {
   console.error(message)
 }
 
-// validateDashboard rejects these; an unchecked spec still renders, and says why.
+// validateDashboard rejects these; an unchecked spec still gets a label, and a
+// development error says why.
 export function comparisonLine(
   compare: Comparison,
   where: FollowPeriodOptions
@@ -37,7 +38,7 @@ export function comparisonLine(
     return describeComparison(compare, where)
   } catch (error) {
     warnOnce(
-      `DashboardView: couldn't describe the comparison, so it reads "vs custom dates": ${error instanceof Error ? error.message : String(error)}`
+      `Roadie: couldn't describe the comparison, so it reads "vs custom dates": ${error instanceof Error ? error.message : String(error)}`
     )
     return 'vs custom dates'
   }

@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import type {
   DashboardCard,
@@ -10,7 +10,9 @@ import { DashboardView } from '../DashboardView'
 import { cardTable } from './cardTable'
 import { followPeriod } from './followPeriod'
 
-const rows = [{ venue: 'Corner Hotel', day: '2026-10-01', sold: 10, last: 8 }]
+const rows = [
+  { venue: 'Kazoo Hollow Room', day: '2026-10-01', sold: 10, last: 8 }
+]
 const compared = { x: 'day', y: 'sold', comparison: { y: 'last' } } as const
 
 const daily = (kind: 'line' | 'bar'): DashboardCard => ({
@@ -21,6 +23,15 @@ const daily = (kind: 'line' | 'bar'): DashboardCard => ({
   source: 'Oztix sales.',
   plot: { kind, data: rows, ...compared }
 })
+
+const sold: DashboardCard = {
+  id: 'sold',
+  kind: 'stat',
+  size: 'stat',
+  label: 'Tickets sold',
+  value: 1842,
+  delta: { value: 214, comparison: true }
+}
 
 const cards: DashboardCard[] = [
   daily('line'),
@@ -38,21 +49,14 @@ const cards: DashboardCard[] = [
       chart: { kind: 'line', ...compared }
     }
   },
-  {
-    id: 'sold',
-    kind: 'stat',
-    size: 'stat',
-    label: 'Tickets sold',
-    value: 1842,
-    delta: { value: 214, comparison: true }
-  }
+  sold
 ]
 
-function comparisonLabel(card: DashboardCard) {
-  if (card.kind !== 'chart') return 'not a chart'
+function comparisonOf(card: DashboardCard) {
+  if (card.kind !== 'chart') return undefined
   const { plot } = card
-  if (plot.kind === 'small-multiples') return plot.chart.comparison?.label
-  if (plot.kind === 'line' || plot.kind === 'bar') return plot.comparison?.label
+  if (plot.kind === 'small-multiples') return plot.chart.comparison
+  if (plot.kind === 'line' || plot.kind === 'bar') return plot.comparison
 }
 
 function drawn(period: DashboardPeriodSpec | undefined, locale?: string) {
@@ -75,65 +79,92 @@ function drawn(period: DashboardPeriodSpec | undefined, locale?: string) {
   return shown
 }
 
+const CASES: [string, DashboardPeriodSpec | undefined, string | undefined][] = [
+  [
+    'the previous period',
+    { range: 'this-month', compare: 'previous-period' },
+    'Previous period'
+  ],
+  [
+    'the previous year',
+    { range: 'this-month', compare: 'previous-year' },
+    'Previous year'
+  ],
+  [
+    'partial history',
+    { range: 'this-month', compare: 'previous-period', history: 'partial' },
+    'Previous period'
+  ],
+  ['no period', undefined, undefined],
+  ['no comparison', { range: 'this-month' }, undefined],
+  [
+    'an app’s own comparison',
+    { range: 'this-month', compare: 'similar' },
+    undefined
+  ],
+  [
+    'unavailable history',
+    {
+      range: 'this-month',
+      compare: 'previous-year',
+      history: 'unavailable'
+    },
+    undefined
+  ],
+  [
+    'custom dates that fit a series label',
+    {
+      range: 'this-month',
+      compare: { start: '2026-09-01', end: '2026-10-03' }
+    },
+    '1 Sept to 3 Oct 2026'
+  ],
+  [
+    'custom dates too long for a series label',
+    {
+      range: 'this-month',
+      compare: { start: '2026-09-01', end: '2026-10-13' }
+    },
+    'Custom dates'
+  ]
+]
+
+const where = { locale: 'en-AU' }
+
 describe('followPeriod', () => {
-  it.each<[string, DashboardPeriodSpec | undefined, string | undefined]>([
-    [
-      'the previous period',
-      { range: 'this-month', compare: 'previous-period' },
-      'Previous period'
-    ],
-    [
-      'the previous year',
-      { range: 'this-month', compare: 'previous-year' },
-      'Previous year'
-    ],
-    [
-      'partial history',
-      { range: 'this-month', compare: 'previous-period', history: 'partial' },
-      'Previous period'
-    ],
-    ['no period', undefined, undefined],
-    ['no comparison', { range: 'this-month' }, undefined],
-    [
-      'an app’s own comparison',
-      { range: 'this-month', compare: 'similar' },
-      undefined
-    ],
-    [
-      'unavailable history',
-      {
-        range: 'this-month',
-        compare: 'previous-year',
-        history: 'unavailable'
-      },
-      undefined
-    ],
-    [
-      'custom dates that fit a series label',
-      {
-        range: 'this-month',
-        compare: { start: '2026-09-01', end: '2026-10-03' }
-      },
-      '1 Sept to 3 Oct 2026'
-    ],
-    [
-      'custom dates too long for a series label',
-      {
-        range: 'this-month',
-        compare: { start: '2026-09-01', end: '2026-10-13' }
-      },
-      'Custom dates'
-    ]
-  ])('draws each card as DashboardView does with %s', (_, period, label) => {
-    const where = { locale: 'en-AU' }
-    const shown = drawn(period, where.locale)
-    for (const card of cards) {
-      const followed = followPeriod(card, period, where)
-      expect(followed).toEqual(shown.get(card.id))
-      expect(comparisonLabel(followed)).toBe(
-        card.kind === 'chart' ? label : 'not a chart'
+  it.each(CASES)('follows %s', (_, period, label) => {
+    for (const card of cards.filter((card) => card.kind === 'chart'))
+      expect(comparisonOf(followPeriod(card, period, where))).toEqual(
+        label ? { y: 'last', label } : undefined
       )
+  })
+
+  it('leaves cards other than charts as they are', () => {
+    expect(
+      followPeriod(sold, { range: 'this-month', compare: 'previous-period' })
+    ).toBe(sold)
+  })
+
+  it.each(CASES)(
+    'returns the cards DashboardView draws with %s',
+    (_, period) => {
+      const shown = drawn(period, where.locale)
+      for (const card of cards)
+        expect(followPeriod(card, period, where)).toEqual(shown.get(card.id))
     }
+  )
+
+  it('names dates it can’t read as custom dates, with a development error', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const followed = followPeriod(daily('line'), {
+      range: 'this-month',
+      compare: { start: 'not a date', end: '2026-09-30' }
+    })
+    expect(comparisonOf(followed)).toEqual({ y: 'last', label: 'Custom dates' })
+    expect(error).toHaveBeenCalledWith(
+      expect.stringMatching(/^Roadie: couldn't describe the comparison/)
+    )
+    error.mockRestore()
   })
 
   it('gives a server CSV the Table view’s columns', () => {
