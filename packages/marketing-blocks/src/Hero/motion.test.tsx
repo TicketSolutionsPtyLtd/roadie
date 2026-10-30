@@ -151,14 +151,14 @@ describe('Hero photo cycling', () => {
   it('pauses and plays the video and the photos with one toggle', () => {
     render(<Hero {...bento()} />)
     act(() => intersect(true))
-    expect(toggle(/pause/i)).toHaveAttribute('aria-pressed', 'false')
+    expect(toggle(/pause/i)).not.toHaveAttribute('aria-pressed')
 
     act(() => fireEvent.click(toggle(/pause/i)))
     act(() => vi.advanceTimersByTime(8000))
 
     expect(pause).toHaveBeenCalled()
     expect(shown('The Oztix team at Antler Kettle Hall')).not.toBeNull()
-    expect(toggle(/play/i)).toHaveAttribute('aria-pressed', 'true')
+    expect(toggle(/play/i)).not.toHaveAttribute('aria-pressed')
 
     play.mockClear()
     act(() => fireEvent.click(toggle(/play/i)))

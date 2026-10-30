@@ -32,14 +32,12 @@ export function useHeroMotion(): HeroMotion {
 }
 
 /** Stops and starts everything that moves in the bento, for WCAG 2.2.2. */
-export function HeroMotionToggle({ className }: { className?: string }) {
+export function HeroMotionToggle() {
   const { moving, toggle } = useHeroMotion()
   return (
     <IconButton
       size='icon-sm'
-      className={className}
       aria-label={moving ? 'Pause video and photos' : 'Play video and photos'}
-      aria-pressed={!moving}
       onClick={toggle}
     >
       {moving ? (
