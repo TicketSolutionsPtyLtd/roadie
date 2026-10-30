@@ -75,4 +75,12 @@ describe('currency formatter reuse', () => {
     currencyFormat({ currency: 'JPY' })
     expect(NumberFormat.mock.calls.length).toBe(built)
   })
+
+  it('keeps no entry for a code Intl rejects', () => {
+    const NumberFormat = vi.spyOn(Intl, 'NumberFormat')
+    currencyFormat({ currency: 'dollars' })
+    const tried = NumberFormat.mock.calls.length
+    currencyFormat({ currency: 'dollars' })
+    expect(NumberFormat.mock.calls.length).toBe(tried * 2)
+  })
 })
