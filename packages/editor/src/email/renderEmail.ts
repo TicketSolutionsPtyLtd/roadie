@@ -1,18 +1,15 @@
 import { convert } from 'html-to-text'
 import mjml2html from 'mjml'
 
-import {
-  type EditorValue,
-  type StoredEditorValue,
-  migrate
-} from '../schema/value'
+import type { StoredEmailContent } from '../schema/emailContent'
+import { migrate } from '../schema/value'
 import { conditions } from './conditions'
 import { type MergeTagOptions, mergeTags, untokenedText } from './mergeTags'
 import { mjmlTree } from './mjmlTree'
 import { type EmailTheme, emailTheme } from './theme'
 
 export type RenderEmailOptions = MergeTagOptions & {
-  /** An app's brand kit, over `defaultEmailTheme`. */
+  /** An app's brand kit, over `defaultEmailTheme`. HTML ignores it. */
   theme?: Partial<EmailTheme>
 }
 
@@ -24,13 +21,15 @@ export type RenderedEmail = {
 }
 
 /**
- * Renders a saved value as an email, reading it into the email preset first.
- * Runs on the server only: MJML needs Node.
+ * Renders a saved email. A design is read into the email preset first; HTML
+ * is sent as written, with a plain-text part. Runs on the server only: MJML
+ * needs Node.
  *
- * Each variable is written as its token in `syntax`, from `variables`, for
- * the sending system to fill, or with `values` as its value for a preview.
- * Throws on a variable `variables` doesn't list, or one with no token in
- * `syntax`.
+ * In a design, each variable is written as its token in `syntax`, from
+ * `variables`, for the sending system to fill, or with `values` as its value
+ * for a preview. Throws on a variable `variables` doesn't list, or one with
+ * no token in `syntax`. HTML's merge tags are already tokens, so it ignores
+ * these options.
  *
  * A block with a `showWhen` rule is wrapped in a Liquid `if` with
  * `syntax: 'liquid'`, or shown only when its rule holds with `values`.
@@ -39,10 +38,21 @@ export type RenderedEmail = {
  * plain variable, and on a value a Liquid string can't hold.
  */
 export async function renderEmail(
-  value: StoredEditorValue | EditorValue,
+  content: StoredEmailContent,
   { theme, ...options }: RenderEmailOptions = {}
 ): Promise<RenderedEmail> {
-  const { doc } = migrate(value, 'email')
+  if (content?.kind === 'html') {
+    if (typeof content.html !== 'string') {
+      throw new TypeError('An HTML email needs its html as a string.')
+    }
+    return { html: content.html, text: plainText(content.html) }
+  }
+  if (content?.kind !== 'design') {
+    throw new TypeError(
+      `Unknown email kind ${JSON.stringify((content as { kind?: unknown })?.kind)}; expected 'design' or 'html'.`
+    )
+  }
+  const { doc } = migrate(content.value, 'email')
   const { tag, hold, fill } = mergeTags(options)
   const tree = mjmlTree(doc, {
     theme: emailTheme(theme),
@@ -67,6 +77,9 @@ function plainText(html: string) {
     wordwrap: 78,
     selectors: [
       { selector: 'img', format: 'skip' },
+      // A layout table's cells are columns, not words of one line.
+      { selector: 'td', format: 'paragraph' },
+      { selector: 'th', format: 'paragraph' },
       { selector: 'a', options: { hideLinkHrefIfSameAsText: true } }
     ]
   })

@@ -723,14 +723,14 @@ render(
 
 #### Sending email
 
-`@oztix/roadie-editor/email` renders a saved value as an email: a whole HTML
-page, built from tables with inline styles so mail clients show it as
-designed, and its plain-text part.
+`@oztix/roadie-editor/email` renders a design, an `EditorValue` in the email
+preset, as an email: a whole HTML page, built from tables with inline styles
+so mail clients show it as designed, and its plain-text part.
 
 ```tsx
 import { renderEmail } from '@oztix/roadie-editor/email'
 
-const { html, text } = await renderEmail(template, {
+const { html, text } = await renderEmail({ kind: 'design', value: template }, {
   theme: { link: '#5f270f', button: '#5f270f' }
 })
 ```
@@ -762,6 +762,68 @@ It reads the value into the email preset first, as `migrate` does, so a value
 from another preset renders too, keeping its text. A link or button needs an
 https, http, mailto, or tel href, since a mail client can't open a path on the
 site, so any other keeps its text and loses its link.
+
+#### HTML emails
+
+An email pasted in from another tool, or made outside the editor, is kept as
+written, since reading it into a design would lose its layout.
+`EmailHtmlField` edits its source, with a preview at 600 pixels and on a
+phone. Pasting keeps the clipboard's HTML rather than its text, unless the
+text is itself markup, as source copied from a code editor is.
+
+```tsx-live-noinline
+const template = `<table role="presentation" width="100%" bgcolor="#f4f4f4">
+  <tr><td align="center" style="padding:24px">
+    <table role="presentation" width="100%" style="max-width:560px" bgcolor="#ffffff">
+      <tr><td style="padding:24px;font-family:Arial,sans-serif;color:#333333">
+        <h1 style="margin:0 0 12px;font-size:24px">Ochre Kite Weekender</h1>
+        <p style="margin:0 0 16px">Hi #FirstName#, doors open 7pm at Jumbuck Orchard Park.</p>
+        <a href="https://www.oztix.com.au/ochre-kite-weekender"
+          style="display:inline-block;padding:12px 20px;background:#5f270f;color:#ffffff;text-decoration:none">
+          Get tickets
+        </a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>`
+
+function HtmlEmail() {
+  const [html, setHtml] = useState(template)
+  return (
+    <Field>
+      <Field.Label>Email HTML</Field.Label>
+      <EmailHtmlField value={html} onValueChange={setHtml} />
+      <Field.ErrorText />
+    </Field>
+  )
+}
+
+render(<HtmlEmail />)
+```
+
+The preview is a sandboxed frame, so it runs none of the email's scripts and
+submits none of its forms. A script, an event handler such as `onclick`, or a
+`javascript:` link shows a warning in `Field.ErrorText`, since mail clients
+won't run them either. The field never rewrites the HTML: the sending app's
+sanitiser stays the gate.
+
+```tsx-live
+<Field>
+  <Field.Label>Email HTML</Field.Label>
+  <EmailHtmlField defaultValue={'<a href="https://www.oztix.com.au/ochre-kite-weekender" onclick="track()">Get tickets</a>'} />
+  <Field.ErrorText />
+</Field>
+```
+
+Save it as `{ kind: 'html', html }`, an `EmailContent`, never in an
+`EditorValue`. `renderEmail` sends it unchanged, merge tags and Outlook's
+`[if mso]` blocks included, with a plain-text part written from it:
+
+```tsx
+import { renderEmail } from '@oztix/roadie-editor/email'
+
+const { html, text } = await renderEmail({ kind: 'html', html: pasted })
+```
 
 #### Merge tags
 
@@ -810,13 +872,13 @@ const variables: EditorVariable[] = [
 ]
 
 // Hi {{ customer.first_name | default: "there" }}, your tickets are ready.
-const { html, text } = await renderEmail(welcome, {
+const { html, text } = await renderEmail({ kind: 'design', value: welcome }, {
   syntax: 'liquid',
   variables
 })
 
 // Hi Ashley, your tickets are ready.
-const preview = await renderEmail(welcome, {
+const preview = await renderEmail({ kind: 'design', value: welcome }, {
   variables,
   values: { first_name: 'Ashley' }
 })
@@ -833,6 +895,8 @@ const preview = await renderEmail(welcome, {
 - Text an author typed that reads as a token, such as `{{ code }}` or
   `#FirstName#`, is written so no sending system fills it.
 - A variable never goes in a link's or a button's href.
+- An HTML email's merge tags are already tokens, so it's sent unchanged,
+  whatever the options.
 
 #### Conditions
 
@@ -881,13 +945,13 @@ const variables: EditorVariable[] = [
 ]
 
 // {% if event.tickets_left < 20 %} … {% endif %}
-const { html, text } = await renderEmail(nearlySoldOut, {
+const { html, text } = await renderEmail({ kind: 'design', value: nearlySoldOut }, {
   syntax: 'liquid',
   variables
 })
 
 // Leaves the section out.
-const preview = await renderEmail(nearlySoldOut, {
+const preview = await renderEmail({ kind: 'design', value: nearlySoldOut }, {
   variables,
   values: { tickets_left: '200' }
 })

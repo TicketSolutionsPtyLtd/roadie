@@ -11,6 +11,9 @@ export const DOCUMENTED_ELSEWHERE: DocumentedElsewhere = {
     '/components/spot-illustration/#available-illustrations',
   '@oztix/roadie-charts/dashboard-view': {
     DashboardView: '/charts/dashboards/'
+  },
+  '@oztix/roadie-editor/email-html-field': {
+    EmailHtmlField: '/components/editor/#html-emails'
   }
 }
 
