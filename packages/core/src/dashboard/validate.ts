@@ -109,6 +109,7 @@ export function plotFields(plot: ChartPlot): FieldRef[] {
       add('band.median', plot.band?.median)
       add('forecast.low', plot.forecast?.low)
       add('forecast.high', plot.forecast?.high)
+      add('comparison.y', plot.comparison?.y)
       break
     case 'bar':
       add('x', plot.x)
@@ -457,6 +458,23 @@ function plotProblems(plot: ChartPlot, path: string) {
       warning(
         `${plotPath}.limit`,
         'Set limit too, so the label can say how many bars show'
+      )
+    )
+  if (plot.kind === 'line' && plot.comparison && plot.series)
+    problems.push(
+      warning(
+        `${plotPath}.comparison`,
+        'A comparison draws only on a single series, so the chart leaves it out. Drop series or comparison'
+      )
+    )
+  if (
+    plot.kind === 'line' &&
+    (plot.comparison?.y === plot.x || plot.comparison?.y === plot.y)
+  )
+    problems.push(
+      warning(
+        `${plotPath}.comparison.y`,
+        `"${plot.comparison.y}" is the chart's own x or y, so the chart leaves the comparison out. Name another field`
       )
     )
   problems.push(...copyProblems(plotPath, 'takeaway', plot.takeaway))

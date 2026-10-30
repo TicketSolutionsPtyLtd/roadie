@@ -1,5 +1,8 @@
 import type { PlotRow } from '@oztix/roadie-core/dashboard'
-import type { ValueFormat } from '@oztix/roadie-core/dataviz'
+import type {
+  ValueFormat,
+  ValueFormatOptions
+} from '@oztix/roadie-core/dataviz'
 
 export type RankedBarsReference = {
   /** Field holding the comparison value for each bar. */
@@ -8,7 +11,7 @@ export type RankedBarsReference = {
   label: string
 }
 
-export type RankedBarsProps = {
+export type RankedBarsProps = ValueFormatOptions & {
   /** Rows of plain values, one per category. */
   data: PlotRow[]
   /** Field that names each bar. */

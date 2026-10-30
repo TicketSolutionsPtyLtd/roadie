@@ -287,7 +287,9 @@
     :is(path, rect, circle):not([fill='none']) {
     fill: var(--chart-texture-8, url(#roadie-texture-8));
   }
-  .ts-chart .ts-chart__line:is([data-ts-key^='series-2']) path {
+  .ts-chart
+    .ts-chart__line:is([data-ts-key^='series-2'], [data-ts-key^='comparison'])
+    path {
     stroke-dasharray: 6 3;
   }
   .ts-chart .ts-chart__line:is([data-ts-key^='series-3']) path {

@@ -11,8 +11,8 @@ export function scatterTable(props: ScatterProps): ChartTable {
   return {
     columns: [
       { key: labelKey, header: fieldLabel(labelKey), kind: 'text' },
-      valueColumn(props.x, fieldLabel(props.x), props.xFormat),
-      valueColumn(props.y, fieldLabel(props.y), props.format),
+      valueColumn(props.x, fieldLabel(props.x), { format: props.xFormat }),
+      valueColumn(props.y, fieldLabel(props.y), props),
       ...(size ? [valueColumn(size, fieldLabel(size))] : [])
     ],
     rows: scatterPoints(props).map((p) => ({

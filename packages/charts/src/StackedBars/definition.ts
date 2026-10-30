@@ -12,7 +12,13 @@ import {
 import { OTHER, seriesMarkId, seriesStyles } from '../plot/series'
 import { fieldLabel } from '../plot/table'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
-import { axisFormat, fullFormat, gridTicks, valueDomain } from '../plot/values'
+import {
+  axisFormat,
+  fullValue,
+  gridTicks,
+  shareValue,
+  valueDomain
+} from '../plot/values'
 import { describeValue } from '../plot/words'
 import { type Segment, segmentNames, stackSegments } from './stack'
 import { stackedBarsTable } from './table'
@@ -195,15 +201,14 @@ export const stackedBars: ChartDefinition<StackedBarsProps> = {
       (s) => s.category === datum.x && s.series === datum.series
     )
     const noun = fieldLabel(props.y).toLowerCase()
-    const base = `${datum.x}, ${datum.series}, ${describeValue(segment?.value ?? null, fullFormat(props.format), noun)}`
+    const base = `${datum.x}, ${datum.series}, ${describeValue(segment?.value ?? null, props, noun)}`
     return props.mode === 'share' && segment
-      ? `${base}, ${percent(segment.share)} of the bar`
+      ? `${base}, ${shareValue(props, segment.share)} of the bar`
       : base
   },
   tooltip(data, props, paint) {
     const category = String(data[0]?.x ?? '')
     const colours = new Map(styles(props, paint).map((s) => [s.name, s.color]))
-    const format = fullFormat(props.format)
     return {
       title: category,
       rows: stackSegments(props)
@@ -212,8 +217,8 @@ export const stackedBars: ChartDefinition<StackedBarsProps> = {
           label: s.series,
           value:
             props.mode === 'share'
-              ? `${percent(s.share)} (${formatValue(s.value, format)})`
-              : formatValue(s.value, format),
+              ? `${shareValue(props, s.share)} (${fullValue(props, s.value)})`
+              : fullValue(props, s.value),
           color: colours.get(s.series),
           shape: 'swatch' as const
         }))

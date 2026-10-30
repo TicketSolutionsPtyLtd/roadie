@@ -212,3 +212,36 @@ describe('stackedArea', () => {
     expect(svg).toContain('>Doors<')
   })
 })
+
+describe('stackedArea decimal places', () => {
+  const tenths: StackedAreaProps = { ...small, decimals: 1 }
+  const point = { x: at('19:00'), y: 50, series: 'Main', index: 1 }
+
+  it('reads values to the decimal places on the plot, in the tooltip, aloud and in the table', () => {
+    expect(svgOf({ ...tenths, today: '2026-11-14T19:00' })).toMatch(
+      />Today 70.0</
+    )
+    expect(
+      stackedArea.tooltip([point], tenths, paint).rows.map((r) => r.value)
+    ).toEqual(['70.0', '20.0', '50.0'])
+    expect(stackedArea.describe(point, tenths)).toBe(
+      'Saturday, 14 November 2026, 7:00pm, 50.0 scans, Main'
+    )
+    const table = stackedAreaTable(tenths)
+    expect(table.columns.find((c) => c.key === 'Main')).toMatchObject({
+      decimals: 1
+    })
+    expect(table.columns.at(-1)).toMatchObject({ header: 'Total', decimals: 1 })
+  })
+
+  it('reads shares to the decimal places in share mode', () => {
+    const share = { ...tenths, mode: 'share' as const }
+    expect(
+      stackedArea.tooltip([point], share, paint).rows.map((r) => r.value)
+    ).toEqual(['70.0', '28.6% (20.0)', '71.4% (50.0)'])
+    expect(stackedArea.describe(point, share)).toMatch(/, 71.4% of the total$/)
+    expect(
+      stackedAreaTable(share).columns.find((c) => c.key === 'Main')
+    ).toMatchObject({ format: 'percent', decimals: 1 })
+  })
+})

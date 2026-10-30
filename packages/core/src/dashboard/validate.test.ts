@@ -262,6 +262,66 @@ describe('validateDashboard with chart plots', () => {
     )
   })
 
+  it('checks the comparison field', () => {
+    expect(
+      paths(
+        spec([
+          chartCard({
+            kind: 'line',
+            data: rows,
+            x: 'day',
+            y: 'sold',
+            comparison: { y: 'lastPeriod' }
+          })
+        ])
+      )
+    ).toContain('sections[0].cards[0].plot.comparison.y')
+  })
+
+  it('warns on a line comparison with series, which the chart ignores', () => {
+    const result = validateDashboard(
+      spec([
+        chartCard({
+          kind: 'line',
+          data: rows.map((row) => ({ ...row, type: 'GA', lastPeriod: 1 })),
+          x: 'day',
+          y: 'sold',
+          series: 'type',
+          comparison: { y: 'lastPeriod' }
+        })
+      ])
+    )
+    expect(result.problems).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.comparison',
+        severity: 'warning'
+      })
+    )
+  })
+
+  it.each(['day', 'sold'])(
+    'warns on a line comparison against its own %s, which the chart ignores',
+    (field) => {
+      const result = validateDashboard(
+        spec([
+          chartCard({
+            kind: 'line',
+            data: rows,
+            x: 'day',
+            y: 'sold',
+            comparison: { y: field }
+          })
+        ])
+      )
+      expect(result.problems).toContainEqual(
+        expect.objectContaining({
+          path: 'sections[0].cards[0].plot.comparison.y',
+          severity: 'warning'
+        })
+      )
+    }
+  )
+
   it('needs a table for a static plot', () => {
     expect(
       paths(spec([chartCard({ kind: 'static', src: '/a.svg', alt: 'Pace' })]))
