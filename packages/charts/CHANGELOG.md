@@ -1,5 +1,51 @@
 # @oztix/roadie-charts
 
+## 0.4.0
+
+### Minor Changes
+
+- 8682b82: Add `comparison` to `BarChart` and the dashboard `bar` plot, so daily bars can show last period. Pass `comparison: { y, label? }`, a field on the same rows, and the chart draws it as a quiet bar to the left of each bar, both from zero, and textured apart from the bars in print and under forced colours. A legend names the two bars when there's a comparison value, and the tooltip, the Table view, and the words read out for each bar show the value. Rows that share an x add it up, like the bars. A comparison with no values, or one naming the chart's own `x` or `y`, is left out everywhere, and `validateDashboard` warns on the second.
+- 1ddb0e9: Add `decimals` and `trailingZeroDisplay` to every chart with a `format`, as `<LineChart format='percent' decimals={2} />` for `1.27%` sold. They set how values and shares read in the tooltip, value labels, Table view, and screen reader text: a ranked bar's share, a stacked chart's share mode, and a funnel's conversion. A bar chart's `line` takes its own, and `Chart` and dashboard cards pass them to the headline value and its delta. Axis ticks stay short, and values past 10,000 still go compact on the plot.
+- 18b7674: Add `other` and `sort` to `RankedBars` and the dashboard `ranked-bars` plot. `other={false}` leaves the bars past `limit` off instead of rolling them into Other, for a label that already says "Top 5 of 40". A highlighted bar past `limit` then takes the place of the last bar that isn't highlighted, so it never drops off. `sort={false}` keeps the data's order, for categories such as age bands. `Scatter` now titles both axes with their field names, so a reader knows what each counts.
+- ba2a0a5: Add period comparisons to dashboard charts. A line or bar card whose plot has a `comparison`, small multiples' panels too, now follows the dashboard's period, the way a delta with `comparison: true` does. It's drawn only while the period compares with Roadie's previous period, previous year or custom dates and the history isn't unavailable, and it's named by that comparison, such as "Previous period", or "Custom dates" when the dates are too long for a series label. `cardActions` gets each card as drawn, so a CSV from `cardTable(card)` matches its Table view. The portfolio example dashboard draws its daily sales this way, with the rows lined up by `alignComparison`. `validateDashboard` checks every field a small-multiples panel names, such as its `comparison`, `band`, or `line`, and warns on a line panel with both `comparison` and `series`, as it does for a line card. Like a comparison delta, a plot's `comparison` needs a period on the dashboard, and `validateDashboard` warns when an app's own comparison means it's never drawn.
+- d5ff387: Add the dashboard's period to `DashboardView`'s `getRowHref`, as a third argument, so a row link can open the same dates without reading the spec. A custom comparison `DashboardView` can't describe still reads "vs custom dates", and now says why in a development console error.
+- 9897cdc: Add `followPeriod(card, period, options)` to `@oztix/roadie-charts/tables`. It returns a dashboard card as `DashboardView` draws it for the period: a line or bar plot's comparison, small multiples' panels too, is dropped unless the period compares with Roadie's previous period, previous year, or custom dates and `history` isn't `unavailable`, and is named after the comparison. Pass the card through it before `cardTable` or `renderChartSvg` on a server, such as a CSV route, so the file matches the Table view. `options` takes the `timeZone` and `locale` the period uses.
+- 4775892: Add `comparison` to `LineChart` and the dashboard `line` plot, so a single series can show last period as context. Pass `comparison: { y, label? }`, a field on the same rows, and the chart draws it as a quiet line behind the series, named in the tooltip, the end label, the legend, the Table view, and the words read out for each day. A cumulative line adds it up too. With `series` set the chart leaves it out, and `validateDashboard` warns. A comparison with no values, or one naming the chart's own `x` or `y`, is left out everywhere, and `validateDashboard` warns on the second.
+- f962356: Add `renderChartDocument` to `@oztix/roadie-charts/static`, in beta. It draws a chart document from `@oztix/roadie-core/dashboard` as one standalone SVG file, with the label, context and headline value or takeaway above the plot and the source below it, for every plot kind including `static` and `small-multiples`. It validates the document first and throws a `ChartDocumentError` with the problems. `/static` still loads no React.
+
+### Patch Changes
+
+- bd5b821: `Chart` no longer shows `errorAction` when its plot can't be drawn. Loading the data again rarely fixes it, so a Retry there only repeats the failure. The card still shows "This chart couldn't be drawn", and its `actions` stay. An `error` state the app sets still shows `errorAction`.
+- ef4073a: Fix three chart gaps found on the prototype's insights dashboards. `StackedBars` keeps an ordered category whose values are all zero or missing, such as an empty age band, as an empty slot and an empty Table row instead of dropping it, says "in every band with data" rather than "in every band" when a band is empty, and draws no legend for a single series. `Heatmap` takes its row and column order from the data, so empty cells at the start no longer reorder the axes, and a row or column with no values draws as an empty band, matching its Table view. An annotation outside a line or stacked area chart's data now warns once in development, in the same words as `validateDashboard`, instead of disappearing silently. `validateDashboard` now warns about a stacked area annotation at a time whose only rows have no value, which the chart drops. It also warns about a small multiples annotation that no panel places, such as one in a gap between panels' dates, which the chart now warns about too.
+- 5807ab1: Update `DataCard`'s empty and error states to use `EmptyState`, like the rest of Roadie: an icon tile above the message at every size but `stat`, the error in danger with `errorAction` under its message. The state takes the body's place, at least `bodyHeight` tall, so a card keeps its loading height and an empty stat tile doesn't stretch its row. A chart that can't be drawn now says "This chart couldn't be drawn" in its card, the same message and look it shows before hydration, so a server-rendered dashboard no longer flashes from one error to another. An app's own `state` of loading, empty or error still wins over an earlier draw failure.
+- 2e680e2: Reword prop descriptions and code comments without em dashes, so the props tables and editor hints follow the house punctuation. No behaviour changes.
+- Updated dependencies [700daba]
+- Updated dependencies [8682b82]
+- Updated dependencies [b0f142f]
+- Updated dependencies [1b02fc5]
+- Updated dependencies [18b7674]
+- Updated dependencies [ef4073a]
+- Updated dependencies [7258634]
+- Updated dependencies [1ddb0e9]
+- Updated dependencies [b596cb6]
+- Updated dependencies [ba2a0a5]
+- Updated dependencies [6652cd3]
+- Updated dependencies [d10c7ea]
+- Updated dependencies [903a9c9]
+- Updated dependencies [f744bdf]
+- Updated dependencies [2de86a6]
+- Updated dependencies [2e680e2]
+- Updated dependencies [4775892]
+- Updated dependencies [d89065e]
+- Updated dependencies [149f822]
+- Updated dependencies [4766b86]
+- Updated dependencies [a30fd81]
+- Updated dependencies [8bb10ff]
+- Updated dependencies [64ae958]
+- Updated dependencies [1ddb0e9]
+- Updated dependencies [4766b86]
+  - @oztix/roadie-core@2.13.0
+
 ## 0.3.0
 
 ### Minor Changes

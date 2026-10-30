@@ -1,5 +1,20 @@
 # roadie-skills
 
+## 0.6.0
+
+### Minor Changes
+
+- c17a49e: `/roadie:charts` writes one chart as a chart document, checks it with `validateChartDocument`, and draws it to SVG with `renderChartDocument`, rather than a one-card dashboard or a hand-made SVG. It leaves PDF to the app.
+
+### Patch Changes
+
+- b0f142f: Update `DataCard` labels to wrap to two lines, then truncate, so a chart card's title such as "Tickets sold by ticket type" fits beside the Chart/Table switch and More. Actions sit on the label's first line, so they line up across a row of cards. A `stat` label still truncates on one line, so the values in a row of stat tiles line up. `COPY_LIMITS` labels grow to 60 characters at `sm` and `md` and 72 at `lg` and `full`, `CHART_LABEL_LIMITS` to 42 and 50, and `ACTIONS_LABEL_LIMITS` to 29 and 42, so `validateDashboard` warns about a card label only past two lines. Stat labels and context lines keep their one-line limits.
+- 1ddb0e9: Fix the `/roadie:migrate` codemods writing Windows line endings into a file that uses `\n`. A file keeps its own line endings, and one with Windows line endings keeps the blank line after `'use client'`.
+- 2a04a53: `/roadie:review`, `/roadie:implement` and `/roadie:shepherd` fix a Minor finding when it's in code the PR changes, and file only those in code it doesn't touch.
+- 1ddb0e9: `/roadie:charts` reads full amounts in a chart as `$1,200.00` and names `decimals` and `trailingZeroDisplay`, and `/roadie:build` keeps cents in a cart, checkout, receipt, chart, or table and passes `trailingZeroDisplay: 'stripIfInteger'` to `formatValue` for money in copy, now that `currency` shows cents on every amount.
+- 9897cdc: Update the `charts` skill: a server route that builds a card's CSV or image passes the card through `followPeriod` first, so a chart's comparison matches the Table view.
+- a0b7a62: Reword the `audit` skill and the skills README without em dashes. The `audit` skill's dash check (H5) now names the dashes by code point, `\x{2013}` and `\x{2014}`, and matches the same text.
+
 ## 0.5.2
 
 ### Patch Changes
