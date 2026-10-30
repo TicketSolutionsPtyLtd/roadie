@@ -44,7 +44,9 @@ export type CardGridItem = {
   points?: readonly string[]
   /** The item's own page. Its title becomes the link, and the whole card the place to click. */
   href?: string
-  /** Tints this card, or its marked title in `overlap-cards`, `alternating-rows`, and `portraits`, in place of the preset's. */
+  /**
+   * This item's intent, in place of the block's. It tints the card in `illustrated-cards`, `marked-cards`, `numbered-cards`, `link-cards`, and `lists`, and sets the mark that carries the preset's colour: the title in `marked-cards`, `overlap-cards`, and `alternating-rows`, the number in `numbered-cards`, and the role in `portraits`.
+   */
   intent?: BlockIntent
 }
 
@@ -58,17 +60,13 @@ export type CardGridProps = {
   position?: number
   /** An id for linking to the block. */
   id?: string
-  /** The block's intent, which its marks, highlights, surfaces, and strong action take. */
+  /**
+   * The block's intent. Its highlighted words, strong action, and every card's mark take it: the title in `marked-cards`, `overlap-cards`, and `alternating-rows`, the number in `numbered-cards`, and the role in `portraits`. Without one, marks keep the preset's colours: info, brand-secondary, or a cycle of info, brand, and brand-secondary.
+   */
   intent?: BlockIntent
-  /**
-   * The section's surface. `illustrated-cards` and `portraits` sit on `raised`; the other presets have none.
-   * @default 'raised' for illustrated-cards and portraits
-   */
+  /** The section's surface. Unset, `illustrated-cards` and `portraits` sit on `raised` and the other presets have none. */
   emphasis?: CardGridEmphasis
-  /**
-   * Every card's surface. `link-cards` are `raised`; the other presets' cards have none, and a linked card with none takes `subtler`. `overlap-cards` and `portraits` draw their own panel or photo, so it doesn't apply to them.
-   * @default 'raised' for link-cards
-   */
+  /** Every card's surface. Unset, `link-cards` are `raised` and other cards have none, though a linked card with none takes `subtler`. `overlap-cards` and `portraits` ignore it, since they draw their own panel or photo. */
   cardEmphasis?: CardGridCardEmphasis
   /** A short line above the title. */
   eyebrow?: string
@@ -86,6 +84,7 @@ type CardProps = {
   item: CardGridItem
   index: number
   cardEmphasis: CardGridCardEmphasis | undefined
+  blockIntent: BlockIntent | undefined
 }
 
 // A linked card with no surface takes subtler, so its hover has somewhere to show.
@@ -141,8 +140,10 @@ function rowSurface(
 }
 
 const MARK_CYCLE = ['info', 'brand', 'brand-secondary'] as const
-const markIntent = (item: CardGridItem, index: number) =>
-  item.intent ?? MARK_CYCLE[index % MARK_CYCLE.length]
+const cycledIntent = ({ item, index, blockIntent }: CardProps) =>
+  item.intent ?? blockIntent ?? MARK_CYCLE[index % MARK_CYCLE.length]
+const markIntent = ({ item, blockIntent }: CardProps, fallback: BlockIntent) =>
+  item.intent ?? blockIntent ?? fallback
 
 function Illustration({
   name,
@@ -157,14 +158,21 @@ function Illustration({
 }
 
 // The frame sets the shape, so a sized photo is cropped to it rather than keeping its own ratio.
+// A tile that draws its own photo has no surface to tint, so a linked one grows its photo instead.
+const GROWS_ON_HOVER =
+  'transition-transform duration-moderate ease-standard motion-safe:group-hover/tile:scale-105 motion-safe:group-has-[[data-interactive-target]:focus-visible]/tile:scale-105'
+
 function CardImage({
   image,
   sizes,
-  className
+  className,
+  grows = false
 }: {
   image: BlockImage | undefined
   sizes: string
   className: string
+  /** Grows the photo while its linked tile is hovered or focused. */
+  grows?: boolean
 }) {
   return (
     <div
@@ -175,7 +183,10 @@ function CardImage({
         <BlockImg
           image={image}
           sizes={sizes}
-          className='absolute inset-0 size-full object-cover'
+          className={cn(
+            'absolute inset-0 size-full object-cover',
+            grows && GROWS_ON_HOVER
+          )}
         />
       )}
     </div>
@@ -213,7 +224,8 @@ function FeatureCard({ item, cardEmphasis }: CardProps) {
   )
 }
 
-function ServiceCard({ item, cardEmphasis }: CardProps) {
+function ServiceCard(props: CardProps) {
+  const { item, cardEmphasis } = props
   return (
     <GridCard
       item={item}
@@ -229,7 +241,7 @@ function ServiceCard({ item, cardEmphasis }: CardProps) {
         <div className='grid justify-self-start'>
           <Mark
             render={<h3 />}
-            intent='info'
+            intent={markIntent(props, 'info')}
             className='col-start-1 row-start-1 text-display-prose-4'
           >
             <CardTitle item={item} />
@@ -254,19 +266,21 @@ function ServiceCard({ item, cardEmphasis }: CardProps) {
   )
 }
 
-function IndustryCard({ item, index }: CardProps) {
+function IndustryCard(props: CardProps) {
+  const { item } = props
   return (
-    <li className='is-interactive-within grid min-w-0 grid-rows-[auto_1fr] rounded-2xl'>
+    <li className='group/tile is-interactive-within grid min-w-0 grid-rows-[auto_1fr] rounded-2xl'>
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw'
         className='aspect-square w-full rounded-2xl'
+        grows={!!item.href}
       />
       <div className='dark z-1 -mt-6 grid content-start gap-4 rounded-2xl bg-normal p-6 text-normal intent-neutral'>
         <Illustration name={item.illustration} className='-mt-16 size-16' />
         <Mark
           render={<h3 />}
-          intent={markIntent(item, index)}
+          intent={cycledIntent(props)}
           className='text-display-prose-4'
         >
           <CardTitle item={item} />
@@ -284,7 +298,8 @@ function IndustryCard({ item, index }: CardProps) {
   )
 }
 
-function AlternatingRow({ item, index, cardEmphasis }: CardProps) {
+function AlternatingRow(props: CardProps) {
+  const { item, index, cardEmphasis } = props
   const imageFirst = index % 2 === 0
   return (
     <li
@@ -300,7 +315,7 @@ function AlternatingRow({ item, index, cardEmphasis }: CardProps) {
         <div className='grid'>
           <Mark
             render={<h3 />}
-            intent={markIntent(item, index)}
+            intent={cycledIntent(props)}
             className='px-3 text-display-prose-4'
           >
             <CardTitle item={item} />
@@ -331,13 +346,15 @@ function AlternatingRow({ item, index, cardEmphasis }: CardProps) {
   )
 }
 
-function PortraitCard({ item }: CardProps) {
+function PortraitCard(props: CardProps) {
+  const { item } = props
   return (
-    <li className='dark is-interactive-within relative grid aspect-square min-w-0 overflow-hidden rounded-2xl'>
+    <li className='group/tile dark is-interactive-within relative grid aspect-square min-w-0 overflow-hidden rounded-2xl'>
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 25vw, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw'
         className='absolute inset-0 size-full'
+        grows={!!item.href}
       />
       <div className='z-1 grid self-end p-4'>
         <Mark render={<h3 />} intent='neutral' className='text-display-ui-4'>
@@ -346,7 +363,7 @@ function PortraitCard({ item }: CardProps) {
         {item.subtitle && (
           <Mark
             render={<p />}
-            intent={item.intent}
+            intent={markIntent(props, 'info')}
             className='max-w-full truncate px-2 py-1 font-medium'
           >
             {item.subtitle}
@@ -381,7 +398,8 @@ function ListColumn({ item, cardEmphasis }: CardProps) {
   )
 }
 
-function StepCard({ item, index, cardEmphasis }: CardProps) {
+function StepCard(props: CardProps) {
+  const { item, index, cardEmphasis } = props
   return (
     <GridCard
       item={item}
@@ -399,7 +417,7 @@ function StepCard({ item, index, cardEmphasis }: CardProps) {
         <Mark
           aria-hidden
           render={<span />}
-          intent={item.intent ?? 'brand-secondary'}
+          intent={markIntent(props, 'brand-secondary')}
           className='px-3 py-1 text-display-prose-2 tabular-nums'
         >
           {index + 1}
@@ -575,6 +593,7 @@ export function CardGrid({
               item={item}
               index={index}
               cardEmphasis={cards}
+              blockIntent={intent}
             />
           ))}
         </List>

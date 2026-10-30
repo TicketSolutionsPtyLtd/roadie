@@ -480,5 +480,75 @@ describe('CardGrid', () => {
         ).toHaveClass('intent-brand')
       }
     )
+
+    const markOf = (name: string) =>
+      screen.getByText(name).closest('[data-slot="mark"]')
+
+    it.each([
+      ['marked-cards', 'info'],
+      ['numbered-cards', 'brand-secondary']
+    ] as const)(
+      'marks %s in the block’s intent, an item’s own, or %s',
+      (preset, fallback) => {
+        const { unmount } = render(
+          <CardGrid preset={preset} title='Section' items={values} />
+        )
+        const marked =
+          preset === 'marked-cards'
+            ? ['Proactive touch', 'Positive energy']
+            : ['1', '2']
+        for (const name of marked)
+          expect(markOf(name)).toHaveClass(`intent-${fallback}`)
+        unmount()
+
+        render(
+          <CardGrid
+            preset={preset}
+            intent='danger'
+            title='Section'
+            items={[values[0]!, { ...values[1]!, intent: 'success' }]}
+          />
+        )
+        expect(markOf(marked[0]!)).toHaveClass('intent-danger')
+        expect(markOf(marked[1]!)).toHaveClass('intent-success')
+      }
+    )
+
+    it.each(['overlap-cards', 'alternating-rows'] as const)(
+      'marks every %s title in the block’s intent instead of cycling',
+      (preset) => {
+        render(
+          <CardGrid
+            preset={preset}
+            intent='danger'
+            title='Section'
+            items={[
+              values[0]!,
+              values[1]!,
+              { ...values[1]!, title: 'Third', intent: 'success' }
+            ]}
+          />
+        )
+
+        expect(markOf('Proactive touch')).toHaveClass('intent-danger')
+        expect(markOf('Positive energy')).toHaveClass('intent-danger')
+        expect(markOf('Third')).toHaveClass('intent-success')
+      }
+    )
+
+    it('marks a portrait’s role, not its name, in the block’s or item’s intent', () => {
+      render(
+        <CardGrid
+          preset='portraits'
+          intent='danger'
+          title='Leadership'
+          items={[values[0]!, { ...values[1]!, intent: 'success' }]}
+        />
+      )
+
+      expect(markOf('See it coming')).toHaveClass('intent-danger')
+      expect(markOf('Lift spirits')).toHaveClass('intent-success')
+      expect(markOf('Proactive touch')).toHaveClass('intent-neutral')
+    })
   })
 })

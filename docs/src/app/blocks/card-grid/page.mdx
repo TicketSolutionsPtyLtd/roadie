@@ -19,7 +19,7 @@ import { CardGrid } from '@oztix/roadie-marketing-blocks/card-grid'
 
 ## Examples
 
-Each preset takes the same `items`, and shows the parts of an item its look uses. Give an item an `href` and its title links to it, with the whole card to click. `actions` adds links under the cards. Columns follow the block's own width, so a card grid in a narrow layout stacks as it would on a phone.
+Each preset takes the same `items`, and shows the parts of an item its look uses. Give an item an `href` and its title links to it, with the whole card to click. A linked card with no surface takes `subtler`, and a linked overlap card or portrait grows its photo on hover. `actions` adds links under the cards. Columns follow the block's own width, so a card grid in a narrow layout stacks as it would on a phone.
 
 ### Illustrated cards
 
@@ -248,7 +248,7 @@ Each preset takes the same `items`, and shows the parts of an item its look uses
 
 ### Intent and emphasis
 
-`intent` tints the block's marks, highlights, and first action. `emphasis` sets the section's surface, `cardEmphasis` every card's, and an item's `intent` tints its own card. Link cards on a subtle brand section, for a support page:
+`intent` colours the block's marks, highlights, and first action, in place of the preset's own colours. `emphasis` sets the section's surface, `cardEmphasis` every card's, and an item's `intent` tints its own card. Link cards on a subtle brand section, for a support page:
 
 ```tsx-live-expand id=intent-and-emphasis
 <CardGrid

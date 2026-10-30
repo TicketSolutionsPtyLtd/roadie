@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { commands, userEvent } from 'vitest/browser'
 
 import { CardGrid, type CardGridItem, type CardGridPreset } from '.'
 import { MarketingBlocksProvider } from '../Provider'
@@ -382,6 +383,51 @@ describe('CardGrid card links', () => {
   )
 })
 
+describe('CardGrid linked tiles', () => {
+  const scaleOnHover = async (preset: CardGridPreset, href?: string) => {
+    render(
+      <div style={{ width: 1280 }}>
+        <CardGrid
+          preset={preset}
+          title='Section'
+          items={[{ ...items[0]!, href }]}
+        />
+      </div>
+    )
+    await userEvent.hover(cards()[0]!)
+    return screen.getByRole('img')
+  }
+
+  it.each<CardGridPreset>(['overlap-cards', 'portraits'])(
+    'grows a linked %s photo on hover',
+    async (preset) => {
+      const image = await scaleOnHover(preset, '#live-music')
+
+      await expect
+        .poll(() => getComputedStyle(image).scale, { timeout: 2000 })
+        .not.toMatch(/^(none|1)$/)
+    }
+  )
+
+  it.each<CardGridPreset>(['overlap-cards', 'portraits'])(
+    'keeps an unlinked %s photo still on hover',
+    async (preset) => {
+      const image = await scaleOnHover(preset)
+
+      await new Promise(requestAnimationFrame)
+      expect(getComputedStyle(image).scale).toMatch(/^(none|1)$/)
+    }
+  )
+
+  it('keeps a linked photo still when motion is reduced', async () => {
+    await commands.reducedMotion(true)
+    const image = await scaleOnHover('portraits', '#live-music')
+
+    await new Promise(requestAnimationFrame)
+    expect(getComputedStyle(image).scale).toMatch(/^(none|1)$/)
+  })
+})
+
 describe('CardGrid views', () => {
   it('reports its view with the variant its preset picks', async () => {
     const onBlockEvent = vi.fn()
@@ -467,58 +513,111 @@ describe('CardGrid contrast', () => {
     href: index === 0 ? '#first' : undefined
   }))
 
-  const cases = MODES.flatMap((mode) => [
-    ...(
-      [
-        'illustrated-cards',
-        'marked-cards',
-        'overlap-cards',
-        'numbered-cards',
-        'link-cards',
-        'alternating-rows',
-        'portraits',
-        'lists'
-      ] as const
-    ).flatMap((preset) => [
-      { mode, preset, emphasis: undefined, cardEmphasis: undefined },
-      ...(['raised', 'subtle', 'subtler'] as const).map((emphasis) => ({
-        mode,
-        preset,
-        emphasis,
-        cardEmphasis: undefined
-      })),
-      ...(preset === 'overlap-cards' || preset === 'portraits'
-        ? []
-        : (['raised', 'subtle', 'subtler', 'normal'] as const).map(
-            (cardEmphasis) => ({
-              mode,
-              preset,
-              emphasis: undefined,
-              cardEmphasis
-            })
-          ))
-    ])
-  ])
+  const PRESETS = [
+    'illustrated-cards',
+    'marked-cards',
+    'overlap-cards',
+    'numbered-cards',
+    'link-cards',
+    'alternating-rows',
+    'portraits',
+    'lists'
+  ] as const
+  const SECTIONS = [undefined, 'raised', 'subtle', 'subtler'] as const
+  const CARDS = [undefined, 'raised', 'subtle', 'subtler', 'normal'] as const
+  const INTENTS = [
+    'neutral',
+    'brand',
+    'brand-secondary',
+    'brand-purple',
+    'accent',
+    'info',
+    'success',
+    'warning',
+    'danger'
+  ] as const
+  const drawsOwnTiles = (preset: CardGridPreset) =>
+    preset === 'overlap-cards' || preset === 'portraits'
 
-  it.each(cases)(
-    '$preset on $emphasis with $cardEmphasis cards reads in $mode mode',
-    ({ mode, preset, emphasis, cardEmphasis }) => {
-      inMode(mode)
-      render(
-        <div className='bg-normal text-normal'>
-          <CardGrid
-            preset={preset}
-            emphasis={emphasis}
-            cardEmphasis={cardEmphasis}
-            eyebrow='How does Oztix partner?'
-            title='We understand your industry'
-            titleHighlight='industry'
-            description='And what makes venues and events succeed.'
-            items={linked}
-            actions={[{ label: 'See them all', href: '#all' }]}
-          />
-        </div>
+  type Case = {
+    mode: (typeof MODES)[number]
+    preset: CardGridPreset
+    emphasis?: (typeof SECTIONS)[number]
+    cardEmphasis?: (typeof CARDS)[number]
+    intent?: (typeof INTENTS)[number]
+    itemIntent?: (typeof INTENTS)[number]
+  }
+
+  const surfaces: Case[] = MODES.flatMap((mode) =>
+    PRESETS.flatMap((preset) =>
+      SECTIONS.flatMap((emphasis) =>
+        (drawsOwnTiles(preset) ? [undefined] : CARDS).map((cardEmphasis) => ({
+          mode,
+          preset,
+          emphasis,
+          cardEmphasis
+        }))
       )
+    )
+  )
+
+  // Intents on the defaults and on the most tinted surfaces.
+  const intents: Case[] = MODES.flatMap((mode) =>
+    PRESETS.flatMap((preset) =>
+      INTENTS.flatMap((intent) =>
+        (['default', 'subtle'] as const).flatMap((surface) => {
+          const tint =
+            surface === 'subtle'
+              ? { emphasis: 'subtle' as const, cardEmphasis: 'subtle' as const }
+              : {}
+          return [
+            { mode, preset, intent, ...tint },
+            { mode, preset, itemIntent: intent, ...tint }
+          ]
+        })
+      )
+    )
+  )
+
+  const renderCase = ({
+    preset,
+    emphasis,
+    cardEmphasis,
+    intent,
+    itemIntent
+  }: Case) =>
+    render(
+      <div className='bg-normal text-normal'>
+        <CardGrid
+          preset={preset}
+          intent={intent}
+          emphasis={emphasis}
+          cardEmphasis={cardEmphasis}
+          eyebrow='How does Oztix partner?'
+          title='We understand your industry'
+          titleHighlight='industry'
+          description='And what makes venues and events succeed.'
+          items={linked.map((item) => ({ ...item, intent: itemIntent }))}
+          actions={[{ label: 'See them all', href: '#all' }]}
+        />
+      </div>
+    )
+
+  it.each(surfaces)(
+    '$preset on a $emphasis section with $cardEmphasis cards reads in $mode mode',
+    (testCase) => {
+      inMode(testCase.mode)
+      renderCase(testCase)
+
+      expect(lowContrast(screen.getByRole('region'))).toEqual([])
+    }
+  )
+
+  it.each(intents)(
+    '$preset in block intent $intent or item intent $itemIntent on a $emphasis section reads in $mode mode',
+    (testCase) => {
+      inMode(testCase.mode)
+      renderCase(testCase)
 
       expect(lowContrast(screen.getByRole('region'))).toEqual([])
     }
