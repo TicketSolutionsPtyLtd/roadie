@@ -12,7 +12,7 @@ const STATE = '(?:hover|focus|focus-visible|focus-within|active)'
 // A Tailwind state variant, after any other variant or in an arbitrary
 // selector, but not a `(hover:hover)` media gate.
 const HAND_ROLLED_STATE = new RegExp(
-  `(?:^|[\\s'"\`:\\]*])(?:group-|peer-|has-|in-|not-)?${STATE}(?:/[\\w-]+)?:(?=[\\w[(!*-])|\\[&:${STATE}\\]`
+  `(?:^|[\\s'"\`:\\]*])(?:group-|peer-|has-|in-|not-)?${STATE}(?:/[\\w-]+)?:(?=[\\w[(!*-])|\\[(?![^\\]]*@media)[^\\]\\s]*:${STATE}(?![a-z])[^\\]\\s]*\\]`
 )
 
 function sources(dir: string): string[] {
@@ -57,6 +57,9 @@ describe('docs hover and focus states', () => {
     "'sm:hover:underline'",
     "'data-[state=open]:hover:bg-subtle'",
     "'[&:hover]:underline'",
+    "'[&:hover_svg]:text-normal'",
+    "'[&_a:hover]:underline'",
+    "'has-[:focus-visible]:ring-2'",
     "'*:hover:underline'",
     "'focus-visible:ring-2'",
     "'has-focus-visible:ring-2'",
