@@ -67,6 +67,14 @@ const description: EditorValue = {
   cell's `colspan` and `rowspan`). A cell holds paragraphs only.
   An image's `src` is `https` or a root-relative path, and its `alt` is `''`
   until someone writes it.
+  `presets.email` holds the basic preset's text plus headings 2 to 4, and
+  layout blocks: sections (`section`), columns (`columns`, holding two to
+  four `column`s), buttons (`button`, saving only `href`, with its label as unmarked text), images
+  (`image`, saving only `src`, `alt`, and `width`), spacers (`spacer`, saving
+  only `height`), and dividers (`horizontalRule`). A button links to https,
+  http, mailto, or tel, an image's `src` is https only, its `width` is 1 to
+  600 pixels or `null` to fill its column, and a spacer is 8 to 160 pixels
+  high. A list item holds text blocks only.
 - `doc` is Tiptap's JSON, with Tiptap's default names (`paragraph`,
   `bulletList`, `bold`…), so any Tiptap or ProseMirror tool reads it.
 

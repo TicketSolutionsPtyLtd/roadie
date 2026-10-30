@@ -1,7 +1,7 @@
 /**
  * What a node holds: one or more blocks, a paragraph then blocks, one or more
  * paragraphs, inline content, one or more list items, one or more table rows,
- * table cells, or nothing.
+ * table cells, two to four columns, or nothing.
  */
 export type NodeContent =
   | 'blocks'
@@ -11,18 +11,28 @@ export type NodeContent =
   | 'listItems'
   | 'tableRows'
   | 'tableCells'
+  | 'columns'
   | 'none'
 
 export type NodeShape = {
   inline?: true
   content: NodeContent
   attrs?: readonly string[]
+  /**
+   * The blocks a node holding blocks may hold, when not every block. Any
+   * other gives way to its children.
+   */
+  holds?: readonly string[]
+  /** Inline content of text alone, with no marks. */
+  plainText?: true
 }
 
 export type PresetShape = {
   nodes: Readonly<Record<string, NodeShape>>
   /** Each mark's name and the attrs it saves. */
   marks: Readonly<Record<string, readonly string[]>>
+  /** Images load only over https, never from a path on the site. */
+  httpsImages?: true
 }
 
 const basicNodes = {
@@ -34,6 +44,15 @@ const basicNodes = {
   orderedList: { content: 'listItems', attrs: ['start', 'type'] },
   listItem: { content: 'paragraphFirst' }
 } as const satisfies Record<string, NodeShape>
+
+const textBlocks = ['paragraph', 'heading', 'bulletList', 'orderedList']
+const emailBlocks = [
+  ...textBlocks,
+  'button',
+  'image',
+  'spacer',
+  'horizontalRule'
+]
 
 const marks = {
   bold: [],
@@ -60,6 +79,23 @@ export const presetShapes = {
       tableCell: { content: 'paragraphs', attrs: ['colspan', 'rowspan'] }
     },
     marks
+  },
+  email: {
+    nodes: {
+      ...basicNodes,
+      doc: { content: 'blocks', holds: [...emailBlocks, 'section', 'columns'] },
+      listItem: { content: 'paragraphFirst', holds: textBlocks },
+      heading: { content: 'inline', attrs: ['level'] },
+      section: { content: 'blocks', holds: [...emailBlocks, 'columns'] },
+      columns: { content: 'columns' },
+      column: { content: 'blocks', holds: emailBlocks },
+      button: { content: 'inline', attrs: ['href'], plainText: true },
+      image: { content: 'none', attrs: ['src', 'alt', 'width'] },
+      spacer: { content: 'none', attrs: ['height'] },
+      horizontalRule: { content: 'none' }
+    },
+    marks,
+    httpsImages: true
   }
 } as const satisfies Record<string, PresetShape>
 
