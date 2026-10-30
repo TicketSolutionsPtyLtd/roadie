@@ -61,10 +61,7 @@ export type MosaicProps = {
   tiles: readonly MosaicTile[]
   /** A last, wide tile of logos. `tiers` only. */
   logoTile?: MosaicLogoTile
-  /**
-   * The block's intent: the tier labels' marks and highlighted words take it.
-   * @default 'neutral'
-   */
+  /** The block's intent: the tier labels' marks and highlighted words take it. Without one, labels are neutral and highlights brand-secondary. */
   intent?: BlockIntent
 }
 
@@ -158,7 +155,7 @@ function PhotoTile({
         TILE,
         featured && WIDE,
         !image && 'emphasis-raised',
-        href && 'is-interactive-within'
+        href && 'group/tile is-interactive-within'
       )}
     >
       {image && (
@@ -166,7 +163,7 @@ function PhotoTile({
           <BlockImg
             image={{ ...image, alt: '' }}
             sizes={featured ? WIDE_SIZES : TILE_SIZES}
-            className='absolute inset-0 -z-1 size-full object-cover'
+            className='absolute inset-0 -z-1 size-full object-cover transition-[scale] duration-moderate ease-standard motion-safe:group-focus-within/tile:scale-105 motion-safe:group-hover/tile:scale-105'
           />
           <div
             aria-hidden
@@ -242,24 +239,28 @@ function stripLogoSizes({ width, height }: BlockImage) {
 }
 
 function StripLogo({ name, logo, href }: MosaicTile) {
+  const content = logo ? (
+    <BlockImg
+      image={{ ...logo, alt: logo.alt || name }}
+      sizes={stripLogoSizes(logo)}
+      className='h-12 w-auto object-contain'
+    />
+  ) : (
+    <p className='text-display-ui-4 break-words text-strong'>{name}</p>
+  )
   return (
     <li>
-      <Linked
-        href={href}
-        name={name}
-        logo={logo}
-        className='is-interactive block rounded-md'
-      >
-        {logo ? (
-          <BlockImg
-            image={{ ...logo, alt: logo.alt || name }}
-            sizes={stripLogoSizes(logo)}
-            className='h-12 w-auto object-contain'
-          />
-        ) : (
-          <p className='text-display-ui-4 break-words text-strong'>{name}</p>
-        )}
-      </Linked>
+      {href ? (
+        <Card
+          href={href}
+          emphasis='subtler'
+          aria-label={logo ? name : undefined}
+        >
+          <Card.Content>{content}</Card.Content>
+        </Card>
+      ) : (
+        content
+      )}
     </li>
   )
 }
@@ -269,19 +270,11 @@ function Linked({
   href,
   name,
   logo,
-  className,
   children
-}: Pick<MosaicTile, 'href' | 'name' | 'logo'> & {
-  className?: string
-  children: ReactNode
-}) {
+}: Pick<MosaicTile, 'href' | 'name' | 'logo'> & { children: ReactNode }) {
   if (!href) return children
   return (
-    <Card.Link
-      href={href}
-      aria-label={logo ? name : undefined}
-      className={className}
-    >
+    <Card.Link href={href} aria-label={logo ? name : undefined}>
       {children}
     </Card.Link>
   )

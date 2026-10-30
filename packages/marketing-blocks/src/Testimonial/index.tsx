@@ -61,7 +61,7 @@ export type TestimonialProps = {
   backgroundImage?: BlockImage
   /** The block's intent: it tints the quote mark, the portrait's border, and highlighted words. Info for the quote mark and portrait without one. */
   intent?: BlockIntent
-  /** A band behind the whole block, which then pads its content. None by default. */
+  /** A band behind the whole block, full width and rounded once the block is wide, which then pads its content. None by default. */
   emphasis?: TestimonialEmphasis
 }
 
@@ -98,37 +98,47 @@ export function Testimonial({
       id={id}
       aria-labelledby={headingId}
       intent={intent}
-      className={cn('relative isolate grid', emphasisClass(emphasis))}
+      className='grid'
     >
-      {backgroundImage && (
-        <BlockImg
-          image={{ ...backgroundImage, alt: '' }}
-          sizes='100vw'
-          className='absolute inset-0 -z-1 size-full object-cover opacity-10'
-        />
-      )}
+      {/* The band sits inside the section, since a container query can't style its own container. */}
       <div
+        data-slot='band'
         className={cn(
-          'container-4xl grid justify-items-center gap-16 *:min-w-0',
-          (backgroundImage || emphasis) && 'py-12 @xl:py-16 @3xl:py-20'
+          'relative isolate grid',
+          emphasis && 'overflow-clip @7xl:rounded-3xl',
+          emphasisClass(emphasis)
         )}
       >
-        <BlockHeading
-          id={headingId}
-          intent={intent}
-          eyebrow={eyebrow}
-          title={title}
-          titleHighlight={titleHighlight}
-          description={description}
-        />
-        <figure className='grid justify-items-center gap-8 *:min-w-0'>
-          <Quote intent={intent}>{quote}</Quote>
-          <Citation
-            person={person}
-            organisation={organisation}
-            intent={intent}
+        {backgroundImage && (
+          <BlockImg
+            image={{ ...backgroundImage, alt: '' }}
+            sizes='100vw'
+            className='absolute inset-0 -z-1 size-full object-cover opacity-10'
           />
-        </figure>
+        )}
+        <div
+          className={cn(
+            'container-4xl grid justify-items-center gap-16 *:min-w-0',
+            (backgroundImage || emphasis) && 'py-12 @xl:py-16 @3xl:py-20'
+          )}
+        >
+          <BlockHeading
+            id={headingId}
+            intent={intent}
+            eyebrow={eyebrow}
+            title={title}
+            titleHighlight={titleHighlight}
+            description={description}
+          />
+          <figure className='grid justify-items-center gap-8 *:min-w-0'>
+            <Quote intent={intent}>{quote}</Quote>
+            <Citation
+              person={person}
+              organisation={organisation}
+              intent={intent}
+            />
+          </figure>
+        </div>
       </div>
     </BlockRoot>
   )

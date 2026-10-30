@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
+import { commands, userEvent } from 'vitest/browser'
 
 import { Mosaic, type MosaicProps } from '.'
 import {
@@ -341,4 +342,55 @@ describe('Mosaic contrast', () => {
       expect(await axeViolations(container)).toEqual([])
     }
   )
+})
+
+describe('Mosaic link hover', () => {
+  const linkedTiers = () => {
+    const [first, second] = offline(partnerTiers).tiles
+    return [{ ...first!, href: '/partners' }, second!]
+  }
+  const photoScale = (tile: Element) =>
+    getComputedStyle(tile.querySelector('img')!).scale
+
+  it('scales a linked tile photo on hover, and leaves an unlinked one', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(
+      <Mosaic {...partnerTiers} tiles={linkedTiers()} logoTile={undefined} />
+    )
+    const [linked, plain] = document.querySelectorAll('li')
+
+    await userEvent.hover(linked!)
+    await expect.poll(() => photoScale(linked!)).toBe('1.05')
+    await userEvent.hover(plain!)
+    await expect.poll(() => photoScale(plain!)).toBe('none')
+  })
+
+  it('keeps the photo still with reduced motion', async () => {
+    await commands.reducedMotion(true)
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    render(
+      <Mosaic {...partnerTiers} tiles={linkedTiers()} logoTile={undefined} />
+    )
+    const [linked] = document.querySelectorAll('li')
+
+    await userEvent.hover(linked!)
+    expect(photoScale(linked!)).toBe('none')
+  })
+
+  it('tints a linked strip logo on hover', async () => {
+    await atWidth(DESKTOP.width, DESKTOP.height)
+    const [first] = offline(logoStrip).tiles
+    render(
+      <Mosaic
+        {...offline(logoStrip)}
+        tiles={[{ ...first!, href: '/partners' }]}
+      />
+    )
+    const link = screen.getByRole('link', { name: first!.name })
+    const fill = () => getComputedStyle(link).backgroundColor
+    const before = fill()
+
+    await userEvent.hover(link)
+    await expect.poll(fill).not.toBe(before)
+  })
 })

@@ -328,7 +328,8 @@ describe('Mosaic', () => {
       )
 
       const link = screen.getByRole('link', { name: first!.name })
-      expect(link).toHaveClass('is-interactive')
+      expect(link).toHaveClass('is-interactive', 'emphasis-subtler')
+      expect(link).not.toHaveAttribute('data-interactive-target')
       expect(within(link).getByRole('img')).toBeInTheDocument()
       expect(screen.getAllByRole('link')).toHaveLength(1)
 

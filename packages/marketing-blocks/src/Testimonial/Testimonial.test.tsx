@@ -145,7 +145,9 @@ describe('Testimonial', () => {
 
       const section = container.querySelector('section')!
       expect(section).not.toHaveAttribute('data-intent')
-      expect(section.className).not.toMatch(/emphasis-/)
+      expect(
+        container.querySelector('[data-slot=band]')!.className
+      ).not.toMatch(/emphasis-/)
       expect(screen.getByRole('blockquote')).toHaveClass('intent-info')
       expect(
         screen.getByRole('img', { name: 'Portrait of Mia Tran' }).parentElement
@@ -176,7 +178,7 @@ describe('Testimonial', () => {
           />
         )
 
-        expect(container.querySelector('section')).toHaveClass(
+        expect(container.querySelector('[data-slot=band]')).toHaveClass(
           `emphasis-${emphasis}`
         )
       }
@@ -185,7 +187,9 @@ describe('Testimonial', () => {
     it('fades the background photo over the band when both are set', () => {
       const { container } = render(<Testimonial {...quote} emphasis='subtle' />)
 
-      expect(container.querySelector('section')).toHaveClass('emphasis-subtle')
+      expect(container.querySelector('[data-slot=band]')).toHaveClass(
+        'emphasis-subtle'
+      )
       expect(
         container.querySelector(`img[src="${quote.backgroundImage.src}"]`)
       ).toBeInTheDocument()

@@ -105,10 +105,12 @@ tile.
 
 ### Intent and emphasis
 
-Mosaic takes an `intent`, which its tier labels and highlighted words follow,
-and no `emphasis`, since its tiles draw their own surface. Give a tile an
-`href` and its name or logo becomes the link, with the whole tile as the hit
-area; tiles without one stay still.
+Mosaic takes an `intent`, which its tier labels and highlighted words follow;
+without one, labels are neutral and highlights brand-secondary. It takes no
+`emphasis`, since its tiles draw their own surface. Give a tile an `href` and
+its name or logo becomes the link, with the whole tile as the hit area and its
+photo easing larger on hover; tiles without one stay still. A linked strip
+logo is a quiet card that tints on hover.
 
 ```tsx-live id=intent-and-emphasis
 <Mosaic

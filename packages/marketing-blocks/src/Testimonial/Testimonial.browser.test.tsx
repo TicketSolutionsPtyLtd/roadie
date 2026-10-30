@@ -88,7 +88,9 @@ describe('Testimonial quote layout', () => {
     expect(rectOf(portrait).width).toBeCloseTo(rectOf(portrait).height, 0)
 
     const section = rectOf(container.querySelector('section')!)
-    const background = rectOf(container.querySelector('section > img')!)
+    const background = rectOf(
+      container.querySelector('[data-slot=band] > img')!
+    )
     expect(background.width).toBeCloseTo(section.width, 0)
     expect(background.height).toBeCloseTo(section.height, 0)
   })
@@ -147,7 +149,20 @@ describe('Testimonial contrast', () => {
 
   const cases = MODES.flatMap((theme) =>
     ([undefined, 'raised', 'subtle', 'subtler'] as const).flatMap((emphasis) =>
-      ([undefined, 'brand', 'danger'] as const).map((intent) => ({
+      (
+        [
+          undefined,
+          'neutral',
+          'brand',
+          'brand-secondary',
+          'brand-purple',
+          'accent',
+          'info',
+          'success',
+          'warning',
+          'danger'
+        ] as const
+      ).map((intent) => ({
         theme,
         emphasis: emphasis ?? 'none',
         intent: intent ?? 'none',
@@ -205,6 +220,21 @@ describe('Testimonial contrast', () => {
       )
 
       expect(await axeViolations(container)).toEqual([])
+    }
+  )
+
+  it.each([
+    { ...widths[0], radius: '0px' },
+    { name: 'wide', width: 1440, height: 900, radius: '24px' }
+  ])(
+    'runs the band full width, rounding only once the block is wide ($name)',
+    async ({ width, height, radius }) => {
+      await atWidth(width, height)
+      const { container } = render(<Testimonial {...quote} emphasis='subtle' />)
+
+      const band = container.querySelector('[data-slot=band]')!
+      expect(band.getBoundingClientRect().width).toBeCloseTo(width, 0)
+      expect(getComputedStyle(band).borderTopLeftRadius).toBe(radius)
     }
   )
 
