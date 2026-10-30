@@ -79,7 +79,7 @@ export type SplitProps = {
    */
   intent?: BlockIntent
   /**
-   * The panel the block sits on. `tinted-panel` defaults to `subtle`; `media-text` and `text-and-stats` have no panel unless one is set. `logo-lockup` never has one, since it opens the page.
+   * The panel the block sits on. `tinted-panel` defaults to `subtle`; `media-text` and `text-and-stats` have no panel unless one is set. `logo-lockup` ignores it, since it opens the page.
    */
   emphasis?: SplitEmphasis
 }
@@ -94,7 +94,6 @@ const CONTENT: Record<
     proseClassName?: string
     emphasis?: SplitEmphasis
     intent?: BlockIntent
-    panelGap?: string
   }
 > = {
   'tinted-panel': {
