@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'Mosaic',
   description:
-    'Logos in a grid, as photo tiles with a label or as a strip of logos alone',
+    'Partners in a grid of photo tiles, each with a logo and a marked label',
   status: 'alpha',
   wideExamples: true,
   category: 'Proof'
@@ -10,7 +10,9 @@ export const metadata = {
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Logos in a grid, as photo tiles with a label or as a strip of logos alone.
+Partners in a grid of photo tiles, each with a logo and a marked label. For a
+row of logos alone, use a [Gallery](/blocks/gallery) with `preset='wrap'` and
+`ratio='natural'`.
 
 ## Import
 
@@ -83,39 +85,17 @@ you give it a title.
 />
 ```
 
-### Logo strip
-
-A wrapping, centred row of logos at one height, with no photos, for partner
-logos or certifications. It reads each tile's `logo`, or shows its `title`
-where it has none, and leaves out photos, descriptions, sizes, and the logo
-tile.
-
-```tsx-live id=logo-strip
-<Mosaic
-  preset='logo-strip'
-  title='Trusted by organisers across Australia'
-  tiles={[
-    { title: 'Kerosene Pony Collective', logo: { src: '/blocks/kerosene-pony-collective-badge.svg', alt: 'Kerosene Pony Collective', width: 240, height: 80 } },
-    { title: 'Wishbone Ferret Collective', logo: { src: '/blocks/wishbone-ferret-collective-badge.svg', alt: 'Wishbone Ferret Collective', width: 240, height: 80 } },
-    { title: 'Hairpin Bicycle Presents', logo: { src: '/blocks/hairpin-bicycle-presents-badge.svg', alt: 'Hairpin Bicycle Presents', width: 240, height: 80 } },
-    { title: 'Thimble Orbit Presents', logo: { src: '/blocks/thimble-orbit-presents-badge.svg', alt: 'Thimble Orbit Presents', width: 240, height: 80 } }
-  ]}
-/>
-```
-
 ### Intent and emphasis
 
 Mosaic takes an `intent`, which its tile descriptions, highlighted words, and
 strong action follow; without one, descriptions are neutral and highlights
 brand-secondary. A tile's own `intent` marks its description in place of the
 block's. `emphasis` draws a `subtler`, `subtle`, `normal`, or `raised` band behind the
-block, or with `contained`, a rounded panel inside the page's padding. `align`
-overrides the heading's alignment, which starts for tiers and centres for a
-logo strip, and `size='md'` or `'sm'` sets the title one or two steps smaller with tighter
+block, or with `contained`, a rounded panel inside the page's padding. `align='center'`
+centres the heading, which starts by default, and `size='md'` or `'sm'` sets the title one or two steps smaller with tighter
 spacing. `actions` go under the tiles. Give a tile an `href` and its title or
 logo becomes the link, with the whole tile as the hit area and its
-photo easing larger on hover; tiles without one stay still. A linked strip
-logo is a quiet card that tints on hover.
+photo easing larger on hover; tiles without one stay still.
 
 ```tsx-live id=intent-and-emphasis
 <Mosaic
@@ -170,7 +150,8 @@ logo is a quiet card that tints on hover.
 <Guideline title='Pick the preset for the content'>
   <Guideline.Do>
     Use tiers, as partner tiers are today, for partners and sponsors with a
-    level each, and logo strip for a row of partner logos or certifications.
+    level each. For a row of partner logos or certifications, use a Gallery
+    with `wrap` and `ratio='natural'`.
     Venues, events, or clients in a mosaic would be new presets, raised as a
     block request.
   </Guideline.Do>
@@ -206,10 +187,8 @@ logo is a quiet card that tints on hover.
     logo's alt text names the partner.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't put a dark logo on a tiers tile; it sinks into the shade behind it.
-    Dark logos belong in the `logoTile`, which stays light in both themes,
-    and logo strip logos need their own background, since the page's
-    changes with the theme.
+    Don't put a dark logo on a tile or in the `logoTile`; both stay dark in
+    either theme, so a dark logo sinks into them.
   </Guideline.Dont>
 </Guideline>
 

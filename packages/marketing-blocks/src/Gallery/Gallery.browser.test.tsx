@@ -475,3 +475,115 @@ describe('Gallery surfaces', () => {
     expect(heading.left).toBeGreaterThan(surfaceBox().left)
   })
 })
+
+describe('Gallery ratio', () => {
+  const box = (name: string) =>
+    screen.getByRole('img', { name }).getBoundingClientRect()
+
+  it.each([
+    ['portrait', 9 / 16],
+    ['square', 1],
+    ['landscape', 4 / 3]
+  ] as const)('crops each %s tile to its ratio', async (ratio, expected) => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(
+      <Gallery preset='wrap' ratio={ratio} title='Our people' images={images} />
+    )
+
+    const { width, height } = box('Photo 1 of a gig')
+    expect(width / height).toBeCloseTo(expected, 1)
+  })
+
+  it.each([
+    ['a phone', PHONE],
+    ['a desktop', DESKTOP]
+  ])(
+    'sets natural images 48px tall in their own ratio, centred, on %s',
+    async (_, size) => {
+      await page.viewport(size.width, size.height)
+      render(
+        <Gallery
+          preset='wrap'
+          ratio='natural'
+          title='Partners'
+          images={[
+            photo('Wide logo', 600, 100),
+            photo('Square logo', 300, 300)
+          ]}
+        />
+      )
+
+      expect(box('Wide logo').height).toBeCloseTo(48, 0)
+      expect(box('Wide logo').width).toBeCloseTo(288, 0)
+      expect(box('Square logo').width).toBeCloseTo(48, 0)
+      const list = document.querySelector('ul')!.getBoundingClientRect()
+      const items = [...document.querySelectorAll('li')].map((item) =>
+        item.getBoundingClientRect()
+      )
+      const left = Math.min(...items.map((item) => item.left)) - list.left
+      const right = list.right - Math.max(...items.map((item) => item.right))
+      expect(left).toBeCloseTo(right, 0)
+      expect(textAlignOf(screen.getByRole('heading', { level: 2 }))).toBe(
+        'center'
+      )
+    }
+  )
+
+  it('fits three 3:1 logos to a row at 640px', async () => {
+    await page.viewport(MID.width, MID.height)
+    render(
+      <Gallery
+        preset='wrap'
+        ratio='natural'
+        title='Partners'
+        images={['A', 'B', 'C', 'D'].map((name) =>
+          photo(`${name} logo`, 300, 100)
+        )}
+      />
+    )
+
+    const tops = [...document.querySelectorAll('li')].map((item) =>
+      Math.round(item.getBoundingClientRect().top)
+    )
+    expect(tops.filter((top) => top === tops[0])).toHaveLength(3)
+  })
+
+  it('tints a linked natural image on hover', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(
+      <Gallery
+        preset='wrap'
+        ratio='natural'
+        title='Partners'
+        images={[
+          { ...photo('Kerosene Pony Collective', 240, 80), href: '/partners' }
+        ]}
+      />
+    )
+    const link = screen.getByRole('link', { name: 'Kerosene Pony Collective' })
+    const fill = () => getComputedStyle(link).backgroundColor
+    const before = fill()
+
+    await userEvent.hover(link)
+    await expect.poll(fill).not.toBe(before)
+  })
+
+  it.each(['natural', 'portrait'] as const)(
+    'has no axe violations with linked %s images',
+    async (ratio) => {
+      const { container } = render(
+        <main>
+          <Gallery
+            preset='wrap'
+            ratio={ratio}
+            intent='brand'
+            title='Partners'
+            images={images.map((image) => ({ ...image, href: '/partners' }))}
+          />
+        </main>
+      )
+
+      expect(await axeViolations(container)).toEqual([])
+    }
+  )
+})

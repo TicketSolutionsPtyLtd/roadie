@@ -4,20 +4,13 @@ export const mosaicDefinition = {
   name: 'mosaic',
   title: 'Mosaic',
   description:
-    'Logos in a grid, as photo tiles with a label or as a strip of logos alone.',
+    'Partners in a grid of photo tiles, each with a logo and a marked label.',
   presets: [
     {
       name: 'tiers',
       title: 'Tiers',
       description:
         'Photo tiles with a logo and a level, the large ones two columns wide, such as partner tiers.',
-      variant: 'static'
-    },
-    {
-      name: 'logo-strip',
-      title: 'Logo strip',
-      description:
-        'A wrapping, centred row of logos at one height, with no photos, such as partners or certifications.',
       variant: 'static'
     }
   ]

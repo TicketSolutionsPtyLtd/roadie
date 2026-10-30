@@ -212,3 +212,82 @@ describe('Gallery', () => {
     )
   })
 })
+
+describe('Gallery wrap and links', () => {
+  const logos = [
+    {
+      src: '/blocks/kerosene-pony-collective-badge.svg',
+      alt: 'Kerosene Pony Collective',
+      width: 240,
+      height: 80
+    },
+    {
+      src: '/blocks/wishbone-ferret-collective-badge.svg',
+      alt: 'Wishbone Ferret Collective',
+      width: 240,
+      height: 80
+    }
+  ]
+
+  it('renders the wrap preset as a list, one item for each image', () => {
+    render(
+      <Gallery preset='wrap' ratio='natural' title={TITLE} images={logos} />
+    )
+
+    const section = screen.getByRole('region', { name: TITLE })
+    expect(section).toHaveAttribute('data-variant', 'image')
+    expect(section).toHaveAttribute('data-preset', 'wrap')
+    expect(screen.getAllByRole('listitem')).toHaveLength(logos.length)
+    expect(
+      screen.getAllByRole('img').map((img) => img.getAttribute('alt'))
+    ).toEqual(logos.map((logo) => logo.alt))
+  })
+
+  it.each(['natural', 'portrait'] as const)(
+    'makes a linked %s image one link, named and reported by its alt text',
+    async (ratio) => {
+      const onBlockEvent = vi.fn()
+      render(
+        <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
+          <Gallery
+            preset='wrap'
+            ratio={ratio}
+            title={TITLE}
+            images={[{ ...logos[0]!, href: 'https://example.com' }, logos[1]!]}
+          />
+        </MarketingBlocksProvider>
+      )
+
+      const link = screen.getByRole('link', { name: logos[0]!.alt })
+      expect(link).toHaveAttribute('href', 'https://example.com')
+      expect(link.querySelector('img')).not.toBeNull()
+      expect(screen.getAllByRole('link')).toHaveLength(1)
+
+      await userEvent.click(link)
+      expect(onBlockEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ label: logos[0]!.alt })
+      )
+    }
+  )
+
+  it('gives a natural image with no height a valid sizes', () => {
+    const renderImage = vi.fn(({ alt }: { alt: string }) => (
+      <img alt={alt} src='/optimised.webp' />
+    ))
+    render(
+      <MarketingBlocksProvider renderImage={renderImage}>
+        <Gallery
+          preset='wrap'
+          ratio='natural'
+          title={TITLE}
+          images={[{ ...logos[0]!, height: 0 }]}
+        />
+      </MarketingBlocksProvider>
+    )
+
+    expect(renderImage.mock.calls[0]![0]).toHaveProperty(
+      'sizes',
+      expect.stringMatching(/^\d+(\.\d+)?px$/)
+    )
+  })
+})

@@ -46,24 +46,3 @@ export const partnerTiers = {
     ]
   }
 } satisfies MosaicProps
-
-export const logoStrip = {
-  preset: 'logo-strip',
-  title: 'Trusted by organisers across Australia',
-  tiles: [
-    {
-      title: 'Kerosene Pony Collective',
-      logo: logo('Kerosene Pony Collective')
-    },
-    {
-      title: 'Wishbone Ferret Collective',
-      logo: logo('Wishbone Ferret Collective')
-    },
-    {
-      title: 'Hairpin Bicycle Presents',
-      logo: logo('Hairpin Bicycle Presents')
-    },
-    { title: 'Thimble Orbit Presents', logo: logo('Thimble Orbit Presents') },
-    { title: 'Velcro Pelican Productions' }
-  ]
-} satisfies MosaicProps

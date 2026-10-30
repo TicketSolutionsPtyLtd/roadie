@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Mosaic } from '.'
 import { MarketingBlocksProvider } from '../Provider'
-import { logoStrip, partnerTiers } from './fixtures'
+import { partnerTiers } from './fixtures'
 
 describe('Mosaic', () => {
   it('renders tiers as a section named by its start-aligned heading', () => {
@@ -162,91 +162,6 @@ describe('Mosaic', () => {
     expect(onBlockEvent).not.toHaveBeenCalled()
   })
 
-  describe('logo-strip', () => {
-    it('renders the logo-strip preset in the static variant', () => {
-      render(<Mosaic {...logoStrip} />)
-
-      const section = screen.getByRole('region', { name: logoStrip.title })
-      expect(section).toHaveAttribute('data-variant', 'static')
-      expect(section).toHaveAttribute('data-preset', 'logo-strip')
-    })
-
-    it('lists each tile as its logo, or its name where it has none', () => {
-      render(<Mosaic {...logoStrip} />)
-
-      const items = screen.getAllByRole('listitem')
-      expect(items).toHaveLength(logoStrip.tiles.length)
-      expect(
-        screen.getAllByRole('img').map((img) => img.getAttribute('alt'))
-      ).toEqual(
-        logoStrip.tiles.flatMap((tile) => (tile.logo ? [tile.logo.alt] : []))
-      )
-      expect(items.at(-1)).toHaveTextContent('Velcro Pelican Productions')
-    })
-
-    it('ignores photos, labels, featuring and the logo tile', () => {
-      render(
-        <Mosaic
-          {...logoStrip}
-          tiles={partnerTiers.tiles}
-          logoTile={partnerTiers.logoTile}
-        />
-      )
-
-      expect(screen.getAllByRole('listitem')).toHaveLength(
-        partnerTiers.tiles.length
-      )
-      expect(document.querySelectorAll('img')).toHaveLength(
-        partnerTiers.tiles.length
-      )
-      expect(screen.queryByText(partnerTiers.tiles[0]!.description)).toBeNull()
-      expect(screen.queryByRole('heading', { level: 3 })).toBeNull()
-      expect(document.querySelector('[data-size]')).toBeNull()
-    })
-
-    it('gives a logo with no height a valid sizes', () => {
-      const renderImage = vi.fn(({ alt }: { alt: string }) => (
-        <img alt={alt} src='/optimised.webp' />
-      ))
-      render(
-        <MarketingBlocksProvider renderImage={renderImage}>
-          <Mosaic
-            {...logoStrip}
-            tiles={[
-              {
-                title: 'Kerosene Pony Collective',
-                logo: { ...logoStrip.tiles[0]!.logo!, height: 0 }
-              }
-            ]}
-          />
-        </MarketingBlocksProvider>
-      )
-
-      expect(renderImage.mock.calls[0]![0]).toHaveProperty(
-        'sizes',
-        expect.stringMatching(/^\d+(\.\d+)?px$/)
-      )
-    })
-
-    it('falls back to the name for a logo with no alt text', () => {
-      render(
-        <Mosaic
-          {...logoStrip}
-          tiles={[
-            {
-              title: 'Kerosene Pony Collective',
-              logo: { ...logoStrip.tiles[0]!.logo!, alt: '' }
-            }
-          ]}
-        />
-      )
-
-      expect(
-        screen.getByRole('img', { name: 'Kerosene Pony Collective' })
-      ).toBeInTheDocument()
-    })
-  })
-
   describe('intent and links', () => {
     it('marks tier labels neutral by default, and in the block intent', () => {
       const { container, rerender } = render(<Mosaic {...partnerTiers} />)
@@ -314,30 +229,6 @@ describe('Mosaic', () => {
         screen.getByRole('link', { name: 'Kazoo Hollow Room' })
       ).toHaveTextContent('Kazoo Hollow Room')
     })
-
-    it('makes a linked strip logo the link itself, interactive, reported by name', async () => {
-      const onBlockEvent = vi.fn()
-      const [first, second] = logoStrip.tiles
-      render(
-        <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
-          <Mosaic
-            {...logoStrip}
-            tiles={[{ ...first!, href: 'https://example.com' }, second!]}
-          />
-        </MarketingBlocksProvider>
-      )
-
-      const link = screen.getByRole('link', { name: first!.title })
-      expect(link).toHaveClass('is-interactive', 'emphasis-subtler')
-      expect(link).not.toHaveAttribute('data-interactive-target')
-      expect(within(link).getByRole('img')).toBeInTheDocument()
-      expect(screen.getAllByRole('link')).toHaveLength(1)
-
-      await userEvent.click(link)
-      expect(onBlockEvent).toHaveBeenCalledWith(
-        expect.objectContaining({ label: first!.title })
-      )
-    })
   })
 
   describe('shared props', () => {
@@ -373,15 +264,15 @@ describe('Mosaic', () => {
     })
 
     it('draws no surface by default, and the emphasis asked for as a band or contained panel', () => {
-      const { container, rerender } = render(<Mosaic {...logoStrip} />)
+      const { container, rerender } = render(<Mosaic {...partnerTiers} />)
       const surface = () => container.querySelector('[data-slot=block-surface]')
       expect(surface()).toBeNull()
 
-      rerender(<Mosaic {...logoStrip} emphasis='subtler' />)
+      rerender(<Mosaic {...partnerTiers} emphasis='subtler' />)
       expect(surface()).toHaveClass('emphasis-subtler')
       expect(surface()).toHaveAttribute('data-shape', 'band')
 
-      rerender(<Mosaic {...logoStrip} emphasis='raised' contained />)
+      rerender(<Mosaic {...partnerTiers} emphasis='raised' contained />)
       expect(surface()).toHaveAttribute('data-shape', 'panel')
     })
   })

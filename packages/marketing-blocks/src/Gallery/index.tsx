@@ -11,6 +11,7 @@ import {
 import { PauseIcon, PlayIcon } from '@phosphor-icons/react/ssr'
 
 import { IconButton } from '@oztix/roadie-components/button'
+import { Card } from '@oztix/roadie-components/card'
 import { Carousel } from '@oztix/roadie-components/carousel'
 import { Marquee } from '@oztix/roadie-components/marquee'
 import { cn } from '@oztix/roadie-core/utils'
@@ -33,9 +34,15 @@ import { type GalleryPreset, galleryDefinition } from './definition'
 
 export type { GalleryPreset } from './definition'
 
+/** A photo or logo, linked when it has an `href`. A linked image is named by its `alt`. */
+export type GalleryImage = BlockImage & { href?: string }
+
+/** The tiles' shape: cropped to `portrait` (9:16), `square`, or `landscape` (4:3), or `natural`, uncropped at one height. */
+export type GalleryRatio = 'portrait' | 'square' | 'landscape' | 'natural'
+
 export type GalleryProps = {
   /**
-   * `carousel` steps through portrait photos with previous and next controls or a swipe; `marquee` scrolls them past.
+   * `carousel` steps through the images with previous and next controls or a swipe, `marquee` scrolls them past, and `wrap` sets them in a wrapping, centred row.
    * @default 'carousel'
    */
   preset?: GalleryPreset
@@ -51,8 +58,13 @@ export type GalleryProps = {
   titleHighlight?: string | string[]
   /** A sentence under the title. */
   description?: string
-  /** Photos of people and events, cropped to portrait 9:16 tiles. Never logos. */
-  images: readonly BlockImage[]
+  /** Photos of people and events, or partners' logos with `ratio='natural'`. */
+  images: readonly GalleryImage[]
+  /**
+   * The tiles' shape. `natural` keeps each image's own proportions at one height, for logos.
+   * @default 'portrait'
+   */
+  ratio?: GalleryRatio
   /** Links under the photos, as buttons. The first is the strong one. */
   actions?: readonly BlockAction[]
   /** The block's intent, for the highlighted words, the marquee's pause control, and the strong action. */
@@ -62,7 +74,7 @@ export type GalleryProps = {
   /** Draws the surface inside the page's padding, rounded at every width, instead of as a full-width band. */
   contained?: boolean
   /**
-   * Where the heading and actions line up: `start` for `carousel`, beside its controls, and `center` for `marquee`.
+   * Where the heading and actions line up: `start` for `carousel`, beside its controls, and `center` for `marquee` and `wrap`.
    */
   align?: BlockAlign
   /**
@@ -74,8 +86,30 @@ export type GalleryProps = {
 
 const ALIGN: Record<GalleryPreset, BlockAlign> = {
   carousel: 'start',
-  marquee: 'center'
+  marquee: 'center',
+  wrap: 'center'
 }
+
+// Literal class names, so Tailwind finds them. Widths step up with the block's own width.
+const CROPPED: Record<
+  Exclude<GalleryRatio, 'natural'>,
+  { tile: string; sizes: string }
+> = {
+  portrait: {
+    tile: 'aspect-9/16 w-35 @xl:w-45 @4xl:w-55',
+    sizes: '(max-width: 640px) 140px, (max-width: 960px) 180px, 220px'
+  },
+  square: {
+    tile: 'aspect-square w-40 @xl:w-50 @4xl:w-60',
+    sizes: '(max-width: 640px) 160px, (max-width: 960px) 200px, 240px'
+  },
+  landscape: {
+    tile: 'aspect-4/3 w-56 @xl:w-72 @4xl:w-80',
+    sizes: '(max-width: 640px) 224px, (max-width: 960px) 288px, 320px'
+  }
+}
+
+const NATURAL_HEIGHT = 48
 
 const MARQUEE_SPEED = 40
 
@@ -89,6 +123,7 @@ export function Gallery({
   titleHighlight,
   description,
   images,
+  ratio = 'portrait',
   actions,
   intent,
   emphasis,
@@ -115,7 +150,7 @@ export function Gallery({
   )
   const tiles = images.map((image, index) => ({
     key: `${index}-${image.src}`,
-    tile: <PhotoTile image={image} />
+    tile: <Tile image={image} ratio={ratio} />
   }))
   const blockActions = (
     <BlockActions
@@ -169,6 +204,25 @@ export function Gallery({
               ))}
             </Carousel.Content>
           </Carousel>
+          {blockActions}
+        </BlockSurface>
+      ) : name === 'wrap' ? (
+        <BlockSurface
+          emphasis={emphasis}
+          contained={contained}
+          className={cn('grid grid-cols-1', gap)}
+        >
+          {heading}
+          <ul
+            className={cn(
+              'flex flex-wrap items-center justify-center',
+              ratio === 'natural' ? 'gap-x-12 gap-y-8' : 'gap-4 @xl:gap-6'
+            )}
+          >
+            {tiles.map(({ key, tile }) => (
+              <li key={key}>{tile}</li>
+            ))}
+          </ul>
           {blockActions}
         </BlockSurface>
       ) : onPage ? (
@@ -239,14 +293,56 @@ function PausableMarquee({
   )
 }
 
-function PhotoTile({ image }: { image: BlockImage }) {
-  return (
-    <div className='aspect-9/16 w-35 shrink-0 overflow-hidden rounded-3xl @xl:w-45 @4xl:w-55'>
+// An image without both dimensions has no ratio to size by, so it asks for a
+// width that fits most wordmarks at the natural height.
+function naturalSizes({ width, height }: BlockImage) {
+  const ratio = width && height ? width / height : 4
+  return `${Math.round(NATURAL_HEIGHT * ratio)}px`
+}
+
+// A linked image is the link, named by its alt text, so the image inside is decorative.
+function Tile({ image, ratio }: { image: GalleryImage; ratio: GalleryRatio }) {
+  const { href, ...rest } = image
+  const shown = href ? { ...rest, alt: '' } : rest
+  if (ratio === 'natural') {
+    const logo = (
       <BlockImg
-        image={image}
-        sizes='(max-width: 640px) 140px, (max-width: 960px) 180px, 220px'
-        className='size-full object-cover'
+        image={shown}
+        sizes={naturalSizes(rest)}
+        className='h-12 w-auto object-contain'
       />
+    )
+    if (!href) return logo
+    return (
+      <Card href={href} emphasis='subtler' aria-label={rest.alt}>
+        <Card.Content>{logo}</Card.Content>
+      </Card>
+    )
+  }
+  const photo = (
+    <div
+      className={cn(
+        'shrink-0 overflow-hidden rounded-3xl',
+        CROPPED[ratio].tile
+      )}
+    >
+      <BlockImg
+        image={shown}
+        sizes={CROPPED[ratio].sizes}
+        className={cn(
+          'size-full object-cover',
+          href &&
+            'transition-[scale] duration-moderate ease-standard motion-safe:group-focus-within/tile:scale-105 motion-safe:group-hover/tile:scale-105'
+        )}
+      />
+    </div>
+  )
+  if (!href) return photo
+  return (
+    <div className='group/tile is-interactive-within rounded-3xl'>
+      <Card.Link href={href} aria-label={rest.alt} className='block'>
+        {photo}
+      </Card.Link>
     </div>
   )
 }

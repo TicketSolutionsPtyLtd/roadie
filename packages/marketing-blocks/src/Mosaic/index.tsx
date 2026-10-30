@@ -25,14 +25,14 @@ export type { MosaicPreset } from './definition'
 export type MosaicTile = {
   /** Who the tile is for, such as a partner's name: shown as text when there's no logo, and the logo's alt text when that's empty. */
   title: string
-  /** Marked at the foot of the tile, such as a partnership level like `Presenting partner`. `logo-strip` doesn't show it. */
+  /** Marked at the foot of the tile, such as a partnership level like `Presenting partner`. */
   description?: string
   /** The tile's logo. On `tiers` it sits over the photo's dark shade, so a light or white logo suits it. Without one, the tile shows its `title` as text. */
   logo?: BlockImage
   /** A photo filling the tile, such as from the partner's event. Decorative, so its alt text isn't read. Without one, `tiers` sets the tile on a plain surface. */
   image?: BlockImage
   /**
-   * `lg` spans two columns at half height, for the tiles to lead with. `tiers` only.
+   * `lg` spans two columns at half height, for the tiles to lead with.
    * @default 'md'
    */
   size?: 'md' | 'lg'
@@ -54,7 +54,7 @@ export type MosaicLogoTile = {
 
 export type MosaicProps = {
   /**
-   * The look to render: `tiers` for photo tiles, or `logo-strip` for a row of logos alone.
+   * `tiers` sets photo tiles with a logo and a marked level, some two columns wide.
    * @default 'tiers'
    */
   preset?: MosaicPreset
@@ -72,7 +72,7 @@ export type MosaicProps = {
   description?: string
   /** The photo tiles, in order. */
   tiles: readonly MosaicTile[]
-  /** A last, wide tile of logos. `tiers` only. */
+  /** A last, wide tile of logos. */
   logoTile?: MosaicLogoTile
   /** Links under the tiles, as buttons. The first is the strong one. */
   actions?: readonly BlockAction[]
@@ -83,7 +83,8 @@ export type MosaicProps = {
   /** Draws the surface inside the page's padding, rounded at every width, instead of as a full-width band. */
   contained?: boolean
   /**
-   * Where the heading and actions line up: `start` for `tiers`, `center` for `logo-strip`.
+   * Where the heading and actions line up.
+   * @default 'start'
    */
   align?: BlockAlign
   /**
@@ -91,11 +92,6 @@ export type MosaicProps = {
    * @default 'lg'
    */
   size?: BlockSize
-}
-
-const ALIGN: Record<MosaicPreset, BlockAlign> = {
-  tiers: 'start',
-  'logo-strip': 'center'
 }
 
 // Tiles are at least 11rem, so a column joins for every 11rem of block, from
@@ -112,9 +108,8 @@ const WIDE = 'col-span-2'
 const HALF_HEIGHT = 'pt-[calc(50%-var(--tile-gap)/2)]'
 const TILE_SIZES = '(min-width: 768px) 25vw, 50vw'
 const WIDE_SIZES = '(min-width: 768px) 50vw, 100vw'
-const STRIP_LOGO_HEIGHT = 48
 
-/** Logos in a grid: as photo tiles with a marked label, some two columns wide, or as a strip of logos alone. */
+/** Partners in a grid of photo tiles, each with a logo and a marked label, some two columns wide. */
 export function Mosaic({
   preset,
   position,
@@ -129,11 +124,10 @@ export function Mosaic({
   intent,
   emphasis,
   contained,
-  align: alignProp,
+  align = 'start',
   size
 }: MosaicProps) {
   const { name, variant } = presetOf(mosaicDefinition, preset)
-  const align = alignProp ?? ALIGN[name]
   const headingId = useId()
   return (
     <BlockRoot
@@ -163,24 +157,16 @@ export function Mosaic({
           titleHighlight={titleHighlight}
           description={description}
         />
-        {name === 'logo-strip' ? (
-          <ul className='flex flex-wrap items-center justify-center gap-x-12 gap-y-8'>
-            {tiles.map((tile, index) => (
-              <StripLogo key={`${index}-${tile.title}`} {...tile} />
-            ))}
-          </ul>
-        ) : (
-          <ul className={GRID}>
-            {tiles.map((tile, index) => (
-              <PhotoTile
-                key={`${index}-${tile.title}`}
-                {...tile}
-                intent={tile.intent ?? intent}
-              />
-            ))}
-            {logoTile && <LogosTile {...logoTile} />}
-          </ul>
-        )}
+        <ul className={GRID}>
+          {tiles.map((tile, index) => (
+            <PhotoTile
+              key={`${index}-${tile.title}`}
+              {...tile}
+              intent={tile.intent ?? intent}
+            />
+          ))}
+          {logoTile && <LogosTile {...logoTile} />}
+        </ul>
         <BlockActions
           actions={actions}
           intent={intent}
@@ -283,40 +269,6 @@ function LogosTile({ title = 'Also supporting', logos }: MosaicLogoTile) {
           ))}
         </div>
       </div>
-    </li>
-  )
-}
-
-// A logo without both dimensions has no ratio to size by, so it asks for a
-// width that fits most wordmarks at the strip's height.
-function stripLogoSizes({ width, height }: BlockImage) {
-  const ratio = width && height ? width / height : 4
-  return `${Math.round(STRIP_LOGO_HEIGHT * ratio)}px`
-}
-
-function StripLogo({ title, logo, href }: MosaicTile) {
-  const content = logo ? (
-    <BlockImg
-      image={{ ...logo, alt: logo.alt || title }}
-      sizes={stripLogoSizes(logo)}
-      className='h-12 w-auto object-contain'
-    />
-  ) : (
-    <p className='text-display-ui-4 break-words text-strong'>{title}</p>
-  )
-  return (
-    <li>
-      {href ? (
-        <Card
-          href={href}
-          emphasis='subtler'
-          aria-label={logo ? title : undefined}
-        >
-          <Card.Content>{content}</Card.Content>
-        </Card>
-      ) : (
-        content
-      )}
     </li>
   )
 }

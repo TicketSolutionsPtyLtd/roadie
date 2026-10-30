@@ -14,7 +14,7 @@ import {
   withBrowserPage
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
-import { logoStrip, partnerTiers } from './fixtures'
+import { partnerTiers } from './fixtures'
 
 const MID = { name: 'mid', width: 640, height: 900 } as const
 
@@ -241,73 +241,6 @@ describe('Mosaic align and size', () => {
   })
 })
 
-describe('Mosaic logo-strip layout', () => {
-  it.each(widths)(
-    'sets logos 48px tall in their own ratio, centred, at $name width',
-    async ({ width, height }) => {
-      await atWidth(width, height)
-      render(
-        <Mosaic
-          {...offline(logoStrip)}
-          tiles={[
-            { title: 'Wide', logo: photo('Wide logo', 600, 100) },
-            { title: 'Square', logo: photo('Square logo', 300, 300) }
-          ]}
-        />
-      )
-
-      const wide = screen.getByRole('img', { name: 'Wide logo' })
-      const square = screen.getByRole('img', { name: 'Square logo' })
-      expect(wide.getBoundingClientRect().height).toBeCloseTo(48, 0)
-      expect(wide.getBoundingClientRect().width).toBeCloseTo(288, 0)
-      expect(square.getBoundingClientRect().width).toBeCloseTo(48, 0)
-
-      const list = document.querySelector('ul')!.getBoundingClientRect()
-      const items = [...document.querySelectorAll('li')].map((item) =>
-        item.getBoundingClientRect()
-      )
-      const left = Math.min(...items.map((item) => item.left)) - list.left
-      const right = list.right - Math.max(...items.map((item) => item.right))
-      expect(left).toBeCloseTo(right, 0)
-      const heading = screen.getByRole('heading', { level: 2 })
-      expect(getComputedStyle(heading).textAlign).toBe('center')
-    }
-  )
-
-  it('fits three 3:1 logos to a row at 640px', async () => {
-    await atWidth(MID.width, MID.height)
-    render(
-      <Mosaic
-        {...offline(logoStrip)}
-        tiles={['A', 'B', 'C', 'D'].map((title) => ({
-          title,
-          logo: photo(`${title} logo`, 300, 100)
-        }))}
-      />
-    )
-
-    const tops = [...document.querySelectorAll('li')].map((item) =>
-      Math.round(item.getBoundingClientRect().top)
-    )
-    expect(tops.filter((top) => top === tops[0])).toHaveLength(3)
-  })
-
-  it('wraps onto more rows at phone width', async () => {
-    const rows = () =>
-      new Set(
-        [...document.querySelectorAll('li')].map((item) =>
-          Math.round(item.getBoundingClientRect().top)
-        )
-      ).size
-    await atWidth(DESKTOP.width, DESKTOP.height)
-    render(<Mosaic {...offline(logoStrip)} />)
-    const desktopRows = rows()
-
-    await atWidth(widths[0].width, widths[0].height)
-    expect(rows()).toBeGreaterThan(desktopRows)
-  })
-})
-
 describe('Mosaic accessibility', () => {
   it.each(widths)(
     'tiers has no axe violations at $name width',
@@ -316,20 +249,6 @@ describe('Mosaic accessibility', () => {
       const { container } = render(
         <main>
           <Mosaic {...offline(partnerTiers)} />
-        </main>
-      )
-
-      expect(await axeViolations(container)).toEqual([])
-    }
-  )
-
-  it.each(widths)(
-    'logo-strip has no axe violations at $name width',
-    async ({ width, height }) => {
-      await atWidth(width, height)
-      const { container } = render(
-        <main>
-          <Mosaic {...offline(logoStrip)} />
         </main>
       )
 
@@ -402,7 +321,7 @@ describe('Mosaic contrast', () => {
       setMode(mode)
       render(
         <Mosaic
-          {...offline(logoStrip)}
+          {...offline(partnerTiers)}
           {...props}
           emphasis={emphasis}
           description='Partners across the country.'
@@ -422,27 +341,22 @@ describe('Mosaic contrast', () => {
     }
   )
 
-  it.each(['tiers', 'logo-strip'] as const)(
-    'has no axe violations with linked %s tiles',
-    async (preset) => {
-      const props = preset === 'tiers' ? partnerTiers : logoStrip
-      const { container } = render(
-        <main>
-          <Mosaic
-            {...offline(props)}
-            preset={preset}
-            intent='brand'
-            tiles={offline(props).tiles.map((tile) => ({
-              ...tile,
-              href: '/partners'
-            }))}
-          />
-        </main>
-      )
+  it('has no axe violations with linked tiles', async () => {
+    const { container } = render(
+      <main>
+        <Mosaic
+          {...offline(partnerTiers)}
+          intent='brand'
+          tiles={offline(partnerTiers).tiles.map((tile) => ({
+            ...tile,
+            href: '/partners'
+          }))}
+        />
+      </main>
+    )
 
-      expect(await axeViolations(container)).toEqual([])
-    }
-  )
+    expect(await axeViolations(container)).toEqual([])
+  })
 })
 
 describe('Mosaic link hover', () => {
@@ -476,22 +390,5 @@ describe('Mosaic link hover', () => {
 
     await userEvent.hover(linked!)
     expect(photoScale(linked!)).toBe('none')
-  })
-
-  it('tints a linked strip logo on hover', async () => {
-    await atWidth(DESKTOP.width, DESKTOP.height)
-    const [first] = offline(logoStrip).tiles
-    render(
-      <Mosaic
-        {...offline(logoStrip)}
-        tiles={[{ ...first!, href: '/partners' }]}
-      />
-    )
-    const link = screen.getByRole('link', { name: first!.title })
-    const fill = () => getComputedStyle(link).backgroundColor
-    const before = fill()
-
-    await userEvent.hover(link)
-    await expect.poll(fill).not.toBe(before)
   })
 })
