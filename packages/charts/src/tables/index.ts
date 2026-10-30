@@ -3,6 +3,7 @@
 export type { ChartTable } from '../Chart'
 export { barChartTable } from '../BarChart/table'
 export { cardTable, plotTable } from './cardTable'
+export { donutChartTable } from '../DonutChart/table'
 export { followPeriod, type FollowPeriodOptions } from './followPeriod'
 export { funnelTable } from '../Funnel/table'
 export { heatmapTable } from '../Heatmap/table'

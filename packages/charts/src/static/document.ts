@@ -14,7 +14,7 @@ import {
 } from '@oztix/roadie-core/dataviz'
 
 import { barChart } from '../BarChart/definition'
-import { donutChartTable } from '../DonutChart/table'
+import { donutChart } from '../DonutChart/definition'
 import { funnel } from '../Funnel/definition'
 import { heatmap } from '../Heatmap/definition'
 import { histogram } from '../Histogram/definition'
@@ -62,27 +62,12 @@ export class ChartDocumentError extends Error {
 
 type DrawnKind = Exclude<ChartPlotKind, 'small-multiples'>
 
-// Until the donut's definition lands, a donut plot draws as a chart that
-// couldn't be drawn, the same as a dashboard donut card.
-const undrawnDonut: ChartDefinition<PlotProps<'donut'>> = {
-  kind: 'donut',
-  build() {
-    throw new Error('The donut chart is not drawn yet')
-  },
-  table: donutChartTable,
-  summary: (props) => props.takeaway ?? '',
-  emptyMessage: () => undefined,
-  legend: () => [],
-  describe: (datum) => String(datum.x),
-  tooltip: () => ({ title: '', rows: [] })
-}
-
 // Definitions, not components, so /static never loads React.
 const DEFINITIONS: { [K in DrawnKind]: ChartDefinition<PlotProps<K>> } = {
   line: lineChart,
   bar: barChart,
   'ranked-bars': rankedBars,
-  donut: undrawnDonut,
+  donut: donutChart,
   'stacked-bars': stackedBars,
   'stacked-area': stackedArea,
   histogram,
