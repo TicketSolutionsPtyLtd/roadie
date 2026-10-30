@@ -72,6 +72,9 @@ export const DASHBOARD_EXAMPLES = {
     <StatTile label='Gross revenue' value={185248} format='compactCurrency' delta={{ value: 0.1, format: 'percent' }} context='vs previous period' trend={grossEachDay} />
     <StatTile label='Shows behind' value={3} delta={{ value: 1, goodWhen: 'down' }} context='Of 7 on sale' trend={behindTrend} />
     <StatTile label='Refund rate' value={0.012} format='percent' delta={{ value: -0.3, format: 'points', goodWhen: 'down' }} context='vs previous period' trend={refundsEachDay} />
+    <Chart size='full' label='Daily sales' source='Oztix sales.'>
+      <LineChart data={dailySales} x='day' y='sold' comparison={{ y: 'lastPeriod', label: 'Previous period' }} />
+    </Chart>
   </Dashboard.Section>
   <Dashboard.Section title='On sale'>
     <DataCard size='full' label='Upcoming shows' takeaway='Three shows are behind similar shows' source='Oztix sales. Pace against 38 similar shows.'>

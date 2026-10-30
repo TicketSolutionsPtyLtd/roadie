@@ -348,3 +348,67 @@ describe('DashboardView cards that set the period', () => {
     warn.mockRestore()
   })
 })
+
+describe('DashboardView charts that compare', () => {
+  const days = ['2026-10-01', '2026-10-02', '2026-10-03']
+  const charts: DashboardCard[] = (['line', 'bar'] as const).map((kind) => ({
+    id: kind,
+    kind: 'chart',
+    size: 'md',
+    label: `Daily sales ${kind}`,
+    source: 'Oztix sales.',
+    plot: {
+      kind,
+      data: days.map((day, i) => ({ day, sold: 10 + i, lastPeriod: 8 + i })),
+      x: 'day',
+      y: 'sold',
+      comparison: { y: 'lastPeriod' }
+    }
+  }))
+  const spec = (period?: DashboardPeriodSpec): DashboardSpec => ({
+    version: 1,
+    title: 'Sales',
+    ...(period && { period }),
+    sections: [{ title: 'Trend', cards: charts }]
+  })
+  const headersIn = (name: string) =>
+    within(card(name))
+      .queryAllByRole('columnheader', { hidden: true })
+      .map((cell) => cell.textContent)
+
+  it.each(['line', 'bar'])(
+    'draws a %s card’s comparison, named by the period’s',
+    (kind) => {
+      render(
+        <DashboardView
+          spec={spec({ range: 'this-month', compare: 'previous-period' })}
+          periodProps={periodProps}
+        />
+      )
+      expect(headersIn(`Daily sales ${kind}`)).toContain('Previous period')
+    }
+  )
+
+  it.each([
+    ['no period', undefined],
+    ['no comparison', { range: 'this-month' }],
+    ['an app’s own comparison', { range: 'this-month', compare: 'similar' }],
+    [
+      'unavailable history',
+      {
+        range: 'this-month',
+        compare: 'previous-year',
+        history: 'unavailable'
+      }
+    ]
+  ] as const)('leaves the comparison off with %s', (_, period) => {
+    render(
+      <DashboardView
+        spec={spec(period as DashboardPeriodSpec | undefined)}
+        periodProps={periodProps}
+      />
+    )
+    for (const kind of ['line', 'bar'])
+      expect(headersIn(`Daily sales ${kind}`)).toEqual(['Day', 'Sold'])
+  })
+})

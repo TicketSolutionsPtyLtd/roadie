@@ -1,9 +1,12 @@
-import type {
-  DashboardPeriodSpec,
-  DashboardSpec
+import {
+  type DashboardPeriodSpec,
+  type DashboardSpec,
+  type PlotRow,
+  alignComparison
 } from '@oztix/roadie-core/dashboard'
 import {
   type ResolvedDateRange,
+  addDays,
   isBuiltInComparison,
   plainDateOf,
   resolveComparison,
@@ -212,6 +215,30 @@ function daysIn(range: ResolvedDateRange | null): number[] {
   )
 }
 
+const dailySales = (days: readonly number[]) =>
+  days.map((day) => ({
+    day: addDays(portfolioDates.dataStart, day),
+    sold: SOLD_DAILY[day]!
+  }))
+
+function peakSentence(rows: readonly PlotRow[]) {
+  const peak = rows.reduce<PlotRow | undefined>(
+    (best, row) => (best && Number(best.sold) >= Number(row.sold) ? best : row),
+    undefined
+  )
+  if (!peak) return 'No sales in this period'
+  const when = new Date(`${String(peak.day)}T00:00:00Z`).toLocaleDateString(
+    'en-AU',
+    {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'UTC'
+    }
+  )
+  return `Sales peaked at ${peak.sold} on ${when}`
+}
+
 function totals(days: readonly number[]) {
   const sold = sum(days.map((day) => SOLD_DAILY[day]!))
   const gross = sum(days.map((day) => SOLD_DAILY[day]! * priceOn(day)))
@@ -252,7 +279,15 @@ function periodStats({ range, compare }: PortfolioPeriod) {
   const before = totals(beforeDays)
   const nothingBefore = compared?.status === 'available' && !before.sold
   const trend = buckets(days).map(totals)
+  const daily = alignComparison(dailySales(days), dailySales(beforeDays), {
+    ...options,
+    period: { range, compare },
+    x: 'day',
+    y: 'sold',
+    as: 'lastPeriod'
+  })
   return {
+    daily,
     history: nothingBefore
       ? ('unavailable' as const)
       : compared && compared.status !== 'available'
@@ -286,7 +321,7 @@ function periodStats({ range, compare }: PortfolioPeriod) {
 export function createPortfolioDashboard(
   period: PortfolioPeriod = DEFAULT_PERIOD
 ): DashboardSpec {
-  const { history, state, sold, gross, refunds } = periodStats(period)
+  const { history, state, daily, sold, gross, refunds } = periodStats(period)
   const empty = state && { state, emptyMessage: 'No sales in this period' }
   return {
     version: 1,
@@ -349,6 +384,23 @@ export function createPortfolioDashboard(
               comparison: true
             },
             trend: refunds.trend
+          },
+          {
+            id: 'daily',
+            ...empty,
+            kind: 'chart',
+            size: 'full',
+            label: 'Daily sales',
+            takeaway: peakSentence(daily),
+            source: 'Oztix sales.',
+            plot: {
+              kind: 'line',
+              data: daily,
+              x: 'day',
+              y: 'sold',
+              // Drawn only while the toolbar compares, and named by it.
+              comparison: { y: 'lastPeriod' }
+            }
           }
         ]
       },

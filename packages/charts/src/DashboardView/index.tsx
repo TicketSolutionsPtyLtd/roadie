@@ -11,6 +11,7 @@ import { DataTable } from '@oztix/roadie-components/data-table'
 import { StatTile } from '@oztix/roadie-components/stat-tile'
 import type {
   CardSize,
+  ChartCard,
   DashboardCard,
   DashboardPeriodSpec,
   DashboardSpec,
@@ -82,6 +83,43 @@ function comparisonLine(
   } catch {
     // validateDashboard rejects custom date-times; an unchecked spec still renders.
     return 'vs custom dates'
+  }
+}
+
+/** "vs previous period" names a series as "Previous period". */
+const seriesName = (line: string) =>
+  line.replace(/^vs /, '').replace(/^\p{Ll}/u, (first) => first.toUpperCase())
+
+const withoutComparison = <P extends { comparison?: unknown }>({
+  comparison: _comparison,
+  ...plot
+}: P) => plot
+
+/**
+ * A line or bar card's comparison follows the dashboard's, as a comparison
+ * delta does: drawn only with a comparison of Roadie's that the data covers,
+ * and named by it.
+ */
+function followPeriod(
+  card: ChartCard,
+  period: DashboardPeriodSpec | undefined,
+  where: Pick<DescribeComparisonOptions, 'timeZone' | 'locale'>
+): ChartCard {
+  const { plot } = card
+  if ((plot.kind !== 'line' && plot.kind !== 'bar') || !plot.comparison)
+    return card
+  const compare = period?.compare
+  if (
+    !compare ||
+    !isBuiltInComparison(compare) ||
+    period.history === 'unavailable'
+  ) {
+    return { ...card, plot: withoutComparison(plot) }
+  }
+  const label = seriesName(comparisonLine(compare, where))
+  return {
+    ...card,
+    plot: { ...plot, comparison: { ...plot.comparison, label } }
   }
 }
 
@@ -216,7 +254,8 @@ function Card({
           />
         </DataCard>
       )
-    case 'chart':
+    case 'chart': {
+      const shown = followPeriod(card, period, { timeZone, locale })
       return (
         <Chart
           {...common}
@@ -227,20 +266,21 @@ function Card({
           delta={delta}
           takeaway={card.takeaway}
           view={card.view}
-          table={cardTable(card)}
+          table={cardTable(shown)}
           legend={card.legend && <ChartLegend items={card.legend} />}
         >
           <PlotView
-            plot={card.plot}
+            plot={shown.plot}
             takeaway={
-              card.plot.kind === 'static'
+              shown.plot.kind === 'static'
                 ? undefined
-                : (card.plot.takeaway ?? card.takeaway)
+                : (shown.plot.takeaway ?? card.takeaway)
             }
             onRangeSelect={onRangeSelect}
           />
         </Chart>
       )
+    }
   }
 }
 
