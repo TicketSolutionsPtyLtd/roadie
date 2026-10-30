@@ -66,8 +66,8 @@ import { type BlockContainers, TOP_LEVEL } from './blockActions'
 import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
-import { focusEditor } from './focusEditor'
 import { EmbedPaste } from './embedPaste'
+import { focusEditor } from './focusEditor'
 import {
   ImageUpload,
   type UploadImage,

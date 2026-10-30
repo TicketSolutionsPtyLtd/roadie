@@ -53,7 +53,12 @@ type BlockMenuProps = {
   onOpenChange?: (open: boolean) => void
 }
 
-export function BlockMenu({ menu, state, editor, onOpenChange }: BlockMenuProps) {
+export function BlockMenu({
+  menu,
+  state,
+  editor,
+  onOpenChange
+}: BlockMenuProps) {
   const current = state?.current ?? menu.types[0]?.label
   return (
     <Menu onOpenChange={onOpenChange}>
@@ -150,10 +155,12 @@ export function availableItems<Item extends EditorToolbarItem>(
   items: readonly Item[],
   ui: EditorControlUi
 ) {
-  return items.filter(
-    (item) =>
-      item === SEPARATOR || 'kind' in item || (item.available?.(ui) ?? true)
-  )
+  return items.filter((item) => {
+    const entry: EditorToolbarItem = item
+    return (
+      entry === SEPARATOR || 'kind' in entry || (entry.available?.(ui) ?? true)
+    )
+  })
 }
 
 type ToolbarItemsProps = {

@@ -15,11 +15,7 @@ import type { EditorBubbleMenuProps } from './EditorBubbleMenu'
 import type { EditorSlashMenuProps } from './EditorSlashMenu'
 import type { EditorToolbarProps } from './EditorToolbar'
 import type { SlashMenuHandle } from './slashMenu'
-import type {
-  EditorEmphasis,
-  EditorSize,
-  EditorToolbarMode
-} from './variants'
+import type { EditorEmphasis, EditorSize, EditorToolbarMode } from './variants'
 
 // The engine's parts travel through context, so the shell never imports Tiptap.
 export type EditorContextValue = {

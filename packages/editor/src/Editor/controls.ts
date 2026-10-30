@@ -256,7 +256,13 @@ export const overflowControls: Record<Preset, readonly EditorControl[]> = {
 // Each preset lists only controls for extensions it holds.
 export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
   basic: [...floatingControls.basic, SEPARATOR, ...history],
-  rich: [...floatingControls.rich, SEPARATOR, ...inserts, SEPARATOR, ...history],
+  rich: [
+    ...floatingControls.rich,
+    SEPARATOR,
+    ...inserts,
+    SEPARATOR,
+    ...history
+  ],
   blocks: [
     ...floatingControls.blocks,
     SEPARATOR,

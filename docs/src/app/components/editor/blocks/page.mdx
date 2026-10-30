@@ -60,13 +60,14 @@ place of the `/`, and Escape closes the menu and leaves the `/` as text. A
 `onUploadImage` and opens the file picker, and Embed opens the Embed popover.
 
 With no children, a `blocks` editor renders `Editor.Toolbar`,
-`Editor.Content`, then `Editor.SlashMenu`. Pass your own children to change
-the toolbar, and place `<Editor.SlashMenu />` yourself, or `/` is only text.
+`Editor.Content`, `Editor.BubbleMenu`, then `Editor.SlashMenu`. Pass your own
+children to change the toolbar, and place `<Editor.SlashMenu />` yourself, or
+`/` is only text.
 
 ```tsx-live-prose
-<Editor aria-label='Page' preset='blocks'>
-  <Editor.Toolbar emphasis='subtler' />
+<Editor aria-label='Page' preset='blocks' toolbar='floating'>
   <Editor.Content />
+  <Editor.BubbleMenu />
   <Editor.SlashMenu />
 </Editor>
 ```

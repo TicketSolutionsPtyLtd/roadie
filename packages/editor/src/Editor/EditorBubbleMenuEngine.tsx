@@ -295,15 +295,15 @@ function OverflowMenu({
           <>
             <Menu.Separator />
             <Menu.Group aria-label='More controls'>
-            <Toolbar
-              flush
-              emphasis='subtler'
-              size={EDITOR_TOOLBAR_SIZE[size]}
-              aria-label='More controls'
-            >
-              {extras}
-            </Toolbar>
-          </Menu.Group>
+              <Toolbar
+                flush
+                emphasis='subtler'
+                size={EDITOR_TOOLBAR_SIZE[size]}
+                aria-label='More controls'
+              >
+                {extras}
+              </Toolbar>
+            </Menu.Group>
           </>
         ) : null}
         {pinnable ? (
