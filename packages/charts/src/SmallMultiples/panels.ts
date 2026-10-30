@@ -2,7 +2,7 @@ import type { PlotRow } from '@oztix/roadie-core/dashboard'
 
 import { barYExtent } from '../BarChart/bars'
 import { lineXDomain, lineYExtent, toLinePoints } from '../LineChart/points'
-import { isOnAxis } from '../plot/annotations'
+import { isOnAxis } from '../plot/onAxis'
 import { isTimeField } from '../plot/time'
 import { minMax } from '../plot/values'
 import type { SmallMultiplesChart, SmallMultiplesProps } from './types'

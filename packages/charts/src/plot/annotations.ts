@@ -6,9 +6,9 @@ import type { PlotAnnotation } from '@oztix/roadie-core/dashboard'
 
 import { textWidth } from './endLabels'
 import { type PlotSpan, besideAnchor, spanPixel } from './frame'
+import { xOnAxis } from './onAxis'
 import { parseX } from './time'
 import type { ChartPaint, PlotFrame } from './types'
-import { finiteOrNull } from './values'
 
 /** `across` is how far along the plot the annotation sits, from 0 to 1. */
 export type PlacedAnnotation = {
@@ -65,21 +65,6 @@ function warnDropped({ at, label }: PlotAnnotation) {
   warned.add(message)
   console.warn(message)
 }
-
-function xOnAxis(
-  at: PlotAnnotation['at'],
-  [start, end]: readonly [number, number],
-  isTime: boolean
-) {
-  const x = isTime ? parseX(at) : finiteOrNull(at)
-  return x === null || x < start || x > end ? null : x
-}
-
-export const isOnAxis = (
-  at: PlotAnnotation['at'],
-  domain: readonly [number, number],
-  isTime: boolean
-) => xOnAxis(at, domain, isTime) !== null
 
 /** Places annotations on a continuous x axis, dropping any outside `domain`. */
 export function annotationsOnAxis(
