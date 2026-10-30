@@ -43,6 +43,41 @@ describe('donutParts', () => {
     expect(parts.at(-1)).toMatchObject({ value: 25, isOther: true })
   })
 
+  it('places a part named Other last, as Other', () => {
+    const parts = donutParts({
+      data: [
+        { type: 'Other', sold: 50 },
+        { type: 'GA', sold: 30 },
+        { type: 'VIP', sold: 20 }
+      ],
+      x: 'type',
+      y: 'sold'
+    })
+    expect(parts.map((p) => [p.name, p.isOther])).toEqual([
+      ['GA', false],
+      ['VIP', false],
+      [OTHER, true]
+    ])
+  })
+
+  it('folds a part named Other into the rolled Other', () => {
+    const parts = donutParts({
+      data: [60, 50, 40, 30, 20, 10]
+        .map((sold, i) => ({ type: `Type ${i + 1}`, sold }))
+        .concat({ type: 'Other', sold: 45 }),
+      x: 'type',
+      y: 'sold'
+    })
+    expect(parts.map((p) => p.name)).toEqual([
+      'Type 1',
+      'Type 2',
+      'Type 3',
+      'Type 4',
+      OTHER
+    ])
+    expect(parts.at(-1)!.value).toBe(20 + 10 + 45)
+  })
+
   it.each([
     ['thirds', [1, 1, 1], [34, 33, 33]],
     ['halves', [1, 1], [50, 50]],
@@ -89,7 +124,7 @@ describe('donutParts', () => {
       y: 'amount'
     })
     expect(warn).toHaveBeenCalledWith(
-      'Roadie chart: the donut leaves out "Refunds", since its amount isn\'t a positive number'
+      'Roadie chart: the donut leaves out a "Refunds" row, since its amount isn\'t a positive number'
     )
     warn.mockRestore()
   })
@@ -113,7 +148,7 @@ describe('donutParts', () => {
     donutParts(props)
     expect(warn.mock.calls).toEqual([
       [
-        'Roadie chart: the donut leaves out "Chargebacks", since its amount isn\'t a positive number'
+        'Roadie chart: the donut leaves out a "Chargebacks" row, since its amount isn\'t a positive number'
       ]
     ])
     warn.mockRestore()

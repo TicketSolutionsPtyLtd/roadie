@@ -23,7 +23,7 @@ const warned = new Set<string>()
 function warnLeftOut(name: string, field: string) {
   if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
     return
-  const message = `Roadie chart: the donut leaves out "${name}", since its ${field} isn't a positive number`
+  const message = `Roadie chart: the donut leaves out a "${name}" row, since its ${field} isn't a positive number`
   if (warned.has(message)) return
   warned.add(message)
   console.warn(message)
@@ -57,17 +57,19 @@ function wholePercents(shares: readonly number[]) {
   return percents
 }
 
-/** The slices in ring order: largest first, then Other past the cap. */
+/** The slices in ring order: largest first, then Other, which also takes a part named Other. */
 export function donutParts(props: DonutChartProps): DonutPart[] {
-  const sorted = partTotals(props)
-  const rolled = sorted.length > DONUT_PART_CAP
+  const totals = partTotals(props)
+  const sorted = totals.filter(([name]) => name !== OTHER)
+  const given = totals.find(([name]) => name === OTHER)?.[1] ?? 0
+  const rolled = totals.length > DONUT_PART_CAP
   const named = rolled ? sorted.slice(0, DONUT_PART_CAP - 1) : sorted
   const rest = sorted
     .slice(named.length)
-    .reduce((sum, [, value]) => sum + value, 0)
+    .reduce((sum, [, value]) => sum + value, given)
   const slices = [
     ...named.map(([name, value]) => ({ name, value, isOther: false })),
-    ...(rolled ? [{ name: OTHER, value: rest, isOther: true }] : [])
+    ...(rest > 0 ? [{ name: OTHER, value: rest, isOther: true }] : [])
   ]
   const total = slices.reduce((sum, slice) => sum + slice.value, 0)
   const shares = slices.map((slice) => slice.value / total)
