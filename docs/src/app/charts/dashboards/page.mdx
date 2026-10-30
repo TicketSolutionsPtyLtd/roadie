@@ -656,8 +656,9 @@ because actions aren’t part of the JSON.
   `pin` column in place.
 - A sparkline cell needs 5 points. With fewer, it shows “Not enough history”.
 - To open a row, such as a show’s event view, pass `getRowHref` to
-  `DashboardView`. It gets the table card and the row and returns an href, or
-  nothing. Like actions, links come from the app, never the JSON.
+  `DashboardView`. It gets the table card, the row, and the dashboard's
+  period, and returns an href, or nothing. Like actions, links come from the
+  app, never the JSON.
 
 ```tsx
 <DashboardView
@@ -729,13 +730,15 @@ can list its own comparisons, such as similar venues, in
   is. Roadie works out no dates for it, so it counts as no comparison: deltas
   marked `comparison: true` hide and `history` is ignored. Give those cards a
   delta of their own, with a context line that names the benchmark.
-- To open a card’s records for the same dates, read `spec.period` in
-  `getRowHref`. A relative period becomes a records `within` filter, and
-  custom dates a `between` filter.
-- A `bar` plot draws the comparison as a quiet bar beside each bar, from a
-  [`comparison`](/charts/bar-chart#comparison) field on the same rows. The app
-  lines those rows up with the period. Other charts don't draw one yet, so
-  show it as a delta there and say what it compares with.
+- To open a card’s records for the same dates, use the period `getRowHref`
+  gets as its third argument. A relative period becomes a records `within`
+  filter, and custom dates a `between` filter.
+- A `line` plot draws the comparison as a quiet line behind the series, and a
+  `bar` plot as a quiet bar beside each bar, from a `comparison` field on the
+  same rows ([line](/charts/line-chart#comparison),
+  [bar](/charts/bar-chart#comparison)). The app lines those rows up with the
+  period. Other charts don't draw one yet, so show it as a delta there and say
+  what it compares with.
 
 To set this period's rows against the comparison's day by day, pass both sets
 of rows to `alignComparison` from `@oztix/roadie-core/dashboard`, with the

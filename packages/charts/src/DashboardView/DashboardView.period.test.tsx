@@ -253,6 +253,7 @@ describe('DashboardView periods', () => {
   })
 
   it('falls back to words for custom date-times it can’t place', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(
       <DashboardView
         spec={dashboard({
@@ -262,6 +263,46 @@ describe('DashboardView periods', () => {
       />
     )
     expect(contextIn('Tickets sold')).toBe('vs custom dates')
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining("couldn't describe the comparison")
+    )
+    error.mockRestore()
+  })
+
+  it('names a malformed comparison as custom dates, with a development error', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <DashboardView
+        spec={dashboard({
+          range: 'this-month',
+          compare: { start: 'not a date', end: '2026-09-02' }
+        })}
+      />
+    )
+    expect(contextIn('Tickets sold')).toBe('vs custom dates')
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining("couldn't describe the comparison")
+    )
+    error.mockRestore()
+  })
+
+  it('keeps the comparison error out of production', () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <DashboardView
+        spec={dashboard({
+          range: 'this-month',
+          compare: { start: 'not a date in production', end: '2026-09-02' }
+        })}
+      />
+    )
+    expect(contextIn('Tickets sold')).toBe('vs custom dates')
+    expect(error).not.toHaveBeenCalledWith(
+      expect.stringContaining("couldn't describe the comparison")
+    )
+    error.mockRestore()
+    vi.unstubAllEnvs()
   })
 
   it('keeps the comparison flag out of the page', () => {
