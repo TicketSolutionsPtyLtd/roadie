@@ -1,9 +1,9 @@
+import { intlFormatter } from '../utils/intlCache'
 import {
   type TrailingZeroDisplay,
   decimalPlaces,
   fractionDigits
 } from './places'
-import { intlFormatter } from '../utils/intlCache'
 
 export type CurrencyFormatOptions = {
   /** An ISO 4217 code. Dollars read as `$`; in `en-AU`, any other code names itself. @default 'AUD' */
