@@ -801,6 +801,37 @@ describe('DashboardPeriod compare options', () => {
     expect(compareDates(dialog)).toHaveTextContent('Nothing to compare')
   })
 
+  it('says nothing to compare in the same live region as the dates', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        defaultValue={{ range: 'this-month', compare: 'previous-period' }}
+        presets={[{ value: 'this-month' }, { value: 'upcoming' }]}
+      />
+    )
+    const dialog = await openPicker()
+    const region = compareDates(dialog)
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: /^Upcoming/ })
+    )
+    expect(compareDates(dialog)).toBe(region)
+    expect(region).toHaveTextContent('Nothing to compare')
+  })
+
+  it('says nothing about an open-ended range while an app choice can compare', async () => {
+    render(
+      <DashboardPeriod
+        today={TODAY}
+        value={{ range: 'upcoming', compare: 'previous-period' }}
+        compareOptions={['none', 'previous-period', SIMILAR]}
+      />
+    )
+    const dialog = await openPicker()
+    expect(compareSwitch(dialog)).not.toBeChecked()
+    expect(compareSwitch(dialog)).toBeEnabled()
+    expect(compareDates(dialog)).toBeEmptyDOMElement()
+  })
+
   it('selects no choice for an open-ended range without a Compare switch', async () => {
     render(
       <DashboardPeriod

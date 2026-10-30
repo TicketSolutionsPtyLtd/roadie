@@ -403,33 +403,26 @@ export function DashboardPeriod<App extends string = never>({
     const choice = live ? choiceOf(live) : null
     const customDates =
       customEditable && choice === 'custom' ? customOf(live) : null
+    const anyDates = choices.some((option) =>
+      comparisonFor(option.value, range)
+    )
     const line = blocked
-      ? current?.note
+      ? anyDates
+        ? null
+        : current?.note
       : live
         ? isBuiltInComparison(live)
           ? (current?.note ?? (customDates ? null : current?.dates))
           : appChoice(live)?.description
         : null
     const groupShown = !!live || !switchShown
-    const datesLine = (
-      <p
-        data-slot='dashboard-period-compare-dates'
-        aria-live='polite'
-        className='text-sm text-subtle'
-      >
-        {line}
-      </p>
-    )
     return (
       <div data-slot='dashboard-period-compare' className='grid gap-3'>
         {switchShown && (
           <Switch
             label='Compare'
             checked={!!live}
-            disabled={
-              !live &&
-              !choices.some((option) => comparisonFor(option.value, range))
-            }
+            disabled={!live && !anyDates}
             onCheckedChange={(on) =>
               editCompare(
                 on
@@ -444,8 +437,9 @@ export function DashboardPeriod<App extends string = never>({
             }
           />
         )}
-        {groupShown && (
-          <div className='grid gap-2'>
+        {/* Always mounted, so a screen reader hears it change. */}
+        <div className='grid gap-2'>
+          {groupShown && (
             <ToggleGroup
               aria-label='Compare with'
               size='sm'
@@ -469,27 +463,32 @@ export function DashboardPeriod<App extends string = never>({
                 </ToggleGroup.Item>
               ))}
             </ToggleGroup>
-            {customDates && (
-              <DateRangePicker
-                aria-label='Comparison dates'
-                size='sm'
-                presets={[]}
-                value={customDates}
-                onValueChange={(next) => {
-                  if (next && isAbsoluteRange(next)) editCompare(next)
-                }}
-                disabled={readOnly || disabled}
-                timeZone={timeZone}
-                today={todayProp}
-                weekStart={weekStart}
-                fiscalYearStart={fiscalYearStart}
-                locale={locale}
-              />
-            )}
-            {datesLine}
-          </div>
-        )}
-        {!groupShown && blocked && datesLine}
+          )}
+          {customDates && (
+            <DateRangePicker
+              aria-label='Comparison dates'
+              size='sm'
+              presets={[]}
+              value={customDates}
+              onValueChange={(next) => {
+                if (next && isAbsoluteRange(next)) editCompare(next)
+              }}
+              disabled={readOnly || disabled}
+              timeZone={timeZone}
+              today={todayProp}
+              weekStart={weekStart}
+              fiscalYearStart={fiscalYearStart}
+              locale={locale}
+            />
+          )}
+          <p
+            data-slot='dashboard-period-compare-dates'
+            aria-live='polite'
+            className='text-sm text-subtle'
+          >
+            {line}
+          </p>
+        </div>
       </div>
     )
   }
