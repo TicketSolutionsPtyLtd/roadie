@@ -1,5 +1,5 @@
 import type { TableStatus } from '../dashboard/cells'
-import type { ValueFormat } from '../dataviz/format'
+import type { ValueFormat, ValueFormatOptions } from '../dataviz/format'
 import type { Instantish } from '../datetime/format'
 import type { RelativeRange } from '../datetime/ranges'
 import type { RECORD_VIEW_VERSION } from './versions'
@@ -111,7 +111,7 @@ export type RecordOption = {
  * What a record field holds. Every per-row fact is a key, not a function, so
  * one definition works in the browser, on a server and in an adapter.
  */
-export type RecordField = {
+export type RecordField = ValueFormatOptions & {
   key: string
   label: string
   type: RecordFieldType

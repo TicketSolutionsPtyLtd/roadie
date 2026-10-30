@@ -206,6 +206,8 @@ function Card({
           {...common}
           value={card.value}
           format={card.format}
+          decimals={card.decimals}
+          trailingZeroDisplay={card.trailingZeroDisplay}
           delta={delta}
           trend={card.trend}
           reference={card.reference}
@@ -218,6 +220,8 @@ function Card({
           size={size}
           value={card.value}
           format={card.format}
+          decimals={card.decimals}
+          trailingZeroDisplay={card.trailingZeroDisplay}
           delta={delta}
           takeaway={card.takeaway}
         >
@@ -240,6 +244,8 @@ function Card({
           size={size}
           value={card.value}
           format={card.format}
+          decimals={card.decimals}
+          trailingZeroDisplay={card.trailingZeroDisplay}
           delta={delta}
           takeaway={card.takeaway}
           view={card.view}

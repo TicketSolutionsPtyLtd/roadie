@@ -66,12 +66,14 @@ export function cellText(column: TableColumn, value: unknown): string {
   if (column.kind === 'text' || typeof value === 'string') return String(value)
   if (Array.isArray(value)) {
     const last: unknown = value.at(-1)
-    return typeof last === 'number' ? formatValue(last, column.format) : ''
+    return typeof last === 'number'
+      ? formatValue(last, column.format, column)
+      : ''
   }
   if (typeof value !== 'number') return String(value)
-  if (column.kind !== 'meter') return formatValue(value, column.format)
+  if (column.kind !== 'meter') return formatValue(value, column.format, column)
   const max = column.max ?? 1
   return max === 1
-    ? formatValue(value, column.format ?? 'percent')
-    : `${formatValue(value, column.format)} of ${formatValue(max, column.format)}`
+    ? formatValue(value, column.format ?? 'percent', column)
+    : `${formatValue(value, column.format, column)} of ${formatValue(max, column.format, column)}`
 }

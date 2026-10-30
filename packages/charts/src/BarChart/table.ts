@@ -9,8 +9,8 @@ export function barChartTable(props: BarChartProps): ChartTable {
   const line = props.line
   const columns = [
     xColumn(props.x),
-    valueColumn(props.y, fieldLabel(props.y), props.format),
-    ...(line ? [valueColumn(line.y, line.label, line.format)] : [])
+    valueColumn(props.y, fieldLabel(props.y), props),
+    ...(line ? [valueColumn(line.y, line.label, line)] : [])
   ]
   const rows = toBars(props).map((bar) => ({
     [props.x]: xCell(bar.key, isTime),

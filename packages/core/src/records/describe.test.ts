@@ -243,6 +243,39 @@ describe('describeRecordFilter', () => {
     ).toBe('Gross is more than NZD\u00a0100')
   })
 
+  it('reads a currency code Intl rejects as dollars, without whole cents', () => {
+    const fields: RecordField[] = [
+      { key: 'gross', label: 'Gross', type: 'money', currency: 'dollars' }
+    ]
+    expect(
+      describeFilter({ field: 'gross', operator: 'gt', value: 100 }, fields)
+        .label
+    ).toBe('Gross is more than $100')
+  })
+
+  it('reads a threshold to the field’s places, without whole cents', () => {
+    const fields: RecordField[] = [
+      {
+        key: 'share',
+        label: 'Share',
+        type: 'number',
+        format: 'percent',
+        decimals: 2
+      },
+      { key: 'gross', label: 'Gross', type: 'money', decimals: 2 }
+    ]
+    const label = (filter: RecordFilter) => describeFilter(filter, fields).label
+    expect(label({ field: 'share', operator: 'gt', value: 0.0127 })).toBe(
+      'Share is more than 1.27%'
+    )
+    expect(label({ field: 'gross', operator: 'gt', value: 2000 })).toBe(
+      'Gross is more than $2,000'
+    )
+    expect(label({ field: 'gross', operator: 'gt', value: 2000.5 })).toBe(
+      'Gross is more than $2,000.50'
+    )
+  })
+
   it('names an unknown field by its key and shows values as given', () => {
     expect(
       describeFilter({ field: 'promoter', operator: 'is', values: ['ab-1'] })

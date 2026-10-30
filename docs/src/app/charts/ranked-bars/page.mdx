@@ -80,6 +80,26 @@ Past `limit` bars, the smallest roll into Other, which always sits last.
 </Chart>
 ```
 
+### Money
+
+With `format='currency'`, every label, tooltip, and table cell shows cents, so the amounts line up. Set `trailingZeroDisplay='stripIfInteger'` to drop the cents from whole amounts, or `decimals` for another number of places.
+
+```tsx-live width=140
+<Chart label='Sales by payment method' source='Oztix sales.' size='md'>
+  <RankedBars
+    data={[
+      { method: 'Card', value: 3116 },
+      { method: 'Gift card', value: 634 },
+      { method: 'Cash at the door', value: 556 },
+      { method: 'Bank transfer', value: 365.5 }
+    ]}
+    x='method'
+    y='value'
+    format='currency'
+  />
+</Chart>
+```
+
 ### Long names
 
 Names share the plot with the bars. The label column takes up to 40% of the chart's width, so a long name wraps to two lines and then ends in an ellipsis.
