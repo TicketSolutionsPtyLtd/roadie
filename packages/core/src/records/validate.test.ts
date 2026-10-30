@@ -367,12 +367,17 @@ describe('validateRecordView', () => {
   it.each([
     { field: 'name', operator: 'contains', value: 'ends in \\' },
     { field: 'venue', operator: 'is', values: ['holds \\" here'] }
-  ])('refuses a value no search index can read back: %j', (filter) => {
-    expect(errors(view([filter]))).toEqual([
-      expect.objectContaining({
-        path: expect.stringMatching(/^query\.filters\[0\]\.value/),
-        message: expect.stringContaining('backslash')
-      })
-    ])
-  })
+  ])(
+    'warns of a value Meilisearch can’t read back, keeping the view: %j',
+    (filter) => {
+      const result = validateRecordView(view([filter]), eventFields)
+      expect(result.problems).toEqual([
+        expect.objectContaining({
+          severity: 'warning',
+          path: expect.stringMatching(/^query\.filters\[0\]\.value/),
+          message: expect.stringContaining('Meilisearch')
+        })
+      ])
+    }
+  )
 })

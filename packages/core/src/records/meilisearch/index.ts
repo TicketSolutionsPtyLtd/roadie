@@ -159,7 +159,7 @@ function overlapExpression(
     return rangeExpression(start, end, range.start, range.end)
   }
   const scale = epoch === 'seconds' ? 1000 : 1
-  // Inward, so a coarser index never widens the window.
+  // Inward, so a coarser index never widens a window of a second or more.
   let from = range.start === null ? null : Math.ceil(range.start / scale)
   const to = range.end === null ? null : Math.floor(range.end / scale)
   // A window inside one stored unit keeps that unit rather than none.

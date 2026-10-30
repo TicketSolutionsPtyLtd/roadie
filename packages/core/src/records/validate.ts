@@ -89,15 +89,6 @@ function dateProblem(field: RecordField, value: string): string | null {
 }
 
 function valueProblem(filter: RecordFilter, field: RecordField): string | null {
-  const texts =
-    'values' in filter
-      ? filter.values
-      : 'value' in filter && typeof filter.value === 'string'
-        ? [filter.value]
-        : []
-  if (texts.some(hasUnquotableBackslash)) {
-    return 'A value can’t end in a backslash or hold one before a quote'
-  }
   switch (filter.operator) {
     case 'on':
       if (dateValueKind(filter.value) === 'date-time') {
@@ -184,7 +175,26 @@ function filterProblems(
     ]
   }
   const problem = valueProblem(filter, field)
-  return problem ? [error(`${path}.value`, problem)] : []
+  if (problem) return [error(`${path}.value`, problem)]
+  // Only Meilisearch can't hold it, so the view stays valid everywhere else.
+  return unquotable(filter)
+    ? [
+        warning(
+          `${path}.value`,
+          'Meilisearch can’t filter by a value that ends in a backslash or holds one before a quote'
+        )
+      ]
+    : []
+}
+
+function unquotable(filter: RecordFilter): boolean {
+  const texts =
+    'values' in filter
+      ? filter.values
+      : 'value' in filter && typeof filter.value === 'string'
+        ? [filter.value]
+        : []
+  return texts.some(hasUnquotableBackslash)
 }
 
 function layoutProblems(
