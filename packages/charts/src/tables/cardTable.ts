@@ -3,6 +3,7 @@ import { resolveTableTotals } from '@oztix/roadie-core/dashboard-layout'
 
 import { barChartTable } from '../BarChart/table'
 import type { ChartTable } from '../Chart'
+import { donutChartTable } from '../DonutChart/table'
 import { funnelTable } from '../Funnel/table'
 import { heatmapTable } from '../Heatmap/table'
 import { histogramTable } from '../Histogram/table'
@@ -22,6 +23,8 @@ export function plotTable(plot: ChartPlot): ChartTable {
       return barChartTable(plot)
     case 'ranked-bars':
       return rankedBarsTable(plot)
+    case 'donut':
+      return donutChartTable(plot)
     case 'stacked-bars':
       return stackedBarsTable(plot)
     case 'stacked-area':

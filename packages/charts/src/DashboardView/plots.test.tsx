@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { CHART_PLOT_KINDS, type ChartPlot } from '@oztix/roadie-core/dashboard'
 
 import { onSaleExample } from '../BarChart/examples'
+import { ticketTypeExample } from '../DonutChart/examples'
 import { checkoutExample } from '../Funnel/examples'
 import { whenFansBuyExample } from '../Heatmap/examples'
 import { leadTimeExample } from '../Histogram/examples'
@@ -21,6 +22,7 @@ const plots: ChartPlot[] = [
   { kind: 'line', ...paceExample },
   { kind: 'bar', ...onSaleExample },
   { kind: 'ranked-bars', ...channelExample },
+  { kind: 'donut', ...ticketTypeExample },
   { kind: 'stacked-bars', ...ticketMixExample },
   { kind: 'stacked-area', ...scansByGateExample },
   { kind: 'histogram', ...leadTimeExample },
@@ -30,6 +32,9 @@ const plots: ChartPlot[] = [
   { kind: 'small-multiples', ...gatesExample }
 ]
 
+// A donut card draws once DonutChart lands.
+const drawn = plots.filter((plot) => plot.kind !== 'donut')
+
 describe('every plot kind is wired', () => {
   it('covers the whole kind list', () => {
     expect(plots.map((p) => p.kind).sort()).toEqual(
@@ -37,7 +42,7 @@ describe('every plot kind is wired', () => {
     )
   })
 
-  it.each(plots.map((p) => [p.kind, p] as const))(
+  it.each(drawn.map((p) => [p.kind, p] as const))(
     '%s renders a named plot',
     (_, plot) => {
       render(<PlotView plot={plot} />)
@@ -54,8 +59,13 @@ describe('every plot kind is wired', () => {
     }
   )
 
+  it('says a donut card cannot be drawn yet', () => {
+    render(<PlotView plot={{ kind: 'donut', ...ticketTypeExample }} />)
+    expect(screen.getByText("This chart couldn't be drawn")).toBeInTheDocument()
+  })
+
   it('renders every kind with renderToString', () => {
-    for (const plot of plots)
+    for (const plot of drawn)
       expect(renderToString(<PlotView plot={plot} />)).toContain('role="img"')
   })
 })
