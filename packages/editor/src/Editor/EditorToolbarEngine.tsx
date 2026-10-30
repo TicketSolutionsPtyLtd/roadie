@@ -37,7 +37,7 @@ export function stateOf(item: EditorToolbarItem, editor: TiptapEditor) {
     return {
       pressed: false,
       enabled: editor.isEditable,
-      current: (current ?? item.types[0])?.label
+      current: current?.label ?? item.fallback?.(editor) ?? item.types[0]?.label
     }
   }
   return {
@@ -52,7 +52,7 @@ type BlockMenuProps = {
   editor: TiptapEditor | null
 }
 
-function BlockMenu({ menu, state, editor }: BlockMenuProps) {
+export function BlockMenu({ menu, state, editor }: BlockMenuProps) {
   const current = state?.current ?? menu.types[0]?.label
   return (
     <Menu>
@@ -156,10 +156,18 @@ export function EditorToolbarEngine({
     editAlt,
     editEmbed,
     pickImage,
-    replaceImage
+    replaceImage,
+    editButton
   } = use(EditorContext)!
   const toolbarSize = EDITOR_TOOLBAR_SIZE[size]
-  const ui = { editLink, editAlt, editEmbed, pickImage, replaceImage }
+  const ui = {
+    editLink,
+    editAlt,
+    editEmbed,
+    pickImage,
+    replaceImage,
+    editButton
+  }
   const items = presetControls[preset].filter(
     (item) =>
       item === SEPARATOR || 'kind' in item || (item.available?.(ui) ?? true)

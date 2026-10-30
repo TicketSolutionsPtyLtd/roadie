@@ -23,7 +23,7 @@ export type NodeShape = {
    * other gives way to its children.
    */
   holds?: readonly string[]
-  /** Inline content of text alone, with no marks. */
+  /** Inline content with no marks: text, and the preset's variables. */
   plainText?: true
 }
 
@@ -86,13 +86,22 @@ export const presetShapes = {
       doc: { content: 'blocks', holds: [...emailBlocks, 'section', 'columns'] },
       listItem: { content: 'paragraphFirst', holds: textBlocks },
       heading: { content: 'inline', attrs: ['level'] },
-      section: { content: 'blocks', holds: [...emailBlocks, 'columns'] },
+      section: {
+        content: 'blocks',
+        attrs: ['showWhen'],
+        holds: [...emailBlocks, 'columns']
+      },
       columns: { content: 'columns' },
       column: { content: 'blocks', holds: emailBlocks },
-      button: { content: 'inline', attrs: ['href'], plainText: true },
-      image: { content: 'none', attrs: ['src', 'alt', 'width'] },
-      spacer: { content: 'none', attrs: ['height'] },
-      horizontalRule: { content: 'none' }
+      button: {
+        content: 'inline',
+        attrs: ['href', 'showWhen'],
+        plainText: true
+      },
+      image: { content: 'none', attrs: ['src', 'alt', 'width', 'showWhen'] },
+      spacer: { content: 'none', attrs: ['height', 'showWhen'] },
+      horizontalRule: { content: 'none', attrs: ['showWhen'] },
+      variable: { inline: true, content: 'none', attrs: ['key', 'fallback'] }
     },
     marks,
     httpsImages: true
