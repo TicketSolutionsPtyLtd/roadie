@@ -178,6 +178,22 @@ function minMax(values: readonly number[]): [number, number] {
   return [min, max]
 }
 
+// A stacked area drops a row with no value or series, so its x span comes from
+// the rest; lines and bars keep a slot for a missing value.
+const drawnRows = (chart: AnnotatedChart, data: readonly PlotRow[]) =>
+  chart.kind === 'stacked-area'
+    ? data.filter((row) => {
+        const y = row[chart.y]
+        const series = row[chart.series]
+        return (
+          typeof y === 'number' &&
+          Number.isFinite(y) &&
+          series != null &&
+          String(series) !== ''
+        )
+      })
+    : data
+
 // Mirrors how the charts place annotations: by wall time on a time axis, where
 // a bar covers its whole interval, and by exact value otherwise.
 function annotationFits(
@@ -185,7 +201,9 @@ function annotationFits(
   chart: AnnotatedChart,
   data: readonly PlotRow[]
 ) {
-  const xs = data.map((row) => row[chart.x]).filter((v) => v != null)
+  const xs = drawnRows(chart, data)
+    .map((row) => row[chart.x])
+    .filter((v) => v != null)
   if (xs.length === 0) return true
   if (xs.every(isWallTime)) {
     const time = parseWallTime(at)

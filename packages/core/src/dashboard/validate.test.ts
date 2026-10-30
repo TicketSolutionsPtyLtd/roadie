@@ -629,6 +629,41 @@ describe('validateDashboard checks annotations against the data', () => {
     ])
   })
 
+  it.each([
+    ['first', '2026-08-03T08:00'],
+    ['last', '2026-08-03T11:00']
+  ])(
+    'warns on a stacked area annotation at a %s time with no value, which the chart drops',
+    (_, at) => {
+      expect(
+        problemsAt({
+          kind: 'stacked-area',
+          data: [
+            { time: '2026-08-03T08:00', orders: null, gate: 'Main' },
+            ...hourly.map((row) => ({ ...row, gate: 'Main' })),
+            { time: '2026-08-03T11:00', orders: 300, gate: '' }
+          ],
+          x: 'time',
+          y: 'orders',
+          series: 'gate',
+          annotations: [{ at, label: 'Presale' }]
+        })
+      ).toHaveLength(1)
+    }
+  )
+
+  it('accepts a line annotation at a first time with no value, which the line keeps', () => {
+    expect(
+      problemsAt({
+        kind: 'line',
+        data: [{ time: '2026-08-03T08:00', orders: null }, ...hourly],
+        x: 'time',
+        y: 'orders',
+        annotations: [{ at: '2026-08-03T08:00', label: 'Presale' }]
+      })
+    ).toEqual([])
+  })
+
   it('warns on a date outside hourly data', () => {
     expect(
       problemsAt({
