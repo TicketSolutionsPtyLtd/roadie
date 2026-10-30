@@ -59,10 +59,11 @@ export const EDITOR_TOOLBAR_HEIGHT: Record<EditorSize, string> = {
 }
 
 // Sticky, so each fill is opaque and matches the frame the text scrolls
-// under. A subtle frame is a tint on the page, so the bar lays it on the
-// normal surface. A subtler editor's bar keeps a gap above the first line.
+// under, through its hover, focus and invalid fills. A subtle frame is a tint
+// on the page, so the bar lays it on the normal surface. A subtler editor's
+// bar keeps a gap above the first line.
 export const EDITOR_DOCKED_BAR: Record<EditorEmphasis, string> = {
-  normal: 'rounded-t-lg bg-sunken',
+  normal: 'rounded-t-lg bg-inherit',
   subtle:
     'rounded-t-lg bg-normal bg-linear-to-b from-(--intent-bg-subtle) to-(--intent-bg-subtle)',
   subtler: 'mb-3 bg-normal'

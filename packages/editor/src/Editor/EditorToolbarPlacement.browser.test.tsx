@@ -177,7 +177,10 @@ describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
     expect(getComputedStyle(surfaceOf(toolbar)).borderTopLeftRadius).toBe('0px')
     expect(borderBottomWidth).toBe('1px')
     expect(borderBottomColor).not.toBe(TRANSPARENT)
-    expect(getComputedStyle(bar).backgroundColor).not.toBe(TRANSPARENT)
+    const fill = (element: HTMLElement) =>
+      getComputedStyle(element).backgroundColor
+    expect(fill(bar)).not.toBe(TRANSPARENT)
+    expect(fill(bar)).toBe(fill(frame))
     expect(bar.getBoundingClientRect().width).toBe(frame.clientWidth)
     expect(bar.getBoundingClientRect().top).toBe(
       frame.getBoundingClientRect().top + frame.clientTop
@@ -191,14 +194,18 @@ describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
     window.scrollTo(0, 0)
     await new Promise(requestAnimationFrame)
 
-    expect(looksOf(bar)).toEqual(resting.looks)
+    const { backgroundColor: _, ...shape } = resting.looks
+    expect(looksOf(bar)).toMatchObject(shape)
+    // The focused frame's fill changes, and the bar follows it.
+    await waitFor(() => expect(fill(bar)).toBe(fill(frame)))
     expect(pageTop(toolbar)).toBeCloseTo(resting.top, 1)
     expect(pageTop(textbox)).toBeCloseTo(resting.text, 1)
 
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
     await new Promise(requestAnimationFrame)
 
-    expect(looksOf(bar)).toEqual(resting.looks)
+    expect(looksOf(bar)).toMatchObject(shape)
+    await waitFor(() => expect(fill(bar)).toBe(fill(frame)))
     expect(pageTop(textbox)).toBeCloseTo(resting.text, 1)
   })
 

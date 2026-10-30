@@ -355,4 +355,33 @@ describe('Floating toolbar keys', () => {
       ).toEqual(paragraph(`${TEXT}, rain or shine`))
     )
   })
+
+  it('keeps the toolbar opened at the caret while its Block type menu is open', async () => {
+    const onValueChange = vi.fn()
+    render(<Page toolbar='floating' onValueChange={onValueChange} />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText(TEXT))
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    const toolbar = await floating()
+    await waitFor(() =>
+      expect(
+        within(toolbar).getByRole('button', { name: /^Block type/ })
+      ).toHaveFocus()
+    )
+
+    await userEvent.keyboard('{Enter}')
+    await userEvent.click(
+      await screen.findByRole('menuitemradio', { name: 'Heading 2' })
+    )
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content?.[1]
+      ).toEqual({
+        type: 'heading',
+        attrs: { level: 2 },
+        content: [{ type: 'text', text: TEXT }]
+      })
+    )
+  })
 })
