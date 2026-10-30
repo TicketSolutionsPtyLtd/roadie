@@ -3,10 +3,11 @@ import { useState } from 'react'
 import { TicketIcon } from '@phosphor-icons/react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
+import roadieCss from '../../vitest.browser.css?inline'
 import {
   type EditorBlock,
   type EditorNodeViewProps,
@@ -19,6 +20,15 @@ import { renderEditorValue } from '../render'
 import type { EditorValue } from '../schema'
 
 const LABEL = 'Page'
+
+// The block handle sits outside the text, where a click lands only with styles.
+let style: HTMLStyleElement
+beforeAll(() => {
+  style = document.createElement('style')
+  style.textContent = roadieCss
+  document.head.append(style)
+})
+afterAll(() => style.remove())
 
 function EventCardView({ node, updateAttributes }: EditorNodeViewProps) {
   return (
@@ -264,5 +274,62 @@ describe('Editor extensions', () => {
     )
     warn.mockRestore()
     vi.unstubAllGlobals()
+  })
+
+  it('duplicates and moves an app’s block from the block handle', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        extensions={[eventCard]}
+        onValueChange={onValueChange}
+        defaultValue={{
+          version: 1,
+          preset: 'blocks',
+          doc: {
+            type: 'doc',
+            content: [
+              { type: 'eventCard', attrs: { eventId: 'okw', blockId: 'card' } },
+              {
+                type: 'paragraph',
+                attrs: { blockId: 'doors' },
+                content: [{ type: 'text', text: 'Doors 7pm' }]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    const blocks = () =>
+      lastValue(onValueChange).doc.content!.map((node) => [
+        node.type,
+        node.attrs?.blockId
+      ])
+    const openMenu = async () => {
+      const [first] = await screen.findAllByRole('textbox', { name: 'Event' })
+      await userEvent.hover(first!)
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Block actions' })
+      )
+      return screen.findByRole('menu')
+    }
+
+    await openMenu()
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Duplicate' }))
+
+    await waitFor(() => expect(blocks()).toHaveLength(3))
+    const [card, copy] = blocks()
+    expect(card).toEqual(['eventCard', 'card'])
+    expect(copy![0]).toBe('eventCard')
+    expect(copy![1]).not.toBe('card')
+    expect(lastValue(onValueChange).doc.content![1]!.attrs!.eventId).toBe('okw')
+
+    await openMenu()
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Move down' }))
+
+    await waitFor(() =>
+      expect(blocks().map(([, id]) => id)).toEqual([copy![1], 'card', 'doors'])
+    )
   })
 })
