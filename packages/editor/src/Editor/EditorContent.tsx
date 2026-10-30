@@ -17,7 +17,8 @@ export function EditorContent({ className, ...props }: EditorContentProps) {
     <TiptapContent
       data-slot='editor-content'
       editor={editor}
-      className={cn('grid grow', className)}
+      // The block handle sits beside each block, placed against this.
+      className={cn('relative grid grow', className)}
       {...props}
     />
   )
