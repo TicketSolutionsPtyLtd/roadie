@@ -31,8 +31,7 @@ export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
   }
 
 // Two lines beside the Chart/Table icon switch, measured at each size's
-// narrowest width with realistic word breaks. A card label wraps to two lines
-// and truncates past them; a stat label stays on one.
+// narrowest width with realistic word breaks.
 export const CHART_LABEL_LIMITS: Record<Exclude<CardSize, 'stat'>, number> = {
   sm: 42,
   md: 42,

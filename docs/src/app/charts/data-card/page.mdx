@@ -57,7 +57,7 @@ import { DataCard } from '@oztix/roadie-components/data-card'
 
 Put at most one visible action first and `DataCard.MoreButton` last. More passes its props and ref through, so pass it to a [Menu](/components/menu) trigger's `render` to open the card's menu.
 
-The label wraps to two lines, then truncates, so it keeps room beside the actions. The actions sit on its first line, so they line up across a row of cards however far each label wraps. A `stat` label stays on one line, so the values in a row of stat tiles line up.
+The label wraps to two lines, then truncates, so it keeps room beside the actions. The actions sit on its first line, so they line up across a row of cards however far each label wraps. A `stat` label stays on one line, so the values in a row of stat tiles line up. Actions take the label's `text-sm` type, so give any raw text or link in them its own size.
 
 ```tsx-live width=72
 <DataCard

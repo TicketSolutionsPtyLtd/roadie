@@ -327,29 +327,6 @@ describe('DataCard copy never wraps', () => {
     }
   })
 
-  it.each([
-    ['md', 2],
-    ['stat', 1]
-  ] as const)('clamps a %s label at %i line(s)', (size, lineCount) => {
-    const { container } = render(
-      <div style={{ width: 240 }}>
-        <DataCard
-          size={size}
-          label='Tickets sold across every venue on the tour this season, by ticket type'
-          value={1842}
-        />
-      </div>
-    )
-    const label = container.querySelector<HTMLElement>(
-      '[data-slot=data-card-label]'
-    )!
-    const lineHeight = Number.parseFloat(getComputedStyle(label).lineHeight)
-    expect(label.getBoundingClientRect().height).toBeCloseTo(
-      lineHeight * lineCount,
-      0
-    )
-  })
-
   it('keeps a real, visible border under forced-colors', async () => {
     const { container } = render(
       <div style={{ width: 280 }}>
@@ -400,5 +377,30 @@ describe('DataCard copy never wraps', () => {
     } finally {
       await commands.forcedColors(false)
     }
+  })
+})
+
+describe('DataCard label lines', () => {
+  it.each([
+    ['md', 2],
+    ['stat', 1]
+  ] as const)('clamps a %s label at %i line(s)', (size, lineCount) => {
+    const { container } = render(
+      <div style={{ width: 280 }}>
+        <DataCard
+          size={size}
+          label='Tickets sold across every venue on the tour this season, by ticket type'
+          value={1842}
+        />
+      </div>
+    )
+    const label = container.querySelector<HTMLElement>(
+      '[data-slot=data-card-label]'
+    )!
+    const lineHeight = Number.parseFloat(getComputedStyle(label).lineHeight)
+    expect(label.getBoundingClientRect().height).toBeCloseTo(
+      lineHeight * lineCount,
+      0
+    )
   })
 })

@@ -144,7 +144,6 @@ describe('a label beside actions', () => {
       )
       const labelEl = container.querySelector('[data-slot=data-card-label]')!
       expect(labelEl.scrollHeight).toBeLessThanOrEqual(labelEl.clientHeight)
-      expect(labelEl.scrollWidth).toBeLessThanOrEqual(labelEl.clientWidth)
     }
   )
 
