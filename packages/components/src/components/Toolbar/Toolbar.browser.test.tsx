@@ -14,7 +14,7 @@ import { page, userEvent } from 'vitest/browser'
 
 import { Toolbar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { focusAfterKey, focusRing } from '../../css/testUtils'
+import { focusRing } from '../../css/testUtils'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
 
@@ -538,7 +538,11 @@ describe('Flush toolbar', () => {
           </Toolbar.Group>
         </Toolbar>
       )
-      const control = await focusAfterKey(screen.getByRole('button', { name }))
+      // Firefox shows no ring for scripted focus inside a composite, so the keys move it.
+      await userEvent.keyboard('{Tab}')
+      if (name === 'Save draft') await userEvent.keyboard('{ArrowRight}')
+      const control = screen.getByRole('button', { name })
+      expect(control).toHaveFocus()
       const ring = focusRing(control)
       expect(ring.width).toBe('4px')
       expect(ring.offset).toBe('-4px')
