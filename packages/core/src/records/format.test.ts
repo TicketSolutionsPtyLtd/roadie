@@ -55,6 +55,29 @@ describe('formatRecordValue', () => {
     expect(formatRecordValue(row, field(key), options)).toBe(expected)
   })
 
+  it('keeps an end held as an instant after a plain start date', () => {
+    const run: RecordField = {
+      key: 'opens',
+      label: 'Run',
+      type: 'date',
+      moment: 'date',
+      end: 'closes'
+    }
+    expect(
+      formatRecordValue(
+        { opens: '2026-10-03', closes: '2026-10-05T03:00:00Z' },
+        run,
+        options
+      )
+    ).toBe(
+      formatRecordValue(
+        { opens: '2026-10-03', closes: '2026-10-05' },
+        run,
+        options
+      )
+    )
+  })
+
   it('reads a list of dates as each date', () => {
     const sessions: RecordField = {
       key: 'sessions',
