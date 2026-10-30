@@ -928,3 +928,15 @@ describe('reading the clock', () => {
     )
   })
 })
+
+describe('relative formatter reuse', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('builds the relative formatter once across many values', () => {
+    const RelativeTimeFormat = vi.spyOn(Intl, 'RelativeTimeFormat')
+    const now = new Date('2026-10-30T00:00:00Z')
+    for (let hours = 1; hours <= 20; hours++)
+      formatRelative(new Date(now.getTime() - hours * 3_600_000), { now })
+    expect(RelativeTimeFormat).toHaveBeenCalledTimes(1)
+  })
+})
