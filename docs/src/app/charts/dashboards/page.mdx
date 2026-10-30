@@ -732,8 +732,10 @@ can list its own comparisons, such as similar venues, in
 - To open a card’s records for the same dates, read `spec.period` in
   `getRowHref`. A relative period becomes a records `within` filter, and
   custom dates a `between` filter.
-- No chart draws a comparison series yet. Show the comparison as a delta, and
-  say what it compares with.
+- A `bar` plot draws the comparison as a quiet bar beside each bar, from a
+  [`comparison`](/charts/bar-chart#comparison) field on the same rows. The app
+  lines those rows up with the period. Other charts don't draw one yet, so
+  show it as a delta there and say what it compares with.
 
 On the docs site, a table gives the dates the previous period and the previous
 year cover for last month, month to date, this month, the last 30 days, and
