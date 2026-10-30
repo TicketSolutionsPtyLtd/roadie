@@ -26,24 +26,35 @@ export function ReferenceDashboard({
     <div className='grid gap-8'>
       {view ?? <DashboardView spec={spec} cardActions={cardActions} />}
       <div className='mx-auto grid w-full max-w-200 gap-6'>
-        <h2 className='text-display-ui-4 text-strong'>As data</h2>
+        <h2 id='as-data' className='text-display-ui-4 text-strong'>
+          As data
+        </h2>
         <CodePreview language='json'>
           {JSON.stringify(spec, null, 2)}
         </CodePreview>
         {period && (
           <>
-            <h2 className='text-display-ui-4 text-strong'>With a period</h2>
+            <h2 id='with-a-period' className='text-display-ui-4 text-strong'>
+              With a period
+            </h2>
             <p className='text-subtle'>{period.note}</p>
             <CodePreview language='tsx'>{period.code}</CodePreview>
           </>
         )}
         {cardActionsCode && (
           <>
-            <h2 className='text-display-ui-4 text-strong'>With card actions</h2>
+            <h2
+              id='with-card-actions'
+              className='text-display-ui-4 text-strong'
+            >
+              With card actions
+            </h2>
             <CodePreview language='tsx'>{cardActionsCode}</CodePreview>
           </>
         )}
-        <h2 className='text-display-ui-4 text-strong'>As JSX</h2>
+        <h2 id='as-jsx' className='text-display-ui-4 text-strong'>
+          As JSX
+        </h2>
         <CodePreview language='tsx'>{jsx}</CodePreview>
       </div>
     </div>

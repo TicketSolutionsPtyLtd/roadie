@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 import { ArrowDownIcon, ArrowRightIcon } from '@phosphor-icons/react'
 import type { Intent } from '@roadie-core/tokens'
+import { slug } from 'github-slugger'
 
 import { Code } from '@oztix/roadie-components/code'
 import { Select } from '@oztix/roadie-components/select'
@@ -50,7 +51,9 @@ function Layer({
           {step}
         </span>
         <div className='grid gap-1'>
-          <h3 className='text-display-ui-5 text-strong'>{title}</h3>
+          <h3 id={slug(title)} className='text-display-ui-5 text-strong'>
+            {title}
+          </h3>
           <p className='text-sm text-subtle'>{body}</p>
         </div>
       </div>

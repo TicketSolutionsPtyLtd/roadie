@@ -16,7 +16,7 @@ import { cn } from '@oztix/roadie-core/utils'
 import { landOn } from './landOn'
 import { scrollParentOf } from './nearViewport'
 
-// A heading takes over once it rises into the top 30% of the scroller.
+// A heading takes over once it rises into the top 30% of the scroller, below its scroll padding.
 const ACTIVE_LINE = 0.3
 // Smooth scroll usually settles in <500ms but we leave headroom for slow
 // machines + the inertia tail before honouring scroll updates again.
@@ -53,15 +53,6 @@ const useActiveHeading = () =>
     () => null
   )
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-}
-
 /** Headings and a scroll-to handler, lifted so the inspector renders only with two or more. Off while a page fills the inspector itself. */
 export function useDocHeadings(enabled = true): DocHeadings {
   const route = useRoute()
@@ -72,6 +63,8 @@ export function useDocHeadings(enabled = true): DocHeadings {
   // smooth-scrolling toward the user's target.
   const programmaticScrollLockRef = useRef<number>(0)
   const elementsRef = useRef(new Map<string, HTMLHeadingElement>())
+  // The hash last landed on or set by a click, so each change lands once.
+  const seenHashRef = useRef('')
 
   useEffect(() => {
     // Clear on every bail-out, or the last page's headings linger.
@@ -95,6 +88,25 @@ export function useDocHeadings(enabled = true): DocHeadings {
     // Read from positions, not crossings, so a jump between headings still lands.
     let frame = 0
     let afterLock: ReturnType<typeof setTimeout> | undefined
+    // Found again only on a resize, so a scroll frame reads positions alone.
+    let pane: Element | null = null
+    let paddingTop = 0
+    const resized = new ResizeObserver(() => {
+      measure()
+      scheduleHighlight()
+    })
+    const measure = () => {
+      const next = scrollParentOf(mainEl)
+      if (next !== pane) {
+        resized.unobserve(pane ?? document.documentElement)
+        resized.observe(next ?? document.documentElement)
+        pane = next
+      }
+      paddingTop =
+        parseFloat(
+          getComputedStyle(pane ?? document.documentElement).scrollPaddingTop
+        ) || 0
+    }
     const highlight = () => {
       frame = 0
       const locked = programmaticScrollLockRef.current - Date.now()
@@ -103,7 +115,6 @@ export function useDocHeadings(enabled = true): DocHeadings {
         afterLock = setTimeout(scheduleHighlight, locked)
         return
       }
-      const pane = scrollParentOf(mainEl)
       const scroller = pane ?? document.documentElement
       const top = pane?.getBoundingClientRect().top ?? 0
       const height = pane?.clientHeight ?? window.innerHeight
@@ -111,7 +122,9 @@ export function useDocHeadings(enabled = true): DocHeadings {
       const atEnd =
         scroller.scrollTop + height >= scroller.scrollHeight - 1 &&
         scroller.scrollTop > 0
-      const line = top + (atEnd ? height : height * ACTIVE_LINE)
+      const line =
+        top +
+        (atEnd ? height : paddingTop + (height - paddingTop) * ACTIVE_LINE)
       let active: string | undefined
       for (const [id, el] of elementsRef.current) {
         if (!el.getClientRects().length) continue
@@ -125,37 +138,24 @@ export function useDocHeadings(enabled = true): DocHeadings {
     }
 
     const collect = () => {
-      // Seed with every id on the page, so an assigned id never collides.
-      const usedIds = new Set<string>(
-        Array.from(document.querySelectorAll<HTMLElement>('[id]')).map(
-          (node) => node.id
-        )
-      )
       const collected: Heading[] = []
       const elements = new Map<string, HTMLHeadingElement>()
 
+      // Only headings rendered with an id: writing one after render breaks hydration.
       mainEl.querySelectorAll<HTMLHeadingElement>(selector).forEach((el) => {
         const text = el.textContent?.trim() ?? ''
-        if (!text) return
+        if (!el.id || !text) return
 
         // Skip example headings (Roadie parts carry data-slot) inside the content only.
         const slot = el.closest('[data-slot], [data-live-example]')
         if (slot && mainEl.contains(slot)) return
 
-        // The page may not have hydrated yet, so the id is only written on click.
-        let id = el.id
-        if (!id) {
-          const base = slugify(text)
-          if (!base) return
-          id = base
-          let suffix = 2
-          while (usedIds.has(id)) {
-            id = `${base}-${suffix++}`
-          }
-        }
-        usedIds.add(id)
-        elements.set(id, el)
-        collected.push({ id, text, level: el.tagName === 'H2' ? 2 : 3 })
+        elements.set(el.id, el)
+        collected.push({
+          id: el.id,
+          text,
+          level: el.tagName === 'H2' ? 2 : 3
+        })
       })
 
       elementsRef.current = elements
@@ -163,30 +163,34 @@ export function useDocHeadings(enabled = true): DocHeadings {
       scheduleHighlight()
     }
 
+    measure()
+    resized.observe(mainEl)
     collect()
     // A hash jump lands before the examples around it mount, which would push it away.
     const landOnHash = () => {
+      seenHashRef.current = window.location.hash
       let id: string
       try {
         id = decodeURIComponent(window.location.hash.slice(1))
       } catch {
         return
       }
-      if (!id) return
-      // A .tsx page's headings get their ids only once followed.
-      const target = document.getElementById(id) ?? elementsRef.current.get(id)
-      if (!target || !mainEl.contains(target)) return
-      target.id = id
-      landOn(target, false)
+      const target = id ? document.getElementById(id) : null
+      if (target && mainEl.contains(target)) landOn(target, false)
+    }
+    const followHash = () => {
+      if (window.location.hash !== seenHashRef.current) landOnHash()
     }
     landOnHash()
-    window.addEventListener('hashchange', landOnHash)
+    window.addEventListener('hashchange', followHash)
+    // Next's router moves the hash with pushState, which fires no hashchange.
+    const navigation = 'navigation' in window ? window.navigation : undefined
+    navigation?.addEventListener('currententrychange', followHash)
     // Capture hears the pane's scroll as well as the window's.
     document.addEventListener('scroll', scheduleHighlight, {
       capture: true,
       passive: true
     })
-    window.addEventListener('resize', scheduleHighlight)
     // The page's content can be swapped for new nodes after this effect runs.
     const mutations = new MutationObserver(collect)
     mutations.observe(mainEl, { childList: true, subtree: true })
@@ -195,19 +199,23 @@ export function useDocHeadings(enabled = true): DocHeadings {
       if (mainEl.isConnected) return
       const next = document.getElementById('docs-content')
       if (!next) return
+      resized.unobserve(mainEl)
       mainEl = next
       mutations.disconnect()
       mutations.observe(mainEl, { childList: true, subtree: true })
+      resized.observe(mainEl)
+      measure()
       collect()
       landOnHash()
     })
     replaced.observe(document.body, { childList: true, subtree: true })
     return () => {
-      window.removeEventListener('hashchange', landOnHash)
+      window.removeEventListener('hashchange', followHash)
+      navigation?.removeEventListener('currententrychange', followHash)
       document.removeEventListener('scroll', scheduleHighlight, {
         capture: true
       })
-      window.removeEventListener('resize', scheduleHighlight)
+      resized.disconnect()
       cancelAnimationFrame(frame)
       clearTimeout(afterLock)
       mutations.disconnect()
@@ -229,7 +237,6 @@ export function useDocHeadings(enabled = true): DocHeadings {
 
       const target = elementsRef.current.get(id)
       if (!target) return
-      target.id = id
 
       event.preventDefault()
       programmaticScrollLockRef.current =
@@ -237,9 +244,8 @@ export function useDocHeadings(enabled = true): DocHeadings {
       // The pane scrolls, not the window; its scroll-pt keeps the heading clear.
       landOn(target, true)
       setActiveHeading(id)
-      if (window.history.replaceState) {
-        window.history.replaceState(null, '', `#${id}`)
-      }
+      seenHashRef.current = `#${id}`
+      window.history.replaceState(null, '', `#${id}`)
     },
     []
   )
