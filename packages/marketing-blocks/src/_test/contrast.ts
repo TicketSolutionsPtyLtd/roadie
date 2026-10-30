@@ -57,8 +57,16 @@ export function textContrast(element: Element): number {
   return Math.abs(apcaLc(text, background))
 }
 
+/** The APCA Lc between two elements' shown fills, as a positive number: how far a control stands out from the surface behind it. */
+export function fillContrast(element: Element, surface: Element): number {
+  return Math.abs(apcaLc(shownFill(element), shownFill(surface)))
+}
+
 /** Roadie's APCA floors for block text (docs/decisions/0010-apca-contrast.md). */
 export const MINIMUM_LC = { body: 60, large: 45 } as const
+
+/** The least a filled control's fill should differ from the surface it sits on. */
+export const MINIMUM_FILL_LC = 15
 
 export const MODES = ['light', 'dark'] as const
 

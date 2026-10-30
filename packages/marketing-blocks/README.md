@@ -65,11 +65,18 @@ Run `pnpm generate:exports` after adding the folder.
   `cardEmphasis?` for every card at once, never per card, and an item may take its own
   `intent`. Never an emphasis option that hides content or breaks contrast.
 - **Interaction follows links, never surfaces.** Card-like items build on Roadie's
-  `Card`. An item with `href` gets a `Card.Link` on its title (`data-interactive-target`)
-  and `is-interactive-within` on the card, so the whole card is the hit area and the
-  click reports the title. An item without `href` gets no hover or focus state. A linked
-  card with no surface takes `subtler`, so its hover has somewhere to show. Sections,
-  panels, and stats are never interactive.
+  `Card`. An item with `href` gets a `Card.Link` on its title (`data-interactive-target`),
+  so the whole card is the hit area and the click reports the title. A card carries
+  `is-interactive-within`, as `Card` does; it does nothing without a target, so an item
+  without `href` shows no hover or focus state. A linked card with no surface takes
+  `subtler`, so its hover has somewhere to show. Sections, panels, and stats are never
+  interactive.
+- **The strong action stands out from a filled surface.** Pass `fill` to `BlockActions`
+  on a `strong` or `inverted` panel, or over a photo scrim, and it picks an intent that
+  stands out (`strongActionIntent`, tested against every intent in both modes).
+- **One band shape.** A section band (a surface behind the whole block) runs full width
+  and rounds at `@7xl:rounded-3xl`, as Card grid and CTA band do. A panel inside a block's
+  content (Split, Stats) is `rounded-2xl`.
 - **Keys.** List keys use the item's index with its content, so repeated content stays
   distinct.
 - **Room for an overhang.** CTA band's `with-photo` keeps a top margin for the photo that
