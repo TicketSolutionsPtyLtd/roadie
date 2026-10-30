@@ -1343,6 +1343,83 @@ describe('validateDashboard periods', () => {
       )
     ).toEqual([{ path: 'sections[0].cards[0].context', severity: 'warning' }])
   })
+
+  const lastPeriod = rows.map((row) => ({ ...row, lastPeriod: 1 }))
+  const comparedPlots = [
+    [
+      'line',
+      'plot.comparison',
+      {
+        kind: 'line',
+        data: lastPeriod,
+        x: 'day',
+        y: 'sold',
+        comparison: { y: 'lastPeriod' }
+      }
+    ],
+    [
+      'bar',
+      'plot.comparison',
+      {
+        kind: 'bar',
+        data: lastPeriod,
+        x: 'day',
+        y: 'sold',
+        comparison: { y: 'lastPeriod' }
+      }
+    ],
+    [
+      'small-multiples',
+      'plot.chart.comparison',
+      {
+        kind: 'small-multiples',
+        data: lastPeriod,
+        by: 'channel',
+        chart: {
+          kind: 'line',
+          x: 'day',
+          y: 'sold',
+          comparison: { y: 'lastPeriod' }
+        }
+      }
+    ]
+  ] as const
+
+  it.each(comparedPlots)(
+    'needs a period for a %s plot’s comparison',
+    (_, key, plot) => {
+      expect(problems(spec([chartCard(plot)]))).toEqual([
+        { path: `sections[0].cards[0].${key}`, severity: 'error' }
+      ])
+    }
+  )
+
+  it.each(comparedPlots)(
+    'warns that a %s plot’s comparison hides with an app’s own comparison',
+    (_, key, plot) => {
+      const result = validateDashboard(
+        withPeriod({ range: 'this-month', compare: 'similar' }, [
+          chartCard(plot)
+        ])
+      )
+      expect(result.problems).toEqual([
+        expect.objectContaining({
+          path: `sections[0].cards[0].${key}`,
+          severity: 'warning',
+          message: expect.stringContaining('"similar"')
+        })
+      ])
+    }
+  )
+
+  it.each(comparedPlots)(
+    'passes a %s plot’s comparison with a period',
+    (_, __, plot) => {
+      expect(
+        problems(withPeriod({ range: 'this-month' }, [chartCard(plot)]))
+      ).toEqual([])
+    }
+  )
 })
 
 describe('validateDashboard checks which cards set the period', () => {
