@@ -1,7 +1,7 @@
 import { createChartScene, defineChart } from '@tanstack/charts'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 import { renderChartSvg } from '@tanstack/charts/svg'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import {
   type LabelBox,
@@ -83,6 +83,18 @@ describe('annotationsOnAxis', () => {
         1
       ).map((a) => a.label)
     ).toEqual(['Inside'])
+  })
+
+  it('warns once in development about each annotation it drops', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const before = [{ at: '2026-09-20', label: 'Announced' }]
+    annotationsOnAxis(before, domain, true, 1)
+    annotationsOnAxis(before, domain, true, 1)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]![0]).toMatch(
+      /"Announced" at 2026-09-20 is outside the data/
+    )
+    warn.mockRestore()
   })
 
   it('says how far across the plot each annotation sits', () => {

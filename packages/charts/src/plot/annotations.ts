@@ -53,6 +53,19 @@ const clash = (a: LabelBox, b: LabelBox | null) =>
   a.top < b.bottom &&
   b.top < a.bottom
 
+declare const process: { env?: { NODE_ENV?: string } } | undefined
+
+const warned = new Set<string>()
+
+function warnDropped({ at, label }: PlotAnnotation) {
+  if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
+    return
+  const message = `Roadie chart: the annotation "${label}" at ${at} is outside the data, so it doesn't show`
+  if (warned.has(message)) return
+  warned.add(message)
+  console.warn(message)
+}
+
 /** Places annotations on a continuous x axis, dropping any outside `domain`. */
 export function annotationsOnAxis(
   annotations: readonly PlotAnnotation[] = [],
@@ -62,7 +75,10 @@ export function annotationsOnAxis(
 ): PlacedAnnotation[] {
   return annotations.flatMap(({ at, label }) => {
     const x = isTime ? parseX(at) : finiteOrNull(at)
-    if (x === null || x < start || x > end) return []
+    if (x === null || x < start || x > end) {
+      warnDropped({ at, label })
+      return []
+    }
     const across = end > start ? (x - start) / (end - start) : 0
     return [{ x, label, y, across }]
   })

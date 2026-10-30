@@ -67,6 +67,43 @@ describe('stackedBars', () => {
     ])
   })
 
+  it('draws no legend for a single series', () => {
+    expect(
+      stackedBars.legend(
+        {
+          data: [
+            { band: '18 to 24', gender: 'All', sold: 40 },
+            { band: '25 to 34', gender: 'All', sold: 60 }
+          ],
+          x: 'band',
+          y: 'sold',
+          series: 'gender'
+        },
+        paint,
+        frame
+      )
+    ).toEqual([])
+  })
+
+  it.each(['horizontal', 'vertical'] as const)(
+    'keeps an ordered category with nothing in it, as an empty %s slot',
+    (orientation) => {
+      const bands = ['18 to 24', '25 to 34', '35 to 44']
+      const scene = sceneOf({
+        data: bands.flatMap((band, i) => [
+          { band, type: 'GA', sold: i === 1 ? 0 : 10 },
+          { band, type: 'VIP', sold: i === 1 ? 0 : 5 }
+        ]),
+        x: 'band',
+        y: 'sold',
+        series: 'type',
+        orientation
+      })
+      const labels = JSON.stringify(scene.nodes)
+      for (const band of bands) expect(labels).toContain(band)
+    }
+  )
+
   it('labels the share axis in percent', () => {
     expect(svgOf(presaleExample)).toContain('>100%<')
   })

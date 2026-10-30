@@ -86,6 +86,28 @@ describe('heatmap', () => {
     expect(sizes.every((size) => size === frame.fontSize)).toBe(true)
   })
 
+  it('keeps the data order of the axes when the first cells are empty', () => {
+    const svg = render({
+      data: [
+        { cohort: 'Oct', week: 'Week 0', returned: null },
+        { cohort: 'Oct', week: 'Week 1', returned: 4 },
+        { cohort: 'Sep', week: 'Week 0', returned: 9 },
+        { cohort: 'Sep', week: 'Week 1', returned: 6 }
+      ],
+      rows: 'cohort',
+      columns: 'week',
+      value: 'returned'
+    })
+    const ticks = [
+      ...svg.matchAll(
+        /data-ts-key="x-tick-label:[^"]*"[^>]*x="([\d.]+)"[^>]*>([^<]+)</g
+      )
+    ]
+      .sort((a, b) => Number(a[1]) - Number(b[1]))
+      .map((m) => m[2])
+    expect(ticks).toEqual(['Week 0', 'Week 1'])
+  })
+
   it('keys the low and high ends in the legend', () => {
     expect(
       heatmap
