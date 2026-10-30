@@ -20,8 +20,8 @@ export const quote = {
     logo: {
       src: '/blocks/thimble-orbit-presents-badge.svg',
       alt: 'Thimble Orbit Presents logo',
-      width: 120,
-      height: 40
+      width: 214,
+      height: 48
     }
   },
   image: {

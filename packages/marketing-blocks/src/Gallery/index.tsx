@@ -113,7 +113,7 @@ const NATURAL_HEIGHT = 48
 
 const MARQUEE_SPEED = 40
 
-/** Shows the people and events behind a page in photos. */
+/** Shows the people, events, and partners behind a page in photos or logos. */
 export function Gallery({
   preset: presetName,
   position,

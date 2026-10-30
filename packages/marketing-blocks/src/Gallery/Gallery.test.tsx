@@ -218,14 +218,14 @@ describe('Gallery wrap and links', () => {
     {
       src: '/blocks/kerosene-pony-collective-badge.svg',
       alt: 'Kerosene Pony Collective',
-      width: 240,
-      height: 80
+      width: 214,
+      height: 48
     },
     {
       src: '/blocks/wishbone-ferret-collective-badge.svg',
       alt: 'Wishbone Ferret Collective',
-      width: 240,
-      height: 80
+      width: 214,
+      height: 48
     }
   ]
 

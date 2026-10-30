@@ -10,8 +10,8 @@ const photo = (n: string) => ({
 const logo = (name: string) => ({
   src: `/blocks/${name.toLowerCase().replaceAll(' ', '-')}.svg`,
   alt: `${name} logo`,
-  width: 240,
-  height: 80
+  width: 214,
+  height: 48
 })
 
 export const partnerTiers = {
