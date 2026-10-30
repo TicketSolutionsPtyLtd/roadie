@@ -1,4 +1,4 @@
-import type { CategoryAxis } from './types'
+import { type CategoryAxis, isPlotDatum } from './types'
 
 type Steppable = { xValue: unknown; group: unknown; y: number }
 
@@ -79,11 +79,14 @@ function categoryColumns<T extends Banded & { xValue: unknown }>(
  * Along x both ends are a column's first stop, the same stops the engine's
  * column focus walks.
  */
-export function visualEnds<T extends Banded & { xValue: unknown }>(
-  points: readonly T[],
-  axis: CategoryAxis
-): { first: T; last: T } | null {
+export function visualEnds<
+  T extends Banded & { xValue: unknown; datum?: unknown }
+>(points: readonly T[], axis: CategoryAxis): { first: T; last: T } | null {
   if (!points.length) return null
+  if (axis === 'ring') {
+    const ring = ringOrder(points)
+    return { first: ring[0]!, last: ring.at(-1)! }
+  }
   if (axis === 'y') {
     const rows = categoryRows(points)
     return { first: rows[0]![0]!, last: rows.at(-1)!.at(-1)! }
@@ -114,4 +117,22 @@ export function stepWithin<T extends Banded>(
 ): T | null {
   const row = categoryRows(points).find((r) => r.includes(current))
   return row?.[row.indexOf(current) + direction] ?? null
+}
+
+const ringIndex = (point: { datum?: unknown }) =>
+  isPlotDatum(point.datum) ? point.datum.index : 0
+
+const ringOrder = <T extends { datum?: unknown }>(points: readonly T[]) =>
+  [...points].sort((a, b) => ringIndex(a) - ringIndex(b))
+
+/** Steps clockwise (1) or back (-1) around a ring of slices, wrapping at 12 o'clock. */
+export function stepRing<T extends { datum?: unknown }>(
+  points: readonly T[],
+  current: T,
+  direction: 1 | -1
+): T | null {
+  const ring = ringOrder(points)
+  const index = ring.indexOf(current)
+  if (index < 0) return null
+  return ring[(index + direction + ring.length) % ring.length]!
 }

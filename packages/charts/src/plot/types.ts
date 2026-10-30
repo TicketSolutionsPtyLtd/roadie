@@ -60,7 +60,8 @@ export type TooltipContent = {
   rows: readonly ChartTooltipRow[]
 }
 
-export type CategoryAxis = 'x' | 'y'
+/** Where categories run: along 'x', down 'y', or clockwise around a 'ring'. */
+export type CategoryAxis = 'x' | 'y' | 'ring'
 
 export type ChartDefinition<P> = {
   kind: ChartPlotKind
@@ -80,7 +81,7 @@ export type ChartDefinition<P> = {
     paint: ChartPaint
   ) => TooltipContent
   yExtent?: (props: P) => readonly [number, number]
-  /** The axis categories run along; 'y' for horizontal bars. @default 'x' */
+  /** The axis categories run along; 'y' for horizontal bars, 'ring' for slices. @default 'x' */
   categoryAxis?: (props: P) => CategoryAxis
   /** The x values a range brush snaps to; null when x isn't time. */
   rangeAxis?: (props: P) => RangeAxis | null
