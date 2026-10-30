@@ -375,6 +375,7 @@ describe('barChart comparison', () => {
   it.each([
     ['LY orders', 'LY orders 10'],
     ['GA share', 'GA share 10'],
+    ['Q3 orders', 'Q3 orders 10'],
     ['Previous period', 'previous period 10']
   ])('speaks %s in the same case as the line', (label, spoken) => {
     const props = {
@@ -385,6 +386,23 @@ describe('barChart comparison', () => {
     expect(barChart.describe(day(2), props)).toBe(
       `Sunday, 27 September 2026, 9 orders, ${spoken}, ${spoken}`
     )
+  })
+
+  it('names a comparison with a blank label by its field', () => {
+    const props = {
+      ...comparisonExample,
+      comparison: { y: 'lastPeriod', label: '' }
+    }
+    expect(
+      barChart
+        .legend(props, paint, plotFrame(220, 'default'))
+        .map((i) => i.label)
+    ).toEqual(['Orders', 'Last period'])
+    expect(barChart.tooltip([day(2)], props, paint).rows[1]).toMatchObject({
+      label: 'Last period',
+      value: '10'
+    })
+    expect(barChartTable(props).columns.at(-1)?.header).toBe('Last period')
   })
 
   it('leaves the comparison out of the legend when it has no values', () => {

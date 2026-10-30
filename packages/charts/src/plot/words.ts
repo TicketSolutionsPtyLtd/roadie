@@ -94,6 +94,6 @@ export const nounFor = (count: number, noun: string) =>
 
 /** Lowercases the first letter to run on in a sentence, unless it opens an acronym. */
 export const lowerFirst = (text: string) =>
-  /^[A-Z]{2,}s?\b/.test(text)
+  /^[A-Z][A-Z\d]+s?\b/.test(text)
     ? text
     : text.charAt(0).toLowerCase() + text.slice(1)
