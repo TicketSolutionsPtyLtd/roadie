@@ -36,16 +36,20 @@ import {
   presets
 } from '../schema'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
+import { EditorButtonPopover } from './EditorButtonPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
 import { EditorEmbedPopover } from './EditorEmbedPopover'
 import { EditorEmbedView } from './EditorEmbedView'
 import { EditorImageView } from './EditorImageView'
+import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
 import type { EditorRootProps } from './EditorRoot'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
+import type { EditorControlUi } from './controls'
+import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
 import {
   ImageUpload,
@@ -54,6 +58,8 @@ import {
   replaceImage,
   uploadImages
 } from './imageUpload'
+import { presetInsertItems } from './insertItems'
+import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
@@ -115,7 +121,7 @@ function forEditor(extension: Extensions[number]) {
 const editorExtensions = Object.fromEntries(
   Object.entries(presets).map(([preset, extensions]) => [
     preset,
-    withTableEditing(extensions).map(forEditor)
+    withEmailEditing(withTableEditing(extensions)).map(forEditor)
   ])
 ) as Record<Preset, typeof presets.basic>
 
@@ -143,6 +149,11 @@ function readsDoc(preset: Preset, doc: JSONContent) {
 function presetHoldsImages(preset: Preset) {
   return presets[preset].some(({ name }) => name === 'image')
 }
+
+// At most an email's width, so an author sees the lines a reader will. Its
+// columns query it as a container.
+const EMAIL_CANVAS =
+  '@container mx-auto w-full max-w-[600px] [--prose-measure:none]'
 
 function holdsDoc(editor: TiptapEditor, doc: JSONContent) {
   try {
@@ -230,8 +241,11 @@ export function EditorEngine({
   const [editingLink, setEditingLink] = useState(false)
   const [editingAlt, setEditingAlt] = useState(false)
   const [editingEmbed, setEditingEmbed] = useState(false)
+  const [editingButton, setEditingButton] = useState(false)
   const providersRef = useRef(embedProviders)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
+  const uiRef = useRef<EditorControlUi | null>(null)
   const uploadRef = useRef<UploadImage | undefined>(onUploadImage)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
@@ -258,7 +272,8 @@ export function EditorEngine({
   const holdsImages = presetHoldsImages(preset)
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
-    onError: setUploadError
+    onError: setUploadError,
+    httpsOnly: preset === 'email'
   }
 
   const editor = useEditor({
@@ -271,7 +286,12 @@ export function EditorEngine({
       LinkShortcut.configure({ onEditLink: () => setEditingLink(true) }),
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       ImageUpload.configure(uploads),
-      EmbedPaste.configure({ providers: () => providersRef.current })
+      EmbedPaste.configure({ providers: () => providersRef.current }),
+      InsertMenu.configure({
+        items: presetInsertItems[preset] ?? [],
+        ui: () => uiRef.current!,
+        onChange: setInsertMenu
+      })
     ],
     content: readableDoc,
     editable,
@@ -288,7 +308,11 @@ export function EditorEngine({
         ...((readOnly || unreadable) && { 'aria-readonly': 'true' }),
         ...(disabled && { 'aria-disabled': 'true' }),
         // A grid item, which would otherwise grow to fit a wide table.
-        class: cn(editorContentClass(size, emphasis), 'min-w-0 outline-none')
+        class: cn(
+          editorContentClass(size, emphasis),
+          'min-w-0 outline-none',
+          preset === 'email' && EMAIL_CANVAS
+        )
       },
       handleDOMEvents: {
         // ProseMirror draws its selection only while focused, so a press that
@@ -375,9 +399,17 @@ export function EditorEngine({
         setEditingEmbed(true)
       }
     },
+    editButton: () => {
+      if (editor?.isEditable && editor.schema.nodes.button) {
+        setEditingButton(true)
+      }
+    },
     pickImage: canUpload ? () => fileInputRef.current?.click() : undefined,
     replaceImage: canUpload ? () => replaceInputRef.current?.click() : undefined
   }
+  useEffect(() => {
+    uiRef.current = ui
+  })
 
   return (
     <EditorContext
@@ -422,6 +454,13 @@ export function EditorEngine({
             toolbarRef={nodeToolbarRef}
           />
         ) : null}
+        {editor ? (
+          <EditorInsertMenu
+            editor={editor}
+            state={insertMenu}
+            id={`${contentId}-insert`}
+          />
+        ) : null}
         {editor?.schema.nodes.table ? (
           <EditorTableToolbar
             editor={editor}
@@ -439,6 +478,11 @@ export function EditorEngine({
           editor={editor}
           open={editingAlt}
           onOpenChange={setEditingAlt}
+        />
+        <EditorButtonPopover
+          editor={editor}
+          open={editingButton}
+          onOpenChange={setEditingButton}
         />
         <EditorEmbedPopover
           editor={editor}
