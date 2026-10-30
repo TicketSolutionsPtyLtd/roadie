@@ -694,6 +694,19 @@ describe('a reorderable List.Item without a plain title', () => {
     warn.mockRestore()
   })
 
+  it('warns when its label and string title are both empty', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <Sortable items={['sku']} onReorder={() => {}}>
+        <List>
+          <List.Item value='sku' title='' label='' />
+        </List>
+      </Sortable>
+    )
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('label'))
+    warn.mockRestore()
+  })
+
   it('warns when it has no label', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     render(
