@@ -39,6 +39,7 @@ import {
 } from '../schema'
 import { BLOCK_ID, BLOCK_ID_TYPES } from '../schema/presetShapes'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
+import { EditorBlockHandle } from './EditorBlockHandle'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
 import { EditorEmbedPopover } from './EditorEmbedPopover'
@@ -83,6 +84,18 @@ const LinkShortcut = Extension.create<LinkShortcutOptions>({
     }
   }
 })
+
+type BlockMenuShortcutOptions = { open: () => boolean }
+
+// Notion's shortcut for a block's actions.
+const BlockMenuShortcut = Extension.create<BlockMenuShortcutOptions>({
+  name: 'blockMenuShortcut',
+  addKeyboardShortcuts() {
+    return { 'Mod-/': () => this.options.open() }
+  }
+})
+
+const BLOCK_HANDLE_PRESETS: ReadonlySet<Preset> = new Set(['blocks'])
 
 type AltTextShortcutOptions = { onEditAlt: () => void }
 
@@ -257,6 +270,7 @@ export function EditorEngine({
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
   const slashMenuRef = useRef<SlashMenuHandle>(null)
+  const openBlockMenuRef = useRef<(() => void) | null>(null)
   const [editingLink, setEditingLink] = useState(false)
   const [editingAlt, setEditingAlt] = useState(false)
   const [editingEmbed, setEditingEmbed] = useState(false)
@@ -297,6 +311,7 @@ export function EditorEngine({
   const editable = !readOnly && !disabled && !unreadable
   useFieldControlError(uploadError ?? (unreadable ? UNREADABLE : null))
   const holdsImages = presetHoldsImages(preset)
+  const hasBlockHandle = BLOCK_HANDLE_PRESETS.has(preset)
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError
@@ -313,7 +328,13 @@ export function EditorEngine({
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
-      SlashMenu.configure({ menu: () => slashMenuRef.current })
+      SlashMenu.configure({ menu: () => slashMenuRef.current }),
+      BlockMenuShortcut.configure({
+        open: () => {
+          openBlockMenuRef.current?.()
+          return Boolean(openBlockMenuRef.current)
+        }
+      })
     ],
     content: readableDoc,
     editable,
@@ -330,7 +351,12 @@ export function EditorEngine({
         ...((readOnly || unreadable) && { 'aria-readonly': 'true' }),
         ...(disabled && { 'aria-disabled': 'true' }),
         // A grid item, which would otherwise grow to fit a wide table.
-        class: cn(editorContentClass(size, emphasis), 'min-w-0 outline-none')
+        class: cn(
+          editorContentClass(size, emphasis),
+          'min-w-0 outline-none',
+          // Room for the block handle at each block's start.
+          hasBlockHandle && emphasis !== 'subtler' && 'ps-10'
+        )
       },
       handleDOMEvents: {
         // ProseMirror draws its selection only while focused, so a press that
@@ -486,6 +512,9 @@ export function EditorEngine({
             ui={ui}
             toolbarRef={nodeToolbarRef}
           />
+        ) : null}
+        {editor && hasBlockHandle ? (
+          <EditorBlockHandle editor={editor} openMenuRef={openBlockMenuRef} />
         ) : null}
         {editor?.schema.nodes.table ? (
           <EditorTableToolbar
