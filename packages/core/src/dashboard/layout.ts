@@ -21,31 +21,37 @@ export type CardKind = (typeof CARD_KINDS)[number]
 export type CardState = (typeof CARD_STATES)[number]
 export type ColumnKind = (typeof COLUMN_KINDS)[number]
 
+// Measured at each size's narrowest width. A stat label and every context
+// line get one line. Table and note labels get two, with realistic word
+// breaks, less about 10% because Linux Chromium sets them wider than macOS;
+// chart labels use CHART_LABEL_LIMITS.
 export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
   {
     stat: { label: 19, context: 20 },
-    sm: { label: 32, context: 34 },
-    md: { label: 32, context: 34 },
-    lg: { label: 36, context: 39 },
-    full: { label: 36, context: 39 }
+    sm: { label: 60, context: 34 },
+    md: { label: 60, context: 34 },
+    lg: { label: 72, context: 39 },
+    full: { label: 72, context: 39 }
   }
 
-// Tighter than COPY_LIMITS: measured beside the Chart/Table icon switch.
+// Two lines beside the Chart/Table icon switch, measured at each size's
+// narrowest width with realistic word breaks.
 export const CHART_LABEL_LIMITS: Record<Exclude<CardSize, 'stat'>, number> = {
-  sm: 21,
-  md: 21,
-  lg: 27,
-  full: 27
+  sm: 42,
+  md: 42,
+  lg: 50,
+  full: 50
 }
 
-// Beside a More button: stat tiles at `stat`, chart cards at the rest. Table
-// and note labels keep COPY_LIMITS. Not validated, since actions aren't JSON.
+// Beside a More button: stat tiles on one line at `stat`, and two lines at the
+// rest, measured beside the Chart/Table switch too, so table and note labels
+// fit them as well. Not validated, since actions aren't JSON.
 export const ACTIONS_LABEL_LIMITS: Record<CardSize, number> = {
   stat: 14,
-  sm: 18,
-  md: 18,
-  lg: 23,
-  full: 23
+  sm: 29,
+  md: 29,
+  lg: 42,
+  full: 42
 }
 
 export const DASHBOARD_WIDTHS = ['desktop', 'tablet', 'phone'] as const

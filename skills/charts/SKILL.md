@@ -249,8 +249,10 @@ if (!result.ok)
   row must fill at desktop (12 tracks), tablet (6), and phone (2). Safe rows:
   four `stat`, two `md`, one `full`, six `sm`, or `lg` + `sm` then `sm` +
   `lg`. Never `lg` then `md`. Change a size, never the order, to fill a gap.
-- Copy limits: a stat label 19 characters, a chart label 21 at `sm` and `md`
-  and 27 at `lg` and `full`, 14 to 23 beside a More button. They're
+- Copy limits: a stat label 19 characters, a chart label 42 at `sm` and `md`
+  and 50 at `lg` and `full`, 14 to 42 beside a More button. Table and note
+  labels get 60 at `sm` and `md` and 72 at `lg` and `full`. Card labels wrap
+  to two lines, then truncate; stat labels stay on one. They're
   `COPY_LIMITS`, `CHART_LABEL_LIMITS`, and `ACTIONS_LABEL_LIMITS` in the
   zod-free `@oztix/roadie-core/dashboard-layout`. Import from there when UI
   code only needs sizes or limits.
