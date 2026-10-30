@@ -237,7 +237,7 @@ describe('a panel', () => {
           <Tabs.Tab value='overview'>Overview</Tabs.Tab>
           <Tabs.Tab value='tickets'>Tickets</Tabs.Tab>
         </Tabs.List>
-        <Tabs.Panel value='overview'>The Wiggles at Riverstage</Tabs.Panel>
+        <Tabs.Panel value='overview'>Doors open at 7pm</Tabs.Panel>
         <Tabs.Panel value='tickets'>General admission</Tabs.Panel>
       </Tabs>
     )
