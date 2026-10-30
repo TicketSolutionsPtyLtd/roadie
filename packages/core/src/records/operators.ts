@@ -20,7 +20,8 @@ type RecordOperatorSpec = {
 
 /**
  * Every filter operator, in one place. A new operator fails to compile here
- * first, then in each exhaustive switch that matches, describes or translates it.
+ * first, then in the adapters' exhaustive switches. Encoding, decoding and
+ * describing read its value shape and words from here.
  */
 export const RECORD_OPERATORS = {
   is: { value: 'values', label: 'is', opposite: 'is-not' },

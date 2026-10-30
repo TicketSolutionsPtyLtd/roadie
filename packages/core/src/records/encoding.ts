@@ -1,4 +1,5 @@
 import { type RelativeRange, canonicalDateRange } from '../datetime/ranges'
+import { isRecordOperator, recordOperatorSpec } from './operators'
 import type { RecordFilter, RecordSort } from './types'
 
 const NUMBER = /^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/i
@@ -70,7 +71,14 @@ export function decodeRange(text: string): RelativeRange | string {
 export function encodeFilter(filter: RecordFilter): string {
   const head = `${escapeKey(filter.field)}:${filter.operator}`
   if ('values' in filter) return `${head}:${joinItems(filter.values)}`
-  if (!('value' in filter)) return head
+  // A stored or hand-written filter may carry a stray value, which reads as none.
+  if (
+    !('value' in filter) ||
+    filter.value == null ||
+    !isRecordOperator(filter.operator) ||
+    recordOperatorSpec(filter.operator).value === 'none'
+  )
+    return head
   const { value } = filter
   if (Array.isArray(value)) return `${head}:${joinItems(value.map(String))}`
   if (typeof value === 'object') return `${head}:${encodeRange(value)}`
