@@ -34,6 +34,11 @@ const byName = new Map<string, ManifestComponent>(
   )
 )
 
+/** Every component the packages' manifests list. */
+export function manifestComponents(): ManifestComponent[] {
+  return [...byName.values()]
+}
+
 export function manifestComponent(name: string): ManifestComponent {
   const component = byName.get(name)
   if (!component) {
