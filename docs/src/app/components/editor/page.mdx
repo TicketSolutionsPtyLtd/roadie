@@ -719,6 +719,50 @@ render(
 )
 ```
 
+### Email preset
+
+#### Sending email
+
+`@oztix/roadie-editor/email` renders a saved value as an email: a whole HTML
+page, built from tables with inline styles so mail clients show it as
+designed, and its plain-text part.
+
+```tsx
+import { renderEmail } from '@oztix/roadie-editor/email'
+
+const { html, text } = await renderEmail(template, {
+  theme: { link: '#5f270f', button: '#5f270f' }
+})
+```
+
+It runs on the server only, since MJML, the renderer behind it, needs Node.
+[Why Roadie renders email with MJML](https://oztix.atlassian.net/wiki/spaces/ID/pages/1211957251)
+is in the Decision log.
+A Next.js app keeps MJML out of its server bundle, and adds `mjml` to its own
+dependencies too, so Next can resolve it from the app:
+
+```ts
+// next.config.ts
+const nextConfig = { serverExternalPackages: ['mjml'] }
+```
+
+- `theme` is the app's brand kit, over `defaultEmailTheme`: `background`,
+  `text`, `link`, `button`, `buttonText`, and `divider` as hex colours, and
+  `fontFamily` as a stack of web-safe fonts. Mail clients don't read CSS
+  variables, so the default is Roadie's light scales as hex. Keep the kit in
+  the app, never in the saved value. A colour that isn't hex, or a font
+  stack with more than names, quotes, and commas, throws.
+- A section, and a run of blocks outside columns, fill the email's 600 pixel
+  width. Columns sit side by side from 480 pixels and stack on a phone, and
+  stay side by side in Outlook on Windows.
+- `text` writes each link as its text then its href in brackets, unless the
+  two match, and leaves out images, spacers, and dividers.
+
+It reads the value into the email preset first, as `migrate` does, so a value
+from another preset renders too, keeping its text. A link or button needs an
+https, http, mailto, or tel href, since a mail client can't open a path on the
+site, so any other keeps its text and loses its link.
+
 ## Guidelines
 
 - The editor's code loads after the page, so `Editor` shows a skeleton the
