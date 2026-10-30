@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from 'react'
+import type { ReactNode } from 'react'
 
 import { Card } from '@oztix/roadie-components/card'
 import { Mark } from '@oztix/roadie-components/mark'
@@ -12,17 +12,16 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import { type StatItem, StatList } from '../_shared/StatList'
-import { presetOf } from '../_shared/presets'
+import { cycledMarkIntent, itemSurfaceClass } from '../_shared/items'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
   type BlockSize,
   type ItemEmphasis,
-  bySize,
-  emphasisClass,
-  intentClass
+  gapOf
 } from '../_shared/surface'
+import { useBlock } from '../_shared/useBlock'
 import { type SplitPreset, splitDefinition } from './definition'
 
 export type { StatItem } from '../_shared/StatList'
@@ -103,79 +102,38 @@ export type SplitProps = {
   size?: BlockSize
 }
 
-const CONTAINED: Record<SplitPreset, boolean> = {
-  'media-text': true,
-  'alternating-rows': false
-}
-
 /** Text beside an image or the numbers that back it up, or rows of text and images that alternate sides. */
-export function Split({
-  preset,
-  position,
-  id,
-  eyebrow,
-  title,
-  titleHighlight,
-  description,
-  body,
-  actions,
-  image,
-  stats,
-  items = [],
-  intent,
-  emphasis,
-  contained,
-  itemEmphasis,
-  align = 'start',
-  size = 'lg'
-}: SplitProps) {
-  const { name, variant } = presetOf(splitDefinition, preset)
-  const headingId = useId()
+export function Split(props: SplitProps) {
+  const {
+    body,
+    image,
+    stats,
+    items = [],
+    intent,
+    itemEmphasis,
+    size = 'lg'
+  } = props
+  const block = useBlock(splitDefinition, props)
+  const { name, align } = block
   const heading = (
     <BlockHeading
-      id={headingId}
+      {...block.heading}
       step={2}
-      size={size}
-      align={align}
-      intent={intent}
-      eyebrow={eyebrow}
-      title={title}
-      titleHighlight={titleHighlight}
-      description={description}
       wide={name === 'alternating-rows' && align === 'start'}
     />
   )
-  const blockActions = (
-    <BlockActions
-      actions={actions}
-      intent={intent}
-      className={cn(align === 'center' && 'justify-center')}
-    />
-  )
+  const blockActions = <BlockActions {...block.actions} />
 
   return (
-    <BlockRoot
-      block={splitDefinition.name}
-      variant={variant}
-      preset={name}
-      position={position}
-      id={id}
-      intent={intent}
-      aria-labelledby={headingId}
-    >
+    <BlockRoot {...block.root}>
       {name === 'alternating-rows' ? (
         <BlockSurface
-          emphasis={emphasis}
-          contained={contained ?? CONTAINED[name]}
+          emphasis={block.emphasis}
+          contained={block.contained}
           className='grid grid-cols-1 gap-12 wrap-anywhere'
         >
           {heading}
-          <ul
-            className={cn(
-              'grid grid-cols-1',
-              bySize(size, { sm: 'gap-8', md: 'gap-12', lg: 'gap-20' })
-            )}
-          >
+          <ul className={cn('grid grid-cols-1', gapOf(size, 'wider'))}>
             {items.map((row, index) => (
               <AlternatingRow
                 key={`${index}-${row.title}`}
@@ -190,8 +148,8 @@ export function Split({
         </BlockSurface>
       ) : (
         <MediaText
-          emphasis={emphasis}
-          contained={contained ?? CONTAINED[name]}
+          emphasis={block.emphasis}
+          contained={block.contained}
           intent={intent}
           align={align}
           size={size}
@@ -329,19 +287,6 @@ function StatsAside({ title, description, items }: SplitStats) {
   )
 }
 
-const MARK_CYCLE = ['info', 'brand', 'brand-secondary'] as const
-
-// A row follows Card's surfaces, padding a surface as Card.Content does. A linked row with none takes subtler, so its hover has somewhere to show.
-function rowSurface(row: SplitRow, itemEmphasis: ItemEmphasis | undefined) {
-  const surface = itemEmphasis ?? (row.href ? 'subtler' : undefined)
-  return cn(
-    'is-interactive-within min-w-0',
-    intentClass(row.intent),
-    emphasisClass(surface),
-    surface === 'subtler' ? '-m-2 p-2' : surface && 'px-6 py-4'
-  )
-}
-
 function AlternatingRow({
   row,
   index,
@@ -357,7 +302,7 @@ function AlternatingRow({
   return (
     <li
       className={cn(
-        rowSurface(row, itemEmphasis),
+        itemSurfaceClass(row, itemEmphasis),
         'grid items-start gap-x-12 gap-y-4 rounded-3xl @xl:items-center',
         imageFirst
           ? '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
@@ -368,9 +313,7 @@ function AlternatingRow({
         <div className='grid'>
           <Mark
             render={<h3 />}
-            intent={
-              row.intent ?? blockIntent ?? MARK_CYCLE[index % MARK_CYCLE.length]
-            }
+            intent={cycledMarkIntent(row, blockIntent, index)}
             className='px-3 text-display-prose-4'
           >
             {row.href ? (

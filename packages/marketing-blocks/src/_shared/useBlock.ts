@@ -35,11 +35,10 @@ export type BlockFrameProps = {
  * props, then a fallback its content decides, then the preset's defaults. Hands back the
  * props for its root, heading, and actions, so a block renders only its own body.
  */
-export function useBlock<Definition extends BlockDefinition>(
-  definition: Definition,
-  props: BlockFrameProps,
-  fallback: { align?: BlockAlign } = {}
-) {
+export function useBlock<
+  Definition extends BlockDefinition,
+  Props extends BlockFrameProps
+>(definition: Definition, props: Props, fallback: { align?: BlockAlign } = {}) {
   const headingId = useId()
   const preset = presetOf(definition, props.preset)
   const defaults = preset.defaults ?? {}
@@ -47,7 +46,8 @@ export function useBlock<Definition extends BlockDefinition>(
   return {
     name: preset.name as Definition['presets'][number]['name'],
     align,
-    emphasis: props.emphasis ?? defaults.emphasis,
+    // A preset's default emphasis is one its block's own props accept.
+    emphasis: (props.emphasis ?? defaults.emphasis) as Props['emphasis'],
     contained: props.contained ?? defaults.contained ?? false,
     root: {
       block: definition.name,
