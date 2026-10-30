@@ -23,7 +23,7 @@ import { DashboardPeriod } from '@oztix/roadie-components/dashboard-period'
 
 ### Default
 
-One button shows the period and, when there is one, the dates it compares with: “This month 1 to 31 Oct 2026 vs 1 to 30 Sept 2026”. It opens a [DateRangePicker](/components/date-range-picker) that waits for Apply, because each change refetches every card. Its presets look ahead 30 days, 90 days, and to every upcoming date, back 30 days and 12 months, and over this financial year. Under the range, the Compare switch turns the comparison on, and Previous period or Previous year picks it, with the dates it covers below. Apply sends the period and its comparison together. The value is `{ range, compare }`, and no comparison leaves `compare` out. `compareOptions` changes the choices: see below.
+One button shows the period and, when there is one, the dates it compares with: “This month 1 to 31 Oct 2026 vs 1 to 30 Sept 2026”. It opens a [DateRangePicker](/components/date-range-picker) that waits for Apply, because each change refetches every card. Its presets look ahead 30 days, 90 days, and with no end (Upcoming), back 30 days and 12 months, and over this financial year. Under the range, the Compare switch turns the comparison on, and Previous period or Previous year picks it, with the dates it covers below. Apply sends the period and its comparison together. The value is `{ range, compare }`, and no comparison leaves `compare` out. `compareOptions` changes the choices: see below.
 
 ```tsx-live-noinline
 function Default() {

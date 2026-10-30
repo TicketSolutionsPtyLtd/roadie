@@ -137,18 +137,22 @@ describe('DashboardPeriod', () => {
     expect(compareDates(dialog)).toHaveTextContent('9 Aug to 7 Sept 2026')
   })
 
-  it('offers the spec’s dashboard presets by default', async () => {
+  it('offers the spec’s dashboard presets by default, in order', async () => {
     render(<DashboardPeriod today={TODAY} value={THIS_MONTH} />)
     const dialog = await openPicker()
-    for (const name of [
+    const presets = [
       /^Next 30 days/,
       /^Next 90 days/,
       /^Upcoming/,
       /^Last 30 days/,
       /^Last 12 months/,
       /^This financial year/
-    ])
-      expect(within(dialog).getByRole('button', { name })).toBeInTheDocument()
+    ].map((name) => within(dialog).getByRole('button', { name }))
+    for (const [index, preset] of presets.slice(1).entries())
+      expect(
+        presets[index].compareDocumentPosition(preset) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy()
   })
 
   it('turns Compare off for the default Upcoming preset', async () => {
