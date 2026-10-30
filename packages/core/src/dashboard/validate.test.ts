@@ -742,6 +742,35 @@ describe('validateDashboard checks annotations against the data', () => {
       ])
     )
   })
+
+  it.each([
+    ['warns on', '2026-09-10', 1],
+    ['accepts', '2026-09-02', 0],
+    ['accepts', '2026-09-21', 0]
+  ] as const)(
+    '%s a small multiples annotation at %s, by whether a panel places it',
+    (_, at, warnings) => {
+      const days = (gate: string, from: number) =>
+        [0, 1, 2].map((d) => ({
+          gate,
+          day: `2026-09-${String(from + d).padStart(2, '0')}`,
+          scans: 10 + d
+        }))
+      expect(
+        problemsAt({
+          kind: 'small-multiples',
+          data: [...days('North gate', 1), ...days('South gate', 20)],
+          by: 'gate',
+          chart: {
+            kind: 'line',
+            x: 'day',
+            y: 'scans',
+            annotations: [{ at, label: 'Gates open' }]
+          }
+        })
+      ).toHaveLength(warnings)
+    }
+  )
 })
 
 describe('validateDashboard checks repeated names', () => {

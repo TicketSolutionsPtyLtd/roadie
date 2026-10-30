@@ -221,16 +221,37 @@ function annotationFits(
   return typeof at === 'number' && at >= low && at <= high
 }
 
+// Small multiples draw each panel from its own rows, so an annotation needs one
+// panel that places it, not just a place somewhere in all the data.
+function panelRows(data: readonly PlotRow[], by: string) {
+  const panels = new Map<string, PlotRow[]>()
+  for (const row of data) {
+    const key = row[by]
+    if (key == null) continue
+    const rows = panels.get(String(key)) ?? []
+    rows.push(row)
+    panels.set(String(key), rows)
+  }
+  return [...panels.values()]
+}
+
+const fitsAnyPanel = (
+  at: string | number,
+  chart: AnnotatedChart,
+  panels: readonly (readonly PlotRow[])[]
+) =>
+  panels.length === 0 || panels.some((rows) => annotationFits(at, chart, rows))
+
 function annotationProblems(
   chart: AnnotatedChart,
-  data: readonly PlotRow[],
+  panels: readonly (readonly PlotRow[])[],
   path: string
 ) {
   return (chart.annotations ?? []).flatMap((annotation, i) => {
     const at = `${path}.annotations[${i}]`
     return [
       ...copyProblems(at, 'label', annotation.label),
-      ...(annotationFits(annotation.at, chart, data)
+      ...(fitsAnyPanel(annotation.at, chart, panels)
         ? []
         : [
             warning(
@@ -473,10 +494,14 @@ function plotProblems(plot: ChartPlot, path: string) {
     plot.kind === 'bar' ||
     plot.kind === 'stacked-area'
   )
-    problems.push(...annotationProblems(plot, plot.data, plotPath))
+    problems.push(...annotationProblems(plot, [plot.data], plotPath))
   if (plot.kind === 'small-multiples')
     problems.push(
-      ...annotationProblems(plot.chart, plot.data, `${plotPath}.chart`)
+      ...annotationProblems(
+        plot.chart,
+        panelRows(plot.data, plot.by),
+        `${plotPath}.chart`
+      )
     )
   return problems
 }
