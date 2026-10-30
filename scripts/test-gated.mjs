@@ -5,8 +5,10 @@ import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 
 import { gatedProjects } from './lib/ci-projects.mjs'
 import {
+  isWindows,
   killGroup,
   repoRoot,
+  shimCommand,
   waitForLoad,
   warnIfLowDisk
 } from './lib/machine.mjs'
@@ -154,10 +156,13 @@ console.log(
   `${shownEnv.join(' ')} pnpm ${args.join(' ')} (in ${pkg}, ${timeoutMin} min limit)`
 )
 
-const child = spawn('pnpm', args, {
+const pnpm = shimCommand('pnpm', args)
+const child = spawn(pnpm.command, pnpm.args, {
   cwd,
   env,
-  detached: true,
+  shell: pnpm.shell,
+  // Detached on Windows means a new console window, not a process group.
+  detached: !isWindows,
   stdio: ['ignore', 'inherit', 'inherit']
 })
 
