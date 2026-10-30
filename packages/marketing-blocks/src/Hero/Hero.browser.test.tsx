@@ -17,7 +17,13 @@ import {
   widths,
   withBrowserPage
 } from '../_test/browser'
-import { MODES, setMode, textContrast } from '../_test/contrast'
+import {
+  MINIMUM_FILL_LC,
+  MODES,
+  fillContrast,
+  setMode,
+  textContrast
+} from '../_test/contrast'
 import { bento, imageHero, titleOnly } from './fixtures'
 
 withBrowserPage()
@@ -309,7 +315,38 @@ describe('Hero bento frames and scrim', () => {
 
       for (const mode of MODES) {
         setMode(mode)
+        expect(getComputedStyle(panel('heading')).backgroundColor, mode).toBe(
+          'rgb(255, 255, 255)'
+        )
         expect(textContrast(text), mode).toBeGreaterThanOrEqual(75)
+      }
+      setMode('light')
+    }
+  )
+
+  it.each([
+    'neutral',
+    'brand',
+    'brand-secondary',
+    'brand-purple',
+    'accent',
+    'info',
+    'success',
+    'warning',
+    'danger'
+  ] as const)(
+    'fills the strong action so it stands out from the %s tint over a white photo, in both themes',
+    async (intent) => {
+      await showAt(DESKTOP.width, <Hero {...bento(photo)} intent={intent} />)
+      overWhitePhoto()
+      const scrim = document.querySelector('[data-slot=hero-scrim]')!
+      const action = page.getByRole('link', { name: 'Talk to us' }).element()
+
+      for (const mode of MODES) {
+        setMode(mode)
+        expect(fillContrast(action, scrim), mode).toBeGreaterThanOrEqual(
+          MINIMUM_FILL_LC
+        )
       }
       setMode('light')
     }

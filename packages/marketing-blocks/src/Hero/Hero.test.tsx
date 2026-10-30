@@ -242,7 +242,7 @@ describe('Hero', () => {
         'intent-accent'
       )
       expect(container.querySelector('[data-slot=hero-scrim]')).toHaveClass(
-        'bg-(--color-brand-light-13)/60'
+        'bg-(--color-brand-light-13)/65'
       )
     })
 
@@ -264,8 +264,9 @@ describe('Hero', () => {
           'success'
         )
         expect(container.querySelector('mark')).toHaveClass('intent-success')
+        // Over the bento's dark scrim the strong action stays accent, so it stands out.
         expect(screen.getByRole('link', { name: 'Talk to us' })).toHaveClass(
-          'intent-success'
+          preset === 'bento' ? 'intent-accent' : 'intent-success'
         )
       }
     )
@@ -274,7 +275,7 @@ describe('Hero', () => {
       const { container } = render(<Hero {...bento()} intent='danger' />)
 
       expect(container.querySelector('[data-slot=hero-scrim]')).toHaveClass(
-        'bg-(--color-danger-light-13)/60'
+        'bg-(--color-danger-light-13)/65'
       )
     })
   })

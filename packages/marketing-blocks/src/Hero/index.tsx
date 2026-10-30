@@ -202,19 +202,20 @@ function ImageHero({
 // Each intent's fixed dark step, so the tint is the same in both themes.
 // Literal classes, so Tailwind finds them.
 const SCRIM: Record<BlockIntent, string> = {
-  neutral: 'bg-(--color-neutral-light-13)/60',
-  brand: 'bg-(--color-brand-light-13)/60',
-  'brand-secondary': 'bg-(--color-brand-secondary-light-13)/60',
-  'brand-purple': 'bg-(--color-brand-purple-light-13)/60',
-  accent: 'bg-(--color-accent-light-13)/60',
-  info: 'bg-(--color-info-light-13)/60',
-  success: 'bg-(--color-success-light-13)/60',
-  warning: 'bg-(--color-warning-light-13)/60',
-  danger: 'bg-(--color-danger-light-13)/60'
+  neutral: 'bg-(--color-neutral-light-13)/65',
+  brand: 'bg-(--color-brand-light-13)/65',
+  'brand-secondary': 'bg-(--color-brand-secondary-light-13)/65',
+  'brand-purple': 'bg-(--color-brand-purple-light-13)/65',
+  accent: 'bg-(--color-accent-light-13)/65',
+  info: 'bg-(--color-info-light-13)/65',
+  success: 'bg-(--color-success-light-13)/65',
+  warning: 'bg-(--color-warning-light-13)/65',
+  danger: 'bg-(--color-danger-light-13)/65'
 }
 
 // Fixed white frames and a fixed dark scrim, as the photos sit the same in
-// both themes. 60% keeps body text at APCA Lc 75 over even a white photo.
+// both themes. 65% keeps body text at APCA Lc 75, and the accent action
+// distinct from the tint, over even a white photo.
 const PANEL =
   'relative overflow-clip rounded-3xl border-4 border-(--color-neutral-light-0) bg-subtle @xl:border-6 @4xl:border-8'
 
@@ -286,6 +287,7 @@ function Bento({
               <BlockActions
                 actions={actions}
                 intent={intent}
+                fill='scrim'
                 className='gap-2'
               />
             </div>

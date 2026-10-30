@@ -54,7 +54,11 @@ export type RichTextProps = {
    * Without one, the highlight is brand-secondary and the action accent.
    */
   intent?: BlockIntent
-  /** A rounded band behind `statement`, inset in the page; none by default. `long-form` ignores it. */
+  /**
+   * A band behind `statement`, full width and rounded once the block is wide;
+   * none by default. Applies to `statement` only: `long-form` accepts it and
+   * ignores it, so a CMS can send it for either preset.
+   */
   emphasis?: RichTextEmphasis
 }
 
@@ -104,16 +108,11 @@ function Statement({
   illustration = 'Heart'
 }: PresetProps) {
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
-  return (
+  // The breathing room is this preset's look, the one block with outer
+  // padding; a band keeps it inside, and runs full width like every section band.
+  const content = (
     <div className='container-8xl'>
-      {/* The breathing room is this preset's look, the one block with outer padding; a band keeps it inside. */}
-      <div
-        data-slot={emphasis ? 'statement-band' : undefined}
-        className={cn(
-          'grid justify-items-center gap-4 py-8 text-center *:min-w-0 @xl:py-16 @4xl:py-32',
-          emphasis && ['rounded-3xl px-6 @xl:px-12', emphasisClass(emphasis)]
-        )}
-      >
+      <div className='grid justify-items-center gap-4 py-8 text-center *:min-w-0 @xl:py-16 @4xl:py-32'>
         <Illustration outline className='size-16' />
         {title ? (
           <BlockHeading
@@ -143,6 +142,15 @@ function Statement({
           className='justify-center'
         />
       </div>
+    </div>
+  )
+  if (!emphasis) return content
+  return (
+    <div
+      data-slot='statement-band'
+      className={cn('@7xl:rounded-3xl', emphasisClass(emphasis))}
+    >
+      {content}
     </div>
   )
 }

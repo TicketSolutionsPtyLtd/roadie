@@ -88,26 +88,71 @@ describe.each([
   )
 })
 
+const INTENTS = [
+  'neutral',
+  'brand',
+  'brand-secondary',
+  'brand-purple',
+  'accent',
+  'info',
+  'success',
+  'warning',
+  'danger'
+] as const
+
+describe('RichText statement band shape', () => {
+  it('runs the band the block’s full width, rounded once the block is wide', async () => {
+    await atWidth(1440, 900)
+    const { container } = render(<RichText {...statement} emphasis='subtle' />)
+    const section = container.querySelector('section')!
+    const band = section.querySelector('[data-slot=statement-band]')!
+
+    expect(band.getBoundingClientRect().width).toBeCloseTo(
+      section.getBoundingClientRect().width,
+      0
+    )
+    expect(getComputedStyle(band).borderTopLeftRadius).not.toBe('0px')
+  })
+
+  it('runs square to the edges on a phone', async () => {
+    await atWidth(PHONE.width, PHONE.height)
+    const { container } = render(<RichText {...statement} emphasis='subtle' />)
+    const band = container.querySelector('[data-slot=statement-band]')!
+
+    expect(getComputedStyle(band).borderTopLeftRadius).toBe('0px')
+  })
+})
+
 describe.each([undefined, 'subtle', 'subtler', 'raised'] as const)(
   'RichText statement on a %s band',
   (emphasis) => {
     it.each(MODES)(
-      'keeps its body and title readable in %s mode',
+      'keeps its body, title and mark readable under every intent in %s mode',
       async (mode) => {
         setMode(mode)
         await atWidth(DESKTOP.width, DESKTOP.height)
-        const { container } = render(
-          <main className='bg-normal text-normal'>
-            <RichText {...statement} emphasis={emphasis} intent='brand' />
-          </main>
-        )
 
-        expect(
-          textContrast(container.querySelector('.prose p')!)
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
-        expect(
-          textContrast(container.querySelector('h2')!)
-        ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+        for (const intent of INTENTS) {
+          const { container, unmount } = render(
+            <main className='bg-normal text-normal'>
+              <RichText {...statement} emphasis={emphasis} intent={intent} />
+            </main>
+          )
+
+          expect(
+            textContrast(container.querySelector('.prose p')!),
+            intent
+          ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+          expect(
+            textContrast(container.querySelector('h2')!),
+            intent
+          ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+          expect(
+            textContrast(container.querySelector('mark')!),
+            intent
+          ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+          unmount()
+        }
         setMode('light')
       }
     )
