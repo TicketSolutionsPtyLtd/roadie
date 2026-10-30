@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'RankedBars',
   description:
-    'Horizontal bars sorted largest first, for channels, places and brackets',
+    'Horizontal bars, largest first by default, for channels, places and brackets',
   status: 'beta',
   category: 'Chart types',
   order: 3
@@ -9,7 +9,7 @@ export const metadata = {
 
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Horizontal bars sorted largest first, for channels, places and brackets.
+Horizontal bars, largest first by default, for channels, places and brackets.
 
 ## Import
 
@@ -38,7 +38,7 @@ import { RankedBars } from '@oztix/roadie-charts/ranked-bars'
 
 ### Highlight and Other
 
-Past `limit` bars, the smallest roll into Other, which always sits last.
+Past `limit` bars, the rest roll into Other, which always sits last. Ranked largest first, the rest are the smallest. When the label already says how many are left out, such as "Top 5 of 40 suburbs", set `other={false}` to leave Other off, so a long tail doesn't dwarf the top bar. With Other off, a highlighted bar past `limit` still shows, in place of the last bar that isn't highlighted, so the count stays at `limit` and the order holds. Shares stay of the full total.
 
 ```tsx-live width=140
 <Chart label='Where buyers came from' source='Oztix sales.' size='md'>
@@ -49,6 +49,22 @@ Past `limit` bars, the smallest roll into Other, which always sits last.
     highlight='Email'
     limit={5}
     takeaway='Email brings in over a third of orders'
+  />
+</Chart>
+```
+
+### Ordered categories
+
+`sort={false}` keeps the data's order, for categories with an order of their own, such as age bands. Arrows then move through the bars in that order, and the bars past `limit` are the last in the data.
+
+```tsx-live width=140
+<Chart label='Buyers by age' source='Oztix sales.' size='md'>
+  <RankedBars
+    data={[['18 to 24', 412], ['25 to 34', 958], ['35 to 44', 503], ['45 to 54', 188], ['55 and over', 74]].map(([band, buyers]) => ({ band, buyers }))}
+    x='band'
+    y='buyers'
+    sort={false}
+    takeaway='Most buyers are 25 to 34'
   />
 </Chart>
 ```
@@ -123,12 +139,12 @@ Names share the plot with the bars. The label column takes up to 40% of the char
 
 - Use ranked bars for shares, not a pie. Bars compare more accurately.
 - Report shares, not counts, when totals differ between the things you compare.
-- The table lists every row, including the ones rolled into Other.
+- The table lists every row, including the ones rolled into Other or left off with `other={false}`.
 - Keep names short enough to read at a glance. A cut name keeps its full text in the table, and shows it on hover.
 
 ## Accessibility
 
-- The plot is one tab stop that starts on the top bar. Up and down arrows move between bars in rank order, and Home and End jump to the first and last.
+- The plot is one tab stop that starts on the top bar. Up and down arrows move between bars in the order they are drawn, and Home and End jump to the first and last.
 - Each bar is read out with its value and, with `share`, its share of the total.
 - The reference tick is keyed in the legend and read out with each bar.
 

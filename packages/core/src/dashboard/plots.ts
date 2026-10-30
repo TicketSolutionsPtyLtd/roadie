@@ -109,6 +109,8 @@ export const rankedBarsPlotSchema = z.strictObject({
   ...measured,
   highlight: highlight.optional(),
   limit: z.number().int().min(1).max(20).optional(),
+  other: z.boolean().optional(),
+  sort: z.boolean().optional(),
   reference: z.strictObject({ field, label: shortLabel }).optional(),
   share: z.boolean().optional()
 })
