@@ -66,6 +66,32 @@ describe('RecordTable selection in a browser', () => {
     expect(background(cells(row).at(-1)!)).toBe(background(city!))
   })
 
+  it('selects a range from a Shift click on the padding around a box', async () => {
+    render(<Shows />)
+    const box = (name: string) => screen.getByRole('checkbox', { name })
+    await userEvent.click(box('Select Ocean Alley 1'))
+    const label = box('Select Alex Lahey 1').closest<HTMLElement>('label')!
+    const padding = rect(label)
+    const position = {
+      x: (rect(box('Select Alex Lahey 1')).left - padding.left) / 2,
+      y: padding.height / 2
+    }
+    expect(
+      document.elementFromPoint(
+        padding.left + position.x,
+        padding.top + position.y
+      )
+    ).toBe(label)
+    await userEvent.keyboard('{Shift>}')
+    await userEvent.click(label, { position })
+    await userEvent.keyboard('{/Shift}')
+    const checked = (name: string) => box(name).getAttribute('aria-checked')
+    await expect.poll(() => checked('Select Alex Lahey 1')).toBe('true')
+    expect(checked('Select Julia Jacklin 1')).toBe('true')
+    expect(checked('Select angie McMahon 1')).toBe('true')
+    expect(checked('Select Middle Kids 1')).toBe('false')
+  })
+
   it('keeps the checkbox and title at the start and the actions at the end while scrolling sideways', async () => {
     const { container } = render(<Shows />)
     await frame()

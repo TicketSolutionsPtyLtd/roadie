@@ -1,11 +1,6 @@
 'use client'
 
-import {
-  type FocusEvent,
-  type KeyboardEvent,
-  type MouseEvent,
-  useRef
-} from 'react'
+import { type KeyboardEvent, type MouseEvent, useRef } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -30,25 +25,34 @@ export function RecordsRowCheckbox({
   // The toggle comes from the hidden input's change, which carries no
   // modifiers, so Shift is read from the real key and mouse events. Focus
   // can leave mid-chord (Shift+Tab) and the keyup lands elsewhere, so
-  // leaving resets it; the input handing focus to the box doesn't.
+  // leaving resets it.
   const shiftHeld = useRef(false)
   const trackShift = (event: KeyboardEvent | MouseEvent) => {
     shiftHeld.current = event.shiftKey
   }
+  const box = useRef<HTMLElement>(null)
   return (
     // A press on the label's padding, or one that slips off the box as the
-    // page moves, clicks the label, which reaches only the hidden input.
+    // page moves, clicks the label. Firefox skips a label's activation while
+    // Shift is held, so the label's click is forwarded to the box instead.
     <span
       className='contents'
       onMouseDownCapture={trackShift}
       onKeyDownCapture={trackShift}
       onKeyUpCapture={trackShift}
-      onBlurCapture={(event: FocusEvent<HTMLSpanElement>) => {
-        if (!event.currentTarget.contains(event.relatedTarget))
-          shiftHeld.current = false
+      onBlurCapture={() => {
+        shiftHeld.current = false
+      }}
+      onClick={(event: MouseEvent) => {
+        if (!box.current || box.current.contains(event.target as Node)) return
+        event.preventDefault()
+        shiftHeld.current = event.shiftKey
+        box.current.focus()
+        box.current.click()
       }}
     >
       <Checkbox
+        ref={box}
         aria-label={`Select ${title}`}
         checked={selected}
         data-interactive-target={rowTarget ? '' : undefined}

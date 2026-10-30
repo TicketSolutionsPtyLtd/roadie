@@ -51,15 +51,21 @@ the same gap.
 
 `RecordsRowCheckbox` toggles from `onCheckedChange`, the path every click
 reaches, and reads Shift from the real mouse and key events on a wrapper
-around the `Checkbox`, since the input's change carries no modifiers. The
-blur that resets Shift ignores the input handing focus to the box. The unit
-test "selects from a click on the padding around the box, and a range with
-shift" clicks the label directly.
+around the `Checkbox`, since the input's change carries no modifiers. A
+click on the label itself is forwarded to the box, because Firefox skips a
+label's activation while Shift is held, so a Shift click on the padding
+would otherwise select nothing there. The unit test "selects from a click on
+the padding around the box, and a range with shift" clicks the label
+directly, and the browser test "selects a range from a Shift click on the
+padding around a box" does so in Chromium, WebKit, and Firefox.
 
 ## Prevention
 
 - A Roadie `Checkbox` toggles through `onCheckedChange`. Don't hang the
   toggle on the root's `onClick`, or the label becomes a dead zone.
+- Firefox doesn't activate a label's control from a click with Shift held.
+  A control that gives Shift a meaning has to forward the label's click
+  itself, and its test for that has to run in Firefox.
 - Playwright's auto-scroll before a click can start a transition in the page
   (a collapsing pane header, a sticky toolbar) and clicks before it settles.
   When a test must click during such motion, the component has to survive a
