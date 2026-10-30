@@ -287,6 +287,11 @@
     :is(path, rect, circle):not([fill='none']) {
     fill: var(--chart-texture-8, url(#roadie-texture-8));
   }
+  .ts-chart
+    .ts-chart__bar:is([data-ts-key='comparison'])
+    :is(path, rect):not([fill='none']) {
+    fill: var(--chart-texture-2, url(#roadie-texture-2));
+  }
   .ts-chart .ts-chart__line:is([data-ts-key^='series-2']) path {
     stroke-dasharray: 6 3;
   }
