@@ -173,7 +173,7 @@ export function Split({
           {body}
         </Prose>
       )}
-      <BlockActions actions={actions} />
+      <BlockActions actions={actions} intent={intent} />
     </div>
   )
 

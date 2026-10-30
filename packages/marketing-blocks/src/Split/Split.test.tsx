@@ -248,6 +248,18 @@ describe('Split', () => {
       ).toHaveAttribute('data-intent', 'brand')
     })
 
+    it('gives the strong action the intent, or accent without one', () => {
+      render(<Split {...mediaText} intent='brand' />)
+      render(<Split {...textAndStats} />)
+
+      expect(screen.getByRole('link', { name: 'Set it up' })).toHaveClass(
+        'intent-brand'
+      )
+      expect(screen.getByRole('link', { name: 'Meet the team' })).toHaveClass(
+        'intent-accent'
+      )
+    })
+
     it('draws tinted-panel on a subtle info panel by default', () => {
       render(<Split {...featureRow} />)
 
