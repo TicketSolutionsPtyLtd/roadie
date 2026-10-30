@@ -61,14 +61,14 @@ declare const process: { env?: { NODE_ENV?: string } } | undefined
 
 const warned = new Set<string>()
 
-function warnInstants(range: AlignComparisonOptions['period']['range']) {
+function warnInstants(period: AlignComparisonOptions['period']) {
   if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
     return
-  const key = JSON.stringify(range)
+  const key = JSON.stringify(period)
   if (warned.has(key)) return
   warned.add(key)
   console.warn(
-    `Roadie's alignComparison lines up whole days, so the period ${key}, which has times, gets no comparison values.`
+    `Roadie's alignComparison lines up whole days, so the period ${key}, whose range or comparison has times, gets no comparison values.`
   )
 }
 
@@ -83,16 +83,14 @@ function monthsBack(options: AlignComparisonOptions): number | null {
 function comparisonDays(options: AlignComparisonOptions) {
   const { range, compare } = options.period
   if (!compare || !isBuiltInComparison(compare)) return null
-  const resolvedRange = resolveDateRange(range, options)
-  if (resolvedRange.kind === 'instants') {
-    warnInstants(range)
-    return null
-  }
   const resolved = resolveComparison(range, compare, options)
   if (resolved.status === 'unavailable') return null
-  const current = dayRange(resolvedRange)
+  const current = dayRange(resolveDateRange(range, options))
   const compared = dayRange(resolved.range)
-  if (!current || !compared) return null
+  if (!current || !compared) {
+    warnInstants(options.period)
+    return null
+  }
   const months = monthsBack(options)
   const first = options.dataStart ? dayNumber(options.dataStart) : -Infinity
   return (day: number): number | null => {
@@ -112,9 +110,9 @@ function comparisonDays(options: AlignComparisonOptions) {
  * with `alignWeekday`; any other period lines up day by day from each range's
  * start. A row the comparison doesn't cover, one before `dataStart`, or a day
  * the earlier month lacks gets null. Where comparison rows repeat an x (and
- * series), the first one counts. A period with times, such as the past 6
- * hours, resolves to instants rather than days, so every row gets null; it
- * warns in development.
+ * series), the first one counts. A period or comparison with times, such as
+ * the past 6 hours, resolves to instants rather than days, so every row gets
+ * null; it warns in development.
  */
 export function alignComparison(
   rows: readonly PlotRow[],

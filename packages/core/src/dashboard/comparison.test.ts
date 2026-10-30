@@ -319,6 +319,64 @@ describe('alignComparison', () => {
     warn.mockRestore()
   })
 
+  it('warns in development that a comparison with times gets no values', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const rows = aligned(daysFrom(week.start, 1), daysFrom('2026-10-01', 1), {
+      period: {
+        range: week,
+        compare: { start: '2026-10-01T09:00', end: '2026-10-07T17:00' }
+      }
+    })
+    expect(rows).toEqual([['2026-10-08', null]])
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('alignComparison')
+    )
+    warn.mockRestore()
+  })
+
+  it("doesn't warn for an open-ended period, which has no comparison", () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    aligned([{ day: '2026-11-16', sold: 1 }], [], {
+      period: { range: 'upcoming', compare: 'previous-period' }
+    })
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+
+  it("doesn't warn in production", () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    aligned([{ day: '2026-10-08T10:00', sold: 1 }], [], {
+      period: {
+        range: { start: '2026-10-09T09:00', end: '2026-10-09T17:00' },
+        compare: 'previous-period'
+      }
+    })
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+    vi.unstubAllEnvs()
+  })
+
+  it('lines the previous year up by date across a leap day', () => {
+    const comparison = daysFrom('2023-01-01', 365, (i) => i)
+    const rows = ['2024-02-28', '2024-02-29', '2024-03-01'].map((day) => ({
+      day,
+      sold: 0
+    }))
+    expect(
+      aligned(rows, comparison, {
+        period: {
+          range: { start: '2024-01-01', end: '2024-12-31' },
+          compare: 'previous-year'
+        }
+      })
+    ).toEqual([
+      ['2024-02-28', 58],
+      ['2024-02-29', null],
+      ['2024-03-01', 59]
+    ])
+  })
+
   it("doesn't warn for a range of dates", () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     aligned(daysFrom(week.start, 1), daysFrom('2026-10-01', 1), {

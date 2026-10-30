@@ -748,10 +748,12 @@ it in `series` so each series lines up with its own. A day the comparison
 doesn't cover, or one before `dataStart`, gets `null`, and where comparison
 rows repeat a day, the first one counts.
 
-It lines up whole days, so a period with times, such as the past 6 hours or
-fixed dates with times, gives every row `null` and warns in development.
+It lines up whole days, so a period or comparison with times, such as the past
+6 hours or fixed dates with times, gives every row `null` and warns in
+development.
 
 ```ts
+const range = resolveDateRange(period.range, options)
 const compared =
   period.compare && isBuiltInComparison(period.compare)
     ? resolveComparison(period.range, period.compare, options)
