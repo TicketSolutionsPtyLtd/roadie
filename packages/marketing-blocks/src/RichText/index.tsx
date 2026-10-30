@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from 'react'
+import type { ReactNode } from 'react'
 
 import { Prose } from '@oztix/roadie-components/prose'
 import { cn } from '@oztix/roadie-core/utils'
@@ -12,14 +12,15 @@ import {
   SPOT_ILLUSTRATIONS,
   type SpotIllustrationName
 } from '../_shared/illustrations'
-import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
   type BlockSize,
-  bySize
+  bySize,
+  gapOf
 } from '../_shared/surface'
+import { type BlockFrame, useBlock } from '../_shared/useBlock'
 import { type RichTextPreset, richTextDefinition } from './definition'
 
 export type { RichTextPreset } from './definition'
@@ -75,31 +76,23 @@ export type RichTextProps = {
 }
 
 /** A title and rich text, from a short statement to an article. */
-export function RichText({ preset, position, id, ...content }: RichTextProps) {
-  const headingId = useId()
-  const { name, variant } = presetOf(richTextDefinition, preset)
+export function RichText(props: RichTextProps) {
+  const block = useBlock(richTextDefinition, props)
   return (
     <BlockRoot
-      block={richTextDefinition.name}
-      intent={content.intent}
-      variant={variant}
-      preset={name}
-      position={position}
-      id={id}
-      aria-labelledby={content.title ? headingId : undefined}
+      {...block.root}
+      aria-labelledby={props.title ? block.heading.id : undefined}
     >
-      {name === 'long-form' ? (
-        <LongForm headingId={headingId} {...content} />
+      {block.name === 'long-form' ? (
+        <LongForm {...props} block={block} />
       ) : (
-        <Statement headingId={headingId} {...content} />
+        <Statement {...props} block={block} />
       )}
     </BlockRoot>
   )
 }
 
-type PresetProps = Omit<RichTextProps, 'preset' | 'position' | 'id'> & {
-  headingId: string
-}
+type PresetProps = RichTextProps & { block: BlockFrame }
 
 // The statement's body runs a step above Prose's own lg.
 const STATEMENT_BODY: Record<BlockSize, string> = {
@@ -114,29 +107,24 @@ const STATEMENT_ALIGN: Record<BlockAlign, string> = {
 }
 
 function Statement({
-  headingId,
-  intent,
-  emphasis,
-  contained,
-  align = 'center',
+  block,
   size,
   eyebrow,
   title,
-  titleHighlight,
   description,
   body,
-  actions,
   illustration = 'Heart'
 }: PresetProps) {
+  const { align, emphasis } = block
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
   const onSurface = emphasis != null
   return (
     <BlockSurface
       emphasis={emphasis}
-      contained={contained}
+      contained={block.contained}
       className={cn(
         'grid *:min-w-0',
-        bySize(size, { sm: 'gap-2', md: 'gap-3', lg: 'gap-4' }),
+        gapOf(size, 'tight'),
         STATEMENT_ALIGN[align],
         // The breathing room is this preset's look, the one block with outer
         // padding. On a surface, the surface pads it, with a little more once wide.
@@ -146,16 +134,9 @@ function Statement({
       <Illustration outline className='size-16' />
       {title ? (
         <BlockHeading
+          {...block.heading}
           className='[&>h2]:max-w-none'
-          id={headingId}
-          intent={intent}
           step={4}
-          size={size}
-          align={align}
-          eyebrow={eyebrow}
-          title={title}
-          titleHighlight={titleHighlight}
-          description={description}
         />
       ) : (
         <Intro eyebrow={eyebrow} description={description} size={size} />
@@ -172,51 +153,32 @@ function Statement({
           {body}
         </Prose>
       )}
-      <BlockActions
-        actions={actions}
-        intent={intent}
-        className={cn(align === 'center' && 'justify-center')}
-      />
+      <BlockActions {...block.actions} />
     </BlockSurface>
   )
 }
 
 function LongForm({
-  headingId,
-  intent,
-  emphasis,
-  contained,
-  align = 'start',
+  block,
   size,
   eyebrow,
   title,
-  titleHighlight,
   description,
-  body,
-  actions
+  body
 }: PresetProps) {
   return (
     <BlockSurface
-      emphasis={emphasis}
-      contained={contained}
+      emphasis={block.emphasis}
+      contained={block.contained}
       width='3xl'
       className={cn(
         'grid *:min-w-0',
-        bySize(size, { sm: 'gap-3', md: 'gap-4', lg: 'gap-6' }),
-        align === 'center' && 'text-center'
+        gapOf(size, 'snug'),
+        block.align === 'center' && 'text-center'
       )}
     >
       {title ? (
-        <BlockHeading
-          id={headingId}
-          intent={intent}
-          size={size}
-          align={align}
-          eyebrow={eyebrow}
-          title={title}
-          titleHighlight={titleHighlight}
-          description={description}
-        />
+        <BlockHeading {...block.heading} />
       ) : (
         <Intro eyebrow={eyebrow} description={description} size={size} />
       )}
@@ -225,11 +187,7 @@ function LongForm({
           {body}
         </Prose>
       )}
-      <BlockActions
-        actions={actions}
-        intent={intent}
-        className={cn(align === 'center' && 'justify-center')}
-      />
+      <BlockActions {...block.actions} />
     </BlockSurface>
   )
 }

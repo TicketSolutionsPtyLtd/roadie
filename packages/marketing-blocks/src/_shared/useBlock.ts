@@ -19,7 +19,8 @@ export type BlockFrameProps = {
   position?: number
   id?: string
   eyebrow?: string
-  title: string
+  /** Optional only where a block can go without a heading, as RichText can. */
+  title?: string
   titleHighlight?: string | string[]
   description?: string
   actions?: readonly BlockAction[]
@@ -61,7 +62,7 @@ export function useBlock<
     heading: {
       id: headingId,
       eyebrow: props.eyebrow,
-      title: props.title,
+      title: props.title ?? '',
       titleHighlight: props.titleHighlight,
       description: props.description,
       align,
@@ -75,3 +76,6 @@ export function useBlock<
     } satisfies BlockActionsProps
   }
 }
+
+/** A block's resolved frame, for a block that hands it to its preset's own component. */
+export type BlockFrame = ReturnType<typeof useBlock>
