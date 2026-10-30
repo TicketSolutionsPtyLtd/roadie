@@ -339,7 +339,9 @@ zeros.
 `error`
 
 The request failed. The card says so in plain words and the app passes a Retry
-action.
+action. A `Chart` that can’t draw data that loaded says so instead and leaves
+out its `errorAction`, since loading the data again rarely fixes it. Card
+actions, including a dashboard’s `cardActions`, stay.
 
 </CardStateExample>
 

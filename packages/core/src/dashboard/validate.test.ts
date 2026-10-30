@@ -1523,4 +1523,21 @@ describe('validateDashboard checks which cards set the period', () => {
       { path: 'sections[0].cards[0].plot.selectsPeriod', severity: 'warning' }
     ])
   })
+
+  it('reports a plot field no row has, even one every object inherits', () => {
+    const card = {
+      id: 'sold',
+      kind: 'chart',
+      size: 'full',
+      label: 'Tickets sold',
+      source: 'Oztix sales.',
+      plot: {
+        kind: 'line',
+        data: [{ day: '2026-10-01', sold: 1 }],
+        x: 'day',
+        y: 'constructor'
+      }
+    }
+    expect(paths(spec([card]))).toContain('sections[0].cards[0].plot.y')
+  })
 })

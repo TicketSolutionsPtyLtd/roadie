@@ -294,7 +294,9 @@ Wrap the list in [`Sortable`](/components/sortable) and give each row a
 `value`. The row takes a drag handle in front and is no longer a link or
 button: it ignores `href`, `onClick`, `current` and `chevron`, so put any
 action in its `trailing` slot. Clicking the handle, or pressing Enter or
-Space on it, opens a Move menu for keyboard and screen reader users.
+Space on it, opens a Move menu for keyboard and screen reader users. A row
+whose `title` isn't plain text, such as one holding a `Badge`, needs a
+`label` to name its handle and moves.
 
 ```tsx-live-noinline
 function Columns() {
@@ -345,7 +347,8 @@ render(<Columns />)
 - **Selection**: `current` sets `aria-current` on the row so screen
   readers announce the active choice.
 - **Reordering**: a reorderable row's handle is a menu button named after the
-  row's text title, and each move is announced. See
+  row's `label`, or its title when that's plain text, and each move is
+  announced. See
   [`Sortable`](/components/sortable).
 
 <PropsDefinitions component='List' />
