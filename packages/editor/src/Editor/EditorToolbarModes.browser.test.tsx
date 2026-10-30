@@ -328,7 +328,7 @@ describe('Pinning the toolbar', () => {
 })
 
 describe('Floating toolbar keys', () => {
-  it('opens at the caret with Alt+F10, and Escape puts the caret back', async () => {
+  it('opens at the caret with Alt+F10, and Escape closes it, putting the caret back', async () => {
     const onValueChange = vi.fn()
     render(<Page toolbar='floating' onValueChange={onValueChange} />)
     const textbox = await screen.findByRole('textbox', { name: LABEL })
@@ -345,6 +345,9 @@ describe('Floating toolbar keys', () => {
     )
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(textbox).toHaveFocus())
+    await waitFor(() =>
+      expect(screen.queryByRole('toolbar', { name: FLOATING })).toBe(null)
+    )
     await userEvent.keyboard(', rain or shine')
     await waitFor(() =>
       expect(

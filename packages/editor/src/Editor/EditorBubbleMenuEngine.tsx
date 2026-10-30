@@ -205,7 +205,10 @@ function SelectionMenu({
           {...props}
           onKeyDownCapture={(event) => {
             onKeyDownCapture?.(event)
-            if (event.key === 'Escape') editor.commands.focus()
+            if (event.key !== 'Escape') return
+            // Opened at a caret, it has no selection to stay over.
+            forcedAtRef.current = null
+            editor.commands.focus()
           }}
         >
           <ToolbarItems
