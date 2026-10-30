@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Hero } from '.'
 import { MarketingBlocksProvider } from '../Provider'
+import { SPOT_ILLUSTRATIONS } from '../_shared/illustrations'
 import { bento, imageHero, partnerHero, pathPhoto, titleOnly } from './fixtures'
 
 beforeEach(() => {
@@ -165,6 +166,23 @@ describe('Hero', () => {
       href: '/contact/sales'
     })
   })
+
+  it.each([
+    [undefined, 'HighFive'],
+    ['Ticket', 'Ticket']
+  ] as const)(
+    'ends the bento title with the %s illustration as %s',
+    (illustration, expected) => {
+      const Expected = SPOT_ILLUSTRATIONS[expected]
+      const { container: reference } = render(<Expected outline />)
+      render(<Hero {...bento()} illustration={illustration} />)
+
+      const title = screen.getByRole('heading', { level: 1 })
+      expect(title.querySelector('svg')!.innerHTML).toBe(
+        reference.querySelector('svg')!.innerHTML
+      )
+    }
+  )
 
   describe('image', () => {
     it('sets the title as the h1 beside its one photo, loaded first', () => {
