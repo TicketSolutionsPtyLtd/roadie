@@ -171,6 +171,29 @@ describe('the portfolio dashboard period', () => {
     expect(spec.period?.history).toBe('partial')
   })
 
+  const dailySales = (spec: Spec) => {
+    const card = spec.sections
+      .flatMap((s) => s.cards)
+      .find((c) => c.id === 'daily')
+    if (card?.kind !== 'chart' || card.plot.kind !== 'line')
+      throw new Error('No daily sales line')
+    return { takeaway: card.takeaway, rows: card.plot.data }
+  }
+
+  it('lines up each day’s sales with the previous period’s', () => {
+    const { takeaway, rows } = dailySales(createPortfolioDashboard())
+    expect(rows).toHaveLength(30)
+    for (const row of rows) expect(row.lastPeriod).toEqual(expect.any(Number))
+    expect(takeaway).toBe('Sales peaked at 187 on Thu 15 Oct 2026')
+  })
+
+  it('leaves the daily sales uncompared without a comparison', () => {
+    const { rows } = dailySales(
+      createPortfolioDashboard({ range: 'last-month' })
+    )
+    for (const row of rows) expect(row.lastPeriod).toBeNull()
+  })
+
   it('has no history to report without a comparison', () => {
     const spec = createPortfolioDashboard({ range: 'last-month' })
     expect(spec.period).toEqual({ range: 'last-month' })

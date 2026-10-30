@@ -390,6 +390,21 @@ describe('DashboardView charts that compare', () => {
     }
   )
 
+  it('draws the comparison with partial history', () => {
+    render(
+      <DashboardView
+        spec={spec({
+          range: 'this-month',
+          compare: 'previous-period',
+          history: 'partial'
+        })}
+        periodProps={periodProps}
+      />
+    )
+    for (const kind of ['line', 'bar'])
+      expect(headersIn(`Daily sales ${kind}`)).toContain('Previous period')
+  })
+
   it.each([
     ['no period', undefined],
     ['no comparison', { range: 'this-month' }],
@@ -453,6 +468,14 @@ describe('DashboardView charts that compare with custom dates', () => {
   it('names dates too long for a series label as custom dates', () => {
     render(withCompare({ start: '2025-12-15', end: '2026-01-14' }))
     expect(headers()).toEqual(['Day', 'Sold', 'Custom dates'])
+  })
+
+  it.each([
+    ['2026-10-03', '1 Sept to 3 Oct 2026'],
+    ['2026-10-13', 'Custom dates']
+  ])('keeps a 20-character name, not 21: to %s', (end, name) => {
+    render(withCompare({ start: '2026-09-01', end }))
+    expect(headers()).toEqual(['Day', 'Sold', name])
   })
 })
 
