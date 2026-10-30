@@ -249,7 +249,7 @@ export function EditorToolbarEngine({
       style={{ top }}
       // Above the text that scrolls under it, below the editor's popups.
       className={cn(
-        'sticky top-0 z-sticky shrink-0 border-b border-subtler',
+        'sticky top-0 z-sticky shrink-0',
         EDITOR_DOCKED_BAR[editorEmphasis]
       )}
     >

@@ -221,7 +221,7 @@ describe.each(SCREENS)('Editor toolbar on %s', (_, size, touch) => {
       </>
     )
     const textbox = await screen.findByRole('textbox', { name: LABEL })
-    const toolbar = await shownToolbar()
+    const toolbar = barOf(await shownToolbar())
     const start = pageTop(toolbar)
 
     window.scrollTo(0, start + 300)
@@ -276,7 +276,7 @@ describe('Editor toolbar in a scroll container', () => {
       </div>
     )
     const scroller = screen.getByTestId('scroller')
-    const toolbar = await shownToolbar()
+    const toolbar = barOf(await shownToolbar())
 
     scroller.scrollTop = 600
     await waitFor(() =>
@@ -304,7 +304,7 @@ describe('Editor toolbar in a pane', () => {
         </Pane>
       </div>
     )
-    const toolbar = await shownToolbar()
+    const toolbar = barOf(await shownToolbar())
     const header = document.querySelector<HTMLElement>(
       '[data-slot="pane-header"]'
     )!

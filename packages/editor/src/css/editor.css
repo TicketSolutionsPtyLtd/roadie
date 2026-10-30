@@ -17,6 +17,30 @@
   outline-offset: 2px;
 }
 
+/* The caret's block takes a tint that reaches past its text, so the text
+   doesn't move. Box-shadow, not padding, so lines stay where they are. */
+[data-slot='editor-content'] [data-focused-block] {
+  --editor-block-halo: calc(var(--spacing) * 1.5);
+
+  border-radius: var(--radius-md);
+  background-color: var(--intent-bg-subtler);
+  box-shadow: 0 0 0 var(--editor-block-halo) var(--intent-bg-subtler);
+}
+
+@media (forced-colors: active) {
+  [data-slot='editor-content'] [data-focused-block] {
+    outline: 1px solid Highlight;
+    outline-offset: var(--editor-block-halo);
+  }
+}
+
+/* A boxed editor isn't a text field, so it keeps only the field's invalid
+   edge and fill. */
+[data-slot='editor'][aria-invalid='true']:not([data-emphasis='subtler']) {
+  background-color: var(--color-danger-2);
+  border-color: var(--color-danger-9);
+}
+
 /* The cover takes clicks, so one selects the embed instead of playing it. */
 [data-slot='editor-embed'] {
   position: relative;

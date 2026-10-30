@@ -83,20 +83,97 @@ describe('Editor emphasis', () => {
     ['normal', { border: '1px', filled: true, contentInset: 1 }],
     ['subtle', { border: '1px', filled: true, contentInset: 1 }]
   ])(
-    'keeps the %s field’s box, with a ring while focused',
+    'keeps the %s field’s box, with no ring while focused',
     async (emphasis, look) => {
       render(<Editor aria-label={LABEL} emphasis={emphasis} />)
       const textbox = await loadedTextbox()
+      const resting = getComputedStyle(frameOf(textbox)).borderTopColor
 
       expect(frameLook(textbox)).toEqual(look)
       expect(getComputedStyle(textbox).paddingInlineStart).toBe('12px')
 
       await userEvent.click(textbox)
-      await waitFor(() =>
-        expect(ringWidth(frameOf(textbox))).toBeGreaterThan(0)
-      )
+      await waitFor(() => expect(textbox).toHaveFocus())
+      expect(ringWidth(frameOf(textbox))).toBe(0)
+      expect(getComputedStyle(frameOf(textbox)).borderTopColor).toBe(resting)
     }
   )
+
+  it('shows focus on the caret’s block, and only while the editor has it', async () => {
+    render(
+      <>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={{
+            ...description,
+            doc: {
+              type: 'doc',
+              content: [
+                description.doc.content![0]!,
+                {
+                  type: 'paragraph',
+                  content: [{ type: 'text', text: 'All ages' }]
+                }
+              ]
+            }
+          }}
+        />
+        <button type='button'>Elsewhere</button>
+      </>
+    )
+    const textbox = await loadedTextbox()
+    const [first, second] = [...textbox.children] as HTMLElement[]
+    const tint = (block: HTMLElement) => getComputedStyle(block).boxShadow
+
+    expect(tint(first!)).toBe('none')
+    await userEvent.click(screen.getByText('All ages'))
+    await waitFor(() => expect(tint(second!)).not.toBe('none'))
+    expect(tint(first!)).toBe('none')
+
+    await userEvent.click(screen.getByText(/Doors 7pm/))
+    await waitFor(() => expect(tint(first!)).not.toBe('none'))
+    expect(tint(second!)).toBe('none')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Elsewhere' }))
+    await waitFor(() => expect(tint(first!)).toBe('none'))
+  })
+
+  it('marks the inner block of a layout, not the whole section', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'section',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Doors 7pm' }]
+                  },
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'All ages' }]
+                  }
+                ]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    await loadedTextbox()
+    const block = await screen.findByText('All ages')
+    await userEvent.click(block)
+
+    await waitFor(() =>
+      expect(block.closest('[data-focused-block]')).toBe(block)
+    )
+  })
 
   it('shows subtler content on the page, with no box', async () => {
     render(

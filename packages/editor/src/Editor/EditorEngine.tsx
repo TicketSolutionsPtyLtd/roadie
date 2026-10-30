@@ -68,6 +68,7 @@ import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
 import { focusEditor } from './focusEditor'
+import { FocusedBlock } from './focusedBlock'
 import {
   ImageUpload,
   type UploadImage,
@@ -397,6 +398,7 @@ export function EditorEngine({
         }
       }),
       ...(blockContainers ? [BlockDrag] : []),
+      FocusedBlock.configure({ containers: blockContainers ?? TOP_LEVEL }),
       InsertMenu.configure({
         items: insertItems,
         ui: () => uiRef.current!,

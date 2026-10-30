@@ -10,13 +10,15 @@ export const EDITOR_MIN_HEIGHT: Record<EditorSize, string> = {
   lg: 'min-h-28'
 }
 
+const DISABLED =
+  'data-disabled:pointer-events-none data-disabled:opacity-50 data-disabled:grayscale-30'
+
+// A document, not a text field: focus shows on the caret's block, so the
+// frame keeps its look while focused.
 export const EDITOR_FRAME: Record<EditorEmphasis, string> = {
-  normal: 'emphasis-field is-interactive-field-group',
-  subtle:
-    'bg-subtle text-normal border border-transparent is-interactive-field-group',
-  // Content on the page, so focus shows by the caret, not a ring.
-  subtler:
-    'text-normal data-disabled:pointer-events-none data-disabled:opacity-50 data-disabled:grayscale-30'
+  normal: `emphasis-field ${DISABLED}`,
+  subtle: `bg-subtle text-normal border border-transparent ${DISABLED}`,
+  subtler: `text-normal ${DISABLED}`
 }
 
 export const EDITOR_CONTENT_PADDING: Record<EditorSize, string> = {
@@ -53,18 +55,19 @@ export type EditorToolbarMode = 'docked' | 'floating'
 
 // The docked bar's height at its size: a control and the divider under it.
 export const EDITOR_TOOLBAR_HEIGHT: Record<EditorSize, string> = {
-  sm: '[--editor-toolbar-height:calc(--spacing(8)+1px)]',
-  md: '[--editor-toolbar-height:calc(--spacing(8)+1px)]',
-  lg: '[--editor-toolbar-height:calc(--spacing(10)+1px)]'
+  sm: '[--editor-toolbar-height:calc(--spacing(10)+1px)]',
+  md: '[--editor-toolbar-height:calc(--spacing(10)+1px)]',
+  lg: '[--editor-toolbar-height:calc(--spacing(12)+1px)]'
 }
 
 // Sticky, so each fill is opaque and matches the frame the text scrolls
-// under, through its hover, focus and invalid fills. A subtle frame is a tint
-// on the page, so the bar lays it on the normal surface. A subtler editor's
-// bar keeps a gap above the first line.
+// under, through its invalid fill. A subtle frame is a tint on the page, so
+// the bar lays it on the normal surface. A subtler editor has no box for a
+// divider to close, so its bar has none, and keeps a gap above the first line.
 export const EDITOR_DOCKED_BAR: Record<EditorEmphasis, string> = {
-  normal: 'rounded-t-lg bg-inherit',
+  normal: 'rounded-t-lg bg-inherit border-b border-subtler p-1',
   subtle:
-    'rounded-t-lg bg-normal bg-linear-to-b from-(--intent-bg-subtle) to-(--intent-bg-subtle)',
-  subtler: 'mb-3 bg-normal'
+    'rounded-t-lg bg-normal bg-linear-to-b from-(--intent-bg-subtle) to-(--intent-bg-subtle) border-b border-subtler p-1',
+  // A clear edge keeps every bar one height, which the skeleton holds.
+  subtler: 'mb-3 bg-normal border-b border-transparent py-1'
 }
