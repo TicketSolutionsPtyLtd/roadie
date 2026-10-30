@@ -365,6 +365,35 @@ styles, only each cell's `colspan` and `rowspan`, and a wide one scrolls
 sideways in the editor and in `/render`, so it never widens the page on a
 phone.
 
+### Blocks preset
+
+`preset='blocks'` holds everything the rich preset does, for a page built
+from blocks, and every block keeps an id as it moves.
+
+```tsx-live-prose
+<Editor
+  aria-label='Page'
+  preset='blocks'
+  defaultValue={{
+    version: 1,
+    preset: 'blocks',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Two days in the sun at Jumbuck Orchard Park, Brisbane.' }] },
+        { type: 'paragraph' }
+      ]
+    }
+  }}
+/>
+```
+
+Every block but a table's rows and cells saves a `blockId`, so it keeps its
+identity as it moves. The editor gives a block without one an id when it
+loads, splits, or is pasted, and `onValueChange` reports it. Copying a block
+gives the copy an id of its own. `/render` never writes ids into the page.
+
 ### Emphasis
 
 `emphasis` sets the frame. The toolbar takes its own

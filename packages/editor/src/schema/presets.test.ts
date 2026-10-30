@@ -444,3 +444,38 @@ describe('presetShapes', () => {
     }
   )
 })
+
+const blocks = getSchema(presets.blocks)
+const UNNUMBERED = [
+  'doc',
+  'text',
+  'hardBreak',
+  'tableRow',
+  'tableHeader',
+  'tableCell'
+]
+
+describe('presets.blocks', () => {
+  it('holds the rich preset’s nodes and marks', () => {
+    expect(Object.keys(blocks.nodes).sort()).toEqual(
+      Object.keys(rich.nodes).sort()
+    )
+    expect(Object.keys(blocks.marks).sort()).toEqual(
+      Object.keys(rich.marks).sort()
+    )
+  })
+
+  it.each(Object.keys(rich.nodes).filter((name) => !UNNUMBERED.includes(name)))(
+    'saves a blockId on each %s, then its own attrs',
+    (name) => {
+      expect(Object.keys(blocks.nodes[name]!.spec.attrs ?? {})).toEqual([
+        'blockId',
+        ...Object.keys(rich.nodes[name]!.spec.attrs ?? {})
+      ])
+    }
+  )
+
+  it.each(UNNUMBERED)('saves no blockId on a %s', (name) => {
+    expect(blocks.nodes[name]!.spec.attrs ?? {}).not.toHaveProperty('blockId')
+  })
+})
