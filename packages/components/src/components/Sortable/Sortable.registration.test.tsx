@@ -151,6 +151,32 @@ describe('Sortable unknown values', () => {
   })
 })
 
+describe('Sortable items without a handle', () => {
+  it('takes drops but does not drag', async () => {
+    vi.mocked(dnd.sortableDropTarget).mockClear()
+    vi.mocked(dnd.sortableDraggable).mockClear()
+    render(
+      <Sortable items={['A', 'B']} onReorder={() => {}}>
+        <Sortable.Item value='A' label='A' />
+        <Sortable.Item value='B' label='B'>
+          <Sortable.Handle />
+        </Sortable.Item>
+      </Sortable>
+    )
+    await waitFor(() => expect(dnd.sortableDraggable).toHaveBeenCalled())
+    expect(
+      vi
+        .mocked(dnd.sortableDropTarget)
+        .mock.calls.map(([options]) => options.value)
+    ).toEqual(['A', 'B'])
+    expect(
+      vi
+        .mocked(dnd.sortableDraggable)
+        .mock.calls.map(([options]) => options.value)
+    ).toEqual(['B'])
+  })
+})
+
 describe('Sortable disabled items', () => {
   const view = (locked: string[], items = ['A', 'B']) => (
     <Sortable items={items} onReorder={onReorder}>
