@@ -264,6 +264,21 @@ describe('DashboardView periods', () => {
     expect(contextIn('Tickets sold')).toBe('vs custom dates')
   })
 
+  it('lets a malformed comparison fail rather than calling it custom dates', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    expect(() =>
+      render(
+        <DashboardView
+          spec={dashboard({
+            range: 'this-month',
+            compare: { start: 'not a date', end: '2026-09-02' }
+          })}
+        />
+      )
+    ).toThrow(RangeError)
+    error.mockRestore()
+  })
+
   it('keeps the comparison flag out of the page', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(

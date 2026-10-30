@@ -22,6 +22,7 @@ import {
   type Comparison,
   type DescribeComparisonOptions,
   describeComparison,
+  isAbsoluteRange,
   isBuiltInComparison
 } from '@oztix/roadie-core/datetime'
 
@@ -42,9 +43,14 @@ export type DashboardViewProps = {
   cardActions?: (card: DashboardCard) => ReactNode
   /**
    * Links a table card's row to its own page, such as a show to its event
-   * view. Like actions, links come from the app rather than the spec.
+   * view. Like actions, links come from the app rather than the spec. It gets
+   * the dashboard's period, so a link can open the same dates.
    */
-  getRowHref?: (card: TableCard, row: TableRow) => string | undefined
+  getRowHref?: (
+    card: TableCard,
+    row: TableRow,
+    period: DashboardPeriodSpec | undefined
+  ) => string | undefined
   /**
    * Called with the period and comparison chosen in the toolbar, without
    * `history`: resolve them, fetch, and pass back a spec with the new
@@ -73,16 +79,22 @@ const HISTORY_MESSAGE = {
   unavailable: 'Nothing to compare'
 } as const
 
+// validateDashboard rejects custom date-times; an unchecked spec still renders.
+const unplaced = (
+  compare: Comparison,
+  { timeZone }: DescribeComparisonOptions
+) =>
+  !timeZone &&
+  isAbsoluteRange(compare) &&
+  `${compare.start}${compare.end}`.includes('T')
+
 function comparisonLine(
   compare: Comparison,
   where: DescribeComparisonOptions
 ): string {
-  try {
-    return describeComparison(compare, where)
-  } catch {
-    // validateDashboard rejects custom date-times; an unchecked spec still renders.
-    return 'vs custom dates'
-  }
+  return unplaced(compare, where)
+    ? 'vs custom dates'
+    : describeComparison(compare, where)
 }
 
 /**
@@ -212,7 +224,7 @@ function Card({
             columns={card.columns}
             rows={card.rows}
             caption={card.label}
-            getRowHref={getRowHref && ((row) => getRowHref(card, row))}
+            getRowHref={getRowHref && ((row) => getRowHref(card, row, period))}
           />
         </DataCard>
       )
