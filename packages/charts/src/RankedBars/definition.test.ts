@@ -160,6 +160,21 @@ describe('rankedBars', () => {
     )
   })
 
+  it('names the largest bar as the leader when sort is off', () => {
+    expect(
+      rankedBars.summary({
+        data: [
+          { band: '18 to 24', buyers: 412 },
+          { band: '25 to 34', buyers: 958 },
+          { band: '35 to 44', buyers: 503 }
+        ],
+        x: 'band',
+        y: 'buyers',
+        sort: false
+      })
+    ).toBe('25 to 34 leads with 958 buyers, ahead of 35 to 44 with 503')
+  })
+
   it('never compares the leader against Other', () => {
     expect(
       rankedBars.summary({ ...channelExample, takeaway: undefined, limit: 2 })

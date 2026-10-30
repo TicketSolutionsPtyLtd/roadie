@@ -448,6 +448,17 @@ function plotProblems(plot: ChartPlot, path: string) {
         `${count} series. The smallest will roll into Other after ${SERIES_CAP}`
       )
     )
+  if (
+    plot.kind === 'ranked-bars' &&
+    plot.other === false &&
+    plot.limit === undefined
+  )
+    problems.push(
+      warning(
+        `${plotPath}.limit`,
+        'Set limit too, so the label can say how many bars show'
+      )
+    )
   problems.push(...copyProblems(plotPath, 'takeaway', plot.takeaway))
   problems.push(...duplicateProblems(plot, plotPath))
   if (

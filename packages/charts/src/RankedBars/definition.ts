@@ -177,7 +177,8 @@ export const rankedBars: ChartDefinition<RankedBarsProps> = {
   summary(props) {
     if (props.takeaway) return props.takeaway
     // Named rows only: Other is a remainder, never a rival.
-    const [first, second] = rankable(props)
+    // The leader is the largest, whatever order the bars are drawn in.
+    const [first, second] = rankable({ ...props, sort: true })
     const measure = fieldLabel(props.y)
     if (!first) return `${measure} by ${fieldLabel(props.x).toLowerCase()}`
     const lead = `${first.name} leads with ${describeValue(first.value, props.format, measure.toLowerCase())}`

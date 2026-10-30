@@ -730,6 +730,23 @@ describe('validateDashboard checks repeated names', () => {
     })
   })
 
+  it('asks for a limit when ranked bars leave Other off', () => {
+    const plot = {
+      kind: 'ranked-bars',
+      data: [{ channel: 'Email', orders: 5 }],
+      x: 'channel',
+      y: 'orders'
+    }
+    expect(problemsOf({ ...plot, other: false })).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.limit',
+        severity: 'warning'
+      })
+    )
+    expect(problemsOf({ ...plot, other: false, limit: 5 })).toEqual([])
+    expect(problemsOf(plot)).toEqual([])
+  })
+
   it('warns that repeated ranked names add up', () => {
     expect(
       problemsOf({
