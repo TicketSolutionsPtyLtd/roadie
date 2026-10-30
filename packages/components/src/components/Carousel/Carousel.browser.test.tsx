@@ -30,6 +30,34 @@ const content = () => document.querySelector('[data-slot="carousel-content"]')!
 // Where a slide sits in the viewport.
 const offset = (text: string, side: 'left' | 'top') =>
   box(text)[side] - content().getBoundingClientRect()[side]
+type Pixel = [number, number, number]
+
+async function capture(host: HTMLElement) {
+  const base64 = await page.screenshot({ element: host, save: false })
+  const image = new Image()
+  image.src = `data:image/png;base64,${base64}`
+  await image.decode()
+  const canvas = document.createElement('canvas')
+  canvas.width = image.width
+  canvas.height = image.height
+  const context = canvas.getContext('2d')!
+  context.drawImage(image, 0, 0)
+  const box = host.getBoundingClientRect()
+  const scale = image.width / box.width
+  return (x: number, y: number): Pixel => {
+    const [r, g, b] = context.getImageData(
+      Math.round((x - box.left) * scale),
+      Math.round((y - box.top) * scale),
+      1,
+      1
+    ).data
+    return [r!, g!, b!]
+  }
+}
+
+const distance = (a: Pixel, b: Pixel) =>
+  Math.max(...a.map((channel, index) => Math.abs(channel - b[index]!)))
+
 // Embla settles up to a pixel short of a snap.
 const settlesAt = (text: string, side: 'left' | 'top', at: number) =>
   expect.poll(() => Math.abs(offset(text, side) - at)).toBeLessThan(1)
@@ -573,5 +601,40 @@ describe.each<CarouselContentOverflow>(['subtle', 'hidden', 'visible'])(
         })
         .toEqual(['solid', ringWidth(), `-${ringWidth()}`])
     })
+
+    it.each(['horizontal', 'vertical'] as const)(
+      'draws the ring on all four sides when %s, above the edge fades',
+      async (direction) => {
+        const { container } = render(
+          <div style={{ padding: 24 }}>
+            <Shows overflow={overflow} direction={direction} />
+          </div>
+        )
+        const host = container.firstElementChild as HTMLElement
+        await userEvent.tab()
+        expect(content()).toHaveFocus()
+        await expect
+          .poll(() => getComputedStyle(content()).outlineWidth)
+          .toBe(ringWidth())
+
+        const pixel = await capture(host)
+        const track = content().getBoundingClientRect()
+        const middle = {
+          x: track.left + track.width / 2,
+          y: track.top + track.height / 2
+        }
+        const inset = parseFloat(ringWidth()) / 2
+        const top = pixel(middle.x, track.top + inset)
+        const sides = [
+          pixel(track.left + inset, middle.y),
+          pixel(track.right - inset, middle.y),
+          pixel(middle.x, track.bottom - inset)
+        ]
+        const backdrop = pixel(host.getBoundingClientRect().left + 2, middle.y)
+
+        expect(distance(top, backdrop)).toBeGreaterThan(16)
+        for (const side of sides) expect(distance(side, top)).toBeLessThan(8)
+      }
+    )
   }
 )

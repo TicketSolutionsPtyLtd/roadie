@@ -14,7 +14,8 @@ import { cva } from 'class-variance-authority'
 //
 // Horizontal subtle bleeds with `-mx-4 px-4` (sm+: `-mx-6 px-6`); the
 // gradients cover those padding strips. Vertical subtle is the same idea
-// rotated to the block axis.
+// rotated to the block axis. On keyboard focus the gradients step in by
+// the ring width, since they paint above the track's inset ring.
 //
 // The `-my-4 py-4` on horizontal preserves the small vertical overflow
 // bleed needed to let `shadow-md` (~6–10px) escape the viewport box on
@@ -44,7 +45,9 @@ export const carouselContentVariants = cva(
           'before:bg-linear-to-r before:from-[var(--intent-bg-normal)] before:to-transparent',
           'after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:z-10',
           'after:w-4 sm:after:w-6',
-          'after:bg-linear-to-l after:from-[var(--intent-bg-normal)] after:to-transparent'
+          'after:bg-linear-to-l after:from-[var(--intent-bg-normal)] after:to-transparent',
+          'focus-visible:before:inset-y-(--focus-ring-width) focus-visible:before:left-(--focus-ring-width)',
+          'focus-visible:after:inset-y-(--focus-ring-width) focus-visible:after:right-(--focus-ring-width)'
         ].join(' ')
       },
       {
@@ -63,7 +66,9 @@ export const carouselContentVariants = cva(
           'before:bg-linear-to-b before:from-[var(--intent-bg-normal)] before:to-transparent',
           'after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:z-10',
           'after:h-4',
-          'after:bg-linear-to-t after:from-[var(--intent-bg-normal)] after:to-transparent'
+          'after:bg-linear-to-t after:from-[var(--intent-bg-normal)] after:to-transparent',
+          'focus-visible:before:inset-x-(--focus-ring-width) focus-visible:before:top-(--focus-ring-width)',
+          'focus-visible:after:inset-x-(--focus-ring-width) focus-visible:after:bottom-(--focus-ring-width)'
         ].join(' ')
       }
     ],
