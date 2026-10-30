@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from 'react'
+import type { ReactNode } from 'react'
 
 import { Card } from '@oztix/roadie-components/card'
 import { Mark } from '@oztix/roadie-components/mark'
@@ -10,14 +10,14 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
-import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
   type BlockSize,
-  bySize
+  gapOf
 } from '../_shared/surface'
+import { useBlock } from '../_shared/useBlock'
 import { type MosaicPreset, mosaicDefinition } from './definition'
 
 export type { MosaicPreset } from './definition'
@@ -110,53 +110,17 @@ const TILE_SIZES = '(min-width: 768px) 25vw, 50vw'
 const WIDE_SIZES = '(min-width: 768px) 50vw, 100vw'
 
 /** Partners in a grid of photo tiles, each with a logo and a marked label, some two columns wide. */
-export function Mosaic({
-  preset,
-  position,
-  id,
-  eyebrow,
-  title,
-  titleHighlight,
-  description,
-  tiles,
-  logoTile,
-  actions,
-  intent,
-  emphasis,
-  contained,
-  align = 'start',
-  size
-}: MosaicProps) {
-  const { name, variant } = presetOf(mosaicDefinition, preset)
-  const headingId = useId()
+export function Mosaic(props: MosaicProps) {
+  const { tiles, logoTile, intent, size } = props
+  const block = useBlock(mosaicDefinition, props)
   return (
-    <BlockRoot
-      block={mosaicDefinition.name}
-      variant={variant}
-      preset={name}
-      position={position}
-      id={id}
-      aria-labelledby={headingId}
-      intent={intent}
-    >
+    <BlockRoot {...block.root}>
       <BlockSurface
-        emphasis={emphasis}
-        contained={contained}
-        className={cn(
-          'grid *:min-w-0',
-          bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' })
-        )}
+        emphasis={block.emphasis}
+        contained={block.contained}
+        className={cn('grid *:min-w-0', gapOf(size, 'loose'))}
       >
-        <BlockHeading
-          id={headingId}
-          align={align}
-          size={size}
-          intent={intent}
-          eyebrow={eyebrow}
-          title={title}
-          titleHighlight={titleHighlight}
-          description={description}
-        />
+        <BlockHeading {...block.heading} />
         <ul className={GRID}>
           {tiles.map((tile, index) => (
             <PhotoTile
@@ -167,11 +131,7 @@ export function Mosaic({
           ))}
           {logoTile && <LogosTile {...logoTile} />}
         </ul>
-        <BlockActions
-          actions={actions}
-          intent={intent}
-          className={align === 'center' ? 'justify-center' : undefined}
-        />
+        <BlockActions {...block.actions} />
       </BlockSurface>
     </BlockRoot>
   )

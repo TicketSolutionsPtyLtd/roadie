@@ -1,5 +1,3 @@
-import { useId } from 'react'
-
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction } from '../Provider'
@@ -8,14 +6,14 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import { type StatItem, StatList } from '../_shared/StatList'
-import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
   type BlockSize,
-  bySize
+  gapOf
 } from '../_shared/surface'
+import { useBlock } from '../_shared/useBlock'
 import { type StatsPreset, statsDefinition } from './definition'
 
 export type { StatItem } from '../_shared/StatList'
@@ -66,59 +64,21 @@ export type StatsProps = {
 }
 
 /** Key numbers as they were written, each with a spot illustration and a label. */
-export function Stats({
-  preset,
-  position,
-  id,
-  eyebrow,
-  title,
-  titleHighlight,
-  description,
-  items,
-  actions,
-  intent,
-  emphasis,
-  contained = true,
-  align = 'start',
-  size
-}: StatsProps) {
-  const { name, variant } = presetOf(statsDefinition, preset)
-  const headingId = useId()
+export function Stats(props: StatsProps) {
+  const block = useBlock(statsDefinition, props)
   return (
-    <BlockRoot
-      block={statsDefinition.name}
-      variant={variant}
-      preset={name}
-      position={position}
-      id={id}
-      intent={intent}
-      aria-labelledby={headingId}
-    >
+    <BlockRoot {...block.root}>
       <BlockSurface
-        emphasis={emphasis}
-        contained={contained}
+        emphasis={block.emphasis}
+        contained={block.contained}
         className={cn(
           'grid grid-cols-1 *:min-w-0',
-          bySize(size, { sm: 'gap-4', md: 'gap-6', lg: 'gap-8' })
+          gapOf(props.size, 'normal')
         )}
       >
-        <BlockHeading
-          id={headingId}
-          intent={intent}
-          align={align}
-          size={size}
-          className='grid-cols-1'
-          eyebrow={eyebrow}
-          title={title}
-          titleHighlight={titleHighlight}
-          description={description}
-        />
-        <StatList items={items} />
-        <BlockActions
-          actions={actions}
-          intent={intent}
-          className={cn(align === 'center' && 'justify-center')}
-        />
+        <BlockHeading {...block.heading} className='grid-cols-1' />
+        <StatList items={props.items} />
+        <BlockActions {...block.actions} />
       </BlockSurface>
     </BlockRoot>
   )

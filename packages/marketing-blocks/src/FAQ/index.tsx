@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from 'react'
+import type { ReactNode } from 'react'
 
 import { Accordion } from '@oztix/roadie-components/accordion'
 import { Prose } from '@oztix/roadie-components/prose'
@@ -9,15 +9,15 @@ import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
-import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
   type BlockSize,
   type ItemEmphasis,
-  bySize
+  gapOf
 } from '../_shared/surface'
+import { useBlock } from '../_shared/useBlock'
 import { type FAQPreset, faqDefinition } from './definition'
 
 export type { FAQPreset } from './definition'
@@ -78,55 +78,19 @@ export type FAQProps = {
 }
 
 /** Answers the questions people ask before they buy or sign up. */
-export function FAQ({
-  preset: presetName,
-  position,
-  id,
-  eyebrow,
-  title,
-  titleHighlight,
-  description,
-  items,
-  actions,
-  intent,
-  emphasis,
-  contained,
-  itemEmphasis = 'subtler',
-  align = 'start',
-  size
-}: FAQProps) {
-  const headingId = useId()
-  const { name, variant } = presetOf(faqDefinition, presetName)
+export function FAQ(props: FAQProps) {
+  const { items, itemEmphasis = 'subtler', size } = props
+  const block = useBlock(faqDefinition, props)
 
   return (
-    <BlockRoot
-      block={faqDefinition.name}
-      variant={variant}
-      preset={name}
-      position={position}
-      id={id}
-      aria-labelledby={headingId}
-      intent={intent}
-    >
+    <BlockRoot {...block.root}>
       <BlockSurface
-        emphasis={emphasis}
-        contained={contained}
+        emphasis={block.emphasis}
+        contained={block.contained}
         width='3xl'
-        className={cn(
-          'grid grid-cols-1',
-          bySize(size, { sm: 'gap-4', md: 'gap-6', lg: 'gap-8' })
-        )}
+        className={cn('grid grid-cols-1', gapOf(size, 'normal'))}
       >
-        <BlockHeading
-          id={headingId}
-          eyebrow={eyebrow}
-          title={title}
-          titleHighlight={titleHighlight}
-          description={description}
-          align={align}
-          size={size}
-          intent={intent}
-        />
+        <BlockHeading {...block.heading} />
         {/* Unboxed questions hang their inset, so the text lines up with the heading. */}
         <Accordion
           emphasis={itemEmphasis}
@@ -145,11 +109,7 @@ export function FAQ({
             </Accordion.Item>
           ))}
         </Accordion>
-        <BlockActions
-          actions={actions}
-          intent={intent}
-          className={cn(align === 'center' && 'justify-center')}
-        />
+        <BlockActions {...block.actions} />
       </BlockSurface>
     </BlockRoot>
   )

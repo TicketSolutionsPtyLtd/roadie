@@ -1,7 +1,5 @@
 'use client'
 
-import { useId } from 'react'
-
 import { Carousel } from '@oztix/roadie-components/carousel'
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -11,15 +9,15 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
-import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
   type BlockSize,
-  bySize,
+  gapOf,
   intentClass
 } from '../_shared/surface'
+import { useBlock } from '../_shared/useBlock'
 import { type TestimonialPreset, testimonialDefinition } from './definition'
 
 export type { TestimonialPreset } from './definition'
@@ -92,53 +90,21 @@ export type TestimonialProps = {
 }
 
 /** Clients' quotes, large and centred, with their portrait, role, and organisation: one, or several in a carousel. */
-export function Testimonial({
-  preset,
-  position,
-  id,
-  eyebrow,
-  title,
-  titleHighlight,
-  description,
-  quotes,
-  image,
-  actions,
-  intent,
-  emphasis,
-  contained,
-  align = 'center',
-  size
-}: TestimonialProps) {
-  const { name, variant } = presetOf(testimonialDefinition, preset)
-  const headingId = useId()
-  const centred = align === 'center'
-  const heading = (
-    <BlockHeading
-      id={headingId}
-      intent={intent}
-      align={align}
-      size={size}
-      eyebrow={eyebrow}
-      title={title}
-      titleHighlight={titleHighlight}
-      description={description}
-    />
-  )
-  const gap = bySize(size, { sm: 'gap-8', md: 'gap-10', lg: 'gap-16' })
+export function Testimonial(props: TestimonialProps) {
+  const { quotes, image, intent, size } = props
+  const block = useBlock(testimonialDefinition, props)
+  const { align } = block
+  const heading = <BlockHeading {...block.heading} />
+  const gap = gapOf(size, 'wide')
   return (
     <BlockRoot
-      block={testimonialDefinition.name}
-      variant={variant}
-      preset={name}
-      position={position}
-      id={id}
+      {...block.root}
       // The carousel is the landmark the heading names; naming both repeats it.
-      aria-labelledby={name === 'carousel' ? undefined : headingId}
-      intent={intent}
+      aria-labelledby={block.name === 'carousel' ? undefined : block.heading.id}
     >
       <BlockSurface
-        emphasis={emphasis}
-        contained={contained}
+        emphasis={block.emphasis}
+        contained={block.contained}
         width='4xl'
         backdrop={
           image && (
@@ -149,11 +115,15 @@ export function Testimonial({
             />
           )
         }
-        className={cn('grid *:min-w-0', gap, centred && 'justify-items-center')}
+        className={cn(
+          'grid *:min-w-0',
+          gap,
+          align === 'center' && 'justify-items-center'
+        )}
       >
-        {name === 'carousel' ? (
+        {block.name === 'carousel' ? (
           <Carousel className={cn('grid w-full', gap)}>
-            <Carousel.Title id={headingId} render={() => heading} />
+            <Carousel.Title id={block.heading.id} render={() => heading} />
             {/* Clipped sideways only, so the quote mark rising above each quote shows. */}
             <Carousel.Content overflow='hidden' className='overflow-y-visible'>
               {quotes.map((item, index) => (
@@ -175,11 +145,7 @@ export function Testimonial({
             )}
           </>
         )}
-        <BlockActions
-          actions={actions}
-          intent={intent}
-          className={cn(centred && 'justify-center')}
-        />
+        <BlockActions {...block.actions} />
       </BlockSurface>
     </BlockRoot>
   )
