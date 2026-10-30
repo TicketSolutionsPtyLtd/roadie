@@ -5,7 +5,7 @@ any component that sits on top of `@base-ui/react`.
 
 This guide codifies the existing Select / Combobox / Autocomplete / Button /
 RadioGroup patterns so new components stay consistent. If you find yourself
-doing something different, update the guide — don't drift.
+doing something different, update the guide. Don't drift.
 
 External docs:
 
@@ -56,7 +56,7 @@ It is the canonical reference for:
 See `packages/components/src/components/Fieldset/` for the reference
 implementation (small compound). Larger compounds like Select / Combobox
 / Autocomplete are in the process of migrating from the pre-Phase-3
-monolithic layout — treat `Fieldset` as the target shape.
+monolithic layout: treat `Fieldset` as the target shape.
 
 ## 3. The `render` prop (element replacement)
 
@@ -64,13 +64,13 @@ Base UI primitives accept a `render` prop to swap the underlying element.
 There are three forms:
 
 ```tsx
-// Element form — swap the tag
+// Element form: swap the tag
 <Button render={<a href='/foo' />}>Link</Button>
 
-// Component form — swap the component
+// Component form: swap the component
 <Button render={<NextLink href='/foo' />}>Link</Button>
 
-// Function form — full control, spread props yourself
+// Function form: full control, spread props yourself
 <Button render={(props, state) => <a {...props} data-active={state.pressed} />}>
   Link
 </Button>
@@ -91,25 +91,25 @@ API on top of it.
 `nativeButton={!props.render}` so the default stays a `<button>` but a
 consumer can pass `render={<a>}` to swap it out.
 
-> **Updated v2.6 (2026-04-28):** Every Roadie component — Base UI consumer
-> or not — now exposes the same `render` prop. Non-Base-UI wrappers
+> **Updated v2.6 (2026-04-28):** Every Roadie component (Base UI consumer
+> or not) now exposes the same `render` prop. Non-Base-UI wrappers
 > (Card, Breadcrumb.Link, Carousel.TitleLink) compose the in-house
 > `resolveRender` helper at `packages/components/src/utils/resolveRender.tsx` to
 > deliver Base UI's render contract (element / component / function form)
 > against an in-house default. Their legacy `as` props are `@deprecated`
 > and removed in v3.0.0. New components, Base UI or not, must use
-> `render` — do not invent `as` / `ElementType` / `asChild` APIs.
+> `render`. Do not invent `as` / `ElementType` / `asChild` APIs.
 >
 > `LinkButton` / `LinkIconButton` are `@deprecated` whole components
 > (also removed in v3.0.0) and keep their original `as` API for back-
-> compat — don't migrate them to `render`, they're going away.
+> compat. Don't migrate them to `render`, they're going away.
 
 ## 4. Type conventions
 
 Base UI uses TypeScript union types for its part props. That breaks
 `interface extends`, which silently widens unions. Rules:
 
-**Base UI parts — use a type alias with intersection:**
+**Base UI parts: use a type alias with intersection:**
 
 ```tsx
 export type SelectTriggerProps = SelectPrimitive.Trigger.Props &
@@ -118,11 +118,11 @@ export type SelectTriggerProps = SelectPrimitive.Trigger.Props &
 ```
 
 - `type = X.Part.Props & RefAttributes<Element> & CustomExtras`
-- Always intersect `RefAttributes<ElementType>` — Base UI's `Props` types do
+- Always intersect `RefAttributes<ElementType>`: Base UI's `Props` types do
   not include ref on their own.
 - **Never** `interface SelectTriggerProps extends SelectPrimitive.Trigger.Props`.
 
-**Native DOM wrappers — `interface extends` is fine:**
+**Native DOM wrappers: `interface extends` is fine:**
 
 HelperText, ErrorText, Label and similar thin wrappers around raw DOM
 elements can use the nominal form:
@@ -177,7 +177,7 @@ data-[align]      (start | center | end)
 data-[placeholder]
 ```
 
-Example — dim the Select value when the placeholder is showing:
+Example: dim the Select value when the placeholder is showing:
 
 ```tsx
 <SelectPrimitive.Value className='truncate data-[placeholder]:text-subtle' />
@@ -195,7 +195,7 @@ Use these for dynamic sizing/positioning instead of measuring in JS:
 | `--anchor-height`    | Popup | Match trigger height         |
 | `--transform-origin` | Popup | Scale-from-anchor animations |
 
-Example — a popup that never overflows the viewport and grows up to the
+Example: a popup that never overflows the viewport and grows up to the
 trigger's width:
 
 ```tsx
@@ -245,7 +245,7 @@ build will fail with a server/client boundary error.
 ## 8. Roadie's intentional divergences
 
 Two places where Roadie deviates from Base UI's default compound shape.
-They are deliberate — don't "fix" them.
+They are deliberate. Don't "fix" them.
 
 ### `Select.Content` collapses Portal + Positioner + Popup
 
@@ -300,7 +300,7 @@ Roadie owns: visible focus styles (via `:focus-visible` or
 `data-[focused]`), label text, `aria-label` on icon-only controls,
 colour contrast, and `prefers-reduced-motion` handling.
 
-Never reimplement what Base UI already does — if keyboard handling
+Never reimplement what Base UI already does. If keyboard handling
 feels wrong, check that you're spreading `...props` and not
 intercepting `onKeyDown`.
 
@@ -399,10 +399,10 @@ export function NewThingItem({ className, ...props }: NewThingItemProps) {
 NewThingItem.displayName = 'NewThing.Item'
 ```
 
-### `index.tsx` (server-safe entry — **no `'use client'`**)
+### `index.tsx` (server-safe entry, **no `'use client'`**)
 
 ```tsx
-// NO 'use client' — this file MUST stay a server-safe module. Under tsdown
+// NO 'use client': this file MUST stay a server-safe module. Under tsdown
 // `unbundle: true`, it's emitted as its own dist file, and the property
 // assignments below execute on the server. Adding 'use client' here
 // reinstates the Next.js client-reference-proxy wall and breaks
@@ -434,7 +434,7 @@ import { NewThing } from '@oztix/roadie-components/new-thing'
 </NewThing>
 ```
 
-Both `<NewThing>` and `<NewThing.Root>` resolve to the same function —
+Both `<NewThing>` and `<NewThing.Root>` resolve to the same function:
 bare is canonical; `.Root` is a supported alias for Base UI parity.
 
 See

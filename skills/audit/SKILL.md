@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Use when auditing a codebase for Roadie design system compliance — scanning for hardcoded colors, wrong layout patterns, icon misuse, missing intent/emphasis, non-semantic HTML, raw scale references, deprecated props, inline styles, and missing setup. Triggers on "audit against Roadie", "check Roadie compliance", "fix styling to match Roadie".
+description: Use when auditing a codebase for Roadie design system compliance, scanning for hardcoded colors, wrong layout patterns, icon misuse, missing intent/emphasis, non-semantic HTML, raw scale references, deprecated props, inline styles, and missing setup. Triggers on "audit against Roadie", "check Roadie compliance", "fix styling to match Roadie".
 ---
 
 # Roadie audit
@@ -11,8 +11,8 @@ This skill runs in any consumer repo that uses `@oztix/roadie-core` and `@oztix/
 
 ## Prerequisites
 
-1. **Identify the target directory** — ask the user if not obvious from context (usually `src/` or `app/`).
-2. **Optional freshness check** — fetch the latest `AGENTS.md` from the Roadie repo if you suspect the rules below may be stale:
+1. **Identify the target directory**: ask the user if not obvious from context (usually `src/` or `app/`).
+2. **Optional freshness check**: fetch the latest `AGENTS.md` from the Roadie repo if you suspect the rules below may be stale:
    ```
    WebFetch https://raw.githubusercontent.com/TicketSolutionsPtyLtd/roadie/main/AGENTS.md
    ```
@@ -65,7 +65,7 @@ digraph audit {
 }
 ```
 
-1. **Scan** the target directory with oxlint, or ESLint when oxlint can't run (see Run the lint rules first), then the checks below — run independent checks in parallel by issuing multiple Grep tool calls in a single message (see Parallelization guide)
+1. **Scan** the target directory with oxlint, or ESLint when oxlint can't run (see Run the lint rules first), then the checks below. Run independent checks in parallel by issuing multiple Grep tool calls in a single message (see Parallelization guide)
 2. **Report** findings grouped by severity with file paths and line numbers
 3. **Ask** the user which categories to fix (or fix all if instructed)
 4. **Fix** issues, then re-run the same lint command and the greps to confirm no regressions
@@ -78,7 +78,7 @@ digraph audit {
 | Warning  | Deviation from conventions, works but inconsistent | Should fix |
 | Info     | Opportunity for improvement, review manually       | May fix    |
 
-**Exception:** Setting theme/accent color via CSS custom properties or ThemeProvider config is intentional — not a violation.
+**Exception:** Setting theme/accent color via CSS custom properties or ThemeProvider config is intentional, not a violation.
 
 ---
 
@@ -94,7 +94,7 @@ Roadie disables default Tailwind color utilities. All colors must be semantic.
 (bg|text|border|ring|outline|shadow|from|to|via)-(red|blue|green|gray|slate|zinc|stone|orange|amber|yellow|lime|emerald|teal|cyan|sky|indigo|violet|purple|fuchsia|pink|rose|white|black)-\d
 ```
 
-**Note:** This pattern excludes `neutral` — Roadie has its own `neutral-0` through `neutral-13` scale. Raw Roadie scale references like `border-neutral-0` are covered by check A2 (Info level) instead.
+**Note:** This pattern excludes `neutral`: Roadie has its own `neutral-0` through `neutral-13` scale. Raw Roadie scale references like `border-neutral-0` are covered by check A2 (Info level) instead.
 
 **Fix:** Replace with semantic equivalents:
 
@@ -107,7 +107,7 @@ Roadie disables default Tailwind color utilities. All colors must be semantic.
 
 #### A2. Raw intent scale references [Info]
 
-These use Roadie's own scale names (`brand-4`, `accent-11`) so they ARE semantic — but when an emphasis shortcut would be cleaner, flag them. Not always wrong.
+These use Roadie's own scale names (`brand-4`, `accent-11`) so they ARE semantic, but when an emphasis shortcut would be cleaner, flag them. Not always wrong.
 
 ```
 (bg|text|border|ring|outline|from|to|via)-(brand|info|accent|danger|success|warning|neutral)-\d+
@@ -211,7 +211,7 @@ flex flex-col
 space-(x|y)-
 ```
 
-**Note:** Not all margin is wrong — margin on a page wrapper or for specific offsets is fine. Flag only margin used to space siblings that should use parent `gap` instead.
+**Note:** Not all margin is wrong: margin on a page wrapper or for specific offsets is fine. Flag only margin used to space siblings that should use parent `gap` instead.
 
 ---
 
@@ -278,7 +278,7 @@ All `<h1>`–`<h6>` elements should have `text-display-ui-*` or `text-display-pr
 <Heading[\s/>]|<Text[\s/>]|<Typography[\s/>]
 ```
 
-Roadie uses raw HTML elements with utility classes — no wrapper components.
+Roadie uses raw HTML elements with utility classes, no wrapper components.
 
 **Fix:** Replace with raw `<h1>`–`<h6>`, `<p>`, `<span>` with utility classes like `text-display-ui-3 text-strong`, `text-subtle text-sm`, etc.
 
@@ -296,7 +296,7 @@ Roadie uses raw HTML elements with utility classes — no wrapper components.
 Ripgrep has no lookaround, so these match every button. Check each hit for an
 `intent` or `emphasis` and flag the ones without either.
 
-**Note:** Components inherit intent from parent context — only flag if there's no ancestor with `intent-*` either.
+**Note:** Components inherit intent from parent context. Only flag if there's no ancestor with `intent-*` either.
 
 #### E2. Deprecated colorPalette prop [Warning]
 
@@ -390,7 +390,7 @@ Kept on `IconButton` as a deprecated alias. New code uses `'xs' | 'sm' | 'md' | 
 hover:bg-|hover:text-|hover:border-|hover:shadow-|focus:bg-|focus:border-|active:scale-|active:bg-
 ```
 
-**Note:** Not all `hover:` usage is wrong — decorative hover effects or micro-interactions may be intentional. Flag on elements that are buttons, links, or have `onClick`.
+**Note:** Not all `hover:` usage is wrong: decorative hover effects or micro-interactions may be intentional. Flag on elements that are buttons, links, or have `onClick`.
 
 **Fix:** Use `is-interactive` (buttons, cards, clickable elements) or `is-interactive-field` (form inputs) which provide consistent hover/focus/active/disabled states.
 
@@ -418,8 +418,8 @@ For each match, check whether a Tailwind utility exists:
 
 A text field built from parts instead of `emphasis-field`. The old recipe,
 `emphasis-sunken border border-subtle`, stacks a grey border on an inset
-shadow and reads muddy. Server templates need it as much as JSX does —
-`emphasis-field` is plain CSS precisely so they can use it — so widen this
+shadow and reads muddy. Server templates need it as much as JSX does
+(`emphasis-field` is plain CSS precisely so they can use it), so widen this
 check's glob to `*.{tsx,jsx,vue,cshtml,razor,html}`.
 
 ```
@@ -502,7 +502,7 @@ everywhere else it is the matching formatter.
 | a hand-built `2h 30m`                     | `<Duration of={ms} />`                                 | `formatDuration(ms)`                  |
 | a `setInterval` counting down             | `<Countdown until={at} />`                             | `formatCountdown(ms)`                 |
 
-Ignore matches that are parsing or serialising rather than displaying — an ISO
+Ignore matches that are parsing or serialising rather than displaying: an ISO
 string for an API, a query key, a `data-*` attribute.
 
 #### H2. Date rendered in the viewer's timezone [Critical]
@@ -512,11 +512,11 @@ string for an API, a query key, a `data-*` attribute.
 ```
 
 These read the _browser's_ clock. They are usually a date being assembled by
-hand for display, often several lines below where the `Date` was constructed —
+hand for display, often several lines below where the `Date` was constructed,
 so match on the accessor, not on `new Date(...)`.
 
 Also flag any `@oztix/roadie-core/datetime` call whose options object has no
-`timeZone` — check each result from H1's formatter matches.
+`timeZone`: check each result from H1's formatter matches.
 
 A date rendered in the browser's zone is wrong for every viewer who is not in
 the venue's zone, and it fails silently: a late-evening event shows the previous
@@ -543,7 +543,7 @@ with a full month. `Fri, 27 November` mixes them.
 | `Fri, 27 November 2026` | `formatLong` → `Fri 27 Nov 2026`          |
 | `Friday, 27 Nov 2026`   | `formatFull` → `Friday, 27 November 2026` |
 
-For the `weekday: 'short'` match, check the sibling `month` value — flag only
+For the `weekday: 'short'` match, check the sibling `month` value: flag only
 when it is `'long'`.
 
 #### H4. Non-standard clock [Warning]
@@ -576,7 +576,7 @@ about hand-rolled clocks, not the styles that own 24-hour deliberately.
 #### H5. A dash joining a date or time range [Warning]
 
 ```
-\} ?[-–—] ?\{|['"] ?[-–—] ?['"]
+\} ?[-\x{2013}\x{2014}] ?\{|['"] ?[-\x{2013}\x{2014}] ?['"]
 ```
 
 The word `to` joins the two ends of a range. Never a dash of any kind. A screen
@@ -654,7 +654,7 @@ parameter a default value.
 timeZone:\s*viewerTimeZone\(\)
 ```
 
-Flag only where the value being formatted is an **instant** — `startsAt`,
+Flag only where the value being formatted is an **instant**: `startsAt`,
 `doorsAt`, `endsAt`, `onSaleAt`. A file merely mentioning `event` is not
 enough.
 
@@ -834,26 +834,26 @@ Roadie's text colours are `text-{normal,subtle,subtler,strong,inverted,on-strong
 ## Roadie audit results
 
 ### Critical (must fix)
-- **[H8] Formatter called with no timezone** — N instances
-  - `src/orders/Row.tsx:31` — `formatLong(placedAt)` → `formatLong(placedAt, { timeZone })`
-- **[H9] Event time in the viewer's timezone** — N instances
-- **[H2] Dates rendered in the viewer's timezone** — N instances
-  - `src/events/Hit.tsx:12` — `new Date(startsAt).getDate()` → `formatGlyph(startsAt, { timeZone })`
-- **[A1] Hardcoded Tailwind colors** — N instances across M files
-  - `src/components/Header.tsx:14` — `bg-gray-900` → `bg-strong`
+- **[H8] Formatter called with no timezone**: N instances
+  - `src/orders/Row.tsx:31`: `formatLong(placedAt)` → `formatLong(placedAt, { timeZone })`
+- **[H9] Event time in the viewer's timezone**: N instances
+- **[H2] Dates rendered in the viewer's timezone**: N instances
+  - `src/events/Hit.tsx:12`: `new Date(startsAt).getDate()` → `formatGlyph(startsAt, { timeZone })`
+- **[A1] Hardcoded Tailwind colors**: N instances across M files
+  - `src/components/Header.tsx:14`: `bg-gray-900` → `bg-strong`
   - ...
-- **[A3] Hardcoded hex/rgb colors** — N instances
+- **[A3] Hardcoded hex/rgb colors**: N instances
   - ...
 
 ### Warning (should fix)
-- **[B1] flex-col stacks** — N instances
-  - `src/components/Card.tsx:8` — `flex flex-col gap-4` → `grid gap-4`
-- **[F2] Inline styles** — N instances
-  - `src/components/Icon.tsx:12` — `style={{ flexShrink: 0 }}` → `shrink-0`
+- **[B1] flex-col stacks**: N instances
+  - `src/components/Card.tsx:8`: `flex flex-col gap-4` → `grid gap-4`
+- **[F2] Inline styles**: N instances
+  - `src/components/Icon.tsx:12`: `style={{ flexShrink: 0 }}` → `shrink-0`
 
 ### Info (review manually)
-- **[A2] Raw scale references** — N uses (check if emphasis shortcuts apply)
-- **[F1] Manual hover variants** — N uses
+- **[A2] Raw scale references**: N uses (check if emphasis shortcuts apply)
+- **[F1] Manual hover variants**: N uses
 ```
 
 ## Quick fix reference
@@ -935,7 +935,7 @@ Run independent checks in parallel by issuing multiple Grep calls in a single me
 - H2: `\.(getDate|getMonth|getFullYear|getDay|getHours|getMinutes)\(\)`
 - H3: `\bddd\b[^'"]*MMMM|\bEEE\b[^'"]*MMMM|\b(dddd|EEEE)\b[^'"]*\bMMM\b|weekday: ?['"]short['"]`
 - H4: `HH:mm|hh:mm ?a|['"]tt['"]|:mm ?A\b` (exclude `numeric` and `iso` styles)
-- H5: `\} ?[-–—] ?\{|['"] ?[-–—] ?['"]`
+- H5: `\} ?[-\x{2013}\x{2014}] ?\{|['"] ?[-\x{2013}\x{2014}] ?['"]`
 - H6: `(month|MMM)[^<]*</\w+>\s*<\w+[^>]*>[^<]*(day|Day|get(UTC)?Date|['"][dD]{1,2}['"])` (multiline)
 
 **Batch 4b** (dates and times, the component-era checks). Every pattern here
@@ -953,7 +953,7 @@ and the rule says what to rule out by eye.
 - H13: `<CalendarTile[^>]*dateTime=` and `<DateTime` (flag when both land within ~15 lines of each other)
 - H15: `<time[ >]` (then check each hit for `dateTime`)
 
-**Batch 5** (setup — check CSS files only):
+**Batch 5** (setup: check CSS files only):
 
 - G1: `@import.*roadie-core`
 - G2: `@import.*roadie-(components|charts|widgets)/css`
@@ -972,9 +972,9 @@ and the rule says what to rule out by eye.
 - Fix one category at a time, starting with critical
 - After each category, re-scan to verify no regressions
 - For large codebases, offer to fix file-by-file or all at once
-- Always preserve existing behaviour — semantic replacements should render identically
+- Always preserve existing behaviour: semantic replacements should render identically
 - When fixing raw scale references (A2), identify the intent context first. If inside an `intent-*` ancestor, only the emphasis/bg/text class is needed
-- When removing `colorPalette` (E2), also check if the component still uses other v1 patterns — flag for broader migration if so
+- When removing `colorPalette` (E2), also check if the component still uses other v1 patterns. Flag for broader migration if so
 - For headings (D1), choose `text-display-ui-*` for UI headings and `text-display-prose-*` for content headings
 - When migrating links (E6, E7, I1 to I4, and I6), mount the provider (I1) first. Without it every `<Button href='/x'>` renders a plain `<a>`
 - For deprecated APIs (E6 to E8 and any other deprecation in the manifest), hand off to `/roadie:migrate`, which runs codemods for the mechanical rewrites

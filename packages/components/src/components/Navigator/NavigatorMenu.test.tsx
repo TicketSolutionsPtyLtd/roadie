@@ -153,6 +153,43 @@ describe('Navigator.Menu', () => {
     await waitForMenuToClose()
   })
 
+  it('keeps a later item mounted, and its onSelect, when an earlier one toggles', async () => {
+    const user = userEvent.setup()
+    const signOut = vi.fn()
+    const app = (withProfile: boolean) => (
+      <Navigator value='/home'>
+        <Navigator.Primary aria-label='Main'>
+          {testBrand}
+          <Navigator.Item value='account' icon={<FakeIcon />}>
+            Account
+            <Navigator.Menu>
+              {withProfile && (
+                <Navigator.MenuItem href='/profile'>Profile</Navigator.MenuItem>
+              )}
+              <Navigator.MenuItem onSelect={signOut}>
+                Sign out
+              </Navigator.MenuItem>
+            </Navigator.Menu>
+          </Navigator.Item>
+        </Navigator.Primary>
+      </Navigator>
+    )
+    const { rerender } = render(app(true))
+    await flushViewportMeasurement()
+    await user.click(
+      within(vertical()).getByRole('button', { name: 'Account' })
+    )
+    const signOutItem = await screen.findByRole('menuitem', {
+      name: 'Sign out'
+    })
+
+    rerender(app(false))
+
+    expect(screen.getByRole('menuitem', { name: 'Sign out' })).toBe(signOutItem)
+    await user.click(signOutItem)
+    expect(signOut).toHaveBeenCalledOnce()
+  })
+
   it('routes an href item through the provider as a link, and closes on follow', async () => {
     const user = userEvent.setup()
     const StubLink: RoadieLinkComponent = ({ href, children, ...rest }) => (
