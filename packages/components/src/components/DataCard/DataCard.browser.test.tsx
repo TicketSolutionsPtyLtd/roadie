@@ -29,7 +29,7 @@ function lines(root: HTMLElement) {
   ]
 }
 
-describe('DataCard copy never wraps', () => {
+describe('DataCard copy fits its lines', () => {
   for (const width of WIDTHS)
     it(`stays on one line at ${width}px`, () => {
       const { container } = render(
@@ -98,41 +98,67 @@ describe('DataCard copy never wraps', () => {
     }
   })
 
-  it('keeps md-length label and context on one line at 292px tablet width', () => {
-    const cases = [
-      {
-        label: 'Sell-through by each ticket type',
-        context: 'Ahead of 38 similar shows, 4 weeks'
-      },
-      {
-        label: 'Sales pace against similar shows',
-        context: 'GA is 1,210 sold, VIP is 232 sold'
-      }
-    ]
-    expect(Math.max(...cases.map((c) => c.label.length))).toBe(
-      COPY_LIMITS.md.label
-    )
-    expect(Math.max(...cases.map((c) => c.context.length))).toBe(
-      COPY_LIMITS.md.context
-    )
-    for (const { label: labelCopy, context: contextCopy } of cases) {
-      const { container, unmount } = render(
-        <div style={{ width: 292 }}>
-          <DataCard
-            size='md'
-            label={labelCopy}
-            value={1842}
-            context={contextCopy}
-          />
-        </div>
-      )
-      const label = container.querySelector('[data-slot=data-card-label]')!
-      const context = container.querySelector('[data-slot=data-card-context]')!
-      expect(label.scrollWidth).toBeLessThanOrEqual(label.clientWidth)
-      expect(context.scrollWidth).toBeLessThanOrEqual(context.clientWidth)
-      unmount()
+  it.each([
+    {
+      size: 'md' as const,
+      width: 292,
+      cases: [
+        {
+          label: 'Sell-through by each ticket type at every venue on this tour',
+          context: 'Ahead of 38 similar shows, 4 weeks'
+        },
+        {
+          label: 'Sales pace against similar shows in the week before the show',
+          context: 'GA is 1,210 sold, VIP is 232 sold'
+        }
+      ]
+    },
+    {
+      size: 'lg' as const,
+      width: 328,
+      cases: [
+        {
+          label:
+            'Top buyers by postcode, with their orders and their total spend to today',
+          context: 'Ahead of 38 similar shows, last 4 weeks'
+        },
+        {
+          label:
+            'Sell-through by every ticket type at every venue on this tour, by region',
+          context: 'GA is 1,210 sold and VIP is 232 sold'
+        }
+      ]
     }
-  })
+  ])(
+    'keeps a $size-length label within two lines and context on one at $width px',
+    ({ size, width, cases }) => {
+      expect(Math.max(...cases.map((c) => c.label.length))).toBe(
+        COPY_LIMITS[size].label
+      )
+      expect(Math.max(...cases.map((c) => c.context.length))).toBe(
+        COPY_LIMITS[size].context
+      )
+      for (const { label: labelCopy, context: contextCopy } of cases) {
+        const { container, unmount } = render(
+          <div style={{ width }}>
+            <DataCard
+              size={size}
+              label={labelCopy}
+              value={1842}
+              context={contextCopy}
+            />
+          </div>
+        )
+        const label = container.querySelector('[data-slot=data-card-label]')!
+        const context = container.querySelector(
+          '[data-slot=data-card-context]'
+        )!
+        expect(label.scrollHeight).toBeLessThanOrEqual(label.clientHeight)
+        expect(context.scrollWidth).toBeLessThanOrEqual(context.clientWidth)
+        unmount()
+      }
+    }
+  )
 
   it('keeps the context line full width when actions are present', () => {
     const { container } = render(
@@ -308,10 +334,11 @@ describe('DataCard copy never wraps', () => {
       }
     })
 
-  it('truncates awkward copy on one line', () => {
+  it('truncates awkward stat copy on one line', () => {
     const { container } = render(
       <div style={{ width: 158 }}>
         <DataCard
+          size='stat'
           label='Tickets sold across every venue'
           value='$1,234,567.89'
           delta={{ value: 12 }}
@@ -376,5 +403,30 @@ describe('DataCard copy never wraps', () => {
     } finally {
       await commands.forcedColors(false)
     }
+  })
+})
+
+describe('DataCard label lines', () => {
+  it.each([
+    ['md', 2],
+    ['stat', 1]
+  ] as const)('clamps a %s label at %i line(s)', (size, lineCount) => {
+    const { container } = render(
+      <div style={{ width: 280 }}>
+        <DataCard
+          size={size}
+          label='Tickets sold across every venue on the tour this season, by ticket type'
+          value={1842}
+        />
+      </div>
+    )
+    const label = container.querySelector<HTMLElement>(
+      '[data-slot=data-card-label]'
+    )!
+    const lineHeight = Number.parseFloat(getComputedStyle(label).lineHeight)
+    expect(label.getBoundingClientRect().height).toBeCloseTo(
+      lineHeight * lineCount,
+      0
+    )
   })
 })

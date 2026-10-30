@@ -18,7 +18,10 @@ import type { RecordField } from './types'
 type Row = object
 
 export function read(row: Row, key: string | undefined): unknown {
-  return key === undefined ? undefined : (row as Record<string, unknown>)[key]
+  if (key === undefined) return undefined
+  // A field keyed "constructor" or "toString" reads the row, not Object.prototype.
+  if (key in Object.prototype && !Object.hasOwn(row, key)) return undefined
+  return (row as Record<string, unknown>)[key]
 }
 
 /** Null, undefined, empty text, empty lists and empty objects are not set. */
@@ -63,7 +66,9 @@ function placesOf(field: RecordField): Values {
 }
 
 function same(a: unknown, b: string): boolean {
-  return String(a).toLowerCase() === b.toLowerCase()
+  return (
+    a !== null && a !== undefined && String(a).toLowerCase() === b.toLowerCase()
+  )
 }
 
 /** The zone a row's own times are read in. */

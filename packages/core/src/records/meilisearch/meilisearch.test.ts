@@ -126,6 +126,16 @@ describe('toMeilisearch', () => {
     }
   )
 
+  it('keeps a window shorter than a second on a seconds index', () => {
+    const [expression] = filterFor({
+      field: 'created',
+      operator: 'between',
+      value: ['2026-10-03T02:00:00.200Z', '2026-10-03T02:00:00.700Z']
+    })
+    const second = seconds('2026-10-03T02:00:00Z')
+    expect(expression).toBe(`created ${second} TO ${second}`)
+  })
+
   it.each([NaN, Infinity])('refuses %d, which has no literal', (value) => {
     expect(() =>
       filterFor({ field: 'capacity', operator: 'eq', value })

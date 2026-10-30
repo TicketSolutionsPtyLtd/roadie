@@ -10,26 +10,26 @@ import { DataCard } from '@oztix/roadie-components/data-card'
 import { DataTable } from '@oztix/roadie-components/data-table'
 import { StatTile } from '@oztix/roadie-components/stat-tile'
 import type {
-  BarPlot,
   CardSize,
   DashboardCard,
   DashboardPeriodSpec,
   DashboardSpec,
-  LinePlot,
   TableCard,
   TableRow
 } from '@oztix/roadie-core/dashboard'
 import {
   type AbsoluteRange,
-  type Comparison,
-  type DescribeComparisonOptions,
-  describeComparison,
   isBuiltInComparison
 } from '@oztix/roadie-core/datetime'
 
 import { Chart } from '../Chart'
 import { ChartLegend } from '../ChartLegend'
 import { cardTable } from '../tables/cardTable'
+import {
+  type FollowPeriodOptions,
+  comparisonLine,
+  followPeriod
+} from '../tables/followPeriod'
 import { PlotView } from './plots'
 
 export type DashboardViewProps = {
@@ -81,85 +81,10 @@ declare const process: { env?: { NODE_ENV?: string } } | undefined
 
 const warned = new Set<string>()
 
-function warnOnce(message: string) {
-  if (typeof process === 'undefined' || process?.env?.NODE_ENV === 'production')
-    return
-  if (warned.has(message)) return
-  warned.add(message)
-  console.error(message)
-}
-
 const HISTORY_MESSAGE = {
   partial: 'Not enough history',
   unavailable: 'Nothing to compare'
 } as const
-
-// validateDashboard rejects these; an unchecked spec still renders, and says why.
-function comparisonLine(
-  compare: Comparison,
-  where: DescribeComparisonOptions
-): string {
-  try {
-    return describeComparison(compare, where)
-  } catch (error) {
-    warnOnce(
-      `DashboardView: couldn't describe the comparison, so it reads "vs custom dates": ${error instanceof Error ? error.message : String(error)}`
-    )
-    return 'vs custom dates'
-  }
-}
-
-// ANNOTATION_LABEL_LIMIT, which can't be imported without the spec's schemas.
-const SERIES_LABEL_LIMIT = 20
-
-/** "vs previous period" names a series as "Previous period". */
-function seriesName(line: string) {
-  const name = line
-    .replace(/^vs /, '')
-    .replace(/^\p{Ll}/u, (first) => first.toUpperCase())
-  return name.length > SERIES_LABEL_LIMIT ? 'Custom dates' : name
-}
-
-type Compared = Omit<LinePlot, 'data'> | Omit<BarPlot, 'data'>
-
-function followComparison<P extends Compared>(
-  plot: P,
-  period: DashboardPeriodSpec | undefined,
-  where: Pick<DescribeComparisonOptions, 'timeZone' | 'locale'>
-): P {
-  if (!plot.comparison) return plot
-  const compare = period?.compare
-  if (
-    !compare ||
-    !isBuiltInComparison(compare) ||
-    period.history === 'unavailable'
-  )
-    return { ...plot, comparison: undefined }
-  const label = seriesName(comparisonLine(compare, where))
-  return { ...plot, comparison: { ...plot.comparison, label } }
-}
-
-/**
- * A line or bar plot's comparison, small multiples' panels too, follows the
- * dashboard's, as a comparison delta does: drawn only with a comparison of
- * Roadie's that the data covers, and named by it.
- */
-function followPeriod(
-  card: DashboardCard,
-  period: DashboardPeriodSpec | undefined,
-  where: Pick<DescribeComparisonOptions, 'timeZone' | 'locale'>
-): DashboardCard {
-  if (card.kind !== 'chart') return card
-  const { plot } = card
-  if (plot.kind === 'line' || plot.kind === 'bar')
-    return { ...card, plot: followComparison(plot, period, where) }
-  if (plot.kind === 'small-multiples')
-    return {
-      ...card,
-      plot: { ...plot, chart: followComparison(plot.chart, period, where) }
-    }
-  return card
-}
 
 /**
  * A delta marked `comparison` follows the dashboard's: hidden with no
@@ -170,7 +95,7 @@ function followPeriod(
 function headline(
   card: Exclude<DashboardCard, { kind: 'note' }>,
   period: DashboardPeriodSpec | undefined,
-  where: Pick<DescribeComparisonOptions, 'timeZone' | 'locale'>
+  where: FollowPeriodOptions
 ) {
   if (!card.delta) return { delta: undefined, context: card.context }
   const { comparison, ...delta } = card.delta

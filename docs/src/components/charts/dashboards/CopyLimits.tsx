@@ -1,7 +1,7 @@
 import { ProseDataTable } from '@/components/ProseTable'
 import { chartLabelLimitsTable, copyLimitsTable } from '@/lib/dashboard-tables'
 
-/** Label and context lengths for stat and `md` cards, from `COPY_LIMITS`. */
+/** Label and context lengths for stat cards and `md` table and note cards, from `COPY_LIMITS`. */
 export function CopyLimits() {
   return <ProseDataTable slot='copy-limits' table={copyLimitsTable()} />
 }

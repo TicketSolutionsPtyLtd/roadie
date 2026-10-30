@@ -314,7 +314,7 @@ render(<TicketsSold />)
 - Switching between Chart and Table keeps the card's height. The plot sets it, and the table fills the card's width. A longer or wider table scrolls inside it.
 - The Chart and Table switch is an icon-only `ToggleGroup`: `ChartLineIcon` and `TableIcon`, bold, `size-4`. Each item is named by its `aria-label`, not visible text, so it never competes with the label for space.
 - The switch is a toggle group, not tabs, because Chart and Table are two views of the same data. See [Tabs switch panels; a toggle group sets a value](/components/tabs#guidelines).
-- Chart labels follow the tighter `CHART_LABEL_LIMITS` from `@oztix/roadie-core/dashboard-layout`, not `COPY_LIMITS`, because the label's row also holds the view switch: 21 characters at `sm` and `md`, 27 at `lg` and `full`.
+- The label wraps to two lines beside the view switch, then truncates. Keep chart labels within `CHART_LABEL_LIMITS` from `@oztix/roadie-core/dashboard-layout`, not `COPY_LIMITS`: 42 characters at `sm` and `md`, 50 at `lg` and `full`.
 - Put switches for what the plot shows in `controls`, not `actions`: a `ToggleGroup` with `size='sm'` for two to five short options, or a `Select` for more, such as Day 1 to Day 10. A period or filter for the whole page goes in the page's toolbar, such as [DashboardPeriod](/charts/dashboard-period), not on each card.
 - Actions sit after the view switch and stay in every state, so a refresh still works on a card that failed to load. The view switch shows only when there's data. Beside More, keep chart labels within `ACTIONS_LABEL_LIMITS` from `@oztix/roadie-core/dashboard-layout`. See [card actions](/charts/dashboards#card-actions).
 

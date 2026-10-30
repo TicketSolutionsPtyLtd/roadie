@@ -203,8 +203,8 @@ itself, its own `AGENTS.md` covers this, so skip the section.
   review, add them to the body's Decisions section. On someone else's PR, post
   them as review comments. With no PR yet, put them in the report.
 - **Triage** by the host workflow's severity rules. Without them, fix Critical
-  and Important always; fix a Minor only if a real user would hit it, and list
-  the rest as follow-ups.
+  and Important always; fix a Minor when it's in code the diff changes, and
+  list the rest as follow-ups.
 - **Can't push** to the branch (someone else's PR)? Post every finding as a
   comment instead, with the fix you would make.
 
