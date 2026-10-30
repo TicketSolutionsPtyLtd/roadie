@@ -200,9 +200,10 @@ describe('RichText statement band shape', () => {
 
 describe.each(
   ([undefined, 'subtle', 'subtler', 'normal', 'raised'] as const).flatMap(
-    (emphasis) => [false, true].map((inset) => [emphasis, inset] as const)
+    (emphasis) =>
+      [false, true].map((contained) => [emphasis, contained] as const)
   )
-)('RichText statement on a %s surface, inset %s', (emphasis, inset) => {
+)('RichText statement on a %s surface, contained %s', (emphasis, contained) => {
   it.each(MODES)(
     'keeps its body, title and mark readable under every intent in %s mode',
     async (mode) => {
@@ -215,7 +216,7 @@ describe.each(
             <RichText
               {...statement}
               emphasis={emphasis}
-              inset={inset}
+              contained={contained}
               intent={intent}
             />
           </main>
@@ -241,7 +242,7 @@ describe.each(
 
   it('has no axe violations', async () => {
     const { container } = render(
-      <RichText {...statement} emphasis={emphasis} inset={inset} />
+      <RichText {...statement} emphasis={emphasis} contained={contained} />
     )
 
     expect(await axeViolations(container)).toEqual([])

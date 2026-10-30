@@ -81,7 +81,7 @@ export type MosaicProps = {
   /** The surface behind the block. Without one, the tiles sit on the page. */
   emphasis?: BlockEmphasis
   /** Draws the surface inside the page's padding, rounded at every width, instead of as a full-width band. */
-  inset?: boolean
+  contained?: boolean
   /**
    * Where the heading and actions line up: `start` for `tiers`, `center` for `logo-strip`.
    */
@@ -128,7 +128,7 @@ export function Mosaic({
   actions,
   intent,
   emphasis,
-  inset,
+  contained,
   align: alignProp,
   size
 }: MosaicProps) {
@@ -147,7 +147,7 @@ export function Mosaic({
     >
       <BlockSurface
         emphasis={emphasis}
-        inset={inset}
+        contained={contained}
         className={cn(
           'grid *:min-w-0',
           bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' })

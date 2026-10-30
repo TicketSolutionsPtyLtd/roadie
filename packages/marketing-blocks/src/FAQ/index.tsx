@@ -56,10 +56,10 @@ export type FAQProps = {
   actions?: readonly BlockAction[]
   /** The block's intent, for the highlighted words, the questions' tint and the strong action. */
   intent?: BlockIntent
-  /** The surface behind the block: a band, full width and rounded once the block is wide, or a panel with `inset`. None by default. */
+  /** The surface behind the block: a band, full width and rounded once the block is wide, or a panel with `contained`. None by default. */
   emphasis?: BlockEmphasis
   /** Draws the `emphasis` as a panel inside the page padding instead of a band. */
-  inset?: boolean
+  contained?: boolean
   /**
    * The questions' surface: `subtler` lines them up on the page, `subtle` tints each one, and `normal` boxes them. Roadie's Accordion has no raised questions.
    * @default 'subtler'
@@ -90,7 +90,7 @@ export function FAQ({
   actions,
   intent,
   emphasis,
-  inset,
+  contained,
   itemEmphasis = 'subtler',
   align = 'start',
   size
@@ -110,7 +110,7 @@ export function FAQ({
     >
       <BlockSurface
         emphasis={emphasis}
-        inset={inset}
+        contained={contained}
         width='3xl'
         className={cn(
           'grid grid-cols-1',

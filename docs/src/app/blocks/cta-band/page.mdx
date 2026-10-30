@@ -66,7 +66,7 @@ Without one, the heading, copy, and actions are centred in the panel.
 
 `intent` tints the panel and the highlighted words, and `emphasis` sets the panel: `raised` by default, or `subtler`, `subtle`, `normal`, `strong`, or `inverted`. On a `strong` or `inverted` panel, the first action switches to an intent that stands apart from the panel's fill, and highlighted words, links, and code take the panel's text colour.
 
-`inset` draws the panel inside the page's padding, rounded at every width, instead of as a full-width band. `align` overrides the alignment the photo sets, and `size='md'` or `'sm'` sets the title one or two steps smaller, with smaller body text and tighter spacing.
+`contained` draws the panel inside the page's padding, rounded at every width, instead of as a full-width band. `align` overrides the alignment the photo sets, and `size='md'` or `'sm'` sets the title one or two steps smaller, with smaller body text and tighter spacing.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
 {/* Brand, strong */}
@@ -89,11 +89,11 @@ Without one, the heading, copy, and actions are centred in the panel.
 />
 ```
 
-```tsx-live-expand id=inset-align-size
+```tsx-live-expand id=contained-align-size
 <CTABand
   emphasis='subtle'
   intent='info'
-  inset
+  contained
   align='start'
   size='md'
   title='Need a hand with your setup?'

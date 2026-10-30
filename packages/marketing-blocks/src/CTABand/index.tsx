@@ -67,7 +67,7 @@ export type CTABandProps = {
    */
   emphasis?: CTABandEmphasis
   /** Draws the panel inside the page's padding, rounded at every width, instead of as a full-width band. */
-  inset?: boolean
+  contained?: boolean
   /**
    * Where the heading, copy, and actions line up: `start` beside a photo, `center` without one.
    */
@@ -93,7 +93,7 @@ export function CTABand({
   image,
   intent,
   emphasis = 'raised',
-  inset,
+  contained,
   align = image ? 'start' : 'center',
   size
 }: CTABandProps) {
@@ -114,7 +114,7 @@ export function CTABand({
       <div className={cn(image && 'pt-14 @xl:pt-28 @7xl:pt-36')}>
         <BlockSurface
           emphasis={emphasis}
-          inset={inset}
+          contained={contained}
           className={cn(
             'grid grid-cols-1',
             bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' })

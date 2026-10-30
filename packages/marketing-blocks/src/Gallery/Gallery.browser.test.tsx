@@ -385,14 +385,14 @@ describe('Gallery surfaces', () => {
 
   it.each([
     ['a band', false],
-    ['an inset panel', true]
-  ])('runs the marquee edge to edge of %s', async (_, inset) => {
+    ['a contained panel', true]
+  ])('runs the marquee edge to edge of %s', async (_, contained) => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     render(
       <Gallery
         preset='marquee'
         emphasis='subtle'
-        inset={inset}
+        contained={contained}
         title='Our people'
         images={images}
       />
@@ -408,7 +408,7 @@ describe('Gallery surfaces', () => {
       <Gallery
         preset='carousel'
         emphasis='raised'
-        inset
+        contained
         title='Our people'
         images={images}
       />

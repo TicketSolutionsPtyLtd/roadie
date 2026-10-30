@@ -87,8 +87,8 @@ export type SplitProps = {
   intent?: BlockIntent
   /** The surface behind the block. Unset, it has none. */
   emphasis?: BlockEmphasis
-  /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `media-text` is inset and `alternating-rows` is a band. */
-  inset?: boolean
+  /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `media-text` is contained and `alternating-rows` is a band. */
+  contained?: boolean
   /** Every row's surface in `alternating-rows`. Unset, rows have none, though a linked row with none takes `subtler`. */
   itemEmphasis?: ItemEmphasis
   /**
@@ -103,7 +103,7 @@ export type SplitProps = {
   size?: BlockSize
 }
 
-const INSET: Record<SplitPreset, boolean> = {
+const CONTAINED: Record<SplitPreset, boolean> = {
   'media-text': true,
   'alternating-rows': false
 }
@@ -124,7 +124,7 @@ export function Split({
   items = [],
   intent,
   emphasis,
-  inset,
+  contained,
   itemEmphasis,
   align = 'start',
   size = 'lg'
@@ -166,7 +166,7 @@ export function Split({
       {name === 'alternating-rows' ? (
         <BlockSurface
           emphasis={emphasis}
-          inset={inset ?? INSET[name]}
+          contained={contained ?? CONTAINED[name]}
           className='grid grid-cols-1 gap-12 wrap-anywhere'
         >
           {heading}
@@ -191,7 +191,7 @@ export function Split({
       ) : (
         <MediaText
           emphasis={emphasis}
-          inset={inset ?? INSET[name]}
+          contained={contained ?? CONTAINED[name]}
           intent={intent}
           align={align}
           size={size}
@@ -208,7 +208,7 @@ export function Split({
 
 function MediaText({
   emphasis,
-  inset,
+  contained,
   intent,
   align,
   size,
@@ -219,7 +219,7 @@ function MediaText({
   actions
 }: Pick<
   SplitProps,
-  'emphasis' | 'inset' | 'intent' | 'image' | 'stats' | 'body'
+  'emphasis' | 'contained' | 'intent' | 'image' | 'stats' | 'body'
 > & {
   align: BlockAlign
   size: BlockSize
@@ -258,7 +258,7 @@ function MediaText({
     return (
       <BlockSurface
         emphasis={emphasis}
-        inset={inset}
+        contained={contained}
         className='grid grid-cols-1 gap-12 @3xl:grid-cols-[minmax(0,1fr)_20rem] @5xl:gap-x-24'
       >
         {content}
@@ -270,7 +270,7 @@ function MediaText({
   return (
     <BlockSurface
       emphasis={emphasis}
-      inset={inset}
+      contained={contained}
       className={cn(
         'grid grid-cols-1 items-center',
         compact ? 'gap-6 @3xl:gap-12' : 'gap-8 @5xl:gap-16',

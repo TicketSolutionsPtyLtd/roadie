@@ -60,7 +60,7 @@ export type GalleryProps = {
   /** The surface behind the block. Without one, the photos sit on the page and the marquee runs its full width. */
   emphasis?: BlockEmphasis
   /** Draws the surface inside the page's padding, rounded at every width, instead of as a full-width band. */
-  inset?: boolean
+  contained?: boolean
   /**
    * Where the heading and actions line up: `start` for `carousel`, beside its controls, and `center` for `marquee`.
    */
@@ -92,7 +92,7 @@ export function Gallery({
   actions,
   intent,
   emphasis,
-  inset,
+  contained,
   align: alignProp,
   size
 }: GalleryProps) {
@@ -149,7 +149,7 @@ export function Gallery({
       {name === 'carousel' ? (
         <BlockSurface
           emphasis={emphasis}
-          inset={inset}
+          contained={contained}
           className={cn('grid min-w-0 grid-cols-1', gap)}
         >
           <Carousel className='min-w-0'>
@@ -181,7 +181,7 @@ export function Gallery({
       ) : (
         <BlockSurface
           emphasis={emphasis}
-          inset={inset}
+          contained={contained}
           className={cn('grid grid-cols-1', gap)}
         >
           {heading}

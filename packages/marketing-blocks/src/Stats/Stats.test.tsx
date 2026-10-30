@@ -98,7 +98,7 @@ describe('Stats', () => {
     expect(section.querySelector('[class*="emphasis-"]')).toBeNull()
   })
 
-  it('draws the emphasis as an inset panel behind the figures by default', () => {
+  it('draws the emphasis as a contained panel behind the figures by default', () => {
     render(<Stats {...facts} emphasis='subtle' />)
 
     const section = screen.getByRole('region', { name: 'By the numbers' })
@@ -108,9 +108,9 @@ describe('Stats', () => {
     expect(surface).toContainElement(screen.getByText('33,000,000+'))
   })
 
-  it('runs the emphasis full width as a band when not inset', () => {
+  it('runs the emphasis full width as a band when not contained', () => {
     const { container } = render(
-      <Stats {...facts} emphasis='raised' inset={false} />
+      <Stats {...facts} emphasis='raised' contained={false} />
     )
 
     expect(

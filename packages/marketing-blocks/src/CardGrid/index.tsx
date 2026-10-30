@@ -66,8 +66,8 @@ export type CardGridProps = {
   intent?: BlockIntent
   /** The surface behind the block. Unset, `portraits` sits on `raised` and the other presets have none. */
   emphasis?: BlockEmphasis
-  /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `portraits` is inset and the other presets are bands. */
-  inset?: boolean
+  /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `portraits` is contained and the other presets are bands. */
+  contained?: boolean
   /** Every card's surface. Unset, cards have none, though a linked card with none takes `subtler`. `overlap-cards` and `portraits` ignore it, since they draw an inverted panel or a photo. */
   itemEmphasis?: ItemEmphasis
   /** The heading's alignment, and in `cards`, the card text's too. Unset, `cards` centres the heading and starts the card text, `marked-cards` and `overlap-cards` centre the heading, and `portraits` and `lists` start it. */
@@ -410,8 +410,8 @@ type Look = {
   align?: BlockAlign
   /** The surface when `emphasis` is unset. */
   emphasis?: BlockEmphasis
-  /** Keeps the surface inside the page's padding when `inset` is unset. */
-  inset?: boolean
+  /** Keeps the surface inside the page's padding when `contained` is unset. */
+  contained?: boolean
 }
 
 // Columns follow the block's own width, not the viewport's, so a block in a narrow layout stays narrow.
@@ -435,7 +435,7 @@ const LOOKS: Record<CardGridPreset, Look> = {
     list: 'grid grid-cols-1 gap-8 @xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4',
     align: 'start',
     emphasis: 'raised',
-    inset: true
+    contained: true
   },
   lists: {
     Item: ListColumn,
@@ -466,7 +466,7 @@ export function CardGrid({
   id,
   intent,
   emphasis,
-  inset,
+  contained,
   itemEmphasis,
   align,
   size,
@@ -499,7 +499,7 @@ export function CardGrid({
     >
       <BlockSurface
         emphasis={emphasis ?? look.emphasis}
-        inset={inset ?? look.inset}
+        contained={contained ?? look.contained}
         className={cn(
           'grid grid-cols-1 wrap-anywhere',
           bySize(size, { sm: 'gap-6', md: 'gap-8', lg: 'gap-12' })

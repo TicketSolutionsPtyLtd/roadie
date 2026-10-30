@@ -58,10 +58,10 @@ export type RichTextProps = {
    * Without one, the highlight is brand-secondary and the action accent.
    */
   intent?: BlockIntent
-  /** The surface behind the block: a band, full width and rounded once the block is wide, or a panel with `inset`. None by default. */
+  /** The surface behind the block: a band, full width and rounded once the block is wide, or a panel with `contained`. None by default. */
   emphasis?: BlockEmphasis
   /** Draws the `emphasis` as a panel inside the page padding instead of a band. */
-  inset?: boolean
+  contained?: boolean
   /**
    * The heading's and text's alignment.
    * @default 'center' in `statement`, 'start' in `long-form`
@@ -117,7 +117,7 @@ function Statement({
   headingId,
   intent,
   emphasis,
-  inset,
+  contained,
   align = 'center',
   size,
   eyebrow,
@@ -133,7 +133,7 @@ function Statement({
   return (
     <BlockSurface
       emphasis={emphasis}
-      inset={inset}
+      contained={contained}
       className={cn(
         'grid *:min-w-0',
         bySize(size, { sm: 'gap-2', md: 'gap-3', lg: 'gap-4' }),
@@ -185,7 +185,7 @@ function LongForm({
   headingId,
   intent,
   emphasis,
-  inset,
+  contained,
   align = 'start',
   size,
   eyebrow,
@@ -198,7 +198,7 @@ function LongForm({
   return (
     <BlockSurface
       emphasis={emphasis}
-      inset={inset}
+      contained={contained}
       width='3xl'
       className={cn(
         'grid *:min-w-0',

@@ -257,16 +257,16 @@ Numbered cards on normal cards, with one step marked as the one that matters mos
 />
 ```
 
-### Align, size, and inset
+### Align, size, and contained
 
-`align` lines up the heading, and in `cards`, the card text too. Unset, `cards` centres the heading and starts the card text. `size='md'` or `'sm'` sets the title one or two steps smaller, for a section that supports its neighbours. A surface runs full width as a band, and `inset` draws it as a panel inside the page's padding instead, as `portraits` does by default:
+`align` lines up the heading, and in `cards`, the card text too. Unset, `cards` centres the heading and starts the card text. `size='md'` or `'sm'` sets the title one or two steps smaller, for a section that supports its neighbours. A surface runs full width as a band, and `contained` draws it as a panel inside the page's padding instead, as `portraits` does by default:
 
-```tsx-live-expand id=align-size-inset
+```tsx-live-expand id=align-size-contained
 <CardGrid
   align='start'
   size='md'
   emphasis='subtler'
-  inset
+  contained
   title='Make sure your show is seen'
   items={[
     { title: 'Name the artist', description: 'Spell it the same way every time.', illustration: 'NoteMusic' },

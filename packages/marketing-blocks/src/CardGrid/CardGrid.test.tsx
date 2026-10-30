@@ -404,19 +404,22 @@ describe('CardGrid', () => {
     it.each([
       ['cards', true, 'panel'],
       ['portraits', false, 'band']
-    ] as const)('draws %s with inset %s as a %s', (preset, inset, shape) => {
-      render(
-        <CardGrid
-          preset={preset}
-          emphasis='subtle'
-          inset={inset}
-          title='Section'
-          items={values}
-        />
-      )
+    ] as const)(
+      'draws %s with contained %s as a %s',
+      (preset, contained, shape) => {
+        render(
+          <CardGrid
+            preset={preset}
+            emphasis='subtle'
+            contained={contained}
+            title='Section'
+            items={values}
+          />
+        )
 
-      expect(surfaceOf()).toHaveAttribute('data-shape', shape)
-    })
+        expect(surfaceOf()).toHaveAttribute('data-shape', shape)
+      }
+    )
 
     it.each(['cards', 'marked-cards', 'overlap-cards', 'lists'] as const)(
       'draws no surface for %s unless one is set',

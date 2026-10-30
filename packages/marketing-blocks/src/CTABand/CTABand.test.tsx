@@ -67,12 +67,12 @@ describe('CTABand', () => {
     )
   })
 
-  it('draws a band by default, and an inset panel when asked', () => {
+  it('draws a band by default, and a contained panel when asked', () => {
     const { container, rerender } = render(<CTABand title='Talk to our team' />)
     const surface = () => container.querySelector('[data-slot=block-surface]')
     expect(surface()).toHaveAttribute('data-shape', 'band')
 
-    rerender(<CTABand title='Talk to our team' inset />)
+    rerender(<CTABand title='Talk to our team' contained />)
     expect(surface()).toHaveAttribute('data-shape', 'panel')
   })
 

@@ -178,7 +178,7 @@ describe('Gallery', () => {
     )
 
     it.each(['carousel', 'marquee'] as const)(
-      'draws no surface on %s by default, and the emphasis asked for as a band or inset panel',
+      'draws no surface on %s by default, and the emphasis asked for as a band or contained panel',
       (preset) => {
         const { container, rerender } = render(
           <Gallery preset={preset} title={TITLE} images={images} />
@@ -202,7 +202,7 @@ describe('Gallery', () => {
           <Gallery
             preset={preset}
             emphasis='raised'
-            inset
+            contained
             title={TITLE}
             images={images}
           />

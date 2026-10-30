@@ -187,13 +187,13 @@ describe('FAQ align and size', () => {
 
 describe('FAQ on a surface', () => {
   it.each([false, true])(
-    'lines the questions up with the heading on a surface, inset %s',
-    async (inset) => {
+    'lines the questions up with the heading on a surface, contained %s',
+    async (contained) => {
       await page.viewport(DESKTOP.width, DESKTOP.height)
       render(
         <FAQ
           emphasis='subtle'
-          inset={inset}
+          contained={contained}
           title='Questions, answered'
           items={items}
         />

@@ -10,7 +10,7 @@ const tintedPanel = {
   size: 'md',
   emphasis: 'subtle',
   intent: 'info',
-  inset: true,
+  contained: true,
   title: 'Specialist teams powering venues and event organisers',
   description:
     'Teams in innovation, operations, marketing, events, and finance, all working to one partnership promise.',
@@ -294,7 +294,7 @@ describe('Split', () => {
       )
     })
 
-    it('draws the tinted panel as a subtle inset panel in its intent', () => {
+    it('draws the tinted panel as a subtle contained panel in its intent', () => {
       render(<Split {...tintedPanel} />)
 
       const section = screen.getByRole('region', { name: tintedPanel.title })
@@ -308,23 +308,26 @@ describe('Split', () => {
       ['media-text', false, 'band'],
       ['alternating-rows', undefined, 'band'],
       ['alternating-rows', true, 'panel']
-    ] as const)('draws %s with inset %s as a %s', (preset, inset, shape) => {
-      render(
-        <Split
-          preset={preset}
-          emphasis='raised'
-          inset={inset}
-          title='Section'
-          image={mediaText.image}
-          items={values}
-        />
-      )
+    ] as const)(
+      'draws %s with contained %s as a %s',
+      (preset, contained, shape) => {
+        render(
+          <Split
+            preset={preset}
+            emphasis='raised'
+            contained={contained}
+            title='Section'
+            image={mediaText.image}
+            items={values}
+          />
+        )
 
-      expect(surfaceOf(screen.getByRole('region'))).toHaveAttribute(
-        'data-shape',
-        shape
-      )
-    })
+        expect(surfaceOf(screen.getByRole('region'))).toHaveAttribute(
+          'data-shape',
+          shape
+        )
+      }
+    )
 
     it.each(['media-text', 'alternating-rows'] as const)(
       'draws %s with no surface unless an emphasis is set',

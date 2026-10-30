@@ -213,15 +213,23 @@ describe('Stats contrast on every band', () => {
 
   it.each(
     EMPHASES.slice(1).flatMap((emphasis) =>
-      [true, false].map((inset) => [emphasis, inset] as const)
+      [true, false].map((contained) => [emphasis, contained] as const)
     )
-  )('has no axe violations on %s, inset %s', async (emphasis, inset) => {
-    const { container } = render(
-      <Stats {...facts} intent='brand' emphasis={emphasis} inset={inset} />
-    )
+  )(
+    'has no axe violations on %s, contained %s',
+    async (emphasis, contained) => {
+      const { container } = render(
+        <Stats
+          {...facts}
+          intent='brand'
+          emphasis={emphasis}
+          contained={contained}
+        />
+      )
 
-    expect(await axeViolations(container)).toEqual([])
-  })
+      expect(await axeViolations(container)).toEqual([])
+    }
+  )
 })
 
 describe('Stats align and size', () => {

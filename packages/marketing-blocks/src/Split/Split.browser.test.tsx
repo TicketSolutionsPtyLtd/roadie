@@ -25,7 +25,7 @@ const LOOKS = {
     size: 'md',
     emphasis: 'subtle',
     intent: 'info',
-    inset: true,
+    contained: true,
     title: 'Specialist teams powering venues and event organisers',
     description:
       'Teams in innovation, operations, marketing, events, and finance.',

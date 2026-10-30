@@ -24,7 +24,7 @@ export type { StatsPreset } from './definition'
 export type StatsProps = {
   /**
    * The named look. `figures` sets a heading over a wrapping row of figures,
-   * aligned to the start, with any `emphasis` drawn as an inset panel.
+   * aligned to the start, with any `emphasis` drawn as a contained panel.
    * @default 'figures'
    */
   preset?: StatsPreset
@@ -52,7 +52,7 @@ export type StatsProps = {
    * Draws the `emphasis` as a panel inside the page padding; `false` runs it full width as a band.
    * @default true
    */
-  inset?: boolean
+  contained?: boolean
   /**
    * The heading's and actions' alignment. The figures always start.
    * @default 'start'
@@ -78,7 +78,7 @@ export function Stats({
   actions,
   intent,
   emphasis,
-  inset = true,
+  contained = true,
   align = 'start',
   size
 }: StatsProps) {
@@ -96,7 +96,7 @@ export function Stats({
     >
       <BlockSurface
         emphasis={emphasis}
-        inset={inset}
+        contained={contained}
         className={cn(
           'grid grid-cols-1 *:min-w-0',
           bySize(size, { sm: 'gap-4', md: 'gap-6', lg: 'gap-8' })

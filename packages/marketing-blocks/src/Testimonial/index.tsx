@@ -67,10 +67,10 @@ export type TestimonialProps = {
   actions?: readonly BlockAction[]
   /** The block's intent: it tints the quote mark, the portrait's border, and highlighted words. Info for the quote mark and portrait without one. */
   intent?: BlockIntent
-  /** The surface behind the whole block: a band, full width and rounded once the block is wide, or a panel with `inset`. None by default. */
+  /** The surface behind the whole block: a band, full width and rounded once the block is wide, or a panel with `contained`. None by default. */
   emphasis?: BlockEmphasis
   /** Draws the `emphasis` or `image` as a panel inside the page padding instead of a band. */
-  inset?: boolean
+  contained?: boolean
   /**
    * The heading's, quote's and citation's alignment.
    * @default 'center'
@@ -99,7 +99,7 @@ export function Testimonial({
   actions,
   intent,
   emphasis,
-  inset,
+  contained,
   align = 'center',
   size
 }: TestimonialProps) {
@@ -118,7 +118,7 @@ export function Testimonial({
     >
       <BlockSurface
         emphasis={emphasis}
-        inset={inset}
+        contained={contained}
         width='4xl'
         backdrop={
           image && (

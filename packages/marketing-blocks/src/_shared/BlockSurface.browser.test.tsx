@@ -62,11 +62,11 @@ describe('BlockSurface', () => {
     expect(radiusOf(surface!)).toBeGreaterThan(0)
   })
 
-  it('keeps an inset panel inside the page padding, rounded even when narrow', async () => {
+  it('keeps a contained panel inside the page padding, rounded even when narrow', async () => {
     await atWidth(PHONE.width, PHONE.height)
     const { block, surface } = renderSurface({
       emphasis: 'raised',
-      inset: true
+      contained: true
     })
     const panel = surface!.getBoundingClientRect()
 

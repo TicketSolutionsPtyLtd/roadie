@@ -163,12 +163,12 @@ describe('FAQ', () => {
     [false, 'band'],
     [true, 'panel']
   ])(
-    'draws its emphasis behind the block, inset %s, as a %s',
-    (inset, shape) => {
+    'draws its emphasis behind the block, contained %s, as a %s',
+    (contained, shape) => {
       const { container } = render(
         <FAQ
           emphasis='subtle'
-          inset={inset}
+          contained={contained}
           title='Questions, answered'
           items={items}
         />

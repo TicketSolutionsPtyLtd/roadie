@@ -202,9 +202,9 @@ describe('RichText', () => {
       )
     })
 
-    it('draws the surface as a panel when inset', () => {
+    it('draws the surface as a panel when contained', () => {
       const { container } = render(
-        <RichText {...statement} emphasis='raised' inset />
+        <RichText {...statement} emphasis='raised' contained />
       )
 
       expect(

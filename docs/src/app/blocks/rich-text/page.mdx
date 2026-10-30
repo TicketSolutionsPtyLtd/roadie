@@ -112,18 +112,18 @@ keeps its space inside the band.
 />
 ```
 
-### Inset, align, and size
+### Contained, align, and size
 
-`inset` draws the surface as a rounded panel inside the page padding instead
+`contained` draws the surface as a rounded panel inside the page padding instead
 of a band. `align` sets the heading and text: a statement centres by
 default and long form starts. `size='md'` or `'sm'` sets the title one or two steps smaller, with
 tighter gaps.
 
-```tsx-live-expand id=inset-align-and-size
+```tsx-live-expand id=contained-align-and-size
 <RichText
   preset='statement'
   emphasis='normal'
-  inset
+  contained
   align='start'
   size='md'
   illustration='HighFive'

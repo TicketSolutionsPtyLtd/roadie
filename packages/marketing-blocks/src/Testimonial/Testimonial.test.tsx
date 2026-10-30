@@ -188,10 +188,10 @@ describe('Testimonial', () => {
     })
   })
 
-  describe('inset and actions', () => {
-    it('draws the surface as a panel when inset', () => {
+  describe('contained and actions', () => {
+    it('draws the surface as a panel when contained', () => {
       const { container } = render(
-        <Testimonial {...quote} emphasis='raised' inset />
+        <Testimonial {...quote} emphasis='raised' contained />
       )
 
       expect(

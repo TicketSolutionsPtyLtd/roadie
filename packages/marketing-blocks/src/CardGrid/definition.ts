@@ -31,7 +31,7 @@ export const cardGridDefinition = {
       name: 'portraits',
       title: 'Portraits',
       description:
-        'Square photos on an inset raised surface, each with a name and role marked over it, for the team, speakers, or artists.',
+        'Square photos on a contained raised surface, each with a name and role marked over it, for the team, speakers, or artists.',
       variant: 'grid'
     },
     {

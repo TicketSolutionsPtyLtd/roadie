@@ -8,7 +8,7 @@ export type BlockSurfaceProps = {
   /** The surface behind the content. Without one, the content sits on the page. */
   emphasis?: SurfaceEmphasis
   /** Keeps the surface inside the page's padding as a panel, rounded at every width, instead of a band. */
-  inset?: boolean
+  contained?: boolean
   /** The content's measure. */
   width?: BlockWidth
   /** Drawn behind the content, filling the surface, such as a faint photo. Pads the content as a surface does. */
@@ -36,10 +36,10 @@ const MEASURE: Record<BlockWidth, string> = {
   '8xl': 'mx-auto w-full max-w-8xl'
 }
 
-/** The frame every block draws its content in: on the page, on a full-width band, or on an inset panel. */
+/** The frame every block draws its content in: on the page, on a full-width band, or on a contained panel. */
 export function BlockSurface({
   emphasis,
-  inset = false,
+  contained = false,
   width = '8xl',
   backdrop,
   className,
@@ -53,7 +53,7 @@ export function BlockSurface({
       </div>
     )
   }
-  if (inset) {
+  if (contained) {
     return (
       <div className={cn(MEASURE['8xl'], PAGE_PADDING)}>
         <div

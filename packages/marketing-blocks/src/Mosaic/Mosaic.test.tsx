@@ -372,7 +372,7 @@ describe('Mosaic', () => {
       ).toBeTruthy()
     })
 
-    it('draws no surface by default, and the emphasis asked for as a band or inset panel', () => {
+    it('draws no surface by default, and the emphasis asked for as a band or contained panel', () => {
       const { container, rerender } = render(<Mosaic {...logoStrip} />)
       const surface = () => container.querySelector('[data-slot=block-surface]')
       expect(surface()).toBeNull()
@@ -381,7 +381,7 @@ describe('Mosaic', () => {
       expect(surface()).toHaveClass('emphasis-subtler')
       expect(surface()).toHaveAttribute('data-shape', 'band')
 
-      rerender(<Mosaic {...logoStrip} emphasis='raised' inset />)
+      rerender(<Mosaic {...logoStrip} emphasis='raised' contained />)
       expect(surface()).toHaveAttribute('data-shape', 'panel')
     })
   })

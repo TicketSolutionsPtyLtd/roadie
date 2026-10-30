@@ -82,9 +82,9 @@ describe('BlockSurface', () => {
     expect(surface).toHaveClass('emphasis-subtle')
   })
 
-  it('draws an inset panel when asked', () => {
+  it('draws a contained panel when asked', () => {
     const { container } = render(
-      <BlockSurface emphasis='raised' inset>
+      <BlockSurface emphasis='raised' contained>
         Content
       </BlockSurface>
     )

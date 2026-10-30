@@ -45,7 +45,7 @@ a string, so it reads exactly as the editor wrote it.
 `intent` sets the figures, heading, and highlights in its strong text colour,
 and `emphasis` draws a surface behind them: `raised`, `normal`, `subtle`, or `subtler`.
 There's none by default. The surface is a rounded panel inside the page
-padding; `inset={false}` runs it full width as a band instead.
+padding; `contained={false}` runs it full width as a band instead.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
 {/* Brand, subtle panel */}
@@ -62,7 +62,7 @@ padding; `inset={false}` runs it full width as a band instead.
 {/* Normal band */}
 <Stats
   emphasis='normal'
-  inset={false}
+  contained={false}
   title='Results from last season'
   items={[
     { value: '98%', label: 'tickets scanned on time', illustration: 'HighFive' },

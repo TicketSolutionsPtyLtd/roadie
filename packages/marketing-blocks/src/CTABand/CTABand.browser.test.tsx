@@ -188,10 +188,10 @@ describe('CTABand body', () => {
   )
 })
 
-describe('CTABand inset with photo', () => {
-  it('keeps the photo breaking out of the top of an inset panel', async () => {
+describe('CTABand contained with photo', () => {
+  it('keeps the photo breaking out of the top of a contained panel', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
-    render(<CTABand {...props} inset />)
+    render(<CTABand {...props} contained />)
 
     const { section, panel, heading, photo } = boxes()
     expect(photo.top).toBeLessThan(panel.top)

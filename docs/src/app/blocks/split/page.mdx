@@ -164,15 +164,15 @@ surface in `alternating-rows`.
 />
 ```
 
-### Align, size, and inset
+### Align, size, and contained
 
 `size='md'` or `'sm'` sets the title one or two steps smaller and tightens the gaps. In
 `media-text`, it narrows the image to two fifths, cropped 8 by 5, with the
 body in subtle text: a short point with a photo, on a tinted panel. `align`
-centres the heading, text, and actions, and `inset={false}` runs a surface
+centres the heading, text, and actions, and `contained={false}` runs a surface
 full width as a band.
 
-```tsx-live-expand id=align-size-inset layout=stack gap=8
+```tsx-live-expand id=align-size-contained layout=stack gap=8
 {/* Medium, subtle info panel */}
 <Split
   preset='media-text'
@@ -193,7 +193,7 @@ full width as a band.
   preset='media-text'
   align='center'
   emphasis='subtler'
-  inset={false}
+  contained={false}
   title='Talk to our partnerships team'
   body={<p>Tell us about your venue or event, and we'll take it from there.</p>}
   actions={[{ label: 'Talk to us', href: '/contact' }]}

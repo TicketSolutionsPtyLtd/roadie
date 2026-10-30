@@ -56,7 +56,7 @@ Run `pnpm generate:exports` after adding the folder.
 - **Prop shapes.** Array props are `readonly`, `actions` is optional, `preset` has a
   `@default`, and `position` and `id` keep the wording: "The block's place on the page,
   counting from 1, reported with its events." and "An id for linking to the block."
-- **One set of shared props.** Every block takes `intent`, `emphasis`, `inset`,
+- **One set of shared props.** Every block takes `intent`, `emphasis`, `contained`,
   `align`, `size`, and `actions` where they apply, with the same types from
   `src/_shared/surface.ts`, and passes them through. A preset sets the defaults;
   the props override them, so a new look is a preset, never a new prop.
@@ -87,7 +87,7 @@ Run `pnpm generate:exports` after adding the folder.
   stands out (`strongActionIntent`, tested against every intent in both modes).
 - **One surface frame.** Every block draws its surface with `BlockSurface`,
   never its own markup. A band runs full width and rounds at `@7xl:rounded-3xl`;
-  with `inset`, it's a panel inside the page padding, rounded at every width.
+  with `contained`, it's a panel inside the page padding, rounded at every width.
 - **Keys.** List keys use the item's index with its content, so repeated content stays
   distinct.
 - **Room for an overhang.** A CTA band with an `image` keeps a top margin for the photo that

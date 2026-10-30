@@ -287,10 +287,10 @@ describe('Testimonial contrast', () => {
     }
   )
 
-  it('keeps an inset panel inside the page padding, rounded on a phone', async () => {
+  it('keeps a contained panel inside the page padding, rounded on a phone', async () => {
     await atWidth(widths[0].width, widths[0].height)
     const { container } = render(
-      <Testimonial {...quote} emphasis='subtle' inset />
+      <Testimonial {...quote} emphasis='subtle' contained />
     )
 
     const panel = container.querySelector('[data-slot=block-surface]')!
@@ -299,14 +299,14 @@ describe('Testimonial contrast', () => {
   })
 
   it.each([true, false])(
-    'has no axe violations with actions, inset %s',
-    async (inset) => {
+    'has no axe violations with actions, contained %s',
+    async (contained) => {
       const { container } = render(
         <main>
           <Testimonial
             {...quote}
             emphasis='raised'
-            inset={inset}
+            contained={contained}
             intent='brand'
             actions={[{ label: 'Read the case study', href: '/case-studies' }]}
           />
