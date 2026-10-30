@@ -262,6 +262,22 @@ describe('validateDashboard with chart plots', () => {
     )
   })
 
+  it('checks the bar comparison field', () => {
+    expect(
+      paths(
+        spec([
+          chartCard({
+            kind: 'bar',
+            data: rows,
+            x: 'day',
+            y: 'sold',
+            comparison: { y: 'lastPeriod' }
+          })
+        ])
+      )
+    ).toContain('sections[0].cards[0].plot.comparison.y')
+  })
+
   it('checks the comparison field', () => {
     expect(
       paths(

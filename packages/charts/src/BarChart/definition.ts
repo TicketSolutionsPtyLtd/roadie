@@ -1,4 +1,4 @@
-import { barY, defineChart, lineY, text } from '@tanstack/charts'
+import { barY, defineChart, lineY, text, tickY } from '@tanstack/charts'
 import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
@@ -29,7 +29,7 @@ import {
   valueDomain
 } from '../plot/values'
 import { describeValue } from '../plot/words'
-import { type Bar, barYExtent, hasBars, toBars } from './bars'
+import { type Bar, barYExtent, comparisonLabel, hasBars, toBars } from './bars'
 import { barChartTable } from './table'
 import type { BarChartProps } from './types'
 
@@ -44,6 +44,7 @@ const TICK_TARGET: Record<WidthBand, number> = {
 }
 const LABEL_PADDING = 12
 const LINE_WIDTH = 2
+const TICK_SPAN = 0.8
 const SHARE_DOMAIN: readonly [number, number] = [0, 1]
 
 const isHourly = (props: BarChartProps) => props.interval === 'hour'
@@ -104,6 +105,27 @@ const lineMark = (
     })
   )
 
+const comparisonTick = (
+  data: readonly (Pick<Bar, 'comparison'> & { x: string })[],
+  id: string,
+  stroke: string,
+  strokeWidth: number
+) =>
+  decorative(
+    tickY(
+      data.filter((d) => d.comparison !== null),
+      {
+        id,
+        x: 'x',
+        y: 'comparison',
+        key: 'x',
+        stroke,
+        strokeWidth,
+        span: TICK_SPAN
+      }
+    )
+  )
+
 // A share reads against the whole, so percent lines always run to 100%.
 const lineDomain = (
   line: NonNullable<BarChartProps['line']>,
@@ -152,6 +174,18 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
         maxThickness: 48,
         radius: { end: 2 }
       }),
+      // A level across each slot, so the bars still start at zero.
+      ...(props.comparison
+        ? [
+            comparisonTick(
+              data,
+              'comparison-underlay',
+              paint.surface,
+              LINE_WIDTH + 2
+            ),
+            comparisonTick(data, 'comparison', paint.context, LINE_WIDTH)
+          ]
+        : []),
       // The bars carry both measures in words and the tooltip, so the line
       // adds no keyboard stops of its own.
       ...(line
@@ -256,7 +290,18 @@ export const barChart: ChartDefinition<BarChartProps> = {
     return `${noun} peaked at ${value} ${when}`
   },
   emptyMessage: (props) => (hasBars(toBars(props)) ? undefined : EMPTY),
-  legend: () => [],
+  legend(props, paint) {
+    const comparison = comparisonLabel(props)
+    if (!comparison) return []
+    return [
+      {
+        label: fieldLabel(props.y),
+        shape: 'swatch' as const,
+        color: paint.categorical[0]!
+      },
+      { label: comparison, shape: 'line' as const, color: paint.context }
+    ]
+  },
   describe(datum, props) {
     const key = String(datum.x)
     const ms = parseX(key)
@@ -274,6 +319,12 @@ export const barChart: ChartDefinition<BarChartProps> = {
             : formatValue(bar.line, fullFormat(line.format))
         }`
       )
+    const comparison = comparisonLabel(props)
+    const compared = barAt(props, key)?.comparison
+    if (comparison && compared != null)
+      parts.push(
+        `${comparison.charAt(0).toLowerCase()}${comparison.slice(1)} ${formatValue(compared, fullFormat(props.format))}`
+      )
     return parts.join(', ')
   },
   tooltip(data, props, paint) {
@@ -281,6 +332,7 @@ export const barChart: ChartDefinition<BarChartProps> = {
     const ms = parseX(key)
     const bar = barAt(props, key)
     const line = props.line
+    const comparison = comparisonLabel(props)
     const shown = (value: number | null | undefined, format = props.format) =>
       value == null ? 'No data' : formatValue(value, fullFormat(format))
     return {
@@ -298,6 +350,16 @@ export const barChart: ChartDefinition<BarChartProps> = {
                 label: line.label,
                 value: shown(bar?.line, line.format),
                 color: paint.value,
+                shape: 'line' as const
+              }
+            ]
+          : []),
+        ...(comparison && bar?.comparison != null
+          ? [
+              {
+                label: comparison,
+                value: shown(bar.comparison),
+                color: paint.context,
                 shape: 'line' as const
               }
             ]

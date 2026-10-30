@@ -4,8 +4,14 @@ import { describe, expect, it } from 'vitest'
 
 import { plotFrame } from '../plot/frame'
 import { hexPaint } from '../plot/paint'
+import { barYExtent } from './bars'
 import { barChart } from './definition'
-import { dailyOrdersExample, onSaleExample, scanRateExample } from './examples'
+import {
+  comparisonExample,
+  dailyOrdersExample,
+  onSaleExample,
+  scanRateExample
+} from './examples'
 import { barChartTable } from './table'
 import type { BarChartProps } from './types'
 
@@ -199,6 +205,108 @@ describe('barChart', () => {
         { label: 'Inside', value: '37%', color: paint.value, shape: 'line' }
       ]
     })
+  })
+})
+
+describe('barChart comparison', () => {
+  const day = (i: number) => ({
+    x: comparisonExample.data[i]!.day as string,
+    y: comparisonExample.data[i]!.orders as number,
+    series: 'Orders',
+    index: i
+  })
+
+  it('marks every bar with a context tick, cased in the surface, over the bar', () => {
+    const svg = svgOf(comparisonExample)
+    expect(svg.match(/<line[^>]*data-ts-key="comparison:[^"]*"/g)).toHaveLength(
+      comparisonExample.data.length
+    )
+    expect(svg).toMatch(
+      new RegExp(`data-ts-key="comparison:[^"]*"[^>]*stroke="${paint.context}"`)
+    )
+    expect(svg).toMatch(
+      new RegExp(
+        `data-ts-key="comparison-underlay:[^"]*"[^>]*stroke="${paint.surface}"`
+      )
+    )
+    const bars = svg.search(/<path[^>]*data-ts-key="series-1:/)
+    const underlay = svg.search(/data-ts-key="comparison-underlay:/)
+    expect(bars).toBeLessThan(underlay)
+    expect(underlay).toBeLessThan(svg.search(/data-ts-key="comparison:/))
+  })
+
+  it('keeps focus on the bars', () => {
+    expect(
+      new Set(sceneOf(comparisonExample).points.map((p) => p.markId))
+    ).toEqual(new Set(['series-1']))
+  })
+
+  it('counts the comparison in the y domain and keeps bars at zero', () => {
+    const higher = {
+      ...comparisonExample,
+      data: comparisonExample.data.map((row) => ({ ...row, lastPeriod: 90 }))
+    }
+    expect(barYExtent(higher)).toEqual([0, expect.any(Number)])
+    expect(barYExtent(higher)[1]).toBeGreaterThanOrEqual(90)
+  })
+
+  it('keys the bars and the comparison', () => {
+    expect(
+      barChart
+        .legend(comparisonExample, paint, plotFrame(220, 'default'))
+        .map((i) => [i.label, i.shape, i.color])
+    ).toEqual([
+      ['Orders', 'swatch', paint.categorical[0]],
+      ['Previous period', 'line', paint.context]
+    ])
+  })
+
+  it.each([
+    ['its label', comparisonExample, 'Previous period'],
+    [
+      'the field when it has no label',
+      { ...comparisonExample, comparison: { y: 'lastPeriod' } },
+      'Last period'
+    ]
+  ])('names the comparison by %s in the tooltip', (_, props, name) => {
+    expect(barChart.tooltip([day(2)], props, paint).rows).toEqual([
+      expect.objectContaining({ label: 'Orders', value: '9' }),
+      { label: name, value: '10', color: paint.context, shape: 'line' }
+    ])
+  })
+
+  it('speaks the comparison with the bar', () => {
+    expect(barChart.describe(day(2), comparisonExample)).toBe(
+      'Sunday, 27 September 2026, 9 orders, previous period 10'
+    )
+  })
+
+  it('leaves a bar with no comparison value unmarked and unspoken', () => {
+    const gap = {
+      ...comparisonExample,
+      data: comparisonExample.data.map((row, i) =>
+        i === 2 ? { ...row, lastPeriod: null } : row
+      )
+    }
+    expect(
+      svgOf(gap).match(/<line[^>]*data-ts-key="comparison:/g)
+    ).toHaveLength(comparisonExample.data.length - 1)
+    expect(barChart.tooltip([day(2)], gap, paint).rows).toEqual([
+      expect.objectContaining({ label: 'Orders', value: '9' })
+    ])
+    expect(barChart.describe(day(2), gap)).toBe(
+      'Sunday, 27 September 2026, 9 orders'
+    )
+  })
+
+  it('tabulates the comparison after the bars', () => {
+    const table = barChartTable(comparisonExample)
+    expect(table.columns.map((c) => c.header)).toEqual([
+      'Day',
+      'Orders',
+      'Previous period'
+    ])
+    expect(table.rows[2]).toMatchObject({ orders: 9, lastPeriod: 10 })
   })
 })
 

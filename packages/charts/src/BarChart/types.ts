@@ -21,6 +21,8 @@ export type BarChartProps = {
   interval?: 'hour' | 'day' | 'week'
   /** A second measure on its own axis, labelled at its end. */
   line?: { y: string; label: string; format?: ValueFormat }
+  /** A field on the same rows, such as last period's value, marked with a level tick on each bar. */
+  comparison?: { y: string; label?: string }
   /** Lets a drag across dated x select a range, inclusive and in venue wall time. */
   onRangeSelect?: (range: AbsoluteRange) => void
   className?: string
