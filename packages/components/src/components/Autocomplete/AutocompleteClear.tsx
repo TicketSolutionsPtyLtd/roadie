@@ -19,7 +19,7 @@ export function AutocompleteClear({
     <AutocompletePrimitive.Clear
       data-slot='autocomplete-clear'
       className={cn(
-        'shrink-0 rounded-full emphasis-subtler text-subtle is-interactive',
+        'inline-grid size-5 shrink-0 place-items-center rounded-full emphasis-subtler text-subtle is-interactive',
         className
       )}
       {...props}

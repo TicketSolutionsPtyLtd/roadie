@@ -102,6 +102,22 @@ describe('a Collapsible trigger', () => {
   })
 })
 
+describe('a Collapsible trigger in quiet text', () => {
+  it('keeps the colour around it', () => {
+    render(
+      <p className='text-subtle'>
+        <Collapsible>
+          <Collapsible.Trigger>Show all ticket types</Collapsible.Trigger>
+        </Collapsible>
+      </p>
+    )
+    const trigger = screen.getByRole('button')
+    expect(getComputedStyle(trigger).color).toBe(
+      getComputedStyle(trigger.parentElement!).color
+    )
+  })
+})
+
 describe('a Navigator item', () => {
   it('tints on hover, borderless so its icon lines up with the active one', async () => {
     render(
