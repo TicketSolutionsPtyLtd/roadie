@@ -1,16 +1,16 @@
 import { z } from 'zod'
 
+import { isUnsafeImageSrc } from '../utils/isUnsafeHref'
 import { valueFormat, xFormat } from './fields'
 
 export const ANNOTATION_LABEL_LIMIT = 20
 export const SERIES_CAP = 6
 
-const UNSAFE_SCHEME = /^\s*(javascript|data|vbscript):/i
 const safeUrl = z
   .string()
   .min(1)
-  .refine((url) => !UNSAFE_SCHEME.test(url), {
-    message: 'Use an http(s) or relative image URL'
+  .refine((url) => !isUnsafeImageSrc(url), {
+    message: 'Use an http(s), relative or blob: image URL'
   })
 const plotImage = { src: safeUrl, srcDark: safeUrl.optional() }
 
