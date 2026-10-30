@@ -30,22 +30,25 @@ export const COPY_LIMITS: Record<CardSize, { label: number; context: number }> =
     full: { label: 36, context: 39 }
   }
 
-// Tighter than COPY_LIMITS: measured beside the Chart/Table icon switch.
+// Two lines beside the Chart/Table icon switch, measured at each size's
+// narrowest width with realistic word breaks. A card label wraps to two lines
+// and truncates past them; a stat label stays on one.
 export const CHART_LABEL_LIMITS: Record<Exclude<CardSize, 'stat'>, number> = {
-  sm: 21,
-  md: 21,
-  lg: 27,
-  full: 27
+  sm: 42,
+  md: 42,
+  lg: 50,
+  full: 50
 }
 
-// Beside a More button: stat tiles at `stat`, chart cards at the rest. Table
-// and note labels keep COPY_LIMITS. Not validated, since actions aren't JSON.
+// Beside a More button: stat tiles on one line at `stat`, chart cards on two
+// lines at the rest. Table and note labels keep COPY_LIMITS. Not validated,
+// since actions aren't JSON.
 export const ACTIONS_LABEL_LIMITS: Record<CardSize, number> = {
   stat: 14,
-  sm: 18,
-  md: 18,
-  lg: 23,
-  full: 23
+  sm: 29,
+  md: 29,
+  lg: 42,
+  full: 42
 }
 
 export const DASHBOARD_WIDTHS = ['desktop', 'tablet', 'phone'] as const

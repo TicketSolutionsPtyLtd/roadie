@@ -124,20 +124,29 @@ describe('validateDashboard', () => {
     )
   })
 
-  it('warns when a chart label exceeds the chart limit but not COPY_LIMITS', () => {
-    const label = 'Sales pace vs similar shows'
-    expect(label.length).toBeLessThanOrEqual(COPY_LIMITS.md.label)
+  const chartLabelled = (label: string) => ({
+    id: 'p',
+    kind: 'chart',
+    size: 'md',
+    label,
+    plot: { kind: 'static', src: '/p.svg', alt: 'Pace' },
+    table: { columns: [{ key: 'a', header: 'A', kind: 'number' }], rows: [] },
+    source: 'Oztix sales.'
+  })
+
+  it('gives a chart label two lines, past COPY_LIMITS', () => {
+    const label = 'Sales pace against similar shows this week'
+    expect(label.length).toBeGreaterThan(COPY_LIMITS.md.label)
+    expect(label.length).toBeLessThanOrEqual(CHART_LABEL_LIMITS.md)
+    expect(paths(spec([chartLabelled(label)]))).not.toContain(
+      'sections[0].cards[0].label'
+    )
+  })
+
+  it('warns when a chart label exceeds the chart limit', () => {
+    const label = 'Sales pace against similar shows, this week and last'
     expect(label.length).toBeGreaterThan(CHART_LABEL_LIMITS.md)
-    const chart = {
-      id: 'p',
-      kind: 'chart',
-      size: 'md',
-      label,
-      plot: { kind: 'static', src: '/p.svg', alt: 'Pace' },
-      table: { columns: [{ key: 'a', header: 'A', kind: 'number' }], rows: [] },
-      source: 'Oztix sales.'
-    }
-    const result = validateDashboard(spec([chart]))
+    const result = validateDashboard(spec([chartLabelled(label)]))
     expect(result.problems).toContainEqual(
       expect.objectContaining({
         path: 'sections[0].cards[0].label',

@@ -70,26 +70,28 @@ describe('card actions fit the header row', () => {
       expect(rectOf(actions).right).toBeLessThanOrEqual(contentRight(inner) + 1)
       expect(rectOf(label).right).toBeLessThanOrEqual(rectOf(actions).left)
       const lineHeight = Number.parseFloat(getComputedStyle(label).lineHeight)
-      expect(rectOf(label).height).toBeLessThanOrEqual(lineHeight * 1.2)
+      expect(rectOf(label).height).toBeLessThanOrEqual(lineHeight * 2.2)
       expect(actions.lastElementChild).toHaveAttribute(
         'data-slot',
         'data-card-more'
       )
+      const firstLineMiddle = rectOf(label).top + lineHeight / 2
       for (const action of actions.children)
         expect(
-          Math.abs(middleOf(action) - middleOf(label))
+          Math.abs(middleOf(action) - firstLineMiddle)
         ).toBeLessThanOrEqual(1)
     }
   })
 })
 
 describe('a label beside actions', () => {
-  const longLabel = 'Sales pace against similar shows this year'
+  const longLabel =
+    'Sales pace against similar shows this year, by ticket type and venue'
 
   it.each([
     { size: 'md' as const, width: 292 },
     { size: 'full' as const, width: PHONE_CONTENT_WIDTH }
-  ])('truncates on one line at $size, $width px', ({ size, width }) => {
+  ])('clamps at two lines at $size, $width px', ({ size, width }) => {
     const { container } = render(
       <div style={{ width }}>
         <Chart
@@ -106,17 +108,24 @@ describe('a label beside actions', () => {
       '[data-slot=data-card-label]'
     )!
     const lineHeight = Number.parseFloat(getComputedStyle(label).lineHeight)
-    expect(label.scrollWidth).toBeGreaterThan(label.clientWidth)
-    expect(getComputedStyle(label).textOverflow).toBe('ellipsis')
-    expect(rectOf(label).height).toBeLessThanOrEqual(lineHeight * 1.2)
+    expect(label.scrollHeight).toBeGreaterThan(label.clientHeight)
+    expect(rectOf(label).height).toBeCloseTo(lineHeight * 2, 0)
     expect(label).toHaveAttribute('title', longLabel)
   })
 
   it.each([
-    { size: 'sm' as const, width: 292, label: 'Julia Jacklin pace' },
-    { size: 'md' as const, width: 292, label: 'Julia Jacklin pace' },
-    { size: 'lg' as const, width: 328, label: 'Julia Jacklin sell rate' },
-    { size: 'full' as const, width: 328, label: 'Julia Jacklin sell rate' }
+    { size: 'sm' as const, width: 292, label: 'Julia Jacklin GA pace by week' },
+    { size: 'md' as const, width: 292, label: 'Julia Jacklin GA pace by week' },
+    {
+      size: 'lg' as const,
+      width: 328,
+      label: 'Genesis Owusu GA sell rate by ticket types'
+    },
+    {
+      size: 'full' as const,
+      width: 328,
+      label: 'Genesis Owusu GA sell rate by ticket types'
+    }
   ])(
     'fits a chart label of the actions budget at $size, $width px',
     ({ size, width, label }) => {
@@ -134,6 +143,7 @@ describe('a label beside actions', () => {
         </div>
       )
       const labelEl = container.querySelector('[data-slot=data-card-label]')!
+      expect(labelEl.scrollHeight).toBeLessThanOrEqual(labelEl.clientHeight)
       expect(labelEl.scrollWidth).toBeLessThanOrEqual(labelEl.clientWidth)
     }
   )

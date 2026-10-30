@@ -29,13 +29,29 @@ const CASES: {
   width: number
   label: string
 }[] = [
-  { size: 'sm', width: 292, label: 'Julia Jacklin GA pace' },
-  { size: 'md', width: 292, label: 'Julia Jacklin GA pace' },
-  { size: 'lg', width: 328, label: 'Genesis Owusu, GA sell rate' },
-  { size: 'full', width: 328, label: 'Genesis Owusu, GA sell rate' }
+  {
+    size: 'sm',
+    width: 292,
+    label: 'Julia Jacklin GA pace against similar acts'
+  },
+  {
+    size: 'md',
+    width: 292,
+    label: 'Julia Jacklin GA pace against similar acts'
+  },
+  {
+    size: 'lg',
+    width: 328,
+    label: 'Genesis Owusu, GA sell rate against similar venues'
+  },
+  {
+    size: 'full',
+    width: 328,
+    label: 'Genesis Owusu, GA sell rate against similar venues'
+  }
 ]
 
-describe('Chart label does not truncate at its narrowest width', () => {
+describe('Chart label fits two lines at its narrowest width', () => {
   it.each(CASES)('$size at $width px', ({ size, width, label }) => {
     expect(label.length).toBe(CHART_LABEL_LIMITS[size])
     const { container } = render(
@@ -46,6 +62,7 @@ describe('Chart label does not truncate at its narrowest width', () => {
       </div>
     )
     const labelEl = container.querySelector('[data-slot=data-card-label]')!
+    expect(labelEl.scrollHeight).toBeLessThanOrEqual(labelEl.clientHeight)
     expect(labelEl.scrollWidth).toBeLessThanOrEqual(labelEl.clientWidth)
   })
 })

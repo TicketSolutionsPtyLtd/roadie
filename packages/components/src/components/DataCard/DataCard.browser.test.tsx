@@ -308,10 +308,11 @@ describe('DataCard copy never wraps', () => {
       }
     })
 
-  it('truncates awkward copy on one line', () => {
+  it('truncates awkward stat copy on one line', () => {
     const { container } = render(
       <div style={{ width: 158 }}>
         <DataCard
+          size='stat'
           label='Tickets sold across every venue'
           value='$1,234,567.89'
           delta={{ value: 12 }}
@@ -324,6 +325,29 @@ describe('DataCard copy never wraps', () => {
         Number.parseFloat(getComputedStyle(line).lineHeight) * 1.2
       )
     }
+  })
+
+  it.each([
+    ['md', 2],
+    ['stat', 1]
+  ] as const)('clamps a %s label at %i line(s)', (size, lineCount) => {
+    const { container } = render(
+      <div style={{ width: 240 }}>
+        <DataCard
+          size={size}
+          label='Tickets sold across every venue on the tour this season, by ticket type'
+          value={1842}
+        />
+      </div>
+    )
+    const label = container.querySelector<HTMLElement>(
+      '[data-slot=data-card-label]'
+    )!
+    const lineHeight = Number.parseFloat(getComputedStyle(label).lineHeight)
+    expect(label.getBoundingClientRect().height).toBeCloseTo(
+      lineHeight * lineCount,
+      0
+    )
   })
 
   it('keeps a real, visible border under forced-colors', async () => {
