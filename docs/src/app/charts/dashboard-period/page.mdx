@@ -148,7 +148,7 @@ render(<Fixed />)
 
 ### With the data’s dates
 
-Pass the same `dataStart`, `dataEnd` and `alignWeekday` you give `resolveComparison`, and the comparison shows the dates the app will fetch, or “Not enough history” or “Nothing to compare” when the data can’t cover them. A range with no end, such as Upcoming, has no span to step back by, so Previous period, Previous year and Custom dates turn off, the period reads none of them even when the value holds one, and Apply drops them. An app’s own comparison still reads. Here sales data runs to today, so this month compares with the same days of last month, and the previous year lines up weekdays.
+Pass the same `dataStart`, `dataEnd` and `alignWeekday` you give `resolveComparison`, and the comparison shows the dates the app will fetch, or “Not enough history” or “Nothing to compare” when the data can’t cover them. Here sales data runs to today, so this month compares with the same days of last month, and the previous year lines up weekdays.
 
 ```tsx-live
 <DashboardPeriod
@@ -156,6 +156,17 @@ Pass the same `dataStart`, `dataEnd` and `alignWeekday` you give `resolveCompari
   dataEnd='2026-10-07'
   alignWeekday
   defaultValue={{ range: 'this-month', compare: 'previous-period' }}
+/>
+```
+
+### With a range that has no end
+
+A range with no end, such as all upcoming shows, has no span to step back by. Previous period, Previous year and Custom dates turn off, the period reads none of them even when the value holds one, and Apply drops them. An app’s own comparison still reads. This value asks for the previous period, so the button shows only “Upcoming”, and in the picker the comparisons are off.
+
+```tsx-live
+<DashboardPeriod
+  today='2026-10-07'
+  defaultValue={{ range: 'upcoming', compare: 'previous-period' }}
 />
 ```
 
