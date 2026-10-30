@@ -13,7 +13,8 @@ export type MergeTagOptions = {
 /** Writes a variable node's place in the email, filled once MJML is done. */
 export type MergeTag = (attrs: Record<string, unknown>) => string
 
-type Filled = { html: string; text: string }
+/** What goes in a placeholder's place in the HTML and in the plain text. */
+export type Filled = { html: string; text: string }
 
 // Private-use characters, which escapeHtml strips from what an author typed.
 const PLACEHOLDER = /\uE000(\d+)\uE001/g
@@ -61,10 +62,15 @@ function tokenFor(
 
 /**
  * Collects each variable as the email is built, then writes it as its token
- * in `syntax`, or as its value from `values` for a preview.
+ * in `syntax`, or as its value from `values` for a preview. `hold` keeps
+ * anything else MJML and html-to-text mustn't read, such as a condition.
  */
 export function mergeTags({ syntax, variables = [], values }: MergeTagOptions) {
   const filled: Filled[] = []
+  const hold = (held: Filled) => {
+    filled.push(held)
+    return `\uE000${filled.length - 1}\uE001`
+  }
   const tag: MergeTag = ({ key, fallback }) => {
     const variable = variables.find((listed) => listed.key === key)
     if (!variable) {
@@ -76,14 +82,13 @@ export function mergeTags({ syntax, variables = [], values }: MergeTagOptions) {
         ? values[variable.key]
         : undefined
     const preview = value || shownFallback
-    filled.push(
+    return hold(
       values
         ? { html: escapeHtml(preview), text: untokenedText(preview) }
         : tokenFor(variable, shownFallback, syntax)
     )
-    return `\uE000${filled.length - 1}\uE001`
   }
   const fill = (output: string, part: keyof Filled) =>
     output.replace(PLACEHOLDER, (_match, index) => filled[Number(index)]![part])
-  return { tag, fill }
+  return { tag, hold, fill }
 }

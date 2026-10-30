@@ -163,6 +163,17 @@ function holdsDoc(editor: TiptapEditor, doc: JSONContent) {
   }
 }
 
+// A block's rule defaults to undefined, so a node with no other attrs saves
+// none, as it did before rules.
+function savedDoc(json: JSONContent): JSONContent {
+  const saved = { ...json }
+  if (saved.attrs && Object.values(saved.attrs).every((v) => v === undefined)) {
+    delete saved.attrs
+  }
+  if (saved.content) saved.content = saved.content.map(savedDoc)
+  return saved
+}
+
 type FormValueProps = {
   editor: TiptapEditor | null
   name: string
@@ -184,7 +195,8 @@ function FormValue({
     selector: ({ editor: current }) => current?.state.doc ?? null,
     equalityFn: Object.is
   })
-  const doc: JSONContent | null = unreadDoc ?? editorDoc?.toJSON() ?? null
+  const doc: JSONContent | null =
+    unreadDoc ?? (editorDoc ? savedDoc(editorDoc.toJSON()) : null)
   if (!doc) return null
   return (
     <input
@@ -336,7 +348,7 @@ export function EditorEngine({
       onValueChange?.({
         version: CURRENT_VERSION,
         preset,
-        doc: updated.getJSON()
+        doc: savedDoc(updated.getJSON())
       })
   })
 

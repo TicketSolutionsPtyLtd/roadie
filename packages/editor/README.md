@@ -77,7 +77,9 @@ const description: EditorValue = {
   600 pixels or `null` to fill its column, and a spacer is 8 to 160 pixels
   high. A list item holds text blocks only. A merge tag is an inline
   `variable`, saving only `key` and, when it has one, `fallback`; its token
-  is chosen when the email renders.
+  is chosen when the email renders. A section and each email block can
+  save a `showWhen` rule, `{ key, op, value }`, naming a variable; columns
+  and text blocks never do, so a conditional paragraph goes in a section.
 - `doc` is Tiptap's JSON, with Tiptap's default names (`paragraph`,
   `bulletList`, `bold`…), so any Tiptap or ProseMirror tool reads it.
 
@@ -154,7 +156,9 @@ It reads the value into the email preset, builds MJML's JSON tree from it in
 writes the plain text from the HTML. Text goes into the tree already escaped,
 since MJML writes its content and attributes as given. Each variable goes in
 as a private-use placeholder, written as its token or value once MJML is done
-(`src/email/mergeTags.ts`), so a token is never escaped and a value always is. MJML stays behind
+(`src/email/mergeTags.ts`), so a token is never escaped and a value always is.
+A block's `showWhen` rule goes in as placeholders in `mj-raw` siblings around
+it (`src/email/conditions.ts`), written as a Liquid `if` and `endif`. MJML stays behind
 `renderEmail`: nothing exported names it, so the renderer can change without
 a migration.
 

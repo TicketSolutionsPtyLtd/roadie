@@ -834,6 +834,86 @@ const preview = await renderEmail(welcome, {
   `#FirstName#`, is written so no sending system fills it.
 - A variable never goes in a link's or a button's href.
 
+#### Conditions
+
+A section, button, image, spacer, or divider in the email preset can show
+only to some recipients, such as a "last few tickets" section when an event
+is nearly sold out. Its `showWhen` rule names a variable by key, never as
+Liquid, so the rule can be checked against the variables the sender fills.
+
+```ts
+const nearlySoldOut = {
+  version: 1,
+  preset: 'email',
+  doc: {
+    type: 'doc',
+    content: [
+      {
+        type: 'section',
+        attrs: {
+          showWhen: { key: 'tickets_left', op: 'lessThan', value: 20 }
+        },
+        content: [
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: 'Only a few tickets left.' }]
+          }
+        ]
+      },
+      {
+        type: 'paragraph',
+        content: [{ type: 'text', text: 'See you at the Ochre Kite Weekender.' }]
+      }
+    ]
+  }
+}
+```
+
+```tsx
+import { type EditorVariable, renderEmail } from '@oztix/roadie-editor/email'
+
+const variables: EditorVariable[] = [
+  {
+    key: 'tickets_left',
+    label: 'Tickets left',
+    tokens: { liquid: '{{ event.tickets_left }}' }
+  }
+]
+
+// {% if event.tickets_left < 20 %} … {% endif %}
+const { html, text } = await renderEmail(nearlySoldOut, {
+  syntax: 'liquid',
+  variables
+})
+
+// Leaves the section out.
+const preview = await renderEmail(nearlySoldOut, {
+  variables,
+  values: { tickets_left: '200' }
+})
+```
+
+- `op` is `exists`, `equals`, `notEquals`, `lessThan`, or `greaterThan`.
+  `exists` takes no `value`. `equals` and `notEquals` take text or a number,
+  and `lessThan` and `greaterThan` a number.
+- A number is compared as a number and text as text, as Liquid compares
+  them, so `20` and `'20'` are different rules. The sender's value must be
+  the same type as the rule's.
+- Columns and text blocks take no rule. To show a paragraph only to some
+  recipients, put it in a section with the rule.
+- With `syntax: 'liquid'`, the block is wrapped in `{% if %}` and
+  `{% endif %}` in the HTML and the plain text. The variable's Liquid token
+  must be a plain variable, such as `{{ event.tickets_left }}`, since Liquid
+  takes no filters in a condition.
+- With `values`, the block shows only when its rule holds. A missing or
+  empty value doesn't exist, and a value that isn't a number is never less
+  or greater than one. A preview value is a number when it's written in
+  decimal digits.
+- The `ae` syntax has no conditions, so a rule throws there, as does a rule
+  naming a variable `variables` doesn't list, or text holding both quote
+  marks or `%}`, which a Liquid string can't hold.
+- `migrate` drops a rule that isn't whole, and keeps its block.
+
 ## Guidelines
 
 - The editor's code loads after the page, so `Editor` shows a skeleton the

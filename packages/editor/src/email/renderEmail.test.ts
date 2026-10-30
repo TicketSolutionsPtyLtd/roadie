@@ -522,4 +522,301 @@ describe('renderEmail', () => {
       )
     })
   })
+
+  describe('conditions', () => {
+    const variables: EditorVariable[] = [
+      {
+        key: 'tickets_left',
+        label: 'Tickets left',
+        tokens: { liquid: '{{ event.tickets_left }}' }
+      },
+      {
+        key: 'ticket_type',
+        label: 'Ticket type',
+        tokens: { ae: '#TicketType#', liquid: '{{- ticket.type -}}' }
+      },
+      {
+        key: 'event_date',
+        label: 'Event date',
+        tokens: { liquid: '{{ event.date | date: "%-d %B" }}' }
+      },
+      {
+        key: 'first_name',
+        label: 'First name',
+        tokens: { ae: '#FirstName#' }
+      }
+    ]
+    const when = (node: JSONContent, showWhen: unknown): JSONContent => ({
+      ...node,
+      attrs: { ...node.attrs, showWhen }
+    })
+    const nearlySoldOut = { key: 'tickets_left', op: 'lessThan', value: 20 }
+    const offer = (showWhen: unknown) =>
+      email(
+        p(text('Before')),
+        when(button(tickets, 'Grab the last few'), showWhen),
+        p(text('After'))
+      )
+    const liquid = (value: StoredEditorValue) =>
+      renderEmail(value, { syntax: 'liquid', variables })
+    // What a Liquid sender does with a condition that doesn't hold.
+    const hidden = (html: string) =>
+      body(html)
+        .replace(/\{%-? if [^%]*%\}[\s\S]*?\{%-? endif %\}/g, '')
+        .replace(/<!\[endif\]-->\s*<!--\[if mso \| IE\]>/g, '')
+        .replace(/\s+/g, ' ')
+
+    it.each([
+      [
+        'exists',
+        { key: 'ticket_type', op: 'exists' },
+        'ticket.type and ticket.type != ""'
+      ],
+      [
+        'equals text',
+        { key: 'ticket_type', op: 'equals', value: 'VIP' },
+        'ticket.type == "VIP"'
+      ],
+      [
+        'equals a number',
+        { key: 'tickets_left', op: 'equals', value: 0 },
+        'event.tickets_left == 0'
+      ],
+      [
+        'notEquals',
+        { key: 'ticket_type', op: 'notEquals', value: 'VIP' },
+        'ticket.type != "VIP"'
+      ],
+      ['lessThan', nearlySoldOut, 'event.tickets_left < 20'],
+      [
+        'greaterThan',
+        { key: 'tickets_left', op: 'greaterThan', value: -1.5 },
+        'event.tickets_left > -1.5'
+      ]
+    ])(
+      'wraps a block shown when it %s in a Liquid if',
+      async (_name, rule, condition) => {
+        const { html, text: plain } = await liquid(offer(rule))
+        expect(html).toContain(`{% if ${condition} %}`)
+        expect(html.indexOf(`{% if ${condition} %}`)).toBeLessThan(
+          html.indexOf('Grab the last few')
+        )
+        expect(html.indexOf('{% endif %}')).toBeGreaterThan(
+          html.indexOf('Grab the last few')
+        )
+        expect(plain).toBe(
+          `Before\n\n{%- if ${condition} %}\n\nGrab the last few [${tickets}]\n\n{%- endif %}\n\nAfter`
+        )
+      }
+    )
+
+    it('leaves the email whole when a sender hides the block', async () => {
+      const { html } = await liquid(offer(nearlySoldOut))
+      const without = await liquid(email(p(text('Before')), p(text('After'))))
+      expect(hidden(html)).toBe(hidden(without.html))
+    })
+
+    it('leaves the email whole when a sender hides a section', async () => {
+      const { html, text: plain } = await liquid(
+        email(
+          when(section(p(text('Only 20 tickets left'))), nearlySoldOut),
+          p(text('After'))
+        )
+      )
+      const without = await liquid(email(p(text('After'))))
+      expect(html).toContain('{% if event.tickets_left < 20 %}')
+      expect(hidden(html)).toBe(hidden(without.html))
+      expect(plain).toBe(
+        '{%- if event.tickets_left < 20 %}\n\nOnly 20 tickets left\n\n{%- endif %}\n\nAfter'
+      )
+    })
+
+    it('leaves the columns whole when a sender hides a block in one', async () => {
+      const row = (...first: JSONContent[]) =>
+        email(columns(column(...first), column(p(text('Stage 2')))))
+      const { html } = await liquid(
+        row(p(text('Stage 1')), when(image(poster), nearlySoldOut))
+      )
+      const without = await liquid(row(p(text('Stage 1'))))
+      expect(html).toContain('{% if event.tickets_left < 20 %}')
+      expect(hidden(html)).toBe(hidden(without.html))
+    })
+
+    it.each([
+      ['text with a double quote', 'The "Gold" pass', `'The "Gold" pass'`],
+      ['text with a single quote', "Rock 'n' roll", `"Rock 'n' roll"`],
+      ['markup, unescaped', '<b>VIP & co</b>', '"<b>VIP & co</b>"']
+    ])('writes %s as a Liquid string', async (_name, value, literal) => {
+      const { html } = await liquid(
+        offer({ key: 'ticket_type', op: 'equals', value })
+      )
+      expect(html).toContain(`{% if ticket.type == ${literal} %}`)
+    })
+
+    it.each([
+      ['both quotes', `The "Gold" pass's`],
+      ['the end of a tag', 'VIP %} {% include "x" %}']
+    ])(
+      'refuses text with %s, which a Liquid string can’t hold',
+      async (_name, value) => {
+        await expect(
+          liquid(offer({ key: 'ticket_type', op: 'equals', value }))
+        ).rejects.toThrow(RangeError)
+      }
+    )
+
+    it('refuses a number Liquid can’t write', async () => {
+      await expect(
+        liquid(offer({ key: 'tickets_left', op: 'lessThan', value: 1e21 }))
+      ).rejects.toThrow(RangeError)
+    })
+
+    it('refuses a variable whose Liquid token has a filter', async () => {
+      await expect(
+        liquid(offer({ key: 'event_date', op: 'exists' }))
+      ).rejects.toThrow('"event_date"')
+    })
+
+    it.each(['{{ empty }}', '{{ and }}', '{{ true.x }}'])(
+      'refuses a variable whose Liquid token %s is a keyword',
+      async (liquidToken) => {
+        await expect(
+          renderEmail(offer({ key: 'odd', op: 'exists' }), {
+            syntax: 'liquid',
+            variables: [
+              { key: 'odd', label: 'Odd', tokens: { liquid: liquidToken } }
+            ]
+          })
+        ).rejects.toThrow('"odd"')
+      }
+    )
+
+    it.each(['0x10', '1e1', ' '])(
+      'reads %j as no number in a preview, as Liquid does',
+      async (tickets_left) => {
+        const { text: plain } = await renderEmail(
+          offer({ key: 'tickets_left', op: 'greaterThan', value: 0 }),
+          { variables, values: { tickets_left } }
+        )
+        expect(plain).toBe('Before\n\nAfter')
+      }
+    )
+
+    it('refuses a variable with no Liquid token', async () => {
+      await expect(
+        liquid(offer({ key: 'first_name', op: 'exists' }))
+      ).rejects.toThrow('"first_name" has no liquid token')
+    })
+
+    it('refuses a rule the app’s variables don’t list', async () => {
+      await expect(
+        renderEmail(offer({ key: 'capacity', op: 'exists' }), {
+          variables,
+          values: {}
+        })
+      ).rejects.toThrow('"capacity"')
+    })
+
+    it('refuses conditions in the AE syntax, which has none', async () => {
+      await expect(
+        renderEmail(offer({ key: 'ticket_type', op: 'exists' }), {
+          syntax: 'ae',
+          variables
+        })
+      ).rejects.toThrow(TypeError)
+    })
+
+    it('refuses conditions with neither a syntax nor values', async () => {
+      await expect(
+        renderEmail(offer(nearlySoldOut), { variables })
+      ).rejects.toThrow(TypeError)
+    })
+
+    it.each([
+      [
+        'exists',
+        { key: 'ticket_type', op: 'exists' },
+        { ticket_type: 'VIP' },
+        { ticket_type: '' }
+      ],
+      [
+        'equals text',
+        { key: 'ticket_type', op: 'equals', value: 'VIP' },
+        { ticket_type: 'VIP' },
+        { ticket_type: 'vip' }
+      ],
+      [
+        'equals a number',
+        { key: 'tickets_left', op: 'equals', value: 0 },
+        { tickets_left: '0' },
+        { tickets_left: '' }
+      ],
+      [
+        'notEquals',
+        { key: 'ticket_type', op: 'notEquals', value: 'VIP' },
+        {},
+        { ticket_type: 'VIP' }
+      ],
+      [
+        'lessThan',
+        nearlySoldOut,
+        { tickets_left: '19.5' },
+        { tickets_left: '20' }
+      ],
+      [
+        'lessThan, with no number',
+        nearlySoldOut,
+        { tickets_left: '3' },
+        { tickets_left: 'few' }
+      ],
+      [
+        'greaterThan',
+        { key: 'tickets_left', op: 'greaterThan', value: 0 },
+        { tickets_left: '1' },
+        {}
+      ]
+    ])(
+      'shows or hides a block that %s in a preview',
+      async (_name, rule, shown, hiddenBy) => {
+        const read = async (values: Record<string, string>) =>
+          (await renderEmail(offer(rule), { variables, values })).text
+        expect(await read(shown)).toBe(
+          `Before\n\nGrab the last few [${tickets}]\n\nAfter`
+        )
+        expect(await read(hiddenBy)).toBe('Before\n\nAfter')
+      }
+    )
+
+    it('checks a rule keyed like an object’s own property from values alone', async () => {
+      const keyed: EditorVariable[] = [
+        { key: 'constructor', label: 'Constructor', tokens: {} }
+      ]
+      const { text: plain } = await renderEmail(
+        offer({ key: 'constructor', op: 'exists' }),
+        { variables: keyed, values: {} }
+      )
+      expect(plain).toBe('Before\n\nAfter')
+    })
+
+    it('hides a section and everything in it in a preview', async () => {
+      const { html, text: plain } = await renderEmail(
+        email(
+          when(
+            section(p(text('Only 20 tickets left')), button(tickets)),
+            nearlySoldOut
+          ),
+          p(text('After'))
+        ),
+        { variables, values: { tickets_left: '200' } }
+      )
+      expect(html).not.toContain('Only 20 tickets left')
+      expect(html).not.toContain(tickets)
+      expect(plain).toBe('After')
+    })
+
+    it('renders a block with no rule as it was', async () => {
+      const { html } = await renderEmail(email(button(tickets)))
+      expect(html).not.toContain('{%')
+    })
+  })
 })

@@ -90,6 +90,40 @@ describe('Editor with the email preset', () => {
     )
   })
 
+  it('submits an edited layout with no rules as it saved it', async () => {
+    let submitted: FormData | undefined
+    render(
+      <form
+        onSubmit={(event) => {
+          event.preventDefault()
+          submitted = new FormData(event.currentTarget)
+        }}
+      >
+        <Editor
+          aria-label={LABEL}
+          name='newsletter'
+          defaultValue={newsletter}
+        />
+        <button type='submit'>Save</button>
+      </form>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await waitFor(() => expect(textbox).toHaveTextContent('Doors 7pm'))
+    await userEvent.click(screen.getByText('Doors 7pm'))
+    await userEvent.keyboard(`${LINE_END}, bar till late`)
+    await waitFor(() =>
+      expect(textbox).toHaveTextContent('Doors 7pm, bar till late')
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(JSON.parse(submitted!.get('newsletter') as string)).toEqual({
+      version: 1,
+      preset: 'email',
+      doc: layout('Doors 7pm, bar till late')
+    })
+  })
+
   it('pastes a copied button as a button, not a link', async () => {
     const onValueChange = vi.fn()
     render(
