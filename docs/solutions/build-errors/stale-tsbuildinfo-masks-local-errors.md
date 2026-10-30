@@ -33,11 +33,11 @@ src/components/Accordion/Accordion.test.tsx(121,12): error TS2532: Object is pos
 src/components/Accordion/Accordion.test.tsx(122,7): error TS2532: Object is possibly 'undefined'.
 ```
 
-The lines were committed weeks ago by someone else (`git blame` confirms), and `pnpm typecheck` on your machine is clean. You didn't touch Accordion. No rebase, no lockfile change, no tsconfig edit — the errors appear to have materialised out of thin air the moment your branch hit the CI runner.
+The lines were committed weeks ago by someone else (`git blame` confirms), and `pnpm typecheck` on your machine is clean. You didn't touch Accordion. No rebase, no lockfile change, no tsconfig edit. The errors appear to have materialised out of thin air the moment your branch hit the CI runner.
 
 ## Root cause
 
-TypeScript's incremental mode (`"incremental": true` in `tsconfig.json`, which the Roadie component packages enable) writes a `tsconfig.tsbuildinfo` file next to the config on every successful `tsc --noEmit`. That file stores the dependency graph and prior diagnostics for every file in the project. On the next run, tsc reuses cached results for files that haven't changed since the last build — including their "no errors" verdict.
+TypeScript's incremental mode (`"incremental": true` in `tsconfig.json`, which the Roadie component packages enable) writes a `tsconfig.tsbuildinfo` file next to the config on every successful `tsc --noEmit`. That file stores the dependency graph and prior diagnostics for every file in the project. On the next run, tsc reuses cached results for files that haven't changed since the last build, including their "no errors" verdict.
 
 If a file was added to the project **before** the repo-wide strict flag was tightened, or before a new type rule surfaced, and nobody has touched that file since, the `.tsbuildinfo` cache will keep reporting it as clean. Your local tsc never re-checks it, so the error is invisible. CI runs with no cache, so it re-checks every file from scratch and the latent error immediately surfaces.
 
@@ -91,12 +91,12 @@ pnpm turbo typecheck --force
 ## Prevention
 
 - **Before pushing a finishing commit on a branch, run a fresh typecheck at least once**: delete the `.tsbuildinfo` files and re-run `pnpm typecheck`. It takes ~10 seconds and surfaces exactly the class of latent errors that CI will fail on. This is especially worth doing when your branch has landed a lot of unrelated file edits, widened a tsconfig flag, or bumped a TypeScript version.
-- **If you see an unexplained CI-only typecheck failure in a file you didn't touch, `git blame` the failing line before assuming the PR is the cause.** Latent errors pre-dating the branch are common once a repo is on `noUncheckedIndexedAccess` / `exactOptionalPropertyTypes` / `strictNullChecks` — TS's incremental cache hides them until something forces a cold rebuild.
+- **If you see an unexplained CI-only typecheck failure in a file you didn't touch, `git blame` the failing line before assuming the PR is the cause.** Latent errors pre-dating the branch are common once a repo is on `noUncheckedIndexedAccess` / `exactOptionalPropertyTypes` / `strictNullChecks`. TS's incremental cache hides them until something forces a cold rebuild.
 - **Don't rely on Turbo's remote cache to catch this class of bug either.** Turbo's cache is task-level; even a cache hit still re-reads tsc's incremental file cache for the task it re-runs. Only `tsbuildinfo` deletion forces TypeScript itself to re-analyse the file.
-- **Latent errors surfaced this way aren't "CI's fault" — they're evidence that local was lying to you for days or weeks.** Fix the error in place (non-null assertion, narrowing, whatever the right call is) rather than reverting to hide it again. The next cold build would just unmask it.
+- **Latent errors surfaced this way aren't "CI's fault": they're evidence that local was lying to you for days or weeks.** Fix the error in place (non-null assertion, narrowing, whatever the right call is) rather than reverting to hide it again. The next cold build would just unmask it.
 
 ## Related files
 
-- `tsconfig.base.json` — the root config with `noUncheckedIndexedAccess: true` + `strict: true` + `incremental: true`.
-- `packages/components/tsconfig.json` / `packages/core/tsconfig.json` — extend the base; both write `packages/*/tsconfig.tsbuildinfo` on every `pnpm typecheck`.
-- `packages/components/src/components/Accordion/Accordion.test.tsx:121` — the original latent error and its non-null-assertion fix.
+- `tsconfig.base.json`: the root config with `noUncheckedIndexedAccess: true` + `strict: true` + `incremental: true`.
+- `packages/components/tsconfig.json` / `packages/core/tsconfig.json`: extend the base; both write `packages/*/tsconfig.tsbuildinfo` on every `pnpm typecheck`.
+- `packages/components/src/components/Accordion/Accordion.test.tsx:121`: the original latent error and its non-null-assertion fix.

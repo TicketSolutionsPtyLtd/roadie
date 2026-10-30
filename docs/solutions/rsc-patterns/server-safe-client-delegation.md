@@ -8,7 +8,7 @@ component: tooling
 severity: medium
 applies_when:
   - A server-safe component (no `'use client'` directive) needs to use behavior from a client-only context
-  - The behavior is opt-in (only fires when a specific prop is passed) — not part of every render
+  - The behavior is opt-in (only fires when a specific prop is passed), not part of every render
   - Adding `'use client'` to the component would push every consumer's render into the client bundle
 symptoms:
   - The component currently renders server-side, but a new feature requires reading React context
@@ -35,8 +35,8 @@ tags:
 
 Roadie's `RoadieLinkProvider` lives in a client module (it uses
 `createContext` + `useContext`), but several link-bearing components
-that need to read it — `Card`, `Breadcrumb.Link`, `Carousel.TitleLink`
-— had been carefully kept server-safe so consumer apps could render
+that need to read it (`Card`, `Breadcrumb.Link`, `Carousel.TitleLink`)
+had been carefully kept server-safe so consumer apps could render
 them in RSC trees without forcing the entire page into the client
 bundle. Reading `useRoadieLink()` directly inside `CardRoot.tsx` would
 require adding `'use client'` to that file, which:
@@ -56,18 +56,18 @@ right.
 
 **Server-safe components delegate to a `'use client'` sibling
 component, called only when the relevant prop is set.** The server-safe
-file imports the client sibling — that import compiles to a
-client-reference proxy in Next.js — but the runtime decision to
+file imports the client sibling (that import compiles to a
+client-reference proxy in Next.js), but the runtime decision to
 _render_ the client sibling is gated on a prop, so the boundary is
 crossed only when needed.
 
 ```tsx
-// CardRoot.tsx — STAYS SERVER-SAFE (no 'use client' directive)
+// CardRoot.tsx: STAYS SERVER-SAFE (no 'use client' directive)
 import type { ComponentProps, ElementType } from 'react'
 
 import { RoadieRoutedLink } from '../Link/RoadieRoutedLink'
 
-//      ↑ this is a 'use client' module — Next compiles the import as a
+//      ↑ this is a 'use client' module: Next compiles the import as a
 //        client-reference proxy. CardRoot.tsx itself stays server-safe
 //        because it doesn't call any hook.
 
@@ -106,18 +106,18 @@ export function RoadieRoutedLink({ href, ...rest }: RoadieRoutedLinkProps) {
 Verify the boundary held after a build:
 
 ```bash
-# Server-safe — must NOT begin with "use client";
+# Server-safe: must NOT begin with "use client";
 head -c 13 packages/components/dist/components/Card/CardRoot.js
 # → "import{Roadie..."   ✓ no directive
 
-# Client — MUST begin with "use client";
+# Client: MUST begin with "use client";
 head -c 13 packages/components/dist/components/Link/RoadieRoutedLink.js
 # → "\"use client\";"     ✓
 ```
 
 ## Why This Matters
 
-**Importing a `'use client'` module from a server-safe file is fine —
+**Importing a `'use client'` module from a server-safe file is fine:
 Next handles the boundary at the module graph level.** The Roadie
 docs site, every Next 14+ App Router app, and the `tsdown` unbundle
 build all support this pattern. The server-safe file's emitted JS
@@ -128,7 +128,7 @@ import time, so the server module remains a pure server module.
 
 **Cost is bounded and predictable.** When a page renders a Card with
 `href` set, Next serializes the props as a client-reference payload
-and ships the `RoadieRoutedLink.js` chunk to the browser — the same
+and ships the `RoadieRoutedLink.js` chunk to the browser, the same
 cost as rendering the client component directly. When a page renders
 a Card without `href`, the client chunk is registered as a reference
 on the page's module graph but never rendered, so no JS executes for
@@ -152,17 +152,17 @@ Apply when **all four** are true:
    way.
 2. The new functionality requires a hook (`useContext`, `useEffect`,
    `useState`, `useRef`, `useId`, etc.).
-3. The new functionality is **opt-in** — gated on a prop or branch
+3. The new functionality is **opt-in**, gated on a prop or branch
    that consumers explicitly trigger. (If every render needs the hook,
    the component is fundamentally a client component and should be
    `'use client'`.)
-4. The hook-using sibling is a small primitive — making it its own
+4. The hook-using sibling is a small primitive: making it its own
    client module is a clean abstraction, not a hack.
 
 Skip the delegation pattern when:
 
 - The component already needs `'use client'` for other reasons (Base
-  UI consumers like Button, Tabs.Tab — these read context via Base UI
+  UI consumers like Button, Tabs.Tab: these read context via Base UI
   itself).
 - The hook is required on every render. There's no opt-out, so the
   delegation buys nothing.
@@ -184,7 +184,7 @@ Same pattern: `BreadcrumbLink.tsx` is server-safe; the routing
 delegate is `RoadieRoutedLink.tsx`. Verified via `head -c 13` on the
 dist output.
 
-### Counterexample — Button
+### Counterexample: Button
 
 `Button.tsx` already has `'use client'` because Base UI's
 `<ButtonPrimitive>` requires it (Base UI uses hooks for focus
@@ -193,11 +193,11 @@ provider read inside Button is fine; no delegation needed.
 
 ## Related Solutions
 
-- [Compound export namespace](./compound-export-namespace.md) — the
+- [Compound export namespace](./compound-export-namespace.md): the
   server-safe `index.tsx` re-export layer that this pattern composes
   with.
-- [Avoid the `use` prefix on pure helpers](../best-practices/use-prefix-non-hook-forward-compat-hazard.md)
-  — the helper used inside `RoadieRoutedLink` (`resolveRender`) is
+- [Avoid the `use` prefix on pure helpers](../best-practices/use-prefix-non-hook-forward-compat-hazard.md):
+  the helper used inside `RoadieRoutedLink` (`resolveRender`) is
   intentionally not a hook, so it can be called from any path
   (conditional, loop, etc.) without rules-of-hooks fallout.
 
@@ -206,7 +206,7 @@ provider read inside Button is fine; no delegation needed.
 For any component using this pattern, two checks should pass on
 every build:
 
-1. **Server-safe check** — the host file's dist output does NOT begin
+1. **Server-safe check**: the host file's dist output does NOT begin
    with `"use client";`:
 
    ```bash
@@ -214,7 +214,7 @@ every build:
    # Expected: anything other than "use client";
    ```
 
-2. **Client check** — the delegated sibling's dist output DOES begin
+2. **Client check**: the delegated sibling's dist output DOES begin
    with `"use client";`:
 
    ```bash
@@ -222,10 +222,10 @@ every build:
    # Expected: "use client";
    ```
 
-3. **RSC smoke test** — render the host component (with both prop
+3. **RSC smoke test**: render the host component (with both prop
    states) inside an RSC page (e.g., `/debug/rsc-smoke`) and confirm
    the build doesn't error and runtime output is correct.
 
-If any of these fail, the boundary has regressed — the host file
+If any of these fail, the boundary has regressed: the host file
 likely picked up `'use client'` indirectly via a transitive hook
 import.

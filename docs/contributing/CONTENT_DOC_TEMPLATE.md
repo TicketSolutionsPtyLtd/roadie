@@ -82,7 +82,8 @@ with links to their pages.
    gives every table on the page the same two equal columns. A pair's
    `example` shows the words where they appear, such as on a `Button`.
 3. **A wrong dash is an entity.** A "not" cell that shows an em or en dash
-   writes it as `&mdash;` or `&ndash;`, so `grep -n '[—–]'` still finds none.
+   writes it as `&mdash;` or `&ndash;`, so the docs content check
+   (`node scripts/check-docs-content.mjs`) still passes.
 4. **Names come from [`EXAMPLE_DATA.md`](EXAMPLE_DATA.md).** Only Australian
    cities and bands are real.
 5. **One home per rule.** A copy rule lives on one Content page. Other files,

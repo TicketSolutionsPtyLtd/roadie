@@ -41,11 +41,11 @@ useEffect(() => {
 }, [autoPlay])
 ```
 
-Tests (vitest + jsdom) pass and the warnings fire as expected. The package gets built via tsdown and published. Consumers run the code and **none of the warnings ever appear in the browser console**, not even in development. The bug can go unnoticed for months because the warnings are only "supposed to fire" in specific scenarios — it's easy to assume nobody hit those scenarios, not that the check is always false.
+Tests (vitest + jsdom) pass and the warnings fire as expected. The package gets built via tsdown and published. Consumers run the code and **none of the warnings ever appear in the browser console**, not even in development. The bug can go unnoticed for months because the warnings are only "supposed to fire" in specific scenarios. It's easy to assume nobody hit those scenarios, not that the check is always false.
 
 ## Root cause
 
-`import.meta.env.DEV` is a **Vite-specific** extension to `import.meta`. Vite populates `env.DEV` / `env.PROD` / `env.MODE` via its own define-plugin pipeline. tsdown (which the Roadie components package uses to build) preserves `import.meta.env.DEV` as a live runtime lookup in the published dist — it does not replace it with a literal.
+`import.meta.env.DEV` is a **Vite-specific** extension to `import.meta`. Vite populates `env.DEV` / `env.PROD` / `env.MODE` via its own define-plugin pipeline. tsdown (which the Roadie components package uses to build) preserves `import.meta.env.DEV` as a live runtime lookup in the published dist: it does not replace it with a literal.
 
 When a non-Vite consumer (Next.js, Webpack, Rollup, Parcel, esbuild without the Vite plugin) imports the package:
 
@@ -67,7 +67,7 @@ Switch the dev check to `process.env.NODE_ENV`, which every mainstream bundler r
  * Development-mode check that works across consumer bundlers.
  *
  * Uses `process.env.NODE_ENV` rather than `import.meta.env.DEV` because
- * the latter is Vite-specific — Next.js, Webpack, Rollup, and friends
+ * the latter is Vite-specific: Next.js, Webpack, Rollup, and friends
  * don't populate it, so the dev-only warnings would never fire in those
  * consumer runtimes. Every mainstream bundler replaces
  * `process.env.NODE_ENV` with a string literal at build time; the
@@ -99,7 +99,7 @@ Three subtleties:
    …function T(){return typeof process<`u`&&process?.env?.NODE_ENV!==`production`}…
    ```
 
-   If tsdown replaced `process.env.NODE_ENV` with a literal at its own build step, the consumer bundler has nothing to substitute and you're back to the same silent-always-false bug — just in the opposite direction. For tsdown + Rolldown the live check survives; other bundlers may need explicit config to opt out of define-replacement for the published output.
+   If tsdown replaced `process.env.NODE_ENV` with a literal at its own build step, the consumer bundler has nothing to substitute and you're back to the same silent-always-false bug, just in the opposite direction. For tsdown + Rolldown the live check survives; other bundlers may need explicit config to opt out of define-replacement for the published output.
 
 ## Prevention
 
@@ -110,5 +110,5 @@ Three subtleties:
 
 ## Related files
 
-- `packages/components/src/components/Carousel/index.tsx` — `isDevEnvironment()` implementation with the cross-bundler pattern.
+- `packages/components/src/components/Carousel/index.tsx`: `isDevEnvironment()` implementation with the cross-bundler pattern.
 - Any future package-level dev-only diagnostics should reuse the same helper (or a shared `isDev` export) rather than re-implementing the check and risking drift.

@@ -23,7 +23,7 @@ Always provide an `aria-label` since there is no visible text.
 
 ```tsx-live
 <IconButton aria-label='Add item'>
-  <Plus weight='bold' />
+  <PlusIcon weight='bold' />
 </IconButton>
 ```
 
@@ -31,16 +31,16 @@ Always provide an `aria-label` since there is no visible text.
 
 ```tsx-live layout=row
 <IconButton aria-label='Strong' emphasis='strong'>
-  <Star weight='bold' />
+  <StarIcon weight='bold' />
 </IconButton>
 <IconButton aria-label='Normal' emphasis='normal'>
-  <Star weight='bold' />
+  <StarIcon weight='bold' />
 </IconButton>
 <IconButton aria-label='Subtle' emphasis='subtle'>
-  <Star weight='bold' />
+  <StarIcon weight='bold' />
 </IconButton>
 <IconButton aria-label='Subtler' emphasis='subtler'>
-  <Star weight='bold' />
+  <StarIcon weight='bold' />
 </IconButton>
 ```
 
@@ -50,16 +50,16 @@ The default size is `md`. All sizes maintain square proportions.
 
 ```tsx-live layout=row
 <IconButton aria-label='Extra small' size='xs'>
-  <Heart weight='bold' />
+  <HeartIcon weight='bold' />
 </IconButton>
 <IconButton aria-label='Small' size='sm'>
-  <Heart weight='bold' />
+  <HeartIcon weight='bold' />
 </IconButton>
 <IconButton aria-label='Medium' size='md'>
-  <Heart weight='bold' />
+  <HeartIcon weight='bold' />
 </IconButton>
 <IconButton aria-label='Large' size='lg'>
-  <Heart weight='bold' />
+  <HeartIcon weight='bold' />
 </IconButton>
 ```
 
@@ -69,30 +69,30 @@ The legacy `icon-xs` / `icon-sm` / `icon-md` / `icon-lg` size literals are still
 
 ```tsx-live layout=stack
 {/* Strong */}
-<IconButton aria-label='Neutral' emphasis='strong' intent='neutral'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Accent' emphasis='strong' intent='accent'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Brand' emphasis='strong' intent='brand'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Info' emphasis='strong' intent='info'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Success' emphasis='strong' intent='success'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Warning' emphasis='strong' intent='warning'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Danger' emphasis='strong' intent='danger'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Neutral' emphasis='strong' intent='neutral'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Accent' emphasis='strong' intent='accent'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Brand' emphasis='strong' intent='brand'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Info' emphasis='strong' intent='info'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Success' emphasis='strong' intent='success'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Warning' emphasis='strong' intent='warning'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Danger' emphasis='strong' intent='danger'><CheckCircleIcon weight='bold' /></IconButton>
 {/* Normal */}
-<IconButton aria-label='Neutral' emphasis='normal' intent='neutral'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Accent' emphasis='normal' intent='accent'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Brand' emphasis='normal' intent='brand'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Info' emphasis='normal' intent='info'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Success' emphasis='normal' intent='success'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Warning' emphasis='normal' intent='warning'><CheckCircle weight='bold' /></IconButton>
-<IconButton aria-label='Danger' emphasis='normal' intent='danger'><CheckCircle weight='bold' /></IconButton>
+<IconButton aria-label='Neutral' emphasis='normal' intent='neutral'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Accent' emphasis='normal' intent='accent'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Brand' emphasis='normal' intent='brand'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Info' emphasis='normal' intent='info'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Success' emphasis='normal' intent='success'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Warning' emphasis='normal' intent='warning'><CheckCircleIcon weight='bold' /></IconButton>
+<IconButton aria-label='Danger' emphasis='normal' intent='danger'><CheckCircleIcon weight='bold' /></IconButton>
 ```
 
 ### States
 
 ```tsx-live layout=stack
 {/* Default */}
-<IconButton aria-label='Favorite'><Heart weight='bold' /></IconButton>
+<IconButton aria-label='Favorite'><HeartIcon weight='bold' /></IconButton>
 {/* Disabled */}
-<IconButton aria-label='Favorite' disabled><Heart weight='bold' /></IconButton>
+<IconButton aria-label='Favorite' disabled><HeartIcon weight='bold' /></IconButton>
 ```
 
 ### Href
@@ -102,19 +102,19 @@ Pass `href` to render the icon button as a routed anchor. Roadie picks the right
 ```tsx-live layout=row gap=4
 {/* Internal */}
 <IconButton aria-label='View cart' href='/cart' emphasis='strong' intent='accent'>
-  <ShoppingCart weight='bold' />
+  <ShoppingCartIcon weight='bold' />
 </IconButton>
 {/* External */}
 <IconButton aria-label='Open Oztix in a new tab' href='https://oztix.com.au' emphasis='normal'>
-  <ArrowSquareOut weight='bold' />
+  <ArrowSquareOutIcon weight='bold' />
 </IconButton>
 {/* Email */}
 <IconButton aria-label='Email support' href='mailto:hello@oztix.com.au' emphasis='subtle'>
-  <Envelope weight='bold' />
+  <EnvelopeIcon weight='bold' />
 </IconButton>
 {/* Phone */}
 <IconButton aria-label='Call support' href='tel:+61400000000' emphasis='subtle'>
-  <Phone weight='bold' />
+  <PhoneIcon weight='bold' />
 </IconButton>
 ```
 
@@ -125,8 +125,8 @@ Hover each button. The browser status bar shows the resolved `href` exactly as R
 Add `download` to an `href` icon button to save the file instead of opening it, optionally under a filename.
 
 ```tsx-live
-<IconButton aria-label='Download spec' href='/spec.pdf' download='spec.pdf'>
-  <Download weight='bold' />
+<IconButton aria-label='Download logo' href='/roadie-logo.png' download='roadie-logo.png'>
+  <DownloadIcon weight='bold' />
 </IconButton>
 ```
 
