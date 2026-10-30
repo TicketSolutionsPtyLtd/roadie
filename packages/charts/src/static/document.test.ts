@@ -186,7 +186,7 @@ describe('renderChartDocument', () => {
 
   it('wraps a long label rather than running off the edge', () => {
     const label =
-      'Tickets sold across every show at The Tivoli and the Fortitude Music Hall this month'
+      'Tickets sold across every show at Antler Kettle Hall and the Echidna Gaslight Theatre this month'
     const svg = renderChartDocument(document(plots.bar, { label }), {
       mode: 'light',
       width: 320,
