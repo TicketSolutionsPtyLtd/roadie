@@ -46,7 +46,7 @@ export function RecordsRowCheckbox({
       onClick={(event: MouseEvent) => {
         if (!box.current || box.current.contains(event.target as Node)) return
         event.preventDefault()
-        shiftHeld.current = event.shiftKey
+        trackShift(event)
         box.current.focus()
         box.current.click()
       }}
