@@ -513,7 +513,7 @@ export function parseDatePhrase(
   if (m && month) {
     return monthsNamed(month, m[2], today).map((first) => ({
       label: monthLabel(first),
-      value: { start: first, end: addDays(addMonths(first, 1), -1) }
+      value: { start: first, end: monthEnd(first) }
     }))
   }
 
@@ -553,6 +553,11 @@ function monthsNamed(
   const last = addMonths(next, -12)
   const ahead = (month - current + 12) % 12
   return ahead <= 6 ? [next, last] : [last, next]
+}
+
+function monthEnd(first: string): string {
+  const { year, month } = plainDateParts(first)
+  return toPlainDate(year, month, daysInMonth(year, month))
 }
 
 const ONWARDS = /^(.+) (?:onwards?|and later)$/

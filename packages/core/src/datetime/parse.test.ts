@@ -388,6 +388,15 @@ describe('parseDatePhrase: a month', () => {
     expect(may!.label).toMatch(/ 2027$/)
   })
 
+  it('reads December 9999, the last month a date holds', () => {
+    expect(parseDatePhrase('dec 9999', SYDNEY)).toEqual([
+      month('December 9999', '9999-12-01', '9999-12-31')
+    ])
+    expect(parseDatePhrase('since dec 9999', SYDNEY)[0]!.value).toEqual({
+      after: '9999-11-30'
+    })
+  })
+
   it('looks back from since, like a date with no year', () => {
     expect(parseDatePhrase('since may', SYDNEY)[0]!.value).toEqual({
       after: '2026-04-30'
