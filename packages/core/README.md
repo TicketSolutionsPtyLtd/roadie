@@ -55,6 +55,7 @@ Each helper lives on its own subpath:
 | `@oztix/roadie-core/colors`              | Accent and neutral scales from a brand colour, OKLCH conversion, `getContrastColor`       |
 | `@oztix/roadie-core/theme`               | `getThemeScript` and `getBootstrapScript` for the first paint, and `DEFAULT_ACCENT_COLOR` |
 | `@oztix/roadie-core/datetime`            | House date, time, range, duration and countdown formats                                   |
+| `@oztix/roadie-core/number`              | `currencyFormat`, the house money options for `Intl.NumberFormat` and NumberFlow          |
 | `@oztix/roadie-core/image`               | Oztix image URLs, widths and `srcset`s                                                    |
 | `@oztix/roadie-core/navigator`           | The cookie and script that keep `Navigator` expanded or collapsed across loads            |
 | `@oztix/roadie-core/dataviz`             | Chart palettes, `chartColorVar`, `chartHex` for canvas and PDF, palette checks            |

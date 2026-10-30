@@ -20,6 +20,18 @@ describe('formatCurrency', () => {
     expect(out).toContain('12.50')
     expect(out).toContain('$') // en-NZ uses $ but the currency is NZD
   })
+  it.each([
+    ['en-US', 'AUD', 1200, '$1,200.00'],
+    ['en-AU', 'aud', 1200, '$1,200.00'],
+    ['de-DE', 'EUR', 1200, '1.200,00 €'],
+    ['en-AU', 'JPY', 1200, 'JPY 1,200'],
+    ['en-AU', 'AUD', -5, '-$5.00'],
+    ['en-AU', 'AUD', 0, '$0.00']
+  ])('reads %s %s %d as %s', (locale, currency, amount, shown) => {
+    expect(
+      formatCurrency(amount, { locale, currency }).replace(/\s/g, ' ')
+    ).toBe(shown)
+  })
 })
 
 describe('currencyPrefix', () => {

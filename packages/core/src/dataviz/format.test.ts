@@ -18,6 +18,7 @@ describe('formatValue', () => {
     [0.045, 'percent', '4.5%'],
     [1200, 'currency', '$1,200'],
     [19.95, 'currency', '$19.95'],
+    [1200.004, 'currency', '$1,200'],
     [118400, 'compactCurrency', '$118.4k'],
     [1_250_000, 'compactCurrency', '$1.3m'],
     [640, 'compactCurrency', '$640'],
@@ -128,6 +129,23 @@ describe('formatter reuse', () => {
 
     formatAll()
     expect(construct.mock.calls.length).toBe(built)
+  })
+
+  it("drops a whole amount's cents where Intl ignores trailingZeroDisplay", async () => {
+    const { NumberFormat } = Intl
+    vi.spyOn(Intl, 'NumberFormat').mockImplementation(
+      function (locales, options) {
+        return new NumberFormat(locales, {
+          ...options,
+          trailingZeroDisplay: 'auto'
+        })
+      }
+    )
+    vi.resetModules()
+    const { formatValue: fresh } = await import('./format')
+    expect(fresh(1200, 'currency')).toBe('$1,200')
+    expect(fresh(19.5, 'currency')).toBe('$19.50')
+    expect(fresh(640, 'compactCurrency')).toBe('$640')
   })
 
   it('keeps each option set on its own formatter', () => {
