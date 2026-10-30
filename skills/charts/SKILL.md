@@ -340,8 +340,9 @@ anything from them. Use `/static` and `/tables` for everything else.
 
 - `DashboardView` is server safe. Return client components from
   `cardActions`, not inline handlers.
-- **An image** for email, PDF, a report, or Copy as image:
-  `renderChartSvg(lineChart, props, { mode: 'light', width: 640, height: 280 })`
+- **A plot image** with no label or source, for Copy as image or a page
+  that sets its own heading (a whole chart as a file is a chart document,
+  below): `renderChartSvg(lineChart, props, { mode: 'light', width: 640, height: 280 })`
   from `@oztix/roadie-charts/static`, which also exports `barChart`,
   `rankedBars`, `stackedBars`, `histogram`, `funnel`, `heatmap`, `scatter`, and
   `renderSmallMultiplesSvg`. Render at the box's aspect with 12px text.
