@@ -115,7 +115,7 @@ A `matchMedia` fake that answers only a preference, such as `prefers-reduced-mot
 
 ## Icons without an import
 
-The Phosphor rules find icons by their import. Code that gets icons another way, such as a live code editor with icons in scope, names them in `settings.roadie.phosphorIcons`. Put icons in that scope by their Icon-suffixed names: a bare name in the list, such as `Heart`, fails `roadie/phosphor-icon-suffix` wherever the code uses it.
+The Phosphor rules find icons by their import. Code that gets icons another way, such as a live code editor with icons in scope, names them in `settings.roadie.phosphorIcons`. Put icons in that scope by their Icon-suffixed names: a bare name in the list, such as `Heart`, fails `roadie/phosphor-icon-suffix` where the code renders it, as `<Heart />`, or passes it as a prop, as `icon={Heart}`.
 
 ```json
 {

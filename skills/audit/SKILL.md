@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Use when auditing a codebase for Roadie design system compliance: scanning for hardcoded colors, wrong layout patterns, icon misuse, missing intent/emphasis, non-semantic HTML, raw scale references, deprecated props, inline styles, and missing setup. Triggers on "audit against Roadie", "check Roadie compliance", "fix styling to match Roadie".
+description: Use when auditing a codebase for Roadie design system compliance, scanning for hardcoded colors, wrong layout patterns, icon misuse, missing intent/emphasis, non-semantic HTML, raw scale references, deprecated props, inline styles, and missing setup. Triggers on "audit against Roadie", "check Roadie compliance", "fix styling to match Roadie".
 ---
 
 # Roadie audit

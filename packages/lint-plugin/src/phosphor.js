@@ -85,7 +85,8 @@ const isBareIconName = (name) =>
   !name.endsWith('Icon') && !PHOSPHOR_NON_ICONS.test(name)
 
 // Code with icons in scope, such as docs live examples, has no import to
-// check, so each use of a bare name from settings.roadie.phosphorIcons fails.
+// check, so a bare name from settings.roadie.phosphorIcons fails as an element
+// or a prop value. Inside an object or array it goes unseen.
 function bareScopeIcons(context) {
   const bare = new Set(
     (context.settings.roadie?.phosphorIcons ?? []).filter(isBareIconName)
