@@ -25,11 +25,11 @@ related_files:
 
 ## Symptom
 
-`NavigatorPrimary`'s entire props table rendered **empty** on the docs site —
+`NavigatorPrimary`'s entire props table rendered **empty** on the docs site:
 not missing one prop (the CVA-literal-union failure mode already documented in
 [`react-docgen-cva-literal-props.md`](react-docgen-cva-literal-props.md)), but
 zero rows for a component with a normal, well-typed prop list. Worse,
-`<PropsDefinitions>`'s section description was not blank — it had silently
+`<PropsDefinitions>`'s section description was not blank: it had silently
 borrowed the JSDoc comment belonging to `deriveMobileSlots`, a second exported
 function living in the same file, and displayed that as if it described
 `NavigatorPrimary`.
@@ -42,7 +42,7 @@ the component itself.
 
 `NavigatorPrimary.tsx` exported two substantial things: the `NavigatorPrimary`
 component and a `deriveMobileSlots` function containing real logic (with its
-own JSDoc block) — not a trivial one-line helper. `react-docgen-typescript`
+own JSDoc block), not a trivial one-line helper. `react-docgen-typescript`
 walks a source file looking for the exported symbol that looks most like a
 component to attach the extracted prop metadata to. With two exports of
 comparable weight in one file, its heuristic picked the wrong anchor: it
@@ -59,7 +59,7 @@ second exported function large enough to look like a candidate.
 
 Extract the second function into its own module and re-export it from the
 component file, so `NavigatorPrimary.tsx` once again has exactly one
-substantial export. This is not a new pattern — the repo already does it for
+substantial export. This is not a new pattern. The repo already does it for
 `paneStack.ts` and `sectionMemory.ts`:
 
 ```ts
@@ -84,7 +84,7 @@ import {
 export { deriveMobileSlots }
 ```
 
-The public import surface is unchanged — consumers importing from the
+The public import surface is unchanged: consumers importing from the
 component's barrel see the same names. Only the file boundary moved.
 
 ## Prevention
@@ -92,7 +92,7 @@ component's barrel see the same names. Only the file boundary moved.
 - **A component file should export exactly one component-shaped thing.** A
   second exported function with its own non-trivial JSDoc is enough to
   confuse `react-docgen-typescript`'s heuristic, even though the file still
-  compiles and type-checks cleanly — there is no TypeScript error to catch
+  compiles and type-checks cleanly. There is no TypeScript error to catch
   this.
 - **When a component file needs a real helper function (not a one-liner),
   extract it to its own module and re-export it**, matching the existing
@@ -100,8 +100,8 @@ component's barrel see the same names. Only the file boundary moved.
 - **After adding or changing a component's exports, load the docs page and
   check the PropsDefinitions table is non-empty and its description matches
   the component**, not just that individual props appear correctly. An empty
-  table with a plausible-looking (but wrong) description is easy to skim past
-  — the description reads as real prose, not an error.
+  table with a plausible-looking (but wrong) description is easy to skim past:
+  the description reads as real prose, not an error.
 - **This is distinct from the CVA literal-union case.** That failure drops one
   prop from a table that otherwise renders correctly. This failure drops the
   whole table and mis-describes the component. If a props table is present
@@ -112,12 +112,12 @@ component's barrel see the same names. Only the file boundary moved.
 
 ## Related files
 
-- `packages/components/src/components/Navigator/NavigatorPrimary.tsx` — where
+- `packages/components/src/components/Navigator/NavigatorPrimary.tsx`: where
   the empty table was found and the re-export shim now lives.
-- `packages/components/src/components/Navigator/mobileSlots.ts` — the
+- `packages/components/src/components/Navigator/mobileSlots.ts`: the
   extracted module holding `deriveMobileSlots`, `NavigatorSlotMeta`,
   `MobileSlots`, `NavigatorTabSlots`.
-- `packages/core/scripts/manifest/components.ts` — the extraction pipeline
+- `packages/core/scripts/manifest/components.ts`: the extraction pipeline
   this affects, which feeds the manifest and the docs props tables.
-- [`react-docgen-cva-literal-props.md`](react-docgen-cva-literal-props.md) —
+- [`react-docgen-cva-literal-props.md`](react-docgen-cva-literal-props.md):
   the related but distinct per-prop extraction failure.

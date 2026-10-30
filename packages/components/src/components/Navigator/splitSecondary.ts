@@ -15,6 +15,7 @@ import type { NavigatorItemProps } from './NavigatorItem'
 import { NavigatorMenu, type NavigatorMenuProps } from './NavigatorMenu'
 import { NavigatorSecondary } from './NavigatorSecondary'
 import type { NavigatorSecondaryProps } from './NavigatorSecondary'
+import { mapChildrenInPlace, settled } from './childrenInPlace'
 
 /** An item's label, apart from its Secondary and Menu. A second menu is ignored. */
 export function splitItemChildren(children: ReactNode): {
@@ -22,31 +23,33 @@ export function splitItemChildren(children: ReactNode): {
   secondary: ReactNode[]
   menu?: ReactElement<NavigatorMenuProps>
 } {
-  const label: ReactNode[] = []
   const secondary: ReactNode[] = []
   let menu: ReactElement<NavigatorMenuProps> | undefined
 
-  Children.toArray(children).forEach((child) => {
-    if (!isValidElement(child)) {
-      label.push(child)
-      return
+  // Nested lists stay whole, so a key repeated across two lists stays unique.
+  const parts = mapChildrenInPlace(children, (child) => {
+    const element = settled(child)
+    if (!isValidElement(element)) return child
+    if (element.type === NavigatorSecondary) {
+      secondary.push(element)
+      return null
     }
-    if (child.type === NavigatorSecondary) {
-      secondary.push(child)
-      return
+    if (element.type === NavigatorMenu) {
+      menu ??= element as ReactElement<NavigatorMenuProps>
+      return null
     }
-    if (child.type === NavigatorMenu) {
-      menu ??= child as ReactElement<NavigatorMenuProps>
-      return
-    }
-    label.push(child)
+    return child
   })
+  const label = (Array.isArray(parts) ? parts : [parts]).filter(
+    (part) => part != null && typeof part !== 'boolean'
+  )
 
   return { label, secondary, menu }
 }
 
 /** The plain text of a label, for accessible names and search. */
-export function textOf(node: ReactNode): string {
+export function textOf(child: ReactNode): string {
+  const node = settled(child)
   if (typeof node === 'string' || typeof node === 'number') return String(node)
   if (Array.isArray(node)) return node.map(textOf).join('')
   if (isValidElement<{ children?: ReactNode }>(node)) {

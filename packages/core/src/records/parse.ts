@@ -14,6 +14,7 @@ import {
   momentOf,
   recordFieldOptions
 } from './fields'
+import { recordOperatorSpec } from './operators'
 import { identifierPattern } from './pattern'
 import type {
   RecordField,
@@ -414,24 +415,9 @@ function typedValueReadings(
 }
 
 function negatedFilter(filter: RecordFilter): RecordFilter | null {
-  switch (filter.operator) {
-    case 'is':
-      return { ...filter, operator: 'is-not' }
-    case 'contains':
-      return { ...filter, operator: 'not-contains' }
-    case 'eq':
-      return { ...filter, operator: 'neq' }
-    case 'neq':
-      return { ...filter, operator: 'eq' }
-    case 'is-true':
-      return { field: filter.field, operator: 'is-false' }
-    case 'is-false':
-      return { field: filter.field, operator: 'is-true' }
-    case 'is-not-set':
-      return { field: filter.field, operator: 'is-set' }
-    default:
-      return null
-  }
+  const { opposite } = recordOperatorSpec(filter.operator)
+  // An opposite holds its value the same way, so only the operator changes.
+  return opposite ? ({ ...filter, operator: opposite } as RecordFilter) : null
 }
 
 /** The opposite of each reading that has one; the label comes from the filter. */
