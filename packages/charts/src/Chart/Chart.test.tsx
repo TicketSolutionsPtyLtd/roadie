@@ -348,6 +348,40 @@ describe('Chart when its plot cannot draw', () => {
   })
 })
 
+describe('Chart error actions', () => {
+  const retry = <button type='button'>Retry</button>
+
+  it('leaves out errorAction when the plot cannot draw', () => {
+    render(
+      <Chart
+        label='Tickets sold'
+        source='Oztix sales.'
+        size='md'
+        errorAction={retry}
+      >
+        <ChartPlot chart={brokenChart} props={{ points: testPoints }} />
+      </Chart>
+    )
+    expect(screen.getByText("This chart couldn't be drawn")).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull()
+  })
+
+  it('shows errorAction when the data failed to load', () => {
+    render(
+      <Chart
+        label='Tickets sold'
+        source='Oztix sales.'
+        size='md'
+        state='error'
+        errorAction={retry}
+      >
+        <ChartPlot chart={brokenChart} props={{ points: testPoints }} />
+      </Chart>
+    )
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible()
+  })
+})
+
 describe('Chart whose plot failed, then whose data failed', () => {
   it("shows the app's error message over the draw error", () => {
     const plot = (
