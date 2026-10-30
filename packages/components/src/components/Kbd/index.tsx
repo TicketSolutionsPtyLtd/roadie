@@ -6,6 +6,7 @@ import { cva } from 'class-variance-authority'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { useDevWarning } from '../../utils/useDevWarning'
 import { type KeyFace, keyFace } from './keys'
 import { type KeyPlatform, useKeyPlatform } from './platform'
 
@@ -51,8 +52,10 @@ export type KbdProps = ComponentProps<'kbd'> & {
   /**
    * Placed between `keys`, such as `'+'` or `'then'`. By default nothing on
    * Apple devices, and off them a plus inside a combined keycap or between
-   * subtler keys, as in Ctrl+K. Text such as `'then'` is read aloud when
-   * `announce` is on; `null` or `false` removes the default.
+   * subtler keys, as in Ctrl+K. A string with a word, such as `'then'`, is
+   * read aloud when `announce` is on; any other separator, an element
+   * included, is hidden from assistive tech. `null` or `false` removes the
+   * default.
    */
   separator?: ReactNode
   /**
@@ -171,6 +174,11 @@ export function Kbd({
   ...props
 }: KbdProps) {
   const platform = useKeyPlatform()
+  useDevWarning(
+    combined &&
+      !keys &&
+      "[Roadie] Kbd `combined` joins `keys` in one keycap, so it changes nothing without them. Pass `keys`, such as {['mod', 'k']}."
+  )
   const hidden = announce ? undefined : true
   const hideWithoutHover = announce ? undefined : HIDE_WITHOUT_HOVER
   const plain = emphasis === 'subtler'

@@ -351,3 +351,17 @@ describe('Kbd platform keys across hydration', () => {
     container.remove()
   })
 })
+
+describe('combined without keys', () => {
+  it('warns that it changes nothing', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<Kbd combined>K</Kbd>)
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('combined'))
+  })
+
+  it('stays quiet with keys', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<Kbd combined keys={['mod', 'k']} />)
+    expect(warn).not.toHaveBeenCalled()
+  })
+})
