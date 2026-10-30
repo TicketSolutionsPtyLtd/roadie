@@ -9,6 +9,7 @@ import type {
 import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
 
 import { BarChart } from '../BarChart'
+import { DonutChart } from '../DonutChart'
 import { Funnel } from '../Funnel'
 import { Heatmap } from '../Heatmap'
 import { Histogram } from '../Histogram'
@@ -18,8 +19,6 @@ import { Scatter } from '../Scatter'
 import { SmallMultiples } from '../SmallMultiples'
 import { StackedArea } from '../StackedArea'
 import { StackedBars } from '../StackedBars'
-import { ChartState } from '../plot/ChartState'
-import { DRAW_ERROR } from '../plot/drawError'
 
 function ThemedImage({ image, alt }: { image: StaticPlotImage; alt: string }) {
   return (
@@ -78,9 +77,8 @@ function ChartPlotView({
       return <BarChart {...chartProps(plot)} onRangeSelect={onRangeSelect} />
     case 'ranked-bars':
       return <RankedBars {...chartProps(plot)} />
-    // Until DonutChart lands, a donut card says it can't be drawn.
     case 'donut':
-      return <ChartState error>{DRAW_ERROR}</ChartState>
+      return <DonutChart {...chartProps(plot)} />
     case 'stacked-bars':
       return <StackedBars {...chartProps(plot)} />
     case 'stacked-area':

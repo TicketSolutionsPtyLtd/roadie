@@ -53,11 +53,12 @@ show a number or a table, not a chart.
 | ------------------------ | ------------------------------------------- | ----------------- |
 | One number, right now    | `StatTile` (`/stat-tile`), not a chart      |                   |
 | Progress to a limit      | `Meter` (`/meter`), or a table of meters    |                   |
-| Compare, or where        | `RankedBars` (`/ranked-bars`), never a pie  | `ranked-bars`     |
+| Compare, or where        | `RankedBars` (`/ranked-bars`)               | `ranked-bars`     |
 | Change over time         | `LineChart` or `BarChart`                   | `line`, `bar`     |
 | Pace against similar     | `LineChart` with `band`, `target`, `today`  | `line`            |
 | Part of a whole          | `StackedBars`, or a capacity `Meter`        | `stacked-bars`    |
 | Part of a whole, by time | `StackedArea`                               | `stacked-area`    |
+| One whole, 2 to 5 parts  | `DonutChart` (`/donut-chart`)               | `donut`           |
 | Spread                   | `Histogram`                                 | `histogram`       |
 | Drop off                 | `Funnel`                                    | `funnel`          |
 | Two measures per item    | `Scatter`                                   | `scatter`         |
