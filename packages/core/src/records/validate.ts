@@ -2,6 +2,7 @@ import type { core } from 'zod'
 
 import { isPlainDate } from '../datetime/plainDate'
 import { canonicalDateRange, resolveAbsolute } from '../datetime/ranges'
+import { hasUnquotableBackslash } from './encoding'
 import {
   fieldIndex,
   isDateList,
@@ -174,7 +175,29 @@ function filterProblems(
     ]
   }
   const problem = valueProblem(filter, field)
-  return problem ? [error(`${path}.value`, problem)] : []
+  if (problem) return [error(`${path}.value`, problem)]
+  // Only Meilisearch can't hold it, so the view stays valid everywhere else.
+  const at = unquotableAt(filter)
+  return at === null
+    ? []
+    : [
+        warning(
+          `${path}${at}`,
+          'Meilisearch can’t filter by a value that ends in a backslash or holds one before a quote'
+        )
+      ]
+}
+
+function unquotableAt(filter: RecordFilter): string | null {
+  if ('values' in filter) {
+    const i = filter.values.findIndex(hasUnquotableBackslash)
+    return i === -1 ? null : `.values[${i}]`
+  }
+  return 'value' in filter &&
+    typeof filter.value === 'string' &&
+    hasUnquotableBackslash(filter.value)
+    ? '.value'
+    : null
 }
 
 function layoutProblems(

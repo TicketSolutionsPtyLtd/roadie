@@ -1,3 +1,4 @@
+import { intlFormatter } from '../utils/intlCache'
 import {
   type TrailingZeroDisplay,
   decimalPlaces,
@@ -21,22 +22,19 @@ type CurrencyFormat = Intl.NumberFormatOptions & {
 }
 
 export const HOUSE_CURRENCY = 'AUD'
-const minorUnits = new Map<string, number | null>()
-
+// The shared cache is bounded, and a code Intl rejects throws before it's
+// cached, so codes read from row data can't grow it.
 function currencyMinorUnits(code: string) {
-  if (!minorUnits.has(code))
-    try {
-      minorUnits.set(
-        code,
-        new Intl.NumberFormat('en-AU', {
-          style: 'currency',
-          currency: code
-        }).resolvedOptions().maximumFractionDigits ?? null
-      )
-    } catch {
-      minorUnits.set(code, null)
-    }
-  return minorUnits.get(code) ?? null
+  try {
+    return (
+      intlFormatter(Intl.NumberFormat, 'en-AU', {
+        style: 'currency',
+        currency: code
+      }).resolvedOptions().maximumFractionDigits ?? null
+    )
+  } catch {
+    return null
+  }
 }
 
 /**

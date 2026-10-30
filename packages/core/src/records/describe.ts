@@ -15,6 +15,7 @@ import {
   isRollingRange
 } from '../datetime/ranges'
 import { fieldIndex, momentOf, recordFieldOptions } from './fields'
+import { recordOperatorSpec } from './operators'
 import type {
   RecordField,
   RecordFilter,
@@ -35,26 +36,8 @@ export type DescribeRecordFilterOptions = RecordQueryOptions & {
   locale?: string
 }
 
-const OPERATORS: Record<RecordFilterOperator, string> = {
-  is: 'is',
-  'is-not': 'is not',
-  'has-all': 'has all of',
-  contains: 'contains',
-  'not-contains': 'doesn’t contain',
-  eq: 'is',
-  neq: 'is not',
-  lt: 'is less than',
-  gt: 'is more than',
-  between: 'is between',
-  on: 'is on',
-  before: 'is before',
-  after: 'is after',
-  within: 'is within',
-  'is-true': 'is Yes',
-  'is-false': 'is No',
-  'is-set': 'is not empty',
-  'is-not-set': 'is empty'
-}
+const operatorLabel = (operator: RecordFilterOperator) =>
+  recordOperatorSpec(operator).label
 
 // A location's place takes in the places inside it.
 const PLACE_OPERATORS: Partial<Record<RecordFilterOperator, string>> = {
@@ -72,7 +55,7 @@ export function recordOperatorLabel(
 ): string {
   return (
     (field?.type === 'location' && PLACE_OPERATORS[operator]) ||
-    OPERATORS[operator]
+    operatorLabel(operator)
   )
 }
 
@@ -374,13 +357,13 @@ export function describeRecordFilter(
     }
     case 'contains':
     case 'not-contains':
-      return phrase(OPERATORS[filter.operator], `“${filter.value}”`)
+      return phrase(operatorLabel(filter.operator), `“${filter.value}”`)
     case 'eq':
       return phrase('is', number(filter.value, field))
     case 'neq':
     case 'lt':
     case 'gt': {
-      const words = OPERATORS[filter.operator].replace(/^is /, '')
+      const words = operatorLabel(filter.operator).replace(/^is /, '')
       return phrase('is', `${words} ${number(filter.value, field)}`)
     }
     case 'between': {
@@ -395,7 +378,7 @@ export function describeRecordFilter(
     case 'on':
     case 'before':
     case 'after':
-      return phrase(OPERATORS[filter.operator], filter.value)
+      return phrase(operatorLabel(filter.operator), filter.value)
     case 'within':
       return phrase('is within', JSON.stringify(filter.value))
     case 'is-true':
