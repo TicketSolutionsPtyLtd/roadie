@@ -144,8 +144,8 @@ export function plotFields(plot: ChartPlot): FieldRef[] {
       break
     case 'small-multiples':
       add('by', plot.by)
-      add('chart.x', plot.chart.x)
-      add('chart.y', plot.chart.y)
+      for (const ref of plotFields({ ...plot.chart, data: plot.data }))
+        add(`chart.${ref.key}`, ref.field)
       break
     case 'funnel':
       break
@@ -500,10 +500,13 @@ function plotProblems(plot: ChartPlot, path: string) {
         'Set limit too, so the label can say how many bars show'
       )
     )
-  if (plot.kind === 'line' && plot.comparison && plot.series)
+  const chart = plot.kind === 'small-multiples' ? plot.chart : plot
+  const chartPath =
+    plot.kind === 'small-multiples' ? `${plotPath}.chart` : plotPath
+  if (chart.kind === 'line' && chart.comparison && chart.series)
     problems.push(
       warning(
-        `${plotPath}.comparison`,
+        `${chartPath}.comparison`,
         'A comparison draws only on a single series, so the chart leaves it out. Drop series or comparison'
       )
     )

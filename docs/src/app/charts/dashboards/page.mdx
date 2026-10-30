@@ -733,11 +733,16 @@ can list its own comparisons, such as similar venues, in
 - To open a card’s records for the same dates, use the period `getRowHref`
   gets as its third argument. A relative period becomes a records `within`
   filter, and custom dates a `between` filter.
-- A `line` plot draws the comparison as a quiet line behind the series, and a
-  `bar` plot as a quiet bar beside each bar, from a `comparison` field on the
-  same rows ([line](/charts/line-chart#comparison),
-  [bar](/charts/bar-chart#comparison)). The app lines those rows up with the
-  period. Other charts don't draw one yet, so show it as a delta there and say
+- A line or bar card’s plot can carry a `comparison`, a field on the same
+  rows ([line](/charts/line-chart#comparison),
+  [bar](/charts/bar-chart#comparison)), and it follows the period the way a
+  comparison delta does, in small multiples’ panels too. It’s drawn only
+  while the period compares with Roadie’s previous period, previous year or
+  custom dates, and `history` isn’t `unavailable`. It’s named by the
+  comparison, such as “Previous period”, or “Custom dates” when the dates are
+  too long for a series label. Line the rows up with `alignComparison`, below.
+  The [portfolio dashboard](/charts/portfolio-dashboard) draws its daily sales
+  this way. Other charts don’t draw one, so show it as a delta there and say
   what it compares with.
 
 To set this period's rows against the comparison's day by day, pass both sets

@@ -635,6 +635,104 @@ describe('validateDashboard checks every chart plot kind', () => {
     ).toContain('sections[0].cards[0].plot.chart.y')
   })
 
+  it.each([
+    [
+      'line.y',
+      { kind: 'bar', x: 'day', y: 'sold', line: { y: 'rate', label: 'Rate' } }
+    ],
+    [
+      'comparison.y',
+      { kind: 'bar', x: 'day', y: 'sold', comparison: { y: 'lastPeriod' } }
+    ],
+    [
+      'comparison.y',
+      { kind: 'line', x: 'day', y: 'sold', comparison: { y: 'lastPeriod' } }
+    ],
+    ['series', { kind: 'line', x: 'day', y: 'sold', series: 'type' }],
+    [
+      'band.low',
+      { kind: 'line', x: 'day', y: 'sold', band: { low: 'low', high: 'sold' } }
+    ],
+    [
+      'band.high',
+      { kind: 'line', x: 'day', y: 'sold', band: { low: 'sold', high: 'high' } }
+    ],
+    [
+      'band.median',
+      {
+        kind: 'line',
+        x: 'day',
+        y: 'sold',
+        band: { low: 'sold', high: 'sold', median: 'median' }
+      }
+    ],
+    [
+      'forecast.low',
+      {
+        kind: 'line',
+        x: 'day',
+        y: 'sold',
+        forecast: { from: '2026-10-01', low: 'low', high: 'sold' }
+      }
+    ],
+    [
+      'forecast.high',
+      {
+        kind: 'line',
+        x: 'day',
+        y: 'sold',
+        forecast: { from: '2026-10-01', low: 'sold', high: 'high' }
+      }
+    ]
+  ] as const)('small-multiples: names a missing panel %s', (key, chart) => {
+    const venueRows = [
+      { venue: 'Kazoo Hollow Room', day: '2026-10-01', sold: 120 },
+      { venue: 'Antler Kettle Hall', day: '2026-10-02', sold: 90 }
+    ]
+    expect(
+      paths(
+        spec([
+          chartCard({
+            kind: 'small-multiples',
+            data: venueRows,
+            by: 'venue',
+            chart
+          })
+        ])
+      )
+    ).toContain(`sections[0].cards[0].plot.chart.${key}`)
+  })
+
+  it('warns on a small-multiples line panel with comparison and series', () => {
+    const result = validateDashboard(
+      spec([
+        chartCard({
+          kind: 'small-multiples',
+          data: rows.map((row) => ({
+            ...row,
+            venue: 'Kazoo Hollow Room',
+            type: 'GA',
+            lastPeriod: 1
+          })),
+          by: 'venue',
+          chart: {
+            kind: 'line',
+            x: 'day',
+            y: 'sold',
+            series: 'type',
+            comparison: { y: 'lastPeriod' }
+          }
+        })
+      ])
+    )
+    expect(result.problems).toContainEqual(
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.chart.comparison',
+        severity: 'warning'
+      })
+    )
+  })
+
   it('static: valid passes with a table, invalid needs a table', () => {
     expect(
       validateDashboard(
