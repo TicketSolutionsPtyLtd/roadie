@@ -155,7 +155,7 @@ describe('cn', () => {
       fileURLToPath(new URL('../css/layering.css', import.meta.url)),
       'utf8'
     )
-    const tiers = [...css.matchAll(/--z-index-([a-z]+):/g)].map(
+    const tiers = [...css.matchAll(/--z-index-([a-z][a-z-]*):/g)].map(
       ([, tier]) => `z-${tier}`
     )
     expect(tiers).toContain('z-alert')
