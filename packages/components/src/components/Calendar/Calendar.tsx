@@ -29,6 +29,7 @@ import {
   addMonths,
   compareDates,
   monthGrid,
+  plainDateParts,
   startOfWeek
 } from '@oztix/roadie-core/datetime'
 import { cn } from '@oztix/roadie-core/utils'
@@ -267,6 +268,8 @@ const dayVariants = cva(
   }
 )
 
+// Lenient on purpose: a month prop such as '2026-11', read from a URL, still
+// names its month rather than throwing during render.
 function monthOf(date: string): string {
   return `${date.slice(0, 7)}-01`
 }
@@ -275,13 +278,9 @@ function lastDayOf(month: string): string {
   return addDays(addMonths(month, 1), -1)
 }
 
-function yearOf(date: string): number {
-  return Number(date.slice(0, 4))
-}
+const yearOf = (date: string) => plainDateParts(monthOf(date)).year
 
-function monthNumberOf(date: string): number {
-  return Number(date.slice(5, 7))
-}
+const monthNumberOf = (date: string) => plainDateParts(monthOf(date)).month
 
 function between(date: string, start: string, end: string) {
   return compareDates(date, start) >= 0 && compareDates(date, end) <= 0
@@ -1349,11 +1348,11 @@ export function Calendar(props: CalendarProps) {
                   : isToday && 'underline decoration-2 underline-offset-4'
               )}
             >
-              {Number(date.slice(8))}
+              {plainDateParts(date).day}
             </span>
           ) : (
             // Bare in compact days, as a scrolling list renders hundreds.
-            Number(date.slice(8))
+            plainDateParts(date).day
           )}
           {hasContent && (
             <span
