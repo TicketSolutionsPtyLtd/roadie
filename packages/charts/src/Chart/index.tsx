@@ -27,12 +27,8 @@ import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { useChartPatterns } from '../ChartPatterns'
-import {
-  ChartCardContext,
-  type ChartReport,
-  DRAW_ERROR,
-  PLOT_HEIGHTS
-} from './context'
+import { DRAW_ERROR } from '../plot/drawError'
+import { ChartCardContext, type ChartReport, PLOT_HEIGHTS } from './context'
 
 export type ChartTable = {
   columns: readonly DataTableColumn[]

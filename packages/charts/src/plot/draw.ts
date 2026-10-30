@@ -11,7 +11,7 @@ import type {
   PlotFrame
 } from './types'
 
-export { DRAW_ERROR } from '../Chart/context'
+export { DRAW_ERROR } from './drawError'
 
 export type Drawing = {
   definition: EngineDefinition
