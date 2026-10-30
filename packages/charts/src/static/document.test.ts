@@ -140,6 +140,22 @@ describe('renderChartDocument', () => {
     expect(svg).toContain(`fill="${chartHex('dark').status.critical}">↑ 12`)
   })
 
+  it('shows a delta with a baseline as its value, read against the baseline', () => {
+    const delta = (value: number) =>
+      textOf(
+        renderChartDocument(
+          document(plots.line, {
+            value: 1842,
+            delta: { value, baseline: 100 }
+          }),
+          { mode: 'light', ...SIZE }
+        )
+      )[2]
+    expect(delta(112)).toBe('↑ 112')
+    expect(delta(94)).toBe('↓ 94')
+    expect(delta(100)).toBe('No change')
+  })
+
   it('draws the takeaway when there is no value, and names the plot with it', () => {
     const svg = renderChartDocument(
       document(
