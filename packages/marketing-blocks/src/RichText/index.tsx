@@ -1,6 +1,7 @@
 import { type ReactNode, useId } from 'react'
 
 import { Prose } from '@oztix/roadie-components/prose'
+import { cn } from '@oztix/roadie-core/utils'
 
 import type { BlockAction } from '../Provider'
 import { BlockActions } from '../_shared/BlockActions'
@@ -11,6 +12,11 @@ import {
   type SpotIllustrationName
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
+import {
+  type BlockEmphasis,
+  type BlockIntent,
+  emphasisClass
+} from '../_shared/surface'
 import { type RichTextPreset, richTextDefinition } from './definition'
 
 export type { RichTextPreset } from './definition'
@@ -43,7 +49,20 @@ export type RichTextProps = {
    * @default 'Heart'
    */
   illustration?: SpotIllustrationName
+  /**
+   * The block's intent: its highlighted words and strong action take it.
+   * Without one, the highlight is brand-secondary and the action accent.
+   */
+  intent?: BlockIntent
+  /** A rounded band behind `statement`, inset in the page; none by default. `long-form` ignores it. */
+  emphasis?: RichTextEmphasis
 }
+
+/** The surfaces a statement's text stays readable on, in both themes. */
+export type RichTextEmphasis = Extract<
+  BlockEmphasis,
+  'subtle' | 'subtler' | 'raised'
+>
 
 /** A title and rich text, from a short statement to an article. */
 export function RichText({ preset, position, id, ...content }: RichTextProps) {
@@ -52,6 +71,7 @@ export function RichText({ preset, position, id, ...content }: RichTextProps) {
   return (
     <BlockRoot
       block={richTextDefinition.name}
+      intent={content.intent}
       variant={variant}
       preset={name}
       position={position}
@@ -73,6 +93,8 @@ type PresetProps = Omit<RichTextProps, 'preset' | 'position' | 'id'> & {
 
 function Statement({
   headingId,
+  intent,
+  emphasis,
   eyebrow,
   title,
   titleHighlight,
@@ -83,37 +105,51 @@ function Statement({
 }: PresetProps) {
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
   return (
-    // The breathing room is this preset's look, the one block with outer padding.
-    <div className='container-8xl grid justify-items-center gap-4 py-8 text-center *:min-w-0 @xl:py-16 @4xl:py-32'>
-      <Illustration outline className='size-16' />
-      {title ? (
-        <BlockHeading
-          className='[&>h2]:max-w-none'
-          id={headingId}
-          size={4}
-          eyebrow={eyebrow}
-          title={title}
-          titleHighlight={titleHighlight}
-          description={description}
+    <div className='container-8xl'>
+      {/* The breathing room is this preset's look, the one block with outer padding; a band keeps it inside. */}
+      <div
+        data-slot={emphasis ? 'statement-band' : undefined}
+        className={cn(
+          'grid justify-items-center gap-4 py-8 text-center *:min-w-0 @xl:py-16 @4xl:py-32',
+          emphasis && ['rounded-3xl px-6 @xl:px-12', emphasisClass(emphasis)]
+        )}
+      >
+        <Illustration outline className='size-16' />
+        {title ? (
+          <BlockHeading
+            className='[&>h2]:max-w-none'
+            id={headingId}
+            intent={intent}
+            size={4}
+            eyebrow={eyebrow}
+            title={title}
+            titleHighlight={titleHighlight}
+            description={description}
+          />
+        ) : (
+          <Intro eyebrow={eyebrow} description={description} />
+        )}
+        {body && (
+          <Prose
+            size='lg'
+            className='text-balance text-subtle [--prose-size:var(--text-xl)] *:mx-auto'
+          >
+            {body}
+          </Prose>
+        )}
+        <BlockActions
+          actions={actions}
+          intent={intent}
+          className='justify-center'
         />
-      ) : (
-        <Intro eyebrow={eyebrow} description={description} />
-      )}
-      {body && (
-        <Prose
-          size='lg'
-          className='text-balance text-subtle [--prose-size:var(--text-xl)] *:mx-auto'
-        >
-          {body}
-        </Prose>
-      )}
-      <BlockActions actions={actions} className='justify-center' />
+      </div>
     </div>
   )
 }
 
 function LongForm({
   headingId,
+  intent,
   eyebrow,
   title,
   titleHighlight,
@@ -126,6 +162,7 @@ function LongForm({
       {title ? (
         <BlockHeading
           id={headingId}
+          intent={intent}
           align='start'
           eyebrow={eyebrow}
           title={title}
@@ -136,7 +173,7 @@ function LongForm({
         <Intro eyebrow={eyebrow} description={description} />
       )}
       {body && <Prose size='lg'>{body}</Prose>}
-      <BlockActions actions={actions} />
+      <BlockActions actions={actions} intent={intent} />
     </div>
   )
 }

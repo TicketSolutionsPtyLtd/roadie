@@ -229,4 +229,53 @@ describe('Hero', () => {
 
     expect(screen.getByRole('region')).toHaveAttribute('data-preset', 'bento')
   })
+
+  describe('intent', () => {
+    it('keeps today’s look with none: brand-secondary marks, an accent action, a brand scrim', () => {
+      const { container } = render(<Hero {...bento()} />)
+
+      expect(screen.getByRole('region')).not.toHaveAttribute('data-intent')
+      expect(container.querySelector('mark')).toHaveClass(
+        'intent-brand-secondary'
+      )
+      expect(screen.getByRole('link', { name: 'Talk to us' })).toHaveClass(
+        'intent-accent'
+      )
+      expect(container.querySelector('[data-slot=hero-scrim]')).toHaveClass(
+        'bg-(--color-brand-light-13)/60'
+      )
+    })
+
+    it.each(['bento', 'image', 'title'] as const)(
+      'sets the %s preset’s intent on its marks and strong action',
+      (preset) => {
+        const props =
+          preset === 'bento'
+            ? bento()
+            : preset === 'image'
+              ? imageHero()
+              : { ...titleOnly, titleHighlight: 'empower' }
+        const { container } = render(
+          <Hero {...props} actions={bento().actions} intent='success' />
+        )
+
+        expect(screen.getByRole('region')).toHaveAttribute(
+          'data-intent',
+          'success'
+        )
+        expect(container.querySelector('mark')).toHaveClass('intent-success')
+        expect(screen.getByRole('link', { name: 'Talk to us' })).toHaveClass(
+          'intent-success'
+        )
+      }
+    )
+
+    it('tints the bento scrim with the intent’s fixed dark step', () => {
+      const { container } = render(<Hero {...bento()} intent='danger' />)
+
+      expect(container.querySelector('[data-slot=hero-scrim]')).toHaveClass(
+        'bg-(--color-danger-light-13)/60'
+      )
+    })
+  })
 })

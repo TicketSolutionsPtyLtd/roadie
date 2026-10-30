@@ -86,6 +86,36 @@ An eyebrow and a large title, for a page that opens on its text.
 />
 ```
 
+### Intent and emphasis
+
+`intent` colours the highlighted words and the strong action, and in Bento
+the tint over the photo too. Without one, the highlight is brand-secondary,
+the action accent, and the tint brand. The hero has no `emphasis`: its look
+comes from its preset.
+
+```tsx-live id=intent-and-emphasis
+<Hero
+  preset='title'
+  intent='brand-purple'
+  eyebrow='Festivals'
+  title='Ticketing built for festival weekends'
+  titleHighlight='festival weekends'
+  actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+/>
+```
+
+```tsx-live-expand id=intent-and-emphasis-image
+<Hero
+  preset='image'
+  intent='success'
+  title='Tickets for every community event'
+  titleHighlight='community'
+  description='Low fees and local support for not-for-profit organisers.'
+  actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+  image={{ src: '/brand/photography/07.webp', alt: 'Guests on the terrace at Lighthouse Fig Lawn', width: 1280, height: 854 }}
+/>
+```
+
 ## Guidelines
 
 <Guidelines>
@@ -129,6 +159,17 @@ An eyebrow and a large title, for a page that opens on its text.
   <Guideline.Dont>
     Describe the background photo. It’s decoration, so the hero drops its
     `alt`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Change the intent for a page’s theme, not for variety'>
+  <Guideline.Do>
+    Set `intent` when the page belongs to a part of Oztix with its own colour,
+    such as a purple festival section.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Give each hero a different intent to make pages look different. Keep
+    status intents, such as danger, for status.
   </Guideline.Dont>
 </Guideline>
 

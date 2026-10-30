@@ -10,6 +10,7 @@ import {
   widths,
   withBrowserPage
 } from '../_test/browser'
+import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 import { longForm, statement } from './fixtures'
 
 withBrowserPage()
@@ -54,7 +55,7 @@ describe('RichText statement', () => {
     await atWidth(width, 900)
     const { container } = render(<RichText {...statement} />)
     const section = container.querySelector('section')!
-    const content = section.firstElementChild!
+    const content = section.firstElementChild!.firstElementChild!
 
     expect(parseFloat(getComputedStyle(content).paddingTop)).toBe(space)
     expect(parseFloat(getComputedStyle(content).paddingBottom)).toBe(space)
@@ -86,3 +87,37 @@ describe.each([
     }
   )
 })
+
+describe.each([undefined, 'subtle', 'subtler', 'raised'] as const)(
+  'RichText statement on a %s band',
+  (emphasis) => {
+    it.each(MODES)(
+      'keeps its body and title readable in %s mode',
+      async (mode) => {
+        setMode(mode)
+        await atWidth(DESKTOP.width, DESKTOP.height)
+        const { container } = render(
+          <main className='bg-normal text-normal'>
+            <RichText {...statement} emphasis={emphasis} intent='brand' />
+          </main>
+        )
+
+        expect(
+          textContrast(container.querySelector('.prose p')!)
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
+        expect(
+          textContrast(container.querySelector('h2')!)
+        ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
+        setMode('light')
+      }
+    )
+
+    it('has no axe violations', async () => {
+      const { container } = render(
+        <RichText {...statement} emphasis={emphasis} />
+      )
+
+      expect(await axeViolations(container)).toEqual([])
+    })
+  }
+)

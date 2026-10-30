@@ -13,6 +13,7 @@ import {
   type SpotIllustrationName
 } from '../_shared/illustrations'
 import { presetOf } from '../_shared/presets'
+import type { BlockIntent } from '../_shared/surface'
 import { HeroMotionProvider, HeroMotionToggle } from './HeroMotion'
 import { HeroVideo } from './HeroVideo'
 import { ImageCycler } from './ImageCycler'
@@ -66,6 +67,12 @@ export type HeroProps = {
    * @default 'HighFive'
    */
   illustration?: SpotIllustrationName
+  /**
+   * The hero's intent: its highlighted words, its strong action, and the
+   * bento's photo tint take it. Without one, the highlight is brand-secondary,
+   * the action accent, and the tint brand.
+   */
+  intent?: BlockIntent
 }
 
 /** Opens a page with its title as the page's `h1`. */
@@ -75,6 +82,7 @@ export function Hero({ preset, position, id, ...content }: HeroProps) {
   return (
     <BlockRoot
       block={heroDefinition.name}
+      intent={content.intent}
       variant={variant}
       preset={name}
       position={position}
@@ -103,8 +111,9 @@ function Title({
   title,
   titleHighlight,
   className,
-  children
-}: Pick<PresetProps, 'headingId' | 'title' | 'titleHighlight'> & {
+  children,
+  intent
+}: Pick<PresetProps, 'headingId' | 'title' | 'titleHighlight' | 'intent'> & {
   className: string
   children?: ReactNode
 }) {
@@ -114,7 +123,7 @@ function Title({
         <Highlight
           text={title}
           query={titleHighlight}
-          intent='brand-secondary'
+          intent={intent ?? 'brand-secondary'}
         />
       ) : (
         title
@@ -126,6 +135,7 @@ function Title({
 
 function TitleOnly({
   headingId,
+  intent,
   eyebrow,
   title,
   titleHighlight,
@@ -136,6 +146,7 @@ function TitleOnly({
     <div className='container-8xl grid justify-items-start gap-6 *:min-w-0'>
       <BlockHeading
         id={headingId}
+        intent={intent}
         level={1}
         size={2}
         align='start'
@@ -144,13 +155,14 @@ function TitleOnly({
         titleHighlight={titleHighlight}
         description={description}
       />
-      <BlockActions actions={actions} />
+      <BlockActions actions={actions} intent={intent} />
     </div>
   )
 }
 
 function ImageHero({
   headingId,
+  intent,
   eyebrow,
   title,
   titleHighlight,
@@ -163,6 +175,7 @@ function ImageHero({
       <div className='grid justify-items-start gap-6 @4xl:col-span-2'>
         <BlockHeading
           id={headingId}
+          intent={intent}
           level={1}
           align='start'
           eyebrow={eyebrow}
@@ -170,7 +183,7 @@ function ImageHero({
           titleHighlight={titleHighlight}
           description={description}
         />
-        <BlockActions actions={actions} />
+        <BlockActions actions={actions} intent={intent} />
       </div>
       {image && (
         <div className='order-first overflow-clip rounded-xl @xl:order-last @4xl:col-span-3'>
@@ -186,13 +199,28 @@ function ImageHero({
   )
 }
 
-// Fixed white frames and a fixed navy scrim, as the photos sit the same in
+// Each intent's fixed dark step, so the tint is the same in both themes.
+// Literal classes, so Tailwind finds them.
+const SCRIM: Record<BlockIntent, string> = {
+  neutral: 'bg-(--color-neutral-light-13)/60',
+  brand: 'bg-(--color-brand-light-13)/60',
+  'brand-secondary': 'bg-(--color-brand-secondary-light-13)/60',
+  'brand-purple': 'bg-(--color-brand-purple-light-13)/60',
+  accent: 'bg-(--color-accent-light-13)/60',
+  info: 'bg-(--color-info-light-13)/60',
+  success: 'bg-(--color-success-light-13)/60',
+  warning: 'bg-(--color-warning-light-13)/60',
+  danger: 'bg-(--color-danger-light-13)/60'
+}
+
+// Fixed white frames and a fixed dark scrim, as the photos sit the same in
 // both themes. 60% keeps body text at APCA Lc 75 over even a white photo.
 const PANEL =
   'relative overflow-clip rounded-3xl border-4 border-(--color-neutral-light-0) bg-subtle @xl:border-6 @4xl:border-8'
 
 function Bento({
   headingId,
+  intent,
   title,
   titleHighlight,
   description,
@@ -230,13 +258,17 @@ function Bento({
             )}
             <div
               data-slot='hero-scrim'
-              className='relative grid gap-8 bg-(--color-brand-light-13)/60 px-6 py-8 text-(--color-neutral-light-0) @xl:px-8 @xl:py-10 @4xl:px-10 @4xl:py-12'
+              className={cn(
+                'relative grid gap-8 px-6 py-8 text-(--color-neutral-light-0) @xl:px-8 @xl:py-10 @4xl:px-10 @4xl:py-12',
+                SCRIM[intent ?? 'brand']
+              )}
             >
               <div className='grid content-center gap-2'>
                 <Title
                   headingId={headingId}
                   title={title}
                   titleHighlight={titleHighlight}
+                  intent={intent}
                   className='text-display-prose-1 text-balance'
                 >
                   {' '}
@@ -251,7 +283,11 @@ function Bento({
                   </p>
                 )}
               </div>
-              <BlockActions actions={actions} className='gap-2' />
+              <BlockActions
+                actions={actions}
+                intent={intent}
+                className='gap-2'
+              />
             </div>
           </div>
           {hasPrimary && (

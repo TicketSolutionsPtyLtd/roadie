@@ -17,6 +17,7 @@ import {
   widths,
   withBrowserPage
 } from '../_test/browser'
+import { MODES, setMode, textContrast } from '../_test/contrast'
 import { bento, imageHero, titleOnly } from './fixtures'
 
 withBrowserPage()
@@ -276,16 +277,43 @@ describe('Hero bento frames and scrim', () => {
     document.documentElement.classList.remove('dark')
   })
 
+  // A white panel stands in for the brightest photo, since a photo has no fill to measure.
+  function overWhitePhoto() {
+    panel('heading').style.backgroundColor = '#fff'
+    return document.querySelector('[data-slot=hero-scrim] p')!
+  }
+
   it('tints the photo without blurring it, dark enough for body text over a white photo', async () => {
     await showAt(DESKTOP.width)
     const scrim = document.querySelector<HTMLElement>('[data-slot=hero-scrim]')!
-    const style = getComputedStyle(scrim)
 
-    expect(style.backdropFilter).toBe('none')
-    expect(
-      Math.abs(apcaLc([255, 255, 255], flattenOverWhite(style.backgroundColor)))
-    ).toBeGreaterThanOrEqual(75)
+    expect(getComputedStyle(scrim).backdropFilter).toBe('none')
+    expect(textContrast(overWhitePhoto())).toBeGreaterThanOrEqual(75)
   })
+
+  it.each([
+    'neutral',
+    'brand',
+    'brand-secondary',
+    'brand-purple',
+    'accent',
+    'info',
+    'success',
+    'warning',
+    'danger'
+  ] as const)(
+    'keeps body text readable over a white photo under the %s tint, in both themes',
+    async (intent) => {
+      await showAt(DESKTOP.width, <Hero {...bento(photo)} intent={intent} />)
+      const text = overWhitePhoto()
+
+      for (const mode of MODES) {
+        setMode(mode)
+        expect(textContrast(text), mode).toBeGreaterThanOrEqual(75)
+      }
+      setMode('light')
+    }
+  )
 })
 
 function colourOf(value: string) {
@@ -295,38 +323,6 @@ function colourOf(value: string) {
   const colour = getComputedStyle(probe).color
   probe.remove()
   return colour
-}
-
-type Rgb = [number, number, number]
-
-// Paints the colour over white and reads back sRGB, so oklch and alpha resolve.
-function flattenOverWhite(colour: string): Rgb {
-  const context = Object.assign(document.createElement('canvas'), {
-    width: 1,
-    height: 1
-  }).getContext('2d')!
-  context.fillStyle = '#fff'
-  context.fillRect(0, 0, 1, 1)
-  context.fillStyle = colour
-  context.fillRect(0, 0, 1, 1)
-  const [r = 0, g = 0, b = 0] = context.getImageData(0, 0, 1, 1).data
-  return [r, g, b]
-}
-
-// APCA-W3 0.0.98G, as in packages/components/src/css/contrastTestUtils.ts.
-function apcaLc(text: Rgb, background: Rgb) {
-  const screenY = ([r, g, b]: Rgb) => {
-    const y =
-      0.2126729 * (r / 255) ** 2.4 +
-      0.7151522 * (g / 255) ** 2.4 +
-      0.072175 * (b / 255) ** 2.4
-    return y < 0.022 ? y + (0.022 - y) ** 1.414 : y
-  }
-  const textY = screenY(text)
-  const backgroundY = screenY(background)
-  if (backgroundY > textY)
-    return ((backgroundY ** 0.56 - textY ** 0.57) * 1.14 - 0.027) * 100
-  return ((backgroundY ** 0.65 - textY ** 0.62) * 1.14 + 0.027) * 100
 }
 
 describe('Hero image layout', () => {

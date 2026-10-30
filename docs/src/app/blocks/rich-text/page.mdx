@@ -71,6 +71,46 @@ at `h2`, so no level is skipped after the page's `h1`.
 />
 ```
 
+### Intent and emphasis
+
+`intent` colours the highlighted words and the strong action in both
+presets. A statement also takes `emphasis`, `subtle`, `subtler`, or
+`raised`, which sets it on a rounded band inset in the page, keeping its
+space inside. Long form takes no emphasis.
+
+```tsx-live-expand id=intent-and-emphasis
+<RichText
+  preset='statement'
+  intent='brand'
+  emphasis='subtle'
+  title='We’re Australian-owned, Australian-hosted, and operate 7 days a week nationwide.'
+  titleHighlight='Australian-owned'
+  body={
+    <p>
+      Our team answers every call from an Australian office, whatever time
+      your gates open.
+    </p>
+  }
+  actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+/>
+```
+
+```tsx-live id=intent-and-emphasis-long-form
+<RichText
+  preset='long-form'
+  intent='info'
+  title='How refunds work'
+  titleHighlight='refunds'
+  body={
+    <p>
+      When an event is cancelled, every ticket is refunded to the card it was
+      bought with, within 10 business days.
+    </p>
+  }
+  actions={[{ label: 'Read the refund policy', href: '/refunds' }]}
+/>
+```
+
 ## Guidelines
 
 <Guidelines>
@@ -102,6 +142,17 @@ at `h2`, so no level is skipped after the page's `h1`.
   <Guideline.Dont>
     Put an `h1` in the body, or skip a level, such as an `h3` straight after
     the page’s `h1`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Band a statement to set it apart'>
+  <Guideline.Do>
+    Put a statement on a `subtle` or `raised` band when it sits between
+    blocks that are plain too, so it reads as its own moment.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Band every statement, or change its intent for variety rather than for a
+    section’s colour.
   </Guideline.Dont>
 </Guideline>
 

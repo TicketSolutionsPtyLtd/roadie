@@ -152,4 +152,53 @@ describe('RichText', () => {
       'statement'
     )
   })
+
+  describe('intent and emphasis', () => {
+    it.each([
+      ['statement', statement, 'Australian-owned'],
+      ['long-form', longForm, 'refunds']
+    ])(
+      'sets the intent on %s, its marks and its strong action',
+      (_, props, word) => {
+        const { container } = render(
+          <RichText
+            {...props}
+            titleHighlight={word}
+            actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+            intent='brand-purple'
+          />
+        )
+
+        expect(screen.getByRole('region')).toHaveAttribute(
+          'data-intent',
+          'brand-purple'
+        )
+        expect(container.querySelector('mark')).toHaveClass(
+          'intent-brand-purple'
+        )
+        expect(screen.getByRole('link', { name: 'Talk to us' })).toHaveClass(
+          'intent-brand-purple'
+        )
+      }
+    )
+
+    it('draws no band by default', () => {
+      const { container } = render(<RichText {...statement} />)
+
+      expect(container.querySelector('[data-slot=statement-band]')).toBeNull()
+    })
+
+    it.each(['subtle', 'subtler', 'raised'] as const)(
+      'draws a rounded %s band around the statement',
+      (emphasis) => {
+        const { container } = render(
+          <RichText {...statement} emphasis={emphasis} />
+        )
+
+        const band = container.querySelector('[data-slot=statement-band]')
+        expect(band).toHaveClass(`emphasis-${emphasis}`)
+        expect(band).toContainElement(screen.getByRole('heading', { level: 2 }))
+      }
+    )
+  })
 })
