@@ -38,7 +38,7 @@ import { RankedBars } from '@oztix/roadie-charts/ranked-bars'
 
 ### Highlight and Other
 
-Past `limit` bars, the rest roll into Other, which always sits last. Ranked largest first, the rest are the smallest. When the label already says how many are left out, such as "Top 5 of 40 suburbs", set `other={false}` to leave Other off, so a long tail doesn't dwarf the top bar. A highlighted bar past `limit` still shows, in place of the lowest bar that isn't highlighted, so the count stays at `limit` and the order holds. Shares stay of the full total.
+Past `limit` bars, the rest roll into Other, which always sits last. Ranked largest first, the rest are the smallest. When the label already says how many are left out, such as "Top 5 of 40 suburbs", set `other={false}` to leave Other off, so a long tail doesn't dwarf the top bar. With Other off, a highlighted bar past `limit` still shows, in place of the last bar that isn't highlighted, so the count stays at `limit` and the order holds. Shares stay of the full total.
 
 ```tsx-live width=140
 <Chart label='Where buyers came from' source='Oztix sales.' size='md'>
