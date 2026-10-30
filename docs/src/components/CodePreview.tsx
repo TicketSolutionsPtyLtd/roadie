@@ -1,12 +1,13 @@
 'use client'
 
-import { Suspense, lazy, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 
 import { ArrowsOutIcon } from '@phosphor-icons/react'
 
 import { Button } from '@oztix/roadie-components/button'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
 
+import { LazyLiveRunner, loadLiveRunner } from './LazyLiveRunner'
 import {
   CodePanel,
   HighlightedCode,
@@ -19,11 +20,6 @@ import {
   exampleHeights,
   useNearViewport
 } from './nearViewport'
-
-// react-live and the example scope (every component, chart and widget) load
-// with the first example that nears the viewport, not with the page.
-const loadLiveRunner = () => import('./LiveRunner')
-const LiveRunner = lazy(loadLiveRunner)
 
 type CodePreviewProps = {
   children: string
@@ -43,7 +39,7 @@ type CodePreviewProps = {
 // MDX's `.prose` sets the rhythm there; the docs' own pages need the gap.
 const BLOCK_SPACING = 'mb-8 in-[.prose]:mb-0'
 
-/** What a live example shows until it renders: a reserved preview and its static code. */
+/** What a live example shows until it renders, or if it can't: a reserved preview, or the error in its place, and its static code. */
 function LivePlaceholder({
   code,
   language,
@@ -51,7 +47,8 @@ function LivePlaceholder({
   exampleHref,
   expandable,
   expanded,
-  onExpandedChange
+  onExpandedChange,
+  error
 }: {
   code: string
   language: string
@@ -60,6 +57,7 @@ function LivePlaceholder({
   expandable: boolean
   expanded: boolean
   onExpandedChange: (expanded: boolean) => void
+  error?: ReactNode
 }) {
   const theme = useCodeTheme()
   const highlightLanguage = highlightLanguageOf(language)
@@ -76,15 +74,17 @@ function LivePlaceholder({
           </Button>
         </div>
       )}
-      <div
-        data-live-example='pending'
-        className='grid bg-normal p-4 sm:p-6'
-        style={{
-          minHeight: exampleHeights.get(heightKey) ?? DEFAULT_PREVIEW_HEIGHT
-        }}
-      >
-        <Skeleton shape='block' emphasis='subtler' className='h-full' />
-      </div>
+      {error ?? (
+        <div
+          data-live-example='pending'
+          className='grid bg-normal p-4 sm:p-6'
+          style={{
+            minHeight: exampleHeights.get(heightKey) ?? DEFAULT_PREVIEW_HEIGHT
+          }}
+        >
+          <Skeleton shape='block' emphasis='subtler' className='h-full' />
+        </div>
+      )}
       <CodePanel
         code={code}
         exampleHref={exampleHref}
@@ -151,14 +151,19 @@ function LiveExample({
       className={`relative ${BLOCK_SPACING} min-w-0 overflow-hidden rounded-xl border border-subtle`}
     >
       {near ? (
-        <Suspense fallback={placeholder}>
-          <LiveRunner
-            {...shared}
-            editorOpened={editorOpened}
-            onMounted={onMounted}
-            previewLayout={previewLayout}
-          />
-        </Suspense>
+        <LazyLiveRunner
+          {...shared}
+          loading={placeholder}
+          frame={(error) => (
+            <LivePlaceholder
+              {...shared}
+              error={<div className='bg-normal px-4 sm:px-6'>{error}</div>}
+            />
+          )}
+          editorOpened={editorOpened}
+          onMounted={onMounted}
+          previewLayout={previewLayout}
+        />
       ) : (
         placeholder
       )}

@@ -1,14 +1,12 @@
 'use client'
 
-import { Suspense, lazy } from 'react'
-
 import { ArrowLeftIcon } from '@phosphor-icons/react'
 
 import type { ManifestExample } from '@/lib/example-manifest'
 
 import { Button } from '@oztix/roadie-components/button'
 
-const LiveRunner = lazy(() => import('./LiveRunner'))
+import { LazyLiveRunner } from './LazyLiveRunner'
 
 /** One live example on its own page, with nothing else from the docs page loaded. */
 export function IsolatedExample({
@@ -32,15 +30,14 @@ export function IsolatedExample({
         )}
       </header>
       <main className='min-w-0 p-4 sm:p-6'>
-        <Suspense fallback={null}>
-          <LiveRunner
-            code={code.trim()}
-            language={language}
-            heightKey={href}
-            previewLayout={previewLayout}
-            isolated
-          />
-        </Suspense>
+        <LazyLiveRunner
+          loading={null}
+          code={code.trim()}
+          language={language}
+          heightKey={href}
+          previewLayout={previewLayout}
+          isolated
+        />
       </main>
     </div>
   )
