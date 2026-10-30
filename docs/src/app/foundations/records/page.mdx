@@ -599,6 +599,11 @@ to "Start date is this weekend", so it never suggests a venue such as Nimbus
 Thistle Hall. Text a field contains takes no words this way, so
 `name disco melb` still suggests "Location is in Melbourne".
 
+A chip's values OR, so values of one field joined by "or" read as one chip.
+`location melb or syd` suggests "Location is in Melbourne or Sydney", and
+`venue is not walrus or kettle` one chip ruling out both venues. Chips AND, so
+`melb and syd` suggests Melbourne alone and keeps `and syd` as `remainder`.
+
 Negation reads as the opposite filter. "not melb" suggests "Location is not
 in Melbourne", and never "Location is in Melbourne". The negating words are
 part of the filter, so none of them stay in `remainder`.
