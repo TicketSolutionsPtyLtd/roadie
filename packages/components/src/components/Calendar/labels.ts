@@ -39,7 +39,12 @@ function format(
   const key = `${locale}|${JSON.stringify(options)}`
   let formatter = formatters.get(key)
   if (!formatter) {
-    formatter = new Intl.DateTimeFormat(locale, { ...options, timeZone: 'UTC' })
+    // Gregorian, as the grid is (fa and ps default to the Persian calendar).
+    formatter = new Intl.DateTimeFormat(locale, {
+      ...options,
+      timeZone: 'UTC',
+      calendar: 'gregory'
+    })
     formatters.set(key, formatter)
   }
   return formatter.format(instantOf(date))
