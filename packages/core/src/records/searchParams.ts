@@ -9,6 +9,7 @@ import {
   unescape
 } from './encoding'
 import { fieldIndex } from './fields'
+import { isRecordOperator, recordOperatorSpec } from './operators'
 import type {
   RecordField,
   RecordLayout,
@@ -54,12 +55,12 @@ function decodeFilter(text: string, byKey: Map<string, RecordField>): Decoded {
   const operator = second < 0 ? rest : rest.slice(0, second)
   const payload = second < 0 ? '' : rest.slice(second + 1)
   const type = byKey.get(field)?.type
-  switch (operator) {
-    case 'is':
-    case 'is-not':
-    case 'has-all':
+  // An unknown operator decodes as it is, for validation to name.
+  if (!isRecordOperator(operator)) return { filter: { field, operator } }
+  switch (recordOperatorSpec(operator).value) {
+    case 'values':
       return { filter: { field, operator, values: splitItems(payload) } }
-    case 'between': {
+    case 'range': {
       const items = splitItems(payload)
       if (items.length !== 2) {
         return {
@@ -70,28 +71,17 @@ function decodeFilter(text: string, byKey: Map<string, RecordField>): Decoded {
       const value = type === 'date' ? items : items.map(toNumber)
       return { filter: { field, operator, value } }
     }
-    case 'within':
+    case 'relative':
       return { filter: { field, operator, value: decodeRange(payload) } }
-    case 'eq':
-    case 'neq':
-    case 'lt':
-    case 'gt':
+    case 'number':
       return { filter: { field, operator, value: toNumber(payload) } }
-    case 'contains':
-    case 'not-contains':
-    case 'on':
-    case 'before':
-    case 'after':
+    case 'text':
+    case 'day':
       return { filter: { field, operator, value: payload } }
-    case 'is-true':
-    case 'is-false':
-    case 'is-set':
-    case 'is-not-set':
+    case 'none':
       return payload
         ? { problem: `"${operator}" takes no value`, at: '.value' }
         : { filter: { field, operator } }
-    default:
-      return { filter: { field, operator } }
   }
 }
 

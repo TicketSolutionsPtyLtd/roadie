@@ -24,9 +24,16 @@ export type ListItemProps = {
   current?: ListItemCurrent
   /** Inside a `Sortable`, makes the row reorderable: a drag handle leads, and the row is no longer a link or button. */
   value?: string
+  /** Names a reorderable row in its handle and announcements. Needed when `title` isn't plain text, which names the row otherwise. An empty label counts as none. */
+  label?: string
   className?: string
   onClick?: (event: MouseEvent<HTMLElement>) => void
 }
+
+const plainText = (title: ReactNode) =>
+  typeof title === 'string' || typeof title === 'number'
+    ? String(title)
+    : undefined
 
 export type ListItemCurrent = boolean | 'page' | 'step' | 'location'
 
@@ -40,6 +47,7 @@ export function ListItem({
   href,
   current = false,
   value,
+  label,
   className,
   onClick
 }: ListItemProps) {
@@ -95,6 +103,7 @@ export function ListItem({
   return (
     <ListItemSortable
       value={value}
+      label={label || plainText(title) || undefined}
       title={title}
       description={description}
       leading={leading}
