@@ -62,6 +62,7 @@ const BAR_PADDING = 0.2
 const BAR_INSET = 1
 const BAR_MAX = 48
 const PAIR_PADDING = 0.3
+const PAIR_GAP = 0.1
 const COMPARED = 'comparison'
 const CURRENT = 'current'
 const SHARE_DOMAIN: readonly [number, number] = [0, 1]
@@ -129,12 +130,14 @@ type PairKey = typeof COMPARED | typeof CURRENT
 /**
  * Splits a slot into the comparison then the current bar, each capped like a
  * lone bar and centred as a pair, so wide slots keep the two together. The
- * gap between them is the bars' own inset.
+ * gap between them shrinks with the slot, so it never eats a thin bar.
  */
 function pairScale(): ConfiguredScaleLike<PairKey> {
   let width = 0
+  let gap = 0
   let middle = 0
-  const scale = (key: PairKey) => (key === COMPARED ? middle - width : middle)
+  const scale = (key: PairKey) =>
+    key === COMPARED ? middle - gap / 2 - width : middle + gap / 2
   const pair: ConfiguredScaleLike<PairKey> = Object.assign(scale, {
     bandwidth: () => width,
     copy: pairScale,
@@ -143,7 +146,8 @@ function pairScale(): ConfiguredScaleLike<PairKey> {
     range(next: Iterable<number>) {
       const [start = 0, end = 0] = next
       const span = Math.abs(end - start)
-      width = Math.max(Math.min(span / 2, BAR_MAX + BAR_INSET * 2), 0)
+      gap = Math.min(BAR_INSET * 2, span * PAIR_GAP)
+      width = Math.min((span - gap) / 2, BAR_MAX)
       middle = span / 2
       return pair
     }
@@ -205,8 +209,6 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
                 z: () => COMPARED,
                 layout: pairLayout,
                 fill: paint.context,
-                inset: BAR_INSET,
-                maxThickness: BAR_MAX,
                 radius: { end: 2 }
               })
             )
@@ -216,10 +218,10 @@ function build(props: BarChartProps, paint: ChartPaint, frame: PlotFrame) {
         id: 'series-1',
         x: 'x',
         y: 'y',
-        ...(paired && { z: () => CURRENT, layout: pairLayout }),
+        ...(paired
+          ? { z: () => CURRENT, layout: pairLayout }
+          : { inset: BAR_INSET, maxThickness: BAR_MAX }),
         fill: paint.categorical[0]!,
-        inset: BAR_INSET,
-        maxThickness: BAR_MAX,
         radius: { end: 2 }
       }),
       // The bars carry both measures in words and the tooltip, so the line

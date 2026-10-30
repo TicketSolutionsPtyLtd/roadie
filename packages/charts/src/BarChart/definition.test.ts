@@ -260,6 +260,32 @@ describe('barChart comparison', () => {
     }
   )
 
+  it('keeps 48 hourly pairs visible on a phone', () => {
+    const data = Array.from({ length: 48 }, (_, i) => ({
+      time: `2026-11-${14 + Math.floor(i / 24)}T${String(i % 24).padStart(2, '0')}:00`,
+      orders: 10,
+      before: 8
+    }))
+    const props: BarChartProps = {
+      data,
+      x: 'time',
+      y: 'orders',
+      interval: 'hour',
+      comparison: { y: 'before' }
+    }
+    const frame = plotFrame(220, 'narrow', undefined, 320)
+    const scene = createChartScene(barChart.build(props, paint, frame), {
+      width: 320,
+      height: frame.height
+    })
+    const rects = (prefix: string) =>
+      nodesOf(scene.nodes, prefix).flatMap((n) =>
+        n.kind === 'rect' ? [n] : []
+      )
+    for (const rect of [...rects('series-1:'), ...rects('comparison:')])
+      expect(rect.width).toBeGreaterThanOrEqual(1.5)
+  })
+
   it('keeps a pair of wide bars at 48px each', () => {
     const props = {
       ...comparisonExample,
