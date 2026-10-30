@@ -115,7 +115,9 @@ const rows = () =>
 // The page loads the calendar while idle; a test's first import takes longer.
 beforeAll(() => RecordsDateCalendarLazy.preload(), 20_000)
 
-describe('Records.Search', () => {
+// Typing through the field takes about a second per test on a quiet machine,
+// so the pre-push hook's runs under other sessions' load need room.
+describe('Records.Search', { timeout: 15_000 }, () => {
   it('searches as people type, and keeps the text on Enter', async () => {
     const { user, lastView } = setup()
     await user.click(input())
