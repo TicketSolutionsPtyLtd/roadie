@@ -13,9 +13,8 @@ import { forgetPaneScroll } from './paneScroll'
 import { useStylesheet } from './testUtils'
 
 let removeStylesheet = () => {}
-beforeAll(async () => {
+beforeAll(() => {
   removeStylesheet = useStylesheet(roadieCss)
-  await page.viewport(390, 844)
 })
 afterAll(async () => {
   removeStylesheet()
@@ -47,6 +46,10 @@ const clearance = () =>
     .paddingBottom
 
 describe('tab bar clearance on a phone', () => {
+  beforeAll(async () => {
+    await page.viewport(390, 844)
+  })
+
   it('clears the floating tab bar in a Navigator’s stack', () => {
     render(
       <PaneStackContext value={stack}>
@@ -65,6 +68,21 @@ describe('tab bar clearance on a phone', () => {
     render(
       <PaneStackContext value={stack}>
         <Pane tabBar='hidden'>Body</Pane>
+      </PaneStackContext>
+    )
+    expect(clearance()).toBe('0px')
+  })
+})
+
+describe('tab bar clearance from 768px wide', () => {
+  beforeAll(async () => {
+    await page.viewport(768, 1024)
+  })
+
+  it('leaves none in a Navigator’s stack, where the navigation is vertical', () => {
+    render(
+      <PaneStackContext value={stack}>
+        <Pane>Body</Pane>
       </PaneStackContext>
     )
     expect(clearance()).toBe('0px')
