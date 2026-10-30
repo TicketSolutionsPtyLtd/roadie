@@ -8,7 +8,13 @@ import type { ChartTable } from '../Chart'
 import { valueColumn, xCell, xColumn } from '../plot/table'
 import { isTimeField, parseX } from '../plot/time'
 import { type ValueStyle, finiteOrNull, fullValue } from '../plot/values'
-import { isForecast, linePoints, seriesLabel } from './points'
+import {
+  comparisonLabel,
+  comparisonPoints,
+  isForecast,
+  linePoints,
+  seriesLabel
+} from './points'
 import type { LineChartProps } from './types'
 
 const FORECAST = 'Forecast'
@@ -34,12 +40,23 @@ export function lineChartTable(props: LineChartProps): ChartTable {
   )
   const band = props.band
   const bandLabel = band?.label ?? 'Typical range'
+  const compared = comparisonPoints(props)
+  const comparison = compared.length ? props.comparison : undefined
   const columns = [
     xColumn(props.x),
     ...series.map((name) => valueColumn(keyOf(name), name, props)),
     ...forecasting.map((name) =>
       valueColumn(forecastHeader(name), forecastHeader(name), props)
     ),
+    ...(comparison
+      ? [
+          valueColumn(
+            comparison.y,
+            comparisonLabel(props) ?? comparison.y,
+            props
+          )
+        ]
+      : []),
     ...(band
       ? [
           ...(band.median ? [valueColumn('bandMedian', bandLabel, props)] : []),
@@ -57,7 +74,9 @@ export function lineChartTable(props: LineChartProps): ChartTable {
     const raw = row[props.x] ?? null
     const x = isTime ? parseX(raw) : raw
     if (x === null) continue
-    const cells = byX.get(x) ?? { [props.x]: xCell(raw, isTime, props.xFormat) }
+    const cells = byX.get(x) ?? {
+      [props.x]: xCell(raw, isTime, props.xFormat)
+    }
     byX.set(x, cells)
     if (band) {
       cells.bandRange = rangeText(
@@ -68,6 +87,11 @@ export function lineChartTable(props: LineChartProps): ChartTable {
       if (band.median) cells.bandMedian = row[band.median] ?? null
     }
   }
+  if (comparison)
+    for (const p of compared) {
+      const cells = byX.get(p.x)
+      if (cells) cells[comparison.y] = p.y
+    }
   for (const p of points) {
     const cells = byX.get(p.x)
     if (!cells) continue

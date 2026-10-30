@@ -57,3 +57,18 @@ export const salesByTypeExample: LineChartProps = {
   series: 'type',
   takeaway: 'GA orders are climbing fastest'
 }
+
+const thisFortnight = [42, 38, 51, 47, 63, 88, 94, 55, 49, 58, 61, 72, 104, 117]
+const lastFortnight = [36, 40, 44, 41, 52, 79, 83, 47, 45, 50, 49, 61, 90, 96]
+
+export const comparisonExample: LineChartProps = {
+  data: thisFortnight.map((tickets, i) => ({
+    day: iso(START + i * DAY),
+    tickets,
+    lastPeriod: lastFortnight[i]!
+  })),
+  x: 'day',
+  y: 'tickets',
+  comparison: { y: 'lastPeriod', label: 'Previous period' },
+  takeaway: 'Ahead of the previous fortnight on every weekend'
+}

@@ -50,6 +50,10 @@ const common = {
 const measured = { data: z.array(plotRow), x: field, y: field, ...common }
 const selectsPeriod = z.boolean().optional()
 
+const comparison = z
+  .strictObject({ y: field, label: shortLabel.optional() })
+  .optional()
+
 const lineShape = {
   kind: z.literal('line'),
   ...measured,
@@ -74,6 +78,7 @@ const lineShape = {
       high: field.optional()
     })
     .optional(),
+  comparison,
   target: z.number().optional(),
   today: plotX.optional(),
   xFormat: xFormat.optional(),

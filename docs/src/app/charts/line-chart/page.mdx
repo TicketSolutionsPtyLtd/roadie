@@ -102,6 +102,30 @@ Name the series that tells the story. It draws in the highlight at 2px and the r
 </Chart>
 ```
 
+### Comparison
+
+`comparison` draws a field on the same rows, such as last period's sales, as a quiet line behind the series. The tooltip, end label and Table view name it with `label`, or with the field's name. It needs a single series, so it's left out when `series` is set. On a dashboard, line [the rows up with the period](/charts/dashboards#periods-and-comparisons) first.
+
+```tsx-live width=140
+<Chart label='Tickets sold' source='Oztix sales.' size='md'>
+  <LineChart
+    data={[
+      { day: '2026-10-01', sold: 42, lastPeriod: 36 },
+      { day: '2026-10-02', sold: 38, lastPeriod: 40 },
+      { day: '2026-10-03', sold: 51, lastPeriod: 44 },
+      { day: '2026-10-04', sold: 88, lastPeriod: 79 },
+      { day: '2026-10-05', sold: 94, lastPeriod: 83 },
+      { day: '2026-10-06', sold: 55, lastPeriod: 47 },
+      { day: '2026-10-07', sold: 49, lastPeriod: 45 }
+    ]}
+    x='day'
+    y='sold'
+    comparison={{ y: 'lastPeriod', label: 'Previous period' }}
+    takeaway='Ahead of the previous period on every day but one'
+  />
+</Chart>
+```
+
 ### Selecting a range
 
 `onRangeSelect` lets someone drag across dated x to pick a range, such as to zoom the page to those days. The range is inclusive, in the venue's wall time: `'2026-10-03'` for days, or `'2026-10-03T18:00'` for times. It fits straight into `DateRangePicker`, and on a dashboard, [`selectsPeriod`](/charts/dashboards#set-the-period-from-a-chart) passes it to `onPeriodChange`.
@@ -231,9 +255,9 @@ When a small difference matters, set `decimals`. The tooltip, end label, table, 
 ## Accessibility
 
 - The plot is one tab stop, named by `takeaway`, or by a generated sentence such as "Sold rose from 120 to 1,464 between 1 Oct and 29 Oct".
-- Left and right arrows move between days. Up and down move between series on the same day. Each value is read out in plain words, such as "Thursday, 15 October 2026, 690 sold".
+- Left and right arrows move between days. Up and down move between series on the same day. Each value is read out in plain words, such as "Thursday, 15 October 2026, 690 sold". A comparison follows the value, such as "previous period 44".
 - With `onRangeSelect`, Shift with the left or right arrow selects from the focused day, and Shift with Home or End selects to either end. The range is read out, such as "Selected Friday, 2 to Sunday, 4 October 2026, 3 days", and Enter applies it. Once there's a range, its start and end handles are sliders in the tab order. Their arrows move them, and Enter applies. Escape clears the range.
 - The Table tab holds every value the chart draws.
-- Under forced colours and in print, each series after the first switches to its own dash style, so lines stay apart without colour.
+- Under forced colours and in print, each series after the first, and a comparison, switches to its own dash style, so lines stay apart without colour.
 
 <PropsDefinitions component='LineChart' />

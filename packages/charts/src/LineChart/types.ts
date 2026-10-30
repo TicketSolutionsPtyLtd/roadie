@@ -37,6 +37,8 @@ export type LineChartProps = ValueFormatOptions & {
   cumulative?: boolean
   /** A shaded range, such as similar shows, with an optional dashed median. */
   band?: { low: string; high: string; median?: string; label?: string }
+  /** A field on the same rows, such as last period's value, drawn behind a single series as context. Ignored with `series`. */
+  comparison?: { y: string; label?: string }
   /** Where the forecast starts. Values after it are dotted, in a faint cone. */
   forecast?: { from: PlotX; low?: string; high?: string }
   /** Draws an end tick labelled with the target. */

@@ -48,6 +48,7 @@ import {
 } from '../plot/values'
 import {
   describeValue,
+  lowerFirst,
   plural,
   spokenPoint,
   trendSentence,
@@ -55,6 +56,9 @@ import {
 } from '../plot/words'
 import { xAxisScale, xTitle } from '../plot/xAxis'
 import {
+  type ComparisonPoint,
+  comparisonLabel,
+  comparisonPoints,
   forecastStart,
   hasEnoughPoints,
   isForecast,
@@ -70,6 +74,12 @@ const EMPTY = 'Not enough data yet to show a trend'
 const FORECAST_LABEL = 'Forecast'
 const TYPICAL_RANGE = 'Typical range'
 const DAY = 86_400_000
+
+function comparisonAt(props: LineChartProps, x: number | string) {
+  const label = comparisonLabel(props)
+  const y = comparisonPoints(props).find((p) => p.x === Number(x))?.y
+  return label && y != null ? { label, y } : null
+}
 
 function styles(
   props: LineChartProps,
@@ -141,6 +151,14 @@ function endLabels(
       y: props.target,
       tone: 'value',
       pinned: true
+    })
+  const comparison = comparisonLabel(props)
+  const comparisonEnd = comparisonPoints(props).findLast((p) => p.y !== null)
+  if (comparison && comparisonEnd?.y != null)
+    labels.push({
+      text: `${comparison} ${labelFormat(props, comparisonEnd.y)}`,
+      y: comparisonEnd.y,
+      tone: 'label'
     })
   const median = props.band?.median
   const medianEnd = median ? lastFieldValue(props, median) : undefined
@@ -241,6 +259,26 @@ function seriesMarks(
   })
 }
 
+function comparisonMarks(
+  points: readonly ComparisonPoint[],
+  paint: ChartPaint
+): ChartMark[] {
+  if (!points.length) return []
+  return [
+    decorative(
+      lineY(points, {
+        id: 'comparison',
+        x: 'x',
+        y: 'y',
+        stroke: paint.context,
+        strokeWidth: 1.5,
+        lineCap: 'round',
+        lineJoin: 'round'
+      })
+    )
+  ]
+}
+
 function todayPoint(
   props: LineChartProps,
   points: readonly PlotDatum[],
@@ -269,10 +307,24 @@ function aidKeys(
 ): ChartLegendItem[] {
   const band = props.band
   const bandLabel = band?.label ?? TYPICAL_RANGE
+  const comparison = comparisonPoints(props).length
+    ? comparisonLabel(props)
+    : undefined
   const forecastOwner = series.find((s) =>
     points.some((p) => p.series === s.name && isForecast(props, p.x))
   )
   return [
+    ...(comparison
+      ? [
+          // Only beside a lone series, so it borrows series 2's dash.
+          {
+            label: comparison,
+            shape: 'line' as const,
+            color: paint.context,
+            slot: 2
+          }
+        ]
+      : []),
     ...(forecastOwner
       ? [
           {
@@ -338,6 +390,7 @@ function build(props: LineChartProps, paint: ChartPaint, frame: PlotFrame) {
           paint
         )
       : []),
+    ...comparisonMarks(comparisonPoints(props), paint),
     ...seriesMarks(props, points, series, yDomain[0]),
     ...(props.target === undefined
       ? []
@@ -473,11 +526,15 @@ export const lineChart: ChartDefinition<LineChartProps> = {
       props,
       seriesLabel(props).toLowerCase()
     )
+    const compared = comparisonAt(props, datum.x)
     const parts = [
       when,
       value,
       ...(props.series ? [datum.series] : []),
-      ...(isForecast(props, datum.x) ? ['forecast'] : [])
+      ...(isForecast(props, datum.x) ? ['forecast'] : []),
+      ...(compared
+        ? [`${lowerFirst(compared.label)} ${fullValue(props, compared.y)}`]
+        : [])
     ]
     return parts.join(', ')
   },
@@ -489,16 +546,29 @@ export const lineChart: ChartDefinition<LineChartProps> = {
     const first = rows[0]
     const styled = styles(props, toLinePoints(props), paint)
     const title = first ? xTitle(props, first.x) : ''
+    const compared = first && comparisonAt(props, first.x)
     return {
       title,
-      rows: rows.map((d) => ({
-        label: isForecast(props, d.x)
-          ? `${d.series} ${FORECAST_LABEL.toLowerCase()}`
-          : d.series,
-        value: d.y === null ? 'No data' : fullValue(props, d.y),
-        color: styled.find((s) => s.name === d.series)?.color,
-        shape: 'line' as const
-      }))
+      rows: [
+        ...rows.map((d) => ({
+          label: isForecast(props, d.x)
+            ? `${d.series} ${FORECAST_LABEL.toLowerCase()}`
+            : d.series,
+          value: d.y === null ? 'No data' : fullValue(props, d.y),
+          color: styled.find((s) => s.name === d.series)?.color,
+          shape: 'line' as const
+        })),
+        ...(compared
+          ? [
+              {
+                label: compared.label,
+                value: fullValue(props, compared.y),
+                color: paint.context,
+                shape: 'line' as const
+              }
+            ]
+          : [])
+      ]
     }
   }
 }
