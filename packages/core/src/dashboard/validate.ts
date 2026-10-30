@@ -109,6 +109,7 @@ export function plotFields(plot: ChartPlot): FieldRef[] {
       add('band.median', plot.band?.median)
       add('forecast.low', plot.forecast?.low)
       add('forecast.high', plot.forecast?.high)
+      add('comparison.y', plot.comparison?.y)
       break
     case 'bar':
       add('x', plot.x)
@@ -446,6 +447,13 @@ function plotProblems(plot: ChartPlot, path: string) {
       warning(
         `${plotPath}.series`,
         `${count} series. The smallest will roll into Other after ${SERIES_CAP}`
+      )
+    )
+  if (plot.kind === 'line' && plot.comparison && plot.series)
+    problems.push(
+      warning(
+        `${plotPath}.comparison`,
+        'A comparison draws only on a single series, so the chart leaves it out. Drop series or comparison'
       )
     )
   problems.push(...copyProblems(plotPath, 'takeaway', plot.takeaway))

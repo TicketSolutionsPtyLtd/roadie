@@ -7,7 +7,7 @@ import { plotFrame } from '../plot/frame'
 import { hexPaint } from '../plot/paint'
 import { OTHER } from '../plot/series'
 import { lineChart } from './definition'
-import { paceExample, salesByTypeExample } from './examples'
+import { comparisonExample, paceExample, salesByTypeExample } from './examples'
 import { lineYExtent, toLinePoints } from './points'
 import { lineChartTable } from './table'
 import type { LineChartProps } from './types'
@@ -378,6 +378,111 @@ describe('lineChart', () => {
       { ariaLabel: 'x' }
     )
     expect(svg).toContain('>100<')
+  })
+})
+
+describe('lineChart comparison', () => {
+  const at = (i: number) => ({
+    x: Date.parse(comparisonExample.data[i]!.day as string),
+    y: comparisonExample.data[i]!.tickets as number,
+    series: 'Tickets',
+    index: i
+  })
+
+  it('draws the comparison behind the series in the context colour', () => {
+    const svg = svgOf(comparisonExample)
+    expect(strokeOf(svg, 'comparison')).toBe(paint.context)
+    expect(svg.search(keyOf('comparison'))).toBeLessThan(
+      svg.search(keyOf('series-1'))
+    )
+  })
+
+  it('keeps focus on the series, not the comparison', () => {
+    const scene = createChartScene(
+      lineChart.build(comparisonExample, paint, frame),
+      { width: 640, height: 260 }
+    )
+    expect(new Set(scene.points.map((p) => p.markId))).toEqual(
+      new Set(['series-1'])
+    )
+  })
+
+  it('leaves the comparison out when series are set', () => {
+    const svg = svgOf({
+      ...salesByTypeExample,
+      comparison: { y: 'orders' }
+    })
+    expect(svg).not.toMatch(keyOf('comparison'))
+  })
+
+  it('counts the comparison in the y domain', () => {
+    const higher = {
+      ...comparisonExample,
+      data: comparisonExample.data.map((row) => ({ ...row, lastPeriod: 500 }))
+    }
+    expect(lineYExtent(higher)[1]).toBeGreaterThanOrEqual(500)
+  })
+
+  it('adds up the comparison when the line is cumulative', () => {
+    const table = lineChartTable({ ...comparisonExample, cumulative: true })
+    const total = comparisonExample.data.reduce(
+      (sum, row) => sum + (row.lastPeriod as number),
+      0
+    )
+    expect(table.rows.at(-1)?.lastPeriod).toBe(total)
+  })
+
+  it.each([
+    ['its label', comparisonExample, 'Previous period'],
+    [
+      'the field when it has no label',
+      { ...comparisonExample, comparison: { y: 'lastPeriod' } },
+      'Last period'
+    ]
+  ])('names the comparison by %s', (_, props, name) => {
+    expect(svgOf(props)).toContain(`>${name} 96</text>`)
+    expect(
+      lineChart
+        .legend(props, paint, plotFrame(160, 'narrow'))
+        .map((i) => [i.label, i.color])
+    ).toEqual([
+      ['Tickets', paint.categorical[0]],
+      [name, paint.context]
+    ])
+    expect(lineChart.tooltip([at(2)], props, paint).rows).toEqual([
+      expect.objectContaining({ label: 'Tickets', value: '51' }),
+      expect.objectContaining({
+        label: name,
+        value: '44',
+        color: paint.context
+      })
+    ])
+  })
+
+  it('speaks the comparison with the point', () => {
+    expect(lineChart.describe(at(2), comparisonExample)).toBe(
+      'Tuesday, 18 August 2026, 51 tickets, previous period 44'
+    )
+  })
+
+  it('keeps an acronym in the spoken comparison', () => {
+    const props = {
+      ...comparisonExample,
+      comparison: { y: 'lastPeriod', label: 'LY tickets' }
+    }
+    expect(lineChart.describe(at(2), props)).toBe(
+      'Tuesday, 18 August 2026, 51 tickets, LY tickets 44'
+    )
+  })
+
+  it('tabulates the comparison after the series', () => {
+    const table = lineChartTable(comparisonExample)
+    expect(table.columns.map((c) => c.header)).toEqual([
+      'Day',
+      'Tickets',
+      'Previous period'
+    ])
+    expect(table.rows[2]).toMatchObject({ tickets: 51, lastPeriod: 44 })
   })
 })
 
