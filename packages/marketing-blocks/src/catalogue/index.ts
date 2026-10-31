@@ -1,5 +1,5 @@
 import { ctaBandDefinition } from '../CTABand/definition'
-import { cardGridDefinition } from '../CardGrid/definition'
+import { cardsDefinition } from '../Cards/definition'
 import { faqDefinition } from '../FAQ/definition'
 import { galleryDefinition } from '../Gallery/definition'
 import { heroDefinition } from '../Hero/definition'
@@ -66,7 +66,7 @@ const DEFINITIONS: readonly BlockDefinition[] = [
   heroDefinition,
   richTextDefinition,
   splitDefinition,
-  cardGridDefinition,
+  cardsDefinition,
   statsDefinition,
   mosaicDefinition,
   testimonialDefinition,

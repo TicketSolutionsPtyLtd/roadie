@@ -29,59 +29,59 @@ import {
   gapOf
 } from '../_shared/surface'
 import { useBlock } from '../_shared/useBlock'
-import { type CardGridPreset, cardGridDefinition } from './definition'
+import { type CardsPreset, cardsDefinition } from './definition'
 
-export type { CardGridPreset } from './definition'
+export type { CardsPreset } from './definition'
 
-export type CardGridItem = {
-  /** The card's heading, or a person's name in `portraits`. */
+export type CardsItem = {
+  /** The card's heading, marked over the photo in `photo`. */
   title: string
-  /** A short line under the title, or a person's role in `portraits`. Numbered cards leave it out. */
+  /** A short line under the title, such as a person's role in `photo`. Numbered cards leave it out. */
   subtitle?: string
-  /** Every preset but `portraits` and `lists` shows it. */
+  /** Every preset but `photo` and `lists` shows it. */
   description?: string
   /** Every preset but `lists` shows it. */
   image?: BlockImage
-  /** Shown by `cards`, `marked-cards`, and `overlap-cards`. In `cards`, it overlaps the image's lower edge, or sits above the title with no image. */
+  /** Shown by `plain`, `marked`, and `overlap`. In `plain`, it overlaps the image's lower edge, or sits above the title with no image. */
   illustration?: SpotIllustrationName
   /** The list `lists` shows under the title. */
   points?: readonly string[]
   /** The item's own page. Its title becomes the link, and the whole card the place to click. */
   href?: string
   /**
-   * This item's intent, in place of the block's. It tints the card in `cards`, `marked-cards`, and `lists`, and sets the mark that carries the preset's colour: the title in `marked-cards` and `overlap-cards`, the number in numbered `cards`, and the role in `portraits`.
+   * This item's intent, in place of the block's. It tints the card in `plain`, `marked`, and `lists`, and sets the mark that carries the preset's colour: the title in `marked` and `overlap`, the number in numbered `plain`, and the subtitle in `photo`.
    */
   intent?: BlockIntent
 }
 
-export type CardGridProps = {
+export type CardsProps = {
   /**
-   * The look. Every preset is a grid of cards. `cards` shows what each item has: an image, an illustration over it or above the title, and with `numbered`, a number.
-   * @default 'cards'
+   * The look. Every preset is a grid of cards. `plain` shows what each item has: an image, an illustration over it or above the title, and with `numbered`, a number.
+   * @default 'plain'
    */
-  preset?: CardGridPreset
+  preset?: CardsPreset
   /** The block's place on the page, counting from 1, reported with its events. */
   position?: number
   /** An id for linking to the block. */
   id?: string
   /**
-   * The block's intent. Its highlighted words, strong action, and every card's mark take it: the title in `marked-cards` and `overlap-cards`, the number in numbered `cards`, and the role in `portraits`. Without one, marks keep the preset's colours: info, brand-secondary, or a cycle of info, brand, and brand-secondary.
+   * The block's intent. Its highlighted words, strong action, and every card's mark take it: the title in `marked` and `overlap`, the number in numbered `plain`, and the subtitle in `photo`. Without one, marks keep the preset's colours: info, brand-secondary, or a cycle of info, brand, and brand-secondary.
    */
   intent?: BlockIntent
-  /** The surface behind the block. Unset, `portraits` sits on `raised` and the other presets have none. */
+  /** The surface behind the block. Unset, `photo` sits on `raised` and the other presets have none. */
   emphasis?: BlockEmphasis
-  /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `portraits` is contained and the other presets are bands. */
+  /** Draws the surface as a panel inside the page's padding instead of a full-width band. Unset, `photo` is contained and the other presets are bands. */
   contained?: boolean
-  /** Every card's surface. Unset, cards have none, though a linked card with none takes `subtler`. `overlap-cards` and `portraits` ignore it, since they draw an inverted panel or a photo. */
+  /** Every card's surface. Unset, cards have none, though a linked card with none takes `subtler`. `overlap` and `photo` ignore it, since they draw an inverted panel or a photo. */
   itemEmphasis?: ItemEmphasis
-  /** The heading's alignment, and in `cards`, the card text's too. Unset, `cards` centres the heading and starts the card text, `marked-cards` and `overlap-cards` centre the heading, and `portraits` and `lists` start it. */
+  /** The heading's alignment, and in `plain`, the card text's too. Unset, `plain` centres the heading and starts the card text, `marked` and `overlap` centre the heading, and `photo` and `lists` start it. */
   align?: BlockAlign
   /**
    * `md` and `sm` set the title one and two steps smaller and tightens the gap under the heading.
    * @default 'lg'
    */
   size?: BlockSize
-  /** Numbers `cards` in order, as an ordered list, for the steps of how it works. */
+  /** Numbers `plain` in order, as an ordered list, for the steps of how it works. */
   numbered?: boolean
   /** A short line above the title. */
   eyebrow?: string
@@ -90,22 +90,22 @@ export type CardGridProps = {
   titleHighlight?: string | string[]
   /** A sentence under the title. */
   description?: string
-  items: readonly CardGridItem[]
+  items: readonly CardsItem[]
   /** Links under the cards, such as to see them all. The first is the strong one. */
   actions?: readonly BlockAction[]
 }
 
 type CardProps = {
-  item: CardGridItem
+  item: CardsItem
   index: number
   itemEmphasis: ItemEmphasis | undefined
   blockIntent: BlockIntent | undefined
   numbered: boolean
-  /** Centres the card's text, in `cards`. */
+  /** Centres the card's text, in `plain`. */
   centred: boolean
 }
 
-function CardTitle({ item }: { item: CardGridItem }) {
+function CardTitle({ item }: { item: CardsItem }) {
   if (!item.href) return item.title
   return <Card.Link href={item.href}>{item.title}</Card.Link>
 }
@@ -117,7 +117,7 @@ function GridCard({
   className,
   children
 }: {
-  item: CardGridItem
+  item: CardsItem
   itemEmphasis: ItemEmphasis | undefined
   className: string
   children: ReactNode
@@ -333,7 +333,7 @@ function IndustryCard(props: CardProps) {
   )
 }
 
-function PortraitCard(props: CardProps) {
+function PhotoCard(props: CardProps) {
   const { item } = props
   return (
     <li className='group/tile dark is-interactive-within relative grid aspect-square min-w-0 overflow-hidden rounded-2xl'>
@@ -351,7 +351,7 @@ function PortraitCard(props: CardProps) {
           <Mark
             render={<p />}
             intent={markIntent(props.item, props.blockIntent, 'info')}
-            className='max-w-full truncate px-2 py-1 font-medium'
+            className='max-w-full px-2 py-1 font-medium text-pretty'
           >
             {item.subtitle}
           </Mark>
@@ -391,21 +391,21 @@ type Look = {
 }
 
 // Columns follow the block's own width, not the viewport's, so a block in a narrow layout stays narrow.
-const LOOKS: Record<CardGridPreset, Look> = {
-  cards: {
+const LOOKS: Record<CardsPreset, Look> = {
+  plain: {
     Item: PlainCard,
     list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @4xl:grid-cols-3'
   },
-  'marked-cards': {
+  marked: {
     Item: ServiceCard,
     list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @7xl:grid-cols-4'
   },
-  'overlap-cards': {
+  overlap: {
     Item: IndustryCard,
     list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @5xl:grid-cols-3'
   },
-  portraits: {
-    Item: PortraitCard,
+  photo: {
+    Item: PhotoCard,
     list: 'grid grid-cols-1 gap-8 @xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4'
   },
   lists: {
@@ -420,17 +420,17 @@ const NUMBERED_LIST =
 const COMPACT_LIST = 'grid grid-cols-1 gap-6 @xl:grid-cols-2 @4xl:grid-cols-3'
 
 function listOf(
-  name: CardGridPreset,
-  items: readonly CardGridItem[],
+  name: CardsPreset,
+  items: readonly CardsItem[],
   numbered: boolean
 ) {
-  if (name !== 'cards') return LOOKS[name].list
+  if (name !== 'plain') return LOOKS[name].list
   if (numbered) return NUMBERED_LIST
-  return items.some((item) => item.image) ? LOOKS.cards.list : COMPACT_LIST
+  return items.some((item) => item.image) ? LOOKS.plain.list : COMPACT_LIST
 }
 
 /** Like items, such as benefits, services, steps, contact options, values, or people, as cards in columns. */
-export function CardGrid(props: CardGridProps) {
+export function Cards(props: CardsProps) {
   const {
     intent,
     itemEmphasis,
@@ -440,14 +440,14 @@ export function CardGrid(props: CardGridProps) {
     eyebrow,
     items
   } = props
-  const block = useBlock(cardGridDefinition, props)
+  const block = useBlock(cardsDefinition, props)
   const { name } = block
   const look = LOOKS[name]
   const { Item } = look
-  const ordered = name === 'cards' && numbered
+  const ordered = name === 'plain' && numbered
   const headingAlign = block.align
   const List = ordered ? 'ol' : 'ul'
-  const markedEyebrow = name === 'overlap-cards' && eyebrow
+  const markedEyebrow = name === 'overlap' && eyebrow
 
   return (
     <BlockRoot {...block.root}>

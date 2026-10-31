@@ -34,9 +34,9 @@
       "types": "./dist/CTABand/index.d.ts",
       "import": "./dist/CTABand/index.js"
     },
-    "./card-grid": {
-      "types": "./dist/CardGrid/index.d.ts",
-      "import": "./dist/CardGrid/index.js"
+    "./cards": {
+      "types": "./dist/Cards/index.d.ts",
+      "import": "./dist/Cards/index.js"
     },
     "./faq": {
       "types": "./dist/FAQ/index.d.ts",

@@ -2,10 +2,10 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { CardGrid, type CardGridItem } from '.'
+import { Cards, type CardsItem } from '.'
 import { MarketingBlocksProvider } from '../Provider'
 
-const benefits: CardGridItem[] = [
+const benefits: CardsItem[] = [
   {
     title: 'You sell more tickets',
     description: 'Marketing that drives attendance.',
@@ -20,7 +20,7 @@ const benefits: CardGridItem[] = [
   }
 ]
 
-const values: CardGridItem[] = [
+const values: CardsItem[] = [
   {
     title: 'Proactive touch',
     subtitle: 'See it coming',
@@ -35,32 +35,30 @@ const values: CardGridItem[] = [
   }
 ]
 
-describe('CardGrid', () => {
+describe('Cards', () => {
   it('names its section by the title and says its preset and variant', () => {
-    render(<CardGrid preset='portraits' title='Our values' items={values} />)
+    render(<Cards preset='photo' title='Our values' items={values} />)
 
     const section = screen.getByRole('region', { name: 'Our values' })
-    expect(section).toHaveAttribute('data-block', 'card-grid')
-    expect(section).toHaveAttribute('data-preset', 'portraits')
+    expect(section).toHaveAttribute('data-block', 'cards')
+    expect(section).toHaveAttribute('data-preset', 'photo')
     expect(section).toHaveAttribute('data-variant', 'grid')
   })
 
   it('renders cards by default, as a grid', () => {
-    render(
-      <CardGrid title='Great events need great partners' items={benefits} />
-    )
+    render(<Cards title='Great events need great partners' items={benefits} />)
 
     const section = screen.getByRole('region', {
       name: 'Great events need great partners'
     })
-    expect(section).toHaveAttribute('data-preset', 'cards')
+    expect(section).toHaveAttribute('data-preset', 'plain')
     expect(section).toHaveAttribute('data-variant', 'grid')
   })
 
-  it.each(['cards', 'marked-cards', 'overlap-cards', 'portraits'] as const)(
+  it.each(['plain', 'marked', 'overlap', 'photo'] as const)(
     'shows %s items as titled cards with their images',
     (preset) => {
-      render(<CardGrid preset={preset} title='Section' items={values} />)
+      render(<Cards preset={preset} title='Section' items={values} />)
 
       const list = screen.getByRole('list')
       expect(within(list).getAllByRole('listitem')).toHaveLength(2)
@@ -74,17 +72,17 @@ describe('CardGrid', () => {
     }
   )
 
-  it.each(['cards', 'marked-cards', 'overlap-cards'] as const)(
+  it.each(['plain', 'marked', 'overlap'] as const)(
     'shows each %s item’s description',
     (preset) => {
-      render(<CardGrid preset={preset} title='Section' items={values} />)
+      render(<Cards preset={preset} title='Section' items={values} />)
 
       expect(screen.getByText('We love what we do.')).toBeInTheDocument()
     }
   )
 
-  it('shows portraits by name and role, leaving out descriptions', () => {
-    render(<CardGrid preset='portraits' title='Leadership' items={values} />)
+  it('shows photo cards by title and subtitle, leaving out descriptions', () => {
+    render(<Cards preset='photo' title='Leadership' items={values} />)
 
     expect(
       screen.getByRole('heading', { level: 3, name: 'Positive energy' })
@@ -95,8 +93,8 @@ describe('CardGrid', () => {
 
   it('renders the section heading with its eyebrow, highlight, and description', () => {
     render(
-      <CardGrid
-        preset='overlap-cards'
+      <Cards
+        preset='overlap'
         eyebrow='How does Oztix partner?'
         title='We understand your industry'
         titleHighlight='industry'
@@ -120,7 +118,7 @@ describe('CardGrid', () => {
 
   it('draws each named illustration, hidden from assistive tech', () => {
     const { container } = render(
-      <CardGrid preset='cards' title='Section' items={benefits} />
+      <Cards preset='plain' title='Section' items={benefits} />
     )
 
     const illustrations = container.querySelectorAll('svg[aria-hidden="true"]')
@@ -129,7 +127,7 @@ describe('CardGrid', () => {
 
   it('lists each column’s points under its title, with no images', () => {
     render(
-      <CardGrid
+      <Cards
         preset='lists'
         title='Social and corporate governance'
         items={[
@@ -158,7 +156,7 @@ describe('CardGrid', () => {
   it('keeps repeated points and items apart', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     render(
-      <CardGrid
+      <Cards
         preset='lists'
         title='Policies'
         items={[
@@ -180,7 +178,7 @@ describe('CardGrid', () => {
       <MarketingBlocksProvider
         renderImage={({ alt }) => <img alt={alt} src='/optimised.webp' />}
       >
-        <CardGrid preset='portraits' title='Leadership' items={values} />
+        <Cards preset='photo' title='Leadership' items={values} />
       </MarketingBlocksProvider>
     )
 
@@ -189,19 +187,13 @@ describe('CardGrid', () => {
     ).toHaveAttribute('src', '/optimised.webp')
   })
 
-  it.each([
-    'cards',
-    'marked-cards',
-    'overlap-cards',
-    'portraits',
-    'lists'
-  ] as const)(
+  it.each(['plain', 'marked', 'overlap', 'photo', 'lists'] as const)(
     'links a %s card by its title and reports the title alone as the click label',
     async (preset) => {
       const onBlockEvent = vi.fn()
       render(
         <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
-          <CardGrid
+          <Cards
             preset={preset}
             title='We understand your industry'
             items={[
@@ -244,8 +236,8 @@ describe('CardGrid', () => {
     const onBlockEvent = vi.fn()
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
-        <CardGrid
-          preset='marked-cards'
+        <Cards
+          preset='marked'
           title='Our partnership services'
           items={values}
           actions={[
@@ -277,8 +269,8 @@ describe('CardGrid', () => {
 
   it('numbers cards as an ordered list, in order, when numbered', () => {
     render(
-      <CardGrid
-        preset='cards'
+      <Cards
+        preset='plain'
         numbered
         title='Make sure your show is seen'
         items={[
@@ -310,14 +302,14 @@ describe('CardGrid', () => {
   })
 
   it('lists cards unordered unless numbered', () => {
-    render(<CardGrid title='Section' items={values} />)
+    render(<Cards title='Section' items={values} />)
 
     expect(screen.getByRole('list').tagName).toBe('UL')
   })
 
   it('sets an illustration above the title of a card with no image', () => {
     const { container } = render(
-      <CardGrid
+      <Cards
         title='How can we help?'
         items={[
           {
@@ -358,7 +350,7 @@ describe('CardGrid', () => {
 
     it('gives its strong action the block’s intent', () => {
       render(
-        <CardGrid
+        <Cards
           intent='brand'
           title='Section'
           items={values}
@@ -372,7 +364,7 @@ describe('CardGrid', () => {
     })
 
     it('sets the block’s intent on its section', () => {
-      render(<CardGrid intent='brand' title='Section' items={values} />)
+      render(<Cards intent='brand' title='Section' items={values} />)
 
       const section = screen.getByRole('region', { name: 'Section' })
       expect(section).toHaveAttribute('data-intent', 'brand')
@@ -380,15 +372,15 @@ describe('CardGrid', () => {
     })
 
     it.each([
-      ['portraits', undefined, 'emphasis-raised', 'panel'],
-      ['cards', 'raised', 'emphasis-raised', 'band'],
-      ['cards', 'subtle', 'emphasis-subtle', 'band'],
-      ['marked-cards', 'subtler', 'emphasis-subtler', 'band']
+      ['photo', undefined, 'emphasis-raised', 'panel'],
+      ['plain', 'raised', 'emphasis-raised', 'band'],
+      ['plain', 'subtle', 'emphasis-subtle', 'band'],
+      ['marked', 'subtler', 'emphasis-subtler', 'band']
     ] as const)(
       'draws %s on a %s surface',
       (preset, emphasis, expected, shape) => {
         render(
-          <CardGrid
+          <Cards
             preset={preset}
             emphasis={emphasis}
             title='Section'
@@ -402,13 +394,13 @@ describe('CardGrid', () => {
     )
 
     it.each([
-      ['cards', true, 'panel'],
-      ['portraits', false, 'band']
+      ['plain', true, 'panel'],
+      ['photo', false, 'band']
     ] as const)(
       'draws %s with contained %s as a %s',
       (preset, contained, shape) => {
         render(
-          <CardGrid
+          <Cards
             preset={preset}
             emphasis='subtle'
             contained={contained}
@@ -421,23 +413,23 @@ describe('CardGrid', () => {
       }
     )
 
-    it.each(['cards', 'marked-cards', 'overlap-cards', 'lists'] as const)(
+    it.each(['plain', 'marked', 'overlap', 'lists'] as const)(
       'draws no surface for %s unless one is set',
       (preset) => {
-        render(<CardGrid preset={preset} title='Section' items={values} />)
+        render(<Cards preset={preset} title='Section' items={values} />)
 
         expect(surfaceOf()).toBeNull()
       }
     )
 
     it.each([
-      ['cards', 'raised', 'emphasis-raised'],
-      ['marked-cards', 'subtle', 'emphasis-subtle'],
-      ['cards', 'normal', 'emphasis-normal'],
+      ['plain', 'raised', 'emphasis-raised'],
+      ['marked', 'subtle', 'emphasis-subtle'],
+      ['plain', 'normal', 'emphasis-normal'],
       ['lists', 'subtler', 'emphasis-subtler']
     ] as const)('draws %s cards as %s', (preset, itemEmphasis, expected) => {
       render(
-        <CardGrid
+        <Cards
           preset={preset}
           itemEmphasis={itemEmphasis}
           title='Section'
@@ -452,8 +444,8 @@ describe('CardGrid', () => {
       'inverts overlap-cards panels, with itemEmphasis %s',
       (itemEmphasis) => {
         render(
-          <CardGrid
-            preset='overlap-cards'
+          <Cards
+            preset='overlap'
             itemEmphasis={itemEmphasis}
             title='Section'
             items={values}
@@ -467,22 +459,17 @@ describe('CardGrid', () => {
 
     it('draws numbered cards on their item emphasis', () => {
       render(
-        <CardGrid
-          numbered
-          itemEmphasis='raised'
-          title='Section'
-          items={values}
-        />
+        <Cards numbered itemEmphasis='raised' title='Section' items={values} />
       )
 
       for (const card of cardsOf()) expect(card).toHaveClass('emphasis-raised')
     })
 
-    it.each(['cards', 'marked-cards', 'lists'] as const)(
+    it.each(['plain', 'marked', 'lists'] as const)(
       'gives a linked %s card with no surface the subtler one, and leaves the rest bare',
       (preset) => {
         render(
-          <CardGrid
+          <Cards
             preset={preset}
             title='Section'
             items={[{ ...values[0]!, href: '/values/proactive' }, values[1]!]}
@@ -498,7 +485,7 @@ describe('CardGrid', () => {
 
     it('tints a card in its item’s intent', () => {
       render(
-        <CardGrid
+        <Cards
           title='Section'
           items={[{ ...values[0]!, intent: 'success' }, values[1]!]}
         />
@@ -511,8 +498,8 @@ describe('CardGrid', () => {
 
     it('lets an item’s intent replace the cycling mark in overlap-cards', () => {
       render(
-        <CardGrid
-          preset='overlap-cards'
+        <Cards
+          preset='overlap'
           title='Section'
           items={[{ ...values[0]!, intent: 'success' }, values[1]!]}
         />
@@ -530,13 +517,13 @@ describe('CardGrid', () => {
       screen.getByText(name).closest('[data-slot="mark"]')
 
     it.each([
-      ['marked-cards', false, 'info'],
-      ['cards', true, 'brand-secondary']
+      ['marked', false, 'info'],
+      ['plain', true, 'brand-secondary']
     ] as const)(
       'marks %s (numbered: %s) in the block’s intent, an item’s own, or %s',
       (preset, numbered, fallback) => {
         const { unmount } = render(
-          <CardGrid
+          <Cards
             preset={preset}
             numbered={numbered}
             title='Section'
@@ -551,7 +538,7 @@ describe('CardGrid', () => {
         unmount()
 
         render(
-          <CardGrid
+          <Cards
             preset={preset}
             numbered={numbered}
             intent='danger'
@@ -566,8 +553,8 @@ describe('CardGrid', () => {
 
     it('marks every overlap-cards title in the block’s intent instead of cycling', () => {
       render(
-        <CardGrid
-          preset='overlap-cards'
+        <Cards
+          preset='overlap'
           intent='danger'
           title='Section'
           items={[
@@ -583,10 +570,10 @@ describe('CardGrid', () => {
       expect(markOf('Third')).toHaveClass('intent-success')
     })
 
-    it('marks a portrait’s role, not its name, in the block’s or item’s intent', () => {
+    it('marks a photo card’s subtitle, not its title, in the block’s or item’s intent', () => {
       render(
-        <CardGrid
-          preset='portraits'
+        <Cards
+          preset='photo'
           intent='danger'
           title='Leadership'
           items={[values[0]!, { ...values[1]!, intent: 'success' }]}

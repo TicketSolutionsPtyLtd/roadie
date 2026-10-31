@@ -95,7 +95,7 @@ describe('BlockRoot', () => {
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
         <BlockRoot
-          block='card-grid'
+          block='cards'
           variant='grid'
           preset='features'
           id='why-oztix'

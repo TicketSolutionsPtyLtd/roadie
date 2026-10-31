@@ -1,40 +1,40 @@
 import type { BlockDefinition } from '../catalogue'
 
-export const cardGridDefinition = {
-  name: 'card-grid',
-  title: 'Card grid',
+export const cardsDefinition = {
+  name: 'cards',
+  title: 'Cards',
   description:
     'A set of like items, such as benefits, services, steps, values, or people, as cards in columns.',
   presets: [
     {
-      name: 'cards',
-      title: 'Cards',
+      name: 'plain',
+      title: 'Plain',
       description:
         'Cards of a title and description, with an image, an illustration, or both, for benefits, features, steps, or places to go next. Numbered, they show the steps of how it works.',
       variant: 'grid',
       defaults: { align: 'center' }
     },
     {
-      name: 'marked-cards',
-      title: 'Marked cards',
+      name: 'marked',
+      title: 'Marked',
       description:
         'Up to four cards in columns, each an image above a marked title and subtitle, for services.',
       variant: 'grid',
       defaults: { align: 'center' }
     },
     {
-      name: 'overlap-cards',
-      title: 'Overlap cards',
+      name: 'overlap',
+      title: 'Overlap',
       description:
         'Square images, each overlapped by an inverted panel holding an illustration, a marked title, and a description, for industries.',
       variant: 'grid',
       defaults: { align: 'center' }
     },
     {
-      name: 'portraits',
-      title: 'Portraits',
+      name: 'photo',
+      title: 'Photo',
       description:
-        'Square photos on a contained raised surface, each with a name and role marked over it, for the team, speakers, or artists.',
+        'Square photos on a contained raised surface, each with a title and subtitle marked over it, for people, venues, or events.',
       variant: 'grid',
       defaults: { align: 'start', emphasis: 'raised', contained: true }
     },
@@ -49,5 +49,5 @@ export const cardGridDefinition = {
   ]
 } as const satisfies BlockDefinition
 
-/** A CardGrid preset's name. */
-export type CardGridPreset = (typeof cardGridDefinition.presets)[number]['name']
+/** A Cards preset's name. */
+export type CardsPreset = (typeof cardsDefinition.presets)[number]['name']

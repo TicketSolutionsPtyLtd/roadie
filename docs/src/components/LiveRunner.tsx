@@ -107,7 +107,7 @@ import {
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { Editor, useEditorContext } from '@oztix/roadie-editor/editor'
 import { renderEditorValue } from '@oztix/roadie-editor/render'
-import { CardGrid } from '@oztix/roadie-marketing-blocks/card-grid'
+import { Cards } from '@oztix/roadie-marketing-blocks/cards'
 import { CTABand } from '@oztix/roadie-marketing-blocks/cta-band'
 import { FAQ } from '@oztix/roadie-marketing-blocks/faq'
 import { Gallery } from '@oztix/roadie-marketing-blocks/gallery'
@@ -234,7 +234,7 @@ const scope = {
   MarketingBlocksProvider,
   Hero,
   RichText,
-  CardGrid,
+  Cards,
   Split,
   Stats,
   Mosaic,

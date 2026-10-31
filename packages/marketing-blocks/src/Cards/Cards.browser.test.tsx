@@ -2,16 +2,12 @@ import type { ComponentType } from 'react'
 
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
-import { commands, userEvent } from 'vitest/browser'
+import { commands, page, userEvent } from 'vitest/browser'
 
-import {
-  CardGrid,
-  type CardGridItem,
-  type CardGridPreset,
-  type CardGridProps
-} from '.'
+import { Cards, type CardsItem, type CardsPreset, type CardsProps } from '.'
 import { MarketingBlocksProvider } from '../Provider'
 import {
+  DESKTOP,
   axeViolations,
   fontSizeOf,
   photo,
@@ -23,11 +19,11 @@ import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
 
-describeBlockFrame('card-grid', 'cards', CardGrid as ComponentType<never>, {
+describeBlockFrame('cards', 'plain', Cards as ComponentType<never>, {
   items: [{ title: 'Fast payouts' }]
 })
 
-const items: CardGridItem[] = [
+const items: CardsItem[] = [
   'Live music',
   'Venues',
   'Shows',
@@ -45,23 +41,23 @@ const items: CardGridItem[] = [
 
 const withoutImages = items.map(({ image: _image, ...item }) => item)
 
-// The old presets `cards` replaces, each as the props that reproduce it.
+// The old presets `plain` replaces, each as the props that reproduce it.
 const LOOKS = {
-  cards: { preset: 'cards' },
-  illustrated: { preset: 'cards', align: 'center', emphasis: 'raised' },
-  numbered: { preset: 'cards', numbered: true },
-  link: { preset: 'cards', itemEmphasis: 'raised', items: withoutImages },
-  'marked-cards': { preset: 'marked-cards' },
-  'overlap-cards': { preset: 'overlap-cards' },
-  portraits: { preset: 'portraits' },
+  plain: { preset: 'plain' },
+  illustrated: { preset: 'plain', align: 'center', emphasis: 'raised' },
+  numbered: { preset: 'plain', numbered: true },
+  link: { preset: 'plain', itemEmphasis: 'raised', items: withoutImages },
+  marked: { preset: 'marked' },
+  overlap: { preset: 'overlap' },
+  photo: { preset: 'photo' },
   lists: { preset: 'lists' }
-} satisfies Record<string, Partial<CardGridProps>>
+} satisfies Record<string, Partial<CardsProps>>
 
 type Look = keyof typeof LOOKS
 const LOOK_NAMES = Object.keys(LOOKS) as Look[]
 
-const propsOf = (look: Look, count = 4): CardGridProps => {
-  const props: Partial<CardGridProps> = LOOKS[look]
+const propsOf = (look: Look, count = 4): CardsProps => {
+  const props: Partial<CardsProps> = LOOKS[look]
   return {
     title: 'Section',
     ...props,
@@ -80,7 +76,7 @@ function Block({
 }) {
   return (
     <div style={{ width }}>
-      <CardGrid {...propsOf(look, count)} />
+      <Cards {...propsOf(look, count)} />
     </div>
   )
 }
@@ -96,12 +92,12 @@ const columns = () =>
   new Set(cards().map((card) => Math.round(card.getBoundingClientRect().left)))
     .size
 
-describe('CardGrid columns', () => {
+describe('Cards columns', () => {
   it.each<[Look, number, number]>([
     ['illustrated', 3, 3],
-    ['marked-cards', 4, 4],
-    ['overlap-cards', 6, 3],
-    ['portraits', 4, 4],
+    ['marked', 4, 4],
+    ['overlap', 6, 3],
+    ['photo', 4, 4],
     ['lists', 3, 3],
     ['numbered', 4, 4],
     ['link', 3, 3]
@@ -121,9 +117,9 @@ describe('CardGrid columns', () => {
 
   it.each<[Look, number]>([
     ['illustrated', 1],
-    ['marked-cards', 1],
-    ['overlap-cards', 1],
-    ['portraits', 2],
+    ['marked', 1],
+    ['overlap', 1],
+    ['photo', 2],
     ['lists', 2],
     ['numbered', 1],
     ['link', 2]
@@ -142,7 +138,7 @@ describe('CardGrid columns', () => {
       const props = propsOf(look, 1)
       render(
         <div style={{ width: 375 }}>
-          <CardGrid
+          <Cards
             {...props}
             items={[
               {
@@ -164,20 +160,20 @@ describe('CardGrid columns', () => {
   )
 
   it('takes its columns from its own width, not the window’s', () => {
-    render(<Block look='marked-cards' width={600} />)
+    render(<Block look='marked' width={600} />)
 
     expect(window.innerWidth).toBeGreaterThan(1280)
     expect(columns()).toBe(1)
   })
 
   it('sets services in two columns at a tablet’s width', () => {
-    render(<Block look='marked-cards' width={800} />)
+    render(<Block look='marked' width={800} />)
 
     expect(columns()).toBe(2)
   })
 })
 
-describe('CardGrid lists', () => {
+describe('Cards lists', () => {
   it.each([
     [768, 2],
     [1024, 3]
@@ -193,12 +189,12 @@ describe('CardGrid lists', () => {
   )
 })
 
-describe('CardGrid long words', () => {
+describe('Cards long words', () => {
   it('keeps its heading inside the block on a phone', () => {
     render(
       <div style={{ width: 375 }}>
-        <CardGrid
-          preset='marked-cards'
+        <Cards
+          preset='marked'
           title={'Ticketverkaufsplattformen'.repeat(3)}
           description={'Ticketverkaufsplattformen'.repeat(3)}
           items={items.slice(0, 1)}
@@ -217,7 +213,7 @@ describe('CardGrid long words', () => {
   })
 })
 
-describe('CardGrid at 960px', () => {
+describe('Cards at 960px', () => {
   it.each<[Look, number, number]>([
     ['illustrated', 3, 3],
     ['lists', 3, 3]
@@ -234,7 +230,7 @@ describe('CardGrid at 960px', () => {
   })
 })
 
-describe('CardGrid illustrated cards', () => {
+describe('Cards illustrated cards', () => {
   const alignment = () =>
     getComputedStyle(
       screen.getAllByRole('heading', { level: 3 })[0]!.parentElement!
@@ -264,22 +260,22 @@ describe('CardGrid illustrated cards', () => {
   })
 })
 
-describe('CardGrid align and size', () => {
+describe('Cards align and size', () => {
   const heading = () => screen.getByRole('heading', { level: 2 })
   const cardTitle = () => screen.getAllByRole('heading', { level: 3 })[0]!
 
   it('centres the heading and starts the card text when align is unset', () => {
-    render(<Block look='cards' width={1280} />)
+    render(<Block look='plain' width={1280} />)
 
     expect(textAlignOf(heading())).toBe('center')
     expect(textAlignOf(cardTitle())).toBe('start')
   })
 
-  it.each(['cards', 'marked-cards'] as const)(
+  it.each(['plain', 'marked'] as const)(
     'starts the %s heading when align is start',
     (preset) => {
       render(
-        <CardGrid preset={preset} align='start' title='Section' items={items} />
+        <Cards preset={preset} align='start' title='Section' items={items} />
       )
 
       expect(textAlignOf(heading())).toBe('start')
@@ -287,12 +283,12 @@ describe('CardGrid align and size', () => {
   )
 
   it('sets the title smaller at md, and again at sm', () => {
-    const { rerender } = render(<Block look='cards' width={1280} />)
+    const { rerender } = render(<Block look='plain' width={1280} />)
     const large = fontSizeOf(heading())
 
     rerender(
       <div style={{ width: 1280 }}>
-        <CardGrid {...propsOf('cards')} size='md' />
+        <Cards {...propsOf('plain')} size='md' />
       </div>
     )
     expect(fontSizeOf(heading())).toBeLessThan(large)
@@ -300,25 +296,25 @@ describe('CardGrid align and size', () => {
 
     rerender(
       <div style={{ width: 1280 }}>
-        <CardGrid {...propsOf('cards')} size='sm' />
+        <Cards {...propsOf('plain')} size='sm' />
       </div>
     )
     expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
 })
 
-describe('CardGrid images', () => {
+describe('Cards images', () => {
   const ratio = (image: HTMLElement) => {
     const { width, height } = image.getBoundingClientRect()
     return Math.round((width / height) * 100) / 100
   }
 
   it.each<[Look, number]>([
-    ['cards', 1.78],
+    ['plain', 1.78],
     ['numbered', 1.78],
-    ['marked-cards', 1.33],
-    ['overlap-cards', 1],
-    ['portraits', 1]
+    ['marked', 1.33],
+    ['overlap', 1],
+    ['photo', 1]
   ])('crops a sized 4:3 photo to the %s shape', (look, shape) => {
     render(<Block look={look} width={1280} count={1} />)
 
@@ -326,9 +322,9 @@ describe('CardGrid images', () => {
   })
 })
 
-describe('CardGrid portraits', () => {
+describe('Cards photo', () => {
   it('insets its raised panel inside the page’s padding, with rounded corners', () => {
-    render(<Block look='portraits' width={1440} count={4} />)
+    render(<Block look='photo' width={1440} count={4} />)
 
     const section = screen.getByRole('region')
     const panel = section.querySelector('[data-slot="block-surface"]')!
@@ -339,9 +335,32 @@ describe('CardGrid portraits', () => {
       parseFloat(getComputedStyle(panel).borderTopLeftRadius)
     ).toBeGreaterThan(0)
   })
+
+  it('wraps a long subtitle rather than cutting it off', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(
+      <Cards
+        preset='photo'
+        title='Leadership'
+        items={[
+          {
+            title: 'Mia Tran',
+            subtitle: 'Head of Partnerships and Strategic Growth',
+            image: photo('Mia Tran', 400, 400)
+          }
+        ]}
+      />
+    )
+
+    const subtitle = screen.getByText(
+      'Head of Partnerships and Strategic Growth'
+    )
+    expect(subtitle.scrollWidth).toBeLessThanOrEqual(subtitle.clientWidth)
+    expect(getComputedStyle(subtitle).textOverflow).not.toBe('ellipsis')
+  })
 })
 
-describe('CardGrid overlap cards', () => {
+describe('Cards overlap cards', () => {
   const lightness = (element: Element) => {
     const [r, g, b] = getComputedStyle(element)
       .backgroundColor.match(/[\d.]+/g)!
@@ -358,7 +377,7 @@ describe('CardGrid overlap cards', () => {
       onTestFinished(() => setMode('light'))
       render(
         <div className='bg-normal'>
-          <CardGrid preset='overlap-cards' title='Section' items={items} />
+          <Cards preset='overlap' title='Section' items={items} />
         </div>
       )
 
@@ -375,7 +394,7 @@ describe('CardGrid overlap cards', () => {
   )
 })
 
-describe('CardGrid spacing', () => {
+describe('Cards spacing', () => {
   const gap = (look: Look) => {
     render(<Block look={look} width={1280} count={1} />)
     const section = screen.getByRole('region').getBoundingClientRect()
@@ -385,18 +404,14 @@ describe('CardGrid spacing', () => {
     return Math.round(heading.top - section.top)
   }
 
-  it.each<Look>([
-    'cards',
-    'marked-cards',
-    'overlap-cards',
-    'numbered',
-    'link',
-    'lists'
-  ])('%s leaves the space above it to the page', (look) => {
-    expect(gap(look)).toBe(0)
-  })
+  it.each<Look>(['plain', 'marked', 'overlap', 'numbered', 'link', 'lists'])(
+    '%s leaves the space above it to the page',
+    (look) => {
+      expect(gap(look)).toBe(0)
+    }
+  )
 
-  it.each<Look>(['illustrated', 'portraits'])(
+  it.each<Look>(['illustrated', 'photo'])(
     '%s pads its title inside its raised surface',
     (look) => {
       expect(gap(look)).toBeGreaterThan(0)
@@ -411,14 +426,14 @@ const illustrationCentre = (card: HTMLElement): [number, number][] => {
   return [[(left + right) / 2, (top + bottom) / 2]]
 }
 
-describe('CardGrid card links', () => {
+describe('Cards card links', () => {
   it.each(LOOK_NAMES)(
     'makes a linked %s card one hit area, from its image and illustration to its last line',
     (look) => {
       const props = propsOf(look, 1)
       render(
         <div style={{ width: 1280 }}>
-          <CardGrid
+          <Cards
             {...props}
             items={[{ ...props.items[0]!, href: '#live-music' }]}
           />
@@ -440,11 +455,11 @@ describe('CardGrid card links', () => {
   )
 })
 
-describe('CardGrid linked tiles', () => {
-  const scaleOnHover = async (preset: CardGridPreset, href?: string) => {
+describe('Cards linked tiles', () => {
+  const scaleOnHover = async (preset: CardsPreset, href?: string) => {
     render(
       <div style={{ width: 1280 }}>
-        <CardGrid
+        <Cards
           preset={preset}
           title='Section'
           items={[{ ...items[0]!, href }]}
@@ -455,7 +470,7 @@ describe('CardGrid linked tiles', () => {
     return screen.getByRole('img')
   }
 
-  it.each<CardGridPreset>(['overlap-cards', 'portraits'])(
+  it.each<CardsPreset>(['overlap', 'photo'])(
     'grows a linked %s photo on hover',
     async (preset) => {
       const image = await scaleOnHover(preset, '#live-music')
@@ -466,7 +481,7 @@ describe('CardGrid linked tiles', () => {
     }
   )
 
-  it.each<CardGridPreset>(['overlap-cards', 'portraits'])(
+  it.each<CardsPreset>(['overlap', 'photo'])(
     'keeps an unlinked %s photo still on hover',
     async (preset) => {
       const image = await scaleOnHover(preset)
@@ -478,20 +493,20 @@ describe('CardGrid linked tiles', () => {
 
   it('keeps a linked photo still when motion is reduced', async () => {
     await commands.reducedMotion(true)
-    const image = await scaleOnHover('portraits', '#live-music')
+    const image = await scaleOnHover('photo', '#live-music')
 
     await new Promise(requestAnimationFrame)
     expect(getComputedStyle(image).scale).toMatch(/^(none|1)$/)
   })
 })
 
-describe('CardGrid views', () => {
+describe('Cards views', () => {
   it('reports its view with the variant its preset picks', async () => {
     const onBlockEvent = vi.fn()
     render(
       <MarketingBlocksProvider onBlockEvent={onBlockEvent}>
-        <CardGrid
-          preset='portraits'
+        <Cards
+          preset='photo'
           position={4}
           title='Our values'
           items={items.slice(0, 1)}
@@ -503,9 +518,9 @@ describe('CardGrid views', () => {
       () =>
         expect(onBlockEvent).toHaveBeenCalledWith({
           action: 'view',
-          block: 'card-grid',
+          block: 'cards',
           variant: 'grid',
-          preset: 'portraits',
+          preset: 'photo',
           position: 4
         }),
       { timeout: 2000 }
@@ -513,12 +528,12 @@ describe('CardGrid views', () => {
   })
 })
 
-describe('CardGrid accessibility', () => {
+describe('Cards accessibility', () => {
   it.each(LOOK_NAMES)('%s has no axe violations', async (look) => {
     const { container } = render(
       <main>
         <h1>Page</h1>
-        <CardGrid
+        <Cards
           {...propsOf(look, 3)}
           eyebrow='How does Oztix partner?'
           title='We understand your industry'
@@ -532,7 +547,7 @@ describe('CardGrid accessibility', () => {
   })
 })
 
-describe('CardGrid contrast', () => {
+describe('Cards contrast', () => {
   const inMode = (mode: (typeof MODES)[number]) => {
     setMode(mode)
     onTestFinished(() => setMode('light'))
@@ -574,8 +589,7 @@ describe('CardGrid contrast', () => {
     'warning',
     'danger'
   ] as const
-  const drawsOwnTiles = (look: Look) =>
-    look === 'overlap-cards' || look === 'portraits'
+  const drawsOwnTiles = (look: Look) => look === 'overlap' || look === 'photo'
 
   type Case = {
     mode: (typeof MODES)[number]
@@ -627,7 +641,7 @@ describe('CardGrid contrast', () => {
     const props = propsOf(preset, 3)
     return render(
       <div className='bg-normal text-normal'>
-        <CardGrid
+        <Cards
           {...props}
           intent={intent}
           emphasis={emphasis}
@@ -674,7 +688,7 @@ describe('CardGrid contrast', () => {
       const { container } = render(
         <main className='bg-normal text-normal'>
           <h1>Page</h1>
-          <CardGrid
+          <Cards
             intent='brand'
             emphasis='subtle'
             itemEmphasis='normal'

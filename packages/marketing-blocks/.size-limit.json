@@ -44,8 +44,8 @@
     ]
   },
   {
-    "name": "card-grid",
-    "path": "dist/CardGrid/index.js",
+    "name": "cards",
+    "path": "dist/Cards/index.js",
     "import": "*",
     "limit": "5 kB",
     "ignore": [
