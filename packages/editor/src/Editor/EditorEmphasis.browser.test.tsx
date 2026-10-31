@@ -124,7 +124,7 @@ describe('Editor emphasis', () => {
     )
     const textbox = await loadedTextbox()
     const [first, second] = [...textbox.children] as HTMLElement[]
-    const tint = (block: HTMLElement) => getComputedStyle(block).boxShadow
+    const tint = (block: HTMLElement) => getComputedStyle(block).outlineStyle
 
     expect(tint(first!)).toBe('none')
     await userEvent.click(screen.getByText('All ages'))

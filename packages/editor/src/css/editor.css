@@ -18,34 +18,36 @@
 }
 
 /* The caret's block takes a tint that reaches past its text, so the text
-   doesn't move. Box-shadow, not padding, so lines stay where they are. */
-[data-slot='editor-content'] [data-focused-block] {
-  --editor-block-halo: calc(var(--spacing) * 1.5);
-
-  border-radius: var(--radius-md);
-  background-color: var(--intent-bg-subtler);
-  box-shadow: 0 0 0 var(--editor-block-halo) var(--intent-bg-subtler);
-}
-
-@media (forced-colors: active) {
+   doesn't move. An outline, not padding, so lines stay where they are. In
+   the components layer so a block that draws its own fill, as a button
+   does, keeps it inside the halo. */
+@layer components {
   [data-slot='editor-content'] [data-focused-block] {
-    outline: 1px solid Highlight;
-    outline-offset: var(--editor-block-halo);
+    --editor-block-halo: calc(var(--spacing) * 1.5);
+
+    border-radius: var(--radius-md);
+    background-color: var(--intent-bg-subtler);
+    outline: var(--editor-block-halo) solid var(--intent-bg-subtler);
   }
-}
 
-/* The block a block menu is open on takes the chosen tint, as a selected
-   row does, so it's clear which block the menu acts on. */
-[data-slot='editor-content'] [data-menu-block] {
-  border-radius: var(--radius-md);
-  background-color: var(--intent-5);
-  box-shadow: 0 0 0 calc(var(--spacing) * 1.5) var(--intent-5);
-}
-
-@media (forced-colors: active) {
+  /* The block a block menu is open on takes the chosen tint, as a selected
+     row does, so it's clear which block the menu acts on. */
   [data-slot='editor-content'] [data-menu-block] {
-    outline: 2px solid Highlight;
-    outline-offset: calc(var(--spacing) * 1.5);
+    border-radius: var(--radius-md);
+    background-color: var(--intent-5);
+    outline: calc(var(--spacing) * 1.5) solid var(--intent-5);
+  }
+
+  @media (forced-colors: active) {
+    [data-slot='editor-content'] [data-focused-block] {
+      outline: 1px solid Highlight;
+      outline-offset: var(--editor-block-halo);
+    }
+
+    [data-slot='editor-content'] [data-menu-block] {
+      outline: 2px solid Highlight;
+      outline-offset: calc(var(--spacing) * 1.5);
+    }
   }
 }
 
