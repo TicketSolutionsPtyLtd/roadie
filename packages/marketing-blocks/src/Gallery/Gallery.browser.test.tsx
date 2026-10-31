@@ -520,7 +520,7 @@ describe('Gallery ratio', () => {
   it.each([
     ['portrait', 9 / 16],
     ['square', 1],
-    ['landscape', 4 / 3]
+    ['landscape', 2]
   ] as const)('crops each %s tile to its ratio', async (ratio, expected) => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     render(

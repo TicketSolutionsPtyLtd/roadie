@@ -31,7 +31,7 @@ export type { GalleryPreset } from './definition'
 /** A photo or logo, linked when it has an `href`. A linked image is named by its `alt`. */
 export type GalleryImage = BlockImage & { href?: string }
 
-/** The tiles' shape: cropped to `portrait` (9:16), `square`, or `landscape` (4:3), or `natural`, uncropped at one height. */
+/** The tiles' shape: cropped to `portrait` (9:16), `square`, or `landscape` (2:1), or `natural`, uncropped at one height. */
 export type GalleryRatio = 'portrait' | 'square' | 'landscape' | 'natural'
 
 export type GalleryProps = {
@@ -92,8 +92,8 @@ const CROPPED: Record<
     sizes: '(max-width: 640px) 160px, (max-width: 960px) 200px, 240px'
   },
   landscape: {
-    tile: 'aspect-4/3 w-56 @xl:w-72 @4xl:w-80',
-    sizes: '(max-width: 640px) 224px, (max-width: 960px) 288px, 320px'
+    tile: 'aspect-2/1 w-72 @xl:w-96 @4xl:w-112',
+    sizes: '(max-width: 640px) 288px, (max-width: 960px) 384px, 448px'
   }
 }
 
