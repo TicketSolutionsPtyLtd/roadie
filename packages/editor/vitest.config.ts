@@ -54,6 +54,7 @@ export default defineConfig({
             '@oztix/roadie-components/popover',
             '@oztix/roadie-components/prose',
             '@oztix/roadie-components/scroll-area',
+            '@oztix/roadie-components/select',
             '@oztix/roadie-components/skeleton',
             '@oztix/roadie-components/toggle',
             '@oztix/roadie-components/toolbar',
