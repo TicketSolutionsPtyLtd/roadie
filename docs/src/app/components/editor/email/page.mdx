@@ -179,6 +179,19 @@ section or columns puts the caret in its first line. Only the blocks that fit
 at the caret are offered, so there's no section or columns inside a column, and
 only the other list type inside a list. Image is offered with `onUploadImage`.
 
+### Adding and editing merge tags
+
+With `variables`, type `{{` anywhere, even straight after a word, to list
+them under the caret. The list filters by label or key as you type, and Enter
+inserts the active one as a chip. Merge tag in the `/` menu opens the same
+list. A button's label takes merge tags too.
+
+Click a chip to select it, and its toolbar shows below it: Edit merge tag and
+Remove merge tag. Edit merge tag opens a form to change which variable the
+tag shows and its fallback, the text anyone without a value sees. An empty
+fallback saves none. Without `variables`, `{{` is only text and `/` offers no
+Merge tag.
+
 ### Buttons, columns, and spacers
 
 Button asks for its link first, which must be a full web address, or a
@@ -192,6 +205,7 @@ Each of these blocks has its own toolbar:
 - **Columns**, with the caret in them: a menu of 2, 3, or 4 columns, above
   them, or below when they start the content. Removing columns moves their
   blocks into the last column left, and undo puts them back.
+- **A selected merge tag**: Edit merge tag and Remove merge tag, below it.
 - **A selected spacer**: a Height menu of Small (16px), Medium (32px), Large
   (64px), and Extra large (96px), and Remove spacer.
 
@@ -396,9 +410,10 @@ const preview = await renderEmail(nearlySoldOut, {
 
 - In the email preset, `/` opens a `listbox` named Insert under the caret.
   Focus stays in the text, which points `aria-activedescendant` at the active
-  option and `aria-controls` at the list.
+  option and `aria-controls` at the list. With `variables`, `{{` opens a
+  `listbox` named Merge tags the same way.
 - In the email preset, a button's, a spacer's, or columns' own toolbar is
-  named for it, such as "Button actions", and Alt+F10 moves focus into it.
+  named for it, such as "Button actions" or "Merge tag actions", and Alt+F10 moves focus into it.
   The Columns and Height menus' triggers are named for their current choice,
   such as "Columns: 2 columns".
 
@@ -409,6 +424,7 @@ const preview = await renderEmail(nearlySoldOut, {
 | Keys | Action |
 | --- | --- |
 | `/` | Open the insert menu, in the email preset |
+| `{{` | Open the merge tag list, with `variables` |
 | `Mod+/` | Open the menu for the block with the caret |
 | `Enter` | In a button, start a new paragraph after it |
 

@@ -54,6 +54,7 @@ export type EditorContextValue = {
   replaceImage: (() => void) | undefined
   /** Opens the button link editor, on the button at the selection if there is one. */
   editButton: () => void
+  editVariable: () => void
   TiptapContent: typeof EditorContent
   ToolbarEngine: ComponentType<EditorToolbarProps>
   BubbleMenuEngine: ComponentType<EditorBubbleMenuProps>

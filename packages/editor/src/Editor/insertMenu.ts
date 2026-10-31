@@ -16,7 +16,12 @@ export type InsertMenuState = {
 }
 
 export type InsertMenuOptions = {
-  items: readonly EditorInsertItem[]
+  /** Typed to open the menu. */
+  char: string
+  /** Read as the menu opens, so the items can change after the editor is made. */
+  items: () => readonly EditorInsertItem[]
+  /** Whether the menu can open in a node of this type. */
+  allowIn: (type: string) => boolean
   ui: () => EditorControlUi
   onChange: (state: InsertMenuState | null) => void
 }
@@ -28,12 +33,19 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
   name: 'insertMenu',
 
   addOptions() {
-    return { items: [], ui: () => ({}) as EditorControlUi, onChange: () => {} }
+    return {
+      char: '/',
+      items: () => [],
+      // A button's label is plain text, so `/` there is only a character.
+      allowIn: (type) => type !== 'button',
+      ui: () => ({}) as EditorControlUi,
+      onChange: () => {}
+    }
   },
 
   addProseMirrorPlugins() {
-    const { items, ui, onChange } = this.options
-    if (items.length === 0) return []
+    const { char, items, allowIn, ui, onChange } = this.options
+    if (items().length === 0) return []
     let open: {
       props: Props
       active: number
@@ -74,15 +86,16 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
     return [
       Suggestion<EditorInsertItem, EditorInsertItem>({
         editor: this.editor,
-        pluginKey: new PluginKey('insertMenu'),
-        char: '/',
+        pluginKey: new PluginKey(this.name),
+        char,
+        // `{{` follows a word as often as a space, as in "Hi,{{".
+        allowedPrefixes: char === '/' ? [' '] : null,
         allowSpaces: true,
         floatingUi: { strategy: 'fixed' },
-        // A button's label is plain text, so `/` there is only a character.
         allow: ({ state, range }) =>
-          state.doc.resolve(range.from).parent.type.name !== 'button',
+          allowIn(state.doc.resolve(range.from).parent.type.name),
         items: ({ query, editor }) =>
-          matchingInsertItems(items, query, editor, ui()),
+          matchingInsertItems(items(), query, editor, ui()),
         command: ({ editor, range, props: item }) => {
           editor.chain().focus().deleteRange(range).run()
           item.run(editor, ui())

@@ -11,15 +11,21 @@ type EditorInsertMenuProps = {
   editor: TiptapEditor
   state: InsertMenuState | null
   id: string
+  label: string
 }
 
 const optionId = (listboxId: string, index: number) => `${listboxId}-${index}`
 
 /**
- * The blocks `/` can insert, under the caret. Focus stays in the editor,
+ * What `/` or `{{` can insert, under the caret. Focus stays in the editor,
  * which points `aria-activedescendant` at the active option.
  */
-export function EditorInsertMenu({ editor, state, id }: EditorInsertMenuProps) {
+export function EditorInsertMenu({
+  editor,
+  state,
+  id,
+  label
+}: EditorInsertMenuProps) {
   const listRef = useRef<HTMLDivElement>(null)
   const mount = state?.mount
   const active = state ? optionId(id, state.active) : undefined
@@ -48,7 +54,7 @@ export function EditorInsertMenu({ editor, state, id }: EditorInsertMenuProps) {
       ref={listRef}
       id={id}
       role='listbox'
-      aria-label='Insert'
+      aria-label={label}
       data-slot='editor-insert-menu'
       className='z-popover grid max-h-80 min-w-56 gap-0.5 overflow-y-auto rounded-xl emphasis-floating is-translucent p-1'
       // A press here would otherwise take focus from the editor.

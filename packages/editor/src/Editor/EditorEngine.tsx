@@ -67,6 +67,7 @@ import type { EditorRootProps } from './EditorRoot'
 import { EditorSlashMenuEngine } from './EditorSlashMenuEngine'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
+import { EditorVariablePopover } from './EditorVariablePopover'
 import { EditorVariableView } from './EditorVariableView'
 import {
   type BlockContainers,
@@ -91,6 +92,7 @@ import {
 import { presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
+import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
 import { SlashMenu, type SlashMenuHandle } from './slashMenu'
 import { presetLook, resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
@@ -375,9 +377,12 @@ export function EditorEngine({
   const [editingAlt, setEditingAlt] = useState(false)
   const [editingEmbed, setEditingEmbed] = useState(false)
   const [editingButton, setEditingButton] = useState(false)
+  const [editingVariable, setEditingVariable] = useState(false)
   const providersRef = useRef(embedProviders)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
+  const [mergeTagMenu, setMergeTagMenu] = useState<InsertMenuState | null>(null)
+  const variablesRef = useRef(variables)
   const uiRef = useRef<EditorControlUi | null>(null)
   const uploadRef = useRef<UploadImage | undefined>(onUploadImage)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -416,7 +421,12 @@ export function EditorEngine({
   const holdsImages = presetHoldsImages(preset)
   const blockContainers = BLOCK_HANDLE_CONTAINERS[preset]
   const hasBlockHandle = blockContainers !== undefined
-  const insertItems = presetInsertItems[preset] ?? []
+  const takesMergeTags = Boolean(schema.nodes.variable && variables?.length)
+  const presetItems = presetInsertItems[preset] ?? []
+  const insertItems =
+    takesMergeTags && presetItems.length > 0
+      ? [...presetItems, mergeTagItem]
+      : presetItems
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
@@ -450,10 +460,21 @@ export function EditorEngine({
         : []),
       FocusedBlock.configure({ containers: blockContainers ?? TOP_LEVEL }),
       InsertMenu.configure({
-        items: insertItems,
+        items: () => insertItems,
         ui: () => uiRef.current!,
         onChange: setInsertMenu
-      })
+      }),
+      ...(takesMergeTags
+        ? [
+            InsertMenu.extend({ name: 'mergeTagMenu' }).configure({
+              char: MERGE_TAG_OPEN,
+              items: () => variableInsertItems(variablesRef.current ?? []),
+              allowIn: () => true,
+              ui: () => uiRef.current!,
+              onChange: setMergeTagMenu
+            })
+          ]
+        : [])
     ],
     content: readableDoc,
     editable,
@@ -577,7 +598,8 @@ export function EditorEngine({
   useEffect(() => {
     uploadRef.current = onUploadImage
     providersRef.current = embedProviders
-  }, [onUploadImage, embedProviders])
+    variablesRef.current = variables
+  }, [onUploadImage, embedProviders, variables])
 
   useEffect(() => {
     placeholderRef.current = placeholder
@@ -609,6 +631,9 @@ export function EditorEngine({
       if (editor?.isEditable && editor.schema.nodes.button) {
         setEditingButton(true)
       }
+    },
+    editVariable: () => {
+      if (editor?.isEditable) setEditingVariable(true)
     },
     pickImage: canUpload ? () => fileInputRef.current?.click() : undefined,
     replaceImage: canUpload ? () => replaceInputRef.current?.click() : undefined
@@ -692,6 +717,15 @@ export function EditorEngine({
             editor={editor}
             state={insertMenu}
             id={`${contentId}-insert`}
+            label='Insert'
+          />
+        ) : null}
+        {editor ? (
+          <EditorInsertMenu
+            editor={editor}
+            state={mergeTagMenu}
+            id={`${contentId}-merge-tags`}
+            label='Merge tags'
           />
         ) : null}
         {editor?.schema.nodes.table ? (
@@ -716,6 +750,11 @@ export function EditorEngine({
           editor={editor}
           open={editingButton}
           onOpenChange={setEditingButton}
+        />
+        <EditorVariablePopover
+          editor={editor}
+          open={editingVariable}
+          onOpenChange={setEditingVariable}
         />
         <EditorEmbedPopover
           editor={editor}

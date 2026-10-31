@@ -172,15 +172,23 @@ export function EditorSlashMenuEngine(props: EditorSlashMenuProps) {
   const context = use(EditorContext)
   if (!context) throw new Error('Editor.SlashMenu must be inside an Editor.')
   const { editor, preset, slashMenuRef } = context
-  const { editLink, editAlt, editEmbed, pickImage, replaceImage, editButton } =
-    context
+  const {
+    editLink,
+    editAlt,
+    editEmbed,
+    pickImage,
+    replaceImage,
+    editButton,
+    editVariable
+  } = context
   const ui = {
     editLink,
     editAlt,
     editEmbed,
     pickImage,
     replaceImage,
-    editButton
+    editButton,
+    editVariable
   }
   const keyDownRef = useRef<KeyDown>(null)
   const match = useEditorState({
