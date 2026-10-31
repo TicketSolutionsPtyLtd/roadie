@@ -220,6 +220,68 @@ describe.each(renderers)('%s', (_, render) => {
     expect(render(valueOf(paragraph(text('Kept', mark))))).toBe('<p>Kept</p>')
   })
 
+  it('renders an email’s text and buttons in order, leaving its layout and spacers to renderEmail', () => {
+    const column = (value: string) => ({
+      type: 'column',
+      content: [paragraph(text(value))]
+    })
+
+    expect(
+      render({
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'section',
+              content: [
+                {
+                  type: 'columns',
+                  content: [column('Doors 7pm'), column('All ages')]
+                },
+                {
+                  type: 'button',
+                  attrs: { href: 'https://www.oztix.com.au' },
+                  content: [text('Go')]
+                },
+                { type: 'spacer', attrs: { height: 32 } }
+              ]
+            }
+          ]
+        }
+      })
+    ).toBe(
+      '<p>Doors 7pm</p><p>All ages</p><a href="https://www.oztix.com.au" target="_blank" rel="noopener noreferrer" data-slot="link" class="link-normal">Go</a>'
+    )
+  })
+
+  it.each([
+    ['no content', {}],
+    ['empty content', { content: [] }]
+  ])(
+    'renders nothing for an email button with %s, never a link with no name',
+    (_, content) => {
+      expect(
+        render({
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              paragraph(text('Doors 7pm')),
+              {
+                type: 'button',
+                attrs: { href: 'https://www.oztix.com.au' },
+                ...content
+              }
+            ]
+          }
+        })
+      ).toBe('<p>Doors 7pm</p>')
+    }
+  )
+
   it('drops attributes the mapping doesn’t read', () => {
     const injected = {
       onclick: 'alert(1)',
@@ -269,8 +331,8 @@ describe.each(renderers)('%s', (_, render) => {
   it.each([
     [
       'an unknown preset',
-      { version: 1, preset: 'email', doc: { type: 'doc' } },
-      /preset "email"/
+      { version: 1, preset: 'fancy', doc: { type: 'doc' } },
+      /preset "fancy"/
     ],
     [
       'a newer version',
@@ -577,5 +639,75 @@ describe('renderEditorHtml', () => {
     ).toBe(
       '<div data-slot="prose" class="prose [--prose-size:var(--text-lg)] [--prose-h1-size:var(--text-5xl)] [--prose-h1-weight:900] [--prose-h2-size:var(--text-4xl)] [--prose-h2-weight:700] [--prose-h3-size:var(--text-3xl)] [--prose-h3-weight:700] [--prose-h4-size:var(--text-2xl)] [--prose-h4-weight:700] [--prose-h5-size:var(--text-xl)] [--prose-h5-weight:700] [--prose-h6-size:var(--text-lg)] [--prose-h6-weight:700] mt-4&quot; onload=&quot;x"><p>Hi</p></div>'
     )
+  })
+})
+
+describe('renderEditorValue with an app’s own blocks', () => {
+  const card: JSONContent = {
+    type: 'eventCard',
+    attrs: { title: 'Ochre Kite Weekender', blockId: 'c1' }
+  }
+  const value = {
+    version: 1,
+    preset: 'blocks',
+    doc: { type: 'doc', content: [card, paragraph(text('Doors 7pm'))] }
+  }
+  const nodeMapping = {
+    eventCard: ({ attrs }: { attrs: Record<string, unknown> }) => (
+      <aside>{String(attrs.title)}</aside>
+    )
+  }
+
+  it('renders a block through its nodeMapping entry, given its attrs', () => {
+    expect(
+      contentOf(renderToString(renderEditorValue(value, { nodeMapping })))
+    ).toBe('<aside>Ochre Kite Weekender</aside><p>Doors 7pm</p>')
+  })
+
+  it('escapes what the entry renders from its attrs', () => {
+    const risky = {
+      ...value,
+      doc: {
+        type: 'doc',
+        content: [{ type: 'eventCard', attrs: { title: '<img src=x>' } }]
+      }
+    }
+
+    expect(
+      contentOf(renderToString(renderEditorValue(risky, { nodeMapping })))
+    ).toBe('<aside>&lt;img src=x&gt;</aside>')
+  })
+
+  it('drops a block no entry renders, keeping the rest', () => {
+    expect(contentOf(renderToString(renderEditorValue(value)))).toBe(
+      '<p>Doors 7pm</p>'
+    )
+  })
+
+  it('never lets an entry replace one of the preset’s own nodes', () => {
+    expect(
+      contentOf(
+        renderToString(
+          renderEditorValue(value, {
+            nodeMapping: { ...nodeMapping, paragraph: () => <b>taken</b> }
+          })
+        )
+      )
+    ).toBe('<aside>Ochre Kite Weekender</aside><p>Doors 7pm</p>')
+  })
+})
+
+describe('renderEditorHtml and an app’s own blocks', () => {
+  it('drops them, as it takes no nodeMapping', () => {
+    const value = {
+      version: 1,
+      preset: 'blocks',
+      doc: {
+        type: 'doc',
+        content: [{ type: 'eventCard', attrs: { title: 'Ochre Kite' } }]
+      }
+    }
+
+    expect(contentOf(renderEditorHtml(value))).toBe('<p></p>')
   })
 })

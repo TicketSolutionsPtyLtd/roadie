@@ -11,6 +11,7 @@ import {
   ListNumbersIcon,
   MinusIcon,
   PencilSimpleIcon,
+  QuotesIcon,
   RowsPlusBottomIcon,
   RowsPlusTopIcon,
   SquareSplitVerticalIcon,
@@ -18,14 +19,24 @@ import {
   TableIcon,
   TextAaIcon,
   TextBIcon,
+  TextHFourIcon,
+  TextHThreeIcon,
+  TextHTwoIcon,
   TextItalicIcon,
+  TextTIcon,
   TextUnderlineIcon,
   TrashIcon
 } from '@phosphor-icons/react'
+import type { ChainedCommands } from '@tiptap/core'
+import { closeHistory } from '@tiptap/pm/history'
 import type { Editor } from '@tiptap/react'
 
+import type { EditorBlock } from '../extensions'
 import type { Preset } from '../schema'
+import { COLUMN_COUNTS } from '../schema/emailAttrs'
 import { HEADING_LEVELS } from '../schema/headings'
+import { selectedColumns, setColumnCount } from './emailEditing'
+import type { SlashMatch } from './slashMenu'
 import { hasHeaderRow, leavesAColumn, leavesARow, selectedTable } from './table'
 
 /** What a control can open in the editor's own UI. */
@@ -37,6 +48,8 @@ export type EditorControlUi = {
   editAlt: () => void
   /** Opens the file picker to replace the selected image, or undefined without `onUploadImage`. */
   replaceImage: (() => void) | undefined
+  /** Opens the button link editor, on the button at the selection if there is one. */
+  editButton: () => void
 }
 
 export type EditorControl = {
@@ -57,7 +70,7 @@ export const SEPARATOR = 'separator'
 /** One choice in the block type menu. */
 export type EditorBlockType = {
   label: string
-  shortcut: readonly string[]
+  shortcut?: readonly string[]
   /** Whether the caret's block is this type. */
   active: (editor: Editor) => boolean
   run: (editor: Editor) => void
@@ -67,6 +80,8 @@ export type EditorBlockMenu = {
   kind: 'blockMenu'
   label: string
   types: readonly EditorBlockType[]
+  /** The trigger's text when no type is active. */
+  fallback?: (editor: Editor) => string
 }
 
 export type EditorToolbarItem =
@@ -218,21 +233,41 @@ const basicControls = [
 
 const history = [undo, redo] as const
 
+const richControls: readonly EditorToolbarItem[] = [
+  blockType,
+  SEPARATOR,
+  ...basicControls,
+  SEPARATOR,
+  divider,
+  image,
+  embed,
+  table,
+  SEPARATOR,
+  ...history
+]
+
 // Each preset lists only controls for extensions it holds.
 export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
   basic: [...basicControls, SEPARATOR, ...history],
-  rich: [
-    blockType,
+  rich: richControls,
+  blocks: richControls,
+  email: [
+    { ...blockType, types: [paragraph, ...headings] },
     SEPARATOR,
     ...basicControls,
     SEPARATOR,
-    divider,
-    image,
-    embed,
-    table,
-    SEPARATOR,
     ...history
   ]
+}
+
+const inlineControls = [bold, italic, underline, link] as const
+
+/** The controls in the menu over a text selection. */
+export const selectionControls: Record<Preset, readonly EditorControl[]> = {
+  basic: inlineControls,
+  rich: inlineControls,
+  blocks: inlineControls,
+  email: inlineControls
 }
 
 const altText: EditorControl = {
@@ -262,12 +297,63 @@ function remove(label: string): EditorControl {
   }
 }
 
-export type EditorNodeType = 'image' | 'embed'
+const editButtonLink: EditorControl = {
+  label: 'Edit link',
+  icon: PencilSimpleIcon,
+  run: (_editor, { editButton }) => editButton()
+}
 
-/** The actions in a selected node's own toolbar. */
-export const nodeControls: Record<EditorNodeType, readonly EditorControl[]> = {
+const removeButton: EditorControl = {
+  label: 'Remove button',
+  icon: TrashIcon,
+  run: (editor) => editor.chain().focus().deleteNode('button').run()
+}
+
+/** Named spacer heights, in pixels within the spacer's 8 to 160. */
+const SPACER_HEIGHTS = [
+  ['Small', 16],
+  ['Medium', 32],
+  ['Large', 64],
+  ['Extra large', 96]
+] as const
+
+const spacerHeightOf = (editor: Editor): unknown =>
+  editor.getAttributes('spacer').height
+
+const spacerHeight: EditorBlockMenu = {
+  kind: 'blockMenu',
+  label: 'Height',
+  types: SPACER_HEIGHTS.map(([name, height]) => ({
+    label: `${name} (${height}px)`,
+    active: (editor) => spacerHeightOf(editor) === height,
+    run: (editor) =>
+      editor.chain().focus().updateAttributes('spacer', { height }).run()
+  })),
+  fallback: (editor) => `${String(spacerHeightOf(editor))}px`
+}
+
+const columnCount: EditorBlockMenu = {
+  kind: 'blockMenu',
+  label: 'Columns',
+  types: COLUMN_COUNTS.map((count) => ({
+    label: `${count} columns`,
+    active: (editor) =>
+      selectedColumns(editor.state)?.node.childCount === count,
+    run: (editor) => editor.chain().focus().command(setColumnCount(count)).run()
+  }))
+}
+
+export type EditorNodeType = 'image' | 'embed' | 'spacer' | 'button' | 'columns'
+
+export type EditorNodeItem = EditorControl | EditorBlockMenu
+
+/** The actions in the toolbar of the node the selection is on or in. */
+export const nodeControls: Record<EditorNodeType, readonly EditorNodeItem[]> = {
   image: [altText, replaceImage, remove('Remove image')],
-  embed: [editEmbedLink, remove('Remove embed')]
+  embed: [editEmbedLink, remove('Remove embed')],
+  spacer: [spacerHeight, remove('Remove spacer')],
+  button: [editButtonLink, removeButton],
+  columns: [columnCount]
 }
 
 type TableCommand =
@@ -366,4 +452,126 @@ export function ariaKeyShortcuts(keys: readonly string[]) {
       key === 'mod' ? mod : (ARIA_KEY_NAMES[key] ?? key.toUpperCase())
     )
     .join('+')
+}
+
+/** A block the slash menu inserts in place of the typed `/` and its query. */
+export type EditorSlashItem = {
+  label: string
+  icon: Icon
+  /** Other words it's found by. */
+  keywords?: readonly string[]
+  run: (editor: Editor, ui: EditorControlUi, match: SlashMatch) => void
+  available?: (ui: EditorControlUi) => boolean
+}
+
+// One undo step of its own, so undo returns to the typed `/`.
+function replacingSlash(
+  editor: Editor,
+  { from, to }: SlashMatch
+): ChainedCommands {
+  return editor
+    .chain()
+    .focus()
+    .command(({ tr }) => {
+      closeHistory(tr)
+      return true
+    })
+    .deleteRange({ from, to })
+}
+
+function slashBlock(
+  label: string,
+  icon: Icon,
+  insert: (chain: ChainedCommands) => ChainedCommands,
+  keywords?: readonly string[]
+): EditorSlashItem {
+  return {
+    label,
+    icon,
+    keywords,
+    run: (editor, _ui, match) => insert(replacingSlash(editor, match)).run()
+  }
+}
+
+const HEADING_ICONS = {
+  2: TextHTwoIcon,
+  3: TextHThreeIcon,
+  4: TextHFourIcon
+} as const
+
+const blockSlashItems: readonly EditorSlashItem[] = [
+  slashBlock('Text', TextTIcon, (chain) => chain, ['paragraph']),
+  ...HEADING_LEVELS.map((level) =>
+    slashBlock(
+      `Heading ${level}`,
+      HEADING_ICONS[level],
+      (chain) => chain.setHeading({ level }),
+      ['title']
+    )
+  ),
+  slashBlock(
+    'Bulleted list',
+    ListBulletsIcon,
+    (chain) => chain.toggleBulletList(),
+    ['unordered']
+  ),
+  slashBlock(
+    'Numbered list',
+    ListNumbersIcon,
+    (chain) => chain.toggleOrderedList(),
+    ['ordered']
+  ),
+  slashBlock('Quote', QuotesIcon, (chain) => chain.wrapIn('blockquote'), [
+    'blockquote'
+  ]),
+  slashBlock('Divider', MinusIcon, (chain) => chain.setHorizontalRule(), [
+    'rule',
+    'line'
+  ]),
+  {
+    label: 'Image',
+    icon: ImageIcon,
+    keywords: ['photo', 'picture'],
+    run: (editor, ui, match) => {
+      replacingSlash(editor, match).run()
+      ui.pickImage?.()
+    },
+    available: ({ pickImage }) => Boolean(pickImage)
+  },
+  {
+    label: 'Embed',
+    icon: FilmStripIcon,
+    keywords: ['video', 'audio', 'youtube', 'spotify'],
+    run: (editor, ui, match) => {
+      replacingSlash(editor, match).run()
+      ui.editEmbed()
+    }
+  },
+  slashBlock('Table', TableIcon, (chain) => chain.insertTable(NEW_TABLE))
+]
+
+/**
+ * The blocks each preset's slash menu offers; only `blocks` has one. Email
+ * inserts through its own menu, so its `/` stays with that.
+ */
+export const presetSlashItems: Record<Preset, readonly EditorSlashItem[]> = {
+  basic: [],
+  rich: [],
+  blocks: blockSlashItems,
+  email: []
+}
+
+/** The slash menu's entry for an app's own block, inserted in place of the `/`. */
+export function customSlashItem({
+  node,
+  label,
+  icon,
+  keywords
+}: EditorBlock): EditorSlashItem {
+  return slashBlock(
+    label,
+    icon,
+    (chain) => chain.insertContent({ type: node.name }),
+    keywords
+  )
 }

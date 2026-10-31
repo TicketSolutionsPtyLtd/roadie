@@ -1,7 +1,7 @@
 /**
  * What a node holds: one or more blocks, a paragraph then blocks, one or more
  * paragraphs, inline content, one or more list items, one or more table rows,
- * table cells, or nothing.
+ * table cells, two to four columns, or nothing.
  */
 export type NodeContent =
   | 'blocks'
@@ -11,18 +11,29 @@ export type NodeContent =
   | 'listItems'
   | 'tableRows'
   | 'tableCells'
+  | 'columns'
   | 'none'
 
 export type NodeShape = {
   inline?: true
   content: NodeContent
-  attrs?: readonly string[]
+  /** The attrs it saves, or `stored` for an app's block, which keeps its own. */
+  attrs?: readonly string[] | 'stored'
+  /**
+   * The blocks a node holding blocks may hold, when not every block. Any
+   * other gives way to its children.
+   */
+  holds?: readonly string[]
+  /** Inline content with no marks: text, and the preset's variables. */
+  plainText?: true
 }
 
 export type PresetShape = {
   nodes: Readonly<Record<string, NodeShape>>
   /** Each mark's name and the attrs it saves. */
   marks: Readonly<Record<string, readonly string[]>>
+  /** Images load only over https, never from a path on the site. */
+  httpsImages?: true
 }
 
 const basicNodes = {
@@ -35,6 +46,15 @@ const basicNodes = {
   listItem: { content: 'paragraphFirst' }
 } as const satisfies Record<string, NodeShape>
 
+const textBlocks = ['paragraph', 'heading', 'bulletList', 'orderedList']
+const emailBlocks = [
+  ...textBlocks,
+  'button',
+  'image',
+  'spacer',
+  'horizontalRule'
+]
+
 const marks = {
   bold: [],
   italic: [],
@@ -42,24 +62,81 @@ const marks = {
   link: ['href']
 } as const
 
+const richNodes = {
+  ...basicNodes,
+  heading: { content: 'inline', attrs: ['level'] },
+  blockquote: { content: 'blocks' },
+  horizontalRule: { content: 'none' },
+  image: { content: 'none', attrs: ['src', 'alt'] },
+  embed: { content: 'none', attrs: ['provider', 'id', 'params'] },
+  table: { content: 'tableRows' },
+  tableRow: { content: 'tableCells' },
+  tableHeader: { content: 'paragraphs', attrs: ['colspan', 'rowspan'] },
+  tableCell: { content: 'paragraphs', attrs: ['colspan', 'rowspan'] }
+} as const satisfies Record<string, NodeShape>
+
+/** The attr a block's id saves in; an embed's `id` is its provider's. */
+export const BLOCK_ID = 'blockId'
+
+/**
+ * The blocks preset's nodes that save a `blockId`. A table moves as one
+ * block, so its rows and cells have none; the paragraphs in a cell do.
+ */
+export const BLOCK_ID_TYPES = [
+  'paragraph',
+  'heading',
+  'blockquote',
+  'bulletList',
+  'orderedList',
+  'listItem',
+  'horizontalRule',
+  'image',
+  'embed',
+  'table'
+] as const
+
+function withIds(nodes: Record<string, NodeShape>) {
+  return Object.fromEntries(
+    Object.entries(nodes).map(([name, shape]) => [
+      name,
+      (BLOCK_ID_TYPES as readonly string[]).includes(name)
+        ? { ...shape, attrs: [BLOCK_ID, ...(shape.attrs ?? [])] }
+        : shape
+    ])
+  )
+}
+
 // Mirrors each preset's Tiptap schema without loading Tiptap, so `migrate`
 // runs anywhere; presets.test.ts keeps the two in step.
 export const presetShapes = {
   basic: { nodes: basicNodes, marks },
-  rich: {
+  rich: { nodes: richNodes, marks },
+  blocks: { nodes: withIds(richNodes), marks },
+  email: {
     nodes: {
       ...basicNodes,
+      doc: { content: 'blocks', holds: [...emailBlocks, 'section', 'columns'] },
+      listItem: { content: 'paragraphFirst', holds: textBlocks },
       heading: { content: 'inline', attrs: ['level'] },
-      blockquote: { content: 'blocks' },
-      horizontalRule: { content: 'none' },
-      image: { content: 'none', attrs: ['src', 'alt'] },
-      embed: { content: 'none', attrs: ['provider', 'id', 'params'] },
-      table: { content: 'tableRows' },
-      tableRow: { content: 'tableCells' },
-      tableHeader: { content: 'paragraphs', attrs: ['colspan', 'rowspan'] },
-      tableCell: { content: 'paragraphs', attrs: ['colspan', 'rowspan'] }
+      section: {
+        content: 'blocks',
+        attrs: ['showWhen'],
+        holds: [...emailBlocks, 'columns']
+      },
+      columns: { content: 'columns' },
+      column: { content: 'blocks', holds: emailBlocks },
+      button: {
+        content: 'inline',
+        attrs: ['href', 'showWhen'],
+        plainText: true
+      },
+      image: { content: 'none', attrs: ['src', 'alt', 'width', 'showWhen'] },
+      spacer: { content: 'none', attrs: ['height', 'showWhen'] },
+      horizontalRule: { content: 'none', attrs: ['showWhen'] },
+      variable: { inline: true, content: 'none', attrs: ['key', 'fallback'] }
     },
-    marks
+    marks,
+    httpsImages: true
   }
 } as const satisfies Record<string, PresetShape>
 

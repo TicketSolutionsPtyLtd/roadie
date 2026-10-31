@@ -19,6 +19,20 @@ const entriesIn = (groups: CatalogueCategory[], group: string) =>
   groups.find(({ name }) => name === group)?.entries ?? []
 
 describe('getCatalogue', () => {
+  it('lists a page’s child pages in its group, led by the overview rather than listed in it', async () => {
+    const editor = (await getCatalogue(COMPONENTS)).find(
+      ({ name }) => name === 'Editor'
+    )
+
+    expect(editor?.overviewHref).toBe('/components/editor')
+    expect(editor?.entries.map(({ href }) => href)).toEqual([
+      '/components/editor/basic-and-rich',
+      '/components/editor/blocks',
+      '/components/editor/email',
+      '/components/editor/saved-content'
+    ])
+  })
+
   it('cross lists a page in another catalogue without moving its route', async () => {
     const components = await getCatalogue(COMPONENTS)
     const status = entriesIn(components, 'Status')

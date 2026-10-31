@@ -1,0 +1,304 @@
+export const metadata = {
+  title: 'Email',
+  description: 'The email preset, for email designs sent from a template',
+  status: 'alpha',
+  category: 'Editor',
+  order: 3,
+}
+
+The `email` preset, for email designs, rendered to HTML with MJML, with merge
+tags and conditions.
+
+## Import
+
+```tsx
+import { Editor } from '@oztix/roadie-editor/editor'
+import { renderEmail } from '@oztix/roadie-editor/email'
+```
+
+The [Editor](/components/editor) page covers the toolbar, emphasis, sizes,
+states, and forms, which work the same in each preset.
+
+## Examples
+
+### Default
+
+`preset='email'` is for composing an email. Its content sits in a canvas at
+most 600 pixels wide, an email's width, with each section and column
+outlined. Columns sit side by side from 480 pixels and stack below that, as
+they do on a phone. It holds the text blocks of the rich preset, without
+quotes, and an email's own blocks: sections, two to four columns, images,
+buttons, spacers, and dividers.
+
+```tsx-live-prose
+<Editor
+  aria-label='Newsletter'
+  preset='email'
+  defaultValue={{
+    version: 1,
+    preset: 'email',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        {
+          type: 'section',
+          content: [
+            {
+              type: 'columns',
+              content: [
+                { type: 'column', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Saturday 14 March at Jumbuck Orchard Park, Brisbane.' }] }] },
+                { type: 'column', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Gates 11am. All ages.' }] }] }
+              ]
+            }
+          ]
+        },
+        { type: 'spacer', attrs: { height: 32 } },
+        { type: 'button', attrs: { href: 'https://oztix.com.au' }, content: [{ type: 'text', text: 'Buy tickets' }] },
+        { type: 'horizontalRule' },
+        { type: 'paragraph', content: [{ type: 'text', text: 'See you there.' }] },
+        { type: 'paragraph' }
+      ]
+    }
+  }}
+/>
+```
+
+### Composing a layout
+
+Type `/` to insert a block at the caret. The list filters as you type, the
+arrow keys move through it, Enter inserts, and Escape closes it, keeping what
+you typed. A paragraph, heading, or list turns the caret's line into one. Any
+other block goes before an empty line, or after a line with text, and a
+section or columns puts the caret in its first line. Only the blocks that fit
+at the caret are offered, so there's no section or columns inside a column, and
+only the other list type inside a list. Image is offered with `onUploadImage`.
+
+### Buttons, columns, and spacers
+
+Button asks for its link first, which must be a full web address, or a
+`mailto:` or `tel:` link, as an email opens outside your site. A bare domain,
+such as oztix.com.au, gets `https://`. The button's label is selected, so
+typing replaces it, and Enter in a button starts a new paragraph after it.
+
+Each of these blocks has its own toolbar:
+
+- **A button**, with the caret in it: Edit link and Remove button, below it.
+- **Columns**, with the caret in them: a menu of 2, 3, or 4 columns, above
+  them, or below when they start the content. Removing columns moves their
+  blocks into the last column left, and undo puts them back.
+- **A selected spacer**: a Height menu of Small (16px), Medium (32px), Large
+  (64px), and Extra large (96px), and Remove spacer.
+
+An image the email shows must be served over https, as a mail client loads it
+from outside your site. An `onUploadImage` that resolves to a path on the site
+shows an error and adds nothing.
+
+## Sending email
+
+`@oztix/roadie-editor/email` renders a saved value as an email: a whole HTML
+page, built from tables with inline styles so mail clients show it as
+designed, and its plain-text part.
+
+```tsx
+import { renderEmail } from '@oztix/roadie-editor/email'
+
+const { html, text } = await renderEmail(template, {
+  theme: { link: '#5f270f', button: '#5f270f' }
+})
+```
+
+It runs on the server only, since MJML, the renderer behind it, needs Node.
+A Next.js app keeps MJML out of its server bundle, and adds `mjml` to its own
+dependencies too, so Next can resolve it from the app:
+
+```ts
+// next.config.ts
+const nextConfig = { serverExternalPackages: ['mjml'] }
+```
+
+- `theme` is the app's brand kit, over `defaultEmailTheme`: `background`,
+  `text`, `link`, `button`, `buttonText`, and `divider` as hex colours, and
+  `fontFamily` as a stack of web-safe fonts. Mail clients don't read CSS
+  variables, so the default is Roadie's light scales as hex. Keep the kit in
+  the app, never in the saved value. A colour that isn't hex, or a font
+  stack with more than names, quotes, and commas, throws.
+- A section, and a run of blocks outside columns, fill the email's 600 pixel
+  width. Columns sit side by side from 480 pixels and stack on a phone, and
+  stay side by side in Outlook on Windows.
+- `text` writes each link as its text then its href in brackets, unless the
+  two match, and leaves out images, spacers, and dividers.
+
+It reads the value into the email preset first, as `migrate` does, so a value
+from another preset renders too, keeping its text. A link or button needs an
+https, http, mailto, or tel href, since a mail client can't open a path on the
+site, so any other keeps its text and loses its link.
+
+### Merge tags
+
+A merge tag, such as the customer's first name, is a `variable` node in the
+email preset. It saves only its key and an optional fallback, never the token
+a sending system reads, so one template sends from either system.
+
+```ts
+const welcome = {
+  version: 1,
+  preset: 'email',
+  doc: {
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: [
+          { type: 'text', text: 'Hi ' },
+          { type: 'variable', attrs: { key: 'first_name', fallback: 'there' } },
+          { type: 'text', text: ', your tickets are ready.' }
+        ]
+      }
+    ]
+  }
+}
+```
+
+The app lists the variables its sending system fills, each with a label and
+its token in each syntax. A filter, such as a date format, belongs in the
+token, never in the template.
+
+```tsx
+import { type EditorVariable, renderEmail } from '@oztix/roadie-editor/email'
+
+const variables: EditorVariable[] = [
+  {
+    key: 'first_name',
+    label: 'First name',
+    tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' }
+  },
+  {
+    key: 'event_date',
+    label: 'Event date',
+    tokens: { liquid: '{{ event.date | date: "%-d %B" }}' }
+  }
+]
+
+// Hi {{ customer.first_name | default: "there" }}, your tickets are ready.
+const { html, text } = await renderEmail(welcome, {
+  syntax: 'liquid',
+  variables
+})
+
+// Hi Ashley, your tickets are ready.
+const preview = await renderEmail(welcome, {
+  variables,
+  values: { first_name: 'Ashley' }
+})
+```
+
+- `syntax` is `ae` for `#Token#` or `liquid` for `{{ }}`. Each variable is
+  written as its token, unescaped, in the HTML and the plain text alike.
+- A Liquid token gets the fallback as its `default`. An AE token has no
+  default, so the sending system's own applies.
+- With `values`, each variable is filled with its value, escaped, or its
+  fallback when the value is missing or empty. A preview needs no `syntax`.
+- A variable `variables` doesn't list, or one with no token in `syntax`,
+  throws, so a template never asks for a value the sender can't fill.
+- Text an author typed that reads as a token, such as `{{ code }}` or
+  `#FirstName#`, is written so no sending system fills it.
+- A variable never goes in a link's or a button's href.
+
+### Conditions
+
+A section, button, image, spacer, or divider in the email preset can show
+only to some recipients, such as a "last few tickets" section when an event
+is nearly sold out. Its `showWhen` rule names a variable by key, never as
+Liquid, so the rule can be checked against the variables the sender fills.
+
+```ts
+const nearlySoldOut = {
+  version: 1,
+  preset: 'email',
+  doc: {
+    type: 'doc',
+    content: [
+      {
+        type: 'section',
+        attrs: {
+          showWhen: { key: 'tickets_left', op: 'lessThan', value: 20 }
+        },
+        content: [
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: 'Only a few tickets left.' }]
+          }
+        ]
+      },
+      {
+        type: 'paragraph',
+        content: [{ type: 'text', text: 'See you at the Ochre Kite Weekender.' }]
+      }
+    ]
+  }
+}
+```
+
+```tsx
+import { type EditorVariable, renderEmail } from '@oztix/roadie-editor/email'
+
+const variables: EditorVariable[] = [
+  {
+    key: 'tickets_left',
+    label: 'Tickets left',
+    tokens: { liquid: '{{ event.tickets_left }}' }
+  }
+]
+
+// {% if event.tickets_left < 20 %} … {% endif %}
+const { html, text } = await renderEmail(nearlySoldOut, {
+  syntax: 'liquid',
+  variables
+})
+
+// Leaves the section out.
+const preview = await renderEmail(nearlySoldOut, {
+  variables,
+  values: { tickets_left: '200' }
+})
+```
+
+- `op` is `exists`, `equals`, `notEquals`, `lessThan`, or `greaterThan`.
+  `exists` takes no `value`. `equals` and `notEquals` take text or a number,
+  and `lessThan` and `greaterThan` a number.
+- A number is compared as a number and text as text, as Liquid compares
+  them, so `20` and `'20'` are different rules. The sender's value must be
+  the same type as the rule's.
+- Columns and text blocks take no rule. To show a paragraph only to some
+  recipients, put it in a section with the rule.
+- With `syntax: 'liquid'`, the block is wrapped in `{% if %}` and
+  `{% endif %}` in the HTML and the plain text. The variable's Liquid token
+  must be a plain variable, such as `{{ event.tickets_left }}`, since Liquid
+  takes no filters in a condition.
+- With `values`, the block shows only when its rule holds. A missing or
+  empty value doesn't exist, and a value that isn't a number is never less
+  or greater than one. A preview value is a number when it's written in
+  decimal digits.
+- The `ae` syntax has no conditions, so a rule throws there, as does a rule
+  naming a variable `variables` doesn't list, or text holding both quote
+  marks or `%}`, which a Liquid string can't hold.
+- `migrate` drops a rule that isn't whole, and keeps its block.
+
+## Accessibility
+
+- In the email preset, `/` opens a `listbox` named Insert under the caret.
+  Focus stays in the text, which points `aria-activedescendant` at the active
+  option and `aria-controls` at the list.
+- In the email preset, a button's, a spacer's, or columns' own toolbar is
+  named for it, such as "Button actions", and Alt+F10 moves focus into it.
+  The Columns and Height menus' triggers are named for their current choice,
+  such as "Columns: 2 columns".
+
+| Keys | Action |
+| --- | --- |
+| `/` | Open the insert menu, in the email preset |
+| `Enter` | In a button, start a new paragraph after it |
+
+Every preset's other keys are on the [Editor](/components/editor#accessibility)
+page.

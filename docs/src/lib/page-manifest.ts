@@ -32,6 +32,7 @@ export const COMPONENTS: Catalogue = {
     'Layout',
     'Actions',
     'Fields',
+    'Editor',
     'Choices',
     'Date and time',
     'Collections',
@@ -214,14 +215,25 @@ async function readListings(route: string, name: string): Promise<Listing[]> {
   return []
 }
 
-async function readCatalogueListings(route: string): Promise<Listing[]> {
-  const dirs = await readdir(join(APP_DIR, route), { withFileTypes: true })
-  return (
-    await Promise.all(
-      dirs
-        .filter((dir) => dir.isDirectory())
-        .map((dir) => readListings(route, dir.name))
+// A page's child pages are listed too, such as the Editor's page per preset.
+async function pageNames(route: string): Promise<string[]> {
+  const dirs = (
+    await readdir(join(APP_DIR, route), { withFileTypes: true })
+  ).filter((dir) => dir.isDirectory())
+  const children = await Promise.all(
+    dirs.map(async (dir) =>
+      (await readdir(join(APP_DIR, route, dir.name), { withFileTypes: true }))
+        .filter((child) => child.isDirectory())
+        .map((child) => `${dir.name}/${child.name}`)
     )
+  )
+  return [...dirs.map((dir) => dir.name), ...children.flat()]
+}
+
+async function readCatalogueListings(route: string): Promise<Listing[]> {
+  const names = await pageNames(route)
+  return (
+    await Promise.all(names.map((name) => readListings(route, name)))
   ).flat()
 }
 
@@ -270,6 +282,10 @@ export async function getCatalogue({
   await Promise.all(
     groups.map(async (group) => {
       group.overviewHref = await overviewHref(route, group.name)
+      // The overview leads its group, so it isn't one of its entries too.
+      group.entries = group.entries.filter(
+        (entry) => entry.href !== group.overviewHref
+      )
     })
   )
   return groups

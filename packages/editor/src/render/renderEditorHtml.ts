@@ -22,6 +22,9 @@ import {
 } from './elements'
 import type { RenderEditorOptions } from './renderEditorValue'
 
+/** An app's own blocks need React, so this renderer drops them. */
+export type RenderEditorHtmlOptions = Omit<RenderEditorOptions, 'nodeMapping'>
+
 // Roadie's Link opens these in a new tab (`resolveLinkKind` in components).
 const EXTERNAL_HREF = /^(https?:)?\/\//i
 
@@ -76,6 +79,8 @@ function renderers(
     mapping[name] = (props) => {
       const element = toElement(attrsOf(props) ?? {}, context)
       const children = serializeChildrenToHTMLString(props.children)
+      // A link with no text has no name, as an email button emptied of its label.
+      if (element?.tag === 'a' && children === '') return ''
       return element ? htmlElement(element, children) : children
     }
   }
@@ -105,7 +110,7 @@ function renderDoc(
  */
 export function renderEditorHtml(
   value: StoredEditorValue | EditorValue,
-  { size, className, embedProviders }: RenderEditorOptions = {}
+  { size, className, embedProviders }: RenderEditorHtmlOptions = {}
 ): string {
   const { preset, doc } = migrate(value)
   const classes = escapeHTMLAttribute(cn(proseVariants({ size, className })))

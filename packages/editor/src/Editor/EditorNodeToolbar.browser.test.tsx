@@ -19,7 +19,7 @@ import {
   type EmbedProvider,
   defaultEmbedProviders
 } from '../schema'
-import { LINE_START, MOD } from './testUtils'
+import { LINE_START, MOD, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Event description'
 const CROWD = '/images/crowd.webp'
@@ -115,7 +115,7 @@ async function clickEmbed() {
 
 async function selectWithArrows() {
   const textbox = await screen.findByRole('textbox', { name: LABEL })
-  await userEvent.click(within(textbox).getByText('Sold out'))
+  await clickIntoEditor(within(textbox).getByText('Sold out'))
   await userEvent.keyboard(`${LINE_START}{ArrowUp}`)
   return textbox
 }

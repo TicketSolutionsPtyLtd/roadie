@@ -245,7 +245,47 @@ export function ComponentSkeleton({ name }: { name: string }) {
           <Skel className='h-2 w-10 opacity-50' />
         </div>
       )
-    case 'editor':
+    case 'editor/blocks':
+      return (
+        <div className='grid w-44 gap-1.5 rounded-lg emphasis-field px-3 py-2.5'>
+          {['w-24', 'w-28', 'w-16'].map((width) => (
+            <div key={width} className='flex items-center gap-1.5'>
+              <DotsSixVerticalIcon
+                weight='bold'
+                className='size-3 shrink-0 text-subtler'
+              />
+              <Skel className={`h-2 ${width}`} />
+            </div>
+          ))}
+        </div>
+      )
+    case 'editor/email':
+      return (
+        <div className='grid w-44 gap-1.5 rounded-lg emphasis-field p-2'>
+          <Skel className='h-2 w-24' />
+          <div className='grid grid-cols-2 gap-1.5'>
+            {['w-14', 'w-12'].map((width) => (
+              <div
+                key={width}
+                className='grid gap-1 rounded-sm border border-dashed border-subtle p-1.5'
+              >
+                <Skel className={`h-1.5 ${width}`} />
+                <Skel className='h-1.5 w-8' />
+              </div>
+            ))}
+          </div>
+          <div className='h-4 w-16 rounded-sm bg-strong/40' />
+        </div>
+      )
+    case 'editor/saved-content':
+      return (
+        <div className='grid w-44 gap-1 rounded-md emphasis-subtle px-2 py-1.5 font-mono text-xs text-subtle'>
+          <span>{'{ version: 1,'}</span>
+          <span>{"  preset: 'rich',"}</span>
+          <span>{'  doc: { … } }'}</span>
+        </div>
+      )
+    case 'editor/basic-and-rich':
       return (
         <div className='grid w-44 gap-1.5 rounded-lg emphasis-field px-3 py-2.5'>
           <Skel className='h-2 w-28' />
