@@ -7,7 +7,12 @@ import { Skeleton } from '@oztix/roadie-components/skeleton'
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { EditorBlock } from '../extensions'
-import type { EditorValue, EmbedProvider, Preset } from '../schema'
+import type {
+  EditorValue,
+  EditorVariable,
+  EmbedProvider,
+  Preset
+} from '../schema'
 import { loadedEngine, preloadEditor, subscribeToEngine } from './load'
 import { resolvedPreset, startingValue } from './startingValue'
 import {
@@ -75,6 +80,12 @@ export type EditorRootProps = {
    * the editor is created.
    */
   extensions?: readonly EditorBlock[]
+  /**
+   * The merge tags the sending system fills, for the `email` preset. Each
+   * `variable` node shows as a chip with its label, and one whose key isn't
+   * listed shows as invalid. Without it, a chip shows its key.
+   */
+  variables?: readonly EditorVariable[]
   'aria-label'?: string
   'aria-labelledby'?: string
   /**

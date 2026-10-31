@@ -1,0 +1,5 @@
+---
+'@oztix/roadie-editor': minor
+---
+
+The email preset gets the block handle. A grip and an add button show beside each block, including a whole section, a row of columns, and each block in a section or column. Dragging the grip drops the block into the section or column under the pointer, and a drop there that can't hold it, such as a section in a column, moves nothing. Move up and Move down in the block menu now go to the next place the block can go, into and out of sections and columns; in the `blocks` preset that is still a swap with the next block. For a nested block, the menu's Select section or Select columns turns it to the block holding it, so a whole section moves by keyboard too. The add button opens the insert menu on a new line after the block, or on an empty line in place. A framed email editor's text starts 60px in, to make room for both. `Editor` takes `variables`, the list `renderEmail` takes, and shows each merge tag as a chip with its label, or its key when the list doesn't have it, flagged as invalid. An editor whose first block is an image or embed loads with it unselected, so it shows no selection ring until it's clicked.

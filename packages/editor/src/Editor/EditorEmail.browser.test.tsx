@@ -1,13 +1,40 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
+import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, JSONContent } from '../schema'
 import { LINE_END } from './testUtils'
 
 const LABEL = 'Newsletter'
+
+// Unstyled, the block handle beside the caret's block sits in the flow.
+let style: HTMLStyleElement
+beforeAll(() => {
+  style = document.createElement('style')
+  style.textContent = roadieCss
+  document.head.append(style)
+})
+afterAll(() => style.remove())
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
+
+// Computed colours can be oklch, so a canvas turns any of them into RGB.
+function luminance(color: string) {
+  const context = document.createElement('canvas').getContext('2d')!
+  context.fillStyle = color
+  context.fillRect(0, 0, 1, 1)
+  const [r = 0, g = 0, b = 0] = context.getImageData(0, 0, 1, 1).data
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+}
 
 const p = (text: string): JSONContent => ({
   type: 'paragraph',
@@ -155,5 +182,154 @@ describe('Editor with the email preset', () => {
         }
       })
     )
+  })
+
+  it('shows a merge tag as a chip with its label, not as text to edit', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        variables={[
+          {
+            key: 'first_name',
+            label: 'First name',
+            tokens: { ae: '#FirstName#' }
+          }
+        ]}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'paragraph',
+                content: [
+                  { type: 'text', text: 'Hi ' },
+                  { type: 'variable', attrs: { key: 'first_name' } },
+                  { type: 'text', text: ' and ' },
+                  { type: 'variable', attrs: { key: 'event_name' } }
+                ]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await waitFor(() =>
+      expect(textbox).toHaveTextContent('Hi First name and event_name')
+    )
+
+    const known = screen.getByText('First name')
+    expect(known.isContentEditable).toBe(false)
+    expect(known.closest('[data-slot="editor-variable"]')).not.toHaveAttribute(
+      'data-invalid'
+    )
+    const unknown = screen.getByText('event_name')
+    expect(unknown.isContentEditable).toBe(false)
+    expect(unknown.closest('[data-slot="editor-variable"]')).toHaveAttribute(
+      'data-invalid'
+    )
+  })
+
+  it('shows a merge tag in a button so it reads against the button’s fill', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        variables={[
+          {
+            key: 'first_name',
+            label: 'First name',
+            tokens: { ae: '#FirstName#' }
+          }
+        ]}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'button',
+                attrs: { href: TICKETS },
+                content: [
+                  { type: 'text', text: 'See your tickets, ' },
+                  { type: 'variable', attrs: { key: 'first_name' } }
+                ]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    const chip = await screen.findByText('First name')
+    const button = chip.closest('[data-slot="editor-variable"]')!.parentElement!
+
+    const fill = luminance(getComputedStyle(button).backgroundColor)
+    const chipFill = luminance(getComputedStyle(chip).backgroundColor)
+    expect(Math.abs(fill - chipFill)).toBeGreaterThan(0.5)
+  })
+
+  it('shows a merge tag by its key when the editor lists no variables', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'paragraph',
+                content: [{ type: 'variable', attrs: { key: 'first_name' } }]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    await screen.findByRole('textbox', { name: LABEL })
+
+    const chip = await screen.findByText('first_name')
+    expect(chip.isContentEditable).toBe(false)
+    expect(chip.closest('[data-slot="editor-variable"]')).not.toHaveAttribute(
+      'data-invalid'
+    )
+  })
+
+  it('loads with a leading image unselected, until it is clicked', async () => {
+    const { container } = render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'image',
+                attrs: {
+                  src: 'https://example.test/header.webp',
+                  alt: 'A crowd'
+                }
+              },
+              p('Doors 7pm')
+            ]
+          }
+        }}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await waitFor(() => expect(textbox).toHaveTextContent('Doors 7pm'))
+    const image = await screen.findByAltText('A crowd')
+    const view = image.closest('[data-slot="editor-image"]')!
+
+    expect(view).not.toHaveAttribute('data-selected')
+    expect(container.querySelector('.ProseMirror-selectednode')).toBeNull()
+
+    await userEvent.click(image)
+    await waitFor(() => expect(view).toHaveAttribute('data-selected'))
   })
 })
