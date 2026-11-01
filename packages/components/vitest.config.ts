@@ -68,6 +68,23 @@ const tailwindNode = createRequire(
 const optimizeCss: BrowserCommand<[css: string]> = (_, css) =>
   tailwindNode.optimize(css).code
 
+// Next's Turbopack lowers nesting through Lightning CSS for browsers without
+// it, which turns a nested selector list into an :is() of its most specific
+// selector. Tailwind's optimizer keeps the list, so it can't show that.
+const lightningCss = createRequire(
+  createRequire(
+    createRequire(import.meta.url).resolve('@tailwindcss/vite')
+  ).resolve('@tailwindcss/node')
+)('lightningcss') as typeof import('lightningcss')
+const lowerNesting: BrowserCommand<[css: string]> = (_, css) =>
+  lightningCss
+    .transform({
+      filename: 'roadie.css',
+      code: Buffer.from(css),
+      targets: { chrome: 100 << 16 }
+    })
+    .code.toString()
+
 const reduceMotion: BrowserCommand<[reduce: boolean]> = ({ page }, reduce) =>
   page.emulateMedia({ reducedMotion: reduce ? 'reduce' : 'no-preference' })
 
@@ -198,6 +215,7 @@ const browserTest = {
   commands: {
     reduceMotion,
     optimizeCss,
+    lowerNesting,
     reduceTransparency,
     forcedColors,
     printMedia,
