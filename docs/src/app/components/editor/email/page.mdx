@@ -253,6 +253,71 @@ An image the email shows must be served over https, as a mail client loads it
 from outside your site. An `onUploadImage` that resolves to a path on the site
 shows an error and adds nothing.
 
+### Importing HTML or MJML
+
+Import HTML or MJML, in the toolbar, or in the floating toolbar's … menu,
+brings an existing email across. Paste its source, whole or in part, and the
+dialog says whether it's reading MJML, which starts with `<mjml>`, or HTML.
+Before anything changes, it lists what won't come across: styles, a table's
+layout, images not on https, hidden text such as a preheader, and merge tags
+the editor doesn't know. Text is always kept.
+
+Into an empty email, Import fills it. With content, Put it chooses Below the
+cursor, the default, or In place of the whole email, which undo reverses.
+Pasting markup as text, such as source copied from a code editor, opens the
+same dialog with it filled in, in place of pasting the tags.
+
+- **MJML:** each `mj-section` with one column becomes its blocks, two to four
+  columns become columns, and an `mj-wrapper` or `mj-hero` becomes a section.
+  `mj-text` is read as HTML, and `mj-button`, `mj-image`, `mj-spacer`, and
+  `mj-divider` become a button, image, spacer, and divider. A button keeps
+  its centre or right alignment and a 100% width. A navbar or social row
+  becomes a line of links. Any other element keeps its text.
+- **HTML:** a table layout gives way to its text and images, in order.
+- **Merge tags:** a token from `variables`, such as `#FirstName#` or
+  `{{ customer.first_name }}`, becomes its merge tag, and a Liquid
+  `default` becomes its fallback. A link or button whose whole href is a link
+  variable's token, such as `#OptOut#`, links to that variable.
+
+Try it with this source:
+
+```html
+<mjml><mj-body><mj-section><mj-column>
+  <mj-text><h2>Doors 7pm</h2><p>Hi #FirstName#, the gates open at Jumbuck Orchard Park on Saturday.</p></mj-text>
+  <mj-button href="https://www.oztix.com.au/ochre-kite-weekender" align="center">Get tickets</mj-button>
+  <mj-text><a href="#OptOut#">Unsubscribe</a></mj-text>
+</mj-column></mj-section></mj-body></mjml>
+```
+
+```tsx-live-prose
+<Editor
+  aria-label='Imported email'
+  preset='email'
+  variables={[
+    { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
+    { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' } }
+  ]}
+/>
+```
+
+`importEmail(source, { variables })` from `@oztix/roadie-editor/schema` is
+the same import, for a migration script or your own UI. It runs in a browser,
+with no MJML package, and returns the value with what it couldn't keep.
+
+```ts
+import { importEmail } from '@oztix/roadie-editor/schema'
+
+const { value, format, dropped, restyled, unknownMergeTags } = importEmail(
+  source,
+  { variables }
+)
+```
+
+`dropped` lists images, embeds, hidden text, links on images, and MJML
+elements with no block of their own, in order. `restyled` counts style sheets
+and styled elements, and tables, outermost only. `unknownMergeTags` lists
+each token no variable matches, kept as text.
+
 ## Sending email
 
 `@oztix/roadie-editor/email` renders a saved value as an email: a whole HTML

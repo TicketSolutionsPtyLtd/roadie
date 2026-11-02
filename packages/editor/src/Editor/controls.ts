@@ -4,6 +4,7 @@ import {
   ArrowCounterClockwiseIcon,
   ColumnsPlusLeftIcon,
   ColumnsPlusRightIcon,
+  FileCodeIcon,
   FilmStripIcon,
   ImageIcon,
   LinkIcon,
@@ -53,6 +54,8 @@ export type EditorControlUi = {
   editButton: () => void
   /** Opens the editor of the selected merge tag. */
   editVariable: () => void
+  /** Opens the import of an email's HTML or MJML, in the email preset. */
+  importSource?: (source?: string) => void
 }
 
 export type EditorControl = {
@@ -244,6 +247,13 @@ const history = [undo, redo] as const
 
 const inserts = [divider, image, embed, table] as const
 
+const importSource: EditorControl = {
+  label: 'Import HTML or MJML',
+  icon: FileCodeIcon,
+  run: (_editor, ui) => ui.importSource?.(),
+  available: (ui) => Boolean(ui.importSource)
+}
+
 const emailBlockType = { ...blockType, types: [paragraph, ...headings] }
 
 /** The text controls, which the floating toolbar shows over a selection. */
@@ -259,7 +269,7 @@ export const overflowControls: Record<Preset, readonly EditorControl[]> = {
   basic: history,
   rich: [...inserts, ...history],
   blocks: [...inserts, ...history],
-  email: history
+  email: [importSource, ...history]
 }
 
 // Each preset lists only controls for extensions it holds.
@@ -279,7 +289,13 @@ export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
     SEPARATOR,
     ...history
   ],
-  email: [...floatingControls.email, SEPARATOR, ...history]
+  email: [
+    ...floatingControls.email,
+    SEPARATOR,
+    importSource,
+    SEPARATOR,
+    ...history
+  ]
 }
 
 const altText: EditorControl = {
