@@ -14,10 +14,12 @@ import {
   type Device,
   FRAME_PATH,
   type FrameExample,
+  type FrameRoot,
   deviceWidth,
   fitScale,
   frameMessageFrom,
-  postToFrame
+  postToFrame,
+  readFrameRoot
 } from './exampleDevices'
 
 // Tall enough for a menu or dialog an example opens to show inside the frame.
@@ -29,11 +31,18 @@ function subscribeToRoot(onChange: () => void) {
     attributes: true,
     attributeFilter: ['class', 'style']
   })
+  // The accent lives in a style tag ThemeProvider rewrites.
+  observer.observe(document.head, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  })
   return () => observer.disconnect()
 }
 
-const readRoot = () =>
-  `${document.documentElement.className}\n${document.documentElement.getAttribute('style') ?? ''}`
+const readRoot = () => JSON.stringify(readFrameRoot())
+const serverRoot = () =>
+  JSON.stringify({ className: '', colorScheme: '', accent: '' })
 
 /**
  * An example in an iframe at a device's width, so viewport breakpoints respond
@@ -54,7 +63,7 @@ export function DeviceFrame({
   const [readyCount, setReadyCount] = useState(0)
   const [height, setHeight] = useState(MIN_FRAME_HEIGHT)
   const [scale, setScale] = useState(1)
-  const rootKey = useSyncExternalStore(subscribeToRoot, readRoot, () => '\n')
+  const rootKey = useSyncExternalStore(subscribeToRoot, readRoot, serverRoot)
   const { code, language, previewLayout } = example
 
   useEffect(() => {
@@ -72,10 +81,14 @@ export function DeviceFrame({
   useEffect(() => {
     const target = frameRef.current?.contentWindow
     if (readyCount === 0 || !target) return
-    const [className = '', style = ''] = rootKey.split('\n')
     postToFrame(target, {
       type: 'roadie-example',
-      example: { code, language, previewLayout, root: { className, style } }
+      example: {
+        code,
+        language,
+        previewLayout,
+        root: JSON.parse(rootKey) as FrameRoot
+      }
     })
   }, [readyCount, code, language, previewLayout, rootKey])
 

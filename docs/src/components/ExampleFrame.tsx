@@ -6,6 +6,7 @@ import { LazyLiveRunner } from './LazyLiveRunner'
 import { previewSpacing } from './codeChrome'
 import {
   type FrameExample,
+  applyFrameRoot,
   frameMessageFrom,
   postToFrame
 } from './exampleDevices'
@@ -19,9 +20,7 @@ export function ExampleFrame() {
     const onMessage = (event: MessageEvent) => {
       const message = frameMessageFrom(event, window.parent)
       if (message?.type !== 'roadie-example') return
-      const { root } = message.example
-      document.documentElement.className = root.className
-      document.documentElement.setAttribute('style', root.style)
+      applyFrameRoot(message.example.root)
       setExample(message.example)
     }
     window.addEventListener('message', onMessage)

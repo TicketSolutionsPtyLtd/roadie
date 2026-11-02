@@ -17,7 +17,17 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
+  document.documentElement.className = ''
+  document.documentElement.removeAttribute('style')
+  document.getElementById('roadie-accent-theme')?.remove()
 })
+
+function accentStyle(css: string) {
+  const style = document.createElement('style')
+  style.id = 'roadie-accent-theme'
+  style.textContent = css
+  return style
+}
 
 const example = { code: '<Badge>New</Badge>', language: 'tsx-live' }
 
@@ -52,8 +62,10 @@ describe('DeviceFrame', () => {
     expect(frame.style.width).toBe('375px')
   })
 
-  it('sends the example, with the page theme, once the frame is ready', () => {
+  it('sends the example, with the page theme and accent, once the frame is ready', () => {
     document.documentElement.className = 'dark'
+    document.documentElement.style.colorScheme = 'dark'
+    document.head.append(accentStyle(':root{--accent-hue:20}'))
     const { frame, post } = renderFrame()
 
     fromFrame(frame, { type: 'roadie-example-ready' })
@@ -63,12 +75,44 @@ describe('DeviceFrame', () => {
         type: 'roadie-example',
         example: {
           ...example,
-          root: { className: 'dark', style: '' }
+          root: {
+            className: 'dark',
+            colorScheme: 'dark',
+            accent: ':root{--accent-hue:20}'
+          }
         }
       },
       window.location.origin
     )
-    document.documentElement.className = ''
+  })
+
+  it('leaves out page styles that are not theme, such as a scroll lock', () => {
+    document.documentElement.style.overflowY = 'hidden'
+    const { frame, post } = renderFrame()
+
+    fromFrame(frame, { type: 'roadie-example-ready' })
+
+    expect(JSON.stringify(post.mock.calls)).not.toContain('overflow')
+  })
+
+  it('sends the accent again when the page changes it', async () => {
+    const style = accentStyle(':root{--accent-hue:20}')
+    document.head.append(style)
+    const { frame, post } = renderFrame()
+    fromFrame(frame, { type: 'roadie-example-ready' })
+
+    await act(async () => {
+      style.textContent = ':root{--accent-hue:300}'
+    })
+
+    expect(post).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        example: expect.objectContaining({
+          root: expect.objectContaining({ accent: ':root{--accent-hue:300}' })
+        })
+      }),
+      window.location.origin
+    )
   })
 
   it('sends edited code to a ready frame', () => {

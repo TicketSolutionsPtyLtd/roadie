@@ -18,12 +18,44 @@ export const fitScale = (width: number, available: number) =>
 /** Runs an example the docs page posts to it, at the frame's own viewport width. */
 export const FRAME_PATH = '/examples/frame/'
 
+// ThemeProvider writes the accent into this tag but doesn't export its id.
+const ACCENT_STYLE_ID = 'roadie-accent-theme'
+
+/** The docs page's theme and accent, without the rest of `<html>`'s style, such as a scroll lock. */
+export type FrameRoot = {
+  className: string
+  colorScheme: string
+  accent: string
+}
+
 export type FrameExample = {
   code: string
   language: string
   previewLayout?: string
-  /** The docs page's `<html>` class and style, so the frame keeps its theme and accent. */
-  root: { className: string; style: string }
+  root: FrameRoot
+}
+
+export function readFrameRoot(): FrameRoot {
+  const html = document.documentElement
+  return {
+    className: html.className,
+    colorScheme: html.style.colorScheme,
+    accent: document.getElementById(ACCENT_STYLE_ID)?.textContent ?? ''
+  }
+}
+
+export function applyFrameRoot({ className, colorScheme, accent }: FrameRoot) {
+  const html = document.documentElement
+  html.className = className
+  html.style.colorScheme = colorScheme
+  if (!accent) return
+  let style = document.getElementById(ACCENT_STYLE_ID)
+  if (!style) {
+    style = document.createElement('style')
+    style.id = ACCENT_STYLE_ID
+    document.head.append(style)
+  }
+  style.textContent = accent
 }
 
 export type FrameMessage =

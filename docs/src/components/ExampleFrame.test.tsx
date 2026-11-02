@@ -25,13 +25,18 @@ afterEach(() => {
   vi.unstubAllGlobals()
   document.documentElement.className = ''
   document.documentElement.removeAttribute('style')
+  document.getElementById('roadie-accent-theme')?.remove()
 })
 
 const example = {
   code: '<Badge>New</Badge>',
   language: 'tsx-live',
   previewLayout: 'flex gap-2',
-  root: { className: 'dark', style: '--accent-hue: 200;' }
+  root: {
+    className: 'dark',
+    colorScheme: 'dark',
+    accent: ':root{--accent-hue:200}'
+  }
 }
 
 function fromParent(data: unknown, source: Window | null = window.parent) {
@@ -57,7 +62,7 @@ describe('ExampleFrame', () => {
     )
   })
 
-  it('runs the example the docs page sends, in the page theme', () => {
+  it('runs the example the docs page sends, in the page theme and accent', () => {
     render(<ExampleFrame />)
 
     fromParent({ type: 'roadie-example', example })
@@ -66,9 +71,19 @@ describe('ExampleFrame', () => {
       'flex gap-2'
     )
     expect(document.documentElement.className).toBe('dark')
-    expect(document.documentElement.getAttribute('style')).toBe(
-      '--accent-hue: 200;'
+    expect(document.documentElement.style.colorScheme).toBe('dark')
+    expect(document.getElementById('roadie-accent-theme')?.textContent).toBe(
+      ':root{--accent-hue:200}'
     )
+  })
+
+  it("keeps the frame's own page styles, such as its scroll lock", () => {
+    document.documentElement.style.overflowY = 'hidden'
+    render(<ExampleFrame />)
+
+    fromParent({ type: 'roadie-example', example })
+
+    expect(document.documentElement.style.overflowY).toBe('hidden')
   })
 
   it('ignores examples from another origin', () => {
