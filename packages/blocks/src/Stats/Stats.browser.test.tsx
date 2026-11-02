@@ -128,22 +128,38 @@ describe('Stats layout', () => {
       [4, 5].map((count) => [count, width] as const)
     )
   )(
-    'keeps a figure and the sign after it on one line, with %i stats at %ipx',
+    'fits every figure inside its column, with %i stats at %ipx',
     async (count, width) => {
       await atWidth(width, 900)
       render(
         <Stats {...facts} stats={[...facts.stats, fans].slice(0, count)} />
       )
 
-      const figure = screen.getByText('33,000,000+')
-      const lineHeight = parseFloat(getComputedStyle(figure).lineHeight)
-      expect(figure.getBoundingClientRect().height).toBeLessThan(
-        lineHeight * 1.5
-      )
       for (const item of screen.getAllByRole('listitem'))
         expect(item.scrollWidth).toBeLessThanOrEqual(item.clientWidth)
     }
   )
+
+  it('never splits a figure, even in a column too narrow for it', async () => {
+    await atWidth(PHONE.width, PHONE.height)
+    render(
+      <div style={{ width: 120 }}>
+        <Stats
+          title='By the numbers'
+          stats={[
+            { value: '33,000,000+', label: 'tickets sold' },
+            { value: '7 million+', label: 'fans' }
+          ]}
+        />
+      </div>
+    )
+
+    for (const value of ['33,000,000+', 'million+']) {
+      const word = screen.getByText(value)
+      const lineHeight = parseFloat(getComputedStyle(word).lineHeight)
+      expect(word.getBoundingClientRect().height).toBeLessThan(lineHeight * 1.5)
+    }
+  })
 
   it.each([640, 900, 1000, 1150, 1280])(
     'sets every stat in a row alike, illustration beside or above, at %ipx',
