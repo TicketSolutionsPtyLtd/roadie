@@ -58,7 +58,7 @@ export type GalleryProps = {
   images: readonly GalleryImage[]
   /**
    * The photos' shape in `carousel` and `marquee`. `logos` keeps each logo's own proportions at one height.
-   * @default 'portrait'
+   * @default 'story'
    */
   ratio?: BlockRatio
   /** Links under the photos, as buttons. The first is the strong one. */
@@ -82,15 +82,23 @@ export type GalleryProps = {
 
 // Literal class names, so Tailwind finds them. Widths step up with the block's own width.
 const CROPPED: Record<BlockRatio, { tile: string; sizes: string }> = {
-  portrait: {
+  story: {
     tile: 'aspect-9/16 w-35 @xl:w-45 @4xl:w-55',
     sizes: '(max-width: 640px) 140px, (max-width: 960px) 180px, 220px'
+  },
+  portrait: {
+    tile: 'aspect-3/4 w-36 @xl:w-45 @4xl:w-54',
+    sizes: '(max-width: 640px) 144px, (max-width: 960px) 180px, 216px'
   },
   square: {
     tile: 'aspect-square w-40 @xl:w-50 @4xl:w-60',
     sizes: '(max-width: 640px) 160px, (max-width: 960px) 200px, 240px'
   },
   landscape: {
+    tile: 'aspect-3/2 w-60 @xl:w-75 @4xl:w-90',
+    sizes: '(max-width: 640px) 240px, (max-width: 960px) 300px, 360px'
+  },
+  banner: {
     tile: 'aspect-2/1 w-72 @xl:w-96 @4xl:w-112',
     sizes: '(max-width: 640px) 288px, (max-width: 960px) 384px, 448px'
   }

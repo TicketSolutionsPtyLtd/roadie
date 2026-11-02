@@ -68,7 +68,7 @@ describe('Gallery', () => {
     ['carousel', 'a mid-width screen', MID, 180],
     ['marquee', 'a mid-width screen', MID, 180]
   ] as const)(
-    'shows the %s in portrait 9:16 tiles on %s',
+    'shows the %s in story 9:16 tiles on %s',
     async (preset, _, size, width) => {
       await page.viewport(size.width, size.height)
       render(<Photos preset={preset} />)
@@ -540,9 +540,11 @@ describe('Gallery ratio', () => {
     screen.getByRole('img', { name }).getBoundingClientRect()
 
   it.each([
-    ['portrait', 9 / 16],
+    ['story', 9 / 16],
+    ['portrait', 3 / 4],
     ['square', 1],
-    ['landscape', 2]
+    ['landscape', 3 / 2],
+    ['banner', 2]
   ] as const)(
     'crops each %s tile to its ratio, in a carousel or marquee',
     async (ratio, expected) => {
@@ -573,7 +575,7 @@ describe('Gallery ratio', () => {
     }
   )
 
-  it('crops carousel tiles to portrait by default', async () => {
+  it('crops carousel tiles to story by default', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     render(<Gallery preset='carousel' title='Our people' images={images} />)
 

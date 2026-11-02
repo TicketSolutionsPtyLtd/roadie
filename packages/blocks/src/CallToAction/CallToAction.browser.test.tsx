@@ -128,7 +128,7 @@ describe('CallToAction with photo', () => {
         ['a wide desktop', { width: 1600, height: 900 }]
       ] as const
     ).flatMap(([name, size]) =>
-      (['square', 'portrait', 'landscape'] as const).map(
+      (['square', 'story', 'portrait', 'landscape', 'banner'] as const).map(
         (ratio) => [name, ratio, size] as const
       )
     )
@@ -155,15 +155,18 @@ describe('CallToAction with photo', () => {
     }
   )
 
-  it('keeps a portrait photo to a quarter of a wide block, so it runs no taller', async () => {
-    await page.viewport(DESKTOP.width, DESKTOP.height)
-    render(<CallToAction {...props} ratio='portrait' tilted={false} />)
+  it.each(['story', 'portrait'] as const)(
+    'keeps a %s photo to a quarter of a wide block, so it runs no taller',
+    async (ratio) => {
+      await page.viewport(DESKTOP.width, DESKTOP.height)
+      render(<CallToAction {...props} ratio={ratio} tilted={false} />)
 
-    const { section, photo } = boxes()
-    expect(photo.width).toBeLessThan(section.width * 0.26)
-  })
+      const { section, photo } = boxes()
+      expect(photo.width).toBeLessThan(section.width * 0.26)
+    }
+  )
 
-  it.each(['square', 'landscape'] as const)(
+  it.each(['square', 'landscape', 'banner'] as const)(
     'grows a %s photo to a third of a wide block, beside the copy',
     async (ratio) => {
       await page.viewport(DESKTOP.width, DESKTOP.height)
@@ -212,10 +215,12 @@ describe('CallToAction with photo', () => {
 
 describe('CallToAction with photo, its photo', () => {
   it.each([
-    [undefined, 1],
+    [undefined, 3 / 4],
     ['square', 1],
-    ['portrait', 9 / 16],
-    ['landscape', 2]
+    ['story', 9 / 16],
+    ['portrait', 3 / 4],
+    ['landscape', 3 / 2],
+    ['banner', 2]
   ] as const)(
     'crops a landscape photo to the %s ratio, %s wide per high',
     async (ratio, expected) => {
