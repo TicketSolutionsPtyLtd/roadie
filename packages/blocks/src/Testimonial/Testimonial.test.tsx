@@ -1,0 +1,266 @@
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+
+import { Testimonial } from '.'
+import { BlocksProvider } from '../Provider'
+import { carousel, quote } from './fixtures'
+
+describe('Testimonial', () => {
+  it('renders quote as a section named by its heading', () => {
+    render(<Testimonial {...quote} position={4} />)
+
+    const section = screen.getByRole('region', {
+      name: 'Our partners say it best'
+    })
+    expect(section).toHaveAttribute('data-block', 'testimonial')
+    expect(section).toHaveAttribute('data-variant', 'single')
+    expect(section).toHaveAttribute('data-preset', 'quote')
+    expect(section).toHaveAttribute('data-position', '4')
+    expect(
+      screen.getByText('Why venues and event organisers partner with Oztix')
+    ).toBeInTheDocument()
+  })
+
+  it('ties the quote to its citation in one figure', () => {
+    render(<Testimonial {...quote} />)
+
+    const figure = screen.getByRole('figure')
+    const blockquote = within(figure).getByRole('blockquote')
+    expect(blockquote).toHaveTextContent(quote.quotes[0]!.quote)
+    const caption = figure.querySelector('figcaption')!
+    expect(caption).toHaveTextContent('Mia Tran')
+    expect(caption).toHaveTextContent('Head of Programming')
+    expect(
+      within(caption).getByRole('img', { name: 'Portrait of Mia Tran' })
+    ).toBeInTheDocument()
+    expect(
+      within(caption).getByRole('img', { name: 'Thimble Orbit Presents logo' })
+    ).toBeInTheDocument()
+  })
+
+  it('reads the organisation from its logo, with no name as text', () => {
+    render(
+      <Testimonial
+        {...quote}
+        quotes={[
+          {
+            ...quote.quotes[0]!,
+            organisation: {
+              name: 'Thimble Orbit Presents',
+              logo: { ...quote.quotes[0]!.organisation.logo, alt: '' }
+            }
+          }
+        ]}
+      />
+    )
+
+    const caption = screen.getByRole('figure').querySelector('figcaption')!
+    expect(
+      within(caption).getByRole('img', { name: 'Thimble Orbit Presents' })
+    ).toBeInTheDocument()
+    expect(within(caption).queryByText('Thimble Orbit Presents')).toBeNull()
+  })
+
+  it('leaves out the role when there is none', () => {
+    render(
+      <Testimonial
+        {...quote}
+        quotes={[{ ...quote.quotes[0]!, person: { name: 'Mia Tran' } }]}
+      />
+    )
+
+    const caption = screen.getByRole('figure').querySelector('figcaption')!
+    expect(caption).toHaveTextContent('Mia Tran')
+    expect(caption).not.toHaveTextContent('Head of Programming')
+    expect(
+      within(caption)
+        .getAllByText(/./, { selector: 'p' })
+        .map((line) => line.textContent)
+    ).toEqual(['Mia Tran'])
+  })
+
+  it('names the organisation in text when it has no logo', () => {
+    render(
+      <Testimonial
+        {...quote}
+        quotes={[
+          {
+            ...quote.quotes[0]!,
+            person: { name: 'Mia Tran', role: 'Head of Programming' },
+            organisation: { name: 'Thimble Orbit Presents' }
+          }
+        ]}
+      />
+    )
+
+    const caption = screen.getByRole('figure').querySelector('figcaption')!
+    expect(within(caption).queryByRole('img')).toBeNull()
+    expect(caption).toHaveTextContent('Thimble Orbit Presents')
+  })
+
+  it('draws the background photo behind, unread, only when given', () => {
+    const { container, rerender } = render(<Testimonial {...quote} />)
+    const background = container.querySelector(`img[src="${quote.image.src}"]`)
+    expect(background).toHaveAttribute('alt', '')
+
+    rerender(<Testimonial {...quote} image={undefined} />)
+    expect(container.querySelector(`img[src="${quote.image.src}"]`)).toBeNull()
+  })
+
+  it("draws every image with the provider's renderImage", () => {
+    render(
+      <BlocksProvider
+        renderImage={({ alt }) => <img alt={alt} src='/optimised.webp' />}
+      >
+        <Testimonial {...quote} />
+      </BlocksProvider>
+    )
+
+    const images = document.querySelectorAll('img')
+    expect(images).toHaveLength(3)
+    for (const img of images)
+      expect(img).toHaveAttribute('src', '/optimised.webp')
+  })
+
+  it('gives every image the sizes its layout needs', () => {
+    const renderImage = vi.fn(({ alt }: { alt: string }) => (
+      <img alt={alt} src='/optimised.webp' />
+    ))
+    render(
+      <BlocksProvider renderImage={renderImage}>
+        <Testimonial {...quote} />
+      </BlocksProvider>
+    )
+
+    for (const [image] of renderImage.mock.calls)
+      expect(image, image.alt).toHaveProperty('sizes', expect.any(String))
+  })
+
+  it('reports no click from the quote, which holds no links', async () => {
+    const onBlockEvent = vi.fn()
+    render(
+      <BlocksProvider onBlockEvent={onBlockEvent}>
+        <Testimonial {...quote} />
+      </BlocksProvider>
+    )
+
+    await userEvent.click(screen.getByRole('blockquote'))
+
+    expect(onBlockEvent).not.toHaveBeenCalled()
+  })
+
+  describe('intent and emphasis', () => {
+    it('tints the quote mark and portrait info by default, with no band', () => {
+      const { container } = render(<Testimonial {...quote} />)
+
+      const section = container.querySelector('section')!
+      expect(section).not.toHaveAttribute('data-intent')
+      expect(
+        container.querySelector('[data-slot=block-surface]')!.className
+      ).not.toMatch(/emphasis-/)
+      expect(screen.getByRole('blockquote')).toHaveClass('intent-info')
+      expect(
+        screen.getByRole('img', { name: 'Portrait of Mia Tran' }).parentElement
+      ).toHaveClass('intent-info')
+    })
+
+    it('carries its intent to the section, quote mark, and portrait', () => {
+      const { container } = render(<Testimonial {...quote} intent='brand' />)
+
+      expect(container.querySelector('section')).toHaveAttribute(
+        'data-intent',
+        'brand'
+      )
+      expect(screen.getByRole('blockquote')).toHaveClass('intent-brand')
+      expect(
+        screen.getByRole('img', { name: 'Portrait of Mia Tran' }).parentElement
+      ).toHaveClass('intent-brand')
+    })
+
+    it.each(['raised', 'subtle', 'subtler'] as const)(
+      'draws a %s band behind the quote',
+      (emphasis) => {
+        const { container } = render(
+          <Testimonial {...quote} image={undefined} emphasis={emphasis} />
+        )
+
+        expect(
+          container.querySelector('[data-slot=block-surface]')
+        ).toHaveClass(`emphasis-${emphasis}`)
+      }
+    )
+
+    it('fades the background photo over the band when both are set', () => {
+      const { container } = render(<Testimonial {...quote} emphasis='subtle' />)
+
+      expect(container.querySelector('[data-slot=block-surface]')).toHaveClass(
+        'emphasis-subtle'
+      )
+      expect(
+        container.querySelector(`img[src="${quote.image.src}"]`)
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('contained and actions', () => {
+    it('draws the surface as a panel when contained', () => {
+      const { container } = render(
+        <Testimonial {...quote} emphasis='raised' contained />
+      )
+
+      expect(
+        container.querySelector('[data-slot=block-surface]')
+      ).toHaveAttribute('data-shape', 'panel')
+    })
+
+    it('links on from under the quote', () => {
+      render(
+        <Testimonial
+          {...quote}
+          actions={[{ label: 'Read the case study', href: '/case-studies' }]}
+        />
+      )
+
+      const link = screen.getByRole('link', { name: 'Read the case study' })
+      expect(link).toHaveAttribute('href', '/case-studies')
+      expect(
+        screen.getByRole('figure').compareDocumentPosition(link) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy()
+    })
+  })
+})
+
+describe('Testimonial carousel', () => {
+  it('renders each quote as a slide, in its own figure', () => {
+    render(<Testimonial {...carousel} />)
+
+    const section = screen.getByRole('region', { name: carousel.title })
+    expect(section.closest('section')).toHaveAttribute(
+      'data-preset',
+      'carousel'
+    )
+    expect(section.closest('section')).toHaveAttribute(
+      'data-variant',
+      'carousel'
+    )
+    expect(screen.getAllByRole('figure', { hidden: true })).toHaveLength(
+      carousel.quotes.length
+    )
+    expect(
+      screen
+        .getAllByRole('group', { hidden: true })
+        .map((slide) => slide.getAttribute('aria-label'))
+    ).toEqual(['1 of 3', '2 of 3', '3 of 3'])
+  })
+
+  it('shows the first quote alone in the quote preset', () => {
+    render(<Testimonial {...carousel} preset='quote' />)
+
+    expect(screen.getAllByRole('figure')).toHaveLength(1)
+    expect(screen.getByRole('blockquote')).toHaveTextContent(
+      carousel.quotes[0]!.quote
+    )
+  })
+})

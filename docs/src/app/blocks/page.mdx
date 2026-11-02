@@ -1,26 +1,26 @@
 export const metadata = {
   title: 'Blocks',
   description:
-    'Designed page sections that marketing composes into pages, from any CMS',
+    'Designed page sections composed into pages, from code or any CMS',
   status: 'alpha'
 }
 
 import { CatalogueIndex } from '@/components/CatalogueIndex'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Designed page sections that marketing composes into pages, from any CMS.
+Designed page sections composed into pages, from code or any CMS.
 
 <CatalogueIndex name='blocks' />
 
 ## Setup
 
-Blocks ship from `@oztix/roadie-marketing-blocks`, one subpath per block.
+Blocks ship from `@oztix/roadie-blocks`, one subpath per block.
 Import its stylesheet after the components' stylesheet:
 
 ```css
 @import '@oztix/roadie-core/css';
 @import '@oztix/roadie-components/css';
-@import '@oztix/roadie-marketing-blocks/css';
+@import '@oztix/roadie-blocks/css';
 ```
 
 Blocks take plain props, such as strings, `{ src, alt }` images, and
@@ -32,19 +32,19 @@ knows nothing about any CMS. Rich text arrives already rendered, as a
 
 Every block has at most two variants, and editors pick a named `preset`
 rather than setting options. A preset fills in the variant, the surface, and
-the layout, so pages stay consistent however many marketing adds. The
+the layout, so pages stay consistent however many people add to them. The
 [shared props](#shared-props) adjust colour, surface, and scale within it. A
 new look is a new preset, raised as a block request, not a prop.
 
 The first action in a block is the strong one and the rest are normal, so a
 button's emphasis is never an option either.
 
-`@oztix/roadie-marketing-blocks/catalogue` lists every block, its presets,
+`@oztix/roadie-blocks/catalogue` lists every block, its presets,
 and each preset's thumbnail. It has no React, so a Studio config can build
 its block picker from it:
 
 ```ts
-import { catalogue } from '@oztix/roadie-marketing-blocks/catalogue'
+import { catalogue } from '@oztix/roadie-blocks/catalogue'
 
 for (const block of catalogue) {
   console.log(block.import, block.presets.map((preset) => preset.name))
@@ -82,7 +82,7 @@ none. Sections, panels, and figures are never interactive.
 Each preset has a wireframe in the package's `thumbnails` folder, and the
 catalogue gives its file name as `thumbnail`. A Studio serves them as
 static files: copy
-`node_modules/@oztix/roadie-marketing-blocks/src/thumbnails/` into its
+`node_modules/@oztix/roadie-blocks/src/thumbnails/` into its
 `static/blocks/` folder at build, then point the insert menu's
 `previewImageUrl` at `/static/blocks/<thumbnail>`. Wireframes read the Roadie
 colour variables when they're inline, and fall back to light-mode colours as
@@ -90,7 +90,7 @@ an image.
 
 ## Tracking
 
-Wrap the site in `MarketingBlocksProvider` and pass `onBlockEvent`. Every block
+Wrap the site in `BlocksProvider` and pass `onBlockEvent`. Every block
 reports a `view` once: when half of it is on screen, or, for a block too tall
 for that, when it reaches the middle of the screen. It reports a `click` for
 each link or button inside it. Each event names the block, its variant and
@@ -101,19 +101,19 @@ doesn't set, such as the outer `onBlockEvent`.
 ```tsx
 'use client'
 
-import { MarketingBlocksProvider } from '@oztix/roadie-marketing-blocks/provider'
+import { BlocksProvider } from '@oztix/roadie-blocks/provider'
 import { usePostHog } from 'posthog-js/react'
 
 export function BlockTracking({ children }: { children: React.ReactNode }) {
   const posthog = usePostHog()
   return (
-    <MarketingBlocksProvider
+    <BlocksProvider
       onBlockEvent={({ action, ...properties }) =>
         posthog?.capture(`website:block_${action}`, properties)
       }
     >
       {children}
-    </MarketingBlocksProvider>
+    </BlocksProvider>
   )
 }
 ```
@@ -129,7 +129,7 @@ image URL builder instead, pass `renderImage`. It receives the image with the
 `next/image` needs a `width` and `height`, so give every block image both.
 
 ```tsx
-<MarketingBlocksProvider
+<BlocksProvider
   renderImage={({ priority, ...image }) => (
     <NextImage
       {...image}
@@ -139,7 +139,7 @@ image URL builder instead, pass `renderImage`. It receives the image with the
   )}
 >
   {children}
-</MarketingBlocksProvider>
+</BlocksProvider>
 ```
 
 Both `onBlockEvent` and `renderImage` are functions, so render the provider
@@ -154,4 +154,4 @@ from a client component, as in the tracking example.
 - **One opener.** Only the first block on a page renders its title as the
   page's `h1`.
 
-<PropsDefinitions component='MarketingBlocksProvider' />
+<PropsDefinitions component='BlocksProvider' />

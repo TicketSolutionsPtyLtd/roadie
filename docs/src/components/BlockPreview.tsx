@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { catalogue } from '@oztix/roadie-marketing-blocks/catalogue'
+import { catalogue } from '@oztix/roadie-blocks/catalogue'
 
 import { Skel } from './ComponentSkeleton'
 
 const THUMBNAILS = join(
   process.cwd(),
-  'node_modules/@oztix/roadie-marketing-blocks/src/thumbnails'
+  'node_modules/@oztix/roadie-blocks/src/thumbnails'
 )
 
 /** A block page's art: its first preset's thumbnail, the same wireframe the Studio's block picker shows. */

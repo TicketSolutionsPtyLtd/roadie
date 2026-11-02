@@ -56,7 +56,7 @@ describe('formatType', () => {
 describe('isOurs', () => {
   it.each([
     'packages/components/src/components/Button/Button.tsx',
-    'packages/marketing-blocks/src/Provider/index.tsx',
+    'packages/blocks/src/Provider/index.tsx',
     'packages/editor/dist/Editor/index.d.ts'
   ])('keeps props declared in %s', (file) => {
     expect(isOurs(`/repo/${file}`)).toBe(true)

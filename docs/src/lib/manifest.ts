@@ -1,7 +1,7 @@
 import charts from '@oztix/roadie-charts/roadie.manifest.json'
 import components from '@oztix/roadie-components/roadie.manifest.json'
 import editor from '@oztix/roadie-editor/roadie.manifest.json'
-import marketingBlocks from '@oztix/roadie-marketing-blocks/roadie.manifest.json'
+import blocks from '@oztix/roadie-blocks/roadie.manifest.json'
 import widgets from '@oztix/roadie-widgets/roadie.manifest.json'
 
 /** The subset of a `roadie.manifest.json` component the docs read. */
@@ -29,7 +29,7 @@ export type ManifestComponent = ManifestPart & {
 }
 
 const byName = new Map<string, ManifestComponent>(
-  [components, charts, editor, marketingBlocks, widgets].flatMap(
+  [components, charts, editor, blocks, widgets].flatMap(
     (manifest: { components: ManifestComponent[] }) =>
       manifest.components.map((component) => [component.name, component])
   )

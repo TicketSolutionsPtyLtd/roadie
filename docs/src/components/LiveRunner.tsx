@@ -107,18 +107,18 @@ import {
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { Editor, useEditorContext } from '@oztix/roadie-editor/editor'
 import { renderEditorValue } from '@oztix/roadie-editor/render'
-import { Cards } from '@oztix/roadie-marketing-blocks/cards'
-import { CTABand } from '@oztix/roadie-marketing-blocks/cta-band'
-import { FAQ } from '@oztix/roadie-marketing-blocks/faq'
-import { Gallery } from '@oztix/roadie-marketing-blocks/gallery'
-import { Hero } from '@oztix/roadie-marketing-blocks/hero'
-import { Mosaic } from '@oztix/roadie-marketing-blocks/mosaic'
-import { MarketingBlocksProvider } from '@oztix/roadie-marketing-blocks/provider'
-import { RichText } from '@oztix/roadie-marketing-blocks/rich-text'
-import { Split } from '@oztix/roadie-marketing-blocks/split'
-import { Splits } from '@oztix/roadie-marketing-blocks/splits'
-import { Stats } from '@oztix/roadie-marketing-blocks/stats'
-import { Testimonial } from '@oztix/roadie-marketing-blocks/testimonial'
+import { Cards } from '@oztix/roadie-blocks/cards'
+import { CTABand } from '@oztix/roadie-blocks/cta-band'
+import { FAQ } from '@oztix/roadie-blocks/faq'
+import { Gallery } from '@oztix/roadie-blocks/gallery'
+import { Hero } from '@oztix/roadie-blocks/hero'
+import { Mosaic } from '@oztix/roadie-blocks/mosaic'
+import { BlocksProvider } from '@oztix/roadie-blocks/provider'
+import { RichText } from '@oztix/roadie-blocks/rich-text'
+import { Split } from '@oztix/roadie-blocks/split'
+import { Splits } from '@oztix/roadie-blocks/splits'
+import { Stats } from '@oztix/roadie-blocks/stats'
+import { Testimonial } from '@oztix/roadie-blocks/testimonial'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
@@ -232,7 +232,7 @@ const scope = {
   Editor,
   useEditorContext,
   renderEditorValue,
-  MarketingBlocksProvider,
+  BlocksProvider,
   Hero,
   RichText,
   Cards,
