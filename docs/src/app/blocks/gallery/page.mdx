@@ -105,7 +105,7 @@ by default, `square`, or `landscape` (2:1). `logos` ignores it.
 
 `intent` colours the highlighted words, the marquee's pause control, and the strong action. Without an `emphasis`, the photos sit on the page and the marquee runs the block's full width. `subtler`, `subtle`, `normal`, or `raised` draws a full-width band behind them, with the carousel and marquee running edge to edge, and `contained` draws it as a rounded panel inside the page's padding instead.
 
-`align` overrides the heading's alignment, which starts over the carousel and centres over the marquee and the logos. `size='md'` or `'sm'` sets the title one or two steps smaller with tighter spacing, and `actions` go under the photos, lined up with the heading.
+`align` overrides the heading's alignment, which is centred in every preset. `size='md'` or `'sm'` sets the title one or two steps smaller with tighter spacing, and `actions` go under the photos, lined up with the heading.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
 {/* Brand, subtle band, action */}
@@ -122,12 +122,12 @@ by default, `square`, or `landscape` (2:1). `logos` ignores it.
     { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting', width: 1280, height: 854 }
   ]}
 />
-{/* Normal panel, centred, small */}
+{/* Normal panel, start-aligned, small */}
 <Gallery
   preset='carousel'
   emphasis='normal'
   contained
-  align='center'
+  align='start'
   size='md'
   title='Events our partners run'
   images={[

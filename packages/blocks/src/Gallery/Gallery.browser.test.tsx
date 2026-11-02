@@ -405,9 +405,9 @@ describe('Gallery align and size', () => {
   const heading = () => screen.getByRole('heading', { level: 2 })
 
   it.each([
-    { preset: 'carousel', align: undefined, expected: 'start' },
+    { preset: 'carousel', align: undefined, expected: 'center' },
     { preset: 'marquee', align: undefined, expected: 'center' },
-    { preset: 'carousel', align: 'center', expected: 'center' },
+    { preset: 'carousel', align: 'start', expected: 'start' },
     { preset: 'marquee', align: 'start', expected: 'start' }
   ] as const)(
     'sets the $preset heading to the $expected, with align $align',
@@ -509,6 +509,7 @@ describe('Gallery surfaces', () => {
       render(
         <Gallery
           preset='carousel'
+          align='start'
           emphasis='subtle'
           contained={contained}
           title='Our people'
