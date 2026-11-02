@@ -51,3 +51,28 @@ export function spacerHeight(height: unknown): number {
     Math.max(SPACER_HEIGHT.min, Math.round(height))
   )
 }
+
+/** How a button sits in its column: from its start, centred, or at its end. */
+export type ButtonAlign = 'left' | 'center' | 'right'
+
+/**
+ * A button's look beyond its link. Each is saved only when it isn't the
+ * default: filled, its label's width, from the column's start.
+ */
+export type ButtonLook = {
+  align?: Exclude<ButtonAlign, 'left'>
+  /** `'normal'` draws an outline in the button's colour, not a fill. */
+  emphasis?: 'normal'
+  fullWidth?: true
+}
+
+/** The saved parts of a button's look, dropping defaults and anything unknown. */
+export function buttonLook(attrs: unknown): ButtonLook {
+  if (typeof attrs !== 'object' || attrs === null) return {}
+  const { align, emphasis, fullWidth } = attrs as Record<string, unknown>
+  return {
+    ...((align === 'center' || align === 'right') && { align }),
+    ...(emphasis === 'normal' && { emphasis }),
+    ...(fullWidth === true && { fullWidth })
+  }
+}

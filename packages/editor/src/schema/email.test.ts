@@ -99,7 +99,7 @@ describe('presets.email', () => {
   })
 
   it.each([
-    ['button', ['href', 'showWhen']],
+    ['button', ['href', 'align', 'emphasis', 'fullWidth', 'showWhen']],
     ['image', ['src', 'alt', 'width', 'showWhen']],
     ['spacer', ['height', 'showWhen']],
     ['horizontalRule', ['showWhen']],
@@ -174,6 +174,66 @@ describe('presets.email', () => {
     ['https://', false]
   ])('reads a pasted button to %s as %j', (href, read) => {
     expect(pastedAttrs('button', pastedButton(href))).toEqual(read)
+  })
+
+  it('reads a pasted button’s look', () => {
+    const look: Record<string, string> = {
+      href: tickets,
+      'data-align': 'center',
+      'data-emphasis': 'normal',
+      'data-full-width': ''
+    }
+    expect(
+      pastedAttrs('button', {
+        getAttribute: (name: string) => look[name] ?? null
+      })
+    ).toEqual({
+      href: tickets,
+      align: 'center',
+      emphasis: 'normal',
+      fullWidth: true
+    })
+  })
+
+  it('saves only the parts of a button’s look that aren’t the default', () => {
+    const saved = migrate({
+      version: 1,
+      preset: 'email',
+      doc: doc(
+        {
+          ...button(tickets),
+          attrs: {
+            href: tickets,
+            align: 'right',
+            emphasis: 'normal',
+            fullWidth: true
+          }
+        },
+        {
+          ...button(tickets),
+          attrs: {
+            href: tickets,
+            align: 'left',
+            emphasis: 'strong',
+            fullWidth: false
+          }
+        },
+        {
+          ...button(tickets),
+          attrs: {
+            href: tickets,
+            align: 'middle',
+            emphasis: 'ghost',
+            fullWidth: 'yes'
+          }
+        }
+      )
+    })
+    expect(saved.doc.content?.map((block) => block.attrs)).toEqual([
+      { href: tickets, align: 'right', emphasis: 'normal', fullWidth: true },
+      { href: tickets },
+      { href: tickets }
+    ])
   })
 
   it('holds a button’s label as unmarked text', () => {

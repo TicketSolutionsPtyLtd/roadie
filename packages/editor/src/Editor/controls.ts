@@ -14,6 +14,7 @@ import {
   QuotesIcon,
   RowsPlusBottomIcon,
   RowsPlusTopIcon,
+  SlidersHorizontalIcon,
   SquareSplitVerticalIcon,
   SwapIcon,
   TableIcon,
@@ -48,7 +49,7 @@ export type EditorControlUi = {
   editAlt: () => void
   /** Opens the file picker to replace the selected image, or undefined without `onUploadImage`. */
   replaceImage: (() => void) | undefined
-  /** Opens the button link editor, on the button at the selection if there is one. */
+  /** Opens the button's settings at the selection, or adds a button from its link. */
   editButton: () => void
   /** Opens the editor of the selected merge tag. */
   editVariable: () => void
@@ -308,9 +309,9 @@ function remove(label: string): EditorControl {
   }
 }
 
-const editButtonLink: EditorControl = {
-  label: 'Edit link',
-  icon: PencilSimpleIcon,
+const editButton: EditorControl = {
+  label: 'Button settings',
+  icon: SlidersHorizontalIcon,
   run: (_editor, { editButton }) => editButton()
 }
 
@@ -375,7 +376,7 @@ export const nodeControls: Record<EditorNodeType, readonly EditorNodeItem[]> = {
   image: [altText, replaceImage, remove('Remove image')],
   embed: [editEmbedLink, remove('Remove embed')],
   spacer: [spacerHeight, remove('Remove spacer')],
-  button: [editButtonLink, removeButton],
+  button: [editButton, removeButton],
   columns: [columnCount],
   variable: [editMergeTag, remove('Remove merge tag')]
 }

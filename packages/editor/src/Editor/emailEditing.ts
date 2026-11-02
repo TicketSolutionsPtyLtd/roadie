@@ -7,6 +7,9 @@ import {
 import { Fragment, type Node as PMNode } from '@tiptap/pm/model'
 import { type Selection, TextSelection } from '@tiptap/pm/state'
 
+import { cn } from '@oztix/roadie-core/utils'
+
+import { buttonLook } from '../schema/emailAttrs'
 import { Button, Column, Columns, Section, Spacer } from '../schema/emailPreset'
 
 function firstTextblockOffset(node: PMNode) {
@@ -159,17 +162,39 @@ function outlined(
   })
 }
 
+const BUTTON_ALIGN = { center: 'mx-auto', right: 'ms-auto' } as const
+
+// As the email draws it: filled or outlined, at its label's width or the
+// column's, from the column's start, centred, or at its end.
+function buttonClass(attrs: Attrs) {
+  const { align, emphasis, fullWidth } = buttonLook(attrs)
+  return cn(
+    'not-prose rounded-lg px-5 py-2.5 font-semibold',
+    emphasis === 'normal' ? 'emphasis-normal' : 'emphasis-strong',
+    fullWidth ? 'w-full text-center' : ['w-fit', align && BUTTON_ALIGN[align]]
+  )
+}
+
 // Side by side from the width MJML stops stacking columns at.
 const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
   // Drawn as a div, as Chrome types over a whole link's text outside it.
   button: Button.extend({
-    addNodeView: () => () => {
-      const dom = document.createElement('div')
-      dom.dataset.type = 'button'
-      dom.className =
-        'not-prose w-fit rounded-lg emphasis-strong px-5 py-2.5 font-semibold'
-      return { dom, contentDOM: dom }
-    },
+    addNodeView:
+      () =>
+      ({ node }) => {
+        const dom = document.createElement('div')
+        dom.dataset.type = 'button'
+        dom.className = buttonClass(node.attrs)
+        return {
+          dom,
+          contentDOM: dom,
+          update: (updated) => {
+            if (updated.type !== node.type) return false
+            dom.className = buttonClass(updated.attrs)
+            return true
+          }
+        }
+      },
     addKeyboardShortcuts: () => ({
       Enter: ({ editor }) => editor.commands.command(leaveButton)
     })

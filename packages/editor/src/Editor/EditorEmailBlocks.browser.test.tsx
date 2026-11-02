@@ -165,9 +165,9 @@ describe('Editor email blocks', () => {
     await clickText('Buy tickets')
 
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Edit link' })
+      await screen.findByRole('button', { name: 'Button settings' })
     )
-    const input = await screen.findByRole('textbox', { name: 'Button link' })
+    const input = await screen.findByRole('textbox', { name: 'Link' })
     expect(input).toHaveValue('https://oztix.com.au')
     await userEvent.fill(input, 'https://oztix.com.au/whats-on')
     await userEvent.keyboard('{Enter}')

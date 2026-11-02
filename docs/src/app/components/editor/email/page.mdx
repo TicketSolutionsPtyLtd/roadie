@@ -199,9 +199,22 @@ Button asks for its link first, which must be a full web address, or a
 such as oztix.com.au, gets `https://`. The button's label is selected, so
 typing replaces it, and Enter in a button starts a new paragraph after it.
 
+Button settings, in the button's toolbar, edits its link and its look:
+
+- **Style:** Filled, in the theme's `button` colour, or Outline, a border
+  and label in that colour on the email's background.
+- **Width:** Fit label, or Full width across its column.
+- **Align:** Left, Centre, or Right in its column. A full-width button has
+  none.
+
+A button saves only what differs from a filled, left-aligned button at its
+label's width: `align`, `emphasis: 'normal'` for an outline, and
+`fullWidth: true`.
+
 Each of these blocks has its own toolbar:
 
-- **A button**, with the caret in it: Edit link and Remove button, below it.
+- **A button**, with the caret in it: Button settings and Remove button, below
+  it.
 - **Columns**, with the caret in them: a menu of 2, 3, or 4 columns, above
   them, or below when they start the content. Removing columns moves their
   blocks into the last column left, and undo puts them back.

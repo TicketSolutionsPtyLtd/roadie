@@ -118,6 +118,48 @@ describe('renderEmail', () => {
       expect(body(html)).toMatchSnapshot()
     })
 
+    it('renders a button centred or at its end, or across its column', async () => {
+      const { html } = await renderEmail(
+        email(
+          {
+            ...button(tickets, 'Centred'),
+            attrs: { href: tickets, align: 'center' }
+          },
+          {
+            ...button(tickets, 'Right'),
+            attrs: { href: tickets, align: 'right' }
+          },
+          {
+            ...button(tickets, 'Full'),
+            attrs: { href: tickets, fullWidth: true }
+          }
+        )
+      )
+      // Each block's cell opens with its alignment, then its padding.
+      const cellOf = (label: string) =>
+        html.slice(0, html.indexOf(label)).split('style="font-size:0px;').at(-2)
+      expect(cellOf('Centred')).toMatch(/align="center" $/)
+      expect(cellOf('Right')).toMatch(/align="right" $/)
+      expect(cellOf('Full')).toMatch(/align="left" $/)
+      expect(
+        html.slice(html.lastIndexOf('<table', html.indexOf('Full')))
+      ).toMatch(/^<table[^>]*width:100%/)
+    })
+
+    it('renders an outline button with a border in the theme’s button colour, on the background', async () => {
+      const { html } = await renderEmail(
+        email({
+          ...button(tickets),
+          attrs: { href: tickets, emphasis: 'normal' }
+        }),
+        { theme: { button: '#5f270f', background: '#fffaf5' } }
+      )
+      expect(html).toContain('border:2px solid #5f270f')
+      expect(html).toContain('background:#fffaf5')
+      expect(html).toContain('color:#5f270f')
+      expect(html).not.toContain('background:#5f270f')
+    })
+
     it('renders an image at its width, or filling its column', async () => {
       const { html, text: plain } = await renderEmail(
         email(image(poster, 280), image(`${poster}?full`))

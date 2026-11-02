@@ -1,6 +1,6 @@
 import type { JSONContent } from '@tiptap/core'
 
-import { EMAIL_WIDTH } from '../schema/emailAttrs'
+import { EMAIL_WIDTH, buttonLook } from '../schema/emailAttrs'
 import type { ShowWhen } from '../schema/showWhen'
 import type { ShowsWhen } from './conditions'
 import {
@@ -63,6 +63,22 @@ function shownNodes(
   return [raw(shows.open), ...built, raw(shows.close)]
 }
 
+// An outline swaps the fill for a border, so it reads on the background.
+function buttonLayout(attrs: Record<string, unknown>, { theme }: Context) {
+  const { align, emphasis, fullWidth } = buttonLook(attrs)
+  return {
+    ...(align && { align }),
+    ...(fullWidth && { width: '100%' }),
+    ...(emphasis === 'normal' && {
+      'background-color': theme.background,
+      color: theme.button,
+      border: `2px solid ${theme.button}`,
+      // Less the border, so it's the size a filled button is.
+      'inner-padding': '10px 22px'
+    })
+  }
+}
+
 const blockNodes = (node: JSONContent, context: Context) =>
   shownNodes(node, context, () => blockContent(node, context))
 
@@ -75,7 +91,13 @@ function blockContent(node: JSONContent, context: Context) {
       const label = inlineHtml(node.content, context)
       if (label === '') return []
       const href = escapeHtml(String(attrs.href))
-      return [leaf('mj-button', { href, padding }, label)]
+      return [
+        leaf(
+          'mj-button',
+          { href, padding, ...buttonLayout(attrs, context) },
+          label
+        )
+      ]
     }
     case 'image':
       return [

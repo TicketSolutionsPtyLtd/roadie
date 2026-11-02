@@ -1,13 +1,22 @@
 'use client'
 
-import { type RefObject, useRef, useState } from 'react'
+import { type ReactNode, type RefObject, useRef, useState } from 'react'
 
 import { posToDOMRect } from '@tiptap/core'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 
+import { Button } from '@oztix/roadie-components/button'
+import { Field } from '@oztix/roadie-components/field'
+import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { Popover } from '@oztix/roadie-components/popover'
+import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
-import { isEmailHref } from '../schema/emailAttrs'
+import {
+  type ButtonAlign,
+  type ButtonLook,
+  buttonLook,
+  isEmailHref
+} from '../schema/emailAttrs'
 import { toHref } from './EditorLinkPopover'
 import { selectedNodeType } from './EditorNodeToolbar'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
@@ -26,11 +35,11 @@ function buttonHref(editor: TiptapEditor) {
   return typeof href === 'string' ? href : ''
 }
 
-function ButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
-  // Read as the form opens: the editor is mutable, so the React Compiler
-  // would cache a read during render by the editor alone.
-  const [current] = useState(() => buttonHref(editor))
-  const [typed, setTyped] = useState(current ?? '')
+const REFUSED =
+  'Enter a full web address, such as oztix.com.au, or a mailto: or tel: link.'
+
+function AddButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
+  const [typed, setTyped] = useState('')
   const [refused, setRefused] = useState(false)
 
   const save = () => {
@@ -39,10 +48,11 @@ function ButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
       setRefused(true)
       return false
     }
-    const chain = editor.chain().focus()
-    if (current === undefined) chain.command(insertBlock(buttonBlock(href)))
-    else chain.updateAttributes('button', { href })
-    chain.run()
+    editor
+      .chain()
+      .focus()
+      .command(insertBlock(buttonBlock(href)))
+      .run()
     onDone()
     return true
   }
@@ -59,10 +69,198 @@ function ButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
         setTyped(value)
         setRefused(false)
       }}
-      submitLabel={current === undefined ? 'Add button' : 'Save link'}
+      submitLabel='Add button'
       onSubmit={save}
       invalid={refused}
-      error='Enter a full web address, such as oztix.com.au, or a mailto: or tel: link.'
+      error={REFUSED}
+    />
+  )
+}
+
+type Choice<Value extends string> = { value: Value; label: string }
+
+type ChoiceProps<Value extends string> = {
+  legend: string
+  choices: readonly Choice<Value>[]
+  value: Value
+  onValueChange: (value: Value) => void
+  disabled?: boolean
+  helperText?: ReactNode
+}
+
+function ButtonChoice<Value extends string>({
+  legend,
+  choices,
+  value,
+  onValueChange,
+  disabled,
+  helperText
+}: ChoiceProps<Value>) {
+  return (
+    <Fieldset className='grid gap-1.5 [&>*+*]:mt-0' disabled={disabled}>
+      {/* A label's size, as the Link field's, not a section's. */}
+      <Fieldset.Legend className='text-sm font-medium text-normal'>
+        {legend}
+      </Fieldset.Legend>
+      <ToggleGroup
+        value={[value]}
+        // Pressing the chosen item again would leave none, so it's ignored.
+        onValueChange={([chosen]) => {
+          if (chosen) onValueChange(chosen as Value)
+        }}
+        disabled={disabled}
+        className='w-full'
+      >
+        {choices.map((choice) => (
+          <ToggleGroup.Item
+            key={choice.value}
+            value={choice.value}
+            className='flex-1'
+          >
+            {choice.label}
+          </ToggleGroup.Item>
+        ))}
+      </ToggleGroup>
+      {helperText ? (
+        <Fieldset.HelperText>{helperText}</Fieldset.HelperText>
+      ) : null}
+    </Fieldset>
+  )
+}
+
+const EMPHASES = [
+  { value: 'strong', label: 'Filled' },
+  { value: 'normal', label: 'Outline' }
+] as const
+
+const WIDTHS = [
+  { value: 'fit', label: 'Fit label' },
+  { value: 'full', label: 'Full width' }
+] as const
+
+const ALIGNS: readonly Choice<ButtonAlign>[] = [
+  { value: 'left', label: 'Left' },
+  { value: 'center', label: 'Centre' },
+  { value: 'right', label: 'Right' }
+]
+
+type SettingsFormProps = ButtonFormProps & { href: string; look: ButtonLook }
+
+function ButtonSettingsForm({
+  editor,
+  inputRef,
+  href,
+  look,
+  onDone
+}: SettingsFormProps) {
+  const [typed, setTyped] = useState(href)
+  const [refused, setRefused] = useState(false)
+  const [emphasis, setEmphasis] = useState(look.emphasis ?? 'strong')
+  const [width, setWidth] = useState(look.fullWidth ? 'full' : 'fit')
+  const [align, setAlign] = useState<ButtonAlign>(look.align ?? 'left')
+
+  return (
+    <form
+      noValidate
+      className='grid gap-4'
+      onSubmit={(event) => {
+        event.preventDefault()
+        // React bubbles a portalled submit to the form around the editor.
+        event.stopPropagation()
+        const saved = toHref(typed)
+        if (!isEmailHref(saved)) {
+          setRefused(true)
+          inputRef.current?.focus()
+          return
+        }
+        const full = width === 'full'
+        // Undefined clears an attr, so the saved button keeps only what isn't
+        // the default.
+        editor
+          .chain()
+          .focus()
+          .updateAttributes('button', {
+            href: saved,
+            emphasis: emphasis === 'normal' ? emphasis : undefined,
+            fullWidth: full || undefined,
+            align: !full && align !== 'left' ? align : undefined
+          })
+          .run()
+        onDone()
+      }}
+    >
+      <Field invalid={refused}>
+        <Field.Label>Link</Field.Label>
+        <Field.Input
+          ref={inputRef}
+          type='url'
+          inputMode='url'
+          placeholder='Paste a link'
+          value={typed}
+          onChange={(event) => {
+            setTyped(event.target.value)
+            setRefused(false)
+          }}
+          // Backward, so a long link shows its start, as the add form's does.
+          onFocus={(event) => {
+            if (event.currentTarget.value !== href) return
+            const input = event.currentTarget
+            input.setSelectionRange(0, input.value.length, 'backward')
+          }}
+        />
+        <Field.ErrorText>{REFUSED}</Field.ErrorText>
+      </Field>
+      <ButtonChoice
+        legend='Style'
+        choices={EMPHASES}
+        value={emphasis}
+        onValueChange={setEmphasis}
+      />
+      <ButtonChoice
+        legend='Width'
+        choices={WIDTHS}
+        value={width}
+        onValueChange={setWidth}
+      />
+      <ButtonChoice
+        legend='Align'
+        choices={ALIGNS}
+        value={align}
+        onValueChange={setAlign}
+        disabled={width === 'full'}
+        helperText={
+          width === 'full' ? 'A full-width button spans its column.' : null
+        }
+      />
+      <div className='flex justify-end gap-2'>
+        <Popover.Close render={<Button emphasis='subtler'>Cancel</Button>} />
+        <Button type='submit' intent='accent' emphasis='strong'>
+          Save
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+function ButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
+  // Read as the form opens: the editor is mutable, so the React Compiler
+  // would cache a read during render by the editor alone.
+  const [current] = useState(() => {
+    const href = buttonHref(editor)
+    return href === undefined
+      ? undefined
+      : { href, look: buttonLook(editor.getAttributes('button')) }
+  })
+  if (!current) {
+    return <AddButtonForm editor={editor} inputRef={inputRef} onDone={onDone} />
+  }
+  return (
+    <ButtonSettingsForm
+      editor={editor}
+      inputRef={inputRef}
+      href={current.href}
+      look={current.look}
+      onDone={onDone}
     />
   )
 }
@@ -73,7 +271,10 @@ type EditorButtonPopoverProps = {
   onOpenChange: (open: boolean) => void
 }
 
-/** Sets the link of a new button, or of the button at the selection. */
+/**
+ * Adds a button from its link, or edits the selected button's link, style,
+ * width and alignment.
+ */
 export function EditorButtonPopover({
   editor,
   open,
@@ -81,18 +282,29 @@ export function EditorButtonPopover({
 }: EditorButtonPopoverProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   if (!editor) return null
+  const editing = selectedNodeType(editor.state) === 'button'
   const { from, to } = editor.state.selection
   // The element lets the popover follow a scrolling container around the editor.
   const anchor = {
     getBoundingClientRect: () => posToDOMRect(editor.view, from, to),
     contextElement: editor.view.dom
   }
+  const form = (
+    <ButtonForm
+      key={editing ? `edit-${from}` : 'add'}
+      editor={editor}
+      inputRef={inputRef}
+      onDone={() => onOpenChange(false)}
+    />
+  )
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <Popover.Content
         side='bottom'
         align='start'
-        className={EDITOR_POPOVER_CLASS}
+        className={
+          editing ? 'w-80 max-w-(--available-width)' : EDITOR_POPOVER_CLASS
+        }
         positionerProps={{ anchor }}
         initialFocus={inputRef}
         finalFocus={() => {
@@ -100,11 +312,16 @@ export function EditorButtonPopover({
           return false
         }}
       >
-        <ButtonForm
-          editor={editor}
-          inputRef={inputRef}
-          onDone={() => onOpenChange(false)}
-        />
+        {editing ? (
+          <>
+            <Popover.Header>
+              <Popover.Title>Button settings</Popover.Title>
+            </Popover.Header>
+            {form}
+          </>
+        ) : (
+          form
+        )}
       </Popover.Content>
     </Popover>
   )
