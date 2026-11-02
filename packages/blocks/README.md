@@ -114,14 +114,17 @@ Run `pnpm generate:exports` after adding the folder.
 ### Thumbnails
 
 A 240 by 160 SVG, with no text, drawn from rounded rectangles in these
-colours, each set in a `style` attribute with a fallback so the wireframe
-follows the docs theme inline and reads in light mode as an image:
+colours. The one feature that makes the preset itself takes an action or mark
+colour, and the rest stays grey. Each colour is set in a `style` attribute with
+a fallback, so the wireframe follows the docs theme inline and reads in light
+mode as an image:
 
-| Use      | Style                                    |
-| -------- | ---------------------------------------- |
-| Frame    | `fill: var(--color-neutral-1, #f5f8fb)`  |
-| Surface  | `fill: var(--color-neutral-3, #e8eef4)`  |
-| Image    | `fill: var(--color-neutral-5, #d7e2ed)`  |
-| Text     | `fill: var(--color-neutral-7, #a9b8c7)`  |
-| Headings | `fill: var(--color-neutral-11, #3b4b5b)` |
-| Actions  | `fill: var(--color-accent-9, #0191eb)`   |
+| Use      | Style                                                                                                       |
+| -------- | ----------------------------------------------------------------------------------------------------------- |
+| Frame    | `fill: var(--color-neutral-1, #f5f8fb)`                                                                     |
+| Surface  | `fill: var(--color-neutral-3, #e8eef4)`                                                                     |
+| Image    | `fill: var(--color-neutral-5, #d7e2ed)`                                                                     |
+| Text     | `fill: var(--color-neutral-7, #a9b8c7)`                                                                     |
+| Headings | `fill: var(--color-neutral-11, #3b4b5b)`                                                                    |
+| Actions  | `fill: var(--color-accent-9, #0191eb)`                                                                      |
+| Marks    | `fill: var(--color-brand-9, #0191eb)`, `--color-info-9` (#a96af1), or `--color-brand-secondary-9` (#ff8a5c) |
