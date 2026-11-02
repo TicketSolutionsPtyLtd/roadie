@@ -146,6 +146,16 @@ describe('prose.css', () => {
     }
   })
 
+  // An implicit scope adds no specificity, so a rule without `:scope` would
+  // lose to any components-layer rule.
+  it('starts every scoped rule at :scope', () => {
+    const scoped = rules.filter(({ limit }) => limit !== undefined)
+    expect(scoped.length).toBeGreaterThan(20)
+    for (const { selector } of scoped) {
+      expect(selector).toMatch(/^\.prose\s/)
+    }
+  })
+
   it('reads only variables the compiled sheet defines', () => {
     const definitions = new Map<string, string[]>()
     for (const [, name = '', value = ''] of css.matchAll(
