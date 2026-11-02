@@ -4,11 +4,15 @@ import { normalizeMinusSign } from '../dataviz/format'
 import { type CurrencyFormatOptions, currencyFormat } from './currency'
 
 describe('currencyFormat', () => {
+  afterEach(() => vi.restoreAllMocks())
+
   it.each<[CurrencyFormatOptions, number, string]>([
     [{}, 1200, '$1,200.00'],
     [{}, 19.95, '$19.95'],
     [{}, 19.5, '$19.50'],
     [{}, -1200, '-$1,200.00'],
+    [{}, -0.001, '$0.00'],
+    [{}, -0, '$0.00'],
     [{ trailingZeroDisplay: 'stripIfInteger' }, 1200, '$1,200'],
     [{ decimals: 0 }, 19.95, '$20'],
     [{ decimals: 3, trailingZeroDisplay: 'auto' }, 1.5, '$1.500'],
@@ -24,7 +28,9 @@ describe('currencyFormat', () => {
     [{ currency: 'KWD' }, 1.5, 'KWD 1.500'],
     [{ currency: 'XYZ' }, 1200, 'XYZ 1,200.00'],
     [{ currency: 'NZD', compact: true }, 1_234_567, 'NZD 1.2M'],
-    [{ currency: 'NZD', compact: true }, 12_000, 'NZD 12K']
+    [{ currency: 'NZD', compact: true }, 12_000, 'NZD 12K'],
+    [{ currency: 'NZD' }, -0.001, 'NZD 0.00'],
+    [{ compact: true }, -0.01, '$0']
   ])('reads %o %s as %s', (options, value, expected) => {
     const text = new Intl.NumberFormat('en-AU', currencyFormat(options))
       .format(value)
@@ -55,6 +61,23 @@ describe('currencyFormat', () => {
       notation?: 'standard' | 'compact'
     }
     expectTypeOf(currencyFormat()).toExtend<NumberFlowFormat>()
+  })
+
+  it('builds a formatter where Intl rejects signDisplay negative', async () => {
+    const { NumberFormat } = Intl
+    vi.spyOn(Intl, 'NumberFormat').mockImplementation(
+      function (locales, options) {
+        if (options?.signDisplay === 'negative')
+          throw new RangeError('signDisplay')
+        return new NumberFormat(locales, options)
+      }
+    )
+    vi.resetModules()
+    const { currencyFormat: fresh } = await import('./currency')
+    const read = (value: number) =>
+      new Intl.NumberFormat('en-AU', fresh()).format(value)
+    expect(read(1200)).toBe('$1,200.00')
+    expect(normalizeMinusSign(read(-1200))).toBe('-$1,200.00')
   })
 
   it('falls back to dollars for a code Intl does not know', () => {
