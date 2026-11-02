@@ -109,7 +109,12 @@ describe('Editor email canvas', () => {
     }
 
     async function renderCard() {
-      render(<Editor aria-label={LABEL} defaultValue={card} />)
+      render(
+        <>
+          <Editor aria-label={LABEL} defaultValue={card} />
+          <p>Outside</p>
+        </>
+      )
       await screen.findByText('Get tickets')
       const box = (text: string) =>
         screen
@@ -141,6 +146,8 @@ describe('Editor email canvas', () => {
 
     it('outlines a section only under the pointer, outside its box', async () => {
       const { section } = await renderCard()
+      // The last test can leave the pointer over the section.
+      await userEvent.hover(screen.getByText('Outside'))
       const resting = getComputedStyle(section)
       expect(resting.outlineColor).toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
       expect(resting.borderTopWidth).toBe('0px')
