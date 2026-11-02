@@ -195,7 +195,10 @@ describe('Editor button settings', () => {
     await userEvent.keyboard('{Enter}')
 
     await waitFor(() => expect(link).toHaveAttribute('aria-invalid', 'true'))
-    expect(within(dialog).getByText(/Enter a full web address/)).toBeVisible()
+    // The error fades in.
+    await waitFor(() =>
+      expect(within(dialog).getByText(/Enter a full web address/)).toBeVisible()
+    )
     expect(link).toHaveFocus()
     expect(savedButton(onValueChange) ?? button()).toEqual(button())
   })
