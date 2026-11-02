@@ -68,6 +68,7 @@ export function CarouselTitleLink<T extends ElementType = 'a'>({
     className
   )
 
+  // The link is the control; its hover nudges this arrow, which no utility does.
   const trailingIcon = (
     <ArrowRightIcon
       weight='bold'

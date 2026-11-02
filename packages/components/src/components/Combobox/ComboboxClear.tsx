@@ -21,8 +21,10 @@ export function ComboboxClear({
     <ComboboxPrimitive.Clear
       data-slot='combobox-clear'
       className={cn(
-        'shrink-0 cursor-pointer text-subtle hover:text-normal',
+        'inline-grid size-5 shrink-0 place-items-center rounded-full emphasis-subtler text-subtle is-interactive',
         FIRST_ROW,
+        // A 20px circle, not FIRST_ROW's 16px icon, so it sits 2px higher.
+        'in-data-[slot=combobox-input-group]:mt-[calc(var(--combobox-chips-py)+--spacing(0.5))]',
         className
       )}
       {...props}

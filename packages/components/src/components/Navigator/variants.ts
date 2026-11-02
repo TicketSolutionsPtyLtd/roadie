@@ -72,7 +72,7 @@ export const navigatorExpandToggleAnchorClass = [
 ].join(' ')
 
 export const navigatorExpandToggleClass =
-  'is-interactive grid size-10 place-items-center rounded-full text-subtle hover:bg-subtle'
+  'is-interactive grid size-10 place-items-center rounded-full emphasis-subtler text-subtle'
 
 export const navigatorPrimaryClusterClass = 'min-h-0 flex-1'
 
@@ -284,7 +284,7 @@ export const navigatorItemVariants = cva(
   ],
   {
     variants: {
-      active: { true: 'intent-accent', false: 'hover:bg-subtle' }
+      active: { true: 'intent-accent', false: 'emphasis-subtler border-0' }
     },
     defaultVariants: { active: false }
   }
