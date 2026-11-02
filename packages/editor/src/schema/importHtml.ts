@@ -11,10 +11,16 @@ import { type Preset, isPreset, presetShapes } from './presetShapes'
 import { presets } from './presets'
 import { CURRENT_VERSION, type EditorValue, migrate } from './value'
 
-/** Content an import couldn't keep. `src` is left out for a `data:` URI. */
+/**
+ * Content an import couldn't keep. `src` is left out for a `data:` URI.
+ * `importEmail` also reports `hidden` text, such as a preheader, a `link` on
+ * an image, its `src` the link's href, and an MJML `element` it has no block
+ * for, by `tag`, whose text it keeps.
+ */
 export type DroppedContent = {
-  kind: 'image' | 'embed' | 'media'
+  kind: 'image' | 'embed' | 'media' | 'hidden' | 'link' | 'element'
   src?: string
+  tag?: string
 }
 
 const schemas = new Map<Preset, Schema>()
@@ -25,7 +31,7 @@ function schemaFor(preset: Preset) {
   return schema
 }
 
-function report(kind: DroppedContent['kind'], src: string | null) {
+export function report(kind: DroppedContent['kind'], src: string | null) {
   return src && !/^\s*data:/i.test(src) ? { kind, src } : { kind }
 }
 
@@ -52,7 +58,7 @@ function embedFor(
 
 // The schema would skip these quietly, so each is swapped or removed here,
 // where what's lost can be reported. A cell holds only paragraphs, so no
-// image or embed survives in one.
+// image or embed survives in one, unless the preset turns cells into text.
 function keptMedia(
   body: HTMLElement,
   preset: Preset,
@@ -60,12 +66,13 @@ function keptMedia(
 ) {
   const dropped: DroppedContent[] = []
   const canHoldImages = Object.hasOwn(presetShapes[preset].nodes, 'image')
+  const canHoldTables = Object.hasOwn(presetShapes[preset].nodes, 'table')
   for (const element of body.querySelectorAll(
     'img, iframe, video, audio, object, embed'
   )) {
     if (!element.isConnected) continue
     const src = element.getAttribute('src')
-    const inCell = element.closest('td, th') !== null
+    const inCell = canHoldTables && element.closest('td, th') !== null
     if (element.localName === 'img') {
       if (canHoldImages && !inCell && isSafeImageSrc(src)) continue
       dropped.push(report('image', src))
@@ -84,6 +91,7 @@ function keptMedia(
   return dropped
 }
 
+const TABLE_PARTS = 'table, caption, thead, tbody, tfoot, tr, td, th'
 const BLOCKS_IN_CELL =
   'ul, ol, li, h1, h2, h3, h4, h5, h6, blockquote, table, caption, thead, tbody, tfoot, tr, td, th'
 
@@ -95,13 +103,16 @@ function asTextBlock(element: Element) {
 
 // A cell holds only paragraphs, and the schema would lift any other block
 // out past its table, so each becomes a block of text where it stands. With
-// no table in the preset, cells would run together, so each cell does.
+// no table in the preset, cells would run together, so the table's parts all
+// do, which also holds a table nested in another block.
 function cellsAsText(body: HTMLElement, preset: Preset) {
-  const canHoldTables = Object.hasOwn(presetShapes[preset].nodes, 'table')
+  if (!Object.hasOwn(presetShapes[preset].nodes, 'table')) {
+    body.querySelectorAll(TABLE_PARTS).forEach(asTextBlock)
+    return
+  }
   for (const cell of body.querySelectorAll('td, th')) {
     if (!cell.isConnected) continue
-    if (!canHoldTables) asTextBlock(cell)
-    else cell.querySelectorAll(BLOCKS_IN_CELL).forEach(asTextBlock)
+    cell.querySelectorAll(BLOCKS_IN_CELL).forEach(asTextBlock)
   }
 }
 
@@ -141,6 +152,20 @@ function splitAtBreaks(node: JSONContent): JSONContent {
   }
 }
 
+/** Reads a parsed body into a doc in `preset`, before `migrate`. */
+export function bodyToDoc(
+  body: HTMLElement,
+  preset: Preset,
+  providers: readonly EmbedProvider[]
+) {
+  const dropped = keptMedia(body, preset, providers)
+  cellsAsText(body, preset)
+  const doc = splitAtBreaks(
+    SchemaParser.fromSchema(schemaFor(preset)).parse(body).toJSON()
+  )
+  return { doc, dropped }
+}
+
 /**
  * Reads HTML, such as CKEditor output, into a value in `preset`, through
  * `migrate`, so the result always loads. Text is kept, except fallback text
@@ -169,11 +194,7 @@ export function htmlToEditorValue(
     throw new Error('htmlToEditorValue needs a browser’s DOMParser.')
   }
   const { body } = new DOMParser().parseFromString(html, 'text/html')
-  const dropped = keptMedia(body, preset, embedProviders)
-  cellsAsText(body, preset)
-  const doc = splitAtBreaks(
-    SchemaParser.fromSchema(schemaFor(preset)).parse(body).toJSON()
-  )
+  const { doc, dropped } = bodyToDoc(body, preset, embedProviders)
   const value = migrate({ version: CURRENT_VERSION, preset, doc }, preset)
   return { value, dropped }
 }
