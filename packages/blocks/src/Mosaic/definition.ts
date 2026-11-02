@@ -14,7 +14,7 @@ export const mosaicDefinition = {
       name: 'tiles',
       title: 'Tiles',
       description:
-        'Photo tiles, each with a logo or title and a marked label, the large ones two columns wide, then an optional tile of smaller logos.',
+        'Photo tiles, each with a logo or title and a marked label, the wide ones two columns or the full row, then an optional tile of smaller logos.',
       fields: [
         'id',
         'eyebrow',
