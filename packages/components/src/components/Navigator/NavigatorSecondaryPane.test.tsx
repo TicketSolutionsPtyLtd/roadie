@@ -308,18 +308,34 @@ describe('secondary pane search', () => {
     }
   }
 
+  const onPlatform = (platform: string) =>
+    vi.spyOn(navigator, 'platform', 'get').mockReturnValue(platform)
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('starts as a button that names its shortcut', async () => {
     const { toggle, field } = await setup()
     expect(field()).toBeNull()
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    expect(toggle).toHaveAttribute('aria-keyshortcuts', 'Meta+K Control+K')
+    expect(toggle).toHaveAttribute('aria-keyshortcuts', 'Control+K')
     expect(toggle.closest('[data-slot="pane-actions"]')).not.toBeNull()
   })
 
-  it.each(['{Meta>}k{/Meta}', '{Control>}k{/Control}'])(
-    'opens and focuses the field on %s, from anywhere',
-    async (keys) => {
+  it.each([
+    ['MacIntel', 'Meta+K', '{Meta>}k{/Meta}', '{Control>}k{/Control}'],
+    ['Win32', 'Control+K', '{Control>}k{/Control}', '{Meta>}k{/Meta}']
+  ])(
+    'on %s, opens and focuses the field on %s from anywhere, and leaves the other key alone',
+    async (platform, shortcut, keys, otherKeys) => {
+      onPlatform(platform)
       const { user, toggle, field } = await setup()
+      expect(toggle).toHaveAttribute('aria-keyshortcuts', shortcut)
+
+      await user.keyboard(otherKeys)
+      expect(field()).toBeNull()
+
       await user.keyboard(keys)
       expect(field()).toHaveFocus()
       expect(toggle).toHaveAttribute('aria-expanded', 'true')

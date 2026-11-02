@@ -472,9 +472,11 @@ describe('the generated list pane', () => {
     )!
     expect(onScreen(list)).toBe(false)
 
+    const apple = /mac|iphone|ipad|ipod/i.test(navigator.platform)
     const shortcut = new KeyboardEvent('keydown', {
       key: 'k',
-      ctrlKey: true,
+      metaKey: apple,
+      ctrlKey: !apple,
       bubbles: true,
       cancelable: true
     })

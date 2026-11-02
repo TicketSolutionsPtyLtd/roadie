@@ -7,6 +7,7 @@ import { MagnifyingGlassIcon } from '@phosphor-icons/react'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { IconButton } from '../Button/IconButton'
+import { type KeyPlatform, useKeyPlatform } from '../Kbd/platform'
 import { PaneActions } from '../Pane/PaneActions'
 import { PaneHeader } from '../Pane/PaneHeader'
 import { PaneRoot } from '../Pane/PaneRoot'
@@ -23,9 +24,12 @@ import {
   navigatorSecondarySearchClass
 } from './variants'
 
-const isSearchShortcut = (event: KeyboardEvent) =>
+// Only the platform's own mod key, so Ctrl+K still deletes to the line's end on Apple.
+const isSearchShortcut = (event: KeyboardEvent, platform: KeyPlatform) =>
   event.key.toLowerCase() === 'k' &&
-  (event.metaKey || event.ctrlKey) &&
+  (platform === 'apple'
+    ? event.metaKey && !event.ctrlKey
+    : event.ctrlKey && !event.metaKey) &&
   !event.altKey &&
   !event.shiftKey
 
@@ -42,6 +46,7 @@ export function NavigatorGeneratedSecondaryPane({
   const returnFocus = useRef(false)
   const { label, props: nav } = secondary
   const searchLabel = `Search ${textOf(label).toLowerCase()}`
+  const platform = useKeyPlatform()
 
   const focusField = () =>
     searchRef.current?.querySelector<HTMLInputElement>('input')?.focus()
@@ -51,9 +56,9 @@ export function NavigatorGeneratedSecondaryPane({
   }, [searching])
 
   useEffect(() => {
-    if (!nav.searchable) return
+    if (!nav.searchable || platform === null) return
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || !isSearchShortcut(event)) return
+      if (event.defaultPrevented || !isSearchShortcut(event, platform)) return
       // On a phone the page covers the list, and a hidden field can't take focus.
       const shown =
         toggleRef.current?.checkVisibility?.({ visibilityProperty: true }) ??
@@ -65,7 +70,7 @@ export function NavigatorGeneratedSecondaryPane({
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [nav.searchable, searching])
+  }, [nav.searchable, platform, searching])
 
   const close = () => {
     setQuery('')
@@ -106,7 +111,13 @@ export function NavigatorGeneratedSecondaryPane({
                       ref={toggleRef}
                       aria-label={searchLabel}
                       aria-expanded={searching}
-                      aria-keyshortcuts='Meta+K Control+K'
+                      aria-keyshortcuts={
+                        platform === null
+                          ? undefined
+                          : platform === 'apple'
+                            ? 'Meta+K'
+                            : 'Control+K'
+                      }
                       emphasis='normal'
                       // Safari never focuses a clicked button, so the field
                       // would blur and close, and this click reopen it.
