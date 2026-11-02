@@ -82,7 +82,7 @@ export type SideBySideProps = {
    */
   align?: BlockAlign
   /**
-   * `md` and `sm` set the title and text a step or two smaller and tighten the gaps. Beside an image, they narrow it to two fifths of the width at `md` and a third at `sm`.
+   * `md` and `sm` set the title one or two steps smaller and the text a step smaller, and tighten the gaps. Beside an image, they narrow it to two fifths of the width at `md` and a third at `sm`.
    * @default 'lg'
    */
   size?: BlockSize
