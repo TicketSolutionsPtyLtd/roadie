@@ -319,13 +319,13 @@ describe('secondary pane search', () => {
     const { toggle, field } = await setup()
     expect(field()).toBeNull()
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    expect(toggle).toHaveAttribute('aria-keyshortcuts', 'Control+K')
+    expect(toggle).toHaveAttribute('aria-keyshortcuts', 'Control+/')
     expect(toggle.closest('[data-slot="pane-actions"]')).not.toBeNull()
   })
 
   it.each([
-    ['MacIntel', 'Meta+K', '{Meta>}k{/Meta}', '{Control>}k{/Control}'],
-    ['Win32', 'Control+K', '{Control>}k{/Control}', '{Meta>}k{/Meta}']
+    ['MacIntel', 'Meta+/', '{Meta>}/{/Meta}', '{Control>}/{/Control}'],
+    ['Win32', 'Control+/', '{Control>}/{/Control}', '{Meta>}/{/Meta}']
   ])(
     'on %s, opens and focuses the field on %s from anywhere, and leaves the other key alone',
     async (platform, shortcut, keys, otherKeys) => {
@@ -351,38 +351,33 @@ describe('secondary pane search', () => {
     dialog.append(input)
     document.body.append(dialog)
     input.focus()
-    await user.keyboard('{Control>}k{/Control}')
+    await user.keyboard('{Control>}/{/Control}')
     expect(field()).toBeNull()
     expect(input).toHaveFocus()
     dialog.remove()
 
     pane.setAttribute('inert', '')
-    await user.keyboard('{Control>}k{/Control}')
+    await user.keyboard('{Control>}/{/Control}')
     expect(field()).toBeNull()
   })
 
-  it('ignores the key with Shift or Alt held', async () => {
+  it('leaves Mod+K for an app-wide search, and ignores Alt', async () => {
     const { user, field } = await setup()
-    await user.keyboard('{Control>}{Shift>}k{/Shift}{/Control}')
-    await user.keyboard('{Meta>}{Alt>}k{/Alt}{/Meta}')
+    await user.keyboard('{Control>}k{/Control}')
+    await user.keyboard('{Control>}{Alt>}/{/Alt}{/Control}')
     expect(field()).toBeNull()
   })
 
-  it('closes from its button, clearing the query', async () => {
-    const { user, pane, toggle, field } = await search()
-    await user.type(field, 'inp')
-    await user.click(toggle)
-    expect(within(pane).queryByRole('searchbox')).toBeNull()
-    expect(
-      within(pane).getByRole('link', { name: 'Button' })
-    ).toBeInTheDocument()
+  it('takes Shift, which some layouts need to type /', async () => {
+    const { user, field } = await setup()
+    await user.keyboard('{Control>}{Shift>}/{/Shift}{/Control}')
+    expect(field()).toHaveFocus()
   })
 
-  it('keeps focus in the field when its button is pressed to close it', async () => {
-    const { user, toggle } = await setup()
-    expect(fireEvent.pointerDown(toggle)).toBe(true)
-    await user.click(toggle)
-    expect(fireEvent.pointerDown(toggle)).toBe(false)
+  it('hides its button while the field is open, keeping its place', async () => {
+    const { toggle } = await search()
+    expect(toggle).toHaveClass('invisible')
+    expect(toggle).toBeInTheDocument()
   })
 
   it('closes when focus leaves it empty, and stays while it holds a query', async () => {
@@ -455,7 +450,7 @@ describe('secondary pane search', () => {
       within(pane).getByRole('link', { name: 'Button' })
     ).toBeInTheDocument()
 
-    await user.keyboard('{Control>}k{/Control}{Escape}')
+    await user.keyboard('{Control>}/{/Control}{Escape}')
     expect(within(pane).queryByRole('searchbox')).toBeNull()
     expect(toggle).toHaveFocus()
   })

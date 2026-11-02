@@ -288,9 +288,12 @@ export const navigatorSecondaryNavClass = [
   '[&_[data-slot=list-group]]:mt-4 [&_[data-slot=list-group-title]]:text-xs'
 ].join(' ')
 
-// A plain field, not Pane.Search's raised one, so the slim list stays flat.
-export const navigatorSecondarySearchClass =
-  '[&_[data-slot=pane-search-field]]:emphasis-field [&_[data-slot=pane-search-cancel]]:emphasis-normal'
+// A plain 40px field, not Pane.Search's raised 48px one, so the slim list stays light.
+export const navigatorSecondarySearchClass = [
+  '[&_[data-slot=pane-search-field]]:emphasis-field [&_[data-slot=pane-search-field]]:h-10',
+  '[&_[data-slot=pane-search-cancel-slot]]:h-10 [&:focus-within_[data-slot=pane-search-cancel-slot]]:w-10',
+  '[&_[data-slot=pane-search-cancel]]:size-10 [&_[data-slot=pane-search-cancel]]:emphasis-normal'
+].join(' ')
 
 export const navigatorItemTrailingClass =
   'col-start-3 ms-3 flex items-center gap-2'

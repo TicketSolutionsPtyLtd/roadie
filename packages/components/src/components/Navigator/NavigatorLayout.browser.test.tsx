@@ -440,7 +440,7 @@ describe('the generated list pane', () => {
     expect(widthOf('[data-slot="pane"][data-column="list"]')).toBe(24 * 16)
   })
 
-  it('opens its search as a plain field, not a raised one', async () => {
+  it('opens its search as a plain 40px field, not a raised one', async () => {
     render(withStubLink(<Docs searchable />), { container: frame(1400) })
     await frames(4)
     document
@@ -459,12 +459,20 @@ describe('the generated list pane', () => {
     }
 
     expect(paint(field)).toEqual(paint(plain))
+    field.focus()
+    await frames(2)
+    const cancel = document.querySelector('[data-slot="pane-search-cancel"]')!
+    await expect
+      .poll(() =>
+        [field, cancel].map((element) => element.getBoundingClientRect().height)
+      )
+      .toEqual([40, 40])
     expect(
       parseFloat(getComputedStyle(field).borderRadius)
     ).toBeGreaterThanOrEqual(field.getBoundingClientRect().height / 2)
   })
 
-  it('leaves Cmd/Ctrl+K alone while the page covers the list', async () => {
+  it('leaves Cmd/Ctrl+/ alone while the page covers the list', async () => {
     render(withStubLink(<Docs searchable />), { container: frame(400) })
     await frames(4)
     const list = document.querySelector<HTMLElement>(
@@ -474,7 +482,7 @@ describe('the generated list pane', () => {
 
     const apple = /mac|iphone|ipad|ipod/i.test(navigator.platform)
     const shortcut = new KeyboardEvent('keydown', {
-      key: 'k',
+      key: '/',
       metaKey: apple,
       ctrlKey: !apple,
       bubbles: true,

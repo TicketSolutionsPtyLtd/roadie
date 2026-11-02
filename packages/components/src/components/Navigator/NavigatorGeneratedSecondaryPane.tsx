@@ -24,14 +24,14 @@ import {
   navigatorSecondarySearchClass
 } from './variants'
 
-// Only the platform's own mod key, so Ctrl+K still deletes to the line's end on Apple.
+// Mod+/ leaves Mod+K to an app-wide search and / to a page's own. Shift is
+// allowed, since some layouts type / with it.
 const isSearchShortcut = (event: KeyboardEvent, platform: KeyPlatform) =>
-  event.key.toLowerCase() === 'k' &&
+  event.key === '/' &&
   (platform === 'apple'
     ? event.metaKey && !event.ctrlKey
     : event.ctrlKey && !event.metaKey) &&
-  !event.altKey &&
-  !event.shiftKey
+  !event.altKey
 
 export function NavigatorGeneratedSecondaryPane({
   secondary
@@ -41,9 +41,12 @@ export function NavigatorGeneratedSecondaryPane({
   const [query, setQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const toggleRef = useRef<HTMLButtonElement>(null)
+  const actionsRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
   // Escape and Cancel leave focus nowhere, so it goes back to the toggle.
   const returnFocus = useRef(false)
+  // The toggle hides while the field is open, so it takes focus once it's back.
+  const focusToggle = useRef(false)
   const { label, props: nav } = secondary
   const searchLabel = `Search ${textOf(label).toLowerCase()}`
   const platform = useKeyPlatform()
@@ -53,6 +56,8 @@ export function NavigatorGeneratedSecondaryPane({
 
   useEffect(() => {
     if (searching) focusField()
+    else if (focusToggle.current) toggleRef.current?.focus()
+    focusToggle.current = false
   }, [searching])
 
   useEffect(() => {
@@ -60,13 +65,13 @@ export function NavigatorGeneratedSecondaryPane({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || !isSearchShortcut(event, platform)) return
       // On a phone the page covers the list, and a hidden field can't take focus.
-      const toggle = toggleRef.current
+      const actions = actionsRef.current
       const shown =
-        toggle?.checkVisibility?.({ visibilityProperty: true }) ?? true
-      if (!shown || toggle?.closest('[inert]')) return
+        actions?.checkVisibility?.({ visibilityProperty: true }) ?? true
+      if (!shown || actions?.closest('[inert]')) return
       // A modal dialog owns the keyboard, however it marks the page behind it.
       const modal = document.activeElement?.closest('[aria-modal="true"]')
-      if (modal && !modal.contains(toggle ?? null)) return
+      if (modal && !modal.contains(actions ?? null)) return
       event.preventDefault()
       if (searching) focusField()
       else setSearching(true)
@@ -81,8 +86,8 @@ export function NavigatorGeneratedSecondaryPane({
   }
 
   const dismiss = () => {
+    focusToggle.current = true
     close()
-    toggleRef.current?.focus()
   }
 
   // Escape and Cancel blur before their cleared query renders.
@@ -92,8 +97,8 @@ export function NavigatorGeneratedSecondaryPane({
     const dismissed = returnFocus.current
     returnFocus.current = false
     if (!dismissed && query !== '') return
-    close()
-    if (dismissed) toggleRef.current?.focus()
+    if (dismissed) dismiss()
+    else close()
   }
 
   return (
@@ -106,7 +111,7 @@ export function NavigatorGeneratedSecondaryPane({
         <PaneHeader>
           <PaneTitle>{label}</PaneTitle>
           {nav.searchable ? (
-            <PaneActions>
+            <PaneActions ref={actionsRef}>
               <Tooltip>
                 <Tooltip.Trigger
                   render={
@@ -118,25 +123,20 @@ export function NavigatorGeneratedSecondaryPane({
                         platform === null
                           ? undefined
                           : platform === 'apple'
-                            ? 'Meta+K'
-                            : 'Control+K'
+                            ? 'Meta+/'
+                            : 'Control+/'
                       }
                       emphasis='normal'
-                      // Safari never focuses a clicked button, so the field
-                      // would blur and close, and this click reopen it.
-                      onPointerDown={(event) => {
-                        if (searching) event.preventDefault()
-                      }}
-                      onClick={() =>
-                        searching ? dismiss() : setSearching(true)
-                      }
+                      // Invisible, not removed, so the title doesn't jump.
+                      className={searching ? 'invisible' : undefined}
+                      onClick={() => setSearching(true)}
                     >
                       <MagnifyingGlassIcon weight='bold' className='size-5' />
                     </IconButton>
                   }
                 />
                 <Tooltip.Content
-                  shortcut={['mod', 'k']}
+                  shortcut={['mod', '/']}
                   aria-hidden
                   className='pointer-coarse:hidden'
                 >
