@@ -250,6 +250,35 @@ describe('Prose', () => {
     expect(style(get(container, '#heading')).fontWeight).not.toBe('800')
   })
 
+  it.each([
+    ['class', { className: 'not-prose' }],
+    ['attribute', { 'data-not-prose': '' }]
+  ])('typesets a Prose inside a subtree escaped by %s', (_, escape) => {
+    const container = renderWide(
+      <Prose>
+        <p>Typeset.</p>
+        <div {...escape}>
+          <Prose>
+            <p>Again.</p>
+            <h3 id='heading'>Booking fees</h3>
+            <ul id='list'>
+              <li>Refunded</li>
+            </ul>
+            <div {...escape}>
+              <ul id='escaped'>
+                <li>Not typeset</li>
+              </ul>
+            </div>
+          </Prose>
+        </div>
+      </Prose>
+    )
+    expect(style(get(container, '#heading')).fontWeight).toBe('700')
+    expect(style(get(container, '#heading')).marginTop).not.toBe('0px')
+    expect(style(get(container, '#list')).listStyleType).toBe('disc')
+    expect(style(get(container, '#escaped')).listStyleType).toBe('none')
+  })
+
   it('lets a utility on a child win over the sheet', () => {
     const container = renderWide(
       <Prose>
@@ -551,15 +580,22 @@ describe('Prose', () => {
   // descendant rule after a :has() anchor restyles every prose element on
   // any change under it.
   it('ships prose rules with no :has()', () => {
-    const selectors: string[] = []
-    const walk = (rules: CSSRuleList) => {
+    const prose: string[] = []
+    const walk = (rules: CSSRuleList, inProse: boolean) => {
       for (const rule of rules) {
-        if (rule instanceof CSSStyleRule) selectors.push(rule.selectorText)
-        if ('cssRules' in rule) walk(rule.cssRules as CSSRuleList)
+        if (
+          rule instanceof CSSStyleRule &&
+          (inProse || /\.prose\b/.test(rule.selectorText))
+        ) {
+          prose.push(rule.selectorText)
+        }
+        const scoped =
+          inProse ||
+          (rule instanceof CSSScopeRule && /\.prose\b/.test(rule.start ?? ''))
+        if ('cssRules' in rule) walk(rule.cssRules as CSSRuleList, scoped)
       }
     }
-    for (const sheet of document.styleSheets) walk(sheet.cssRules)
-    const prose = selectors.filter((selector) => /\.prose\b/.test(selector))
+    for (const sheet of document.styleSheets) walk(sheet.cssRules, false)
     expect(prose.length).toBeGreaterThan(20)
     expect(prose.filter((selector) => selector.includes(':has('))).toEqual([])
   })

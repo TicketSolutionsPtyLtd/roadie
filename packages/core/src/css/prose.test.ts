@@ -8,7 +8,9 @@ import { beforeAll, describe, expect, it } from 'vitest'
 const cssDir = dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
 
-type Rule = { selector: string; body: string; layers: string[] }
+// A rule inside `@scope` reads with its root in place of `:scope`, and keeps
+// the scope's limit.
+type Rule = { selector: string; body: string; layers: string[]; limit?: string }
 
 // Compiles roadie.css with the safelist's candidates, as `build:css` does.
 const compileRoadie = async () => {
@@ -38,7 +40,11 @@ const compileRoadie = async () => {
 
 const parseRules = (css: string) => {
   const rules: Rule[] = []
-  const walk = (text: string, layers: string[]) => {
+  const walk = (
+    text: string,
+    layers: string[],
+    scope?: { root: string; limit: string }
+  ) => {
     let depth = 0
     let start = 0
     let prelude = ''
@@ -54,10 +60,23 @@ const parseRules = (css: string) => {
         if (depth === 0) {
           const inner = text.slice(start, i)
           const layer = prelude.match(/^@layer\s+([\w-]+)/)?.[1]
-          if (prelude.startsWith('@')) {
-            walk(inner, layer ? [...layers, layer] : layers)
+          const scoped = prelude.match(/^@scope\s*\((.+?)\)\s*to\s*\((.+)\)$/)
+          if (scoped) {
+            walk(inner, layers, {
+              root: scoped[1] ?? '',
+              limit: scoped[2] ?? ''
+            })
+          } else if (prelude.startsWith('@')) {
+            walk(inner, layer ? [...layers, layer] : layers, scope)
           } else {
-            rules.push({ selector: prelude, body: inner, layers })
+            rules.push({
+              selector: scope
+                ? prelude.replaceAll(':scope', scope.root)
+                : prelude,
+              body: inner,
+              layers,
+              limit: scope?.limit
+            })
           }
           start = i + 1
         }
@@ -72,23 +91,6 @@ const parseRules = (css: string) => {
 
 const declaration = (body: string, property: string) =>
   body.match(new RegExp(`(?:^|;)\\s*${property}\\s*:\\s*([^;]+)`))?.[1]?.trim()
-
-const splitSelectorList = (list: string) => {
-  const parts: string[] = []
-  let depth = 0
-  let start = 0
-  for (let i = 0; i < list.length; i++) {
-    if (list[i] === '(') depth++
-    else if (list[i] === ')') depth--
-    else if (list[i] === ',' && depth === 0) {
-      parts.push(list.slice(start, i))
-      start = i + 1
-    }
-  }
-  return [...parts, list.slice(start)].map((part) =>
-    part.replace(/\s+/g, ' ').trim()
-  )
-}
 
 const isProse = (selector: string) =>
   /(^|[\s,(>+~])\.prose(\b|-)/.test(selector) &&
@@ -135,13 +137,12 @@ describe('prose.css', () => {
       '.prose > .prose-bleed',
       '.prose > :first-child'
     ])
-    const selectors = proseRules
-      .flatMap(({ selector }) => splitSelectorList(selector))
-      .filter((selector) => !unescaped.has(selector))
-    expect(selectors.length).toBeGreaterThan(20)
-    for (const selector of selectors) {
-      expect(selector).toContain('.not-prose')
-      expect(selector).toContain('[data-not-prose]')
+    const escaped = proseRules.filter(
+      ({ selector }) => !unescaped.has(selector.replace(/\s+/g, ' '))
+    )
+    expect(escaped.length).toBeGreaterThan(20)
+    for (const { selector, limit } of escaped) {
+      expect(limit, selector).toBe('.not-prose, [data-not-prose]')
     }
   })
 
@@ -175,9 +176,7 @@ describe('prose.css', () => {
       const prose = ruleFor('.prose')
       const utility = ruleFor(`.text-display-ui-${level}`)
       const heading = proseRules.find(({ selector }) =>
-        selector
-          .replace(/\s+/g, ' ')
-          .startsWith(`.prose :where(h${level}):not(`)
+        selector.replace(/\s+/g, ' ').startsWith(`.prose :where(h${level})`)
       )
 
       expect(heading?.body).toContain(`font-size: var(--prose-h${level}-size)`)
@@ -198,12 +197,12 @@ describe('prose.css', () => {
       proseRules.findIndex(({ selector }) =>
         selector.replace(/\s+/g, ' ').startsWith(prefix)
       )
-    const afterRule = index('.prose :where(hr + *):not(')
+    const afterRule = index('.prose :where(hr + *)')
     const after = proseRules[afterRule]?.body ?? ''
 
     expect(declaration(after, 'margin-block-start')).toBe('var(--prose-flow)')
     for (const level of [1, 2, 3, 4, 5, 6]) {
-      expect(afterRule).toBeGreaterThan(index(`.prose :where(h${level}):not(`))
+      expect(afterRule).toBeGreaterThan(index(`.prose :where(h${level})`))
     }
     expect(afterRule).toBeGreaterThan(
       index('.prose :where(h1, h2, h3, h4, h5, h6) + :where(*)')
@@ -233,7 +232,7 @@ describe('prose.css', () => {
     expect(below).toBeGreaterThan(0)
     for (const level of [1, 2, 3, 4, 5, 6]) {
       expect(
-        flows(rule(`.prose :where(h${level}):not(`)),
+        flows(rule(`.prose :where(h${level})`)),
         `h${level}`
       ).toBeGreaterThan(below)
     }
@@ -253,7 +252,7 @@ describe('prose.css', () => {
 
   it('lets tables shrink to fit and scroll in .prose-scroll', () => {
     const table = proseRules.find(({ selector }) =>
-      selector.replace(/\s+/g, ' ').startsWith('.prose :where(table):not(')
+      selector.replace(/\s+/g, ' ').startsWith('.prose :where(table)')
     )
     const scroll = proseRules.find(({ selector }) =>
       selector.replace(/\s+/g, ' ').startsWith('.prose :where(.prose-scroll)')
@@ -267,7 +266,7 @@ describe('prose.css', () => {
     const cell = proseRules.find(({ selector }) =>
       selector
         .replace(/\s+/g, ' ')
-        .startsWith('.prose :where(.prose-scroll) :where(th, td):not(')
+        .startsWith('.prose :where(.prose-scroll) :where(th, td)')
     )
 
     expect(declaration(cell?.body ?? '', 'min-inline-size')).toBe('9em')
