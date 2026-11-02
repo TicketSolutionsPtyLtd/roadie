@@ -4,7 +4,7 @@ import { cleanup, render } from '@testing-library/react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -467,10 +467,43 @@ describe('the generated list pane', () => {
         [field, cancel].map((element) => element.getBoundingClientRect().height)
       )
       .toEqual([40, 40])
+    await expect
+      .poll(() => widthOf('[data-slot="pane-search-cancel-slot"]'))
+      .toBe(40)
     expect(
       parseFloat(getComputedStyle(field).borderRadius)
     ).toBeGreaterThanOrEqual(field.getBoundingClientRect().height / 2)
   })
+
+  it.each([
+    ['Escape', () => userEvent.keyboard('{Escape}')],
+    [
+      'Cancel',
+      () =>
+        userEvent.click(
+          document.querySelector('[data-slot="pane-search-cancel"]')!
+        )
+    ]
+  ])(
+    'hides its button in place while searching, and gives it focus back on %s',
+    async (_, leave) => {
+      render(withStubLink(<Docs searchable />), { container: frame(1400) })
+      await frames(4)
+      const toggle = document.querySelector<HTMLButtonElement>(
+        '[aria-label="Search secondary"]'
+      )!
+      const title = document.querySelector('[data-slot="pane-title"]')!
+      const before = title.getBoundingClientRect().toJSON()
+      await userEvent.click(toggle)
+      await frames(2)
+
+      expect(toggle.checkVisibility({ visibilityProperty: true })).toBe(false)
+      expect(title.getBoundingClientRect().toJSON()).toEqual(before)
+      await leave()
+      await expect.poll(() => document.activeElement).toBe(toggle)
+      expect(document.querySelector('[data-slot="pane-search"]')).toBeNull()
+    }
+  )
 
   it('leaves Cmd/Ctrl+/ alone while the page covers the list', async () => {
     render(withStubLink(<Docs searchable />), { container: frame(400) })

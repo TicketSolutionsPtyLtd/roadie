@@ -374,12 +374,6 @@ describe('secondary pane search', () => {
     expect(field()).toHaveFocus()
   })
 
-  it('hides its button while the field is open, keeping its place', async () => {
-    const { toggle } = await search()
-    expect(toggle).toHaveClass('invisible')
-    expect(toggle).toBeInTheDocument()
-  })
-
   it('closes when focus leaves it empty, and stays while it holds a query', async () => {
     const { user, pane } = await search()
     await user.click(document.body)
