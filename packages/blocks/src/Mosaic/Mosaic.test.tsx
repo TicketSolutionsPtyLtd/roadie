@@ -97,7 +97,7 @@ describe('Mosaic', () => {
     error.mockRestore()
   })
 
-  it('ends with the also-supporting logos, titled "Also supporting" by default', () => {
+  it('ends with the logo tile, under its title', () => {
     render(<Mosaic {...partnerTiles} />)
 
     const items = screen.getAllByRole('listitem')
@@ -113,7 +113,7 @@ describe('Mosaic', () => {
     ).toEqual(partnerTiles.logoTile!.logos.map((logo) => logo.alt))
   })
 
-  it('titles the also tile as given, and leaves it out with no also', () => {
+  it('titles the logo tile as given, leaves the title out without one, and the tile out with no logo tile', () => {
     const { rerender } = render(
       <Mosaic
         {...partnerTiles}
@@ -126,6 +126,17 @@ describe('Mosaic', () => {
     expect(
       screen.getByRole('heading', { level: 3, name: 'Friends of Oztix' })
     ).toBeInTheDocument()
+
+    rerender(
+      <Mosaic
+        {...partnerTiles}
+        logoTile={{ logos: partnerTiles.logoTile!.logos }}
+      />
+    )
+    expect(screen.queryByRole('heading', { level: 3 })).toBeNull()
+    expect(screen.getAllByRole('listitem')).toHaveLength(
+      partnerTiles.tiles.length + 1
+    )
 
     rerender(<Mosaic {...partnerTiles} logoTile={undefined} />)
     expect(screen.queryByRole('heading', { level: 3 })).toBeNull()

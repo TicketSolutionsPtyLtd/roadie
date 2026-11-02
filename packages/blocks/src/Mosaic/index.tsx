@@ -43,10 +43,7 @@ export type MosaicTile = {
 }
 
 export type MosaicLogoTile = {
-  /**
-   * The tile's title.
-   * @default 'Also supporting'
-   */
+  /** The tile's title, such as `Also supporting`. Without one, the tile shows only its logos. */
   title?: string
   /** Smaller logos of those without a tile of their own. */
   logos: readonly BlockImage[]
@@ -204,7 +201,7 @@ function PhotoTile({
   )
 }
 
-function LogosTile({ title = 'Also supporting', logos }: MosaicLogoTile) {
+function LogosTile({ title, logos }: MosaicLogoTile) {
   return (
     <li className={cn(TILE, WIDE, 'emphasis-raised')}>
       <div className={cn(STACKED, HALF_HEIGHT)} />
@@ -214,13 +211,15 @@ function LogosTile({ title = 'Also supporting', logos }: MosaicLogoTile) {
           'grid content-center justify-items-center gap-1 p-2 @3xl:gap-2'
         )}
       >
-        <Mark
-          render={<h3 />}
-          intent='neutral'
-          className='justify-self-center text-display-prose-5'
-        >
-          {title}
-        </Mark>
+        {title && (
+          <Mark
+            render={<h3 />}
+            intent='neutral'
+            className='justify-self-center text-display-prose-5'
+          >
+            {title}
+          </Mark>
+        )}
         <div className='flex flex-wrap items-center justify-center gap-2'>
           {logos.map((logo, index) => (
             <BlockImg

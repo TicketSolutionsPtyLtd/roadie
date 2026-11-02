@@ -40,6 +40,7 @@ export const partnerTiles = {
     }
   ],
   logoTile: {
+    title: 'Also supporting',
     logos: [
       logo('Kerosene Pony Collective'),
       logo('Wishbone Ferret Collective')
