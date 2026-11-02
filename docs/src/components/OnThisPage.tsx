@@ -11,8 +11,7 @@ import {
 
 import { useRoute } from '@/lib/route'
 
-import { cn } from '@oztix/roadie-core/utils'
-
+import { RailLink } from './RailLink'
 import { landOn } from './landOn'
 import { scrollParentOf } from './nearViewport'
 
@@ -292,27 +291,15 @@ export function OnThisPage({ headings, onSelect }: DocHeadings) {
       <p className='mb-3 text-sm font-semibold text-strong'>On this page</p>
       <ul className='grid gap-2 border-l border-subtler'>
         {headings.map((h) => (
-          <li
+          <RailLink
             key={h.id}
-            className={cn('-ml-px border-l border-transparent pl-3', {
-              'pl-6': h.level === 3,
-              'border-accent-9': activeId === h.id
-            })}
+            href={`#${h.id}`}
+            active={activeId === h.id}
+            indent={h.level === 3}
+            onSelect={(event) => onSelect(event, h.id)}
           >
-            <a
-              href={`#${h.id}`}
-              aria-current={activeId === h.id ? 'location' : undefined}
-              onClick={(event) => onSelect(event, h.id)}
-              className={cn(
-                'block text-sm transition-colors',
-                activeId === h.id
-                  ? 'font-semibold text-strong'
-                  : 'text-subtle hover:text-normal'
-              )}
-            >
-              {h.text}
-            </a>
-          </li>
+            {h.text}
+          </RailLink>
         ))}
       </ul>
     </nav>
