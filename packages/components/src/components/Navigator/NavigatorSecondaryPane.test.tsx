@@ -343,6 +343,13 @@ describe('secondary pane search', () => {
     ).toBeInTheDocument()
   })
 
+  it('keeps focus in the field when its button is pressed to close it', async () => {
+    const { user, toggle } = await setup()
+    expect(fireEvent.pointerDown(toggle)).toBe(true)
+    await user.click(toggle)
+    expect(fireEvent.pointerDown(toggle)).toBe(false)
+  })
+
   it('closes when focus leaves it empty, and stays while it holds a query', async () => {
     const { user, pane } = await search()
     await user.click(document.body)
@@ -416,6 +423,28 @@ describe('secondary pane search', () => {
     await user.keyboard('{Control>}k{/Control}{Escape}')
     expect(within(pane).queryByRole('searchbox')).toBeNull()
     expect(toggle).toHaveFocus()
+  })
+
+  it('closes from Cancel pressed with the keyboard, focusing its button', async () => {
+    const { user, pane, toggle, field } = await search()
+    await user.type(field, 'inp')
+    await user.tab()
+    await user.keyboard('{Enter}')
+    expect(within(pane).queryByRole('searchbox')).toBeNull()
+    expect(toggle).toHaveFocus()
+  })
+
+  it('closes on Escape from Cancel, and keeps a later query open on leaving', async () => {
+    const { user, pane, toggle } = await search()
+    await user.tab()
+    await user.keyboard('{Escape}')
+    expect(within(pane).queryByRole('searchbox')).toBeNull()
+    expect(toggle).toHaveFocus()
+
+    await user.click(toggle)
+    await user.type(within(pane).getByRole('searchbox'), 'inp')
+    await user.click(document.body)
+    expect(within(pane).getByRole('searchbox')).toHaveValue('inp')
   })
 })
 

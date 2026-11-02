@@ -72,12 +72,15 @@ export function NavigatorGeneratedSecondaryPane({
     setSearching(false)
   }
 
-  // The toggle closes it itself, so a blur toward it mustn't reopen it on
-  // click. Escape and Cancel blur before their cleared query renders.
+  const dismiss = () => {
+    close()
+    toggleRef.current?.focus()
+  }
+
+  // Escape and Cancel blur before their cleared query renders.
   const closeOnLeave = (event: FocusEvent<HTMLDivElement>) => {
     const next = event.relatedTarget
     if (next instanceof Node && event.currentTarget.contains(next)) return
-    if (next === toggleRef.current) return
     const dismissed = returnFocus.current
     returnFocus.current = false
     if (!dismissed && query !== '') return
@@ -105,7 +108,14 @@ export function NavigatorGeneratedSecondaryPane({
                       aria-expanded={searching}
                       aria-keyshortcuts='Meta+K Control+K'
                       emphasis='normal'
-                      onClick={() => (searching ? close() : setSearching(true))}
+                      // Safari never focuses a clicked button, so the field
+                      // would blur and close, and this click reopen it.
+                      onPointerDown={(event) => {
+                        if (searching) event.preventDefault()
+                      }}
+                      onClick={() =>
+                        searching ? dismiss() : setSearching(true)
+                      }
                     >
                       <MagnifyingGlassIcon weight='bold' className='size-5' />
                     </IconButton>
@@ -128,7 +138,13 @@ export function NavigatorGeneratedSecondaryPane({
               onKeyDownCapture={(event) => {
                 if (event.key === 'Escape') returnFocus.current = true
               }}
-              onPointerDownCapture={(event) => {
+              // Escape from Cancel, which has no handler of its own.
+              onKeyDown={(event) => {
+                if (event.key !== 'Escape' || !returnFocus.current) return
+                returnFocus.current = false
+                dismiss()
+              }}
+              onClickCapture={(event) => {
                 const target = event.target as Element
                 if (target.closest('[data-slot=pane-search-cancel]'))
                   returnFocus.current = true
