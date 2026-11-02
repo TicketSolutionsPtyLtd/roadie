@@ -389,6 +389,12 @@ describe('renderEmail', () => {
         key: 'event_date',
         label: 'Event date',
         tokens: { liquid: '{{ event.date | date: "%-d %B" }}' }
+      },
+      {
+        key: 'unsubscribe_url',
+        label: 'Unsubscribe page',
+        kind: 'url',
+        tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' }
       }
     ]
     const tag = (key: string, fallback?: string): JSONContent => ({
@@ -447,6 +453,58 @@ describe('renderEmail', () => {
         { syntax: 'ae', variables }
       )
       expect(html).toMatch(/>\s*Tickets for #FirstName#\s*</)
+    })
+
+    it('writes a link variable’s token as a link’s href', async () => {
+      const unsubscribe = email(
+        p(
+          text('Unsubscribe', [
+            { type: 'link', attrs: { variable: 'unsubscribe_url' } }
+          ])
+        )
+      )
+      const ae = await renderEmail(unsubscribe, { syntax: 'ae', variables })
+      expect(ae.html).toMatch(/<a href="#OptOut#"[^>]*>Unsubscribe<\/a>/)
+      expect(ae.text).toBe('Unsubscribe [#OptOut#]')
+
+      const liquid = await renderEmail(unsubscribe, {
+        syntax: 'liquid',
+        variables
+      })
+      expect(liquid.html).toContain('<a href="{{ unsubscribe_url }}"')
+    })
+
+    it('writes a link variable’s token as a button’s href', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'button',
+          attrs: { variable: 'unsubscribe_url' },
+          content: [text('Unsubscribe')]
+        }),
+        { syntax: 'ae', variables }
+      )
+      expect(html).toMatch(/<a[^>]* href="#OptOut#"[^>]*>\s*Unsubscribe\s*</)
+    })
+
+    it('links to a link variable’s value for a preview', async () => {
+      const { html } = await renderEmail(
+        email(
+          p(
+            text('Unsubscribe', [
+              { type: 'link', attrs: { variable: 'unsubscribe_url' } }
+            ])
+          )
+        ),
+        {
+          variables,
+          values: {
+            unsubscribe_url: 'https://www.oztix.com.au/unsubscribe?a=1&b=2'
+          }
+        }
+      )
+      expect(html).toContain(
+        'href="https://www.oztix.com.au/unsubscribe?a=1&amp;b=2"'
+      )
     })
 
     it('fills each variable with its value for a preview, escaped for the HTML', async () => {

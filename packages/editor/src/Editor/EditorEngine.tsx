@@ -51,6 +51,7 @@ import {
   presets
 } from '../schema'
 import { BLOCK_ID, BLOCK_ID_TYPES } from '../schema/presetShapes'
+import { textVariables } from '../schema/variables'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorBlockHandle } from './EditorBlockHandle'
 import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
@@ -421,7 +422,9 @@ export function EditorEngine({
   const holdsImages = presetHoldsImages(preset)
   const blockContainers = BLOCK_HANDLE_CONTAINERS[preset]
   const hasBlockHandle = blockContainers !== undefined
-  const takesMergeTags = Boolean(schema.nodes.variable && variables?.length)
+  const takesMergeTags = Boolean(
+    schema.nodes.variable && textVariables(variables).length
+  )
   const presetItems = presetInsertItems[preset] ?? []
   const insertItems =
     takesMergeTags && presetItems.length > 0
@@ -468,7 +471,8 @@ export function EditorEngine({
         ? [
             InsertMenu.extend({ name: 'mergeTagMenu' }).configure({
               char: MERGE_TAG_OPEN,
-              items: () => variableInsertItems(variablesRef.current ?? []),
+              items: () =>
+                variableInsertItems(textVariables(variablesRef.current)),
               allowIn: () => true,
               ui: () => uiRef.current!,
               onChange: setMergeTagMenu

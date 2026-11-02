@@ -41,13 +41,28 @@ const ORDERED_LIST_TYPES = new Set(['1', 'a', 'A', 'i', 'I'])
 
 type Mark = NonNullable<JSONContent['marks']>[number]
 
-function marked(html: string, { type, attrs }: Mark, { theme }: TextContext) {
+/**
+ * A link's or a button's href: its link variable's token, or its own href
+ * when a mail client can open it. A link that only resolves on the site has
+ * nowhere to go from a mail client.
+ */
+export function emailHref(
+  { href, variable }: Record<string, unknown> = {},
+  { tag }: TextContext
+) {
+  if (typeof variable === 'string' && variable !== '') {
+    return tag({ key: variable })
+  }
+  return isEmailHref(href) ? escapeHtml(href) : undefined
+}
+
+function marked(html: string, { type, attrs }: Mark, context: TextContext) {
   if (type === 'bold') return `<strong>${html}</strong>`
   if (type === 'italic') return `<em>${html}</em>`
   if (type === 'underline') return `<u>${html}</u>`
-  // A link that only resolves on the site has nowhere to go from a mail client.
-  if (type === 'link' && isEmailHref(attrs?.href)) {
-    return `<a href="${escapeHtml(attrs.href)}" style="color:${theme.link};text-decoration:underline">${html}</a>`
+  const href = type === 'link' ? emailHref(attrs, context) : undefined
+  if (href) {
+    return `<a href="${href}" style="color:${context.theme.link};text-decoration:underline">${html}</a>`
   }
   return html
 }

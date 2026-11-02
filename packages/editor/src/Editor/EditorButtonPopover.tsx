@@ -9,6 +9,7 @@ import { Button } from '@oztix/roadie-components/button'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { Popover } from '@oztix/roadie-components/popover'
+import { Select } from '@oztix/roadie-components/select'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
 import {
@@ -17,7 +18,7 @@ import {
   buttonLook,
   isEmailHref
 } from '../schema/emailAttrs'
-import { toHref } from './EditorLinkPopover'
+import { toHref, useLinkVariables } from './EditorLinkPopover'
 import { selectedNodeType } from './EditorNodeToolbar'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { buttonBlock, insertBlock } from './emailEditing'
@@ -144,15 +145,29 @@ const ALIGNS: readonly Choice<ButtonAlign>[] = [
   { value: 'right', label: 'Right' }
 ]
 
-type SettingsFormProps = ButtonFormProps & { href: string; look: ButtonLook }
+type SettingsFormProps = ButtonFormProps & {
+  href: string
+  variable?: string
+  look: ButtonLook
+}
+
+// Select values, kept apart from any variable's key.
+const WEB_ADDRESS = 'web'
+const linkTo = (key: string) => `variable:${key}`
 
 function ButtonSettingsForm({
   editor,
   inputRef,
   href,
+  variable,
   look,
   onDone
 }: SettingsFormProps) {
+  const variables = useLinkVariables(editor)
+  const [linksTo, setLinksTo] = useState(
+    variable ? linkTo(variable) : WEB_ADDRESS
+  )
+  const linked = variables.find(({ key }) => linkTo(key) === linksTo)
   const [typed, setTyped] = useState(href)
   const [refused, setRefused] = useState(false)
   const [emphasis, setEmphasis] = useState(look.emphasis ?? 'strong')
@@ -168,7 +183,7 @@ function ButtonSettingsForm({
         // React bubbles a portalled submit to the form around the editor.
         event.stopPropagation()
         const saved = toHref(typed)
-        if (!isEmailHref(saved)) {
+        if (!linked && !isEmailHref(saved)) {
           setRefused(true)
           inputRef.current?.focus()
           return
@@ -180,7 +195,8 @@ function ButtonSettingsForm({
           .chain()
           .focus()
           .updateAttributes('button', {
-            href: saved,
+            href: linked ? undefined : saved,
+            variable: linked?.key,
             emphasis: emphasis === 'normal' ? emphasis : undefined,
             fullWidth: full || undefined,
             align: !full && align !== 'left' ? align : undefined
@@ -189,27 +205,65 @@ function ButtonSettingsForm({
         onDone()
       }}
     >
-      <Field invalid={refused}>
-        <Field.Label>Link</Field.Label>
-        <Field.Input
-          ref={inputRef}
-          type='url'
-          inputMode='url'
-          placeholder='Paste a link'
-          value={typed}
-          onChange={(event) => {
-            setTyped(event.target.value)
-            setRefused(false)
-          }}
-          // Backward, so a long link shows its start, as the add form's does.
-          onFocus={(event) => {
-            if (event.currentTarget.value !== href) return
-            const input = event.currentTarget
-            input.setSelectionRange(0, input.value.length, 'backward')
-          }}
-        />
-        <Field.ErrorText>{REFUSED}</Field.ErrorText>
-      </Field>
+      {variables.length > 0 ? (
+        <Field>
+          <Field.Label>Links to</Field.Label>
+          <Select
+            value={linksTo}
+            onValueChange={(value) => {
+              if (typeof value === 'string') setLinksTo(value)
+            }}
+            items={[
+              { value: WEB_ADDRESS, label: 'A web address' },
+              ...variables.map(({ key, label }) => ({
+                value: linkTo(key),
+                label
+              }))
+            ]}
+          >
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Icon />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value={WEB_ADDRESS}>A web address</Select.Item>
+              {variables.map(({ key, label }) => (
+                <Select.Item key={key} value={linkTo(key)}>
+                  {label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select>
+          {linked ? (
+            <Field.HelperText>
+              The sending system fills in this link for each customer.
+            </Field.HelperText>
+          ) : null}
+        </Field>
+      ) : null}
+      {linked ? null : (
+        <Field invalid={refused}>
+          <Field.Label>Link</Field.Label>
+          <Field.Input
+            ref={inputRef}
+            type='url'
+            inputMode='url'
+            placeholder='Paste a link'
+            value={typed}
+            onChange={(event) => {
+              setTyped(event.target.value)
+              setRefused(false)
+            }}
+            // Backward, so a long link shows its start, as the add form's does.
+            onFocus={(event) => {
+              if (event.currentTarget.value !== href) return
+              const input = event.currentTarget
+              input.setSelectionRange(0, input.value.length, 'backward')
+            }}
+          />
+          <Field.ErrorText>{REFUSED}</Field.ErrorText>
+        </Field>
+      )}
       <ButtonChoice
         legend='Style'
         choices={EMPHASES}
@@ -247,9 +301,14 @@ function ButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
   // would cache a read during render by the editor alone.
   const [current] = useState(() => {
     const href = buttonHref(editor)
-    return href === undefined
-      ? undefined
-      : { href, look: buttonLook(editor.getAttributes('button')) }
+    if (href === undefined) return undefined
+    const attrs = editor.getAttributes('button')
+    const variable: unknown = attrs.variable
+    return {
+      href,
+      variable: typeof variable === 'string' ? variable : undefined,
+      look: buttonLook(attrs)
+    }
   })
   if (!current) {
     return <AddButtonForm editor={editor} inputRef={inputRef} onDone={onDone} />
@@ -259,6 +318,7 @@ function ButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
       editor={editor}
       inputRef={inputRef}
       href={current.href}
+      variable={current.variable}
       look={current.look}
       onDone={onDone}
     />
