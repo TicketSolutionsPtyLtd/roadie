@@ -54,6 +54,7 @@ import { BLOCK_ID, BLOCK_ID_TYPES } from '../schema/presetShapes'
 import { textVariables } from '../schema/variables'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorBlockHandle } from './EditorBlockHandle'
+import { EditorBlocksDrawer } from './EditorBlocksDrawer'
 import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
 import { EditorButtonPopover } from './EditorButtonPopover'
 import { EditorContent } from './EditorContent'
@@ -382,6 +383,7 @@ export function EditorEngine({
   const providersRef = useRef(embedProviders)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
+  const [addingBlocks, setAddingBlocks] = useState(false)
   const [mergeTagMenu, setMergeTagMenu] = useState<InsertMenuState | null>(null)
   const variablesRef = useRef(variables)
   const uiRef = useRef<EditorControlUi | null>(null)
@@ -646,6 +648,9 @@ export function EditorEngine({
   useEffect(() => {
     uiRef.current = ui
   })
+  const drawerItems = blockContainers
+    ? presetItems.filter((item) => item.available?.(ui) ?? true)
+    : []
 
   return (
     <EditorContext
@@ -668,6 +673,8 @@ export function EditorEngine({
         toolbarRef,
         bubbleMenuRef,
         ...ui,
+        openBlocks:
+          drawerItems.length > 0 ? () => setAddingBlocks(true) : undefined,
         editingLink,
         embedProviders,
         variables,
@@ -715,6 +722,16 @@ export function EditorEngine({
             openMenuRef={openBlockMenuRef}
             containers={blockContainers}
             canAdd={insertItems.length > 0}
+          />
+        ) : null}
+        {editor && blockContainers && drawerItems.length > 0 ? (
+          <EditorBlocksDrawer
+            editor={editor}
+            open={addingBlocks}
+            onOpenChange={setAddingBlocks}
+            items={drawerItems}
+            ui={ui}
+            containers={blockContainers}
           />
         ) : null}
         {editor ? (

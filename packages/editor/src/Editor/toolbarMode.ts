@@ -21,6 +21,10 @@ function subscribeToPhone(onChange: () => void) {
 const onPhone = () => window.matchMedia(PHONE_QUERY).matches
 const notOnServer = () => false
 
+/** Whether the screen is a phone's, by `PHONE_QUERY`. */
+export const useOnPhone = () =>
+  useSyncExternalStore(subscribeToPhone, onPhone, notOnServer)
+
 type ToolbarModeOptions = {
   toolbar?: EditorToolbarMode
   defaultToolbar?: EditorToolbarMode
@@ -36,7 +40,7 @@ export function useToolbarMode({
   pinnable
 }: ToolbarModeOptions) {
   const [uncontrolled, setUncontrolled] = useState(defaultToolbar)
-  const phone = useSyncExternalStore(subscribeToPhone, onPhone, notOnServer)
+  const phone = useOnPhone()
   const chosen = toolbar ?? uncontrolled
   const setToolbar = (next: EditorToolbarMode) => {
     if (toolbar === undefined) setUncontrolled(next)

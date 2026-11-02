@@ -36,6 +36,11 @@ export type EditorInsertItem = {
   enabled: (editor: Editor) => boolean
   /** Offers the item only while this holds, such as with an upload handler. */
   available?: (ui: EditorControlUi) => boolean
+  /**
+   * The block it adds, which the Blocks drawer puts after the caret's block.
+   * Without one, the drawer runs it on a new line there.
+   */
+  block?: JSONContent
 }
 
 const paragraph: EditorInsertItem = {
@@ -43,6 +48,7 @@ const paragraph: EditorInsertItem = {
   icon: TextTIcon,
   group: 'Text',
   keywords: ['text'],
+  block: { type: 'paragraph' },
   run: (editor) => editor.chain().focus().setParagraph().run(),
   // On a paragraph, setParagraph has nothing to change, so it reports false.
   enabled: (editor) =>
@@ -62,14 +68,21 @@ const headings = HEADINGS.map(([level, icon]): EditorInsertItem => ({
   icon,
   group: 'Text',
   keywords: ['title'],
+  block: { type: 'heading', attrs: { level } },
   run: (editor) => editor.chain().focus().setHeading({ level }).run(),
   enabled: (editor) => editor.can().setHeading({ level })
 }))
+
+const listOf = (type: string): JSONContent => ({
+  type,
+  content: [{ type: 'listItem', content: [{ type: 'paragraph' }] }]
+})
 
 const bulletList: EditorInsertItem = {
   label: 'Bulleted list',
   icon: ListBulletsIcon,
   group: 'Text',
+  block: listOf('bulletList'),
   run: (editor) => editor.chain().focus().toggleBulletList().run(),
   // In its own list, the toggle would take the line out of it.
   enabled: (editor) =>
@@ -80,6 +93,7 @@ const orderedList: EditorInsertItem = {
   label: 'Numbered list',
   icon: ListNumbersIcon,
   group: 'Text',
+  block: listOf('orderedList'),
   run: (editor) => editor.chain().focus().toggleOrderedList().run(),
   enabled: (editor) =>
     !editor.isActive('orderedList') && editor.can().toggleOrderedList()
@@ -96,6 +110,7 @@ function block(
     icon,
     group: 'Layout',
     keywords,
+    block: content,
     run: (editor) => editor.chain().focus().command(insertBlock(content)).run(),
     enabled: (editor) => editor.can().command(insertBlock(content))
   }

@@ -15,6 +15,7 @@ import type { EditorBubbleMenuProps } from './EditorBubbleMenu'
 import { EditorContext } from './EditorContext'
 import { useRepositionOnResize } from './EditorNodeToolbar'
 import {
+  BlocksButton,
   type ControlState,
   ToolbarItems,
   availableItems,
@@ -77,7 +78,8 @@ function SelectionMenu({
     openBubbleMenuRef,
     toolbarExtras,
     pinnable,
-    setToolbar
+    setToolbar,
+    openBlocks
   } = context
   const ui = controlUi(context)
   const items = availableItems(floatingControls[preset], ui)
@@ -218,6 +220,7 @@ function SelectionMenu({
             ui={ui}
             onMenuOpenChange={onMenuOpenChange}
           />
+          <BlocksButton openBlocks={openBlocks} />
           {children}
           <OverflowMenu
             editor={editor}

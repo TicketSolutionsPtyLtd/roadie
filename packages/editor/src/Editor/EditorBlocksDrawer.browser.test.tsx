@@ -1,0 +1,346 @@
+import { render, screen, waitFor, within } from '@testing-library/react'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
+import { page, userEvent } from 'vitest/browser'
+
+import { Editor, type EditorProps } from '.'
+import roadieCss from '../../vitest.browser.css?inline'
+import type { EditorValue, JSONContent } from '../schema'
+import { clickIntoEditor, selectParagraph } from './testUtils'
+
+const LABEL = 'Newsletter'
+
+let style: HTMLStyleElement
+beforeAll(() => {
+  style = document.createElement('style')
+  style.textContent = roadieCss
+  document.head.append(style)
+})
+afterAll(() => style.remove())
+afterEach(() => page.viewport(1280, 800))
+
+const p = (text?: string): JSONContent =>
+  text
+    ? { type: 'paragraph', content: [{ type: 'text', text }] }
+    : { type: 'paragraph' }
+
+const column = (...content: JSONContent[]): JSONContent => ({
+  type: 'column',
+  content
+})
+
+const email = (...content: JSONContent[]): EditorValue => ({
+  version: 1,
+  preset: 'email',
+  doc: { type: 'doc', content }
+})
+
+const spacer = { type: 'spacer', attrs: { height: 32 } }
+
+function renderEmail(props: Partial<EditorProps> = {}) {
+  const onValueChange = vi.fn()
+  render(
+    <div style={{ paddingTop: 96 }}>
+      <Editor
+        aria-label={LABEL}
+        preset='email'
+        toolbar='docked'
+        defaultValue={email(p('Doors 7pm'), p('Gates 6pm'))}
+        onValueChange={onValueChange}
+        {...props}
+      />
+    </div>
+  )
+  return onValueChange
+}
+
+const textbox = () => screen.findByRole('textbox', { name: LABEL })
+
+async function clickInto(text: string) {
+  await clickIntoEditor(within(await textbox()).getByText(text))
+}
+
+async function openFromDockedBar() {
+  const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+  await userEvent.click(within(bar).getByRole('button', { name: 'Blocks' }))
+  return screen.findByRole('dialog', { name: 'Blocks' })
+}
+
+const tileGroups = (drawer: HTMLElement) =>
+  within(drawer)
+    .getAllByRole('group')
+    .map((group) => [
+      document.getElementById(group.getAttribute('aria-labelledby')!)
+        ?.textContent,
+      within(group)
+        .getAllByRole('button')
+        .map((tile) => tile.textContent)
+    ])
+
+describe('Editor blocks drawer', () => {
+  it('opens from the docked toolbar with the blocks as tiles in groups', async () => {
+    renderEmail({
+      onUploadImage: async () => ({ src: 'https://example.com/crowd.png' })
+    })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+
+    expect(tileGroups(drawer)).toEqual([
+      [
+        'Text',
+        [
+          'Paragraph',
+          'Heading 2',
+          'Heading 3',
+          'Heading 4',
+          'Bulleted list',
+          'Numbered list'
+        ]
+      ],
+      ['Media', ['Image']],
+      [
+        'Layout',
+        ['Section', '2 columns', '3 columns', '4 columns', 'Spacer', 'Divider']
+      ],
+      ['Email', ['Button']]
+    ])
+    for (const tile of within(drawer).getAllByRole('button')) {
+      expect(tile.querySelector('svg')).not.toBe(null)
+    }
+  })
+
+  it.each<[string, string, JSONContent[]]>([
+    ['a spacer', 'Spacer', [p('Doors 7pm'), spacer, p('Gates 6pm')]],
+    ['a paragraph', 'Paragraph', [p('Doors 7pm'), p(), p('Gates 6pm')]],
+    [
+      'a heading',
+      'Heading 3',
+      [p('Doors 7pm'), { type: 'heading', attrs: { level: 3 } }, p('Gates 6pm')]
+    ],
+    [
+      'a list',
+      'Bulleted list',
+      [
+        p('Doors 7pm'),
+        { type: 'bulletList', content: [{ type: 'listItem', content: [p()] }] },
+        p('Gates 6pm')
+      ]
+    ],
+    [
+      'columns',
+      '2 columns',
+      [
+        p('Doors 7pm'),
+        { type: 'columns', content: [column(p()), column(p())] },
+        p('Gates 6pm')
+      ]
+    ]
+  ])(
+    'inserts %s after the caret’s block, closes, and hands back the caret',
+    async (_, name, content) => {
+      const onValueChange = renderEmail()
+      await clickInto('Doors 7pm')
+
+      const drawer = await openFromDockedBar()
+      await userEvent.click(within(drawer).getByRole('button', { name }))
+
+      await waitFor(() =>
+        expect(onValueChange).toHaveBeenLastCalledWith(email(...content))
+      )
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+      await waitFor(async () => expect(await textbox()).toHaveFocus())
+      await userEvent.keyboard('Bar')
+      await waitFor(() =>
+        expect(JSON.stringify(onValueChange.mock.lastCall![0])).toContain('Bar')
+      )
+    }
+  )
+
+  it('puts a section after the columns when the caret is in one', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email({
+        type: 'columns',
+        content: [column(p('Lineup')), column(p('Set times'))]
+      })
+    })
+    await clickInto('Lineup')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Section' })
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          {
+            type: 'columns',
+            content: [column(p('Lineup')), column(p('Set times'))]
+          },
+          { type: 'section', content: [p()] },
+          p()
+        )
+      )
+    )
+  })
+
+  it('fills an empty line instead of adding after it', async () => {
+    const onValueChange = renderEmail({ defaultValue: email(p()) })
+    await clickIntoEditor(await textbox())
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Divider' })
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'horizontalRule' }, p())
+      )
+    )
+  })
+
+  it('opens the button’s link field on a new line after the caret’s block', async () => {
+    const onValueChange = renderEmail()
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Button' })
+    )
+    const link = await screen.findByRole('textbox', { name: 'Button link' })
+    await waitFor(() => expect(link).toHaveFocus())
+    await userEvent.keyboard('https://example.com/tickets{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          p('Doors 7pm'),
+          {
+            type: 'button',
+            attrs: { href: 'https://example.com/tickets' },
+            content: [{ type: 'text', text: 'Button' }]
+          },
+          p(),
+          p('Gates 6pm')
+        )
+      )
+    )
+  })
+
+  it('opens from the floating toolbar, adding after the selected text’s block', async () => {
+    const onValueChange = renderEmail({ toolbar: 'floating' })
+    await selectParagraph(within(await textbox()).getByText('Doors 7pm'))
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Selection formatting'
+    })
+    await userEvent.click(
+      within(toolbar).getByRole('button', { name: 'Blocks' })
+    )
+    const drawer = await screen.findByRole('dialog', { name: 'Blocks' })
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Spacer' })
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm'), spacer, p('Gates 6pm'))
+      )
+    )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+  })
+
+  it('works by keyboard from the docked toolbar', async () => {
+    const onValueChange = renderEmail()
+    await clickInto('Doors 7pm')
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+    await waitFor(() =>
+      expect(bar).toContainElement(document.activeElement as HTMLElement)
+    )
+    // The bar's arrow keys wrap, so Blocks, at its end, is one step left.
+    await userEvent.keyboard('{ArrowLeft}')
+    await waitFor(() =>
+      expect(within(bar).getByRole('button', { name: 'Blocks' })).toHaveFocus()
+    )
+    await userEvent.keyboard('{Enter}')
+
+    const drawer = await screen.findByRole('dialog', { name: 'Blocks' })
+    await waitFor(() =>
+      expect(
+        within(drawer).getByRole('button', { name: 'Paragraph' })
+      ).toHaveFocus()
+    )
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    await waitFor(async () => expect(await textbox()).toHaveFocus())
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    await waitFor(() =>
+      expect(bar).toContainElement(document.activeElement as HTMLElement)
+    )
+    await userEvent.keyboard('{ArrowLeft}{Enter}')
+    await screen.findByRole('dialog', { name: 'Blocks' })
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: 'Paragraph'
+        })
+      ).toHaveFocus()
+    )
+    await userEvent.keyboard('{Tab}'.repeat(10))
+    expect(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Spacer' })
+    ).toHaveFocus()
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm'), spacer, p('Gates 6pm'))
+      )
+    )
+    await waitFor(async () => expect(await textbox()).toHaveFocus())
+  })
+
+  it('slides in from the right on a desktop and up from the bottom on a phone', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const wide = await openFromDockedBar()
+    await waitFor(() => {
+      const box = wide.getBoundingClientRect()
+      expect(box.right).toBeCloseTo(window.innerWidth, 0)
+      expect(box.left).toBeGreaterThan(window.innerWidth / 2)
+    })
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+
+    await page.viewport(390, 700)
+    const narrow = await openFromDockedBar()
+    await waitFor(() => {
+      const box = narrow.getBoundingClientRect()
+      expect(box.bottom).toBeCloseTo(window.innerHeight, 0)
+      expect(box.left).toBeCloseTo(0, 0)
+      expect(box.right).toBeCloseTo(window.innerWidth, 0)
+    })
+  })
+
+  it.each(['basic', 'rich', 'blocks'] as const)(
+    'offers no Blocks button in the %s preset',
+    async (preset) => {
+      render(<Editor aria-label={LABEL} preset={preset} toolbar='docked' />)
+
+      const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+      expect(within(bar).queryByRole('button', { name: 'Blocks' })).toBe(null)
+    }
+  )
+})

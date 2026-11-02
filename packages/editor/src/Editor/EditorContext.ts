@@ -55,6 +55,8 @@ export type EditorContextValue = {
   /** Opens the button link editor, on the button at the selection if there is one. */
   editButton: () => void
   editVariable: () => void
+  /** Opens the Blocks drawer, or undefined in a preset without one. */
+  openBlocks: (() => void) | undefined
   TiptapContent: typeof EditorContent
   ToolbarEngine: ComponentType<EditorToolbarProps>
   BubbleMenuEngine: ComponentType<EditorBubbleMenuProps>
