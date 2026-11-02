@@ -2,7 +2,7 @@
 
 import { type RefObject, use, useRef, useState } from 'react'
 
-import { posToDOMRect } from '@tiptap/core'
+import { type ChainedCommands, posToDOMRect } from '@tiptap/core'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 
 import { Button } from '@oztix/roadie-components/button'
@@ -12,6 +12,7 @@ import { type EditorVariable, linkVariables } from '../schema/variables'
 import { EditorContext } from './EditorContext'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { focusEditor } from './focusEditor'
+import { type LiveEdit, useLiveEdit } from './useLiveEdit'
 
 const HAS_SCHEME = /^[a-z][a-z\d+.-]*:/i
 const BARE_DOMAIN = /^[^\s/?#:@]+\.[a-z]{2,}(?:[/?#:]|$)/i
@@ -33,8 +34,17 @@ function isLinkable(editor: TiptapEditor, href: string) {
 type LinkFormProps = {
   editor: TiptapEditor
   inputRef: RefObject<HTMLInputElement | null>
+  apply: LiveEdit['apply']
   onDone: () => void
 }
+
+type LinkAttrs = { href?: string; variable?: string }
+
+// setMark keeps attrs it isn't given, so each clears the other's.
+const setLink = (attrs: LinkAttrs) => (chain: ChainedCommands) =>
+  chain
+    .extendMarkRange('link')
+    .setMark('link', { href: undefined, variable: undefined, ...attrs })
 
 type CurrentLink = { href?: string; variable?: string }
 
@@ -78,30 +88,29 @@ function VariableLinks({ variables, current, onPick }: VariableLinksProps) {
   )
 }
 
-function LinkForm({ editor, inputRef, onDone }: LinkFormProps) {
+/**
+ * Links the selection, or changes its link, as a whole address is typed. At
+ * a caret with no link, it adds the link's text on save.
+ */
+function LinkForm({ editor, inputRef, apply, onDone }: LinkFormProps) {
   // Read as the form opens: the editor is mutable, so the React Compiler
   // would cache a read during render by the editor alone.
   const [current] = useState(() => currentLink(editor))
   const editing = current !== undefined
+  const [inserting] = useState(() => editor.state.selection.empty && !editing)
   const [typed, setTyped] = useState(current?.href ?? '')
   const [refused, setRefused] = useState(false)
   const variables = useLinkVariables(editor)
 
-  const link = (attrs: { href?: string; variable?: string }, text: string) => {
-    const chain = editor.chain().focus().extendMarkRange('link')
-    if (editor.state.selection.empty && !editing) {
-      chain
-        .insertContent({
-          type: 'text',
-          text,
-          marks: [{ type: 'link', attrs }]
-        })
+  const link = (attrs: LinkAttrs, text: string) => {
+    if (inserting) {
+      editor
+        .chain()
+        .focus()
+        .insertContent({ type: 'text', text, marks: [{ type: 'link', attrs }] })
         .run()
     } else {
-      // setMark keeps attrs it isn't given, so each clears the other's.
-      chain
-        .setMark('link', { href: undefined, variable: undefined, ...attrs })
-        .run()
+      apply(setLink(attrs))
     }
     onDone()
   }
@@ -117,7 +126,7 @@ function LinkForm({ editor, inputRef, onDone }: LinkFormProps) {
   }
 
   const remove = () => {
-    editor.chain().focus().extendMarkRange('link').unsetLink().run()
+    apply((chain) => chain.extendMarkRange('link').unsetLink())
     onDone()
   }
 
@@ -133,6 +142,8 @@ function LinkForm({ editor, inputRef, onDone }: LinkFormProps) {
         onValueChange={(value) => {
           setTyped(value)
           setRefused(false)
+          const href = toHref(value)
+          if (!inserting && isLinkable(editor, href)) apply(setLink({ href }))
         }}
         submitLabel='Save link'
         onSubmit={save}
@@ -159,20 +170,24 @@ type EditorLinkPopoverProps = {
   onOpenChange: (open: boolean) => void
 }
 
-/** Adds, changes or removes the link on the selection, anchored to it. */
+/**
+ * Adds, changes or removes the link on the selection, anchored to it. Escape
+ * or Close puts the link back as it was.
+ */
 export function EditorLinkPopover({
   editor,
   open,
   onOpenChange
 }: EditorLinkPopoverProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const live = useLiveEdit(editor, open, onOpenChange)
   if (!editor) return null
   const { from, to } = editor.state.selection
   const anchor = {
     getBoundingClientRect: () => posToDOMRect(editor.view, from, to)
   }
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
+    <Popover open={open} onOpenChange={live.onOpenChange}>
       <Popover.Content
         side='bottom'
         align='start'
@@ -187,7 +202,8 @@ export function EditorLinkPopover({
         <LinkForm
           editor={editor}
           inputRef={inputRef}
-          onDone={() => onOpenChange(false)}
+          apply={live.apply}
+          onDone={live.done}
         />
       </Popover.Content>
     </Popover>

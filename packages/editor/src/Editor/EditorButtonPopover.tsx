@@ -392,7 +392,7 @@ export function EditorButtonPopover({
       editor={editor}
       inputRef={inputRef}
       apply={live.apply}
-      onDone={() => onOpenChange(false)}
+      onDone={live.done}
     />
   )
   return (

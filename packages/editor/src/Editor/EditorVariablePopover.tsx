@@ -13,7 +13,7 @@ import { Select } from '@oztix/roadie-components/select'
 import { textVariables } from '../schema/variables'
 import { EditorContext } from './EditorContext'
 import { focusEditor } from './focusEditor'
-import { type LiveEdit, useLiveEdit } from './useLiveEdit'
+import { type LiveEdit, setSelectedAttrs, useLiveEdit } from './useLiveEdit'
 
 type Tag = { key: string; fallback: string }
 
@@ -45,17 +45,8 @@ function TagForm({ tag, apply, onDone }: TagFormProps) {
     ? variables
     : [...variables, { key: tag.key, label: tag.key }]
 
-  // An attribute step, unlike updateAttributes' replacing a leaf node,
-  // leaves the tag selected for the next change.
   const update = (attrs: { key?: string; fallback?: string }) =>
-    apply((chain) =>
-      chain.command(({ tr }) => {
-        for (const [name, value] of Object.entries(attrs)) {
-          tr.setNodeAttribute(tr.selection.from, name, value)
-        }
-        return true
-      })
-    )
+    apply(setSelectedAttrs(attrs))
 
   return (
     <form
@@ -164,7 +155,7 @@ export function EditorVariablePopover({
             key={`${from}`}
             tag={tag}
             apply={live.apply}
-            onDone={() => onOpenChange(false)}
+            onDone={live.done}
           />
         ) : null}
       </Popover.Content>

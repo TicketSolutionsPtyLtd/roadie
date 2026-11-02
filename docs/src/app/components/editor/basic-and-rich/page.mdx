@@ -71,8 +71,12 @@ nothing selected, saving inserts the address as linked text. Typing or pasting
 a web address links it as you go.
 
 The Link, Embed, Edit link, and Alt text popovers are one row: an input, a
-check button that saves, and Close. Enter saves and Escape closes. Editing a
-link adds Remove link between the two.
+check button that saves, and Close. Editing a link adds Remove link between
+the two. A popover that edits what's there, a selection's link, an embed's
+link, or an image's alt text, shows each change as it's typed: a link once
+it's a whole address. Enter, the check, or a click away keeps the changes as
+one step to undo, and Escape or Close puts things back as they were. At a
+caret with nothing selected, Link and Embed add on save.
 
 ```tsx-live-prose
 <Editor
@@ -258,8 +262,8 @@ migration. Players run in a sandboxed `iframe`, and a look-alike host such as
 
 Click an embed, or move onto it with the arrow keys, to edit it in place. A
 toolbar by the embed has Edit link and Remove embed. Edit link starts from the
-embed's share link, from its provider's optional `shareUrl`, and replaces the
-embed with the new link's player. It refuses a link no provider reads, as the
+embed's share link, from its provider's optional `shareUrl`, and swaps in the
+new link's player as soon as a provider reads it. It refuses a link no provider reads, as the
 Embed control does.
 
 ### Tables
@@ -328,8 +332,8 @@ phone.
   node is selected and the editor has focus, and never while read-only or
   disabled. Each action is one step to undo.
 - An image's alt text is edited in a popover with a named input, opened by
-  Enter on a selected image or its Alt text action. Escape closes it and
-  returns focus to the image. An upload in progress is a `status`, and an upload error
+  Enter on a selected image or its Alt text action. Escape puts the alt text
+  back and returns focus to the image. An upload in progress is a `status`, and an upload error
   shows in `Field.ErrorText`, or under the editor outside a `Field`.
 - An embed's player is titled with its provider and id, and takes no Tab
   stop in the editor. Arrow keys select an embed or an image, and Backspace

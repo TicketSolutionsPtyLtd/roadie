@@ -4,6 +4,7 @@ import { useEffect, useEffectEvent, useRef } from 'react'
 
 import type { ChainedCommands, Editor as TiptapEditor } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
+import type { SelectionBookmark } from '@tiptap/pm/state'
 import type { Step } from '@tiptap/pm/transform'
 
 import type { PopoverProps } from '@oztix/roadie-components/popover'
@@ -13,9 +14,26 @@ type OpenChange = NonNullable<PopoverProps['onOpenChange']>
 // Escape and a close button put things back; any other close keeps them.
 const REVERTING: ReadonlySet<string> = new Set(['escape-key', 'close-press'])
 
-type Applied = { steps: Step[]; inverses: Step[] }
+type Applied = {
+  steps: Step[]
+  inverses: Step[]
+  selection?: SelectionBookmark
+}
 
 const none = (): Applied => ({ steps: [], inverses: [] })
+
+/**
+ * Sets the selected node's attrs in place. updateAttributes replaces a leaf
+ * node, which drops the selection the next change needs.
+ */
+export const setSelectedAttrs =
+  (attrs: Record<string, unknown>) => (chain: ChainedCommands) =>
+    chain.command(({ tr }) => {
+      for (const [name, value] of Object.entries(attrs)) {
+        tr.setNodeAttribute(tr.selection.from, name, value)
+      }
+      return true
+    })
 
 /**
  * A popover's edits, shown in the document as they're made. Escape or its
@@ -32,6 +50,7 @@ export function useLiveEdit(
   // Out of the history while it's open, so undo can't land halfway.
   const apply = (edit: (chain: ChainedCommands) => ChainedCommands) => {
     if (!editor) return
+    applied.current.selection ??= editor.state.selection.getBookmark()
     edit(editor.chain().setMeta('addToHistory', false))
       .command(({ tr }) => {
         tr.docs.forEach((before, index) => {
@@ -46,12 +65,18 @@ export function useLiveEdit(
   }
 
   const finish = (keep: boolean) => {
-    const { steps, inverses } = applied.current
+    const { steps, inverses, selection } = applied.current
     applied.current = none()
     if (!editor || editor.isDestroyed || steps.length === 0) return
     const { view } = editor
     const revert = view.state.tr.setMeta('addToHistory', false)
-    inverses.forEach((step) => revert.maybeStep(step))
+    const reverted = inverses
+      .map((step) => revert.maybeStep(step))
+      .every((result) => !result.failed)
+    // Back to the document it opened on, so its selection holds there too.
+    if (!keep && reverted && selection) {
+      revert.setSelection(selection.resolve(revert.doc))
+    }
     view.dispatch(revert)
     if (!keep) return
     // Applied again as one step of its own, which nothing typed next joins.
@@ -61,7 +86,7 @@ export function useLiveEdit(
     view.dispatch(closeHistory(view.state.tr))
   }
 
-  // Closed by the editor, or by a form's own Done, rather than the popover.
+  // Closed by the editor rather than the popover.
   const keepOnClose = useEffectEvent(() => finish(true))
   useEffect(() => {
     if (!open) keepOnClose()
@@ -72,7 +97,13 @@ export function useLiveEdit(
     onOpenChange(next)
   }
 
-  return { apply, onOpenChange: handleOpenChange }
+  /** Keeps the edits and closes, for a form's Enter or its check. */
+  const done = () => {
+    finish(true)
+    onOpenChange(false)
+  }
+
+  return { apply, done, onOpenChange: handleOpenChange }
 }
 
 export type LiveEdit = ReturnType<typeof useLiveEdit>
