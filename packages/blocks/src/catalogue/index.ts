@@ -1,6 +1,9 @@
+import { alternatingRowsDefinition } from '../AlternatingRows/definition'
 import { cardsDefinition } from '../Cards/definition'
 import { heroDefinition } from '../Hero/definition'
 import { richTextDefinition } from '../RichText/definition'
+import { sideBySideDefinition } from '../SideBySide/definition'
+import { statsDefinition } from '../Stats/definition'
 import type {
   BlockAlign,
   BlockRatio,
@@ -92,7 +95,10 @@ function entry(definition: BlockDefinition): CatalogueBlock {
 const DEFINITIONS: readonly BlockDefinition[] = [
   heroDefinition,
   richTextDefinition,
-  cardsDefinition
+  sideBySideDefinition,
+  alternatingRowsDefinition,
+  cardsDefinition,
+  statsDefinition
 ]
 
 /** Every block and its presets, for a CMS's block picker. Has no React, so it runs on a server or in a Studio config. */
