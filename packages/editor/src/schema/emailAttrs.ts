@@ -57,12 +57,15 @@ export type ButtonAlign = 'left' | 'center' | 'right'
 
 /**
  * A button's look beyond its link. Each is saved only when it isn't the
- * default: filled, its label's width, from the column's start.
+ * default: strong, its label's width, from the column's start.
  */
 export type ButtonLook = {
   align?: Exclude<ButtonAlign, 'left'>
-  /** `'normal'` draws an outline in the button's colour, not a fill. */
-  emphasis?: 'normal'
+  /**
+   * Strong by default: the accent's fill. `'normal'` is a neutral border and
+   * `'subtle'` a neutral tint, for a button beside a strong one.
+   */
+  emphasis?: 'normal' | 'subtle'
   fullWidth?: true
 }
 
@@ -72,7 +75,7 @@ export function buttonLook(attrs: unknown): ButtonLook {
   const { align, emphasis, fullWidth } = attrs as Record<string, unknown>
   return {
     ...((align === 'center' || align === 'right') && { align }),
-    ...(emphasis === 'normal' && { emphasis }),
+    ...((emphasis === 'normal' || emphasis === 'subtle') && { emphasis }),
     ...(fullWidth === true && { fullWidth })
   }
 }

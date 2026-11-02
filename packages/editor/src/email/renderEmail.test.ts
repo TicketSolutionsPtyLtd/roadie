@@ -146,18 +146,39 @@ describe('renderEmail', () => {
       ).toMatch(/^<table[^>]*width:100%/)
     })
 
-    it('renders an outline button with a border in the theme’s button colour, on the background', async () => {
+    it('renders a strong button in the accent, and normal and subtle ones in neutrals', async () => {
+      const look = (emphasis: string | undefined, label: string) => ({
+        ...button(tickets, label),
+        attrs: { href: tickets, ...(emphasis && { emphasis }) }
+      })
       const { html } = await renderEmail(
-        email({
-          ...button(tickets),
-          attrs: { href: tickets, emphasis: 'normal' }
-        }),
-        { theme: { button: '#5f270f', background: '#fffaf5' } }
+        email(
+          look(undefined, 'Strong'),
+          look('normal', 'Normal'),
+          look('subtle', 'Subtle')
+        ),
+        {
+          theme: {
+            accent: '#5f270f',
+            background: '#fffaf5',
+            text: '#222222',
+            border: '#cccccc',
+            tint: '#eeeeee'
+          }
+        }
       )
-      expect(html).toContain('border:2px solid #5f270f')
-      expect(html).toContain('background:#fffaf5')
-      expect(html).toContain('color:#5f270f')
-      expect(html).not.toContain('background:#5f270f')
+      // Each button's HTML runs from the label before it to its own.
+      const strong = html.slice(0, html.indexOf('Strong'))
+      expect(strong.slice(strong.lastIndexOf('bgcolor'))).toContain(
+        'background:#5f270f'
+      )
+      const normal = html.slice(html.indexOf('Strong'), html.indexOf('Normal'))
+      expect(normal).toContain('border:1px solid #cccccc')
+      expect(normal).toContain('background:#fffaf5')
+      expect(normal).toContain('color:#222222')
+      const subtle = html.slice(html.indexOf('Normal'), html.indexOf('Subtle'))
+      expect(subtle).toContain('background:#eeeeee')
+      expect(subtle).not.toContain('border:1px')
     })
 
     it('renders an image at its width, or filling its column', async () => {

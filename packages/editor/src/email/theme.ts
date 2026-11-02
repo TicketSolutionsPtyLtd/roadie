@@ -8,25 +8,34 @@ export type EmailTheme = {
   /** The email's background, behind every block. */
   background: string
   text: string
-  /** Links in text. */
+  /** The brand's colour, which links and strong buttons take unless set. */
+  accent: string
+  /** Links in text. The accent by default. */
   link: string
-  /** A button's fill. */
+  /** A strong button's fill. The accent by default. */
   button: string
-  /** A button's label. */
+  /** A strong button's label. */
   buttonText: string
+  /** A normal button's border. */
+  border: string
+  /** A subtle button's fill. */
+  tint: string
   /** A divider's line. */
   divider: string
   /** A font stack of web-safe fonts, since most clients load no others. */
   fontFamily: string
 }
 
-/** Roadie's light scales as hex: Oztix blue for links and buttons on white. */
+/** Roadie's light scales as hex: an Oztix blue accent on white. */
 export const defaultEmailTheme: Readonly<EmailTheme> = {
   background: '#ffffff', // neutral-light-0
   text: '#16202a', // neutral-light-12
-  link: DEFAULT_ACCENT_COLOR, // brand-light-9
+  accent: DEFAULT_ACCENT_COLOR, // brand-light-9
+  link: DEFAULT_ACCENT_COLOR,
   button: DEFAULT_ACCENT_COLOR,
   buttonText: '#ffffff', // neutral-light-0
+  border: '#c1d1e1', // neutral-7
+  tint: '#eaf1f7', // neutral-3
   divider: '#d7e2ed', // neutral-light-5
   fontFamily: 'Helvetica, Arial, sans-serif'
 }
@@ -56,5 +65,9 @@ export function emailTheme(theme: Partial<EmailTheme> = {}): EmailTheme {
     }
     resolved[key] = value
   }
-  return resolved
+  return {
+    ...resolved,
+    link: theme.link === undefined ? resolved.accent : resolved.link,
+    button: theme.button === undefined ? resolved.accent : resolved.button
+  }
 }

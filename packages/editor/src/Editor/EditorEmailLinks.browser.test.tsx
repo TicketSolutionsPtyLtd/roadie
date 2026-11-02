@@ -200,7 +200,6 @@ describe('Editor email buttons that link to link variables', () => {
       await screen.findByRole('option', { name: 'Unsubscribe page' })
     )
     expect(within(dialog).queryByRole('textbox', { name: 'Link' })).toBe(null)
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
 
     await waitFor(() =>
       expect(firstBlock(onValueChange)).toEqual(
@@ -209,7 +208,7 @@ describe('Editor email buttons that link to link variables', () => {
     )
   })
 
-  it('asks for a link when a button goes back to a web address', async () => {
+  it('keeps the variable until a button has a whole web address', async () => {
     const onValueChange = renderEmail(
       email(button({ variable: 'unsubscribe_url' }))
     )
@@ -225,11 +224,14 @@ describe('Editor email buttons that link to link variables', () => {
       await screen.findByRole('option', { name: 'A web address' })
     )
     const link = within(dialog).getByRole('textbox', { name: 'Link' })
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+    await userEvent.click(link)
+    await userEvent.keyboard('{Enter}')
     expect(link).toHaveAttribute('aria-invalid', 'true')
+    expect(
+      firstBlock(onValueChange) ?? button({ variable: 'unsubscribe_url' })
+    ).toEqual(button({ variable: 'unsubscribe_url' }))
 
     await userEvent.fill(link, TICKETS)
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
     await waitFor(() =>
       expect(firstBlock(onValueChange)).toEqual(button({ href: TICKETS }))
     )
