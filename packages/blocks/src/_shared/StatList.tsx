@@ -31,8 +31,13 @@ const keepWords = (value: string) =>
       )
     )
 
-// Five or six stats sit three to a row, so no row ends with one alone.
-const mostPerRow = (count: number) => (count > 4 ? 3 : 4)
+// Four or three to a row, whichever fills the last row more, so five or six sit
+// three to a row and seven four, and no row ends with one alone.
+const mostPerRow = (count: number) => {
+  if (count <= 4) return 4
+  const lastRowFill = (perRow: number) => (count % perRow || perRow) / perRow
+  return lastRowFill(4) >= lastRowFill(3) ? 4 : 3
+}
 
 /** The stats in a wrapping grid, each an illustration, a large value, and its label. */
 export function StatList({ items }: { items: readonly StatItem[] }) {
