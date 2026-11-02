@@ -107,7 +107,8 @@ describe('Stats layout', () => {
 
   it.each([
     [5, [3, 2]],
-    [6, [3, 3]]
+    [6, [3, 3]],
+    [7, [4, 3]]
   ])(
     'balances %i stats into rows of %j on wide screens, never leaving one alone',
     async (count, expected) => {
@@ -115,7 +116,7 @@ describe('Stats layout', () => {
       render(
         <Stats
           {...facts}
-          stats={[...facts.stats, fans, fans].slice(0, count)}
+          stats={[...facts.stats, fans, fans, fans].slice(0, count)}
         />
       )
 
