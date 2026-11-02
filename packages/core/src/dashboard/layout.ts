@@ -1,3 +1,6 @@
+/** A donut's most slices; past it, the smallest parts roll into Other. */
+export const DONUT_PART_CAP = 5
+
 export const CARD_SIZES = ['stat', 'sm', 'md', 'lg', 'full'] as const
 export const CARD_KINDS = ['stat', 'table', 'chart', 'note'] as const
 export const CARD_STATES = [

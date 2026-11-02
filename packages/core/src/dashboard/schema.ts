@@ -6,6 +6,7 @@ import { goodWhen, valueFormat, valueFormatOptions } from './fields'
 import { CARD_SIZES, CARD_STATES, COLUMN_KINDS } from './layout'
 import {
   barPlotSchema,
+  donutPlotSchema,
   funnelPlotSchema,
   heatmapPlotSchema,
   histogramPlotSchema,
@@ -229,6 +230,7 @@ const documentPlot = z.discriminatedUnion('kind', [
   linePlotSchema.extend(withoutPeriod),
   barPlotSchema.extend(withoutPeriod),
   rankedBarsPlotSchema,
+  donutPlotSchema,
   stackedBarsPlotSchema,
   stackedAreaPlotSchema.extend(withoutPeriod),
   histogramPlotSchema,

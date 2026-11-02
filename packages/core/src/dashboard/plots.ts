@@ -116,6 +116,13 @@ export const rankedBarsPlotSchema = z.strictObject({
   share: z.boolean().optional()
 })
 
+export const donutPlotSchema = z.strictObject({
+  kind: z.literal('donut'),
+  ...measured,
+  total: shortLabel.optional(),
+  highlight: highlight.optional()
+})
+
 export const stackedBarsPlotSchema = z.strictObject({
   kind: z.literal('stacked-bars'),
   ...measured,
@@ -206,6 +213,7 @@ const chartPlots = [
   linePlotSchema,
   barPlotSchema,
   rankedBarsPlotSchema,
+  donutPlotSchema,
   stackedBarsPlotSchema,
   stackedAreaPlotSchema,
   histogramPlotSchema,
@@ -225,6 +233,7 @@ export const CHART_PLOT_KINDS = [
   'line',
   'bar',
   'ranked-bars',
+  'donut',
   'stacked-bars',
   'stacked-area',
   'histogram',
@@ -243,6 +252,7 @@ export type StaticPlotImage = NonNullable<StaticPlot['narrow']>
 export type LinePlot = z.infer<typeof linePlotSchema>
 export type BarPlot = z.infer<typeof barPlotSchema>
 export type RankedBarsPlot = z.infer<typeof rankedBarsPlotSchema>
+export type DonutPlot = z.infer<typeof donutPlotSchema>
 export type StackedBarsPlot = z.infer<typeof stackedBarsPlotSchema>
 export type StackedAreaPlot = z.infer<typeof stackedAreaPlotSchema>
 export type HistogramPlot = z.infer<typeof histogramPlotSchema>

@@ -1,8 +1,10 @@
 import type { core } from 'zod'
 
 import { isWallTime, parseWallTime } from '../dataviz/wallTime'
+import { DONUT_PART_CAP } from './layout'
 import {
   type ChartPlot,
+  type DonutPlot,
   type PlotRow,
   SERIES_CAP,
   type SmallMultiplesPlot,
@@ -114,6 +116,10 @@ export function plotFields(plot: ChartPlot): FieldRef[] {
       add('x', plot.x)
       add('y', plot.y)
       add('reference.field', plot.reference?.field)
+      break
+    case 'donut':
+      add('x', plot.x)
+      add('y', plot.y)
       break
     case 'stacked-bars':
     case 'stacked-area':
@@ -306,6 +312,7 @@ function duplicateProblems(plot: ChartPlot, plotPath: string) {
         : []
     }
     case 'ranked-bars':
+    case 'donut':
       return addsUp(`${plotPath}.x`, repeatedX(plot.data, plot.x))
     case 'bar':
       return addsUp(
@@ -348,6 +355,36 @@ function duplicateProblems(plot: ChartPlot, plotPath: string) {
   }
 }
 
+function drawnDonutParts(plot: DonutPlot) {
+  const names = new Set<string>()
+  for (const row of plot.data) {
+    const name = row[plot.x]
+    const value = row[plot.y]
+    if (name != null && name !== '' && typeof value === 'number' && value > 0)
+      names.add(String(name))
+  }
+  return names.size
+}
+
+function donutProblems(plot: DonutPlot, plotPath: string) {
+  const parts = drawnDonutParts(plot)
+  if (parts > DONUT_PART_CAP)
+    return [
+      warning(
+        `${plotPath}.data`,
+        `${parts} parts. The smallest will roll into Other after ${DONUT_PART_CAP}. Use a ranked-bars plot for more parts`
+      )
+    ]
+  if (parts === 1)
+    return [
+      warning(
+        `${plotPath}.data`,
+        'Only one part, so the ring is full. Use a stat card'
+      )
+    ]
+  return []
+}
+
 export function plotProblems(plot: ChartPlot, plotPath: string) {
   const problems: DashboardProblem[] = []
   if ('data' in plot && plot.data.length > 0)
@@ -366,6 +403,7 @@ export function plotProblems(plot: ChartPlot, plotPath: string) {
         `${count} series. The smallest will roll into Other after ${SERIES_CAP}`
       )
     )
+  if (plot.kind === 'donut') problems.push(...donutProblems(plot, plotPath))
   if (
     plot.kind === 'ranked-bars' &&
     plot.other === false &&

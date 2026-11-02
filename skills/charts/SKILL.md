@@ -242,7 +242,7 @@ if (!result.ok)
 ```
 
 - Card `kind` is `stat`, `table`, `chart`, or `note`. A chart card's `plot` is
-  `{ kind, ...props }`, where `kind` is `line`, `bar`, `ranked-bars`,
+  `{ kind, ...props }`, where `kind` is `line`, `bar`, `ranked-bars`, `donut`,
   `stacked-bars`, `stacked-area`, `histogram`, `funnel`, `heatmap`, `scatter`, or
   `small-multiples`.
 - Card `size` is `stat` (stat cards only), `sm`, `md`, `lg`, or `full`. Every

@@ -484,6 +484,22 @@ describe('validateDashboard checks every chart plot kind', () => {
     ).toContain('sections[0].cards[0].plot.reference.field')
   })
 
+  it('donut: valid passes, invalid names the missing field', () => {
+    const donutRows = [
+      { type: 'GA', tickets: 1240 },
+      { type: 'VIP', tickets: 310 }
+    ]
+    const donut = (x: string, y: string) =>
+      spec([chartCard({ kind: 'donut', data: donutRows, x, y })])
+    expect(validateDashboard(donut('type', 'tickets')).ok).toBe(true)
+    expect(paths(donut('section', 'tickets'))).toContain(
+      'sections[0].cards[0].plot.x'
+    )
+    expect(paths(donut('type', 'sold'))).toContain(
+      'sections[0].cards[0].plot.y'
+    )
+  })
+
   it('stacked-bars: valid passes, invalid names the missing field', () => {
     const stackedRows = [
       { show: 'Fri', type: 'GA', sold: 900 },
@@ -981,6 +997,65 @@ describe('validateDashboard checks repeated names', () => {
       message: 'Step labels must differ. "Paid" repeats',
       severity: 'error'
     })
+  })
+
+  const donut = (tickets: readonly number[]) => ({
+    kind: 'donut',
+    data: tickets.map((sold, i) => ({ type: `Type ${i + 1}`, sold })),
+    x: 'type',
+    y: 'sold'
+  })
+
+  it('warns that RankedBars fits a donut with six or more parts', () => {
+    expect(problemsOf(donut([60, 50, 40, 30, 20, 10]))).toEqual([
+      {
+        path: 'sections[0].cards[0].plot.data',
+        message:
+          '6 parts. The smallest will roll into Other after 5. Use a ranked-bars plot for more parts',
+        severity: 'warning'
+      }
+    ])
+  })
+
+  it('warns that a donut with one part fills the ring', () => {
+    expect(problemsOf(donut([60]))).toEqual([
+      {
+        path: 'sections[0].cards[0].plot.data',
+        message: 'Only one part, so the ring is full. Use a stat card',
+        severity: 'warning'
+      }
+    ])
+  })
+
+  it.each([
+    ['two parts', [60, 40]],
+    ['five parts', [60, 50, 40, 30, 20]],
+    ['five parts and a zero', [60, 50, 40, 30, 20, 0]],
+    ['five parts and a negative', [60, 50, 40, 30, 20, -5]]
+  ])('takes a donut with %s', (_, tickets) => {
+    expect(problemsOf(donut(tickets))).toEqual([])
+  })
+
+  it('takes a donut with five parts and a row with no name', () => {
+    const plot = donut([60, 50, 40, 30, 20])
+    const nameless = [
+      { type: null, sold: 10 },
+      { type: '', sold: 10 }
+    ]
+    expect(problemsOf({ ...plot, data: [...plot.data, ...nameless] })).toEqual(
+      []
+    )
+  })
+
+  it('counts a repeated donut part once', () => {
+    const plot = donut([60, 50, 40, 30, 20])
+    const repeated = { ...plot, data: [...plot.data, plot.data[0]!] }
+    expect(problemsOf(repeated)).toEqual([
+      expect.objectContaining({
+        path: 'sections[0].cards[0].plot.x',
+        severity: 'warning'
+      })
+    ])
   })
 
   it('asks for a limit when ranked bars leave Other off', () => {

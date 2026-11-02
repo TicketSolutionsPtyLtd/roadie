@@ -64,6 +64,7 @@ describe('validateChartDocument', () => {
     const plots = [
       { kind: 'bar', data: sold, x: 'day', y: 'sold' },
       { kind: 'ranked-bars', data: sold, x: 'day', y: 'sold' },
+      { kind: 'donut', data: sold, x: 'day', y: 'sold' },
       {
         kind: 'stacked-bars',
         data: [{ day: 'Mon', sold: 1, tier: 'GA' }],
@@ -192,6 +193,26 @@ describe('validateChartDocument', () => {
     const plot = { kind: 'line', data, x: 'day', y: 'sold', series: 'tier' }
     expect(problemAt(withPlot(plot), 'plot.series')?.severity).toBe('warning')
     expect(validateChartDocument(withPlot(plot)).ok).toBe(true)
+  })
+
+  it('warns that RankedBars fits a donut with six parts, as a card does', () => {
+    const data = [60, 50, 40, 30, 20, 10].map((sold, i) => ({
+      type: `Type ${i + 1}`,
+      sold
+    }))
+    const plot = { kind: 'donut', data, x: 'type', y: 'sold' }
+    expect(problemAt(withPlot(plot), 'plot.data')).toEqual({
+      path: 'plot.data',
+      message:
+        '6 parts. The smallest will roll into Other after 5. Use a ranked-bars plot for more parts',
+      severity: 'warning'
+    })
+    expect(validateChartDocument(withPlot(plot)).ok).toBe(true)
+  })
+
+  it('reports a donut field no row has', () => {
+    const plot = { kind: 'donut', data: sold, x: 'type', y: 'sold' }
+    expect(problemAt(withPlot(plot), 'plot.x')?.severity).toBe('error')
   })
 
   it('warns about an annotation outside the data', () => {
