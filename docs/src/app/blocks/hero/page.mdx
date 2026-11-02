@@ -28,7 +28,7 @@ sit beside the title from about 56rem, and the rest beside the video from
 about 36rem. Each panel's photos crossfade while it's on screen. A button in
 the corner pauses and plays the video and photos together, and they start
 paused for viewers who reduce motion. With no video, the second panel runs
-across the block at landscape (2:1). Bento takes no `eyebrow`.
+across the block at 2:1. Bento takes no `eyebrow`.
 
 ```tsx-live-expand id=bento
 <Hero
@@ -61,13 +61,14 @@ across the block at landscape (2:1). Bento takes no `eyebrow`.
 A title beside one photo, for industry and service pages. Once the block is
 about 36rem wide, the text and photo sit side by side, and from about 56rem
 the text takes two fifths. Below that, the photo sits above the text. The
-photo keeps its own shape.
+photo is cropped to `landscape` (3 by 2), or to the `ratio` given: `square`,
+`banner` (2 by 1), `portrait` (3 by 4), or `story` (9 by 16).
 
 ```tsx-live-expand id=image
 <Hero
   preset='image'
-  title='Sell more tickets with Spotify'
-  highlight='Spotify'
+  title='Sell more tickets with Lyrebird Radio'
+  highlight='Lyrebird Radio'
   description='Your events show on artist profiles, so fans find them where they already listen.'
   actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
   image={{ src: '/brand/photography/10.webp', alt: 'A band posing in front of an Oztix backdrop', width: 1280, height: 834 }}

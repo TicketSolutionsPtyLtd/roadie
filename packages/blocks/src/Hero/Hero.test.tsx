@@ -189,7 +189,7 @@ describe('Hero', () => {
       expect(
         screen.getByRole('heading', {
           level: 1,
-          name: 'Sell more tickets with Spotify'
+          name: 'Sell more tickets with Lyrebird Radio'
         })
       ).toBeInTheDocument()
       expect(

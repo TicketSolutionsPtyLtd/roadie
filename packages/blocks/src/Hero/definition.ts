@@ -47,12 +47,13 @@ export const heroDefinition = {
         'description',
         'actions',
         'image',
+        'ratio',
         'intent',
         'align',
         'size'
       ],
       limits: ACTIONS,
-      defaults: { align: 'start' }
+      defaults: { align: 'start', ratio: 'landscape' }
     },
     {
       name: 'title',
