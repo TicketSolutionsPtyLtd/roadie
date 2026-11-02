@@ -86,10 +86,10 @@ Each part renders a Roadie component you already know. `Toolbar.Button` is a `Bu
 
 ### Flush
 
-`flush` drops the inset, rounding, border, and shadow, so the toolbar is as tall as its controls, for a bar docked along an edge, such as across the top of an editor or a panel. `emphasis` sets only its fill. Draw the edge on the parent, and add `w-full` to run the bar across it.
+`flush` drops the border, shadow, and pill shape, for a bar docked along an edge, such as across the top of an editor or a panel. The controls keep the same inset as any toolbar, so a hover never meets the edge. `emphasis` sets only its fill. Draw the edge on the parent, clip its corners with `overflow-clip`, and add `w-full` to run the bar across it.
 
 ```tsx-live
-<div className='grid min-w-0 rounded-xl border border-subtle'>
+<div className='grid min-w-0 overflow-clip rounded-xl border border-subtle'>
   <Toolbar flush emphasis='subtler' size='sm' aria-label='History' className='w-full border-b border-subtler'>
     <Toolbar.Button>Undo</Toolbar.Button>
     <Toolbar.Button>Redo</Toolbar.Button>
