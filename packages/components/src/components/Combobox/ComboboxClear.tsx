@@ -7,6 +7,8 @@ import { XIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { FIRST_ROW } from './variants'
+
 export type ComboboxClearProps = ComboboxPrimitive.Clear.Props &
   RefAttributes<HTMLButtonElement>
 
@@ -20,6 +22,7 @@ export function ComboboxClear({
       data-slot='combobox-clear'
       className={cn(
         'shrink-0 cursor-pointer text-subtle hover:text-normal',
+        FIRST_ROW,
         className
       )}
       {...props}

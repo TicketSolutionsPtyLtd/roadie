@@ -1,11 +1,13 @@
 'use client'
 
-import type { RefAttributes } from 'react'
+import { type RefAttributes, use } from 'react'
 
 import { Combobox as ComboboxPrimitive } from '@base-ui/react/combobox'
 import { XIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
+
+import { ComboboxReadOnlyContext } from './readOnly'
 
 export type ComboboxChipRemoveProps = Omit<
   ComboboxPrimitive.ChipRemove.Props,
@@ -21,6 +23,8 @@ export function ComboboxChipRemove({
   children,
   ...props
 }: ComboboxChipRemoveProps) {
+  // A read-only combobox can't remove a chip, so it shows no ✕ that looks like it could.
+  if (use(ComboboxReadOnlyContext)) return null
   return (
     <ComboboxPrimitive.ChipRemove
       data-slot='combobox-chip-remove'

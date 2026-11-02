@@ -282,9 +282,10 @@ describe('live examples', () => {
       )
 
       expect(await examples(page)).toMatchObject({ rendered: 1, pending: 0 })
-      expect(await page.locator('[data-slot=number-field-input]').count()).toBe(
-        1
-      )
+      // The example reports rendered before NumberField's input mounts.
+      await expect
+        .poll(() => page.locator('[data-slot=number-field-input]').count())
+        .toBe(1)
       expect(await page.locator('[data-slot=navigator]').count()).toBe(0)
       expect(
         await page
