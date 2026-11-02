@@ -4,7 +4,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { SideBySide, type SideBySideProps } from '.'
-import type { BlockEmphasis, BlockIntent } from '../_shared/surface'
+import type { BlockEmphasis, BlockIntent, BlockRatio } from '../_shared/surface'
 import {
   DESKTOP,
   PHONE,
@@ -18,6 +18,7 @@ import {
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
+import { sideBySideDefinition } from './definition'
 
 withBrowserPage()
 
@@ -114,6 +115,42 @@ describe('SideBySide align and size', () => {
     expect(fontSizeOf(body())).toBeLessThan(large)
   })
 
+  it.each(['image-start', 'image-end'] as const)(
+    'sets the body of %s smaller at md than at lg',
+    async (preset) => {
+      const body = () => screen.getByText(/fans already listen/)
+      await renderAt(DESKTOP, { ...LOOKS['image-start'], preset })
+      const large = fontSizeOf(body())
+
+      cleanup()
+      await renderAt(DESKTOP, { ...LOOKS['image-start'], preset, size: 'md' })
+      expect(fontSizeOf(body())).toBeLessThan(large)
+    }
+  )
+
+  it.each(['image-start', 'image-end'] as const)(
+    'sets the gaps of %s tighter at sm than at md',
+    async (preset) => {
+      const gaps = () => {
+        const image = box(screen.getByRole('img', { name: /event listing/ }))
+        const text = box(heading().parentElement!)
+        const body = box(screen.getByText(/fans already listen/))
+        return {
+          beside: Math.max(image.left - text.right, text.left - image.right),
+          below: body.top - text.bottom
+        }
+      }
+      await renderAt(DESKTOP, { ...LOOKS['image-start'], preset, size: 'md' })
+      const medium = gaps()
+
+      cleanup()
+      await renderAt(DESKTOP, { ...LOOKS['image-start'], preset, size: 'sm' })
+      const small = gaps()
+      expect(small.beside).toBeLessThan(medium.beside)
+      expect(small.below).toBeLessThan(medium.below)
+    }
+  )
+
   it('centres the heading and actions when align is center', async () => {
     await renderAt(DESKTOP, { ...LOOKS['image-start'], align: 'center' })
 
@@ -166,6 +203,27 @@ describe('SideBySide layout', () => {
     expect(width / height).toBeCloseTo(expected, 1)
   })
 
+  it.each(['image-start', 'image-end'] as const)(
+    'crops the photo to the %s preset’s default ratio when ratio is unset',
+    async (preset) => {
+      const defaults = sideBySideDefinition.presets.find(
+        (candidate) => candidate.name === preset
+      )!.defaults as { ratio: BlockRatio }
+      const original = defaults.ratio
+      defaults.ratio = 'landscape'
+      try {
+        await renderAt(DESKTOP, { ...LOOKS['image-start'], preset })
+
+        const { width, height } = box(
+          screen.getByRole('img', { name: /event listing/ })
+        )
+        expect(width / height).toBeCloseTo(2, 1)
+      } finally {
+        defaults.ratio = original
+      }
+    }
+  )
+
   it('sets the image-end image after the text on wide screens, and above it on phones', async () => {
     const props = { ...LOOKS['image-start'], preset: 'image-end' } as const
     await renderAt(DESKTOP, props)
@@ -190,7 +248,7 @@ describe('SideBySide layout', () => {
   })
 
   it.each(['md', 'sm'] as const)(
-    'keeps the ratio at %s, narrowing the photo to two fifths',
+    'keeps the ratio at %s while narrowing the photo',
     async (size) => {
       const { container } = await renderAt(DESKTOP, {
         ...LOOKS['tinted-panel'],
@@ -204,6 +262,36 @@ describe('SideBySide layout', () => {
         container.querySelector('[data-slot="block-surface"]')!
       )
       expect(image.width).toBeLessThan(surface.width * 0.45)
+    }
+  )
+
+  it.each(['image-start', 'image-end'] as const)(
+    'gives the %s photo a smaller share of the width at sm than at md',
+    async (preset) => {
+      const share = (container: HTMLElement) =>
+        box(screen.getByRole('img', { name: /team members/ })).width /
+        box(container.querySelector('[data-slot="block-surface"]')!).width
+      const medium = share(
+        (
+          await renderAt(DESKTOP, {
+            ...LOOKS['tinted-panel'],
+            preset,
+            size: 'md'
+          })
+        ).container
+      )
+
+      cleanup()
+      const small = share(
+        (
+          await renderAt(DESKTOP, {
+            ...LOOKS['tinted-panel'],
+            preset,
+            size: 'sm'
+          })
+        ).container
+      )
+      expect(small).toBeLessThan(medium - 0.05)
     }
   )
 

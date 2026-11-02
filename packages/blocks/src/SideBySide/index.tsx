@@ -10,12 +10,15 @@ import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
 import { type StatItem, StatList } from '../_shared/StatList'
+import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
   type BlockRatio,
   type BlockSize,
+  bySize,
+  gapOf,
   ratioClass
 } from '../_shared/surface'
 import { useBlock } from '../_shared/useBlock'
@@ -79,7 +82,7 @@ export type SideBySideProps = {
    */
   align?: BlockAlign
   /**
-   * `md` and `sm` set the title one and two steps smaller and tighten the gaps. Beside an image, they narrow it to two fifths of the width.
+   * `md` and `sm` set the title and text a step or two smaller and tighten the gaps. Beside an image, they narrow it to two fifths of the width at `md` and a third at `sm`.
    * @default 'lg'
    */
   size?: BlockSize
@@ -87,9 +90,13 @@ export type SideBySideProps = {
 
 /** One section with its own title, text, and buttons beside a photo or a few key numbers. */
 export function SideBySide(props: SideBySideProps) {
-  const { body, image, ratio = 'square', stats, intent, size = 'lg' } = props
+  const { body, image, stats, intent, size = 'lg' } = props
   const block = useBlock(sideBySideDefinition, props)
   const { name, align } = block
+  const preset = presetOf(sideBySideDefinition, name)
+  const ratio =
+    props.ratio ??
+    ('ratio' in preset.defaults ? preset.defaults.ratio : 'square')
 
   return (
     <BlockRoot {...block.root}>
@@ -135,12 +142,11 @@ function MediaText({
   heading: ReactNode
   actions: ReactNode
 }) {
-  const compact = size === 'sm' || size === 'md'
   const content = (
     <div
       className={cn(
         'grid min-w-0 grid-cols-1 content-start wrap-break-word',
-        compact ? 'gap-4' : 'gap-6',
+        gapOf(size, 'snug'),
         align === 'center' && 'justify-items-center text-center',
         // On a surface the title keeps the block's intent, and the rest of the text reads as neutral, as on the live site.
         emphasis && ['intent-neutral', HEADING_INTENT[intent ?? 'neutral']]
@@ -149,7 +155,12 @@ function MediaText({
       {heading}
       {body && (
         <Prose
-          size={stats && !compact ? 'lg' : 'md'}
+          size={bySize(
+            size,
+            stats
+              ? { sm: 'md', md: 'md', lg: 'lg' }
+              : { sm: 'sm', md: 'sm', lg: 'md' }
+          )}
           className={cn(stats && 'max-w-[60ch] [&>h3]:text-display-prose-5')}
         >
           {body}
@@ -178,13 +189,12 @@ function MediaText({
       contained={contained}
       className={cn(
         'grid grid-cols-1 items-center',
-        compact ? 'gap-6 @3xl:gap-12' : 'gap-8 @5xl:gap-16',
-        image &&
-          (compact
-            ? imageEnd
-              ? '@xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'
-              : '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
-            : '@xl:grid-cols-2')
+        bySize(size, {
+          sm: 'gap-4 @3xl:gap-8',
+          md: 'gap-6 @3xl:gap-12',
+          lg: 'gap-8 @5xl:gap-16'
+        }),
+        image && bySize(size, imageEnd ? TEXT_THEN_PHOTO : PHOTO_THEN_TEXT)
       )}
     >
       {image && (
@@ -198,11 +208,11 @@ function MediaText({
         >
           <BlockImg
             image={image}
-            sizes={
-              compact
-                ? '(min-width: 40rem) 40vw, 100vw'
-                : '(min-width: 40rem) 50vw, 100vw'
-            }
+            sizes={bySize(size, {
+              sm: '(min-width: 40rem) 34vw, 100vw',
+              md: '(min-width: 40rem) 40vw, 100vw',
+              lg: '(min-width: 40rem) 50vw, 100vw'
+            })}
             className='size-full object-cover'
           />
         </div>
@@ -210,6 +220,19 @@ function MediaText({
       {content}
     </BlockSurface>
   )
+}
+
+// Literal class names, so Tailwind finds them. The photo takes a half, two fifths, then a third.
+const PHOTO_THEN_TEXT: Record<BlockSize, string> = {
+  sm: '@xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]',
+  md: '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]',
+  lg: '@xl:grid-cols-2'
+}
+
+const TEXT_THEN_PHOTO: Record<BlockSize, string> = {
+  sm: '@xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]',
+  md: '@xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]',
+  lg: '@xl:grid-cols-2'
 }
 
 // Literal class names, so Tailwind finds them.
