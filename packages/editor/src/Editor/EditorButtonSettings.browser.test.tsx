@@ -19,6 +19,7 @@ import { userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, JSONContent } from '../schema'
+import { MOD } from './testUtils'
 
 const LABEL = 'Newsletter'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
@@ -66,7 +67,9 @@ async function openSettings() {
 }
 
 const savedButton = (onValueChange: ReturnType<typeof vi.fn>) =>
-  onValueChange.mock.lastCall?.[0].doc.content[0]
+  onValueChange.mock.lastCall?.[0].doc.content.find(
+    (node: JSONContent) => node.type === 'button'
+  )
 
 const drawn = () =>
   screen.getByText('Get tickets').closest<HTMLElement>('[data-type="button"]')!
@@ -203,14 +206,63 @@ describe('Editor button settings', () => {
     expect(savedButton(onValueChange) ?? button()).toEqual(button())
   })
 
-  it('keeps what was applied when Escape closes it', async () => {
-    const onValueChange = renderEmail(email(button()))
+  async function restyle() {
     const dialog = await openSettings()
-
     await choose(dialog, 'Subtle')
+    await choose(dialog, 'Full width')
+    await userEvent.fill(
+      within(dialog).getByRole('textbox', { name: 'Link' }),
+      'oztix.com.au/whats-on'
+    )
+  }
+
+  const restyled = button({
+    href: 'https://oztix.com.au/whats-on',
+    emphasis: 'subtle',
+    fullWidth: true
+  })
+
+  it('puts the button back as it opened on Escape', async () => {
+    const onValueChange = renderEmail(email(button()))
+    await restyle()
+    await waitFor(() => expect(savedButton(onValueChange)).toEqual(restyled))
+
     await userEvent.keyboard('{Escape}')
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(savedButton(onValueChange)).toEqual(button({ emphasis: 'subtle' }))
+    expect(savedButton(onValueChange)).toEqual(button())
+    expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+  })
+
+  it('keeps the changes on a click outside', async () => {
+    const onValueChange = renderEmail(
+      // Above the button, where the popover below it doesn't cover.
+      email(
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'See you there' }]
+        },
+        button()
+      )
+    )
+    await restyle()
+
+    await userEvent.click(screen.getByText('See you there'))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(savedButton(onValueChange)).toEqual(restyled)
+  })
+
+  it('undoes every change it made in one step, and redoes them in one', async () => {
+    const onValueChange = renderEmail(email(button()))
+    await restyle()
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() => expect(savedButton(onValueChange)).toEqual(button()))
+
+    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+    await waitFor(() => expect(savedButton(onValueChange)).toEqual(restyled))
   })
 })
