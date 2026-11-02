@@ -44,24 +44,24 @@ export function StatList({ items }: { items: readonly StatItem[] }) {
       {items.map(({ value, label, illustration }, index) => {
         const Illustration = illustration && SPOT_ILLUSTRATIONS[illustration]
         return (
-          <li
-            key={`${index}-${value}-${label}`}
-            // A figure too wide to sit beside its illustration goes under it.
-            className='flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 py-1'
-          >
-            {Illustration && (
-              <Illustration outline className='size-16 shrink-0' />
-            )}
-            <div className='min-w-0'>
-              <p
-                className={cn(
-                  'text-strong',
-                  isPhrase(value) ? 'text-display-ui-4' : 'text-display-ui-3'
-                )}
-              >
-                {keepWords(value)}
-              </p>
-              <p className='text-subtle'>{label}</p>
+          <li key={`${index}-${value}-${label}`} className='@container min-w-0'>
+            {/* The column's width, the same across a row, decides whether the
+                illustration sits beside the figure or above it, never the text. */}
+            <div className='grid justify-items-start gap-2 py-1 @xs:flex @xs:items-center @xs:gap-4'>
+              {Illustration && (
+                <Illustration outline className='size-16 shrink-0' />
+              )}
+              <div className='min-w-0'>
+                <p
+                  className={cn(
+                    'text-strong',
+                    isPhrase(value) ? 'text-display-ui-4' : 'text-display-ui-3'
+                  )}
+                >
+                  {keepWords(value)}
+                </p>
+                <p className='text-subtle'>{label}</p>
+              </div>
             </div>
           </li>
         )

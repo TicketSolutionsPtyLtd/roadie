@@ -145,6 +145,43 @@ describe('Stats layout', () => {
     }
   )
 
+  it.each([640, 900, 1000, 1150, 1280])(
+    'sets every stat in a row alike, illustration beside or above, at %ipx',
+    async (width) => {
+      await atWidth(width, 900)
+      render(
+        <Stats
+          title='Results from last season'
+          stats={[
+            {
+              value: '98%',
+              // Long enough to outgrow the room beside its illustration in any font.
+              label: 'tickets scanned on time at every gate across the venue',
+              illustration: 'HighFive'
+            },
+            {
+              value: '12 minutes',
+              label: 'average wait to get in',
+              illustration: 'FlowerSpiral'
+            },
+            {
+              value: '4.9 out of 5',
+              label: 'support rating',
+              illustration: 'Heart'
+            }
+          ]}
+        />
+      )
+
+      const beside = screen.getAllByRole('listitem').map((item) => {
+        const art = item.querySelector('svg')!.getBoundingClientRect()
+        const value = item.querySelector('p')!.getBoundingClientRect()
+        return value.left >= art.right
+      })
+      expect(new Set(beside).size).toBe(1)
+    }
+  )
+
   it('sets the stats four to a row on wide screens', async () => {
     expect(await statsPerRowAt(DESKTOP)).toBe(4)
   })
@@ -182,7 +219,8 @@ describe('Stats layout', () => {
     expect(words.getBoundingClientRect().height).toBeLessThan(lineHeight * 2.5)
   })
 
-  it('sets each illustration beside its value', () => {
+  it('sets each illustration beside its value in a column with room', async () => {
+    await atWidth(PHONE.width, PHONE.height)
     const { container } = render(<Stats {...facts} />)
 
     const illustration = container
@@ -191,6 +229,17 @@ describe('Stats layout', () => {
     const value = screen.getByText('33,000,000+').getBoundingClientRect()
     expect(illustration.right).toBeLessThanOrEqual(value.left)
     expect(illustration.top).toBeLessThan(value.bottom)
+  })
+
+  it('sets each illustration above its value in a narrow column', async () => {
+    await atWidth(900, 900)
+    const { container } = render(<Stats {...facts} />)
+
+    const illustration = container
+      .querySelector('li svg')!
+      .getBoundingClientRect()
+    const value = screen.getByText('33,000,000+').getBoundingClientRect()
+    expect(illustration.bottom).toBeLessThanOrEqual(value.top)
   })
 })
 
