@@ -334,10 +334,15 @@ describe('Gallery controls', () => {
   const marqueeBox = () =>
     document.querySelector('[data-slot=marquee]')!.getBoundingClientRect()
 
-  it.each(['start', 'center'] as const)(
-    'gives the carousel heading the full width, aligned %s, with previous, dots, and next under the photos',
-    async (align) => {
-      await page.viewport(DESKTOP.width, DESKTOP.height)
+  it.each(
+    (['start', 'center'] as const).flatMap((align) => [
+      [align, 'a phone', PHONE] as const,
+      [align, 'a desktop', DESKTOP] as const
+    ])
+  )(
+    'gives the carousel heading the full width, aligned %s, with previous, dots, and next under the photos on %s',
+    async (align, _, { width, height }) => {
+      await page.viewport(width, height)
       render(
         <Gallery
           preset='carousel'
