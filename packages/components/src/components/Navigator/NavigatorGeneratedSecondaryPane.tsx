@@ -54,6 +54,11 @@ export function NavigatorGeneratedSecondaryPane({
     if (!nav.searchable) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || !isSearchShortcut(event)) return
+      // On a phone the page covers the list, and a hidden field can't take focus.
+      const shown =
+        toggleRef.current?.checkVisibility?.({ visibilityProperty: true }) ??
+        true
+      if (!shown) return
       event.preventDefault()
       if (searching) focusField()
       else setSearching(true)

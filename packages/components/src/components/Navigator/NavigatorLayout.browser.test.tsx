@@ -401,12 +401,15 @@ describe('stack geometry', () => {
 })
 
 describe('the generated list pane', () => {
-  const Docs = () => (
+  const Docs = ({ searchable = false }: { searchable?: boolean }) => (
     <Navigator value='/s/one'>
       <Navigator.Primary aria-label='Main'>
         <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
           Secondary
-          <Navigator.Secondary aria-label='Secondary pages'>
+          <Navigator.Secondary
+            aria-label='Secondary pages'
+            searchable={searchable}
+          >
             <Navigator.Item value='/s/one' href='/s/one'>
               One
             </Navigator.Item>
@@ -438,24 +441,7 @@ describe('the generated list pane', () => {
   })
 
   it('opens its search as a plain field, not a raised one', async () => {
-    render(
-      withStubLink(
-        <Navigator value='/s/one'>
-          <Navigator.Primary aria-label='Main'>
-            <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
-              Secondary
-              <Navigator.Secondary aria-label='Secondary pages' searchable>
-                <Navigator.Item value='/s/one' href='/s/one'>
-                  One
-                </Navigator.Item>
-              </Navigator.Secondary>
-            </Navigator.Item>
-          </Navigator.Primary>
-          <Pane>Detail</Pane>
-        </Navigator>
-      ),
-      { container: frame(1400) }
-    )
+    render(withStubLink(<Docs searchable />), { container: frame(1400) })
     await frames(4)
     document
       .querySelector<HTMLButtonElement>('[aria-label="Search secondary"]')!
@@ -476,6 +462,27 @@ describe('the generated list pane', () => {
     expect(
       parseFloat(getComputedStyle(field).borderRadius)
     ).toBeGreaterThanOrEqual(field.getBoundingClientRect().height / 2)
+  })
+
+  it('leaves Cmd/Ctrl+K alone while the page covers the list', async () => {
+    render(withStubLink(<Docs searchable />), { container: frame(400) })
+    await frames(4)
+    const list = document.querySelector<HTMLElement>(
+      '[data-navigator-secondary]'
+    )!
+    expect(onScreen(list)).toBe(false)
+
+    const shortcut = new KeyboardEvent('keydown', {
+      key: 'k',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true
+    })
+    document.body.dispatchEvent(shortcut)
+    await frames(2)
+
+    expect(shortcut.defaultPrevented).toBe(false)
+    expect(list.querySelector('[data-slot="pane-search"]')).toBeNull()
   })
 
   it('keeps every row 40px tall beside a fine pointer', async () => {
