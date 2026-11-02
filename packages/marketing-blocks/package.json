@@ -66,6 +66,10 @@
       "types": "./dist/Split/index.d.ts",
       "import": "./dist/Split/index.js"
     },
+    "./splits": {
+      "types": "./dist/Splits/index.d.ts",
+      "import": "./dist/Splits/index.js"
+    },
     "./stats": {
       "types": "./dist/Stats/index.d.ts",
       "import": "./dist/Stats/index.js"

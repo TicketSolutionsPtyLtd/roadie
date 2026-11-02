@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { Split, type SplitProps } from '.'
@@ -21,14 +21,14 @@ import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
 
-describeBlockFrame('split', 'media-text', Split as ComponentType<never>, {
+describeBlockFrame('split', 'image-start', Split as ComponentType<never>, {
   image: photo('A crowd')
 })
 
 // The old presets, each as the props that reproduce it.
 const LOOKS = {
   'tinted-panel': {
-    preset: 'media-text',
+    preset: 'image-start',
     size: 'md',
     emphasis: 'subtle',
     intent: 'info',
@@ -38,15 +38,15 @@ const LOOKS = {
       'Teams in innovation, operations, marketing, events, and finance.',
     image: photo('Two team members working together at a desk', 1280, 1007)
   },
-  'media-text': {
-    preset: 'media-text',
+  'image-start': {
+    preset: 'image-start',
     title: 'Get your gig on Spotify',
     body: <p>Your events show on artist profiles where fans already listen.</p>,
     actions: [{ label: 'Set it up', href: '/spotify' }],
     image: photo('An event listing on an artist profile', 1200, 1000)
   },
   'text-and-stats': {
-    preset: 'media-text',
+    preset: 'stats',
     title: 'Who we are',
     body: (
       <>
@@ -67,20 +67,6 @@ const LOOKS = {
         { value: '50+', label: 'full-time team', illustration: 'HighFive' }
       ]
     }
-  },
-  'alternating-rows': {
-    preset: 'alternating-rows',
-    title: 'Our values',
-    description: 'Five principles shape how we partner with you.',
-    actions: [{ label: 'Meet the team', href: '/about/team' }],
-    items: ['Proactive touch', 'Positive energy', 'Integrity'].map(
-      (title, index) => ({
-        title,
-        subtitle: 'See it coming, solve it early',
-        description: 'We spot issues before they become problems.',
-        image: photo(`${title} photo ${index + 1}`, 400, 300)
-      })
-    )
   }
 } satisfies Record<string, SplitProps>
 
@@ -102,16 +88,16 @@ describe('Split align and size', () => {
   const heading = () => screen.getByRole('heading', { level: 2 })
 
   it('sets the title smaller at md, and again at sm', async () => {
-    await renderAt(DESKTOP, LOOKS['media-text'])
+    await renderAt(DESKTOP, LOOKS['image-start'])
     const large = fontSizeOf(heading())
 
     cleanup()
-    await renderAt(DESKTOP, { ...LOOKS['media-text'], size: 'md' })
+    await renderAt(DESKTOP, { ...LOOKS['image-start'], size: 'md' })
     expect(fontSizeOf(heading())).toBeLessThan(large)
     const medium = fontSizeOf(heading())
 
     cleanup()
-    await renderAt(DESKTOP, { ...LOOKS['media-text'], size: 'sm' })
+    await renderAt(DESKTOP, { ...LOOKS['image-start'], size: 'sm' })
     expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
 
@@ -126,7 +112,7 @@ describe('Split align and size', () => {
   })
 
   it('centres the heading and actions when align is center', async () => {
-    await renderAt(DESKTOP, { ...LOOKS['media-text'], align: 'center' })
+    await renderAt(DESKTOP, { ...LOOKS['image-start'], align: 'center' })
 
     expect(textAlignOf(heading())).toBe('center')
     const link = screen.getByRole('link', { name: 'Set it up' })
@@ -148,8 +134,8 @@ describe('Split layout', () => {
     expect(isAbove(image(), heading())).toBe(true)
   })
 
-  it('sets the media-text image beside the text in equal halves on wide screens, and above it on phones', async () => {
-    await renderAt(DESKTOP, LOOKS['media-text'])
+  it('sets the image-start image beside the text in equal halves on wide screens, and above it on phones', async () => {
+    await renderAt(DESKTOP, LOOKS['image-start'])
     const image = () => screen.getByRole('img', { name: /event listing/ })
     const heading = () => screen.getByRole('heading', { level: 2 })
     expect(isBeside(image(), heading())).toBe(true)
@@ -159,17 +145,29 @@ describe('Split layout', () => {
     )
 
     cleanup()
-    await renderAt(PHONE, LOOKS['media-text'])
+    await renderAt(PHONE, LOOKS['image-start'])
     expect(isAbove(image(), heading())).toBe(true)
   })
 
-  it('crops a sized media-text photo to 4 by 3', async () => {
-    await renderAt(DESKTOP, LOOKS['media-text'])
+  it('crops a sized image-start photo to 4 by 3', async () => {
+    await renderAt(DESKTOP, LOOKS['image-start'])
 
     const { width, height } = box(
       screen.getByRole('img', { name: /event listing/ })
     )
     expect(width / height).toBeCloseTo(4 / 3, 1)
+  })
+
+  it('sets the image-end image after the text on wide screens, and above it on phones', async () => {
+    const props = { ...LOOKS['image-start'], preset: 'image-end' } as const
+    await renderAt(DESKTOP, props)
+    const image = () => screen.getByRole('img', { name: /event listing/ })
+    const heading = () => screen.getByRole('heading', { level: 2 })
+    expect(isBeside(heading(), image())).toBe(true)
+
+    cleanup()
+    await renderAt(PHONE, props)
+    expect(isAbove(image(), heading())).toBe(true)
   })
 
   it('sets the text-and-stats aside beside the text on wide screens, and wraps it below on phones', async () => {
@@ -209,7 +207,7 @@ const MID = { width: 640, height: 800 }
 describe('Split at a mid width', () => {
   it.each([
     ['tinted-panel', /team members/],
-    ['media-text', /event listing/]
+    ['image-start', /event listing/]
   ] as const)(
     'sets the %s media beside the text at 640px',
     async (look, name) => {
@@ -291,85 +289,6 @@ describe('Split tinted panel', () => {
   })
 })
 
-describe('Split alternating rows', () => {
-  const rows = () => screen.getAllByRole('listitem')
-  const sides = () =>
-    rows().map((row) => {
-      const text = within(row).getByRole('heading').getBoundingClientRect()
-      const image = within(row).getByRole('img').getBoundingClientRect()
-      if (image.top >= text.bottom) return 'below'
-      return image.left > text.left ? 'right' : 'left'
-    })
-  const at = (width: number, props: Partial<SplitProps> = {}) =>
-    render(
-      <div style={{ width }}>
-        <Split {...LOOKS['alternating-rows']} {...props} />
-      </div>
-    )
-
-  it('sets each image below its text on a phone', () => {
-    at(375)
-
-    expect(sides()).toEqual(['below', 'below', 'below'])
-  })
-
-  it.each([640, 1280])(
-    'alternates the image’s side at %ipx, starting on the left',
-    (width) => {
-      at(width)
-
-      expect(sides()).toEqual(['left', 'right', 'left'])
-    }
-  )
-
-  it('crops a sized 4:3 photo square', () => {
-    at(1280)
-
-    const { width, height } = box(within(rows()[0]!).getByRole('img'))
-    expect(width / height).toBeCloseTo(1, 2)
-  })
-
-  it('runs its description the full width of the block', () => {
-    at(1280, {
-      description:
-        'We live our values in every event setup, every support call, and every challenge we solve together. '.repeat(
-          3
-        )
-    })
-
-    const list = box(rows()[0]!.parentElement!)
-    expect(box(screen.getByText(/We live our values/)).width).toBeGreaterThan(
-      list.width - 2
-    )
-  })
-
-  it('leaves the space above it to the page', () => {
-    at(1280)
-
-    expect(
-      Math.round(
-        box(screen.getByRole('heading', { level: 2 })).top -
-          box(screen.getByRole('region')).top
-      )
-    ).toBe(0)
-  })
-
-  it('makes a linked row one hit area', () => {
-    at(1280, {
-      items: [{ ...LOOKS['alternating-rows'].items[0]!, href: '#proactive' }]
-    })
-
-    const link = screen.getByRole('link', { name: 'Proactive touch' })
-    const { left, top, right, bottom } = box(rows()[0]!)
-    for (const [x, y] of [
-      [left + 12, top + 12],
-      [right - 12, bottom - 12],
-      [(left + right) / 2, (top + bottom) / 2]
-    ] as const)
-      expect(link.contains(document.elementFromPoint(x, y))).toBe(true)
-  })
-})
-
 describe('Split accessibility', () => {
   it.each(Object.entries(LOOKS))(
     'has no axe violations as %s',
@@ -445,39 +364,9 @@ describe('Split contrast on every panel', () => {
     }
   )
 
-  it.each(
-    MODES.flatMap((mode) => EMPHASES.map((emphasis) => ({ mode, emphasis })))
-  )(
-    'keeps alternating-rows text readable on $emphasis in $mode mode, for every intent',
-    async ({ mode, emphasis }) => {
-      setMode(mode)
-      try {
-        for (const intent of INTENTS) {
-          const { container, unmount } = await renderAt(DESKTOP, {
-            ...LOOKS['alternating-rows'],
-            intent,
-            emphasis
-          })
-          const at = `${intent ?? 'default'} intent`
-          for (const element of container.querySelectorAll('h2, h3'))
-            expect(textContrast(element), at).toBeGreaterThanOrEqual(
-              MINIMUM_LC.large
-            )
-          for (const element of container.querySelectorAll('li p'))
-            expect(textContrast(element), at).toBeGreaterThanOrEqual(
-              MINIMUM_LC.body
-            )
-          unmount()
-        }
-      } finally {
-        setMode('light')
-      }
-    }
-  )
-
   it.each(EMPHASES)('has no axe violations on %s', async (emphasis) => {
     const { container } = await renderAt(DESKTOP, {
-      ...LOOKS['media-text'],
+      ...LOOKS['image-start'],
       intent: 'brand',
       emphasis
     })

@@ -6,6 +6,7 @@ import { heroDefinition } from '../Hero/definition'
 import { mosaicDefinition } from '../Mosaic/definition'
 import { richTextDefinition } from '../RichText/definition'
 import { splitDefinition } from '../Split/definition'
+import { splitsDefinition } from '../Splits/definition'
 import { statsDefinition } from '../Stats/definition'
 import { testimonialDefinition } from '../Testimonial/definition'
 import type { BlockAlign, SurfaceEmphasis } from '../_shared/surface'
@@ -66,6 +67,7 @@ const DEFINITIONS: readonly BlockDefinition[] = [
   heroDefinition,
   richTextDefinition,
   splitDefinition,
+  splitsDefinition,
   cardsDefinition,
   statsDefinition,
   mosaicDefinition,

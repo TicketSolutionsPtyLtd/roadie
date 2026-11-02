@@ -116,6 +116,7 @@ import { Mosaic } from '@oztix/roadie-marketing-blocks/mosaic'
 import { MarketingBlocksProvider } from '@oztix/roadie-marketing-blocks/provider'
 import { RichText } from '@oztix/roadie-marketing-blocks/rich-text'
 import { Split } from '@oztix/roadie-marketing-blocks/split'
+import { Splits } from '@oztix/roadie-marketing-blocks/splits'
 import { Stats } from '@oztix/roadie-marketing-blocks/stats'
 import { Testimonial } from '@oztix/roadie-marketing-blocks/testimonial'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
@@ -236,6 +237,7 @@ const scope = {
   RichText,
   Cards,
   Split,
+  Splits,
   Stats,
   Mosaic,
   Testimonial,

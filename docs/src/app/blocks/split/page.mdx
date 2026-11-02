@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'Split',
   description:
-    'Text beside an image or the numbers that back it up, or rows of text and images that alternate sides',
+    'A section of text beside an image, or beside the numbers that back it up',
   status: 'alpha',
   category: 'Content',
   wideExamples: true
@@ -10,7 +10,7 @@ export const metadata = {
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Text beside an image or the numbers that back it up, or rows of text and images that alternate sides.
+A section of text beside an image, or beside the numbers that back it up. For a list of rows that alternate sides, use [Splits](/blocks/splits).
 
 ## Import
 
@@ -20,14 +20,14 @@ import { Split } from '@oztix/roadie-marketing-blocks/split'
 
 ## Examples
 
-### Media and text
+### Image then text
 
-An image beside the heading, text, and actions. The image comes first, cropped
-to 4 by 3, and the text wraps below it on narrow screens.
+An image before the heading, text, and actions, cropped to 4 by 3. The text
+wraps below it on narrow screens.
 
-```tsx-live-expand id=media-text
+```tsx-live-expand id=image-start
 <Split
-  preset='media-text'
+  preset='image-start'
   title='Sell more tickets with your partners'
   body={
     <p>
@@ -45,14 +45,41 @@ to 4 by 3, and the text wraps below it on narrow screens.
 />
 ```
 
-Give it `stats` in place of an image to set long-form text at a readable
-measure, with the numbers that back it up beside it. The stats wrap below the
-text on narrow screens, and draw the same way as the [Stats](/blocks/stats)
-block.
+### Text then image
+
+`image-end` sets the image after the text on wide screens, and still above it
+on phones. Stack Splits that switch between `image-start` and `image-end` for
+a page of feature sections, each with its own heading and actions.
+
+```tsx-live-expand id=image-end
+<Split
+  preset='image-end'
+  title='Your shows, next to the music'
+  body={
+    <p>
+      Your events turn up on artist profiles, in front of fans already
+      streaming the artist.
+    </p>
+  }
+  actions={[{ label: 'List your event', href: '/create' }]}
+  image={{
+    src: '/brand/photography/04.webp',
+    alt: 'A staff member in a blue vest scanning a ticket on a phone at an event entry',
+    width: 1280,
+    height: 1007
+  }}
+/>
+```
+
+### Text and stats
+
+`stats` sets long-form text at a readable measure, with the numbers that back
+it up beside it. The stats wrap below the text on narrow screens, and draw the
+same way as the [Stats](/blocks/stats) block.
 
 ```tsx-live-expand id=text-and-stats
 <Split
-  preset='media-text'
+  preset='stats'
   title='Who we are'
   body={
     <>
@@ -83,53 +110,17 @@ block.
 />
 ```
 
-### Alternating rows
-
-Rows of a marked title and description beside a square image, alternating
-sides, starting with the image on the left. Each row's title is an `h3`
-under the block's heading, and the images wrap below the text on phones.
-
-```tsx-live-expand id=alternating-rows
-<Split
-  preset='alternating-rows'
-  title='Our values'
-  description='Five principles shape how we partner with you.'
-  items={[
-    {
-      title: 'Proactive touch',
-      subtitle: 'See it coming, solve it early',
-      description: 'We spot issues before they become problems, and opportunities before you need to ask.',
-      image: { src: '/brand/photography/03.webp', alt: 'Two team members working together at a desk with large monitors', width: 1280, height: 1007 }
-    },
-    {
-      title: 'Positive energy',
-      subtitle: 'Lift spirits, spark connections',
-      description: 'We love what we do, and that flows through to your team and your customers.',
-      image: { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 }
-    },
-    {
-      title: 'Integrity and ownership',
-      subtitle: 'Own decisions, build trust',
-      description: "We do what we say we'll do, and own it when something doesn't work.",
-      image: { src: '/brand/photography/11.webp', alt: 'Three people sitting together on a couch in a bar lined with gig posters', width: 1280, height: 911 }
-    }
-  ]}
-/>
-```
-
 ### Intent and emphasis
 
-`intent` colours the highlights, actions, and marks. `emphasis` sets the
-surface behind the block: `subtle`, `subtler`, `normal`, or `raised`. On a surface, the
-title takes the intent and the rest of the text stays neutral. `media-text`
-draws its surface as a panel inside the page's padding, and
-`alternating-rows` as a full-width band. `itemEmphasis` sets every row's
-surface in `alternating-rows`.
+`intent` colours the highlights and actions. `emphasis` sets the surface
+behind the block: `subtle`, `subtler`, `normal`, or `raised`. On a surface, the
+title takes the intent and the rest of the text stays neutral. Split draws its
+surface as a panel inside the page's padding.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
 {/* Brand, subtle panel */}
 <Split
-  preset='media-text'
+  preset='image-start'
   intent='brand'
   emphasis='subtle'
   title='Sell more tickets with your partners'
@@ -143,31 +134,27 @@ surface in `alternating-rows`.
     height: 854
   }}
 />
-{/* Success, normal band */}
+{/* Success, normal panel */}
 <Split
-  preset='alternating-rows'
+  preset='image-end'
   intent='success'
   emphasis='normal'
-  title='How payouts work'
-  items={[
-    {
-      title: 'Doors close',
-      description: 'Settlement starts automatically once your event ends.',
-      image: { src: '/brand/photography/04.webp', alt: 'A staff member in a blue vest scanning a ticket on a phone at an event entry', width: 1280, height: 1007 }
-    },
-    {
-      title: 'Money arrives',
-      description: 'Your payout lands within days, without chasing it.',
-      image: { src: '/brand/photography/03.webp', alt: 'Two team members working together at a desk with large monitors', width: 1280, height: 1007 }
-    }
-  ]}
+  title='Payouts that arrive on time'
+  titleHighlight='on time'
+  body={<p>Settlement starts once your event ends, and lands within days.</p>}
+  image={{
+    src: '/brand/photography/03.webp',
+    alt: 'Two team members working together at a desk with large monitors',
+    width: 1280,
+    height: 1007
+  }}
 />
 ```
 
 ### Align, size, and contained
 
-`size='md'` or `'sm'` sets the title one or two steps smaller and tightens the gaps. In
-`media-text`, it narrows the image to two fifths, cropped 8 by 5, with the
+`size='md'` or `'sm'` sets the title one or two steps smaller and tightens the gaps.
+Beside an image, it narrows the image to two fifths, cropped 8 by 5, with the
 body in subtle text: a short point with a photo, on a tinted panel. `align`
 centres the heading, text, and actions, and `contained={false}` runs a surface
 full width as a band.
@@ -175,7 +162,7 @@ full width as a band.
 ```tsx-live-expand id=align-size-contained layout=stack gap=8
 {/* Medium, subtle info panel */}
 <Split
-  preset='media-text'
+  preset='image-start'
   size='md'
   intent='info'
   emphasis='subtle'
@@ -190,7 +177,7 @@ full width as a band.
 />
 {/* Centred, subtler band */}
 <Split
-  preset='media-text'
+  preset='image-start'
   align='center'
   emphasis='subtler'
   contained={false}
@@ -215,7 +202,7 @@ full width as a band.
 
 <Guideline title='Pick the preset for the content'>
   <Guideline.Do>
-    Use media and text for a section beside a photo, at `md` for a short point the photo shows, with stats for an about page with three to six numbers that prove it, and alternating rows for a few statements that need a sentence or two each, such as values.
+    Use an image for a section beside a photo, at `md` for a short point the photo shows, and stats for an about page with three to six numbers that prove it. For a few like statements that need a sentence or two each, such as values, use [Splits](/blocks/splits).
   </Guideline.Do>
   <Guideline.Dont>
     Don't open a page with Split. Use [Hero](/blocks/hero), whose `partner` preset opens a page about one partner.
@@ -244,7 +231,7 @@ full width as a band.
 
 ## Tracking
 
-Split reports a view once it's half on screen, and a click on each action or
-linked row, with its preset and position.
+Split reports a view once it's half on screen, and a click on each action,
+with its preset and position.
 
 <PropsDefinitions component='Split' />
