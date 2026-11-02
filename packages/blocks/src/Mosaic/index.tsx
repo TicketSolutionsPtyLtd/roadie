@@ -94,12 +94,12 @@ export type MosaicProps = {
   size?: BlockSize
 }
 
-// Tiles are at least 11rem, so a column joins for every 11rem of block, from
-// two on a phone to four at most. The half-height tile's padding is a
+// Two columns, then four once the block is 48rem wide, and never three, so tiles
+// that add up to a multiple of four columns fill every row. The half-height tile's padding is a
 // percentage of its own width, two columns and a gap, so it subtracts half
 // the gap to match a square tile.
 const GRID =
-  'grid grid-flow-row-dense gap-(--tile-gap) *:min-w-0 [--tile-gap:--spacing(2)] grid-cols-[repeat(auto-fill,minmax(min(max(11rem,calc(25%-var(--tile-gap)*3/4)),calc(50%-var(--tile-gap)/2)),1fr))] @xl:[--tile-gap:--spacing(4)] @3xl:[--tile-gap:--spacing(8)]'
+  'grid grid-flow-row-dense gap-(--tile-gap) *:min-w-0 [--tile-gap:--spacing(2)] grid-cols-2 @3xl:grid-cols-4 @xl:[--tile-gap:--spacing(4)] @3xl:[--tile-gap:--spacing(8)]'
 const TILE =
   'dark relative isolate grid overflow-hidden rounded-xl @3xl:rounded-3xl'
 const STACKED = 'col-start-1 row-start-1'
