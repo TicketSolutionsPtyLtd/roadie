@@ -124,10 +124,11 @@ describe('CallToAction with photo', () => {
       [
         ['a phone', PHONE],
         ['a mid-width screen', { width: 640, height: 800 }],
-        ['a desktop', DESKTOP]
+        ['a desktop', DESKTOP],
+        ['a wide desktop', { width: 1600, height: 900 }]
       ] as const
     ).flatMap(([name, size]) =>
-      (['square', 'portrait'] as const).map(
+      (['square', 'portrait', 'landscape'] as const).map(
         (ratio) => [name, ratio, size] as const
       )
     )
@@ -153,6 +154,14 @@ describe('CallToAction with photo', () => {
       expect(illustration.bottom).toBeLessThanOrEqual(panel.bottom)
     }
   )
+
+  it('keeps a portrait photo to a quarter of a wide block, so it runs no taller', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(<CallToAction {...props} ratio='portrait' tilted={false} />)
+
+    const { section, photo } = boxes()
+    expect(photo.width).toBeLessThan(section.width * 0.26)
+  })
 
   it.each(['square', 'landscape'] as const)(
     'grows a %s photo to a third of a wide block, beside the copy',
@@ -208,7 +217,7 @@ describe('CallToAction with photo, its photo', () => {
     ['portrait', 9 / 16],
     ['landscape', 2]
   ] as const)(
-    'crops a landscape photo to the %s ratio, %d wide per high',
+    'crops a landscape photo to the %s ratio, %s wide per high',
     async (ratio, expected) => {
       render(<CallToAction {...props} ratio={ratio} />)
 
