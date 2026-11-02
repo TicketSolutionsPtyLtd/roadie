@@ -103,17 +103,14 @@ export function DeviceFrame({
   }, [width])
 
   return (
-    <div className='bg-sunken p-4 sm:p-6'>
-      <div
-        ref={boxRef}
-        className='relative overflow-hidden'
-        style={{ height: height * scale }}
-      >
+    // The outer box clips the unscaled frame's layout width, so the padding leaves room for its shadow.
+    <div className='overflow-hidden bg-sunken p-4 sm:p-6'>
+      <div ref={boxRef} className='relative' style={{ height: height * scale }}>
         <iframe
           ref={frameRef}
           title={`Example at ${device} width`}
           src={getAssetPath(FRAME_PATH)}
-          className='absolute top-0 left-1/2 origin-top'
+          className='absolute top-0 left-1/2 origin-top rounded-lg shadow-md'
           style={{
             width,
             height,
