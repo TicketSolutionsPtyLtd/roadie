@@ -54,7 +54,7 @@ export type MosaicLogoTile = {
 
 export type MosaicProps = {
   /**
-   * `tiles` sets photo tiles with a logo and a marked label, some two columns wide.
+   * `tiles` sets photo tiles with a logo and a marked label, some two columns wide or the full row.
    * @default 'tiles'
    */
   preset?: MosaicPreset
@@ -134,7 +134,7 @@ const SIZE: Record<
   }
 }
 
-/** A grid of photo tiles, each with a logo or title and a marked label, the large ones two columns wide. */
+/** A grid of photo tiles, each with a logo or title and a marked label, the wide ones two columns or the full row. */
 export function Mosaic(props: MosaicProps) {
   const { tiles, logoTile, intent, size } = props
   const block = useBlock(mosaicDefinition, props)
