@@ -30,6 +30,10 @@
       "style": "./src/css/blocks.css",
       "default": "./src/css/blocks.css"
     },
+    "./cards": {
+      "types": "./dist/Cards/index.d.ts",
+      "import": "./dist/Cards/index.js"
+    },
     "./hero": {
       "types": "./dist/Hero/index.d.ts",
       "import": "./dist/Hero/index.js"

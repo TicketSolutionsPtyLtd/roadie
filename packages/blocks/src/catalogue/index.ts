@@ -1,3 +1,4 @@
+import { cardsDefinition } from '../Cards/definition'
 import { heroDefinition } from '../Hero/definition'
 import { richTextDefinition } from '../RichText/definition'
 import type {
@@ -90,7 +91,8 @@ function entry(definition: BlockDefinition): CatalogueBlock {
 
 const DEFINITIONS: readonly BlockDefinition[] = [
   heroDefinition,
-  richTextDefinition
+  richTextDefinition,
+  cardsDefinition
 ]
 
 /** Every block and its presets, for a CMS's block picker. Has no React, so it runs on a server or in a Studio config. */

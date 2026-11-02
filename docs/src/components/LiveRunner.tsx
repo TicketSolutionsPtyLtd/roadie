@@ -83,6 +83,7 @@ import {
 
 import { toPreviewCode, withBasePath } from '@/lib/fence-layout.mjs'
 
+import { Cards } from '@oztix/roadie-blocks/cards'
 import { Hero } from '@oztix/roadie-blocks/hero'
 import { BlocksProvider } from '@oztix/roadie-blocks/provider'
 import { RichText } from '@oztix/roadie-blocks/rich-text'
@@ -225,6 +226,7 @@ const scope = {
   BlocksProvider,
   Hero,
   RichText,
+  Cards,
   LegendKey,
   lineChartTable,
   addDays,
