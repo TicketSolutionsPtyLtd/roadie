@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none">
+  <rect width="240" height="160" rx="12" style="fill: var(--color-neutral-1, #f5f8fb)"/>
+  <rect x="16" y="48" width="208" height="112" style="fill: var(--color-neutral-3, #e8eef4)"/>
+  <rect x="32" y="70" width="100" height="10" rx="3" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <rect x="32" y="90" width="88" height="6" rx="3" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="32" y="102" width="76" height="6" rx="3" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="32" y="122" width="40" height="14" rx="7" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <rect x="78" y="122" width="40" height="14" rx="7" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <g transform="rotate(6 182 64)">
+    <rect x="156" y="16" width="52" height="92" rx="7" style="fill: var(--color-neutral-1, #f5f8fb)"/>
+    <rect x="159" y="19" width="46" height="86" rx="5" style="fill: var(--color-accent-9, #0191eb)"/>
+  </g>
+  <rect x="146" y="96" width="20" height="20" rx="10" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+</svg>

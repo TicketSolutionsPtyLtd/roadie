@@ -1,0 +1,174 @@
+export const metadata = {
+  title: 'Call to action',
+  description: 'Closes a page with a short pitch and the next step to take',
+  status: 'alpha',
+  wideExamples: true,
+  category: 'Close',
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Closes a page with a short pitch and the next step to take. Use one call to
+action, last on the page.
+
+## Import
+
+```tsx
+import { CallToAction } from '@oztix/roadie-blocks/call-to-action'
+```
+
+## Examples
+
+### Photo
+
+The default. The pitch and actions start beside a tilted portrait photo (9:16)
+that breaks out of the top of the panel. On a phone, the photo sits above the
+copy.
+
+```tsx-live-expand id=photo
+<CallToAction
+  preset='photo'
+  title='Explore an Oztix partnership'
+  highlight='partnership'
+  description='We’re always excited to welcome new partners into the Oztix community.'
+  body={
+    <>
+      <p>Let’s start with a get-to-know-you conversation, so we can understand your goals. Then we’ll show you a growth plan that suits your events.</p>
+      <p>Ready to move fast? We’re on it.</p>
+    </>
+  }
+  actions={[
+    { label: 'Contact sales', href: '/contact/sales' },
+    { label: 'Create my event', href: 'https://studio.oztix.com.au' }
+  ]}
+  image={{
+    src: '/brand/photography/05.webp',
+    alt: 'Three partners smiling together at a laneway event',
+    width: 1280,
+    height: 854
+  }}
+/>
+```
+
+`tilted={false}` sets the photo straight, and `illustration` picks the
+[spot illustration](/components/spot-illustration) at its corner, `HighFive` by
+default.
+
+```tsx-live-expand id=photo-straight
+<CallToAction
+  preset='photo'
+  tilted={false}
+  illustration='Ticket'
+  title='Talk to a real person'
+  body={<p>Our support team answers seven days a week, from people who know your event.</p>}
+  actions={[{ label: 'Contact support', href: '/contact' }]}
+  image={{
+    src: '/brand/photography/03.webp',
+    alt: 'Two Oztix team members smiling at their desks',
+    width: 1280,
+    height: 1007
+  }}
+/>
+```
+
+### Centred
+
+The heading, copy, and actions centred in the panel, with no photo.
+
+```tsx-live-expand id=centred
+<CallToAction
+  preset='centred'
+  title='Talk to our team'
+  body={<p>Tell us about your venue or festival, and we’ll find the setup that sells the most tickets.</p>}
+  actions={[
+    { label: 'Contact sales', href: '/contact/sales' },
+    { label: 'See pricing', href: '/pricing' }
+  ]}
+/>
+```
+
+### Intent and emphasis
+
+`intent` tints the panel and the highlighted words, and `emphasis` sets the panel: `raised` by default, or `subtler`, `subtle`, `normal`, `strong`, or `inverted`. On a `strong` or `inverted` panel, the first action switches to an intent that stands apart from the panel's fill, and highlighted words, links, and code take the panel's text colour.
+
+`contained` draws the panel inside the page's padding, rounded at every width, instead of as a full-width band. `align` overrides the preset's alignment, which starts on `photo` and centres on `centred`, and `size='md'` or `'sm'` sets the title one or two steps smaller, with smaller body text and tighter spacing.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Brand, strong */}
+<CallToAction
+  preset='centred'
+  intent='brand'
+  emphasis='strong'
+  title='List your next event with Oztix'
+  body={<p>Set up in minutes and start selling today.</p>}
+  actions={[
+    { label: 'Create my event', href: 'https://studio.oztix.com.au' },
+    { label: 'Contact sales', href: '/contact/sales' }
+  ]}
+/>
+{/* Inverted */}
+<CallToAction
+  preset='centred'
+  emphasis='inverted'
+  title='Talk to our team'
+  body={<p>Tell us about your venue, and we’ll find the setup that sells the most tickets.</p>}
+  actions={[{ label: 'Contact sales', href: '/contact/sales' }]}
+/>
+```
+
+```tsx-live-expand id=contained-align-size
+<CallToAction
+  preset='centred'
+  emphasis='subtle'
+  intent='info'
+  contained
+  align='start'
+  size='md'
+  title='Need a hand with your setup?'
+  body={<p>Our support team answers seven days a week.</p>}
+  actions={[{ label: 'Contact support', href: '/contact/support' }]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Pick the preset for the page'>
+  <Guideline.Do>
+    Use `photo` to close a page that sells Oztix, with a portrait photo of people at an event.
+  </Guideline.Do>
+  <Guideline.Do>
+    Use `centred` where a photo would compete with the page, such as after an FAQ.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Open the body with what happens when someone acts, such as a call with our team.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don’t spend the body on why the action matters before saying what it is.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep it short'>
+  <Guideline.Do>
+    Write a paragraph or two and at most two actions. The first is the strong one.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Keep the raised panel'>
+  <Guideline.Do>
+    Keep the raised panel unless the call to action closes a campaign page that needs it to stand out. Use `strong` or `inverted` at most once on a page.
+  </Guideline.Do>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Reports a view once half the block is on screen, and a click for each action with its label and href.
+
+<PropsDefinitions component='CallToAction' />
