@@ -99,11 +99,21 @@ const isProse = (selector: string) =>
 let css = ''
 let rules: Rule[] = []
 let proseRules: Rule[] = []
+let fallbackRules: Rule[] = []
+
+const ESCAPE =
+  ':not(:where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *))'
+const squash = (text: string) =>
+  text.replace(/\s+/g, ' ').replace(/\(\s/g, '(').replace(/\s\)/g, ')').trim()
+const isFallback = (rule: Rule) =>
+  rule.limit === undefined && squash(rule.selector).includes(ESCAPE)
 
 beforeAll(async () => {
   css = await compileRoadie()
   rules = parseRules(css)
-  proseRules = rules.filter(({ selector }) => isProse(selector))
+  const all = rules.filter(({ selector }) => isProse(selector))
+  proseRules = all.filter((rule) => !isFallback(rule))
+  fallbackRules = all.filter(isFallback)
 })
 
 const ruleFor = (selector: string) => {
@@ -118,13 +128,13 @@ describe('prose.css', () => {
   })
 
   it('puts every rule in the components layer', () => {
-    for (const { selector, layers } of proseRules) {
+    for (const { selector, layers } of [...proseRules, ...fallbackRules]) {
       expect(layers, selector).toContain('components')
     }
   })
 
   it('has no :has()', () => {
-    for (const { selector } of proseRules) {
+    for (const { selector } of [...proseRules, ...fallbackRules]) {
       expect(selector).not.toContain(':has(')
     }
   })
@@ -144,6 +154,23 @@ describe('prose.css', () => {
     for (const { selector, limit } of escaped) {
       expect(limit, selector).toBe('.not-prose, [data-not-prose]')
     }
+  })
+
+  // Browsers without @scope keep only the fallback, so it must say what the
+  // scope says, rule for rule.
+  it('keeps the fallback in step with the scoped rules', () => {
+    const scoped = proseRules.filter(({ limit }) => limit !== undefined)
+    expect(fallbackRules.length).toBe(scoped.length)
+    scoped.forEach((rule, index) => {
+      const fallback = fallbackRules[index]
+      const parts = squash(fallback?.selector ?? '').split(/,\s(?=\.prose\s)/)
+      for (const part of parts) expect(part).toContain(ESCAPE)
+      expect(
+        parts.map((part) => part.replace(ESCAPE, '')).join(', '),
+        rule.selector
+      ).toBe(squash(rule.selector))
+      expect(squash(fallback?.body ?? '')).toBe(squash(rule.body))
+    })
   })
 
   // An implicit scope adds no specificity, so a rule without `:scope` would

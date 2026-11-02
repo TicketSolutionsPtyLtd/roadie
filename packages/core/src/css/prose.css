@@ -50,6 +50,354 @@
     margin-block-start: 0;
   }
 
+  /* Browsers without @scope drop the scoped block below and keep these, which
+     leave a Prose inside an escape unstyled. Where both apply, the scoped rule
+     wins, with the same declarations. prose.test.ts keeps the two in step. */
+  .prose
+    :where(
+      p,
+      ul,
+      ol,
+      dl,
+      blockquote,
+      pre,
+      table,
+      figure,
+      details,
+      .prose-scroll,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6
+    ):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: var(--prose-flow);
+  }
+  .prose
+    :where(h1, h2, h3, h4, h5, h6):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    line-height: var(--leading-display);
+    letter-spacing: var(--tracking-display);
+    color: var(--intent-text-strong);
+    text-wrap: balance;
+  }
+  .prose
+    :where(h1):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: calc(var(--prose-flow) * 3);
+    font-size: var(--prose-h1-size);
+    font-weight: var(--prose-h1-weight);
+  }
+  .prose
+    :where(h2):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: calc(var(--prose-flow) * 2.4);
+    font-size: var(--prose-h2-size);
+    font-weight: var(--prose-h2-weight);
+  }
+  .prose
+    :where(h3):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: calc(var(--prose-flow) * 1.8);
+    font-size: var(--prose-h3-size);
+    font-weight: var(--prose-h3-weight);
+  }
+  .prose
+    :where(h4):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: calc(var(--prose-flow) * 1.4);
+    font-size: var(--prose-h4-size);
+    font-weight: var(--prose-h4-weight);
+  }
+  .prose
+    :where(h5):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: calc(var(--prose-flow) * 1.2);
+    font-size: var(--prose-h5-size);
+    font-weight: var(--prose-h5-weight);
+  }
+  .prose
+    :where(h6):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: calc(var(--prose-flow) * 1.2);
+    font-size: var(--prose-h6-size);
+    font-weight: var(--prose-h6-weight);
+  }
+  .prose
+    :where(h1, h2, h3, h4, h5, h6)
+    + :where(*):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: calc(var(--prose-flow) * 0.5);
+  }
+  .prose
+    :where(p, li, dd, figcaption):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    text-wrap: pretty;
+  }
+  /* A link with its own emphasis keeps it, rather than gaining normal's layers. */
+  .prose
+    :where(a):not(:where(.link-strong, .link-subtle)):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    color: inherit;
+    @apply link-normal;
+  }
+  .prose
+    :where(strong, b):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    font-weight: 600;
+    color: var(--intent-text-strong);
+  }
+  /* The reset sets every element upright, so emphasis needs its slant back. */
+  .prose
+    :where(em, i, cite):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    font-style: italic;
+  }
+  .prose
+    :where(ul, ol):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    padding-inline-start: 1.5em;
+  }
+  .prose
+    :where(ul):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    list-style-type: disc;
+  }
+  .prose
+    :where(ul)
+    :where(ul):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    list-style-type: circle;
+  }
+  .prose
+    :where(ol):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    list-style-type: decimal;
+  }
+  .prose
+    :where(li, li > ul, li > ol):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: calc(var(--prose-flow) * 0.4);
+  }
+  .prose
+    :where(li):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    )::marker {
+    color: var(--intent-text-subtle);
+  }
+  .prose
+    :where(dt):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    font-weight: 600;
+    color: var(--intent-text-strong);
+  }
+  .prose
+    :where(dd):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: calc(var(--prose-flow) * 0.2);
+    padding-inline-start: 1.5em;
+  }
+  .prose
+    :where(dd + dt):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: calc(var(--prose-flow) * 0.6);
+  }
+  .prose
+    :where(blockquote):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    border-inline-start: 3px solid var(--intent-border-normal);
+    padding-inline-start: 1em;
+    color: var(--intent-text-subtle);
+  }
+  .prose
+    :where(hr):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block: calc(var(--prose-flow) * 2) 0;
+    border: 0;
+    border-block-start: 1px solid var(--intent-border-subtle);
+  }
+  .prose
+    :where(hr + *):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: var(--prose-flow);
+  }
+  .prose
+    :where(code, kbd, samp, pre):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    font-family: var(--font-mono);
+    letter-spacing: var(--tracking-code);
+  }
+  .prose
+    :where(code, kbd, samp):not(:where(pre *)):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    font-size: 0.875em;
+    border-radius: var(--radius-md);
+    padding: 0.125em 0.375em;
+  }
+  .prose
+    :where(code, samp):not(:where(pre *)):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    background-color: var(--intent-bg-subtle);
+    color: var(--intent-text-strong);
+  }
+  .prose
+    :where(kbd):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    border: 1px solid var(--intent-border-normal);
+    border-block-end-width: 2px;
+    background-color: var(--intent-bg-raised);
+    color: var(--intent-text-strong);
+  }
+  .prose
+    :where(pre):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    background-color: var(--intent-bg-sunken);
+    padding: 1em 1.25em;
+    font-size: 0.875em;
+    line-height: var(--leading-code);
+    color: var(--intent-text-normal);
+  }
+  .prose
+    :where(pre code):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    font-size: inherit;
+  }
+  @media (forced-colors: active) {
+    .prose
+      :where(code, samp, pre):not(:where(pre *)):not(
+        :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+      ) {
+      border: 1px solid CanvasText;
+    }
+  }
+  .prose
+    :where(table):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    border-collapse: collapse;
+    font-size: 0.875em;
+    line-height: var(--leading-ui);
+  }
+  .prose
+    :where(th, td):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    padding-block: 0.625em;
+    padding-inline-end: 1em;
+    text-align: start;
+    vertical-align: top;
+  }
+  .prose
+    :where(th:last-child, td:last-child):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    padding-inline-end: 0;
+  }
+  .prose
+    :where(th):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    border-block-end: 1px solid var(--intent-border-subtle);
+    font-weight: 600;
+    color: var(--intent-text-strong);
+  }
+  .prose
+    :where(td):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    border-block-end: 1px solid var(--intent-border-subtler);
+    font-variant-numeric: tabular-nums;
+  }
+  .prose
+    :where(.prose-scroll):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    overflow-x: auto;
+  }
+  /* Below 9em a column wraps a word or two a line, so the table scrolls
+       instead. */
+  .prose
+    :where(.prose-scroll)
+    :where(th, td):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    min-inline-size: 9em;
+    max-inline-size: var(--prose-measure);
+  }
+  /* The scroller takes the overflow, so a token such as `rounded-sm` never
+       splits. A bare table keeps the reset's `overflow-wrap: anywhere` so it
+       still fits its column. */
+  .prose
+    :where(.prose-scroll)
+    :where(th, td)
+    :where(code, kbd, samp):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    white-space: nowrap;
+  }
+  .prose
+    :where(img, video, svg, canvas, iframe):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    max-width: 100%;
+  }
+  .prose
+    :where(img, video):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    height: auto;
+    border-radius: var(--radius-md);
+  }
+  .prose
+    :where(figcaption):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: 0.75em;
+    font-size: 0.875em;
+    text-align: center;
+    color: var(--intent-text-subtle);
+  }
+  .prose
+    :where(:first-child):not(
+      :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
+    ) {
+    margin-block-start: 0;
+  }
+
   /* An escape ends the scope, and a Prose inside one starts its own, so
      nested content typesets again. `:scope` keeps each rule at one class's
      specificity, as `.prose` gave it. */
