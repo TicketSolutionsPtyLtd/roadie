@@ -103,20 +103,22 @@ export function DeviceFrame({
   }, [width])
 
   return (
-    // The outer box clips the unscaled frame's layout width, so the padding leaves room for its shadow.
+    // Clips the frame at full width for the paint before it measures its scale.
     <div className='overflow-hidden bg-sunken p-4 sm:p-6'>
-      <div ref={boxRef} className='relative' style={{ height: height * scale }}>
-        <iframe
-          ref={frameRef}
-          title={`Example at ${device} width`}
-          src={getAssetPath(FRAME_PATH)}
-          className='absolute top-0 left-1/2 origin-top rounded-lg shadow-md'
-          style={{
-            width,
-            height,
-            transform: `translateX(-50%) scale(${scale})`
-          }}
-        />
+      <div ref={boxRef} style={{ height: height * scale }}>
+        {/* Sized to the scaled frame, so its edge and shadow don't shrink with it. */}
+        <div
+          className='mx-auto overflow-hidden rounded-lg shadow-md'
+          style={{ width: width * scale, height: height * scale }}
+        >
+          <iframe
+            ref={frameRef}
+            title={`Example at ${device} width`}
+            src={getAssetPath(FRAME_PATH)}
+            className='origin-top-left'
+            style={{ width, height, transform: `scale(${scale})` }}
+          />
+        </div>
       </div>
     </div>
   )

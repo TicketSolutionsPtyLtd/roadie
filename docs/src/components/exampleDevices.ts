@@ -13,21 +13,33 @@ export type Device = (typeof DEVICES)[number]['value']
 export const deviceWidth = (device: Device): number =>
   DEVICES.find(({ value }) => value === device)!.width
 
-/** The device a viewport this wide is: under `md` a phone, under `lg` a tablet. */
-export const deviceForWidth = (width: number): Device =>
-  width < 768 ? 'phone' : width < 1024 ? 'tablet' : 'desktop'
+const TABLET_UP = '(min-width: 48rem)'
+const DESKTOP_UP = '(min-width: 64rem)'
 
-function subscribeToResize(onChange: () => void) {
-  window.addEventListener('resize', onChange)
-  return () => window.removeEventListener('resize', onChange)
+/** The device a viewport is, by Roadie's breakpoints: under `md` a phone, under `lg` a tablet. */
+export const deviceForViewport = (
+  matches: (query: string) => boolean
+): Device =>
+  matches(DESKTOP_UP) ? 'desktop' : matches(TABLET_UP) ? 'tablet' : 'phone'
+
+function subscribeToViewport(onChange: () => void) {
+  const lists = [TABLET_UP, DESKTOP_UP].map((query) => window.matchMedia(query))
+  for (const list of lists) list.addEventListener('change', onChange)
+  return () => {
+    for (const list of lists) list.removeEventListener('change', onChange)
+  }
 }
 
-/** The device the reader's own screen is, so an example shows inline at it and in a frame at any other. */
+/**
+ * The device the reader's own screen is, so an example shows inline at it
+ * and in a frame at any other. Undefined on the server, so no width is
+ * pressed until the client knows.
+ */
 export const useViewportDevice = () =>
-  useSyncExternalStore(
-    subscribeToResize,
-    () => deviceForWidth(window.innerWidth),
-    (): Device => 'desktop'
+  useSyncExternalStore<Device | undefined>(
+    subscribeToViewport,
+    () => deviceForViewport((query) => window.matchMedia(query).matches),
+    () => undefined
   )
 
 /** How far to shrink a frame wider than the space it sits in; 1 before layout. */

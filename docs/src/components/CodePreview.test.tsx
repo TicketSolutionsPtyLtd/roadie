@@ -17,7 +17,9 @@ const runner = vi.hoisted(() => ({
   holdMount: false
 }))
 
-const screenDevice = vi.hoisted(() => ({ current: 'desktop' as Device }))
+const screenDevice = vi.hoisted(() => ({
+  current: 'desktop' as Device | undefined
+}))
 
 vi.mock('./exampleDevices', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./exampleDevices')>()),
@@ -176,6 +178,22 @@ describe('CodePreview', () => {
     act(() => fireEvent.click(screen.getByRole('button', { name: 'Desktop' })))
 
     expect(runner.props?.frameDevice).toBe('desktop')
+  })
+
+  it('presses no width until it knows the screen, so hydration has nothing to flip', async () => {
+    screenDevice.current = undefined
+    renderWithToasts(
+      <CodePreview language='tsx-live' eager>
+        {'<Badge>New</Badge>'}
+      </CodePreview>
+    )
+    await screen.findByText('Example rendered')
+
+    for (const name of ['Phone', 'Tablet', 'Desktop'])
+      expect(
+        screen.getByRole('button', { name }).getAttribute('aria-pressed')
+      ).toBe('false')
+    expect(runner.props?.frameDevice).toBeUndefined()
   })
 
   it('opens the full-width view from the header of an expandable example', async () => {

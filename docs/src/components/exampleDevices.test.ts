@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   DEVICES,
-  deviceForWidth,
+  deviceForViewport,
   deviceWidth,
   fitScale
 } from './exampleDevices'
@@ -25,16 +25,17 @@ describe('deviceWidth', () => {
   })
 })
 
-describe('deviceForWidth', () => {
+describe('deviceForViewport', () => {
   it.each([
-    [320, 'phone'],
-    [767, 'phone'],
-    [768, 'tablet'],
-    [1023, 'tablet'],
-    [1024, 'desktop'],
-    [1920, 'desktop']
-  ] as const)('reads a %spx viewport as %s', (width, device) => {
-    expect(deviceForWidth(width)).toBe(device)
+    [[], 'phone'],
+    [['(min-width: 48rem)'], 'tablet'],
+    [['(min-width: 48rem)', '(min-width: 64rem)'], 'desktop']
+  ] as const)('reads a viewport matching %j as %s', (queries, device) => {
+    expect(
+      deviceForViewport((query) =>
+        (queries as readonly string[]).includes(query)
+      )
+    ).toBe(device)
   })
 })
 

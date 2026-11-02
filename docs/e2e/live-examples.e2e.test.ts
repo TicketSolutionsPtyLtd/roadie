@@ -362,8 +362,19 @@ describe('live examples', () => {
   it('start on Phone on a phone, and show Desktop at desktop width, shrunk to fit', async () => {
     const { page, errors } = await open('/components/badge/', 390)
     await page.locator('[data-live-example=rendered]').first().waitFor()
-    const phone = page.getByRole('button', { name: 'Phone' }).first()
-    expect(await phone.getAttribute('aria-pressed')).toBe('true')
+    const pressed = () =>
+      page
+        .getByRole('group', { name: 'Preview width' })
+        .first()
+        .locator('[aria-pressed=true]')
+        .getAttribute('aria-label')
+    expect(await pressed()).toBe('Phone')
+
+    // Rotating a phone to tablet width moves the switch with it.
+    await page.setViewportSize({ width: 800, height: 844 })
+    await expect.poll(pressed).toBe('Tablet')
+    await page.setViewportSize({ width: 390, height: 844 })
+    await expect.poll(pressed).toBe('Phone')
 
     await page.getByRole('button', { name: 'Desktop' }).first().click()
     const iframe = page.locator('iframe[title="Example at desktop width"]')

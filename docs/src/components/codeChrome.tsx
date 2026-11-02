@@ -173,7 +173,8 @@ export function ExampleHeader({
   exampleHref,
   fullWidth
 }: {
-  device: Device
+  /** Undefined until the client knows the screen, so nothing is pressed. */
+  device?: Device
   onDeviceChange: (device: Device) => void
   exampleHref?: string
   /** The Full width control, on an expandable example. */
@@ -188,7 +189,7 @@ export function ExampleHeader({
         aria-label='Preview width'
         size='sm'
         emphasis='subtler'
-        value={[device]}
+        value={device ? [device] : []}
         onValueChange={([next]) => next && onDeviceChange(next)}
       >
         {DEVICES.map(({ value, label }) => {
