@@ -233,6 +233,26 @@ describe('Editor email import', () => {
     )
   })
 
+  it('puts the caret in the first text, past a leading image', async () => {
+    const onValueChange = renderEmail()
+    const dialog = await openImport()
+
+    await userEvent.fill(
+      within(dialog).getByRole('textbox', { name: 'Source' }),
+      '<img src="https://cdn.oztix.com.au/hero.jpg" alt="Hero"><p>Doors</p>'
+    )
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Import' })
+    )
+    const textbox = screen.getByRole('textbox', { name: LABEL })
+    await waitFor(() => expect(textbox).toHaveFocus())
+    await userEvent.keyboard('Gates ')
+
+    await waitFor(() =>
+      expect(lastDoc(onValueChange)?.[1]).toEqual(paragraph('Gates Doors'))
+    )
+  })
+
   it('cancels without changing the email', async () => {
     const onValueChange = renderEmail(email(paragraph('Doors')))
     const dialog = await openImport()

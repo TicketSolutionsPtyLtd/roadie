@@ -380,6 +380,26 @@ describe('importEmail from HTML', () => {
     ])
   })
 
+  it('reports a link around an image, keeping the image', () => {
+    const imported = importEmail(
+      '<a href="https://www.oztix.com.au"><img src="https://cdn.oztix.com.au/hero.jpg" alt="Hero"></a>'
+    )
+
+    expect(imported.dropped).toEqual([
+      { kind: 'link', src: 'https://www.oztix.com.au' }
+    ])
+    expect(imported.value.doc.content).toEqual([
+      {
+        type: 'image',
+        attrs: {
+          src: 'https://cdn.oztix.com.au/hero.jpg',
+          alt: 'Hero',
+          width: null
+        }
+      }
+    ])
+  })
+
   it('leaves a token inside a longer link as it is', () => {
     expect(
       blocks('<p><a href="https://oztix.com.au/?n=#FirstName#">Tickets</a></p>')

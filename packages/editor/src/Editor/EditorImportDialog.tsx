@@ -3,6 +3,7 @@
 import { useDeferredValue, useState } from 'react'
 
 import type { JSONContent } from '@tiptap/core'
+import { Selection } from '@tiptap/pm/state'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 
 import { Button } from '@oztix/roadie-components/button'
@@ -77,7 +78,17 @@ function ImportForm({
   function confirm() {
     const { doc } = importEmail(source, { variables, embedProviders }).value
     if (placement === 'replace') {
-      editor.chain().setContent(doc).focus('start').run()
+      editor
+        .chain()
+        .setContent(doc)
+        .command(({ tr }) => {
+          // The doc's start would select a leading image, not a place to type.
+          const firstText = Selection.findFrom(tr.doc.resolve(0), 1, true)
+          if (firstText) tr.setSelection(firstText)
+          return true
+        })
+        .focus()
+        .run()
     } else {
       addAtCaret(editor, doc.content ?? [])
     }
@@ -108,7 +119,7 @@ function ImportForm({
             rows={10}
             spellCheck={false}
             autoComplete='off'
-            className='text-code'
+            className='font-mono text-sm'
           />
           <Field.HelperText>
             {hasSource

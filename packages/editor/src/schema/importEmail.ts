@@ -378,6 +378,12 @@ export function importEmail(
     dropped.push({ kind: 'hidden' })
     hidden.remove()
   }
+  // An image block holds no link, so one around it is lost.
+  for (const image of container.querySelectorAll('a[href] img')) {
+    if (!isEmailImageSrc(image.getAttribute('src'))) continue
+    const href = image.closest('a')!.getAttribute('href')
+    dropped.push(report('link', href))
+  }
   const styled = container.matches(STYLED) ? 1 : 0
   const styles =
     reading.styles + styled + container.querySelectorAll(STYLED).length
