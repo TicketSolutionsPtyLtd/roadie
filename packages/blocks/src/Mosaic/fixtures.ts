@@ -24,7 +24,7 @@ export const partnerTiles = {
       description: 'Presenting partner',
       logo: logo('Ochre Kite Weekender'),
       image: photo('01'),
-      size: 'lg'
+      size: 'md'
     },
     {
       title: 'Velvet Dingo Fest',

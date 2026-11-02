@@ -92,6 +92,41 @@ describe('Mosaic tiles layout', () => {
     }
   )
 
+  it.each([
+    ['a desktop', DESKTOP],
+    ['a phone', widths[0]]
+  ])(
+    'mixes sm, md, and lg tiles one row tall, lg across the full row, on %s',
+    async (_, { width, height }) => {
+      await atWidth(width, height)
+      const square = offline(partnerTiles).tiles[1]!
+      render(
+        <Mosaic
+          {...partnerTiles}
+          tiles={[
+            { ...square, size: 'lg' },
+            { ...square, size: 'md' },
+            square,
+            { ...square, size: 'sm' }
+          ]}
+          logoTile={undefined}
+        />
+      )
+
+      const list = document.querySelector('ul')!.getBoundingClientRect()
+      const gap = parseFloat(
+        getComputedStyle(document.querySelector('ul')!).columnGap
+      )
+      const [lg, md, sm] = tiles()
+      expect(lg!.width).toBeCloseTo(list.width, 0)
+      expect(md!.width).toBeCloseTo(sm!.width * 2 + gap, 0)
+      for (const tile of [lg!, md!]) {
+        expect(tile.height).toBeCloseTo(sm!.height, 0)
+      }
+      expect(sm!.height).toBeCloseTo(sm!.width, 0)
+    }
+  )
+
   it('packs a square partner into the gap a wide tile leaves', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     const [featured, square] = offline(partnerTiles).tiles

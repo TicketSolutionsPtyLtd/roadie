@@ -68,15 +68,14 @@ describe('Mosaic', () => {
     expect(within(tile!).getByText(first.description)).toBeInTheDocument()
   })
 
-  it('marks large partners so they span two columns', () => {
-    render(<Mosaic {...partnerTiles} />)
+  it('marks each tile with its size, sm by default', () => {
+    render(<Mosaic {...partnerTiles} logoTile={undefined} />)
 
-    const large = screen
-      .getAllByRole('listitem')
-      .filter((item) => item.getAttribute('data-size') === 'lg')
-    expect(large).toHaveLength(
-      partnerTiles.tiles.filter((partner) => partner.size === 'lg').length
-    )
+    expect(
+      screen
+        .getAllByRole('listitem')
+        .map((item) => item.getAttribute('data-size'))
+    ).toEqual(partnerTiles.tiles.map((tile) => tile.size ?? 'sm'))
   })
 
   it('keeps repeated partners and logos as distinct tiles', () => {
