@@ -571,6 +571,21 @@ function monthEnd(first: string): string {
 
 const ONWARDS = /^(.+) (?:onwards?|and later)$/
 
+const DAY = '(\\d{1,2})(?:st|nd|rd|th)?'
+const DASH = ' ?[-–] ?'
+const YEAR = '((?: \\d{2}| \\d{4})?)'
+const MONTH_DASHED = new RegExp(`^([a-z]+) ${DAY}${DASH}${DAY}${YEAR}$`)
+const DASHED_MONTH = new RegExp(`^${DAY}${DASH}${DAY} ([a-z]+)${YEAR}$`)
+
+/** "oct 22-24" and "22-24 oct" as "22 to 24 oct", or the text as it is. */
+function undashed(input: string): string {
+  let m = MONTH_DASHED.exec(input)
+  if (m && nameIndex(MONTHS, m[1]!)) return `${m[2]} to ${m[3]} ${m[1]}${m[4]}`
+  m = DASHED_MONTH.exec(input)
+  if (m && nameIndex(MONTHS, m[3]!)) return `${m[1]} to ${m[2]} ${m[3]}${m[4]}`
+  return input
+}
+
 /**
  * Each reading of "X to Y" as the days between, in order, or null unless
  * both ends read as days, as "tomorrow to next fri" does.
@@ -581,7 +596,9 @@ function rangesOf(
   options: DatePhraseOptions
 ): { start: string; end: string }[] | null {
   // Split rather than match: a lazy pattern backtracks on many separators.
-  const ends = input.replace(/^(?:between|from) /, '').split(/ (?:and|to) /)
+  const ends = undashed(input.replace(/^(?:between|from) /, '')).split(
+    / (?:and|to) /
+  )
   if (ends.length !== 2) return null
   const range = parseRange(ends[0]!, ends[1]!, today)
   if (range) return [range]
