@@ -35,7 +35,7 @@ export const galleryDefinition = {
       fields: PHOTO_FIELDS,
       itemFields: ['src', 'alt', 'href'],
       limits: ACTIONS,
-      defaults: { align: 'center', ratio: 'portrait' }
+      defaults: { align: 'center', ratio: 'story' }
     },
     {
       name: 'marquee',
@@ -45,7 +45,7 @@ export const galleryDefinition = {
       fields: PHOTO_FIELDS,
       itemFields: ['src', 'alt', 'href'],
       limits: ACTIONS,
-      defaults: { align: 'center', ratio: 'portrait' }
+      defaults: { align: 'center', ratio: 'story' }
     },
     {
       name: 'logos',

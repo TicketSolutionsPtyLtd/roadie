@@ -68,7 +68,7 @@ export type CallToActionProps = {
   image?: BlockImage
   /**
    * The photo's shape on `photo`.
-   * @default 'square'
+   * @default 'portrait'
    */
   ratio?: BlockRatio
   /**
@@ -102,27 +102,35 @@ export type CallToActionProps = {
 }
 
 // Literal class names, so Tailwind finds them. The photo is a quarter of the block, at most
-// 312px wide; from @5xl a square or landscape photo grows to a third, at most 384px, and the
-// copy narrows to half to make room. A portrait stays a quarter, or it would run too tall.
+// 312px wide; from @5xl a square, landscape, or banner photo grows to a third, at most 384px, and the
+// copy narrows to half to make room. A story or portrait photo stays a quarter, or it would run too tall.
 const PHOTO_WIDTH: Record<BlockRatio, string> = {
+  story: 'w-1/3 max-w-78 @xl:w-1/4',
   portrait: 'w-1/3 max-w-78 @xl:w-1/4',
   square: 'w-1/3 max-w-78 @xl:w-1/4 @5xl:w-1/3 @5xl:max-w-96',
-  landscape: 'w-1/3 max-w-78 @xl:w-1/4 @5xl:w-1/3 @5xl:max-w-96'
+  landscape: 'w-1/3 max-w-78 @xl:w-1/4 @5xl:w-1/3 @5xl:max-w-96',
+  banner: 'w-1/3 max-w-78 @xl:w-1/4 @5xl:w-1/3 @5xl:max-w-96'
 }
 
 const COPY_WIDTH: Record<BlockRatio, string> = {
+  story: '@xl:max-w-7/12',
   portrait: '@xl:max-w-7/12',
   square: '@xl:max-w-7/12 @5xl:max-w-1/2',
-  landscape: '@xl:max-w-7/12 @5xl:max-w-1/2'
+  landscape: '@xl:max-w-7/12 @5xl:max-w-1/2',
+  banner: '@xl:max-w-7/12 @5xl:max-w-1/2'
 }
 
 // The photo's height at its width, so the copy keeps the panel tall enough for it.
 const PHOTO_HEIGHT: Record<BlockRatio, string> = {
   portrait:
+    '@xl:min-h-[calc(min(33.3cqw,416px)-9rem)] @7xl:min-h-[calc(min(33.3cqw,416px)-11rem)]',
+  story:
     '@xl:min-h-[calc(min(44.5cqw,555px)-9rem)] @7xl:min-h-[calc(min(44.5cqw,555px)-11rem)]',
   square:
     '@xl:min-h-[calc(min(25cqw,312px)-9rem)] @5xl:min-h-[calc(min(33.3cqw,384px)-9rem)] @7xl:min-h-[calc(min(33.3cqw,384px)-11rem)]',
   landscape:
+    '@xl:min-h-[calc(min(16.7cqw,208px)-9rem)] @5xl:min-h-[calc(min(22.2cqw,256px)-9rem)] @7xl:min-h-[calc(min(22.2cqw,256px)-11rem)]',
+  banner:
     '@xl:min-h-[calc(min(12.5cqw,156px)-9rem)] @5xl:min-h-[calc(min(16.7cqw,192px)-9rem)] @7xl:min-h-[calc(min(16.7cqw,192px)-11rem)]'
 }
 
@@ -134,7 +142,7 @@ export function CallToAction(props: CallToActionProps) {
   const preset = presetOf(callToActionDefinition, block.name)
   const ratio =
     props.ratio ??
-    ('ratio' in preset.defaults ? preset.defaults.ratio : 'square')
+    ('ratio' in preset.defaults ? preset.defaults.ratio : 'portrait')
   const { emphasis } = block
   const centred = block.align === 'center'
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
