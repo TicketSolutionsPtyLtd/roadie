@@ -1,9 +1,11 @@
 import { alternatingRowsDefinition } from '../AlternatingRows/definition'
 import { cardsDefinition } from '../Cards/definition'
 import { heroDefinition } from '../Hero/definition'
+import { mosaicDefinition } from '../Mosaic/definition'
 import { richTextDefinition } from '../RichText/definition'
 import { sideBySideDefinition } from '../SideBySide/definition'
 import { statsDefinition } from '../Stats/definition'
+import { testimonialDefinition } from '../Testimonial/definition'
 import type {
   BlockAlign,
   BlockRatio,
@@ -98,7 +100,9 @@ const DEFINITIONS: readonly BlockDefinition[] = [
   sideBySideDefinition,
   alternatingRowsDefinition,
   cardsDefinition,
-  statsDefinition
+  statsDefinition,
+  testimonialDefinition,
+  mosaicDefinition
 ]
 
 /** Every block and its presets, for a CMS's block picker. Has no React, so it runs on a server or in a Studio config. */
