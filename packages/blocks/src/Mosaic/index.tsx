@@ -106,10 +106,10 @@ const STACKED = 'col-start-1 row-start-1'
 const SQUARE = 'pt-[100%]'
 const WIDE = 'col-span-2'
 const HALF_HEIGHT = 'pt-[calc(50%-var(--tile-gap)/2)]'
-// A full-row tile shares the grid's columns, so a square in its first column
-// sets its height to one row's, however many columns the grid fits.
-const FULL = 'col-span-full grid-cols-subgrid'
-const ACROSS = 'col-span-full row-start-1'
+const FULL = 'col-span-full'
+// One column's width, as a share of the full row less its gaps, so the tile is one row tall.
+const ROW_HEIGHT =
+  'pt-[calc(50%-var(--tile-gap)/2)] @3xl:pt-[calc(25%-var(--tile-gap)*3/4)]'
 
 const SIZE: Record<
   MosaicTileSize,
@@ -128,8 +128,8 @@ const SIZE: Record<
   },
   lg: {
     tile: FULL,
-    sizer: cn(STACKED, SQUARE),
-    content: ACROSS,
+    sizer: cn(STACKED, ROW_HEIGHT),
+    content: STACKED,
     sizes: '100vw'
   }
 }
