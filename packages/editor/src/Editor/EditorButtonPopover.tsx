@@ -21,6 +21,7 @@ import { selectedNodeType } from './EditorNodeToolbar'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { buttonBlock, insertBlock } from './emailEditing'
 import { focusEditor } from './focusEditor'
+import { type LiveEdit, useLiveEdit } from './useLiveEdit'
 
 type ButtonFormProps = {
   editor: TiptapEditor
@@ -144,7 +145,11 @@ const ALIGNS: readonly Choice<ButtonAlign>[] = [
   { value: 'right', label: 'Right' }
 ]
 
-type SettingsFormProps = ButtonFormProps & { href: string; look: ButtonLook }
+type SettingsFormProps = Omit<ButtonFormProps, 'editor'> & {
+  apply: LiveEdit['apply']
+  href: string
+  look: ButtonLook
+}
 
 // Undefined clears an attr, so the button saves only what isn't the default.
 const lookAttrs = ({ emphasis, fullWidth, align }: ButtonLook) => ({
@@ -155,10 +160,10 @@ const lookAttrs = ({ emphasis, fullWidth, align }: ButtonLook) => ({
 
 /** Applies each change as it's made: a choice at once, a link once it's whole. */
 function ButtonSettingsForm({
-  editor,
   inputRef,
   href,
   look: saved,
+  apply: applyLive,
   onDone
 }: SettingsFormProps) {
   const [typed, setTyped] = useState(href)
@@ -167,7 +172,7 @@ function ButtonSettingsForm({
 
   // The popover keeps focus, so the editor's selection stays on the button.
   const apply = (attrs: Record<string, unknown>) =>
-    editor.chain().updateAttributes('button', attrs).run()
+    applyLive((chain) => chain.updateAttributes('button', attrs))
 
   const changeLook = (change: ButtonLook) => {
     const next = { ...look, ...change }
@@ -247,7 +252,12 @@ function ButtonSettingsForm({
   )
 }
 
-function ButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
+function ButtonForm({
+  editor,
+  inputRef,
+  apply,
+  onDone
+}: ButtonFormProps & { apply: LiveEdit['apply'] }) {
   // Read as the form opens: the editor is mutable, so the React Compiler
   // would cache a read during render by the editor alone.
   const [current] = useState(() => {
@@ -261,10 +271,10 @@ function ButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
   }
   return (
     <ButtonSettingsForm
-      editor={editor}
       inputRef={inputRef}
       href={current.href}
       look={current.look}
+      apply={apply}
       onDone={onDone}
     />
   )
@@ -278,7 +288,7 @@ type EditorButtonPopoverProps = {
 
 /**
  * Adds a button from its link, or edits the selected button's link, style,
- * width and alignment.
+ * width and alignment. Escape puts an edited button back as it was.
  */
 export function EditorButtonPopover({
   editor,
@@ -286,6 +296,7 @@ export function EditorButtonPopover({
   onOpenChange
 }: EditorButtonPopoverProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const live = useLiveEdit(editor, open, onOpenChange)
   if (!editor) return null
   const editing = selectedNodeType(editor.state) === 'button'
   const { from, to } = editor.state.selection
@@ -299,11 +310,12 @@ export function EditorButtonPopover({
       key={editing ? `edit-${from}` : 'add'}
       editor={editor}
       inputRef={inputRef}
+      apply={live.apply}
       onDone={() => onOpenChange(false)}
     />
   )
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
+    <Popover open={open} onOpenChange={live.onOpenChange}>
       <Popover.Content
         side='bottom'
         align='start'
