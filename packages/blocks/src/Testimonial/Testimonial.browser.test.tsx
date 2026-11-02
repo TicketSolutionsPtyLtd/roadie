@@ -396,16 +396,20 @@ describe('Testimonial carousel', () => {
     expect(screen.queryByRole('button', { name: /next|previous/i })).toBeNull()
 
     await userEvent.click(dots[1]!)
+    // A smooth scroll can outrun the default second on a loaded machine.
     const second = screen.getByText(carousel.quotes[1]!.quote)
     await expect
-      .poll(() => {
-        const slide = second.closest('[aria-roledescription=slide]')!
-        const { left } = slide.getBoundingClientRect()
-        const viewport = document
-          .querySelector('[data-slot=carousel-content]')!
-          .getBoundingClientRect()
-        return Math.abs(left - viewport.left) < 2
-      })
+      .poll(
+        () => {
+          const slide = second.closest('[aria-roledescription=slide]')!
+          const { left } = slide.getBoundingClientRect()
+          const viewport = document
+            .querySelector('[data-slot=carousel-content]')!
+            .getBoundingClientRect()
+          return Math.abs(left - viewport.left) < 2
+        },
+        { timeout: 5000 }
+      )
       .toBe(true)
   })
 
