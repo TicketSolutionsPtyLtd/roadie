@@ -53,10 +53,10 @@ export function DeviceFrame({
   device,
   example
 }: {
-  device: Exclude<Device, 'desktop'>
+  device: Device
   example: Omit<FrameExample, 'root'>
 }) {
-  const width = deviceWidth(device)!
+  const width = deviceWidth(device)
   const frameRef = useRef<HTMLIFrameElement>(null)
   const boxRef = useRef<HTMLDivElement>(null)
   // Counts the frame's ready messages, so a frame that reloads gets the example again.

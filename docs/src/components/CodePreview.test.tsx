@@ -8,12 +8,20 @@ import { Toast } from '@oztix/roadie-components/toast'
 
 import { CodePreview } from './CodePreview'
 import type { LiveRunnerProps } from './LiveRunner'
+import type { Device } from './exampleDevices'
 
 const runner = vi.hoisted(() => ({
   loads: 0,
   failFirst: 0,
   props: undefined as LiveRunnerProps | undefined,
   holdMount: false
+}))
+
+const screenDevice = vi.hoisted(() => ({ current: 'desktop' as Device }))
+
+vi.mock('./exampleDevices', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./exampleDevices')>()),
+  useViewportDevice: () => screenDevice.current
 }))
 
 vi.mock('./LiveRunner', () => {
@@ -36,6 +44,7 @@ afterEach(() => {
   runner.failFirst = 0
   runner.props = undefined
   runner.holdMount = false
+  screenDevice.current = 'desktop'
   Object.defineProperty(navigator, 'clipboard', {
     value: undefined,
     configurable: true
@@ -127,7 +136,7 @@ describe('CodePreview', () => {
         .getByRole('button', { name: 'Desktop' })
         .getAttribute('aria-pressed')
     ).toBe('true')
-    expect(runner.props?.device).toBe('desktop')
+    expect(runner.props?.frameDevice).toBeUndefined()
   })
 
   it('previews the example at the width picked', async () => {
@@ -140,10 +149,33 @@ describe('CodePreview', () => {
 
     act(() => fireEvent.click(screen.getByRole('button', { name: 'Phone' })))
 
-    expect(runner.props?.device).toBe('phone')
+    expect(runner.props?.frameDevice).toBe('phone')
     expect(
       screen.getByRole('button', { name: 'Phone' }).getAttribute('aria-pressed')
     ).toBe('true')
+
+    act(() => fireEvent.click(screen.getByRole('button', { name: 'Desktop' })))
+
+    expect(runner.props?.frameDevice).toBeUndefined()
+  })
+
+  it('starts on the device the screen matches, and frames a wider one at its own width', async () => {
+    screenDevice.current = 'phone'
+    renderWithToasts(
+      <CodePreview language='tsx-live' eager>
+        {'<Badge>New</Badge>'}
+      </CodePreview>
+    )
+    await screen.findByText('Example rendered')
+
+    expect(
+      screen.getByRole('button', { name: 'Phone' }).getAttribute('aria-pressed')
+    ).toBe('true')
+    expect(runner.props?.frameDevice).toBeUndefined()
+
+    act(() => fireEvent.click(screen.getByRole('button', { name: 'Desktop' })))
+
+    expect(runner.props?.frameDevice).toBe('desktop')
   })
 
   it('opens the full-width view from the header of an expandable example', async () => {

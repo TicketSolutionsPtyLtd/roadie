@@ -182,8 +182,7 @@ export function ExampleHeader({
   return (
     <div
       data-not-prose
-      // A phone already shows the example at its own width, so only the link is left for it.
-      className={`flex items-center gap-2 border-b border-subtle bg-normal p-2 ${exampleHref ? '' : 'max-md:hidden'}`}
+      className='flex items-center gap-2 border-b border-subtle bg-normal p-2'
     >
       <ToggleGroup
         aria-label='Preview width'
@@ -191,7 +190,6 @@ export function ExampleHeader({
         emphasis='subtler'
         value={[device]}
         onValueChange={([next]) => next && onDeviceChange(next)}
-        className='max-md:hidden'
       >
         {DEVICES.map(({ value, label }) => {
           const Icon = DEVICE_ICONS[value]

@@ -359,6 +359,34 @@ describe('live examples', () => {
     await page.context().close()
   }, 60_000)
 
+  it('start on Phone on a phone, and show Desktop at desktop width, shrunk to fit', async () => {
+    const { page, errors } = await open('/components/badge/', 390)
+    await page.locator('[data-live-example=rendered]').first().waitFor()
+    const phone = page.getByRole('button', { name: 'Phone' }).first()
+    expect(await phone.getAttribute('aria-pressed')).toBe('true')
+
+    await page.getByRole('button', { name: 'Desktop' }).first().click()
+    const iframe = page.locator('iframe[title="Example at desktop width"]')
+    await page
+      .frameLocator('iframe[title="Example at desktop width"]')
+      .getByText('Badge')
+      .first()
+      .waitFor()
+
+    const { frame, column, inner } = await iframe.evaluate(
+      (element: HTMLIFrameElement) => ({
+        frame: element.getBoundingClientRect().width,
+        column: element.parentElement!.getBoundingClientRect().width,
+        inner: element.contentWindow!.innerWidth
+      })
+    )
+    expect(inner).toBe(1280)
+    expect(frame).toBeLessThanOrEqual(column + 1)
+    expect(await sideways(page)).toBe(false)
+    expect(errors).toEqual([])
+    await page.context().close()
+  }, 60_000)
+
   it('link each example to its own page', async () => {
     const { page } = await open('/components/badge/', 1280)
     const link = page

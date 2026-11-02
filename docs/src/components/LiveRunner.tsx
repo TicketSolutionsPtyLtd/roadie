@@ -259,7 +259,7 @@ function LiveDeviceFrame({
   previewLayout,
   onMounted
 }: {
-  device: Exclude<Device, 'desktop'>
+  device: Device
   language: string
   previewLayout?: string
   onMounted?: () => void
@@ -282,13 +282,13 @@ function LiveDeviceFrame({
 function FullWidthPreview({
   open,
   onOpenChange,
-  device,
+  frameDevice,
   language,
   previewLayout
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  device: Device
+  frameDevice?: Device
   language: string
   previewLayout?: string
 }) {
@@ -307,15 +307,15 @@ function FullWidthPreview({
             }
           />
         </div>
-        {device === 'desktop' ? (
-          <LivePreview
-            className={`min-w-0 font-sans whitespace-normal ${previewLayout ?? ''}`}
-          />
-        ) : (
+        {frameDevice ? (
           <LiveDeviceFrame
-            device={device}
+            device={frameDevice}
             language={language}
             previewLayout={previewLayout}
+          />
+        ) : (
+          <LivePreview
+            className={`min-w-0 font-sans whitespace-normal ${previewLayout ?? ''}`}
           />
         )}
       </Dialog.Content>
@@ -402,8 +402,8 @@ export type LiveRunnerProps = {
   isolated?: boolean
   /** Classes the preview lays the example out with, from the fence's `layout=`, `gap=`, and `width=`. */
   previewLayout?: string
-  /** The width the header's switch picked; anything but desktop runs the example in a frame. */
-  device?: Device
+  /** A device other than the reader's own screen, picked in the header; the example runs in a frame at its width. */
+  frameDevice?: Device
   /** Whether the full-width dialog is open, from the header's Full width button. */
   fullWidth?: boolean
   onFullWidthChange?: (fullWidth: boolean) => void
@@ -419,7 +419,7 @@ export default function LiveRunner({
   onMounted,
   isolated = false,
   previewLayout,
-  device = 'desktop',
+  frameDevice,
   fullWidth = false,
   onFullWidthChange = () => {}
 }: LiveRunnerProps) {
@@ -448,12 +448,12 @@ export default function LiveRunner({
         <FullWidthPreview
           open={fullWidth}
           onOpenChange={onFullWidthChange}
-          device={device}
+          frameDevice={frameDevice}
           language={language}
           previewLayout={previewLayout}
         />
       )}
-      {device === 'desktop' || isolated ? (
+      {!frameDevice || isolated ? (
         <Preview
           heightKey={isolated ? `${heightKey}#isolated` : heightKey}
           isolated={isolated}
@@ -471,7 +471,7 @@ export default function LiveRunner({
         />
       ) : (
         <LiveDeviceFrame
-          device={device}
+          device={frameDevice}
           language={language}
           previewLayout={previewLayout}
           onMounted={onMounted}

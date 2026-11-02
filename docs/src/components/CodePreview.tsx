@@ -16,7 +16,7 @@ import {
   highlightLanguageOf,
   useCodeTheme
 } from './codeChrome'
-import type { Device } from './exampleDevices'
+import { type Device, useViewportDevice } from './exampleDevices'
 import {
   DEFAULT_PREVIEW_HEIGHT,
   exampleHeights,
@@ -113,7 +113,10 @@ function LiveExample({
   )
   const [expanded, setExpanded] = useState(false)
   const [editorOpened, setEditorOpened] = useState(false)
-  const [device, setDevice] = useState<Device>('desktop')
+  const viewportDevice = useViewportDevice()
+  // Unpicked, the switch follows the screen, so a phone starts on Phone.
+  const [picked, setPicked] = useState<Device>()
+  const device = picked ?? viewportDevice
   const [fullWidth, setFullWidth] = useState(false)
   const [rendered, setRendered] = useState(false)
   const onRendered = useCallback(() => {
@@ -143,7 +146,7 @@ function LiveExample({
     >
       <ExampleHeader
         device={device}
-        onDeviceChange={setDevice}
+        onDeviceChange={setPicked}
         exampleHref={exampleHref}
         fullWidth={
           expandable && (
@@ -172,7 +175,7 @@ function LiveExample({
           editorOpened={editorOpened}
           onMounted={onRendered}
           previewLayout={previewLayout}
-          device={device}
+          frameDevice={device === viewportDevice ? undefined : device}
           fullWidth={fullWidth}
           onFullWidthChange={setFullWidth}
         />
