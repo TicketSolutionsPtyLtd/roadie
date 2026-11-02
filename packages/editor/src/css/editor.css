@@ -51,6 +51,52 @@
   }
 }
 
+/* An email spaces every block alike, 8px above and below, so the page does
+   too, in place of Prose's article rhythm. A heading is the size the email
+   writes it. Unlayered, over Prose's components layer. */
+[data-email] > *,
+[data-email] :is([data-type='section'], [data-type='column']) > * {
+  margin-block: 0;
+}
+
+[data-email] > * + *,
+[data-email] :is([data-type='section'], [data-type='column']) > * + * {
+  margin-block-start: calc(var(--spacing) * 4);
+}
+
+[data-email] h2 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+[data-email] h3 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+[data-email] h4 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+[data-email] [data-type='spacer'] {
+  outline-color: var(--intent-border-subtle);
+}
+
+/* A section or a column shows where it is under the pointer or the caret,
+   as an outline, so it takes no room from the email's spacing. */
+[data-email] :is([data-type='section'], [data-type='column']) {
+  outline: 1px dashed transparent;
+  outline-offset: calc(var(--spacing) * 1);
+  transition: outline-color var(--duration-normal);
+}
+
+[data-email] :is([data-type='section'], [data-type='column']):hover,
+[data-email]
+  :is([data-type='section'], [data-type='column']):has([data-focused-block]) {
+  outline-color: var(--intent-border-normal);
+}
+
 /* A boxed editor isn't a text field, so it keeps only the field's invalid
    edge and fill. */
 [data-slot='editor'][aria-invalid='true']:not([data-emphasis='subtler']) {

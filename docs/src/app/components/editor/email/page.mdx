@@ -24,8 +24,10 @@ states, and forms, which work the same in each preset.
 ### Default
 
 `preset='email'` is for composing an email. Its content sits in a canvas at
-most 600 pixels wide, an email's width, with each section and column
-outlined. Columns sit side by side from 480 pixels and stack below that, as
+most 600 pixels wide, an email's width, spaced as the email will be: 16
+pixels between blocks, and 16 above and below a section. A section or a
+column shows a dashed outline under the pointer or the caret, drawn outside
+it so it takes no room. Columns sit side by side from 480 pixels and stack below that, as
 they do on a phone. It holds the text blocks of the rich preset, without
 quotes, and an email's own blocks: sections, two to four columns, images,
 buttons, spacers, and dividers.
@@ -151,7 +153,7 @@ variables, the unsubscribe page and the email in a browser.
 A grip and an add button show at the start of the block under the pointer,
 or of the block with the caret while the editor has focus. Each block in a
 section or column has its own, and so does a whole section or row of
-columns: point at its outline to show it. A single column has none, as its
+columns: point at its edge to show it. A single column has none, as its
 menu sets how many columns there are.
 
 - **Drag the grip** to move the block. It lands in the section or column
