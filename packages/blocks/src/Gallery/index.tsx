@@ -38,7 +38,7 @@ type TileRatio = BlockRatio | 'natural'
 
 export type GalleryProps = {
   /**
-   * `carousel` steps through the photos with previous and next controls or a swipe, `marquee` scrolls them past, and `logos` sets logos uncropped in a wrapping, centred row.
+   * `carousel` steps through the photos with previous, dot, and next controls under them, or a swipe, `marquee` scrolls them past, and `logos` sets logos uncropped in a wrapping, centred row.
    * @default 'carousel'
    */
   preset?: GalleryPreset
@@ -70,7 +70,7 @@ export type GalleryProps = {
   /** Draws the surface inside the page's padding, rounded at every width, instead of as a full-width band. */
   contained?: boolean
   /**
-   * Where the heading and actions line up: `start` for `carousel`, beside its controls, and `center` for `marquee` and `logos`.
+   * Where the heading and actions line up: `start` for `carousel`, and `center` for `marquee` and `logos`.
    */
   align?: BlockAlign
   /**
@@ -140,15 +140,8 @@ export function Gallery(props: GalleryProps) {
           contained={block.contained}
           className={cn('grid min-w-0 grid-cols-1', gap)}
         >
-          <Carousel className='min-w-0'>
-            {/* The heading takes the row, and the controls sit at its foot, just above the photos they move. */}
-            <Carousel.Header className='md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end'>
-              <Carousel.Title id={headingId} render={() => heading} />
-              <Carousel.Controls>
-                <Carousel.Previous />
-                <Carousel.Next />
-              </Carousel.Controls>
-            </Carousel.Header>
+          <Carousel className={cn('grid min-w-0 grid-cols-1', gap)}>
+            <Carousel.Title id={headingId} render={() => heading} />
             {/* On a surface the photos run to its edges, padded to start in line
                 with the heading, and clip there rather than fade to the page. */}
             <Carousel.Content
@@ -161,6 +154,12 @@ export function Gallery(props: GalleryProps) {
                 </Carousel.Item>
               ))}
             </Carousel.Content>
+            {/* Under the photos they move, so the heading keeps its full width. */}
+            <Carousel.Controls className='flex gap-4 justify-self-center'>
+              <Carousel.Previous />
+              <Carousel.Dots />
+              <Carousel.Next />
+            </Carousel.Controls>
           </Carousel>
           {blockActions}
         </BlockSurface>
