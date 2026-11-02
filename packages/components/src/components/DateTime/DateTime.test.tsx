@@ -522,9 +522,17 @@ describe('DateTime on a prerendering server', () => {
     expect(container.textContent).toBe('Thu 27 Nov 2025')
   })
 
-  // Engines ship different CLDR data: Node, Chromium, and Firefox abbreviate
-  // September in en-AU as 'Sept', WebKit as 'Sep'.
+  // Engines' locale data differs (en-AU September: Node 'Sept', WebKit 'Sep').
   const september = new Date('2026-09-25T09:30:00Z')
+  const respell = (html: string) =>
+    html.replace(
+      />([^<]+)</g,
+      (_, text: string) =>
+        `>${text
+          .replace('Sept', 'Sep')
+          .replace(/(am|pm)\b/, (period) => period.toUpperCase())
+          .replace('Fri', 'Fri.')}<`
+    )
   it.each([
     ['a date', <DateTime key='a' at={september} timeZone={BNE} />],
     [
@@ -569,19 +577,23 @@ describe('DateTime on a prerendering server', () => {
         stacked
       />
     ]
-  ])(
-    'hydrates %s whose server spelled the month differently',
-    async (_, element) => {
-      const { container, onRecoverableError } = await hydrateWithoutClock(
-        element,
-        (html) => html.replaceAll('Sept', 'Sep')
+  ])('hydrates %s whose server worded it differently', async (_, element) => {
+    const { container, serverHtml, onRecoverableError } =
+      await hydrateWithoutClock(element, respell)
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(container.innerHTML).toBe(serverHtml)
+  })
+
+  it('drops this year from a respelled standalone date in the client words', async () => {
+    const { container, serverHtml, onRecoverableError } =
+      await hydrateWithoutClock(
+        <DateTime at={september} timeZone={BNE} context='standalone' />,
+        respell
       )
-      expect(onRecoverableError).not.toHaveBeenCalled()
-      // The server's words stay until the text has a reason to change.
-      expect(container.textContent).toMatch(/\bSep\b/)
-      expect(container.textContent).not.toContain('Sept')
-    }
-  )
+    expect(serverHtml).toContain('Fri. 25 Sep 2026')
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(container.textContent).toBe('Fri 25 Sept')
+  })
 
   it('renders a standalone date on the client without the year at once', () => {
     render(<DateTime at={at} timeZone={BNE} context='standalone' />)

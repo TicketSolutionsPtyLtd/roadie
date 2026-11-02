@@ -51,5 +51,6 @@ To find which text differs, record each element's own text at
 
 ## Prevention
 
-- The `DateTime` unit tests hydrate server HTML with the month respelled.
+- The `DateTime` unit tests hydrate server HTML with the month, day period,
+  and weekday respelled, which reaches every element holding formatted text.
 - CI runs docs e2e in WebKit and Firefox on `main` and with `full-browsers`.
