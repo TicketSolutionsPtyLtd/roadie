@@ -194,6 +194,7 @@ describe('Stats layout', () => {
         stats={[
           { value: '33,000,000+', label: 'tickets sold' },
           { value: '7 million+', label: 'fans each year' },
+          { value: '4.9 out of 5', label: 'support rating' },
           {
             value: 'Service company of the year 2025',
             label: 'Australian Event Awards',
@@ -211,6 +212,7 @@ describe('Stats layout', () => {
     const size = (text: string) =>
       parseFloat(getComputedStyle(value(text)).fontSize)
     expect(size('7 million+')).toBe(size('33,000,000+'))
+    expect(size('4.9 out of 5')).toBe(size('33,000,000+'))
     expect(size('Service company of the year 2025')).toBeLessThan(
       size('33,000,000+')
     )
