@@ -58,6 +58,12 @@ closes the grid with the remaining logos, under its `title` if it has one.
       image: { src: '/brand/photography/03.webp', alt: '', width: 800, height: 800 }
     },
     {
+      title: 'Kazoo Hollow Room',
+      description: 'Ticketing partner',
+      logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 214, height: 48 },
+      image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 }
+    },
+    {
       title: 'Apricot Cyclone Fest',
       description: 'Major partner',
       logo: { src: '/blocks/apricot-cyclone-fest.svg', alt: 'Apricot Cyclone Fest logo', width: 214, height: 48 },
@@ -65,16 +71,20 @@ closes the grid with the remaining logos, under its `title` if it has one.
       size: 'md'
     },
     {
-      title: 'Kazoo Hollow Room',
-      description: 'Ticketing partner',
-      logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 214, height: 48 },
-      image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 }
-    },
-    {
       title: 'Doodlebug Anvil Productions',
       description: 'Supporter',
       logo: { src: '/blocks/doodlebug-anvil-productions.svg', alt: 'Doodlebug Anvil Productions logo', width: 216, height: 50 },
       image: { src: '/brand/photography/08.webp', alt: '', width: 800, height: 800 }
+    },
+    {
+      title: 'Echidna Gaslight Theatre',
+      description: 'Venue partner',
+      image: { src: '/brand/photography/05.webp', alt: '', width: 800, height: 800 }
+    },
+    {
+      title: 'Velcro Pelican Productions',
+      description: 'Supporter',
+      image: { src: '/brand/photography/09.webp', alt: '', width: 800, height: 800 }
     }
   ]}
   logoTile={{
@@ -184,6 +194,17 @@ photo easing larger on hover; tiles without one stay still.
   </Guideline.Do>
   <Guideline.Dont>
     Don't open with a slogan the logos have to explain.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Fill every row'>
+  <Guideline.Do>
+    Count an `sm` tile as one column, an `md` tile and the `logoTile` as two,
+    and an `lg` tile as a whole row, and make the rest add up to a multiple of
+    four. Four columns fit on a wide screen, and two on a phone.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't leave the last row short; the gap reads as a missing tile.
   </Guideline.Dont>
 </Guideline>
 
