@@ -1,0 +1,205 @@
+export const metadata = {
+  title: 'Rich text',
+  description:
+    'A short statement between busier sections, or an article or policy',
+  status: 'alpha',
+  wideExamples: true,
+  category: 'Explain'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+A title and rich text: a short statement between busier sections, or an
+article or policy.
+
+## Import
+
+```tsx
+import { RichText } from '@oztix/roadie-blocks/rich-text'
+```
+
+## Examples
+
+### Statement
+
+A centred illustration, title, and a few large paragraphs, with generous
+space around them. `illustration` picks any
+[spot illustration](/components/spot-illustration) by name, `Heart` by default.
+
+```tsx-live-expand id=statement
+<RichText
+  preset='statement'
+  title='We’re Australian-owned, Australian-hosted, and operate 7 days a week nationwide.'
+  body={
+    <>
+      <p>
+        As Australia’s largest independent ticketing company, our mission for
+        20+ years remains the same: to create thriving events and communities
+        through genuine partnerships that focus on your goals.
+      </p>
+      <p>
+        Our clients range from national brands and independent operators to
+        corporate, government, and not-for-profit organisers.
+      </p>
+    </>
+  }
+/>
+```
+
+### Long form
+
+Long-form text set in `Prose` at a reading width. The title is optional.
+Under a title, the body's headings start at `h3`; with no title, they start
+at `h2`, so no level is skipped after the page's `h1`.
+
+```tsx-live id=long-form
+<RichText
+  preset='long-form'
+  title='How refunds work'
+  body={
+    <>
+      <p>
+        When an event is cancelled, every ticket is refunded to the card it
+        was bought with, within 10 business days.
+      </p>
+      <h3>Booking fees</h3>
+      <p>
+        Booking fees come back too. If the event is postponed, tickets carry
+        over to the new date, and anyone who can't make it can ask for a
+        refund.
+      </p>
+    </>
+  }
+/>
+```
+
+### Intent and emphasis
+
+`intent` colours the highlighted words and the strong action in both
+presets. `emphasis`, `subtle`, `subtler`, `normal`, or `raised`, sets the block on a
+band that runs the full width and rounds once the block is wide. A statement
+keeps its space inside the band.
+
+```tsx-live-expand id=intent-and-emphasis
+<RichText
+  preset='statement'
+  intent='brand'
+  emphasis='subtle'
+  title='We’re Australian-owned, Australian-hosted, and operate 7 days a week nationwide.'
+  highlight='Australian-owned'
+  body={
+    <p>
+      Our team answers every call from an Australian office, whatever time
+      your gates open.
+    </p>
+  }
+  actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+/>
+```
+
+```tsx-live id=intent-and-emphasis-long-form
+<RichText
+  preset='long-form'
+  intent='info'
+  title='How refunds work'
+  highlight='refunds'
+  body={
+    <p>
+      When an event is cancelled, every ticket is refunded to the card it was
+      bought with, within 10 business days.
+    </p>
+  }
+  actions={[{ label: 'Read the refund policy', href: '/refunds' }]}
+/>
+```
+
+### Contained, align, and size
+
+`contained` draws the surface as a rounded panel inside the page padding instead
+of a band. `align` sets the heading and text: a statement centres by
+default and long form starts. `size='md'` or `'sm'` sets the title one or two steps smaller, with
+smaller body text and tighter gaps. Only a statement takes an `illustration`.
+
+```tsx-live-expand id=contained-align-and-size
+<RichText
+  preset='statement'
+  emphasis='normal'
+  contained
+  align='start'
+  size='md'
+  illustration='HighFive'
+  title='Every event gets a real person to call.'
+  body={
+    <p>
+      Your account manager knows your event, and our support team answers
+      seven days a week.
+    </p>
+  }
+  actions={[{ label: 'Meet the team', href: '/about' }]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Open with the sentence that answers the reader’s question, such as what
+    Oztix is.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Lead with the story behind the answer.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep a statement short'>
+  <Guideline.Do>
+    Give a statement one title and two or three paragraphs.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Run a statement long. Longer text is long form.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Start body headings one level below the title'>
+  <Guideline.Do>
+    Start the body’s headings at `h3` under the block’s `h2` title, or at
+    `h2` when the block has no title.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Put an `h1` in the body, or skip a level, such as an `h3` straight after
+    the page’s `h1`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Band a statement to set it apart'>
+  <Guideline.Do>
+    Put a statement on a `subtle` or `raised` band when it sits between
+    blocks that are plain too, so it reads as its own moment.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Band every statement, or change its intent for variety rather than for a
+    section’s colour.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pass rendered text'>
+  <Guideline.Do>
+    Pass `body` already rendered, such as Portable Text from the CMS. The block
+    sets it in `Prose`.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Style the body’s text yourself. Prose sets it.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Reports a view when half the block is on screen, and a click on each link in
+the body or action.
+
+<PropsDefinitions component='RichText' />

@@ -1,3 +1,5 @@
+import { heroDefinition } from '../Hero/definition'
+import { richTextDefinition } from '../RichText/definition'
 import type {
   BlockAlign,
   BlockRatio,
@@ -86,7 +88,10 @@ function entry(definition: BlockDefinition): CatalogueBlock {
   }
 }
 
-const DEFINITIONS: readonly BlockDefinition[] = []
+const DEFINITIONS: readonly BlockDefinition[] = [
+  heroDefinition,
+  richTextDefinition
+]
 
 /** Every block and its presets, for a CMS's block picker. Has no React, so it runs on a server or in a Studio config. */
 export const catalogue: readonly CatalogueBlock[] = DEFINITIONS.map(entry)
