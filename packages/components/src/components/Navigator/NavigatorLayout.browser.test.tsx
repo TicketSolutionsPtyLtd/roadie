@@ -420,7 +420,6 @@ describe('the generated list pane', () => {
   const widthOf = (selector: string) =>
     document.querySelector(selector)!.getBoundingClientRect().width
 
-  // Its rows hold a label and a badge, so it stays slimmer than a list of records.
   it('stops at 18rem beside a detail, where a declared list takes 24rem', async () => {
     render(withStubLink(<Docs />), { container: frame(1400) })
     await frames(4)
