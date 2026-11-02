@@ -1,0 +1,205 @@
+export const metadata = {
+  title: 'Blocks',
+  description:
+    'Designed page sections composed into pages, from code or any CMS',
+  status: 'alpha'
+}
+
+import { CatalogueIndex } from '@/components/CatalogueIndex'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Designed page sections composed into pages, from code or any CMS.
+
+<CatalogueIndex name='blocks' />
+
+## What a block is
+
+A block is a whole part of a page, such as a hero, a set of cards, or a call
+to action, with its own fields. It isn't a Portable Text block, which is a
+paragraph, heading, or list item inside a rich text field, and it isn't a
+shadcn block, which is code to copy. A block's `body` takes rich text already
+rendered, so the package never sees Portable Text.
+
+Blocks sit in four groups, in the order a page uses them: **Open** with a
+Hero, **Explain** what's on offer, **Prove** it, and **Close** with a Call to
+action.
+
+## Setup
+
+Blocks ship from `@oztix/roadie-blocks`, one subpath per block.
+Import its stylesheet after the components' stylesheet:
+
+```css
+@import '@oztix/roadie-core/css';
+@import '@oztix/roadie-components/css';
+@import '@oztix/roadie-blocks/css';
+```
+
+Blocks take plain props, such as strings, `{ src, alt }` images, and
+`{ label, href }` actions, so a CMS maps its content onto them. The package
+knows nothing about any CMS. Rich text arrives already rendered, as a
+`body` or an FAQ `answer`, and the block sets it in `Prose`.
+
+## Presets
+
+Editors pick a named `preset` rather than setting options. A preset fills in
+the layout and the surface, so pages stay consistent however many people add to them. The
+[shared props](#shared-props) adjust colour, surface, and scale within it. A
+new look is a new preset, raised as a block request, not a prop.
+
+The first action in a block is the strong one and the rest are normal, so a
+button's emphasis is never an option either.
+
+`@oztix/roadie-blocks/catalogue` lists every block, with its group,
+thumbnail, and presets. Each preset lists the props it reads as `fields`, its
+item counts as `limits`, and its `defaults`. The catalogue has no React and no
+CMS types, so code, a Sanity Studio, or another CMS can read it. A Studio
+builds its picker groups from `groups`, hides each field a preset doesn't
+list, and warns on counts outside a limit:
+
+```ts
+import { catalogue } from '@oztix/roadie-blocks/catalogue'
+
+const cards = catalogue.find((block) => block.name === 'cards')
+const steps = cards?.presets.find((preset) => preset.name === 'steps')
+console.log(steps?.fields, steps?.limits)
+```
+
+A block's name, its props, and its preset names are the names to store, so a
+CMS's type name is the block's `name`, its field names are the props, and its
+stored options are the prop values. The site passes a block's data straight
+in, with nothing to map.
+
+## Shared props
+
+Every block takes the same props for colour, surface, and scale where they
+apply, with the same values, so a page reads as one design. A preset sets their defaults, so a
+page looks right without any of them.
+
+| Prop | Values | Sets |
+| --- | --- | --- |
+| `intent` | Roadie's intents | Highlighted words, marks, tints, and the strong action |
+| `emphasis` | `subtler`, `subtle`, `normal`, `raised` | The surface behind the block. A Call to action adds `strong` and `inverted` |
+| `contained` | `true` or `false` | The surface as a panel inside the page padding, not a full-width band |
+| `itemEmphasis` | `subtler`, `subtle`, `normal`, `raised` | Every card's, row's, or question's surface, in Cards, Alternating rows, and FAQ. FAQ has no `raised` |
+| `align` | `start`, `center` | Where the heading and text line up |
+| `size` | `sm`, `md`, `lg` | Each step down from `lg` sets the title a step smaller, with smaller descriptions and body text, tighter spacing, and a smaller share of the width for media. It never changes colour or an image's shape |
+| `ratio` | `portrait` (9:16), `square`, `landscape` (2:1) | An image's shape, where a block lets you choose it. Every cropped photo is one of these three, logos and the Hero's Image photo keep their own shape, and video is 16:9 |
+| `actions` | `{ label, href, icon }` links | Buttons under the content; the first is the strong one |
+
+Each item can take its own `intent`. A Hero opens the page, so it takes no
+surface. One image is always `image` and many are `images`, wherever the
+preset puts them.
+
+## Interaction
+
+A card or tile with an `href` links from its title, and the whole card is the
+hit area, with Roadie's hover and focus states. One without an `href` has
+none. Sections, panels, and figures are never interactive.
+
+## Thumbnails
+
+Each preset has a wireframe in the package's `thumbnails` folder, and the
+catalogue gives its file name as `thumbnail`. Each block's own `thumbnail`
+is its first preset's, for a picker that shows one image per block. A Studio
+serves them as
+static files: copy
+`node_modules/@oztix/roadie-blocks/src/thumbnails/` into its
+`static/blocks/` folder at build, then point the insert menu's
+`previewImageUrl` at `/static/blocks/<thumbnail>`. Wireframes read the Roadie
+colour variables when they're inline, and fall back to light-mode colours as
+an image.
+
+## Tracking
+
+Wrap the site in `BlocksProvider` and pass `onBlockEvent`. Every block
+reports a `view` once: when half of it is on screen, or, for a block too tall
+for that, when it reaches the middle of the screen. It reports a `click` for
+each link or button inside it. Each event names the block and its
+preset, its `position` on the page, and its `id` when it has one, and a click
+adds the control's label and href. A provider inside another keeps whatever it
+doesn't set, such as the outer `onBlockEvent`.
+
+```tsx
+'use client'
+
+import { BlocksProvider } from '@oztix/roadie-blocks/provider'
+import { usePostHog } from 'posthog-js/react'
+
+export function BlockTracking({ children }: { children: React.ReactNode }) {
+  const posthog = usePostHog()
+  return (
+    <BlocksProvider
+      onBlockEvent={({ action, ...properties }) =>
+        posthog?.capture(`website:block_${action}`, properties)
+      }
+    >
+      {children}
+    </BlocksProvider>
+  )
+}
+```
+
+Pass each block its `position`, counting from 1, as the page renders them.
+Blocks outside a provider render the same and report nothing.
+
+## Live preview
+
+A live preview, such as Sanity's Presentation tool, adds invisible
+characters to every string it sends, so a click can find the field. A
+`highlight` ignores them, but anything a block compares or puts in an
+attribute must arrive clean. Clean every option and link before it reaches a
+block:
+
+```tsx
+import { stegaClean } from '@sanity/client/stega'
+
+<Cards
+  {...block}
+  preset={stegaClean(block.preset)}
+  intent={stegaClean(block.intent)}
+  emphasis={stegaClean(block.emphasis)}
+/>
+```
+
+Otherwise an encoded `preset` matches none, and the block renders its first
+preset in the preview only. Clean `align`, `size`, `ratio`, icons,
+illustrations, every `href` and `alt`, and `id` the same way, or leave them
+out of the encoding with the client's `stega.filter`. Turn `onBlockEvent`
+off in a draft preview, so previews don't count as views.
+
+## Images
+
+Blocks draw images with Roadie's `Image`. To use `next/image` or a CMS's
+image URL builder instead, pass `renderImage`. It receives the image with the
+`sizes` the block's layout needs, and `priority` for an image above the fold.
+`next/image` needs a `width` and `height`, so give every block image both.
+
+```tsx
+<BlocksProvider
+  renderImage={({ priority, ...image }) => (
+    <NextImage
+      {...image}
+      loading={priority ? 'eager' : undefined}
+      fetchPriority={priority ? 'high' : undefined}
+    />
+  )}
+>
+  {children}
+</BlocksProvider>
+```
+
+Both `onBlockEvent` and `renderImage` are functions, so render the provider
+from a client component, as in the tracking example.
+
+## Guidelines
+
+- **Answer first.** Open every block with a sentence that works as a direct
+  answer, such as what the service does, not why we care.
+- **Compose, don't style.** If a page needs a look no preset has, raise a
+  block request rather than reaching for `className`.
+- **One opener.** A Hero renders its title as the page's `h1`, so put one
+  Hero first on every page, and no other.
+- **One close.** Put a Call to action last, once.
+
+<PropsDefinitions component='BlocksProvider' />

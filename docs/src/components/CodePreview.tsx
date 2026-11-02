@@ -142,6 +142,7 @@ function LiveExample({
       // A typesetting demo escapes only its chrome, inside LiveRunner and
       // CodePanel, so the page's own Prose sets its preview.
       data-not-prose={!typesets || undefined}
+      data-slot='live-example'
       className={`relative ${BLOCK_SPACING} min-w-0 overflow-hidden rounded-xl border border-subtle`}
     >
       <ExampleHeader

@@ -83,6 +83,7 @@ import {
 
 import { toPreviewCode, withBasePath } from '@/lib/fence-layout.mjs'
 
+import { BlocksProvider } from '@oztix/roadie-blocks/provider'
 import * as RoadieCharts from '@oztix/roadie-charts'
 import { LegendKey } from '@oztix/roadie-charts/chart-legend'
 import { lineChartTable } from '@oztix/roadie-charts/tables'
@@ -219,6 +220,7 @@ const scope = {
   Editor,
   useEditorContext,
   renderEditorValue,
+  BlocksProvider,
   LegendKey,
   lineChartTable,
   addDays,

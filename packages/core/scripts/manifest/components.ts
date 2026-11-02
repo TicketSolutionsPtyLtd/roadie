@@ -33,9 +33,9 @@ const SKIPPED_PROPS = new Set([
   'style',
   'dangerouslySetInnerHTML'
 ])
-const OUR_SOURCES = /(^|\/)(core|components|widgets|charts|editor)\//
+const OUR_SOURCES = /(^|\/)(core|components|widgets|charts|editor|blocks)\//
 
-function isOurs(fileName: string | undefined) {
+export function isOurs(fileName: string | undefined) {
   return (
     !!fileName &&
     !fileName.includes('node_modules') &&
