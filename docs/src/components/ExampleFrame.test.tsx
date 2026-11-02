@@ -4,7 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ExampleFrame } from './ExampleFrame'
 
+const loadLiveRunner = vi.hoisted(() => vi.fn(() => Promise.resolve()))
+
 vi.mock('./LazyLiveRunner', () => ({
+  loadLiveRunner,
   LazyLiveRunner: (props: { code: string; previewLayout?: string }) => (
     <p data-layout={props.previewLayout}>Running {props.code}</p>
   )
@@ -60,6 +63,13 @@ describe('ExampleFrame', () => {
       { type: 'roadie-example-ready' },
       window.location.origin
     )
+  })
+
+  it('starts loading the runner before the docs page sends an example', () => {
+    render(<ExampleFrame />)
+
+    expect(loadLiveRunner).toHaveBeenCalled()
+    expect(screen.queryByText(/Running/)).toBeNull()
   })
 
   it('runs the example the docs page sends, in the page theme and accent', () => {

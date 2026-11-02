@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-import { LazyLiveRunner } from './LazyLiveRunner'
+import { LazyLiveRunner, loadLiveRunner } from './LazyLiveRunner'
 import { previewSpacing } from './codeChrome'
 import {
   type FrameExample,
@@ -17,6 +17,9 @@ export function ExampleFrame() {
   const [example, setExample] = useState<FrameExample>()
 
   useEffect(() => {
+    // Loads alongside the handshake, not after it; a failed load shows its
+    // error once the example renders.
+    loadLiveRunner().catch(() => {})
     const onMessage = (event: MessageEvent) => {
       const message = frameMessageFrom(event, window.parent)
       if (message?.type !== 'roadie-example') return
