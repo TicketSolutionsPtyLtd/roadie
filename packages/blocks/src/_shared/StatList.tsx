@@ -5,15 +5,15 @@ import { cn } from '@oztix/roadie-core/utils'
 import { SPOT_ILLUSTRATIONS, type SpotIllustrationName } from './illustrations'
 
 export type StatItem = {
-  /** The number as written, such as `7 million+`. */
+  /** The number as written, such as `7 million+` or `4.9 out of 5`. Over four words, it's set a step smaller. */
   value: string
   /** What the number counts, such as `tickets sold`. */
   label: string
   illustration?: SpotIllustrationName
 }
 
-// A figure with a unit, such as `7 million+`, is at most two words; more is a phrase, set smaller so it fits.
-const isPhrase = (value: string) => value.trim().split(/\s+/).length > 2
+// A figure, such as `7 million+` or `4.9 out of 5`, is at most four words; more is a phrase, set smaller so it fits.
+const isPhrase = (value: string) => value.trim().split(/\s+/).length > 4
 
 // A line may break before a sign after a number, so `33,000,000+` could leave its `+`
 // alone on a line. Each word holds together, so a value breaks only between words.
