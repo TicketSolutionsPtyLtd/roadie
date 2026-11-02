@@ -2,7 +2,7 @@ import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { catalogue } from '.'
+import { catalogue, groups } from '.'
 
 const SRC = join(import.meta.dirname, '..')
 const toKebab = (pascal: string) =>
@@ -31,6 +31,34 @@ describe('catalogue', () => {
     )
   )('has a thumbnail for %s', (_, thumbnail) => {
     expect(existsSync(join(SRC, 'thumbnails', thumbnail))).toBe(true)
+  })
+
+  it('puts every block in a group', () => {
+    const names = groups.map((group) => group.name)
+    for (const block of catalogue) {
+      expect(names, block.name).toContain(block.group)
+    }
+  })
+
+  it('stands each block for its first preset', () => {
+    for (const block of catalogue) {
+      expect(block.thumbnail).toBe(block.presets[0]?.thumbnail)
+    }
+  })
+
+  // A CMS hides every field a preset doesn't list, so a limit on an unlisted
+  // field could never be seen.
+  it('lists the fields each preset reads, and limits only those', () => {
+    for (const block of catalogue) {
+      for (const preset of block.presets) {
+        const label = `${block.name} ${preset.name}`
+        expect(preset.fields, label).toContain('title')
+        expect(new Set(preset.fields).size, label).toBe(preset.fields.length)
+        for (const field of Object.keys(preset.limits ?? {})) {
+          expect(preset.fields, label).toContain(field)
+        }
+      }
+    }
   })
 
   it('gives every preset a unique name', () => {

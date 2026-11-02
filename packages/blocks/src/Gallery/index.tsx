@@ -20,6 +20,7 @@ import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
+  type BlockRatio,
   type BlockSize,
   gapOf
 } from '../_shared/surface'
@@ -31,8 +32,8 @@ export type { GalleryPreset } from './definition'
 /** A photo or logo, linked when it has an `href`. A linked image is named by its `alt`. */
 export type GalleryImage = BlockImage & { href?: string }
 
-/** The tiles' shape: cropped to `portrait` (9:16), `square`, or `landscape` (2:1), or `natural`, uncropped at one height. */
-export type GalleryRatio = 'portrait' | 'square' | 'landscape' | 'natural'
+/** The tiles' shape: cropped to a block ratio, or `natural`, uncropped at one height. */
+export type GalleryRatio = BlockRatio | 'natural'
 
 export type GalleryProps = {
   /**
