@@ -2,11 +2,21 @@
 
 import { type CSSProperties, type ReactNode, useSyncExternalStore } from 'react'
 
-import { ArrowSquareOutIcon, CopyIcon } from '@phosphor-icons/react'
+import {
+  ArrowSquareOutIcon,
+  CheckIcon,
+  CopyIcon,
+  DeviceMobileIcon,
+  DeviceTabletIcon,
+  MonitorIcon
+} from '@phosphor-icons/react'
 import { Highlight, themes } from 'prism-react-renderer'
 
-import { Button, IconButton } from '@oztix/roadie-components/button'
+import { IconButton } from '@oztix/roadie-components/button'
+import { useToastManager } from '@oztix/roadie-components/toast'
+import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
+import { DEVICES, type Device } from './exampleDevices'
 import { useCopy } from './useCopy'
 
 const darkTheme = {
@@ -144,53 +154,113 @@ export function ViewCodeShade({
   )
 }
 
-export function CodeActions({
-  code,
-  exampleHref
-}: {
-  code: string
-  exampleHref?: string
-}) {
-  const { copied, copy } = useCopy()
+/** A bleed-x fence runs its example to the preview's sides. */
+export const previewSpacing = (language: string) =>
+  /^(?:tsx|jsx)-live-bleed-x/.test(language)
+    ? 'py-4 sm:py-6'
+    : 'px-4 py-4 sm:px-6 sm:py-6'
 
+const DEVICE_ICONS = {
+  phone: DeviceMobileIcon,
+  tablet: DeviceTabletIcon,
+  desktop: MonitorIcon
+}
+
+/** The bar along the top of a live example: the preview width, then its actions. */
+export function ExampleHeader({
+  device,
+  onDeviceChange,
+  exampleHref,
+  fullWidth
+}: {
+  /** Undefined until the client knows the screen, so nothing is pressed. */
+  device?: Device
+  onDeviceChange: (device: Device) => void
+  exampleHref?: string
+  /** The Full width control, on an expandable example. */
+  fullWidth?: ReactNode
+}) {
   return (
-    <div className='absolute top-2 right-2 z-docked flex gap-2'>
-      {exampleHref && (
-        <IconButton
-          href={exampleHref}
-          target='_blank'
-          size='sm'
-          emphasis='normal'
-          aria-label='Open example in a new tab'
-        >
-          <ArrowSquareOutIcon weight='bold' className='size-4' />
-        </IconButton>
-      )}
-      <Button
-        onClick={() => copy(code)}
+    <div
+      data-not-prose
+      className='flex items-center gap-2 border-b border-subtle bg-normal p-2'
+    >
+      <ToggleGroup
+        aria-label='Preview width'
         size='sm'
-        emphasis='normal'
-        aria-label='Copy code to clipboard'
+        emphasis='subtler'
+        value={device ? [device] : []}
+        onValueChange={([next]) => next && onDeviceChange(next)}
       >
-        {copied && 'Copied!'}
-        <CopyIcon weight='bold' className='size-4' />
-      </Button>
+        {DEVICES.map(({ value, label }) => {
+          const Icon = DEVICE_ICONS[value]
+          return (
+            <ToggleGroup.Item key={value} value={value} aria-label={label}>
+              <Icon weight='bold' className='size-4' />
+            </ToggleGroup.Item>
+          )
+        })}
+      </ToggleGroup>
+      <div className='flex flex-1 items-center justify-end gap-1'>
+        {fullWidth && <div className='max-md:hidden'>{fullWidth}</div>}
+        {exampleHref && (
+          <IconButton
+            href={exampleHref}
+            target='_blank'
+            size='sm'
+            emphasis='subtler'
+            aria-label='Open example in a new tab'
+          >
+            <ArrowSquareOutIcon weight='bold' className='size-4' />
+          </IconButton>
+        )}
+      </div>
     </div>
   )
 }
 
-/** The code half of a block: actions, a collapsible body, and the show/hide control. */
+/** Copies the code; the icon turns to a tick for a moment and a toast says it worked. */
+export function CopyButton({ code }: { code: string }) {
+  const { copied, copy } = useCopy()
+  const toast = useToastManager()
+
+  return (
+    <IconButton
+      onClick={async () => {
+        toast.add(
+          (await copy(code))
+            ? { title: 'Code copied' }
+            : {
+                title: "We couldn't copy the code",
+                description: 'Select the code and copy it yourself.',
+                intent: 'danger'
+              }
+        )
+      }}
+      size='sm'
+      emphasis='normal'
+      aria-label='Copy code'
+      className='absolute top-2 right-2 z-docked'
+    >
+      {copied ? (
+        <CheckIcon weight='bold' className='size-4' />
+      ) : (
+        <CopyIcon weight='bold' className='size-4' />
+      )}
+    </IconButton>
+  )
+}
+
+/** The code half of a block: the copy button, a collapsible body, and the show/hide control. */
 export function CodePanel({
   code,
-  exampleHref,
-  showActions = true,
+  showCopy = true,
   expanded,
   onExpandedChange,
   children
 }: {
   code: string
-  exampleHref?: string
-  showActions?: boolean
+  showCopy?: boolean
   expanded: boolean
   onExpandedChange: (expanded: boolean) => void
   children: ReactNode
@@ -200,7 +270,7 @@ export function CodePanel({
   return (
     <div data-not-prose>
       <div className='relative min-w-0' style={collapseStyle(collapsed)}>
-        {showActions && <CodeActions code={code} exampleHref={exampleHref} />}
+        {showCopy && <CopyButton code={code} />}
         {children}
         {collapsed && (
           <ViewCodeShade
