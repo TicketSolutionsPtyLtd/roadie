@@ -122,6 +122,7 @@ describe('Mosaic tiles layout', () => {
 
   it.each([
     ['a desktop', DESKTOP],
+    ['a 640px screen', { width: 640, height: 900 }],
     ['a phone', widths[0]]
   ])(
     'mixes sm, md, and lg tiles one row tall, lg across the full row, on %s',
