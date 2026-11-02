@@ -34,7 +34,7 @@ export type SideBySideStats = {
   /** A sentence under the aside's heading. */
   description?: string
   /** The stats, each a value as written, its label, and an optional spot illustration. */
-  items: readonly StatItem[]
+  figures: readonly StatItem[]
 }
 
 export type SideBySideProps = {
@@ -62,7 +62,7 @@ export type SideBySideProps = {
   /** The image beside the text in `image-start` and `image-end`. On phones, it sits above the text in both. */
   image?: BlockImage
   /**
-   * The image's shape in `image-start` and `image-end`: `portrait` (9:16), `square`, or `landscape` (2:1).
+   * The image's shape in `image-start` and `image-end`: `story` (9:16), `portrait` (3:4), `square`, `landscape` (3:2), or `banner` (2:1).
    * @default 'square'
    */
   ratio?: BlockRatio
@@ -248,14 +248,14 @@ const HEADING_INTENT: Record<BlockIntent, string> = {
   danger: '[&_h2]:intent-danger'
 }
 
-function StatsAside({ title, description, items }: SideBySideStats) {
+function StatsAside({ title, description, figures }: SideBySideStats) {
   return (
     <div className='grid min-w-0 content-start gap-4'>
       <div className='grid gap-0.5'>
         <h3 className='text-display-prose-4 text-strong'>{title}</h3>
         {description && <p className='text-subtle'>{description}</p>}
       </div>
-      <StatList items={items} />
+      <StatList items={figures} />
     </div>
   )
 }

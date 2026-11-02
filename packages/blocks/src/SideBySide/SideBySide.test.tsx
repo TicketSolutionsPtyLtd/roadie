@@ -24,7 +24,7 @@ const tintedPanel = {
 
 const mediaText = {
   preset: 'image-start',
-  title: 'Get your gig on Spotify',
+  title: 'Get your gig on Lyrebird Radio',
   body: <p>Your events show on artist profiles where fans already listen.</p>,
   actions: [{ label: 'Set it up', href: '/spotify' }],
   image: {
@@ -48,7 +48,7 @@ const textAndStats = {
   stats: {
     title: 'By the numbers',
     description: 'The impact of genuine partnerships',
-    items: [
+    figures: [
       { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
       { value: '22,000+', label: 'event organisers', illustration: 'MapPin' }
     ]
