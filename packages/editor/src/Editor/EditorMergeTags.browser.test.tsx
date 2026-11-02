@@ -10,6 +10,7 @@ import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
+import { MOD } from './testUtils'
 
 const LABEL = 'Newsletter'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
@@ -203,14 +204,15 @@ describe('Editor merge tag editing', () => {
     return screen.findByRole('toolbar', { name: 'Merge tag actions' })
   }
 
-  it('changes the variable and sets a fallback', async () => {
-    const onValueChange = renderEmail({ defaultValue: greeting })
+  async function editTag() {
     const actions = await selectChip()
-
     await userEvent.click(
       within(actions).getByRole('button', { name: 'Edit merge tag' })
     )
-    const dialog = await screen.findByRole('dialog', { name: 'Merge tag' })
+    return screen.findByRole('dialog', { name: 'Merge tag' })
+  }
+
+  async function changeTag(dialog: HTMLElement) {
     await userEvent.click(
       within(dialog).getByRole('combobox', { name: 'Shows' })
     )
@@ -221,18 +223,71 @@ describe('Editor merge tag editing', () => {
       within(dialog).getByRole('textbox', { name: 'Fallback' }),
       'friend'
     )
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+  }
 
-    await waitFor(() =>
-      expect(onValueChange).toHaveBeenLastCalledWith(
-        email({
-          type: 'paragraph',
-          content: [{ type: 'text', text: 'Hi ' }, tag('last_name', 'friend')]
-        })
-      )
-    )
+  const edited = email({
+    type: 'paragraph',
+    content: [{ type: 'text', text: 'Hi ' }, tag('last_name', 'friend')]
+  })
+
+  it('applies each change as it’s made, with no Save', async () => {
+    const onValueChange = renderEmail({ defaultValue: greeting })
+    const dialog = await editTag()
+
+    await changeTag(dialog)
+
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(edited))
+    expect(dialog).toBeVisible()
+    expect(within(dialog).queryByRole('button', { name: 'Save' })).toBe(null)
+    expect(within(dialog).queryByRole('button', { name: 'Cancel' })).toBe(null)
+  })
+
+  it('keeps the changes on Enter, back in the text', async () => {
+    const onValueChange = renderEmail({ defaultValue: greeting })
+    await changeTag(await editTag())
+
+    await userEvent.keyboard('{Enter}')
+
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(onValueChange).toHaveBeenLastCalledWith(edited)
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+  })
+
+  it('keeps the changes on a click outside', async () => {
+    const onValueChange = renderEmail({ defaultValue: greeting })
+    await changeTag(await editTag())
+
+    await userEvent.click(screen.getByText('Hi'))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(onValueChange).toHaveBeenLastCalledWith(edited)
+  })
+
+  it('puts the tag back as it opened on Escape', async () => {
+    const onValueChange = renderEmail({ defaultValue: greeting })
+    await changeTag(await editTag())
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(edited))
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(onValueChange).toHaveBeenLastCalledWith(greeting)
+    expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+  })
+
+  it('undoes every change it made in one step, and redoes them in one', async () => {
+    const onValueChange = renderEmail({ defaultValue: greeting })
+    await changeTag(await editTag())
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(greeting)
+    )
+
+    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+    await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(edited))
   })
 
   it('opens with the tag’s fallback, and clears it when emptied', async () => {

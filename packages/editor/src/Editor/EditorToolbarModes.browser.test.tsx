@@ -187,6 +187,25 @@ describe('Editor toolbar modes', () => {
     ).toBeVisible()
   })
 
+  it('opens an email in its box with a floating toolbar', async () => {
+    render(<Editor aria-label={LABEL} preset='email' />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+
+    expect(textbox.closest('[data-slot="editor"]')).toHaveAttribute(
+      'data-emphasis',
+      'normal'
+    )
+    expect(screen.queryByRole('toolbar', { name: 'Formatting' })).toBeNull()
+  })
+
+  it('docks an email’s toolbar when given', async () => {
+    render(<Editor aria-label={LABEL} preset='email' toolbar='docked' />)
+
+    expect(
+      await screen.findByRole('toolbar', { name: 'Formatting' })
+    ).toBeVisible()
+  })
+
   it('docks a floating editor on a phone, with nothing to pin', async () => {
     await page.viewport(390, 700)
     render(<Page toolbar='floating' pinnable />)
