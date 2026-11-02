@@ -94,7 +94,7 @@ export function EditorBlocksDrawer({
         </Drawer.Header>
         <Drawer.Body className='grid content-start gap-6 pb-6'>
           {groupsOf(items).map(([group, tiles], groupIndex) => {
-            const headingId = `${id}-${group}`
+            const headingId = `${id}-group-${groupIndex}`
             return (
               <div
                 key={group}
