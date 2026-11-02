@@ -154,6 +154,19 @@ describe('CallToAction with photo', () => {
     }
   )
 
+  it.each(['square', 'landscape'] as const)(
+    'grows a %s photo to a third of a wide block, beside the copy',
+    async (ratio) => {
+      await page.viewport(DESKTOP.width, DESKTOP.height)
+      render(<CallToAction {...props} ratio={ratio} tilted={false} />)
+
+      const { section, heading, photo } = boxes()
+      const copy = screen.getByText(/get-to-know-you/).getBoundingClientRect()
+      expect(photo.width).toBeGreaterThan(section.width * 0.28)
+      expect(Math.max(heading.right, copy.right)).toBeLessThan(photo.left)
+    }
+  )
+
   it('keeps its usual gaps with short copy, centring it beside the photo', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     render(<CallToAction {...props} tilted={false} />)

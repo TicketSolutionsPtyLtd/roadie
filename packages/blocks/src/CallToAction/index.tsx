@@ -101,14 +101,29 @@ export type CallToActionProps = {
   size?: BlockSize
 }
 
-// Literal class names, so Tailwind finds them: the photo is a quarter of the block, at most 312px wide.
+// Literal class names, so Tailwind finds them. The photo is a quarter of the block, at most
+// 312px wide; from @5xl a square or landscape photo grows to a third, at most 384px, and the
+// copy narrows to half to make room. A portrait stays a quarter, or it would run too tall.
+const PHOTO_WIDTH: Record<BlockRatio, string> = {
+  portrait: 'w-1/3 max-w-78 @xl:w-1/4',
+  square: 'w-1/3 max-w-78 @xl:w-1/4 @5xl:w-1/3 @5xl:max-w-96',
+  landscape: 'w-1/3 max-w-78 @xl:w-1/4 @5xl:w-1/3 @5xl:max-w-96'
+}
+
+const COPY_WIDTH: Record<BlockRatio, string> = {
+  portrait: '@xl:max-w-7/12',
+  square: '@xl:max-w-7/12 @5xl:max-w-1/2',
+  landscape: '@xl:max-w-7/12 @5xl:max-w-1/2'
+}
+
+// The photo's height at its width, so the copy keeps the panel tall enough for it.
 const PHOTO_HEIGHT: Record<BlockRatio, string> = {
   portrait:
     '@xl:min-h-[calc(min(44.5cqw,555px)-9rem)] @7xl:min-h-[calc(min(44.5cqw,555px)-11rem)]',
   square:
-    '@xl:min-h-[calc(min(25cqw,312px)-9rem)] @7xl:min-h-[calc(min(25cqw,312px)-11rem)]',
+    '@xl:min-h-[calc(min(25cqw,312px)-9rem)] @5xl:min-h-[calc(min(33.3cqw,384px)-9rem)] @7xl:min-h-[calc(min(33.3cqw,384px)-11rem)]',
   landscape:
-    '@xl:min-h-[calc(min(12.5cqw,156px)-9rem)] @7xl:min-h-[calc(min(12.5cqw,156px)-11rem)]'
+    '@xl:min-h-[calc(min(12.5cqw,156px)-9rem)] @5xl:min-h-[calc(min(16.7cqw,192px)-9rem)] @7xl:min-h-[calc(min(16.7cqw,192px)-11rem)]'
 }
 
 /** Closes a page with a short pitch and the next step to take. */
@@ -126,7 +141,8 @@ export function CallToAction(props: CallToActionProps) {
 
   return (
     <BlockRoot {...block.root}>
-      <div className={cn(image && 'pt-14 @xl:pt-28 @7xl:pt-36')}>
+      {/* Room for the photo's overhang, plus the corner its tilt lifts. */}
+      <div className={cn(image && 'pt-14 @xl:pt-28 @5xl:pt-30 @7xl:pt-38')}>
         <BlockSurface
           emphasis={emphasis}
           contained={block.contained}
@@ -135,7 +151,8 @@ export function CallToAction(props: CallToActionProps) {
           {image && (
             <div
               className={cn(
-                'relative -mt-24 w-1/3 max-w-78 @xl:absolute @xl:end-8 @xl:-top-24 @xl:mt-0 @xl:w-1/4 @3xl:end-16 @7xl:-top-32',
+                'relative -mt-24 @xl:absolute @xl:end-8 @xl:-top-24 @xl:mt-0 @3xl:end-16 @7xl:-top-32',
+                PHOTO_WIDTH[ratio],
                 tilted && '-rotate-5 @xl:rotate-5'
               )}
             >
@@ -147,7 +164,7 @@ export function CallToAction(props: CallToActionProps) {
               >
                 <BlockImg
                   image={image}
-                  sizes='(max-width: 768px) 33vw, 312px'
+                  sizes='(max-width: 768px) 33vw, 384px'
                   className='size-full object-cover'
                 />
               </div>
@@ -162,7 +179,8 @@ export function CallToAction(props: CallToActionProps) {
               'grid grid-cols-1',
               gapOf(size, 'loose'),
               image && [
-                '@xl:max-w-7/12 content-center',
+                'content-center',
+                COPY_WIDTH[ratio],
                 // The photo beside the copy is out of flow, so the copy keeps the panel tall
                 // enough for it: the photo's height at a quarter of the block wide, less its
                 // overhang, plus the illustration below it, less the panel's padding. Its rows
