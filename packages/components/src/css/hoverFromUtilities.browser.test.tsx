@@ -4,10 +4,15 @@ import { commands } from 'vitest/browser'
 
 import roadieCss from '../../vitest.browser.css?inline'
 import { Accordion } from '../components/Accordion'
+import { Autocomplete } from '../components/Autocomplete'
 import { Breadcrumb } from '../components/Breadcrumb'
 import { Collapsible } from '../components/Collapsible'
 import { Combobox } from '../components/Combobox'
-import { navigatorItemVariants } from '../components/Navigator/variants'
+import { DataTableShowAll } from '../components/DataTable/DataTableShowAll'
+import {
+  navigatorExpandToggleClass,
+  navigatorItemVariants
+} from '../components/Navigator/variants'
 import { useStylesheet } from '../components/Pane/testUtils'
 
 const STILL = '*, *::before, *::after { transition-duration: 0s !important }'
@@ -174,6 +179,48 @@ describe('a Breadcrumb link', () => {
     const underline = () => getComputedStyle(link).textDecorationColor
     const rest = underline()
     await hover(link)
+    await expect.poll(underline).not.toBe(rest)
+  })
+})
+
+describe('an Autocomplete clear button', () => {
+  it('tints on hover and clears at rest, in quiet text', async () => {
+    render(
+      <Autocomplete items={['Perth', 'Sydney']} defaultValue='Perth'>
+        <Autocomplete.InputGroup>
+          <Autocomplete.Input aria-label='City' />
+          <Autocomplete.Clear aria-label='Clear city' />
+        </Autocomplete.InputGroup>
+        <span className='text-subtle'>Quiet</span>
+      </Autocomplete>
+    )
+    const clear = await screen.findByRole('button', { name: 'Clear city' })
+    expect(getComputedStyle(clear).color).toBe(
+      getComputedStyle(screen.getByText('Quiet')).color
+    )
+    expect(background(clear)).toBe(TRANSPARENT)
+    await hover(clear)
+    await expect.poll(() => background(clear)).not.toBe(TRANSPARENT)
+  })
+})
+
+describe('a Navigator expand toggle', () => {
+  it('tints on hover and clears at rest', async () => {
+    render(<button className={navigatorExpandToggleClass}>Expand</button>)
+    const toggle = screen.getByRole('button', { name: 'Expand' })
+    expect(background(toggle)).toBe(TRANSPARENT)
+    await hover(toggle)
+    await expect.poll(() => background(toggle)).not.toBe(TRANSPARENT)
+  })
+})
+
+describe("a DataTable's Show all", () => {
+  it('underlines on hover', async () => {
+    render(<DataTableShowAll label='Show all columns' />)
+    const button = screen.getByRole('button', { name: 'Show all columns' })
+    const underline = () => getComputedStyle(button).textDecorationColor
+    const rest = underline()
+    await hover(button)
     await expect.poll(underline).not.toBe(rest)
   })
 })
