@@ -2,7 +2,7 @@ import type { ComponentType } from 'react'
 
 import { render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { commands, userEvent } from 'vitest/browser'
 
 import { Testimonial } from '.'
 import {
@@ -386,6 +386,8 @@ describe('Testimonial quote mark', () => {
 
 describe('Testimonial carousel', () => {
   it('steps through the quotes with dots alone', async () => {
+    // Embla animates by frame, which crawls on a loaded machine; reduced motion jumps.
+    await commands.reducedMotion(true)
     await atWidth(DESKTOP.width, DESKTOP.height)
     render(<Testimonial {...carousel} image={undefined} />)
 
@@ -396,21 +398,15 @@ describe('Testimonial carousel', () => {
     expect(screen.queryByRole('button', { name: /next|previous/i })).toBeNull()
 
     await userEvent.click(dots[1]!)
-    // A smooth scroll can outrun the default second on a loaded machine.
-    const second = screen.getByText(carousel.quotes[1]!.quote)
-    await expect
-      .poll(
-        () => {
-          const slide = second.closest('[aria-roledescription=slide]')!
-          const { left } = slide.getBoundingClientRect()
-          const viewport = document
-            .querySelector('[data-slot=carousel-content]')!
-            .getBoundingClientRect()
-          return Math.abs(left - viewport.left) < 2
-        },
-        { timeout: 5000 }
-      )
-      .toBe(true)
+    const shown = (text: string) => {
+      const quote = screen.getByText(text).getBoundingClientRect()
+      const viewport = document
+        .querySelector('[data-slot=carousel-content]')!
+        .getBoundingClientRect()
+      return quote.left >= viewport.left && quote.right <= viewport.right
+    }
+    await expect.poll(() => shown(carousel.quotes[1]!.quote)).toBe(true)
+    expect(shown(carousel.quotes[0]!.quote)).toBe(false)
   })
 
   it('clips the slides sideways only, so the quote mark above each quote shows', async () => {
