@@ -52,9 +52,37 @@ const columns = () =>
     .filter((track) => parseFloat(track) > 0).length
 
 describe('Mosaic tiles layout', () => {
+  // Two columns or four, never three, so tiles that add up to four columns fill every row.
+  it.each([390, 640, 768, 900, 1024, 1280])(
+    'fills every row of an md and two sm tiles at %ipx',
+    async (width) => {
+      await atWidth(width, 900)
+      const square = offline(partnerTiles).tiles[1]!
+      render(
+        <Mosaic
+          {...partnerTiles}
+          tiles={[{ ...square, size: 'md' }, square, square]}
+          logoTile={undefined}
+        />
+      )
+
+      const list = document.querySelector('ul')!.getBoundingClientRect()
+      const gap = parseFloat(
+        getComputedStyle(document.querySelector('ul')!).columnGap
+      )
+      const boxes = tiles()
+      for (const top of new Set(boxes.map((box) => Math.round(box.top)))) {
+        const row = boxes.filter((box) => Math.round(box.top) === top)
+        const filled =
+          row.reduce((sum, box) => sum + box.width, 0) + gap * (row.length - 1)
+        expect(filled).toBeCloseTo(list.width, 0)
+      }
+    }
+  )
+
   it.each([
     { ...widths[0], columns: 2 },
-    { ...MID, columns: 3 },
+    { ...MID, columns: 2 },
     { ...widths[1], columns: 4 }
   ])(
     'fits $columns columns at $name width',
