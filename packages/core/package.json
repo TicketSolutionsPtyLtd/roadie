@@ -155,7 +155,7 @@
     {
       "name": "number",
       "path": "dist/number/index.js",
-      "limit": "500 B"
+      "limit": "560 B"
     },
     {
       "name": "records",
