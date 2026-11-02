@@ -182,8 +182,8 @@ export function CallToAction(props: CallToActionProps) {
                 'content-center',
                 COPY_WIDTH[ratio],
                 // The photo beside the copy is out of flow, so the copy keeps the panel tall
-                // enough for it: the photo's height at a quarter of the block wide, less its
-                // overhang, plus the illustration below it, less the panel's padding. Its rows
+                // enough for it: the photo's height at its width, less its overhang, plus the
+                // illustration below it, less the panel's padding. Its rows
                 // pack at the centre of that height, so short copy keeps its gaps.
                 PHOTO_HEIGHT[ratio]
               ],
