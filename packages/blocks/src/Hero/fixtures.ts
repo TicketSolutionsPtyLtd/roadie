@@ -37,12 +37,12 @@ export const bento = (photo: Photo = pathPhoto): HeroProps => ({
 
 export const imageHero = (photo: Photo = pathPhoto): HeroProps => ({
   preset: 'image',
-  title: 'Sell more tickets with Spotify',
-  highlight: 'Spotify',
+  title: 'Sell more tickets with Lyrebird Radio',
+  highlight: 'Lyrebird Radio',
   description:
     'Your events show on artist profiles, so fans find them where they already listen.',
   actions: [{ label: 'Talk to us', href: '/contact/sales' }],
-  image: photo('A crowd singing along at Xylophone Tide Festival')
+  image: photo('A crowd singing along at Xylophone Tide Festival', 1200, 1200)
 })
 
 export const titleOnly: HeroProps = {

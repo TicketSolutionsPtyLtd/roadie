@@ -429,13 +429,28 @@ describe('Hero image layout', () => {
     expect(image.width / (title.width + image.width)).toBeCloseTo(0.5, 1)
   })
 
-  it('sets the photo above the text on a phone, at its own shape', async () => {
+  it('sets the photo above the text on a phone, cropped to 3:2', async () => {
     await showAt(PHONE.width, <Hero {...imageHero(photo)} />)
     const { title, photo: image } = parts()
 
     expect(image.bottom).toBeLessThanOrEqual(title.top)
-    expect(image.width / image.height).toBeCloseTo(1200 / 800, 1)
+    expect(image.width / image.height).toBeCloseTo(3 / 2, 1)
   })
+
+  it.each([
+    ['story', 9 / 16],
+    ['portrait', 3 / 4],
+    ['square', 1],
+    ['banner', 2]
+  ] as const)(
+    'crops the photo to its %s ratio on a desktop',
+    async (ratio, expected) => {
+      await showAt(DESKTOP.width, <Hero {...imageHero(photo)} ratio={ratio} />)
+
+      const { photo: image } = parts()
+      expect(image.width / image.height).toBeCloseTo(expected, 1)
+    }
+  )
 
   it('sets the text beside the photo on a desktop, in about two fifths', async () => {
     await showAt(DESKTOP.width, <Hero {...imageHero(photo)} />)
@@ -443,7 +458,7 @@ describe('Hero image layout', () => {
 
     expect(title.right).toBeLessThan(image.left)
     expect(image.width / (title.width + image.width)).toBeCloseTo(0.6, 1)
-    expect(image.width / image.height).toBeCloseTo(1200 / 800, 1)
+    expect(image.width / image.height).toBeCloseTo(3 / 2, 1)
   })
 })
 
@@ -639,11 +654,11 @@ describe('Hero size, beyond the title', () => {
     expect(share()).toBeLessThan(medium - 0.05)
   })
 
-  it('keeps the image photo at its own shape at every size', async () => {
+  it('keeps the image photo at its ratio at every size', async () => {
     await showAt(DESKTOP.width, <Hero {...imageHero(photo)} size='sm' />)
     const image = rect(document.querySelector('img')!)
 
-    expect(image.width / image.height).toBeCloseTo(1200 / 800, 1)
+    expect(image.width / image.height).toBeCloseTo(3 / 2, 1)
   })
 })
 

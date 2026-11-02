@@ -17,9 +17,11 @@ import {
   SPOT_ILLUSTRATIONS,
   type SpotIllustrationName
 } from '../_shared/illustrations'
+import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockIntent,
+  type BlockRatio,
   type BlockSize,
   bySize,
   gapOf,
@@ -74,8 +76,13 @@ export type HeroProps = {
   body?: ReactNode
   /** Links under the title. The first is the strong one. */
   actions?: readonly BlockAction[]
-  /** The one photo: behind the title in `bento`, where it's decorative so its `alt` can be empty, or beside it in `image`, at its own shape. */
+  /** The one photo: behind the title in `bento`, where it's decorative so its `alt` can be empty, or beside it in `image`, cropped to its `ratio`. */
   image?: BlockImage
+  /**
+   * The photo's shape in `image`: `story` (9:16), `portrait` (3:4), `square`, `landscape` (3:2), or `banner` (2:1).
+   * @default 'landscape'
+   */
+  ratio?: BlockRatio
   /** The clip beside the title in `bento`. */
   video?: HeroVideoSource
   /**
@@ -241,8 +248,11 @@ const IMAGE_SHARE: Record<BlockSize, { text: string; photo: string }> = {
   lg: { text: '@4xl:col-span-4', photo: '@4xl:col-span-6' }
 }
 
-function ImageHero({ block, image, size = 'lg' }: PresetProps) {
+function ImageHero({ block, image, ratio, size = 'lg' }: PresetProps) {
   const share = IMAGE_SHARE[size]
+  const preset = presetOf(heroDefinition, block.name)
+  const shape =
+    ratio ?? ('ratio' in preset.defaults ? preset.defaults.ratio : 'landscape')
   return (
     <BlockSurface
       className={cn(
@@ -269,6 +279,7 @@ function ImageHero({ block, image, size = 'lg' }: PresetProps) {
         <div
           className={cn(
             'order-first overflow-clip rounded-xl @xl:order-last',
+            ratioClass[shape],
             share.photo
           )}
         >
@@ -276,7 +287,7 @@ function ImageHero({ block, image, size = 'lg' }: PresetProps) {
             image={image}
             sizes='(min-width: 960px) 60vw, (min-width: 640px) 50vw, 100vw'
             priority
-            className='h-auto w-full'
+            className='size-full object-cover'
           />
         </div>
       )}
@@ -422,7 +433,7 @@ function Bento({
                 PANEL,
                 'hidden @xl:block',
                 video ? '@xl:col-span-4' : '@xl:col-span-9',
-                !video && ratioClass.landscape
+                !video && ratioClass.banner
               )}
             >
               <ImageCycler
