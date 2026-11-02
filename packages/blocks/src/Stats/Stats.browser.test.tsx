@@ -91,6 +91,60 @@ describe('Stats layout', () => {
     expect(section.scrollWidth).toBeLessThanOrEqual(section.clientWidth)
   })
 
+  const fans = {
+    value: '7 million+',
+    label: 'fans each year',
+    illustration: 'FlowerSpiral'
+  } as const
+  const rows = () => {
+    const tops = screen
+      .getAllByRole('listitem')
+      .map((item) => Math.round(item.getBoundingClientRect().top))
+    return [...new Set(tops)].map(
+      (top) => tops.filter((other) => other === top).length
+    )
+  }
+
+  it.each([
+    [5, [3, 2]],
+    [6, [3, 3]]
+  ])(
+    'balances %i stats into rows of %j on wide screens, never leaving one alone',
+    async (count, expected) => {
+      await atWidth(DESKTOP.width, DESKTOP.height)
+      render(
+        <Stats
+          {...facts}
+          stats={[...facts.stats, fans, fans].slice(0, count)}
+        />
+      )
+
+      expect(rows()).toEqual(expected)
+    }
+  )
+
+  it.each(
+    [390, 640, 900, 1150, 1280].flatMap((width) =>
+      [4, 5].map((count) => [count, width] as const)
+    )
+  )(
+    'keeps a figure and the sign after it on one line, with %i stats at %ipx',
+    async (count, width) => {
+      await atWidth(width, 900)
+      render(
+        <Stats {...facts} stats={[...facts.stats, fans].slice(0, count)} />
+      )
+
+      const figure = screen.getByText('33,000,000+')
+      const lineHeight = parseFloat(getComputedStyle(figure).lineHeight)
+      expect(figure.getBoundingClientRect().height).toBeLessThan(
+        lineHeight * 1.5
+      )
+      for (const item of screen.getAllByRole('listitem'))
+        expect(item.scrollWidth).toBeLessThanOrEqual(item.clientWidth)
+    }
+  )
+
   it('sets the stats four to a row on wide screens', async () => {
     expect(await statsPerRowAt(DESKTOP)).toBe(4)
   })
@@ -112,13 +166,18 @@ describe('Stats layout', () => {
       />
     )
 
+    // Each word of a value is its own span, so match the value's paragraph whole.
+    const value = (text: string) =>
+      screen.getByText(
+        (_, element) => element?.tagName === 'P' && element.textContent === text
+      )
     const size = (text: string) =>
-      parseFloat(getComputedStyle(screen.getByText(text)).fontSize)
+      parseFloat(getComputedStyle(value(text)).fontSize)
     expect(size('7 million+')).toBe(size('33,000,000+'))
     expect(size('Service company of the year 2025')).toBeLessThan(
       size('33,000,000+')
     )
-    const words = screen.getByText('Service company of the year 2025')
+    const words = value('Service company of the year 2025')
     const lineHeight = parseFloat(getComputedStyle(words).lineHeight)
     expect(words.getBoundingClientRect().height).toBeLessThan(lineHeight * 2.5)
   })
