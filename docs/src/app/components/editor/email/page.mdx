@@ -148,6 +148,43 @@ variables, the unsubscribe page and the email in a browser.
 />
 ```
 
+### Adding blocks
+
+There are two ways to add a block. Both list the same blocks under the same
+headings: Text, Media, Layout, and Email. Image shows only with
+`onUploadImage`.
+
+- **Blocks** in the toolbar opens a drawer of tiles, one per block, in its
+  group. It starts the docked toolbar, so it shows on a phone, and ends the
+  floating toolbar over a selection. The drawer opens from the right, or from the bottom on a
+  phone. A tile adds its block after the block with the caret, or fills the
+  caret's line when that line is empty, and the drawer closes with the caret
+  in the new block. A section or columns picked in a column goes after the
+  whole row, since columns can't hold one. Image and Button open the file
+  picker and the link field on a new line there.
+- **`/`** opens the insert menu under the caret. Type to filter it. A
+  heading with no matches hides, and the arrow keys step through the
+  matches in the order shown, across the headings.
+
+```tsx-live-prose
+<Editor
+  aria-label='Newsletter'
+  preset='email'
+  toolbar='docked'
+  defaultValue={{
+    version: 1,
+    preset: 'email',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Pick Blocks in the toolbar to add a block after this line.' }] }
+      ]
+    }
+  }}
+/>
+```
+
 ### Moving and adding blocks
 
 A grip and an add button show at the start of the block under the pointer,
@@ -462,8 +499,13 @@ const preview = await renderEmail(nearlySoldOut, {
 
 - In the email preset, `/` opens a `listbox` named Insert under the caret.
   Focus stays in the text, which points `aria-activedescendant` at the active
-  option and `aria-controls` at the list. With `variables`, `{{` opens a
-  `listbox` named Merge tags the same way.
+  option and `aria-controls` at the list. Each heading's options sit in a
+  `group` named for it. With `variables`, `{{` opens a `listbox` named Merge
+  tags the same way.
+- Blocks in the toolbar opens a `dialog` named Blocks, with focus on its
+  first tile. Each heading's tiles sit in a `group` named for it, and Tab
+  moves between them. Enter or Space adds a block, and Escape closes the
+  drawer. Either way, focus goes back to the text.
 - In the email preset, a button's, a spacer's, or columns' own toolbar is
   named for it, such as "Button actions" or "Merge tag actions", and Alt+F10 moves focus into it.
   The Columns and Height menus' triggers are named for their current choice,
@@ -476,6 +518,7 @@ const preview = await renderEmail(nearlySoldOut, {
 | Keys | Action |
 | --- | --- |
 | `/` | Open the insert menu, in the email preset |
+| `Alt+F10`, then `Enter` | Open the Blocks drawer from the docked toolbar |
 | `{{` | Open the merge tag list, with `variables` |
 | `Mod+/` | Open the menu for the block with the caret |
 | `Enter` | In a button, start a new paragraph after it |

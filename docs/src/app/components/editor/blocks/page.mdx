@@ -63,6 +63,10 @@ place of the `/`, and Escape closes the menu and leaves the `/` as text. A
 `/` after text, in a list, or in a quote is only text. Image shows with
 `onUploadImage` and opens the file picker, and Embed opens the Embed popover.
 
+The blocks sit under headings: Text, Media, and Layout, then More for an
+app's own blocks. A heading with no matches hides, and the arrow keys step
+through the matches in the order shown.
+
 With no children, a `blocks` editor renders `Editor.Toolbar`,
 `Editor.Content`, `Editor.BubbleMenu`, then `Editor.SlashMenu`. Pass your own
 children to change the toolbar, and place `<Editor.SlashMenu />` yourself, or
@@ -77,9 +81,10 @@ children to change the toolbar, and place `<Editor.SlashMenu />` yourself, or
 </Editor>
 ```
 
-The menu is a `listbox` named Blocks. Focus stays in the text, which points
-at the active `option` through `aria-activedescendant` and at the list
-through `aria-controls`. A filter that matches nothing says No matching
+The menu is a `listbox` named Blocks, with each heading's options in a
+`group` named for it. Focus stays in the text, which points at the active
+`option` through `aria-activedescendant` and at the list through
+`aria-controls`. A filter that matches nothing says No matching
 blocks in a `status`.
 
 | Keys | Action |
@@ -164,7 +169,9 @@ import {
   them, not the text around the block. A read-only or disabled editor
   ignores its `updateAttributes`.
 - Pass `{ node, label, icon, keywords }` in `extensions` to show it in the
-  slash menu. The editor reads `extensions` once, when it's created.
+  slash menu, under More. Add `group` to list it under one of the preset's
+  headings, such as Media, or a heading of its own. The editor reads
+  `extensions` once, when it's created.
 - Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
   block that gets its `attrs`. Read each as untrusted input. A block with no
   entry is dropped, never shown raw, and so is every custom block in

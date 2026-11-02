@@ -220,7 +220,7 @@ function SelectionMenu({
             ui={ui}
             onMenuOpenChange={onMenuOpenChange}
           />
-          <BlocksButton openBlocks={openBlocks} />
+          <BlocksButton openBlocks={openBlocks} separator='before' />
           {children}
           <OverflowMenu
             editor={editor}

@@ -212,18 +212,25 @@ export function ChoiceGroup({ group, state, editor, ui }: ChoiceGroupProps) {
 type BlocksButtonProps = {
   openBlocks: (() => void) | undefined
   disabled?: boolean
+  /** Which side of the button its separator goes. */
+  separator: 'before' | 'after'
 }
 
-/** Opens the Blocks drawer, after a separator, in a preset that has one. */
-export function BlocksButton({ openBlocks, disabled }: BlocksButtonProps) {
+/** Opens the Blocks drawer, in a preset that has one. */
+export function BlocksButton({
+  openBlocks,
+  disabled,
+  separator
+}: BlocksButtonProps) {
   if (!openBlocks) return null
   return (
     <>
-      <Toolbar.Separator />
+      {separator === 'before' ? <Toolbar.Separator /> : null}
       <Toolbar.Button disabled={disabled} onClick={openBlocks}>
         <PlusIcon weight='bold' className='size-4' aria-hidden />
         Blocks
       </Toolbar.Button>
+      {separator === 'after' ? <Toolbar.Separator /> : null}
     </>
   )
 }
@@ -389,8 +396,13 @@ export function EditorToolbarEngine({
         }}
         {...props}
       >
+        {/* First, as a phone's bar scrolls and would hide it at the end. */}
+        <BlocksButton
+          openBlocks={openBlocks}
+          disabled={!editable}
+          separator='after'
+        />
         <ToolbarItems items={items} states={states} editor={editor} ui={ui} />
-        <BlocksButton openBlocks={openBlocks} disabled={!editable} />
         {children}
         {pinnable ? (
           <Tooltip>

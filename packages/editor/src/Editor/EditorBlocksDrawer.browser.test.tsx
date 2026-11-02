@@ -266,11 +266,6 @@ describe('Editor blocks drawer', () => {
     await userEvent.keyboard('{Alt>}{F10}{/Alt}')
     const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
     await waitFor(() =>
-      expect(bar).toContainElement(document.activeElement as HTMLElement)
-    )
-    // The bar's arrow keys wrap, so Blocks, at its end, is one step left.
-    await userEvent.keyboard('{ArrowLeft}')
-    await waitFor(() =>
       expect(within(bar).getByRole('button', { name: 'Blocks' })).toHaveFocus()
     )
     await userEvent.keyboard('{Enter}')
@@ -287,9 +282,9 @@ describe('Editor blocks drawer', () => {
 
     await userEvent.keyboard('{Alt>}{F10}{/Alt}')
     await waitFor(() =>
-      expect(bar).toContainElement(document.activeElement as HTMLElement)
+      expect(within(bar).getByRole('button', { name: 'Blocks' })).toHaveFocus()
     )
-    await userEvent.keyboard('{ArrowLeft}{Enter}')
+    await userEvent.keyboard('{Enter}')
     await screen.findByRole('dialog', { name: 'Blocks' })
     await waitFor(() =>
       expect(
