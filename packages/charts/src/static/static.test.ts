@@ -120,7 +120,10 @@ describe('the static entry', () => {
 
   it('exports a definition for every single-plot kind', () => {
     expect(definitions.map((d) => d.kind).sort()).toEqual(
-      CHART_PLOT_KINDS.filter((kind) => kind !== 'small-multiples').sort()
+      // The donut's definition lands with DonutChart.
+      CHART_PLOT_KINDS.filter(
+        (kind) => kind !== 'small-multiples' && kind !== 'donut'
+      ).sort()
     )
   })
 
