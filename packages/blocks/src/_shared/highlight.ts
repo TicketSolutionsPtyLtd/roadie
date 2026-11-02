@@ -1,6 +1,6 @@
 // A live preview, such as Sanity's Presentation tool, appends a source map to
 // every string in zero-width characters, so a highlight would never match its title.
-const INVISIBLE = /[​-‍⁠﻿]/g
+const INVISIBLE = /[\u200B-\u200D\u2060\uFEFF]/g
 
 /** The words to highlight, without a live preview's invisible characters. */
 export function cleanHighlight(

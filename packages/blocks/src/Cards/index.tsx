@@ -78,7 +78,7 @@ export type CardsProps = {
   /** The heading's alignment, and in `plain` and `steps`, the card text's too. Unset, `plain`, `steps`, `text-blocks`, and `overlap` centre the heading, `plain` and `steps` start the card text, and `photo` and `lists` start the heading. */
   align?: BlockAlign
   /**
-   * `md` and `sm` set the title one and two steps smaller and tightens the gap under the heading.
+   * `md` and `sm` set the title one and two steps smaller and tighten the gap under the heading.
    * @default 'lg'
    */
   size?: BlockSize
