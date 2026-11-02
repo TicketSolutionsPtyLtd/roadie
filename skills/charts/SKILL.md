@@ -49,21 +49,25 @@ If any of this is missing, run `/roadie:setup` first.
 Name the decision the reader will make first. If no shape helps them make it,
 show a number or a table, not a chart.
 
-| Job                      | Use                                         | Plot `kind`       |
-| ------------------------ | ------------------------------------------- | ----------------- |
-| One number, right now    | `StatTile` (`/stat-tile`), not a chart      |                   |
-| Progress to a limit      | `Meter` (`/meter`), or a table of meters    |                   |
-| Compare, or where        | `RankedBars` (`/ranked-bars`), never a pie  | `ranked-bars`     |
-| Change over time         | `LineChart` or `BarChart`                   | `line`, `bar`     |
-| Pace against similar     | `LineChart` with `band`, `target`, `today`  | `line`            |
-| Part of a whole          | `StackedBars`, or a capacity `Meter`        | `stacked-bars`    |
-| Part of a whole, by time | `StackedArea`                               | `stacked-area`    |
-| Spread                   | `Histogram`                                 | `histogram`       |
-| Drop off                 | `Funnel`                                    | `funnel`          |
-| Two measures per item    | `Scatter`                                   | `scatter`         |
-| The same chart per group | `SmallMultiples`                            | `small-multiples` |
-| When (hour by weekday)   | `Heatmap`                                   | `heatmap`         |
-| Several items to scan    | `DataTable` (`/data-table`) in a `DataCard` |                   |
+| Job                          | Use                                         | Plot `kind`       |
+| ---------------------------- | ------------------------------------------- | ----------------- |
+| One number, right now        | `StatTile` (`/stat-tile`), not a chart      |                   |
+| Progress to a limit          | `Meter` (`/meter`), or a table of meters    |                   |
+| Compare, or where            | `RankedBars` (`/ranked-bars`)               | `ranked-bars`     |
+| Change over time             | `LineChart` or `BarChart`                   | `line`, `bar`     |
+| Pace against similar         | `LineChart` with `band`, `target`, `today`  | `line`            |
+| Part of a whole, by group    | `StackedBars`, or a capacity `Meter`        | `stacked-bars`    |
+| Part of a whole, by time     | `StackedArea`                               | `stacked-area`    |
+| One whole, two to five parts | `DonutChart` (`/donut-chart`)               | `donut`           |
+| Spread                       | `Histogram`                                 | `histogram`       |
+| Drop off                     | `Funnel`                                    | `funnel`          |
+| Two measures per item        | `Scatter`                                   | `scatter`         |
+| The same chart per group     | `SmallMultiples`                            | `small-multiples` |
+| When (hour by weekday)       | `Heatmap`                                   | `heatmap`         |
+| Several items to scan        | `DataTable` (`/data-table`) in a `DataCard` |                   |
+
+A donut is for one whole only: never a grid of donuts, and never to compare
+groups or periods. Use `StackedBars` at 100% or `SmallMultiples` instead.
 
 `StatTile`, `Meter`, `Sparkline`, `DataCard`, `DataTable`, `Delta`, and
 `Dashboard` come from `@oztix/roadie-components`. The charts, `Chart`,

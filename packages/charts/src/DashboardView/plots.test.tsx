@@ -32,9 +32,6 @@ const plots: ChartPlot[] = [
   { kind: 'small-multiples', ...gatesExample }
 ]
 
-// A donut card draws once DonutChart lands.
-const drawn = plots.filter((plot) => plot.kind !== 'donut')
-
 describe('every plot kind is wired', () => {
   it('covers the whole kind list', () => {
     expect(plots.map((p) => p.kind).sort()).toEqual(
@@ -42,7 +39,7 @@ describe('every plot kind is wired', () => {
     )
   })
 
-  it.each(drawn.map((p) => [p.kind, p] as const))(
+  it.each(plots.map((p) => [p.kind, p] as const))(
     '%s renders a named plot',
     (_, plot) => {
       render(<PlotView plot={plot} />)
@@ -59,13 +56,8 @@ describe('every plot kind is wired', () => {
     }
   )
 
-  it('says a donut card cannot be drawn yet', () => {
-    render(<PlotView plot={{ kind: 'donut', ...ticketTypeExample }} />)
-    expect(screen.getByText("This chart couldn't be drawn")).toBeInTheDocument()
-  })
-
   it('renders every kind with renderToString', () => {
-    for (const plot of drawn)
+    for (const plot of plots)
       expect(renderToString(<PlotView plot={plot} />)).toContain('role="img"')
   })
 })
