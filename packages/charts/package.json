@@ -57,6 +57,10 @@
       "types": "./dist/DashboardView/index.d.ts",
       "import": "./dist/DashboardView/index.js"
     },
+    "./donut-chart": {
+      "types": "./dist/DonutChart/index.d.ts",
+      "import": "./dist/DonutChart/index.js"
+    },
     "./funnel": {
       "types": "./dist/Funnel/index.d.ts",
       "import": "./dist/Funnel/index.js"
