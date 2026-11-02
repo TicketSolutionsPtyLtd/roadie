@@ -102,8 +102,10 @@ describe('a Collapsible trigger', () => {
         <Collapsible.Panel>Concession</Collapsible.Panel>
       </Collapsible>
     )
-    expect(textLeft(screen.getByText('Show all ticket types'))).toBe(
-      textLeft(screen.getByText('Concession'))
+    // WebKit lands a few thousandths of a pixel off; a stray border is 1px.
+    expect(textLeft(screen.getByText('Show all ticket types'))).toBeCloseTo(
+      textLeft(screen.getByText('Concession')),
+      0
     )
   })
 })
