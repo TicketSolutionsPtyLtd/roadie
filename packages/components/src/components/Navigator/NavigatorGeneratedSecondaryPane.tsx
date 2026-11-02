@@ -60,10 +60,13 @@ export function NavigatorGeneratedSecondaryPane({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || !isSearchShortcut(event, platform)) return
       // On a phone the page covers the list, and a hidden field can't take focus.
+      const toggle = toggleRef.current
       const shown =
-        toggleRef.current?.checkVisibility?.({ visibilityProperty: true }) ??
-        true
-      if (!shown) return
+        toggle?.checkVisibility?.({ visibilityProperty: true }) ?? true
+      if (!shown || toggle?.closest('[inert]')) return
+      // A modal dialog owns the keyboard, however it marks the page behind it.
+      const modal = document.activeElement?.closest('[aria-modal="true"]')
+      if (modal && !modal.contains(toggle ?? null)) return
       event.preventDefault()
       if (searching) focusField()
       else setSearching(true)

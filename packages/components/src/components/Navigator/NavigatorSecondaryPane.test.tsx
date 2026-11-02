@@ -342,6 +342,25 @@ describe('secondary pane search', () => {
     }
   )
 
+  it('leaves the key to a modal dialog that has focus, or to an inert list', async () => {
+    const { user, pane, field } = await setup()
+    const dialog = document.createElement('div')
+    dialog.setAttribute('role', 'dialog')
+    dialog.setAttribute('aria-modal', 'true')
+    const input = document.createElement('input')
+    dialog.append(input)
+    document.body.append(dialog)
+    input.focus()
+    await user.keyboard('{Control>}k{/Control}')
+    expect(field()).toBeNull()
+    expect(input).toHaveFocus()
+    dialog.remove()
+
+    pane.setAttribute('inert', '')
+    await user.keyboard('{Control>}k{/Control}')
+    expect(field()).toBeNull()
+  })
+
   it('ignores the key with Shift or Alt held', async () => {
     const { user, field } = await setup()
     await user.keyboard('{Control>}{Shift>}k{/Shift}{/Control}')
