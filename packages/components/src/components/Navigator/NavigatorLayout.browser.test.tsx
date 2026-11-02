@@ -437,6 +437,47 @@ describe('the generated list pane', () => {
     expect(widthOf('[data-slot="pane"][data-column="list"]')).toBe(24 * 16)
   })
 
+  it('opens its search as a plain field, not a raised one', async () => {
+    render(
+      withStubLink(
+        <Navigator value='/s/one'>
+          <Navigator.Primary aria-label='Main'>
+            <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
+              Secondary
+              <Navigator.Secondary aria-label='Secondary pages' searchable>
+                <Navigator.Item value='/s/one' href='/s/one'>
+                  One
+                </Navigator.Item>
+              </Navigator.Secondary>
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Pane>Detail</Pane>
+        </Navigator>
+      ),
+      { container: frame(1400) }
+    )
+    await frames(4)
+    document
+      .querySelector<HTMLButtonElement>('[aria-label="Search secondary"]')!
+      .click()
+    await frames(2)
+    const field = document.querySelector<HTMLElement>(
+      '[data-slot="pane-search-field"]'
+    )!
+    const plain = document.createElement('input')
+    plain.className = 'emphasis-field'
+    field.parentElement!.append(plain)
+    const paint = (element: HTMLElement) => {
+      const style = getComputedStyle(element)
+      return [style.backgroundColor, style.boxShadow, style.borderTopColor]
+    }
+
+    expect(paint(field)).toEqual(paint(plain))
+    expect(
+      parseFloat(getComputedStyle(field).borderRadius)
+    ).toBeGreaterThanOrEqual(field.getBoundingClientRect().height / 2)
+  })
+
   it('keeps every row 40px tall beside a fine pointer', async () => {
     render(withStubLink(<Docs />), { container: frame(1400) })
     await frames(4)

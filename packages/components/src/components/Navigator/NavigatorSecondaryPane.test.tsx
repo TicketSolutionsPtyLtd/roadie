@@ -187,6 +187,9 @@ describe('generated secondary pane', () => {
     render(<Docs />)
     await flushViewportMeasurement()
     const pane = secondaryPane()!
+    await user.click(
+      within(pane).getByRole('button', { name: 'Search components' })
+    )
     await user.type(within(pane).getByRole('searchbox'), 'inp')
     expect(
       within(pane).getByRole('link', { name: 'Input' })
@@ -205,6 +208,9 @@ describe('generated secondary pane', () => {
     render(<Docs searchable={false} />)
     await flushViewportMeasurement()
     expect(within(secondaryPane()!).queryByRole('searchbox')).toBeNull()
+    expect(
+      within(secondaryPane()!).queryByRole('button', { name: /^Search/ })
+    ).toBeNull()
   })
 
   it('mounts only for the active destination, and not for one without a Secondary', async () => {
@@ -217,11 +223,18 @@ describe('generated secondary pane', () => {
     const user = userEvent.setup()
     const { rerender } = render(<Docs />)
     await flushViewportMeasurement()
+    const toggle = () =>
+      within(secondaryPane()!).getByRole('button', {
+        name: 'Search components'
+      })
+    await user.click(toggle())
     await user.type(within(secondaryPane()!).getByRole('searchbox'), 'inp')
     rerender(<Docs value='/start' />)
     await flushViewportMeasurement()
     rerender(<Docs />)
     await flushViewportMeasurement()
+    expect(within(secondaryPane()!).queryByRole('searchbox')).toBeNull()
+    await user.click(toggle())
     expect(within(secondaryPane()!).getByRole('searchbox')).toHaveValue('')
   })
 
@@ -270,21 +283,80 @@ describe('generated secondary pane', () => {
 })
 
 describe('secondary pane search', () => {
-  const search = async () => {
+  const setup = async () => {
     const user = userEvent.setup()
     render(<Docs />)
     await flushViewportMeasurement()
     const pane = secondaryPane()!
+    const toggle = within(pane).getByRole('button', {
+      name: 'Search components'
+    })
+    const field = () =>
+      within(pane).queryByRole('searchbox', { name: 'Search components' })
+    return { user, pane, toggle, field }
+  }
+
+  const search = async () => {
+    const opened = await setup()
+    await opened.user.click(opened.toggle)
+    const { pane } = opened
     return {
-      user,
-      pane,
+      ...opened,
       root: pane.querySelector<HTMLElement>('[data-slot="pane-search"]')!,
-      field: within(pane).getByRole('searchbox', { name: 'Search components' }),
+      field: opened.field()!,
       cancel: within(pane).getByRole('button', { name: 'Cancel search' })
     }
   }
 
-  it('is a full-size pill, at 16px so iOS never zooms it, led by a hidden magnifying glass', async () => {
+  it('starts as a button that names its shortcut', async () => {
+    const { toggle, field } = await setup()
+    expect(field()).toBeNull()
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(toggle).toHaveAttribute('aria-keyshortcuts', 'Meta+K Control+K')
+    expect(toggle.closest('[data-slot="pane-actions"]')).not.toBeNull()
+  })
+
+  it.each(['{Meta>}k{/Meta}', '{Control>}k{/Control}'])(
+    'opens and focuses the field on %s, from anywhere',
+    async (keys) => {
+      const { user, toggle, field } = await setup()
+      await user.keyboard(keys)
+      expect(field()).toHaveFocus()
+      expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    }
+  )
+
+  it('ignores the key with Shift or Alt held', async () => {
+    const { user, field } = await setup()
+    await user.keyboard('{Control>}{Shift>}k{/Shift}{/Control}')
+    await user.keyboard('{Meta>}{Alt>}k{/Alt}{/Meta}')
+    expect(field()).toBeNull()
+  })
+
+  it('closes from its button, clearing the query', async () => {
+    const { user, pane, toggle, field } = await search()
+    await user.type(field, 'inp')
+    await user.click(toggle)
+    expect(within(pane).queryByRole('searchbox')).toBeNull()
+    expect(
+      within(pane).getByRole('link', { name: 'Button' })
+    ).toBeInTheDocument()
+  })
+
+  it('closes when focus leaves it empty, and stays while it holds a query', async () => {
+    const { user, pane } = await search()
+    await user.click(document.body)
+    expect(within(pane).queryByRole('searchbox')).toBeNull()
+
+    await user.click(
+      within(pane).getByRole('button', { name: 'Search components' })
+    )
+    await user.type(within(pane).getByRole('searchbox'), 'inp')
+    await user.click(document.body)
+    expect(within(pane).getByRole('searchbox')).toHaveValue('inp')
+  })
+
+  it('is a pill-shaped field, at 16px so iOS never zooms it, led by a hidden magnifying glass', async () => {
     const { field, root } = await search()
     const icon = root.querySelector('[data-slot="pane-search-icon"]')
     expect(icon?.tagName.toLowerCase()).toBe('svg')
@@ -296,37 +368,21 @@ describe('secondary pane search', () => {
       'h-12',
       'text-base',
       'rounded-full',
-      'emphasis-raised',
       'is-interactive-field'
     )
-    expect(field).not.toHaveClass(
-      'text-sm',
-      'rounded-lg',
-      'bg-subtle',
-      'is-translucent'
-    )
+    expect(field).not.toHaveClass('text-sm', 'rounded-lg', 'is-translucent')
   })
 
-  it('hides Cancel until focus is inside the search', async () => {
+  it('tabs from the field to Cancel', async () => {
     const { user, root, field, cancel } = await search()
-    const slot = cancel.parentElement!
-    expect(slot).toHaveAttribute('data-slot', 'pane-search-cancel-slot')
-    expect(slot).toHaveClass(
-      'invisible',
-      'opacity-0',
-      'w-0',
-      'group-focus-within/search:visible',
-      'group-focus-within/search:opacity-100',
-      'motion-reduce:transition-none'
+    expect(cancel.parentElement).toHaveAttribute(
+      'data-slot',
+      'pane-search-cancel-slot'
     )
-    expect(root).toHaveClass('group/search')
-    expect(root.matches(':focus-within')).toBe(false)
-
-    await user.click(field)
+    expect(field).toHaveFocus()
     expect(root.matches(':focus-within')).toBe(true)
     await user.tab()
     expect(cancel).toHaveFocus()
-    expect(root.matches(':focus-within')).toBe(true)
   })
 
   it('keeps focus in the field when Cancel is pressed', async () => {
@@ -334,28 +390,32 @@ describe('secondary pane search', () => {
     expect(fireEvent.pointerDown(cancel)).toBe(false)
   })
 
-  it('clears the query, restores every row and leaves the field on Cancel', async () => {
-    const { user, pane, root, field, cancel } = await search()
+  it('closes on Cancel, restoring every row and focusing its button', async () => {
+    const { user, pane, toggle, field, cancel } = await search()
     await user.type(field, 'inp')
     expect(within(pane).queryByRole('link', { name: 'Button' })).toBeNull()
 
     await user.click(cancel)
-    expect(field).toHaveValue('')
-    expect(root.matches(':focus-within')).toBe(false)
+    expect(within(pane).queryByRole('searchbox')).toBeNull()
+    expect(toggle).toHaveFocus()
     for (const name of ['Button', 'Icon button', 'Input']) {
       expect(within(pane).getByRole('link', { name })).toBeInTheDocument()
     }
   })
 
-  it('clears the query and leaves the field on Escape', async () => {
-    const { user, pane, field } = await search()
+  it('closes on Escape, with a query or without, focusing its button', async () => {
+    const { user, pane, toggle, field } = await search()
     await user.type(field, 'inp')
     await user.keyboard('{Escape}')
-    expect(field).toHaveValue('')
-    expect(field).not.toHaveFocus()
+    expect(within(pane).queryByRole('searchbox')).toBeNull()
+    expect(toggle).toHaveFocus()
     expect(
       within(pane).getByRole('link', { name: 'Button' })
     ).toBeInTheDocument()
+
+    await user.keyboard('{Control>}k{/Control}{Escape}')
+    expect(within(pane).queryByRole('searchbox')).toBeNull()
+    expect(toggle).toHaveFocus()
   })
 })
 
