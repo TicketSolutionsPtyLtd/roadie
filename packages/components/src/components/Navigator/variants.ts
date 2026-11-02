@@ -273,6 +273,21 @@ export const navigatorBrandClass = [
   'motion-safe:[&_[data-slot=logo]>[data-slot=logo-wordmark]:first-child]:[transition:height_var(--navigator-primary-motion)]'
 ].join(' ')
 
+// Rows hold only a label and a badge, so the generated list takes less width and padding than a list of records.
+export const navigatorSecondaryPaneClass =
+  '[--pane-track-max:18rem] [--content-inset:--spacing(4)]'
+
+// Desktop rows sit closer than record rows; a coarse pointer keeps the 44px target.
+export const navigatorSecondaryNavClass = [
+  'pb-4',
+  '[&_[data-slot=list-item]]:min-h-10 pointer-coarse:[&_[data-slot=list-item]]:min-h-11',
+  '[&_[data-slot=list-item-content]]:py-1.5 [&_[data-slot=list-item-content]]:after:hidden',
+  '[&_[data-slot=list-item-title]]:text-sm [&_[data-slot=list-item-title]]:font-medium',
+  '[&_[aria-current]_[data-slot=list-item-title]]:font-semibold',
+  '[&_[data-slot=list-item-chevron]]:size-4 [&_[data-slot=list-item-chevron]]:text-subtler',
+  '[&_[data-slot=list-group]]:mt-4 [&_[data-slot=list-group-title]]:text-xs'
+].join(' ')
+
 export const navigatorItemTrailingClass =
   'col-start-3 ms-3 flex items-center gap-2'
 

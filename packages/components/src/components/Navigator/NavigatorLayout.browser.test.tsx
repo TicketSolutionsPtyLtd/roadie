@@ -16,6 +16,7 @@ import {
   rowSpecOf,
   useStylesheet
 } from '../Pane/testUtils'
+import { FakeIcon, withStubLink } from './testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -396,5 +397,53 @@ describe('stack geometry', () => {
       '[data-slot="pane"][data-column="inspector"]'
     )!
     expect(hits(inspector)).toBe(true)
+  })
+})
+
+describe('the generated list pane', () => {
+  const Docs = () => (
+    <Navigator value='/s/one'>
+      <Navigator.Primary aria-label='Main'>
+        <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
+          Secondary
+          <Navigator.Secondary aria-label='Secondary pages'>
+            <Navigator.Item value='/s/one' href='/s/one'>
+              One
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Pane>Detail</Pane>
+    </Navigator>
+  )
+
+  const widthOf = (selector: string) =>
+    document.querySelector(selector)!.getBoundingClientRect().width
+
+  // Its rows hold a label and a badge, so it stays slimmer than a list of records.
+  it('stops at 18rem beside a detail, where a declared list takes 24rem', async () => {
+    render(withStubLink(<Docs />), { container: frame(1400) })
+    await frames(4)
+    expect(widthOf('[data-navigator-secondary="/s"]')).toBe(18 * 16)
+
+    cleanup()
+    render(
+      <Navigator value='/a'>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+      </Navigator>,
+      { container: frame(1400) }
+    )
+    await frames(4)
+    expect(widthOf('[data-slot="pane"][data-column="list"]')).toBe(24 * 16)
+  })
+
+  it('keeps every row 40px tall beside a fine pointer', async () => {
+    render(withStubLink(<Docs />), { container: frame(1400) })
+    await frames(4)
+    const row = document.querySelector(
+      '[data-navigator-secondary] [data-slot="list-item"]'
+    )!
+    expect(row.getBoundingClientRect().height).toBe(40)
   })
 })

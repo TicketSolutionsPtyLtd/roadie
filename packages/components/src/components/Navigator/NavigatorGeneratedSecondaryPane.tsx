@@ -12,6 +12,10 @@ import { PaneTitle } from '../Pane/PaneTitle'
 import type { NavigatorActiveSecondary } from './NavigatorContext'
 import { NavigatorSecondaryItems } from './NavigatorSecondaryItems'
 import { textOf } from './splitSecondary'
+import {
+  navigatorSecondaryNavClass,
+  navigatorSecondaryPaneClass
+} from './variants'
 
 export function NavigatorGeneratedSecondaryPane({
   secondary
@@ -23,7 +27,11 @@ export function NavigatorGeneratedSecondaryPane({
 
   return (
     <PaneKindContext value='generated-secondary'>
-      <PaneRoot column='list' data-navigator-secondary={secondary.value}>
+      <PaneRoot
+        column='list'
+        data-navigator-secondary={secondary.value}
+        className={navigatorSecondaryPaneClass}
+      >
         <PaneHeader>
           <PaneTitle>{label}</PaneTitle>
           {nav.searchable ? (
@@ -37,7 +45,7 @@ export function NavigatorGeneratedSecondaryPane({
         <nav
           data-slot='navigator-secondary-nav'
           aria-label={nav['aria-label']}
-          className={cn('pb-4', nav.className)}
+          className={cn(navigatorSecondaryNavClass, nav.className)}
         >
           <NavigatorSecondaryItems showDescriptions={false} query={query} />
         </nav>
