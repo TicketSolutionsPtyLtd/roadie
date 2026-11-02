@@ -14,7 +14,7 @@ export const pathPhoto: Photo = (alt, width = 1200, height = 800) => ({
 export const bento = (photo: Photo = pathPhoto): HeroProps => ({
   preset: 'bento',
   title: 'Australia’s ticketing partner',
-  titleHighlight: 'Australia’s',
+  highlight: 'Australia’s',
   description:
     'Australian owned and hosted, nationwide 7 days a week. Built on partnerships, powered by people and service.',
   actions: [
@@ -38,7 +38,7 @@ export const bento = (photo: Photo = pathPhoto): HeroProps => ({
 export const imageHero = (photo: Photo = pathPhoto): HeroProps => ({
   preset: 'image',
   title: 'Sell more tickets with Spotify',
-  titleHighlight: 'Spotify',
+  highlight: 'Spotify',
   description:
     'Your events show on artist profiles, so fans find them where they already listen.',
   actions: [{ label: 'Talk to us', href: '/contact/sales' }],

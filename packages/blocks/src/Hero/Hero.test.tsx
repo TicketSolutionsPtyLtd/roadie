@@ -32,12 +32,11 @@ describe('Hero', () => {
     ).toBe(heading.closest('section'))
   })
 
-  it('names the bento preset and its media variant', () => {
+  it('names the bento preset', () => {
     render(<Hero {...bento()} position={1} />)
 
     const section = screen.getByRole('region')
     expect(section).toHaveAttribute('data-block', 'hero')
-    expect(section).toHaveAttribute('data-variant', 'media')
     expect(section).toHaveAttribute('data-preset', 'bento')
     expect(section).toHaveAttribute('data-position', '1')
   })
@@ -159,7 +158,6 @@ describe('Hero', () => {
     expect(onBlockEvent).toHaveBeenCalledWith({
       action: 'click',
       block: 'hero',
-      variant: 'media',
       preset: 'bento',
       position: 1,
       label: 'Talk to us',
@@ -207,11 +205,10 @@ describe('Hero', () => {
       )
     })
 
-    it('names the image preset and the media variant', () => {
+    it('names the image preset', () => {
       render(<Hero {...imageHero()} />)
 
       const section = screen.getByRole('region')
-      expect(section).toHaveAttribute('data-variant', 'media')
       expect(section).toHaveAttribute('data-preset', 'image')
     })
 
@@ -245,11 +242,10 @@ describe('Hero', () => {
       expect(container.querySelector('img, video')).toBeNull()
     })
 
-    it('names the title preset and its text variant', () => {
+    it('names the title preset', () => {
       render(<Hero {...titleOnly} />)
 
       const section = screen.getByRole('region', { name: titleOnly.title })
-      expect(section).toHaveAttribute('data-variant', 'text')
       expect(section).toHaveAttribute('data-preset', 'title')
     })
 
@@ -265,7 +261,6 @@ describe('Hero', () => {
       render(<Hero {...partnerHero()} />)
 
       const section = screen.getByRole('region', { name: 'Resell my tickets' })
-      expect(section).toHaveAttribute('data-variant', 'text')
       expect(section).toHaveAttribute('data-preset', 'partner')
       expect(
         within(section).getByRole('heading', {
@@ -315,7 +310,6 @@ describe('Hero', () => {
       expect(onBlockEvent).toHaveBeenCalledWith({
         action: 'click',
         block: 'hero',
-        variant: 'text',
         preset: 'partner',
         position: 1,
         label: expect.stringContaining('Resell my tickets'),
@@ -355,8 +349,8 @@ describe('Hero', () => {
             : preset === 'image'
               ? imageHero()
               : preset === 'partner'
-                ? { ...partnerHero(), titleHighlight: 'Resell' }
-                : { ...titleOnly, titleHighlight: 'empower' }
+                ? { ...partnerHero(), highlight: 'Resell' }
+                : { ...titleOnly, highlight: 'empower' }
         const { container } = render(
           <Hero {...props} actions={bento().actions} intent='success' />
         )

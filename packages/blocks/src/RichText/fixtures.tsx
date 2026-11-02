@@ -4,7 +4,7 @@ export const statement: RichTextProps = {
   preset: 'statement',
   title:
     'We’re Australian-owned, Australian-hosted, and operate 7 days a week nationwide.',
-  titleHighlight: 'Australian-owned',
+  highlight: 'Australian-owned',
   body: (
     <>
       <p>

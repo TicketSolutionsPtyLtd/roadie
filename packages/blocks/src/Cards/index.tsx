@@ -87,7 +87,7 @@ export type CardsProps = {
   eyebrow?: string
   title: string
   /** Words in the title to mark, such as `partners`. */
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
   items: readonly CardsItem[]

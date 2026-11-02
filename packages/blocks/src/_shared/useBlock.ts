@@ -21,7 +21,7 @@ export type BlockFrameProps = {
   eyebrow?: string
   /** Optional only where a block can go without a heading, as RichText can. */
   title?: string
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   description?: string
   actions?: readonly BlockAction[]
   intent?: BlockIntent
@@ -54,7 +54,6 @@ export function useBlock<
     contained: props.contained ?? defaults.contained ?? false,
     root: {
       block: definition.name,
-      variant: preset.variant,
       preset: preset.name,
       position: props.position,
       id: props.id,
@@ -65,7 +64,7 @@ export function useBlock<
       id: headingId,
       eyebrow: props.eyebrow,
       title: props.title ?? '',
-      titleHighlight: props.titleHighlight,
+      highlight: props.highlight,
       description: props.description,
       align,
       size: props.size,

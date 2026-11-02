@@ -27,9 +27,22 @@ describe('BlockHeading', () => {
   })
 
   it('marks the highlighted words', () => {
-    render(<BlockHeading title='Sell more tickets' titleHighlight='more' />)
+    render(<BlockHeading title='Sell more tickets' highlight='more' />)
 
     expect(screen.getByText('more').closest('mark')).toBeInTheDocument()
+  })
+
+  // A live preview's editing overlay hides its source map in zero-width characters.
+  it('marks the highlighted words when a live preview encodes the strings', () => {
+    render(
+      <BlockHeading
+        title={'Sell more tickets\u200b\u200c\u200d\ufeff'}
+        highlight={['more\u200c\u200b\ufeff', 'tickets\u200d']}
+      />
+    )
+
+    expect(screen.getByText('more').closest('mark')).toBeInTheDocument()
+    expect(screen.getByText('tickets').closest('mark')).toBeInTheDocument()
   })
 })
 

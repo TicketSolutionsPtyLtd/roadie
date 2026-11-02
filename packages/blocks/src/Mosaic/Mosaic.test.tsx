@@ -14,7 +14,6 @@ describe('Mosaic', () => {
       name: 'Industry partnerships'
     })
     expect(section).toHaveAttribute('data-block', 'mosaic')
-    expect(section).toHaveAttribute('data-variant', 'static')
     expect(section).toHaveAttribute('data-preset', 'tiers')
     expect(section).toHaveAttribute('data-position', '3')
     expect(

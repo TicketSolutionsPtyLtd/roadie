@@ -21,7 +21,6 @@ function Page({
       <BlockRoot
         ref={sectionRef}
         block='statement'
-        variant='one'
         preset='statement'
         position={2}
         aria-label='Statement'
@@ -72,7 +71,6 @@ describe('BlockRoot views', () => {
     expect(onBlockEvent).toHaveBeenCalledWith({
       action: 'view',
       block: 'statement',
-      variant: 'one',
       preset: 'statement',
       position: 2
     })

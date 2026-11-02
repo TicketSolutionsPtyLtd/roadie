@@ -25,7 +25,6 @@ describe('Splits', () => {
     render(<Splits title='Our values' items={values} />)
 
     const section = screen.getByRole('region', { name: 'Our values' })
-    expect(section).toHaveAttribute('data-variant', 'rows')
     expect(section).toHaveAttribute('data-preset', 'marked')
     expect(within(section).getAllByRole('listitem')).toHaveLength(2)
     expect(

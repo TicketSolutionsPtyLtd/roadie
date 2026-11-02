@@ -11,7 +11,6 @@ describe('block intent and emphasis', () => {
     render(
       <BlockRoot
         block='cta-band'
-        variant='centred'
         preset='centred'
         intent='brand'
         aria-label='Talk to us'
@@ -24,14 +23,7 @@ describe('block intent and emphasis', () => {
   })
 
   it('leaves the intent to the page when a block sets none', () => {
-    render(
-      <BlockRoot
-        block='faq'
-        variant='accordion'
-        preset='accordion'
-        aria-label='FAQ'
-      />
-    )
+    render(<BlockRoot block='faq' preset='accordion' aria-label='FAQ' />)
 
     const section = screen.getByRole('region', { name: 'FAQ' })
     expect(section).not.toHaveAttribute('data-intent')
@@ -40,18 +32,14 @@ describe('block intent and emphasis', () => {
 
   it('marks highlighted words in the block intent, or brand-secondary without one', () => {
     const { rerender } = render(
-      <BlockHeading title='Sell more tickets' titleHighlight='more' />
+      <BlockHeading title='Sell more tickets' highlight='more' />
     )
     expect(screen.getByText('more').closest('mark')).toHaveClass(
       'intent-brand-secondary'
     )
 
     rerender(
-      <BlockHeading
-        title='Sell more tickets'
-        titleHighlight='more'
-        intent='info'
-      />
+      <BlockHeading title='Sell more tickets' highlight='more' intent='info' />
     )
     expect(screen.getByText('more').closest('mark')).toHaveClass('intent-info')
   })

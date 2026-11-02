@@ -31,7 +31,6 @@ describe('Gallery', () => {
       const section = named.closest('section')!
       expect(screen.getAllByRole('heading')).toHaveLength(1)
       expect(section).toHaveAttribute('data-block', 'gallery')
-      expect(section).toHaveAttribute('data-variant', 'image')
       expect(section).toHaveAttribute('data-preset', preset)
       expect(section).toHaveAttribute('data-position', '4')
       expect(
@@ -239,7 +238,6 @@ describe('Gallery wrap and links', () => {
     )
 
     const section = screen.getByRole('region', { name: TITLE })
-    expect(section).toHaveAttribute('data-variant', 'image')
     expect(section).toHaveAttribute('data-preset', 'wrap')
     expect(screen.getAllByRole('listitem')).toHaveLength(logos.length)
     expect(

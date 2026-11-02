@@ -42,7 +42,7 @@ const INTENTS = [
 
 const props: CTABandProps = {
   title: 'Explore an Oztix partnership',
-  titleHighlight: 'partnership',
+  highlight: 'partnership',
   body: <p>Let’s start with a get-to-know-you conversation.</p>,
   actions: [
     { label: 'Talk to us', href: '/contact/sales' },
@@ -400,7 +400,7 @@ describe('CTABand intent and emphasis', () => {
           emphasis={emphasis}
           eyebrow='For organisers'
           title='Talk to our team'
-          titleHighlight='team'
+          highlight='team'
           description='We’ll find the right setup.'
           body={
             <p>

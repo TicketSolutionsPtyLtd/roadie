@@ -42,7 +42,7 @@ export type RichTextProps = {
   /** The section's `h2`. Optional in `long-form`, where the body can carry its own headings. */
   title?: string
   /** Words in the title to mark, such as `Australian-owned`. */
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
   /** The rich text, already rendered, such as paragraphs from a CMS. Set in `Prose`. Its headings start at `h3` under a title, or `h2` with none. */

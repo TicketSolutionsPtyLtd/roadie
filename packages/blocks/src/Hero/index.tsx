@@ -12,6 +12,7 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
+import { cleanHighlight } from '../_shared/highlight'
 import {
   SPOT_ILLUSTRATIONS,
   type SpotIllustrationName
@@ -65,7 +66,7 @@ export type HeroProps = {
   /** The page's `h1`. */
   title: string
   /** Words in the title to mark, such as `Australia’s`. */
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   /** A sentence under the title that says what the page offers. */
   description?: string
   /** Rich text under the heading in `partner`, already rendered, such as from Portable Text. The block sets it in `Prose`. */
@@ -132,21 +133,21 @@ type PresetProps = HeroProps & { block: BlockFrame }
 function Title({
   headingId,
   title,
-  titleHighlight,
+  highlight,
   className,
   children,
   intent
-}: Pick<PresetProps, 'title' | 'titleHighlight' | 'intent'> & {
+}: Pick<PresetProps, 'title' | 'highlight' | 'intent'> & {
   headingId: string
   className: string
   children?: ReactNode
 }) {
   return (
     <h1 id={headingId} className={className}>
-      {titleHighlight ? (
+      {highlight ? (
         <Highlight
           text={title}
-          query={titleHighlight}
+          query={cleanHighlight(highlight)}
           intent={intent ?? 'brand-secondary'}
         />
       ) : (
@@ -290,7 +291,7 @@ function Bento({
   block,
   intent,
   title,
-  titleHighlight,
+  highlight,
   description,
   image,
   video,
@@ -341,7 +342,7 @@ function Bento({
                 <Title
                   headingId={block.heading.id}
                   title={title}
-                  titleHighlight={titleHighlight}
+                  highlight={highlight}
                   intent={intent}
                   className={cn(
                     'text-balance',

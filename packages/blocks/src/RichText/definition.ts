@@ -10,7 +10,6 @@ export const richTextDefinition = {
       title: 'Statement',
       description:
         'A centred illustration, title, and a few large balanced paragraphs, for a mission or a short belief between busier blocks.',
-      variant: 'prose',
       defaults: { align: 'center' }
     },
     {
@@ -18,7 +17,6 @@ export const richTextDefinition = {
       title: 'Long form',
       description:
         'Rich text at a reading width with an optional title, such as an article, policy or FAQ answer page.',
-      variant: 'prose',
       defaults: { align: 'start' }
     }
   ]

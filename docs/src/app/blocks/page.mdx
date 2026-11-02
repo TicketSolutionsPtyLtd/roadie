@@ -30,9 +30,8 @@ knows nothing about any CMS. Rich text arrives already rendered, as a
 
 ## Presets
 
-Every block has at most two variants, and editors pick a named `preset`
-rather than setting options. A preset fills in the variant, the surface, and
-the layout, so pages stay consistent however many people add to them. The
+Editors pick a named `preset` rather than setting options. A preset fills in
+the layout and the surface, so pages stay consistent however many people add to them. The
 [shared props](#shared-props) adjust colour, surface, and scale within it. A
 new look is a new preset, raised as a block request, not a prop.
 
@@ -93,7 +92,7 @@ an image.
 Wrap the site in `BlocksProvider` and pass `onBlockEvent`. Every block
 reports a `view` once: when half of it is on screen, or, for a block too tall
 for that, when it reaches the middle of the screen. It reports a `click` for
-each link or button inside it. Each event names the block, its variant and
+each link or button inside it. Each event names the block and its
 preset, its `position` on the page, and its `id` when it has one, and a click
 adds the control's label and href. A provider inside another keeps whatever it
 doesn't set, such as the outer `onBlockEvent`.

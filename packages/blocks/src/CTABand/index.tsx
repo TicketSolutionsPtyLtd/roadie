@@ -54,7 +54,7 @@ export type CTABandProps = {
   /** The section heading. */
   title: string
   /** Words in the title to mark, such as `partnership`. */
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
   /** A paragraph or two of rich text, set in `Prose`. */

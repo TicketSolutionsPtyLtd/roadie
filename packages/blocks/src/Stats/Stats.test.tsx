@@ -50,12 +50,11 @@ describe('Stats', () => {
     expect(noIllustration!.querySelector('svg')).toBeNull()
   })
 
-  it('renders the figures preset of the typed-in variant', () => {
+  it('renders the figures preset', () => {
     render(<Stats {...facts} position={3} id='numbers' />)
 
     const section = screen.getByRole('region', { name: 'By the numbers' })
     expect(section).toHaveAttribute('data-block', 'stats')
-    expect(section).toHaveAttribute('data-variant', 'typed-in')
     expect(section).toHaveAttribute('data-preset', 'figures')
     expect(section).toHaveAttribute('data-position', '3')
     expect(section).toHaveAttribute('id', 'numbers')

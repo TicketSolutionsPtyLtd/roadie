@@ -24,8 +24,6 @@ export type BlockPreset = {
   name: string
   title: string
   description: string
-  /** One of the block's two variants at most. */
-  variant: string
   defaults?: BlockPresetDefaults
 }
 

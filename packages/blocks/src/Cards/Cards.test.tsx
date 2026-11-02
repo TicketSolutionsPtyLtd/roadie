@@ -36,13 +36,12 @@ const values: CardsItem[] = [
 ]
 
 describe('Cards', () => {
-  it('names its section by the title and says its preset and variant', () => {
+  it('names its section by the title and says its preset', () => {
     render(<Cards preset='photo' title='Our values' items={values} />)
 
     const section = screen.getByRole('region', { name: 'Our values' })
     expect(section).toHaveAttribute('data-block', 'cards')
     expect(section).toHaveAttribute('data-preset', 'photo')
-    expect(section).toHaveAttribute('data-variant', 'grid')
   })
 
   it('renders cards by default, as a grid', () => {
@@ -52,7 +51,6 @@ describe('Cards', () => {
       name: 'Great events need great partners'
     })
     expect(section).toHaveAttribute('data-preset', 'plain')
-    expect(section).toHaveAttribute('data-variant', 'grid')
   })
 
   it.each(['plain', 'marked', 'overlap', 'photo'] as const)(
@@ -97,7 +95,7 @@ describe('Cards', () => {
         preset='overlap'
         eyebrow='How does Oztix partner?'
         title='We understand your industry'
-        titleHighlight='industry'
+        highlight='industry'
         description='And what makes events succeed.'
         items={values}
       />

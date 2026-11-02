@@ -8,21 +8,19 @@ const hero = {
     {
       name: 'page-hero',
       title: 'Page hero',
-      description: '',
-      variant: 'media'
+      description: ''
     },
     {
       name: 'page-header',
       title: 'Page header',
-      description: '',
-      variant: 'text'
+      description: ''
     }
   ]
 }
 
 describe('presetOf', () => {
   it('finds the preset named', () => {
-    expect(presetOf(hero, 'page-header').variant).toBe('text')
+    expect(presetOf(hero, 'page-header').name).toBe('page-header')
   })
 
   it("falls back to the block's first preset for none or an unknown name", () => {

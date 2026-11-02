@@ -23,12 +23,11 @@ describe('RichText', () => {
       )
     })
 
-    it('names the statement preset and the prose variant', () => {
+    it('names the statement preset', () => {
       render(<RichText {...statement} position={3} />)
 
       const section = screen.getByRole('region')
       expect(section).toHaveAttribute('data-block', 'rich-text')
-      expect(section).toHaveAttribute('data-variant', 'prose')
       expect(section).toHaveAttribute('data-preset', 'statement')
       expect(section).toHaveAttribute('data-position', '3')
     })
@@ -106,7 +105,6 @@ describe('RichText', () => {
       expect(onBlockEvent).toHaveBeenCalledWith({
         action: 'click',
         block: 'rich-text',
-        variant: 'prose',
         preset: 'long-form',
         position: 2,
         label: 'Read the refund policy',
@@ -163,7 +161,7 @@ describe('RichText', () => {
         const { container } = render(
           <RichText
             {...props}
-            titleHighlight={word}
+            highlight={word}
             actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
             intent='brand-purple'
           />

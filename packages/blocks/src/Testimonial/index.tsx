@@ -62,7 +62,7 @@ export type TestimonialProps = {
   /** The section title, as an `h2`. */
   title: string
   /** Words in the title to mark, such as `say it best`. */
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
   /** The quotes, in order. `quote` shows the first; `carousel` steps through them all. */

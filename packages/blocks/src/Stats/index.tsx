@@ -35,7 +35,7 @@ export type StatsProps = {
   /** The section's heading, such as `By the numbers`. */
   title: string
   /** Words in the title to mark, such as `numbers`. */
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
   /** The stats, each a value as written, its label, and an optional spot illustration. */

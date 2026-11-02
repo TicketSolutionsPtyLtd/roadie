@@ -47,7 +47,7 @@ export type SplitProps = {
   /** The section's heading. */
   title: string
   /** Words in the title to mark, such as `partnerships`. */
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
   /** Rich text under the heading, already rendered, such as from Portable Text. The block sets it in `Prose`. */

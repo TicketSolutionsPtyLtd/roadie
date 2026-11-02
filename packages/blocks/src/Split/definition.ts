@@ -11,7 +11,6 @@ export const splitDefinition = {
       title: 'Image then text',
       description:
         'An image before a heading, text, and actions, such as a section about a product, a team, or a partnership.',
-      variant: 'media',
       defaults: { align: 'start', contained: true }
     },
     {
@@ -19,7 +18,6 @@ export const splitDefinition = {
       title: 'Text then image',
       description:
         'A heading, text, and actions before an image. Stacked with image-start, it alternates the sides of standalone feature sections.',
-      variant: 'media',
       defaults: { align: 'start', contained: true }
     },
     {
@@ -27,7 +25,6 @@ export const splitDefinition = {
       title: 'Text and stats',
       description:
         'Long-form text beside a column of key figures, such as a company backing its story with numbers.',
-      variant: 'stats',
       defaults: { align: 'start', contained: true }
     }
   ]

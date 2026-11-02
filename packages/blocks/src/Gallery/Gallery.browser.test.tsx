@@ -270,7 +270,7 @@ describe('Gallery', () => {
           preset='marquee'
           intent={intent}
           title='Our people'
-          titleHighlight='people'
+          highlight='people'
           description='From festivals to local venues.'
           images={images}
         />
@@ -306,7 +306,7 @@ describe('Gallery', () => {
           intent={intent}
           emphasis={emphasis}
           title='Our people'
-          titleHighlight='people'
+          highlight='people'
           description='From festivals to local venues.'
           images={images}
           actions={[{ label: 'Become a partner', href: '/partners' }]}

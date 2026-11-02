@@ -11,7 +11,6 @@ export const statsDefinition = {
       title: 'Figures',
       description:
         'A heading over a wrapping row of figures, such as company facts, results, or a local audience.',
-      variant: 'typed-in',
       defaults: { align: 'start', contained: true }
     }
   ]

@@ -52,7 +52,7 @@ export type SplitsProps = {
   /** The section's heading. */
   title: string
   /** Words in the title to mark, such as `values`. */
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
   /** The rows. */

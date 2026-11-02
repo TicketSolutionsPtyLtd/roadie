@@ -67,7 +67,7 @@ export type MosaicProps = {
   /** The section title, as an `h2`. */
   title: string
   /** Words in the title to mark, such as `partnerships`. */
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
   /** The photo tiles, in order. */

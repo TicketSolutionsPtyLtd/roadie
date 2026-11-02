@@ -11,7 +11,6 @@ export const splitsDefinition = {
       title: 'Marked',
       description:
         'Rows of a marked title, subtitle, and description beside a square image, alternating sides, for values or the steps of a story.',
-      variant: 'rows',
       defaults: { align: 'start' }
     }
   ]

@@ -64,7 +64,6 @@ describe('Split', () => {
 
     const section = screen.getByRole('region', { name: mediaText.title })
     expect(section).toHaveAttribute('data-block', 'split')
-    expect(section).toHaveAttribute('data-variant', 'media')
     expect(section).toHaveAttribute('data-preset', 'image-start')
     expect(section).toHaveAttribute('data-position', '4')
     const image = within(section).getByRole('img', {
@@ -95,7 +94,6 @@ describe('Split', () => {
     render(<Split {...mediaText} preset='image-end' />)
 
     const section = screen.getByRole('region', { name: mediaText.title })
-    expect(section).toHaveAttribute('data-variant', 'media')
     const image = within(section).getByRole('img')
     const heading = within(section).getByRole('heading', { level: 2 })
     expect(
@@ -118,7 +116,6 @@ describe('Split', () => {
     render(<Split {...textAndStats} image={mediaText.image} />)
 
     const section = screen.getByRole('region', { name: 'Who we are' })
-    expect(section).toHaveAttribute('data-variant', 'stats')
     expect(within(section).queryByRole('img')).toBeNull()
     expect(
       within(section).getByRole('heading', {
@@ -158,7 +155,6 @@ describe('Split', () => {
     expect(onBlockEvent).toHaveBeenCalledWith({
       action: 'click',
       block: 'split',
-      variant: 'media',
       preset: 'image-start',
       position: 1,
       label: 'Set it up',

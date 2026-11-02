@@ -33,11 +33,9 @@ describe('catalogue', () => {
     expect(existsSync(join(SRC, 'thumbnails', thumbnail))).toBe(true)
   })
 
-  it('keeps every block to two variants and unique preset names', () => {
+  it('gives every preset a unique name', () => {
     for (const block of catalogue) {
-      const variants = new Set(block.presets.map((preset) => preset.variant))
       const names = block.presets.map((preset) => preset.name)
-      expect(variants.size, block.name).toBeLessThanOrEqual(2)
       expect(new Set(names).size, block.name).toBe(names.length)
     }
   })

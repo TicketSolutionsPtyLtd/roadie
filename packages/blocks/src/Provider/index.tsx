@@ -44,7 +44,6 @@ export type BlockEvent = {
   action: 'view' | 'click'
   /** The block's name, such as `hero`. */
   block: string
-  variant: string
   preset: string
   /** The block's place on the page, counting from 1. */
   position?: number

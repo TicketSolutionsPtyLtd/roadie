@@ -501,7 +501,7 @@ describe('Cards linked tiles', () => {
 })
 
 describe('Cards views', () => {
-  it('reports its view with the variant its preset picks', async () => {
+  it('reports its view with its preset', async () => {
     const onBlockEvent = vi.fn()
     render(
       <BlocksProvider onBlockEvent={onBlockEvent}>
@@ -519,7 +519,6 @@ describe('Cards views', () => {
         expect(onBlockEvent).toHaveBeenCalledWith({
           action: 'view',
           block: 'cards',
-          variant: 'grid',
           preset: 'photo',
           position: 4
         }),
@@ -537,7 +536,7 @@ describe('Cards accessibility', () => {
           {...propsOf(look, 3)}
           eyebrow='How does Oztix partner?'
           title='We understand your industry'
-          titleHighlight='industry'
+          highlight='industry'
           description='And what makes venues and events succeed.'
         />
       </main>
@@ -648,7 +647,7 @@ describe('Cards contrast', () => {
           itemEmphasis={itemEmphasis}
           eyebrow='How does Oztix partner?'
           title='We understand your industry'
-          titleHighlight='industry'
+          highlight='industry'
           description='And what makes venues and events succeed.'
           items={props.items.map((item, index) => ({
             ...item,

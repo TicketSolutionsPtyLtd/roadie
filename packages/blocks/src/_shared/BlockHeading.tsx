@@ -1,6 +1,7 @@
 import { Highlight } from '@oztix/roadie-components/highlight'
 import { cn } from '@oztix/roadie-core/utils'
 
+import { cleanHighlight } from './highlight'
 import {
   type BlockAlign,
   type BlockIntent,
@@ -12,7 +13,7 @@ export type BlockHeadingProps = {
   eyebrow?: string
   title: string
   /** Words in the title to mark, such as `more tickets`. */
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   description?: string
   /** 1 only for the block that opens the page. */
   level?: 1 | 2
@@ -55,7 +56,7 @@ export const descriptionClass = (size: BlockSize | undefined) =>
 export function BlockHeading({
   eyebrow,
   title,
-  titleHighlight,
+  highlight,
   description,
   level = 2,
   step = level,
@@ -83,10 +84,10 @@ export function BlockHeading({
           TITLE_STEP[titleStep(step, size)]
         )}
       >
-        {titleHighlight ? (
+        {highlight ? (
           <Highlight
             text={title}
-            query={titleHighlight}
+            query={cleanHighlight(highlight)}
             intent={intent ?? 'brand-secondary'}
           />
         ) : (

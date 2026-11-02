@@ -14,7 +14,6 @@ describe('Testimonial', () => {
       name: 'Our partners say it best'
     })
     expect(section).toHaveAttribute('data-block', 'testimonial')
-    expect(section).toHaveAttribute('data-variant', 'single')
     expect(section).toHaveAttribute('data-preset', 'quote')
     expect(section).toHaveAttribute('data-position', '4')
     expect(
@@ -239,10 +238,6 @@ describe('Testimonial carousel', () => {
     const section = screen.getByRole('region', { name: carousel.title })
     expect(section.closest('section')).toHaveAttribute(
       'data-preset',
-      'carousel'
-    )
-    expect(section.closest('section')).toHaveAttribute(
-      'data-variant',
       'carousel'
     )
     expect(screen.getAllByRole('figure', { hidden: true })).toHaveLength(

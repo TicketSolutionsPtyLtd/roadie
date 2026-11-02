@@ -17,7 +17,6 @@ import { type BlockIntent, intentClass } from './surface'
 
 export type BlockRootProps = Omit<ComponentProps<'section'>, 'onClick'> & {
   block: string
-  variant: string
   preset: string
   position?: number
   /** Sets the block's intent, so its marks, tints, and strong action inherit it. */
@@ -40,7 +39,6 @@ function isViewed(entry: IntersectionObserverEntry) {
 /** The section every block renders in: names the block for analytics and reports its views and clicks. */
 export function BlockRoot({
   block,
-  variant,
   preset,
   position,
   intent,
@@ -52,7 +50,7 @@ export function BlockRoot({
   const { onBlockEvent } = useBlocks()
   const ref = useRef<HTMLElement>(null)
   useImperativeHandle(forwardedRef, () => ref.current!)
-  const identity = { block, variant, preset, position, id: props.id }
+  const identity = { block, preset, position, id: props.id }
   const reportView = useEffectEvent(() =>
     onBlockEvent?.(event('view', identity))
   )
@@ -107,7 +105,6 @@ export function BlockRoot({
     <section
       ref={ref}
       data-block={block}
-      data-variant={variant}
       data-preset={preset}
       data-position={position}
       data-intent={intent}
@@ -122,12 +119,11 @@ export function BlockRoot({
 
 function event(
   action: BlockEvent['action'],
-  { block, variant, preset, position, id }: Omit<BlockEvent, 'action'>
+  { block, preset, position, id }: Omit<BlockEvent, 'action'>
 ): BlockEvent {
   return {
     action,
     block,
-    variant,
     preset,
     ...(position != null && { position }),
     ...(id && { id })

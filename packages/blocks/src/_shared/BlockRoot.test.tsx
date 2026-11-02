@@ -9,7 +9,6 @@ function Block({ position }: { position?: number }) {
   return (
     <BlockRoot
       block='hero'
-      variant='media'
       preset='page-hero'
       position={position}
       aria-label='Hero'
@@ -29,7 +28,6 @@ describe('BlockRoot', () => {
 
     const section = screen.getByRole('region', { name: 'Hero' })
     expect(section).toHaveAttribute('data-block', 'hero')
-    expect(section).toHaveAttribute('data-variant', 'media')
     expect(section).toHaveAttribute('data-preset', 'page-hero')
     expect(section).toHaveAttribute('data-position', '2')
   })
@@ -47,7 +45,6 @@ describe('BlockRoot', () => {
     expect(onBlockEvent).toHaveBeenCalledWith({
       action: 'click',
       block: 'hero',
-      variant: 'media',
       preset: 'page-hero',
       position: 1,
       label: 'Talk to us',
@@ -75,7 +72,7 @@ describe('BlockRoot', () => {
     const onBlockEvent = vi.fn()
     render(
       <BlocksProvider onBlockEvent={onBlockEvent}>
-        <BlockRoot block='hero' variant='media' preset='page-hero'>
+        <BlockRoot block='hero' preset='page-hero'>
           <a href='/about' aria-label=''>
             About us
           </a>
@@ -94,12 +91,7 @@ describe('BlockRoot', () => {
     const onBlockEvent = vi.fn()
     render(
       <BlocksProvider onBlockEvent={onBlockEvent}>
-        <BlockRoot
-          block='cards'
-          variant='grid'
-          preset='features'
-          id='why-oztix'
-        >
+        <BlockRoot block='cards' preset='features' id='why-oztix'>
           <a href='/about'>About us</a>
         </BlockRoot>
       </BlocksProvider>

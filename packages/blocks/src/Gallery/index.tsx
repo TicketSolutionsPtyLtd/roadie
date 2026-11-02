@@ -49,7 +49,7 @@ export type GalleryProps = {
   /** The section heading. */
   title: string
   /** Words in the title to mark, such as `trust Oztix`. */
-  titleHighlight?: string | string[]
+  highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
   /** Photos of people and events, or partners' logos with `ratio='natural'`. */

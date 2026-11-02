@@ -11,7 +11,6 @@ export const mosaicDefinition = {
       title: 'Tiers',
       description:
         'Photo tiles with a logo and a level, the large ones two columns wide, such as partner tiers.',
-      variant: 'static',
       defaults: { align: 'start' }
     }
   ]

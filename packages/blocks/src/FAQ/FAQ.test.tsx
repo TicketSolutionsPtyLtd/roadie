@@ -33,7 +33,6 @@ describe('FAQ', () => {
 
     const section = screen.getByRole('region', { name: 'Questions, answered' })
     expect(section).toHaveAttribute('data-block', 'faq')
-    expect(section).toHaveAttribute('data-variant', 'accordion')
     expect(section).toHaveAttribute('data-preset', 'accordion')
     expect(section).toHaveAttribute('data-position', '5')
     expect(
@@ -76,7 +75,6 @@ describe('FAQ', () => {
     expect(onBlockEvent).toHaveBeenCalledWith({
       action: 'click',
       block: 'faq',
-      variant: 'accordion',
       preset: 'accordion',
       position: 2,
       label: 'admin@oztix.com.au',

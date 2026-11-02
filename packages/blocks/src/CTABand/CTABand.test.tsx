@@ -44,7 +44,7 @@ describe('CTABand', () => {
       <CTABand
         position={6}
         title='Explore an Oztix partnership'
-        titleHighlight='partnership'
+        highlight='partnership'
         description='We’re always excited to welcome new partners.'
         body={<p>Let’s start with a get-to-know-you conversation.</p>}
         actions={actions}
@@ -56,7 +56,6 @@ describe('CTABand', () => {
       name: 'Explore an Oztix partnership'
     })
     expect(section).toHaveAttribute('data-block', 'cta-band')
-    expect(section).toHaveAttribute('data-variant', 'band')
     expect(section).toHaveAttribute('data-preset', 'band')
     expect(section).toHaveAttribute('data-position', '6')
     expect(screen.getByText('partnership').closest('mark')).not.toBeNull()
@@ -120,7 +119,6 @@ describe('CTABand', () => {
     expect(onBlockEvent).toHaveBeenCalledWith({
       action: 'click',
       block: 'cta-band',
-      variant: 'band',
       preset: 'band',
       position: 3,
       label: 'Create my event',
