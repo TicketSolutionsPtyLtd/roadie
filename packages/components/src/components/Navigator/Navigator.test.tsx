@@ -477,8 +477,8 @@ describe('destination visuals', () => {
         )!
       ).getByRole('link', { name })
     expect(tile('A')).toHaveAttribute('data-current')
-    expect(tile('A')).not.toHaveClass('hover:bg-subtle')
-    expect(tile('B')).toHaveClass('hover:bg-subtle')
+    expect(tile('A')).not.toHaveClass('emphasis-subtler')
+    expect(tile('B')).toHaveClass('emphasis-subtler')
   })
 })
 

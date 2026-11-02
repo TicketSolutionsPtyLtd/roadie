@@ -4,11 +4,11 @@
    line-height, and letter-spacing.
 
    Two contexts:
-   - display.ui.*  — headings in app UI
-   - display.prose.* — headings in long-form content
-   - text-ui — body text for app UI
-   - text-prose — body text for long-form content
-   - text-code — monospaced code text
+   - display.ui.*: headings in app UI
+   - display.prose.*: headings in long-form content
+   - text-ui: body text for app UI
+   - text-prose: body text for long-form content
+   - text-code: monospaced code text
    ═══════════════════════════════════════════════════════════ */
 
 /* ─── Display: UI headings (compact, app context) ─── */

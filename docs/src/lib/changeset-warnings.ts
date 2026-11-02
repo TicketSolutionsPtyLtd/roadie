@@ -5,6 +5,7 @@ import {
   RELEASED_PACKAGES,
   cardOf,
   classify,
+  openingNames,
   ownPage,
   parseChangeset,
   summarise,
@@ -15,14 +16,9 @@ export type ChangesetWarning = { file: string; message: string }
 
 const FIRST_RELEASE = /^First release of `(@[^`]+)`/
 
-/**
- * "Add a `Calendar` component" or "Add `Calendar` and `useCalendar`": an
- * opening name, after at most an article or "new", followed by nothing that
- * makes it a part of the component, such as "prop" or "variant".
- */
-const OPENING_NAME =
-  /^(?:Add|Adds|Added|Introduces?|New)\s+(?:(?:a|an|the|new)\s+)*`([^`\n]+)`\s*(?:\(`[^`]+`\)\s*)?(.*)$/
-const ENDS_NAMING = /^(?:$|[,.:;—(]|component\b|and\s+`|(?:to|in|at|from)\s+`)/
+/** "Add a `Calendar` component" or "Add a new `Calendar`": an opening verb, then at most an article or "new". */
+const ADDS_LOOSELY =
+  /^(?:Add|Adds|Added|Introduces?|New)\s+(?:(?:a|an|the|new)\s+)*/
 
 const CARD_FORM =
   'Open with "Add `Name`", list only names with a docs page of their own, then a comma and what it is.'
@@ -70,10 +66,10 @@ export function changesetWarnings(
         ? 'minor'
         : undefined
     if (bump !== 'minor' || classify(summary, bump) !== 'new') return []
-    const opening = summary.match(OPENING_NAME)
-    const name = opening?.[1]?.trim()
-    if (!name || !ownPage(name, index) || !ENDS_NAMING.test(opening![2]!))
-      return []
+    const lead = summary.match(ADDS_LOOSELY)
+    const opening = lead && openingNames(summary.slice(lead[0].length))
+    const name = opening?.names[0]
+    if (!name || !ownPage(name, index)) return []
     const change = toChange(
       {
         id: file,

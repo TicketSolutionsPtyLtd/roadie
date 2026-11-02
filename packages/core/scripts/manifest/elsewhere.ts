@@ -16,6 +16,7 @@ export const DOCUMENTED_ELSEWHERE: DocumentedElsewhere = {
 
 /** Subpaths with no component, linked to the page that documents them. */
 export const DOCUMENTED_SUBPATHS: DocumentedSubpaths = {
+  '@oztix/roadie-core/number': '/content/language-and-grammar/#prices',
   '@oztix/roadie-core/records': '/foundations/records/',
   '@oztix/roadie-core/records/meilisearch': '/foundations/records/',
   '@oztix/roadie-core/records/elasticsearch': '/foundations/records/',

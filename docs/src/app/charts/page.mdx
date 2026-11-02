@@ -55,3 +55,53 @@ import { lineChartTable } from '@oztix/roadie-charts/tables'
 
 const { columns, rows } = lineChartTable(pace)
 ```
+
+### Chart documents
+
+A chart document is one chart card without the dashboard around it, saved as
+JSON: a `label`, a `source`, and a `plot` that takes any kind a chart card
+does. Add a headline `value` with its `delta`, or a `takeaway`, not both. A
+`static` plot also needs the `table` behind it. The format is in beta, and its
+shape may change.
+
+```json
+{
+  "version": 1,
+  "kind": "chart",
+  "label": "Tickets sold",
+  "source": "Oztix sales, updated hourly.",
+  "takeaway": "Tracking ahead of similar shows",
+  "plot": {
+    "kind": "line",
+    "data": [
+      { "day": "2026-10-01", "sold": 120 },
+      { "day": "2026-10-02", "sold": 184 },
+      { "day": "2026-10-03", "sold": 210 }
+    ],
+    "x": "day",
+    "y": "sold"
+  }
+}
+```
+
+Check one with `validateChartDocument` from `@oztix/roadie-core/dashboard`,
+which runs the same checks as a chart card and returns `{ ok, problems }`. It
+rejects `selectsPeriod`, since a document has no period.
+
+`renderChartDocument` from `@oztix/roadie-charts/static` draws the document as
+one SVG file, with the label and headline above the plot and the source below
+it. It validates first, and throws a `ChartDocumentError` that lists the
+problems. Leave the plot at least 120px tall after the text, or it throws a
+`RangeError`. A `static` plot's image is linked by its `src`, not embedded, so give
+it a URL the file's reader can fetch. Roadie stops at SVG: turn the file into a
+PDF in the app.
+
+```tsx
+import { renderChartDocument } from '@oztix/roadie-charts/static'
+
+const svg = renderChartDocument(chartDocument, {
+  mode: 'light',
+  width: 640,
+  height: 360
+})
+```

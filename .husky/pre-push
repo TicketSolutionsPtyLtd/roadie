@@ -1,4 +1,7 @@
 git diff --quiet origin/main...HEAD -- packages/components docs/src scripts/check-component-docs.mjs || node scripts/check-component-docs.mjs || exit 1
 [ -n "$CI" ] || node scripts/wait-for-load.mjs || exit 1
-TURBO_SCM_BASE=origin/main pnpm turbo run typecheck test --affected
+# As in CI: jsdom suites run 8 to 20 times slower beside typecheck and other
+# packages' tests, so tests run one package at a time.
+TURBO_SCM_BASE=origin/main pnpm turbo run typecheck --affected || exit 1
+TURBO_SCM_BASE=origin/main pnpm turbo run test --affected --concurrency=1
 node scripts/check-pr-size.mjs || true

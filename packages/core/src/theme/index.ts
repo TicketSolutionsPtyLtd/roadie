@@ -14,7 +14,7 @@ const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
  * Generate a blocking inline script for SSR that prevents flash of wrong theme.
  * Place in <head> before any stylesheets.
  *
- * Works with any framework — returns a plain string with no dependencies.
+ * Works with any framework: returns a plain string with no dependencies.
  *
  * @example
  * // Next.js (React)
@@ -50,7 +50,7 @@ export function getThemeScript(options?: {
  * Roadie will emit a synchronous `<style>` tag that sets
  * `--accent-hue` and `--accent-chroma` before the first paint.
  *
- * The combined output is framework-agnostic — inject it verbatim
+ * The combined output is framework-agnostic: inject it verbatim
  * inside `<head>` via Next's `dangerouslySetInnerHTML`, Astro's
  * `set:html`, or plain HTML.
  *

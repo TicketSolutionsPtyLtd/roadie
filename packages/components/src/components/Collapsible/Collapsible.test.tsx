@@ -103,7 +103,7 @@ describe('Collapsible', () => {
       'is-interactive',
       'inline-flex',
       'font-medium',
-      'hover:bg-subtle'
+      'emphasis-subtler'
     )
     expect(caret(screen.getByRole('button'))).toHaveClass('text-subtle')
   })

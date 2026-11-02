@@ -183,7 +183,13 @@ export function renderChartSvg<P>(
 }
 
 export type { CategoryAxis, ChartDefinition } from '../plot/types'
+export {
+  ChartDocumentError,
+  type ChartDocumentRenderOptions,
+  renderChartDocument
+} from './document'
 export { barChart } from '../BarChart/definition'
+export { donutChart } from '../DonutChart/definition'
 export { funnel } from '../Funnel/definition'
 export { heatmap } from '../Heatmap/definition'
 export { histogram } from '../Histogram/definition'

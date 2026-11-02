@@ -108,7 +108,7 @@ import { Guideline, Guidelines } from '@/components/Guideline'
 
 ## `<PropsDefinitions>` usage
 
-- **Name the component**: `component='Badge'`, or several in order: `component={['Checkbox', 'CheckboxGroup']}`. A compound lists its parts after its root, one section each (`Fieldset`, `Fieldset.Legend`, …).
+- **Name the component**: `component='Badge'`, or several in order: `component={['Checkbox', 'CheckboxGroup']}`. Use one per page: its headings carry fixed ids (`api-reference`, `api-<part>`), so a second would repeat them. A compound lists its parts after its root, one section each (`Fieldset`, `Fieldset.Legend`, …).
 - **Props come from the package's `dist/roadie.manifest.json`**, which the package build generates (`packages/core/scripts/manifest/`). Rebuild the package to see a prop change; `pnpm dev` regenerates it on each rebuild. The docs build fails on a name no manifest lists.
 - **The manifest links each component to the page that names it**, so name every component a page documents.
 - **`className` rows**: the manifest drops a plain, undocumented `className: string` forwarded from `@types/react`, since every part accepts it along with its element's other HTML attributes; that's true everywhere and doesn't need its own row. It keeps a `className` a part documents with a real description, or types as a Base UI state function.

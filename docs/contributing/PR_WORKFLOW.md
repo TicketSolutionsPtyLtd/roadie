@@ -85,7 +85,11 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   with a docs page of its own. An import path in brackets can follow a
   name. Then a comma and what it is, which becomes the card's description:
   "Add `Calendar` (`@oztix/roadie-components/calendar`), a month grid for
-  choosing a date." A new package opens "First release of
+  choosing a date." After the names, only a comma or other punctuation,
+  "component", "compound", or "for" keeps it a card. Anything else reads
+  as a part of the component, so "Add `Badge` `tag` variant." and "Add
+  `Badge` support for icons." list as changes.
+  A new package opens "First release of
   `@oztix/roadie-name`", with a paragraph after that sentence to describe
   it, and needs entries in `RELEASED_PACKAGES` and `PACKAGE_PAGES` in
   `docs/src/lib/releases.ts`. CI warns when a changeset misses a card
@@ -152,6 +156,20 @@ Every PR is checked against these before review. Fix every real hit.
   touched package that has one (`pnpm --filter <package> size`; `docs`
   has none).
 - Rebuild before browser tests; stale `dist` misleads the `:has()` guard.
+- **Docs e2e tests** (`docs/e2e/`) drive the static export in `docs/out`
+  with Playwright, so build the docs first, with the base path CI uses, and
+  pass the same base path to the tests:
+
+  ```bash
+  NEXT_PUBLIC_BASE_PATH=/roadie pnpm turbo build --filter=docs
+  NEXT_PUBLIC_BASE_PATH=/roadie pnpm --filter docs test:e2e
+  ```
+
+  They run in Chromium; set `E2E_BROWSER=firefox` or `E2E_BROWSER=webkit`
+  for another engine (`pnpm exec playwright install <engine>` once). Add a
+  file path after `test:e2e` to run one file. Rebuild after any change the
+  tests read, since they never see your source, only `out`.
+
 - **Keep the machine cool.** Check `uptime` before starting an agent, and
   wait while the 1-minute load is above the core count. Run tests with
   `pnpm test:gated <package>`, never vitest or `pnpm test` directly. It
@@ -266,8 +284,9 @@ the PR only when the review is clean.
 - **A bot or reviewer finding is a gap in the local review.** Fix the real
   ones yourself; `/roadie:retro` turns repeats into review classes.
 - **Triage instead of looping.** Critical and Important findings are always
-  fixed, however rare the case. A Minor one is fixed only if a real user
-  would hit it in normal use; the rest become Jira follow-ups (section 9).
+  fixed, however rare the case. A Minor one is fixed in this PR when it's in
+  code the PR changes; one in code the PR doesn't touch becomes a Jira
+  follow-up (section 9).
 - **Flaky tests**: a known flake may be re-run once. A flake seen on two
   unrelated PRs gets fixed at its root in its own PR. Until then it can go on
   the quarantine list in `vitest.browsers.config.ts`, with its ticket. CI
@@ -302,7 +321,9 @@ It shows `CI result`, mirrored from main's CI, and needs no admin bypass
 
 ## 9. Nothing deferred is dropped
 
-Every Minor finding not fixed in its own PR becomes a Jira work item in the
+A Minor finding in code the PR changes, meaning any file in its diff, is fixed
+in that PR, not filed. Every Minor finding in a file the PR doesn't touch
+becomes a Jira work item in the
 **INNO** project with the **Roadie** component and the `follow-up` label,
 holding the file and line, the finding, and a link to the PR thread it came
 from. Add to the open `Roadie follow-ups: <area>` item before creating one,

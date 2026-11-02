@@ -45,6 +45,10 @@
       "types": "./dist/datetime/index.d.ts",
       "import": "./dist/datetime/index.js"
     },
+    "./number": {
+      "types": "./dist/number/index.d.ts",
+      "import": "./dist/number/index.js"
+    },
     "./dataviz": {
       "types": "./dist/dataviz/index.d.ts",
       "import": "./dist/dataviz/index.js"
@@ -131,7 +135,7 @@
     "react-docgen-typescript": "2.4.0",
     "size-limit": "14.3.0",
     "tailwindcss": "4.3.3",
-    "tsdown": "0.23.1",
+    "tsdown": "0.23.4",
     "typescript": "6.0.3",
     "vite": "8.3.5",
     "vitest": "5.0.5"
@@ -141,6 +145,17 @@
       "name": "datetime",
       "path": "dist/datetime/index.js",
       "limit": "9.7 KB"
+    },
+    {
+      "name": "datetime formatting only",
+      "path": "dist/datetime/index.js",
+      "import": "{ formatDateTime, formatDateRange, formatRelative, formatDuration }",
+      "limit": "2.25 KB"
+    },
+    {
+      "name": "number",
+      "path": "dist/number/index.js",
+      "limit": "560 B"
     },
     {
       "name": "records",

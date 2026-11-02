@@ -124,6 +124,9 @@ jobs:
       - name: Check component docs
         run: node scripts/check-component-docs.mjs
 
+      - name: Check docs content
+        run: node scripts/check-docs-content.mjs
+
       # Root scripts belong to no turbo package, so turbo test skips them.
       - name: Test repo scripts
         run: node --test 'scripts/**/*.test.mjs'

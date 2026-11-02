@@ -6,11 +6,31 @@ runRuleCases({
       "import { HeartIcon, IconContext } from '@phosphor-icons/react'",
       "import type { Heart } from '@phosphor-icons/react'",
       "import { type Heart, HeartIcon } from '@phosphor-icons/react'",
-      "import { Heart } from 'somewhere-else'"
+      "import { Heart } from 'somewhere-else'",
+      {
+        code: "<HeartIcon weight='bold' />; <Image src='/a.png' alt='' />",
+        settings: { roadie: { phosphorIcons: ['HeartIcon', 'ImageIcon'] } }
+      },
+      {
+        code: '<Heart />',
+        settings: { roadie: { phosphorIcons: ['HeartIcon'] } }
+      },
+      {
+        code: '<Provider value={IconContext} />',
+        settings: { roadie: { phosphorIcons: ['IconContext'] } }
+      }
     ],
     invalid: [
       "import { Heart } from '@phosphor-icons/react'",
-      "import { Heart as HeartIcon } from '@phosphor-icons/react/ssr'"
+      "import { Heart as HeartIcon } from '@phosphor-icons/react/ssr'",
+      {
+        code: "<Heart weight='bold' />",
+        settings: { roadie: { phosphorIcons: ['Heart'] } }
+      },
+      {
+        code: '<IconButton icon={Heart} />',
+        settings: { roadie: { phosphorIcons: ['Heart', 'IconContext'] } }
+      }
     ]
   },
   'phosphor-icon-size-prop': {
@@ -48,7 +68,8 @@ runRuleCases({
       "import { HeartIcon } from '@phosphor-icons/react'; <HeartIcon />",
       "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.MenuItem icon={<HeartIcon />} />",
       "import { HeartIcon } from '@phosphor-icons/react'; <Button icon={custom ?? <HeartIcon />} />",
-      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={render(<HeartIcon />)} />"
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={render(<HeartIcon />)} />",
+      "import { HeartIcon } from '@phosphor-icons/react'; <Navigator.Item icon={x ? <HeartIcon weight='thin' /> : null} />"
     ]
   }
 })

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { CHART_PLOT_KINDS, type ChartPlot } from '@oztix/roadie-core/dashboard'
 
 import { onSaleExample } from '../BarChart/examples'
+import { ticketTypeExample } from '../DonutChart/examples'
 import { checkoutExample } from '../Funnel/examples'
 import { whenFansBuyExample } from '../Heatmap/examples'
 import { leadTimeExample } from '../Histogram/examples'
@@ -21,6 +22,7 @@ const plots: ChartPlot[] = [
   { kind: 'line', ...paceExample },
   { kind: 'bar', ...onSaleExample },
   { kind: 'ranked-bars', ...channelExample },
+  { kind: 'donut', ...ticketTypeExample },
   { kind: 'stacked-bars', ...ticketMixExample },
   { kind: 'stacked-area', ...scansByGateExample },
   { kind: 'histogram', ...leadTimeExample },

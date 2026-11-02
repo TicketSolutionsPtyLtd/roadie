@@ -43,6 +43,7 @@ import {
 import {
   stepAlong,
   stepCategory,
+  stepRing,
   stepSeries,
   stepWithin,
   visualEnds
@@ -170,6 +171,12 @@ const ARROW_STEPS: Record<CategoryAxis, Partial<Record<string, Step>>> = {
     ArrowDown: (points, current) => stepCategory(points, current, 1),
     ArrowLeft: (points, current) => stepWithin(points, current, -1),
     ArrowRight: (points, current) => stepWithin(points, current, 1)
+  },
+  ring: {
+    ArrowUp: (points, current) => stepRing(points, current, -1),
+    ArrowLeft: (points, current) => stepRing(points, current, -1),
+    ArrowDown: (points, current) => stepRing(points, current, 1),
+    ArrowRight: (points, current) => stepRing(points, current, 1)
   }
 }
 
