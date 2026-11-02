@@ -313,6 +313,52 @@ describe('live examples', () => {
     await page.context().close()
   }, 60_000)
 
+  it('preview an example at phone width, where viewport breakpoints respond', async () => {
+    const { page, errors } = await open('/components/navigator/#default', 1280)
+    await page.locator('[data-live-example=rendered]').first().waitFor()
+
+    await page.getByRole('button', { name: 'Phone' }).first().click()
+    const frame = page.frameLocator('iframe[title="Example at phone width"]')
+    await frame.locator('[data-slot=navigator-panes]').waitFor()
+
+    expect(
+      await frame
+        .locator('body')
+        .evaluate(() => [
+          window.innerWidth,
+          window.matchMedia('(min-width: 48rem)').matches
+        ])
+    ).toEqual([375, false])
+    expect(errors).toEqual([])
+    await page.context().close()
+  }, 60_000)
+
+  it('shrink a tablet preview to fit the column', async () => {
+    const { page, errors } = await open('/components/badge/', 1280)
+    await page.locator('[data-live-example=rendered]').first().waitFor()
+
+    await page.getByRole('button', { name: 'Tablet' }).first().click()
+    const iframe = page.locator('iframe[title="Example at tablet width"]')
+    await page
+      .frameLocator('iframe[title="Example at tablet width"]')
+      .getByText('Badge')
+      .first()
+      .waitFor()
+
+    const { frame, column, inner } = await iframe.evaluate(
+      (element: HTMLIFrameElement) => ({
+        frame: element.getBoundingClientRect().width,
+        column: element.parentElement!.getBoundingClientRect().width,
+        inner: element.contentWindow!.innerWidth
+      })
+    )
+    expect(inner).toBe(768)
+    expect(frame).toBeLessThanOrEqual(column + 1)
+    expect(await sideways(page)).toBe(false)
+    expect(errors).toEqual([])
+    await page.context().close()
+  }, 60_000)
+
   it('link each example to its own page', async () => {
     const { page } = await open('/components/badge/', 1280)
     const link = page

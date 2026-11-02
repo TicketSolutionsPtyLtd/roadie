@@ -19,7 +19,6 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   ArrowSquareOutIcon,
-  ArrowsOutIcon,
   BellRingingIcon,
   BuildingsIcon,
   CaretDownIcon,
@@ -111,14 +110,17 @@ import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
 import { DemoRouter } from './DemoRouter'
+import { DeviceFrame } from './DeviceFrame'
 import { createDemoCart } from './cartDrawerDemo'
 import {
   CodePanel,
   HighlightedCode,
   canCollapse,
   highlightLanguageOf,
+  previewSpacing,
   useCodeTheme
 } from './codeChrome'
+import type { Device } from './exampleDevices'
 import { DEFAULT_PREVIEW_HEIGHT, exampleHeights } from './nearViewport'
 
 // Live examples use the Icon-suffixed names, as consumer code imports them.
@@ -248,19 +250,50 @@ const scope = {
   PreviewCell
 }
 
-const { Button, Dialog, IconButton } = RoadieComponents
+const { Dialog, IconButton } = RoadieComponents
 
-function FullWidthPreview({ previewLayout }: { previewLayout?: string }) {
+/** The example at a device's width, from the code as last edited. */
+function LiveDeviceFrame({
+  device,
+  language,
+  previewLayout,
+  onMounted
+}: {
+  device: Exclude<Device, 'desktop'>
+  language: string
+  previewLayout?: string
+  onMounted?: () => void
+}) {
+  const live = useContext(LiveContext)
+
+  // The inline preview isn't mounted to free the queue, so the frame does.
+  useEffect(() => {
+    onMounted?.()
+  }, [onMounted])
+
   return (
-    <Dialog>
-      <Dialog.Trigger
-        render={
-          <Button size='sm' emphasis='subtler'>
-            <ArrowsOutIcon weight='bold' className='size-4' />
-            Full width
-          </Button>
-        }
-      />
+    <DeviceFrame
+      device={device}
+      example={{ code: live.newCode ?? live.code, language, previewLayout }}
+    />
+  )
+}
+
+function FullWidthPreview({
+  open,
+  onOpenChange,
+  device,
+  language,
+  previewLayout
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  device: Device
+  language: string
+  previewLayout?: string
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <Dialog.Content className='max-w-none gap-4 p-4'>
         <div className='flex items-center justify-between gap-4'>
           <Dialog.Title className='text-display-ui-6'>
@@ -274,9 +307,17 @@ function FullWidthPreview({ previewLayout }: { previewLayout?: string }) {
             }
           />
         </div>
-        <LivePreview
-          className={`min-w-0 font-sans whitespace-normal ${previewLayout ?? ''}`}
-        />
+        {device === 'desktop' ? (
+          <LivePreview
+            className={`min-w-0 font-sans whitespace-normal ${previewLayout ?? ''}`}
+          />
+        ) : (
+          <LiveDeviceFrame
+            device={device}
+            language={language}
+            previewLayout={previewLayout}
+          />
+        )}
       </Dialog.Content>
     </Dialog>
   )
@@ -350,8 +391,6 @@ export type LiveRunnerProps = {
   /** The fence language, such as `tsx-live-noinline-expand`. */
   language: string
   heightKey: string
-  exampleHref?: string
-  expandable?: boolean
   /** Owned by `CodePreview`, so it survives the swap from the placeholder. */
   expanded?: boolean
   onExpandedChange?: (expanded: boolean) => void
@@ -363,23 +402,28 @@ export type LiveRunnerProps = {
   isolated?: boolean
   /** Classes the preview lays the example out with, from the fence's `layout=`, `gap=`, and `width=`. */
   previewLayout?: string
+  /** The width the header's switch picked; anything but desktop runs the example in a frame. */
+  device?: Device
+  /** Whether the full-width dialog is open, from the header's Full width button. */
+  fullWidth?: boolean
+  onFullWidthChange?: (fullWidth: boolean) => void
 }
 
 export default function LiveRunner({
   code,
   language,
   heightKey,
-  exampleHref,
-  expandable = false,
   expanded = false,
   onExpandedChange = () => {},
   editorOpened = false,
   onMounted,
   isolated = false,
-  previewLayout
+  previewLayout,
+  device = 'desktop',
+  fullWidth = false,
+  onFullWidthChange = () => {}
 }: LiveRunnerProps) {
   const theme = useCodeTheme()
-  const isBleedX = /^(?:tsx|jsx)-live-bleed-x/.test(language)
   const highlightLanguage = highlightLanguageOf(language)
   // A long block stays static until first opened; LiveEditor renders every token.
   const showEditor = editorOpened || !canCollapse(code)
@@ -400,29 +444,39 @@ export default function LiveRunner({
       language={highlightLanguage}
       transformCode={transformCode}
     >
-      {expandable && !isolated && (
-        <div
-          data-not-prose
-          className='flex justify-end border-b border-subtle bg-normal p-2 max-md:hidden'
-        >
-          <FullWidthPreview previewLayout={previewLayout} />
-        </div>
+      {!isolated && (
+        <FullWidthPreview
+          open={fullWidth}
+          onOpenChange={onFullWidthChange}
+          device={device}
+          language={language}
+          previewLayout={previewLayout}
+        />
       )}
-      <Preview
-        heightKey={isolated ? `${heightKey}#isolated` : heightKey}
-        isolated={isolated}
-        previewLayout={previewLayout}
-        onMounted={onMounted}
-        className={
-          isolated
-            ? 'min-w-0 font-sans whitespace-normal'
-            : // whitespace-normal resets the `white-space: pre` inherited from the MDX
-              // fence wrapper. overflow-y-hidden stops a sub-pixel vertical overflow
-              // flickering a scrollbar under animated examples, since a non-visible
-              // overflow-x forces the other axis to auto.
-              `min-w-0 overflow-x-auto overflow-y-hidden bg-normal font-sans whitespace-normal ${isBleedX ? 'py-4 sm:py-6' : 'px-4 py-4 sm:px-6 sm:py-6'}`
-        }
-      />
+      {device === 'desktop' || isolated ? (
+        <Preview
+          heightKey={isolated ? `${heightKey}#isolated` : heightKey}
+          isolated={isolated}
+          previewLayout={previewLayout}
+          onMounted={onMounted}
+          className={
+            isolated
+              ? 'min-w-0 font-sans whitespace-normal'
+              : // whitespace-normal resets the `white-space: pre` inherited from the MDX
+                // fence wrapper. overflow-y-hidden stops a sub-pixel vertical overflow
+                // flickering a scrollbar under animated examples, since a non-visible
+                // overflow-x forces the other axis to auto.
+                `min-w-0 overflow-x-auto overflow-y-hidden bg-normal font-sans whitespace-normal ${previewSpacing(language)}`
+          }
+        />
+      ) : (
+        <LiveDeviceFrame
+          device={device}
+          language={language}
+          previewLayout={previewLayout}
+          onMounted={onMounted}
+        />
+      )}
       <LiveError
         data-not-prose
         className='bg-subtler px-4 py-3 text-sm text-subtle intent-danger'
@@ -430,7 +484,6 @@ export default function LiveRunner({
       {!isolated && (
         <CodePanel
           code={code}
-          exampleHref={exampleHref}
           expanded={expanded}
           onExpandedChange={onExpandedChange}
         >
