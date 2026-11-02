@@ -166,7 +166,8 @@ Every PR is checked against these before review. Fix every real hit.
   ```
 
   They run in Chromium; set `E2E_BROWSER=firefox` or `E2E_BROWSER=webkit`
-  for another engine (`pnpm exec playwright install <engine>` once). Add a
+  for another engine (`pnpm exec playwright install <engine>` once). CI
+  runs all three on `main` and on a PR with the `full-browsers` label. Add a
   file path after `test:e2e` to run one file. Rebuild after any change the
   tests read, since they never see your source, only `out`.
 
