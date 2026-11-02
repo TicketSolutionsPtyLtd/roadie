@@ -119,17 +119,26 @@ describe('CallToAction with photo', () => {
     )
   })
 
-  it.each([
-    ['a phone', PHONE],
-    ['a mid-width screen', { width: 640, height: 800 }],
-    ['a desktop', DESKTOP]
-  ])(
-    'keeps the photo and its illustration above the panel’s foot, with short copy, on %s',
-    async (_, size) => {
+  it.each(
+    (
+      [
+        ['a phone', PHONE],
+        ['a mid-width screen', { width: 640, height: 800 }],
+        ['a desktop', DESKTOP]
+      ] as const
+    ).flatMap(([name, size]) =>
+      (['square', 'portrait'] as const).map(
+        (ratio) => [name, ratio, size] as const
+      )
+    )
+  )(
+    'keeps the photo and its illustration above the panel’s foot, with short copy, on %s at %s',
+    async (_, ratio, size) => {
       await page.viewport(size.width, size.height)
       const { container } = render(
         <CallToAction
           {...props}
+          ratio={ratio}
           body={undefined}
           actions={undefined}
           tilted={false}
@@ -180,15 +189,24 @@ describe('CallToAction with photo', () => {
 })
 
 describe('CallToAction with photo, its photo', () => {
-  it('crops a landscape photo to a 9:16 portrait frame', async () => {
-    render(<CallToAction {...props} />)
+  it.each([
+    [undefined, 1],
+    ['square', 1],
+    ['portrait', 9 / 16],
+    ['landscape', 2]
+  ] as const)(
+    'crops a landscape photo to the %s ratio, %d wide per high',
+    async (ratio, expected) => {
+      render(<CallToAction {...props} ratio={ratio} />)
 
-    const img = screen.getByRole('img', { name: 'Hands up at a gig' })
-    const frame = img.parentElement!
-    expect(img.offsetWidth).toBe(frame.clientWidth)
-    expect(img.offsetHeight).toBe(frame.clientHeight)
-    expect(frame.clientWidth / frame.clientHeight).toBeCloseTo(9 / 16, 1)
-  })
+      const img = screen.getByRole('img', { name: 'Hands up at a gig' })
+      const frame = img.parentElement!
+      expect(img.offsetWidth).toBe(frame.clientWidth)
+      expect(img.offsetHeight).toBe(frame.clientHeight)
+      // The ratio sets the frame's border box; its 4px border sits inside it.
+      expect(frame.offsetWidth / frame.offsetHeight).toBeCloseTo(expected, 1)
+    }
+  )
 
   const turn = () =>
     getComputedStyle(

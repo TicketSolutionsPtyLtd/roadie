@@ -13,10 +13,12 @@ import {
   SPOT_ILLUSTRATIONS,
   type SpotIllustrationName
 } from '../_shared/illustrations'
+import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
+  type BlockRatio,
   type BlockSize,
   bySize,
   gapOf,
@@ -62,8 +64,13 @@ export type CallToActionProps = {
   body?: ReactNode
   /** The links to act on. The first is the strong one. */
   actions?: readonly BlockAction[]
-  /** The photo beside the pitch on `photo`, breaking out of the panel's top, cropped to portrait (9:16). */
+  /** The photo beside the pitch on `photo`, breaking out of the panel's top, cropped to its `ratio`. */
   image?: BlockImage
+  /**
+   * The photo's shape on `photo`.
+   * @default 'square'
+   */
+  ratio?: BlockRatio
   /**
    * Turns `photo`'s photo a few degrees, as if pinned to the page. `false` sets it straight.
    * @default true
@@ -94,11 +101,25 @@ export type CallToActionProps = {
   size?: BlockSize
 }
 
+// Literal class names, so Tailwind finds them: the photo is a quarter of the block, at most 312px wide.
+const PHOTO_HEIGHT: Record<BlockRatio, string> = {
+  portrait:
+    '@xl:min-h-[calc(min(44.5cqw,555px)-9rem)] @7xl:min-h-[calc(min(44.5cqw,555px)-11rem)]',
+  square:
+    '@xl:min-h-[calc(min(25cqw,312px)-9rem)] @7xl:min-h-[calc(min(25cqw,312px)-11rem)]',
+  landscape:
+    '@xl:min-h-[calc(min(12.5cqw,156px)-9rem)] @7xl:min-h-[calc(min(12.5cqw,156px)-11rem)]'
+}
+
 /** Closes a page with a short pitch and the next step to take. */
 export function CallToAction(props: CallToActionProps) {
   const { body, tilted = true, illustration = 'HighFive', size } = props
   const block = useBlock(callToActionDefinition, props)
   const image = block.name === 'photo' ? props.image : undefined
+  const preset = presetOf(callToActionDefinition, block.name)
+  const ratio =
+    props.ratio ??
+    ('ratio' in preset.defaults ? preset.defaults.ratio : 'square')
   const { emphasis } = block
   const centred = block.align === 'center'
   const Illustration = SPOT_ILLUSTRATIONS[illustration]
@@ -121,7 +142,7 @@ export function CallToAction(props: CallToActionProps) {
               <div
                 className={cn(
                   'overflow-hidden rounded-2xl border-4 border-(--color-neutral-light-0) shadow-lg',
-                  ratioClass.portrait
+                  ratioClass[ratio]
                 )}
               >
                 <BlockImg
@@ -143,10 +164,10 @@ export function CallToAction(props: CallToActionProps) {
               image && [
                 '@xl:max-w-7/12 content-center',
                 // The photo beside the copy is out of flow, so the copy keeps the panel tall
-                // enough for it: a quarter of the block wide at 9:16, less its overhang, plus
-                // the illustration below it, less the panel's padding. Its rows pack at the
-                // centre of that height, so short copy keeps its gaps.
-                '@xl:min-h-[calc(min(44.5cqw,555px)-9rem)] @7xl:min-h-[calc(min(44.5cqw,555px)-11rem)]'
+                // enough for it: the photo's height at a quarter of the block wide, less its
+                // overhang, plus the illustration below it, less the panel's padding. Its rows
+                // pack at the centre of that height, so short copy keeps its gaps.
+                PHOTO_HEIGHT[ratio]
               ],
               centred && 'justify-items-center text-center'
             )}

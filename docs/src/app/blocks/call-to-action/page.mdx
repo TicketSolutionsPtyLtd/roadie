@@ -22,8 +22,9 @@ import { CallToAction } from '@oztix/roadie-blocks/call-to-action'
 
 ### Photo
 
-The default. The pitch and actions start beside a tilted portrait photo (9:16)
-that breaks out of the top of the panel. On a phone, the photo sits above the
+The default. The pitch and actions start beside a tilted square photo that
+breaks out of the top of the panel. `ratio='portrait'` (9:16) or
+`'landscape'` (2:1) changes its shape. On a phone, the photo sits above the
 copy.
 
 ```tsx-live-expand id=photo
@@ -137,7 +138,7 @@ The heading, copy, and actions centred in the panel, with no photo.
 
 <Guideline title='Pick the preset for the page'>
   <Guideline.Do>
-    Use `photo` to close a page that sells Oztix, with a portrait photo of people at an event.
+    Use `photo` to close a page that sells Oztix, with a photo of people at an event.
   </Guideline.Do>
   <Guideline.Do>
     Use `centred` where a photo would compete with the page, such as after an FAQ.
