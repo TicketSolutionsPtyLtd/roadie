@@ -5,7 +5,6 @@ import { type ReactNode, type RefObject, useRef, useState } from 'react'
 import { posToDOMRect } from '@tiptap/core'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 
-import { Button } from '@oztix/roadie-components/button'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { Popover } from '@oztix/roadie-components/popover'
@@ -129,8 +128,9 @@ function ButtonChoice<Value extends string>({
 }
 
 const EMPHASES = [
-  { value: 'strong', label: 'Filled' },
-  { value: 'normal', label: 'Outline' }
+  { value: 'strong', label: 'Strong' },
+  { value: 'normal', label: 'Normal' },
+  { value: 'subtle', label: 'Subtle' }
 ] as const
 
 const WIDTHS = [
@@ -146,18 +146,34 @@ const ALIGNS: readonly Choice<ButtonAlign>[] = [
 
 type SettingsFormProps = ButtonFormProps & { href: string; look: ButtonLook }
 
+// Undefined clears an attr, so the button saves only what isn't the default.
+const lookAttrs = ({ emphasis, fullWidth, align }: ButtonLook) => ({
+  emphasis,
+  fullWidth,
+  align: fullWidth ? undefined : align
+})
+
+/** Applies each change as it's made: a choice at once, a link once it's whole. */
 function ButtonSettingsForm({
   editor,
   inputRef,
   href,
-  look,
+  look: saved,
   onDone
 }: SettingsFormProps) {
   const [typed, setTyped] = useState(href)
   const [refused, setRefused] = useState(false)
-  const [emphasis, setEmphasis] = useState(look.emphasis ?? 'strong')
-  const [width, setWidth] = useState(look.fullWidth ? 'full' : 'fit')
-  const [align, setAlign] = useState<ButtonAlign>(look.align ?? 'left')
+  const [look, setLook] = useState(saved)
+
+  // The popover keeps focus, so the editor's selection stays on the button.
+  const apply = (attrs: Record<string, unknown>) =>
+    editor.chain().updateAttributes('button', attrs).run()
+
+  const changeLook = (change: ButtonLook) => {
+    const next = { ...look, ...change }
+    setLook(next)
+    apply(lookAttrs(next))
+  }
 
   return (
     <form
@@ -167,25 +183,10 @@ function ButtonSettingsForm({
         event.preventDefault()
         // React bubbles a portalled submit to the form around the editor.
         event.stopPropagation()
-        const saved = toHref(typed)
-        if (!isEmailHref(saved)) {
+        if (!isEmailHref(toHref(typed))) {
           setRefused(true)
-          inputRef.current?.focus()
           return
         }
-        const full = width === 'full'
-        // Undefined clears an attr, so the saved button keeps only what isn't
-        // the default.
-        editor
-          .chain()
-          .focus()
-          .updateAttributes('button', {
-            href: saved,
-            emphasis: emphasis === 'normal' ? emphasis : undefined,
-            fullWidth: full || undefined,
-            align: !full && align !== 'left' ? align : undefined
-          })
-          .run()
         onDone()
       }}
     >
@@ -198,9 +199,13 @@ function ButtonSettingsForm({
           placeholder='Paste a link'
           value={typed}
           onChange={(event) => {
-            setTyped(event.target.value)
+            const value = event.target.value
+            setTyped(value)
             setRefused(false)
+            if (isEmailHref(toHref(value))) apply({ href: toHref(value) })
           }}
+          // Says so only once they've moved on, not while they type.
+          onBlur={() => setRefused(!isEmailHref(toHref(typed)))}
           // Backward, so a long link shows its start, as the add form's does.
           onFocus={(event) => {
             if (event.currentTarget.value !== href) return
@@ -211,33 +216,33 @@ function ButtonSettingsForm({
         <Field.ErrorText>{REFUSED}</Field.ErrorText>
       </Field>
       <ButtonChoice
-        legend='Style'
+        legend='Emphasis'
         choices={EMPHASES}
-        value={emphasis}
-        onValueChange={setEmphasis}
+        value={look.emphasis ?? 'strong'}
+        onValueChange={(emphasis) =>
+          changeLook({ emphasis: emphasis === 'strong' ? undefined : emphasis })
+        }
       />
       <ButtonChoice
         legend='Width'
         choices={WIDTHS}
-        value={width}
-        onValueChange={setWidth}
+        value={look.fullWidth ? 'full' : 'fit'}
+        onValueChange={(width) =>
+          changeLook({ fullWidth: width === 'full' || undefined })
+        }
       />
       <ButtonChoice
         legend='Align'
         choices={ALIGNS}
-        value={align}
-        onValueChange={setAlign}
-        disabled={width === 'full'}
+        value={look.align ?? 'left'}
+        onValueChange={(align) =>
+          changeLook({ align: align === 'left' ? undefined : align })
+        }
+        disabled={look.fullWidth}
         helperText={
-          width === 'full' ? 'A full-width button spans its column.' : null
+          look.fullWidth ? 'A full-width button spans its column.' : null
         }
       />
-      <div className='flex justify-end gap-2'>
-        <Popover.Close render={<Button emphasis='subtler'>Cancel</Button>} />
-        <Button type='submit' intent='accent' emphasis='strong'>
-          Save
-        </Button>
-      </div>
     </form>
   )
 }

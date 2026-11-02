@@ -164,13 +164,20 @@ function outlined(
 
 const BUTTON_ALIGN = { center: 'mx-auto', right: 'ms-auto' } as const
 
-// As the email draws it: filled or outlined, at its label's width or the
-// column's, from the column's start, centred, or at its end.
+// As the email draws it: strong in the accent, or a neutral normal or
+// subtle, at its label's width or the column's, from the column's start,
+// centred, or at its end.
+const BUTTON_EMPHASIS = {
+  strong: 'intent-accent emphasis-strong',
+  normal: 'emphasis-normal',
+  subtle: 'emphasis-subtle'
+} as const
+
 function buttonClass(attrs: Attrs) {
-  const { align, emphasis, fullWidth } = buttonLook(attrs)
+  const { align, emphasis = 'strong', fullWidth } = buttonLook(attrs)
   return cn(
     'not-prose rounded-lg px-5 py-2.5 font-semibold',
-    emphasis === 'normal' ? 'emphasis-normal' : 'emphasis-strong',
+    BUTTON_EMPHASIS[emphasis],
     fullWidth ? 'w-full text-center' : ['w-fit', align && BUTTON_ALIGN[align]]
   )
 }

@@ -199,17 +199,23 @@ Button asks for its link first, which must be a full web address, or a
 such as oztix.com.au, gets `https://`. The button's label is selected, so
 typing replaces it, and Enter in a button starts a new paragraph after it.
 
-Button settings, in the button's toolbar, edits its link and its look:
+Button settings, in the button's toolbar, edits its link and its look. Each
+change shows on the button as it's made, so there's no Save: Enter or Escape
+closes it. A link applies once it's a full address, and the button keeps its
+last one until then.
 
-- **Style:** Filled, in the theme's `button` colour, or Outline, a border
-  and label in that colour on the email's background.
+- **Emphasis:** Strong, a fill in the theme's accent, for the action that
+  matters. Normal, a neutral border, or Subtle, a neutral tint, for one beside
+  it.
 - **Width:** Fit label, or Full width across its column.
 - **Align:** Left, Centre, or Right in its column. A full-width button has
   none.
 
-A button saves only what differs from a filled, left-aligned button at its
-label's width: `align`, `emphasis: 'normal'` for an outline, and
-`fullWidth: true`.
+A button saves only what differs from a strong, left-aligned button at its
+label's width: `align`, `emphasis: 'normal' | 'subtle'`, and
+`fullWidth: true`. On the page, a strong button takes the accent the editor
+sits in, so wrap the editor in a `ThemeProvider` with the email's accent to
+match it.
 
 Each of these blocks has its own toolbar:
 
@@ -250,11 +256,15 @@ const nextConfig = { serverExternalPackages: ['mjml'] }
 ```
 
 - `theme` is the app's brand kit, over `defaultEmailTheme`: `background`,
-  `text`, `link`, `button`, `buttonText`, and `divider` as hex colours, and
+  `text`, `accent`, `link`, `button`, `buttonText`, `border`, `tint`, and
+  `divider` as hex colours, and
   `fontFamily` as a stack of web-safe fonts. Mail clients don't read CSS
   variables, so the default is Roadie's light scales as hex. Keep the kit in
   the app, never in the saved value. A colour that isn't hex, or a font
-  stack with more than names, quotes, and commas, throws.
+  stack with more than names, quotes, and commas, throws. Links and strong
+  buttons take `accent`, Oztix blue by default, unless `link` or `button` is
+  set. A normal button draws its border in `border` and a subtle one fills
+  with `tint`.
 - A section, and a run of blocks outside columns, fill the email's 600 pixel
   width. Columns sit side by side from 480 pixels and stack on a phone, and
   stay side by side in Outlook on Windows.

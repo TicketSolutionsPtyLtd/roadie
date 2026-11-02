@@ -88,9 +88,12 @@ function columnBox(block: HTMLElement) {
   }
 }
 
+const choose = (dialog: HTMLElement, name: string) =>
+  userEvent.click(within(dialog).getByRole('button', { name }))
+
 describe('Editor button settings', () => {
   it('opens with the button’s link and look, focused on the link', async () => {
-    renderEmail(email(button({ emphasis: 'normal', align: 'center' })))
+    renderEmail(email(button({ emphasis: 'subtle', align: 'center' })))
     const dialog = await openSettings()
 
     const link = within(dialog).getByRole('textbox', { name: 'Link' })
@@ -99,42 +102,50 @@ describe('Editor button settings', () => {
     const pressed = within(dialog)
       .getAllByRole('button', { pressed: true })
       .map((item) => item.textContent)
-    expect(pressed).toEqual(['Outline', 'Fit label', 'Centre'])
+    expect(pressed).toEqual(['Subtle', 'Fit label', 'Centre'])
+    expect(within(dialog).queryByRole('button', { name: 'Save' })).toBe(null)
   })
 
-  it('saves an outline, right-aligned button, and draws it so', async () => {
+  it('applies each choice as it’s made, and draws it so', async () => {
     const onValueChange = renderEmail(email(button()))
     const dialog = await openSettings()
 
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Outline' })
+    await choose(dialog, 'Normal')
+    await waitFor(() =>
+      expect(savedButton(onValueChange)).toEqual(button({ emphasis: 'normal' }))
     )
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Right' }))
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+    expect(drawn()).toHaveClass('emphasis-normal')
 
+    await choose(dialog, 'Right')
     await waitFor(() =>
       expect(savedButton(onValueChange)).toEqual(
         button({ emphasis: 'normal', align: 'right' })
       )
     )
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
     const { left, right } = drawn().getBoundingClientRect()
     const column = columnBox(drawn())
     expect(right).toBeCloseTo(column.right, 0)
     expect(left).toBeGreaterThan(column.left)
+    expect(dialog).toBeVisible()
+  })
+
+  it('draws a strong button in the accent', async () => {
+    renderEmail(email(button({ emphasis: 'normal' })))
+    const dialog = await openSettings()
+
+    await choose(dialog, 'Strong')
+
+    await waitFor(() => expect(drawn()).toHaveClass('emphasis-strong'))
+    expect(drawn()).toHaveClass('intent-accent')
   })
 
   it('spans the column at full width, which drops its alignment', async () => {
     const onValueChange = renderEmail(email(button({ align: 'center' })))
     const dialog = await openSettings()
 
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Full width' })
-    )
-    expect(within(dialog).getByRole('group', { name: 'Align' })).toBeDisabled()
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+    await choose(dialog, 'Full width')
 
+    expect(within(dialog).getByRole('group', { name: 'Align' })).toBeDisabled()
     await waitFor(() =>
       expect(savedButton(onValueChange)).toEqual(button({ fullWidth: true }))
     )
@@ -147,27 +158,40 @@ describe('Editor button settings', () => {
 
   it('returns a button to the defaults, saving none of them', async () => {
     const onValueChange = renderEmail(
-      email(button({ emphasis: 'normal', fullWidth: true }))
+      email(button({ emphasis: 'subtle', fullWidth: true }))
     )
     const dialog = await openSettings()
 
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Filled' })
-    )
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Fit label' })
-    )
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+    await choose(dialog, 'Strong')
+    await choose(dialog, 'Fit label')
 
     await waitFor(() => expect(savedButton(onValueChange)).toEqual(button()))
   })
 
-  it('keeps the dialog open on a link an email can’t open', async () => {
+  it('applies a link once it’s a whole address', async () => {
+    const onValueChange = renderEmail(email(button()))
+    const dialog = await openSettings()
+    const link = within(dialog).getByRole('textbox', { name: 'Link' })
+
+    await userEvent.fill(link, 'oztix.com.au/whats-on')
+
+    await waitFor(() =>
+      expect(savedButton(onValueChange)).toEqual(
+        button({ href: 'https://oztix.com.au/whats-on' })
+      )
+    )
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+  })
+
+  it('keeps the last whole link, and says so, for one an email can’t open', async () => {
     const onValueChange = renderEmail(email(button()))
     const dialog = await openSettings()
     const link = within(dialog).getByRole('textbox', { name: 'Link' })
 
     await userEvent.fill(link, '/whats-on')
+    expect(link).not.toHaveAttribute('aria-invalid', 'true')
     await userEvent.keyboard('{Enter}')
 
     expect(link).toHaveAttribute('aria-invalid', 'true')
@@ -176,19 +200,14 @@ describe('Editor button settings', () => {
     expect(savedButton(onValueChange) ?? button()).toEqual(button())
   })
 
-  it('leaves the button as it was on Cancel', async () => {
+  it('keeps what was applied when Escape closes it', async () => {
     const onValueChange = renderEmail(email(button()))
     const dialog = await openSettings()
 
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Outline' })
-    )
-    await userEvent.click(
-      within(dialog).getByRole('button', { name: 'Cancel' })
-    )
+    await choose(dialog, 'Subtle')
+    await userEvent.keyboard('{Escape}')
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(savedButton(onValueChange) ?? button()).toEqual(button())
-    expect(drawn()).toHaveClass('emphasis-strong')
+    expect(savedButton(onValueChange)).toEqual(button({ emphasis: 'subtle' }))
   })
 })

@@ -218,6 +218,7 @@ describe('presets.email', () => {
             fullWidth: false
           }
         },
+        { ...button(tickets), attrs: { href: tickets, emphasis: 'subtle' } },
         {
           ...button(tickets),
           attrs: {
@@ -232,6 +233,7 @@ describe('presets.email', () => {
     expect(saved.doc.content?.map((block) => block.attrs)).toEqual([
       { href: tickets, align: 'right', emphasis: 'normal', fullWidth: true },
       { href: tickets },
+      { href: tickets, emphasis: 'subtle' },
       { href: tickets }
     ])
   })
