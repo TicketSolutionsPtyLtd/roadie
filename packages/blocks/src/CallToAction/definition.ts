@@ -13,7 +13,7 @@ export const callToActionDefinition = {
       name: 'photo',
       title: 'Photo',
       description:
-        'A pitch and its actions on a panel, beside a tilted portrait photo that breaks out of the top, such as the Studio call to action.',
+        'A pitch and its actions on a panel, beside a tilted square photo that breaks out of the top, such as the Studio call to action.',
       fields: [
         'preset',
         'id',
@@ -24,6 +24,7 @@ export const callToActionDefinition = {
         'body',
         'actions',
         'image',
+        'ratio',
         'tilted',
         'illustration',
         'intent',
@@ -33,7 +34,7 @@ export const callToActionDefinition = {
         'size'
       ],
       limits: ACTIONS,
-      defaults: { emphasis: 'raised', align: 'start' }
+      defaults: { emphasis: 'raised', align: 'start', ratio: 'square' }
     },
     {
       name: 'centred',
