@@ -158,6 +158,35 @@ describe('Editor toolbar modes', () => {
     }
   )
 
+  it('opens a blocks page with no box and a floating toolbar', async () => {
+    render(<Editor aria-label={LABEL} preset='blocks' />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const frame = textbox.closest('[data-slot="editor"]')!
+
+    expect(frame).toHaveAttribute('data-emphasis', 'subtler')
+    expect(screen.queryByRole('toolbar', { name: 'Formatting' })).toBeNull()
+  })
+
+  it('keeps a blocks page’s own emphasis and toolbar when given', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        emphasis='normal'
+        toolbar='docked'
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+
+    expect(textbox.closest('[data-slot="editor"]')).toHaveAttribute(
+      'data-emphasis',
+      'normal'
+    )
+    expect(
+      await screen.findByRole('toolbar', { name: 'Formatting' })
+    ).toBeVisible()
+  })
+
   it('docks a floating editor on a phone, with nothing to pin', async () => {
     await page.viewport(390, 700)
     render(<Page toolbar='floating' pinnable />)

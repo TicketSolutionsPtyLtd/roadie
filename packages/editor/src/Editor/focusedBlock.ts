@@ -5,7 +5,7 @@ import {
   PluginKey,
   TextSelection
 } from '@tiptap/pm/state'
-import { Decoration, DecorationSet } from '@tiptap/pm/view'
+import { Decoration, DecorationSet, type EditorView } from '@tiptap/pm/view'
 
 import { type BlockContainers, TOP_LEVEL, blockAt } from './blockActions'
 
@@ -75,6 +75,41 @@ export const FocusedBlock = Extension.create<FocusedBlockOptions>({
             }
           }
         }
+      })
+    ]
+  }
+})
+
+const menuKey = new PluginKey<DecorationSet>('menuBlock')
+
+/** Marks the block at `pos` with `data-menu-block`, or none with `null`. */
+export function markMenuBlock(view: EditorView, pos: number | null) {
+  view.dispatch(view.state.tr.setMeta(menuKey, pos))
+}
+
+/** The block a block menu is open on, which `markMenuBlock` sets. */
+export const MenuBlock = Extension.create({
+  name: 'menuBlock',
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin<DecorationSet>({
+        key: menuKey,
+        state: {
+          init: () => DecorationSet.empty,
+          apply(tr, previous, _old, state) {
+            const pos: number | null | undefined = tr.getMeta(menuKey)
+            if (pos === undefined) return previous.map(tr.mapping, tr.doc)
+            const node = pos === null ? null : state.doc.nodeAt(pos)
+            if (pos === null || !node) return DecorationSet.empty
+            return DecorationSet.create(state.doc, [
+              Decoration.node(pos, pos + node.nodeSize, {
+                'data-menu-block': ''
+              })
+            ])
+          }
+        },
+        props: { decorations: (state) => menuKey.getState(state) }
       })
     ]
   }

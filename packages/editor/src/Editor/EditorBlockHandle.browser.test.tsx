@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
 
@@ -12,7 +12,8 @@ const LABEL = 'Page'
 let style: HTMLStyleElement
 beforeAll(() => {
   style = document.createElement('style')
-  style.textContent = roadieCss
+  // A blocks page has no box, so its grip sits in the page's gutter.
+  style.textContent = `${roadieCss} body { padding-inline: 64px; }`
   document.head.append(style)
 })
 afterAll(() => style.remove())
@@ -113,8 +114,23 @@ describe('Editor block handle', () => {
     await expectHandleBeside('Headliner')
   })
 
-  it('makes room for the grip inside a framed editor, before the text', async () => {
+  it('marks its block as chosen while its menu is open, and names its type', async () => {
     renderLineup()
+    const row = await paragraph('Support')
+    const menu = await openMenuOn('Support')
+
+    expect(row).toHaveAttribute('data-menu-block')
+    expect(getComputedStyle(row).backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
+    await waitFor(() =>
+      expect(within(menu).getByRole('group', { name: 'Text' })).toBeVisible()
+    )
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(row).not.toHaveAttribute('data-menu-block'))
+  })
+
+  it('makes room for the grip inside a framed editor, before the text', async () => {
+    renderLineup({ emphasis: 'normal' })
     const row = await paragraph('Doors')
     await userEvent.hover(row)
     await expectHandleBeside('Doors')
@@ -225,6 +241,74 @@ describe('Editor block handle', () => {
       'aria-disabled',
       'true'
     )
+  })
+
+  it.each([
+    [
+      'Mod+Shift+Up moves it up',
+      `{${MOD}>}{Shift>}{ArrowUp}{/Shift}{/${MOD}}`,
+      ['doors', 'headliner', 'support']
+    ],
+    [
+      'Mod+Shift+Down moves it down',
+      `{${MOD}>}{Shift>}{ArrowDown}{/Shift}{/${MOD}}`,
+      ['doors', 'headliner', 'support']
+    ]
+  ] as const)('%s from the text', async (_, keys, expected) => {
+    const onValueChange = renderLineup()
+    const start = keys.includes('ArrowUp') ? 'Headliner' : 'Support'
+    await userEvent.click(await paragraph(start))
+
+    await userEvent.keyboard(keys)
+
+    await waitFor(() =>
+      expect(order(onValueChange).map(([id]) => id)).toEqual(expected)
+    )
+  })
+
+  it('duplicates the caret’s block with Mod+D', async () => {
+    const onValueChange = renderLineup()
+    await userEvent.click(await paragraph('Doors'))
+
+    await userEvent.keyboard(`{${MOD}>}d{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(order(onValueChange).map(([, text]) => text)).toEqual([
+        'Doors 7pm',
+        'Doors 7pm',
+        'Support 8pm',
+        'Headliner 9pm'
+      ])
+    )
+  })
+
+  it('deletes the block with Delete while its menu is open', async () => {
+    const onValueChange = renderLineup()
+    const menu = await openMenuOn('Support')
+    await waitFor(() => expect(menu).toBeVisible())
+
+    await userEvent.keyboard('{Delete}')
+
+    await waitFor(() =>
+      expect(order(onValueChange).map(([id]) => id)).toEqual([
+        'doors',
+        'headliner'
+      ])
+    )
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+  })
+
+  it('shows each action’s keys in the menu', async () => {
+    renderLineup()
+    const menu = await openMenuOn('Support')
+
+    for (const name of ['Move up', 'Move down', 'Duplicate', 'Delete']) {
+      expect(
+        within(menu)
+          .getByRole('menuitem', { name: new RegExp(`^${name}`) })
+          .querySelector('[data-slot="menu-item-shortcut"]')
+      ).not.toBeNull()
+    }
   })
 
   it('moves the caret’s block by keyboard, from Mod+/, and undoes the move', async () => {
