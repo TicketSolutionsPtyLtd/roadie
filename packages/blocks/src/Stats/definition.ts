@@ -1,6 +1,8 @@
 import type { BlockDefinition } from '../catalogue'
 import type { StatItem, StatsProps } from './index'
 
+const ACTIONS = { actions: { max: 2 } } as const
+
 export const statsDefinition = {
   name: 'stats',
   title: 'Stats',
@@ -27,7 +29,7 @@ export const statsDefinition = {
         'size'
       ],
       itemFields: ['value', 'label', 'illustration'],
-      limits: { stats: { min: 3, max: 6 } },
+      limits: { ...ACTIONS, stats: { min: 3, max: 6 } },
       defaults: { align: 'start', contained: true }
     }
   ]

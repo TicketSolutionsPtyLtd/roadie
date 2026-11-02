@@ -61,6 +61,17 @@ describe('catalogue', () => {
     }
   })
 
+  it('limits every preset with actions to two of them', () => {
+    for (const block of catalogue) {
+      for (const preset of block.presets) {
+        if (!preset.fields.includes('actions')) continue
+        expect(preset.limits?.actions, `${block.name} ${preset.name}`).toEqual({
+          max: 2
+        })
+      }
+    }
+  })
+
   it('gives every preset a unique name', () => {
     for (const block of catalogue) {
       const names = block.presets.map((preset) => preset.name)

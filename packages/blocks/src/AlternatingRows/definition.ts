@@ -1,6 +1,8 @@
 import type { BlockDefinition } from '../catalogue'
 import type { AlternatingRow, AlternatingRowsProps } from './index'
 
+const ACTIONS = { actions: { max: 2 } } as const
+
 export const alternatingRowsDefinition = {
   name: 'alternating-rows',
   title: 'Alternating rows',
@@ -36,7 +38,7 @@ export const alternatingRowsDefinition = {
         'href',
         'intent'
       ],
-      limits: { rows: { min: 3, max: 6 } },
+      limits: { ...ACTIONS, rows: { min: 3, max: 6 } },
       defaults: { align: 'start' }
     }
   ]

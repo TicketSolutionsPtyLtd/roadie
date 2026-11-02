@@ -17,6 +17,8 @@ const FRAME = [
   'actions'
 ] as const
 
+const ACTIONS = { actions: { max: 2 } } as const
+
 export const cardsDefinition = {
   name: 'cards',
   title: 'Cards',
@@ -39,6 +41,7 @@ export const cardsDefinition = {
         'href',
         'intent'
       ],
+      limits: ACTIONS,
       defaults: { align: 'center' }
     },
     {
@@ -48,6 +51,7 @@ export const cardsDefinition = {
         'Numbered cards in order, each a title and description, for the steps of how something works.',
       fields: [...FRAME, 'itemEmphasis'],
       itemFields: ['title', 'description', 'image', 'href', 'intent'],
+      limits: ACTIONS,
       defaults: { align: 'center' }
     },
     {
@@ -65,7 +69,7 @@ export const cardsDefinition = {
         'href',
         'intent'
       ],
-      limits: { cards: { max: 4 } },
+      limits: { ...ACTIONS, cards: { max: 4 } },
       defaults: { align: 'center' }
     },
     {
@@ -83,6 +87,7 @@ export const cardsDefinition = {
         'href',
         'intent'
       ],
+      limits: ACTIONS,
       defaults: { align: 'center' }
     },
     {
@@ -92,6 +97,7 @@ export const cardsDefinition = {
         'Square photos on a contained raised surface, each with a title and subtitle marked over it, for people, venues, or events.',
       fields: FRAME,
       itemFields: ['title', 'subtitle', 'image', 'href', 'intent'],
+      limits: ACTIONS,
       defaults: { align: 'start', emphasis: 'raised', contained: true }
     },
     {
@@ -101,6 +107,7 @@ export const cardsDefinition = {
         'Columns of short lists, each under its own title, with no images, for policies, certifications, or other short facts.',
       fields: [...FRAME, 'itemEmphasis'],
       itemFields: ['title', 'points', 'href', 'intent'],
+      limits: ACTIONS,
       defaults: { align: 'start' }
     }
   ]

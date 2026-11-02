@@ -20,6 +20,8 @@ const FIELDS = [
 
 const ITEM_FIELDS = ['quote', 'person', 'organisation'] as const
 
+const ACTIONS = { actions: { max: 2 } } as const
+
 export const testimonialDefinition = {
   name: 'testimonial',
   title: 'Testimonial',
@@ -34,7 +36,7 @@ export const testimonialDefinition = {
         "One large quote with the person's portrait, role, and organisation, over an optional background photo.",
       fields: FIELDS,
       itemFields: ITEM_FIELDS,
-      limits: { quotes: { min: 1, max: 1, strict: true } },
+      limits: { ...ACTIONS, quotes: { min: 1, max: 1, strict: true } },
       defaults: { align: 'center' }
     },
     {
@@ -44,7 +46,7 @@ export const testimonialDefinition = {
         'Two or more quotes, one at a time, stepped through with dots or a swipe, over an optional background photo.',
       fields: FIELDS,
       itemFields: ITEM_FIELDS,
-      limits: { quotes: { min: 2, strict: true } },
+      limits: { ...ACTIONS, quotes: { min: 2, strict: true } },
       defaults: { align: 'center' }
     }
   ]

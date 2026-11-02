@@ -1,6 +1,8 @@
 import type { MosaicProps, MosaicTile } from '.'
 import type { BlockDefinition } from '../catalogue'
 
+const ACTIONS = { actions: { max: 2 } } as const
+
 export const mosaicDefinition = {
   name: 'mosaic',
   title: 'Mosaic',
@@ -37,6 +39,7 @@ export const mosaicDefinition = {
         'href',
         'intent'
       ],
+      limits: ACTIONS,
       defaults: { align: 'start' }
     }
   ]
