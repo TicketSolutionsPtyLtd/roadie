@@ -69,6 +69,26 @@ async function focusedTextbox() {
 }
 
 describe('Editor extensions', () => {
+  it('lists an app’s block in the group it names', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        extensions={[{ ...eventCard, group: 'Media' }]}
+      />
+    )
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+
+    const media = await screen.findByRole('group', { name: 'Media' })
+    expect(
+      within(media)
+        .getAllByRole('option')
+        .map((option) => option.textContent)
+    ).toEqual(['Embed', 'Event card'])
+  })
+
   it('inserts an app’s block from the slash menu, found by a keyword', async () => {
     const onValueChange = vi.fn()
     render(
@@ -84,6 +104,9 @@ describe('Editor extensions', () => {
     await userEvent.keyboard('/gig')
     const option = await screen.findByRole('option', { name: 'Event card' })
     expect(option.querySelector('svg')).not.toBe(null)
+    expect(
+      within(screen.getByRole('group', { name: 'More' })).getByRole('option')
+    ).toBe(option)
     await userEvent.keyboard('{Enter}')
 
     expect(await screen.findByRole('textbox', { name: 'Event' })).toBeVisible()

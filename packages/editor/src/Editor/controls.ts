@@ -483,6 +483,8 @@ export function ariaKeyShortcuts(keys: readonly string[]) {
 export type EditorSlashItem = {
   label: string
   icon: Icon
+  /** The heading it's listed under, such as Text or Media. */
+  group?: string
   /** Other words it's found by. */
   keywords?: readonly string[]
   run: (editor: Editor, ui: EditorControlUi, match: SlashMatch) => void
@@ -507,12 +509,14 @@ function replacingSlash(
 function slashBlock(
   label: string,
   icon: Icon,
+  group: string,
   insert: (chain: ChainedCommands) => ChainedCommands,
   keywords?: readonly string[]
 ): EditorSlashItem {
   return {
     label,
     icon,
+    group,
     keywords,
     run: (editor, _ui, match) => insert(replacingSlash(editor, match)).run()
   }
@@ -525,11 +529,12 @@ const HEADING_ICONS = {
 } as const
 
 const blockSlashItems: readonly EditorSlashItem[] = [
-  slashBlock('Text', TextTIcon, (chain) => chain, ['paragraph']),
+  slashBlock('Text', TextTIcon, 'Text', (chain) => chain, ['paragraph']),
   ...HEADING_LEVELS.map((level) =>
     slashBlock(
       `Heading ${level}`,
       HEADING_ICONS[level],
+      'Text',
       (chain) => chain.setHeading({ level }),
       ['title']
     )
@@ -537,25 +542,28 @@ const blockSlashItems: readonly EditorSlashItem[] = [
   slashBlock(
     'Bulleted list',
     ListBulletsIcon,
+    'Text',
     (chain) => chain.toggleBulletList(),
     ['unordered']
   ),
   slashBlock(
     'Numbered list',
     ListNumbersIcon,
+    'Text',
     (chain) => chain.toggleOrderedList(),
     ['ordered']
   ),
-  slashBlock('Quote', QuotesIcon, (chain) => chain.wrapIn('blockquote'), [
-    'blockquote'
-  ]),
-  slashBlock('Divider', MinusIcon, (chain) => chain.setHorizontalRule(), [
-    'rule',
-    'line'
-  ]),
+  slashBlock(
+    'Quote',
+    QuotesIcon,
+    'Text',
+    (chain) => chain.wrapIn('blockquote'),
+    ['blockquote']
+  ),
   {
     label: 'Image',
     icon: ImageIcon,
+    group: 'Media',
     keywords: ['photo', 'picture'],
     run: (editor, ui, match) => {
       replacingSlash(editor, match).run()
@@ -566,13 +574,23 @@ const blockSlashItems: readonly EditorSlashItem[] = [
   {
     label: 'Embed',
     icon: FilmStripIcon,
+    group: 'Media',
     keywords: ['video', 'audio', 'youtube', 'spotify'],
     run: (editor, ui, match) => {
       replacingSlash(editor, match).run()
       ui.editEmbed()
     }
   },
-  slashBlock('Table', TableIcon, (chain) => chain.insertTable(NEW_TABLE))
+  slashBlock(
+    'Divider',
+    MinusIcon,
+    'Layout',
+    (chain) => chain.setHorizontalRule(),
+    ['rule', 'line']
+  ),
+  slashBlock('Table', TableIcon, 'Layout', (chain) =>
+    chain.insertTable(NEW_TABLE)
+  )
 ]
 
 /**
@@ -591,11 +609,13 @@ export function customSlashItem({
   node,
   label,
   icon,
+  group = 'More',
   keywords
 }: EditorBlock): EditorSlashItem {
   return slashBlock(
     label,
     icon,
+    group,
     (chain) => chain.insertContent({ type: node.name }),
     keywords
   )

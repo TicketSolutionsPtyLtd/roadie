@@ -57,6 +57,15 @@ const optionNames = (listbox: HTMLElement) =>
     .getAllByRole('option')
     .map((option) => option.textContent)
 
+const groupNames = (listbox: HTMLElement) =>
+  within(listbox)
+    .getAllByRole('group')
+    .map((group) => [
+      document.getElementById(group.getAttribute('aria-labelledby')!)
+        ?.textContent,
+      optionNames(group)
+    ])
+
 // The menu portals to the body, so React unmounts it before the body empties.
 afterEach(() => {
   cleanup()
@@ -87,10 +96,71 @@ describe('Editor insert menu', () => {
       '2 columns',
       '3 columns',
       '4 columns',
-      'Button',
       'Spacer',
-      'Divider'
+      'Divider',
+      'Button'
     ])
+  })
+
+  it('groups the options under headings, in the order the arrow keys take', async () => {
+    renderEmail({
+      onUploadImage: async () => ({ src: 'https://example.com/crowd.png' }),
+      variables: [
+        {
+          key: 'first_name',
+          label: 'First name',
+          tokens: { ae: '#FirstName#' }
+        }
+      ]
+    })
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const listbox = await insertMenu()
+
+    expect(groupNames(listbox)).toEqual([
+      [
+        'Text',
+        [
+          'Paragraph',
+          'Heading 2',
+          'Heading 3',
+          'Heading 4',
+          'Bulleted list',
+          'Numbered list'
+        ]
+      ],
+      ['Media', ['Image']],
+      [
+        'Layout',
+        ['Section', '2 columns', '3 columns', '4 columns', 'Spacer', 'Divider']
+      ],
+      ['Email', ['Button', 'Merge tag']]
+    ])
+    const layout = within(listbox).getByRole('group', { name: 'Layout' })
+    await userEvent.keyboard('{ArrowDown}'.repeat(7))
+    await waitFor(() =>
+      expect(textbox).toHaveAttribute(
+        'aria-activedescendant',
+        within(layout).getByRole('option', { name: 'Section' }).id
+      )
+    )
+    await userEvent.keyboard('{ArrowUp}'.repeat(8))
+    await waitFor(() =>
+      expect(textbox).toHaveAttribute(
+        'aria-activedescendant',
+        within(listbox).getByRole('option', { name: 'Merge tag' }).id
+      )
+    )
+  })
+
+  it('hides a group with no matches as the filter narrows', async () => {
+    renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/butt')
+
+    expect(groupNames(await insertMenu())).toEqual([['Email', ['Button']]])
   })
 
   it.each([

@@ -50,4 +50,10 @@ export type EditorBlock = {
   icon: Icon
   /** Other words the slash menu finds it by. */
   keywords?: readonly string[]
+  /**
+   * The slash menu heading it's listed under: one of the preset's, such as
+   * Media, or its own.
+   * @default 'More'
+   */
+  group?: string
 }

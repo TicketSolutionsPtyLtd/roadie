@@ -75,14 +75,57 @@ describe('Editor.SlashMenu', () => {
       'Bulleted list',
       'Numbered list',
       'Quote',
-      'Divider',
       'Image',
       'Embed',
+      'Divider',
       'Table'
     ])
     expect(textbox).toHaveAttribute('aria-controls', (await listbox()).id)
     expect(activeOption(textbox)).toBe('Text')
     expect(textbox).toHaveFocus()
+  })
+
+  it('groups the blocks under headings, and hides a group with no matches', async () => {
+    render(blocks())
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const list = await listbox()
+    expect(
+      within(list)
+        .getAllByRole('group')
+        .map((group) => [
+          document.getElementById(group.getAttribute('aria-labelledby')!)
+            ?.textContent,
+          within(group)
+            .getAllByRole('option')
+            .map((option) => option.textContent)
+        ])
+    ).toEqual([
+      [
+        'Text',
+        [
+          'Text',
+          'Heading 2',
+          'Heading 3',
+          'Heading 4',
+          'Bulleted list',
+          'Numbered list',
+          'Quote'
+        ]
+      ],
+      ['Media', ['Image', 'Embed']],
+      ['Layout', ['Divider', 'Table']]
+    ])
+    await userEvent.keyboard('{ArrowUp}')
+    await waitFor(() => expect(activeOption(textbox)).toBe('Table'))
+
+    await userEvent.keyboard('ta')
+    await waitFor(() =>
+      expect(within(list).getAllByRole('group')).toHaveLength(1)
+    )
+    expect(within(list).getByRole('group', { name: 'Layout' })).toBeVisible()
+    expect(activeOption(textbox)).toBe('Table')
   })
 
   it('lays each block’s icon beside its name, and opens below the /', async () => {

@@ -20,11 +20,14 @@ import type { Preset } from '../schema'
 import { COLUMN_COUNTS } from '../schema/emailAttrs'
 import type { EditorControlUi } from './controls'
 import { buttonBlock, insertBlock } from './emailEditing'
+import { inGroupOrder } from './menuGroups'
 
 /** One choice in the insert menu that `/` opens. */
 export type EditorInsertItem = {
   label: string
   icon: Icon
+  /** The heading it's listed under, such as Text or Layout. */
+  group?: string
   /** More words it's found by, besides its label. */
   keywords?: readonly string[]
   /** Runs at the caret, once the typed `/` and query are gone. */
@@ -38,6 +41,7 @@ export type EditorInsertItem = {
 const paragraph: EditorInsertItem = {
   label: 'Paragraph',
   icon: TextTIcon,
+  group: 'Text',
   keywords: ['text'],
   run: (editor) => editor.chain().focus().setParagraph().run(),
   // On a paragraph, setParagraph has nothing to change, so it reports false.
@@ -56,6 +60,7 @@ const HEADINGS = [
 const headings = HEADINGS.map(([level, icon]): EditorInsertItem => ({
   label: `Heading ${level}`,
   icon,
+  group: 'Text',
   keywords: ['title'],
   run: (editor) => editor.chain().focus().setHeading({ level }).run(),
   enabled: (editor) => editor.can().setHeading({ level })
@@ -64,6 +69,7 @@ const headings = HEADINGS.map(([level, icon]): EditorInsertItem => ({
 const bulletList: EditorInsertItem = {
   label: 'Bulleted list',
   icon: ListBulletsIcon,
+  group: 'Text',
   run: (editor) => editor.chain().focus().toggleBulletList().run(),
   // In its own list, the toggle would take the line out of it.
   enabled: (editor) =>
@@ -73,6 +79,7 @@ const bulletList: EditorInsertItem = {
 const orderedList: EditorInsertItem = {
   label: 'Numbered list',
   icon: ListNumbersIcon,
+  group: 'Text',
   run: (editor) => editor.chain().focus().toggleOrderedList().run(),
   enabled: (editor) =>
     !editor.isActive('orderedList') && editor.can().toggleOrderedList()
@@ -87,6 +94,7 @@ function block(
   return {
     label,
     icon,
+    group: 'Layout',
     keywords,
     run: (editor) => editor.chain().focus().command(insertBlock(content)).run(),
     enabled: (editor) => editor.can().command(insertBlock(content))
@@ -120,6 +128,7 @@ const columns = COLUMN_COUNTS.map((count) =>
 const image: EditorInsertItem = {
   label: 'Image',
   icon: ImageIcon,
+  group: 'Media',
   keywords: ['picture', 'photo'],
   run: (_editor, { pickImage }) => pickImage?.(),
   enabled: (editor) =>
@@ -130,6 +139,7 @@ const image: EditorInsertItem = {
 const button: EditorInsertItem = {
   label: 'Button',
   icon: CursorClickIcon,
+  group: 'Email',
   keywords: ['link', 'call to action'],
   run: (_editor, { editButton }) => editButton(),
   enabled: (editor) => editor.can().command(insertBlock(buttonBlock('')))
@@ -154,16 +164,16 @@ export const presetInsertItems: Partial<
     ...headings,
     bulletList,
     orderedList,
+    image,
     section,
     ...columns,
-    image,
-    button,
     spacer,
-    divider
+    divider,
+    button
   ]
 }
 
-/** The items matching `query` that can go at the caret. */
+/** The items matching `query` that can go at the caret, in group order. */
 export function matchingInsertItems(
   items: readonly EditorInsertItem[],
   query: string,
@@ -171,9 +181,10 @@ export function matchingInsertItems(
   ui: EditorControlUi
 ) {
   const words = query.toLowerCase().trim().split(/\s+/)
-  return items.filter((item) => {
+  const matches = items.filter((item) => {
     if (!(item.available?.(ui) ?? true) || !item.enabled(editor)) return false
     const names = [item.label, ...(item.keywords ?? [])].join(' ').toLowerCase()
     return words.every((word) => names.includes(word))
   })
+  return inGroupOrder(matches)
 }

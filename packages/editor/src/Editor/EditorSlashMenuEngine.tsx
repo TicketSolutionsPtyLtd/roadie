@@ -10,6 +10,7 @@ import { Popover } from '@oztix/roadie-components/popover'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { EditorContext } from './EditorContext'
+import { MenuGroups } from './EditorMenuGroups'
 import type { EditorSlashMenuProps } from './EditorSlashMenu'
 import {
   type EditorControlUi,
@@ -17,12 +18,15 @@ import {
   customSlashItem,
   presetSlashItems
 } from './controls'
+import { inGroupOrder } from './menuGroups'
 import { type SlashMatch, closeSlashMenu, slashMatch } from './slashMenu'
 
 function matching(items: readonly EditorSlashItem[], query: string) {
   const typed = query.trim().toLowerCase()
-  return items.filter(({ label, keywords = [] }) =>
-    [label, ...keywords].some((word) => word.toLowerCase().includes(typed))
+  return inGroupOrder(
+    items.filter(({ label, keywords = [] }) =>
+      [label, ...keywords].some((word) => word.toLowerCase().includes(typed))
+    )
   )
 }
 
@@ -131,32 +135,36 @@ function SlashMenuList({
         // A press inside would take focus, and the caret, out of the text.
         onMouseDown={(event) => event.preventDefault()}
       >
-        <ul
+        <div
           id={listId}
           role='listbox'
           aria-label='Blocks'
           className='grid gap-0.5'
         >
-          {shown.map((item, at) => {
-            const Icon = item.icon
-            return (
-              <li
-                key={item.label}
-                id={optionId(at)}
-                role='option'
-                aria-selected={at === index}
-                className={cn(
-                  listItemVariants({ selected: at === index }),
-                  'min-h-10 cursor-default items-center gap-3 text-sm'
-                )}
-                onClick={() => insert(item)}
-              >
-                <Icon weight='bold' className='size-4' aria-hidden />
-                <span>{item.label}</span>
-              </li>
-            )
-          })}
-        </ul>
+          <MenuGroups
+            items={shown}
+            id={listId}
+            option={(item, at) => {
+              const Icon = item.icon
+              return (
+                <div
+                  key={item.label}
+                  id={optionId(at)}
+                  role='option'
+                  aria-selected={at === index}
+                  className={cn(
+                    listItemVariants({ selected: at === index }),
+                    'min-h-10 cursor-default items-center gap-3 text-sm'
+                  )}
+                  onClick={() => insert(item)}
+                >
+                  <Icon weight='bold' className='size-4' aria-hidden />
+                  <span>{item.label}</span>
+                </div>
+              )
+            }}
+          />
+        </div>
         {shown.length === 0 ? (
           <p role='status' className='px-3 py-2 text-sm text-subtle'>
             No matching blocks
