@@ -19,14 +19,21 @@ export type ItemEmphasis = BlockEmphasis
 /** Every emphasis a surface can draw. */
 export type SurfaceEmphasis = ItemEmphasis | 'strong' | 'inverted'
 
-/** An image slot's shape: `portrait` (9:16), `square`, or `landscape` (2:1). Video keeps 16:9. */
-export type BlockRatio = 'portrait' | 'square' | 'landscape'
+/** An image slot's shape: `story` (9:16), `portrait` (3:4), `square`, `landscape` (3:2), or `banner` (2:1). Video keeps 16:9. */
+export type BlockRatio =
+  | 'story'
+  | 'portrait'
+  | 'square'
+  | 'landscape'
+  | 'banner'
 
 // Literal class names, so Tailwind finds them.
 export const ratioClass: Record<BlockRatio, string> = {
-  portrait: 'aspect-9/16',
+  story: 'aspect-9/16',
+  portrait: 'aspect-3/4',
   square: 'aspect-square',
-  landscape: 'aspect-2/1'
+  landscape: 'aspect-3/2',
+  banner: 'aspect-2/1'
 }
 
 /** Where a block's heading and text line up. */

@@ -80,8 +80,8 @@ Run `pnpm generate:exports` after adding the folder.
     from `lg` (`md`, then `sm`) sets the title a step smaller, with smaller
     descriptions and body text, tighter spacing, and a smaller share of the width
     for media. Size never changes colour or an image's shape.
-  - An image slot's shape is a `BlockRatio` (`portrait` 9:16, `square`, `landscape`
-    2:1) from `ratioClass`; video keeps 16:9. Where an editor picks it, the prop is
+  - An image slot's shape is a `BlockRatio` (`story` 9:16, `portrait` 3:4,
+    `square`, `landscape` 3:2, `banner` 2:1) from `ratioClass`; video keeps 16:9. Where an editor picks it, the prop is
     `ratio`. Space a block's parts with
     `gapOf(size, step)`, and pick any other value with `bySize`, so no size falls
     through to another's.
