@@ -334,29 +334,45 @@ describe('Gallery controls', () => {
   const marqueeBox = () =>
     document.querySelector('[data-slot=marquee]')!.getBoundingClientRect()
 
-  it('gives the carousel heading the row, with its controls at the bottom edge', async () => {
-    await page.viewport(DESKTOP.width, DESKTOP.height)
-    render(
-      <Gallery
-        preset='carousel'
-        title='Join thousands of partners who trust Oztix'
-        description='From festivals to local venues, we help event organisers sell more tickets.'
-        images={images}
-      />
-    )
+  it.each(['start', 'center'] as const)(
+    'gives the carousel heading the full width, aligned %s, with previous, dots, and next under the photos',
+    async (align) => {
+      await page.viewport(DESKTOP.width, DESKTOP.height)
+      render(
+        <Gallery
+          preset='carousel'
+          align={align}
+          title='Join thousands of partners who trust Oztix'
+          description='From festivals to local venues, we help event organisers sell more tickets.'
+          images={images}
+        />
+      )
 
-    const header = document
-      .querySelector('[data-slot=carousel-header]')!
-      .getBoundingClientRect()
-    const heading = screen
-      .getByRole('heading', { level: 2 })
-      .parentElement!.getBoundingClientRect()
-    const next = screen
-      .getByRole('button', { name: 'Next slide' })
-      .getBoundingClientRect()
-    expect(heading.width).toBeGreaterThan(header.width * 0.7)
-    expect(next.bottom).toBeCloseTo(heading.bottom, 0)
-  })
+      const previous = await screen.findByRole('button', {
+        name: 'Previous slide'
+      })
+      const next = screen.getByRole('button', { name: 'Next slide' })
+      const dots = screen.getByRole('group', {
+        name: 'Choose slide to display'
+      })
+      const viewport = document
+        .querySelector('[data-slot=carousel-content]')!
+        .getBoundingClientRect()
+      const heading = screen
+        .getByRole('heading', { level: 2 })
+        .parentElement!.getBoundingClientRect()
+      const box = (element: Element) => element.getBoundingClientRect()
+
+      expect(heading.width).toBeGreaterThan(viewport.width * 0.9)
+      for (const control of [previous, dots, next]) {
+        expect(box(control).top).toBeGreaterThan(viewport.bottom)
+      }
+      expect(box(previous).right).toBeLessThan(box(dots).left)
+      expect(box(dots).right).toBeLessThan(box(next).left)
+      const middle = (rect: DOMRect) => rect.left + rect.width / 2
+      expect(middle(box(dots))).toBeCloseTo(middle(viewport), -1)
+    }
+  )
 
   it.each([
     ['on the page', undefined],

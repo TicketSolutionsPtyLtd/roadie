@@ -22,7 +22,7 @@ import { Gallery } from '@oztix/roadie-blocks/gallery'
 
 ### Carousel
 
-The default. A heading with previous and next controls at its foot, over portrait photos that people step through, or swipe on a touch screen.
+The default. A heading over portrait photos that people step through with the previous, dot, and next controls under them, or swipe on a touch screen.
 
 ```tsx-live-expand id=carousel
 <Gallery
@@ -105,7 +105,7 @@ by default, `square`, or `landscape` (2:1). `logos` ignores it.
 
 `intent` colours the highlighted words, the marquee's pause control, and the strong action. Without an `emphasis`, the photos sit on the page and the marquee runs the block's full width. `subtler`, `subtle`, `normal`, or `raised` draws a full-width band behind them, with the carousel and marquee running edge to edge, and `contained` draws it as a rounded panel inside the page's padding instead.
 
-`align` overrides the heading's alignment, which starts beside the carousel's controls and centres over the marquee and the logos. `size='md'` or `'sm'` sets the title one or two steps smaller with tighter spacing, and `actions` go under the photos, lined up with the heading.
+`align` overrides the heading's alignment, which starts over the carousel and centres over the marquee and the logos. `size='md'` or `'sm'` sets the title one or two steps smaller with tighter spacing, and `actions` go under the photos, lined up with the heading.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
 {/* Brand, subtle band, action */}
@@ -174,13 +174,13 @@ by default, `square`, or `landscape` (2:1). `logos` ignores it.
 
 ## Accessibility
 
-- **Carousel**: the heading names the carousel, and each photo is a slide named by its place, such as "2 of 7". Previous and next are buttons, and photos out of view are inert, so `Tab` skips them.
+- **Carousel**: the heading names the carousel, and each photo is a slide named by its place, such as "2 of 7". Previous, next, and each dot are buttons, and photos out of view are inert, so `Tab` skips them.
 - **Marquee**: each photo is read out once, though the marquee repeats them to fill the width. A pause button stops the motion, which also stops on hover, on focus, and under reduced motion.
 - **Logos**: the logos are a list, read in order.
 - **Links**: a linked image is the link, named by its alt text, so give every linked image alt text.
 
 ## Tracking
 
-Reports a view once half the gallery is on screen, and a click on the carousel's previous or next, the marquee's pause, or a linked image, with its label.
+Reports a view once half the gallery is on screen, and a click on the carousel's previous, next, or a dot, the marquee's pause, or a linked image, with its label.
 
 <PropsDefinitions component='Gallery' />
