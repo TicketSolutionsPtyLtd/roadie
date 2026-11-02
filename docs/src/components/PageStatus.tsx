@@ -160,7 +160,7 @@ function StatusBadge({ status, size }: { status: PageStatus; size?: 'sm' }) {
 /** The navigation's badge for an alpha, beta, or deprecated page. */
 export function navBadge(status: PageStatus | undefined) {
   if (!status || !STATUS_DETAILS[status].flagged) return undefined
-  return <StatusBadge status={status} />
+  return <StatusBadge status={status} size='sm' />
 }
 
 /** Each status as its badge, with what it means. */

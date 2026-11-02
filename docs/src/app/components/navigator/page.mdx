@@ -278,8 +278,12 @@ render(<SecondaryNav />)
 
 #### Searchable
 
-`searchable` adds a search field to the list pane. It filters rows by label and
-hides empty groups. Cancel or Escape clears the search and leaves the field.
+`searchable` adds a search button to the list pane's header. The button, or
+⌘/ (Ctrl+/ off Apple devices), opens a field under the title, and the button
+hides while it's open. The field filters rows by label and hides empty groups.
+Cancel or Escape clears the search and closes the field, and so does moving
+focus away while it's empty. ⌘K stays free for an app-wide search, and / for a
+page's own.
 
 ```tsx-live-noinline-expand
 function SearchableNav() {

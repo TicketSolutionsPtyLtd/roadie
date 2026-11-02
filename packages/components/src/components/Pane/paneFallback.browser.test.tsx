@@ -8,6 +8,7 @@ import { userEvent } from 'vitest/browser'
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Navigator } from '../Navigator'
+import { FakeIcon, withStubLink } from '../Navigator/testUtils'
 import { inspectorTier } from './paneColumns'
 import {
   REM,
@@ -213,6 +214,35 @@ describe('a navigator without container style queries', () => {
     await userEvent.click(getByRole('button', { name: 'Close' }))
     expect(paneOf('detail')).toBeNull()
     await expect.poll(() => onScreen(paneOf('list'))).toBe(true)
+  })
+
+  it('stops a generated list at 18rem beside the detail', async () => {
+    render(
+      withStubLink(
+        <Navigator value='/s/one'>
+          <Navigator.Primary aria-label='Main'>
+            <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
+              Secondary
+              <Navigator.Secondary aria-label='Secondary pages'>
+                <Navigator.Item value='/s/one' href='/s/one'>
+                  One
+                </Navigator.Item>
+              </Navigator.Secondary>
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Pane>Detail</Pane>
+        </Navigator>
+      ),
+      { container: frameOf(1400) }
+    )
+    await expect
+      .poll(
+        () =>
+          document
+            .querySelector('[data-navigator-secondary="/s"]')
+            ?.getBoundingClientRect().width
+      )
+      .toBe(18 * REM)
   })
 })
 
