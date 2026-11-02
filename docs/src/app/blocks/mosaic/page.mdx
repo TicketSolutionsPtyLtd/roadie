@@ -28,8 +28,8 @@ import { Mosaic } from '@oztix/roadie-blocks/mosaic'
 Each tile has its photo behind, a logo or its `title`, and a marked label as
 its `description`, such as a partner's level. Tiles with `size: 'lg'` span two columns at half height, and the tiles
 pack densely, so a square tile fills the gap a wide one leaves. A `logoTile`
-closes the grid with the remaining logos, titled "Also supporting" unless
-you give it a title.
+closes the grid with the remaining logos under its own `title`, "Also
+supporting" when it has none.
 
 ```tsx-live id=tiles
 <Mosaic
@@ -77,6 +77,7 @@ you give it a title.
     }
   ]}
   logoTile={{
+    title: 'Also supporting',
     logos: [
       { src: '/blocks/kerosene-pony-collective.svg', alt: 'Kerosene Pony Collective', width: 214, height: 48 },
       { src: '/blocks/wishbone-ferret-collective.svg', alt: 'Wishbone Ferret Collective', width: 214, height: 48 },
