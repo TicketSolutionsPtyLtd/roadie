@@ -44,7 +44,7 @@ const LOOKS = {
   },
   'image-start': {
     preset: 'image-start',
-    title: 'Get your gig on Spotify',
+    title: 'Get your gig on Lyrebird Radio',
     body: <p>Your events show on artist profiles where fans already listen.</p>,
     actions: [{ label: 'Set it up', href: '/spotify' }],
     image: photo('An event listing on an artist profile', 1200, 1000)
@@ -65,7 +65,7 @@ const LOOKS = {
     stats: {
       title: 'By the numbers',
       description: 'The impact of genuine partnerships',
-      items: [
+      figures: [
         { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
         { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
         { value: '50+', label: 'full-time team', illustration: 'HighFive' }
@@ -192,8 +192,10 @@ describe('SideBySide layout', () => {
   it.each([
     [undefined, 1],
     ['square', 1],
-    ['landscape', 2],
-    ['portrait', 9 / 16]
+    ['landscape', 3 / 2],
+    ['banner', 2],
+    ['portrait', 3 / 4],
+    ['story', 9 / 16]
   ] as const)('crops a photo with ratio %s to %d', async (ratio, expected) => {
     await renderAt(DESKTOP, { ...LOOKS['image-start'], ratio })
 
@@ -210,7 +212,7 @@ describe('SideBySide layout', () => {
         (candidate) => candidate.name === preset
       )!.defaults as { ratio: BlockRatio }
       const original = defaults.ratio
-      defaults.ratio = 'landscape'
+      defaults.ratio = 'banner'
       try {
         await renderAt(DESKTOP, { ...LOOKS['image-start'], preset })
 
@@ -253,7 +255,7 @@ describe('SideBySide layout', () => {
       const { container } = await renderAt(DESKTOP, {
         ...LOOKS['tinted-panel'],
         size,
-        ratio: 'landscape'
+        ratio: 'banner'
       })
 
       const image = box(screen.getByRole('img', { name: /team members/ }))

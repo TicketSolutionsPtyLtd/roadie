@@ -75,7 +75,7 @@ actions.
 ### Ratio
 
 `ratio` sets the photo's shape in `image-start` and `image-end`: `square` by
-default, `landscape` (2 by 1), or `portrait` (9 by 16). The photo fills its
+default, `landscape` (3 by 2), `banner` (2 by 1), `portrait` (3 by 4), or `story` (9 by 16). The photo fills its
 shape, so pick the ratio that keeps the subject in frame.
 
 ```tsx-live-expand id=ratio
@@ -128,7 +128,7 @@ same way as the [Stats](/blocks/stats) block.
   stats={{
     title: 'By the numbers',
     description: 'The impact of genuine partnerships',
-    items: [
+    figures: [
       { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
       { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
       { value: '20+', label: 'years in ticketing', illustration: 'Heart' },
@@ -191,7 +191,7 @@ width, without changing its shape. `align` centres the heading, text, and action
 <SideBySide
   preset='image-start'
   size='md'
-  ratio='landscape'
+  ratio='banner'
   intent='info'
   emphasis='subtle'
   title='Specialist teams powering venues and event organisers'
