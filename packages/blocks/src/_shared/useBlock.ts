@@ -33,17 +33,17 @@ export type BlockFrameProps = {
 
 /**
  * Resolves a block's frame: the preset it renders, and its alignment and surface from its
- * props, then a fallback its content decides, then the preset's defaults. Hands back the
+ * props, then the preset's defaults. Hands back the
  * props for its root, heading, and actions, so a block renders only its own body.
  */
 export function useBlock<
   Definition extends BlockDefinition,
   Props extends BlockFrameProps
->(definition: Definition, props: Props, fallback: { align?: BlockAlign } = {}) {
+>(definition: Definition, props: Props) {
   const headingId = useId()
   const preset = presetOf(definition, props.preset)
   const defaults = preset.defaults ?? {}
-  const align = props.align ?? fallback.align ?? defaults.align ?? 'start'
+  const align = props.align ?? defaults.align ?? 'start'
   return {
     name: preset.name as Definition['presets'][number]['name'],
     align,

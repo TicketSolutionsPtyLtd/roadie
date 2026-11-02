@@ -21,13 +21,13 @@ import { describeBlockFrame } from '../_test/frame'
 withBrowserPage()
 
 describeBlockFrame('stats', 'figures', Stats as ComponentType<never>, {
-  items: [{ value: '7 million+', label: 'tickets sold' }]
+  stats: [{ value: '7 million+', label: 'tickets sold' }]
 })
 
 const facts: StatsProps = {
   title: 'By the numbers',
   description: 'The impact of genuine partnerships',
-  items: [
+  stats: [
     { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
     { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
     { value: '20+', label: 'years in ticketing', illustration: 'Heart' },
@@ -66,7 +66,7 @@ describe('Stats layout', () => {
     render(
       <Stats
         title='By the numbers'
-        items={[
+        stats={[
           {
             value: '1,000,000,000,000+',
             label: 'tickets scanned',
@@ -100,7 +100,7 @@ describe('Stats layout', () => {
     render(
       <Stats
         title='By the numbers'
-        items={[
+        stats={[
           { value: '33,000,000+', label: 'tickets sold' },
           { value: '7 million+', label: 'fans each year' },
           {

@@ -57,8 +57,8 @@
     ]
   },
   {
-    "name": "split",
-    "path": "dist/Split/index.js",
+    "name": "side-by-side",
+    "path": "dist/SideBySide/index.js",
     "import": "*",
     "limit": "4.5 kB",
     "ignore": [
@@ -70,8 +70,8 @@
     ]
   },
   {
-    "name": "splits",
-    "path": "dist/Splits/index.js",
+    "name": "alternating-rows",
+    "path": "dist/AlternatingRows/index.js",
     "import": "*",
     "limit": "4 kB",
     "ignore": [
@@ -122,8 +122,8 @@
     ]
   },
   {
-    "name": "cta-band",
-    "path": "dist/CTABand/index.js",
+    "name": "call-to-action",
+    "path": "dist/CallToAction/index.js",
     "import": "*",
     "limit": "3.85 kB",
     "ignore": [

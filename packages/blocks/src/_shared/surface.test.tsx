@@ -10,7 +10,7 @@ describe('block intent and emphasis', () => {
   it('names the intent a block sets, so its children inherit it', () => {
     render(
       <BlockRoot
-        block='cta-band'
+        block='call-to-action'
         preset='centred'
         intent='brand'
         aria-label='Talk to us'

@@ -216,7 +216,7 @@ describe('Gallery', () => {
   })
 })
 
-describe('Gallery wrap and links', () => {
+describe('Gallery logos and links', () => {
   const logos = [
     {
       src: '/blocks/kerosene-pony-collective-badge.svg',
@@ -232,28 +232,25 @@ describe('Gallery wrap and links', () => {
     }
   ]
 
-  it('renders the wrap preset as a list, one item for each image', () => {
-    render(
-      <Gallery preset='wrap' ratio='natural' title={TITLE} images={logos} />
-    )
+  it('renders the logos preset as a list, one item for each image', () => {
+    render(<Gallery preset='logos' title={TITLE} images={logos} />)
 
     const section = screen.getByRole('region', { name: TITLE })
-    expect(section).toHaveAttribute('data-preset', 'wrap')
+    expect(section).toHaveAttribute('data-preset', 'logos')
     expect(screen.getAllByRole('listitem')).toHaveLength(logos.length)
     expect(
       screen.getAllByRole('img').map((img) => img.getAttribute('alt'))
     ).toEqual(logos.map((logo) => logo.alt))
   })
 
-  it.each(['natural', 'portrait'] as const)(
-    'makes a linked %s image one link, named and reported by its alt text',
-    async (ratio) => {
+  it.each(['logos', 'carousel'] as const)(
+    'makes a linked image in the %s one link, named and reported by its alt text',
+    async (preset) => {
       const onBlockEvent = vi.fn()
       render(
         <BlocksProvider onBlockEvent={onBlockEvent}>
           <Gallery
-            preset='wrap'
-            ratio={ratio}
+            preset={preset}
             title={TITLE}
             images={[{ ...logos[0]!, href: 'https://example.com' }, logos[1]!]}
           />
@@ -272,15 +269,14 @@ describe('Gallery wrap and links', () => {
     }
   )
 
-  it('gives a natural image with no height a valid sizes', () => {
+  it('gives a logo with no height a valid sizes', () => {
     const renderImage = vi.fn(({ alt }: { alt: string }) => (
       <img alt={alt} src='/optimised.webp' />
     ))
     render(
       <BlocksProvider renderImage={renderImage}>
         <Gallery
-          preset='wrap'
-          ratio='natural'
+          preset='logos'
           title={TITLE}
           images={[{ ...logos[0]!, height: 0 }]}
         />

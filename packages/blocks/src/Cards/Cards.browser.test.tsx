@@ -20,10 +20,10 @@ import { describeBlockFrame } from '../_test/frame'
 withBrowserPage()
 
 describeBlockFrame('cards', 'plain', Cards as ComponentType<never>, {
-  items: [{ title: 'Fast payouts' }]
+  cards: [{ title: 'Fast payouts' }]
 })
 
-const items: CardsItem[] = [
+const fixtures: CardsItem[] = [
   'Live music',
   'Venues',
   'Shows',
@@ -39,15 +39,15 @@ const items: CardsItem[] = [
   points: ['ISO 9001:2015 certified', '99.99% SLA uptime']
 }))
 
-const withoutImages = items.map(({ image: _image, ...item }) => item)
+const withoutImages = fixtures.map(({ image: _image, ...item }) => item)
 
-// The old presets `plain` replaces, each as the props that reproduce it.
+// Each preset, and the looks `plain` takes from its props and content.
 const LOOKS = {
   plain: { preset: 'plain' },
   illustrated: { preset: 'plain', align: 'center', emphasis: 'raised' },
-  numbered: { preset: 'plain', numbered: true },
-  link: { preset: 'plain', itemEmphasis: 'raised', items: withoutImages },
-  marked: { preset: 'marked' },
+  steps: { preset: 'steps' },
+  link: { preset: 'plain', itemEmphasis: 'raised', cards: withoutImages },
+  'text-blocks': { preset: 'text-blocks' },
   overlap: { preset: 'overlap' },
   photo: { preset: 'photo' },
   lists: { preset: 'lists' }
@@ -61,7 +61,7 @@ const propsOf = (look: Look, count = 4): CardsProps => {
   return {
     title: 'Section',
     ...props,
-    items: (props.items ?? items).slice(0, count)
+    cards: (props.cards ?? fixtures).slice(0, count)
   }
 }
 
@@ -95,11 +95,11 @@ const columns = () =>
 describe('Cards columns', () => {
   it.each<[Look, number, number]>([
     ['illustrated', 3, 3],
-    ['marked', 4, 4],
+    ['text-blocks', 4, 4],
     ['overlap', 6, 3],
     ['photo', 4, 4],
     ['lists', 3, 3],
-    ['numbered', 4, 4],
+    ['steps', 4, 4],
     ['link', 3, 3]
   ])(
     '%s stacks on a phone and fills its columns on a desktop',
@@ -117,11 +117,11 @@ describe('Cards columns', () => {
 
   it.each<[Look, number]>([
     ['illustrated', 1],
-    ['marked', 1],
+    ['text-blocks', 1],
     ['overlap', 1],
     ['photo', 2],
     ['lists', 2],
-    ['numbered', 1],
+    ['steps', 1],
     ['link', 2]
   ])('%s fits %i column(s) of at least 15rem at 640px', (look, expected) => {
     render(<Block look={look} width={640} count={4} />)
@@ -140,9 +140,9 @@ describe('Cards columns', () => {
         <div style={{ width: 375 }}>
           <Cards
             {...props}
-            items={[
+            cards={[
               {
-                ...props.items[0]!,
+                ...props.cards[0]!,
                 title: 'Unbreakable'.repeat(20),
                 description: 'x'.repeat(200),
                 points: ['y'.repeat(200)]
@@ -160,14 +160,14 @@ describe('Cards columns', () => {
   )
 
   it('takes its columns from its own width, not the window’s', () => {
-    render(<Block look='marked' width={600} />)
+    render(<Block look='text-blocks' width={600} />)
 
     expect(window.innerWidth).toBeGreaterThan(1280)
     expect(columns()).toBe(1)
   })
 
   it('sets services in two columns at a tablet’s width', () => {
-    render(<Block look='marked' width={800} />)
+    render(<Block look='text-blocks' width={800} />)
 
     expect(columns()).toBe(2)
   })
@@ -194,10 +194,10 @@ describe('Cards long words', () => {
     render(
       <div style={{ width: 375 }}>
         <Cards
-          preset='marked'
+          preset='text-blocks'
           title={'Ticketverkaufsplattformen'.repeat(3)}
           description={'Ticketverkaufsplattformen'.repeat(3)}
-          items={items.slice(0, 1)}
+          cards={fixtures.slice(0, 1)}
         />
       </div>
     )
@@ -271,11 +271,11 @@ describe('Cards align and size', () => {
     expect(textAlignOf(cardTitle())).toBe('start')
   })
 
-  it.each(['plain', 'marked'] as const)(
+  it.each(['plain', 'text-blocks'] as const)(
     'starts the %s heading when align is start',
     (preset) => {
       render(
-        <Cards preset={preset} align='start' title='Section' items={items} />
+        <Cards preset={preset} align='start' title='Section' cards={fixtures} />
       )
 
       expect(textAlignOf(heading())).toBe('start')
@@ -310,9 +310,9 @@ describe('Cards images', () => {
   }
 
   it.each<[Look, number]>([
-    ['plain', 1.78],
-    ['numbered', 1.78],
-    ['marked', 1.33],
+    ['plain', 2],
+    ['steps', 2],
+    ['text-blocks', 2],
     ['overlap', 1],
     ['photo', 1]
   ])('crops a sized 4:3 photo to the %s shape', (look, shape) => {
@@ -342,7 +342,7 @@ describe('Cards photo', () => {
       <Cards
         preset='photo'
         title='Leadership'
-        items={[
+        cards={[
           {
             title: 'Mia Tran',
             subtitle: 'Head of Partnerships and Strategic Growth',
@@ -377,7 +377,7 @@ describe('Cards overlap cards', () => {
       onTestFinished(() => setMode('light'))
       render(
         <div className='bg-normal'>
-          <Cards preset='overlap' title='Section' items={items} />
+          <Cards preset='overlap' title='Section' cards={fixtures} />
         </div>
       )
 
@@ -404,7 +404,7 @@ describe('Cards spacing', () => {
     return Math.round(heading.top - section.top)
   }
 
-  it.each<Look>(['plain', 'marked', 'overlap', 'numbered', 'link', 'lists'])(
+  it.each<Look>(['plain', 'text-blocks', 'overlap', 'steps', 'link', 'lists'])(
     '%s leaves the space above it to the page',
     (look) => {
       expect(gap(look)).toBe(0)
@@ -435,7 +435,7 @@ describe('Cards card links', () => {
         <div style={{ width: 1280 }}>
           <Cards
             {...props}
-            items={[{ ...props.items[0]!, href: '#live-music' }]}
+            cards={[{ ...props.cards[0]!, href: '#live-music' }]}
           />
         </div>
       )
@@ -462,7 +462,7 @@ describe('Cards linked tiles', () => {
         <Cards
           preset={preset}
           title='Section'
-          items={[{ ...items[0]!, href }]}
+          cards={[{ ...fixtures[0]!, href }]}
         />
       </div>
     )
@@ -509,7 +509,7 @@ describe('Cards views', () => {
           preset='photo'
           position={4}
           title='Our values'
-          items={items.slice(0, 1)}
+          cards={fixtures.slice(0, 1)}
         />
       </BlocksProvider>
     )
@@ -569,7 +569,7 @@ describe('Cards contrast', () => {
         : [`${text.slice(0, 30)}: Lc ${Math.round(lc)}`]
     })
 
-  const linked = items.slice(0, 3).map((item, index) => ({
+  const linked = fixtures.slice(0, 3).map((item, index) => ({
     ...item,
     href: index === 0 ? '#first' : undefined
   }))
@@ -649,7 +649,7 @@ describe('Cards contrast', () => {
           title='We understand your industry'
           highlight='industry'
           description='And what makes venues and events succeed.'
-          items={props.items.map((item, index) => ({
+          cards={props.cards.map((item, index) => ({
             ...item,
             href: index === 0 ? '#first' : undefined,
             intent: itemIntent
@@ -692,7 +692,7 @@ describe('Cards contrast', () => {
             emphasis='subtle'
             itemEmphasis='normal'
             title='How can we help?'
-            items={linked}
+            cards={linked}
           />
         </main>
       )

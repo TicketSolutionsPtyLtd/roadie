@@ -51,7 +51,7 @@ export type FAQProps = {
   /** A sentence under the title. */
   description?: string
   /** The questions, in the order people ask them. */
-  items: readonly FAQItem[]
+  questions: readonly FAQItem[]
   /** Links under the questions, such as to every FAQ. The first is the strong one. */
   actions?: readonly BlockAction[]
   /** The block's intent, for the highlighted words, the questions' tint and the strong action. */
@@ -79,7 +79,11 @@ export type FAQProps = {
 
 /** Answers the questions people ask before they buy or sign up. */
 export function FAQ(props: FAQProps) {
-  const { items, itemEmphasis = 'subtler', size } = props
+  const {
+    questions,
+    itemEmphasis = faqDefinition.presets[0].defaults.itemEmphasis,
+    size
+  } = props
   const block = useBlock(faqDefinition, props)
 
   return (
@@ -98,7 +102,7 @@ export function FAQ(props: FAQProps) {
             itemEmphasis === 'subtler' && '-mx-(--content-inset) w-auto'
           )}
         >
-          {items.map(({ question, answer }, index) => (
+          {questions.map(({ question, answer }, index) => (
             <Accordion.Item key={`${index}-${question}`}>
               <Accordion.Trigger>
                 <h3>{question}</h3>

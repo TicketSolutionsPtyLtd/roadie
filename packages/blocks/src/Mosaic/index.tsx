@@ -23,13 +23,13 @@ import { type MosaicPreset, mosaicDefinition } from './definition'
 export type { MosaicPreset } from './definition'
 
 export type MosaicTile = {
-  /** Who the tile is for, such as a partner's name: shown as text when there's no logo, and the logo's alt text when that's empty. */
+  /** Who the tile is for, such as a partner's or venue's name: shown as text when there's no logo, and the logo's alt text when that's empty. */
   title: string
-  /** Marked at the foot of the tile, such as a partnership level like `Presenting partner`. */
+  /** Marked at the foot of the tile, such as a partnership level like `Presenting partner` or a venue's city. */
   description?: string
-  /** The tile's logo. On `tiers` it sits over the photo's dark shade, so a light or white logo suits it. Without one, the tile shows its `title` as text. */
+  /** The tile's logo. Over a photo it sits on the photo's dark shade, so a light or white logo suits it. Without one, the tile shows its `title` as text. */
   logo?: BlockImage
-  /** A photo filling the tile, such as from the partner's event. Decorative, so its alt text isn't read. Without one, `tiers` sets the tile on a plain surface. */
+  /** A photo filling the tile, such as of the venue or event it's for. Decorative, so its alt text isn't read. Without one, the tile sits on a plain surface. */
   image?: BlockImage
   /**
    * `lg` spans two columns at half height, for the tiles to lead with.
@@ -54,8 +54,8 @@ export type MosaicLogoTile = {
 
 export type MosaicProps = {
   /**
-   * `tiers` sets photo tiles with a logo and a marked level, some two columns wide.
-   * @default 'tiers'
+   * `tiles` sets photo tiles with a logo and a marked label, some two columns wide.
+   * @default 'tiles'
    */
   preset?: MosaicPreset
   /** The block's place on the page, counting from 1, reported with its events. */
@@ -80,7 +80,7 @@ export type MosaicProps = {
   intent?: BlockIntent
   /** The surface behind the block. Without one, the tiles sit on the page. */
   emphasis?: BlockEmphasis
-  /** Draws the surface inside the page's padding, rounded at every width, instead of as a full-width band. */
+  /** Draws the `emphasis` inside the page's padding, rounded at every width, instead of as a full-width band. Read only when there's an `emphasis`. */
   contained?: boolean
   /**
    * Where the heading and actions line up.
@@ -109,7 +109,7 @@ const HALF_HEIGHT = 'pt-[calc(50%-var(--tile-gap)/2)]'
 const TILE_SIZES = '(min-width: 768px) 25vw, 50vw'
 const WIDE_SIZES = '(min-width: 768px) 50vw, 100vw'
 
-/** Partners in a grid of photo tiles, each with a logo and a marked label, some two columns wide. */
+/** A grid of photo tiles, each with a logo or title and a marked label, the large ones two columns wide. */
 export function Mosaic(props: MosaicProps) {
   const { tiles, logoTile, intent, size } = props
   const block = useBlock(mosaicDefinition, props)

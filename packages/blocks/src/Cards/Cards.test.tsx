@@ -37,7 +37,7 @@ const values: CardsItem[] = [
 
 describe('Cards', () => {
   it('names its section by the title and says its preset', () => {
-    render(<Cards preset='photo' title='Our values' items={values} />)
+    render(<Cards preset='photo' title='Our values' cards={values} />)
 
     const section = screen.getByRole('region', { name: 'Our values' })
     expect(section).toHaveAttribute('data-block', 'cards')
@@ -45,7 +45,7 @@ describe('Cards', () => {
   })
 
   it('renders cards by default, as a grid', () => {
-    render(<Cards title='Great events need great partners' items={benefits} />)
+    render(<Cards title='Great events need great partners' cards={benefits} />)
 
     const section = screen.getByRole('region', {
       name: 'Great events need great partners'
@@ -53,10 +53,10 @@ describe('Cards', () => {
     expect(section).toHaveAttribute('data-preset', 'plain')
   })
 
-  it.each(['plain', 'marked', 'overlap', 'photo'] as const)(
+  it.each(['plain', 'text-blocks', 'overlap', 'photo'] as const)(
     'shows %s items as titled cards with their images',
     (preset) => {
-      render(<Cards preset={preset} title='Section' items={values} />)
+      render(<Cards preset={preset} title='Section' cards={values} />)
 
       const list = screen.getByRole('list')
       expect(within(list).getAllByRole('listitem')).toHaveLength(2)
@@ -70,17 +70,17 @@ describe('Cards', () => {
     }
   )
 
-  it.each(['plain', 'marked', 'overlap'] as const)(
+  it.each(['plain', 'steps', 'text-blocks', 'overlap'] as const)(
     'shows each %s item’s description',
     (preset) => {
-      render(<Cards preset={preset} title='Section' items={values} />)
+      render(<Cards preset={preset} title='Section' cards={values} />)
 
       expect(screen.getByText('We love what we do.')).toBeInTheDocument()
     }
   )
 
   it('shows photo cards by title and subtitle, leaving out descriptions', () => {
-    render(<Cards preset='photo' title='Leadership' items={values} />)
+    render(<Cards preset='photo' title='Leadership' cards={values} />)
 
     expect(
       screen.getByRole('heading', { level: 3, name: 'Positive energy' })
@@ -97,7 +97,7 @@ describe('Cards', () => {
         title='We understand your industry'
         highlight='industry'
         description='And what makes events succeed.'
-        items={values}
+        cards={values}
       />
     )
 
@@ -116,7 +116,7 @@ describe('Cards', () => {
 
   it('draws each named illustration, hidden from assistive tech', () => {
     const { container } = render(
-      <Cards preset='plain' title='Section' items={benefits} />
+      <Cards preset='plain' title='Section' cards={benefits} />
     )
 
     const illustrations = container.querySelectorAll('svg[aria-hidden="true"]')
@@ -128,7 +128,7 @@ describe('Cards', () => {
       <Cards
         preset='lists'
         title='Social and corporate governance'
-        items={[
+        cards={[
           {
             title: 'Security and compliance',
             points: ['ISO 9001:2015 certified', '99.99% SLA uptime'],
@@ -157,7 +157,7 @@ describe('Cards', () => {
       <Cards
         preset='lists'
         title='Policies'
-        items={[
+        cards={[
           { title: 'Policies', points: ['Reviewed yearly', 'Reviewed yearly'] },
           { title: 'Policies', points: ['Reviewed yearly'] }
         ]}
@@ -176,7 +176,7 @@ describe('Cards', () => {
       <BlocksProvider
         renderImage={({ alt }) => <img alt={alt} src='/optimised.webp' />}
       >
-        <Cards preset='photo' title='Leadership' items={values} />
+        <Cards preset='photo' title='Leadership' cards={values} />
       </BlocksProvider>
     )
 
@@ -185,7 +185,14 @@ describe('Cards', () => {
     ).toHaveAttribute('src', '/optimised.webp')
   })
 
-  it.each(['plain', 'marked', 'overlap', 'photo', 'lists'] as const)(
+  it.each([
+    'plain',
+    'steps',
+    'text-blocks',
+    'overlap',
+    'photo',
+    'lists'
+  ] as const)(
     'links a %s card by its title and reports the title alone as the click label',
     async (preset) => {
       const onBlockEvent = vi.fn()
@@ -194,7 +201,7 @@ describe('Cards', () => {
           <Cards
             preset={preset}
             title='We understand your industry'
-            items={[
+            cards={[
               {
                 title: 'Live music',
                 subtitle: 'Festivals, tours, and concerts',
@@ -235,9 +242,9 @@ describe('Cards', () => {
     render(
       <BlocksProvider onBlockEvent={onBlockEvent}>
         <Cards
-          preset='marked'
+          preset='text-blocks'
           title='Our partnership services'
-          items={values}
+          cards={values}
           actions={[
             { label: 'See all services', href: '/services' },
             { label: 'Talk to us', href: '/contact' }
@@ -265,13 +272,12 @@ describe('Cards', () => {
     )
   })
 
-  it('numbers cards as an ordered list, in order, when numbered', () => {
+  it('numbers steps as an ordered list, in order', () => {
     render(
       <Cards
-        preset='plain'
-        numbered
+        preset='steps'
         title='Make sure your show is seen'
-        items={[
+        cards={[
           {
             title: 'Name the artist',
             description: 'Spell it the same way every time.'
@@ -296,20 +302,43 @@ describe('Cards', () => {
       ['2', 'Check the essentials'],
       ['3', 'Mark tributes as tributes']
     ])
+    expect(screen.getByText('Spell it the same way every time.')).toBeVisible()
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 
-  it('lists cards unordered unless numbered', () => {
-    render(<Cards title='Section' items={values} />)
+  it('leaves out each step’s subtitle and illustration, but keeps its image', () => {
+    const { container } = render(
+      <Cards
+        preset='steps'
+        title='How it works'
+        cards={benefits.map((item, index) => ({
+          ...item,
+          subtitle: `Subtitle ${index}`
+        }))}
+      />
+    )
 
-    expect(screen.getByRole('list').tagName).toBe('UL')
+    expect(screen.queryByText('Subtitle 0')).not.toBeInTheDocument()
+    expect(container.querySelector('li svg')).toBeNull()
+    expect(
+      screen.getByRole('img', { name: 'A crowd at a gig' })
+    ).toHaveAttribute('src', '/crowd.jpg')
   })
+
+  it.each(['plain', 'text-blocks', 'overlap', 'photo', 'lists'] as const)(
+    'lists %s cards unordered',
+    (preset) => {
+      render(<Cards preset={preset} title='Section' cards={values} />)
+
+      expect(screen.getByRole('list').tagName).toBe('UL')
+    }
+  )
 
   it('sets an illustration above the title of a card with no image', () => {
     const { container } = render(
       <Cards
         title='How can we help?'
-        items={[
+        cards={[
           {
             title: 'New clients',
             description: 'Chat to us about your venue or event.',
@@ -351,7 +380,7 @@ describe('Cards', () => {
         <Cards
           intent='brand'
           title='Section'
-          items={values}
+          cards={values}
           actions={[{ label: 'See them all', href: '/all' }]}
         />
       )
@@ -362,7 +391,7 @@ describe('Cards', () => {
     })
 
     it('sets the block’s intent on its section', () => {
-      render(<Cards intent='brand' title='Section' items={values} />)
+      render(<Cards intent='brand' title='Section' cards={values} />)
 
       const section = screen.getByRole('region', { name: 'Section' })
       expect(section).toHaveAttribute('data-intent', 'brand')
@@ -373,7 +402,7 @@ describe('Cards', () => {
       ['photo', undefined, 'emphasis-raised', 'panel'],
       ['plain', 'raised', 'emphasis-raised', 'band'],
       ['plain', 'subtle', 'emphasis-subtle', 'band'],
-      ['marked', 'subtler', 'emphasis-subtler', 'band']
+      ['text-blocks', 'subtler', 'emphasis-subtler', 'band']
     ] as const)(
       'draws %s on a %s surface',
       (preset, emphasis, expected, shape) => {
@@ -382,7 +411,7 @@ describe('Cards', () => {
             preset={preset}
             emphasis={emphasis}
             title='Section'
-            items={values}
+            cards={values}
           />
         )
 
@@ -403,7 +432,7 @@ describe('Cards', () => {
             emphasis='subtle'
             contained={contained}
             title='Section'
-            items={values}
+            cards={values}
           />
         )
 
@@ -411,10 +440,10 @@ describe('Cards', () => {
       }
     )
 
-    it.each(['plain', 'marked', 'overlap', 'lists'] as const)(
+    it.each(['plain', 'steps', 'text-blocks', 'overlap', 'lists'] as const)(
       'draws no surface for %s unless one is set',
       (preset) => {
-        render(<Cards preset={preset} title='Section' items={values} />)
+        render(<Cards preset={preset} title='Section' cards={values} />)
 
         expect(surfaceOf()).toBeNull()
       }
@@ -422,7 +451,7 @@ describe('Cards', () => {
 
     it.each([
       ['plain', 'raised', 'emphasis-raised'],
-      ['marked', 'subtle', 'emphasis-subtle'],
+      ['text-blocks', 'subtle', 'emphasis-subtle'],
       ['plain', 'normal', 'emphasis-normal'],
       ['lists', 'subtler', 'emphasis-subtler']
     ] as const)('draws %s cards as %s', (preset, itemEmphasis, expected) => {
@@ -431,7 +460,7 @@ describe('Cards', () => {
           preset={preset}
           itemEmphasis={itemEmphasis}
           title='Section'
-          items={values}
+          cards={values}
         />
       )
 
@@ -446,7 +475,7 @@ describe('Cards', () => {
             preset='overlap'
             itemEmphasis={itemEmphasis}
             title='Section'
-            items={values}
+            cards={values}
           />
         )
 
@@ -455,22 +484,27 @@ describe('Cards', () => {
       }
     )
 
-    it('draws numbered cards on their item emphasis', () => {
+    it('draws steps on their item emphasis', () => {
       render(
-        <Cards numbered itemEmphasis='raised' title='Section' items={values} />
+        <Cards
+          preset='steps'
+          itemEmphasis='raised'
+          title='Section'
+          cards={values}
+        />
       )
 
       for (const card of cardsOf()) expect(card).toHaveClass('emphasis-raised')
     })
 
-    it.each(['plain', 'marked', 'lists'] as const)(
+    it.each(['plain', 'steps', 'text-blocks', 'lists'] as const)(
       'gives a linked %s card with no surface the subtler one, and leaves the rest bare',
       (preset) => {
         render(
           <Cards
             preset={preset}
             title='Section'
-            items={[{ ...values[0]!, href: '/values/proactive' }, values[1]!]}
+            cards={[{ ...values[0]!, href: '/values/proactive' }, values[1]!]}
           />
         )
 
@@ -485,7 +519,7 @@ describe('Cards', () => {
       render(
         <Cards
           title='Section'
-          items={[{ ...values[0]!, intent: 'success' }, values[1]!]}
+          cards={[{ ...values[0]!, intent: 'success' }, values[1]!]}
         />
       )
 
@@ -499,7 +533,7 @@ describe('Cards', () => {
         <Cards
           preset='overlap'
           title='Section'
-          items={[{ ...values[0]!, intent: 'success' }, values[1]!]}
+          cards={[{ ...values[0]!, intent: 'success' }, values[1]!]}
         />
       )
 
@@ -515,22 +549,14 @@ describe('Cards', () => {
       screen.getByText(name).closest('[data-slot="mark"]')
 
     it.each([
-      ['marked', false, 'info'],
-      ['plain', true, 'brand-secondary']
+      ['text-blocks', ['Proactive touch', 'Positive energy'], 'info'],
+      ['steps', ['1', '2'], 'brand-secondary']
     ] as const)(
-      'marks %s (numbered: %s) in the block’s intent, an item’s own, or %s',
-      (preset, numbered, fallback) => {
+      'marks %s in the block’s intent, an item’s own, or %s',
+      (preset, marked, fallback) => {
         const { unmount } = render(
-          <Cards
-            preset={preset}
-            numbered={numbered}
-            title='Section'
-            items={values}
-          />
+          <Cards preset={preset} title='Section' cards={values} />
         )
-        const marked = numbered
-          ? ['1', '2']
-          : ['Proactive touch', 'Positive energy']
         for (const name of marked)
           expect(markOf(name)).toHaveClass(`intent-${fallback}`)
         unmount()
@@ -538,14 +564,13 @@ describe('Cards', () => {
         render(
           <Cards
             preset={preset}
-            numbered={numbered}
             intent='danger'
             title='Section'
-            items={[values[0]!, { ...values[1]!, intent: 'success' }]}
+            cards={[values[0]!, { ...values[1]!, intent: 'success' }]}
           />
         )
-        expect(markOf(marked[0]!)).toHaveClass('intent-danger')
-        expect(markOf(marked[1]!)).toHaveClass('intent-success')
+        expect(markOf(marked[0])).toHaveClass('intent-danger')
+        expect(markOf(marked[1])).toHaveClass('intent-success')
       }
     )
 
@@ -555,7 +580,7 @@ describe('Cards', () => {
           preset='overlap'
           intent='danger'
           title='Section'
-          items={[
+          cards={[
             values[0]!,
             values[1]!,
             { ...values[1]!, title: 'Third', intent: 'success' }
@@ -574,7 +599,7 @@ describe('Cards', () => {
           preset='photo'
           intent='danger'
           title='Leadership'
-          items={[values[0]!, { ...values[1]!, intent: 'success' }]}
+          cards={[values[0]!, { ...values[1]!, intent: 'success' }]}
         />
       )
 

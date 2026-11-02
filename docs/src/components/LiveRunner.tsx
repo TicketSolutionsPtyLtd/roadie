@@ -84,6 +84,18 @@ import {
 
 import { toPreviewCode, withBasePath } from '@/lib/fence-layout.mjs'
 
+import { AlternatingRows } from '@oztix/roadie-blocks/alternating-rows'
+import { CallToAction } from '@oztix/roadie-blocks/call-to-action'
+import { Cards } from '@oztix/roadie-blocks/cards'
+import { FAQ } from '@oztix/roadie-blocks/faq'
+import { Gallery } from '@oztix/roadie-blocks/gallery'
+import { Hero } from '@oztix/roadie-blocks/hero'
+import { Mosaic } from '@oztix/roadie-blocks/mosaic'
+import { BlocksProvider } from '@oztix/roadie-blocks/provider'
+import { RichText } from '@oztix/roadie-blocks/rich-text'
+import { SideBySide } from '@oztix/roadie-blocks/side-by-side'
+import { Stats } from '@oztix/roadie-blocks/stats'
+import { Testimonial } from '@oztix/roadie-blocks/testimonial'
 import * as RoadieCharts from '@oztix/roadie-charts'
 import { LegendKey } from '@oztix/roadie-charts/chart-legend'
 import { lineChartTable } from '@oztix/roadie-charts/tables'
@@ -107,18 +119,6 @@ import {
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { Editor, useEditorContext } from '@oztix/roadie-editor/editor'
 import { renderEditorValue } from '@oztix/roadie-editor/render'
-import { Cards } from '@oztix/roadie-blocks/cards'
-import { CTABand } from '@oztix/roadie-blocks/cta-band'
-import { FAQ } from '@oztix/roadie-blocks/faq'
-import { Gallery } from '@oztix/roadie-blocks/gallery'
-import { Hero } from '@oztix/roadie-blocks/hero'
-import { Mosaic } from '@oztix/roadie-blocks/mosaic'
-import { BlocksProvider } from '@oztix/roadie-blocks/provider'
-import { RichText } from '@oztix/roadie-blocks/rich-text'
-import { Split } from '@oztix/roadie-blocks/split'
-import { Splits } from '@oztix/roadie-blocks/splits'
-import { Stats } from '@oztix/roadie-blocks/stats'
-import { Testimonial } from '@oztix/roadie-blocks/testimonial'
 import { CartContents } from '@oztix/roadie-widgets/cart-contents/react'
 import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 
@@ -236,12 +236,12 @@ const scope = {
   Hero,
   RichText,
   Cards,
-  Split,
-  Splits,
+  SideBySide,
+  AlternatingRows,
   Stats,
   Mosaic,
   Testimonial,
-  CTABand,
+  CallToAction,
   FAQ,
   Gallery,
   LegendKey,

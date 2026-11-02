@@ -1,15 +1,17 @@
 export const metadata = {
   title: 'Rich text',
-  description: 'A title and rich text, from a short statement to an article',
+  description:
+    'A short statement between busier sections, or an article or policy',
   status: 'alpha',
   wideExamples: true,
-  category: 'Content'
+  category: 'Explain'
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-A title and rich text, from a short statement to an article.
+A title and rich text: a short statement between busier sections, or an
+article or policy.
 
 ## Import
 
@@ -117,7 +119,7 @@ keeps its space inside the band.
 `contained` draws the surface as a rounded panel inside the page padding instead
 of a band. `align` sets the heading and text: a statement centres by
 default and long form starts. `size='md'` or `'sm'` sets the title one or two steps smaller, with
-tighter gaps.
+smaller body text and tighter gaps. Only a statement takes an `illustration`.
 
 ```tsx-live-expand id=contained-align-and-size
 <RichText

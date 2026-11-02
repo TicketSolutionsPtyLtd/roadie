@@ -22,7 +22,8 @@ import {
   type BlockIntent,
   type BlockSize,
   bySize,
-  gapOf
+  gapOf,
+  ratioClass
 } from '../_shared/surface'
 import { type BlockFrame, useBlock } from '../_shared/useBlock'
 import { HeroMotionProvider, HeroMotionToggle } from './HeroMotion'
@@ -102,7 +103,9 @@ export type HeroProps = {
    */
   align?: BlockAlign
   /**
-   * `md` and `sm` set the title one and two steps smaller, with tighter spacing.
+   * `md` and `sm` set the title one and two steps smaller, with smaller text
+   * and tighter spacing. In `image`, they also give the photo a half and two
+   * fifths of the width, down from three fifths.
    * @default 'lg'
    */
   size?: BlockSize
@@ -182,7 +185,12 @@ function PartnerHero({ block, body, partner, size }: PresetProps) {
   return (
     <BlockSurface
       className={cn(
-        'grid grid-cols-1 gap-8 @xl:gap-16 @5xl:gap-24',
+        'grid grid-cols-1',
+        bySize(size, {
+          sm: 'gap-4 @xl:gap-8 @5xl:gap-12',
+          md: 'gap-6 @xl:gap-12 @5xl:gap-16',
+          lg: 'gap-8 @xl:gap-16 @5xl:gap-24'
+        }),
         partner && '@xl:grid-cols-[auto_minmax(0,1fr)] @3xl:grid-cols-2'
       )}
     >
@@ -196,7 +204,7 @@ function PartnerHero({ block, body, partner, size }: PresetProps) {
         <BlockHeading {...block.heading} level={1} step={2} />
         {body && (
           <Prose
-            size='md'
+            size={bySize(size, { sm: 'sm', md: 'md', lg: 'md' })}
             className={block.align === 'center' ? 'text-center' : undefined}
           >
             {body}
@@ -227,17 +235,29 @@ function PartnerLockup({ name, logo }: HeroPartner) {
   )
 }
 
-function ImageHero({ block, image, size }: PresetProps) {
+const IMAGE_SHARE: Record<BlockSize, { text: string; photo: string }> = {
+  sm: { text: '@4xl:col-span-6', photo: '@4xl:col-span-4' },
+  md: { text: '@4xl:col-span-5', photo: '@4xl:col-span-5' },
+  lg: { text: '@4xl:col-span-4', photo: '@4xl:col-span-6' }
+}
+
+function ImageHero({ block, image, size = 'lg' }: PresetProps) {
+  const share = IMAGE_SHARE[size]
   return (
     <BlockSurface
       className={cn(
-        'grid gap-8 *:min-w-0 @xl:grid-cols-2 @xl:items-center @4xl:grid-cols-5',
-        bySize(size, { sm: '@4xl:gap-8', md: '@4xl:gap-12', lg: '@4xl:gap-16' })
+        'grid *:min-w-0 @xl:grid-cols-2 @xl:items-center @4xl:grid-cols-10',
+        bySize(size, {
+          sm: 'gap-4 @4xl:gap-8',
+          md: 'gap-6 @4xl:gap-12',
+          lg: 'gap-8 @4xl:gap-16'
+        })
       )}
     >
       <div
         className={cn(
-          'grid @4xl:col-span-2',
+          'grid',
+          share.text,
           ALIGN_ITEMS[block.align],
           gapOf(size, 'snug')
         )}
@@ -246,7 +266,12 @@ function ImageHero({ block, image, size }: PresetProps) {
         <BlockActions {...block.actions} />
       </div>
       {image && (
-        <div className='order-first overflow-clip rounded-xl @xl:order-last @4xl:col-span-3'>
+        <div
+          className={cn(
+            'order-first overflow-clip rounded-xl @xl:order-last',
+            share.photo
+          )}
+        >
           <BlockImg
             image={image}
             sizes='(min-width: 960px) 60vw, (min-width: 640px) 50vw, 100vw'
@@ -333,7 +358,8 @@ function Bento({
             <div
               data-slot='hero-scrim'
               className={cn(
-                'relative grid gap-8 px-6 py-8 text-(--color-neutral-light-0) @xl:px-8 @xl:py-10 @4xl:px-10 @4xl:py-12',
+                'relative grid px-6 py-8 text-(--color-neutral-light-0) @xl:px-8 @xl:py-10 @4xl:px-10 @4xl:py-12',
+                gapOf(size, 'normal'),
                 align === 'center' && 'justify-items-center text-center',
                 SCRIM[intent ?? 'brand']
               )}
@@ -360,7 +386,16 @@ function Bento({
                   />
                 </Title>
                 {description && (
-                  <p className='text-lg font-medium text-balance'>
+                  <p
+                    className={cn(
+                      'font-medium text-balance',
+                      bySize(size, {
+                        sm: 'text-sm',
+                        md: 'text-base',
+                        lg: 'text-lg'
+                      })
+                    )}
+                  >
                     {description}
                   </p>
                 )}
@@ -386,7 +421,8 @@ function Bento({
               className={cn(
                 PANEL,
                 'hidden @xl:block',
-                video ? '@xl:col-span-4' : '@xl:col-span-9 @xl:aspect-21/9'
+                video ? '@xl:col-span-4' : '@xl:col-span-9',
+                !video && ratioClass.landscape
               )}
             >
               <ImageCycler

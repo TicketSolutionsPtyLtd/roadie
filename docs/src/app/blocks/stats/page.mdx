@@ -1,16 +1,17 @@
 export const metadata = {
   title: 'Stats',
   description:
-    'Key numbers as they were written, each with a spot illustration and a label',
+    'Three to six numbers that make the point on their own, each with a spot illustration and a label',
   status: 'alpha',
-  category: 'Content',
+  category: 'Prove',
   wideExamples: true
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Key numbers as they were written, each with a spot illustration and a label.
+Three to six numbers that make the point on their own, each written as it
+should read, with a spot illustration and a label.
 
 ## Import
 
@@ -30,7 +31,7 @@ a string, so it reads exactly as the editor wrote it.
   preset='figures'
   title='By the numbers'
   description='The impact of genuine partnerships'
-  items={[
+  stats={[
     { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
     { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
     { value: '20+', label: 'years in ticketing', illustration: 'Heart' },
@@ -53,7 +54,7 @@ padding; `contained={false}` runs it full width as a band instead.
   intent='brand'
   emphasis='subtle'
   title='Your audience in Brisbane'
-  items={[
+  stats={[
     { value: '180,000+', label: 'ticket buyers', illustration: 'Ticket' },
     { value: '1,200+', label: 'events a year', illustration: 'MapPin' },
     { value: '4.8 out of 5', label: 'average rating', illustration: 'Heart' }
@@ -64,9 +65,10 @@ padding; `contained={false}` runs it full width as a band instead.
   emphasis='normal'
   contained={false}
   title='Results from last season'
-  items={[
+  stats={[
     { value: '98%', label: 'tickets scanned on time', illustration: 'HighFive' },
-    { value: '12 minutes', label: 'average wait to get in', illustration: 'FlowerSpiral' }
+    { value: '12 minutes', label: 'average wait to get in', illustration: 'FlowerSpiral' },
+    { value: '4.9 out of 5', label: 'support rating', illustration: 'Heart' }
   ]}
 />
 ```
@@ -84,7 +86,7 @@ gaps. `actions` link on from under the figures.
   size='md'
   title='By the numbers'
   description='The impact of genuine partnerships'
-  items={[
+  stats={[
     { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
     { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
     { value: '20+', label: 'years in ticketing', illustration: 'Heart' }
@@ -115,9 +117,9 @@ gaps. `actions` link on from under the figures.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Set stats beside text with Split'>
+<Guideline title='Set stats beside text with Side by side'>
   <Guideline.Do>
-    Use [Split](/blocks/split)'s `stats` preset to set stats beside long-form text.
+    Use [Side by side](/blocks/side-by-side)'s `stats` preset to set stats beside long-form text.
   </Guideline.Do>
   <Guideline.Dont>
     Don't stack a Stats block under a text block to fake the aside.

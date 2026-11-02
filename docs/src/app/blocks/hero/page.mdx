@@ -1,15 +1,16 @@
 export const metadata = {
   title: 'Hero',
-  description: "Opens a page with its title, as the page's main heading",
+  description: "Opens every page, with its title as the page's main heading",
   status: 'alpha',
   wideExamples: true,
-  category: 'Openers'
+  category: 'Open'
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Opens a page with its title, as the page's main heading.
+Opens every page, with its title as the page's main heading. Use one hero,
+first on the page.
 
 ## Import
 
@@ -26,7 +27,8 @@ muted, looping video. The `images` fill two panels in order: the first half
 sit beside the title from about 56rem, and the rest beside the video from
 about 36rem. Each panel's photos crossfade while it's on screen. A button in
 the corner pauses and plays the video and photos together, and they start
-paused for viewers who reduce motion.
+paused for viewers who reduce motion. With no video, the second panel runs
+across the block at landscape (2:1). Bento takes no `eyebrow`.
 
 ```tsx-live-expand id=bento
 <Hero
@@ -117,8 +119,13 @@ each. On a phone, the lockup sits above the title.
 `intent` colours the highlighted words and the strong action, and in Bento
 the tint over the photo too. Without one, the highlight is brand-secondary,
 the action accent, and the tint brand. The hero opens the page, so it takes
-no `emphasis` or `contained`. `align` centres the title and text, which start by
-default, and `size='md'` or `'sm'` sets the title one or two steps smaller with tighter spacing.
+no `emphasis` or `contained`. `align` centres the title and text, which start
+by default.
+
+`size='md'` or `'sm'` sets the title one or two steps smaller, with smaller
+text and tighter spacing. In Image, it also gives the photo a smaller share of
+the width once the block is wide: three fifths at `lg`, half at `md`, and two
+fifths at `sm`. Size never changes a photo's shape or colour.
 
 ```tsx-live id=intent-and-emphasis
 <Hero

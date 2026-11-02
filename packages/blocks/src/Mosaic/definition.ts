@@ -1,19 +1,48 @@
+import type { MosaicProps, MosaicTile } from '.'
 import type { BlockDefinition } from '../catalogue'
 
 export const mosaicDefinition = {
   name: 'mosaic',
   title: 'Mosaic',
   description:
-    'Partners in a grid of photo tiles, each with a logo and a marked label.',
+    'Use it to add visual interest with a grid of photo tiles, the large ones first, such as partners, venues, or event types.',
+  group: 'prove',
   presets: [
     {
-      name: 'tiers',
-      title: 'Tiers',
+      name: 'tiles',
+      title: 'Tiles',
       description:
-        'Photo tiles with a logo and a level, the large ones two columns wide, such as partner tiers.',
+        'Photo tiles, each with a logo or title and a marked label, the large ones two columns wide, then an optional tile of smaller logos.',
+      fields: [
+        'id',
+        'eyebrow',
+        'title',
+        'highlight',
+        'description',
+        'tiles',
+        'logoTile',
+        'actions',
+        'intent',
+        'emphasis',
+        'contained',
+        'align',
+        'size'
+      ],
+      itemFields: [
+        'title',
+        'description',
+        'logo',
+        'image',
+        'size',
+        'href',
+        'intent'
+      ],
       defaults: { align: 'start' }
     }
   ]
-} as const satisfies BlockDefinition
+} as const satisfies BlockDefinition<
+  keyof MosaicProps & string,
+  keyof MosaicTile & string
+>
 
 export type MosaicPreset = (typeof mosaicDefinition.presets)[number]['name']

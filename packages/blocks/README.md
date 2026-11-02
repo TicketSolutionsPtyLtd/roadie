@@ -61,19 +61,28 @@ Run `pnpm generate:exports` after adding the folder.
 - **One set of shared props.** Every block takes `intent`, `emphasis`, `contained`,
   `align`, `size`, and `actions` where they apply, with the same types from
   `src/_shared/surface.ts`, and passes them through. A preset sets the defaults in its
-  definition's `defaults` (`align`, `emphasis`, `contained`); the props override them, so a
-  new look is a preset, never a new prop. A default the content decides, such as CTABand
-  starting beside its photo, goes to `useBlock` as a fallback.
+  definition's `defaults` (`align`, `emphasis`, `contained`, `itemEmphasis`, `ratio`); the
+  props override them, so a new look is a preset, never a new prop.
+- **The catalogue is the schema's source.** Each preset lists the props it reads in
+  `fields` (and its items' in `itemFields`), typed against the block's props, with item
+  counts in `limits`. A CMS hides the rest and validates from it, so a prop a preset reads
+  must be listed. Names are what a CMS stores: a block's `name` is its type, props are
+  fields, and prop values are stored options, so renaming one after release needs a
+  content migration.
   - `intent` goes to `BlockRoot` and `BlockHeading`, so marks, tints,
     highlights, and the strong action inherit it.
   - `emphasis` is a `BlockEmphasis` (`subtler`, `subtle`, `normal`, or `raised`), the
-    surface behind the block. A CTA band adds `strong` and `inverted`. Each
+    surface behind the block. A Call to action adds `strong` and `inverted`. Each
     must keep APCA contrast in both themes.
   - `itemEmphasis` is every item's surface at once (cards, questions), never
     per item, and an item may take its own `intent`.
   - `align` and `size` are the preset's alignment and scale; each step down
     from `lg` (`md`, then `sm`) sets the title a step smaller, with smaller
-    descriptions and body text and tighter spacing. Space a block's parts with
+    descriptions and body text, tighter spacing, and a smaller share of the width
+    for media. Size never changes colour or an image's shape.
+  - An image slot's shape is a `BlockRatio` (`portrait` 9:16, `square`, `landscape`
+    2:1) from `ratioClass`; video keeps 16:9. Where an editor picks it, the prop is
+    `ratio`. Space a block's parts with
     `gapOf(size, step)`, and pick any other value with `bySize`, so no size falls
     through to another's.
   - An item's surface and mark follow `src/_shared/items.ts`: a linked item with no
@@ -97,7 +106,7 @@ Run `pnpm generate:exports` after adding the folder.
   with `contained`, it's a panel inside the page padding, rounded at every width.
 - **Keys.** List keys use the item's index with its content, so repeated content stays
   distinct.
-- **Room for an overhang.** A CTA band with an `image` keeps a top margin for the photo that
+- **Room for an overhang.** A Call to action `photo` keeps a top margin for the photo that
   breaks out of its panel; like `statement`'s breathing room, it's part of the preset's look.
 - **Preset types live in `definition.ts`,** derived from the definition, and the block's
   `index.tsx` re-exports them. Keep each `preset` prop's `@default` the definition's first preset.

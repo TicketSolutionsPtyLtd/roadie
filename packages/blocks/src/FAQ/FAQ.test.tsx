@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { FAQ } from '.'
 import { BlocksProvider } from '../Provider'
 
-const items = [
+const questions = [
   {
     question: 'Does it cost anything?',
     answer: <p>No. There’s no fee, and your settlement is unchanged.</p>
@@ -27,7 +27,7 @@ describe('FAQ', () => {
         preset='accordion'
         position={5}
         title='Questions, answered'
-        items={items}
+        questions={questions}
       />
     )
 
@@ -43,7 +43,7 @@ describe('FAQ', () => {
   })
 
   it('opens a question to its answer, set as prose', async () => {
-    render(<FAQ title='Questions, answered' items={items} />)
+    render(<FAQ title='Questions, answered' questions={questions} />)
 
     const question = screen
       .getByRole('heading', { name: 'Does it cost anything?' })
@@ -63,7 +63,7 @@ describe('FAQ', () => {
     const onBlockEvent = vi.fn()
     render(
       <BlocksProvider onBlockEvent={onBlockEvent}>
-        <FAQ position={2} title='Questions, answered' items={items} />
+        <FAQ position={2} title='Questions, answered' questions={questions} />
       </BlocksProvider>
     )
 
@@ -86,7 +86,7 @@ describe('FAQ', () => {
     const onBlockEvent = vi.fn()
     render(
       <BlocksProvider onBlockEvent={onBlockEvent}>
-        <FAQ title='Questions, answered' items={items} />
+        <FAQ title='Questions, answered' questions={questions} />
       </BlocksProvider>
     )
 
@@ -102,9 +102,9 @@ describe('FAQ', () => {
 
   it('lists a question twice when it’s asked twice', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const repeated = [items[0]!, items[0]!]
-    const { rerender } = render(<FAQ title='Questions' items={repeated} />)
-    rerender(<FAQ title='Questions' items={[...repeated, items[1]!]} />)
+    const repeated = [questions[0]!, questions[0]!]
+    const { rerender } = render(<FAQ title='Questions' questions={repeated} />)
+    rerender(<FAQ title='Questions' questions={[...repeated, questions[1]!]} />)
 
     expect(
       screen.getAllByRole('heading', { name: 'Does it cost anything?' })
@@ -117,7 +117,7 @@ describe('FAQ', () => {
     render(
       <FAQ
         title='Questions, answered'
-        items={items}
+        questions={questions}
         actions={[
           { label: 'See all FAQs', href: '/frequently-asked-questions' }
         ]}
@@ -135,7 +135,7 @@ describe('FAQ', () => {
 
   it('sets its intent on the block', () => {
     const { container } = render(
-      <FAQ intent='brand' title='Questions, answered' items={items} />
+      <FAQ intent='brand' title='Questions, answered' questions={questions} />
     )
 
     expect(container.querySelector('section')).toHaveAttribute(
@@ -146,7 +146,11 @@ describe('FAQ', () => {
 
   it('draws the questions on a subtle surface when asked', () => {
     const { container } = render(
-      <FAQ itemEmphasis='subtle' title='Questions, answered' items={items} />
+      <FAQ
+        itemEmphasis='subtle'
+        title='Questions, answered'
+        questions={questions}
+      />
     )
 
     expect(container.querySelectorAll('details.emphasis-subtle')).toHaveLength(
@@ -156,7 +160,11 @@ describe('FAQ', () => {
 
   it('draws the questions in a bordered box when asked', () => {
     const { container } = render(
-      <FAQ itemEmphasis='normal' title='Questions, answered' items={items} />
+      <FAQ
+        itemEmphasis='normal'
+        title='Questions, answered'
+        questions={questions}
+      />
     )
 
     expect(container.querySelector('[data-slot=accordion]')).toHaveClass(
@@ -166,7 +174,7 @@ describe('FAQ', () => {
 
   it('draws no surface by default', () => {
     const { container } = render(
-      <FAQ title='Questions, answered' items={items} />
+      <FAQ title='Questions, answered' questions={questions} />
     )
 
     expect(
@@ -186,7 +194,7 @@ describe('FAQ', () => {
           emphasis='subtle'
           contained={contained}
           title='Questions, answered'
-          items={items}
+          questions={questions}
         />
       )
 
@@ -207,7 +215,7 @@ describe('FAQ', () => {
       <FAQ
         intent='brand'
         title='Questions, answered'
-        items={items}
+        questions={questions}
         actions={[
           { label: 'See all FAQs', href: '/frequently-asked-questions' }
         ]}

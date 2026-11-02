@@ -4,7 +4,7 @@ export const metadata = {
     'Shows the people, events, and partners behind a page in photos or logos',
   status: 'alpha',
   wideExamples: true,
-  category: 'Proof',
+  category: 'Prove',
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
@@ -62,17 +62,16 @@ The same photos scrolling past on their own, with a button on their lower corner
 />
 ```
 
-### Wrap
+### Logos
 
-The images in a wrapping, centred row. With `ratio='natural'`, each keeps its
-own proportions at one height, for partner logos or certifications. Give an
-image an `href` and it becomes the link, named by its alt text; a linked logo
-is a quiet card that tints on hover.
+Logos in a wrapping, centred row, each at its own proportions at one height,
+so none is cropped. Use it for partner logos or certifications. Give a logo an
+`href` and it becomes the link, named by its alt text, as a quiet card that
+tints on hover.
 
-```tsx-live-expand id=wrap
+```tsx-live-expand id=logos
 <Gallery
-  preset='wrap'
-  ratio='natural'
+  preset='logos'
   title='Trusted by organisers across Australia'
   images={[
     { src: '/blocks/kerosene-pony-collective-badge.svg', alt: 'Kerosene Pony Collective', width: 214, height: 48, href: '/partners' },
@@ -85,9 +84,8 @@ is a quiet card that tints on hover.
 
 ### Ratio
 
-`ratio` sets every tile's shape in any preset: `portrait` (9:16) by default,
-`square`, `landscape` (2:1), or `natural`. A scrolling row of logos is a
-`marquee` with `ratio='natural'`.
+`ratio` sets the photos' shape in a `carousel` or `marquee`: `portrait` (9:16)
+by default, `square`, or `landscape` (2:1). `logos` ignores it.
 
 ```tsx-live-expand id=ratio
 <Gallery
@@ -107,7 +105,7 @@ is a quiet card that tints on hover.
 
 `intent` colours the highlighted words, the marquee's pause control, and the strong action. Without an `emphasis`, the photos sit on the page and the marquee runs the block's full width. `subtler`, `subtle`, `normal`, or `raised` draws a full-width band behind them, with the carousel and marquee running edge to edge, and `contained` draws it as a rounded panel inside the page's padding instead.
 
-`align` overrides the heading's alignment, which starts beside the carousel's controls and centres over the marquee and the wrap. `size='md'` or `'sm'` sets the title one or two steps smaller with tighter spacing, and `actions` go under the photos, lined up with the heading.
+`align` overrides the heading's alignment, which starts beside the carousel's controls and centres over the marquee and the logos. `size='md'` or `'sm'` sets the title one or two steps smaller with tighter spacing, and `actions` go under the photos, lined up with the heading.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
 {/* Brand, subtle band, action */}
@@ -145,12 +143,12 @@ is a quiet card that tints on hover.
 
 <Guidelines>
 
-<Guideline title='Match the ratio to the images'>
+<Guideline title='Match the preset to the images'>
   <Guideline.Do>
-    Use photos of crowds, artists, and partners at their events in a cropped ratio, and logos at `natural`, so no logo is cut off.
+    Use `carousel` or `marquee` for photos of crowds, artists, and partners at their events, and `logos` for logos, so no logo is cut off.
   </Guideline.Do>
   <Guideline.Dont>
-    Don’t crop logos to a photo ratio, or mix photos and logos in one gallery.
+    Don’t put logos in a carousel or marquee, or mix photos and logos in one gallery.
   </Guideline.Dont>
 </Guideline>
 
@@ -178,7 +176,7 @@ is a quiet card that tints on hover.
 
 - **Carousel**: the heading names the carousel, and each photo is a slide named by its place, such as "2 of 7". Previous and next are buttons, and photos out of view are inert, so `Tab` skips them.
 - **Marquee**: each photo is read out once, though the marquee repeats them to fill the width. A pause button stops the motion, which also stops on hover, on focus, and under reduced motion.
-- **Wrap**: the images are a list, read in order.
+- **Logos**: the logos are a list, read in order.
 - **Links**: a linked image is the link, named by its alt text, so give every linked image alt text.
 
 ## Tracking

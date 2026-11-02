@@ -21,8 +21,8 @@ import { describeBlockFrame } from '../_test/frame'
 
 withBrowserPage()
 
-describeBlockFrame('gallery', 'wrap', Gallery as ComponentType<never>, {
-  preset: 'wrap',
+describeBlockFrame('gallery', 'logos', Gallery as ComponentType<never>, {
+  preset: 'logos',
   images: [photo('A crowd')]
 })
 
@@ -521,27 +521,69 @@ describe('Gallery ratio', () => {
     ['portrait', 9 / 16],
     ['square', 1],
     ['landscape', 2]
-  ] as const)('crops each %s tile to its ratio', async (ratio, expected) => {
+  ] as const)(
+    'crops each %s tile to its ratio, in a carousel or marquee',
+    async (ratio, expected) => {
+      await page.viewport(DESKTOP.width, DESKTOP.height)
+      const { rerender } = render(
+        <Gallery
+          preset='carousel'
+          ratio={ratio}
+          title='Our people'
+          images={images}
+        />
+      )
+      const shape = () => {
+        const { width, height } = box('Photo 1 of a gig')
+        return width / height
+      }
+      expect(shape()).toBeCloseTo(expected, 1)
+
+      rerender(
+        <Gallery
+          preset='marquee'
+          ratio={ratio}
+          title='Our people'
+          images={images}
+        />
+      )
+      expect(shape()).toBeCloseTo(expected, 1)
+    }
+  )
+
+  it('crops carousel tiles to portrait by default', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
-    render(
-      <Gallery preset='wrap' ratio={ratio} title='Our people' images={images} />
-    )
+    render(<Gallery preset='carousel' title='Our people' images={images} />)
 
     const { width, height } = box('Photo 1 of a gig')
-    expect(width / height).toBeCloseTo(expected, 1)
+    expect(width / height).toBeCloseTo(9 / 16, 1)
+  })
+
+  it('keeps logos uncropped, whatever the ratio', async () => {
+    await page.viewport(DESKTOP.width, DESKTOP.height)
+    render(
+      <Gallery
+        preset='logos'
+        ratio='square'
+        title='Partners'
+        images={[photo('Wide logo', 600, 100)]}
+      />
+    )
+
+    expect(box('Wide logo').height).toBeCloseTo(48, 0)
+    expect(box('Wide logo').width).toBeCloseTo(288, 0)
   })
 
   it.each([
     ['a phone', PHONE],
     ['a desktop', DESKTOP]
   ])(
-    'sets natural images 48px tall in their own ratio, centred, on %s',
+    'sets logos 48px tall in their own ratio, centred, on %s',
     async (_, size) => {
       await page.viewport(size.width, size.height)
       render(
         <Gallery
-          preset='wrap'
-          ratio='natural'
+          preset='logos'
           title='Partners'
           images={[
             photo('Wide logo', 600, 100),
@@ -570,8 +612,7 @@ describe('Gallery ratio', () => {
     await page.viewport(MID.width, MID.height)
     render(
       <Gallery
-        preset='wrap'
-        ratio='natural'
+        preset='logos'
         title='Partners'
         images={['A', 'B', 'C', 'D'].map((name) =>
           photo(`${name} logo`, 300, 100)
@@ -585,12 +626,11 @@ describe('Gallery ratio', () => {
     expect(tops.filter((top) => top === tops[0])).toHaveLength(3)
   })
 
-  it('tints a linked natural image on hover', async () => {
+  it('tints a linked logo on hover', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     render(
       <Gallery
-        preset='wrap'
-        ratio='natural'
+        preset='logos'
         title='Partners'
         images={[
           { ...photo('Kerosene Pony Collective', 240, 80), href: '/partners' }
@@ -605,14 +645,13 @@ describe('Gallery ratio', () => {
     await expect.poll(fill).not.toBe(before)
   })
 
-  it.each(['natural', 'portrait'] as const)(
-    'has no axe violations with linked %s images',
-    async (ratio) => {
+  it.each(['logos', 'carousel'] as const)(
+    'has no axe violations with linked images in the %s',
+    async (preset) => {
       const { container } = render(
         <main>
           <Gallery
-            preset='wrap'
-            ratio={ratio}
+            preset={preset}
             intent='brand'
             title='Partners'
             images={images.map((image) => ({ ...image, href: '/partners' }))}

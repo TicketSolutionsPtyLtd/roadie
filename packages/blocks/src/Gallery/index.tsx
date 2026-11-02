@@ -16,6 +16,7 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BLEED, BlockSurface, PAGE_GUTTER } from '../_shared/BlockSurface'
+import { presetOf } from '../_shared/presets'
 import {
   type BlockAlign,
   type BlockEmphasis,
@@ -32,12 +33,12 @@ export type { GalleryPreset } from './definition'
 /** A photo or logo, linked when it has an `href`. A linked image is named by its `alt`. */
 export type GalleryImage = BlockImage & { href?: string }
 
-/** The tiles' shape: cropped to a block ratio, or `natural`, uncropped at one height. */
-export type GalleryRatio = BlockRatio | 'natural'
+// Logos are `natural`: uncropped, at one height.
+type TileRatio = BlockRatio | 'natural'
 
 export type GalleryProps = {
   /**
-   * `carousel` steps through the images with previous and next controls or a swipe, `marquee` scrolls them past, and `wrap` sets them in a wrapping, centred row.
+   * `carousel` steps through the photos with previous and next controls or a swipe, `marquee` scrolls them past, and `logos` sets logos uncropped in a wrapping, centred row.
    * @default 'carousel'
    */
   preset?: GalleryPreset
@@ -53,13 +54,13 @@ export type GalleryProps = {
   highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
-  /** Photos of people and events, or partners' logos with `ratio='natural'`. */
+  /** Photos of people and events, or partners' logos for `logos`. */
   images: readonly GalleryImage[]
   /**
-   * The tiles' shape. `natural` keeps each image's own proportions at one height, for logos.
+   * The photos' shape in `carousel` and `marquee`. `logos` keeps each logo's own proportions at one height.
    * @default 'portrait'
    */
-  ratio?: GalleryRatio
+  ratio?: BlockRatio
   /** Links under the photos, as buttons. The first is the strong one. */
   actions?: readonly BlockAction[]
   /** The block's intent, for the highlighted words, the marquee's pause control, and the strong action. */
@@ -69,7 +70,7 @@ export type GalleryProps = {
   /** Draws the surface inside the page's padding, rounded at every width, instead of as a full-width band. */
   contained?: boolean
   /**
-   * Where the heading and actions line up: `start` for `carousel`, beside its controls, and `center` for `marquee` and `wrap`.
+   * Where the heading and actions line up: `start` for `carousel`, beside its controls, and `center` for `marquee` and `logos`.
    */
   align?: BlockAlign
   /**
@@ -80,10 +81,7 @@ export type GalleryProps = {
 }
 
 // Literal class names, so Tailwind finds them. Widths step up with the block's own width.
-const CROPPED: Record<
-  Exclude<GalleryRatio, 'natural'>,
-  { tile: string; sizes: string }
-> = {
+const CROPPED: Record<BlockRatio, { tile: string; sizes: string }> = {
   portrait: {
     tile: 'aspect-9/16 w-35 @xl:w-45 @4xl:w-55',
     sizes: '(max-width: 640px) 140px, (max-width: 960px) 180px, 220px'
@@ -104,9 +102,13 @@ const MARQUEE_SPEED = 40
 
 /** Shows the people, events, and partners behind a page in photos or logos. */
 export function Gallery(props: GalleryProps) {
-  const { images, ratio = 'portrait', actions, intent, emphasis, size } = props
+  const { images, actions, intent, emphasis, size } = props
   const block = useBlock(galleryDefinition, props)
   const { name } = block
+  const preset = presetOf(galleryDefinition, name)
+  const readsRatio = (preset.fields as readonly string[]).includes('ratio')
+  const ratio: TileRatio =
+    (readsRatio ? props.ratio : undefined) ?? preset.defaults.ratio
   const headingId = block.heading.id
   const gap = gapOf(size, 'loose')
   const heading = <BlockHeading {...block.heading} />
@@ -162,7 +164,7 @@ export function Gallery(props: GalleryProps) {
           </Carousel>
           {blockActions}
         </BlockSurface>
-      ) : name === 'wrap' ? (
+      ) : name === 'logos' ? (
         <BlockSurface
           emphasis={block.emphasis}
           contained={block.contained}
@@ -259,7 +261,7 @@ function naturalSizes({ width, height }: BlockImage) {
 }
 
 // A linked image is the link, named by its alt text, so the image inside is decorative.
-function Tile({ image, ratio }: { image: GalleryImage; ratio: GalleryRatio }) {
+function Tile({ image, ratio }: { image: GalleryImage; ratio: TileRatio }) {
   const { href, ...rest } = image
   const shown = href ? { ...rest, alt: '' } : rest
   if (ratio === 'natural') {

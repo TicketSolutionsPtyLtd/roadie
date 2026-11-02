@@ -1,15 +1,16 @@
 export const metadata = {
   title: 'Testimonial',
-  description: 'Lets a client say why they work with Oztix, in their words',
+  description: 'Lets a client say, in their words, why they work with Oztix',
   status: 'alpha',
   wideExamples: true,
-  category: 'Proof'
+  category: 'Prove'
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Lets a client say why they work with Oztix, in their words.
+Lets a client say, in their words, why they work with Oztix: one quote, or
+two or more in a carousel.
 
 ## Import
 
@@ -21,10 +22,11 @@ import { Testimonial } from '@oztix/roadie-blocks/testimonial'
 
 ### Quote
 
-The quote sits large and centred under the heading, with the person's
-portrait, name, role, and organisation under it. The quote and citation
+One quote sits large and centred under the heading, with the person's
+square portrait, name, role, and organisation under it. It takes exactly one
+quote, and shows only the first if given more. The quote and citation
 share one `figure`, so they're read together. An `image` fades behind
-the whole block.
+the whole block, filling it at any shape.
 
 ```tsx-live id=quote
 <Testimonial
@@ -51,7 +53,8 @@ the whole block.
 
 ### Carousel
 
-Several quotes, one at a time, under one heading. Dots under the quote step
+Two or more quotes, one at a time, under one heading; a carousel of one is
+a Quote. Dots under the quote step
 between them, and a swipe does too on a touch screen.
 
 ```tsx-live id=carousel
@@ -110,7 +113,8 @@ colour.
 ### Contained, align, size, and actions
 
 `contained` draws the surface as a rounded panel inside the page padding instead
-of a band. `align='start'` lines the heading and quote up on the left, which
+of a band. It needs an `emphasis` or `image` to draw, and does nothing without
+one. `align='start'` lines the heading and quote up on the left, which
 centre by default. `size='md'` or `'sm'` sets the title one or two steps smaller, with tighter
 gaps. `actions` link on from under the quote.
 

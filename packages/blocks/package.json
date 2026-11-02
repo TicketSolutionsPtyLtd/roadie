@@ -30,9 +30,13 @@
       "style": "./src/css/blocks.css",
       "default": "./src/css/blocks.css"
     },
-    "./cta-band": {
-      "types": "./dist/CTABand/index.d.ts",
-      "import": "./dist/CTABand/index.js"
+    "./alternating-rows": {
+      "types": "./dist/AlternatingRows/index.d.ts",
+      "import": "./dist/AlternatingRows/index.js"
+    },
+    "./call-to-action": {
+      "types": "./dist/CallToAction/index.d.ts",
+      "import": "./dist/CallToAction/index.js"
     },
     "./cards": {
       "types": "./dist/Cards/index.d.ts",
@@ -62,13 +66,9 @@
       "types": "./dist/RichText/index.d.ts",
       "import": "./dist/RichText/index.js"
     },
-    "./split": {
-      "types": "./dist/Split/index.d.ts",
-      "import": "./dist/Split/index.js"
-    },
-    "./splits": {
-      "types": "./dist/Splits/index.d.ts",
-      "import": "./dist/Splits/index.js"
+    "./side-by-side": {
+      "types": "./dist/SideBySide/index.d.ts",
+      "import": "./dist/SideBySide/index.js"
     },
     "./stats": {
       "types": "./dist/Stats/index.d.ts",

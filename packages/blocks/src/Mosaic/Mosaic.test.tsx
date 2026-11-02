@@ -4,17 +4,17 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Mosaic } from '.'
 import { BlocksProvider } from '../Provider'
-import { partnerTiers } from './fixtures'
+import { partnerTiles } from './fixtures'
 
 describe('Mosaic', () => {
-  it('renders tiers as a section named by its start-aligned heading', () => {
-    render(<Mosaic {...partnerTiers} position={3} />)
+  it('renders tiles as a section named by its start-aligned heading', () => {
+    render(<Mosaic {...partnerTiles} position={3} />)
 
     const section = screen.getByRole('region', {
       name: 'Industry partnerships'
     })
     expect(section).toHaveAttribute('data-block', 'mosaic')
-    expect(section).toHaveAttribute('data-preset', 'tiers')
+    expect(section).toHaveAttribute('data-preset', 'tiles')
     expect(section).toHaveAttribute('data-position', '3')
     expect(
       screen.getByRole('heading', { level: 2, name: 'Industry partnerships' })
@@ -22,7 +22,7 @@ describe('Mosaic', () => {
   })
 
   it('lists each partner as its logo and level, with the photo behind left unread', () => {
-    render(<Mosaic {...partnerTiers} />)
+    render(<Mosaic {...partnerTiles} />)
 
     const [first] = screen.getAllByRole('listitem')
     expect(
@@ -36,9 +36,9 @@ describe('Mosaic', () => {
   it('names a tile with no logo or label by its name alone', () => {
     render(
       <Mosaic
-        {...partnerTiers}
+        {...partnerTiles}
         tiles={[
-          { title: 'Kazoo Hollow Room', image: partnerTiers.tiles[1]!.image }
+          { title: 'Kazoo Hollow Room', image: partnerTiles.tiles[1]!.image }
         ]}
         logoTile={undefined}
       />
@@ -51,10 +51,10 @@ describe('Mosaic', () => {
   })
 
   it('sets a tile without a photo on a plain surface', () => {
-    const first = partnerTiers.tiles[0]!
+    const first = partnerTiles.tiles[0]!
     render(
       <Mosaic
-        {...partnerTiers}
+        {...partnerTiles}
         tiles={[{ ...first, image: undefined }]}
         logoTile={undefined}
       />
@@ -69,23 +69,23 @@ describe('Mosaic', () => {
   })
 
   it('marks large partners so they span two columns', () => {
-    render(<Mosaic {...partnerTiers} />)
+    render(<Mosaic {...partnerTiles} />)
 
     const large = screen
       .getAllByRole('listitem')
       .filter((item) => item.getAttribute('data-size') === 'lg')
     expect(large).toHaveLength(
-      partnerTiers.tiles.filter((partner) => partner.size === 'lg').length
+      partnerTiles.tiles.filter((partner) => partner.size === 'lg').length
     )
   })
 
   it('keeps repeated partners and logos as distinct tiles', () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const partner = partnerTiers.tiles[0]!
-    const logo = partnerTiers.logoTile.logos[0]!
+    const partner = partnerTiles.tiles[0]!
+    const logo = partnerTiles.logoTile.logos[0]!
     render(
       <Mosaic
-        {...partnerTiers}
+        {...partnerTiles}
         tiles={[partner, partner]}
         logoTile={{ logos: [logo, logo] }}
       />
@@ -98,10 +98,10 @@ describe('Mosaic', () => {
   })
 
   it('ends with the also-supporting logos, titled "Also supporting" by default', () => {
-    render(<Mosaic {...partnerTiers} />)
+    render(<Mosaic {...partnerTiles} />)
 
     const items = screen.getAllByRole('listitem')
-    expect(items).toHaveLength(partnerTiers.tiles.length + 1)
+    expect(items).toHaveLength(partnerTiles.tiles.length + 1)
     const also = items.at(-1)!
     expect(
       within(also).getByRole('heading', { level: 3, name: 'Also supporting' })
@@ -110,16 +110,16 @@ describe('Mosaic', () => {
       within(also)
         .getAllByRole('img')
         .map((img) => img.getAttribute('alt'))
-    ).toEqual(partnerTiers.logoTile!.logos.map((logo) => logo.alt))
+    ).toEqual(partnerTiles.logoTile!.logos.map((logo) => logo.alt))
   })
 
   it('titles the also tile as given, and leaves it out with no also', () => {
     const { rerender } = render(
       <Mosaic
-        {...partnerTiers}
+        {...partnerTiles}
         logoTile={{
           title: 'Friends of Oztix',
-          logos: partnerTiers.logoTile!.logos
+          logos: partnerTiles.logoTile!.logos
         }}
       />
     )
@@ -127,10 +127,10 @@ describe('Mosaic', () => {
       screen.getByRole('heading', { level: 3, name: 'Friends of Oztix' })
     ).toBeInTheDocument()
 
-    rerender(<Mosaic {...partnerTiers} logoTile={undefined} />)
+    rerender(<Mosaic {...partnerTiles} logoTile={undefined} />)
     expect(screen.queryByRole('heading', { level: 3 })).toBeNull()
     expect(screen.getAllByRole('listitem')).toHaveLength(
-      partnerTiers.tiles.length
+      partnerTiles.tiles.length
     )
   })
 
@@ -139,7 +139,7 @@ describe('Mosaic', () => {
       <BlocksProvider
         renderImage={({ alt }) => <img alt={alt} src='/optimised.webp' />}
       >
-        <Mosaic {...partnerTiers} />
+        <Mosaic {...partnerTiles} />
       </BlocksProvider>
     )
 
@@ -151,7 +151,7 @@ describe('Mosaic', () => {
     const onBlockEvent = vi.fn()
     render(
       <BlocksProvider onBlockEvent={onBlockEvent}>
-        <Mosaic {...partnerTiers} position={2} />
+        <Mosaic {...partnerTiles} position={2} />
       </BlocksProvider>
     )
 
@@ -162,16 +162,16 @@ describe('Mosaic', () => {
   })
 
   describe('intent and links', () => {
-    it('marks tier labels neutral by default, and in the block intent', () => {
-      const { container, rerender } = render(<Mosaic {...partnerTiers} />)
-      const label = () => screen.getByText(partnerTiers.tiles[0]!.description)
+    it('marks tile labels neutral by default, and in the block intent', () => {
+      const { container, rerender } = render(<Mosaic {...partnerTiles} />)
+      const label = () => screen.getByText(partnerTiles.tiles[0]!.description)
 
       expect(container.querySelector('section')).not.toHaveAttribute(
         'data-intent'
       )
       expect(label()).toHaveClass('intent-neutral')
 
-      rerender(<Mosaic {...partnerTiers} intent='brand' />)
+      rerender(<Mosaic {...partnerTiles} intent='brand' />)
       expect(container.querySelector('section')).toHaveAttribute(
         'data-intent',
         'brand'
@@ -181,11 +181,11 @@ describe('Mosaic', () => {
 
     it('makes a linked tile one link named by the tile, reported by name', async () => {
       const onBlockEvent = vi.fn()
-      const [first, second] = partnerTiers.tiles
+      const [first, second] = partnerTiles.tiles
       render(
         <BlocksProvider onBlockEvent={onBlockEvent}>
           <Mosaic
-            {...partnerTiers}
+            {...partnerTiles}
             tiles={[{ ...first!, href: '/partners/ochre-kite' }, second!]}
             logoTile={undefined}
           />
@@ -212,12 +212,12 @@ describe('Mosaic', () => {
     it('links a tile without a logo through its name', () => {
       render(
         <Mosaic
-          {...partnerTiers}
+          {...partnerTiles}
           tiles={[
             {
               title: 'Kazoo Hollow Room',
               href: '/venues/kazoo-hollow-room',
-              image: partnerTiers.tiles[1]!.image
+              image: partnerTiles.tiles[1]!.image
             }
           ]}
           logoTile={undefined}
@@ -232,10 +232,10 @@ describe('Mosaic', () => {
 
   describe('shared props', () => {
     it('marks a tile in its own intent over the block’s', () => {
-      const [first, second] = partnerTiers.tiles
+      const [first, second] = partnerTiles.tiles
       render(
         <Mosaic
-          {...partnerTiers}
+          {...partnerTiles}
           intent='brand'
           tiles={[{ ...first!, intent: 'success' }, second!]}
         />
@@ -248,7 +248,7 @@ describe('Mosaic', () => {
     it('sets its actions under the tiles, the first strong in the block intent', () => {
       render(
         <Mosaic
-          {...partnerTiers}
+          {...partnerTiles}
           intent='brand'
           actions={[{ label: 'Become a partner', href: '/partners' }]}
         />
@@ -263,15 +263,15 @@ describe('Mosaic', () => {
     })
 
     it('draws no surface by default, and the emphasis asked for as a band or contained panel', () => {
-      const { container, rerender } = render(<Mosaic {...partnerTiers} />)
+      const { container, rerender } = render(<Mosaic {...partnerTiles} />)
       const surface = () => container.querySelector('[data-slot=block-surface]')
       expect(surface()).toBeNull()
 
-      rerender(<Mosaic {...partnerTiers} emphasis='subtler' />)
+      rerender(<Mosaic {...partnerTiles} emphasis='subtler' />)
       expect(surface()).toHaveClass('emphasis-subtler')
       expect(surface()).toHaveAttribute('data-shape', 'band')
 
-      rerender(<Mosaic {...partnerTiers} emphasis='raised' contained />)
+      rerender(<Mosaic {...partnerTiles} emphasis='raised' contained />)
       expect(surface()).toHaveAttribute('data-shape', 'panel')
     })
   })

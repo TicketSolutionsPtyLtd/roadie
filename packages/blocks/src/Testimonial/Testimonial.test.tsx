@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Testimonial } from '.'
 import { BlocksProvider } from '../Provider'
+import { testimonialDefinition } from './definition'
 import { carousel, quote } from './fixtures'
 
 describe('Testimonial', () => {
@@ -257,5 +258,21 @@ describe('Testimonial carousel', () => {
     expect(screen.getByRole('blockquote')).toHaveTextContent(
       carousel.quotes[0]!.quote
     )
+  })
+})
+
+describe('Testimonial limits', () => {
+  it('takes exactly one quote on quote, and two or more on carousel', () => {
+    const limits = Object.fromEntries(
+      testimonialDefinition.presets.map((preset) => [
+        preset.name,
+        preset.limits.quotes
+      ])
+    )
+
+    expect(limits).toEqual({
+      quote: { min: 1, max: 1, strict: true },
+      carousel: { min: 2, strict: true }
+    })
   })
 })

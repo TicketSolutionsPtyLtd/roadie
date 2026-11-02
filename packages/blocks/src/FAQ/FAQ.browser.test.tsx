@@ -23,7 +23,7 @@ import { describeBlockFrame } from '../_test/frame'
 withBrowserPage()
 
 describeBlockFrame('faq', 'accordion', FAQ as ComponentType<never>, {
-  items: [{ question: 'Does it cost anything?', answer: <p>No.</p> }]
+  questions: [{ question: 'Does it cost anything?', answer: <p>No.</p> }]
 })
 
 const INTENTS = [
@@ -38,7 +38,7 @@ const INTENTS = [
   'danger'
 ] as const satisfies readonly BlockIntent[]
 
-const items = [
+const questions = [
   {
     question: 'Does it cost anything?',
     answer: <p>No. There’s no fee, and your settlement is unchanged.</p>
@@ -59,7 +59,7 @@ describe('FAQ', () => {
     ['a desktop', DESKTOP]
   ])('lines the questions up with the heading on %s', async (_, size) => {
     await page.viewport(size.width, size.height)
-    render(<FAQ title='Questions, answered' items={items} />)
+    render(<FAQ title='Questions, answered' questions={questions} />)
 
     const heading = screen.getByRole('heading', { level: 2 })
     const question = screen.getByRole('heading', {
@@ -73,7 +73,7 @@ describe('FAQ', () => {
 
   it('has no axe violations, with a question open', async () => {
     const { container } = render(
-      <FAQ title='Questions, answered' items={items} />
+      <FAQ title='Questions, answered' questions={questions} />
     )
     await userEvent.click(screen.getByText('Who do I contact?'))
 
@@ -96,10 +96,10 @@ describe('FAQ questions', () => {
           <FAQ
             itemEmphasis={itemEmphasis}
             title='Questions, answered'
-            items={items}
+            questions={questions}
           />
           <Accordion emphasis={itemEmphasis}>
-            {items.map(({ question, answer }) => (
+            {questions.map(({ question, answer }) => (
               <Accordion.Item key={question}>
                 <Accordion.Trigger>{question}</Accordion.Trigger>
                 <Accordion.Content>{answer}</Accordion.Content>
@@ -128,7 +128,7 @@ describe('FAQ questions', () => {
         <FAQ
           itemEmphasis={itemEmphasis}
           title='Questions, answered'
-          items={items}
+          questions={questions}
         />
       )
 
@@ -153,7 +153,13 @@ describe('FAQ align and size', () => {
   const heading = () => screen.getByRole('heading', { level: 2 })
 
   it('starts the heading by default', () => {
-    render(<FAQ title='Questions, answered' items={items} actions={actions} />)
+    render(
+      <FAQ
+        title='Questions, answered'
+        questions={questions}
+        actions={actions}
+      />
+    )
 
     expect(textAlignOf(heading())).toBe('start')
   })
@@ -164,7 +170,7 @@ describe('FAQ align and size', () => {
       <FAQ
         align='center'
         title='Questions, answered'
-        items={items}
+        questions={questions}
         actions={actions}
       />
     )
@@ -179,15 +185,19 @@ describe('FAQ align and size', () => {
   it('sets the title smaller at md, and again at sm', async () => {
     await page.viewport(DESKTOP.width, DESKTOP.height)
     const { rerender } = render(
-      <FAQ title='Questions, answered' items={items} />
+      <FAQ title='Questions, answered' questions={questions} />
     )
     const large = fontSizeOf(heading())
 
-    rerender(<FAQ size='md' title='Questions, answered' items={items} />)
+    rerender(
+      <FAQ size='md' title='Questions, answered' questions={questions} />
+    )
     expect(fontSizeOf(heading())).toBeLessThan(large)
     const medium = fontSizeOf(heading())
 
-    rerender(<FAQ size='sm' title='Questions, answered' items={items} />)
+    rerender(
+      <FAQ size='sm' title='Questions, answered' questions={questions} />
+    )
     expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
 })
@@ -202,7 +212,7 @@ describe('FAQ on a surface', () => {
           emphasis='subtle'
           contained={contained}
           title='Questions, answered'
-          items={items}
+          questions={questions}
         />
       )
 
@@ -253,7 +263,7 @@ describe('FAQ intent and emphasis', () => {
           emphasis={emphasis}
           itemEmphasis={itemEmphasis}
           title='Questions, answered'
-          items={items}
+          questions={questions}
         />
       )
       await userEvent.click(screen.getByText('Does it cost anything?'))

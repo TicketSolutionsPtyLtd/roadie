@@ -1,23 +1,71 @@
 import type { BlockDefinition } from '../catalogue'
+import type { CardsItem, CardsProps } from './index'
+
+const FRAME = [
+  'preset',
+  'id',
+  'intent',
+  'emphasis',
+  'contained',
+  'align',
+  'size',
+  'eyebrow',
+  'title',
+  'highlight',
+  'description',
+  'cards',
+  'actions'
+] as const
 
 export const cardsDefinition = {
   name: 'cards',
   title: 'Cards',
   description:
-    'A set of like items, such as benefits, services, steps, values, or people, as cards in columns.',
+    'Use it for three or more short, like items side by side, such as benefits, services, steps, or people.',
+  group: 'explain',
   presets: [
     {
       name: 'plain',
       title: 'Plain',
       description:
-        'Cards of a title and description, with an image, an illustration, or both, for benefits, features, steps, or places to go next. Numbered, they show the steps of how it works.',
+        'Cards of a title and description, with an image, an illustration, or both, for benefits, features, or places to go next.',
+      fields: [...FRAME, 'itemEmphasis'],
+      itemFields: [
+        'title',
+        'subtitle',
+        'description',
+        'image',
+        'illustration',
+        'href',
+        'intent'
+      ],
       defaults: { align: 'center' }
     },
     {
-      name: 'marked',
-      title: 'Marked',
+      name: 'steps',
+      title: 'Steps',
       description:
-        'Up to four cards in columns, each an image above a marked title and subtitle, for services.',
+        'Numbered cards in order, each a title and description, for the steps of how something works.',
+      fields: [...FRAME, 'itemEmphasis'],
+      itemFields: ['title', 'description', 'image', 'href', 'intent'],
+      defaults: { align: 'center' }
+    },
+    {
+      name: 'text-blocks',
+      title: 'Text blocks',
+      description:
+        'Up to four cards in columns, each an image above a title and subtitle set on colour, for services.',
+      fields: [...FRAME, 'itemEmphasis'],
+      itemFields: [
+        'title',
+        'subtitle',
+        'description',
+        'image',
+        'illustration',
+        'href',
+        'intent'
+      ],
+      limits: { cards: { max: 4 } },
       defaults: { align: 'center' }
     },
     {
@@ -25,6 +73,16 @@ export const cardsDefinition = {
       title: 'Overlap',
       description:
         'Square images, each overlapped by an inverted panel holding an illustration, a marked title, and a description, for industries.',
+      fields: FRAME,
+      itemFields: [
+        'title',
+        'subtitle',
+        'description',
+        'image',
+        'illustration',
+        'href',
+        'intent'
+      ],
       defaults: { align: 'center' }
     },
     {
@@ -32,6 +90,8 @@ export const cardsDefinition = {
       title: 'Photo',
       description:
         'Square photos on a contained raised surface, each with a title and subtitle marked over it, for people, venues, or events.',
+      fields: FRAME,
+      itemFields: ['title', 'subtitle', 'image', 'href', 'intent'],
       defaults: { align: 'start', emphasis: 'raised', contained: true }
     },
     {
@@ -39,10 +99,15 @@ export const cardsDefinition = {
       title: 'Lists',
       description:
         'Columns of short lists, each under its own title, with no images, for policies, certifications, or other short facts.',
+      fields: [...FRAME, 'itemEmphasis'],
+      itemFields: ['title', 'points', 'href', 'intent'],
       defaults: { align: 'start' }
     }
   ]
-} as const satisfies BlockDefinition
+} as const satisfies BlockDefinition<
+  keyof CardsProps & string,
+  keyof CardsItem & string
+>
 
 /** A Cards preset's name. */
 export type CardsPreset = (typeof cardsDefinition.presets)[number]['name']

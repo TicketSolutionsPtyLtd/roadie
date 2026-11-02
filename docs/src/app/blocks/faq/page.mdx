@@ -3,7 +3,7 @@ export const metadata = {
   description: 'Answers the questions people ask before they buy or sign up',
   status: 'alpha',
   wideExamples: true,
-  category: 'Content',
+  category: 'Explain',
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
@@ -27,7 +27,7 @@ A heading over questions that open to their answers, one at a time. Answers are 
 <FAQ
   preset='accordion'
   title='Questions, answered'
-  items={[
+  questions={[
     {
       question: 'Does it cost anything?',
       answer: <p>No. There’s no fee to list your events on Spotify, and your settlement is unchanged.</p>
@@ -54,7 +54,7 @@ A heading over questions that open to their answers, one at a time. Answers are 
 <FAQ
   itemEmphasis='subtle'
   title='Questions, answered'
-  items={[
+  questions={[
     { question: 'Does it cost anything?', answer: <p>No. There’s no fee, and your settlement is unchanged.</p> },
     { question: 'How fast is it?', answer: <p>About 24 hours.</p> }
   ]}
@@ -65,7 +65,7 @@ A heading over questions that open to their answers, one at a time. Answers are 
   itemEmphasis='normal'
   title='Questions about refunds'
   highlight='refunds'
-  items={[
+  questions={[
     { question: 'Can I get a refund?', answer: <p>Yes, when the event is cancelled or rescheduled.</p> },
     { question: 'How long does it take?', answer: <p>Up to 10 business days.</p> }
   ]}
@@ -75,7 +75,7 @@ A heading over questions that open to their answers, one at a time. Answers are 
   emphasis='subtle'
   itemEmphasis='normal'
   title='Questions about payouts'
-  items={[
+  questions={[
     { question: 'When do I get paid?', answer: <p>Within five business days of your event.</p> },
     { question: 'Can I get paid early?', answer: <p>Yes. Ask your account manager about early settlement.</p> }
   ]}
@@ -93,7 +93,7 @@ A heading over questions that open to their answers, one at a time. Answers are 
   align='center'
   size='md'
   title='Questions, answered'
-  items={[
+  questions={[
     { question: 'Does it cost anything?', answer: <p>No. There’s no fee, and your settlement is unchanged.</p> },
     { question: 'How fast is it?', answer: <p>About 24 hours.</p> }
   ]}
@@ -122,7 +122,7 @@ A heading over questions that open to their answers, one at a time. Answers are 
 
 <Guideline title='Keep structured data in the site'>
   <Guideline.Do>
-    Generate the page’s FAQ structured data from the same items. The block renders none.
+    Generate the page’s FAQ structured data from the same questions. The block renders none.
   </Guideline.Do>
 </Guideline>
 

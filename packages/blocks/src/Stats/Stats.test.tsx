@@ -8,7 +8,7 @@ import { BlocksProvider } from '../Provider'
 const facts = {
   title: 'By the numbers',
   description: 'The impact of genuine partnerships',
-  items: [
+  stats: [
     { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
     { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
     { value: '20+', label: 'years in ticketing' }
@@ -63,7 +63,7 @@ describe('Stats', () => {
   it('shows repeated stats once each, without a key clash', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     const repeated = { value: '20+', label: 'years in ticketing' }
-    render(<Stats title={facts.title} items={[repeated, repeated]} />)
+    render(<Stats title={facts.title} stats={[repeated, repeated]} />)
 
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
     expect(consoleError).not.toHaveBeenCalled()
@@ -71,7 +71,7 @@ describe('Stats', () => {
   })
 
   it('leaves the description out when there is none', () => {
-    render(<Stats title={facts.title} items={facts.items} />)
+    render(<Stats title={facts.title} stats={facts.stats} />)
 
     expect(screen.queryByText('The impact of genuine partnerships')).toBeNull()
   })

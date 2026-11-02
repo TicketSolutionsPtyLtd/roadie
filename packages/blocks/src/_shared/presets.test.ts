@@ -4,16 +4,19 @@ const hero = {
   name: 'hero',
   title: 'Hero',
   description: 'Opens a page.',
+  group: 'open' as const,
   presets: [
     {
       name: 'page-hero',
       title: 'Page hero',
-      description: ''
+      description: '',
+      fields: ['title']
     },
     {
       name: 'page-header',
       title: 'Page header',
-      description: ''
+      description: '',
+      fields: ['title']
     }
   ]
 }

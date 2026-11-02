@@ -27,7 +27,7 @@ export type TestimonialPerson = {
   name: string
   /** Their job title, such as `Head of Programming`. */
   role?: string
-  /** A square portrait. */
+  /** A portrait, cropped square. */
   image?: BlockImage
 }
 
@@ -65,9 +65,9 @@ export type TestimonialProps = {
   highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
-  /** The quotes, in order. `quote` shows the first; `carousel` steps through them all. */
+  /** The quotes, in order. `quote` takes exactly one, and shows only the first; `carousel` takes two or more and steps through them all. */
   quotes: readonly TestimonialQuote[]
-  /** A photo faded behind the whole block, which then pads its content. Decorative, so its alt text isn't read. Over an `emphasis`, it fades over the surface's colour. */
+  /** A photo faded behind the whole block, which then pads its content. It fills the block at any shape, with no ratio. Decorative, so its alt text isn't read. Over an `emphasis`, it fades over the surface's colour. */
   image?: BlockImage
   /** Links under the quote. The first is the strong one. */
   actions?: readonly BlockAction[]
@@ -75,7 +75,7 @@ export type TestimonialProps = {
   intent?: BlockIntent
   /** The surface behind the whole block: a band, full width and rounded once the block is wide, or a panel with `contained`. None by default. */
   emphasis?: BlockEmphasis
-  /** Draws the `emphasis` or `image` as a panel inside the page padding instead of a band. */
+  /** Draws the `emphasis` or `image` as a panel inside the page padding instead of a band. Read only when there's an `emphasis` or `image`. */
   contained?: boolean
   /**
    * The heading's, quote's and citation's alignment.

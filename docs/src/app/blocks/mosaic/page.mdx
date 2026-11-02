@@ -1,18 +1,19 @@
 export const metadata = {
   title: 'Mosaic',
   description:
-    'Partners in a grid of photo tiles, each with a logo and a marked label',
+    'A grid of photo tiles for visual interest, the large ones first, such as partners, venues, or event types',
   status: 'alpha',
   wideExamples: true,
-  category: 'Proof'
+  category: 'Prove'
 }
 
 import { Guideline, Guidelines } from '@/components/Guideline'
 import { PropsDefinitions } from '@/components/PropsDefinitions'
 
-Partners in a grid of photo tiles, each with a logo and a marked label. For a
-row of logos alone, use a [Gallery](/blocks/gallery) with `preset='wrap'` and
-`ratio='natural'`.
+A grid of photo tiles that adds visual interest, the large ones first, such
+as partners, venues, or event types. Each tile has a logo or title and a
+marked label. For a row of logos alone, use a [Gallery](/blocks/gallery) with
+`preset='logos'`.
 
 ## Import
 
@@ -22,17 +23,17 @@ import { Mosaic } from '@oztix/roadie-blocks/mosaic'
 
 ## Examples
 
-### Tiers
+### Tiles
 
-Each partner is a tile with its photo behind, its logo, and its level as the
-tile's `description`. Tiles with `size: 'lg'` span two columns at half height, and the tiles
+Each tile has its photo behind, a logo or its `title`, and a marked label as
+its `description`, such as a partner's level. Tiles with `size: 'lg'` span two columns at half height, and the tiles
 pack densely, so a square tile fills the gap a wide one leaves. A `logoTile`
 closes the grid with the remaining logos, titled "Also supporting" unless
 you give it a title.
 
-```tsx-live id=tiers
+```tsx-live id=tiles
 <Mosaic
-  preset='tiers'
+  preset='tiles'
   title='Industry partnerships'
   description="We back Australia's live events industry through partnerships that strengthen it."
   tiles={[
@@ -99,34 +100,31 @@ photo easing larger on hover; tiles without one stay still.
 
 ```tsx-live id=intent-and-emphasis
 <Mosaic
-  preset='tiers'
   intent='brand'
   emphasis='subtle'
-  actions={[{ label: 'Become a partner', href: '/partners' }]}
-  title='Festival partners'
-  highlight='partners'
+  actions={[{ label: 'Find a venue', href: '/venues' }]}
+  title='Venues we ticket'
+  highlight='Venues'
   tiles={[
     {
-      title: 'Ochre Kite Weekender',
-      description: 'Presenting partner',
-      href: '/partners/ochre-kite-weekender',
-      logo: { src: '/blocks/ochre-kite-weekender.svg', alt: 'Ochre Kite Weekender logo', width: 214, height: 48 },
-      image: { src: '/brand/photography/01.webp', alt: '', width: 800, height: 800 },
+      title: 'Kazoo Hollow Room',
+      description: 'Brisbane',
+      href: '/venues/kazoo-hollow-room',
+      logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 214, height: 48 },
+      image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 },
       size: 'lg'
     },
     {
-      title: 'Velvet Dingo Fest',
-      description: 'Sponsor',
-      href: '/partners/velvet-dingo-fest',
-      logo: { src: '/blocks/velvet-dingo-fest.svg', alt: 'Velvet Dingo Fest logo', width: 214, height: 48 },
+      title: 'Echidna Gaslight Theatre',
+      description: 'Melbourne',
+      href: '/venues/echidna-gaslight-theatre',
       image: { src: '/brand/photography/02.webp', alt: '', width: 800, height: 800 }
     },
     {
-      title: 'Kazoo Hollow Room',
-      description: 'Venue partner',
+      title: 'Saltbush Trumpet Ballroom',
+      description: 'Newly opened',
       intent: 'success',
-      logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 214, height: 48 },
-      image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 }
+      image: { src: '/brand/photography/03.webp', alt: '', width: 800, height: 800 }
     }
   ]}
 />
@@ -149,20 +147,20 @@ photo easing larger on hover; tiles without one stay still.
 
 <Guideline title='Pick the preset for the content'>
   <Guideline.Do>
-    Use tiers, as partner tiers are today, for partners and sponsors with a
-    level each. For a row of partner logos or certifications, use a Gallery
-    with `wrap` and `ratio='natural'`.
-    Venues, events, or clients in a mosaic would be new presets, raised as a
-    block request.
+    Use a mosaic where a page needs photos to break up its text, with one
+    kind of thing per mosaic, such as partners labelled by level or venues by
+    city. For a row of partner logos or certifications, use a Gallery with
+    `preset='logos'`.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't put venues or events in tiers; their labels aren't levels.
+    Don't mix partners, venues, and events in one mosaic; the labels then
+    stop meaning one thing.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Answer first'>
   <Guideline.Do>
-    Title the block with what the partnerships are, such as "Industry
+    Title the block with what the tiles are, such as "Industry
     partnerships", and say in the description what they do.
   </Guideline.Do>
   <Guideline.Dont>
@@ -172,19 +170,19 @@ photo easing larger on hover; tiles without one stay still.
 
 <Guideline title='Make the few that lead large'>
   <Guideline.Do>
-    Set the presenting and major partners to `size: 'lg'`, about one in four
-    tiles, so the wide tiles read as the top tier.
+    Set the tiles to lead with, such as presenting partners, to `size: 'lg'`,
+    about one in four tiles, so the wide tiles read first.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't make every partner large; the grid loses its tiers and its rhythm.
+    Don't make every tile large; the grid loses its rhythm.
   </Guideline.Dont>
 </Guideline>
 
 <Guideline title='Match the logo to its surface'>
   <Guideline.Do>
-    Use a light or white logo on a transparent background over a photo from
-    the partner's event. The photo is decorative and isn't read out, so the
-    logo's alt text names the partner.
+    Use a light or white logo on a transparent background over a photo of
+    the venue or event. The photo is decorative and isn't read out, so the
+    logo's alt text, or the tile's title, names it.
   </Guideline.Do>
   <Guideline.Dont>
     Don't put a dark logo on a tile or in the `logoTile`; both stay dark in

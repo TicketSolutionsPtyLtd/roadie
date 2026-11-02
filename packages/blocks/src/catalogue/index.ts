@@ -1,12 +1,12 @@
-import { ctaBandDefinition } from '../CTABand/definition'
+import { alternatingRowsDefinition } from '../AlternatingRows/definition'
+import { callToActionDefinition } from '../CallToAction/definition'
 import { cardsDefinition } from '../Cards/definition'
 import { faqDefinition } from '../FAQ/definition'
 import { galleryDefinition } from '../Gallery/definition'
 import { heroDefinition } from '../Hero/definition'
 import { mosaicDefinition } from '../Mosaic/definition'
 import { richTextDefinition } from '../RichText/definition'
-import { splitDefinition } from '../Split/definition'
-import { splitsDefinition } from '../Splits/definition'
+import { sideBySideDefinition } from '../SideBySide/definition'
 import { statsDefinition } from '../Stats/definition'
 import { testimonialDefinition } from '../Testimonial/definition'
 import type {
@@ -100,15 +100,15 @@ function entry(definition: BlockDefinition): CatalogueBlock {
 const DEFINITIONS: readonly BlockDefinition[] = [
   heroDefinition,
   richTextDefinition,
-  splitDefinition,
-  splitsDefinition,
+  sideBySideDefinition,
+  alternatingRowsDefinition,
   cardsDefinition,
-  statsDefinition,
-  mosaicDefinition,
-  testimonialDefinition,
   faqDefinition,
+  statsDefinition,
+  testimonialDefinition,
   galleryDefinition,
-  ctaBandDefinition
+  mosaicDefinition,
+  callToActionDefinition
 ]
 
 /** Every block and its presets, for a CMS's block picker. Has no React, so it runs on a server or in a Studio config. */

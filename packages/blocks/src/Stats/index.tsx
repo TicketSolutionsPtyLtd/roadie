@@ -38,8 +38,8 @@ export type StatsProps = {
   highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
-  /** The stats, each a value as written, its label, and an optional spot illustration. */
-  items: readonly StatItem[]
+  /** The stats, three to six, each a value as written, its label, and an optional spot illustration. */
+  stats: readonly StatItem[]
   /** Links under the figures. The first is the strong one. */
   actions?: readonly BlockAction[]
   /** The block's intent. The figures, heading, and highlights take its strong text colour. */
@@ -63,7 +63,7 @@ export type StatsProps = {
   size?: BlockSize
 }
 
-/** Key numbers as they were written, each with a spot illustration and a label. */
+/** Three to six key numbers as they were written, each with a spot illustration and a label. */
 export function Stats(props: StatsProps) {
   const block = useBlock(statsDefinition, props)
   return (
@@ -77,7 +77,7 @@ export function Stats(props: StatsProps) {
         )}
       >
         <BlockHeading {...block.heading} className='grid-cols-1' />
-        <StatList items={props.items} />
+        <StatList items={props.stats} />
         <BlockActions {...block.actions} />
       </BlockSurface>
     </BlockRoot>

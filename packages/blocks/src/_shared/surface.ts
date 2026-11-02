@@ -10,7 +10,7 @@ export type BlockIntent =
   | 'warning'
   | 'danger'
 
-/** The surface a block draws behind its content. Every block takes these; a CTA band adds `strong` and `inverted`. */
+/** The surface a block draws behind its content. Every block takes these; a Call to action adds `strong` and `inverted`. */
 export type BlockEmphasis = 'subtler' | 'subtle' | 'normal' | 'raised'
 
 /** The surface of every item in a block, such as its cards or questions. */

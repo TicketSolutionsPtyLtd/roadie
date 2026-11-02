@@ -14,7 +14,7 @@ const logo = (name: string) => ({
   height: 48
 })
 
-export const partnerTiers = {
+export const partnerTiles = {
   title: 'Industry partnerships',
   description:
     "We back Australia's live events industry through partnerships that strengthen it.",

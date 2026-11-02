@@ -26,7 +26,8 @@ import {
   type BlockIntent,
   type BlockSize,
   type ItemEmphasis,
-  gapOf
+  gapOf,
+  ratioClass
 } from '../_shared/surface'
 import { useBlock } from '../_shared/useBlock'
 import { type CardsPreset, cardsDefinition } from './definition'
@@ -36,27 +37,27 @@ export type { CardsPreset } from './definition'
 export type CardsItem = {
   /** The card's heading, marked over the photo in `photo`. */
   title: string
-  /** A short line under the title, such as a person's role in `photo`. Numbered cards leave it out. */
+  /** A short line under the title, such as a person's role in `photo`. `steps` leaves it out. */
   subtitle?: string
   /** Every preset but `photo` and `lists` shows it. */
   description?: string
   /** Every preset but `lists` shows it. */
   image?: BlockImage
-  /** Shown by `plain`, `marked`, and `overlap`. In `plain`, it overlaps the image's lower edge, or sits above the title with no image. */
+  /** Shown by `plain`, `text-blocks`, and `overlap`. In `plain`, it overlaps the image's lower edge, or sits above the title with no image. */
   illustration?: SpotIllustrationName
   /** The list `lists` shows under the title. */
   points?: readonly string[]
   /** The item's own page. Its title becomes the link, and the whole card the place to click. */
   href?: string
   /**
-   * This item's intent, in place of the block's. It tints the card in `plain`, `marked`, and `lists`, and sets the mark that carries the preset's colour: the title in `marked` and `overlap`, the number in numbered `plain`, and the subtitle in `photo`.
+   * This item's intent, in place of the block's. It tints the card in `plain`, `steps`, `text-blocks`, and `lists`, and sets the mark that carries the preset's colour: the title in `text-blocks` and `overlap`, the number in `steps`, and the subtitle in `photo`.
    */
   intent?: BlockIntent
 }
 
 export type CardsProps = {
   /**
-   * The look. Every preset is a grid of cards. `plain` shows what each item has: an image, an illustration over it or above the title, and with `numbered`, a number.
+   * The look. Every preset is a grid of cards. `plain` shows what each item has: an image, and an illustration over it or above the title. `steps` numbers the cards in order.
    * @default 'plain'
    */
   preset?: CardsPreset
@@ -65,7 +66,7 @@ export type CardsProps = {
   /** An id for linking to the block. */
   id?: string
   /**
-   * The block's intent. Its highlighted words, strong action, and every card's mark take it: the title in `marked` and `overlap`, the number in numbered `plain`, and the subtitle in `photo`. Without one, marks keep the preset's colours: info, brand-secondary, or a cycle of info, brand, and brand-secondary.
+   * The block's intent. Its highlighted words, strong action, and every card's mark take it: the title in `text-blocks` and `overlap`, the number in `steps`, and the subtitle in `photo`. Without one, marks keep the preset's colours: info, brand-secondary, or a cycle of info, brand, and brand-secondary.
    */
   intent?: BlockIntent
   /** The surface behind the block. Unset, `photo` sits on `raised` and the other presets have none. */
@@ -74,15 +75,13 @@ export type CardsProps = {
   contained?: boolean
   /** Every card's surface. Unset, cards have none, though a linked card with none takes `subtler`. `overlap` and `photo` ignore it, since they draw an inverted panel or a photo. */
   itemEmphasis?: ItemEmphasis
-  /** The heading's alignment, and in `plain`, the card text's too. Unset, `plain` centres the heading and starts the card text, `marked` and `overlap` centre the heading, and `photo` and `lists` start it. */
+  /** The heading's alignment, and in `plain` and `steps`, the card text's too. Unset, `plain`, `steps`, `text-blocks`, and `overlap` centre the heading, `plain` and `steps` start the card text, and `photo` and `lists` start the heading. */
   align?: BlockAlign
   /**
    * `md` and `sm` set the title one and two steps smaller and tightens the gap under the heading.
    * @default 'lg'
    */
   size?: BlockSize
-  /** Numbers `plain` in order, as an ordered list, for the steps of how it works. */
-  numbered?: boolean
   /** A short line above the title. */
   eyebrow?: string
   title: string
@@ -90,7 +89,7 @@ export type CardsProps = {
   highlight?: string | string[]
   /** A sentence under the title. */
   description?: string
-  items: readonly CardsItem[]
+  cards: readonly CardsItem[]
   /** Links under the cards, such as to see them all. The first is the strong one. */
   actions?: readonly BlockAction[]
 }
@@ -100,8 +99,7 @@ type CardProps = {
   index: number
   itemEmphasis: ItemEmphasis | undefined
   blockIntent: BlockIntent | undefined
-  numbered: boolean
-  /** Centres the card's text, in `plain`. */
+  /** Centres the card's text, in `plain` and `steps`. */
   centred: boolean
 }
 
@@ -185,52 +183,28 @@ function CardImage({
   )
 }
 
-// An image makes a feature card, numbered or not; with neither, the card is a compact link-style one.
+// An image makes a feature card; with none, the card is a compact link-style one.
 function PlainCard(props: CardProps) {
-  const { item, index, itemEmphasis, numbered, centred } = props
-  const compact = !item.image && !numbered
-  const illustration = !numbered && (
+  const { item, itemEmphasis, centred } = props
+  const compact = !item.image
+  const illustration = (
     <Illustration
       name={item.illustration}
-      className={item.image ? 'relative -mt-20 size-20' : 'size-12'}
+      className={compact ? 'size-12' : 'relative -mt-20 size-20'}
     />
   )
   return (
     <GridCard
       item={item}
       itemEmphasis={itemEmphasis}
-      className={cn(
-        'grid content-start',
-        item.image && !numbered ? 'gap-8' : 'gap-4'
-      )}
+      className={cn('grid content-start', compact ? 'gap-4' : 'gap-8')}
     >
       {item.image && (
         <CardImage
           image={item.image}
-          sizes={
-            numbered
-              ? '(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw'
-              : '(min-width: 1024px) 33vw, 100vw'
-          }
-          className='aspect-video w-full rounded-2xl'
+          sizes='(min-width: 1024px) 33vw, 100vw'
+          className={cn(ratioClass.landscape, 'w-full rounded-2xl')}
         />
-      )}
-      {numbered && (
-        <div className='flex items-end justify-between gap-4'>
-          <Mark
-            aria-hidden
-            render={<span />}
-            intent={markIntent(
-              props.item,
-              props.blockIntent,
-              'brand-secondary'
-            )}
-            className='px-3 py-1 text-display-prose-2 tabular-nums'
-          >
-            {index + 1}
-          </Mark>
-          <Illustration name={item.illustration} className='size-12' />
-        </div>
       )}
       {compact && illustration}
       <div
@@ -248,13 +222,51 @@ function PlainCard(props: CardProps) {
         >
           <CardTitle item={item} />
         </h3>
-        {item.subtitle && !numbered && (
+        {item.subtitle && (
           <p className='text-lg font-medium text-strong'>{item.subtitle}</p>
         )}
         {item.description && (
           <p className={cn('text-subtle', !compact && 'text-lg')}>
             {item.description}
           </p>
+        )}
+      </div>
+    </GridCard>
+  )
+}
+
+function StepCard(props: CardProps) {
+  const { item, index, itemEmphasis, centred } = props
+  return (
+    <GridCard
+      item={item}
+      itemEmphasis={itemEmphasis}
+      className={cn(
+        'grid content-start gap-4',
+        centred ? 'justify-items-center text-center' : 'justify-items-start'
+      )}
+    >
+      {item.image && (
+        <CardImage
+          image={item.image}
+          sizes='(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw'
+          className={cn(ratioClass.landscape, 'w-full rounded-2xl')}
+        />
+      )}
+      <Mark
+        aria-hidden
+        render={<span />}
+        intent={markIntent(item, props.blockIntent, 'brand-secondary')}
+        className='px-3 py-1 text-display-prose-2 tabular-nums'
+      >
+        {index + 1}
+      </Mark>
+      <div className='grid gap-2'>
+        <h3 className='text-display-prose-4 text-strong'>
+          <CardTitle item={item} />
+        </h3>
+        {item.description && (
+          <p className='text-lg text-subtle'>{item.description}</p>
         )}
       </div>
     </GridCard>
@@ -272,7 +284,7 @@ function ServiceCard(props: CardProps) {
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw'
-        className='aspect-video w-full rounded-2xl @2xl:aspect-4/3'
+        className={cn(ratioClass.landscape, 'w-full rounded-2xl')}
       />
       <div className='grid @2xl:pt-2'>
         <div className='grid justify-self-start'>
@@ -310,7 +322,7 @@ function IndustryCard(props: CardProps) {
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 33vw, (min-width: 768px) 50vw, 100vw'
-        className='aspect-square w-full rounded-2xl'
+        className={cn(ratioClass.square, 'w-full rounded-2xl')}
         grows={!!item.href}
       />
       <div className='z-1 -mt-6 grid content-start gap-4 rounded-2xl emphasis-inverted p-6 intent-neutral'>
@@ -396,7 +408,11 @@ const LOOKS: Record<CardsPreset, Look> = {
     Item: PlainCard,
     list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @4xl:grid-cols-3'
   },
-  marked: {
+  steps: {
+    Item: StepCard,
+    list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4'
+  },
+  'text-blocks': {
     Item: ServiceCard,
     list: 'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @7xl:grid-cols-4'
   },
@@ -414,39 +430,24 @@ const LOOKS: Record<CardsPreset, Look> = {
   }
 }
 
-// Steps fill four columns, and compact cards with no images fit two from a narrower width.
-const NUMBERED_LIST =
-  'grid grid-cols-1 gap-12 @2xl:grid-cols-2 @5xl:grid-cols-3 @7xl:grid-cols-4'
+// Compact cards with no images fit two from a narrower width.
 const COMPACT_LIST = 'grid grid-cols-1 gap-6 @xl:grid-cols-2 @4xl:grid-cols-3'
 
-function listOf(
-  name: CardsPreset,
-  items: readonly CardsItem[],
-  numbered: boolean
-) {
-  if (name !== 'plain') return LOOKS[name].list
-  if (numbered) return NUMBERED_LIST
-  return items.some((item) => item.image) ? LOOKS.plain.list : COMPACT_LIST
+function listOf(name: CardsPreset, cards: readonly CardsItem[]) {
+  if (name !== 'plain' || cards.some((card) => card.image))
+    return LOOKS[name].list
+  return COMPACT_LIST
 }
 
 /** Like items, such as benefits, services, steps, contact options, values, or people, as cards in columns. */
 export function Cards(props: CardsProps) {
-  const {
-    intent,
-    itemEmphasis,
-    align,
-    size,
-    numbered = false,
-    eyebrow,
-    items
-  } = props
+  const { intent, itemEmphasis, align, size, eyebrow, cards } = props
   const block = useBlock(cardsDefinition, props)
   const { name } = block
   const look = LOOKS[name]
   const { Item } = look
-  const ordered = name === 'plain' && numbered
   const headingAlign = block.align
-  const List = ordered ? 'ol' : 'ul'
+  const List = name === 'steps' ? 'ol' : 'ul'
   const markedEyebrow = name === 'overlap' && eyebrow
 
   return (
@@ -478,15 +479,14 @@ export function Cards(props: CardsProps) {
             className='w-full'
           />
         </div>
-        <List className={listOf(name, items, ordered)}>
-          {items.map((item, index) => (
+        <List className={listOf(name, cards)}>
+          {cards.map((item, index) => (
             <Item
               key={`${index}-${item.title}`}
               item={item}
               index={index}
               itemEmphasis={itemEmphasis}
               blockIntent={intent}
-              numbered={ordered}
               centred={align === 'center'}
             />
           ))}

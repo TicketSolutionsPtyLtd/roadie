@@ -18,13 +18,13 @@ import {
 } from '../_test/browser'
 import { MINIMUM_LC, MODES, setMode, textContrast } from '../_test/contrast'
 import { describeBlockFrame } from '../_test/frame'
-import { partnerTiers } from './fixtures'
+import { partnerTiles } from './fixtures'
 
 const MID = { name: 'mid', width: 640, height: 900 } as const
 
 withBrowserPage()
 
-describeBlockFrame('mosaic', 'tiers', Mosaic as ComponentType<never>, {
+describeBlockFrame('mosaic', 'tiles', Mosaic as ComponentType<never>, {
   tiles: [{ title: 'Kazoo Hollow Room' }]
 })
 
@@ -51,7 +51,7 @@ const columns = () =>
     .gridTemplateColumns.split(' ')
     .filter((track) => parseFloat(track) > 0).length
 
-describe('Mosaic tiers layout', () => {
+describe('Mosaic tiles layout', () => {
   it.each([
     { ...widths[0], columns: 2 },
     { ...MID, columns: 3 },
@@ -60,7 +60,7 @@ describe('Mosaic tiers layout', () => {
     'fits $columns columns at $name width',
     async ({ width, height, columns: expected }) => {
       await atWidth(width, height)
-      render(<Mosaic {...offline(partnerTiers)} />)
+      render(<Mosaic {...offline(partnerTiles)} />)
 
       const [featured, square] = tiles()
       expect(columns()).toBe(expected)
@@ -74,10 +74,10 @@ describe('Mosaic tiers layout', () => {
     'keeps %i tiles at the four-column size at desktop width',
     async (count) => {
       await atWidth(DESKTOP.width, DESKTOP.height)
-      const square = offline(partnerTiers).tiles[1]!
+      const square = offline(partnerTiles).tiles[1]!
       render(
         <Mosaic
-          {...partnerTiers}
+          {...partnerTiles}
           tiles={Array.from({ length: count }, () => square)}
           logoTile={undefined}
         />
@@ -94,10 +94,10 @@ describe('Mosaic tiers layout', () => {
 
   it('packs a square partner into the gap a wide tile leaves', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
-    const [featured, square] = offline(partnerTiers).tiles
+    const [featured, square] = offline(partnerTiles).tiles
     render(
       <Mosaic
-        {...partnerTiers}
+        {...partnerTiles}
         tiles={[featured!, square!, featured!, square!]}
         logoTile={undefined}
       />
@@ -109,10 +109,10 @@ describe('Mosaic tiers layout', () => {
   })
 })
 
-describe('Mosaic tiers labels', () => {
+describe('Mosaic tiles labels', () => {
   it('sets a level on one light line on a phone, as on the website', async () => {
     await atWidth(widths[0].width, widths[0].height)
-    render(<Mosaic {...offline(partnerTiers)} />)
+    render(<Mosaic {...offline(partnerTiles)} />)
 
     const label = screen.getByText('Category partner')
     const style = getComputedStyle(label)
@@ -126,14 +126,14 @@ describe('Mosaic tiers labels', () => {
     await atWidth(widths[0].width, widths[0].height)
     const { container } = render(
       <Mosaic
-        {...offline(partnerTiers)}
+        {...offline(partnerTiles)}
         tiles={[
           {
             title: 'Supercalifragilisticexpialidociousproductions',
             description: 'Supercalifragilisticexpialidociouspartner',
             image: photo('')
           },
-          ...offline(partnerTiers).tiles
+          ...offline(partnerTiles).tiles
         ]}
       />
     )
@@ -149,10 +149,10 @@ describe('Mosaic tiers labels', () => {
 describe('Mosaic photos', () => {
   it('fills each tile with its photo whatever shape the photo is', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
-    const [featured, square] = offline(partnerTiers).tiles
+    const [featured, square] = offline(partnerTiles).tiles
     render(
       <Mosaic
-        {...partnerTiers}
+        {...partnerTiles}
         tiles={[
           { ...featured!, image: photo('', 400, 1200) },
           { ...square!, image: photo('', 1200, 400) }
@@ -175,7 +175,7 @@ describe('Mosaic tiles without a logo', () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     render(
       <Mosaic
-        {...partnerTiers}
+        {...partnerTiles}
         tiles={[{ title: 'Kazoo Hollow Room', image: photo('') }]}
         logoTile={undefined}
       />
@@ -196,7 +196,7 @@ describe('Mosaic tiles without a logo', () => {
     onTestFinished(() => setMode('light'))
     render(
       <Mosaic
-        {...partnerTiers}
+        {...partnerTiles}
         tiles={[{ title: 'Kazoo Hollow Room', image: photo('') }]}
         logoTile={undefined}
       />
@@ -212,7 +212,7 @@ describe('Mosaic tiles without a logo', () => {
     (mode) => {
       setMode(mode)
       onTestFinished(() => setMode('light'))
-      render(<Mosaic {...offline(partnerTiers)} />)
+      render(<Mosaic {...offline(partnerTiles)} />)
 
       const tile = screen
         .getByRole('heading', { name: 'Also supporting' })
@@ -227,7 +227,7 @@ describe('Mosaic tiles without a logo', () => {
 describe('Mosaic logo tile', () => {
   it('centres its title over the logos', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
-    render(<Mosaic {...offline(partnerTiers)} />)
+    render(<Mosaic {...offline(partnerTiles)} />)
 
     const title = screen.getByRole('heading', { name: 'Also supporting' })
     expect(
@@ -239,36 +239,36 @@ describe('Mosaic logo tile', () => {
 describe('Mosaic align and size', () => {
   const heading = () => screen.getByRole('heading', { level: 2 })
 
-  it('starts the tiers heading by default, and centres it when asked', () => {
-    const { rerender } = render(<Mosaic {...offline(partnerTiers)} />)
+  it('starts the tiles heading by default, and centres it when asked', () => {
+    const { rerender } = render(<Mosaic {...offline(partnerTiles)} />)
     expect(textAlignOf(heading())).toBe('start')
 
-    rerender(<Mosaic {...offline(partnerTiers)} align='center' />)
+    rerender(<Mosaic {...offline(partnerTiles)} align='center' />)
     expect(textAlignOf(heading())).toBe('center')
   })
 
   it('sets the title smaller at md, and again at sm', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
-    const { rerender } = render(<Mosaic {...offline(partnerTiers)} />)
+    const { rerender } = render(<Mosaic {...offline(partnerTiles)} />)
     const large = fontSizeOf(heading())
 
-    rerender(<Mosaic {...offline(partnerTiers)} size='md' />)
+    rerender(<Mosaic {...offline(partnerTiles)} size='md' />)
     expect(fontSizeOf(heading())).toBeLessThan(large)
     const medium = fontSizeOf(heading())
 
-    rerender(<Mosaic {...offline(partnerTiers)} size='sm' />)
+    rerender(<Mosaic {...offline(partnerTiles)} size='sm' />)
     expect(fontSizeOf(heading())).toBeLessThan(medium)
   })
 })
 
 describe('Mosaic accessibility', () => {
   it.each(widths)(
-    'tiers has no axe violations at $name width',
+    'tiles has no axe violations at $name width',
     async ({ width, height }) => {
       await atWidth(width, height)
       const { container } = render(
         <main>
-          <Mosaic {...offline(partnerTiers)} />
+          <Mosaic {...offline(partnerTiles)} />
         </main>
       )
 
@@ -301,12 +301,12 @@ describe('Mosaic contrast', () => {
       }))
     )
   )(
-    'keeps tier labels and heading readable in $mode mode, intent $intent',
+    'keeps tile labels and heading readable in $mode mode, intent $intent',
     async ({ mode, props }) => {
       setMode(mode)
       render(
         <div className='bg-normal'>
-          <Mosaic {...offline(partnerTiers)} {...props} />
+          <Mosaic {...offline(partnerTiles)} {...props} />
         </div>
       )
 
@@ -314,9 +314,9 @@ describe('Mosaic contrast', () => {
         textContrast(screen.getByRole('heading', { level: 2 }))
       ).toBeGreaterThanOrEqual(MINIMUM_LC.large)
       expect(
-        textContrast(screen.getByText(partnerTiers.description))
+        textContrast(screen.getByText(partnerTiles.description))
       ).toBeGreaterThanOrEqual(MINIMUM_LC.body)
-      for (const tile of partnerTiers.tiles)
+      for (const tile of partnerTiles.tiles)
         expect(
           textContrast(screen.getByText(tile.description)),
           tile.description
@@ -341,7 +341,7 @@ describe('Mosaic contrast', () => {
       setMode(mode)
       render(
         <Mosaic
-          {...offline(partnerTiers)}
+          {...offline(partnerTiles)}
           {...props}
           emphasis={emphasis}
           description='Partners across the country.'
@@ -365,9 +365,9 @@ describe('Mosaic contrast', () => {
     const { container } = render(
       <main>
         <Mosaic
-          {...offline(partnerTiers)}
+          {...offline(partnerTiles)}
           intent='brand'
-          tiles={offline(partnerTiers).tiles.map((tile) => ({
+          tiles={offline(partnerTiles).tiles.map((tile) => ({
             ...tile,
             href: '/partners'
           }))}
@@ -380,8 +380,8 @@ describe('Mosaic contrast', () => {
 })
 
 describe('Mosaic link hover', () => {
-  const linkedTiers = () => {
-    const [first, second] = offline(partnerTiers).tiles
+  const linkedTiles = () => {
+    const [first, second] = offline(partnerTiles).tiles
     return [{ ...first!, href: '/partners' }, second!]
   }
   const photoScale = (tile: Element) =>
@@ -390,7 +390,7 @@ describe('Mosaic link hover', () => {
   it('scales a linked tile photo on hover, and leaves an unlinked one', async () => {
     await atWidth(DESKTOP.width, DESKTOP.height)
     render(
-      <Mosaic {...partnerTiers} tiles={linkedTiers()} logoTile={undefined} />
+      <Mosaic {...partnerTiles} tiles={linkedTiles()} logoTile={undefined} />
     )
     const [linked, plain] = document.querySelectorAll('li')
 
@@ -404,7 +404,7 @@ describe('Mosaic link hover', () => {
     await commands.reducedMotion(true)
     await atWidth(DESKTOP.width, DESKTOP.height)
     render(
-      <Mosaic {...partnerTiers} tiles={linkedTiers()} logoTile={undefined} />
+      <Mosaic {...partnerTiles} tiles={linkedTiles()} logoTile={undefined} />
     )
     const [linked] = document.querySelectorAll('li')
 

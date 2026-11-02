@@ -144,6 +144,7 @@ describe('Hero bento with a panel missing', () => {
     expect(box('secondary').left).toBeCloseTo(box('heading').left, 0)
     expect(box('secondary').right).toBeCloseTo(box('primary').right, 0)
     expect(box('secondary').height).toBeGreaterThan(100)
+    expect(box('secondary').width / box('secondary').height).toBeCloseTo(2, 1)
   })
 
   it('spans the video across the lower row with one image, which goes beside the title', async () => {
@@ -580,6 +581,70 @@ describe('Hero size', () => {
       ).toBeLessThan(medium)
     }
   )
+})
+
+describe('Hero size, beyond the title', () => {
+  const fontSize = (element: Element) =>
+    parseFloat(getComputedStyle(element).fontSize)
+
+  it.each([
+    ['bento', bento(photo)],
+    ['image', imageHero(photo)],
+    ['partner', partnerHero(photo)]
+  ] as const)(
+    'sets the %s description smaller at md, and again at sm',
+    async (_, props) => {
+      const description = () => screen.getByText(props.description!)
+      await showAt(DESKTOP.width, <Hero {...props} />)
+      const large = fontSize(description())
+
+      cleanup()
+      await showAt(DESKTOP.width, <Hero {...props} size='md' />)
+      const medium = fontSize(description())
+      expect(medium).toBeLessThan(large)
+
+      cleanup()
+      await showAt(DESKTOP.width, <Hero {...props} size='sm' />)
+      expect(fontSize(description())).toBeLessThan(medium)
+    }
+  )
+
+  it('sets the partner body smaller at sm', async () => {
+    const body = () => screen.getByText(/safest way to resell/)
+    await showAt(DESKTOP.width, <Hero {...partnerHero(photo)} />)
+    const large = fontSize(body())
+
+    cleanup()
+    await showAt(DESKTOP.width, <Hero {...partnerHero(photo)} size='sm' />)
+    expect(fontSize(body())).toBeLessThan(large)
+  })
+
+  it('gives the image photo a smaller share of the width at md, and again at sm', async () => {
+    const share = () => {
+      const title = document.querySelector('h1')!.parentElement!
+      const image = document.querySelector('img')!
+      const photoWidth = rect(image).width
+      return photoWidth / (rect(title).width + photoWidth)
+    }
+    await showAt(DESKTOP.width, <Hero {...imageHero(photo)} />)
+    const large = share()
+
+    cleanup()
+    await showAt(DESKTOP.width, <Hero {...imageHero(photo)} size='md' />)
+    const medium = share()
+    expect(medium).toBeLessThan(large - 0.05)
+
+    cleanup()
+    await showAt(DESKTOP.width, <Hero {...imageHero(photo)} size='sm' />)
+    expect(share()).toBeLessThan(medium - 0.05)
+  })
+
+  it('keeps the image photo at its own shape at every size', async () => {
+    await showAt(DESKTOP.width, <Hero {...imageHero(photo)} size='sm' />)
+    const image = rect(document.querySelector('img')!)
+
+    expect(image.width / image.height).toBeCloseTo(1200 / 800, 1)
+  })
 })
 
 describe.each(MODES)('Hero contrast in %s mode', (mode) => {
