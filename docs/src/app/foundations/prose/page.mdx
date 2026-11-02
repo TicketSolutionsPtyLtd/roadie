@@ -51,6 +51,9 @@ Element rules sit inside `:where()` in the components layer, scoped to
 `.prose`. A utility on a child, such as `text-subtle` on a paragraph, always
 wins over the sheet.
 
+The scope needs `@scope`, in Chrome 118, Safari 17.4 and Firefox 146. Older
+browsers keep the font, measure, and rhythm, but not the element styles.
+
 ## Rhythm
 
 Space only goes above an element, never below, so a block's first child sits
