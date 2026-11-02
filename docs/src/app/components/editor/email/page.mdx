@@ -162,6 +162,12 @@ headings: Text, Media, Layout, and Email. Image shows only with
   in the new block. A section or columns picked in a column goes after the
   whole row, since columns can't hold one. Image and Button open the file
   picker and the link field on a new line there.
+- **Sections** at the end of the drawer are ready-made groups of blocks to
+  edit: Header, Event, and Two events. Their buttons have no link until you
+  set one, and send as text until then. Footer, with a line on why the
+  reader gets the email and an Unsubscribe link, shows when one of
+  `variables` is a link variable whose key or label names the unsubscribe
+  page. The `/` menu leaves sections out.
 - **`/`** opens the insert menu under the caret. Type to filter it. A
   heading with no matches hides, and the arrow keys step through the
   matches in the order shown, across the headings.
@@ -171,6 +177,9 @@ headings: Text, Media, Layout, and Email. Image shows only with
   aria-label='Newsletter'
   preset='email'
   toolbar='docked'
+  variables={[
+    { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' } }
+  ]}
   defaultValue={{
     version: 1,
     preset: 'email',

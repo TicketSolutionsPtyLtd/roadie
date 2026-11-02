@@ -110,7 +110,8 @@ describe('Editor blocks drawer', () => {
         'Layout',
         ['Section', '2 columns', '3 columns', '4 columns', 'Spacer', 'Divider']
       ],
-      ['Email', ['Button']]
+      ['Email', ['Button']],
+      ['Sections', ['Header', 'Event', 'Two events']]
     ])
     for (const tile of within(drawer).getAllByRole('button')) {
       expect(tile.querySelector('svg')).not.toBe(null)
@@ -338,4 +339,126 @@ describe('Editor blocks drawer', () => {
       expect(within(bar).queryByRole('button', { name: 'Blocks' })).toBe(null)
     }
   )
+})
+
+describe('Editor blocks drawer sections', () => {
+  const heading = (level: number, text: string): JSONContent => ({
+    type: 'heading',
+    attrs: { level },
+    content: [{ type: 'text', text }]
+  })
+  const getTickets: JSONContent = {
+    type: 'button',
+    content: [{ type: 'text', text: 'Get tickets' }]
+  }
+  const event = [
+    heading(3, 'Event name'),
+    p('Fri 14 Mar, 7:30pm · Venue, City'),
+    getTickets
+  ]
+  const unsubscribeUrl = {
+    key: 'unsubscribe_url',
+    label: 'Unsubscribe page',
+    kind: 'url' as const,
+    tokens: { ae: '#OptOut#' }
+  }
+
+  it.each<[string, JSONContent]>([
+    [
+      'Header',
+      {
+        type: 'section',
+        content: [
+          heading(2, 'Headline'),
+          p('A line or two on what this email is about.')
+        ]
+      }
+    ],
+    ['Event', { type: 'section', content: event }],
+    [
+      'Two events',
+      { type: 'columns', content: [column(...event), column(...event)] }
+    ]
+  ])('adds the %s section after the caret’s block', async (name, section) => {
+    const onValueChange = renderEmail()
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(within(drawer).getByRole('button', { name }))
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm'), section, p('Gates 6pm'))
+      )
+    )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    await waitFor(async () => expect(await textbox()).toHaveFocus())
+  })
+
+  it('offers a footer linking to the unsubscribe page when the app has one', async () => {
+    const onValueChange = renderEmail({
+      variables: [
+        { key: 'first_name', label: 'First name', tokens: { ae: '#Name#' } },
+        unsubscribeUrl
+      ]
+    })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+    const sections = within(drawer).getByRole('group', { name: 'Sections' })
+    expect(
+      within(sections)
+        .getAllByRole('button')
+        .map((tile) => tile.textContent)
+    ).toEqual(['Header', 'Event', 'Two events', 'Footer'])
+    await userEvent.click(
+      within(sections).getByRole('button', { name: 'Footer' })
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          p('Doors 7pm'),
+          {
+            type: 'section',
+            content: [
+              { type: 'horizontalRule' },
+              p(
+                'You’re getting this email because you signed up for news from us.'
+              ),
+              {
+                type: 'paragraph',
+                content: [
+                  {
+                    type: 'text',
+                    text: 'Unsubscribe',
+                    marks: [
+                      {
+                        type: 'link',
+                        attrs: { href: undefined, variable: 'unsubscribe_url' }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          p('Gates 6pm')
+        )
+      )
+    )
+  })
+
+  it('offers no footer without an unsubscribe link variable', async () => {
+    renderEmail({
+      variables: [
+        { ...unsubscribeUrl, key: 'view_url', label: 'View in browser' }
+      ]
+    })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+
+    expect(within(drawer).queryByRole('button', { name: 'Footer' })).toBe(null)
+  })
 })

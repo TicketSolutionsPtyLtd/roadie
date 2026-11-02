@@ -95,6 +95,7 @@ import { presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
+import { emailSections } from './sections'
 import { SlashMenu, type SlashMenuHandle } from './slashMenu'
 import { presetLook, resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
@@ -649,7 +650,10 @@ export function EditorEngine({
     uiRef.current = ui
   })
   const drawerItems = blockContainers
-    ? presetItems.filter((item) => item.available?.(ui) ?? true)
+    ? [
+        ...presetItems.filter((item) => item.available?.(ui) ?? true),
+        ...(preset === 'email' ? emailSections(variables) : [])
+      ]
     : []
 
   return (
