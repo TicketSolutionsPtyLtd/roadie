@@ -23,6 +23,12 @@ import { subscribeToTicker } from '../../utils/ticker'
 /** A non-relative DateTime never changes, so it subscribes to nothing. */
 const subscribeToNothing = () => () => {}
 
+// Engines ship different CLDR data, so a server can word a date differently
+// from the browser: en-AU September is 'Sept' in Node, Chromium, and Firefox
+// but 'Sep' in WebKit. Every element holding formatted text keeps the
+// server's words through hydration instead of failing it.
+const serverWording = { suppressHydrationWarning: true } as const
+
 /**
  * Typed against `HTMLElement`, not `HTMLTimeElement`, and without a `ref`.
  *
@@ -166,16 +172,23 @@ export function DateTime({
     const isRange = to && end !== null && end !== start
     const children = (
       <>
-        <span>
+        <span {...serverWording}>
           {date}
           <span className='sr-only'>{separators.dateTime}</span>
         </span>
-        <span className='text-subtle'>
+        <span className='text-subtle' {...serverWording}>
           {isRange ? (
             <>
-              <time dateTime={machine ?? undefined}>{start}</time>
+              <time dateTime={machine ?? undefined} {...serverWording}>
+                {start}
+              </time>
               {` ${separators.range} `}
-              <time dateTime={formatMachine(to, opts) ?? undefined}>{end}</time>
+              <time
+                dateTime={formatMachine(to, opts) ?? undefined}
+                {...serverWording}
+              >
+                {end}
+              </time>
             </>
           ) : (
             start
@@ -204,9 +217,14 @@ export function DateTime({
           ...props,
           children: (
             <>
-              <time dateTime={machine ?? undefined}>{absolute}</time>
+              <time dateTime={machine ?? undefined} {...serverWording}>
+                {absolute}
+              </time>
               {` ${separators.range} `}
-              <time dateTime={formatMachine(to, opts) ?? undefined}>
+              <time
+                dateTime={formatMachine(to, opts) ?? undefined}
+                {...serverWording}
+              >
                 {endTime}
               </time>
             </>
@@ -227,9 +245,13 @@ export function DateTime({
         ...props,
         children: (
           <>
-            <time dateTime={machine ?? undefined}>{range.from}</time>
+            <time dateTime={machine ?? undefined} {...serverWording}>
+              {range.from}
+            </time>
             {` ${separators.range} `}
-            <time dateTime={toMachine ?? undefined}>{range.to}</time>
+            <time dateTime={toMachine ?? undefined} {...serverWording}>
+              {range.to}
+            </time>
             {duration ? ` ${separators.fact} ${duration}` : null}
           </>
         )
@@ -252,6 +274,7 @@ export function DateTime({
     'time',
     {
       ...props,
+      ...serverWording,
       dateTime: machine ?? undefined,
       title,
       children: text

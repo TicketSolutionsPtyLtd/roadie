@@ -522,6 +522,67 @@ describe('DateTime on a prerendering server', () => {
     expect(container.textContent).toBe('Thu 27 Nov 2025')
   })
 
+  // Engines ship different CLDR data: Node, Chromium, and Firefox abbreviate
+  // September in en-AU as 'Sept', WebKit as 'Sep'.
+  const september = new Date('2026-09-25T09:30:00Z')
+  it.each([
+    ['a date', <DateTime key='a' at={september} timeZone={BNE} />],
+    [
+      'a range',
+      <DateTime
+        key='a'
+        at={september}
+        to={new Date('2026-09-27T09:30:00Z')}
+        timeZone={BNE}
+        showDuration
+      />
+    ],
+    [
+      'one night',
+      <DateTime
+        key='a'
+        at={september}
+        to={new Date('2026-09-25T15:00:00Z')}
+        timeZone={BNE}
+        timeStyle='medium'
+        sameNight
+      />
+    ],
+    [
+      'a stacked time',
+      <DateTime
+        key='a'
+        at={september}
+        timeZone={BNE}
+        timeStyle='short'
+        stacked
+      />
+    ],
+    [
+      'a stacked range',
+      <DateTime
+        key='a'
+        at={september}
+        to={new Date('2026-09-25T12:00:00Z')}
+        timeZone={BNE}
+        timeStyle='short'
+        stacked
+      />
+    ]
+  ])(
+    'hydrates %s whose server spelled the month differently',
+    async (_, element) => {
+      const { container, onRecoverableError } = await hydrateWithoutClock(
+        element,
+        (html) => html.replaceAll('Sept', 'Sep')
+      )
+      expect(onRecoverableError).not.toHaveBeenCalled()
+      // The server's words stay until the text has a reason to change.
+      expect(container.textContent).toMatch(/\bSep\b/)
+      expect(container.textContent).not.toContain('Sept')
+    }
+  )
+
   it('renders a standalone date on the client without the year at once', () => {
     render(<DateTime at={at} timeZone={BNE} context='standalone' />)
     expect(screen.getByText('Fri 27 Nov')).toBeInTheDocument()
