@@ -70,7 +70,7 @@ export type GalleryProps = {
   /** Draws the surface inside the page's padding, rounded at every width, instead of as a full-width band. */
   contained?: boolean
   /**
-   * Where the heading and actions line up: `start` for `carousel`, and `center` for `marquee` and `logos`.
+   * Where the heading and actions line up: `center` for every preset.
    */
   align?: BlockAlign
   /**
