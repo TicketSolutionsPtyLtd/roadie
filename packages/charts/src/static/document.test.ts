@@ -97,6 +97,16 @@ describe('renderChartDocument', () => {
     })
   })
 
+  it('draws a donut plot with its slices and percent labels', () => {
+    const svg = renderChartDocument(document(plots.donut), {
+      mode: 'light',
+      ...SIZE
+    })
+    expect(svg).not.toContain("This chart couldn't be drawn")
+    expect(svg.match(/<path data-ts-key="series-/g)).toHaveLength(5)
+    expect(textOf(svg)).toContain('52%')
+  })
+
   it('draws the headline value in its format, with its delta', () => {
     const svg = renderChartDocument(
       document(plots.line, {

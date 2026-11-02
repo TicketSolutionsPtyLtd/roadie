@@ -48,6 +48,7 @@ describe('tables entry', () => {
     expect(Object.keys(tables).sort()).toEqual([
       'barChartTable',
       'cardTable',
+      'donutChartTable',
       'followPeriod',
       'funnelTable',
       'heatmapTable',

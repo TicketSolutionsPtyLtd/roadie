@@ -158,7 +158,7 @@
     "name": "static",
     "path": "dist/static/index.js",
     "import": "*",
-    "limit": "41.8 kB",
+    "limit": "50 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
