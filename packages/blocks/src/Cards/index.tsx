@@ -203,7 +203,7 @@ function PlainCard(props: CardProps) {
         <CardImage
           image={item.image}
           sizes='(min-width: 1024px) 33vw, 100vw'
-          className={cn(ratioClass.landscape, 'w-full rounded-2xl')}
+          className={cn(ratioClass.banner, 'w-full rounded-2xl')}
         />
       )}
       {compact && illustration}
@@ -250,7 +250,7 @@ function StepCard(props: CardProps) {
         <CardImage
           image={item.image}
           sizes='(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw'
-          className={cn(ratioClass.landscape, 'w-full rounded-2xl')}
+          className={cn(ratioClass.banner, 'w-full rounded-2xl')}
         />
       )}
       <Mark
@@ -284,7 +284,7 @@ function ServiceCard(props: CardProps) {
       <CardImage
         image={item.image}
         sizes='(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw'
-        className={cn(ratioClass.landscape, 'w-full rounded-2xl')}
+        className={cn(ratioClass.banner, 'w-full rounded-2xl')}
       />
       <div className='grid @2xl:pt-2'>
         <div className='grid justify-self-start'>
