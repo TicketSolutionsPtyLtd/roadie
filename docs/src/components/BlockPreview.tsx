@@ -10,13 +10,12 @@ const THUMBNAILS = join(
   'node_modules/@oztix/roadie-blocks/src/thumbnails'
 )
 
-/** A block page's art: its first preset's thumbnail, the same wireframe the Studio's block picker shows. */
+/** A block page's art: the block's thumbnail, the same wireframe the Studio's block picker shows. */
 export function BlockPreview({ name }: { name: string }) {
   const block = catalogue.find((entry) => entry.name === name)
-  const preset = block?.presets[0]
-  if (!preset) return name === 'blocks' ? <BlocksArt /> : null
+  if (!block) return name === 'blocks' ? <BlocksArt /> : null
   // Inlined, not an <img>, so the wireframe's colour variables follow the docs theme.
-  const svg = readFileSync(join(THUMBNAILS, preset.thumbnail), 'utf8')
+  const svg = readFileSync(join(THUMBNAILS, block.thumbnail), 'utf8')
   return (
     <div
       aria-hidden

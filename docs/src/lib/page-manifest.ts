@@ -1,6 +1,8 @@
 import { access, readFile, readdir } from 'fs/promises'
 import { basename, dirname, join, sep } from 'path'
 
+import { groups as blockGroups } from '@oztix/roadie-blocks/catalogue'
+
 import type { PageStatus } from './status'
 
 export type CatalogueEntry = {
@@ -76,7 +78,7 @@ export const CHARTS: Catalogue = {
 
 export const BLOCKS: Catalogue = {
   route: '/blocks',
-  categories: ['Openers', 'Content', 'Proof', 'Actions']
+  categories: blockGroups.map(({ title }) => title)
 }
 
 export const WIDGETS: Catalogue = { route: '/roadie-widgets', categories: [] }
