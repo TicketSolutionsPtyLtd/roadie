@@ -152,3 +152,23 @@ describe('Calendar frames, switching views', () => {
     expectOneReshape(frames, durationToken(document.body, 'moderate'))
   })
 })
+
+// A timed-out attempt's recorder outlives its calendar when the test retries.
+describe('Calendar frame recorders', () => {
+  it.each([
+    {
+      name: 'recordFrames',
+      record: (start: () => unknown) => recordFrames(true, start)
+    },
+    { name: 'recordShapes', record: recordShapes }
+  ])(
+    '$name stops once the calendar unmounts',
+    async ({ record }) => {
+      render(<Calendar today={TODAY} />)
+      await expect(record(() => cleanup())).rejects.toThrow(
+        'The calendar unmounted'
+      )
+    },
+    5_000
+  )
+})
