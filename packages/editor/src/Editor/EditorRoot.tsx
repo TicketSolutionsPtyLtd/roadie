@@ -66,7 +66,7 @@ export type EditorRootProps = {
   toolbar?: EditorToolbarMode
   /**
    * The starting toolbar, for an editor that pins and unpins on its own.
-   * @default 'docked', or 'floating' for the blocks preset
+   * @default 'docked', or 'floating' for the blocks and email presets
    */
   defaultToolbar?: EditorToolbarMode
   /** Called with the toolbar someone pins (`docked`) or unpins (`floating`). */
