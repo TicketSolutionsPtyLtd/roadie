@@ -23,10 +23,7 @@ import { subscribeToTicker } from '../../utils/ticker'
 /** A non-relative DateTime never changes, so it subscribes to nothing. */
 const subscribeToNothing = () => () => {}
 
-// Engines ship different CLDR data, so a server can word a date differently
-// from the browser: en-AU September is 'Sept' in Node, Chromium, and Firefox
-// but 'Sep' in WebKit. Every element holding formatted text keeps the
-// server's words through hydration instead of failing it.
+// Engines' locale data differs (en-AU September: Node 'Sept', WebKit 'Sep').
 const serverWording = { suppressHydrationWarning: true } as const
 
 /**
