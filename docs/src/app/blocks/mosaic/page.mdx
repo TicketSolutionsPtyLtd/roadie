@@ -26,8 +26,10 @@ import { Mosaic } from '@oztix/roadie-blocks/mosaic'
 ### Tiles
 
 Each tile has its photo behind, a logo or its `title`, and a marked label as
-its `description`, such as a partner's level. Tiles with `size: 'lg'` span two columns at half height, and the tiles
-pack densely, so a square tile fills the gap a wide one leaves. A `logoTile`
+its `description`, such as a partner's level. Every tile is one row tall, so
+sizes mix freely: `sm` (the default) is a square, `md` spans two columns, and
+`lg` runs the full row. The tiles pack densely, so a square tile fills the gap
+a wide one leaves. A `logoTile`
 closes the grid with the remaining logos, under its `title` if it has one.
 
 ```tsx-live id=tiles
@@ -41,7 +43,7 @@ closes the grid with the remaining logos, under its `title` if it has one.
       description: 'Presenting partner',
       logo: { src: '/blocks/ochre-kite-weekender.svg', alt: 'Ochre Kite Weekender logo', width: 214, height: 48 },
       image: { src: '/brand/photography/01.webp', alt: '', width: 800, height: 800 },
-      size: 'lg'
+      size: 'md'
     },
     {
       title: 'Velvet Dingo Fest',
@@ -60,7 +62,7 @@ closes the grid with the remaining logos, under its `title` if it has one.
       description: 'Major partner',
       logo: { src: '/blocks/apricot-cyclone-fest.svg', alt: 'Apricot Cyclone Fest logo', width: 214, height: 48 },
       image: { src: '/brand/photography/06.webp', alt: '', width: 800, height: 800 },
-      size: 'lg'
+      size: 'md'
     },
     {
       title: 'Kazoo Hollow Room',
@@ -83,6 +85,23 @@ closes the grid with the remaining logos, under its `title` if it has one.
       { src: '/blocks/hairpin-bicycle-presents.svg', alt: 'Hairpin Bicycle Presents', width: 216, height: 50 }
     ]
   }}
+/>
+```
+
+### Sizes
+
+Mix the sizes in any order. An `lg` tile runs the full row on any screen, and
+on a phone, where the grid is two columns, `md` does too.
+
+```tsx-live id=sizes
+<Mosaic
+  title='Events that run with Oztix'
+  tiles={[
+    { title: 'Ochre Kite Weekender', description: 'Headline partner', logo: { src: '/blocks/ochre-kite-weekender.svg', alt: 'Ochre Kite Weekender logo', width: 214, height: 48 }, image: { src: '/brand/photography/08.webp', alt: '', width: 1280, height: 850 }, size: 'lg' },
+    { title: 'Velvet Dingo Fest', description: 'Festival', logo: { src: '/blocks/velvet-dingo-fest.svg', alt: 'Velvet Dingo Fest logo', width: 214, height: 48 }, image: { src: '/brand/photography/01.webp', alt: '', width: 800, height: 800 }, size: 'md' },
+    { title: 'Apricot Cyclone Fest', description: 'Festival', logo: { src: '/blocks/apricot-cyclone-fest.svg', alt: 'Apricot Cyclone Fest logo', width: 214, height: 48 }, image: { src: '/brand/photography/02.webp', alt: '', width: 800, height: 800 } },
+    { title: 'Kazoo Hollow Room', description: 'Venue', logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 214, height: 48 }, image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 } }
+  ]}
 />
 ```
 
@@ -112,7 +131,7 @@ photo easing larger on hover; tiles without one stay still.
       href: '/venues/kazoo-hollow-room',
       logo: { src: '/blocks/kazoo-hollow-room.svg', alt: 'Kazoo Hollow Room logo', width: 214, height: 48 },
       image: { src: '/brand/photography/07.webp', alt: '', width: 800, height: 800 },
-      size: 'lg'
+      size: 'md'
     },
     {
       title: 'Echidna Gaslight Theatre',
@@ -168,13 +187,14 @@ photo easing larger on hover; tiles without one stay still.
   </Guideline.Dont>
 </Guideline>
 
-<Guideline title='Make the few that lead large'>
+<Guideline title='Make the few that lead wide'>
   <Guideline.Do>
-    Set the tiles to lead with, such as presenting partners, to `size: 'lg'`,
-    about one in four tiles, so the wide tiles read first.
+    Set the tiles to lead with, such as presenting partners, to `size: 'md'`,
+    about one in four tiles, so the wide tiles read first. Keep `lg` for one
+    tile that stands for the whole grid, such as a headline partner.
   </Guideline.Do>
   <Guideline.Dont>
-    Don't make every tile large; the grid loses its rhythm.
+    Don't make every tile wide; the grid loses its rhythm.
   </Guideline.Dont>
 </Guideline>
 

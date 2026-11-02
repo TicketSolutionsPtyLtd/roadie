@@ -32,15 +32,18 @@ export type MosaicTile = {
   /** A photo filling the tile, such as of the venue or event it's for. Decorative, so its alt text isn't read. Without one, the tile sits on a plain surface. */
   image?: BlockImage
   /**
-   * `lg` spans two columns at half height, for the tiles to lead with.
-   * @default 'md'
+   * Every size is one row tall, so sizes mix freely: `sm` is a square, `md` spans two columns, and `lg` the full row.
+   * @default 'sm'
    */
-  size?: 'md' | 'lg'
+  size?: MosaicTileSize
   /** Where the tile goes. Its title, or its logo, becomes the link, and the whole tile takes the click. */
   href?: string
   /** The tile's own intent, for its `description` mark, in place of the block's. */
   intent?: BlockIntent
 }
+
+/** A tile's width in the grid. */
+export type MosaicTileSize = 'sm' | 'md' | 'lg'
 
 export type MosaicLogoTile = {
   /** The tile's title, such as `Also supporting`. Without one, the tile shows only its logos. */
@@ -103,8 +106,33 @@ const STACKED = 'col-start-1 row-start-1'
 const SQUARE = 'pt-[100%]'
 const WIDE = 'col-span-2'
 const HALF_HEIGHT = 'pt-[calc(50%-var(--tile-gap)/2)]'
-const TILE_SIZES = '(min-width: 768px) 25vw, 50vw'
-const WIDE_SIZES = '(min-width: 768px) 50vw, 100vw'
+// A full-row tile shares the grid's columns, so a square in its first column
+// sets its height to one row's, however many columns the grid fits.
+const FULL = 'col-span-full grid-cols-subgrid'
+const ACROSS = 'col-span-full row-start-1'
+
+const SIZE: Record<
+  MosaicTileSize,
+  { tile?: string; sizer: string; content: string; sizes: string }
+> = {
+  sm: {
+    sizer: cn(STACKED, SQUARE),
+    content: STACKED,
+    sizes: '(min-width: 768px) 25vw, 50vw'
+  },
+  md: {
+    tile: WIDE,
+    sizer: cn(STACKED, HALF_HEIGHT),
+    content: STACKED,
+    sizes: '(min-width: 768px) 50vw, 100vw'
+  },
+  lg: {
+    tile: FULL,
+    sizer: cn(STACKED, SQUARE),
+    content: ACROSS,
+    sizes: '100vw'
+  }
+}
 
 /** A grid of photo tiles, each with a logo or title and a marked label, the large ones two columns wide. */
 export function Mosaic(props: MosaicProps) {
@@ -139,17 +167,17 @@ function PhotoTile({
   description,
   logo,
   image,
-  size,
+  size = 'sm',
   href,
   intent
 }: MosaicTile) {
-  const wide = size === 'lg'
+  const layout = SIZE[size]
   return (
     <li
-      data-size={wide ? 'lg' : undefined}
+      data-size={size}
       className={cn(
         TILE,
-        wide && WIDE,
+        layout.tile,
         // Over a photo's dark shade, text stays light in either mode. The intent
         // resolves its colours again here, under the dark scale.
         image ? 'intent-neutral' : 'emphasis-raised',
@@ -160,7 +188,7 @@ function PhotoTile({
         <>
           <BlockImg
             image={{ ...image, alt: '' }}
-            sizes={wide ? WIDE_SIZES : TILE_SIZES}
+            sizes={layout.sizes}
             className='absolute inset-0 -z-1 size-full object-cover transition-[scale] duration-moderate ease-standard motion-safe:group-focus-within/tile:scale-105 motion-safe:group-hover/tile:scale-105'
           />
           <div
@@ -169,10 +197,10 @@ function PhotoTile({
           />
         </>
       )}
-      <div className={cn(STACKED, wide ? HALF_HEIGHT : SQUARE)} />
+      <div className={layout.sizer} />
       <div
         className={cn(
-          STACKED,
+          layout.content,
           'grid content-end justify-items-start gap-1.5 p-1.5 @xl:p-2 @3xl:p-3'
         )}
       >
