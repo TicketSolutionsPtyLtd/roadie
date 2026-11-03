@@ -51,8 +51,13 @@ The first action in a block is the strong one and the rest are normal, so a
 button's emphasis is never an option either.
 
 `@oztix/roadie-blocks/catalogue` lists every block, with its group,
-thumbnail, and presets. Each preset lists the props it reads as `fields`, its
-item counts as `limits`, and its `defaults`. The catalogue has no React and no
+thumbnail, and presets. Each preset lists the props it reads as `fields`
+(always with `preset`), its items' as `itemFields`, its item counts as
+`limits`, and its `defaults`. A block's `shapes` gives the fields inside each
+field that holds an object, such as an image's `src`, `alt`, `width`, and
+`height`, or a testimonial's `person`, so a CMS can build its object types
+too. A `preset` the block doesn't have renders its first, and warns in
+development. The catalogue has no React and no
 CMS types, so code, a Sanity Studio, or another CMS can read it. A Studio
 builds its picker groups from `groups`, hides each field a preset doesn't
 list, and warns on counts outside a limit:

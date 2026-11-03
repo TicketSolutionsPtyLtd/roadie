@@ -1,4 +1,4 @@
-import type { HeroProps } from '.'
+import type { HeroPartner, HeroProps, HeroVideoSource } from '.'
 import type { BlockDefinition } from '../catalogue'
 
 const ACTIONS = { actions: { max: 2 } } as const
@@ -97,7 +97,15 @@ export const heroDefinition = {
       limits: ACTIONS,
       defaults: { align: 'start' }
     }
-  ]
+  ],
+  shapes: {
+    video: [
+      'src',
+      'fallbackSrc',
+      'poster'
+    ] as const satisfies readonly (keyof HeroVideoSource)[],
+    partner: ['name', 'logo'] as const satisfies readonly (keyof HeroPartner)[]
+  }
 } as const satisfies BlockDefinition<keyof HeroProps & string>
 
 export type HeroPreset = (typeof heroDefinition.presets)[number]['name']
