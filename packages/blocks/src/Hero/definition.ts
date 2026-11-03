@@ -53,7 +53,7 @@ export const heroDefinition = {
         'size'
       ],
       limits: ACTIONS,
-      defaults: { align: 'start', ratio: 'landscape' }
+      defaults: { align: 'start', ratio: 'banner' }
     },
     {
       name: 'title',
