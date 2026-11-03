@@ -15,7 +15,8 @@ import {
   type BlockIntent,
   type BlockSize,
   gapOf,
-  intentClass
+  intentClass,
+  isFilled
 } from '../_shared/surface'
 import { useBlock } from '../_shared/useBlock'
 import { type TestimonialPreset, testimonialDefinition } from './definition'
@@ -131,7 +132,12 @@ export function Testimonial(props: TestimonialProps) {
                   key={`${index}-${item.person.name}`}
                   className='basis-full'
                 >
-                  <QuoteFigure {...item} intent={intent} align={align} />
+                  <QuoteFigure
+                    {...item}
+                    intent={intent}
+                    filled={isFilled(block.emphasis)}
+                    align={align}
+                  />
                 </Carousel.Item>
               ))}
             </Carousel.Content>
@@ -141,7 +147,12 @@ export function Testimonial(props: TestimonialProps) {
           <>
             {heading}
             {quotes[0] && (
-              <QuoteFigure {...quotes[0]} intent={intent} align={align} />
+              <QuoteFigure
+                {...quotes[0]}
+                intent={intent}
+                filled={isFilled(block.emphasis)}
+                align={align}
+              />
             )}
           </>
         )}
@@ -156,8 +167,13 @@ function QuoteFigure({
   person,
   organisation,
   intent,
+  filled,
   align
-}: TestimonialQuote & { intent?: BlockIntent; align: BlockAlign }) {
+}: TestimonialQuote & {
+  intent?: BlockIntent
+  filled: boolean
+  align: BlockAlign
+}) {
   return (
     <figure
       className={cn(
@@ -165,7 +181,7 @@ function QuoteFigure({
         align === 'center' && 'justify-items-center'
       )}
     >
-      <Quote intent={intent} align={align}>
+      <Quote intent={intent} filled={filled} align={align}>
         {quote}
       </Quote>
       <Citation person={person} organisation={organisation} intent={intent} />
@@ -179,10 +195,13 @@ const LOGO_WIDTH = 160
 function Quote({
   children,
   intent,
+  filled,
   align
 }: {
   children: string
   intent?: BlockIntent
+  /** On a filled surface the quote and its mark take the fill's text colour. */
+  filled: boolean
   align: BlockAlign
 }) {
   return (
@@ -198,10 +217,15 @@ function Quote({
         align === 'center'
           ? 'before:-mb-[0.45em] before:text-[10em] before:leading-[0.5]'
           : 'before:mt-[0.35em] before:mb-0 before:text-[5em] before:leading-[0.3]',
-        intentClass(intent ?? 'info')
+        !filled && intentClass(intent ?? 'info')
       )}
     >
-      <p className={cn(intentClass(intent ?? 'neutral'), 'text-strong')}>
+      <p
+        className={cn(
+          !filled && intentClass(intent ?? 'neutral'),
+          'text-strong'
+        )}
+      >
         {children}
       </p>
     </blockquote>

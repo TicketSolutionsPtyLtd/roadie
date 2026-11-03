@@ -10,12 +10,14 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
+import { filledIntent } from '../_shared/items'
 import {
   type BlockAlign,
   type BlockEmphasis,
   type BlockIntent,
   type BlockSize,
-  gapOf
+  gapOf,
+  intentClass
 } from '../_shared/surface'
 import { useBlock } from '../_shared/useBlock'
 import { type MosaicPreset, mosaicDefinition } from './definition'
@@ -152,9 +154,15 @@ export function Mosaic(props: MosaicProps) {
               key={`${index}-${tile.title}`}
               {...tile}
               intent={tile.intent ?? intent}
+              filled={filledIntent(intent, block.emphasis)}
             />
           ))}
-          {logoTile && <LogosTile {...logoTile} />}
+          {logoTile && (
+            <LogosTile
+              {...logoTile}
+              filled={filledIntent(intent, block.emphasis)}
+            />
+          )}
         </ul>
         <BlockActions {...block.actions} />
       </BlockSurface>
@@ -169,8 +177,9 @@ function PhotoTile({
   image,
   size = 'sm',
   href,
-  intent
-}: MosaicTile) {
+  intent,
+  filled
+}: MosaicTile & { filled: BlockIntent | undefined }) {
   const layout = SIZE[size]
   return (
     <li
@@ -180,7 +189,7 @@ function PhotoTile({
         layout.tile,
         // Over a photo's dark shade, text stays light in either mode. The intent
         // resolves its colours again here, under the dark scale.
-        image ? 'intent-neutral' : 'emphasis-raised',
+        image ? 'intent-neutral' : ['emphasis-raised', intentClass(filled)],
         href && 'group/tile is-interactive-within'
       )}
     >
@@ -229,9 +238,13 @@ function PhotoTile({
   )
 }
 
-function LogosTile({ title, logos }: MosaicLogoTile) {
+function LogosTile({
+  title,
+  logos,
+  filled
+}: MosaicLogoTile & { filled: BlockIntent | undefined }) {
   return (
-    <li className={cn(TILE, WIDE, 'emphasis-raised')}>
+    <li className={cn(TILE, WIDE, 'emphasis-raised', intentClass(filled))}>
       <div className={cn(STACKED, HALF_HEIGHT)} />
       <div
         className={cn(
