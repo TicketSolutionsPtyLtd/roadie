@@ -153,14 +153,15 @@ export function CallToAction(props: CallToActionProps) {
             >
               <div
                 className={cn(
-                  'overflow-hidden rounded-2xl border-4 border-(--color-neutral-light-0) shadow-lg',
+                  // The photo fills the frame inside its border absolutely: WebKit sizes a percentage height against the border box of an aspect-ratio frame.
+                  'relative overflow-hidden rounded-2xl border-4 border-(--color-neutral-light-0) shadow-lg',
                   ratioClass[ratio]
                 )}
               >
                 <BlockImg
                   image={image}
                   sizes='(max-width: 768px) 33vw, 384px'
-                  className='size-full object-cover'
+                  className='absolute inset-0 size-full object-cover'
                 />
               </div>
               <Illustration
