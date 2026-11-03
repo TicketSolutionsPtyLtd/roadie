@@ -1,4 +1,5 @@
 import type { HeroPartner, HeroProps, HeroVideoSource } from '.'
+import { fieldsOf } from '../_shared/shapes'
 import type { BlockDefinition } from '../catalogue'
 
 const ACTIONS = { actions: { max: 2 } } as const
@@ -99,12 +100,8 @@ export const heroDefinition = {
     }
   ],
   shapes: {
-    video: [
-      'src',
-      'fallbackSrc',
-      'poster'
-    ] as const satisfies readonly (keyof HeroVideoSource)[],
-    partner: ['name', 'logo'] as const satisfies readonly (keyof HeroPartner)[]
+    video: fieldsOf<HeroVideoSource>()(['src', 'fallbackSrc', 'poster']),
+    partner: fieldsOf<HeroPartner>()(['name', 'logo'])
   }
 } as const satisfies BlockDefinition<keyof HeroProps & string>
 
