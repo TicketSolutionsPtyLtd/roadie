@@ -61,7 +61,11 @@ export function BlockRoot({
     const element = ref.current
     if (!tracking || !element || typeof IntersectionObserver === 'undefined')
       return
+    let reported = false
     const viewed = () => {
+      // Firefox and WebKit still run a callback queued in the same frame after its observer disconnects.
+      if (reported) return
+      reported = true
       ratio.disconnect()
       middle.disconnect()
       reportView()
