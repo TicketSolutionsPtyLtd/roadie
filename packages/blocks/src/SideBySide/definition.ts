@@ -35,7 +35,7 @@ export const sideBySideDefinition = {
         'A photo before a heading, text, and actions, such as a section about a product, a team, or a partnership.',
       fields: [...FRAME, 'image', 'ratio'],
       limits: ACTIONS,
-      defaults: { align: 'start', contained: true, ratio: 'square' }
+      defaults: { align: 'start', contained: true, ratio: 'landscape' }
     },
     {
       name: 'image-end',
@@ -44,7 +44,7 @@ export const sideBySideDefinition = {
         'A heading, text, and actions before a photo. Stacked with Image then text, it alternates the sides of standalone feature sections.',
       fields: [...FRAME, 'image', 'ratio'],
       limits: ACTIONS,
-      defaults: { align: 'start', contained: true, ratio: 'square' }
+      defaults: { align: 'start', contained: true, ratio: 'landscape' }
     },
     {
       name: 'stats',

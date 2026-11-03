@@ -22,7 +22,7 @@ import { SideBySide } from '@oztix/roadie-blocks/side-by-side'
 
 ### Image then text
 
-A photo before the heading, text, and actions, cropped square. The text wraps
+A photo before the heading, text, and actions, cropped to 3 by 2. The text wraps
 below it on narrow screens.
 
 ```tsx-live-expand id=image-start
@@ -74,14 +74,15 @@ actions.
 
 ### Ratio
 
-`ratio` sets the photo's shape in `image-start` and `image-end`: `square` by
-default, `landscape` (3 by 2), `banner` (2 by 1), `portrait` (3 by 4), or `story` (9 by 16). The photo fills its
+`ratio` sets the photo's shape in `image-start` and `image-end`: `landscape`
+(3 by 2) by default, `square`, `banner` (2 by 1), `portrait` (3 by 4), or
+`story` (9 by 16). The photo fills its
 shape, so pick the ratio that keeps the subject in frame.
 
 ```tsx-live-expand id=ratio
 <SideBySide
   preset='image-start'
-  ratio='landscape'
+  ratio='square'
   title='Sell more tickets with your partners'
   body={
     <p>
@@ -141,8 +142,9 @@ same way as the [Stats](/blocks/stats) block.
 ### Intent and emphasis
 
 `intent` colours the highlights and actions. `emphasis` sets the surface
-behind the block: `subtle`, `subtler`, `normal`, or `raised`. On a surface, the
-title takes the intent and the rest of the text stays neutral. Side by side draws its
+behind the block: `subtle`, `subtler`, `normal`, `raised`, `strong`, or
+`inverted`. On a surface, the title takes the intent and the rest of the text
+stays neutral. On `strong` or `inverted`, all of it takes the fill's own colour. Side by side draws its
 surface as a panel inside the page's padding.
 
 ```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
@@ -191,7 +193,6 @@ width, without changing its shape. `align` centres the heading, text, and action
 <SideBySide
   preset='image-start'
   size='md'
-  ratio='banner'
   intent='info'
   emphasis='subtle'
   title='Specialist teams powering venues and event organisers'

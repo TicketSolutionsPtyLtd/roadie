@@ -190,7 +190,7 @@ describe('SideBySide layout', () => {
   })
 
   it.each([
-    [undefined, 1],
+    [undefined, 3 / 2],
     ['square', 1],
     ['landscape', 3 / 2],
     ['banner', 2],
