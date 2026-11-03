@@ -29,19 +29,6 @@ import { type CallToActionPreset, callToActionDefinition } from './definition'
 
 export type { CallToActionPreset } from './definition'
 
-/** The panels a call to action's text and actions stay readable on, in light and dark mode. */
-export type CallToActionEmphasis = BlockEmphasis | 'strong' | 'inverted'
-
-// On a filled panel the copy takes the panel's text colour; marks, links and code
-// lose fills and decorations that would vanish into it.
-const FILLED_PARTS =
-  '[&_mark]:bg-transparent [&_mark]:text-inherit [&_mark]:underline [&_mark]:decoration-2 [&_a]:decoration-current [&_code]:bg-transparent [&_code]:text-inherit'
-
-const FILLED_TEXT: Partial<Record<CallToActionEmphasis, string>> = {
-  strong: `[--intent-text-strong:var(--intent-text-on-strong)] [--intent-text-normal:var(--intent-text-on-strong)] [--intent-text-subtle:var(--intent-text-on-strong)] ${FILLED_PARTS}`,
-  inverted: `[--intent-text-strong:var(--intent-text-inverted)] [--intent-text-normal:var(--intent-text-inverted)] [--intent-text-subtle:var(--intent-text-inverted)] ${FILLED_PARTS}`
-}
-
 export type CallToActionProps = {
   /**
    * `photo` sets the pitch on a panel beside a tilted photo that breaks out of its top, and `centred` centres it on the panel, with no photo.
@@ -87,7 +74,7 @@ export type CallToActionProps = {
    * The panel's surface. On `strong` and `inverted`, the strong action takes an intent that stands apart from the panel.
    * @default 'raised'
    */
-  emphasis?: CallToActionEmphasis
+  emphasis?: BlockEmphasis
   /** Draws the panel inside the page's padding, rounded at every width, instead of as a full-width band. */
   contained?: boolean
   /**
@@ -198,13 +185,7 @@ export function CallToAction(props: CallToActionProps) {
               centred && 'justify-items-center text-center'
             )}
           >
-            <div
-              className={cn(
-                'grid min-w-0',
-                gapOf(size, 'normal'),
-                emphasis && FILLED_TEXT[emphasis]
-              )}
-            >
+            <div className={cn('grid min-w-0', gapOf(size, 'normal'))}>
               <BlockHeading {...block.heading} />
               {body && (
                 <Prose
@@ -215,14 +196,7 @@ export function CallToAction(props: CallToActionProps) {
                 </Prose>
               )}
             </div>
-            <BlockActions
-              {...block.actions}
-              fill={
-                emphasis === 'strong' || emphasis === 'inverted'
-                  ? emphasis
-                  : undefined
-              }
-            />
+            <BlockActions {...block.actions} />
           </div>
         </BlockSurface>
       </div>
