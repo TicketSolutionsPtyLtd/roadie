@@ -19,7 +19,7 @@ export function presetOf<Definition extends BlockDefinition>(
 const warned = new Set<string>()
 
 function warnUnknown(definition: BlockDefinition, name: string) {
-  if (typeof process === 'undefined' || process.env.NODE_ENV === 'production')
+  if (typeof process === 'undefined' || process.env?.NODE_ENV === 'production')
     return
   const key = `${definition.name}/${name}`
   if (warned.has(key)) return

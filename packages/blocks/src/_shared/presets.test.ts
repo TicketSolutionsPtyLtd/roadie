@@ -49,4 +49,28 @@ describe('presetOf', () => {
     expect(warn).toHaveBeenCalledOnce()
     expect(warn.mock.calls[0]![0]).toContain('archived')
   })
+
+  it('stays quiet in production', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
+    vi.stubEnv('NODE_ENV', 'production')
+    onTestFinished(() => {
+      vi.unstubAllEnvs()
+    })
+
+    presetOf(hero, 'withdrawn')
+
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('renders where a bundler shims process without env', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
+    vi.stubGlobal('process', {})
+    onTestFinished(() => {
+      vi.unstubAllGlobals()
+    })
+
+    expect(presetOf(hero, 'superseded').name).toBe('page-hero')
+  })
 })
