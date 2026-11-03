@@ -9,6 +9,7 @@ import { BlockActions } from '../_shared/BlockActions'
 import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
+import { filledIntent, itemIntent } from '../_shared/items'
 import {
   type BlockAlign,
   type BlockEmphasis,
@@ -98,6 +99,11 @@ export function FAQ(props: FAQProps) {
         {/* Unboxed questions hang their inset, so the text lines up with the heading. */}
         <Accordion
           emphasis={itemEmphasis}
+          intent={itemIntent(
+            {},
+            itemEmphasis,
+            filledIntent(props.intent, block.emphasis)
+          )}
           className={cn(
             itemEmphasis === 'subtler' && '-mx-(--content-inset) w-auto'
           )}
