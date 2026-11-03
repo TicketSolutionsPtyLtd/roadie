@@ -16,6 +16,8 @@ import {
 } from '../_shared/illustrations'
 import {
   cycledMarkIntent,
+  filledIntent,
+  itemIntent,
   itemSurface,
   itemSurfaceClass,
   markIntent
@@ -99,6 +101,8 @@ type CardProps = {
   index: number
   itemEmphasis: ItemEmphasis | undefined
   blockIntent: BlockIntent | undefined
+  /** The intent an opaque card sets again on a filled block. */
+  filled: BlockIntent | undefined
   /** Centres the card's text, in `plain` and `steps`. */
   centred: boolean
 }
@@ -112,11 +116,13 @@ function CardTitle({ item }: { item: CardsItem }) {
 function GridCard({
   item,
   itemEmphasis,
+  filled,
   className,
   children
 }: {
   item: CardsItem
   itemEmphasis: ItemEmphasis | undefined
+  filled: BlockIntent | undefined
   className: string
   children: ReactNode
 }) {
@@ -124,7 +130,7 @@ function GridCard({
   return (
     <Card
       render={<li />}
-      intent={item.intent}
+      intent={itemIntent(item, surface, filled)}
       emphasis={surface ?? null}
       className='min-w-0'
     >
@@ -197,6 +203,7 @@ function PlainCard(props: CardProps) {
     <GridCard
       item={item}
       itemEmphasis={itemEmphasis}
+      filled={props.filled}
       className={cn('grid content-start', compact ? 'gap-4' : 'gap-8')}
     >
       {item.image && (
@@ -241,6 +248,7 @@ function StepCard(props: CardProps) {
     <GridCard
       item={item}
       itemEmphasis={itemEmphasis}
+      filled={props.filled}
       className={cn(
         'grid content-start gap-4',
         centred ? 'justify-items-center text-center' : 'justify-items-start'
@@ -279,6 +287,7 @@ function ServiceCard(props: CardProps) {
     <GridCard
       item={item}
       itemEmphasis={itemEmphasis}
+      filled={props.filled}
       className='grid content-start gap-6'
     >
       <CardImage
@@ -373,11 +382,11 @@ function PhotoCard(props: CardProps) {
   )
 }
 
-function ListColumn({ item, itemEmphasis }: CardProps) {
+function ListColumn({ item, itemEmphasis, filled }: CardProps) {
   return (
     <li
       className={cn(
-        itemSurfaceClass(item, itemEmphasis),
+        itemSurfaceClass(item, itemEmphasis, filled),
         'grid content-start gap-4 rounded-2xl'
       )}
     >
@@ -487,6 +496,7 @@ export function Cards(props: CardsProps) {
               index={index}
               itemEmphasis={itemEmphasis}
               blockIntent={intent}
+              filled={filledIntent(intent, block.emphasis)}
               centred={align === 'center'}
             />
           ))}
