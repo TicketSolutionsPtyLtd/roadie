@@ -124,6 +124,12 @@ describe('catalogue', () => {
     'call-to-action': ['actions', 'image']
   }
 
+  it('lists the object fields of every block in the catalogue', () => {
+    expect(Object.keys(OBJECT_FIELDS).sort()).toEqual(
+      catalogue.map((block) => block.name).sort()
+    )
+  })
+
   it.each(Object.entries(OBJECT_FIELDS))(
     'describes the fields inside every object field of %s',
     (name, fields) => {
@@ -144,5 +150,10 @@ describe('catalogue', () => {
       'blurDataURL'
     ])
     expect(hero.shapes.actions).toEqual(['label', 'href', 'icon'])
+  })
+
+  it("keeps a block's own shape over the shared image fields", () => {
+    const gallery = catalogue.find((block) => block.name === 'gallery')!
+    expect(gallery.shapes.images).toContain('href')
   })
 })
