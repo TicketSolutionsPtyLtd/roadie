@@ -78,7 +78,12 @@ export function BlockActions({
           <Button
             key={`${index}-${href}-${label}`}
             href={href}
-            intent={index === 0 ? strongActionIntent(intent, fill) : undefined}
+            intent={
+              index === 0
+                ? strongActionIntent(intent, fill)
+                : // Its own intent brings back the colours a filled surface swaps for its text.
+                  fill && (intent ?? 'neutral')
+            }
             emphasis={index === 0 ? 'strong' : 'normal'}
           >
             {!trailing && glyph}
