@@ -1,4 +1,9 @@
-import type { TestimonialProps, TestimonialQuote } from '.'
+import type {
+  TestimonialOrganisation,
+  TestimonialPerson,
+  TestimonialProps,
+  TestimonialQuote
+} from '.'
 import type { BlockDefinition } from '../catalogue'
 
 const FIELDS = [
@@ -49,7 +54,18 @@ export const testimonialDefinition = {
       limits: { ...ACTIONS, quotes: { min: 2, strict: true } },
       defaults: { align: 'center' }
     }
-  ]
+  ],
+  shapes: {
+    person: [
+      'name',
+      'role',
+      'image'
+    ] as const satisfies readonly (keyof TestimonialPerson)[],
+    organisation: [
+      'name',
+      'logo'
+    ] as const satisfies readonly (keyof TestimonialOrganisation)[]
+  }
 } as const satisfies BlockDefinition<
   keyof TestimonialProps & string,
   keyof TestimonialQuote & string

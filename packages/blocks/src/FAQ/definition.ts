@@ -15,6 +15,7 @@ export const faqDefinition = {
       title: 'Accordion',
       description: 'Questions that open to their answers one at a time.',
       fields: [
+        'preset',
         'id',
         'eyebrow',
         'title',

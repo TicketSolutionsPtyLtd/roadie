@@ -9,6 +9,7 @@ import { richTextDefinition } from '../RichText/definition'
 import { sideBySideDefinition } from '../SideBySide/definition'
 import { statsDefinition } from '../Stats/definition'
 import { testimonialDefinition } from '../Testimonial/definition'
+import { ACTION_FIELDS, IMAGE_FIELDS } from '../_shared/shapes'
 import type {
   BlockAlign,
   BlockRatio,
@@ -64,15 +65,22 @@ export type BlockDefinition<
   description: string
   group: BlockGroup
   presets: readonly BlockPreset<Field, ItemField>[]
+  /** The fields inside the block's own object fields, such as a testimonial's `person`, by the field's name. Images and actions come from the catalogue. */
+  shapes?: Readonly<Record<string, readonly string[]>>
 }
+
+// Every field by these names holds an image, or a list of them.
+const IMAGE_NAMES = new Set(['image', 'images', 'logo', 'logos', 'poster'])
 
 /** A preset's wireframe, a file in the package's `thumbnails` folder (`@oztix/roadie-blocks/thumbnails/<file>`). */
 type Thumbnail = { thumbnail: string }
 
-export type CatalogueBlock = Omit<BlockDefinition, 'presets'> &
+export type CatalogueBlock = Omit<BlockDefinition, 'presets' | 'shapes'> &
   Thumbnail & {
     /** The subpath to import the block from. */
     import: string
+    /** The fields inside each field that holds an object, or a list of them, by the field's name, at any depth: its images, actions, and the block's own objects. A CMS builds its object types from these. */
+    shapes: Readonly<Record<string, readonly string[]>>
     /** Its first preset's thumbnail stands for the block, where a picker shows one per block. */
     presets: readonly (BlockPreset & Thumbnail)[]
   }
@@ -83,12 +91,30 @@ function thumbnailFile(block: string, preset: string): string {
   return `${block}-${preset}.svg`
 }
 
+function shapesOf(definition: BlockDefinition) {
+  const own = definition.shapes ?? {}
+  const names = new Set([
+    ...definition.presets.flatMap((preset) => [
+      ...preset.fields,
+      ...(preset.itemFields ?? [])
+    ]),
+    ...Object.values(own).flat()
+  ])
+  const shapes: Record<string, readonly string[]> = {}
+  for (const name of names) {
+    if (IMAGE_NAMES.has(name)) shapes[name] = IMAGE_FIELDS
+    if (name === 'actions') shapes[name] = ACTION_FIELDS
+  }
+  return { ...shapes, ...own }
+}
+
 function entry(definition: BlockDefinition): CatalogueBlock {
   const first = definition.presets[0]
   if (!first) throw new Error(`${definition.name} has no presets`)
   return {
     ...definition,
     import: `${PACKAGE}/${definition.name}`,
+    shapes: shapesOf(definition),
     thumbnail: thumbnailFile(definition.name, first.name),
     presets: definition.presets.map((preset) => ({
       ...preset,
@@ -121,3 +147,5 @@ export const groups: readonly { name: BlockGroup; title: string }[] = [
   { name: 'prove', title: 'Prove' },
   { name: 'close', title: 'Close' }
 ]
+
+export { ACTION_FIELDS, IMAGE_FIELDS } from '../_shared/shapes'
