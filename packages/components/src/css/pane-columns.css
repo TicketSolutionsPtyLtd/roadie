@@ -571,7 +571,7 @@
           :has(~ [data-stack][data-stack-position='top'])
         )
     ) {
-      flex: 0 0 clamp(16rem, 40cqi, 24rem);
+      flex: 0 0 clamp(16rem, 40cqi, var(--pane-track-max, 24rem));
     }
     :where(
       [data-slot='navigator-panes'][data-level='0']:is(
@@ -635,13 +635,14 @@
           (45 + 5 * clamp(0, var(--pane-start), 1) - var(--pane-min))
       );
       --pane-room: calc(100cqi - (28.75rem + 0.75rem * var(--pane-shown)));
+      /* --pane-track-max lets a slim pane, such as Navigator's generated list, cap its own track. */
       --pane-track: clamp(
         var(--pane-min) * 1rem,
         min(
           var(--pane-share) * 1cqi,
           var(--pane-room) * var(--pane-min) / var(--pane-mins)
         ),
-        var(--pane-max) * 1rem
+        min(var(--pane-max) * 1rem, var(--pane-track-max, 100cqi))
       );
       position: absolute !important;
       inset: var(--pane-stack-inset, 0px);
