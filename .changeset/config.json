@@ -7,7 +7,7 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["docs"],
+  "ignore": ["docs", "@oztix/roadie-blocks"],
   "privatePackages": {
     "version": true,
     "tag": false
