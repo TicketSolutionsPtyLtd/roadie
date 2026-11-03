@@ -245,7 +245,7 @@ function Citation({
       {person.image && (
         <div
           className={cn(
-            'aspect-square w-20 shrink-0 overflow-clip rounded-xl border-4 border-normal @xl:w-30',
+            'size-20 shrink-0 overflow-clip rounded-xl border-4 border-normal @xl:size-30',
             intentClass(intent ?? 'info')
           )}
         >
