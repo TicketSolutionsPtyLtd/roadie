@@ -268,7 +268,8 @@ describe('Cards align and size', () => {
     render(<Block look='plain' width={1280} />)
 
     expect(textAlignOf(heading())).toBe('center')
-    expect(textAlignOf(cardTitle())).toBe('start')
+    // Firefox and WebKit report start as left.
+    expect(['start', 'left']).toContain(textAlignOf(cardTitle()))
   })
 
   it.each(['plain', 'text-blocks'] as const)(
