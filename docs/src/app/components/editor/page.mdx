@@ -671,12 +671,13 @@ editor has its own `embedProviders`, pass the same list:
 It needs a browser, so call it in a client component.
 
 ```tsx-live-prose-noinline
+const video = 'https://www.youtube.com/embed/sBzrzS1Ag_g'
 const legacy =
   '<h1>Ochre Kite Weekender</h1>' +
   '<span style="color:#c00;font-size:18px">Gates open 11am</span><br>' +
   'Last entry 7pm<br><br>' +
   '<img src="data:image/png;base64,iVBORw0KGgo=">' +
-  '<iframe src="https://www.youtube.com/embed/sBzrzS1Ag_g"></iframe>'
+  '<iframe src="' + video + '"></iframe>'
 
 const { value, dropped } = htmlToEditorValue(legacy, 'rich')
 
