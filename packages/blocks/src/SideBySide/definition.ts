@@ -1,4 +1,5 @@
 import type { StatItem } from '../_shared/StatList'
+import { fieldsOf } from '../_shared/shapes'
 import type { BlockDefinition } from '../catalogue'
 import type { SideBySideProps, SideBySideStats } from './index'
 
@@ -58,16 +59,8 @@ export const sideBySideDefinition = {
     }
   ],
   shapes: {
-    stats: [
-      'title',
-      'description',
-      'figures'
-    ] as const satisfies readonly (keyof SideBySideStats)[],
-    figures: [
-      'value',
-      'label',
-      'illustration'
-    ] as const satisfies readonly (keyof StatItem)[]
+    stats: fieldsOf<SideBySideStats>()(['title', 'description', 'figures']),
+    figures: fieldsOf<StatItem>()(['value', 'label', 'illustration'])
   }
 } as const satisfies BlockDefinition<Field>
 

@@ -1,9 +1,9 @@
-import { IMAGE_FIELDS } from '../_shared/shapes'
+import { IMAGE_FIELDS, fieldsOf } from '../_shared/shapes'
 import type { BlockDefinition } from '../catalogue'
 import type { GalleryImage, GalleryProps } from './index'
 
 // Each image's size lets an image component reserve its space.
-const ITEM_FIELDS = [...IMAGE_FIELDS, 'href'] as const
+const ITEM_FIELDS = fieldsOf<GalleryImage>()([...IMAGE_FIELDS, 'href'])
 
 const PHOTO_FIELDS = [
   'preset',

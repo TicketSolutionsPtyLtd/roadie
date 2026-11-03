@@ -1,4 +1,5 @@
 import type { MosaicLogoTile, MosaicProps, MosaicTile } from '.'
+import { fieldsOf } from '../_shared/shapes'
 import type { BlockDefinition } from '../catalogue'
 
 const ACTIONS = { actions: { max: 2 } } as const
@@ -45,10 +46,7 @@ export const mosaicDefinition = {
     }
   ],
   shapes: {
-    logoTile: [
-      'title',
-      'logos'
-    ] as const satisfies readonly (keyof MosaicLogoTile)[]
+    logoTile: fieldsOf<MosaicLogoTile>()(['title', 'logos'])
   }
 } as const satisfies BlockDefinition<
   keyof MosaicProps & string,

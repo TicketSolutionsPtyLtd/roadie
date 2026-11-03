@@ -66,7 +66,8 @@ Run `pnpm generate:exports` after adding the folder.
 - **The catalogue is the schema's source.** Each preset lists the props it reads in
   `fields` (and its items' in `itemFields`), typed against the block's props, with item
   counts in `limits`. Every preset lists `preset`. The fields inside an object field go
-  in the definition's `shapes`, typed against the object's type; the catalogue adds
+  in the definition's `shapes`, listed with `fieldsOf<Type>()`, which fails to type-check
+  until every field of the type is listed; the catalogue adds
   images (`IMAGE_FIELDS`) and actions (`ACTION_FIELDS`) by field name. A CMS hides the rest and validates from it, so a prop a preset reads
   must be listed. Names are what a CMS stores: a block's `name` is its type, props are
   fields, and prop values are stored options, so renaming one after release needs a
