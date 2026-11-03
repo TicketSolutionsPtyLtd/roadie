@@ -34,9 +34,21 @@
       "types": "./dist/AlternatingRows/index.d.ts",
       "import": "./dist/AlternatingRows/index.js"
     },
+    "./call-to-action": {
+      "types": "./dist/CallToAction/index.d.ts",
+      "import": "./dist/CallToAction/index.js"
+    },
     "./cards": {
       "types": "./dist/Cards/index.d.ts",
       "import": "./dist/Cards/index.js"
+    },
+    "./faq": {
+      "types": "./dist/FAQ/index.d.ts",
+      "import": "./dist/FAQ/index.js"
+    },
+    "./gallery": {
+      "types": "./dist/Gallery/index.d.ts",
+      "import": "./dist/Gallery/index.js"
     },
     "./hero": {
       "types": "./dist/Hero/index.d.ts",

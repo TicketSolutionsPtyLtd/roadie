@@ -84,7 +84,10 @@ import {
 import { toPreviewCode, withBasePath } from '@/lib/fence-layout.mjs'
 
 import { AlternatingRows } from '@oztix/roadie-blocks/alternating-rows'
+import { CallToAction } from '@oztix/roadie-blocks/call-to-action'
 import { Cards } from '@oztix/roadie-blocks/cards'
+import { FAQ } from '@oztix/roadie-blocks/faq'
+import { Gallery } from '@oztix/roadie-blocks/gallery'
 import { Hero } from '@oztix/roadie-blocks/hero'
 import { Mosaic } from '@oztix/roadie-blocks/mosaic'
 import { BlocksProvider } from '@oztix/roadie-blocks/provider'
@@ -237,6 +240,9 @@ const scope = {
   Stats,
   Mosaic,
   Testimonial,
+  CallToAction,
+  FAQ,
+  Gallery,
   LegendKey,
   lineChartTable,
   addDays,

@@ -1,5 +1,8 @@
 import { alternatingRowsDefinition } from '../AlternatingRows/definition'
+import { callToActionDefinition } from '../CallToAction/definition'
 import { cardsDefinition } from '../Cards/definition'
+import { faqDefinition } from '../FAQ/definition'
+import { galleryDefinition } from '../Gallery/definition'
 import { heroDefinition } from '../Hero/definition'
 import { mosaicDefinition } from '../Mosaic/definition'
 import { richTextDefinition } from '../RichText/definition'
@@ -100,9 +103,12 @@ const DEFINITIONS: readonly BlockDefinition[] = [
   sideBySideDefinition,
   alternatingRowsDefinition,
   cardsDefinition,
+  faqDefinition,
   statsDefinition,
   testimonialDefinition,
-  mosaicDefinition
+  galleryDefinition,
+  mosaicDefinition,
+  callToActionDefinition
 ]
 
 /** Every block and its presets, for a CMS's block picker. Has no React, so it runs on a server or in a Studio config. */
