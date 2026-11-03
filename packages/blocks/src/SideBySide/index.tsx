@@ -19,6 +19,7 @@ import {
   type BlockSize,
   bySize,
   gapOf,
+  isFilled,
   ratioClass
 } from '../_shared/surface'
 import { useBlock } from '../_shared/useBlock'
@@ -63,7 +64,7 @@ export type SideBySideProps = {
   image?: BlockImage
   /**
    * The image's shape in `image-start` and `image-end`: `story` (9:16), `portrait` (3:4), `square`, `landscape` (3:2), or `banner` (2:1).
-   * @default 'square'
+   * @default 'landscape'
    */
   ratio?: BlockRatio
   /** The figures beside the text in `stats`. They wrap below the text on narrow widths. */
@@ -96,7 +97,7 @@ export function SideBySide(props: SideBySideProps) {
   const preset = presetOf(sideBySideDefinition, name)
   const ratio =
     props.ratio ??
-    ('ratio' in preset.defaults ? preset.defaults.ratio : 'square')
+    ('ratio' in preset.defaults ? preset.defaults.ratio : 'landscape')
 
   return (
     <BlockRoot {...block.root}>
@@ -149,7 +150,12 @@ function MediaText({
         gapOf(size, 'snug'),
         align === 'center' && 'justify-items-center text-center',
         // On a surface the title keeps the block's intent, and the rest of the text reads as neutral, as on the live site.
-        emphasis && ['intent-neutral', HEADING_INTENT[intent ?? 'neutral']]
+        // A filled surface gives all of it the fill's own colour instead.
+        emphasis &&
+          !isFilled(emphasis) && [
+            'intent-neutral',
+            HEADING_INTENT[intent ?? 'neutral']
+          ]
       )}
     >
       {heading}
