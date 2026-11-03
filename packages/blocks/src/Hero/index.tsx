@@ -80,7 +80,7 @@ export type HeroProps = {
   image?: BlockImage
   /**
    * The photo's shape in `image`: `story` (9:16), `portrait` (3:4), `square`, `landscape` (3:2), or `banner` (2:1).
-   * @default 'landscape'
+   * @default 'banner'
    */
   ratio?: BlockRatio
   /** The clip beside the title in `bento`. */
@@ -252,7 +252,7 @@ function ImageHero({ block, image, ratio, size = 'lg' }: PresetProps) {
   const share = IMAGE_SHARE[size]
   const preset = presetOf(heroDefinition, block.name)
   const shape =
-    ratio ?? ('ratio' in preset.defaults ? preset.defaults.ratio : 'landscape')
+    ratio ?? ('ratio' in preset.defaults ? preset.defaults.ratio : 'banner')
   return (
     <BlockSurface
       className={cn(
