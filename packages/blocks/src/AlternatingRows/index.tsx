@@ -8,7 +8,11 @@ import { BlockHeading } from '../_shared/BlockHeading'
 import { BlockImg } from '../_shared/BlockImg'
 import { BlockRoot } from '../_shared/BlockRoot'
 import { BlockSurface } from '../_shared/BlockSurface'
-import { cycledMarkIntent, itemSurfaceClass } from '../_shared/items'
+import {
+  cycledMarkIntent,
+  filledIntent,
+  itemSurfaceClass
+} from '../_shared/items'
 import {
   type BlockAlign,
   type BlockEmphasis,
@@ -109,6 +113,7 @@ export function AlternatingRows(props: AlternatingRowsProps) {
               index={index}
               itemEmphasis={itemEmphasis}
               blockIntent={intent}
+              filled={filledIntent(intent, block.emphasis)}
             />
           ))}
         </ul>
@@ -122,18 +127,20 @@ function Row({
   item,
   index,
   itemEmphasis,
-  blockIntent
+  blockIntent,
+  filled
 }: {
   item: AlternatingRow
   index: number
   itemEmphasis: ItemEmphasis | undefined
   blockIntent: BlockIntent | undefined
+  filled: BlockIntent | undefined
 }) {
   const imageFirst = index % 2 === 0
   return (
     <li
       className={cn(
-        itemSurfaceClass(item, itemEmphasis),
+        itemSurfaceClass(item, itemEmphasis, filled),
         'grid items-start gap-x-12 gap-y-4 rounded-3xl @xl:items-center',
         imageFirst
           ? '@xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]'
