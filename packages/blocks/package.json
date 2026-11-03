@@ -30,6 +30,10 @@
       "style": "./src/css/blocks.css",
       "default": "./src/css/blocks.css"
     },
+    "./alternating-rows": {
+      "types": "./dist/AlternatingRows/index.d.ts",
+      "import": "./dist/AlternatingRows/index.js"
+    },
     "./cards": {
       "types": "./dist/Cards/index.d.ts",
       "import": "./dist/Cards/index.js"
@@ -45,6 +49,14 @@
     "./rich-text": {
       "types": "./dist/RichText/index.d.ts",
       "import": "./dist/RichText/index.js"
+    },
+    "./side-by-side": {
+      "types": "./dist/SideBySide/index.d.ts",
+      "import": "./dist/SideBySide/index.js"
+    },
+    "./stats": {
+      "types": "./dist/Stats/index.d.ts",
+      "import": "./dist/Stats/index.js"
     },
     "./catalogue": {
       "types": "./dist/catalogue/index.d.ts",

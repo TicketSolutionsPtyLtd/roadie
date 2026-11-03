@@ -83,10 +83,13 @@ import {
 
 import { toPreviewCode, withBasePath } from '@/lib/fence-layout.mjs'
 
+import { AlternatingRows } from '@oztix/roadie-blocks/alternating-rows'
 import { Cards } from '@oztix/roadie-blocks/cards'
 import { Hero } from '@oztix/roadie-blocks/hero'
 import { BlocksProvider } from '@oztix/roadie-blocks/provider'
 import { RichText } from '@oztix/roadie-blocks/rich-text'
+import { SideBySide } from '@oztix/roadie-blocks/side-by-side'
+import { Stats } from '@oztix/roadie-blocks/stats'
 import * as RoadieCharts from '@oztix/roadie-charts'
 import { LegendKey } from '@oztix/roadie-charts/chart-legend'
 import { lineChartTable } from '@oztix/roadie-charts/tables'
@@ -227,6 +230,9 @@ const scope = {
   Hero,
   RichText,
   Cards,
+  SideBySide,
+  AlternatingRows,
+  Stats,
   LegendKey,
   lineChartTable,
   addDays,
