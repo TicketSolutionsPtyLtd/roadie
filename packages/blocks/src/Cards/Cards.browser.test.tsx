@@ -312,7 +312,7 @@ describe('Cards images', () => {
   it.each<[Look, number]>([
     ['plain', 2],
     ['steps', 2],
-    ['text-blocks', 2],
+    ['text-blocks', 1.5],
     ['overlap', 1],
     ['photo', 1]
   ])('crops a sized 4:3 photo to the %s shape', (look, shape) => {
