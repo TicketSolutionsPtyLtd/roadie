@@ -71,9 +71,11 @@ Run `pnpm generate:exports` after adding the folder.
   content migration.
   - `intent` goes to `BlockRoot` and `BlockHeading`, so marks, tints,
     highlights, and the strong action inherit it.
-  - `emphasis` is a `BlockEmphasis` (`subtler`, `subtle`, `normal`, or `raised`), the
-    surface behind the block. A Call to action adds `strong` and `inverted`. Each
-    must keep APCA contrast in both themes.
+  - `emphasis` is a `BlockEmphasis` (`subtler`, `subtle`, `normal`, `raised`,
+    `strong`, or `inverted`), the surface behind the block. On `strong` and
+    `inverted`, `BlockSurface` gives the text the fill's own colour, and an
+    item with an opaque surface of its own sets its intent again. Each must
+    keep APCA contrast in both themes.
   - `itemEmphasis` is every item's surface at once (cards, questions), never
     per item, and an item may take its own `intent`.
   - `align` and `size` are the preset's alignment and scale; each step down

@@ -6,11 +6,12 @@ import type { BlockActionsProps } from './BlockActions'
 import type { BlockHeadingProps } from './BlockHeading'
 import type { BlockRootProps } from './BlockRoot'
 import { presetOf } from './presets'
-import type {
-  BlockAlign,
-  BlockIntent,
-  BlockSize,
-  SurfaceEmphasis
+import {
+  type BlockAlign,
+  type BlockIntent,
+  type BlockSize,
+  type SurfaceEmphasis,
+  isFilled
 } from './surface'
 
 /** The props every block takes for its frame. */
@@ -44,11 +45,12 @@ export function useBlock<
   const preset = presetOf(definition, props.preset)
   const defaults = preset.defaults ?? {}
   const align = props.align ?? defaults.align ?? 'start'
+  const emphasis = props.emphasis ?? defaults.emphasis
   return {
     name: preset.name as Definition['presets'][number]['name'],
     align,
     // A preset's default emphasis is one its block's own props accept.
-    emphasis: (props.emphasis ?? defaults.emphasis) as
+    emphasis: emphasis as
       | Extract<Props['emphasis'], SurfaceEmphasis>
       | undefined,
     contained: props.contained ?? defaults.contained ?? false,
@@ -73,6 +75,7 @@ export function useBlock<
     actions: {
       actions: props.actions,
       intent: props.intent,
+      fill: isFilled(emphasis) ? emphasis : undefined,
       align
     } satisfies BlockActionsProps
   }

@@ -10,14 +10,22 @@ export type BlockIntent =
   | 'warning'
   | 'danger'
 
-/** The surface a block draws behind its content. Every block takes these; a Call to action adds `strong` and `inverted`. */
-export type BlockEmphasis = 'subtler' | 'subtle' | 'normal' | 'raised'
-
 /** The surface of every item in a block, such as its cards or questions. */
-export type ItemEmphasis = BlockEmphasis
+export type ItemEmphasis = 'subtler' | 'subtle' | 'normal' | 'raised'
+
+/** The surface a block draws behind its content. On `strong` and `inverted`, the block's text takes the fill's own colour. */
+export type BlockEmphasis = ItemEmphasis | 'strong' | 'inverted'
 
 /** Every emphasis a surface can draw. */
-export type SurfaceEmphasis = ItemEmphasis | 'strong' | 'inverted'
+export type SurfaceEmphasis = BlockEmphasis
+
+/** A surface filled solid, where text takes the fill's own colour instead of the page's. */
+export type FilledEmphasis = Extract<BlockEmphasis, 'strong' | 'inverted'>
+
+export const isFilled = (
+  emphasis: SurfaceEmphasis | null | undefined
+): emphasis is FilledEmphasis =>
+  emphasis === 'strong' || emphasis === 'inverted'
 
 /** An image slot's shape: `story` (9:16), `portrait` (3:4), `square`, `landscape` (3:2), or `banner` (2:1). Video keeps 16:9. */
 export type BlockRatio =
