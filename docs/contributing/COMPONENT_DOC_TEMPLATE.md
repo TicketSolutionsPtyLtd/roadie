@@ -38,7 +38,7 @@ The skeleton contains:
 ## Live examples
 
 - A `tsx-live` fence renders when it comes within a screen of view, and shows a placeholder and its code until then. Add `-noinline` when the code calls `render()`, and `-expand` for a Full width button.
-- MDX pages render inside `.prose`, and each live example opts out with `data-not-prose`. A `.prose` inside that escape stays unstyled, so an example that demos `.prose` or `Prose` uses a `tsx-live-prose` fence, which escapes only its toolbar and code.
+- MDX pages render inside `.prose`, and each live example opts out with `data-not-prose`. A `.prose` or `Prose` inside that escape typesets its own content. An example of bare elements set by the page's Prose uses a `tsx-live-prose` fence, which escapes only its toolbar and code.
 - Each example on an MDX page also gets its own page at `/examples/<page>/<id>/`, opened from the button beside Copy. The id is the nearest heading's slug, with `-2`, `-3` for later examples under the same heading.
 - Fence meta after the language sets options: `id=orders` pins the id (lowercase kebab-case, unique on the page), so a link survives a heading rename; `eager` renders the example on load, for the rare one that must.
 - Layout options lay out the preview, while the code panel and Copy keep the fence as written ([decision 0011](../decisions/0011-fence-layout-options.md)). An unknown option or value fails the build.
