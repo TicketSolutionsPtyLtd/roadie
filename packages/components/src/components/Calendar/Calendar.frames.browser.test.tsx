@@ -155,13 +155,15 @@ describe('Calendar frames, switching views', () => {
 
 // A timed-out attempt's recorder outlives its calendar when the test retries.
 describe('Calendar frame recorders', () => {
-  it.each([
+  const recorders = [
     {
       name: 'recordFrames',
       record: (start: () => unknown) => recordFrames(true, start)
     },
     { name: 'recordShapes', record: recordShapes }
-  ])(
+  ]
+
+  it.each(recorders)(
     '$name stops once the calendar unmounts',
     async ({ record }) => {
       render(<Calendar today={TODAY} />)
@@ -170,5 +172,29 @@ describe('Calendar frame recorders', () => {
       )
     },
     5_000
+  )
+
+  it.each(recorders)(
+    "$name stops on its own calendar, not the next attempt's",
+    async ({ record }) => {
+      render(<Calendar today={TODAY} />)
+      await expect(
+        record(() => {
+          cleanup()
+          render(<Calendar today={TODAY} />)
+        })
+      ).rejects.toThrow('The calendar unmounted')
+    },
+    5_000
+  )
+
+  it.each(recorders)(
+    '$name passes on a failed start without an unhandled rejection',
+    async ({ record }) => {
+      render(<Calendar today={TODAY} />)
+      await expect(
+        record(() => Promise.reject(new Error('The click missed')))
+      ).rejects.toThrow('The click missed')
+    }
   )
 })

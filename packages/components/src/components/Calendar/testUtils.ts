@@ -38,20 +38,21 @@ type Frame = {
 }
 
 // Reads every frame from `start` until the calendar has been still for a few
-// frames. Stops once the calendar unmounts, as a timed-out attempt's does when
-// its test retries.
+// frames. Stops once that calendar unmounts, as a timed-out attempt's does when
+// its test retries, even if the retry has rendered another.
 async function readUntilStill(
   read: (time: number, calendar: HTMLElement) => void,
   start: () => unknown
 ) {
+  const calendar = document.querySelector<HTMLElement>(
+    '[data-slot="calendar"]'
+  )!
   let moving = false
   let after = 0
   const done = new Promise<void>((resolve, reject) => {
     const tick = (time: number) => {
-      const calendar = document.querySelector<HTMLElement>(
-        '[data-slot="calendar"]'
-      )
-      if (!calendar) return reject(new Error('The calendar unmounted'))
+      if (!calendar.isConnected)
+        return reject(new Error('The calendar unmounted'))
       read(time, calendar)
       if (calendar.hasAttribute('data-swiping')) {
         moving = true
@@ -61,8 +62,8 @@ async function readUntilStill(
     }
     requestAnimationFrame(tick)
   })
-  await start()
-  await done
+  // Together, so a failed start doesn't leave `done` to reject unhandled.
+  await Promise.all([start(), done])
 }
 
 // Every day's position along the turn and the first title, frame by frame.
