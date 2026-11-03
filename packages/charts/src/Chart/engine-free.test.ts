@@ -62,7 +62,8 @@ describe('server table derivation stays engine-free', () => {
     'Funnel',
     'Heatmap',
     'Scatter',
-    'SmallMultiples'
+    'SmallMultiples',
+    'DonutChart'
   ])(
     '%s/table.ts imports no engine, directly or through its helpers',
     (folder) => {
@@ -81,6 +82,6 @@ describe('the tables entry stays engine-free', () => {
     expect(files.filter((f) => /[/\\]definition\.tsx?$/.test(f))).toEqual([])
     expect(
       files.filter((f) => /[/\\][A-Z]\w+[/\\]table\.ts$/.test(f))
-    ).toHaveLength(10)
+    ).toHaveLength(11)
   })
 })

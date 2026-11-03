@@ -1,8 +1,8 @@
 import type { KeyboardEvent } from 'react'
 
 /**
- * Makes the Enter key activate an overlay's primary action — the single
- * strong-emphasis button (e.g. "Save changes", "Delete") — the way Enter
+ * Makes the Enter key activate an overlay's primary action, the single
+ * strong-emphasis button (e.g. "Save changes", "Delete"), the way Enter
  * submits a form's default button. Per the overlay guidelines there is at
  * most one strong button per popup, so it unambiguously identifies the
  * primary action whatever its intent.
@@ -27,7 +27,7 @@ export function triggerPrimaryActionOnEnter(event: KeyboardEvent<HTMLElement>) {
     return
   }
 
-  // Scope to actionable elements — a strong-emphasis decorative element
+  // Scope to actionable elements: a strong-emphasis decorative element
   // (e.g. an `<IconTile emphasis='strong'>` in a Dialog header) carries the
   // same `.emphasis-strong` class but isn't a primary action; matching it
   // would swallow Enter and never reach the real button.

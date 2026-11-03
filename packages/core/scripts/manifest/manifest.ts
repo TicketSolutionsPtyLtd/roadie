@@ -20,12 +20,13 @@ import {
 
 export const MANIFEST_FILE = 'roadie.manifest.json'
 export const DOCS_URL = 'https://ticketsolutionsptyltd.github.io/roadie/'
+// `kind: 'asset'` was added within version 1: a reader should skip a kind it doesn't know.
 export const SCHEMA_VERSION = 1
 
 export type ManifestExport = {
   subpath: string
   import: string
-  kind: 'js' | 'css' | 'json'
+  kind: 'js' | 'css' | 'json' | 'asset'
   values?: string[]
   types?: string[]
   /** The page that documents the subpath, when it has no component of its own to carry it. */

@@ -9,7 +9,7 @@ on:
       - 'packages/**'
   # Lets the release path be exercised without a qualifying push. With no
   # pending changesets and every package version already on npm, a manual run
-  # is a no-op — the version job finds nothing and Publish is skipped.
+  # is a no-op: the version job finds nothing and Publish is skipped.
   workflow_dispatch:
 
 jobs:

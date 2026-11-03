@@ -1,5 +1,8 @@
 import type { PlotRow } from '@oztix/roadie-core/dashboard'
-import type { ValueFormat } from '@oztix/roadie-core/dataviz'
+import type {
+  ValueFormat,
+  ValueFormatOptions
+} from '@oztix/roadie-core/dataviz'
 
 export type ScatterQuadrants = {
   /** Where the vertical reference line crosses the x axis. */
@@ -15,7 +18,7 @@ export type ScatterQuadrants = {
   }
 }
 
-export type ScatterProps = {
+export type ScatterProps = ValueFormatOptions & {
   /** Rows of plain values, one per point. */
   data: PlotRow[]
   /** Field for the horizontal position. */

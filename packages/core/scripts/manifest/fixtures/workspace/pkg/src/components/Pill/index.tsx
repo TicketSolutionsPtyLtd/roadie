@@ -1,6 +1,7 @@
+import type { PlacesOptions } from '../../../../core/src/places'
 import { PillIcon } from './PillIcon'
 
-export type PillProps = {
+export type PillProps = PlacesOptions & {
   /**
    * Colour of the pill.
    * @default 'neutral'

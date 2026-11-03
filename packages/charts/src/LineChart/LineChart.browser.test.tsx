@@ -16,7 +16,7 @@ import {
   visitEveryStop
 } from '../plot/browserTesting'
 import { loadBrandFont, useStylesheet } from '../testUtils'
-import { paceExample, salesByTypeExample } from './examples'
+import { comparisonExample, paceExample, salesByTypeExample } from './examples'
 import type { LineChartProps } from './types'
 
 const todayAtEnd: LineChartProps = {
@@ -290,6 +290,38 @@ describe('LineChart legend in print', () => {
         expect(dash).not.toBe('none')
         expect(getComputedStyle(key).strokeDasharray).toBe(dash)
       }
+    } finally {
+      await commands.printMedia(false)
+    }
+  })
+
+  it('dashes the comparison and its legend key apart from the series', async () => {
+    const { container } = renderInCard(<LineChart {...comparisonExample} />, {
+      width: 320
+    })
+    await expect
+      .poll(() => container.querySelector('[data-slot=chart-legend]'))
+      .not.toBeNull()
+    await commands.printMedia(true)
+    try {
+      const dashOf = (selector: string) =>
+        getComputedStyle(container.querySelector(selector)!).strokeDasharray
+      const keyOf = (label: string) =>
+        Array.from(
+          container.querySelector('[data-slot=chart-legend]')!.children
+        )
+          .find((item) => item.textContent === label)!
+          .querySelector('line')!
+      const comparison = dashOf(
+        ".ts-chart__line[data-ts-key^='comparison'] path"
+      )
+      expect(comparison).not.toBe('none')
+      expect(dashOf(".ts-chart__line[data-ts-key^='series-1'] path")).toBe(
+        'none'
+      )
+      expect(getComputedStyle(keyOf('Previous period')).strokeDasharray).toBe(
+        comparison
+      )
     } finally {
       await commands.printMedia(false)
     }

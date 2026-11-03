@@ -9,10 +9,10 @@ import { intentVariants } from '../../variants'
 /**
  * A tile that frames a single Phosphor icon.
  *
- * The `size` tiers (`xs`–`3xl`) are CVA variant keys, not Tailwind utilities —
+ * The `size` tiers (`xs`–`3xl`) are CVA variant keys, not Tailwind utilities:
  * each maps to a numeric `size-*` box on the tile, with matching internal
  * padding and icon size (tile size = 2 × padding + icon size). The `size-*`
- * utility lives on the tile, not the icon — the icon is sized via a descendant
+ * utility lives on the tile, not the icon. The icon is sized via a descendant
  * selector so consumers can pass a bare icon as children.
  *
  * `shape` is `square` by default (with a size-proportional radius); `circle`
@@ -46,7 +46,7 @@ export const iconTileVariants = cva(
       }
     },
     // Square radius scales with the tile so the corners stay in proportion
-    // (~25–30% of the box). Circle ignores these — it's always rounded-full.
+    // (~25–30% of the box). Circle ignores these; it's always rounded-full.
     compoundVariants: [
       { shape: 'square', size: 'xs', className: 'rounded-md' },
       { shape: 'square', size: 'sm', className: 'rounded-lg' },

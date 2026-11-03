@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { valueFormat, xFormat } from './fields'
+import { valueFormat, valueFormatOptions, xFormat } from './fields'
 
 export const ANNOTATION_LABEL_LIMIT = 20
 export const SERIES_CAP = 6
@@ -44,10 +44,15 @@ const palette = z.enum(['categorical', 'pair', 'trio'])
 
 const common = {
   format: valueFormat.optional(),
+  ...valueFormatOptions,
   takeaway: z.string().min(1).optional()
 }
 const measured = { data: z.array(plotRow), x: field, y: field, ...common }
 const selectsPeriod = z.boolean().optional()
+
+const comparison = z
+  .strictObject({ y: field, label: shortLabel.optional() })
+  .optional()
 
 const lineShape = {
   kind: z.literal('line'),
@@ -73,6 +78,7 @@ const lineShape = {
       high: field.optional()
     })
     .optional(),
+  comparison,
   target: z.number().optional(),
   today: plotX.optional(),
   xFormat: xFormat.optional(),
@@ -88,9 +94,11 @@ const barShape = {
     .strictObject({
       y: field,
       label: shortLabel,
-      format: valueFormat.optional()
+      format: valueFormat.optional(),
+      ...valueFormatOptions
     })
     .optional(),
+  comparison,
   selectsPeriod
 }
 
@@ -102,8 +110,17 @@ export const rankedBarsPlotSchema = z.strictObject({
   ...measured,
   highlight: highlight.optional(),
   limit: z.number().int().min(1).max(20).optional(),
+  other: z.boolean().optional(),
+  sort: z.boolean().optional(),
   reference: z.strictObject({ field, label: shortLabel }).optional(),
   share: z.boolean().optional()
+})
+
+export const donutPlotSchema = z.strictObject({
+  kind: z.literal('donut'),
+  ...measured,
+  total: shortLabel.optional(),
+  highlight: highlight.optional()
 })
 
 export const stackedBarsPlotSchema = z.strictObject({
@@ -196,6 +213,7 @@ const chartPlots = [
   linePlotSchema,
   barPlotSchema,
   rankedBarsPlotSchema,
+  donutPlotSchema,
   stackedBarsPlotSchema,
   stackedAreaPlotSchema,
   histogramPlotSchema,
@@ -215,6 +233,7 @@ export const CHART_PLOT_KINDS = [
   'line',
   'bar',
   'ranked-bars',
+  'donut',
   'stacked-bars',
   'stacked-area',
   'histogram',
@@ -233,6 +252,7 @@ export type StaticPlotImage = NonNullable<StaticPlot['narrow']>
 export type LinePlot = z.infer<typeof linePlotSchema>
 export type BarPlot = z.infer<typeof barPlotSchema>
 export type RankedBarsPlot = z.infer<typeof rankedBarsPlotSchema>
+export type DonutPlot = z.infer<typeof donutPlotSchema>
 export type StackedBarsPlot = z.infer<typeof stackedBarsPlotSchema>
 export type StackedAreaPlot = z.infer<typeof stackedAreaPlotSchema>
 export type HistogramPlot = z.infer<typeof histogramPlotSchema>

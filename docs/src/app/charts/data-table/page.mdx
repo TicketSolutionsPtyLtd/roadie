@@ -213,6 +213,45 @@ Add `sortable` and press a header to sort by it. Number, meter and delta columns
 />
 ```
 
+### Controlled sorting
+
+Pass `sort` with `onSortChange` to hold the order yourself, such as to keep it in the URL or share it with another view. Set `sort` to `null` to show the rows in the order you pass them, with no column marked sorted.
+
+```tsx-live-noinline
+function ControlledSort() {
+  const [sort, setSort] = useState({ key: 'gross', direction: 'descending' })
+  return (
+    <div className='grid gap-4'>
+      <DataTable
+        sortable
+        caption='Upcoming shows'
+        sort={sort}
+        onSortChange={setSort}
+        columns={[
+          { key: 'show', header: 'Show', kind: 'text', pin: true },
+          { key: 'sellThrough', header: 'Sell-through', kind: 'meter', target: 0.85 },
+          { key: 'gross', header: 'Gross', kind: 'number', format: 'compactCurrency' }
+        ]}
+        rows={[
+          { show: 'Ocean Alley', sellThrough: 0.92, gross: 183000 },
+          { show: 'Julia Jacklin', sellThrough: 0.41, gross: 22900 },
+          { show: 'Ball Park Music', sellThrough: 0.77, gross: 118400 }
+        ]}
+      />
+      <Button
+        className='justify-self-start'
+        disabled={sort === null}
+        onClick={() => setSort(null)}
+      >
+        Clear sort
+      </Button>
+    </div>
+  )
+}
+
+render(<ControlledSort />)
+```
+
 ### Server sorting
 
 For tables paged or sorted on the server, pass `sort` and `getSortHref` instead. Headers become links, the server returns rows in the new order, and sorting works without JavaScript. `sortDataTableRows` sorts rows on the server the same way `sortable` does.

@@ -137,8 +137,33 @@ describe('dashboardSchema', () => {
   })
 
   it('accepts a reserved data binding', () => {
-    const card = { ...stat, data: { source: 'oztix.sales', params: { id: 1 } } }
+    const card = {
+      ...stat,
+      data: { source: 'oztix.sales', params: { id: 1 } }
+    }
     expect(dashboardSchema.safeParse(spec([card])).success).toBe(true)
+  })
+
+  it('takes decimal places on card values and deltas', () => {
+    const options = { decimals: 2, trailingZeroDisplay: 'stripIfInteger' }
+    const cards = [
+      { ...stat, ...options, delta: { ...stat.delta, ...options } },
+      { ...chart, ...options },
+      {
+        ...chart,
+        plot: {
+          kind: 'bar',
+          data: [{ day: '2026-10-01', sold: 4, share: 0.5 }],
+          x: 'day',
+          y: 'sold',
+          line: { y: 'share', label: 'Share', format: 'percent', ...options }
+        }
+      }
+    ]
+    expect(dashboardSchema.safeParse(spec(cards)).success).toBe(true)
+    expect(
+      dashboardSchema.safeParse(spec([{ ...stat, decimals: 5 }])).success
+    ).toBe(false)
   })
 
   it('rejects an unknown key on a card', () => {

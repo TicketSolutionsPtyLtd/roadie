@@ -10,11 +10,11 @@
  *
  * The conversion follows Björn Ottosson's reference implementation
  * (https://bottosson.github.io/posts/oklab/). For valid sRGB inputs,
- * its output matches `colorjs.io` to 4 decimal places — verified by
+ * its output matches `colorjs.io` to 4 decimal places, verified by
  * parity tests in `srgb-to-oklch.test.ts`.
  *
  * This file is intentionally zero-dependency and synchronous. Do not
- * add colorjs.io here — the whole point is to skip the async import.
+ * add colorjs.io here: the whole point is to skip the async import.
  */
 
 export interface Oklch {
@@ -46,7 +46,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   return { r: r / 255, g: g / 255, b: b / 255 }
 }
 
-/** sRGB gamma decode — matches the IEC 61966-2-1 spec with the 0.04045 kink. */
+/** sRGB gamma decode: matches the IEC 61966-2-1 spec with the 0.04045 kink. */
 function srgbToLinear(channel: number): number {
   return channel <= 0.04045
     ? channel / 12.92

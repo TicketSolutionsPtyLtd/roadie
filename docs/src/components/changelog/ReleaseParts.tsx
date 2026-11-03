@@ -120,7 +120,7 @@ function Item({ item }: { item: ReleaseItem }) {
             {' '}
             <Link
               href={item.page.href}
-              className='inline-flex items-baseline gap-0.5 font-medium whitespace-nowrap text-subtle underline-offset-2 hover:underline'
+              className='inline-flex items-baseline gap-0.5 font-medium whitespace-nowrap text-subtle link-subtle'
             >
               {item.page.title}
               <ArrowRightIcon weight='bold' className='size-3 self-center' />
@@ -201,10 +201,7 @@ export function ReleaseHeader({
       </p>
       <h2 id={titleId} className='text-display-ui-3 text-strong'>
         {linkTitle ? (
-          <Link
-            href={release.href}
-            className='underline-offset-4 hover:underline'
-          >
+          <Link href={release.href} className='link-subtle'>
             {headline.title}
           </Link>
         ) : (

@@ -124,6 +124,9 @@ jobs:
       - name: Check component docs
         run: node scripts/check-component-docs.mjs
 
+      - name: Check docs content
+        run: node scripts/check-docs-content.mjs
+
       # Root scripts belong to no turbo package, so turbo test skips them.
       - name: Test repo scripts
         run: node --test 'scripts/**/*.test.mjs'
@@ -300,7 +303,11 @@ jobs:
       (needs.changes.outputs.packages == 'true' ||
       needs.changes.outputs.docs == 'true')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    # Engines' locale data differs, so a hydration mismatch can show in one.
+    # WebKit is left out: on Linux it times out the layout-driven tests.
+    env:
+      E2E_ENGINES: ${{ contains(needs.changes.outputs.browsers, 'webkit') && 'chromium firefox' || 'chromium' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -338,15 +345,23 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}-chromium
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}-${{ contains(env.E2E_ENGINES, 'firefox') && 'chromium-firefox' || 'chromium' }}
 
-      - name: Install Playwright Chromium
+      - name: Install Playwright browsers
         if: hashFiles('docs/out/index.html') != ''
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps $E2E_ENGINES
 
+      # Every engine runs after one fails, so the log shows them all.
       - name: Docs e2e tests
         if: hashFiles('docs/out/index.html') != ''
-        run: pnpm --filter docs test:e2e
+        run: |
+          status=0
+          for engine in $E2E_ENGINES; do
+            echo "::group::Docs e2e in $engine"
+            E2E_BROWSER=$engine pnpm --filter docs test:e2e || status=1
+            echo "::endgroup::"
+          done
+          exit $status
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
 

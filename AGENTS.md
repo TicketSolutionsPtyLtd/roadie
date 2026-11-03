@@ -31,6 +31,7 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 | `packages/components/`  | `@oztix/roadie-components`                                                                                             |
 | `packages/charts/`      | `@oztix/roadie-charts`: charts, legends, and dashboard views                                                           |
 | `packages/editor/`      | `@oztix/roadie-editor`: the rich-text editor and its saved format                                                      |
+| `packages/blocks/`      | `@oztix/roadie-blocks`: designed page sections, with presets and tracking                                              |
 | `packages/widgets/`     | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins                                                          |
 | `packages/lint-plugin/` | `@oztix/roadie-lint-plugin`: oxlint and ESLint rules for apps on Roadie                                                |
 | `docs/`                 | The docs site                                                                                                          |
@@ -140,8 +141,8 @@ These rules aren't on those pages.
   so on), which is `'use client'` and exports only components. On a server, use
   `/static` (`renderChartSvg`) and `/tables`.
 - A dashboard chart card's `plot` is `{ kind, ...props }`, where `kind` is
-  `line`, `bar`, `ranked-bars`, `stacked-bars`, `stacked-area`, `histogram`,
-  `funnel`, `heatmap`, `scatter`, or `small-multiples`.
+  `line`, `bar`, `ranked-bars`, `donut`, `stacked-bars`, `stacked-area`,
+  `histogram`, `funnel`, `heatmap`, `scatter`, or `small-multiples`.
 - Chart colour by job: `--chart-1` to `-8` (categorical, at most 6 then
   "Other", or `--chart-pair-*` and `--chart-trio-*`), `--chart-heat-0` to `-8`,
   `--chart-diverge-neg-4` to `-pos-4`, `--chart-status-*` (meaning only),
