@@ -23,8 +23,9 @@ function isGroups(items: readonly unknown[]): items is readonly Group[] {
 }
 
 const collators = new Map<string, Intl.Collator>()
-// Turkish and others fold some Latin letters their own way, so only English
-// takes the folded-string path.
+// Turkish and others fold some Latin letters their own way, and numeric
+// collation reads runs of digits as numbers, so only plain English takes the
+// folded-string path.
 const englishCollators = new WeakSet<Intl.Collator>()
 
 // The same options as Base UI's default filter, so ranking and matching agree.
@@ -38,7 +39,8 @@ function getCollator(locale?: Intl.LocalesArgument) {
       ignorePunctuation: true
     })
     collators.set(key, collator)
-    if (collator.resolvedOptions().locale.split('-')[0] === 'en')
+    const { locale: resolved, numeric } = collator.resolvedOptions()
+    if (resolved.split('-')[0] === 'en' && !numeric)
       englishCollators.add(collator)
   }
   return collator

@@ -187,8 +187,9 @@ describe('collatorContains', () => {
     const query = [
       slice,
       moved,
-      phrase().slice(0, 1 + Math.floor(random() * 10))
-    ][Math.floor(random() * 3)]!
+      phrase().slice(0, 1 + Math.floor(random() * 10)),
+      slice.replaceAll('é', 'e').replaceAll('ß', 'ss')
+    ][Math.floor(random() * 4)]!
     return [label, random() < 0.3 ? query.toUpperCase() : query] as const
   })
 
@@ -211,13 +212,31 @@ describe('collatorContains', () => {
     )
   })
 
+  it('agrees where the locale compares digits as numbers', () => {
+    const contains = collatorContains('en-u-kn')
+    for (const [label, query] of [
+      ['Gate 7', '07'],
+      ['Room 12', '1 2']
+    ] as const)
+      expect(contains(label, query)).toBe(
+        collatorWindows(label, query, 'en-u-kn')
+      )
+    expect(
+      rankMatches(['Gate 9', 'Gate 7'], '07', undefined, 'en-u-kn')
+    ).toEqual(['Gate 7', 'Gate 9'])
+  })
+
   it('reads labels the way Base UI does', () => {
     const contains = collatorContains('en-AU')
     expect(contains({ value: 'x', label: 'Gumleaf Hall' }, 'hall')).toBe(true)
     expect(contains({ value: 'Gumleaf Hall' }, 'hall')).toBe(true)
+    expect(contains({ value: 'Gumleaf Hall' }, 'value')).toBe(false)
     expect(
       contains({ name: 'Gumleaf Hall' }, 'hall', (item) => item.name)
     ).toBe(true)
+    expect(
+      contains({ name: 'Gumleaf Hall' }, 'name', (item) => item.name)
+    ).toBe(false)
     expect(contains('Gumleaf Hall', '')).toBe(true)
   })
 })
