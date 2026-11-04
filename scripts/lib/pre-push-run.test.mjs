@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
+import { killGroup } from './machine.mjs'
 import { runStep } from './pre-push-run.mjs'
 
 const outlasting = (ms) => ['node', '-e', `setTimeout(() => {}, ${ms})`]
@@ -33,5 +34,28 @@ describe('runStep', () => {
     assert.equal(outcome, 'failed')
     assert.deepEqual(failure.command, failing)
     assert.match(failure.output, /broken/)
+  })
+
+  test('runs each command with the env it is given', async () => {
+    const needsProbe = [
+      'node',
+      '-e',
+      'process.exit(process.env.ROADIE_PROBE === "set" ? 0 : 1)'
+    ]
+    const { outcome } = await runStep(
+      { commands: [needsProbe], budgetS: 10 },
+      { env: { ...process.env, ROADIE_PROBE: 'set' } }
+    )
+    assert.equal(outcome, 'passed')
+  })
+
+  test('lets the caller stop the running command', async () => {
+    const started = Date.now()
+    const { outcome } = await runStep(
+      { commands: [outlasting(10_000)], budgetS: 10 },
+      { onChild: (child) => child && killGroup(child.pid, 'SIGTERM') }
+    )
+    assert.equal(outcome, 'failed')
+    assert.ok(Date.now() - started < 5_000, 'stopped, not waited out')
   })
 })
