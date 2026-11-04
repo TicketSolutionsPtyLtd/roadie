@@ -13,9 +13,9 @@ problem_type: test_failure
 A docs e2e test fails now and then with
 `page.goto: Timeout 30000ms exceeded … waiting until "load"`, on a page that
 loads in about a second on other runs. Every test that shares the page fails
-with it, such as all of `/foundations/colors` in `twin-data.e2e.test.ts`. It
-showed up in the Firefox shards, which load the most pages, but every engine
-behaves the same way.
+with it, such as all of `/foundations/colors` in `twin-data.e2e.test.ts`. Every
+failure so far was in the Firefox shards, though CI loads the same pages in
+Chromium, and a stalled request times out every engine the same way.
 
 ## Cause
 
