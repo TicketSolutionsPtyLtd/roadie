@@ -6,16 +6,13 @@ import { getLiveExamples } from '@/lib/example-manifest'
 
 export const dynamicParams = false
 
-// No title: IsolatedExampleRoute renders the example's own once it loads,
-// and a title from here would compete with it.
+// Not the layout's title: IsolatedExampleRoute renders the example's, and two compete.
 export const metadata: Metadata = {
   title: null,
   robots: { index: false }
 }
 
-// Every example page is the same shell, which reads its example in the
-// browser. A build renders it once, and scripts/example-pages.ts copies it to
-// each example's address; `next dev` serves each address itself.
+// A build renders one shell for scripts/example-pages.ts to copy; `next dev` has no such step.
 export async function generateStaticParams() {
   if (process.env.NODE_ENV !== 'development') return [{ slug: [EXAMPLE_SHELL] }]
   return (await getLiveExamples()).map(({ page, id }) => ({
