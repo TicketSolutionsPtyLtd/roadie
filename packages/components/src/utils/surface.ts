@@ -38,6 +38,14 @@ function settle(part: HTMLElement) {
 }
 
 const PAINTS = /^background|surface|intent|bg|colou?r|hue|theme/
+// What a scroll area, pane, or accordion writes as it moves: a length can't be a fill behind var().
+const LENGTH = /^(-?[\d.]+(px)?)?$/
+
+function paints(name: string, before: string, after: string) {
+  if (before === after) return false
+  if (PAINTS.test(name)) return true
+  return name.startsWith('--') && !(LENGTH.test(before) && LENGTH.test(after))
+}
 
 let parsed: CSSStyleDeclaration | undefined
 
@@ -49,11 +57,9 @@ function repaints(record: MutationRecord) {
   parsed ??= document.createElement('div').style
   parsed.cssText = record.oldValue ?? ''
   const now = (record.target as HTMLElement).style
-  for (const name of new Set([...parsed, ...now]))
-    if (
-      PAINTS.test(name) &&
-      parsed.getPropertyValue(name) !== now.getPropertyValue(name)
-    )
+  // A shorthand holding var() leaves its longhands blank, so it's read whole.
+  for (const name of new Set(['background', ...parsed, ...now]))
+    if (paints(name, parsed.getPropertyValue(name), now.getPropertyValue(name)))
       return true
   return false
 }

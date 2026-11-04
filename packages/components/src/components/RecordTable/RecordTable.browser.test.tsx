@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
@@ -386,6 +388,38 @@ describe('RecordTable surface', () => {
     await expect
       .poll(() => bg(container, 'record-table-head'))
       .toBe('rgb(10, 20, 30)')
+  })
+
+  it.each([
+    ['a variable', '--card-fill', 'rgb(40, 50, 60)'],
+    ['a var() shorthand', 'background', 'var(--card-other)']
+  ])('follows a fill behind it that %s sets', async (_, property, value) => {
+    const { container } = render(
+      <div
+        data-testid='card'
+        style={
+          {
+            '--card-fill': 'rgb(10, 20, 30)',
+            '--card-other': 'rgb(40, 50, 60)',
+            background: 'var(--card-fill)'
+          } as CSSProperties
+        }
+      >
+        <RecordTable
+          data={testShows(20)}
+          fields={showFields}
+          columns={showColumns}
+        />
+      </div>
+    )
+    const card = container.querySelector<HTMLElement>('[data-testid="card"]')!
+    await expect
+      .poll(() => bg(container, 'record-table-head'))
+      .toBe('rgb(10, 20, 30)')
+    card.style.setProperty(property, value)
+    await expect
+      .poll(() => bg(container, 'record-table-head'))
+      .toBe('rgb(40, 50, 60)')
   })
 
   it('follows the theme when it switches', async () => {
