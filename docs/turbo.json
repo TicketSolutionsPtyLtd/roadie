@@ -23,6 +23,7 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/eslint/**",
+        "$TURBO_ROOT$/packages/core/src/css/*.css",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**"
       ]
     },
@@ -30,6 +31,7 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/eslint/**",
+        "$TURBO_ROOT$/packages/core/src/css/*.css",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**"
       ]
     }
