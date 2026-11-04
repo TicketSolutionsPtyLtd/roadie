@@ -12,6 +12,8 @@ const GLOBAL_FILE =
 const SOURCE = /\.(?:[cm]?[jt]sx?|css|vue)$/
 const TEST = /\.test\.[cm]?[jt]sx?$/
 const NOT_JSDOM = /\.(?:browser|e2e|perf)\.test\./
+// core's vitest config runs these folders' tests, and its parity guards read skills/.
+const TESTED_BY_CORE = /^(?:eslint|skills)\//
 const FORMATTED = /\.(?:[cm]?[jt]sx?|json|jsonc|css|ya?ml|md|mdx|vue|html)$/
 
 export const BUDGET_S = {
@@ -26,7 +28,7 @@ export const BUDGET_S = {
 export const isGuardTest = (path, readSource) =>
   TEST.test(path) &&
   !NOT_JSDOM.test(path) &&
-  /from ['"](?:node:)?fs['"]/.test(readSource(path))
+  /from ['"](?:node:)?fs(?:\/promises)?['"]/.test(readSource(path))
 
 const folderOf = (path) => path.slice(0, path.lastIndexOf('/') + 1)
 
@@ -160,7 +162,15 @@ export function planPrePush({
     })
   }
 
-  for (const workspace of touched) {
+  const core = workspaces.find(({ short }) => short === 'core')
+  const tested =
+    core &&
+    !touched.includes(core) &&
+    changedOrDeleted.some((file) => TESTED_BY_CORE.test(file))
+      ? [...touched, core]
+      : touched
+
+  for (const workspace of tested) {
     if (!workspace.scripts.test) continue
     const inWorkspace = (paths) =>
       paths

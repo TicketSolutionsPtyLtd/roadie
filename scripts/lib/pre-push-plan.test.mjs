@@ -88,6 +88,22 @@ describe('the pre-push hook', () => {
     assert.ok(tests.includes('src/Chart/engine-free.test.ts'))
   })
 
+  for (const file of [
+    'skills/motion/SKILL.md',
+    'skills/migrate/codemods/link-button.js',
+    'eslint/roadie-plugin.js'
+  ])
+    test(`a change to ${file}, whose tests core runs, runs core's guards`, () => {
+      const result = plan([file])
+      const [tests] = commandsOf('tests', result)
+      assert.ok(tests.includes('src/css/motion-skill-parity.test.ts'))
+      assert.ok(
+        result.skipped.some((line) =>
+          line.includes('pnpm test:gated core --all')
+        )
+      )
+    })
+
   test('a docs change builds every package docs reads before its typecheck', () => {
     const result = plan(DIFFS.docs)
     assert.deepEqual(labelsOf('typecheck', result), ['typecheck docs'])
@@ -172,6 +188,13 @@ describe('isGuardTest', () => {
     assert.equal(
       isGuardTest('src/a.test.ts', () => "import a from './a'"),
       false
+    )
+    assert.equal(
+      isGuardTest(
+        'src/a.test.ts',
+        () => "import { readFile } from 'node:fs/promises'"
+      ),
+      true
     )
     assert.equal(isGuardTest('src/a.browser.test.tsx', readsFs), false)
     assert.equal(isGuardTest('src/a.ts', readsFs), false)
