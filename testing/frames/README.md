@@ -35,7 +35,9 @@ it('scrolls 10,000 rows at 60fps', async () => {
 - The perf project slows Chromium's CPU through the DevTools protocol, to a
   rate calibrated so every machine runs a fixed workload in the same time
   (`ROADIE_PERF_CPU` sets a fixed rate, and `1` turns it off). Chromium
-  rasterises in software, as it must on GPU-less CI runners.
+  rasterises in software, as it must on GPU-less CI runners. A run that mixes
+  engines in `ROADIE_PERF_BROWSERS` leaves that off, since the flag would go to
+  every engine.
 - `ROADIE_PERF_REPORT=<file>` appends each run as a JSON line, and
   `node testing/frames/bin/frame-table.ts Label=<file> …` turns them into a
   Markdown table.

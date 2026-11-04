@@ -68,10 +68,10 @@ describe('Navigator steps between pages at 60fps on a slowed CPU', () => {
   ] as const)('steps into a show and back on a %s', async (name, width) => {
     await page.viewport(width, 844)
     await mount(<Promoter />, { frames: 10 })
-    for (const [scenario, value] of [
-      ['into a show', '/shows/1'],
-      ['back to shows', '/shows']
-    ] as const)
+    for (const [scenario, value, left] of [
+      ['into a show', '/shows/1', '/shows'],
+      ['back to shows', '/shows', '/shows/1']
+    ] as const) {
       await expectFrameBudget(
         `Navigator, ${name}, ${scenario}`,
         await measureFrames((index) => index === 0 && go(value), {
@@ -80,6 +80,11 @@ describe('Navigator steps between pages at 60fps on a slowed CPU', () => {
         // The phone steps pages; the desktop shows them side by side.
         name === 'phone' && value !== '/shows' ? { knownMiss: 'INNO-1524' } : {}
       )
-    expect(document.querySelector('[data-slot="pane"]')).not.toBeNull()
+      const titles = [
+        ...document.querySelectorAll('[data-slot="pane-title"]')
+      ].map((title) => title.textContent)
+      expect(titles).toContain(value)
+      expect(titles).not.toContain(left)
+    }
   })
 })
