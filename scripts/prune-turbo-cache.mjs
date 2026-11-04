@@ -2,7 +2,7 @@
 // Keeps each CI job's saved Turbo cache to what its recent runs used, since a
 // restored cache only grows (PR caches reached 1 GB). Entries a run used are
 // stamped in .turbo/cache-access.json; entries unused for MAX_AGE_DAYS go,
-// then the least recently used until the cache fits MAX_MB.
+// then the least recently used, largest first, until the cache fits MAX_MB.
 import {
   appendFileSync,
   existsSync,
@@ -64,8 +64,16 @@ export function pruneTurboCache({
     access[hash] = used.has(hash) ? now : (before[hash] ?? now)
   }
   const added = [...entries.keys()].filter((hash) => !(hash in before))
+  // A run that only replays saves nothing, so its stamps would be lost and a
+  // daily-used entry could still age out. A day-old stamp forces a save.
+  const refreshed = [...used].filter(
+    (hash) => hash in before && now - before[hash] > DAY_MS
+  )
 
-  const oldestFirst = [...entries.keys()].sort((a, b) => access[a] - access[b])
+  const oldestFirst = [...entries.keys()].sort(
+    (a, b) =>
+      access[a] - access[b] || entries.get(b).bytes - entries.get(a).bytes
+  )
   let total = [...entries.values()].reduce((sum, { bytes }) => sum + bytes, 0)
   const removed = []
   for (const hash of oldestFirst) {
@@ -86,7 +94,7 @@ export function pruneTurboCache({
     removed,
     kept: Object.keys(access).length,
     bytes: total,
-    changed: added.length > 0 || removed.length > 0
+    changed: added.length > 0 || removed.length > 0 || refreshed.length > 0
   }
 }
 

@@ -83,4 +83,24 @@ describe('pruneTurboCache', () => {
     assert.deepEqual(result.added, ['bbbb'])
     assert.equal(result.changed, true)
   })
+
+  it('counts refreshing a day-old stamp as a change, so a replay-only run still saves it', () => {
+    const f = fixture({
+      entries: { aaaa: 10 },
+      access: { aaaa: NOW - 2 * DAY },
+      used: ['aaaa']
+    })
+    const result = pruneTurboCache({ ...f, now: NOW })
+    assert.equal(result.changed, true)
+  })
+
+  it('evicts the largest entry first when every entry was used and the cache is over budget', () => {
+    const f = fixture({
+      entries: { aaaa: 100, bbbb: 900, cccc: 100 },
+      access: { aaaa: NOW, bbbb: NOW, cccc: NOW },
+      used: ['aaaa', 'bbbb', 'cccc']
+    })
+    pruneTurboCache({ ...f, now: NOW, maxBytes: 500 })
+    assert.deepEqual(f.hashes(), ['aaaa', 'cccc'])
+  })
 })
