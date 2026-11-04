@@ -76,5 +76,7 @@ then loads a whole page. Pushing the hash right after `load` loses it every
 time.
 
 Before pushing history or clicking a link that must navigate on the client,
-`await routerReady(page)` (in `docs/e2e/routerReady.ts`). It waits for the
-`__NA` flag Next writes into `history.state`.
+`await routerReady(page)` (in `docs/e2e/routerReady.ts`). It waits for Next to
+patch `pushState`, which it does after hydrating and writing its own history
+entry. The `__NA` flag Next writes into `history.state` isn't enough on its
+own: it outlives a reload, and it comes before the patch.
