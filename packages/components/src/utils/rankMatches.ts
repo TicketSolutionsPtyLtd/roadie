@@ -91,6 +91,7 @@ function startsWord(label: string, start: number, end: number) {
 }
 
 const PLAIN = /^[A-Za-z0-9 ]*$/
+const foldOnce = (text: string) => text.toLowerCase().replaceAll(' ', '')
 const folds = new Map<string, string>()
 
 // Labels come round again on every keystroke, so their folds are kept, up to
@@ -99,7 +100,7 @@ function fold(text: string) {
   let folded = folds.get(text)
   if (folded === undefined) {
     if (folds.size >= 20_000) folds.clear()
-    folded = text.toLowerCase().replaceAll(' ', '')
+    folded = foldOnce(text)
     folds.set(text, folded)
   }
   return folded
@@ -123,7 +124,7 @@ function sliceMatcher(label: string, query: string, collator: Intl.Collator) {
   const folded = fold(query)
   return {
     possible: fold(label).includes(folded),
-    same: (slice: string) => fold(slice) === folded
+    same: (slice: string) => foldOnce(slice) === folded
   }
 }
 

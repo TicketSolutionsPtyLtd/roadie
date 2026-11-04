@@ -223,7 +223,7 @@ describe('collatorContains', () => {
 })
 
 describe('rankMatches against the collator', () => {
-  it('ranks generated labels the same as comparing every window', () => {
+  it('ranks every label the collator matches ahead of every one it does not', () => {
     const random = seeded(11)
     const words = ['Gumleaf', 'hall', 'Kazoo', 'tin', 'Lantern', 'ROOM', '7']
     const items = Array.from({ length: 300 }, (_, index) =>
@@ -233,11 +233,12 @@ describe('rankMatches against the collator', () => {
       ).join(index % 5 ? ' ' : '-')
     )
     for (const query of ['hall', 'Gumleaf Hall', 'tin lan', 'room 7', 'zoo']) {
-      const matched = rankMatches(items, query).filter((item) =>
-        collatorWindows(item, query, undefined)
-      )
       const expected = items.filter((item) => collatorWindows(item, query))
-      expect(new Set(matched)).toEqual(new Set(expected))
+      expect(expected.length).toBeGreaterThan(0)
+      const ranked = rankMatches(items, query)
+      expect(new Set(ranked.slice(0, expected.length))).toEqual(
+        new Set(expected)
+      )
     }
   })
 })
