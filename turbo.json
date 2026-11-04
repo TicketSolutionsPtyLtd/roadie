@@ -47,8 +47,7 @@
     "check:package": {
       "dependsOn": ["build"],
       "inputs": [
-        "package.json",
-        "scripts/**",
+        "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/packages/core/scripts/check-*.mjs"
       ],
       "outputs": []

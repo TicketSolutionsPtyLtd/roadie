@@ -1,10 +1,10 @@
-import { spawn } from 'node:child_process'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import type { TokenManifest } from '../../src/tokens/manifest.ts'
+import { alongside } from './alongside.ts'
 import { DOCUMENTED_ELSEWHERE, DOCUMENTED_SUBPATHS } from './elsewhere.ts'
 import { MANIFEST_FILE, buildManifest } from './manifest.ts'
 
@@ -17,23 +17,15 @@ const tokensFile = process.argv.includes('--tokens')
 // `--alongside <command>` reads the source while the command builds dist, and
 // writes the manifest once it exits, so the command's clean can't delete it.
 const alongsideIndex = process.argv.indexOf('--alongside')
-const alongside =
+const command =
   alongsideIndex === -1
     ? undefined
-    : runCommand(process.argv.slice(alongsideIndex + 1).join(' '))
+    : process.argv.slice(alongsideIndex + 1).join(' ')
 
-function runCommand(command: string) {
-  const child = spawn(command, { shell: true, stdio: 'inherit' })
-  return new Promise<number>((resolve, reject) => {
-    child.on('error', reject)
-    child.on('exit', (code, signal) => resolve(code ?? (signal ? 1 : 0)))
-  })
-}
-
-const started = performance.now()
-let manifest
-try {
-  manifest = buildManifest({
+let elapsed = 0
+const outcome = await alongside(command, () => {
+  const started = performance.now()
+  const built = buildManifest({
     packageDir,
     workspaceRoot,
     documentedElsewhere: DOCUMENTED_ELSEWHERE,
@@ -42,14 +34,11 @@ try {
       ? (JSON.parse(readFileSync(tokensFile, 'utf8')) as TokenManifest).tokens
       : undefined
   })
-} catch (error) {
-  await alongside
-  throw error
-}
-const elapsed = performance.now() - started
-
-const exitCode = (await alongside) ?? 0
-if (exitCode !== 0) process.exit(exitCode)
+  elapsed = performance.now() - started
+  return built
+})
+if (!('result' in outcome)) process.exit(outcome.exitCode)
+const manifest = outcome.result
 
 const target = path.join(packageDir, 'dist', MANIFEST_FILE)
 mkdirSync(path.dirname(target), { recursive: true })
