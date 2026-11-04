@@ -8,8 +8,10 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
+const TEST_FOLDER =
+  /(^|\/)(__tests__|__mocks__|__screenshots__|__snapshots__|__fixtures__|fixtures?)\//
 const TEST_FILE =
-  /(^|\/)(__tests__|__screenshots__|__snapshots__|__fixtures__|fixtures)\/|\.(test|spec)\.[cm]?[jt]sx?$|(^|\/)(testUtils|\w+TestUtils)\.[cm]?[jt]sx?$/
+  /\.(test|spec)(-d)?\.(d\.)?[cm]?[jt]sx?$|(^|\/)(test-?utils|\w*TestUtils)\.[cm]?[jt]sx?$/i
 
 function exportTargets(exports) {
   if (typeof exports === 'string') return [exports]
@@ -36,7 +38,8 @@ export function packProblems(files, readFile, exports, withheld = []) {
       (target) => `exports points at ${target}, which the tarball doesn't ship`
     )
   for (const file of files) {
-    if (TEST_FILE.test(file)) problems.push(`${file} is a test file`)
+    if (TEST_FOLDER.test(file) || TEST_FILE.test(file))
+      problems.push(`${file} is a test file`)
     if (!file.endsWith('.map')) continue
     const map = JSON.parse(readFile(file))
     const missing = map.sources.filter(

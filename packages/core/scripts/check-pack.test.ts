@@ -20,17 +20,26 @@ describe('packProblems', () => {
     'src/css/contrastTestUtils.ts',
     'src/css/testUtils.ts',
     'src/Chart/__screenshots__/line.png',
-    'scripts/manifest/fixtures/package.json'
+    'scripts/manifest/fixtures/package.json',
+    'src/fixture/a.json',
+    'src/__mocks__/x.js',
+    'src/test-utils.ts',
+    'src/TestUtils.ts',
+    'src/a.test-d.ts',
+    'dist/a.test.d.ts'
   ])('flags %s as a test file', (file) => {
     expect(packProblems([file], read)).toEqual([`${file} is a test file`])
   })
 
-  it.each(['src/css/roadie.css', 'dist/testing.js', 'dist/attest.js'])(
-    'ships %s',
-    (file) => {
-      expect(packProblems([file], read)).toEqual([])
-    }
-  )
+  it.each([
+    'src/css/roadie.css',
+    'dist/testing.js',
+    'dist/attest.js',
+    'dist/latest.d.ts',
+    'dist/contest/index.js'
+  ])('ships %s', (file) => {
+    expect(packProblems([file], read)).toEqual([])
+  })
 
   it('accepts a map that embeds its sources', () => {
     expect(packProblems(['dist/a.js.map'], read)).toEqual([])
