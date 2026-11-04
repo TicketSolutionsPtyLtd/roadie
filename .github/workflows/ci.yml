@@ -329,9 +329,11 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: /roadie
           TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
-      # attw, check:dts, the Node ESM check, and the tarball guard, which build no longer runs.
+      # attw, check:dts, the Node ESM check, and the tarball guard, which build no
+      # longer runs. The filter keeps docs out: its build has no base path here,
+      # so it would overwrite the export the e2e tests read.
       - name: Check packages
-        run: pnpm turbo check:package
+        run: pnpm turbo check:package --filter='./packages/*'
 
       # -r so widgets is covered too; it had been over budget unnoticed.
       - name: Check bundle size

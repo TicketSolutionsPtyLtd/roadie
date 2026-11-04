@@ -32,20 +32,25 @@ export function warnIfLowDisk() {
   return true
 }
 
-export async function waitForLoad() {
+export async function waitForLoad({
+  maxWaitMs = maxLoadWaitMs,
+  pollMs = loadPollMs
+} = {}) {
   const started = Date.now()
   for (;;) {
     const [load] = loadavg()
     if (load <= loadLimit) return
-    if (Date.now() - started > maxLoadWaitMs) {
+    const waited = Date.now() - started
+    if (waited >= maxWaitMs) {
       throw new Error(
-        `Load stayed above ${loadLimit} for 30 minutes. Giving up.`
+        `Load stayed above ${loadLimit} for ${Math.round(waited / 1000)}s. Giving up.`
       )
     }
+    const wait = Math.min(pollMs, maxWaitMs - waited)
     console.log(
-      `Load ${load.toFixed(2)} is above ${loadLimit}. Waiting ${loadPollMs / 1000}s.`
+      `Load ${load.toFixed(2)} is above ${loadLimit}. Waiting ${Math.ceil(wait / 1000)}s.`
     )
-    await sleep(loadPollMs)
+    await sleep(wait)
   }
 }
 

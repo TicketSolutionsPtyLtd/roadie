@@ -336,7 +336,8 @@ Handlers and hrefs never go in the JSON.
 - Download CSV from `cardTable(card)` (`@oztix/roadie-charts/tables`). Copy as
   image with `renderChartSvg`. A server route that builds either itself
   passes the card through `followPeriod(card, period, { timeZone, locale })`
-  from the same entry first, so a chart's comparison matches the Table view.
+  from the same entry first, so its headline delta and context and a chart's
+  comparison match the card on screen.
 - For a single card outside a spec, pass `actions` to `Chart`, `DataCard`, or
   `StatTile`.
 
