@@ -41,12 +41,7 @@ const SELECTED = listItemVariants({ selected: true }).split(' ')
 
 let inertDocument: Document | null = null
 
-/**
- * The outermost elements in the viewport that lie wholly above or below what
- * it shows. Their copies would cost a styled and laid-out page on the step's
- * first frame for nothing anyone sees. Layout is clean before React commits,
- * so reading boxes here costs little.
- */
+// Copying these would style and lay out a whole page on the step's first frame; layout is clean before commit, so boxes are cheap to read.
 function outOfView(viewport: HTMLElement | null) {
   const out = new Set<Element>()
   if (!viewport) return out
@@ -101,12 +96,19 @@ function ghostOf(pane: HTMLElement) {
   return ghost
 }
 
+// A live tag would load once connected; others keep theirs, so tag rules like Prose's margins hold.
+function emptyCopy(copy: Element) {
+  if (!isLive(copy)) return copy.cloneNode(false) as HTMLElement
+  const div = copy.ownerDocument.createElement('div')
+  div.setAttribute('class', copy.getAttribute('class') ?? '')
+  div.setAttribute('style', copy.getAttribute('style') ?? '')
+  return div
+}
+
 function standIn(original: Element, copy: Element) {
   const { width, height } = original.getBoundingClientRect()
   const display = getComputedStyle(original).display
-  const stand = copy.ownerDocument.createElement('div')
-  stand.setAttribute('class', copy.getAttribute('class') ?? '')
-  stand.setAttribute('style', copy.getAttribute('style') ?? '')
+  const stand = emptyCopy(copy)
   stand.style.display = display === 'inline' ? 'inline-block' : display
   stand.style.width = `${width}px`
   stand.style.height = `${height}px`
