@@ -61,7 +61,8 @@ function resolvedZone() {
  */
 export function viewerTimeZone(): string {
   // A formatter costs more than each date a table renders, so ask again only
-  // when an offset moves. January and July tell apart zones that share today's.
+  // when an offset moves. January and July tell apart most zones that share
+  // today's; a switch between two that agree on all three goes unseen.
   const offsets = `${new Date().getTimezoneOffset()} ${january.getTimezoneOffset()} ${july.getTimezoneOffset()}`
   if (viewerZone?.offsets === offsets) return viewerZone.zone
   viewerZone = { offsets, zone: resolvedZone() }

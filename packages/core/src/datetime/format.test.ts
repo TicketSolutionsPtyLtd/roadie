@@ -721,34 +721,39 @@ describe('timestamps', () => {
     expect(viewerTimeZone()).toBe(first)
   })
 
-  it('viewerTimeZone tells apart zones that share only today’s offset', () => {
-    const first = viewerTimeZone()
-    const today = new Date().getTimezoneOffset()
-    const week = 7 * 24 * 60 * 60 * 1000
-    let zone = 'Australia/Brisbane'
-    // Sydney matches Brisbane today but not across its daylight saving.
-    const offset = vi
-      .spyOn(Date.prototype, 'getTimezoneOffset')
-      .mockImplementation(function (this: Date) {
-        const far = Math.abs(this.getTime() - Date.now()) > week
-        return zone === 'Australia/Sydney' && far ? today - 60 : today
-      })
-    const format = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
-      () =>
-        ({
-          resolvedOptions: () => ({ timeZone: zone })
-        }) as Intl.DateTimeFormat
-    )
-    try {
-      expect(viewerTimeZone()).toBe('Australia/Brisbane')
-      zone = 'Australia/Sydney'
-      expect(viewerTimeZone()).toBe('Australia/Sydney')
-    } finally {
-      offset.mockRestore()
-      format.mockRestore()
+  it.each([
+    { from: 'Australia/Brisbane', to: 'Australia/Sydney', month: 0 },
+    { from: 'Africa/Abidjan', to: 'Europe/London', month: 6 }
+  ])(
+    'viewerTimeZone tells $from from $to by month $month',
+    ({ from, to, month }) => {
+      const first = viewerTimeZone()
+      // Off the real offset, so the real zone's cached answer can't match.
+      const base = new Date().getTimezoneOffset() + 30
+      const differs = Date.UTC(new Date().getUTCFullYear(), month, 1)
+      let zone = from
+      const offset = vi
+        .spyOn(Date.prototype, 'getTimezoneOffset')
+        .mockImplementation(function (this: Date) {
+          return zone === to && this.getTime() === differs ? base - 60 : base
+        })
+      const format = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        () =>
+          ({
+            resolvedOptions: () => ({ timeZone: zone })
+          }) as Intl.DateTimeFormat
+      )
+      try {
+        expect(viewerTimeZone()).toBe(from)
+        zone = to
+        expect(viewerTimeZone()).toBe(to)
+      } finally {
+        offset.mockRestore()
+        format.mockRestore()
+      }
+      expect(viewerTimeZone()).toBe(first)
     }
-    expect(viewerTimeZone()).toBe(first)
-  })
+  )
 })
 
 describe('machine values', () => {
