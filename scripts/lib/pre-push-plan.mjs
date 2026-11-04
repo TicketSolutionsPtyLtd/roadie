@@ -16,10 +16,12 @@ const NOT_JSDOM = /\.(?:browser|e2e|perf)\.test\./
 const TESTED_BY_CORE = /^(?:eslint|skills)\//
 const FORMATTED = /\.(?:[cm]?[jt]sx?|json|jsonc|css|ya?ml|md|mdx|vue|html)$/
 
+// No budget for the build: tsdown empties dist first, so stopping it midway
+// breaks the preview and dev server until the next full build.
 export const BUDGET_S = {
   guards: 60,
   format: 30,
-  build: 90,
+  build: null,
   typecheck: 90,
   tests: 120
 }
@@ -171,7 +173,6 @@ export function planPrePush({
     steps.push({
       kind: 'typecheck',
       label: `typecheck ${workspace.short}`,
-      needsBuild: built.includes(workspace),
       rerun: `pnpm --filter ${workspace.name} typecheck`,
       cwd: workspace.dir,
       commands: incremental
@@ -213,7 +214,6 @@ export function planPrePush({
     steps.push({
       kind: 'tests',
       label: `tests ${workspace.short} (${own.length} beside the change, ${count(guardFiles.length, 'guard')})`,
-      needsBuild: built.includes(workspace),
       rerun: `pnpm test:gated ${[workspace.short, ...tests, ...projectArgs].join(' ')}`,
       commands: [
         [

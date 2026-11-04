@@ -119,15 +119,10 @@ describe('the pre-push hook', () => {
     ])
   })
 
-  test('only the steps that read the build wait on it', () => {
-    const { steps } = plan([...DIFFS.core, ...DIFFS.docs])
-    const [typecheck, tests, ...rest] = steps
-      .filter((step) => step.needsBuild)
-      .map(({ label }) => label)
-    assert.equal(typecheck, 'typecheck docs')
-    assert.match(tests, /^tests docs /)
-    assert.deepEqual(rest, [])
-    const kinds = steps.map(({ kind }) => kind)
+  test('builds before it typechecks', () => {
+    const kinds = plan([...DIFFS.core, ...DIFFS.docs]).steps.map(
+      ({ kind }) => kind
+    )
     assert.ok(kinds.indexOf('build') < kinds.indexOf('typecheck'))
   })
 
@@ -154,10 +149,11 @@ describe('the pre-push hook', () => {
     )
   })
 
-  test('every step has a time budget', () => {
+  test('every step but the build has a time budget', () => {
     for (const files of Object.values(DIFFS))
       for (const step of plan(files).steps)
-        assert.ok(step.budgetS > 0, `${step.label} has a budget`)
+        if (step.kind === 'build') assert.equal(step.budgetS, null)
+        else assert.ok(step.budgetS > 0, `${step.label} has a budget`)
   })
 })
 
