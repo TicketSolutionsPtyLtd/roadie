@@ -71,6 +71,7 @@ function dependentsOf(names, workspaces) {
 /**
  * @param {object} input
  * @param {string[]} input.files repo-relative paths changed since the base, that still exist
+ * @param {string[]} [input.deleted] repo-relative paths deleted since the base
  * @param {{ name: string, short: string, dir: string, deps: string[], scripts: Record<string, string> }[]} input.workspaces
  * @param {Record<string, string[]>} input.testFiles package-relative test files, by short name
  * @param {Record<string, string[]>} input.guards the guard tests among them
@@ -78,16 +79,18 @@ function dependentsOf(names, workspaces) {
  */
 export function planPrePush({
   files,
+  deleted = [],
   workspaces,
   testFiles,
   guards,
   cacheDir
 }) {
-  const global = files.some((file) => GLOBAL_FILE.test(file))
+  const changedOrDeleted = [...files, ...deleted]
+  const global = changedOrDeleted.some((file) => GLOBAL_FILE.test(file))
   const touched = global
     ? workspaces
     : workspaces.filter((workspace) =>
-        files.some((file) => isIn(file, workspace))
+        changedOrDeleted.some((file) => isIn(file, workspace))
       )
   const touchedNames = new Set(touched.map(({ name }) => name))
   const steps = []
@@ -159,10 +162,14 @@ export function planPrePush({
 
   for (const workspace of touched) {
     if (!workspace.scripts.test) continue
-    const changed = files
-      .filter((file) => isIn(file, workspace) && SOURCE.test(file))
-      .map((file) => file.slice(workspace.dir.length + 1))
-    const changedFolders = new Set(changed.map(folderOf))
+    const inWorkspace = (paths) =>
+      paths
+        .filter((file) => isIn(file, workspace) && SOURCE.test(file))
+        .map((file) => file.slice(workspace.dir.length + 1))
+    const changed = inWorkspace(files)
+    const changedFolders = new Set(
+      [...changed, ...inWorkspace(deleted)].map(folderOf)
+    )
     const own = (testFiles[workspace.short] ?? []).filter(
       (test) =>
         !NOT_JSDOM.test(test) &&

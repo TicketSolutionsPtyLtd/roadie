@@ -60,9 +60,17 @@ if (live.length && !live.some(sharesHistory)) {
   process.exit(0)
 }
 
-const files = git('diff', '--name-only', '--no-renames', `${base}...HEAD`)
+const changedSinceBase = git(
+  'diff',
+  '--name-only',
+  '--no-renames',
+  `${base}...HEAD`
+)
   .stdout.split('\n')
-  .filter((file) => file && existsSync(join(repoRoot, file)))
+  .filter(Boolean)
+const exists = (file) => existsSync(join(repoRoot, file))
+const files = changedSinceBase.filter(exists)
+const deleted = changedSinceBase.filter((file) => !exists(file))
 
 const { workspaces, testFiles, guards } = readWorkspaces(repoRoot)
 
@@ -70,6 +78,7 @@ const cacheDir = join(repoRoot, 'node_modules', '.cache', 'roadie-pre-push')
 mkdirSync(cacheDir, { recursive: true })
 const { steps, skipped } = planPrePush({
   files,
+  deleted,
   workspaces,
   testFiles,
   guards,
@@ -77,7 +86,7 @@ const { steps, skipped } = planPrePush({
 })
 
 console.log(
-  `pre-push: ${files.length} files changed since ${base}. Checking ${steps.map(({ label }) => label).join(', ')}.`
+  `pre-push: ${changedSinceBase.length} files changed since ${base}. Checking ${steps.map(({ label }) => label).join(', ')}.`
 )
 
 if (!process.env.CI && loadWaitS > 0) {

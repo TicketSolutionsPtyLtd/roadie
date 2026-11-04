@@ -12,7 +12,8 @@ import {
 } from './pre-push-plan.mjs'
 
 const repo = readWorkspaces(repoRoot)
-const plan = (files) => planPrePush({ ...repo, files, cacheDir: '/cache' })
+const plan = (files, deleted = []) =>
+  planPrePush({ ...repo, files, deleted, cacheDir: '/cache' })
 const commandsOf = (kind, { steps }) =>
   steps.filter((step) => step.kind === kind).flatMap((step) => step.commands)
 const labelsOf = (kind, result) =>
@@ -66,6 +67,17 @@ describe('the pre-push hook', () => {
         line.includes('pnpm test:gated components --all')
       )
     )
+  })
+
+  test('a deleted file still typechecks its package and runs the tests beside it', () => {
+    const removed = 'packages/components/src/components/Badge/index.tsx'
+    const result = plan([], [removed])
+    assert.deepEqual(labelsOf('typecheck', result), ['typecheck components'])
+    const [tests] = commandsOf('tests', result)
+    assert.ok(tests.includes('src/components/Badge/Badge.test.tsx'))
+    for (const command of result.steps.flatMap((step) => step.commands))
+      assert.ok(!command.some((arg) => arg.endsWith('Badge/index.tsx')))
+    assert.ok(result.skipped.every((line) => !line.includes('Badge/index.tsx')))
   })
 
   test('a charts change runs the engine-free guard', () => {
