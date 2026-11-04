@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, type ReactNode, useEffect, useState } from 'react'
 
 import { cleanup, render } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
@@ -28,7 +28,13 @@ afterEach(() => {
 
 let go: (value: string) => void = () => {}
 
-function Shows({ prose = false }: { prose?: boolean }) {
+function Shows({
+  prose = false,
+  children
+}: {
+  prose?: boolean
+  children?: ReactNode
+}) {
   const [value, setValue] = useState('/shows')
   useEffect(() => {
     go = setValue
@@ -50,7 +56,8 @@ function Shows({ prose = false }: { prose?: boolean }) {
           <Pane.Header>
             <Pane.Title>{value}</Pane.Title>
           </Pane.Header>
-          {value === '/shows' && !prose && (
+          {value === '/shows' && children}
+          {value === '/shows' && !prose && !children && (
             <div className='grid gap-4'>
               {Array.from({ length: 120 }, (_, index) => (
                 <p key={index}>Line {index + 1} of the Rolling Kazoos tour</p>
@@ -81,9 +88,11 @@ const topViewport = () =>
     '[data-stack-position="top"] [data-slot="pane-viewport"]'
   )!
 
-function topIn(root: ParentNode, text: string) {
-  const viewport = root.querySelector('[data-slot="pane-viewport"]')!
-  const line = Array.from(root.querySelectorAll('p')).find(
+const ghostViewport = () =>
+  ghost().querySelector<HTMLElement>('[data-slot="pane-viewport"]')!
+
+function topIn(viewport: Element, text: string) {
+  const line = Array.from(viewport.querySelectorAll('p')).find(
     (p) => p.textContent === text
   )!
   return line.getBoundingClientRect().top - viewport.getBoundingClientRect().top
@@ -92,21 +101,18 @@ function topIn(root: ParentNode, text: string) {
 describe('a page step on a phone', () => {
   it('copies only what shows of the page it leaves, at its full height', async () => {
     render(<Shows />)
-    const viewport = () =>
-      document.querySelector<HTMLElement>(
-        '[data-stack-position="top"] [data-slot="pane-viewport"]'
-      )!
-    await expect.poll(() => viewport()?.scrollHeight ?? 0).toBeGreaterThan(2000)
-    const height = viewport().scrollHeight
+    await expect
+      .poll(() => topViewport()?.scrollHeight ?? 0)
+      .toBeGreaterThan(2000)
+    const height = topViewport().scrollHeight
     go('/shows/1')
     await expect.poll(() => ghost().childElementCount).toBe(1)
-    const copy = ghost().querySelector<HTMLElement>(
-      '[data-slot="pane-viewport"]'
-    )!
     const text = ghost().textContent
     expect(text).toContain('Line 1 of the Rolling Kazoos tour')
     expect(text).not.toContain('Line 110 of')
-    expect(Math.abs(copy.scrollHeight - height)).toBeLessThanOrEqual(1)
+    expect(Math.abs(ghostViewport().scrollHeight - height)).toBeLessThanOrEqual(
+      1
+    )
   })
 
   it('keeps what shows where it was, with tag-styled pages scrolled past', async () => {
@@ -116,14 +122,40 @@ describe('a page step on a phone', () => {
       .toBeGreaterThan(3000)
     topViewport().scrollTop = 1500
     const line = Array.from(topViewport().querySelectorAll('p')).find((p) => {
-      const top = topIn(document, p.textContent ?? '')
+      const top = topIn(topViewport(), p.textContent ?? '')
       return top > 100 && top < 600
     })!
     const text = line.textContent ?? ''
-    const before = topIn(document, text)
+    const before = topIn(topViewport(), text)
     go('/shows/1')
     await expect.poll(() => ghost().childElementCount).toBe(1)
     expect(ghost().textContent).not.toContain('Line 1 of')
-    expect(Math.abs(topIn(ghost(), text) - before)).toBeLessThanOrEqual(1)
+    expect(Math.abs(topIn(ghostViewport(), text) - before)).toBeLessThanOrEqual(
+      1
+    )
+  })
+
+  it('keeps the lines of a paragraph that straddles the top where they were', async () => {
+    render(
+      <Shows>
+        <p>
+          <strong>{'Kazoo '.repeat(20)}</strong>
+          {'Encore '.repeat(400)}
+          <span data-mark>Mark</span>
+          {'Encore '.repeat(400)}
+        </p>
+      </Shows>
+    )
+    await expect
+      .poll(() => topViewport()?.scrollHeight ?? 0)
+      .toBeGreaterThan(2000)
+    const mark = (viewport: Element) =>
+      viewport.querySelector('[data-mark]')!.getBoundingClientRect().top -
+      viewport.getBoundingClientRect().top
+    topViewport().scrollTop = mark(topViewport()) - 300
+    const before = mark(topViewport())
+    go('/shows/1')
+    await expect.poll(() => ghost().childElementCount).toBe(1)
+    expect(Math.abs(mark(ghostViewport()) - before)).toBeLessThanOrEqual(1)
   })
 })

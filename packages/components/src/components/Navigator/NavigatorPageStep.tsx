@@ -51,8 +51,11 @@ function outOfView(viewport: HTMLElement | null) {
       const box = child.getBoundingClientRect()
       // A display: contents box has no size of its own, so its children say.
       if (box.width === 0 && box.height === 0) visit(child)
-      else if (box.bottom < view.top || box.top > view.bottom) out.add(child)
-      else visit(child)
+      else if (box.bottom < view.top || box.top > view.bottom) {
+        // A box in place of inline content reflows its line, moving what shows.
+        if (!getComputedStyle(child).display.startsWith('inline'))
+          out.add(child)
+      } else visit(child)
     }
   }
   visit(viewport)
