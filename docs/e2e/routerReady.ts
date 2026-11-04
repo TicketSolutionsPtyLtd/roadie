@@ -10,3 +10,13 @@ export const routerReady = (page: Page) =>
   page.waitForFunction(
     () => !String(window.history.pushState).includes('[native code]')
   )
+
+/**
+ * Waits for a page `goto` loaded to settle: nothing left to fetch, and
+ * hydrated. Before hydration the layout can differ, such as guideline cards
+ * stacked one to a row.
+ */
+export async function settled(page: Page) {
+  await page.waitForLoadState('networkidle')
+  await routerReady(page)
+}
