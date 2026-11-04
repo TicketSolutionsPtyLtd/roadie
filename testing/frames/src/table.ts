@@ -1,4 +1,5 @@
 import type { FrameRecord } from './record'
+import { MIN_FRAMES } from './stats.ts'
 
 export type LabelledRun = { label: string; records: FrameRecord[] }
 
@@ -40,7 +41,9 @@ function budgetCell(results: (readonly [string, FrameRecord | undefined])[]) {
     .filter(([, record]) => record?.pass === false)
     .map(([label]) => label.toLowerCase())
   const first = (key: 'knownMiss' | 'exception') =>
-    results.find(([, record]) => record?.[key])?.[1]?.[key]
+    results.find(
+      ([, record]) => record && record.frames >= MIN_FRAMES && record[key]
+    )?.[1]?.[key]
   const verdict = missed.length ? `Missed in ${missed.join(', ')}` : 'Met'
   const exception = first('exception')
   if (exception) return `${verdict}, accepted: ${exception}`

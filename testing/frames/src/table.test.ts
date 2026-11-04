@@ -108,9 +108,27 @@ describe('frameTable cells', () => {
     const table = frameTable([
       {
         label: 'Throttled',
-        records: [record('Dialog, open', { exception: 'blur | tint' })]
+        records: [record('Dialog, open', { exception: 'blur | tint | glow' })]
       }
     ])
-    expect(table).toContain('| Met, accepted: blur \\| tint |')
+    expect(table).toContain('| Met, accepted: blur \\| tint \\| glow |')
+  })
+})
+
+describe('frameTable short runs', () => {
+  it('accepts nothing in a run too short to judge', () => {
+    const table = frameTable([
+      {
+        label: 'Throttled',
+        records: [
+          record('Dialog, open', {
+            frames: 30,
+            pass: false,
+            exception: 'backdrop blur kept by design'
+          })
+        ]
+      }
+    ])
+    expect(table).toContain('| Missed in throttled |')
   })
 })

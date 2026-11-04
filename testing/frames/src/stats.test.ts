@@ -115,6 +115,12 @@ describe('missExcuse', () => {
     expect(missExcuse(59, { knownMiss: 'INNO-9999' })).toBeUndefined()
   })
 
+  it('falls back to a known miss when the exception is empty', () => {
+    expect(missExcuse(60, { knownMiss: 'INNO-9999', exception: '' })).toBe(
+      'INNO-9999'
+    )
+  })
+
   it('excuses nothing that gives no reason', () => {
     expect(missExcuse(120, {})).toBeUndefined()
   })
