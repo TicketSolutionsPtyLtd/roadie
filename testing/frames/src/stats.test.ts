@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { budgetMisses, defaultBudget, summariseFrames } from './stats'
+import {
+  budgetMisses,
+  defaultBudget,
+  missExcuse,
+  summariseFrames
+} from './stats'
 
 const smooth = (count: number) => Array.from({ length: count }, () => 16.7)
 
@@ -86,5 +91,31 @@ describe('budgetMisses', () => {
       'p95 18ms is over 17.5ms'
     ])
     expect(budgetMisses(run(deltas), defaultBudget('webkit'))).toEqual([])
+  })
+})
+
+describe('missExcuse', () => {
+  const reason = 'backdrop blur kept by design'
+
+  it.each([
+    ['an exception', { exception: reason }, reason],
+    ['a known miss', { knownMiss: 'INNO-9999' }, 'INNO-9999']
+  ])('excuses %s over enough frames', (_, marks, expected) => {
+    expect(missExcuse(60, marks)).toBe(expected)
+  })
+
+  it('names the exception over a known miss', () => {
+    expect(missExcuse(60, { knownMiss: 'INNO-9999', exception: reason })).toBe(
+      reason
+    )
+  })
+
+  it('excuses nothing in a run too short to judge', () => {
+    expect(missExcuse(59, { exception: reason })).toBeUndefined()
+    expect(missExcuse(59, { knownMiss: 'INNO-9999' })).toBeUndefined()
+  })
+
+  it('excuses nothing that gives no reason', () => {
+    expect(missExcuse(120, {})).toBeUndefined()
   })
 })

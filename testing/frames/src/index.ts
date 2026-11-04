@@ -8,9 +8,10 @@ import type { FrameRecord, FrameReport } from './record'
 import {
   type Engine,
   type FrameBudget,
-  MIN_FRAMES,
+  type MissMarks,
   budgetMisses,
   defaultBudget,
+  missExcuse,
   summariseFrames
 } from './stats'
 
@@ -232,11 +233,7 @@ export async function measureWhile(
 export async function expectFrameBudget(
   scenario: string,
   frames: FrameReport,
-  {
-    knownMiss,
-    exception,
-    ...budget
-  }: Partial<FrameBudget> & { knownMiss?: string; exception?: string } = {}
+  { knownMiss, exception, ...budget }: Partial<FrameBudget> & MissMarks = {}
 ) {
   const limits = { ...defaultBudget(engine), ...budget }
   const misses = budgetMisses(frames, limits)
@@ -252,9 +249,8 @@ export async function expectFrameBudget(
     ...(knownMiss && { knownMiss }),
     ...(exception && { exception })
   })
-  const excuse = exception ?? knownMiss
-  // A run too short to judge is a broken test, whatever excuse it gives.
-  if (excuse && frames.frames >= MIN_FRAMES) {
+  const excuse = missExcuse(frames.frames, { knownMiss, exception })
+  if (excuse) {
     console.log(
       `FRAMES ${scenario}, excused (${excuse}): ${misses.join(', ') || 'met the budget this run'}`
     )

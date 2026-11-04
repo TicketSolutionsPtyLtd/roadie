@@ -85,4 +85,20 @@ export function budgetMisses(
   return misses
 }
 
+export type MissMarks = {
+  /** The ticket for a miss that's filed rather than fixed. */
+  knownMiss?: string
+  /** Why a miss is accepted by design and won't be fixed. */
+  exception?: string
+}
+
+/** Why a missed budget doesn't fail the test, if anything excuses it. */
+export function missExcuse(
+  frames: number,
+  { knownMiss, exception }: MissMarks
+) {
+  // A run too short to judge is a broken test, whatever excuse it gives.
+  return frames >= MIN_FRAMES ? exception || knownMiss || undefined : undefined
+}
+
 const percent = (share: number) => `${Math.round(share * 1000) / 10}%`
