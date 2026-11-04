@@ -163,7 +163,8 @@ These rules aren't on those pages.
   don't assert rule text there.
 - Iterate with `pnpm test:gated <package> <file or folder>` (load-gated,
   Chromium only, the projects CI runs), never `vitest` or the whole suite
-  directly. Perf tests run only with `--perf`.
+  directly. Frame tests (`*.perf.browser.test.tsx`, on `@oztix/roadie-frames`)
+  run only with `--perf`, and in the Perf workflow.
 - Dev-only warnings check `process.env.NODE_ENV` behind a
   `typeof process !== 'undefined'` guard
   ([why](docs/solutions/build-errors/cross-bundler-dev-env-check.md)).

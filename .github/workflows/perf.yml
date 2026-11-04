@@ -1,0 +1,102 @@
+name: Perf
+
+# Frame budgets: each interactive component's *.perf.browser.test.tsx, in
+# Chromium with its CPU slowed. Its own workflow, so it runs only when the
+# packages it measures change.
+on:
+  push:
+    branches:
+      - main
+    paths: &measured
+      - 'packages/core/**'
+      - 'packages/components/**'
+      - 'packages/charts/**'
+      - 'testing/frames/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/perf.yml'
+  # Any base, so a fix stacked on another PR measures itself too.
+  pull_request:
+    # labeled lets a draft opt in with the perf label.
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+    paths: *measured
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Another label's event gets a group of its own, so it can't cancel a run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}${{ github.event.action == 'labeled' && github.event.label.name != 'perf' && format('-{0}', github.run_id) || '' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
+  TURBO_FORCE: false
+
+jobs:
+  playwright:
+    name: playwright version
+    if: >-
+      (github.event.action != 'labeled' || github.event.label.name == 'perf') &&
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.draft != true ||
+      contains(github.event.pull_request.labels.*.name, 'perf'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout package.json
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: package.json
+          sparse-checkout-cone-mode: false
+
+      - name: Read Playwright version
+        id: version
+        run: echo "version=$(jq -r .devDependencies.playwright package.json)" >> "$GITHUB_OUTPUT"
+
+  # Noise: each package gets a runner of its own and runs its files one at a
+  # time, the CPU is slowed to the same speed on every machine (calibrated
+  # against a fixed workload), and each budget reads the p95 frame and the
+  # share dropped over 60 frames or more, so one hiccup can't fail it. No
+  # retries, so a regression can't pass on a second try.
+  perf:
+    name: perf (${{ matrix.package }})
+    needs: playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright.outputs.version }}-noble
+      options: --user 1001 --ipc=host
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [components, charts]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup
+        uses: ./.github/composite-actions/setup
+
+      - name: Build what the package imports
+        run: pnpm turbo build --filter='@oztix/roadie-${{ matrix.package }}^...'
+
+      # In a container job github.workspace is the host's path, not this one.
+      - name: Frame tests
+        run: >-
+          ROADIE_PERF_REPORT="$GITHUB_WORKSPACE/frames.jsonl"
+          pnpm --filter '@oztix/roadie-${{ matrix.package }}' test:perf
+
+      - name: Frame table
+        if: always() && hashFiles('frames.jsonl') != ''
+        run: node testing/frames/bin/frame-table.ts Chromium=frames.jsonl >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload frame report
+        if: always() && hashFiles('frames.jsonl') != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: frames-${{ matrix.package }}
+          path: frames.jsonl
+          retention-days: 14

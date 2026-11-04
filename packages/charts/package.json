@@ -126,6 +126,7 @@
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run --project jsdom",
     "test:browser": "vitest run --project 'browser (*)' ${ROADIE_SHARD:+--shard=$ROADIE_SHARD --passWithNoTests}",
+    "test:perf": "NODE_ENV=production vitest run --project perf",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint src",
     "format": "oxfmt",
@@ -147,6 +148,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",
     "@oztix/roadie-components": "workspace:*",
+    "@oztix/roadie-frames": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@rolldown/plugin-babel": "0.3.0",
     "@size-limit/preset-small-lib": "14.3.0",

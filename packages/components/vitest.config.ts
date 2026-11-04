@@ -10,6 +10,12 @@ import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
 import {
+  frameCommands,
+  perfInstances,
+  perfLaunchOptions
+} from '@oztix/roadie-frames/config'
+
+import {
   browserInstances,
   browserRetry,
   browserRunOptions,
@@ -185,36 +191,6 @@ const swipe: BrowserCommand<
   await session.detach()
 }
 
-const throttleCpu: BrowserCommand<[rate: number]> = async ({ page }, rate) => {
-  if (page.context().browser()?.browserType().name() !== 'chromium') return
-  const session = await page.context().newCDPSession(page)
-  await session.send('Emulation.setCPUThrottlingRate', { rate })
-}
-
-const metricSessions = new WeakMap<object, Promise<CDPSession>>()
-
-// Chromium's running style and layout totals for the page.
-const renderMetrics: BrowserCommand<[]> = async ({ page }) => {
-  let session = metricSessions.get(page)
-  if (!session) {
-    session = page
-      .context()
-      .newCDPSession(page)
-      .then(async (created) => {
-        await created.send('Performance.enable')
-        return created
-      })
-    metricSessions.set(page, session)
-  }
-  const { metrics } = await (await session).send('Performance.getMetrics')
-  const value = (name: string) =>
-    metrics.find((metric) => metric.name === name)?.value ?? 0
-  return {
-    styleMs: value('RecalcStyleDuration') * 1000,
-    layoutMs: value('LayoutDuration') * 1000
-  }
-}
-
 const browserTest = {
   enabled: true,
   headless: true,
@@ -338,19 +314,17 @@ export default defineConfig({
         test: {
           name: 'perf',
           include: [PERF_TESTS],
+          // Files measured side by side would slow each other down.
+          fileParallelism: false,
           // Hooks React before react-dom loads, to count re-renders.
           setupFiles: ['./src/components/RecordTable/renderCounter.ts'],
           browser: {
             ...browserTest,
-            provider: playwright(),
+            provider: playwright({ launchOptions: perfLaunchOptions() }),
             viewport: { width: 1440, height: 900 },
-            commands: { throttleCpu, renderMetrics },
+            commands: { ...browserTest.commands, ...frameCommands },
             // WebKit can't throttle, but runs the same scenarios on request.
-            instances: (process.env.ROADIE_PERF_BROWSERS ?? 'chromium')
-              .split(',')
-              .map((browser) => ({
-                browser: browser.trim() as 'chromium' | 'webkit' | 'firefox'
-              }))
+            instances: perfInstances()
           }
         }
       }
