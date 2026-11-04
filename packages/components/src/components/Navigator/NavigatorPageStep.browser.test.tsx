@@ -223,4 +223,97 @@ describe('a page step on a phone', () => {
       1
     )
   })
+
+  it.each([0, 8, 16, 24, 32, 40])(
+    'keeps wrapped lines where they were with one straddling the top, %ipx down',
+    async (offset) => {
+      render(
+        <Shows>
+          <div>
+            {Array.from({ length: 120 }, (_, index) => (
+              <div key={index}>
+                <p className='mt-6'>{`Line ${index + 1} of the Rolling Kazoos tour`}</p>
+              </div>
+            ))}
+          </div>
+        </Shows>
+      )
+      await expect
+        .poll(() => topViewport()?.scrollHeight ?? 0)
+        .toBeGreaterThan(2500)
+      topViewport().scrollTop = 1500 + offset
+      const line = Array.from(topViewport().querySelectorAll('p')).find((p) => {
+        const top = topIn(topViewport(), p.textContent ?? '')
+        return top > 100 && top < 600
+      })!
+      const text = line.textContent ?? ''
+      const before = topIn(topViewport(), text)
+      go('/shows/1')
+      await expect.poll(() => ghost().childElementCount).toBe(1)
+      expect(ghost().textContent).not.toContain('Line 1 of')
+      expect(
+        Math.abs(topIn(ghostViewport(), text) - before)
+      ).toBeLessThanOrEqual(1)
+    }
+  )
+
+  it('keeps a paragraph that fills the view where it was, below wrapped lines', async () => {
+    render(
+      <Shows>
+        <div>
+          {Array.from({ length: 40 }, (_, index) => (
+            <div key={index}>
+              <p className='mt-6'>{`Line ${index + 1} of the Rolling Kazoos tour`}</p>
+            </div>
+          ))}
+          <div>
+            <p className='mt-6' data-long>
+              {'Encore '.repeat(1000)}
+            </p>
+          </div>
+        </div>
+      </Shows>
+    )
+    await expect
+      .poll(() => topViewport()?.scrollHeight ?? 0)
+      .toBeGreaterThan(4000)
+    const long = (viewport: Element) =>
+      viewport.querySelector('[data-long]')!.getBoundingClientRect().top -
+      viewport.getBoundingClientRect().top
+    topViewport().scrollTop += long(topViewport()) + 600
+    const before = long(topViewport())
+    go('/shows/1')
+    await expect.poll(() => ghost().childElementCount).toBe(1)
+    expect(ghost().textContent).not.toContain('Line 1 of')
+    expect(Math.abs(long(ghostViewport()) - before)).toBeLessThanOrEqual(1)
+  })
+
+  it('leaves what shows where it was when the only stand-in is below it', async () => {
+    render(
+      <Shows>
+        <div>
+          <p>{'Encore '.repeat(300)}</p>
+          {Array.from({ length: 6 }, (_, index) => (
+            <p key={index}>{`Line ${index + 1} of the Rolling Kazoos tour`}</p>
+          ))}
+          <div style={{ marginTop: 2000 }}>
+            <p className='mb-6'>Below</p>
+          </div>
+          <span style={{ display: 'inline-block' }}>Tail</span>
+        </div>
+      </Shows>
+    )
+    await expect
+      .poll(() => topViewport()?.scrollHeight ?? 0)
+      .toBeGreaterThan(2500)
+    const text = 'Line 3 of the Rolling Kazoos tour'
+    topViewport().scrollTop += topIn(topViewport(), text) - 300
+    const before = topIn(topViewport(), text)
+    go('/shows/1')
+    await expect.poll(() => ghost().childElementCount).toBe(1)
+    expect(ghost().textContent).not.toContain('Below')
+    expect(Math.abs(topIn(ghostViewport(), text) - before)).toBeLessThanOrEqual(
+      1
+    )
+  })
 })

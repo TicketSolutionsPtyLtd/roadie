@@ -29,7 +29,7 @@ type Snapshot = {
   from: { ghost: string; pane: string } | null
 } | null
 
-/** The first element that shows below a stand-in, and how far below the view's top it sat. */
+/** What the copy lines up by: the first element to start in view, else the deepest across its top, and where it sat. */
 type Anchor = { element: Element; top: number }
 
 const GHOST_FROM = '--page-step-ghost-from'
@@ -53,33 +53,39 @@ let inertDocument: Document | null = null
 // Copying these would style and lay out a whole page on the step's first frame; layout is clean before commit, so boxes are cheap to read.
 function outOfView(viewport: HTMLElement | null) {
   const out = new Set<Element>()
-  const found: { anchor: Anchor | null } = { anchor: null }
   if (!viewport) return { out, anchor: null }
   const view = viewport.getBoundingClientRect()
-  const visit = (parent: Element) => {
+  const found: { first: Anchor | null; across: Anchor | null } = {
+    first: null,
+    across: null
+  }
+  // Out-of-flow boxes, and what's in them, don't move with the page's flow, so can't line it up.
+  const visit = (parent: Element, anchoring: boolean) => {
     for (const child of parent.children) {
       const box = child.getBoundingClientRect()
-      const previous = child.previousElementSibling
-      if (
-        !found.anchor &&
-        previous &&
-        out.has(previous) &&
-        box.top >= view.top &&
-        !STUCK.has(getComputedStyle(child).position)
-      )
-        found.anchor = { element: child, top: box.top - view.top }
       // A display: contents box has no size of its own, so its children say.
-      if (box.width === 0 && box.height === 0) visit(child)
+      if (box.width === 0 && box.height === 0) visit(child, anchoring)
       else if (box.bottom < view.top || box.top > view.bottom) {
         const { display } = getComputedStyle(child)
         // A box in place of inline content reflows its line, moving what shows; blocks inside an inline still go.
-        if (display === 'inline') visit(child)
+        if (display === 'inline') visit(child, false)
         else if (!INLINE_LEVEL.test(display)) out.add(child)
-      } else visit(child)
+      } else {
+        const anchors =
+          anchoring &&
+          !found.first &&
+          !STUCK.has(getComputedStyle(child).position)
+        if (anchors) {
+          const anchor = { element: child, top: box.top - view.top }
+          if (box.top >= view.top) found.first = anchor
+          else found.across = anchor
+        }
+        visit(child, anchors)
+      }
     }
   }
-  visit(viewport)
-  return { out, anchor: found.anchor }
+  visit(viewport, true)
+  return { out, anchor: found.first ?? found.across }
 }
 
 const viewportOf = (pane: Element) =>
