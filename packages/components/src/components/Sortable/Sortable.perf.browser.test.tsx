@@ -72,6 +72,6 @@ describe('Sortable drags at 60fps on a slowed CPU', () => {
           .querySelector('button[aria-label^="Reorder "]')
           ?.getAttribute('aria-label')
       )
-      .not.toBe('Reorder Song 1, The Rolling Kazoos')
+      .toBe('Reorder Song 2, The Rolling Kazoos')
   })
 })

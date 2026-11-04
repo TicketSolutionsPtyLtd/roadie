@@ -101,12 +101,12 @@ describe('Calendar turns at 60fps on a slowed CPU', () => {
       const next = root.querySelector<HTMLElement>(
         'button[aria-label="Next month"]'
       )!
-      const before = firstMonth(root)
+      const before = firstMonth(root)!
       await expectFrameBudget(
         `Calendar, ${name}, next month`,
         await measureFrames((i) => i === 0 && next.click(), { frames: 60 })
       )
-      await expect.poll(() => firstMonth(root)).not.toBe(before)
+      await expect.poll(() => (firstMonth(root) ?? '') > before).toBe(true)
     }
   )
 
