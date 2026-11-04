@@ -19,11 +19,6 @@
         "package.json",
         "tsconfig.json",
         "!src/**/*.test.*",
-        "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
-        "!src/**/fixtures.{ts,tsx}",
-        "!src/_test/**",
-        "!src/**/__screenshots__/**",
-        "!src/**/__snapshots__/**",
         "!scripts/**/*.test.*"
       ],
       "outputs": ["dist/**"]
@@ -33,14 +28,15 @@
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css,json}",
         "src/**/*.html",
+        "scripts/**/*.{js,mjs,cjs,ts}",
+        "*.config.{js,mjs,cjs,ts}",
         "package.json",
         "tsconfig.json",
         "!src/**/*.test.*",
         "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
         "!src/**/fixtures.{ts,tsx}",
         "!src/_test/**",
-        "!src/**/__screenshots__/**",
-        "!src/**/__snapshots__/**"
+        "!scripts/**/*.test.*"
       ],
       "outputs": ["dist/**"]
     },
