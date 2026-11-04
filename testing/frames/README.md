@@ -30,7 +30,8 @@ it('scrolls 10,000 rows at 60fps', async () => {
   runs, such as a real pointer through `commands.pointer`.
 - `expectFrameBudget` fails when the p95 frame is over 17.5ms (16.7 plus the
   frame clock's jitter) or more than 5% of frames drop, over at least 60
-  frames. `knownMiss: 'INNO-…'` records a filed miss without failing.
+  frames, setting the worst frame aside so one hitch can't fail a run.
+  `knownMiss: 'INNO-…'` records a filed miss without failing.
 - The perf project slows Chromium's CPU through the DevTools protocol, to a
   rate calibrated so every machine runs a fixed workload in the same time
   (`ROADIE_PERF_CPU` sets a fixed rate, and `1` turns it off). Chromium

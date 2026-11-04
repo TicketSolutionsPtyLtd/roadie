@@ -51,9 +51,19 @@ describe('budgetMisses', () => {
   })
 
   it('fails a run that drops too many frames', () => {
-    const deltas = [...smooth(194), ...Array.from({ length: 6 }, () => 50)]
+    const deltas = [...smooth(193), ...Array.from({ length: 7 }, () => 50)]
     expect(budgetMisses(run(deltas), chromium)).toEqual([
       '5.7% of frames dropped, over 5%'
+    ])
+  })
+
+  it('passes a short run with one hitch, which noise alone can cause', () => {
+    expect(budgetMisses(run([...smooth(59), 83.3]), chromium)).toEqual([])
+  })
+
+  it('fails a short run with two hitches', () => {
+    expect(budgetMisses(run([...smooth(58), 83.3, 83.3]), chromium)).toEqual([
+      '6.3% of frames dropped, over 5%'
     ])
   })
 

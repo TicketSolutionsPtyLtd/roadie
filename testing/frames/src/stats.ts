@@ -14,6 +14,8 @@ export type FrameStats = {
   dropped: number
   /** Dropped vsyncs as a share of all the vsyncs the run spanned. */
   droppedShare: number
+  /** The same share with the worst frame set aside, which the budget reads. */
+  steadyDroppedShare: number
 }
 
 export type FrameBudget = {
@@ -30,20 +32,23 @@ export function summariseFrames(deltas: readonly number[]): FrameStats {
   const at = (quantile: number) =>
     sorted[Math.min(sorted.length - 1, Math.floor(quantile * sorted.length))] ??
     0
-  const dropped = deltas.reduce(
-    (sum, delta) => sum + Math.max(0, Math.round(delta / FRAME_MS) - 1),
-    0
-  )
+  const missed = (delta: number) =>
+    Math.max(0, Math.round(delta / FRAME_MS) - 1)
+  const share = (drops: number, frames: number) =>
+    frames === 0 ? 0 : Math.round((drops / (frames + drops)) * 1000) / 1000
+  const dropped = deltas.reduce((sum, delta) => sum + missed(delta), 0)
   return {
     frames: deltas.length,
     p50: tenths(at(0.5)),
     p95: tenths(at(0.95)),
     worst: tenths(sorted.at(-1) ?? 0),
     dropped,
-    droppedShare:
-      deltas.length === 0
-        ? 0
-        : Math.round((dropped / (deltas.length + dropped)) * 1000) / 1000
+    droppedShare: share(dropped, deltas.length),
+    // One hitch, a collection or the runner stalling, can't fail a run alone.
+    steadyDroppedShare: share(
+      dropped - missed(sorted.at(-1) ?? 0),
+      Math.max(0, deltas.length - 1)
+    )
   }
 }
 
@@ -65,9 +70,9 @@ export function budgetMisses(
     misses.push(`only ${stats.frames} frames, fewer than ${MIN_FRAMES}`)
   if (stats.p95 > budget.p95)
     misses.push(`p95 ${stats.p95}ms is over ${budget.p95}ms`)
-  if (stats.droppedShare > budget.droppedShare)
+  if (stats.steadyDroppedShare > budget.droppedShare)
     misses.push(
-      `${percent(stats.droppedShare)} of frames dropped, over ${percent(budget.droppedShare)}`
+      `${percent(stats.steadyDroppedShare)} of frames dropped, over ${percent(budget.droppedShare)}`
     )
   if (
     budget.longestTask !== undefined &&

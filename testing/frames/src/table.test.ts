@@ -16,6 +16,7 @@ const record = (
   worst: 18,
   dropped: 0,
   droppedShare: 0,
+  steadyDroppedShare: 0,
   engine: 'chromium',
   cpu: 4,
   longTasks: 0,
