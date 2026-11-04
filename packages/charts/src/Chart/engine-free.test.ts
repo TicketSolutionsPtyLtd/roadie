@@ -85,3 +85,17 @@ describe('the tables entry stays engine-free', () => {
     ).toHaveLength(11)
   })
 })
+
+// The dashboard entry loads zod and every schema, which a server drawing one
+// chart shouldn't pay for.
+describe('the static entry loads no dashboard schemas', () => {
+  it('imports neither core/dashboard nor zod', () => {
+    const { packages } = importGraph(join(SRC_DIR, 'static', 'index.ts'))
+    expect(packages).toContain('@oztix/roadie-core/dashboard-layout')
+    expect(
+      packages.filter(
+        (p) => p === '@oztix/roadie-core/dashboard' || p === 'zod'
+      )
+    ).toEqual([])
+  })
+})
