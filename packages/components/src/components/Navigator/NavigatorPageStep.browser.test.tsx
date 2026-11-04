@@ -316,4 +316,63 @@ describe('a page step on a phone', () => {
       1
     )
   })
+  it('keeps a scroller across the top, and what follows it, where they were', async () => {
+    render(
+      <Shows>
+        <div>
+          {Array.from({ length: 40 }, (_, index) => (
+            <div key={index}>
+              <p className='mt-6'>{`Line ${index + 1} of the Rolling Kazoos tour`}</p>
+            </div>
+          ))}
+          <div data-inner style={{ height: 600, overflowY: 'auto' }}>
+            {Array.from({ length: 60 }, (_, index) => (
+              <p
+                key={index}
+              >{`Night ${index + 1} of the Rolling Kazoos tour`}</p>
+            ))}
+          </div>
+          <p>Encore</p>
+        </div>
+      </Shows>
+    )
+    await expect
+      .poll(() => topViewport()?.scrollHeight ?? 0)
+      .toBeGreaterThan(2000)
+    const inner = topViewport().querySelector<HTMLElement>('[data-inner]')!
+    inner.scrollTop = 300
+    topViewport().scrollTop +=
+      inner.getBoundingClientRect().top -
+      topViewport().getBoundingClientRect().top +
+      100
+    const night = 'Night 30 of the Rolling Kazoos tour'
+    const nightBefore = topIn(topViewport(), night)
+    const encoreBefore = topIn(topViewport(), 'Encore')
+    go('/shows/1')
+    await expect.poll(() => ghost().childElementCount).toBe(1)
+    expect(
+      Math.abs(topIn(ghostViewport(), night) - nightBefore)
+    ).toBeLessThanOrEqual(1)
+    expect(
+      Math.abs(topIn(ghostViewport(), 'Encore') - encoreBefore)
+    ).toBeLessThanOrEqual(1)
+  })
+
+  it('keeps a row scrolled sideways where it was', async () => {
+    render(
+      <Shows>
+        <div data-side style={{ overflowX: 'auto' }}>
+          <p style={{ width: 2000, paddingLeft: 600 }}>Encore</p>
+        </div>
+      </Shows>
+    )
+    const side = () => topViewport()?.querySelector<HTMLElement>('[data-side]')
+    await expect.poll(() => side()?.scrollWidth ?? 0).toBeGreaterThan(1000)
+    side()!.scrollLeft = 500
+    go('/shows/1')
+    await expect.poll(() => ghost().childElementCount).toBe(1)
+    expect(
+      ghostViewport().querySelector<HTMLElement>('[data-side]')!.scrollLeft
+    ).toBe(500)
+  })
 })

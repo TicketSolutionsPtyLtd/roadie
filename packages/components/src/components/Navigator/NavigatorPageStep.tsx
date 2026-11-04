@@ -25,12 +25,15 @@ type Snapshot = {
   ghost: HTMLElement
   scrollTop: number
   anchor: Anchor | null
+  scrolled: Scrolled[]
   /** Where a reversed step picks up: the pane and the ghost as they were mid-slide. */
   from: { ghost: string; pane: string } | null
 } | null
 
 /** What the copy lines up by: the first element to start in view, else the deepest across its top, and where it sat. */
 type Anchor = { element: Element; top: number }
+
+type Scrolled = { element: Element; top: number; left: number }
 
 const GHOST_FROM = '--page-step-ghost-from'
 const PANE_FROM = '--page-step-pane-from'
@@ -53,7 +56,8 @@ let inertDocument: Document | null = null
 // Copying these would style and lay out a whole page on the step's first frame; layout is clean before commit, so boxes are cheap to read.
 function outOfView(viewport: HTMLElement | null) {
   const out = new Set<Element>()
-  if (!viewport) return { out, anchor: null }
+  const scrolled = new Map<Element, Scrolled>()
+  if (!viewport) return { out, scrolled, anchor: null }
   const view = viewport.getBoundingClientRect()
   const found: { first: Anchor | null; across: Anchor | null } = {
     first: null,
@@ -71,6 +75,8 @@ function outOfView(viewport: HTMLElement | null) {
         if (display === 'inline') visit(child, false)
         else if (!INLINE_LEVEL.test(display)) out.add(child)
       } else {
+        const { scrollTop: top, scrollLeft: left } = child
+        if (top || left) scrolled.set(child, { element: child, top, left })
         const anchors =
           anchoring &&
           !found.first &&
@@ -85,7 +91,7 @@ function outOfView(viewport: HTMLElement | null) {
     }
   }
   visit(viewport, true)
-  return { out, anchor: found.first ?? found.across }
+  return { out, scrolled, anchor: found.first ?? found.across }
 }
 
 const viewportOf = (pane: Element) =>
@@ -98,8 +104,9 @@ function ghostOf(pane: HTMLElement) {
   for (const name of ['data-stack', 'data-reached', 'data-stack-position']) {
     ghost.removeAttribute(name)
   }
-  const { out: hidden, anchor } = outOfView(viewportOf(pane))
+  const { out: hidden, scrolled, anchor } = outOfView(viewportOf(pane))
   let anchorCopy: Anchor | null = null
+  const scrolledCopies: Scrolled[] = []
   const originals = pane.querySelectorAll('*')
   const copies = ghost.querySelectorAll('*')
   const live: [Element, Element][] = []
@@ -117,6 +124,8 @@ function ghostOf(pane: HTMLElement) {
     const original = originals[index]
     if (anchor && original === anchor.element)
       anchorCopy = { element: copy, top: anchor.top }
+    const scroll = original && scrolled.get(original)
+    if (scroll) scrolledCopies.push({ ...scroll, element: copy })
     if (original && (isLive(copy) || hidden.has(original)))
       live.push([original, copy])
     else if (copy.localName === 'script') copy.remove()
@@ -125,7 +134,7 @@ function ghostOf(pane: HTMLElement) {
     if (!ghost.contains(copy)) continue
     copy.replaceWith(standIn(original, copy))
   }
-  return { ghost, anchor: anchorCopy }
+  return { ghost, anchor: anchorCopy, scrolled: scrolledCopies }
 }
 
 // A live tag would load once connected; others keep theirs, so tag rules like Prose's margins hold.
@@ -206,12 +215,13 @@ export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
             ghost: getComputedStyle(top).translate,
             pane: getComputedStyle(host).translate
           }
-    const { ghost, anchor } = ghostOf(top)
+    const { ghost, anchor, scrolled } = ghostOf(top)
     if (at === 'child') selectPicked(ghost, secondary, value)
     return {
       step: at === 'child' ? 'push' : 'pop',
       ghost,
       anchor,
+      scrolled,
       scrollTop: viewportOf(top)?.scrollTop ?? 0,
       from
     }
@@ -233,6 +243,10 @@ export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
     host.append(snapshot.ghost)
     const viewport = viewportOf(snapshot.ghost)
     if (viewport) viewport.scrollTop = snapshot.scrollTop
+    for (const { element, top, left } of snapshot.scrolled) {
+      element.scrollTop = top
+      element.scrollLeft = left
+    }
     // A stand-in can't carry margins its children collapsed through it, so line the copy up by what shows.
     const anchor = snapshot.anchor
     if (viewport && anchor && snapshot.ghost.contains(anchor.element)) {
