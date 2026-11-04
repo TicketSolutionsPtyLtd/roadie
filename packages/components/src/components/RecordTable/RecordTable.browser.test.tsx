@@ -430,6 +430,38 @@ describe('RecordTable surface', () => {
       .toBe('rgb(40, 50, 60)')
   })
 
+  // What a nested ThemeProvider writes on its wrapper.
+  it('follows a nested accent whose chroma changes', async () => {
+    const { container } = render(
+      <div
+        data-testid='scope'
+        data-accent-scope=''
+        style={
+          {
+            '--accent-hue': '247',
+            '--accent-chroma': '0.168'
+          } as CSSProperties
+        }
+      >
+        <div data-testid='card' className='bg-strong intent-accent'>
+          <RecordTable
+            data={testShows(20)}
+            fields={showFields}
+            columns={showColumns}
+          />
+        </div>
+      </div>
+    )
+    const scope = container.querySelector<HTMLElement>('[data-testid="scope"]')!
+    const card = container.querySelector<HTMLElement>('[data-testid="card"]')!
+    const fill = () => getComputedStyle(card).backgroundColor
+    const before = fill()
+    await expect.poll(() => bg(container, 'record-table-head')).toBe(before)
+    scope.style.setProperty('--accent-chroma', '0.05')
+    expect(fill()).not.toBe(before)
+    await expect.poll(() => bg(container, 'record-table-head')).toBe(fill())
+  })
+
   it.each([
     ['a scroll area scrolls', '--scroll-area-overflow-y-start', '12px'],
     ['a drawer swipes', '--drawer-swipe-progress', '0.4']

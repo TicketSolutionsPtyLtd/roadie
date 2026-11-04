@@ -37,8 +37,9 @@ function settle(part: HTMLElement) {
   part.style.setProperty('--records-surface', paintedBehind(part))
 }
 
-const PAINTS = /^background|surface|intent|bg|colou?r|hue|theme/
-// What a scroll area, pane, or accordion writes as it moves: a length can't be a fill behind var().
+const PAINTS = /^background|surface|intent|bg|colou?r|hue|chroma|theme/
+// What a scroll area, pane, accordion, or drawer writes as it moves. A bare
+// number can be a colour channel, so the ones Roadie paints with are in PAINTS.
 const LENGTH = /^(-?[\d.]+(px)?)?$/
 
 function paints(name: string, before: string, after: string) {
