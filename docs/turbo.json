@@ -8,7 +8,11 @@
         "$TURBO_EXTENDS$",
         "src/content/**/*.md",
         "$TURBO_ROOT$/.changeset/*.md",
-        "$TURBO_ROOT$/packages/*/CHANGELOG.md"
+        "$TURBO_ROOT$/packages/*/CHANGELOG.md",
+        "public/**",
+        "$TURBO_ROOT$/packages/blocks/src/thumbnails/**",
+        "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
+        "!src/**/fixtures.{ts,tsx}"
       ],
       "outputs": ["out/**"]
     },
