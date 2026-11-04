@@ -63,7 +63,7 @@
     "name": "Table",
     "path": "dist/components/Table/index.js",
     "import": "*",
-    "limit": "2 kB",
+    "limit": "0.65 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -98,21 +98,21 @@
     "name": "Sparkline",
     "path": "dist/components/Sparkline/index.js",
     "import": "*",
-    "limit": "1.5 kB",
+    "limit": "1 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Meter",
     "path": "dist/components/Meter/index.js",
     "import": "*",
-    "limit": "1.5 kB",
+    "limit": "0.8 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
     "name": "Delta",
     "path": "dist/components/Delta/index.js",
     "import": "*",
-    "limit": "1.5 kB",
+    "limit": "0.77 kB",
     "ignore": ["@oztix/roadie-core"]
   },
   {
@@ -263,11 +263,23 @@
     "ignore": ["@oztix/roadie-core"]
   },
   {
+    "name": "DateField with core",
+    "path": "dist/components/DateField/index.js",
+    "import": "*",
+    "limit": "28.4 kB"
+  },
+  {
     "name": "TimeField",
     "path": "dist/components/TimeField/index.js",
     "import": "*",
     "limit": "3.9 kB",
     "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "TimeField with core",
+    "path": "dist/components/TimeField/index.js",
+    "import": "*",
+    "limit": "20 kB"
   },
   {
     "name": "DatePicker",
@@ -277,6 +289,12 @@
     "ignore": ["@oztix/roadie-core"]
   },
   {
+    "name": "DatePicker with core",
+    "path": "dist/components/DatePicker/index.js",
+    "import": "*",
+    "limit": "53.7 kB"
+  },
+  {
     "name": "DashboardPeriod",
     "path": "dist/components/DashboardPeriod/index.js",
     "import": "*",
@@ -284,11 +302,23 @@
     "ignore": ["@oztix/roadie-core"]
   },
   {
+    "name": "DashboardPeriod with core",
+    "path": "dist/components/DashboardPeriod/index.js",
+    "import": "*",
+    "limit": "65.7 kB"
+  },
+  {
     "name": "DateRangePicker",
     "path": "dist/components/DateRangePicker/index.js",
     "import": "*",
     "limit": "45.4 kB",
     "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "DateRangePicker with core",
+    "path": "dist/components/DateRangePicker/index.js",
+    "import": "*",
+    "limit": "61.2 kB"
   },
   {
     "name": "QueryField",
@@ -305,6 +335,12 @@
     "ignore": ["@oztix/roadie-core"]
   },
   {
+    "name": "Records with core",
+    "path": "dist/components/Records/index.js",
+    "import": "*",
+    "limit": "103.5 kB"
+  },
+  {
     "name": "RecordGrid",
     "path": "dist/components/RecordGrid/index.js",
     "import": "*",
@@ -312,10 +348,22 @@
     "ignore": ["@oztix/roadie-core"]
   },
   {
+    "name": "RecordGrid with core",
+    "path": "dist/components/RecordGrid/index.js",
+    "import": "*",
+    "limit": "145 kB"
+  },
+  {
     "name": "RecordTable",
     "path": "dist/components/RecordTable/index.js",
     "import": "*",
     "limit": "125 kB",
     "ignore": ["@oztix/roadie-core"]
+  },
+  {
+    "name": "RecordTable with core",
+    "path": "dist/components/RecordTable/index.js",
+    "import": "*",
+    "limit": "154 kB"
   }
 ]
