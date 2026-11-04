@@ -11,8 +11,7 @@ import {
 import { LineChart } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import { Chart } from '../Chart'
-import { afterResize } from '../plot/browserTesting'
-import { sweepPointer } from '../plot/frameTestUtils'
+import { afterResize, sweepPointer } from '../plot/browserTesting'
 
 setupFrameTests({ css: roadieCss })
 
@@ -41,13 +40,16 @@ describe('LineChart follows the pointer at 60fps on a slowed CPU', () => {
     )
     await afterResize()
     await settle(10)
+    const sweep = sweepPointer(root, 120)
+    let tooltips = 0
     await expectFrameBudget(
       'LineChart, 1,460 points, pointer sweep',
-      await measureFrames(sweepPointer(root, 120)),
+      await measureFrames((index) => {
+        sweep(index)
+        if (root.querySelector('[data-slot="chart-plot-tooltip"]')) tooltips++
+      }),
       { knownMiss: 'INNO-1526' }
     )
-    expect(
-      root.querySelector('[data-slot="chart-plot-tooltip"]')
-    ).not.toBeNull()
+    expect(tooltips).toBeGreaterThan(60)
   })
 })
