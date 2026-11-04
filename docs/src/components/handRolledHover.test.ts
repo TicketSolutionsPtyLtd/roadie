@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join, relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const SRC = join(import.meta.dirname, '..')
@@ -34,7 +34,7 @@ function handRolledLines(path: string) {
 describe('docs hover and focus states', () => {
   it('come from interaction utilities, never state classes', () => {
     const handRolled = sources(SRC).flatMap((path) => {
-      const file = relative(SRC, path)
+      const file = relative(SRC, path).split(sep).join('/')
       const lines = handRolledLines(path)
       if (lines.length === ALLOWED.get(file)) return []
       return lines.map((line) => `${file}:${line}`)
