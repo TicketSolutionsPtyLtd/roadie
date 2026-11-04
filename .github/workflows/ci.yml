@@ -414,8 +414,9 @@ jobs:
         uses: ./.github/composite-actions/turbo-cache-save
 
   # Engines' locale data differs, so a hydration mismatch can show in one.
-  # WebKit is left out: on Linux it times out the layout-driven tests. Firefox
-  # takes three times as long as Chromium, so it is split three ways.
+  # WebKit is left out: on Linux it times out the layout-driven tests. Each
+  # engine takes about three minutes in the Playwright image, so each is
+  # split in two.
   docs-e2e:
     name: docs e2e (${{ matrix.browser }}${{ matrix.shard && format(' {0}', matrix.shard) || '' }})
     needs: build
@@ -430,12 +431,13 @@ jobs:
       matrix:
         include:
           - browser: chromium
+            shard: 1/2
+          - browser: chromium
+            shard: 2/2
           - browser: firefox
-            shard: 1/3
+            shard: 1/2
           - browser: firefox
-            shard: 2/3
-          - browser: firefox
-            shard: 3/3
+            shard: 2/2
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
