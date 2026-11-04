@@ -17,19 +17,12 @@ import type {
   TableCard,
   TableRow
 } from '@oztix/roadie-core/dashboard'
-import {
-  type AbsoluteRange,
-  isBuiltInComparison
-} from '@oztix/roadie-core/datetime'
+import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
 
 import { Chart } from '../Chart'
 import { ChartLegend } from '../ChartLegend'
 import { cardTable } from '../tables/cardTable'
-import {
-  type FollowPeriodOptions,
-  comparisonLine,
-  followPeriod
-} from '../tables/followPeriod'
+import { followPeriod } from '../tables/followPeriod'
 import { PlotView } from './plots'
 
 export type DashboardViewProps = {
@@ -38,8 +31,9 @@ export type DashboardViewProps = {
    * Actions for each card, such as a More button, placed at its top right.
    * They carry handlers, so they come from the app rather than the spec.
    * Return nothing to leave a card without actions. Each gets its card as
-   * drawn, with a chart's comparison following the period, so a CSV from
-   * `cardTable(card)` matches the Table view. When this renders on the
+   * drawn, from `followPeriod`, with its headline delta and context and a
+   * chart's comparison following the period, so a CSV from `cardTable(card)`
+   * matches the Table view. When this renders on the
    * server, return a client component that owns the handlers, not inline
    * handlers.
    */
@@ -80,35 +74,6 @@ export type DashboardViewPeriodProps = Omit<
 declare const process: { env?: { NODE_ENV?: string } } | undefined
 
 const warned = new Set<string>()
-
-const HISTORY_MESSAGE = {
-  partial: 'Not enough history',
-  unavailable: 'Nothing to compare'
-} as const
-
-/**
- * A delta marked `comparison` follows the dashboard's: hidden with no
- * comparison of Roadie's, replaced by a message when the data can't cover
- * it, and otherwise named on the context line, over any context the card
- * gives.
- */
-function headline(
-  card: Exclude<DashboardCard, { kind: 'note' }>,
-  period: DashboardPeriodSpec | undefined,
-  where: FollowPeriodOptions
-) {
-  if (!card.delta) return { delta: undefined, context: card.context }
-  const { comparison, ...delta } = card.delta
-  if (!comparison) return { delta, context: card.context }
-  if (!period?.compare || !isBuiltInComparison(period.compare))
-    return { delta: undefined, context: card.context }
-  if (period.history)
-    return { delta: undefined, context: HISTORY_MESSAGE[period.history] }
-  return {
-    delta,
-    context: comparisonLine(period.compare, where)
-  }
-}
 
 const selectsPeriod = (card: DashboardCard) =>
   card.kind === 'chart' &&
@@ -158,8 +123,6 @@ type CardProps = {
   getRowHref?: DashboardViewProps['getRowHref']
   onRangeSelect?: (range: AbsoluteRange) => void
   period?: DashboardPeriodSpec
-  timeZone?: string
-  locale?: string
 }
 
 function Card({
@@ -168,9 +131,7 @@ function Card({
   actions,
   getRowHref,
   onRangeSelect,
-  period,
-  timeZone,
-  locale
+  period
 }: CardProps) {
   if (card.kind === 'note')
     return (
@@ -178,8 +139,7 @@ function Card({
         <p className='text-sm text-normal'>{card.body}</p>
       </DataCard>
     )
-  const { delta, context } = headline(card, period, { timeZone, locale })
-  const common = { ...cardProps(card, actions), context }
+  const common = cardProps(card, actions)
   switch (card.kind) {
     case 'stat':
       return (
@@ -189,7 +149,7 @@ function Card({
           format={card.format}
           decimals={card.decimals}
           trailingZeroDisplay={card.trailingZeroDisplay}
-          delta={delta}
+          delta={card.delta}
           trend={card.trend}
           reference={card.reference}
         />
@@ -203,7 +163,7 @@ function Card({
           format={card.format}
           decimals={card.decimals}
           trailingZeroDisplay={card.trailingZeroDisplay}
-          delta={delta}
+          delta={card.delta}
           takeaway={card.takeaway}
         >
           <DataTable
@@ -227,7 +187,7 @@ function Card({
           format={card.format}
           decimals={card.decimals}
           trailingZeroDisplay={card.trailingZeroDisplay}
-          delta={delta}
+          delta={card.delta}
           takeaway={card.takeaway}
           view={card.view}
           table={cardTable(card)}
@@ -300,8 +260,6 @@ export function DashboardView({
                 getRowHref={getRowHref}
                 onRangeSelect={rangeSelectFor(card)}
                 period={period}
-                timeZone={periodProps?.timeZone}
-                locale={periodProps?.locale}
               />
             )
           })}
