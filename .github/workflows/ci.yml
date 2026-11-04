@@ -329,7 +329,7 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: /roadie
           TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
 
-      # attw, the Node ESM check, and the tarball guard, which build no longer runs.
+      # attw, check:dts, and the Node ESM check, which build no longer runs.
       - name: Check packages
         run: pnpm turbo check:package
 

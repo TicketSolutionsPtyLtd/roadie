@@ -52,4 +52,13 @@ describe('alongside', () => {
       exitCode: 0
     })
   })
+
+  it('fails when a signal stops the command', async () => {
+    expect(
+      await alongside(
+        `node -e "process.kill(process.pid, 'SIGTERM')"`,
+        () => 'x'
+      )
+    ).toEqual({ exitCode: 1 })
+  })
 })
