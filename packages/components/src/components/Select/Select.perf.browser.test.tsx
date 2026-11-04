@@ -46,7 +46,7 @@ describe('Select opens and closes at 60fps on a slowed CPU', () => {
       { knownMiss: 'INNO-1524' }
     )
     expect(document.querySelectorAll('[role="option"]')).toHaveLength(200)
-    // Closing re-renders all 200 items (INNO-1524), a two-vsync frame or three in CI.
+    // Closing re-renders all 200 items (INNO-1524), so CI drops up to four frames.
     await expectFrameBudget(
       'Select, close',
       await measureFrames((index) => index === 0 && pressEscape(), {
