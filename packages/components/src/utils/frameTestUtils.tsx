@@ -50,23 +50,6 @@ export const byText = <T extends HTMLElement = HTMLButtonElement>(
     (element) => element.textContent?.trim() === text
   )!
 
-const setInputValue = Object.getOwnPropertyDescriptor(
-  HTMLInputElement.prototype,
-  'value'
-)!.set!
-
-/** Types `text` into `input` a character every `every` frames, as a person would. */
-export const typeEvery =
-  (input: HTMLInputElement, text: string, every = 6) =>
-  (index: number) => {
-    if (index === 0) input.focus()
-    if (index % every !== 0) return
-    const typed = text.slice(0, index / every + 1)
-    if (typed === input.value) return
-    setInputValue.call(input, typed)
-    input.dispatchEvent(new Event('input', { bubbles: true }))
-  }
-
 const VENUE_NAMES = [
   'Kazoo Hollow Room',
   'The Tin Lantern',

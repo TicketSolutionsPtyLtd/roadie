@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import {
   expectFrameBudget,
@@ -40,12 +40,17 @@ describe('Collapsible opens and closes at 60fps on a slowed CPU', () => {
       { frames: 5 }
     )
     const trigger = byText('button', 'Show all ticket types')
-    for (const scenario of ['open', 'close'])
+    for (const [scenario, expanded] of [
+      ['open', 'true'],
+      ['close', 'false']
+    ] as const) {
       await expectFrameBudget(
         `Collapsible, ${scenario}`,
         await measureFrames((index) => index === 0 && trigger.click(), {
           frames: 60
         })
       )
+      expect(trigger).toHaveAttribute('aria-expanded', expanded)
+    }
   })
 })

@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import {
   expectFrameBudget,
@@ -54,10 +54,10 @@ const button = (root: HTMLElement, label: string) =>
 describe('Carousel moves at 60fps on a slowed CPU', () => {
   it('slides on with Next, back with Previous, and to a dot', async () => {
     const root = await mount(<ShowCarousel />, { frames: 10 })
-    for (const [scenario, label] of [
-      ['Next', 'Next slide'],
-      ['Previous', 'Previous slide'],
-      ['a dot', 'Go to slide 3']
+    for (const [scenario, label, slide] of [
+      ['Next', 'Next slide', 2],
+      ['Previous', 'Previous slide', 1],
+      ['a dot', 'Go to slide 3', 3]
     ] as const) {
       await expectFrameBudget(
         `Carousel, ${scenario}`,
@@ -65,6 +65,10 @@ describe('Carousel moves at 60fps on a slowed CPU', () => {
           (index) => index === 0 && button(root, label).click(),
           { frames: 60 }
         )
+      )
+      expect(button(root, `Go to slide ${slide}`)).toHaveAttribute(
+        'aria-current',
+        'true'
       )
     }
   })

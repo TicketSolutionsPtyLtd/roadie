@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { commands } from 'vitest/browser'
+import { userEvent } from 'vitest/browser'
 
 import {
   expectFrameBudget,
-  measureFrames,
+  measureWhile,
   mount,
   setupFrameTests
 } from '@oztix/roadie-frames'
 
 import { QueryField, type QueryFieldSuggestionGroup } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { EventPage, typeEvery, venues } from '../../utils/frameTestUtils'
+import { EventPage, venues } from '../../utils/frameTestUtils'
 import { Tooltip } from '../Tooltip'
 
 setupFrameTests({ css: roadieCss })
@@ -54,12 +54,14 @@ describe('QueryField types at 60fps on a slowed CPU', () => {
       { frames: 5 }
     )
     const input = root.querySelector<HTMLInputElement>('[role="combobox"]')!
-    // A page without window focus fires no focus events, so the popup stays shut.
-    await commands.focusPage()
+    await userEvent.click(input)
     await expectFrameBudget(
       'QueryField, typing',
-      await measureFrames(typeEvery(input, 'iguana teapot'), { frames: 100 })
+      await measureWhile(() => userEvent.keyboard('iguana teapot'))
     )
     expect(input.value).toBe('iguana teapot')
+    await expect
+      .poll(() => document.querySelectorAll('[role="option"]').length)
+      .toBeGreaterThan(0)
   })
 })

@@ -8,6 +8,7 @@ import type { FrameRecord, FrameReport } from './record'
 import {
   type Engine,
   type FrameBudget,
+  MIN_FRAMES,
   budgetMisses,
   defaultBudget,
   summariseFrames
@@ -210,9 +211,12 @@ export async function measureWhile(
     }
     requestAnimationFrame(tick)
   })
-  await run()
-  ranUntil = deltas.length
-  await counted
+  try {
+    await run()
+  } finally {
+    ranUntil = deltas.length
+    await counted
+  }
   return report(deltas, stopWatching)
 }
 
@@ -240,7 +244,8 @@ export async function expectFrameBudget(
     pass: misses.length === 0,
     ...(knownMiss && { knownMiss })
   })
-  if (knownMiss) {
+  // A run too short to judge is a broken test, whatever ticket it cites.
+  if (knownMiss && frames.frames >= MIN_FRAMES) {
     console.log(
       `FRAMES ${scenario}, a known miss (${knownMiss}): ${misses.join(', ') || 'met the budget this run'}`
     )

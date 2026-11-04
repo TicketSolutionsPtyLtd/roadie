@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import {
   expectFrameBudget,
@@ -46,6 +46,7 @@ describe('DataTable sorts and expands at 60fps on a slowed CPU', () => {
       }),
       { knownMiss: 'INNO-1523' }
     )
+    expect(sold.closest('th')).toHaveAttribute('aria-sort')
   })
 
   it('expands and collapses a venue of 200 rows', async () => {
@@ -61,7 +62,10 @@ describe('DataTable sorts and expands at 60fps on a slowed CPU', () => {
     const toggle = root.querySelector<HTMLButtonElement>(
       'tr[data-slot="data-table-group"] button[aria-expanded]'
     )!
-    for (const scenario of ['expand', 'collapse'])
+    for (const [scenario, expanded] of [
+      ['expand', 'true'],
+      ['collapse', 'false']
+    ] as const) {
       await expectFrameBudget(
         `DataTable, ${scenario} a group`,
         await measureFrames((index) => index === 0 && toggle.click(), {
@@ -69,5 +73,7 @@ describe('DataTable sorts and expands at 60fps on a slowed CPU', () => {
         }),
         { knownMiss: 'INNO-1523' }
       )
+      expect(toggle).toHaveAttribute('aria-expanded', expanded)
+    }
   })
 })

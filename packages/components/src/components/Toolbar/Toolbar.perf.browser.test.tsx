@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import {
   expectFrameBudget,
@@ -29,7 +29,7 @@ describe('Toolbar slides at 60fps on a slowed CPU', () => {
       </EventPage>,
       { frames: 10 }
     )
-    const presses = ['Week', 'Month', 'Year', 'Day'].map((label) =>
+    const presses = ['Week', 'Day', 'Month', 'Year'].map((label) =>
       byText('button', label)
     )
     await expectFrameBudget(
@@ -39,5 +39,6 @@ describe('Toolbar slides at 60fps on a slowed CPU', () => {
         { frames: 120 }
       )
     )
+    expect(presses.at(-1)).toHaveAttribute('aria-pressed', 'true')
   })
 })

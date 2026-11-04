@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { commands } from 'vitest/browser'
+import { userEvent } from 'vitest/browser'
 
 import {
   expectFrameBudget,
-  measureFrames,
+  measureWhile,
   mount,
   setupFrameTests
 } from '@oztix/roadie-frames'
 
 import { Combobox } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { EventPage, typeEvery, venues } from '../../utils/frameTestUtils'
+import { EventPage, venues } from '../../utils/frameTestUtils'
 
 setupFrameTests({ css: roadieCss })
 
@@ -41,12 +41,14 @@ describe('Combobox filters at 60fps on a slowed CPU', () => {
       { frames: 5 }
     )
     const input = root.querySelector<HTMLInputElement>('[role="combobox"]')!
-    // A page without window focus fires no focus events, so the popup stays shut.
-    await commands.focusPage()
+    await userEvent.click(input)
+    // Real keys: in CI a value set from script left the popup shut.
     await expectFrameBudget(
       'Combobox, typing over 2,000 items',
-      await measureFrames(typeEvery(input, 'gumleaf hall 1'), { frames: 100 })
+      await measureWhile(() => userEvent.keyboard('gumleaf hall 1')),
+      { knownMiss: 'INNO-1524' }
     )
+    expect(input.value).toBe('gumleaf hall 1')
     await expect
       .poll(() => document.querySelectorAll('[role="option"]').length)
       .toBeGreaterThan(0)

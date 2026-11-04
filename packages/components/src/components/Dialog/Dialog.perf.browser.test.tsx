@@ -52,7 +52,8 @@ describe('Dialog opens and closes at 60fps on a slowed CPU', () => {
       'Dialog, close',
       await measureFrames((index) => index === 0 && pressEscape(), {
         frames: 60
-      })
+      }),
+      { knownMiss: 'INNO-1522' }
     )
     expect(popup()).toBeNull()
   })

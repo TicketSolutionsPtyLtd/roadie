@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import {
   expectFrameBudget,
@@ -49,5 +49,8 @@ describe('Steps moves at 60fps on a slowed CPU', () => {
         frames: 90
       })
     )
+    expect(
+      [...document.querySelectorAll('[data-slot="steps-trigger"]')].at(-1)
+    ).toHaveAttribute('data-current')
   })
 })

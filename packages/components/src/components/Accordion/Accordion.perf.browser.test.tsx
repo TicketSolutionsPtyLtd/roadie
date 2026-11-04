@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import {
   expectFrameBudget,
@@ -46,12 +46,17 @@ describe('Accordion opens and closes at 60fps on a slowed CPU', () => {
       { frames: 5 }
     )
     const trigger = byText('summary', 'Show all ticket types')
-    for (const scenario of ['open', 'close'])
+    for (const [scenario, open] of [
+      ['open', true],
+      ['close', false]
+    ] as const) {
       await expectFrameBudget(
         `Accordion, ${scenario}`,
         await measureFrames((index) => index === 0 && trigger.click(), {
           frames: 60
         })
       )
+      expect(trigger.closest('details')!.open).toBe(open)
+    }
   })
 })

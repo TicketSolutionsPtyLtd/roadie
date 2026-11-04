@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import {
   expectFrameBudget,
@@ -29,7 +29,7 @@ describe('Tabs slides at 60fps on a slowed CPU', () => {
       </EventPage>,
       { frames: 10 }
     )
-    const presses = ['Ticket types', 'Attendees', 'Settings', 'Orders'].map(
+    const presses = ['Ticket types', 'Orders', 'Attendees', 'Settings'].map(
       (label) => byText('[role="tab"]', label)
     )
     await expectFrameBudget(
@@ -39,5 +39,6 @@ describe('Tabs slides at 60fps on a slowed CPU', () => {
         { frames: 120 }
       )
     )
+    expect(presses.at(-1)).toHaveAttribute('aria-selected', 'true')
   })
 })
