@@ -10,6 +10,17 @@
         "$TURBO_ROOT$/tsconfig.react.json",
         "!src/**/testUtils.ts"
       ]
+    },
+    "build:quiet": {
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/docs/src/app/**/page.mdx",
+        "$TURBO_ROOT$/packages/core/scripts/manifest/**",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.react.json",
+        "!src/**/testUtils.ts",
+        "!$TURBO_ROOT$/packages/core/scripts/manifest/**/*.test.*"
+      ]
     }
   }
 }

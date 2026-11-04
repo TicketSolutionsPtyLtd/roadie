@@ -12,6 +12,19 @@
         "!src/**/browserTesting.tsx",
         "!src/**/testUtils.{ts,tsx}"
       ]
+    },
+    "build:quiet": {
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/docs/src/app/**/page.mdx",
+        "$TURBO_ROOT$/packages/core/scripts/manifest/**",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.react.json",
+        "!src/**/testChart.ts",
+        "!src/**/browserTesting.tsx",
+        "!src/**/testUtils.{ts,tsx}",
+        "!$TURBO_ROOT$/packages/core/scripts/manifest/**/*.test.*"
+      ]
     }
   }
 }
