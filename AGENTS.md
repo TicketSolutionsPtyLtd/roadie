@@ -140,7 +140,8 @@ These rules aren't on those pages.
 
 - Each chart type has its own `@oztix/roadie-charts` subpath (`/line-chart` and
   so on), which is `'use client'` and exports only components. On a server, use
-  `/static` (`renderChartSvg`) and `/tables`.
+  `/static` (`renderChartSvg`), `/chart-document` (`renderChartDocument`), and
+  `/tables`.
 - A dashboard chart card's `plot` is `{ kind, ...props }`, where `kind` is
   `line`, `bar`, `ranked-bars`, `donut`, `stacked-bars`, `stacked-area`,
   `histogram`, `funnel`, `heatmap`, `scatter`, or `small-multiples`.
