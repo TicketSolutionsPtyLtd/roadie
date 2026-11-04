@@ -12,6 +12,7 @@ import {
 
 import { Calendar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { BACKDROP_BLUR } from '../../utils/frameTestUtils'
 import { DateRangePicker } from '../DateRangePicker'
 import { countRenders } from '../RecordTable/renderCounter'
 
@@ -173,7 +174,7 @@ describe('Calendar turns at 60fps on a slowed CPU', () => {
     // Scrolling past months is the list's own business, not the picker's.
     expect(renders.ExtendedDateRangePicker ?? 0).toBe(0)
     await expectFrameBudget('DateRangePicker, phone drawer, scroll', frames!, {
-      knownMiss: 'INNO-1522'
+      exception: BACKDROP_BLUR
     })
   })
 })

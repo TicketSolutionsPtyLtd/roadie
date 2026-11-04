@@ -18,4 +18,6 @@ export type FrameRecord = FrameReport & {
   pass: boolean
   /** The ticket for a miss that's filed rather than fixed. */
   knownMiss?: string
+  /** Why a miss is accepted by design and won't be fixed. */
+  exception?: string
 }

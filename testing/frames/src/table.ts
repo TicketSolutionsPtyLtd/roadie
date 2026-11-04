@@ -39,8 +39,12 @@ function budgetCell(results: (readonly [string, FrameRecord | undefined])[]) {
   const missed = results
     .filter(([, record]) => record?.pass === false)
     .map(([label]) => label.toLowerCase())
-  const ticket = results.find(([, record]) => record?.knownMiss)?.[1]?.knownMiss
+  const first = (key: 'knownMiss' | 'exception') =>
+    results.find(([, record]) => record?.[key])?.[1]?.[key]
   const verdict = missed.length ? `Missed in ${missed.join(', ')}` : 'Met'
+  const exception = first('exception')
+  if (exception) return `${verdict}, accepted: ${exception}`
+  const ticket = first('knownMiss')
   return ticket ? `${verdict}, filed as ${ticket}` : verdict
 }
 
