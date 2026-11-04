@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // The pre-push hook: guards, formatting, typecheck, and the tests related to
-// the diff, each within a time budget. CI runs the full affected suites.
+// the diff, each but the build within a time budget. CI runs the full
+// affected suites.
 // Usage: node scripts/pre-push.mjs (ROADIE_PRE_PUSH_BASE picks the base, origin/main by default)
 import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync } from 'node:fs'
@@ -17,7 +18,7 @@ import {
 import { planPrePush, readWorkspaces } from './lib/pre-push-plan.mjs'
 
 const base = process.env.ROADIE_PRE_PUSH_BASE || 'origin/main'
-const loadWaitS = Number(process.env.ROADIE_PRE_PUSH_LOAD_WAIT_S ?? 60)
+const loadWaitS = Number(process.env.ROADIE_PRE_PUSH_LOAD_WAIT_S ?? 15)
 const slowS = 20
 const started = Date.now()
 

@@ -181,13 +181,14 @@ Every PR is checked against these before review. Fix every real hit.
   tests run only with `--perf`. A draft PR runs no browser tests in CI, and
   marking it ready runs them once, in Chromium only. WebKit and Firefox run
   on `main` and nightly, or on the PR with the `full-browsers` label. The
-  pre-push hook waits up to a minute for the load, then checks only what the
-  diff touches: the repo guards, formatting, an incremental typecheck of the
-  changed packages, and their tests beside the change plus their guard
-  tests, each within a time budget. It prints what it left to CI with the
-  command to run each, so never push with `--no-verify`. Give browser tests
-  explicit timeouts and never wait on an infinite animation. Stop dev servers
-  you start, and run `pnpm cleanup` (`--delete` to delete) when disk runs low.
+  pre-push hook waits up to 15 seconds for the load, then checks only what
+  the diff touches: the repo guards, formatting, an incremental typecheck of
+  the changed packages, and their tests beside the change plus their guard
+  tests. Every step but the build has a time budget. It prints what it left
+  to CI with the command to run each, so never push with `--no-verify`. Give
+  browser tests explicit timeouts and never wait on an infinite animation.
+  Stop dev servers you start, and run `pnpm cleanup` (`--delete` to delete)
+  when disk runs low.
 - **Demo user-visible changes before pushing.** `pnpm preview` serves the
   docs from your worktree and prints the URLs a phone can open; set
   `ROADIE_PORT_RANGE` to your session's range and extra hosts in
