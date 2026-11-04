@@ -36,8 +36,9 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 | `packages/lint-plugin/` | `@oztix/roadie-lint-plugin`: oxlint and ESLint rules for apps on Roadie                                                |
 | `docs/`                 | The docs site                                                                                                          |
 
-Root scripts: `pnpm dev`, `build`, `test`, `test:browser`, `typecheck`, `lint`,
-and `format`. Scope one with `--filter`:
+Root scripts: `pnpm dev`, `build` (packages only), `build:docs` (packages and
+the site), `test`, `test:browser`, `typecheck`, `lint`, and `format`. Scope one
+with `--filter`:
 
 ```bash
 pnpm --filter @oztix/roadie-components test
