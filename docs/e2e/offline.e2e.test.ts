@@ -1,6 +1,7 @@
 import { type Browser, chromium, firefox, webkit } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { settled } from './routerReady'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 let browser: Browser
@@ -37,6 +38,7 @@ async function openOffline(route: string) {
     if (request.resourceType() === 'font') fonts.push(request.url())
   })
   await page.goto(`${ORIGIN}${BASE_PATH}${route}/`)
+  await settled(page)
   return { page, errors, fonts }
 }
 
