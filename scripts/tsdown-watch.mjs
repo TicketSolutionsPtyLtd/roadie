@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs'
+import path from 'node:path'
+
 // Plugins only `tsdown --watch` uses, so a save rebuilds and rewrites only what
 // it changed. A build never loads them, so they can't change what ships.
 // It lives outside packages/core because Tailwind reads every word in that
@@ -28,7 +31,8 @@ export async function cacheTransforms(pending) {
 
 /**
  * Leaves an output on disk when a rebuild emits it unchanged, so the docs dev
- * server only reloads the modules a save touched.
+ * server only reloads the modules a save touched. An output missing from disk,
+ * as after a clean, is written again.
  *
  * @returns {import('rolldown').Plugin}
  */
@@ -36,7 +40,7 @@ export function skipUnchangedWrites() {
   const written = new Map()
   return {
     name: 'roadie:skip-unchanged-writes',
-    generateBundle(_options, bundle) {
+    generateBundle(options, bundle) {
       for (const [fileName, output] of Object.entries(bundle)) {
         const content =
           output.type === 'chunk'
@@ -44,7 +48,8 @@ export function skipUnchangedWrites() {
             : typeof output.source === 'string'
               ? output.source
               : Buffer.from(output.source).toString('base64')
-        if (written.get(fileName) === content) delete bundle[fileName]
+        const onDisk = existsSync(path.join(options.dir ?? '', fileName))
+        if (onDisk && written.get(fileName) === content) delete bundle[fileName]
         else written.set(fileName, content)
       }
     }

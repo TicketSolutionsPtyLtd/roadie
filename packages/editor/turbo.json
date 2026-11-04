@@ -13,6 +13,8 @@
     "build:quiet": {
       "inputs": [
         "$TURBO_EXTENDS$",
+        "*.config.ts",
+        "scripts/**",
         "$TURBO_ROOT$/docs/src/app/**/page.mdx",
         "$TURBO_ROOT$/packages/core/scripts/manifest/**",
         "$TURBO_ROOT$/tsconfig.base.json",

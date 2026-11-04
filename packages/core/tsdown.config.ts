@@ -22,8 +22,8 @@ export default defineConfig(({ watch }) => ({
   },
   format: ['esm'],
   minify: !watch,
-  // The docs dev server reads only JS, so watch skips the declarations.
-  dts: !watch && {
+  // Components' manifest reads core's types, so watch keeps them.
+  dts: {
     compilerOptions: {
       composite: false,
       incremental: false
