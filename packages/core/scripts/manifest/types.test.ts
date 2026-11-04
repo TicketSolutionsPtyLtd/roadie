@@ -48,6 +48,8 @@ const FILES: Record<string, string> = {
 
     export type MenuState = {
       readonly [brand]: true
+      ['quoted']: string
+      [2]: string
       /** @deprecated Use \`open\`. */
       shown?: boolean
     }
@@ -90,11 +92,13 @@ const FILES: Record<string, string> = {
     export type MenuResult = { html: string }
     export type MenuConfirm = { title: string }
     export type MenuLoaded = { count: number }
+    export type MenuMade = { id: string }
 
     export type MenuHooks = {
       render?: (context: MenuContext) => MenuResult
       options?: { confirm?: MenuConfirm }
       load?: Promise<MenuLoaded>
+      make?: new (context: MenuContext) => MenuMade
     }
 
     export type MenuBase = { a: string; b: string }
@@ -110,6 +114,7 @@ const FILES: Record<string, string> = {
       size: 'sm' | 'md' | undefined
       tone: 'a' | null
       onPick?: (value: string) => string
+      onEither?: ((value: string) => void) | ((value: number) => void)
     }
 
     export type MenuDoc = { type: string; [key: string]: unknown }
@@ -188,8 +193,10 @@ describe('readTypes', () => {
     ])
   })
 
-  it('marks a deprecated field and leaves out a symbol-keyed one, which has no name to set', () => {
+  it('marks a deprecated field, keeps a literal computed key, and leaves out a symbol-keyed one, which has no name to set', () => {
     expect(read(['MenuState'])[0]?.fields).toEqual([
+      { name: 'quoted', type: 'string', required: true },
+      { name: '2', type: 'string', required: true },
       { name: 'shown', type: 'boolean', deprecated: 'Use `open`.' }
     ])
   })
@@ -302,12 +309,13 @@ describe('readTypes', () => {
     ])
   })
 
-  it('follows a field into a function, an inline object and a generic type', () => {
+  it('follows a field into a function, a constructor, an inline object and a generic type', () => {
     expect(read(['MenuHooks']).map((type) => type.name)).toEqual([
       'MenuConfirm',
       'MenuContext',
       'MenuHooks',
       'MenuLoaded',
+      'MenuMade',
       'MenuResult'
     ])
   })
@@ -324,7 +332,11 @@ describe('readTypes', () => {
     expect(read(['MenuOptions'])[0]?.fields).toEqual([
       { name: 'size', type: '"sm" | "md" | undefined', required: true },
       { name: 'tone', type: '"a" | null', required: true },
-      { name: 'onPick', type: '(value: string) => string' }
+      { name: 'onPick', type: '(value: string) => string' },
+      {
+        name: 'onEither',
+        type: '((value: string) => void) | ((value: number) => void)'
+      }
     ])
   })
 
