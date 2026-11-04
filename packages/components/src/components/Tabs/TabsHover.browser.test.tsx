@@ -79,6 +79,34 @@ describe('Tabs hover', () => {
     expect(down.bottomRight).not.toBe('0px')
   })
 
+  it.each(['horizontal', 'vertical'] as const)(
+    'keeps an icon-only subtler tab a circle in a %s list',
+    (direction) => {
+      render(
+        <Tabs emphasis='subtler' direction={direction} defaultValue='chart'>
+          <Tabs.List>
+            <Tabs.Tab value='chart'>Chart</Tabs.Tab>
+            <Tabs.Tab value='table' aria-label='Table'>
+              <svg className='size-4' viewBox='0 0 16 16' />
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      )
+      const tab = screen.getByRole('tab', { name: 'Table' })
+      const style = getComputedStyle(tab)
+      const half = tab.getBoundingClientRect().height / 2
+
+      for (const corner of [
+        style.borderTopLeftRadius,
+        style.borderTopRightRadius,
+        style.borderBottomRightRadius,
+        style.borderBottomLeftRadius
+      ]) {
+        expect(parseFloat(corner)).toBeGreaterThanOrEqual(half)
+      }
+    }
+  )
+
   it.each(EMPHASES)('sets tabs side by side at %s emphasis', (emphasis) => {
     const venue = renderTabs(emphasis)
     const lineup = screen.getByRole('tab', { name: 'Lineup' })
