@@ -233,15 +233,32 @@ describe('DataTable grouped rows', () => {
     await expect.poll(height).toBe(0)
   })
 
-  it('opens the groups of a long table at once, with no layout motion', async () => {
-    const many = Array.from({ length: 60 }, (_, index) => ({
-      pool: index < 30 ? 'General' : 'Comp',
+  // Two groups' rows plus `count` rows, all of which the table lays out.
+  const twoPools = (count: number) =>
+    Array.from({ length: count }, (_, index) => ({
+      pool: index < count / 2 ? 'General' : 'Comp',
       type: 'GA',
       gate: `Gate ${index + 1}`,
       scans: index
     }))
+
+  it('keeps the motion for a table of 50 rows, group rows included', async () => {
     const { container } = render(
-      <DataTable columns={columns} rows={many} groupBy={['pool']} />
+      <DataTable columns={columns} rows={twoPools(48)} groupBy={['pool']} />
+    )
+    screen.getByRole('button', { name: 'General' }).click()
+    await new Promise(requestAnimationFrame)
+    expect(
+      container
+        .querySelector('table')!
+        .getAnimations({ subtree: true })
+        .map((animation) => (animation as CSSTransition).transitionProperty)
+    ).toContain('grid-template-rows')
+  })
+
+  it('opens the groups of a long table at once, with no layout motion', async () => {
+    const { container } = render(
+      <DataTable columns={columns} rows={twoPools(49)} groupBy={['pool']} />
     )
     const toggle = screen.getByRole('button', { name: 'General' })
     toggle.click()
