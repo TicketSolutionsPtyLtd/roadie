@@ -30,6 +30,23 @@ export const isGuardTest = (path, readSource) =>
   !NOT_JSDOM.test(path) &&
   /from ['"](?:node:)?fs(?:\/promises)?['"]/.test(readSource(path))
 
+// Windows runs pnpm through cmd.exe, which stops at 8191 characters.
+const MAX_ARGS_LENGTH = 6000
+
+function inBatches(paths) {
+  const batches = [[]]
+  let length = 0
+  for (const path of paths) {
+    if (length + path.length > MAX_ARGS_LENGTH && batches.at(-1).length) {
+      batches.push([])
+      length = 0
+    }
+    batches.at(-1).push(path)
+    length += path.length + 1
+  }
+  return batches
+}
+
 const folderOf = (path) => path.slice(0, path.lastIndexOf('/') + 1)
 
 const isIn = (file, { dir }) => file.startsWith(`${dir}/`)
@@ -114,16 +131,14 @@ export function planPrePush({
       kind: 'format',
       label: `formatting (${formatted.length} files)`,
       rerun: 'pnpm format',
-      commands: [
-        [
-          'pnpm',
-          'exec',
-          'oxfmt',
-          '--check',
-          '--no-error-on-unmatched-pattern',
-          ...formatted
-        ]
-      ]
+      commands: inBatches(formatted).map((batch) => [
+        'pnpm',
+        'exec',
+        'oxfmt',
+        '--check',
+        '--no-error-on-unmatched-pattern',
+        ...batch
+      ])
     })
 
   const typechecked = touched.filter(({ scripts }) => scripts.typecheck)

@@ -126,6 +126,22 @@ describe('the pre-push hook', () => {
     )
   })
 
+  test('formats a big diff in commands short enough for cmd.exe', () => {
+    const files = Array.from(
+      { length: 400 },
+      (_, index) => `packages/components/src/components/Badge/file-${index}.ts`
+    )
+    const commands = commandsOf('format', plan(files))
+    for (const command of commands)
+      assert.ok(command.join(' ').length < 8191, 'fits Windows cmd')
+    assert.deepEqual(
+      commands.flatMap((command) =>
+        command.filter((arg) => files.includes(arg))
+      ),
+      files
+    )
+  })
+
   test('every step has a time budget', () => {
     for (const files of Object.values(DIFFS))
       for (const step of plan(files).steps)
