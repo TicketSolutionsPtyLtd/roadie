@@ -243,7 +243,7 @@ export function planPrePush({
       (name) => workspaces.find((workspace) => workspace.name === name).short
     )
     skipped.push(
-      `typecheck and tests of dependents (${shorts.join(', ')}): TURBO_SCM_BASE=origin/main pnpm turbo run typecheck test --affected`
+      `typecheck and tests of dependents (${shorts.join(', ')}): pnpm turbo run typecheck test --filter="...[origin/main]"`
     )
   }
 
