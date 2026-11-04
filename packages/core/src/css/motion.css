@@ -154,6 +154,15 @@
   }
 }
 
+@keyframes shimmer-sweep-rtl {
+  from {
+    background-position-x: 100%;
+  }
+  to {
+    background-position-x: calc(100% - 200vw);
+  }
+}
+
 @keyframes indeterminate-sweep {
   from {
     inset-inline-start: -40%;
@@ -240,7 +249,8 @@
 
 /* A loading surface: a tint pulse under a highlight sweeping across it.
    Each element's tile is twice the viewport wide, so every band runs at one
-   speed and placeholders that share a left edge sweep together. Not
+   speed. The tile starts at the element's inline-start edge, so placeholders
+   that share that edge, such as lines of different lengths, sweep together. Not
    `background-attachment: fixed`: it lines them all up, but repaints every
    one each frame.
 
@@ -268,7 +278,7 @@
     shimmer-sweep var(--duration-sweep) linear infinite;
 
   &:dir(rtl) {
-    animation-direction: normal, reverse;
+    animation-name: pulse-subtle, shimmer-sweep-rtl;
   }
 
   @media (prefers-reduced-motion: reduce) {
