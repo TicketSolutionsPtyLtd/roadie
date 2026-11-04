@@ -89,6 +89,7 @@ async function openWithClipboard(path: string) {
   })
   const page = await context.newPage()
   await page.goto(`${ORIGIN}${BASE_PATH}${path}`)
+  await settled(page)
   return page
 }
 
