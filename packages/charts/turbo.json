@@ -9,7 +9,8 @@
         "$TURBO_ROOT$/tsconfig.base.json",
         "$TURBO_ROOT$/tsconfig.react.json",
         "!src/**/testChart.ts",
-        "!src/**/browserTesting.tsx"
+        "!src/**/browserTesting.tsx",
+        "!src/**/testUtils.{ts,tsx}"
       ]
     }
   }

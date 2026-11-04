@@ -8,7 +8,9 @@
         "$TURBO_EXTENDS$",
         "!src/tokens/tokens.json",
         "$TURBO_ROOT$/tsconfig.base.json",
-        "$TURBO_ROOT$/tsconfig.react.json"
+        "$TURBO_ROOT$/tsconfig.react.json",
+        "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
+        "!src/**/fixtures.{ts,tsx}"
       ]
     },
     "lint": {

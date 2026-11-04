@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const TEST_ONLY =
   /\.test\.|__screenshots__\/|__snapshots__\/|(?:^|\/)(?:testUtils|\w+TestUtils|fixtures|testChart|browserTesting)\.\w+$|\/_test\//
-const IMPORT = /(?:from|import)\s*\(?\s*['"]((?:\.{1,2}|@)\/[^'"]+)['"]/g
+const IMPORT = /(?:from|import)\s*\(?\s*['"`]((?:\.{1,2}|@)\/[^'"`]+)['"`]/g
 
 // The docs build hashes its source with the same exclusions.
 const builds = JSON.parse(
@@ -47,6 +47,8 @@ describe('build inputs', () => {
         .filter((file) => TEST_ONLY.test(file))
         .map((file) => `${task.taskId}: ${file}`)
     )
+    // A helper here would ship: exclude it in the package's tsdown entry and
+    // in its turbo.json build inputs together.
     assert.deepEqual(tested, [])
   })
 
