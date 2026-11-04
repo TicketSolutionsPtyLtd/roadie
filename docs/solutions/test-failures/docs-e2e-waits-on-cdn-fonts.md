@@ -31,17 +31,21 @@ requests reproduces it in Chromium, Firefox and WebKit.
 
 `serveExport` routes every other origin too (roadie#841):
 
-- The fonts `fonts.css` names come from disk: Intermission from
-  `packages/core/src/fonts`, byte for byte the CDN's files, and IBM Plex Mono
-  from `docs/e2e/fonts`.
+- The stylesheets it serves have the CDN font URLs swapped for `data:` URIs
+  of the same files: Intermission from `packages/core/src/fonts`, byte for
+  byte the CDN's, and IBM Plex Mono from `docs/e2e/fonts`. A first version
+  fulfilled the font requests through the route instead. Under CI load that
+  answer came late enough for Firefox to cancel the request on a page that
+  navigated, log "downloadable font: download failed", and fail a test that
+  checks the console. Inlined, no font is ever requested.
 - Any other image is `cart-demo-event.svg` from the export.
 - Anything else is aborted, so a new network dependency fails at once rather
   than now and then.
 
 `offline.e2e.test.ts` loads pages through a proxy that refuses every
-connection and checks both fonts load and CDN images draw. When `fonts.css`
-changes a URL, add the new one to `FONTS` in `serveExport.ts`, or that test
-fails.
+connection. It checks that both fonts load without a request, and that CDN
+images draw. When `fonts.css` changes a URL, add the new one to `FONTS` in
+`serveExport.ts`, or that test fails.
 
 The same PR sets `testTimeout: 60_000` in `vitest.e2e.config.ts`.
 `home-grid.e2e.test.ts` was the one file left on Vitest's 5 second default,

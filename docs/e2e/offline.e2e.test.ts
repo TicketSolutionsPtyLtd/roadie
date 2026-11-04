@@ -32,13 +32,19 @@ async function openOffline(route: string) {
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text())
   })
+  const fonts: string[] = []
+  page.on('request', (request) => {
+    if (request.resourceType() === 'font') fonts.push(request.url())
+  })
   await page.goto(`${ORIGIN}${BASE_PATH}${route}/`)
-  return { page, errors }
+  return { page, errors, fonts }
 }
 
 describe('pages under test, with no network', () => {
-  it('render in Intermission and IBM Plex Mono', async () => {
-    const { page } = await openOffline('/foundations/typography')
+  // A font fetched through a route came late enough under load for Firefox
+  // to cancel it and log the failure, so the fonts arrive inlined.
+  it('render in Intermission and IBM Plex Mono, fetching neither', async () => {
+    const { page, fonts } = await openOffline('/foundations/typography')
     const statuses = await page.evaluate(async () => {
       const faces = [
         '16px Intermission',
@@ -55,6 +61,7 @@ describe('pages under test, with no network', () => {
       'Intermission italic loaded',
       'Intermission normal loaded'
     ])
+    expect(fonts).toEqual([])
   })
 
   it('show example images from the CDN', async () => {

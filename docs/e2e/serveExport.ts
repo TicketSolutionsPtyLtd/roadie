@@ -11,6 +11,11 @@ const OUT_DIR = join(import.meta.dirname, '../out')
 
 const CORE_FONTS = join(import.meta.dirname, '../../packages/core/src/fonts')
 
+const PLEX_MONO = join(
+  import.meta.dirname,
+  'fonts/ibm-plex-mono-latin-400-normal.woff2'
+)
+
 /** The fonts `fonts.css` fetches from CDNs, by URL, as files on disk. */
 const FONTS: Record<string, string> = {
   'https://assets.oztix.com.au/file/fbf8b8c2-3b29-4733-8ac4-43b079e3b8f0=Intermission.woff':
@@ -18,7 +23,32 @@ const FONTS: Record<string, string> = {
   'https://assets.oztix.com.au/file/e5459e51-373b-4bbf-ad6f-07fbc6133409=Intermission-Italic.woff':
     join(CORE_FONTS, 'Intermission-Italic.woff2'),
   'https://cdn.jsdelivr.net/fontsource/fonts/ibm-plex-mono@latest/latin-400-normal.woff2':
-    join(import.meta.dirname, 'fonts/ibm-plex-mono-latin-400-normal.woff2')
+    PLEX_MONO,
+  'https://cdn.jsdelivr.net/fontsource/fonts/ibm-plex-mono@latest/latin-400-normal.woff':
+    PLEX_MONO
+}
+
+let fontData: Promise<[url: string, data: string][]> | undefined
+
+const inlineFonts = () =>
+  (fontData ??= Promise.all(
+    Object.entries(FONTS).map(async ([url, path]) => [
+      url,
+      `data:font/woff2;base64,${(await readFile(path)).toString('base64')}`
+    ])
+  ))
+
+/**
+ * A file from the export, with its stylesheets' CDN fonts inlined. A font
+ * fetched through a route arrives late enough under load for Firefox to
+ * cancel it and log the failure.
+ */
+async function bodyFor(path: string) {
+  const body = await readFile(path)
+  if (extname(path) !== '.css') return body
+  let css = body.toString()
+  for (const [url, data] of await inlineFonts()) css = css.replaceAll(url, data)
+  return css
 }
 
 const TYPES: Record<string, string> = {
@@ -49,7 +79,7 @@ const STAND_IN_IMAGE = join(OUT_DIR, 'cart-demo-event.svg')
 
 /**
  * Serves `docs/out` to the context without opening a port, with its CDN fonts
- * from disk and a local stand-in for CDN images. Nothing else reaches the
+ * inlined and a local stand-in for CDN images. Nothing else reaches the
  * network: a request still in flight holds the load event, so one slow CDN
  * response timed out `page.goto`.
  */
@@ -59,24 +89,16 @@ export async function serveExport(context: BrowserContext) {
   })
   await context.route(
     (url) => url.origin !== ORIGIN,
-    async (route) => {
-      const request = route.request()
-      const font = FONTS[request.url()]
-      if (font)
-        return route.fulfill({
-          body: await readFile(font),
-          contentType: 'font/woff2'
-        })
-      if (request.resourceType() === 'image')
-        return route.fulfill({ path: STAND_IN_IMAGE })
-      return route.abort('blockedbyclient')
-    }
+    (route) =>
+      route.request().resourceType() === 'image'
+        ? route.fulfill({ path: STAND_IN_IMAGE })
+        : route.abort('blockedbyclient')
   )
   await context.route(`${ORIGIN}/**`, async (route) => {
     const path = await fileFor(new URL(route.request().url()).pathname)
     try {
       await route.fulfill({
-        body: await readFile(path),
+        body: await bodyFor(path),
         contentType: TYPES[extname(path)] ?? 'application/octet-stream'
       })
     } catch {
