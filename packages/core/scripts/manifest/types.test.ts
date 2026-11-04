@@ -1,5 +1,6 @@
 import ts from 'typescript'
 
+import { moduleExports } from './exports'
 import { readTypes } from './types'
 
 const SOURCE = '/repo/packages/blocks/src/menu.ts'
@@ -77,6 +78,31 @@ const FILES: Record<string, string> = {
     }
 
     export type MenuChoice = { value: string }
+
+    export type MenuTotalsShape = { label: string }
+    export type MenuTotals = true | MenuTotalsShape
+    export type MenuEntry = { name: string }
+    export type MenuEntries = readonly MenuEntry[]
+    type MenuInternal = { secret: string }
+    export type { MenuInternal as MenuPublic }
+
+    export type MenuContext = { index: number }
+    export type MenuResult = { html: string }
+    export type MenuConfirm = { title: string }
+    export type MenuLoaded = { count: number }
+
+    export type MenuHooks = {
+      render?: (context: MenuContext) => MenuResult
+      options?: { confirm?: MenuConfirm }
+      load?: Promise<MenuLoaded>
+    }
+
+    export type MenuPanel = {
+      totals?: MenuTotals
+      entries: MenuEntries
+      internal?: MenuInternal
+      value: string | undefined
+    }
   `
 }
 
@@ -103,13 +129,23 @@ function program() {
   return ts.createProgram([SOURCE, VALUES], options, host)
 }
 
-const sources = [
-  { subpath: './menu', import: '@fixture/blocks/menu', source: SOURCE }
-]
+const IMPORTS: Record<string, string> = {
+  [SOURCE]: '@fixture/blocks/menu',
+  [VALUES]: '@fixture/blocks/values'
+}
+
+function read(names: string[], files = [SOURCE]) {
+  const built = program()
+  const sources = files.map((file) => ({
+    import: IMPORTS[file]!,
+    symbols: moduleExports(built, file).typeSymbols
+  }))
+  return readTypes(built, sources, names)
+}
 
 describe('readTypes', () => {
   it("keeps a type's own and Base UI fields, not those it takes from the DOM or React", () => {
-    expect(readTypes(program(), sources, ['MenuProps'])).toEqual([
+    expect(read(['MenuProps'])).toEqual([
       {
         name: 'MenuProps',
         import: '@fixture/blocks/menu',
@@ -124,7 +160,7 @@ describe('readTypes', () => {
   })
 
   it('lists a union of literals in the order it is declared, through an imported alias, parentheses, and null', () => {
-    expect(readTypes(program(), sources, ['MenuItem'])[0]?.fields).toEqual([
+    expect(read(['MenuItem'])[0]?.fields).toEqual([
       { name: 'first', type: '"b"' },
       { name: 'second', type: '"a" | "b"' },
       { name: 'loudness', type: '"loud"' },
@@ -136,13 +172,13 @@ describe('readTypes', () => {
   })
 
   it('marks a deprecated field and leaves out a symbol-keyed one, which has no name to set', () => {
-    expect(readTypes(program(), sources, ['MenuState'])[0]?.fields).toEqual([
+    expect(read(['MenuState'])[0]?.fields).toEqual([
       { name: 'shown', type: 'boolean', deprecated: 'Use `open`.' }
     ])
   })
 
   it('follows a field to the exported type it names, once, even when a type names itself', () => {
-    expect(readTypes(program(), sources, ['MenuTree'])).toEqual([
+    expect(read(['MenuTree'])).toEqual([
       {
         name: 'MenuGroup',
         import: '@fixture/blocks/menu',
@@ -161,20 +197,20 @@ describe('readTypes', () => {
   })
 
   it('describes the fields of a mapped type', () => {
-    expect(readTypes(program(), sources, ['MenuSizes'])[0]?.fields).toEqual([
+    expect(read(['MenuSizes'])[0]?.fields).toEqual([
       { name: 'sm', type: 'number', required: true },
       { name: 'lg', type: 'number', required: true }
     ])
   })
 
   it('describes a type that shares its name with a value', () => {
-    expect(readTypes(program(), sources, ['MenuDefaults'])[0]?.fields).toEqual([
+    expect(read(['MenuDefaults'])[0]?.fields).toEqual([
       { name: 'open', type: 'boolean', required: true }
     ])
   })
 
   it('describes the fields of a type re-exported from another package', () => {
-    expect(readTypes(program(), sources, ['DocNode'])).toEqual([
+    expect(read(['DocNode'])).toEqual([
       {
         name: 'DocNode',
         import: '@fixture/blocks/menu',
@@ -188,7 +224,7 @@ describe('readTypes', () => {
   })
 
   it("names a generic type's parameters, and follows none of them to a type of the same name", () => {
-    expect(readTypes(program(), sources, ['MenuRecord'])).toEqual([
+    expect(read(['MenuRecord'])).toEqual([
       {
         name: 'MenuRecord',
         import: '@fixture/blocks/menu',
@@ -203,22 +239,79 @@ describe('readTypes', () => {
   })
 
   it('leaves out a key that starts with a space, which a library keeps for itself', () => {
-    expect(readTypes(program(), sources, ['MenuStore'])[0]?.fields).toEqual([
+    expect(read(['MenuStore'])[0]?.fields).toEqual([
       { name: 'size', type: 'number', required: true }
     ])
   })
 
   it('takes a type from the subpath that exports it as a type, past one exporting a value of that name', () => {
-    const values = {
-      subpath: './values',
-      import: '@fixture/blocks/values',
-      source: VALUES
-    }
-    expect(readTypes(program(), [values, ...sources], ['MenuChoice'])).toEqual([
+    expect(read(['MenuChoice'], [VALUES, SOURCE])).toEqual([
       {
         name: 'MenuChoice',
         import: '@fixture/blocks/menu',
         fields: [{ name: 'value', type: 'string', required: true }]
+      }
+    ])
+  })
+
+  it('follows a field through a union alias, an array alias and a renamed re-export, and keeps undefined on a required field', () => {
+    expect(read(['MenuPanel'])).toEqual([
+      {
+        name: 'MenuEntry',
+        import: '@fixture/blocks/menu',
+        fields: [{ name: 'name', type: 'string', required: true }]
+      },
+      {
+        name: 'MenuInternal',
+        import: '@fixture/blocks/menu',
+        export: 'MenuPublic',
+        fields: [{ name: 'secret', type: 'string', required: true }]
+      },
+      {
+        name: 'MenuPanel',
+        import: '@fixture/blocks/menu',
+        fields: [
+          { name: 'totals', type: 'MenuTotals' },
+          { name: 'entries', type: 'MenuEntries', required: true },
+          { name: 'internal', type: 'MenuInternal' },
+          { name: 'value', type: 'string | undefined', required: true }
+        ]
+      },
+      {
+        name: 'MenuTotalsShape',
+        import: '@fixture/blocks/menu',
+        fields: [{ name: 'label', type: 'string', required: true }]
+      }
+    ])
+  })
+
+  it('follows a field into a function, an inline object and a generic type', () => {
+    expect(read(['MenuHooks']).map((type) => type.name)).toEqual([
+      'MenuConfirm',
+      'MenuContext',
+      'MenuHooks',
+      'MenuLoaded',
+      'MenuResult'
+    ])
+  })
+
+  it('finds a renamed re-export by the name a prop prints it with', () => {
+    expect(read(['MenuInternal'])).toEqual([
+      {
+        name: 'MenuInternal',
+        import: '@fixture/blocks/menu',
+        export: 'MenuPublic',
+        fields: [{ name: 'secret', type: 'string', required: true }]
+      }
+    ])
+  })
+
+  it('follows a union alias a prop names to the object types inside it', () => {
+    expect(read(['MenuTotals'])).toEqual([
+      {
+        name: 'MenuTotalsShape',
+        import: '@fixture/blocks/menu',
+        fields: [{ name: 'label', type: 'string', required: true }]
       }
     ])
   })
@@ -229,6 +322,6 @@ describe('readTypes', () => {
     ['a type the package does not export', 'MenuHidden'],
     ['a string literal that spells a type name', '"MenuGroup"']
   ])('describes no %s', (_, name) => {
-    expect(readTypes(program(), sources, [name])).toEqual([])
+    expect(read([name])).toEqual([])
   })
 })

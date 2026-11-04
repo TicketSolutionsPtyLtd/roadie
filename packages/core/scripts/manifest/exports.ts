@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 
-import { unwrap } from './text.ts'
+import { compareText, unwrap } from './text.ts'
 
 export type ExportTarget = string | { [condition: string]: string }
 
@@ -19,6 +19,8 @@ export type ModuleExports = {
   values: string[]
   components: Map<string, string>
   types: string[]
+  /** Each export that names a type, by its exported name, resolved past any alias. */
+  typeSymbols: Map<string, ts.Symbol>
   deprecated: Deprecation[]
 }
 
@@ -81,7 +83,7 @@ export function programFor(shared: ts.Program, files: string[]) {
   return ts.createProgram(files, options, host)
 }
 
-function deprecationOf(symbol: ts.Symbol, checker: ts.TypeChecker) {
+export function deprecationOf(symbol: ts.Symbol, checker: ts.TypeChecker) {
   const tag = symbol
     .getJsDocTags(checker)
     .find((candidate) => candidate.name === 'deprecated')
@@ -152,6 +154,7 @@ export function moduleExports(
     values: [],
     components: new Map(),
     types: [],
+    typeSymbols: new Map(),
     deprecated: []
   }
   const starDeprecations = starExportDeprecations(sourceFile, checker)
@@ -169,6 +172,8 @@ export function moduleExports(
         result.components.set(name, declaration.getSourceFile().fileName)
       }
     } else result.types.push(name)
+    if (resolved.flags & ts.SymbolFlags.Type)
+      result.typeSymbols.set(name, resolved)
     const reason =
       deprecationOf(symbol, checker) ??
       reExportDeprecation(symbol) ??
@@ -180,8 +185,6 @@ export function moduleExports(
   }
   result.values.sort()
   result.types.sort()
-  result.deprecated.sort((a, b) =>
-    a.export < b.export ? -1 : a.export > b.export ? 1 : 0
-  )
+  result.deprecated.sort((a, b) => compareText(a.export, b.export))
   return result
 }
