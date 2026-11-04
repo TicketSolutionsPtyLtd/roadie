@@ -3,10 +3,6 @@
   "agentGuidance": false,
   "globalDependencies": ["**/.env.*local", ".nvmrc"],
   "tasks": {
-    "prepare": {
-      "dependsOn": ["^build"],
-      "inputs": ["package.json"]
-    },
     "build": {
       "dependsOn": ["^build"],
       "inputs": [

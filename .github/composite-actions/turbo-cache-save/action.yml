@@ -1,0 +1,23 @@
+name: Save Turbo cache
+description: Prunes the job's Turbo cache to what recent runs used and saves it if anything changed. Run it as the last step, if not cancelled.
+
+runs:
+  using: composite
+  steps:
+    # TURBO_CACHE_KEY is unset when setup failed or ran with turbo-cache false.
+    - name: Prune Turbo cache
+      id: prune
+      if: env.TURBO_CACHE_KEY != ''
+      shell: bash
+      run: node scripts/prune-turbo-cache.mjs
+
+    # The paths must match setup's restore step.
+    - name: Save Turbo cache
+      if: steps.prune.outputs.changed == 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          .turbo/cache
+          .turbo/cache-access.json
+          docs/tsconfig.tsbuildinfo
+        key: ${{ env.TURBO_CACHE_KEY }}
