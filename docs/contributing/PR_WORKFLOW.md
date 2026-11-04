@@ -155,8 +155,8 @@ Every PR is checked against these before review. Fix every real hit.
   tests for the files you touched, and the `size` script of every
   touched package that has one (`pnpm --filter <package> size`; `docs`
   has none). When a change touches a package's `exports`, `files`, or
-  types, also run `pnpm turbo check:package` (attw, `check:dts`, and the
-  Node ESM import check), which `build` doesn't run.
+  types, also run `pnpm turbo check:package` (attw, `check:dts`, the Node
+  ESM import check, and the tarball guard), which `build` doesn't run.
 - Rebuild before browser tests; stale `dist` misleads the `:has()` guard.
 - **Docs e2e tests** (`docs/e2e/`) drive the static export in `docs/out`
   with Playwright, so build the docs first, with the base path CI uses, and

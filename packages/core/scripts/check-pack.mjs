@@ -9,9 +9,9 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 const TEST_FOLDER =
-  /(^|\/)(__tests__|__mocks__|__screenshots__|__snapshots__|__fixtures__|fixtures?)\//
+  /(^|\/)(__tests__|__mocks__|__screenshots__|__snapshots__|__fixtures__|fixtures?|tests?|test-?utils)\//
 const TEST_FILE =
-  /\.(test|spec)(-d)?\.(d\.)?[cm]?[jt]sx?$|(^|\/)(test-?utils|\w*TestUtils)\.[cm]?[jt]sx?$/i
+  /\.(test|spec)(-d)?\.(d\.)?[cm]?[jt]sx?$|(^|\/)([Tt]est-?[Uu]tils|\w+TestUtils)\b[^/]*$/
 
 function exportTargets(exports) {
   if (typeof exports === 'string') return [exports]

@@ -124,7 +124,7 @@ import { Fieldset } from '@oztix/roadie-components/fieldset'
 
 ```bash
 pnpm --filter @oztix/roadie-components build   # tsdown and the manifest
-pnpm turbo check:package --filter=@oztix/roadie-components   # check:dts, attw, and Node ESM
+pnpm turbo check:package --filter=@oztix/roadie-components   # check:dts, attw, Node ESM, and the tarball
 pnpm --filter @oztix/roadie-components test    # all tests, including the new Compound.test.tsx
 pnpm --filter @oztix/roadie-components typecheck
 pnpm --filter @oztix/roadie-components lint

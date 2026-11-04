@@ -26,7 +26,12 @@ describe('packProblems', () => {
     'src/test-utils.ts',
     'src/TestUtils.ts',
     'src/a.test-d.ts',
-    'dist/a.test.d.ts'
+    'dist/a.test.d.ts',
+    'dist/testUtils.d.ts',
+    'dist/testUtils-Bx1.js',
+    'dist/test-utils/index.js',
+    'dist/test/setup.js',
+    'dist/tests/setup.js'
   ])('flags %s as a test file', (file) => {
     expect(packProblems([file], read)).toEqual([`${file} is a test file`])
   })
@@ -36,7 +41,9 @@ describe('packProblems', () => {
     'dist/testing.js',
     'dist/attest.js',
     'dist/latest.d.ts',
-    'dist/contest/index.js'
+    'dist/contest/index.js',
+    'dist/latestUtils.js',
+    'dist/contestUtils.js'
   ])('ships %s', (file) => {
     expect(packProblems([file], read)).toEqual([])
   })
