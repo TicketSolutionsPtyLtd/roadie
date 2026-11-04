@@ -314,13 +314,13 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     const checkbox = container.querySelector<HTMLElement>(
       '[data-slot="record-table-list-row"] [role="checkbox"]'
     )!
-    // The first tick brings in the translucent bulk bar.
+    // The first tick brings in Select mode's bulk bar.
     await expectFrameBudget(
       'RecordTable, tick a row among 10,000',
       await measureFrames((index) => index === 0 && checkbox.click(), {
         frames: 60
       }),
-      { longestTask: 50, knownMiss: 'INNO-1522' }
+      { longestTask: 50, knownMiss: 'INNO-1528' }
     )
     expect(checkbox.getAttribute('aria-checked')).toBe('true')
   })
@@ -358,7 +358,7 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     await expectFrameBudget(
       'RecordTable, list rows under the bulk bar, scroll',
       await measureFrames(scrollBy(box)),
-      { longestTask: 50, knownMiss: 'INNO-1522' }
+      { longestTask: 50, knownMiss: 'INNO-1528' }
     )
   })
 
