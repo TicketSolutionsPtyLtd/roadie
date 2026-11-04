@@ -180,11 +180,16 @@ Every PR is checked against these before review. Fix every real hit.
   the package's `test` and `test:browser` scripts; the CPU-throttled perf
   tests run only with `--perf`. A draft PR runs no browser tests in CI, and
   marking it ready runs them once, in Chromium only. WebKit and Firefox run
-  on `main` and nightly, or on the PR with the `full-browsers` label. The pre-push hook also waits for
-  the load before it typechecks and tests, and fails the push after 30
-  minutes. Give browser tests explicit timeouts and never wait on an infinite
-  animation. Stop dev servers you start, and run `pnpm cleanup` (`--delete` to
-  delete) when disk runs low.
+  on `main` and nightly, or on the PR with the `full-browsers` label. The
+  pre-push hook waits up to 15 seconds for the load, then checks only what
+  the diff touches: the repo guards, formatting, an incremental typecheck of
+  the changed packages, and their tests beside the change plus their guard
+  tests. It builds what the typecheck reads with no time budget, since a
+  build stopped midway empties `dist`, and gives every other step one. It
+  prints what it left to CI with the command to run each, so never push with
+  `--no-verify`. Give browser tests explicit timeouts and never wait on an
+  infinite animation. Stop dev servers you start, and run `pnpm cleanup`
+  (`--delete` to delete) when disk runs low.
 - **Demo user-visible changes before pushing.** `pnpm preview` serves the
   docs from your worktree and prints the URLs a phone can open; set
   `ROADIE_PORT_RANGE` to your session's range and extra hosts in
@@ -235,9 +240,9 @@ the PR only when the review is clean.
 - **Evidence renders inline on GitHub**, because the maintainer reviews on a
   phone. Take viewport-only screenshots, with no browser chrome, address bar,
   or local URL. Push them to an orphan branch named
-  `<prefix>/<topic>-screenshots` that holds only the images (push it with
-  `--no-verify`, since the code hooks can't run there), and embed them in
-  the body with `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`.
+  `<prefix>/<topic>-screenshots` that holds only the images (the pre-push
+  hook skips a branch with no history in common with `main`), and embed them
+  in the body with `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`.
   Never link local files, gists, or artifacts. For baselines CI renders, link
   the run and embed a few representative images.
 - **Open it as a draft** (`gh pr create --draft`). CI on a draft runs only
