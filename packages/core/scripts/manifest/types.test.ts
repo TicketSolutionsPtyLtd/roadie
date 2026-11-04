@@ -11,7 +11,8 @@ const FILES: Record<string, string> = {
   '/repo/node_modules/@base-ui/react/index.d.ts':
     "export type PopupProps = { side?: 'top' | 'bottom' }",
   '/repo/node_modules/doc-fake/index.d.ts':
-    '/** A document node. */ export type DocNode = { type?: string; content?: DocNode[] }',
+    '/** A document node. */ export type DocNode = { type?: string; content?: DocNode[] }' +
+    ' export interface DocMark { kind: string }',
   '/repo/packages/blocks/src/tone.ts':
     "export type MenuTone = 'quiet' | 'loud'",
   [VALUES]: "export const MenuChoice = 'first'",
@@ -20,7 +21,7 @@ const FILES: Record<string, string> = {
     import type { PopupProps } from '@base-ui/react'
     import type { MenuTone } from './tone'
 
-    export type { DocNode } from 'doc-fake'
+    export type { DocMark, DocNode } from 'doc-fake'
 
     const brand: unique symbol = Symbol('menu')
 
@@ -116,6 +117,10 @@ const FILES: Record<string, string> = {
       onPick?: (value: string) => string
       onEither?: ((value: string) => void) | ((value: number) => void)
     }
+
+    export type MenuPair = [MenuGroup, MenuEntry]
+    export type MenuLookup = Map<string, MenuGroup>
+    export type MenuLoad = Promise<MenuEntry>
 
     export type MenuDoc = { type: string; [key: string]: unknown }
 
@@ -247,6 +252,16 @@ describe('readTypes', () => {
     ])
   })
 
+  it('describes the fields of an interface re-exported from another package, though it is a library type', () => {
+    expect(read(['DocMark'])).toEqual([
+      {
+        name: 'DocMark',
+        import: '@fixture/blocks/menu',
+        fields: [{ name: 'kind', type: 'string', required: true }]
+      }
+    ])
+  })
+
   it("names a generic type's parameters, and follows none of them to a type of the same name", () => {
     expect(read(['MenuRecord'])).toEqual([
       {
@@ -338,6 +353,12 @@ describe('readTypes', () => {
         type: '((value: string) => void) | ((value: number) => void)'
       }
     ])
+  })
+
+  it("describes a tuple's or a library type's exported arguments, not the tuple or library type", () => {
+    expect(
+      read(['MenuPair', 'MenuLookup', 'MenuLoad']).map((type) => type.name)
+    ).toEqual(['MenuEntry', 'MenuGroup'])
   })
 
   it('says when a type also takes keys it does not name', () => {

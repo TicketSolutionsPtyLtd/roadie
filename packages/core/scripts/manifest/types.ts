@@ -171,6 +171,11 @@ function isSymbolKeyed(field: ts.Symbol) {
   })
 }
 
+function isHome(declaration: ts.Declaration, home: Set<string>) {
+  const fileName = declaration.getSourceFile().fileName
+  return isOursOrBaseUi(fileName) || home.has(fileName)
+}
+
 // The fields props keep (ours and Base UI's), plus a re-exported type's own.
 function isOwnField(field: ts.Symbol, home: Set<string>) {
   if (SKIPPED_PROPS.has(field.getName())) return false
@@ -180,10 +185,7 @@ function isOwnField(field: ts.Symbol, home: Set<string>) {
   const declarations = field.declarations ?? []
   return (
     declarations.length === 0 ||
-    declarations.some((declaration) => {
-      const fileName = declaration.getSourceFile().fileName
-      return isOursOrBaseUi(fileName) || home.has(fileName)
-    })
+    declarations.some((declaration) => isHome(declaration, home))
   )
 }
 
@@ -196,12 +198,20 @@ function toField(field: ts.Symbol, checker: ts.TypeChecker): ManifestProp {
   }
 }
 
-function isDescribed(type: ts.Type, checker: ts.TypeChecker) {
+// A library's class or interface under our alias, such as `Map<string, Row>`, has none of our fields.
+function isLibraryClassOrInterface(type: ts.Type, home: Set<string>) {
+  if (!(type.flags & ts.TypeFlags.Object)) return false
+  const named = ts.ObjectFlags.ClassOrInterface | ts.ObjectFlags.Reference
+  if (!((type as ts.ObjectType).objectFlags & named)) return false
+  const declarations = type.getSymbol()?.declarations ?? []
+  return !declarations.some((declaration) => isHome(declaration, home))
+}
+
+function isDescribed(type: ts.Type, home: Set<string>) {
   const isObject = !!(type.flags & ts.TypeFlags.Object) || type.isIntersection()
   return (
     isObject &&
-    !checker.isArrayType(type) &&
-    !checker.isTupleType(type) &&
+    !isLibraryClassOrInterface(type, home) &&
     type.getCallSignatures().length === 0
   )
 }
@@ -269,15 +279,15 @@ export function readTypes(
     if (seen.has(symbol)) continue
     seen.add(symbol)
     const type = checker.getDeclaredTypeOfSymbol(symbol)
-    if (!isDescribed(type, checker)) {
-      follow(type)
-      continue
-    }
-
     const declarations = symbol.declarations ?? []
     const home = new Set(
       declarations.map((declaration) => declaration.getSourceFile().fileName)
     )
+    if (!isDescribed(type, home)) {
+      follow(type)
+      continue
+    }
+
     const typeParameters = declarations.flatMap((declaration) =>
       ts.isTypeAliasDeclaration(declaration) ||
       ts.isInterfaceDeclaration(declaration)
