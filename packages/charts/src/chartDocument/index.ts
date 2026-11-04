@@ -29,7 +29,7 @@ import { plotFrame, widthBand } from '../plot/frame'
 import { hexPaint } from '../plot/paint'
 import { FONT_FAMILY, SVG_NS, escapeXml } from '../plot/svg'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
-import { renderChartSvg } from './index'
+import { renderChartSvg } from '../static'
 
 /** @beta The chart document's shape may change. */
 export type ChartDocumentRenderOptions = {
@@ -62,7 +62,7 @@ export class ChartDocumentError extends Error {
 
 type DrawnKind = Exclude<ChartPlotKind, 'small-multiples'>
 
-// Definitions, not components, so /static never loads React.
+// Definitions, not components, so a server drawing a document never loads React.
 const DEFINITIONS: { [K in DrawnKind]: ChartDefinition<PlotProps<K>> } = {
   line: lineChart,
   bar: barChart,

@@ -140,7 +140,8 @@ These rules aren't on those pages.
 
 - Each chart type has its own `@oztix/roadie-charts` subpath (`/line-chart` and
   so on), which is `'use client'` and exports only components. On a server, use
-  `/static` (`renderChartSvg`) and `/tables`.
+  `/static` (`renderChartSvg`), `/chart-document` (`renderChartDocument`), and
+  `/tables`.
 - A dashboard chart card's `plot` is `{ kind, ...props }`, where `kind` is
   `line`, `bar`, `ranked-bars`, `donut`, `stacked-bars`, `stacked-area`,
   `histogram`, `funnel`, `heatmap`, `scatter`, or `small-multiples`.
@@ -162,7 +163,8 @@ These rules aren't on those pages.
   don't assert rule text there.
 - Iterate with `pnpm test:gated <package> <file or folder>` (load-gated,
   Chromium only, the projects CI runs), never `vitest` or the whole suite
-  directly. Perf tests run only with `--perf`.
+  directly. Frame tests (`*.perf.browser.test.tsx`, on `@oztix/roadie-frames`)
+  run only with `--perf`, and in the Perf workflow.
 - Dev-only warnings check `process.env.NODE_ENV` behind a
   `typeof process !== 'undefined'` guard
   ([why](docs/solutions/build-errors/cross-bundler-dev-env-check.md)).
