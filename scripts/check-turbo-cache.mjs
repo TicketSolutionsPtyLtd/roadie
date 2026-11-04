@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Run straight after `pnpm build`: fails when a build wouldn't replay from the
 // cache on an unchanged rerun. That happens when a build writes to its own
-// inputs or reads a file or env var turbo doesn't hash, and it makes every
-// later run rebuild that package and everything that depends on it.
+// inputs, and it makes every later run rebuild that package and everything
+// that depends on it. A build that reads a file turbo doesn't hash still
+// replays, so this can't catch that.
 import { execSync } from 'node:child_process'
 
 const dry = JSON.parse(

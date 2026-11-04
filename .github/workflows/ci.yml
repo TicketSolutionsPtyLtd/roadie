@@ -343,8 +343,7 @@ jobs:
         run: pnpm build
 
       # A no-change rerun must replay every task. A miss means a build writes
-      # to its own inputs or reads something unhashed, and every later run
-      # would rebuild it.
+      # to its own inputs, and every later run would rebuild it.
       - name: Check builds replay from the cache
         run: node scripts/check-turbo-cache.mjs
 
