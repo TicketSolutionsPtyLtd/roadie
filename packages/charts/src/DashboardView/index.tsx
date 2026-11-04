@@ -33,9 +33,8 @@ export type DashboardViewProps = {
    * Return nothing to leave a card without actions. Each gets its card as
    * drawn, from `followPeriod`, with its headline delta and context and a
    * chart's comparison following the period, so a CSV from `cardTable(card)`
-   * matches the Table view. When this renders on the
-   * server, return a client component that owns the handlers, not inline
-   * handlers.
+   * matches the Table view. When this renders on the server, return a client
+   * component that owns the handlers, not inline handlers.
    */
   cardActions?: (card: DashboardCard) => ReactNode
   /**

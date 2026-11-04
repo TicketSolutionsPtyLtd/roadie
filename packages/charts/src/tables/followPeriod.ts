@@ -30,7 +30,7 @@ function warnOnce(message: string) {
 
 // validateDashboard rejects these; an unchecked spec still gets a label, and a
 // development error says why.
-export function comparisonLine(
+function comparisonLine(
   compare: Comparison,
   where: FollowPeriodOptions
 ): string {
