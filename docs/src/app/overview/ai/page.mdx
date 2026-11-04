@@ -104,7 +104,7 @@ All six manifests have the same shape:
 
 - `exports` lists each import path with the values and types it exports.
 - `components` lists each React component with its import path, props, compound parts, and docs page, plus its first live example when its page has one. Vue skins appear in `exports` only.
-- `types` describes each exported object type the props name, such as an item in a list prop, with each field's type, whether it's required, and its description. It follows a field to the next exported type it names, so a reader can check the nested fields a component needs.
+- `types` describes each exported object type the props name, such as an item in a list prop, with each field's type, whether it's required, and its description. It follows a field to the next type the same package exports, so a reader can check the nested fields a component needs.
 - `deprecations` lists every deprecated export and prop with what to use instead.
 - `tokens` lists the CSS variables, utilities, and classes, in the core manifest only.
 

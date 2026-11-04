@@ -19,6 +19,8 @@ export type ManifestType = {
   deprecated?: string
   /** A generic type's parameters, which its fields' types may name. */
   typeParameters?: string[]
+  /** The type of any key `fields` doesn't name, when the type takes them. */
+  additionalFields?: string
   fields: ManifestProp[]
 }
 
@@ -26,10 +28,31 @@ export type ManifestType = {
 export type TypeSource = { import: string; symbols: Map<string, ts.Symbol> }
 
 const TYPE_NAMES = /\b[A-Z]\w*\b/g
-const STRING_LITERALS = /"(?:[^"\\]|\\.)*"/g
+const STRING_LITERALS = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g
+// Their argument isn't the shape a prop or field takes, so it isn't followed.
+const RESHAPING = new Set(['Omit', 'Pick', 'Partial', 'Required'])
+const RESHAPED = /\b(?:Omit|Pick|Partial|Required)</g
+
+function withoutReshaped(type: string) {
+  let result = ''
+  let index = 0
+  for (const match of type.matchAll(RESHAPED)) {
+    if (match.index < index) continue
+    result += type.slice(index, match.index)
+    let end = match.index + match[0].length - 1
+    for (let depth = 0; end < type.length; end++) {
+      if (type[end] === '<') depth++
+      else if (type[end] === '>' && --depth === 0) break
+    }
+    index = end + 1
+  }
+  return result + type.slice(index)
+}
 
 function typeNames(type: string) {
-  return type.replace(STRING_LITERALS, '').match(TYPE_NAMES) ?? []
+  return (
+    withoutReshaped(type.replace(STRING_LITERALS, '')).match(TYPE_NAMES) ?? []
+  )
 }
 
 function documentation(symbol: ts.Symbol, checker: ts.TypeChecker) {
@@ -51,8 +74,7 @@ function isNullish(node: ts.TypeNode) {
   )
 }
 
-// Literals in the order the source declares them, as the props list them, not
-// the order the checker first created them in.
+// Declared order, as props list them, not the order the checker created them in.
 function declaredLiterals(
   node: ts.TypeNode | undefined,
   checker: ts.TypeChecker
@@ -95,26 +117,46 @@ function isOptional(field: ts.Symbol) {
   return !!(field.flags & ts.SymbolFlags.Optional)
 }
 
+function withoutOuterParentheses(type: string) {
+  if (!type.startsWith('(') || !type.endsWith(')')) return type
+  let depth = 0
+  for (let index = 0; index < type.length - 1; index++) {
+    if (type[index] === '(') depth++
+    else if (type[index] === ')' && --depth === 0) return type
+  }
+  return type.slice(1, -1)
+}
+
 function fieldType(field: ts.Symbol, checker: ts.TypeChecker) {
   const declared = checker.getTypeOfSymbol(field)
   const type = checker.getNonNullableType(declared)
+  // On a required field, `undefined` or `null` is a value it takes, not optionality.
+  const empty =
+    isOptional(field) || !declared.isUnion()
+      ? []
+      : declared.types
+          .filter(
+            (member) =>
+              member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)
+          )
+          .map((member) => checker.typeToString(member))
   if (type.isUnion() && type.types.every(isLiteral)) {
     const declaration = field.declarations?.find(ts.isPropertySignature)
-    return (
-      declaredLiterals(declaration?.type, checker) ??
-      type.types.map((member) => checker.typeToString(member))
-    ).join(' | ')
+    return [
+      ...(declaredLiterals(declaration?.type, checker) ??
+        type.types.map((member) => checker.typeToString(member))),
+      ...empty
+    ].join(' | ')
   }
-  // Printing the declared type keeps an alias's name, such as `ReactNode`,
-  // which a nullable alias loses once its `undefined` is stripped.
+  // The declared type keeps a nullable alias's name, such as `ReactNode`.
   const printed = checker.typeToString(
     declared,
     undefined,
     ts.TypeFormatFlags.NoTruncation
   )
-  // On an optional field `undefined` only repeats that `required` is unset; on
-  // a required one it's a value the field takes.
-  return isOptional(field) ? formatType({ name: printed }) : printed
+  return isOptional(field)
+    ? withoutOuterParentheses(formatType({ name: printed }))
+    : printed
 }
 
 function isSymbolKeyed(field: ts.Symbol) {
@@ -129,11 +171,9 @@ function isSymbolKeyed(field: ts.Symbol) {
   })
 }
 
-// The same props a component's own list keeps: ours and Base UI's, not the DOM's or React's,
-// plus those a type from another package declares itself.
+// The fields props keep (ours and Base UI's), plus a re-exported type's own.
 function isOwnField(field: ts.Symbol, home: Set<string>) {
   if (SKIPPED_PROPS.has(field.getName())) return false
-  // A symbol key has no name a reader can set.
   if (isSymbolKeyed(field)) return false
   // A key with a leading space, such as Base UI's `' subscribe'`, is the library's own.
   if (/^\s/.test(field.getName())) return false
@@ -166,11 +206,7 @@ function isDescribed(type: ts.Type, checker: ts.TypeChecker) {
   )
 }
 
-/**
- * Describes each exported object type that the given prop types name, and the
- * exported types their fields lead to through unions, arrays and aliases, so a
- * reader can follow a prop like `readonly QuoteItem[]` to the fields of `QuoteItem`.
- */
+/** Describes the exported object types props name, and those their fields lead to. */
 export function readTypes(
   program: ts.Program,
   sources: TypeSource[],
@@ -202,7 +238,9 @@ export function readTypes(
       if (symbol && exported.has(symbol)) queue.push(symbol)
     }
     if (type.isUnionOrIntersection()) type.types.forEach(follow)
-    type.aliasTypeArguments?.forEach(follow)
+    if (!RESHAPING.has(type.aliasSymbol?.getName() ?? '')) {
+      type.aliasTypeArguments?.forEach(follow)
+    }
     if (!(type.flags & ts.TypeFlags.Object)) return
     const { objectFlags } = type as ts.ObjectType
     // `T[]`, `Promise<T>` and other generic instances name their types as arguments.
@@ -218,7 +256,6 @@ export function readTypes(
       }
       follow(signature.getReturnType())
     }
-    // An inline object type has no name to describe it by, so look inside it.
     if (objectFlags & ts.ObjectFlags.Anonymous) {
       for (const field of checker.getPropertiesOfType(type)) {
         follow(checker.getTypeOfSymbol(field))
@@ -255,12 +292,16 @@ export function readTypes(
     for (const field of fields) follow(checker.getTypeOfSymbol(field))
     const entry = exported.get(symbol)!
     const name = symbol.getName()
+    const extra = checker
+      .getIndexInfosOfType(type)
+      .find((info) => info.keyType.flags & ts.TypeFlags.String)
     described.push({
       name,
       import: entry.import,
       ...(entry.name !== name && { export: entry.name }),
       ...documentation(symbol, checker),
       ...(typeParameters.length > 0 && { typeParameters }),
+      ...(extra && { additionalFields: checker.typeToString(extra.type) }),
       fields: fields.map((field) => toField(field, checker))
     })
   }

@@ -97,6 +97,22 @@ const FILES: Record<string, string> = {
       load?: Promise<MenuLoaded>
     }
 
+    export type MenuBase = { a: string; b: string }
+
+    export type MenuWrapped = {
+      base?: Omit<MenuBase, 'b'>
+      pick?: () => Pick<MenuBase, 'a'>
+      partial?: Partial<MenuBase>
+    }
+
+    export type MenuOptions = {
+      size: 'sm' | 'md' | undefined
+      tone: 'a' | null
+      onPick?: (value: string) => string
+    }
+
+    export type MenuDoc = { type: string; [key: string]: unknown }
+
     export type MenuPanel = {
       totals?: MenuTotals
       entries: MenuEntries
@@ -292,6 +308,32 @@ describe('readTypes', () => {
       'MenuHooks',
       'MenuLoaded',
       'MenuResult'
+    ])
+  })
+
+  it('describes no type a field or prop only reaches through Omit, Pick or Partial, whose shape differs', () => {
+    expect(read(['MenuWrapped']).map((type) => type.name)).toEqual([
+      'MenuWrapped'
+    ])
+    expect(read(["Omit<MenuBase, 'b'> & { c: string }"])).toEqual([])
+  })
+
+  it('keeps undefined and null on a required field of fixed options, and unwraps an optional function', () => {
+    expect(read(['MenuOptions'])[0]?.fields).toEqual([
+      { name: 'size', type: '"sm" | "md" | undefined', required: true },
+      { name: 'tone', type: '"a" | null', required: true },
+      { name: 'onPick', type: '(value: string) => string' }
+    ])
+  })
+
+  it('says when a type also takes keys it does not name', () => {
+    expect(read(['MenuDoc'])).toEqual([
+      {
+        name: 'MenuDoc',
+        import: '@fixture/blocks/menu',
+        additionalFields: 'unknown',
+        fields: [{ name: 'type', type: 'string', required: true }]
+      }
     ])
   })
 
