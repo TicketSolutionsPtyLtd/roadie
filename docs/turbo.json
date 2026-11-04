@@ -9,23 +9,27 @@
         "src/content/**/*.md",
         "$TURBO_ROOT$/.changeset/*.md",
         "$TURBO_ROOT$/packages/*/CHANGELOG.md"
-      ]
+      ],
+      "outputs": ["out/**"]
     },
     "test": {
       "inputs": [
         "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/eslint/**",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**"
       ]
     },
     "lint": {
       "inputs": [
         "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint/**",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**"
       ]
     },
     "lint:fix": {
       "inputs": [
         "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint/**",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**"
       ]
     }

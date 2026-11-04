@@ -9,7 +9,8 @@
   },
   "scripts": {
     "dev": "turbo dev",
-    "build": "turbo build",
+    "build": "turbo build --filter=\"./packages/*\"",
+    "build:docs": "turbo build --filter=docs",
     "test": "turbo test",
     "test:browser": "turbo test:browser",
     "test:gated": "node scripts/test-gated.mjs",

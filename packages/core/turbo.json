@@ -17,6 +17,8 @@
     "test": {
       "inputs": [
         "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/eslint/**",
+        "$TURBO_ROOT$/oxlint.config.ts",
         "scripts/**",
         "$TURBO_ROOT$/packages/lint-plugin/oxlint/**",
         "$TURBO_ROOT$/packages/lint-plugin/src/**",
