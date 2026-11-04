@@ -132,8 +132,8 @@ interface FieldHelperTextProps extends ComponentProps<'p'> {}
 ```
 
 **Never** use `ComponentProps<typeof X>` for Base UI parts. The
-`check:dts` grep guard in `package.json` fails the build if that pattern
-shows up in emitted declarations. Use the named `X.Part.Props` instead.
+`check:dts` guard, part of `check:package`, which CI and release run, fails if
+that pattern shows up in emitted declarations. Use the named `X.Part.Props` instead.
 
 See commit d4f9539 for the incident that motivated these rules.
 

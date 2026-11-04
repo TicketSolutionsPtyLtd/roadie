@@ -29,7 +29,7 @@
     "prepare": "node scripts/prepare.mjs",
     "postinstall": "husky",
     "typecheck": "turbo typecheck",
-    "release": "pnpm build && pnpm changeset publish"
+    "release": "pnpm build && pnpm turbo check:package --filter=./packages/* && pnpm changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "3.0.3",

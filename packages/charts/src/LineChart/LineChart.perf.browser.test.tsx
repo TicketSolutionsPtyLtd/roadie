@@ -1,0 +1,55 @@
+import { describe, expect, it } from 'vitest'
+
+import {
+  expectFrameBudget,
+  measureFrames,
+  mount,
+  settle,
+  setupFrameTests
+} from '@oztix/roadie-frames'
+
+import { LineChart } from '.'
+import roadieCss from '../../vitest.browser.css?inline'
+import { Chart } from '../Chart'
+import { afterResize, sweepPointer } from '../plot/browserTesting'
+
+setupFrameTests({ css: roadieCss })
+
+const DAY = 86_400_000
+const START = Date.UTC(2026, 0, 1)
+const TYPES = ['General admission', 'VIP', 'Early bird', 'Concession']
+
+const daily = TYPES.flatMap((type, series) =>
+  Array.from({ length: 365 }, (_, day) => ({
+    day: new Date(START + day * DAY).toISOString().slice(0, 10),
+    type,
+    orders: Math.round(
+      (40 - series * 8) * (1 + Math.sin(day / 9) * 0.3 + day / 400)
+    )
+  }))
+)
+
+describe('LineChart follows the pointer at 60fps on a slowed CPU', () => {
+  it('shows each day of a year of four series under a sweeping pointer', async () => {
+    const root = await mount(
+      <div style={{ width: 960 }}>
+        <Chart label='Orders by ticket type' source='Oztix sales.'>
+          <LineChart data={daily} x='day' y='orders' series='type' />
+        </Chart>
+      </div>
+    )
+    await afterResize()
+    await settle(10)
+    const sweep = sweepPointer(root, 120)
+    let tooltips = 0
+    await expectFrameBudget(
+      'LineChart, 1,460 points, pointer sweep',
+      await measureFrames((index) => {
+        sweep(index)
+        if (root.querySelector('[data-slot="chart-plot-tooltip"]')) tooltips++
+      }),
+      { knownMiss: 'INNO-1526' }
+    )
+    expect(tooltips).toBeGreaterThan(60)
+  })
+})
