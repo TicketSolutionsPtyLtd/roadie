@@ -41,16 +41,28 @@ export type TimeStyle = 'long' | 'medium' | 'short' | 'numeric'
  */
 export type Instantish = Date | { epochMilliseconds: number }
 
-/**
- * The zone the reader is sitting in. For a timestamp only: an event time
- * belongs to its venue, so pass the venue's zone instead.
- */
-export function viewerTimeZone(): string {
+let viewerZone: { offset: number; zone: string } | undefined
+
+function resolvedZone() {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
   } catch {
     return 'UTC'
   }
+}
+
+/**
+ * The zone the reader is sitting in. For a timestamp only: an event time
+ * belongs to its venue, so pass the venue's zone instead.
+ */
+export function viewerTimeZone(): string {
+  // React reads this for every date a table renders, and building a formatter
+  // costs far more than the date, so it's asked again only when the UTC offset
+  // moves, as when a device crosses zones.
+  const offset = new Date().getTimezoneOffset()
+  if (viewerZone?.offset === offset) return viewerZone.zone
+  viewerZone = { offset, zone: resolvedZone() }
+  return viewerZone.zone
 }
 
 export type FormatOptions = {

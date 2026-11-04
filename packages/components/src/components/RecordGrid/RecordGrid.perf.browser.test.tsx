@@ -41,8 +41,7 @@ describe('RecordGrid scrolls at 60fps on a slowed CPU', () => {
       `RecordGrid, ${count.toLocaleString('en-AU')} cards, scroll`,
       await measureFrames(() => {
         viewport.scrollTop += 60
-      }),
-      { knownMiss: 'INNO-1527' }
+      })
     )
     expect(viewport.scrollTop).toBeGreaterThan(5000)
     expect(

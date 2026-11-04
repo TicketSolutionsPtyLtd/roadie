@@ -687,6 +687,39 @@ describe('timestamps', () => {
     // Whatever it returns must be accepted by the formatters.
     expect(formatLong(start, { timeZone: tz })).not.toBeNull()
   })
+
+  it('viewerTimeZone asks Intl once while the offset holds', () => {
+    viewerTimeZone()
+    const format = vi.spyOn(Intl, 'DateTimeFormat')
+    try {
+      viewerTimeZone()
+      viewerTimeZone()
+      expect(format).not.toHaveBeenCalled()
+    } finally {
+      format.mockRestore()
+    }
+  })
+
+  it('viewerTimeZone asks again once the offset moves, as across zones', () => {
+    const first = viewerTimeZone()
+    const moved = new Date().getTimezoneOffset() + 60
+    const offset = vi
+      .spyOn(Date.prototype, 'getTimezoneOffset')
+      .mockReturnValue(moved)
+    const format = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+      () =>
+        ({
+          resolvedOptions: () => ({ timeZone: 'Pacific/Auckland' })
+        }) as Intl.DateTimeFormat
+    )
+    try {
+      expect(viewerTimeZone()).toBe('Pacific/Auckland')
+    } finally {
+      offset.mockRestore()
+      format.mockRestore()
+    }
+    expect(viewerTimeZone()).toBe(first)
+  })
 })
 
 describe('machine values', () => {
