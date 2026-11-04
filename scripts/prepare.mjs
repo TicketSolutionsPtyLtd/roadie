@@ -32,7 +32,17 @@ function packagesMissingDist() {
   })
 }
 
-if (process.env.CI) process.exit(0)
+function takeLock() {
+  mkdirSync(dirname(lock), { recursive: true })
+  writeFileSync(lock, String(Date.now()))
+}
+
+// The lock outlives this exit, so a nested prepare from attw's pack can't
+// build even if pnpm strips CI from its environment.
+if (process.env.CI) {
+  takeLock()
+  process.exit(0)
+}
 
 try {
   const age = Date.now() - Number(readFileSync(lock, 'utf8'))
@@ -45,8 +55,7 @@ const missing = packagesMissingDist()
 if (missing.length === 0) process.exit(0)
 
 console.log(`Building packages with no dist yet: ${missing.join(', ')}`)
-mkdirSync(dirname(lock), { recursive: true })
-writeFileSync(lock, String(Date.now()))
+takeLock()
 try {
   execSync('turbo run build --filter="./packages/*"', {
     cwd: root,
