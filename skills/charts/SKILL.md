@@ -345,7 +345,8 @@ Handlers and hrefs never go in the JSON.
 
 Each chart's subpath (`/line-chart` and so on) and `/chart` are `'use client'`
 and export only components, so a server can render them but can't call
-anything from them. Use `/static` and `/tables` for everything else.
+anything from them. Use `/static`, `/chart-document`, and `/tables` for
+everything else.
 
 - `DashboardView` is server safe. Return client components from
   `cardActions`, not inline handlers.
