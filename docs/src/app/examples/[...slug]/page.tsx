@@ -1,36 +1,28 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
 
-import { IsolatedExample } from '@/components/IsolatedExample'
-import { getLiveExample, getLiveExamples } from '@/lib/example-manifest'
+import { IsolatedExampleRoute } from '@/components/IsolatedExample'
+import { EXAMPLE_SHELL } from '@/lib/example-code'
+import { getLiveExamples } from '@/lib/example-manifest'
 
 export const dynamicParams = false
 
-type Props = { params: Promise<{ slug: string[] }> }
+// No title: IsolatedExampleRoute renders the example's own once it loads,
+// and a title from here would compete with it.
+export const metadata: Metadata = {
+  title: null,
+  robots: { index: false }
+}
 
+// Every example page is the same shell, which reads its example in the
+// browser. A build renders it once, and scripts/example-pages.ts copies it to
+// each example's address; `next dev` serves each address itself.
 export async function generateStaticParams() {
+  if (process.env.NODE_ENV !== 'development') return [{ slug: [EXAMPLE_SHELL] }]
   return (await getLiveExamples()).map(({ page, id }) => ({
     slug: [...page.split('/'), id]
   }))
 }
 
-async function exampleFor(params: Props['params']) {
-  const { slug } = await params
-  return getLiveExample(slug.slice(0, -1).join('/'), slug.at(-1) ?? '')
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const example = await exampleFor(params)
-  if (!example) return {}
-  const name = example.heading ?? example.pageTitle
-  return {
-    title: `${name} example, ${example.pageTitle} | Roadie Design System`,
-    robots: { index: false }
-  }
-}
-
-export default async function ExamplePage({ params }: Props) {
-  const example = await exampleFor(params)
-  if (!example) notFound()
-  return <IsolatedExample {...example} />
+export default function ExamplePage() {
+  return <IsolatedExampleRoute />
 }

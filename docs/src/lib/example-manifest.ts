@@ -60,12 +60,3 @@ export function getLiveExamples(): Promise<ManifestExample[]> {
   })()
   return manifest
 }
-
-export async function getLiveExample(
-  page: string,
-  id: string
-): Promise<ManifestExample | undefined> {
-  return (await getLiveExamples()).find(
-    (example) => example.page === page && example.id === id
-  )
-}

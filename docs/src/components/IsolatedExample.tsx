@@ -1,8 +1,14 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
+import { usePathname } from 'next/navigation'
+
 import { ArrowLeftIcon } from '@phosphor-icons/react'
 
+import { exampleAt, exampleCodeHref } from '@/lib/example-code'
 import type { ManifestExample } from '@/lib/example-manifest'
+import { getAssetPath } from '@/utils/getAssetPath'
 
 import { Button } from '@oztix/roadie-components/button'
 
@@ -41,4 +47,46 @@ export function IsolatedExample({
       </main>
     </div>
   )
+}
+
+const exampleTitle = ({ heading, pageTitle }: ManifestExample) =>
+  `${heading ?? pageTitle} example, ${pageTitle} | Roadie Design System`
+
+/** The example an `/examples/<page>/<id>/` address names, read in the browser so the build renders one page for them all. */
+export function IsolatedExampleRoute() {
+  const target = exampleAt(usePathname())
+  const page = target?.page
+  const id = target?.id
+  const [example, setExample] = useState<ManifestExample | null>()
+
+  useEffect(() => {
+    if (!page) return
+    let current = true
+    fetch(getAssetPath(exampleCodeHref(page)))
+      .then((response) => (response.ok ? response.json() : []))
+      .then((examples: ManifestExample[]) => {
+        if (!current) return
+        const found = examples.find((candidate) => candidate.id === id)
+        setExample(found ?? null)
+      })
+      .catch(() => current && setExample(null))
+    return () => {
+      current = false
+    }
+  }, [page, id])
+
+  if (example)
+    return (
+      <>
+        <title>{exampleTitle(example)}</title>
+        <IsolatedExample {...example} />
+      </>
+    )
+  if (example === null)
+    return (
+      <p className='p-6 text-display-ui-6 text-subtle'>
+        There&apos;s no example at this address.
+      </p>
+    )
+  return null
 }
