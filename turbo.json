@@ -33,9 +33,6 @@
         "package.json",
         "tsconfig.json",
         "!src/**/*.test.*",
-        "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
-        "!src/**/fixtures.{ts,tsx}",
-        "!src/_test/**",
         "!scripts/**/*.test.*"
       ],
       "outputs": ["dist/**"]
