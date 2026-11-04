@@ -103,6 +103,7 @@ const FILES: Record<string, string> = {
       base?: Omit<MenuBase, 'b'>
       pick?: () => Pick<MenuBase, 'a'>
       partial?: Partial<MenuBase>
+      complete?: Required<MenuBase>
     }
 
     export type MenuOptions = {
@@ -316,6 +317,7 @@ describe('readTypes', () => {
       'MenuWrapped'
     ])
     expect(read(["Omit<MenuBase, 'b'> & { c: string }"])).toEqual([])
+    expect(read(["Partial<Pick<MenuBase, 'a'>>"])).toEqual([])
   })
 
   it('keeps undefined and null on a required field of fixed options, and unwraps an optional function', () => {
