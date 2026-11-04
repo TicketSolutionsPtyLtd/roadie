@@ -41,7 +41,11 @@ export type TimeStyle = 'long' | 'medium' | 'short' | 'numeric'
  */
 export type Instantish = Date | { epochMilliseconds: number }
 
-let viewerZone: { offset: number; zone: string } | undefined
+const year = new Date().getUTCFullYear()
+const january = new Date(Date.UTC(year, 0, 1))
+const july = new Date(Date.UTC(year, 6, 1))
+
+let viewerZone: { offsets: string; zone: string } | undefined
 
 function resolvedZone() {
   try {
@@ -56,10 +60,11 @@ function resolvedZone() {
  * belongs to its venue, so pass the venue's zone instead.
  */
 export function viewerTimeZone(): string {
-  // A formatter costs more than each date a table renders, so ask again only when the offset moves.
-  const offset = new Date().getTimezoneOffset()
-  if (viewerZone?.offset === offset) return viewerZone.zone
-  viewerZone = { offset, zone: resolvedZone() }
+  // A formatter costs more than each date a table renders, so ask again only
+  // when an offset moves. January and July tell apart zones that share today's.
+  const offsets = `${new Date().getTimezoneOffset()} ${january.getTimezoneOffset()} ${july.getTimezoneOffset()}`
+  if (viewerZone?.offsets === offsets) return viewerZone.zone
+  viewerZone = { offsets, zone: resolvedZone() }
   return viewerZone.zone
 }
 

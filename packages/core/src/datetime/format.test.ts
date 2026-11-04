@@ -720,6 +720,35 @@ describe('timestamps', () => {
     }
     expect(viewerTimeZone()).toBe(first)
   })
+
+  it('viewerTimeZone tells apart zones that share only today’s offset', () => {
+    const first = viewerTimeZone()
+    const today = new Date().getTimezoneOffset()
+    const week = 7 * 24 * 60 * 60 * 1000
+    let zone = 'Australia/Brisbane'
+    // Sydney matches Brisbane today but not across its daylight saving.
+    const offset = vi
+      .spyOn(Date.prototype, 'getTimezoneOffset')
+      .mockImplementation(function (this: Date) {
+        const far = Math.abs(this.getTime() - Date.now()) > week
+        return zone === 'Australia/Sydney' && far ? today - 60 : today
+      })
+    const format = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+      () =>
+        ({
+          resolvedOptions: () => ({ timeZone: zone })
+        }) as Intl.DateTimeFormat
+    )
+    try {
+      expect(viewerTimeZone()).toBe('Australia/Brisbane')
+      zone = 'Australia/Sydney'
+      expect(viewerTimeZone()).toBe('Australia/Sydney')
+    } finally {
+      offset.mockRestore()
+      format.mockRestore()
+    }
+    expect(viewerTimeZone()).toBe(first)
+  })
 })
 
 describe('machine values', () => {
