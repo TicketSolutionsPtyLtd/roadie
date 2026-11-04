@@ -1,5 +1,7 @@
 import { defineConfig } from 'tsdown'
 
+import { skipUnchangedWrites } from '../../scripts/tsdown-watch.mjs'
+
 export default defineConfig(({ watch }) => ({
   entry: {
     index: './src/index.ts',
@@ -20,12 +22,14 @@ export default defineConfig(({ watch }) => ({
   },
   format: ['esm'],
   minify: !watch,
-  dts: {
+  // The docs dev server reads only JS, so watch skips the declarations.
+  dts: !watch && {
     compilerOptions: {
       composite: false,
       incremental: false
     }
   },
   clean: !watch,
+  plugins: watch ? [skipUnchangedWrites()] : [],
   outExtensions: () => ({ js: '.js' })
 }))
