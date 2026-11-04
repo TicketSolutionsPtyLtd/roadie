@@ -17,6 +17,7 @@ import {
   exportEntries,
   moduleExports
 } from './exports.ts'
+import { type ManifestType, readTypes } from './types.ts'
 
 export const MANIFEST_FILE = 'roadie.manifest.json'
 export const DOCS_URL = 'https://ticketsolutionsptyltd.github.io/roadie/'
@@ -57,6 +58,7 @@ export type RoadieManifest = {
   docs: string
   exports: ManifestExport[]
   components: ManifestComponent[]
+  types: ManifestType[]
   deprecations: ManifestDeprecation[]
   tokens?: TokenEntry[]
 }
@@ -352,6 +354,26 @@ export function buildManifest({
     ...rootDeprecations.filter((d) => !onSubpaths.has(d.export))
   )
 
+  const types = readTypes(
+    program,
+    entries.flatMap((entry) =>
+      entry.source
+        ? [
+            {
+              subpath: entry.subpath,
+              import: importPath(pkg.name, entry.subpath),
+              source: entry.source
+            }
+          ]
+        : []
+    ),
+    components.flatMap((component) =>
+      [component, ...(component.parts ?? [])].flatMap((part) =>
+        part.props.map((prop) => prop.type)
+      )
+    )
+  )
+
   return {
     schemaVersion: SCHEMA_VERSION,
     package: pkg.name,
@@ -359,6 +381,7 @@ export function buildManifest({
     docs: pkg.homepage,
     exports,
     components,
+    types,
     deprecations,
     ...(tokens && { tokens })
   }

@@ -41,7 +41,7 @@ describe('buildManifest', () => {
           'ThemeError',
           'useTheme'
         ],
-        types: ['PillProps']
+        types: ['PillBadge', 'PillProps']
       },
       { subpath: './css', import: '@fixture/ui/css', kind: 'css' },
       {
@@ -49,7 +49,13 @@ describe('buildManifest', () => {
         import: '@fixture/ui/pill',
         kind: 'js',
         values: ['Pill', 'Tag'],
-        types: ['PillProps']
+        types: [
+          'PillBadge',
+          'PillIconFrame',
+          'PillItem',
+          'PillProps',
+          'PillSize'
+        ]
       },
       {
         subpath: './theme',
@@ -93,7 +99,17 @@ describe('buildManifest', () => {
           description: 'Scales the pill.',
           deprecated: 'Use `size` instead, which follows the shape tiers.'
         },
-        { name: 'label', type: 'string', required: true }
+        { name: 'label', type: 'string', required: true },
+        {
+          name: 'badge',
+          type: 'PillBadge',
+          description: 'A badge after the label.'
+        },
+        {
+          name: 'items',
+          type: 'readonly PillItem[]',
+          description: "The pill's menu."
+        }
       ],
       parts: [
         {
@@ -109,11 +125,69 @@ describe('buildManifest', () => {
               name: 'theme',
               type: '"dark" | "light"',
               description: 'Swatch the icon is drawn for.'
+            },
+            {
+              name: 'frame',
+              type: 'PillIconFrame',
+              description: 'Space around the icon.'
             }
           ]
         }
       ]
     })
+  })
+
+  it('describes each exported type the props refer to, with its fields, once, from the subpath that exports it', () => {
+    expect(manifest.types).toEqual([
+      {
+        name: 'PillBadge',
+        import: '@fixture/ui/pill',
+        description: 'A count or word shown on the pill.',
+        fields: [
+          {
+            name: 'text',
+            type: 'string',
+            required: true,
+            description: "The badge's text."
+          },
+          {
+            name: 'tone',
+            type: '"neutral" | "danger"',
+            description: 'Colour of the badge.'
+          },
+          {
+            name: 'from',
+            type: '"lg"',
+            description: 'Shown on large pills only.'
+          },
+          { name: 'size', type: '"sm" | "lg"' }
+        ]
+      },
+      {
+        name: 'PillIconFrame',
+        import: '@fixture/ui/pill',
+        fields: [{ name: 'padding', type: 'number', required: true }]
+      },
+      {
+        name: 'PillItem',
+        import: '@fixture/ui/pill',
+        description: "A row of the pill's menu.",
+        fields: [
+          { name: 'label', type: 'string', required: true },
+          {
+            name: 'badge',
+            type: 'PillBadge',
+            required: true,
+            description: "The item's badge."
+          },
+          {
+            name: 'note',
+            type: 'PillNote',
+            description: "A note for the item's author."
+          }
+        ]
+      }
+    ])
   })
 
   it('lists only exported components', () => {
