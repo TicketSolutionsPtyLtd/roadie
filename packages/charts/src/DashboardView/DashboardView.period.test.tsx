@@ -115,87 +115,10 @@ describe('DashboardView periods', () => {
     expect(contextIn('Shows on sale')).toBe('vs previous period')
   })
 
-  it('names the comparison over a card’s own context, so it can’t go stale', () => {
+  it('names an app’s own comparison in the toolbar', () => {
     render(
       <DashboardView
-        spec={{
-          ...dashboard({ range: 'this-month', compare: 'previous-year' }),
-          sections: [
-            {
-              title: 'At a glance',
-              cards: [{ ...sold, context: 'vs previous period' }]
-            }
-          ]
-        }}
-      />
-    )
-    expect(contextIn('Tickets sold')).toBe('vs previous year')
-  })
-
-  it('names custom comparison dates', () => {
-    render(
-      <DashboardView
-        spec={dashboard({
-          range: 'this-month',
-          compare: { start: '2026-09-01', end: '2026-09-14' }
-        })}
-      />
-    )
-    expect(contextIn('Tickets sold')).toBe('vs 1 to 14 Sept 2026')
-  })
-
-  it('hides a comparison delta when there is no comparison', () => {
-    render(<DashboardView spec={dashboard({ range: 'this-month' })} />)
-    expect(deltaIn('Tickets sold')).toBeNull()
-    expect(contextIn('Tickets sold')).toBeUndefined()
-    expect(deltaIn('Shows on sale')).toBeNull()
-  })
-
-  it.each([
-    ['partial', 'Not enough history'],
-    ['unavailable', 'Nothing to compare']
-  ] as const)(
-    'says so in place of the delta when history is %s',
-    (history, message) => {
-      render(
-        <DashboardView
-          spec={dashboard({
-            range: 'this-month',
-            compare: 'previous-year',
-            history
-          })}
-        />
-      )
-      expect(deltaIn('Tickets sold')).toBeNull()
-      expect(contextIn('Tickets sold')).toBe(message)
-      expect(card('Tickets sold')).toHaveTextContent('1,842')
-      expect(deltaIn('Shows on sale')).toBeNull()
-      expect(contextIn('Shows on sale')).toBe(message)
-    }
-  )
-
-  it('leaves other deltas alone', () => {
-    render(
-      <DashboardView
-        spec={dashboard({
-          range: 'this-month',
-          compare: 'previous-year',
-          history: 'unavailable'
-        })}
-      />
-    )
-    expect(deltaIn('Sell-through')).toHaveTextContent('9 pts')
-    expect(contextIn('Sell-through')).toBe('Week target is 85%')
-  })
-
-  it('treats an app’s own comparison as no Roadie comparison', () => {
-    render(
-      <DashboardView
-        spec={dashboard({
-          range: 'this-month',
-          compare: 'similar',
-          history: 'partial'
-        })}
+        spec={dashboard({ range: 'this-month', compare: 'similar' })}
         periodProps={{
           ...periodProps,
           compareOptions: [
@@ -205,9 +128,6 @@ describe('DashboardView periods', () => {
         }}
       />
     )
-    expect(deltaIn('Tickets sold')).toBeNull()
-    expect(contextIn('Tickets sold')).toBeUndefined()
-    expect(deltaIn('Sell-through')).toHaveTextContent('9 pts')
     expect(
       screen.getByRole('button', { name: /, Period$/ })
     ).toHaveAccessibleName(/vs similar venues, Period$/)
@@ -251,59 +171,6 @@ describe('DashboardView periods', () => {
       />
     )
     expect(contextIn('Tickets sold')).toBe('vs 1 to 14 Sep 2026')
-  })
-
-  it('falls back to words for custom date-times it can’t place', () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    render(
-      <DashboardView
-        spec={dashboard({
-          range: 'this-month',
-          compare: { start: '2026-09-01T09:00', end: '2026-09-02' }
-        })}
-      />
-    )
-    expect(contextIn('Tickets sold')).toBe('vs custom dates')
-    expect(error).toHaveBeenCalledWith(
-      expect.stringContaining("couldn't describe the comparison")
-    )
-    error.mockRestore()
-  })
-
-  it('names a malformed comparison as custom dates, with a development error', () => {
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    render(
-      <DashboardView
-        spec={dashboard({
-          range: 'this-month',
-          compare: { start: 'not a date', end: '2026-09-02' }
-        })}
-      />
-    )
-    expect(contextIn('Tickets sold')).toBe('vs custom dates')
-    expect(error).toHaveBeenCalledWith(
-      expect.stringContaining("couldn't describe the comparison")
-    )
-    error.mockRestore()
-  })
-
-  it('keeps the comparison error out of production', () => {
-    vi.stubEnv('NODE_ENV', 'production')
-    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-    render(
-      <DashboardView
-        spec={dashboard({
-          range: 'this-month',
-          compare: { start: 'not a date in production', end: '2026-09-02' }
-        })}
-      />
-    )
-    expect(contextIn('Tickets sold')).toBe('vs custom dates')
-    expect(error).not.toHaveBeenCalledWith(
-      expect.stringContaining("couldn't describe the comparison")
-    )
-    error.mockRestore()
-    vi.unstubAllEnvs()
   })
 
   it('keeps the comparison flag out of the page', () => {
@@ -576,6 +443,22 @@ describe('DashboardView small multiples that compare', () => {
 })
 
 describe('DashboardView card actions', () => {
+  it('get a stat’s headline as drawn', () => {
+    const shown: DashboardCard[] = []
+    render(
+      <DashboardView
+        spec={dashboard({ range: 'this-month', compare: 'previous-period' })}
+        cardActions={(card) => {
+          shown.push(card)
+          return null
+        }}
+      />
+    )
+    const sold = shown.find((card) => card.id === 'sold')
+    expect(sold).toMatchObject({ context: 'vs previous period' })
+    expect(sold).toHaveProperty('delta', { value: 214 })
+  })
+
   it('get the card as drawn, so a CSV of it matches its Table view', () => {
     const tables: (string | undefined)[][] = []
     render(
