@@ -33,8 +33,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Versioning builds nothing.
       - name: Setup
         uses: ./.github/composite-actions/setup
+        with:
+          turbo-cache: 'false'
 
       - name: Create or update the version PR
         id: changesets
@@ -111,8 +114,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Publishing builds every package from scratch rather than trust a
+      # cache another job wrote.
       - name: Setup
         uses: ./.github/composite-actions/setup
+        with:
+          turbo-cache: 'false'
 
       - name: Publish
         uses: changesets/action@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2

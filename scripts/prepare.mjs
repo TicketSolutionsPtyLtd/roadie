@@ -1,35 +1,57 @@
-// `prepare` fires on `pnpm install` AND from inside the build: attw's
-// `check:exports` runs `pnpm pack`, whose supply-chain verify re-enters
-// `pnpm install` → `prepare` → `turbo run prepare` → `^build` → pack → …
-// looping until CI is SIGTERM-killed (exit 143). pnpm runs lifecycle scripts
-// with a scrubbed env, so an env-var guard doesn't survive the hop — a
-// filesystem sentinel does. The nested prepare finds the lock and no-ops; the
-// build it would have kicked off is already running.
+// Builds on install only when a package has no dist, as on a fresh clone, so
+// editors and direct `vitest` runs resolve workspace imports. Turbo tasks
+// rebuild stale packages through `^build`, and CI jobs build only what their
+// tasks need.
+//
+// attw's `pnpm pack` re-enters `pnpm install` → `prepare` → build → pack …
+// until CI is killed. pnpm scrubs lifecycle env, so a filesystem lock, not an
+// env var, stops the nested prepare.
 import { execSync } from 'node:child_process'
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const lock = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '..',
-  'node_modules',
-  '.cache',
-  'roadie-prepare.lock'
-)
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+const lock = join(root, 'node_modules', '.cache', 'roadie-prepare.lock')
 const STALE_MS = 30 * 60 * 1000
+
+function packagesMissingDist() {
+  const packages = join(root, 'packages')
+  return readdirSync(packages).filter((name) => {
+    const manifest = join(packages, name, 'package.json')
+    if (!existsSync(manifest)) return false
+    const { scripts = {} } = JSON.parse(readFileSync(manifest, 'utf8'))
+    return scripts.build && !existsSync(join(packages, name, 'dist'))
+  })
+}
+
+if (process.env.CI) process.exit(0)
 
 try {
   const age = Date.now() - Number(readFileSync(lock, 'utf8'))
   if (age >= 0 && age < STALE_MS) process.exit(0)
 } catch {
-  // no lock (or unreadable) → fall through and run
+  // No lock, or unreadable: run.
 }
 
+const missing = packagesMissingDist()
+if (missing.length === 0) process.exit(0)
+
+console.log(`Building packages with no dist yet: ${missing.join(', ')}`)
 mkdirSync(dirname(lock), { recursive: true })
 writeFileSync(lock, String(Date.now()))
 try {
-  execSync('turbo run prepare', { stdio: 'inherit' })
+  execSync('turbo run build --filter="./packages/*"', {
+    cwd: root,
+    stdio: 'inherit'
+  })
 } finally {
   rmSync(lock, { force: true })
 }

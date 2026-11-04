@@ -24,9 +24,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'schedule' && 'nightly' || github.ref }}${{ github.event.pull_request.draft && '-draft' || '' }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-# Turbo steps keep turbo's default flags and pass no `--` args, so their
-# builds hash the same as the ones pnpm install's prepare step just ran and
-# replay from the cache instead of building every package twice.
+# Turbo steps pass no `--` args, which would change the hash of every task in
+# the run and miss the cache. Each job restores and saves its own Turbo cache
+# (composite-actions/setup and turbo-cache-save).
 env:
   NEXT_TELEMETRY_DISABLED: 1
   NODE_OPTIONS: --max-old-space-size=4096
@@ -179,6 +179,10 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
+      - name: Save Turbo cache
+        if: ${{ !cancelled() }}
+        uses: ./.github/composite-actions/turbo-cache-save
+
   # Drafts run only check; marking one ready runs the rest. Only packages
   # have browser tests, and the nightly quarantine run isn't a PR.
   playwright:
@@ -239,6 +243,8 @@ jobs:
 
       - name: Setup
         uses: ./.github/composite-actions/setup
+        with:
+          cache-scope: browser-${{ matrix.browser }}-${{ strategy.job-index }}
 
       - name: Browser tests
         # One package at a time: concurrent suites fight for the runner's CPU
@@ -267,6 +273,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Save Turbo cache
+        if: ${{ !cancelled() }}
+        uses: ./.github/composite-actions/turbo-cache-save
+
   browser-quarantine:
     name: browser (quarantined)
     needs: playwright
@@ -293,6 +303,10 @@ jobs:
         env:
           ROADIE_BROWSERS: chromium,webkit,firefox
           ROADIE_QUARANTINE: only
+
+      - name: Save Turbo cache
+        if: ${{ !cancelled() }}
+        uses: ./.github/composite-actions/turbo-cache-save
 
   build:
     name: build and docs e2e
@@ -323,11 +337,16 @@ jobs:
       - name: Setup
         uses: ./.github/composite-actions/setup
 
+      # Every package, since the size check reads every dist. Unaffected ones
+      # replay from the cache.
       - name: Build packages
-        run: pnpm turbo build --affected
-        env:
-          NEXT_PUBLIC_BASE_PATH: /roadie
-          TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
+        run: pnpm build
+
+      # A no-change rerun must replay every task. A miss means a build writes
+      # to its own inputs or reads something unhashed, and every later run
+      # would rebuild it.
+      - name: Check builds replay from the cache
+        run: node scripts/check-turbo-cache.mjs
 
       # -r so widgets is covered too; it had been over budget unnoticed.
       - name: Check bundle size
@@ -335,6 +354,12 @@ jobs:
 
       # --affected skips the docs build when nothing it uses changed, and the
       # e2e tests read its static export, so they run only when it exists.
+      - name: Build docs
+        run: pnpm turbo build --affected
+        env:
+          NEXT_PUBLIC_BASE_PATH: /roadie
+          TURBO_SCM_BASE: ${{ github.event_name == 'push' && 'HEAD^1' || 'origin/main' }}
+
       - name: Read Playwright version
         if: hashFiles('docs/out/index.html') != ''
         id: playwright
@@ -364,6 +389,10 @@ jobs:
           exit $status
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
+
+      - name: Save Turbo cache
+        if: ${{ !cancelled() }}
+        uses: ./.github/composite-actions/turbo-cache-save
 
   # The one check main requires. Skipped jobs pass, so docs-only PRs aren't
   # held; any failed or cancelled job fails it. Drafts skip it, since their

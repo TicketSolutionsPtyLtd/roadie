@@ -1,5 +1,13 @@
 name: Setup
-description: Sets up Node.js, pnpm, Turbo cache, and installs dependencies
+description: Sets up Node.js and pnpm, restores the job's Turbo cache, and installs dependencies
+
+inputs:
+  turbo-cache:
+    description: Restore this job's Turbo cache. Pair with the turbo-cache-save action at the end of the job.
+    default: 'true'
+  cache-scope:
+    description: Names the job's cache. Defaults to the job id; matrix jobs add their entry so each saves its own.
+    default: ''
 
 runs:
   using: composite
@@ -14,22 +22,37 @@ runs:
         cache: 'pnpm'
         registry-url: 'https://registry.npmjs.org'
 
-    - name: Cache Turbo
-      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
-      with:
-        path: .turbo
-        key: ${{ runner.os }}-turbo-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-turbo-
+    # One key per job and commit, so jobs never race to save the same key.
+    # A job with no cache of its own yet starts from CI's build job, whose
+    # cache holds every package build.
+    - name: Name Turbo cache
+      if: inputs.turbo-cache == 'true'
+      shell: bash
+      env:
+        SCOPE: ${{ inputs.cache-scope || github.job }}
+      run: |
+        prefix="turbo-v2-$RUNNER_OS"
+        {
+          echo "TURBO_CACHE_KEY=$prefix-$SCOPE-$GITHUB_SHA"
+          echo "TURBO_CACHE_RESTORE_SCOPE=$prefix-$SCOPE-"
+          echo "TURBO_CACHE_RESTORE_FALLBACK=$prefix-build-"
+          echo "TURBO_RUN_SUMMARY=true"
+        } >> "$GITHUB_ENV"
 
-    - name: Cache TypeScript build info
-      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+    # The paths must match turbo-cache-save's, or the save makes a cache this
+    # step can't restore.
+    - name: Restore Turbo cache
+      if: inputs.turbo-cache == 'true'
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: |
-          **/*.tsbuildinfo
-        key: ${{ runner.os }}-tsbuildinfo-${{ hashFiles('**/tsconfig*.json', '**/pnpm-lock.yaml') }}
+          .turbo/cache
+          .turbo/cache-access.json
+          docs/tsconfig.tsbuildinfo
+        key: ${{ env.TURBO_CACHE_KEY }}
         restore-keys: |
-          ${{ runner.os }}-tsbuildinfo-
+          ${{ env.TURBO_CACHE_RESTORE_SCOPE }}
+          ${{ env.TURBO_CACHE_RESTORE_FALLBACK }}
 
     - name: Install dependencies
       shell: bash
