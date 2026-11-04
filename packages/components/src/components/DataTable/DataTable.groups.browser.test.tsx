@@ -233,7 +233,7 @@ describe('DataTable grouped rows', () => {
     await expect.poll(height).toBe(0)
   })
 
-  it('opens the groups of a long table at once, so it keeps 60fps', async () => {
+  it('opens the groups of a long table at once, with no layout motion', async () => {
     const many = Array.from({ length: 60 }, (_, index) => ({
       pool: index < 30 ? 'General' : 'Comp',
       type: 'GA',
