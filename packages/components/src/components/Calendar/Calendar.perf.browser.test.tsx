@@ -20,12 +20,13 @@ const TODAY = '2027-03-10'
 setupFrameTests({ css: roadieCss })
 afterAll(() => page.viewport(1440, 900))
 
-// A finger drag, one move a frame, then the slide after it lifts.
+// A finger drag, one move a frame, then the slide after it lifts, and how
+// many of those frames the calendar followed the finger.
 async function dragFrames(
   target: Element,
   dx: number,
   dy: number
-): Promise<FrameReport> {
+): Promise<{ frames: FrameReport; dragged: number }> {
   const box = target.getBoundingClientRect()
   const x = box.left + box.width / 2
   const y = box.top + box.height / 2
@@ -47,19 +48,29 @@ async function dragFrames(
     )
   fire('touchstart', 0)
   const moves = 30
-  return measureFrames(
+  let dragged = 0
+  const frames = await measureFrames(
     (index) => {
       if (index < moves) fire('touchmove', (index + 1) / moves)
       else if (index === moves) fire('touchend', 1)
+      if (target.closest('[data-dragging]')) dragged++
     },
     { frames: 60 }
   )
+  return { frames, dragged }
 }
 
 const day = (root: Element, date: string) =>
   root.querySelector(
     `button[data-date="${date}"]:not([data-outside]):not([data-peek] *)`
   )!
+
+const firstMonth = (root: Element) =>
+  root
+    .querySelector(
+      '[data-slot="calendar-month"]:not([data-peek]):not([data-peek] *)'
+    )
+    ?.getAttribute('data-month')
 
 describe('Calendar turns at 60fps on a slowed CPU', () => {
   it.each([
@@ -76,18 +87,26 @@ describe('Calendar turns at 60fps on a slowed CPU', () => {
         </div>
       )
       await settle(3)
+      const { frames, dragged } = await dragFrames(
+        day(root, '2027-03-17'),
+        dx,
+        dy
+      )
       await expectFrameBudget(
         `Calendar, ${name}, drag`,
-        await dragFrames(day(root, '2027-03-17'), dx, dy),
+        frames,
         dy ? { knownMiss: 'INNO-1529' } : {}
       )
+      expect(dragged).toBeGreaterThan(20)
       const next = root.querySelector<HTMLElement>(
         'button[aria-label="Next month"]'
       )!
+      const before = firstMonth(root)
       await expectFrameBudget(
         `Calendar, ${name}, next month`,
         await measureFrames((i) => i === 0 && next.click(), { frames: 60 })
       )
+      await expect.poll(() => firstMonth(root)).not.toBe(before)
     }
   )
 
@@ -125,6 +144,7 @@ describe('Calendar turns at 60fps on a slowed CPU', () => {
           `Calendar, ${name}, to ${view.toLowerCase()}`,
           await measureFrames((i) => i === 0 && item.click(), { frames: 60 })
         )
+        expect(item).toHaveAttribute('aria-pressed', 'true')
       }
     }
   )

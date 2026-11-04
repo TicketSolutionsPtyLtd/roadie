@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { afterEach, beforeEach, describe, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { commands } from 'vitest/browser'
 
 import {
@@ -66,5 +66,12 @@ describe('Sortable drags at 60fps on a slowed CPU', () => {
         ])
       )
     )
+    await expect
+      .poll(() =>
+        root
+          .querySelector('button[aria-label^="Reorder "]')
+          ?.getAttribute('aria-label')
+      )
+      .not.toBe('Reorder Song 1, The Rolling Kazoos')
   })
 })

@@ -52,5 +52,6 @@ describe('Select opens and closes at 60fps on a slowed CPU', () => {
         frames: 60
       })
     )
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
   })
 })
