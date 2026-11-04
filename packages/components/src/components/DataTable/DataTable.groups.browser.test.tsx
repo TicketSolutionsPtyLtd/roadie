@@ -233,6 +233,32 @@ describe('DataTable grouped rows', () => {
     await expect.poll(height).toBe(0)
   })
 
+  it('opens the groups of a long table at once, so it keeps 60fps', async () => {
+    const many = Array.from({ length: 60 }, (_, index) => ({
+      pool: index < 30 ? 'General' : 'Comp',
+      type: 'GA',
+      gate: `Gate ${index + 1}`,
+      scans: index
+    }))
+    const { container } = render(
+      <DataTable columns={columns} rows={many} groupBy={['pool']} />
+    )
+    const toggle = screen.getByRole('button', { name: 'General' })
+    toggle.click()
+    await new Promise(requestAnimationFrame)
+    // Only the caret turns, which lays nothing out.
+    expect(
+      container
+        .querySelector('table')!
+        .getAnimations({ subtree: true })
+        .map((animation) => (animation as CSSTransition).transitionProperty)
+    ).toEqual(['rotate'])
+    const opened = [...container.querySelectorAll('tbody tr')].find((row) =>
+      row.textContent?.includes('Gate 1')
+    )!
+    expect(opened.getBoundingClientRect().height).toBeGreaterThan(30)
+  })
+
   it("clips only a row's height, with room for a sparkline's end dot", () => {
     const { container } = render(
       <DataTable

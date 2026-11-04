@@ -70,8 +70,7 @@ describe('DataTable sorts and expands at 60fps on a slowed CPU', () => {
         `DataTable, ${scenario} a group`,
         await measureFrames((index) => index === 0 && toggle.click(), {
           frames: 60
-        }),
-        { knownMiss: 'INNO-1523' }
+        })
       )
       expect(toggle).toHaveAttribute('aria-expanded', expanded)
     }

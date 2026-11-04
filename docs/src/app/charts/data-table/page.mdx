@@ -161,7 +161,7 @@ When the server pages or filters the rows, or a figure is an average rather than
 
 ### Grouped rows
 
-Pass `groupBy` to group rows by one or more text or status columns, outermost first, such as scans by ticket pool and then ticket type. Each group gets a row that sums its number columns the way `totals` does, with a caret that opens it, from anywhere on the row. Groups open and close like an Accordion. The title column, or the first column without a sum when there's no text column, holds every level's label, indented, and the grouped columns are hidden.
+Pass `groupBy` to group rows by one or more text or status columns, outermost first, such as scans by ticket pool and then ticket type. Each group gets a row that sums its number columns the way `totals` does, with a caret that opens it, from anywhere on the row. Groups open and close like an Accordion, except in a table of more than 50 rows, where they open at once: each frame of the motion lays the whole table out again. The title column, or the first column without a sum when there's no text column, holds every level's label, indented, and the grouped columns are hidden.
 
 Groups start closed. `defaultExpanded` opens every group, which a PDF or report needs, or only the groups you list, each as its path of values: `[['General'], ['General', 'GA']]`. A path holds the values in the rows, so a status column's key rather than its label, and `''` for an empty value. Sorting orders the groups by their sums, or by label, at every level.
 
