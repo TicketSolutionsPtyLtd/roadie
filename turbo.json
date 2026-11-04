@@ -44,6 +44,15 @@
       ],
       "outputs": ["dist/**"]
     },
+    "check:package": {
+      "dependsOn": ["build"],
+      "inputs": [
+        "package.json",
+        "scripts/**",
+        "$TURBO_ROOT$/packages/core/scripts/check-*.mjs"
+      ],
+      "outputs": []
+    },
     "typecheck": {
       "dependsOn": ["^build"],
       "inputs": [

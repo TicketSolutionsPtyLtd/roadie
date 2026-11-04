@@ -59,6 +59,49 @@ export function exportEntries(
   })
 }
 
+// Resolving every import again for each component's program took most of the
+// manifest's time, so all the programs share one resolution cache.
+const resolutionCaches = new WeakMap<ts.Program, ts.ModuleResolutionCache>()
+const componentHosts = new WeakMap<ts.Program, ts.CompilerHost>()
+
+function cachingHost(
+  options: ts.CompilerOptions,
+  sharedCache?: ts.ModuleResolutionCache
+) {
+  const host = ts.createCompilerHost(options)
+  const cache =
+    sharedCache ??
+    ts.createModuleResolutionCache(
+      host.getCurrentDirectory(),
+      host.getCanonicalFileName,
+      options
+    )
+  host.getModuleResolutionCache = () => cache
+  host.resolveModuleNameLiterals = (
+    literals,
+    containingFile,
+    redirectedReference,
+    compilerOptions,
+    containingSourceFile
+  ) =>
+    literals.map((literal) =>
+      ts.resolveModuleName(
+        literal.text,
+        containingFile,
+        compilerOptions,
+        host,
+        cache,
+        redirectedReference,
+        ts.getModeForUsageLocation(
+          containingSourceFile,
+          literal,
+          compilerOptions
+        )
+      )
+    )
+  return { host, cache }
+}
+
 export function createProgram(files: string[], tsconfigPath: string) {
   const config = ts.readConfigFile(tsconfigPath, ts.sys.readFile)
   const { options } = ts.parseJsonConfigFileContent(
@@ -66,7 +109,11 @@ export function createProgram(files: string[], tsconfigPath: string) {
     ts.sys,
     path.dirname(tsconfigPath)
   )
-  return ts.createProgram(files, { ...options, noEmit: true })
+  const programOptions = { ...options, noEmit: true }
+  const { host, cache } = cachingHost(programOptions)
+  const program = ts.createProgram(files, programOptions, host)
+  resolutionCaches.set(program, cache)
+  return program
 }
 
 // Each component gets its own checker over the shared parsed files, so a
@@ -74,10 +121,14 @@ export function createProgram(files: string[], tsconfigPath: string) {
 // earlier component's file first created those literals in.
 export function programFor(shared: ts.Program, files: string[]) {
   const options = shared.getCompilerOptions()
-  const host = ts.createCompilerHost(options)
-  const readSourceFile = host.getSourceFile.bind(host)
-  host.getSourceFile = (fileName, ...rest) =>
-    shared.getSourceFile(fileName) ?? readSourceFile(fileName, ...rest)
+  let host = componentHosts.get(shared)
+  if (!host) {
+    host = cachingHost(options, resolutionCaches.get(shared)).host
+    const readSourceFile = host.getSourceFile.bind(host)
+    host.getSourceFile = (fileName, ...rest) =>
+      shared.getSourceFile(fileName) ?? readSourceFile(fileName, ...rest)
+    componentHosts.set(shared, host)
+  }
   return ts.createProgram(files, options, host)
 }
 

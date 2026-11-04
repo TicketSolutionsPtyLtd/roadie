@@ -94,11 +94,13 @@
   },
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build": "pnpm generate:tokens && tsdown && node scripts/records-json-schema.mjs && pnpm build:css && pnpm generate:manifest",
+    "build": "pnpm generate:tokens && pnpm generate:manifest --alongside \"tsdown && node scripts/records-json-schema.mjs && pnpm build:css\"",
     "build:quiet": "tsdown --log-level warn && node scripts/records-json-schema.mjs && pnpm build:css",
     "build:css": "tailwindcss -i src/css/roadie.css -o dist/roadie.compiled.css --content 'src/css/safelist.html'",
     "generate:tokens": "node scripts/generate-tokens.mjs",
     "generate:manifest": "node scripts/manifest/generate.ts --tokens",
+    "check:package": "pnpm check:exports",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css css/compiled roadie.manifest.json records/record-view.schema.json records/records-request.schema.json",
     "dev": "tsdown --watch --log-level warn",
     "format:check": "oxfmt --check",
     "format": "oxfmt",
@@ -123,6 +125,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
     "@size-limit/preset-small-lib": "14.3.0",
     "@tailwindcss/cli": "4.3.3",
     "@types/node": "24.19.2",
