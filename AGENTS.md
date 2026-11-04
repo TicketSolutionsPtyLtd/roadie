@@ -14,8 +14,10 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 
 ## Stack
 
-- pnpm (`corepack enable`), Turborepo, React 19, TypeScript 5 in strict mode
-  with no `any`, [Tailwind CSS v4](https://tailwindcss.com/docs) with
+- pnpm (`corepack enable`), Turborepo, React 19, TypeScript in strict mode
+  with no `any` (`tsc` is TypeScript 7; `import 'typescript'` is the
+  TypeScript 6 API, [why](docs/solutions/build-errors/typescript-7-cli-typescript-6-api.md)),
+  [Tailwind CSS v4](https://tailwindcss.com/docs) with
   `@utility` directives, and Next.js 16 with MDX for the docs. Next 16 may
   differ from what you know: read its guide in
   `docs/node_modules/next/dist/docs/` before changing the docs app.
