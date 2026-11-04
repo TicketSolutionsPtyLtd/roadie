@@ -64,5 +64,6 @@ so the upgrade changed neither.
   `.vscode/settings.json` points `typescript.tsdk` at the real package pnpm
   hoists to `node_modules/.pnpm/node_modules/@typescript/old/lib`.
 - **Run the old compiler with `pnpm exec tsc6`**, for example to compare
-  diagnostics. TypeScript 7 orders union members in messages differently
-  (`stableTypeOrdering`); the codes and positions match.
+  diagnostics. The codes and positions match, but TypeScript 7 orders union
+  members in messages differently (`stableTypeOrdering`), and its overload
+  errors explain the last overload, not the first.
