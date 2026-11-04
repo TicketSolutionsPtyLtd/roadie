@@ -8,9 +8,10 @@ import type { FrameRecord, FrameReport } from './record'
 import {
   type Engine,
   type FrameBudget,
-  MIN_FRAMES,
+  type MissMarks,
   budgetMisses,
   defaultBudget,
+  missExcuse,
   summariseFrames
 } from './stats'
 
@@ -226,12 +227,13 @@ export async function measureWhile(
  * Records the run under `scenario` and fails the test if it misses the
  * budget: the p95 frame and the share of frames dropped, over enough frames
  * that one hiccup can't fail it. `knownMiss` names the ticket for a miss
- * that's filed rather than fixed: the run is still recorded, but doesn't fail.
+ * that's filed rather than fixed, and `exception` the reason a miss is
+ * accepted by design: either way the run is still recorded, but doesn't fail.
  */
 export async function expectFrameBudget(
   scenario: string,
   frames: FrameReport,
-  { knownMiss, ...budget }: Partial<FrameBudget> & { knownMiss?: string } = {}
+  { knownMiss, exception, ...budget }: Partial<FrameBudget> & MissMarks = {}
 ) {
   const limits = { ...defaultBudget(engine), ...budget }
   const misses = budgetMisses(frames, limits)
@@ -244,12 +246,13 @@ export async function expectFrameBudget(
     file,
     scenario,
     pass: misses.length === 0,
-    ...(knownMiss && { knownMiss })
+    ...(knownMiss && { knownMiss }),
+    ...(exception && { exception })
   })
-  // A run too short to judge is a broken test, whatever ticket it cites.
-  if (knownMiss && frames.frames >= MIN_FRAMES) {
+  const excuse = missExcuse(frames.frames, { knownMiss, exception })
+  if (excuse) {
     console.log(
-      `FRAMES ${scenario}, a known miss (${knownMiss}): ${misses.join(', ') || 'met the budget this run'}`
+      `FRAMES ${scenario}, excused (${excuse}): ${misses.join(', ') || 'met the budget this run'}`
     )
     return
   }

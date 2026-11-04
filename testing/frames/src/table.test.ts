@@ -83,3 +83,52 @@ describe('frameTable known misses', () => {
     expect(table).toContain('| Met, filed as INNO-9999 |')
   })
 })
+
+describe('frameTable accepted exceptions', () => {
+  it('names the reason a scenario is exempt, met or not', () => {
+    const reason = 'backdrop blur kept by design'
+    const table = frameTable([
+      {
+        label: 'Throttled',
+        records: [
+          record('Dialog, open', { pass: false, exception: reason }),
+          record('Dialog, close', { exception: reason })
+        ]
+      }
+    ])
+    expect(table).toContain(
+      '| Missed in throttled, accepted: backdrop blur kept by design |'
+    )
+    expect(table).toContain('| Met, accepted: backdrop blur kept by design |')
+  })
+})
+
+describe('frameTable cells', () => {
+  it('keeps a pipe in a reason inside its cell', () => {
+    const table = frameTable([
+      {
+        label: 'Throttled',
+        records: [record('Dialog, open', { exception: 'blur | tint | glow' })]
+      }
+    ])
+    expect(table).toContain('| Met, accepted: blur \\| tint \\| glow |')
+  })
+})
+
+describe('frameTable short runs', () => {
+  it('accepts nothing in a run too short to judge', () => {
+    const table = frameTable([
+      {
+        label: 'Throttled',
+        records: [
+          record('Dialog, open', {
+            frames: 30,
+            pass: false,
+            exception: 'backdrop blur kept by design'
+          })
+        ]
+      }
+    ])
+    expect(table).toContain('| Missed in throttled |')
+  })
+})

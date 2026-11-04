@@ -1,4 +1,5 @@
 import type { FrameRecord } from './record'
+import { MIN_FRAMES } from './stats.ts'
 
 export type LabelledRun = { label: string; records: FrameRecord[] }
 
@@ -31,7 +32,7 @@ export function frameTable(runs: LabelledRun[]) {
     budgetCell(runs.map((run) => [run.label, find(run, scenario)] as const))
   ])
   return [header, header.map(() => '---'), ...rows]
-    .map((row) => `| ${row.join(' | ')} |`)
+    .map((row) => `| ${row.map(escapePipes).join(' | ')} |`)
     .join('\n')
 }
 
@@ -39,10 +40,18 @@ function budgetCell(results: (readonly [string, FrameRecord | undefined])[]) {
   const missed = results
     .filter(([, record]) => record?.pass === false)
     .map(([label]) => label.toLowerCase())
-  const ticket = results.find(([, record]) => record?.knownMiss)?.[1]?.knownMiss
+  const first = (key: 'knownMiss' | 'exception') =>
+    results.find(
+      ([, record]) => record && record.frames >= MIN_FRAMES && record[key]
+    )?.[1]?.[key]
   const verdict = missed.length ? `Missed in ${missed.join(', ')}` : 'Met'
+  const exception = first('exception')
+  if (exception) return `${verdict}, accepted: ${exception}`
+  const ticket = first('knownMiss')
   return ticket ? `${verdict}, filed as ${ticket}` : verdict
 }
+
+const escapePipes = (text: string) => text.replaceAll('|', '\\|')
 
 export const parseRecords = (jsonl: string): FrameRecord[] =>
   jsonl

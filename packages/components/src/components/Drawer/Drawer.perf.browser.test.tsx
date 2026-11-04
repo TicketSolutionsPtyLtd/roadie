@@ -9,7 +9,12 @@ import {
 
 import { Drawer } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { EventPage, byText, pressEscape } from '../../utils/frameTestUtils'
+import {
+  BACKDROP_BLUR,
+  EventPage,
+  byText,
+  pressEscape
+} from '../../utils/frameTestUtils'
 
 setupFrameTests({ css: roadieCss })
 
@@ -39,7 +44,7 @@ describe('Drawer opens and closes at 60fps on a slowed CPU', () => {
       await measureFrames((index) => index === 0 && trigger.click(), {
         frames: 60
       }),
-      { knownMiss: 'INNO-1522' }
+      { exception: BACKDROP_BLUR }
     )
     expect(popup()).not.toBeNull()
     await expectFrameBudget(
@@ -47,7 +52,7 @@ describe('Drawer opens and closes at 60fps on a slowed CPU', () => {
       await measureFrames((index) => index === 0 && pressEscape(), {
         frames: 60
       }),
-      { knownMiss: 'INNO-1522' }
+      { exception: BACKDROP_BLUR }
     )
     expect(popup()).toBeNull()
   })

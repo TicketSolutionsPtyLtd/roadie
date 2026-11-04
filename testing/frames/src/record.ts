@@ -1,4 +1,4 @@
-import type { Engine, FrameStats } from './stats'
+import type { Engine, FrameStats, MissMarks } from './stats'
 
 export type FrameReport = FrameStats & {
   engine: Engine
@@ -12,10 +12,9 @@ export type FrameReport = FrameStats & {
   longestFrame: number | null
 }
 
-export type FrameRecord = FrameReport & {
-  file: string
-  scenario: string
-  pass: boolean
-  /** The ticket for a miss that's filed rather than fixed. */
-  knownMiss?: string
-}
+export type FrameRecord = FrameReport &
+  MissMarks & {
+    file: string
+    scenario: string
+    pass: boolean
+  }
