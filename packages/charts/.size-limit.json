@@ -174,16 +174,18 @@
     ]
   },
   {
+    "name": "chart-document",
+    "path": "dist/chartDocument/index.js",
+    "import": "*",
+    "limit": "85 kB",
+    "ignore": ["@oztix/roadie-components", "react", "react-dom"]
+  },
+  {
     "name": "static",
     "path": "dist/static/index.js",
     "import": "*",
-    "limit": "50 kB",
-    "ignore": [
-      "@oztix/roadie-core",
-      "@oztix/roadie-components",
-      "react",
-      "react-dom"
-    ]
+    "limit": "54 kB",
+    "ignore": ["@oztix/roadie-components", "react", "react-dom"]
   },
   {
     "name": "static with core",
