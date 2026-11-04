@@ -119,6 +119,18 @@ describe('the pre-push hook', () => {
     ])
   })
 
+  test('only the steps that read the build wait on it', () => {
+    const { steps } = plan([...DIFFS.core, ...DIFFS.docs])
+    const [typecheck, tests, ...rest] = steps
+      .filter((step) => step.needsBuild)
+      .map(({ label }) => label)
+    assert.equal(typecheck, 'typecheck docs')
+    assert.match(tests, /^tests docs /)
+    assert.deepEqual(rest, [])
+    const kinds = steps.map(({ kind }) => kind)
+    assert.ok(kinds.indexOf('build') < kinds.indexOf('typecheck'))
+  })
+
   test('a root config change typechecks every workspace', () => {
     assert.equal(
       labelsOf('typecheck', plan(DIFFS.lockfile)).length,

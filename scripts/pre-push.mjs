@@ -152,7 +152,13 @@ function runCommand([command, ...args], cwd, deadline) {
 }
 
 const unfinished = []
+let buildFinished = true
 for (const step of steps) {
+  if (step.needsBuild && !buildFinished) {
+    unfinished.push({ step, why: "waits on the build, which didn't finish" })
+    console.log(`  … ${step.label} waits on the build`)
+    continue
+  }
   const stepStarted = Date.now()
   const deadline = stepStarted + step.budgetS * 1000
   let outcome = 'passed'
@@ -170,7 +176,10 @@ for (const step of steps) {
     }
   }
   const took = Date.now() - stepStarted
-  if (outcome === 'unfinished') unfinished.push(step)
+  if (outcome === 'unfinished') {
+    unfinished.push({ step, why: `passed its ${step.budgetS}s budget` })
+    if (step.kind === 'build') buildFinished = false
+  }
   const mark = { passed: '✓', failed: '✗', unfinished: '…' }[outcome]
   const slow = outcome === 'passed' && took > slowS * 1000 ? ' (slow)' : ''
   console.log(`  ${mark} ${step.label} ${seconds(took)}${slow}`)
@@ -184,9 +193,9 @@ for (const step of steps) {
   }
 }
 
-for (const step of unfinished)
+for (const { step, why } of unfinished)
   console.warn(
-    `pre-push: ${step.label} passed its ${step.budgetS}s budget, so it wasn't checked here. Run: ${step.rerun ?? step.commands.map((command) => command.join(' ')).join(' && ')}`
+    `pre-push: ${step.label} ${why}, so it wasn't checked here. Run: ${step.rerun ?? step.commands.map((command) => command.join(' ')).join(' && ')}`
   )
 
 if (skipped.length) {

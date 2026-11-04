@@ -169,6 +169,7 @@ export function planPrePush({
     steps.push({
       kind: 'typecheck',
       label: `typecheck ${workspace.short}`,
+      needsBuild: built.includes(workspace),
       rerun: `pnpm --filter ${workspace.name} typecheck`,
       cwd: workspace.dir,
       commands: incremental
@@ -210,6 +211,7 @@ export function planPrePush({
     steps.push({
       kind: 'tests',
       label: `tests ${workspace.short} (${own.length} beside the change, ${guardFiles.length} guards)`,
+      needsBuild: built.includes(workspace),
       rerun: `pnpm test:gated ${[workspace.short, ...tests, ...projectArgs].join(' ')}`,
       commands: [
         [
