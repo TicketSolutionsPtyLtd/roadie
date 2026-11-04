@@ -11,18 +11,25 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const TEST_ONLY =
   /\.test\.|__screenshots__\/|__snapshots__\/|(?:^|\/)(?:testUtils|\w+TestUtils|fixtures|testChart|browserTesting)\.\w+$|\/_test\//
-const IMPORT = /(?:from|import)\s*\(?\s*['"](\.{1,2}\/[^'"]+)['"]/g
+const IMPORT = /(?:from|import)\s*\(?\s*['"]((?:\.{1,2}|@)\/[^'"]+)['"]/g
 
+// The docs build hashes its source with the same exclusions.
 const builds = JSON.parse(
-  execSync('pnpm exec turbo run build --filter="./packages/*" --dry=json', {
-    cwd: root,
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'inherit']
-  })
+  execSync(
+    'pnpm exec turbo run build --filter="./packages/*" --filter=docs --dry=json',
+    {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'inherit']
+    }
+  )
 ).tasks.filter((task) => task.command !== '<NONEXISTENT>')
 
-function resolveImport(from, specifier) {
-  const base = join(dirname(from), specifier)
+// Docs maps @/ to its src folder.
+function resolveImport(dir, from, specifier) {
+  const base = specifier.startsWith('@/')
+    ? join(dir, 'src', specifier.slice(2))
+    : join(dirname(from), specifier)
   const stem = base.replace(/\.js$/, '')
   return [
     base,
@@ -33,7 +40,7 @@ function resolveImport(from, specifier) {
   ].find((file) => existsSync(file))
 }
 
-describe('package build inputs', () => {
+describe('build inputs', () => {
   it('leave out tests and test helpers', () => {
     const tested = builds.flatMap((task) =>
       Object.keys(task.inputs)
@@ -53,7 +60,7 @@ describe('package build inputs', () => {
           const path = join(dir, file)
           const source = readFileSync(path, 'utf8')
           return [...source.matchAll(IMPORT)]
-            .map(([, specifier]) => resolveImport(path, specifier))
+            .map(([, specifier]) => resolveImport(dir, path, specifier))
             .filter((target) => target?.startsWith(join(dir, 'src')))
             .map((target) => relative(dir, target))
             .filter((target) => TEST_ONLY.test(target) && !inputs.has(target))
