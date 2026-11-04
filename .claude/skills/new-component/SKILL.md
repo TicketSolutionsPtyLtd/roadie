@@ -123,7 +123,8 @@ import { Fieldset } from '@oztix/roadie-components/fieldset'
 ## D. Verify
 
 ```bash
-pnpm --filter @oztix/roadie-components build   # tsdown, then check:dts and attw
+pnpm --filter @oztix/roadie-components build   # tsdown and the manifest
+pnpm turbo check:package --filter=@oztix/roadie-components   # check:dts, attw, and Node ESM
 pnpm --filter @oztix/roadie-components test    # all tests, including the new Compound.test.tsx
 pnpm --filter @oztix/roadie-components typecheck
 pnpm --filter @oztix/roadie-components lint
@@ -148,7 +149,7 @@ find . -name "*.tsbuildinfo" -not -path "*/node_modules/*" -delete && pnpm typec
 - **Don't** skip `data-slot` on a new leaf. Every rendered DOM element carries one, including passthroughs of Base UI primitives. Consumers rely on it as the stable DOM-level selector.
 - **Don't** use `<{Compound}.Root>` in new docs code — bare `<{Compound}>` is canonical. The `.Root` alias exists for Base UI parity, not as the preferred syntax.
 - **Don't** use `export * as {Compound} from './parts'` on the library side. It compiles to a single namespace export whose dot access is a runtime proxy access in server components, which breaks. Use the property-assignment form from `packages/components/src/components/Fieldset/index.tsx` instead.
-- **Don't** use `ComponentProps<typeof Primitive>` on Base UI parts — `check:dts` fails the build on this pattern. Use `BaseUI.Part.Props & RefAttributes<Element>` as documented in `BASE_UI.md` §4.
+- **Don't** use `ComponentProps<typeof Primitive>` on Base UI parts — `check:dts` (in `check:package`) fails on this pattern. Use `BaseUI.Part.Props & RefAttributes<Element>` as documented in `BASE_UI.md` §4.
 - **Don't** set a default intent in `defaultVariants`. Components inherit intent from CSS cascade.
 - **Don't** forget `'use client'` on leaf files that import from `@base-ui/react/*` or use React hooks — the rule is "only where needed," not "never."
 - **Don't** use `flex flex-col gap-*` for stacks — use `grid gap-*`.

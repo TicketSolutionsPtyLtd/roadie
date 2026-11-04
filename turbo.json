@@ -37,6 +37,14 @@
       ],
       "outputs": ["dist/**"]
     },
+    "check:package": {
+      "dependsOn": ["build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/core/scripts/check-*.mjs"
+      ],
+      "outputs": []
+    },
     "typecheck": {
       "dependsOn": ["^build"],
       "inputs": [
