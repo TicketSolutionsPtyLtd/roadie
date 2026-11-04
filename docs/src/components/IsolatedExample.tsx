@@ -85,7 +85,7 @@ export function IsolatedExampleRoute() {
   if (example === null)
     return (
       <p className='p-6 text-display-ui-6 text-subtle'>
-        There&apos;s no example at this address.
+        This example couldn&apos;t load.
       </p>
     )
   return null
