@@ -14,9 +14,8 @@ on:
       - 'testing/frames/**'
       - 'pnpm-lock.yaml'
       - '.github/workflows/perf.yml'
+  # Any base, so a fix stacked on another PR measures itself too.
   pull_request:
-    branches:
-      - main
     # labeled lets a draft opt in with the perf label.
     types: [opened, synchronize, reopened, ready_for_review, labeled]
     paths: *measured

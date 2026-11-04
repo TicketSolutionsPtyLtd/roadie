@@ -107,7 +107,48 @@ const recordFrames: BrowserCommand<[record: FrameRecord]> = (_, record) => {
   if (file) appendFileSync(file, `${JSON.stringify(record)}\n`)
 }
 
-export const frameCommands = { throttleCpu, renderMetrics, recordFrames }
+type ProfileNode = {
+  id: number
+  callFrame: { functionName: string; url: string; lineNumber: number }
+}
+
+/**
+ * Samples the main thread between `start` and `stop`, and resolves the
+ * functions that spent the most time themselves, for finding why a run is slow.
+ */
+const profileCpu: BrowserCommand<
+  [action: 'start' | 'stop', top?: number]
+> = async ({ page }, action, top = 25) => {
+  if (!isChromium(page)) return []
+  const session = await devtools(page)
+  if (action === 'start') {
+    await session.send('Profiler.enable')
+    await session.send('Profiler.setSamplingInterval', { interval: 200 })
+    await session.send('Profiler.start')
+    return []
+  }
+  const { profile } = await session.send('Profiler.stop')
+  const nodes = new Map(
+    (profile.nodes as ProfileNode[]).map((node) => [node.id, node])
+  )
+  const self = new Map<string, number>()
+  profile.samples?.forEach((id, index) => {
+    const { functionName, url, lineNumber } = nodes.get(id)!.callFrame
+    const key = `${functionName || '(anonymous)'} ${url.split('/').slice(-2).join('/')}:${lineNumber + 1}`
+    self.set(key, (self.get(key) ?? 0) + (profile.timeDeltas?.[index] ?? 0))
+  })
+  return [...self]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, top)
+    .map(([where, us]) => `${(us / 1000).toFixed(1)}ms ${where}`)
+}
+
+export const frameCommands = {
+  throttleCpu,
+  renderMetrics,
+  recordFrames,
+  profileCpu
+}
 
 const perfBrowsers = () =>
   (process.env.ROADIE_PERF_BROWSERS ?? 'chromium')

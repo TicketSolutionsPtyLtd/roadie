@@ -31,6 +31,8 @@ declare module 'vitest/browser' {
     throttleCpu: (rate?: number) => Promise<number>
     renderMetrics: () => Promise<{ styleMs: number; layoutMs: number }>
     recordFrames: (record: FrameRecord) => Promise<void>
+    /** Main-thread self time by function, longest first, between start and stop. */
+    profileCpu: (action: 'start' | 'stop', top?: number) => Promise<string[]>
   }
 }
 

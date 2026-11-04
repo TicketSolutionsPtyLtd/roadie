@@ -39,6 +39,9 @@ it('scrolls 10,000 rows at 60fps', async () => {
 - `ROADIE_PERF_REPORT=<file>` appends each run as a JSON line, and
   `node testing/frames/bin/frame-table.ts Label=<file> …` turns them into a
   Markdown table.
+- `commands.profileCpu('start')` and `commands.profileCpu('stop')` around a
+  measurement resolve the functions that took the most main-thread time, the
+  first step in finding why a run is slow.
 
 | Engine   | rAF frame times    | Long tasks | Long animation frames | CPU throttling |
 | -------- | ------------------ | ---------- | --------------------- | -------------- |
