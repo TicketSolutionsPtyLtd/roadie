@@ -409,9 +409,7 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     for (const row of rows.slice(1))
       costs.push(await styleCost(() => userEvent.hover(row)))
     const median = costs.sort((a, b) => a - b)[Math.floor(costs.length / 2)]!
-    // A hover costs about 20ms on CI today, about half of it Navigator's
-    // :has() rules searching the whole page again (INNO-1531). Restyling
-    // the page costs 7 to 9 times that.
+    // About 20ms on CI, half of it Navigator's page-wide :has() (INNO-1531).
     expect(median).toBeLessThanOrEqual(30)
   })
 })
