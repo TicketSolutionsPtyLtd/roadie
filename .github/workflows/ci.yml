@@ -318,10 +318,8 @@ jobs:
       needs.changes.outputs.docs == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Runs that test every engine hand the docs export to docs-e2e, which runs
-    # each engine and shard on its own runner. One after another, Chromium and
-    # Firefox held this job for 11 minutes. Other runs test Chromium here,
-    # which saves a runner and the hand-off.
+    # Runs that test every engine hand the export to docs-e2e; others test
+    # Chromium here, which saves a runner.
     env:
       ALL_ENGINES: ${{ contains(needs.changes.outputs.browsers, 'webkit') }}
     outputs:
@@ -369,9 +367,8 @@ jobs:
         id: playwright
         run: echo "version=$(pnpm exec playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
 
-      # One file uploads faster than the export's 5,000. Gzip, since the
-      # Playwright image docs-e2e runs in may not have zstd. The e2e tests
-      # also read the generated tokens.json, which isn't in git.
+      # The e2e tests also read tokens.json, which git ignores. Gzip, since
+      # the Playwright image may lack zstd.
       - name: Pack docs export
         if: env.ALL_ENGINES == 'true' && hashFiles('docs/out/index.html') != ''
         run: tar -czf "$RUNNER_TEMP/docs-out.tar.gz" docs/out packages/core/src/tokens/tokens.json
@@ -414,9 +411,8 @@ jobs:
         uses: ./.github/composite-actions/turbo-cache-save
 
   # Engines' locale data differs, so a hydration mismatch can show in one.
-  # WebKit is left out: on Linux it times out the layout-driven tests. In the
-  # Playwright image Chromium takes about 190 s and Firefox about 200 s, so
-  # they split two and three ways to keep each runner near 100 s.
+  # WebKit is left out: on Linux it times out the layout-driven tests. The
+  # shard counts keep each runner near 100 s of tests.
   docs-e2e:
     name: docs e2e (${{ matrix.browser }}${{ matrix.shard && format(' {0}', matrix.shard) || '' }})
     needs: build
