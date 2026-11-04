@@ -103,4 +103,14 @@ describe('pruneTurboCache', () => {
     pruneTurboCache({ ...f, now: NOW, maxBytes: 500 })
     assert.deepEqual(f.hashes(), ['aaaa', 'cccc'])
   })
+
+  it('evicts by last use before size', () => {
+    const f = fixture({
+      entries: { aaaa: 100, bbbb: 900 },
+      access: { aaaa: NOW - DAY, bbbb: NOW },
+      used: ['bbbb']
+    })
+    pruneTurboCache({ ...f, now: NOW, maxBytes: 950 })
+    assert.deepEqual(f.hashes(), ['bbbb'])
+  })
 })
