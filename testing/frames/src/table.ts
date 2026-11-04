@@ -31,7 +31,7 @@ export function frameTable(runs: LabelledRun[]) {
     budgetCell(runs.map((run) => [run.label, find(run, scenario)] as const))
   ])
   return [header, header.map(() => '---'), ...rows]
-    .map((row) => `| ${row.join(' | ')} |`)
+    .map((row) => `| ${row.map(escapePipes).join(' | ')} |`)
     .join('\n')
 }
 
@@ -47,6 +47,8 @@ function budgetCell(results: (readonly [string, FrameRecord | undefined])[]) {
   const ticket = first('knownMiss')
   return ticket ? `${verdict}, filed as ${ticket}` : verdict
 }
+
+const escapePipes = (text: string) => text.replaceAll('|', '\\|')
 
 export const parseRecords = (jsonl: string): FrameRecord[] =>
   jsonl

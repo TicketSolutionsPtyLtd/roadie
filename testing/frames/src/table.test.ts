@@ -102,3 +102,15 @@ describe('frameTable accepted exceptions', () => {
     expect(table).toContain('| Met, accepted: backdrop blur kept by design |')
   })
 })
+
+describe('frameTable cells', () => {
+  it('keeps a pipe in a reason inside its cell', () => {
+    const table = frameTable([
+      {
+        label: 'Throttled',
+        records: [record('Dialog, open', { exception: 'blur | tint' })]
+      }
+    ])
+    expect(table).toContain('| Met, accepted: blur \\| tint |')
+  })
+})
