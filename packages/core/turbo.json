@@ -30,6 +30,13 @@
     },
     "typecheck": {
       "inputs": ["$TURBO_EXTENDS$", "scripts/manifest/*.{ts,json}"]
+    },
+    "build:quiet": {
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
+        "!src/**/fixtures.{ts,tsx}"
+      ]
     }
   }
 }

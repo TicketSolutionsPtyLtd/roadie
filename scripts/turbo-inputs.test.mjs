@@ -13,10 +13,11 @@ const TEST_ONLY =
   /\.test\.|__screenshots__\/|__snapshots__\/|(?:^|\/)(?:testUtils|\w+TestUtils|fixtures|testChart|browserTesting)\.\w+$|\/_test\//
 const IMPORT = /(?:from|import)\s*\(?\s*['"`]((?:\.{1,2}|@)\/[^'"`]+)['"`]/g
 
-// The docs build hashes its source with the same exclusions.
+// build:quiet is pnpm dev's build. The docs build hashes its source with the
+// same exclusions.
 const builds = JSON.parse(
   execSync(
-    'pnpm exec turbo run build --filter="./packages/*" --filter=docs --dry=json',
+    'pnpm exec turbo run build build:quiet --filter="./packages/*" --filter=docs --dry=json',
     {
       cwd: root,
       encoding: 'utf8',
@@ -57,7 +58,7 @@ describe('build inputs', () => {
       const dir = join(root, task.directory)
       const inputs = new Set(Object.keys(task.inputs))
       return [...inputs]
-        .filter((file) => /\.(ts|tsx|mts|js|mjs)$/.test(file))
+        .filter((file) => /\.(ts|tsx|mts|js|mjs|mdx|vue)$/.test(file))
         .flatMap((file) => {
           const path = join(dir, file)
           const source = readFileSync(path, 'utf8')
@@ -70,6 +71,36 @@ describe('build inputs', () => {
         })
     })
     assert.deepEqual(unhashed, [])
+  })
+})
+
+// A helper turbo leaves out must be one tsdown leaves out too, or it ships
+// unhashed. Packages with explicit entries emit only what they import, which
+// the import check covers.
+describe('package build exclusions', () => {
+  it('leave out only what tsdown leaves out of its entries', () => {
+    const unshipped = (glob) =>
+      glob.replace(/^!src\/\*\*\//, '**/').replace(/^!/, '')
+    const extra = builds
+      .filter((task) => task.directory.startsWith('packages/'))
+      .flatMap((task) => {
+        const config = readFileSync(
+          join(root, task.directory, 'tsdown.config.ts'),
+          'utf8'
+        )
+        const entry = config.match(/entry:\s*\[([^\]]*)\]/)?.[1]
+        if (entry === undefined) return []
+        const tsdown = new Set(
+          [...entry.matchAll(/'!([^']+)'/g)].map(([, glob]) => glob)
+        )
+        return task.resolvedTaskDefinition.inputs
+          .filter((glob) => glob.startsWith('!src/'))
+          .filter((glob) => !glob.includes('*.test.'))
+          .map(unshipped)
+          .filter((glob) => !tsdown.has(glob))
+          .map((glob) => `${task.taskId}: ${glob}`)
+      })
+    assert.deepEqual(extra, [])
   })
 })
 
