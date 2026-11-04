@@ -68,26 +68,29 @@ function outOfView(viewport: HTMLElement | null) {
     for (const child of parent.children) {
       const box = child.getBoundingClientRect()
       // A display: contents box has no size of its own, so its children say.
-      if (box.width === 0 && box.height === 0) visit(child, anchoring)
-      else if (box.bottom < view.top || box.top > view.bottom) {
+      if (box.width === 0 && box.height === 0) {
+        visit(child, anchoring)
+        continue
+      }
+      if (box.bottom < view.top || box.top > view.bottom) {
         const { display } = getComputedStyle(child)
         // A box in place of inline content reflows its line, moving what shows; blocks inside an inline still go.
         if (display === 'inline') visit(child, false)
         else if (!INLINE_LEVEL.test(display)) out.add(child)
-      } else {
-        const { scrollTop: top, scrollLeft: left } = child
-        if (top || left) scrolled.set(child, { element: child, top, left })
-        const anchors =
-          anchoring &&
-          !found.first &&
-          !STUCK.has(getComputedStyle(child).position)
-        if (anchors) {
-          const anchor = { element: child, top: box.top - view.top }
-          if (box.top >= view.top) found.first = anchor
-          else found.across = anchor
-        }
-        visit(child, anchors)
+        continue
       }
+      const { scrollTop: top, scrollLeft: left } = child
+      if (top || left) scrolled.set(child, { element: child, top, left })
+      const anchors =
+        anchoring &&
+        !found.first &&
+        !STUCK.has(getComputedStyle(child).position)
+      if (anchors) {
+        const anchor = { element: child, top: box.top - view.top }
+        if (box.top >= view.top) found.first = anchor
+        else found.across = anchor
+      }
+      visit(child, anchors)
     }
   }
   visit(viewport, true)
