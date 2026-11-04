@@ -370,10 +370,11 @@ jobs:
         run: echo "version=$(pnpm exec playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
 
       # One file uploads faster than the export's 5,000. Gzip, since the
-      # Playwright image docs-e2e runs in may not have zstd.
+      # Playwright image docs-e2e runs in may not have zstd. The e2e tests
+      # also read the generated tokens.json, which isn't in git.
       - name: Pack docs export
         if: env.ALL_ENGINES == 'true' && hashFiles('docs/out/index.html') != ''
-        run: tar -C docs -czf "$RUNNER_TEMP/docs-out.tar.gz" out
+        run: tar -czf "$RUNNER_TEMP/docs-out.tar.gz" docs/out packages/core/src/tokens/tokens.json
 
       - name: Upload docs export
         if: env.ALL_ENGINES == 'true' && hashFiles('docs/out/index.html') != ''
@@ -451,7 +452,7 @@ jobs:
           path: ${{ runner.temp }}
 
       - name: Unpack docs export
-        run: tar -C docs -xzf "$RUNNER_TEMP/docs-out.tar.gz"
+        run: tar -xzf "$RUNNER_TEMP/docs-out.tar.gz"
 
       - name: Docs e2e tests
         run: pnpm --filter docs test:e2e ${SHARD:+--shard=$SHARD}
