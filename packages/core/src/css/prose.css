@@ -161,7 +161,7 @@
     font-weight: 600;
     color: var(--intent-text-strong);
   }
-  /* The reset sets every element upright, so emphasis needs its slant back. */
+  /* The reset sets these upright, so emphasis needs its slant back. */
   .prose
     :where(em, i, cite):not(
       :where(.not-prose, [data-not-prose], .not-prose *, [data-not-prose] *)
@@ -479,7 +479,7 @@
       color: var(--intent-text-strong);
     }
 
-    /* The reset sets every element upright, so emphasis needs its slant back. */
+    /* The reset sets these upright, so emphasis needs its slant back. */
     :scope :where(em, i, cite) {
       font-style: italic;
     }

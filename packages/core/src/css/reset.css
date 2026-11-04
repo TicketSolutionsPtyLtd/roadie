@@ -14,8 +14,12 @@
   * {
     margin: 0;
     padding: 0;
-    font-style: normal;
     border-color: transparent;
+  }
+
+  /* Only the elements browsers slant, so what's inside italics inherits it. */
+  :where(i, em, cite, dfn, var, address) {
+    font-style: normal;
   }
 
   :focus-visible {

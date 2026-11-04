@@ -9,6 +9,7 @@ declare module 'vitest/browser' {
     reduceMotion: (reduce: boolean) => Promise<void>
     /** The CSS as a production build ships it, with nesting lowered. */
     optimizeCss: (css: string) => Promise<string>
+    lowerNesting: (css: string) => Promise<string>
     /** Resolves false where it can't emulate, which is everywhere but Chromium. */
     reduceTransparency: (reduce: boolean) => Promise<boolean>
     forcedColors: (active: boolean) => Promise<void>
