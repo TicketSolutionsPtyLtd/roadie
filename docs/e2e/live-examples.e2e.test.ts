@@ -282,6 +282,9 @@ describe('live examples', () => {
       )
 
       expect(await examples(page)).toMatchObject({ rendered: 1, pending: 0 })
+      expect(await page.title()).toBe(
+        'Default example, Number field | Roadie Design System'
+      )
       // The example reports rendered before NumberField's input mounts.
       await expect
         .poll(() => page.locator('[data-slot=number-field-input]').count())
@@ -397,6 +400,33 @@ describe('live examples', () => {
     expect(errors).toEqual([])
     await page.context().close()
   }, 60_000)
+
+  it('give every example a page in the export', async () => {
+    const out = join(import.meta.dirname, '../out')
+    const codeDir = join(out, 'example-code')
+    const files = (await readdir(codeDir, { recursive: true })).filter((file) =>
+      file.endsWith('.json')
+    )
+    const hrefs = (
+      await Promise.all(
+        files.map(async (file) =>
+          (
+            JSON.parse(await readFile(join(codeDir, file), 'utf8')) as {
+              href: string
+            }[]
+          ).map(({ href }) => href)
+        )
+      )
+    ).flat()
+    const missing: string[] = []
+    for (const href of hrefs)
+      await readFile(join(out, href, 'index.html')).catch(() =>
+        missing.push(href)
+      )
+
+    expect(hrefs.length).toBeGreaterThan(400)
+    expect(missing).toEqual([])
+  })
 
   it('link each example to its own page', async () => {
     const { page } = await open('/components/badge/', 1280)
