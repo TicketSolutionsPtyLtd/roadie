@@ -47,6 +47,8 @@ function inBatches(paths) {
   return batches
 }
 
+const count = (n, noun) => `${n} ${noun}${n === 1 ? '' : 's'}`
+
 const folderOf = (path) => path.slice(0, path.lastIndexOf('/') + 1)
 
 const isIn = (file, { dir }) => file.startsWith(`${dir}/`)
@@ -129,7 +131,7 @@ export function planPrePush({
   if (formatted.length)
     steps.push({
       kind: 'format',
-      label: `formatting (${formatted.length} files)`,
+      label: `formatting (${count(formatted.length, 'file')})`,
       rerun: 'pnpm format',
       commands: inBatches(formatted).map((batch) => [
         'pnpm',
@@ -210,7 +212,7 @@ export function planPrePush({
     const projectArgs = projects.flatMap((project) => ['--project', project])
     steps.push({
       kind: 'tests',
-      label: `tests ${workspace.short} (${own.length} beside the change, ${guardFiles.length} guards)`,
+      label: `tests ${workspace.short} (${own.length} beside the change, ${count(guardFiles.length, 'guard')})`,
       needsBuild: built.includes(workspace),
       rerun: `pnpm test:gated ${[workspace.short, ...tests, ...projectArgs].join(' ')}`,
       commands: [

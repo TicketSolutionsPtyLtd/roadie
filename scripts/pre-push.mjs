@@ -86,7 +86,7 @@ const { steps, skipped } = planPrePush({
 })
 
 console.log(
-  `pre-push: ${changedSinceBase.length} files changed since ${base}. Checking ${steps.map(({ label }) => label).join(', ')}.`
+  `pre-push: ${changedSinceBase.length} ${changedSinceBase.length === 1 ? 'file' : 'files'} changed since ${base}. Checking ${steps.map(({ label }) => label).join(', ')}.`
 )
 
 if (!process.env.CI && loadWaitS > 0) {
@@ -143,6 +143,11 @@ function runCommand([command, ...args], cwd, deadline) {
       },
       Math.max(0, deadline - Date.now())
     )
+    child.on('error', (error) => {
+      running = null
+      clearTimeout(timer)
+      resolvePromise({ code: 1, output: error.message, timedOut: false })
+    })
     child.on('close', (code) => {
       running = null
       clearTimeout(timer)
