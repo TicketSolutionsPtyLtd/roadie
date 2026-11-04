@@ -243,7 +243,6 @@ export function readTypes(
   const follow = (type: ts.Type) => {
     if (followed.has(type)) return
     followed.add(type)
-    if (type.flags & ts.TypeFlags.TypeParameter) return
     for (const symbol of [type.aliasSymbol, type.getSymbol()]) {
       if (symbol && exported.has(symbol)) queue.push(symbol)
     }
