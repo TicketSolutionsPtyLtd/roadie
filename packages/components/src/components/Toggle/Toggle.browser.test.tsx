@@ -65,6 +65,7 @@ describe('ToggleGroup hover', () => {
       )
       const item = await hoverFill(screen.getByRole('button', { name: 'Grid' }))
 
+      expect(item.hovered).not.toBe(item.rest)
       expect(item.rest).toBe(button.rest)
       expect(item.hovered).toBe(button.hovered)
     }

@@ -42,6 +42,7 @@ describe('Tabs hover', () => {
       )
       const tab = await hoverFill(renderTabs(emphasis))
 
+      expect(tab.hovered).not.toBe(tab.rest)
       expect(tab.rest).toBe(button.rest)
       expect(tab.hovered).toBe(button.hovered)
     }
