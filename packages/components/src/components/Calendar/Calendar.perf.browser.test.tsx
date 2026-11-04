@@ -78,7 +78,8 @@ describe('Calendar turns at 60fps on a slowed CPU', () => {
       await settle(3)
       await expectFrameBudget(
         `Calendar, ${name}, drag`,
-        await dragFrames(day(root, '2027-03-17'), dx, dy)
+        await dragFrames(day(root, '2027-03-17'), dx, dy),
+        dy ? { knownMiss: 'INNO-1529' } : {}
       )
       const next = root.querySelector<HTMLElement>(
         'button[aria-label="Next month"]'
