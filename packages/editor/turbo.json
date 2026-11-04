@@ -7,7 +7,8 @@
         "$TURBO_EXTENDS$",
         "$TURBO_ROOT$/docs/src/app/**/page.mdx",
         "$TURBO_ROOT$/tsconfig.base.json",
-        "$TURBO_ROOT$/tsconfig.react.json"
+        "$TURBO_ROOT$/tsconfig.react.json",
+        "!src/**/testUtils.ts"
       ]
     }
   }

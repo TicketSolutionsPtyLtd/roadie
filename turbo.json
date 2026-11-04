@@ -1,13 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "agentGuidance": false,
-  "globalDependencies": [
-    "**/.env.*local",
-    "pnpm-lock.yaml",
-    ".nvmrc",
-    "eslint/**",
-    "oxlint.config.ts"
-  ],
+  "globalDependencies": ["**/.env.*local", ".nvmrc"],
   "tasks": {
     "prepare": {
       "dependsOn": ["^build"],
@@ -23,24 +17,23 @@
         "scripts/**/*.{js,mjs,cjs,ts}",
         "*.config.{js,mjs,cjs,ts}",
         "package.json",
-        "tsconfig.json"
+        "tsconfig.json",
+        "!src/**/*.test.*",
+        "!scripts/**/*.test.*"
       ],
-      "outputs": [
-        "dist/**",
-        ".next/**",
-        "out/**",
-        "!.next/cache/**",
-        "!.next/dev/**",
-        "!.next/**/*.map"
-      ]
+      "outputs": ["dist/**"]
     },
     "build:quiet": {
       "dependsOn": ["^build:quiet"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,css,json}",
         "src/**/*.html",
+        "scripts/**/*.{js,mjs,cjs,ts}",
+        "*.config.{js,mjs,cjs,ts}",
         "package.json",
-        "tsconfig.json"
+        "tsconfig.json",
+        "!src/**/*.test.*",
+        "!scripts/**/*.test.*"
       ],
       "outputs": ["dist/**"]
     },
@@ -56,20 +49,22 @@
       "outputs": []
     },
     "lint": {
-      "dependsOn": ["^build"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,mdx}",
         "eslint.config.js",
+        "$TURBO_ROOT$/oxlint.config.ts",
+        "$TURBO_ROOT$/eslint/**",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**",
         "package.json"
       ],
       "outputs": []
     },
     "lint:fix": {
-      "dependsOn": ["^build"],
       "inputs": [
         "src/**/*.{js,jsx,ts,tsx,mdx}",
         "eslint.config.js",
+        "$TURBO_ROOT$/oxlint.config.ts",
+        "$TURBO_ROOT$/eslint/**",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**",
         "package.json"
       ],
