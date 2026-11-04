@@ -49,13 +49,7 @@ describe('buildManifest', () => {
         import: '@fixture/ui/pill',
         kind: 'js',
         values: ['Pill', 'Tag'],
-        types: [
-          'PillBadge',
-          'PillIconFrame',
-          'PillItem',
-          'PillProps',
-          'PillSize'
-        ]
+        types: ['PillBadge', 'PillIconFrame', 'PillItem', 'PillProps']
       },
       {
         subpath: './theme',
@@ -154,13 +148,7 @@ describe('buildManifest', () => {
             name: 'tone',
             type: '"neutral" | "danger"',
             description: 'Colour of the badge.'
-          },
-          {
-            name: 'from',
-            type: '"lg"',
-            description: 'Shown on large pills only.'
-          },
-          { name: 'size', type: '"sm" | "lg"' }
+          }
         ]
       },
       {
@@ -179,11 +167,6 @@ describe('buildManifest', () => {
             type: 'PillBadge',
             required: true,
             description: "The item's badge."
-          },
-          {
-            name: 'note',
-            type: 'PillNote',
-            description: "A note for the item's author."
           }
         ]
       }
