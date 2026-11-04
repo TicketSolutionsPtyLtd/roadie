@@ -6,7 +6,7 @@ import { Toggle, type ToggleEmphasis } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
-import { ToggleGroup } from '../ToggleGroup'
+import { ToggleGroup, type ToggleGroupSize } from '../ToggleGroup'
 import { hoverFill, settledStylesheet } from './testUtils'
 
 let removeStylesheet = () => {}
@@ -103,4 +103,26 @@ describe('ToggleGroup hover', () => {
       list.getBoundingClientRect().right
     )
   })
+
+  it.each([
+    ['sm', 20],
+    ['md', 24],
+    ['lg', 32]
+  ] as [ToggleGroupSize, number][])(
+    'pads a %s item as before, border included',
+    (size, padding) => {
+      render(
+        <ToggleGroup size={size}>
+          <ToggleGroup.Item value='grid'>Grid</ToggleGroup.Item>
+        </ToggleGroup>
+      )
+      const item = screen.getByRole('button', { name: 'Grid' })
+      const text = document.createRange()
+      text.selectNodeContents(item)
+
+      expect(
+        item.getBoundingClientRect().width - text.getBoundingClientRect().width
+      ).toBeCloseTo(padding, 0)
+    }
+  )
 })
