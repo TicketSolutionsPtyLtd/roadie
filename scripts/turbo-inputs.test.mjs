@@ -3,7 +3,7 @@
 // docs. That only holds while no shipped file imports a helper.
 import assert from 'node:assert/strict'
 import { execSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { describe, it } from 'node:test'
 import { fileURLToPath } from 'node:url'
@@ -60,6 +60,31 @@ describe('package build inputs', () => {
             .map((target) => `${task.taskId}: ${file} imports ${target}`)
         })
     })
+    assert.deepEqual(unhashed, [])
+  })
+})
+
+// roadie/canonical-class loads core's stylesheet from source, and lint has no
+// ^build to bring that source into its hash.
+describe('docs lint inputs', () => {
+  it('cover the stylesheet canonical-class loads', () => {
+    const lints = JSON.parse(
+      execSync('pnpm exec turbo run lint lint:fix --filter=docs --dry=json', {
+        cwd: root,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'inherit']
+      })
+    ).tasks
+    const sheets = readdirSync(join(root, 'packages/core/src/css')).filter(
+      (file) => file.endsWith('.css')
+    )
+    const unhashed = lints.flatMap((task) =>
+      sheets
+        .map((sheet) => `../packages/core/src/css/${sheet}`)
+        .filter((sheet) => !(sheet in task.inputs))
+        .map((sheet) => `${task.taskId}: ${sheet}`)
+    )
+    assert.equal(lints.length, 2)
     assert.deepEqual(unhashed, [])
   })
 })
