@@ -24,9 +24,13 @@ type Snapshot = {
   step: 'push' | 'pop'
   ghost: HTMLElement
   scrollTop: number
+  anchor: Anchor | null
   /** Where a reversed step picks up: the pane and the ghost as they were mid-slide. */
   from: { ghost: string; pane: string } | null
 } | null
+
+/** The first element that shows below a stand-in, and how far below the view's top it sat. */
+type Anchor = { element: Element; top: number }
 
 const GHOST_FROM = '--page-step-ghost-from'
 const PANE_FROM = '--page-step-pane-from'
@@ -39,27 +43,43 @@ const isLive = (element: Element) =>
 const UNSELECTED = listItemVariants({ selected: false }).split(' ')
 const SELECTED = listItemVariants({ selected: true }).split(' ')
 
+// `ruby` and `math` are inline-level too, though their computed display doesn't say so.
+const INLINE_LEVEL = /^(?:inline|ruby|math)\b/
+
+const STUCK = new Set(['sticky', 'fixed', 'absolute'])
+
 let inertDocument: Document | null = null
 
 // Copying these would style and lay out a whole page on the step's first frame; layout is clean before commit, so boxes are cheap to read.
 function outOfView(viewport: HTMLElement | null) {
   const out = new Set<Element>()
-  if (!viewport) return out
+  const found: { anchor: Anchor | null } = { anchor: null }
+  if (!viewport) return { out, anchor: null }
   const view = viewport.getBoundingClientRect()
   const visit = (parent: Element) => {
     for (const child of parent.children) {
       const box = child.getBoundingClientRect()
+      const previous = child.previousElementSibling
+      if (
+        !found.anchor &&
+        previous &&
+        out.has(previous) &&
+        box.top >= view.top &&
+        !STUCK.has(getComputedStyle(child).position)
+      )
+        found.anchor = { element: child, top: box.top - view.top }
       // A display: contents box has no size of its own, so its children say.
       if (box.width === 0 && box.height === 0) visit(child)
       else if (box.bottom < view.top || box.top > view.bottom) {
-        // A box in place of inline content reflows its line, moving what shows.
-        if (!getComputedStyle(child).display.startsWith('inline'))
-          out.add(child)
+        const { display } = getComputedStyle(child)
+        // A box in place of inline content reflows its line, moving what shows; blocks inside an inline still go.
+        if (display === 'inline') visit(child)
+        else if (!INLINE_LEVEL.test(display)) out.add(child)
       } else visit(child)
     }
   }
   visit(viewport)
-  return out
+  return { out, anchor: found.anchor }
 }
 
 const viewportOf = (pane: Element) =>
@@ -72,7 +92,8 @@ function ghostOf(pane: HTMLElement) {
   for (const name of ['data-stack', 'data-reached', 'data-stack-position']) {
     ghost.removeAttribute(name)
   }
-  const hidden = outOfView(viewportOf(pane))
+  const { out: hidden, anchor } = outOfView(viewportOf(pane))
+  let anchorCopy: Anchor | null = null
   const originals = pane.querySelectorAll('*')
   const copies = ghost.querySelectorAll('*')
   const live: [Element, Element][] = []
@@ -88,6 +109,8 @@ function ghostOf(pane: HTMLElement) {
       }
     }
     const original = originals[index]
+    if (anchor && original === anchor.element)
+      anchorCopy = { element: copy, top: anchor.top }
     if (original && (isLive(copy) || hidden.has(original)))
       live.push([original, copy])
     else if (copy.localName === 'script') copy.remove()
@@ -96,7 +119,7 @@ function ghostOf(pane: HTMLElement) {
     if (!ghost.contains(copy)) continue
     copy.replaceWith(standIn(original, copy))
   }
-  return ghost
+  return { ghost, anchor: anchorCopy }
 }
 
 // A live tag would load once connected; others keep theirs, so tag rules like Prose's margins hold.
@@ -177,11 +200,12 @@ export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
             ghost: getComputedStyle(top).translate,
             pane: getComputedStyle(host).translate
           }
-    const ghost = ghostOf(top)
+    const { ghost, anchor } = ghostOf(top)
     if (at === 'child') selectPicked(ghost, secondary, value)
     return {
       step: at === 'child' ? 'push' : 'pop',
       ghost,
+      anchor,
       scrollTop: viewportOf(top)?.scrollTop ?? 0,
       from
     }
@@ -203,6 +227,14 @@ export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
     host.append(snapshot.ghost)
     const viewport = viewportOf(snapshot.ghost)
     if (viewport) viewport.scrollTop = snapshot.scrollTop
+    // A stand-in can't carry margins its children collapsed through it, so line the copy up by what shows.
+    const anchor = snapshot.anchor
+    if (viewport && anchor && snapshot.ghost.contains(anchor.element)) {
+      viewport.scrollTop +=
+        anchor.element.getBoundingClientRect().top -
+        viewport.getBoundingClientRect().top -
+        anchor.top
+    }
     const from = snapshot.from
     if (from?.ghost) row.style.setProperty(GHOST_FROM, from.ghost)
     if (from?.pane) row.style.setProperty(PANE_FROM, from.pane)

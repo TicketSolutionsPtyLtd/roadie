@@ -135,27 +135,92 @@ describe('a page step on a phone', () => {
     )
   })
 
-  it('keeps the lines of a paragraph that straddles the top where they were', async () => {
+  it.each([
+    ['a strong', <strong>{'Kazoo '.repeat(20)}</strong>],
+    ['an inline block', <span style={{ display: 'inline-block' }}>Kazoo</span>],
+    [
+      'a ruby',
+      <ruby>
+        {'Kazoo '.repeat(20)}
+        <rt>kz</rt>
+      </ruby>
+    ]
+  ])(
+    'keeps the lines of a paragraph that straddles the top where they were, with %s above',
+    async (_, above) => {
+      render(
+        <Shows>
+          <p>
+            {'Encore '.repeat(10)}
+            {above}
+            {'Encore '.repeat(400)}
+            <span data-mark>Mark</span>
+            {'Encore '.repeat(400)}
+          </p>
+        </Shows>
+      )
+      await expect
+        .poll(() => topViewport()?.scrollHeight ?? 0)
+        .toBeGreaterThan(2000)
+      const mark = (viewport: Element) => {
+        const box = viewport
+          .querySelector('[data-mark]')!
+          .getBoundingClientRect()
+        const view = viewport.getBoundingClientRect()
+        return { top: box.top - view.top, left: box.left - view.left }
+      }
+      topViewport().scrollTop = mark(topViewport()).top - 300
+      const before = mark(topViewport())
+      go('/shows/1')
+      await expect.poll(() => ghost().childElementCount).toBe(1)
+      const after = mark(ghostViewport())
+      expect(Math.abs(after.top - before.top)).toBeLessThanOrEqual(1)
+      expect(Math.abs(after.left - before.left)).toBeLessThanOrEqual(1)
+    }
+  )
+
+  it.each([
+    [
+      'inside inlines',
+      (line: ReactNode, key: number) => (
+        <span key={key}>
+          <p>{line}</p>
+        </span>
+      )
+    ],
+    [
+      'whose margins collapse through their wrappers',
+      (line: ReactNode, key: number) => (
+        <div key={key}>
+          <p className='mt-6'>{line}</p>
+        </div>
+      )
+    ]
+  ])('copies only what shows of lines %s, where they were', async (_, wrap) => {
     render(
       <Shows>
-        <p>
-          <strong>{'Kazoo '.repeat(20)}</strong>
-          {'Encore '.repeat(400)}
-          <span data-mark>Mark</span>
-          {'Encore '.repeat(400)}
-        </p>
+        <div>
+          {Array.from({ length: 120 }, (_, index) =>
+            wrap(`Line ${index + 1} of the Rolling Kazoos tour`, index)
+          )}
+        </div>
       </Shows>
     )
     await expect
       .poll(() => topViewport()?.scrollHeight ?? 0)
-      .toBeGreaterThan(2000)
-    const mark = (viewport: Element) =>
-      viewport.querySelector('[data-mark]')!.getBoundingClientRect().top -
-      viewport.getBoundingClientRect().top
-    topViewport().scrollTop = mark(topViewport()) - 300
-    const before = mark(topViewport())
+      .toBeGreaterThan(2500)
+    topViewport().scrollTop = 1500
+    const line = Array.from(topViewport().querySelectorAll('p')).find((p) => {
+      const top = topIn(topViewport(), p.textContent ?? '')
+      return top > 100 && top < 600
+    })!
+    const text = line.textContent ?? ''
+    const before = topIn(topViewport(), text)
     go('/shows/1')
     await expect.poll(() => ghost().childElementCount).toBe(1)
-    expect(Math.abs(mark(ghostViewport()) - before)).toBeLessThanOrEqual(1)
+    expect(ghost().textContent).not.toContain('Line 1 of')
+    expect(Math.abs(topIn(ghostViewport(), text) - before)).toBeLessThanOrEqual(
+      1
+    )
   })
 })
