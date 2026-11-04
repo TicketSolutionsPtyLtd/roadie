@@ -1,7 +1,15 @@
 import type { CSSProperties } from 'react'
 
 import { cleanup, render } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { RecordTable } from '.'
@@ -421,6 +429,46 @@ describe('RecordTable surface', () => {
       .poll(() => bg(container, 'record-table-head'))
       .toBe('rgb(40, 50, 60)')
   })
+
+  it.each([
+    ['a scroll area scrolls', '--scroll-area-overflow-y-start', '12px'],
+    ['a drawer swipes', '--drawer-swipe-progress', '0.4']
+  ])(
+    "doesn't re-read the surface behind it when %s",
+    async (_, property, value) => {
+      const { container } = render(
+        <div data-testid='card' className='bg-sunken'>
+          <RecordTable
+            data={testShows(20)}
+            fields={showFields}
+            columns={showColumns}
+          />
+        </div>
+      )
+      const card = container.querySelector<HTMLElement>('[data-testid="card"]')!
+      await expect
+        .poll(() => bg(container, 'record-table-head'))
+        .toBe(getComputedStyle(card).backgroundColor)
+      const settles: MutationRecord[] = []
+      const watcher = new MutationObserver((records) =>
+        settles.push(...records)
+      )
+      onTestFinished(() => watcher.disconnect())
+      const parts = container.querySelectorAll('[data-records-surface]')
+      expect(parts).not.toHaveLength(0)
+      for (const part of parts)
+        watcher.observe(part, { attributeFilter: ['style'] })
+      const settlesInAFrame = async () => {
+        settles.length = 0
+        await frame()
+        return settles.length
+      }
+      // The table settles more than once as it mounts and sizes its columns.
+      await expect.poll(settlesInAFrame).toBe(0)
+      card.style.setProperty(property, value)
+      expect(await settlesInAFrame()).toBe(0)
+    }
+  )
 
   it('follows the theme when it switches', async () => {
     const { container } = render(
