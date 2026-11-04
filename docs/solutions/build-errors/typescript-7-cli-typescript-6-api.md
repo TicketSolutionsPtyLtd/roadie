@@ -16,6 +16,7 @@ related_files:
   - package.json
   - packages/core/scripts/manifest/exports.ts
   - packages/widgets/package.json
+  - .vscode/settings.json
 ---
 
 # `tsc` is TypeScript 7, but `import "typescript"` is TypeScript 6
@@ -55,6 +56,9 @@ so the upgrade changed neither.
 - **Don't bump `typescript` to 7.** Doing so breaks every tool above at
   import time. Move it only when tsdown, react-docgen-typescript, vue-tsc, and
   typescript-eslint support the TypeScript 7.1 API.
+- **The editor runs TypeScript 6.** The alias has no `tsserver.js`, so
+  `.vscode/settings.json` points `typescript.tsdk` at the real package pnpm
+  hoists to `node_modules/.pnpm/node_modules/@typescript/old/lib`.
 - **Run the old compiler with `pnpm exec tsc6`**, for example to compare
   diagnostics. TypeScript 7 orders union members in messages differently
   (`stableTypeOrdering`); the codes and positions match.
