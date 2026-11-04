@@ -46,11 +46,7 @@ function runCommand([command, ...args], { cwd, env, deadline, onChild }) {
   })
 }
 
-/**
- * Runs a planned step's commands in order, stopping at the first failure or
- * once the step passes its budget (a null budget never runs out). `onChild`
- * sees each running child, so the hook can pass a signal on to its group.
- */
+/** `onChild` sees each running child, so the hook can pass a signal on to its group. */
 export async function runStep(
   step,
   { env = process.env, onChild = () => {} } = {}
