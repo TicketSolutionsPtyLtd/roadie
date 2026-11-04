@@ -38,10 +38,6 @@ export function pressEscape() {
   )
 }
 
-export const byLabel = <T extends HTMLElement = HTMLButtonElement>(
-  label: string
-) => document.querySelector<T>(`[aria-label="${label}"]`)!
-
 export const byText = <T extends HTMLElement = HTMLButtonElement>(
   selector: string,
   text: string
