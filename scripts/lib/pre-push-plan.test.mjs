@@ -29,8 +29,11 @@ const DIFFS = {
 describe('the pre-push hook', () => {
   test('runs only scripts/pre-push.mjs and the size warning', () => {
     const hook = readFileSync(join(repoRoot, '.husky/pre-push'), 'utf8')
-    const commands = hook.split('\n').filter((line) => line.trim())
+    const commands = hook
+      .split('\n')
+      .filter((line) => line.trim() && !line.startsWith('#'))
     assert.deepEqual(commands, [
+      '[ -f scripts/pre-push.mjs ] || { echo "pre-push: this branch predates scripts/pre-push.mjs, so nothing was checked. Rebase on origin/main."; exit 0; }',
       'node scripts/pre-push.mjs "$@" || exit 1',
       'node scripts/check-pr-size.mjs || true'
     ])
