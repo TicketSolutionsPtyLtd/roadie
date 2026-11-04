@@ -56,9 +56,7 @@ function resolvedZone() {
  * belongs to its venue, so pass the venue's zone instead.
  */
 export function viewerTimeZone(): string {
-  // React reads this for every date a table renders, and building a formatter
-  // costs far more than the date, so it's asked again only when the UTC offset
-  // moves, as when a device crosses zones.
+  // A formatter costs more than each date a table renders, so ask again only when the offset moves.
   const offset = new Date().getTimezoneOffset()
   if (viewerZone?.offset === offset) return viewerZone.zone
   viewerZone = { offset, zone: resolvedZone() }
