@@ -3,19 +3,14 @@
 // the diff, each but the build within a time budget. CI runs the full
 // affected suites.
 // Usage: node scripts/pre-push.mjs (ROADIE_PRE_PUSH_BASE picks the base, origin/main by default)
-import { spawn, spawnSync } from 'node:child_process'
+import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { constants } from 'node:os'
 import { join } from 'node:path'
 
-import {
-  isWindows,
-  killGroup,
-  repoRoot,
-  shimCommand,
-  waitForLoad
-} from './lib/machine.mjs'
+import { killGroup, repoRoot, waitForLoad } from './lib/machine.mjs'
 import { planPrePush, readWorkspaces } from './lib/pre-push-plan.mjs'
+import { runStep } from './lib/pre-push-run.mjs'
 
 const base = process.env.ROADIE_PRE_PUSH_BASE || 'origin/main'
 const loadWaitS = Number(process.env.ROADIE_PRE_PUSH_LOAD_WAIT_S ?? 15)
@@ -117,68 +112,13 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
   })
 }
 
-function runCommand([command, ...args], cwd, deadline) {
-  const resolved =
-    command === 'node'
-      ? { command: process.execPath, args, shell: false }
-      : shimCommand(command, args)
-  return new Promise((resolvePromise) => {
-    const child = spawn(resolved.command, resolved.args, {
-      cwd: join(repoRoot, cwd ?? ''),
-      env: childEnv,
-      shell: resolved.shell,
-      // Detached on Windows means a new console window, not a process group.
-      detached: !isWindows,
-      stdio: ['ignore', 'pipe', 'pipe']
-    })
-    running = child
-    let output = ''
-    child.stdout.on('data', (chunk) => (output += chunk))
-    child.stderr.on('data', (chunk) => (output += chunk))
-    let timedOut = false
-    const timer =
-      deadline === null
-        ? null
-        : setTimeout(
-            () => {
-              timedOut = true
-              killGroup(child.pid, 'SIGTERM')
-              setTimeout(() => killGroup(child.pid, 'SIGKILL'), 5_000).unref()
-            },
-            Math.max(0, deadline - Date.now())
-          )
-    child.on('error', (error) => {
-      running = null
-      clearTimeout(timer)
-      resolvePromise({ code: 1, output: error.message, timedOut: false })
-    })
-    child.on('close', (code) => {
-      running = null
-      clearTimeout(timer)
-      resolvePromise({ code, output, timedOut })
-    })
-  })
-}
-
 const unfinished = []
 for (const step of steps) {
   const stepStarted = Date.now()
-  const deadline =
-    step.budgetS === null ? null : stepStarted + step.budgetS * 1000
-  let outcome = 'passed'
-  let failure = null
-  for (const command of step.commands) {
-    const result = await runCommand(command, step.cwd, deadline)
-    if (result.timedOut) {
-      outcome = 'unfinished'
-      break
-    }
-    if (result.code !== 0) {
-      outcome = 'failed'
-      failure = { command, output: result.output }
-      break
-    }
-  }
+  const { outcome, failure } = await runStep(step, {
+    env: childEnv,
+    onChild: (child) => (running = child)
+  })
   const took = Date.now() - stepStarted
   if (outcome === 'unfinished') unfinished.push(step)
   const mark = { passed: '✓', failed: '✗', unfinished: '…' }[outcome]
