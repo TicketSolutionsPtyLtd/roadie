@@ -45,6 +45,7 @@
     "./roadie.manifest.json": "./dist/roadie.manifest.json"
   },
   "scripts": {
+    "build:quiet": "pnpm generate:manifest --alongside tsdown --log-level warn",
     "build": "pnpm generate:manifest --alongside tsdown && pnpm check:use-client",
     "check:package": "pnpm check:exports && pnpm check:pack",
     "generate:manifest": "node ../core/scripts/manifest/generate.ts",
