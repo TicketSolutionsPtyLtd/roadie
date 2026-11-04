@@ -318,10 +318,13 @@ jobs:
       needs.changes.outputs.docs == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # Engines' locale data differs, so a hydration mismatch can show in one.
-    # WebKit is left out: on Linux it times out the layout-driven tests.
+    # Runs that test every engine hand the export to docs-e2e; others test
+    # Chromium here, which saves a runner.
     env:
-      E2E_ENGINES: ${{ contains(needs.changes.outputs.browsers, 'webkit') && 'chromium firefox' || 'chromium' }}
+      ALL_ENGINES: ${{ contains(needs.changes.outputs.browsers, 'webkit') }}
+    outputs:
+      docs-export: ${{ steps.export.outputs.uploaded }}
+      playwright: ${{ steps.playwright.outputs.version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -370,41 +373,106 @@ jobs:
         id: playwright
         run: echo "version=$(pnpm exec playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
 
+      # The e2e tests also read tokens.json, which git ignores. Gzip, since
+      # the Playwright image may lack zstd.
+      - name: Pack docs export
+        if: env.ALL_ENGINES == 'true' && hashFiles('docs/out/index.html') != ''
+        run: tar -czf "$RUNNER_TEMP/docs-out.tar.gz" docs/out packages/core/src/tokens/tokens.json
+
+      - name: Upload docs export
+        if: env.ALL_ENGINES == 'true' && hashFiles('docs/out/index.html') != ''
+        id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: docs-out
+          path: ${{ runner.temp }}/docs-out.tar.gz
+          compression-level: 0
+          retention-days: 3
+
+      - name: Mark docs export uploaded
+        if: steps.upload.outcome == 'success'
+        id: export
+        run: echo "uploaded=true" >> "$GITHUB_OUTPUT"
+
       - name: Cache Playwright browsers
-        if: hashFiles('docs/out/index.html') != ''
+        if: env.ALL_ENGINES != 'true' && hashFiles('docs/out/index.html') != ''
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}-${{ contains(env.E2E_ENGINES, 'firefox') && 'chromium-firefox' || 'chromium' }}
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}-chromium
 
       - name: Install Playwright browsers
-        if: hashFiles('docs/out/index.html') != ''
-        run: pnpm exec playwright install --with-deps $E2E_ENGINES
+        if: env.ALL_ENGINES != 'true' && hashFiles('docs/out/index.html') != ''
+        run: pnpm exec playwright install --with-deps chromium
 
-      # Every engine runs after one fails, so the log shows them all.
       - name: Docs e2e tests
-        if: hashFiles('docs/out/index.html') != ''
-        run: |
-          status=0
-          for engine in $E2E_ENGINES; do
-            echo "::group::Docs e2e in $engine"
-            E2E_BROWSER=$engine pnpm --filter docs test:e2e || status=1
-            echo "::endgroup::"
-          done
-          exit $status
+        if: env.ALL_ENGINES != 'true' && hashFiles('docs/out/index.html') != ''
+        run: pnpm --filter docs test:e2e
         env:
+          E2E_BROWSER: chromium
           NEXT_PUBLIC_BASE_PATH: /roadie
 
       - name: Save Turbo cache
         if: ${{ !cancelled() }}
         uses: ./.github/composite-actions/turbo-cache-save
 
+  # Engines' locale data differs, so a hydration mismatch can show in one.
+  # WebKit is left out: on Linux it times out the layout-driven tests. The
+  # shard counts keep each runner near 100 s of tests.
+  docs-e2e:
+    name: docs e2e (${{ matrix.browser }}${{ matrix.shard && format(' {0}', matrix.shard) || '' }})
+    needs: build
+    if: needs.build.outputs.docs-export == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.build.outputs.playwright }}-noble
+      options: --user 1001 --ipc=host
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - browser: chromium
+            shard: 1/2
+          - browser: chromium
+            shard: 2/2
+          - browser: firefox
+            shard: 1/3
+          - browser: firefox
+            shard: 2/3
+          - browser: firefox
+            shard: 3/3
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup
+        uses: ./.github/composite-actions/setup
+        with:
+          turbo-cache: 'false'
+
+      - name: Download docs export
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: docs-out
+          path: ${{ runner.temp }}
+
+      - name: Unpack docs export
+        run: tar -xzf "$RUNNER_TEMP/docs-out.tar.gz"
+
+      - name: Docs e2e tests
+        run: pnpm --filter docs test:e2e ${SHARD:+--shard=$SHARD}
+        env:
+          E2E_BROWSER: ${{ matrix.browser }}
+          NEXT_PUBLIC_BASE_PATH: /roadie
+          SHARD: ${{ matrix.shard }}
+
   # The one check main requires. Skipped jobs pass, so docs-only PRs aren't
   # held; any failed or cancelled job fails it. Drafts skip it, since their
   # run has no build or browser jobs to vouch for.
   ci:
     name: CI result
-    needs: [changes, check, playwright, browser, build]
+    needs: [changes, check, playwright, browser, build, docs-e2e]
     if: >-
       always() && github.event_name == 'pull_request' &&
       github.event.pull_request.draft == false
