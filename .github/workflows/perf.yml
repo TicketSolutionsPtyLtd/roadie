@@ -72,8 +72,6 @@ jobs:
       fail-fast: false
       matrix:
         package: [components, charts]
-    env:
-      ROADIE_PERF_REPORT: ${{ github.workspace }}/frames.jsonl
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -84,12 +82,15 @@ jobs:
       - name: Build what the package imports
         run: pnpm turbo build --filter='@oztix/roadie-${{ matrix.package }}^...'
 
+      # In a container job github.workspace is the host's path, not this one.
       - name: Frame tests
-        run: pnpm --filter '@oztix/roadie-${{ matrix.package }}' test:perf
+        run: >-
+          ROADIE_PERF_REPORT="$GITHUB_WORKSPACE/frames.jsonl"
+          pnpm --filter '@oztix/roadie-${{ matrix.package }}' test:perf
 
       - name: Frame table
         if: always() && hashFiles('frames.jsonl') != ''
-        run: node testing/frames/bin/frame-table.ts "Chromium=$ROADIE_PERF_REPORT" >> "$GITHUB_STEP_SUMMARY"
+        run: node testing/frames/bin/frame-table.ts Chromium=frames.jsonl >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload frame report
         if: always() && hashFiles('frames.jsonl') != ''
