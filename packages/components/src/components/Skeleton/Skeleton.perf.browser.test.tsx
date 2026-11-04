@@ -33,8 +33,7 @@ describe('Skeleton animates at 60fps on a slowed CPU', () => {
     )
     await expectFrameBudget(
       'Skeleton, shimmer, 90 placeholders',
-      await measureFrames(() => {}),
-      { knownMiss: 'INNO-1525' }
+      await measureFrames(() => {})
     )
   })
 })
