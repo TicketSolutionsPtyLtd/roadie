@@ -12,9 +12,8 @@ const dry = JSON.parse(
     stdio: ['ignore', 'pipe', 'inherit']
   })
 )
-const misses = dry.tasks.filter(
-  (task) => task.command !== '<NONEXISTENT>' && task.cache.status !== 'HIT'
-)
+const builds = dry.tasks.filter((task) => task.command !== '<NONEXISTENT>')
+const misses = builds.filter((task) => task.cache.status !== 'HIT')
 
 if (misses.length > 0) {
   console.error(
@@ -25,4 +24,4 @@ if (misses.length > 0) {
   )
   process.exit(1)
 }
-console.log(`All ${dry.tasks.length} package builds replay from the cache.`)
+console.log(`All ${builds.length} package builds replay from the cache.`)
