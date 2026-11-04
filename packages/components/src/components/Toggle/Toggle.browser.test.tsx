@@ -49,19 +49,24 @@ describe('Toggle hover', () => {
 
 describe('ToggleGroup hover', () => {
   it.each(EMPHASES)(
-    'fills an unpressed item at %s emphasis',
+    'fills an unpressed item as a subtler button at %s emphasis',
     async (emphasis) => {
       render(
-        <ToggleGroup emphasis={emphasis} defaultValue={['list']}>
-          <ToggleGroup.Item value='list'>List</ToggleGroup.Item>
-          <ToggleGroup.Item value='grid'>Grid</ToggleGroup.Item>
-        </ToggleGroup>
+        <>
+          <Button emphasis='subtler'>Tickets</Button>
+          <ToggleGroup emphasis={emphasis} defaultValue={['list']}>
+            <ToggleGroup.Item value='list'>List</ToggleGroup.Item>
+            <ToggleGroup.Item value='grid'>Grid</ToggleGroup.Item>
+          </ToggleGroup>
+        </>
       )
-      const { rest, hovered } = await hoverFill(
-        screen.getByRole('button', { name: 'Grid' })
+      const button = await hoverFill(
+        screen.getByRole('button', { name: 'Tickets' })
       )
+      const item = await hoverFill(screen.getByRole('button', { name: 'Grid' }))
 
-      expect(hovered).not.toBe(rest)
+      expect(item.rest).toBe(button.rest)
+      expect(item.hovered).toBe(button.hovered)
     }
   )
 

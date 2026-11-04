@@ -4,6 +4,7 @@ import { commands } from 'vitest/browser'
 
 import { Tabs, type TabsRootEmphasis } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
 import { hoverFill, settledStylesheet } from '../Toggle/testUtils'
 
@@ -33,11 +34,16 @@ function renderTabs(
 
 describe('Tabs hover', () => {
   it.each(EMPHASES)(
-    'fills an inactive tab at %s emphasis',
+    'fills an inactive tab as a subtler button at %s emphasis',
     async (emphasis) => {
-      const { rest, hovered } = await hoverFill(renderTabs(emphasis))
+      render(<Button emphasis='subtler'>Tickets</Button>)
+      const button = await hoverFill(
+        screen.getByRole('button', { name: 'Tickets' })
+      )
+      const tab = await hoverFill(renderTabs(emphasis))
 
-      expect(hovered).not.toBe(rest)
+      expect(tab.rest).toBe(button.rest)
+      expect(tab.hovered).toBe(button.hovered)
     }
   )
 
