@@ -42,7 +42,7 @@ if (shas.length && shas.every((sha) => ZERO.test(sha))) process.exit(0)
 
 if (git('rev-parse', '--verify', '--quiet', base).status !== 0) {
   console.error(
-    `pre-push: no ${base} to diff with. Run \`git fetch origin main\`.`
+    `pre-push: no ${base} to diff with. Fetch it first, as \`git fetch ${base.replace('/', ' ')}\`.`
   )
   process.exit(1)
 }

@@ -184,12 +184,12 @@ Every PR is checked against these before review. Fix every real hit.
   pre-push hook waits up to 15 seconds for the load, then checks only what
   the diff touches: the repo guards, formatting, an incremental typecheck of
   the changed packages, and their tests beside the change plus their guard
-  tests. It builds what the typecheck reads, which can't be stopped partway,
-  and gives every other step a time budget. It prints what it left to CI with
-  the command to run each, so never push with `--no-verify`. Give browser
-  tests explicit timeouts and never wait on an infinite animation. Stop dev
-  servers you start, and run `pnpm cleanup` (`--delete` to delete) when disk
-  runs low.
+  tests. It builds what the typecheck reads with no time budget, since a
+  build stopped midway empties `dist`, and gives every other step one. It
+  prints what it left to CI with the command to run each, so never push with
+  `--no-verify`. Give browser tests explicit timeouts and never wait on an
+  infinite animation. Stop dev servers you start, and run `pnpm cleanup`
+  (`--delete` to delete) when disk runs low.
 - **Demo user-visible changes before pushing.** `pnpm preview` serves the
   docs from your worktree and prints the URLs a phone can open; set
   `ROADIE_PORT_RANGE` to your session's range and extra hosts in
