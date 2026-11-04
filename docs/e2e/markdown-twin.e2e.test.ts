@@ -3,6 +3,7 @@ import { join } from 'path'
 import { type Browser, type Page, chromium, firefox, webkit } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { routerReady } from './routerReady'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 const OUT_DIR = join(import.meta.dirname, '../out')
@@ -202,6 +203,7 @@ describe('Markdown twins', () => {
     await expect
       .poll(() => alternate.getAttribute('href'))
       .toBe(`${BASE_PATH}/foundations/colors.md`)
+    await routerReady(page)
     // A full reload would clear this, so it proves the router navigated.
     await page.evaluate(() => Object.assign(window, { clientNavigation: true }))
 
