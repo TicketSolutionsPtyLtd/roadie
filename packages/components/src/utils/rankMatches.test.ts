@@ -226,6 +226,13 @@ describe('collatorContains', () => {
     ).toEqual(['Gate 7', 'Gate 9'])
   })
 
+  it('asks the collator when only the query has accents', () => {
+    const contains = collatorContains('en-AU')
+    expect(contains('Gumleaf Cafe', 'café')).toBe(
+      collatorWindows('Gumleaf Cafe', 'café', 'en-AU')
+    )
+  })
+
   it('reads labels the way Base UI does', () => {
     const contains = collatorContains('en-AU')
     expect(contains({ value: 'x', label: 'Gumleaf Hall' }, 'hall')).toBe(true)
