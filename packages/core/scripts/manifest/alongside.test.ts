@@ -53,12 +53,13 @@ describe('alongside', () => {
     })
   })
 
+  // A shell reports a signalled child as 128 plus the signal, not as a signal.
   it('fails when a signal stops the command', async () => {
-    expect(
-      await alongside(
-        `node -e "process.kill(process.pid, 'SIGTERM')"`,
-        () => 'x'
-      )
-    ).toEqual({ exitCode: 1 })
+    const outcome = await alongside(
+      `node -e "process.kill(process.pid, 'SIGTERM')"`,
+      () => 'x'
+    )
+    expect(outcome).not.toHaveProperty('result')
+    expect(outcome.exitCode).toBeGreaterThan(0)
   })
 })
