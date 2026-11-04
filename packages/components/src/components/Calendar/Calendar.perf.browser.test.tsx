@@ -1,94 +1,31 @@
-import type { ReactNode } from 'react'
+import { afterAll, describe, expect, it } from 'vitest'
+import { page } from 'vitest/browser'
 
-import { type Root, createRoot } from 'react-dom/client'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { commands, page } from 'vitest/browser'
+import {
+  type FrameReport,
+  expectFrameBudget,
+  measureFrames,
+  mount,
+  settle,
+  setupFrameTests
+} from '@oztix/roadie-frames'
 
 import { Calendar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { DateRangePicker } from '../DateRangePicker'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { countRenders } from '../RecordTable/renderCounter'
 
-declare module 'vitest/browser' {
-  interface BrowserCommands {
-    throttleCpu: (rate: number) => Promise<void>
-  }
-}
-
 const TODAY = '2027-03-10'
-// A 60Hz frame, with room for the timer's own jitter.
-const FRAME_MS = 1000 / 60
-// The budgets are for Chromium at 4x. WebKit, run on request, can't be slowed
-// and its frame clock counts whole milliseconds, so its frames read 16 to 18
-// and a switch of two months can miss one.
-const chromium = navigator.userAgent.includes('Chrome')
-const P95_BUDGET_MS = chromium ? 17.5 : 20
-const SWITCH_DROPS = chromium ? 0 : 1
 
-let removeStylesheet = () => {}
-beforeAll(async () => {
-  removeStylesheet = useStylesheet(roadieCss)
-  await loadBrandFont()
-  await commands.throttleCpu(4)
-})
-afterAll(async () => {
-  await commands.throttleCpu(1)
-  await page.viewport(1440, 900)
-  removeStylesheet()
-})
-let activeRoot: Root | undefined
-let activeContainer: HTMLElement | undefined
-afterEach(() => {
-  activeRoot?.unmount()
-  activeContainer?.remove()
-  activeRoot = undefined
-  activeContainer = undefined
-})
-
-const frame = () => new Promise<number>(requestAnimationFrame)
-
-// Production React has no `act`; settling frames keep mount cost out.
-async function mount(node: ReactNode) {
-  activeContainer = document.createElement('div')
-  document.body.append(activeContainer)
-  activeRoot = createRoot(activeContainer)
-  activeRoot.render(node)
-  for (let i = 0; i < 5; i++) await frame()
-  return activeContainer
-}
-
-type Frames = { p50: number; p95: number; dropped: number }
-
-function summarise(deltas: number[]): Frames {
-  const sorted = [...deltas].sort((a, b) => a - b)
-  const at = (q: number) =>
-    sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))]!
-  return {
-    p50: Math.round(at(0.5) * 10) / 10,
-    p95: Math.round(at(0.95) * 10) / 10,
-    dropped: deltas.reduce(
-      (sum, delta) => sum + Math.max(0, Math.round(delta / FRAME_MS) - 1),
-      0
-    )
-  }
-}
-
-/** Frame times while `step` runs once a frame, `count` times. */
-async function sample(count: number, step: (index: number) => void = () => {}) {
-  const deltas: number[] = []
-  let last = await frame()
-  for (let index = 0; index < count; index++) {
-    step(index)
-    const now = await frame()
-    deltas.push(now - last)
-    last = now
-  }
-  return deltas
-}
+setupFrameTests({ css: roadieCss })
+afterAll(() => page.viewport(1440, 900))
 
 // A finger drag, one move a frame, then the slide after it lifts.
-async function dragFrames(target: Element, dx: number, dy: number) {
+async function dragFrames(
+  target: Element,
+  dx: number,
+  dy: number
+): Promise<FrameReport> {
   const box = target.getBoundingClientRect()
   const x = box.left + box.width / 2
   const y = box.top + box.height / 2
@@ -110,12 +47,13 @@ async function dragFrames(target: Element, dx: number, dy: number) {
     )
   fire('touchstart', 0)
   const moves = 30
-  const drag = await sample(moves, (index) =>
-    fire('touchmove', (index + 1) / moves)
+  return measureFrames(
+    (index) => {
+      if (index < moves) fire('touchmove', (index + 1) / moves)
+      else if (index === moves) fire('touchend', 1)
+    },
+    { frames: 60 }
   )
-  fire('touchend', 1)
-  const slide = await sample(30)
-  return [...drag, ...slide]
 }
 
 const day = (root: Element, date: string) =>
@@ -123,10 +61,7 @@ const day = (root: Element, date: string) =>
     `button[data-date="${date}"]:not([data-outside]):not([data-peek] *)`
   )!
 
-const results: Record<string, Frames> = {}
-void results
-
-describe('Calendar turns at 60fps on a 4x slower CPU', () => {
+describe('Calendar turns at 60fps on a slowed CPU', () => {
   it.each([
     ['one month', 390, 1, -200, 0],
     ['two months side by side', 1440, 2, -200, 0],
@@ -140,22 +75,18 @@ describe('Calendar turns at 60fps on a 4x slower CPU', () => {
           <Calendar today={TODAY} numberOfMonths={numberOfMonths} />
         </div>
       )
-      for (let i = 0; i < 3; i++) await frame()
-      const frames = summarise(
+      await settle(3)
+      await expectFrameBudget(
+        `Calendar, ${name}, drag`,
         await dragFrames(day(root, '2027-03-17'), dx, dy)
       )
-      results[`${name}, drag`] = frames
-      console.log(`FRAMES ${name}, drag ${JSON.stringify(frames)}`)
-      expect(frames.p95).toBeLessThan(P95_BUDGET_MS)
-      expect(frames.dropped).toBeLessThanOrEqual(1)
       const next = root.querySelector<HTMLElement>(
         'button[aria-label="Next month"]'
       )!
-      const arrow = summarise(await sample(30, (i) => i === 0 && next.click()))
-      results[`${name}, arrow`] = arrow
-      console.log(`FRAMES ${name}, arrow ${JSON.stringify(arrow)}`)
-      expect(arrow.p95).toBeLessThan(P95_BUDGET_MS)
-      expect(arrow.dropped).toBeLessThanOrEqual(1)
+      await expectFrameBudget(
+        `Calendar, ${name}, next month`,
+        await measureFrames((i) => i === 0 && next.click(), { frames: 60 })
+      )
     }
   )
 
@@ -184,24 +115,16 @@ describe('Calendar turns at 60fps on a 4x slower CPU', () => {
           ))}
         </div>
       )
-      for (let i = 0; i < 3; i++) await frame()
-      const switches: Frames[] = []
+      await settle(3)
       for (const view of ['Week', 'Month']) {
         const item = root.querySelector<HTMLElement>(
           `button[aria-label="${view}"]`
         )!
-        const frames = summarise(
-          await sample(30, (i) => i === 0 && item.click())
+        // The click's own frame is measured too.
+        await expectFrameBudget(
+          `Calendar, ${name}, to ${view.toLowerCase()}`,
+          await measureFrames((i) => i === 0 && item.click(), { frames: 60 })
         )
-        results[`${name}, to ${view}`] = frames
-        console.log(`FRAMES ${name}, to ${view} ${JSON.stringify(frames)}`)
-        switches.push(frames)
-      }
-      // The click's own frame included: a switch drops none. The p95 budget
-      // only allows for the frame clock's jitter about 16.7ms.
-      for (const frames of switches) {
-        expect(frames.p95).toBeLessThan(P95_BUDGET_MS)
-        expect(frames.dropped).toBeLessThanOrEqual(SWITCH_DROPS)
       }
     }
   )
@@ -212,7 +135,7 @@ describe('Calendar turns at 60fps on a 4x slower CPU', () => {
       <DateRangePicker aria-label='Sales period' today='2026-10-07' />
     )
     root.querySelector<HTMLElement>('button')!.click()
-    for (let i = 0; i < 40; i++) await frame()
+    await settle(40)
     const scroller = Array.from(
       document.querySelectorAll<HTMLElement>('[role="dialog"] *')
     ).find(
@@ -221,20 +144,14 @@ describe('Calendar turns at 60fps on a 4x slower CPU', () => {
         element.scrollHeight > element.clientHeight
     )!
     expect(scroller).toBeTruthy()
-    let deltas: number[] = []
+    let frames: FrameReport | undefined
     const renders = await countRenders(async () => {
-      deltas = await sample(60, () => {
+      frames = await measureFrames(() => {
         scroller.scrollTop += 24
       })
     })
     // Scrolling past months is the list's own business, not the picker's.
     expect(renders.ExtendedDateRangePicker ?? 0).toBe(0)
-    const frames = summarise(deltas)
-    results['DateRangePicker drawer, scroll'] = frames
-    console.log(
-      `FRAMES DateRangePicker drawer, scroll ${JSON.stringify(frames)}`
-    )
-    expect(frames.p95).toBeLessThan(P95_BUDGET_MS)
-    expect(frames.dropped).toBeLessThanOrEqual(1)
+    await expectFrameBudget('DateRangePicker, phone drawer, scroll', frames!)
   })
 })
