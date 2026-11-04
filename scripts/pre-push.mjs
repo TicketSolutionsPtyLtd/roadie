@@ -75,6 +75,7 @@ mkdirSync(cacheDir, { recursive: true })
 const { steps, skipped } = planPrePush({
   files,
   deleted,
+  base,
   workspaces,
   testFiles,
   guards,

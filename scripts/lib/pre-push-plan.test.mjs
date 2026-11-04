@@ -59,6 +59,18 @@ describe('the pre-push hook', () => {
     })
   }
 
+  test('names the dependents with the base it diffed against', () => {
+    const { skipped } = planPrePush({
+      ...repo,
+      files: DIFFS.core,
+      base: 'upstream/release',
+      cacheDir: '/cache'
+    })
+    assert.ok(
+      skipped.some((line) => line.includes('--filter="...[upstream/release]"'))
+    )
+  })
+
   test('a component change typechecks components and runs its own test', () => {
     const result = plan(DIFFS.component)
     assert.deepEqual(labelsOf('typecheck', result), ['typecheck components'])

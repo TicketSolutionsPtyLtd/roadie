@@ -95,6 +95,7 @@ function dependentsOf(names, workspaces) {
  * @param {object} input
  * @param {string[]} input.files repo-relative paths changed since the base, that still exist
  * @param {string[]} [input.deleted] repo-relative paths deleted since the base
+ * @param {string} [input.base] the ref the diff is against
  * @param {{ name: string, short: string, dir: string, deps: string[], scripts: Record<string, string> }[]} input.workspaces
  * @param {Record<string, string[]>} input.testFiles package-relative test files, by short name
  * @param {Record<string, string[]>} input.guards the guard tests among them
@@ -103,6 +104,7 @@ function dependentsOf(names, workspaces) {
 export function planPrePush({
   files,
   deleted = [],
+  base = 'origin/main',
   workspaces,
   testFiles,
   guards,
@@ -243,7 +245,7 @@ export function planPrePush({
       (name) => workspaces.find((workspace) => workspace.name === name).short
     )
     skipped.push(
-      `typecheck and tests of dependents (${shorts.join(', ')}): pnpm turbo run typecheck test --filter="...[origin/main]"`
+      `typecheck and tests of dependents (${shorts.join(', ')}): pnpm turbo run typecheck test --filter="...[${base}]"`
     )
   }
 
