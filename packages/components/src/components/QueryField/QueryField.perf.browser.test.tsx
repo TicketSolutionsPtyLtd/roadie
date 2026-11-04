@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { commands } from 'vitest/browser'
 
 import {
   expectFrameBudget,
@@ -53,6 +54,8 @@ describe('QueryField types at 60fps on a slowed CPU', () => {
       { frames: 5 }
     )
     const input = root.querySelector<HTMLInputElement>('[role="combobox"]')!
+    // A page without window focus fires no focus events, so the popup stays shut.
+    await commands.focusPage()
     await expectFrameBudget(
       'QueryField, typing',
       await measureFrames(typeEvery(input, 'iguana teapot'), { frames: 100 })

@@ -26,8 +26,9 @@ function devtools(page: Page) {
   return session
 }
 
-// Main-thread work that takes REFERENCE_MS on the machine the budgets were
-// set on, a 2023 laptop, slowed 4x.
+// Main-thread work that takes REFERENCE_MS on the laptop the budgets were set
+// on (an M4 Pro) slowed 4x, so a slower CI runner gets less throttling and
+// every machine runs the tests at about the same speed.
 const REFERENCE_MS = 84
 
 function workload() {

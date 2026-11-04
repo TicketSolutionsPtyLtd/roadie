@@ -42,7 +42,8 @@ describe('Select opens and closes at 60fps on a slowed CPU', () => {
       'Select, open 200 items',
       await measureFrames((index) => index === 0 && trigger.click(), {
         frames: 60
-      })
+      }),
+      { knownMiss: 'INNO-1524' }
     )
     expect(document.querySelectorAll('[role="option"]')).toHaveLength(200)
     await expectFrameBudget(

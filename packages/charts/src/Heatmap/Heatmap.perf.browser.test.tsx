@@ -11,6 +11,7 @@ import {
 import { Heatmap } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import { Chart } from '../Chart'
+import { afterResize } from '../plot/browserTesting'
 import { sweepPointer } from '../plot/frameTestUtils'
 
 setupFrameTests({ css: roadieCss })
@@ -37,9 +38,7 @@ describe('Heatmap follows the pointer at 60fps on a slowed CPU', () => {
         </Chart>
       </div>
     )
-    await expect
-      .poll(() => root.querySelector('svg.ts-chart'), { timeout: 5000 })
-      .not.toBeNull()
+    await afterResize()
     await settle(10)
     await expectFrameBudget(
       'Heatmap, 168 cells, pointer sweep',

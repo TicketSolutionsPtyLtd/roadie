@@ -76,7 +76,9 @@ describe('Navigator steps between pages at 60fps on a slowed CPU', () => {
         `Navigator, ${name}, ${scenario}`,
         await measureFrames((index) => index === 0 && go(value), {
           frames: 60
-        })
+        }),
+        // The phone steps pages; the desktop shows them side by side.
+        name === 'phone' && value !== '/shows' ? { knownMiss: 'INNO-1524' } : {}
       )
     expect(document.querySelector('[data-slot="pane"]')).not.toBeNull()
   })

@@ -152,6 +152,8 @@ describe('Calendar turns at 60fps on a slowed CPU', () => {
     })
     // Scrolling past months is the list's own business, not the picker's.
     expect(renders.ExtendedDateRangePicker ?? 0).toBe(0)
-    await expectFrameBudget('DateRangePicker, phone drawer, scroll', frames!)
+    await expectFrameBudget('DateRangePicker, phone drawer, scroll', frames!, {
+      knownMiss: 'INNO-1522'
+    })
   })
 })

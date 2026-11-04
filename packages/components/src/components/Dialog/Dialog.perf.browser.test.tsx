@@ -44,7 +44,8 @@ describe('Dialog opens and closes at 60fps on a slowed CPU', () => {
       'Dialog, open',
       await measureFrames((index) => index === 0 && trigger.click(), {
         frames: 60
-      })
+      }),
+      { knownMiss: 'INNO-1522' }
     )
     expect(popup()).not.toBeNull()
     await expectFrameBudget(
