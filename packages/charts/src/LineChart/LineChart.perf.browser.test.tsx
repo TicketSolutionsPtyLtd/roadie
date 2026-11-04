@@ -47,8 +47,7 @@ describe('LineChart follows the pointer at 60fps on a slowed CPU', () => {
       await measureFrames((index) => {
         sweep(index)
         if (root.querySelector('[data-slot="chart-plot-tooltip"]')) tooltips++
-      }),
-      { knownMiss: 'INNO-1526' }
+      })
     )
     expect(tooltips).toBeGreaterThan(60)
   })
