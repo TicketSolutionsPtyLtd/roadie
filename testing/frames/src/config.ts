@@ -102,7 +102,6 @@ const renderMetrics: BrowserCommand<[]> = async ({ page }) => {
   }
 }
 
-/** Appends a measured run to ROADIE_PERF_REPORT, one JSON object a line. */
 const recordFrames: BrowserCommand<[record: FrameRecord]> = (_, record) => {
   const file = process.env.ROADIE_PERF_REPORT
   if (file) appendFileSync(file, `${JSON.stringify(record)}\n`)
@@ -115,7 +114,6 @@ const perfBrowsers = () =>
     .split(',')
     .map((name) => name.trim() as 'chromium' | 'webkit' | 'firefox')
 
-/** The engines a perf project runs in: ROADIE_PERF_BROWSERS, else Chromium. */
 export const perfInstances = () =>
   perfBrowsers().map((browser) => ({ browser }))
 

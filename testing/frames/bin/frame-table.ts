@@ -19,5 +19,5 @@ if (runs.length === 0) {
 }
 
 console.log(
-  `Each cell: p95 ms · worst ms · dropped frames · long tasks.\n\n${frameTable(runs)}`
+  `Each cell: p95 ms · worst ms · % of frames dropped · long tasks.\n\n${frameTable(runs)}`
 )

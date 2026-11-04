@@ -56,7 +56,6 @@ export function defaultBudget(engine: Engine): FrameBudget {
     : { p95: 20, droppedShare: 0.1 }
 }
 
-/** What a run missed its budget by, or nothing when it kept to it. */
 export function budgetMisses(
   stats: FrameStats & { longestTask: number | null },
   budget: FrameBudget

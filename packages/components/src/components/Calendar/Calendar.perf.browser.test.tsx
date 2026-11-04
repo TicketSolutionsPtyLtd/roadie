@@ -120,7 +120,6 @@ describe('Calendar turns at 60fps on a slowed CPU', () => {
         const item = root.querySelector<HTMLElement>(
           `button[aria-label="${view}"]`
         )!
-        // The click's own frame is measured too.
         await expectFrameBudget(
           `Calendar, ${name}, to ${view.toLowerCase()}`,
           await measureFrames((i) => i === 0 && item.click(), { frames: 60 })

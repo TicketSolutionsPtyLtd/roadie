@@ -9,7 +9,7 @@ const cell = (record: FrameRecord | undefined) =>
 
 /**
  * A Markdown table of each scenario across the runs, in the order the first
- * run met them. A cell reads p95 ms · worst ms · dropped · long tasks.
+ * run met them.
  */
 export function frameTable(runs: LabelledRun[]) {
   const scenarios = [
