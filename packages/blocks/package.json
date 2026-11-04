@@ -1,7 +1,6 @@
 {
   "name": "@oztix/roadie-blocks",
   "version": "0.0.0",
-  "private": true,
   "description": "Designed page sections for Oztix sites, independent of any CMS",
   "type": "module",
   "license": "ISC",
