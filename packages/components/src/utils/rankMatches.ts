@@ -23,6 +23,9 @@ function isGroups(items: readonly unknown[]): items is readonly Group[] {
 }
 
 const collators = new Map<string, Intl.Collator>()
+// Turkish and others fold some Latin letters their own way, so only English
+// takes the folded-string path.
+const englishCollators = new WeakSet<Intl.Collator>()
 
 // The same options as Base UI's default filter, so ranking and matching agree.
 function getCollator(locale?: Intl.LocalesArgument) {
@@ -35,6 +38,8 @@ function getCollator(locale?: Intl.LocalesArgument) {
       ignorePunctuation: true
     })
     collators.set(key, collator)
+    if (collator.resolvedOptions().locale.split('-')[0] === 'en')
+      englishCollators.add(collator)
   }
   return collator
 }
@@ -85,17 +90,95 @@ function startsWord(label: string, start: number, end: number) {
   return !continuesWord(before, window[lead])
 }
 
+const PLAIN = /^[A-Za-z0-9 ]*$/
+const folds = new Map<string, string>()
+
+// Labels come round again on every keystroke, so their folds are kept, up to
+// a bound, since labels come from callers.
+function fold(text: string) {
+  let folded = folds.get(text)
+  if (folded === undefined) {
+    if (folds.size >= 20_000) folds.clear()
+    folded = text.toLowerCase().replaceAll(' ', '')
+    folds.set(text, folded)
+  }
+  return folded
+}
+
+/**
+ * Whether a slice of the label reads as the query to the collator. Comparing
+ * every slice through Intl is slow over thousands of items, so plain English
+ * letters, digits, and spaces, where the collator ignores only case and
+ * spaces, compare as folded strings, and a label without the folded query
+ * anywhere is ruled out at once. Anything else asks the collator.
+ */
+function sliceMatcher(label: string, query: string, collator: Intl.Collator) {
+  const plain =
+    englishCollators.has(collator) && PLAIN.test(label) && PLAIN.test(query)
+  if (!plain)
+    return {
+      possible: true,
+      same: (slice: string) => collator.compare(slice, query) === 0
+    }
+  const folded = fold(query)
+  return {
+    possible: fold(label).includes(folded),
+    same: (slice: string) => fold(slice) === folded
+  }
+}
+
 function matchTier(label: string, query: string, collator: Intl.Collator) {
-  if (collator.compare(label, query) === 0) return EXACT
+  const { possible, same } = sliceMatcher(label, query, collator)
+  if (!possible) return NO_MATCH
+  if (same(label)) return EXACT
   let tier = NO_MATCH
   for (let i = 0; i <= label.length - query.length; i += 1) {
     const end = i + query.length
-    if (collator.compare(label.slice(i, end), query) !== 0) continue
+    if (!same(label.slice(i, end))) continue
     if (i === 0) return LABEL_START
     if (startsWord(label, i, end)) return WORD_START
     tier = CONTAINS
   }
   return tier
+}
+
+function sliceContains(label: string, query: string, collator: Intl.Collator) {
+  if (!query) return true
+  const { possible, same } = sliceMatcher(label, query, collator)
+  if (!possible) return false
+  for (let i = 0; i <= label.length - query.length; i += 1)
+    if (same(label.slice(i, i + query.length))) return true
+  return false
+}
+
+const filters = new Map<Intl.Collator, ContainsFilter>()
+
+type ContainsFilter = <Item>(
+  item: Item,
+  query: string,
+  itemToString?: (item: Item) => string
+) => boolean
+
+/**
+ * Base UI's default `contains` filter, with the same answers but the plain
+ * English fast path, for a list too long to compare through Intl on every
+ * keystroke. One per locale, so it keeps its identity across renders.
+ */
+export function collatorContains(locale?: Intl.LocalesArgument) {
+  const collator = getCollator(locale)
+  let filter = filters.get(collator)
+  if (!filter) {
+    filter = (item, query, itemToString) =>
+      sliceContains(
+        itemToString && item != null
+          ? (itemToString(item) ?? '')
+          : defaultLabel(item),
+        query,
+        collator
+      )
+    filters.set(collator, filter)
+  }
+  return filter
 }
 
 function rankList<Item>(

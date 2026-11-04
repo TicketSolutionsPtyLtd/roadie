@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { rankMatches } from './rankMatches'
+import { collatorContains, rankMatches } from './rankMatches'
 
 describe('rankMatches', () => {
   it.each([
@@ -142,5 +142,102 @@ describe('rankMatches', () => {
   it('returns the same groups when nothing moves', () => {
     const items = [{ value: 'Guitar', items: ['Rock', 'Hard rock'] }]
     expect(rankMatches(items, 'rock')).toBe(items)
+  })
+})
+
+// Base UI's default filter: every window of the label against the query.
+function collatorWindows(label: string, query: string, locale?: string) {
+  const collator = new Intl.Collator(locale, {
+    usage: 'search',
+    sensitivity: 'base',
+    ignorePunctuation: true
+  })
+  if (!query) return true
+  for (let i = 0; i <= label.length - query.length; i += 1)
+    if (collator.compare(label.slice(i, i + query.length), query) === 0)
+      return true
+  return false
+}
+
+// A fixed sequence, so a failure reproduces.
+function seeded(seed: number) {
+  return () => {
+    seed = (seed * 1_103_515_245 + 12_345) % 2 ** 31
+    return seed / 2 ** 31
+  }
+}
+
+describe('collatorContains', () => {
+  const words = ['Gumleaf', 'hall', 'KAZOO', 'tin', 'Lantern', '12', 'a', 'B']
+  const glue = [' ', '', '  ', "'", '-', 'é', 'ß', '.']
+  const random = seeded(7)
+  const pick = <T>(list: readonly T[]) =>
+    list[Math.floor(random() * list.length)]!
+  const phrase = () =>
+    Array.from({ length: 1 + Math.floor(random() * 4) }, () => pick(words))
+      .map((word, index) => (index ? pick(glue) : '') + word)
+      .join('')
+  const cases = Array.from({ length: 4000 }, () => {
+    const label = phrase()
+    const start = Math.floor(random() * label.length)
+    const slice = label.slice(start, start + 1 + Math.floor(random() * 8))
+    // The collator ignores spaces, so a space moved within the slice matches.
+    const at = Math.floor(random() * slice.length)
+    const moved = `${slice.slice(0, at).replace(' ', '')} ${slice.slice(at)}`
+    const query = [
+      slice,
+      moved,
+      phrase().slice(0, 1 + Math.floor(random() * 10))
+    ][Math.floor(random() * 3)]!
+    return [label, random() < 0.3 ? query.toUpperCase() : query] as const
+  })
+
+  it("agrees with Base UI's collator filter on every label", () => {
+    const contains = collatorContains('en-AU')
+    const disagree = cases.filter(
+      ([label, query]) =>
+        contains(label, query) !== collatorWindows(label, query, 'en-AU')
+    )
+    expect(disagree).toEqual([])
+  })
+
+  it('agrees where the locale folds letters its own way', () => {
+    const contains = collatorContains('tr')
+    expect(contains('Istanbul', 'i')).toBe(
+      collatorWindows('Istanbul', 'i', 'tr')
+    )
+    expect(contains('Istanbul', 'ı')).toBe(
+      collatorWindows('Istanbul', 'ı', 'tr')
+    )
+  })
+
+  it('reads labels the way Base UI does', () => {
+    const contains = collatorContains('en-AU')
+    expect(contains({ value: 'x', label: 'Gumleaf Hall' }, 'hall')).toBe(true)
+    expect(contains({ value: 'Gumleaf Hall' }, 'hall')).toBe(true)
+    expect(
+      contains({ name: 'Gumleaf Hall' }, 'hall', (item) => item.name)
+    ).toBe(true)
+    expect(contains('Gumleaf Hall', '')).toBe(true)
+  })
+})
+
+describe('rankMatches against the collator', () => {
+  it('ranks generated labels the same as comparing every window', () => {
+    const random = seeded(11)
+    const words = ['Gumleaf', 'hall', 'Kazoo', 'tin', 'Lantern', 'ROOM', '7']
+    const items = Array.from({ length: 300 }, (_, index) =>
+      Array.from(
+        { length: 1 + Math.floor(random() * 3) },
+        () => words[Math.floor(random() * words.length)]
+      ).join(index % 5 ? ' ' : '-')
+    )
+    for (const query of ['hall', 'Gumleaf Hall', 'tin lan', 'room 7', 'zoo']) {
+      const matched = rankMatches(items, query).filter((item) =>
+        collatorWindows(item, query, undefined)
+      )
+      const expected = items.filter((item) => collatorWindows(item, query))
+      expect(new Set(matched)).toEqual(new Set(expected))
+    }
   })
 })
