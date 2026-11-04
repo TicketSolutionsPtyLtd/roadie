@@ -51,3 +51,18 @@ The same PR sets `testTimeout: 60_000` in `vitest.e2e.config.ts`.
 `home-grid.e2e.test.ts` was the one file left on Vitest's 5 second default,
 and its first Firefox test, which also pays for the cold browser, took 5.1
 seconds.
+
+## Network idle isn't hydrated
+
+Inlining the fonts took three requests off every page, so `networkidle` came
+sooner, and two tests that read it as "hydrated" started failing more often.
+On-this-page's "lands on and highlights a hash pushed to history" saw
+`Import` rather than `Composition`, and markdown-twin's "follows client
+navigation" timed out. Next's router replaces the history entry as it
+hydrates, which drops a hash pushed before then, and a link clicked before
+then loads a whole page. Pushing the hash right after `load` loses it every
+time.
+
+Before pushing history or clicking a link that must navigate on the client,
+`await routerReady(page)` (in `docs/e2e/routerReady.ts`). It waits for the
+`__NA` flag Next writes into `history.state`.
