@@ -32,6 +32,12 @@ describe('cacheTransforms', () => {
     assert.deepEqual(calls, ['x.tsx', 'x.tsx', 'y.tsx'])
   })
 
+  it('leaves a plugin whose hook is a plain function as it is', async () => {
+    const transform = (code) => ({ code })
+    const plugin = { name: 'plain', transform }
+    assert.equal((await cacheTransforms(plugin)).transform, transform)
+  })
+
   it('keeps a filter the plugin sets on its hook later', async () => {
     const { plugin } = countingPlugin()
     const cached = await cacheTransforms(Promise.resolve(plugin))
