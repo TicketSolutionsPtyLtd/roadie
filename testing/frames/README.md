@@ -50,4 +50,5 @@ it('scrolls 10,000 rows at 60fps', async () => {
 | Firefox  | Whole milliseconds | No         | No                    | No             |
 
 WebKit and Firefox run on request (`ROADIE_PERF_BROWSERS=webkit`) with a p95
-budget of 20ms, and report long-task counts as `null` rather than zero.
+budget of 20ms and 10% of frames dropped, and report long-task counts as
+`null` rather than zero.
