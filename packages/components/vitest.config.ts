@@ -81,7 +81,12 @@ const lowerNesting: BrowserCommand<[css: string]> = (_, css) =>
     .transform({
       filename: 'roadie.css',
       code: Buffer.from(css),
-      targets: { chrome: 100 << 16 }
+      // Next's default browserslist, none of which supports nesting.
+      targets: {
+        chrome: 111 << 16,
+        firefox: 111 << 16,
+        safari: (16 << 16) | (4 << 8)
+      }
     })
     .code.toString()
 
