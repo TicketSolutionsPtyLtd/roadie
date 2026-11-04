@@ -16,7 +16,9 @@
   "homepage": "https://ticketsolutionsptyltd.github.io/roadie/charts",
   "files": [
     "dist",
-    "src/css"
+    "!dist/**/*.d.ts.map",
+    "src/css",
+    "!src/**/*.test.*"
   ],
   "sideEffects": [
     "**/*.css"
@@ -117,12 +119,13 @@
   },
   "scripts": {
     "build": "pnpm generate:exports && pnpm generate:manifest --alongside tsdown && pnpm check:use-client",
-    "check:package": "pnpm check:dts && pnpm check:exports",
+    "check:package": "pnpm check:dts && pnpm check:exports && pnpm check:pack",
     "generate:exports": "node scripts/generate-package-exports.mjs",
     "generate:manifest": "node ../core/scripts/manifest/generate.ts",
     "check:dts": "node scripts/check-dts.mjs",
     "check:use-client": "node ../core/scripts/check-use-client.mjs",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
+    "check:pack": "node ../core/scripts/check-pack.mjs",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run --project jsdom",
     "test:browser": "vitest run --project 'browser (*)' ${ROADIE_SHARD:+--shard=$ROADIE_SHARD --passWithNoTests}",

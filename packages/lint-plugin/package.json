@@ -38,6 +38,8 @@
   },
   "scripts": {
     "test": "vitest run",
+    "check:package": "pnpm check:pack",
+    "check:pack": "node ../core/scripts/check-pack.mjs",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "format": "oxfmt",

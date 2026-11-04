@@ -86,6 +86,7 @@
   ],
   "files": [
     "dist",
+    "!dist/**/*.d.ts.map",
     "src/css",
     "!src/css/**/*.test.ts"
   ],
@@ -99,8 +100,9 @@
     "build:css": "tailwindcss -i src/css/roadie.css -o dist/roadie.compiled.css --content 'src/css/safelist.html'",
     "generate:tokens": "node scripts/generate-tokens.mjs",
     "generate:manifest": "node scripts/manifest/generate.ts --tokens",
-    "check:package": "pnpm check:exports",
+    "check:package": "pnpm check:exports && pnpm check:pack",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css css/compiled roadie.manifest.json records/record-view.schema.json records/records-request.schema.json",
+    "check:pack": "node scripts/check-pack.mjs",
     "dev": "tsdown --watch --log-level warn",
     "format:check": "oxfmt --check",
     "format": "oxfmt",
