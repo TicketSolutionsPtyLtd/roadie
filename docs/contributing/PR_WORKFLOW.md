@@ -283,9 +283,11 @@ the PR only when the review is clean.
   a public export, prop, intent, or subpath; changing a token's value or
   meaning; the shared CSS cascade, layers, or base styles; and release
   contents. `.prose` output is a two-way door, since a revert restores it,
-  unless the change edits the cascade, layers, or base styles. Merge danger
-  opens with the door. A one-way door names the item it hits; anything else
-  is a two-way door, which says why a revert undoes it.
+  unless the change edits the cascade, layers, or base styles, or removes or
+  renames a class, attribute, or variable apps write, such as `.not-prose`,
+  `data-not-prose`, or `--prose-measure`. Merge danger opens with the door.
+  A one-way door names the item it hits; anything else is a two-way door,
+  which says why a revert undoes it.
 - A Copilot review the maintainer requests reads
   `.github/copilot-instructions.md`; update that file when a convention or a
   deliberate decision changes, and keep it under 4,000 characters (Copilot
