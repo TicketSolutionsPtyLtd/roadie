@@ -3,6 +3,7 @@ import { join } from 'path'
 import { type Browser, type Page, chromium, firefox, webkit } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { settled } from './routerReady'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 let browser: Browser
@@ -51,7 +52,7 @@ async function open(
   })
   page.on('pageerror', (error) => errors.push(String(error)))
   await page.goto(`${ORIGIN}${BASE_PATH}${path}`)
-  await page.waitForLoadState('networkidle')
+  await settled(page)
   return { page, errors }
 }
 
@@ -224,7 +225,7 @@ describe('live examples', () => {
     await page.goto(
       `${ORIGIN}${BASE_PATH}/components/number-field/#accessibility`
     )
-    await page.waitForLoadState('networkidle')
+    await settled(page)
 
     await expect
       .poll(() => landedOffset(page, 'accessibility'), { timeout: 10_000 })

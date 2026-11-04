@@ -1,7 +1,7 @@
 import { type Browser, type Page, chromium, firefox, webkit } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
-import { routerReady } from './routerReady'
+import { settled } from './routerReady'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 let browser: Browser
@@ -27,7 +27,7 @@ async function open(path: string, width: number) {
   await serveExport(context)
   const page = await context.newPage()
   await page.goto(`${ORIGIN}${BASE_PATH}${path}`)
-  await page.waitForLoadState('networkidle')
+  await settled(page)
   return page
 }
 
@@ -210,7 +210,6 @@ describe('On this page', () => {
   // Next's router and history.pushState change the hash without a hashchange.
   it('lands on and highlights a hash pushed to history', async () => {
     const page = await open('/components/kbd/', 1280)
-    await routerReady(page)
     await page.evaluate(() =>
       window.history.pushState(null, '', '#composition')
     )

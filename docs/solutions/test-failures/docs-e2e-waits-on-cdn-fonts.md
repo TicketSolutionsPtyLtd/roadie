@@ -75,8 +75,14 @@ hydrates, which drops a hash pushed before then, and a link clicked before
 then loads a whole page. Pushing the hash right after `load` loses it every
 time.
 
-Before pushing history or clicking a link that must navigate on the client,
-`await routerReady(page)` (in `docs/e2e/routerReady.ts`). It waits for Next to
-patch `pushState`, which it does after hydrating and writing its own history
-entry. The `__NA` flag Next writes into `history.state` isn't enough on its
-own: it outlives a reload, and it comes before the patch.
+Layout can wait on hydration too. Guidelines' "keeps a width example inside a
+card narrower than the width" read a card at 358px, which is the width before
+hydration, when the cards stack one to a row. Once hydrated, two share the
+row at 260px.
+
+So every e2e file's `open` ends with `await settled(page)` (in
+`docs/e2e/routerReady.ts`): network idle, then Next's router in charge. It
+waits for Next to patch `pushState`, which it does after hydrating and writing
+its own history entry. The `__NA` flag Next writes into `history.state` isn't
+enough on its own: it outlives a reload, and it comes before the patch. Wait
+for `settled` after any `goto`, not just network idle.
