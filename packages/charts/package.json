@@ -97,6 +97,10 @@
       "types": "./dist/StackedBars/index.d.ts",
       "import": "./dist/StackedBars/index.js"
     },
+    "./chart-document": {
+      "types": "./dist/chartDocument/index.d.ts",
+      "import": "./dist/chartDocument/index.js"
+    },
     "./examples": {
       "types": "./dist/examples/index.d.ts",
       "import": "./dist/examples/index.js"

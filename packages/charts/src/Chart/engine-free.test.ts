@@ -31,7 +31,10 @@ function resolveSource(from: string, specifier: string) {
   return [`${base}.ts`, `${base}.tsx`, join(base, 'index.ts')].find(existsSync)
 }
 
-function importGraph(entry: string) {
+const CORE_SRC = join(SRC_DIR, '..', '..', 'core', 'src')
+const CORE_SUBPATH = /^@oztix\/roadie-core\/(.+)$/
+
+function importGraph(entry: string, { intoCore = false } = {}) {
   const seen = new Set<string>()
   const packages = new Set<string>()
   const visit = (file: string) => {
@@ -42,6 +45,8 @@ function importGraph(entry: string) {
     )) {
       if (!specifier.startsWith('.')) {
         packages.add(specifier)
+        const coreSubpath = intoCore && CORE_SUBPATH.exec(specifier)?.[1]
+        if (coreSubpath) visit(join(CORE_SRC, coreSubpath, 'index.ts'))
         continue
       }
       const resolved = resolveSource(file, specifier)
@@ -83,5 +88,23 @@ describe('the tables entry stays engine-free', () => {
     expect(
       files.filter((f) => /[/\\][A-Z]\w+[/\\]table\.ts$/.test(f))
     ).toHaveLength(11)
+  })
+})
+
+// The dashboard entry loads zod and every schema, which a server drawing one
+// chart shouldn't pay for.
+describe('the static entry loads no dashboard schemas', () => {
+  it('imports neither core/dashboard nor zod, directly or through core', () => {
+    const { files, packages } = importGraph(
+      join(SRC_DIR, 'static', 'index.ts'),
+      { intoCore: true }
+    )
+    expect(packages).toContain('@oztix/roadie-core/dashboard-layout')
+    expect(files.some((f) => f.startsWith(CORE_SRC))).toBe(true)
+    expect(
+      packages.filter(
+        (p) => p === '@oztix/roadie-core/dashboard' || /^zod(\/|$)/.test(p)
+      )
+    ).toEqual([])
   })
 })
