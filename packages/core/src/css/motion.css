@@ -251,8 +251,8 @@
    Each element's tile is twice the viewport wide, so every band runs at one
    speed. The tile starts at the element's inline-start edge, so placeholders
    that share that edge, such as lines of different lengths, sweep together. Not
-   `background-attachment: fixed`: it lines them all up, but repaints every
-   one each frame.
+   `background-attachment: fixed`: it lines them all up, but every frame
+   repaints each one with a gradient as tall as the viewport.
 
    The element's own fill (from `emphasis-*`) is the base; the gradient paints
    `--sheen-shade` over it everywhere the band is not and `--sheen-highlight`
