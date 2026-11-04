@@ -7,7 +7,10 @@
         "$TURBO_EXTENDS$",
         "$TURBO_ROOT$/docs/src/app/**/page.mdx",
         "$TURBO_ROOT$/tsconfig.base.json",
-        "$TURBO_ROOT$/tsconfig.react.json"
+        "$TURBO_ROOT$/tsconfig.react.json",
+        "!src/**/testChart.ts",
+        "!src/**/browserTesting.tsx",
+        "!src/**/testUtils.{ts,tsx}"
       ]
     },
     "build:quiet": {

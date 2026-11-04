@@ -39,7 +39,7 @@ jobs:
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Build packages and docs
-        run: pnpm build
+        run: pnpm build:docs
         env:
           NEXT_PUBLIC_BASE_PATH: /roadie
           # Keys the docs build apart from CI's shallow, undated one, so the
