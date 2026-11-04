@@ -8,7 +8,11 @@ import { fileURLToPath } from 'node:url'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
-import { frameCommands, perfInstances } from '@oztix/roadie-frames/config'
+import {
+  frameCommands,
+  perfInstances,
+  perfLaunchOptions
+} from '@oztix/roadie-frames/config'
 
 import {
   browserInstances,
@@ -183,7 +187,7 @@ export default defineConfig({
           browser: {
             enabled: true,
             headless: true,
-            provider: playwright(),
+            provider: playwright({ launchOptions: perfLaunchOptions() }),
             viewport: { width: 1440, height: 900 },
             commands: { ...commands, ...frameCommands },
             instances: perfInstances()

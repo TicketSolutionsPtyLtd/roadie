@@ -44,8 +44,8 @@ describe('Combobox filters at 60fps on a slowed CPU', () => {
       'Combobox, typing over 2,000 items',
       await measureFrames(typeEvery(input, 'gumleaf hall 1'), { frames: 100 })
     )
-    expect(document.querySelectorAll('[role="option"]').length).toBeGreaterThan(
-      0
-    )
+    await expect
+      .poll(() => document.querySelectorAll('[role="option"]').length)
+      .toBeGreaterThan(0)
   })
 })

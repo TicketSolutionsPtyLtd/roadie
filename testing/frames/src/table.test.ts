@@ -65,3 +65,20 @@ describe('parseRecords', () => {
     expect(parseRecords(lines).map((r) => r.scenario)).toEqual(['A', 'B'])
   })
 })
+
+describe('frameTable known misses', () => {
+  it('names the ticket a miss is filed under, met or not', () => {
+    const ticket = 'INNO-9999'
+    const table = frameTable([
+      {
+        label: 'Throttled',
+        records: [
+          record('Skeleton', { pass: false, knownMiss: ticket }),
+          record('Drawer', { knownMiss: ticket })
+        ]
+      }
+    ])
+    expect(table).toContain('| Missed in throttled, filed as INNO-9999 |')
+    expect(table).toContain('| Met, filed as INNO-9999 |')
+  })
+})

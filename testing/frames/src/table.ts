@@ -28,16 +28,20 @@ export function frameTable(runs: LabelledRun[]) {
   const rows = scenarios.map((scenario) => [
     scenario,
     ...runs.map((run) => cell(find(run, scenario))),
-    runs.every((run) => find(run, scenario)?.pass !== false)
-      ? 'Met'
-      : `Missed in ${runs
-          .filter((run) => find(run, scenario)?.pass === false)
-          .map((run) => run.label.toLowerCase())
-          .join(', ')}`
+    budgetCell(runs.map((run) => [run.label, find(run, scenario)] as const))
   ])
   return [header, header.map(() => '---'), ...rows]
     .map((row) => `| ${row.join(' | ')} |`)
     .join('\n')
+}
+
+function budgetCell(results: (readonly [string, FrameRecord | undefined])[]) {
+  const missed = results
+    .filter(([, record]) => record?.pass === false)
+    .map(([label]) => label.toLowerCase())
+  const ticket = results.find(([, record]) => record?.knownMiss)?.[1]?.knownMiss
+  const verdict = missed.length ? `Missed in ${missed.join(', ')}` : 'Met'
+  return ticket ? `${verdict}, filed as ${ticket}` : verdict
 }
 
 export const parseRecords = (jsonl: string): FrameRecord[] =>

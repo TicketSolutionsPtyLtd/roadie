@@ -61,7 +61,7 @@ jobs:
   # share dropped over 60 frames or more, so one hiccup can't fail it. No
   # retries, so a regression can't pass on a second try.
   perf:
-    name: perf (${{ matrix.package }})
+    name: perf (${{ matrix.package }}, ${{ matrix.cpu }})
     needs: playwright
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -72,7 +72,10 @@ jobs:
       fail-fast: false
       matrix:
         package: [components, charts]
+        cpu: [calibrated, '1']
+    continue-on-error: ${{ matrix.cpu == '1' }}
     env:
+      ROADIE_PERF_CPU: ${{ matrix.cpu }}
       ROADIE_PERF_REPORT: ${{ github.workspace }}/frames.jsonl
     steps:
       - name: Checkout repository
@@ -95,6 +98,6 @@ jobs:
         if: always() && hashFiles('frames.jsonl') != ''
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: frames-${{ matrix.package }}
+          name: frames-${{ matrix.package }}-${{ matrix.cpu }}
           path: frames.jsonl
           retention-days: 14

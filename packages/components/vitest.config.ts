@@ -9,7 +9,11 @@ import type { CDPSession } from 'playwright'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
-import { frameCommands, perfInstances } from '@oztix/roadie-frames/config'
+import {
+  frameCommands,
+  perfInstances,
+  perfLaunchOptions
+} from '@oztix/roadie-frames/config'
 
 import {
   browserInstances,
@@ -316,7 +320,7 @@ export default defineConfig({
           setupFiles: ['./src/components/RecordTable/renderCounter.ts'],
           browser: {
             ...browserTest,
-            provider: playwright(),
+            provider: playwright({ launchOptions: perfLaunchOptions() }),
             viewport: { width: 1440, height: 900 },
             commands: { ...browserTest.commands, ...frameCommands },
             // WebKit can't throttle, but runs the same scenarios on request.

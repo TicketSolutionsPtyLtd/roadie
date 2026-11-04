@@ -16,4 +16,6 @@ export type FrameRecord = FrameReport & {
   file: string
   scenario: string
   pass: boolean
+  /** The ticket for a miss that's filed rather than fixed. */
+  knownMiss?: string
 }

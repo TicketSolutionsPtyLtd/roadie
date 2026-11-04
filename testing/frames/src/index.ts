@@ -102,38 +102,52 @@ export async function mount(node: ReactNode, { frames = 2 } = {}) {
   return activeContainer
 }
 
-const observable = (type: string) =>
-  typeof PerformanceObserver !== 'undefined' &&
-  PerformanceObserver.supportedEntryTypes.includes(type)
+// Vitest runs each file in an iframe, and Chromium reports long animation
+// frames only to the top-level page, so they're observed there.
+const observerFor = (type: string) => {
+  const top = (() => {
+    try {
+      return (window.top as (Window & typeof globalThis) | null)
+        ?.PerformanceObserver
+    } catch {
+      return undefined
+    }
+  })()
+  const Observer =
+    type === 'long-animation-frame' && top
+      ? top
+      : globalThis.PerformanceObserver
+  return Observer?.supportedEntryTypes.includes(type) ? Observer : undefined
+}
 
 // Chromium reports long tasks and long animation frames; WebKit and Firefox
 // report neither, so their counts are null rather than a false zero.
 function watchLongWork() {
-  const durations = {
-    longtask: [] as number[],
-    'long-animation-frame': [] as number[]
+  const types = ['longtask', 'long-animation-frame'] as const
+  const durations: Record<(typeof types)[number], number[] | null> = {
+    longtask: null,
+    'long-animation-frame': null
   }
-  const observers = (Object.keys(durations) as (keyof typeof durations)[])
-    .filter(observable)
-    .map((type) => {
-      const observer = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries())
-          durations[type].push(Math.round(entry.duration))
-      })
-      observer.observe({ type, buffered: false })
-      return observer
+  const observers = types.flatMap((type) => {
+    const Observer = observerFor(type)
+    if (!Observer) return []
+    const seen: number[] = []
+    durations[type] = seen
+    const observer = new Observer((list: PerformanceObserverEntryList) => {
+      for (const entry of list.getEntries())
+        seen.push(Math.round(entry.duration))
     })
+    observer.observe({ type, buffered: false })
+    return [observer]
+  })
   return () => {
     for (const observer of observers) observer.disconnect()
-    const read = (type: keyof typeof durations) =>
-      observable(type)
-        ? {
-            count: durations[type].length,
-            longest: Math.max(0, ...durations[type])
-          }
+    const read = (seen: number[] | null) =>
+      seen
+        ? { count: seen.length, longest: Math.max(0, ...seen) }
         : { count: null, longest: null }
-    const tasks = read('longtask')
-    const frames = read('long-animation-frame')
+    const tasks = read(durations.longtask)
+    const frames = read(durations['long-animation-frame'])
     return {
       longTasks: tasks.count,
       longestTask: tasks.longest,
@@ -205,12 +219,13 @@ export async function measureWhile(
 /**
  * Records the run under `scenario` and fails the test if it misses the
  * budget: the p95 frame and the share of frames dropped, over enough frames
- * that one hiccup can't fail it.
+ * that one hiccup can't fail it. `knownMiss` names the ticket for a miss
+ * that's filed rather than fixed: the run is still recorded, but doesn't fail.
  */
 export async function expectFrameBudget(
   scenario: string,
   frames: FrameReport,
-  budget: Partial<FrameBudget> = {}
+  { knownMiss, ...budget }: Partial<FrameBudget> & { knownMiss?: string } = {}
 ) {
   const limits = { ...defaultBudget(engine), ...budget }
   const misses = budgetMisses(frames, limits)
@@ -222,8 +237,14 @@ export async function expectFrameBudget(
     ...frames,
     file,
     scenario,
-    pass: misses.length === 0
+    pass: misses.length === 0,
+    ...(knownMiss && { knownMiss })
   })
-  console.log(`FRAMES ${scenario} ${JSON.stringify(frames)}`)
+  if (knownMiss) {
+    console.log(
+      `FRAMES ${scenario}, a known miss (${knownMiss}): ${misses.join(', ') || 'met the budget this run'}`
+    )
+    return
+  }
   expect(misses, `${scenario}: ${JSON.stringify(frames)}`).toEqual([])
 }

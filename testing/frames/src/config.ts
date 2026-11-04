@@ -109,8 +109,19 @@ const recordFrames: BrowserCommand<[record: FrameRecord]> = (_, record) => {
 
 export const frameCommands = { throttleCpu, renderMetrics, recordFrames }
 
+const perfBrowsers = () =>
+  (process.env.ROADIE_PERF_BROWSERS ?? 'chromium')
+    .split(',')
+    .map((name) => name.trim() as 'chromium' | 'webkit' | 'firefox')
+
 /** The engines a perf project runs in: ROADIE_PERF_BROWSERS, else Chromium. */
 export const perfInstances = () =>
-  (process.env.ROADIE_PERF_BROWSERS ?? 'chromium').split(',').map((name) => ({
-    browser: name.trim() as 'chromium' | 'webkit' | 'firefox'
-  }))
+  perfBrowsers().map((browser) => ({ browser }))
+
+// CI runners have no GPU, so Chromium composites and rasterises in software
+// there. It does here too, so a miss in CI is one you can see locally.
+export const perfLaunchOptions = () => ({
+  args: perfBrowsers().every((browser) => browser === 'chromium')
+    ? ['--disable-gpu']
+    : []
+})
