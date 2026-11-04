@@ -4,7 +4,19 @@ date: 2026-11-04
 category: test-failures
 module: docs
 tags:
-  [e2e, playwright, firefox, page-goto, load-event, fonts, cdn, network, flaky]
+  [
+    e2e,
+    playwright,
+    firefox,
+    page-goto,
+    load-event,
+    fonts,
+    cdn,
+    network,
+    flaky,
+    hydration,
+    next-app-router
+  ]
 problem_type: test_failure
 ---
 
