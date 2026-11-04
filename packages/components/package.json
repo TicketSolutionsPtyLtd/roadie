@@ -412,6 +412,7 @@
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "3.0.0",
     "@babel/core": "7.29.7",
     "@base-ui/react": "1.9.0",
+    "@oztix/roadie-frames": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
     "@rolldown/plugin-babel": "0.3.0",
     "@size-limit/preset-small-lib": "14.3.0",

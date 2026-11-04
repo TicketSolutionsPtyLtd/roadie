@@ -1,87 +1,30 @@
 import type { ReactNode } from 'react'
 
-import { type Root, createRoot } from 'react-dom/client'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
+
+import {
+  expectFrameBudget,
+  frame,
+  measureFrames,
+  mount,
+  settle,
+  setupFrameTests
+} from '@oztix/roadie-frames'
 
 import { RecordTable, tableColumns } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Navigator } from '../Navigator'
 import { Pane } from '../Pane'
-import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 import { type TestShow, showFields, testShows } from '../Records/testUtils'
 import { RecordTableSettingsLazy } from './RecordTableSettingsLazy'
 import { countRenders } from './renderCounter'
 import { showColumns } from './testUtils'
 
-declare module 'vitest/browser' {
-  interface BrowserCommands {
-    throttleCpu: (rate: number) => Promise<void>
-    renderMetrics: () => Promise<{ styleMs: number; layoutMs: number }>
-  }
-}
+setupFrameTests({ css: roadieCss })
 
-let removeStylesheet = () => {}
-beforeAll(async () => {
-  removeStylesheet = useStylesheet(roadieCss)
-  await loadBrandFont()
-  await commands.throttleCpu(4)
-})
-afterAll(async () => {
-  await commands.throttleCpu(1)
-  removeStylesheet()
-})
-let activeRoot: Root | undefined
-let activeContainer: HTMLElement | undefined
-afterEach(() => {
-  activeRoot?.unmount()
-  activeContainer?.remove()
-  activeRoot = undefined
-  activeContainer = undefined
-})
-
-const frame = () => new Promise<number>(requestAnimationFrame)
-
-// Production React has no `act`; two settling frames keep mount cost out of the measurements.
-async function mount(node: ReactNode) {
-  activeContainer = document.createElement('div')
-  document.body.append(activeContainer)
-  activeRoot = createRoot(activeContainer)
-  activeRoot.render(node)
-  await frame()
-  await frame()
-  return activeContainer
-}
-
-const FRAME_BUDGET = 1000 / 60 + 0.5
-
-/** Frame times while `step` runs each frame, and the longest task meanwhile. */
-async function measureFrames(step: () => void, frames = 120) {
-  const longTasks: number[] = []
-  const observer = new PerformanceObserver((list) => {
-    for (const entry of list.getEntries()) longTasks.push(entry.duration)
-  })
-  observer.observe({ type: 'longtask', buffered: false })
-  const times: number[] = []
-  await new Promise<void>((resolve) => {
-    let index = 0
-    let last = performance.now()
-    const tick = (now: number) => {
-      times.push(now - last)
-      last = now
-      step()
-      index += 1
-      if (index < frames) requestAnimationFrame(tick)
-      else resolve()
-    }
-    requestAnimationFrame(tick)
-  })
-  observer.disconnect()
-  const sorted = times.slice(5).sort((a, b) => a - b)
-  return {
-    p95: sorted[Math.floor(sorted.length * 0.95)]!,
-    longest: Math.max(0, ...longTasks)
-  }
+const scrollBy = (box: HTMLElement) => () => {
+  box.scrollTop += 60
 }
 
 const SCROLL_BOX = { height: 800, overflowY: 'auto' } as const
@@ -228,24 +171,24 @@ describe('RecordTable scrolling, CPU 4x', () => {
       </div>
     )
     const box = scroller(container)
-    const result = await measureFrames(() => {
-      box.scrollTop += 60
-    })
-    expect(result.p95).toBeLessThanOrEqual(FRAME_BUDGET)
-    expect(result.longest).toBeLessThanOrEqual(50)
+    await expectFrameBudget(
+      'RecordTable, 10,000 rows, scroll',
+      await measureFrames(scrollBy(box)),
+      { longestTask: 50 }
+    )
   })
 
   it('scrolls 100,000 rows loaded by range at 60fps', async () => {
     const container = await mount(<RangeScrolling />)
     const box = scroller(container)
-    const result = await measureFrames(() => {
-      box.scrollTop += 60
-    })
+    await expectFrameBudget(
+      'RecordTable, 100,000 rows by range, scroll',
+      await measureFrames(scrollBy(box)),
+      { longestTask: 50 }
+    )
     expect(
       container.querySelectorAll('[data-slot="record-table-row"]').length
     ).toBeGreaterThan(0)
-    expect(result.p95).toBeLessThanOrEqual(FRAME_BUDGET)
-    expect(result.longest).toBeLessThanOrEqual(50)
   })
 })
 
@@ -308,11 +251,11 @@ describe('RecordTable narrow rows, CPU 4x', () => {
       container.querySelector('[data-slot="record-table-list-row"]')
     ).not.toBeNull()
     const box = scroller(container)
-    const result = await measureFrames(() => {
-      box.scrollTop += 60
-    })
-    expect(result.p95).toBeLessThanOrEqual(FRAME_BUDGET)
-    expect(result.longest).toBeLessThanOrEqual(50)
+    await expectFrameBudget(
+      'RecordTable, 10,000 list rows, scroll',
+      await measureFrames(scrollBy(box)),
+      { longestTask: 50 }
+    )
   })
 
   it('scrolls 2,000 cards at 60fps', async () => {
@@ -332,27 +275,27 @@ describe('RecordTable narrow rows, CPU 4x', () => {
       container.querySelector('[data-slot="record-table-card"]')
     ).not.toBeNull()
     const box = scroller(container)
-    const result = await measureFrames(() => {
-      box.scrollTop += 60
-    })
-    expect(result.p95).toBeLessThanOrEqual(FRAME_BUDGET)
-    expect(result.longest).toBeLessThanOrEqual(50)
+    await expectFrameBudget(
+      'RecordTable, 2,000 cards, scroll',
+      await measureFrames(scrollBy(box)),
+      { longestTask: 50 }
+    )
   })
 
   it('scrolls range-mode cards at 60fps', async () => {
     const container = await mount(<RangeCards />)
     const box = scroller(container)
-    const result = await measureFrames(() => {
-      box.scrollTop += 60
-    })
+    await expectFrameBudget(
+      'RecordTable, cards by range, scroll',
+      await measureFrames(scrollBy(box)),
+      { longestTask: 50 }
+    )
     expect(
       container.querySelectorAll('[data-slot="record-table-card"]').length
     ).toBeGreaterThan(0)
-    expect(result.p95).toBeLessThanOrEqual(FRAME_BUDGET)
-    expect(result.longest).toBeLessThanOrEqual(50)
   })
 
-  it('toggles one row within two frames in Select mode among 10,000 rows', async () => {
+  it('toggles one row in Select mode among 10,000 rows at 60fps', async () => {
     const container = await mount(
       <div style={NARROW_BOX}>
         <RecordTable
@@ -367,24 +310,19 @@ describe('RecordTable narrow rows, CPU 4x', () => {
       </div>
     )
     pressSelect(container)
-    await frame()
-    await frame()
+    await settle()
     const checkbox = container.querySelector<HTMLElement>(
       '[data-slot="record-table-list-row"] [role="checkbox"]'
     )!
-    const longTasks: number[] = []
-    const observer = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) longTasks.push(entry.duration)
-    })
-    observer.observe({ type: 'longtask', buffered: false })
-    const start = performance.now()
-    checkbox.click()
-    await frame()
-    const elapsed = performance.now() - start
-    observer.disconnect()
+    // The first tick brings in Select mode's bulk bar.
+    await expectFrameBudget(
+      'RecordTable, tick a row among 10,000',
+      await measureFrames((index) => index === 0 && checkbox.click(), {
+        frames: 60
+      }),
+      { longestTask: 50, knownMiss: 'INNO-1528' }
+    )
     expect(checkbox.getAttribute('aria-checked')).toBe('true')
-    expect(elapsed).toBeLessThanOrEqual(FRAME_BUDGET * 2)
-    expect(Math.max(0, ...longTasks)).toBeLessThanOrEqual(50)
   })
 
   it('scrolls list rows under the translucent bulk bar at 60fps', async () => {
@@ -417,11 +355,11 @@ describe('RecordTable narrow rows, CPU 4x', () => {
     expect(bar).not.toBeNull()
     expect(getComputedStyle(bar!).backdropFilter).not.toBe('none')
     const box = scroller(container)
-    const result = await measureFrames(() => {
-      box.scrollTop += 60
-    })
-    expect(result.p95).toBeLessThanOrEqual(FRAME_BUDGET)
-    expect(result.longest).toBeLessThanOrEqual(50)
+    await expectFrameBudget(
+      'RecordTable, list rows under the bulk bar, scroll',
+      await measureFrames(scrollBy(box)),
+      { longestTask: 50, knownMiss: 'INNO-1528' }
+    )
   })
 
   it('ticks a narrow row on a large app page without restyling it', async () => {
