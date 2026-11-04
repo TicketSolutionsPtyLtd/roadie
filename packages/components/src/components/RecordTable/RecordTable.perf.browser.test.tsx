@@ -405,9 +405,13 @@ describe('RecordTable narrow rows, CPU 4x', () => {
       )
     ].slice(0, 8)
     await userEvent.hover(rows[0]!)
-    const cost = await styleCost(async () => {
-      for (const row of rows.slice(1)) await userEvent.hover(row)
-    })
-    expect(cost / (rows.length - 1)).toBeLessThanOrEqual(20)
+    const costs: number[] = []
+    for (const row of rows.slice(1))
+      costs.push(await styleCost(() => userEvent.hover(row)))
+    const median = costs.sort((a, b) => a - b)[Math.floor(costs.length / 2)]!
+    // A hover costs about 20ms on CI today, about half of it Navigator's
+    // :has() rules searching the whole page again (INNO-1531). Restyling
+    // the page costs 7 to 9 times that.
+    expect(median).toBeLessThanOrEqual(30)
   })
 })
