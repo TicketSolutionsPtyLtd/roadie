@@ -6,13 +6,14 @@
 import {
   appendFileSync,
   existsSync,
+  mkdirSync,
   readFileSync,
   readdirSync,
   rmSync,
   statSync,
   writeFileSync
 } from 'node:fs'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -78,6 +79,7 @@ export function pruneTurboCache({
     removed.push(hash)
   }
 
+  mkdirSync(dirname(accessFile), { recursive: true })
   writeFileSync(accessFile, `${JSON.stringify(access, null, 2)}\n`)
   return {
     added,

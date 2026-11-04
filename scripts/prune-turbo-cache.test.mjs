@@ -63,6 +63,17 @@ describe('pruneTurboCache', () => {
     assert.equal(result.changed, false)
   })
 
+  it('reports no change for a job that restored nothing and ran no turbo task', () => {
+    const turbo = join(mkdtempSync(join(tmpdir(), 'prune-turbo-')), '.turbo')
+    const result = pruneTurboCache({
+      cacheDir: join(turbo, 'cache'),
+      accessFile: join(turbo, 'cache-access.json'),
+      runsDir: join(turbo, 'runs'),
+      now: NOW
+    })
+    assert.equal(result.changed, false)
+  })
+
   it('counts entries a run wrote as a change', () => {
     const f = fixture({
       entries: { aaaa: 10, bbbb: 10 },
