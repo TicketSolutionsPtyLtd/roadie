@@ -370,6 +370,24 @@ describe('RecordTable surface', () => {
       .toBe(getComputedStyle(card).backgroundColor)
   })
 
+  it('follows a fill set inline behind it', async () => {
+    const { container } = render(
+      <div data-testid='card' className='bg-sunken'>
+        <RecordTable
+          data={testShows(20)}
+          fields={showFields}
+          columns={showColumns}
+        />
+      </div>
+    )
+    const card = container.querySelector<HTMLElement>('[data-testid="card"]')!
+    card.style.setProperty('--card-gap', '4px')
+    card.style.backgroundColor = 'rgb(10, 20, 30)'
+    await expect
+      .poll(() => bg(container, 'record-table-head'))
+      .toBe('rgb(10, 20, 30)')
+  })
+
   it('follows the theme when it switches', async () => {
     const { container } = render(
       <div data-testid='card' className='bg-sunken'>
