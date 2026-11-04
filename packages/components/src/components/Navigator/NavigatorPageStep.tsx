@@ -41,6 +41,32 @@ const SELECTED = listItemVariants({ selected: true }).split(' ')
 
 let inertDocument: Document | null = null
 
+/**
+ * The outermost elements in the viewport that lie wholly above or below what
+ * it shows. Their copies would cost a styled and laid-out page on the step's
+ * first frame for nothing anyone sees. Layout is clean before React commits,
+ * so reading boxes here costs little.
+ */
+function outOfView(viewport: HTMLElement | null) {
+  const out = new Set<Element>()
+  if (!viewport) return out
+  const view = viewport.getBoundingClientRect()
+  const visit = (parent: Element) => {
+    for (const child of parent.children) {
+      const box = child.getBoundingClientRect()
+      // A display: contents box has no size of its own, so its children say.
+      if (box.width === 0 && box.height === 0) visit(child)
+      else if (box.bottom < view.top || box.top > view.bottom) out.add(child)
+      else visit(child)
+    }
+  }
+  visit(viewport)
+  return out
+}
+
+const viewportOf = (pane: Element) =>
+  pane.querySelector<HTMLElement>('[data-slot="pane-viewport"]')
+
 // An inert document: nothing upgrades or loads; ids, names and form owners are stripped.
 function ghostOf(pane: HTMLElement) {
   inertDocument ??= document.implementation.createHTMLDocument('')
@@ -48,6 +74,7 @@ function ghostOf(pane: HTMLElement) {
   for (const name of ['data-stack', 'data-reached', 'data-stack-position']) {
     ghost.removeAttribute(name)
   }
+  const hidden = outOfView(viewportOf(pane))
   const originals = pane.querySelectorAll('*')
   const copies = ghost.querySelectorAll('*')
   const live: [Element, Element][] = []
@@ -63,7 +90,8 @@ function ghostOf(pane: HTMLElement) {
       }
     }
     const original = originals[index]
-    if (original && isLive(copy)) live.push([original, copy])
+    if (original && (isLive(copy) || hidden.has(original)))
+      live.push([original, copy])
     else if (copy.localName === 'script') copy.remove()
   })
   for (const [original, copy] of live) {
@@ -109,9 +137,6 @@ function selectPicked(
     if (row) markCurrent(row)
   }
 }
-
-const viewportOf = (pane: Element) =>
-  pane.querySelector<HTMLElement>('[data-slot="pane-viewport"]')
 
 // A class: `getSnapshotBeforeUpdate` is the one hook that runs before React replaces the page.
 export class NavigatorPageStep extends Component<NavigatorPageStepProps> {
