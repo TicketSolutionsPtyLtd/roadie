@@ -30,7 +30,7 @@ function warnOnce(message: string) {
 
 // validateDashboard rejects these; an unchecked spec still gets a label, and a
 // development error says why.
-export function comparisonLine(
+function comparisonLine(
   compare: Comparison,
   where: FollowPeriodOptions
 ): string {
@@ -74,11 +74,41 @@ function followComparison<P extends Compared>(
   return { ...plot, comparison: { ...plot.comparison, label } }
 }
 
+const HISTORY_MESSAGE = {
+  partial: 'Not enough history',
+  unavailable: 'Nothing to compare'
+} as const
+
+type Headlined = Exclude<DashboardCard, { kind: 'note' }>
+
+function followHeadline(
+  card: Headlined,
+  period: DashboardPeriodSpec | undefined,
+  where: FollowPeriodOptions
+): Headlined {
+  if (!card.delta) return card
+  const { comparison, ...delta } = card.delta
+  if (!comparison) return { ...card, delta }
+  if (!period?.compare || !isBuiltInComparison(period.compare))
+    return { ...card, delta: undefined }
+  if (period.history)
+    return {
+      ...card,
+      delta: undefined,
+      context: HISTORY_MESSAGE[period.history]
+    }
+  return { ...card, delta, context: comparisonLine(period.compare, where) }
+}
+
 /**
  * The card as DashboardView draws it for the period, for a server that builds
- * its CSV with `cardTable` or its image with `renderChartSvg`. A line or bar
- * plot's comparison, small multiples' panels too, is drawn only with Roadie's
- * previous period, previous year, or custom dates, and `history` other than
+ * its CSV with `cardTable` or its image with `renderChartSvg`. A headline delta
+ * marked `comparison` follows Roadie's previous period, previous year, or custom
+ * dates: it's named on the context line, over the card's own context, gives
+ * way to "Not enough history" or "Nothing to compare" when `history` is set,
+ * and is dropped with no comparison of Roadie's. The returned delta has no
+ * `comparison` flag. A line or bar plot's comparison, small multiples' panels
+ * too, is drawn only with Roadie's comparison and `history` other than
  * `unavailable`, and is named by it: "Previous period", the dates, or "Custom
  * dates" when they're too long for a series label. Pass the `timeZone` and
  * `locale` the dashboard's period uses.
@@ -88,14 +118,16 @@ export function followPeriod(
   period: DashboardPeriodSpec | undefined,
   options: FollowPeriodOptions = {}
 ): DashboardCard {
-  if (card.kind !== 'chart') return card
-  const { plot } = card
+  if (card.kind === 'note') return card
+  const followed = followHeadline(card, period, options)
+  if (followed.kind !== 'chart') return followed
+  const { plot } = followed
   if (plot.kind === 'line' || plot.kind === 'bar')
-    return { ...card, plot: followComparison(plot, period, options) }
+    return { ...followed, plot: followComparison(plot, period, options) }
   if (plot.kind === 'small-multiples')
     return {
-      ...card,
+      ...followed,
       plot: { ...plot, chart: followComparison(plot.chart, period, options) }
     }
-  return card
+  return followed
 }
