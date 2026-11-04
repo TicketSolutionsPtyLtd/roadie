@@ -37,14 +37,45 @@ function settle(part: HTMLElement) {
   part.style.setProperty('--records-surface', paintedBehind(part))
 }
 
+const PAINTS = /^background|surface|intent|bg|colou?r|hue|chroma|theme/
+// What a scroll area, pane, accordion, or drawer writes as it moves. A bare
+// number can be a colour channel, so the ones Roadie paints with are in PAINTS.
+const LENGTH = /^(-?[\d.]+(px)?)?$/
+
+function paints(name: string, before: string, after: string) {
+  if (before === after) return false
+  if (PAINTS.test(name)) return true
+  return name.startsWith('--') && !(LENGTH.test(before) && LENGTH.test(after))
+}
+
+let parsed: CSSStyleDeclaration | undefined
+
+// A scroll area writes its overflow to its own style on every scroll, and
+// settling reads computed style, so only a declaration that could paint
+// differently is a reason to settle.
+function repaints(record: MutationRecord) {
+  if (record.attributeName !== 'style') return true
+  parsed ??= document.createElement('div').style
+  parsed.cssText = record.oldValue ?? ''
+  const now = (record.target as HTMLElement).style
+  // A shorthand holding var() leaves its longhands blank, so it's read whole.
+  for (const name of new Set(['background', ...parsed, ...now]))
+    if (paints(name, parsed.getPropertyValue(name), now.getPropertyValue(name)))
+      return true
+  return false
+}
+
 /** Settles now and again whenever the theme or a surface behind it changes. */
 function watchSurface(part: HTMLElement) {
   settle(part)
-  const observer = new MutationObserver(() => settle(part))
+  const observer = new MutationObserver((records) => {
+    if (records.some(repaints)) settle(part)
+  })
   // Only the chain above the part, so changes elsewhere on the page cost nothing.
   for (let node = part.parentElement; node; node = node.parentElement)
     observer.observe(node, {
       attributes: true,
+      attributeOldValue: true,
       attributeFilter: ['class', 'data-theme', 'style']
     })
   return () => observer.disconnect()
