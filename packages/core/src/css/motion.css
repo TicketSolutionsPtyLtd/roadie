@@ -147,7 +147,7 @@
 
 @keyframes shimmer-sweep {
   from {
-    background-position-x: 200vw;
+    background-position-x: -200vw;
   }
   to {
     background-position-x: 0%;
@@ -266,6 +266,10 @@
   animation:
     pulse-subtle var(--duration-sweep) var(--ease-standard) infinite,
     shimmer-sweep var(--duration-sweep) linear infinite;
+
+  &:dir(rtl) {
+    animation-direction: normal, reverse;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     background-image: none;
