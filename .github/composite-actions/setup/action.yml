@@ -24,7 +24,8 @@ runs:
 
     # One key per job and commit, so jobs never race to save the same key.
     # A job with no cache of its own yet starts from CI's build job, whose
-    # cache holds every package build.
+    # cache holds every package build. Restore keys match by prefix, so `@`
+    # ends the scope: `build-` would also match docs.yml's `build-and-deploy`.
     - name: Name Turbo cache
       if: inputs.turbo-cache == 'true'
       shell: bash
@@ -33,9 +34,9 @@ runs:
       run: |
         prefix="turbo-v2-$RUNNER_OS"
         {
-          echo "TURBO_CACHE_KEY=$prefix-$SCOPE-$GITHUB_SHA"
-          echo "TURBO_CACHE_RESTORE_SCOPE=$prefix-$SCOPE-"
-          echo "TURBO_CACHE_RESTORE_FALLBACK=$prefix-build-"
+          echo "TURBO_CACHE_KEY=$prefix-$SCOPE@$GITHUB_SHA"
+          echo "TURBO_CACHE_RESTORE_SCOPE=$prefix-$SCOPE@"
+          echo "TURBO_CACHE_RESTORE_FALLBACK=$prefix-build@"
           echo "TURBO_RUN_SUMMARY=true"
         } >> "$GITHUB_ENV"
 
