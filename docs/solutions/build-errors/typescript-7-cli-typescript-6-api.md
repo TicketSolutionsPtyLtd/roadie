@@ -49,13 +49,17 @@ so the upgrade changed neither.
 
 ## Gotchas
 
-- **A stale `tsc` shim wins.** pnpm doesn't prune a `node_modules/.bin/tsc`
-  left by an install from before the alias, and a package's own `.bin` comes
-  before the root's on `PATH`. If `pnpm exec tsc --version` prints 6 in a
-  package, delete that package's `node_modules/.bin/tsc` and `tsserver`.
-- **Don't bump `typescript` to 7.** Doing so breaks every tool above at
-  import time. Move it only when tsdown, react-docgen-typescript, vue-tsc, and
-  typescript-eslint support the TypeScript 7.1 API.
+- **A `tsc` from an older install wins.** A package's own `node_modules/.bin`
+  comes before the root's on `PATH`, so until `pnpm install` relinks it, `tsc`
+  there is still TypeScript 6. If `pnpm exec tsc --version` prints 6 in a
+  package after an install, delete that package's `node_modules/.bin/tsc` and
+  `tsserver`.
+- **Don't bump `typescript` to 7.** TypeScript 7's `typescript` export holds
+  only its version, so the manifest script, `scripts/lib/source-comments.mjs`,
+  react-docgen-typescript, typescript-eslint, and vue-tsc stop working, and
+  tsdown switches `.d.ts` emit to its experimental `tsgo` generator, which
+  can't emit widgets' Vue types. Move it only when those tools support the
+  TypeScript 7.1 API.
 - **The editor runs TypeScript 6.** The alias has no `tsserver.js`, so
   `.vscode/settings.json` points `typescript.tsdk` at the real package pnpm
   hoists to `node_modules/.pnpm/node_modules/@typescript/old/lib`.
