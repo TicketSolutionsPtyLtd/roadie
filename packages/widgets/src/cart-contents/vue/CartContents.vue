@@ -50,7 +50,7 @@ function onCheckout() {
   if (props.checkoutUrl) props.onNavigate(props.checkoutUrl)
 }
 
-// WAAPI isn't in jsdom — fall back to an instant leave.
+// WAAPI isn't in jsdom. Fall back to an instant leave.
 function onLeave(el: Element, done: () => void) {
   const node = el as HTMLElement
   if (typeof node.animate !== 'function') {

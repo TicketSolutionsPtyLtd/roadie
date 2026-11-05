@@ -33,7 +33,7 @@ Place a Phosphor icon as the only child. The tile sizes and centres it for you.
 
 ```tsx-live
 <IconTile intent='accent'>
-  <Ticket weight='bold' />
+  <TicketIcon weight='bold' />
 </IconTile>
 ```
 
@@ -43,16 +43,16 @@ The default emphasis is `subtle`. Use `strong` for a solid fill, or step down to
 
 ```tsx-live layout=row gap=3
 <IconTile intent='accent' emphasis='strong'>
-  <Heart weight='bold' />
+  <HeartIcon weight='bold' />
 </IconTile>
 <IconTile intent='accent' emphasis='normal'>
-  <Heart weight='bold' />
+  <HeartIcon weight='bold' />
 </IconTile>
 <IconTile intent='accent' emphasis='subtle'>
-  <Heart weight='bold' />
+  <HeartIcon weight='bold' />
 </IconTile>
 <IconTile intent='accent' emphasis='subtler'>
-  <Heart weight='bold' />
+  <HeartIcon weight='bold' />
 </IconTile>
 ```
 
@@ -61,13 +61,13 @@ The default emphasis is `subtle`. Use `strong` for a solid fill, or step down to
 Sizes run `xs` through `3xl`. Each maps to a Tailwind `size-*` box on the tile, with matching internal padding and icon size. The tile dimension is `2 × padding + icon`. The tier names are variant keys, not Tailwind utilities (there is no `size-3xl`).
 
 ```tsx-live layout=row gap=3
-<IconTile intent='accent' size='xs'><Gear weight='bold' /></IconTile>
-<IconTile intent='accent' size='sm'><Gear weight='bold' /></IconTile>
-<IconTile intent='accent' size='md'><Gear weight='bold' /></IconTile>
-<IconTile intent='accent' size='lg'><Gear weight='bold' /></IconTile>
-<IconTile intent='accent' size='xl'><Gear weight='duotone' /></IconTile>
-<IconTile intent='accent' size='2xl'><Gear weight='duotone' /></IconTile>
-<IconTile intent='accent' size='3xl'><Gear weight='duotone' /></IconTile>
+<IconTile intent='accent' size='xs'><GearIcon weight='bold' /></IconTile>
+<IconTile intent='accent' size='sm'><GearIcon weight='bold' /></IconTile>
+<IconTile intent='accent' size='md'><GearIcon weight='bold' /></IconTile>
+<IconTile intent='accent' size='lg'><GearIcon weight='bold' /></IconTile>
+<IconTile intent='accent' size='xl'><GearIcon weight='duotone' /></IconTile>
+<IconTile intent='accent' size='2xl'><GearIcon weight='duotone' /></IconTile>
+<IconTile intent='accent' size='3xl'><GearIcon weight='duotone' /></IconTile>
 ```
 
 ### Shape
@@ -76,10 +76,10 @@ Tiles are square by default, with a corner radius that scales with the size so i
 
 ```tsx-live layout=row gap=3
 <IconTile intent='accent' shape='square' size='lg'>
-  <Gear weight='bold' />
+  <GearIcon weight='bold' />
 </IconTile>
 <IconTile intent='accent' shape='circle' size='lg'>
-  <Gear weight='bold' />
+  <GearIcon weight='bold' />
 </IconTile>
 ```
 
@@ -88,13 +88,13 @@ Tiles are square by default, with a corner radius that scales with the size so i
 Intent sets the colour palette. The tile inherits its surrounding intent context unless you set one directly.
 
 ```tsx-live layout=row gap=3
-<IconTile intent='neutral'><Star weight='bold' /></IconTile>
-<IconTile intent='accent'><Star weight='bold' /></IconTile>
-<IconTile intent='brand'><Star weight='bold' /></IconTile>
-<IconTile intent='info'><Info weight='bold' /></IconTile>
-<IconTile intent='success'><CheckCircle weight='bold' /></IconTile>
-<IconTile intent='warning'><Warning weight='bold' /></IconTile>
-<IconTile intent='danger'><Trash weight='bold' /></IconTile>
+<IconTile intent='neutral'><StarIcon weight='bold' /></IconTile>
+<IconTile intent='accent'><StarIcon weight='bold' /></IconTile>
+<IconTile intent='brand'><StarIcon weight='bold' /></IconTile>
+<IconTile intent='info'><InfoIcon weight='bold' /></IconTile>
+<IconTile intent='success'><CheckCircleIcon weight='bold' /></IconTile>
+<IconTile intent='warning'><WarningIcon weight='bold' /></IconTile>
+<IconTile intent='danger'><TrashIcon weight='bold' /></IconTile>
 ```
 
 ### Icon weight
@@ -103,16 +103,16 @@ Use `weight='bold'` up to 48px (the `lg` size), then switch to `weight='duotone'
 
 ```tsx-live layout=row gap=3
 <IconTile intent='accent' emphasis='subtle' size='md'>
-  <Heart weight='bold' />
+  <HeartIcon weight='bold' />
 </IconTile>
 <IconTile intent='accent' emphasis='subtle' size='lg'>
-  <Heart weight='bold' />
+  <HeartIcon weight='bold' />
 </IconTile>
 <IconTile intent='accent' emphasis='subtle' size='xl'>
-  <Heart weight='duotone' />
+  <HeartIcon weight='duotone' />
 </IconTile>
 <IconTile intent='accent' emphasis='subtle' size='3xl'>
-  <Heart weight='duotone' />
+  <HeartIcon weight='duotone' />
 </IconTile>
 ```
 

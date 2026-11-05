@@ -26,6 +26,7 @@ export {
   type DashboardViewProps
 } from './DashboardView'
 export { BarChart, type BarChartInterval, type BarChartProps } from './BarChart'
+export { DonutChart, type DonutChartProps } from './DonutChart'
 export { Funnel, type FunnelProps, type FunnelStep } from './Funnel'
 export { Heatmap, type HeatmapProps, type HeatmapScale } from './Heatmap'
 export { Histogram, type HistogramProps } from './Histogram'

@@ -2,7 +2,10 @@ import { readdir } from 'fs/promises'
 import { join } from 'path'
 import { describe, expect, it } from 'vitest'
 
+import { catalogue, groups } from '@oztix/roadie-blocks/catalogue'
+
 import {
+  BLOCKS,
   BRAND,
   CHARTS,
   COMPONENTS,
@@ -116,13 +119,14 @@ describe('Chart types group', () => {
     ])
   })
 
-  it('lists all ten chart types in page order', async () => {
+  it('lists all eleven chart types in page order', async () => {
     const types = entriesIn(await getCatalogue(CHARTS), 'Chart types')
     expect(types.map(({ title }) => title)).toEqual([
       'LineChart',
       'BarChart',
       'RankedBars',
       'StackedBars',
+      'DonutChart',
       'StackedArea',
       'Histogram',
       'Funnel',
@@ -185,6 +189,19 @@ describe('the Brand catalogue', () => {
         .sort()
     ).toEqual(pages.sort())
     expect(countEntries(brand)).toBe(pages.length)
+  })
+})
+
+describe('Blocks catalogue', () => {
+  it('lists every block under its catalogue group, so the docs and a Studio agree', async () => {
+    const docs = await getCatalogue(BLOCKS)
+    for (const block of catalogue) {
+      const group = groups.find(({ name }) => name === block.group)?.title
+      expect(
+        entriesIn(docs, group ?? '').map(({ href }) => href),
+        block.name
+      ).toContain(`/blocks/${block.name}`)
+    }
   })
 })
 

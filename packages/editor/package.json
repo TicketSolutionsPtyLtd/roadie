@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-editor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Roadie rich-text editor and its saved format for Oztix apps",
   "type": "module",
   "license": "ISC",
@@ -16,6 +16,7 @@
   "homepage": "https://github.com/TicketSolutionsPtyLtd/roadie/tree/main/packages/editor",
   "files": [
     "dist",
+    "!dist/**/*.d.ts.map",
     "src/css"
   ],
   "sideEffects": [
@@ -44,10 +45,13 @@
     "./roadie.manifest.json": "./dist/roadie.manifest.json"
   },
   "scripts": {
-    "build": "tsdown && pnpm check:use-client && pnpm generate:manifest && pnpm check:exports",
+    "build:quiet": "pnpm generate:manifest --alongside tsdown --log-level warn",
+    "build": "pnpm generate:manifest --alongside tsdown && pnpm check:use-client",
+    "check:package": "pnpm check:exports && pnpm check:pack",
     "generate:manifest": "node ../core/scripts/manifest/generate.ts",
     "check:use-client": "node ../core/scripts/check-use-client.mjs",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
+    "check:pack": "node ../core/scripts/check-pack.mjs",
     "dev": "tsdown --watch --log-level warn",
     "test": "vitest run --project node",
     "test:browser": "vitest run --project 'browser (*)' ${ROADIE_SHARD:+--shard=$ROADIE_SHARD --passWithNoTests}",
@@ -59,16 +63,16 @@
     "size:check": "size-limit --limit"
   },
   "dependencies": {
-    "@tiptap/core": "3.32.0",
-    "@tiptap/extension-heading": "3.32.0",
-    "@tiptap/extension-link": "3.32.0",
-    "@tiptap/extension-table": "3.32.0",
-    "@tiptap/extensions": "3.32.0",
-    "@tiptap/pm": "3.32.0",
-    "@tiptap/react": "3.32.0",
-    "@tiptap/starter-kit": "3.32.0",
-    "@tiptap/static-renderer": "3.32.0",
-    "@tiptap/suggestion": "3.32.0"
+    "@tiptap/core": "3.32.1",
+    "@tiptap/extension-heading": "3.32.1",
+    "@tiptap/extension-link": "3.32.1",
+    "@tiptap/extension-table": "3.32.1",
+    "@tiptap/extensions": "3.32.1",
+    "@tiptap/pm": "3.32.1",
+    "@tiptap/react": "3.32.1",
+    "@tiptap/starter-kit": "3.32.1",
+    "@tiptap/static-renderer": "3.32.1",
+    "@tiptap/suggestion": "3.32.1"
   },
   "peerDependencies": {
     "@oztix/roadie-components": "workspace:^",
@@ -82,7 +86,7 @@
     "@oztix/roadie-components": "workspace:*",
     "@oztix/roadie-core": "workspace:*",
     "@phosphor-icons/react": "2.1.10",
-    "@rolldown/plugin-babel": "0.2.4",
+    "@rolldown/plugin-babel": "0.3.0",
     "@size-limit/preset-small-lib": "14.3.0",
     "@tailwindcss/vite": "4.3.3",
     "@testing-library/jest-dom": "7.0.1",
@@ -96,7 +100,7 @@
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "size-limit": "14.3.0",
-    "tsdown": "0.23.1",
+    "tsdown": "0.23.4",
     "vite": "8.3.5",
     "vitest": "5.0.5"
   },

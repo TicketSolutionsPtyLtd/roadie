@@ -21,6 +21,7 @@ import {
 export type DataTableColumn = TableColumn
 export type DataTableRow = TableRow
 export type DataTableTotals = true | TableTotals
+export type DataTableRecordName = RecordName
 export type { DataTableExpanded, DataTableSort, DataTableSortDirection }
 export { sortDataTableRows } from './sort'
 
@@ -38,8 +39,11 @@ export type DataTableProps = Omit<ComponentProps<'div'>, 'children'> & {
   getRowHref?: (row: DataTableRow) => string | undefined
   /** Sorts rows in the browser when a header is pressed. */
   sortable?: boolean
-  /** The sorted column. Pass with `onSortChange` to control it. */
-  sort?: DataTableSort
+  /**
+   * The sorted column. Pass with `onSortChange` to control it, and `null`
+   * for a controlled table in the rows' own order.
+   */
+  sort?: DataTableSort | null
   /** The column sorted first, when `sortable` and uncontrolled. */
   defaultSort?: DataTableSort
   /** Called with the new sort when a header is pressed. */
@@ -120,15 +124,19 @@ export function DataTable({
     totals: resolvedTotals
   }
 
+  const shownSort = sort ?? undefined
   if (getSortHref)
     return (
       <DataTableView
         {...shared}
-        sort={sort}
+        sort={shownSort}
         sortControl={(column) =>
           isSortableColumn(column)
             ? {
-                href: getSortHref(column.key, nextSortDirection(column, sort))
+                href: getSortHref(
+                  column.key,
+                  nextSortDirection(column, shownSort)
+                )
               }
             : undefined
         }
@@ -143,6 +151,6 @@ export function DataTable({
         onSortChange={onSortChange}
       />
     )
-  return <DataTableView {...shared} sort={sort} />
+  return <DataTableView {...shared} sort={shownSort} />
 }
 DataTable.displayName = 'DataTable'

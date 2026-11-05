@@ -5,6 +5,7 @@ import {
   viewerTimeZone
 } from '@oztix/roadie-core/datetime'
 
+import { priceFormat } from './price'
 import type { CartSeat } from './types'
 
 export type CurrencyOptions = {
@@ -69,12 +70,10 @@ export function formatSeatRange(seats: CartSeat[] | undefined): string | null {
 }
 
 export function formatCurrency(amount: number, opts: CurrencyOptions): string {
-  return amount.toLocaleString(opts.locale, {
-    style: 'currency',
-    currency: opts.currency
-  })
+  return amount.toLocaleString(opts.locale, priceFormat(opts.currency))
 }
 
+/** @deprecated Pass `locales` and `currencyFormat({ currency })` from `@oztix/roadie-core/number` to NumberFlow, which places the symbol itself. */
 export function currencyPrefix(locale: string, currency: string): string {
   const parts = new Intl.NumberFormat(locale, {
     style: 'currency',
