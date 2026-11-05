@@ -434,7 +434,13 @@ describe('a variable in the email preset', () => {
       { key: 'first_name', fallback: 'there' }
     ],
     [{ 'data-key': 'first_name' }, { key: 'first_name' }],
-    [{ 'data-key': '' }, false]
+    [{ 'data-key': ' first_name ' }, { key: 'first_name' }],
+    [
+      { 'data-key': 'first_name', 'data-fallback': '  ' },
+      { key: 'first_name' }
+    ],
+    [{ 'data-key': '' }, false],
+    [{ 'data-key': ' ' }, false]
   ])('reads a pasted variable with %j as %j', (attributes, read) => {
     const element = {
       getAttribute: (name: string) =>

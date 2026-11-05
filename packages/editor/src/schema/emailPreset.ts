@@ -46,8 +46,11 @@ export const Column = layoutNode(
   `(block | ${EMAIL_BLOCK})+`
 )
 
-const textAttr = (element: HTMLElement, name: string) =>
-  element.getAttribute(name) || undefined
+// Blank is no attr, as `migrate` reads it.
+function textAttr(element: HTMLElement, name: string) {
+  const value = element.getAttribute(name)
+  return value?.trim() ? value : undefined
+}
 
 /**
  * A merge tag, saved as its key alone: the sending system's syntax is
@@ -71,7 +74,7 @@ export const Variable = Node.create({
       {
         tag: 'span[data-type="variable"]',
         getAttrs: (element) => {
-          const key = textAttr(element, 'data-key')
+          const key = textAttr(element, 'data-key')?.trim()
           return key
             ? { key, fallback: textAttr(element, 'data-fallback') }
             : false
