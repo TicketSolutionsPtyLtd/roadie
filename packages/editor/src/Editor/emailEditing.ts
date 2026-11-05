@@ -63,9 +63,11 @@ export const buttonBlock = (href: string): JSONContent => ({
 
 /** Leaves a button for a new paragraph after it, rather than splitting it. */
 function leaveButton({ tr, dispatch }: CommandProps) {
-  const { $from } = tr.selection
-  if ($from.parent.type.name !== 'button') return false
+  if (tr.selection.$from.parent.type.name !== 'button') return false
   if (dispatch) {
+    tr.deleteSelection()
+    const { $from } = tr.selection
+    if ($from.parent.type.name !== 'button') return true
     const after = $from.after()
     tr.insert(after, tr.doc.type.schema.nodes.paragraph!.create())
     tr.setSelection(TextSelection.create(tr.doc, after + 1)).scrollIntoView()

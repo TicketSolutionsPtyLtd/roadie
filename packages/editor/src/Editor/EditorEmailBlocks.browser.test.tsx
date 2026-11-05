@@ -184,6 +184,29 @@ describe('Editor email blocks', () => {
     )
   })
 
+  it('deletes the selected text before Enter leaves a button', async () => {
+    const onValueChange = renderEmail(
+      email(button('https://oztix.com.au', 'Buy tickets'), p('Doors 7pm'))
+    )
+    await userEvent.dblClick(await screen.findByText('Buy tickets'), {
+      position: { x: 60, y: 8 }
+    })
+    await waitFor(() =>
+      expect(document.getSelection()?.toString()).toBe('tickets')
+    )
+
+    await userEvent.keyboard('{Enter}All ages')
+
+    await saved(
+      onValueChange,
+      email(
+        button('https://oztix.com.au', 'Buy '),
+        p('All ages'),
+        p('Doors 7pm')
+      )
+    )
+  })
+
   it('edits and removes a button from its toolbar', async () => {
     const onValueChange = renderEmail(
       email(button('https://oztix.com.au', 'Buy tickets'), p('Doors 7pm'))
