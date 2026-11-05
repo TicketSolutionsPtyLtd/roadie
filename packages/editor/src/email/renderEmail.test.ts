@@ -913,6 +913,20 @@ describe('renderEmail', () => {
       expect(plain).toBe('After')
     })
 
+    it('writes no empty row for a run whose blocks are all hidden in a preview', async () => {
+      const preview = (...content: JSONContent[]) =>
+        renderEmail(email(...content), {
+          variables,
+          values: { tickets_left: '200' }
+        })
+      const { html } = await preview(
+        when(button(tickets), nearlySoldOut),
+        section(p(text('After')))
+      )
+      const without = await preview(section(p(text('After'))))
+      expect(body(html)).toBe(body(without.html))
+    })
+
     it('renders a block with no rule as it was', async () => {
       const { html } = await renderEmail(email(button(tickets)))
       expect(html).not.toContain('{%')
