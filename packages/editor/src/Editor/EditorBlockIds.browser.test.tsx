@@ -50,6 +50,62 @@ describe('Editor blocks preset ids', () => {
     )
   })
 
+  it('gives a controlled value’s blocks ids, reporting them', async () => {
+    const onValueChange = vi.fn()
+    const page = (value: EditorValue) => (
+      <Editor aria-label={LABEL} value={value} onValueChange={onValueChange} />
+    )
+    const { rerender } = render(
+      page(
+        valueOf({
+          type: 'paragraph',
+          attrs: { blockId: 'doors' },
+          content: [text('Doors 7pm')]
+        })
+      )
+    )
+    await screen.findByText('Doors 7pm')
+
+    rerender(page(valueOf({ type: 'paragraph', content: [text('All ages')] })))
+
+    await waitFor(() =>
+      expect(lastDoc(onValueChange).content).toEqual([
+        {
+          type: 'paragraph',
+          attrs: { blockId: expect.any(String) },
+          content: [text('All ages')]
+        }
+      ])
+    )
+  })
+
+  it('reports nothing as a rich controlled value is set', async () => {
+    const onValueChange = vi.fn()
+    const page = (value: EditorValue) => (
+      <Editor aria-label={LABEL} value={value} onValueChange={onValueChange} />
+    )
+    const { rerender } = render(
+      page({
+        ...valueOf({ type: 'paragraph', content: [text('Doors 7pm')] }),
+        preset: 'rich'
+      })
+    )
+    await screen.findByText('Doors 7pm')
+
+    rerender(
+      page({
+        ...valueOf(
+          { type: 'paragraph', content: [text('All ages')] },
+          { type: 'horizontalRule' }
+        ),
+        preset: 'rich'
+      })
+    )
+
+    await screen.findByText('All ages')
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
   it('keeps a block’s id as its text is edited', async () => {
     const onValueChange = vi.fn()
     render(

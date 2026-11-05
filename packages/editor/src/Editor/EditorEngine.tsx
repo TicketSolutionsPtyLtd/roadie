@@ -29,6 +29,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import {
   CURRENT_VERSION,
+  type EditorValue,
   type Preset,
   createEmptyValue,
   defaultEmbedProviders,
@@ -142,6 +143,14 @@ function readsDoc(preset: Preset, doc: JSONContent) {
 
 function presetHoldsImages(preset: Preset) {
   return presets[preset].some(({ name }) => name === 'image')
+}
+
+function presetKeepsBlockIds(preset: Preset) {
+  return presets[preset].some(({ name }) => name === 'uniqueID')
+}
+
+function currentValue(editor: TiptapEditor, preset: Preset): EditorValue {
+  return { version: CURRENT_VERSION, preset, doc: editor.getJSON() }
 }
 
 function holdsDoc(editor: TiptapEditor, doc: JSONContent) {
@@ -309,11 +318,7 @@ export function EditorEngine({
       }
     },
     onUpdate: ({ editor: updated }) =>
-      onValueChange?.({
-        version: CURRENT_VERSION,
-        preset,
-        doc: updated.getJSON()
-      })
+      onValueChange?.(currentValue(updated, preset))
   })
 
   useEffect(() => {
@@ -346,7 +351,11 @@ export function EditorEngine({
   useEffect(() => {
     if (!editor || !valueDoc || holdsDoc(editor, readableDoc)) return
     editor.commands.setContent(readableDoc, { emitUpdate: false })
-  }, [editor, valueDoc, readableDoc])
+    // The blocks preset gives each block without an id one as it's set.
+    if (presetKeepsBlockIds(preset) && !holdsDoc(editor, readableDoc)) {
+      onValueChange?.(currentValue(editor, preset))
+    }
+  }, [editor, valueDoc, readableDoc, preset, onValueChange])
 
   const canUpload = Boolean(onUploadImage) && holdsImages
   const ui = {
