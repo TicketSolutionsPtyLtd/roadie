@@ -6,7 +6,10 @@ highlights:
     description: A new package of designed page sections, such as Hero, Cards, and FAQ, with named presets and a catalogue a CMS can build its block picker from.
     href: /blocks
     packages: [blocks]
-  - DonutChart
+  - title: DonutChart
+    description: A chart for one whole in two to five parts, such as tickets by type, with the rest rolled into Other.
+    href: /charts/donut-chart
+    packages: [core, charts]
   - title: Comparisons
     description: Line and bar charts draw last period as a quiet series behind this one, named in the tooltip, legend, and Table view.
     href: /charts/line-chart
