@@ -97,7 +97,12 @@ function buttonLayout(
     }),
     ...(emphasis === 'subtle' && {
       'background-color': theme.tint,
-      color: theme.text
+      color: theme.text,
+      // On a fill its tint can match the section's, so it keeps an edge.
+      ...(filled && {
+        border: `1px solid ${theme.border}`,
+        'inner-padding': '11px 23px'
+      })
     })
   }
 }

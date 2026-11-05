@@ -150,13 +150,16 @@ function ShowTo({ rule, variables, onRuleChange }: ShowToProps) {
         />
       ) : null}
       {ruled && draft.op !== 'exists' ? (
-        <Field>
+        <Field invalid={draft.value.trim() !== '' && !ruleOf(draft)}>
           <Field.Label>Value</Field.Label>
           <Field.Input
             inputMode={NUMERIC.has(draft.op) ? 'decimal' : undefined}
             value={draft.value}
             onChange={(event) => change({ value: event.target.value })}
           />
+          <Field.ErrorText>
+            Enter a number, such as 50. Until then, the last rule stays.
+          </Field.ErrorText>
         </Field>
       ) : null}
     </div>

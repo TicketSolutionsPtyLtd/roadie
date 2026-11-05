@@ -49,10 +49,11 @@ export const SectionBadges = Extension.create<SectionBadgesOptions>({
         props: {
           decorations: (state) => {
             const widgets: Decoration[] = []
-            state.doc.descendants((node, pos) => {
-              if (node.type.name !== 'section') return true
+            // Sections sit only at the top, so nothing inside is read.
+            state.doc.forEach((node, pos) => {
+              if (node.type.name !== 'section') return
               const rule = showWhenRule(node.attrs.showWhen)
-              if (!rule) return true
+              if (!rule) return
               const label = showWhenLabel(rule, labelOf(rule.key))
               // At the section's end, inside it, so no block moves for it.
               widgets.push(
@@ -75,7 +76,6 @@ export const SectionBadges = Extension.create<SectionBadgesOptions>({
                   }
                 )
               )
-              return true
             })
             return DecorationSet.create(state.doc, widgets)
           }

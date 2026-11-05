@@ -280,6 +280,32 @@ describe('renderEmail', () => {
       expect(inside).toMatch(
         new RegExp(`background:${defaultEmailTheme.buttonText}[^>]*>`)
       )
+      // Its text takes the button's label colour, not the head's.
+      expect(inside).toMatch(
+        new RegExp(
+          `text-align:left;color:${defaultEmailTheme.buttonText};"\\s*><p`
+        )
+      )
+    })
+
+    it('outlines a subtle button on an accent fill, so it doesn’t vanish', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'section',
+          attrs: { look: 'accent' },
+          content: [
+            {
+              type: 'button',
+              attrs: { href: tickets, emphasis: 'subtle' },
+              content: [text('Get tickets')]
+            }
+          ]
+        })
+      )
+
+      expect(body(html)).toContain(
+        `border:1px solid ${defaultEmailTheme.buttonText}`
+      )
     })
 
     it.each([
