@@ -35,6 +35,7 @@ import {
   migrate,
   presets
 } from '../schema'
+import { type PresetShape, presetShapes } from '../schema/presetShapes'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
@@ -144,6 +145,11 @@ function presetHoldsImages(preset: Preset) {
   return presets[preset].some(({ name }) => name === 'image')
 }
 
+function holdsHttpsImagesOnly(preset: Preset) {
+  const shape: PresetShape = presetShapes[preset]
+  return shape.httpsImages === true
+}
+
 function holdsDoc(editor: TiptapEditor, doc: JSONContent) {
   try {
     return editor.state.doc.eq(editor.schema.nodeFromJSON(doc))
@@ -246,7 +252,8 @@ export function EditorEngine({
   const holdsImages = presetHoldsImages(preset)
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
-    onError: setUploadError
+    onError: setUploadError,
+    httpsOnly: holdsHttpsImagesOnly(preset)
   }
 
   const editor = useEditor({

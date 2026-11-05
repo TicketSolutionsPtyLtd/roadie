@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
@@ -53,12 +53,24 @@ const newsletter: EditorValue = {
 
 // Firefox ignores the clipboardData a ClipboardEvent is made with, so the data
 // is set on the event itself.
-function pasteHtml(target: HTMLElement, html: string) {
-  const clipboardData = new DataTransfer()
-  clipboardData.setData('text/html', html)
+function paste(target: HTMLElement, clipboardData: DataTransfer) {
   const event = new ClipboardEvent('paste', { bubbles: true, cancelable: true })
   Object.defineProperty(event, 'clipboardData', { value: clipboardData })
   target.dispatchEvent(event)
+}
+
+function pasteHtml(target: HTMLElement, html: string) {
+  const clipboardData = new DataTransfer()
+  clipboardData.setData('text/html', html)
+  paste(target, clipboardData)
+}
+
+function pasteImageFile(target: HTMLElement) {
+  const clipboardData = new DataTransfer()
+  clipboardData.items.add(
+    new File(['png'], 'poster.png', { type: 'image/png' })
+  )
+  paste(target, clipboardData)
 }
 
 afterEach(() => {
@@ -121,5 +133,55 @@ describe('Editor with the email preset', () => {
         }
       })
     )
+  })
+
+  it.each([
+    ['a path on the site', '/images/poster.webp'],
+    ['http', 'http://assets.example.com/poster.webp']
+  ])(
+    'refuses an uploaded image from %s, which a mail client can’t load',
+    async (_, src) => {
+      const onValueChange = vi.fn()
+      render(
+        <Editor
+          aria-label={LABEL}
+          defaultValue={newsletter}
+          onUploadImage={async () => ({ src })}
+          onValueChange={onValueChange}
+        />
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await userEvent.click(screen.getByText('See you there.'))
+      await waitFor(() => expect(textbox).toHaveFocus())
+
+      pasteImageFile(textbox)
+
+      expect((await screen.findByRole('alert')).textContent).toMatch(
+        /couldn’t be added, as it isn’t served over https\.$/
+      )
+      expect(within(textbox).queryByRole('status')).toBe(null)
+      expect(textbox.querySelector('img')).toBe(null)
+      expect(onValueChange).not.toHaveBeenCalled()
+    }
+  )
+
+  it('keeps an uploaded https image', async () => {
+    const poster = 'https://assets.example.com/poster.webp'
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={newsletter}
+        onUploadImage={async () => ({ src: poster, alt: 'The poster' })}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(screen.getByText('See you there.'))
+    await waitFor(() => expect(textbox).toHaveFocus())
+
+    pasteImageFile(textbox)
+
+    expect(
+      await within(textbox).findByRole('img', { name: 'The poster' })
+    ).toHaveAttribute('src', poster)
   })
 })
