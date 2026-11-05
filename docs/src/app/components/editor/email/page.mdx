@@ -164,8 +164,9 @@ or accent section swaps its blocks' colours as the email does. Without one, the 
 `renderEmail` does, except that its links and strong buttons take the
 accent of a `ThemeProvider` around the editor, which `renderEmail` doesn't
 know, so pass `theme` for an exact match. Text outside columns sits 24
-pixels in from the canvas's end, and columns reach 12 pixels further out,
-as they do in the email. The outlines, the
+pixels in from each side of the canvas, so it wraps where it sends, and
+columns reach 12 pixels further out, as they do in the email. The grip and
+add button sit in the gutter beside the canvas. The outlines, the
 caret's tint, selected text, and the placeholder mix from the theme's
 colours, so they show on any background. A colour that isn't hex throws, as
 it does in `renderEmail`.
