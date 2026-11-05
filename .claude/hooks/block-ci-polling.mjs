@@ -4,10 +4,9 @@ const MAX_SLEEP_SECONDS = 10
 const UNIT_SECONDS = { '': 1, s: 1, m: 60, h: 3600, d: 86400 }
 
 const commandStart = String.raw`(?:^|[;&|(\x60{\n]|\bdo|\bthen|\belse)\s*`
-const sleepCall = new RegExp(
-  `${commandStart}sleep((?:[ \\t]+[^\\s;&|)\x60]+)+)`,
-  'g'
-)
+// Any sleep word, not only one starting a command, since `timeout 60 sleep 90`
+// and `/bin/sleep 90` wait too. Arguments end at a redirect or comment.
+const sleepCall = /\bsleep((?:[ \t]+[^\s;&|)\x60<>#]+)+)/g
 const loop = new RegExp(
   `${commandStart}(?:for|while|until)\\s[\\s\\S]*\\bdone\\b`
 )

@@ -32,7 +32,14 @@ describe('block-ci-polling', () => {
     'while true; do for n in 1 2; do gh pr checks $n; done; sleep 5; done',
     'while true\ndo\n  gh pr checks 1 && break\n  sleep 5\ndone',
     'cd /repo && sleep 120',
-    'git push\nsleep 300'
+    'git push\nsleep 300',
+    'sleep 1h',
+    'timeout 120 sleep 60',
+    '/bin/sleep 60',
+    'if gh pr checks 1; then :; else sleep 60; fi',
+    'sleep 60 > /dev/null',
+    'sleep 60 # wait for CI',
+    '(sleep 60) && gh pr checks 1'
   ]) {
     it(`denies ${JSON.stringify(command)}`, () => {
       const { status, stderr } = runHook({ command })
@@ -47,6 +54,7 @@ describe('block-ci-polling', () => {
     'sleep 10',
     'sleep 10s',
     'sleep $DELAY',
+    'grep -rn sleep src',
     'gh pr checks 1',
     'gh run view 123 --log-failed',
     'pnpm test:gated core',
