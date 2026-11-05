@@ -273,6 +273,9 @@ describe('Editor email canvas', () => {
     render(
       <Editor
         aria-label={LABEL}
+        // WebKit lays out this unloadable image at no size in a floating
+        // email, leaving nothing to click.
+        toolbar='docked'
         defaultValue={{
           version: 1,
           preset: 'email',
