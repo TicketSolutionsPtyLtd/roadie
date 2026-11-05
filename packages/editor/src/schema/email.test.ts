@@ -99,7 +99,7 @@ describe('presets.email', () => {
   })
 
   it.each([
-    ['button', ['href', 'showWhen']],
+    ['button', ['href', 'align', 'emphasis', 'fullWidth', 'showWhen']],
     ['image', ['src', 'alt', 'width', 'showWhen']],
     ['spacer', ['height', 'showWhen']],
     ['horizontalRule', ['showWhen']],
@@ -177,6 +177,102 @@ describe('presets.email', () => {
     ['https://www.oztix .com.au', false]
   ])('reads a pasted button to %s as %j', (href, read) => {
     expect(pastedAttrs('button', pastedButton(href))).toEqual(read)
+  })
+
+  it('reads a pasted button’s look', () => {
+    const look: Record<string, string> = {
+      href: tickets,
+      'data-align': 'center',
+      'data-emphasis': 'normal',
+      'data-full-width': ''
+    }
+    expect(
+      pastedAttrs('button', {
+        getAttribute: (name: string) => look[name] ?? null
+      })
+    ).toEqual({
+      href: tickets,
+      align: 'center',
+      emphasis: 'normal',
+      fullWidth: true
+    })
+  })
+
+  it('reads a pasted button’s look from its data attributes alone', () => {
+    const look: Record<string, string> = {
+      href: tickets,
+      'data-emphasis': 'normal',
+      emphasis: 'strong',
+      align: 'center',
+      fullwidth: 'true'
+    }
+    expect(
+      pastedAttrs('button', {
+        getAttribute: (name: string) => look[name.toLowerCase()] ?? null
+      })
+    ).toEqual({ href: tickets, emphasis: 'normal' })
+  })
+
+  it('keeps a button’s look through its copied HTML', () => {
+    const look = {
+      href: tickets,
+      align: 'right',
+      emphasis: 'subtle',
+      fullWidth: true
+    }
+    const node = schema.nodeFromJSON({ ...button(tickets), attrs: look })
+    const [, copied] = schema.nodes.button!.spec.toDOM!(node) as [
+      string,
+      Record<string, string>
+    ]
+    expect(
+      pastedAttrs('button', {
+        getAttribute: (name: string) => copied[name] ?? null
+      })
+    ).toEqual(look)
+  })
+
+  it('saves only the parts of a button’s look that aren’t the default', () => {
+    const saved = migrate({
+      version: 1,
+      preset: 'email',
+      doc: doc(
+        {
+          ...button(tickets),
+          attrs: {
+            href: tickets,
+            align: 'right',
+            emphasis: 'normal',
+            fullWidth: true
+          }
+        },
+        {
+          ...button(tickets),
+          attrs: {
+            href: tickets,
+            align: 'left',
+            emphasis: 'strong',
+            fullWidth: false
+          }
+        },
+        { ...button(tickets), attrs: { href: tickets, emphasis: 'subtle' } },
+        {
+          ...button(tickets),
+          attrs: {
+            href: tickets,
+            align: 'middle',
+            emphasis: 'ghost',
+            fullWidth: 'yes'
+          }
+        }
+      )
+    })
+    expect(saved.doc.content?.map((block) => block.attrs)).toEqual([
+      { href: tickets, align: 'right', emphasis: 'normal', fullWidth: true },
+      { href: tickets },
+      { href: tickets, emphasis: 'subtle' },
+      { href: tickets }
+    ])
   })
 
   it('holds a button’s label as unmarked text', () => {

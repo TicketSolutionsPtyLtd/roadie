@@ -4,6 +4,7 @@ import { isUnsafeHref } from '@oztix/roadie-core/utils'
 
 import {
   COLUMN_COUNTS,
+  buttonLook,
   imageWidth,
   isEmailHref,
   isEmailImageSrc,
@@ -92,6 +93,7 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
     }
   }
   if (type === 'spacer') return { height: spacerHeight(attrs?.height) }
+  if (type === 'button') return { href: attrs?.href, ...buttonLook(attrs) }
   if (type === 'variable') {
     const fallback: unknown = attrs?.fallback
     return {

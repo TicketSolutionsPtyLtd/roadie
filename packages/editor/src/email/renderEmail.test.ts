@@ -122,6 +122,72 @@ describe('renderEmail', () => {
       expect(body(html)).toMatchSnapshot()
     })
 
+    it('renders a button centred or at its end, or across its column', async () => {
+      const { html } = await renderEmail(
+        email(
+          {
+            ...button(tickets, 'Centred'),
+            attrs: { href: tickets, align: 'center' }
+          },
+          {
+            ...button(tickets, 'Right'),
+            attrs: { href: tickets, align: 'right' }
+          },
+          {
+            ...button(tickets, 'Full'),
+            attrs: { href: tickets, fullWidth: true }
+          }
+        )
+      )
+      // Each block's cell opens with its alignment, then its padding.
+      const cellOf = (label: string) =>
+        html.slice(0, html.indexOf(label)).split('style="font-size:0px;').at(-2)
+      expect(cellOf('Centred')).toMatch(/align="center" $/)
+      expect(cellOf('Right')).toMatch(/align="right" $/)
+      expect(cellOf('Full')).toMatch(/align="left" $/)
+      expect(
+        html.slice(html.lastIndexOf('<table', html.indexOf('Full')))
+      ).toMatch(/^<table[^>]*width:100%/)
+    })
+
+    it('renders a strong button in the accent, and normal and subtle ones in neutrals', async () => {
+      const look = (emphasis: string | undefined, label: string) => ({
+        ...button(tickets, label),
+        attrs: { href: tickets, ...(emphasis && { emphasis }) }
+      })
+      const { html } = await renderEmail(
+        email(
+          look(undefined, 'Strong'),
+          look('normal', 'Normal'),
+          look('subtle', 'Subtle')
+        ),
+        {
+          theme: {
+            accent: '#5f270f',
+            background: '#fffaf5',
+            text: '#222222',
+            border: '#cccccc',
+            tint: '#eeeeee'
+          }
+        }
+      )
+      // Each button's HTML runs from the label before it to its own.
+      const strong = html.slice(0, html.indexOf('Strong'))
+      expect(strong.slice(strong.lastIndexOf('bgcolor'))).toContain(
+        'background:#5f270f'
+      )
+      const normal = html.slice(html.indexOf('Strong'), html.indexOf('Normal'))
+      expect(normal).toContain('border:1px solid #cccccc')
+      expect(normal).toContain('background:#fffaf5')
+      expect(normal).toContain('color:#222222')
+      // A strong button's 12px 24px, less the border, so they're one size.
+      expect(normal).toContain('padding:11px 23px')
+      const subtle = html.slice(html.indexOf('Normal'), html.indexOf('Subtle'))
+      expect(subtle).toContain('background:#eeeeee')
+      expect(subtle).toContain('color:#222222')
+      expect(subtle).not.toContain('border:1px')
+    })
+
     it('renders an image at its width, or filling its column', async () => {
       const { html, text: plain } = await renderEmail(
         email(image(poster, 280), image(`${poster}?full`))

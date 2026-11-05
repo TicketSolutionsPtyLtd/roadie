@@ -50,6 +50,7 @@ export default defineConfig({
             '@oztix/roadie-components/badge',
             '@oztix/roadie-components/button',
             '@oztix/roadie-components/field',
+            '@oztix/roadie-components/fieldset',
             '@oztix/roadie-components/menu',
             '@oztix/roadie-components/popover',
             '@oztix/roadie-components/prose',

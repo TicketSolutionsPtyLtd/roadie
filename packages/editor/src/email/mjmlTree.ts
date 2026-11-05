@@ -1,6 +1,6 @@
 import type { JSONContent } from '@tiptap/core'
 
-import { EMAIL_WIDTH } from '../schema/emailAttrs'
+import { EMAIL_WIDTH, buttonLook } from '../schema/emailAttrs'
 import type { ShowWhen } from '../schema/showWhen'
 import type { ShowsWhen } from './conditions'
 import {
@@ -63,6 +63,27 @@ function shownNodes(
   return [raw(shows.open), ...built, raw(shows.close)]
 }
 
+// A normal or subtle button is neutral, so the accent stays for the one that
+// matters. Each sets the fill a strong button's head attributes give it.
+function buttonLayout(attrs: Record<string, unknown>, { theme }: Context) {
+  const { align, emphasis, fullWidth } = buttonLook(attrs)
+  return {
+    ...(align && { align }),
+    ...(fullWidth && { width: '100%' }),
+    ...(emphasis === 'normal' && {
+      'background-color': theme.background,
+      color: theme.text,
+      border: `1px solid ${theme.border}`,
+      // Less the border, so it's the size a strong button is.
+      'inner-padding': '11px 23px'
+    }),
+    ...(emphasis === 'subtle' && {
+      'background-color': theme.tint,
+      color: theme.text
+    })
+  }
+}
+
 const blockNodes = (node: JSONContent, context: Context) =>
   shownNodes(node, context, () => blockContent(node, context))
 
@@ -75,7 +96,13 @@ function blockContent(node: JSONContent, context: Context) {
       const label = inlineHtml(node.content, context)
       if (label === '') return []
       const href = escapeHtml(String(attrs.href))
-      return [leaf('mj-button', { href, padding }, label)]
+      return [
+        leaf(
+          'mj-button',
+          { href, padding, ...buttonLayout(attrs, context) },
+          label
+        )
+      ]
     }
     case 'image':
       return [

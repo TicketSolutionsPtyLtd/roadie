@@ -4,6 +4,7 @@ import { StarterKit } from '@tiptap/starter-kit'
 import { SafeLink, starterKitOptions } from './basicPreset'
 import {
   SPACER_HEIGHT,
+  buttonLook,
   imageWidth,
   isEmailHref,
   isEmailImageSrc,
@@ -133,7 +134,27 @@ export const Button = Node.create({
   marks: '',
   defining: true,
   addAttributes() {
-    return { href: { default: null }, ...showWhen }
+    return {
+      href: { default: null },
+      // From its data attributes only, as Tiptap reads a bare one by default.
+      align: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          buttonLook({ align: element.getAttribute('data-align') }).align
+      },
+      emphasis: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          buttonLook({ emphasis: element.getAttribute('data-emphasis') })
+            .emphasis
+      },
+      fullWidth: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute('data-full-width') === null ? undefined : true
+      },
+      ...showWhen
+    }
   },
   parseHTML() {
     // Above the link mark's rule, which would otherwise read it as linked text.
@@ -149,11 +170,15 @@ export const Button = Node.create({
     ]
   },
   renderHTML({ node, HTMLAttributes }) {
+    const { align, emphasis, fullWidth } = buttonLook(node.attrs)
     return [
       'a',
       {
         'data-type': 'button',
         href: node.attrs.href,
+        ...(align && { 'data-align': align }),
+        ...(emphasis && { 'data-emphasis': emphasis }),
+        ...(fullWidth && { 'data-full-width': '' }),
         ...shownWhen(HTMLAttributes)
       },
       0

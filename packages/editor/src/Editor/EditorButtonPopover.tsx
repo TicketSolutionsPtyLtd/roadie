@@ -1,18 +1,27 @@
 'use client'
 
-import { type RefObject, useRef, useState } from 'react'
+import { type ReactNode, type RefObject, useRef, useState } from 'react'
 
 import { posToDOMRect } from '@tiptap/core'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 
+import { Field } from '@oztix/roadie-components/field'
+import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { Popover } from '@oztix/roadie-components/popover'
+import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
-import { isEmailHref } from '../schema/emailAttrs'
+import {
+  type ButtonAlign,
+  type ButtonLook,
+  buttonLook,
+  isEmailHref
+} from '../schema/emailAttrs'
 import { toHref } from './EditorLinkPopover'
 import { selectedNodeType } from './EditorNodeToolbar'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { buttonBlock, insertBlock } from './emailEditing'
 import { focusEditor } from './focusEditor'
+import { type LiveEdit, useLiveEdit } from './useLiveEdit'
 
 type ButtonFormProps = {
   editor: TiptapEditor
@@ -26,11 +35,11 @@ function buttonHref(editor: TiptapEditor) {
   return typeof href === 'string' ? href : ''
 }
 
-function ButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
-  // Read as the form opens: the editor is mutable, so the React Compiler
-  // would cache a read during render by the editor alone.
-  const [current] = useState(() => buttonHref(editor))
-  const [typed, setTyped] = useState(current ?? '')
+const REFUSED =
+  'Enter a full web address, such as oztix.com.au, or a mailto: or tel: link.'
+
+function AddButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
+  const [typed, setTyped] = useState('')
   const [refused, setRefused] = useState(false)
 
   const save = () => {
@@ -39,10 +48,11 @@ function ButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
       setRefused(true)
       return false
     }
-    const chain = editor.chain().focus()
-    if (current === undefined) chain.command(insertBlock(buttonBlock(href)))
-    else chain.updateAttributes('button', { href })
-    chain.run()
+    editor
+      .chain()
+      .focus()
+      .command(insertBlock(buttonBlock(href)))
+      .run()
     onDone()
     return true
   }
@@ -59,10 +69,213 @@ function ButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
         setTyped(value)
         setRefused(false)
       }}
-      submitLabel={current === undefined ? 'Add button' : 'Save link'}
+      submitLabel='Add button'
       onSubmit={save}
       invalid={refused}
-      error='Enter a full web address, such as oztix.com.au, or a mailto: or tel: link.'
+      error={REFUSED}
+    />
+  )
+}
+
+type Choice<Value extends string> = { value: Value; label: string }
+
+type ChoiceProps<Value extends string> = {
+  legend: string
+  choices: readonly Choice<Value>[]
+  value: Value
+  onValueChange: (value: Value) => void
+  disabled?: boolean
+  helperText?: ReactNode
+}
+
+function ButtonChoice<Value extends string>({
+  legend,
+  choices,
+  value,
+  onValueChange,
+  disabled,
+  helperText
+}: ChoiceProps<Value>) {
+  return (
+    <Fieldset className='grid gap-1.5 [&>*+*]:mt-0' disabled={disabled}>
+      {/* A label's size, as the Link field's, not a section's. */}
+      <Fieldset.Legend className='text-sm font-medium text-normal'>
+        {legend}
+      </Fieldset.Legend>
+      <ToggleGroup
+        value={[value]}
+        // Pressing the chosen item again would leave none, so it's ignored.
+        onValueChange={([chosen]) => {
+          if (chosen) onValueChange(chosen as Value)
+        }}
+        disabled={disabled}
+        className='w-full'
+      >
+        {choices.map((choice) => (
+          <ToggleGroup.Item
+            key={choice.value}
+            value={choice.value}
+            className='flex-1'
+          >
+            {choice.label}
+          </ToggleGroup.Item>
+        ))}
+      </ToggleGroup>
+      {helperText ? (
+        <Fieldset.HelperText>{helperText}</Fieldset.HelperText>
+      ) : null}
+    </Fieldset>
+  )
+}
+
+const EMPHASES = [
+  { value: 'strong', label: 'Strong' },
+  { value: 'normal', label: 'Normal' },
+  { value: 'subtle', label: 'Subtle' }
+] as const
+
+const WIDTHS = [
+  { value: 'fit', label: 'Fit label' },
+  { value: 'full', label: 'Full width' }
+] as const
+
+const ALIGNS: readonly Choice<ButtonAlign>[] = [
+  { value: 'left', label: 'Left' },
+  { value: 'center', label: 'Centre' },
+  { value: 'right', label: 'Right' }
+]
+
+type SettingsFormProps = Omit<ButtonFormProps, 'editor'> & {
+  apply: LiveEdit['apply']
+  href: string
+  look: ButtonLook
+}
+
+// Undefined clears an attr, so the button saves only what isn't the default.
+const lookAttrs = ({ emphasis, fullWidth, align }: ButtonLook) => ({
+  emphasis,
+  fullWidth,
+  align: fullWidth ? undefined : align
+})
+
+/** Applies each change as it's made: a choice at once, a link once it's whole. */
+function ButtonSettingsForm({
+  inputRef,
+  href,
+  look: saved,
+  apply: applyLive,
+  onDone
+}: SettingsFormProps) {
+  const [typed, setTyped] = useState(href)
+  const [refused, setRefused] = useState(false)
+  const [look, setLook] = useState(saved)
+
+  // The popover keeps focus, so the editor's selection stays on the button.
+  const apply = (attrs: Record<string, unknown>) =>
+    applyLive((chain) => chain.updateAttributes('button', attrs))
+
+  const changeLook = (change: ButtonLook) => {
+    const next = { ...look, ...change }
+    setLook(next)
+    apply(lookAttrs(next))
+  }
+
+  return (
+    <form
+      noValidate
+      className='grid gap-4'
+      onSubmit={(event) => {
+        event.preventDefault()
+        // React bubbles a portalled submit to the form around the editor.
+        event.stopPropagation()
+        if (!isEmailHref(toHref(typed))) {
+          setRefused(true)
+          return
+        }
+        onDone()
+      }}
+    >
+      <Field invalid={refused}>
+        <Field.Label>Link</Field.Label>
+        <Field.Input
+          ref={inputRef}
+          type='url'
+          inputMode='url'
+          placeholder='Paste a link'
+          value={typed}
+          onChange={(event) => {
+            const value = event.target.value
+            setTyped(value)
+            setRefused(false)
+            if (isEmailHref(toHref(value))) apply({ href: toHref(value) })
+          }}
+          // Says so only once they've moved on, not while they type.
+          onBlur={() => setRefused(!isEmailHref(toHref(typed)))}
+          // Backward, so a long link shows its start, as the add form's does.
+          onFocus={(event) => {
+            if (event.currentTarget.value !== href) return
+            const input = event.currentTarget
+            input.setSelectionRange(0, input.value.length, 'backward')
+          }}
+        />
+        <Field.ErrorText>{REFUSED}</Field.ErrorText>
+      </Field>
+      <ButtonChoice
+        legend='Emphasis'
+        choices={EMPHASES}
+        value={look.emphasis ?? 'strong'}
+        onValueChange={(emphasis) =>
+          changeLook({ emphasis: emphasis === 'strong' ? undefined : emphasis })
+        }
+      />
+      <ButtonChoice
+        legend='Width'
+        choices={WIDTHS}
+        value={look.fullWidth ? 'full' : 'fit'}
+        onValueChange={(width) =>
+          changeLook({ fullWidth: width === 'full' || undefined })
+        }
+      />
+      <ButtonChoice
+        legend='Align'
+        choices={ALIGNS}
+        value={look.align ?? 'left'}
+        onValueChange={(align) =>
+          changeLook({ align: align === 'left' ? undefined : align })
+        }
+        disabled={look.fullWidth}
+        helperText={
+          look.fullWidth ? 'A full-width button spans its column.' : null
+        }
+      />
+    </form>
+  )
+}
+
+function ButtonForm({
+  editor,
+  inputRef,
+  apply,
+  onDone
+}: ButtonFormProps & { apply: LiveEdit['apply'] }) {
+  // Read as the form opens: the editor is mutable, so the React Compiler
+  // would cache a read during render by the editor alone.
+  const [current] = useState(() => {
+    const href = buttonHref(editor)
+    return href === undefined
+      ? undefined
+      : { href, look: buttonLook(editor.getAttributes('button')) }
+  })
+  if (!current) {
+    return <AddButtonForm editor={editor} inputRef={inputRef} onDone={onDone} />
+  }
+  return (
+    <ButtonSettingsForm
+      inputRef={inputRef}
+      href={current.href}
+      look={current.look}
+      apply={apply}
+      onDone={onDone}
     />
   )
 }
@@ -73,26 +286,42 @@ type EditorButtonPopoverProps = {
   onOpenChange: (open: boolean) => void
 }
 
-/** Sets the link of a new button, or of the button at the selection. */
+/**
+ * Adds a button from its link, or edits the selected button's link, style,
+ * width and alignment. Escape puts an edited button back as it was.
+ */
 export function EditorButtonPopover({
   editor,
   open,
   onOpenChange
 }: EditorButtonPopoverProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const live = useLiveEdit(editor, open, onOpenChange)
   if (!editor) return null
+  const editing = selectedNodeType(editor.state) === 'button'
   const { from, to } = editor.state.selection
   // The element lets the popover follow a scrolling container around the editor.
   const anchor = {
     getBoundingClientRect: () => posToDOMRect(editor.view, from, to),
     contextElement: editor.view.dom
   }
+  const form = (
+    <ButtonForm
+      key={editing ? `edit-${from}` : 'add'}
+      editor={editor}
+      inputRef={inputRef}
+      apply={live.apply}
+      onDone={() => onOpenChange(false)}
+    />
+  )
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
+    <Popover open={open} onOpenChange={live.onOpenChange}>
       <Popover.Content
         side='bottom'
         align='start'
-        className={EDITOR_POPOVER_CLASS}
+        className={
+          editing ? 'w-80 max-w-(--available-width)' : EDITOR_POPOVER_CLASS
+        }
         positionerProps={{ anchor }}
         initialFocus={inputRef}
         finalFocus={() => {
@@ -100,11 +329,16 @@ export function EditorButtonPopover({
           return false
         }}
       >
-        <ButtonForm
-          editor={editor}
-          inputRef={inputRef}
-          onDone={() => onOpenChange(false)}
-        />
+        {editing ? (
+          <>
+            <Popover.Header>
+              <Popover.Title>Button settings</Popover.Title>
+            </Popover.Header>
+            {form}
+          </>
+        ) : (
+          form
+        )}
       </Popover.Content>
     </Popover>
   )

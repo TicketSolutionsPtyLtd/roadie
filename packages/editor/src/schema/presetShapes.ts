@@ -127,7 +127,7 @@ export const presetShapes = {
       column: { content: 'blocks', holds: emailBlocks },
       button: {
         content: 'inline',
-        attrs: ['href', 'showWhen'],
+        attrs: ['href', 'align', 'emphasis', 'fullWidth', 'showWhen'],
         plainText: true
       },
       image: { content: 'none', attrs: ['src', 'alt', 'width', 'showWhen'] },
