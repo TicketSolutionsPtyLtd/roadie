@@ -311,7 +311,7 @@ describe('Editor insert menu', () => {
     )
   })
 
-  it('keeps the caret in an emptied line after a block goes before it', async () => {
+  it('puts a block with no lines in place of the emptied line, with a line after to type on', async () => {
     const onValueChange = renderEmail()
     await focusedTextbox()
 
