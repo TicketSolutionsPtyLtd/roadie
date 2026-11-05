@@ -200,10 +200,19 @@ describe('htmlToEditorValue', () => {
     ])
   })
 
-  it('keeps an empty table cell’s paragraph', () => {
-    const table = blocks('<table><tr><td>Doors</td><td></td></tr></table>')?.[0]
-
-    expect(table?.content?.[0]?.content?.[1]?.content).toEqual([paragraph()])
+  it('keeps a spacer paragraph inside another block', () => {
+    expect(
+      blocks('<blockquote><p>Doors</p><p>&nbsp;</p><p>7pm</p></blockquote>')
+    ).toEqual([
+      {
+        type: 'blockquote',
+        content: [
+          paragraph(text('Doors')),
+          paragraph(text('\u00a0')),
+          paragraph(text('7pm'))
+        ]
+      }
+    ])
   })
 
   it.each([
@@ -289,11 +298,11 @@ describe('htmlToEditorValue', () => {
       expect(dropped).toEqual([])
     })
 
-    it('reads a protocol-relative image as https', () => {
-      const { value, dropped } = htmlToEditorValue(
-        '<img src="//cdn.oztix.com.au/poster.jpg">',
-        'rich'
-      )
+    it.each([
+      ['a protocol-relative image as https', '//cdn.oztix.com.au/poster.jpg'],
+      ['a space-padded image', ' https://cdn.oztix.com.au/poster.jpg ']
+    ])('reads %s', (_, src) => {
+      const { value, dropped } = htmlToEditorValue(`<img src="${src}">`, 'rich')
 
       expect(value.doc.content).toEqual([
         {
@@ -305,14 +314,35 @@ describe('htmlToEditorValue', () => {
     })
 
     // A page with script never shows these, so nothing in them is lost.
-    it('ignores what only shows without script', () => {
-      const { value, dropped } = htmlToEditorValue(
-        '<p>Doors 7pm</p><noscript><img src="https://www.facebook.com/tr?id=1"><img src="data:image/gif;base64,R0lGOD"><iframe src="https://evil.example/x"></iframe></noscript><template><p>Hidden</p></template>',
-        'rich'
-      )
+    it.each([
+      [
+        'after text',
+        '<p>Doors 7pm</p><noscript><img src="https://www.facebook.com/tr?id=1"><img src="data:image/gif;base64,R0lGOD"><iframe src="https://evil.example/x"></iframe></noscript>'
+      ],
+      [
+        'before any text',
+        '<title>Tickets</title><script>fbq()</script><noscript><img src="https://www.facebook.com/tr?id=1"></noscript><p>Doors 7pm</p>'
+      ]
+    ])('ignores what only shows without script, %s', (_, html) => {
+      for (const preset of ['rich', 'basic'] as const) {
+        const { value, dropped } = htmlToEditorValue(html, preset)
 
-      expect(value.doc.content).toEqual([paragraph(text('Doors 7pm'))])
-      expect(dropped).toEqual([])
+        expect(value.doc.content).toEqual([paragraph(text('Doors 7pm'))])
+        expect(dropped).toEqual([])
+      }
+    })
+
+    it.each([
+      ['a protocol-relative image', '//cdn.oztix.com.au/a.jpg', 'image'],
+      ['a protocol-relative player', ' //evil.example/x ', 'embed']
+    ] as const)('reports %s as https', (_, src, kind) => {
+      const element =
+        kind === 'image'
+          ? `<img src="${src}">`
+          : `<iframe src="${src}"></iframe>`
+      const { dropped } = htmlToEditorValue(element, 'basic')
+
+      expect(dropped).toEqual([{ kind, src: `https:${src.trim()}` }])
     })
 
     it.each([
@@ -484,6 +514,11 @@ describe('htmlToEditorValue', () => {
       'an embed element',
       '<embed src="https://cdn.oztix.com.au/a.swf">',
       'https://cdn.oztix.com.au/a.swf'
+    ],
+    [
+      'a video with an empty src',
+      '<video src=""><source src="https://cdn.oztix.com.au/a.mp4"></video>',
+      'https://cdn.oztix.com.au/a.mp4'
     ],
     [
       'a video with only sources',

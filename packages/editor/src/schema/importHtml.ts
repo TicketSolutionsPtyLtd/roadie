@@ -30,8 +30,8 @@ function report(kind: DroppedContent['kind'], src: string | null) {
 }
 
 // Old embed and image code writes addresses protocol-relative.
-function absoluteSrc(element: Element) {
-  const src = element.getAttribute('src')?.trim() ?? null
+function absoluteSrc(element: Element | null | undefined) {
+  const src = element?.getAttribute('src')?.trim() || null
   return src?.startsWith('//') ? `https:${src}` : src
 }
 
@@ -65,12 +65,11 @@ function keptMedia(
     'img, iframe, video, audio, object, embed'
   )) {
     if (!element.isConnected) continue
-    const src = element.getAttribute('src')
+    const src = absoluteSrc(element)
     const inCell = element.closest('td, th') !== null
     if (element.localName === 'img') {
-      const absolute = absoluteSrc(element)
-      if (canHoldImages && !inCell && isSafeImageSrc(absolute)) {
-        element.setAttribute('src', absolute)
+      if (canHoldImages && !inCell && isSafeImageSrc(src)) {
+        element.setAttribute('src', src)
         continue
       }
       dropped.push(report('image', src))
@@ -85,10 +84,9 @@ function keptMedia(
       dropped.push(
         report(
           'media',
-          src ??
-            element.getAttribute('data') ??
-            element.querySelector('source[src]')?.getAttribute('src') ??
-            null
+          src ||
+            element.getAttribute('data') ||
+            absoluteSrc(element.querySelector('source[src]'))
         )
       )
     }
@@ -146,10 +144,9 @@ const isBlankParagraph = (node: JSONContent) =>
 
 // CKEditor spaces blocks with empty and `&nbsp;` paragraphs.
 function withoutSpacers(doc: JSONContent): JSONContent {
-  const content = (doc.content ?? []).filter((node) => !isBlankParagraph(node))
   return {
     ...doc,
-    content: content.length > 0 ? content : [{ type: 'paragraph' }]
+    content: (doc.content ?? []).filter((node) => !isBlankParagraph(node))
   }
 }
 
@@ -170,7 +167,7 @@ function splitAtBreaks(node: JSONContent): JSONContent {
  * `migrate`, so the result always loads. Text is kept, except fallback text
  * inside a dropped media element; styles, fonts, colours and classes are
  * dropped. Two or more `<br>` in a paragraph start a new one, and empty
- * paragraphs go. A link around an image isn't kept.
+ * paragraphs between blocks go. A link around an image isn’t kept.
  * Images the preset can't hold or load, iframes no embed provider reads, and
  * video, audio and plugin elements are dropped and listed in `dropped`, in
  * document order, so an app can warn before overwriting legacy content.
@@ -194,11 +191,11 @@ export function htmlToEditorValue(
   if (typeof DOMParser === 'undefined') {
     throw new Error('htmlToEditorValue needs a browser’s DOMParser.')
   }
-  const { body } = new DOMParser().parseFromString(html, 'text/html')
-  // A page with script never shows these.
-  body
-    .querySelectorAll('noscript, template')
-    .forEach((hidden) => hidden.remove())
+  // Without the <body>, a leading <noscript> would open in <head>, and its
+  // content would spill into the body.
+  const { body } = new DOMParser().parseFromString(`<body>${html}`, 'text/html')
+  // A page with script never shows a noscript.
+  body.querySelectorAll('noscript, title').forEach((hidden) => hidden.remove())
   const dropped = keptMedia(body, preset, embedProviders)
   cellsAsText(body, preset)
   const doc = withoutSpacers(

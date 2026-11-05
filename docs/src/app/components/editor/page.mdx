@@ -659,7 +659,7 @@ import { htmlToEditorValue } from '@oztix/roadie-editor/schema'
 - Text is kept, and styles, fonts, sizes, colours and classes are dropped.
 - In a paragraph, one `<br>` is a line break, and two or more start a new
   paragraph, as CKEditor writes them. Empty and `&nbsp;` spacer paragraphs
-  go.
+  between blocks go.
 - `h1` reads as `h2`, and anything else the preset can't hold keeps its text.
 - These are dropped and listed in `dropped`, so you can warn before the
   legacy content is overwritten:
@@ -667,7 +667,7 @@ import { htmlToEditorValue } from '@oztix/roadie-editor/schema'
     image in `basic`
   - iframes no embed provider reads
   - images and players in a table cell, which holds only text
-  - video and audio
+  - video, audio and plugin (`object` and `embed`) elements
 - A link around an image isn't kept, and isn't listed.
 
 Iframes become embeds when a provider reads their player address. If the
