@@ -39,7 +39,9 @@ export const drawerPopupVariants = cva(
     // Clipped, so sticky chrome that bleeds to the edge follows the rounded corners.
     'flex flex-col min-h-0 overflow-clip emphasis-floating motion-drawer',
     // Header, body and footer each read this; the body scrolls, so the popup can't pad itself.
-    '[--content-inset:--spacing(6)]'
+    '[--content-inset:--spacing(6)]',
+    // A Pane.Footer inside sets the height inline; sticky content clears it.
+    '[--pane-footer-height:0px] [--pane-sticky-bottom:var(--pane-footer-height)]'
   ],
   {
     variants: {

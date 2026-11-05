@@ -7,6 +7,8 @@ import { CaretDownIcon } from '@phosphor-icons/react/ssr'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { FIRST_ROW } from './variants'
+
 export type ComboboxTriggerProps = ComboboxPrimitive.Trigger.Props &
   RefAttributes<HTMLButtonElement>
 
@@ -20,6 +22,7 @@ export function ComboboxTrigger({
       data-slot='combobox-trigger'
       className={cn(
         'shrink-0 text-subtle transition-transform duration-moderate data-[popup-open]:rotate-180',
+        FIRST_ROW,
         className
       )}
       {...props}

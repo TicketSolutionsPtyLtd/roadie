@@ -63,9 +63,11 @@ export const buttonBlock = (href: string): JSONContent => ({
 
 /** Leaves a button for a new paragraph after it, rather than splitting it. */
 function leaveButton({ tr, dispatch }: CommandProps) {
-  const { $from } = tr.selection
-  if ($from.parent.type.name !== 'button') return false
+  if (tr.selection.$from.parent.type.name !== 'button') return false
   if (dispatch) {
+    tr.deleteSelection()
+    const { $from } = tr.selection
+    if ($from.parent.type.name !== 'button') return true
     const after = $from.after()
     tr.insert(after, tr.doc.type.schema.nodes.paragraph!.create())
     tr.setSelection(TextSelection.create(tr.doc, after + 1)).scrollIntoView()
@@ -79,8 +81,9 @@ const isColumns = (node: PMNode) => node.type.name === 'columns'
 export const selectedColumns = ({ selection }: { selection: Selection }) =>
   findParentNode(isColumns)(selection)
 
+// A button keeps its link with no label, so it isn't a line to drop.
 const isEmptyLine = (node: PMNode) =>
-  node.isTextblock && node.content.size === 0
+  node.isTextblock && node.type.name !== 'button' && node.content.size === 0
 
 /**
  * Sets how many columns the selection's columns have. A removed column's
@@ -174,13 +177,13 @@ const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
       Enter: ({ editor }) => editor.commands.command(leaveButton)
     })
   }),
-  section: outlined(Section, `prose-bleed rounded-lg p-3 ${OUTLINE}`),
+  section: outlined(Section, `rounded-lg p-3 ${OUTLINE}`),
   columns: outlined(
     Columns,
-    'prose-bleed grid gap-2 @min-[480px]:auto-cols-fr @min-[480px]:grid-flow-col'
+    'grid gap-2 @min-[480px]:auto-cols-fr @min-[480px]:grid-flow-col'
   ),
-  column: outlined(Column, `min-w-0 rounded-md p-2 ${OUTLINE}`),
-  spacer: outlined(Spacer, `prose-bleed rounded-md ${OUTLINE}`, (attrs) => ({
+  column: outlined(Column, `rounded-md p-2 ${OUTLINE}`),
+  spacer: outlined(Spacer, `rounded-md ${OUTLINE}`, (attrs) => ({
     'data-height': String(attrs.height),
     style: `height: ${Number(attrs.height)}px`
   }))

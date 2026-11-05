@@ -14,10 +14,10 @@ export type UseCartReturn = {
 }
 
 /**
- * Plain Vue composable over the framework-agnostic core client — no
+ * Plain Vue composable over the framework-agnostic core client: no
  * `@tanstack/vue-query`, zero new runtime deps for the outlet app. Fetches on
  * mount and refetches whenever `collectionId` or `refreshKey` changes (design
- * finding #6 — the outlet app has no refetch-on-focus safety net, so bumping
+ * finding #6: the outlet app has no refetch-on-focus safety net, so bumping
  * `refreshKey` is the refresh seam). Getters keep the inputs reactive without
  * forcing the caller to pass refs.
  */
@@ -40,13 +40,13 @@ export function useCart(
   // whose token is no longer current is discarded. Without this, out-of-order
   // resolutions (rapid refreshKey bumps, or getSummary/getDetails landing in a
   // different order than issued) would let a stale response overwrite newer
-  // state — the outlet app has no react-query to dedupe (design finding #6).
+  // state. The outlet app has no react-query to dedupe (design finding #6).
   let requestId = 0
 
   async function refresh(): Promise<void> {
     const id = collectionId()
     if (!id) {
-      // No collection to load — clear the optimistic mount-time loading state
+      // No collection to load. Clear the optimistic mount-time loading state
       // so the UI doesn't sit on skeletons forever.
       summaryLoading.value = false
       detailsLoading.value = false

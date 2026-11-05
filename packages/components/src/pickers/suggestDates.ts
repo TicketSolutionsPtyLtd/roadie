@@ -1,6 +1,6 @@
 import { compareDates } from '@oztix/roadie-core/datetime'
 
-import { matchesDate } from '../components/Calendar/matchers'
+import { matchesDate } from './matchers'
 import { type ReadDateOptions, formatDate, readDays, todayOf } from './readDate'
 
 export type DateSuggestion = {

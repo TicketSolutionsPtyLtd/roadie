@@ -1,0 +1,147 @@
+export const metadata = {
+  title: 'Stats',
+  description:
+    'Three to six numbers that make the point on their own, each with a spot illustration and a label',
+  status: 'alpha',
+  category: 'Prove',
+  wideExamples: true
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Three to six numbers that make the point on their own, each written as it
+should read, with a spot illustration and a label.
+
+## Import
+
+```tsx
+import { Stats } from '@oztix/roadie-blocks/stats'
+```
+
+## Examples
+
+### Figures
+
+A heading over the numbers, which wrap up to four to a row, or three when
+there are five or six, so no row ends with one alone. Each value is a string,
+so it reads exactly as the editor wrote it, and a value over four words is set
+a step smaller.
+
+```tsx-live-expand id=figures
+<Stats
+  preset='figures'
+  title='By the numbers'
+  description='The impact of genuine partnerships'
+  stats={[
+    { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
+    { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
+    { value: '20+', label: 'years in ticketing', illustration: 'Heart' },
+    { value: '50+', label: 'full-time team', illustration: 'HighFive' },
+    { value: '7 million+', label: 'fans each year', illustration: 'FlowerSpiral' }
+  ]}
+/>
+```
+
+### Intent and emphasis
+
+`intent` sets the figures, heading, and highlights in its strong text colour,
+and `emphasis` draws a surface behind them: `raised`, `normal`, `subtle`, `subtler`, `strong`, or `inverted`.
+There's none by default. The surface is a rounded panel inside the page
+padding; `contained={false}` runs it full width as a band instead.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Brand, subtle panel */}
+<Stats
+  intent='brand'
+  emphasis='subtle'
+  title='Your audience in Brisbane'
+  stats={[
+    { value: '180,000+', label: 'ticket buyers', illustration: 'Ticket' },
+    { value: '1,200+', label: 'events a year', illustration: 'MapPin' },
+    { value: '4.8 out of 5', label: 'average rating', illustration: 'Heart' }
+  ]}
+/>
+{/* Normal band */}
+<Stats
+  emphasis='normal'
+  contained={false}
+  title='Results from last season'
+  stats={[
+    { value: '98%', label: 'tickets scanned on time', illustration: 'HighFive' },
+    { value: '12 minutes', label: 'average wait to get in', illustration: 'FlowerSpiral' },
+    { value: '4.9 out of 5', label: 'support rating', illustration: 'Heart' }
+  ]}
+/>
+```
+
+### Align, size, and actions
+
+`align='center'` centres the heading and the actions over the figures, which
+start by default. `size='md'` or `'sm'` sets the title one or two steps smaller, with tighter
+gaps. `actions` link on from under the figures.
+
+```tsx-live-expand id=align-size-and-actions
+<Stats
+  emphasis='subtler'
+  align='center'
+  size='md'
+  title='By the numbers'
+  description='The impact of genuine partnerships'
+  stats={[
+    { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
+    { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
+    { value: '20+', label: 'years in ticketing', illustration: 'Heart' }
+  ]}
+  actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Say what the numbers prove in the title or description, such as `The impact of genuine partnerships`, before the numbers do.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't title the block with a bare label, such as `Stats`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep to a few numbers that change rarely'>
+  <Guideline.Do>
+    Show three to six numbers, such as tickets sold or years in business, rounded and written as they should read, such as `7 million+`.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't show live or precise figures. The block shows each value exactly as written.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Set stats beside text with Side by side'>
+  <Guideline.Do>
+    Use [Side by side](/blocks/side-by-side)'s `stats` preset to set stats beside long-form text.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't stack a Stats block under a text block to fake the aside.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Add a surface only to set the figures apart'>
+  <Guideline.Do>
+    Draw a surface, or set an intent, when the figures follow other plain blocks and need to stand apart.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't draw a surface behind Stats beside a block that already sits on a panel. Two surfaces in a row read as one.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Stats reports a view once it's half on screen, and a click on each action
+with its label and href. The figures aren't links.
+
+<PropsDefinitions component='Stats' />

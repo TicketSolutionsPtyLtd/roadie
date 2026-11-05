@@ -1,4 +1,4 @@
-import { OTHER } from '../plot/series'
+import { OTHER, asList } from '../plot/series'
 import { finiteOrNull } from '../plot/values'
 import type { RankedBarsProps } from './types'
 
@@ -31,7 +31,7 @@ const byValue = (a: RankRow, b: RankRow) =>
       ? -1
       : b.value - a.value
 
-/** One row per name, largest first. Rows that share a name add up. */
+/** One row per name, largest first unless `sort` is off. Rows that share a name add up. */
 export function rankRows(props: RankedBarsProps): RankRow[] {
   const reference = props.reference?.field
   const rows = new Map<string, RankRow>()
@@ -52,12 +52,30 @@ export function rankRows(props: RankedBarsProps): RankRow[] {
         : { name, value, reference: ref, index }
     )
   })
-  return [...rows.values()].sort(byValue)
+  const all = [...rows.values()]
+  return props.sort === false ? all : all.sort(byValue)
 }
 
-/** Rows with a value, largest first, before the smallest roll into Other. */
+/** Rows with a value, in bar order, before the rest roll into Other. */
 export const rankable = (props: RankedBarsProps) =>
   rankRows(props).filter((r): r is Row => r.value !== null)
+
+/** The first `limit` rows, each highlighted row past it taking the place of the last bar not highlighted. */
+function keepHighlighted(
+  rows: Row[],
+  limit: number,
+  highlighted: readonly string[]
+): Row[] {
+  const isContext = (row: Row) => !highlighted.includes(row.name)
+  const kept = rows.slice(0, limit)
+  for (const row of rows.slice(limit)) {
+    if (isContext(row)) continue
+    const last = kept.findLast(isContext)
+    if (!last) break
+    kept[kept.indexOf(last)] = row
+  }
+  return rows.filter((row) => kept.includes(row))
+}
 
 export function rank(props: RankedBarsProps): Ranked[] {
   const rows = rankable(props)
@@ -69,6 +87,8 @@ export function rank(props: RankedBarsProps): Ranked[] {
     isOther: false
   })
   if (rows.length <= limit) return rows.map(toRanked)
+  if (props.other === false)
+    return keepHighlighted(rows, limit, asList(props.highlight)).map(toRanked)
   const value = sum(rows.slice(limit - 1))
   return [
     ...rows.slice(0, limit - 1).map(toRanked),

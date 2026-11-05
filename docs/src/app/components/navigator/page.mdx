@@ -76,8 +76,8 @@ shell this way.
 
 ## Examples
 
-Narrow your viewport to see the tab bar and the stacked panes. Press Full width
-on an example with a secondary nav to see its columns.
+Switch an example to Phone to see the tab bar and the stacked panes. Press Full
+width on an example with a secondary nav to see its columns.
 
 ### Default
 
@@ -278,8 +278,12 @@ render(<SecondaryNav />)
 
 #### Searchable
 
-`searchable` adds a search field to the list pane. It filters rows by label and
-hides empty groups. Cancel or Escape clears the search and leaves the field.
+`searchable` adds a search button to the list pane's header. The button, or
+⌘/ (Ctrl+/ off Apple devices), opens a field under the title, and the button
+hides while it's open. The field filters rows by label and hides empty groups.
+Cancel or Escape clears the search and closes the field, and so does moving
+focus away while it's empty. ⌘K stays free for an app-wide search, and / for a
+page's own.
 
 ```tsx-live-noinline-expand
 function SearchableNav() {
@@ -779,7 +783,7 @@ destination's tab on one of its pages then shows the list instead of going to
 the destination's route.
 
 Here `useState` stands in for the query string, and navigating clears it as a
-new URL would. Narrow your viewport and tap Events on one of its pages.
+new URL would. Switch the example to Phone and tap Events on one of its pages.
 
 ```tsx-live-noinline-expand
 function ListFromUrlNav() {

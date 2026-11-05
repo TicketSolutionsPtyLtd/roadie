@@ -1,38 +1,36 @@
 'use client'
 
-import { Suspense, lazy, useState } from 'react'
+import { type ReactNode, useCallback, useState } from 'react'
 
 import { ArrowsOutIcon } from '@phosphor-icons/react'
 
 import { Button } from '@oztix/roadie-components/button'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
 
+import { LazyLiveRunner, loadLiveRunner } from './LazyLiveRunner'
 import {
   CodePanel,
+  ExampleHeader,
   HighlightedCode,
   canCollapse,
   highlightLanguageOf,
   useCodeTheme
 } from './codeChrome'
+import { type Device, useViewportDevice } from './exampleDevices'
 import {
   DEFAULT_PREVIEW_HEIGHT,
   exampleHeights,
   useNearViewport
 } from './nearViewport'
 
-// react-live and the example scope (every component, chart and widget) load
-// with the first example that nears the viewport, not with the page.
-const loadLiveRunner = () => import('./LiveRunner')
-const LiveRunner = lazy(loadLiveRunner)
-
 type CodePreviewProps = {
   children: string
   language?: string
   showCopy?: boolean
   className?: string
-  /** Adds a button that opens the live example in a full-width dialog. A `-expand` fence suffix does the same. */
+  /** Adds a header button that opens the live example in a full-width dialog. A `-expand` fence suffix does the same. */
   expandable?: boolean
-  /** The example's own page; adds an action that opens it in a new tab. */
+  /** The example's own page; adds a header action that opens it in a new tab. */
   exampleHref?: string
   /** Renders the live example on load instead of when it nears the viewport. An `eager` fence meta does the same. */
   eager?: boolean
@@ -43,51 +41,39 @@ type CodePreviewProps = {
 // MDX's `.prose` sets the rhythm there; the docs' own pages need the gap.
 const BLOCK_SPACING = 'mb-8 in-[.prose]:mb-0'
 
-/** What a live example shows until it renders: a reserved preview and its static code. */
+/** What a live example shows until it renders, or if it can't: a reserved preview, or the error in its place, and its static code. */
 function LivePlaceholder({
   code,
   language,
   heightKey,
-  exampleHref,
-  expandable,
   expanded,
-  onExpandedChange
+  onExpandedChange,
+  error
 }: {
   code: string
   language: string
   heightKey: string
-  exampleHref?: string
-  expandable: boolean
   expanded: boolean
   onExpandedChange: (expanded: boolean) => void
+  error?: ReactNode
 }) {
   const theme = useCodeTheme()
   const highlightLanguage = highlightLanguageOf(language)
   return (
     <>
-      {expandable && (
+      {error ?? (
         <div
-          data-not-prose
-          className='flex justify-end border-b border-subtle bg-normal p-2 max-md:hidden'
+          data-live-example='pending'
+          className='grid bg-normal p-4 sm:p-6'
+          style={{
+            minHeight: exampleHeights.get(heightKey) ?? DEFAULT_PREVIEW_HEIGHT
+          }}
         >
-          <Button size='sm' emphasis='subtler' disabled>
-            <ArrowsOutIcon weight='bold' className='size-4' />
-            Full width
-          </Button>
+          <Skeleton shape='block' emphasis='subtler' className='h-full' />
         </div>
       )}
-      <div
-        data-live-example='pending'
-        className='grid bg-normal p-4 sm:p-6'
-        style={{
-          minHeight: exampleHeights.get(heightKey) ?? DEFAULT_PREVIEW_HEIGHT
-        }}
-      >
-        <Skeleton shape='block' emphasis='subtler' className='h-full' />
-      </div>
       <CodePanel
         code={code}
-        exampleHref={exampleHref}
         expanded={expanded}
         onExpandedChange={onExpandedChange}
       >
@@ -127,13 +113,21 @@ function LiveExample({
   )
   const [expanded, setExpanded] = useState(false)
   const [editorOpened, setEditorOpened] = useState(false)
+  const viewportDevice = useViewportDevice()
+  // Unpicked, the switch follows the screen, so a phone starts on Phone.
+  const [picked, setPicked] = useState<Device>()
+  const device = picked ?? viewportDevice
+  const [fullWidth, setFullWidth] = useState(false)
+  const [rendered, setRendered] = useState(false)
+  const onRendered = useCallback(() => {
+    setRendered(true)
+    onMounted()
+  }, [onMounted])
   const heightKey = exampleHref ?? `${code.length}:${code.slice(0, 120)}`
   const shared = {
     code,
     language,
     heightKey,
-    exampleHref,
-    expandable,
     expanded,
     onExpandedChange: (next: boolean) => {
       setExpanded(next)
@@ -145,20 +139,47 @@ function LiveExample({
   return (
     <div
       ref={ref}
-      // A `.prose` inside an escape stays unstyled, so a typesetting demo
-      // escapes only its chrome, inside LiveRunner and CodePanel.
+      // A typesetting demo escapes only its chrome, inside LiveRunner and
+      // CodePanel, so the page's own Prose sets its preview.
       data-not-prose={!typesets || undefined}
+      data-slot='live-example'
       className={`relative ${BLOCK_SPACING} min-w-0 overflow-hidden rounded-xl border border-subtle`}
     >
+      <ExampleHeader
+        device={device}
+        onDeviceChange={setPicked}
+        exampleHref={exampleHref}
+        fullWidth={
+          expandable && (
+            <Button
+              size='sm'
+              emphasis='subtler'
+              disabled={!rendered}
+              onClick={() => setFullWidth(true)}
+            >
+              <ArrowsOutIcon weight='bold' className='size-4' />
+              Full width
+            </Button>
+          )
+        }
+      />
       {near ? (
-        <Suspense fallback={placeholder}>
-          <LiveRunner
-            {...shared}
-            editorOpened={editorOpened}
-            onMounted={onMounted}
-            previewLayout={previewLayout}
-          />
-        </Suspense>
+        <LazyLiveRunner
+          {...shared}
+          loading={placeholder}
+          frame={(error) => (
+            <LivePlaceholder
+              {...shared}
+              error={<div className='bg-normal px-4 sm:px-6'>{error}</div>}
+            />
+          )}
+          editorOpened={editorOpened}
+          onMounted={onRendered}
+          previewLayout={previewLayout}
+          frameDevice={device === viewportDevice ? undefined : device}
+          fullWidth={fullWidth}
+          onFullWidthChange={setFullWidth}
+        />
       ) : (
         placeholder
       )}
@@ -209,7 +230,7 @@ export function CodePreview({
     >
       <CodePanel
         code={code}
-        showActions={showCopy}
+        showCopy={showCopy}
         expanded={expanded}
         onExpandedChange={setExpanded}
       >

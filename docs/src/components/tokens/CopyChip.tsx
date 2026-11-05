@@ -39,7 +39,7 @@ export function CopyChip({
       }}
       aria-label={`Copy ${value}`}
       className={cn(
-        'is-interactive inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 text-start font-mono text-sm select-none hover:bg-subtle',
+        'is-interactive inline-flex min-w-0 items-center gap-1.5 rounded-md border-0 px-1.5 py-0.5 emphasis-subtler text-start font-mono text-sm select-none',
         className
       )}
     >

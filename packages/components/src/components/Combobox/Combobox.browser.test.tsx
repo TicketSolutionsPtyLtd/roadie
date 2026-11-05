@@ -240,6 +240,31 @@ describe('Combobox in a Field', () => {
 })
 
 describe('Combobox input group', () => {
+  it.each(['sm', 'md', 'lg'] as const)(
+    'centres Clear and the trigger with no chips, at %s',
+    (size) => {
+      render(
+        <Combobox items={['Rock']} defaultValue='Rock'>
+          <Combobox.InputGroup size={size} data-testid='group'>
+            <Combobox.Input aria-label='Genre' />
+            <Combobox.Clear aria-label='Clear genre' />
+            <Combobox.Trigger aria-label='Show genres' />
+          </Combobox.InputGroup>
+        </Combobox>
+      )
+      const middle = (element: Element) => {
+        const { top, height } = element.getBoundingClientRect()
+        return top + height / 2
+      }
+      const group = middle(screen.getByTestId('group'))
+      for (const name of ['Clear genre', 'Show genres'])
+        expect(middle(screen.getByRole('button', { name }))).toBeCloseTo(
+          group,
+          0
+        )
+    }
+  )
+
   function Venue(props: ComboboxInputGroupProps) {
     return (
       <Combobox>

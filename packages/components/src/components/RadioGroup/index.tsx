@@ -1,6 +1,6 @@
 // Subpath entry for `@oztix/roadie-components/radio-group`.
 //
-// NO `'use client'` — server-safe property-assignment layer.
+// NO `'use client'`: server-safe property-assignment layer.
 // See docs/contributing/COMPOUND_PATTERNS.md.
 import { RadioGroupErrorText } from './RadioGroupErrorText'
 import { RadioGroupHelperText } from './RadioGroupHelperText'

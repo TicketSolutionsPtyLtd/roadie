@@ -24,3 +24,7 @@ export const comboboxInputGroupVariants = cva(
     }
   }
 )
+
+// Chips wrap onto new rows, so an icon at the end stays centred on the first.
+export const FIRST_ROW =
+  'in-data-[slot=combobox-input-group]:self-start in-data-[slot=combobox-input-group]:mt-[calc(var(--combobox-chips-py)+--spacing(1))]'

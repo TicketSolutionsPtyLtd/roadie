@@ -89,19 +89,22 @@ Most docs pages have a markdown copy, and `llms.txt` indexes them. Any agent tha
 
 ## Package manifests
 
-Core, components, charts, and widgets each ship a `roadie.manifest.json` built from the same source as the release, so it always matches the version you installed. Agents and tools can read it instead of crawling the docs, and the plugin's skills do.
+Core, components, charts, editor, blocks, and widgets each ship a `roadie.manifest.json` built from the same source as the release, so it always matches the version you installed. Agents and tools can read it instead of crawling the docs, and the plugin's skills do.
 
 ```ts
 import core from '@oztix/roadie-core/roadie.manifest.json' with { type: 'json' }
 import components from '@oztix/roadie-components/roadie.manifest.json' with { type: 'json' }
 import charts from '@oztix/roadie-charts/roadie.manifest.json' with { type: 'json' }
+import editor from '@oztix/roadie-editor/roadie.manifest.json' with { type: 'json' }
+import blocks from '@oztix/roadie-blocks/roadie.manifest.json' with { type: 'json' }
 import widgets from '@oztix/roadie-widgets/roadie.manifest.json' with { type: 'json' }
 ```
 
-All four manifests have the same shape:
+All six manifests have the same shape:
 
 - `exports` lists each import path with the values and types it exports.
 - `components` lists each React component with its import path, props, compound parts, and docs page, plus its first live example when its page has one. Vue skins appear in `exports` only.
+- `types` describes each exported object type the props name, such as an item in a list prop, with each field's type, whether it's required, and its description. It follows a field to the next type the same package exports, so a reader can check the nested fields a component needs. A type re-exported under another name gives that name as `export`, a generic type lists its `typeParameters`, and a type that also takes keys it doesn't name gives their type as `additionalFields`.
 - `deprecations` lists every deprecated export and prop with what to use instead.
 - `tokens` lists the CSS variables, utilities, and classes, in the core manifest only.
 
