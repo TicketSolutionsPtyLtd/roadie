@@ -44,12 +44,12 @@ describe('Editor typing', () => {
   it('puts back what was typed on Backspace straight after', async () => {
     render(<Editor aria-label={LABEL} preset='rich' />)
     const textbox = await focusedTextbox()
-    await userEvent.keyboard('And then...')
-    await waitFor(() => expect(textbox).toHaveTextContent('And then…'))
+    await userEvent.keyboard('And then... late --')
+    await waitFor(() => expect(textbox).toHaveTextContent('And then… late —'))
 
     await userEvent.keyboard('{Backspace}')
 
-    await waitFor(() => expect(textbox).toHaveTextContent('And then...'))
+    await waitFor(() => expect(textbox).toHaveTextContent('And then… late --'))
   })
 
   it.each([
