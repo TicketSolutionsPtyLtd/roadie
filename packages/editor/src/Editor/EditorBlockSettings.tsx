@@ -197,10 +197,17 @@ export function EditorBlockSettings({
   useEffect(() => {
     if (from === null || !editor) return
     const dom = editor.view.nodeDOM(from)
-    // On a phone the sheet takes the bottom half, so the block goes to the top.
-    if (dom instanceof HTMLElement) {
-      dom.scrollIntoView({ block: phone ? 'start' : 'nearest' })
+    if (!(dom instanceof HTMLElement)) return
+    if (!phone) {
+      dom.scrollIntoView({ block: 'nearest' })
+      return
     }
+    // The sheet takes the bottom half, so the block goes near the top, clear
+    // of any sticky bar above it.
+    const margin = dom.style.scrollMarginTop
+    dom.style.scrollMarginTop = '20dvh'
+    dom.scrollIntoView({ block: 'start' })
+    dom.style.scrollMarginTop = margin
   }, [editor, from, phone])
   const lost = open && !block
   // Its block went, such as with a new value, so it mustn't reopen on the next.
