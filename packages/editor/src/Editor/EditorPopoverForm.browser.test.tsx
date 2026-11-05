@@ -471,6 +471,42 @@ describe('Editor link popover', () => {
     expect(document.getSelection()?.isCollapsed).toBe(true)
   })
 
+  it('keeps focus in the field once what’s typed stops being an address', async () => {
+    const textbox = await renderEditor(linked)
+    await userEvent.click(within(textbox).getByText('tickets'))
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const field = await openField('Link')
+
+    await userEvent.keyboard('oztix.com.au{Backspace}')
+
+    expect(within(textbox).getByRole('link')).toHaveAttribute('href', TICKETS)
+    expect(field).toHaveFocus()
+    expect(field).toHaveValue('oztix.com.a')
+  })
+
+  it('undoes in one step a link kept after what’s typed stopped being an address', async () => {
+    const textbox = await renderEditor(linked)
+    await userEvent.click(within(textbox).getByText('tickets'))
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const field = await openField('Link')
+    await userEvent.keyboard('oztix.com.au{Backspace}u{Enter}')
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    await waitFor(() => expect(textbox).toHaveFocus())
+    expect(within(textbox).getByRole('link')).toHaveAttribute(
+      'href',
+      'https://oztix.com.au'
+    )
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() =>
+      expect(within(textbox).getByRole('link')).toHaveAttribute('href', TICKETS)
+    )
+
+    // Nothing the popover did before the save is left to undo.
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    expect(within(textbox).getByRole('link')).toHaveAttribute('href', TICKETS)
+  })
+
   it('leaves a selection part linked once what’s typed stops being an address', async () => {
     const textbox = await renderEditor(linked)
     await selectParagraph(within(textbox).getByText('tickets').parentElement!)
