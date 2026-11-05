@@ -13,7 +13,7 @@ export const DOCUMENTED_ELSEWHERE: DocumentedElsewhere = {
     DashboardView: '/charts/dashboards/'
   },
   '@oztix/roadie-editor/email-html-field': {
-    EmailHtmlField: '/components/editor/#html-emails'
+    EmailHtmlField: '/components/editor/email/#html-emails'
   }
 }
 
@@ -25,5 +25,9 @@ export const DOCUMENTED_SUBPATHS: DocumentedSubpaths = {
   '@oztix/roadie-core/records/meilisearch': '/foundations/records/',
   '@oztix/roadie-core/records/elasticsearch': '/foundations/records/',
   '@oztix/roadie-core/records/json-schema': '/foundations/records/',
-  '@oztix/roadie-editor/email': '/components/editor/#sending-email'
+  '@oztix/roadie-editor/email': '/components/editor/email/#sending-email',
+  '@oztix/roadie-editor/extensions': '/components/editor/blocks/#custom-blocks',
+  '@oztix/roadie-editor/render':
+    '/components/editor/saved-content/#rendering-saved-content',
+  '@oztix/roadie-editor/schema': '/components/editor/saved-content/'
 }

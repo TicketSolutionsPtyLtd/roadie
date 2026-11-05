@@ -110,8 +110,11 @@ describe('Markdown twins', () => {
     for (const file of files.filter((file) => file.endsWith('index.html'))) {
       const route = `/${file.replace(/\/?index\.html$/, '')}`
       const html = await readFile(join(OUT_DIR, file), 'utf-8')
+      // A moved release keeps its old `.md` for agents' links, but its page
+      // only redirects. A shallow clone has no release dates, so no moves.
+      const redirects = html.includes('http-equiv="refresh"')
       expect(alternateOf(html), route).toBe(
-        twins.has(route) ? `${BASE_PATH}${route}.md` : undefined
+        twins.has(route) && !redirects ? `${BASE_PATH}${route}.md` : undefined
       )
     }
   })
