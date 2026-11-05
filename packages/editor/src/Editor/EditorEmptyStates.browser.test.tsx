@@ -83,6 +83,36 @@ describe('Editor empty line hint', () => {
     await waitFor(() => expect(shownBefore(line)).toBe(`"${EMAIL_HINT}"`))
   })
 
+  it.each([
+    ['blocks', 'Tap Blocks to add one'],
+    ['email', 'Tap Blocks to add a block or section']
+  ] as const)(
+    'points a touch screen in the %s preset at Blocks, as / is a keyboard away',
+    async (preset, hint) => {
+      const real = window.matchMedia.bind(window)
+      const matchMedia = vi
+        .spyOn(window, 'matchMedia')
+        .mockImplementation((query) =>
+          query === '(pointer: coarse)'
+            ? ({
+                matches: true,
+                media: query,
+                addEventListener: () => {},
+                removeEventListener: () => {}
+              } as unknown as MediaQueryList)
+            : real(query)
+        )
+      try {
+        render(<Editor aria-label={LABEL} preset={preset} />)
+
+        const line = (await textbox()).firstElementChild!
+        await waitFor(() => expect(shownBefore(line)).toBe(`"${hint}"`))
+      } finally {
+        matchMedia.mockRestore()
+      }
+    }
+  )
+
   it('shows on an empty blocks page before it has focus', async () => {
     render(<Editor aria-label={LABEL} preset='blocks' />)
 
