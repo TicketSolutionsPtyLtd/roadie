@@ -6,8 +6,12 @@ const UNIT_SECONDS = { '': 1, s: 1, m: 60, h: 3600, d: 86400 }
 // Any sleep word, not only one starting a command, since `timeout 60 sleep 90`
 // and `/bin/sleep 90` wait too. Arguments end at a redirect or comment.
 const sleepCall = /\bsleep((?:[ \t]+[^\s;&|)\x60<>#]+)+)/g
-const loop = /\b(?:for|while|until)\s[\s\S]*\bdone\b/
-const sleepWord = /\bsleep\s/
+const atCommandStart = String.raw`(?<=(?:^|[;&|(\x60{\n])[ \t]*|\b(?:do|then|else|while|until)\s+)`
+const loopKeyword = new RegExp(
+  `${atCommandStart}(?:for|while|until|done|do)(?![\\w-])`,
+  'g'
+)
+const commandSleep = new RegExp(`${atCommandStart}sleep\\s`)
 const runWatch = /\bgh\s[^\n;&|]*?\brun\s+watch\b/
 const checksWatch = /\bgh\s[^\n;&|]*?\bpr\s+checks\b[^\n;&|]*?\s--watch\b/
 
@@ -35,21 +39,39 @@ function sleepSeconds(args) {
   return total
 }
 
-function ciPollingFound(command) {
-  const code = stripLiterals(command)
-  const loopText = loop.exec(code)?.[0] ?? ''
-  if (
-    runWatch.test(code) ||
-    checksWatch.test(code) ||
-    sleepWord.test(loopText)
-  ) {
-    return true
-  }
-  const totalSleep = [...code.matchAll(sleepCall)].reduce(
+function totalSleepSeconds(code) {
+  return [...code.matchAll(sleepCall)].reduce(
     (sum, [, args]) => sum + sleepSeconds(args),
     0
   )
-  return totalSleep > MAX_SLEEP_SECONDS
+}
+
+function outermostLoops(code) {
+  const found = []
+  let depth = 0
+  let start
+  for (const { 0: word, index } of code.matchAll(loopKeyword)) {
+    if (word !== 'done') {
+      if (depth === 0) start ??= index
+      if (word === 'do') depth++
+    } else if (depth > 0 && --depth === 0) {
+      found.push(code.slice(start, index + word.length))
+      start = undefined
+    }
+  }
+  return found
+}
+
+function ciPollingFound(command) {
+  const code = stripLiterals(command)
+  return (
+    runWatch.test(code) ||
+    checksWatch.test(code) ||
+    outermostLoops(code).some(
+      (loop) => commandSleep.test(loop) || totalSleepSeconds(loop) > 0
+    ) ||
+    totalSleepSeconds(code) > MAX_SLEEP_SECONDS
+  )
 }
 
 let input

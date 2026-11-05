@@ -45,7 +45,10 @@ describe('block-ci-polling', () => {
     "timeout 900 bash -c 'until gh pr checks 1; do sleep 5; done'",
     "bash -lc 'gh run watch 123'",
     'sh -c "sleep 600"',
-    "zsh -l -c 'sleep 60'"
+    "zsh -l -c 'sleep 60'",
+    'while true; do gh pr checks 1 && break; sleep $DELAY; done',
+    'while sleep $DELAY; do gh pr checks 1 && break; done',
+    'until gh pr checks 1; do /bin/sleep 5; done'
   ]) {
     it(`denies ${JSON.stringify(command)}`, () => {
       const { status, stderr } = runHook({ command })
@@ -70,6 +73,11 @@ describe('block-ci-polling', () => {
     "gh pr create --draft --body-file - <<'EOF'\nBlocks `gh pr checks --watch` and `sleep 60`.\nEOF",
     'while read -r f; do echo "$f"; done < files.txt',
     'for f in *.png; do optipng "$f"; done; sleep 2',
+    'for f in a b; do touch $f; done; sleep 2; echo done',
+    'for f in a; do echo $f; done; sleep 2; for g in b; do echo $g; done',
+    'echo waiting for build; sleep 2; ls; echo done',
+    'for f in $(grep -rl sleep src); do wc -l $f; done',
+    'do-build; sleep 2; done-check',
     'node scripts/wait-for-load.mjs'
   ]) {
     it(`allows ${JSON.stringify(command)}`, () => {
