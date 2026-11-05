@@ -169,12 +169,13 @@ describe('Editor.SlashMenu', () => {
   it('says so when no block matches, and Enter then breaks the line', async () => {
     const onValueChange = vi.fn()
     render(blocks(onValueChange))
-    await focusedTextbox()
+    const textbox = await focusedTextbox()
 
     await userEvent.keyboard('/zzz')
     expect(await screen.findByRole('status')).toHaveTextContent(
       'No matching blocks'
     )
+    expect(textbox).not.toHaveAttribute('aria-activedescendant')
     await userEvent.keyboard('{Enter}')
 
     await waitFor(() => expect(lastDoc(onValueChange).content).toHaveLength(2))
@@ -264,6 +265,67 @@ describe('Editor.SlashMenu', () => {
     expect(
       within(await listbox()).getByRole('option', { name: 'Text' })
     ).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('moves back to the first match as the filter changes', async () => {
+    render(blocks())
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    await listbox()
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}')
+    expect(activeOption(textbox)).toBe('Heading 3')
+    await userEvent.keyboard('head')
+
+    await waitFor(() => expect(activeOption(textbox)).toBe('Heading 2'))
+  })
+
+  it('replaces the whole query on an Enter the menu hasn’t redrawn for yet', async () => {
+    const onValueChange = vi.fn()
+    let editor: TiptapEditor | null = null
+    function Capture() {
+      editor = useEditorContext().editor
+      return null
+    }
+    render(
+      <Editor aria-label={LABEL} preset='blocks' onValueChange={onValueChange}>
+        <Editor.Content />
+        <Editor.SlashMenu />
+        <Capture />
+      </Editor>
+    )
+    await focusedTextbox()
+    await userEvent.keyboard('/')
+    await listbox()
+
+    const view = editor!.view
+    view.dispatch(view.state.tr.insertText('quote'))
+    view.someProp('handleKeyDown', (handle) =>
+      handle(view, new KeyboardEvent('keydown', { key: 'Enter' }))
+    )
+
+    await waitFor(() =>
+      expect(JSON.stringify(lastDoc(onValueChange))).not.toContain('quote')
+    )
+  })
+
+  it('scrolls the active block into view', async () => {
+    render(blocks())
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const list = await listbox()
+    const popup = list.parentElement!
+    expect(popup.scrollHeight).toBeGreaterThan(popup.clientHeight)
+    await userEvent.keyboard('{ArrowUp}')
+    expect(activeOption(textbox)).toBe('Table')
+
+    const table = within(list).getByRole('option', { name: 'Table' })
+    await waitFor(() =>
+      expect(table.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        popup.getBoundingClientRect().bottom
+      )
+    )
   })
 
   it('closes on Escape, leaving the /, and stays closed as typing goes on', async () => {
