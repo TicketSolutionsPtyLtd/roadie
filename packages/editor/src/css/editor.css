@@ -343,6 +343,14 @@
   );
 }
 
+/* An email's text sits 24px in, so its edge keeps that room too. */
+[data-slot='editor'][data-emphasis='subtler']
+  [data-email].ProseMirror[aria-invalid='true'] {
+  padding-inline-start: calc(
+    var(--spacing) * 6 + var(--editor-invalid-gap) - var(--editor-invalid-edge)
+  );
+}
+
 /* A drag or Shift+arrow across cells selects them, and they take the
    chosen-control tint. */
 [data-slot='editor-content'] :where(th, td).selectedCell {
