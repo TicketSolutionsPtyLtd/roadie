@@ -192,6 +192,8 @@ describe('Editor email canvas', () => {
         .poll(() => section.hasAttribute('data-menu-block'))
         .toBe(true)
       expect(getComputedStyle(section).outlineStyle).toBe('solid')
+      // Flush with the tint, or a stripe shows between them.
+      expect(getComputedStyle(section).outlineOffset).toBe('0px')
     })
 
     it('keeps the chosen halo on a spacer while its menu is open', async () => {
@@ -224,6 +226,46 @@ describe('Editor email canvas', () => {
 
       await expect.poll(() => spacer.hasAttribute('data-menu-block')).toBe(true)
       expect(getComputedStyle(spacer).outlineStyle).toBe('solid')
+      expect(getComputedStyle(spacer).outlineOffset).toBe('0px')
+    })
+
+    it('puts 8px either side of a spacer, which the email doesn’t pad', async () => {
+      render(
+        <Editor
+          aria-label={LABEL}
+          defaultValue={{
+            version: 1,
+            preset: 'email',
+            doc: {
+              type: 'doc',
+              content: [
+                p('Two weeks to go'),
+                { type: 'spacer', attrs: { height: 32 } },
+                p('Gates 11am'),
+                {
+                  type: 'section',
+                  content: [
+                    p('Lineup'),
+                    { type: 'spacer', attrs: { height: 32 } },
+                    p('All ages')
+                  ]
+                }
+              ]
+            }
+          }}
+        />
+      )
+      await screen.findByText('All ages')
+      const box = (text: string) =>
+        screen.getByText(text).getBoundingClientRect()
+      const [top, inSection] = [
+        ...document.querySelectorAll('[data-type="spacer"]')
+      ].map((spacer) => spacer.getBoundingClientRect())
+
+      expect(top!.top - box('Two weeks to go').bottom).toBeCloseTo(8, 0)
+      expect(box('Gates 11am').top - top!.bottom).toBeCloseTo(8, 0)
+      expect(inSection!.top - box('Lineup').bottom).toBeCloseTo(8, 0)
+      expect(box('All ages').top - inSection!.bottom).toBeCloseTo(8, 0)
     })
   })
 
