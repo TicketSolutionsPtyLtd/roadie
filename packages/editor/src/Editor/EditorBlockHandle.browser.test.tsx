@@ -792,14 +792,14 @@ describe('Editor block handle', () => {
       await expectHandleBeside('Support')
     })
 
-    it('hides the bubble menu while the block menu is open', async () => {
+    it('hides the bubble menu while the block menu is open, and shows it again after', async () => {
       renderWithBubbleMenu()
       await selectParagraph(await paragraph('Support'))
       await screen.findByRole('toolbar', { name: MENU })
       await expectHandleBeside('Support')
 
       await userEvent.click(await handle())
-      await screen.findByRole('menu')
+      const menu = await screen.findByRole('menu')
 
       await waitFor(() =>
         expect(
@@ -807,6 +807,10 @@ describe('Editor block handle', () => {
         ).toBe(null)
       )
 
+      // WebKit moves focus into the menu a little after it opens.
+      await waitFor(() =>
+        expect(menu.contains(document.activeElement)).toBe(true)
+      )
       await userEvent.keyboard('{Escape}')
 
       await screen.findByRole('toolbar', { name: MENU })
