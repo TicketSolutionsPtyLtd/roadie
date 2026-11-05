@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import type { CatalogueEntry } from '@/lib/page-manifest'
 
+import { BlockPreview } from './BlockPreview'
 import { ChartPreview } from './ChartPreview'
 import { ComponentSkeleton, Skel } from './ComponentSkeleton'
 import { ContentPreview } from './ContentPreview'
@@ -13,7 +14,8 @@ const ART_BY_ROUTE: Record<string, (props: { name: string }) => ReactNode> = {
   '/components': ComponentSkeleton,
   '/foundations': FoundationPreview,
   '/content': ContentPreview,
-  '/charts': ChartPreview
+  '/charts': ChartPreview,
+  '/blocks': BlockPreview
 }
 
 /** A page's art from the catalogue that owns it, or null when it has none. */

@@ -73,7 +73,7 @@
   --intent-bg-subtler: var(--intent-2a);
   --intent-bg-subtle: var(--intent-3a);
 
-  /* Mark colors — neutral uses inverted (dark bg / light text) */
+  /* Mark colors: neutral uses inverted (dark bg / light text) */
   --intent-mark-bg: var(--color-neutral-13);
   --intent-mark-text: var(--color-neutral-0);
 

@@ -1,6 +1,6 @@
 // Subpath entry for `@oztix/roadie-components/accordion`.
 //
-// NO `'use client'` — this file is a server-safe module under tsdown
+// NO `'use client'`: this file is a server-safe module under tsdown
 // `unbundle: true`. It imports each leaf by name and attaches them to the
 // root function via property assignment. Adding `'use client'` here
 // reinstates the Next.js client-reference-proxy wall and breaks

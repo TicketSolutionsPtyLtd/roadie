@@ -32,13 +32,13 @@ type CardOwnProps<T extends ElementType = 'div'> = {
    * `mailto:` / `tel:` / `sms:` render plain `<a>`. Use `external` to
    * override the auto classification.
    *
-   * `render` always wins over `href` smart-routing — pass `render` to
+   * `render` always wins over `href` smart-routing. Pass `render` to
    * render a non-anchor or to bypass provider routing.
    */
   href?: string
   /**
    * Force external-link treatment when `href` is set. Has no effect
-   * when `render` is set — the consumer's element is responsible for
+   * when `render` is set. The consumer's element is responsible for
    * its own target/rel.
    */
   external?: boolean
@@ -47,7 +47,7 @@ type CardOwnProps<T extends ElementType = 'div'> = {
   /** Override the auto `rel='noopener noreferrer'` default on external hrefs. */
   rel?: string
   /**
-   * Escape hatch — swap the underlying element with full control over
+   * Escape hatch: swap the underlying element with full control over
    * the rendered shape. See [Linking](/foundations/linking) for the
    * full reference.
    */
@@ -79,9 +79,9 @@ export type CardRootProps<T extends ElementType = 'div'> = CardOwnProps<T> &
  * take over the rendered element. `render` always wins over `href`
  * smart-routing.
  *
- * The legacy `as` prop is `@deprecated` — use `render` instead.
+ * The legacy `as` prop is `@deprecated`. Use `render` instead.
  *
- * `CardRoot` itself stays server-safe — `RoadieRoutedLink` is the
+ * `CardRoot` itself stays server-safe: `RoadieRoutedLink` is the
  * `'use client'` boundary and only loads when `href` is actually set.
  */
 export function CardRoot<T extends ElementType = 'div'>({
@@ -117,7 +117,7 @@ export function CardRoot<T extends ElementType = 'div'>({
   // Detect interactivity from outer onClick OR from a render element
   // that itself carries onClick (e.g. `render={<button onClick=… />}`).
   // Without this, `<Card render={<button onClick={fn} />}>` would lose
-  // is-interactive styling — cursor, focus ring, hover scale all drop.
+  // is-interactive styling: cursor, focus ring, hover scale all drop.
   const renderElementOnClick =
     isValidElement(render) &&
     typeof (render.props as { onClick?: unknown } | null)?.onClick ===
@@ -153,7 +153,7 @@ export function CardRoot<T extends ElementType = 'div'>({
     )
   }
 
-  // Legacy `as` path — back-compat only. Prefer `render` for new code.
+  // Legacy `as` path, back-compat only. Prefer `render` for new code.
   if (as) {
     const Component = as as ElementType
     const passthroughProps = {
@@ -182,7 +182,7 @@ export function CardRoot<T extends ElementType = 'div'>({
     )
   }
 
-  // Default — plain div
+  // Default: plain div
   return <div data-slot='card' className={finalClassName} {...rest} />
 }
 

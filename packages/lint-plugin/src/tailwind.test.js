@@ -1,16 +1,18 @@
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 
 import { canonicalClasses } from './tailwind.js'
 
+const file = fileURLToPath(
+  new URL('../../core/src/Fixture.tsx', import.meta.url)
+)
+
 it("reads Roadie's theme, so a length becomes the tier that matches it", () => {
-  const file = fileURLToPath(
-    new URL('../../core/src/Fixture.tsx', import.meta.url)
-  )
   expect(
     canonicalClasses(file, [
       'rounded-[8px]',
@@ -19,6 +21,19 @@ it("reads Roadie's theme, so a length becomes the tier that matches it", () => {
       'p-[16px]'
     ])
   ).toEqual(['rounded-lg', 'p-4', 'emphasis-subtle', 'p-4'])
+})
+
+it('answers the request after a timed-out one from a fresh worker', async () => {
+  // A fresh module starts its own worker, which can't load Tailwind in 1ms.
+  vi.resetModules()
+  const { ask } = await import('./tailwind.js')
+  const request = (classes) => ({
+    stylesheet: createRequire(file).resolve('@oztix/roadie-core/css'),
+    app: dirname(file),
+    classes
+  })
+  expect(ask(request(['p-[16px]']), 1)).toBeNull()
+  expect(ask(request(['p-[8px]']))).toEqual(['p-2'])
 })
 
 // pnpm points NODE_PATH at the workspace store, where Roadie resolves, so

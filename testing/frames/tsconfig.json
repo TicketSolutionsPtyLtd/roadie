@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.react.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src/**/*.ts", "bin/**/*.ts", "vitest.config.ts"],
+  "exclude": ["node_modules"]
+}

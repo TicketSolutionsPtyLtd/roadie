@@ -1,6 +1,6 @@
 ---
 name: charts
-description: Use when building or changing a chart, graph, stat tile, KPI row, sparkline, meter, dashboard table, or dashboard in an app that uses Roadie (`@oztix/roadie-charts`, `@oztix/roadie-components`, or `@oztix/roadie-core`). Use it in place of the generic dataviz skill there. Picks the Roadie chart for the job, or a table or StatTile instead, colours with Roadie's chart tokens, describes dashboards as data checked with validateDashboard, wires actions and row links from the app, and writes chart copy in the house style. Triggers on "chart", "graph", "plot", "dashboard", "visualise", "stat tile", "KPI", "sparkline", "heatmap", "chart colours".
+description: Use when building or changing a chart, graph, stat tile, KPI row, sparkline, meter, dashboard table, or dashboard in an app that uses Roadie (`@oztix/roadie-charts`, `@oztix/roadie-components`, or `@oztix/roadie-core`). Use it in place of the generic dataviz skill there. Picks the Roadie chart for the job, or a table or StatTile instead, colours with Roadie's chart tokens, describes dashboards as data checked with validateDashboard, writes a single chart as a chart document checked with validateChartDocument and drawn to SVG with renderChartDocument, wires actions and row links from the app, and writes chart copy in the house style. Triggers on "chart", "graph", "plot", "dashboard", "visualise", "stat tile", "KPI", "sparkline", "heatmap", "chart colours".
 ---
 
 # Roadie charts
@@ -49,21 +49,25 @@ If any of this is missing, run `/roadie:setup` first.
 Name the decision the reader will make first. If no shape helps them make it,
 show a number or a table, not a chart.
 
-| Job                      | Use                                         | Plot `kind`       |
-| ------------------------ | ------------------------------------------- | ----------------- |
-| One number, right now    | `StatTile` (`/stat-tile`), not a chart      |                   |
-| Progress to a limit      | `Meter` (`/meter`), or a table of meters    |                   |
-| Compare, or where        | `RankedBars` (`/ranked-bars`), never a pie  | `ranked-bars`     |
-| Change over time         | `LineChart` or `BarChart`                   | `line`, `bar`     |
-| Pace against similar     | `LineChart` with `band`, `target`, `today`  | `line`            |
-| Part of a whole          | `StackedBars`, or a capacity `Meter`        | `stacked-bars`    |
-| Part of a whole, by time | `StackedArea`                               | `stacked-area`    |
-| Spread                   | `Histogram`                                 | `histogram`       |
-| Drop off                 | `Funnel`                                    | `funnel`          |
-| Two measures per item    | `Scatter`                                   | `scatter`         |
-| The same chart per group | `SmallMultiples`                            | `small-multiples` |
-| When (hour by weekday)   | `Heatmap`                                   | `heatmap`         |
-| Several items to scan    | `DataTable` (`/data-table`) in a `DataCard` |                   |
+| Job                          | Use                                         | Plot `kind`       |
+| ---------------------------- | ------------------------------------------- | ----------------- |
+| One number, right now        | `StatTile` (`/stat-tile`), not a chart      |                   |
+| Progress to a limit          | `Meter` (`/meter`), or a table of meters    |                   |
+| Compare, or where            | `RankedBars` (`/ranked-bars`)               | `ranked-bars`     |
+| Change over time             | `LineChart` or `BarChart`                   | `line`, `bar`     |
+| Pace against similar         | `LineChart` with `band`, `target`, `today`  | `line`            |
+| Part of a whole, by group    | `StackedBars`, or a capacity `Meter`        | `stacked-bars`    |
+| Part of a whole, by time     | `StackedArea`                               | `stacked-area`    |
+| One whole, two to five parts | `DonutChart` (`/donut-chart`)               | `donut`           |
+| Spread                       | `Histogram`                                 | `histogram`       |
+| Drop off                     | `Funnel`                                    | `funnel`          |
+| Two measures per item        | `Scatter`                                   | `scatter`         |
+| The same chart per group     | `SmallMultiples`                            | `small-multiples` |
+| When (hour by weekday)       | `Heatmap`                                   | `heatmap`         |
+| Several items to scan        | `DataTable` (`/data-table`) in a `DataCard` |                   |
+
+A donut is for one whole only: never a grid of donuts, and never to compare
+groups or periods. Use `StackedBars` at 100% or `SmallMultiples` instead.
 
 `StatTile`, `Meter`, `Sparkline`, `DataCard`, `DataTable`, `Delta`, and
 `Dashboard` come from `@oztix/roadie-components`. The charts, `Chart`,
@@ -242,15 +246,17 @@ if (!result.ok)
 ```
 
 - Card `kind` is `stat`, `table`, `chart`, or `note`. A chart card's `plot` is
-  `{ kind, ...props }`, where `kind` is `line`, `bar`, `ranked-bars`,
+  `{ kind, ...props }`, where `kind` is `line`, `bar`, `ranked-bars`, `donut`,
   `stacked-bars`, `stacked-area`, `histogram`, `funnel`, `heatmap`, `scatter`, or
   `small-multiples`.
 - Card `size` is `stat` (stat cards only), `sm`, `md`, `lg`, or `full`. Every
   row must fill at desktop (12 tracks), tablet (6), and phone (2). Safe rows:
   four `stat`, two `md`, one `full`, six `sm`, or `lg` + `sm` then `sm` +
   `lg`. Never `lg` then `md`. Change a size, never the order, to fill a gap.
-- Copy limits: a stat label 19 characters, a chart label 21 at `sm` and `md`
-  and 27 at `lg` and `full`, 14 to 23 beside a More button. They're
+- Copy limits: a stat label 19 characters, a chart label 42 at `sm` and `md`
+  and 50 at `lg` and `full`, 14 to 42 beside a More button. Table and note
+  labels get 60 at `sm` and `md` and 72 at `lg` and `full`. Card labels wrap
+  to two lines, then truncate; stat labels stay on one. They're
   `COPY_LIMITS`, `CHART_LABEL_LIMITS`, and `ACTIONS_LABEL_LIMITS` in the
   zod-free `@oztix/roadie-core/dashboard-layout`. Import from there when UI
   code only needs sizes or limits.
@@ -328,7 +334,10 @@ Handlers and hrefs never go in the JSON.
   no Download CSV.
 - At most one visible action, then More, always visible, never hover only.
 - Download CSV from `cardTable(card)` (`@oztix/roadie-charts/tables`). Copy as
-  image with `renderChartSvg`.
+  image with `renderChartSvg`. A server route that builds either itself
+  passes the card through `followPeriod(card, period, { timeZone, locale })`
+  from the same entry first, so its headline delta and context and a chart's
+  comparison match the card on screen.
 - For a single card outside a spec, pass `actions` to `Chart`, `DataCard`, or
   `StatTile`.
 
@@ -336,12 +345,14 @@ Handlers and hrefs never go in the JSON.
 
 Each chart's subpath (`/line-chart` and so on) and `/chart` are `'use client'`
 and export only components, so a server can render them but can't call
-anything from them. Use `/static` and `/tables` for everything else.
+anything from them. Use `/static`, `/chart-document`, and `/tables` for
+everything else.
 
 - `DashboardView` is server safe. Return client components from
   `cardActions`, not inline handlers.
-- **An image** for email, PDF, a report, or Copy as image:
-  `renderChartSvg(lineChart, props, { mode: 'light', width: 640, height: 280 })`
+- **A plot image** with no label or source, for Copy as image or a page
+  that sets its own heading (a whole chart as a file is a chart document,
+  below): `renderChartSvg(lineChart, props, { mode: 'light', width: 640, height: 280 })`
   from `@oztix/roadie-charts/static`, which also exports `barChart`,
   `rankedBars`, `stackedBars`, `histogram`, `funnel`, `heatmap`, `scatter`, and
   `renderSmallMultiplesSvg`. Render at the box's aspect with 12px text.
@@ -349,6 +360,69 @@ anything from them. Use `/static` and `/tables` for everything else.
   `*Table` builders, `plotTable(plot)`, or `cardTable(card)` from
   `@oztix/roadie-charts/tables`, passed to `Chart`'s `table`.
 - A spec with `plot: { kind: 'static', src, alt }` needs a `table`.
+
+### One chart as a file
+
+When someone wants one chart to save, send, or put in a report, write a chart
+document rather than a one-card dashboard or a hand-made SVG. The format is in
+beta, so check the manifest lists `validateChartDocument` before you use it.
+
+1. **Write the document.** It is a chart card without `id`, `size`, `state`,
+   `emptyMessage`, `errorMessage`, `staleLabel`, `data`, `legend`, or `view`:
+   `version: 1`, `kind: 'chart'`, a `label`, a `source`, and a `plot` of any
+   kind, `static` and `small-multiples` among them. Add a headline `value`
+   with its `delta`, or a `takeaway`, not both. A `static` plot also needs its
+   `table`, and the SVG links its image by `src` rather than embedding it, so
+   give it a URL the file's reader can fetch.
+
+   ```ts
+   import {
+     type ChartDocument,
+     validateChartDocument
+   } from '@oztix/roadie-core/dashboard'
+
+   const doc: ChartDocument = {
+     version: 1,
+     kind: 'chart',
+     label: 'Sales pace',
+     takeaway: 'Tracking 16 points ahead of similar shows',
+     source: 'Oztix sales, pulled Thu 15 Oct.',
+     plot: { kind: 'line', data: pace, x: 'day', y: 'sold', format: 'percent' }
+   }
+   ```
+
+2. **Validate it.** `validateChartDocument(doc)` runs the chart card's checks
+   and returns `{ ok, problems }`, each with a `path` such as `plot.y`. Fix
+   every error, and read every warning. A document has no period, so leave out
+   `selectsPeriod` and a delta's `comparison`.
+
+   ```ts
+   const result = validateChartDocument(doc)
+   if (!result.ok)
+     throw new Error(
+       result.problems.map((p) => `${p.path}: ${p.message}`).join('\n')
+     )
+   ```
+
+3. **Render it.** `renderChartDocument(doc, { mode, width, height })` from
+   `@oztix/roadie-charts/chart-document` returns one SVG string with the label
+   and headline above the plot and the source below. It runs on the server with
+   no React, validates again, and throws a `ChartDocumentError` whose `problems`
+   list what failed. Leave the plot at least 120px tall after the text, or it
+   throws a `RangeError`. Pass `accentHue` to match the app's accent.
+
+   ```ts
+   import { renderChartDocument } from '@oztix/roadie-charts/chart-document'
+
+   const svg = renderChartDocument(doc, {
+     mode: 'light',
+     width: 640,
+     height: 360
+   })
+   ```
+
+Roadie stops at SVG. For a PDF, hand the SVG to the app's PDF step; never add a
+PDF library for it.
 
 ## 7. Copy
 
@@ -366,10 +440,12 @@ charts. For a copy review, run `/roadie:content`.
   27 to Sun 29 Nov". `validateDashboard` flags dashes and title case.
 - **Australian spelling**: colour, visualise, organise, cancelled.
 - **Numbers**: numerals, commas for thousands, `68%` closed up, `$19.95`,
-  `$1,200`. Use the `format` prop (`number`, `compact`, `percent`, `currency`,
+  and `$1,200.00`, since full amounts in a chart show cents so they line up.
+  Use the `format` prop (`number`, `compact`, `percent`, `currency`,
   `compactCurrency`, `points`, or `index`) rather than formatting values
   yourself; `formatValue` from `@oztix/roadie-core/dataviz` covers strings
-  outside a chart.
+  outside a chart. Set `decimals` when a small difference matters, as `1.27%`
+  sold, and `trailingZeroDisplay: 'stripIfInteger'` to drop the cents from whole amounts.
 - **Dates and times**: "Fri 27 Nov", "7:30pm", in the venue's time zone, from
   `@oztix/roadie-core/datetime` or the `DateTime` component. 24-hour time only
   on dense axes and in exports.
@@ -380,7 +456,8 @@ charts. For a copy review, run `/roadie:content`.
 
 ## 8. Before you hand off
 
-- `validateDashboard` returns no errors and no warnings you haven't read.
+- `validateDashboard` returns no errors and no warnings you haven't read, and
+  so does `validateChartDocument` for a chart document.
 - The app typechecks and builds, and nothing imports from a chart subpath on
   the server except components.
 - Run `/roadie:audit` on the files you touched (colour checks A1 to A6 and the

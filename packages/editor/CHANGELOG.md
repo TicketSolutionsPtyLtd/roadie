@@ -1,5 +1,16 @@
 # @oztix/roadie-editor
 
+## 0.2.0
+
+### Minor Changes
+
+- b6ff15e: Add `types` to `roadie.manifest.json`: each exported object type a component's props name, such as an item in a list prop, with its import path and every field's type, whether it's required, and its description. It follows each field's type to the next type the same package exports, so a CMS or an agent can check every nested field a component needs, such as a Testimonial quote's `person` and that person's `name`, which a prop's type name alone (`readonly TestimonialQuote[]`) didn't say. Fields keep the same rules as props: literal unions are listed in the order they're declared, and fields from the DOM or React are left out. A type re-exported under another name gives that name as `export`, a generic type lists its `typeParameters`, and a type that also takes keys it doesn't name gives their type as `additionalFields`.
+
+### Patch Changes
+
+- 5804e39: Update Tiptap to 3.32.1.
+- a54bf74: Stop publishing `.d.ts.map` files. They pointed at source the package doesn't ship, so go-to-definition landed on nothing. The JavaScript source maps still embed their source, so stack traces and debuggers still show it.
+
 ## 0.1.0
 
 ### Minor Changes
