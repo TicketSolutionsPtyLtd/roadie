@@ -19,6 +19,7 @@ describe('block-ci-polling', () => {
     'sleep 1m && gh run list',
     'sleep 0.5m',
     'sleep 5 6',
+    'sleep 10; gh pr checks 1; sleep 10',
     'gh run watch 123',
     'gh run watch',
     'gh pr checks 1 --watch --interval 60 --fail-fast',

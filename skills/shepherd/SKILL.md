@@ -43,8 +43,8 @@ review your own work. Fix what it leaves open test-first with
   `gh pr checks <n> --watch --interval 60 --fail-fast` as a background
   command (`run_in_background`), which wakes you when it exits. A single
   `gh pr checks <n>` to read the state is fine. Roadie's
-  `.claude/hooks/block-ci-polling.mjs` denies foreground waits, including any
-  `sleep` over 10 seconds. Green means every check passed or was skipped (Roadie skips the
+  `.claude/hooks/block-ci-polling.mjs` denies foreground waits, including
+  `sleep` loops and over 10 seconds of `sleep` in one command. Green means every check passed or was skipped (Roadie skips the
   browser jobs when no package changes, and build too when docs don't, as in a
   skills-only PR). Before merging,
   wait for the run `gh pr ready` started, not a draft's green: a draft runs

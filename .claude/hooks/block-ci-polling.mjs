@@ -44,9 +44,11 @@ function ciPollingFound(command) {
   ) {
     return true
   }
-  return [...code.matchAll(sleepCall)].some(
-    ([, args]) => sleepSeconds(args) > MAX_SLEEP_SECONDS
+  const totalSleep = [...code.matchAll(sleepCall)].reduce(
+    (sum, [, args]) => sum + sleepSeconds(args),
+    0
   )
+  return totalSleep > MAX_SLEEP_SECONDS
 }
 
 let input
@@ -64,7 +66,7 @@ if (!input.tool_input?.run_in_background && ciPollingFound(command)) {
       `Don't wait on CI in the foreground: every poll re-reads the whole session. End your turn instead.`,
       `In the Claude desktop app, Auto-fix and ci-monitor events wake the session when checks finish or fail.`,
       `Elsewhere, start one \`gh pr checks <n> --watch --fail-fast\` with run_in_background, which wakes you when it exits.`,
-      `To wait on something local, use Monitor or a run_in_background command. Sleeps of ${MAX_SLEEP_SECONDS} seconds or less are allowed (skills/shepherd/SKILL.md, step 3).`
+      `To wait on something local, use Monitor or a run_in_background command. A command may sleep up to ${MAX_SLEEP_SECONDS} seconds in all, outside a loop (skills/shepherd/SKILL.md, step 3).`
     ].join(' ')
   )
   process.exit(2)
