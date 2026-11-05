@@ -840,7 +840,7 @@ export function EditorEngine({
         preheader:
           preset === 'email' && editor ? (
             // Inset as the canvas's text is, so the two start together.
-            <EditorPreheader editor={editor} className='ps-15 pe-3 pt-3' />
+            <EditorPreheader editor={editor} className='px-6 pt-3' />
           ) : null,
         editingLink,
         embedProviders,

@@ -300,7 +300,8 @@ render(<PreviewedEmail />)
 ### Preview text
 
 Preview text, above the canvas, is the email's preheader: the line an inbox
-shows after the subject. Under it, a hint says about 40 to 90 characters
+shows after the subject. Its label sits beside the field, or above it on a
+phone, so the field keeps its width. Under it, a hint says about 40 to 90 characters
 show, and Preview's inbox row shows it after the subject. It saves as the doc's `preheader` attr, on one
 line, with none when it's empty, and `renderEmail` writes it as the
 `mj-preview` an inbox reads, left out of the plain text. Typing there is its
