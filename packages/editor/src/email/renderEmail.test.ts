@@ -576,6 +576,38 @@ describe('renderEmail', () => {
       )
     })
 
+    it('writes a link variable’s value as a preview’s plain-text href', async () => {
+      const { text: plain } = await renderEmail(
+        email(
+          p(
+            text('Unsubscribe', [
+              { type: 'link', attrs: { variable: 'unsubscribe_url' } }
+            ])
+          )
+        ),
+        {
+          variables,
+          values: { unsubscribe_url: 'https://www.oztix.com.au/unsubscribe' }
+        }
+      )
+      expect(plain).toBe('Unsubscribe [https://www.oztix.com.au/unsubscribe]')
+    })
+
+    it('refuses a link to a variable the app doesn’t list', async () => {
+      await expect(
+        renderEmail(
+          email(
+            p(
+              text('Unsubscribe', [
+                { type: 'link', attrs: { variable: 'opt_out_url' } }
+              ])
+            )
+          ),
+          { syntax: 'ae', variables }
+        )
+      ).rejects.toThrow('"opt_out_url"')
+    })
+
     it('leaves a link to a variable that isn’t a link variable unlinked', async () => {
       const { html } = await renderEmail(
         email(
