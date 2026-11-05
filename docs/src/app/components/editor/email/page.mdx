@@ -304,6 +304,22 @@ label's width: `align`, `emphasis: 'normal' | 'subtle'`, and
 sits in, so wrap the editor in a `ThemeProvider` with the email's accent to
 match it.
 
+Images, text, and columns save their look the same way, only where it
+differs from the default:
+
+- **An image** fills its column with no `width`, or sits at its `width`,
+  centred, as a mail client centres it, unless `align` is `'left'` or
+  `'right'`. It links to `href`, a web address, or `variable`, a link
+  variable such as the unsubscribe page.
+- **A heading or a paragraph** saves `align: 'center'` when it's centred.
+- **Columns** save `layout: 'wide-left' | 'wide-right'`, which makes the
+  first or last column twice the width of each other, 2:1 or 1:2 in two, and
+  `stack: 'reverse'`, which stacks them last column first on a phone.
+
+`migrate` drops any other value. Pasted HTML keeps them through `data-align`,
+`data-href`, `data-variable`, `data-layout`, and `data-stack`, and only
+those.
+
 Each of these blocks has its own toolbar:
 
 - **A button**, with the caret in it: Button settings and Remove button, below
@@ -419,8 +435,11 @@ const nextConfig = { serverExternalPackages: ['mjml'] }
   set. A normal button draws its border in `border` and a subtle one fills
   with `tint`.
 - A section, and a run of blocks outside columns, fill the email's 600 pixel
-  width. Columns sit side by side from 480 pixels and stack on a phone, and
-  stay side by side in Outlook on Windows.
+  width. Columns sit side by side from 480 pixels, at their `layout`'s
+  widths, and stack on a phone, last first with `stack: 'reverse'`, and stay
+  side by side in Outlook on Windows.
+- An image is an `mj-image` at its `align`, wrapped in its link, and a
+  centred heading or paragraph an `mj-text` with `align="center"`.
 - `text` writes each link as its text then its href in brackets, unless the
   two match, and leaves out images, spacers, and dividers.
 

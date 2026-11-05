@@ -1,5 +1,5 @@
 import { isLinkHref } from './basicPreset'
-import { isEmailHref, isEmailImageSrc } from './emailAttrs'
+import { columnWidths, isEmailHref, isEmailImageSrc } from './emailAttrs'
 import { type EmbedProvider, defaultEmbedProviders } from './embed'
 import {
   type DroppedContent,
@@ -128,13 +128,17 @@ function image(reading: Reading, element: Element): Node[] {
     return []
   }
   const href = element.getAttribute('href')
-  if (href) reading.dropped.push(report('link', href))
+  const linked = isEmailHref(href)
+  if (href && !linked) reading.dropped.push(report('link', href))
+  const align = element.getAttribute('align')
   const width = /^(\d+)(?:px)?$/.exec(element.getAttribute('width') ?? '')?.[1]
   return [
     created(reading, 'img', {
       src,
       alt: element.getAttribute('alt') ?? '',
-      width
+      width,
+      'data-href': linked ? href : undefined,
+      'data-align': align === 'left' || align === 'right' ? align : undefined
     })
   ]
 }
@@ -158,7 +162,17 @@ function button(reading: Reading, element: Element) {
 function contentNodes(reading: Reading, element: Element): Node[] {
   if (isStyled(element)) reading.styles += 1
   switch (tagOf(element)) {
-    case 'mj-text':
+    case 'mj-text': {
+      // A centred `mj-text` centres each heading and paragraph in it.
+      if (element.getAttribute('align') === 'center') {
+        for (const child of element.children) {
+          if (/^(p|h[1-6])$/i.test(child.tagName)) {
+            child.setAttribute('data-align', 'center')
+          }
+        }
+      }
+      return [created(reading, 'div', {}, [...element.childNodes])]
+    }
     case 'mj-raw':
     case 'mj-table':
       return [created(reading, 'div', {}, [...element.childNodes])]
@@ -193,6 +207,16 @@ function contentNodes(reading: Reading, element: Element): Node[] {
   }
 }
 
+// The layout whose shares the columns' widths match, if any but equal.
+function wideColumn(widths: number[]) {
+  if (widths.some(Number.isNaN)) return undefined
+  return (['wide-left', 'wide-right'] as const).find((layout) =>
+    columnWidths(widths.length, { layout }).every(
+      (share, index) => Math.abs(share - widths[index]!) < 0.5
+    )
+  )
+}
+
 // One column is a run of blocks, as the renderer writes them; two or more
 // sit side by side.
 function sectionNodes(reading: Reading, section: Element): Node[] {
@@ -205,11 +229,24 @@ function sectionNodes(reading: Reading, section: Element): Node[] {
     return [...column.children].flatMap((child) => contentNodes(reading, child))
   })
   if (contents.length === 1) return contents[0]!
+  // `renderEmail` writes a reversed stack last first, laid out right to left.
+  const reversed = section.getAttribute('direction') === 'rtl'
+  const widths = columns.map((column) =>
+    parseFloat(column.getAttribute('width') ?? '')
+  )
+  if (reversed) {
+    contents.reverse()
+    widths.reverse()
+  }
   return [
     created(
       reading,
       'div',
-      { 'data-type': 'columns' },
+      {
+        'data-type': 'columns',
+        'data-layout': wideColumn(widths),
+        'data-stack': reversed ? 'reverse' : undefined
+      },
       contents.map((content) =>
         created(reading, 'div', { 'data-type': 'column' }, content)
       )
@@ -394,7 +431,7 @@ export function importEmail(
     dropped.push({ kind: 'hidden' })
     hidden.remove()
   }
-  // An image block holds no link, so one around it is lost.
+  // An HTML image block takes no link from around it, so that one is lost.
   for (const image of container.querySelectorAll('a[href] img')) {
     if (!isEmailImageSrc(absoluteSrc(image))) continue
     const href = image.closest('a')!.getAttribute('href')

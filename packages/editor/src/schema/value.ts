@@ -5,10 +5,13 @@ import { isUnsafeHref } from '@oztix/roadie-core/utils'
 import {
   COLUMN_COUNTS,
   buttonLook,
+  columnsLook,
+  imageLook,
   imageWidth,
   isEmailHref,
   isEmailImageSrc,
-  spacerHeight
+  spacerHeight,
+  textAlign
 } from './emailAttrs'
 import { embedAttrs } from './embedAttrs'
 import { headingLevel } from './headings'
@@ -89,6 +92,12 @@ function cleanedMarks(marks: unknown[], shape: PresetShape) {
   return [...kept.values()]
 }
 
+function aligned(attrs: JSONContent['attrs']) {
+  const { align, ...rest } = attrs ?? {}
+  const kept = textAlign(align)
+  return kept ? { ...rest, align: kept } : rest
+}
+
 function cleanedAttrs({ type, attrs }: JSONContent) {
   if (type === 'tableCell' || type === 'tableHeader') {
     const { colspan, rowspan } = attrs ?? {}
@@ -97,15 +106,21 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
       ...(isSpan('rowspan', rowspan) && { rowspan })
     }
   }
-  if (type === 'heading') return { ...attrs, level: headingLevel(attrs?.level) }
+  if (type === 'heading') {
+    return { ...aligned(attrs), level: headingLevel(attrs?.level) }
+  }
+  if (type === 'paragraph') return attrs && aligned(attrs)
   if (type === 'image') {
     const alt: unknown = attrs?.alt
+    const { align, href, variable, ...rest } = attrs ?? {}
     return {
-      ...attrs,
+      ...rest,
       alt: typeof alt === 'string' ? alt : '',
-      width: imageWidth(attrs?.width)
+      width: imageWidth(attrs?.width),
+      ...imageLook({ align, href, variable })
     }
   }
+  if (type === 'columns') return columnsLook(attrs)
   if (type === 'spacer') return { height: spacerHeight(attrs?.height) }
   if (type === 'button') {
     const variable: unknown = attrs?.variable

@@ -1,6 +1,13 @@
 import type { JSONContent } from '@tiptap/core'
 
-import { EMAIL_WIDTH, buttonLook } from '../schema/emailAttrs'
+import {
+  EMAIL_WIDTH,
+  buttonLook,
+  columnWidths,
+  columnsLook,
+  imageLook,
+  textAlign
+} from '../schema/emailAttrs'
 import type { ShowWhen } from '../schema/showWhen'
 import type { ShowsWhen } from './conditions'
 import {
@@ -106,40 +113,64 @@ function blockContent(node: JSONContent, context: Context) {
         )
       ]
     }
-    case 'image':
+    case 'image': {
+      const { align } = imageLook(attrs)
+      const href = emailHref(imageLook(attrs), context)
       return [
         mj('mj-image', {
           src: escapeHtml(String(attrs.src)),
           alt: escapeHtml(String(attrs.alt ?? '')),
           padding,
-          ...(attrs.width && { width: `${attrs.width}px` })
+          ...(attrs.width && { width: `${attrs.width}px` }),
+          ...(align && { align }),
+          ...(href && { href })
         })
       ]
+    }
     case 'spacer':
       return [mj('mj-spacer', { height: `${attrs.height}px` })]
     case 'horizontalRule':
       return [mj('mj-divider', { padding })]
     default: {
       const html = textBlockHtml(node, context)
-      return html ? [leaf('mj-text', { padding }, html)] : []
+      const align = textAlign(attrs.align)
+      return html
+        ? [leaf('mj-text', { padding, ...(align && { align }) }, html)]
+        : []
     }
   }
 }
 
-const column = (blocks: JSONContent[], context: Context) =>
+const column = (
+  blocks: JSONContent[],
+  context: Context,
+  attributes: Record<string, string> = {}
+) =>
   mj(
     'mj-column',
-    {},
+    attributes,
     blocks.flatMap((block) => blockNodes(block, context))
   )
 
+const percent = (share: number) => `${Number(share.toFixed(2))}%`
+
+// MJML stacks columns in their order, so a reversed stack writes them last
+// first and lays the row out right to left, which puts them back on a desktop.
 function columns(node: JSONContent, text: TreeContext) {
   const context = { ...text, padding: COLUMN_BLOCK_PADDING }
-  return mj(
-    'mj-section',
-    {},
-    (node.content ?? []).map((child) => column(child.content ?? [], context))
+  const look = columnsLook(node.attrs)
+  const children = node.content ?? []
+  const widths = columnWidths(children.length, look)
+  const built = children.map((child, index) =>
+    column(
+      child.content ?? [],
+      context,
+      look.layout ? { width: percent(widths[index]!) } : {}
+    )
   )
+  return look.stack
+    ? mj('mj-section', { direction: 'rtl' }, built.reverse())
+    : mj('mj-section', {}, built)
 }
 
 // MJML stacks columns below 480px, and its conditional tables hold them in Outlook.

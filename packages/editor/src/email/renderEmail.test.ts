@@ -200,6 +200,111 @@ describe('renderEmail', () => {
       expect(body(html)).toMatchSnapshot()
     })
 
+    it('renders an image at its start or end, centred by default, and linked', async () => {
+      const at = (align?: string) => ({
+        type: 'image',
+        attrs: {
+          src: poster,
+          alt: 'The crowd at sunset',
+          width: 200,
+          ...(align && { align }),
+          href: tickets
+        }
+      })
+      const { html } = await renderEmail(email(at('left'), at(), at('right')))
+      const aligns = [
+        ...html.matchAll(
+          /<td\s+align="(\w+)"[^>]*>\s*<table[^>]*>\s*<tbody>\s*<tr>\s*<td\s+style="width:200px;">/g
+        )
+      ].map(([, align]) => align)
+      expect(aligns).toEqual(['left', 'center', 'right'])
+      expect(
+        html.match(
+          new RegExp(
+            `<a\\s+href="${tickets}" target="_blank"\\s*>\\s*<img`,
+            'g'
+          )
+        )
+      ).toHaveLength(3)
+    })
+
+    it('links an image to a link variable’s token', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'image',
+          attrs: { src: poster, alt: '', variable: 'view_url' }
+        }),
+        {
+          syntax: 'ae',
+          variables: [
+            {
+              key: 'view_url',
+              label: 'View in browser',
+              kind: 'url',
+              tokens: { ae: '[ViewInBrowserLink]' }
+            }
+          ]
+        }
+      )
+      expect(html).toMatch(/<a\s+href="\[ViewInBrowserLink\]"[^>]*>\s*<img/)
+    })
+
+    it('centres a heading or a paragraph', async () => {
+      const { html } = await renderEmail(
+        email(
+          { ...heading(2, 'Lineup'), attrs: { level: 2, align: 'center' } },
+          { ...p(text('Gates 11am')), attrs: { align: 'center' } },
+          p(text('All ages'))
+        )
+      )
+      const alignOf = (words: string) =>
+        html
+          .slice(0, html.indexOf(words))
+          .match(/style="font-family[^"]*text-align:(\w+)/g)!
+          .at(-1)!
+          .match(/text-align:(\w+)/)![1]
+      expect(alignOf('Lineup')).toBe('center')
+      expect(alignOf('Gates 11am')).toBe('center')
+      expect(alignOf('All ages')).toBe('left')
+    })
+
+    it('renders columns at a 2:1 or 1:2 split', async () => {
+      const split = (layout: string) =>
+        renderEmail(
+          email({
+            type: 'columns',
+            attrs: { layout },
+            content: [column(p(text('Lineup'))), column(p(text('Tickets')))]
+          })
+        )
+      const left = (await split('wide-left')).html
+      const right = (await split('wide-right')).html
+      const classes = (html: string) =>
+        html.match(/class="mj-column-per-[\d-]+ /g)
+      expect(classes(left)).toEqual([
+        'class="mj-column-per-66-67 ',
+        'class="mj-column-per-33-33 '
+      ])
+      expect(classes(right)).toEqual([
+        'class="mj-column-per-33-33 ',
+        'class="mj-column-per-66-67 '
+      ])
+    })
+
+    it('stacks columns last first on a phone, in order on a desktop', async () => {
+      const { html, text: plain } = await renderEmail(
+        email({
+          type: 'columns',
+          attrs: { stack: 'reverse' },
+          content: [column(p(text('Poster'))), column(p(text('Details')))]
+        })
+      )
+      expect(html.indexOf('Details')).toBeLessThan(html.indexOf('Poster'))
+      expect(html).toMatch(/direction:rtl/)
+      expect(html.match(/direction:ltr/g)?.length).toBeGreaterThanOrEqual(2)
+      expect(plain).toBe('Details\n\nPoster')
+    })
+
     it('renders a spacer at its height and a divider in the theme’s colour', async () => {
       const { html } = await renderEmail(
         email(

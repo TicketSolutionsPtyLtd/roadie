@@ -116,14 +116,15 @@ export const presetShapes = {
     nodes: {
       ...basicNodes,
       doc: { content: 'blocks', holds: [...emailBlocks, 'section', 'columns'] },
+      paragraph: { content: 'inline', attrs: ['align'] },
       listItem: { content: 'paragraphFirst', holds: textBlocks },
-      heading: { content: 'inline', attrs: ['level'] },
+      heading: { content: 'inline', attrs: ['align', 'level'] },
       section: {
         content: 'blocks',
         attrs: ['showWhen'],
         holds: [...emailBlocks, 'columns']
       },
-      columns: { content: 'columns' },
+      columns: { content: 'columns', attrs: ['layout', 'stack'] },
       column: { content: 'blocks', holds: emailBlocks },
       button: {
         content: 'inline',
@@ -137,7 +138,10 @@ export const presetShapes = {
         ],
         plainText: true
       },
-      image: { content: 'none', attrs: ['src', 'alt', 'width', 'showWhen'] },
+      image: {
+        content: 'none',
+        attrs: ['src', 'alt', 'width', 'align', 'href', 'variable', 'showWhen']
+      },
       spacer: { content: 'none', attrs: ['height', 'showWhen'] },
       horizontalRule: { content: 'none', attrs: ['showWhen'] },
       variable: { inline: true, content: 'none', attrs: ['key', 'fallback'] }
