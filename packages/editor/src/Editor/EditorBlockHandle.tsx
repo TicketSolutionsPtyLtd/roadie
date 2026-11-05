@@ -31,6 +31,7 @@ import {
 import { closeHistory } from '@tiptap/pm/history'
 import { Fragment, type Node as ProseMirrorNode, Slice } from '@tiptap/pm/model'
 import {
+  type EditorState,
   NodeSelection,
   TextSelection,
   type Transaction
@@ -268,6 +269,20 @@ function addAfter(editor: TiptapEditor, pos: number) {
   focusEditor(editor)
 }
 
+// A moved node is inserted as itself, so the selection's ancestors hold it.
+function landedAt(state: EditorState, moved: ProseMirrorNode | null) {
+  if (!moved) return null
+  const { selection } = state
+  if (selection instanceof NodeSelection && selection.node === moved) {
+    return selection.from
+  }
+  const { $from } = selection
+  for (let depth = $from.depth; depth > 0; depth--) {
+    if ($from.node(depth) === moved) return $from.before(depth)
+  }
+  return null
+}
+
 const PARENT_LABELS: Record<string, string> = {
   section: 'Select section',
   columns: 'Select columns'
@@ -479,14 +494,18 @@ export function EditorBlockHandle({
     if (tr) editor.view.dispatch(closeHistory(tr))
   }
 
-  // The menu stays open on the block where it lands.
+  // The menu stays open on the block where it lands, a section included.
   const move = (step: -1 | 1) => {
+    const moved = editor.state.doc.nodeAt(shown)
     run((pos) =>
       blocks
         ? moveRange(editor.state, blocks, step)
         : moveBlock(editor.state, pos, step, containers)
     )
-    setMenuAt(blockAt(editor.state, editor.state.selection.from, containers))
+    setMenuAt(
+      landedAt(editor.state, moved) ??
+        blockAt(editor.state, editor.state.selection.from, containers)
+    )
   }
 
   const handBack = () => {
