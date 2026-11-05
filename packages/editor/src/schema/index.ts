@@ -16,6 +16,7 @@ export type { EditorVariable } from './variables'
 export {
   CURRENT_VERSION,
   type EditorValue,
+  type MigrateOptions,
   type StoredEditorValue,
   createEmptyValue,
   migrate

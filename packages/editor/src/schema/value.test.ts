@@ -1140,3 +1140,126 @@ describe('migrate and block ids', () => {
     ).toEqual(docOf(para('Doors 7pm')))
   })
 })
+
+describe('migrate and an app’s own blocks', () => {
+  const card = (attrs?: unknown, extra: object = {}) => ({
+    type: 'eventCard',
+    ...(attrs !== undefined && { attrs }),
+    ...extra
+  })
+  const blocksOf = (...content: object[]) => ({
+    version: 1,
+    preset: 'blocks',
+    doc: docOf(...content)
+  })
+
+  it('keeps a named block with its attrs as stored', () => {
+    const attrs = { eventId: 'okw-2026', layout: { columns: 2 }, blockId: 'c1' }
+
+    expect(
+      migrate(blocksOf(card(attrs), para('Doors 7pm')), 'blocks', {
+        customBlocks: ['eventCard']
+      }).doc
+    ).toEqual(docOf(card(attrs), para('Doors 7pm')))
+  })
+
+  it('drops a block no customBlocks names', () => {
+    expect(
+      migrate(blocksOf(card({ eventId: 'okw' }), para('Doors'))).doc
+    ).toEqual(docOf(para('Doors')))
+  })
+
+  it('keeps no content, marks or keys of its own on it', () => {
+    expect(
+      migrate(
+        blocksOf(
+          card(
+            { eventId: 'okw' },
+            {
+              content: [para('Sold out')],
+              marks: [{ type: 'bold' }],
+              text: 'x',
+              html: '<script></script>'
+            }
+          )
+        ),
+        'blocks',
+        { customBlocks: ['eventCard'] }
+      ).doc
+    ).toEqual(docOf(card({ eventId: 'okw' })))
+  })
+
+  it.each([
+    ['a list', ['okw']],
+    ['a string', 'okw'],
+    ['an empty object', {}]
+  ])('saves no attrs that are %s', (_, attrs) => {
+    expect(
+      migrate(blocksOf(card(attrs)), 'blocks', { customBlocks: ['eventCard'] })
+        .doc
+    ).toEqual(docOf(card()))
+  })
+
+  it('drops an id the block can’t keep, and a repeat of one', () => {
+    expect(
+      migrate(
+        blocksOf(
+          card({ eventId: 'a', blockId: 7 }),
+          card({ eventId: 'b', blockId: 'c1' }),
+          card({ eventId: 'c', blockId: 'c1' })
+        ),
+        'blocks',
+        { customBlocks: ['eventCard'] }
+      ).doc
+    ).toEqual(
+      docOf(
+        card({ eventId: 'a' }),
+        card({ eventId: 'b', blockId: 'c1' }),
+        card({ eventId: 'c' })
+      )
+    )
+  })
+
+  it('keeps a block in a list item and a quote, where the editor puts one', () => {
+    const inList = {
+      type: 'bulletList',
+      content: [
+        { type: 'listItem', content: [para('Doors'), card({ eventId: 'okw' })] }
+      ]
+    }
+    const inQuote = { type: 'blockquote', content: [card({ eventId: 'okw' })] }
+
+    expect(
+      migrate(blocksOf(inList, inQuote), 'blocks', {
+        customBlocks: ['eventCard']
+      }).doc
+    ).toEqual(docOf(inList, inQuote))
+  })
+
+  it('keeps a stored __proto__ as an attr of its own, never a prototype', () => {
+    const stored = JSON.parse(
+      '{"version":1,"preset":"blocks","doc":{"type":"doc","content":[{"type":"eventCard","attrs":{"__proto__":{"polluted":true},"constructor":"x"}}]}}'
+    )
+
+    const [kept] = migrate(stored, 'blocks', { customBlocks: ['eventCard'] })
+      .doc.content!
+
+    expect(Object.getPrototypeOf(kept!.attrs)).toBe(Object.prototype)
+    expect(Object.hasOwn(kept!.attrs!, '__proto__')).toBe(true)
+    expect(kept!.attrs!.constructor).toBe('x')
+    expect(({} as Record<string, unknown>).polluted).toBe(undefined)
+  })
+
+  it('never lets a name take over one of the preset’s nodes', () => {
+    const stored = blocksOf({
+      type: 'paragraph',
+      attrs: { onclick: 'x' },
+      content: [textOf('Doors')]
+    })
+
+    expect(
+      migrate(stored, 'blocks', { customBlocks: ['paragraph', 'text', 'doc'] })
+        .doc
+    ).toEqual(docOf(para('Doors')))
+  })
+})

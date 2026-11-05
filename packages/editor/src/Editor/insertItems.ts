@@ -19,6 +19,7 @@ import {
 import type { ChainedCommands, JSONContent, Range } from '@tiptap/core'
 import type { Editor } from '@tiptap/react'
 
+import type { EditorBlock } from '../extensions'
 import type { Preset } from '../schema'
 import { COLUMN_COUNTS } from '../schema/emailAttrs'
 import type { EditorControlUi } from './controls'
@@ -227,6 +228,16 @@ export const presetInsertItems: Partial<
     spacer,
     divider
   ]
+}
+
+/** The insert menu's item for an app's own block, which goes in as an atom. */
+export function customInsertItem({
+  node,
+  label,
+  icon,
+  keywords
+}: EditorBlock): EditorInsertItem {
+  return block(label, icon, { type: node.name }, keywords)
 }
 
 /** The items matching `query` that can go in place of the typed `range`. */

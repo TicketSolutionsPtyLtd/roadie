@@ -17,7 +17,8 @@ export type NodeContent =
 export type NodeShape = {
   inline?: true
   content: NodeContent
-  attrs?: readonly string[]
+  /** The attrs it saves, or `stored` for an app's block, which keeps its own. */
+  attrs?: readonly string[] | 'stored'
   /**
    * The blocks a node holding blocks may hold, when not every block. Any
    * other gives way to its children.
