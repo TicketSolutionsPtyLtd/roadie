@@ -58,6 +58,8 @@ export type EditorSetting = {
       /** One of its options, as buttons up to three, or a select past that. */
       type: 'choice'
       options: readonly EditorSettingOption[]
+      /** The option shown chosen while the attr is unset, as the block draws it. */
+      defaultValue?: string
     }
 )
 

@@ -1,7 +1,15 @@
 import { TicketIcon } from '@phosphor-icons/react'
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi
+} from 'vitest'
+import { userEvent, page as viewport } from 'vitest/browser'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -44,7 +52,8 @@ const promo: EditorBlock = {
     atom: true,
     addAttributes: () => ({
       title: { default: 'Ochre Kite Weekender' },
-      tone: { default: 'calm' }
+      tone: { default: 'calm' },
+      size: { default: undefined }
     }),
     parseHTML: () => [{ tag: 'div[data-promo]' }],
     renderHTML: ({ HTMLAttributes }) => [
@@ -62,6 +71,16 @@ const promo: EditorBlock = {
       options: [
         { value: 'calm', label: 'Calm' },
         { value: 'loud', label: 'Loud' }
+      ]
+    },
+    {
+      name: 'size',
+      label: 'Size',
+      type: 'choice',
+      defaultValue: 'md',
+      options: [
+        { value: 'sm', label: 'Small' },
+        { value: 'md', label: 'Medium' }
       ]
     }
   ]
@@ -184,7 +203,7 @@ describe('Editor block settings', () => {
     })
   })
 
-  it('keeps the changes on Done, as one step to undo', async () => {
+  it('keeps the changes on a click away, as one step to undo', async () => {
     const onValueChange = renderPage()
     const drawer = await openFromMenu()
 
@@ -193,16 +212,13 @@ describe('Editor block settings', () => {
       '!'
     )
     await userEvent.click(within(drawer).getByRole('button', { name: 'Loud' }))
-    await userEvent.click(within(drawer).getByRole('button', { name: 'Done' }))
+    await userEvent.click(await screen.findByText('Doors 7pm'))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     expect(savedPromo(onValueChange)).toMatchObject({
       title: 'Ochre Kite Weekender!',
       tone: 'loud'
     })
-    await waitFor(() =>
-      expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
-    )
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
     await waitFor(() =>
       expect(savedPromo(onValueChange)).toMatchObject({
@@ -212,17 +228,41 @@ describe('Editor block settings', () => {
     )
   })
 
-  it('puts the block back on Cancel', async () => {
-    const onValueChange = renderPage()
+  it('keeps Tab in the drawer while it’s open', async () => {
+    renderPage()
     const drawer = await openFromMenu()
 
-    await userEvent.click(within(drawer).getByRole('button', { name: 'Loud' }))
-    await userEvent.click(
-      within(drawer).getByRole('button', { name: 'Cancel' })
-    )
+    for (let press = 0; press < 6; press++) {
+      await userEvent.keyboard('{Tab}')
+      expect(drawer).toContainElement(document.activeElement as HTMLElement)
+    }
+  })
 
+  it('shows a choice’s default while its attr is unset', async () => {
+    renderPage()
+    const drawer = await openFromMenu()
+
+    expect(
+      within(drawer).getByRole('button', { name: 'Medium' })
+    ).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('types after the block once its settings close on a phone, rather than replacing it', async () => {
+    await viewport.viewport(390, 700)
+    onTestFinished(() => viewport.viewport(1280, 800))
+    const onValueChange = renderPage()
+    const drawer = await openFromMenu()
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Loud' }))
+
+    // A tap above the sheet, on the page, closes it.
+    await userEvent.click(document.body, { position: { x: 4, y: 4 } })
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(savedPromo(onValueChange)).toMatchObject({ tone: 'calm' })
+    await userEvent.keyboard('x')
+
+    await waitFor(() =>
+      expect(savedPromo(onValueChange)).toMatchObject({ tone: 'loud' })
+    )
+    expect(await promoView()).toBeVisible()
   })
 
   it('keeps the changes on Enter in a text setting', async () => {
