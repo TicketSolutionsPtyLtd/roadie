@@ -75,6 +75,46 @@ type BlockMenuProps = {
   onOpenChange?: (open: boolean) => void
 }
 
+type BlockMenuRadioGroupProps = {
+  menu: EditorBlockMenu
+  state: ControlState | undefined
+  editor: TiptapEditor | null
+  /** Heads the group, in a menu that holds others. */
+  label?: string
+}
+
+/** A block menu's choices, with the current one checked. */
+export function BlockMenuRadioGroup({
+  menu,
+  state,
+  editor,
+  label
+}: BlockMenuRadioGroupProps) {
+  const current = state?.current ?? menu.types[0]?.label
+  return (
+    <Menu.RadioGroup
+      value={current}
+      onValueChange={(chosen) => {
+        const type = menu.types.find((option) => option.label === chosen)
+        if (editor && type) type.run(editor)
+      }}
+    >
+      {label ? <Menu.GroupLabel>{label}</Menu.GroupLabel> : null}
+      {menu.types.map((type) => (
+        <Menu.RadioItem
+          key={type.label}
+          value={type.label}
+          shortcut={type.shortcut}
+          disabled={state ? !state.enabled : false}
+          closeOnClick
+        >
+          {type.label}
+        </Menu.RadioItem>
+      ))}
+    </Menu.RadioGroup>
+  )
+}
+
 export function BlockMenu({
   menu,
   state,
@@ -102,24 +142,7 @@ export function BlockMenu({
           return false
         }}
       >
-        <Menu.RadioGroup
-          value={current}
-          onValueChange={(label) => {
-            const type = menu.types.find((option) => option.label === label)
-            if (editor && type) type.run(editor)
-          }}
-        >
-          {menu.types.map((type) => (
-            <Menu.RadioItem
-              key={type.label}
-              value={type.label}
-              shortcut={type.shortcut}
-              closeOnClick
-            >
-              {type.label}
-            </Menu.RadioItem>
-          ))}
-        </Menu.RadioGroup>
+        <BlockMenuRadioGroup menu={menu} state={state} editor={editor} />
       </Menu.Content>
     </Menu>
   )

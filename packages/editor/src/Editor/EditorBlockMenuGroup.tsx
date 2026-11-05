@@ -1,12 +1,14 @@
 'use client'
 
+import { Fragment } from 'react'
+
 import { CaretDownIcon } from '@phosphor-icons/react'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 
 import { Menu } from '@oztix/roadie-components/menu'
 import { Toolbar } from '@oztix/roadie-components/toolbar'
 
-import type { ControlState } from './EditorToolbarEngine'
+import { BlockMenuRadioGroup, type ControlState } from './EditorToolbarEngine'
 import type { EditorBlockMenu } from './controls'
 import { focusEditor } from './focusEditor'
 
@@ -43,32 +45,17 @@ export function EditorBlockMenuGroup({
           return false
         }}
       >
-        {menus.map((menu, index) => {
-          const current = states[index]?.current ?? menu.types[0]?.label
-          return (
-            <Menu.RadioGroup
-              key={menu.label}
-              value={current}
-              onValueChange={(chosen) => {
-                const type = menu.types.find(
-                  (option) => option.label === chosen
-                )
-                type?.run(editor)
-              }}
-            >
-              <Menu.GroupLabel>{menu.label}</Menu.GroupLabel>
-              {menu.types.map((type) => (
-                <Menu.RadioItem
-                  key={type.label}
-                  value={type.label}
-                  closeOnClick
-                >
-                  {type.label}
-                </Menu.RadioItem>
-              ))}
-            </Menu.RadioGroup>
-          )
-        })}
+        {menus.map((menu, index) => (
+          <Fragment key={menu.label}>
+            {index > 0 ? <Menu.Separator /> : null}
+            <BlockMenuRadioGroup
+              menu={menu}
+              state={states[index]}
+              editor={editor}
+              label={menu.label}
+            />
+          </Fragment>
+        ))}
       </Menu.Content>
     </Menu>
   )

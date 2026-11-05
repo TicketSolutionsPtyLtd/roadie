@@ -209,6 +209,12 @@ describe('Editor email columns', () => {
     for (const name of ['Columns', 'Layout', 'Stack on phone']) {
       expect(within(menu).getByRole('group', { name })).toBeVisible()
     }
+    for (const name of ['2 columns', 'Equal', 'Left first']) {
+      expect(within(menu).getByRole('menuitemradio', { name })).toHaveAttribute(
+        'aria-checked',
+        'true'
+      )
+    }
     await userEvent.click(
       within(menu).getByRole('menuitemradio', { name: 'Wide right (1:2)' })
     )
