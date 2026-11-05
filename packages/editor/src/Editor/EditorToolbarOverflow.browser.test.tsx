@@ -320,6 +320,92 @@ describe('Editor toolbar on a touch screen', () => {
     )
   })
 
+  it('stays docked in an editor popup, even as focus drops to the page', async () => {
+    onTouchScreen()
+    await page.viewport(390, 700)
+    render(
+      <>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={valueIn('email')}
+          toolbar='docked'
+        />
+        <div data-editor-popup=''>
+          <button type='button'>Move down</button>
+        </div>
+        <button type='button'>Save</button>
+      </>
+    )
+    const toolbar = await shownToolbar()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const viewport = window.visualViewport!
+    const docked = () =>
+      Math.abs(
+        toolbar.getBoundingClientRect().bottom -
+          (viewport.offsetTop + viewport.height)
+      ) < 1
+    await userEvent.click(within(textbox).getByText(TEXT))
+    await waitFor(() => expect(docked()).toBe(true))
+
+    const move = screen.getByRole('button', { name: 'Move down' })
+    move.focus()
+    move.blur()
+    await new Promise(requestAnimationFrame)
+    await new Promise(requestAnimationFrame)
+    expect(docked()).toBe(true)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(docked()).toBe(false))
+  })
+
+  it('leaves out text controls while a block is selected', async () => {
+    onTouchScreen()
+    await page.viewport(390, 700)
+    render(
+      <Editor
+        aria-label={LABEL}
+        toolbar='docked'
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              { type: 'paragraph', content: [{ type: 'text', text: TEXT }] },
+              { type: 'spacer' }
+            ]
+          }
+        }}
+      />
+    )
+    const toolbar = await shownToolbar()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(within(textbox).getByText(TEXT))
+    await waitFor(() =>
+      expect(
+        controls(toolbar).some((name) => /^Block type/.test(name ?? ''))
+      ).toBe(true)
+    )
+
+    await userEvent.click(textbox.querySelector('[data-type="spacer"]')!)
+
+    await waitFor(() =>
+      expect(
+        controls(toolbar).some((name) => /^Block type/.test(name ?? ''))
+      ).toBe(false)
+    )
+    expect(controls(toolbar)).toEqual(
+      expect.arrayContaining(['Blocks', 'Undo'])
+    )
+    expect(controls(toolbar)).not.toContain('Bold')
+    if (within(toolbar).queryByRole('button', { name: 'More' })) {
+      await moreMenu(toolbar)
+      expect(screen.queryByRole('menuitemcheckbox', { name: 'Bold' })).toBe(
+        null
+      )
+    }
+  })
+
   it('stays at the top with a mouse', async () => {
     await page.viewport(390, 700)
     render(

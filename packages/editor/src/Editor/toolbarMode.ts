@@ -86,8 +86,12 @@ export function useStickyTop(
   return top
 }
 
-// Popups opened from the bar, which focus moves into while editing goes on.
-const BAR_POPUPS = '[role="menu"], [role="listbox"], [role="dialog"]'
+/**
+ * Popups opened from the editor, which focus moves into while editing goes
+ * on. The editor's own sheets and settings carry `data-editor-popup`.
+ */
+export const EDITOR_POPUP = 'data-editor-popup'
+const BAR_POPUPS = `[${EDITOR_POPUP}], [role="menu"], [role="listbox"], [role="dialog"]`
 
 /**
  * On a touch screen, whether the docked bar sits above the keyboard, and how
@@ -119,6 +123,11 @@ export function useKeyboardDock(
         const active = document.activeElement
         const popup = active?.closest(BAR_POPUPS)
         if (active && frame.contains(active)) inside = true
+        else if (!active || active === document.body) {
+          // A sheet's control that re-renders as it's tapped drops focus to
+          // the page, with the sheet still open.
+          inside &&= document.querySelector(`[${EDITOR_POPUP}]`) !== null
+        }
         // A dialog around the editor is the page, not a popup of its bar.
         else if (!popup || popup.contains(frame)) inside = false
         setEditing(inside)
