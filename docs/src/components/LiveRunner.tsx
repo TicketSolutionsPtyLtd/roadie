@@ -117,6 +117,7 @@ import {
 } from '@oztix/roadie-core/records'
 import { toMeilisearch } from '@oztix/roadie-core/records/meilisearch'
 import { Editor, useEditorContext } from '@oztix/roadie-editor/editor'
+import { EmailHtmlField } from '@oztix/roadie-editor/email-html-field'
 import {
   Node,
   NodeViewWrapper,
@@ -236,6 +237,7 @@ const scope = {
   ...RoadieComponents,
   ...RoadieCharts,
   Editor,
+  EmailHtmlField,
   useEditorContext,
   renderEditorValue,
   htmlToEditorValue,
