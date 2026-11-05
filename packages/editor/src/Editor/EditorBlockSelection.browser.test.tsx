@@ -141,6 +141,56 @@ describe('Editor block selection', () => {
     )
   })
 
+  it('treats one selected block as that block in its menu', async () => {
+    renderLineup()
+    await clickIntoEditor(await row('Support 8pm'))
+    await userEvent.keyboard(`{Escape}{${MOD}>}/{/${MOD}}`)
+
+    const menu = await screen.findByRole('menu')
+
+    await waitFor(() =>
+      expect(
+        within(menu).getByRole('group', { name: 'Paragraph' })
+      ).toBeVisible()
+    )
+    expect(
+      within(menu).getByRole('menuitem', { name: 'Copy link to block' })
+    ).toBeVisible()
+  })
+
+  it('brings a deleted block back selected on undo, so typing goes on at its end', async () => {
+    const onValueChange = renderLineup()
+    await clickIntoEditor(await row('Support 8pm'))
+    await userEvent.keyboard('{Escape}{Backspace}')
+    await waitFor(() => expect(ids(onValueChange)).toHaveLength(3))
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(async () => expect(await tinted()).toEqual(['Support 8pm']))
+    await userEvent.keyboard('x')
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content!.map(
+          (node) => node.content?.[0]?.text
+        )
+      ).toEqual(['Doors 7pm', 'Support 8pmx', 'Headliner 9pm', 'Curfew 11pm'])
+    )
+  })
+
+  it('rounds a selected block’s ring as a section’s', async () => {
+    renderLineup()
+    await clickIntoEditor(await row('Support 8pm'))
+
+    await userEvent.keyboard('{Escape}')
+
+    const block = await row('Support 8pm')
+    await waitFor(() =>
+      expect(
+        parseFloat(getComputedStyle(block).borderTopLeftRadius)
+      ).toBeGreaterThan(0)
+    )
+  })
+
   it('moves every selected block with the move keys', async () => {
     const onValueChange = renderLineup()
     await clickIntoEditor(await row('Doors 7pm'))

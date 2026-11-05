@@ -25,6 +25,20 @@
   outline-offset: 2px;
 }
 
+/* A section's, so every ring is drawn alike, where the block has none of its
+   own, as an image's wrapper does. */
+@layer components {
+  [data-slot='editor-content']
+    .ProseMirror-selectednode.react-renderer
+    > [data-node-view-wrapper],
+  [data-slot='editor-content'] [data-selected-block]:not(.react-renderer),
+  [data-slot='editor-content']
+    [data-selected-block].react-renderer
+    > [data-node-view-wrapper] {
+    border-radius: var(--radius-lg);
+  }
+}
+
 /* The caret's block takes a tint that reaches past its text, so the text
    doesn't move. An outline, not padding, so lines stay where they are. In
    the components layer so a block that draws its own fill, as a button

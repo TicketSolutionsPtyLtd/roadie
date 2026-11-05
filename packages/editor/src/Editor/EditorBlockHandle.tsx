@@ -514,8 +514,13 @@ export function EditorBlockHandle({
   }, [editor, openMenuRef, containers])
 
   // The menu acts on every selected block when it's open on one of them.
+  // One selected block is that block, with its own menu.
   const blocks =
-    range && shown != null && shown >= range.from && shown < range.to
+    range &&
+    range.count > 1 &&
+    shown != null &&
+    shown >= range.from &&
+    shown < range.to
       ? range
       : null
   const marked = menuAt === null ? null : (blocks ?? menuAt)

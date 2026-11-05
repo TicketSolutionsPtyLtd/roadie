@@ -62,8 +62,33 @@ export class BlockSelection extends Selection {
     return { type: 'block', anchor: this.anchor, head: this.head }
   }
 
+  // Undo restores the blocks selected, not their text, as typing would
+  // replace it.
+  getBookmark() {
+    return new BlockBookmark(this.anchor, this.head)
+  }
+
   static fromJSON(doc: Node, json: { anchor: number; head: number }) {
     return BlockSelection.create(doc, json.anchor, json.head)
+  }
+}
+
+class BlockBookmark {
+  constructor(
+    readonly anchor: number,
+    readonly head: number
+  ) {}
+
+  map(mapping: Mappable) {
+    return new BlockBookmark(mapping.map(this.anchor), mapping.map(this.head))
+  }
+
+  resolve(doc: Node): Selection {
+    const $anchor = doc.resolve(this.anchor)
+    const $head = doc.resolve(this.head)
+    return holdsBlocks($anchor, $head)
+      ? new BlockSelection($anchor, $head)
+      : TextSelection.between($anchor, $head)
   }
 }
 
