@@ -72,10 +72,7 @@ export function EditorBlocksDrawer({
   return (
     <Drawer
       open={open}
-      onOpenChange={(next) => {
-        if (next) pickedRef.current = false
-        onOpenChange(next)
-      }}
+      onOpenChange={onOpenChange}
       side={phone ? 'bottom' : 'right'}
     >
       <Drawer.Content
@@ -83,6 +80,8 @@ export function EditorBlocksDrawer({
         initialFocus={firstTileRef}
         finalFocus={() => {
           if (!pickedRef.current) focusEditor(editor)
+          // The toolbar opens it without onOpenChange, so reset here.
+          pickedRef.current = false
           return false
         }}
       >

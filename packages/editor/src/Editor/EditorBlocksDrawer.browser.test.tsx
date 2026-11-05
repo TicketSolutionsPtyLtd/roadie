@@ -450,6 +450,21 @@ describe('Editor blocks drawer', () => {
     await waitFor(async () => expect(await textbox()).toHaveFocus())
   })
 
+  it('hands focus back on Escape after an earlier pick', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    await userEvent.click(
+      within(await openFromDockedBar()).getByRole('button', { name: 'Spacer' })
+    )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+
+    await openFromDockedBar()
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    await waitFor(async () => expect(await textbox()).toHaveFocus())
+  })
+
   it('takes a block back in one undo', async () => {
     const onValueChange = renderEmail()
     await clickInto('Doors 7pm')
