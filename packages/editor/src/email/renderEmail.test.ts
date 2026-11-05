@@ -858,6 +858,12 @@ describe('renderEmail', () => {
         { ticket_type: '' }
       ],
       [
+        'exists, reading false as Liquid does',
+        { key: 'ticket_type', op: 'exists' },
+        { ticket_type: 'true' },
+        { ticket_type: 'false' }
+      ],
+      [
         'equals text',
         { key: 'ticket_type', op: 'equals', value: 'VIP' },
         { ticket_type: 'VIP' },

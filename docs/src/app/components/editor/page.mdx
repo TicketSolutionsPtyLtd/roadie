@@ -971,9 +971,9 @@ const preview = await renderEmail(nearlySoldOut, {
   must be a plain variable, such as `{{ event.tickets_left }}`, since Liquid
   takes no filters in a condition.
 - With `values`, the block shows only when its rule holds. A missing or
-  empty value doesn't exist, and a value that isn't a number is never less
-  or greater than one. A preview value is a number when it's written in
-  decimal digits.
+  empty value, or `'false'`, doesn't exist, as Liquid's `false` doesn't, and
+  a value that isn't a number is never less or greater than one. A preview
+  value is a number when it's written in decimal digits.
 - The `ae` syntax has no conditions, so a rule throws there. So does a rule
   with neither `syntax` nor `values`, one naming a variable `variables`
   doesn't list or whose Liquid token isn't a plain variable, a number Liquid

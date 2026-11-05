@@ -80,8 +80,9 @@ function holds(rule: ShowWhen, values: Readonly<Record<string, string>>) {
   const value = Object.hasOwn(values, rule.key) ? values[rule.key] : undefined
   const number = numberIn(value)
   switch (rule.op) {
+    // A sender's false fails Liquid's `and`, and a preview can only write it as text.
     case 'exists':
-      return Boolean(value)
+      return Boolean(value) && value !== 'false'
     case 'equals':
       return matches(value, rule.value)
     case 'notEquals':
