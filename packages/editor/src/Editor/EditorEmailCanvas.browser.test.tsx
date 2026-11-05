@@ -226,4 +226,42 @@ describe('Editor email canvas', () => {
       expect(getComputedStyle(spacer).outlineStyle).toBe('solid')
     })
   })
+
+  it('keeps a leading image in place while the gap cursor shows before it', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'image',
+                attrs: {
+                  src: 'https://example.test/header.webp',
+                  alt: 'A crowd'
+                }
+              },
+              p('Doors 7pm')
+            ]
+          }
+        }}
+      />
+    )
+    await screen.findByText('Doors 7pm')
+    const image = await screen.findByAltText('A crowd', {}, { timeout: 5000 })
+    const block = image.closest<HTMLElement>('[data-slot="editor-image"]')!
+    const top = block.getBoundingClientRect().top
+
+    await userEvent.click(image)
+    await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
+    await userEvent.keyboard('{ArrowLeft}')
+
+    await expect
+      .poll(() => document.querySelector('.ProseMirror-gapcursor'))
+      .not.toBeNull()
+    expect(block.getBoundingClientRect().top).toBe(top)
+  })
 })
