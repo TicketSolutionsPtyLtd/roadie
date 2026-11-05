@@ -125,7 +125,9 @@ function blockContent(node: JSONContent, context: Context) {
     default: {
       // An empty line is room to type in, not space to send.
       if (isBlankParagraph(node)) return []
-      const html = textBlockHtml(node, context)
+      const kept = withoutBlankItems(node)
+      if (!kept) return []
+      const html = textBlockHtml(kept, context)
       return html ? [leaf('mj-text', { padding }, html)] : []
     }
   }
@@ -138,6 +140,22 @@ const isBlankParagraph = (node: JSONContent) =>
       child.type === 'hardBreak' ||
       (child.type === 'text' && !child.text?.trim())
   )
+
+const LISTS = new Set(['bulletList', 'orderedList'])
+
+// A list item with no words, such as a hinted line left empty, would send as
+// a blank bullet, so it goes, and a list left with none goes too.
+function withoutBlankItems(node: JSONContent): JSONContent | null {
+  if (!LISTS.has(node.type ?? '')) return node
+  const items = (node.content ?? []).flatMap((listItem) => {
+    const content = (listItem.content ?? []).flatMap((child) => {
+      const kept = withoutBlankItems(child)
+      return kept && !isBlankParagraph(kept) ? [kept] : []
+    })
+    return content.length > 0 ? [{ ...listItem, content }] : []
+  })
+  return items.length > 0 ? { ...node, content: items } : null
+}
 
 const column = (blocks: JSONContent[], context: Context) =>
   mj(
