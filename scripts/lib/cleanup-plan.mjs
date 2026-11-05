@@ -43,31 +43,28 @@ export function mergedHead(branch, tip, merged, isAncestor) {
   )
 }
 
-export function planBranches({
-  branches,
-  checkedOut,
-  merged,
-  isAncestor,
-  hasCommit,
-  only,
-  prefix
-}) {
+function branchKeepReason(
+  { name, tip },
+  { checkedOut, merged, isAncestor, hasCommit }
+) {
+  if (checkedOut.has(name)) return 'checked out'
+  const prs = merged.filter((pr) => pr.headRefName === name)
+  if (!prs.length) return 'no merged PR'
+  if (mergedHead(name, tip, merged, isAncestor)) return null
+  if (prs.some((pr) => !hasCommit(pr.headRefOid)))
+    return 'a merged PR head not fetched'
+  return 'commits its merged PR lacks'
+}
+
+export function planBranches({ branches, only, prefix, ...context }) {
   const remove = []
   const kept = []
-  for (const { name, tip } of branches) {
+  for (const branch of branches) {
+    const { name } = branch
     if (name === 'main') continue
     if (only && name !== only) continue
     if (prefix && !name.startsWith(prefix)) continue
-    const prs = merged.filter((pr) => pr.headRefName === name)
-    const reason = checkedOut.has(name)
-      ? 'checked out'
-      : !prs.length
-        ? 'no merged PR'
-        : mergedHead(name, tip, merged, isAncestor)
-          ? null
-          : prs.some((pr) => !hasCommit(pr.headRefOid))
-            ? 'a merged PR head not fetched'
-            : 'commits its merged PR lacks'
+    const reason = branchKeepReason(branch, context)
     if (reason) kept.push({ name, reason })
     else remove.push(name)
   }
