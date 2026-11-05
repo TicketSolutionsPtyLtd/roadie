@@ -104,7 +104,7 @@ function renderDoc(
 ) {
   const nodeMapping = renderers(nodes, ({ node }) => node.attrs, context)
   for (const [name, render] of Object.entries(blocks)) {
-    if (name in nodeMapping || name === 'text') continue
+    if (name in nodeMapping) continue
     nodeMapping[name] = ({ node }) => render({ attrs: { ...node.attrs } })
   }
   nodeMapping.text = ({ node }) =>
