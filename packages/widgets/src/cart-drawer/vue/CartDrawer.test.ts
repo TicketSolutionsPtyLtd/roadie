@@ -10,15 +10,24 @@ import { lockBodyScroll } from './documentEffects'
 
 // @number-flow/vue is an animated Web Component that jsdom never upgrades, so
 // it renders no digit text under test (see CartUrgencyBadge.test.ts). Stub it
-// with a plain span that emits the same prefix/value/suffix text so the count
-// and total values flowing from the cart payload become assertable.
+// with a plain span that renders the text it would show, formatted with Intl
+// as NumberFlow does.
 vi.mock('@number-flow/vue', () => ({
   default: {
     name: 'NumberFlowStub',
-    props: ['value', 'prefix', 'suffix', 'format'],
-    setup(props: { value: number; prefix?: string; suffix?: string }) {
+    props: ['value', 'locales', 'format', 'prefix', 'suffix'],
+    setup(props: {
+      value: number
+      locales?: string
+      format?: Intl.NumberFormatOptions
+      prefix?: string
+      suffix?: string
+    }) {
       return () =>
-        h('span', `${props.prefix ?? ''}${props.value}${props.suffix ?? ''}`)
+        h(
+          'span',
+          `${props.prefix ?? ''}${new Intl.NumberFormat(props.locales, props.format).format(props.value)}${props.suffix ?? ''}`
+        )
     }
   }
 }))
@@ -250,7 +259,7 @@ describe('CartDrawer (Vue)', () => {
     )
 
     // Escape deactivates the trap and returns the drawer to the docked region.
-    // NOTE: return-focus-to-trigger isn't asserted — this drawer swaps its
+    // NOTE: return-focus-to-trigger isn't asserted: this drawer swaps its
     // footer buttons on open, detaching the "Open cart" trigger before close,
     // so focus-trap has no live node to restore to. Worth a follow-up (stable
     // setReturnFocus target) but out of scope for this test.
@@ -361,8 +370,31 @@ describe('CartDrawer (Vue)', () => {
     // Header total reflects the per-event subtotal sum (50), not summary's 25.
     expect(
       container.querySelector('[data-testid="cart-header-price"]')?.textContent
-    ).toBe('$50')
+    ).toBe('$50.00')
   })
+
+  it.each([
+    ['de-DE', 'EUR', /^50,00 €$/],
+    ['en-AU', 'JPY', /^JPY 50$/]
+  ])(
+    'reads the header total in %s %s as the prices read',
+    async (locale, currency, shown) => {
+      const { container } = render(CartDrawer, {
+        props: {
+          ...baseProps,
+          locale,
+          currency,
+          cart: mockCart(),
+          onNavigate: vi.fn()
+        }
+      })
+      await flushPromises()
+
+      expect(
+        container.querySelector('[data-testid="cart-header-price"]')
+      ).toHaveTextContent(shown)
+    }
+  )
 
   it('falls back to summary count + total when details are null', async () => {
     const cart = mockCart({
@@ -388,7 +420,7 @@ describe('CartDrawer (Vue)', () => {
     ).toBe('3')
     expect(
       container.querySelector('[data-testid="cart-header-price"]')?.textContent
-    ).toBe('$75')
+    ).toBe('$75.00')
   })
 
   it('event context: "Browse events" navigates to the package-built browse target', async () => {
@@ -525,7 +557,7 @@ describe('CartDrawer (Vue)', () => {
     expect(drawer.getAttribute('role')).toBe('dialog')
     await fireEvent.click(await findByLabelText('Remove Night Show'))
     await findByText('Remove all tickets for this event?')
-    // Escape dismisses the popover but must NOT also close the drawer — the
+    // Escape dismisses the popover but must NOT also close the drawer: the
     // drawer's onKeydown bails via the [data-cart-confirm] guard.
     await fireEvent.keyDown(document, { key: 'Escape' })
     await flushPromises()
@@ -610,7 +642,7 @@ describe('CartDrawer (Vue)', () => {
     const releaseModal = lockBodyScroll()
 
     // Close the drawer (Escape). The modal is still open, so background scroll
-    // MUST stay locked — the drawer must not stomp the shared lock.
+    // MUST stay locked: the drawer must not stomp the shared lock.
     await fireEvent.keyDown(document, { key: 'Escape' })
     await flushPromises()
     await nextTick()

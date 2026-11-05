@@ -148,6 +148,35 @@ do.
 
 </Guidelines>
 
+## Frame budget
+
+At 60 frames a second, each frame has 16.7ms. Scrolling, dragging, typing,
+and opening or closing something should fit every frame in that on a slow
+device, not just on a fast laptop.
+
+Roadie holds its interactive components to this budget. Each one has a frame
+test that drives it the way someone would, with realistic data, in Chromium
+with the CPU slowed to about a quarter of a recent laptop's speed. The test
+reads at least 60 frames and fails when the 95th-percentile frame runs over
+16.7ms, allowing for the frame clock's jitter, or when more than 5% of frames
+are dropped. One hiccup can't fail it, and a slow interaction can't pass.
+
+<Guidelines>
+
+<Guideline title='Hold every interaction to 60fps' description='Smoothness is judged over the whole interaction, on a slow device.'>
+  <Guideline.Do>
+    Record the interaction in the browser's performance panel with the CPU
+    slowed 4x. Read the frames across the whole interaction, and fix long
+    tasks and forced layouts first.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't call an interaction smooth from one fast frame, or from a machine
+    with no throttling.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
 ## Network
 
 Latency kills flow. API interactions should feel instantaneous.

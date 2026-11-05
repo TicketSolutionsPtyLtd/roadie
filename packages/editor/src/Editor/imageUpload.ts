@@ -7,6 +7,7 @@ import {
 } from '@tiptap/pm/state'
 import { Decoration, DecorationSet, type EditorView } from '@tiptap/pm/view'
 
+import { isEmailImageSrc } from '../schema/emailAttrs'
 import { isSafeImageSrc } from '../schema/imageSrc'
 
 export type UploadImage = (file: File) => Promise<{ src: string; alt?: string }>
@@ -15,6 +16,8 @@ export type ImageUploadOptions = {
   /** The latest `onUploadImage`, read when a file arrives. */
   upload: () => UploadImage | undefined
   onError: (message: string | null) => void
+  /** Refuses a src not on https, as for an email, whose images load in a mail client. */
+  httpsOnly?: boolean
 }
 
 type Upload = { id: object }
@@ -24,6 +27,7 @@ const uploads = new PluginKey<DecorationSet>('imageUploads')
 
 const UNUSABLE_SRC =
   'The image couldn’t be added, as it isn’t served over https or from this site.'
+const NOT_HTTPS = 'The image couldn’t be added, as it isn’t served over https.'
 const FAILED = 'The image couldn’t be uploaded. Try again.'
 
 function placeholder() {
@@ -59,14 +63,18 @@ const insertImage: Place = (tr, at, image) => {
 const replaceImageAt: Place = (tr, at, { src, alt }) => {
   const image = tr.doc.nodeAt(at)
   if (image?.type.name !== 'image') return
-  tr.setNodeMarkup(at, undefined, { src, alt: String(image.attrs.alt) || alt })
+  tr.setNodeMarkup(at, undefined, {
+    ...image.attrs,
+    src,
+    alt: String(image.attrs.alt) || alt
+  })
 }
 
 function upload(
   view: EditorView,
   files: readonly File[],
   pos: number,
-  { upload: current, onError }: ImageUploadOptions,
+  { upload: current, onError, httpsOnly }: ImageUploadOptions,
   place: Place
 ) {
   const uploadImage = current()
@@ -90,12 +98,12 @@ function upload(
       resolve(uploadImage(file))
     }).then(
       ({ src, alt = '' }) => {
-        if (isSafeImageSrc(src)) {
+        if (httpsOnly ? isEmailImageSrc(src) : isSafeImageSrc(src)) {
           settle({ src, alt })
           return
         }
         settle()
-        onError(UNUSABLE_SRC)
+        onError(httpsOnly ? NOT_HTTPS : UNUSABLE_SRC)
       },
       (error: unknown) => {
         settle()

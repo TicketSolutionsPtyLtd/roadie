@@ -32,7 +32,10 @@ function keyReader(
     case 'boolean':
       return (row) => {
         const value = read(row, field.key)
-        return typeof value === 'boolean' ? Number(value) : undefined
+        if (typeof value === 'boolean') return Number(value)
+        // Meilisearch holds booleans as "true" and "false", and filters read them.
+        const text = typeof value === 'string' ? value.toLowerCase() : ''
+        return text === 'true' ? 1 : text === 'false' ? 0 : undefined
       }
     case 'date':
       return (row) => {

@@ -248,10 +248,15 @@ export function ChangelogTimeline({
     } catch {
       return
     }
+    const moved = releases.find((release) => release.legacySlug === id)
+    if (moved) {
+      id = moved.slug
+      window.history.replaceState(window.history.state, '', `#${id}`)
+    }
     const target = id ? document.getElementById(id) : null
     if (target && document.getElementById('docs-content')?.contains(target))
       landOn(target, false)
-  }, [])
+  }, [releases])
 
   const months = useMemo(() => railMonths(shown), [shown])
   const pending = shown[0]?.release.pending ?? false

@@ -1,6 +1,7 @@
 import { type Browser, chromium, firefox, webkit } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { settled } from './routerReady'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 let browser: Browser
@@ -25,7 +26,7 @@ async function exploreRows(width: number, count: number) {
   await serveExport(context)
   const page = await context.newPage()
   await page.goto(`${ORIGIN}${BASE_PATH}/`)
-  await page.waitForLoadState('networkidle')
+  await settled(page)
   return page
     .locator('section:has(> div > h2:text-is("Explore")) > ul')
     .evaluate((ul, count) => {

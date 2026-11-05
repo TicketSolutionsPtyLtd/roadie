@@ -73,6 +73,23 @@ describe('RecordTable totals', () => {
     })
   })
 
+  it('totals to the field’s decimal places', () => {
+    const fields = showFields.map((f) =>
+      f.key === 'sold' ? { ...f, decimals: 2 } : f
+    )
+    const column = tableColumns<TestShow>(fields)
+    const columns = [
+      column.field('show', { pin: true }),
+      column.field('city'),
+      column.field('sold'),
+      column.field('gross')
+    ]
+    render(<Table totals fields={fields} columns={columns} />)
+    expect(totals().sold).toBe(
+      soldOf(SHOWS).toLocaleString('en-AU', { minimumFractionDigits: 2 })
+    )
+  })
+
   it('follows the search', async () => {
     const user = userEvent.setup()
     render(<Table totals />)

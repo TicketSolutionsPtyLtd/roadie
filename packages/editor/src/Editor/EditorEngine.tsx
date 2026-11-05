@@ -10,6 +10,7 @@ import {
   getSchema
 } from '@tiptap/core'
 import { Placeholder } from '@tiptap/extensions'
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import { NodeSelection } from '@tiptap/pm/state'
 import {
   type ReactNodeViewProps,
@@ -29,25 +30,34 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import {
   CURRENT_VERSION,
+  type EditorValue,
   type Preset,
   createEmptyValue,
   defaultEmbedProviders,
   migrate,
   presets
 } from '../schema'
+import {
+  BLOCK_ID,
+  type PresetShape,
+  presetShapes
+} from '../schema/presetShapes'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorBlockHandle } from './EditorBlockHandle'
+import { EditorButtonPopover } from './EditorButtonPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
 import { EditorEmbedPopover } from './EditorEmbedPopover'
 import { EditorEmbedView } from './EditorEmbedView'
 import { EditorImageView } from './EditorImageView'
+import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
 import type { EditorRootProps } from './EditorRoot'
-import { EditorSlashMenuEngine } from './EditorSlashMenuEngine'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
+import type { EditorControlUi } from './controls'
+import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
 import {
   ImageUpload,
@@ -56,8 +66,9 @@ import {
   replaceImage,
   uploadImages
 } from './imageUpload'
+import { presetInsertItems } from './insertItems'
+import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
-import { SlashMenu, type SlashMenuHandle } from './slashMenu'
 import { resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
 import {
@@ -130,7 +141,7 @@ function forEditor(extension: Extensions[number]) {
 const editorExtensions = Object.fromEntries(
   Object.entries(presets).map(([preset, extensions]) => [
     preset,
-    withTableEditing(extensions).map(forEditor)
+    withEmailEditing(withTableEditing(extensions)).map(forEditor)
   ])
 ) as Record<Preset, typeof presets.basic>
 
@@ -159,12 +170,54 @@ function presetHoldsImages(preset: Preset) {
   return presets[preset].some(({ name }) => name === 'image')
 }
 
-function holdsDoc(editor: TiptapEditor, doc: JSONContent) {
+// At most an email's width, so an author sees the lines a reader will. Its
+// columns query it as a container.
+const EMAIL_CANVAS =
+  '@container mx-auto w-full max-w-[600px] [--prose-measure:none]'
+
+function holdsHttpsImagesOnly(preset: Preset) {
+  const shape: PresetShape = presetShapes[preset]
+  return shape.httpsImages === true
+}
+
+function presetKeepsBlockIds(preset: Preset) {
+  return presets[preset].some(({ name }) => name === 'uniqueID')
+}
+
+function currentValue(editor: TiptapEditor, preset: Preset): EditorValue {
+  return { version: CURRENT_VERSION, preset, doc: editor.getJSON() }
+}
+
+function holdsDoc(
+  editor: TiptapEditor,
+  doc: JSONContent,
+  holds = (held: ProseMirrorNode, given: ProseMirrorNode) => held.eq(given)
+) {
   try {
-    return editor.state.doc.eq(editor.schema.nodeFromJSON(doc))
+    return holds(editor.state.doc, editor.schema.nodeFromJSON(doc))
   } catch {
     return false
   }
+}
+
+// A block the value gives no id holds the one the editor gave it, or a parent
+// that keeps no ids would have the editor set its value, and new ids, forever.
+function holdsBlocks(held: ProseMirrorNode, given: ProseMirrorNode): boolean {
+  const filled =
+    given.attrs[BLOCK_ID] === null
+      ? { ...given.attrs, [BLOCK_ID]: held.attrs[BLOCK_ID] }
+      : given.attrs
+  if (
+    !held.hasMarkup(given.type, filled, given.marks) ||
+    held.text !== given.text ||
+    held.childCount !== given.childCount
+  ) {
+    return false
+  }
+  for (let i = 0; i < held.childCount; i++) {
+    if (!holdsBlocks(held.child(i), given.child(i))) return false
+  }
+  return true
 }
 
 type FormValueProps = {
@@ -230,13 +283,15 @@ export function EditorEngine({
   const toolbarRef = useRef<HTMLDivElement>(null)
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
-  const slashMenuRef = useRef<SlashMenuHandle>(null)
   const openBlockMenuRef = useRef<(() => void) | null>(null)
   const [editingLink, setEditingLink] = useState(false)
   const [editingAlt, setEditingAlt] = useState(false)
   const [editingEmbed, setEditingEmbed] = useState(false)
+  const [editingButton, setEditingButton] = useState(false)
   const providersRef = useRef(embedProviders)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
+  const uiRef = useRef<EditorControlUi | null>(null)
   const uploadRef = useRef<UploadImage | undefined>(onUploadImage)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceInputRef = useRef<HTMLInputElement>(null)
@@ -264,7 +319,8 @@ export function EditorEngine({
   const hasBlockHandle = BLOCK_HANDLE_PRESETS.has(preset)
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
-    onError: setUploadError
+    onError: setUploadError,
+    httpsOnly: holdsHttpsImagesOnly(preset)
   }
 
   const editor = useEditor({
@@ -278,7 +334,11 @@ export function EditorEngine({
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
-      SlashMenu.configure({ menu: () => slashMenuRef.current }),
+      InsertMenu.configure({
+        items: presetInsertItems[preset] ?? [],
+        ui: () => uiRef.current!,
+        onChange: setInsertMenu
+      }),
       BlockMenuShortcut.configure({
         open: () => {
           openBlockMenuRef.current?.()
@@ -304,6 +364,7 @@ export function EditorEngine({
         class: cn(
           editorContentClass(size, emphasis),
           'min-w-0 outline-none',
+          preset === 'email' && EMAIL_CANVAS,
           // Room for the block handle at each block's start.
           hasBlockHandle && emphasis !== 'subtler' && 'ps-10'
         )
@@ -339,11 +400,7 @@ export function EditorEngine({
       }
     },
     onUpdate: ({ editor: updated }) =>
-      onValueChange?.({
-        version: CURRENT_VERSION,
-        preset,
-        doc: updated.getJSON()
-      })
+      onValueChange?.(currentValue(updated, preset))
   })
 
   useEffect(() => {
@@ -374,9 +431,15 @@ export function EditorEngine({
   }, [editor, placeholder])
 
   useEffect(() => {
-    if (!editor || !valueDoc || holdsDoc(editor, readableDoc)) return
+    if (!editor || !valueDoc || holdsDoc(editor, readableDoc, holdsBlocks)) {
+      return
+    }
     editor.commands.setContent(readableDoc, { emitUpdate: false })
-  }, [editor, valueDoc, readableDoc])
+    // The blocks preset gives each block without an id one as it's set.
+    if (presetKeepsBlockIds(preset) && !holdsDoc(editor, readableDoc)) {
+      onValueChange?.(currentValue(editor, preset))
+    }
+  }, [editor, valueDoc, readableDoc, preset, onValueChange])
 
   const canUpload = Boolean(onUploadImage) && holdsImages
   const ui = {
@@ -393,9 +456,17 @@ export function EditorEngine({
         setEditingEmbed(true)
       }
     },
+    editButton: () => {
+      if (editor?.isEditable && editor.schema.nodes.button) {
+        setEditingButton(true)
+      }
+    },
     pickImage: canUpload ? () => fileInputRef.current?.click() : undefined,
     replaceImage: canUpload ? () => replaceInputRef.current?.click() : undefined
   }
+  useEffect(() => {
+    uiRef.current = ui
+  })
 
   return (
     <EditorContext
@@ -409,9 +480,7 @@ export function EditorEngine({
         ...ui,
         embedProviders,
         TiptapContent,
-        ToolbarEngine: EditorToolbarEngine,
-        SlashMenuEngine: EditorSlashMenuEngine,
-        slashMenuRef
+        ToolbarEngine: EditorToolbarEngine
       }}
     >
       <div
@@ -432,7 +501,6 @@ export function EditorEngine({
           <>
             <EditorToolbarEngine />
             <EditorContent />
-            <EditorSlashMenuEngine />
           </>
         )}
         {editor ? (
@@ -441,6 +509,13 @@ export function EditorEngine({
             size={size}
             ui={ui}
             toolbarRef={nodeToolbarRef}
+          />
+        ) : null}
+        {editor ? (
+          <EditorInsertMenu
+            editor={editor}
+            state={insertMenu}
+            id={`${contentId}-insert`}
           />
         ) : null}
         {editor && hasBlockHandle ? (
@@ -463,6 +538,11 @@ export function EditorEngine({
           editor={editor}
           open={editingAlt}
           onOpenChange={setEditingAlt}
+        />
+        <EditorButtonPopover
+          editor={editor}
+          open={editingButton}
+          onOpenChange={setEditingButton}
         />
         <EditorEmbedPopover
           editor={editor}

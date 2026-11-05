@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none">
+  <rect width="240" height="160" rx="12" style="fill: var(--color-neutral-1, #f5f8fb)"/>
+  <rect x="24" y="16" width="104" height="10" rx="3" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <rect x="24" y="32" width="76" height="6" rx="3" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="24" y="48" width="44" height="76" rx="8" style="fill: var(--color-neutral-5, #d7e2ed)"/>
+  <rect x="76" y="48" width="44" height="76" rx="8" style="fill: var(--color-neutral-5, #d7e2ed)"/>
+  <rect x="128" y="48" width="44" height="76" rx="8" style="fill: var(--color-neutral-5, #d7e2ed)"/>
+  <rect x="180" y="48" width="44" height="76" rx="8" style="fill: var(--color-neutral-5, #d7e2ed)"/>
+  <rect x="232" y="48" width="44" height="76" rx="8" style="fill: var(--color-neutral-5, #d7e2ed)"/>
+  <circle cx="88" cy="142" r="8" style="fill: var(--color-accent-9, #0191eb)"/>
+  <circle cx="152" cy="142" r="8" style="fill: var(--color-accent-9, #0191eb)"/>
+  <path d="M90 138.5l-3.5 3.5 3.5 3.5M150 138.5l3.5 3.5-3.5 3.5" style="stroke: var(--color-neutral-1, #f5f8fb); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"/>
+  <rect x="104" y="139" width="12" height="6" rx="3" style="fill: var(--color-accent-9, #0191eb)"/>
+  <circle cx="125" cy="142" r="3" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <circle cx="135" cy="142" r="3" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+</svg>
