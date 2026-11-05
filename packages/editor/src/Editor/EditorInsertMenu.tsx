@@ -5,6 +5,8 @@ import { useEffect, useRef } from 'react'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 import { createPortal } from 'react-dom'
 
+import { Kbd } from '@oztix/roadie-components/kbd'
+
 import { MenuGroups } from './EditorMenuGroups'
 import type { InsertMenuState } from './insertMenu'
 
@@ -61,6 +63,17 @@ export function EditorInsertMenu({
       // A press here would otherwise take focus from the editor.
       onMouseDown={(event) => event.preventDefault()}
     >
+      {state.items.length === 0 ? (
+        <div
+          id={optionId(id, 0)}
+          role='option'
+          aria-selected='false'
+          aria-disabled='true'
+          className='px-3 py-2 text-sm text-subtle select-none'
+        >
+          {state.noMatches}
+        </div>
+      ) : null}
       <MenuGroups
         items={state.items}
         id={id}
@@ -79,7 +92,19 @@ export function EditorInsertMenu({
               className='flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-normal select-none aria-selected:bg-subtle'
             >
               <Icon weight='bold' className='size-4 text-subtle' aria-hidden />
-              {item.label}
+              <span data-slot='editor-insert-label' className='grow'>
+                {item.label}
+              </span>
+              {item.shortcut ? (
+                // Kbd hides itself on a touch screen, which types no markdown.
+                <Kbd
+                  emphasis='subtler'
+                  data-slot='editor-insert-shortcut'
+                  className='ms-4 text-subtle'
+                >
+                  {item.shortcut}
+                </Kbd>
+              ) : null}
             </div>
           )
         }}

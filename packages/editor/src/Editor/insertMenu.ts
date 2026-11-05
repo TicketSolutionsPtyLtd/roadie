@@ -8,11 +8,17 @@ import {
 } from '@tiptap/suggestion'
 
 import type { EditorControlUi } from './controls'
-import { type EditorInsertItem, matchingInsertItems } from './insertItems'
+import {
+  type EditorInsertItem,
+  matchingInsertItems,
+  namedInsertItems
+} from './insertItems'
 
 /** The open insert menu: its matching items, the active one, and how to place it. */
 export type InsertMenuState = {
   items: readonly EditorInsertItem[]
+  /** Shown in place of the items while none match. */
+  noMatches?: string
   active: number
   choose: (index: number) => void
   highlight: (index: number) => void
@@ -29,6 +35,11 @@ export type InsertMenuOptions = {
   allowIn: (type: string) => boolean
   ui: () => EditorControlUi
   onChange: (state: InsertMenuState | null) => void
+  /**
+   * Shown while nothing matches, which keeps the menu open so Enter inserts
+   * nothing, until a space follows. Without it, the menu closes.
+   */
+  noMatches?: string
 }
 
 type Props = SuggestionProps<EditorInsertItem, EditorInsertItem>
@@ -61,7 +72,7 @@ export const InsertMenu = Extension.create<
   },
 
   addProseMirrorPlugins() {
-    const { char, items, allowIn, ui, onChange } = this.options
+    const { char, items, allowIn, ui, onChange, noMatches } = this.options
     const { key } = this.storage
     let open: {
       props: Props
@@ -71,12 +82,13 @@ export const InsertMenu = Extension.create<
 
     const publish = () => {
       const current = open
-      if (!current || current.props.items.length === 0) {
+      if (!current || (current.props.items.length === 0 && !noMatches)) {
         onChange(null)
         return
       }
       onChange({
         items: current.props.items,
+        noMatches,
         active: current.active,
         choose: (index) => {
           const item = current.props.items[index]
@@ -112,6 +124,11 @@ export const InsertMenu = Extension.create<
         allow: ({ state, range }) =>
           items().length > 0 &&
           allowIn(state.doc.resolve(range.from).parent.type.name),
+        // Past a space, a query that names nothing is the author's own text.
+        shouldShow: ({ query }) =>
+          !noMatches ||
+          !/\s/.test(query) ||
+          namedInsertItems(items(), query, ui()).length > 0,
         items: ({ query, editor }) => {
           const { range } = key.getState(editor.state)!
           return matchingInsertItems(items(), query, range, editor, ui())
@@ -137,23 +154,27 @@ export const InsertMenu = Extension.create<
           },
           onKeyDown: ({ event }) => {
             const count = open?.props.items.length ?? 0
-            if (!open || count === 0) return false
+            if (!open || (count === 0 && !noMatches)) return false
             // Suggestion closes the menu itself; this keeps a dialog around
             // the editor from closing too.
             if (event.key === 'Escape') {
               event.stopPropagation()
               return true
             }
+            const modified =
+              event.shiftKey || event.altKey || event.ctrlKey || event.metaKey
+            const enter =
+              event.key === 'Enter' && !event.isComposing && !modified
+            // Past a space, Enter is the author's own line break again.
+            if (count === 0) return enter && !/\s/.test(open.props.query)
             if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
               const step = event.key === 'ArrowDown' ? 1 : -1
               open.active = (open.active + step + count) % count
               publish()
               return true
             }
-            const modified =
-              event.shiftKey || event.altKey || event.ctrlKey || event.metaKey
             // Shift+Enter and Mod+Enter break the line, as they do outside it.
-            if (event.key === 'Enter' && !event.isComposing && !modified) {
+            if (enter) {
               const item = open.props.items[open.active]
               if (item) open.props.command(item)
               return true

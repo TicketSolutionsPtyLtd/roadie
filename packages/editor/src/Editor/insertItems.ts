@@ -34,6 +34,8 @@ export type EditorInsertItem = {
   group?: string
   /** More words it's found by, besides its label. */
   keywords?: readonly string[]
+  /** The markdown that makes it as you type, shown beside it. */
+  shortcut?: string
   /** Adds itself to the chain that removes the typed `/` and query. */
   insert: (chain: ChainedCommands, ui: EditorControlUi) => ChainedCommands
   /**
@@ -65,17 +67,19 @@ const paragraph: EditorInsertItem = {
       : editor.can().setParagraph()
 }
 
+// The page owns h1, so a heading 1 is found as the top level there is.
 const HEADINGS = [
-  [2, TextHTwoIcon],
-  [3, TextHThreeIcon],
-  [4, TextHFourIcon]
+  [2, TextHTwoIcon, ['h1', 'h2']],
+  [3, TextHThreeIcon, ['h3']],
+  [4, TextHFourIcon, ['h4']]
 ] as const
 
-const headings = HEADINGS.map(([level, icon]): EditorInsertItem => ({
+const headings = HEADINGS.map(([level, icon, tags]): EditorInsertItem => ({
   label: `Heading ${level}`,
   icon,
   group: 'Text',
-  keywords: ['title'],
+  keywords: [...tags, 'title'],
+  shortcut: '#'.repeat(level),
   block: { type: 'heading', attrs: { level } },
   insert: (chain) => chain.setHeading({ level }),
   enabled: (editor) => editor.can().setHeading({ level })
@@ -90,6 +94,8 @@ const bulletList: EditorInsertItem = {
   label: 'Bulleted list',
   icon: ListBulletsIcon,
   group: 'Text',
+  keywords: ['ul'],
+  shortcut: '-',
   block: listOf('bulletList'),
   insert: (chain) => chain.toggleBulletList(),
   // In its own list, the toggle would take the line out of it.
@@ -101,6 +107,8 @@ const orderedList: EditorInsertItem = {
   label: 'Numbered list',
   icon: ListNumbersIcon,
   group: 'Text',
+  keywords: ['ol'],
+  shortcut: '1.',
   block: listOf('orderedList'),
   insert: (chain) => chain.toggleOrderedList(),
   enabled: (editor) =>
@@ -154,7 +162,7 @@ const image: EditorInsertItem = {
   label: 'Image',
   icon: ImageIcon,
   group: 'Media',
-  keywords: ['picture', 'photo'],
+  keywords: ['picture', 'photo', 'img'],
   insert: (chain, { pickImage }) => {
     pickImage?.()
     return chain
@@ -170,7 +178,7 @@ const button: EditorInsertItem = {
   label: 'Button',
   icon: CursorClickIcon,
   group: 'Email',
-  keywords: ['link', 'call to action'],
+  keywords: ['link', 'call to action', 'btn', 'cta'],
   insert: (chain, { editButton }) => {
     editButton()
     return chain
@@ -186,16 +194,22 @@ const spacer = block('Spacer', ArrowsVerticalIcon, { type: 'spacer' }, [
   'gap'
 ])
 
-const divider = block('Divider', MinusIcon, { type: 'horizontalRule' }, [
+const emailDivider = block('Divider', MinusIcon, { type: 'horizontalRule' }, [
   'line',
-  'rule'
+  'rule',
+  'hr',
+  '---'
 ])
+
+// Only the blocks preset's rule turns `---` into one.
+const divider: EditorInsertItem = { ...emailDivider, shortcut: '---' }
 
 const quote: EditorInsertItem = {
   label: 'Quote',
   icon: QuotesIcon,
   group: 'Text',
-  keywords: ['blockquote'],
+  keywords: ['blockquote', '>'],
+  shortcut: '>',
   insert: (chain) => chain.wrapIn('blockquote'),
   enabled: (editor) =>
     !editor.isActive('blockquote') && editor.can().wrapIn('blockquote')
@@ -205,7 +219,16 @@ const embed: EditorInsertItem = {
   label: 'Embed',
   icon: FilmStripIcon,
   group: 'Media',
-  keywords: ['video', 'audio'],
+  keywords: [
+    'video',
+    'audio',
+    'link',
+    'youtube',
+    'vimeo',
+    'spotify',
+    'soundcloud',
+    'tiktok'
+  ],
   insert: (chain, { editEmbed }) => {
     editEmbed()
     return chain
@@ -253,7 +276,7 @@ export const presetInsertItems: Partial<
     section,
     ...columns,
     spacer,
-    divider,
+    emailDivider,
     button
   ]
 }
@@ -280,7 +303,6 @@ export function matchingInsertItems(
   editor: Editor,
   ui: EditorControlUi
 ) {
-  const words = query.toLowerCase().trim().split(/\s+/)
   // `can()` changes nothing as it checks, so the query would still be there.
   const afterQuery = () =>
     editor
@@ -291,13 +313,27 @@ export function matchingInsertItems(
       })
       .deleteRange(range)
   // Matched by name first, as a block's fit is a transaction on each keystroke.
-  const matches = items.filter((item) => {
-    const names = [item.label, ...(item.keywords ?? [])].join(' ').toLowerCase()
+  const matches = namedInsertItems(items, query, ui).filter((item) =>
+    item.enabled(editor, afterQuery)
+  )
+  return inGroupOrder(matches)
+}
+
+/** The items with a word in their label or keywords starting each word of `query`. */
+export function namedInsertItems(
+  items: readonly EditorInsertItem[],
+  query: string,
+  ui: EditorControlUi
+) {
+  const words = query.toLowerCase().trim().split(/\s+/)
+  return items.filter((item) => {
+    const names = [item.label, ...(item.keywords ?? [])]
+      .join(' ')
+      .toLowerCase()
+      .split(/\s+/)
     return (
-      words.every((word) => names.includes(word)) &&
-      (item.available?.(ui) ?? true) &&
-      item.enabled(editor, afterQuery)
+      words.every((word) => names.some((name) => name.startsWith(word))) &&
+      (item.available?.(ui) ?? true)
     )
   })
-  return inGroupOrder(matches)
 }
