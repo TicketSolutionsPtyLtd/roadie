@@ -23,11 +23,9 @@ import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import {
   type EditorState,
   NodeSelection,
-  Plugin,
   Selection,
   type Transaction
 } from '@tiptap/pm/state'
-import type { EditorView } from '@tiptap/pm/view'
 import {
   type ReactNodeViewProps,
   ReactNodeViewRenderer,
@@ -88,6 +86,7 @@ import {
   duplicateBlock,
   moveBlock
 } from './blockActions'
+import { BlockClick } from './blockClick'
 import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
@@ -105,11 +104,7 @@ import { customInsertItem, presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
-import {
-  clickedSetting,
-  sectionBlock,
-  sectionInsertItems
-} from './sectionNodes'
+import { sectionBlock, sectionInsertItems } from './sectionNodes'
 import { emailSections } from './sections'
 import { SourcePaste } from './sourcePaste'
 import { presetLook, resolvedPreset } from './startingValue'
@@ -221,62 +216,6 @@ const SettingsShortcut = Extension.create<SettingsShortcutOptions>({
         return true
       }
     }
-  }
-})
-
-type SectionClickOptions = {
-  hasSettings: (name: string) => boolean
-  onEdit: (field: string | undefined) => void
-}
-
-// With a mouse, a click on a section opens its settings at the text clicked,
-// as Framer and Webflow do. A touch selects it, so a scroll never opens them.
-const SectionClick = Extension.create<SectionClickOptions>({
-  name: 'sectionClick',
-  addProseMirrorPlugins() {
-    const { hasSettings, onEdit } = this.options
-    // The press's own pointer, as a touch laptop's primary one is a mouse.
-    let byMouse = false
-    const isSection = (view: EditorView, node: ProseMirrorNode) =>
-      view.editable && hasSettings(node.type.name) && node.isAtom
-    const open = (
-      view: EditorView,
-      _pos: number,
-      node: ProseMirrorNode,
-      nodePos: number,
-      event: MouseEvent,
-      direct: boolean
-    ) => {
-      if (!direct || !byMouse || !isSection(view, node)) return false
-      view.dispatch(
-        view.state.tr.setSelection(
-          NodeSelection.create(view.state.doc, nodePos)
-        )
-      )
-      const dom = view.nodeDOM(nodePos)
-      onEdit(
-        dom instanceof Element
-          ? clickedSetting(dom, event.clientX, event.clientY, node.attrs)
-          : undefined
-      )
-      return true
-    }
-    return [
-      new Plugin({
-        props: {
-          handleDOMEvents: {
-            pointerdown: (_view, event) => {
-              byMouse = event.pointerType === 'mouse'
-              return false
-            }
-          },
-          handleClickOn: open,
-          // Its first press closed the drawer the click opened, so this one
-          // opens it again rather than falling through to the text.
-          handleDoubleClickOn: open
-        }
-      })
-    ]
   }
 })
 
@@ -535,6 +474,10 @@ export function EditorEngine({
   const [editingVariable, setEditingVariable] = useState(false)
   const [editingSettings, setEditingSettings] = useState(false)
   const [focusSetting, setFocusSetting] = useState<string | undefined>()
+  const editSettings = (path?: string) => {
+    setFocusSetting(path)
+    setEditingSettings(true)
+  }
   const [importing, setImporting] = useState<ImportRequest>({
     open: false,
     source: '',
@@ -626,20 +569,9 @@ export function EditorEngine({
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       SettingsShortcut.configure({
         has: hasSettings,
-        onEdit: () => {
-          setFocusSetting(undefined)
-          setEditingSettings(true)
-        }
+        onEdit: () => editSettings()
       }),
-      SectionClick.configure({
-        hasSettings: (name) =>
-          sections.some((section) => section.name === name) &&
-          hasSettings(name),
-        onEdit: (field) => {
-          setFocusSetting(field)
-          setEditingSettings(true)
-        }
-      }),
+      BlockClick.configure({ hasSettings, onEdit: editSettings }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
       ...(preset === 'email'
@@ -966,13 +898,12 @@ export function EditorEngine({
             appLabels={blockLabels}
             hasSettings={hasSettings}
             onSettings={(pos) => {
-              setFocusSetting(undefined)
               editor.view.dispatch(
                 editor.state.tr.setSelection(
                   NodeSelection.create(editor.state.doc, pos)
                 )
               )
-              setEditingSettings(true)
+              editSettings()
             }}
           />
         ) : null}
@@ -1028,9 +959,10 @@ export function EditorEngine({
         <EditorBlockSettings
           editor={editor}
           open={editingSettings}
-          focusSetting={focusSetting}
           onOpenChange={setEditingSettings}
           blocks={blockSettings}
+          focusSetting={focusSetting}
+          uploadImage={canUpload ? onUploadImage : undefined}
         />
         <EditorVariablePopover
           editor={editor}

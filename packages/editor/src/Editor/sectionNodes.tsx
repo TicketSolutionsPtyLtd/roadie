@@ -172,30 +172,3 @@ export function sectionInsertItems(section: EditorSection): EditorInsertItem[] {
     }
   })
 }
-
-/**
- * The setting a click at (x, y) on a section's text meant: the innermost
- * element there whose text is one of its attrs. Its drawing is inert, so the
- * click's target is always the section, and only geometry tells.
- */
-export function clickedSetting(
-  section: Element,
-  x: number,
-  y: number,
-  attrs: Readonly<Attrs>
-): string | undefined {
-  const under = [...section.querySelectorAll('*')].filter((element) => {
-    const box = element.getBoundingClientRect()
-    return x >= box.left && x <= box.right && y >= box.top && y <= box.bottom
-  })
-  // Later in document order is deeper, so the innermost match wins.
-  for (const element of under.reverse()) {
-    const text = element.textContent?.trim()
-    const name = Object.keys(attrs).find((key) => {
-      const value = attrs[key]
-      return typeof value === 'string' && value.trim() === text
-    })
-    if (text && name) return name
-  }
-  return undefined
-}

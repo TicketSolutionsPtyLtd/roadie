@@ -5,12 +5,11 @@ import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { NodeSelection, Selection } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
+import { Button } from '@oztix/roadie-components/button'
 import { Drawer } from '@oztix/roadie-components/drawer'
-import { Field } from '@oztix/roadie-components/field'
-import { Select } from '@oztix/roadie-components/select'
 
 import type { EditorSetting } from '../extensions'
-import { EditorChoice } from './EditorChoice'
+import { SettingField, type UploadSettingImage } from './EditorSettingFields'
 import { focusEditor } from './focusEditor'
 import { useOnPhone } from './toolbarMode'
 import { type LiveEdit, setSelectedAttrs, useLiveEdit } from './useLiveEdit'
@@ -30,94 +29,26 @@ export type BlockSettings = {
   settings: readonly (EditorSetting | EditorOwnSetting)[]
 }
 
-// Up to three fit side by side in the drawer.
-const MAX_BUTTONS = 3
-
-const textOf = (value: unknown) =>
-  typeof value === 'string' || typeof value === 'number' ? String(value) : ''
-
-type SettingFieldProps = {
-  setting: EditorSetting
-  value: unknown
-  onValueChange: (value: string) => void
-  onDone: () => void
-}
-
-function SettingField({
-  setting,
-  value,
-  onValueChange,
-  onDone
-}: SettingFieldProps) {
-  if (setting.type === 'choice' && setting.options.length <= MAX_BUTTONS) {
-    return (
-      <EditorChoice
-        legend={setting.label}
-        choices={setting.options}
-        value={textOf(value ?? setting.defaultValue)}
-        onValueChange={onValueChange}
-        helperText={setting.helperText}
-      />
-    )
-  }
-  return (
-    <Field>
-      <Field.Label>{setting.label}</Field.Label>
-      {setting.type === 'choice' ? (
-        <Select
-          value={textOf(value ?? setting.defaultValue)}
-          onValueChange={(chosen) => {
-            if (typeof chosen === 'string') onValueChange(chosen)
-          }}
-          items={setting.options}
-        >
-          <Select.Trigger>
-            <Select.Value />
-            <Select.Icon />
-          </Select.Trigger>
-          <Select.Content>
-            {setting.options.map((option) => (
-              <Select.Item key={option.value} value={option.value}>
-                {option.label}
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select>
-      ) : setting.multiline ? (
-        <Field.Textarea
-          data-setting={setting.name}
-          value={textOf(value)}
-          onChange={(event) => onValueChange(event.target.value)}
-        />
-      ) : (
-        <Field.Input
-          data-setting={setting.name}
-          value={textOf(value)}
-          onChange={(event) => onValueChange(event.target.value)}
-          onKeyDown={(event) => {
-            // The Enter that picks an IME candidate only ends the composition.
-            const composing =
-              event.nativeEvent.isComposing || event.keyCode === 229
-            if (event.key !== 'Enter' || composing) return
-            event.preventDefault()
-            onDone()
-          }}
-        />
-      )}
-      {setting.helperText ? (
-        <Field.HelperText>{setting.helperText}</Field.HelperText>
-      ) : null}
-    </Field>
-  )
-}
+const shownWith =
+  (attrs: Attrs) => (setting: EditorSetting | EditorOwnSetting) =>
+    setting.type === 'own' || (setting.available?.(attrs) ?? true)
 
 type SettingsFormProps = BlockSettings & {
   start: Attrs
   apply: LiveEdit['apply']
   onDone: () => void
+  focusPath?: string
+  uploadImage?: UploadSettingImage
 }
 
-function SettingsForm({ settings, start, apply, onDone }: SettingsFormProps) {
+function SettingsForm({
+  settings,
+  start,
+  apply,
+  onDone,
+  focusPath,
+  uploadImage
+}: SettingsFormProps) {
   const [attrs, setAttrs] = useState(start)
   const set = (change: Attrs) => {
     setAttrs((current) => ({ ...current, ...change }))
@@ -137,16 +68,15 @@ function SettingsForm({ settings, start, apply, onDone }: SettingsFormProps) {
             value={attrs[setting.name]}
             onValueChange={(value) => set({ [setting.name]: value })}
             onDone={onDone}
+            path={setting.name}
+            focusPath={focusPath}
+            uploadImage={uploadImage}
           />
         )
       )}
     </div>
   )
 }
-
-const shownWith =
-  (attrs: Attrs) => (setting: EditorSetting | EditorOwnSetting) =>
-    setting.type === 'own' || (setting.available?.(attrs) ?? true)
 
 /**
  * Brings a block near the top, a fifth of the screen down, clear of a sticky
@@ -172,6 +102,24 @@ function scrollNearTop(block: HTMLElement) {
     scroller.scrollTo({ top: before - left, behavior: 'instant' })
     left -= before - scroller.scrollTop
   }
+}
+
+// From here the page is wide enough to give a block room beside the drawer.
+const ROOM_FROM = 1280
+
+/**
+ * Pads the editor's end by as much as the drawer covers it, so a block at
+ * page width sits beside the drawer rather than under it. The editor's own
+ * box, not ProseMirror's, so the selection never sees it.
+ */
+function makeRoomBeside(editor: TiptapEditor, body: HTMLElement | null) {
+  const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
+  const drawer = body?.closest<HTMLElement>('[role=dialog]')
+  const page = root?.ownerDocument.documentElement
+  if (!root || !drawer || !page || page.clientWidth < ROOM_FROM) return
+  const covered =
+    root.getBoundingClientRect().right - (page.clientWidth - drawer.offsetWidth)
+  root.style.paddingInlineEnd = covered > 0 ? `${covered}px` : ''
 }
 
 /**
@@ -201,11 +149,12 @@ const selectedNode = ({ editor }: { editor: TiptapEditor | null }) => {
 type EditorBlockSettingsProps = {
   editor: TiptapEditor | null
   open: boolean
-  /** The setting to focus as it opens, such as the text clicked on. */
-  focusSetting?: string
   onOpenChange: (open: boolean) => void
   /** Each block's settings, by node name. */
   blocks: Readonly<Record<string, BlockSettings>>
+  /** The setting to open the way to and focus, such as the text clicked. */
+  focusSetting?: string
+  uploadImage?: UploadSettingImage
 }
 
 /**
@@ -217,7 +166,8 @@ export function EditorBlockSettings({
   open,
   onOpenChange,
   blocks,
-  focusSetting
+  focusSetting,
+  uploadImage
 }: EditorBlockSettingsProps) {
   const phone = useOnPhone()
   const live = useLiveEdit(editor, open, (next) => {
@@ -225,6 +175,17 @@ export function EditorBlockSettings({
     onOpenChange(next)
   })
   const bodyRef = useRef<HTMLDivElement>(null)
+  // Escape puts the block back as one step to undo, so Redo brings the edits
+  // back rather than losing them.
+  const onDrawerOpenChange: typeof live.onOpenChange = (next, details) => {
+    if (next || details.reason !== 'escape-key' || !editor || !live.edited()) {
+      live.onOpenChange(next, details)
+      return
+    }
+    live.done()
+    editor.commands.undo()
+    leaveBlock(editor)
+  }
   const selection = useEditorState({ editor, selector: selectedNode })
   const block = selection && blocks[selection.node.type.name]
   const from = open && block ? selection.from : null
@@ -234,6 +195,7 @@ export function EditorBlockSettings({
     const dom = editor.view.nodeDOM(from)
     if (!(dom instanceof HTMLElement)) return
     if (!phone) {
+      makeRoomBeside(editor, bodyRef.current)
       dom.scrollIntoView({ block: 'nearest' })
       return
     }
@@ -241,6 +203,13 @@ export function EditorBlockSettings({
     // as an edit and drops the selection, closing the drawer.
     scrollNearTop(dom)
   }, [editor, from, phone])
+  useEffect(() => {
+    if (!open || !editor) return
+    return () => {
+      const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
+      if (root) root.style.paddingInlineEnd = ''
+    }
+  }, [editor, open])
   const lost = open && !block
   // Its block went, such as with a new value, so it mustn't reopen on the next.
   useEffect(() => {
@@ -253,8 +222,19 @@ export function EditorBlockSettings({
   }
   const content = (
     <>
-      <Drawer.Header>
-        <Drawer.Title>{block.label} settings</Drawer.Title>
+      <Drawer.Header className='flex items-center justify-between gap-2'>
+        <div className='grid gap-0.5'>
+          <Drawer.Title>{block.label} settings</Drawer.Title>
+          {/* So Escape's revert never surprises: it says what it does. */}
+          <Drawer.Description className='text-sm text-subtle'>
+            {phone
+              ? 'Changes apply as you go.'
+              : 'Changes apply as you go. Esc puts them back.'}
+          </Drawer.Description>
+        </div>
+        <Button size='sm' emphasis='strong' intent='accent' onClick={live.done}>
+          Done
+        </Button>
       </Drawer.Header>
       <Drawer.Body ref={bodyRef} className='pb-6'>
         <SettingsForm
@@ -263,6 +243,8 @@ export function EditorBlockSettings({
           start={selection.node.attrs}
           apply={live.apply}
           onDone={live.done}
+          focusPath={focusSetting}
+          uploadImage={uploadImage}
         />
       </Drawer.Body>
     </>
@@ -270,7 +252,7 @@ export function EditorBlockSettings({
   return (
     <Drawer
       open={open}
-      onOpenChange={live.onOpenChange}
+      onOpenChange={onDrawerOpenChange}
       side={phone ? 'bottom' : 'right'}
       // The block shows its changes as they're made, so nothing covers it,
       // and the page stays usable, but Tab stays in the drawer.
