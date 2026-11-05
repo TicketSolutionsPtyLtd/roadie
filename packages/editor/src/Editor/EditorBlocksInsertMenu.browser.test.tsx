@@ -227,9 +227,11 @@ describe('Editor insert menu in the blocks preset', () => {
 
     await userEvent.keyboard('/embed{Enter}')
 
-    expect(
-      await screen.findByRole('textbox', { name: 'Video or audio link' })
-    ).toHaveFocus()
+    const field = await screen.findByRole('textbox', {
+      name: 'Video or audio link'
+    })
+    // Focus moves into the popover's field after it renders.
+    await waitFor(() => expect(field).toHaveFocus())
   })
 
   it('opens the file picker from Image, and puts the upload in place of the /', async () => {
