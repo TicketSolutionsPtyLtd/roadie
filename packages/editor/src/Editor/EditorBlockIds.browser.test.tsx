@@ -107,6 +107,46 @@ describe('Editor blocks preset ids', () => {
     expect(onValueChange).toHaveBeenCalledTimes(reported)
   })
 
+  it('sets a controlled value that changes only its ids', async () => {
+    const page = (blockId: string) => (
+      <Editor
+        aria-label={LABEL}
+        value={valueOf({
+          type: 'paragraph',
+          attrs: { blockId },
+          content: [text('Doors 7pm')]
+        })}
+      />
+    )
+    const { rerender } = render(page('doors'))
+    const doors = await screen.findByText('Doors 7pm')
+    expect(doors.closest('[data-blockid]')).toHaveAttribute(
+      'data-blockid',
+      'doors'
+    )
+
+    rerender(page('gates'))
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Doors 7pm').closest('[data-blockid]')
+      ).toHaveAttribute('data-blockid', 'gates')
+    )
+  })
+
+  it('sets a controlled value that adds a block without an id', async () => {
+    const page = (...content: object[]) => (
+      <Editor aria-label={LABEL} value={valueOf(...content)} />
+    )
+    const doors = { type: 'paragraph', content: [text('Doors 7pm')] }
+    const { rerender } = render(page(doors))
+    await screen.findByText('Doors 7pm')
+
+    rerender(page(doors, { type: 'paragraph', content: [text('All ages')] }))
+
+    expect(await screen.findByText('All ages')).toBeInTheDocument()
+  })
+
   it('reports nothing as a rich controlled value is set', async () => {
     const onValueChange = vi.fn()
     const page = (value: EditorValue) => (
@@ -276,7 +316,7 @@ describe('Editor blocks preset ids on drag', () => {
       expect(lastDoc(onValueChange).content?.length).toBeGreaterThan(2)
     )
     const ids = blockIds(lastDoc(onValueChange))
-    expect(ids).toEqual(expect.arrayContaining(['doors', 'crowd']))
+    expect(ids.slice(0, 2)).toEqual(['crowd', 'doors'])
     expect(new Set(ids).size).toBe(ids.length)
   })
 
@@ -375,6 +415,56 @@ describe('Editor blocks preset ids on drag', () => {
     )
     const ids = blockIds(lastDoc(onValueChange))
     expect(ids).toEqual(expect.arrayContaining(['doors', 'ages']))
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('gives the blocks inside a copied list ids of their own', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={valueOf(
+          {
+            type: 'bulletList',
+            attrs: { blockId: 'list' },
+            content: [
+              {
+                type: 'listItem',
+                attrs: { blockId: 'item' },
+                content: [
+                  {
+                    type: 'paragraph',
+                    attrs: { blockId: 'point' },
+                    content: [text('Doors 7pm')]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            type: 'paragraph',
+            attrs: { blockId: 'ages' },
+            content: [text('All ages')]
+          }
+        )}
+        onValueChange={onValueChange}
+      />
+    )
+    await focusedTextbox()
+    await userEvent.keyboard('{ControlOrMeta>}a{/ControlOrMeta}')
+
+    dragBlock(
+      await screen.findByText('Doors 7pm'),
+      await screen.findByText('All ages'),
+      { altKey: true, ctrlKey: true }
+    )
+
+    await waitFor(() =>
+      expect(lastDoc(onValueChange).content?.length).toBeGreaterThan(2)
+    )
+    const ids = blockIds(lastDoc(onValueChange))
+    expect(ids.slice(0, 4)).toEqual(['list', 'item', 'point', 'ages'])
+    expect(ids.length).toBeGreaterThan(4)
     expect(new Set(ids).size).toBe(ids.length)
   })
 })
