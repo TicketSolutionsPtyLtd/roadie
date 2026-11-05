@@ -152,6 +152,23 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     assert.deepEqual(f.branches(), ['claude/live', 'main'])
   })
 
+  test('keeps a worktree locked by a process it may not signal', () => {
+    const f = fixture()
+    const path = f.worktree('claude/root')
+    f.merge('claude/root')
+    f.lock(path, 1)
+
+    const { status, output } = f.cleanup([
+      '--delete',
+      '--branch',
+      'claude/root'
+    ])
+
+    assert.equal(status, 0, output)
+    assert.match(output, /claude-root \(locked\)/)
+    assert.equal(existsSync(path), true)
+  })
+
   test('keeps a worktree with uncommitted work, and its branch', () => {
     const f = fixture()
     const path = f.worktree('claude/dirty')
