@@ -59,6 +59,23 @@ describe('importLosses', () => {
     [
       {
         ...none,
+        dropped: [{ kind: 'unsafe-link' as const, src: 'javascript:x()' }]
+      },
+      '1 link to an address an email can’t open, keeping its text'
+    ],
+    [
+      {
+        ...none,
+        dropped: [
+          { kind: 'unsafe-link' as const },
+          { kind: 'unsafe-link' as const }
+        ]
+      },
+      '2 links to addresses an email can’t open, keeping their text'
+    ],
+    [
+      {
+        ...none,
         dropped: [
           { kind: 'element' as const, tag: 'mj-accordion' },
           { kind: 'element' as const, tag: 'mj-carousel' },

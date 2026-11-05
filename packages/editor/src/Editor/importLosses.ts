@@ -29,6 +29,11 @@ export function importLosses({
     ),
     ...counted(count('embed', 'media'), 'video or embed', 'videos or embeds'),
     ...counted(count('link'), 'link on an image', 'links on images'),
+    ...counted(
+      count('unsafe-link'),
+      'link to an address an email can’t open, keeping its text',
+      'links to addresses an email can’t open, keeping their text'
+    ),
     ...(tags.length > 0
       ? [
           `The look of ${new Intl.ListFormat('en-AU').format(tags)}, keeping ${tags.length === 1 ? 'its' : 'their'} text`

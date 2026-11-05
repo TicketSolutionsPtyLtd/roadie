@@ -20,11 +20,19 @@ import { CURRENT_VERSION, type EditorValue, migrate } from './value'
 /**
  * Content an import couldn't keep. `src` is left out for a `data:` URI.
  * `importEmail` also reports `hidden` text, such as a preheader, a `link` on
- * an image, its `src` the link's href, and an MJML `element` it has no block
+ * an image, its `src` the link's href, an `unsafe-link`, such as
+ * `javascript:`, whose text it keeps, and an MJML `element` it has no block
  * for, by `tag`, whose text it keeps.
  */
 export type DroppedContent = {
-  kind: 'image' | 'embed' | 'media' | 'hidden' | 'link' | 'element'
+  kind:
+    | 'image'
+    | 'embed'
+    | 'media'
+    | 'hidden'
+    | 'link'
+    | 'unsafe-link'
+    | 'element'
   src?: string
   tag?: string
 }

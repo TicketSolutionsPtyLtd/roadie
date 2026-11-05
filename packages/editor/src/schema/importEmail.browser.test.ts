@@ -513,6 +513,45 @@ describe('importEmail with unsafe source', () => {
     ])
   })
 
+  it('reports a link dropped as unsafe, keeping its text', () => {
+    const imported = importEmail(
+      mjml(`<mj-section><mj-column>
+        <mj-navbar><mj-navbar-link href="javascript:alert(1)">Home</mj-navbar-link></mj-navbar>
+        <mj-text><a href="vbscript:msgbox(1)">Lineup</a> <a href="foo:bar">Map</a> <a href="https://www.oztix.com.au">Tickets</a> <a href="/help">Help</a> <a href="#OptOut#">Bye</a></mj-text>
+      </mj-column></mj-section>`),
+      { variables }
+    )
+
+    expect(imported.dropped).toEqual([
+      { kind: 'unsafe-link', src: 'javascript:alert(1)' },
+      { kind: 'unsafe-link', src: 'vbscript:msgbox(1)' },
+      { kind: 'unsafe-link', src: 'foo:bar' }
+    ])
+    expect(imported.value.doc.content).toEqual([
+      paragraph(text('Home')),
+      paragraph(
+        text('Lineup Map '),
+        text('Tickets', [
+          { type: 'link', attrs: { href: 'https://www.oztix.com.au' } }
+        ]),
+        text(' '),
+        text('Help', [{ type: 'link', attrs: { href: '/help' } }]),
+        text(' '),
+        text('Bye', [{ type: 'link', attrs: { variable: 'unsubscribe_url' } }])
+      )
+    ])
+  })
+
+  it('reports a link round an image once, as a link on an image', () => {
+    const imported = importEmail(
+      '<a href="javascript:alert(1)"><img src="https://cdn.oztix.com.au/hero.jpg" alt=""></a>'
+    )
+
+    expect(imported.dropped).toEqual([
+      { kind: 'link', src: 'javascript:alert(1)' }
+    ])
+  })
+
   it('reports an image on a path of the site, which an email can’t load', () => {
     const imported = importEmail('<p>Doors</p><img src="/poster.jpg" alt="">')
 

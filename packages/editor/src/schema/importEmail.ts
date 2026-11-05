@@ -1,3 +1,4 @@
+import { isLinkHref } from './basicPreset'
 import { isEmailHref, isEmailImageSrc } from './emailAttrs'
 import { type EmbedProvider, defaultEmbedProviders } from './embed'
 import {
@@ -415,6 +416,12 @@ export function importEmail(
     const line = container.ownerDocument.createElement('p')
     button.replaceWith(line)
     line.append(button)
+  }
+  // A link round an image is reported already, as a link on an image.
+  for (const link of container.querySelectorAll('a[href]')) {
+    const href = link.getAttribute('href')!
+    if (isLinkHref(href) || link.querySelector('img')) continue
+    dropped.push(report('unsafe-link', href))
   }
   const read = bodyToDoc(container, 'email', embedProviders)
   const value = migrate(
