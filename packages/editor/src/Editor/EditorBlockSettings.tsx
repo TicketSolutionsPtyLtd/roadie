@@ -142,6 +142,15 @@ function SettingsForm({ settings, start, apply, onDone }: SettingsFormProps) {
   )
 }
 
+function scrollerOf(element: HTMLElement): Element {
+  for (let at = element.parentElement; at; at = at.parentElement) {
+    const { overflowY } = getComputedStyle(at)
+    const scrolls = overflowY === 'auto' || overflowY === 'scroll'
+    if (scrolls && at.scrollHeight > at.clientHeight) return at
+  }
+  return document.scrollingElement ?? document.documentElement
+}
+
 /**
  * Puts the caret in the block, or after an atom, so the next key types rather
  * than replacing the block a tap can't deselect on a phone.
@@ -203,11 +212,10 @@ export function EditorBlockSettings({
       return
     }
     // The sheet takes the bottom half, so the block goes near the top, clear
-    // of any sticky bar above it.
-    const margin = dom.style.scrollMarginTop
-    dom.style.scrollMarginTop = '20dvh'
+    // of any sticky bar above it. Its own style stays put, as ProseMirror
+    // reads a change there as an edit and drops the selection.
     dom.scrollIntoView({ block: 'start' })
-    dom.style.scrollMarginTop = margin
+    scrollerOf(dom).scrollBy({ top: -window.innerHeight * 0.2 })
   }, [editor, from, phone])
   const lost = open && !block
   // Its block went, such as with a new value, so it mustn't reopen on the next.

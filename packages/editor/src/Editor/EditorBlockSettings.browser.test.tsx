@@ -327,6 +327,23 @@ describe('Editor block settings', () => {
     )
   })
 
+  // ProseMirror reads a change to a block's DOM as an edit and re-reads the
+  // selection, which closes the drawer on a block that holds content.
+  it('leaves the block’s DOM alone as its phone sheet opens', async () => {
+    await viewport.viewport(390, 700)
+    onTestFinished(() => viewport.viewport(1280, 800))
+    renderPage()
+    const block = (await promoView()).closest('.react-renderer')!
+    const changes: MutationRecord[] = []
+    const observer = new MutationObserver((records) => changes.push(...records))
+    observer.observe(block, { attributes: true, attributeFilter: ['style'] })
+
+    await openFromMenu()
+    observer.disconnect()
+
+    expect(changes).toEqual([])
+  })
+
   it('opens on Enter with the block selected', async () => {
     renderPage()
 
