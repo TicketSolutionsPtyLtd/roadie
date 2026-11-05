@@ -5,6 +5,7 @@ import {
   type KeyboardEvent,
   useEffect,
   useEffectEvent,
+  useId,
   useRef,
   useState
 } from 'react'
@@ -85,6 +86,7 @@ export function EditorPreview({
     busy: true
   })
   const backRef = useRef<HTMLButtonElement>(null)
+  const previewAsId = useId()
   const values = recipients?.[recipient]?.values ?? NO_VALUES
   // A host's inline handler is new each render, which mustn't render again.
   const render = useEffectEvent(onRenderPreview)
@@ -151,22 +153,31 @@ export function EditorPreview({
           </ToggleGroup.Item>
         </ToggleGroup>
         {recipients?.length ? (
-          <Select
-            value={String(recipient)}
-            onValueChange={(next) => setRecipient(Number(next))}
-          >
-            <Select.Trigger size='sm' aria-label='Preview as'>
-              <Select.Value />
-              <Select.Icon />
-            </Select.Trigger>
-            <Select.Content>
-              {recipients.map(({ label }, index) => (
-                <Select.Item key={label} value={String(index)}>
-                  {label}
-                </Select.Item>
-              ))}
-            </Select.Content>
-          </Select>
+          <div className='flex items-center gap-2'>
+            <span id={previewAsId} className='text-sm text-subtle'>
+              Preview as
+            </span>
+            <Select
+              value={String(recipient)}
+              onValueChange={(next) => setRecipient(Number(next))}
+            >
+              <Select.Trigger
+                size='sm'
+                aria-labelledby={previewAsId}
+                className='w-auto'
+              >
+                <Select.Value />
+                <Select.Icon />
+              </Select.Trigger>
+              <Select.Content>
+                {recipients.map(({ label }, index) => (
+                  <Select.Item key={label} value={String(index)}>
+                    {label}
+                  </Select.Item>
+                ))}
+              </Select.Content>
+            </Select>
+          </div>
         ) : null}
         {onSendTest ? (
           <SendTest
