@@ -5,10 +5,11 @@ import { fileURLToPath } from 'node:url'
 
 const hook = fileURLToPath(new URL('./block-ci-polling.mjs', import.meta.url))
 
-function runHook(toolInput) {
+function runHook(toolInput, timeout) {
   return spawnSync(process.execPath, [hook], {
     input: JSON.stringify({ tool_name: 'Bash', tool_input: toolInput }),
-    encoding: 'utf8'
+    encoding: 'utf8',
+    timeout
   })
 }
 
@@ -88,6 +89,11 @@ describe('block-ci-polling', () => {
   it('allows a CI watch run in the background', () => {
     const command = 'gh pr checks 1 --watch --fail-fast'
     assert.equal(runHook({ command, run_in_background: true }).status, 0)
+  })
+
+  it('decides a long line of repeated gh pr checks in seconds', () => {
+    const command = 'gh pr checks 1 '.repeat(2000)
+    assert.equal(runHook({ command }, 5000).status, 0)
   })
 
   it('allows input it cannot parse', () => {

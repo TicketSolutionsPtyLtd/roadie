@@ -13,7 +13,10 @@ const loopKeyword = new RegExp(
 )
 const commandSleep = new RegExp(`${atCommandStart}sleep\\s`)
 const runWatch = /\bgh\s[^\n;&|]*?\brun\s+watch\b/
-const checksWatch = /\bgh\s[^\n;&|]*?\bpr\s+checks\b[^\n;&|]*?\s--watch\b/
+// The lookahead and backreference pin the first `pr checks`, so a long line
+// without `--watch` can't backtrack cubically.
+const checksWatch =
+  /\bgh\s(?=([^\n;&|]*?\bpr\s+checks\b))\1[^\n;&|]*?\s--watch\b/
 
 const shellScript =
   /\b(?:ba|z)?sh\s+(?:-\w+\s+)*-\w*c\w*\s+(?:'([^']*)'|"((?:\\.|[^"\\])*)")/g
