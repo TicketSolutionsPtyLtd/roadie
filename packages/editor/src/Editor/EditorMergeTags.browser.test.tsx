@@ -81,6 +81,7 @@ describe('Editor merge tags', () => {
       'Last name',
       'Event name'
     ])
+    expect(within(listbox).queryByRole('group')).toBe(null)
     expect(textbox).toHaveFocus()
 
     await userEvent.keyboard('{Enter}')

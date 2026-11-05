@@ -24,11 +24,14 @@ import type { Preset } from '../schema'
 import { COLUMN_COUNTS } from '../schema/emailAttrs'
 import type { EditorControlUi } from './controls'
 import { buttonBlock, insertBlock } from './emailEditing'
+import { inGroupOrder } from './menuGroups'
 
 /** One choice in the insert menu that `/` opens. */
 export type EditorInsertItem = {
   label: string
   icon: Icon
+  /** The heading it's listed under, such as Text or Layout. */
+  group?: string
   /** More words it's found by, besides its label. */
   keywords?: readonly string[]
   /** Adds itself to the chain that removes the typed `/` and query. */
@@ -41,12 +44,19 @@ export type EditorInsertItem = {
   enabled: (editor: Editor, afterQuery: () => ChainedCommands) => boolean
   /** Offers the item only while this holds, such as with an upload handler. */
   available?: (ui: EditorControlUi) => boolean
+  /**
+   * The block it adds, which the Blocks drawer puts after the caret's block.
+   * Without one, the drawer runs it on a new line there.
+   */
+  block?: JSONContent
 }
 
 const paragraph: EditorInsertItem = {
   label: 'Paragraph',
   icon: TextTIcon,
+  group: 'Text',
   keywords: ['text'],
+  block: { type: 'paragraph' },
   insert: (chain) => chain.setParagraph(),
   // On a paragraph, setParagraph has nothing to change, so it reports false.
   enabled: (editor) =>
@@ -64,14 +74,23 @@ const HEADINGS = [
 const headings = HEADINGS.map(([level, icon]): EditorInsertItem => ({
   label: `Heading ${level}`,
   icon,
+  group: 'Text',
   keywords: ['title'],
+  block: { type: 'heading', attrs: { level } },
   insert: (chain) => chain.setHeading({ level }),
   enabled: (editor) => editor.can().setHeading({ level })
 }))
 
+const listOf = (type: string): JSONContent => ({
+  type,
+  content: [{ type: 'listItem', content: [{ type: 'paragraph' }] }]
+})
+
 const bulletList: EditorInsertItem = {
   label: 'Bulleted list',
   icon: ListBulletsIcon,
+  group: 'Text',
+  block: listOf('bulletList'),
   insert: (chain) => chain.toggleBulletList(),
   // In its own list, the toggle would take the line out of it.
   enabled: (editor) =>
@@ -81,6 +100,8 @@ const bulletList: EditorInsertItem = {
 const orderedList: EditorInsertItem = {
   label: 'Numbered list',
   icon: ListNumbersIcon,
+  group: 'Text',
+  block: listOf('orderedList'),
   insert: (chain) => chain.toggleOrderedList(),
   enabled: (editor) =>
     !editor.isActive('orderedList') && editor.can().toggleOrderedList()
@@ -90,12 +111,15 @@ function block(
   label: string,
   icon: Icon,
   content: JSONContent,
-  keywords?: readonly string[]
+  keywords?: readonly string[],
+  group = 'Layout'
 ): EditorInsertItem {
   return {
     label,
     icon,
+    group,
     keywords,
+    block: content,
     insert: (chain) => chain.command(insertBlock(content)),
     enabled: (_editor, afterQuery) =>
       afterQuery().command(insertBlock(content)).run()
@@ -129,6 +153,7 @@ const columns = COLUMN_COUNTS.map((count) =>
 const image: EditorInsertItem = {
   label: 'Image',
   icon: ImageIcon,
+  group: 'Media',
   keywords: ['picture', 'photo'],
   insert: (chain, { pickImage }) => {
     pickImage?.()
@@ -144,6 +169,7 @@ const image: EditorInsertItem = {
 const button: EditorInsertItem = {
   label: 'Button',
   icon: CursorClickIcon,
+  group: 'Email',
   keywords: ['link', 'call to action'],
   insert: (chain, { editButton }) => {
     editButton()
@@ -168,6 +194,7 @@ const divider = block('Divider', MinusIcon, { type: 'horizontalRule' }, [
 const quote: EditorInsertItem = {
   label: 'Quote',
   icon: QuotesIcon,
+  group: 'Text',
   keywords: ['blockquote'],
   insert: (chain) => chain.wrapIn('blockquote'),
   enabled: (editor) =>
@@ -177,6 +204,7 @@ const quote: EditorInsertItem = {
 const embed: EditorInsertItem = {
   label: 'Embed',
   icon: FilmStripIcon,
+  group: 'Media',
   keywords: ['video', 'audio'],
   insert: (chain, { editEmbed }) => {
     editEmbed()
@@ -211,9 +239,9 @@ export const presetInsertItems: Partial<
     bulletList,
     orderedList,
     quote,
-    divider,
     image,
     embed,
+    divider,
     table
   ],
   email: [
@@ -221,12 +249,12 @@ export const presetInsertItems: Partial<
     ...headings,
     bulletList,
     orderedList,
+    image,
     section,
     ...columns,
-    image,
-    button,
     spacer,
-    divider
+    divider,
+    button
   ]
 }
 
@@ -235,12 +263,16 @@ export function customInsertItem({
   node,
   label,
   icon,
-  keywords
+  keywords,
+  group = 'More'
 }: EditorBlock): EditorInsertItem {
-  return block(label, icon, { type: node.name }, keywords)
+  return block(label, icon, { type: node.name }, keywords, group)
 }
 
-/** The items matching `query` that can go in place of the typed `range`. */
+/**
+ * The items matching `query` that can go in place of the typed `range`, in
+ * group order.
+ */
 export function matchingInsertItems(
   items: readonly EditorInsertItem[],
   query: string,
@@ -259,7 +291,7 @@ export function matchingInsertItems(
       })
       .deleteRange(range)
   // Matched by name first, as a block's fit is a transaction on each keystroke.
-  return items.filter((item) => {
+  const matches = items.filter((item) => {
     const names = [item.label, ...(item.keywords ?? [])].join(' ').toLowerCase()
     return (
       words.every((word) => names.includes(word)) &&
@@ -267,4 +299,5 @@ export function matchingInsertItems(
       item.enabled(editor, afterQuery)
     )
   })
+  return inGroupOrder(matches)
 }

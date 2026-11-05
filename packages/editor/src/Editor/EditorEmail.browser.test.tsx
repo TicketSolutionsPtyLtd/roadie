@@ -107,7 +107,7 @@ afterEach(() => {
 })
 
 describe('Editor with the email preset', () => {
-  it('leads with the block type, then the basic controls, with no Quote, Divider, Image, Embed or Table', async () => {
+  it('leads with Blocks and the block type, then the basic controls, with no Quote, Divider, Image, Embed or Table', async () => {
     // An upload handler, as the Image control shows only with one.
     render(
       <Editor
@@ -128,6 +128,8 @@ describe('Editor with the email preset', () => {
           : (item.getAttribute('aria-label') ?? item.textContent)
       )
     ).toEqual([
+      'Blocks',
+      '|',
       'Block type: Paragraph',
       '|',
       'Bold',

@@ -22,38 +22,116 @@ function firstTextblockOffset(node: PMNode) {
   return offset
 }
 
+const isEmptyTextblock = (node: PMNode | null) =>
+  node !== null && node.isTextblock && node.content.size === 0
+
+const isTextLine = (node: PMNode) => node.type.isInGroup('block')
+
+// Puts `block` at `at`, before an emptied line, which keeps it, or with a
+// paragraph after it to type in. The caret goes into the block's first line
+// when it has one, and a text block's own text is selected.
+function placeBlock(
+  { tr, dispatch }: Pick<CommandProps, 'tr' | 'dispatch'>,
+  at: number,
+  block: PMNode,
+  emptied: boolean
+) {
+  const $at = tr.doc.resolve(at)
+  const next = $at.parent.maybeChild($at.index())
+  const nodes = [block]
+  if (!emptied && !next?.isTextblock) {
+    nodes.push(tr.doc.type.schema.nodes.paragraph!.create())
+  }
+  const fragment = Fragment.from(nodes)
+  if (!$at.parent.canReplace($at.index(), $at.index(), fragment)) return false
+  if (dispatch) {
+    tr.insert(at, fragment)
+    const inBlock = firstTextblockOffset(block)
+    const caret =
+      inBlock === undefined ? at + block.nodeSize + 1 : at + 1 + inBlock + 1
+    const head = block.isTextblock ? at + 1 + block.content.size : caret
+    const anchor = block.isTextblock ? at + 1 : caret
+    tr.setSelection(TextSelection.create(tr.doc, anchor, head))
+    tr.scrollIntoView()
+  }
+  return true
+}
+
+function replaceLine(
+  { tr, dispatch }: Pick<CommandProps, 'tr' | 'dispatch'>,
+  { from, to }: { from: number; to: number },
+  block: PMNode
+) {
+  const $from = tr.doc.resolve(from)
+  const index = $from.index()
+  if (!$from.parent.canReplaceWith(index, index + 1, block.type)) return false
+  if (dispatch) {
+    tr.replaceWith(from, to, block)
+    tr.setSelection(TextSelection.create(tr.doc, from + 1))
+    tr.scrollIntoView()
+  }
+  return true
+}
+
 /**
  * Inserts `content` before the caret's line when it's empty, which keeps the
- * caret, or after it, with a paragraph to type in. The caret goes into the
- * block's first line when it has one, and a text block's own text is selected.
+ * caret, or after it, with a paragraph to type in.
  */
 export function insertBlock(content: JSONContent) {
-  return ({ tr, dispatch }: CommandProps) => {
-    const { $from } = tr.selection
+  return (props: CommandProps) => {
+    const { $from } = props.tr.selection
     if (!$from.parent.isTextblock || $from.depth === 0) return false
-    const block = tr.doc.type.schema.nodeFromJSON(content)
+    const block = props.tr.doc.type.schema.nodeFromJSON(content)
     const emptied = $from.parent.content.size === 0
     const at = emptied ? $from.before() : $from.after()
-    const $at = tr.doc.resolve(at)
-    const next = $at.parent.maybeChild($at.index())
-    const nodes = [block]
-    if (!emptied && !next?.isTextblock) {
-      nodes.push(tr.doc.type.schema.nodes.paragraph!.create())
-    }
-    const fragment = Fragment.from(nodes)
-    if (!$at.parent.canReplace($at.index(), $at.index(), fragment)) return false
-    if (dispatch) {
-      tr.insert(at, fragment)
-      const inBlock = firstTextblockOffset(block)
-      const caret =
-        inBlock === undefined ? at + block.nodeSize + 1 : at + 1 + inBlock + 1
-      const head = block.isTextblock ? at + 1 + block.content.size : caret
-      const anchor = block.isTextblock ? at + 1 : caret
-      tr.setSelection(TextSelection.create(tr.doc, anchor, head))
-      tr.scrollIntoView()
-    }
-    return true
+    return placeBlock(props, at, block, emptied)
   }
+}
+
+/**
+ * Inserts `content` after the selection's block, counting only children of
+ * `containers`. An empty line takes a text block's place, or has any other
+ * block put before it, as `insertBlock` does.
+ * Where that container can't hold it, as with a section in a column, it goes
+ * after the container's own block.
+ */
+export function insertBlockAfter(
+  content: JSONContent,
+  containers: ReadonlySet<string>
+) {
+  return (props: CommandProps) => {
+    const { doc, selection } = props.tr
+    const block = doc.type.schema.nodeFromJSON(content)
+    const $end = doc.resolve(selection.to)
+    const places: { from: number; to: number }[] = []
+    // A selected block, a gap cursor or select all ends between children.
+    if (containers.has($end.parent.type.name)) {
+      places.push({ from: selection.to, to: selection.to })
+    }
+    for (let depth = $end.depth; depth >= 1; depth--) {
+      if (containers.has($end.node(depth - 1).type.name)) {
+        places.push({ from: $end.before(depth), to: $end.after(depth) })
+      }
+    }
+    return places.some(({ from, to }, index) => {
+      const emptied =
+        index === 0 && selection.empty && isEmptyTextblock(doc.nodeAt(from))
+      // Only a text line gives way: an empty button is a block of its own.
+      if (emptied && block.isTextblock && isTextLine(doc.nodeAt(from)!)) {
+        return replaceLine(props, { from, to }, block)
+      }
+      return placeBlock(props, emptied ? from : to, block, emptied)
+    })
+  }
+}
+
+/** Opens an empty line after the selection's block, unless the caret is on one. */
+export function openLineAfter(containers: ReadonlySet<string>) {
+  return (props: CommandProps) =>
+    (props.tr.selection.empty &&
+      isEmptyTextblock(props.tr.selection.$from.parent) &&
+      props.tr.selection.$from.parent.type.name === 'paragraph') ||
+    insertBlockAfter({ type: 'paragraph' }, containers)(props)
 }
 
 const BUTTON_LABEL = 'Button'

@@ -50,6 +50,8 @@ export type EditorContextValue = {
   /** Opens the button link editor, on the button at the selection if there is one. */
   editButton: () => void
   editVariable: () => void
+  /** Opens the Blocks drawer, or undefined in a preset without one. */
+  openBlocks: (() => void) | undefined
   /** Opens the import of an email's HTML or MJML, or undefined outside the email preset. */
   importSource: ((source?: string) => void) | undefined
   TiptapContent: typeof EditorContent

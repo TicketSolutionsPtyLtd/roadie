@@ -2,7 +2,11 @@
 
 import { use, useEffect, useRef } from 'react'
 
-import { CaretDownIcon, PushPinSlashIcon } from '@phosphor-icons/react'
+import {
+  CaretDownIcon,
+  PlusIcon,
+  PushPinSlashIcon
+} from '@phosphor-icons/react'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Menu } from '@oztix/roadie-components/menu'
@@ -205,6 +209,32 @@ export function ChoiceGroup({ group, state, editor, ui }: ChoiceGroupProps) {
   )
 }
 
+type BlocksButtonProps = {
+  openBlocks: (() => void) | undefined
+  disabled?: boolean
+  /** Which side of the button its separator goes. */
+  separator: 'before' | 'after'
+}
+
+/** Opens the Blocks drawer, in a preset that has one. */
+export function BlocksButton({
+  openBlocks,
+  disabled,
+  separator
+}: BlocksButtonProps) {
+  if (!openBlocks) return null
+  return (
+    <>
+      {separator === 'before' ? <Toolbar.Separator /> : null}
+      <Toolbar.Button disabled={disabled} onClick={openBlocks}>
+        <PlusIcon weight='bold' className='size-4' aria-hidden />
+        Blocks
+      </Toolbar.Button>
+      {separator === 'after' ? <Toolbar.Separator /> : null}
+    </>
+  )
+}
+
 /** What the controls open in the editor's own UI, from its context. */
 export function controlUi(context: EditorContextValue): EditorControlUi {
   const {
@@ -309,7 +339,8 @@ export function EditorToolbarEngine({
     pinnable,
     setToolbar,
     setToolbarExtras,
-    toolbarRef
+    toolbarRef,
+    openBlocks
   } = context
   const floating = toolbar === 'floating'
   const barRef = useRef<HTMLDivElement>(null)
@@ -320,6 +351,11 @@ export function EditorToolbarEngine({
     editor,
     selector: ({ editor: current }) =>
       current && !floating ? items.map((item) => stateOf(item, current)) : []
+  })
+
+  const editable = useEditorState({
+    editor,
+    selector: ({ editor: current }) => current?.isEditable ?? false
   })
 
   useEffect(() => {
@@ -364,6 +400,12 @@ export function EditorToolbarEngine({
         }}
         {...props}
       >
+        {/* First, as a phone's bar scrolls and would hide it at the end. */}
+        <BlocksButton
+          openBlocks={openBlocks}
+          disabled={!editable}
+          separator='after'
+        />
         <ToolbarItems items={items} states={states} editor={editor} ui={ui} />
         {children}
         {pinnable ? (
