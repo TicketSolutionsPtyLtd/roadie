@@ -195,6 +195,25 @@ describe('presets.email', () => {
     })
   })
 
+  it('keeps a button’s look through its copied HTML', () => {
+    const look = {
+      href: tickets,
+      align: 'right',
+      emphasis: 'subtle',
+      fullWidth: true
+    }
+    const node = schema.nodeFromJSON({ ...button(tickets), attrs: look })
+    const [, copied] = schema.nodes.button!.spec.toDOM!(node) as [
+      string,
+      Record<string, string>
+    ]
+    expect(
+      pastedAttrs('button', {
+        getAttribute: (name: string) => copied[name] ?? null
+      })
+    ).toEqual(look)
+  })
+
   it('saves only the parts of a button’s look that aren’t the default', () => {
     const saved = migrate({
       version: 1,

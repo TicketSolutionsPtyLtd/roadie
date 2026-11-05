@@ -176,8 +176,11 @@ describe('renderEmail', () => {
       expect(normal).toContain('border:1px solid #cccccc')
       expect(normal).toContain('background:#fffaf5')
       expect(normal).toContain('color:#222222')
+      // A strong button's 12px 24px, less the border, so they're one size.
+      expect(normal).toContain('padding:11px 23px')
       const subtle = html.slice(html.indexOf('Normal'), html.indexOf('Subtle'))
       expect(subtle).toContain('background:#eeeeee')
+      expect(subtle).toContain('color:#222222')
       expect(subtle).not.toContain('border:1px')
     })
 
