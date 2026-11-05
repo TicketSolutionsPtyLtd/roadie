@@ -249,10 +249,7 @@ export function EditorBlockHandle({
       if (!inReach(editor, host, event)) {
         pointerBlock.current = null
       } else {
-        const keep =
-          current != null &&
-          blockAt(editor.state, current, containers) === current &&
-          inGutterOf(editor, current, event)
+        const keep = current != null && inGutterOf(editor, current, event)
         if (!keep)
           pointerBlock.current = blockAtPointer(editor, event, containers)
       }
