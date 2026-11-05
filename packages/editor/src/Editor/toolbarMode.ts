@@ -84,3 +84,66 @@ export function useStickyTop(
   }, [ref, shown])
   return top
 }
+
+// Popups opened from the bar, which focus moves into while editing goes on.
+const BAR_POPUPS = '[role="menu"], [role="listbox"], [role="dialog"]'
+
+/**
+ * On a touch screen, whether the docked bar sits above the keyboard, and how
+ * far the keyboard pushes it up: it does while focus is in the editor, or in
+ * a menu opened from the bar, so the controls stay in thumb reach.
+ */
+export function useKeyboardDock(
+  ref: RefObject<HTMLElement | null>,
+  /** Changes when the bar mounts again. */
+  shown: boolean
+) {
+  const touch = useMediaQuery('(pointer: coarse)')
+  const [editing, setEditing] = useState(false)
+  const [lift, setLift] = useState(0)
+
+  useLayoutEffect(() => {
+    const frame = ref.current?.closest('[data-slot="editor"]')
+    if (!touch || !shown || !frame) return
+    let frameId = 0
+    const follow = () => {
+      cancelAnimationFrame(frameId)
+      // After focus settles, as a menu's popup takes it a moment later.
+      frameId = requestAnimationFrame(() => {
+        const active = document.activeElement
+        setEditing(
+          Boolean(
+            active &&
+            (frame.contains(active) || active.closest(BAR_POPUPS) !== null)
+          )
+        )
+      })
+    }
+    follow()
+    document.addEventListener('focusin', follow)
+    document.addEventListener('focusout', follow)
+    return () => {
+      cancelAnimationFrame(frameId)
+      document.removeEventListener('focusin', follow)
+      document.removeEventListener('focusout', follow)
+    }
+  }, [ref, touch, shown])
+
+  useLayoutEffect(() => {
+    const viewport = window.visualViewport
+    if (!touch || !editing || !viewport) return
+    const place = () =>
+      setLift(
+        Math.max(0, window.innerHeight - viewport.offsetTop - viewport.height)
+      )
+    place()
+    viewport.addEventListener('resize', place)
+    viewport.addEventListener('scroll', place)
+    return () => {
+      viewport.removeEventListener('resize', place)
+      viewport.removeEventListener('scroll', place)
+    }
+  }, [touch, editing])
+
+  return { aboveKeyboard: touch && editing, lift }
+}

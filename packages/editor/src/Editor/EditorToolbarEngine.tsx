@@ -39,7 +39,7 @@ import {
 import { focusEditor } from './focusEditor'
 import { useShowsShortcuts } from './menuGroups'
 import { type ToolbarSlot, fitToolbar } from './toolbarFit'
-import { useStickyTop } from './toolbarMode'
+import { useKeyboardDock, useStickyTop } from './toolbarMode'
 import { EDITOR_DOCKED_BAR, EDITOR_TOOLBAR_SIZE } from './variants'
 
 export type ControlState = {
@@ -370,6 +370,11 @@ type FittedItemsOptions = {
   leading: number
   /** Whether the bar shows, as it mounts again each time it's pinned. */
   docked: boolean
+  /**
+   * While More is open: the page's scroll lock narrows the bar, which would
+   * move a control into the open menu.
+   */
+  held: boolean
 }
 
 /**
@@ -383,7 +388,8 @@ function useFittedItems({
   rowRef,
   moreRef,
   leading,
-  docked
+  docked,
+  held
 }: FittedItemsOptions) {
   const [shown, setShown] = useState<ReadonlySet<number> | null>(null)
   const shownRef = useRef(shown)
@@ -416,6 +422,7 @@ function useFittedItems({
     const current = itemsRef.current
     const slots = current.map(slotOf)
     const fit = () => {
+      if (held) return
       const order = current
         .map((_, index) => index)
         .filter((index) => shownRef.current?.has(index) ?? true)
@@ -472,12 +479,13 @@ function useFittedItems({
       observer.disconnect()
       added.disconnect()
     }
-  }, [barRef, rowRef, moreRef, leading, key, shown, docked])
+  }, [barRef, rowRef, moreRef, leading, key, shown, docked, held])
   return shown
 }
 
 type MoreMenuProps = {
   buttonRef: RefObject<HTMLButtonElement | null>
+  onOpenChange: (open: boolean) => void
   items: readonly EditorToolbarItem[]
   states: readonly (ControlState | undefined)[] | null | undefined
   editor: TiptapEditor | null
@@ -485,7 +493,14 @@ type MoreMenuProps = {
 }
 
 /** The docked bar's items that don't fit on its row. */
-function MoreMenu({ buttonRef, items, states, editor, ui }: MoreMenuProps) {
+function MoreMenu({
+  buttonRef,
+  onOpenChange,
+  items,
+  states,
+  editor,
+  ui
+}: MoreMenuProps) {
   const showsShortcuts = useShowsShortcuts()
   const run = (control: EditorControl) => {
     if (!editor) return
@@ -519,7 +534,7 @@ function MoreMenu({ buttonRef, items, states, editor, ui }: MoreMenuProps) {
     )
   }
   return (
-    <Menu>
+    <Menu onOpenChange={onOpenChange}>
       <Menu.Trigger
         render={
           <Toolbar.Button ref={buttonRef} aria-label='More'>
@@ -597,8 +612,12 @@ export function EditorToolbarEngine({
     openBlocks
   } = context
   const floating = toolbar === 'floating'
+  const stickyRef = useRef<HTMLDivElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
-  const top = useStickyTop(barRef, !floating)
+  const top = useStickyTop(stickyRef, !floating)
+  const { aboveKeyboard, lift } = useKeyboardDock(stickyRef, !floating)
+  // Held while the bar sits above the keyboard, so the text doesn't move.
+  const [reserved, setReserved] = useState<number>()
   const ui = controlUi(context)
   const items = availableItems(presetControls[preset], ui)
   const states = useEditorState({
@@ -613,13 +632,15 @@ export function EditorToolbarEngine({
   })
   const rowRef = useRef<HTMLDivElement>(null)
   const moreRef = useRef<HTMLButtonElement>(null)
+  const [moreOpen, setMoreOpen] = useState(false)
   const shown = useFittedItems({
     items,
     barRef,
     rowRef,
     moreRef,
     leading: openBlocks ? 2 : 0,
-    docked: !floating
+    docked: !floating,
+    held: moreOpen
   })
   const visible = shown ? items.filter((_, index) => shown.has(index)) : items
   const hidden = shown ? items.filter((_, index) => !shown.has(index)) : []
@@ -630,6 +651,10 @@ export function EditorToolbarEngine({
     ? states?.filter((_, index) => !shown.has(index))
     : []
 
+  useLayoutEffect(() => {
+    if (!aboveKeyboard) setReserved(stickyRef.current?.offsetHeight)
+  }, [aboveKeyboard])
+
   useEffect(() => {
     if (!floating) return
     setToolbarExtras(children)
@@ -639,85 +664,96 @@ export function EditorToolbarEngine({
   if (floating) return null
   return (
     <div
-      ref={barRef}
+      ref={stickyRef}
       data-slot='editor-toolbar'
-      style={{ top }}
+      style={{ top, blockSize: aboveKeyboard ? reserved : undefined }}
       // Above the text that scrolls under it, below the editor's popups.
       className={cn(
         'sticky top-0 z-sticky shrink-0',
         EDITOR_DOCKED_BAR[editorEmphasis]
       )}
     >
-      <Toolbar
-        ref={(element) => {
-          toolbarRef.current = element
-          rowRef.current = element
-        }}
-        flush
-        aria-label='Formatting'
-        aria-controls={contentId}
-        size={EDITOR_TOOLBAR_SIZE[size]}
-        emphasis={emphasis}
-        className={cn('w-full', className)}
-        // A press between controls keeps focus in the editor.
-        onMouseDown={(event) => {
-          onMouseDown?.(event)
-          const target = event.target as Element
-          if (!target.closest('button, a, input')) event.preventDefault()
-        }}
-        onKeyDown={(event) => {
-          onKeyDown?.(event)
-          const inToolbar = event.currentTarget.contains(event.target as Node)
-          if (event.key !== 'Escape' || !inToolbar || !editor) return
-          // Keeps a dialog around the editor open.
-          event.stopPropagation()
-          focusEditor(editor)
-        }}
-        {...props}
+      <div
+        ref={barRef}
+        data-above-keyboard={aboveKeyboard || undefined}
+        style={aboveKeyboard ? { bottom: lift } : undefined}
+        className={cn(
+          aboveKeyboard &&
+            'fixed inset-x-0 z-sticky border-t border-subtler bg-normal pb-[env(safe-area-inset-bottom)]'
+        )}
       >
-        {/* First, so a narrow bar leads with it. */}
-        <BlocksButton
-          openBlocks={openBlocks}
-          disabled={!editable}
-          separator='after'
-        />
-        <ToolbarItems
-          items={visible}
-          states={stateOfVisible}
-          editor={editor}
-          ui={ui}
-        />
-        {children}
-        {hidden.length > 0 ? (
-          <MoreMenu
-            buttonRef={moreRef}
-            items={hidden}
-            states={stateOfHidden}
+        <Toolbar
+          ref={(element) => {
+            toolbarRef.current = element
+            rowRef.current = element
+          }}
+          flush
+          aria-label='Formatting'
+          aria-controls={contentId}
+          size={EDITOR_TOOLBAR_SIZE[size]}
+          emphasis={emphasis}
+          className={cn('w-full', className)}
+          // A press between controls keeps focus in the editor.
+          onMouseDown={(event) => {
+            onMouseDown?.(event)
+            const target = event.target as Element
+            if (!target.closest('button, a, input')) event.preventDefault()
+          }}
+          onKeyDown={(event) => {
+            onKeyDown?.(event)
+            const inToolbar = event.currentTarget.contains(event.target as Node)
+            if (event.key !== 'Escape' || !inToolbar || !editor) return
+            // Keeps a dialog around the editor open.
+            event.stopPropagation()
+            focusEditor(editor)
+          }}
+          {...props}
+        >
+          {/* First, so a narrow bar leads with it. */}
+          <BlocksButton
+            openBlocks={openBlocks}
+            disabled={!editable}
+            separator='after'
+          />
+          <ToolbarItems
+            items={visible}
+            states={stateOfVisible}
             editor={editor}
             ui={ui}
           />
-        ) : null}
-        {pinnable ? (
-          <Tooltip>
-            <Tooltip.Trigger
-              render={
-                <Toolbar.Button
-                  aria-label='Unpin toolbar'
-                  className='ms-auto'
-                  onClick={() => setToolbar('floating')}
-                >
-                  <PushPinSlashIcon
-                    weight='bold'
-                    className='size-4'
-                    aria-hidden
-                  />
-                </Toolbar.Button>
-              }
+          {children}
+          {hidden.length > 0 ? (
+            <MoreMenu
+              buttonRef={moreRef}
+              onOpenChange={setMoreOpen}
+              items={hidden}
+              states={stateOfHidden}
+              editor={editor}
+              ui={ui}
             />
-            <Tooltip.Content>Unpin toolbar</Tooltip.Content>
-          </Tooltip>
-        ) : null}
-      </Toolbar>
+          ) : null}
+          {pinnable ? (
+            <Tooltip>
+              <Tooltip.Trigger
+                render={
+                  <Toolbar.Button
+                    aria-label='Unpin toolbar'
+                    className='ms-auto'
+                    onClick={() => setToolbar('floating')}
+                  >
+                    <PushPinSlashIcon
+                      weight='bold'
+                      className='size-4'
+                      aria-hidden
+                    />
+                  </Toolbar.Button>
+                }
+              />
+              <Tooltip.Content>Unpin toolbar</Tooltip.Content>
+            </Tooltip>
+          ) : null}
+        </Toolbar>
+      </div>
     </div>
   )
 }
