@@ -122,6 +122,8 @@ function SlashMenuList({
       <Popover.Content
         side='bottom'
         align='start'
+        // Focus never enters the popup, so it's no dialog; the list is.
+        role='presentation'
         initialFocus={false}
         finalFocus={false}
         positionerProps={{ anchor }}

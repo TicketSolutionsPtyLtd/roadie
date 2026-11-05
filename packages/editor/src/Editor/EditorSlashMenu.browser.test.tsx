@@ -132,6 +132,16 @@ describe('Editor.SlashMenu', () => {
     await waitFor(() => expect(gap()).toBeCloseTo(opened, 0))
   })
 
+  it('wraps the listbox in no dialog, since focus never enters it', async () => {
+    render(blocks())
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    await listbox()
+
+    expect(screen.queryByRole('dialog')).toBe(null)
+  })
+
   it('leaves Image out without onUploadImage', async () => {
     render(<Editor aria-label={LABEL} preset='blocks' />)
     await focusedTextbox()
