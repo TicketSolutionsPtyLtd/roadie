@@ -220,6 +220,22 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     assert.deepEqual(f.branches(), ['claude/done', 'main'])
   })
 
+  test('takes the flags after a leading --, as pnpm passes them', () => {
+    const f = fixture()
+    const path = f.worktree('claude/done')
+    f.merge('claude/done')
+
+    const { status, output } = f.cleanup([
+      '--',
+      '--delete',
+      '--branch',
+      'claude/done'
+    ])
+
+    assert.equal(status, 0, output)
+    assert.equal(existsSync(path), false)
+  })
+
   test('refuses an unknown flag and deletes nothing', () => {
     const f = fixture()
     const path = f.worktree('claude/done')
