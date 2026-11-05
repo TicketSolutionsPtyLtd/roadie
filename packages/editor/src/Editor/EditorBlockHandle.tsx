@@ -4,7 +4,6 @@ import {
   type RefObject,
   createElement,
   useEffect,
-  useId,
   useLayoutEffect,
   useRef,
   useState
@@ -32,6 +31,7 @@ import {
 import { closeHistory } from '@tiptap/pm/history'
 import { Fragment, type Node as ProseMirrorNode, Slice } from '@tiptap/pm/model'
 import {
+  type EditorState,
   NodeSelection,
   TextSelection,
   type Transaction
@@ -39,11 +39,12 @@ import {
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 import { createPortal } from 'react-dom'
 
-import { Button, IconButton } from '@oztix/roadie-components/button'
-import { Drawer } from '@oztix/roadie-components/drawer'
+import { Badge } from '@oztix/roadie-components/badge'
+import { IconButton } from '@oztix/roadie-components/button'
 import { Menu } from '@oztix/roadie-components/menu'
 import { cn } from '@oztix/roadie-core/utils'
 
+import { EditorBlockSheet } from './EditorBlockSheet'
 import { hideBubbleMenu } from './EditorBubbleMenuEngine'
 import {
   BLOCK_ACTION_KEYS,
@@ -268,6 +269,20 @@ function addAfter(editor: TiptapEditor, pos: number) {
   focusEditor(editor)
 }
 
+// A moved node is inserted as itself, so the selection's ancestors hold it.
+function landedAt(state: EditorState, moved: ProseMirrorNode | null) {
+  if (!moved) return null
+  const { selection } = state
+  if (selection instanceof NodeSelection && selection.node === moved) {
+    return selection.from
+  }
+  const { $from } = selection
+  for (let depth = $from.depth; depth > 0; depth--) {
+    if ($from.node(depth) === moved) return $from.before(depth)
+  }
+  return null
+}
+
 const PARENT_LABELS: Record<string, string> = {
   section: 'Select section',
   columns: 'Select columns'
@@ -324,7 +339,7 @@ export function EditorBlockHandle({
 }: EditorBlockHandleProps) {
   const host = useHandleHost(editor)
   const phone = useOnPhone()
-  const contentId = useId()
+  const [copied, setCopied] = useState(false)
   useScrollToLinkedBlock(editor)
   const wrapper = host?.parentElement ?? null
   const [hovered, setHovered] = useState<number | null>(null)
@@ -405,6 +420,13 @@ export function EditorBlockHandle({
     if (!editable) setMenuAt(null)
   }, [editable])
 
+  // Long enough to read, as the menu that copied it has closed.
+  useEffect(() => {
+    if (!copied) return
+    const timer = setTimeout(() => setCopied(false), 2000)
+    return () => clearTimeout(timer)
+  }, [copied])
+
   // Its blur check counts focus on the grip as staying in the editor.
   const menuOpen = menuAt !== null
   useEffect(() => {
@@ -472,14 +494,18 @@ export function EditorBlockHandle({
     if (tr) editor.view.dispatch(closeHistory(tr))
   }
 
-  // The menu stays open on the block where it lands.
+  // The menu stays open on the block where it lands, a section included.
   const move = (step: -1 | 1) => {
+    const moved = editor.state.doc.nodeAt(shown)
     run((pos) =>
       blocks
         ? moveRange(editor.state, blocks, step)
         : moveBlock(editor.state, pos, step, containers)
     )
-    setMenuAt(blockAt(editor.state, editor.state.selection.from, containers))
+    setMenuAt(
+      landedAt(editor.state, moved) ??
+        blockAt(editor.state, editor.state.selection.from, containers)
+    )
   }
 
   const handBack = () => {
@@ -585,10 +611,11 @@ export function EditorBlockHandle({
           {
             label: 'Copy link to block',
             icon: LinkIcon,
-            // A refused copy changes nothing on the page, so it's let go.
             run: () =>
               void navigator.clipboard
                 ?.writeText(blockLink(blockId))
+                .then(() => setCopied(true))
+                // A refused copy changes nothing on the page, so it's let go.
                 .catch(() => {})
           }
         ]
@@ -644,6 +671,18 @@ export function EditorBlockHandle({
 
   return createPortal(
     <>
+      {copied ? (
+        <Badge
+          role='status'
+          intent='success'
+          emphasis='subtle'
+          size='sm'
+          className='absolute'
+          style={{ top: place.top - HANDLE_SIZE, left: place.left }}
+        >
+          Link copied
+        </Badge>
+      ) : null}
       {canAdd ? (
         <IconButton
           size='xs'
@@ -667,54 +706,27 @@ export function EditorBlockHandle({
       {phone ? (
         <>
           {grip}
-          <Drawer
+          <EditorBlockSheet
             open={menuOpen}
-            onOpenChange={(open) => {
-              if (!open) close()
-            }}
-            side='bottom'
-          >
-            <Drawer.Content size='fit' finalFocus={handBack}>
-              <Drawer.Header>
-                <Drawer.Title>{label}</Drawer.Title>
-              </Drawer.Header>
-              <Drawer.Body className='grid content-start gap-4 pb-6'>
-                <DrawerActions
-                  actions={[...moves, ...more, remove]}
-                  onDone={close}
-                />
-                {kinds.length > 0 ? (
-                  <div
-                    role='group'
-                    aria-labelledby={`${contentId}-turn-into`}
-                    className='grid gap-1'
-                  >
-                    <h3
-                      id={`${contentId}-turn-into`}
-                      className='px-3 text-display-ui-6 text-subtle'
-                    >
-                      Turn into
-                    </h3>
-                    {kinds.map((each) => (
-                      <DrawerAction
-                        key={kindLabel(each)}
-                        icon={kindIcon(each)}
-                        pressed={
-                          kind !== null && kindLabel(each) === kindLabel(kind)
-                        }
-                        onClick={() => {
-                          close()
-                          turn(each)
-                        }}
-                      >
-                        {kindLabel(each)}
-                      </DrawerAction>
-                    ))}
-                  </div>
-                ) : null}
-              </Drawer.Body>
-            </Drawer.Content>
-          </Drawer>
+            onClose={close}
+            onFinalFocus={handBack}
+            label={label}
+            block={
+              menuOpen
+                ? (editor.view.nodeDOM(shown) as HTMLElement | null)
+                : null
+            }
+            moveUp={moves[0]!}
+            moveDown={moves[1]!}
+            actions={[...moves.slice(2), ...more]}
+            remove={remove}
+            kinds={kinds.map((each) => ({
+              label: kindLabel(each),
+              icon: kindIcon(each),
+              chosen: kind !== null && kindLabel(each) === kindLabel(kind),
+              run: () => turn(each)
+            }))}
+          />
         </>
       ) : (
         <Menu
@@ -816,65 +828,4 @@ type BlockAction = {
   /** Leaves the menu open, on the block wherever it went. */
   keepOpen?: boolean
   run: () => void
-}
-
-type DrawerActionProps = {
-  icon: Icon
-  intent?: 'danger'
-  pressed?: boolean
-  disabled?: boolean
-  onClick: () => void
-  children: string
-}
-
-// A thumb's row, with no keys: a phone has none to press.
-function DrawerAction({
-  icon,
-  intent,
-  pressed,
-  disabled,
-  onClick,
-  children
-}: DrawerActionProps) {
-  return (
-    <Button
-      size='lg'
-      emphasis='subtler'
-      intent={intent}
-      disabled={disabled}
-      aria-pressed={pressed}
-      className={cn('w-full justify-start', pressed && 'is-selected')}
-      onClick={onClick}
-    >
-      {createElement(icon, { weight: 'bold', className: 'size-4' })}
-      {children}
-    </Button>
-  )
-}
-
-function DrawerActions({
-  actions,
-  onDone
-}: {
-  actions: readonly BlockAction[]
-  onDone: () => void
-}) {
-  return (
-    <div className='grid gap-1'>
-      {actions.map((action) => (
-        <DrawerAction
-          key={action.label}
-          icon={action.icon}
-          intent={action.intent}
-          disabled={action.disabled}
-          onClick={() => {
-            if (!action.keepOpen) onDone()
-            action.run()
-          }}
-        >
-          {action.label}
-        </DrawerAction>
-      ))}
-    </div>
-  )
 }

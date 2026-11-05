@@ -11,6 +11,7 @@ import {
   type Transaction
 } from '@tiptap/pm/state'
 import type { Mappable } from '@tiptap/pm/transform'
+import type { EditorView } from '@tiptap/pm/view'
 
 import {
   type BlockContainers,
@@ -206,6 +207,69 @@ function extended(selection: BlockSelection, step: -1 | 1) {
     : { anchor: at(first + 1), head: at(last) }
 }
 
+// The end of the last selected block's text, if it has any.
+function caretAtEnd(selection: BlockSelection) {
+  const { doc } = selection.$from
+  const caret = Selection.findFrom(doc.resolve(selection.to), -1, true)
+  return caret instanceof TextSelection && caret.from > selection.from
+    ? caret
+    : null
+}
+
+// Whether a range runs out of a section or column, which can't be joined.
+function crossesIsolating($from: ResolvedPos, $to: ResolvedPos) {
+  if ($from.sameParent($to)) return false
+  const shared = $from.sharedDepth($to.pos)
+  const isolated = ($pos: ResolvedPos) => {
+    for (let depth = $pos.depth; depth > shared; depth--) {
+      if ($pos.node(depth).type.spec.isolating) return true
+    }
+    return false
+  }
+  return isolated($from) || isolated($to)
+}
+
+// The browser's selection, which a fast Shift+Arrow then a key can reach
+// before ProseMirror reads it.
+function domRange(view: EditorView) {
+  const { from, to } = view.state.selection
+  const dom = (view.root as Document).getSelection?.()
+  if (!dom?.anchorNode || !dom.focusNode) return [from, to] as const
+  if (!view.dom.contains(dom.anchorNode) || !view.dom.contains(dom.focusNode)) {
+    return [from, to] as const
+  }
+  try {
+    const anchor = view.posAtDOM(dom.anchorNode, dom.anchorOffset)
+    const head = view.posAtDOM(dom.focusNode, dom.focusOffset)
+    return [Math.min(anchor, head), Math.max(anchor, head)] as const
+  } catch {
+    return [from, to] as const
+  }
+}
+
+/**
+ * Types over a selection that runs out of a section or column. ProseMirror
+ * would fit the text into a new section, with the caret before it, so the
+ * selection is deleted first and the text goes where it started.
+ */
+function replacesAcrossIsolating(
+  view: EditorView,
+  text: string,
+  from = view.state.selection.from,
+  to = view.state.selection.to
+) {
+  const { state } = view
+  if (!crossesIsolating(state.doc.resolve(from), state.doc.resolve(to))) {
+    return false
+  }
+  const tr = state.tr.delete(from, to)
+  const at = tr.mapping.map(from, -1)
+  tr.insertText(text, at)
+  tr.setSelection(TextSelection.create(tr.doc, at + text.length))
+  view.dispatch(tr.scrollIntoView())
+  return true
+}
+
 function blockSelectionOf(state: EditorState, containers: BlockContainers) {
   const pos = blockAt(state, state.selection.from, containers)
   if (pos === null) return null
@@ -236,6 +300,23 @@ const onRange =
     return range !== null || pos !== null
   }
 
+// Ahead of the keymaps that would split or replace the selected blocks.
+const BlockSelectionEnter = Extension.create({
+  name: 'blockSelectionEnter',
+  priority: 1000,
+  addKeyboardShortcuts: () => ({
+    // Back to editing the selected blocks, at their end.
+    Enter: ({ editor }) => {
+      const { selection } = editor.state
+      if (!(selection instanceof BlockSelection)) return false
+      const caret = caretAtEnd(selection)
+      if (!caret) return false
+      editor.view.dispatch(editor.state.tr.setSelection(caret).scrollIntoView())
+      return true
+    }
+  })
+})
+
 /**
  * Notion's keys: Escape selects the caret's block, Shift+ArrowUp and
  * Shift+ArrowDown grow or shrink a block selection, and the move and
@@ -250,6 +331,10 @@ export const BlockKeys = Extension.create<BlockKeysOptions>({
     return { containers: TOP_LEVEL }
   },
 
+  addExtensions() {
+    return [BlockSelectionEnter]
+  },
+
   addProseMirrorPlugins() {
     const { containers } = this.options
     return [
@@ -257,8 +342,21 @@ export const BlockKeys = Extension.create<BlockKeysOptions>({
         key: new PluginKey('blockKeys'),
         props: {
           handleKeyDown(view, event) {
-            if (event.key !== 'Escape' || event.defaultPrevented) return false
             const { state } = view
+            const composing = event.isComposing || event.keyCode === 229
+            const typed =
+              event.key.length === 1 &&
+              !event.ctrlKey &&
+              !event.metaKey &&
+              !event.altKey &&
+              !composing
+            if (typed) {
+              const [from, to] = domRange(view)
+              if (replacesAcrossIsolating(view, event.key, from, to)) {
+                return true
+              }
+            }
+            if (event.key !== 'Escape' || event.defaultPrevented) return false
             if (state.selection instanceof BlockSelection) return false
             const selected = blockSelectionOf(state, containers)
             if (!selected) return false
@@ -266,6 +364,19 @@ export const BlockKeys = Extension.create<BlockKeysOptions>({
             event.stopPropagation()
             view.dispatch(state.tr.setSelection(selected))
             return true
+          },
+          handleTextInput(view, from, to, text) {
+            const { state } = view
+            const { selection } = state
+            // Typing on selected blocks carries on at their end, as Notion's.
+            if (selection instanceof BlockSelection) {
+              const caret = caretAtEnd(selection)
+              if (!caret) return false
+              const tr = state.tr.setSelection(caret)
+              view.dispatch(tr.insertText(text).scrollIntoView())
+              return true
+            }
+            return replacesAcrossIsolating(view, text, from, to)
           }
         }
       })

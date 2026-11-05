@@ -22,6 +22,7 @@ import {
   controlUi,
   stateOf
 } from './EditorToolbarEngine'
+import { BlockSelection } from './blockSelection'
 import {
   type EditorControl,
   type EditorControlUi,
@@ -42,6 +43,8 @@ function selectsText({ selection, doc, schema }: EditorState) {
   // A Mod-click selects the block, which has its own text.
   if (selection instanceof NodeSelection) return false
   if (selection instanceof CellSelection) return false
+  // Selected blocks are acted on whole, from the block menu.
+  if (selection instanceof BlockSelection) return false
   const marks = Object.values(schema.marks)
   let formattable = false
   doc.nodesBetween(selection.from, selection.to, (node, _pos, parent) => {

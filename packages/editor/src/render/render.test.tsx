@@ -462,6 +462,40 @@ describe.each(renderers)('%s', (_, render) => {
         '<img src="/images/crowd.webp" alt="" loading="lazy">'
       ],
       [
+        'an image with its caption, in a figure',
+        [
+          {
+            type: 'image',
+            attrs: {
+              src: '/images/crowd.webp',
+              alt: 'The crowd',
+              caption: 'Gates <open> at 11am'
+            }
+          }
+        ],
+        '<figure style="width:fit-content"><img src="/images/crowd.webp" alt="The crowd" loading="lazy"><figcaption>Gates &lt;open&gt; at 11am</figcaption></figure>'
+      ],
+      [
+        'a centred image',
+        [
+          {
+            type: 'image',
+            attrs: { src: '/images/crowd.webp', alt: '', align: 'center' }
+          }
+        ],
+        '<figure style="width:fit-content;margin-inline:auto"><img src="/images/crowd.webp" alt="" loading="lazy"></figure>'
+      ],
+      [
+        'an image across the text',
+        [
+          {
+            type: 'image',
+            attrs: { src: '/images/crowd.webp', alt: '', fullWidth: true }
+          }
+        ],
+        '<figure style="width:100%"><img src="/images/crowd.webp" alt="" loading="lazy" style="width:100%"></figure>'
+      ],
+      [
         'an image with markup in its alt text, escaped',
         [
           {

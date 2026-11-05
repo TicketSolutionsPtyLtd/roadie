@@ -5,7 +5,13 @@ import { userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
-import { LINE_START, MOD, clickIntoEditor } from './testUtils'
+import {
+  LINE_END,
+  LINE_START,
+  MOD,
+  clickIntoEditor,
+  selectParagraph
+} from './testUtils'
 
 const LABEL = 'Page'
 
@@ -62,7 +68,7 @@ async function row(text: string) {
 const tinted = async () =>
   Array.from(
     (await screen.findByRole('textbox', { name: LABEL })).querySelectorAll(
-      '[data-focused-block]'
+      '[data-selected-block]'
     ),
     (element) => element.textContent
   )
@@ -84,6 +90,54 @@ describe('Editor block selection', () => {
     await userEvent.keyboard('{Shift>}{ArrowUp}{ArrowUp}{/Shift}')
     await waitFor(async () =>
       expect(await tinted()).toEqual(['Doors 7pm', 'Support 8pm'])
+    )
+  })
+
+  it('rings a selected block, as a selected node is, with no tint', async () => {
+    renderLineup()
+    await clickIntoEditor(await row('Support 8pm'))
+
+    await userEvent.keyboard('{Escape}')
+
+    const block = await row('Support 8pm')
+    await waitFor(() =>
+      expect(getComputedStyle(block).outlineStyle).toBe('solid')
+    )
+    expect(parseFloat(getComputedStyle(block).outlineWidth)).toBeGreaterThan(0)
+    expect(getComputedStyle(block).backgroundColor).toBe('rgba(0, 0, 0, 0)')
+  })
+
+  it('carries on typing at a selected block’s end, and Enter goes back to it', async () => {
+    const onValueChange = renderLineup()
+    await clickIntoEditor(await row('Support 8pm'))
+    await userEvent.keyboard('{Escape}x')
+    await userEvent.keyboard('{Escape}{Enter}!')
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content!.map(
+          (node) => node.content?.[0]?.text
+        )
+      ).toEqual(['Doors 7pm', 'Support 8pmx!', 'Headliner 9pm', 'Curfew 11pm'])
+    )
+  })
+
+  it('hides the floating toolbar over selected blocks', async () => {
+    render(
+      <Editor aria-label={LABEL} defaultValue={lineup} toolbar='floating'>
+        <Editor.Content />
+        <Editor.BubbleMenu />
+      </Editor>
+    )
+    await selectParagraph(await row('Support 8pm'))
+    await screen.findByRole('toolbar', { name: 'Selection formatting' })
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('toolbar', { name: 'Selection formatting' })
+      ).toBe(null)
     )
   })
 
@@ -205,6 +259,44 @@ describe('Editor block selection', () => {
         (onValueChange.mock.lastCall![0] as EditorValue).doc.content![1]!
           .content![0]!.text
       ).toBe('Support 8pm!')
+    )
+  })
+})
+
+describe('Editor text selection across a section', () => {
+  it('types in order after selecting from a section’s last line down to the next', async () => {
+    const onValueChange = vi.fn()
+    const p = (text: string) => ({
+      type: 'paragraph',
+      content: [{ type: 'text', text }]
+    })
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              { type: 'section', content: [p('Doors 7pm')] },
+              p('Gates 6pm')
+            ]
+          }
+        }}
+        onValueChange={onValueChange}
+      />
+    )
+    await clickIntoEditor(await row('Doors 7pm'))
+    await userEvent.keyboard(LINE_END)
+
+    await userEvent.keyboard('{Shift>}{ArrowDown}{/Shift}')
+    await userEvent.keyboard('xyz')
+
+    await waitFor(() =>
+      expect(
+        JSON.stringify((onValueChange.mock.lastCall![0] as EditorValue).doc)
+      ).toContain('Doors 7pmxyz')
     )
   })
 })
