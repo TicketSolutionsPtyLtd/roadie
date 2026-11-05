@@ -122,7 +122,9 @@ describe('Editor block handle', () => {
     expect(row).toHaveAttribute('data-menu-block')
     expect(getComputedStyle(row).backgroundColor).not.toBe('rgba(0, 0, 0, 0)')
     await waitFor(() =>
-      expect(within(menu).getByRole('group', { name: 'Text' })).toBeVisible()
+      expect(
+        within(menu).getByRole('group', { name: 'Paragraph' })
+      ).toBeVisible()
     )
 
     await userEvent.keyboard('{Escape}')
@@ -263,6 +265,23 @@ describe('Editor block handle', () => {
 
     await waitFor(() =>
       expect(order(onValueChange).map(([id]) => id)).toEqual(expected)
+    )
+  })
+
+  it('keeps the caret where it was in the text as its block moves', async () => {
+    const onValueChange = renderLineup()
+    await userEvent.click(await paragraph('Headliner'))
+    await userEvent.keyboard('{End}')
+
+    await userEvent.keyboard(`{${MOD}>}{Shift>}{ArrowUp}{/Shift}{/${MOD}}`)
+    await userEvent.keyboard('!')
+
+    await waitFor(() =>
+      expect(order(onValueChange)).toEqual([
+        ['doors', 'Doors 7pm'],
+        ['headliner', 'Headliner 9pm!'],
+        ['support', 'Support 8pm']
+      ])
     )
   })
 
