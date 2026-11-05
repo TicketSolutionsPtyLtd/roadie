@@ -47,8 +47,13 @@ export function emDashFindings(file, source) {
 const IMAGE_SOURCE =
   /\b(?:src|srcSet|poster)\s*[=:]\s*\{?\s*(['"`])(.+?)\1|!\[[^\]]*\]\(\s*<?([^\s)>]+)/g
 
+// The docs' own site serves docs/public, for an example that needs an
+// absolute URL, such as an email's image.
+const DOCS_SITE = 'https://ticketsolutionsptyltd.github.io/roadie/'
+
 export function externalImageHost(url) {
   if (!/^(?:https?:)?\/\//i.test(url)) return null
+  if (url.startsWith(DOCS_SITE)) return null
   const hostname = URL.parse(url, 'https://localhost')?.hostname || url
   return IMAGE_HOSTS.includes(hostname) ? null : hostname
 }

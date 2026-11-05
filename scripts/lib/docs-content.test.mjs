@@ -72,6 +72,19 @@ describe('externalImageFindings', () => {
     )
   })
 
+  test('passes the docs site, which serves docs/public, for an absolute URL', () => {
+    assert.deepEqual(
+      check(
+        "{ src: 'https://ticketsolutionsptyltd.github.io/roadie/brand/photography/01.webp' }"
+      ),
+      []
+    )
+    assert.deepEqual(
+      check("{ src: 'https://ticketsolutionsptyltd.github.io/other/a.png' }"),
+      [1]
+    )
+  })
+
   test('skips test files, which hold external URLs as fixtures', () => {
     const files = trackedFiles(IMAGE_FILES)
     assert.ok(files.some((file) => file.endsWith('page.mdx')))
