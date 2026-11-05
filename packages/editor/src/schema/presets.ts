@@ -1,6 +1,7 @@
 import type { Extensions } from '@tiptap/core'
 import { Heading } from '@tiptap/extension-heading'
 import { UniqueID } from '@tiptap/extension-unique-id'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { StarterKit } from '@tiptap/starter-kit'
 
 import { SafeLink, basic, notInStarterKit } from './basicPreset'
@@ -37,10 +38,27 @@ const rich: Extensions = [
   TableCell
 ]
 
+// ProseMirror allows every drag to copy or move, so UniqueID strips the ids
+// from any dropped slice. A move restores them, so a moved block keeps its id.
+const BlockIds = UniqueID.extend({
+  addProseMirrorPlugins() {
+    return [
+      ...(this.parent?.() ?? []),
+      new Plugin({
+        key: new PluginKey('blockIdsOnMove'),
+        props: {
+          transformPasted: (slice, view) =>
+            view.dragging?.move ? view.dragging.slice : slice
+        }
+      })
+    ]
+  }
+})
+
 // Ids let a block be dragged, linked to, and later edited together.
 const blocks: Extensions = [
   ...rich,
-  UniqueID.configure({ attributeName: BLOCK_ID, types: [...BLOCK_ID_TYPES] })
+  BlockIds.configure({ attributeName: BLOCK_ID, types: [...BLOCK_ID_TYPES] })
 ]
 
 export const presets = { basic, rich, blocks } as const satisfies Record<

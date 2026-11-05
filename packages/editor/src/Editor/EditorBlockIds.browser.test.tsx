@@ -130,3 +130,109 @@ describe('Editor blocks preset ids', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 })
+
+describe('Editor blocks preset ids on drag', () => {
+  const crowdImage = {
+    type: 'image',
+    attrs: { blockId: 'crowd', src: '/images/crowd.webp', alt: 'Crowd' }
+  }
+  const doorsParagraph = {
+    type: 'paragraph',
+    attrs: { blockId: 'doors' },
+    content: [text('Doors 7pm')]
+  }
+
+  async function dragImageAfterDoors(init: DragEventInit = {}) {
+    const image = await screen.findByRole('img', { name: 'Crowd' })
+    dragBlock(
+      image.closest('[draggable="true"]')!,
+      await screen.findByText('Doors 7pm'),
+      init
+    )
+  }
+
+  it('keeps a block’s id as it is dragged to a new place', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={valueOf(crowdImage, doorsParagraph)}
+        onValueChange={onValueChange}
+      />
+    )
+
+    await dragImageAfterDoors()
+
+    await waitFor(() =>
+      expect(lastDoc(onValueChange).content?.[1]?.type).toBe('image')
+    )
+    expect(blockIds(lastDoc(onValueChange)).slice(0, 2)).toEqual([
+      'doors',
+      'crowd'
+    ])
+  })
+
+  it('gives blocks copied by dragging ids of their own', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={valueOf(doorsParagraph, {
+          type: 'paragraph',
+          attrs: { blockId: 'ages' },
+          content: [text('All ages')]
+        })}
+        onValueChange={onValueChange}
+      />
+    )
+    await focusedTextbox()
+    await userEvent.keyboard('{ControlOrMeta>}a{/ControlOrMeta}')
+
+    dragBlock(
+      await screen.findByText('Doors 7pm'),
+      await screen.findByText('All ages'),
+      { altKey: true, ctrlKey: true }
+    )
+
+    await waitFor(() =>
+      expect(lastDoc(onValueChange).content?.length).toBeGreaterThan(2)
+    )
+    const ids = blockIds(lastDoc(onValueChange))
+    expect(ids).toEqual(expect.arrayContaining(['doors', 'ages']))
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+})
+
+// A real drag keeps the effectAllowed ProseMirror sets on dragstart until the
+// drop, but a DataTransfer made in a test stays at 'none', so this keeps it.
+function dragBlock(source: Element, target: Element, init: DragEventInit) {
+  const dataTransfer = new DataTransfer()
+  let effectAllowed = dataTransfer.effectAllowed
+  Object.defineProperty(dataTransfer, 'effectAllowed', {
+    get: () => effectAllowed,
+    set: (value: DataTransfer['effectAllowed']) => {
+      effectAllowed = value
+    }
+  })
+  const from = source.getBoundingClientRect()
+  source.dispatchEvent(
+    new DragEvent('dragstart', {
+      ...init,
+      dataTransfer,
+      bubbles: true,
+      clientX: from.left + from.width / 2,
+      clientY: from.top + from.height / 2
+    })
+  )
+  const to = target.getBoundingClientRect()
+  target.dispatchEvent(
+    new DragEvent('drop', {
+      ...init,
+      dataTransfer,
+      bubbles: true,
+      cancelable: true,
+      clientX: to.right - 1,
+      clientY: to.bottom - 1
+    })
+  )
+}
