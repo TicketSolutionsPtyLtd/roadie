@@ -37,7 +37,11 @@ import {
   migrate,
   presets
 } from '../schema'
-import { BLOCK_ID } from '../schema/presetShapes'
+import {
+  BLOCK_ID,
+  type PresetShape,
+  presetShapes
+} from '../schema/presetShapes'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
@@ -145,6 +149,11 @@ function readsDoc(preset: Preset, doc: JSONContent) {
 
 function presetHoldsImages(preset: Preset) {
   return presets[preset].some(({ name }) => name === 'image')
+}
+
+function holdsHttpsImagesOnly(preset: Preset) {
+  const shape: PresetShape = presetShapes[preset]
+  return shape.httpsImages === true
 }
 
 function presetKeepsBlockIds(preset: Preset) {
@@ -281,7 +290,8 @@ export function EditorEngine({
   const holdsImages = presetHoldsImages(preset)
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
-    onError: setUploadError
+    onError: setUploadError,
+    httpsOnly: holdsHttpsImagesOnly(preset)
   }
 
   const editor = useEditor({
