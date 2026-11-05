@@ -2,11 +2,14 @@ import type { Icon } from '@phosphor-icons/react'
 import {
   ArrowsVerticalIcon,
   ColumnsIcon,
+  FilmStripIcon,
   ImageIcon,
   ListBulletsIcon,
   ListNumbersIcon,
   MinusIcon,
+  QuotesIcon,
   RectangleIcon,
+  TableIcon,
   TextHFourIcon,
   TextHThreeIcon,
   TextHTwoIcon,
@@ -136,10 +139,50 @@ const divider = block('Divider', MinusIcon, { type: 'horizontalRule' }, [
   'rule'
 ])
 
+const quote: EditorInsertItem = {
+  label: 'Quote',
+  icon: QuotesIcon,
+  keywords: ['blockquote'],
+  run: (editor) => editor.chain().focus().wrapIn('blockquote').run(),
+  enabled: (editor) =>
+    !editor.isActive('blockquote') && editor.can().wrapIn('blockquote')
+}
+
+const embed: EditorInsertItem = {
+  label: 'Embed',
+  icon: FilmStripIcon,
+  keywords: ['video', 'audio'],
+  run: (_editor, { editEmbed }) => editEmbed(),
+  enabled: (editor) => editor.can().setEmbed({ provider: '', id: '' })
+}
+
+const cells = (type: string) =>
+  Array.from({ length: 3 }, () => ({ type, content: [emptyParagraph] }))
+
+const table = block('Table', TableIcon, {
+  type: 'table',
+  content: [
+    { type: 'tableRow', content: cells('tableHeader') },
+    { type: 'tableRow', content: cells('tableCell') },
+    { type: 'tableRow', content: cells('tableCell') }
+  ]
+})
+
 /** The insert menu's items, for each preset that has one. */
 export const presetInsertItems: Partial<
   Record<Preset, readonly EditorInsertItem[]>
 > = {
+  blocks: [
+    paragraph,
+    ...headings,
+    bulletList,
+    orderedList,
+    quote,
+    divider,
+    image,
+    embed,
+    table
+  ],
   email: [
     paragraph,
     ...headings,
