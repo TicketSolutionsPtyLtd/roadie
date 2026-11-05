@@ -7,7 +7,7 @@ import { Node } from '@tiptap/core'
 import { type ReactNodeViewProps, ReactNodeViewRenderer } from '@tiptap/react'
 
 // Roadie's own Tiptap, so an app's blocks never install or drift from it.
-export { Extension, Mark, mergeAttributes } from '@tiptap/core'
+export { mergeAttributes } from '@tiptap/core'
 export { Node }
 export { NodeViewWrapper } from '@tiptap/react'
 

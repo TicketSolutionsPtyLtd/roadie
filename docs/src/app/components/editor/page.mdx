@@ -569,8 +569,8 @@ the first and last blocks. Closing the menu puts focus back in the text.
 
 An app adds its own blocks, such as a call to action or an event feed, with
 `extensions`. Build each from `@oztix/roadie-editor/extensions`, which
-re-exports Tiptap's `Node`, `Mark`, `Extension`, and `mergeAttributes`, so
-the app never installs Tiptap or drifts from Roadie's version:
+re-exports Tiptap's `Node` and `mergeAttributes`, so the app never installs
+Tiptap or drifts from Roadie's version:
 
 ```tsx
 import {
