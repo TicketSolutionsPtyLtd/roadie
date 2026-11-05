@@ -147,6 +147,56 @@ describe('Editor toolbar on a phone', () => {
       screen.getByRole('menuitemcheckbox', { name: 'Numbered list' })
     ).toHaveAttribute('aria-checked', 'true')
   })
+  it.each([false, true])(
+    'brings every control back once the window widens again, pinnable %s',
+    async (pinnable) => {
+      await page.viewport(440, 700)
+      render(
+        <Editor
+          aria-label={LABEL}
+          defaultValue={valueIn('rich')}
+          toolbar='docked'
+          pinnable={pinnable}
+        />
+      )
+      const toolbar = await shownToolbar()
+      await waitFor(() =>
+        expect(
+          within(toolbar).getByRole('button', { name: 'More' })
+        ).toBeVisible()
+      )
+
+      await page.viewport(1280, 800)
+
+      await waitFor(() =>
+        expect(controls(toolbar)).toEqual(
+          expect.arrayContaining(['Undo', 'Redo'])
+        )
+      )
+      expect(
+        within(toolbar).queryByRole('button', { name: 'More' })
+      ).not.toBeInTheDocument()
+    }
+  )
+
+  it('keeps focus in the link editor opened from More', async () => {
+    await page.viewport(320, 700)
+    render(<Editor aria-label={LABEL} defaultValue={valueIn('rich')} />)
+    const toolbar = await shownToolbar()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.tripleClick(within(textbox).getByText(TEXT))
+    await waitFor(() => fitsItsBar(toolbar))
+    await moreMenu(toolbar)
+
+    await userEvent.click(
+      screen.getByRole('menuitemcheckbox', { name: 'Link' })
+    )
+
+    const url = await screen.findByRole('textbox', { name: 'Link' })
+    await waitFor(() => expect(url).toHaveFocus())
+    await userEvent.keyboard('oztix.com.au')
+    expect(url).toHaveValue('oztix.com.au')
+  })
 })
 
 describe('Editor toolbar in a narrow column', () => {

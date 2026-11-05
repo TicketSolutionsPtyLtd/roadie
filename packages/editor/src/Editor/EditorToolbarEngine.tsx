@@ -385,34 +385,55 @@ function useFittedItems({
   const [shown, setShown] = useState<ReadonlySet<number> | null>(null)
   const shownRef = useRef(shown)
   const widthsRef = useRef<number[]>([])
+  const itemsRef = useRef(items)
+  const keyRef = useRef('')
+  const key = items
+    .map((item) => (item === SEPARATOR ? item : item.label))
+    .join()
 
+  useLayoutEffect(() => {
+    itemsRef.current = items
+  })
+
+  // Children are observed too, so a label's change of width, such as the
+  // block type's, fits the row again with no measuring on every render.
   useLayoutEffect(() => {
     shownRef.current = shown
     const bar = barRef.current
     const row = rowRef.current
     if (!bar || !row) return
-    const slots = items.map(slotOf)
+    if (keyRef.current !== key) {
+      keyRef.current = key
+      widthsRef.current = []
+      if (shown !== null) {
+        setShown(null)
+        return
+      }
+    }
+    const current = itemsRef.current
+    const slots = current.map(slotOf)
     const fit = () => {
-      const order = items
+      const order = current
         .map((_, index) => index)
         .filter((index) => shownRef.current?.has(index) ?? true)
       const children = Array.from(row.children)
       const placed = children.slice(leading, leading + order.length)
       if (placed.length < order.length) return
-      const widths = widthsRef.current
-      placed.forEach((element, at) => {
-        widths[order[at]!] = outerWidth(element)
-      })
       const { display, columnGap, paddingInlineStart, paddingInlineEnd } =
         getComputedStyle(row)
       // Unstyled, its items stack rather than share a row.
       if (display !== 'flex') return
+      const widths = widthsRef.current
+      placed.forEach((element, at) => {
+        widths[order[at]!] = outerWidth(element)
+      })
       const gap = parseFloat(columnGap) || 0
       const own = children.filter(
         (element) => !placed.includes(element) && element !== moreRef.current
       )
+      // Without margins, as Unpin's auto margin holds the row's free space.
       const base = own.reduce(
-        (sum, element) => sum + outerWidth(element) + gap,
+        (sum, element) => sum + element.getBoundingClientRect().width + gap,
         parseFloat(paddingInlineStart) + parseFloat(paddingInlineEnd) - gap
       )
       const next = fitToolbar({
@@ -424,7 +445,7 @@ function useFittedItems({
         more: moreRef.current
           ? outerWidth(moreRef.current)
           : (widths[slots.indexOf('undo')] ?? 0),
-        available: bar.clientWidth
+        available: bar.getBoundingClientRect().width
       })
       if (!sameItems(next, shownRef.current)) {
         shownRef.current = next
@@ -434,9 +455,9 @@ function useFittedItems({
     fit()
     const observer = new ResizeObserver(fit)
     observer.observe(bar)
-    observer.observe(row)
+    for (const element of row.children) observer.observe(element)
     return () => observer.disconnect()
-  })
+  }, [barRef, rowRef, moreRef, leading, key, shown])
   return shown
 }
 
@@ -632,7 +653,7 @@ export function EditorToolbarEngine({
         }}
         {...props}
       >
-        {/* First, as a phone's bar scrolls and would hide it at the end. */}
+        {/* First, so a narrow bar leads with it. */}
         <BlocksButton
           openBlocks={openBlocks}
           disabled={!editable}
