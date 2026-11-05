@@ -3,6 +3,7 @@
 import {
   type RefObject,
   useLayoutEffect,
+  useRef,
   useState,
   useSyncExternalStore
 } from 'react'
@@ -95,12 +96,15 @@ const BAR_POPUPS = '[role="menu"], [role="listbox"], [role="dialog"]'
  */
 export function useKeyboardDock(
   ref: RefObject<HTMLElement | null>,
+  /** The bar that goes `fixed`. */
+  barRef: RefObject<HTMLElement | null>,
   /** Changes when the bar mounts again. */
   shown: boolean
 ) {
   const touch = useMediaQuery('(pointer: coarse)')
   const [editing, setEditing] = useState(false)
-  const [lift, setLift] = useState(0)
+  const [shift, setShift] = useState(0)
+  const shiftRef = useRef(0)
 
   useLayoutEffect(() => {
     const frame = ref.current?.closest('[data-slot="editor"]')
@@ -130,21 +134,30 @@ export function useKeyboardDock(
     }
   }, [ref, touch, shown])
 
+  // Measured rather than set as `bottom`: a transformed or contained
+  // ancestor, such as a container query's, holds a fixed bar in its own box.
   useLayoutEffect(() => {
     const viewport = window.visualViewport
     if (!touch || !editing || !viewport) return
-    const place = () =>
-      setLift(
-        Math.max(0, window.innerHeight - viewport.offsetTop - viewport.height)
-      )
+    const place = () => {
+      const bar = barRef.current
+      if (!bar) return
+      const natural = bar.getBoundingClientRect().bottom - shiftRef.current
+      shiftRef.current = viewport.offsetTop + viewport.height - natural
+      setShift(shiftRef.current)
+    }
     place()
     viewport.addEventListener('resize', place)
     viewport.addEventListener('scroll', place)
+    window.addEventListener('scroll', place, { capture: true, passive: true })
     return () => {
+      shiftRef.current = 0
+      setShift(0)
       viewport.removeEventListener('resize', place)
       viewport.removeEventListener('scroll', place)
+      window.removeEventListener('scroll', place, { capture: true })
     }
-  }, [touch, editing])
+  }, [barRef, touch, editing])
 
-  return { aboveKeyboard: touch && editing, lift }
+  return { aboveKeyboard: touch && editing, shift }
 }

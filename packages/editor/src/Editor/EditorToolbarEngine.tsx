@@ -617,7 +617,7 @@ export function EditorToolbarEngine({
   const stickyRef = useRef<HTMLDivElement>(null)
   const barRef = useRef<HTMLDivElement>(null)
   const top = useStickyTop(stickyRef, !floating)
-  const { aboveKeyboard, lift } = useKeyboardDock(stickyRef, !floating)
+  const { aboveKeyboard, shift } = useKeyboardDock(stickyRef, barRef, !floating)
   // Held while the bar sits above the keyboard, so the text doesn't move.
   const [reserved, setReserved] = useState<number>()
   const ui = controlUi(context)
@@ -671,17 +671,21 @@ export function EditorToolbarEngine({
       style={{ top, blockSize: aboveKeyboard ? reserved : undefined }}
       // Above the text that scrolls under it, below the editor's popups.
       className={cn(
-        'sticky top-0 z-sticky shrink-0',
+        'sticky top-0 shrink-0',
+        // Its own stacking context holds the bar while it's fixed.
+        aboveKeyboard ? 'z-overlay' : 'z-sticky',
         EDITOR_DOCKED_BAR[editorEmphasis]
       )}
     >
       <div
         ref={barRef}
         data-above-keyboard={aboveKeyboard || undefined}
-        style={aboveKeyboard ? { bottom: lift } : undefined}
+        style={
+          aboveKeyboard ? { bottom: 0, translate: `0 ${shift}px` } : undefined
+        }
         className={cn(
           aboveKeyboard &&
-            'fixed inset-x-0 z-overlay border-t border-subtler bg-normal pb-[env(safe-area-inset-bottom)]'
+            'fixed inset-x-0 border-t border-subtler bg-normal pb-[env(safe-area-inset-bottom)]'
         )}
       >
         <Toolbar
