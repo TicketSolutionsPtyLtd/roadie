@@ -106,17 +106,18 @@ export function useKeyboardDock(
     const frame = ref.current?.closest('[data-slot="editor"]')
     if (!touch || !shown || !frame) return
     let frameId = 0
+    // Whether focus was last in this editor, so a popup it opened counts.
+    let inside = false
     const follow = () => {
       cancelAnimationFrame(frameId)
       // After focus settles, as a menu's popup takes it a moment later.
       frameId = requestAnimationFrame(() => {
         const active = document.activeElement
-        setEditing(
-          Boolean(
-            active &&
-            (frame.contains(active) || active.closest(BAR_POPUPS) !== null)
-          )
-        )
+        const popup = active?.closest(BAR_POPUPS)
+        if (active && frame.contains(active)) inside = true
+        // A dialog around the editor is the page, not a popup of its bar.
+        else if (!popup || popup.contains(frame)) inside = false
+        setEditing(inside)
       })
     }
     follow()
