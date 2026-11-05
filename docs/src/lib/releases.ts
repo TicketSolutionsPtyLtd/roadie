@@ -65,8 +65,10 @@ export type PackageVersion = {
 }
 
 export type Release = {
-  /** Unique: the release's anchor on the changelog and its own page's slug. */
+  /** Unique: the release's anchor on the changelog and its own page's slug, its UTC date when it has one. */
   id: string
+  /** The package-named slug, such as `components-2-15-0`, that old links still use. */
+  legacyId?: string
   /** `YYYY-MM-DD` in UTC, or null when the checkout has no history to date it. */
   date: string | null
   /** The versioning commit's Unix time, or null without history. */
@@ -289,12 +291,26 @@ const PACKAGE_ORDER = new Map<string, number>(
 
 const orderOf = (name: string) => PACKAGE_ORDER.get(name) ?? Infinity
 
-/** A release's slug, from the first package it versions, such as `components-2-15-0`. */
+/** A release's slug from its first package, such as `components-2-15-0`, for a release with no date and for old links. */
 export function releaseSlug(packages: { name: string; version: string }[]) {
   const [lead] = [...packages].sort((a, b) => orderOf(a.name) - orderOf(b.name))
   if (!lead) return 'release'
   const dir = packageOf(lead.name)?.dir ?? lead.name.replace(/\W+/g, '-')
   return `${dir}-${lead.version.replace(/[^\w]+/g, '-')}`
+}
+
+// Numbered oldest first within a day, so a later release never renames an earlier one.
+function datedSlugs(newestFirst: { date: string | null }[]) {
+  const seen = new Map<string, number>()
+  const ids: (string | undefined)[] = []
+  for (let at = newestFirst.length - 1; at >= 0; at--) {
+    const { date } = newestFirst[at]!
+    if (date === null) continue
+    const n = (seen.get(date) ?? 0) + 1
+    seen.set(date, n)
+    ids[at] = n === 1 ? date : `${date}-${n}`
+  }
+  return ids
 }
 
 /**
@@ -343,21 +359,24 @@ export function groupReleases(
     })
   }
   const slugs = new Set<string>()
-  return [...groups.values()]
-    .sort((a, b) => b.time - a.time)
-    .map(({ date, time, packages, entries }) => {
-      packages.sort((a, b) => orderOf(a.name) - orderOf(b.name))
-      let id = releaseSlug(packages)
-      for (let n = 2; slugs.has(id); n++) id = `${releaseSlug(packages)}-${n}`
-      slugs.add(id)
-      return {
-        id,
-        date,
-        time: date === null ? null : time,
-        packages,
-        changes: mergeEntries(entries).map((entry) => toChange(entry, index))
-      }
-    })
+  const newestFirst = [...groups.values()].sort((a, b) => b.time - a.time)
+  const datedIds = datedSlugs(newestFirst)
+  return newestFirst.map(({ date, time, packages, entries }, at) => {
+    packages.sort((a, b) => orderOf(a.name) - orderOf(b.name))
+    let packageId = releaseSlug(packages)
+    for (let n = 2; slugs.has(packageId); n++)
+      packageId = `${releaseSlug(packages)}-${n}`
+    slugs.add(packageId)
+    const id = datedIds[at] ?? packageId
+    return {
+      id,
+      ...(id !== packageId && { legacyId: packageId }),
+      date,
+      time: date === null ? null : time,
+      packages,
+      changes: mergeEntries(entries).map((entry) => toChange(entry, index))
+    }
+  })
 }
 
 /** What the pending changesets will release, limited to the packages the changelog follows. */
@@ -702,6 +721,8 @@ export type Headline = { title: string; summary: string }
 export type ReleaseView = {
   /** The release's anchor on the changelog and the last segment of its own page. */
   slug: string
+  /** The package-named slug old links use, which redirects here. */
+  legacySlug?: string
   /** Its own page. */
   href: string
   /** `YYYY-MM-DD` in UTC, or null when pending or undated. */
@@ -1159,6 +1180,7 @@ const headline = (cards: ReleaseCard[], items: ReleaseItem[]): Headline => ({
 export function toReleaseView(
   release: {
     slug: string
+    legacySlug?: string
     date: string | null
     pending: boolean
     versions: ReleaseVersion[]
@@ -1206,6 +1228,7 @@ export function toReleaseView(
     )
   return {
     slug: release.slug,
+    ...(release.legacySlug && { legacySlug: release.legacySlug }),
     href: `${CHANGELOG_ROUTE}/${release.slug}`,
     date: release.date,
     pending: release.pending,
@@ -1494,6 +1517,7 @@ export function views(
       toReleaseView(
         {
           slug: release.id,
+          legacySlug: release.legacyId,
           date: release.date,
           pending: false,
           versions: release.packages.flatMap(
@@ -1514,6 +1538,16 @@ export function views(
         `${file} names no released version. Name it after a version in the release, such as components-2.15.0.md.`
       )
   return result
+}
+
+/** Each release page, plus each old slug with the page it now redirects to. */
+export function releaseRoutes(
+  releases: ReleaseView[]
+): { slug: string; movedTo?: string }[] {
+  return releases.flatMap(({ slug, legacySlug, href }) => [
+    { slug },
+    ...(legacySlug ? [{ slug: legacySlug, movedTo: href }] : [])
+  ])
 }
 
 let releaseViews: ReleaseView[] | undefined

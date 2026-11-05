@@ -27,6 +27,7 @@ import {
   parseReleaseNote,
   pendingChanges,
   releaseHistoryMarkdown,
+  releaseRoutes,
   releaseSummary,
   releaseTitle,
   statusSentence,
@@ -252,7 +253,8 @@ describe('groupReleases', () => {
       ],
       index
     )
-    expect(latest?.id).toBe('components-2-15-0')
+    expect(latest?.id).toBe('2026-09-28')
+    expect(latest?.legacyId).toBe('components-2-15-0')
     expect(latest?.date).toBe('2026-09-28')
     expect(
       latest?.packages.map(({ label, version }) => `${label} ${version}`)
@@ -347,11 +349,16 @@ describe('groupReleases', () => {
       index
     )
     expect(
-      releases.map(({ id, date, packages }) => [id, date, packages.length])
+      releases.map(({ id, legacyId, date, packages }) => [
+        id,
+        legacyId,
+        date,
+        packages.length
+      ])
     ).toEqual([
-      ['components-2-15-0', null, 1],
-      ['core-2-10-0', null, 1],
-      ['components-2-14-0', null, 1]
+      ['components-2-15-0', undefined, null, 1],
+      ['core-2-10-0', undefined, null, 1],
+      ['components-2-14-0', undefined, null, 1]
     ])
   })
 })
@@ -528,7 +535,7 @@ describe('releaseHistoryMarkdown', () => {
         '## Button',
         'Released day 2026-09-24. [Components 2.14.0](https://github.com/TicketSolutionsPtyLtd/roadie/blob/main/packages/components/CHANGELOG.md#2140)',
         '1 breaking change.',
-        '[This release on its own page](https://docs.test/overview/changelog/components-2-14-0.md)',
+        '[This release on its own page](https://docs.test/overview/changelog/2026-09-24.md)',
         '### Highlights',
         '- **Button** (breaking): Remove `LinkButton`. See [Button](https://docs.test/components/button.md).',
         '### Removed',
@@ -539,7 +546,7 @@ describe('releaseHistoryMarkdown', () => {
 })
 
 describe('groupReleases on one day', () => {
-  it('keeps versions that separate commits added on one day as separate releases', () => {
+  it('keeps versions that separate commits added on one day as separate releases, numbering the later ones', () => {
     const versions = parseChangelog(
       '## 3.1.0\n\n### Minor Changes\n\n- aaa1111: Add `Avatar`.\n\n## 3.0.0\n\n### Major Changes\n\n- bbb2222: Remove `LinkButton`.\n'
     )
@@ -557,14 +564,15 @@ describe('groupReleases on one day', () => {
       index
     )
     expect(
-      releases.map(({ id, date, changes }) => [
+      releases.map(({ id, legacyId, date, changes }) => [
         id,
+        legacyId,
         date,
         changes.map(({ kind }) => kind)
       ])
     ).toEqual([
-      ['widgets-3-1-0', '2026-06-18', ['new']],
-      ['widgets-3-0-0', '2026-06-18', ['removed']]
+      ['2026-06-18-2', 'widgets-3-1-0', '2026-06-18', ['new']],
+      ['2026-06-18', 'widgets-3-0-0', '2026-06-18', ['removed']]
     ])
   })
 })
@@ -666,13 +674,13 @@ describe('pageRelease', () => {
         label: 'Components',
         version: '2.13.0',
         date: '2026-09-22',
-        id: 'components-2-13-0'
+        id: '2026-09-22'
       },
       updated: {
         label: 'Components',
         version: '2.15.0',
         date: '2026-09-28',
-        id: 'components-2-15-0'
+        id: '2026-09-28'
       },
       upcoming: false
     })
@@ -1307,6 +1315,26 @@ describe('toReleaseView', () => {
       core: { title: 'Fixes', summary: '1 fix.' }
     })
     expect(view.href).toBe('/overview/changelog/components-2-15-0')
+  })
+
+  it("routes a release's old package-named slug to its dated page", () => {
+    const view = toReleaseView(
+      {
+        slug: '2026-09-28',
+        legacySlug: 'components-2-15-0',
+        date: '2026-09-28',
+        pending: false,
+        versions: [
+          { package: 'components', label: 'Components', version: '2.15.0' }
+        ],
+        changes: [change('Add `DateField`, a typed date field.')]
+      },
+      { index: pages, pageInfo: () => undefined }
+    )
+    expect(releaseRoutes([view])).toEqual([
+      { slug: '2026-09-28' },
+      { slug: 'components-2-15-0', movedTo: '/overview/changelog/2026-09-28' }
+    ])
   })
 })
 
