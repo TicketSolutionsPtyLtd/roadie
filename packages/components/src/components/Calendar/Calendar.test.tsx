@@ -269,6 +269,18 @@ describe('Calendar', () => {
       expect(day('2027-03-10')).toHaveAttribute('data-range-start')
     })
 
+    it('says a second refusal again', async () => {
+      render(<Calendar today={TODAY} mode='range' min={3} />)
+      await userEvent.click(day('2027-03-10'))
+      await userEvent.click(day('2027-03-11'))
+      const first = screen.getByRole('status').textContent
+      await userEvent.click(day('2027-03-11'))
+      expect(screen.getByRole('status').textContent).not.toBe(first)
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Ranges must be at least 3 days'
+      )
+    })
+
     it('lets Escape drop a started range', async () => {
       const onSelect = vi.fn()
       render(<Calendar today={TODAY} mode='range' onSelect={onSelect} />)
@@ -635,6 +647,23 @@ describe('Calendar', () => {
     await waitFor(() => expect(day('2027-04-01')).toHaveFocus())
   })
 
+  it('reads a month prop given without a day', () => {
+    render(<Calendar today={TODAY} month='2027-03' />)
+    expect(day('2027-03-14')).toBeInTheDocument()
+  })
+
+  it('reads start and end months given without a day', () => {
+    render(
+      <Calendar
+        today={TODAY}
+        startMonth='2027-01'
+        endMonth='2027-02'
+        numberOfMonths={3}
+      />
+    )
+    expect(screen.getAllByRole('grid')).toHaveLength(2)
+  })
+
   describe('announcements follow what the calendar shows', () => {
     it('stays quiet when the mode changes', () => {
       const { rerender } = render(
@@ -670,6 +699,30 @@ describe('Calendar', () => {
       expect(live()).toHaveTextContent('3 dates selected')
       rerender(<Calendar today={TODAY} mode='multiple' selected={[]} />)
       expect(live()).toHaveTextContent('Selection cleared')
+    })
+
+    it('changes the live text when a parent repeats an announcement', () => {
+      const { rerender } = render(
+        <Calendar today={TODAY} mode='multiple' selected={[]} />
+      )
+      rerender(
+        <Calendar
+          today={TODAY}
+          mode='multiple'
+          selected={['2027-03-01', '2027-03-02']}
+        />
+      )
+      const first = live().textContent
+      expect(first).toBe('2 dates selected')
+      rerender(
+        <Calendar
+          today={TODAY}
+          mode='multiple'
+          selected={['2027-03-03', '2027-03-04']}
+        />
+      )
+      expect(live().textContent).not.toBe(first)
+      expect(live()).toHaveTextContent('2 dates selected')
     })
 
     it('stays quiet when a controlled parent keeps its value', async () => {

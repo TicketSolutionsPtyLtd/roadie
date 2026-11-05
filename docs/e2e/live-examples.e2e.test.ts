@@ -1,6 +1,9 @@
+import { readFile, readdir } from 'fs/promises'
+import { join } from 'path'
 import { type Browser, type Page, chromium, firefox, webkit } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { settled } from './routerReady'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 let browser: Browser
@@ -15,19 +18,41 @@ afterAll(async () => {
   await browser?.close()
 })
 
-async function open(path: string, width: number) {
+async function open(
+  path: string,
+  width: number,
+  prepare?: (page: Page) => Promise<unknown>
+) {
   const context = await browser.newContext({
     viewport: { width, height: 844 }
   })
   await serveExport(context)
   const page = await context.newPage()
+  // Where each example sat as it mounted. Read later, a rendered example's
+  // top includes every block above it that grew when it rendered.
+  await page.addInitScript(() => {
+    const tops: number[] = []
+    Object.assign(window, { mountedTops: tops })
+    new MutationObserver((records) => {
+      for (const record of records)
+        for (const node of record.addedNodes) {
+          if (!(node instanceof Element)) continue
+          const rendered = node.matches('[data-live-example=rendered]')
+            ? [node]
+            : node.querySelectorAll('[data-live-example=rendered]')
+          for (const example of rendered)
+            tops.push(example.getBoundingClientRect().top)
+        }
+    }).observe(document, { childList: true, subtree: true })
+  })
+  await prepare?.(page)
   const errors: string[] = []
   page.on('console', (message) => {
     if (message.type() === 'error') errors.push(message.text())
   })
   page.on('pageerror', (error) => errors.push(String(error)))
   await page.goto(`${ORIGIN}${BASE_PATH}${path}`)
-  await page.waitForLoadState('networkidle')
+  await settled(page)
   return { page, errors }
 }
 
@@ -41,9 +66,7 @@ const examples = (page: Page) =>
       pending: nodes.filter((node) =>
         node.matches('[data-live-example=pending]')
       ).length,
-      renderedTops: nodes
-        .filter((node) => node.matches('[data-live-example=rendered]'))
-        .map((node) => node.getBoundingClientRect().top),
+      mountedTops: (window as unknown as { mountedTops: number[] }).mountedTops,
       inputs: document.querySelectorAll('[data-slot=number-field-input]').length
     }
   })
@@ -111,6 +134,19 @@ const landedOffset = async (page: Page, id: string) =>
     ? Infinity
     : Math.abs(await headingOffset(page, id))
 
+/** The built chunk that holds LiveRunner, found by a string only it renders. */
+async function liveRunnerChunk() {
+  const dir = join(import.meta.dirname, '../out/_next/static/chunks')
+  for (const name of await readdir(dir)) {
+    if (!name.endsWith('.js')) continue
+    if (
+      (await readFile(join(dir, name), 'utf8')).includes('Full-width example')
+    )
+      return name
+  }
+  throw new Error('No chunk holds LiveRunner')
+}
+
 const sideways = (page: Page) =>
   page.evaluate(
     () =>
@@ -123,21 +159,50 @@ describe('live examples', () => {
     const { page, errors } = await open('/components/number-field/', 390)
     const onLoad = await examples(page)
 
-    expect(onLoad.pending).toBeGreaterThan(8)
+    // Counts would tie this to how many examples the page has and how tall
+    // they are; the reach is what matters, so check positions, not totals.
+    expect(onLoad.pending).toBeGreaterThan(0)
     // A screen and a half ahead of an 844px viewport (the observer's 150%
-    // root margin), plus the example straddling it.
-    for (const top of onLoad.renderedTops)
-      expect(top).toBeLessThan(844 * 2.5 + 50)
+    // root margin), plus a quarter screen: an example queued in reach can be
+    // pushed past it by the ones above growing as they render, and the
+    // observer reports it leaving only after its turn has come.
+    expect(onLoad.mountedTops).toHaveLength(onLoad.rendered)
+    for (const top of onLoad.mountedTops) expect(top).toBeLessThan(844 * 2.75)
 
     await scrollThrough(page)
     const afterScroll = await examples(page)
-    // Examples scrolled past before their turn wait until they're back in reach.
-    expect(afterScroll.rendered).toBeGreaterThan(onLoad.rendered + 8)
+    // scrollThrough waits on every screen, so each example came into view.
+    expect(afterScroll).toMatchObject({
+      pending: 0,
+      rendered: onLoad.rendered + onLoad.pending
+    })
     expect(afterScroll.inputs).toBeGreaterThan(onLoad.inputs)
     expect(await sideways(page)).toBe(false)
     expect(errors).toEqual([])
     await page.context().close()
   }, 120_000)
+
+  it('show an error state when the runner fails to load, then load on Try again', async () => {
+    const chunk = await liveRunnerChunk()
+    let failing = true
+    const { page } = await open('/components/number-field/', 1280, (page) =>
+      page.route(`**/${chunk}`, (route) =>
+        failing ? route.abort() : route.fallback()
+      )
+    )
+    const failed = page.getByText("We couldn't load this example")
+
+    await failed.first().waitFor()
+    expect(await examples(page)).toMatchObject({ rendered: 0 })
+    expect(
+      await page.getByRole('heading', { name: 'Accessibility' }).count()
+    ).toBe(1)
+
+    failing = false
+    await page.getByRole('button', { name: 'Try again' }).first().click()
+    await page.locator('[data-live-example=rendered]').first().waitFor()
+    await page.context().close()
+  }, 60_000)
 
   it('let On this page land on a heading past every pending example', async () => {
     const { page, errors } = await open('/components/number-field/', 1280)
@@ -160,7 +225,7 @@ describe('live examples', () => {
     await page.goto(
       `${ORIGIN}${BASE_PATH}/components/number-field/#accessibility`
     )
-    await page.waitForLoadState('networkidle')
+    await settled(page)
 
     await expect
       .poll(() => landedOffset(page, 'accessibility'), { timeout: 10_000 })
@@ -218,9 +283,13 @@ describe('live examples', () => {
       )
 
       expect(await examples(page)).toMatchObject({ rendered: 1, pending: 0 })
-      expect(await page.locator('[data-slot=number-field-input]').count()).toBe(
-        1
+      expect(await page.title()).toBe(
+        'Default example, Number field | Roadie Design System'
       )
+      // The example reports rendered before NumberField's input mounts.
+      await expect
+        .poll(() => page.locator('[data-slot=number-field-input]').count())
+        .toBe(1)
       expect(await page.locator('[data-slot=navigator]').count()).toBe(0)
       expect(
         await page
@@ -247,6 +316,118 @@ describe('live examples', () => {
     expect(errors).toEqual([])
     await page.context().close()
   }, 60_000)
+
+  it('preview an example at phone width, where viewport breakpoints respond', async () => {
+    const { page, errors } = await open('/components/navigator/#default', 1280)
+    await page.locator('[data-live-example=rendered]').first().waitFor()
+
+    await page.getByRole('button', { name: 'Phone' }).first().click()
+    const frame = page.frameLocator('iframe[title="Example at phone width"]')
+    await frame.locator('[data-slot=navigator-panes]').waitFor()
+
+    expect(
+      await frame
+        .locator('body')
+        .evaluate(() => [
+          window.innerWidth,
+          window.matchMedia('(min-width: 48rem)').matches
+        ])
+    ).toEqual([375, false])
+    expect(errors).toEqual([])
+    await page.context().close()
+  }, 60_000)
+
+  it('shrink a tablet preview to fit the column', async () => {
+    const { page, errors } = await open('/components/badge/', 1280)
+    await page.locator('[data-live-example=rendered]').first().waitFor()
+
+    await page.getByRole('button', { name: 'Tablet' }).first().click()
+    const iframe = page.locator('iframe[title="Example at tablet width"]')
+    await page
+      .frameLocator('iframe[title="Example at tablet width"]')
+      .getByText('Badge')
+      .first()
+      .waitFor()
+
+    const { frame, column, inner } = await iframe.evaluate(
+      (element: HTMLIFrameElement) => ({
+        frame: element.getBoundingClientRect().width,
+        column: element.parentElement!.getBoundingClientRect().width,
+        inner: element.contentWindow!.innerWidth
+      })
+    )
+    expect(inner).toBe(768)
+    expect(frame).toBeLessThanOrEqual(column + 1)
+    expect(await sideways(page)).toBe(false)
+    expect(errors).toEqual([])
+    await page.context().close()
+  }, 60_000)
+
+  it('start on Phone on a phone, and show Desktop at desktop width, shrunk to fit', async () => {
+    const { page, errors } = await open('/components/badge/', 390)
+    await page.locator('[data-live-example=rendered]').first().waitFor()
+    const pressed = () =>
+      page
+        .getByRole('group', { name: 'Preview width' })
+        .first()
+        .locator('[aria-pressed=true]')
+        .getAttribute('aria-label')
+    expect(await pressed()).toBe('Phone')
+
+    // Rotating a phone to tablet width moves the switch with it.
+    await page.setViewportSize({ width: 800, height: 844 })
+    await expect.poll(pressed).toBe('Tablet')
+    await page.setViewportSize({ width: 390, height: 844 })
+    await expect.poll(pressed).toBe('Phone')
+
+    await page.getByRole('button', { name: 'Desktop' }).first().click()
+    const iframe = page.locator('iframe[title="Example at desktop width"]')
+    await page
+      .frameLocator('iframe[title="Example at desktop width"]')
+      .getByText('Badge')
+      .first()
+      .waitFor()
+
+    const { frame, column, inner } = await iframe.evaluate(
+      (element: HTMLIFrameElement) => ({
+        frame: element.getBoundingClientRect().width,
+        column: element.parentElement!.getBoundingClientRect().width,
+        inner: element.contentWindow!.innerWidth
+      })
+    )
+    expect(inner).toBe(1280)
+    expect(frame).toBeLessThanOrEqual(column + 1)
+    expect(await sideways(page)).toBe(false)
+    expect(errors).toEqual([])
+    await page.context().close()
+  }, 60_000)
+
+  it('give every example a page in the export', async () => {
+    const out = join(import.meta.dirname, '../out')
+    const codeDir = join(out, 'example-code')
+    const files = (await readdir(codeDir, { recursive: true })).filter((file) =>
+      file.endsWith('.json')
+    )
+    const hrefs = (
+      await Promise.all(
+        files.map(async (file) =>
+          (
+            JSON.parse(await readFile(join(codeDir, file), 'utf8')) as {
+              href: string
+            }[]
+          ).map(({ href }) => href)
+        )
+      )
+    ).flat()
+    const missing: string[] = []
+    for (const href of hrefs)
+      await readFile(join(out, href, 'index.html')).catch(() =>
+        missing.push(href)
+      )
+
+    expect(hrefs.length).toBeGreaterThan(400)
+    expect(missing).toEqual([])
+  })
 
   it('link each example to its own page', async () => {
     const { page } = await open('/components/badge/', 1280)

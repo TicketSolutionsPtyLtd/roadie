@@ -6,7 +6,7 @@ import NumberFlow from '@number-flow/react'
 import { TicketIcon } from '@phosphor-icons/react'
 import { AnimatePresence, m } from 'motion/react'
 
-import { Badge } from '@oztix/roadie-components'
+import { Badge } from '@oztix/roadie-components/badge'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { URGENCY_LONG_FORMAT_S, urgencyLevel } from '../../cart'

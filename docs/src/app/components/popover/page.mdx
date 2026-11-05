@@ -62,7 +62,7 @@ function IntentExamples() {
     <div className='flex flex-wrap items-start gap-3'>
       {/* Info for inline help next to a field */}
       <Popover>
-        <Popover.Trigger render={<IconButton aria-label='About API keys' emphasis='subtle' size='sm'><Info weight='bold' /></IconButton>} />
+        <Popover.Trigger render={<IconButton aria-label='About API keys' emphasis='subtle' size='sm'><InfoIcon weight='bold' /></IconButton>} />
         <Popover.Content intent='info' side='right'>
           <Popover.Arrow />
           <Popover.Body>
@@ -73,7 +73,7 @@ function IntentExamples() {
 
       {/* Success copies a link, confirms, then auto-dismisses after 2s */}
       <Popover open={copied} onOpenChange={copyLink}>
-        <Popover.Trigger render={<IconButton aria-label='Copy link'>{copied ? <Check weight='bold' /> : <LinkSimple weight='bold' />}</IconButton>} />
+        <Popover.Trigger render={<IconButton aria-label='Copy link'>{copied ? <CheckIcon weight='bold' /> : <LinkSimpleIcon weight='bold' />}</IconButton>} />
         <Popover.Content intent='success' side='top'>
           <Popover.Arrow />
           <Popover.Body>
@@ -100,7 +100,7 @@ function IntentExamples() {
 
       {/* Danger for a destructive confirm on an icon button */}
       <Popover>
-        <Popover.Trigger render={<IconButton aria-label='Delete file' intent='danger'><Trash weight='bold' /></IconButton>} />
+        <Popover.Trigger render={<IconButton aria-label='Delete file' intent='danger'><TrashIcon weight='bold' /></IconButton>} />
         <Popover.Content intent='danger'>
           <Popover.Arrow />
           <Popover.Header>
@@ -156,7 +156,7 @@ A popover opens below its trigger by default and re-flips to stay in view. Set t
   </Popover.Content>
 </Popover>
 <Popover>
-  <Popover.Trigger render={<IconButton aria-label='Help' emphasis='subtle' size='sm'><Info weight='bold' /></IconButton>} />
+  <Popover.Trigger render={<IconButton aria-label='Help' emphasis='subtle' size='sm'><InfoIcon weight='bold' /></IconButton>} />
   <Popover.Content side='right'>
     <Popover.Arrow />
     <Popover.Body>

@@ -24,7 +24,7 @@ export interface OztixImageOptions {
 
 /**
  * Oztix CDN hosts that front the ImageSharp.Web resize/transcode proxy. Only
- * these get the `?width=&format=` rewrite — third-party (signed S3, Sanity,
+ * these get the `?width=&format=` rewrite. Third-party (signed S3, Sanity,
  * external thumbnails) URLs would break or ignore the params, so they pass
  * through untouched.
  */

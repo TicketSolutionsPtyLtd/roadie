@@ -20,6 +20,18 @@ describe('formatCurrency', () => {
     expect(out).toContain('12.50')
     expect(out).toContain('$') // en-NZ uses $ but the currency is NZD
   })
+  it.each([
+    ['en-US', 'AUD', 1200, '$1,200.00'],
+    ['en-AU', 'aud', 1200, '$1,200.00'],
+    ['de-DE', 'EUR', 1200, '1.200,00 €'],
+    ['en-AU', 'JPY', 1200, 'JPY 1,200'],
+    ['en-AU', 'AUD', -5, '-$5.00'],
+    ['en-AU', 'AUD', 0, '$0.00']
+  ])('reads %s %s %d as %s', (locale, currency, amount, shown) => {
+    expect(
+      formatCurrency(amount, { locale, currency }).replace(/\s/g, ' ')
+    ).toBe(shown)
+  })
 })
 
 describe('currencyPrefix', () => {
@@ -32,7 +44,7 @@ describe('currencyPrefix', () => {
 })
 
 describe('formatTime', () => {
-  // Local time — construct via the local-time Date ctor so the assertion is
+  // Local time: construct via the local-time Date ctor so the assertion is
   // TZ-independent (matches how the skins parse the wall-clock hour).
   it.each<[number, number, string]>([
     [19, 0, '7pm'],
@@ -93,7 +105,7 @@ describe('formatDayHeader', () => {
   // The whole reason formatDayHeader parses with the local-date ctor (not
   // `new Date('YYYY-MM-DD')`, which is UTC midnight) is to avoid a day-shift in
   // non-UTC zones. Run it under a behind-UTC zone to prove the key's day is
-  // preserved — a UTC-parse impl would render the 14th here.
+  // preserved (a UTC-parse impl would render the 14th here).
   describe('under a non-UTC timezone (America/New_York)', () => {
     // stubEnv deletes an unset TZ on restore; assigning `undefined` writes the
     // string 'undefined', which Windows can't resolve as a zone.

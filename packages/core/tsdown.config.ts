@@ -1,5 +1,7 @@
 import { defineConfig } from 'tsdown'
 
+import { skipUnchangedWrites } from '../../scripts/tsdown-watch.mjs'
+
 export default defineConfig(({ watch }) => ({
   entry: {
     index: './src/index.ts',
@@ -8,6 +10,7 @@ export default defineConfig(({ watch }) => ({
     'utils/index': './src/utils/index.ts',
     'image/index': './src/image/index.ts',
     'datetime/index': './src/datetime/index.ts',
+    'number/index': './src/number/index.ts',
     'dataviz/index': './src/dataviz/index.ts',
     'navigator/index': './src/navigator/index.ts',
     'dashboard/index': './src/dashboard/index.ts',
@@ -19,6 +22,7 @@ export default defineConfig(({ watch }) => ({
   },
   format: ['esm'],
   minify: !watch,
+  // Components' manifest reads core's types, so watch keeps them.
   dts: {
     compilerOptions: {
       composite: false,
@@ -26,5 +30,6 @@ export default defineConfig(({ watch }) => ({
     }
   },
   clean: !watch,
+  plugins: watch ? [skipUnchangedWrites()] : [],
   outExtensions: () => ({ js: '.js' })
 }))

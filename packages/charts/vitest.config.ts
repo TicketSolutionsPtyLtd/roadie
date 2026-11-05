@@ -9,6 +9,12 @@ import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
 import {
+  frameCommands,
+  perfInstances,
+  perfLaunchOptions
+} from '@oztix/roadie-frames/config'
+
+import {
   browserInstances,
   browserRetry,
   browserRunOptions,
@@ -17,6 +23,7 @@ import {
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
 const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
+const PERF_TESTS = 'src/**/*.perf.browser.test.{ts,tsx}'
 
 const forcedColors: BrowserCommand<[active: boolean]> = ({ page }, active) =>
   page.emulateMedia({ forcedColors: active ? 'active' : 'none' })
@@ -107,6 +114,25 @@ function importedPackages() {
   return [...packages]
 }
 
+const commands = {
+  forcedColors,
+  parkPointer,
+  pointer,
+  printMedia,
+  reducedMotion
+}
+
+const optimizeDeps = {
+  include: [
+    ...importedPackages(),
+    // Imported by the JSX transforms and test libraries, not the source.
+    'react/compiler-runtime',
+    'react/jsx-dev-runtime',
+    'react/jsx-runtime',
+    'react-dom'
+  ]
+}
+
 export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset] })],
   resolve: {
@@ -133,33 +159,38 @@ export default defineConfig({
       {
         extends: true,
         plugins: [tailwindcss()],
-        optimizeDeps: {
-          include: [
-            ...importedPackages(),
-            // Imported by the JSX transforms and test libraries, not the source.
-            'react/compiler-runtime',
-            'react/jsx-dev-runtime',
-            'react/jsx-runtime',
-            'react-dom'
-          ]
-        },
+        optimizeDeps,
         test: {
           name: 'browser',
           include: quarantineInclude(ROOT, [BROWSER_TESTS]),
+          exclude: [...configDefaults.exclude, PERF_TESTS],
           retry: browserRetry,
           browser: {
             enabled: true,
             headless: true,
             provider: playwright(),
             viewport: { width: 1920, height: 1080 },
-            commands: {
-              forcedColors,
-              parkPointer,
-              pointer,
-              printMedia,
-              reducedMotion
-            },
+            commands,
             instances: browserInstances
+          }
+        }
+      },
+      {
+        extends: true,
+        plugins: [tailwindcss()],
+        optimizeDeps: { ...optimizeDeps, force: true },
+        test: {
+          name: 'perf',
+          include: [PERF_TESTS],
+          // Files measured side by side would slow each other down.
+          fileParallelism: false,
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright({ launchOptions: perfLaunchOptions() }),
+            viewport: { width: 1440, height: 900 },
+            commands: { ...commands, ...frameCommands },
+            instances: perfInstances()
           }
         }
       }

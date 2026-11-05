@@ -4,6 +4,7 @@ import { type Browser, type Page, chromium, firefox, webkit } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { compiledTheme } from './compiledTheme'
+import { settled } from './routerReady'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 let browser: Browser
@@ -27,7 +28,7 @@ async function open(width: number) {
   await serveExport(context)
   const page = await context.newPage()
   await page.goto(`${ORIGIN}${BASE_PATH}/foundations/typography/`)
-  await page.waitForLoadState('networkidle')
+  await settled(page)
   return page
 }
 

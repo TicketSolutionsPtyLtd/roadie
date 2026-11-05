@@ -4,14 +4,12 @@ import {
   NavigatorPrimary,
   type NavigatorPrimaryProps
 } from './NavigatorPrimary'
+import { mapChildrenInPlace } from './childrenInPlace'
 
-// The rest stays as given: Children.toArray's re-keyed copies trip React's key
-// warning for a child that arrived as a promise.
 export function splitPrimary(children: ReactNode) {
   let primary: ReactElement<NavigatorPrimaryProps> | undefined
   let hasRest = false
-  const walk = (node: ReactNode): ReactNode => {
-    if (isIterable(node)) return Array.from(node, walk)
+  const rest = mapChildrenInPlace(children, (node) => {
     if (
       primary === undefined &&
       isValidElement<NavigatorPrimaryProps>(node) &&
@@ -23,10 +21,6 @@ export function splitPrimary(children: ReactNode) {
     if (node === null || typeof node !== 'object') return null
     hasRest = true
     return node
-  }
-  const rest = walk(children)
+  })
   return { primary, rest: hasRest ? rest : undefined }
 }
-
-const isIterable = (node: ReactNode): node is Iterable<ReactNode> =>
-  typeof node === 'object' && node !== null && Symbol.iterator in node
