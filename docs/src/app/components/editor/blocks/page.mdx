@@ -36,7 +36,6 @@ format it. Pass `emphasis` or `toolbar` to change either. An
 <Editor
   aria-label='Page'
   preset='blocks'
-  className='ps-12'
   defaultValue={{
     version: 1,
     preset: 'blocks',
@@ -102,7 +101,6 @@ the block itself when it's an empty line.
 <Editor
   aria-label='Set times'
   preset='blocks'
-  className='ps-12'
   defaultValue={{
     version: 1,
     preset: 'blocks',
@@ -121,8 +119,7 @@ the block itself when it's an empty line.
 
 A framed editor makes room for the add button and grip at the start of its
 text. A `subtler` editor keeps its text in line with the page, so they hang
-outside it: give it room at the start, as these examples do with
-`className='ps-12'`.
+outside it: give it room at the start.
 
 The grip is a button named Block actions. It takes no Tab stop, since it
 shows only beside the caret's block; `Mod+/` opens its menu instead. The
@@ -247,8 +244,7 @@ function Page() {
     <>
       <Editor
         aria-label='Page'
-        className='ps-12'
-        extensions={[callToAction]}
+              extensions={[callToAction]}
         value={value}
         onValueChange={setValue}
       />
