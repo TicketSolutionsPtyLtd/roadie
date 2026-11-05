@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-core",
-  "version": "2.12.0",
+  "version": "2.13.0",
   "description": "Foundations of the Roadie Design System: CSS tokens and utilities, plus framework-agnostic logic for records, dates and times, the colour generator, and dashboards",
   "type": "module",
   "repository": {
