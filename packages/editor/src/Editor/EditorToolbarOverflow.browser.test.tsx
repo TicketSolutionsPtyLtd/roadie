@@ -6,6 +6,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -200,6 +201,105 @@ describe('Editor toolbar on a phone', () => {
     await userEvent.keyboard('oztix.com.au')
     expect(url).toHaveValue('oztix.com.au')
   })
+})
+
+describe('Editor toolbar on a touch screen', () => {
+  function onTouchScreen() {
+    const matchMedia = window.matchMedia.bind(window)
+    // Playwright can't emulate a touch screen's pointer.
+    vi.spyOn(window, 'matchMedia').mockImplementation((query) =>
+      matchMedia(
+        query
+          .replaceAll('(pointer: coarse)', 'all')
+          .replaceAll('(any-pointer: fine)', 'not all')
+      )
+    )
+    onTestFinished(() => {
+      vi.restoreAllMocks()
+    })
+  }
+
+  it('docks to the bottom of the screen, Blocks first, while the text has focus', async () => {
+    onTouchScreen()
+    await page.viewport(390, 700)
+    render(
+      <div>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={valueIn('email')}
+          toolbar='docked'
+        />
+        <button type='button'>Save</button>
+      </div>
+    )
+    const toolbar = await shownToolbar()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const at = () => toolbar.getBoundingClientRect()
+    const textTop = textbox.getBoundingClientRect().top
+    expect(at().bottom).toBeLessThan(textTop + 1)
+
+    await userEvent.click(within(textbox).getByText(TEXT))
+
+    const viewport = window.visualViewport!
+    await waitFor(() =>
+      expect(at().bottom).toBeCloseTo(viewport.offsetTop + viewport.height, 0)
+    )
+    expect(textbox.getBoundingClientRect().top).toBeCloseTo(textTop, 0)
+    expect(controls(toolbar)[0]).toBe('Blocks')
+    fitsItsBar(toolbar)
+
+    await moreMenu(toolbar)
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    expect(at().bottom).toBeCloseTo(viewport.offsetTop + viewport.height, 0)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(at().bottom).toBeLessThan(textTop + 1))
+  })
+
+  it('stays at the top with a mouse', async () => {
+    await page.viewport(390, 700)
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={valueIn('blocks')}
+        toolbar='docked'
+      />
+    )
+    const toolbar = await shownToolbar()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+
+    await userEvent.click(within(textbox).getByText(TEXT))
+
+    expect(toolbar.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      textbox.getBoundingClientRect().top + 1
+    )
+  })
+})
+
+describe('Editor toolbar More', () => {
+  it.each([360, 375, 390, 414, 430])(
+    'keeps the bar as it is while More opens, at %ipx',
+    async (width) => {
+      await page.viewport(width, 800)
+      render(
+        <Editor
+          aria-label={LABEL}
+          defaultValue={valueIn('blocks')}
+          toolbar='docked'
+        />
+      )
+      const toolbar = await shownToolbar()
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await userEvent.click(within(textbox).getByText(TEXT))
+      await waitFor(() => fitsItsBar(toolbar))
+      const before = controls(toolbar)
+
+      await moreMenu(toolbar)
+
+      expect(controls(toolbar)).toEqual(before)
+    }
+  )
 })
 
 describe('Editor toolbar in a narrow column', () => {

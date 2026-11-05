@@ -252,6 +252,41 @@ describe('Editor.BubbleMenu', () => {
     await waitFor(async () => expect(await menu()).toBeVisible())
   })
 
+  it('stays hidden at a caret mid-word', async () => {
+    render(<BubbleEditor />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const word = within(textbox).getByText('Gates open at 4pm')
+    await clickIntoEditor(word)
+    await userEvent.keyboard(`${LINE_END}{ArrowLeft}{ArrowLeft}`)
+
+    await noMenu()
+  })
+
+  it('keeps clear of the editor’s own fields above the text', async () => {
+    render(
+      <div style={{ paddingTop: 96 }}>
+        <Editor aria-label={LABEL} defaultValue={lineup} toolbar='floating'>
+          <input aria-label='Preview text' style={{ blockSize: 40 }} />
+          <Editor.Content />
+          <Editor.BubbleMenu />
+        </Editor>
+      </div>
+    )
+    await selectText('Ochre Kite Weekender')
+    const bubble = await menu()
+    const field = screen.getByRole('textbox', { name: 'Preview text' })
+
+    const line = screen.getByText('Ochre Kite Weekender')
+    await waitFor(() => {
+      const box = bubble.getBoundingClientRect()
+      const text = line.getBoundingClientRect()
+      const gap = Math.max(box.top - text.bottom, text.top - box.bottom)
+      expect(gap).toBeGreaterThanOrEqual(0)
+      expect(gap).toBeLessThan(24)
+      expect(overlaps(box, field.getBoundingClientRect())).toBe(false)
+    })
+  })
+
   describe('over text in columns', () => {
     const inColumns: EditorValue = {
       version: 1,
@@ -293,6 +328,26 @@ describe('Editor.BubbleMenu', () => {
           actions.getBoundingClientRect()
         )
       ).toBe(false)
+    })
+
+    it('leaves every columns action clickable at a caret in a column', async () => {
+      render(<BubbleEditor defaultValue={inColumns} />)
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await clickIntoEditor(within(textbox).getByText('Kazoo Hollow'))
+      const actions = await screen.findByRole('toolbar', {
+        name: 'Columns actions'
+      })
+
+      await waitFor(() => {
+        for (const button of within(actions).getAllByRole('button')) {
+          const { left, top, width, height } = button.getBoundingClientRect()
+          const hit = document.elementFromPoint(
+            left + width / 2,
+            top + height / 2
+          )
+          expect(button.contains(hit)).toBe(true)
+        }
+      })
     })
 
     it('stays on screen, clear of the columns actions, with the columns’ top scrolled off', async () => {

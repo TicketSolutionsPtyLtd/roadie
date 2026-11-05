@@ -42,6 +42,8 @@ const PLUGIN_KEY = 'editorBubbleMenu'
 
 /** Whether the selection is text the menu's marks can format. */
 function selectsText({ selection, doc, schema }: EditorState) {
+  // A caret's own text block still falls between its ends.
+  if (selection.empty) return false
   // A Mod-click selects the block, which has its own text.
   if (selection instanceof NodeSelection) return false
   if (selection instanceof CellSelection) return false
@@ -82,6 +84,35 @@ function between(top: number, bottom: number) {
 }
 
 /**
+ * The bottom of the editor's own fields above its text, such as an email's
+ * Preview text, which the menu keeps below.
+ */
+function chromeBottom(editor: TiptapEditor) {
+  const content = editor.view.dom.closest('[data-slot="editor-content"]')
+  let bottom = 0
+  for (
+    let sibling = content?.previousElementSibling;
+    sibling;
+    sibling = sibling.previousElementSibling
+  ) {
+    bottom = Math.max(bottom, sibling.getBoundingClientRect().bottom)
+  }
+  return bottom
+}
+
+/** The bounds clear of both the node actions and the editor's own fields. */
+function clearOfChrome(
+  editor: TiptapEditor,
+  selection: { top: number; bottom: number }
+) {
+  const { top, bottom, keepPlacement } = clearOfActions(editor, selection)
+  return {
+    ...between(Math.max(top, chromeBottom(editor) + OFFSET), bottom),
+    ...(keepPlacement && { fallbackStrategy: 'initialPlacement' as const })
+  }
+}
+
+/**
  * Table actions sit above their node, or below it when there's no room, and
  * a node's actions may sit above or below the selection, so the menu flips
  * only within the side of the selection away from them. The plugin offsets
@@ -91,22 +122,20 @@ function clearOfActions(
   editor: TiptapEditor,
   selection: { top: number; bottom: number }
 ) {
+  const page = { top: 0, bottom: window.innerHeight, keepPlacement: false }
   const actions = editor.view.dom.parentElement?.querySelector(
     '[data-slot="editor-table-toolbar"], [data-slot="editor-node-toolbar"]'
   )
-  if (!actions) return {}
+  if (!actions) return page
   const box = actions.getBoundingClientRect()
   if (box.bottom <= selection.top) {
-    return between(box.bottom + OFFSET, window.innerHeight)
+    return { ...page, top: box.bottom + OFFSET }
   }
   if (box.top >= selection.bottom) {
     // With no room either side, off the top of the page, not over them.
-    return {
-      ...between(0, box.top - OFFSET),
-      fallbackStrategy: 'initialPlacement' as const
-    }
+    return { top: 0, bottom: box.top - OFFSET, keepPlacement: true }
   }
-  return {}
+  return page
 }
 
 /** Whether a caret sits in text, where Alt+F10 can open the menu. */
@@ -240,7 +269,7 @@ function SelectionMenu({
         placement: 'top',
         offset: OFFSET,
         flip: ({ elements }) =>
-          clearOfActions(editor, elements.reference.getBoundingClientRect()),
+          clearOfChrome(editor, elements.reference.getBoundingClientRect()),
         // The plugin makes its element a tab stop; the toolbar inside is the one.
         onShow: () => {
           menuRef.current?.setAttribute('tabindex', '-1')
