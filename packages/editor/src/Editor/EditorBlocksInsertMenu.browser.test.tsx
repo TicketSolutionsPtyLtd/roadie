@@ -350,20 +350,24 @@ describe('Editor insert menu in the blocks preset', () => {
   it.each([
     ['/quote', 'blockquote'],
     ['/table', 'table']
-  ])('undoes %s back to what was typed', async (typed, type) => {
-    const onValueChange = renderBlocks()
-    await focusedTextbox()
+  ])(
+    'undoes %s in one step, back to the line before the /',
+    async (typed, type) => {
+      const onValueChange = renderBlocks()
+      await focusedTextbox()
 
-    await userEvent.keyboard(`${typed}{Enter}`)
-    await waitFor(() => expect(lastBlocks(onValueChange)[0]?.type).toBe(type))
-    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+      await userEvent.keyboard(`${typed}{Enter}`)
+      await waitFor(() => expect(lastBlocks(onValueChange)[0]?.type).toBe(type))
+      await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 
-    await waitFor(() =>
-      expect(lastBlocks(onValueChange)).toMatchObject([
-        { type: 'paragraph', content: [text(typed)] }
-      ])
-    )
-  })
+      await waitFor(() => {
+        const [line, ...rest] = lastBlocks(onValueChange)
+        expect(line).toMatchObject({ type: 'paragraph' })
+        expect(line!.content).toBeUndefined()
+        expect(rest).toEqual([])
+      })
+    }
+  )
 
   // A list item starts with a paragraph, so a block can't go before its
   // emptied first line.
