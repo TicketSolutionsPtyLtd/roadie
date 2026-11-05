@@ -12,9 +12,10 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi
 } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -95,18 +96,84 @@ const choose = (dialog: HTMLElement, name: string) =>
   userEvent.click(within(dialog).getByRole('button', { name }))
 
 describe('Editor button settings', () => {
-  it('opens with the button’s link and look, focused on the link', async () => {
+  it('opens with the button’s link and look, focused on its emphasis', async () => {
     renderEmail(email(button({ emphasis: 'subtle', align: 'center' })))
     const dialog = await openSettings()
 
+    await waitFor(() =>
+      expect(
+        within(dialog).getByRole('button', { name: 'Subtle' })
+      ).toHaveFocus()
+    )
     const link = within(dialog).getByRole('textbox', { name: 'Link' })
-    await waitFor(() => expect(link).toHaveFocus())
     expect(link).toHaveValue(TICKETS)
     const pressed = within(dialog)
       .getAllByRole('button', { pressed: true })
       .map((item) => item.textContent)
     expect(pressed).toEqual(['Subtle', 'Fit label', 'Centre'])
     expect(within(dialog).queryByRole('button', { name: 'Save' })).toBe(null)
+  })
+
+  it('focuses the link of a section’s button, which has none yet', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        toolbar='docked'
+        defaultValue={email({
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Doors 7pm' }]
+        })}
+      />
+    )
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+    const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+    await userEvent.click(within(bar).getByRole('button', { name: 'Blocks' }))
+    const drawer = await screen.findByRole('dialog', { name: 'Blocks' })
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Event' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    const dialog = await openSettings()
+
+    await waitFor(() =>
+      expect(
+        within(dialog).getByRole('textbox', { name: 'Link' })
+      ).toHaveFocus()
+    )
+  })
+
+  it('opens clear of the button', async () => {
+    renderEmail(email(button()))
+    const dialog = await openSettings()
+
+    await waitFor(() =>
+      expect(dialog.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        drawn().getBoundingClientRect().bottom
+      )
+    )
+  })
+
+  it('opens as a drawer from the bottom on a narrow screen, still putting the button back on Escape', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    const onValueChange = renderEmail(email(button()))
+    const dialog = await openSettings()
+
+    await waitFor(() => {
+      const box = dialog.getBoundingClientRect()
+      expect(box.left).toBeLessThanOrEqual(1)
+      expect(box.right).toBeGreaterThanOrEqual(389)
+      expect(box.bottom).toBeCloseTo(window.innerHeight, 0)
+    })
+    await choose(dialog, 'Normal')
+    await waitFor(() =>
+      expect(savedButton(onValueChange)).toEqual(button({ emphasis: 'normal' }))
+    )
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(savedButton(onValueChange)).toEqual(button()))
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Button settings' })).toBe(
+        null
+      )
+    )
   })
 
   it('applies each choice as it’s made, and draws it so', async () => {

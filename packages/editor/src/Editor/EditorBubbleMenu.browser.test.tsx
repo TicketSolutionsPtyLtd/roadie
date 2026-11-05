@@ -295,7 +295,7 @@ describe('Editor.BubbleMenu', () => {
       ).toBe(false)
     })
 
-    it('stays on screen with the columns actions scrolled off above it', async () => {
+    it('stays on screen, clear of the columns actions, with the columns’ top scrolled off', async () => {
       const filler = Array.from({ length: 12 }, (_, index) =>
         paragraph(`Set time ${index + 1}`)
       )
@@ -340,7 +340,12 @@ describe('Editor.BubbleMenu', () => {
           text.getBoundingClientRect().bottom
         )
       )
-      expect(actions.getBoundingClientRect().bottom).toBeLessThan(0)
+      expect(
+        overlaps(
+          bubble.getBoundingClientRect(),
+          actions.getBoundingClientRect()
+        )
+      ).toBe(false)
     })
 
     it('takes focus first on Alt+F10, ahead of the columns actions', async () => {

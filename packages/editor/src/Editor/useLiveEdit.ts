@@ -11,9 +11,8 @@ import {
 } from '@tiptap/pm/state'
 import type { Step } from '@tiptap/pm/transform'
 
-import type { PopoverProps } from '@oztix/roadie-components/popover'
-
-type OpenChange = NonNullable<PopoverProps['onOpenChange']>
+// A popover's or a drawer's, which both say why they close.
+type OpenChange = (open: boolean, details: { reason: string }) => void
 
 const OWN = 'liveEdit'
 

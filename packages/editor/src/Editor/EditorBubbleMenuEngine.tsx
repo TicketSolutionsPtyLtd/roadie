@@ -82,9 +82,9 @@ function between(top: number, bottom: number) {
 }
 
 /**
- * Table and columns actions sit above their node, or below it when there's no
- * room, so the menu flips only within the side of the selection away from
- * them. The plugin offsets the menu after it flips, so the bounds allow for
+ * Table actions sit above their node, or below it when there's no room, and
+ * a node's actions may sit above or below the selection, so the menu flips
+ * only within the side of the selection away from them. The plugin offsets the menu after it flips, so the bounds allow for
  * that.
  */
 function clearOfActions(

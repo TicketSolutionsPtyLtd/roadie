@@ -37,7 +37,7 @@ const HOLDING = new Set<EditorNodeType>(['button', 'columns'])
  * The node with its own toolbar: a selected image, embed or spacer, or the
  * button or columns holding the selection.
  */
-function selectedNode(
+export function selectedNode(
   state: EditorState
 ): { type: EditorNodeType; pos: number } | undefined {
   const { selection } = state
@@ -60,16 +60,11 @@ export const selectedNodeType = (state: EditorState) =>
 
 // Keeps the toolbar this far inside the node's media, clear of its edges.
 const INSET = 8
-// How far a toolbar beside its node sits from it.
+// How far a toolbar below its node sits from it.
 const GAP = 4
 
-// Toolbars that would cover the text they act on sit beside their node.
-const BESIDE: Partial<Record<EditorNodeType, 'above' | 'below'>> = {
-  button: 'below',
-  spacer: 'below',
-  variable: 'below',
-  columns: 'above'
-}
+// Toolbars that would cover the text they act on sit below their node.
+const BELOW = new Set<EditorNodeType>(['button', 'variable'])
 
 function selectedElement(editor: TiptapEditor) {
   const found = selectedNode(editor.state)
@@ -83,15 +78,27 @@ function selectedElement(editor: TiptapEditor) {
   }
 }
 
+/**
+ * Where the top of the view is for the toolbar: under the editor's docked
+ * bar while that's stuck over the node, as the node scrolls under it.
+ */
+function visibleTop(editor: TiptapEditor) {
+  const bar = editor.view.dom
+    .closest('[data-slot="editor"]')
+    ?.querySelector('[data-slot="editor-toolbar"]')
+  return Math.max(bar?.getBoundingClientRect().bottom ?? 0, 0)
+}
+
 const virtualLine = (edge: DOMRect) => ({
   getBoundingClientRect: () => edge,
   getClientRects: () => [edge]
 })
 
 /**
- * A line across the media's top, so the toolbar hangs inside it at the
- * top-end corner. Once the top scrolls off, the line follows the viewport's
- * top, stopping where the toolbar would leave the media. Beside a node, the
+ * A line across the node's top, so the toolbar hangs inside it at the
+ * top-end corner. Once the top scrolls off, or under the docked bar, the line
+ * follows that edge, stopping where the toolbar would leave the node. A
+ * spacer's toolbar sits across its middle, as it's short. Below a node, the
  * line is the toolbar's width from the node's start, so the toolbar's end
  * meets it there.
  */
@@ -100,18 +107,22 @@ function insideTopEdge(editor: TiptapEditor, menu: HTMLElement | null) {
   if (!selected) return null
   const box = selected.element.getBoundingClientRect()
   const height = menu?.offsetHeight ?? 0
-  const side = BESIDE[selected.type]
-  if (side) {
-    const above = box.top - GAP - height
-    const roomAbove = above >= editor.view.dom.getBoundingClientRect().top
-    const top = side === 'above' && roomAbove ? above : box.bottom + GAP
-    return virtualLine(new DOMRect(box.left, top, menu?.offsetWidth ?? 0, 0))
+  if (BELOW.has(selected.type)) {
+    return virtualLine(
+      new DOMRect(box.left, box.bottom + GAP, menu?.offsetWidth ?? 0, 0)
+    )
+  }
+  const edge = (top: number) =>
+    virtualLine(new DOMRect(box.left + INSET, top, box.width - 2 * INSET, 0))
+  if (selected.type === 'spacer') {
+    return edge(box.top + (box.height - height) / 2)
   }
   const lowest = box.bottom - height - INSET
-  const top = Math.max(Math.min(Math.max(box.top, 0) + INSET, lowest), box.top)
-  return virtualLine(
-    new DOMRect(box.left + INSET, top, box.width - 2 * INSET, 0)
+  const top = Math.max(
+    Math.min(Math.max(box.top, visibleTop(editor)) + INSET, lowest),
+    box.top
   )
+  return edge(top)
 }
 
 const PLUGIN_KEY = 'editorNodeToolbar'
@@ -154,8 +165,8 @@ type EditorNodeToolbarProps = {
 }
 
 /**
- * A selected node's actions: inside an image's or embed's top-end corner,
- * below a button or spacer, and above columns.
+ * A selected node's actions: inside the top-end corner of an image, an embed
+ * or columns, inside a spacer's end, and below a button or merge tag.
  */
 export function EditorNodeToolbar({
   editor,
@@ -197,7 +208,8 @@ export function EditorNodeToolbar({
       ref={menuRef}
       options={floating}
       data-slot='editor-node-toolbar'
-      className='z-sticky'
+      // Under the docked bar, as the node it's pinned to scrolls under it.
+      className='z-docked'
     >
       {type ? (
         <Toolbar
