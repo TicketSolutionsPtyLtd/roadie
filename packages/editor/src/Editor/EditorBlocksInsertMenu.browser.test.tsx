@@ -187,15 +187,40 @@ describe('Editor insert menu in the blocks preset', () => {
 
   // A list item starts with a paragraph, so a block can't go before its
   // emptied first line.
-  it('offers no table or divider on a list item’s empty first line', async () => {
-    renderBlocks()
+  it('offers no table, divider, image or embed on a list item’s empty first line', async () => {
+    renderBlocks(withUploads)
     await focusedTextbox()
 
     await userEvent.keyboard('- Doors{Enter}/')
 
     const names = optionNames(await insertMenu())
+    expect(names).toContain('Numbered list')
     expect(names).not.toContain('Table')
     expect(names).not.toContain('Divider')
+    expect(names).not.toContain('Image')
+    expect(names).not.toContain('Embed')
+  })
+
+  // Each block's fit is checked against the line without the query, on a
+  // transaction that must never reach the document.
+  it('reports only what was typed while filtering', async () => {
+    const onValueChange = renderBlocks(withUploads)
+    await focusedTextbox()
+
+    await userEvent.keyboard('/ta')
+    await waitFor(async () =>
+      expect(optionNames(await insertMenu())).toEqual(['Table'])
+    )
+
+    const reported = onValueChange.mock.calls.map(([value]) =>
+      (value as EditorValue).doc.content!.map(({ type, content }) => [
+        type,
+        content?.map((node) => node.text).join('') ?? ''
+      ])
+    )
+    expect(reported).toEqual(
+      ['', '/', '/t', '/ta'].map((typed) => [['paragraph', typed]])
+    )
   })
 
   it('inserts a table after a list item’s line with text', async () => {
