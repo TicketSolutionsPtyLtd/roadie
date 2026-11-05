@@ -274,19 +274,7 @@ describe('Editor.BubbleMenu', () => {
         }}
       />
     )
-    const textbox = await selectText('Gates open at 4pm')
-    await menu()
-    await userEvent.keyboard('{ArrowRight}')
-    await noMenu()
-    const text = within(textbox).getByText('9pm')
-    await userEvent.click(text)
-    const actions = await screen.findByRole('toolbar', {
-      name: 'Table actions'
-    })
-    await userEvent.keyboard(
-      `${LINE_END}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}`
-    )
-    const bubble = await menu()
+    const { text, actions, bubble } = await selectInCell('9pm')
 
     await waitFor(() =>
       expect(bubble.getBoundingClientRect().bottom).toBeLessThanOrEqual(
@@ -352,31 +340,16 @@ describe('Editor.BubbleMenu', () => {
 
   it('goes below text in a table, clear of the table actions', async () => {
     render(<BubbleEditor defaultValue={withTable} />)
-    // A double or triple click in a cell selects the cell, so the keys
-    // select text, once the menu has shown long after the editor took focus.
-    const textbox = await selectText('Gates open at 4pm')
-    await menu()
-    const text = within(textbox).getByText('Time')
-    await userEvent.click(text)
-    const table = await screen.findByRole('toolbar', { name: 'Table actions' })
-    await userEvent.keyboard(
-      `${LINE_END}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}`
-    )
-    const bubble = await menu()
+    const { text, actions, bubble } = await selectInCell('Time')
 
     await waitFor(() =>
       expect(bubble.getBoundingClientRect().top).toBeGreaterThanOrEqual(
         text.getBoundingClientRect().bottom
       )
     )
-    const a = bubble.getBoundingClientRect()
-    const b = table.getBoundingClientRect()
-    const overlaps =
-      a.left < b.right &&
-      b.left < a.right &&
-      a.top < b.bottom &&
-      b.top < a.bottom
-    expect(overlaps).toBe(false)
+    expect(
+      overlaps(bubble.getBoundingClientRect(), actions.getBoundingClientRect())
+    ).toBe(false)
   })
 
   it.each<[string, Partial<EditorProps>]>([
@@ -387,17 +360,7 @@ describe('Editor.BubbleMenu', () => {
     'stays clear of the table actions over text in a table’s last row, %s',
     async (_, props) => {
       render(<BubbleEditor defaultValue={withTable} {...props} />)
-      const textbox = await selectText('Gates open at 4pm')
-      await menu()
-      const text = within(textbox).getByText('9pm')
-      await userEvent.click(text)
-      const table = await screen.findByRole('toolbar', {
-        name: 'Table actions'
-      })
-      await userEvent.keyboard(
-        `${LINE_END}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}`
-      )
-      const bubble = await menu()
+      const { text, actions, bubble } = await selectInCell('9pm')
 
       await waitFor(() => {
         const line = text.getBoundingClientRect()
@@ -406,14 +369,12 @@ describe('Editor.BubbleMenu', () => {
         expect(gap).toBeGreaterThanOrEqual(0)
         expect(gap).toBeLessThan(24)
       })
-      const a = bubble.getBoundingClientRect()
-      const b = table.getBoundingClientRect()
-      const overlaps =
-        a.left < b.right &&
-        b.left < a.right &&
-        a.top < b.bottom &&
-        b.top < a.bottom
-      expect(overlaps).toBe(false)
+      expect(
+        overlaps(
+          bubble.getBoundingClientRect(),
+          actions.getBoundingClientRect()
+        )
+      ).toBe(false)
     }
   )
 
