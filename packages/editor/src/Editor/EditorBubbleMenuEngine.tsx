@@ -16,6 +16,7 @@ import { EditorContext } from './EditorContext'
 import { useRepositionOnResize } from './EditorNodeToolbar'
 import {
   BlocksButton,
+  Control,
   type ControlState,
   ToolbarItems,
   availableItems,
@@ -26,9 +27,11 @@ import {
   type EditorControl,
   type EditorControlUi,
   floatingControls,
-  overflowControls
+  overflowControls,
+  undo
 } from './controls'
 import { focusEditor } from './focusEditor'
+import { useShowsShortcuts } from './menuGroups'
 import {
   EDITOR_TOOLBAR_SIZE,
   type EditorSize,
@@ -168,6 +171,11 @@ function SelectionMenu({
     editor,
     selector: ({ editor: current }) => current.isEditable
   })
+  const undoable = useEditorState({
+    editor,
+    selector: ({ editor: current }) =>
+      current.isEditable && current.can().undo()
+  })
   // The plugin asks shouldShow only when the selection or doc changes. Focus
   // moves to the link editor, but a click on the menu's Link keeps the menu
   // from hiding on that blur, and turning read-only changes neither.
@@ -271,6 +279,17 @@ function SelectionMenu({
           />
           <BlocksButton openBlocks={openBlocks} separator='before' />
           {children}
+          {undoable ? (
+            <>
+              <Toolbar.Separator />
+              <Control
+                control={undo}
+                state={{ pressed: false, enabled: true }}
+                editor={editor}
+                ui={ui}
+              />
+            </>
+          ) : null}
           <OverflowMenu
             editor={editor}
             controls={overflow}
@@ -311,6 +330,7 @@ function OverflowMenu({
   setToolbar,
   onOpenChange
 }: OverflowMenuProps) {
+  const showsShortcuts = useShowsShortcuts()
   const run = (control: EditorControl) => {
     // An insert goes after the selected text rather than over it.
     const { to } = editor.state.selection
@@ -340,7 +360,7 @@ function OverflowMenu({
           <Menu.Item
             key={control.label}
             icon={<control.icon weight='bold' />}
-            shortcut={control.shortcut}
+            shortcut={showsShortcuts ? control.shortcut : undefined}
             disabled={!states[index]?.enabled}
             onClick={() => run(control)}
           >

@@ -8,6 +8,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -242,13 +243,7 @@ describe('Floating toolbar’s More menu', () => {
     await selectText()
     const menu = await moreMenu()
 
-    expect(menuItems(menu)).toEqual([
-      'Divider',
-      'Embed',
-      'Table',
-      'Undo',
-      'Redo'
-    ])
+    expect(menuItems(menu)).toEqual(['Divider', 'Embed', 'Table', 'Redo'])
     await waitFor(() =>
       expect(
         within(menu).getByRole('button', { name: 'Add doors time' })
@@ -290,13 +285,35 @@ describe('Floating toolbar’s More menu', () => {
   })
 
   it.each<[Preset, string[]]>([
-    ['basic', ['Undo', 'Redo']],
-    ['email', ['Import HTML or MJML', 'Undo', 'Redo']]
+    ['basic', ['Redo']],
+    ['email', ['Import HTML or MJML', 'Redo']]
   ])('holds its own items in a %s editor', async (preset, items) => {
     render(<Page defaultValue={valueIn(preset)} toolbar='floating' />)
     await selectText()
 
     expect(menuItems(await moreMenu())).toEqual(items)
+  })
+})
+
+describe('Floating toolbar’s Undo', () => {
+  it('shows only once there’s something to undo, and undoes it', async () => {
+    const onValueChange = vi.fn()
+    render(<Page toolbar='floating' onValueChange={onValueChange} />)
+    await selectText()
+    expect(
+      within(await floating()).queryByRole('button', { name: 'Undo' })
+    ).toBe(null)
+
+    await userEvent.keyboard('Doors at 5pm')
+    await selectText('Doors at 5pm')
+    const undo = within(await floating()).getByRole('button', { name: 'Undo' })
+    await userEvent.click(undo)
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content?.[1]
+      ).toEqual(paragraph(TEXT))
+    )
   })
 })
 
@@ -485,5 +502,39 @@ describe('Floating toolbar keys', () => {
         content: [{ type: 'text', text: TEXT }]
       })
     )
+  })
+})
+
+describe('Menus on a touch screen', () => {
+  const shortcuts = (menu: HTMLElement) =>
+    menu.querySelectorAll('[data-slot="menu-item-shortcut"]').length
+
+  async function blockTypeMenu() {
+    await selectText()
+    const docked = await screen.findByRole('toolbar', { name: DOCKED })
+    await userEvent.click(
+      within(docked).getByRole('button', { name: /^Block type/ })
+    )
+    return screen.findByRole('menu')
+  }
+
+  it('shows each item’s keys with a mouse', async () => {
+    render(<Page />)
+
+    expect(shortcuts(await blockTypeMenu())).toBeGreaterThan(0)
+  })
+
+  it('leaves out keys a touch screen has none of', async () => {
+    const matchMedia = window.matchMedia.bind(window)
+    // Playwright can't emulate a touch screen's pointer.
+    vi.spyOn(window, 'matchMedia').mockImplementation((query) =>
+      matchMedia(query.replaceAll('(pointer: coarse)', 'all'))
+    )
+    onTestFinished(() => {
+      vi.restoreAllMocks()
+    })
+    render(<Page />)
+
+    expect(shortcuts(await blockTypeMenu())).toBe(0)
   })
 })
