@@ -10,6 +10,7 @@ import {
   getSchema
 } from '@tiptap/core'
 import { Placeholder } from '@tiptap/extensions'
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import { NodeSelection } from '@tiptap/pm/state'
 import {
   type ReactNodeViewProps,
@@ -29,13 +30,20 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import {
   CURRENT_VERSION,
+  type EditorValue,
   type Preset,
   createEmptyValue,
   defaultEmbedProviders,
   migrate,
   presets
 } from '../schema'
+import {
+  BLOCK_ID,
+  type PresetShape,
+  presetShapes
+} from '../schema/presetShapes'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
+import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
 import { EditorButtonPopover } from './EditorButtonPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
@@ -155,9 +163,26 @@ function presetHoldsImages(preset: Preset) {
 const EMAIL_CANVAS =
   '@container mx-auto w-full max-w-[600px] [--prose-measure:none]'
 
-function holdsDoc(editor: TiptapEditor, doc: JSONContent) {
+function holdsHttpsImagesOnly(preset: Preset) {
+  const shape: PresetShape = presetShapes[preset]
+  return shape.httpsImages === true
+}
+
+function presetKeepsBlockIds(preset: Preset) {
+  return presets[preset].some(({ name }) => name === 'uniqueID')
+}
+
+function currentValue(editor: TiptapEditor, preset: Preset): EditorValue {
+  return { version: CURRENT_VERSION, preset, doc: savedDoc(editor.getJSON()) }
+}
+
+function holdsDoc(
+  editor: TiptapEditor,
+  doc: JSONContent,
+  holds = (held: ProseMirrorNode, given: ProseMirrorNode) => held.eq(given)
+) {
   try {
-    return editor.state.doc.eq(editor.schema.nodeFromJSON(doc))
+    return holds(editor.state.doc, editor.schema.nodeFromJSON(doc))
   } catch {
     return false
   }
@@ -172,6 +197,26 @@ function savedDoc(json: JSONContent): JSONContent {
   }
   if (saved.content) saved.content = saved.content.map(savedDoc)
   return saved
+}
+
+// A block the value gives no id holds the one the editor gave it, or a parent
+// that keeps no ids would have the editor set its value, and new ids, forever.
+function holdsBlocks(held: ProseMirrorNode, given: ProseMirrorNode): boolean {
+  const filled =
+    given.attrs[BLOCK_ID] === null
+      ? { ...given.attrs, [BLOCK_ID]: held.attrs[BLOCK_ID] }
+      : given.attrs
+  if (
+    !held.hasMarkup(given.type, filled, given.marks) ||
+    held.text !== given.text ||
+    held.childCount !== given.childCount
+  ) {
+    return false
+  }
+  for (let i = 0; i < held.childCount; i++) {
+    if (!holdsBlocks(held.child(i), given.child(i))) return false
+  }
+  return true
 }
 
 type FormValueProps = {
@@ -236,6 +281,7 @@ export function EditorEngine({
 }: EditorRootProps) {
   const placeholderRef = useRef(placeholder)
   const toolbarRef = useRef<HTMLDivElement>(null)
+  const bubbleMenuRef = useRef<HTMLDivElement>(null)
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
   const [editingLink, setEditingLink] = useState(false)
@@ -273,7 +319,7 @@ export function EditorEngine({
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
-    httpsOnly: preset === 'email'
+    httpsOnly: holdsHttpsImagesOnly(preset)
   }
 
   const editor = useEditor({
@@ -332,11 +378,14 @@ export function EditorEngine({
       },
       handleKeyDown: (view, event) => {
         if (!event.altKey || event.key !== 'F10') return false
-        const toolbar = selectedNodeType(view.state)
-          ? nodeToolbarRef.current
-          : selectedTable(view.state)
-            ? tableToolbarRef.current
-            : toolbarRef.current
+        // The selection menu is in the document only while it shows.
+        const toolbar = bubbleMenuRef.current?.isConnected
+          ? bubbleMenuRef.current
+          : selectedNodeType(view.state)
+            ? nodeToolbarRef.current
+            : selectedTable(view.state)
+              ? tableToolbarRef.current
+              : toolbarRef.current
         const firstEnabled = toolbar?.querySelector<HTMLElement>(
           'button:not([aria-disabled="true"])'
         )
@@ -345,11 +394,7 @@ export function EditorEngine({
       }
     },
     onUpdate: ({ editor: updated }) =>
-      onValueChange?.({
-        version: CURRENT_VERSION,
-        preset,
-        doc: savedDoc(updated.getJSON())
-      })
+      onValueChange?.(currentValue(updated, preset))
   })
 
   useEffect(() => {
@@ -380,9 +425,15 @@ export function EditorEngine({
   }, [editor, placeholder])
 
   useEffect(() => {
-    if (!editor || !valueDoc || holdsDoc(editor, readableDoc)) return
+    if (!editor || !valueDoc || holdsDoc(editor, readableDoc, holdsBlocks)) {
+      return
+    }
     editor.commands.setContent(readableDoc, { emitUpdate: false })
-  }, [editor, valueDoc, readableDoc])
+    // The blocks preset gives each block without an id one as it's set.
+    if (presetKeepsBlockIds(preset) && !holdsDoc(editor, readableDoc)) {
+      onValueChange?.(currentValue(editor, preset))
+    }
+  }, [editor, valueDoc, readableDoc, preset, onValueChange])
 
   const canUpload = Boolean(onUploadImage) && holdsImages
   const ui = {
@@ -420,10 +471,13 @@ export function EditorEngine({
         emphasis,
         contentId,
         toolbarRef,
+        bubbleMenuRef,
         ...ui,
+        editingLink,
         embedProviders,
         TiptapContent,
-        ToolbarEngine: EditorToolbarEngine
+        ToolbarEngine: EditorToolbarEngine,
+        BubbleMenuEngine: EditorBubbleMenuEngine
       }}
     >
       <div

@@ -97,6 +97,12 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
           onKeyDown: ({ event }) => {
             const count = open?.props.items.length ?? 0
             if (!open || count === 0) return false
+            // Suggestion closes the menu itself; this keeps a dialog around
+            // the editor from closing too.
+            if (event.key === 'Escape') {
+              event.stopPropagation()
+              return true
+            }
             if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
               const step = event.key === 'ArrowDown' ? 1 : -1
               open.active = (open.active + step + count) % count

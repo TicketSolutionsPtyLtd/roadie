@@ -203,6 +203,12 @@ export function EditorNodeToolbar({
           onKeyDownCapture={(event) => {
             if (event.key === 'Escape') editor.commands.focus()
           }}
+          // Keeps a dialog around the editor open. An open menu's own Escape
+          // comes from its portal, outside the toolbar.
+          onKeyDown={(event) => {
+            const inToolbar = event.currentTarget.contains(event.target as Node)
+            if (event.key === 'Escape' && inToolbar) event.stopPropagation()
+          }}
         >
           {nodeControls[type].map((item, index) =>
             'kind' in item ? (

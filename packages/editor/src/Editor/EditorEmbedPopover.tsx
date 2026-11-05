@@ -18,7 +18,7 @@ import { type EmbedAttrs, embedAttrs } from '../schema/embedAttrs'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 
 const REFUSED = 'That link can’t be embedded.'
-const REFUSED_DEFAULT = `${REFUSED} Use a YouTube, Vimeo, Spotify, or TikTok share link.`
+const REFUSED_DEFAULT = `${REFUSED} Use a share link from YouTube, Vimeo, Spotify, SoundCloud, Deezer, Apple Music, or TikTok.`
 
 type EmbedFormProps = {
   editor: TiptapEditor

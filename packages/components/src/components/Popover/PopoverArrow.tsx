@@ -19,8 +19,8 @@ export function PopoverArrow({ className, ...props }: PopoverArrowProps) {
       // line and reads as a seamless continuation of the surface, while the
       // body points outward.
       //
-      // Sizes derive from one source of truth — `--arrow-w` / `--arrow-h`,
-      // which also size the SVG below — so the box and its offsets can never
+      // Sizes derive from one source of truth (`--arrow-w` / `--arrow-h`,
+      // which also size the SVG below), so the box and its offsets can never
       // drift. On top/bottom the depth is `--arrow-h`, so a 1px-overlap sits
       // at `1px - h`. On left/right the box is rotated 90°, so the outward
       // reach is half its width plus half its depth → `1px - (w + h) / 2`.

@@ -27,20 +27,24 @@ export type ManifestPart = {
   props: ManifestProp[]
 }
 
-const SKIPPED_PROPS = new Set([
+export const SKIPPED_PROPS = new Set([
   'ref',
   'key',
   'style',
   'dangerouslySetInnerHTML'
 ])
-const OUR_SOURCES = /(^|\/)(components|widgets|charts|editor)\//
+const OUR_SOURCES = /(^|\/)(core|components|widgets|charts|editor|blocks)\//
 
-function isOurs(fileName: string | undefined) {
+export function isOurs(fileName: string | undefined) {
   return (
     !!fileName &&
     !fileName.includes('node_modules') &&
     OUR_SOURCES.test(fileName)
   )
+}
+
+export function isOursOrBaseUi(fileName: string | undefined) {
+  return isOurs(fileName) || !!fileName?.includes('@base-ui/react')
 }
 
 function keepProp(prop: PropItem) {
@@ -49,8 +53,7 @@ function keepProp(prop: PropItem) {
   if (!prop.declarations?.length) return true
   return (
     prop.declarations.some((d) => isOurs(d.fileName)) ||
-    isOurs(prop.parent?.fileName) ||
-    !!prop.parent?.fileName.includes('@base-ui/react')
+    isOursOrBaseUi(prop.parent?.fileName)
   )
 }
 

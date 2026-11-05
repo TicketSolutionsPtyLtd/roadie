@@ -5,8 +5,10 @@ import { join } from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 
 import {
+  isWindows,
   killGroup,
   repoRoot,
+  shimCommand,
   waitForLoad,
   warnIfLowDisk
 } from './lib/machine.mjs'
@@ -86,14 +88,18 @@ warnIfLowDisk()
 await waitForLoad()
 
 console.log('Building the packages the docs read from dist.')
-execFileSync(
-  'pnpm',
-  ['turbo', 'run', 'build', '--filter=docs^...', '--output-logs=errors-only'],
-  {
-    cwd: repoRoot,
-    stdio: 'inherit'
-  }
-)
+const build = shimCommand('pnpm', [
+  'turbo',
+  'run',
+  'build',
+  '--filter=docs^...',
+  '--output-logs=errors-only'
+])
+execFileSync(build.command, build.args, {
+  cwd: repoRoot,
+  shell: build.shell,
+  stdio: 'inherit'
+})
 
 const port = await freePort()
 const extraHosts = (process.env.NEXT_DEV_ORIGINS ?? '')
@@ -106,16 +112,23 @@ const hosts = [
   )
 ]
 
-const server = spawn(
-  'pnpm',
-  ['exec', 'next', 'dev', '--hostname', '0.0.0.0', '--port', String(port)],
-  {
-    cwd: join(repoRoot, 'docs'),
-    env: { ...process.env, NEXT_DEV_ORIGINS: hosts.join(',') },
-    detached: true,
-    stdio: ['ignore', 'inherit', 'inherit']
-  }
-)
+const dev = shimCommand('pnpm', [
+  'exec',
+  'next',
+  'dev',
+  '--hostname',
+  '0.0.0.0',
+  '--port',
+  String(port)
+])
+const server = spawn(dev.command, dev.args, {
+  cwd: join(repoRoot, 'docs'),
+  env: { ...process.env, NEXT_DEV_ORIGINS: hosts.join(',') },
+  shell: dev.shell,
+  // Detached on Windows means a new console window, not a process group.
+  detached: !isWindows,
+  stdio: ['ignore', 'inherit', 'inherit']
+})
 
 const stopServer = (signal) => killGroup(server.pid, signal)
 let receivedSignal = null
@@ -155,6 +168,10 @@ const urls = [
     .filter((host) => !host.includes('*'))
     .map((host) => `http://${host}:${port}/`)
 ]
+// A signal from outside never reaches a Windows process, so it stops the tree.
+const stop = isWindows
+  ? `taskkill /pid ${process.pid} /t /f`
+  : `kill ${process.pid}`
 console.log(
-  `\nPreview ready (pid ${process.pid}, stop with \`kill ${process.pid}\`):\n${urls.join('\n')}\n`
+  `\nPreview ready (pid ${process.pid}, stop with \`${stop}\`):\n${urls.join('\n')}\n`
 )

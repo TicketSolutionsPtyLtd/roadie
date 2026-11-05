@@ -8,6 +8,7 @@ import {
 } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { settled } from './routerReady'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 let browser: Browser
@@ -34,7 +35,7 @@ async function open(width: number, dark = false) {
   await serveExport(context)
   const page = await context.newPage()
   await page.goto(`${ORIGIN}${BASE_PATH}/foundations/interactions/`)
-  await page.waitForLoadState('networkidle')
+  await settled(page)
   if (dark)
     await page.evaluate(() => document.documentElement.classList.add('dark'))
   return page

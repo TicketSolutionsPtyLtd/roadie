@@ -104,6 +104,13 @@ Playwright Linux image right after the click that opens a drawer: 1 frame by
   popup even with transitions off, and returns focus to the trigger as the
   popup unmounts. So polls for the drawer's edge, for `queryByRole('dialog')`
   to be null, or for focus back on the trigger all need `withFrames`.
+- **Focus into a list opened by a key.** Base UI focuses the first option of
+  a Select opened with ArrowDown in a frame (`enqueueFocus`); later arrow
+  keys move focus at once. A poll for that first option kept finding the
+  trigger in CI (Select "still highlight the option a keyboard moves to",
+  INNO-1043). Keep frames running for the poll from a point clear of the
+  popup, such as the frame's bottom right corner: `withFrames` wiggles in
+  the top left, where a popup aligned to a trigger there can sit.
 - **A programmatic scroll.** `element.scrollTop = n` updates layout at once,
   so a poll on geometry passes straight away, but the `scroll` event only
   fires in the next rendering update. A component that follows scrolling (the

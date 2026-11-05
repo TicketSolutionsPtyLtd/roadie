@@ -9,6 +9,8 @@ export interface MarqueeProps extends ComponentProps<'div'> {
   speed?: number
   /** Pause animation on hover. @default false */
   pauseOnHover?: boolean
+  /** Holds the items still, such as from a pause button. @default false */
+  paused?: boolean
   /** Scroll direction. @default 'normal' */
   direction?: 'normal' | 'reverse'
   /** Gap between items in pixels. @default 16 */
@@ -21,6 +23,7 @@ export function Marquee({
   children,
   speed = 50,
   pauseOnHover = false,
+  paused = false,
   direction = 'normal',
   gap = 16,
   className,
@@ -76,8 +79,15 @@ export function Marquee({
 
   const gapPx = `${gap}px`
 
+  // Only the first copy is read out or focused; the rest are there to fill the width.
   const repeatedChildren = Array.from({ length: repeats }, (_, i) => (
-    <div key={i} className='flex shrink-0 items-center' style={{ gap: gapPx }}>
+    <div
+      key={i}
+      className='flex shrink-0 items-center'
+      style={{ gap: gapPx }}
+      aria-hidden={i > 0 || undefined}
+      inert={i > 0 || undefined}
+    >
       {children}
     </div>
   ))
@@ -99,6 +109,7 @@ export function Marquee({
       <div
         ref={measureRef}
         aria-hidden='true'
+        inert
         style={{
           position: 'absolute',
           visibility: 'hidden',
@@ -123,7 +134,7 @@ export function Marquee({
           animationTimingFunction: 'linear',
           animationIterationCount: 'infinite',
           animationDirection: direction,
-          animationPlayState: 'running'
+          animationPlayState: paused ? 'paused' : 'running'
         }}
         onMouseEnter={
           pauseOnHover
@@ -135,7 +146,9 @@ export function Marquee({
         onMouseLeave={
           pauseOnHover
             ? (e) => {
-                e.currentTarget.style.animationPlayState = 'running'
+                e.currentTarget.style.animationPlayState = paused
+                  ? 'paused'
+                  : 'running'
               }
             : undefined
         }
@@ -149,6 +162,7 @@ export function Marquee({
           className='flex shrink-0 items-center'
           style={{ gap: gapPx }}
           aria-hidden='true'
+          inert
         >
           {repeatedChildren}
         </div>

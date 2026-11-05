@@ -3,7 +3,7 @@ import mjml2html from 'mjml'
 
 import type { StoredEmailContent } from '../schema/emailContent'
 import { migrate } from '../schema/value'
-import { conditions } from './conditions'
+import { conditions, textStartingAtWords } from './conditions'
 import { type MergeTagOptions, mergeTags, untokenedText } from './mergeTags'
 import { mjmlTree } from './mjmlTree'
 import { type EmailTheme, emailTheme } from './theme'
@@ -67,15 +67,22 @@ export async function renderEmail(
   })
   return {
     html: fill(html, 'html'),
-    text: fill(untokenedText(plainText(html)), 'text')
+    text: textStartingAtWords(fill(untokenedText(plainText(html)), 'text'))
   }
 }
+
+// Headings keep their case, or a merge tag in one stops matching its variable.
+const HEADINGS = ['h2', 'h3', 'h4'].map((selector) => ({
+  selector,
+  options: { uppercase: false }
+}))
 
 // A spacer's hair space would otherwise leave lines of whitespace.
 function plainText(html: string) {
   return convert(html, {
     wordwrap: 78,
     selectors: [
+      ...HEADINGS,
       { selector: 'img', format: 'skip' },
       // A layout table's cells are columns, not words of one line.
       { selector: 'td', format: 'paragraph' },

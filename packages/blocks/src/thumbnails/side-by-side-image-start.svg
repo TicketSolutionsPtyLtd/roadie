@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none">
+  <rect x="0" y="0" width="240" height="160" rx="8" style="fill: var(--color-neutral-1, #f5f8fb)"/>
+  <rect x="16" y="32" width="96" height="96" rx="8" style="fill: var(--color-neutral-5, #d7e2ed)"/>
+  <path d="M78 80H50M58 72L50 80L58 88" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" style="stroke: var(--color-brand-9, #0191eb)"/>
+  <rect x="128" y="52" width="92" height="10" rx="2" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <rect x="128" y="70" width="96" height="4" rx="2" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="128" y="79" width="96" height="4" rx="2" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="128" y="88" width="72" height="4" rx="2" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="128" y="100" width="44" height="12" rx="4" style="fill: var(--color-accent-9, #0191eb)"/>
+</svg>

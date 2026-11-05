@@ -19,7 +19,21 @@ export async function CatalogueIndex({
   return (
     <div data-not-prose className='@container grid gap-10'>
       {searchable ? (
-        <ComponentBrowser categories={categories} />
+        <ComponentBrowser
+          categories={categories}
+          previews={Object.fromEntries(
+            categories.flatMap((category) =>
+              category.entries.map((entry) => [
+                entry.name,
+                <CataloguePreview
+                  key={entry.name}
+                  route={catalogue.route}
+                  entry={entry}
+                />
+              ])
+            )
+          )}
+        />
       ) : (
         categories.map((category) => (
           <PreviewSection key={category.name} title={category.name}>
