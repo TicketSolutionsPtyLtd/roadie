@@ -172,14 +172,20 @@ headings: Text, Media, Layout, Email, and Sections. Image shows only with
   floating toolbar over a selection. The drawer opens from the right, or
   from the bottom on a phone. A tile adds its block after the block with the
   caret, and the drawer closes with the caret in the new block. On an empty
-  line, a text block takes the line's place, and any other block goes before
-  it. A section or columns picked in a column goes after the whole row,
+  line, the block takes the line's place, so no empty line is left behind,
+  except one an empty button holds on its own. A section or columns picked in a column goes after the whole row,
   since columns can't hold one. Image and Button open the file picker and
-  the link field on a new line there, or on the empty line.
+  the link field on a new line there, or on the empty line. Find a block
+  filters the tiles as `/` does, and from 1280 pixels wide the drawer
+  leaves the email usable beside it.
 - **Sections** lead the drawer and end the `/` menu. They're ready-made
-  groups of blocks to edit: Header, Event, and Two events, also found as
-  `/lineup`. Each goes after the top-level block with the caret, or before
-  an empty top-level line, never inside a section, with its first line's text selected, so typing replaces it.
+  groups of blocks to edit: Header (also `/banner`), Event (`/tickets`,
+  `/cta`), Two events, and Lineup. Each goes after the top-level block with
+  the caret, or in place of an empty top-level line, never inside a section,
+  and no empty line follows it. Its placeholder copy, such as Headline,
+  shows as a hint on each empty line, in the subtler text colour, and saves
+  as nothing, so there's nothing to delete: the caret starts on its first
+  line, and a hint goes once its line has text.
   Their buttons have no link until you set one, and send as text until then.
   Footer, also found as `/unsubscribe`, with a line on why the reader gets
   the email and an Unsubscribe link, shows when one of `variables` is a link
@@ -242,15 +248,18 @@ block you're typing in, and its menu moves the block.
 
 Type `/` to insert a block at the caret. The list filters as you type, by the
 start of each word in a block's name or its other names, such as `/h1`, `/img`,
-`/hr`, `/btn`, or `/cta`. The arrow keys move through it, Enter inserts, and
+`/hr`, `/btn`, or `/cta`, listing first a block whose name starts with what you typed, so `/2` offers 2 columns before Heading 2. The arrow keys move through it, Enter inserts, and
 Escape closes it, keeping what you typed, as does moving focus away. When
 nothing matches, a No blocks match row keeps it open, so Enter inserts nothing,
 until you type a space. With a mouse or trackpad, each block made by markdown
 shows its shortcut, such as `##` for Heading 2. One undo takes a block the menu inserts
 back to the line as it was before the `/`, with no query left, as it does an
 image, embed, or button once its upload or link arrives. A paragraph, heading, or list turns the caret's line into
-one. Any other block goes before an empty line, or after a line with text, and a
-section or columns puts the caret in its first line. Only the blocks that fit
+one. Any other block takes an empty line's place, goes before a line the `/` starts, or after a line with text, and a
+section or columns puts the caret in its first line. Enter on the empty last
+line of a section takes that line out after the section, as Enter on an empty
+list item leaves the list, so what you type next isn't in the section. An
+email can end with a section or columns, with no empty line after them. Only the blocks that fit
 at the caret are offered, so there's no empty section or columns inside a
 column, and only the other list type inside a list. A ready-made section is
 offered anywhere, as it goes after the whole block. Image is offered with `onUploadImage`.
@@ -678,8 +687,11 @@ const preview = await renderEmail({ kind: 'design', value: nearlySoldOut }, {
   `group` named for it. With `variables`, `{{` opens a `listbox` named Merge
   tags the same way.
 - Blocks in the toolbar opens a `dialog` named Blocks, with focus on its
-  first tile. Each heading's tiles sit in a `group` named for it, and Tab
-  moves between them. Enter or Space adds a block, and Escape closes the
+  first tile. A search field named Find a block comes first. Each heading's
+  tiles sit in a `group` named for it, and the tiles take one Tab stop: the
+  arrow keys move between them, across the headings, Home and End go to the
+  first and last, ArrowUp from the top row goes to the search field, and
+  typing a letter types it there. Enter or Space adds a block, and Escape closes the
   drawer. Either way, focus goes back to the text, or to the link field
   after Button.
 - In the email preset, a button's, a spacer's, columns', or a merge tag's own

@@ -222,6 +222,50 @@ describe('Editor empty email', () => {
     expect(shownBefore(section)).toBe('none')
   })
 
+  it('shows a section’s placeholder copy as hints, not text, until typed over', async () => {
+    const onValueChange = renderEmail()
+
+    await userEvent.click(
+      within(await start()).getByRole('button', { name: 'Sections' })
+    )
+    const drawer = await screen.findByRole('dialog', { name: 'Blocks' })
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Header' })
+    )
+
+    const section = (await textbox()).querySelector('[data-type="section"]')!
+    const [headline, intro] = [...section.children]
+    await waitFor(() => expect(shownBefore(headline!)).toBe('"Headline"'))
+    expect(shownBefore(intro!)).toBe(
+      '"A line or two on what this email is about."'
+    )
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith({
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'section',
+              content: [
+                { type: 'heading', attrs: { level: 2 } },
+                { type: 'paragraph' }
+              ]
+            }
+          ]
+        }
+      })
+    )
+
+    await userEvent.keyboard('Ochre Kite Weekender')
+
+    await waitFor(() => expect(shownBefore(headline!)).toBe('none'))
+    expect(shownBefore(intro!)).toBe(
+      '"A line or two on what this email is about."'
+    )
+  })
+
   it('opens Import', async () => {
     renderEmail()
 

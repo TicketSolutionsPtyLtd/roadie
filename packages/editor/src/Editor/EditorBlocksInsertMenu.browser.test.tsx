@@ -245,6 +245,62 @@ describe('Editor insert menu in the blocks preset', () => {
     )
   })
 
+  it('shows no shortcuts without a fine pointer, as on a touch screen', async () => {
+    const real = window.matchMedia.bind(window)
+    const matchMedia = vi
+      .spyOn(window, 'matchMedia')
+      .mockImplementation((query) =>
+        query === '(any-pointer: fine)'
+          ? ({
+              matches: false,
+              media: query,
+              addEventListener: () => {},
+              removeEventListener: () => {}
+            } as unknown as MediaQueryList)
+          : real(query)
+      )
+    try {
+      renderBlocks()
+      await focusedTextbox()
+
+      await userEvent.keyboard('/')
+      const listbox = await insertMenu()
+
+      expect(optionNames(listbox)).toContain('Heading 2')
+      expect(
+        listbox.querySelector('[data-slot="editor-insert-shortcut"]')
+      ).toBe(null)
+    } finally {
+      matchMedia.mockRestore()
+    }
+  })
+
+  it('inserts a block before a line with text when / starts it', async () => {
+    const onValueChange = renderBlocks({
+      defaultValue: {
+        version: 1,
+        preset: 'blocks',
+        doc: {
+          type: 'doc',
+          content: [{ type: 'paragraph', content: [text('Doors 7pm')] }]
+        }
+      }
+    })
+    const textbox = await focusedTextbox()
+    await userEvent.click(within(textbox).getByText('Doors 7pm'), {
+      position: { x: 1, y: 4 }
+    })
+
+    await userEvent.keyboard('/divider{Enter}')
+
+    await waitFor(() =>
+      expect(lastBlocks(onValueChange)).toMatchObject([
+        { type: 'horizontalRule' },
+        { type: 'paragraph', content: [text('Doors 7pm')] }
+      ])
+    )
+  })
+
   it('shows no shortcut for a block without one', async () => {
     renderBlocks()
     await focusedTextbox()
