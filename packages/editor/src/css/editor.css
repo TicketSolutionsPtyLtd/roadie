@@ -168,7 +168,7 @@
   border-radius: var(--radius-md);
   background-color: var(--email-background);
   color: var(--email-text);
-  font-family: var(--email-theme-font-family, var(--font-sans));
+  font-family: var(--email-theme-font-family, Helvetica, Arial, sans-serif);
 }
 
 [data-email] a:not([data-type]) {

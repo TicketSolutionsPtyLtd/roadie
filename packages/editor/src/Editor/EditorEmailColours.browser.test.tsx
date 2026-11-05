@@ -99,6 +99,7 @@ describe('Editor email colours', () => {
       tokenColour('--color-neutral-light-0')
     )
     expect(canvasStyle.colorScheme).toBe('light')
+    expect(canvasStyle.fontFamily).toBe('Helvetica, Arial, sans-serif')
     expect(getComputedStyle(screen.getByText('Gates 11am,')).color).toBe(
       tokenColour('--color-neutral-light-12')
     )
@@ -112,11 +113,13 @@ describe('Editor email colours', () => {
       buttonText: '#fefefe',
       border: '#a0a0a0',
       tint: '#eeeeee',
-      divider: '#cccccc'
+      divider: '#cccccc',
+      fontFamily: 'Georgia, serif'
     }
     const { canvas, styleOf } = await renderEmail({ theme })
 
     expect(getComputedStyle(canvas).backgroundColor).toBe(rgb('#fdf6e3'))
+    expect(getComputedStyle(canvas).fontFamily).toBe('Georgia, serif')
     expect(getComputedStyle(screen.getByText('Gates 11am,')).color).toBe(
       rgb('#2b2b2b')
     )
