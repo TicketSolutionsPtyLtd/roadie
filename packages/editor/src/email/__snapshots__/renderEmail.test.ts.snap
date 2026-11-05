@@ -1,0 +1,1251 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderEmail > each node > renders a button as a link in the theme’s colours, its label as text 1`] = `
+"<body  style="word-spacing:normal;background-color:#ffffff;">
+        
+        <div
+           aria-roledescription="email" role="article" lang="und" dir="auto" style="word-spacing:normal;background-color:#ffffff;"
+        >
+        
+      
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;"
+      >
+        <tbody>
+          <tr>
+            <td
+               align="center" bgcolor="#5f270f" role="presentation" style="border:none;border-radius:8px;cursor:auto;mso-padding-alt:12px 24px;background:#5f270f;" valign="middle"
+            >
+              <a
+                 href="https://www.oztix.com.au/ochre-kite-weekender" style="display:inline-block;background:#5f270f;color:#ffc3a8;font-family:Helvetica, Arial, sans-serif;font-size:16px;font-weight:700;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:12px 24px;mso-padding-alt:0px;border-radius:8px;" target="_blank"
+              >
+                Get tickets
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><![endif]-->
+    
+    
+      </div>
+      </body>
+    
+</html>
+  "
+`;
+
+exports[`renderEmail > each node > renders a section around its blocks and columns 1`] = `
+"<body  style="word-spacing:normal;background-color:#ffffff;">
+        
+        <div
+           aria-roledescription="email" role="article" lang="und" dir="auto" style="word-spacing:normal;background-color:#ffffff;"
+        >
+        
+      
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">Before</p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:16px 0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">Ochre Kite Weekender</p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table></td></tr><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:300px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 12px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">Friday</p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:300px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 12px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">Saturday</p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">After</p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><![endif]-->
+    
+    
+      </div>
+      </body>
+    
+</html>
+  "
+`;
+
+exports[`renderEmail > each node > renders a spacer at its height and a divider in the theme’s colour 1`] = `
+"<body  style="word-spacing:normal;background-color:#ffffff;">
+        
+        <div
+           aria-roledescription="email" role="article" lang="und" dir="auto" style="word-spacing:normal;background-color:#ffffff;"
+        >
+        
+      
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   style="font-size:0px;word-break:break-word;"
+                >
+                  
+      <div
+         style="height:48px;line-height:48px;"
+      >&#8202;</div>
+    
+                </td>
+              </tr>
+            
+              <tr>
+                <td
+                   align="center" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <p
+         style="border-top:solid 1px #d7e2ed;font-size:1px;margin:0px auto;width:100%;"
+      >
+      </p>
+      
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" style="border-top:solid 1px #d7e2ed;font-size:1px;margin:0px auto;width:552px;" role="presentation" width="552px" ><tr><td style="height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+    
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><![endif]-->
+    
+    
+      </div>
+      </body>
+    
+</html>
+  "
+`;
+
+exports[`renderEmail > each node > renders an image at its width, or filling its column 1`] = `
+"<body  style="word-spacing:normal;background-color:#ffffff;">
+        
+        <div
+           aria-roledescription="email" role="article" lang="und" dir="auto" style="word-spacing:normal;background-color:#ffffff;"
+        >
+        
+      
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="center" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;"
+      >
+        <tbody>
+          <tr>
+            <td  style="width:280px;">
+              
+      <img
+         alt="The crowd at sunset" src="https://assets.oztix.com.au/ochre-kite-weekender.webp" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="280" height="auto"
+      />
+    
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    
+                </td>
+              </tr>
+            
+              <tr>
+                <td
+                   align="center" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;"
+      >
+        <tbody>
+          <tr>
+            <td  style="width:552px;">
+              
+      <img
+         alt="The crowd at sunset" src="https://assets.oztix.com.au/ochre-kite-weekender.webp?full" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="552" height="auto"
+      />
+    
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><![endif]-->
+    
+    
+      </div>
+      </body>
+    
+</html>
+  "
+`;
+
+exports[`renderEmail > each node > renders columns that stack on phones and hold in Outlook 1`] = `
+"<body  style="word-spacing:normal;background-color:#ffffff;">
+        
+        <div
+           aria-roledescription="email" role="article" lang="und" dir="auto" style="word-spacing:normal;background-color:#ffffff;"
+        >
+        
+      
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:200px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-33-333333333333336 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 12px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">Friday</p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:200px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-33-333333333333336 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 12px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">Saturday</p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:200px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-33-333333333333336 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 12px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">Sunday</p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><![endif]-->
+    
+    
+      </div>
+      </body>
+    
+</html>
+  "
+`;
+
+exports[`renderEmail > each node > renders headings two to four at their sizes 1`] = `
+"<body  style="word-spacing:normal;background-color:#ffffff;">
+        
+        <div
+           aria-roledescription="email" role="article" lang="und" dir="auto" style="word-spacing:normal;background-color:#ffffff;"
+        >
+        
+      
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><h2 style="margin:0;font-weight:700;font-size:24px;line-height:32px">Lineup</h2></div>
+    
+                </td>
+              </tr>
+            
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><h3 style="margin:0;font-weight:700;font-size:20px;line-height:28px">Friday</h3></div>
+    
+                </td>
+              </tr>
+            
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><h4 style="margin:0;font-weight:700;font-size:16px;line-height:24px">Stage 2</h4></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><![endif]-->
+    
+    
+      </div>
+      </body>
+    
+</html>
+  "
+`;
+
+exports[`renderEmail > each node > renders lists, with an ordered list’s start 1`] = `
+"<body  style="word-spacing:normal;background-color:#ffffff;">
+        
+        <div
+           aria-roledescription="email" role="article" lang="und" dir="auto" style="word-spacing:normal;background-color:#ffffff;"
+        >
+        
+      
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><ul style="margin:0;padding:0 0 0 24px"><li><p style="margin:0">Bar</p></li></ul></div>
+    
+                </td>
+              </tr>
+            
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><ol start="3" style="margin:0;padding:0 0 0 24px"><li><p style="margin:0">Food trucks</p></li></ol></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><![endif]-->
+    
+    
+      </div>
+      </body>
+    
+</html>
+  "
+`;
+
+exports[`renderEmail > each node > renders text with its marks, escaped 1`] = `
+"<body  style="word-spacing:normal;background-color:#ffffff;">
+        
+        <div
+           aria-roledescription="email" role="article" lang="und" dir="auto" style="word-spacing:normal;background-color:#ffffff;"
+        >
+        
+      
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">Doors open <strong>7pm</strong>, <u><em>all ages</em></u> &lt;script&gt;&amp;&lt;/script&gt; <a href="https://www.oztix.com.au/map" style="color:#0191eb;text-decoration:underline">see the map</a></p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><![endif]-->
+    
+    
+      </div>
+      </body>
+    
+</html>
+  "
+`;
+
+exports[`renderEmail > renders a whole template as an HTML page and its plain text 1`] = `
+"<body  style="word-spacing:normal;background-color:#ffffff;">
+        
+        <div
+           aria-roledescription="email" role="article" lang="und" dir="auto" style="word-spacing:normal;background-color:#ffffff;"
+        >
+        
+      
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><h2 style="margin:0;font-weight:700;font-size:24px;line-height:32px">Ochre Kite Weekender</h2></div>
+    
+                </td>
+              </tr>
+            
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">Doors open 7pm at <a href="https://www.oztix.com.au/ochre-kite-weekender" style="color:#0191eb;text-decoration:underline">Jumbuck Orchard Park</a>.</p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:16px 0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:300px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="center" style="font-size:0px;padding:8px 12px;word-break:break-word;"
+                >
+                  
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;"
+      >
+        <tbody>
+          <tr>
+            <td  style="width:276px;">
+              
+      <img
+         alt="The crowd at sunset" src="https://assets.oztix.com.au/ochre-kite-weekender.webp" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="276" height="auto"
+      />
+    
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td><td class="" style="vertical-align:top;width:300px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-50 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 12px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">Two stages, one weekend.</p></div>
+    
+                </td>
+              </tr>
+            
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 12px;word-break:break-word;"
+                >
+                  
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;"
+      >
+        <tbody>
+          <tr>
+            <td
+               align="center" bgcolor="#0191eb" role="presentation" style="border:none;border-radius:8px;cursor:auto;mso-padding-alt:12px 24px;background:#0191eb;" valign="middle"
+            >
+              <a
+                 href="https://www.oztix.com.au/ochre-kite-weekender" style="display:inline-block;background:#0191eb;color:#ffffff;font-family:Helvetica, Arial, sans-serif;font-size:16px;font-weight:700;line-height:120%;margin:0;text-decoration:none;text-transform:none;padding:12px 24px;mso-padding-alt:0px;border-radius:8px;" target="_blank"
+              >
+                Get tickets
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table></td></tr><tr><td class="" width="600px" ><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">All ages.</p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="" role="presentation" style="width:600px;" width="600" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    
+      
+      <div  style="margin:0px auto;max-width:600px;">
+        
+        <table
+           align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;"
+        >
+          <tbody>
+            <tr>
+              <td
+                 style="direction:ltr;font-size:0px;padding:0;text-align:center;"
+              >
+                <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+            
+      <div
+         class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;"
+      >
+        
+      <table
+         border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%"
+      >
+        <tbody>
+          
+              <tr>
+                <td
+                   style="font-size:0px;word-break:break-word;"
+                >
+                  
+      <div
+         style="height:32px;line-height:32px;"
+      >&#8202;</div>
+    
+                </td>
+              </tr>
+            
+              <tr>
+                <td
+                   align="center" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <p
+         style="border-top:solid 1px #d7e2ed;font-size:1px;margin:0px auto;width:100%;"
+      >
+      </p>
+      
+      <!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" style="border-top:solid 1px #d7e2ed;font-size:1px;margin:0px auto;width:552px;" role="presentation" width="552px" ><tr><td style="height:0;line-height:0;"> &nbsp;
+</td></tr></table><![endif]-->
+    
+    
+                </td>
+              </tr>
+            
+              <tr>
+                <td
+                   align="left" style="font-size:0px;padding:8px 24px;word-break:break-word;"
+                >
+                  
+      <div
+         style="font-family:Helvetica, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:#16202a;"
+      ><p style="margin:0">See you there.</p></div>
+    
+                </td>
+              </tr>
+            
+        </tbody>
+      </table>
+    
+      </div>
+    
+          <!--[if mso | IE]></td></tr></table><![endif]-->
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </div>
+    
+      
+      <!--[if mso | IE]></td></tr></table><![endif]-->
+    
+    
+      </div>
+      </body>
+    
+</html>
+  "
+`;
