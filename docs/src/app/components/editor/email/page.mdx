@@ -203,9 +203,9 @@ list. A button's label takes merge tags too.
 Click a chip to select it, and its toolbar shows below it: Edit merge tag and
 Remove merge tag. Edit merge tag opens a form to change which variable the
 tag shows and its fallback, the text anyone without a value sees. Each change
-shows in the email as you make it. Enter or a click away keeps them, as one
-step to undo, and Escape puts the tag back as it was. An empty fallback saves
-none. Without `variables`, `{{` is only text and `/` offers no Merge tag.
+shows in the email as you make it. Enter in Fallback or a click away keeps
+them, as one step to undo, and Escape puts the tag back as it was. An empty
+fallback saves none. Without `variables`, `{{` is only text and `/` offers no Merge tag.
 
 ### Unsubscribe and view-in-browser links
 
@@ -231,9 +231,9 @@ such as oztix.com.au, gets `https://`. The button's label is selected, so
 typing replaces it, and Enter in a button starts a new paragraph after it.
 
 Button settings, in the button's toolbar, edits its link and its look. Each
-change shows on the button as it's made, so there's no Save. Enter or a
-click away keeps the changes, as one step to undo, and Escape puts the button
-back as it was. A link applies once it's a full address, and the button keeps
+change shows on the button as it's made, so there's no Save. Enter in Link
+or a click away keeps the changes, as one step to undo, and Escape puts the
+button back as it was. A link applies once it's a full address, and the button keeps
 its last one until then.
 
 - **Emphasis:** Strong, a fill in the theme's accent, for the action that
@@ -274,7 +274,7 @@ so mail clients show it as designed, and its plain-text part.
 import { renderEmail } from '@oztix/roadie-editor/email'
 
 const { html, text } = await renderEmail({ kind: 'design', value: template }, {
-  theme: { link: '#5f270f', button: '#5f270f' }
+  theme: { accent: '#5f270f' }
 })
 ```
 
