@@ -245,6 +245,27 @@ describe('Editor email block handle', () => {
     )
   })
 
+  it('moves the caret’s block out of its column with Mod+Shift+ArrowDown', async () => {
+    const onValueChange = renderNewsletter()
+    await userEvent.click(await line('Right one'))
+
+    await userEvent.keyboard(`{${MOD}>}{Shift>}{ArrowDown}{/Shift}{/${MOD}}`)
+
+    await expectOutline(
+      onValueChange,
+      {
+        section: [
+          'Alpha one',
+          'Alpha two',
+          { columns: [{ column: ['Left one'] }, { column: [''] }] },
+          'Right one'
+        ]
+      },
+      { section: ['Bravo one'] },
+      'Closing'
+    )
+  })
+
   it('shows a section’s grip beside the whole section', async () => {
     renderNewsletter()
 
