@@ -306,6 +306,24 @@ function readHtml(source: string): Reading & { container: HTMLElement } {
   return { ...reading, container: doc.body }
 }
 
+function shownTextBefore(container: HTMLElement, hidden: Element) {
+  const walker = container.ownerDocument.createTreeWalker(
+    container,
+    NodeFilter.SHOW_TEXT
+  )
+  while (walker.nextNode()) {
+    const node = walker.currentNode
+    if (hidden.contains(node)) return false
+    const before =
+      node.compareDocumentPosition(hidden) & Node.DOCUMENT_POSITION_FOLLOWING
+    if (!before) return false
+    if (node.textContent?.trim() && !node.parentElement?.closest(HIDDEN)) {
+      return true
+    }
+  }
+  return false
+}
+
 function outermost(container: HTMLElement, selector: string) {
   return [...container.querySelectorAll(selector)].filter(
     (element) => !element.parentElement?.closest(selector)
@@ -369,8 +387,8 @@ function readTokens(
  * an email preset value, through `migrate`. MJML sections, columns, buttons,
  * images, spacers and dividers become the editor's own, and `mj-text` is read
  * as HTML. An HTML layout's tables give way to their text and images.
- * The first hidden text, or `mj-preview`, becomes the preheader, and any
- * other hidden text is dropped. Each token of a `variables`
+ * Hidden text before any the email shows, or `mj-preview`, becomes the
+ * preheader, and any other hidden text is dropped. Each token of a `variables`
  * entry becomes a merge tag, or a link variable as a link's or button's
  * whole href, and a Liquid `default` becomes its fallback.
  *
@@ -397,10 +415,11 @@ export function importEmail(
   container
     .querySelectorAll('script, noscript, template')
     .forEach((element) => element.remove())
-  // A sender's preheader is the first hidden text, before the email shows.
+  // A sender's preheader is hidden text before any the email shows.
   for (const hidden of outermost(container, HIDDEN)) {
     const text = preheaderOf(hidden.textContent)
-    if (text && !reading.preheader) reading.preheader = text
+    const first = !reading.preheader && !shownTextBefore(container, hidden)
+    if (text && first) reading.preheader = text
     else if (text) dropped.push({ kind: 'hidden' })
     hidden.remove()
   }

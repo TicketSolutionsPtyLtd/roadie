@@ -422,6 +422,14 @@ describe('importEmail from HTML', () => {
     expect(imported.dropped).toEqual([{ kind: 'hidden' }])
   })
 
+  it('drops hidden text after the email’s own as no preheader', () => {
+    const imported = importEmail(
+      '<p>Doors 7pm</p><div style="display:none">Shop the app</div>'
+    )
+    expect(imported.value.doc.attrs).toBeUndefined()
+    expect(imported.dropped).toEqual([{ kind: 'hidden' }])
+  })
+
   it('reads tokens as text without variables, listing each once', () => {
     const imported = importEmail(
       '<p>Hi #FirstName# and {{ x }}, {{ x }} [ViewInBrowserLink] [1]</p>'

@@ -52,6 +52,7 @@ import {
   migrate,
   presets
 } from '../schema'
+import { preheaderOf } from '../schema/preheader'
 import {
   BLOCK_ID,
   BLOCK_ID_TYPES,
@@ -293,7 +294,13 @@ function presetKeepsBlockIds(preset: Preset) {
 }
 
 function currentValue(editor: TiptapEditor, preset: Preset): EditorValue {
-  return { version: CURRENT_VERSION, preset, doc: savedDoc(editor.getJSON()) }
+  const doc = savedDoc(editor.getJSON())
+  // The field holds what's typed, spaces and all; the value holds the line.
+  const preheader = preheaderOf(doc.attrs?.preheader)
+  if (preheader) doc.attrs = { ...doc.attrs, preheader }
+  else if (doc.attrs) delete doc.attrs.preheader
+  if (doc.attrs && Object.keys(doc.attrs).length === 0) delete doc.attrs
+  return { version: CURRENT_VERSION, preset, doc }
 }
 
 function holdsDoc(
@@ -322,10 +329,16 @@ function savedDoc(json: JSONContent): JSONContent {
 // A block the value gives no id holds the one the editor gave it, or a parent
 // that keeps no ids would have the editor set its value, and new ids, forever.
 function holdsBlocks(held: ProseMirrorNode, given: ProseMirrorNode): boolean {
-  const filled =
-    given.attrs[BLOCK_ID] === null
-      ? { ...given.attrs, [BLOCK_ID]: held.attrs[BLOCK_ID] }
-      : given.attrs
+  const filled = {
+    ...given.attrs,
+    ...(given.attrs[BLOCK_ID] === null && { [BLOCK_ID]: held.attrs[BLOCK_ID] }),
+    // A preheader being typed saves trimmed, which mustn't reset the field.
+    ...(Object.hasOwn(given.attrs, 'preheader') &&
+      preheaderOf(held.attrs.preheader) ===
+        preheaderOf(given.attrs.preheader) && {
+        preheader: held.attrs.preheader
+      })
+  }
   if (
     !held.hasMarkup(given.type, filled, given.marks) ||
     held.text !== given.text ||

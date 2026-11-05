@@ -94,6 +94,12 @@ function ImportForm({
         .run()
     } else {
       addAtCaret(editor, doc.content ?? [])
+      // An email with no preheader of its own takes the source's.
+      if (doc.attrs?.preheader && !editor.state.doc.attrs.preheader) {
+        editor.view.dispatch(
+          withPreheader(editor.state.tr, doc.attrs.preheader)
+        )
+      }
     }
     onClose()
   }

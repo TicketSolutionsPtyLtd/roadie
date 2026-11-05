@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import {
   cleanup,
   render,
@@ -79,6 +81,32 @@ describe('Editor preheader', () => {
     expect(lastValue(onValueChange)?.doc.content).toEqual(email().doc.content)
   })
 
+  it('keeps the spaces typed in a controlled editor, saving the line', async () => {
+    const onValueChange = vi.fn()
+    function Controlled() {
+      const [value, setValue] = useState(email())
+      return (
+        <Editor
+          aria-label={LABEL}
+          value={value}
+          onValueChange={(next) => {
+            onValueChange(next)
+            setValue(next)
+          }}
+        />
+      )
+    }
+    render(<Controlled />)
+    const input = await previewText()
+
+    await userEvent.type(input, 'Two  weeks to go ')
+
+    expect(input).toHaveValue('Two  weeks to go ')
+    expect(lastValue(onValueChange)?.doc.attrs).toEqual({
+      preheader: 'Two weeks to go'
+    })
+  })
+
   it('saves none once it’s cleared', async () => {
     const onValueChange = renderEmail({ defaultValue: email('Two weeks') })
     const input = await previewText()
@@ -136,6 +164,30 @@ describe('Editor preheader', () => {
         within(dialog).getByRole('button', { name: 'Import' })
       )
     }
+
+    it('takes the source’s preheader below the cursor when the email has none', async () => {
+      const onValueChange = renderEmail()
+      await screen.findByRole('textbox', { name: LABEL })
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Import HTML or MJML' })
+      )
+      const dialog = await screen.findByRole('dialog', {
+        name: 'Import HTML or MJML'
+      })
+      await userEvent.fill(
+        within(dialog).getByRole('textbox', { name: 'Source' }),
+        '<div style="display:none">Sold out</div><p>Doors</p>'
+      )
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Import' })
+      )
+
+      await waitFor(() =>
+        expect(lastValue(onValueChange)?.doc.attrs).toEqual({
+          preheader: 'Sold out'
+        })
+      )
+    })
 
     it('keeps the preheader when the source has none', async () => {
       const onValueChange = renderEmail({ defaultValue: email('Two weeks') })
