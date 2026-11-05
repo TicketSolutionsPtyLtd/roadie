@@ -3,8 +3,6 @@ import { decorative } from '@tanstack/charts/mark/decorative'
 import { scaleBand } from '@tanstack/charts/scales/band'
 import { scaleLinear } from '@tanstack/charts/scales/linear'
 
-import { formatValue } from '@oztix/roadie-core/dataviz'
-
 import {
   categoryFit,
   categoryLabelMark,
@@ -18,7 +16,7 @@ import type {
   PlotDatum,
   PlotFrame
 } from '../plot/types'
-import { fullFormat, labelFormat, valueDomain } from '../plot/values'
+import { fullValue, labelFormat, shareValue, valueDomain } from '../plot/values'
 import { type FunnelRow, biggestDrop, funnelRows } from './steps'
 import { funnelTable } from './table'
 import type { FunnelProps } from './types'
@@ -27,15 +25,11 @@ const EMPTY = 'No one has started this yet'
 const SERIES = 'Steps'
 const VALUE_PADDING = 12
 
-const pct = (v: number) => formatValue(v, 'percent')
-const fullValue = (props: FunnelProps, v: number) =>
-  formatValue(v, fullFormat(props.format))
-
 // A phone has no room for the sentence; the tooltip and table keep it.
 function endLabel(props: FunnelProps, row: FunnelRow, frame: PlotFrame) {
-  if (row.ofPrevious === null) return labelFormat(props.format, row.value)
-  if (frame.band === 'narrow') return pct(row.ofPrevious)
-  return `${labelFormat(props.format, row.value)}, ${pct(row.ofPrevious)} of previous`
+  if (row.ofPrevious === null) return labelFormat(props, row.value)
+  if (frame.band === 'narrow') return shareValue(props, row.ofPrevious)
+  return `${labelFormat(props, row.value)}, ${shareValue(props, row.ofPrevious)} of previous`
 }
 
 const stepStyle = (paint: ChartPaint) => seriesStyles([SERIES], {}, paint)[0]!
@@ -122,7 +116,7 @@ export const funnel: ChartDefinition<FunnelProps> = {
     if (!first || !last) return 'Funnel'
     const drop = biggestDrop(rows)
     // Step labels stay as written, since they can hold names.
-    const reached = `${pct(last.ofFirst)} reached ${last.label} from ${first.label}`
+    const reached = `${shareValue(props, last.ofFirst)} reached ${last.label} from ${first.label}`
     return drop
       ? `${reached}. The biggest drop is before ${drop.label}`
       : reached
@@ -137,7 +131,7 @@ export const funnel: ChartDefinition<FunnelProps> = {
     const value = fullValue(props, row.value)
     return row.ofPrevious === null
       ? `${row.label}, ${value}`
-      : `${row.label}, ${value}, ${pct(row.ofPrevious)} of the previous step, ${pct(row.ofFirst)} of the first`
+      : `${row.label}, ${value}, ${shareValue(props, row.ofPrevious)} of the previous step, ${shareValue(props, row.ofFirst)} of the first`
   },
   tooltip(data, props, paint) {
     const row = rowFor(props, data[0]?.x)
@@ -154,10 +148,13 @@ export const funnel: ChartDefinition<FunnelProps> = {
         ...(row.ofPrevious === null
           ? []
           : [
-              { label: 'Of previous', value: pct(row.ofPrevious) },
+              {
+                label: 'Of previous',
+                value: shareValue(props, row.ofPrevious)
+              },
               { label: 'Dropped', value: fullValue(props, row.dropped ?? 0) }
             ]),
-        { label: 'Of first', value: pct(row.ofFirst) }
+        { label: 'Of first', value: shareValue(props, row.ofFirst) }
       ]
     }
   }

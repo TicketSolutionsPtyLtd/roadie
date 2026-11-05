@@ -2,6 +2,8 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { Dialog } from '@oztix/roadie-components/dialog'
+
 import { Editor } from '.'
 import type { EditorValue, JSONContent } from '../schema'
 import { LINE_END, MOD } from './testUtils'
@@ -114,6 +116,30 @@ describe('Editor email blocks', () => {
     )
   })
 
+  it('keeps the text link form under its text as its container scrolls', async () => {
+    render(
+      <div data-testid='scroller' style={{ height: 300, overflowY: 'auto' }}>
+        <Editor
+          aria-label={LABEL}
+          preset='email'
+          defaultValue={email(p('Lineup'))}
+        />
+        <div style={{ height: 1000 }} />
+      </div>
+    )
+    await clickText('Lineup')
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const popup = () => document.querySelector('[data-slot="popover-popup"]')!
+    await waitFor(() => expect(popup()).toBeInTheDocument())
+    const before = popup().getBoundingClientRect().top
+
+    screen.getByTestId('scroller').scrollTop = 100
+
+    await waitFor(() =>
+      expect(popup().getBoundingClientRect().top).toBeCloseTo(before - 100, 0)
+    )
+  })
+
   it.each(['/tickets', 'javascript:alert(1)'])(
     'refuses %s as a button link',
     async (href) => {
@@ -155,6 +181,29 @@ describe('Editor email blocks', () => {
     await saved(
       onValueChange,
       email(button('https://oztix.com.au', 'Buy tickets'), p('Doors 7pm'), p())
+    )
+  })
+
+  it('deletes the selected text before Enter leaves a button', async () => {
+    const onValueChange = renderEmail(
+      email(button('https://oztix.com.au', 'Buy tickets'), p('Doors 7pm'))
+    )
+    await userEvent.dblClick(await screen.findByText('Buy tickets'), {
+      position: { x: 60, y: 8 }
+    })
+    await waitFor(() =>
+      expect(document.getSelection()?.toString()).toBe('tickets')
+    )
+
+    await userEvent.keyboard('{Enter}All ages')
+
+    await saved(
+      onValueChange,
+      email(
+        button('https://oztix.com.au', 'Buy '),
+        p('All ages'),
+        p('Doors 7pm')
+      )
     )
   })
 
@@ -220,6 +269,40 @@ describe('Editor email blocks', () => {
     await saved(onValueChange, value)
   })
 
+  it('moves a removed column’s button even with no label', async () => {
+    const unlabelled = {
+      type: 'button',
+      attrs: { href: 'https://oztix.com.au' }
+    }
+    const onValueChange = renderEmail(
+      email({
+        type: 'columns',
+        content: [
+          { type: 'column', content: [p('Lineup')] },
+          { type: 'column', content: [p('Tickets')] },
+          { type: 'column', content: [unlabelled] }
+        ]
+      })
+    )
+    await clickText('Lineup')
+
+    await choose('Columns: 3 columns', '2 columns')
+
+    await saved(
+      onValueChange,
+      email(
+        {
+          type: 'columns',
+          content: [
+            { type: 'column', content: [p('Lineup')] },
+            { type: 'column', content: [p('Tickets'), unlabelled] }
+          ]
+        },
+        p()
+      )
+    )
+  })
+
   it('keeps typing in its line when that line’s column is removed', async () => {
     const onValueChange = renderEmail(
       email(
@@ -269,6 +352,100 @@ describe('Editor email blocks', () => {
       })
     }
   )
+
+  it('places a selected spacer’s toolbar below it', async () => {
+    renderEmail(email(p('Doors 7pm'), { type: 'spacer' }, p('Gates 11am')))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const spacer = textbox.querySelector('[data-type="spacer"]')!
+    await userEvent.click(spacer)
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Spacer actions'
+    })
+    await waitFor(() => {
+      const bar = toolbar.getBoundingClientRect()
+      const box = spacer.getBoundingClientRect()
+      expect(Math.round(bar.left)).toBe(Math.round(box.left))
+      expect(bar.top).toBeGreaterThanOrEqual(box.bottom)
+    })
+  })
+
+  it('places the columns toolbar below columns that start the content', async () => {
+    renderEmail(email(columns(['Lineup'], ['Tickets']), p('Doors 7pm')))
+    await clickText('Lineup')
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Columns actions'
+    })
+    const node = document.querySelector('[data-type="columns"]')!
+    await waitFor(() =>
+      expect(toolbar.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        node.getBoundingClientRect().bottom
+      )
+    )
+  })
+
+  it('leaves a block’s toolbar on Escape without closing the dialog around it', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <Dialog.Content>
+          <Dialog.Title>Compose</Dialog.Title>
+          <Editor
+            aria-label={LABEL}
+            preset='email'
+            defaultValue={email(columns(['Lineup'], ['Tickets']))}
+          />
+        </Dialog.Content>
+      </Dialog>
+    )
+    await clickText('Lineup')
+    const trigger = await screen.findByRole('button', {
+      name: 'Columns: 2 columns'
+    })
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    await waitFor(() => expect(trigger).toHaveFocus())
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+    )
+    expect(onOpenChange).not.toHaveBeenCalled()
+  })
+
+  it('leaves the Formatting toolbar on Escape without closing the dialog around it', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <Dialog.Content>
+          <Dialog.Title>Compose</Dialog.Title>
+          <Editor
+            aria-label={LABEL}
+            preset='rich'
+            defaultValue={{
+              version: 1,
+              preset: 'rich',
+              doc: email(p('Lineup')).doc
+            }}
+          />
+        </Dialog.Content>
+      </Dialog>
+    )
+    await clickText('Lineup')
+    const toolbar = await screen.findByRole('toolbar', { name: 'Formatting' })
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    await waitFor(() =>
+      expect(toolbar.contains(document.activeElement)).toBe(true)
+    )
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+    )
+    expect(onOpenChange).not.toHaveBeenCalled()
+  })
 
   it('sets a selected spacer’s height', async () => {
     const onValueChange = renderEmail(

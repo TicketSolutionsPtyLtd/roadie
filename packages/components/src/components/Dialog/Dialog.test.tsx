@@ -295,7 +295,7 @@ describe('Dialog (assembled)', () => {
         <Dialog.Content>
           <Dialog.Header>
             {/* A decorative strong-emphasis tile sits before the footer in
-                DOM order — it must not be mistaken for the primary action. */}
+                DOM order; it must not be mistaken for the primary action. */}
             <div className='emphasis-strong' data-slot='icon-tile' />
             <Dialog.Title>Save changes?</Dialog.Title>
           </Dialog.Header>

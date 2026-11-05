@@ -55,7 +55,10 @@ export default async function TokensPage() {
       </PreviewSection>
 
       <section className='grid gap-6'>
-        <h2 className='text-display-ui-3 text-strong'>
+        <h2
+          id='reach-for-the-highest-layer'
+          className='text-display-ui-3 text-strong'
+        >
           Reach for the highest layer
         </h2>
         <Guideline
@@ -89,7 +92,12 @@ export default async function TokensPage() {
       </section>
 
       <section className='grid gap-3'>
-        <h2 className='text-display-ui-3 text-strong'>Dark mode and theming</h2>
+        <h2
+          id='dark-mode-and-theming'
+          className='text-display-ui-3 text-strong'
+        >
+          Dark mode and theming
+        </h2>
         <p className='text-subtle'>
           The <Code>.dark</Code> class on <Code>&lt;html&gt;</Code> swaps every
           scale&apos;s values, so no <Code>dark:</Code> variants are needed. The

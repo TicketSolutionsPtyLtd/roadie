@@ -18,6 +18,7 @@ export function StepsIndicator({
       className={cn(
         'flex size-10 shrink-0 items-center justify-center rounded-full border text-lg font-black outline-0 outline-offset-0 outline-[color-mix(in_oklch,var(--color-accent-9)_var(--focus-ring-opacity),transparent)] transition-all duration-200 ease-out',
         'border-subtle bg-raised text-subtler',
+        // The step's trigger is the control; its hover rings this indicator.
         'group-hover/step:outline-[length:var(--focus-ring-width)]',
         'data-current:border-normal data-current:bg-subtle data-current:text-subtle',
         'data-complete:emphasis-strong',

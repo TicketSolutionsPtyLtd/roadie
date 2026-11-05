@@ -209,7 +209,7 @@ describe('renderEmail', () => {
     expect(html).toContain(`background-color:${defaultEmailTheme.background}`)
     expect(plain).toBe(
       [
-        'OCHRE KITE WEEKENDER',
+        'Ochre Kite Weekender',
         '',
         'Doors open 7pm at Jumbuck Orchard Park',
         `[${tickets}].`,
@@ -273,6 +273,18 @@ describe('renderEmail', () => {
       expect(html).toContain('Go &lt;b&gt;')
     })
 
+    it('writes an ordered list’s start and type only when valid', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'orderedList',
+          attrs: { start: '2"><script>x</script>', type: '"><script>x' },
+          content: [{ type: 'listItem', content: [p(text('Food trucks'))] }]
+        })
+      )
+      expect(html).not.toContain('<script>')
+      expect(html).toContain('<ol style=')
+    })
+
     it('drops a node the email preset doesn’t hold, keeping its text', async () => {
       const { html, text: plain } = await renderEmail(
         email(
@@ -300,6 +312,21 @@ describe('renderEmail', () => {
         })
       ).rejects.toThrow(TypeError)
     })
+  })
+
+  it('links no web font, even for a font MJML knows', async () => {
+    const { html } = await renderEmail(email(p(text('Hi'))), {
+      theme: { fontFamily: 'Roboto, Arial, sans-serif' }
+    })
+    expect(html).toContain('font-family:Roboto, Arial, sans-serif')
+    expect(html).not.toContain('fonts.googleapis.com')
+  })
+
+  it('keeps a heading’s case in the plain text, so a merge tag still matches', async () => {
+    const { text: plain } = await renderEmail(
+      email(heading(2, 'See you soon, {{ first_name }}'))
+    )
+    expect(plain).toBe('See you soon, {{ first_name }}')
   })
 
   it('starts and ends the plain text at its words', async () => {
@@ -333,7 +360,7 @@ describe('renderEmail', () => {
     expect(html).toContain('<h2 ')
     expect(html).not.toContain('<blockquote')
     expect(html).not.toContain('<img')
-    expect(plain).toBe('LINEUP\n\nBest weekend of the year.')
+    expect(plain).toBe('Lineup\n\nBest weekend of the year.')
   })
 
   describe('merge tags', () => {

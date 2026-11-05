@@ -363,4 +363,32 @@ describe('validateRecordView', () => {
       { field: 'created', operator: 'within', value: 'last-quarter' }
     ])
   })
+
+  it.each([
+    {
+      filter: { field: 'name', operator: 'contains', value: 'ends in \\' },
+      path: 'query.filters[0].value'
+    },
+    {
+      filter: {
+        field: 'venue',
+        operator: 'is',
+        values: ['fine', 'holds \\" here']
+      },
+      path: 'query.filters[0].values[1]'
+    }
+  ])(
+    'warns of a value Meilisearch can’t read back, keeping the view: $path',
+    ({ filter, path }) => {
+      const result = validateRecordView(view([filter]), eventFields)
+      expect(result.ok).toBe(true)
+      expect(result.problems).toEqual([
+        expect.objectContaining({
+          severity: 'warning',
+          path,
+          message: expect.stringContaining('Meilisearch')
+        })
+      ])
+    }
+  )
 })

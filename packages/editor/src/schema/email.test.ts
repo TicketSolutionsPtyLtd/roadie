@@ -158,6 +158,8 @@ describe('presets.email', () => {
   it.each([
     ['/images/crowd.webp', false],
     ['http://assets.oztix.com.au/crowd.webp', false],
+    ['https://assets.oztix.com.au/the crowd.webp', false],
+    ['https://[oztix/crowd.webp', false],
     [poster, expect.objectContaining({ src: poster })]
   ])('reads a pasted image from %s as %j', (src, read) => {
     expect(pastedAttrs('image', pastedImage(src))).toEqual(read)
@@ -170,7 +172,8 @@ describe('presets.email', () => {
     ['javascript:alert(1)', false],
     ['/ochre-kite-weekender', false],
     ['mailto:', false],
-    ['https://', false]
+    ['https://', false],
+    ['https://www.oztix .com.au', false]
   ])('reads a pasted button to %s as %j', (href, read) => {
     expect(pastedAttrs('button', pastedButton(href))).toEqual(read)
   })
@@ -266,6 +269,37 @@ describe('migrate and the email preset', () => {
   })
 
   it.each([
+    [
+      'a button straight in a list as an item of its label',
+      { type: 'bulletList', content: [button(tickets)] },
+      list([p('Get tickets')])
+    ],
+    [
+      'columns straight in a list as an item of their blocks',
+      {
+        type: 'orderedList',
+        content: [columns(column(p('a')), column(p('b'), button(tickets)))]
+      },
+      {
+        type: 'orderedList',
+        content: [
+          { type: 'listItem', content: [p('a'), p('b'), p('Get tickets')] }
+        ]
+      }
+    ],
+    [
+      'an image straight in a list as an empty item',
+      { type: 'bulletList', content: [p('a'), image(poster)] },
+      list([p('a')], [{ type: 'paragraph' }])
+    ]
+  ])('reads %s, which the schema can load', (_, stored, read) => {
+    const migrated = readEmail(doc(stored))
+
+    expect(migrated).toEqual(doc(read))
+    expect(() => parse(migrated)).not.toThrow()
+  })
+
+  it.each([
     ['javascript:alert(1)'],
     ['data:text/html,<script>alert(1)</script>'],
     ['/ochre-kite-weekender'],
@@ -339,6 +373,7 @@ describe('migrate and the email preset', () => {
   it.each([
     [40, 40],
     [40.4, 40],
+    [40.6, 41],
     [2, 8],
     [500, 160],
     ['40', 32],

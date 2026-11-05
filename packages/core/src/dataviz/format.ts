@@ -1,3 +1,15 @@
+import {
+  HOUSE_CURRENCY,
+  currencyFormat,
+  isHouseCurrency
+} from '../number/currency'
+import {
+  type TrailingZeroDisplay,
+  decimalPlaces,
+  fractionDigits
+} from '../number/places'
+import { intlFormatter } from '../utils/intlCache'
+
 export type ValueFormat =
   | 'number'
   | 'compact'
@@ -6,22 +18,22 @@ export type ValueFormat =
   | 'compactCurrency'
   | 'points'
   | 'index'
+export type ValueFormatOptions = {
+  /** Fixed decimal places for number, percent, points, and currency, from none to four: 2 reads 1.27% and $3,116.00. A chart's shares follow it, and its axis ticks stay short. Compact formats and index ignore it. @default the currency's own for currency */
+  decimals?: number
+  /** `stripIfInteger` drops the decimals from a whole value: $3,116 instead of $3,116.00. @default 'auto' */
+  trailingZeroDisplay?: TrailingZeroDisplay
+}
 export type GoodWhen = 'up' | 'down' | 'neither'
 export type DeltaSentiment = 'good' | 'bad' | 'neutral'
+
+type FormatterOptions = ValueFormatOptions & { currencyCode?: string }
 
 const LOCALE = 'en-AU'
 const NOT_AVAILABLE = 'Not available'
 
-const formatters = new Map<string, Intl.NumberFormat>()
-
-function numberFormat(options: Intl.NumberFormatOptions) {
-  const key = JSON.stringify(options)
-  const cached = formatters.get(key)
-  if (cached) return cached
-  const formatter = new Intl.NumberFormat(LOCALE, options)
-  formatters.set(key, formatter)
-  return formatter
-}
+const numberFormat = (options: Intl.NumberFormatOptions) =>
+  intlFormatter(Intl.NumberFormat, LOCALE, options)
 
 export function normalizeMinusSign(text: string) {
   return text.replace(/−/g, '-')
@@ -29,6 +41,14 @@ export function normalizeMinusSign(text: string) {
 
 const number = (value: number, maximumFractionDigits = 1) =>
   numberFormat({ maximumFractionDigits }).format(value)
+
+const plain = (
+  value: number,
+  { decimals, trailingZeroDisplay }: FormatterOptions
+) =>
+  decimals === undefined
+    ? number(value)
+    : numberFormat(fractionDigits(decimals, trailingZeroDisplay)).format(value)
 
 const roundToOneDecimal = (value: number) => Math.round(value * 10) / 10
 
@@ -54,18 +74,45 @@ function compact(value: number) {
   return `${sign}${number(compactUnit(abs, 1_000_000))}m`
 }
 
-function currency(value: number) {
-  const round = Number.isInteger(value)
-  return numberFormat({
-    style: 'currency',
-    currency: 'AUD',
-    currencyDisplay: 'narrowSymbol',
-    minimumFractionDigits: round ? 0 : 2,
-    maximumFractionDigits: round ? 0 : 2
-  }).format(value)
+function currency(
+  value: number,
+  { decimals, trailingZeroDisplay, currencyCode }: FormatterOptions
+) {
+  // Firefox before 116 ignores trailingZeroDisplay and would show $1,200.00.
+  const strip = trailingZeroDisplay === 'stripIfInteger'
+  return numberFormat(
+    currencyFormat({
+      currency: currencyCode ?? HOUSE_CURRENCY,
+      decimals: strip && Number.isInteger(value) ? 0 : decimals,
+      trailingZeroDisplay
+    })
+  ).format(value)
 }
 
-function percent(value: number) {
+// Intl's compact reads $118.4K; the house suffix is lowercase.
+function compactCurrency(value: number, { currencyCode }: FormatterOptions) {
+  const code = currencyCode ?? HOUSE_CURRENCY
+  if (Math.abs(value) < 1_000)
+    return currency(value, {
+      currencyCode: code,
+      trailingZeroDisplay: 'stripIfInteger'
+    })
+  if (!isHouseCurrency(code))
+    return numberFormat(
+      currencyFormat({ currency: code, compact: true })
+    ).format(value)
+  return `${value < 0 ? '-' : ''}$${compact(Math.abs(value))}`
+}
+
+function percent(
+  value: number,
+  { decimals, trailingZeroDisplay }: FormatterOptions
+) {
+  if (decimals !== undefined)
+    return numberFormat({
+      style: 'percent',
+      ...fractionDigits(decimals, trailingZeroDisplay)
+    }).format(value)
   const digits = Math.abs(value) < 0.1 && !Number.isInteger(value * 100) ? 1 : 0
   return numberFormat({
     style: 'percent',
@@ -73,29 +120,60 @@ function percent(value: number) {
   }).format(value)
 }
 
-const points = (value: number) =>
-  `${number(value)} ${Math.abs(value) === 1 ? 'pt' : 'pts'}`
+const readsAsOne = (shown: string) => /^-?1$/.test(shown)
 
-const FORMATTERS: Record<ValueFormat, (value: number) => string> = {
-  number: (value) => number(value),
+function points(value: number, options: FormatterOptions) {
+  const shown = plain(value, options)
+  return `${shown} ${readsAsOne(shown) ? 'pt' : 'pts'}`
+}
+
+const FORMATTERS: Record<
+  ValueFormat,
+  (value: number, options: FormatterOptions) => string
+> = {
+  number: plain,
   compact,
   percent,
   currency,
-  compactCurrency: (value) =>
-    Math.abs(value) >= 1_000
-      ? `${value < 0 ? '-' : ''}$${compact(Math.abs(value))}`
-      : currency(value),
+  compactCurrency,
   points,
   index: (value) => number(Math.round(value), 0)
 }
 
-export function formatValue(value: number, format: ValueFormat = 'number') {
-  if (!Number.isFinite(value)) return NOT_AVAILABLE
-  return normalizeMinusSign(FORMATTERS[format](value))
+export function formatValue(
+  value: number,
+  format: ValueFormat = 'number',
+  options: ValueFormatOptions = {}
+) {
+  return formatValueInCurrency(value, format, undefined, options)
 }
 
-export function formatDelta(value: number, format: ValueFormat = 'number') {
-  return formatValue(Math.abs(value), format)
+/** `formatValue`, with money in the given currency. Core only. */
+export function formatValueInCurrency(
+  value: number,
+  format: ValueFormat = 'number',
+  currencyCode?: string,
+  { decimals, trailingZeroDisplay }: ValueFormatOptions = {}
+) {
+  if (!Number.isFinite(value)) return NOT_AVAILABLE
+  const text = normalizeMinusSign(
+    FORMATTERS[format](value, {
+      decimals: decimalPlaces(decimals),
+      trailingZeroDisplay,
+      currencyCode
+    })
+  )
+  // A value that rounds to zero keeps Intl's minus (-0, -$0). signDisplay
+  // 'negative' would drop it, but engines before 2023 throw on that value.
+  return /[1-9]/.test(text) ? text : text.replace('-', '')
+}
+
+export function formatDelta(
+  value: number,
+  format: ValueFormat = 'number',
+  options?: ValueFormatOptions
+) {
+  return formatValue(Math.abs(value), format, options)
 }
 
 export function deltaSentiment(
@@ -113,18 +191,23 @@ const MEANING: Record<DeltaSentiment, string> = {
   neutral: ''
 }
 
-function spokenDelta(change: number, format: ValueFormat) {
-  if (format !== 'points') return formatDelta(change, format)
-  const size = Math.abs(change)
-  return `${number(size)} ${size === 1 ? 'point' : 'points'}`
+function spokenDelta(
+  change: number,
+  format: ValueFormat,
+  options?: ValueFormatOptions
+) {
+  if (format !== 'points') return formatDelta(change, format, options)
+  const size = formatValue(Math.abs(change), 'number', options)
+  return `${size} ${readsAsOne(size) ? 'point' : 'points'}`
 }
 
 export function describeDelta(
   change: number,
   format: ValueFormat = 'number',
-  goodWhen: GoodWhen = 'up'
+  goodWhen: GoodWhen = 'up',
+  options?: ValueFormatOptions
 ) {
   if (change === 0 || !Number.isFinite(change)) return 'no change'
   const direction = change > 0 ? 'up' : 'down'
-  return `${direction} ${spokenDelta(change, format)}${MEANING[deltaSentiment(change, goodWhen)]}`
+  return `${direction} ${spokenDelta(change, format, options)}${MEANING[deltaSentiment(change, goodWhen)]}`
 }

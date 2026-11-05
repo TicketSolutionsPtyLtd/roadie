@@ -116,13 +116,15 @@ describe('pageForComponent', () => {
     page('/charts/forms/', ['Select']),
     page('/components/badge/', []),
     page('/patterns/select/', []),
-    page('/components/select/', ['Select'])
+    page('/components/select/', ['Select']),
+    page('/foundations/records/', [])
   ]
 
   it.each([
     ['Button', '/components/button/', true],
     ['IconButton', '/components/icon-button/', true],
     ['RecordValue', '/components/record-table/', false],
+    // A page that lists it beats one that only shares its name.
     ['Records', '/components/record-table/', false],
     ['DataCard', '/charts/data-card/', true],
     ['Select', '/components/select/', true],
