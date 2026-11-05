@@ -200,6 +200,49 @@ describe('Editor.BubbleMenu', () => {
     await noMenu()
   })
 
+  it('shows over a selection from a button’s label into text that takes marks', async () => {
+    render(
+      <BubbleEditor
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'button',
+                attrs: { href: 'https://example.com/tickets' },
+                content: [{ type: 'text', text: 'Get tickets' }]
+              },
+              paragraph('Gates open at 4pm')
+            ]
+          }
+        }}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Get tickets'))
+    await userEvent.keyboard(
+      `${LINE_END}{Shift>}{ArrowRight}{ArrowRight}{ArrowRight}{/Shift}`
+    )
+
+    expect(itemsOf(await menu())).toEqual([
+      'Bold',
+      'Italic',
+      'Underline',
+      'Link'
+    ])
+  })
+
+  it('shows when everything is selected', async () => {
+    render(<BubbleEditor />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Gates open at 4pm'))
+    await userEvent.keyboard(`{${MOD}>}a{/${MOD}}`)
+
+    await waitFor(async () => expect(await menu()).toBeVisible())
+  })
+
   describe('over text in columns', () => {
     const inColumns: EditorValue = {
       version: 1,
@@ -288,7 +331,11 @@ describe('Editor.BubbleMenu', () => {
       expect(lastValue(onValueChange).doc.content?.[1]).toEqual({
         type: 'paragraph',
         content: [
-          { type: 'text', marks: [{ type: 'bold' }], text: 'Gates open at 4pm' }
+          {
+            type: 'text',
+            marks: [{ type: 'bold' }],
+            text: 'Gates open at 4pm'
+          }
         ]
       })
     )

@@ -23,12 +23,16 @@ function selectsText({ selection, doc, schema }: EditorState) {
   // A Mod-click selects the block, which has its own text.
   if (selection instanceof NodeSelection) return false
   if (selection instanceof CellSelection) return false
-  // Such as an email button's label.
-  const block = selection.$from.parent.type
-  if (!Object.values(schema.marks).some((mark) => block.allowsMarkType(mark))) {
-    return false
-  }
-  return doc.textBetween(selection.from, selection.to).length > 0
+  const marks = Object.values(schema.marks)
+  let formattable = false
+  doc.nodesBetween(selection.from, selection.to, (node, _pos, parent) => {
+    // Not an email button's label, which takes no marks.
+    formattable ||=
+      node.isText &&
+      marks.some((mark) => parent?.type.allowsMarkType(mark) ?? false)
+    return !formattable
+  })
+  return formattable
 }
 
 const OFFSET = 8
@@ -40,7 +44,12 @@ export const RESIZE_DELAY = 80
 
 // As the root boundary, so a scrolling container still clips the flip.
 const between = (top: number, bottom: number) => ({
-  rootBoundary: { x: 0, y: top, width: window.innerWidth, height: bottom - top }
+  rootBoundary: {
+    x: 0,
+    y: top,
+    width: window.innerWidth,
+    height: bottom - top
+  }
 })
 
 /**
