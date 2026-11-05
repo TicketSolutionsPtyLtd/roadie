@@ -36,14 +36,16 @@ export function emailSourceFormat(source: string): EmailSourceFormat {
 
 // What each MJML element carries across, beyond the padding the email's own
 // spacing replaces. Anything else is styling.
-const MAPPED_ATTRS: Record<string, readonly string[]> = {
-  'mj-button': ['href', 'align', 'target', 'rel', 'title', 'name'],
-  'mj-image': ['src', 'alt', 'width', 'href', 'target', 'rel', 'title', 'name'],
-  'mj-spacer': ['height'],
-  'mj-hero': ['background-url'],
-  'mj-navbar-link': ['href', 'target', 'rel'],
-  'mj-social-element': ['href', 'name', 'target', 'rel']
-}
+const MAPPED_ATTRS = new Map<string, readonly string[]>([
+  ['mj-button', ['href', 'align', 'target', 'rel', 'title', 'name']],
+  [
+    'mj-image',
+    ['src', 'alt', 'width', 'href', 'target', 'rel', 'title', 'name']
+  ],
+  ['mj-spacer', ['height']],
+  ['mj-navbar-link', ['href', 'target', 'rel']],
+  ['mj-social-element', ['href', 'name', 'target', 'rel']]
+])
 const LAYOUT_ATTR = /^(?:padding|inner-padding|css-class|mj-class)/
 
 const STYLED = '[style], [bgcolor], [background], font'
@@ -58,7 +60,7 @@ type Reading = {
 const tagOf = (element: Element) => element.localName
 
 function isStyled(element: Element) {
-  const mapped = MAPPED_ATTRS[tagOf(element)] ?? []
+  const mapped = MAPPED_ATTRS.get(tagOf(element)) ?? []
   return [...element.attributes].some(
     ({ name, value }) =>
       !mapped.includes(name) &&
@@ -231,8 +233,6 @@ function bodyNodes(reading: Reading, element: Element): Node[] {
       ]
     case 'mj-hero': {
       if (isStyled(element)) reading.styles += 1
-      const background = element.getAttribute('background-url')
-      if (background) reading.dropped.push(report('image', background))
       return [
         section(
           reading,
@@ -277,6 +277,10 @@ function readMjml(source: string): Reading & { container: HTMLElement } {
       .filter((child) => tagOf(child) !== 'mj-head')
       .flatMap((child) => bodyNodes(reading, child))
   )
+  for (const sheet of container.querySelectorAll('style')) {
+    reading.styles += 1
+    sheet.remove()
+  }
   return { ...reading, container }
 }
 
@@ -374,6 +378,10 @@ export function importEmail(
   const format = emailSourceFormat(source)
   const reading = format === 'mjml' ? readMjml(source) : readHtml(source)
   const { container, dropped } = reading
+  // Never shown, so their text holds no merge tags to report.
+  container
+    .querySelectorAll('script, noscript, template')
+    .forEach((element) => element.remove())
   for (const hidden of outermost(container, HIDDEN)) {
     dropped.push({ kind: 'hidden' })
     hidden.remove()

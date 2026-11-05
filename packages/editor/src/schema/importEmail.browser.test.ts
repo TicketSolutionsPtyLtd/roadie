@@ -416,6 +416,75 @@ describe('importEmail from HTML', () => {
   })
 })
 
+describe('importEmail with unsafe source', () => {
+  it('keeps no script, handler, or javascript: link', () => {
+    const imported = importEmail(
+      mjml(`<mj-section><mj-column>
+        <mj-button href="javascript:alert(1)">Get tickets</mj-button>
+        <mj-navbar><mj-navbar-link href="javascript:alert(1)">Home</mj-navbar-link></mj-navbar>
+        <mj-image src="https://cdn.oztix.com.au/hero.jpg" onerror="alert(1)" />
+        <mj-raw><script>alert(1)</script><a href=" JaVaScRiPt:alert(1)" onclick="alert(1)">Lineup</a></mj-raw>
+      </mj-column></mj-section>`)
+    )
+
+    expect(imported.value.doc.content).toEqual([
+      paragraph(text('Get tickets')),
+      paragraph(text('Home')),
+      {
+        type: 'image',
+        attrs: {
+          src: 'https://cdn.oztix.com.au/hero.jpg',
+          alt: '',
+          width: null
+        }
+      },
+      paragraph(text('Lineup'))
+    ])
+  })
+
+  it('reports an image on a path of the site, which an email can’t load', () => {
+    const imported = importEmail('<p>Doors</p><img src="/poster.jpg" alt="">')
+
+    expect(imported.dropped).toEqual([{ kind: 'image', src: '/poster.jpg' }])
+    expect(imported.value.doc.content).toEqual([paragraph(text('Doors'))])
+  })
+
+  it('counts a hero’s background as a style, not an image off https', () => {
+    const imported = importEmail(
+      mjml(
+        '<mj-hero background-url="https://cdn.oztix.com.au/hero.jpg"><mj-text>All ages</mj-text></mj-hero>'
+      )
+    )
+
+    expect(imported.dropped).toEqual([])
+    expect(imported.restyled).toEqual({ styles: 1, tables: 0 })
+  })
+
+  it('reads no merge tags in a script, and counts a sheet in MJML text', () => {
+    const html = importEmail(
+      '<p>Hi</p><script>const name = "{{ customer.name }}"</script>'
+    )
+    const fromMjml = importEmail(
+      mjml(
+        '<mj-section><mj-column><mj-raw><style>.cta { color: red }</style></mj-raw><mj-text>Hi</mj-text></mj-column></mj-section>'
+      )
+    )
+
+    expect(html.unknownMergeTags).toEqual([])
+    expect(fromMjml.restyled).toEqual({ styles: 1, tables: 0 })
+  })
+
+  it('reads an element named like an object key as any other', () => {
+    expect(
+      blocks(
+        mjml(
+          '<mj-section><mj-column><constructor title="Doors">Doors</constructor></mj-column></mj-section>'
+        )
+      )
+    ).toEqual([paragraph(text('Doors'))])
+  })
+})
+
 // MJML's own reader takes XML; this writes its JSON tree as that.
 function asMjml({ tagName, attributes, children, content }: MjmlNode): string {
   const attrs = Object.entries(attributes)

@@ -1,13 +1,19 @@
 import { type JSONContent, getSchema } from '@tiptap/core'
 import { type Schema, DOMParser as SchemaParser } from '@tiptap/pm/model'
 
+import { isEmailImageSrc } from './emailAttrs'
 import {
   type EmbedProvider,
   defaultEmbedProviders,
   parseEmbedUrl
 } from './embed'
 import { isSafeImageSrc } from './imageSrc'
-import { type Preset, isPreset, presetShapes } from './presetShapes'
+import {
+  type Preset,
+  type PresetShape,
+  isPreset,
+  presetShapes
+} from './presetShapes'
 import { presets } from './presets'
 import { CURRENT_VERSION, type EditorValue, migrate } from './value'
 
@@ -65,8 +71,10 @@ function keptMedia(
   providers: readonly EmbedProvider[]
 ) {
   const dropped: DroppedContent[] = []
-  const canHoldImages = Object.hasOwn(presetShapes[preset].nodes, 'image')
-  const canHoldTables = Object.hasOwn(presetShapes[preset].nodes, 'table')
+  const shape: PresetShape = presetShapes[preset]
+  const canHoldImages = Object.hasOwn(shape.nodes, 'image')
+  const isKeptSrc = shape.httpsImages ? isEmailImageSrc : isSafeImageSrc
+  const canHoldTables = Object.hasOwn(shape.nodes, 'table')
   for (const element of body.querySelectorAll(
     'img, iframe, video, audio, object, embed'
   )) {
@@ -74,7 +82,7 @@ function keptMedia(
     const src = element.getAttribute('src')
     const inCell = canHoldTables && element.closest('td, th') !== null
     if (element.localName === 'img') {
-      if (canHoldImages && !inCell && isSafeImageSrc(src)) continue
+      if (canHoldImages && !inCell && isKeptSrc(src)) continue
       dropped.push(report('image', src))
     } else if (element.localName === 'iframe') {
       const embed = inCell ? null : embedFor(element, preset, providers)
