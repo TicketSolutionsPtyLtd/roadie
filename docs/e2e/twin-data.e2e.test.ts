@@ -5,6 +5,7 @@ import { type Browser, type Page, chromium, firefox, webkit } from 'playwright'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { TOKEN_FAMILY_PAGES } from '../src/lib/token-families'
+import { settled } from './routerReady'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 // Each rendered docs component, by page and slot, against the markdown twin
@@ -76,7 +77,7 @@ async function load(route: string) {
   await serveExport(context)
   const page = await context.newPage()
   await page.goto(`${ORIGIN}${BASE_PATH}${route}/`)
-  await page.waitForLoadState('networkidle')
+  await settled(page)
   return page
 }
 

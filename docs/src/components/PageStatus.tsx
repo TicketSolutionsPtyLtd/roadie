@@ -19,7 +19,7 @@ export type PageStatusInfo = { status: PageStatus; release: PageRelease }
 const CHANGELOG = '/overview/changelog'
 const UNRELEASED = `${CHANGELOG}/unreleased`
 
-const linkClass = 'font-medium text-strong underline-offset-4 hover:underline'
+const linkClass = 'font-medium text-strong link-subtle'
 
 function ReleaseLink({
   href,
@@ -160,7 +160,7 @@ function StatusBadge({ status, size }: { status: PageStatus; size?: 'sm' }) {
 /** The navigation's badge for an alpha, beta, or deprecated page. */
 export function navBadge(status: PageStatus | undefined) {
   if (!status || !STATUS_DETAILS[status].flagged) return undefined
-  return <StatusBadge status={status} />
+  return <StatusBadge status={status} size='sm' />
 }
 
 /** Each status as its badge, with what it means. */

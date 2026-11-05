@@ -60,3 +60,17 @@ export const dailyOrdersExample: BarChartProps = {
   y: 'orders',
   takeaway: 'Orders peak on Fridays and grow each week'
 }
+
+const lastPeriodOrders = [
+  12, 11, 10, 6, 8, 7, 9, 14, 13, 10, 8, 9, 9, 11, 17, 15, 11, 8, 9, 9, 13
+]
+
+export const comparisonExample: BarChartProps = {
+  ...dailyOrdersExample,
+  data: dailyOrdersExample.data.map((row, i) => ({
+    ...row,
+    lastPeriod: lastPeriodOrders[i]!
+  })),
+  comparison: { y: 'lastPeriod', label: 'Previous period' },
+  takeaway: 'Ahead of the previous period on most days'
+}

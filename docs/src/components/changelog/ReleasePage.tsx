@@ -171,10 +171,7 @@ export function ReleasePage({ slug }: { slug: string }) {
     <div data-not-prose className='@container grid gap-10'>
       <header className='grid gap-3'>
         <p className='flex flex-wrap items-center gap-x-2 text-sm font-medium text-subtle'>
-          <Link
-            href={CHANGELOG_ROUTE}
-            className='text-strong underline-offset-4 hover:underline'
-          >
+          <Link href={CHANGELOG_ROUTE} className='text-strong link-subtle'>
             Changelog
           </Link>
           <span aria-hidden>·</span>

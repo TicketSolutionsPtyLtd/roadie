@@ -884,6 +884,32 @@ describe('QueryField', () => {
     expect(screen.getByText('No suggestions')).toBeInTheDocument()
   })
 
+  it('says it is loading again while a failed request retries', async () => {
+    const requests: PromiseWithResolvers<QueryFieldSuggestionGroup[]>[] = []
+    render(
+      <Harness
+        pendingChip={{ id: 'venue', label: 'Venue is' }}
+        suggest={(text) => {
+          if (!text) return Promise.resolve<QueryFieldSuggestionGroup[]>([])
+          requests.push(Promise.withResolvers())
+          return requests.at(-1)!.promise
+        }}
+      />
+    )
+    await userEvent.click(input())
+    await userEvent.keyboard('z')
+    await screen.findByText('Loading suggestions')
+    await act(async () => requests.at(-1)!.reject(new Error('offline')))
+    expect(screen.getByText('No suggestions')).toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(input()).toHaveAttribute('aria-expanded', 'false')
+    )
+    await userEvent.keyboard('{ArrowDown}')
+    expect(await screen.findByText('Loading suggestions')).toBeInTheDocument()
+    expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
+  })
+
   it('opens no list with nothing to suggest, hint, or text', async () => {
     render(<Harness initialChips={[scope]} suggest={() => []} />)
     await userEvent.click(input())
@@ -1349,8 +1375,10 @@ function OperatorStep(props: HarnessProps) {
 }
 
 const operatorGroup = () => screen.queryByRole('group', { name: 'Operator' })
-const pressed = () =>
-  within(operatorGroup()!)
+// Found, not queried: on a slow CI runner the group was once absent when read.
+const findOperatorGroup = () => screen.findByRole('group', { name: 'Operator' })
+const pressed = async () =>
+  within(await findOperatorGroup())
     .getAllByRole('button')
     .filter((item) => item.getAttribute('aria-pressed') === 'true')
     .map((item) => item.textContent)
@@ -1361,13 +1389,13 @@ describe('QueryField operators', () => {
     await userEvent.click(input())
     const listbox = await screen.findByRole('listbox')
     expect(
-      within(operatorGroup()!)
+      within(await findOperatorGroup())
         .getAllByRole('button')
         .map((item) => item.textContent)
     ).toEqual(['is', 'is not', 'has all of'])
-    expect(pressed()).toEqual(['is'])
+    expect(await pressed()).toEqual(['is'])
     expect(
-      operatorGroup()!.compareDocumentPosition(listbox) &
+      (await findOperatorGroup()).compareDocumentPosition(listbox) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
     expect(screen.getByRole('group', { name: 'Venue' })).toBeInTheDocument()
@@ -1404,7 +1432,7 @@ describe('QueryField operators', () => {
     await screen.findByRole('listbox')
     await userEvent.click(screen.getByRole('button', { name: 'is not' }))
     expect(document.activeElement).toBe(input())
-    expect(pressed()).toEqual(['is not'])
+    expect(await pressed()).toEqual(['is not'])
     expect(
       document.querySelector('[data-slot=query-field-pending-chip]')
     ).toHaveTextContent('Venue is not')
@@ -1427,16 +1455,17 @@ describe('QueryField operators', () => {
     await screen.findByRole('listbox')
     expect(input()).toHaveAttribute('aria-keyshortcuts', 'Tab')
     await userEvent.tab()
-    expect(pressed()).toEqual(['is not'])
+    expect(await pressed()).toEqual(['is not'])
     expect(input()).toHaveAttribute('aria-keyshortcuts', 'Tab Shift+Tab')
     await userEvent.tab()
-    expect(pressed()).toEqual(['has all of'])
+    expect(await pressed()).toEqual(['has all of'])
     expect(input()).toHaveAttribute('aria-keyshortcuts', 'Shift+Tab')
     expect(document.activeElement).toBe(input())
     expect(screen.getByRole('listbox')).toBeInTheDocument()
     expect(onPendingChipCancel).not.toHaveBeenCalled()
     await userEvent.tab()
-    expect(pressed()).toEqual(['has all of'])
+    // The operators close with the list as focus leaves, so read the chip.
+    expect(input()).toHaveAccessibleDescription('Venue has all of')
     // Clear is in the field, so only the Tab itself ends the step.
     expect(document.activeElement).toBe(
       screen.getByRole('button', { name: 'Clear' })
@@ -1456,9 +1485,9 @@ describe('QueryField operators', () => {
     await userEvent.tab()
     await userEvent.tab()
     await userEvent.tab({ shift: true })
-    expect(pressed()).toEqual(['is not'])
+    expect(await pressed()).toEqual(['is not'])
     await userEvent.tab({ shift: true })
-    expect(pressed()).toEqual(['is'])
+    expect(await pressed()).toEqual(['is'])
     expect(document.activeElement).toBe(input())
     await userEvent.tab({ shift: true })
     expect(document.activeElement).toBe(
@@ -2409,7 +2438,7 @@ describe('QueryField step content', () => {
     expect(screen.queryByText('No suggestions')).not.toBeInTheDocument()
     await userEvent.keyboard('i')
     const option = await screen.findByRole('option', { name: iguana.label })
-    for (const before of [operatorGroup()!, option])
+    for (const before of [await findOperatorGroup(), option])
       expect(
         before.compareDocumentPosition(days()!) &
           Node.DOCUMENT_POSITION_FOLLOWING

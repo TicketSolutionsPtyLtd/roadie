@@ -67,20 +67,30 @@ Two causes, each with the same test step: click into the editor, then
   building the selection from native Shift+Arrow moves. "links the
   selection to a typed address" uses it on the first of two paragraphs, so
   a link on more than the selection fails.
+- `clickIntoEditor`: a click that resolves once the focus sync has run,
+  for a test that places a caret with native keys, such as
+  `{End}{ArrowLeft}` or `LINE_START`, right after the click that focuses
+  the editor (INNO-1429). Waiting for a state the click sets, such as a
+  toolbar button's `aria-pressed`, doesn't help, since the timer is still
+  pending then. The helper adds a focus listener before the click, which
+  runs after ProseMirror's own, and sets a timer of the same 20ms there.
+  Timers of equal delay run in the order they're set, so it fires only
+  after the sync. It waits on that event, not a guessed time. It resolves
+  at once if the editor already has focus, since the sync ran when it took
+  focus, so don't call it within 20ms of a `focus()` call.
+  `focusedTextbox` in `Editor.browser.test.tsx` uses it.
 
 Linux WebKit has a separate flake in these files. In CI's image, about one
 run of `EditorPopoverForm.browser.test.tsx` in five fails a Link test
 because the popover's close never finishes, on `main` as well. It looks like
 the frame stall in
 [linux-webkit-no-frames-while-idle](linux-webkit-no-frames-while-idle.md),
-not this race; INNO-1429 tracks it.
-
-Native caret moves right after a click still carry the race, and waiting
-for a state the click sets, such as a toolbar button's `aria-pressed`,
-doesn't remove it. The tests that place a caret with `{End}{ArrowLeft}` or
-`{Home}` still retry on Linux WebKit; INNO-1429 tracks them.
+not this race; INNO-1491 tracks it.
 
 ## Check
+
+A new editor test that presses caret keys after a click uses
+`clickIntoEditor` or `selectParagraph`, never a bare `userEvent.click`.
 
 Run the editor browser tests on macOS with
 `pnpm test:gated editor --all --all-browsers`. A Mac run catches the Home

@@ -1,0 +1,121 @@
+export const metadata = {
+  title: 'Alternating rows',
+  description:
+    'Three to six values or story steps, each a sentence or two with a photo',
+  status: 'alpha',
+  category: 'Explain',
+  wideExamples: true
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Three to six values or story steps, each a sentence or two with a photo, as rows that alternate sides. For one section with its own pitch beside a photo, use [Side by side](/blocks/side-by-side).
+
+## Import
+
+```tsx
+import { AlternatingRows } from '@oztix/roadie-blocks/alternating-rows'
+```
+
+## Examples
+
+### Text blocks
+
+Rows of a title set on a colour, a subtitle, and a description beside a square
+photo, alternating sides, starting with the photo on the left. Each row's title
+is an `h3` under the block's heading, and the photos wrap below the text on
+phones.
+
+```tsx-live-expand id=text-blocks
+<AlternatingRows
+  preset='text-blocks'
+  title='Our values'
+  description='Five principles shape how we partner with you.'
+  rows={[
+    {
+      title: 'Proactive touch',
+      subtitle: 'See it coming, solve it early',
+      description: 'We spot issues before they become problems, and opportunities before you need to ask.',
+      image: { src: '/brand/photography/03.webp', alt: 'Two team members working together at a desk with large monitors', width: 1280, height: 1007 }
+    },
+    {
+      title: 'Positive energy',
+      subtitle: 'Lift spirits, spark connections',
+      description: 'We love what we do, and that flows through to your team and your customers.',
+      image: { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 }
+    },
+    {
+      title: 'Integrity and ownership',
+      subtitle: 'Own decisions, build trust',
+      description: "We do what we say we'll do, and own it when something doesn't work.",
+      image: { src: '/brand/photography/11.webp', alt: 'Three people sitting together on a couch in a bar lined with gig posters', width: 1280, height: 911 }
+    }
+  ]}
+/>
+```
+
+### Intent and emphasis
+
+`intent` marks every title, and colours the highlights and actions. Without
+one, the titles are marked in turn in info, brand, and brand-secondary, and a
+row's own `intent` marks its title. `emphasis` sets the surface behind the
+block, as a full-width band, or a panel with `contained`. `itemEmphasis` sets
+every row's surface.
+
+```tsx-live-expand id=intent-and-emphasis
+<AlternatingRows
+  preset='text-blocks'
+  intent='success'
+  emphasis='normal'
+  title='How payouts work'
+  rows={[
+    {
+      title: 'Doors close',
+      description: 'Settlement starts automatically once your event ends.',
+      image: { src: '/brand/photography/04.webp', alt: 'A staff member in a blue vest scanning a ticket on a phone at an event entry', width: 1280, height: 1007 }
+    },
+    {
+      title: 'Money arrives',
+      description: 'Your payout lands within days, without chasing it.',
+      image: { src: '/brand/photography/03.webp', alt: 'Two team members working together at a desk with large monitors', width: 1280, height: 1007 }
+    },
+    {
+      title: 'Reports match',
+      description: 'Every sale, refund, and fee in the payout shows in your reports.',
+      image: { src: '/brand/photography/11.webp', alt: 'Three people sitting together on a couch in a bar lined with gig posters', width: 1280, height: 911 }
+    }
+  ]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Keep the rows alike'>
+  <Guideline.Do>
+    Use Alternating rows for three to six statements of the same kind, such as values or the steps of a story, each a sentence or two.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't use it for sections that each need their own pitch and actions. Stack [Side by side](/blocks/side-by-side) blocks instead, switching between `image-start` and `image-end`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Give every row a photo'>
+  <Guideline.Do>
+    Pick photos that show each statement, so the rows read as a set.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't leave some rows without a photo. The empty square draws the eye away from the text.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Alternating rows reports a view once it's half on screen, and a click on each action or
+linked row, with its preset and position. A row's click reports its title.
+
+<PropsDefinitions component='AlternatingRows' />

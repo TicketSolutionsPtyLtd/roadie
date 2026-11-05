@@ -77,10 +77,7 @@ export type EditorRootProps = {
   extensions?: readonly EditorBlock[]
   'aria-label'?: string
   'aria-labelledby'?: string
-  /**
-   * Replaces the default parts: `<Editor.Toolbar />`, `<Editor.Content />`,
-   * then `<Editor.SlashMenu />`.
-   */
+  /** Replaces the default parts, `<Editor.Toolbar />` then `<Editor.Content />`. */
   children?: ReactNode
 }
 
