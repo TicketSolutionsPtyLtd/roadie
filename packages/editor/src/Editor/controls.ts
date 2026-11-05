@@ -486,5 +486,6 @@ const blockSlashItems: readonly EditorSlashItem[] = [
 export const presetSlashItems: Record<Preset, readonly EditorSlashItem[]> = {
   basic: [],
   rich: [],
-  blocks: blockSlashItems
+  blocks: blockSlashItems,
+  email: []
 }
