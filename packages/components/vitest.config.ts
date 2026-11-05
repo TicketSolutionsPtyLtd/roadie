@@ -10,6 +10,12 @@ import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 
 import {
+  frameCommands,
+  perfInstances,
+  perfLaunchOptions
+} from '@oztix/roadie-frames/config'
+
+import {
   browserInstances,
   browserRetry,
   browserRunOptions,
@@ -61,6 +67,28 @@ const tailwindNode = createRequire(
 )('@tailwindcss/node') as { optimize: (css: string) => { code: string } }
 const optimizeCss: BrowserCommand<[css: string]> = (_, css) =>
   tailwindNode.optimize(css).code
+
+// Next's Turbopack lowers nesting through Lightning CSS for browsers without
+// it, which turns a nested selector list into an :is() of its most specific
+// selector. Tailwind's optimizer keeps the list, so it can't show that.
+const lightningCss = createRequire(
+  createRequire(
+    createRequire(import.meta.url).resolve('@tailwindcss/vite')
+  ).resolve('@tailwindcss/node')
+)('lightningcss') as typeof import('lightningcss')
+const lowerNesting: BrowserCommand<[css: string]> = (_, css) =>
+  lightningCss
+    .transform({
+      filename: 'roadie.css',
+      code: Buffer.from(css),
+      // Next's default browserslist, none of which supports nesting.
+      targets: {
+        chrome: 111 << 16,
+        firefox: 111 << 16,
+        safari: (16 << 16) | (4 << 8)
+      }
+    })
+    .code.toString()
 
 const reduceMotion: BrowserCommand<[reduce: boolean]> = ({ page }, reduce) =>
   page.emulateMedia({ reducedMotion: reduce ? 'reduce' : 'no-preference' })
@@ -185,36 +213,6 @@ const swipe: BrowserCommand<
   await session.detach()
 }
 
-const throttleCpu: BrowserCommand<[rate: number]> = async ({ page }, rate) => {
-  if (page.context().browser()?.browserType().name() !== 'chromium') return
-  const session = await page.context().newCDPSession(page)
-  await session.send('Emulation.setCPUThrottlingRate', { rate })
-}
-
-const metricSessions = new WeakMap<object, Promise<CDPSession>>()
-
-// Chromium's running style and layout totals for the page.
-const renderMetrics: BrowserCommand<[]> = async ({ page }) => {
-  let session = metricSessions.get(page)
-  if (!session) {
-    session = page
-      .context()
-      .newCDPSession(page)
-      .then(async (created) => {
-        await created.send('Performance.enable')
-        return created
-      })
-    metricSessions.set(page, session)
-  }
-  const { metrics } = await (await session).send('Performance.getMetrics')
-  const value = (name: string) =>
-    metrics.find((metric) => metric.name === name)?.value ?? 0
-  return {
-    styleMs: value('RecalcStyleDuration') * 1000,
-    layoutMs: value('LayoutDuration') * 1000
-  }
-}
-
 const browserTest = {
   enabled: true,
   headless: true,
@@ -222,6 +220,7 @@ const browserTest = {
   commands: {
     reduceMotion,
     optimizeCss,
+    lowerNesting,
     reduceTransparency,
     forcedColors,
     printMedia,
@@ -338,19 +337,17 @@ export default defineConfig({
         test: {
           name: 'perf',
           include: [PERF_TESTS],
+          // Files measured side by side would slow each other down.
+          fileParallelism: false,
           // Hooks React before react-dom loads, to count re-renders.
           setupFiles: ['./src/components/RecordTable/renderCounter.ts'],
           browser: {
             ...browserTest,
-            provider: playwright(),
+            provider: playwright({ launchOptions: perfLaunchOptions() }),
             viewport: { width: 1440, height: 900 },
-            commands: { throttleCpu, renderMetrics },
+            commands: { ...browserTest.commands, ...frameCommands },
             // WebKit can't throttle, but runs the same scenarios on request.
-            instances: (process.env.ROADIE_PERF_BROWSERS ?? 'chromium')
-              .split(',')
-              .map((browser) => ({
-                browser: browser.trim() as 'chromium' | 'webkit' | 'firefox'
-              }))
+            instances: perfInstances()
           }
         }
       }

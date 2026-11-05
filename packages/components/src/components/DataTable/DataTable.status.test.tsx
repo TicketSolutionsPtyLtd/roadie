@@ -219,3 +219,31 @@ describe('DataTable status columns', () => {
     expect(badgeIn('Ocean Alley')).toHaveClass('intent-warning')
   })
 })
+
+describe('sorting by status order', () => {
+  it('reads the status map’s keys once per sort, not once per row', () => {
+    let keyReads = 0
+    const map = new Proxy(
+      {
+        on_sale: { intent: 'success', order: 1 },
+        sold_out: { intent: 'info', order: 2 }
+      } as const,
+      {
+        ownKeys(target) {
+          keyReads += 1
+          return Reflect.ownKeys(target)
+        }
+      }
+    )
+    const ordered: DataTableColumn = { ...status, status: map }
+    const many = Array.from({ length: 200 }, (_, index) => ({
+      show: `Show ${index}`,
+      status: index % 2 ? 'on_sale' : 'sold_out'
+    }))
+    sortDataTableRows(many, [ordered], {
+      key: 'status',
+      direction: 'ascending'
+    })
+    expect(keyReads).toBeLessThan(10)
+  })
+})

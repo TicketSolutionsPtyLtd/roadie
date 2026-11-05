@@ -1,9 +1,12 @@
 import type { PlotRow } from '@oztix/roadie-core/dashboard'
-import type { ValueFormat } from '@oztix/roadie-core/dataviz'
+import type {
+  ValueFormat,
+  ValueFormatOptions
+} from '@oztix/roadie-core/dataviz'
 
 export type HeatmapScale = 'sequential' | 'diverging'
 
-export type HeatmapProps = {
+export type HeatmapProps = ValueFormatOptions & {
   /** Rows of plain values, one per cell. */
   data: PlotRow[]
   /** Field for the rows, such as the weekday. Rows keep their first-seen order. */

@@ -1,0 +1,116 @@
+import { Highlight } from '@oztix/roadie-components/highlight'
+import { cn } from '@oztix/roadie-core/utils'
+
+import { cleanHighlight } from './highlight'
+import {
+  type BlockAlign,
+  type BlockIntent,
+  type BlockSize,
+  bySize
+} from './surface'
+
+export type BlockHeadingProps = {
+  eyebrow?: string
+  title: string
+  /** Words in the title to mark, such as `more tickets`. */
+  highlight?: string | string[]
+  description?: string
+  /** 1 only for the block that opens the page. */
+  level?: 1 | 2
+  /** The title's `text-display-prose-*` step, when the preset sets one other than the level's. */
+  step?: TitleStep
+  /** The block's size; each step down sets the title a step smaller and the description smaller. */
+  size?: BlockSize
+  align?: BlockAlign
+  /** The block's intent; highlighted words take it, or brand-secondary without one. */
+  intent?: BlockIntent
+  /** Runs the description the heading's full width instead of to a measure. */
+  wide?: boolean
+  id?: string
+  className?: string
+}
+
+export type TitleStep = 1 | 2 | 3 | 4 | 5 | 6
+
+const TITLE_STEP: Record<TitleStep, string> = {
+  1: 'text-display-prose-1',
+  2: 'text-display-prose-2',
+  3: 'text-display-prose-3',
+  4: 'text-display-prose-4',
+  5: 'text-display-prose-5',
+  6: 'text-display-prose-6'
+}
+
+/** A title's step at a block's size: each size down from `lg` is one step smaller. */
+export function titleStep(
+  step: TitleStep,
+  size: BlockSize | undefined
+): TitleStep {
+  return Math.min(step + bySize(size, { sm: 2, md: 1, lg: 0 }), 6) as TitleStep
+}
+
+/** A description's text size at a block's size. */
+export const descriptionClass = (size: BlockSize | undefined) =>
+  bySize(size, { sm: 'text-base', md: 'text-lg', lg: 'text-xl' })
+
+export function BlockHeading({
+  eyebrow,
+  title,
+  highlight,
+  description,
+  level = 2,
+  step = level,
+  size,
+  align = 'center',
+  intent,
+  wide = false,
+  id,
+  className
+}: BlockHeadingProps) {
+  const Heading = level === 1 ? 'h1' : 'h2'
+  return (
+    <div
+      className={cn(
+        'grid min-w-0 grid-cols-1 gap-2',
+        align === 'center' ? 'justify-items-center text-center' : 'text-start',
+        className
+      )}
+    >
+      {eyebrow && <p className='text-display-prose-5 text-strong'>{eyebrow}</p>}
+      <Heading
+        id={id}
+        className={cn(
+          'max-w-5xl text-balance wrap-anywhere text-strong',
+          TITLE_STEP[titleStep(step, size)]
+        )}
+      >
+        {highlight ? (
+          <Highlight
+            text={title}
+            query={cleanHighlight(highlight)}
+            intent={intent ?? 'brand-secondary'}
+          />
+        ) : (
+          title
+        )}
+      </Heading>
+      {description && (
+        <p
+          className={cn(
+            'wrap-anywhere text-subtle',
+            descriptionClass(size),
+            // Balanced lines suit a centred heading; beside a start-aligned one
+            // they read as cut short, so the lines fill a wider measure instead.
+            wide
+              ? 'text-pretty'
+              : align === 'center'
+                ? 'max-w-3xl text-balance'
+                : 'max-w-4xl text-pretty'
+          )}
+        >
+          {description}
+        </p>
+      )}
+    </div>
+  )
+}

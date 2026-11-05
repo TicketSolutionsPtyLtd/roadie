@@ -139,8 +139,9 @@ keeps out of a public screenshot (Roadie: PR workflow section 7).
 - Once the PR exists, put the shots under Evidence as the host workflow says
   (Roadie: PR workflow section 7); `/roadie:pr` writes the body. `gh` can't
   upload images, so commit them alone to an orphan
-  `<prefix>/<topic>-screenshots` branch, push it with `--no-verify` (the hooks
-  can't run on an images-only branch), and embed each one with
+  `<prefix>/<topic>-screenshots` branch, push it (Roadie's pre-push hook
+  skips a branch with no history in common with `main`; elsewhere, use
+  `--no-verify` only where the hooks can't run on it), and embed each one with
   `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`. If the
   preview is stopped before the OK, say so and give the command that restarts
   it.

@@ -8,7 +8,7 @@ import type { LinkButtonEmphasis, LinkButtonIntent } from './LinkButton'
 export type LinkIconButtonSize = 'xs' | 'sm' | 'md' | 'lg'
 
 /**
- * Legacy size aliases — `'icon-*'` was the original API. Still accepted
+ * Legacy size aliases: `'icon-*'` was the original API. Still accepted
  * but discouraged. New code should use plain `'sm'`, `'md'`, etc.
  *
  * @deprecated Use `'xs' | 'sm' | 'md' | 'lg'` instead.
@@ -45,7 +45,7 @@ export type LinkIconButtonProps<T extends ElementType = 'a'> = {
    */
   emphasis?: LinkButtonEmphasis
   /**
-   * Icon-button sizing. Use `'xs' | 'sm' | 'md' | 'lg'` (plain) — the
+   * Icon-button sizing. Use `'xs' | 'sm' | 'md' | 'lg'` (plain); the
    * `'icon-*'` aliases are accepted for backwards compatibility but
    * discouraged.
    *

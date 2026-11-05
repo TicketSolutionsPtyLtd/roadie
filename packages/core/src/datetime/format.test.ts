@@ -238,6 +238,31 @@ describe('locales', () => {
     }
   })
 
+  it.each([
+    ['fa', 'نوامبر'],
+    ['ps', 'نومبر'],
+    ['ar-SA', 'نوفمبر']
+  ])(
+    'names the Gregorian month in %s, matching the day and year',
+    (locale, month) => {
+      expect(formatMedium(start, { ...bne, locale })).toBe(`27 ${month} 2026`)
+    }
+  )
+
+  it('keeps the month marker in Japanese', () => {
+    expect(formatMedium(start, { ...bne, locale: 'ja' })).toBe('27 11月 2026')
+  })
+
+  it('drops a literal Intl puts before the month', () => {
+    expect(formatMedium(start, { ...bne, locale: 'dz' })).toBe('27 ཟླ་༡༡ 2026')
+  })
+
+  it('names the month on its own in a locale that inflects it', () => {
+    expect(formatFull(start, { ...bne, locale: 'ru' })).toMatch(
+      /, 27 ноябрь 2026$/
+    )
+  })
+
   it('keeps the numbers Latin while the words follow the locale', () => {
     const out = formatMedium(start, { ...bne, locale: 'ar-EG' })
     expect(out).toMatch(/^27 /)
@@ -662,6 +687,73 @@ describe('timestamps', () => {
     // Whatever it returns must be accepted by the formatters.
     expect(formatLong(start, { timeZone: tz })).not.toBeNull()
   })
+
+  it('viewerTimeZone asks Intl once while the offset holds', () => {
+    viewerTimeZone()
+    const format = vi.spyOn(Intl, 'DateTimeFormat')
+    try {
+      viewerTimeZone()
+      viewerTimeZone()
+      expect(format).not.toHaveBeenCalled()
+    } finally {
+      format.mockRestore()
+    }
+  })
+
+  it('viewerTimeZone asks again once the offset moves, as across zones', () => {
+    const first = viewerTimeZone()
+    const moved = new Date().getTimezoneOffset() + 60
+    const offset = vi
+      .spyOn(Date.prototype, 'getTimezoneOffset')
+      .mockReturnValue(moved)
+    const format = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+      () =>
+        ({
+          resolvedOptions: () => ({ timeZone: 'Pacific/Auckland' })
+        }) as Intl.DateTimeFormat
+    )
+    try {
+      expect(viewerTimeZone()).toBe('Pacific/Auckland')
+    } finally {
+      offset.mockRestore()
+      format.mockRestore()
+    }
+    expect(viewerTimeZone()).toBe(first)
+  })
+
+  it.each([
+    { from: 'Australia/Brisbane', to: 'Australia/Sydney', month: 0 },
+    { from: 'Africa/Abidjan', to: 'Europe/London', month: 6 }
+  ])(
+    'viewerTimeZone tells $from from $to by month $month',
+    ({ from, to, month }) => {
+      const first = viewerTimeZone()
+      // Off the real offset, so the real zone's cached answer can't match.
+      const base = new Date().getTimezoneOffset() + 30
+      const differs = Date.UTC(new Date().getUTCFullYear(), month, 1)
+      let zone = from
+      const offset = vi
+        .spyOn(Date.prototype, 'getTimezoneOffset')
+        .mockImplementation(function (this: Date) {
+          return zone === to && this.getTime() === differs ? base - 60 : base
+        })
+      const format = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        () =>
+          ({
+            resolvedOptions: () => ({ timeZone: zone })
+          }) as Intl.DateTimeFormat
+      )
+      try {
+        expect(viewerTimeZone()).toBe(from)
+        zone = to
+        expect(viewerTimeZone()).toBe(to)
+      } finally {
+        offset.mockRestore()
+        format.mockRestore()
+      }
+      expect(viewerTimeZone()).toBe(first)
+    }
+  )
 })
 
 describe('machine values', () => {
@@ -901,5 +993,20 @@ describe('reading the clock', () => {
     expect(withoutClock(() => formatDateTime(start, { timeZone: BNE }))).toBe(
       'Fri 27 Nov 2026'
     )
+  })
+})
+
+describe('relative formatter reuse', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('builds the relative formatter once across many values', () => {
+    const RelativeTimeFormat = vi.spyOn(Intl, 'RelativeTimeFormat')
+    const now = new Date('2026-10-30T00:00:00Z')
+    for (let hours = 1; hours <= 20; hours++)
+      formatRelative(new Date(now.getTime() - hours * 3_600_000), {
+        now,
+        timeZone: SYD
+      })
+    expect(RelativeTimeFormat).toHaveBeenCalledTimes(1)
   })
 })

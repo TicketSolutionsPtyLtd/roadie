@@ -8,6 +8,7 @@ import { userEvent } from 'vitest/browser'
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
 import { Navigator } from '../Navigator'
+import { FakeIcon, withStubLink } from '../Navigator/testUtils'
 import { inspectorTier } from './paneColumns'
 import {
   REM,
@@ -60,8 +61,11 @@ describe('without container style queries', () => {
   const shapes = rowShapes().filter(
     ({ spec }) => !spec.panes.some((pane) => pane.depth === 'deep')
   )
+  // One test per variant (16 reached sets each) keeps every case under the
+  // timeout on a slow CI runner: each width is a forced layout, and four
+  // levels is 192 shapes in all.
   const families = Map.groupBy(shapes, (shape) =>
-    shape.name.replace(/ \/ .*/, '')
+    shape.name.replace(/ \/ reached \d+/, '')
   )
 
   it.each([...families.keys()])(
@@ -70,8 +74,14 @@ describe('without container style queries', () => {
       const problems: string[] = []
       for (const { name, spec } of families.get(family)!) {
         const positioned = withRegisteredPositions(spec)
+        // The tiers are container queries, so resizing one mount reaches every
+        // width without parsing and restyling the row again for each.
+        const content = mount(
+          contentMarkup(rowMarkup(positioned)),
+          TIER_WIDTHS[0]!
+        )
         for (const width of TIER_WIDTHS) {
-          const content = mount(contentMarkup(rowMarkup(positioned)), width)
+          content.parentElement!.style.width = `${width}px`
           const frame = content.getBoundingClientRect()
           const panes = Array.from(
             content.querySelectorAll<HTMLElement>(
@@ -204,6 +214,35 @@ describe('a navigator without container style queries', () => {
     await userEvent.click(getByRole('button', { name: 'Close' }))
     expect(paneOf('detail')).toBeNull()
     await expect.poll(() => onScreen(paneOf('list'))).toBe(true)
+  })
+
+  it('stops a generated list at 18rem beside the detail', async () => {
+    render(
+      withStubLink(
+        <Navigator value='/s/one'>
+          <Navigator.Primary aria-label='Main'>
+            <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
+              Secondary
+              <Navigator.Secondary aria-label='Secondary pages'>
+                <Navigator.Item value='/s/one' href='/s/one'>
+                  One
+                </Navigator.Item>
+              </Navigator.Secondary>
+            </Navigator.Item>
+          </Navigator.Primary>
+          <Pane>Detail</Pane>
+        </Navigator>
+      ),
+      { container: frameOf(1400) }
+    )
+    await expect
+      .poll(
+        () =>
+          document
+            .querySelector('[data-navigator-secondary="/s"]')
+            ?.getBoundingClientRect().width
+      )
+      .toBe(18 * REM)
   })
 })
 

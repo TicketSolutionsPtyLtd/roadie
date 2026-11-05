@@ -10,7 +10,7 @@ import {
   usePointerHighlight,
   useTypedQuery
 } from '../../utils/optionHighlight'
-import { useRankedItems } from '../../utils/rankMatches'
+import { collatorContains, useRankedItems } from '../../utils/rankMatches'
 
 export type AutocompleteRootProps = Omit<
   AutocompletePrimitive.Root.Props<unknown>,
@@ -49,11 +49,10 @@ export function AutocompleteRoot({
   const text = props.value === undefined ? textState : String(props.value ?? '')
   const fillsInput = mode === 'both' || mode === 'inline'
   const filters = mode === undefined || mode === 'list' || mode === 'both'
+  const ownsFilter =
+    filters && props.filter === undefined && props.filteredItems === undefined
   const rankedItems = useRankedItems(items, {
-    enabled:
-      filters &&
-      props.filter === undefined &&
-      props.filteredItems === undefined,
+    enabled: ownsFilter,
     query: text,
     label: props.itemToStringValue,
     locale: props.locale
@@ -83,6 +82,7 @@ export function AutocompleteRoot({
           else resetTyped(details)
         }}
         {...props}
+        filter={ownsFilter ? collatorContains(props.locale) : props.filter}
         // After the rest, so an explicit open={undefined} can't undo it.
         open={open}
         onOpenChange={handleOpenChange}

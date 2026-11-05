@@ -116,7 +116,7 @@ describe('Popover (assembled)', () => {
     const arrow = document.querySelector('[data-slot="popover-arrow"]')
     expect(arrow).toBeInTheDocument()
     // The arrow must render a filled triangle, not just Base UI's empty
-    // positioning div — otherwise it is invisible.
+    // positioning div, otherwise it is invisible.
     const shape = arrow?.querySelector('svg path')
     expect(shape).toBeInTheDocument()
     expect(arrow?.querySelector('svg')).toHaveClass(
