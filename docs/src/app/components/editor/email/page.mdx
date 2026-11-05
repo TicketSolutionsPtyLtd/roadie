@@ -148,6 +148,13 @@ variables, the unsubscribe page and the email in a browser.
 />
 ```
 
+### Toolbar
+
+An email opens with `toolbar='floating'`, as the blocks have their own
+toolbars: select text to format it. It keeps its box, unlike a `blocks`
+page, as an email isn't read on the page it's written on, and the box shows
+where it ends. Pass `toolbar='docked'` for a bar across the top.
+
 ### Adding blocks
 
 There are two ways to add a block. Both list the same blocks under the same
@@ -239,9 +246,10 @@ list. A button's label takes merge tags too.
 
 Click a chip to select it, and its toolbar shows below it: Edit merge tag and
 Remove merge tag. Edit merge tag opens a form to change which variable the
-tag shows and its fallback, the text anyone without a value sees. An empty
-fallback saves none. Without `variables`, `{{` is only text and `/` offers no
-Merge tag.
+tag shows and its fallback, the text anyone without a value sees. Each change
+shows in the email as you make it. Enter or a click away keeps them, as one
+step to undo, and Escape puts the tag back as it was. An empty fallback saves
+none. Without `variables`, `{{` is only text and `/` offers no Merge tag.
 
 ### Unsubscribe and view-in-browser links
 
@@ -267,9 +275,10 @@ such as oztix.com.au, gets `https://`. The button's label is selected, so
 typing replaces it, and Enter in a button starts a new paragraph after it.
 
 Button settings, in the button's toolbar, edits its link and its look. Each
-change shows on the button as it's made, so there's no Save: Enter or Escape
-closes it. A link applies once it's a full address, and the button keeps its
-last one until then.
+change shows on the button as it's made, so there's no Save. Enter or a
+click away keeps the changes, as one step to undo, and Escape puts the button
+back as it was. A link applies once it's a full address, and the button keeps
+its last one until then.
 
 - **Emphasis:** Strong, a fill in the theme's accent, for the action that
   matters. Normal, a neutral border, or Subtle, a neutral tint, for one beside

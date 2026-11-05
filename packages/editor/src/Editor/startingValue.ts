@@ -10,15 +10,17 @@ type PresetProps = Pick<
 
 /**
  * How a preset opens when `emphasis` and the toolbar aren't given. A blocks
- * page is edited in place, so it has no box and its toolbar floats.
+ * page is edited in place, so it has no box. An email lands in an inbox, not
+ * on the page it's written on, so its box marks where the email ends. Both
+ * float their toolbar, as the blocks have their own.
  */
 export function presetLook(preset: Preset): {
   emphasis: EditorEmphasis
   toolbar: EditorToolbarMode
 } {
-  return preset === 'blocks'
-    ? { emphasis: 'subtler', toolbar: 'floating' }
-    : { emphasis: 'normal', toolbar: 'docked' }
+  if (preset === 'blocks') return { emphasis: 'subtler', toolbar: 'floating' }
+  if (preset === 'email') return { emphasis: 'normal', toolbar: 'floating' }
+  return { emphasis: 'normal', toolbar: 'docked' }
 }
 
 /** The `preset` prop, else the value's own preset, else `basic`. */
