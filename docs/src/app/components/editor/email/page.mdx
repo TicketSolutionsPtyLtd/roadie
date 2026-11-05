@@ -453,7 +453,8 @@ const preview = await renderEmail({ kind: 'design', value: welcome }, {
   `#FirstName#`, is written so no sending system fills it.
 - A merge tag never goes in a link's or a button's href. A link variable
   does: its token is written as the href, so it must write a whole URL. With
-  `values`, the href is its value.
+  `values`, the href is its value, and with no value a mail client can open,
+  the text stays unlinked.
 - An HTML email's merge tags are already tokens, so it's sent unchanged,
   whatever the options.
 
