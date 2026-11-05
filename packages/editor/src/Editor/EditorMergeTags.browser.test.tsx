@@ -328,6 +328,38 @@ describe('Editor merge tag editing', () => {
     )
   })
 
+  it('keeps a key the editor doesn’t list, as one of its choices', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email({ type: 'paragraph', content: [tag('ticket_count')] })
+    })
+    await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(await screen.findByText('ticket_count'))
+    const actions = await screen.findByRole('toolbar', {
+      name: 'Merge tag actions'
+    })
+    await userEvent.click(
+      within(actions).getByRole('button', { name: 'Edit merge tag' })
+    )
+    const dialog = await screen.findByRole('dialog', { name: 'Merge tag' })
+
+    await userEvent.click(
+      within(dialog).getByRole('combobox', { name: 'Shows' })
+    )
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'ticket_count' })
+    )
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Fallback' }),
+      'some{Enter}'
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'paragraph', content: [tag('ticket_count', 'some')] })
+      )
+    )
+  })
+
   it('removes the tag', async () => {
     const onValueChange = renderEmail({ defaultValue: greeting })
     const actions = await selectChip()
