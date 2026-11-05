@@ -314,6 +314,14 @@ describe('renderEmail', () => {
     })
   })
 
+  it('links no web font, even for a font MJML knows', async () => {
+    const { html } = await renderEmail(email(p(text('Hi'))), {
+      theme: { fontFamily: 'Roboto, Arial, sans-serif' }
+    })
+    expect(html).toContain('font-family:Roboto, Arial, sans-serif')
+    expect(html).not.toContain('fonts.googleapis.com')
+  })
+
   it('keeps a heading’s case in the plain text, so a merge tag still matches', async () => {
     const { text: plain } = await renderEmail(
       email(heading(2, 'See you soon, {{ first_name }}'))
