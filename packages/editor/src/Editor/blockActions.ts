@@ -10,6 +10,14 @@ export type BlockContainers = ReadonlySet<string>
 
 export const TOP_LEVEL: BlockContainers = new Set(['doc'])
 
+/** The keys for each block action, as the block menu shows them. */
+export const BLOCK_ACTION_KEYS = {
+  moveUp: ['mod', 'shift', 'arrowup'],
+  moveDown: ['mod', 'shift', 'arrowdown'],
+  duplicate: ['mod', 'd'],
+  delete: ['delete']
+} as const
+
 /**
  * Where the innermost block holding `pos` starts, or the block starting at
  * `pos`, counting only children of `containers`. Null at the doc's edges.
@@ -139,6 +147,24 @@ export function moveBlockTo(state: EditorState, from: number, to: number) {
   const step = tr.steps.length
   removeBlock(tr, moved)
   const landed = tr.mapping.slice(step).map(at)
+  const { selection } = state
+  const caretInside =
+    selection instanceof TextSelection &&
+    selection.from > from &&
+    selection.to < from + node.nodeSize
+  // A keyboard move mid-sentence carries on typing where it was.
+  if (caretInside) {
+    const offset = landed - from
+    return tr
+      .setSelection(
+        TextSelection.create(
+          tr.doc,
+          selection.anchor + offset,
+          selection.head + offset
+        )
+      )
+      .scrollIntoView()
+  }
   return selectBlock(tr, landed).scrollIntoView()
 }
 

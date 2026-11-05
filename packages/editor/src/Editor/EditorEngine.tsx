@@ -18,8 +18,14 @@ import {
 } from '@tiptap/core'
 import type { UniqueID } from '@tiptap/extension-unique-id'
 import { Placeholder } from '@tiptap/extensions'
+import { closeHistory } from '@tiptap/pm/history'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
-import { NodeSelection, Selection } from '@tiptap/pm/state'
+import {
+  type EditorState,
+  NodeSelection,
+  Selection,
+  type Transaction
+} from '@tiptap/pm/state'
 import {
   type ReactNodeViewProps,
   ReactNodeViewRenderer,
@@ -68,13 +74,19 @@ import type { EditorRootProps } from './EditorRoot'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
 import { EditorVariableView } from './EditorVariableView'
-import { type BlockContainers, TOP_LEVEL } from './blockActions'
+import {
+  type BlockContainers,
+  TOP_LEVEL,
+  blockAt,
+  duplicateBlock,
+  moveBlock
+} from './blockActions'
 import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
 import { focusEditor } from './focusEditor'
-import { FocusedBlock } from './focusedBlock'
+import { FocusedBlock, MenuBlock } from './focusedBlock'
 import {
   ImageUpload,
   type UploadImage,
@@ -85,7 +97,7 @@ import {
 import { customInsertItem, presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
-import { resolvedPreset } from './startingValue'
+import { presetLook, resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
 import { useToolbarMode } from './toolbarMode'
 import {
@@ -117,6 +129,34 @@ const BlockMenuShortcut = Extension.create<BlockMenuShortcutOptions>({
   name: 'blockMenuShortcut',
   addKeyboardShortcuts() {
     return { 'Mod-/': () => this.options.open() }
+  }
+})
+
+type BlockShortcutsOptions = { containers: BlockContainers }
+
+// Notion's keys, on the caret's block, each its own undo step.
+const BlockShortcuts = Extension.create<BlockShortcutsOptions>({
+  name: 'blockShortcuts',
+  addKeyboardShortcuts() {
+    const { containers } = this.options
+    const onCaretBlock =
+      (action: (state: EditorState, pos: number) => Transaction | null) =>
+      ({ editor }: { editor: TiptapEditor }) => {
+        const { state, view } = editor
+        const pos = blockAt(state, state.selection.from, containers)
+        const tr = pos === null ? null : action(state, pos)
+        if (tr) view.dispatch(closeHistory(tr))
+        return pos !== null
+      }
+    return {
+      'Mod-Shift-ArrowUp': onCaretBlock((state, pos) =>
+        moveBlock(state, pos, -1, containers)
+      ),
+      'Mod-Shift-ArrowDown': onCaretBlock((state, pos) =>
+        moveBlock(state, pos, 1, containers)
+      ),
+      'Mod-d': onCaretBlock(duplicateBlock)
+    }
   }
 })
 
@@ -340,7 +380,7 @@ export function EditorEngine({
   disabled: disabledProp = false,
   name,
   size = 'md',
-  emphasis = 'normal',
+  emphasis: emphasisProp,
   className,
   children,
   onUploadImage,
@@ -361,9 +401,13 @@ export function EditorEngine({
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
   const openBubbleMenuRef = useRef<(() => boolean) | null>(null)
+  const look = presetLook(
+    resolvedPreset({ preset: presetProp, value, defaultValue })
+  )
+  const emphasis = emphasisProp ?? look.emphasis
   const { toolbar, pinnable, setToolbar } = useToolbarMode({
     toolbar: toolbarProp,
-    defaultToolbar,
+    defaultToolbar: defaultToolbar ?? look.toolbar,
     onToolbarChange,
     pinnable: pinnableProp
   })
@@ -393,6 +437,9 @@ export function EditorEngine({
   const storedPreset = (value ?? defaultValue)?.preset
   // Tiptap fixes its schema when it creates the editor, so these are read once.
   const [blocks] = useState(() => blocksFor(preset, extensionsProp))
+  const [blockLabels] = useState(() =>
+    Object.fromEntries(blocks.map(({ node, label }) => [node.name, label]))
+  )
   const [schema] = useState(() =>
     blocks.length > 0
       ? getSchema(withBlocks(presets[preset], blocks))
@@ -445,7 +492,13 @@ export function EditorEngine({
           return Boolean(openBlockMenuRef.current)
         }
       }),
-      ...(blockHandle ? [BlockDrag] : []),
+      ...(blockHandle
+        ? [
+            BlockDrag,
+            MenuBlock,
+            BlockShortcuts.configure({ containers: blockHandle.containers })
+          ]
+        : []),
       FocusedBlock.configure({
         containers: blockHandle?.containers ?? TOP_LEVEL
       })
@@ -698,6 +751,7 @@ export function EditorEngine({
             openMenuRef={openBlockMenuRef}
             containers={blockHandle.containers}
             canAdd={blockHandle.canAdd}
+            appLabels={blockLabels}
           />
         ) : null}
         {editor ? (

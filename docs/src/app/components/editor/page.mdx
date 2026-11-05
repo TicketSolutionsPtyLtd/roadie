@@ -56,6 +56,8 @@ control's tooltip shows its shortcut.
 ### Toolbar
 
 `toolbar` sets where the controls go. An editor shows one toolbar at a time.
+The blocks and email presets open with `floating`, as their blocks have
+their own toolbars.
 
 | Toolbar | Where | Use it for |
 | --- | --- | --- |
@@ -172,7 +174,7 @@ holding the caret, with a soft tint, not as a ring around the editor.
 
 `emphasis='subtler'` drops the border, fill, and padding, so the text lines up
 with the page around it and editing looks like reading. The caret shows
-where focus is.
+where focus is. A [`blocks`](/components/editor/blocks) editor opens with it.
 Its skeleton is lines of text, not a box.
 
 ```tsx-live-prose layout=stack gap=2

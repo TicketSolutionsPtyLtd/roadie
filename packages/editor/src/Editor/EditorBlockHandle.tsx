@@ -18,7 +18,7 @@ import {
   TrashIcon
 } from '@phosphor-icons/react'
 import { closeHistory } from '@tiptap/pm/history'
-import { Fragment, Slice } from '@tiptap/pm/model'
+import { Fragment, type Node as ProseMirrorNode, Slice } from '@tiptap/pm/model'
 import {
   NodeSelection,
   TextSelection,
@@ -32,6 +32,7 @@ import { Menu } from '@oztix/roadie-components/menu'
 
 import { hideBubbleMenu } from './EditorBubbleMenuEngine'
 import {
+  BLOCK_ACTION_KEYS,
   type BlockContainers,
   blockAt,
   canMoveBlock,
@@ -42,6 +43,7 @@ import {
 } from './blockActions'
 import { draggedBlocks } from './blockDrag'
 import { focusEditor } from './focusEditor'
+import { markMenuBlock } from './focusedBlock'
 
 // A button's width and the gap to the text, in px.
 const HANDLE_SIZE = 24
@@ -181,6 +183,32 @@ const PARENT_LABELS: Record<string, string> = {
   columns: 'Select columns'
 }
 
+const BLOCK_LABELS: Record<string, string> = {
+  paragraph: 'Paragraph',
+  bulletList: 'Bulleted list',
+  orderedList: 'Numbered list',
+  blockquote: 'Quote',
+  codeBlock: 'Code',
+  horizontalRule: 'Divider',
+  image: 'Image',
+  embed: 'Embed',
+  table: 'Table',
+  section: 'Section',
+  columns: 'Columns',
+  column: 'Column',
+  button: 'Button',
+  spacer: 'Spacer'
+}
+
+function blockLabel(
+  node: ProseMirrorNode,
+  appLabels: Readonly<Record<string, string>>
+) {
+  if (node.type.name === 'heading') return `Heading ${node.attrs.level}`
+  const { name } = node.type
+  return appLabels[name] ?? BLOCK_LABELS[name] ?? 'Block'
+}
+
 type EditorBlockHandleProps = {
   editor: TiptapEditor
   /** Set while mounted, so Mod+/ opens the caret block's menu. */
@@ -189,6 +217,8 @@ type EditorBlockHandleProps = {
   containers: BlockContainers
   /** Shows an add button that opens the insert menu after the block. */
   canAdd?: boolean
+  /** An app's blocks' names, by node name, to head their menus. */
+  appLabels?: Readonly<Record<string, string>>
 }
 
 /**
@@ -199,7 +229,8 @@ export function EditorBlockHandle({
   editor,
   openMenuRef,
   containers,
-  canAdd = false
+  canAdd = false,
+  appLabels = {}
 }: EditorBlockHandleProps) {
   const host = useHandleHost(editor)
   const wrapper = host?.parentElement ?? null
@@ -308,6 +339,10 @@ export function EditorBlockHandle({
     }
   }, [editor, openMenuRef, containers])
 
+  useEffect(() => {
+    markMenuBlock(editor.view, menuAt)
+  }, [editor, menuAt])
+
   // After every change, as text above or in the block moves it.
   useLayoutEffect(() => {
     setPlace(wrapper && shown != null ? placeAt(editor, wrapper, shown) : null)
@@ -398,55 +433,72 @@ export function EditorBlockHandle({
           }
         />
         <Menu.Content
-          side='bottom'
+          // Beside the grip, as Notion's is, so the block stays in view.
+          side='left'
           align='start'
+          // Delete acts on the block, as the menu's open on it.
+          onKeyDown={(event) => {
+            if (event.key !== 'Delete' && event.key !== 'Backspace') return
+            event.preventDefault()
+            run((pos) => deleteBlock(editor.state, pos))
+            setMenuAt(null)
+          }}
           finalFocus={() => {
             focusEditor(editor)
             return false
           }}
         >
-          <Menu.Item
-            icon={<ArrowUpIcon weight='bold' />}
-            disabled={!canMoveBlock(doc, shown, -1, containers)}
-            onClick={() =>
-              run((pos) => moveBlock(editor.state, pos, -1, containers))
-            }
-          >
-            Move up
-          </Menu.Item>
-          <Menu.Item
-            icon={<ArrowDownIcon weight='bold' />}
-            disabled={!canMoveBlock(doc, shown, 1, containers)}
-            onClick={() =>
-              run((pos) => moveBlock(editor.state, pos, 1, containers))
-            }
-          >
-            Move down
-          </Menu.Item>
-          {parent !== null ? (
+          <Menu.Group>
+            <Menu.GroupLabel>
+              {blockLabel(doc.nodeAt(shown)!, appLabels)}
+            </Menu.GroupLabel>
             <Menu.Item
-              icon={<SelectionPlusIcon weight='bold' />}
-              // Stays open on the parent, the keyboard's way to a section.
-              closeOnClick={false}
-              onClick={() => setMenuAt(parent)}
+              icon={<ArrowUpIcon weight='bold' />}
+              shortcut={BLOCK_ACTION_KEYS.moveUp}
+              disabled={!canMoveBlock(doc, shown, -1, containers)}
+              onClick={() =>
+                run((pos) => moveBlock(editor.state, pos, -1, containers))
+              }
             >
-              {PARENT_LABELS[parentName!] ?? 'Select parent block'}
+              Move up
             </Menu.Item>
-          ) : null}
-          <Menu.Item
-            icon={<CopySimpleIcon weight='bold' />}
-            onClick={() => run((pos) => duplicateBlock(editor.state, pos))}
-          >
-            Duplicate
-          </Menu.Item>
-          <Menu.Separator />
-          <Menu.Item
-            icon={<TrashIcon weight='bold' />}
-            intent='danger'
-            onClick={() => run((pos) => deleteBlock(editor.state, pos))}
-          >
-            Delete
-          </Menu.Item>
+            <Menu.Item
+              icon={<ArrowDownIcon weight='bold' />}
+              shortcut={BLOCK_ACTION_KEYS.moveDown}
+              disabled={!canMoveBlock(doc, shown, 1, containers)}
+              onClick={() =>
+                run((pos) => moveBlock(editor.state, pos, 1, containers))
+              }
+            >
+              Move down
+            </Menu.Item>
+            {parent !== null ? (
+              <Menu.Item
+                icon={<SelectionPlusIcon weight='bold' />}
+                // Stays open on the parent, the keyboard's way to a section.
+                closeOnClick={false}
+                onClick={() => setMenuAt(parent)}
+              >
+                {PARENT_LABELS[parentName!] ?? 'Select parent block'}
+              </Menu.Item>
+            ) : null}
+            <Menu.Item
+              icon={<CopySimpleIcon weight='bold' />}
+              shortcut={BLOCK_ACTION_KEYS.duplicate}
+              onClick={() => run((pos) => duplicateBlock(editor.state, pos))}
+            >
+              Duplicate
+            </Menu.Item>
+            <Menu.Separator />
+            <Menu.Item
+              icon={<TrashIcon weight='bold' />}
+              shortcut={BLOCK_ACTION_KEYS.delete}
+              intent='danger'
+              onClick={() => run((pos) => deleteBlock(editor.state, pos))}
+            >
+              Delete
+            </Menu.Item>
+          </Menu.Group>
         </Menu.Content>
       </Menu>
     </>,

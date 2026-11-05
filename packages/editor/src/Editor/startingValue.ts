@@ -1,11 +1,27 @@
 import type { Preset } from '../schema/presetShapes'
 import { type EditorValue, createEmptyValue, migrate } from '../schema/value'
 import type { EditorRootProps } from './EditorRoot'
+import type { EditorEmphasis, EditorToolbarMode } from './variants'
 
 type PresetProps = Pick<
   EditorRootProps,
   'preset' | 'value' | 'defaultValue' | 'extensions'
 >
+
+/**
+ * How a preset opens when `emphasis` and the toolbar aren't given. A blocks
+ * page is edited in place, so it has no box. An email lands in an inbox, not
+ * on the page it's written on, so its box marks where the email ends. Both
+ * float their toolbar, as the blocks have their own.
+ */
+export function presetLook(preset: Preset): {
+  emphasis: EditorEmphasis
+  toolbar: EditorToolbarMode
+} {
+  if (preset === 'blocks') return { emphasis: 'subtler', toolbar: 'floating' }
+  if (preset === 'email') return { emphasis: 'normal', toolbar: 'floating' }
+  return { emphasis: 'normal', toolbar: 'docked' }
+}
 
 /** The `preset` prop, else the value's own preset, else `basic`. */
 export function resolvedPreset({

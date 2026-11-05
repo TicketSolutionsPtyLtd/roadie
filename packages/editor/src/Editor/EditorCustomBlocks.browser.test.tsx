@@ -22,11 +22,12 @@ import { MOD } from './testUtils'
 
 const LABEL = 'Page'
 
-// The block handle sits outside the text, where a click lands only with styles.
+// The block handle sits outside the text, where a click lands only with
+// styles, and a subtler editor's handle hangs past its start edge.
 let style: HTMLStyleElement
 beforeAll(() => {
   style = document.createElement('style')
-  style.textContent = roadieCss
+  style.textContent = `${roadieCss} body { padding-inline: 64px; }`
   document.head.append(style)
 })
 afterAll(() => style.remove())
@@ -237,6 +238,36 @@ describe('Editor extensions', () => {
       ([saved]) => (saved as EditorValue).doc.content![0]!.attrs!.eventId
     )
     expect(savedIds.filter((id) => id !== 'okw')).toEqual([])
+  })
+
+  it('heads an app’s block menu with its label', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        extensions={[eventCard]}
+        defaultValue={{
+          version: 1,
+          preset: 'blocks',
+          doc: {
+            type: 'doc',
+            content: [{ type: 'eventCard', attrs: { eventId: 'okw' } }]
+          }
+        }}
+      />
+    )
+    await userEvent.hover(await screen.findByRole('textbox', { name: 'Event' }))
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Block actions' })
+    )
+
+    const menu = await screen.findByRole('menu')
+    await waitFor(() =>
+      expect(
+        within(menu).getByRole('group', { name: 'Event card' })
+      ).toBeVisible()
+    )
   })
 
   it('keeps an app’s block through a controlled value', async () => {

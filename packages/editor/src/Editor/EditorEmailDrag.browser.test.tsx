@@ -65,15 +65,21 @@ const layout = newsletter(
 function renderNewsletter(defaultValue = layout) {
   const onValueChange = vi.fn()
   render(
-    <Editor
-      aria-label={LABEL}
-      preset='email'
-      defaultValue={defaultValue}
-      onValueChange={onValueChange}
-    />
+    <>
+      <Editor
+        aria-label={LABEL}
+        preset='email'
+        defaultValue={defaultValue}
+        onValueChange={onValueChange}
+      />
+      <div data-testid='outside' className='h-8' />
+    </>
   )
   return onValueChange
 }
+
+// The editor runs to the page's top corner, so the pointer leaves it below.
+const pointerAway = () => userEvent.hover(screen.getByTestId('outside'))
 
 // Each block as its text, and each layout node as its type and children.
 const outline = (node: JSONContent): unknown =>
@@ -207,7 +213,7 @@ describe('Editor email block handle', () => {
   it('keeps the caret block’s grip when the pointer comes straight to it', async () => {
     renderNewsletter()
     await userEvent.click(await line('Right one'))
-    await userEvent.hover(document.body, { position: { x: 1, y: 1 } })
+    await pointerAway()
     await expectGripBeside(await line('Right one'))
 
     await userEvent.hover(await grip())
@@ -218,11 +224,32 @@ describe('Editor email block handle', () => {
   it('opens the caret block’s menu when the pointer comes straight to its grip', async () => {
     const onValueChange = renderNewsletter()
     await userEvent.click(await line('Right one'))
-    await userEvent.hover(document.body, { position: { x: 1, y: 1 } })
+    await pointerAway()
     await expectGripBeside(await line('Right one'))
 
     await userEvent.click(await grip())
     await chooseMove('Move down')
+
+    await expectOutline(
+      onValueChange,
+      {
+        section: [
+          'Alpha one',
+          'Alpha two',
+          { columns: [{ column: ['Left one'] }, { column: [''] }] },
+          'Right one'
+        ]
+      },
+      { section: ['Bravo one'] },
+      'Closing'
+    )
+  })
+
+  it('moves the caret’s block out of its column with Mod+Shift+ArrowDown', async () => {
+    const onValueChange = renderNewsletter()
+    await userEvent.click(await line('Right one'))
+
+    await userEvent.keyboard(`{${MOD}>}{Shift>}{ArrowDown}{/Shift}{/${MOD}}`)
 
     await expectOutline(
       onValueChange,
@@ -772,7 +799,10 @@ describe('Editor email block handle', () => {
         </>
       )
       await userEvent.click(await line('Right one'))
-      moveThrough([{ x: 1, y: 1 }])
+      // Off the editor, which fills the page's top-left corner.
+      const after = screen.getByRole('button', { name: 'After' })
+      const away = after.getBoundingClientRect()
+      moveThrough([{ x: away.left + 1, y: away.top + 1 }])
       const handle = await grip()
       const { left, top, width, height } = handle.getBoundingClientRect()
       moveThrough([{ x: left + width / 2, y: top + height / 2 }])
@@ -791,7 +821,10 @@ describe('Editor email block handle', () => {
         </>
       )
       await userEvent.click(await line('Right one'))
-      moveThrough([{ x: 1, y: 1 }])
+      // Off the editor, which fills the page's top-left corner.
+      const after = screen.getByRole('button', { name: 'After' })
+      const away = after.getBoundingClientRect()
+      moveThrough([{ x: away.left + 1, y: away.top + 1 }])
 
       // A tap brings no mousemove before focus moves.
       ;(await grip()).dispatchEvent(
