@@ -24,6 +24,7 @@ import { Menu } from '@oztix/roadie-components/menu'
 import { Popover } from '@oztix/roadie-components/popover'
 import { Select } from '@oztix/roadie-components/select'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
+import { cn } from '@oztix/roadie-core/utils'
 
 import {
   EmailPreviewFrame,
@@ -262,7 +263,7 @@ export function EditorPreview({
         width={width}
         colorScheme={scheme}
         busy={shown.busy}
-        header={<InboxRow {...inbox} />}
+        header={<InboxRow {...inbox} scheme={scheme} />}
       />
     </div>
   )
@@ -271,13 +272,26 @@ export function EditorPreview({
 // Hidden visually, still named, so a phone's bar fits on one row.
 const NARROW_HIDDEN = '@max-[34rem]:sr-only'
 
-function InboxRow({ sender, subject, preheader }: EditorPreviewInbox) {
+// An inbox in a mail app's dark mode, whatever the app's own theme.
+const DARK_INBOX =
+  'bg-(--color-neutral-light-13) text-(--color-neutral-light-0) [--intent-text-strong:var(--color-neutral-light-0)] [--intent-text-subtle:var(--color-neutral-light-5)]'
+
+function InboxRow({
+  sender,
+  subject,
+  preheader,
+  scheme
+}: EditorPreviewInbox & { scheme: ColorScheme }) {
   if (!sender && !subject && !preheader) return null
   return (
     <div
       role='group'
       aria-label='In the inbox'
-      className='grid min-w-0 emphasis-raised gap-0.5 rounded-lg px-3 py-2 text-sm'
+      data-scheme={scheme}
+      className={cn(
+        'grid min-w-0 emphasis-raised gap-0.5 rounded-lg px-3 py-2 text-sm',
+        scheme === 'dark' && DARK_INBOX
+      )}
     >
       {sender ? (
         <p className='truncate font-semibold text-strong'>{sender}</p>
@@ -313,6 +327,8 @@ function SendTest({ onSend, className, labelClassName }: SendTestProps) {
   const [sending, setSending] = useState<Sending>({ state: 'idle' })
   // Reopening starts afresh, so an earlier send's answer mustn't land.
   const sendId = useRef(0)
+  // The popup would focus itself, which on a phone leaves the keyboard shut.
+  const addressRef = useRef<HTMLInputElement>(null)
   const address = to.trim()
   const canSend = ADDRESS.test(address) && sending.state !== 'sending'
 
@@ -349,12 +365,16 @@ function SendTest({ onSend, className, labelClassName }: SendTestProps) {
           </Button>
         }
       />
-      <Popover.Content className='w-xs max-w-(--available-width)'>
+      <Popover.Content
+        className='w-xs max-w-(--available-width)'
+        initialFocus={addressRef}
+      >
         <Popover.Body>
           <form className='grid gap-3' onSubmit={send}>
             <Field>
               <Field.Label>Send to</Field.Label>
               <Field.Input
+                ref={addressRef}
                 type='email'
                 autoComplete='email'
                 value={to}
