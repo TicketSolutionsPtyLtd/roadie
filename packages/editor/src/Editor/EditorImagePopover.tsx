@@ -40,6 +40,14 @@ const isImageSrc = (editor: TiptapEditor, src: string) =>
 const inEmail = (editor: TiptapEditor) =>
   Boolean(editor.schema.nodes.image?.spec.attrs?.width)
 
+// Into the top half, which a half-height sheet leaves clear.
+function keepAboveSheet(dom: unknown) {
+  if (!(dom instanceof HTMLElement)) return
+  const { top, bottom } = dom.getBoundingClientRect()
+  if (top >= 16 && bottom <= window.innerHeight / 2) return
+  requestAnimationFrame(() => dom.scrollIntoView({ block: 'start' }))
+}
+
 const REFUSED = 'Enter an image’s https address.'
 
 const selectedImage = (editor: TiptapEditor) => {
@@ -94,11 +102,11 @@ function AddImageForm({ editor, inputRef, upload, onDone }: AddImageFormProps) {
         </Button>
       ) : null}
       <EditorPopoverForm
-        label='Image link'
+        label='Image address'
         inputRef={inputRef}
         type='url'
         inputMode='url'
-        placeholder='Paste an image link'
+        placeholder='Paste an image address'
         value={typed}
         onValueChange={(value) => {
           setTyped(value)
@@ -170,9 +178,9 @@ const WIDTHS = [
 ] as const
 
 const ALIGNS = [
-  { value: 'left', label: 'Left' },
+  { value: 'left', label: 'Start' },
   { value: 'center', label: 'Centre' },
-  { value: 'right', label: 'Right' }
+  { value: 'right', label: 'End' }
 ] as const
 
 type Saved = {
@@ -264,7 +272,7 @@ function ImageSettingsForm({
       }}
     >
       <Field invalid={refused}>
-        <Field.Label>Image link</Field.Label>
+        <Field.Label>Image address</Field.Label>
         <Field.Input
           ref={inputRef}
           type='url'
@@ -474,16 +482,23 @@ export function EditorImagePopover({
   }
   // On a phone, from the bottom, as a popover by the image runs off screen.
   if (phone && image) {
+    if (open) keepAboveSheet(editor.view.nodeDOM(image.from))
     return (
-      <Drawer open={open} onOpenChange={live.onOpenChange} side='bottom'>
+      // No blur, and half the screen, so the image stays in view above it.
+      <Drawer
+        open={open}
+        onOpenChange={live.onOpenChange}
+        side='bottom'
+        emphasis='subtler'
+      >
         <Drawer.Content
-          size='fit'
+          size='sm'
           // Its title, as the keyboard a field brings up would cover the sheet.
           initialFocus={titleRef}
           finalFocus={handBack}
         >
           <Drawer.Header>
-            <Drawer.Title ref={titleRef} tabIndex={-1}>
+            <Drawer.Title ref={titleRef} tabIndex={-1} className='outline-none'>
               Image settings
             </Drawer.Title>
           </Drawer.Header>

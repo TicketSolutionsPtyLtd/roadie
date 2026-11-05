@@ -164,12 +164,12 @@ const POPOVERS: Popover[] = [
   },
   {
     name: 'Image',
-    placeholder: 'Paste an image link',
+    placeholder: 'Paste an image address',
     value: soldOut,
     async open(textbox) {
       await userEvent.click(within(textbox).getByText('Sold out'))
       await userEvent.click(screen.getByRole('button', { name: 'Image' }))
-      return openField('Image link')
+      return openField('Image address')
     },
     typed: '/images/crowd.webp',
     submitLabel: 'Add image',

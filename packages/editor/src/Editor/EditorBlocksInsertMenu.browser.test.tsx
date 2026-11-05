@@ -121,7 +121,7 @@ describe('Editor insert menu in the blocks preset', () => {
     await focusedTextbox()
 
     await userEvent.keyboard('/image{Enter}')
-    const field = await screen.findByRole('textbox', { name: 'Image link' })
+    const field = await screen.findByRole('textbox', { name: 'Image address' })
     await waitFor(() => expect(field).toHaveFocus())
     await userEvent.keyboard('/images/crowd.webp{Enter}')
 

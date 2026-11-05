@@ -95,7 +95,7 @@ describe('Editor image settings', () => {
 
     const dialog = await openSettings()
 
-    for (const name of ['Image link', 'Link', 'Alt text']) {
+    for (const name of ['Image address', 'Link', 'Alt text']) {
       expect(within(dialog).getByRole('textbox', { name })).toBeVisible()
     }
     expect(
@@ -111,10 +111,10 @@ describe('Editor image settings', () => {
     const onValueChange = renderImage()
     const dialog = await openSettings()
     const align = within(dialog).getByRole('group', { name: 'Align' })
-    expect(within(align).getByRole('button', { name: 'Right' })).toBeDisabled()
+    expect(within(align).getByRole('button', { name: 'End' })).toBeDisabled()
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Fit' }))
-    await userEvent.click(within(align).getByRole('button', { name: 'Right' }))
+    await userEvent.click(within(align).getByRole('button', { name: 'End' }))
 
     await waitFor(() =>
       expect(savedImage(onValueChange)).toMatchObject({
@@ -157,7 +157,7 @@ describe('Editor image settings', () => {
   it('swaps the image for another https one, and refuses any other', async () => {
     const onValueChange = renderImage()
     const dialog = await openSettings()
-    const field = within(dialog).getByRole('textbox', { name: 'Image link' })
+    const field = within(dialog).getByRole('textbox', { name: 'Image address' })
 
     await userEvent.clear(field)
     await userEvent.type(field, 'http://example.test/stage.webp')
@@ -239,7 +239,7 @@ describe('Editor image settings', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Image' }))
 
     expect(
-      await screen.findByRole('textbox', { name: 'Image link' })
+      await screen.findByRole('textbox', { name: 'Image address' })
     ).toHaveValue('')
     expect(screen.queryByRole('dialog', { name: 'Image settings' })).toBe(null)
   })
@@ -277,7 +277,7 @@ describe('Editor image settings', () => {
         caption: 'Gates 11am'
       })
     )
-    expect(within(align).getByRole('button', { name: 'Right' })).toBeDisabled()
+    expect(within(align).getByRole('button', { name: 'End' })).toBeDisabled()
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Fit' }))
     await waitFor(() =>
@@ -300,6 +300,32 @@ describe('Editor image settings', () => {
     const dialog = await openSettings()
 
     expect(within(dialog).getByRole('group', { name: 'Align' })).toBeVisible()
+  })
+
+  it('names the alignments Start, Centre and End, as sections do', async () => {
+    renderImage(valueOf('email', image({ width: 200 }), { type: 'paragraph' }))
+    const dialog = await openSettings()
+
+    const align = within(dialog).getByRole('group', { name: 'Align' })
+    expect(
+      within(align)
+        .getAllByRole('button')
+        .map((button) => button.textContent)
+    ).toEqual(['Start', 'Centre', 'End'])
+    expect(
+      within(dialog).getByRole('textbox', { name: 'Image address' })
+    ).toBeVisible()
+  })
+
+  it('flags a selected image without alt text on an opaque chip', async () => {
+    renderImage(valueOf('email', image({ alt: '' }), { type: 'paragraph' }))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(textbox.querySelector('img')!)
+
+    const flag = await within(textbox).findByText('No alt text')
+    const chip = flag.closest<HTMLElement>('[data-slot="badge"]') ?? flag
+    const fill = getComputedStyle(chip).backgroundColor
+    expect(fill).not.toMatch(/transparent|, 0(\.\d+)?\)$/)
   })
 
   it('opens from the bottom on a phone', async () => {
@@ -326,6 +352,23 @@ describe('Editor image settings', () => {
         expect(sheet.contains(document.activeElement)).toBe(true)
       )
       expect(document.activeElement?.tagName).not.toBe('INPUT')
+      // Half the screen, with the image above it and the page unblurred.
+      const image = textbox.querySelector('img')!
+      await waitFor(() =>
+        expect(image.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+          sheet.getBoundingClientRect().top + 1
+        )
+      )
+      expect(sheet.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        window.innerHeight / 2 - 1
+      )
+      const backdrop = document.querySelector('[data-slot="drawer-backdrop"]')
+      if (backdrop) {
+        expect(getComputedStyle(backdrop).backdropFilter).toBe('none')
+      }
+      expect(getComputedStyle(document.activeElement!).outlineStyle).toBe(
+        'none'
+      )
     } finally {
       await page.viewport(1280, 800)
     }

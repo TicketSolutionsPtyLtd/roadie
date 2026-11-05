@@ -196,3 +196,15 @@
     outline-offset: -2px;
   }
 }
+
+/* Between blocks, as a line across the text rather than a caret over the
+   block before it, such as an image. */
+[data-slot='editor-content'] .ProseMirror-gapcursor {
+  inset-inline: 0;
+}
+
+[data-slot='editor-content'] .ProseMirror-gapcursor:after {
+  inset-inline: 0;
+  inline-size: auto;
+  border-top: 2px solid var(--color-accent-9);
+}
