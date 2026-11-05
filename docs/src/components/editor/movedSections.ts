@@ -21,7 +21,9 @@ const PAGES = {
     'sending-email',
     'html-emails',
     'merge-tags',
-    'conditions'
+    'conditions',
+    // The page once had two Conditions sections, so the second took this slug.
+    ['conditions-1', 'conditions']
   ],
   'saved-content': ['rendering-saved-content', 'importing-existing-html']
 } satisfies Record<string, (string | [string, string])[]>
@@ -40,5 +42,5 @@ export const movedEditorSections = (): [string, string][] => [...MOVED]
 
 /** Where a section that left the Editor page lives now, from its old `#anchor`. */
 export function movedEditorSection(hash: string): string | undefined {
-  return MOVED.get(decodeURIComponent(hash.replace(/^#/, '')))
+  return MOVED.get(hash.replace(/^#/, ''))
 }

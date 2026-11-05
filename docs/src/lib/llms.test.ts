@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { DASHBOARD_EXAMPLES } from './dashboard-examples'
 import {
   allTokensToMarkdown,
+  catalogueToMarkdown,
   dashboardExampleToMarkdown,
   llmsIndex,
   pageToMarkdown,
@@ -519,6 +520,79 @@ describe('llmsIndex', () => {
           '- [Card](https://example.com/roadie/components/card.md)'
         ].join('\n')
       ].join('\n\n') + '\n'
+    )
+  })
+})
+
+describe('catalogueToMarkdown', () => {
+  const url = (href: string) => `https://example.com/roadie${href}.md`
+  const entries = [
+    {
+      title: 'Editor',
+      href: '/components/editor/editor',
+      description: 'A rich-text field'
+    }
+  ]
+
+  it('leads a group with its overview page', () => {
+    expect(
+      catalogueToMarkdown(
+        [
+          {
+            name: 'Editor',
+            overview: {
+              href: '/components/editor',
+              title: 'Editor overview',
+              description: 'Pick an editor'
+            },
+            entries
+          }
+        ],
+        url
+      )
+    ).toBe(
+      [
+        '## Editor',
+        [
+          '- [Editor overview](https://example.com/roadie/components/editor.md): Pick an editor',
+          '- [Editor](https://example.com/roadie/components/editor/editor.md): A rich-text field'
+        ].join('\n')
+      ].join('\n\n')
+    )
+  })
+
+  it('titles an overview with no metadata after its group', () => {
+    expect(
+      catalogueToMarkdown(
+        [{ name: 'Editor', overview: { href: '/components/editor' }, entries }],
+        url
+      )
+    ).toContain(
+      '## Editor\n\n- [Editor](https://example.com/roadie/components/editor.md)\n'
+    )
+  })
+
+  it('lists only the entries of a group with no overview', () => {
+    expect(
+      catalogueToMarkdown(
+        [
+          { name: 'Editor', entries },
+          {
+            name: 'Layout',
+            entries: [
+              { title: 'Card', href: '/components/card', description: '' }
+            ]
+          }
+        ],
+        url
+      )
+    ).toBe(
+      [
+        '## Editor',
+        '- [Editor](https://example.com/roadie/components/editor/editor.md): A rich-text field',
+        '## Layout',
+        '- [Card](https://example.com/roadie/components/card.md)'
+      ].join('\n\n')
     )
   })
 })
