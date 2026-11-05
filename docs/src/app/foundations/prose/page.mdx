@@ -47,8 +47,31 @@ its size.
 </article>
 ```
 
-Element rules sit inside `:where()` in the components layer. A utility on a
-child, such as `text-subtle` on a paragraph, always wins over the sheet.
+Element rules sit inside `:where()` in the components layer, scoped to
+`.prose`. A utility on a child, such as `text-subtle` on a paragraph, always
+wins over the sheet.
+
+The scope needs `@scope`, in Chrome 118, Safari 17.4 and Firefox 146. Older
+browsers style Prose in full, but a Prose inside an escape stays unstyled.
+
+## Sizes
+
+Add `prose-sm` or `prose-lg` beside `.prose` for the Prose component's `sm`
+and `lg` sizes, in markup that doesn't use the component. `prose-sm` sets
+body text at the `text-sm` size, headings one step below the UI heading
+styles, and a tighter rhythm. `prose-lg` sets larger body text with the prose
+heading styles. Each sets only `--prose-*` variables.
+
+```tsx-live-prose layout=stack gap=8
+<div className='prose prose-sm'>
+  <h3>Can I change the name on my ticket?</h3>
+  <p>Yes, up to 48 hours before doors. Open the ticket and choose Transfer.</p>
+</div>
+<div className='prose prose-lg'>
+  <h3>A weekend at Jumbuck Orchard Park</h3>
+  <p>Three stages, two nights, and the longest bar in the valley.</p>
+</div>
+```
 
 ## Rhythm
 
@@ -147,8 +170,8 @@ child still takes its place in the rhythm and is still capped at
 </div>
 ```
 
-A `.prose` inside an escaped element stays unstyled, so put the escape around
-the parts that need it, not around a whole region that also holds prose.
+A `.prose` inside an escaped element typesets its own content again, so a
+preview or a component can escape a region and still hold prose.
 
 ## Variables
 

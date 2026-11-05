@@ -1,6 +1,11 @@
-import { Extension } from '@tiptap/core'
+import { Extension, type Range } from '@tiptap/core'
+import { closeHistory } from '@tiptap/pm/history'
 import { PluginKey } from '@tiptap/pm/state'
-import { Suggestion, type SuggestionProps } from '@tiptap/suggestion'
+import {
+  Suggestion,
+  type SuggestionProps,
+  exitSuggestion
+} from '@tiptap/suggestion'
 
 import type { EditorControlUi } from './controls'
 import { type EditorInsertItem, matchingInsertItems } from './insertItems'
@@ -28,9 +33,21 @@ export type InsertMenuOptions = {
 
 type Props = SuggestionProps<EditorInsertItem, EditorInsertItem>
 
+type InsertMenuStorage = {
+  key: PluginKey<{ active: boolean; range: Range }>
+}
+
 /** Opens the insert menu on `/`, filtering its items by what follows. */
-export const InsertMenu = Extension.create<InsertMenuOptions>({
+export const InsertMenu = Extension.create<
+  InsertMenuOptions,
+  InsertMenuStorage
+>({
   name: 'insertMenu',
+
+  // One per menu, as the `/` and `{{` menus can both be in an editor.
+  addStorage() {
+    return { key: new PluginKey(this.name) }
+  },
 
   addOptions() {
     return {
@@ -45,6 +62,7 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
 
   addProseMirrorPlugins() {
     const { char, items, allowIn, ui, onChange } = this.options
+    const { key } = this.storage
     let open: {
       props: Props
       active: number
@@ -85,7 +103,7 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
     return [
       Suggestion<EditorInsertItem, EditorInsertItem>({
         editor: this.editor,
-        pluginKey: new PluginKey(this.name),
+        pluginKey: key,
         char,
         // `{{` follows a word as often as a space, as in "Hi,{{".
         allowedPrefixes: char === '/' ? [' '] : null,
@@ -94,11 +112,21 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
         allow: ({ state, range }) =>
           items().length > 0 &&
           allowIn(state.doc.resolve(range.from).parent.type.name),
-        items: ({ query, editor }) =>
-          matchingInsertItems(items(), query, editor, ui()),
+        items: ({ query, editor }) => {
+          const { range } = key.getState(editor.state)!
+          return matchingInsertItems(items(), query, range, editor, ui())
+        },
         command: ({ editor, range, props: item }) => {
-          editor.chain().focus().deleteRange(range).run()
-          item.run(editor, ui())
+          // One undo step of its own, so undo returns to what was typed.
+          const chain = editor
+            .chain()
+            .focus()
+            .command(({ tr }) => {
+              closeHistory(tr)
+              return true
+            })
+            .deleteRange(range)
+          item.insert(chain, ui()).run()
         },
         render: () => ({
           onStart: start,
@@ -110,13 +138,22 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
           onKeyDown: ({ event }) => {
             const count = open?.props.items.length ?? 0
             if (!open || count === 0) return false
+            // Suggestion closes the menu itself; this keeps a dialog around
+            // the editor from closing too.
+            if (event.key === 'Escape') {
+              event.stopPropagation()
+              return true
+            }
             if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
               const step = event.key === 'ArrowDown' ? 1 : -1
               open.active = (open.active + step + count) % count
               publish()
               return true
             }
-            if (event.key === 'Enter' && !event.isComposing) {
+            const modified =
+              event.shiftKey || event.altKey || event.ctrlKey || event.metaKey
+            // Shift+Enter and Mod+Enter break the line, as they do outside it.
+            if (event.key === 'Enter' && !event.isComposing && !modified) {
               const item = open.props.items[open.active]
               if (item) open.props.command(item)
               return true
@@ -126,5 +163,11 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
         })
       })
     ]
+  },
+
+  onBlur() {
+    const { view } = this.editor
+    const { key } = this.storage
+    if (key.getState(view.state)?.active) exitSuggestion(view, key)
   }
 })

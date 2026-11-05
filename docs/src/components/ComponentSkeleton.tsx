@@ -50,7 +50,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
       )
     case 'toggle-group':
       return (
-        <div className='grid w-40 emphasis-normal auto-cols-fr grid-flow-col gap-1 rounded-full p-1'>
+        <div className='grid w-40 emphasis-normal auto-cols-fr grid-flow-col rounded-full p-1'>
           <div className='grid h-6 place-content-center'>
             <Skel className='h-1.5 w-6' />
           </div>
@@ -722,7 +722,7 @@ export function ComponentSkeleton({ name }: { name: string }) {
     case 'tabs':
       return (
         <div className='grid w-44 gap-3'>
-          <div className='flex gap-1 rounded-full bg-normal p-1'>
+          <div className='flex rounded-full bg-normal p-1'>
             <div className='grid h-6 flex-1 emphasis-raised place-content-center rounded-full'>
               <Skel className='h-1.5 w-8' />
             </div>

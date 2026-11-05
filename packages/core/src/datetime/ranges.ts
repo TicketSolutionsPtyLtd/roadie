@@ -262,9 +262,17 @@ function resolveRolling(
   // Rolling windows count today, so "next 7 days" is today and six more.
   const far =
     unit === 'month'
-      ? addDays(addMonths(today, sign * amount), -sign)
+      ? monthsAway(today, sign * amount)
       : addDays(today, sign * (amount * (unit === 'week' ? 7 : 1) - 1))
   return sign > 0 ? dates(today, far) : dates(far, today)
+}
+
+// The day before the same date that many months away. A date the far month
+// lacks (31 Jan to Feb) was clamped to its last day, which is then the end.
+function monthsAway(today: string, months: number) {
+  const same = addMonths(today, months)
+  const clamped = plainDateParts(same).day < plainDateParts(today).day
+  return clamped && months > 0 ? same : addDays(same, -Math.sign(months))
 }
 
 function resolveNamed(
@@ -413,9 +421,10 @@ export type ResolvedComparison =
   /** `range` is null when the range is open-ended or a single instant. */
   | { status: 'unavailable'; range: ResolvedDateRange | null }
 
-type CalendarUnit = { days: number } | { months: number }
+export type CalendarUnit = { days: number } | { months: number }
 
-function calendarUnit(value: DateRangeValue): CalendarUnit | null {
+/** The unit a calendar period steps by, or null for any other range. */
+export function calendarUnit(value: DateRangeValue): CalendarUnit | null {
   if (isAbsoluteRange(value) || isRollingRange(value)) return null
   const period = isPeriodRange(value) ? value : NAMED_PERIODS.get(value)
   if (!period) return value === 'this-weekend' ? { days: 7 } : null

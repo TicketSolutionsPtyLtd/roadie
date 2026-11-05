@@ -1,0 +1,186 @@
+export const metadata = {
+  title: 'Gallery',
+  description:
+    'Shows the people, events, and partners behind a page in photos or logos',
+  status: 'alpha',
+  wideExamples: true,
+  category: 'Prove',
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Shows the people, events, and partners behind a page in photos or logos.
+
+## Import
+
+```tsx
+import { Gallery } from '@oztix/roadie-blocks/gallery'
+```
+
+## Examples
+
+### Carousel
+
+The default. A heading over tall photos that people step through with the previous, dot, and next controls under them, or swipe on a touch screen.
+
+```tsx-live-expand id=carousel
+<Gallery
+  preset='carousel'
+  title='Join thousands of partners who trust Oztix'
+  description='From festivals to local venues, we help event organisers sell more tickets.'
+  images={[
+    { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 },
+    { src: '/brand/photography/09.webp', alt: 'Four musicians posing together in front of an Oztix backdrop', width: 1201, height: 801 },
+    { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun', width: 1280, height: 854 },
+    { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd', width: 1280, height: 854 },
+    { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 },
+    { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above', width: 1280, height: 850 },
+    { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting', width: 1280, height: 854 }
+  ]}
+/>
+```
+
+### Marquee
+
+The same photos scrolling past on their own, with a button on their lower corner to pause them. They hold still while someone points at or tabs into them, and for anyone who prefers reduced motion.
+
+```tsx-live-expand id=marquee
+<Gallery
+  preset='marquee'
+  title='Join thousands of partners who trust Oztix'
+  description='From festivals to local venues, we help event organisers sell more tickets.'
+  images={[
+    { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 },
+    { src: '/brand/photography/09.webp', alt: 'Four musicians posing together in front of an Oztix backdrop', width: 1201, height: 801 },
+    { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun', width: 1280, height: 854 },
+    { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd', width: 1280, height: 854 },
+    { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 },
+    { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above', width: 1280, height: 850 },
+    { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting', width: 1280, height: 854 }
+  ]}
+/>
+```
+
+### Logos
+
+Logos in a wrapping, centred row, each at its own proportions at one height,
+so none is cropped. Use it for partner logos or certifications. Give a logo an
+`href` and it becomes the link, named by its alt text, as a quiet card that
+tints on hover.
+
+```tsx-live-expand id=logos
+<Gallery
+  preset='logos'
+  title='Trusted by organisers across Australia'
+  images={[
+    { src: '/blocks/kerosene-pony-collective-badge.svg', alt: 'Kerosene Pony Collective', width: 214, height: 48, href: '/partners' },
+    { src: '/blocks/wishbone-ferret-collective-badge.svg', alt: 'Wishbone Ferret Collective', width: 214, height: 48 },
+    { src: '/blocks/hairpin-bicycle-presents-badge.svg', alt: 'Hairpin Bicycle Presents', width: 216, height: 50 },
+    { src: '/blocks/thimble-orbit-presents-badge.svg', alt: 'Thimble Orbit Presents', width: 214, height: 48 }
+  ]}
+/>
+```
+
+### Ratio
+
+`ratio` sets the photos' shape in a `carousel` or `marquee`: `story` (9:16)
+by default, `portrait` (3:4), `square`, `landscape` (3:2), or `banner` (2:1). `logos` ignores it.
+
+```tsx-live-expand id=ratio
+<Gallery
+  preset='carousel'
+  ratio='landscape'
+  title='Events that run with Oztix'
+  images={[
+    { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 },
+    { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun', width: 1280, height: 854 },
+    { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd', width: 1280, height: 854 },
+    { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above', width: 1280, height: 850 }
+  ]}
+/>
+```
+
+### Intent and emphasis
+
+`intent` colours the highlighted words, the marquee's pause control, and the strong action. Without an `emphasis`, the photos sit on the page and the marquee runs the block's full width. Any emphasis draws a full-width band behind them, with the carousel and marquee running edge to edge, and `contained` draws it as a rounded panel inside the page's padding instead.
+
+`align` overrides the heading's alignment, which is centred in every preset. `size='md'` or `'sm'` sets the title one or two steps smaller with tighter spacing, and `actions` go under the photos, lined up with the heading.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Brand, subtle band, action */}
+<Gallery
+  preset='marquee'
+  intent='brand'
+  emphasis='subtle'
+  title='Our people'
+  highlight='people'
+  actions={[{ label: 'Join the team', href: '/careers' }]}
+  images={[
+    { src: '/brand/photography/01.webp', alt: 'A festival main stage under a blue sky, with a crowd in front of it', width: 1280, height: 854 },
+    { src: '/brand/photography/05.webp', alt: 'Three partners smiling together at a laneway event', width: 1280, height: 854 },
+    { src: '/brand/photography/12.webp', alt: 'A real crowd in a laneway under Oztix bunting', width: 1280, height: 854 }
+  ]}
+/>
+{/* Normal panel, start-aligned, small */}
+<Gallery
+  preset='carousel'
+  emphasis='normal'
+  contained
+  align='start'
+  size='md'
+  title='Events our partners run'
+  images={[
+    { src: '/brand/photography/07.webp', alt: 'A leafy beer garden full of people in the afternoon sun', width: 1280, height: 854 },
+    { src: '/brand/photography/02.webp', alt: 'A car doing a burnout in blue and pink smoke, in front of a riverside crowd', width: 1280, height: 854 },
+    { src: '/brand/photography/08.webp', alt: 'A huge festival crowd facing a main stage, seen from above', width: 1280, height: 850 },
+    { src: '/brand/photography/09.webp', alt: 'Four musicians posing together in front of an Oztix backdrop', width: 1201, height: 801 }
+  ]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Match the preset to the images'>
+  <Guideline.Do>
+    Use `carousel` or `marquee` for photos of crowds, artists, and partners at their events, and `logos` for logos, so no logo is cut off.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don’t put logos in a carousel or marquee, or mix photos and logos in one gallery.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Title the gallery with what the photos prove, such as who already trusts Oztix.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Describe every photo'>
+  <Guideline.Do>
+    Write alt text that says what’s in the photo, since the block names each one once to screen readers.
+  </Guideline.Do>
+</Guideline>
+
+<Guideline title='Match the intent to the page'>
+  <Guideline.Do>
+    Leave the intent unset on most pages. Set it to match a campaign page's intent, so the highlight and pause control follow.
+  </Guideline.Do>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- **Carousel**: the heading names the carousel, and each photo is a slide named by its place, such as "2 of 7". Previous, next, and each dot are buttons, and photos out of view are inert, so `Tab` skips them.
+- **Marquee**: each photo is read out once, though the marquee repeats them to fill the width. A pause button stops the motion, which also stops on hover, on focus, and under reduced motion.
+- **Logos**: the logos are a list, read in order.
+- **Links**: a linked image is the link, named by its alt text, so give every linked image alt text.
+
+## Tracking
+
+Reports a view once half the gallery is on screen, and a click on the carousel's previous, next, or a dot, the marquee's pause, or a linked image, with its label.
+
+<PropsDefinitions component='Gallery' />

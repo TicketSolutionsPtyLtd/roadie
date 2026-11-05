@@ -1,0 +1,84 @@
+export const metadata = {
+  title: 'DonutChart',
+  description:
+    'One whole in two to five parts, largest first, with each share labelled',
+  status: 'beta',
+  category: 'Chart types',
+  order: 4.5
+}
+
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+One whole in two to five parts, largest first, with each share labelled.
+
+## Import
+
+```tsx
+import { DonutChart } from '@oztix/roadie-charts/donut-chart'
+```
+
+## Examples
+
+### Default
+
+```tsx-live width=140
+<Chart label='Tickets by type' source='Oztix sales.' size='md'>
+  <DonutChart
+    data={[
+      { type: 'GA', tickets: 1240 },
+      { type: 'Early bird', tickets: 520 },
+      { type: 'VIP', tickets: 310 },
+      { type: 'Concession', tickets: 220 }
+    ]}
+    x='type'
+    y='tickets'
+  />
+</Chart>
+```
+
+### Highlight
+
+`highlight` brings the parts that tell the story forward and greys the rest. `total` names what the centre counts.
+
+```tsx-live width=140
+<Chart label='Buyers by age' source='Oztix sales.' size='md'>
+  <DonutChart
+    data={[['18 to 24', 412], ['25 to 34', 958], ['35 to 44', 503], ['45 and over', 262]].map(([band, buyers]) => ({ band, buyers }))}
+    x='band'
+    y='buyers'
+    total='Buyers'
+    highlight='25 to 34'
+    takeaway='Most buyers are 25 to 34'
+  />
+</Chart>
+```
+
+### More than five parts
+
+Past five parts, the four largest stay and the rest roll into Other, which always sits last. A slice under 3% has no label; the legend and the Table tab still carry it. With this many parts, [RankedBars](/charts/ranked-bars) reads better.
+
+```tsx-live width=140
+<Chart label='Where buyers came from' source='Oztix sales.' size='md'>
+  <DonutChart
+    data={[['Email', 612], ['Instagram', 388], ['Direct', 301], ['Venue site', 164], ['TikTok', 142], ['Google', 41]].map(([channel, orders]) => ({ channel, orders }))}
+    x='channel'
+    y='orders'
+  />
+</Chart>
+```
+
+## Guidelines
+
+- Use a donut only for one whole that readers want each part's share of at a glance, such as tickets by type or buyers by age band.
+- Keep to two to five parts. For six or more, or parts of similar size, use [RankedBars](/charts/ranked-bars), since bars compare more accurately than arcs.
+- Don't use a donut to compare groups or periods (use [StackedBars](/charts/stacked-bars) at 100%), for change over time (use [LineChart](/charts/line-chart) or [StackedArea](/charts/stacked-area)), or for one share of a target, such as sold against capacity (use [Meter](/charts/meter)). Don't put donuts in a grid.
+- Parts always run largest first from 12 o'clock, so there's no `sort`. Each slice shows its share as a whole percent, and the percents add up to 100. The centre shows the total, the legend gives each part's value and share, and the Table tab lists every part with a total row.
+- Negative and missing values are left out. With no positive values, the chart shows its empty state.
+
+## Accessibility
+
+- The plot is one tab stop that starts on the largest slice. Right and Down arrows move clockwise around the ring, Left and Up move back, and Home and End jump to the first and last slice.
+- Each slice is read out with its value and share, such as "GA, 1,240 tickets, 54%" in the first example. The tooltip shows the same.
+- The Table tab lists every part with its value and share, including the parts rolled into Other.
+
+<PropsDefinitions component='DonutChart' />

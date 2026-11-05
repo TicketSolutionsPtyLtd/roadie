@@ -63,7 +63,7 @@ describe('recordsToCsv', () => {
         'Name,Ticket type,Paid,Scans,Note',
         'Mia Tran,General admission,$89.50,"1,200","Said ""hi"", twice"',
         'Jack Ellis,VIP,,,"Line one\nline two"',
-        'Ava Nguyen,General admission,$45,3,'
+        'Ava Nguyen,General admission,$45.00,3,'
       ].join('\r\n')
     )
   })
@@ -115,7 +115,7 @@ describe('recordsToCsv', () => {
 
   it('leaves formatted negatives alone', () => {
     const [, row] = lines(csvOf([{ ...attendees[2]!, paid: -20 }]))
-    expect(row).toBe('Ava Nguyen,General admission,-$20,3,')
+    expect(row).toBe('Ava Nguyen,General admission,-$20.00,3,')
   })
 
   it('writes raw values: plain numbers, labels and text, still neutralised', () => {
@@ -177,7 +177,7 @@ describe('recordsToCsv', () => {
         ],
         { values }
       )
-      const zero = values === 'raw' ? '0' : '$0'
+      const zero = values === 'raw' ? '0' : '$0.00'
       expect(lines(csv).slice(1)).toEqual([
         `Ava Nguyen,General admission,${zero},,`,
         'Ava Nguyen,General admission,,0,'

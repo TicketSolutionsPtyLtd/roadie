@@ -1,0 +1,171 @@
+import babel from '@rolldown/plugin-babel'
+import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react'
+import { playwright } from '@vitest/browser-playwright'
+import { globSync, readFileSync, realpathSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { configDefaults, defineConfig } from 'vitest/config'
+import type { BrowserCommand } from 'vitest/node'
+
+import {
+  browserInstances,
+  browserRetry,
+  browserRunOptions,
+  quarantineInclude
+} from '../../vitest.browsers.config.ts'
+import { reactCompilerPreset } from './react-compiler.config.ts'
+
+const BROWSER_TESTS = 'src/**/*.browser.test.{ts,tsx}'
+
+const forcedColors: BrowserCommand<[active: boolean]> = ({ page }, active) =>
+  page.emulateMedia({ forcedColors: active ? 'active' : 'none' })
+
+const reducedMotion: BrowserCommand<[active: boolean]> = ({ page }, active) =>
+  page.emulateMedia({ reducedMotion: active ? 'reduce' : 'no-preference' })
+
+const printMedia: BrowserCommand<[active: boolean]> = ({ page }, active) =>
+  page.emulateMedia({ media: active ? 'print' : 'screen' })
+
+// The pointer stays wherever the last test file on the page left it, so a
+// test that needs nothing hovered parks it in the top-left corner first.
+const parkPointer: BrowserCommand<[]> = ({ page }) => page.mouse.move(0, 0)
+
+type PointerStep =
+  | { type: 'move'; x: number; y: number; steps?: number }
+  | { type: 'down' }
+  | { type: 'up' }
+
+// A real mouse, so the brush sees the browser's own events. Points are in the
+// test frame's CSS pixels; the frame may sit offset and scaled.
+const pointer: BrowserCommand<[steps: PointerStep[]]> = async (
+  { page, frame },
+  steps
+) => {
+  const testFrame = await frame()
+  const box = await (await testFrame.frameElement()).boundingBox()
+  if (!box) throw new Error('The test frame has no box')
+  const width = await testFrame.evaluate(() => window.innerWidth)
+  const scale = box.width / width
+  for (const step of steps) {
+    if (step.type === 'move')
+      await page.mouse.move(box.x + step.x * scale, box.y + step.y * scale, {
+        steps: step.steps ?? 1
+      })
+    else if (step.type === 'down') await page.mouse.down()
+    else await page.mouse.up()
+  }
+}
+
+const ROOT = fileURLToPath(new URL('./', import.meta.url))
+const JSDOM_ONLY = /(?<!\.browser)\.test\.tsx?$/
+const SOURCE_IMPORT = /^import(?!\s+type\s)[^'"]*['"]([^'"]+)['"]/gm
+const BUILT_IMPORT = /\b(?:import|from)\s*['"]([^'"]+)['"]/g
+
+// Vite reuses a warm dependency cache without rescanning, so a package the
+// tests start reaching after a merge is optimised mid-run and the page reloads
+// with a second React. The cache is keyed on this list, so every package
+// reached goes in it, including those only the built Roadie packages import,
+// and a new one rebuilds the cache up front.
+function importedPackages() {
+  const packages = new Set<string>()
+  const visited = new Set<string>()
+
+  function add(specifier: string, packageDir: string, chain: string[]) {
+    if (/^node:|^vitest\b/.test(specifier)) return
+    if (!specifier.startsWith('@oztix/')) {
+      packages.add([...chain, specifier].join(' > '))
+      return
+    }
+    const name = specifier.split('/').slice(0, 2).join('/')
+    const dir = realpathSync(join(packageDir, 'node_modules', name))
+    const { exports } = JSON.parse(
+      readFileSync(join(dir, 'package.json'), 'utf8')
+    )
+    const entry = exports[`.${specifier.slice(name.length)}`]?.import
+    if (entry) visitBuilt(join(dir, entry), dir, [...chain, name])
+  }
+
+  function visitBuilt(file: string, packageDir: string, chain: string[]) {
+    if (visited.has(file)) return
+    visited.add(file)
+    for (const [, specifier] of readFileSync(file, 'utf8').matchAll(
+      BUILT_IMPORT
+    ))
+      if (specifier.startsWith('.'))
+        visitBuilt(resolve(dirname(file), specifier), packageDir, chain)
+      else add(specifier, packageDir, chain)
+  }
+
+  for (const file of globSync('src/**/*.{ts,tsx}', { cwd: ROOT })) {
+    if (JSDOM_ONLY.test(file)) continue
+    for (const [, specifier] of readFileSync(join(ROOT, file), 'utf8').matchAll(
+      SOURCE_IMPORT
+    ))
+      if (!specifier.startsWith('.')) add(specifier, ROOT, [])
+  }
+  return [...packages]
+}
+
+export default defineConfig({
+  plugins: [react(), babel({ presets: [reactCompilerPreset] })],
+  resolve: {
+    dedupe: ['react', 'react-dom']
+  },
+  server: {
+    fs: {
+      allow: ['../..']
+    }
+  },
+  test: {
+    ...browserRunOptions,
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'jsdom',
+          environment: 'jsdom',
+          setupFiles: ['./vitest.setup.ts'],
+          globals: true,
+          exclude: [...configDefaults.exclude, BROWSER_TESTS]
+        }
+      },
+      {
+        extends: true,
+        plugins: [tailwindcss()],
+        optimizeDeps: {
+          include: [
+            ...importedPackages(),
+            // Imported by the JSX transforms and test libraries, not the source.
+            'react/compiler-runtime',
+            'react/jsx-dev-runtime',
+            'react/jsx-runtime',
+            'react-dom'
+          ]
+        },
+        test: {
+          name: 'browser',
+          include: quarantineInclude(ROOT, [BROWSER_TESTS]),
+          retry: browserRetry,
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright(),
+            viewport: { width: 1920, height: 1080 },
+            commands: {
+              forcedColors,
+              parkPointer,
+              pointer,
+              printMedia,
+              reducedMotion
+            },
+            instances: browserInstances
+          }
+        }
+      }
+    ]
+  },
+  ssr: {
+    noExternal: ['@oztix/roadie-core']
+  }
+})

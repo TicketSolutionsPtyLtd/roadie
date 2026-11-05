@@ -5,7 +5,7 @@ import {
   formatDateRange,
   formatDateTime
 } from '../datetime/format'
-import { isPlainDate } from '../datetime/plainDate'
+import { isPlainDate, plainDateOf } from '../datetime/plainDate'
 import { recordFieldOptions } from './fields'
 import { epochSpan, isEmptyValue, read, rowZone } from './match'
 import type { RecordField } from './types'
@@ -38,11 +38,25 @@ function money(value: number, field: RecordField, row: object) {
   return formatValueInCurrency(
     value,
     field.format ?? 'currency',
-    typeof code === 'string' ? code : undefined
+    typeof code === 'string' ? code : undefined,
+    field
   )
 }
 
 const UTC_MIDNIGHT = 'T00:00:00Z'
+
+/** A range's end as a plain date, read in the row's zone when it's an instant. */
+function plainEnd(
+  row: object,
+  field: RecordField,
+  end: unknown,
+  options: FormatRecordValueOptions
+): string | null {
+  if (typeof end === 'string' && isPlainDate(end)) return end
+  const zone = rowZone(row, field, options.timeZone)
+  const span = epochSpan(end, zone)
+  return span ? plainDateOf(new Date(span[0]), zone) : null
+}
 
 function date(
   row: object,
@@ -54,10 +68,8 @@ function date(
   const hasEnd = !isEmptyValue(end)
   if (typeof start === 'string' && isPlainDate(start)) {
     const opts = { timeZone: 'UTC', now: options.now }
-    const to =
-      hasEnd && typeof end === 'string' && isPlainDate(end)
-        ? new Date(end + UTC_MIDNIGHT)
-        : null
+    const endDate = hasEnd ? plainEnd(row, field, end, options) : null
+    const to = endDate ? new Date(endDate + UTC_MIDNIGHT) : null
     return formatDateRange(new Date(start + UTC_MIDNIGHT), to, opts)
   }
   const zone = rowZone(row, field, options.timeZone)
@@ -109,7 +121,7 @@ export function formatRecordValue(
       if (typeof value !== 'number') return String(value)
       return field.type === 'money'
         ? money(value, field, row)
-        : formatValue(value, field.format)
+        : formatValue(value, field.format, field)
     case 'boolean':
       return typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)
     case 'option':

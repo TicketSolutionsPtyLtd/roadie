@@ -259,7 +259,7 @@ describe('CartDrawer (Vue)', () => {
     )
 
     // Escape deactivates the trap and returns the drawer to the docked region.
-    // NOTE: return-focus-to-trigger isn't asserted — this drawer swaps its
+    // NOTE: return-focus-to-trigger isn't asserted: this drawer swaps its
     // footer buttons on open, detaching the "Open cart" trigger before close,
     // so focus-trap has no live node to restore to. Worth a follow-up (stable
     // setReturnFocus target) but out of scope for this test.
@@ -557,7 +557,7 @@ describe('CartDrawer (Vue)', () => {
     expect(drawer.getAttribute('role')).toBe('dialog')
     await fireEvent.click(await findByLabelText('Remove Night Show'))
     await findByText('Remove all tickets for this event?')
-    // Escape dismisses the popover but must NOT also close the drawer — the
+    // Escape dismisses the popover but must NOT also close the drawer: the
     // drawer's onKeydown bails via the [data-cart-confirm] guard.
     await fireEvent.keyDown(document, { key: 'Escape' })
     await flushPromises()
@@ -642,7 +642,7 @@ describe('CartDrawer (Vue)', () => {
     const releaseModal = lockBodyScroll()
 
     // Close the drawer (Escape). The modal is still open, so background scroll
-    // MUST stay locked — the drawer must not stomp the shared lock.
+    // MUST stay locked: the drawer must not stomp the shared lock.
     await fireEvent.keyDown(document, { key: 'Escape' })
     await flushPromises()
     await nextTick()

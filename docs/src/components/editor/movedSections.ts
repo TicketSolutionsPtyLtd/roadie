@@ -9,7 +9,8 @@ const PAGES = {
   ],
   blocks: [
     ['blocks-preset', 'default'],
-    'slash-menu',
+    'inserting-blocks',
+    ['slash-menu', 'inserting-blocks'],
     'block-handle',
     'custom-blocks'
   ],
@@ -18,6 +19,7 @@ const PAGES = {
     'composing-a-layout',
     'buttons-columns-and-spacers',
     'sending-email',
+    'html-emails',
     'merge-tags',
     'conditions'
   ],

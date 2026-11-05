@@ -1,13 +1,11 @@
 import { cell, defineChart } from '@tanstack/charts'
 import { scaleBand } from '@tanstack/charts/scales/band'
 
-import { formatValue } from '@oztix/roadie-core/dataviz'
-
 import { fieldLabel } from '../plot/table'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
-import { fullFormat } from '../plot/values'
+import { fullValue } from '../plot/values'
 import { describeValue } from '../plot/words'
-import { type HeatCell, firstSeen, heatBuckets, heatCells } from './cells'
+import { type HeatCell, axisLabels, heatBuckets, heatCells } from './cells'
 import { heatmapTable } from './table'
 import type { HeatmapProps } from './types'
 
@@ -52,8 +50,8 @@ function build(props: HeatmapProps, paint: ChartPaint, frame: PlotFrame) {
       })
     ],
     scales: {
-      x: bandAxis(firstSeen(cells.map((c) => c.column)), frame),
-      y: bandAxis(firstSeen(cells.map((c) => c.row)), frame)
+      x: bandAxis(axisLabels(props, props.columns), frame),
+      y: bandAxis(axisLabels(props, props.rows), frame)
     },
     color: {
       domain: heatBuckets(props.scale ?? 'sequential'),
@@ -84,7 +82,7 @@ export const heatmap: ChartDefinition<HeatmapProps> = {
     if (!peak)
       return `${value} by ${fieldLabel(props.rows).toLowerCase()} and ${fieldLabel(props.columns).toLowerCase()}`
     const shown = (cell: HeatCell) =>
-      `${cell.row} at ${cell.column}, with ${formatValue(cell.value, fullFormat(props.format))}`
+      `${cell.row} at ${cell.column}, with ${fullValue(props, cell.value)}`
     if (props.scale !== 'diverging') return `${value} peak on ${shown(peak)}`
     const low = cells.reduce((a, b) => (b.value < a.value ? b : a))
     return (
@@ -108,7 +106,7 @@ export const heatmap: ChartDefinition<HeatmapProps> = {
         ]
   },
   describe(datum, props) {
-    return `${datum.series}, ${datum.x}, ${describeValue(datum.y, props.format, fieldLabel(props.value).toLowerCase())}`
+    return `${datum.series}, ${datum.x}, ${describeValue(datum.y, props, fieldLabel(props.value).toLowerCase())}`
   },
   tooltip(data, props, paint) {
     const datum = data[0]
@@ -119,10 +117,7 @@ export const heatmap: ChartDefinition<HeatmapProps> = {
       rows: [
         {
           label: fieldLabel(props.value),
-          value:
-            datum.y === null
-              ? 'No data'
-              : formatValue(datum.y, fullFormat(props.format)),
+          value: datum.y === null ? 'No data' : fullValue(props, datum.y),
           color: step === undefined ? undefined : rangeFor(props, paint)[step],
           shape: 'swatch'
         }

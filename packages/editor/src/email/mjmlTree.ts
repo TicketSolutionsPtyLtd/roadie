@@ -49,8 +49,8 @@ const raw = (content: string): MjmlNode => ({
   content
 })
 
-// The rule is checked before the block is built, so a block that renders as
-// nothing still can't name a variable the app lacks.
+// A hidden block is still built, so a preview throws on a variable or rule
+// the app lacks wherever a send would.
 function shownNodes(
   { attrs }: JSONContent,
   { showsWhen }: TreeContext,
@@ -58,8 +58,8 @@ function shownNodes(
 ) {
   const rule = attrs?.showWhen as ShowWhen | undefined
   const shows = rule ? showsWhen(rule) : true
-  if (shows === false) return []
   const built = build()
+  if (shows === false) return []
   if (shows === true || built.length === 0) return built
   return [raw(shows.open), ...built, raw(shows.close)]
 }

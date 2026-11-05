@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" width="240" height="160" fill="none">
+  <rect width="240" height="160" rx="12" style="fill: var(--color-neutral-1, #f5f8fb)"/>
+  <circle cx="120" cy="36" r="13" style="fill: var(--color-accent-9, #0191eb)"/>
+  <path d="M120 44C120 44 112 39.5 112 34.5C112 32 114 30 116.4 30C118 30 119.3 31 120 32.2C120.7 31 122 30 123.6 30C126 30 128 32 128 34.5C128 39.5 120 44 120 44Z" style="fill: var(--color-neutral-1, #f5f8fb)"/>
+  <rect x="40" y="58" width="160" height="10" rx="3" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <rect x="62" y="72" width="116" height="10" rx="3" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <rect x="38" y="96" width="164" height="5" rx="2.5" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="46" y="106" width="148" height="5" rx="2.5" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="60" y="116" width="120" height="5" rx="2.5" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="42" y="130" width="156" height="5" rx="2.5" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="68" y="140" width="104" height="5" rx="2.5" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+</svg>

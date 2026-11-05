@@ -50,7 +50,7 @@ export function AccordionTrigger({
     <summary
       data-slot='accordion-trigger'
       className={cn(
-        'flex w-full cursor-pointer list-none items-center justify-between px-(--content-inset) py-3 text-left font-medium text-normal transition-colors hover:bg-subtle [&::-webkit-details-marker]:hidden',
+        'flex w-full cursor-pointer list-none items-center justify-between px-(--content-inset) py-3 text-left font-medium emphasis-subtler border-0 is-interactive [&::-webkit-details-marker]:hidden',
         className
       )}
       onClick={handleClick}

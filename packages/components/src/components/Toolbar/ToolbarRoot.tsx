@@ -39,8 +39,8 @@ export type ToolbarRootProps = Omit<
     emphasis?: ToolbarEmphasis
     /**
      * Drops the border, shadow and pill shape, for a bar docked along an
-     * edge. `emphasis` sets only its fill, and the parent draws any edge
-     * and clips the corners. The controls keep their inset.
+     * edge. `emphasis` sets only its fill, a divider goes in `className`,
+     * and the parent clips the corners. The controls keep their inset.
      *
      * @default false
      */
