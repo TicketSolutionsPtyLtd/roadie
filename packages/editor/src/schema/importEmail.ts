@@ -360,7 +360,7 @@ const isGutter = (cell: Element) =>
 // A layout cell holds blocks; a data table's cell holds a value.
 const CELL_BLOCKS = 'p, div, h1, h2, h3, h4, h5, h6, ul, ol, img, table, a'
 
-function columnsOf(row: Element) {
+function layoutCells(row: Element) {
   const allCells = [...row.children].filter((child) =>
     ['td', 'th'].includes(tagOf(child))
   )
@@ -371,7 +371,24 @@ function columnsOf(row: Element) {
   const cells = allCells.filter((cell) => !isGutter(cell))
   if (cells.length < 2 || cells.length > 4) return null
   if (cells.some((cell) => !cell.querySelector(CELL_BLOCKS))) return null
-  const doc = row.ownerDocument
+  return cells
+}
+
+// A header row, or rows of cells with no image or heading, are data, such as
+// a receipt's lines, not a layout.
+function isDataTable(table: HTMLTableElement) {
+  const rows = [...table.rows]
+  if (rows.some((row) => [...row.cells].some((cell) => tagOf(cell) === 'th'))) {
+    return true
+  }
+  const laidOut = rows.filter((row) => layoutCells(row))
+  return (
+    laidOut.length > 1 && !table.querySelector('img, h1, h2, h3, h4, h5, h6')
+  )
+}
+
+function columnsFrom(cells: Element[]) {
+  const doc = cells[0]!.ownerDocument
   const columns = doc.createElement('div')
   columns.dataset.type = 'columns'
   for (const cell of cells) {
@@ -387,19 +404,29 @@ function columnsOf(row: Element) {
 function layoutColumns(container: HTMLElement) {
   for (const row of container.querySelectorAll('tr')) {
     if (!row.isConnected || row.closest('[data-type="column"]')) continue
-    const columns = columnsOf(row)
-    if (!columns) continue
+    const cells = layoutCells(row)
     const table = row.closest('table')
-    if (table?.rows.length === 1) table.replaceWith(columns)
-    else row.replaceWith(columns)
+    if (!cells || !table || isDataTable(table)) continue
+    row.replaceWith(columnsFrom(cells))
+    // A table left with only columns is no table.
+    if (table.rows.length === 0) {
+      table.replaceWith(
+        ...table.querySelectorAll(
+          ':scope > [data-type="columns"], :scope > tbody > [data-type="columns"]'
+        )
+      )
+    }
   }
 }
 
 const LINE = 'p, div, td, th, li, center, h1, h2, h3, h4, h5, h6'
 const PADDED = /(?:^|;)\s*padding(?:-[a-z]+)?\s*:\s*[^;]*[1-9]/i
 const INLINE_BLOCK = /(?:^|;)\s*display\s*:\s*inline-block/i
-const FILLED = /(?:^|;)\s*background(?:-color)?\s*:/i
-const BORDERED = /(?:^|;)\s*border(?:-[a-z]+)?\s*:\s*[^;]*[1-9]/i
+// A fill that shows, and a border on every side, as a button has; a
+// transparent fill or one side's rule is a nav link's.
+const FILLED =
+  /(?:^|;)\s*background(?:-color)?\s*:\s*(?!\s*(?:transparent|none|inherit|initial|unset)\s*(?:;|$))/i
+const BORDERED = /(?:^|;)\s*border(?:-width)?\s*:\s*[^;]*[1-9]/i
 
 const styleOf = (element: Element) => element.getAttribute('style') ?? ''
 

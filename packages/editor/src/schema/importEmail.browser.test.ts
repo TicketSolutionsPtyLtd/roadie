@@ -573,6 +573,24 @@ describe('importEmail reads an HTML email’s buttons', () => {
     expect(blocks(source)?.some((block) => block.type === 'button')).toBe(false)
   })
 
+  it.each([
+    [
+      'a transparent fill',
+      'display:inline-block;padding:4px 10px;background-color:transparent'
+    ],
+    [
+      'a rule on one side',
+      'display:inline-block;padding:0 12px;border-right:1px solid #ccc'
+    ],
+    ['rounded corners only', 'padding:4px 10px;border-radius:4px']
+  ])('keeps a nav link with %s as a link', (_, style) => {
+    expect(
+      blocks(
+        `<p><a href="https://www.oztix.com.au/shows" style="${style}">Shows</a></p>`
+      )?.some((block) => block.type === 'button')
+    ).toBe(false)
+  })
+
   it('keeps a linked image an image', () => {
     expect(
       blocks(
@@ -757,6 +775,32 @@ describe('importEmail reads an HTML email’s columns', () => {
         ]
       }
     ])
+  })
+
+  it('reads a receipt’s rows of paragraphs as text, not columns', () => {
+    const content = blocks(
+      '<table><tr><td width="70%"><p>GA ticket</p></td><td width="30%"><p>$49.00</p></td></tr><tr><td width="70%"><p>Booking fee</p></td><td width="30%"><p>$4.50</p></td></tr></table>'
+    )
+    expect(content?.some((block) => block.type === 'columns')).toBe(false)
+  })
+
+  it('reads a table with a header row as text, not columns', () => {
+    const content = blocks(
+      '<table><tr><th width="50%">Show</th><th width="50%">Doors</th></tr><tr><td width="50%"><p>Marri Lane</p></td><td width="50%"><p>7pm</p></td></tr></table>'
+    )
+    expect(content?.some((block) => block.type === 'columns')).toBe(false)
+  })
+
+  it('reads rows of event cards as columns, each row its own', () => {
+    const card = (name: string) =>
+      cell(
+        '50%',
+        `<img src="https://cdn.oztix.com.au/${name}.jpg" alt=""><h3>${name}</h3>`
+      )
+    const content = blocks(
+      `<table><tr>${card('a')}${card('b')}</tr><tr>${card('c')}${card('d')}</tr></table>`
+    )
+    expect(content?.map((block) => block.type)).toEqual(['columns', 'columns'])
   })
 
   it('reads a receipt’s rows of values as text, not columns', () => {
