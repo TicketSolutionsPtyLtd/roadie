@@ -132,6 +132,20 @@ describe('Editor button settings', () => {
     expect(dialog).toBeVisible()
   })
 
+  it('centres a button in its column', async () => {
+    renderEmail(email(button()))
+    const dialog = await openSettings()
+
+    await choose(dialog, 'Centre')
+
+    await waitFor(() => {
+      const { left, right } = drawn().getBoundingClientRect()
+      const column = columnBox(drawn())
+      expect(left - column.left).toBeGreaterThan(0)
+      expect(left - column.left).toBeCloseTo(column.right - right, 0)
+    })
+  })
+
   it('draws a strong button in the accent', async () => {
     renderEmail(email(button({ emphasis: 'normal' })))
     const dialog = await openSettings()
@@ -204,6 +218,19 @@ describe('Editor button settings', () => {
     )
     expect(link).toHaveFocus()
     expect(savedButton(onValueChange) ?? button()).toEqual(button())
+  })
+
+  it('says a link can’t open in an email once they leave the field', async () => {
+    renderEmail(email(button()))
+    const dialog = await openSettings()
+    const link = within(dialog).getByRole('textbox', { name: 'Link' })
+
+    await userEvent.fill(link, '/whats-on')
+    expect(link).not.toHaveAttribute('aria-invalid', 'true')
+    await userEvent.tab()
+
+    await waitFor(() => expect(link).toHaveAttribute('aria-invalid', 'true'))
+    expect(link).not.toHaveFocus()
   })
 
   async function restyle() {
