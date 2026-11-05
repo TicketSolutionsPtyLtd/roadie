@@ -12,9 +12,10 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi
 } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -184,6 +185,36 @@ describe('Editor email columns', () => {
         layout: 'wide-left',
         stack: 'reverse'
       })
+    )
+  })
+
+  it('puts the columns’ menus in one Layout menu on a phone, in about 200px', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    const onValueChange = renderEmail(row('Lineup', 'Tickets'))
+    await clickText('Lineup')
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Columns actions'
+    })
+    await waitFor(() =>
+      expect(toolbar.getBoundingClientRect().width).toBeLessThanOrEqual(200)
+    )
+    expect(within(toolbar).getAllByRole('button')).toHaveLength(1)
+    await userEvent.click(
+      within(toolbar).getByRole('button', { name: 'Layout' })
+    )
+    const menu = await screen.findByRole('menu')
+    await waitFor(() => expect(menu).toBeVisible())
+    for (const name of ['Columns', 'Layout', 'Stack on phone']) {
+      expect(within(menu).getByRole('group', { name })).toBeVisible()
+    }
+    await userEvent.click(
+      within(menu).getByRole('menuitemradio', { name: 'Wide right (1:2)' })
+    )
+
+    await waitFor(() =>
+      expect(lastDoc(onValueChange)[0]!.attrs).toEqual({ layout: 'wide-right' })
     )
   })
 
