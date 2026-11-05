@@ -349,6 +349,30 @@ describe.each(renderers)('%s', (_, render) => {
     )
   })
 
+  it('renders a blocks value without its ids', () => {
+    expect(
+      render({
+        version: 1,
+        preset: 'blocks',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'heading',
+              attrs: { level: 2, blockId: 'lineup' },
+              content: [text('Lineup')]
+            },
+            {
+              type: 'paragraph',
+              attrs: { blockId: 'doors' },
+              content: [text('Doors 7pm')]
+            }
+          ]
+        }
+      })
+    ).toBe('<h2>Lineup</h2><p>Doors 7pm</p>')
+  })
+
   it('escapes markup in text and hrefs', () => {
     expect(
       render(

@@ -72,6 +72,7 @@
     "@tiptap/extension-heading": "3.32.1",
     "@tiptap/extension-link": "3.32.1",
     "@tiptap/extension-table": "3.32.1",
+    "@tiptap/extension-unique-id": "3.32.1",
     "@tiptap/extensions": "3.32.1",
     "@tiptap/pm": "3.32.1",
     "@tiptap/react": "3.32.1",
