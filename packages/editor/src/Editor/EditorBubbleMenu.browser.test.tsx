@@ -430,6 +430,44 @@ describe('Editor.BubbleMenu', () => {
     }
   )
 
+  it('stays within a scrolled container over text in a table, with the table actions scrolled out', async () => {
+    const filler = Array.from({ length: 12 }, (_, index) =>
+      paragraph(`Set time ${index + 1}`)
+    )
+    render(
+      <>
+        <div style={{ height: 300 }} />
+        <div style={{ height: 400, overflow: 'auto' }} data-testid='scroller'>
+          <BubbleEditor
+            defaultValue={{
+              ...withTable,
+              doc: {
+                type: 'doc',
+                content: [...filler, ...withTable.doc.content!, ...filler]
+              }
+            }}
+          />
+        </div>
+      </>
+    )
+    const scroller = screen.getByTestId('scroller')
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const target = within(textbox).getByText('9pm')
+    scroller.scrollTop +=
+      target.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top -
+      4
+    const { actions, bubble } = await selectInCell('9pm')
+
+    await waitFor(() => {
+      const bar = bubble.getBoundingClientRect()
+      expect(bar.top).toBeGreaterThanOrEqual(
+        scroller.getBoundingClientRect().top
+      )
+      expect(overlaps(bar, actions.getBoundingClientRect())).toBe(false)
+    })
+  })
+
   it('puts its children after the preset controls', async () => {
     render(
       <BubbleEditor>

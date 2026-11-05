@@ -33,8 +33,9 @@ const OFFSET = 8
  */
 export const RESIZE_DELAY = 80
 
+// As the root boundary, so a scrolling container still clips the flip.
 const between = (top: number, bottom: number) => ({
-  boundary: { x: 0, y: top, width: window.innerWidth, height: bottom - top }
+  rootBoundary: { x: 0, y: top, width: window.innerWidth, height: bottom - top }
 })
 
 /**
