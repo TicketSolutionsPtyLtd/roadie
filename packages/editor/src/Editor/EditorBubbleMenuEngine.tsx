@@ -14,7 +14,6 @@ import { EditorContext } from './EditorContext'
 import { useRepositionOnResize } from './EditorNodeToolbar'
 import { Control, stateOf } from './EditorToolbarEngine'
 import { selectionControls } from './controls'
-import { selectedTable } from './table'
 import { EDITOR_TOOLBAR_SIZE } from './variants'
 
 const PLUGIN_KEY = 'editorBubbleMenu'
@@ -28,25 +27,18 @@ function selectsText({ selection, doc }: EditorState) {
 }
 
 /**
- * Table actions sit above the table, or below it when there's no room, so in
- * a table the menu flips rather than cover them.
+ * Table actions sit above the table, or below it when there's no room. The
+ * menu sits above the selection, so it flips below when they're above it.
  */
-function clearOfTableActions(
-  editor: TiptapEditor,
-  selection: { top: number; bottom: number }
-) {
+function clearOfTableActions(editor: TiptapEditor, selectionTop: number) {
   const actions = editor.view.dom.parentElement?.querySelector(
     '[data-slot="editor-table-toolbar"]'
   )
-  if (!actions || !selectedTable(editor.state)) return {}
-  const box = actions.getBoundingClientRect()
-  let top = 0
-  let bottom = window.innerHeight
-  if (box.bottom <= selection.top) top = box.bottom
-  else if (box.top >= selection.bottom) bottom = box.top
-  return {
-    boundary: { x: 0, y: top, width: window.innerWidth, height: bottom - top }
-  }
+  if (!actions) return {}
+  const { bottom } = actions.getBoundingClientRect()
+  if (bottom > selectionTop) return {}
+  const height = window.innerHeight - bottom
+  return { boundary: { x: 0, y: bottom, width: window.innerWidth, height } }
 }
 
 export function EditorBubbleMenuEngine(props: EditorBubbleMenuProps) {
@@ -126,7 +118,7 @@ function SelectionMenu({
         flip: ({ elements }) =>
           clearOfTableActions(
             editor,
-            elements.reference.getBoundingClientRect()
+            elements.reference.getBoundingClientRect().top
           ),
         // The plugin makes its element a tab stop; the toolbar inside is the one.
         onShow: () => {
