@@ -9,7 +9,7 @@ import { type Selection, TextSelection } from '@tiptap/pm/state'
 
 import { cn } from '@oztix/roadie-core/utils'
 
-import { buttonLook } from '../schema/emailAttrs'
+import { buttonLook, sectionLook } from '../schema/emailAttrs'
 import { Button, Column, Columns, Section, Spacer } from '../schema/emailPreset'
 
 function firstTextblockOffset(node: PMNode) {
@@ -224,7 +224,7 @@ type Attrs = Record<string, unknown>
 // The saved schema renders bare divs; editor.css outlines them for editing.
 function outlined(
   node: typeof Section,
-  className: string,
+  className: string | ((nodeAttrs: Attrs) => string),
   attrs: (nodeAttrs: Attrs) => Attrs = () => ({})
 ) {
   return node.extend({
@@ -232,12 +232,31 @@ function outlined(
       'div',
       {
         'data-type': current.type.name,
-        class: className,
+        class:
+          typeof className === 'string' ? className : className(current.attrs),
         ...attrs(current.attrs)
       },
       ...(current.isAtom ? [] : [0])
     ]
   })
+}
+
+// The email's wrapper pads a section 16px above and below, or 8px or 32px.
+const SECTION_SPACING = { tight: 'py-2', roomy: 'py-8' } as const
+
+// Matches how renderEmail fills each look from the theme.
+const SECTION_LOOK = {
+  tint: 'intent-neutral emphasis-subtle',
+  accent: 'intent-accent emphasis-strong'
+} as const
+
+function sectionClass(attrs: Attrs) {
+  const { look, spacing } = sectionLook(attrs)
+  return cn(
+    'prose-bleed relative rounded-lg',
+    spacing ? SECTION_SPACING[spacing] : 'py-4',
+    look && SECTION_LOOK[look]
+  )
 }
 
 const BUTTON_ALIGN = { center: 'mx-auto', right: 'ms-auto' } as const
@@ -282,8 +301,7 @@ const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
       Enter: ({ editor }) => editor.commands.command(leaveButton)
     })
   }),
-  // The email's wrapper pads a section 16px above and below.
-  section: outlined(Section, 'prose-bleed rounded-lg py-4'),
+  section: outlined(Section, sectionClass),
   // Each column pads its blocks 12px a side, so 24px between them.
   columns: outlined(
     Columns,

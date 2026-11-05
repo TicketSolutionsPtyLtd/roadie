@@ -89,6 +89,7 @@ import {
 import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
+import { emailSectionSettings } from './emailSectionSettings'
 import { EmbedPaste } from './embedPaste'
 import { focusEditor } from './focusEditor'
 import { FocusedBlock, MenuBlock } from './focusedBlock'
@@ -103,6 +104,7 @@ import { customInsertItem, presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
+import { SectionBadges } from './sectionBadges'
 import { emailSections } from './sections'
 import { SourcePaste } from './sourcePaste'
 import { presetLook, resolvedPreset } from './startingValue'
@@ -481,13 +483,16 @@ export function EditorEngine({
   const [blockLabels] = useState(() =>
     Object.fromEntries(blocks.map(({ node, label }) => [node.name, label]))
   )
-  const [blockSettings] = useState(() =>
-    Object.fromEntries(
+  const [blockSettings] = useState(() => ({
+    ...Object.fromEntries(
       blocks.flatMap(({ node, label, settings }): [string, BlockSettings][] =>
         settings?.length ? [[node.name, { label, settings }]] : []
       )
-    )
-  )
+    ),
+    ...(preset === 'email' && {
+      section: emailSectionSettings(() => variablesRef.current)
+    })
+  }))
   const hasSettings = (name: string) => Object.hasOwn(blockSettings, name)
   const [schema] = useState(() =>
     blocks.length > 0
@@ -543,6 +548,7 @@ export function EditorEngine({
       EmbedPaste.configure({ providers: () => providersRef.current }),
       ...(preset === 'email'
         ? [
+            SectionBadges.configure({ variables: () => variablesRef.current }),
             SourcePaste.configure({
               onSource: (source) => uiRef.current?.importSource?.(source)
             })

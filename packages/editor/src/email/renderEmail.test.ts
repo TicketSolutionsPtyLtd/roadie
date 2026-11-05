@@ -253,6 +253,46 @@ describe('renderEmail', () => {
     })
   })
 
+  describe('a section’s look and spacing', () => {
+    const looked = (attrs: Record<string, unknown>) => ({
+      type: 'section',
+      attrs,
+      content: [p(text('Gates 6pm', link(tickets))), button(tickets)]
+    })
+
+    it('fills a tinted section with the theme’s tint', async () => {
+      const { html } = await renderEmail(email(looked({ look: 'tint' })))
+
+      expect(html).toContain(`background-color:${defaultEmailTheme.tint}`)
+    })
+
+    it('fills an accent section with the accent, its text, links and button turned to stay legible', async () => {
+      const { html } = await renderEmail(email(looked({ look: 'accent' })), {
+        theme: { accent: '#7a2bd6' }
+      })
+      const inside = body(html)
+
+      expect(inside).toContain('background-color:#7a2bd6')
+      expect(inside).toContain(
+        `color:${defaultEmailTheme.buttonText};text-decoration:underline`
+      )
+      // The strong button swaps its fill and label, so it shows on the accent.
+      expect(inside).toMatch(
+        new RegExp(`background:${defaultEmailTheme.buttonText}[^>]*>`)
+      )
+    })
+
+    it.each([
+      ['tight', '8px 0'],
+      [undefined, '16px 0'],
+      ['roomy', '32px 0']
+    ])('pads a %s section %s', async (spacing, padding) => {
+      const { html } = await renderEmail(email(looked({ spacing })))
+
+      expect(html).toContain(`padding:${padding};`)
+    })
+  })
+
   it('renders a whole template as an HTML page and its plain text', async () => {
     const { html, text: plain } = await renderEmail(
       email(
