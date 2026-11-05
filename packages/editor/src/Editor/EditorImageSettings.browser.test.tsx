@@ -14,7 +14,7 @@ import {
   it,
   vi
 } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -239,21 +239,64 @@ describe('Editor image settings', () => {
     expect(screen.queryByRole('dialog', { name: 'Image settings' })).toBe(null)
   })
 
-  it('offers only the image link and alt text outside an email', async () => {
-    renderImage(
+  it('sets a page image’s width, alignment and caption, with no link', async () => {
+    const onValueChange = renderImage(
       valueOf('rich', image({ src: '/images/crowd.webp' }), {
         type: 'paragraph'
       })
     )
-
     const dialog = await openSettings()
-
-    expect(
-      within(dialog)
-        .getAllByRole('textbox')
-        .map((field) => field.getAttribute('aria-label') ?? field.id)
-    ).toHaveLength(2)
-    expect(within(dialog).queryByRole('group', { name: 'Width' })).toBe(null)
     expect(within(dialog).queryByRole('textbox', { name: 'Link' })).toBe(null)
+
+    const align = within(dialog).getByRole('group', { name: 'Align' })
+    await userEvent.click(within(align).getByRole('button', { name: 'Centre' }))
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Caption' }),
+      'Gates 11am'
+    )
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toEqual({
+        src: '/images/crowd.webp',
+        alt: 'Festival poster',
+        align: 'center',
+        caption: 'Gates 11am'
+      })
+    )
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Full' }))
+
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toEqual({
+        src: '/images/crowd.webp',
+        alt: 'Festival poster',
+        fullWidth: true,
+        caption: 'Gates 11am'
+      })
+    )
+    expect(within(align).getByRole('button', { name: 'Right' })).toBeDisabled()
+  })
+
+  it('opens from the bottom on a phone', async () => {
+    await page.viewport(390, 700)
+    try {
+      renderImage()
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await userEvent.click(textbox.querySelector('img')!)
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Image settings' })
+      )
+
+      const sheet = await screen.findByRole('dialog', {
+        name: 'Image settings'
+      })
+      await waitFor(() =>
+        expect(sheet.getBoundingClientRect().bottom).toBeCloseTo(
+          window.innerHeight,
+          0
+        )
+      )
+      expect(sheet.getBoundingClientRect().left).toBeGreaterThanOrEqual(0)
+    } finally {
+      await page.viewport(1280, 800)
+    }
   })
 })

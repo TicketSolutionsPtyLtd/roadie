@@ -1510,7 +1510,7 @@ describe('Editor images', () => {
     ).toHaveAttribute('src', 'https://assets.example.com/crowd.webp')
   })
 
-  it('flags an image with no alt text until it is added', async () => {
+  it('flags a selected image with no alt text until it is added', async () => {
     const onValueChange = vi.fn()
     render(
       <Editor
@@ -1521,10 +1521,12 @@ describe('Editor images', () => {
       />
     )
     const textbox = await screen.findByRole('textbox', { name: LABEL })
-    expect(await within(textbox).findByText('No alt text')).toBeVisible()
-
     await clickIntoEditor(within(textbox).getByText('Sold out'))
-    await userEvent.keyboard(`${LINE_START}{ArrowUp}{Enter}`)
+    // Quiet while the image isn't being edited.
+    expect(within(textbox).queryByText('No alt text')).toBe(null)
+    await userEvent.keyboard(`${LINE_START}{ArrowUp}`)
+    expect(await within(textbox).findByText('No alt text')).toBeVisible()
+    await userEvent.keyboard('{Enter}')
     const field = await screen.findByRole('textbox', { name: 'Alt text' })
     await waitFor(() => expect(field).toHaveFocus())
     await userEvent.type(field, `${CROWD_ALT}{Enter}`)

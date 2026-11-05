@@ -8,6 +8,7 @@ import { NodeSelection } from '@tiptap/pm/state'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 
 import { Button } from '@oztix/roadie-components/button'
+import { Drawer } from '@oztix/roadie-components/drawer'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { Popover } from '@oztix/roadie-components/popover'
@@ -20,6 +21,7 @@ import {
   imageWidth,
   isEmailImageSrc
 } from '../schema/emailAttrs'
+import { type PageImageLook, pageImageLook } from '../schema/imageAttrs'
 import { isSafeImageSrc } from '../schema/imageSrc'
 import {
   EditorLinkTargetFields,
@@ -28,6 +30,7 @@ import {
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { insertBlock } from './emailEditing'
 import { focusEditor } from './focusEditor'
+import { useOnPhone } from './toolbarMode'
 import { type LiveEdit, setSelectedAttrs, useLiveEdit } from './useLiveEdit'
 
 // Email images load in a mail client, so only https reaches one.
@@ -177,6 +180,7 @@ type Saved = {
   alt: string
   width: number | null
   look: ImageLook
+  page: PageImageLook
 }
 
 function savedImage(editor: TiptapEditor): Saved {
@@ -185,7 +189,8 @@ function savedImage(editor: TiptapEditor): Saved {
     src: String(attrs.src ?? ''),
     alt: typeof attrs.alt === 'string' ? attrs.alt : '',
     width: imageWidth(attrs.width),
-    look: imageLook(attrs)
+    look: imageLook(attrs),
+    page: pageImageLook(attrs)
   }
 }
 
@@ -222,7 +227,19 @@ function ImageSettingsForm({
   const [alt, setAlt] = useState(saved.alt)
   const [width, setWidth] = useState(saved.width)
   const [align, setAlign] = useState(saved.look.align)
+  const [page, setPage] = useState(saved.page)
+  const [caption, setCaption] = useState(saved.page.caption ?? '')
   const email = inEmail(editor)
+
+  // A page's image saves only what isn't its own width from the start.
+  const changePage = (change: PageImageLook) => {
+    const next = { ...page, ...change }
+    setPage(next)
+    apply({
+      fullWidth: next.fullWidth,
+      align: next.fullWidth ? undefined : next.align
+    })
+  }
 
   const apply = (attrs: Record<string, unknown>) =>
     applyLive(setSelectedAttrs(attrs))
@@ -322,7 +339,46 @@ function ImageSettingsForm({
             }
           />
         </>
-      ) : null}
+      ) : (
+        <>
+          <ImageChoice
+            legend='Width'
+            choices={WIDTHS}
+            value={page.fullWidth ? 'full' : 'fit'}
+            onValueChange={(choice) =>
+              changePage({ fullWidth: choice === 'full' || undefined })
+            }
+          />
+          <ImageChoice
+            legend='Align'
+            choices={ALIGNS}
+            value={page.align ?? 'left'}
+            onValueChange={(choice) =>
+              changePage({ align: choice === 'left' ? undefined : choice })
+            }
+            disabled={page.fullWidth}
+            helperText={page.fullWidth ? 'A full image spans the text.' : null}
+          />
+          <Field>
+            <Field.Label>Caption</Field.Label>
+            <Field.Input
+              value={caption}
+              placeholder='None'
+              onChange={(event) => {
+                setCaption(event.target.value)
+                apply({ caption: event.target.value.trim() || undefined })
+              }}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter') return
+                event.preventDefault()
+                const composing =
+                  event.nativeEvent.isComposing || event.keyCode === 229
+                if (!composing) event.currentTarget.form?.requestSubmit()
+              }}
+            />
+          </Field>
+        </>
+      )}
       <Field>
         <Field.Label>Alt text</Field.Label>
         <Field.Input
@@ -377,6 +433,7 @@ export function EditorImagePopover({
   const inputRef = useRef<HTMLInputElement>(null)
   const altRef = useRef<HTMLInputElement>(null)
   const live = useLiveEdit(editor, open, onOpenChange)
+  const phone = useOnPhone()
   if (!editor) return null
   const image = adding ? null : selectedImage(editor)
   const { from, to } = editor.state.selection
@@ -391,6 +448,40 @@ export function EditorImagePopover({
     },
     contextElement: editor.view.dom
   }
+  const settings = image ? (
+    <ImageSettingsForm
+      key={image.from}
+      editor={editor}
+      inputRef={inputRef}
+      altRef={altRef}
+      apply={live.apply}
+      upload={replaceFile}
+      onDone={live.done}
+    />
+  ) : null
+  const firstFocus = () =>
+    image && !image.node.attrs.alt ? altRef.current : inputRef.current
+  const handBack = () => {
+    focusEditor(editor)
+    return false
+  }
+  // On a phone, from the bottom, as a popover by the image runs off screen.
+  if (phone && image) {
+    return (
+      <Drawer open={open} onOpenChange={live.onOpenChange} side='bottom'>
+        <Drawer.Content
+          size='fit'
+          initialFocus={firstFocus}
+          finalFocus={handBack}
+        >
+          <Drawer.Header>
+            <Drawer.Title>Image settings</Drawer.Title>
+          </Drawer.Header>
+          <Drawer.Body className='pb-6'>{settings}</Drawer.Body>
+        </Drawer.Content>
+      </Drawer>
+    )
+  }
   return (
     <Popover open={open} onOpenChange={live.onOpenChange}>
       <Popover.Content
@@ -401,28 +492,15 @@ export function EditorImagePopover({
         }
         positionerProps={{ anchor }}
         // An image without alt text needs it most, so that's where typing goes.
-        initialFocus={() =>
-          image && !image.node.attrs.alt ? altRef.current : inputRef.current
-        }
-        finalFocus={() => {
-          focusEditor(editor)
-          return false
-        }}
+        initialFocus={firstFocus}
+        finalFocus={handBack}
       >
         {image ? (
           <>
             <Popover.Header>
               <Popover.Title>Image settings</Popover.Title>
             </Popover.Header>
-            <ImageSettingsForm
-              key={image.from}
-              editor={editor}
-              inputRef={inputRef}
-              altRef={altRef}
-              apply={live.apply}
-              upload={replaceFile}
-              onDone={live.done}
-            />
+            {settings}
           </>
         ) : (
           <AddImageForm
