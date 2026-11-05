@@ -30,12 +30,13 @@ describe('movedEditorSection', () => {
     ['#blocks-preset', '/components/editor/blocks/#default'],
     ['#custom-blocks', '/components/editor/blocks/#custom-blocks'],
     ['#email-preset', '/components/editor/email/#default'],
-    ['#conditions', '/components/editor/email/#conditions']
+    ['#conditions', '/components/editor/email/#conditions'],
+    ['#conditions-1', '/components/editor/email/#conditions']
   ])('sends %s to %s', (hash, href) => {
     expect(movedEditorSection(hash)).toBe(href)
   })
 
-  it.each(['', '#sizes', '#toolbar-emphasis', '#api-reference'])(
+  it.each(['', '#sizes', '#toolbar-emphasis', '#api-reference', '#%'])(
     'keeps %j, which is still on the Editor page',
     (hash) => {
       expect(movedEditorSection(hash)).toBeUndefined()
