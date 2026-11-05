@@ -14,6 +14,7 @@ import { embedAttrs } from './embedAttrs'
 import { headingLevel } from './headings'
 import { isSafeImageSrc } from './imageSrc'
 import { isText } from './isText'
+import { preheaderOf } from './preheader'
 import {
   BLOCK_ID,
   type NodeContent,
@@ -90,6 +91,10 @@ function cleanedMarks(marks: unknown[], shape: PresetShape) {
 }
 
 function cleanedAttrs({ type, attrs }: JSONContent) {
+  if (type === 'doc') {
+    const preheader = preheaderOf(attrs?.preheader)
+    return preheader ? { preheader } : undefined
+  }
   if (type === 'tableCell' || type === 'tableHeader') {
     const { colspan, rowspan } = attrs ?? {}
     return {

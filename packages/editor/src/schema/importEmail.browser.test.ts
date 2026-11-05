@@ -184,8 +184,8 @@ describe('importEmail from MJML', () => {
       )
     )
 
+    expect(imported.value.doc.attrs).toEqual({ preheader: 'Two weeks to go' })
     expect(imported.dropped).toEqual([
-      { kind: 'hidden' },
       { kind: 'image', src: 'http://cdn.oztix.com.au/old.jpg' },
       { kind: 'link', src: 'https://www.oztix.com.au' },
       { kind: 'element', tag: 'mj-accordion' }
@@ -408,10 +408,18 @@ describe('importEmail from HTML', () => {
       variables
     })
 
-    expect(dropped).toEqual([{ kind: 'hidden' }])
-    // The sheet, the body and the cell; the hidden div goes with its text.
+    expect(dropped).toEqual([])
+    // The sheet, the body and the cell; the preheader goes with its text.
     expect(restyled).toEqual({ styles: 3, tables: 1 })
     expect(unknownMergeTags).toEqual(['#Promoter#'])
+  })
+
+  it('keeps the first hidden text as the preheader, without its padding', () => {
+    const imported = importEmail(
+      '<div style="display:none">Two weeks to go&zwnj;&nbsp;&#847; &zwnj;&nbsp;</div><p>Doors</p><div hidden>Tracking</div>'
+    )
+    expect(imported.value.doc.attrs).toEqual({ preheader: 'Two weeks to go' })
+    expect(imported.dropped).toEqual([{ kind: 'hidden' }])
   })
 
   it('reads tokens as text without variables, listing each once', () => {

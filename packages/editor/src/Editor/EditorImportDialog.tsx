@@ -18,6 +18,7 @@ import {
   emailSourceFormat,
   importEmail
 } from '../schema'
+import { withPreheader } from './EditorPreheader'
 import { importLosses } from './importLosses'
 
 type Placement = 'replace' | 'add'
@@ -82,6 +83,8 @@ function ImportForm({
         .chain()
         .setContent(doc)
         .command(({ tr }) => {
+          // The email's own preheader stays unless the source brings one.
+          if (doc.attrs?.preheader) withPreheader(tr, doc.attrs.preheader)
           // The doc's start would select a leading image, not a place to type.
           const firstText = Selection.findFrom(tr.doc.resolve(0), 1, true)
           if (firstText) tr.setSelection(firstText)

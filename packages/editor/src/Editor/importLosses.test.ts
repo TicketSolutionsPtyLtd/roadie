@@ -50,7 +50,7 @@ describe('importLosses', () => {
     ],
     [
       { ...none, dropped: [{ kind: 'hidden' as const }] },
-      '1 piece of hidden text, such as a preheader'
+      '1 piece of hidden text'
     ],
     [
       { ...none, dropped: [{ kind: 'link' as const, src: 'https://x' }] },
@@ -115,7 +115,7 @@ describe('importLosses', () => {
       '1 merge tag this editor doesn’t know, kept as text: #Promoter#',
       '1 table’s layout, keeping its text',
       '2 styles, such as fonts and colours',
-      '1 piece of hidden text, such as a preheader'
+      '1 piece of hidden text'
     ])
   })
 })

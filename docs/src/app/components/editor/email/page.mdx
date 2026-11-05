@@ -265,6 +265,22 @@ function PreviewedEmail() {
 render(<PreviewedEmail />)
 ```
 
+### Preview text
+
+Preview text, above the canvas, is the email's preheader: the line an inbox
+shows after the subject. It saves as the doc's `preheader` attr, on one
+line, with none when it's empty, and `renderEmail` writes it as the
+`mj-preview` an inbox reads, left out of the plain text. Typing there is its
+own undo, not the email's.
+
+```ts
+const value = {
+  version: 1,
+  preset: 'email',
+  doc: { type: 'doc', attrs: { preheader: 'Two weeks to go' }, content: [] }
+}
+```
+
 ### Adding blocks
 
 There are two ways to add a block. Both list the blocks under the same
@@ -428,8 +444,11 @@ Import HTML or MJML, in the toolbar, or in the floating toolbar's … menu,
 brings an existing email across. Paste its source, whole or in part, and the
 dialog says whether it's reading MJML, which starts with `<mjml>`, or HTML.
 Before anything changes, it lists what won't come across: styles, a table's
-layout, images not on https, links an email can't open, hidden text such as a
-preheader, and merge tags the editor doesn't know. Text is always kept. To send an email as written,
+layout, images not on https, links an email can't open, hidden text past the
+preheader, and merge tags the editor doesn't know. Text is always kept. An
+`mj-preview`, or an HTML email's first hidden text, becomes the
+[preview text](#preview-text). In place of the whole email, the email keeps
+its own preview text unless the source has one. To send an email as written,
 with its own look, save it as an [HTML email](#html-emails) instead.
 
 Into an empty email, Import fills it. With content, Put it chooses Below the
@@ -483,7 +502,8 @@ const { value, format, dropped, restyled, unknownMergeTags } = importEmail(
 )
 ```
 
-`dropped` lists images, embeds, hidden text, links on images, links an
+`dropped` lists images, embeds, hidden text past the preheader, which
+`value.doc.attrs.preheader` holds, links on images, links an
 email can't open, such as `javascript:`, and MJML elements with no block of their own, in order. `restyled` counts style sheets
 and styled elements, and tables, outermost only. `unknownMergeTags` lists
 each token no variable matches, kept as text.

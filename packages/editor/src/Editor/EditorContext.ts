@@ -58,6 +58,8 @@ export type EditorContextValue = {
   openPreview: (() => void) | undefined
   /** Preview, while it shows, which `Editor.Content` puts in the canvas's place. */
   preview: ReactNode
+  /** The email's Preview text field, which `Editor.Content` puts above the canvas. */
+  preheader: ReactNode
   TiptapContent: typeof EditorContent
   ToolbarEngine: ComponentType<EditorToolbarProps>
   BubbleMenuEngine: ComponentType<EditorBubbleMenuProps>

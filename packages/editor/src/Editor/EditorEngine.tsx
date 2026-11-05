@@ -73,6 +73,7 @@ import { EditorImportDialog, type ImportRequest } from './EditorImportDialog'
 import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
+import { EditorPreheader, withPreheader } from './EditorPreheader'
 import { EditorPreview } from './EditorPreview'
 import type { EditorRootProps } from './EditorRoot'
 import { EditorTableToolbar } from './EditorTableToolbar'
@@ -705,6 +706,14 @@ export function EditorEngine({
       return
     }
     editor.commands.setContent(readableDoc, { emitUpdate: false })
+    if (preset === 'email') {
+      const { state, view } = editor
+      view.dispatch(
+        withPreheader(state.tr, readableDoc.attrs?.preheader)
+          .setMeta('preventUpdate', true)
+          .setMeta('addToHistory', false)
+      )
+    }
     // The blocks preset gives each block without an id one as it's set.
     if (presetKeepsBlockIds(preset) && !holdsDoc(editor, readableDoc)) {
       onValueChange?.(currentValue(editor, preset))
@@ -807,6 +816,11 @@ export function EditorEngine({
           drawerItems.length > 0 ? () => setAddingBlocks(true) : undefined,
         openPreview,
         preview,
+        preheader:
+          preset === 'email' && editor ? (
+            // Inset as the canvas's text is, so the two start together.
+            <EditorPreheader editor={editor} className='ps-15 pe-3 pt-3' />
+          ) : null,
         editingLink,
         embedProviders,
         variables,

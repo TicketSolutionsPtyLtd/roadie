@@ -182,6 +182,9 @@ export function EditorRoot(props: EditorRootProps) {
         )}
       />
     )
+    // As tall as the Preview text field above an email's canvas.
+    const preheaderRoom =
+      resolvedPreset(props) === 'email' ? <div className='h-11' /> : null
     const frame = cn(
       'flex min-w-0 flex-col',
       EDITOR_MIN_HEIGHT[size],
@@ -197,6 +200,7 @@ export function EditorRoot(props: EditorRootProps) {
             className={cn(frame, props.className)}
           >
             {toolbarRoom}
+            {preheaderRoom}
             <div className={editorContentClass(size, emphasis)}>
               {/* One block, so prose's flow spacing doesn't add to its height. */}
               <div className='grid gap-2'>
@@ -212,6 +216,7 @@ export function EditorRoot(props: EditorRootProps) {
             className={cn(frame, 'h-auto rounded-lg', props.className)}
           >
             {toolbarRoom}
+            {preheaderRoom}
             <div className={editorContentClass(size, emphasis)} />
           </Skeleton>
         )}

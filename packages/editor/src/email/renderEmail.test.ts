@@ -384,6 +384,49 @@ describe('renderEmail', () => {
     })
   })
 
+  describe('a preheader', () => {
+    const withPreheader = (preheader: string): StoredEmailContent => ({
+      kind: 'design',
+      value: {
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          attrs: { preheader },
+          content: [p(text('Doors 7pm'))]
+        }
+      }
+    })
+
+    it('writes it as the hidden line inboxes show, escaped', async () => {
+      const { html } = await renderEmail(withPreheader('Two weeks <to> go'))
+      const start = body(html)
+      expect(start).toMatch(/display:none[^>]*>Two weeks &lt;to&gt; go/)
+      expect(start.indexOf('Two weeks')).toBeLessThan(
+        start.indexOf('Doors 7pm')
+      )
+    })
+
+    it('leaves it out of the plain text', async () => {
+      const { text: plain } = await renderEmail(
+        withPreheader('Two weeks to go')
+      )
+      expect(plain).toBe('Doors 7pm')
+    })
+
+    it('never sends one as a token', async () => {
+      const { html } = await renderEmail(withPreheader('Hi {{ name }}'), {
+        syntax: 'liquid'
+      })
+      expect(html).not.toContain('{{ name }}')
+    })
+
+    it('writes none without one', async () => {
+      const { html } = await renderEmail(email(p(text('Doors 7pm'))))
+      expect(body(html)).not.toMatch(/display:none/)
+    })
+  })
+
   it('links no web font, even for a font MJML knows', async () => {
     const { html } = await renderEmail(email(p(text('Hi'))), {
       theme: { fontFamily: 'Roboto, Arial, sans-serif' }
