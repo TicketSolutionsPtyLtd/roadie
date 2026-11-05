@@ -266,6 +266,24 @@ describe('Editor empty email', () => {
     )
   })
 
+  it('shows no placeholder copy once the editor is read-only', async () => {
+    const { rerender } = render(<Editor aria-label={LABEL} preset='email' />)
+    await userEvent.click(
+      within(await start()).getByRole('button', { name: 'Sections' })
+    )
+    const drawer = await screen.findByRole('dialog', { name: 'Blocks' })
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Header' })
+    )
+    const headline = () =>
+      document.querySelector('[data-type="section"]')!.firstElementChild!
+    await waitFor(() => expect(shownBefore(headline())).toBe('"Headline"'))
+
+    rerender(<Editor aria-label={LABEL} preset='email' readOnly />)
+
+    await waitFor(() => expect(shownBefore(headline())).toBe('none'))
+  })
+
   it('opens Import', async () => {
     renderEmail()
 

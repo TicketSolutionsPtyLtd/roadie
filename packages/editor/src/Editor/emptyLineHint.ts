@@ -81,6 +81,8 @@ export const EmptyLineHint = Extension.create<EmptyLineHintOptions>({
         },
         props: {
           decorations: (state) => {
+            // Placeholder copy read as content would mislead a reader.
+            if (!editor.isEditable) return null
             const copies = lineHints.getState(state) ?? DecorationSet.empty
             const { doc, selection } = state
             const text = hint()
@@ -91,7 +93,6 @@ export const EmptyLineHint = Extension.create<EmptyLineHintOptions>({
             if (
               !text ||
               !empty ||
-              !editor.isEditable ||
               emptyDoc ||
               line.type.name !== 'paragraph' ||
               line.content.size > 0 ||
