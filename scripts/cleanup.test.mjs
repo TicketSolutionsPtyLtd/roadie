@@ -303,9 +303,10 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     const path = f.worktree('claude/reopened')
     f.merge('claude/reopened')
     const pidFile = join(dirname(f.repo), 'started.pid')
+    // Forked after the cd, so it is in the worktree before du returns.
     f.whileSizing(
       path,
-      `(cd "${path}" && exec sleep 60) >/dev/null 2>&1 &\necho $! > "${pidFile}"`
+      `cd "${path}"\nsleep 60 >/dev/null 2>&1 &\necho $! > "${pidFile}"`
     )
 
     try {
