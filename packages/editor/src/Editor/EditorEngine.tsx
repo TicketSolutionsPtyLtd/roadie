@@ -43,6 +43,7 @@ import {
   presetShapes
 } from '../schema/presetShapes'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
+import { EditorBlockHandle } from './EditorBlockHandle'
 import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
 import { EditorButtonPopover } from './EditorButtonPopover'
 import { EditorContent } from './EditorContent'
@@ -92,6 +93,18 @@ const LinkShortcut = Extension.create<LinkShortcutOptions>({
     }
   }
 })
+
+type BlockMenuShortcutOptions = { open: () => boolean }
+
+// Notion's shortcut for a block's actions.
+const BlockMenuShortcut = Extension.create<BlockMenuShortcutOptions>({
+  name: 'blockMenuShortcut',
+  addKeyboardShortcuts() {
+    return { 'Mod-/': () => this.options.open() }
+  }
+})
+
+const BLOCK_HANDLE_PRESETS: ReadonlySet<Preset> = new Set(['blocks'])
 
 type AltTextShortcutOptions = { onEditAlt: () => void }
 
@@ -284,6 +297,7 @@ export function EditorEngine({
   const bubbleMenuRef = useRef<HTMLDivElement>(null)
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
+  const openBlockMenuRef = useRef<(() => void) | null>(null)
   const [editingLink, setEditingLink] = useState(false)
   const [editingAlt, setEditingAlt] = useState(false)
   const [editingEmbed, setEditingEmbed] = useState(false)
@@ -316,6 +330,7 @@ export function EditorEngine({
   const editable = !readOnly && !disabled && !unreadable
   useFieldControlError(uploadError ?? (unreadable ? UNREADABLE : null))
   const holdsImages = presetHoldsImages(preset)
+  const hasBlockHandle = BLOCK_HANDLE_PRESETS.has(preset)
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
@@ -337,6 +352,12 @@ export function EditorEngine({
         items: presetInsertItems[preset] ?? [],
         ui: () => uiRef.current!,
         onChange: setInsertMenu
+      }),
+      BlockMenuShortcut.configure({
+        open: () => {
+          openBlockMenuRef.current?.()
+          return Boolean(openBlockMenuRef.current)
+        }
       })
     ],
     content: readableDoc,
@@ -357,7 +378,9 @@ export function EditorEngine({
         class: cn(
           editorContentClass(size, emphasis),
           'min-w-0 outline-none',
-          preset === 'email' && EMAIL_CANVAS
+          preset === 'email' && EMAIL_CANVAS,
+          // Room for the block handle at each block's start.
+          hasBlockHandle && emphasis !== 'subtler' && 'ps-10'
         )
       },
       handleDOMEvents: {
@@ -514,6 +537,9 @@ export function EditorEngine({
             state={insertMenu}
             id={`${contentId}-insert`}
           />
+        ) : null}
+        {editor && hasBlockHandle ? (
+          <EditorBlockHandle editor={editor} openMenuRef={openBlockMenuRef} />
         ) : null}
         {editor?.schema.nodes.table ? (
           <EditorTableToolbar
