@@ -5,6 +5,7 @@ import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import { type EmailTheme, defaultEmailTheme } from '../email/theme'
 import type { EditorValue } from '../schema'
+import { emailCanvasStyle } from './emailCanvas'
 
 const LABEL = 'Newsletter'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
@@ -88,7 +89,7 @@ describe('Editor email colours', () => {
     expect(canvasStyle.backgroundColor).toBe(rgb(defaultEmailTheme.background))
     expect(canvasStyle.colorScheme).toBe('light')
     expect(canvasStyle.fontFamily).toBe('Helvetica, Arial, sans-serif')
-    expect(getComputedStyle(screen.getByText('Gates 11am,')).color).toBe(
+    expect(getComputedStyle(screen.getByText(/Gates 11am/)).color).toBe(
       rgb(defaultEmailTheme.text)
     )
   })
@@ -108,7 +109,7 @@ describe('Editor email colours', () => {
 
     expect(getComputedStyle(canvas).backgroundColor).toBe(rgb('#fdf6e3'))
     expect(getComputedStyle(canvas).fontFamily).toBe('Georgia, serif')
-    expect(getComputedStyle(screen.getByText('Gates 11am,')).color).toBe(
+    expect(getComputedStyle(screen.getByText(/Gates 11am/)).color).toBe(
       rgb('#2b2b2b')
     )
     expect(getComputedStyle(screen.getByText('all ages')).color).toBe(
@@ -138,7 +139,7 @@ describe('Editor email colours', () => {
       const { canvas, styleOf } = await renderEmail({}, dark)
       const result = [
         getComputedStyle(canvas).backgroundColor,
-        getComputedStyle(screen.getByText('Gates 11am,')).color,
+        getComputedStyle(screen.getByText(/Gates 11am/)).color,
         getComputedStyle(screen.getByText('all ages')).color,
         styleOf('Get tickets').backgroundColor,
         styleOf('Get tickets').color,
@@ -176,7 +177,74 @@ describe('Editor email colours', () => {
     })()
 
     expect(selection.backgroundColor).not.toBe(darkSelection)
-    expect(selection.color).toBe(getComputedStyle(canvas).color)
+    const probe = document.createElement('span')
+    probe.style.color =
+      'color-mix(in oklch, var(--email-link) 22%, var(--email-background))'
+    canvas.append(probe)
+    const mixed = getComputedStyle(probe).color
+    probe.remove()
+    expect(selection.backgroundColor).toBe(mixed)
+  })
+})
+
+describe('Editor email section looks', () => {
+  // The look's classes come with the section settings, so the canvas's
+  // markup is drawn here as the editor draws it.
+  function renderLooked(look: string) {
+    render(
+      <div className='dark'>
+        <div data-slot='editor' data-preset='email' style={emailCanvasStyle()}>
+          <div data-email='' className='prose'>
+            <div data-type='section' className={`intent-neutral ${look}`}>
+              <p>
+                Gates 11am, <a href='https://www.oztix.com.au'>all ages</a>
+              </p>
+              <div data-type='button' className='emphasis-strong intent-accent'>
+                Get tickets
+              </div>
+              <div
+                data-type='button'
+                className='emphasis-subtle intent-neutral'
+              >
+                Set times
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+    const section = screen
+      .getByText('all ages')
+      .closest<HTMLElement>('[data-type="section"]')!
+    const styleOf = (text: string) =>
+      getComputedStyle(
+        screen.getByText(text).closest<HTMLElement>('[data-type="button"]')!
+      )
+    return Promise.resolve({ section, styleOf })
+  }
+
+  it('draws an accent section’s blocks in the button’s colours, swapped', async () => {
+    const { section, styleOf } = await renderLooked('emphasis-strong')
+    const accent = getComputedStyle(section).backgroundColor
+    const onAccent = getComputedStyle(screen.getByText(/Gates 11am/)).color
+
+    expect(accent).not.toBe(onAccent)
+    expect(getComputedStyle(screen.getByText('all ages')).color).toBe(onAccent)
+    expect(styleOf('Get tickets').backgroundColor).toBe(onAccent)
+    expect(styleOf('Get tickets').color).toBe(accent)
+  })
+
+  it('fills a tinted section with the tint, and its subtle button with the background', async () => {
+    const { section, styleOf } = await renderLooked('emphasis-subtle')
+    expect(getComputedStyle(section).backgroundColor).toBe(
+      rgb(defaultEmailTheme.tint)
+    )
+    expect(styleOf('Set times').backgroundColor).toBe(
+      rgb(defaultEmailTheme.background)
+    )
+    expect(getComputedStyle(screen.getByText(/Gates 11am/)).color).toBe(
+      rgb(defaultEmailTheme.text)
+    )
   })
 })
 
@@ -218,6 +286,10 @@ describe('Editor email layout, as it sends', () => {
       screen.getByText(text).closest('p')!.getBoundingClientRect().right
 
     expect(left('Intro') - left('Left')).toBeCloseTo(12, 0)
+    const canvas = screen
+      .getByRole('textbox', { name: LABEL })
+      .getBoundingClientRect()
+    expect(canvas.right - right('Right')).toBeCloseTo(12, 0)
     expect(
       right('Right') - intro.closest('p')!.getBoundingClientRect().right
     ).toBeCloseTo(12, 0)
