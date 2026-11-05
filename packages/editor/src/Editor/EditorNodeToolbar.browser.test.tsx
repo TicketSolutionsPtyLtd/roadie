@@ -907,14 +907,19 @@ describe('Editor embed size', () => {
     expect(player.left).toBeCloseTo(ring.left, 0)
   })
 
-  it('fills the text’s width with a landscape player', async () => {
+  it('fills the text’s width with a landscape player, up to its height cap', async () => {
     render(<NodeEditor defaultValue={youtube} />)
     const textbox = await clickEmbed()
     await screen.findByRole('toolbar', { name: 'Embed actions' })
     const player = textbox.querySelector('iframe')!.getBoundingClientRect()
     const paragraph = within(textbox).getByText('Sold out')
+    // 36rem tall at 16:9.
+    const capped = (36 * 16 * 16) / 9
 
-    expect(player.width).toBeCloseTo(paragraph.getBoundingClientRect().width, 0)
+    expect(player.width).toBeCloseTo(
+      Math.min(paragraph.getBoundingClientRect().width, capped),
+      0
+    )
     expect(ringed(textbox)!.getBoundingClientRect().width).toBeCloseTo(
       player.width,
       0

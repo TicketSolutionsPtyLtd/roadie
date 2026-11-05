@@ -838,7 +838,7 @@ describe('Editor block handle', () => {
 
     function renderWithBubbleMenu() {
       render(
-        <Editor aria-label={LABEL} defaultValue={lineup}>
+        <Editor aria-label={LABEL} defaultValue={lineup} toolbar='floating'>
           <Editor.Content />
           <Editor.BubbleMenu />
         </Editor>

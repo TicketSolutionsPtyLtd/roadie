@@ -503,8 +503,10 @@ export default function LiveRunner({
               : // whitespace-normal resets the `white-space: pre` inherited from the MDX
                 // fence wrapper. overflow-y-hidden stops a sub-pixel vertical overflow
                 // flickering a scrollbar under animated examples, since a non-visible
-                // overflow-x forces the other axis to auto.
-                `min-w-0 overflow-x-auto overflow-y-hidden bg-normal font-sans whitespace-normal ${previewSpacing(language)}`
+                // overflow-x forces the other axis to auto. Prose runs no wider than
+                // the page, so it clips instead, and a sticky part, such as an
+                // editor's toolbar, sticks in the page.
+                `min-w-0 ${/-prose\b/.test(language) ? 'overflow-clip' : 'overflow-x-auto overflow-y-hidden'} bg-normal font-sans whitespace-normal ${previewSpacing(language)}`
           }
         />
       ) : (

@@ -75,9 +75,17 @@ export type EditorBlockMenu = {
   fallback?: (editor: Editor) => string
 }
 
+/** Toggles of which one at most is pressed, sharing one sliding fill. */
+export type EditorChoiceGroup = {
+  kind: 'choice'
+  label: string
+  controls: readonly EditorControl[]
+}
+
 export type EditorToolbarItem =
   | EditorControl
   | EditorBlockMenu
+  | EditorChoiceGroup
   | typeof SEPARATOR
 
 const bold: EditorControl = {
@@ -126,6 +134,12 @@ const orderedList: EditorControl = {
   shortcut: ['mod', 'shift', '7'],
   run: (editor) => editor.chain().focus().toggleOrderedList().run(),
   pressed: (editor) => editor.isActive('orderedList')
+}
+
+const lists: EditorChoiceGroup = {
+  kind: 'choice',
+  label: 'List',
+  controls: [bulletList, orderedList]
 }
 
 const undo: EditorControl = {
@@ -212,53 +226,48 @@ const blockType: EditorBlockMenu = {
   types: [paragraph, ...headings, quote]
 }
 
-const basicControls = [
-  bold,
-  italic,
-  underline,
-  link,
-  SEPARATOR,
-  bulletList,
-  orderedList
-] as const
+const basicControls = [bold, italic, underline, link, SEPARATOR, lists] as const
 
 const history = [undo, redo] as const
 
-const richControls: readonly EditorToolbarItem[] = [
-  blockType,
-  SEPARATOR,
-  ...basicControls,
-  SEPARATOR,
-  divider,
-  image,
-  embed,
-  table,
-  SEPARATOR,
-  ...history
-]
+const inserts = [divider, image, embed, table] as const
+
+const emailBlockType = { ...blockType, types: [paragraph, ...headings] }
+
+/** The text controls, which the floating toolbar shows over a selection. */
+export const floatingControls: Record<Preset, readonly EditorToolbarItem[]> = {
+  basic: basicControls,
+  rich: [blockType, SEPARATOR, ...basicControls],
+  blocks: [blockType, SEPARATOR, ...basicControls],
+  email: [emailBlockType, SEPARATOR, ...basicControls]
+}
+
+/** The docked bar's controls the floating toolbar puts in its … menu. */
+export const overflowControls: Record<Preset, readonly EditorControl[]> = {
+  basic: history,
+  rich: [...inserts, ...history],
+  blocks: [...inserts, ...history],
+  email: history
+}
 
 // Each preset lists only controls for extensions it holds.
 export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
-  basic: [...basicControls, SEPARATOR, ...history],
-  rich: richControls,
-  blocks: richControls,
-  email: [
-    { ...blockType, types: [paragraph, ...headings] },
+  basic: [...floatingControls.basic, SEPARATOR, ...history],
+  rich: [
+    ...floatingControls.rich,
     SEPARATOR,
-    ...basicControls,
+    ...inserts,
     SEPARATOR,
     ...history
-  ]
-}
-
-const inlineControls = [bold, italic, underline, link] as const
-
-/** The controls in the menu over a text selection. */
-export const selectionControls: Record<Preset, readonly EditorControl[]> = {
-  basic: inlineControls,
-  rich: inlineControls,
-  blocks: inlineControls,
-  email: inlineControls
+  ],
+  blocks: [
+    ...floatingControls.blocks,
+    SEPARATOR,
+    ...inserts,
+    SEPARATOR,
+    ...history
+  ],
+  email: [...floatingControls.email, SEPARATOR, ...history]
 }
 
 const altText: EditorControl = {

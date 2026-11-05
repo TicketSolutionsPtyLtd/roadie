@@ -12,8 +12,10 @@ export type EditorToolbarProps = Omit<
 >
 
 /**
- * The preset's formatting controls, then `children`, at the editor's size.
- * Alt+F10 in the content moves focus here, and Escape moves it back.
+ * The docked bar: the preset's formatting controls, then `children`, at the
+ * editor's size. Alt+F10 in the content moves focus here, and Escape moves it
+ * back. With `toolbar='floating'` it renders nothing, and the floating
+ * toolbar's … menu shows its children.
  */
 export function EditorToolbar(props: EditorToolbarProps) {
   const context = use(EditorContext)

@@ -25,18 +25,26 @@ export const SafeLink = Link.extend({
     Link.options.shouldAutoLink(url) && !isUnsafeHref(url)
 })
 
-export const notInStarterKit = {
+/** StarterKit's options every preset shares. */
+export const starterKitOptions = {
   code: false,
   codeBlock: false,
   link: false,
-  strike: false
+  strike: false,
+  // Sortable's drop line: thick, round, and in the accent colour.
+  dropcursor: {
+    color: false,
+    width: 2,
+    class:
+      'rounded-full intent-accent bg-strong forced-color-adjust-none forced-colors:bg-[Highlight]'
+  }
 } as const
 
 // Each name and attribute these extensions produce is saved in `EditorValue`,
 // so changing one bumps CURRENT_VERSION and adds a migrate step.
 export const basic: Extensions = [
   StarterKit.configure({
-    ...notInStarterKit,
+    ...starterKitOptions,
     blockquote: false,
     heading: false,
     horizontalRule: false

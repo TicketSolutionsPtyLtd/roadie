@@ -134,8 +134,7 @@ describe('Editor with the email preset', () => {
       'Underline',
       'Link',
       '|',
-      'Bulleted list',
-      'Numbered list',
+      'List',
       '|',
       'Undo',
       'Redo'
@@ -423,6 +422,37 @@ describe('Editor with the email preset', () => {
     const fill = luminance(getComputedStyle(button).backgroundColor)
     const chipFill = luminance(getComputedStyle(chip).backgroundColor)
     expect(Math.abs(fill - chipFill)).toBeGreaterThan(0.5)
+  })
+
+  it('keeps a button’s fill while the caret is in it, showing focus around it', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'button',
+                attrs: { href: TICKETS },
+                content: [{ type: 'text', text: 'See your tickets' }]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    const label = await screen.findByText('See your tickets')
+    const button = label.closest<HTMLElement>('[data-type="button"]')!
+    const rest = getComputedStyle(button).backgroundColor
+
+    await userEvent.click(label)
+
+    await waitFor(() => expect(button).toHaveAttribute('data-focused-block'))
+    expect(getComputedStyle(button).backgroundColor).toBe(rest)
+    expect(getComputedStyle(button).outlineStyle).toBe('solid')
   })
 
   it('shows a merge tag by its key when the editor lists no variables', async () => {

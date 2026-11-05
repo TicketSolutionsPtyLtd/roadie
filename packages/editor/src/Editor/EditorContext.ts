@@ -1,13 +1,18 @@
 'use client'
 
-import { type ComponentType, type RefObject, createContext } from 'react'
+import {
+  type ComponentType,
+  type ReactNode,
+  type RefObject,
+  createContext
+} from 'react'
 
 import type { EditorContent, Editor as TiptapEditor } from '@tiptap/react'
 
 import type { EditorVariable, EmbedProvider, Preset } from '../schema'
 import type { EditorBubbleMenuProps } from './EditorBubbleMenu'
 import type { EditorToolbarProps } from './EditorToolbar'
-import type { EditorEmphasis, EditorSize } from './variants'
+import type { EditorEmphasis, EditorSize, EditorToolbarMode } from './variants'
 
 // The engine's parts travel through context, so the shell never imports Tiptap.
 export type EditorContextValue = {
@@ -16,6 +21,16 @@ export type EditorContextValue = {
   size: EditorSize
   emphasis: EditorEmphasis
   contentId: string
+  /** The toolbar showing, which is docked on a phone whatever was chosen. */
+  toolbar: EditorToolbarMode
+  /** Whether the toolbar showing offers to pin or unpin itself. */
+  pinnable: boolean
+  setToolbar: (toolbar: EditorToolbarMode) => void
+  /** `Editor.Toolbar`'s children, which a floating toolbar puts in its … menu. */
+  toolbarExtras: ReactNode
+  setToolbarExtras: (extras: ReactNode) => void
+  /** Set while a floating toolbar is mounted, to show it at the caret and focus it. */
+  openBubbleMenuRef: RefObject<(() => boolean) | null>
   toolbarRef: RefObject<HTMLDivElement | null>
   bubbleMenuRef: RefObject<HTMLDivElement | null>
   /** Opens the link editor on the selection. */

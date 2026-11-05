@@ -1,6 +1,13 @@
 'use client'
 
-import { type ComponentType, useEffect, useId, useRef, useState } from 'react'
+import {
+  type ComponentType,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState
+} from 'react'
 
 import {
   Extension,
@@ -66,6 +73,8 @@ import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
+import { focusEditor } from './focusEditor'
+import { FocusedBlock } from './focusedBlock'
 import {
   ImageUpload,
   type UploadImage,
@@ -78,6 +87,7 @@ import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
+import { useToolbarMode } from './toolbarMode'
 import {
   EDITOR_FRAME,
   EDITOR_MIN_HEIGHT,
@@ -338,6 +348,10 @@ export function EditorEngine({
   resolveUrl,
   extensions: extensionsProp,
   variables,
+  toolbar: toolbarProp,
+  defaultToolbar,
+  onToolbarChange,
+  pinnable: pinnableProp = false,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy
 }: EditorRootProps) {
@@ -346,6 +360,15 @@ export function EditorEngine({
   const bubbleMenuRef = useRef<HTMLDivElement>(null)
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
+  const openBubbleMenuRef = useRef<(() => boolean) | null>(null)
+  const { toolbar, pinnable, setToolbar } = useToolbarMode({
+    toolbar: toolbarProp,
+    defaultToolbar,
+    onToolbarChange,
+    pinnable: pinnableProp
+  })
+  const toolbarModeRef = useRef(toolbar)
+  const [toolbarExtras, setToolbarExtras] = useState<ReactNode>(null)
   const openBlockMenuRef = useRef<(() => void) | null>(null)
   const [editingLink, setEditingLink] = useState(false)
   const [editingAlt, setEditingAlt] = useState(false)
@@ -422,7 +445,10 @@ export function EditorEngine({
           return Boolean(openBlockMenuRef.current)
         }
       }),
-      ...(blockHandle ? [BlockDrag] : [])
+      ...(blockHandle ? [BlockDrag] : []),
+      FocusedBlock.configure({
+        containers: blockHandle?.containers ?? TOP_LEVEL
+      })
     ],
     content: readableDoc,
     editable,
@@ -468,14 +494,17 @@ export function EditorEngine({
       handleKeyDown: (view, event) => {
         if (!event.altKey || event.key !== 'F10') return false
         // The selection menu is in the document only while it shows.
-        const toolbar = bubbleMenuRef.current?.isConnected
+        const target = bubbleMenuRef.current?.isConnected
           ? bubbleMenuRef.current
           : selectedNodeType(view.state)
             ? nodeToolbarRef.current
             : selectedTable(view.state)
               ? tableToolbarRef.current
               : toolbarRef.current
-        const firstEnabled = toolbar?.querySelector<HTMLElement>(
+        if (!target && toolbarModeRef.current === 'floating') {
+          return openBubbleMenuRef.current?.() ?? false
+        }
+        const firstEnabled = target?.querySelector<HTMLElement>(
           'button:not([aria-disabled="true"])'
         )
         firstEnabled?.focus()
@@ -553,6 +582,10 @@ export function EditorEngine({
   }, [editor, editable])
 
   useEffect(() => {
+    toolbarModeRef.current = toolbar
+  }, [toolbar])
+
+  useEffect(() => {
     uploadRef.current = onUploadImage
     providersRef.current = embedProviders
   }, [onUploadImage, embedProviders])
@@ -609,6 +642,16 @@ export function EditorEngine({
         size,
         emphasis,
         contentId,
+        toolbar,
+        pinnable,
+        setToolbar: (next) => {
+          setToolbar(next)
+          // The toolbar that held focus goes, so the text takes it.
+          if (editor) focusEditor(editor)
+        },
+        toolbarExtras,
+        setToolbarExtras,
+        openBubbleMenuRef,
         toolbarRef,
         bubbleMenuRef,
         ...ui,
@@ -638,6 +681,7 @@ export function EditorEngine({
           <>
             <EditorToolbarEngine />
             <EditorContent />
+            <EditorBubbleMenuEngine />
           </>
         )}
         {editor ? (
