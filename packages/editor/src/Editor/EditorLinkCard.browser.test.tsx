@@ -1,6 +1,10 @@
+import { useState } from 'react'
+
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
+
+import { Dialog } from '@oztix/roadie-components/dialog'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -160,5 +164,54 @@ describe('Editor link card', () => {
     await waitFor(() =>
       expect(screen.queryByRole('toolbar', { name: CARD })).toBe(null)
     )
+  })
+  it('hides once the editor turns read-only', async () => {
+    const value = valueOf('rich', linked('your tickets', { href: TICKETS }))
+    function Toggled() {
+      const [readOnly, setReadOnly] = useState(false)
+      return (
+        <div style={{ padding: '96px 24px' }}>
+          <button type='button' onClick={() => setReadOnly(true)}>
+            Lock
+          </button>
+          <Editor aria-label={LABEL} defaultValue={value} readOnly={readOnly} />
+        </div>
+      )
+    }
+    render(<Toggled />)
+    await caretIn('your tickets')
+    await card()
+
+    screen.getByRole('button', { name: 'Lock' }).click()
+
+    await waitFor(() =>
+      expect(screen.queryByRole('toolbar', { name: CARD })).toBe(null)
+    )
+  })
+
+  it('moves focus back to the text on Escape, leaving a dialog around it open', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <Dialog.Content>
+          <Dialog.Title>Compose</Dialog.Title>
+          <Editor
+            aria-label={LABEL}
+            defaultValue={valueOf(
+              'rich',
+              linked('your tickets', { href: TICKETS })
+            )}
+          />
+        </Dialog.Content>
+      </Dialog>
+    )
+    const textbox = await caretIn('your tickets')
+    const edit = within(await card()).getByRole('button', { name: 'Edit link' })
+    edit.focus()
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(textbox).toHaveFocus())
+    expect(onOpenChange).not.toHaveBeenCalled()
   })
 })

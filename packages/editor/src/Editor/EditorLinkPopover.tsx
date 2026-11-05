@@ -182,7 +182,7 @@ function LinkForm({ editor, inputRef, apply, revert, onDone }: LinkFormProps) {
  * A web link as its host and path, the parts that say where it goes; any
  * other link, such as `mailto:`, as its address.
  */
-export function linkTarget(href: string) {
+function linkTarget(href: string) {
   if (!URL.canParse(href)) return href
   const url = new URL(href)
   if (url.protocol !== 'https:' && url.protocol !== 'http:') {
@@ -234,8 +234,22 @@ function LinkCard({ editor, editing, onEdit }: LinkCardProps) {
   const link = useEditorState({
     editor,
     selector: ({ editor: current }) =>
-      current.state.selection.empty ? currentLink(current) : undefined
+      current.isEditable && current.state.selection.empty
+        ? currentLink(current)
+        : undefined
   })
+  const editable = useEditorState({
+    editor,
+    selector: ({ editor: current }) => current.isEditable
+  })
+  // The plugin asks shouldShow only when the selection or doc changes, and
+  // turning read-only changes neither.
+  useEffect(() => {
+    if (editable || editor.isDestroyed) return
+    editor.view.dispatch(
+      editor.state.tr.setMeta(CARD_KEY, 'hide').setMeta('addToHistory', false)
+    )
+  }, [editor, editable])
   const menuRef = useRef<HTMLDivElement>(null)
   const editingRef = useRef(editing)
   useEffect(() => {
@@ -249,6 +263,7 @@ function LinkCard({ editor, editing, onEdit }: LinkCardProps) {
         link.variable)
 
   const remove = () => {
+    if (!editor.isEditable) return
     editor.chain().focus().extendMarkRange('link').unsetLink().run()
   }
 
@@ -267,7 +282,8 @@ function LinkCard({ editor, editing, onEdit }: LinkCardProps) {
         onShow: () => menuRef.current?.setAttribute('tabindex', '-1')
       }}
       data-slot='editor-link-card'
-      className='z-sticky'
+      // Under the docked bar, as the link it hangs from scrolls under it.
+      className='z-docked'
     >
       {link && !editing ? (
         <Toolbar
@@ -277,6 +293,10 @@ function LinkCard({ editor, editing, onEdit }: LinkCardProps) {
           // Captured, as an open tooltip keeps Escape from bubbling.
           onKeyDownCapture={(event) => {
             if (event.key === 'Escape') editor.commands.focus()
+          }}
+          // Keeps a dialog around the editor open.
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') event.stopPropagation()
           }}
         >
           {variable === undefined ? (
@@ -290,9 +310,7 @@ function LinkCard({ editor, editing, onEdit }: LinkCardProps) {
               {linkTarget(link.href ?? '')}
             </a>
           ) : (
-            <Badge emphasis='subtle' className='mx-1'>
-              {variable}
-            </Badge>
+            <Badge emphasis='subtle'>{variable}</Badge>
           )}
           <Toolbar.Separator />
           <Tooltip>
