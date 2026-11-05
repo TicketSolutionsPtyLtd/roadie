@@ -542,6 +542,7 @@ export function EditorEngine({
         ...(field.required && { 'aria-required': 'true' }),
         ...((readOnly || unreadable) && { 'aria-readonly': 'true' }),
         ...(disabled && { 'aria-disabled': 'true' }),
+        ...(preset === 'email' && { 'data-email': '' }),
         // A grid item, which would otherwise grow to fit a wide table.
         class: cn(
           editorContentClass(size, emphasis),
