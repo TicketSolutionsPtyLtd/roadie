@@ -456,7 +456,7 @@ describe('Editor blocks drawer', () => {
         })
       ).toHaveFocus()
     )
-    await userEvent.keyboard('{Tab}'.repeat(10))
+    await userEvent.keyboard('{ArrowRight}'.repeat(10))
     expect(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Spacer' })
     ).toHaveFocus()
@@ -543,6 +543,120 @@ describe('Editor blocks drawer', () => {
       expect(within(bar).queryByRole('button', { name: 'Blocks' })).toBe(null)
     }
   )
+})
+
+describe('Editor blocks drawer finding and moving', () => {
+  const tileNames = (drawer: HTMLElement) =>
+    within(drawer)
+      .queryAllByRole('button')
+      .filter((tile) => tile.dataset.slot === 'editor-blocks-tile')
+      .map((tile) => tile.textContent)
+
+  it('filters the tiles with the / menu’s matcher, and Enter picks the first', async () => {
+    const onValueChange = renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+
+    await userEvent.type(
+      within(drawer).getByRole('searchbox', { name: 'Find a block' }),
+      'hr'
+    )
+    expect(tileNames(drawer)).toEqual(['Divider'])
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm'), { type: 'horizontalRule' }, p('Gates 6pm'))
+      )
+    )
+  })
+
+  it('ranks a name that starts with the filter first', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+
+    await userEvent.type(
+      within(drawer).getByRole('searchbox', { name: 'Find a block' }),
+      '2'
+    )
+
+    expect(tileNames(drawer)).toEqual(['2 columns', 'Heading 2'])
+  })
+
+  it('types into the filter from a tile', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+    await waitFor(() =>
+      expect(document.activeElement).toHaveAttribute(
+        'data-slot',
+        'editor-blocks-tile'
+      )
+    )
+
+    await userEvent.keyboard('spa')
+
+    const filter = within(drawer).getByRole('searchbox', {
+      name: 'Find a block'
+    })
+    expect(filter).toHaveFocus()
+    expect(filter).toHaveValue('spa')
+    expect(tileNames(drawer)).toEqual(['Spacer'])
+  })
+
+  it('moves between tiles with the arrow keys, with one tab stop', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+    const tile = (name: string) => within(drawer).getByRole('button', { name })
+    await waitFor(() => expect(tile('Paragraph')).toHaveFocus())
+
+    await userEvent.keyboard('{ArrowRight}')
+    expect(tile('Heading 2')).toHaveFocus()
+    await userEvent.keyboard('{ArrowDown}')
+    const moved = (
+      document.activeElement as HTMLElement
+    ).getBoundingClientRect()
+    const above = tile('Heading 2').getBoundingClientRect()
+    expect(moved.top).toBeGreaterThan(above.top)
+    expect(Math.abs(moved.left - above.left)).toBeLessThan(2)
+    await userEvent.keyboard('{End}')
+    const last = document.activeElement
+    expect(last?.textContent).toBe(tileNames(drawer).at(-1))
+
+    const stops = within(drawer)
+      .getAllByRole('button')
+      .filter(
+        (button) =>
+          button.dataset.slot === 'editor-blocks-tile' && button.tabIndex === 0
+      )
+    expect(stops).toEqual([last])
+  })
+
+  it('leaves the email usable beside it from 1280px wide', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+
+    expect(document.querySelector('[data-slot="drawer-backdrop"]')).toBe(null)
+    await clickInto('Gates 6pm')
+
+    expect(await textbox()).toHaveFocus()
+    expect(drawer).toBeVisible()
+  })
+
+  it('takes over the page below 1280px wide', async () => {
+    await page.viewport(1024, 800)
+    renderEmail()
+    await clickInto('Doors 7pm')
+
+    await openFromDockedBar()
+
+    expect(
+      document.querySelector('[data-slot="drawer-backdrop"]')
+    ).toBeInTheDocument()
+  })
 })
 
 describe('Editor blocks drawer in the blocks preset', () => {
