@@ -353,15 +353,24 @@ function cellWidth(cell: Element) {
   return percent === undefined ? undefined : Number(percent)
 }
 
+// A gutter cell spaces columns apart and holds nothing to keep.
+const isGutter = (cell: Element) =>
+  !cell.textContent?.trim() && !cell.querySelector('img')
+
+// A layout cell holds blocks; a data table's cell holds a value.
+const CELL_BLOCKS = 'p, div, h1, h2, h3, h4, h5, h6, ul, ol, img, table, a'
+
 function columnsOf(row: Element) {
-  const cells = [...row.children].filter((child) =>
+  const allCells = [...row.children].filter((child) =>
     ['td', 'th'].includes(tagOf(child))
   )
-  if (cells.length < 2 || cells.length > 4) return null
-  const widths = cells.map(cellWidth)
+  const widths = allCells.map(cellWidth)
   if (widths.some((width) => width === undefined)) return null
   const total = widths.reduce<number>((sum, width) => sum + width!, 0)
   if (Math.abs(total - 100) > 1) return null
+  const cells = allCells.filter((cell) => !isGutter(cell))
+  if (cells.length < 2 || cells.length > 4) return null
+  if (cells.some((cell) => !cell.querySelector(CELL_BLOCKS))) return null
   const doc = row.ownerDocument
   const columns = doc.createElement('div')
   columns.dataset.type = 'columns'
@@ -390,6 +399,7 @@ const LINE = 'p, div, td, th, li, center, h1, h2, h3, h4, h5, h6'
 const PADDED = /(?:^|;)\s*padding(?:-[a-z]+)?\s*:\s*[^;]*[1-9]/i
 const INLINE_BLOCK = /(?:^|;)\s*display\s*:\s*inline-block/i
 const FILLED = /(?:^|;)\s*background(?:-color)?\s*:/i
+const BORDERED = /(?:^|;)\s*border(?:-[a-z]+)?\s*:\s*[^;]*[1-9]/i
 
 const styleOf = (element: Element) => element.getAttribute('style') ?? ''
 
@@ -398,19 +408,44 @@ function lineHolding(link: Element) {
   const line = link.parentElement?.closest(LINE)
   if (!line) return null
   const words = (element: Element) => element.textContent?.trim() ?? ''
+  // A linked image or layout is no button's label.
+  if (!words(link) || link.querySelector('img, table')) return null
   const others = [...line.querySelectorAll('img, a, table')].filter(
     (element) => element !== link && !link.contains(element)
   )
   return words(line) === words(link) && others.length === 0 ? line : null
 }
 
-// A bulletproof button pads and fills its cell, not the link.
+const isFilled = (element: Element) =>
+  element.hasAttribute('bgcolor') ||
+  FILLED.test(styleOf(element)) ||
+  BORDERED.test(styleOf(element))
+
+// A table of one cell, as a bulletproof button is, and narrower than the
+// email, unlike a footer bar.
+function isButtonTable(table: Element | null) {
+  return (
+    table !== null &&
+    table.querySelectorAll('td, th').length === 1 &&
+    table.getAttribute('width') !== '100%' &&
+    !/(?:^|;)\s*width\s*:\s*100%/i.test(styleOf(table))
+  )
+}
+
+// A filled, padded shape: the link's own, or a bulletproof button's cell.
+// Padding alone is a nav link or a footer's.
 function looksLikeButton(link: Element, line: Element) {
   const style = styleOf(link)
-  if (PADDED.test(style) || INLINE_BLOCK.test(style)) return true
+  if ((PADDED.test(style) || INLINE_BLOCK.test(style)) && isFilled(link)) {
+    return true
+  }
   const isCell = ['td', 'th'].includes(tagOf(line))
-  const filled = line.hasAttribute('bgcolor') || FILLED.test(styleOf(line))
-  return isCell && filled && PADDED.test(styleOf(line))
+  return (
+    isCell &&
+    isFilled(line) &&
+    PADDED.test(styleOf(line)) &&
+    isButtonTable(line.closest('table'))
+  )
 }
 
 function alignmentOf(line: Element) {
@@ -423,7 +458,9 @@ function alignmentOf(line: Element) {
       element.getAttribute('align') ??
       /(?:^|;)\s*text-align\s*:\s*(\w+)/i.exec(styleOf(element))?.[1]
     if (align === 'center' || align === 'right') return align
-    if (align === 'left' || tagOf(element) === 'table') return undefined
+    if (align === 'left') return undefined
+    // A button's own table sits in the cell that places it.
+    if (tagOf(element) === 'table' && !isButtonTable(element)) return undefined
   }
   return undefined
 }
@@ -442,7 +479,9 @@ function htmlButtons(container: HTMLElement) {
     const align = alignmentOf(line)
     if (align) button.dataset.align = align
     button.append(...link.childNodes)
-    if (['td', 'th'].includes(tagOf(line))) line.replaceChildren(button)
+    // A cell or column keeps its place in the layout.
+    if (line.matches('td, th, [data-type="column"]'))
+      line.replaceChildren(button)
     else line.replaceWith(button)
   }
 }
@@ -490,9 +529,10 @@ function readTokens(
  * Reads an email's source, MJML or HTML, as a whole page or part of one, into
  * an email preset value, through `migrate`. MJML sections, columns, buttons,
  * images, spacers and dividers become the editor's own, and `mj-text` is read
- * as HTML. In HTML, a padded or inline-block link alone on its line is a
- * button, a row of two to four cells whose widths share 100% is columns, and
- * any other layout table gives way to its text and images.
+ * as HTML. In HTML, a filled or bordered link alone on its line, padded or
+ * inline-block, or in a padded one-cell table, is a button; a row of two to
+ * four cells of blocks whose widths share 100% is columns; and any other
+ * layout table gives way to its text and images.
  * Hidden text before any the email shows, or `mj-preview`, becomes the
  * preheader, and any other hidden text is dropped. Each token of a `variables`
  * entry becomes a merge tag, or a link variable as a link's or button's

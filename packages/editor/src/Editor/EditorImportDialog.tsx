@@ -157,7 +157,8 @@ function ImportForm({
           onChange={(event) => {
             const [file] = event.currentTarget.files ?? []
             event.currentTarget.value = ''
-            void file?.text().then(setSource)
+            // An unreadable file leaves the source as it was.
+            file?.text().then(setSource, () => {})
           }}
         />
         {losses.length > 0 ? (

@@ -464,11 +464,13 @@ same dialog with it filled in, in place of pasting the tags.
   `mj-divider` become a button, image, spacer, and divider. A button keeps
   its centre or right alignment and a 100% width. A navbar or social row
   becomes a line of links. Any other element keeps its text.
-- **HTML:** a link alone on its line becomes a button when it's padded or
-  `inline-block`, or fills a padded cell, as a bulletproof button does,
-  keeping its centre or right alignment. A row of two to four cells whose
-  widths add up to 100% becomes columns. Any other table layout gives way to
-  its text and images, in order.
+- **HTML:** a link alone on its line becomes a button when it has its own
+  fill or border and is padded or `inline-block`, or when it fills a padded
+  one-cell table, as a bulletproof button does. It keeps its centre or right
+  alignment. A row of two to four cells of blocks, whose widths add up to
+  100%, becomes columns, leaving out an empty gutter cell. Any other table
+  layout, such as a receipt's rows, gives way to its text and images, in
+  order.
 - **Merge tags:** a token from `variables`, such as `#FirstName#` or
   `{{ customer.first_name }}`, becomes its merge tag, and a Liquid
   `default` becomes its fallback. A link or button whose whole href is a link

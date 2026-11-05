@@ -521,7 +521,7 @@ describe('importEmail reads an HTML email’s buttons', () => {
     ],
     [
       'inline-block',
-      `<div><a href="${TICKETS}" style="display: inline-block">Get tickets</a></div>`
+      `<div><a href="${TICKETS}" style="display: inline-block; background-color: #5f270f">Get tickets</a></div>`
     ],
     [
       'in a padded cell',
@@ -534,7 +534,7 @@ describe('importEmail reads an HTML email’s buttons', () => {
   it('keeps a button’s centre or right alignment', () => {
     expect(
       blocks(
-        `<div style="text-align:center"><a href="${TICKETS}" style="padding:12px">Get tickets</a></div><table><tr><td align="right"><a href="${TICKETS}" style="display:inline-block">Lineup</a></td></tr></table>`
+        `<div style="text-align:center"><a href="${TICKETS}" style="padding:12px;background:#5f270f">Get tickets</a></div><table><tr><td align="right"><a href="${TICKETS}" style="display:inline-block;border:1px solid #5f270f">Lineup</a></td></tr></table>`
       )
     ).toEqual([
       buttonOf({ align: 'center' }),
@@ -560,9 +560,49 @@ describe('importEmail reads an HTML email’s buttons', () => {
     expect(blocks(source)?.some((block) => block.type === 'button')).toBe(false)
   })
 
+  it.each([
+    [
+      'a footer bar’s link',
+      '<table width="100%"><tr><td bgcolor="#f4f4f4" style="padding:10px;text-align:center"><a href="https://www.oztix.com.au/view">View this email in your browser</a></td></tr></table>'
+    ],
+    [
+      'a padded nav link',
+      '<p><a href="https://www.oztix.com.au/shows" style="display:inline-block;padding:0 12px">Shows</a></p>'
+    ]
+  ])('keeps %s as a link', (_, source) => {
+    expect(blocks(source)?.some((block) => block.type === 'button')).toBe(false)
+  })
+
+  it('keeps a linked image an image', () => {
+    expect(
+      blocks(
+        '<p><a href="https://www.oztix.com.au" style="display:inline-block;background:#000"><img src="https://cdn.oztix.com.au/logo.png" alt="Oztix"></a></p>'
+      )
+    ).toEqual([
+      {
+        type: 'image',
+        attrs: {
+          src: 'https://cdn.oztix.com.au/logo.png',
+          alt: 'Oztix',
+          width: null
+        }
+      }
+    ])
+  })
+
+  it('centres a bulletproof button in the cell that centres its table', () => {
+    expect(
+      blocks(
+        `<table width="100%"><tr><td align="center"><table><tr><td bgcolor="#5f270f" style="padding:12px 24px"><a href="${TICKETS}">Get tickets</a></td></tr></table></td></tr></table>`
+      )
+    ).toEqual([buttonOf({ align: 'center' })])
+  })
+
   it('reads a button to a link variable', () => {
     expect(
-      blocks('<p><a href="#OptOut#" style="padding:12px">Unsubscribe</a></p>')
+      blocks(
+        '<p><a href="#OptOut#" style="padding:12px;background:#eee">Unsubscribe</a></p>'
+      )
     ).toEqual([
       {
         type: 'button',
@@ -612,7 +652,7 @@ describe('importEmail reads an HTML email’s columns', () => {
   it('keeps a column’s images, headings and buttons', () => {
     expect(
       blocks(
-        `<table><tr>${cell('50%', '<img src="https://cdn.oztix.com.au/a.jpg" alt="A"><h3>Ochre Kite</h3>')}${cell('50%', '<a href="https://www.oztix.com.au" style="padding:12px">Get tickets</a>')}</tr></table>`
+        `<table><tr>${cell('50%', '<img src="https://cdn.oztix.com.au/a.jpg" alt="A"><h3>Ochre Kite</h3>')}${cell('50%', '<a href="https://www.oztix.com.au" style="padding:12px;background:#5f270f">Get tickets</a>')}</tr></table>`
       )
     ).toEqual([
       {
@@ -672,6 +712,58 @@ describe('importEmail reads an HTML email’s columns', () => {
     expect(
       imported.value.doc.content?.some((block) => block.type === 'columns')
     ).toBe(false)
+  })
+
+  it('keeps a button in each of two cells in its own column', () => {
+    const cellButton = (href: string, label: string) =>
+      cell(
+        '50%',
+        `<a href="${href}" style="padding:12px;background:#5f270f">${label}</a>`
+      )
+    expect(
+      blocks(
+        `<table><tr>${cellButton('https://www.oztix.com.au/a', 'Buy')}${cellButton('https://www.oztix.com.au/b', 'Info')}</tr></table>`
+      )
+    ).toEqual([
+      {
+        type: 'columns',
+        content: [
+          column({
+            type: 'button',
+            attrs: { href: 'https://www.oztix.com.au/a' },
+            content: [text('Buy')]
+          }),
+          column({
+            type: 'button',
+            attrs: { href: 'https://www.oztix.com.au/b' },
+            content: [text('Info')]
+          })
+        ]
+      }
+    ])
+  })
+
+  it('leaves out a gutter cell between columns', () => {
+    expect(
+      blocks(
+        `<table><tr>${cell('48%', '<p>Marri Lane</p>')}${cell('4%', '&nbsp;')}${cell('48%', '<p>Dusty Banksia</p>')}</tr></table>`
+      )
+    ).toEqual([
+      {
+        type: 'columns',
+        content: [
+          column(paragraph(text('Marri Lane'))),
+          column(paragraph(text('Dusty Banksia')))
+        ]
+      }
+    ])
+  })
+
+  it('reads a receipt’s rows of values as text, not columns', () => {
+    const content = blocks(
+      '<table><tr><td width="70%">2 × General admission</td><td width="30%">$98.00</td></tr><tr><td width="70%">Booking fee</td><td width="30%">$4.50</td></tr></table>'
+    )
+    expect(content?.some((block) => block.type === 'columns')).toBe(false)
   })
 
   it('reads only the outer row of nested layout rows as columns', () => {
