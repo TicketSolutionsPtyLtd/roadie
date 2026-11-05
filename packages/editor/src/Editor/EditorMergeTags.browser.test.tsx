@@ -195,6 +195,24 @@ describe('Editor merge tags', () => {
     )
   })
 
+  it.each(['basic', 'rich'] as const)(
+    'offers no merge tags in %s, which can’t hold them',
+    async (preset) => {
+      render(
+        <Editor aria-label={LABEL} preset={preset} variables={VARIABLES} />
+      )
+      const textbox = await focusedTextbox()
+
+      await userEvent.keyboard(OPEN)
+      await waitFor(() => expect(textbox).toHaveTextContent('{{'))
+      expect(screen.queryByRole('listbox')).toBe(null)
+
+      await userEvent.keyboard('{Backspace}{Backspace}/merge')
+      await waitFor(() => expect(textbox).toHaveTextContent('/merge'))
+      expect(screen.queryByRole('listbox')).toBe(null)
+    }
+  )
+
   it('offers no Merge tag in the / menu without variables', async () => {
     renderEmail({ variables: undefined })
     const textbox = await focusedTextbox()
