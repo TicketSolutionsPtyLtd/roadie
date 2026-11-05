@@ -232,6 +232,16 @@ function renderIn(intent: RoadieIntent, testCase: Case) {
   )
 }
 
+// A title or label span can set its own colour, apart from the target's.
+function textOf(target: HTMLElement) {
+  const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT)
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (node.textContent?.trim() && node.parentElement)
+      return node.parentElement
+  }
+  return target
+}
+
 // What a user sees change: the fill over the page, the text, the edge and
 // the underline.
 function paint(element: HTMLElement) {
@@ -293,12 +303,9 @@ describe.each(MODES)('%s mode', (mode) => {
     it.each(INTENTS)('reads at rest in intent-%s', async (intent) => {
       setMode(mode)
       renderIn(intent, testCase)
-      const target = await testCase.target()
+      const text = textOf(await testCase.target())
 
-      const lc = apcaLc(
-        flatten(getComputedStyle(target).color),
-        shownFill(target)
-      )
+      const lc = apcaLc(flatten(getComputedStyle(text).color), shownFill(text))
 
       expect(Math.abs(lc)).toBeGreaterThanOrEqual(
         minimumLc[testCase.text ?? 'label']
