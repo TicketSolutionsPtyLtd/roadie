@@ -21,6 +21,8 @@ function badge(label: string) {
   dom.contentEditable = 'false'
   // On the section's top edge, as a tab, so it takes no room from the email.
   dom.className = 'absolute -top-2.5 end-3'
+  // The canvas spaces a section's children with margins, which would move it.
+  dom.style.margin = '0'
   const root = createRoot(dom)
   root.render(
     <Badge intent='info' emphasis='subtle' size='sm'>
