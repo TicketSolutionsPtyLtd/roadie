@@ -483,6 +483,28 @@ describe('renderEmail', () => {
       }
     )
 
+    it('keeps a fallback with quotes and braces inside its Liquid default in the plain text', async () => {
+      const { text: plain } = await renderEmail(greeting(`"Mate's" }} {{ x`), {
+        syntax: 'liquid',
+        variables
+      })
+      expect(plain).toBe(
+        `Hi {{ customer.first_name | default: '"Mate’s" }​} {​{ x' }}!`
+      )
+    })
+
+    it('gives a Liquid token of more than one output no default', async () => {
+      const both = '{{ customer.first_name }} {{ customer.last_name }}'
+      const { html, text: plain } = await renderEmail(greeting('there'), {
+        syntax: 'liquid',
+        variables: [
+          { key: 'first_name', label: 'Name', tokens: { liquid: both } }
+        ]
+      })
+      expect(html).toContain(`Hi ${both}!`)
+      expect(plain).toBe(`Hi ${both}!`)
+    })
+
     it('keeps a Liquid token’s whitespace control around its default', async () => {
       const { html } = await renderEmail(greeting('there'), {
         syntax: 'liquid',

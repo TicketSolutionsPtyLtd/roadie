@@ -36,6 +36,9 @@ const apartFromTags = (text: string) =>
 const liquidString = (text: string) =>
   text.includes('"') ? `'${text.replaceAll("'", '’')}'` : `"${text}"`
 
+// One `{{ … }}` output, so a default never lands on the last of several.
+const SINGLE_OUTPUT = /^\{\{(-?)((?:(?!\{\{|\}\})[\s\S])*?)(-?)\}\}$/
+
 function tokenFor(
   variable: EditorVariable,
   fallback: string,
@@ -53,8 +56,7 @@ function tokenFor(
     )
   }
   // `{{-` and `-}}` trim whitespace, so they stay outside the default.
-  const output =
-    syntax === 'liquid' && /^\{\{(-?)([\s\S]*?)(-?)\}\}$/.exec(token)
+  const output = syntax === 'liquid' && SINGLE_OUTPUT.exec(token)
   if (!output || !fallback) return { html: token, text: token }
   const [, open, filter, close] = output
   const withDefault = (quoted: string) =>
