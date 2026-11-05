@@ -31,7 +31,7 @@ export function importLosses({
     ...counted(count('link'), 'link on an image', 'links on images'),
     ...(tags.length > 0
       ? [
-          `The look of ${new Intl.ListFormat('en-AU').format(tags)}, keeping their text`
+          `The look of ${new Intl.ListFormat('en-AU').format(tags)}, keeping ${tags.length === 1 ? 'its' : 'their'} text`
         ]
       : []),
     ...counted(

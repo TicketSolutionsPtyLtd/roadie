@@ -68,6 +68,13 @@ describe('importLosses', () => {
       'The look of mj-accordion and mj-carousel, keeping their text'
     ],
     [
+      {
+        ...none,
+        dropped: [{ kind: 'element' as const, tag: 'mj-carousel' }]
+      },
+      'The look of mj-carousel, keeping its text'
+    ],
+    [
       { ...none, unknownMergeTags: ['#Promoter#'] },
       '1 merge tag this editor doesn’t know, kept as text: #Promoter#'
     ],
