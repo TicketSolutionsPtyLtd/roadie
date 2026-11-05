@@ -2,10 +2,9 @@
 
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 
-import { NodeSelection } from '@tiptap/pm/state'
+import { NodeSelection, TextSelection } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
-import { Button } from '@oztix/roadie-components/button'
 import { Drawer } from '@oztix/roadie-components/drawer'
 import { Field } from '@oztix/roadie-components/field'
 import { Select } from '@oztix/roadie-components/select'
@@ -55,7 +54,7 @@ function SettingField({
       <EditorChoice
         legend={setting.label}
         choices={setting.options}
-        value={textOf(value)}
+        value={textOf(value ?? setting.defaultValue)}
         onValueChange={onValueChange}
         helperText={setting.helperText}
       />
@@ -66,7 +65,7 @@ function SettingField({
       <Field.Label>{setting.label}</Field.Label>
       {setting.type === 'choice' ? (
         <Select
-          value={textOf(value)}
+          value={textOf(value ?? setting.defaultValue)}
           onValueChange={(chosen) => {
             if (typeof chosen === 'string') onValueChange(chosen)
           }}
@@ -147,6 +146,24 @@ const shownWith =
   (attrs: Attrs) => (setting: EditorSetting | EditorOwnSetting) =>
     setting.type === 'own' || (setting.available?.(attrs) ?? true)
 
+/**
+ * Puts the caret in the block, or after an atom, so the next key types rather
+ * than replacing the block a tap can't deselect on a phone.
+ */
+function leaveBlock(editor: TiptapEditor) {
+  const { state, view } = editor
+  const { selection } = state
+  if (!(selection instanceof NodeSelection)) return
+  const inside = selection.node.isAtom
+    ? state.doc.resolve(selection.to)
+    : state.doc.resolve(selection.from + 1)
+  view.dispatch(
+    state.tr
+      .setSelection(TextSelection.near(inside))
+      .setMeta('addToHistory', false)
+  )
+}
+
 const selectedNode = ({ editor }: { editor: TiptapEditor | null }) => {
   const selection = editor?.state.selection
   return selection instanceof NodeSelection ? selection : null
@@ -171,7 +188,10 @@ export function EditorBlockSettings({
   blocks
 }: EditorBlockSettingsProps) {
   const phone = useOnPhone()
-  const live = useLiveEdit(editor, open, onOpenChange)
+  const live = useLiveEdit(editor, open, (next) => {
+    if (!next && editor) leaveBlock(editor)
+    onOpenChange(next)
+  })
   const bodyRef = useRef<HTMLDivElement>(null)
   const selection = useEditorState({ editor, selector: selectedNode })
   const block = selection && blocks[selection.node.type.name]
@@ -188,50 +208,69 @@ export function EditorBlockSettings({
     if (lost) onOpenChange(false)
   }, [lost, onOpenChange])
   if (!editor || !selection || !block) return null
+  const finalFocus = () => {
+    focusEditor(editor)
+    return false
+  }
+  const content = (
+    <>
+      <Drawer.Header>
+        <Drawer.Title>{block.label} settings</Drawer.Title>
+      </Drawer.Header>
+      <Drawer.Body ref={bodyRef} className='pb-6'>
+        <SettingsForm
+          key={selection.from}
+          {...block}
+          start={selection.node.attrs}
+          apply={live.apply}
+          onDone={live.done}
+        />
+      </Drawer.Body>
+    </>
+  )
   return (
     <Drawer
       open={open}
       onOpenChange={live.onOpenChange}
       side={phone ? 'bottom' : 'right'}
-      // The block shows its changes as they're made, so nothing covers it.
+      // The block shows its changes as they're made, so nothing covers it,
+      // and the page stays usable, but Tab stays in the drawer.
       emphasis='subtler'
+      modal='trap-focus'
     >
-      <Drawer.Content
-        size={phone ? 'fit' : 'sm'}
-        // The first setting, as its title takes none. On a phone the drawer
-        // itself, so the keyboard doesn't cover the block.
-        initialFocus={() =>
-          phone
-            ? bodyRef.current?.closest<HTMLElement>('[role=dialog]')
-            : bodyRef.current?.querySelector<HTMLElement>(
-                'input:not([type=hidden]), textarea, button'
-              )
-        }
-        finalFocus={() => {
-          focusEditor(editor)
-          return false
-        }}
-      >
-        <Drawer.Header>
-          <Drawer.Title>{block.label} settings</Drawer.Title>
-        </Drawer.Header>
-        <Drawer.Body ref={bodyRef} className='pb-2'>
-          <SettingsForm
-            key={selection.from}
-            {...block}
-            start={selection.node.attrs}
-            apply={live.apply}
-            onDone={live.done}
-          />
-        </Drawer.Body>
-        <Drawer.Footer>
-          {/* A phone has no Escape, so this puts the block back too. */}
-          <Drawer.Close render={<Button>Cancel</Button>} />
-          <Button emphasis='strong' intent='accent' onClick={live.done}>
-            Done
-          </Button>
-        </Drawer.Footer>
-      </Drawer.Content>
+      {phone ? (
+        // Under half a phone's height, so the block shows above it.
+        <Drawer.Content
+          size='fit'
+          className='max-h-[50dvh]'
+          // The sheet itself, so the keyboard doesn't cover the block.
+          initialFocus={() =>
+            bodyRef.current?.closest<HTMLElement>('[role=dialog]')
+          }
+          finalFocus={finalFocus}
+        >
+          {content}
+        </Drawer.Content>
+      ) : (
+        // No backdrop, so a click on the page lands there, keeping the edits.
+        <Drawer.Portal>
+          <Drawer.Viewport className='pointer-events-none'>
+            <Drawer.Popup
+              size='sm'
+              className='pointer-events-auto'
+              // The first setting, as its title takes none.
+              initialFocus={() =>
+                bodyRef.current?.querySelector<HTMLElement>(
+                  'input:not([type=hidden]), textarea, button'
+                )
+              }
+              finalFocus={finalFocus}
+            >
+              {content}
+            </Drawer.Popup>
+          </Drawer.Viewport>
+        </Drawer.Portal>
+      )}
     </Drawer>
   )
 }

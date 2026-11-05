@@ -215,11 +215,13 @@ import {
   rendered content.
 - Give it `settings`, and its view can show it as the page will, not as a
   form. Settings leads its block menu, and Enter on the selected block opens
-  them: a drawer from the side, or the bottom on a phone, with a field for
-  each. A `text` setting is a line, or a few with `multiline`, and a
-  `choice` shows its `options` as buttons, or a select past three. Each
-  change shows as it's made, Escape or Cancel puts the block back, and Done keeps the
-  changes as one step to undo.
+  them: a drawer from the side that leaves the page usable, or a sheet under
+  half the screen on a phone, with a field for each. A `text` setting is a
+  line, or a few with `multiline`, and a `choice` shows its `options` as
+  buttons, or a select past three, with `defaultValue` chosen while its attr
+  is unset. Each change shows as it's made. Escape puts the block back;
+  Enter in a text setting, or a click or tap away, keeps the changes as one
+  step to undo, with the caret back in the text so the next key types.
 - `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
   it in place. The component gets `node.attrs` and `updateAttributes`, and
   wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
