@@ -89,6 +89,130 @@
   margin-block-start: calc(var(--spacing) * 2);
 }
 
+/* An email sends in its own colours, so the canvas keeps them in a dark app.
+   The editor sets --email-theme-* from its theme; a colour it leaves out
+   takes Roadie's light scales. Declared on the frame, as the block handle
+   sits over the canvas but outside it. */
+[data-slot='editor'][data-preset='email'] {
+  --email-background: var(
+    --email-theme-background,
+    var(--color-neutral-light-0)
+  );
+  --email-text: var(--email-theme-text, var(--color-neutral-light-12));
+  --email-accent: var(--email-theme-accent, var(--color-accent-light-9));
+  --email-link: var(--email-theme-link, var(--email-accent));
+  --email-button: var(--email-theme-button, var(--email-accent));
+  --email-button-text: var(
+    --email-theme-button-text,
+    var(--color-neutral-light-0)
+  );
+  --email-border: var(
+    --email-theme-border,
+    color-mix(
+      in oklch,
+      var(--color-neutral-light-9) 30%,
+      var(--color-neutral-light-5)
+    )
+  );
+  --email-tint: var(
+    --email-theme-tint,
+    color-mix(
+      in oklch,
+      var(--color-neutral-light-5) 50%,
+      var(--color-neutral-light-0)
+    )
+  );
+  --email-divider: var(--email-theme-divider, var(--color-neutral-light-5));
+}
+
+/* The editor's own marks on the email (outlines, the caret's halo, the
+   placeholder, the handle) mix from its text and background, so they show
+   on any background the theme gives it. */
+[data-email],
+[data-preset='email']
+  :is([data-slot='editor-block-handle'], [data-slot='editor-block-add']) {
+  --intent-text-subtle: color-mix(
+    in oklch,
+    var(--email-text) 70%,
+    var(--email-background)
+  );
+  --intent-text-subtler: color-mix(
+    in oklch,
+    var(--email-text) 55%,
+    var(--email-background)
+  );
+  --intent-border-subtle: color-mix(
+    in oklch,
+    var(--email-text) 22%,
+    var(--email-background)
+  );
+  --intent-border-normal: color-mix(
+    in oklch,
+    var(--email-text) 32%,
+    var(--email-background)
+  );
+  --intent-bg-subtler: color-mix(in oklch, var(--email-text) 6%, transparent);
+  --intent-bg-subtle: color-mix(in oklch, var(--email-text) 11%, transparent);
+  --intent-5: color-mix(
+    in oklch,
+    var(--email-text) 14%,
+    var(--email-background)
+  );
+}
+
+[data-email] {
+  --intent-text-normal: var(--email-text);
+  --intent-text-strong: var(--email-text);
+
+  color-scheme: light;
+  border-radius: var(--radius-md);
+  background-color: var(--email-background);
+  color: var(--email-text);
+  font-family: var(--email-theme-font-family, var(--font-sans));
+}
+
+[data-email] a:not([data-type]) {
+  --intent-link-own: var(--email-link);
+
+  color: var(--email-link);
+}
+
+[data-email] hr {
+  border-color: var(--email-divider);
+}
+
+/* Drawn as renderEmail draws each emphasis, in the theme's colours. */
+[data-email] [data-type='button'].emphasis-strong {
+  background-color: var(--email-button);
+  color: var(--email-button-text);
+}
+
+[data-email] [data-type='button'].emphasis-normal {
+  background-color: var(--email-background);
+  border-color: var(--email-border);
+  color: var(--email-text);
+}
+
+[data-email] [data-type='button'].emphasis-subtle {
+  background-color: var(--email-tint);
+  color: var(--email-text);
+}
+
+/* A merge tag's chip takes the light accent, or danger when it's unknown. */
+[data-email] [data-slot='editor-variable'] [data-slot='badge'] {
+  --chip-tone: var(--color-accent-light-9);
+  --chip-ink: var(--color-accent-light-12);
+
+  --intent-bg-subtle: color-mix(in oklch, var(--chip-tone) 14%, transparent);
+  --intent-bg-raised: var(--color-neutral-light-0);
+  --intent-text-subtle: var(--chip-ink);
+}
+
+[data-email] [data-slot='editor-variable'][data-invalid] [data-slot='badge'] {
+  --chip-tone: var(--color-danger-light-9);
+  --chip-ink: var(--color-danger-light-12);
+}
+
 [data-email] h2 {
   font-size: 1.5rem;
   line-height: 2rem;

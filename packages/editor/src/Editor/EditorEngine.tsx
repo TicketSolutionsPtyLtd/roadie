@@ -87,6 +87,7 @@ import {
 } from './blockActions'
 import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
+import { emailCanvasStyle } from './emailCanvas'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
 import { focusEditor } from './focusEditor'
@@ -395,6 +396,7 @@ export function EditorEngine({
   resolveUrl,
   extensions: extensionsProp,
   variables,
+  theme,
   toolbar: toolbarProp,
   defaultToolbar,
   onToolbarChange,
@@ -780,7 +782,9 @@ export function EditorEngine({
     >
       <div
         data-slot='editor'
+        data-preset={preset}
         data-emphasis={emphasis}
+        style={preset === 'email' ? emailCanvasStyle(theme) : undefined}
         aria-invalid={field.invalid || undefined}
         data-disabled={disabled ? '' : undefined}
         className={cn(

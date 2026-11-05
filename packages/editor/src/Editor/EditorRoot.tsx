@@ -6,6 +6,7 @@ import { useFieldContext } from '@oztix/roadie-components/field'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
 import { cn } from '@oztix/roadie-core/utils'
 
+import type { EmailTheme } from '../email/theme'
 import type { EditorBlock } from '../extensions'
 import type {
   EditorValue,
@@ -106,6 +107,13 @@ export type EditorRootProps = {
    * listed shows as invalid. Without it, a chip shows its key.
    */
   variables?: readonly EditorVariable[]
+  /**
+   * The email's colours and font, for the `email` preset, as `renderEmail`
+   * takes them. The canvas shows the email in them, light or dark as it
+   * sends, whatever the app's theme. A colour left out takes Roadie's light
+   * scales, with the accent of a `ThemeProvider` around the editor.
+   */
+  theme?: Partial<EmailTheme>
   'aria-label'?: string
   'aria-labelledby'?: string
   /**
