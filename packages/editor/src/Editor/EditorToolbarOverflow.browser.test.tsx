@@ -245,4 +245,29 @@ describe('Editor toolbar in a narrow column', () => {
     ).toBeVisible()
     expect(rows(toolbar)).toBe(1)
   })
+  it('fits a bar pinned from the floating toolbar', async () => {
+    render(
+      <div style={{ width: 440, paddingTop: 96 }}>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={valueIn('rich')}
+          defaultToolbar='floating'
+          pinnable
+        />
+      </div>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.tripleClick(within(textbox).getByText(TEXT))
+    const bubble = await screen.findByRole('toolbar', {
+      name: 'Selection formatting'
+    })
+    await userEvent.click(within(bubble).getByRole('button', { name: 'More' }))
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Pin toolbar to top' })
+    )
+
+    const toolbar = await shownToolbar()
+    await waitFor(() => expect(rows(toolbar)).toBe(1))
+    fitsItsBar(toolbar)
+  })
 })

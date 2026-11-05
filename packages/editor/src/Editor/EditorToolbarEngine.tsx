@@ -368,6 +368,8 @@ type FittedItemsOptions = {
   moreRef: RefObject<HTMLButtonElement | null>
   /** How many elements come before the items, such as Blocks and its separator. */
   leading: number
+  /** Whether the bar shows, as it mounts again each time it's pinned. */
+  docked: boolean
 }
 
 /**
@@ -380,7 +382,8 @@ function useFittedItems({
   barRef,
   rowRef,
   moreRef,
-  leading
+  leading,
+  docked
 }: FittedItemsOptions) {
   const [shown, setShown] = useState<ReadonlySet<number> | null>(null)
   const shownRef = useRef(shown)
@@ -454,10 +457,22 @@ function useFittedItems({
     }
     fit()
     const observer = new ResizeObserver(fit)
-    observer.observe(bar)
-    for (const element of row.children) observer.observe(element)
-    return () => observer.disconnect()
-  }, [barRef, rowRef, moreRef, leading, key, shown])
+    const observe = () => {
+      observer.observe(bar)
+      for (const element of row.children) observer.observe(element)
+    }
+    observe()
+    // An app's own controls can come and go.
+    const added = new MutationObserver(() => {
+      observe()
+      fit()
+    })
+    added.observe(row, { childList: true })
+    return () => {
+      observer.disconnect()
+      added.disconnect()
+    }
+  }, [barRef, rowRef, moreRef, leading, key, shown, docked])
   return shown
 }
 
@@ -597,7 +612,8 @@ export function EditorToolbarEngine({
     barRef,
     rowRef,
     moreRef,
-    leading: openBlocks ? 2 : 0
+    leading: openBlocks ? 2 : 0,
+    docked: !floating
   })
   const visible = shown ? items.filter((_, index) => shown.has(index)) : items
   const hidden = shown ? items.filter((_, index) => !shown.has(index)) : []
