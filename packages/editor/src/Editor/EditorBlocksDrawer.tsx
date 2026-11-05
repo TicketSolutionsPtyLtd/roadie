@@ -118,7 +118,7 @@ export function EditorBlocksDrawer({
                           !editor.can().command(insertion(item, containers))
                         }
                         onClick={() => pick(item)}
-                        className='is-interactive grid justify-items-center gap-2 rounded-xl emphasis-subtler p-3 text-center text-sm text-normal disabled:opacity-50'
+                        className='is-interactive grid justify-items-center gap-2 rounded-xl emphasis-subtler p-3 text-center text-sm text-normal'
                       >
                         <IconTile size='md' aria-hidden>
                           <Icon weight='bold' />
