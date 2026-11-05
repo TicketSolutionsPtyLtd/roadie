@@ -177,6 +177,37 @@ describe('Editor email links to link variables', () => {
         .map((option) => option.textContent)
     ).toEqual(['First name'])
   })
+
+  it('leaves link variables out of the merge tag form', async () => {
+    renderEmail(
+      email({
+        type: 'paragraph',
+        content: [
+          { type: 'text', text: 'Hi ' },
+          { type: 'variable', attrs: { key: 'first_name' } }
+        ]
+      })
+    )
+    await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(await screen.findByText('First name'))
+    const actions = await screen.findByRole('toolbar', {
+      name: 'Merge tag actions'
+    })
+    await userEvent.click(
+      within(actions).getByRole('button', { name: 'Edit merge tag' })
+    )
+    const dialog = await screen.findByRole('dialog', { name: 'Merge tag' })
+    await userEvent.click(
+      within(dialog).getByRole('combobox', { name: 'Shows' })
+    )
+
+    const listbox = await screen.findByRole('listbox')
+    expect(
+      within(listbox)
+        .getAllByRole('option')
+        .map((option) => option.textContent)
+    ).toEqual(['First name'])
+  })
 })
 
 describe('Editor email buttons that link to link variables', () => {

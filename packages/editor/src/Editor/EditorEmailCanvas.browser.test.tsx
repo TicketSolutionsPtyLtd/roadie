@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
@@ -26,6 +26,7 @@ beforeAll(() => {
 })
 afterAll(() => style.remove())
 afterEach(() => {
+  cleanup()
   document.body.innerHTML = ''
 })
 
@@ -72,11 +73,12 @@ describe('Editor email canvas', () => {
     const { boxes } = await columnBoxes(900)
     expect(boxes[0]!.top).toBe(boxes[1]!.top)
     expect(boxes[0]!.width).toBeCloseTo(boxes[1]!.width, 0)
+    expect(boxes[1]!.left - boxes[0]!.right).toBeCloseTo(24, 0)
   })
 
   it('stacks columns at phone width', async () => {
     const { boxes } = await columnBoxes(375)
-    expect(boxes[1]!.top).toBeGreaterThan(boxes[0]!.bottom)
+    expect(boxes[1]!.top - boxes[0]!.bottom).toBeCloseTo(16, 0)
   })
 
   describe('spacing', () => {
@@ -136,6 +138,13 @@ describe('Editor email canvas', () => {
       expect(button.top - text.bottom).toBeCloseTo(16, 0)
     })
 
+    it('sizes a heading as the email does', async () => {
+      await renderCard()
+      const heading = getComputedStyle(screen.getByText('Ochre Kite Weekender'))
+      expect(heading.fontSize).toBe('24px')
+      expect(heading.lineHeight).toBe('32px')
+    })
+
     it('pads a section 16px above and below, and not at its sides', async () => {
       const { box, section } = await renderCard()
       const edges = section.getBoundingClientRect()
@@ -159,5 +168,100 @@ describe('Editor email canvas', () => {
         .not.toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
       expect(getComputedStyle(section).outlineStyle).toBe('dashed')
     })
+
+    it('outlines the section holding the caret', async () => {
+      const { section } = await renderCard()
+      await userEvent.click(screen.getByText('Gates 11am, all ages.'))
+      await userEvent.hover(screen.getByText('Outside'))
+      // Past the hover's fade, which is never transparent midway.
+      await Promise.all(section.getAnimations().map((fade) => fade.finished))
+
+      expect(getComputedStyle(section).outlineColor).not.toMatch(
+        /rgba\(0, 0, 0, 0\)|transparent/
+      )
+    })
+
+    it('keeps the chosen halo on a section while its menu is open', async () => {
+      const { section } = await renderCard()
+      await userEvent.hover(section, { position: { x: 4, y: 4 } })
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Block actions' })
+      )
+
+      await expect
+        .poll(() => section.hasAttribute('data-menu-block'))
+        .toBe(true)
+      expect(getComputedStyle(section).outlineStyle).toBe('solid')
+    })
+
+    it('keeps the chosen halo on a spacer while its menu is open', async () => {
+      render(
+        <Editor
+          aria-label={LABEL}
+          defaultValue={{
+            version: 1,
+            preset: 'email',
+            doc: {
+              type: 'doc',
+              content: [
+                p('Two weeks to go'),
+                { type: 'spacer', attrs: { height: 32 } }
+              ]
+            }
+          }}
+        />
+      )
+      await screen.findByText('Two weeks to go')
+      const spacer = document.querySelector<HTMLElement>(
+        '[data-type="spacer"]'
+      )!
+      expect(getComputedStyle(spacer).outlineStyle).toBe('dashed')
+
+      await userEvent.hover(spacer)
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Block actions' })
+      )
+
+      await expect.poll(() => spacer.hasAttribute('data-menu-block')).toBe(true)
+      expect(getComputedStyle(spacer).outlineStyle).toBe('solid')
+    })
+  })
+
+  it('keeps a leading image in place while the gap cursor shows before it', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'image',
+                attrs: {
+                  src: 'https://example.test/header.webp',
+                  alt: 'A crowd'
+                }
+              },
+              p('Doors 7pm')
+            ]
+          }
+        }}
+      />
+    )
+    await screen.findByText('Doors 7pm')
+    const image = await screen.findByAltText('A crowd', {}, { timeout: 5000 })
+    const block = image.closest<HTMLElement>('[data-slot="editor-image"]')!
+    const top = block.getBoundingClientRect().top
+
+    await userEvent.click(image)
+    await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
+    await userEvent.keyboard('{ArrowLeft}')
+
+    await expect
+      .poll(() => document.querySelector('.ProseMirror-gapcursor'))
+      .not.toBeNull()
+    expect(block.getBoundingClientRect().top).toBe(top)
   })
 })
