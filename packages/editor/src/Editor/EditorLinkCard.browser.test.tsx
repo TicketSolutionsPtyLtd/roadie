@@ -10,7 +10,7 @@ import {
   onTestFinished,
   vi
 } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Dialog } from '@oztix/roadie-components/dialog'
 
@@ -248,5 +248,33 @@ describe('Editor link card', () => {
     await new Promise(requestAnimationFrame)
 
     expect(docked()).toBe(true)
+  })
+  it('stays on screen for a link at the bottom of a phone’s screen, clear of the docked bar', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    const matchMedia = window.matchMedia.bind(window)
+    vi.spyOn(window, 'matchMedia').mockImplementation((query) =>
+      matchMedia(query.replaceAll('(pointer: coarse)', 'all'))
+    )
+    onTestFinished(() => {
+      vi.restoreAllMocks()
+    })
+    const value = valueOf('rich', linked('your tickets', { href: TICKETS }))
+    render(
+      <>
+        <div style={{ blockSize: 560 }} />
+        <Editor aria-label={LABEL} defaultValue={value} />
+        <div style={{ blockSize: 40 }} />
+      </>
+    )
+    await caretIn('your tickets')
+    const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+
+    const shown = await card()
+    await waitFor(() => {
+      const box = shown.getBoundingClientRect()
+      expect(box.top).toBeGreaterThanOrEqual(0)
+      expect(box.bottom).toBeLessThanOrEqual(bar.getBoundingClientRect().top)
+    })
   })
 })
