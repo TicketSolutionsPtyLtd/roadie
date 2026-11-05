@@ -322,11 +322,22 @@ describe('renderEmail', () => {
     expect(html).not.toContain('fonts.googleapis.com')
   })
 
-  it('keeps a heading’s case in the plain text, so a merge tag still matches', async () => {
+  it('keeps a heading’s case in the plain text, around a merge tag', async () => {
     const { text: plain } = await renderEmail(
-      email(heading(2, 'See you soon, {{ first_name }}'))
+      email({
+        type: 'heading',
+        attrs: { level: 2 },
+        content: [
+          text('See you soon, '),
+          { type: 'variable', attrs: { key: 'first_name' } }
+        ]
+      }),
+      {
+        variables: [{ key: 'first_name', label: 'First name', tokens: {} }],
+        values: { first_name: 'Ash' }
+      }
     )
-    expect(plain).toBe('See you soon, {{ first_name }}')
+    expect(plain).toBe('See you soon, Ash')
   })
 
   it('starts and ends the plain text at its words', async () => {
