@@ -65,12 +65,17 @@ export const FocusedBlock = Extension.create<FocusedBlockOptions>({
             mousedown(view) {
               pressed = true
               // After ProseMirror reads the click's selection on mouseup.
-              const release = () =>
+              const release = () => {
+                document.removeEventListener('mouseup', release)
+                document.removeEventListener('dragend', release)
                 setTimeout(() => {
                   pressed = false
                   if (!view.isDestroyed) view.dispatch(view.state.tr)
                 })
-              document.addEventListener('mouseup', release, { once: true })
+              }
+              document.addEventListener('mouseup', release)
+              // A press that drags text ends with no mouseup.
+              document.addEventListener('dragend', release)
               return false
             }
           }
