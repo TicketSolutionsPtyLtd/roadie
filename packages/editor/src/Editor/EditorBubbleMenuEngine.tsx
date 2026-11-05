@@ -35,6 +35,12 @@ function selectsText({ selection, doc, schema }: EditorState) {
   return formattable
 }
 
+export function hideBubbleMenu(editor: TiptapEditor) {
+  editor.view.dispatch(
+    editor.state.tr.setMeta(PLUGIN_KEY, 'hide').setMeta('addToHistory', false)
+  )
+}
+
 const OFFSET = 8
 /**
  * After a scroll or resize, placed once the table actions have taken their
@@ -136,9 +142,7 @@ function SelectionMenu({
   useEffect(() => {
     editingLinkRef.current = editingLink
     if ((editable && !editingLink) || editor.isDestroyed) return
-    editor.view.dispatch(
-      editor.state.tr.setMeta(PLUGIN_KEY, 'hide').setMeta('addToHistory', false)
-    )
+    hideBubbleMenu(editor)
   }, [editor, editingLink, editable])
 
   useRepositionOnResize(editor, menuRef, PLUGIN_KEY)

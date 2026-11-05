@@ -9,7 +9,7 @@ import { Dialog } from '@oztix/roadie-components/dialog'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
-import { LINE_END, MOD } from './testUtils'
+import { LINE_END, MOD, selectParagraph } from './testUtils'
 
 const LABEL = 'Page'
 
@@ -626,4 +626,190 @@ describe('Editor block handle', () => {
       )
     }
   )
+
+  it('stays on the grip outside a subtler editor', async () => {
+    render(
+      <div className='ps-12'>
+        <Editor aria-label={LABEL} defaultValue={lineup} emphasis='subtler' />
+      </div>
+    )
+    await userEvent.hover(await paragraph('Support'))
+    await expectHandleBeside('Support')
+
+    await userEvent.hover(await handle())
+
+    await expectHandleBeside('Support')
+  })
+
+  it('shows one grip when the pointer is over an editor beside another', async () => {
+    render(
+      <div className='grid grid-cols-2 gap-2 ps-12'>
+        <Editor aria-label={LABEL} defaultValue={lineup} emphasis='subtler' />
+        <Editor aria-label='Other' defaultValue={lineup} emphasis='subtler' />
+      </div>
+    )
+    const row = await paragraph('Support')
+
+    await userEvent.hover(row, {
+      position: { x: row.offsetWidth - 2, y: row.offsetHeight / 2 }
+    })
+
+    await expectHandleBeside('Support')
+    expect(
+      screen.getAllByRole('button', { name: 'Block actions' })
+    ).toHaveLength(1)
+  })
+
+  it('hides while the pointer is over something covering the editor', async () => {
+    render(
+      <>
+        <Editor aria-label={LABEL} defaultValue={lineup} />
+        <div data-testid='cover' className='fixed inset-0 bg-normal' />
+      </>
+    )
+    const support = await paragraph('Support')
+
+    await userEvent.hover(screen.getByTestId('cover'), {
+      position: {
+        x: support.getBoundingClientRect().left + 8,
+        y: middle(support)
+      }
+    })
+
+    await expect(
+      screen.findByRole('button', { name: 'Block actions' }, { timeout: 300 })
+    ).rejects.toThrow()
+  })
+
+  it('goes back to the caret’s block once the pointer leaves the window', async () => {
+    renderLineup()
+    await userEvent.click(await paragraph('Doors'))
+    await userEvent.hover(await paragraph('Support'))
+    await expectHandleBeside('Support')
+
+    document.documentElement.dispatchEvent(
+      new MouseEvent('mouseout', { bubbles: true, relatedTarget: null })
+    )
+
+    await expectHandleBeside('Doors')
+  })
+
+  describe('right to left', () => {
+    it.each(['normal', 'subtler'] as const)(
+      'puts the grip after the text’s start edge on the right, in a %s editor',
+      async (emphasis) => {
+        render(
+          <div dir='rtl' className='pe-12'>
+            <Editor
+              aria-label={LABEL}
+              defaultValue={lineup}
+              emphasis={emphasis}
+            />
+          </div>
+        )
+        const row = await paragraph('Support')
+        await userEvent.hover(row)
+        await expectHandleBeside('Support')
+
+        const grip = (await handle()).getBoundingClientRect()
+        expect(grip.left).toBeGreaterThanOrEqual(
+          row.getBoundingClientRect().right
+        )
+
+        await userEvent.hover(row, {
+          position: { x: row.offsetWidth + 2, y: row.offsetHeight / 2 },
+          force: true
+        })
+        await expectHandleBeside('Support')
+        await userEvent.hover(await handle())
+
+        await expectHandleBeside('Support')
+      }
+    )
+    it('finds a narrow block on the pointer’s line', async () => {
+      render(
+        <div dir='rtl'>
+          <Editor
+            aria-label={LABEL}
+            defaultValue={{
+              ...lineup,
+              doc: {
+                type: 'doc',
+                content: [
+                  block('doors', 'Doors 7pm'),
+                  {
+                    type: 'image',
+                    attrs: {
+                      blockId: 'crowd',
+                      src: '/crowd.webp',
+                      alt: 'Crowd'
+                    }
+                  },
+                  block('support', 'Support 8pm')
+                ]
+              }
+            }}
+          />
+        </div>
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      const image = textbox.querySelector<HTMLElement>(
+        '[data-slot="editor-image"]'
+      )!
+      expect(image.offsetWidth).toBeLessThan(textbox.offsetWidth / 2)
+
+      await userEvent.hover(image)
+
+      await waitFor(async () => {
+        const { top, bottom } = image.getBoundingClientRect()
+        const centre = middle(await handle())
+        expect(centre).toBeGreaterThan(top)
+        expect(centre).toBeLessThan(bottom)
+      })
+    })
+  })
+
+  describe('with the bubble menu', () => {
+    const MENU = 'Selection formatting'
+
+    function renderWithBubbleMenu() {
+      render(
+        <Editor aria-label={LABEL} defaultValue={lineup}>
+          <Editor.Content />
+          <Editor.BubbleMenu />
+        </Editor>
+      )
+    }
+
+    it('keeps the grip on the selected block while the pointer is over the menu', async () => {
+      renderWithBubbleMenu()
+      await selectParagraph(await paragraph('Support'))
+      const toolbar = await screen.findByRole('toolbar', { name: MENU })
+      await expectHandleBeside('Support')
+
+      await userEvent.hover(toolbar)
+
+      await expectHandleBeside('Support')
+    })
+
+    it('hides the bubble menu while the block menu is open', async () => {
+      renderWithBubbleMenu()
+      await selectParagraph(await paragraph('Support'))
+      await screen.findByRole('toolbar', { name: MENU })
+      await expectHandleBeside('Support')
+
+      await userEvent.click(await handle())
+      await screen.findByRole('menu')
+
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('toolbar', { name: MENU, hidden: true })
+        ).toBe(null)
+      )
+
+      await userEvent.keyboard('{Escape}')
+
+      await screen.findByRole('toolbar', { name: MENU })
+    })
+  })
 })

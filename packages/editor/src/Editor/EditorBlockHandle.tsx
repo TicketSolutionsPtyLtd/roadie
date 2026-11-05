@@ -17,6 +17,7 @@ import { createPortal } from 'react-dom'
 import { IconButton } from '@oztix/roadie-components/button'
 import { Menu } from '@oztix/roadie-components/menu'
 
+import { hideBubbleMenu } from './EditorBubbleMenuEngine'
 import {
   canMoveBlock,
   deleteBlock,
@@ -58,26 +59,44 @@ function useHandleHost(editor: TiptapEditor) {
   return host
 }
 
+const isRtl = (element: HTMLElement) =>
+  getComputedStyle(element).direction === 'rtl'
+
 // The block on the pointer's line, read just inside the text's start edge so
 // the gutter beside it counts too.
 function blockAtY(editor: TiptapEditor, clientY: number) {
   const { view } = editor
   const box = view.dom.getBoundingClientRect()
   const start = parseFloat(getComputedStyle(view.dom).paddingInlineStart) || 0
-  const hit = view.posAtCoords({ left: box.left + start + 1, top: clientY })
+  const left = isRtl(view.dom) ? box.right - start - 1 : box.left + start + 1
+  const hit = view.posAtCoords({ left, top: clientY })
   if (!hit) return null
   return topBlockAt(view.state, hit.inside >= 0 ? hit.inside : hit.pos)
 }
 
-// Over the wrapper, or the gutter before it where the grip sits.
-function inReach(wrapper: HTMLElement, { clientX, clientY }: MouseEvent) {
+const isNode = (target: EventTarget | null): target is Node =>
+  target !== null && 'nodeType' in target
+
+/**
+ * Over the text or the grip, or over the gutter before the wrapper where a
+ * subtler editor's grip sits. Not over anything else in the wrapper, such as
+ * the bubble menu, nor over what covers the editor or sits beside it.
+ */
+function inReach(
+  editor: TiptapEditor,
+  host: HTMLElement,
+  { target, clientX, clientY }: MouseEvent
+) {
+  if (!isNode(target)) return false
+  if (editor.view.dom.contains(target) || host.contains(target)) return true
+  const wrapper = host.parentElement
+  if (!wrapper || !target.contains(wrapper)) return false
   const { left, right, top, bottom } = wrapper.getBoundingClientRect()
-  return (
-    clientX >= left - HANDLE_SIZE - HANDLE_GAP &&
-    clientX <= right &&
-    clientY >= top &&
-    clientY <= bottom
-  )
+  const reach = HANDLE_SIZE + HANDLE_GAP
+  const [from, to] = isRtl(wrapper)
+    ? [left, right + reach]
+    : [left - reach, right]
+  return clientX >= from && clientX <= to && clientY >= top && clientY <= bottom
 }
 
 // Centred on the block's first line, just before its start edge.
@@ -89,7 +108,9 @@ function placeAt(editor: TiptapEditor, wrapper: HTMLElement, pos: number) {
   const line = parseFloat(getComputedStyle(dom).lineHeight) || box.height
   return {
     top: box.top - frame.top + (Math.min(line, box.height) - HANDLE_SIZE) / 2,
-    left: box.left - frame.left - HANDLE_SIZE - HANDLE_GAP
+    left: isRtl(dom)
+      ? box.right - frame.left + HANDLE_GAP
+      : box.left - frame.left - HANDLE_SIZE - HANDLE_GAP
   }
 }
 
@@ -132,19 +153,32 @@ export function EditorBlockHandle({
   // On the page, as a subtler editor's grip hangs outside the wrapper, and
   // leaving the wrapper for the gap would hide it.
   useEffect(() => {
-    if (!wrapper) return
-    const page = wrapper.ownerDocument
+    if (!host) return
+    const page = host.ownerDocument
     const onMove = (event: MouseEvent) =>
       setHovered(
-        inReach(wrapper, event) ? blockAtY(editor, event.clientY) : null
+        inReach(editor, host, event) ? blockAtY(editor, event.clientY) : null
       )
+    const onOut = ({ relatedTarget }: MouseEvent) => {
+      if (!relatedTarget) setHovered(null)
+    }
     page.addEventListener('mousemove', onMove)
-    return () => page.removeEventListener('mousemove', onMove)
-  }, [editor, wrapper])
+    page.addEventListener('mouseout', onOut)
+    return () => {
+      page.removeEventListener('mousemove', onMove)
+      page.removeEventListener('mouseout', onOut)
+    }
+  }, [editor, host])
 
   useEffect(() => {
     if (!editable) setMenuAt(null)
   }, [editable])
+
+  // Its blur check counts focus on the grip as staying in the editor.
+  const menuOpen = menuAt !== null
+  useEffect(() => {
+    if (menuOpen) hideBubbleMenu(editor)
+  }, [editor, menuOpen])
 
   useEffect(() => {
     const follow = ({ transaction }: { transaction: Transaction }) => {
