@@ -147,6 +147,29 @@ describe('Editor preheader', () => {
     ).toHaveTextContent('Ochre Kite Weekender – Two weeks to go')
   })
 
+  it('stacks the label above the field on a phone, and beside it with room', async () => {
+    const place = async (width: number) => {
+      render(
+        <div style={{ width }}>
+          <Editor aria-label={LABEL} defaultValue={email()} />
+        </div>
+      )
+      const input = await previewText()
+      const label = screen.getByText('Preview text')
+      const box = input.getBoundingClientRect()
+      const result = {
+        stacked: label.getBoundingClientRect().bottom <= box.top,
+        width: box.width
+      }
+      cleanup()
+      return result
+    }
+    const phone = await place(390)
+    expect(phone.stacked).toBe(true)
+    expect(phone.width).toBeGreaterThan(300)
+    expect((await place(900)).stacked).toBe(false)
+  })
+
   it('saves none once it’s cleared', async () => {
     const onValueChange = renderEmail({ defaultValue: email('Two weeks') })
     const input = await previewText()

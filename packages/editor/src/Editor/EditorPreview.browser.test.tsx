@@ -179,6 +179,20 @@ describe('Editor preview', () => {
     expect(inbox).toHaveTextContent('Two weeks to go')
   })
 
+  it('darkens the inbox row with the simulated dark mode', async () => {
+    renderEditor({ subject: 'Two weeks to go' })
+    await openPreview()
+    const inbox = screen.getByRole('group', { name: 'In the inbox' })
+    const light = getComputedStyle(inbox).backgroundColor
+
+    await userEvent.click(screen.getByRole('button', { name: 'Dark' }))
+
+    await waitFor(() =>
+      expect(getComputedStyle(inbox).backgroundColor).not.toBe(light)
+    )
+    expect(inbox).toHaveAttribute('data-scheme', 'dark')
+  })
+
   it('shows no inbox row with nothing to put in it', async () => {
     renderEditor()
     await openPreview()
@@ -464,6 +478,24 @@ describe('Editor preview', () => {
 
       expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
       expect(onSendTest).not.toHaveBeenCalled()
+    })
+
+    it('focuses the address when a tap opens Send test', async () => {
+      renderEditor({ onSendTest: async () => {} })
+      await openPreview()
+
+      const trigger = screen.getByRole('button', { name: 'Send test' })
+      // A tap, which Base UI would answer by focusing the popup itself.
+      for (const type of ['pointerdown', 'pointerup'] as const) {
+        trigger.dispatchEvent(
+          new PointerEvent(type, { bubbles: true, pointerType: 'touch' })
+        )
+      }
+      trigger.click()
+
+      await waitFor(() =>
+        expect(screen.getByRole('textbox', { name: 'Send to' })).toHaveFocus()
+      )
     })
 
     it('says why Send is off', async () => {

@@ -171,9 +171,9 @@
   --email-base-button-text: var(--email-button-text);
 
   color-scheme: light;
-  /* A block outside columns sits 24px in, as the email pads it, which leaves
-     a column's 12px beside it. The start keeps the block handle's room. */
-  padding-inline-end: calc(var(--spacing) * 6);
+  /* A block outside columns sits 24px in on both sides, as the email pads
+     it, so text wraps where it sends; the block handle sits outside. */
+  padding-inline: calc(var(--spacing) * 6);
   border-radius: var(--radius-md);
   background-color: var(--email-background);
   color: var(--email-text);
@@ -205,12 +205,6 @@
    in the email columns reach 12px further out than the text around them. */
 [data-email] [data-type='columns'] {
   margin-inline: calc(var(--spacing) * -3);
-}
-
-/* A boxless editor has no room kept for a handle, so the email's 24px goes
-   at the start too. */
-[data-slot='editor'][data-emphasis='subtler'] [data-email] {
-  padding-inline-start: calc(var(--spacing) * 6);
 }
 
 /* Drawn as renderEmail draws each emphasis, in the theme's colours: a

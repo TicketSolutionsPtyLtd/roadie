@@ -164,8 +164,9 @@ or accent section swaps its blocks' colours as the email does. Without one, the 
 `renderEmail` does, except that its links and strong buttons take the
 accent of a `ThemeProvider` around the editor, which `renderEmail` doesn't
 know, so pass `theme` for an exact match. Text outside columns sits 24
-pixels in from the canvas's end, and columns reach 12 pixels further out,
-as they do in the email. The outlines, the
+pixels in from each side of the canvas, so it wraps where it sends, and
+columns reach 12 pixels further out, as they do in the email. The grip and
+add button sit in the gutter beside the canvas. The outlines, the
 caret's tint, selected text, and the placeholder mix from the theme's
 colours, so they show on any background. A colour that isn't hex throws, as
 it does in `renderEmail`.
@@ -219,15 +220,21 @@ values it's given, on your server, since MJML needs Node, and resolve to its
   `sender` and `subject` when you pass them, and the
   [preview text](#preview-text).
 
-Preview shows the email as it was when Preview opened. Back to editing, or
+This example's footer links to the unsubscribe page, a link variable, so
+Footer is in the Blocks drawer's Sections, and each recipient's
+`unsubscribe_url` is the link Preview shows. Preview shows the email as it
+was when Preview opened. Back to editing, or
 Escape, puts the canvas back and focuses it. The frame is sandboxed, so it
 runs none of the email's scripts.
 
 ```tsx-live-noinline
 const variables = [
   { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
-  { key: 'tickets_left', label: 'Tickets left', tokens: { liquid: '{{ event.tickets_left }}' } }
+  { key: 'tickets_left', label: 'Tickets left', tokens: { liquid: '{{ event.tickets_left }}' } },
+  { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { liquid: '{{ unsubscribe_url }}' } }
 ]
+
+const unsubscribe = 'https://www.oztix.com.au/unsubscribe'
 
 function PreviewedEmail() {
   return (
@@ -237,8 +244,8 @@ function PreviewedEmail() {
       toolbar='docked'
       variables={variables}
       previewRecipients={[
-        { label: 'Alex, 12 tickets left', values: { first_name: 'Alex', tickets_left: '12' } },
-        { label: 'No name, 300 tickets left', values: { tickets_left: '300' } }
+        { label: 'Alex, 12 tickets left', values: { first_name: 'Alex', tickets_left: '12', unsubscribe_url: unsubscribe } },
+        { label: 'No name, 300 tickets left', values: { tickets_left: '300', unsubscribe_url: unsubscribe } }
       ]}
       onRenderPreview={async (value, { values }) =>
         (await renderEmail({ kind: 'design', value }, { variables, values })).html
@@ -267,7 +274,19 @@ function PreviewedEmail() {
               attrs: { showWhen: { key: 'tickets_left', op: 'lessThan', value: 50 } },
               content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Fewer than 50 tickets are left, so grab yours soon.' }] }]
             },
-            { type: 'button', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender' }, content: [{ type: 'text', text: 'Get tickets' }] }
+            { type: 'button', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender' }, content: [{ type: 'text', text: 'Get tickets' }] },
+            {
+              type: 'section',
+              content: [
+                {
+                  type: 'paragraph',
+                  content: [
+                    { type: 'text', text: 'You’re getting this email because you bought tickets on Oztix. ' },
+                    { type: 'text', text: 'Unsubscribe', marks: [{ type: 'link', attrs: { variable: 'unsubscribe_url' } }] }
+                  ]
+                }
+              ]
+            }
           ]
         }
       }}
@@ -281,7 +300,8 @@ render(<PreviewedEmail />)
 ### Preview text
 
 Preview text, above the canvas, is the email's preheader: the line an inbox
-shows after the subject. Under it, a hint says about 40 to 90 characters
+shows after the subject. Its label sits beside the field, or above it on a
+phone, so the field keeps its width. Under it, a hint says about 40 to 90 characters
 show, and Preview's inbox row shows it after the subject. It saves as the doc's `preheader` attr, on one
 line, with none when it's empty, and `renderEmail` writes it as the
 `mj-preview` an inbox reads, left out of the plain text. Typing there is its
@@ -573,7 +593,8 @@ const nextConfig = { serverExternalPackages: ['mjml'] }
   two match, and leaves out images, spacers, and dividers.
 - An empty line, a paragraph with no text, is left out, as it's room to type
   in the editor, not space to send, and so is a section holding only empty
-  lines. A spacer sends space.
+  lines, a list item with no words, which would send as a blank bullet, and
+  a list left with no items. A spacer sends space.
 
 It reads the value into the email preset first, as `migrate` does, so a value
 from another preset renders too, keeping its text. A link or button needs an

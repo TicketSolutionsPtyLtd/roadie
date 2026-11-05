@@ -5,8 +5,10 @@ import { Field } from '@oztix/roadie-components/field'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
+import { EMAIL_BLOCK_INSET } from '../email/mjmlTree'
 import { type EmailTheme, defaultEmailTheme } from '../email/theme'
 import type { EditorValue } from '../schema'
+import { EMAIL_WIDTH } from '../schema/emailAttrs'
 import { emailCanvasStyle } from './emailCanvas'
 
 const LABEL = 'Newsletter'
@@ -251,6 +253,24 @@ describe('Editor email section looks', () => {
 })
 
 describe('Editor email layout, as it sends', () => {
+  it.each([390, 900])(
+    'wraps text in the column the sent email does, at %ipx',
+    async (width) => {
+      render(
+        <div style={{ width }}>
+          <Editor aria-label={LABEL} defaultValue={value} />
+        </div>
+      )
+      const line = (await screen.findByText('Gates 11am,')).closest('p')!
+      const canvas = screen.getByRole('textbox', { name: LABEL })
+      const sent = Math.min(EMAIL_WIDTH, canvas.getBoundingClientRect().width)
+      expect(line.getBoundingClientRect().width).toBeCloseTo(
+        sent - 2 * EMAIL_BLOCK_INSET,
+        0
+      )
+    }
+  )
+
   it('sets columns’ text 12px further out than a line outside them', async () => {
     render(
       <div style={{ width: 900 }}>

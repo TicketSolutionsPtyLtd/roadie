@@ -451,14 +451,45 @@ describe('renderEmail', () => {
       expect(html).toBe(alone)
     })
 
-    it('keeps an empty line in a list item', async () => {
+    const item = (...content: JSONContent[]) => ({
+      type: 'listItem',
+      content
+    })
+    const list = (...content: JSONContent[]) => ({
+      type: 'bulletList',
+      content
+    })
+
+    it('sends no empty list item, as no blank bullet', async () => {
       const { html } = await renderEmail(
-        email({
-          type: 'bulletList',
-          content: [{ type: 'listItem', content: [{ type: 'paragraph' }] }]
-        })
+        email(list(item(p(text('Marri Lane'))), item({ type: 'paragraph' })))
       )
-      expect(body(html)).toContain('<li><p style="margin:0">&nbsp;</p></li>')
+      const { html: alone } = await renderEmail(
+        email(list(item(p(text('Marri Lane')))))
+      )
+      expect(html).toBe(alone)
+    })
+
+    it('sends no list left with no items', async () => {
+      const { html } = await renderEmail(
+        email(
+          list(item({ type: 'paragraph' }), item(p(text(' ')))),
+          p(text('Doors 7pm'))
+        )
+      )
+      const { html: alone } = await renderEmail(email(p(text('Doors 7pm'))))
+      expect(html).toBe(alone)
+    })
+
+    it('keeps an item with a nested list that has words', async () => {
+      const { html } = await renderEmail(
+        email(
+          list(
+            item({ type: 'paragraph' }, list(item(p(text('Dusty Banksia')))))
+          )
+        )
+      )
+      expect(body(html)).toContain('Dusty Banksia')
     })
   })
 
