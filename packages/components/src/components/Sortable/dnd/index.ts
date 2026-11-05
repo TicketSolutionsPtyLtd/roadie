@@ -41,31 +41,25 @@ export function sortableItemData(group: SortableGroup, value: string): Payload {
   return { [GROUP]: group, [VALUE]: value }
 }
 
-export type SortableItemOptions = {
+export type SortableDropTargetOptions = {
   element: HTMLElement
-  handle: HTMLElement
   group: SortableGroup
   value: string
   axis: SortableAxis
-  /** False skips the drag; the item still takes drops. */
-  draggable: boolean
-  onDraggingChange: (dragging: boolean) => void
   onDropEdgeChange: (edge: SortableEdge | null) => void
   /** False hides an edge whose drop would leave the order as it is. */
   movesTo: (source: string, edge: SortableEdge) => boolean
 }
 
-export function sortableItem({
+/** Takes drops from the group's items, whether or not this one can drag. */
+export function sortableDropTarget({
   element,
-  handle,
   group,
   value,
   axis,
-  draggable: canDrag,
-  onDraggingChange,
   onDropEdgeChange,
   movesTo
-}: SortableItemOptions): Cleanup {
+}: SortableDropTargetOptions): Cleanup {
   const data = sortableItemData(group, value)
   const showEdge = ({
     self,
@@ -80,7 +74,7 @@ export function sortableItem({
       edge && sourceValue !== value && movesTo(sourceValue, edge) ? edge : null
     )
   }
-  const target = dropTargetForElements({
+  return dropTargetForElements({
     element,
     canDrop: ({ source }) => inGroup(source.data, group),
     getData: ({ input }) =>
@@ -90,17 +84,32 @@ export function sortableItem({
     onDragLeave: () => onDropEdgeChange(null),
     onDrop: () => onDropEdgeChange(null)
   })
-  if (!canDrag) return target
-  return combine(
-    target,
-    draggable({
-      element,
-      dragHandle: handle,
-      getInitialData: () => data,
-      onDragStart: () => onDraggingChange(true),
-      onDrop: () => onDraggingChange(false)
-    })
-  )
+}
+
+export type SortableDraggableOptions = {
+  element: HTMLElement
+  handle: HTMLElement
+  group: SortableGroup
+  value: string
+  onDraggingChange: (dragging: boolean) => void
+}
+
+/** Drags the item by its handle. */
+export function sortableDraggable({
+  element,
+  handle,
+  group,
+  value,
+  onDraggingChange
+}: SortableDraggableOptions): Cleanup {
+  const data = sortableItemData(group, value)
+  return draggable({
+    element,
+    dragHandle: handle,
+    getInitialData: () => data,
+    onDragStart: () => onDraggingChange(true),
+    onDrop: () => onDraggingChange(false)
+  })
 }
 
 export type SortableDrop = { value: string; target: string; edge: SortableEdge }

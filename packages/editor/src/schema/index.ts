@@ -8,6 +8,7 @@ export {
   embedSrc,
   parseEmbedUrl
 } from './embed'
+export { type EmailContent, type StoredEmailContent } from './emailContent'
 export {
   type EmailSourceFormat,
   type ImportEmailOptions,

@@ -187,8 +187,10 @@ block you're typing in, and its menu moves the block.
 
 Type `/` to insert a block at the caret. The list filters as you type, the
 arrow keys move through it, Enter inserts, and Escape closes it, keeping what
-you typed. A paragraph, heading, or list turns the caret's line into one. Any
-other block goes before an empty line, or after a line with text, and a
+you typed, as does moving focus away. One undo takes a block the menu inserts
+back to what you typed; an image, embed, or button, which arrives after its
+upload or link, takes a second. A paragraph, heading, or list turns the caret's line into
+one. Any other block goes before an empty line, or after a line with text, and a
 section or columns puts the caret in its first line. Only the blocks that fit
 at the caret are offered, so there's no section or columns inside a column, and
 only the other list type inside a list. Image is offered with `onUploadImage`.
@@ -331,14 +333,14 @@ each token no variable matches, kept as text.
 
 ## Sending email
 
-`@oztix/roadie-editor/email` renders a saved value as an email: a whole HTML
-page, built from tables with inline styles so mail clients show it as
-designed, and its plain-text part.
+`@oztix/roadie-editor/email` renders a design, an `EditorValue` in the email
+preset, as an email: a whole HTML page, built from tables with inline styles
+so mail clients show it as designed, and its plain-text part.
 
 ```tsx
 import { renderEmail } from '@oztix/roadie-editor/email'
 
-const { html, text } = await renderEmail(template, {
+const { html, text } = await renderEmail({ kind: 'design', value: template }, {
   theme: { link: '#5f270f', button: '#5f270f' }
 })
 ```
@@ -372,6 +374,72 @@ It reads the value into the email preset first, as `migrate` does, so a value
 from another preset renders too, keeping its text. A link or button needs an
 https, http, mailto, or tel href, since a mail client can't open a path on the
 site, so any other keeps its text and loses its link.
+
+### HTML emails
+
+An email pasted in from another tool, or made outside the editor, is kept as
+written, since reading it into a design would lose its layout.
+`EmailHtmlField` edits its source, with a preview at 600 pixels and on a
+phone. Pasting keeps the clipboard's HTML rather than its text, unless the
+text is itself markup, as source copied from a code editor is.
+
+```tsx
+import { EmailHtmlField } from '@oztix/roadie-editor/email-html-field'
+```
+
+```tsx-live-noinline
+const template = `<table role="presentation" width="100%" bgcolor="#f4f4f4">
+  <tr><td align="center" style="padding:24px">
+    <table role="presentation" width="100%" style="max-width:560px" bgcolor="#ffffff">
+      <tr><td style="padding:24px;font-family:Arial,sans-serif;color:#333333">
+        <h1 style="margin:0 0 12px;font-size:24px">Ochre Kite Weekender</h1>
+        <p style="margin:0 0 16px">Hi #FirstName#, doors open 7pm at Jumbuck Orchard Park.</p>
+        <a href="https://www.oztix.com.au/ochre-kite-weekender"
+          style="display:inline-block;padding:12px 20px;background:#5f270f;color:#ffffff;text-decoration:none">
+          Get tickets
+        </a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>`
+
+function HtmlEmail() {
+  const [html, setHtml] = useState(template)
+  return (
+    <Field>
+      <Field.Label>Email HTML</Field.Label>
+      <EmailHtmlField value={html} onValueChange={setHtml} />
+      <Field.ErrorText />
+    </Field>
+  )
+}
+
+render(<HtmlEmail />)
+```
+
+The preview is a sandboxed frame, so it runs none of the email's scripts and
+submits none of its forms. A script, an event handler such as `onclick`, or a
+`javascript:` link shows a warning in `Field.ErrorText`, since mail clients
+won't run them either. The field never rewrites the HTML: the sending app's
+sanitiser stays the gate.
+
+```tsx-live
+<Field>
+  <Field.Label>Email HTML</Field.Label>
+  <EmailHtmlField defaultValue={'<a href="https://www.oztix.com.au/ochre-kite-weekender" onclick="track()">Get tickets</a>'} />
+  <Field.ErrorText />
+</Field>
+```
+
+Save it as `{ kind: 'html', html }`, an `EmailContent`, never in an
+`EditorValue`. `renderEmail` sends it unchanged, merge tags and Outlook's
+`[if mso]` blocks included, with a plain-text part written from it:
+
+```tsx
+import { renderEmail } from '@oztix/roadie-editor/email'
+
+const { html, text } = await renderEmail({ kind: 'html', html: pasted })
+```
 
 ### Merge tags
 
@@ -428,13 +496,13 @@ const variables: EditorVariable[] = [
 ]
 
 // Hi {{ customer.first_name | default: "there" }}, your tickets are ready.
-const { html, text } = await renderEmail(welcome, {
+const { html, text } = await renderEmail({ kind: 'design', value: welcome }, {
   syntax: 'liquid',
   variables
 })
 
 // Hi Ashley, your tickets are ready.
-const preview = await renderEmail(welcome, {
+const preview = await renderEmail({ kind: 'design', value: welcome }, {
   variables,
   values: { first_name: 'Ashley' }
 })
@@ -442,8 +510,8 @@ const preview = await renderEmail(welcome, {
 
 - `syntax` is `ae` for `#Token#` or `liquid` for `{{ }}`. Each variable is
   written as its token, unescaped, in the HTML and the plain text alike.
-- A Liquid token gets the fallback as its `default`. An AE token has no
-  default, so the sending system's own applies.
+- A Liquid token of one `{{ }}` output gets the fallback as its `default`.
+  An AE token has no default, so its fallback isn't written.
 - With `values`, each variable is filled with its value, escaped, or its
   fallback when the value is missing or empty. A preview needs no `syntax`.
 - A variable `variables` doesn't list, or one with no token in `syntax`,
@@ -453,6 +521,8 @@ const preview = await renderEmail(welcome, {
 - A merge tag never goes in a link's or a button's href. A link variable
   does: its token is written as the href, so it must write a whole URL. With
   `values`, the href is its value.
+- An HTML email's merge tags are already tokens, so it's sent unchanged,
+  whatever the options.
 
 ### Conditions
 
@@ -501,13 +571,13 @@ const variables: EditorVariable[] = [
 ]
 
 // {% if event.tickets_left < 20 %} … {% endif %}
-const { html, text } = await renderEmail(nearlySoldOut, {
+const { html, text } = await renderEmail({ kind: 'design', value: nearlySoldOut }, {
   syntax: 'liquid',
   variables
 })
 
 // Leaves the section out.
-const preview = await renderEmail(nearlySoldOut, {
+const preview = await renderEmail({ kind: 'design', value: nearlySoldOut }, {
   variables,
   values: { tickets_left: '200' }
 })
@@ -526,13 +596,17 @@ const preview = await renderEmail(nearlySoldOut, {
   must be a plain variable, such as `{{ event.tickets_left }}`, since Liquid
   takes no filters in a condition.
 - With `values`, the block shows only when its rule holds. A missing or
-  empty value doesn't exist, and a value that isn't a number is never less
+  empty value, or `'false'`, doesn't exist, as Liquid's `false` doesn't,
+  and `'false'` equals no text. A value that isn't a number is never less
   or greater than one. A preview value is a number when it's written in
   decimal digits.
-- The `ae` syntax has no conditions, so a rule throws there, as does a rule
-  naming a variable `variables` doesn't list, or text holding both quote
-  marks or `%}`, which a Liquid string can't hold.
-- `migrate` drops a rule that isn't whole, and keeps its block.
+- The `ae` syntax has no conditions, so a rule throws there. So does a rule
+  with neither `syntax` nor `values`, one naming a variable `variables`
+  doesn't list or whose Liquid token isn't a plain variable, a number Liquid
+  can't write, such as `1e21`, and text holding both quote marks or `%}`,
+  which a Liquid string can't hold.
+- `migrate` trims a rule's key, drops a rule that isn't whole, and keeps its
+  block.
 
 ## Accessibility
 

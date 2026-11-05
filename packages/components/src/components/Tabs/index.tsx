@@ -1,6 +1,6 @@
 // Subpath entry for `@oztix/roadie-components/tabs`.
 //
-// NO `'use client'` — server-safe property-assignment layer.
+// NO `'use client'`: server-safe property-assignment layer.
 // See docs/contributing/COMPOUND_PATTERNS.md and
 // docs/solutions/rsc-patterns/compound-export-namespace.md.
 import { TabsIndicator } from './TabsIndicator'

@@ -198,6 +198,45 @@ describe('Prose', () => {
     })
   })
 
+  it.each([
+    ['prose-sm', 'text-sm', DISPLAY_SMALL],
+    ['prose-lg', 'text-lg', DISPLAY_PROSE]
+  ] as const)(
+    'sizes a bare .prose with %s, for markup without Prose',
+    (className, body, display) => {
+      const container = renderWide(
+        <>
+          <div className={`prose ${className}`}>
+            <p id='body'>Doors 7pm.</p>
+            <h1>Set times</h1>
+            <h2>Set times</h2>
+            <h3>Set times</h3>
+            <h4>Set times</h4>
+            <h5>Set times</h5>
+            <h6>Set times</h6>
+          </div>
+          <p id='reference' className={body}>
+            Doors 7pm.
+          </p>
+          {display.map((reference, index) => (
+            <p key={reference} className={reference} data-level={index + 1}>
+              Set times
+            </p>
+          ))}
+        </>
+      )
+      expect(style(get(container, '#body')).fontSize).toBe(
+        style(get(container, '#reference')).fontSize
+      )
+      display.forEach((reference, index) => {
+        const heading = style(get(container, `h${index + 1}`))
+        const expected = style(get(container, `[data-level='${index + 1}']`))
+        expect(heading.fontSize, reference).toBe(expected.fontSize)
+        expect(heading.fontWeight, reference).toBe(expected.fontWeight)
+      })
+    }
+  )
+
   it('lets a variable on Prose override its size', () => {
     const container = renderWide(
       <Prose size='lg' className='[--prose-size:2rem]'>
@@ -248,6 +287,35 @@ describe('Prose', () => {
     expect(list.marginTop).toBe('0px')
     expect(style(get(container, '#link')).textDecorationLine).toBe('none')
     expect(style(get(container, '#heading')).fontWeight).not.toBe('800')
+  })
+
+  it.each([
+    ['class', { className: 'not-prose' }],
+    ['attribute', { 'data-not-prose': '' }]
+  ])('typesets a Prose inside a subtree escaped by %s', (_, escape) => {
+    const container = renderWide(
+      <Prose>
+        <p>Typeset.</p>
+        <div {...escape}>
+          <Prose>
+            <p>Again.</p>
+            <h3 id='heading'>Booking fees</h3>
+            <ul id='list'>
+              <li>Refunded</li>
+            </ul>
+            <div {...escape}>
+              <ul id='escaped'>
+                <li>Not typeset</li>
+              </ul>
+            </div>
+          </Prose>
+        </div>
+      </Prose>
+    )
+    expect(style(get(container, '#heading')).fontWeight).toBe('700')
+    expect(style(get(container, '#heading')).marginTop).not.toBe('0px')
+    expect(style(get(container, '#list')).listStyleType).toBe('disc')
+    expect(style(get(container, '#escaped')).listStyleType).toBe('none')
   })
 
   it('lets a utility on a child win over the sheet', () => {
@@ -571,15 +639,22 @@ describe('Prose', () => {
   // descendant rule after a :has() anchor restyles every prose element on
   // any change under it.
   it('ships prose rules with no :has()', () => {
-    const selectors: string[] = []
-    const walk = (rules: CSSRuleList) => {
+    const prose: string[] = []
+    const walk = (rules: CSSRuleList, inProse: boolean) => {
       for (const rule of rules) {
-        if (rule instanceof CSSStyleRule) selectors.push(rule.selectorText)
-        if ('cssRules' in rule) walk(rule.cssRules as CSSRuleList)
+        if (
+          rule instanceof CSSStyleRule &&
+          (inProse || /\.prose\b/.test(rule.selectorText))
+        ) {
+          prose.push(rule.selectorText)
+        }
+        const scoped =
+          inProse ||
+          (rule instanceof CSSScopeRule && /\.prose\b/.test(rule.start ?? ''))
+        if ('cssRules' in rule) walk(rule.cssRules as CSSRuleList, scoped)
       }
     }
-    for (const sheet of document.styleSheets) walk(sheet.cssRules)
-    const prose = selectors.filter((selector) => /\.prose\b/.test(selector))
+    for (const sheet of document.styleSheets) walk(sheet.cssRules, false)
     expect(prose.length).toBeGreaterThan(20)
     expect(prose.filter((selector) => selector.includes(':has('))).toEqual([])
   })

@@ -358,6 +358,8 @@ export function EditorToolbarEngine({
           onKeyDown?.(event)
           const inToolbar = event.currentTarget.contains(event.target as Node)
           if (event.key !== 'Escape' || !inToolbar || !editor) return
+          // Keeps a dialog around the editor open.
+          event.stopPropagation()
           focusEditor(editor)
         }}
         {...props}

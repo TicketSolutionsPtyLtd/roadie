@@ -2,7 +2,7 @@
 
 import { type MouseEvent, useSyncExternalStore } from 'react'
 
-import { cn } from '@oztix/roadie-core/utils'
+import { RailLink } from '../RailLink'
 
 export type RailMonth = {
   key: string
@@ -29,38 +29,6 @@ const subscribe = (listener: () => void) => {
 }
 
 const UNRELEASED = 'unreleased'
-
-function RailLink({
-  href,
-  active,
-  onSelect,
-  children
-}: {
-  href: string
-  active: boolean
-  onSelect: (event: MouseEvent<HTMLAnchorElement>) => void
-  children: string
-}) {
-  return (
-    <li
-      className={cn('-ml-px border-l border-transparent pl-3', {
-        'border-accent-9': active
-      })}
-    >
-      <a
-        href={href}
-        aria-current={active ? 'location' : undefined}
-        onClick={onSelect}
-        className={cn(
-          'block text-sm transition-colors',
-          active ? 'font-semibold text-strong' : 'text-subtle hover:text-normal'
-        )}
-      >
-        {children}
-      </a>
-    </li>
-  )
-}
 
 /** The changelog's months, by year, each jumping to its newest release whether or not it's rendered yet. */
 export function ReleaseRail({

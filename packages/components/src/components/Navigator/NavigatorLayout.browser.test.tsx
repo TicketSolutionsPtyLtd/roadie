@@ -4,7 +4,7 @@ import { cleanup, render } from '@testing-library/react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Navigator } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
@@ -16,6 +16,7 @@ import {
   rowSpecOf,
   useStylesheet
 } from '../Pane/testUtils'
+import { FakeIcon, withStubLink } from './testUtils'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -396,5 +397,143 @@ describe('stack geometry', () => {
       '[data-slot="pane"][data-column="inspector"]'
     )!
     expect(hits(inspector)).toBe(true)
+  })
+})
+
+describe('the generated list pane', () => {
+  const Docs = ({ searchable = false }: { searchable?: boolean }) => (
+    <Navigator value='/s/one'>
+      <Navigator.Primary aria-label='Main'>
+        <Navigator.Item value='/s' href='/s' icon={<FakeIcon />}>
+          Secondary
+          <Navigator.Secondary
+            aria-label='Secondary pages'
+            searchable={searchable}
+          >
+            <Navigator.Item value='/s/one' href='/s/one'>
+              One
+            </Navigator.Item>
+          </Navigator.Secondary>
+        </Navigator.Item>
+      </Navigator.Primary>
+      <Pane>Detail</Pane>
+    </Navigator>
+  )
+
+  const widthOf = (selector: string) =>
+    document.querySelector(selector)!.getBoundingClientRect().width
+
+  it('stops at 18rem beside a detail, where a declared list takes 24rem', async () => {
+    render(withStubLink(<Docs />), { container: frame(1400) })
+    await frames(4)
+    expect(widthOf('[data-navigator-secondary="/s"]')).toBe(18 * 16)
+
+    cleanup()
+    render(
+      <Navigator value='/a'>
+        <Pane column='list'>List</Pane>
+        <Pane>Detail</Pane>
+      </Navigator>,
+      { container: frame(1400) }
+    )
+    await frames(4)
+    expect(widthOf('[data-slot="pane"][data-column="list"]')).toBe(24 * 16)
+  })
+
+  it('opens its search as a plain 40px field, not a raised one', async () => {
+    render(withStubLink(<Docs searchable />), { container: frame(1400) })
+    await frames(4)
+    document
+      .querySelector<HTMLButtonElement>('[aria-label="Search secondary"]')!
+      .click()
+    await frames(2)
+    const field = document.querySelector<HTMLElement>(
+      '[data-slot="pane-search-field"]'
+    )!
+    const plain = document.createElement('input')
+    plain.className = 'emphasis-field'
+    field.parentElement!.append(plain)
+    const paint = (element: HTMLElement) => {
+      const style = getComputedStyle(element)
+      return [style.backgroundColor, style.boxShadow, style.borderTopColor]
+    }
+
+    expect(paint(field)).toEqual(paint(plain))
+    field.focus()
+    await frames(2)
+    const cancel = document.querySelector('[data-slot="pane-search-cancel"]')!
+    await expect
+      .poll(() =>
+        [field, cancel].map((element) => element.getBoundingClientRect().height)
+      )
+      .toEqual([40, 40])
+    await expect
+      .poll(() => widthOf('[data-slot="pane-search-cancel-slot"]'))
+      .toBe(40)
+    expect(
+      parseFloat(getComputedStyle(field).borderRadius)
+    ).toBeGreaterThanOrEqual(field.getBoundingClientRect().height / 2)
+  })
+
+  it.each([
+    ['Escape', () => userEvent.keyboard('{Escape}')],
+    [
+      'Cancel',
+      () =>
+        userEvent.click(
+          document.querySelector('[data-slot="pane-search-cancel"]')!
+        )
+    ]
+  ])(
+    'hides its button in place while searching, and gives it focus back on %s',
+    async (_, leave) => {
+      render(withStubLink(<Docs searchable />), { container: frame(1400) })
+      await frames(4)
+      const toggle = document.querySelector<HTMLButtonElement>(
+        '[aria-label="Search secondary"]'
+      )!
+      const title = document.querySelector('[data-slot="pane-title"]')!
+      const before = title.getBoundingClientRect().toJSON()
+      await userEvent.click(toggle)
+      await frames(2)
+
+      expect(toggle.checkVisibility({ visibilityProperty: true })).toBe(false)
+      expect(title.getBoundingClientRect().toJSON()).toEqual(before)
+      await leave()
+      await expect.poll(() => document.activeElement).toBe(toggle)
+      expect(document.querySelector('[data-slot="pane-search"]')).toBeNull()
+    }
+  )
+
+  it('leaves Cmd/Ctrl+/ alone while the page covers the list', async () => {
+    render(withStubLink(<Docs searchable />), { container: frame(400) })
+    await frames(4)
+    const list = document.querySelector<HTMLElement>(
+      '[data-navigator-secondary]'
+    )!
+    expect(onScreen(list)).toBe(false)
+
+    const apple = /mac|iphone|ipad|ipod/i.test(navigator.platform)
+    const shortcut = new KeyboardEvent('keydown', {
+      key: '/',
+      metaKey: apple,
+      ctrlKey: !apple,
+      bubbles: true,
+      cancelable: true
+    })
+    document.body.dispatchEvent(shortcut)
+    await frames(2)
+
+    expect(shortcut.defaultPrevented).toBe(false)
+    expect(list.querySelector('[data-slot="pane-search"]')).toBeNull()
+  })
+
+  it('keeps every row 40px tall beside a fine pointer', async () => {
+    render(withStubLink(<Docs />), { container: frame(1400) })
+    await frames(4)
+    const row = document.querySelector(
+      '[data-navigator-secondary] [data-slot="list-item"]'
+    )!
+    expect(row.getBoundingClientRect().height).toBe(40)
   })
 })

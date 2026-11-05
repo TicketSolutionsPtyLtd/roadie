@@ -55,6 +55,10 @@ function useExpanded(defaultExpanded: DataTableExpanded = false) {
   }
 }
 
+// Each frame of a group's motion lays the whole table out again, which a long
+// table can't do in a frame, so its groups open and close at once.
+const MOTION_ROWS = 50
+
 export function DataTableGroups({
   columns,
   groupColumns,
@@ -80,7 +84,10 @@ export function DataTableGroups({
     inert: collapsed || undefined
   })
   return (
-    <Table.Body data-grouped=''>
+    <Table.Body
+      data-grouped=''
+      data-instant={entries.length > MOTION_ROWS || undefined}
+    >
       {entries.map(({ node, collapsed }, entryIndex) => {
         if (node.kind === 'row')
           return (

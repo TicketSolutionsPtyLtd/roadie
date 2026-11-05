@@ -37,40 +37,51 @@ type Frame = {
   days: Map<string, number>
 }
 
-const root = () =>
-  document.querySelector<HTMLElement>('[data-slot="calendar"]')!
+// Reads every frame from `start` until the calendar has been still for a few
+// frames. Stops once that calendar unmounts, as a timed-out attempt's does when
+// its test retries, even if the retry has rendered another.
+async function readUntilStill(
+  read: (time: number, calendar: HTMLElement) => void,
+  start: () => unknown
+) {
+  const calendar = document.querySelector<HTMLElement>(
+    '[data-slot="calendar"]'
+  )!
+  let moving = false
+  let after = 0
+  const done = new Promise<void>((resolve, reject) => {
+    const tick = (time: number) => {
+      if (!calendar.isConnected)
+        return reject(new Error('The calendar unmounted'))
+      read(time, calendar)
+      if (calendar.hasAttribute('data-swiping')) {
+        moving = true
+        after = 0
+      } else if (moving && ++after > 4) return resolve()
+      requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  })
+  // Together, so a failed start doesn't leave `done` to reject unhandled.
+  await Promise.all([start(), done])
+}
 
-// Every day's position along the turn and the first title, frame by frame,
-// from `start` until the calendar has been still for a few frames.
+// Every day's position along the turn and the first title, frame by frame.
 export async function recordFrames(vertical: boolean, start: () => unknown) {
   const frames: Frame[] = []
-  const read = (time: number) => {
+  const read = (time: number, calendar: HTMLElement) => {
     const days = new Map<string, number>()
-    for (const button of root().querySelectorAll<HTMLElement>(
+    for (const button of calendar.querySelectorAll<HTMLElement>(
       'button[data-date]:not([data-outside])'
     )) {
       const box = button.getBoundingClientRect()
       days.set(button.dataset.date!, vertical ? box.top : box.left)
     }
     const title =
-      root().querySelector('[id$="-caption-0"]')?.textContent?.trim() ?? ''
+      calendar.querySelector('[id$="-caption-0"]')?.textContent?.trim() ?? ''
     frames.push({ time, readEnd: performance.now(), title, days })
   }
-  let turning = false
-  let after = 0
-  const done = new Promise<void>((resolve) => {
-    const tick = (time: number) => {
-      read(time)
-      if (root().hasAttribute('data-swiping')) {
-        turning = true
-        after = 0
-      } else if (turning && ++after > 4) return resolve()
-      requestAnimationFrame(tick)
-    }
-    requestAnimationFrame(tick)
-  })
-  await start()
-  await done
+  await readUntilStill(read, start)
   return frames
 }
 
@@ -135,39 +146,25 @@ const shapeOf = (element: Element): Shape => {
 }
 
 // Each day's centre and opacity, the rows leaving and the height of the days'
-// viewport, frame by frame, from `start` until the calendar is still.
+// viewport, frame by frame.
 export async function recordShapes(start: () => unknown) {
   const frames: ShapeFrame[] = []
-  const read = (time: number) => {
+  const read = (time: number, calendar: HTMLElement) => {
     const days = new Map<string, Shape>()
-    for (const button of root().querySelectorAll<HTMLElement>(
+    for (const button of calendar.querySelectorAll<HTMLElement>(
       'button[data-date]:not([data-outside])'
     ))
       days.set(button.dataset.date!, shapeOf(button))
     const leaving = Array.from(
-      root().querySelectorAll('[data-leaving] > div'),
+      calendar.querySelectorAll('[data-leaving] > div'),
       shapeOf
     )
-    const height = root()
+    const height = calendar
       .querySelector('[data-slot="calendar-months"]')!
       .getBoundingClientRect().height
     frames.push({ time, readEnd: performance.now(), days, leaving, height })
   }
-  let moving = false
-  let after = 0
-  const done = new Promise<void>((resolve) => {
-    const tick = (time: number) => {
-      read(time)
-      if (root().hasAttribute('data-swiping')) {
-        moving = true
-        after = 0
-      } else if (moving && ++after > 4) return resolve()
-      requestAnimationFrame(tick)
-    }
-    requestAnimationFrame(tick)
-  })
-  await start()
-  await done
+  await readUntilStill(read, start)
   return frames
 }
 

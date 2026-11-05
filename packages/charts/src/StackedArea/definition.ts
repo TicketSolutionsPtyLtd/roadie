@@ -13,10 +13,11 @@ import { hasTimeOfDay, isTimeField, parseX } from '../plot/time'
 import type { ChartDefinition, ChartPaint, PlotFrame } from '../plot/types'
 import {
   axisFormat,
-  fullFormat,
+  fullValue,
   gridTicks,
   labelFormat,
   minMax,
+  shareValue,
   valueDomain
 } from '../plot/values'
 import { describeValue, spokenPoint } from '../plot/words'
@@ -50,7 +51,7 @@ function todayPoint(props: StackedAreaProps, layers: readonly Layer[]) {
   const top = here.at(-1)
   if (x === null || !top) return null
   const total = here.reduce((sum, l) => sum + l.y, 0)
-  return { x, y: top.end, label: `Today ${labelFormat(props.format, total)}` }
+  return { x, y: top.end, label: `Today ${labelFormat(props, total)}` }
 }
 
 function build(props: StackedAreaProps, paint: ChartPaint, frame: PlotFrame) {
@@ -184,23 +185,24 @@ export const stackedArea: ChartDefinition<StackedAreaProps> = {
       props.xFormat
     )
     const noun = fieldLabel(props.y).toLowerCase()
-    const base = `${when}, ${describeValue(datum.y, props.format, noun)}, ${datum.series}`
+    const base = `${when}, ${describeValue(datum.y, props, noun)}, ${datum.series}`
     if (props.mode !== 'share') return base
     const layer = stackLayers(props).find(
       (l) => l.x === datum.x && l.series === datum.series
     )
-    return layer ? `${base}, ${percent(layer.share)} of the total` : base
+    return layer
+      ? `${base}, ${shareValue(props, layer.share)} of the total`
+      : base
   },
   tooltip(data, props, paint) {
     const x = data[0]?.x
     const colours = new Map(styles(props, paint).map((s) => [s.name, s.color]))
-    const format = fullFormat(props.format)
     const here = stackLayers(props).filter((l) => l.x === x)
     const total = here.reduce((sum, l) => sum + l.y, 0)
     return {
       title: x === undefined ? '' : xTitle(props, x),
       rows: [
-        { label: TOTAL, value: formatValue(total, format), shape: 'none' },
+        { label: TOTAL, value: fullValue(props, total), shape: 'none' },
         ...here
           .filter((l) => l.y !== 0)
           .reverse()
@@ -208,8 +210,8 @@ export const stackedArea: ChartDefinition<StackedAreaProps> = {
             label: l.series,
             value:
               props.mode === 'share'
-                ? `${percent(l.share)} (${formatValue(l.y, format)})`
-                : formatValue(l.y, format),
+                ? `${shareValue(props, l.share)} (${fullValue(props, l.y)})`
+                : fullValue(props, l.y),
             color: colours.get(l.series),
             shape: 'swatch' as const
           }))

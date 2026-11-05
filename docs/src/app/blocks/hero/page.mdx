@@ -1,0 +1,241 @@
+export const metadata = {
+  title: 'Hero',
+  description: "Opens every page, with its title as the page's main heading",
+  status: 'alpha',
+  wideExamples: true,
+  category: 'Open'
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+Opens every page, with its title as the page's main heading. Use one hero,
+first on the page.
+
+## Import
+
+```tsx
+import { Hero } from '@oztix/roadie-blocks/hero'
+```
+
+## Examples
+
+### Bento
+
+The page hero for landing pages. The title sits over the `image`, beside a
+muted, looping video. The `images` fill two panels in order: the first half
+sit beside the title from about 56rem, and the rest beside the video from
+about 36rem. Each panel's photos crossfade while it's on screen. A button in
+the corner pauses and plays the video and photos together, and they start
+paused for viewers who reduce motion. With no video, the second panel runs
+across the block at 2:1. Bento takes no `eyebrow`.
+
+```tsx-live-expand id=bento
+<Hero
+  preset='bento'
+  title='Australia’s ticketing partner'
+  highlight='Australia’s'
+  description='Australian owned and hosted, nationwide 7 days a week. Built on partnerships, powered by people and service.'
+  actions={[
+    { label: 'Talk to us', href: '/contact/sales' },
+    { label: 'Create my event', href: 'https://studio.oztix.com.au' }
+  ]}
+  image={{ src: '/brand/photography/08.webp', alt: '', width: 1280, height: 850 }}
+  video={{
+    src: '/blocks/hero-reel.mp4',
+    poster: { src: '/brand/photography/01.webp', alt: 'Highlights from Velvet Dingo Fest', width: 1280, height: 854 }
+  }}
+  images={[
+    { src: '/brand/photography/03.webp', alt: 'Two Oztix team members working at their desks', width: 1280, height: 1007 },
+    { src: '/brand/photography/04.webp', alt: 'Event staff scanning tickets at the gate', width: 1280, height: 1007 },
+    { src: '/brand/photography/11.webp', alt: 'Three Oztix team members on a couch', width: 1280, height: 911 },
+    { src: '/brand/photography/12.webp', alt: 'A crowd in a laneway strung with bunting', width: 1280, height: 854 },
+    { src: '/brand/photography/07.webp', alt: 'Guests on the terrace at Lighthouse Fig Lawn', width: 1280, height: 854 },
+    { src: '/brand/photography/06.webp', alt: 'A panel talking on stage at Ochre Kite Weekender', width: 1280, height: 854 }
+  ]}
+/>
+```
+
+### Image
+
+A title beside one photo, for industry and service pages. Once the block is
+about 36rem wide, the text and photo sit side by side, and from about 56rem
+the text takes two fifths. Below that, the photo sits above the text. The
+photo is cropped to `banner` (2 by 1), or to the `ratio` given: `landscape`
+(3 by 2), `square`, `portrait` (3 by 4), or `story` (9 by 16).
+
+```tsx-live-expand id=image
+<Hero
+  preset='image'
+  title='Sell more tickets with Lyrebird Radio'
+  highlight='Lyrebird Radio'
+  description='Your events show on artist profiles, so fans find them where they already listen.'
+  actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+  image={{ src: '/brand/photography/10.webp', alt: 'A band posing in front of an Oztix backdrop', width: 1280, height: 834 }}
+/>
+```
+
+### Title
+
+An eyebrow and a large title, for a page that opens on its text.
+
+```tsx-live id=title
+<Hero
+  preset='title'
+  eyebrow='Our mission'
+  title='We empower venues and event organisers to create thriving events and communities through genuine partnerships.'
+/>
+```
+
+### Partner
+
+Opens a partner page: the Oztix logo and the `partner` logo, joined by a
+heart, beside the title, with `body` under it. Once the block is about 36rem
+wide, the lockup sits beside the text, and from about 48rem they take half
+each. On a phone, the lockup sits above the title.
+
+```tsx-live-expand id=partner
+<Hero
+  preset='partner'
+  title='Resell my tickets'
+  description='Sell your Oztix tickets through our resale partner.'
+  body={
+    <>
+      <p>The safest way to resell tickets to any event you can't make.</p>
+      <p>
+        <strong>Only real tickets for real fans.</strong>
+      </p>
+    </>
+  }
+  actions={[{ label: 'Resell my tickets', href: 'https://www.example.com' }]}
+  partner={{
+    name: 'Partner',
+    logo: { src: '/blocks/partner-logo.svg', alt: '', width: 190, height: 48 }
+  }}
+/>
+```
+
+### Intent and emphasis
+
+`intent` colours the highlighted words and the strong action, and in Bento
+the tint over the photo too. Without one, the highlight is brand-secondary,
+the action accent, and the tint brand. The hero opens the page, so it takes
+no `emphasis` or `contained`. `align` centres the title and text, which start
+by default.
+
+`size='md'` or `'sm'` sets the title one or two steps smaller, with smaller
+text and tighter spacing. In Image, it also gives the photo a smaller share of
+the width once the block is wide: three fifths at `lg`, half at `md`, and two
+fifths at `sm`. Size never changes a photo's shape or colour.
+
+```tsx-live id=intent-and-emphasis
+<Hero
+  preset='title'
+  intent='brand-purple'
+  eyebrow='Festivals'
+  title='Ticketing built for festival weekends'
+  highlight='festival weekends'
+  actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+/>
+```
+
+```tsx-live id=align-and-size
+<Hero
+  preset='title'
+  align='center'
+  size='md'
+  eyebrow='Our mission'
+  title='We empower venues and event organisers to create thriving events.'
+  actions={[{ label: 'Meet the team', href: '/about/team' }]}
+/>
+```
+
+```tsx-live-expand id=intent-and-emphasis-image
+<Hero
+  preset='image'
+  intent='success'
+  title='Tickets for every community event'
+  highlight='community'
+  description='Low fees and local support for not-for-profit organisers.'
+  actions={[{ label: 'Talk to us', href: '/contact/sales' }]}
+  image={{ src: '/brand/photography/07.webp', alt: 'Guests on the terrace at Lighthouse Fig Lawn', width: 1280, height: 854 }}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Say what the page offers in the title, such as “Australia’s ticketing
+    partner”, and back it up in one sentence.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Open with a slogan that makes the reader scroll to learn what the page is.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='One hero, first on the page'>
+  <Guideline.Do>
+    Start the page with the hero. Its title is the page’s `h1`.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Put a second hero lower down. Use a block with an `h2` instead.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pick the preset by its media'>
+  <Guideline.Do>
+    Use Bento on a landing page with a background photo, a video, and at
+    least two photos for each cycling panel, such as people and events. Use
+    Image for an industry or service page with one strong photo, Title for a
+    page that opens on its text, such as About, and Partner for a page about
+    working with one partner, such as resale.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Use Bento without its photos, which leaves panels empty.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Describe the photos that carry meaning'>
+  <Guideline.Do>
+    Give the cycling photos, and the video’s poster, `alt` text that says
+    what they show.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Describe the background photo. It’s decoration, so the hero drops its
+    `alt`.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Change the intent for a page’s theme, not for variety'>
+  <Guideline.Do>
+    Set `intent` when the page belongs to a part of Oztix with its own colour,
+    such as a purple festival section.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Give each hero a different intent to make pages look different. Keep
+    status intents, such as danger, for status.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Mark one or two words'>
+  <Guideline.Do>
+    Mark the word the title turns on with `highlight`.
+  </Guideline.Do>
+  <Guideline.Dont>Mark a whole phrase.</Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Accessibility
+
+- **Title**: the hero's title is the page's `h1`, so use one hero per page.
+- **Bento**: the video is muted and named by its poster's alt text, and only the photo on show is read out. One button pauses the video and the photos together. For viewers who reduce motion, everything starts paused and the button offers play. The button shows only where something that moves is on screen.
+
+## Tracking
+
+Reports a view when half the hero is on screen, and a click on each action and on the pause button.
+
+<PropsDefinitions component='Hero' />

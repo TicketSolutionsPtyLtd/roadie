@@ -156,3 +156,26 @@ export async function expectTableKeepsHeight(
     Math.abs(card.getBoundingClientRect().height - before)
   ).toBeLessThanOrEqual(0.5)
 }
+
+/**
+ * Sweeps a mouse across the chart's plot, one move a frame, as someone
+ * reading values along it would. Each move goes to whatever is under the
+ * pointer then, since the chart redraws its SVG once it's measured.
+ */
+export function sweepPointer(container: HTMLElement, frames: number) {
+  return (index: number) => {
+    const plot = container.querySelector('svg.ts-chart')!
+    const box = plot.getBoundingClientRect()
+    const clientX = box.left + 8 + ((box.width - 16) * index) / frames
+    const clientY = box.top + box.height * (0.3 + 0.4 * ((index % 20) / 20))
+    const target = document.elementFromPoint(clientX, clientY) ?? plot
+    target.dispatchEvent(
+      new PointerEvent('pointermove', {
+        bubbles: true,
+        pointerType: 'mouse',
+        clientX,
+        clientY
+      })
+    )
+  }
+}
