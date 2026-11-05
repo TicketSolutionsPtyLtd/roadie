@@ -514,6 +514,40 @@ export const linkLine = ({ title, url, description }: LlmsLink) =>
 
 export type LlmsSection = { name: string; links: LlmsLink[] }
 
+type CataloguePage = { href: string; title?: string; description?: string }
+
+export type CatalogueGroupMarkdown = {
+  name: string
+  overview?: CataloguePage
+  entries: (CataloguePage & { title: string })[]
+}
+
+/** A catalogue page's markdown: each group's overview, then its pages. */
+export function catalogueToMarkdown(
+  groups: CatalogueGroupMarkdown[],
+  url: (href: string) => string
+) {
+  return groups
+    .map(({ name, overview, entries }) =>
+      [
+        `## ${name}`,
+        [
+          ...(overview ? [{ ...overview, title: overview.title ?? name }] : []),
+          ...entries
+        ]
+          .map(({ title, href, description }) =>
+            linkLine({
+              title,
+              url: url(href),
+              description: description || undefined
+            })
+          )
+          .join('\n')
+      ].join('\n\n')
+    )
+    .join('\n\n')
+}
+
 export type LlmsIndex = {
   title: string
   summary: string
