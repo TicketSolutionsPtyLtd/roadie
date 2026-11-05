@@ -473,7 +473,7 @@ export function EditorEngine({
   ]
   // Read as each menu opens, as `variables` can arrive after the editor is made.
   const insertItems = () =>
-    holdsMergeTags && presetItems.length > 0 && variablesRef.current?.length
+    holdsMergeTags && variablesRef.current?.length
       ? [...presetItems, mergeTagItem]
       : presetItems
   const uploads = {
