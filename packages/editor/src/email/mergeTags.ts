@@ -31,9 +31,23 @@ export const untokenedText = (text: string) =>
     .replace(/#(?=\w+#)/g, '#\u200B')
     .replace(/\[(?=\w+\])/g, '[\u200B')
 
+// Typed token characters beside a variable would otherwise join its token. A
+// preview's value isn't a token, so any syntax could read one across it.
+const BESIDE_TAG: Record<EmailSyntax | 'preview', [RegExp, RegExp]> = {
+  ae: [/#\w*(?=\uE000)/g, /\uE001(?=#)/g],
+  liquid: [/\{(?=\uE000)/g, /\uE001(?=\})/g],
+  preview: [/[#{[]\w*(?=\uE000)/g, /\uE001(?=[#}\]])/g]
+}
+
+const apartFromTags = (text: string, [before, after]: [RegExp, RegExp]) =>
+  text.replace(before, '$&\u200B').replace(after, '$&\u200B')
+
 // Liquid strings have no escapes, so the quote is one the text doesn't hold.
 const liquidString = (text: string) =>
   text.includes('"') ? `'${text.replaceAll("'", '’')}'` : `"${text}"`
+
+// One `{{ … }}` output, so a default never lands on the last of several.
+const SINGLE_OUTPUT = /^\{\{(-?)((?:(?!\{\{|\}\})[\s\S])*?)(-?)\}\}$/
 
 function tokenFor(
   variable: EditorVariable,
@@ -52,8 +66,7 @@ function tokenFor(
     )
   }
   // `{{-` and `-}}` trim whitespace, so they stay outside the default.
-  const output =
-    syntax === 'liquid' && /^\{\{(-?)([\s\S]*?)(-?)\}\}$/.exec(token)
+  const output = syntax === 'liquid' && SINGLE_OUTPUT.exec(token)
   if (!output || !fallback) return { html: token, text: token }
   const [, open, filter, close] = output
   const withDefault = (quoted: string) =>
@@ -101,7 +114,11 @@ export function mergeTags({ syntax, variables = [], values }: MergeTagOptions) {
       ? hold({ html: escapeHtml(value), text: value })
       : undefined
   }
+  const besideTag = BESIDE_TAG[values || !syntax ? 'preview' : syntax]
   const fill = (output: string, part: keyof Filled) =>
-    output.replace(PLACEHOLDER, (_match, index) => filled[Number(index)]![part])
+    (part === 'text' ? apartFromTags(output, besideTag) : output).replace(
+      PLACEHOLDER,
+      (_match, index) => filled[Number(index)]![part]
+    )
   return { tag, linkTag, hold, fill }
 }

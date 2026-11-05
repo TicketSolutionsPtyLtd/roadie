@@ -13,7 +13,7 @@ export function TabsPanel({ className, ...props }: TabsPanelProps) {
   return (
     <TabsPrimitive.Panel
       data-slot='tabs-panel'
-      className={cn('focus-visible:outline-none', className)}
+      className={cn('is-focusable', className)}
       {...props}
     />
   )

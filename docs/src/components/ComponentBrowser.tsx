@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { type ReactNode, useRef, useState } from 'react'
 
 import { ArrowRightIcon, MagnifyingGlassIcon } from '@phosphor-icons/react'
 
@@ -10,7 +10,6 @@ import { Button } from '@oztix/roadie-components/button'
 import { EmptyState } from '@oztix/roadie-components/empty-state'
 import { Field } from '@oztix/roadie-components/field'
 
-import { CataloguePreview } from './CataloguePreview'
 import { PreviewCard, PreviewSection } from './PreviewGrid'
 
 function filterCategories(
@@ -34,9 +33,12 @@ const countEntries = (categories: CatalogueCategory[]) =>
   categories.reduce((total, { entries }) => total + entries.length, 0)
 
 export function ComponentBrowser({
-  categories
+  categories,
+  previews
 }: {
   categories: CatalogueCategory[]
+  /** Each entry's art by name, drawn on the server: some art reads files there. */
+  previews: Record<string, ReactNode>
 }) {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -116,7 +118,7 @@ export function ComponentBrowser({
                 href={entry.href}
                 title={entry.title}
               >
-                <CataloguePreview route='/components' entry={entry} />
+                {previews[entry.name]}
               </PreviewCard>
             ))}
           </PreviewSection>

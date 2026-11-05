@@ -31,12 +31,12 @@ function startWorker() {
 
 // Lint rules are synchronous and Tailwind loads its design system
 // asynchronously, so a worker loads it and this thread blocks on the answer.
-function ask(request) {
+export function ask(request, timeout = TIMEOUT) {
   channel ??= startWorker()
   const { port, signal } = channel
   Atomics.store(signal, 0, 0)
   port.postMessage(request)
-  if (Atomics.wait(signal, 0, 0, TIMEOUT) === 'timed-out') {
+  if (Atomics.wait(signal, 0, 0, timeout) === 'timed-out') {
     // Its late reply would answer the next request, so start a fresh worker.
     channel.worker.terminate()
     channel = undefined

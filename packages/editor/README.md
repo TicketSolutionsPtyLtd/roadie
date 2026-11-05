@@ -65,6 +65,9 @@ const description: EditorValue = {
   `alt`), embeds (`embed`, saving only `provider`, `id`, and `params`), and
   tables (`table`, `tableRow`, `tableHeader` and `tableCell`, saving only a
   cell's `colspan` and `rowspan`). A cell holds paragraphs only.
+  `presets.blocks` holds what `rich` does, and every block but a table's
+  rows and cells saves a `blockId` string. Key each record's editor by its
+  record, or a reused editor keeps the last record's ids.
   An image's `src` is `https` or a root-relative path, and its `alt` is `''`
   until someone writes it.
   `presets.email` holds the basic preset's text plus headings 2 to 4, and
@@ -119,8 +122,9 @@ only paragraphs in cells, keeping the text of any other block as paragraphs,
 keeps a cell's `colspan` and `rowspan` only when whole, positive and no more
 than HTML allows (1,000 and 65,534), gives an empty cell a paragraph, and drops a row with no cells and a table with no
 rows. Read into `basic`, a table keeps its cells' text as paragraphs. So
-every value it returns loads in Tiptap. `createEmptyValue(preset)` starts a
-new value.
+every value it returns loads in Tiptap. It keeps a `blockId` only when it's a
+non-empty string no earlier block uses, so the editor gives the others new
+ones. `createEmptyValue(preset)` starts a new value.
 
 ## Rendering a stored value
 
@@ -148,7 +152,7 @@ it.
 ```ts
 import { renderEmail } from '@oztix/roadie-editor/email'
 
-const { html, text } = await renderEmail(value, { theme })
+const { html, text } = await renderEmail({ kind: 'design', value }, { theme })
 ```
 
 It reads the value into the email preset, builds MJML's JSON tree from it in
@@ -161,6 +165,11 @@ A block's `showWhen` rule goes in as placeholders in `mj-raw` siblings around
 it (`src/email/conditions.ts`), written as a Liquid `if` and `endif`. MJML stays behind
 `renderEmail`: nothing exported names it, so the renderer can change without
 a migration.
+
+An email kept as HTML (`{ kind: 'html', html }`) skips all of that: its HTML
+goes out byte for byte, and only the plain text is written. `EmailHtmlField`
+(`@oztix/roadie-editor/email-html-field`) edits it on the client, and imports
+nothing from `/email`, which needs Node.
 
 ## Changing the format
 

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   stepAlong,
   stepCategory,
+  stepRing,
   stepSeries,
   stepWithin,
   visualEnds
@@ -222,5 +223,36 @@ describe('visualEnds', () => {
 
   it('finds nothing without points', () => {
     expect(visualEnds([], 'y')).toBeNull()
+  })
+})
+
+describe('stepRing', () => {
+  const slice = (index: number) => ({
+    xValue: 0,
+    group: null,
+    markId: `series-${index + 1}`,
+    x: 0,
+    y: 0,
+    yValue: 0,
+    datum: { x: `Part ${index}`, y: 1, series: 'Parts', index }
+  })
+  const first = slice(0)
+  const second = slice(1)
+  const third = slice(2)
+  // Marks list their points by colour, not around the ring.
+  const ring = [third, first, second]
+
+  it('steps clockwise and back around the ring', () => {
+    expect(stepRing(ring, first, 1)).toBe(second)
+    expect(stepRing(ring, second, -1)).toBe(first)
+  })
+
+  it('wraps from the last slice to the first, and back', () => {
+    expect(stepRing(ring, third, 1)).toBe(first)
+    expect(stepRing(ring, first, -1)).toBe(third)
+  })
+
+  it('starts and ends at the first and last slice', () => {
+    expect(visualEnds(ring, 'ring')).toEqual({ first, last: third })
   })
 })

@@ -94,4 +94,21 @@ describe('Marquee', () => {
     expect(root).toHaveAttribute('data-testid', 'my-marquee')
     expect(root).toHaveAttribute('id', 'marquee-1')
   })
+
+  it('holds still while paused', () => {
+    const { container, rerender } = render(
+      <Marquee paused>
+        <div>Item</div>
+      </Marquee>
+    )
+    const track = container.querySelector('[style*="animation"]') as HTMLElement
+    expect(track.style.animationPlayState).toBe('paused')
+
+    rerender(
+      <Marquee>
+        <div>Item</div>
+      </Marquee>
+    )
+    expect(track.style.animationPlayState).toBe('running')
+  })
 })

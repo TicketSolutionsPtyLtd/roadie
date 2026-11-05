@@ -44,9 +44,10 @@ job, though only the docs read it.
 Compare hashes with a dry run, before and after building:
 
 ```bash
-npx turbo run prepare --dry=json | jq -r '.tasks[] | select(.task=="build") | "\(.taskId) \(.hash)"'
+npx turbo run build --filter="./packages/*" --dry=json | jq -r '.tasks[] | select(.task=="build") | "\(.taskId) \(.hash)"'
 ROADIE_SHARD=1/2 npx turbo run test:browser --dry=json | jq -r '.tasks[] | select(.task=="build") | "\(.taskId) \(.hash)"'
 ```
 
-Every build should print the same hash in both, and a CI step after
-`pnpm install` should show `cache hit, replaying logs` for each build.
+Every build should print the same hash in both. `prepare` no longer builds in
+CI, and the build job's `node scripts/check-turbo-cache.mjs` fails when a
+build wouldn't replay on an unchanged rerun.

@@ -28,6 +28,8 @@ with its skeleton and the rules on top of these.
   `/tokens/`, the reference
   dashboards (`/charts/audience-dashboard`, `/charts/portfolio-dashboard`, and
   `/charts/show-dashboard`), `/examples/`, `/debug/`, and redirects.
+- A heading in a `.tsx` page or component needs an `id` where it renders to
+  appear in On this page; MDX headings get theirs from `rehype-slug`.
 - The foundations pages other than Accessibility, Colors, Date and time,
   Elevation, Forms, Iconography, Interactions, Layout, Linking, Motion,
   Navigation, Performance, Prose, Records, Shape, Tables, Theming, Typography,
@@ -40,8 +42,12 @@ with its skeleton and the rules on top of these.
   renders `title` as the page's `h1`, so the body has no `#` heading.
 - `description` is one sentence, shown on catalogue cards.
 - A catalogue page adds `category`, one of its catalogue's categories in
-  `docs/src/lib/page-manifest.ts`. `order`, `hidden`, `alsoIn`, and `wide`
-  are optional, and component, chart, and widget pages add `status`.
+  `docs/src/lib/page-manifest.ts`. `order`, `hidden`, `alsoIn`, `wide`, and
+  `wideExamples` are optional, and component, chart, and widget pages add
+  `status`. `wide` widens the whole page and drops the "On this page" rail;
+  `wideExamples` keeps the prose at reading width and runs only the live
+  examples to the pane's width, for blocks shown at page scale. It drops the
+  rail too, since the rail leaves the pane no wider than the reading column.
 
 ## Status
 

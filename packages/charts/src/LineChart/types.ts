@@ -3,12 +3,16 @@ import type {
   PlotRow,
   PlotX
 } from '@oztix/roadie-core/dashboard'
-import type { ValueFormat, XFormat } from '@oztix/roadie-core/dataviz'
+import type {
+  ValueFormat,
+  ValueFormatOptions,
+  XFormat
+} from '@oztix/roadie-core/dataviz'
 import type { AbsoluteRange } from '@oztix/roadie-core/datetime'
 
 export type LineChartPalette = 'categorical' | 'pair' | 'trio'
 
-export type LineChartProps = {
+export type LineChartProps = ValueFormatOptions & {
   /** Rows of plain values. Dates are ISO strings in venue wall time. */
   data: PlotRow[]
   /** Field along the bottom: an ISO date or a number. */
@@ -33,6 +37,8 @@ export type LineChartProps = {
   cumulative?: boolean
   /** A shaded range, such as similar shows, with an optional dashed median. */
   band?: { low: string; high: string; median?: string; label?: string }
+  /** A field on the same rows, such as last period's value, drawn behind a single series as context. Ignored with `series`. */
+  comparison?: { y: string; label?: string }
   /** Where the forecast starts. Values after it are dotted, in a faint cone. */
   forecast?: { from: PlotX; low?: string; high?: string }
   /** Draws an end tick labelled with the target. */

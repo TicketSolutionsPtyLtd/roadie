@@ -24,7 +24,7 @@ describe('table helpers', () => {
 
   it('makes a text x column and a full value column', () => {
     expect(xColumn('day')).toEqual({ key: 'day', header: 'Day', kind: 'text' })
-    expect(valueColumn('sold', 'Sold', 'compact')).toEqual({
+    expect(valueColumn('sold', 'Sold', { format: 'compact' })).toEqual({
       key: 'sold',
       header: 'Sold',
       kind: 'number',

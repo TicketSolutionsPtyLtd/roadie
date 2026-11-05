@@ -1,5 +1,7 @@
 import { isUnsafeHref } from '@oztix/roadie-core/utils'
 
+import { isSafeImageSrc } from './imageSrc'
+
 /** The email canvas's width in CSS pixels, which an image never exceeds. */
 export const EMAIL_WIDTH = 600
 
@@ -24,12 +26,7 @@ export function isEmailHref(href: unknown): href is string {
 
 /** Whether an email image may load from `src`: https only, as it loads in a mail client. */
 export function isEmailImageSrc(src: unknown): src is string {
-  return (
-    typeof src === 'string' &&
-    !/[\s\\\p{Cc}]/u.test(src) &&
-    /^https:\/\//i.test(src) &&
-    URL.canParse(src)
-  )
+  return isSafeImageSrc(src) && /^https:\/\//i.test(src)
 }
 
 /** A saved image width, or null to fill its column. */

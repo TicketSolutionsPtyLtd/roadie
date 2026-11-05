@@ -108,13 +108,28 @@ describe('dashboardSchema', () => {
     expect(dashboardSchema.safeParse(spec([lineCard])).success).toBe(true)
   })
 
-  it.each(['javascript:alert(1)', 'data:image/svg+xml,<svg/>', 'vbscript:x'])(
-    'rejects unsafe plot src %s',
-    (src) => {
-      const card = { ...chart, plot: { ...chart.plot, src } }
-      expect(dashboardSchema.safeParse(spec([card])).success).toBe(false)
-    }
-  )
+  it.each([
+    'javascript:alert(1)',
+    'data:image/svg+xml,<svg/>',
+    'vbscript:x',
+    'java\tscript:alert(1)',
+    'java\nscript:alert(1)',
+    '\u0000javascript:alert(1)',
+    '\u00a0javascript:alert(1)',
+    'file:///etc/passwd'
+  ])('rejects unsafe plot src %j', (src) => {
+    const card = { ...chart, plot: { ...chart.plot, src } }
+    expect(dashboardSchema.safeParse(spec([card])).success).toBe(false)
+  })
+
+  it.each([
+    'https://cdn.oztix.com.au/charts/pace.svg',
+    '/charts/pace-light.svg',
+    'blob:https://studio.oztix.com.au/2f6b1c4e-0d6e-4f1b-9a35-1c1f6c0a7e21'
+  ])('accepts plot src %s', (src) => {
+    const card = { ...chart, plot: { ...chart.plot, src } }
+    expect(dashboardSchema.safeParse(spec([card])).success).toBe(true)
+  })
 
   it('rejects an unsafe src on a plot rendition', () => {
     const card = {
@@ -137,8 +152,33 @@ describe('dashboardSchema', () => {
   })
 
   it('accepts a reserved data binding', () => {
-    const card = { ...stat, data: { source: 'oztix.sales', params: { id: 1 } } }
+    const card = {
+      ...stat,
+      data: { source: 'oztix.sales', params: { id: 1 } }
+    }
     expect(dashboardSchema.safeParse(spec([card])).success).toBe(true)
+  })
+
+  it('takes decimal places on card values and deltas', () => {
+    const options = { decimals: 2, trailingZeroDisplay: 'stripIfInteger' }
+    const cards = [
+      { ...stat, ...options, delta: { ...stat.delta, ...options } },
+      { ...chart, ...options },
+      {
+        ...chart,
+        plot: {
+          kind: 'bar',
+          data: [{ day: '2026-10-01', sold: 4, share: 0.5 }],
+          x: 'day',
+          y: 'sold',
+          line: { y: 'share', label: 'Share', format: 'percent', ...options }
+        }
+      }
+    ]
+    expect(dashboardSchema.safeParse(spec(cards)).success).toBe(true)
+    expect(
+      dashboardSchema.safeParse(spec([{ ...stat, decimals: 5 }])).success
+    ).toBe(false)
   })
 
   it('rejects an unknown key on a card', () => {

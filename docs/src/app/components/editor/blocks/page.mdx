@@ -6,7 +6,7 @@ export const metadata = {
   order: 2,
 }
 
-The `blocks` preset, for CMS pages built from blocks, with the slash menu,
+The `blocks` preset, for CMS pages built from blocks, with the insert menu,
 drag and the block menu, and custom blocks.
 
 ## Import
@@ -24,8 +24,8 @@ the images, embeds, and tables this preset holds too.
 ### Default
 
 `preset='blocks'` holds everything the rich preset does, for a page built
-from blocks, and every block keeps an id. Type `/` in the empty paragraph to
-add a block.
+from blocks, and every block keeps an id as it moves. Type `/` to add a
+block.
 
 A page is edited in place, so a `blocks` editor opens with
 `emphasis='subtler'`, with no box, and `toolbar='floating'`: select text to
@@ -56,39 +56,18 @@ identity as it moves. The editor gives a block without one an id when it
 loads, splits, or is pasted, and `onValueChange` reports it. Copying a block
 gives the copy an id of its own. `/render` never writes ids into the page.
 
-### Slash menu
+Give each record's editor its own `key`, such as the record's id. An editor
+reused for another record reads that record's id-less blocks as the ones it
+already holds when their content matches, so it keeps the first record's ids.
 
-Type `/` in an empty paragraph to open the slash menu, then type to filter
-it. The arrow keys move through the blocks, Enter or a tap inserts one in
-place of the `/`, and Escape closes the menu and leaves the `/` as text. A
-`/` after text, in a list, or in a quote is only text. Image shows with
-`onUploadImage` and opens the file picker, and Embed opens the Embed popover.
+### Inserting blocks
 
-With no children, a `blocks` editor renders `Editor.Toolbar`,
-`Editor.Content`, `Editor.BubbleMenu`, then `Editor.SlashMenu`. Pass your own
-children to change the toolbar, and place `<Editor.SlashMenu />` yourself, or
-`/` is only text.
-
-```tsx-live-prose
-<Editor aria-label='Page' preset='blocks' toolbar='floating'>
-  <Editor.Toolbar />
-  <Editor.Content />
-  <Editor.BubbleMenu />
-  <Editor.SlashMenu />
-</Editor>
-```
-
-The menu is a `listbox` named Blocks. Focus stays in the text, which points
-at the active `option` through `aria-activedescendant` and at the list
-through `aria-controls`. A filter that matches nothing says No matching
-blocks in a `status`.
-
-| Keys | Action |
-| --- | --- |
-| `/` | In an empty paragraph, open the slash menu |
-| `ArrowDown`, `ArrowUp` | Move to the next or previous block, wrapping |
-| `Enter` | Insert the active block in place of the `/` |
-| `Escape` | Close the menu, keeping the `/` |
+Type `/` to open the same insert menu as the
+[email preset](/components/editor/email#composing-a-layout), with the same keys. It offers
+Paragraph, Heading 2 to 4, Bulleted list, Numbered list, Quote, Divider,
+Image, Embed, and Table, and only those that fit at the caret, so a table
+cell offers Paragraph alone. Image shows with `onUploadImage` and opens the
+file picker, and Embed opens the Embed popover.
 
 ### Block handle
 
@@ -145,8 +124,8 @@ the first and last blocks. Closing the menu puts focus back in the text.
 
 An app adds its own blocks, such as a call to action or an event feed, with
 `extensions`. Build each from `@oztix/roadie-editor/extensions`, which
-re-exports Tiptap's `Node`, `Mark`, `Extension`, and `mergeAttributes`, so
-the app never installs Tiptap or drifts from Roadie's version:
+re-exports Tiptap's `Node` and `mergeAttributes`, so the app never installs
+Tiptap or drifts from Roadie's version:
 
 ```tsx
 import {
@@ -163,9 +142,11 @@ import {
   it in place. The component gets `node.attrs` and `updateAttributes`, and
   wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
   them, not the text around the block. A read-only or disabled editor
-  ignores its `updateAttributes`.
+  ignores its `updateAttributes` and `deleteNode`.
 - Pass `{ node, label, icon, keywords }` in `extensions` to show it in the
-  slash menu. The editor reads `extensions` once, when it's created.
+  insert menu, after the preset's blocks and only where it fits. The editor
+  reads `extensions` once, when it's created, so give it a new `key` to
+  change them.
 - Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
   block that gets its `attrs`. Read each as untrusted input. A block with no
   entry is dropped, never shown raw, and so is every custom block in
@@ -217,9 +198,13 @@ const callToAction = {
   })
 }
 
+// Stored attrs are untrusted, so the link is kept only when it's a site path.
+const sitePath = (href) =>
+  typeof href === 'string' && /^\/(?!\/)/.test(href) ? href : undefined
+
 const nodeMapping = {
   callToAction: ({ attrs }) => (
-    <Button href={String(attrs.href)} intent='brand' emphasis='strong'>
+    <Button href={sitePath(attrs.href)} intent='brand' emphasis='strong'>
       {String(attrs.label)}
     </Button>
   )
