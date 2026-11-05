@@ -429,35 +429,41 @@ const FILLED =
   /(?:^|;)\s*background(?:-color)?\s*:\s*(?!\s*(?:transparent|none|inherit|initial|unset)\s*(?:;|$))/i
 const BORDERED = /(?:^|;)\s*border(?:-width)?\s*:\s*[^;]*[1-9]/i
 
-// Each element's declarations from the source's style sheets, before its
-// own style, which wins. Read once per import, before the sheets go.
+// Each element's declarations from the source's style sheets, in order.
+// Read once per import, before the sheets go.
 const sheetStyles = new WeakMap<Element, string>()
 
-const styleOf = (element: Element) =>
-  `${sheetStyles.get(element) ?? ''};${element.getAttribute('style') ?? ''}`
-
-// A media query's rules hold for some clients only, so they're left out.
-function withoutAtRules(css: string) {
-  let rest = css.replace(/\/\*[\s\S]*?\*\//g, '')
-  const atRule = /@[^{};]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}|@[^{};]*;/g
-  while (atRule.test(rest)) rest = rest.replace(atRule, '')
-  return rest
+// The sheets' declarations, then the element's own, which win, as the
+// browser resolves them.
+function styleOf(element: Element) {
+  const own = element.getAttribute('style') ?? ''
+  const sheet = sheetStyles.get(element)
+  if (!sheet) return own
+  const merged = element.ownerDocument.createElement('div').style
+  merged.cssText = `${sheet};${own}`
+  return merged.cssText
 }
 
+// The browser's own parser, so comments, `<!--`, and strings read as they
+// do in a mail client. Only top-level rules count, as a media query's rules
+// hold for some clients only.
 function readSheets(doc: Document, sheets: Iterable<Element>) {
   for (const sheet of sheets) {
-    const rules = withoutAtRules(sheet.textContent ?? '')
-    for (const [, selectors, body] of rules.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      for (const selector of selectors!.split(',')) {
-        let matched: NodeListOf<Element>
-        try {
-          matched = doc.querySelectorAll(selector.trim())
-        } catch {
-          continue
-        }
-        for (const element of matched) {
-          sheetStyles.set(element, `${sheetStyles.get(element) ?? ''};${body}`)
-        }
+    const parsed = new CSSStyleSheet()
+    parsed.replaceSync(sheet.textContent ?? '')
+    for (const rule of parsed.cssRules) {
+      if (!(rule instanceof CSSStyleRule)) continue
+      let matched: NodeListOf<Element>
+      try {
+        matched = doc.querySelectorAll(rule.selectorText)
+      } catch {
+        continue
+      }
+      for (const element of matched) {
+        sheetStyles.set(
+          element,
+          `${sheetStyles.get(element) ?? ''};${rule.style.cssText}`
+        )
       }
     }
   }

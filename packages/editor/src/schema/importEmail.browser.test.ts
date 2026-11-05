@@ -635,6 +635,22 @@ describe('importEmail reads an HTML email’s buttons', () => {
     ).toEqual([buttonOf()])
   })
 
+  it('reads a class style from a sheet wrapped in an HTML comment', () => {
+    expect(
+      blocks(
+        `<style><!-- .btn { padding: 12px; background: #5f270f } --></style><p><a class="btn" href="${TICKETS}">Get tickets</a></p>`
+      )
+    ).toEqual([buttonOf()])
+  })
+
+  it('lets a link’s own style win over its class’s', () => {
+    expect(
+      blocks(
+        `<style>.btn { padding: 12px; background: #5f270f }</style><p><a class="btn" href="${TICKETS}" style="background: transparent">Get tickets</a></p>`
+      )?.some((block) => block.type === 'button')
+    ).toBe(false)
+  })
+
   it('reads no button from a class styled only for some screens', () => {
     expect(
       blocks(
