@@ -628,9 +628,10 @@ export function EditorEngine({
           // Room for the block handle at each block's start, and on a phone,
           // with no add button there, as much at the end.
           blockHandle &&
-            emphasis !== 'subtler' &&
             cn(
-              blockHandle.canAdd ? 'ps-15' : 'ps-10',
+              emphasis !== 'subtler' &&
+                (blockHandle.canAdd ? 'ps-15' : 'ps-10'),
+              // On a phone, a subtler editor's too, as the page may clip it.
               'max-sm:px-10 pointer-coarse:px-10'
             )
         )
