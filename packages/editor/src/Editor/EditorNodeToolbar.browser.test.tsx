@@ -534,11 +534,52 @@ describe('Editor email block toolbar placement', () => {
   const lines = (textbox: HTMLElement, ...texts: string[]) =>
     texts.map((text) => within(textbox).getByText(text).getBoundingClientRect())
 
-  it('sits beside columns at their top, clear of the button above and their own text', async () => {
+  it.each([1280, 390])(
+    'sits above columns at their end at %ipx, clear of their text and the button above, and clickable',
+    async (width) => {
+      await page.viewport(width, 800)
+      onTestFinished(() => page.viewport(1280, 800))
+      render(
+        <div style={{ paddingTop: 96 }}>
+          <Editor
+            aria-label={LABEL}
+            defaultValue={email(ticketButton, columns, p('Doors 7pm'))}
+          />
+        </div>
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await clickIntoEditor(within(textbox).getByText('Kazoo Hollow'))
+
+      const toolbar = await screen.findByRole('toolbar', {
+        name: 'Columns actions'
+      })
+      const node = textbox.querySelector('[data-type="columns"]')!
+      const above = textbox.querySelector('[data-type="button"]')!
+      await waitFor(() => {
+        const bar = toolbar.getBoundingClientRect()
+        const box = node.getBoundingClientRect()
+        expect(bar.bottom).toBeLessThanOrEqual(box.top)
+        expect(Math.abs(bar.right - box.right)).toBeLessThan(2)
+        for (const covered of [
+          above.getBoundingClientRect(),
+          ...lines(textbox, 'Ochre Kite', 'Kazoo Hollow')
+        ]) {
+          expect(intersects(bar, covered)).toBe(false)
+        }
+        for (const button of within(toolbar).getAllByRole('button')) {
+          const { left, top, width: w, height } = button.getBoundingClientRect()
+          const hit = document.elementFromPoint(left + w / 2, top + height / 2)
+          expect(button.contains(hit)).toBe(true)
+        }
+      })
+    }
+  )
+
+  it('sits below columns that start the content', async () => {
     render(
       <Editor
         aria-label={LABEL}
-        defaultValue={email(ticketButton, columns, p('Doors 7pm'))}
+        defaultValue={email(columns, p('Doors 7pm'))}
       />
     )
     const textbox = await screen.findByRole('textbox', { name: LABEL })
@@ -548,45 +589,11 @@ describe('Editor email block toolbar placement', () => {
       name: 'Columns actions'
     })
     const node = textbox.querySelector('[data-type="columns"]')!
-    const above = textbox.querySelector('[data-type="button"]')!
-    await waitFor(() => {
-      const bar = toolbar.getBoundingClientRect()
-      const box = node.getBoundingClientRect()
-      expect(bar.top).toBeGreaterThanOrEqual(box.top)
-      expect(bar.left).toBeGreaterThanOrEqual(box.right)
-      for (const covered of [
-        above.getBoundingClientRect(),
-        ...lines(textbox, 'Ochre Kite', 'Kazoo Hollow')
-      ]) {
-        expect(intersects(bar, covered)).toBe(false)
-      }
-    })
-  })
-
-  it('sits inside columns at their top-end corner on a phone, clear of the button above', async () => {
-    await page.viewport(390, 700)
-    onTestFinished(() => page.viewport(1280, 800))
-    render(
-      <Editor
-        aria-label={LABEL}
-        defaultValue={email(ticketButton, columns, p('Doors 7pm'))}
-      />
+    await waitFor(() =>
+      expect(toolbar.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        node.getBoundingClientRect().bottom
+      )
     )
-    const textbox = await screen.findByRole('textbox', { name: LABEL })
-    await clickIntoEditor(within(textbox).getByText('Ochre Kite'))
-
-    const toolbar = await screen.findByRole('toolbar', {
-      name: 'Columns actions'
-    })
-    const node = textbox.querySelector('[data-type="columns"]')!
-    const above = textbox.querySelector('[data-type="button"]')!
-    await waitFor(() => {
-      const bar = toolbar.getBoundingClientRect()
-      const box = node.getBoundingClientRect()
-      expect(bar.top).toBeGreaterThanOrEqual(box.top)
-      expect(bar.right).toBeLessThanOrEqual(box.right)
-      expect(intersects(bar, above.getBoundingClientRect())).toBe(false)
-    })
   })
 
   it.each([16, undefined, 64])(

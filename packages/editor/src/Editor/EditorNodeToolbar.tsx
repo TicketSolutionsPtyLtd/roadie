@@ -94,17 +94,17 @@ const virtualLine = (edge: DOMRect) => ({
   getClientRects: () => [edge]
 })
 
-// Blocks whose text a toolbar inside them would cover, so it goes beside
-// them where the frame has room.
-const BESIDE = new Set<EditorNodeType>(['spacer', 'columns'])
+// A short block whose toolbar goes beside it where the frame has room.
+const BESIDE = new Set<EditorNodeType>(['spacer'])
 
 /**
  * A line across the node's top, so the toolbar hangs inside it at the
  * top-end corner. Once the top scrolls off, or under the docked bar, the line
- * follows that edge, stopping where the toolbar would leave the node. Spacers
- * and columns put it past their end instead where the frame has room, a
- * spacer's across its middle. Below a node, the line is the toolbar's width
- * from the node's start, so the toolbar's end meets it there.
+ * follows that edge, stopping where the toolbar would leave the node. A
+ * spacer puts it past its end instead where the frame has room, across its
+ * middle. Columns put it above their end, or below where there's no room
+ * above, so it covers none of their text. Below a node, the line is the
+ * toolbar's width from the node's start, so the toolbar's end meets it there.
  */
 function insideTopEdge(editor: TiptapEditor, menu: HTMLElement | null) {
   const selected = selectedElement(editor)
@@ -114,6 +114,13 @@ function insideTopEdge(editor: TiptapEditor, menu: HTMLElement | null) {
   const width = menu?.offsetWidth ?? 0
   if (BELOW.has(selected.type)) {
     return virtualLine(new DOMRect(box.left, box.bottom + GAP, width, 0))
+  }
+  if (selected.type === 'columns') {
+    const above = box.top - GAP - height
+    const roomAbove = above >= editor.view.dom.getBoundingClientRect().top
+    return virtualLine(
+      new DOMRect(box.left, roomAbove ? above : box.bottom + GAP, box.width, 0)
+    )
   }
   const lowest = box.bottom - height - INSET
   const top =
