@@ -12,6 +12,7 @@ import { Dialog } from '@oztix/roadie-components/dialog'
 
 import { Editor } from '.'
 import type { EditorValue, JSONContent } from '../schema'
+import { MOD } from './testUtils'
 
 const LABEL = 'Newsletter'
 
@@ -321,6 +322,79 @@ describe('Editor insert menu', () => {
     await waitFor(() =>
       expect(onOpenChange).toHaveBeenCalledWith(false, expect.anything())
     )
+  })
+
+  it('closes when focus leaves the editor', async () => {
+    renderEmail()
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    await insertMenu()
+    textbox.blur()
+
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+    expect(textbox).not.toHaveAttribute('aria-controls')
+    expect(textbox).not.toHaveAttribute('aria-activedescendant')
+  })
+
+  it('undoes an inserted block back to what was typed', async () => {
+    const onValueChange = renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/div{Enter}')
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'horizontalRule' }, p())
+      )
+    )
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(email(p('/div')))
+    )
+  })
+
+  it.each(['Shift', MOD])(
+    'leaves %s+Enter to break the line, inserting nothing',
+    async (modifier) => {
+      const onValueChange = renderEmail()
+      await focusedTextbox()
+
+      await userEvent.keyboard('/div')
+      await insertMenu()
+      await userEvent.keyboard(`{${modifier}>}{Enter}{/${modifier}}`)
+
+      await waitFor(() =>
+        expect(onValueChange).toHaveBeenLastCalledWith(
+          email({
+            type: 'paragraph',
+            content: [{ type: 'text', text: '/div' }, { type: 'hardBreak' }]
+          })
+        )
+      )
+    }
+  )
+
+  it('stays under the / as a container around the editor scrolls', async () => {
+    render(
+      <div data-testid='scroller' style={{ height: 300, overflow: 'auto' }}>
+        <div style={{ height: 100 }} />
+        <Editor aria-label={LABEL} preset='email' />
+        <div style={{ height: 1000 }} />
+      </div>
+    )
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const listbox = await insertMenu()
+    const line = textbox.querySelector('p')!
+    const gap = () =>
+      listbox.getBoundingClientRect().top - line.getBoundingClientRect().bottom
+    await waitFor(() => expect(gap()).toBeGreaterThanOrEqual(0))
+    const opened = gap()
+    screen.getByTestId('scroller').scrollTop = 60
+
+    await waitFor(() => expect(gap()).toBeCloseTo(opened, 0))
   })
 
   it('inserts the option clicked, keeping focus in the text', async () => {

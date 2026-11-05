@@ -15,7 +15,7 @@ import {
   TextHTwoIcon,
   TextTIcon
 } from '@phosphor-icons/react'
-import type { JSONContent } from '@tiptap/core'
+import type { ChainedCommands, JSONContent } from '@tiptap/core'
 import type { Editor } from '@tiptap/react'
 
 import type { Preset } from '../schema'
@@ -29,8 +29,8 @@ export type EditorInsertItem = {
   icon: Icon
   /** More words it's found by, besides its label. */
   keywords?: readonly string[]
-  /** Runs at the caret, once the typed `/` and query are gone. */
-  run: (editor: Editor, ui: EditorControlUi) => void
+  /** Adds itself to the chain that removes the typed `/` and query. */
+  insert: (chain: ChainedCommands, ui: EditorControlUi) => ChainedCommands
   /** Whether it can go at the caret. */
   enabled: (editor: Editor) => boolean
   /** Offers the item only while this holds, such as with an upload handler. */
@@ -41,7 +41,7 @@ const paragraph: EditorInsertItem = {
   label: 'Paragraph',
   icon: TextTIcon,
   keywords: ['text'],
-  run: (editor) => editor.chain().focus().setParagraph().run(),
+  insert: (chain) => chain.setParagraph(),
   // On a paragraph, setParagraph has nothing to change, so it reports false.
   enabled: (editor) =>
     editor.isActive('paragraph')
@@ -59,14 +59,14 @@ const headings = HEADINGS.map(([level, icon]): EditorInsertItem => ({
   label: `Heading ${level}`,
   icon,
   keywords: ['title'],
-  run: (editor) => editor.chain().focus().setHeading({ level }).run(),
+  insert: (chain) => chain.setHeading({ level }),
   enabled: (editor) => editor.can().setHeading({ level })
 }))
 
 const bulletList: EditorInsertItem = {
   label: 'Bulleted list',
   icon: ListBulletsIcon,
-  run: (editor) => editor.chain().focus().toggleBulletList().run(),
+  insert: (chain) => chain.toggleBulletList(),
   // In its own list, the toggle would take the line out of it.
   enabled: (editor) =>
     !editor.isActive('bulletList') && editor.can().toggleBulletList()
@@ -75,7 +75,7 @@ const bulletList: EditorInsertItem = {
 const orderedList: EditorInsertItem = {
   label: 'Numbered list',
   icon: ListNumbersIcon,
-  run: (editor) => editor.chain().focus().toggleOrderedList().run(),
+  insert: (chain) => chain.toggleOrderedList(),
   enabled: (editor) =>
     !editor.isActive('orderedList') && editor.can().toggleOrderedList()
 }
@@ -90,7 +90,7 @@ function block(
     label,
     icon,
     keywords,
-    run: (editor) => editor.chain().focus().command(insertBlock(content)).run(),
+    insert: (chain) => chain.command(insertBlock(content)),
     enabled: (editor) => editor.can().command(insertBlock(content))
   }
 }
@@ -123,7 +123,10 @@ const image: EditorInsertItem = {
   label: 'Image',
   icon: ImageIcon,
   keywords: ['picture', 'photo'],
-  run: (_editor, { pickImage }) => pickImage?.(),
+  insert: (chain, { pickImage }) => {
+    pickImage?.()
+    return chain
+  },
   enabled: (editor) =>
     editor.can().command(insertBlock({ type: 'image', attrs: { src: '' } })),
   available: ({ pickImage }) => Boolean(pickImage)
@@ -143,7 +146,7 @@ const quote: EditorInsertItem = {
   label: 'Quote',
   icon: QuotesIcon,
   keywords: ['blockquote'],
-  run: (editor) => editor.chain().focus().wrapIn('blockquote').run(),
+  insert: (chain) => chain.wrapIn('blockquote'),
   enabled: (editor) =>
     !editor.isActive('blockquote') && editor.can().wrapIn('blockquote')
 }
@@ -152,7 +155,10 @@ const embed: EditorInsertItem = {
   label: 'Embed',
   icon: FilmStripIcon,
   keywords: ['video', 'audio'],
-  run: (_editor, { editEmbed }) => editEmbed(),
+  insert: (chain, { editEmbed }) => {
+    editEmbed()
+    return chain
+  },
   enabled: (editor) => editor.can().setEmbed({ provider: '', id: '' })
 }
 
