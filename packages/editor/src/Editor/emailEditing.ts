@@ -25,6 +25,8 @@ function firstTextblockOffset(node: PMNode) {
 const isEmptyLine = (node: PMNode | null) =>
   node !== null && node.isTextblock && node.content.size === 0
 
+const isTextLine = (node: PMNode) => node.type.isInGroup('block')
+
 // Puts `block` at `at`, before an emptied line, which keeps it, or with a
 // paragraph after it to type in. The caret goes into the block's first line
 // when it has one, and a text block's own text is selected.
@@ -116,7 +118,8 @@ export function insertBlockAfter(
     return places.some(({ from, to }, index) => {
       const emptied =
         index === 0 && selection.empty && isEmptyLine(doc.nodeAt(from))
-      if (emptied && block.isTextblock) {
+      // Only a text line gives way: an empty button is a block of its own.
+      if (emptied && block.isTextblock && isTextLine(doc.nodeAt(from)!)) {
         return replaceLine(props, { from, to }, block)
       }
       return placeBlock(props, emptied ? from : to, block, emptied)

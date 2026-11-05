@@ -254,6 +254,29 @@ describe('Editor blocks drawer', () => {
     }
   )
 
+  it('keeps a button with no label when a text block is picked on it', async () => {
+    const button = {
+      type: 'button',
+      attrs: { href: 'https://example.com/tickets' }
+    }
+    const onValueChange = renderEmail({
+      defaultValue: email(p('Doors 7pm'), button, p('Gates 6pm'))
+    })
+    await clickInto('Doors 7pm')
+    await userEvent.keyboard('{ArrowDown}')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Heading 3' })
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm'), heading3(), button, p('Gates 6pm'))
+      )
+    )
+  })
+
   it('opens the button’s link field on a new line after the caret’s block', async () => {
     const onValueChange = renderEmail()
     await clickInto('Doors 7pm')
