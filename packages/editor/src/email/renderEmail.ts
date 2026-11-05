@@ -72,7 +72,7 @@ export async function renderEmail(
 }
 
 // Headings keep their case, or a merge tag in one stops matching its variable.
-const HEADINGS = ['h2', 'h3', 'h4'].map((selector) => ({
+const HEADINGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map((selector) => ({
   selector,
   options: { uppercase: false }
 }))

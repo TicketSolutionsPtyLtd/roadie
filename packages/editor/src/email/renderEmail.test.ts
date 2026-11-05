@@ -1039,13 +1039,27 @@ describe('renderEmail with HTML', () => {
     )
   })
 
-  it('keeps the cells of a layout table apart in the plain text', async () => {
-    const { text: plain } = await renderEmail({
-      kind: 'html',
-      html: '<table><tr><td>Doors open 7pm</td><td>Tickets from $49</td></tr></table>'
-    })
-    expect(plain).toBe('Doors open 7pm\n\nTickets from $49')
-  })
+  it.each(['h1', 'h5', 'h6'])(
+    'keeps the case of a %s and its merge tags in the plain text',
+    async (tag) => {
+      const { text: plain } = await renderEmail({
+        kind: 'html',
+        html: `<table><tr><${tag}>Hi {{ first_name }}, #FirstName#</${tag}></tr></table>`
+      })
+      expect(plain).toBe('Hi {{ first_name }}, #FirstName#')
+    }
+  )
+
+  it.each(['td', 'th'])(
+    'keeps the %s cells of a layout table apart in the plain text',
+    async (cell) => {
+      const { text: plain } = await renderEmail({
+        kind: 'html',
+        html: `<table><tr><${cell}>Doors open 7pm</${cell}><${cell}>Tickets from $49</${cell}></tr></table>`
+      })
+      expect(plain).toBe('Doors open 7pm\n\nTickets from $49')
+    }
+  )
 
   it('refuses content of another kind', async () => {
     await expect(
