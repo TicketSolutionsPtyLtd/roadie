@@ -59,8 +59,9 @@ function useHandleHost(editor: TiptapEditor) {
   return host
 }
 
-const isRtl = (element: HTMLElement) =>
-  getComputedStyle(element).direction === 'rtl'
+// The text's, not a block's, as every grip sits in the same gutter.
+const isRtl = (editor: TiptapEditor) =>
+  getComputedStyle(editor.view.dom).direction === 'rtl'
 
 // The block on the pointer's line, read just inside the text's start edge so
 // the gutter beside it counts too.
@@ -68,7 +69,7 @@ function blockAtY(editor: TiptapEditor, clientY: number) {
   const { view } = editor
   const box = view.dom.getBoundingClientRect()
   const start = parseFloat(getComputedStyle(view.dom).paddingInlineStart) || 0
-  const left = isRtl(view.dom) ? box.right - start - 1 : box.left + start + 1
+  const left = isRtl(editor) ? box.right - start - 1 : box.left + start + 1
   const hit = view.posAtCoords({ left, top: clientY })
   if (!hit) return null
   return topBlockAt(view.state, hit.inside >= 0 ? hit.inside : hit.pos)
@@ -93,7 +94,7 @@ function inReach(
   if (!wrapper || !target.contains(wrapper)) return false
   const { left, right, top, bottom } = wrapper.getBoundingClientRect()
   const reach = HANDLE_SIZE + HANDLE_GAP
-  const [from, to] = isRtl(wrapper)
+  const [from, to] = isRtl(editor)
     ? [left, right + reach]
     : [left - reach, right]
   return clientX >= from && clientX <= to && clientY >= top && clientY <= bottom
@@ -108,7 +109,7 @@ function placeAt(editor: TiptapEditor, wrapper: HTMLElement, pos: number) {
   const line = parseFloat(getComputedStyle(dom).lineHeight) || box.height
   return {
     top: box.top - frame.top + (Math.min(line, box.height) - HANDLE_SIZE) / 2,
-    left: isRtl(dom)
+    left: isRtl(editor)
       ? box.right - frame.left + HANDLE_GAP
       : box.left - frame.left - HANDLE_SIZE - HANDLE_GAP
   }

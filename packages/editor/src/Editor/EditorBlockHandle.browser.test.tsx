@@ -365,6 +365,32 @@ describe('Editor block handle', () => {
     await expectHandleBeside('Support')
   })
 
+  it('hides once the pointer is past the gutter before a subtler editor', async () => {
+    render(
+      <div data-testid='page' className='ps-48'>
+        <Editor aria-label={LABEL} defaultValue={lineup} emphasis='subtler' />
+      </div>
+    )
+    const page = screen.getByTestId('page')
+    const row = await paragraph('Support')
+    await userEvent.hover(row)
+    await expectHandleBeside('Support')
+
+    await userEvent.hover(page, {
+      position: {
+        x:
+          row.getBoundingClientRect().left -
+          page.getBoundingClientRect().left -
+          100,
+        y: middle(row) - page.getBoundingClientRect().top
+      }
+    })
+
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Block actions' })).toBe(null)
+    )
+  })
+
   it('goes back to the caret’s block once the pointer leaves the editor', async () => {
     render(
       <div className='max-w-80'>
@@ -694,6 +720,25 @@ describe('Editor block handle', () => {
     await expectHandleBeside('Doors')
   })
 
+  it('stays on the hovered block as the pointer moves between elements', async () => {
+    renderLineup()
+    await userEvent.click(await paragraph('Doors'))
+    const support = await paragraph('Support')
+    await userEvent.hover(support)
+    await expectHandleBeside('Support')
+
+    support.dispatchEvent(
+      new MouseEvent('mouseout', {
+        bubbles: true,
+        relatedTarget: await handle()
+      })
+    )
+
+    await expect(
+      waitFor(() => expectHandleBeside('Doors'), { timeout: 300 })
+    ).rejects.toThrow()
+  })
+
   describe('right to left', () => {
     it.each(['normal', 'subtler'] as const)(
       'puts the grip after the text’s start edge on the right, in a %s editor',
@@ -726,6 +771,23 @@ describe('Editor block handle', () => {
         await expectHandleBeside('Support')
       }
     )
+    it('keeps the grip at the editor’s start edge beside a left-to-right block', async () => {
+      render(
+        <div dir='rtl'>
+          <style>{'[data-slot="editor-content"] p { direction: ltr }'}</style>
+          <Editor aria-label={LABEL} defaultValue={lineup} />
+        </div>
+      )
+      const row = await paragraph('Support')
+
+      await userEvent.hover(row)
+
+      await expectHandleBeside('Support')
+      expect(
+        (await handle()).getBoundingClientRect().left
+      ).toBeGreaterThanOrEqual(row.getBoundingClientRect().right)
+    })
+
     it('finds a narrow block on the pointer’s line', async () => {
       render(
         <div dir='rtl'>
