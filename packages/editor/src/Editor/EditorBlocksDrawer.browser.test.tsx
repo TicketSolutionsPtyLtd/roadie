@@ -94,6 +94,7 @@ describe('Editor blocks drawer', () => {
     const drawer = await openFromDockedBar()
 
     expect(tileGroups(drawer)).toEqual([
+      ['Sections', ['Header', 'Event', 'Two events']],
       [
         'Text',
         [
@@ -110,8 +111,7 @@ describe('Editor blocks drawer', () => {
         'Layout',
         ['Section', '2 columns', '3 columns', '4 columns', 'Spacer', 'Divider']
       ],
-      ['Email', ['Button']],
-      ['Sections', ['Header', 'Event', 'Two events']]
+      ['Email', ['Button']]
     ])
     for (const tile of within(drawer).getAllByRole('button')) {
       expect(tile.querySelector('svg')).not.toBe(null)
@@ -436,7 +436,7 @@ describe('Editor blocks drawer', () => {
     const drawer = await screen.findByRole('dialog', { name: 'Blocks' })
     await waitFor(() =>
       expect(
-        within(drawer).getByRole('button', { name: 'Paragraph' })
+        within(drawer).getByRole('button', { name: 'Header' })
       ).toHaveFocus()
     )
     await userEvent.keyboard('{Escape}')
@@ -452,11 +452,11 @@ describe('Editor blocks drawer', () => {
     await waitFor(() =>
       expect(
         within(screen.getByRole('dialog')).getByRole('button', {
-          name: 'Paragraph'
+          name: 'Header'
         })
       ).toHaveFocus()
     )
-    await userEvent.keyboard('{Tab}'.repeat(10))
+    await userEvent.keyboard('{Tab}'.repeat(13))
     expect(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Spacer' })
     ).toHaveFocus()
@@ -722,6 +722,57 @@ describe('Editor blocks drawer sections', () => {
     )
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     await waitFor(async () => expect(await textbox()).toHaveFocus())
+  })
+
+  it('selects the section’s first placeholder, so typing replaces it', async () => {
+    const onValueChange = renderEmail()
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Header' })
+    )
+    await waitFor(async () => expect(await textbox()).toHaveFocus())
+    await userEvent.keyboard('Ochre Kite Weekender')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          p('Doors 7pm'),
+          {
+            type: 'section',
+            content: [
+              heading(2, 'Ochre Kite Weekender'),
+              p('A line or two on what this email is about.')
+            ]
+          },
+          p('Gates 6pm')
+        )
+      )
+    )
+  })
+
+  it('puts a section after the section with the caret, not inside it', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email(
+        { type: 'section', content: [p('Doors 7pm'), p('Gates 6pm')] },
+        p('All ages')
+      )
+    })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Event' }))
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          { type: 'section', content: [p('Doors 7pm'), p('Gates 6pm')] },
+          { type: 'section', content: event },
+          p('All ages')
+        )
+      )
+    )
   })
 
   it('offers a footer linking to the unsubscribe page when the app has one', async () => {

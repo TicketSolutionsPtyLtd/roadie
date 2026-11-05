@@ -12,14 +12,19 @@ import { cn } from '@oztix/roadie-core/utils'
 import { buttonLook } from '../schema/emailAttrs'
 import { Button, Column, Columns, Section, Spacer } from '../schema/emailPreset'
 
-function firstTextblockOffset(node: PMNode) {
-  let offset: number | undefined
+function firstTextblock(node: PMNode) {
+  let found: { offset: number; size: number } | undefined
   node.descendants((child, pos) => {
-    if (offset !== undefined) return false
-    if (child.isTextblock) offset = pos
-    return offset === undefined
+    if (found) return false
+    if (child.isTextblock) found = { offset: pos, size: child.content.size }
+    return !found
   })
-  return offset
+  return found
+}
+
+function firstLineOf(block: PMNode, at: number) {
+  const line = firstTextblock(block)
+  return line && { start: at + 1 + line.offset + 1, size: line.size }
 }
 
 const isEmptyTextblock = (node: PMNode | null) =>
@@ -28,8 +33,9 @@ const isEmptyTextblock = (node: PMNode | null) =>
 const isTextLine = (node: PMNode) => node.type.isInGroup('block')
 
 // Puts `block` at `at`, before an emptied line, which keeps it, or with a
-// paragraph after it to type in. The caret goes into the block's first line
-// when it has one, and a text block's own text is selected.
+// paragraph after it to type in. The block's first line, or the block itself
+// when it's a text block, has its text selected, so typing replaces a
+// ready-made section's placeholder.
 function placeBlock(
   { tr, dispatch }: Pick<CommandProps, 'tr' | 'dispatch'>,
   at: number,
@@ -46,12 +52,14 @@ function placeBlock(
   if (!$at.parent.canReplace($at.index(), $at.index(), fragment)) return false
   if (dispatch) {
     tr.insert(at, fragment)
-    const inBlock = firstTextblockOffset(block)
-    const caret =
-      inBlock === undefined ? at + block.nodeSize + 1 : at + 1 + inBlock + 1
-    const head = block.isTextblock ? at + 1 + block.content.size : caret
-    const anchor = block.isTextblock ? at + 1 : caret
-    tr.setSelection(TextSelection.create(tr.doc, anchor, head))
+    const line = block.isTextblock
+      ? { start: at + 1, size: block.content.size }
+      : firstLineOf(block, at)
+    tr.setSelection(
+      line
+        ? TextSelection.create(tr.doc, line.start, line.start + line.size)
+        : TextSelection.create(tr.doc, at + block.nodeSize + 1)
+    )
     tr.scrollIntoView()
   }
   return true

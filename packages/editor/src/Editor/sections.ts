@@ -5,10 +5,11 @@ import {
   SquareSplitHorizontalIcon,
   TicketIcon
 } from '@phosphor-icons/react'
-import type { JSONContent } from '@tiptap/core'
+import type { CommandProps, JSONContent } from '@tiptap/core'
 
 import { type EditorVariable, linkVariables } from '../schema/variables'
-import { insertBlock } from './emailEditing'
+import { TOP_LEVEL } from './blockActions'
+import { insertBlockAfter } from './emailEditing'
 import type { EditorInsertItem } from './insertItems'
 
 const text = (value: string): JSONContent => ({ type: 'text', text: value })
@@ -36,18 +37,42 @@ const event = [
   getTickets
 ]
 
+// An emptied line goes with the query in a section or column, which would
+// otherwise keep it, as the new section lands after the whole block.
+function dropEmptiedLine({ tr }: CommandProps) {
+  const { $from, empty } = tr.selection
+  const holder = $from.node(-1)
+  const emptied =
+    empty && $from.parent.isTextblock && !$from.parent.content.size
+  if (
+    emptied &&
+    $from.depth > 1 &&
+    holder.childCount > 1 &&
+    (holder.type.name === 'section' || holder.type.name === 'column')
+  ) {
+    tr.delete($from.before(), $from.after())
+  }
+  return true
+}
+
+// Each goes after the caret's top-level block, so never inside a section.
 function section(
   label: string,
   icon: Icon,
-  content: JSONContent
+  content: JSONContent,
+  keywords?: readonly string[]
 ): EditorInsertItem {
+  const insert = insertBlockAfter(content, TOP_LEVEL)
   return {
     label,
     icon,
     group: 'Sections',
+    keywords,
     block: content,
-    insert: (chain) => chain.command(insertBlock(content)),
-    enabled: (editor) => editor.can().command(insertBlock(content))
+    containers: TOP_LEVEL,
+    insert: (chain) => chain.command(dropEmptiedLine).command(insert),
+    enabled: (_editor, afterQuery) =>
+      afterQuery().command(dropEmptiedLine).command(insert).run()
   }
 }
 
@@ -64,36 +89,46 @@ const eventSection = section('Event', TicketIcon, {
   content: event
 })
 
-const twoEvents = section('Two events', SquareSplitHorizontalIcon, {
-  type: 'columns',
-  content: [
-    { type: 'column', content: event },
-    { type: 'column', content: event }
-  ]
-})
+const twoEvents = section(
+  'Two events',
+  SquareSplitHorizontalIcon,
+  {
+    type: 'columns',
+    content: [
+      { type: 'column', content: event },
+      { type: 'column', content: event }
+    ]
+  },
+  ['lineup']
+)
 
 const footer = (unsubscribe: string) =>
-  section('Footer', AlignBottomIcon, {
-    type: 'section',
-    content: [
-      { type: 'horizontalRule' },
-      paragraph(
-        text(
-          'You’re getting this email because you signed up for news from us.'
-        )
-      ),
-      paragraph({
-        ...text('Unsubscribe'),
-        marks: [{ type: 'link', attrs: { variable: unsubscribe } }]
-      })
-    ]
-  })
+  section(
+    'Footer',
+    AlignBottomIcon,
+    {
+      type: 'section',
+      content: [
+        { type: 'horizontalRule' },
+        paragraph(
+          text(
+            'You’re getting this email because you signed up for news from us.'
+          )
+        ),
+        paragraph({
+          ...text('Unsubscribe'),
+          marks: [{ type: 'link', attrs: { variable: unsubscribe } }]
+        })
+      ]
+    },
+    ['unsubscribe']
+  )
 
 const isUnsubscribe = ({ key, label }: EditorVariable) =>
   /unsubscribe/i.test(`${key} ${label}`)
 
 /**
- * Ready-made email sections for the Blocks drawer. The footer shows only with
+ * Ready-made email sections for the Blocks drawer and `/`. The footer shows only with
  * a link variable for the unsubscribe page, as a marketing email needs one.
  */
 export function emailSections(

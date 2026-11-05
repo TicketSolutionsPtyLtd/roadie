@@ -27,7 +27,7 @@ type EditorBlocksDrawerProps = {
 
 const insertion = (item: EditorInsertItem, containers: ReadonlySet<string>) =>
   item.block
-    ? insertBlockAfter(item.block, containers)
+    ? insertBlockAfter(item.block, item.containers ?? containers)
     : openLineAfter(containers)
 
 function groupsOf(items: readonly EditorInsertItem[]) {

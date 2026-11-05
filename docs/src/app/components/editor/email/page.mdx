@@ -158,7 +158,7 @@ where it ends. Pass `toolbar='docked'` for a bar across the top.
 ### Adding blocks
 
 There are two ways to add a block. Both list the blocks under the same
-headings: Text, Media, Layout, and Email. Image shows only with
+headings: Text, Media, Layout, Email, and Sections. Image shows only with
 `onUploadImage`, and Merge tag is in the `/` menu only, with `variables`.
 
 - **Blocks** in the toolbar opens a drawer of tiles, one per block, in its
@@ -170,12 +170,14 @@ headings: Text, Media, Layout, and Email. Image shows only with
   it. A section or columns picked in a column goes after the whole row,
   since columns can't hold one. Image and Button open the file picker and
   the link field on a new line there, or on the empty line.
-- **Sections** at the end of the drawer are ready-made groups of blocks to
-  edit: Header, Event, and Two events. Their buttons have no link until you
-  set one, and send as text until then. Footer, with a line on why the
-  reader gets the email and an Unsubscribe link, shows when one of
-  `variables` is a link variable whose key or label names the unsubscribe
-  page. The `/` menu leaves sections out.
+- **Sections** lead the drawer and end the `/` menu. They're ready-made
+  groups of blocks to edit: Header, Event, and Two events, also found as
+  `/lineup`. Each goes after the top-level block with the caret, or before
+  an empty top-level line, never inside a section, with its first line's text selected, so typing replaces it.
+  Their buttons have no link until you set one, and send as text until then.
+  Footer, also found as `/unsubscribe`, with a line on why the reader gets
+  the email and an Unsubscribe link, shows when one of `variables` is a link
+  variable whose key or label names the unsubscribe page.
 - **`/`** opens the insert menu under the caret. Type to filter it. A
   heading with no matches hides, and the arrow keys step through the
   matches in the order shown, across the headings.
@@ -243,8 +245,9 @@ back to what you typed; an image, embed, or button, which arrives after its
 upload or link, takes a second. A paragraph, heading, or list turns the caret's line into
 one. Any other block goes before an empty line, or after a line with text, and a
 section or columns puts the caret in its first line. Only the blocks that fit
-at the caret are offered, so there's no section or columns inside a column, and
-only the other list type inside a list. Image is offered with `onUploadImage`.
+at the caret are offered, so there's no empty section or columns inside a
+column, and only the other list type inside a list. A ready-made section is
+offered anywhere, as it goes after the whole block. Image is offered with `onUploadImage`.
 
 ### Adding and editing merge tags
 

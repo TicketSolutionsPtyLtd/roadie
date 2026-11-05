@@ -483,10 +483,13 @@ export function EditorEngine({
     ...blocks.map(customInsertItem)
   ]
   // Read as each menu opens, as `variables` can arrive after the editor is made.
-  const insertItems = () =>
-    holdsMergeTags && textVariables(variablesRef.current).length
-      ? [...presetItems, mergeTagItem]
-      : presetItems
+  const insertItems = () => [
+    ...presetItems,
+    ...(holdsMergeTags && textVariables(variablesRef.current).length
+      ? [mergeTagItem]
+      : []),
+    ...(preset === 'email' ? emailSections(variablesRef.current) : [])
+  ]
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
@@ -741,10 +744,11 @@ export function EditorEngine({
   useEffect(() => {
     uiRef.current = ui
   })
+  // Sections lead, as the quickest way to a whole email.
   const drawerItems = blockHandle?.canAdd
     ? [
-        ...presetItems.filter((item) => item.available?.(ui) ?? true),
-        ...(preset === 'email' ? emailSections(variables) : [])
+        ...(preset === 'email' ? emailSections(variables) : []),
+        ...presetItems.filter((item) => item.available?.(ui) ?? true)
       ]
     : []
 

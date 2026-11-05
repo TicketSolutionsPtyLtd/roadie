@@ -51,6 +51,8 @@ export type EditorInsertItem = {
    * Without one, the drawer runs it on a new line there.
    */
   block?: JSONContent
+  /** The only places the drawer counts, in place of the block handle's. */
+  containers?: ReadonlySet<string>
 }
 
 const paragraph: EditorInsertItem = {
