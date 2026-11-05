@@ -138,6 +138,20 @@ describe('Editor merge tags', () => {
     expect(screen.queryByRole('listbox')).toBe(null)
   })
 
+  it('lists variables that arrive after the editor is made', async () => {
+    const props = { 'aria-label': LABEL, preset: 'email' } as const
+    const { rerender } = render(<Editor {...props} />)
+    await focusedTextbox()
+
+    rerender(<Editor {...props} variables={VARIABLES} />)
+    await userEvent.keyboard('/merge')
+    const insert = await screen.findByRole('listbox', { name: 'Insert' })
+    expect(optionNames(insert)).toEqual(['Merge tag'])
+    await userEvent.keyboard('{Enter}')
+
+    expect(optionNames(await mergeTagMenu())).toHaveLength(3)
+  })
+
   it('inserts into a button’s label', async () => {
     const onValueChange = renderEmail({
       defaultValue: email({
