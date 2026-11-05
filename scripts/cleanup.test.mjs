@@ -269,7 +269,7 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     const { status, output } = f.cleanup(['--delete'])
 
     assert.equal(status, 0, output)
-    assert.match(output, /claude-resumed \(locked again since the check\)/)
+    assert.match(output, /claude-resumed \(locked since the check\)/)
     assert.match(
       f.worktreeList(),
       new RegExp(`locked claude session y \\(pid ${process.pid}\\)`)

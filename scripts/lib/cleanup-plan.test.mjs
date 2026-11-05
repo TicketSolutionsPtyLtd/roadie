@@ -61,9 +61,10 @@ describe('parseWorktrees', () => {
 })
 
 describe('changedSinceCheck', () => {
+  // `entry('')` is a lock with no reason; `entry()` is no lock.
   const entry = (lock) =>
     parseWorktrees(
-      `worktree /w\nHEAD a\nbranch refs/heads/x${lock ? `\nlocked ${lock}` : ''}`
+      `worktree /w\nHEAD a\nbranch refs/heads/x${lock === undefined ? '' : `\nlocked${lock && ` ${lock}`}`}`
     )[0]
   const checked = entry('claude session x (pid 1)')
 
@@ -72,18 +73,26 @@ describe('changedSinceCheck', () => {
       changedSinceCheck(checked, [entry('claude session x (pid 1)')]),
       null
     )
+    assert.equal(changedSinceCheck(entry(), [entry()]), null)
   })
 
   test('says so when a resumed session locked it again', () => {
     assert.equal(
       changedSinceCheck(checked, [entry('claude session x (pid 2)')]),
-      'locked again since the check'
+      'locked since the check'
+    )
+  })
+
+  test('says so when an unlocked worktree was locked with no reason', () => {
+    assert.equal(
+      changedSinceCheck(entry(), [entry('')]),
+      'locked since the check'
     )
   })
 
   test('says so when someone unlocked or removed it meanwhile', () => {
     assert.equal(
-      changedSinceCheck(checked, [entry(null)]),
+      changedSinceCheck(checked, [entry()]),
       'lock changed since the check'
     )
     assert.equal(changedSinceCheck(checked, []), 'gone since the check')

@@ -36,10 +36,9 @@ function lockPid(reason) {
 export function changedSinceCheck(checked, current) {
   const now = current.find((tree) => tree.path === checked.path)
   if (!now) return 'gone since the check'
-  if (now.lockReason === checked.lockReason) return null
-  return now.locked
-    ? 'locked again since the check'
-    : 'lock changed since the check'
+  if (now.locked === checked.locked && now.lockReason === checked.lockReason)
+    return null
+  return now.locked ? 'locked since the check' : 'lock changed since the check'
 }
 
 export function isStaleLock(tree, isRunning) {
