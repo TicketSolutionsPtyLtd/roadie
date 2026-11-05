@@ -15,7 +15,7 @@ import {
   TextHTwoIcon,
   TextTIcon
 } from '@phosphor-icons/react'
-import type { ChainedCommands, JSONContent } from '@tiptap/core'
+import type { ChainedCommands, JSONContent, Range } from '@tiptap/core'
 import type { Editor } from '@tiptap/react'
 
 import type { Preset } from '../schema'
@@ -31,8 +31,12 @@ export type EditorInsertItem = {
   keywords?: readonly string[]
   /** Adds itself to the chain that removes the typed `/` and query. */
   insert: (chain: ChainedCommands, ui: EditorControlUi) => ChainedCommands
-  /** Whether it can go at the caret. */
-  enabled: (editor: Editor) => boolean
+  /**
+   * Whether it can go at the caret. `afterQuery` starts a chain, never
+   * dispatched, from once the typed `/` and query are gone, for a block whose
+   * place depends on whether the line is empty.
+   */
+  enabled: (editor: Editor, afterQuery: () => ChainedCommands) => boolean
   /** Offers the item only while this holds, such as with an upload handler. */
   available?: (ui: EditorControlUi) => boolean
 }
@@ -91,7 +95,8 @@ function block(
     icon,
     keywords,
     insert: (chain) => chain.command(insertBlock(content)),
-    enabled: (editor) => editor.can().command(insertBlock(content))
+    enabled: (_editor, afterQuery) =>
+      afterQuery().command(insertBlock(content)).run()
   }
 }
 
@@ -127,8 +132,10 @@ const image: EditorInsertItem = {
     pickImage?.()
     return chain
   },
-  enabled: (editor) =>
-    editor.can().command(insertBlock({ type: 'image', attrs: { src: '' } })),
+  enabled: (_editor, afterQuery) =>
+    afterQuery()
+      .command(insertBlock({ type: 'image', attrs: { src: '' } }))
+      .run(),
   available: ({ pickImage }) => Boolean(pickImage)
 }
 
@@ -202,16 +209,28 @@ export const presetInsertItems: Partial<
   ]
 }
 
-/** The items matching `query` that can go at the caret. */
+/** The items matching `query` that can go in place of the typed `range`. */
 export function matchingInsertItems(
   items: readonly EditorInsertItem[],
   query: string,
+  range: Range,
   editor: Editor,
   ui: EditorControlUi
 ) {
   const words = query.toLowerCase().trim().split(/\s+/)
+  // `can()` changes nothing as it checks, so the query would still be there.
+  const afterQuery = () =>
+    editor
+      .chain()
+      .command(({ tr }) => {
+        tr.setMeta('preventDispatch', true)
+        return true
+      })
+      .deleteRange(range)
   return items.filter((item) => {
-    if (!(item.available?.(ui) ?? true) || !item.enabled(editor)) return false
+    if (!(item.available?.(ui) ?? true) || !item.enabled(editor, afterQuery)) {
+      return false
+    }
     const names = [item.label, ...(item.keywords ?? [])].join(' ').toLowerCase()
     return words.every((word) => names.includes(word))
   })

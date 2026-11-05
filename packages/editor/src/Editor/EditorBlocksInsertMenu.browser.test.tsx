@@ -168,6 +168,42 @@ describe('Editor insert menu in the blocks preset', () => {
     expect(names).not.toContain('Bulleted list')
   })
 
+  // A list item starts with a paragraph, so a block can't go before its
+  // emptied first line.
+  it('offers no table or divider on a list item’s empty first line', async () => {
+    renderBlocks()
+    await focusedTextbox()
+
+    await userEvent.keyboard('- Doors{Enter}/')
+
+    const names = optionNames(await insertMenu())
+    expect(names).not.toContain('Table')
+    expect(names).not.toContain('Divider')
+  })
+
+  it('inserts a table after a list item’s line with text', async () => {
+    const onValueChange = renderBlocks()
+    await focusedTextbox()
+
+    await userEvent.keyboard('- Doors /table{Enter}')
+
+    await waitFor(() =>
+      expect(lastBlocks(onValueChange)[0]).toMatchObject({
+        type: 'bulletList',
+        content: [
+          {
+            type: 'listItem',
+            content: [
+              { type: 'paragraph', content: [text('Doors ')] },
+              { type: 'table' },
+              { type: 'paragraph' }
+            ]
+          }
+        ]
+      })
+    )
+  })
+
   it('opens the Embed popover from Embed', async () => {
     renderBlocks()
     await focusedTextbox()

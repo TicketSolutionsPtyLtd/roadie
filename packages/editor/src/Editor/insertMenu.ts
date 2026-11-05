@@ -1,4 +1,4 @@
-import { Extension } from '@tiptap/core'
+import { Extension, type Range } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
 import { PluginKey } from '@tiptap/pm/state'
 import {
@@ -28,7 +28,9 @@ export type InsertMenuOptions = {
 
 type Props = SuggestionProps<EditorInsertItem, EditorInsertItem>
 
-const insertMenuKey = new PluginKey('insertMenu')
+const insertMenuKey = new PluginKey<{ active: boolean; range: Range }>(
+  'insertMenu'
+)
 
 /** Opens the insert menu on `/`, filtering its items by what follows. */
 export const InsertMenu = Extension.create<InsertMenuOptions>({
@@ -88,8 +90,10 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
         // A button's label is plain text, so `/` there is only a character.
         allow: ({ state, range }) =>
           state.doc.resolve(range.from).parent.type.name !== 'button',
-        items: ({ query, editor }) =>
-          matchingInsertItems(items, query, editor, ui()),
+        items: ({ query, editor }) => {
+          const { range } = insertMenuKey.getState(editor.state)!
+          return matchingInsertItems(items, query, range, editor, ui())
+        },
         command: ({ editor, range, props: item }) => {
           // One undo step of its own, so undo returns to what was typed.
           const chain = editor
