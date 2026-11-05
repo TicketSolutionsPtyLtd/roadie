@@ -419,6 +419,45 @@ describe('Floating toolbar keys', () => {
     )
   })
 
+  it('moves focus to the table actions with Alt+F10 at a caret in a cell, not opening the toolbar', async () => {
+    const cell = (text: string) => ({
+      type: 'tableCell',
+      content: [paragraph(text)]
+    })
+    render(
+      <Page
+        toolbar='floating'
+        defaultValue={{
+          version: 1,
+          preset: 'rich',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'table',
+                content: [
+                  { type: 'tableRow', content: [cell('9pm'), cell(TEXT)] }
+                ]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('9pm'))
+    const actions = await screen.findByRole('toolbar', {
+      name: 'Table actions'
+    })
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+
+    await waitFor(() =>
+      expect(within(actions).getByRole('button', { name: 'Row' })).toHaveFocus()
+    )
+    expect(screen.queryByRole('toolbar', { name: FLOATING })).toBe(null)
+  })
+
   it('keeps the toolbar opened at the caret while its Block type menu is open', async () => {
     const onValueChange = vi.fn()
     render(<Page toolbar='floating' onValueChange={onValueChange} />)

@@ -139,6 +139,38 @@ describe('Editor emphasis', () => {
     await waitFor(() => expect(tint(first!)).toBe('none'))
   })
 
+  it('moves the tint after a press that ends in a drag, which fires no mouseup', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          ...description,
+          doc: {
+            type: 'doc',
+            content: [
+              description.doc.content![0]!,
+              {
+                type: 'paragraph',
+                content: [{ type: 'text', text: 'All ages' }]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    const textbox = await loadedTextbox()
+    const [first, second] = [...textbox.children] as HTMLElement[]
+    await userEvent.click(screen.getByText('All ages'))
+    await waitFor(() => expect(second).toHaveAttribute('data-focused-block'))
+
+    second!.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+    second!.dispatchEvent(new DragEvent('dragend', { bubbles: true }))
+    await userEvent.keyboard('{ArrowUp}')
+
+    await waitFor(() => expect(first).toHaveAttribute('data-focused-block'))
+    expect(second).not.toHaveAttribute('data-focused-block')
+  })
+
   it('marks the inner block of a layout, not the whole section', async () => {
     render(
       <Editor
