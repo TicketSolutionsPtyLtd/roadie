@@ -2,9 +2,21 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, rmSync } from 'node:fs'
 import { join, sep } from 'node:path'
 
+import {
+  mergedHead,
+  parseWorktrees,
+  planBranches
+} from './lib/cleanup-plan.mjs'
 import { freeDiskGb, repoRoot, run, warnIfLowDisk } from './lib/machine.mjs'
 
-const remove = process.argv.includes('--delete')
+const argv = process.argv.slice(2)
+const remove = argv.includes('--delete')
+const branchFlag = argv.indexOf('--branch')
+const onlyBranch = branchFlag === -1 ? undefined : argv[branchFlag + 1]
+if (branchFlag !== -1 && (!onlyBranch || onlyBranch.startsWith('--'))) {
+  console.error('--branch needs a branch name, like --branch claude/my-fix.')
+  process.exit(1)
+}
 const verb = remove ? 'Removed' : 'Would remove'
 let reclaimedKb = 0
 
@@ -26,24 +38,27 @@ function processCwds() {
 }
 
 function worktrees() {
-  return run('git', ['worktree', 'list', '--porcelain'], { cwd: repoRoot })
-    .split('\n\n')
-    .map((block) => {
-      const fields = Object.fromEntries(
-        block.split('\n').map((line) => {
-          const [key, ...rest] = line.split(' ')
-          return [key, rest.join(' ') || true]
-        })
-      )
-      return {
-        path: fields.worktree,
-        head: fields.HEAD,
-        branch:
-          typeof fields.branch === 'string'
-            ? fields.branch.replace('refs/heads/', '')
-            : null,
-        locked: Boolean(fields.locked)
-      }
+  return parseWorktrees(
+    run('git', ['worktree', 'list', '--porcelain'], { cwd: repoRoot })
+  )
+}
+
+function localBranches() {
+  return run(
+    'git',
+    [
+      'for-each-ref',
+      '--sort=committerdate',
+      '--format=%(refname:short) %(objectname) %(committerdate:short)',
+      'refs/heads'
+    ],
+    { cwd: repoRoot }
+  )
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => {
+      const [name, tip, date] = line.split(' ')
+      return { name, tip, date }
     })
 }
 
@@ -58,7 +73,7 @@ function mergedPullRequests() {
           '--state',
           'merged',
           '--limit',
-          '500',
+          '1000',
           '--json',
           'headRefName,headRefOid'
         ],
@@ -117,10 +132,8 @@ function keepReason(tree) {
   if (here === tree.path || here.startsWith(tree.path + sep))
     return 'current directory'
   if (inUse(tree.path)) return 'a process is running in it'
-  const isMerged = merged.some(
-    (pr) =>
-      pr.headRefName === tree.branch &&
-      isAncestor(tree.head, pr.headRefOid, tree.path)
+  const isMerged = mergedHead(tree.branch, tree.head, merged, (commit, of) =>
+    isAncestor(commit, of, tree.path)
   )
   if (!isMerged) return 'not merged'
   const status = run('git', ['status', '--porcelain', '--ignored'], {
@@ -141,11 +154,16 @@ const cwds = processCwds()
 const inUse = (dir) =>
   cwds.some((cwd) => cwd === dir || cwd.startsWith(dir + sep))
 const sessionPrefix = process.env.ROADIE_BRANCH_PREFIX
-const [mainCheckout, ...allLinked] = worktrees()
-const linked = sessionPrefix
-  ? allLinked.filter((tree) => tree.branch?.startsWith(sessionPrefix))
-  : allLinked
-const cacheOwners = sessionPrefix ? linked : [mainCheckout, ...linked]
+const [mainCheckout, ...registered] = worktrees()
+const prunable = registered.filter((tree) => tree.prunable)
+const allLinked = registered.filter((tree) => !tree.prunable)
+const linked = allLinked.filter(
+  (tree) =>
+    (!sessionPrefix || tree.branch?.startsWith(sessionPrefix)) &&
+    (!onlyBranch || tree.branch === onlyBranch)
+)
+const cacheOwners =
+  sessionPrefix || onlyBranch ? linked : [mainCheckout, ...linked]
 const here = process.cwd()
 const merged = mergedPullRequests()
 const keepReasons = new Map(linked.map((tree) => [tree, keepReason(tree)]))
@@ -190,15 +208,60 @@ for (const tree of linked) {
   console.log(`  ${verb} ${tree.path} [${tree.branch}] (${formatKb(kb)})`)
 }
 
-console.log('\npnpm store')
-if (remove) {
-  execFileSync('pnpm', ['store', 'prune'], { cwd: repoRoot, stdio: 'inherit' })
-  console.log('  Pruned unreferenced packages')
-} else {
-  console.log('  Would run pnpm store prune')
+if (!onlyBranch) {
+  console.log('\nWorktree entries whose folder is gone')
+  for (const tree of prunable) console.log(`  ${verb} ${tree.path}`)
+  if (remove && prunable.length)
+    run('git', ['worktree', 'prune'], { cwd: repoRoot })
 }
 
-console.log(
-  `\n${verb} ${formatKb(reclaimedKb)}, plus what the store prune frees.`
+const checkedOut = new Set(
+  [mainCheckout, ...allLinked]
+    .filter((tree) => tree.branch && !removable.has(tree.path))
+    .map((tree) => tree.branch)
 )
+const branches = localBranches()
+const lastCommit = new Map(branches.map(({ name, date }) => [name, date]))
+const branchPlan = planBranches({
+  branches,
+  checkedOut,
+  merged,
+  isAncestor: (commit, of) => isAncestor(commit, of, repoRoot),
+  only: onlyBranch,
+  prefix: sessionPrefix
+})
+
+console.log('\nLocal branches whose merged PR holds every commit')
+for (const name of branchPlan.remove) {
+  if (remove) run('git', ['branch', '-D', name], { cwd: repoRoot })
+  console.log(`  ${verb} ${name}`)
+}
+
+// Never deleted: these may hold work. They're listed oldest first so a person
+// can decide, and the helper branches a session forgot are easy to spot.
+for (const reason of ['commits after its PR merged', 'no merged PR']) {
+  const names = branchPlan.kept
+    .filter((branch) => branch.reason === reason)
+    .map((branch) => branch.name)
+  if (!names.length) continue
+  const noun = names.length === 1 ? 'branch' : 'branches'
+  console.log(`\nKept: ${names.length} local ${noun} with ${reason}`)
+  for (const name of names) console.log(`  ${lastCommit.get(name)}  ${name}`)
+}
+
+if (!onlyBranch) {
+  console.log('\npnpm store')
+  if (remove) {
+    execFileSync('pnpm', ['store', 'prune'], {
+      cwd: repoRoot,
+      stdio: 'inherit'
+    })
+    console.log('  Pruned unreferenced packages')
+  } else {
+    console.log('  Would run pnpm store prune')
+  }
+}
+
+const storeNote = onlyBranch ? '' : ', plus what the store prune frees'
+console.log(`\n${verb} ${formatKb(reclaimedKb)}${storeNote}.`)
 if (!remove) console.log('Run `pnpm cleanup --delete` to delete.')
