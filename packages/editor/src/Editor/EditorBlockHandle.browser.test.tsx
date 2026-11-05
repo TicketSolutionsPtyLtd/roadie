@@ -319,21 +319,24 @@ describe('Editor block handle', () => {
     )
   })
 
-  it('deletes the block with Delete while its menu is open', async () => {
-    const onValueChange = renderLineup()
-    const menu = await openMenuOn('Support')
-    await waitFor(() => expect(menu).toBeVisible())
+  it.each(['Delete', 'Backspace'])(
+    'deletes the block with %s while its menu is open',
+    async (key) => {
+      const onValueChange = renderLineup()
+      const menu = await openMenuOn('Support')
+      await waitFor(() => expect(menu).toBeVisible())
 
-    await userEvent.keyboard('{Delete}')
+      await userEvent.keyboard(`{${key}}`)
 
-    await waitFor(() =>
-      expect(order(onValueChange).map(([id]) => id)).toEqual([
-        'doors',
-        'headliner'
-      ])
-    )
-    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
-  })
+      await waitFor(() =>
+        expect(order(onValueChange).map(([id]) => id)).toEqual([
+          'doors',
+          'headliner'
+        ])
+      )
+      await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+    }
+  )
 
   it('shows each action’s keys in the menu', async () => {
     renderLineup()
