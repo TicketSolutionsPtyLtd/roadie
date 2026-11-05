@@ -273,6 +273,18 @@ describe('renderEmail', () => {
       expect(html).toContain('Go &lt;b&gt;')
     })
 
+    it('writes an ordered list’s start and type only when valid', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'orderedList',
+          attrs: { start: '2"><script>x</script>', type: '"><script>x' },
+          content: [{ type: 'listItem', content: [p(text('Food trucks'))] }]
+        })
+      )
+      expect(html).not.toContain('<script>')
+      expect(html).toContain('<ol style=')
+    })
+
     it('drops a node the email preset doesn’t hold, keeping its text', async () => {
       const { html, text: plain } = await renderEmail(
         email(
