@@ -36,6 +36,7 @@ import {
   readPageMetadata
 } from '../src/lib/page-manifest.ts'
 import {
+  CHANGELOG_ROUTE,
   changesOf,
   getPageRelease,
   getPageUpdatedDates,
@@ -43,6 +44,7 @@ import {
   getReleaseViews,
   releaseHistoryMarkdown,
   releaseMarkdown,
+  releaseRoutes,
   statusSentence
 } from '../src/lib/releases.ts'
 import {
@@ -284,6 +286,15 @@ for (const release of getReleaseViews()) {
     recursive: true
   })
   await writeFile(path.join(outDir, `${release.href}.md`), md)
+}
+
+// Agents were given each release's package-named copy before releases took their dates.
+for (const { slug, movedTo } of releaseRoutes(getReleaseViews())) {
+  if (!movedTo) continue
+  await writeFile(
+    path.join(outDir, CHANGELOG_ROUTE, `${slug}.md`),
+    `This release moved to [its own page](${resolveLink(movedTo)}).\n`
+  )
 }
 
 async function link(route: string): Promise<LlmsLink> {
