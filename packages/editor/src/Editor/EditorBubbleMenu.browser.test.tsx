@@ -1,5 +1,13 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Toolbar } from '@oztix/roadie-components/toolbar'
@@ -7,7 +15,8 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 import { Editor, type EditorProps } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
-import { LINE_END, MOD, selectParagraph } from './testUtils'
+import { RESIZE_DELAY } from './EditorBubbleMenuEngine'
+import { LINE_END, MOD, clickIntoEditor, selectParagraph } from './testUtils'
 
 const LABEL = 'Event description'
 const MENU = 'Selection formatting'
@@ -20,6 +29,7 @@ beforeAll(() => {
   document.head.append(style)
 })
 afterAll(() => style.remove())
+afterEach(() => window.scrollTo(0, 0))
 
 const paragraph = (text: string) => ({
   type: 'paragraph',
@@ -92,6 +102,44 @@ const noMenu = () =>
       null
     )
   )
+
+/**
+ * Resolves once the menu has placed itself for the scroll, as timers of equal
+ * delay run in the order they're set.
+ */
+async function scrollPageBy(y: number) {
+  const placed = new Promise<void>((resolve) =>
+    window.addEventListener(
+      'scroll',
+      // Ordered after the plugin's own timer, not a guessed wait.
+      // eslint-disable-next-line roadie/no-fixed-sleep
+      () => setTimeout(resolve, RESIZE_DELAY),
+      { once: true }
+    )
+  )
+  window.scrollBy(0, y)
+  await placed
+  await new Promise(requestAnimationFrame)
+}
+
+/**
+ * Selects the last two characters of a table cell's text. A double or triple
+ * click in a cell selects the cell, so the keys select the text.
+ */
+async function selectInCell(text: string) {
+  const textbox = await screen.findByRole('textbox', { name: LABEL })
+  const element = within(textbox).getByText(text)
+  await clickIntoEditor(element)
+  const actions = await screen.findByRole('toolbar', { name: 'Table actions' })
+  await userEvent.keyboard(`${LINE_END}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}`)
+  return { text: element, actions, bubble: await menu() }
+}
+
+function overlaps(a: DOMRect, b: DOMRect) {
+  return (
+    a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+  )
+}
 
 const itemsOf = (toolbar: HTMLElement) =>
   within(toolbar)
@@ -366,6 +414,58 @@ describe('Editor.BubbleMenu', () => {
         a.top < b.bottom &&
         b.top < a.bottom
       expect(overlaps).toBe(false)
+    }
+  )
+
+  it('goes below text in a table with room above it for itself but not its offset', async () => {
+    render(<BubbleEditor defaultValue={withTable} />)
+    const { text, actions, bubble } = await selectInCell('9pm')
+    await waitFor(() =>
+      expect(bubble.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        text.getBoundingClientRect().top
+      )
+    )
+
+    const room =
+      text.getBoundingClientRect().top - actions.getBoundingClientRect().bottom
+    // Grown to leave half its offset, as a taller menu would.
+    bubble.style.minHeight = `${room - 4}px`
+
+    await waitFor(() =>
+      expect(bubble.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        text.getBoundingClientRect().bottom
+      )
+    )
+    expect(
+      overlaps(bubble.getBoundingClientRect(), actions.getBoundingClientRect())
+    ).toBe(false)
+  })
+
+  it.each<[string, Partial<EditorProps>]>([
+    ['below the table from the start', { emphasis: 'subtler', size: 'sm' }],
+    ['moving below the table on the scroll', {}]
+  ])(
+    'stays clear of table actions %s, with the selection at the top of the page',
+    async (_, props) => {
+      render(
+        <>
+          <BubbleEditor defaultValue={withTable} {...props} />
+          <div style={{ height: '200vh' }} />
+        </>
+      )
+      const { text, actions, bubble } = await selectInCell('9pm')
+
+      await scrollPageBy(text.getBoundingClientRect().top - 4)
+
+      expect(actions.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        text.getBoundingClientRect().bottom
+      )
+      expect(
+        overlaps(
+          bubble.getBoundingClientRect(),
+          actions.getBoundingClientRect()
+        )
+      ).toBe(false)
     }
   )
 

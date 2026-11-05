@@ -26,19 +26,42 @@ function selectsText({ selection, doc }: EditorState) {
   return doc.textBetween(selection.from, selection.to).length > 0
 }
 
+const OFFSET = 8
 /**
- * Table actions sit above the table, or below it when there's no room. The
- * menu sits above the selection, so it flips below when they're above it.
+ * After a scroll or resize, placed once the table actions have taken their
+ * default 60ms to move, as it reads where they are.
  */
-function clearOfTableActions(editor: TiptapEditor, selectionTop: number) {
+export const RESIZE_DELAY = 80
+
+const between = (top: number, bottom: number) => ({
+  boundary: { x: 0, y: top, width: window.innerWidth, height: bottom - top }
+})
+
+/**
+ * Table actions sit above the table, or below it when there's no room, so the
+ * menu flips only within the side of the selection away from them. The plugin
+ * offsets the menu after it flips, so the bounds allow for that.
+ */
+function clearOfTableActions(
+  editor: TiptapEditor,
+  selection: { top: number; bottom: number }
+) {
   const actions = editor.view.dom.parentElement?.querySelector(
     '[data-slot="editor-table-toolbar"]'
   )
   if (!actions) return {}
-  const { bottom } = actions.getBoundingClientRect()
-  if (bottom > selectionTop) return {}
-  const height = window.innerHeight - bottom
-  return { boundary: { x: 0, y: bottom, width: window.innerWidth, height } }
+  const box = actions.getBoundingClientRect()
+  if (box.bottom <= selection.top) {
+    return between(box.bottom + OFFSET, window.innerHeight)
+  }
+  if (box.top >= selection.bottom) {
+    // With no room either side, off the top of the page, not over them.
+    return {
+      ...between(0, box.top - OFFSET),
+      fallbackStrategy: 'initialPlacement' as const
+    }
+  }
+  return {}
 }
 
 export function EditorBubbleMenuEngine(props: EditorBubbleMenuProps) {
@@ -110,15 +133,16 @@ function SelectionMenu({
     <BubbleMenu
       editor={editor}
       pluginKey={PLUGIN_KEY}
+      resizeDelay={RESIZE_DELAY}
       shouldShow={shouldShow}
       ref={menuRef}
       options={{
         placement: 'top',
-        offset: 8,
+        offset: OFFSET,
         flip: ({ elements }) =>
           clearOfTableActions(
             editor,
-            elements.reference.getBoundingClientRect().top
+            elements.reference.getBoundingClientRect()
           ),
         // The plugin makes its element a tab stop; the toolbar inside is the one.
         onShow: () => {
