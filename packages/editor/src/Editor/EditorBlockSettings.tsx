@@ -171,6 +171,13 @@ export function EditorBlockSettings({
   const bodyRef = useRef<HTMLDivElement>(null)
   const selection = useEditorState({ editor, selector: selectedNode })
   const block = selection && blocks[selection.node.type.name]
+  const from = open && block ? selection.from : null
+  // In view beside the drawer, so its changes show as they're made.
+  useEffect(() => {
+    if (from === null || !editor) return
+    const dom = editor.view.nodeDOM(from)
+    if (dom instanceof HTMLElement) dom.scrollIntoView({ block: 'nearest' })
+  }, [editor, from])
   const lost = open && !block
   // Its block went, such as with a new value, so it mustn't reopen on the next.
   useEffect(() => {
