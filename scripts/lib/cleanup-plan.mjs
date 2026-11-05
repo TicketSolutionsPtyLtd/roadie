@@ -35,6 +35,7 @@ export function planBranches({
   checkedOut,
   merged,
   isAncestor,
+  hasCommit,
   only,
   prefix
 }) {
@@ -44,14 +45,16 @@ export function planBranches({
     if (name === 'main') continue
     if (only && name !== only) continue
     if (prefix && !name.startsWith(prefix)) continue
-    const hasMergedPr = merged.some((pr) => pr.headRefName === name)
+    const prs = merged.filter((pr) => pr.headRefName === name)
     const reason = checkedOut.has(name)
       ? 'checked out'
-      : !hasMergedPr
+      : !prs.length
         ? 'no merged PR'
-        : !mergedHead(name, tip, merged, isAncestor)
-          ? 'commits after its PR merged'
-          : null
+        : mergedHead(name, tip, merged, isAncestor)
+          ? null
+          : prs.some((pr) => !hasCommit(pr.headRefOid))
+            ? 'a merged PR head not fetched'
+            : 'commits its merged PR lacks'
     if (reason) kept.push({ name, reason })
     else remove.push(name)
   }

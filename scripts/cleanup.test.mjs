@@ -64,11 +64,8 @@ function fixture() {
       git(path, 'add', '-A')
       git(path, 'commit', '-qm', file)
     },
-    merge(branch) {
-      prs.push({
-        headRefName: branch,
-        headRefOid: git(repo, 'rev-parse', branch)
-      })
+    merge(branch, headRefOid = git(repo, 'rev-parse', branch)) {
+      prs.push({ headRefName: branch, headRefOid })
     },
     cleanup(args, env = {}) {
       const result = spawnSync(
@@ -143,7 +140,25 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     ])
 
     assert.equal(status, 0, output)
+    assert.match(output, /with commits its merged PR lacks\n.*claude\/later/)
     assert.deepEqual(f.branches(), ['claude/later', 'main'])
+  })
+
+  test('keeps a branch whose merged PR head was never fetched', () => {
+    const f = fixture()
+    const path = f.worktree('claude/updated')
+    f.merge('claude/updated', 'f'.repeat(40))
+    rmSync(path, { recursive: true })
+
+    const { status, output } = f.cleanup([
+      '--delete',
+      '--branch',
+      'claude/updated'
+    ])
+
+    assert.equal(status, 0, output)
+    assert.match(output, /with a merged PR head not fetched\n.*claude\/updated/)
+    assert.deepEqual(f.branches(), ['claude/updated', 'main'])
   })
 
   test('with --branch, removes a merged branch whose worktree folder is gone', () => {

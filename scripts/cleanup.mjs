@@ -111,6 +111,18 @@ function isAncestor(commit, of, cwd) {
   }
 }
 
+function hasCommit(commit) {
+  try {
+    run('git', ['cat-file', '-e', `${commit}^{commit}`], {
+      cwd: repoRoot,
+      stdio: 'ignore'
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
 const buildOutputNames = new Set([
   'node_modules',
   '.next',
@@ -236,6 +248,7 @@ const branchPlan = planBranches({
   checkedOut,
   merged,
   isAncestor: (commit, of) => isAncestor(commit, of, repoRoot),
+  hasCommit,
   only: onlyBranch,
   prefix: sessionPrefix
 })
@@ -248,7 +261,11 @@ for (const name of branchPlan.remove) {
 
 // Never deleted: these may hold work. They're listed oldest first so a person
 // can decide, and the helper branches a session forgot are easy to spot.
-for (const reason of ['commits after its PR merged', 'no merged PR']) {
+for (const reason of [
+  'commits its merged PR lacks',
+  'a merged PR head not fetched',
+  'no merged PR'
+]) {
   const names = branchPlan.kept
     .filter((branch) => branch.reason === reason)
     .map((branch) => branch.name)

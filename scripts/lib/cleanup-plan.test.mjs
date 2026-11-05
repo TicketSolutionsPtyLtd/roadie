@@ -18,7 +18,9 @@ describe('parseWorktrees', () => {
       'worktree /repo-gone',
       'HEAD ccc',
       'detached',
-      'prunable gitdir file points to non-existent location'
+      'prunable gitdir file points to non-existent location',
+      '',
+      ''
     ].join('\n')
 
     assert.deepEqual(parseWorktrees(porcelain), [
@@ -61,6 +63,7 @@ function plan(branches, options = {}) {
     checkedOut: new Set(),
     merged,
     isAncestor,
+    hasCommit: () => true,
     ...options
   })
 }
@@ -71,11 +74,30 @@ describe('planBranches', () => {
     assert.deepEqual(remove, ['claude/done'])
   })
 
-  test('keeps a branch with commits after its PR merged', () => {
+  test('keeps a branch with commits its merged PR lacks', () => {
     const { remove, kept } = plan([{ name: 'claude/done', tip: 'later' }])
     assert.deepEqual(remove, [])
     assert.deepEqual(kept, [
-      { name: 'claude/done', reason: 'commits after its PR merged' }
+      { name: 'claude/done', reason: 'commits its merged PR lacks' }
+    ])
+  })
+
+  test('says when it cannot tell because the PR head is not fetched', () => {
+    const { remove, kept } = plan([{ name: 'claude/done', tip: 'done-tip' }], {
+      isAncestor: () => false,
+      hasCommit: (commit) => commit !== 'm1'
+    })
+    assert.deepEqual(remove, [])
+    assert.deepEqual(kept, [
+      { name: 'claude/done', reason: 'a merged PR head not fetched' }
+    ])
+  })
+
+  test('only counts a merged PR from the same branch', () => {
+    const { remove, kept } = plan([{ name: 'claude/redone', tip: 'done-tip' }])
+    assert.deepEqual(remove, [])
+    assert.deepEqual(kept, [
+      { name: 'claude/redone', reason: 'commits its merged PR lacks' }
     ])
   })
 
