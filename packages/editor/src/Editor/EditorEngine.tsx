@@ -294,13 +294,7 @@ function presetKeepsBlockIds(preset: Preset) {
 }
 
 function currentValue(editor: TiptapEditor, preset: Preset): EditorValue {
-  const doc = savedDoc(editor.getJSON())
-  // The field holds what's typed, spaces and all; the value holds the line.
-  const preheader = preheaderOf(doc.attrs?.preheader)
-  if (preheader) doc.attrs = { ...doc.attrs, preheader }
-  else if (doc.attrs) delete doc.attrs.preheader
-  if (doc.attrs && Object.keys(doc.attrs).length === 0) delete doc.attrs
-  return { version: CURRENT_VERSION, preset, doc }
+  return { version: CURRENT_VERSION, preset, doc: savedDoc(editor.getJSON()) }
 }
 
 function holdsDoc(
@@ -319,6 +313,13 @@ function holdsDoc(
 // none, as it did before rules.
 function savedDoc(json: JSONContent): JSONContent {
   const saved = { ...json }
+  // The field holds what's typed, spaces and all; the value holds the line.
+  if (saved.attrs && Object.hasOwn(saved.attrs, 'preheader')) {
+    saved.attrs = {
+      ...saved.attrs,
+      preheader: preheaderOf(saved.attrs.preheader)
+    }
+  }
   if (saved.attrs && Object.values(saved.attrs).every((v) => v === undefined)) {
     delete saved.attrs
   }

@@ -107,6 +107,22 @@ describe('Editor preheader', () => {
     })
   })
 
+  it('submits the line a form sends, as onValueChange does', async () => {
+    render(
+      <form aria-label='Email'>
+        <Editor aria-label={LABEL} defaultValue={email()} name='design' />
+      </form>
+    )
+
+    await userEvent.type(await previewText(), '  Two weeks  ')
+
+    const form = screen.getByRole('form', { name: 'Email' })
+    const submitted = JSON.parse(
+      String(new FormData(form as HTMLFormElement).get('design'))
+    ) as EditorValue
+    expect(submitted.doc.attrs).toEqual({ preheader: 'Two weeks' })
+  })
+
   it('saves none once it’s cleared', async () => {
     const onValueChange = renderEmail({ defaultValue: email('Two weeks') })
     const input = await previewText()
