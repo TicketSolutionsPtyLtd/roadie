@@ -19,10 +19,15 @@ import { EDITOR_TOOLBAR_SIZE } from './variants'
 const PLUGIN_KEY = 'editorBubbleMenu'
 
 /** Whether the selection is text the menu's marks can format. */
-function selectsText({ selection, doc }: EditorState) {
+function selectsText({ selection, doc, schema }: EditorState) {
   // A Mod-click selects the block, which has its own text.
   if (selection instanceof NodeSelection) return false
   if (selection instanceof CellSelection) return false
+  // Such as an email button's label.
+  const block = selection.$from.parent.type
+  if (!Object.values(schema.marks).some((mark) => block.allowsMarkType(mark))) {
+    return false
+  }
   return doc.textBetween(selection.from, selection.to).length > 0
 }
 

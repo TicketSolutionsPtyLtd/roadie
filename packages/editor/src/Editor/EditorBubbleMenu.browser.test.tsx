@@ -156,6 +156,38 @@ describe('Editor.BubbleMenu', () => {
     expect(itemsOf(toolbar)).toEqual(['Bold', 'Italic', 'Underline', 'Link'])
   })
 
+  it('shows in the email preset, but not over a button’s label, which takes no marks', async () => {
+    render(
+      <BubbleEditor
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              paragraph('Gates open at 4pm'),
+              {
+                type: 'button',
+                attrs: { href: 'https://example.com/tickets' },
+                content: [{ type: 'text', text: 'Get tickets' }]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    await selectText('Gates open at 4pm')
+    expect(itemsOf(await menu())).toEqual([
+      'Bold',
+      'Italic',
+      'Underline',
+      'Link'
+    ])
+
+    await selectText('Get tickets')
+    await noMenu()
+  })
+
   it('shows nothing until the part is added', async () => {
     render(<Editor aria-label={LABEL} defaultValue={lineup} />)
     await selectText('Gates open at 4pm')
