@@ -6,7 +6,7 @@ import { useFieldContext } from '@oztix/roadie-components/field'
 import { Skeleton } from '@oztix/roadie-components/skeleton'
 import { cn } from '@oztix/roadie-core/utils'
 
-import type { EditorBlock } from '../extensions'
+import type { EditorBlock, EditorSection } from '../extensions'
 import type {
   EditorValue,
   EditorVariable,
@@ -100,6 +100,15 @@ export type EditorRootProps = {
    * the editor is created.
    */
   extensions?: readonly EditorBlock[]
+  /**
+   * Designed sections, such as `@oztix/roadie-blocks`' `catalogueSections()`,
+   * for the `blocks` preset. Each is drawn as the page draws it, listed under
+   * Sections in `/` and the Blocks drawer with a tile for each template, and
+   * edited in its Settings drawer. Render them with `/render`'s
+   * `nodeMapping`, an entry per section from its `render`. Read once, when
+   * the editor is created.
+   */
+  sections?: readonly EditorSection[]
   /**
    * The merge tags the sending system fills, for the `email` preset. Each
    * `variable` node shows as a chip with its label, and one whose key isn't

@@ -78,7 +78,19 @@ export function EditorInsertMenu({
               onClick={() => state.choose(index)}
               className='flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-normal select-none aria-selected:bg-subtle'
             >
-              <Icon weight='bold' className='size-4 text-subtle' aria-hidden />
+              {item.thumbnail ? (
+                <img
+                  src={item.thumbnail}
+                  alt=''
+                  className='h-6 w-9 rounded-sm object-cover'
+                />
+              ) : (
+                <Icon
+                  weight='bold'
+                  className='size-4 text-subtle'
+                  aria-hidden
+                />
+              )}
               {item.label}
             </div>
           )

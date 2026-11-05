@@ -124,7 +124,7 @@ function SettingsForm({ settings, start, apply, onDone }: SettingsFormProps) {
   }
   return (
     <div className='grid content-start gap-4'>
-      {settings.map((setting) =>
+      {settings.filter(shownWith(attrs)).map((setting) =>
         setting.type === 'own' ? (
           <div key={setting.name} className='grid'>
             {setting.render(attrs, set)}
@@ -142,6 +142,10 @@ function SettingsForm({ settings, start, apply, onDone }: SettingsFormProps) {
     </div>
   )
 }
+
+const shownWith =
+  (attrs: Attrs) => (setting: EditorSetting | EditorOwnSetting) =>
+    setting.type === 'own' || (setting.available?.(attrs) ?? true)
 
 const selectedNode = ({ editor }: { editor: TiptapEditor | null }) => {
   const selection = editor?.state.selection

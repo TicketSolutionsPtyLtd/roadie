@@ -18,6 +18,13 @@
     "limit": "3 kB"
   },
   {
+    "name": "catalogue/sections",
+    "path": "dist/catalogue/sections.js",
+    "import": "*",
+    "limit": "3.8 kB",
+    "ignore": ["react"]
+  },
+  {
     "name": "hero",
     "path": "dist/Hero/index.js",
     "import": "*",

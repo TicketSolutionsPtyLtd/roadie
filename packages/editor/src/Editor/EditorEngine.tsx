@@ -42,7 +42,7 @@ import {
 } from '@oztix/roadie-components/field'
 import { cn } from '@oztix/roadie-core/utils'
 
-import type { EditorBlock } from '../extensions'
+import type { EditorBlock, EditorSection } from '../extensions'
 import {
   CURRENT_VERSION,
   type EditorValue,
@@ -103,6 +103,7 @@ import { customInsertItem, presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
+import { sectionBlock, sectionInsertItems } from './sectionNodes'
 import { emailSections } from './sections'
 import { SourcePaste } from './sourcePaste'
 import { presetLook, resolvedPreset } from './startingValue'
@@ -257,8 +258,18 @@ function presetSchema(preset: Preset) {
 
 /** Whether a block's name is one the preset's own nodes or marks use. */
 function takenName(preset: Preset, { node }: EditorBlock) {
+  return presetTakes(preset, node.name)
+}
+
+function presetTakes(preset: Preset, name: string) {
   const { nodes, marks } = presetSchema(preset)
-  return Object.hasOwn(nodes, node.name) || Object.hasOwn(marks, node.name)
+  return Object.hasOwn(nodes, name) || Object.hasOwn(marks, name)
+}
+
+/** An app's sections, only in the preset that takes them. */
+function sectionsFor(preset: Preset, sections: readonly EditorSection[] = []) {
+  if (preset !== 'blocks') return []
+  return sections.filter(({ name }) => !presetTakes(preset, name))
 }
 
 /** An app's blocks, only in the preset that takes them. */
@@ -418,6 +429,7 @@ export function EditorEngine({
   embedProviders = defaultEmbedProviders,
   resolveUrl,
   extensions: extensionsProp,
+  sections: sectionsProp,
   variables,
   toolbar: toolbarProp,
   defaultToolbar,
@@ -477,7 +489,9 @@ export function EditorEngine({
   const preset = resolvedPreset({ preset: presetProp, value, defaultValue })
   const storedPreset = (value ?? defaultValue)?.preset
   // Tiptap fixes its schema when it creates the editor, so these are read once.
-  const [blocks] = useState(() => blocksFor(preset, extensionsProp))
+  const [appBlocks] = useState(() => blocksFor(preset, extensionsProp))
+  const [sections] = useState(() => sectionsFor(preset, sectionsProp))
+  const [blocks] = useState(() => [...appBlocks, ...sections.map(sectionBlock)])
   const [blockLabels] = useState(() =>
     Object.fromEntries(blocks.map(({ node, label }) => [node.name, label]))
   )
@@ -513,7 +527,8 @@ export function EditorEngine({
   const holdsMergeTags = Boolean(schema.nodes.variable)
   const presetItems = [
     ...(presetInsertItems[preset] ?? []),
-    ...blocks.map(customInsertItem)
+    ...appBlocks.map(customInsertItem),
+    ...sections.flatMap(sectionInsertItems)
   ]
   // Read as each menu opens, as `variables` can arrive after the editor is made.
   const insertItems = () =>
@@ -673,7 +688,7 @@ export function EditorEngine({
   const blockNames = (list: readonly EditorBlock[]) =>
     list.map(({ node }) => node.name).join()
   const changed =
-    blockNames(blocksFor(preset, extensionsProp)) !== blockNames(blocks)
+    blockNames(blocksFor(preset, extensionsProp)) !== blockNames(appBlocks)
   useEffect(() => {
     if (!isDev()) return
     if (holding) {
@@ -777,12 +792,13 @@ export function EditorEngine({
   useEffect(() => {
     uiRef.current = ui
   })
-  const drawerItems = blockHandle?.canAdd
-    ? [
-        ...presetItems.filter((item) => item.available?.(ui) ?? true),
-        ...(preset === 'email' ? emailSections(variables) : [])
-      ]
-    : []
+  const drawerItems =
+    blockHandle?.canAdd || sections.length > 0
+      ? [
+          ...presetItems.filter((item) => item.available?.(ui) ?? true),
+          ...(preset === 'email' ? emailSections(variables) : [])
+        ]
+      : []
 
   return (
     <EditorContext

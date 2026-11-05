@@ -49,6 +49,8 @@ export type EditorInsertItem = {
    * Without one, the drawer runs it on a new line there.
    */
   block?: JSONContent
+  /** An image its tile and option show in place of its icon. */
+  thumbnail?: string
 }
 
 const paragraph: EditorInsertItem = {

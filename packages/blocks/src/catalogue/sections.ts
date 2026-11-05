@@ -1,0 +1,217 @@
+import { type ComponentType, type ReactNode, createElement } from 'react'
+
+import { type BlockPreset, type CatalogueBlock, catalogue } from '.'
+import type { AlternatingRowsProps } from '../AlternatingRows'
+import type { CallToActionProps } from '../CallToAction'
+import type { CardsProps } from '../Cards'
+import type { FAQProps } from '../FAQ'
+import type { GalleryProps } from '../Gallery'
+import type { HeroProps } from '../Hero'
+import type { MosaicProps } from '../Mosaic'
+import type { RichTextProps } from '../RichText'
+import type { SideBySideProps } from '../SideBySide'
+import type { StatsProps } from '../Stats'
+import type { TestimonialProps } from '../Testimonial'
+
+type Attrs = Record<string, unknown>
+
+/** The blocks an editor offers as sections, each its component, by catalogue name. */
+export type CatalogueComponents = {
+  'alternating-rows'?: ComponentType<AlternatingRowsProps>
+  'call-to-action'?: ComponentType<CallToActionProps>
+  cards?: ComponentType<CardsProps>
+  faq?: ComponentType<FAQProps>
+  gallery?: ComponentType<GalleryProps>
+  hero?: ComponentType<HeroProps>
+  mosaic?: ComponentType<MosaicProps>
+  'rich-text'?: ComponentType<RichTextProps>
+  'side-by-side'?: ComponentType<SideBySideProps>
+  stats?: ComponentType<StatsProps>
+  testimonial?: ComponentType<TestimonialProps>
+}
+
+type Option = { value: string; label: string }
+
+/** A field a section's Settings drawer edits, as the editor's `EditorSetting`. */
+export type CatalogueSetting = {
+  name: string
+  label: string
+  helperText?: string
+  available?: (attrs: Readonly<Attrs>) => boolean
+} & (
+  | { type: 'text'; multiline?: boolean }
+  | { type: 'choice'; options: readonly Option[] }
+)
+
+/** A block as one of the editor's `sections`, which `EditorSection` describes. */
+export type CatalogueSection = {
+  name: string
+  label: string
+  attrs: Readonly<Attrs>
+  settings: readonly CatalogueSetting[]
+  render: (props: { attrs: Attrs }) => ReactNode
+  templates: readonly {
+    label: string
+    thumbnail?: string
+    keywords?: readonly string[]
+    attrs: Readonly<Attrs>
+  }[]
+}
+
+export type CatalogueSectionsOptions = {
+  /** The blocks to offer, in catalogue order, so a page loads only these. */
+  components: CatalogueComponents
+  /**
+   * Where the app serves a preset's thumbnail, from the package's
+   * `thumbnails` folder. Without it, tiles show an icon.
+   */
+  thumbnailUrl?: (file: string) => string
+  /** What a new section of a preset starts with, over the placeholder copy. */
+  content?: (block: CatalogueBlock, preset: BlockPreset) => Attrs
+}
+
+type Field = {
+  label: string
+  helperText?: string
+} & (
+  | { type: 'text'; multiline?: boolean }
+  | { type: 'choice'; options: readonly Option[] }
+)
+
+// The plain fields, which a drawer edits well. Images, actions, and each
+// block's items keep what their template starts with.
+const FIELDS: Readonly<Record<string, Field>> = {
+  eyebrow: { label: 'Eyebrow', type: 'text' },
+  title: { label: 'Title', type: 'text' },
+  highlight: {
+    label: 'Highlight',
+    type: 'text',
+    helperText: 'Words from the title to colour.'
+  },
+  description: { label: 'Description', type: 'text', multiline: true },
+  align: {
+    label: 'Align',
+    type: 'choice',
+    options: [
+      { value: 'start', label: 'Start' },
+      { value: 'center', label: 'Centre' }
+    ]
+  },
+  size: {
+    label: 'Size',
+    type: 'choice',
+    options: [
+      { value: 'sm', label: 'Small' },
+      { value: 'md', label: 'Medium' },
+      { value: 'lg', label: 'Large' }
+    ]
+  },
+  emphasis: {
+    label: 'Surface',
+    type: 'choice',
+    options: [
+      { value: 'subtler', label: 'Subtler' },
+      { value: 'subtle', label: 'Subtle' },
+      { value: 'normal', label: 'Normal' },
+      { value: 'raised', label: 'Raised' },
+      { value: 'strong', label: 'Strong' },
+      { value: 'inverted', label: 'Inverted' }
+    ]
+  },
+  intent: {
+    label: 'Colour',
+    type: 'choice',
+    options: [
+      { value: 'neutral', label: 'Neutral' },
+      { value: 'brand', label: 'Brand' },
+      { value: 'brand-secondary', label: 'Brand secondary' },
+      { value: 'accent', label: 'Accent' }
+    ]
+  }
+}
+
+const PLACEHOLDERS: Readonly<Attrs> = {
+  title: 'Section title',
+  description: 'A sentence or two on what this section is about.',
+  // What a block draws with no size, so Size shows it chosen.
+  size: 'lg'
+}
+
+const camel = (kebab: string) =>
+  kebab.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())
+
+function settingsOf(block: CatalogueBlock): CatalogueSetting[] {
+  const reads = (name: string) => (attrs: Readonly<Attrs>) =>
+    block.presets
+      .find((preset) => preset.name === attrs.preset)
+      ?.fields.includes(name) ?? false
+  const layout: CatalogueSetting[] =
+    block.presets.length > 1
+      ? [
+          {
+            name: 'preset',
+            label: 'Layout',
+            type: 'choice',
+            options: block.presets.map(({ name, title }) => ({
+              value: name,
+              label: title
+            }))
+          }
+        ]
+      : []
+  const fields = new Set(block.presets.flatMap((preset) => preset.fields))
+  return [
+    ...layout,
+    ...Object.entries(FIELDS)
+      .filter(([name]) => fields.has(name))
+      .map(([name, field]) => ({ ...field, name, available: reads(name) }))
+  ]
+}
+
+/**
+ * The catalogue's blocks as the editor's `sections`, for
+ * `<Editor sections={…}>`: a section per block, a template per preset with
+ * its thumbnail, and its plain fields as settings.
+ */
+export function catalogueSections({
+  components,
+  thumbnailUrl,
+  content
+}: CatalogueSectionsOptions): CatalogueSection[] {
+  return catalogue.flatMap((block): CatalogueSection[] => {
+    const component = components[block.name as keyof CatalogueComponents]
+    const [first] = block.presets
+    if (!component || !first) return []
+    const settings = settingsOf(block)
+    // Every field is an attr, so what a template or setting sets is saved.
+    const fields = Object.fromEntries(
+      block.presets
+        .flatMap((preset) => preset.fields)
+        .map((name) => [name, PLACEHOLDERS[name]])
+    )
+    return [
+      {
+        name: `${camel(block.name)}Section`,
+        label: block.title,
+        attrs: { ...fields, preset: first.name },
+        settings,
+        // Its attrs are its props by name, read by the block as untrusted.
+        render: ({ attrs }) =>
+          createElement(component as ComponentType<Attrs>, attrs),
+        templates: block.presets.map((preset) => ({
+          label:
+            block.presets.length > 1
+              ? `${block.title}: ${preset.title}`
+              : block.title,
+          thumbnail: thumbnailUrl?.(preset.thumbnail),
+          keywords: [block.title, preset.title],
+          attrs: {
+            ...preset.defaults,
+            ...content?.(block, preset),
+            preset: preset.name
+          }
+        }))
+      }
+    ]
+  })
+}

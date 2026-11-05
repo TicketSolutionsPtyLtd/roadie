@@ -104,7 +104,13 @@ export function EditorBlocksDrawer({
                 <h3 id={headingId} className='text-display-ui-6 text-subtle'>
                   {group}
                 </h3>
-                <div className='grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-2'>
+                <div
+                  className={
+                    tiles.some(({ thumbnail }) => thumbnail)
+                      ? 'grid grid-cols-2 gap-2'
+                      : 'grid grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] gap-2'
+                  }
+                >
                   {tiles.map((item, index) => {
                     const Icon = item.icon
                     return (
@@ -120,9 +126,17 @@ export function EditorBlocksDrawer({
                         onClick={() => pick(item)}
                         className='is-interactive grid justify-items-center gap-2 rounded-xl emphasis-subtler p-3 text-center text-sm text-normal'
                       >
-                        <IconTile size='md' aria-hidden>
-                          <Icon weight='bold' />
-                        </IconTile>
+                        {item.thumbnail ? (
+                          <img
+                            src={item.thumbnail}
+                            alt=''
+                            className='w-full rounded-lg'
+                          />
+                        ) : (
+                          <IconTile size='md' aria-hidden>
+                            <Icon weight='bold' />
+                          </IconTile>
+                        )}
                         {item.label}
                       </button>
                     )
