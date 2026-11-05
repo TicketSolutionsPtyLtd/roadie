@@ -897,6 +897,24 @@ describe('renderEmail', () => {
       expect(plain).toBe('Before\n\nAfter')
     })
 
+    it.each([
+      [
+        'a variable',
+        p(text('Hi '), { type: 'variable', attrs: { key: 'capacity' } })
+      ],
+      ['a rule', when(button(tickets), { key: 'capacity', op: 'exists' })]
+    ])(
+      'refuses %s the app’s variables don’t list in a section a preview hides',
+      async (_name, inner) => {
+        await expect(
+          renderEmail(email(when(section(inner), nearlySoldOut)), {
+            variables,
+            values: { tickets_left: '200' }
+          })
+        ).rejects.toThrow('"capacity"')
+      }
+    )
+
     it('hides a section and everything in it in a preview', async () => {
       const { html, text: plain } = await renderEmail(
         email(
