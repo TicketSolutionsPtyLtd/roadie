@@ -12,10 +12,10 @@ import {
 
 import {
   ArrowLeftIcon,
-  DotsThreeIcon,
   MoonIcon,
   PaperPlaneTiltIcon,
-  SunIcon
+  SunIcon,
+  UserSwitchIcon
 } from '@phosphor-icons/react'
 
 import { Button, IconButton } from '@oztix/roadie-components/button'
@@ -209,10 +209,10 @@ export function EditorPreview({
                   <IconButton
                     size='sm'
                     emphasis='subtler'
-                    aria-label='More'
+                    aria-label='Preview as'
                     className='@min-[34rem]:hidden'
                   >
-                    <DotsThreeIcon weight='bold' className='size-4' />
+                    <UserSwitchIcon weight='bold' className='size-4' />
                   </IconButton>
                 }
               />
@@ -360,7 +360,7 @@ function SendTest({ onSend, className, labelClassName }: SendTestProps) {
                 value={to}
                 onChange={(event) => setTo(event.target.value)}
               />
-              {sending.state === 'idle' && !canSend ? (
+              {sending.state !== 'sending' && !canSend ? (
                 <Field.HelperText>
                   {address === ''
                     ? 'Enter the address to send a test to.'

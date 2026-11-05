@@ -169,9 +169,11 @@ function rows(nodes: JSONContent[], text: TreeContext): MjmlNode[] {
     } else if (node.type === 'section') {
       endRun()
       built.push(
-        ...shownNodes(node, text, () => [
-          mj('mj-wrapper', {}, rows(node.content ?? [], text))
-        ])
+        ...shownNodes(node, text, () => {
+          const inner = rows(node.content ?? [], text)
+          // An empty section's padding is space to send, too.
+          return inner.length > 0 ? [mj('mj-wrapper', {}, inner)] : []
+        })
       )
     } else {
       run.push(node)
