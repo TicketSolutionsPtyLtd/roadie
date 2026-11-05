@@ -359,7 +359,7 @@ describe('Editor block handle', () => {
     await userEvent.keyboard(`{${MOD}>}/{/${MOD}}`)
     const menu = await screen.findByRole('menu')
     await waitFor(() => expect(menu).toBeVisible())
-    await userEvent.keyboard('{ArrowDown}')
+    // Mod+/ has the first action ready.
     await waitFor(() =>
       expect(screen.getByRole('menuitem', { name: 'Move up' })).toHaveFocus()
     )
