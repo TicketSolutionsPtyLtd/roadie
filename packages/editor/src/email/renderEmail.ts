@@ -39,11 +39,18 @@ export async function renderEmail(
   return { html, text: plainText(html) }
 }
 
+// Headings keep their case, or a merge tag in one stops matching its variable.
+const HEADINGS = ['h2', 'h3', 'h4'].map((selector) => ({
+  selector,
+  options: { uppercase: false }
+}))
+
 // A spacer's hair space would otherwise leave lines of whitespace.
 function plainText(html: string) {
   return convert(html, {
     wordwrap: 78,
     selectors: [
+      ...HEADINGS,
       { selector: 'img', format: 'skip' },
       { selector: 'a', options: { hideLinkHrefIfSameAsText: true } }
     ]

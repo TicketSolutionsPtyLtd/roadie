@@ -209,7 +209,7 @@ describe('renderEmail', () => {
     expect(html).toContain(`background-color:${defaultEmailTheme.background}`)
     expect(plain).toBe(
       [
-        'OCHRE KITE WEEKENDER',
+        'Ochre Kite Weekender',
         '',
         'Doors open 7pm at Jumbuck Orchard Park',
         `[${tickets}].`,
@@ -302,6 +302,13 @@ describe('renderEmail', () => {
     })
   })
 
+  it('keeps a heading’s case in the plain text, so a merge tag still matches', async () => {
+    const { text: plain } = await renderEmail(
+      email(heading(2, 'See you soon, {{ first_name }}'))
+    )
+    expect(plain).toBe('See you soon, {{ first_name }}')
+  })
+
   it('starts and ends the plain text at its words', async () => {
     const { text: plain } = await renderEmail(
       email(
@@ -333,6 +340,6 @@ describe('renderEmail', () => {
     expect(html).toContain('<h2 ')
     expect(html).not.toContain('<blockquote')
     expect(html).not.toContain('<img')
-    expect(plain).toBe('LINEUP\n\nBest weekend of the year.')
+    expect(plain).toBe('Lineup\n\nBest weekend of the year.')
   })
 })
