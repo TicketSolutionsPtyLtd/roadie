@@ -310,6 +310,52 @@ describe('Editor email canvas', () => {
     expect(block.getBoundingClientRect().top).toBe(top)
   })
 
+  it('keeps 8px after a spacer while the gap cursor shows there', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        // As above, so WebKit gives the image a size to click.
+        toolbar='docked'
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              p('Two weeks to go'),
+              { type: 'spacer', attrs: { height: 32 } },
+              {
+                type: 'image',
+                attrs: {
+                  src: 'https://example.test/header.webp',
+                  alt: 'A crowd'
+                }
+              },
+              p('Doors 7pm')
+            ]
+          }
+        }}
+      />
+    )
+    await screen.findByText('Doors 7pm')
+    const image = await screen.findByAltText('A crowd', {}, { timeout: 5000 })
+    const block = image.closest<HTMLElement>('[data-slot="editor-image"]')!
+    const spacer = document.querySelector<HTMLElement>('[data-type="spacer"]')!
+
+    await userEvent.click(image)
+    await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
+    await userEvent.keyboard('{ArrowLeft}')
+
+    await expect
+      .poll(() =>
+        spacer.nextElementSibling?.classList.contains('ProseMirror-gapcursor')
+      )
+      .toBe(true)
+    expect(
+      block.getBoundingClientRect().top - spacer.getBoundingClientRect().bottom
+    ).toBeCloseTo(8, 0)
+  })
+
   it('keeps a long word inside a stacked column', async () => {
     const link =
       'https://www.oztix.com.au/ochre-kite-weekender-tickets-and-camping'
