@@ -360,6 +360,9 @@ describe('Editor blocks drawer', () => {
       within(drawer).getByRole('button', { name: 'Button' })
     )
     const link = await screen.findByRole('textbox', { name: 'Button link' })
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Blocks' })).toBe(null)
+    )
     await waitFor(() => expect(link).toHaveFocus())
     await userEvent.keyboard('https://example.com/tickets{Enter}')
 
@@ -377,6 +380,23 @@ describe('Editor blocks drawer', () => {
         )
       )
     )
+  })
+
+  it('opens the button’s link field on an empty line without adding one', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email(p('Doors 7pm'), p(), p('Gates 6pm'))
+    })
+    await clickInto('Doors 7pm')
+    await userEvent.keyboard('{ArrowDown}')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Button' })
+    )
+    await screen.findByRole('textbox', { name: 'Button link' })
+    await userEvent.keyboard('{Escape}')
+
+    expect(onValueChange).not.toHaveBeenCalled()
   })
 
   it('opens from the floating toolbar, adding after the selected text’s block', async () => {
@@ -633,12 +653,38 @@ describe('Editor blocks drawer sections', () => {
     )
   })
 
-  it('offers no footer without an unsubscribe link variable', async () => {
-    renderEmail({
-      variables: [
-        { ...unsubscribeUrl, key: 'view_url', label: 'View in browser' }
-      ]
-    })
+  it.each([
+    ['its key', { ...unsubscribeUrl, label: 'Opt-out page' }],
+    ['its label', { ...unsubscribeUrl, key: 'opt_out' }]
+  ])(
+    'offers a footer for a link variable only %s names',
+    async (_, variable) => {
+      renderEmail({ variables: [variable] })
+      await clickInto('Doors 7pm')
+
+      const drawer = await openFromDockedBar()
+
+      expect(
+        within(drawer).getByRole('button', { name: 'Footer' })
+      ).toBeInTheDocument()
+    }
+  )
+
+  it.each([
+    [
+      'a link variable for another page',
+      { ...unsubscribeUrl, key: 'view_url', label: 'View in browser' }
+    ],
+    [
+      'a text variable named for unsubscribing',
+      {
+        key: 'unsubscribe_note',
+        label: 'Unsubscribe note',
+        tokens: { ae: '#Note#' }
+      }
+    ]
+  ])('offers no footer with only %s', async (_, variable) => {
+    renderEmail({ variables: [variable] })
     await clickInto('Doors 7pm')
 
     const drawer = await openFromDockedBar()
