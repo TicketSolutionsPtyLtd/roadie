@@ -11,9 +11,8 @@ import {
 } from '@tiptap/pm/state'
 import type { Step } from '@tiptap/pm/transform'
 
-import type { PopoverProps } from '@oztix/roadie-components/popover'
-
-type OpenChange = NonNullable<PopoverProps['onOpenChange']>
+// A popover's, a drawer's or a dialog's, which each say why they closed.
+type OpenChange = (open: boolean, details: { reason: string }) => void
 
 const OWN = 'liveEdit'
 
@@ -42,7 +41,7 @@ export const setSelectedAttrs =
     })
 
 /**
- * A popover's edits, shown in the document as they're made. Escape or its
+ * A popover's or drawer's edits, shown in the document as they're made. Escape or its
  * close button puts the document back as it opened; any other close keeps
  * them as one undo step.
  */

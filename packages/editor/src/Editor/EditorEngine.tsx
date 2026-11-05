@@ -61,6 +61,7 @@ import {
 import { textVariables } from '../schema/variables'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorBlockHandle } from './EditorBlockHandle'
+import { type BlockSettings, EditorBlockSettings } from './EditorBlockSettings'
 import { EditorBlocksDrawer } from './EditorBlocksDrawer'
 import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
 import { EditorButtonPopover } from './EditorButtonPopover'
@@ -187,6 +188,29 @@ const AltTextShortcut = Extension.create<AltTextShortcutOptions>({
           selection.node.type.name === 'image'
         if (!onImage || !editor.isEditable) return false
         this.options.onEditAlt()
+        return true
+      }
+    }
+  }
+})
+
+type SettingsShortcutOptions = {
+  has: (name: string) => boolean
+  onEdit: () => void
+}
+
+// Enter on a selected block with settings opens them, as on an image's alt.
+const SettingsShortcut = Extension.create<SettingsShortcutOptions>({
+  name: 'settingsShortcut',
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        const { selection } = editor.state
+        const onBlock =
+          selection instanceof NodeSelection &&
+          this.options.has(selection.node.type.name)
+        if (!onBlock || !editor.isEditable) return false
+        this.options.onEdit()
         return true
       }
     }
@@ -426,6 +450,7 @@ export function EditorEngine({
   const [editingEmbed, setEditingEmbed] = useState(false)
   const [editingButton, setEditingButton] = useState(false)
   const [editingVariable, setEditingVariable] = useState(false)
+  const [editingSettings, setEditingSettings] = useState(false)
   const [importing, setImporting] = useState<ImportRequest>({
     open: false,
     source: '',
@@ -456,6 +481,14 @@ export function EditorEngine({
   const [blockLabels] = useState(() =>
     Object.fromEntries(blocks.map(({ node, label }) => [node.name, label]))
   )
+  const [blockSettings] = useState(() =>
+    Object.fromEntries(
+      blocks.flatMap(({ node, label, settings }): [string, BlockSettings][] =>
+        settings?.length ? [[node.name, { label, settings }]] : []
+      )
+    )
+  )
+  const hasSettings = (name: string) => Object.hasOwn(blockSettings, name)
   const [schema] = useState(() =>
     blocks.length > 0
       ? getSchema(withBlocks(presets[preset], blocks))
@@ -502,6 +535,10 @@ export function EditorEngine({
       }),
       LinkShortcut.configure({ onEditLink: () => setEditingLink(true) }),
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
+      SettingsShortcut.configure({
+        has: hasSettings,
+        onEdit: () => setEditingSettings(true)
+      }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
       ...(preset === 'email'
@@ -814,6 +851,15 @@ export function EditorEngine({
             containers={blockHandle.containers}
             canAdd={blockHandle.canAdd}
             appLabels={blockLabels}
+            hasSettings={hasSettings}
+            onSettings={(pos) => {
+              editor.view.dispatch(
+                editor.state.tr.setSelection(
+                  NodeSelection.create(editor.state.doc, pos)
+                )
+              )
+              setEditingSettings(true)
+            }}
           />
         ) : null}
         {editor && blockHandle && drawerItems.length > 0 ? (
@@ -864,6 +910,12 @@ export function EditorEngine({
           editor={editor}
           open={editingButton}
           onOpenChange={setEditingButton}
+        />
+        <EditorBlockSettings
+          editor={editor}
+          open={editingSettings}
+          onOpenChange={setEditingSettings}
+          blocks={blockSettings}
         />
         <EditorVariablePopover
           editor={editor}

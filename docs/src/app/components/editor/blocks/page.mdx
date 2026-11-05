@@ -75,7 +75,8 @@ opens the file picker, and Embed opens the Embed popover.
 A grip shows at the start of the block under the pointer, or of the block
 with the caret while the editor has focus. Drag it to move the block; a line
 shows where it will land. Click or tap it, or press `Mod+/` in the text, for
-the block's menu: Move up, Move down, Duplicate, and Delete. The menu opens
+the block's menu: Move up, Move down, Duplicate, and Delete, led by
+Settings on a block that has them. The menu opens
 beside the grip, headed by the block's type, with each action's keys, and
 the block takes the chosen tint while it's open, so it's clear which block
 it acts on. Each is one step to undo, a moved block keeps its `blockId`,
@@ -139,6 +140,13 @@ import {
 - A block is an atom (`group: 'block'`, `atom: true`). Its attrs are all it
   saves, so keep them to its inputs, such as `{ label, href }`, never
   rendered content.
+- Give it `settings`, and its view can show it as the page will, not as a
+  form. Settings leads its block menu, and Enter on the selected block opens
+  them: a drawer from the side, or the bottom on a phone, with a field for
+  each. A `text` setting is a line, or a few with `multiline`, and a
+  `choice` shows its `options` as buttons, or a select past three. Each
+  change shows as it's made, Escape puts the block back, and Done keeps the
+  changes as one step to undo.
 - `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
   it in place. The component gets `node.attrs` and `updateAttributes`, and
   wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
@@ -162,23 +170,12 @@ import {
   so a server page that renders saved content doesn't import Tiptap.
 
 ```tsx-live-prose-noinline
-function CallToActionView({ node, updateAttributes }) {
+function CallToActionView({ node }) {
   return (
-    <NodeViewWrapper className='grid gap-2 rounded-xl emphasis-subtle p-3'>
-      <Field>
-        <Field.Label>Button</Field.Label>
-        <Field.Input
-          value={node.attrs.label}
-          onChange={(event) => updateAttributes({ label: event.target.value })}
-        />
-      </Field>
-      <Field>
-        <Field.Label>Link</Field.Label>
-        <Field.Input
-          value={node.attrs.href}
-          onChange={(event) => updateAttributes({ href: event.target.value })}
-        />
-      </Field>
+    <NodeViewWrapper className='grid justify-items-start'>
+      <Button intent='brand' emphasis='strong'>
+        {String(node.attrs.label)}
+      </Button>
     </NodeViewWrapper>
   )
 }
@@ -187,6 +184,10 @@ const callToAction = {
   label: 'Call to action',
   icon: TicketIcon,
   keywords: ['button'],
+  settings: [
+    { name: 'label', label: 'Button', type: 'text' },
+    { name: 'href', label: 'Link', type: 'text', helperText: 'A page on this site, such as /events.' }
+  ],
   node: Node.create({
     name: 'callToAction',
     group: 'block',
@@ -252,6 +253,8 @@ render(<Page />)
 | Keys | Action |
 | --- | --- |
 | `/` | Open the insert menu, in the blocks preset |
+| `Enter` | With a block that has settings selected, open them |
+| `Escape` | In a block's settings, put the block back and close them |
 
 Every preset's other keys are on the [Editor](/components/editor#accessibility)
 page.
