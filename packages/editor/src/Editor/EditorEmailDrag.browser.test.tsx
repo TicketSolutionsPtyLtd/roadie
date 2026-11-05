@@ -175,6 +175,17 @@ describe('Editor email block handle', () => {
     )
   })
 
+  it('makes room for the grip and add button inside a framed editor', async () => {
+    renderNewsletter()
+
+    await hoverBlock('Closing')
+
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    expect(
+      (await addButton()).getBoundingClientRect().left
+    ).toBeGreaterThanOrEqual(textbox.getBoundingClientRect().left)
+  })
+
   it('keeps the grip while the pointer crosses to it', async () => {
     renderNewsletter()
     await hoverBlock('Right one')
@@ -670,5 +681,213 @@ describe('Editor email block handle', () => {
       },
       'Closing'
     )
+  })
+
+  describe('pointer paths', () => {
+    // Synthetic moves, one step at a time, so a state between two hovers counts.
+    function moveThrough(points: { x: number; y: number }[]) {
+      for (const { x, y } of points) {
+        document.elementFromPoint(x, y)?.dispatchEvent(
+          new MouseEvent('mousemove', {
+            bubbles: true,
+            clientX: x,
+            clientY: y
+          })
+        )
+      }
+    }
+
+    const nextFrame = () =>
+      new Promise((resolve) => requestAnimationFrame(resolve))
+
+    it('keeps a nested block’s grip at every step from the block to its grip', async () => {
+      renderNewsletter()
+      const block = await hoverBlock('Right one')
+      const target = (await grip()).getBoundingClientRect()
+      const y = middle(block)
+      const seen: string[] = []
+
+      for (
+        let x = block.getBoundingClientRect().left + 2;
+        x > target.left + 2;
+        x -= 2
+      ) {
+        moveThrough([{ x, y }])
+        await nextFrame()
+        const shown = document.querySelector(
+          '[data-slot="editor-block-handle"]'
+        )
+        seen.push(shown ? `${Math.round(middle(shown))}` : 'none')
+      }
+
+      expect(new Set(seen)).toEqual(
+        new Set([`${Math.round(middle(await grip()))}`])
+      )
+    })
+
+    it('keeps a tall nested block’s handle beside its lower lines, out to the add button', async () => {
+      renderNewsletter(
+        newsletter(
+          section(
+            columns(
+              [p('Left one')],
+              [p('Right one, which runs on over several lines of its column')]
+            )
+          )
+        )
+      )
+      const block = await line(
+        'Right one, which runs on over several lines of its column'
+      )
+      expect(block.offsetHeight).toBeGreaterThan(32)
+      await userEvent.hover(block)
+      await expectGripBeside(block)
+      const add = (await addButton()).getBoundingClientRect()
+
+      moveThrough([
+        {
+          x: (add.left + add.right) / 2,
+          y: block.getBoundingClientRect().bottom - 4
+        }
+      ])
+      await nextFrame()
+
+      await expectGripBeside(block)
+    })
+
+    it('keeps a nested block’s grip in its gutter after typing above it', async () => {
+      renderNewsletter()
+      await userEvent.click(await line('Alpha one'))
+      const block = await hoverBlock('Right one')
+      const y = middle(block)
+      const gap = block.getBoundingClientRect().left - 2
+      moveThrough([{ x: gap, y }])
+
+      await userEvent.keyboard('x')
+      moveThrough([{ x: gap - 1, y }])
+      await nextFrame()
+
+      await expectGripBeside(block)
+    })
+
+    it('keeps the grip of the block the pointer is on once focus leaves the text', async () => {
+      render(
+        <>
+          <Editor aria-label={LABEL} preset='email' defaultValue={layout} />
+          <button type='button'>After</button>
+        </>
+      )
+      await userEvent.click(await line('Right one'))
+      // Off the editor, which fills the page's top-left corner.
+      const after = screen.getByRole('button', { name: 'After' })
+      const away = after.getBoundingClientRect()
+      moveThrough([{ x: away.left + 1, y: away.top + 1 }])
+      const handle = await grip()
+      const { left, top, width, height } = handle.getBoundingClientRect()
+      moveThrough([{ x: left + width / 2, y: top + height / 2 }])
+
+      screen.getByRole('button', { name: 'After' }).focus()
+      await nextFrame()
+
+      await expectGripBeside(await line('Right one'))
+    })
+
+    it('keeps the grip of the block a tap lands on once focus leaves the text', async () => {
+      render(
+        <>
+          <Editor aria-label={LABEL} preset='email' defaultValue={layout} />
+          <button type='button'>After</button>
+        </>
+      )
+      await userEvent.click(await line('Right one'))
+      // Off the editor, which fills the page's top-left corner.
+      const after = screen.getByRole('button', { name: 'After' })
+      const away = after.getBoundingClientRect()
+      moveThrough([{ x: away.left + 1, y: away.top + 1 }])
+
+      // A tap brings no mousemove before focus moves.
+      ;(await grip()).dispatchEvent(
+        new PointerEvent('pointerdown', { bubbles: true })
+      )
+      screen.getByRole('button', { name: 'After' }).focus()
+      await nextFrame()
+
+      await expectGripBeside(await line('Right one'))
+    })
+
+    it('keeps a handle while the pointer runs down the add buttons outside a subtler editor', async () => {
+      render(
+        <div className='max-w-80 ps-16'>
+          <Editor
+            aria-label={LABEL}
+            preset='email'
+            emphasis='subtler'
+            defaultValue={newsletter(p('First'), p(), p(), p('Last'))}
+          />
+        </div>
+      )
+      await hoverBlock('First')
+      const add = (await addButton()).getBoundingClientRect()
+      const x = (add.left + add.right) / 2
+      const last = await line('Last')
+
+      for (let y = add.bottom + 1; y < middle(last); y += 4)
+        moveThrough([{ x, y }])
+
+      await waitFor(async () =>
+        expect(middle(await addButton())).toBeGreaterThan(
+          last.getBoundingClientRect().top
+        )
+      )
+    })
+
+    describe('right to left', () => {
+      function renderRtl() {
+        render(
+          <div dir='rtl'>
+            <Editor aria-label={LABEL} preset='email' defaultValue={layout} />
+          </div>
+        )
+      }
+
+      async function expectGripAfter(block: Element) {
+        await waitFor(async () => {
+          const { top, bottom, right } = block.getBoundingClientRect()
+          const handle = (await grip()).getBoundingClientRect()
+          expect(middle(await grip())).toBeGreaterThan(top)
+          expect(middle(await grip())).toBeLessThan(bottom)
+          expect(handle.left).toBeGreaterThanOrEqual(right)
+          expect(handle.left).toBeLessThan(right + 8)
+        })
+      }
+
+      it('puts the add button beyond the grip, on the right', async () => {
+        renderRtl()
+        const block = await line('Right one')
+        await userEvent.hover(block)
+        await expectGripAfter(block)
+
+        const add = (await addButton()).getBoundingClientRect()
+        expect(add.left).toBeGreaterThanOrEqual(
+          (await grip()).getBoundingClientRect().right
+        )
+        expect(middle(await addButton())).toBeGreaterThan(
+          block.getBoundingClientRect().top
+        )
+      })
+
+      it('keeps a nested block’s grip while the pointer crosses its column’s padding', async () => {
+        renderRtl()
+        const block = await line('Left one')
+        await userEvent.hover(block)
+        await expectGripAfter(block)
+        // In the gap before the grip, over the column's padding.
+        moveThrough([
+          { x: block.getBoundingClientRect().right + 2, y: middle(block) }
+        ])
+
+        await expectGripAfter(block)
+      })
+    })
   })
 })
