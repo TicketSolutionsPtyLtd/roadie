@@ -17,9 +17,21 @@ export function parseWorktrees(porcelain) {
             ? fields.branch.replace('refs/heads/', '')
             : null,
         locked: Boolean(fields.locked),
+        lockPid: lockPid(fields.locked),
         prunable: Boolean(fields.prunable)
       }
     })
+}
+
+// Claude Code locks a session's or agent's worktree with a reason like
+// "claude session x (pid 73022 start …)" and never unlocks it on exit.
+function lockPid(reason) {
+  const match = typeof reason === 'string' && reason.match(/\(pid (\d+)\b/)
+  return match ? Number(match[1]) : null
+}
+
+export function isStaleLock(tree, isRunning) {
+  return tree.locked && tree.lockPid !== null && !isRunning(tree.lockPid)
 }
 
 // Squash merges leave a branch's commits off main, so a branch counts as

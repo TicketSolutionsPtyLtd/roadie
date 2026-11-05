@@ -64,6 +64,16 @@ function fixture() {
       git(path, 'add', '-A')
       git(path, 'commit', '-qm', file)
     },
+    lock(path, pid) {
+      git(
+        repo,
+        'worktree',
+        'lock',
+        '--reason',
+        `claude session x (pid ${pid})`,
+        path
+      )
+    },
     merge(branch, headRefOid = git(repo, 'rev-parse', branch)) {
       prs.push({ headRefName: branch, headRefOid })
     },
@@ -106,6 +116,40 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     assert.equal(status, 0, output)
     assert.equal(existsSync(path), false)
     assert.deepEqual(f.branches(), ['main'])
+  })
+
+  test('removes a merged worktree whose locking session has exited', () => {
+    const f = fixture()
+    const path = f.worktree('claude/ended')
+    f.merge('claude/ended')
+    f.lock(path, spawnSync('true').pid)
+
+    const { status, output } = f.cleanup([
+      '--delete',
+      '--branch',
+      'claude/ended'
+    ])
+
+    assert.equal(status, 0, output)
+    assert.equal(existsSync(path), false)
+    assert.deepEqual(f.branches(), ['main'])
+  })
+
+  test('keeps a merged worktree while its locking session runs', () => {
+    const f = fixture()
+    const path = f.worktree('claude/live')
+    f.merge('claude/live')
+    f.lock(path, process.pid)
+
+    const { status, output } = f.cleanup([
+      '--delete',
+      '--branch',
+      'claude/live'
+    ])
+
+    assert.equal(status, 0, output)
+    assert.match(output, /claude-live \(locked\)/)
+    assert.deepEqual(f.branches(), ['claude/live', 'main'])
   })
 
   test('keeps a worktree with uncommitted work, and its branch', () => {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
-import { parseWorktrees, planBranches } from './cleanup-plan.mjs'
+import { isStaleLock, parseWorktrees, planBranches } from './cleanup-plan.mjs'
 
 describe('parseWorktrees', () => {
   test('reads branch, lock and prunable from porcelain output', () => {
@@ -29,6 +29,7 @@ describe('parseWorktrees', () => {
         head: 'aaa',
         branch: 'main',
         locked: false,
+        lockPid: null,
         prunable: false
       },
       {
@@ -36,6 +37,7 @@ describe('parseWorktrees', () => {
         head: 'bbb',
         branch: 'claude/x',
         locked: true,
+        lockPid: 42,
         prunable: false
       },
       {
@@ -43,9 +45,46 @@ describe('parseWorktrees', () => {
         head: 'ccc',
         branch: null,
         locked: false,
+        lockPid: null,
         prunable: true
       }
     ])
+  })
+})
+
+describe('isStaleLock', () => {
+  const lockedBy = (reason) =>
+    parseWorktrees(
+      `worktree /w\nHEAD a\nbranch refs/heads/x\nlocked${reason}`
+    )[0]
+  const running = new Set([7])
+  const isRunning = (pid) => running.has(pid)
+
+  test('is stale once the session that locked it has exited', () => {
+    const tree = lockedBy(
+      ' claude session x (pid 73022 start Thu Nov  5 11:17:27 2026)'
+    )
+    assert.equal(isStaleLock(tree, isRunning), true)
+  })
+
+  test('holds while the locking process runs', () => {
+    assert.equal(
+      isStaleLock(lockedBy(' claude agent a (pid 7)'), isRunning),
+      false
+    )
+  })
+
+  test('holds a lock that names no process, such as one a person set', () => {
+    assert.equal(isStaleLock(lockedBy(' on a USB drive'), isRunning), false)
+    assert.equal(isStaleLock(lockedBy(''), isRunning), false)
+  })
+
+  test('an unlocked worktree has no lock to go stale', () => {
+    const tree = parseWorktrees('worktree /w\nHEAD a\nbranch refs/heads/x')[0]
+    assert.equal(
+      isStaleLock(tree, () => false),
+      false
+    )
   })
 })
 

@@ -4,6 +4,7 @@ import { join, sep } from 'node:path'
 import { parseArgs } from 'node:util'
 
 import {
+  isStaleLock,
   mergedHead,
   parseWorktrees,
   planBranches
@@ -147,9 +148,18 @@ function isBuildOutput(path) {
   )
 }
 
+function isRunning(pid) {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (error) {
+    return error.code === 'EPERM'
+  }
+}
+
 function keepReason(tree) {
   if (!tree.branch) return 'detached HEAD'
-  if (tree.locked) return 'locked'
+  if (tree.locked && !isStaleLock(tree, isRunning)) return 'locked'
   if (here === tree.path || here.startsWith(tree.path + sep))
     return 'current directory'
   if (inUse(tree.path)) return 'a process is running in it'
@@ -222,6 +232,8 @@ for (const tree of linked) {
     continue
   }
   const kb = sizeKb(tree.path)
+  if (remove && tree.locked)
+    run('git', ['worktree', 'unlock', tree.path], { cwd: repoRoot })
   if (remove) run('git', ['worktree', 'remove', tree.path], { cwd: repoRoot })
   reclaimedKb += kb
   console.log(`  ${verb} ${tree.path} [${tree.branch}] (${formatKb(kb)})`)
