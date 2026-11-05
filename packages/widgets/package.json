@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-widgets",
-  "version": "3.7.1",
+  "version": "3.8.0",
   "description": "Roadie Design System widgets (core + React + Vue skins) — currently the shared cart drawer",
   "type": "module",
   "repository": {
@@ -59,10 +59,12 @@
     "./roadie.manifest.json": "./dist/roadie.manifest.json"
   },
   "scripts": {
-    "build": "tsdown && pnpm generate:manifest && pnpm check:dts && pnpm check:exports",
-    "build:quiet": "tsdown --log-level warn && pnpm generate:manifest",
+    "build": "pnpm generate:manifest --alongside tsdown",
+    "check:package": "pnpm check:dts && pnpm check:exports && pnpm check:pack",
+    "build:quiet": "pnpm generate:manifest --alongside tsdown --log-level warn",
     "check:dts": "node scripts/check-dts.mjs",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
+    "check:pack": "node ../core/scripts/check-pack.mjs",
     "clean": "rm -rf node_modules dist",
     "generate:manifest": "node ../core/scripts/manifest/generate.ts",
     "dev": "tsdown --watch --log-level warn",
@@ -79,7 +81,7 @@
   },
   "dependencies": {
     "@oztix/roadie-core": "workspace:*",
-    "focus-trap": "8.2.3"
+    "focus-trap": "8.2.4"
   },
   "peerDependencies": {
     "react": "^19.2.0",
@@ -138,7 +140,7 @@
     "@phosphor-icons/react": "2.1.10",
     "@phosphor-icons/vue": "2.2.1",
     "@size-limit/preset-small-lib": "14.3.0",
-    "@tanstack/react-query": "5.104.5",
+    "@tanstack/react-query": "5.105.0",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
     "@testing-library/vue": "8.1.0",
@@ -150,17 +152,17 @@
     "@vitest/coverage-v8": "5.0.5",
     "@vue/test-utils": "2.5.1",
     "jsdom": "30.1.3",
-    "motion": "14.6.0",
+    "motion": "14.8.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "react-focus-lock": "2.13.7",
     "size-limit": "14.3.0",
-    "tsdown": "0.23.1",
-    "typescript": "6.0.3",
+    "tsdown": "0.23.4",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.3.5",
     "vitest": "5.0.5",
     "vue": "3.5.44",
-    "vue-tsc": "3.3.13"
+    "vue-tsc": "3.3.14"
   },
   "size-limit": [
     {

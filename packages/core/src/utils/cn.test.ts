@@ -87,6 +87,11 @@ describe('cn', () => {
     )
   })
 
+  it('lets a consumer’s prose size replace a component’s', () => {
+    expect(cn('prose prose-sm', 'prose-lg')).toBe('prose prose-lg')
+    expect(cn('prose-lg', 'prose-sm')).toBe('prose-sm')
+  })
+
   it('dedupes Roadie named duration tokens', () => {
     expect(cn('duration-fast', 'duration-slow')).toBe('duration-slow')
     expect(cn('duration-moderate', 'duration-normal')).toBe('duration-normal')
@@ -148,6 +153,18 @@ describe('cn', () => {
   it('dedupes Roadie named z-index tiers', () => {
     expect(cn('z-overlay', 'z-modal')).toBe('z-modal')
     expect(cn('z-popover', 'z-tooltip')).toBe('z-tooltip')
+  })
+
+  it('dedupes every z-index tier layering.css defines', () => {
+    const css = readFileSync(
+      fileURLToPath(new URL('../css/layering.css', import.meta.url)),
+      'utf8'
+    )
+    const tiers = [...css.matchAll(/--z-index-([a-z][a-z-]*):/g)].map(
+      ([, tier]) => `z-${tier}`
+    )
+    expect(tiers).toContain('z-alert')
+    for (const tier of tiers) expect(cn('z-base', tier)).toBe(tier)
   })
 
   it('dedupes a Roadie named z-index against a numeric z-index', () => {

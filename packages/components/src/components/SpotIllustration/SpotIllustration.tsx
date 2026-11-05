@@ -36,7 +36,7 @@ const layerColors: Record<
   stroke: { fill: 'none', stroke: 'var(--color-illustration-stroke)' }
 }
 
-/** Pre-computed style objects — avoids allocating new objects every render. */
+/** Pre-computed style objects, avoids allocating new objects every render. */
 const layerStyles: Record<PathData['layer'], React.CSSProperties> = {
   outline: { fill: layerColors.outline.fill },
   face: { fill: layerColors.face.fill },

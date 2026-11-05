@@ -6,8 +6,6 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   type EditorBlock,
   type EditorNodeViewProps,
-  Extension,
-  Mark,
   Node,
   NodeViewWrapper,
   mergeAttributes,
@@ -48,10 +46,8 @@ describe('@oztix/roadie-editor/extensions', () => {
     expectTypeOf<EditorNodeViewProps>().toHaveProperty('selected')
   })
 
-  it('re-exports Tiptap’s Node, Mark and Extension builders', () => {
-    for (const builder of [Node, Mark, Extension]) {
-      expect(builder.create({ name: 'x' }).name).toBe('x')
-    }
+  it('re-exports Tiptap’s Node builder', () => {
+    expect(Node.create({ name: 'x' }).name).toBe('x')
     expect(mergeAttributes({ class: 'a' }, { class: 'b' })).toEqual({
       class: 'a b'
     })

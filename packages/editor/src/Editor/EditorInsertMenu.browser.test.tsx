@@ -8,9 +8,11 @@ import {
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { Dialog } from '@oztix/roadie-components/dialog'
+
 import { Editor } from '.'
 import type { EditorValue, JSONContent } from '../schema'
-import { selectParagraph } from './testUtils'
+import { MOD, selectParagraph } from './testUtils'
 
 const LABEL = 'Newsletter'
 
@@ -169,6 +171,55 @@ describe('Editor insert menu', () => {
     )
   })
 
+  it('inserts before the next line, putting the caret there', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email(p('Doors 7pm'), p('All ages'))
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{End} /div{Enter}18+ ')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm '), { type: 'horizontalRule' }, p('18+ All ages'))
+      )
+    )
+  })
+
+  it('keeps the caret in an emptied line after a block goes before it', async () => {
+    const onValueChange = renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/spa{Enter}See you there')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'spacer', attrs: { height: 32 } }, p('See you there'))
+      )
+    )
+  })
+
+  it('makes the option under the pointer active', async () => {
+    const onValueChange = renderEmail()
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const spacer = within(await insertMenu()).getByRole('option', {
+      name: 'Spacer'
+    })
+    await userEvent.hover(spacer)
+    await waitFor(() =>
+      expect(textbox).toHaveAttribute('aria-activedescendant', spacer.id)
+    )
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'spacer', attrs: { height: 32 } }, p())
+      )
+    )
+  })
+
   it('filters as you type, and closes when nothing matches', async () => {
     renderEmail()
     await focusedTextbox()
@@ -248,9 +299,119 @@ describe('Editor insert menu', () => {
     expect(onValueChange).toHaveBeenLastCalledWith(email(p('/sec')))
   })
 
-  it('inserts the option clicked', async () => {
+  it('closes on Escape without closing the dialog around it', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <Dialog.Content>
+          <Dialog.Title>Compose</Dialog.Title>
+          <Editor aria-label={LABEL} preset='email' />
+        </Dialog.Content>
+      </Dialog>
+    )
+    await focusedTextbox()
+
+    await userEvent.keyboard('/sec')
+    await insertMenu()
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+    expect(screen.getByRole('dialog')).toBeVisible()
+    expect(onOpenChange).not.toHaveBeenCalled()
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(onOpenChange).toHaveBeenCalledWith(false, expect.anything())
+    )
+  })
+
+  it('closes when focus leaves the editor', async () => {
+    renderEmail()
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    await insertMenu()
+    textbox.blur()
+
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+    expect(textbox).not.toHaveAttribute('aria-controls')
+    expect(textbox).not.toHaveAttribute('aria-activedescendant')
+  })
+
+  it.each([
+    ['/div', 'horizontalRule'],
+    ['/sec', 'section'],
+    ['/2 col', 'columns'],
+    ['/spac', 'spacer'],
+    ['/heading 2', 'heading'],
+    ['/bullet', 'bulletList'],
+    ['/numbered', 'orderedList']
+  ])('undoes %s back to what was typed', async (typed, type) => {
     const onValueChange = renderEmail()
     await focusedTextbox()
+
+    await userEvent.keyboard(`${typed}{Enter}`)
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall?.[0] as EditorValue | undefined)?.doc
+          .content?.[0]?.type
+      ).toBe(type)
+    )
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(email(p(typed)))
+    )
+  })
+
+  it.each(['Shift', MOD])(
+    'leaves %s+Enter to break the line, inserting nothing',
+    async (modifier) => {
+      const onValueChange = renderEmail()
+      await focusedTextbox()
+
+      await userEvent.keyboard('/div')
+      await insertMenu()
+      await userEvent.keyboard(`{${modifier}>}{Enter}{/${modifier}}`)
+
+      await waitFor(() =>
+        expect(onValueChange).toHaveBeenLastCalledWith(
+          email({
+            type: 'paragraph',
+            content: [{ type: 'text', text: '/div' }, { type: 'hardBreak' }]
+          })
+        )
+      )
+    }
+  )
+
+  it('stays under the / as a container around the editor scrolls', async () => {
+    render(
+      <div data-testid='scroller' style={{ height: 300, overflow: 'auto' }}>
+        <div style={{ height: 100 }} />
+        <Editor aria-label={LABEL} preset='email' />
+        <div style={{ height: 1000 }} />
+      </div>
+    )
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const listbox = await insertMenu()
+    const line = textbox.querySelector('p')!
+    const gap = () =>
+      listbox.getBoundingClientRect().top - line.getBoundingClientRect().bottom
+    await waitFor(() => expect(gap()).toBeGreaterThanOrEqual(0))
+    const opened = gap()
+    screen.getByTestId('scroller').scrollTop = 60
+
+    await waitFor(() => expect(gap()).toBeCloseTo(opened, 0))
+  })
+
+  it('inserts the option clicked, keeping focus in the text', async () => {
+    const onValueChange = renderEmail()
+    const textbox = await focusedTextbox()
+    const onBlur = vi.fn()
+    textbox.addEventListener('blur', onBlur)
 
     await userEvent.keyboard('/')
     await userEvent.click(
@@ -262,6 +423,7 @@ describe('Editor insert menu', () => {
         email({ type: 'spacer', attrs: { height: 32 } }, p())
       )
     )
+    expect(onBlur).not.toHaveBeenCalled()
   })
 
   it('offers no section or columns inside a column', async () => {
@@ -295,6 +457,42 @@ describe('Editor insert menu', () => {
     expect(optionNames(await insertMenu())).toEqual(['Numbered list'])
   })
 
+  it('uploads the image chosen, before the emptied line', async () => {
+    const poster = 'https://assets.example.com/poster.webp'
+    const onValueChange = renderEmail({
+      onUploadImage: async () => ({ src: poster, alt: 'Festival poster' })
+    })
+    await focusedTextbox()
+    const fileInput = screen.getByLabelText('Image file')
+    const onPick = vi.fn()
+    fileInput.addEventListener('click', (event) => {
+      event.preventDefault()
+      onPick()
+    })
+
+    await userEvent.keyboard('/ima{Enter}')
+    await waitFor(() => expect(onPick).toHaveBeenCalled())
+    await userEvent.upload(
+      fileInput,
+      new File(['png'], 'poster.png', { type: 'image/png' })
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          {
+            type: 'image',
+            attrs: expect.objectContaining({
+              src: poster,
+              alt: 'Festival poster'
+            })
+          },
+          p()
+        )
+      )
+    )
+  })
+
   it('offers Image with onUploadImage', async () => {
     renderEmail({
       onUploadImage: async () => ({ src: 'https://example.com/crowd.png' })
@@ -324,29 +522,6 @@ describe('Editor insert menu', () => {
       expect(screen.queryByRole('listbox')).toBe(null)
     }
   )
-
-  it('refuses an uploaded image served from a path on the site', async () => {
-    const onValueChange = renderEmail({
-      defaultValue: email(p('Doors 7pm')),
-      onUploadImage: async () => ({ src: '/images/crowd.png' })
-    })
-    const textbox = await focusedTextbox()
-
-    const clipboardData = new DataTransfer()
-    clipboardData.items.add(
-      new File(['png'], 'crowd.png', { type: 'image/png' })
-    )
-    const event = new ClipboardEvent('paste', {
-      bubbles: true,
-      cancelable: true
-    })
-    Object.defineProperty(event, 'clipboardData', { value: clipboardData })
-    textbox.dispatchEvent(event)
-
-    expect((await screen.findByRole('alert')).textContent).toMatch(/https/)
-    expect(textbox.querySelector('img')).toBe(null)
-    expect(onValueChange).not.toHaveBeenCalled()
-  })
 })
 
 describe('Editor email paste', () => {

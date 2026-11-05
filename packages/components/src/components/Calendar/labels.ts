@@ -1,7 +1,8 @@
 import {
   addDays,
   formatDateRange,
-  formatFull
+  formatFull,
+  plainDateParts
 } from '@oztix/roadie-core/datetime'
 
 // Noon UTC read in UTC, so a plain date names itself in every zone.
@@ -78,10 +79,19 @@ export function weekCaption(
 ): string {
   const label = (date: string) =>
     format(date, locale, { month, year: 'numeric' })
-  if (start.slice(0, 7) === end.slice(0, 7)) return label(start)
+  const [first, last] = [plainDateParts(start), plainDateParts(end)]
+  if (first.year === last.year && first.month === last.month)
+    return label(start)
   const from =
-    start.slice(0, 4) === end.slice(0, 4)
-      ? format(start, locale, { month })
-      : label(start)
+    first.year === last.year ? format(start, locale, { month }) : label(start)
   return `${from} to ${label(end)}`
+}
+
+/**
+ * The live region's next text. A screen reader skips a region whose text
+ * hasn't changed, so a repeat, such as a second refused press, gains a
+ * no-break space.
+ */
+export function nextAnnouncement(said: string, message: string): string {
+  return said === message ? `${message}\u00a0` : message
 }

@@ -33,7 +33,7 @@ runs breaks its module resolution until the server restarts.
 
 1. Edit the source.
 2. Build the package: `pnpm --filter @oztix/roadie-components build`, or
-   `build:quiet` for widgets (JS and types, no attw checks).
+   `build:quiet` (the same, with quieter logs).
 3. Start or restart the docs dev server.
 
 If the server still serves a stale copy, `pnpm --filter docs build` and a

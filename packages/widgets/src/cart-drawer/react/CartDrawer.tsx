@@ -49,11 +49,11 @@ export type CartDrawerProps = {
   /** Core cart client (host + fetch injected by the consuming app). */
   cart: CartClient
   collectionId: string
-  /** REQUIRED — routing is the consumer's job. */
+  /** Required. Routing is the consumer's job. */
   onNavigate: (href: string) => void
   /** Empty-state "Browse" target. Defaults to a safe collectionId-derived path; unsafe values fall back to that default. */
   browseHref?: string
-  /** Mount context for the open-state secondary button. Browse target is package-built from collectionId — never a consumer URL — to avoid open-redirect. */
+  /** Mount context for the open-state secondary button. Browse target is package-built from collectionId (never a consumer URL) to avoid open-redirect. */
   context?: 'collection' | 'event'
   /** Locale for currency/date formatting. */
   locale: string
@@ -64,8 +64,8 @@ export type CartDrawerProps = {
   /** Lock body scroll while open. Default true. */
   lockBodyScroll?: boolean
   /**
-   * Controlled open state. When provided, the drawer animates to match it —
-   * drive it from your own state so any UI (e.g. a "View cart" button) can
+   * Controlled open state. When provided, the drawer animates to match it.
+   * Drive it from your own state so any UI (e.g. a "View cart" button) can
    * open/close it, echoing `onOpenChange` back into it. Omit for uncontrolled
    * (tap/drag) behaviour seeded by `initialState`.
    */
@@ -160,7 +160,7 @@ export function CartDrawer({
     initialState: open === undefined ? initialState : open ? 'open' : 'closed'
   })
 
-  // Controlled `open`: snap only when the prop itself changes — never off
+  // Controlled `open`: snap only when the prop itself changes, never off
   // internal `state`, or a tap (which moves state before the parent echoes
   // `open` back) would be reconciled away. Skip mid-drag without consuming the
   // prop so it reconciles once the drag releases.

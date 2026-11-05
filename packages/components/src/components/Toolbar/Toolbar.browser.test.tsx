@@ -1,13 +1,23 @@
 import { type ReactNode } from 'react'
 
-import { cleanup, render, screen } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { cleanup, render, screen, within } from '@testing-library/react'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 
 import { Toolbar } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { focusRing } from '../../css/testUtils'
 import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
+import { Tooltip } from '../Tooltip'
 
 let removeStylesheet = () => {}
 beforeAll(() => {
@@ -131,6 +141,34 @@ describe('Toolbar layout', () => {
     }
   )
 
+  it('slides its fill to a toggle that is also a tooltip trigger', async () => {
+    render(
+      <Toolbar aria-label='Formatting'>
+        <Toolbar.ToggleGroup aria-label='List' defaultValue={['bulleted']}>
+          {['bulleted', 'numbered'].map((value) => (
+            <Tooltip key={value}>
+              <Tooltip.Trigger
+                render={<Toolbar.Toggle value={value}>{value}</Toolbar.Toggle>}
+              />
+              <Tooltip.Content>{value}</Tooltip.Content>
+            </Tooltip>
+          ))}
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const indicator = document.querySelector<HTMLElement>(
+      '[data-slot="toolbar-toggle-group-indicator"]'
+    )!
+    await expect.poll(() => indicator.hasAttribute('data-ready')).toBe(true)
+
+    const numbered = screen.getByRole('button', { name: 'numbered' })
+    numbered.click()
+
+    await expect
+      .poll(() => indicator.style.getPropertyValue('--pressed-item-left'))
+      .toBe(`${numbered.offsetLeft}px`)
+  })
+
   it('slides one pressed fill between the toggles of a single-value group', async () => {
     const icon = <svg viewBox='0 0 16 16' className='size-4' />
     render(
@@ -177,10 +215,9 @@ describe('Toolbar layout', () => {
       '[data-slot="toolbar-toggle-group-indicator"]'
     )!
     await expect.poll(() => indicator.hasAttribute('data-ready')).toBe(true)
+    // Layout widths: a rect would catch the press's scale still springing back.
     const widths = () =>
-      screen
-        .getAllByRole('button')
-        .map((toggle) => toggle.getBoundingClientRect().width)
+      screen.getAllByRole('button').map((toggle) => toggle.offsetWidth)
     const before = widths()
     await userEvent.click(screen.getByRole('button', { name: 'Centre' }))
     expect(widths()).toEqual(before)
@@ -227,6 +264,26 @@ describe('Toolbar layout', () => {
     expect(indicator.getBoundingClientRect().top).toBe(
       right.getBoundingClientRect().top
     )
+  })
+
+  it('stretches the toggles of a vertical group that are also tooltip triggers', () => {
+    render(
+      <Toolbar aria-label='Formatting' orientation='vertical'>
+        <Toolbar.ToggleGroup aria-label='List' defaultValue={['bulleted']}>
+          {['bulleted', 'numbered list'].map((value) => (
+            <Tooltip key={value}>
+              <Tooltip.Trigger
+                render={<Toolbar.Toggle value={value}>{value}</Toolbar.Toggle>}
+              />
+              <Tooltip.Content>{value}</Tooltip.Content>
+            </Tooltip>
+          ))}
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const width = (name: string) =>
+      screen.getByRole('button', { name }).getBoundingClientRect().width
+    expect(width('bulleted')).toBe(width('numbered list'))
   })
 
   it('fills each pressed toggle of a multiple group itself', () => {
@@ -282,7 +339,12 @@ describe('Toolbar layout', () => {
       </Toolbar>
     )
     const separator = screen.getByRole('separator').getBoundingClientRect()
+    const bold = screen
+      .getByRole('button', { name: 'Bold' })
+      .getBoundingClientRect()
     expect(separator.height).toBeGreaterThan(separator.width)
+    expect(separator.top - bold.top).toBe(6)
+    expect(bold.bottom - separator.bottom).toBe(6)
   })
 
   it('draws a separator across a vertical toolbar', () => {
@@ -294,7 +356,12 @@ describe('Toolbar layout', () => {
       </Toolbar>
     )
     const separator = screen.getByRole('separator').getBoundingClientRect()
+    const bold = screen
+      .getByRole('button', { name: 'Bold' })
+      .getBoundingClientRect()
     expect(separator.width).toBeGreaterThan(separator.height)
+    expect(separator.left - bold.left).toBe(6)
+    expect(bold.right - separator.right).toBe(6)
   })
 
   it('stacks a vertical toolbar in a column', () => {
@@ -410,6 +477,140 @@ describe('Toolbar layout', () => {
         reference
       )
       expect(height(screen.getByRole('link', { name: 'Help' }))).toBe(reference)
+    }
+  )
+})
+
+describe('Flush toolbar', () => {
+  const surfaceOf = (name: string) =>
+    screen
+      .getByRole('toolbar', { name })
+      .closest<HTMLElement>('[data-slot="toolbar-surface"]')!
+
+  it.each(['normal', 'subtle', 'subtler', 'raised', 'floating'] as const)(
+    'drops the rounding, border and shadow at %s, so the parent draws the edge',
+    (emphasis) => {
+      render(
+        <Toolbar flush emphasis={emphasis} aria-label='History'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+        </Toolbar>
+      )
+      const surface = getComputedStyle(surfaceOf('History'))
+
+      expect(surface.borderTopWidth).toBe('0px')
+      expect(surface.borderBottomWidth).toBe('0px')
+      expect(surface.borderTopLeftRadius).toBe('0px')
+      expect(surface.boxShadow).toBe('none')
+    }
+  )
+
+  it.each(['normal', 'subtle', 'subtler', 'raised', 'floating'] as const)(
+    'keeps the fill of %s in both themes',
+    (emphasis) => {
+      onTestFinished(() => document.documentElement.classList.remove('dark'))
+      render(
+        <>
+          <Toolbar emphasis={emphasis} aria-label='Inset'>
+            <Toolbar.Button>Undo</Toolbar.Button>
+          </Toolbar>
+          <Toolbar flush emphasis={emphasis} aria-label='Flush'>
+            <Toolbar.Button>Undo</Toolbar.Button>
+          </Toolbar>
+        </>
+      )
+      const fill = (name: string) => {
+        const style = getComputedStyle(surfaceOf(name))
+        return [style.backgroundColor, style.backdropFilter]
+      }
+      expect(fill('Flush')).toEqual(fill('Inset'))
+
+      // Only dark mode tells the floating fill from the raised one.
+      document.documentElement.classList.add('dark')
+      expect(fill('Flush')).toEqual(fill('Inset'))
+    }
+  )
+
+  it.each([
+    ['sm', 32],
+    ['md', 40],
+    ['lg', 48]
+  ] as const)(
+    'insets its controls by 4px at %s, so a hover clears the edge',
+    (size, control) => {
+      render(
+        <Toolbar flush size={size} aria-label='History'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+        </Toolbar>
+      )
+      const surface = surfaceOf('History').getBoundingClientRect()
+      const undo = screen
+        .getByRole('button', { name: 'Undo' })
+        .getBoundingClientRect()
+
+      expect(undo.top - surface.top).toBe(4)
+      expect(undo.left - surface.left).toBe(4)
+      expect(surface.height).toBe(control + 8)
+    }
+  )
+
+  it('keeps the gap between its controls', () => {
+    render(
+      <>
+        <Toolbar aria-label='Inset'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+          <Toolbar.Button>Redo</Toolbar.Button>
+        </Toolbar>
+        <Toolbar flush aria-label='Flush'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+          <Toolbar.Button>Redo</Toolbar.Button>
+        </Toolbar>
+      </>
+    )
+    const gap = (name: string) => {
+      const toolbar = within(screen.getByRole('toolbar', { name }))
+      const box = (button: string) =>
+        toolbar.getByRole('button', { name: button }).getBoundingClientRect()
+      return box('Redo').left - box('Undo').right
+    }
+    expect(gap('Flush')).toBe(4)
+    expect(gap('Inset')).toBe(4)
+  })
+
+  it('runs across its parent with w-full', () => {
+    render(
+      <div style={{ display: 'grid', width: 600 }}>
+        <Toolbar flush className='w-full' aria-label='History'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+        </Toolbar>
+      </div>
+    )
+    expect(surfaceOf('History').getBoundingClientRect().width).toBe(600)
+  })
+
+  // The inset holds the ring, where the scrolling row would clip it.
+  it.each(['Undo', 'Save draft'])(
+    'draws the focus ring around %s within the inset',
+    async (name) => {
+      onTestFinished(useStylesheet('* { transition-duration: 0s !important }'))
+      render(
+        <Toolbar flush aria-label='History'>
+          <Toolbar.Button>Undo</Toolbar.Button>
+          <Toolbar.Group aria-label='Draft'>
+            <Toolbar.Button>Save draft</Toolbar.Button>
+          </Toolbar.Group>
+        </Toolbar>
+      )
+      // Firefox shows no ring for scripted focus inside a composite, so the keys move it.
+      await userEvent.keyboard('{Tab}')
+      if (name === 'Save draft') await userEvent.keyboard('{ArrowRight}')
+      const control = screen.getByRole('button', { name })
+      expect(control).toHaveFocus()
+      const ring = focusRing(control)
+      const surface = surfaceOf('History').getBoundingClientRect()
+      const box = control.getBoundingClientRect()
+      const width = parseFloat(ring.width) + parseFloat(ring.offset)
+      expect(box.top - width).toBeGreaterThanOrEqual(surface.top)
+      expect(box.bottom + width).toBeLessThanOrEqual(surface.bottom)
     }
   )
 })

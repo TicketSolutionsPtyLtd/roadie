@@ -43,9 +43,10 @@ export {
   dayOfWeek,
   monthGrid,
   plainDateOf,
+  plainDateParts,
   startOfWeek
 } from './plainDate'
-export type { MonthGridOptions } from './plainDate'
+export type { MonthGridOptions, PlainDateParts } from './plainDate'
 
 export {
   canonicalDateRange,

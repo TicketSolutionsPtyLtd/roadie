@@ -1,6 +1,6 @@
 version: 2
 
-# Keeping direct deps current is what makes security overrides unnecessary —
+# Keeping direct deps current is what makes security overrides unnecessary:
 # 15 of 20 died on their own once the parents caught up. Minor/patch are
 # grouped so they stay reviewable; majors come separately and get read.
 #

@@ -24,6 +24,7 @@ export {
   type DeltaSentiment,
   type GoodWhen,
   type ValueFormat,
+  type ValueFormatOptions,
   deltaSentiment,
   describeDelta,
   formatDelta,

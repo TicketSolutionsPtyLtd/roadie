@@ -12,6 +12,7 @@ export type ListItemSortableProps = Omit<
   'chevron' | 'descriptionId'
 > & {
   value: string
+  label: string | undefined
   className?: string
   /** Whether the row was given an `href` or `onClick`, which a sortable row drops. */
   actionable: boolean
@@ -21,6 +22,7 @@ export type ListItemSortableProps = Omit<
 
 export function ListItemSortable({
   value,
+  label,
   title,
   description,
   leading,
@@ -35,16 +37,17 @@ export function ListItemSortable({
       actionable &&
       'Roadie: a List.Item with a value inside a Sortable is a static row, so its href and onClick are ignored. Put the action in its trailing slot.'
   )
+  useDevWarning(
+    sortable !== null &&
+      label === undefined &&
+      `Roadie: List.Item "${value}" has a title that isn't plain text, so its Reorder handle has no name. Give it a label.`
+  )
   if (!sortable) return fallback
   const { Item, Handle } = sortable
   const handle = <Handle size='xs' />
 
   return (
-    <Item
-      value={value}
-      label={typeof title === 'string' ? title : undefined}
-      render={<li />}
-    >
+    <Item value={value} label={label} render={<li />}>
       <ListItemStatic
         className={className}
         title={title}

@@ -32,7 +32,7 @@ styles the placeholder and selection:
 | --- | --- | --- |
 | [`basic`](/components/editor/basic-and-rich) (default) | Paragraphs, lists, bold, italic, underline, and links | A simple field, such as a ticket type's note |
 | [`rich`](/components/editor/basic-and-rich#rich-preset) | The basic preset, plus headings, quotes, dividers, images, embeds, and tables | An event description |
-| [`blocks`](/components/editor/blocks) | The rich preset, with an id on each block, the slash menu, drag, and custom blocks | A CMS page built from blocks |
+| [`blocks`](/components/editor/blocks) | The rich preset, with an id on each block, the insert menu, drag, and custom blocks | A CMS page built from blocks |
 | [`email`](/components/editor/email) | Sections, columns, buttons, images, spacers, merge tags, and conditions | An email design |
 
 Every preset saves an `EditorValue`. [Saved content](/components/editor/saved-content)
@@ -87,12 +87,14 @@ controls scroll sideways on one row when they don't fit.
 
 ### Selection menu
 
-Add `Editor.BubbleMenu` among the parts to show Bold, Italic, Underline and
+Add `Editor.BubbleMenu` among the parts to show Bold, Italic, Underline, and
 Link above selected text, close to it on a phone or in a long document. It
 shows while text is selected and the editor has focus, and hides when the
-selection collapses, on a selected image or embed, while the link editor is
-open, and when the editor is read-only or disabled. Children go after the
-preset's controls, as in `Editor.Toolbar`.
+selection collapses, on a selected image or embed, on text that takes no
+marks, such as an email button's label, while the link editor is open, and
+when the editor is read-only or disabled. It keeps clear of Table and Columns
+actions, going below the selection when they're above it. Children go after
+the preset's controls, as in `Editor.Toolbar`.
 
 ```tsx-live-prose
 <Editor
@@ -387,7 +389,7 @@ render(
 | `Mod+Shift+Z` | Redo |
 | `Shift+Enter` | Line break |
 | `Alt+F10` | Move focus to the toolbar's first enabled control, the selection menu's while it shows, a selected image's, embed's, or spacer's first action, the first action of the button or columns holding the caret, or in a table its first table action |
-| `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image or embed |
+| `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image, embed, or spacer |
 
 `Mod` is `⌘` on Apple devices and `Ctrl` elsewhere, and `Alt` is `⌥` on
 Apple devices.
