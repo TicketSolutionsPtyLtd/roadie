@@ -64,6 +64,20 @@ function fixture() {
       git(path, 'add', '-A')
       git(path, 'commit', '-qm', file)
     },
+    // A clean worktree that `git worktree remove` still refuses.
+    addSubmodule(path) {
+      git(
+        path,
+        '-c',
+        'protocol.file.allow=always',
+        'submodule',
+        'add',
+        '-q',
+        repo,
+        'sub'
+      )
+      git(path, 'commit', '-qm', 'sub')
+    },
     lock(path, pid) {
       git(
         repo,
@@ -150,6 +164,28 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     assert.equal(status, 0, output)
     assert.match(output, /claude-live \(locked\)/)
     assert.deepEqual(f.branches(), ['claude/live', 'main'])
+  })
+
+  test('locks a worktree again when git refuses to remove it', () => {
+    const f = fixture()
+    const path = f.worktree('claude/stuck')
+    f.addSubmodule(path)
+    f.merge('claude/stuck')
+    const pid = spawnSync('true').pid
+    f.lock(path, pid)
+
+    const { status, output } = f.cleanup([
+      '--delete',
+      '--branch',
+      'claude/stuck'
+    ])
+
+    assert.notEqual(status, 0, output)
+    assert.equal(existsSync(path), true)
+    assert.match(
+      f.worktreeList(),
+      new RegExp(`locked claude session x \\(pid ${pid}\\)`)
+    )
   })
 
   test('keeps a worktree locked by a process it may not signal', () => {

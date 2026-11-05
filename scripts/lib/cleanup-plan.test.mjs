@@ -29,6 +29,7 @@ describe('parseWorktrees', () => {
         head: 'aaa',
         branch: 'main',
         locked: false,
+        lockReason: null,
         lockPid: null,
         prunable: false
       },
@@ -37,6 +38,7 @@ describe('parseWorktrees', () => {
         head: 'bbb',
         branch: 'claude/x',
         locked: true,
+        lockReason: 'claude agent agent-1 (pid 42)',
         lockPid: 42,
         prunable: false
       },
@@ -45,6 +47,7 @@ describe('parseWorktrees', () => {
         head: 'ccc',
         branch: null,
         locked: false,
+        lockReason: null,
         lockPid: null,
         prunable: true
       }

@@ -17,6 +17,7 @@ export function parseWorktrees(porcelain) {
             ? fields.branch.replace('refs/heads/', '')
             : null,
         locked: Boolean(fields.locked),
+        lockReason: typeof fields.locked === 'string' ? fields.locked : null,
         lockPid: lockPid(fields.locked),
         prunable: Boolean(fields.prunable)
       }

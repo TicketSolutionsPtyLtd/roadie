@@ -181,6 +181,20 @@ function keepReason(tree) {
   return null
 }
 
+// Only a stale lock gets this far, but if git refuses the removal the lock
+// goes back, so a failed run leaves the worktree as it found it.
+function removeWorktree(tree) {
+  const worktree = (...args) =>
+    run('git', ['worktree', ...args], { cwd: repoRoot })
+  if (tree.locked) worktree('unlock', tree.path)
+  try {
+    worktree('remove', tree.path)
+  } catch (error) {
+    if (tree.locked) worktree('lock', '--reason', tree.lockReason, tree.path)
+    throw error
+  }
+}
+
 const cwds = processCwds()
 const inUse = (dir) =>
   cwds.some((cwd) => cwd === dir || cwd.startsWith(dir + sep))
@@ -232,9 +246,7 @@ for (const tree of linked) {
     continue
   }
   const kb = sizeKb(tree.path)
-  if (remove && tree.locked)
-    run('git', ['worktree', 'unlock', tree.path], { cwd: repoRoot })
-  if (remove) run('git', ['worktree', 'remove', tree.path], { cwd: repoRoot })
+  if (remove) removeWorktree(tree)
   reclaimedKb += kb
   console.log(`  ${verb} ${tree.path} [${tree.branch}] (${formatKb(kb)})`)
 }
