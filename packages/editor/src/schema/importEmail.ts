@@ -1,6 +1,11 @@
-import { isEmailImageSrc } from './emailAttrs'
+import { isEmailHref, isEmailImageSrc } from './emailAttrs'
 import { type EmbedProvider, defaultEmbedProviders } from './embed'
-import { type DroppedContent, bodyToDoc, report } from './importHtml'
+import {
+  type DroppedContent,
+  absoluteSrc,
+  bodyToDoc,
+  report
+} from './importHtml'
 import { mergeTagTokens } from './mergeTagTokens'
 import { CURRENT_VERSION, type EditorValue, migrate } from './value'
 import type { EditorVariable } from './variables'
@@ -116,7 +121,7 @@ function linkLine(reading: Reading, links: Element[]) {
 }
 
 function image(reading: Reading, element: Element): Node[] {
-  const src = element.getAttribute('src')
+  const src = absoluteSrc(element)
   if (!isEmailImageSrc(src)) {
     reading.dropped.push(report('image', src))
     return []
@@ -388,7 +393,7 @@ export function importEmail(
   }
   // An image block holds no link, so one around it is lost.
   for (const image of container.querySelectorAll('a[href] img')) {
-    if (!isEmailImageSrc(image.getAttribute('src'))) continue
+    if (!isEmailImageSrc(absoluteSrc(image))) continue
     const href = image.closest('a')!.getAttribute('href')
     dropped.push(report('link', href))
   }
@@ -398,6 +403,17 @@ export function importEmail(
   const tables = outermost(container, 'table').length
   withoutOwnLook(container)
   const unknownMergeTags = readTokens(container, variables)
+  // A button holds only an address a mail client opens, so any other is a
+  // link on a line of its own, not run into the text beside it.
+  for (const button of container.querySelectorAll('a[data-type="button"]')) {
+    if (button.hasAttribute('data-variable')) continue
+    if (isEmailHref(button.getAttribute('href'))) continue
+    dropped.push({ kind: 'element', tag: 'mj-button' })
+    button.removeAttribute('data-type')
+    const line = container.ownerDocument.createElement('p')
+    button.replaceWith(line)
+    line.append(button)
+  }
   const read = bodyToDoc(container, 'email', embedProviders)
   const value = migrate(
     { version: CURRENT_VERSION, preset: 'email', doc: read.doc },

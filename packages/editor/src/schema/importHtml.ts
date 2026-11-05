@@ -42,7 +42,7 @@ export function report(kind: DroppedContent['kind'], src: string | null) {
 }
 
 // Old embed and image code writes addresses protocol-relative.
-function absoluteSrc(element: Element | null | undefined) {
+export function absoluteSrc(element: Element | null | undefined) {
   const src = element?.getAttribute('src')?.trim() || null
   return src?.startsWith('//') ? `https:${src}` : src
 }

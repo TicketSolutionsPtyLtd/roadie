@@ -209,6 +209,56 @@ describe('importEmail from MJML', () => {
     ])
   })
 
+  it('reads a protocol-relative image as https, as HTML does', () => {
+    const imported = importEmail(
+      mjml(
+        '<mj-section><mj-column><mj-image src="//cdn.oztix.com.au/hero.jpg" /></mj-column></mj-section>'
+      )
+    )
+
+    expect(imported.dropped).toEqual([])
+    expect(imported.value.doc.content).toEqual([
+      {
+        type: 'image',
+        attrs: {
+          src: 'https://cdn.oztix.com.au/hero.jpg',
+          alt: '',
+          width: null
+        }
+      }
+    ])
+  })
+
+  it('reads a button with no address a mail client opens as its own line', () => {
+    const imported = importEmail(
+      mjml(`<mj-section><mj-column>
+        <mj-button href="/tickets">Get tickets</mj-button>
+        <mj-button>Doors 7pm</mj-button>
+        <mj-button href="#FirstName#">Hi</mj-button>
+        <mj-button href="#OptOut#">Unsubscribe</mj-button>
+      </mj-column></mj-section>`),
+      { variables }
+    )
+
+    expect(imported.dropped).toEqual([
+      { kind: 'element', tag: 'mj-button' },
+      { kind: 'element', tag: 'mj-button' },
+      { kind: 'element', tag: 'mj-button' }
+    ])
+    expect(imported.value.doc.content).toEqual([
+      paragraph(
+        text('Get tickets', [{ type: 'link', attrs: { href: '/tickets' } }])
+      ),
+      paragraph(text('Doors 7pm')),
+      paragraph(text('Hi', [{ type: 'link', attrs: { href: '#FirstName#' } }])),
+      {
+        type: 'button',
+        attrs: { variable: 'unsubscribe_url' },
+        content: [text('Unsubscribe')]
+      }
+    ])
+  })
+
   it('reads a navbar and social links as a line of links', () => {
     const link = (href: string) => [{ type: 'link', attrs: { href } }]
     expect(
@@ -395,6 +445,26 @@ describe('importEmail from HTML', () => {
         attrs: {
           src: 'https://cdn.oztix.com.au/hero.jpg',
           alt: 'Hero',
+          width: null
+        }
+      }
+    ])
+  })
+
+  it('reports a link around a protocol-relative image it keeps', () => {
+    const imported = importEmail(
+      '<a href="https://www.oztix.com.au"><img src="//cdn.oztix.com.au/hero.jpg" alt=""></a>'
+    )
+
+    expect(imported.dropped).toEqual([
+      { kind: 'link', src: 'https://www.oztix.com.au' }
+    ])
+    expect(imported.value.doc.content).toEqual([
+      {
+        type: 'image',
+        attrs: {
+          src: 'https://cdn.oztix.com.au/hero.jpg',
+          alt: '',
           width: null
         }
       }
