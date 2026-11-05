@@ -587,7 +587,7 @@ import {
   it in place. The component gets `node.attrs` and `updateAttributes`, and
   wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
   them, not the text around the block. A read-only or disabled editor
-  ignores its `updateAttributes`.
+  ignores its `updateAttributes` and `deleteNode`.
 - Pass `{ node, label, icon, keywords }` in `extensions` to show it in the
   insert menu, after the preset's blocks and only where it fits. The editor
   reads `extensions` once, when it's created, so give it a new `key` to
