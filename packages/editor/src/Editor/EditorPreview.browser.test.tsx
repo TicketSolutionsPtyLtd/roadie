@@ -153,6 +153,110 @@ describe('Editor preview', () => {
     )
   })
 
+  it('simulates a mail app’s forced dark mode, and says so', async () => {
+    renderEditor()
+    const frame = await openPreview()
+    await waitFor(() => expect(frame).toHaveAttribute('srcdoc'))
+    expect(screen.queryByText(/Simulated dark mode/)).toBeNull()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Dark' }))
+
+    await waitFor(() =>
+      expect(frame.getAttribute('srcdoc')).toContain('invert(1)')
+    )
+    expect(screen.getByText(/Simulated dark mode/)).toBeVisible()
+  })
+
+  it('shows the inbox row with the sender, subject and preview', async () => {
+    renderEditor({
+      sender: 'Ochre Kite Weekender',
+      subject: 'Two weeks to go'
+    })
+    await openPreview()
+
+    const inbox = screen.getByRole('group', { name: 'In the inbox' })
+    expect(inbox).toHaveTextContent('Ochre Kite Weekender')
+    expect(inbox).toHaveTextContent('Two weeks to go')
+  })
+
+  it('shows no inbox row with nothing to put in it', async () => {
+    renderEditor()
+    await openPreview()
+    expect(screen.queryByRole('group', { name: 'In the inbox' })).toBeNull()
+  })
+
+  describe('on a phone', () => {
+    function renderNarrow(props: Partial<EditorProps> = {}) {
+      const onRenderPreview = vi.fn(
+        async (
+          _value: EditorValue,
+          { values }: { values: Readonly<Record<string, string>> }
+        ) => rendered(values)
+      )
+      render(
+        <div style={{ width: 390 }} data-testid='phone'>
+          <Editor
+            aria-label={LABEL}
+            defaultValue={VALUE}
+            toolbar='docked'
+            onRenderPreview={onRenderPreview}
+            previewRecipients={RECIPIENTS}
+            onSendTest={async () => {}}
+            {...props}
+          />
+        </div>
+      )
+      return onRenderPreview
+    }
+
+    it('scales the frame to fit, at either width', async () => {
+      renderNarrow()
+      const frame = await openPreview()
+      const room = screen.getByTestId('phone').getBoundingClientRect()
+
+      for (const width of ['Desktop', 'Phone']) {
+        await userEvent.click(screen.getByRole('button', { name: width }))
+        await waitFor(() => {
+          const box = frame.getBoundingClientRect()
+          expect(box.left).toBeGreaterThanOrEqual(room.left)
+          expect(box.right).toBeLessThanOrEqual(room.right)
+        })
+      }
+      expect(frame.style.width).toBe('375px')
+    })
+
+    it('keeps its controls on one row', async () => {
+      renderNarrow()
+      await openPreview()
+      const bar = screen.getByRole('group', { name: 'Preview' })
+      const middles = within(bar)
+        .getAllByRole('button')
+        .map((button) => {
+          const { top, bottom } = button.getBoundingClientRect()
+          return (top + bottom) / 2
+        })
+      expect(Math.max(...middles) - Math.min(...middles)).toBeLessThan(4)
+      expect(bar.scrollWidth).toBeLessThanOrEqual(bar.clientWidth)
+    })
+
+    it('previews as a recipient from More', async () => {
+      const onRenderPreview = renderNarrow()
+      await openPreview()
+      expect(screen.queryByRole('combobox', { name: 'Preview as' })).toBeNull()
+
+      await userEvent.click(screen.getByRole('button', { name: 'More' }))
+      await userEvent.click(
+        await screen.findByRole('menuitemradio', { name: 'No name' })
+      )
+
+      await waitFor(() =>
+        expect(onRenderPreview).toHaveBeenLastCalledWith(expect.anything(), {
+          values: {}
+        })
+      )
+    })
+  })
+
   it('previews as each recipient, with their values', async () => {
     const onRenderPreview = renderEditor({ previewRecipients: RECIPIENTS })
     const frame = await openPreview()
@@ -345,6 +449,21 @@ describe('Editor preview', () => {
 
       expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
       expect(onSendTest).not.toHaveBeenCalled()
+    })
+
+    it('says why Send is off', async () => {
+      renderEditor({ onSendTest: async () => {} })
+      await openPreview()
+      await userEvent.click(screen.getByRole('button', { name: 'Send test' }))
+      const address = await screen.findByRole('textbox', { name: 'Send to' })
+
+      expect(
+        screen.getByText('Enter the address to send a test to.')
+      ).toBeInTheDocument()
+      await userEvent.type(address, 'promoter')
+      expect(
+        screen.getByText('Enter a whole address, such as name@example.com.')
+      ).toBeInTheDocument()
     })
 
     it('says why a send failed', async () => {

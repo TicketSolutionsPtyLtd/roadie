@@ -15,19 +15,22 @@ const CSS_NAMES: Record<keyof EmailTheme, string> = {
   fontFamily: '--email-theme-font-family'
 }
 
+// These follow a ThemeProvider's accent unless the theme sets them.
+const ACCENTS = new Set<keyof EmailTheme>(['accent', 'link', 'button'])
+
 /**
- * The theme's own colours as the variables editor.css draws the email
- * canvas with. A key the theme leaves out falls back in the CSS, to
- * Roadie's light scales, so the canvas follows a `ThemeProvider`'s accent.
- * Throws as `renderEmail` does on a value that isn't a hex colour.
+ * The theme's colours over the default email theme, as the variables
+ * editor.css draws the email canvas with, so it shows what `renderEmail`
+ * sends. The accent, link and button colours are set only when the theme
+ * gives them; otherwise a `ThemeProvider`'s accent shows. Throws as
+ * `renderEmail` does on a value that isn't a hex colour.
  */
 export function emailCanvasStyle(
-  theme: Partial<EmailTheme> | undefined
-): CSSProperties | undefined {
-  if (!theme) return undefined
+  theme: Partial<EmailTheme> = {}
+): CSSProperties {
   const resolved = emailTheme(theme)
   const keys = (Object.keys(defaultEmailTheme) as (keyof EmailTheme)[]).filter(
-    (key) => theme[key] !== undefined
+    (key) => !ACCENTS.has(key) || theme[key] !== undefined
   )
   return Object.fromEntries(
     keys.map((key) => [CSS_NAMES[key], resolved[key]])

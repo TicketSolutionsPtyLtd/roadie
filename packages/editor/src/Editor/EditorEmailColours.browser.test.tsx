@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
-import type { EmailTheme } from '../email'
+import { type EmailTheme, defaultEmailTheme } from '../email/theme'
 import type { EditorValue } from '../schema'
 
 const LABEL = 'Newsletter'
@@ -58,16 +58,6 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-// The light tokens resolve to oklch where the browser supports it.
-function tokenColour(token: string) {
-  const probe = document.createElement('span')
-  probe.style.color = `var(${token})`
-  document.body.append(probe)
-  const colour = getComputedStyle(probe).color
-  probe.remove()
-  return colour
-}
-
 const rgb = (hex: string) => {
   const [r, g, b] = [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16))
   return `rgb(${r}, ${g}, ${b})`
@@ -95,13 +85,11 @@ describe('Editor email colours', () => {
   it('keeps an email light in a dark app, as it sends', async () => {
     const { canvas } = await renderEmail()
     const canvasStyle = getComputedStyle(canvas)
-    expect(canvasStyle.backgroundColor).toBe(
-      tokenColour('--color-neutral-light-0')
-    )
+    expect(canvasStyle.backgroundColor).toBe(rgb(defaultEmailTheme.background))
     expect(canvasStyle.colorScheme).toBe('light')
     expect(canvasStyle.fontFamily).toBe('Helvetica, Arial, sans-serif')
     expect(getComputedStyle(screen.getByText('Gates 11am,')).color).toBe(
-      tokenColour('--color-neutral-light-12')
+      rgb(defaultEmailTheme.text)
     )
   })
 
@@ -161,5 +149,77 @@ describe('Editor email colours', () => {
       return result
     }
     expect(await colours(true)).toEqual(await colours(false))
+  })
+
+  it('fills a subtle button with the tint the email sends, without a theme', async () => {
+    const { styleOf } = await renderEmail()
+    expect(styleOf('Set times').backgroundColor).toBe(
+      rgb(defaultEmailTheme.tint)
+    )
+    expect(styleOf('Lineup').borderTopColor).toBe(rgb(defaultEmailTheme.border))
+  })
+
+  it('selects text in a colour the email’s text reads on, in a dark app', async () => {
+    const { canvas } = await renderEmail()
+    const selection = getComputedStyle(
+      screen.getByText('Gates 11am,'),
+      '::selection'
+    )
+    const darkSelection = (() => {
+      const probe = document.createElement('span')
+      probe.className = 'dark'
+      probe.style.color = 'var(--color-info-3)'
+      document.body.append(probe)
+      const colour = getComputedStyle(probe).color
+      probe.remove()
+      return colour
+    })()
+
+    expect(selection.backgroundColor).not.toBe(darkSelection)
+    expect(selection.color).toBe(getComputedStyle(canvas).color)
+  })
+})
+
+describe('Editor email layout, as it sends', () => {
+  it('sets columns’ text 12px further out than a line outside them', async () => {
+    render(
+      <div style={{ width: 900 }}>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={{
+            version: 1,
+            preset: 'email',
+            doc: {
+              type: 'doc',
+              content: [
+                {
+                  type: 'paragraph',
+                  content: [{ type: 'text', text: 'Intro' }]
+                },
+                {
+                  type: 'columns',
+                  content: ['Left', 'Right'].map((text) => ({
+                    type: 'column',
+                    content: [
+                      { type: 'paragraph', content: [{ type: 'text', text }] }
+                    ]
+                  }))
+                }
+              ]
+            }
+          }}
+        />
+      </div>
+    )
+    const intro = await screen.findByText('Intro')
+    const left = (text: string) =>
+      screen.getByText(text).getBoundingClientRect().left
+    const right = (text: string) =>
+      screen.getByText(text).closest('p')!.getBoundingClientRect().right
+
+    expect(left('Intro') - left('Left')).toBeCloseTo(12, 0)
+    expect(
+      right('Right') - intro.closest('p')!.getBoundingClientRect().right
+    ).toBeCloseTo(12, 0)
   })
 })

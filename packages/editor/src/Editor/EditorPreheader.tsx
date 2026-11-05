@@ -35,7 +35,7 @@ export function EditorPreheader({ editor, className }: EditorPreheaderProps) {
     <Field
       data-slot='editor-preheader'
       className={cn(
-        'mx-auto w-full max-w-[600px] grid-cols-[auto_minmax(0,1fr)] items-center gap-3',
+        'mx-auto w-full max-w-[600px] grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-1',
         className
       )}
     >
@@ -57,6 +57,9 @@ export function EditorPreheader({ editor, className }: EditorPreheaderProps) {
           )
         }}
       />
+      <Field.HelperText className='col-start-2 text-xs'>
+        About 40 to 90 characters show.
+      </Field.HelperText>
     </Field>
   )
 }

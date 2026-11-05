@@ -181,7 +181,25 @@
   border-color: var(--email-divider);
 }
 
-/* Drawn as renderEmail draws each emphasis, in the theme's colours. */
+/* The app's selection colour is for the app's own surface, and on the email
+   it can be a dark fill under dark text. */
+[data-email] ::selection {
+  background-color: color-mix(
+    in oklch,
+    var(--email-link) 22%,
+    var(--email-background)
+  );
+  color: var(--email-text);
+}
+
+/* A column pads its blocks 12px a side and a block outside columns 24px, so
+   in the email columns reach 12px further out than the text around them. */
+[data-email] [data-type='columns'] {
+  margin-inline: calc(var(--spacing) * -3);
+}
+
+/* Drawn as renderEmail draws each emphasis, in the theme's colours: a
+   button's, and a section's look of tint or accent. */
 [data-email] [data-type='button'].emphasis-strong {
   background-color: var(--email-button);
   color: var(--email-button-text);
@@ -191,6 +209,18 @@
   background-color: var(--email-background);
   border-color: var(--email-border);
   color: var(--email-text);
+}
+
+[data-email] [data-type='section'].emphasis-strong {
+  --intent-text-normal: var(--email-button-text);
+  --intent-text-strong: var(--email-button-text);
+
+  background-color: var(--email-button);
+  color: var(--email-button-text);
+}
+
+[data-email] [data-type='section'].emphasis-subtle {
+  background-color: var(--email-tint);
 }
 
 [data-email] [data-type='button'].emphasis-subtle {
