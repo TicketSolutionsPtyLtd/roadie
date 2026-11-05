@@ -441,7 +441,8 @@ shows an error and adds nothing.
 ### Importing HTML or MJML
 
 Import HTML or MJML, in the toolbar, or in the floating toolbar's … menu,
-brings an existing email across. Paste its source, whole or in part, and the
+brings an existing email across. Paste its source, whole or in part, or
+pick an `.html` or `.mjml` file with Choose a file, and the
 dialog says whether it's reading MJML, which starts with `<mjml>`, or HTML.
 Before anything changes, it lists what won't come across: styles, a table's
 layout, images not on https, links an email can't open, hidden text past the
@@ -463,7 +464,11 @@ same dialog with it filled in, in place of pasting the tags.
   `mj-divider` become a button, image, spacer, and divider. A button keeps
   its centre or right alignment and a 100% width. A navbar or social row
   becomes a line of links. Any other element keeps its text.
-- **HTML:** a table layout gives way to its text and images, in order.
+- **HTML:** a link alone on its line becomes a button when it's padded or
+  `inline-block`, or fills a padded cell, as a bulletproof button does,
+  keeping its centre or right alignment. A row of two to four cells whose
+  widths add up to 100% becomes columns. Any other table layout gives way to
+  its text and images, in order.
 - **Merge tags:** a token from `variables`, such as `#FirstName#` or
   `{{ customer.first_name }}`, becomes its merge tag, and a Liquid
   `default` becomes its fallback. A link or button whose whole href is a link

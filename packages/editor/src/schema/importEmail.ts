@@ -343,6 +343,110 @@ function withoutOwnLook(container: HTMLElement) {
   }
 }
 
+// A layout row of two to four cells that share the email's width, as a
+// template's columns are. Pixel widths are a fixed design, not columns.
+function cellWidth(cell: Element) {
+  const written =
+    cell.getAttribute('width') ??
+    /(?:^|;)\s*width\s*:\s*([^;]+)/i.exec(cell.getAttribute('style') ?? '')?.[1]
+  const percent = /^\s*(\d+(?:\.\d+)?)%\s*$/.exec(written ?? '')?.[1]
+  return percent === undefined ? undefined : Number(percent)
+}
+
+function columnsOf(row: Element) {
+  const cells = [...row.children].filter((child) =>
+    ['td', 'th'].includes(tagOf(child))
+  )
+  if (cells.length < 2 || cells.length > 4) return null
+  const widths = cells.map(cellWidth)
+  if (widths.some((width) => width === undefined)) return null
+  const total = widths.reduce<number>((sum, width) => sum + width!, 0)
+  if (Math.abs(total - 100) > 1) return null
+  const doc = row.ownerDocument
+  const columns = doc.createElement('div')
+  columns.dataset.type = 'columns'
+  for (const cell of cells) {
+    const column = doc.createElement('div')
+    column.dataset.type = 'column'
+    column.append(...cell.childNodes)
+    columns.append(column)
+  }
+  return columns
+}
+
+// Outer rows first, so a row nested in a column gives way to its text.
+function layoutColumns(container: HTMLElement) {
+  for (const row of container.querySelectorAll('tr')) {
+    if (!row.isConnected || row.closest('[data-type="column"]')) continue
+    const columns = columnsOf(row)
+    if (!columns) continue
+    const table = row.closest('table')
+    if (table?.rows.length === 1) table.replaceWith(columns)
+    else row.replaceWith(columns)
+  }
+}
+
+const LINE = 'p, div, td, th, li, center, h1, h2, h3, h4, h5, h6'
+const PADDED = /(?:^|;)\s*padding(?:-[a-z]+)?\s*:\s*[^;]*[1-9]/i
+const INLINE_BLOCK = /(?:^|;)\s*display\s*:\s*inline-block/i
+const FILLED = /(?:^|;)\s*background(?:-color)?\s*:/i
+
+const styleOf = (element: Element) => element.getAttribute('style') ?? ''
+
+// The link is the line's only text, so it reads as a button, not a word.
+function lineHolding(link: Element) {
+  const line = link.parentElement?.closest(LINE)
+  if (!line) return null
+  const words = (element: Element) => element.textContent?.trim() ?? ''
+  const others = [...line.querySelectorAll('img, a, table')].filter(
+    (element) => element !== link && !link.contains(element)
+  )
+  return words(line) === words(link) && others.length === 0 ? line : null
+}
+
+// A bulletproof button pads and fills its cell, not the link.
+function looksLikeButton(link: Element, line: Element) {
+  const style = styleOf(link)
+  if (PADDED.test(style) || INLINE_BLOCK.test(style)) return true
+  const isCell = ['td', 'th'].includes(tagOf(line))
+  const filled = line.hasAttribute('bgcolor') || FILLED.test(styleOf(line))
+  return isCell && filled && PADDED.test(styleOf(line))
+}
+
+function alignmentOf(line: Element) {
+  for (
+    let element: Element | null = line;
+    element && !element.matches('[data-type="column"], body');
+    element = element.parentElement
+  ) {
+    const align =
+      element.getAttribute('align') ??
+      /(?:^|;)\s*text-align\s*:\s*(\w+)/i.exec(styleOf(element))?.[1]
+    if (align === 'center' || align === 'right') return align
+    if (align === 'left' || tagOf(element) === 'table') return undefined
+  }
+  return undefined
+}
+
+function htmlButtons(container: HTMLElement) {
+  for (const link of container.querySelectorAll('a')) {
+    const href = link.getAttribute('href')
+    const variable = link.getAttribute('data-variable')
+    if (!variable && !isEmailHref(href)) continue
+    const line = lineHolding(link)
+    if (!line || !looksLikeButton(link, line)) continue
+    const button = link.ownerDocument.createElement('a')
+    button.dataset.type = 'button'
+    if (variable) button.dataset.variable = variable
+    else button.setAttribute('href', href!)
+    const align = alignmentOf(line)
+    if (align) button.dataset.align = align
+    button.append(...link.childNodes)
+    if (['td', 'th'].includes(tagOf(line))) line.replaceChildren(button)
+    else line.replaceWith(button)
+  }
+}
+
 function readTokens(
   container: HTMLElement,
   variables: readonly EditorVariable[]
@@ -386,7 +490,9 @@ function readTokens(
  * Reads an email's source, MJML or HTML, as a whole page or part of one, into
  * an email preset value, through `migrate`. MJML sections, columns, buttons,
  * images, spacers and dividers become the editor's own, and `mj-text` is read
- * as HTML. An HTML layout's tables give way to their text and images.
+ * as HTML. In HTML, a padded or inline-block link alone on its line is a
+ * button, a row of two to four cells whose widths share 100% is columns, and
+ * any other layout table gives way to its text and images.
  * Hidden text before any the email shows, or `mj-preview`, becomes the
  * preheader, and any other hidden text is dropped. Each token of a `variables`
  * entry becomes a merge tag, or a link variable as a link's or button's
@@ -429,12 +535,14 @@ export function importEmail(
     const href = image.closest('a')!.getAttribute('href')
     dropped.push(report('link', href))
   }
+  if (format === 'html') layoutColumns(container)
   const styled = container.matches(STYLED) ? 1 : 0
   const styles =
     reading.styles + styled + container.querySelectorAll(STYLED).length
   const tables = outermost(container, 'table').length
   withoutOwnLook(container)
   const unknownMergeTags = readTokens(container, variables)
+  if (format === 'html') htmlButtons(container)
   // A button holds only an address a mail client opens, so any other is a
   // link on a line of its own, not run into the text beside it.
   for (const button of container.querySelectorAll('a[data-type="button"]')) {

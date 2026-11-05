@@ -503,6 +503,194 @@ describe('importEmail from HTML', () => {
   })
 })
 
+describe('importEmail reads an HTML email’s buttons', () => {
+  const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
+  const buttonOf = (
+    attrs: Record<string, unknown> = {},
+    label = 'Get tickets'
+  ) => ({
+    type: 'button',
+    attrs: { href: TICKETS, ...attrs },
+    content: [text(label)]
+  })
+
+  it.each([
+    [
+      'padded',
+      `<p><a href="${TICKETS}" style="padding:12px 20px;background:#5f270f">Get tickets</a></p>`
+    ],
+    [
+      'inline-block',
+      `<div><a href="${TICKETS}" style="display: inline-block">Get tickets</a></div>`
+    ],
+    [
+      'in a padded cell',
+      `<table><tr><td style="padding:12px 24px" bgcolor="#5f270f"><a href="${TICKETS}">Get tickets</a></td></tr></table>`
+    ]
+  ])('reads a %s link alone on its line as a button', (_, source) => {
+    expect(blocks(source)).toEqual([buttonOf()])
+  })
+
+  it('keeps a button’s centre or right alignment', () => {
+    expect(
+      blocks(
+        `<div style="text-align:center"><a href="${TICKETS}" style="padding:12px">Get tickets</a></div><table><tr><td align="right"><a href="${TICKETS}" style="display:inline-block">Lineup</a></td></tr></table>`
+      )
+    ).toEqual([
+      buttonOf({ align: 'center' }),
+      buttonOf({ align: 'right' }, 'Lineup')
+    ])
+  })
+
+  it.each([
+    [
+      'beside other text',
+      `<p>Doors 7pm. <a href="${TICKETS}" style="padding:4px">Get tickets</a></p>`
+    ],
+    ['unpadded', `<p><a href="${TICKETS}">Get tickets</a></p>`],
+    [
+      'padded with zero',
+      `<p><a href="${TICKETS}" style="padding:0">Get tickets</a></p>`
+    ],
+    [
+      'to an address an email can’t open',
+      `<p><a href="/tickets" style="padding:12px">Get tickets</a></p>`
+    ]
+  ])('keeps a link %s as a link', (_, source) => {
+    expect(blocks(source)?.some((block) => block.type === 'button')).toBe(false)
+  })
+
+  it('reads a button to a link variable', () => {
+    expect(
+      blocks('<p><a href="#OptOut#" style="padding:12px">Unsubscribe</a></p>')
+    ).toEqual([
+      {
+        type: 'button',
+        attrs: { variable: 'unsubscribe_url' },
+        content: [text('Unsubscribe')]
+      }
+    ])
+  })
+})
+
+describe('importEmail reads an HTML email’s columns', () => {
+  const cell = (width: string, body: string) =>
+    `<td width="${width}" valign="top">${body}</td>`
+  const column = (...content: JSONContent[]) => ({ type: 'column', content })
+
+  it.each([
+    ['two halves', ['50%', '50%']],
+    ['a third and two thirds', ['33%', '67%']],
+    [
+      'four quarters by style',
+      ['style:25%', 'style:25%', 'style:25%', 'style:25%']
+    ]
+  ])('reads a row of %s as columns', (_, widths) => {
+    const cells = widths.map((width, index) =>
+      width.startsWith('style:')
+        ? `<td style="width:${width.slice(6)}"><p>Band ${index + 1}</p></td>`
+        : cell(width, `<p>Band ${index + 1}</p>`)
+    )
+    const imported = importEmail(
+      `<table width="100%"><tr>${cells.join('')}</tr></table>`,
+      {
+        variables
+      }
+    )
+
+    expect(imported.value.doc.content).toEqual([
+      {
+        type: 'columns',
+        content: widths.map((_, index) =>
+          column(paragraph(text(`Band ${index + 1}`)))
+        )
+      }
+    ])
+    expect(imported.restyled.tables).toBe(0)
+  })
+
+  it('keeps a column’s images, headings and buttons', () => {
+    expect(
+      blocks(
+        `<table><tr>${cell('50%', '<img src="https://cdn.oztix.com.au/a.jpg" alt="A"><h3>Ochre Kite</h3>')}${cell('50%', '<a href="https://www.oztix.com.au" style="padding:12px">Get tickets</a>')}</tr></table>`
+      )
+    ).toEqual([
+      {
+        type: 'columns',
+        content: [
+          column(
+            {
+              type: 'image',
+              attrs: {
+                src: 'https://cdn.oztix.com.au/a.jpg',
+                alt: 'A',
+                width: null
+              }
+            },
+            {
+              type: 'heading',
+              attrs: { level: 3 },
+              content: [text('Ochre Kite')]
+            }
+          ),
+          column({
+            type: 'button',
+            attrs: { href: 'https://www.oztix.com.au' },
+            content: [text('Get tickets')]
+          })
+        ]
+      }
+    ])
+  })
+
+  it('keeps the other rows of a layout table around the columns', () => {
+    expect(
+      blocks(
+        `<table><tr><td colspan="2"><p>Lineup</p></td></tr><tr>${cell('50%', '<p>Marri Lane</p>')}${cell('50%', '<p>Dusty Banksia</p>')}</tr></table>`
+      )
+    ).toEqual([
+      paragraph(text('Lineup')),
+      {
+        type: 'columns',
+        content: [
+          column(paragraph(text('Marri Lane'))),
+          column(paragraph(text('Dusty Banksia')))
+        ]
+      }
+    ])
+  })
+
+  it.each([
+    ['widths short of 100%', ['40%', '40%']],
+    ['one cell', ['100%']],
+    ['five cells', ['20%', '20%', '20%', '20%', '20%']],
+    ['pixel widths', ['300', '300']]
+  ])('reads a row with %s as text, as before', (_, widths) => {
+    const imported = importEmail(
+      `<table><tr>${widths.map((width, index) => cell(width, `<p>Band ${index + 1}</p>`)).join('')}</tr></table>`
+    )
+    expect(
+      imported.value.doc.content?.some((block) => block.type === 'columns')
+    ).toBe(false)
+  })
+
+  it('reads only the outer row of nested layout rows as columns', () => {
+    const inner = `<table><tr>${cell('50%', '<p>Inner A</p>')}${cell('50%', '<p>Inner B</p>')}</tr></table>`
+    const content = blocks(
+      `<table><tr>${cell('50%', inner)}${cell('50%', '<p>Outer B</p>')}</tr></table>`
+    )
+    expect(content).toEqual([
+      {
+        type: 'columns',
+        content: [
+          column(paragraph(text('Inner A')), paragraph(text('Inner B'))),
+          column(paragraph(text('Outer B')))
+        ]
+      }
+    ])
+  })
+})
+
 describe('importEmail with unsafe source', () => {
   it('keeps no script, handler, or javascript: link', () => {
     const imported = importEmail(
