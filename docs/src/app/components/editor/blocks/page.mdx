@@ -16,7 +16,7 @@ import { Editor } from '@oztix/roadie-editor/editor'
 ```
 
 The [Editor](/components/editor) page covers the toolbar, emphasis, sizes,
-states, and forms, and [Basic and Rich](/components/editor/basic-and-rich)
+states, and forms, and [Basic and rich](/components/editor/basic-and-rich)
 the images, embeds, and tables this preset holds too.
 
 ## Examples
@@ -228,3 +228,18 @@ function Page() {
 
 render(<Page />)
 ```
+
+## Accessibility
+
+- In the blocks preset, `/` opens a `listbox` named Insert under the caret.
+  Focus stays in the text, which points `aria-activedescendant` at the active
+  option and `aria-controls` at the list.
+- The grip and its menu, with their keys, are under
+  [Block handle](#block-handle).
+
+| Keys | Action |
+| --- | --- |
+| `/` | Open the insert menu, in the blocks preset |
+
+Every preset's other keys are on the [Editor](/components/editor#accessibility)
+page.
