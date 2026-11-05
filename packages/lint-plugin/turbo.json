@@ -6,7 +6,12 @@
       "inputs": ["$TURBO_EXTENDS$", "test/**"]
     },
     "test": {
-      "inputs": ["$TURBO_EXTENDS$", "test/**", "oxlint/**"]
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "test/**",
+        "oxlint/**",
+        "$TURBO_ROOT$/oxlint.config.ts"
+      ]
     }
   }
 }

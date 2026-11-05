@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  Children,
   type ReactElement,
   type ReactNode,
   cloneElement,
@@ -24,6 +23,7 @@ import {
   NavigatorMenuItem,
   type NavigatorMenuItemProps
 } from './NavigatorMenuItem'
+import { mapChildrenInPlace, settled } from './childrenInPlace'
 import { navigatorMenuPopupClass } from './variants'
 
 // Each folded row set is its own surface, so a row folded in both opens one popup.
@@ -61,12 +61,16 @@ function withCurrentHandlers(
   activate: (index: number) => void
 ) {
   let position = 0
-  return Children.map(children, (child) => {
-    if (!isValidElement(child) || child.type !== NavigatorMenuItem) {
+  return mapChildrenInPlace(children, (child, indexInList) => {
+    const element = settled(child)
+    if (!isValidElement(element) || element.type !== NavigatorMenuItem) {
       return child
     }
     const index = position++
-    return cloneElement(child as ReactElement<NavigatorMenuItemProps>, {
+    // A clone skips JSX's key check, so it brings a key of its own. The
+    // prefixes keep a given key and a list position apart, as React's do.
+    return cloneElement(element as ReactElement<NavigatorMenuItemProps>, {
+      key: element.key === null ? `.${indexInList}` : `$${element.key}`,
       onSelect: () => activate(index)
     })
   })

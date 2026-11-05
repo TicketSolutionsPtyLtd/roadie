@@ -20,8 +20,10 @@ import type {
   PlotFrame
 } from '../plot/types'
 import {
+  type ValueStyle,
   axisFormat,
   fullFormat,
+  fullValue,
   gridTicks,
   isCountAxis,
   minMax
@@ -66,6 +68,13 @@ function extent(
       : niceHigh
   return [low, format === 'percent' && max <= 1 ? Math.min(1, high) : high]
 }
+
+// Both axes are measures, so each needs its name; the ticks alone don't say what they count.
+const axisTitle = (text: string, paint: ChartPaint, frame: PlotFrame) => ({
+  text,
+  fontSize: frame.fontSize,
+  fill: paint.label
+})
 
 type Placed = ScatterPoint & PlotDatum & { labelAnchor: 'start' | 'end' }
 
@@ -209,6 +218,7 @@ function build(props: ScatterProps, paint: ChartPaint, frame: PlotFrame) {
             size: 0,
             format: axisFormat(props.xFormat, xDomain[1])
           },
+          label: axisTitle(fieldLabel(props.x), paint, frame),
           tickLabels: {
             fontSize: frame.fontSize,
             anchor: ({ value }) =>
@@ -230,7 +240,8 @@ function build(props: ScatterProps, paint: ChartPaint, frame: PlotFrame) {
             size: 0,
             format: axisFormat(props.format, yDomain[1])
           },
-          tickLabels: { fontSize: frame.fontSize }
+          tickLabels: { fontSize: frame.fontSize },
+          label: axisTitle(fieldLabel(props.y), paint, frame)
         }
       }
     },
@@ -246,8 +257,8 @@ const noun = (props: ScatterProps) =>
 const pointAt = (props: ScatterProps, index: number) =>
   scatterPoints(props).find((p) => p.index === index)
 
-const measure = (field: string, value: number, format?: ValueFormat) =>
-  `${fieldLabel(field).toLowerCase()} ${formatValue(value, fullFormat(format))}`
+const measure = (field: string, value: number, style: ValueStyle) =>
+  `${fieldLabel(field).toLowerCase()} ${fullValue(style, value)}`
 
 export const scatter: ChartDefinition<ScatterProps> = {
   kind: 'scatter',
@@ -273,8 +284,8 @@ export const scatter: ChartDefinition<ScatterProps> = {
     if (!point) return datum.series
     return [
       point.name,
-      measure(props.x, point.xValue, props.xFormat),
-      measure(props.y, point.yValue, props.format),
+      measure(props.x, point.xValue, { format: props.xFormat }),
+      measure(props.y, point.yValue, props),
       ...(props.quadrants
         ? [
             props.quadrants.labels[
@@ -297,7 +308,7 @@ export const scatter: ChartDefinition<ScatterProps> = {
         },
         {
           label: fieldLabel(props.y),
-          value: formatValue(point.yValue, fullFormat(props.format)),
+          value: fullValue(props, point.yValue),
           color: colourOf(point, props, paint),
           shape: 'swatch' as const
         },

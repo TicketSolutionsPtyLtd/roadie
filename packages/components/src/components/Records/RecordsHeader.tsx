@@ -4,6 +4,7 @@ import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 
 import { cn } from '@oztix/roadie-core/utils'
 
+import { surfaceClass, useSurface } from '../../utils/surface'
 import { RecordsActions } from './RecordsActions'
 import { RecordsOptions } from './RecordsOptions'
 import { RecordsSearch } from './RecordsSearch'
@@ -17,7 +18,6 @@ import { useNarrow } from './narrow'
 import { SearchFocusContext } from './searchFocus'
 import { useLeaveSelectOnEscape } from './selectMode'
 import { useStickyTop } from './stickyTop'
-import { surfaceClass, useSurface } from './surface'
 import type { RecordsAction } from './types'
 
 export type RecordsHeaderProps<Row extends object = object> = {

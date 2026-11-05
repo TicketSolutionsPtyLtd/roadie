@@ -21,7 +21,7 @@ export type CarouselTitleProps = ComponentProps<'h2'> & {
    */
   as?: HeadingLevel
   /**
-   * Escape hatch — render a different heading element/level with full control.
+   * Escape hatch: render a different heading element/level with full control.
    * The carousel's accessible-name registration is preserved.
    */
   render?: RoadieRenderProp

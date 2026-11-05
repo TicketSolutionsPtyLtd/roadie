@@ -185,6 +185,37 @@ describe('ChangelogTimeline', () => {
     expect(vi.getTimerCount()).toBe(0)
   })
 
+  it('lands a link to a release’s old package-named anchor on the release, under its dated one', () => {
+    vi.useFakeTimers()
+    const scrolled: Element[] = []
+    vi.spyOn(Element.prototype, 'scrollIntoView').mockImplementation(function (
+      this: Element
+    ) {
+      scrolled.push(this)
+    })
+    const moved = {
+      ...release(2, ['components']),
+      slug: '2026-03-01',
+      href: '/overview/changelog/2026-03-01',
+      legacySlug: 'components-2-2-0'
+    }
+    const releases = RELEASES.map((each) =>
+      each.slug === 'components-2-2-0' ? moved : each
+    )
+    window.history.replaceState(null, '', '/#components-2-2-0')
+    const content = document.body.appendChild(document.createElement('div'))
+    content.id = 'docs-content'
+    render(
+      <ChangelogTimeline releases={releases} art={{}} packages={PACKAGES} />,
+      { container: content }
+    )
+
+    expect(window.location.hash).toBe('#2026-03-01')
+    expect(scrolled[0]).toBe(document.getElementById('2026-03-01'))
+    act(() => vi.runAllTimers())
+    content.remove()
+  })
+
   it('narrows the history to one package, retitled for it, and puts it in the URL', () => {
     renderTimeline()
     fireEvent.click(screen.getByRole('button', { name: 'Core' }))
