@@ -344,19 +344,21 @@ export const BlockKeys = Extension.create<BlockKeysOptions>({
           handleKeyDown(view, event) {
             const { state } = view
             const composing = event.isComposing || event.keyCode === 229
+            if (event.defaultPrevented) return false
             const typed =
               event.key.length === 1 &&
               !event.ctrlKey &&
               !event.metaKey &&
               !event.altKey &&
               !composing
-            if (typed) {
+            // A collapsed selection replaces nothing.
+            if (typed && !view.dom.ownerDocument.getSelection()?.isCollapsed) {
               const [from, to] = domRange(view)
               if (replacesAcrossIsolating(view, event.key, from, to)) {
                 return true
               }
             }
-            if (event.key !== 'Escape' || event.defaultPrevented) return false
+            if (event.key !== 'Escape') return false
             if (state.selection instanceof BlockSelection) return false
             const selected = blockSelectionOf(state, containers)
             if (!selected) return false

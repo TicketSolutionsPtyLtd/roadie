@@ -6,6 +6,7 @@ import {
   describe,
   expect,
   it,
+  onTestFinished,
   vi
 } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
@@ -340,9 +341,16 @@ describe('Editor block menu', () => {
 
     it('takes the lower half, under its block, with Delete last and Done to close', async () => {
       await page.viewport(390, 700)
+      // Far enough down the page that the sheet would cover it.
+      document.body.style.paddingBlock = '500px 900px'
+      onTestFinished(() => {
+        document.body.style.paddingBlock = ''
+        window.scrollTo(0, 0)
+      })
       renderLineup({ emphasis: 'normal' })
       const headliner = await row('Headliner')
       await userEvent.click(headliner)
+      expect(headliner.getBoundingClientRect().top).toBeGreaterThan(350)
       await userEvent.click(await handle())
       const sheet = await screen.findByRole('dialog', { name: 'Paragraph' })
 
