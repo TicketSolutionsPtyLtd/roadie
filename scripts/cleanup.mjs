@@ -4,6 +4,7 @@ import { join, sep } from 'node:path'
 import { parseArgs } from 'node:util'
 
 import {
+  changedSinceCheck,
   isStaleLock,
   mergedHead,
   parseWorktrees,
@@ -181,6 +182,16 @@ function keepReason(tree) {
   return null
 }
 
+function reasonSinceCheck(tree) {
+  const changed = changedSinceCheck(tree, worktrees())
+  if (changed) return changed
+  const dir = tree.path
+  const startedSince = processCwds().some(
+    (cwd) => cwd === dir || cwd.startsWith(dir + sep)
+  )
+  return startedSince ? 'a process started in it since the check' : null
+}
+
 // Only a stale lock gets this far, but if git refuses the removal the lock
 // goes back, so a failed run leaves the worktree as it found it.
 function removeWorktree(tree) {
@@ -243,6 +254,11 @@ for (const tree of linked) {
   const reason = keepReasons.get(tree)
   if (reason) {
     console.log(`  Kept ${tree.path} (${reason})`)
+    continue
+  }
+  const lateReason = remove && reasonSinceCheck(tree)
+  if (lateReason) {
+    console.log(`  Kept ${tree.path} (${lateReason})`)
     continue
   }
   const kb = sizeKb(tree.path)

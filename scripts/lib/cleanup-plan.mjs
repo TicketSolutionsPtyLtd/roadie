@@ -31,6 +31,17 @@ function lockPid(reason) {
   return match ? Number(match[1]) : null
 }
 
+// The checks run before the slow cache pass, so a session can resume into a
+// stale-locked worktree and lock it again before removal reaches it.
+export function changedSinceCheck(checked, current) {
+  const now = current.find((tree) => tree.path === checked.path)
+  if (!now) return 'gone since the check'
+  if (now.lockReason === checked.lockReason) return null
+  return now.locked
+    ? 'locked again since the check'
+    : 'lock changed since the check'
+}
+
 export function isStaleLock(tree, isRunning) {
   return tree.locked && tree.lockPid !== null && !isRunning(tree.lockPid)
 }

@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 
-import { isStaleLock, parseWorktrees, planBranches } from './cleanup-plan.mjs'
+import {
+  changedSinceCheck,
+  isStaleLock,
+  parseWorktrees,
+  planBranches
+} from './cleanup-plan.mjs'
 
 describe('parseWorktrees', () => {
   test('reads branch, lock and prunable from porcelain output', () => {
@@ -52,6 +57,36 @@ describe('parseWorktrees', () => {
         prunable: true
       }
     ])
+  })
+})
+
+describe('changedSinceCheck', () => {
+  const entry = (lock) =>
+    parseWorktrees(
+      `worktree /w\nHEAD a\nbranch refs/heads/x${lock ? `\nlocked ${lock}` : ''}`
+    )[0]
+  const checked = entry('claude session x (pid 1)')
+
+  test('is unchanged when the same stale lock is still there', () => {
+    assert.equal(
+      changedSinceCheck(checked, [entry('claude session x (pid 1)')]),
+      null
+    )
+  })
+
+  test('says so when a resumed session locked it again', () => {
+    assert.equal(
+      changedSinceCheck(checked, [entry('claude session x (pid 2)')]),
+      'locked again since the check'
+    )
+  })
+
+  test('says so when someone unlocked or removed it meanwhile', () => {
+    assert.equal(
+      changedSinceCheck(checked, [entry(null)]),
+      'lock changed since the check'
+    )
+    assert.equal(changedSinceCheck(checked, []), 'gone since the check')
   })
 })
 
