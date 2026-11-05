@@ -74,13 +74,17 @@ function renderEditor(
   onValueChange?: (value: EditorValue) => void
 ) {
   render(
-    <Editor
-      aria-label={LABEL}
-      preset='rich'
-      embedProviders={localPlayers}
-      defaultValue={defaultValue}
-      onValueChange={onValueChange}
-    />
+    <>
+      {/* Above the editor, where a popover below the selection never covers it. */}
+      <p>Outside</p>
+      <Editor
+        aria-label={LABEL}
+        preset='rich'
+        embedProviders={localPlayers}
+        defaultValue={defaultValue}
+        onValueChange={onValueChange}
+      />
+    </>
   )
   return screen.findByRole('textbox', { name: LABEL })
 }
@@ -99,6 +103,10 @@ type Popover = {
   typed: string
   submitLabel: string
   saved: (textbox: HTMLElement) => Promise<unknown>
+  /** What `saved` finds, now or not at all. */
+  shown: (textbox: HTMLElement) => HTMLElement | null
+  /** Whether it edits what's there as you type, rather than adding on save. */
+  live: boolean
 }
 
 const POPOVERS: Popover[] = [
@@ -114,7 +122,11 @@ const POPOVERS: Popover[] = [
     },
     typed: TICKETS,
     submitLabel: 'Save link',
-    saved: (textbox) => within(textbox).findByRole('link', { name: 'Sold out' })
+    saved: (textbox) =>
+      within(textbox).findByRole('link', { name: 'Sold out' }),
+    shown: (textbox) =>
+      within(textbox).queryByRole('link', { name: 'Sold out' }),
+    live: true
   },
   {
     name: 'Embed',
@@ -128,7 +140,10 @@ const POPOVERS: Popover[] = [
     typed: SPOTIFY,
     submitLabel: 'Embed link',
     saved: (textbox) =>
-      within(textbox).findByTitle('Spotify embed exampleTrack0000000001')
+      within(textbox).findByTitle('Spotify embed exampleTrack0000000001'),
+    shown: (textbox) =>
+      within(textbox).queryByTitle('Spotify embed exampleTrack0000000001'),
+    live: false
   },
   {
     name: 'Edit link',
@@ -147,7 +162,10 @@ const POPOVERS: Popover[] = [
     typed: SPOTIFY,
     submitLabel: 'Save link',
     saved: (textbox) =>
-      within(textbox).findByTitle('Spotify embed exampleTrack0000000001')
+      within(textbox).findByTitle('Spotify embed exampleTrack0000000001'),
+    shown: (textbox) =>
+      within(textbox).queryByTitle('Spotify embed exampleTrack0000000001'),
+    live: true
   },
   {
     name: 'Alt text',
@@ -160,7 +178,9 @@ const POPOVERS: Popover[] = [
     },
     typed: CROWD_ALT,
     submitLabel: 'Save alt text',
-    saved: (textbox) => within(textbox).findByRole('img', { name: CROWD_ALT })
+    saved: (textbox) => within(textbox).findByRole('img', { name: CROWD_ALT }),
+    shown: (textbox) => within(textbox).queryByRole('img', { name: CROWD_ALT }),
+    live: true
   }
 ]
 
@@ -221,11 +241,14 @@ describe.each(POPOVERS)('Editor $name popover', (popover) => {
     const textbox = await renderEditor(popover.value, onValueChange)
     const field = await popover.open(textbox)
     await userEvent.type(field, popover.typed)
+    // A live popover has applied what's typed; saving would change it again.
+    const changes = onValueChange.mock.calls.length
 
     enterWhileComposing(field, { isComposing: true })
     enterWhileComposing(field, { keyCode: 229 })
 
-    expect(onValueChange).not.toHaveBeenCalled()
+    expect(onValueChange).toHaveBeenCalledTimes(changes)
+    expect(field).toBeInTheDocument()
     await userEvent.keyboard('{Enter}')
     expect(await popover.saved(textbox)).toBeVisible()
   })
@@ -329,9 +352,8 @@ describe.each(POPOVERS)('Editor $name popover row', (popover) => {
     expect(check).not.toHaveAttribute('aria-disabled', 'true')
   })
 
-  it('closes with the close button, putting focus back in the editor', async () => {
-    const onValueChange = vi.fn()
-    const textbox = await renderEditor(popover.value, onValueChange)
+  it('closes with the close button, putting back what was there', async () => {
+    const textbox = await renderEditor(popover.value)
     const field = await popover.open(textbox)
     await userEvent.type(field, popover.typed)
 
@@ -339,17 +361,54 @@ describe.each(POPOVERS)('Editor $name popover row', (popover) => {
 
     await waitFor(() => expect(field).not.toBeInTheDocument())
     await waitFor(() => expect(textbox).toHaveFocus())
-    expect(onValueChange).not.toHaveBeenCalled()
+    expect(popover.shown(textbox)).toBe(null)
   })
 
-  it('closes with Escape', async () => {
+  it('closes with Escape, putting back what was there', async () => {
     const textbox = await renderEditor(popover.value)
     const field = await popover.open(textbox)
+    await userEvent.type(field, popover.typed)
 
     await userEvent.keyboard('{Escape}')
 
     await waitFor(() => expect(field).not.toBeInTheDocument())
     await waitFor(() => expect(textbox).toHaveFocus())
+    expect(popover.shown(textbox)).toBe(null)
+  })
+
+  it.runIf(popover.live)('applies what’s typed as it’s typed', async () => {
+    const textbox = await renderEditor(popover.value)
+    const field = await popover.open(textbox)
+
+    await userEvent.type(field, popover.typed)
+
+    expect(await popover.saved(textbox)).toBeVisible()
+    expect(field).toBeInTheDocument()
+  })
+
+  it.runIf(popover.live)('keeps it on a click outside', async () => {
+    const textbox = await renderEditor(popover.value)
+    const field = await popover.open(textbox)
+    await userEvent.type(field, popover.typed)
+
+    await userEvent.click(screen.getByText('Outside'))
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    expect(popover.shown(textbox)).toBeVisible()
+  })
+
+  it('undoes the save in one step, and redoes it in one', async () => {
+    const textbox = await renderEditor(popover.value)
+    const field = await popover.open(textbox)
+    await userEvent.type(field, `${popover.typed}{Enter}`)
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    await waitFor(() => expect(textbox).toHaveFocus())
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() => expect(popover.shown(textbox)).toBe(null))
+
+    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+    expect(await popover.saved(textbox)).toBeVisible()
   })
 })
 
@@ -362,6 +421,114 @@ describe('Editor link popover', () => {
 
     await waitFor(() => expect(textbox).toHaveFocus())
     expect(document.getSelection()?.toString()).toBe('Sold out')
+  })
+
+  it('puts the link and the caret back on Escape', async () => {
+    const textbox = await renderEditor(linked)
+    await userEvent.click(within(textbox).getByText('tickets'))
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const field = await openField('Link')
+    await userEvent.keyboard('oztix.com.au')
+    await waitFor(() =>
+      expect(within(textbox).getByRole('link')).toHaveAttribute(
+        'href',
+        'https://oztix.com.au'
+      )
+    )
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    await waitFor(() => expect(textbox).toHaveFocus())
+    expect(within(textbox).getByRole('link')).toHaveAttribute('href', TICKETS)
+    expect(document.getSelection()?.isCollapsed).toBe(true)
+  })
+
+  it('puts the link back once what’s typed stops being an address', async () => {
+    const textbox = await renderEditor(linked)
+    await userEvent.click(within(textbox).getByText('tickets'))
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const field = await openField('Link')
+    await userEvent.keyboard('oztix.com.au{Backspace}')
+
+    await userEvent.click(screen.getByText('Outside'))
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    expect(within(textbox).getByRole('link')).toHaveAttribute('href', TICKETS)
+  })
+
+  it('puts the caret back on Escape after what’s typed stops being an address', async () => {
+    const textbox = await renderEditor(linked)
+    await userEvent.click(within(textbox).getByText('tickets'))
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const field = await openField('Link')
+    await userEvent.keyboard('oztix.com.au{Backspace}')
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    await waitFor(() => expect(textbox).toHaveFocus())
+    expect(document.getSelection()?.isCollapsed).toBe(true)
+  })
+
+  it('keeps focus in the field once what’s typed stops being an address', async () => {
+    const textbox = await renderEditor(linked)
+    await userEvent.click(within(textbox).getByText('tickets'))
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const field = await openField('Link')
+
+    await userEvent.keyboard('oztix.com.au{Backspace}')
+
+    expect(within(textbox).getByRole('link')).toHaveAttribute('href', TICKETS)
+    expect(field).toHaveFocus()
+    expect(field).toHaveValue('oztix.com.a')
+  })
+
+  it('undoes in one step a link kept after what’s typed stopped being an address', async () => {
+    const textbox = await renderEditor(linked)
+    await userEvent.click(within(textbox).getByText('tickets'))
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const field = await openField('Link')
+    await userEvent.keyboard('oztix.com.au{Backspace}u{Enter}')
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    await waitFor(() => expect(textbox).toHaveFocus())
+    expect(within(textbox).getByRole('link')).toHaveAttribute(
+      'href',
+      'https://oztix.com.au'
+    )
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() =>
+      expect(within(textbox).getByRole('link')).toHaveAttribute('href', TICKETS)
+    )
+
+    // Nothing the popover did before the save is left to undo.
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    expect(within(textbox).getByRole('link')).toHaveAttribute('href', TICKETS)
+  })
+
+  it('leaves a selection part linked once what’s typed stops being an address', async () => {
+    const textbox = await renderEditor(linked)
+    await selectParagraph(within(textbox).getByText('tickets').parentElement!)
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const field = await openField('Link')
+    await userEvent.clear(field)
+
+    await userEvent.click(screen.getByText('Outside'))
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    expect(within(textbox).getByRole('link')).toHaveAccessibleName('tickets')
+  })
+
+  it('leaves unlinked text unlinked once what’s typed stops being an address', async () => {
+    const textbox = await renderEditor(soldOut)
+    const field = await POPOVERS[0]!.open(textbox)
+    await userEvent.keyboard('oztix.com.au{Backspace}')
+
+    await userEvent.click(screen.getByText('Outside'))
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    expect(within(textbox).queryByRole('link')).toBe(null)
   })
 
   it('shows Remove link between the check and close buttons', async () => {
@@ -410,6 +577,24 @@ describe('Editor link popover', () => {
     await POPOVERS[0]!.open(textbox)
 
     expect(screen.queryByRole('button', { name: 'Remove link' })).toBe(null)
+  })
+})
+
+describe('Editor Edit link popover', () => {
+  it('puts the player back once what’s typed stops embedding', async () => {
+    const textbox = await renderEditor(youtube)
+    const field = await POPOVERS[2]!.open(textbox)
+    await userEvent.type(field, SPOTIFY)
+    await POPOVERS[2]!.saved(textbox)
+    await userEvent.keyboard('{Backspace}')
+
+    await userEvent.click(screen.getByText('Outside'))
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    expect(within(textbox).getByTitle(/embed/)).toHaveAttribute(
+      'title',
+      'YouTube embed exampleVid1'
+    )
   })
 })
 

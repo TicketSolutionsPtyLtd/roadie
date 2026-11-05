@@ -16,6 +16,7 @@ import {
 } from '../schema/embed'
 import { type EmbedAttrs, embedAttrs } from '../schema/embedAttrs'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
+import { type LiveEdit, setSelectedAttrs, useLiveEdit } from './useLiveEdit'
 
 const REFUSED = 'That link can’t be embedded.'
 const REFUSED_DEFAULT = `${REFUSED} Use a share link from YouTube, Vimeo, Spotify, SoundCloud, Deezer, Apple Music, or TikTok.`
@@ -25,6 +26,8 @@ type EmbedFormProps = {
   providers: readonly EmbedProvider[]
   resolveUrl: ((url: string) => Promise<string>) | undefined
   inputRef: RefObject<HTMLInputElement | null>
+  apply: LiveEdit['apply']
+  revert: LiveEdit['revert']
   onDone: () => void
 }
 
@@ -35,11 +38,14 @@ function selectedEmbed(editor: TiptapEditor): EmbedAttrs | null {
   return isEmbed ? embedAttrs(selection.node.attrs) : null
 }
 
+/** Changes a selected embed as a link that embeds is typed; adds one on save. */
 function EmbedForm({
   editor,
   providers,
   resolveUrl,
   inputRef,
+  apply,
+  revert,
   onDone
 }: EmbedFormProps) {
   // Read as the form opens: the editor is mutable, so the React Compiler
@@ -60,11 +66,23 @@ function EmbedForm({
     }
   }, [])
 
-  const embed = (url: string) => {
+  // In place, so the embed stays selected for the next change.
+  const change = (url: string) => {
     const value = parseEmbedUrl(url, providers)
     if (!value) return false
-    // Over a selected embed, this replaces it.
-    editor.chain().focus().setEmbed(value).run()
+    const { provider, id, params } = value
+    apply(setSelectedAttrs({ provider, id, params: params ?? null }))
+    return true
+  }
+
+  const embed = (url: string) => {
+    if (selected) {
+      if (!change(url)) return false
+    } else {
+      const value = parseEmbedUrl(url, providers)
+      if (!value) return false
+      editor.chain().focus().setEmbed(value).run()
+    }
     onDone()
     return true
   }
@@ -97,6 +115,7 @@ function EmbedForm({
       onValueChange={(value) => {
         setTyped(value)
         setRefused(false)
+        if (selected && !change(value.trim())) revert()
       }}
       submitLabel={selected ? 'Save link' : 'Embed link'}
       onSubmit={save}
@@ -115,7 +134,10 @@ type EditorEmbedPopoverProps = {
   onOpenChange: (open: boolean) => void
 }
 
-/** Embeds a video or track from a pasted share link at the selection, or changes the selected embed's. */
+/**
+ * Embeds a video or track from a pasted share link at the selection, or
+ * changes the selected embed's as it's typed, which Escape puts back.
+ */
 export function EditorEmbedPopover({
   editor,
   providers,
@@ -124,13 +146,14 @@ export function EditorEmbedPopover({
   onOpenChange
 }: EditorEmbedPopoverProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const live = useLiveEdit(editor, open, onOpenChange)
   if (!editor) return null
   const { from, to } = editor.state.selection
   const anchor = {
     getBoundingClientRect: () => posToDOMRect(editor.view, from, to)
   }
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
+    <Popover open={open} onOpenChange={live.onOpenChange}>
       <Popover.Content
         side='bottom'
         align='start'
@@ -147,7 +170,9 @@ export function EditorEmbedPopover({
           providers={providers}
           resolveUrl={resolveUrl}
           inputRef={inputRef}
-          onDone={() => onOpenChange(false)}
+          apply={live.apply}
+          revert={live.revert}
+          onDone={live.done}
         />
       </Popover.Content>
     </Popover>
