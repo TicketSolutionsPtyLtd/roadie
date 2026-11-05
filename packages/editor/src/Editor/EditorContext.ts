@@ -4,7 +4,7 @@ import { type ComponentType, type RefObject, createContext } from 'react'
 
 import type { EditorContent, Editor as TiptapEditor } from '@tiptap/react'
 
-import type { EmbedProvider, Preset } from '../schema'
+import type { EditorVariable, EmbedProvider, Preset } from '../schema'
 import type { EditorBubbleMenuProps } from './EditorBubbleMenu'
 import type { EditorToolbarProps } from './EditorToolbar'
 import type { EditorEmphasis, EditorSize } from './variants'
@@ -27,6 +27,7 @@ export type EditorContextValue = {
   /** Opens the embed editor at the selection, or on the selected embed. */
   editEmbed: () => void
   embedProviders: readonly EmbedProvider[]
+  variables: readonly EditorVariable[] | undefined
   /** Opens the file picker for `onUploadImage`, or undefined without it. */
   pickImage: (() => void) | undefined
   /** Opens the file picker to replace the selected image, or undefined without `onUploadImage`. */

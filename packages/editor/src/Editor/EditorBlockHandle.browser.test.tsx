@@ -129,6 +129,20 @@ describe('Editor block handle', () => {
     expect(grip.right).toBeLessThanOrEqual(row.getBoundingClientRect().left)
   })
 
+  it('has no add button, and no room for one, in a framed editor', async () => {
+    renderLineup()
+    const row = await paragraph('Doors')
+    await userEvent.hover(row)
+    await expectHandleBeside('Doors')
+
+    expect(screen.queryByRole('button', { name: 'Add block' })).toBe(null)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    expect(
+      (await handle()).getBoundingClientRect().left -
+        textbox.getBoundingClientRect().left
+    ).toBeLessThan(24)
+  })
+
   it('takes a click below the blocks of a tall editor into the text', async () => {
     renderLineup({ className: 'h-96' })
     const textbox = await screen.findByRole('textbox', { name: LABEL })
@@ -463,22 +477,6 @@ describe('Editor block handle', () => {
     await waitFor(() => expect(textbox).toHaveFocus())
     expect(screen.getByRole('dialog')).toBeVisible()
     expect(onOpenChange).not.toHaveBeenCalled()
-  })
-
-  it('has no handle in the email preset', async () => {
-    render(
-      <Editor
-        aria-label={LABEL}
-        preset='email'
-        defaultValue={{ ...lineup, preset: 'email' }}
-      />
-    )
-
-    await userEvent.hover(await paragraph('Support'))
-
-    await expect(
-      screen.findByRole('button', { name: 'Block actions' }, { timeout: 300 })
-    ).rejects.toThrow()
   })
 
   it('works under StrictMode', async () => {

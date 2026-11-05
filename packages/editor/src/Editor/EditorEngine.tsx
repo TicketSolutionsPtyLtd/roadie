@@ -12,7 +12,7 @@ import {
 import type { UniqueID } from '@tiptap/extension-unique-id'
 import { Placeholder } from '@tiptap/extensions'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
-import { NodeSelection } from '@tiptap/pm/state'
+import { NodeSelection, Selection } from '@tiptap/pm/state'
 import {
   type ReactNodeViewProps,
   ReactNodeViewRenderer,
@@ -60,6 +60,9 @@ import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
 import type { EditorRootProps } from './EditorRoot'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
+import { EditorVariableView } from './EditorVariableView'
+import { type BlockContainers, TOP_LEVEL } from './blockActions'
+import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
@@ -107,7 +110,12 @@ const BlockMenuShortcut = Extension.create<BlockMenuShortcutOptions>({
   }
 })
 
-const BLOCK_HANDLE_PRESETS: ReadonlySet<Preset> = new Set(['blocks'])
+const BLOCK_HANDLES: Partial<
+  Record<Preset, { containers: BlockContainers; canAdd: boolean }>
+> = {
+  blocks: { containers: TOP_LEVEL, canAdd: false },
+  email: { containers: new Set(['doc', 'section', 'column']), canAdd: true }
+}
 
 type AltTextShortcutOptions = { onEditAlt: () => void }
 
@@ -130,7 +138,8 @@ const AltTextShortcut = Extension.create<AltTextShortcutOptions>({
 
 const NODE_VIEWS: Record<string, ComponentType<ReactNodeViewProps>> = {
   image: EditorImageView,
-  embed: EditorEmbedView
+  embed: EditorEmbedView,
+  variable: EditorVariableView
 }
 
 function forEditor(extension: Extensions[number]) {
@@ -328,6 +337,7 @@ export function EditorEngine({
   embedProviders = defaultEmbedProviders,
   resolveUrl,
   extensions: extensionsProp,
+  variables,
   'aria-label': ariaLabel,
   'aria-labelledby': ariaLabelledBy
 }: EditorRootProps) {
@@ -380,7 +390,7 @@ export function EditorEngine({
   const editable = !readOnly && !disabled && !unreadable
   useFieldControlError(uploadError ?? (unreadable ? UNREADABLE : null))
   const holdsImages = presetHoldsImages(preset)
-  const hasBlockHandle = BLOCK_HANDLE_PRESETS.has(preset)
+  const blockHandle = BLOCK_HANDLES[preset]
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
@@ -411,7 +421,8 @@ export function EditorEngine({
           openBlockMenuRef.current?.()
           return Boolean(openBlockMenuRef.current)
         }
-      })
+      }),
+      ...(blockHandle ? [BlockDrag] : [])
     ],
     content: readableDoc,
     editable,
@@ -433,7 +444,9 @@ export function EditorEngine({
           'min-w-0 outline-none',
           preset === 'email' && EMAIL_CANVAS,
           // Room for the block handle at each block's start.
-          hasBlockHandle && emphasis !== 'subtler' && 'ps-10'
+          blockHandle &&
+            emphasis !== 'subtler' &&
+            (blockHandle.canAdd ? 'ps-15' : 'ps-10')
         )
       },
       handleDOMEvents: {
@@ -468,6 +481,16 @@ export function EditorEngine({
         firstEnabled?.focus()
         return Boolean(firstEnabled)
       }
+    },
+    // ProseMirror starts at the doc's first selectable place, which selects a
+    // leading image or embed, ring and all, before anyone touches it.
+    onCreate: ({ editor: created }) => {
+      const { state } = created
+      const firstText = Selection.findFrom(state.doc.resolve(0), 1, true)
+      if (!firstText || state.selection.eq(firstText)) return
+      created.view.dispatch(
+        state.tr.setSelection(firstText).setMeta('addToHistory', false)
+      )
     },
     onUpdate: ({ editor: updated }) =>
       onValueChange?.(currentValue(updated, preset))
@@ -591,6 +614,7 @@ export function EditorEngine({
         ...ui,
         editingLink,
         embedProviders,
+        variables,
         TiptapContent,
         ToolbarEngine: EditorToolbarEngine,
         BubbleMenuEngine: EditorBubbleMenuEngine
@@ -624,15 +648,20 @@ export function EditorEngine({
             toolbarRef={nodeToolbarRef}
           />
         ) : null}
+        {editor && blockHandle ? (
+          <EditorBlockHandle
+            editor={editor}
+            openMenuRef={openBlockMenuRef}
+            containers={blockHandle.containers}
+            canAdd={blockHandle.canAdd}
+          />
+        ) : null}
         {editor ? (
           <EditorInsertMenu
             editor={editor}
             state={insertMenu}
             id={`${contentId}-insert`}
           />
-        ) : null}
-        {editor && hasBlockHandle ? (
-          <EditorBlockHandle editor={editor} openMenuRef={openBlockMenuRef} />
         ) : null}
         {editor?.schema.nodes.table ? (
           <EditorTableToolbar
