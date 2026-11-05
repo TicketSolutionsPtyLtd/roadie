@@ -571,6 +571,26 @@ describe('Editor blocks drawer finding and moving', () => {
     )
   })
 
+  it('opens with an empty filter after a pick', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+    await userEvent.type(
+      within(drawer).getByRole('searchbox', { name: 'Find a block' }),
+      'hr{Enter}'
+    )
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Blocks' })).toBe(null)
+    )
+
+    const reopened = await openFromDockedBar()
+
+    expect(
+      within(reopened).getByRole('searchbox', { name: 'Find a block' })
+    ).toHaveValue('')
+    expect(tileNames(reopened).length).toBeGreaterThan(1)
+  })
+
   it('ranks a name that starts with the filter first', async () => {
     renderEmail()
     await clickInto('Doors 7pm')
