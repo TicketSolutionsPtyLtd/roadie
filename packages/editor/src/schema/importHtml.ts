@@ -110,7 +110,6 @@ function keptMedia(
   return dropped
 }
 
-const TABLE_PARTS = 'table, caption, thead, tbody, tfoot, tr, td, th'
 const BLOCKS_IN_CELL =
   'ul, ol, li, h1, h2, h3, h4, h5, h6, blockquote, table, caption, thead, tbody, tfoot, tr, td, th'
 
@@ -122,15 +121,12 @@ function asTextBlock(element: Element) {
 
 // A cell holds only paragraphs, and the schema would lift any other block
 // out past its table, so each becomes a block of text where it stands. With
-// no table in the preset, cells would run together, so the table's parts all
-// do, which also holds a table nested in another block.
+// no table in the preset, cells would run together, so each cell does.
 function cellsAsText(body: HTMLElement, preset: Preset) {
-  if (!Object.hasOwn(presetShapes[preset].nodes, 'table')) {
-    body.querySelectorAll(TABLE_PARTS).forEach(asTextBlock)
-    return
-  }
+  const canHoldTables = Object.hasOwn(presetShapes[preset].nodes, 'table')
   for (const cell of body.querySelectorAll('td, th')) {
-    cell.querySelectorAll(BLOCKS_IN_CELL).forEach(asTextBlock)
+    if (!canHoldTables) asTextBlock(cell)
+    else cell.querySelectorAll(BLOCKS_IN_CELL).forEach(asTextBlock)
   }
 }
 
