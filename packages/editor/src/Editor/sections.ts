@@ -6,11 +6,11 @@ import {
   SquareSplitHorizontalIcon,
   TicketIcon
 } from '@phosphor-icons/react'
-import type { CommandProps, JSONContent } from '@tiptap/core'
+import type { JSONContent } from '@tiptap/core'
 
 import { type EditorVariable, linkVariables } from '../schema/variables'
 import { TOP_LEVEL } from './blockActions'
-import { insertBlockAfter } from './emailEditing'
+import { dropEmptiedLine, insertBlockAfter } from './emailEditing'
 import type { EditorInsertItem } from './insertItems'
 
 const text = (value: string): JSONContent => ({ type: 'text', text: value })
@@ -38,24 +38,6 @@ const event = [
   getTickets
 ]
 
-// An emptied line goes with the query in a section or column, which would
-// otherwise keep it, as the new section lands after the whole block.
-function dropEmptiedLine({ tr }: CommandProps) {
-  const { $from, empty } = tr.selection
-  const holder = $from.node(-1)
-  const emptied =
-    empty && $from.parent.isTextblock && !$from.parent.content.size
-  if (
-    emptied &&
-    $from.depth > 1 &&
-    holder.childCount > 1 &&
-    (holder.type.name === 'section' || holder.type.name === 'column')
-  ) {
-    tr.delete($from.before(), $from.after())
-  }
-  return true
-}
-
 // Each goes after the caret's top-level block, so never inside a section.
 function section(
   label: string,
@@ -71,6 +53,7 @@ function section(
     keywords,
     block: content,
     containers: TOP_LEVEL,
+    topLevel: 'always',
     insert: (chain) => chain.command(dropEmptiedLine).command(insert),
     enabled: (_editor, afterQuery) =>
       afterQuery().command(dropEmptiedLine).command(insert).run()

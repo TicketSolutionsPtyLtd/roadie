@@ -180,7 +180,34 @@ describe('Editor email blocks', () => {
 
     await saved(
       onValueChange,
-      email(button('https://oztix.com.au', 'Buy tickets'), p('Doors 7pm'), p())
+      email(button('https://oztix.com.au', 'Buy tickets'), p('Doors 7pm'))
+    )
+  })
+
+  it('leaves a section on a second Enter after its last button', async () => {
+    const onValueChange = renderEmail(
+      email({
+        type: 'section',
+        content: [
+          p('Lineup'),
+          button('https://oztix.com.au', 'Buy tickets'),
+          p()
+        ]
+      })
+    )
+    await clickText('Buy tickets')
+
+    await userEvent.keyboard(`${LINE_END}{Enter}{Enter}Doors 7pm`)
+
+    await saved(
+      onValueChange,
+      email(
+        {
+          type: 'section',
+          content: [p('Lineup'), button('https://oztix.com.au', 'Buy tickets')]
+        },
+        p('Doors 7pm')
+      )
     )
   })
 
