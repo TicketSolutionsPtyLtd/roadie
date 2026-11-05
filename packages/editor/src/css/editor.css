@@ -10,9 +10,17 @@
   pointer-events: none;
 }
 
-/* A node view rings its own wrapper, which can be narrower than the row. */
+/* Every selection of whole blocks takes one ring. A node view rings its own
+   wrapper, which can be narrower than the row. */
 [data-slot='editor-content'] .ProseMirror-selectednode:not(.react-renderer),
-[data-slot='editor-content'] [data-node-view-wrapper][data-selected] {
+[data-slot='editor-content']
+  .ProseMirror-selectednode.react-renderer
+  > [data-node-view-wrapper],
+[data-slot='editor-content'] [data-node-view-wrapper][data-selected],
+[data-slot='editor-content'] [data-selected-block]:not(.react-renderer),
+[data-slot='editor-content']
+  [data-selected-block].react-renderer
+  > [data-node-view-wrapper] {
   outline: var(--focus-ring-width) solid var(--color-accent-9);
   outline-offset: 2px;
 }

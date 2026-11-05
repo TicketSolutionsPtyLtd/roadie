@@ -21,7 +21,7 @@ function focusedBlock(
   if (selection instanceof BlockSelection) {
     const marks = blocksIn(state.doc, selection.from, selection.to).map(
       ({ node, pos }) =>
-        Decoration.node(pos, pos + node.nodeSize, { 'data-focused-block': '' })
+        Decoration.node(pos, pos + node.nodeSize, { 'data-selected-block': '' })
     )
     return DecorationSet.create(state.doc, marks)
   }
@@ -39,7 +39,8 @@ function focusedBlock(
 /**
  * Marks the block holding the caret with `data-focused-block` while the
  * editor has focus, so focus shows on the block, not around the editor, and
- * each block of a block selection. A selected node rings itself, and a text
+ * each block of a block selection with `data-selected-block`, which rings it
+ * as a selected node is. A selected node rings itself, and a text
  * selection across blocks marks none.
  */
 export const FocusedBlock = Extension.create<FocusedBlockOptions>({
