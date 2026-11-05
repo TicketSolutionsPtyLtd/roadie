@@ -159,6 +159,42 @@ describe('EmailHtmlField', () => {
       expect(preview().getBoundingClientRect().width).toBe(600)
     })
 
+    it('draws the email on a light page in dark mode, at a fixed height', () => {
+      document.documentElement.classList.add('dark')
+      try {
+        render(
+          <>
+            <InField defaultValue={EMAIL} />
+            <div data-testid='light' className='bg-(--color-neutral-light-0)' />
+            <div data-testid='dark' className='bg-normal' />
+          </>
+        )
+        const background = (element: Element) =>
+          getComputedStyle(element).backgroundColor
+        expect(background(screen.getByTestId('dark'))).not.toBe(
+          background(screen.getByTestId('light'))
+        )
+        expect(background(preview())).toBe(
+          background(screen.getByTestId('light'))
+        )
+        expect(preview().getBoundingClientRect().height).toBe(640)
+      } finally {
+        document.documentElement.classList.remove('dark')
+      }
+    })
+
+    it('scrolls the email inside its frame on a narrow screen', () => {
+      render(
+        <div style={{ width: 320 }}>
+          <InField defaultValue={EMAIL} />
+        </div>
+      )
+      const frame = preview().parentElement!
+      expect(frame.getBoundingClientRect().width).toBe(320)
+      expect(frame.scrollWidth).toBeGreaterThan(frame.clientWidth)
+      expect(preview().getBoundingClientRect().width).toBe(600)
+    })
+
     it('keeps the email at 600 pixels under a larger root font size', async () => {
       document.documentElement.style.fontSize = '20px'
       try {
@@ -185,6 +221,18 @@ describe('EmailHtmlField', () => {
       render(<InField defaultValue={html} />)
       expect(await screen.findByRole('alert')).toHaveTextContent(
         `This HTML has ${found}.`
+      )
+    })
+
+    it.each([
+      '<iframe src="javascript:a()"></iframe>',
+      '<form action="javascript:a()"></form>',
+      '<button formaction="javascript:a()">Go</button>',
+      '<svg><a xlink:href="javascript:a()"><text>Go</text></a></svg>'
+    ])('names a javascript: URL in %s', async (html) => {
+      render(<InField defaultValue={html} />)
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'This HTML has a javascript: link.'
       )
     })
 
