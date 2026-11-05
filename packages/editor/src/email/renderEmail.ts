@@ -6,7 +6,7 @@ import {
   type StoredEditorValue,
   migrate
 } from '../schema/value'
-import { conditions } from './conditions'
+import { conditions, textStartingAtWords } from './conditions'
 import { type MergeTagOptions, mergeTags, untokenedText } from './mergeTags'
 import { mjmlTree } from './mjmlTree'
 import { type EmailTheme, emailTheme } from './theme'
@@ -57,7 +57,7 @@ export async function renderEmail(
   })
   return {
     html: fill(html, 'html'),
-    text: fill(untokenedText(plainText(html)), 'text')
+    text: textStartingAtWords(fill(untokenedText(plainText(html)), 'text'))
   }
 }
 

@@ -93,6 +93,13 @@ function holds(rule: ShowWhen, values: Readonly<Record<string, string>>) {
   }
 }
 
+// Each `if` trims the break before it, so one that opens the plain text trims
+// the break after it too, or a shown block starts with a blank line.
+export const textStartingAtWords = (text: string) =>
+  text.replace(/^(?:\{%- if [\s\S]*?%\}\s*)+/, (opening) =>
+    opening.replace(/ %\}\s*/g, ' -%}')
+  )
+
 /**
  * Checks each rule against `variables`, then shows or hides its block for a
  * preview with `values`, or wraps it in a Liquid `if`. The AE syntax has no

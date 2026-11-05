@@ -726,8 +726,27 @@ describe('renderEmail', () => {
       expect(html).toContain('{% if event.tickets_left < 20 %}')
       expect(hidden(html)).toBe(hidden(without.html))
       expect(plain).toBe(
-        '{%- if event.tickets_left < 20 %}\n\nOnly 20 tickets left\n\n{%- endif %}\n\nAfter'
+        '{%- if event.tickets_left < 20 -%}Only 20 tickets left\n\n{%- endif %}\n\nAfter'
       )
+    })
+
+    it('starts the plain text at the words of a first block that shows', async () => {
+      const lastFew = email(
+        when(section(p(text('Only 20 tickets left'))), nearlySoldOut),
+        p(text('After'))
+      )
+      const { text: plain } = await liquid(lastFew)
+      // What a Liquid sender does with whitespace control and a rule that holds.
+      const shown = plain
+        .replace(/\s*\{%-/g, '{%')
+        .replace(/-%\}\s*/g, '%}')
+        .replace(/\{%[^%]*%\}/g, '')
+      expect(shown).toBe('Only 20 tickets left\n\nAfter')
+      const preview = await renderEmail(lastFew, {
+        variables,
+        values: { tickets_left: '3' }
+      })
+      expect(preview.text).toBe('Only 20 tickets left\n\nAfter')
     })
 
     it('leaves the columns whole when a sender hides a block in one', async () => {
