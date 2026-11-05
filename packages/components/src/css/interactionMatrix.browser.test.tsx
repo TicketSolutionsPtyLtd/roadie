@@ -34,8 +34,8 @@ import {
 } from './contrastTestUtils'
 import { focusAfterKey, focusRing } from './testUtils'
 
-// One matrix over every interactive component and emphasis, since hover,
-// focus and contrast all come from the same utilities and presets.
+// One matrix over these components and their emphases, since hover, focus
+// and contrast all come from the same utilities and presets.
 
 const STILL = '*, *::before, *::after { transition: none !important }'
 const MODES = ['light', 'dark'] as const
