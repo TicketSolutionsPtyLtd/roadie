@@ -12,6 +12,7 @@ import {
 import {
   Extension,
   type Extensions,
+  InputRule,
   type JSONContent,
   type Node,
   getSchema
@@ -195,6 +196,7 @@ const HeadingBackspace = Extension.create({
 
 // Quotes, the ellipsis and dashes only: the rest turn text an author meant.
 const SmartPunctuation = Typography.configure({
+  emDash: false,
   leftArrow: false,
   rightArrow: false,
   copyright: false,
@@ -211,6 +213,22 @@ const SmartPunctuation = Typography.configure({
   superscriptThree: false,
   oneQuarter: false,
   threeQuarters: false
+})
+
+// Not in a `/` query, where `--` names a block, such as `/---` for Divider.
+const EmDash = Extension.create({
+  name: 'emDash',
+  addInputRules: () => [
+    new InputRule({
+      find: /--$/,
+      handler: ({ state, range }) => {
+        const $from = state.doc.resolve(range.from)
+        const before = $from.parent.textBetween(0, $from.parentOffset)
+        if (/(^|\s)\/\S*$/.test(before)) return null
+        state.tr.insertText('—', range.from, range.to)
+      }
+    })
+  ]
 })
 
 type AltTextShortcutOptions = { onEditAlt: () => void }
@@ -542,6 +560,7 @@ export function EditorEngine({
       LinkShortcut.configure({ onEditLink: () => setEditingLink(true) }),
       HeadingBackspace,
       SmartPunctuation,
+      EmDash,
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
