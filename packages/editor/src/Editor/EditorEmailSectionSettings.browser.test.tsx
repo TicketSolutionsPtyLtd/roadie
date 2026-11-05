@@ -189,6 +189,19 @@ describe('Editor email section settings', () => {
     ).toBeVisible()
   })
 
+  it('keeps a section’s settings open on a phone', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    renderEmail(email(section()))
+
+    const drawer = await openSettings()
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Tint' }))
+
+    expect(
+      screen.getByRole('dialog', { name: 'Section settings' })
+    ).toBeVisible()
+  })
+
   it('types into the section after its settings close on a phone, rather than replacing it', async () => {
     await page.viewport(390, 700)
     onTestFinished(() => page.viewport(1280, 800))
