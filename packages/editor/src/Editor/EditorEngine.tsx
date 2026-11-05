@@ -498,7 +498,7 @@ export function EditorEngine({
     }
     if (changed) {
       console.warn(
-        'Editor: the editor reads extensions once, when it’s created, so it keeps the blocks it started with. Give it a new key to change them.'
+        "Editor: the editor reads extensions once, when it's created, so it keeps the blocks it started with. Give it a new key to change them."
       )
     }
     if (leftOut) {
