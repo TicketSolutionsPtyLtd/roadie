@@ -498,7 +498,9 @@ export function EditorImagePopover({
         side='bottom'
         align='start'
         className={
-          image ? 'w-80 max-w-(--available-width)' : EDITOR_POPOVER_CLASS
+          image
+            ? 'max-h-(--available-height) w-80 max-w-(--available-width) overflow-y-auto'
+            : EDITOR_POPOVER_CLASS
         }
         positionerProps={{ anchor }}
         // An image without alt text needs it most, so that's where typing goes.
