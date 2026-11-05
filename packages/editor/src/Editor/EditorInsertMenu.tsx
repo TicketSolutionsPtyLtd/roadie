@@ -82,7 +82,9 @@ export function EditorInsertMenu({
                 <img
                   src={item.thumbnail}
                   alt=''
-                  className='h-6 w-9 rounded-sm object-cover'
+                  width={36}
+                  height={24}
+                  className='h-6 w-9 rounded-sm bg-subtle object-cover'
                 />
               ) : (
                 <Icon

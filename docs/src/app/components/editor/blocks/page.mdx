@@ -137,10 +137,15 @@ import { catalogueSections } from '@oztix/roadie-blocks/catalogue/sections'
   Sections in `/` and as a tile with the preset's thumbnail in the Blocks
   drawer. Serve the package's `thumbnails` folder and pass `thumbnailUrl`;
   without it, tiles show an icon.
-- A section is one block: click it to select it, and press Enter, or pick
-  Settings from its menu, to edit its layout, text, alignment, size,
-  surface, and colour. Only the settings its layout reads show. Its links
-  and buttons can't be followed or focused while you edit.
+- A section is one block, drawn across the page rather than in the text's
+  measure. With a mouse, a click opens its Settings at the text you
+  clicked, such as its title, and the page stays usable beside them. On a
+  touch screen a tap selects it, and Settings is in its menu. Settings edit
+  its layout, text, alignment, size, surface, and colour, and only the
+  ones its layout reads show. Its links and buttons can't be followed or
+  focused while you edit.
+- Each block has keywords too, so `/cta` finds Call to action and
+  `/questions` finds FAQ.
 - `content` gives each template its starting attrs, such as an app's
   images, cards, or questions, over the placeholder copy.
 - Render it with `renderEditorValue(value, { nodeMapping })`, an entry per

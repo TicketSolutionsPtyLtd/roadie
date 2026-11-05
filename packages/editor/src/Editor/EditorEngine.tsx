@@ -23,6 +23,7 @@ import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import {
   type EditorState,
   NodeSelection,
+  Plugin,
   Selection,
   type Transaction
 } from '@tiptap/pm/state'
@@ -103,7 +104,11 @@ import { customInsertItem, presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
-import { sectionBlock, sectionInsertItems } from './sectionNodes'
+import {
+  clickedSetting,
+  sectionBlock,
+  sectionInsertItems
+} from './sectionNodes'
 import { emailSections } from './sections'
 import { SourcePaste } from './sourcePaste'
 import { presetLook, resolvedPreset } from './startingValue'
@@ -215,6 +220,39 @@ const SettingsShortcut = Extension.create<SettingsShortcutOptions>({
         return true
       }
     }
+  }
+})
+
+type SectionClickOptions = {
+  isSection: (name: string) => boolean
+  onEdit: (field: string | undefined) => void
+}
+
+// With a mouse, a click on a section opens its settings at the text clicked,
+// as Framer and Webflow do. A touch selects it, so a scroll never opens them.
+const SectionClick = Extension.create<SectionClickOptions>({
+  name: 'sectionClick',
+  addProseMirrorPlugins() {
+    const { isSection, onEdit } = this.options
+    return [
+      new Plugin({
+        props: {
+          handleClickOn: (view, _pos, node, nodePos, event, direct) => {
+            if (!direct || !view.editable || !isSection(node.type.name)) {
+              return false
+            }
+            if (!window.matchMedia('(pointer: fine)').matches) return false
+            view.dispatch(
+              view.state.tr.setSelection(
+                NodeSelection.create(view.state.doc, nodePos)
+              )
+            )
+            onEdit(clickedSetting(event.target, node.attrs))
+            return true
+          }
+        }
+      })
+    ]
   }
 })
 
@@ -472,6 +510,7 @@ export function EditorEngine({
   const [editingButton, setEditingButton] = useState(false)
   const [editingVariable, setEditingVariable] = useState(false)
   const [editingSettings, setEditingSettings] = useState(false)
+  const [focusSetting, setFocusSetting] = useState<string | undefined>()
   const [importing, setImporting] = useState<ImportRequest>({
     open: false,
     source: '',
@@ -563,7 +602,17 @@ export function EditorEngine({
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       SettingsShortcut.configure({
         has: hasSettings,
-        onEdit: () => setEditingSettings(true)
+        onEdit: () => {
+          setFocusSetting(undefined)
+          setEditingSettings(true)
+        }
+      }),
+      SectionClick.configure({
+        isSection: (name) => sections.some((section) => section.name === name),
+        onEdit: (field) => {
+          setFocusSetting(field)
+          setEditingSettings(true)
+        }
       }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
@@ -743,6 +792,13 @@ export function EditorEngine({
   useEffect(() => {
     toolbarModeRef.current = toolbar
   }, [toolbar])
+
+  // Loaded ahead, so a template's tile isn't blank the first time `/` opens.
+  useEffect(() => {
+    for (const { thumbnail } of sections.flatMap(sectionInsertItems)) {
+      if (thumbnail) new Image().src = thumbnail
+    }
+  }, [sections])
 
   useEffect(() => {
     uploadRef.current = onUploadImage
@@ -941,6 +997,7 @@ export function EditorEngine({
         <EditorBlockSettings
           editor={editor}
           open={editingSettings}
+          focusSetting={focusSetting}
           onOpenChange={setEditingSettings}
           blocks={blockSettings}
         />

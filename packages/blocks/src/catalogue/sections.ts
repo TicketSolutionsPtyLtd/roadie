@@ -40,7 +40,7 @@ export type CatalogueSetting = {
   available?: (attrs: Readonly<Attrs>) => boolean
 } & (
   | { type: 'text'; multiline?: boolean }
-  | { type: 'choice'; options: readonly Option[] }
+  | { type: 'choice'; options: readonly Option[]; defaultValue?: string }
 )
 
 /** A block as one of the editor's `sections`, which `EditorSection` describes. */
@@ -75,7 +75,7 @@ type Field = {
   helperText?: string
 } & (
   | { type: 'text'; multiline?: boolean }
-  | { type: 'choice'; options: readonly Option[] }
+  | { type: 'choice'; options: readonly Option[]; defaultValue?: string }
 )
 
 // The plain fields, which a drawer edits well. Images, actions, and each
@@ -92,6 +92,7 @@ const FIELDS: Readonly<Record<string, Field>> = {
   align: {
     label: 'Align',
     type: 'choice',
+    defaultValue: 'start',
     options: [
       { value: 'start', label: 'Start' },
       { value: 'center', label: 'Centre' }
@@ -100,6 +101,7 @@ const FIELDS: Readonly<Record<string, Field>> = {
   size: {
     label: 'Size',
     type: 'choice',
+    defaultValue: 'lg',
     options: [
       { value: 'sm', label: 'Small' },
       { value: 'md', label: 'Medium' },
@@ -121,6 +123,7 @@ const FIELDS: Readonly<Record<string, Field>> = {
   intent: {
     label: 'Colour',
     type: 'choice',
+    defaultValue: 'neutral',
     options: [
       { value: 'neutral', label: 'Neutral' },
       { value: 'brand', label: 'Brand' },
@@ -132,9 +135,7 @@ const FIELDS: Readonly<Record<string, Field>> = {
 
 const PLACEHOLDERS: Readonly<Attrs> = {
   title: 'Section title',
-  description: 'A sentence or two on what this section is about.',
-  // What a block draws with no size, so Size shows it chosen.
-  size: 'lg'
+  description: 'A sentence or two on what this section is about.'
 }
 
 // Each block maps over these, so a missing or saved non-list would throw.
@@ -245,7 +246,7 @@ export function catalogueSections({
               ? `${block.title}: ${preset.title}`
               : block.title,
           thumbnail: thumbnailUrl?.(preset.thumbnail),
-          keywords: [block.title, preset.title],
+          keywords: [block.title, preset.title, ...(block.keywords ?? [])],
           attrs: {
             ...preset.defaults,
             ...content?.(block, preset),

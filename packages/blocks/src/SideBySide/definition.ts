@@ -29,6 +29,7 @@ export const sideBySideDefinition = {
   description:
     'Use it for one section with its own title, text, and buttons beside a photo or a few key numbers.',
   group: 'explain',
+  keywords: ['image', 'split', 'story'],
   presets: [
     {
       name: 'image-start',

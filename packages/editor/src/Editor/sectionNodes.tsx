@@ -134,12 +134,42 @@ export function sectionBlock(section: EditorSection): EditorBlock {
           'data-attrs': JSON.stringify(own(node.attrs, keys))
         })
       ],
-      addNodeView: () => reactNodeView(SectionView)
+      addNodeView: () => {
+        const view = reactNodeView(SectionView)
+        // The outer box is the text's child, so it can leave the text's measure.
+        return (props) => {
+          const rendered = view(props)
+          if (rendered.dom instanceof HTMLElement) {
+            rendered.dom.classList.add('prose-bleed')
+          }
+          return rendered
+        }
+      }
     })
   }
 }
 
 /** A section's templates, as insert menu items that each add it as they start it. */
+/**
+ * The setting a click on a section's text meant: the nearest element, out to
+ * the section, whose text is one of its attrs.
+ */
+export function clickedSetting(
+  target: EventTarget | null,
+  attrs: Readonly<Attrs>
+): string | undefined {
+  let element = target instanceof Element ? target : null
+  while (element && element.getAttribute('data-slot') !== 'editor-section') {
+    const text = element.textContent?.trim()
+    const name = Object.keys(attrs).find(
+      (key) => typeof attrs[key] === 'string' && attrs[key].trim() === text
+    )
+    if (text && name) return name
+    element = element.parentElement
+  }
+  return undefined
+}
+
 export function sectionInsertItems(section: EditorSection): EditorInsertItem[] {
   const templates = section.templates?.length
     ? section.templates

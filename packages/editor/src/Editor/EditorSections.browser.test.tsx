@@ -181,7 +181,6 @@ describe('Editor sections', () => {
     renderPage(page(intro, { type: 'promo', attrs: { blockId: 'promo' } }))
     const textbox = await screen.findByRole('textbox', { name: LABEL })
     await userEvent.click(within(textbox).getByRole('group', { name: 'Promo' }))
-    await userEvent.keyboard('{Enter}')
 
     const drawer = await screen.findByRole('dialog', {
       name: 'Promo settings'
@@ -197,6 +196,50 @@ describe('Editor sections', () => {
       within(textbox).getByRole('heading', { hidden: true })
     ).toHaveTextContent('Ochre Kite Weekender!')
     expect(within(drawer).getByRole('textbox', { name: 'Shout' })).toBeVisible()
+  })
+
+  it('opens Settings on a click, at the field clicked', async () => {
+    renderPage(page(intro, { type: 'promo', attrs: { blockId: 'promo' } }))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+
+    await userEvent.click(
+      within(textbox).getByRole('heading', { hidden: true }),
+      {
+        force: true
+      }
+    )
+
+    const drawer = await screen.findByRole('dialog', { name: 'Promo settings' })
+    await waitFor(() =>
+      expect(
+        within(drawer).getByRole('textbox', { name: 'Title' })
+      ).toHaveFocus()
+    )
+  })
+
+  it('draws a section across the page, past the text’s measure', async () => {
+    render(
+      <div style={{ width: 1200 }}>
+        <Editor
+          aria-label={LABEL}
+          sections={[promo]}
+          defaultValue={page(
+            {
+              type: 'paragraph',
+              content: [{ type: 'text', text: 'Doors 7pm '.repeat(40) }]
+            },
+            { type: 'promo', attrs: { blockId: 'promo' } }
+          )}
+        />
+      </div>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const section = await within(textbox).findByRole('group', { name: 'Promo' })
+    const line = textbox.querySelector('p')!
+
+    expect(section.getBoundingClientRect().width).toBeGreaterThan(
+      line.getBoundingClientRect().width + 100
+    )
   })
 
   it('keeps the first of two sections with one name', async () => {

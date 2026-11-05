@@ -85,11 +85,13 @@ function SettingField({
         </Select>
       ) : setting.multiline ? (
         <Field.Textarea
+          data-setting={setting.name}
           value={textOf(value)}
           onChange={(event) => onValueChange(event.target.value)}
         />
       ) : (
         <Field.Input
+          data-setting={setting.name}
           value={textOf(value)}
           onChange={(event) => onValueChange(event.target.value)}
           onKeyDown={(event) => {
@@ -172,6 +174,8 @@ const selectedNode = ({ editor }: { editor: TiptapEditor | null }) => {
 type EditorBlockSettingsProps = {
   editor: TiptapEditor | null
   open: boolean
+  /** The setting to focus as it opens, such as the text clicked on. */
+  focusSetting?: string
   onOpenChange: (open: boolean) => void
   /** Each block's settings, by node name. */
   blocks: Readonly<Record<string, BlockSettings>>
@@ -185,7 +189,8 @@ export function EditorBlockSettings({
   editor,
   open,
   onOpenChange,
-  blocks
+  blocks,
+  focusSetting
 }: EditorBlockSettingsProps) {
   const phone = useOnPhone()
   const live = useLiveEdit(editor, open, (next) => {
@@ -261,7 +266,9 @@ export function EditorBlockSettings({
               // The first setting, as its title takes none.
               initialFocus={() =>
                 bodyRef.current?.querySelector<HTMLElement>(
-                  'input:not([type=hidden]), textarea, button'
+                  focusSetting
+                    ? `[data-setting="${CSS.escape(focusSetting)}"]`
+                    : 'input:not([type=hidden]), textarea, button'
                 )
               }
               finalFocus={finalFocus}

@@ -117,6 +117,35 @@ describe('catalogueSections', () => {
     ).not.toThrow()
   })
 
+  it.each([
+    ['Call to action', 'cta'],
+    ['Call to action', 'banner'],
+    ['FAQ', 'questions'],
+    ['FAQ', 'accordion']
+  ])('finds %s by %s', (label, word) => {
+    const section = everyBlock().find((entry) => entry.label === label)!
+
+    expect(
+      section.templates.every(({ keywords }) => keywords?.includes(word))
+    ).toBe(true)
+  })
+
+  it('shows what a block draws while align, size and colour are unset', () => {
+    const defaults = Object.fromEntries(
+      hero().settings.flatMap((setting) =>
+        setting.type === 'choice' && setting.defaultValue
+          ? [[setting.name, setting.defaultValue]]
+          : []
+      )
+    )
+
+    expect(defaults).toMatchObject({
+      align: 'start',
+      size: 'lg',
+      intent: 'neutral'
+    })
+  })
+
   it('saves no id, so a copy never repeats one', () => {
     expect(everyBlock().some(({ attrs }) => 'id' in attrs)).toBe(false)
   })

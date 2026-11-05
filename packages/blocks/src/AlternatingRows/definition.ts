@@ -9,6 +9,7 @@ export const alternatingRowsDefinition = {
   description:
     'Use it for three to six values or story steps, each a sentence or two with a photo.',
   group: 'explain',
+  keywords: ['rows', 'zigzag', 'features'],
   presets: [
     {
       name: 'text-blocks',

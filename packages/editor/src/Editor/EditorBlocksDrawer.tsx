@@ -130,7 +130,10 @@ export function EditorBlocksDrawer({
                           <img
                             src={item.thumbnail}
                             alt=''
-                            className='w-full rounded-lg'
+                            width={240}
+                            height={160}
+                            // Its room is kept, and tinted, while it loads.
+                            className='aspect-3/2 h-auto w-full rounded-lg bg-subtle'
                           />
                         ) : (
                           <IconTile size='md' aria-hidden>
