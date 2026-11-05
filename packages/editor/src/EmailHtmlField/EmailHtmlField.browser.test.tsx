@@ -183,16 +183,19 @@ describe('EmailHtmlField', () => {
       }
     })
 
-    it('scrolls the email inside its frame on a narrow screen', () => {
+    it('scales the email down to fit a narrow screen, laid out at 600', async () => {
       render(
-        <div style={{ width: 320 }}>
+        <div style={{ width: 320 }} data-testid='narrow'>
           <InField defaultValue={EMAIL} />
         </div>
       )
-      const frame = preview().parentElement!
-      expect(frame.getBoundingClientRect().width).toBe(320)
-      expect(frame.scrollWidth).toBeGreaterThan(frame.clientWidth)
-      expect(preview().getBoundingClientRect().width).toBe(600)
+      const room = screen.getByTestId('narrow').getBoundingClientRect()
+      expect(preview().style.width).toBe('600px')
+      await waitFor(() =>
+        expect(preview().getBoundingClientRect().right).toBeLessThanOrEqual(
+          room.right
+        )
+      )
     })
 
     it('keeps the email at 600 pixels under a larger root font size', async () => {

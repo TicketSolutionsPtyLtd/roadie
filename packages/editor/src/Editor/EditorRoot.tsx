@@ -140,6 +140,10 @@ export type EditorRootProps = {
    * Preview. A rejection's message shows under the address.
    */
   onSendTest?: EditorSendTest
+  /** Who the email is from, for the inbox row above Preview's frame. */
+  sender?: string
+  /** The email's subject, for the inbox row above Preview's frame. */
+  subject?: string
   'aria-label'?: string
   'aria-labelledby'?: string
   /**

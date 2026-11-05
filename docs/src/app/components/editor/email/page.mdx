@@ -198,17 +198,24 @@ in place of the canvas. The host renders it: call `renderEmail` with the
 values it's given, on your server, since MJML needs Node, and resolve to its
 `html`. This page has no server, so it renders in the browser.
 
-- **Desktop** and **Phone** show it 600 and 375 pixels wide, as
-  [`EmailHtmlField`](#html-emails) does.
-- **Light** and **Dark** set the frame's `color-scheme`, the signal a mail
-  client in dark mode gives an email. A client that recolours an email
-  itself, as some do, isn't imitated.
+- **Desktop** and **Phone** lay it out 600 and 375 pixels wide, as
+  [`EmailHtmlField`](#html-emails) does, scaled down to fit a narrower
+  screen.
+- **Light** and **Dark** set the frame's `color-scheme`. Dark also simulates
+  the forced dark mode some mail apps apply, inverting the email's colours
+  but not its images, and says it's simulated, as other apps keep an email
+  light.
 - **Preview as**, with `previewRecipients`, fills the merge tags with a
   recipient's values and shows only the sections their conditions allow. It
   starts on the first. Without recipients, merge tags show their fallbacks.
+  On a phone, the bar keeps to one row: its labels give way to icons, and
+  Preview as moves into More.
 - **Send test**, with `onSendTest`, asks for an address and calls it with
-  the value, the address, and the recipient's values. A rejection's message
-  shows under the address.
+  the value, the address, and the recipient's values. Until the address is
+  whole, it says what Send needs. A rejection's message shows under the
+  address.
+- **The inbox row**, above the frame, shows the email as an inbox lists it,
+  with `sender` and `subject` when you pass them.
 
 Preview shows the email as it was when Preview opened. Back to editing, or
 Escape, puts the canvas back and focuses it. The frame is sandboxed, so it
@@ -236,6 +243,8 @@ function PreviewedEmail() {
       }
       // A real app sends from its server; this one only waits.
       onSendTest={() => new Promise((resolve) => setTimeout(resolve, 600))}
+      sender='Ochre Kite Weekender'
+      subject='Two weeks until the gates open'
       defaultValue={{
         version: 1,
         preset: 'email',
@@ -528,6 +537,8 @@ const nextConfig = { serverExternalPackages: ['mjml'] }
   stay side by side in Outlook on Windows.
 - `text` writes each link as its text then its href in brackets, unless the
   two match, and leaves out images, spacers, and dividers.
+- An empty line, a paragraph with no text, is left out, as it's room to type
+  in the editor, not space to send. A spacer sends space.
 
 It reads the value into the email preset first, as `migrate` does, so a value
 from another preset renders too, keeping its text. A link or button needs an

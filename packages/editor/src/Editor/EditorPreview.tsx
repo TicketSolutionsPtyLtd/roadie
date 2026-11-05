@@ -12,13 +12,15 @@ import {
 
 import {
   ArrowLeftIcon,
+  DotsThreeIcon,
   MoonIcon,
   PaperPlaneTiltIcon,
   SunIcon
 } from '@phosphor-icons/react'
 
-import { Button } from '@oztix/roadie-components/button'
+import { Button, IconButton } from '@oztix/roadie-components/button'
 import { Field } from '@oztix/roadie-components/field'
+import { Menu } from '@oztix/roadie-components/menu'
 import { Popover } from '@oztix/roadie-components/popover'
 import { Select } from '@oztix/roadie-components/select'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
@@ -51,8 +53,16 @@ export type EditorSendTest = (
 
 type ColorScheme = 'light' | 'dark'
 
+/** What an inbox lists the email with: its sender, subject, and preheader. */
+export type EditorPreviewInbox = {
+  sender?: string
+  subject?: string
+  preheader?: string
+}
+
 type EditorPreviewProps = {
   value: EditorValue
+  inbox: EditorPreviewInbox
   recipients: readonly EditorPreviewRecipient[] | undefined
   onRenderPreview: EditorRenderPreview
   onSendTest: EditorSendTest | undefined
@@ -72,6 +82,7 @@ const messageOf = (error: unknown) =>
  */
 export function EditorPreview({
   value,
+  inbox,
   recipients,
   onRenderPreview,
   onSendTest,
@@ -132,15 +143,24 @@ export function EditorPreview({
   return (
     <div
       data-slot='editor-preview'
-      className='grid content-start gap-3 p-3'
+      className='@container grid content-start gap-3 p-3'
       onKeyDown={closeOnEscape}
     >
-      <div className='flex flex-wrap items-center gap-2'>
+      {/* One row on a phone: labels give way to icons, and Preview as to More. */}
+      <div
+        role='group'
+        aria-label='Preview'
+        className='flex items-center gap-2'
+      >
         <Button ref={backRef} size='sm' emphasis='subtler' onClick={onClose}>
           <ArrowLeftIcon weight='bold' className='size-4' aria-hidden />
-          Back to editing
+          <span className={NARROW_HIDDEN}>Back to editing</span>
         </Button>
-        <PreviewWidthToggle value={width} onValueChange={setWidth} />
+        <PreviewWidthToggle
+          value={width}
+          onValueChange={setWidth}
+          labelClassName={NARROW_HIDDEN}
+        />
         <ToggleGroup
           aria-label='Colour scheme'
           size='sm'
@@ -149,43 +169,79 @@ export function EditorPreview({
         >
           <ToggleGroup.Item value='light'>
             <SunIcon weight='bold' className='size-4' aria-hidden />
-            Light
+            <span className={NARROW_HIDDEN}>Light</span>
           </ToggleGroup.Item>
           <ToggleGroup.Item value='dark'>
             <MoonIcon weight='bold' className='size-4' aria-hidden />
-            Dark
+            <span className={NARROW_HIDDEN}>Dark</span>
           </ToggleGroup.Item>
         </ToggleGroup>
         {recipients?.length ? (
-          <div className='flex items-center gap-2'>
-            <span id={previewAsId} className='text-sm text-subtle'>
-              Preview as
-            </span>
-            <Select
-              value={String(chosen)}
-              onValueChange={(next) => setRecipient(Number(next))}
-            >
-              <Select.Trigger
-                size='sm'
-                aria-labelledby={previewAsId}
-                className='w-auto'
+          <>
+            <div className='flex min-w-0 items-center gap-2 @max-[34rem]:hidden'>
+              <span id={previewAsId} className='shrink-0 text-sm text-subtle'>
+                Preview as
+              </span>
+              <Select
+                value={String(chosen)}
+                onValueChange={(next) => setRecipient(Number(next))}
               >
-                <Select.Value />
-                <Select.Icon />
-              </Select.Trigger>
-              <Select.Content>
-                {recipients.map(({ label }, index) => (
-                  <Select.Item key={index} value={String(index)}>
-                    {label}
-                  </Select.Item>
-                ))}
-              </Select.Content>
-            </Select>
-          </div>
+                <Select.Trigger
+                  size='sm'
+                  aria-labelledby={previewAsId}
+                  className='w-auto'
+                >
+                  <Select.Value />
+                  <Select.Icon />
+                </Select.Trigger>
+                <Select.Content>
+                  {recipients.map(({ label }, index) => (
+                    <Select.Item key={index} value={String(index)}>
+                      {label}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select>
+            </div>
+            <Menu>
+              <Menu.Trigger
+                render={
+                  <IconButton
+                    size='sm'
+                    emphasis='subtler'
+                    aria-label='More'
+                    className='@min-[34rem]:hidden'
+                  >
+                    <DotsThreeIcon weight='bold' className='size-4' />
+                  </IconButton>
+                }
+              />
+              <Menu.Content>
+                <Menu.Group>
+                  <Menu.GroupLabel>Preview as</Menu.GroupLabel>
+                  <Menu.RadioGroup
+                    value={String(chosen)}
+                    onValueChange={(next) => setRecipient(Number(next))}
+                  >
+                    {recipients.map(({ label }, index) => (
+                      <Menu.RadioItem
+                        key={index}
+                        value={String(index)}
+                        closeOnClick
+                      >
+                        {label}
+                      </Menu.RadioItem>
+                    ))}
+                  </Menu.RadioGroup>
+                </Menu.Group>
+              </Menu.Content>
+            </Menu>
+          </>
         ) : null}
         {onSendTest ? (
           <SendTest
             className='ms-auto'
+            labelClassName={NARROW_HIDDEN}
             onSend={(to) => onSendTest(value, { to, values })}
           />
         ) : null}
@@ -195,12 +251,44 @@ export function EditorPreview({
           The preview didn’t load. {shown.error}
         </p>
       ) : null}
+      {scheme === 'dark' ? (
+        <p className='text-sm text-subtle'>
+          Simulated dark mode: colours inverted, as some mail apps force on an
+          email. Others keep it light.
+        </p>
+      ) : null}
       <EmailPreviewFrame
         html={shown.html}
         width={width}
         colorScheme={scheme}
         busy={shown.busy}
+        header={<InboxRow {...inbox} />}
       />
+    </div>
+  )
+}
+
+// Hidden visually, still named, so a phone's bar fits on one row.
+const NARROW_HIDDEN = '@max-[34rem]:sr-only'
+
+function InboxRow({ sender, subject, preheader }: EditorPreviewInbox) {
+  if (!sender && !subject && !preheader) return null
+  return (
+    <div
+      role='group'
+      aria-label='In the inbox'
+      className='grid min-w-0 emphasis-raised gap-0.5 rounded-lg px-3 py-2 text-sm'
+    >
+      {sender ? (
+        <p className='truncate font-semibold text-strong'>{sender}</p>
+      ) : null}
+      <p className='truncate'>
+        {subject ? (
+          <span className='font-medium text-strong'>{subject}</span>
+        ) : null}
+        {subject && preheader ? ' – ' : null}
+        {preheader ? <span className='text-subtle'>{preheader}</span> : null}
+      </p>
     </div>
   )
 }
@@ -217,9 +305,10 @@ type Sending =
 type SendTestProps = {
   onSend: (to: string) => Promise<void>
   className?: string
+  labelClassName?: string
 }
 
-function SendTest({ onSend, className }: SendTestProps) {
+function SendTest({ onSend, className, labelClassName }: SendTestProps) {
   const [to, setTo] = useState('')
   const [sending, setSending] = useState<Sending>({ state: 'idle' })
   // Reopening starts afresh, so an earlier send's answer mustn't land.
@@ -256,7 +345,7 @@ function SendTest({ onSend, className }: SendTestProps) {
         render={
           <Button size='sm' emphasis='normal' className={className}>
             <PaperPlaneTiltIcon weight='bold' className='size-4' aria-hidden />
-            Send test
+            <span className={labelClassName}>Send test</span>
           </Button>
         }
       />
@@ -271,6 +360,13 @@ function SendTest({ onSend, className }: SendTestProps) {
                 value={to}
                 onChange={(event) => setTo(event.target.value)}
               />
+              {sending.state === 'idle' && !canSend ? (
+                <Field.HelperText>
+                  {address === ''
+                    ? 'Enter the address to send a test to.'
+                    : 'Enter a whole address, such as name@example.com.'}
+                </Field.HelperText>
+              ) : null}
             </Field>
             <Button
               type='submit'

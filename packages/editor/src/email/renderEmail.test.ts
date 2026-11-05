@@ -384,6 +384,40 @@ describe('renderEmail', () => {
     })
   })
 
+  describe('empty lines', () => {
+    const blank: JSONContent[] = [
+      { type: 'paragraph' },
+      p(text('   ')),
+      { type: 'paragraph', content: [{ type: 'hardBreak' }] }
+    ]
+
+    it('sends none of them as blank space', async () => {
+      const { html, text: plain } = await renderEmail(
+        email(...blank, p(text('Doors 7pm')), ...blank)
+      )
+      expect(body(html)).not.toContain('&nbsp;</p>')
+      expect(plain).toBe('Doors 7pm')
+    })
+
+    it('renders a section holding only empty lines', async () => {
+      const { html } = await renderEmail(
+        email(section(...blank), p(text('Doors 7pm')))
+      )
+      expect(body(html)).toContain('Doors 7pm')
+      expect(body(html)).not.toContain('&nbsp;</p>')
+    })
+
+    it('keeps an empty line in a list item', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'bulletList',
+          content: [{ type: 'listItem', content: [{ type: 'paragraph' }] }]
+        })
+      )
+      expect(body(html)).toContain('<li><p style="margin:0">&nbsp;</p></li>')
+    })
+  })
+
   it('links no web font, even for a font MJML knows', async () => {
     const { html } = await renderEmail(email(p(text('Hi'))), {
       theme: { fontFamily: 'Roboto, Arial, sans-serif' }
