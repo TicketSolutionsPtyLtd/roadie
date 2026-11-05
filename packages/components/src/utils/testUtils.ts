@@ -34,14 +34,20 @@ export function withoutClock<T>(read: () => T): T {
   }
 }
 
-/** Server-renders `element` without a clock, then hydrates it. */
-export async function hydrateWithoutClock(element: ReactElement): Promise<{
+/**
+ * Server-renders `element` without a clock, then hydrates it. `serve` stands
+ * in for a server whose output differs from the client's.
+ */
+export async function hydrateWithoutClock(
+  element: ReactElement,
+  serve: (html: string) => string = (html) => html
+): Promise<{
   container: HTMLDivElement
   serverHtml: string
   onRecoverableError: Mock
 }> {
   const container = document.createElement('div')
-  container.innerHTML = withoutClock(() => renderToString(element))
+  container.innerHTML = serve(withoutClock(() => renderToString(element)))
   const serverHtml = container.innerHTML
   document.body.append(container)
   onTestFinished(() => container.remove())

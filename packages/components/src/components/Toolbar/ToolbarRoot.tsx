@@ -37,6 +37,14 @@ export type ToolbarRootProps = Omit<
      * @default 'normal'
      */
     emphasis?: ToolbarEmphasis
+    /**
+     * Drops the border, shadow and pill shape, for a bar docked along an
+     * edge. `emphasis` sets only its fill, a divider goes in `className`,
+     * and the parent clips the corners. The controls keep their inset.
+     *
+     * @default false
+     */
+    flush?: boolean
   }
 
 // Sideways only, within the row: scrollIntoView would scroll the page too.
@@ -60,6 +68,7 @@ export function ToolbarRoot({
   hidden,
   size = 'md',
   emphasis,
+  flush = false,
   orientation = 'horizontal',
   onFocus,
   ...props
@@ -72,7 +81,7 @@ export function ToolbarRoot({
     <ToolbarContext value={contextValue}>
       <ScrollArea
         data-slot='toolbar-surface'
-        className={cn(toolbarSurfaceVariants({ emphasis }), className)}
+        className={cn(toolbarSurfaceVariants({ emphasis, flush }), className)}
         style={style}
         hidden={hidden}
       >

@@ -1,19 +1,31 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { ReleaseMoved } from '@/components/changelog/ReleaseMoved'
 import { ReleasePage } from '@/components/changelog/ReleasePage'
-import { getReleaseViews } from '@/lib/releases'
+import { getReleaseViews, releaseRoutes } from '@/lib/releases'
+import { getAssetPath } from '@/utils/getAssetPath'
 
 type Props = { params: Promise<{ release: string }> }
 
 export const dynamicParams = false
 
+const routeOf = (slug: string) =>
+  releaseRoutes(getReleaseViews()).find((route) => route.slug === slug)
+
 export function generateStaticParams() {
-  return getReleaseViews().map(({ slug }) => ({ release: slug }))
+  return releaseRoutes(getReleaseViews()).map(({ slug }) => ({ release: slug }))
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { release: slug } = await params
+  const route = routeOf(slug)
+  if (route?.movedTo)
+    return {
+      title: 'Release moved · Changelog',
+      robots: { index: false },
+      alternates: { canonical: `${getAssetPath(route.movedTo)}/` }
+    }
   const release = getReleaseViews().find((view) => view.slug === slug)
   if (!release) return {}
   return {
@@ -24,6 +36,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Release({ params }: Props) {
   const { release: slug } = await params
-  if (!getReleaseViews().some((view) => view.slug === slug)) notFound()
+  const route = routeOf(slug)
+  if (!route) notFound()
+  if (route.movedTo) return <ReleaseMoved href={route.movedTo} />
   return <ReleasePage slug={slug} />
 }

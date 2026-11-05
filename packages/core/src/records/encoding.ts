@@ -1,10 +1,21 @@
 import { type RelativeRange, canonicalDateRange } from '../datetime/ranges'
+import { isRecordOperator, recordOperatorSpec } from './operators'
 import type { RecordFilter, RecordSort } from './types'
 
 const NUMBER = /^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/i
 const ROLLING = /^(next|past)-(\d+)-(hour|day|week|month)$/
 const PERIOD =
   /^(day|week|month|quarter|year)\.(-?\d+)((?:\.fiscal)?)((?:\.to-date)?)$/
+
+// Meilisearch, inside quotes, pairs each backslash with the next character and
+// then unescapes only \", so an odd run of backslashes before a quote or at
+// the end has no faithful encoding there.
+const ODD_BACKSLASHES = /(?:^|[^\\])(?:\\\\)*\\(?:"|$)/
+
+/** Whether text holds a backslash a search index can't read back. */
+export function hasUnquotableBackslash(text: string): boolean {
+  return ODD_BACKSLASHES.test(text)
+}
 
 export function escapeItem(text: string): string {
   return text.replace(/%/g, '%25').replace(/,/g, '%2C')
@@ -69,28 +80,18 @@ export function decodeRange(text: string): RelativeRange | string {
 /** One chip as `field:operator[:value]`. */
 export function encodeFilter(filter: RecordFilter): string {
   const head = `${escapeKey(filter.field)}:${filter.operator}`
-  switch (filter.operator) {
-    case 'is':
-    case 'is-not':
-    case 'has-all':
-      return `${head}:${joinItems(filter.values)}`
-    case 'between':
-      return `${head}:${joinItems(filter.value.map(String))}`
-    case 'within':
-      return `${head}:${encodeRange(filter.value)}`
-    case 'contains':
-    case 'not-contains':
-    case 'on':
-    case 'before':
-    case 'after':
-    case 'eq':
-    case 'neq':
-    case 'lt':
-    case 'gt':
-      return `${head}:${filter.value}`
-    default:
-      return head
-  }
+  // A stored or hand-written filter may carry a stray value, which reads as none.
+  if (
+    !isRecordOperator(filter.operator) ||
+    recordOperatorSpec(filter.operator).value === 'none'
+  )
+    return head
+  if ('values' in filter) return `${head}:${joinItems(filter.values)}`
+  if (!('value' in filter) || filter.value == null) return head
+  const { value } = filter
+  if (Array.isArray(value)) return `${head}:${joinItems(value.map(String))}`
+  if (typeof value === 'object') return `${head}:${encodeRange(value)}`
+  return `${head}:${value}`
 }
 
 export function toNumber(text: string): number {

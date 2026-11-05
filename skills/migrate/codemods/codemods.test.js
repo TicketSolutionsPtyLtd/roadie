@@ -35,13 +35,14 @@ for (const codemod of readdirSync(fixtures)) {
       .map((name) => name.replace('.input.tsx', ''))
 
     for (const name of cases) {
+      const read = (suffix) =>
+        readFileSync(path.join(folder, `${name}.${suffix}`), 'utf8')
+      const optionsFile = path.join(folder, `${name}.options.json`)
+      const options = existsSync(optionsFile)
+        ? JSON.parse(readFileSync(optionsFile, 'utf8'))
+        : {}
+
       it(name, () => {
-        const read = (suffix) =>
-          readFileSync(path.join(folder, `${name}.${suffix}`), 'utf8')
-        const optionsFile = path.join(folder, `${name}.options.json`)
-        const options = existsSync(optionsFile)
-          ? JSON.parse(readFileSync(optionsFile, 'utf8'))
-          : {}
         const reportFile = path.join(folder, `${name}.report.txt`)
 
         const { output, reports } = run(transform, read('input.tsx'), options)
@@ -50,6 +51,15 @@ for (const codemod of readdirSync(fixtures)) {
         expect(reports.join('\n')).toBe(
           existsSync(reportFile) ? read('report.txt').trimEnd() : ''
         )
+      })
+
+      it(`${name}, with Windows line endings`, () => {
+        const crlf = (suffix) =>
+          read(suffix).replaceAll('\r\n', '\n').replaceAll('\n', '\r\n')
+
+        const { output } = run(transform, crlf('input.tsx'), options)
+
+        expect(output).toBe(crlf('output.tsx'))
       })
     }
   })

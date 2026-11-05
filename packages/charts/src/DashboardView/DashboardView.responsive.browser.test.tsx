@@ -3,11 +3,17 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { DashboardView } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
+import { ticketTypeExample } from '../DonutChart/examples'
 import {
   createAudienceDashboard,
   createPortfolioDashboard,
   createShowDashboard
 } from '../examples'
+import {
+  afterResize,
+  expectLabelsInsideSvg,
+  expectNoOverlap
+} from '../plot/browserTesting'
 import { loadBrandFont, useStylesheet } from '../testUtils'
 
 let removeStylesheet = () => {}
@@ -66,4 +72,54 @@ describe('reference dashboards fit a tablet width', () => {
       expect(el.scrollWidth).toBeLessThanOrEqual(el.clientWidth)
     }
   })
+})
+
+describe('a donut card', () => {
+  const donutCard = (size: 'sm' | 'md' | 'lg' | 'full') => ({
+    version: 1 as const,
+    title: 'Audience',
+    sections: [
+      {
+        title: 'Tickets',
+        cards: [
+          {
+            id: 'types',
+            kind: 'chart' as const,
+            size,
+            label: 'Tickets by type',
+            source: 'Oztix sales.',
+            plot: { kind: 'donut' as const, ...ticketTypeExample }
+          }
+        ]
+      }
+    ]
+  })
+
+  // A tablet gives sm and md half its width, the narrowest donut card. A
+  // 1440px desktop leaves about 1376px.
+  it.each([
+    ['phone', PHONE_CONTENT_WIDTH, 'md'],
+    ['tablet', TABLET_CONTENT_WIDTH, 'sm'],
+    ['tablet', TABLET_CONTENT_WIDTH, 'md'],
+    ['desktop', 1376, 'sm'],
+    ['desktop', 1376, 'full']
+  ] as const)(
+    'draws its slices with labels apart and inside the card on a %s, at %i px, %s',
+    async (_, width, size) => {
+      const { container } = render(
+        <div style={{ width }}>
+          <DashboardView spec={donutCard(size)} />
+        </div>
+      )
+      await afterResize()
+      const card = container.querySelector<HTMLElement>(
+        '[data-slot=data-card]'
+      )!
+      expect(
+        card.querySelectorAll('[data-ts-key^="series-"] path')
+      ).toHaveLength(5)
+      expectNoOverlap(card, '[data-ts-key^="label-"] text')
+      expectLabelsInsideSvg(card)
+    }
+  )
 })

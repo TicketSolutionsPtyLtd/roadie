@@ -17,6 +17,7 @@ import { createPortal } from 'react-dom'
 import { IconButton } from '@oztix/roadie-components/button'
 import { Menu } from '@oztix/roadie-components/menu'
 
+import { hideBubbleMenu } from './EditorBubbleMenuEngine'
 import {
   canMoveBlock,
   deleteBlock,
@@ -32,9 +33,9 @@ const HANDLE_GAP = 4
 
 /**
  * A box of the handle's own in the editor's content wrapper, once Tiptap has
- * mounted its view there. A drag must start inside the wrapper, or UniqueID
- * reads the drop as a paste and gives the moved block a new id. Tiptap moves
- * the wrapper's children when it unmounts, so React never owns them directly.
+ * mounted its view there, so the grip is placed against the wrapper. Tiptap
+ * moves the wrapper's children when it unmounts, so React never owns them
+ * directly.
  */
 function useHandleHost(editor: TiptapEditor) {
   const [host, setHost] = useState<HTMLElement | null>(null)
@@ -58,15 +59,45 @@ function useHandleHost(editor: TiptapEditor) {
   return host
 }
 
+// The text's, not a block's, as every grip sits in the same gutter.
+const isRtl = (editor: TiptapEditor) =>
+  getComputedStyle(editor.view.dom).direction === 'rtl'
+
 // The block on the pointer's line, read just inside the text's start edge so
 // the gutter beside it counts too.
 function blockAtY(editor: TiptapEditor, clientY: number) {
   const { view } = editor
   const box = view.dom.getBoundingClientRect()
   const start = parseFloat(getComputedStyle(view.dom).paddingInlineStart) || 0
-  const hit = view.posAtCoords({ left: box.left + start + 1, top: clientY })
+  const left = isRtl(editor) ? box.right - start - 1 : box.left + start + 1
+  const hit = view.posAtCoords({ left, top: clientY })
   if (!hit) return null
   return topBlockAt(view.state, hit.inside >= 0 ? hit.inside : hit.pos)
+}
+
+const isNode = (target: EventTarget | null): target is Node =>
+  target !== null && 'nodeType' in target
+
+/**
+ * Over the text or the grip, or over the gutter before the wrapper where a
+ * subtler editor's grip sits. Not over anything else in the wrapper, such as
+ * the bubble menu, nor over what covers the editor or sits beside it.
+ */
+function inReach(
+  editor: TiptapEditor,
+  host: HTMLElement,
+  { target, clientX, clientY }: MouseEvent
+) {
+  if (!isNode(target)) return false
+  if (editor.view.dom.contains(target) || host.contains(target)) return true
+  const wrapper = host.parentElement
+  if (!wrapper || !target.contains(wrapper)) return false
+  const { left, right, top, bottom } = wrapper.getBoundingClientRect()
+  const reach = HANDLE_SIZE + HANDLE_GAP
+  const [from, to] = isRtl(editor)
+    ? [left, right + reach]
+    : [left - reach, right]
+  return clientX >= from && clientX <= to && clientY >= top && clientY <= bottom
 }
 
 // Centred on the block's first line, just before its start edge.
@@ -78,7 +109,9 @@ function placeAt(editor: TiptapEditor, wrapper: HTMLElement, pos: number) {
   const line = parseFloat(getComputedStyle(dom).lineHeight) || box.height
   return {
     top: box.top - frame.top + (Math.min(line, box.height) - HANDLE_SIZE) / 2,
-    left: box.left - frame.left - HANDLE_SIZE - HANDLE_GAP
+    left: isRtl(editor)
+      ? box.right - frame.left + HANDLE_GAP
+      : box.left - frame.left - HANDLE_SIZE - HANDLE_GAP
   }
 }
 
@@ -118,18 +151,35 @@ export function EditorBlockHandle({
   })
   const shown = menuAt ?? hovered ?? caretBlock
 
+  // On the page, as a subtler editor's grip hangs outside the wrapper, and
+  // leaving the wrapper for the gap would hide it.
   useEffect(() => {
-    if (!wrapper) return
+    if (!host) return
+    const page = host.ownerDocument
     const onMove = (event: MouseEvent) =>
-      setHovered(blockAtY(editor, event.clientY))
-    const onLeave = () => setHovered(null)
-    wrapper.addEventListener('mousemove', onMove)
-    wrapper.addEventListener('mouseleave', onLeave)
-    return () => {
-      wrapper.removeEventListener('mousemove', onMove)
-      wrapper.removeEventListener('mouseleave', onLeave)
+      setHovered(
+        inReach(editor, host, event) ? blockAtY(editor, event.clientY) : null
+      )
+    const onOut = ({ relatedTarget }: MouseEvent) => {
+      if (!relatedTarget) setHovered(null)
     }
-  }, [editor, wrapper])
+    page.addEventListener('mousemove', onMove)
+    page.addEventListener('mouseout', onOut)
+    return () => {
+      page.removeEventListener('mousemove', onMove)
+      page.removeEventListener('mouseout', onOut)
+    }
+  }, [editor, host])
+
+  useEffect(() => {
+    if (!editable) setMenuAt(null)
+  }, [editable])
+
+  // Its blur check counts focus on the grip as staying in the editor.
+  const menuOpen = menuAt !== null
+  useEffect(() => {
+    if (menuOpen) hideBubbleMenu(editor)
+  }, [editor, menuOpen])
 
   useEffect(() => {
     const follow = ({ transaction }: { transaction: Transaction }) => {
@@ -182,7 +232,6 @@ export function EditorBlockHandle({
     event.dataTransfer.clearData()
     event.dataTransfer.setData('text/html', html.innerHTML)
     event.dataTransfer.setData('text/plain', text)
-    // Not copyMove: UniqueID would treat the drop as a copy and give new ids.
     event.dataTransfer.effectAllowed = 'move'
     if (dom instanceof HTMLElement) event.dataTransfer.setDragImage(dom, 0, 0)
     view.dragging = { slice, move: true }

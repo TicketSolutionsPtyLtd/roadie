@@ -14,8 +14,10 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 
 ## Stack
 
-- pnpm (`corepack enable`), Turborepo, React 19, TypeScript 5 in strict mode
-  with no `any`, [Tailwind CSS v4](https://tailwindcss.com/docs) with
+- pnpm (`corepack enable`), Turborepo, React 19, TypeScript in strict mode
+  with no `any` (`tsc` is TypeScript 7; `import 'typescript'` is the
+  TypeScript 6 API, [why](docs/solutions/build-errors/typescript-7-cli-typescript-6-api.md)),
+  [Tailwind CSS v4](https://tailwindcss.com/docs) with
   `@utility` directives, and Next.js 16 with MDX for the docs. Next 16 may
   differ from what you know: read its guide in
   `docs/node_modules/next/dist/docs/` before changing the docs app.
@@ -31,12 +33,14 @@ charts, and a docs site, in a pnpm and Turborepo monorepo.
 | `packages/components/`  | `@oztix/roadie-components`                                                                                             |
 | `packages/charts/`      | `@oztix/roadie-charts`: charts, legends, and dashboard views                                                           |
 | `packages/editor/`      | `@oztix/roadie-editor`: the rich-text editor and its saved format                                                      |
+| `packages/blocks/`      | `@oztix/roadie-blocks`: designed page sections, with presets and tracking                                              |
 | `packages/widgets/`     | `@oztix/roadie-widgets`: the cart drawer, React and Vue skins                                                          |
 | `packages/lint-plugin/` | `@oztix/roadie-lint-plugin`: oxlint and ESLint rules for apps on Roadie                                                |
 | `docs/`                 | The docs site                                                                                                          |
 
-Root scripts: `pnpm dev`, `build`, `test`, `test:browser`, `typecheck`, `lint`,
-and `format`. Scope one with `--filter`:
+Root scripts: `pnpm dev`, `build` (packages only), `build:docs` (packages and
+the site), `test`, `test:browser`, `typecheck`, `lint`, and `format`. Scope one
+with `--filter`:
 
 ```bash
 pnpm --filter @oztix/roadie-components test
@@ -140,10 +144,11 @@ These rules aren't on those pages.
 
 - Each chart type has its own `@oztix/roadie-charts` subpath (`/line-chart` and
   so on), which is `'use client'` and exports only components. On a server, use
-  `/static` (`renderChartSvg`) and `/tables`.
+  `/static` (`renderChartSvg`), `/chart-document` (`renderChartDocument`), and
+  `/tables`.
 - A dashboard chart card's `plot` is `{ kind, ...props }`, where `kind` is
-  `line`, `bar`, `ranked-bars`, `stacked-bars`, `stacked-area`, `histogram`,
-  `funnel`, `heatmap`, `scatter`, or `small-multiples`.
+  `line`, `bar`, `ranked-bars`, `donut`, `stacked-bars`, `stacked-area`,
+  `histogram`, `funnel`, `heatmap`, `scatter`, or `small-multiples`.
 - Chart colour by job: `--chart-1` to `-8` (categorical, at most 6 then
   "Other", or `--chart-pair-*` and `--chart-trio-*`), `--chart-heat-0` to `-8`,
   `--chart-diverge-neg-4` to `-pos-4`, `--chart-status-*` (meaning only),
@@ -162,7 +167,8 @@ These rules aren't on those pages.
   don't assert rule text there.
 - Iterate with `pnpm test:gated <package> <file or folder>` (load-gated,
   Chromium only, the projects CI runs), never `vitest` or the whole suite
-  directly. Perf tests run only with `--perf`.
+  directly. Frame tests (`*.perf.browser.test.tsx`, on `@oztix/roadie-frames`)
+  run only with `--perf`, and in the Perf workflow.
 - Dev-only warnings check `process.env.NODE_ENV` behind a
   `typeof process !== 'undefined'` guard
   ([why](docs/solutions/build-errors/cross-bundler-dev-env-check.md)).

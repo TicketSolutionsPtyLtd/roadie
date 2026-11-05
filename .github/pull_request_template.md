@@ -24,7 +24,7 @@
 
 ## Checks
 
-- [ ] `pnpm build && pnpm typecheck && pnpm lint && pnpm test`
+- [ ] `pnpm build && pnpm typecheck && pnpm lint && pnpm test`, plus `pnpm build:docs` if the docs site reads the change
 - [ ] Browser tests for touched files (`full-browsers` label for CSS, layout, or iOS-sensitive changes)
 - [ ] `size` for touched packages that have one
 - [ ] Roadie conventions audit and both pre-PR reviews clean

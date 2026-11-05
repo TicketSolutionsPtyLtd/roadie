@@ -44,7 +44,7 @@ export async function TokenFamilyPage({
         </p>
         <Link
           href={`/tokens/reference?family=${family}`}
-          className='inline-flex items-center gap-1 justify-self-start text-sm font-medium text-strong underline-offset-4 hover:underline'
+          className='inline-flex items-center gap-1 justify-self-start text-sm font-medium text-strong link-subtle'
         >
           Open in all tokens
           <ArrowRightIcon weight='bold' className='size-3' />

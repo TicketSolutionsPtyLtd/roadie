@@ -84,9 +84,10 @@ copy.
   text column, reads as the row's title, in strong text.
 - Numbers end-aligned. Number and money fields do this, and sort largest
   first.
-- Money. `currency` where cents matter, an order total or a payout.
-  `compactCurrency` for gross across events, where $118k reads faster than
-  $118,400. A field with `currencyKey` names any currency that isn't dollars.
+- Money. `currency` where cents matter, an order total or a payout. It shows
+  cents on every amount, so they line up. `compactCurrency` for gross across
+  events, where $118.4k reads faster than $118,400.00. A field with
+  `currencyKey` names any currency that isn't dollars.
 - Dates. Event and access dates read in the venue's zone through
   `timeZoneKey`, long with the weekday. Timestamps read in the reader's zone,
   medium with the time. See [Date and time](/foundations/date-and-time).

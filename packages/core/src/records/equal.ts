@@ -6,11 +6,7 @@ function normaliseSearch(search: string): string {
 }
 
 function filterKey(filter: RecordFilter): string {
-  if (
-    filter.operator === 'is' ||
-    filter.operator === 'is-not' ||
-    filter.operator === 'has-all'
-  ) {
+  if ('values' in filter) {
     return encodeFilter({
       ...filter,
       values: [...new Set(filter.values)].sort()

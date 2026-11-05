@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import type { EditorVariable, JSONContent, StoredEditorValue } from '../schema'
+import type {
+  EditorVariable,
+  JSONContent,
+  StoredEditorValue,
+  StoredEmailContent
+} from '../schema'
 import { defaultEmailTheme, renderEmail } from './index'
 
 const text = (value: string, marks?: JSONContent['marks']): JSONContent => ({
@@ -31,10 +36,9 @@ const columns = (...content: JSONContent[]) => ({ type: 'columns', content })
 const section = (...content: JSONContent[]) => ({ type: 'section', content })
 const link = (href: string) => [{ type: 'link', attrs: { href } }]
 
-const email = (...content: JSONContent[]): StoredEditorValue => ({
-  version: 1,
-  preset: 'email',
-  doc: { type: 'doc', content }
+const email = (...content: JSONContent[]): StoredEmailContent => ({
+  kind: 'design',
+  value: { version: 1, preset: 'email', doc: { type: 'doc', content } }
 })
 
 const body = (html: string) => html.slice(html.indexOf('<body'))
@@ -209,7 +213,7 @@ describe('renderEmail', () => {
     expect(html).toContain(`background-color:${defaultEmailTheme.background}`)
     expect(plain).toBe(
       [
-        'OCHRE KITE WEEKENDER',
+        'Ochre Kite Weekender',
         '',
         'Doors open 7pm at Jumbuck Orchard Park',
         `[${tickets}].`,
@@ -273,6 +277,18 @@ describe('renderEmail', () => {
       expect(html).toContain('Go &lt;b&gt;')
     })
 
+    it('writes an ordered list’s start and type only when valid', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'orderedList',
+          attrs: { start: '2"><script>x</script>', type: '"><script>x' },
+          content: [{ type: 'listItem', content: [p(text('Food trucks'))] }]
+        })
+      )
+      expect(html).not.toContain('<script>')
+      expect(html).toContain('<ol style=')
+    })
+
     it('drops a node the email preset doesn’t hold, keeping its text', async () => {
       const { html, text: plain } = await renderEmail(
         email(
@@ -302,6 +318,32 @@ describe('renderEmail', () => {
     })
   })
 
+  it('links no web font, even for a font MJML knows', async () => {
+    const { html } = await renderEmail(email(p(text('Hi'))), {
+      theme: { fontFamily: 'Roboto, Arial, sans-serif' }
+    })
+    expect(html).toContain('font-family:Roboto, Arial, sans-serif')
+    expect(html).not.toContain('fonts.googleapis.com')
+  })
+
+  it('keeps a heading’s case in the plain text, around a merge tag', async () => {
+    const { text: plain } = await renderEmail(
+      email({
+        type: 'heading',
+        attrs: { level: 2 },
+        content: [
+          text('See you soon, '),
+          { type: 'variable', attrs: { key: 'first_name' } }
+        ]
+      }),
+      {
+        variables: [{ key: 'first_name', label: 'First name', tokens: {} }],
+        values: { first_name: 'Ash' }
+      }
+    )
+    expect(plain).toBe('See you soon, Ash')
+  })
+
   it('starts and ends the plain text at its words', async () => {
     const { text: plain } = await renderEmail(
       email(
@@ -329,11 +371,14 @@ describe('renderEmail', () => {
         ]
       }
     }
-    const { html, text: plain } = await renderEmail(rich)
+    const { html, text: plain } = await renderEmail({
+      kind: 'design',
+      value: rich
+    })
     expect(html).toContain('<h2 ')
     expect(html).not.toContain('<blockquote')
     expect(html).not.toContain('<img')
-    expect(plain).toBe('LINEUP\n\nBest weekend of the year.')
+    expect(plain).toBe('Lineup\n\nBest weekend of the year.')
   })
 
   describe('merge tags', () => {
@@ -427,6 +472,67 @@ describe('renderEmail', () => {
       expect(plain).not.toContain('{{')
       expect(plain).not.toContain('#Code#')
       expect(plain.replaceAll('​', '')).toBe('Hi {{ secret }} #Code#!')
+    })
+
+    it.each([
+      ['ae', '#VIP', '#', '#FirstName#', ['#VIP#', '##']],
+      ['liquid', '{', '}', '{{ customer.first_name }}', ['{{{', '}}}']]
+    ] as const)(
+      'keeps typed %s token characters beside a variable from joining its token in the plain text',
+      async (syntax, before, after, token, joined) => {
+        const { text: plain } = await renderEmail(
+          email(p(text(`Hi ${before}`), tag('first_name'), text(after))),
+          { syntax, variables }
+        )
+        expect(plain).toContain(token)
+        for (const run of joined) expect(plain).not.toContain(run)
+        expect(plain.replaceAll('​', '')).toBe(`Hi ${before}${token}${after}`)
+      }
+    )
+
+    it.each([
+      ['ae', '{', '%', 'Hi {#FirstName#%'],
+      ['liquid', '#', '%', 'Hi #{{ customer.first_name }}%']
+    ] as const)(
+      'leaves characters beside a variable that %s doesn’t read as a token as typed',
+      async (syntax, before, after, written) => {
+        const { text: plain } = await renderEmail(
+          email(p(text(`Hi ${before}`), tag('first_name'), text(after))),
+          { syntax, variables }
+        )
+        expect(plain).toBe(written)
+      }
+    )
+
+    it('keeps typed token characters beside a preview’s value from making a token of it', async () => {
+      const { text: plain } = await renderEmail(
+        email(p(text('Hi #'), tag('first_name'), text('#'))),
+        { syntax: 'liquid', variables, values: { first_name: 'Code' } }
+      )
+      expect(plain).not.toContain('#Code#')
+      expect(plain.replaceAll('​', '')).toBe('Hi #Code#')
+    })
+
+    it('keeps a fallback with quotes and braces inside its Liquid default in the plain text', async () => {
+      const { text: plain } = await renderEmail(greeting(`"Mate's" }} {{ x`), {
+        syntax: 'liquid',
+        variables
+      })
+      expect(plain).toBe(
+        `Hi {{ customer.first_name | default: '"Mate’s" }​} {​{ x' }}!`
+      )
+    })
+
+    it('gives a Liquid token of more than one output no default', async () => {
+      const both = '{{ customer.first_name }} {{ customer.last_name }}'
+      const { html, text: plain } = await renderEmail(greeting('there'), {
+        syntax: 'liquid',
+        variables: [
+          { key: 'first_name', label: 'Name', tokens: { liquid: both } }
+        ]
+      })
+      expect(html).toContain(`Hi ${both}!`)
+      expect(plain).toBe(`Hi ${both}!`)
     })
 
     it('keeps a Liquid token’s whitespace control around its default', async () => {
@@ -557,7 +663,7 @@ describe('renderEmail', () => {
         when(button(tickets, 'Grab the last few'), showWhen),
         p(text('After'))
       )
-    const liquid = (value: StoredEditorValue) =>
+    const liquid = (value: StoredEmailContent) =>
       renderEmail(value, { syntax: 'liquid', variables })
     // What a Liquid sender does with a condition that doesn't hold.
     const hidden = (html: string) =>
@@ -627,8 +733,27 @@ describe('renderEmail', () => {
       expect(html).toContain('{% if event.tickets_left < 20 %}')
       expect(hidden(html)).toBe(hidden(without.html))
       expect(plain).toBe(
-        '{%- if event.tickets_left < 20 %}\n\nOnly 20 tickets left\n\n{%- endif %}\n\nAfter'
+        '{%- if event.tickets_left < 20 -%}Only 20 tickets left\n\n{%- endif %}\n\nAfter'
       )
+    })
+
+    it('starts the plain text at the words of a first block that shows', async () => {
+      const lastFew = email(
+        when(section(p(text('Only 20 tickets left'))), nearlySoldOut),
+        p(text('After'))
+      )
+      const { text: plain } = await liquid(lastFew)
+      // What a Liquid sender does with whitespace control and a rule that holds.
+      const shown = plain
+        .replace(/\s*\{%-/g, '{%')
+        .replace(/-%\}\s*/g, '%}')
+        .replace(/\{%[^%]*%\}/g, '')
+      expect(shown).toBe('Only 20 tickets left\n\nAfter')
+      const preview = await renderEmail(lastFew, {
+        variables,
+        values: { tickets_left: '3' }
+      })
+      expect(preview.text).toBe('Only 20 tickets left\n\nAfter')
     })
 
     it('leaves the columns whole when a sender hides a block in one', async () => {
@@ -740,6 +865,12 @@ describe('renderEmail', () => {
         { ticket_type: '' }
       ],
       [
+        'exists, reading false as Liquid does',
+        { key: 'ticket_type', op: 'exists' },
+        { ticket_type: 'true' },
+        { ticket_type: 'false' }
+      ],
+      [
         'equals text',
         { key: 'ticket_type', op: 'equals', value: 'VIP' },
         { ticket_type: 'VIP' },
@@ -787,6 +918,20 @@ describe('renderEmail', () => {
       }
     )
 
+    it('compares a preview’s false as Liquid’s false, which no text equals', async () => {
+      const read = async (op: 'equals' | 'notEquals') =>
+        (
+          await renderEmail(offer({ key: 'ticket_type', op, value: 'false' }), {
+            variables,
+            values: { ticket_type: 'false' }
+          })
+        ).text
+      expect(await read('equals')).toBe('Before\n\nAfter')
+      expect(await read('notEquals')).toBe(
+        `Before\n\nGrab the last few [${tickets}]\n\nAfter`
+      )
+    })
+
     it('checks a rule keyed like an object’s own property from values alone', async () => {
       const keyed: EditorVariable[] = [
         { key: 'constructor', label: 'Constructor', tokens: {} }
@@ -797,6 +942,24 @@ describe('renderEmail', () => {
       )
       expect(plain).toBe('Before\n\nAfter')
     })
+
+    it.each([
+      [
+        'a variable',
+        p(text('Hi '), { type: 'variable', attrs: { key: 'capacity' } })
+      ],
+      ['a rule', when(button(tickets), { key: 'capacity', op: 'exists' })]
+    ])(
+      'refuses %s the app’s variables don’t list in a section a preview hides',
+      async (_name, inner) => {
+        await expect(
+          renderEmail(email(when(section(inner), nearlySoldOut)), {
+            variables,
+            values: { tickets_left: '200' }
+          })
+        ).rejects.toThrow('"capacity"')
+      }
+    )
 
     it('hides a section and everything in it in a preview', async () => {
       const { html, text: plain } = await renderEmail(
@@ -814,9 +977,101 @@ describe('renderEmail', () => {
       expect(plain).toBe('After')
     })
 
+    it('writes no empty row for a run whose blocks are all hidden in a preview', async () => {
+      const preview = (...content: JSONContent[]) =>
+        renderEmail(email(...content), {
+          variables,
+          values: { tickets_left: '200' }
+        })
+      const { html } = await preview(
+        when(button(tickets), nearlySoldOut),
+        section(p(text('After')))
+      )
+      const without = await preview(section(p(text('After'))))
+      expect(body(html)).toBe(body(without.html))
+    })
+
     it('renders a block with no rule as it was', async () => {
       const { html } = await renderEmail(email(button(tickets)))
       expect(html).not.toContain('{%')
     })
+  })
+})
+
+describe('renderEmail with HTML', () => {
+  const pasted = [
+    '<!doctype html><html><head><meta charset="utf-8"></head><body>',
+    '<!--[if mso]><table role="presentation"><tr><td><![endif]-->',
+    '<table width="600"><tr><td><font face="Arial" color="#333333">',
+    'Hi #FirstName#, {{ first_name }} &amp; friends,</font>',
+    `<p><a href="${tickets}" data-tracking="||CampaignId||">Get tickets</a></p>`,
+    `<img src="${poster}" alt="The crowd at sunset">`,
+    '</td></tr></table>',
+    '<!--[if mso]></td></tr></table><![endif]-->',
+    '</body></html>'
+  ].join('\n')
+
+  it('sends the HTML as written, merge tags and Outlook blocks included', async () => {
+    const { html } = await renderEmail({ kind: 'html', html: pasted })
+    expect(html).toBe(pasted)
+  })
+
+  it('sends the HTML as written whatever the merge tag options', async () => {
+    const { html } = await renderEmail(
+      { kind: 'html', html: pasted },
+      {
+        syntax: 'liquid',
+        variables: [],
+        values: { first_name: 'Ashley' }
+      }
+    )
+    expect(html).toBe(pasted)
+  })
+
+  it('writes the plain text from the HTML, with links and without images', async () => {
+    const { text: plain } = await renderEmail({ kind: 'html', html: pasted })
+    expect(plain).toBe(
+      [
+        'Hi #FirstName#, {{ first_name }} & friends,',
+        '',
+        `Get tickets [${tickets}]`
+      ].join('\n')
+    )
+  })
+
+  it.each(['h1', 'h5', 'h6'])(
+    'keeps the case of a %s and its merge tags in the plain text',
+    async (tag) => {
+      const { text: plain } = await renderEmail({
+        kind: 'html',
+        html: `<table><tr><${tag}>Hi {{ first_name }}, #FirstName#</${tag}></tr></table>`
+      })
+      expect(plain).toBe('Hi {{ first_name }}, #FirstName#')
+    }
+  )
+
+  it.each(['td', 'th'])(
+    'keeps the %s cells of a layout table apart in the plain text',
+    async (cell) => {
+      const { text: plain } = await renderEmail({
+        kind: 'html',
+        html: `<table><tr><${cell}>Doors open 7pm</${cell}><${cell}>Tickets from $49</${cell}></tr></table>`
+      })
+      expect(plain).toBe('Doors open 7pm\n\nTickets from $49')
+    }
+  )
+
+  it('refuses content of another kind', async () => {
+    await expect(
+      // @ts-expect-error A kind read back from storage can be anything.
+      renderEmail({ kind: 'mjml', html: pasted })
+    ).rejects.toThrow(TypeError)
+  })
+
+  it('refuses HTML content without its HTML', async () => {
+    await expect(
+      // @ts-expect-error Content read back from storage can be missing a field.
+      renderEmail({ kind: 'html' })
+    ).rejects.toThrow(TypeError)
   })
 })

@@ -14,7 +14,7 @@ import type {
 } from '../plot/types'
 import {
   axisFormat,
-  fullFormat,
+  fullValue,
   gridTicks,
   isCountFormat,
   labelFormat,
@@ -57,7 +57,7 @@ function withUnit(props: HistogramProps, text: string, count: number) {
 }
 
 const valueText = (props: HistogramProps, value: number) =>
-  withUnit(props, formatValue(value, fullFormat(props.format)), value)
+  withUnit(props, fullValue(props, value), value)
 
 /** "1 ticket", "3 to 4 tickets", "0 to 6 days". */
 function binText(props: HistogramProps, bin: Bin) {
@@ -120,7 +120,7 @@ function medianMarks(
           {
             x,
             y: top,
-            label: `Median ${labelFormat(props.format, median)}`
+            label: `Median ${labelFormat(props, median)}`
           }
         ],
         {
