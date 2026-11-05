@@ -71,7 +71,7 @@ Use `direction='reverse'` to scroll in the opposite direction.
 
 - **Role**: The root element has `role='marquee'`
 - **Label**: Use `aria-label` to describe the scrolling content
-- **Duplicates**: The cloned children set is marked `aria-hidden='true'` so screen readers only announce content once
-- **Motion**: Users with `prefers-reduced-motion` should see paused content. Consider wrapping with a motion preference check in your application
+- **Duplicates**: Only the first copy of the items is read out or takes focus. The copies that fill the width, and the looping clone, are `aria-hidden` and `inert`, so a link in a marquee is one tab stop
+- **Motion**: Users with `prefers-reduced-motion` should see paused content. Pass `paused` from a motion preference check, or from a pause button for content that moves for more than five seconds
 
 <PropsDefinitions component='Marquee' />

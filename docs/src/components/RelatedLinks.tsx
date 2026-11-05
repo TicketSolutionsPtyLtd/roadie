@@ -31,7 +31,7 @@ export function RelatedLinks({
           ) : null}
           <Link
             href={link.href}
-            className='inline-flex items-center gap-1 font-medium text-strong underline-offset-4 hover:underline'
+            className='inline-flex items-center gap-1 font-medium text-strong link-subtle'
           >
             {link.title}
             <ArrowRightIcon weight='bold' className='size-3' />

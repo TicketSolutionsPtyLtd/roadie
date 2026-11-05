@@ -32,7 +32,7 @@ styles the placeholder and selection:
 | --- | --- | --- |
 | [`basic`](/components/editor/basic-and-rich) (default) | Paragraphs, lists, bold, italic, underline, and links | A simple field, such as a ticket type's note |
 | [`rich`](/components/editor/basic-and-rich#rich-preset) | The basic preset, plus headings, quotes, dividers, images, embeds, and tables | An event description |
-| [`blocks`](/components/editor/blocks) | The rich preset, with an id on each block, the slash menu, drag, and custom blocks | A CMS page built from blocks |
+| [`blocks`](/components/editor/blocks) | The rich preset, with an id on each block, the insert menu, drag, and custom blocks | A CMS page built from blocks |
 | [`email`](/components/editor/email) | Sections, columns, buttons, images, spacers, merge tags, and conditions | An email design |
 
 Every preset saves an `EditorValue`. [Saved content](/components/editor/saved-content)
@@ -102,6 +102,9 @@ it with the text controls: block type, marks, link, and lists. Its … menu hold
 the rest: the inserts, Undo and Redo, and any custom controls. Alt+F10 opens it
 at the caret. On a phone or touch screen it docks instead, since a toolbar over
 the selection would sit under the finger.
+It hides on text that takes no marks, such as an email button's label, and
+keeps clear of Table and Columns actions, going below the selection when
+they're above it.
 
 ```tsx-live-prose
 <Editor
@@ -422,7 +425,7 @@ render(
 | `Mod+Shift+Z` | Redo |
 | `Shift+Enter` | Line break |
 | `Alt+F10` | Move focus to the toolbar's first enabled control, the floating toolbar's, opening it at the caret, a selected image's, embed's, or spacer's first action, the first action of the button or columns holding the caret, or in a table its first table action |
-| `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image or embed |
+| `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image, embed, or spacer |
 
 `Mod` is `⌘` on Apple devices and `Ctrl` elsewhere, and `Alt` is `⌥` on
 Apple devices.

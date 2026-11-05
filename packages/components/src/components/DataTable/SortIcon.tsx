@@ -17,6 +17,7 @@ export function SortIcon({
     return (
       <CaretDownIcon weight='bold' className='size-3 shrink-0' aria-hidden />
     )
+  // The header button is the control; its hover and focus lift this hint.
   return (
     <CaretUpDownIcon
       weight='bold'

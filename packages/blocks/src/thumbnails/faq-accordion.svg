@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160" fill="none">
+  <rect width="240" height="160" rx="12" style="fill: var(--color-neutral-1, #f5f8fb)"/>
+  <rect x="40" y="20" width="96" height="10" rx="3" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <rect x="40" y="44" width="120" height="8" rx="3" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <path d="M192 50l4-4 4 4" style="stroke: var(--color-accent-9, #0191eb); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"/>
+  <rect x="40" y="60" width="148" height="5" rx="2.5" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <rect x="40" y="70" width="124" height="5" rx="2.5" style="fill: var(--color-neutral-7, #a9b8c7)"/>
+  <path d="M40 80.5h160M40 102.5h160M40 124.5h160" style="stroke: var(--color-neutral-3, #e8eef4)"/>
+  <rect x="40" y="88" width="104" height="8" rx="3" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <path d="M192 90l4 4 4-4" style="stroke: var(--color-neutral-7, #a9b8c7); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"/>
+  <rect x="40" y="110" width="128" height="8" rx="3" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <path d="M192 112l4 4 4-4" style="stroke: var(--color-neutral-7, #a9b8c7); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"/>
+  <rect x="40" y="132" width="96" height="8" rx="3" style="fill: var(--color-neutral-11, #3b4b5b)"/>
+  <path d="M192 134l4 4 4-4" style="stroke: var(--color-neutral-7, #a9b8c7); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"/>
+</svg>

@@ -53,6 +53,8 @@ function AccentPicker() {
           const isActive =
             accentColor.toLowerCase() === preset.hex.toLowerCase()
           return (
+            // A swatch grows under the pointer like a colour picker's; no
+            // interaction utility scales on hover.
             <label
               key={preset.hex}
               className='relative grid size-9 cursor-pointer place-items-center rounded-full ring-0 ring-neutral-5 transition-transform hover:scale-110 hover:shadow-lg hover:ring-2 has-focus-visible:ring-2'

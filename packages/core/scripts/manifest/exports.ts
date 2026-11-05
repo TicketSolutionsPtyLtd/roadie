@@ -2,14 +2,14 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 
-import { unwrap } from './text.ts'
+import { compareText, unwrap } from './text.ts'
 
 export type ExportTarget = string | { [condition: string]: string }
 
 export type Entry = {
   subpath: string
   target: string
-  kind: 'js' | 'css' | 'json'
+  kind: 'js' | 'css' | 'json' | 'asset'
   source?: string
 }
 
@@ -19,6 +19,8 @@ export type ModuleExports = {
   values: string[]
   components: Map<string, string>
   types: string[]
+  /** Each export that names a type, by its exported name, resolved past any alias. */
+  typeSymbols: Map<string, ts.Symbol>
   deprecated: Deprecation[]
 }
 
@@ -48,6 +50,8 @@ export function exportEntries(
     const target = targetOf(value)
     if (target.endsWith('.css')) return { subpath, target, kind: 'css' }
     if (target.endsWith('.json')) return { subpath, target, kind: 'json' }
+    // Files shipped as they are, such as images, have no API to read.
+    if (!target.endsWith('.js')) return { subpath, target, kind: 'asset' }
     return {
       subpath,
       target,
@@ -57,6 +61,49 @@ export function exportEntries(
   })
 }
 
+// Resolving every import again for each component's program took most of the
+// manifest's time, so all the programs share one resolution cache.
+const resolutionCaches = new WeakMap<ts.Program, ts.ModuleResolutionCache>()
+const componentHosts = new WeakMap<ts.Program, ts.CompilerHost>()
+
+function cachingHost(
+  options: ts.CompilerOptions,
+  sharedCache?: ts.ModuleResolutionCache
+) {
+  const host = ts.createCompilerHost(options)
+  const cache =
+    sharedCache ??
+    ts.createModuleResolutionCache(
+      host.getCurrentDirectory(),
+      host.getCanonicalFileName,
+      options
+    )
+  host.getModuleResolutionCache = () => cache
+  host.resolveModuleNameLiterals = (
+    literals,
+    containingFile,
+    redirectedReference,
+    compilerOptions,
+    containingSourceFile
+  ) =>
+    literals.map((literal) =>
+      ts.resolveModuleName(
+        literal.text,
+        containingFile,
+        compilerOptions,
+        host,
+        cache,
+        redirectedReference,
+        ts.getModeForUsageLocation(
+          containingSourceFile,
+          literal,
+          compilerOptions
+        )
+      )
+    )
+  return { host, cache }
+}
+
 export function createProgram(files: string[], tsconfigPath: string) {
   const config = ts.readConfigFile(tsconfigPath, ts.sys.readFile)
   const { options } = ts.parseJsonConfigFileContent(
@@ -64,7 +111,11 @@ export function createProgram(files: string[], tsconfigPath: string) {
     ts.sys,
     path.dirname(tsconfigPath)
   )
-  return ts.createProgram(files, { ...options, noEmit: true })
+  const programOptions = { ...options, noEmit: true }
+  const { host, cache } = cachingHost(programOptions)
+  const program = ts.createProgram(files, programOptions, host)
+  resolutionCaches.set(program, cache)
+  return program
 }
 
 // Each component gets its own checker over the shared parsed files, so a
@@ -72,14 +123,18 @@ export function createProgram(files: string[], tsconfigPath: string) {
 // earlier component's file first created those literals in.
 export function programFor(shared: ts.Program, files: string[]) {
   const options = shared.getCompilerOptions()
-  const host = ts.createCompilerHost(options)
-  const readSourceFile = host.getSourceFile.bind(host)
-  host.getSourceFile = (fileName, ...rest) =>
-    shared.getSourceFile(fileName) ?? readSourceFile(fileName, ...rest)
+  let host = componentHosts.get(shared)
+  if (!host) {
+    host = cachingHost(options, resolutionCaches.get(shared)).host
+    const readSourceFile = host.getSourceFile.bind(host)
+    host.getSourceFile = (fileName, ...rest) =>
+      shared.getSourceFile(fileName) ?? readSourceFile(fileName, ...rest)
+    componentHosts.set(shared, host)
+  }
   return ts.createProgram(files, options, host)
 }
 
-function deprecationOf(symbol: ts.Symbol, checker: ts.TypeChecker) {
+export function deprecationOf(symbol: ts.Symbol, checker: ts.TypeChecker) {
   const tag = symbol
     .getJsDocTags(checker)
     .find((candidate) => candidate.name === 'deprecated')
@@ -150,6 +205,7 @@ export function moduleExports(
     values: [],
     components: new Map(),
     types: [],
+    typeSymbols: new Map(),
     deprecated: []
   }
   const starDeprecations = starExportDeprecations(sourceFile, checker)
@@ -167,6 +223,8 @@ export function moduleExports(
         result.components.set(name, declaration.getSourceFile().fileName)
       }
     } else result.types.push(name)
+    if (resolved.flags & ts.SymbolFlags.Type)
+      result.typeSymbols.set(name, resolved)
     const reason =
       deprecationOf(symbol, checker) ??
       reExportDeprecation(symbol) ??
@@ -178,8 +236,6 @@ export function moduleExports(
   }
   result.values.sort()
   result.types.sort()
-  result.deprecated.sort((a, b) =>
-    a.export < b.export ? -1 : a.export > b.export ? 1 : 0
-  )
+  result.deprecated.sort((a, b) => compareText(a.export, b.export))
   return result
 }

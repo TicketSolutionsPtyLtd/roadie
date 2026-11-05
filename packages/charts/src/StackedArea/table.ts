@@ -4,6 +4,7 @@ import type { ChartTable } from '../Chart'
 import { unusedKey } from '../StackedBars/table'
 import { valueColumn, xCell, xColumn } from '../plot/table'
 import { formatTimeCell, hasTimeOfDay, isTimeField } from '../plot/time'
+import { shareStyle } from '../plot/values'
 import { stackLayers, stackOrder } from './stack'
 import type { StackedAreaProps } from './types'
 
@@ -30,9 +31,9 @@ export function stackedAreaTable(props: StackedAreaProps): ChartTable {
     columns: [
       xColumn(props.x),
       ...names.map((name) =>
-        valueColumn(name, name, share ? 'percent' : props.format)
+        valueColumn(name, name, share ? shareStyle(props) : props)
       ),
-      valueColumn(totalKey, 'Total', props.format)
+      valueColumn(totalKey, 'Total', props)
     ],
     rows: [...byX.values()]
   }

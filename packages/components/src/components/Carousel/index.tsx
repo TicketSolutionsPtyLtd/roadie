@@ -1,6 +1,6 @@
 // Subpath entry for `@oztix/roadie-components/carousel`.
 //
-// NO `'use client'` — server-safe property-assignment layer.
+// NO `'use client'`: server-safe property-assignment layer.
 // See docs/contributing/COMPOUND_PATTERNS.md.
 import { CarouselContent } from './CarouselContent'
 import { CarouselControls } from './CarouselControls'

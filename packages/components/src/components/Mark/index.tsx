@@ -35,7 +35,7 @@ export type MarkProps<T extends ElementType = 'mark'> = {
    */
   as?: T
   /**
-   * Escape hatch — swap the underlying element with full control over the
+   * Escape hatch: swap the underlying element with full control over the
    * rendered shape (e.g. `render={<h2 />}` to highlight a heading).
    */
   render?: RoadieRenderProp

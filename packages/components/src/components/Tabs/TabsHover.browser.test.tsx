@@ -4,6 +4,7 @@ import { commands } from 'vitest/browser'
 
 import { Tabs, type TabsRootEmphasis } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Button } from '../Button'
 import { useStylesheet } from '../Pane/testUtils'
 import { hoverFill, settledStylesheet } from '../Toggle/testUtils'
 
@@ -33,11 +34,17 @@ function renderTabs(
 
 describe('Tabs hover', () => {
   it.each(EMPHASES)(
-    'fills an inactive tab at %s emphasis',
+    'fills an inactive tab as a subtler button at %s emphasis',
     async (emphasis) => {
-      const { rest, hovered } = await hoverFill(renderTabs(emphasis))
+      render(<Button emphasis='subtler'>Tickets</Button>)
+      const button = await hoverFill(
+        screen.getByRole('button', { name: 'Tickets' })
+      )
+      const tab = await hoverFill(renderTabs(emphasis))
 
-      expect(hovered).not.toBe(rest)
+      expect(tab.hovered).not.toBe(tab.rest)
+      expect(tab.rest).toBe(button.rest)
+      expect(tab.hovered).toBe(button.hovered)
     }
   )
 
@@ -78,6 +85,34 @@ describe('Tabs hover', () => {
     expect(down.topRight).not.toBe('0px')
     expect(down.bottomRight).not.toBe('0px')
   })
+
+  it.each(['horizontal', 'vertical'] as const)(
+    'keeps an icon-only subtler tab a circle in a %s list',
+    (direction) => {
+      render(
+        <Tabs emphasis='subtler' direction={direction} defaultValue='chart'>
+          <Tabs.List>
+            <Tabs.Tab value='chart'>Chart</Tabs.Tab>
+            <Tabs.Tab value='table' aria-label='Table'>
+              <svg className='size-4' viewBox='0 0 16 16' />
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      )
+      const tab = screen.getByRole('tab', { name: 'Table' })
+      const style = getComputedStyle(tab)
+      const half = tab.getBoundingClientRect().height / 2
+
+      for (const corner of [
+        style.borderTopLeftRadius,
+        style.borderTopRightRadius,
+        style.borderBottomRightRadius,
+        style.borderBottomLeftRadius
+      ]) {
+        expect(parseFloat(corner)).toBeGreaterThanOrEqual(half)
+      }
+    }
+  )
 
   it.each(EMPHASES)('sets tabs side by side at %s emphasis', (emphasis) => {
     const venue = renderTabs(emphasis)

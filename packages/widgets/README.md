@@ -92,7 +92,7 @@ import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/vue'
 
 app.component('cart-drawer', CartDrawer)
 
-// Outlet is same-origin — no host injection needed.
+// Outlet is same-origin, so no host injection needed.
 const cart = createCartClient({ host: '' })
 ```
 
@@ -112,12 +112,12 @@ const cart = createCartClient({ host: '' })
 
 Each widget is internally organised as three layers under `src/<widget>/`:
 
-- **`core/`** — Framework-agnostic logic. No React, no Vue, no secrets. Pure
+- **`core/`**: Framework-agnostic logic. No React, no Vue, no secrets. Pure
   functions plus a small client factory consumers wire to their own transport.
-- **`react/`** — React 19 skin.
-- **`vue/`** — Vue 3 SFC skin. Like the React skin, it emits raw
+- **`react/`**: React 19 skin.
+- **`vue/`**: Vue 3 SFC skin. Like the React skin, it emits raw
   Roadie/Tailwind utility classes compiled by the **host's** Tailwind v4 +
-  `@oztix/roadie-core` build (single source of truth — core/React/Vue stay in
+  `@oztix/roadie-core` build (single source of truth, so core/React/Vue stay in
   sync), including animation (`animate-nudge`, `animate-pop`, `animate-pop-in`).
   The package ships no stylesheet of its own.
 
@@ -131,11 +131,11 @@ import { CartDrawer } from '@oztix/roadie-widgets/cart-drawer/react'
 ## No secrets in this package
 
 Hosts, auth tokens, and any environment-specific value are **injected** by the
-consuming app — never hardcoded. A test in
+consuming app, never hardcoded. A test in
 [`src/cart-drawer/core/secret-guard.test.ts`](./src/cart-drawer/core/secret-guard.test.ts)
 guards the package source against shaped secrets and hardcoded `http(s)://`
 hostnames.
 
 ## License
 
-ISC — see [LICENSE](./LICENSE).
+ISC. See [LICENSE](./LICENSE).
