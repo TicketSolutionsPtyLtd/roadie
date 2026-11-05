@@ -39,7 +39,11 @@ describe('block-ci-polling', () => {
     'if gh pr checks 1; then :; else sleep 60; fi',
     'sleep 60 > /dev/null',
     'sleep 60 # wait for CI',
-    '(sleep 60) && gh pr checks 1'
+    '(sleep 60) && gh pr checks 1',
+    "timeout 900 bash -c 'until gh pr checks 1; do sleep 5; done'",
+    "bash -lc 'gh run watch 123'",
+    'sh -c "sleep 600"',
+    "zsh -l -c 'sleep 60'"
   ]) {
     it(`denies ${JSON.stringify(command)}`, () => {
       const { status, stderr } = runHook({ command })
@@ -55,6 +59,7 @@ describe('block-ci-polling', () => {
     'sleep 10s',
     'sleep $DELAY',
     'grep -rn sleep src',
+    "bash -c 'pnpm test && sleep 2'",
     'gh pr checks 1',
     'gh run view 123 --log-failed',
     'pnpm test:gated core',

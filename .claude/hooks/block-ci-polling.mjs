@@ -3,22 +3,24 @@ import { readFileSync } from 'node:fs'
 const MAX_SLEEP_SECONDS = 10
 const UNIT_SECONDS = { '': 1, s: 1, m: 60, h: 3600, d: 86400 }
 
-const commandStart = String.raw`(?:^|[;&|(\x60{\n]|\bdo|\bthen|\belse)\s*`
 // Any sleep word, not only one starting a command, since `timeout 60 sleep 90`
 // and `/bin/sleep 90` wait too. Arguments end at a redirect or comment.
 const sleepCall = /\bsleep((?:[ \t]+[^\s;&|)\x60<>#]+)+)/g
-const loop = new RegExp(
-  `${commandStart}(?:for|while|until)\\s[\\s\\S]*\\bdone\\b`
-)
+const loop = /\b(?:for|while|until)\s[\s\S]*\bdone\b/
 const sleepWord = /\bsleep\s/
 const runWatch = /\bgh\s[^\n;&|]*?\brun\s+watch\b/
 const checksWatch = /\bgh\s[^\n;&|]*?\bpr\s+checks\b[^\n;&|]*?\s--watch\b/
 
+const shellScript =
+  /\b(?:ba|z)?sh\s+(?:-\w+\s+)*-\w*c\w*\s+(?:'([^']*)'|"((?:\\.|[^"\\])*)")/g
+
 // Quoted text and heredoc bodies are data (commit messages, PR bodies), not
-// commands, so a message that mentions `gh run watch` isn't blocked.
+// commands, so a message that mentions `gh run watch` isn't blocked. A script
+// passed to `sh -c` is code, so it stays.
 function stripLiterals(command) {
   return command
     .replace(/<<-?\s*(['"]?)(\w+)\1[^\n]*\n[\s\S]*?\n\s*\2(?=\n|$)/g, '\n')
+    .replace(shellScript, (_, single, double) => single ?? double)
     .replace(/'[^']*'|"(?:\\.|[^"\\])*"/g, "''")
 }
 
