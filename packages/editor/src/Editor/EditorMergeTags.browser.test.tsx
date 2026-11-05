@@ -389,10 +389,7 @@ describe('Editor merge tag editing', () => {
 
   it('keeps a key the editor doesn’t list, as one of its choices', async () => {
     const onValueChange = renderEmail({
-      defaultValue: email({
-        type: 'paragraph',
-        content: [tag('ticket_count')]
-      })
+      defaultValue: email({ type: 'paragraph', content: [tag('ticket_count')] })
     })
     await screen.findByRole('textbox', { name: LABEL })
     await userEvent.click(await screen.findByText('ticket_count'))
