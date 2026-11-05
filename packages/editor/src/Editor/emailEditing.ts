@@ -55,6 +55,22 @@ function placeBlock(
   return true
 }
 
+function replaceLine(
+  { tr, dispatch }: Pick<CommandProps, 'tr' | 'dispatch'>,
+  { from, to }: { from: number; to: number },
+  block: PMNode
+) {
+  const $from = tr.doc.resolve(from)
+  const index = $from.index()
+  if (!$from.parent.canReplaceWith(index, index + 1, block.type)) return false
+  if (dispatch) {
+    tr.replaceWith(from, to, block)
+    tr.setSelection(TextSelection.create(tr.doc, from + 1))
+    tr.scrollIntoView()
+  }
+  return true
+}
+
 /**
  * Inserts `content` before the caret's line when it's empty, which keeps the
  * caret, or after it, with a paragraph to type in.
@@ -72,7 +88,8 @@ export function insertBlock(content: JSONContent) {
 
 /**
  * Inserts `content` after the selection's block, counting only children of
- * `containers`, or before it when it's an empty line, as `insertBlock` does.
+ * `containers`. An empty line takes a text block's place, or has any other
+ * block put before it, as `insertBlock` does.
  * Where that container can't hold it, as with a section in a column, it goes
  * after the container's own block.
  */
@@ -99,6 +116,9 @@ export function insertBlockAfter(
     return places.some(({ from, to }, index) => {
       const emptied =
         index === 0 && selection.empty && isEmptyLine(doc.nodeAt(from))
+      if (emptied && block.isTextblock) {
+        return replaceLine(props, { from, to }, block)
+      }
       return placeBlock(props, emptied ? from : to, block, emptied)
     })
   }

@@ -118,35 +118,54 @@ describe('Editor blocks drawer', () => {
     }
   })
 
-  it.each<[string, string, JSONContent[]]>([
-    ['a spacer', 'Spacer', [p('Doors 7pm'), spacer, p('Gates 6pm')]],
-    ['a paragraph', 'Paragraph', [p('Doors 7pm'), p(), p('Gates 6pm')]],
+  const heading3 = (text?: string): JSONContent => ({
+    type: 'heading',
+    attrs: { level: 3 },
+    ...(text ? { content: [{ type: 'text', text }] } : {})
+  })
+  const bulletList = (text?: string): JSONContent => ({
+    type: 'bulletList',
+    content: [{ type: 'listItem', content: [p(text)] }]
+  })
+  const twoColumns = (text?: string): JSONContent => ({
+    type: 'columns',
+    content: [column(p(text)), column(p())]
+  })
+
+  it.each<[string, string, JSONContent[], JSONContent[]]>([
+    [
+      'a spacer',
+      'Spacer',
+      [p('Doors 7pm'), spacer, p('Gates 6pm')],
+      [p('Doors 7pm'), spacer, p('BarGates 6pm')]
+    ],
+    [
+      'a paragraph',
+      'Paragraph',
+      [p('Doors 7pm'), p(), p('Gates 6pm')],
+      [p('Doors 7pm'), p('Bar'), p('Gates 6pm')]
+    ],
     [
       'a heading',
       'Heading 3',
-      [p('Doors 7pm'), { type: 'heading', attrs: { level: 3 } }, p('Gates 6pm')]
+      [p('Doors 7pm'), heading3(), p('Gates 6pm')],
+      [p('Doors 7pm'), heading3('Bar'), p('Gates 6pm')]
     ],
     [
       'a list',
       'Bulleted list',
-      [
-        p('Doors 7pm'),
-        { type: 'bulletList', content: [{ type: 'listItem', content: [p()] }] },
-        p('Gates 6pm')
-      ]
+      [p('Doors 7pm'), bulletList(), p('Gates 6pm')],
+      [p('Doors 7pm'), bulletList('Bar'), p('Gates 6pm')]
     ],
     [
       'columns',
       '2 columns',
-      [
-        p('Doors 7pm'),
-        { type: 'columns', content: [column(p()), column(p())] },
-        p('Gates 6pm')
-      ]
+      [p('Doors 7pm'), twoColumns(), p('Gates 6pm')],
+      [p('Doors 7pm'), twoColumns('Bar'), p('Gates 6pm')]
     ]
   ])(
     'inserts %s after the caret’s block, closes, and hands back the caret',
-    async (_, name, content) => {
+    async (_, name, inserted, typed) => {
       const onValueChange = renderEmail()
       await clickInto('Doors 7pm')
 
@@ -154,13 +173,13 @@ describe('Editor blocks drawer', () => {
       await userEvent.click(within(drawer).getByRole('button', { name }))
 
       await waitFor(() =>
-        expect(onValueChange).toHaveBeenLastCalledWith(email(...content))
+        expect(onValueChange).toHaveBeenLastCalledWith(email(...inserted))
       )
       await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
       await waitFor(async () => expect(await textbox()).toHaveFocus())
       await userEvent.keyboard('Bar')
       await waitFor(() =>
-        expect(JSON.stringify(onValueChange.mock.lastCall![0])).toContain('Bar')
+        expect(onValueChange).toHaveBeenLastCalledWith(email(...typed))
       )
     }
   )
@@ -208,6 +227,32 @@ describe('Editor blocks drawer', () => {
       )
     )
   })
+
+  it.each<[string, JSONContent]>([
+    ['Paragraph', p('Bar')],
+    ['Heading 3', heading3('Bar')]
+  ])(
+    'turns an empty line into a %s rather than adding a line',
+    async (name, typed) => {
+      const onValueChange = renderEmail({
+        defaultValue: email(p('Doors 7pm'), p(), p('Gates 6pm'))
+      })
+      await clickInto('Doors 7pm')
+      await userEvent.keyboard('{ArrowDown}')
+
+      const drawer = await openFromDockedBar()
+      await userEvent.click(within(drawer).getByRole('button', { name }))
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+      await waitFor(async () => expect(await textbox()).toHaveFocus())
+      await userEvent.keyboard('Bar')
+
+      await waitFor(() =>
+        expect(onValueChange).toHaveBeenLastCalledWith(
+          email(p('Doors 7pm'), typed, p('Gates 6pm'))
+        )
+      )
+    }
+  )
 
   it('opens the button’s link field on a new line after the caret’s block', async () => {
     const onValueChange = renderEmail()
