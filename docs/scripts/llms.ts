@@ -14,8 +14,8 @@ import {
   type ManifestComponent,
   type TokenFamilyMarkdown,
   allTokensToMarkdown,
+  catalogueToMarkdown,
   dashboardExampleToMarkdown,
-  linkLine,
   llmsIndex,
   pageToMarkdown,
   tokenFamilyToMarkdown
@@ -105,39 +105,26 @@ const catalogueMarkdown: Record<string, string> = Object.fromEntries(
   await Promise.all(
     Object.entries(CATALOGUE_PAGES).map(async ([name, catalogue]) => [
       name,
-      (
+      catalogueToMarkdown(
         await Promise.all(
-          (await getCatalogue(catalogue)).map(async (group) => {
-            const overview = group.overviewHref
-              ? await metadataOf(group.overviewHref)
-              : undefined
-            const links = [
-              ...(group.overviewHref
-                ? [
-                    {
-                      title: overview?.title ?? group.name,
-                      href: group.overviewHref,
-                      description: overview?.description
-                    }
-                  ]
-                : []),
-              ...group.entries
-            ]
-            return [
-              `## ${group.name}`,
-              links
-                .map((entry) =>
-                  linkLine({
-                    title: entry.title,
-                    url: pageUrl(entry.href),
-                    description: entry.description || undefined
-                  })
-                )
-                .join('\n')
-            ].join('\n\n')
-          })
-        )
-      ).join('\n\n')
+          (await getCatalogue(catalogue)).map(
+            async ({ name, overviewHref, entries }) => {
+              if (!overviewHref) return { name, entries }
+              const overview = await metadataOf(overviewHref)
+              return {
+                name,
+                overview: {
+                  href: overviewHref,
+                  title: overview?.title,
+                  description: overview?.description
+                },
+                entries
+              }
+            }
+          )
+        ),
+        pageUrl
+      )
     ])
   )
 )
