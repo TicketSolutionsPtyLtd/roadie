@@ -123,6 +123,30 @@ describe('Editor preheader', () => {
     expect(submitted.doc.attrs).toEqual({ preheader: 'Two weeks' })
   })
 
+  it('says how much of it an inbox shows', async () => {
+    renderEmail()
+    const input = await previewText()
+    expect(input).toHaveAccessibleDescription('About 40 to 90 characters show.')
+  })
+
+  it('shows in Preview’s inbox row', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={email('Two weeks to go')}
+        toolbar='docked'
+        subject='Ochre Kite Weekender'
+        onRenderPreview={async () => '<p>Doors</p>'}
+      />
+    )
+    await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(screen.getByRole('button', { name: 'Preview' }))
+
+    expect(
+      await screen.findByRole('group', { name: 'In the inbox' })
+    ).toHaveTextContent('Ochre Kite Weekender – Two weeks to go')
+  })
+
   it('saves none once it’s cleared', async () => {
     const onValueChange = renderEmail({ defaultValue: email('Two weeks') })
     const input = await previewText()

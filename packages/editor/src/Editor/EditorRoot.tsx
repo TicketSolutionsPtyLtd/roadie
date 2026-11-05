@@ -189,7 +189,7 @@ export function EditorRoot(props: EditorRootProps) {
     )
     // As tall as the Preview text field above an email's canvas.
     const preheaderRoom =
-      resolvedPreset(props) === 'email' ? <div className='h-11' /> : null
+      resolvedPreset(props) === 'email' ? <div className='h-16' /> : null
     const frame = cn(
       'flex min-w-0 flex-col',
       EDITOR_MIN_HEIGHT[size],

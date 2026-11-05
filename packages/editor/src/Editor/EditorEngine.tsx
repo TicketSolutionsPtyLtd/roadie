@@ -758,7 +758,11 @@ export function EditorEngine({
     previewing && onRenderPreview ? (
       <EditorPreview
         value={previewing}
-        inbox={{ sender, subject }}
+        inbox={{
+          sender,
+          subject,
+          preheader: preheaderOf(previewing.doc.attrs?.preheader)
+        }}
         recipients={previewRecipients}
         onRenderPreview={onRenderPreview}
         onSendTest={onSendTest}
