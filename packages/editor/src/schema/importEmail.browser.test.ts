@@ -545,6 +545,21 @@ describe('importEmail with unsafe source', () => {
     expect(fromMjml.restyled).toEqual({ styles: 1, tables: 0 })
   })
 
+  it('reads an element with many quoted attributes without stalling', () => {
+    // Backtracking doubles with each attribute, so 28 took seconds.
+    const attrs = ' title="Doors"'.repeat(28)
+    const start = performance.now()
+
+    const read = blocks(
+      mjml(
+        `<mj-section><mj-column><mj-text${attrs}>Doors</mj-text></mj-column></mj-section>`
+      )
+    )
+
+    expect(performance.now() - start).toBeLessThan(1000)
+    expect(read).toEqual([paragraph(text('Doors'))])
+  })
+
   it('reads an element named like an object key as any other', () => {
     expect(
       blocks(

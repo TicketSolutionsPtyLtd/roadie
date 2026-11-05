@@ -251,11 +251,13 @@ function bodyNodes(reading: Reading, element: Element): Node[] {
 }
 
 // MJML is read with the HTML parser, as `mj-text` holds HTML that isn't XML,
-// so a self-closed element is closed and a table's rows get their table.
+// so a self-closed element is closed and a table's rows get their table. An
+// unquoted value holds no quote, or a quoted one reads two ways and the
+// backtracking doubles with each attribute.
 function asHtml(mjml: string) {
   return mjml
     .replace(
-      /<(mj-[\w-]+)((?:\s+[^\s=/>]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?)*)\s*\/>/gi,
+      /<(mj-[\w-]+)((?:\s+[^\s=/>]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]+))?)*)\s*\/>/gi,
       '<$1$2></$1>'
     )
     .replace(/(<mj-table\b[^>]*>)/gi, '$1<table>')
