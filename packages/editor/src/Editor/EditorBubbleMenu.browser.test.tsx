@@ -286,6 +286,54 @@ describe('Editor.BubbleMenu', () => {
       ).toBe(false)
     })
 
+    it('stays on screen with the columns actions scrolled off above it', async () => {
+      const filler = Array.from({ length: 12 }, (_, index) =>
+        paragraph(`Set time ${index + 1}`)
+      )
+      render(
+        <>
+          <BubbleEditor
+            defaultValue={{
+              ...inColumns,
+              doc: {
+                type: 'doc',
+                content: [
+                  ...inColumns.doc.content!.slice(0, 1),
+                  paragraph('Doors close at 11pm'),
+                  {
+                    type: 'columns',
+                    content: [
+                      {
+                        type: 'column',
+                        content: [...filler, paragraph('Ochre Kite')]
+                      },
+                      { type: 'column', content: [paragraph('Kazoo Hollow')] }
+                    ]
+                  }
+                ]
+              }
+            }}
+          />
+          <div style={{ height: 2000 }} />
+        </>
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      const text = within(textbox).getByText('Ochre Kite')
+      window.scrollBy(0, text.getBoundingClientRect().top - 4)
+      await selectText('Ochre Kite')
+      const bubble = await menu()
+      const actions = await screen.findByRole('toolbar', {
+        name: 'Columns actions'
+      })
+
+      await waitFor(() =>
+        expect(bubble.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+          text.getBoundingClientRect().bottom
+        )
+      )
+      expect(actions.getBoundingClientRect().bottom).toBeLessThan(0)
+    })
+
     it('takes focus first on Alt+F10, ahead of the columns actions', async () => {
       render(<BubbleEditor defaultValue={inColumns} />)
       await selectText('Ochre Kite')

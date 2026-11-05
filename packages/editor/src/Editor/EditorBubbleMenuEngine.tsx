@@ -42,15 +42,16 @@ const OFFSET = 8
  */
 export const RESIZE_DELAY = 80
 
-// As the root boundary, so a scrolling container still clips the flip.
-const between = (top: number, bottom: number) => ({
-  rootBoundary: {
-    x: 0,
-    y: top,
-    width: window.innerWidth,
-    height: bottom - top
+/**
+ * As the root boundary, so a scrolling container still clips the flip. It
+ * replaces the viewport, so it starts no higher than the viewport's top.
+ */
+function between(top: number, bottom: number) {
+  const y = Math.max(top, 0)
+  return {
+    rootBoundary: { x: 0, y, width: window.innerWidth, height: bottom - y }
   }
-})
+}
 
 /**
  * Table and columns actions sit above their node, or below it when there's no
