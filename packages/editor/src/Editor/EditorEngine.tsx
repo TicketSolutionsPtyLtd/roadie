@@ -400,6 +400,9 @@ export function EditorEngine({
   const storedPreset = (value ?? defaultValue)?.preset
   // Tiptap fixes its schema when it creates the editor, so these are read once.
   const [blocks] = useState(() => blocksFor(preset, extensionsProp))
+  const [blockLabels] = useState(() =>
+    Object.fromEntries(blocks.map(({ node, label }) => [node.name, label]))
+  )
   const [schema] = useState(() =>
     blocks.length > 0
       ? getSchema(withBlocks(presets[preset], blocks))
@@ -716,6 +719,7 @@ export function EditorEngine({
             openMenuRef={openBlockMenuRef}
             containers={blockContainers}
             canAdd={presetItems.length > 0}
+            appLabels={blockLabels}
           />
         ) : null}
         {editor ? (

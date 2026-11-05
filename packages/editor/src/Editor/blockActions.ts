@@ -147,6 +147,24 @@ export function moveBlockTo(state: EditorState, from: number, to: number) {
   const step = tr.steps.length
   removeBlock(tr, moved)
   const landed = tr.mapping.slice(step).map(at)
+  const { selection } = state
+  const caretInside =
+    selection instanceof TextSelection &&
+    selection.from > from &&
+    selection.to < from + node.nodeSize
+  // A keyboard move mid-sentence carries on typing where it was.
+  if (caretInside) {
+    const offset = landed - from
+    return tr
+      .setSelection(
+        TextSelection.create(
+          tr.doc,
+          selection.anchor + offset,
+          selection.head + offset
+        )
+      )
+      .scrollIntoView()
+  }
   return selectBlock(tr, landed).scrollIntoView()
 }
 

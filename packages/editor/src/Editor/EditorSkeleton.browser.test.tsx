@@ -89,3 +89,28 @@ describe('Floating editor skeleton', () => {
     }
   )
 })
+
+describe('Preset skeleton', () => {
+  it.each(['blocks', 'email'] as const)(
+    'holds the loaded height for the %s preset, as it opens with its own look',
+    async (preset) => {
+      const host = document.createElement('div')
+      host.innerHTML = renderToString(
+        <Editor aria-label={LABEL} preset={preset} />
+      )
+      document.body.append(host)
+      onTestFinished(() => host.remove())
+      const skeleton = host.firstElementChild as HTMLElement
+      render(<Editor aria-label={LABEL} preset={preset} />)
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      const loaded = textbox.closest<HTMLElement>('[data-slot="editor"]')!
+
+      expect(
+        Math.abs(
+          skeleton.getBoundingClientRect().height -
+            loaded.getBoundingClientRect().height
+        )
+      ).toBeLessThanOrEqual(1)
+    }
+  )
+})
