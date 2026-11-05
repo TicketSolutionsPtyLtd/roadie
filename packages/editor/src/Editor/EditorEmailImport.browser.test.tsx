@@ -292,18 +292,21 @@ describe('Editor email import', () => {
     expect(onValueChange).not.toHaveBeenCalled()
   })
 
-  it('pastes text that isn’t markup as it is', async () => {
-    const onValueChange = renderEmail()
-    const textbox = await screen.findByRole('textbox', { name: LABEL })
-    await clickIntoEditor(textbox)
+  it.each(['<3 the encore', '<br> breaks a line'])(
+    'pastes %s as it is',
+    async (pasted) => {
+      const onValueChange = renderEmail()
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await clickIntoEditor(textbox)
 
-    paste(textbox, { 'text/plain': '<3 the encore' })
+      paste(textbox, { 'text/plain': pasted })
 
-    await waitFor(() =>
-      expect(lastDoc(onValueChange)).toEqual([paragraph('<3 the encore')])
-    )
-    expect(screen.queryByRole('dialog')).toBeNull()
-  })
+      await waitFor(() =>
+        expect(lastDoc(onValueChange)).toEqual([paragraph(pasted)])
+      )
+      expect(screen.queryByRole('dialog')).toBeNull()
+    }
+  )
 
   it('offers no import outside the email preset', async () => {
     render(<Editor aria-label={LABEL} preset='rich' />)
