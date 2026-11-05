@@ -528,6 +528,41 @@ describe('renderEmail', () => {
       )
     })
 
+    it('leaves a link to a variable that isn’t a link variable unlinked', async () => {
+      const { html } = await renderEmail(
+        email(
+          p(text('Hi', [{ type: 'link', attrs: { variable: 'first_name' } }]))
+        ),
+        { syntax: 'ae', variables }
+      )
+      expect(html).not.toContain('<a ')
+      expect(html).not.toContain('#FirstName#')
+    })
+
+    it.each([
+      ['no value', {}],
+      [
+        'a value no mail client can open',
+        { unsubscribe_url: 'javascript:alert(1)' }
+      ]
+    ])(
+      'leaves a link variable unlinked in a preview with %s',
+      async (_, values) => {
+        const { html } = await renderEmail(
+          email(
+            p(
+              text('Unsubscribe', [
+                { type: 'link', attrs: { variable: 'unsubscribe_url' } }
+              ])
+            )
+          ),
+          { variables, values }
+        )
+        expect(html).not.toContain('<a ')
+        expect(html).toContain('Unsubscribe')
+      }
+    )
+
     it('fills each variable with its value for a preview, escaped for the HTML', async () => {
       const { html, text: plain } = await renderEmail(greeting('there'), {
         variables,
