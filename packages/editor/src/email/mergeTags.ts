@@ -1,3 +1,4 @@
+import { isEmailHref } from '../schema/emailAttrs'
 import type { EditorVariable } from '../schema/variables'
 import { escapeHtml } from './textHtml'
 
@@ -12,6 +13,9 @@ export type MergeTagOptions = {
 
 /** Writes a variable node's place in the email, filled once MJML is done. */
 export type MergeTag = (attrs: Record<string, unknown>) => string
+
+/** A link variable's place as an href, or nothing where it can't link. */
+export type LinkTag = (key: string) => string | undefined
 
 /** What goes in a placeholder's place in the HTML and in the plain text. */
 export type Filled = { html: string; text: string }
@@ -84,11 +88,15 @@ export function mergeTags({ syntax, variables = [], values }: MergeTagOptions) {
     filled.push(held)
     return `\uE000${filled.length - 1}\uE001`
   }
-  const tag: MergeTag = ({ key, fallback }) => {
-    const variable = variables.find((listed) => listed.key === key)
+  const listed = (key: unknown) => {
+    const variable = variables.find((each) => each.key === key)
     if (!variable) {
       throw new RangeError(`No variable has the key "${String(key)}".`)
     }
+    return variable
+  }
+  const tag: MergeTag = ({ key, fallback }) => {
+    const variable = listed(key)
     const shownFallback = typeof fallback === 'string' ? fallback : ''
     const value =
       values && Object.hasOwn(values, variable.key)
@@ -101,11 +109,32 @@ export function mergeTags({ syntax, variables = [], values }: MergeTagOptions) {
         : tokenFor(variable, shownFallback, syntax)
     )
   }
+  // A whole URL in the plain text's brackets never joins a token.
+  const hrefs = new Set<number>()
+  const holdHref = (held: Filled) => {
+    hrefs.add(filled.length)
+    return hold(held)
+  }
+  const linkTag: LinkTag = (key) => {
+    const variable = listed(key)
+    if (variable.kind !== 'url') return undefined
+    if (!values) return holdHref(tokenFor(variable, '', syntax))
+    const value = Object.hasOwn(values, key) ? values[key] : undefined
+    return isEmailHref(value)
+      ? holdHref({ html: escapeHtml(value), text: value })
+      : undefined
+  }
   const besideTag = BESIDE_TAG[values || !syntax ? 'preview' : syntax]
+  const filledIn =
+    (part: keyof Filled, only?: Set<number>) =>
+    (match: string, index: string) =>
+      !only || only.has(Number(index)) ? filled[Number(index)]![part] : match
   const fill = (output: string, part: keyof Filled) =>
-    (part === 'text' ? apartFromTags(output, besideTag) : output).replace(
-      PLACEHOLDER,
-      (_match, index) => filled[Number(index)]![part]
-    )
-  return { tag, hold, fill }
+    part === 'text'
+      ? apartFromTags(
+          output.replace(PLACEHOLDER, filledIn(part, hrefs)),
+          besideTag
+        ).replace(PLACEHOLDER, filledIn(part))
+      : output.replace(PLACEHOLDER, filledIn(part))
+  return { tag, linkTag, hold, fill }
 }

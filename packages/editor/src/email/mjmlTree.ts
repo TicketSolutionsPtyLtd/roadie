@@ -5,6 +5,7 @@ import type { ShowWhen } from '../schema/showWhen'
 import type { ShowsWhen } from './conditions'
 import {
   type TextContext,
+  emailHref,
   escapeHtml,
   inlineHtml,
   textBlockHtml
@@ -95,7 +96,8 @@ function blockContent(node: JSONContent, context: Context) {
     case 'button': {
       const label = inlineHtml(node.content, context)
       if (label === '') return []
-      const href = escapeHtml(String(attrs.href))
+      const href = emailHref(attrs, context)
+      if (!href) return [leaf('mj-text', { padding }, label)]
       return [
         leaf(
           'mj-button',

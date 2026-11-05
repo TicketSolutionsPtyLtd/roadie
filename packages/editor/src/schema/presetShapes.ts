@@ -127,7 +127,14 @@ export const presetShapes = {
       column: { content: 'blocks', holds: emailBlocks },
       button: {
         content: 'inline',
-        attrs: ['href', 'align', 'emphasis', 'fullWidth', 'showWhen'],
+        attrs: [
+          'href',
+          'variable',
+          'align',
+          'emphasis',
+          'fullWidth',
+          'showWhen'
+        ],
         plainText: true
       },
       image: { content: 'none', attrs: ['src', 'alt', 'width', 'showWhen'] },
@@ -135,7 +142,7 @@ export const presetShapes = {
       horizontalRule: { content: 'none', attrs: ['showWhen'] },
       variable: { inline: true, content: 'none', attrs: ['key', 'fallback'] }
     },
-    marks,
+    marks: { ...marks, link: ['href', 'variable'] },
     httpsImages: true
   }
 } as const satisfies Record<string, PresetShape>

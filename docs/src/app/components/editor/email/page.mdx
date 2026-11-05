@@ -33,14 +33,17 @@ buttons, spacers, and dividers.
 This newsletter has a header image, a hero, two event cards, a lineup in
 three columns, a section shown only when tickets are running low, and a
 footer. Its greeting and button hold a merge tag, `first_name`, which shows
-as a chip with the label from `variables`.
+as a chip with the label from `variables`. Its footer links to two link
+variables, the unsubscribe page and the email in a browser.
 
 ```tsx-live-prose
 <Editor
   aria-label='Newsletter'
   preset='email'
   variables={[
-    { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } }
+    { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
+    { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' } },
+    { key: 'view_url', label: 'View in browser', kind: 'url', tokens: { ae: '[ViewInBrowserLink]', liquid: '{{ view_url }}' } }
   ]}
   defaultValue={{
     version: 1,
@@ -129,9 +132,9 @@ as a chip with the label from `variables`.
             {
               type: 'paragraph',
               content: [
-                { type: 'text', text: 'View it in your browser', marks: [{ type: 'link', attrs: { href: 'https://www.oztix.com.au/email/ochre-kite-weekender' } }] },
+                { type: 'text', text: 'View it in your browser', marks: [{ type: 'link', attrs: { variable: 'view_url' } }] },
                 { type: 'text', text: ' or ' },
-                { type: 'text', text: 'unsubscribe', marks: [{ type: 'link', attrs: { href: 'https://www.oztix.com.au/unsubscribe' } }] },
+                { type: 'text', text: 'unsubscribe', marks: [{ type: 'link', attrs: { variable: 'unsubscribe_url' } }] },
                 { type: 'text', text: '.' }
               ]
             }
@@ -203,6 +206,22 @@ tag shows and its fallback, the text anyone without a value sees. Each change
 shows in the email as you make it. Enter in Fallback or a click away keeps
 them, as one step to undo, and Escape puts the tag back as it was. An empty
 fallback saves none. Without `variables`, `{{` is only text and `/` offers no Merge tag.
+
+### Unsubscribe and view-in-browser links
+
+Some links are made by the sending system for each customer, such as the
+unsubscribe page or the email in a browser. List each as a variable with
+`kind: 'url'`, and a link or a button can link to it in place of a web
+address. A link variable is never a merge tag, so `{{` leaves it out.
+
+- **A link:** select the text and press Link, or Mod+K. Under the address,
+  Or link to lists each link variable. With nothing selected, it inserts the
+  variable's label, linked.
+- **A button:** Button settings has Links to, with A web address or each link
+  variable.
+
+The link saves the variable's key, `{ variable: 'unsubscribe_url' }`, with no
+href.
 
 ### Buttons, columns, and spacers
 
@@ -400,6 +419,12 @@ const variables: EditorVariable[] = [
     key: 'event_date',
     label: 'Event date',
     tokens: { liquid: '{{ event.date | date: "%-d %B" }}' }
+  },
+  {
+    key: 'unsubscribe_url',
+    label: 'Unsubscribe page',
+    kind: 'url',
+    tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' }
   }
 ]
 
@@ -426,7 +451,10 @@ const preview = await renderEmail({ kind: 'design', value: welcome }, {
   throws, so a template never asks for a value the sender can't fill.
 - Text an author typed that reads as a token, such as `{{ code }}` or
   `#FirstName#`, is written so no sending system fills it.
-- A variable never goes in a link's or a button's href.
+- A merge tag never goes in a link's or a button's href. A link variable
+  does: its token is written as the href, so it must write a whole URL. With
+  `values`, the href is its value, and with no value a mail client can open,
+  the text stays unlinked.
 - An HTML email's merge tags are already tokens, so it's sent unchanged,
   whatever the options.
 

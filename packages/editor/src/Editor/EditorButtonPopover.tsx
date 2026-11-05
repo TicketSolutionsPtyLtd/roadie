@@ -8,6 +8,7 @@ import type { Editor as TiptapEditor } from '@tiptap/react'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { Popover } from '@oztix/roadie-components/popover'
+import { Select } from '@oztix/roadie-components/select'
 import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
 import {
@@ -16,7 +17,7 @@ import {
   buttonLook,
   isEmailHref
 } from '../schema/emailAttrs'
-import { toHref } from './EditorLinkPopover'
+import { toHref, useLinkVariables } from './EditorLinkPopover'
 import { selectedNodeType } from './EditorNodeToolbar'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { buttonBlock, insertBlock } from './emailEditing'
@@ -145,11 +146,16 @@ const ALIGNS: readonly Choice<ButtonAlign>[] = [
   { value: 'right', label: 'Right' }
 ]
 
-type SettingsFormProps = Omit<ButtonFormProps, 'editor'> & {
+type SettingsFormProps = ButtonFormProps & {
   apply: LiveEdit['apply']
   href: string
+  variable?: string
   look: ButtonLook
 }
+
+// Select values, kept apart from any variable's key.
+const WEB_ADDRESS = 'web'
+const linkTo = (key: string) => `variable:${key}`
 
 // Undefined clears an attr, so the button saves only what isn't the default.
 const lookAttrs = ({ emphasis, fullWidth, align }: ButtonLook) => ({
@@ -160,12 +166,24 @@ const lookAttrs = ({ emphasis, fullWidth, align }: ButtonLook) => ({
 
 /** Applies each change as it's made: a choice at once, a link once it's whole. */
 function ButtonSettingsForm({
+  editor,
   inputRef,
   href,
+  variable,
   look: saved,
   apply: applyLive,
   onDone
 }: SettingsFormProps) {
+  const listed = useLinkVariables(editor)
+  // A button can name a key the editor no longer lists, which stays choosable.
+  const variables =
+    !variable || listed.some(({ key }) => key === variable)
+      ? listed
+      : [...listed, { key: variable, label: variable }]
+  const [linksTo, setLinksTo] = useState(
+    variable ? linkTo(variable) : WEB_ADDRESS
+  )
+  const linked = variables.find(({ key }) => linkTo(key) === linksTo)
   const [typed, setTyped] = useState(href)
   const [refused, setRefused] = useState(false)
   const [look, setLook] = useState(saved)
@@ -173,6 +191,20 @@ function ButtonSettingsForm({
   // The popover keeps focus, so the editor's selection stays on the button.
   const apply = (attrs: Record<string, unknown>) =>
     applyLive((chain) => chain.updateAttributes('button', attrs))
+
+  // A web address applies once it's whole, so a variable stays till then.
+  const applyHref = (value: string) => {
+    if (isEmailHref(toHref(value))) {
+      apply({ href: toHref(value), variable: undefined })
+    }
+  }
+
+  const changeLinksTo = (value: string) => {
+    setLinksTo(value)
+    const picked = variables.find(({ key }) => linkTo(key) === value)
+    if (picked) apply({ href: undefined, variable: picked.key })
+    else applyHref(typed)
+  }
 
   const changeLook = (change: ButtonLook) => {
     const next = { ...look, ...change }
@@ -188,38 +220,85 @@ function ButtonSettingsForm({
         event.preventDefault()
         // React bubbles a portalled submit to the form around the editor.
         event.stopPropagation()
-        if (!isEmailHref(toHref(typed))) {
+        if (!linked && !isEmailHref(toHref(typed))) {
           setRefused(true)
           return
         }
         onDone()
       }}
     >
-      <Field invalid={refused}>
-        <Field.Label>Link</Field.Label>
-        <Field.Input
-          ref={inputRef}
-          type='url'
-          inputMode='url'
-          placeholder='Paste a link'
-          value={typed}
-          onChange={(event) => {
-            const value = event.target.value
-            setTyped(value)
-            setRefused(false)
-            if (isEmailHref(toHref(value))) apply({ href: toHref(value) })
-          }}
-          // Says so only once they've moved on, not while they type.
-          onBlur={() => setRefused(!isEmailHref(toHref(typed)))}
-          // Backward, so a long link shows its start, as the add form's does.
-          onFocus={(event) => {
-            if (event.currentTarget.value !== href) return
-            const input = event.currentTarget
-            input.setSelectionRange(0, input.value.length, 'backward')
-          }}
-        />
-        <Field.ErrorText>{REFUSED}</Field.ErrorText>
-      </Field>
+      {variables.length > 0 ? (
+        <Field>
+          <Field.Label>Links to</Field.Label>
+          <Select
+            value={linksTo}
+            onValueChange={(value) => {
+              if (typeof value === 'string') changeLinksTo(value)
+            }}
+            items={[
+              { value: WEB_ADDRESS, label: 'A web address' },
+              ...variables.map(({ key, label }) => ({
+                value: linkTo(key),
+                label
+              }))
+            ]}
+          >
+            <Select.Trigger>
+              <Select.Value />
+              <Select.Icon />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value={WEB_ADDRESS}>A web address</Select.Item>
+              {variables.map(({ key, label }) => (
+                <Select.Item key={key} value={linkTo(key)}>
+                  {label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select>
+          {linked ? (
+            <Field.HelperText>
+              The sending system fills in this link for each customer.
+            </Field.HelperText>
+          ) : null}
+        </Field>
+      ) : null}
+      {linked ? null : (
+        <Field invalid={refused}>
+          <Field.Label>Link</Field.Label>
+          <Field.Input
+            ref={inputRef}
+            type='url'
+            inputMode='url'
+            placeholder='Paste a link'
+            value={typed}
+            onChange={(event) => {
+              const value = event.target.value
+              setTyped(value)
+              setRefused(false)
+              applyHref(value)
+            }}
+            // A Select's hidden input stops Enter submitting a form on its own.
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter') return
+              event.preventDefault()
+              // The Enter that picks an IME candidate only ends the composition.
+              const composing =
+                event.nativeEvent.isComposing || event.keyCode === 229
+              if (!composing) event.currentTarget.form?.requestSubmit()
+            }}
+            // Says so only once they've moved on, not while they type.
+            onBlur={() => setRefused(!isEmailHref(toHref(typed)))}
+            // Backward, so a long link shows its start, as the add form's does.
+            onFocus={(event) => {
+              if (event.currentTarget.value !== href) return
+              const input = event.currentTarget
+              input.setSelectionRange(0, input.value.length, 'backward')
+            }}
+          />
+          <Field.ErrorText>{REFUSED}</Field.ErrorText>
+        </Field>
+      )}
       <ButtonChoice
         legend='Emphasis'
         choices={EMPHASES}
@@ -262,17 +341,24 @@ function ButtonForm({
   // would cache a read during render by the editor alone.
   const [current] = useState(() => {
     const href = buttonHref(editor)
-    return href === undefined
-      ? undefined
-      : { href, look: buttonLook(editor.getAttributes('button')) }
+    if (href === undefined) return undefined
+    const attrs = editor.getAttributes('button')
+    const variable: unknown = attrs.variable
+    return {
+      href,
+      variable: typeof variable === 'string' ? variable : undefined,
+      look: buttonLook(attrs)
+    }
   })
   if (!current) {
     return <AddButtonForm editor={editor} inputRef={inputRef} onDone={onDone} />
   }
   return (
     <ButtonSettingsForm
+      editor={editor}
       inputRef={inputRef}
       href={current.href}
+      variable={current.variable}
       look={current.look}
       apply={apply}
       onDone={onDone}

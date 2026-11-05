@@ -135,8 +135,13 @@ export const Button = Node.create({
   defining: true,
   addAttributes() {
     return {
-      href: { default: null },
+      href: { default: undefined },
       // From its data attributes only, as Tiptap reads a bare one by default.
+      variable: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute('data-variable') ?? undefined
+      },
       align: {
         default: undefined,
         parseHTML: (element: HTMLElement) =>
@@ -164,7 +169,9 @@ export const Button = Node.create({
         priority: 60,
         getAttrs: (element) => {
           const href = element.getAttribute('href')
-          return isEmailHref(href) ? { href } : false
+          const variable = element.getAttribute('data-variable')
+          if (!variable && !isEmailHref(href)) return false
+          return variable ? { variable } : { href }
         }
       }
     ]
@@ -175,7 +182,9 @@ export const Button = Node.create({
       'a',
       {
         'data-type': 'button',
-        href: node.attrs.href,
+        ...(node.attrs.variable
+          ? { 'data-variable': node.attrs.variable }
+          : { href: node.attrs.href }),
         ...(align && { 'data-align': align }),
         ...(emphasis && { 'data-emphasis': emphasis }),
         ...(fullWidth && { 'data-full-width': '' }),
@@ -268,6 +277,39 @@ const EmailImage = Image.extend({
   }
 })
 
+// A link to a link variable, such as the unsubscribe page, has no href: the
+// email writes the sending system's token there.
+const EmailLink = SafeLink.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      // Undefined, not null, so a variable link saves without an href.
+      href: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute('href') ?? undefined
+      },
+      variable: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute('data-variable') || undefined,
+        renderHTML: ({ variable }: Record<string, unknown>) =>
+          variable ? { 'data-variable': String(variable) } : {}
+      }
+    }
+  },
+  parseHTML() {
+    return [...(this.parent?.() ?? []), { tag: 'a[data-variable]' }]
+  },
+  // Link checks the href it draws, which a variable link doesn't have.
+  renderHTML(props) {
+    const { variable } = props.mark.attrs
+    return variable
+      ? ['a', { 'data-variable': String(variable) }, 0]
+      : this.parent!(props)
+  }
+})
+
 // Each name and attribute these extensions produce is saved in `EditorValue`,
 // so changing one bumps CURRENT_VERSION and adds a migrate step.
 export const email: Extensions = [
@@ -280,7 +322,7 @@ export const email: Extensions = [
   }),
   EmailDoc,
   RichHeading,
-  SafeLink,
+  EmailLink,
   Section,
   Columns,
   Column,

@@ -2,7 +2,8 @@ import type { JSONContent } from '@tiptap/core'
 
 import { isEmailHref } from '../schema/emailAttrs'
 import { headingLevel } from '../schema/headings'
-import type { MergeTag } from './mergeTags'
+import { isText } from '../schema/isText'
+import type { LinkTag, MergeTag } from './mergeTags'
 import type { EmailTheme } from './theme'
 
 const ESCAPES: Record<string, string> = {
@@ -29,7 +30,11 @@ export const escapeHtml = (value: string) =>
     .replace(/[&<>"'{}#[\]]/g, (char) => ESCAPES[char]!)
 
 /** What text is written with: the theme, and where each variable goes. */
-export type TextContext = { theme: EmailTheme; tag: MergeTag }
+export type TextContext = {
+  theme: EmailTheme
+  tag: MergeTag
+  linkTag: LinkTag
+}
 
 const HEADING_SIZES: Record<number, string> = {
   2: 'font-size:24px;line-height:32px',
@@ -41,13 +46,26 @@ const ORDERED_LIST_TYPES = new Set(['1', 'a', 'A', 'i', 'I'])
 
 type Mark = NonNullable<JSONContent['marks']>[number]
 
-function marked(html: string, { type, attrs }: Mark, { theme }: TextContext) {
+/**
+ * A link's or a button's href: its link variable's token, or its own href
+ * when a mail client can open it. A link that only resolves on the site has
+ * nowhere to go from a mail client.
+ */
+export function emailHref(
+  { href, variable }: Record<string, unknown> = {},
+  { linkTag }: TextContext
+) {
+  if (isText(variable)) return linkTag(variable)
+  return isEmailHref(href) ? escapeHtml(href) : undefined
+}
+
+function marked(html: string, { type, attrs }: Mark, context: TextContext) {
   if (type === 'bold') return `<strong>${html}</strong>`
   if (type === 'italic') return `<em>${html}</em>`
   if (type === 'underline') return `<u>${html}</u>`
-  // A link that only resolves on the site has nowhere to go from a mail client.
-  if (type === 'link' && isEmailHref(attrs?.href)) {
-    return `<a href="${escapeHtml(attrs.href)}" style="color:${theme.link};text-decoration:underline">${html}</a>`
+  const href = type === 'link' ? emailHref(attrs, context) : undefined
+  if (href) {
+    return `<a href="${href}" style="color:${context.theme.link};text-decoration:underline">${html}</a>`
   }
   return html
 }

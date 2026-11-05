@@ -99,7 +99,10 @@ describe('presets.email', () => {
   })
 
   it.each([
-    ['button', ['href', 'align', 'emphasis', 'fullWidth', 'showWhen']],
+    [
+      'button',
+      ['href', 'variable', 'align', 'emphasis', 'fullWidth', 'showWhen']
+    ],
     ['image', ['src', 'alt', 'width', 'showWhen']],
     ['spacer', ['height', 'showWhen']],
     ['horizontalRule', ['showWhen']],
@@ -213,6 +216,18 @@ describe('presets.email', () => {
     ).toEqual({ href: tickets, emphasis: 'normal' })
   })
 
+  it('reads a pasted button’s link variable from its data attribute alone', () => {
+    const attrs: Record<string, string> = {
+      href: tickets,
+      variable: 'unsubscribe_url'
+    }
+    expect(
+      pastedAttrs('button', {
+        getAttribute: (name: string) => attrs[name.toLowerCase()] ?? null
+      })
+    ).toEqual({ href: tickets })
+  })
+
   it('keeps a button’s look through its copied HTML', () => {
     const look = {
       href: tickets,
@@ -272,6 +287,98 @@ describe('presets.email', () => {
       { href: tickets },
       { href: tickets, emphasis: 'subtle' },
       { href: tickets }
+    ])
+  })
+
+  it('keeps a link or a button that links to a link variable', () => {
+    const unsubscribe = [
+      { type: 'link', attrs: { variable: 'unsubscribe_url' } }
+    ]
+    const saved = migrate({
+      version: 1,
+      preset: 'email',
+      doc: doc(
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Unsubscribe', marks: unsubscribe }]
+        },
+        {
+          type: 'button',
+          attrs: { href: tickets, variable: 'view_url' },
+          content: [text('View in your browser')]
+        }
+      )
+    })
+    expect(saved.doc.content).toEqual([
+      {
+        type: 'paragraph',
+        content: [{ type: 'text', text: 'Unsubscribe', marks: unsubscribe }]
+      },
+      {
+        type: 'button',
+        attrs: { variable: 'view_url' },
+        content: [text('View in your browser')]
+      }
+    ])
+  })
+
+  it('keeps only the variable of a link with an href too', () => {
+    const saved = migrate({
+      version: 1,
+      preset: 'email',
+      doc: doc({
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: 'Unsubscribe',
+            marks: [
+              {
+                type: 'link',
+                attrs: {
+                  href: 'javascript:alert(1)',
+                  variable: 'unsubscribe_url'
+                }
+              }
+            ]
+          }
+        ]
+      })
+    })
+    expect(saved.doc.content).toEqual([
+      {
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: 'Unsubscribe',
+            marks: [{ type: 'link', attrs: { variable: 'unsubscribe_url' } }]
+          }
+        ]
+      }
+    ])
+  })
+
+  it('drops a link variable outside the email preset', () => {
+    const saved = migrate({
+      version: 1,
+      preset: 'rich',
+      doc: doc({
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: 'Unsubscribe',
+            marks: [{ type: 'link', attrs: { variable: 'unsubscribe_url' } }]
+          }
+        ]
+      })
+    })
+    expect(saved.doc.content).toEqual([
+      {
+        type: 'paragraph',
+        content: [{ type: 'text', text: 'Unsubscribe', marks: [] }]
+      }
     ])
   })
 

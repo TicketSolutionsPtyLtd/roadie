@@ -458,6 +458,12 @@ describe('renderEmail', () => {
         key: 'event_date',
         label: 'Event date',
         tokens: { liquid: '{{ event.date | date: "%-d %B" }}' }
+      },
+      {
+        key: 'unsubscribe_url',
+        label: 'Unsubscribe page',
+        kind: 'url',
+        tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' }
       }
     ]
     const tag = (key: string, fallback?: string): JSONContent => ({
@@ -517,6 +523,125 @@ describe('renderEmail', () => {
       )
       expect(html).toMatch(/>\s*Tickets for #FirstName#\s*</)
     })
+
+    it('writes a link variable’s token as a link’s href', async () => {
+      const unsubscribe = email(
+        p(
+          text('Unsubscribe', [
+            { type: 'link', attrs: { variable: 'unsubscribe_url' } }
+          ])
+        )
+      )
+      const ae = await renderEmail(unsubscribe, { syntax: 'ae', variables })
+      expect(ae.html).toMatch(/<a href="#OptOut#"[^>]*>Unsubscribe<\/a>/)
+      expect(ae.text).toBe('Unsubscribe [#OptOut#]')
+
+      const liquid = await renderEmail(unsubscribe, {
+        syntax: 'liquid',
+        variables
+      })
+      expect(liquid.html).toContain('<a href="{{ unsubscribe_url }}"')
+    })
+
+    it('writes a link variable’s token as a button’s href', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'button',
+          attrs: { variable: 'unsubscribe_url' },
+          content: [text('Unsubscribe')]
+        }),
+        { syntax: 'ae', variables }
+      )
+      expect(html).toMatch(/<a[^>]* href="#OptOut#"[^>]*>\s*Unsubscribe\s*</)
+    })
+
+    it('links to a link variable’s value for a preview', async () => {
+      const { html } = await renderEmail(
+        email(
+          p(
+            text('Unsubscribe', [
+              { type: 'link', attrs: { variable: 'unsubscribe_url' } }
+            ])
+          )
+        ),
+        {
+          variables,
+          values: {
+            unsubscribe_url: 'https://www.oztix.com.au/unsubscribe?a=1&b=2'
+          }
+        }
+      )
+      expect(html).toContain(
+        'href="https://www.oztix.com.au/unsubscribe?a=1&amp;b=2"'
+      )
+    })
+
+    it('writes a link variable’s value as a preview’s plain-text href', async () => {
+      const { text: plain } = await renderEmail(
+        email(
+          p(
+            text('Unsubscribe', [
+              { type: 'link', attrs: { variable: 'unsubscribe_url' } }
+            ])
+          )
+        ),
+        {
+          variables,
+          values: { unsubscribe_url: 'https://www.oztix.com.au/unsubscribe' }
+        }
+      )
+      expect(plain).toBe('Unsubscribe [https://www.oztix.com.au/unsubscribe]')
+    })
+
+    it('refuses a link to a variable the app doesn’t list', async () => {
+      await expect(
+        renderEmail(
+          email(
+            p(
+              text('Unsubscribe', [
+                { type: 'link', attrs: { variable: 'opt_out_url' } }
+              ])
+            )
+          ),
+          { syntax: 'ae', variables }
+        )
+      ).rejects.toThrow('"opt_out_url"')
+    })
+
+    it('leaves a link to a variable that isn’t a link variable unlinked', async () => {
+      const { html } = await renderEmail(
+        email(
+          p(text('Hi', [{ type: 'link', attrs: { variable: 'first_name' } }]))
+        ),
+        { syntax: 'ae', variables }
+      )
+      expect(html).not.toContain('<a ')
+      expect(html).not.toContain('#FirstName#')
+    })
+
+    it.each([
+      ['no value', {}],
+      [
+        'a value no mail client can open',
+        { unsubscribe_url: 'javascript:alert(1)' }
+      ]
+    ])(
+      'leaves a link variable unlinked in a preview with %s',
+      async (_, values) => {
+        const { html } = await renderEmail(
+          email(
+            p(
+              text('Unsubscribe', [
+                { type: 'link', attrs: { variable: 'unsubscribe_url' } }
+              ])
+            )
+          ),
+          { variables, values }
+        )
+        expect(html).not.toContain('<a ')
+        expect(html).toContain('Unsubscribe')
+      }
+    )
 
     it('fills each variable with its value for a preview, escaped for the HTML', async () => {
       const { html, text: plain } = await renderEmail(greeting('there'), {

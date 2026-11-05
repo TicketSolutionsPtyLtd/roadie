@@ -58,6 +58,7 @@ import {
   type PresetShape,
   presetShapes
 } from '../schema/presetShapes'
+import { textVariables } from '../schema/variables'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorBlockHandle } from './EditorBlockHandle'
 import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
@@ -473,7 +474,7 @@ export function EditorEngine({
   ]
   // Read as each menu opens, as `variables` can arrive after the editor is made.
   const insertItems = () =>
-    holdsMergeTags && variablesRef.current?.length
+    holdsMergeTags && textVariables(variablesRef.current).length
       ? [...presetItems, mergeTagItem]
       : presetItems
   const uploads = {
@@ -518,7 +519,8 @@ export function EditorEngine({
         ? [
             InsertMenu.extend({ name: 'mergeTagMenu' }).configure({
               char: MERGE_TAG_OPEN,
-              items: () => variableInsertItems(variablesRef.current ?? []),
+              items: () =>
+                variableInsertItems(textVariables(variablesRef.current)),
               allowIn: () => true,
               ui: () => uiRef.current!,
               onChange: setMergeTagMenu

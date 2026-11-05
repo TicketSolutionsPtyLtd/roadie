@@ -13,6 +13,7 @@ import {
 import { embedAttrs } from './embedAttrs'
 import { headingLevel } from './headings'
 import { isSafeImageSrc } from './imageSrc'
+import { isText } from './isText'
 import {
   BLOCK_ID,
   type NodeContent,
@@ -60,8 +61,21 @@ function isKeptMark(mark: unknown, shape: PresetShape): mark is StoredMark {
   if (!isObject(mark) || typeof mark.type !== 'string') return false
   if (!Object.hasOwn(shape.marks, mark.type)) return false
   if (mark.type !== 'link') return true
-  const href: unknown = (mark as StoredMark).attrs?.href
+  const { href, variable } = (mark as StoredMark).attrs ?? {}
+  if (isText(variable) && savesLinkVariable(shape)) return true
   return typeof href === 'string' && !isUnsafeHref(href)
+}
+
+const savesLinkVariable = (shape: PresetShape) =>
+  shape.marks.link?.includes('variable') ?? false
+
+// A link to a variable has no href, which the editor holds as null, and its
+// variable wins over any href, which goes unchecked.
+function linkAttrs({ type, attrs }: StoredMark, shape: PresetShape) {
+  if (type !== 'link' || !isObject(attrs)) return attrs
+  const { href, variable, ...rest } = attrs
+  if (isText(variable) && savesLinkVariable(shape)) return { ...rest, variable }
+  return { ...rest, ...(typeof href === 'string' && { href }) }
 }
 
 // The schema holds one mark of each type, so a repeat is dropped.
@@ -69,7 +83,7 @@ function cleanedMarks(marks: unknown[], shape: PresetShape) {
   const kept = new Map<string, StoredMark>()
   for (const mark of marks) {
     if (!isKeptMark(mark, shape) || kept.has(mark.type)) continue
-    const attrs = picked(mark.attrs, shape.marks[mark.type])
+    const attrs = picked(linkAttrs(mark, shape), shape.marks[mark.type])
     kept.set(mark.type, { type: mark.type, ...(attrs && { attrs }) })
   }
   return [...kept.values()]
@@ -93,7 +107,13 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
     }
   }
   if (type === 'spacer') return { height: spacerHeight(attrs?.height) }
-  if (type === 'button') return { href: attrs?.href, ...buttonLook(attrs) }
+  if (type === 'button') {
+    const variable: unknown = attrs?.variable
+    return {
+      ...(isText(variable) ? { variable } : { href: attrs?.href }),
+      ...buttonLook(attrs)
+    }
+  }
   if (type === 'variable') {
     const fallback: unknown = attrs?.fallback
     return {
@@ -392,7 +412,11 @@ function cleaned(
             : []
         )
       : inline
-    if (type === 'button' && !isEmailHref(stored?.href)) {
+    if (
+      type === 'button' &&
+      !isEmailHref(stored?.href) &&
+      !isText(stored?.variable)
+    ) {
       return buttonText({ content: held })
     }
     return [Array.isArray(content) ? { ...kept, content: held } : kept]
@@ -468,7 +492,7 @@ function withCustomBlocks(
  * In the email preset, a layout block where it can't sit, such as a column
  * outside columns or a section in a section, gives way to its blocks, and
  * columns outside two to four stack as their blocks. Keeps a button only with
- * an https, http, mailto or tel href, and only its unmarked text and
+ * an https, http, mailto or tel href, or a link variable, and only its unmarked text and
  * variables, which become a paragraph otherwise, or where a button can't
  * sit. Keeps only
  * https images, a width from 1 to 600 (none fills the column), and a

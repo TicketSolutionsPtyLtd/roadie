@@ -10,6 +10,7 @@ import { Field } from '@oztix/roadie-components/field'
 import { Popover } from '@oztix/roadie-components/popover'
 import { Select } from '@oztix/roadie-components/select'
 
+import { textVariables } from '../schema/variables'
 import { EditorContext } from './EditorContext'
 import { focusEditor } from './focusEditor'
 import { type LiveEdit, useLiveEdit } from './useLiveEdit'
@@ -35,7 +36,7 @@ type TagFormProps = {
 
 /** Applies each change as it's made. */
 function TagForm({ tag, apply, onDone }: TagFormProps) {
-  const variables = use(EditorContext)?.variables ?? []
+  const variables = textVariables(use(EditorContext)?.variables)
   const [key, setKey] = useState(tag.key)
   const [fallback, setFallback] = useState(tag.fallback)
   // A tag can name a key the editor no longer lists, which stays choosable.
