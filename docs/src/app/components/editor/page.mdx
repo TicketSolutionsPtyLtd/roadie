@@ -152,6 +152,38 @@ A link that could run script, such as a `javascript:` address, never reaches
 the saved value. The link editor refuses it, pasted HTML keeps only its text,
 and `migrate` drops it from a stored value.
 
+### Selection menu
+
+Add `Editor.BubbleMenu` among the parts to show Bold, Italic, Underline, and
+Link above selected text, close to it on a phone or in a long document. It
+shows while text is selected and the editor has focus, and hides when the
+selection collapses, on a selected image or embed, on text that takes no
+marks, such as an email button's label, while the link editor is open, and
+when the editor is read-only or disabled. It keeps clear of Table and Columns
+actions, going below the selection when they're above it. Children go after
+the preset's controls, as in `Editor.Toolbar`.
+
+```tsx-live-prose
+<Editor
+  aria-label='Event description'
+  defaultValue={{
+    version: 1,
+    preset: 'basic',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'Ochre Kite Weekender opens at Jumbuck Orchard Park on Saturday.' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Select a few words to format them from the menu.' }] }
+      ]
+    }
+  }}
+>
+  <Editor.Toolbar />
+  <Editor.Content />
+  <Editor.BubbleMenu />
+</Editor>
+```
+
 ### Rich preset
 
 `preset='rich'` adds headings 2 to 4, quotes, and dividers to the basic
@@ -372,7 +404,8 @@ phone.
 ### Blocks preset
 
 `preset='blocks'` holds everything the rich preset does, for a page built
-from blocks, and every block keeps an id as it moves.
+from blocks, and every block keeps an id as it moves. Type `/` to add a
+block.
 
 ```tsx-live-prose
 <Editor
@@ -402,6 +435,15 @@ Give each record's editor its own `key`, such as the record's id. An editor
 reused for another record reads that record's id-less blocks as the ones it
 already holds when their content matches, so it keeps the first record's ids.
 
+#### Inserting blocks
+
+Type `/` to open the same insert menu as the
+[email preset](#composing-a-layout), with the same keys. It offers
+Paragraph, Heading 2 to 4, Bulleted list, Numbered list, Quote, Divider,
+Image, Embed, and Table, and only those that fit at the caret, so a table
+cell offers Paragraph alone. Image shows with `onUploadImage` and opens the
+file picker, and Embed opens the Embed popover.
+
 ### Email preset
 
 `preset='email'` is for composing an email. Its content sits in a canvas at
@@ -415,8 +457,10 @@ buttons, spacers, and dividers.
 
 Type `/` to insert a block at the caret. The list filters as you type, the
 arrow keys move through it, Enter inserts, and Escape closes it, keeping what
-you typed. A paragraph, heading, or list turns the caret's line into one. Any
-other block goes before an empty line, or after a line with text, and a
+you typed, as does moving focus away. One undo takes a block the menu inserts
+back to what you typed; an image, embed, or button, which arrives after its
+upload or link, takes a second. A paragraph, heading, or list turns the caret's line into
+one. Any other block goes before an empty line, or after a line with text, and a
 section or columns puts the caret in its first line. Only the blocks that fit
 at the caret are offered, so there's no section or columns inside a column, and
 only the other list type inside a list. Image is offered with `onUploadImage`.
@@ -796,6 +840,77 @@ from another preset renders too, keeping its text. A link or button needs an
 https, http, mailto, or tel href, since a mail client can't open a path on the
 site, so any other keeps its text and loses its link.
 
+#### Merge tags
+
+A merge tag, such as the customer's first name, is a `variable` node in the
+email preset. It saves only its key and an optional fallback, never the token
+a sending system reads, so one template sends from either system.
+
+```ts
+const welcome = {
+  version: 1,
+  preset: 'email',
+  doc: {
+    type: 'doc',
+    content: [
+      {
+        type: 'paragraph',
+        content: [
+          { type: 'text', text: 'Hi ' },
+          { type: 'variable', attrs: { key: 'first_name', fallback: 'there' } },
+          { type: 'text', text: ', your tickets are ready.' }
+        ]
+      }
+    ]
+  }
+}
+```
+
+The app lists the variables its sending system fills, each with a label and
+its token in each syntax. A filter, such as a date format, belongs in the
+token, never in the template.
+
+```tsx
+import { type EditorVariable, renderEmail } from '@oztix/roadie-editor/email'
+
+const variables: EditorVariable[] = [
+  {
+    key: 'first_name',
+    label: 'First name',
+    tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' }
+  },
+  {
+    key: 'event_date',
+    label: 'Event date',
+    tokens: { liquid: '{{ event.date | date: "%-d %B" }}' }
+  }
+]
+
+// Hi {{ customer.first_name | default: "there" }}, your tickets are ready.
+const { html, text } = await renderEmail(welcome, {
+  syntax: 'liquid',
+  variables
+})
+
+// Hi Ashley, your tickets are ready.
+const preview = await renderEmail(welcome, {
+  variables,
+  values: { first_name: 'Ashley' }
+})
+```
+
+- `syntax` is `ae` for `#Token#` or `liquid` for `{{ }}`. Each variable is
+  written as its token, unescaped, in the HTML and the plain text alike.
+- A Liquid token of one `{{ }}` output gets the fallback as its `default`.
+  An AE token has no default, so its fallback isn't written.
+- With `values`, each variable is filled with its value, escaped, or its
+  fallback when the value is missing or empty. A preview needs no `syntax`.
+- A variable `variables` doesn't list, or one with no token in `syntax`,
+  throws, so a template never asks for a value the sender can't fill.
+- Text an author typed that reads as a token, such as `{{ code }}` or
+  `#FirstName#`, is written so no sending system fills it.
+- A variable never goes in a link's or a button's href.
+
 ### Importing existing HTML
 
 `htmlToEditorValue(html, preset)` from `@oztix/roadie-editor/schema` reads
@@ -884,6 +999,10 @@ render(
   Embed actions, with the same keys as Formatting. It shows only while the
   node is selected and the editor has focus, and never while read-only or
   disabled. Each action is one step to undo.
+- The selection menu is a `toolbar` named Selection formatting, with the same
+  keys as Formatting. It shows only while text is selected and the editor has
+  focus. Alt+F10 moves focus to its first control while it shows, and Escape
+  moves focus back to the selection.
 - An image's alt text is edited in a popover with a named input, opened by
   Enter on a selected image or its Alt text action. Escape closes it and
   returns focus to the image. An upload in progress is a `status`, and an upload error
@@ -905,7 +1024,8 @@ render(
 - In the rich preset, the Block type menu's trigger is named for the block at
   the caret, such as "Block type: Heading 2". Its items are radio items, with
   the current type checked, and choosing one puts focus back in the text.
-- In the email preset, `/` opens a `listbox` named Insert under the caret.
+- In the email and blocks presets, `/` opens a `listbox` named Insert under
+  the caret.
   Focus stays in the text, which points `aria-activedescendant` at the active
   option and `aria-controls` at the list.
 - In the email preset, a button's, a spacer's, or columns' own toolbar is
@@ -932,7 +1052,7 @@ render(
 | `Mod+Alt+0` | Paragraph, in the rich preset |
 | `Mod+Alt+2` to `Mod+Alt+4` | Heading 2 to 4, in the rich preset |
 | `Mod+Shift+B` | Quote, in the rich preset |
-| `/` | Open the insert menu, in the email preset |
+| `/` | Open the insert menu, in the email and blocks presets |
 | `Enter` | In a button, start a new paragraph after it |
 | `Enter` | On a selected image, edit its alt text |
 | `Tab` | In a table, move to the next cell, adding a row after the last |
@@ -940,7 +1060,7 @@ render(
 | `Mod+Z` | Undo |
 | `Mod+Shift+Z` | Redo |
 | `Shift+Enter` | Line break |
-| `Alt+F10` | Move focus to the toolbar's first enabled control, a selected image's, embed's, or spacer's first action, the first action of the button or columns holding the caret, or in a table its first table action |
+| `Alt+F10` | Move focus to the toolbar's first enabled control, the selection menu's while it shows, a selected image's, embed's, or spacer's first action, the first action of the button or columns holding the caret, or in a table its first table action |
 | `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image, embed, or spacer |
 
 `Mod` is `⌘` on Apple devices and `Ctrl` elsewhere, and `Alt` is `⌥` on

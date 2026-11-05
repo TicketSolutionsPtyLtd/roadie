@@ -17,7 +17,8 @@ export function EditorContent({ className, ...props }: EditorContentProps) {
     <TiptapContent
       data-slot='editor-content'
       editor={editor}
-      className={cn('grid grow', className)}
+      // The menus' plugins append them here, so they scroll with the text.
+      className={cn('relative grid grow', className)}
       {...props}
     />
   )

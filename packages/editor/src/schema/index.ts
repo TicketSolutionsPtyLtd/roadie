@@ -10,6 +10,7 @@ export {
 } from './embed'
 export { type DroppedContent, htmlToEditorValue } from './importHtml'
 export { type Preset, presets } from './presets'
+export type { EditorVariable } from './variables'
 export {
   CURRENT_VERSION,
   type EditorValue,

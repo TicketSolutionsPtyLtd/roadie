@@ -251,6 +251,16 @@ export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
   ]
 }
 
+const inlineControls = [bold, italic, underline, link] as const
+
+/** The controls in the menu over a text selection. */
+export const selectionControls: Record<Preset, readonly EditorControl[]> = {
+  basic: inlineControls,
+  rich: inlineControls,
+  blocks: inlineControls,
+  email: inlineControls
+}
+
 const altText: EditorControl = {
   label: 'Alt text',
   icon: TextAaIcon,
