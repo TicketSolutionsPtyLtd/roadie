@@ -84,9 +84,13 @@ async function selectText(text: string) {
 }
 
 const menu = () => screen.findByRole('toolbar', { name: MENU })
+// Hidden too, as a modal popover hides the page around it from the
+// accessibility tree.
 const noMenu = () =>
   waitFor(() =>
-    expect(screen.queryByRole('toolbar', { name: MENU })).toBe(null)
+    expect(screen.queryByRole('toolbar', { name: MENU, hidden: true })).toBe(
+      null
+    )
   )
 
 const itemsOf = (toolbar: HTMLElement) =>
