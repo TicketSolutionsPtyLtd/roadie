@@ -198,6 +198,21 @@ describe('presets.email', () => {
     })
   })
 
+  it('reads a pasted button’s look from its data attributes alone', () => {
+    const look: Record<string, string> = {
+      href: tickets,
+      'data-emphasis': 'normal',
+      emphasis: 'strong',
+      align: 'center',
+      fullwidth: 'true'
+    }
+    expect(
+      pastedAttrs('button', {
+        getAttribute: (name: string) => look[name.toLowerCase()] ?? null
+      })
+    ).toEqual({ href: tickets, emphasis: 'normal' })
+  })
+
   it('keeps a button’s look through its copied HTML', () => {
     const look = {
       href: tickets,
