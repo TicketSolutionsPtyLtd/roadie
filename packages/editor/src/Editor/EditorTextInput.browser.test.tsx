@@ -32,6 +32,15 @@ describe('Editor typing', () => {
     await waitFor(() => expect(textbox).toHaveTextContent(shown))
   })
 
+  it('leaves -- in a / query, as the insert menu reads it', async () => {
+    render(<Editor aria-label={LABEL} preset='blocks' />)
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/--')
+
+    await waitFor(() => expect(textbox).toHaveTextContent('/--'))
+  })
+
   it('puts back what was typed on Backspace straight after', async () => {
     render(<Editor aria-label={LABEL} preset='rich' />)
     const textbox = await focusedTextbox()
