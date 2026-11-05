@@ -95,15 +95,15 @@ function renderDoc(
   const nodeMapping = renderers(nodes, ({ node }) => node.attrs, context)
   nodeMapping.text = ({ node }) =>
     typeof node.text === 'string' ? escapeHTML(node.text) : ''
+  const content = withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
   return renderJSONContentToString({
     nodeMapping,
     markMapping: renderers(marks, ({ mark }) => mark?.attrs, context),
     unhandledNode: () => '',
     unhandledMark: ({ children }) => serializeChildrenToHTMLString(children)
   })({
-    content: withImageFigures(
-      withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
-    )
+    // An email's image has no figure of its own.
+    content: nodes.imageFigure ? withImageFigures(content) : content
   })
 }
 

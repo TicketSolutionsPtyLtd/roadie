@@ -60,7 +60,8 @@ function image({ src, alt, fullWidth }: SavedAttrs): Element | null {
 
 const FIGURE_ALIGN: Record<string, Record<string, string>> = {
   center: { marginInline: 'auto' },
-  right: { marginInlineStart: 'auto' }
+  // Physical, as Left, Centre and Right name it, whatever the text's direction.
+  right: { marginLeft: 'auto' }
 }
 
 // Its own width, so an aligned image moves as a whole with its caption.
@@ -131,7 +132,11 @@ const NODES: Record<string, ToElement> = {
 // Nodes `withImageFigures` adds around a page's image, never saved.
 const IMAGE_PARTS: Record<string, ToElement> = {
   imageFigure,
-  imageCaption: () => ({ tag: 'figcaption' })
+  // Sized by the image, never widening the figure past it.
+  imageCaption: () => ({
+    tag: 'figcaption',
+    style: { contain: 'inline-size' }
+  })
 }
 
 // Nodes `withTableSections` adds around a saved table's rows, never saved.

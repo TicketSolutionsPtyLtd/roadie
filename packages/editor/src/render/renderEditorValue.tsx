@@ -110,15 +110,15 @@ function renderDoc(
   }
   nodeMapping.text = ({ node }) =>
     typeof node.text === 'string' ? node.text : null
+  const content = withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
   return renderJSONContentToReactElement({
     nodeMapping,
     markMapping: renderers(marks, ({ mark }) => mark?.attrs, context),
     unhandledNode: () => null,
     unhandledMark: ({ children }) => children
   })({
-    content: withImageFigures(
-      withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
-    )
+    // An email's image has no figure of its own.
+    content: nodes.imageFigure ? withImageFigures(content) : content
   })
 }
 

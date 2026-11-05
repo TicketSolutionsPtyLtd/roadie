@@ -9,10 +9,11 @@ import { cn } from '@oztix/roadie-core/utils'
 import { imageLook, imageWidth } from '../schema/emailAttrs'
 import { pageImageLook } from '../schema/imageAttrs'
 
+// Physical, as Left, Centre and Right name it, whatever the text's direction.
 const ALIGN = {
-  left: 'me-auto',
+  left: 'mr-auto',
   center: 'mx-auto',
-  right: 'ms-auto'
+  right: 'ml-auto'
 } as const
 
 /**
@@ -31,6 +32,7 @@ export function EditorImageView({ node, selected }: ReactNodeViewProps) {
 
   return (
     <NodeViewWrapper
+      as={page.caption ? 'figure' : 'div'}
       data-slot='editor-image'
       data-selected={selected ? '' : undefined}
       // Hugs the image, rounded as prose rounds it, so the ring follows it.
@@ -50,7 +52,10 @@ export function EditorImageView({ node, selected }: ReactNodeViewProps) {
         className={cn('m-0', (inEmail || page.fullWidth) && 'w-full')}
       />
       {page.caption ? (
-        <figcaption contentEditable={false}>{page.caption}</figcaption>
+        // Sized by the image, never widening it past the image.
+        <figcaption contentEditable={false} className='[contain:inline-size]'>
+          {page.caption}
+        </figcaption>
       ) : null}
       {alt ? null : (
         <div contentEditable={false} className='absolute start-2 top-2'>
