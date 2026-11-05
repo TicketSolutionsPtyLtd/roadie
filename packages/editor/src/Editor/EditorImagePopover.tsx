@@ -5,7 +5,7 @@ import { type RefObject, useRef, useState } from 'react'
 import { UploadSimpleIcon } from '@phosphor-icons/react'
 import { posToDOMRect } from '@tiptap/core'
 import { NodeSelection } from '@tiptap/pm/state'
-import type { Editor as TiptapEditor } from '@tiptap/react'
+import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Button } from '@oztix/roadie-components/button'
 import { Drawer } from '@oztix/roadie-components/drawer'
@@ -435,8 +435,14 @@ export function EditorImagePopover({
   const titleRef = useRef<HTMLHeadingElement>(null)
   const live = useLiveEdit(editor, open, onOpenChange)
   const phone = useOnPhone()
+  // From the editor's state as it changes: a read of the mutable editor in
+  // render would be cached by the editor alone.
+  const selected = useEditorState({
+    editor,
+    selector: ({ editor: current }) => (current ? selectedImage(current) : null)
+  })
   if (!editor) return null
-  const image = adding ? null : selectedImage(editor)
+  const image = adding ? null : selected
   const { from, to } = editor.state.selection
   // Read as it's placed, as a live edit redraws the image under it. The
   // element lets the popover follow a scrolling container around the editor.
