@@ -294,6 +294,49 @@ describe('Editor toolbar on a touch screen', () => {
     await waitFor(() => expect(docked(first!)).toBe(false))
   })
 
+  it('leaves no band stuck at the top while it’s above the keyboard', async () => {
+    onTouchScreen()
+    await page.viewport(390, 700)
+    render(
+      <>
+        <Editor
+          aria-label={LABEL}
+          toolbar='docked'
+          defaultValue={{
+            version: 1,
+            preset: 'email',
+            doc: {
+              type: 'doc',
+              content: Array.from({ length: 30 }, (_, index) => ({
+                type: 'paragraph',
+                content: [{ type: 'text', text: `${TEXT} ${index}` }]
+              }))
+            }
+          }}
+        />
+        <div style={{ blockSize: 1600 }} />
+      </>
+    )
+    const toolbar = await shownToolbar()
+    const slot = toolbar.closest<HTMLElement>('[data-slot="editor-toolbar"]')!
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(within(textbox).getByText(`${TEXT} 0`))
+    const viewport = window.visualViewport!
+    await waitFor(() =>
+      expect(toolbar.getBoundingClientRect().bottom).toBeCloseTo(
+        viewport.offsetTop + viewport.height,
+        0
+      )
+    )
+
+    window.scrollBy(0, 400)
+    onTestFinished(() => window.scrollTo(0, 0))
+
+    await waitFor(() =>
+      expect(slot.getBoundingClientRect().bottom).toBeLessThan(0)
+    )
+  })
+
   it('meets the bottom of the screen inside a container query’s box', async () => {
     onTouchScreen()
     await page.viewport(390, 700)

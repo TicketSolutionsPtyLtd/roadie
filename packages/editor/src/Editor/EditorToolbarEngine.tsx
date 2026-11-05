@@ -705,10 +705,13 @@ export function EditorToolbarEngine({
       style={{ top, blockSize: aboveKeyboard ? reserved : undefined }}
       // Above the text that scrolls under it, below the editor's popups.
       className={cn(
-        'sticky top-0 shrink-0',
-        // Its own stacking context holds the bar while it's fixed.
-        aboveKeyboard ? 'z-overlay' : 'z-sticky',
-        EDITOR_DOCKED_BAR[editorEmphasis]
+        'shrink-0',
+        EDITOR_DOCKED_BAR[editorEmphasis],
+        // Above the keyboard, an empty slot in the flow that holds the text
+        // still, rather than a band stuck to the top.
+        aboveKeyboard
+          ? 'border-transparent bg-transparent bg-none'
+          : 'sticky top-0 z-sticky'
       )}
     >
       <div
@@ -719,7 +722,7 @@ export function EditorToolbarEngine({
         }
         className={cn(
           aboveKeyboard &&
-            'fixed inset-x-0 border-t border-subtler bg-normal pb-[env(safe-area-inset-bottom)]'
+            'fixed inset-x-0 z-overlay border-t border-subtler bg-normal pb-[env(safe-area-inset-bottom)]'
         )}
       >
         <Toolbar
