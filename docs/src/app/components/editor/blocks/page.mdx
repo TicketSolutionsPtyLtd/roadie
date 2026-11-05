@@ -121,7 +121,7 @@ the block itself when it's an empty line.
 
 A framed editor makes room for the add button and grip at the start of its
 text. A `subtler` editor keeps its text in line with the page, so they hang
-outside it: give it room at the start.
+outside it: give it room at the start, such as with `ps-12` on its container.
 
 The grip is a button named Block actions. It takes no Tab stop, since it
 shows only beside the caret's block; `Mod+/` opens its menu instead. The
@@ -246,7 +246,7 @@ function Page() {
     <>
       <Editor
         aria-label='Page'
-              extensions={[callToAction]}
+        extensions={[callToAction]}
         value={value}
         onValueChange={setValue}
       />
