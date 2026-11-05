@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 
 import {
+  ArrowElbowDownRightIcon,
   ArrowsClockwiseIcon,
   CaretLeftIcon,
   CaretRightIcon,
@@ -44,6 +45,8 @@ type EditorBlockSheetProps = {
   remove: SheetAction
   /** Turn into's kinds, or none for a block that isn't text. */
   kinds: readonly SheetChoice[]
+  /** Move to's places: the page's headings and sections, which it goes under. */
+  places: readonly SheetChoice[]
 }
 
 type RowProps = {
@@ -100,12 +103,14 @@ export function EditorBlockSheet({
   moveDown,
   actions,
   remove,
-  kinds
+  kinds,
+  places
 }: EditorBlockSheetProps) {
-  const [turning, setTurning] = useState(false)
+  const [step, setStep] = useState<'turn' | 'move' | null>(null)
+  const choices = step === 'turn' ? kinds : step === 'move' ? places : []
 
   useEffect(() => {
-    if (!open) setTurning(false)
+    if (!open) setStep(null)
   }, [open])
 
   // Into the top half, which the sheet leaves clear, as it opens and moves.
@@ -116,7 +121,7 @@ export function EditorBlockSheet({
     block.scrollIntoView({ block: 'start' })
   }, [open, block])
 
-  // Turn into's step swaps the buttons out, so focus goes to its first.
+  // A step swaps the buttons out, so focus goes to its first.
   const stepRef = useRef<HTMLDivElement>(null)
   const stepped = useRef(false)
   useEffect(() => {
@@ -125,7 +130,7 @@ export function EditorBlockSheet({
       return
     }
     stepRef.current?.querySelector<HTMLElement>('button')?.focus()
-  }, [turning])
+  }, [step])
 
   const run = (action: SheetAction) => {
     if (!action.keepOpen) onClose()
@@ -142,20 +147,24 @@ export function EditorBlockSheet({
     >
       <Drawer.Content size='sm' finalFocus={onFinalFocus}>
         <Drawer.Header className='flex items-center gap-2'>
-          {turning ? (
+          {step ? (
             <IconButton
               size='sm'
               emphasis='subtler'
               aria-label='Back'
-              onClick={() => setTurning(false)}
+              onClick={() => setStep(null)}
             >
               <CaretLeftIcon weight='bold' className='size-4' aria-hidden />
             </IconButton>
           ) : null}
           <Drawer.Title className='flex-1'>
-            {turning ? 'Turn into' : label}
+            {step === 'turn'
+              ? 'Turn into'
+              : step === 'move'
+                ? 'Move to'
+                : label}
           </Drawer.Title>
-          {turning ? null : (
+          {step ? null : (
             <>
               {[moveUp, moveDown].map((move) => {
                 const MoveIcon = move.icon
@@ -179,18 +188,18 @@ export function EditorBlockSheet({
           )}
         </Drawer.Header>
         <Drawer.Body ref={stepRef} className='grid content-start gap-0.5 pb-6'>
-          {turning ? (
-            kinds.map((kind) => (
+          {step ? (
+            choices.map((choice, index) => (
               <Row
-                key={kind.label}
-                icon={kind.icon}
-                chosen={kind.chosen}
+                key={`${index}-${choice.label}`}
+                icon={choice.icon}
+                chosen={choice.chosen}
                 onClick={() => {
                   onClose()
-                  kind.run()
+                  choice.run()
                 }}
               >
-                {kind.label}
+                {choice.label}
               </Row>
             ))
           ) : (
@@ -205,9 +214,24 @@ export function EditorBlockSheet({
                       aria-hidden
                     />
                   }
-                  onClick={() => setTurning(true)}
+                  onClick={() => setStep('turn')}
                 >
                   Turn into
+                </Row>
+              ) : null}
+              {places.length > 0 ? (
+                <Row
+                  icon={ArrowElbowDownRightIcon}
+                  trailing={
+                    <CaretRightIcon
+                      weight='bold'
+                      className='size-4 text-subtle'
+                      aria-hidden
+                    />
+                  }
+                  onClick={() => setStep('move')}
+                >
+                  Move to…
                 </Row>
               ) : null}
               {actions.map((action) => (
