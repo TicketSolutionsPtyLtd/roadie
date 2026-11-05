@@ -66,7 +66,8 @@ const description: EditorValue = {
   tables (`table`, `tableRow`, `tableHeader` and `tableCell`, saving only a
   cell's `colspan` and `rowspan`). A cell holds paragraphs only.
   `presets.blocks` holds what `rich` does, and every block but a table's
-  rows and cells saves a `blockId` string.
+  rows and cells saves a `blockId` string. Key each record's editor by its
+  record, or a reused editor keeps the last record's ids.
   An image's `src` is `https` or a root-relative path, and its `alt` is `''`
   until someone writes it.
 - `doc` is Tiptap's JSON, with Tiptap's default names (`paragraph`,

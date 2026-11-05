@@ -394,6 +394,10 @@ identity as it moves. The editor gives a block without one an id when it
 loads, splits, or is pasted, and `onValueChange` reports it. Copying a block
 gives the copy an id of its own. `/render` never writes ids into the page.
 
+Give each record's editor its own `key`, such as the record's id. An editor
+reused for another record reads that record's id-less blocks as the ones it
+already holds when their content matches, so it keeps the first record's ids.
+
 ### Emphasis
 
 `emphasis` sets the frame. The toolbar takes its own
