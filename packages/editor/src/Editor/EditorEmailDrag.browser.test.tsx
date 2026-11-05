@@ -338,6 +338,46 @@ describe('Editor email block handle', () => {
       )
     })
 
+    it('drops a block at the end of a short column, from the space below its last block', async () => {
+      const onValueChange = renderNewsletter(
+        newsletter(
+          section(
+            columns(
+              [p('Left one'), p('Left two'), p('Left three')],
+              [p('Right one')]
+            )
+          ),
+          p('Closing')
+        )
+      )
+      await hoverBlock('Closing')
+      const right = (await line('Right one')).closest('[data-type="column"]')!
+      const below = (await line('Left three')).getBoundingClientRect()
+      const box = right.getBoundingClientRect()
+
+      await userEvent.dragAndDrop(await grip(), right, {
+        targetPosition: {
+          x: box.width / 2,
+          y: (below.top + below.bottom) / 2 - box.top
+        }
+      })
+
+      await expectOutline(
+        onValueChange,
+        {
+          section: [
+            {
+              columns: [
+                { column: ['Left one', 'Left two', 'Left three'] },
+                { column: ['Right one', 'Closing'] }
+              ]
+            }
+          ]
+        },
+        ''
+      )
+    })
+
     it('moves a block between columns, leaving an empty line behind', async () => {
       const onValueChange = renderNewsletter()
       await hoverBlock('Left one')

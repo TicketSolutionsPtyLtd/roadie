@@ -204,7 +204,7 @@ export function blockDropTarget(
 }
 
 // UniqueID fills a missing id, but keeps a repeated one it reads as moved.
-function withoutIds(node: Node): Node {
+export function withoutIds(node: Node): Node {
   if (node.isText) return node
   const content: Node[] = []
   node.content.forEach((child) => content.push(withoutIds(child)))
@@ -274,21 +274,21 @@ function makeKind(kind: BlockKind): Command {
 }
 
 /**
- * Turns the text block at `pos` into another kind, in one step, keeping its
- * text and its `blockId`.
+ * Turns the text block at `pos`, or each from there to `end`, into another
+ * kind, in one step, keeping its text and the first block's `blockId`.
  */
-export function turnInto(pos: number, kind: BlockKind): Command {
+export function turnInto(pos: number, kind: BlockKind, end?: number): Command {
   return ({ tr, chain }) => {
     const node = tr.doc.nodeAt(pos)
     if (!node) return false
     const id: unknown = node.attrs[BLOCK_ID]
-    const end = pos + node.nodeSize
+    const to = end ?? pos + node.nodeSize
     const { selection } = tr
     return chain()
       .command(({ tr: current }) => {
         const { doc } = current
         current.setSelection(
-          TextSelection.between(doc.resolve(pos), doc.resolve(end))
+          TextSelection.between(doc.resolve(pos), doc.resolve(to))
         )
         return true
       })
@@ -308,11 +308,8 @@ export function turnInto(pos: number, kind: BlockKind): Command {
   }
 }
 
-/** Opens a line below the block at `pos`, with `/` typed there to open the insert menu. */
-export function insertBelow(state: EditorState, pos: number) {
-  const node = state.doc.nodeAt(pos)
-  if (!node) return null
-  const at = pos + node.nodeSize
+/** Opens a line at `at`, a block's end, with `/` typed there to open the insert menu. */
+export function insertBelow(state: EditorState, at: number) {
   const { schema } = state
   const tr = state.tr.insert(
     at,

@@ -8,6 +8,7 @@ import {
 import { Decoration, DecorationSet, type EditorView } from '@tiptap/pm/view'
 
 import { type BlockContainers, TOP_LEVEL, blockAt } from './blockActions'
+import { BlockSelection, blocksIn } from './blockSelection'
 
 type FocusedBlockOptions = { containers: BlockContainers }
 const key = new PluginKey<DecorationSet>('focusedBlock')
@@ -17,6 +18,13 @@ function focusedBlock(
   containers: BlockContainers
 ): DecorationSet {
   const { selection } = state
+  if (selection instanceof BlockSelection) {
+    const marks = blocksIn(state.doc, selection.from, selection.to).map(
+      ({ node, pos }) =>
+        Decoration.node(pos, pos + node.nodeSize, { 'data-focused-block': '' })
+    )
+    return DecorationSet.create(state.doc, marks)
+  }
   if (!(selection instanceof TextSelection)) return DecorationSet.empty
   const from = blockAt(state, selection.from, containers)
   const node = from === null ? null : state.doc.nodeAt(from)
@@ -30,8 +38,9 @@ function focusedBlock(
 
 /**
  * Marks the block holding the caret with `data-focused-block` while the
- * editor has focus, so focus shows on the block, not around the editor. A
- * selected node rings itself, and a selection across blocks marks none.
+ * editor has focus, so focus shows on the block, not around the editor, and
+ * each block of a block selection. A selected node rings itself, and a text
+ * selection across blocks marks none.
  */
 export const FocusedBlock = Extension.create<FocusedBlockOptions>({
   name: 'focusedBlock',
@@ -87,12 +96,21 @@ export const FocusedBlock = Extension.create<FocusedBlockOptions>({
 
 const menuKey = new PluginKey<DecorationSet>('menuBlock')
 
-/** Marks the block at `pos` with `data-menu-block`, or none with `null`. */
-export function markMenuBlock(view: EditorView, pos: number | null) {
-  view.dispatch(view.state.tr.setMeta(menuKey, pos))
+/**
+ * Marks the block at `pos` with `data-menu-block`, or each block from `pos`
+ * to `end`, or none with `null`.
+ */
+export function markMenuBlock(
+  view: EditorView,
+  pos: number | null,
+  end?: number
+) {
+  view.dispatch(
+    view.state.tr.setMeta(menuKey, pos === null ? null : { pos, end })
+  )
 }
 
-/** The block a block menu is open on, which `markMenuBlock` sets. */
+/** The blocks a block menu is open on, which `markMenuBlock` sets. */
 export const MenuBlock = Extension.create({
   name: 'menuBlock',
 
@@ -103,15 +121,20 @@ export const MenuBlock = Extension.create({
         state: {
           init: () => DecorationSet.empty,
           apply(tr, previous, _old, state) {
-            const pos: number | null | undefined = tr.getMeta(menuKey)
-            if (pos === undefined) return previous.map(tr.mapping, tr.doc)
-            const node = pos === null ? null : state.doc.nodeAt(pos)
-            if (pos === null || !node) return DecorationSet.empty
-            return DecorationSet.create(state.doc, [
-              Decoration.node(pos, pos + node.nodeSize, {
-                'data-menu-block': ''
-              })
-            ])
+            const meta: { pos: number; end?: number } | null | undefined =
+              tr.getMeta(menuKey)
+            if (meta === undefined) return previous.map(tr.mapping, tr.doc)
+            const node = meta === null ? null : state.doc.nodeAt(meta.pos)
+            if (meta === null || !node) return DecorationSet.empty
+            const end = meta.end ?? meta.pos + node.nodeSize
+            return DecorationSet.create(
+              state.doc,
+              blocksIn(state.doc, meta.pos, end).map(({ node: block, pos }) =>
+                Decoration.node(pos, pos + block.nodeSize, {
+                  'data-menu-block': ''
+                })
+              )
+            )
           }
         },
         props: { decorations: (state) => menuKey.getState(state) }

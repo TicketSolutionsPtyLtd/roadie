@@ -642,7 +642,8 @@ describe('Editor extensions', () => {
       await userEvent.dragAndDrop(handle, target, {
         targetPosition: {
           x: target.offsetWidth - 2,
-          y: target.offsetHeight / 2
+          // In its lower half, so it lands after it.
+          y: target.offsetHeight - 2
         }
       })
 

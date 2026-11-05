@@ -19,14 +19,8 @@ import {
 import { Typography } from '@tiptap/extension-typography'
 import type { UniqueID } from '@tiptap/extension-unique-id'
 import { Placeholder } from '@tiptap/extensions'
-import { closeHistory } from '@tiptap/pm/history'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
-import {
-  type EditorState,
-  NodeSelection,
-  Selection,
-  type Transaction
-} from '@tiptap/pm/state'
+import { NodeSelection, Selection } from '@tiptap/pm/state'
 import {
   type ReactNodeViewProps,
   ReactNodeViewRenderer,
@@ -79,14 +73,9 @@ import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
 import { EditorVariablePopover } from './EditorVariablePopover'
 import { EditorVariableView } from './EditorVariableView'
-import {
-  type BlockContainers,
-  TOP_LEVEL,
-  blockAt,
-  duplicateBlock,
-  moveBlock
-} from './blockActions'
+import { type BlockContainers, TOP_LEVEL } from './blockActions'
 import { BlockDrag } from './blockDrag'
+import { BlockKeys } from './blockSelection'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
@@ -137,34 +126,6 @@ const BlockMenuShortcut = Extension.create<BlockMenuShortcutOptions>({
   name: 'blockMenuShortcut',
   addKeyboardShortcuts() {
     return { 'Mod-/': () => this.options.open() }
-  }
-})
-
-type BlockShortcutsOptions = { containers: BlockContainers }
-
-// Notion's keys, on the caret's block, each its own undo step.
-const BlockShortcuts = Extension.create<BlockShortcutsOptions>({
-  name: 'blockShortcuts',
-  addKeyboardShortcuts() {
-    const { containers } = this.options
-    const onCaretBlock =
-      (action: (state: EditorState, pos: number) => Transaction | null) =>
-      ({ editor }: { editor: TiptapEditor }) => {
-        const { state, view } = editor
-        const pos = blockAt(state, state.selection.from, containers)
-        const tr = pos === null ? null : action(state, pos)
-        if (tr) view.dispatch(closeHistory(tr))
-        return pos !== null
-      }
-    return {
-      'Mod-Shift-ArrowUp': onCaretBlock((state, pos) =>
-        moveBlock(state, pos, -1, containers)
-      ),
-      'Mod-Shift-ArrowDown': onCaretBlock((state, pos) =>
-        moveBlock(state, pos, 1, containers)
-      ),
-      'Mod-d': onCaretBlock(duplicateBlock)
-    }
   }
 })
 
@@ -567,7 +528,7 @@ export function EditorEngine({
         ? [
             BlockDrag,
             MenuBlock,
-            BlockShortcuts.configure({ containers: blockHandle.containers })
+            BlockKeys.configure({ containers: blockHandle.containers })
           ]
         : []),
       FocusedBlock.configure({

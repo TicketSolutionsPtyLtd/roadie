@@ -63,6 +63,14 @@ import {
   turnInto
 } from './blockActions'
 import { draggedBlocks } from './blockDrag'
+import {
+  blocksIn,
+  canMoveRange,
+  deleteRange,
+  duplicateRange,
+  moveRange,
+  selectedBlocks
+} from './blockSelection'
 import { focusEditor } from './focusEditor'
 import { markMenuBlock } from './focusedBlock'
 import { useOnPhone } from './toolbarMode'
@@ -337,6 +345,12 @@ export function EditorBlockHandle({
     editor,
     selector: ({ editor: current }) => current.isEditable
   })
+  const range = useEditorState({
+    editor,
+    selector: ({ editor: current }) =>
+      selectedBlocks(current.state, containers),
+    equalityFn: (a, b) => a?.from === b?.from && a?.to === b?.to
+  })
   const shown = menuAt ?? hovered ?? caretBlock
   const shownRef = useRef(shown)
   useLayoutEffect(() => {
@@ -425,9 +439,19 @@ export function EditorBlockHandle({
     }
   }, [editor, openMenuRef, containers])
 
+  // The menu acts on every selected block when it's open on one of them.
+  const blocks =
+    range && shown != null && shown >= range.from && shown < range.to
+      ? range
+      : null
+  const marked = menuAt === null ? null : (blocks ?? menuAt)
   useEffect(() => {
-    markMenuBlock(editor.view, menuAt)
-  }, [editor, menuAt])
+    markMenuBlock(
+      editor.view,
+      marked === null || typeof marked === 'number' ? marked : marked.from,
+      marked !== null && typeof marked === 'object' ? marked.to : undefined
+    )
+  }, [editor, marked])
 
   // After every change, as text above or in the block moves it.
   useLayoutEffect(() => {
@@ -450,7 +474,11 @@ export function EditorBlockHandle({
 
   // The menu stays open on the block where it lands.
   const move = (step: -1 | 1) => {
-    run((pos) => moveBlock(editor.state, pos, step, containers))
+    run((pos) =>
+      blocks
+        ? moveRange(editor.state, blocks, step)
+        : moveBlock(editor.state, pos, step, containers)
+    )
     setMenuAt(blockAt(editor.state, editor.state.selection.from, containers))
   }
 
@@ -480,12 +508,22 @@ export function EditorBlockHandle({
     draggedBlocks.set(view, { from: shown, containers })
   }
 
-  const label = blockLabel(doc.nodeAt(shown)!, appLabels)
-  const kind = blockKind(doc, shown)
-  const kinds = kind
+  const end = blocks ? blocks.to : shown + doc.nodeAt(shown)!.nodeSize
+  const label = blocks
+    ? `${blocks.count} blocks`
+    : blockLabel(doc.nodeAt(shown)!, appLabels)
+  const shownKinds = blocksIn(doc, blocks?.from ?? shown, end).map(({ pos }) =>
+    blockKind(doc, pos)
+  )
+  const kind = shownKinds.every(
+    (each) => each && kindLabel(each) === kindLabel(shownKinds[0]!)
+  )
+    ? (shownKinds[0] ?? null)
+    : null
+  const kinds = shownKinds.every(Boolean)
     ? TEXT_BLOCK_KINDS.filter(({ type }) => Boolean(editor.schema.nodes[type]))
     : []
-  const blockId = blockIdAt(doc, shown)
+  const blockId = blocks ? null : blockIdAt(doc, shown)
   const close = () => setMenuAt(null)
 
   const moves: BlockAction[] = [
@@ -493,7 +531,9 @@ export function EditorBlockHandle({
       label: 'Move up',
       icon: ArrowUpIcon,
       shortcut: BLOCK_ACTION_KEYS.moveUp,
-      disabled: !canMoveBlock(doc, shown, -1, containers),
+      disabled: blocks
+        ? !canMoveRange(doc, blocks, -1)
+        : !canMoveBlock(doc, shown, -1, containers),
       // Stays open on the block, so it can go up again.
       keepOpen: true,
       run: () => move(-1)
@@ -502,11 +542,13 @@ export function EditorBlockHandle({
       label: 'Move down',
       icon: ArrowDownIcon,
       shortcut: BLOCK_ACTION_KEYS.moveDown,
-      disabled: !canMoveBlock(doc, shown, 1, containers),
+      disabled: blocks
+        ? !canMoveRange(doc, blocks, 1)
+        : !canMoveBlock(doc, shown, 1, containers),
       keepOpen: true,
       run: () => move(1)
     },
-    ...(parent !== null
+    ...(parent !== null && !blocks
       ? [
           {
             label: PARENT_LABELS[parentName!] ?? 'Select parent block',
@@ -521,7 +563,12 @@ export function EditorBlockHandle({
       label: 'Duplicate',
       icon: CopySimpleIcon,
       shortcut: BLOCK_ACTION_KEYS.duplicate,
-      run: () => run((pos) => duplicateBlock(editor.state, pos))
+      run: () =>
+        run((pos) =>
+          blocks
+            ? duplicateRange(editor.state, blocks)
+            : duplicateBlock(editor.state, pos)
+        )
     }
   ]
   const more: BlockAction[] = [
@@ -530,7 +577,7 @@ export function EditorBlockHandle({
       icon: PlusIcon,
       // Once the menu's let go of focus, or the insert menu would close.
       run: () => {
-        afterClose.current = () => run((pos) => insertBelow(editor.state, pos))
+        afterClose.current = () => run(() => insertBelow(editor.state, end))
       }
     },
     ...(blockId
@@ -552,10 +599,18 @@ export function EditorBlockHandle({
     icon: TrashIcon,
     shortcut: BLOCK_ACTION_KEYS.delete,
     intent: 'danger',
-    run: () => run((pos) => deleteBlock(editor.state, pos))
+    run: () =>
+      run((pos) =>
+        blocks
+          ? deleteRange(editor.state, blocks)
+          : deleteBlock(editor.state, pos)
+      )
   }
   const turn = (to: BlockKind) => {
-    editor.chain().command(turnInto(shown, to)).run()
+    editor
+      .chain()
+      .command(turnInto(blocks?.from ?? shown, to, end))
+      .run()
     focusEditor(editor)
   }
 
@@ -644,7 +699,9 @@ export function EditorBlockHandle({
                       <DrawerAction
                         key={kindLabel(each)}
                         icon={kindIcon(each)}
-                        pressed={kindLabel(each) === kindLabel(kind!)}
+                        pressed={
+                          kind !== null && kindLabel(each) === kindLabel(kind)
+                        }
                         onClick={() => {
                           close()
                           turn(each)
@@ -702,7 +759,7 @@ export function EditorBlockHandle({
                     Turn into
                   </Menu.SubmenuTrigger>
                   <Menu.Content>
-                    <Menu.RadioGroup value={kindLabel(kind!)}>
+                    <Menu.RadioGroup value={kind ? kindLabel(kind) : null}>
                       {kinds.map((each) => (
                         <Menu.RadioItem
                           key={kindLabel(each)}

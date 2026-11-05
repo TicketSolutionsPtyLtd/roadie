@@ -74,7 +74,8 @@ opens the file picker, and Embed opens the Embed popover.
 
 A grip shows at the start of the block under the pointer, or of the block
 with the caret while the editor has focus. Drag it to move the block; a line
-shows where it will land. Click or tap it, or press `Mod+/` in the text, for
+shows where it will land, before the block under the pointer or, past its
+middle, after it. Click or tap it, or press `Mod+/` in the text, for
 the block's menu: Move up, Move down, Duplicate, Turn into, Insert below,
 Copy link to block, and Delete. The menu opens beside the grip, headed by
 the block's type, with each action's keys, and the block takes the chosen
@@ -88,6 +89,12 @@ to undo, a moved block keeps its `blockId`, and a copy gets one of its own.
 - **Insert below** opens a line under the block with the insert menu.
 - **Copy link to block** copies the page's address with the block's
   `blockId` as its hash. Opening it scrolls the editor to the block.
+
+Press `Escape` to select the caret's block, then `Shift+ArrowUp` or
+`Shift+ArrowDown` to take in the blocks above or below. With several blocks
+selected, by these keys or by selecting text across them, the move,
+duplicate, and delete keys and the menu act on them all, and the menu is
+headed with how many, such as "3 blocks". An arrow key goes back to a caret.
 
 On a phone or a touch screen the grip shows beside the block you're typing
 in, with a 44px target, and its menu opens as a sheet from the bottom, with
@@ -124,9 +131,11 @@ the first and last blocks. Closing the menu puts focus back in the text.
 
 | Keys | Action |
 | --- | --- |
-| `Mod+/` | Open the menu for the block with the caret |
-| `Mod+Shift+ArrowUp`, `Mod+Shift+ArrowDown` | In the text, move the caret's block up or down |
-| `Mod+D` | In the text, duplicate the caret's block |
+| `Mod+/` | Open the menu for the block with the caret, or the selected blocks |
+| `Escape` | In the text, select the caret's block |
+| `Shift+ArrowUp`, `Shift+ArrowDown` | With blocks selected, take in the block above or below, or let one go |
+| `Mod+Shift+ArrowUp`, `Mod+Shift+ArrowDown` | In the text, move the caret's block, or the selected blocks, up or down |
+| `Mod+D` | In the text, duplicate the caret's block, or the selected blocks |
 | `ArrowDown`, `ArrowUp` | In the menu, move between actions |
 | `Enter` | Run the action |
 | `Delete`, `Backspace` | In the menu, delete its block |
