@@ -452,7 +452,11 @@ describe('Editor block handle', () => {
     await userEvent.click(await paragraph('Doors'))
 
     await userEvent.keyboard(`{${MOD}>}/{/${MOD}}`)
-    await screen.findByRole('menu')
+    const menu = await screen.findByRole('menu')
+    // Focus reaches the menu a little after it opens, in Firefox too.
+    await waitFor(() =>
+      expect(menu.contains(document.activeElement)).toBe(true)
+    )
     await userEvent.keyboard('{Escape}')
 
     await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
