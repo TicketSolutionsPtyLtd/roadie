@@ -13,6 +13,7 @@ import { embedAttrs } from './embedAttrs'
 import { headingLevel } from './headings'
 import { isSafeImageSrc } from './imageSrc'
 import {
+  BLOCK_ID,
   type NodeContent,
   type Preset,
   type PresetShape,
@@ -90,8 +91,9 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
   if (type === 'variable') {
     const fallback: unknown = attrs?.fallback
     return {
-      key: attrs?.key,
-      ...(typeof fallback === 'string' && fallback !== '' && { fallback })
+      key: variableKey(attrs),
+      ...(typeof fallback === 'string' &&
+        fallback.trim() !== '' && { fallback })
     }
   }
   if (type === 'embed') return embedAttrs(attrs) ?? undefined
@@ -113,6 +115,38 @@ function withRule(attrs: Record<string, unknown> | undefined, stored: unknown) {
   return showWhen ? { ...rest, showWhen } : rest
 }
 
+// An id that isn't a string, or is empty, is dropped, so the editor gives the
+// block a new one.
+function withBlockId(attrs: JSONContent['attrs'], stored: unknown) {
+  const kept = { ...attrs }
+  delete kept[BLOCK_ID]
+  const id = isObject(stored) ? stored[BLOCK_ID] : undefined
+  return typeof id === 'string' && id !== ''
+    ? { ...kept, [BLOCK_ID]: id }
+    : kept
+}
+
+// A repeated id would make two blocks one to drag or link to, so each block
+// after the first to use it loses it.
+function withoutRepeatedIds(
+  node: JSONContent,
+  seen = new Set<unknown>()
+): JSONContent {
+  const kept = { ...node }
+  const id: unknown = node.attrs?.[BLOCK_ID]
+  if (id !== undefined && seen.has(id)) {
+    const attrs = { ...node.attrs }
+    delete attrs[BLOCK_ID]
+    delete kept.attrs
+    if (Object.keys(attrs).length > 0) kept.attrs = attrs
+  }
+  seen.add(id)
+  if (node.content) {
+    kept.content = node.content.map((child) => withoutRepeatedIds(child, seen))
+  }
+  return kept
+}
+
 function isSafeNode(node: unknown, shape: PresetShape): node is JSONContent {
   if (!isObject(node)) return false
   const { type, attrs, text } = node as JSONContent
@@ -123,12 +157,14 @@ function isSafeNode(node: unknown, shape: PresetShape): node is JSONContent {
       : isSafeImageSrc(attrs?.src)
   }
   if (type === 'embed') return embedAttrs(attrs) !== null
-  if (type === 'variable') return isText(attrs?.key)
+  if (type === 'variable') return variableKey(attrs) !== ''
   return true
 }
 
-const isText = (value: unknown): value is string =>
-  typeof value === 'string' && value !== ''
+const variableKey = (attrs: Record<string, unknown> | undefined) => {
+  const key: unknown = attrs?.key
+  return typeof key === 'string' ? key.trim() : ''
+}
 
 // A doc is the root only, so one below it gives way to its blocks.
 function shapeOf({ type }: JSONContent, shape: PresetShape) {
@@ -198,6 +234,20 @@ function heldWithin(
   )
 }
 
+// A block straight in a list, which a list item holds when it can.
+function listItemOf(node: JSONContent, shape: PresetShape): JSONContent {
+  const holds = shape.nodes.listItem?.holds
+  const blocks = unwrapped(node)
+  return {
+    type: 'listItem',
+    content: paragraphFirst(
+      holds
+        ? blocks.flatMap((block) => heldWithin(block, holds, shape))
+        : blocks
+    )
+  }
+}
+
 function paragraphFirst(blocks: JSONContent[]) {
   return blocks[0]?.type === 'paragraph'
     ? blocks
@@ -264,9 +314,7 @@ function fitted(
   const blocks = paragraphsAround(nodes, shape)
   if (content === 'listItems') {
     return blocks.map((node) =>
-      node.type === 'listItem'
-        ? node
-        : { type: 'listItem', content: paragraphFirst(unwrapped(node)) }
+      node.type === 'listItem' ? node : listItemOf(node, shape)
     )
   }
   if (content === 'paragraphs') {
@@ -313,7 +361,10 @@ function cleaned(
   }
   const { type, text, marks, content, attrs: stored } = node
   const attrs = picked(
-    withRule(cleanedAttrs({ type, attrs: stored }), stored),
+    withBlockId(
+      withRule(cleanedAttrs({ type, attrs: stored }), stored),
+      stored
+    ),
     nodeShape.attrs
   )
   // Built from known keys, as the saved format keeps nothing else. Only
@@ -376,8 +427,10 @@ function cleaned(
  * empty. Keeps only the keys, attrs, and first of each mark the preset saves,
  * marks only on inline nodes and an ordered list's start only when whole,
  * starts every list item with a paragraph, drops a list or quote left empty,
- * and gives an empty doc one paragraph. Keeps only cells in a table's rows,
- * and only paragraphs in a cell, unwrapping other blocks to their text;
+ * and gives an empty doc one paragraph. Keeps a block's `blockId` only when
+ * it's a non-empty string no earlier block uses. Keeps only cells in a
+ * table's rows, and only paragraphs in a cell, unwrapping other blocks to
+ * their text;
  * keeps a cell's spans only when whole, positive and no more than HTML
  * allows (1,000 columns, 65,534 rows), gives an empty cell a paragraph, and
  * drops a row with no cells and a table with no rows.
@@ -422,7 +475,7 @@ export function migrate(
     shape,
     shape.nodes.doc
   )
-  return { version, preset, doc: cleanedDoc }
+  return { version, preset, doc: withoutRepeatedIds(cleanedDoc) }
 }
 
 export function createEmptyValue(preset: Preset): EditorValue {

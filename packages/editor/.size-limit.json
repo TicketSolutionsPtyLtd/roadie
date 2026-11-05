@@ -9,7 +9,7 @@
     "name": "render",
     "path": "dist/render/index.js",
     "import": "*",
-    "limit": "106 kB",
+    "limit": "108.5 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -35,7 +35,7 @@
     "name": "Editor (shell)",
     "path": "dist/Editor/index.js",
     "import": "*",
-    "limit": "22 kB",
+    "limit": "24.5 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -45,6 +45,7 @@
       "@tiptap/extension-heading",
       "@tiptap/extension-link",
       "@tiptap/extension-table",
+      "@tiptap/extension-unique-id",
       "@tiptap/extensions",
       "@tiptap/pm",
       "@tiptap/react",

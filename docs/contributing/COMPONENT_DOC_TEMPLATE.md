@@ -38,7 +38,7 @@ The skeleton contains:
 ## Live examples
 
 - A `tsx-live` fence renders when it comes within a screen of view, and shows a placeholder and its code until then. Add `-noinline` when the code calls `render()`, and `-expand` for a Full width button.
-- MDX pages render inside `.prose`, and each live example opts out with `data-not-prose`. A `.prose` inside that escape stays unstyled, so an example that demos `.prose` or `Prose` uses a `tsx-live-prose` fence, which escapes only its toolbar and code.
+- MDX pages render inside `.prose`, and each live example opts out with `data-not-prose`. A `.prose` or `Prose` inside that escape typesets its own content. An example of bare elements set by the page's Prose uses a `tsx-live-prose` fence, which escapes only its toolbar and code.
 - Each example on an MDX page also gets its own page at `/examples/<page>/<id>/`, opened from the button beside Copy. The id is the nearest heading's slug, with `-2`, `-3` for later examples under the same heading.
 - Fence meta after the language sets options: `id=orders` pins the id (lowercase kebab-case, unique on the page), so a link survives a heading rename; `eager` renders the example on load, for the rare one that must.
 - Layout options lay out the preview, while the code panel and Copy keep the fence as written ([decision 0011](../decisions/0011-fence-layout-options.md)). An unknown option or value fails the build.
@@ -108,7 +108,7 @@ import { Guideline, Guidelines } from '@/components/Guideline'
 
 ## `<PropsDefinitions>` usage
 
-- **Name the component**: `component='Badge'`, or several in order: `component={['Checkbox', 'CheckboxGroup']}`. A compound lists its parts after its root, one section each (`Fieldset`, `Fieldset.Legend`, …).
+- **Name the component**: `component='Badge'`, or several in order: `component={['Checkbox', 'CheckboxGroup']}`. Use one per page: its headings carry fixed ids (`api-reference`, `api-<part>`), so a second would repeat them. A compound lists its parts after its root, one section each (`Fieldset`, `Fieldset.Legend`, …).
 - **Props come from the package's `dist/roadie.manifest.json`**, which the package build generates (`packages/core/scripts/manifest/`). Rebuild the package to see a prop change; `pnpm dev` regenerates it on each rebuild. The docs build fails on a name no manifest lists.
 - **The manifest links each component to the page that names it**, so name every component a page documents.
 - **`className` rows**: the manifest drops a plain, undocumented `className: string` forwarded from `@types/react`, since every part accepts it along with its element's other HTML attributes; that's true everywhere and doesn't need its own row. It keeps a `className` a part documents with a real description, or types as a Base UI state function.

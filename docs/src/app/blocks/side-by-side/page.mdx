@@ -1,0 +1,266 @@
+export const metadata = {
+  title: 'Side by side',
+  description:
+    'One section with its own title, text, and buttons beside a photo or a few key numbers',
+  status: 'alpha',
+  category: 'Explain',
+  wideExamples: true
+}
+
+import { Guideline, Guidelines } from '@/components/Guideline'
+import { PropsDefinitions } from '@/components/PropsDefinitions'
+
+One section with its own title, text, and buttons beside a photo or a few key numbers. For three to six values or story steps that alternate sides, use [Alternating rows](/blocks/alternating-rows).
+
+## Import
+
+```tsx
+import { SideBySide } from '@oztix/roadie-blocks/side-by-side'
+```
+
+## Examples
+
+### Image then text
+
+A photo before the heading, text, and actions, cropped to 3 by 2. The text wraps
+below it on narrow screens.
+
+```tsx-live-expand id=image-start
+<SideBySide
+  preset='image-start'
+  title='Sell more tickets with your partners'
+  body={
+    <p>
+      List your events where your audience already spends time, and every sale
+      still lands in your Oztix reports.
+    </p>
+  }
+  actions={[{ label: 'Talk to us', href: '/contact' }]}
+  image={{
+    src: '/brand/photography/05.webp',
+    alt: 'Three partners smiling together at a laneway event',
+    width: 1280,
+    height: 854
+  }}
+/>
+```
+
+### Text then image
+
+`image-end` sets the photo after the text on wide screens, and still above it
+on phones. Stack Side by sides that switch between `image-start` and
+`image-end` for a page of feature sections, each with its own heading and
+actions.
+
+```tsx-live-expand id=image-end
+<SideBySide
+  preset='image-end'
+  title='Your shows, next to the music'
+  body={
+    <p>
+      Your events turn up on artist profiles, in front of fans already
+      streaming the artist.
+    </p>
+  }
+  actions={[{ label: 'List your event', href: '/create' }]}
+  image={{
+    src: '/brand/photography/04.webp',
+    alt: 'A staff member in a blue vest scanning a ticket on a phone at an event entry',
+    width: 1280,
+    height: 1007
+  }}
+/>
+```
+
+### Ratio
+
+`ratio` sets the photo's shape in `image-start` and `image-end`: `landscape`
+(3 by 2) by default, `square`, `banner` (2 by 1), `portrait` (3 by 4), or
+`story` (9 by 16). The photo fills its
+shape, so pick the ratio that keeps the subject in frame.
+
+```tsx-live-expand id=ratio
+<SideBySide
+  preset='image-start'
+  ratio='square'
+  title='Sell more tickets with your partners'
+  body={
+    <p>
+      List your events where your audience already spends time, and every sale
+      still lands in your Oztix reports.
+    </p>
+  }
+  actions={[{ label: 'Talk to us', href: '/contact' }]}
+  image={{
+    src: '/brand/photography/05.webp',
+    alt: 'Three partners smiling together at a laneway event',
+    width: 1280,
+    height: 854
+  }}
+/>
+```
+
+### Text and stats
+
+`stats` sets long-form text at a readable measure, with the numbers that back
+it up beside it. The stats wrap below the text on narrow screens, and draw the
+same way as the [Stats](/blocks/stats) block.
+
+```tsx-live-expand id=text-and-stats
+<SideBySide
+  preset='stats'
+  title='Who we are'
+  body={
+    <>
+      <h3>Australia's largest independent ticketing company</h3>
+      <p>
+        For over 20 years, we've partnered with event organisers to deliver
+        tickets across music, venues, shows, sports, and government events
+        nationwide.
+      </p>
+      <h3>Australian owned and operated</h3>
+      <p>
+        Our headquarters are in Brisbane, and our platform is hosted in
+        Australia, built and improved in-house by our full-time team.
+      </p>
+    </>
+  }
+  actions={[{ label: 'Meet the team', href: '/about' }]}
+  stats={{
+    title: 'By the numbers',
+    description: 'The impact of genuine partnerships',
+    figures: [
+      { value: '33,000,000+', label: 'tickets sold', illustration: 'Ticket' },
+      { value: '22,000+', label: 'event organisers', illustration: 'MapPin' },
+      { value: '20+', label: 'years in ticketing', illustration: 'Heart' },
+      { value: '50+', label: 'full-time team', illustration: 'HighFive' }
+    ]
+  }}
+/>
+```
+
+### Intent and emphasis
+
+`intent` colours the highlights and actions. `emphasis` sets the surface
+behind the block: `subtle`, `subtler`, `normal`, `raised`, `strong`, or
+`inverted`. On a surface, the title takes the intent and the rest of the text
+stays neutral. On `strong` or `inverted`, all of it takes the fill's own colour. Side by side draws its
+surface as a panel inside the page's padding.
+
+```tsx-live-expand id=intent-and-emphasis layout=stack gap=8
+{/* Brand, subtle panel */}
+<SideBySide
+  preset='image-start'
+  intent='brand'
+  emphasis='subtle'
+  title='Sell more tickets with your partners'
+  highlight='more tickets'
+  body={<p>List your events where your audience already spends time.</p>}
+  actions={[{ label: 'Talk to us', href: '/contact' }]}
+  image={{
+    src: '/brand/photography/05.webp',
+    alt: 'Three partners smiling together at a laneway event',
+    width: 1280,
+    height: 854
+  }}
+/>
+{/* Success, normal panel */}
+<SideBySide
+  preset='image-end'
+  intent='success'
+  emphasis='normal'
+  title='Payouts that arrive on time'
+  highlight='on time'
+  body={<p>Settlement starts once your event ends, and lands within days.</p>}
+  image={{
+    src: '/brand/photography/03.webp',
+    alt: 'Two team members working together at a desk with large monitors',
+    width: 1280,
+    height: 1007
+  }}
+/>
+```
+
+### Align, size, and contained
+
+`size='md'` or `'sm'` sets the title one or two steps smaller and the text a
+step smaller, and tightens the gaps. Beside a photo, it narrows the photo to two fifths or a third of the
+width, without changing its shape. `align` centres the heading, text, and actions, and
+`contained={false}` runs a surface full width as a band.
+
+```tsx-live-expand id=align-size-contained layout=stack gap=8
+{/* Medium, subtle info panel */}
+<SideBySide
+  preset='image-start'
+  size='md'
+  intent='info'
+  emphasis='subtle'
+  title='Specialist teams powering venues and event organisers'
+  description='Behind our leadership are teams in innovation, operations, marketing, events, content, and finance, all working to deliver on our partnership promise.'
+  image={{
+    src: '/brand/photography/03.webp',
+    alt: 'Two team members working together at a desk with large monitors',
+    width: 1280,
+    height: 1007
+  }}
+/>
+{/* Centred, subtler band */}
+<SideBySide
+  preset='image-start'
+  align='center'
+  emphasis='subtler'
+  contained={false}
+  title='Talk to our partnerships team'
+  body={<p>Tell us about your venue or event, and we'll take it from there.</p>}
+  actions={[{ label: 'Talk to us', href: '/contact' }]}
+/>
+```
+
+## Guidelines
+
+<Guidelines>
+
+<Guideline title='Answer first'>
+  <Guideline.Do>
+    Open the text with a sentence that answers the page's question, such as what the partnership lets someone do, then back it up.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't open with why the partnership matters to us before saying what it does.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Pick the preset for the content'>
+  <Guideline.Do>
+    Use an image for a section beside a photo, at `md` for a short point the photo shows, and stats for an about page with three to six numbers that prove it. For three to six values or story steps that need a sentence or two each, use [Alternating rows](/blocks/alternating-rows).
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't open a page with Side by side. Use [Hero](/blocks/hero), whose `partner` preset opens a page about one partner.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Write stats as they should read'>
+  <Guideline.Do>
+    Round each value and write it as it reads, such as `7 million+`, with a label that says what it counts.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't add an illustration that doesn't match its label.
+  </Guideline.Dont>
+</Guideline>
+
+<Guideline title='Keep the defaults unless the page needs a change of pace'>
+  <Guideline.Do>
+    Set an intent to match the page's brand or a campaign, or a panel to separate a section from the ones around it.
+  </Guideline.Do>
+  <Guideline.Dont>
+    Don't put every Side by side on a panel, or give neighbouring blocks different intents. Each change loses its point when everything changes.
+  </Guideline.Dont>
+</Guideline>
+
+</Guidelines>
+
+## Tracking
+
+Side by side reports a view once it's half on screen, and a click on each action,
+with its preset and position.
+
+<PropsDefinitions component='SideBySide' />

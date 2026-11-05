@@ -40,31 +40,35 @@ export const sortsByOrder = (column: TableColumn) =>
     (option) => option.order !== undefined
   )
 
-export const sortValue = (column: TableColumn, cell: TableCell | undefined) => {
-  if (column.kind === 'status') {
-    if (cell === null || cell === undefined || cell === '') return undefined
-    const { label, order } = columnStatus(column, String(cell))
-    // Undefined, so keys without an order sit last whichever way it runs.
-    if (sortsByOrder(column)) return order
-    return label
+/** How a column's cells sort, with the status map read once per column. */
+export const sortValueOf = (column: TableColumn) => {
+  const byOrder = sortsByOrder(column)
+  return (cell: TableCell | undefined) => {
+    if (column.kind === 'status') {
+      if (cell === null || cell === undefined || cell === '') return undefined
+      const { label, order } = columnStatus(column, String(cell))
+      // Undefined, so keys without an order sit last whichever way it runs.
+      return byOrder ? order : label
+    }
+    if (column.kind === 'text')
+      return cell === null || cell === undefined || cell === ''
+        ? undefined
+        : String(cell)
+    return typeof cell === 'number' && Number.isFinite(cell) ? cell : undefined
   }
-  if (column.kind === 'text')
-    return cell === null || cell === undefined || cell === ''
-      ? undefined
-      : String(cell)
-  return typeof cell === 'number' && Number.isFinite(cell) ? cell : undefined
 }
 
 export function sortedRowOrder(
   rows: readonly TableRow[],
   columns: readonly TableColumn[],
-  sort: DataTableSort | undefined
+  sort: DataTableSort | null | undefined
 ): number[] {
   const order = rows.map((_, index) => index)
   const column = columns.find((candidate) => candidate.key === sort?.key)
   if (!sort || !column || !isSortableColumn(column)) return order
 
-  const values = rows.map((row) => sortValue(column, cellOf(row, column.key)))
+  const sortValue = sortValueOf(column)
+  const values = rows.map((row) => sortValue(cellOf(row, column.key)))
   const sign = sort.direction === 'ascending' ? 1 : -1
   return order.sort((a, b) => {
     const left = values[a]
@@ -84,5 +88,5 @@ export function sortedRowOrder(
 export const sortDataTableRows = <Row extends TableRow>(
   rows: readonly Row[],
   columns: readonly TableColumn[],
-  sort: DataTableSort | undefined
+  sort: DataTableSort | null | undefined
 ): Row[] => sortedRowOrder(rows, columns, sort).map((index) => rows[index]!)

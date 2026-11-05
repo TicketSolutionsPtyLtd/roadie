@@ -209,7 +209,7 @@ describe('renderEmail', () => {
     expect(html).toContain(`background-color:${defaultEmailTheme.background}`)
     expect(plain).toBe(
       [
-        'OCHRE KITE WEEKENDER',
+        'Ochre Kite Weekender',
         '',
         'Doors open 7pm at Jumbuck Orchard Park',
         `[${tickets}].`,
@@ -273,6 +273,18 @@ describe('renderEmail', () => {
       expect(html).toContain('Go &lt;b&gt;')
     })
 
+    it('writes an ordered list’s start and type only when valid', async () => {
+      const { html } = await renderEmail(
+        email({
+          type: 'orderedList',
+          attrs: { start: '2"><script>x</script>', type: '"><script>x' },
+          content: [{ type: 'listItem', content: [p(text('Food trucks'))] }]
+        })
+      )
+      expect(html).not.toContain('<script>')
+      expect(html).toContain('<ol style=')
+    })
+
     it('drops a node the email preset doesn’t hold, keeping its text', async () => {
       const { html, text: plain } = await renderEmail(
         email(
@@ -300,6 +312,32 @@ describe('renderEmail', () => {
         })
       ).rejects.toThrow(TypeError)
     })
+  })
+
+  it('links no web font, even for a font MJML knows', async () => {
+    const { html } = await renderEmail(email(p(text('Hi'))), {
+      theme: { fontFamily: 'Roboto, Arial, sans-serif' }
+    })
+    expect(html).toContain('font-family:Roboto, Arial, sans-serif')
+    expect(html).not.toContain('fonts.googleapis.com')
+  })
+
+  it('keeps a heading’s case in the plain text, around a merge tag', async () => {
+    const { text: plain } = await renderEmail(
+      email({
+        type: 'heading',
+        attrs: { level: 2 },
+        content: [
+          text('See you soon, '),
+          { type: 'variable', attrs: { key: 'first_name' } }
+        ]
+      }),
+      {
+        variables: [{ key: 'first_name', label: 'First name', tokens: {} }],
+        values: { first_name: 'Ash' }
+      }
+    )
+    expect(plain).toBe('See you soon, Ash')
   })
 
   it('starts and ends the plain text at its words', async () => {
@@ -333,7 +371,7 @@ describe('renderEmail', () => {
     expect(html).toContain('<h2 ')
     expect(html).not.toContain('<blockquote')
     expect(html).not.toContain('<img')
-    expect(plain).toBe('LINEUP\n\nBest weekend of the year.')
+    expect(plain).toBe('Lineup\n\nBest weekend of the year.')
   })
 
   describe('merge tags', () => {
@@ -427,6 +465,67 @@ describe('renderEmail', () => {
       expect(plain).not.toContain('{{')
       expect(plain).not.toContain('#Code#')
       expect(plain.replaceAll('​', '')).toBe('Hi {{ secret }} #Code#!')
+    })
+
+    it.each([
+      ['ae', '#VIP', '#', '#FirstName#', ['#VIP#', '##']],
+      ['liquid', '{', '}', '{{ customer.first_name }}', ['{{{', '}}}']]
+    ] as const)(
+      'keeps typed %s token characters beside a variable from joining its token in the plain text',
+      async (syntax, before, after, token, joined) => {
+        const { text: plain } = await renderEmail(
+          email(p(text(`Hi ${before}`), tag('first_name'), text(after))),
+          { syntax, variables }
+        )
+        expect(plain).toContain(token)
+        for (const run of joined) expect(plain).not.toContain(run)
+        expect(plain.replaceAll('​', '')).toBe(`Hi ${before}${token}${after}`)
+      }
+    )
+
+    it.each([
+      ['ae', '{', '%', 'Hi {#FirstName#%'],
+      ['liquid', '#', '%', 'Hi #{{ customer.first_name }}%']
+    ] as const)(
+      'leaves characters beside a variable that %s doesn’t read as a token as typed',
+      async (syntax, before, after, written) => {
+        const { text: plain } = await renderEmail(
+          email(p(text(`Hi ${before}`), tag('first_name'), text(after))),
+          { syntax, variables }
+        )
+        expect(plain).toBe(written)
+      }
+    )
+
+    it('keeps typed token characters beside a preview’s value from making a token of it', async () => {
+      const { text: plain } = await renderEmail(
+        email(p(text('Hi #'), tag('first_name'), text('#'))),
+        { syntax: 'liquid', variables, values: { first_name: 'Code' } }
+      )
+      expect(plain).not.toContain('#Code#')
+      expect(plain.replaceAll('​', '')).toBe('Hi #Code#')
+    })
+
+    it('keeps a fallback with quotes and braces inside its Liquid default in the plain text', async () => {
+      const { text: plain } = await renderEmail(greeting(`"Mate's" }} {{ x`), {
+        syntax: 'liquid',
+        variables
+      })
+      expect(plain).toBe(
+        `Hi {{ customer.first_name | default: '"Mate’s" }​} {​{ x' }}!`
+      )
+    })
+
+    it('gives a Liquid token of more than one output no default', async () => {
+      const both = '{{ customer.first_name }} {{ customer.last_name }}'
+      const { html, text: plain } = await renderEmail(greeting('there'), {
+        syntax: 'liquid',
+        variables: [
+          { key: 'first_name', label: 'Name', tokens: { liquid: both } }
+        ]
+      })
+      expect(html).toContain(`Hi ${both}!`)
+      expect(plain).toBe(`Hi ${both}!`)
     })
 
     it('keeps a Liquid token’s whitespace control around its default', async () => {

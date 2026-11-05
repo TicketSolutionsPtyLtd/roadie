@@ -6,26 +6,28 @@
  * the words, the rules supply the shape.
  */
 
+import { intlFormatter } from '../utils/intlCache'
+
 export type DateContext = 'standalone' | 'list'
 
 /**
  * How much of the date is spelled out. Each step drops one thing.
  *
  * - `full`   Friday, 27 November 2026
- * - `long`   Fri 27 Nov 2026 — the default
- * - `medium` 27 Nov 2026 — drops the weekday
- * - `short`  27 Nov — never carries a year
- * - `iso`    2026-11-27 — exports and filenames, never shown to a customer
+ * - `long`   Fri 27 Nov 2026 (the default)
+ * - `medium` 27 Nov 2026 (drops the weekday)
+ * - `short`  27 Nov (never carries a year)
+ * - `iso`    2026-11-27 (exports and filenames, never shown to a customer)
  */
 export type DateStyle = 'full' | 'long' | 'medium' | 'short' | 'iso'
 
 /**
  * The same ladder as `DateStyle`. Omit for no time at all.
  *
- * - `long`    7:30pm AEDT — the reader may be in another zone
- * - `medium`  7:30pm — the default, drops the zone
- * - `short`   7:30pm, 7pm — drops the zero minutes
- * - `numeric` 19:30 — data contexts only, never prose
+ * - `long`    7:30pm AEDT (the reader may be in another zone)
+ * - `medium`  7:30pm (the default, drops the zone)
+ * - `short`   7:30pm, 7pm (drops the zero minutes)
+ * - `numeric` 19:30 (data contexts only, never prose)
  */
 export type TimeStyle = 'long' | 'medium' | 'short' | 'numeric'
 
@@ -39,16 +41,32 @@ export type TimeStyle = 'long' | 'medium' | 'short' | 'numeric'
  */
 export type Instantish = Date | { epochMilliseconds: number }
 
-/**
- * The zone the reader is sitting in. For a timestamp only: an event time
- * belongs to its venue, so pass the venue's zone instead.
- */
-export function viewerTimeZone(): string {
+const year = new Date().getUTCFullYear()
+const january = new Date(Date.UTC(year, 0, 1))
+const july = new Date(Date.UTC(year, 6, 1))
+
+let viewerZone: { offsets: string; zone: string } | undefined
+
+function resolvedZone() {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
   } catch {
     return 'UTC'
   }
+}
+
+/**
+ * The zone the reader is sitting in. For a timestamp only: an event time
+ * belongs to its venue, so pass the venue's zone instead.
+ */
+export function viewerTimeZone(): string {
+  // A formatter costs more than each date a table renders, so ask again only
+  // when an offset moves. January and July tell apart most zones that share
+  // today's; a switch between two that agree on all three goes unseen.
+  const offsets = `${new Date().getTimezoneOffset()} ${january.getTimezoneOffset()} ${july.getTimezoneOffset()}`
+  if (viewerZone?.offsets === offsets) return viewerZone.zone
+  viewerZone = { offsets, zone: resolvedZone() }
+  return viewerZone.zone
 }
 
 export type FormatOptions = {
@@ -78,7 +96,7 @@ export type FormatOptions = {
   showYear?: boolean
 }
 
-const DEFAULT_LOCALE = 'en-AU'
+export const DEFAULT_LOCALE = 'en-AU'
 const DEFAULT_DATE_STYLE: DateStyle = 'long'
 
 /**
@@ -122,36 +140,13 @@ function trimAbbreviation(value: string): string {
   return value.replace(/\.$/, '')
 }
 
-// Keyed by the constructor too, so a replaced Intl.DateTimeFormat (a polyfill,
-// a test double) never serves formatters built by the old one.
-const formatters = new WeakMap<object, Map<string, Intl.DateTimeFormat>>()
-
-// Locale and time zone come from callers, so the cache drops its oldest
-// formatter rather than grow for the life of the process.
-const MAX_FORMATTERS = 200
-
 // Building a formatter costs far more than formatting with one, and a table
 // formats hundreds of values with the same few option sets.
 export function dateTimeFormat(
   locale: string,
   options: Intl.DateTimeFormatOptions
 ): Intl.DateTimeFormat {
-  const Format = Intl.DateTimeFormat
-  let cache = formatters.get(Format)
-  if (!cache) {
-    cache = new Map()
-    formatters.set(Format, cache)
-  }
-  const key = `${locale}|${JSON.stringify(options)}`
-  let formatter = cache.get(key)
-  if (!formatter) {
-    formatter = new Format(locale, options)
-    if (cache.size >= MAX_FORMATTERS) {
-      cache.delete(cache.keys().next().value as string)
-    }
-    cache.set(key, formatter)
-  }
-  return formatter
+  return intlFormatter(Intl.DateTimeFormat, locale, options)
 }
 
 function zoneParts(
@@ -162,17 +157,27 @@ function zoneParts(
   const date = toDate(value)
   if (Number.isNaN(date.getTime())) return null
   try {
-    const long = dateTimeFormat(locale, {
-      timeZone,
-      weekday: 'long',
-      month: 'long'
-    }).formatToParts(date)
-
-    const short = dateTimeFormat(locale, {
-      timeZone,
-      weekday: 'short',
-      month: 'short'
-    }).formatToParts(date)
+    // Gregorian, so the names match the day and year read below (fa and ps
+    // default to the Persian calendar).
+    const words = (options: Intl.DateTimeFormatOptions) =>
+      dateTimeFormat(locale, { timeZone, calendar: 'gregory', ...options })
+    const long = words({ weekday: 'long' }).formatToParts(date)
+    const short = words({ weekday: 'short' }).formatToParts(date)
+    // A month on its own: the standalone form, and ja's 月, which Intl puts
+    // in a literal after the month. dz's literal before it would double the
+    // long name's prefix.
+    const month = (style: 'long' | 'short') => {
+      const parts = words({ month: style }).formatToParts(date)
+      const at = parts.findIndex((p) => p.type === 'month')
+      return at < 0
+        ? ''
+        : parts
+            .slice(at)
+            .map((p) => p.value)
+            .join('')
+    }
+    const monthLong = month('long')
+    const monthShort = month('short')
 
     // Latin digits. Reading numbers from the localised pass yields '٢٧' under
     // ar-EG, which Number() turns into NaN.
@@ -204,8 +209,8 @@ function zoneParts(
       weekdayLong: pick(long, 'weekday'),
       weekdayShort: trimAbbreviation(pick(short, 'weekday')),
       day,
-      monthLong: pick(long, 'month'),
-      monthShort: trimAbbreviation(pick(short, 'month')),
+      monthLong,
+      monthShort: trimAbbreviation(monthShort),
       monthNumber,
       year,
       hour,
@@ -662,7 +667,9 @@ export function formatRelative(
 
   try {
     // 'auto' is what turns -1 day into 'yesterday' rather than '1 day ago'.
-    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+    const rtf = intlFormatter(Intl.RelativeTimeFormat, locale, {
+      numeric: 'auto'
+    })
     const magnitude = Math.abs(elapsed)
     const [unit, ms]: [Intl.RelativeTimeFormatUnit, number] =
       magnitude < HOUR

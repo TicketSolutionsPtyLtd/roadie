@@ -16,6 +16,7 @@ export const RELEASED_PACKAGES = [
   { name: '@oztix/roadie-core', label: 'Core', dir: 'core' },
   { name: '@oztix/roadie-charts', label: 'Charts', dir: 'charts' },
   { name: '@oztix/roadie-editor', label: 'Editor', dir: 'editor' },
+  { name: '@oztix/roadie-blocks', label: 'Blocks', dir: 'blocks' },
   { name: '@oztix/roadie-widgets', label: 'Widgets', dir: 'widgets' },
   {
     name: '@oztix/roadie-lint-plugin',
@@ -64,8 +65,10 @@ export type PackageVersion = {
 }
 
 export type Release = {
-  /** Unique: the release's anchor on the changelog and its own page's slug. */
+  /** Unique: the release's anchor on the changelog and its own page's slug, its UTC date when it has one. */
   id: string
+  /** The package-named slug, such as `components-2-15-0`, that old links still use. */
+  legacyId?: string
   /** `YYYY-MM-DD` in UTC, or null when the checkout has no history to date it. */
   date: string | null
   /** The versioning commit's Unix time, or null without history. */
@@ -288,12 +291,26 @@ const PACKAGE_ORDER = new Map<string, number>(
 
 const orderOf = (name: string) => PACKAGE_ORDER.get(name) ?? Infinity
 
-/** A release's slug, from the first package it versions, such as `components-2-15-0`. */
+/** A release's slug from its first package, such as `components-2-15-0`, for a release with no date and for old links. */
 export function releaseSlug(packages: { name: string; version: string }[]) {
   const [lead] = [...packages].sort((a, b) => orderOf(a.name) - orderOf(b.name))
   if (!lead) return 'release'
   const dir = packageOf(lead.name)?.dir ?? lead.name.replace(/\W+/g, '-')
   return `${dir}-${lead.version.replace(/[^\w]+/g, '-')}`
+}
+
+// Numbered oldest first within a day, so a later release never renames an earlier one.
+function datedSlugs(newestFirst: { date: string | null }[]) {
+  const seen = new Map<string, number>()
+  const ids: (string | undefined)[] = []
+  for (let at = newestFirst.length - 1; at >= 0; at--) {
+    const { date } = newestFirst[at]!
+    if (date === null) continue
+    const n = (seen.get(date) ?? 0) + 1
+    seen.set(date, n)
+    ids[at] = n === 1 ? date : `${date}-${n}`
+  }
+  return ids
 }
 
 /**
@@ -342,21 +359,24 @@ export function groupReleases(
     })
   }
   const slugs = new Set<string>()
-  return [...groups.values()]
-    .sort((a, b) => b.time - a.time)
-    .map(({ date, time, packages, entries }) => {
-      packages.sort((a, b) => orderOf(a.name) - orderOf(b.name))
-      let id = releaseSlug(packages)
-      for (let n = 2; slugs.has(id); n++) id = `${releaseSlug(packages)}-${n}`
-      slugs.add(id)
-      return {
-        id,
-        date,
-        time: date === null ? null : time,
-        packages,
-        changes: mergeEntries(entries).map((entry) => toChange(entry, index))
-      }
-    })
+  const newestFirst = [...groups.values()].sort((a, b) => b.time - a.time)
+  const datedIds = datedSlugs(newestFirst)
+  return newestFirst.map(({ date, time, packages, entries }, at) => {
+    packages.sort((a, b) => orderOf(a.name) - orderOf(b.name))
+    let packageId = releaseSlug(packages)
+    for (let n = 2; slugs.has(packageId); n++)
+      packageId = `${releaseSlug(packages)}-${n}`
+    slugs.add(packageId)
+    const id = datedIds[at] ?? packageId
+    return {
+      id,
+      ...(id !== packageId && { legacyId: packageId }),
+      date,
+      time: date === null ? null : time,
+      packages,
+      changes: mergeEntries(entries).map((entry) => toChange(entry, index))
+    }
+  })
 }
 
 /** What the pending changesets will release, limited to the packages the changelog follows. */
@@ -701,6 +721,8 @@ export type Headline = { title: string; summary: string }
 export type ReleaseView = {
   /** The release's anchor on the changelog and the last segment of its own page. */
   slug: string
+  /** The package-named slug old links use, which redirects here. */
+  legacySlug?: string
   /** Its own page. */
   href: string
   /** `YYYY-MM-DD` in UTC, or null when pending or undated. */
@@ -765,6 +787,39 @@ export function ownPage(name: string, index: PageIndex): PageLink | undefined {
 const ADDS = /^(?:Add|Adds|Added|Introduces?|New)\s+(?:the\s+)?/
 
 /**
+ * What can follow the names a change opens with while they stay its subject:
+ * the end, punctuation, "component", "compound", "for", or where they go.
+ * Anything else, such as "`tag` variant", "support for", or "icons", names a
+ * part of them.
+ */
+const ENDS_NAMING = /^(?:$|[,.:;—(]|(?:component|compound|for)\b|(?:to|in)\s+`)/
+
+/**
+ * The names a phrase opens with, such as "`DateField` (`…/date-field`) and
+ * `TimeField`", past their import paths, and what it says after them, or
+ * nothing when what follows names a part of them.
+ */
+export function openingNames(
+  text: string
+): { names: string[]; rest: string } | null {
+  const names: string[] = []
+  let rest = text
+  for (;;) {
+    const code = rest.match(/^`([^`\n]+)`/)
+    if (!code) break
+    names.push(code[1]!.trim())
+    rest = rest
+      .slice(code[0].length)
+      .replace(/^\s*(?:\(`[^`]+`\)|(?:at|from)\s+`[^`]+`)/, '')
+    const separator = rest.match(/^(?:,\s*and\s+|\s+and\s+|,\s*)(?=`)/)
+    if (!separator) break
+    rest = rest.slice(separator[0].length)
+  }
+  rest = rest.trim()
+  return names.length > 0 && ENDS_NAMING.test(rest) ? { names, rest } : null
+}
+
+/**
  * The pages of what a change adds, when it opens by naming them, such as
  * "Add `DateField` (`…/date-field`) and `TimeField`, typed fields", and what
  * it says after the names.
@@ -774,22 +829,15 @@ export function addedPages(
   index: PageIndex
 ): { pages: PageLink[]; rest: string } | null {
   const lead = summary.match(ADDS)
-  if (!lead) return null
-  let rest = summary.slice(lead[0].length)
+  const opening = lead && openingNames(summary.slice(lead[0].length))
+  if (!opening) return null
   const pages: PageLink[] = []
-  for (;;) {
-    const code = rest.match(/^`([^`\n]+)`/)
-    if (!code) break
-    const page = ownPage(code[1]!.trim(), index)
+  for (const name of opening.names) {
+    const page = ownPage(name, index)
     if (!page) return null
     if (!pages.some((known) => known.href === page.href)) pages.push(page)
-    rest = rest.slice(code[0].length)
-    rest = rest.replace(/^\s*(?:\(`[^`]+`\)|(?:at|from)\s+`[^`]+`)/, '')
-    const separator = rest.match(/^(?:,\s*and\s+|\s+and\s+|,\s*)(?=`)/)
-    if (!separator) break
-    rest = rest.slice(separator[0].length)
   }
-  return pages.length > 0 ? { pages, rest: rest.trim() } : null
+  return { pages, rest: opening.rest }
 }
 
 export const plainText = (inline: Inline) =>
@@ -806,7 +854,7 @@ export type PageInfo = (
   route: string
 ) => { title: string; description?: string } | undefined
 
-const ART_ROUTE = /^\/(components|charts|foundations)\/[\w-]+$/
+const ART_ROUTE = /^\/(components|charts|blocks|foundations)\/[\w-]+$/
 
 const artOf = (href: string | undefined) => {
   const route = href?.split('#')[0]
@@ -822,6 +870,7 @@ const keysOf = (names: string[]) =>
 /** The page that introduces a package with no component page of its own. */
 export const PACKAGE_PAGES: Record<string, string> = {
   '@oztix/roadie-editor': '/components/editor',
+  '@oztix/roadie-blocks': '/blocks',
   '@oztix/roadie-lint-plugin': '/overview/linting'
 }
 
@@ -940,6 +989,12 @@ function busiestPages(items: ReleaseItem[]) {
   return [...counts].sort((a, b) => b[1] - a[1]).map(([title]) => title)
 }
 
+// A production bump needs a changeset, written as "Update `pkg` to 3.14.22" or "Update Tiptap to 3.32.1".
+const DEPENDENCY_BUMP = /^(?:Update|Bump|Upgrade) \S+ to v?\d+\.\d+/
+
+const isDependencyBump = (item: ReleaseItem) =>
+  DEPENDENCY_BUMP.test(plainText(item.text))
+
 /** A title from the highlights, then the pages the other changes touch most. */
 export function releaseTitle(cards: ReleaseCard[], items: ReleaseItem[]) {
   const names = [
@@ -957,8 +1012,9 @@ export function releaseTitle(cards: ReleaseCard[], items: ReleaseItem[]) {
     return andList(more ? [...shown, 'more'] : shown)
   }
   if (pages.length > 0) return `Updates to ${named(pages)}`
-  if (cards.length > 0 && items.length === 0) return GENERIC_BREAKING
-  if (items.length === 0) return 'Dependency updates'
+  const onlyBumps = items.every(isDependencyBump)
+  if (cards.length > 0 && onlyBumps) return GENERIC_BREAKING
+  if (onlyBumps) return 'Dependency updates'
   // A lone change's opening words, such as "Add a date and time standard".
   const [lone] = items
   const opening = lone?.text[0]
@@ -1131,6 +1187,7 @@ const headline = (cards: ReleaseCard[], items: ReleaseItem[]): Headline => ({
 export function toReleaseView(
   release: {
     slug: string
+    legacySlug?: string
     date: string | null
     pending: boolean
     versions: ReleaseVersion[]
@@ -1178,6 +1235,7 @@ export function toReleaseView(
     )
   return {
     slug: release.slug,
+    ...(release.legacySlug && { legacySlug: release.legacySlug }),
     href: `${CHANGELOG_ROUTE}/${release.slug}`,
     date: release.date,
     pending: release.pending,
@@ -1466,6 +1524,7 @@ export function views(
       toReleaseView(
         {
           slug: release.id,
+          legacySlug: release.legacyId,
           date: release.date,
           pending: false,
           versions: release.packages.flatMap(
@@ -1486,6 +1545,16 @@ export function views(
         `${file} names no released version. Name it after a version in the release, such as components-2.15.0.md.`
       )
   return result
+}
+
+/** Each release page, plus each old slug with the page it now redirects to. */
+export function releaseRoutes(
+  releases: ReleaseView[]
+): { slug: string; movedTo?: string }[] {
+  return releases.flatMap(({ slug, legacySlug, href }) => [
+    { slug },
+    ...(legacySlug ? [{ slug: legacySlug, movedTo: href }] : [])
+  ])
 }
 
 let releaseViews: ReleaseView[] | undefined

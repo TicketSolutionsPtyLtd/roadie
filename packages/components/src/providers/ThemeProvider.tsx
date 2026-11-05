@@ -192,7 +192,7 @@ export function getAccentStyleSync(accentHex: string): string {
 /**
  * Synchronous variant of `getAccentStyleTag` for pre-hydration bootstrap.
  *
- * Writes only `--accent-hue` and `--accent-chroma` — the two CSS custom
+ * Writes only `--accent-hue` and `--accent-chroma`, the two CSS custom
  * properties Roadie's OKLCH curves read. Modern browsers (Chrome 111+,
  * Safari 15.4+, Firefox 113+) support `oklch()` and get zero-flash
  * theming via this path. Non-OKLCH browsers continue to resolve the
@@ -261,7 +261,7 @@ function storeTheme(dark: boolean) {
 
 /**
  * Dev-mode check that works across consumer bundlers (Next.js, Vite,
- * Webpack, Rollup). See `CarouselRoot.tsx` for the full rationale —
+ * Webpack, Rollup). See `CarouselRoot.tsx` for the full rationale:
  * `process.env.NODE_ENV` is replaced at build time by every mainstream
  * bundler, and the `typeof process` guard covers runtimes that haven't
  * shimmed `process` on the client.
@@ -378,7 +378,7 @@ export function ThemeProvider({
     return () => mq.removeEventListener('change', handler)
   }, [followSystem])
 
-  // Explicit toggle — persists to localStorage and applies to DOM
+  // Explicit toggle: persists to localStorage and applies to DOM
   const setDark = React.useCallback((dark: boolean) => {
     applyDark(dark)
     storeTheme(dark)

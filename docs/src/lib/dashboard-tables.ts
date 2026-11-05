@@ -21,7 +21,7 @@ const CHART_LABEL_SIZES: (keyof typeof CHART_LABEL_LIMITS)[] = [
   'full'
 ]
 
-/** Label and context lengths for stat and `md` cards, from `COPY_LIMITS`. */
+/** Label and context lengths for stat cards and `md` table and note cards, from `COPY_LIMITS`. */
 export const copyLimitsTable = (): TwinTable => ({
   head: ['Size', 'Label', 'Context'],
   rows: LIMIT_SIZES.map((size) => [

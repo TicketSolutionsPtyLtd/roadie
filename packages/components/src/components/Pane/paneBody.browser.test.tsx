@@ -1,8 +1,9 @@
-import { cleanup, render } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
 import { Pane } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
+import { Drawer } from '../Drawer'
 import { useStylesheet } from './testUtils'
 
 let removeStylesheet = () => {}
@@ -138,6 +139,90 @@ describe('Pane sticky bottom', () => {
     expect(footer.offsetHeight).toBeGreaterThan(0)
     rerender(<Body footer={false} />)
     await expect.poll(inset).toBe('0px')
+  })
+})
+
+describe('Pane sticky bottom with more than one pane or footer', () => {
+  const insetOf = (viewport: Element) =>
+    getComputedStyle(viewport).getPropertyValue('--pane-sticky-bottom').trim()
+  const heightOf = (footer: Element) =>
+    `${(footer as HTMLElement).offsetHeight}px`
+
+  it('leaves a nested pane without a footer clear of its parent’s', async () => {
+    const { container } = render(
+      <div style={{ width: 600, height: 500, display: 'grid' }}>
+        <Pane>
+          <Pane.Body>
+            <div style={{ height: 300, display: 'grid' }}>
+              <Pane>
+                <Pane.Body>
+                  <p>Nested</p>
+                </Pane.Body>
+              </Pane>
+            </div>
+          </Pane.Body>
+          <Pane.Footer>
+            <p>Footer</p>
+          </Pane.Footer>
+        </Pane>
+      </div>
+    )
+    const [outer, inner] = container.querySelectorAll(
+      '[data-slot="pane-viewport"]'
+    )
+    const footer = container.querySelector('[data-slot="pane-footer"]')!
+    await expect.poll(() => insetOf(outer!)).toBe(heightOf(footer))
+    expect(insetOf(inner!)).toBe('0px')
+  })
+
+  it('clears both footers of one pane, and the other once one goes', async () => {
+    function Body({ both }: { both: boolean }) {
+      return (
+        <div style={{ width: 600, height: 500, display: 'grid' }}>
+          <Pane>
+            <Pane.Body>
+              <p>General admission</p>
+            </Pane.Body>
+            <Pane.Footer data-testid='first'>
+              <p>Total</p>
+            </Pane.Footer>
+            {both && (
+              <Pane.Footer data-testid='second'>
+                <p style={{ height: 40 }}>Checkout</p>
+              </Pane.Footer>
+            )}
+          </Pane>
+        </div>
+      )
+    }
+    const { container, rerender } = render(<Body both />)
+    const viewport = container.querySelector('[data-slot="pane-viewport"]')!
+    const first = container.querySelector('[data-testid="first"]')!
+    const second = container.querySelector('[data-testid="second"]')!
+    const sum = () =>
+      `${(first as HTMLElement).offsetHeight + (second as HTMLElement).offsetHeight}px`
+    await expect.poll(() => insetOf(viewport)).toBe(sum())
+    rerender(<Body both={false} />)
+    await expect.poll(() => insetOf(viewport)).toBe(heightOf(first))
+  })
+
+  it('clears a footer in a plain Drawer', async () => {
+    render(
+      <Drawer defaultOpen>
+        <Drawer.Content>
+          <Drawer.Title>Your tickets</Drawer.Title>
+          <Drawer.Body>
+            <p>General admission</p>
+          </Drawer.Body>
+          <Pane.Footer>
+            <p>Checkout</p>
+          </Pane.Footer>
+        </Drawer.Content>
+      </Drawer>
+    )
+    const popup = await screen.findByRole('dialog')
+    const footer = popup.querySelector('[data-slot="pane-footer"]')!
+    await expect.poll(() => insetOf(popup)).toBe(heightOf(footer))
   })
 })
 

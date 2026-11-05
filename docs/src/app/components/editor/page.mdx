@@ -258,8 +258,9 @@ on a selected image opens Alt text too.
 
 ### Embeds
 
-The rich preset embeds videos and tracks from YouTube, Vimeo, Spotify, and
-TikTok. Paste a share link alone on an empty line, or use the Embed control.
+The rich preset embeds videos and tracks from YouTube, Vimeo, Spotify,
+SoundCloud, Deezer, Apple Music, and TikTok. Paste a share link alone on an
+empty line, or use the Embed control.
 The editor shows each player at its own shape, under a cover, so a click
 selects it rather than playing it, and Backspace or Delete removes it. A
 player with a ratio is no taller than 36rem, so a portrait one, such as
@@ -280,7 +281,10 @@ TikTok's, stays narrow at the start of the line, in the editor and in
         { type: 'embed', attrs: { provider: 'youtube', id: 'sBzrzS1Ag_g', params: null } },
         { type: 'embed', attrs: { provider: 'spotify', id: '5INjqkS1o8h1imAzPqGZBb', params: { type: 'artist' } } },
         { type: 'embed', attrs: { provider: 'vimeo', id: '1084537', params: null } },
-        { type: 'embed', attrs: { provider: 'tiktok', id: '6718335390845095173', params: null } }
+        { type: 'embed', attrs: { provider: 'tiktok', id: '6718335390845095173', params: null } },
+        { type: 'embed', attrs: { provider: 'soundcloud', id: 'gangofyouths/forbearance-alternate', params: null } },
+        { type: 'embed', attrs: { provider: 'deezer', id: '45534641', params: { type: 'album' } } },
+        { type: 'embed', attrs: { provider: 'apple-music', id: '1233719556', params: { type: 'album', storefront: 'au' } } }
       ]
     }
   }}
@@ -296,9 +300,9 @@ migration. Players run in a sandboxed `iframe`, and a look-alike host such as
 - `embedProviders` sets the providers the editor reads links from, starting
   from `defaultEmbedProviders`. Pass the same list to `/render`, or it drops
   the embeds it doesn't know.
-- `resolveUrl` turns a link no provider reads, such as a TikTok short link,
-  into one it can, when it's entered in the Embed control. Resolve it on
-  your server.
+- `resolveUrl` turns a link no provider reads, such as a TikTok, SoundCloud
+  or Deezer short link, into one it can, when it's entered in the Embed control.
+  Resolve it on your server.
 
 Click an embed, or move onto it with the arrow keys, to edit it in place. A
 toolbar by the embed has Edit link and Remove embed. Edit link starts from the
@@ -364,6 +368,39 @@ cell, as from Word, keeps each item as a paragraph. A table saves no widths or
 styles, only each cell's `colspan` and `rowspan`, and a wide one scrolls
 sideways in the editor and in `/render`, so it never widens the page on a
 phone.
+
+### Blocks preset
+
+`preset='blocks'` holds everything the rich preset does, for a page built
+from blocks, and every block keeps an id as it moves.
+
+```tsx-live-prose
+<Editor
+  aria-label='Page'
+  preset='blocks'
+  defaultValue={{
+    version: 1,
+    preset: 'blocks',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Two days in the sun at Jumbuck Orchard Park, Brisbane.' }] },
+        { type: 'paragraph' }
+      ]
+    }
+  }}
+/>
+```
+
+Every block but a table's rows and cells saves a `blockId`, so it keeps its
+identity as it moves. The editor gives a block without one an id when it
+loads, splits, or is pasted, and `onValueChange` reports it. Copying a block
+gives the copy an id of its own. `/render` never writes ids into the page.
+
+Give each record's editor its own `key`, such as the record's id. An editor
+reused for another record reads that record's id-less blocks as the ones it
+already holds when their content matches, so it keeps the first record's ids.
 
 ### Email preset
 
@@ -719,9 +756,7 @@ render(
 )
 ```
 
-### Email preset
-
-#### Sending email
+### Sending email
 
 `@oztix/roadie-editor/email` renders a saved value as an email: a whole HTML
 page, built from tables with inline styles so mail clients show it as
@@ -736,8 +771,6 @@ const { html, text } = await renderEmail(template, {
 ```
 
 It runs on the server only, since MJML, the renderer behind it, needs Node.
-[Why Roadie renders email with MJML](https://oztix.atlassian.net/wiki/spaces/ID/pages/1211957251)
-is in the Decision log.
 A Next.js app keeps MJML out of its server bundle, and adds `mjml` to its own
 dependencies too, so Next can resolve it from the app:
 
@@ -824,8 +857,8 @@ const preview = await renderEmail(welcome, {
 
 - `syntax` is `ae` for `#Token#` or `liquid` for `{{ }}`. Each variable is
   written as its token, unescaped, in the HTML and the plain text alike.
-- A Liquid token gets the fallback as its `default`. An AE token has no
-  default, so the sending system's own applies.
+- A Liquid token of one `{{ }}` output gets the fallback as its `default`.
+  An AE token has no default, so its fallback isn't written.
 - With `values`, each variable is filled with its value, escaped, or its
   fallback when the value is missing or empty. A preview needs no `syntax`.
 - A variable `variables` doesn't list, or one with no token in `syntax`,
@@ -913,6 +946,59 @@ const preview = await renderEmail(nearlySoldOut, {
   naming a variable `variables` doesn't list, or text holding both quote
   marks or `%}`, which a Liquid string can't hold.
 - `migrate` drops a rule that isn't whole, and keeps its block.
+
+### Importing existing HTML
+
+`htmlToEditorValue(html, preset)` from `@oztix/roadie-editor/schema` reads
+HTML, such as CKEditor output, into a value the editor opens. Use it once, the
+first time someone edits legacy content, then save the `EditorValue`.
+
+```tsx
+import { htmlToEditorValue } from '@oztix/roadie-editor/schema'
+```
+
+- Text is kept, and styles, fonts, sizes, colours and classes are dropped.
+- In a paragraph, one `<br>` is a line break, and two or more start a new
+  paragraph, as CKEditor writes them. Empty and `&nbsp;` spacer paragraphs
+  between blocks go.
+- `h1` reads as `h2`, and anything else the preset can't hold keeps its text.
+- These are dropped and listed in `dropped`, so you can warn before the
+  legacy content is overwritten:
+  - images the preset can't load, such as base64 `data:` images, and every
+    image in `basic`
+  - iframes no embed provider reads
+  - images and players in a table cell, which holds only text
+  - video, audio and plugin (`object` and `embed`) elements
+- A link around an image isn't kept, and isn't listed.
+
+Iframes become embeds when a provider reads their player address. If the
+editor has its own `embedProviders`, pass the same list:
+`htmlToEditorValue(html, 'rich', { embedProviders })`.
+
+It needs a browser's `DOMParser` and throws on the server, where a client
+component also renders first. Call it in an effect or an event handler, such
+as the one that opens the editor.
+
+```tsx-live-prose-noinline
+const video = 'https://www.youtube.com/embed/sBzrzS1Ag_g'
+const legacy =
+  '<h1>Ochre Kite Weekender</h1>' +
+  '<span style="color:#c00;font-size:18px">Gates open 11am</span><br>' +
+  'Last entry 7pm<br><br>' +
+  '<img src="data:image/png;base64,iVBORw0KGgo=">' +
+  '<iframe src="' + video + '"></iframe>'
+
+const { value, dropped } = htmlToEditorValue(legacy, 'rich')
+
+render(
+  <div className='grid gap-3'>
+    <Editor aria-label='Event description' preset='rich' defaultValue={value} />
+    <p className='text-subtle text-display-ui-6'>
+      Not imported: {dropped.map(({ kind }) => kind).join(', ') || 'nothing'}
+    </p>
+  </div>
+)
+```
 
 ## Guidelines
 
@@ -1006,7 +1092,7 @@ const preview = await renderEmail(nearlySoldOut, {
 | `Mod+Shift+Z` | Redo |
 | `Shift+Enter` | Line break |
 | `Alt+F10` | Move focus to the toolbar's first enabled control, a selected image's, embed's, or spacer's first action, the first action of the button or columns holding the caret, or in a table its first table action |
-| `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image or embed |
+| `Escape` | In a toolbar, move focus back to the text, where the caret was, or to the selected image, embed, or spacer |
 
 `Mod` is `⌘` on Apple devices and `Ctrl` elsewhere, and `Alt` is `⌥` on
 Apple devices.

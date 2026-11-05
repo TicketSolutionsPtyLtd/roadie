@@ -7,6 +7,9 @@ export default defineConfig({
     // Each file launches its own browser and serves the export without a
     // port, so files share nothing and can run side by side.
     maxWorkers: 3,
+    // Each test opens a browser context and loads a page, which can take
+    // over 5s in Firefox on CI: past Vitest's 5s default for a unit test.
+    testTimeout: 60_000,
     // Closing a browser after a full run can outlast the 10s default.
     hookTimeout: 30_000
   }

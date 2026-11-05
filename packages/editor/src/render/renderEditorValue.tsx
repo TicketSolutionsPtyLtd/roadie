@@ -1,6 +1,5 @@
 import {
   type CSSProperties,
-  Children,
   type ReactElement,
   type ReactNode,
   createElement
@@ -25,6 +24,7 @@ import {
   VOID_TAGS,
   outermostMarksLast,
   presetElementsFor,
+  withButtonsAsLinks,
   withTableSections
 } from './elements'
 
@@ -78,13 +78,6 @@ function renderers(
   for (const [name, toElement] of Object.entries(table)) {
     mapping[name] = (props) => {
       const element = toElement(attrsOf(props) ?? {}, context)
-      // A link with no text has no name, as an email button emptied of its label.
-      if (
-        element?.tag === 'a' &&
-        Children.toArray(props.children).length === 0
-      ) {
-        return null
-      }
       return element ? reactElement(element, props.children) : props.children
     }
   }
@@ -104,7 +97,9 @@ function renderDoc(
     markMapping: renderers(marks, ({ mark }) => mark?.attrs, context),
     unhandledNode: () => null,
     unhandledMark: ({ children }) => children
-  })({ content: withTableSections(outermostMarksLast(doc)) })
+  })({
+    content: withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
+  })
 }
 
 /**

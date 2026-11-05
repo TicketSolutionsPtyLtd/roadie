@@ -96,6 +96,7 @@ export const scrollAreaScrollbarVariants = cva(
 export const scrollAreaThumbVariants = cva([
   'size-full rounded-full bg-[var(--intent-border-strong)]',
   'motion-safe:transition-colors motion-safe:duration-moderate motion-safe:ease-enter',
+  // A thumb is no control any utility styles, so it darkens on hover itself.
   'hover:bg-[var(--intent-bg-inverted)]'
 ])
 
