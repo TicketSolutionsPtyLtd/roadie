@@ -184,15 +184,17 @@ describe('Editor email block handle', () => {
     expect(screen.queryByRole('button', { name: 'Add block' })).toBe(null)
   })
 
-  it('makes room for the grip and add button inside a framed editor', async () => {
+  it('puts the grip and add button in the gutter outside the email, leaving it the email’s own insets', async () => {
     renderNewsletter()
 
-    await hoverBlock('Closing')
+    const block = await hoverBlock('Closing')
 
     const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const canvas = textbox.getBoundingClientRect()
     expect(
-      (await addButton()).getBoundingClientRect().left
-    ).toBeGreaterThanOrEqual(textbox.getBoundingClientRect().left)
+      (await addButton()).getBoundingClientRect().right
+    ).toBeLessThanOrEqual(canvas.left)
+    expect(block.getBoundingClientRect().left - canvas.left).toBeLessThan(40)
   })
 
   it('keeps the grip while the pointer crosses to it', async () => {

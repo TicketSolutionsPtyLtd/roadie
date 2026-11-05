@@ -596,7 +596,10 @@ export function EditorEngine({
           // with no add button there, as much at the end.
           blockHandle &&
             cn(
+              // An email's grip and add button sit in the gutter outside it,
+              // so its text keeps the sent email's insets.
               emphasis !== 'subtler' &&
+                preset !== 'email' &&
                 (blockHandle.canAdd ? 'ps-15' : 'ps-10'),
               // On a phone, only the grip's room at the start, in a subtler
               // editor too, as the page may clip it; its target may overlap.
