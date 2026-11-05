@@ -327,6 +327,44 @@ describe('Editor.BubbleMenu', () => {
     expect(overlaps).toBe(false)
   })
 
+  it.each<[string, Partial<EditorProps>]>([
+    ['normal', {}],
+    // Too little room above the table, so its actions go below it.
+    ['subtler and small', { emphasis: 'subtler', size: 'sm' }]
+  ])(
+    'stays clear of the table actions over text in a table’s last row, %s',
+    async (_, props) => {
+      render(<BubbleEditor defaultValue={withTable} {...props} />)
+      const textbox = await selectText('Gates open at 4pm')
+      await menu()
+      const text = within(textbox).getByText('9pm')
+      await userEvent.click(text)
+      const table = await screen.findByRole('toolbar', {
+        name: 'Table actions'
+      })
+      await userEvent.keyboard(
+        `${LINE_END}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}`
+      )
+      const bubble = await menu()
+
+      await waitFor(() => {
+        const line = text.getBoundingClientRect()
+        const bar = bubble.getBoundingClientRect()
+        const gap = Math.max(bar.top - line.bottom, line.top - bar.bottom)
+        expect(gap).toBeGreaterThanOrEqual(0)
+        expect(gap).toBeLessThan(24)
+      })
+      const a = bubble.getBoundingClientRect()
+      const b = table.getBoundingClientRect()
+      const overlaps =
+        a.left < b.right &&
+        b.left < a.right &&
+        a.top < b.bottom &&
+        b.top < a.bottom
+      expect(overlaps).toBe(false)
+    }
+  )
+
   it('puts its children after the preset controls', async () => {
     render(
       <BubbleEditor>

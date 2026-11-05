@@ -29,6 +29,28 @@ export function selectsText({ selection, doc }: EditorState) {
   return doc.textBetween(selection.from, selection.to).length > 0
 }
 
+/**
+ * Table actions sit above the table, or below it when there's no room, so in
+ * a table the menu flips rather than cover them.
+ */
+function clearOfTableActions(
+  editor: TiptapEditor,
+  selection: { top: number; bottom: number }
+) {
+  const actions = editor.view.dom.parentElement?.querySelector(
+    '[data-slot="editor-table-toolbar"]'
+  )
+  if (!actions || !selectedTable(editor.state)) return {}
+  const box = actions.getBoundingClientRect()
+  let top = 0
+  let bottom = window.innerHeight
+  if (box.bottom <= selection.top) top = box.bottom
+  else if (box.top >= selection.bottom) bottom = box.top
+  return {
+    boundary: { x: 0, y: top, width: window.innerWidth, height: bottom - top }
+  }
+}
+
 export function EditorBubbleMenuEngine(props: EditorBubbleMenuProps) {
   const { editor } = use(EditorContext)!
   return editor ? <SelectionMenu editor={editor} {...props} /> : null
@@ -70,16 +92,6 @@ function SelectionMenu({
     editor,
     selector: ({ editor: current }) => current.isEditable
   })
-  // Table actions sit above the table, or below one that starts the
-  // content, so in a table this takes the other side of the selection.
-  const placement = useEditorState({
-    editor,
-    selector: ({ editor: current }) => {
-      const table = selectedTable(current.state)
-      return table && table.pos > 0 ? 'bottom' : 'top'
-    }
-  })
-
   // The plugin asks shouldShow only when the selection or doc changes. Focus
   // moves to the link editor, but a click on the menu's Link keeps the menu
   // from hiding on that blur, and turning read-only changes neither.
@@ -111,8 +123,13 @@ function SelectionMenu({
       shouldShow={shouldShow}
       ref={menuRef}
       options={{
-        placement,
+        placement: 'top',
         offset: 8,
+        flip: ({ elements }) =>
+          clearOfTableActions(
+            editor,
+            elements.reference.getBoundingClientRect()
+          ),
         // The plugin makes its element a tab stop; the toolbar inside is the one.
         onShow: () => {
           menuRef.current?.setAttribute('tabindex', '-1')
