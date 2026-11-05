@@ -65,8 +65,19 @@ const description: EditorValue = {
   `alt`), embeds (`embed`, saving only `provider`, `id`, and `params`), and
   tables (`table`, `tableRow`, `tableHeader` and `tableCell`, saving only a
   cell's `colspan` and `rowspan`). A cell holds paragraphs only.
+  `presets.blocks` holds what `rich` does, and every block but a table's
+  rows and cells saves a `blockId` string. Key each record's editor by its
+  record, or a reused editor keeps the last record's ids.
   An image's `src` is `https` or a root-relative path, and its `alt` is `''`
   until someone writes it.
+  `presets.email` holds the basic preset's text plus headings 2 to 4, and
+  layout blocks: sections (`section`), columns (`columns`, holding two to
+  four `column`s), buttons (`button`, saving only `href`, with its label as unmarked text), images
+  (`image`, saving only `src`, `alt`, and `width`), spacers (`spacer`, saving
+  only `height`), and dividers (`horizontalRule`). A button links to https,
+  http, mailto, or tel, an image's `src` is https only, its `width` is 1 to
+  600 pixels or `null` to fill its column, and a spacer is 8 to 160 pixels
+  high. A list item holds text blocks only.
 - `doc` is Tiptap's JSON, with Tiptap's default names (`paragraph`,
   `bulletList`, `bold`…), so any Tiptap or ProseMirror tool reads it.
 
@@ -106,8 +117,9 @@ only paragraphs in cells, keeping the text of any other block as paragraphs,
 keeps a cell's `colspan` and `rowspan` only when whole, positive and no more
 than HTML allows (1,000 and 65,534), gives an empty cell a paragraph, and drops a row with no cells and a table with no
 rows. Read into `basic`, a table keeps its cells' text as paragraphs. So
-every value it returns loads in Tiptap. `createEmptyValue(preset)` starts a
-new value.
+every value it returns loads in Tiptap. It keeps a `blockId` only when it's a
+non-empty string no earlier block uses, so the editor gives the others new
+ones. `createEmptyValue(preset)` starts a new value.
 
 ## Rendering a stored value
 
@@ -130,6 +142,21 @@ wide one scrolls on a phone rather than widening the page, with a first row
 of header cells in a `thead`, unless one spans down, as a `thead` would clip
 it.
 
+## Sending a stored value as email
+
+```ts
+import { renderEmail } from '@oztix/roadie-editor/email'
+
+const { html, text } = await renderEmail(value, { theme })
+```
+
+It reads the value into the email preset, builds MJML's JSON tree from it in
+`src/email/mjmlTree.ts`, and renders that with MJML on the server, then
+writes the plain text from the HTML. Text goes into the tree already escaped,
+since MJML writes its content and attributes as given. MJML stays behind
+`renderEmail`: nothing exported names it, so the renderer can change without
+a migration.
+
 ## Changing the format
 
 Node names, mark names and their attributes are public API: products store
@@ -139,7 +166,7 @@ them. Any change to them, in any preset:
 2. adds a step to `migrate` that turns the previous version into the new one.
 
 A new node or mark also needs its entry in `src/render/elements.ts`, or the
-renderers drop it.
+renderers drop it, and an email node its entry in `src/email/mjmlTree.ts`.
 
 A value is never rewritten in place without a version bump.
 
@@ -156,9 +183,10 @@ const src = video && embedSrc(video)
 // 'https://www.youtube-nocookie.com/embed/exampleVid1'
 ```
 
-`defaultEmbedProviders` covers YouTube, Vimeo, Spotify and TikTok. Hosts must
-match exactly, and every id and param must match its provider's pattern before
-`embedSrc` builds a URL, so a stored value can't point a player anywhere else.
+`defaultEmbedProviders` covers YouTube, Vimeo, Spotify, SoundCloud, Deezer,
+Apple Music and TikTok. Hosts must match exactly, and every id and param must
+match its provider's pattern before `embedSrc` builds a URL, so a stored value
+can't point a player anywhere else.
 To add a provider, pass `[...defaultEmbedProviders, yours]` as the second
 argument of both functions, and as `embedProviders` to `Editor`,
 `renderEditorValue`, and `renderEditorHtml`.

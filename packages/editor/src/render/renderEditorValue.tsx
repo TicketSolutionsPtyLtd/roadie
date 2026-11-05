@@ -24,6 +24,7 @@ import {
   VOID_TAGS,
   outermostMarksLast,
   presetElementsFor,
+  withButtonsAsLinks,
   withTableSections
 } from './elements'
 
@@ -96,7 +97,9 @@ function renderDoc(
     markMapping: renderers(marks, ({ mark }) => mark?.attrs, context),
     unhandledNode: () => null,
     unhandledMark: ({ children }) => children
-  })({ content: withTableSections(outermostMarksLast(doc)) })
+  })({
+    content: withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
+  })
 }
 
 /**

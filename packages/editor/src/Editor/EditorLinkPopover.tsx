@@ -14,7 +14,7 @@ const HAS_SCHEME = /^[a-z][a-z\d+.-]*:/i
 const BARE_DOMAIN = /^[^\s/?#:@]+\.[a-z]{2,}(?:[/?#:]|$)/i
 
 /** Adds `https://` to a bare domain, such as `oztix.com.au/events`. */
-function toHref(typed: string) {
+export function toHref(typed: string) {
   const trimmed = typed.trim()
   return !HAS_SCHEME.test(trimmed) && BARE_DOMAIN.test(trimmed)
     ? `https://${trimmed}`
@@ -109,8 +109,10 @@ export function EditorLinkPopover({
   const inputRef = useRef<HTMLInputElement>(null)
   if (!editor) return null
   const { from, to } = editor.state.selection
+  // The element lets the popover follow a scrolling container around the editor.
   const anchor = {
-    getBoundingClientRect: () => posToDOMRect(editor.view, from, to)
+    getBoundingClientRect: () => posToDOMRect(editor.view, from, to),
+    contextElement: editor.view.dom
   }
   return (
     <Popover open={open} onOpenChange={onOpenChange}>

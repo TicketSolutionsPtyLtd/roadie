@@ -9,7 +9,7 @@
     "name": "render",
     "path": "dist/render/index.js",
     "import": "*",
-    "limit": "106 kB",
+    "limit": "108.5 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -18,10 +18,24 @@
     ]
   },
   {
+    "name": "email",
+    "path": "dist/email/index.js",
+    "import": "*",
+    "limit": "4.35 kB",
+    "ignore": [
+      "@oztix/roadie-core",
+      "mjml",
+      "html-to-text",
+      "@tiptap/core",
+      "@tiptap/extension-heading",
+      "@tiptap/pm"
+    ]
+  },
+  {
     "name": "Editor (shell)",
     "path": "dist/Editor/index.js",
     "import": "*",
-    "limit": "18.75 kB",
+    "limit": "24.5 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -31,10 +45,12 @@
       "@tiptap/extension-heading",
       "@tiptap/extension-link",
       "@tiptap/extension-table",
+      "@tiptap/extension-unique-id",
       "@tiptap/extensions",
       "@tiptap/pm",
       "@tiptap/react",
-      "@tiptap/starter-kit"
+      "@tiptap/starter-kit",
+      "@tiptap/suggestion"
     ]
   },
   {
