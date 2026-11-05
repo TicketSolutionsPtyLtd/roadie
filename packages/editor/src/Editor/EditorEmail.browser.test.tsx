@@ -329,17 +329,25 @@ describe('the email preset’s HTML', () => {
             width: 280
           }
         },
-        { type: 'spacer', attrs: { height: 40 } }
+        {
+          type: 'spacer',
+          attrs: {
+            height: 40,
+            showWhen: { key: 'tickets_left', op: 'lessThan', value: 20 }
+          }
+        }
       ]
     }
+    const node = Node.fromJSON(schema, copied)
     const holder = document.createElement('div')
     holder.append(
-      DOMSerializer.fromSchema(schema).serializeFragment(
-        Node.fromJSON(schema, copied).content
-      )
+      DOMSerializer.fromSchema(schema).serializeFragment(node.content)
     )
 
-    expect(DOMParser.fromSchema(schema).parse(holder).toJSON()).toEqual(copied)
+    // toJSON keeps the undefined rule of each block with none.
+    expect(DOMParser.fromSchema(schema).parse(holder).toJSON()).toEqual(
+      node.toJSON()
+    )
   })
 
   it('inserts an image with setImage only from https', () => {
