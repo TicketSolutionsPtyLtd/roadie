@@ -162,14 +162,51 @@ export function planPrePush({
       ])
     })
 
+  const changesIn = (workspace) => {
+    const inWorkspace = (paths) =>
+      paths
+        .filter((file) => isIn(file, workspace) && SOURCE.test(file))
+        .map((file) => file.slice(workspace.dir.length + 1))
+    const changed = inWorkspace(files)
+    const changedFolders = new Set(
+      [...changed, ...inWorkspace(deleted)].map(folderOf)
+    )
+    const isBeside = (test) =>
+      changed.includes(test) || changedFolders.has(folderOf(test))
+    return { changed, isBeside }
+  }
+
+  const coreCssChanged = changedOrDeleted.some((file) => CORE_CSS.test(file))
+  const browserRuns = workspaces.flatMap((workspace) => {
+    const script = workspace.scripts['test:browser']
+    if (!script) return []
+    const inCssSuite = (test) =>
+      coreCssChanged &&
+      workspace.short === CSS_SUITE.short &&
+      test.startsWith(CSS_SUITE.folder)
+    const { isBeside } = changesIn(workspace)
+    const tests = (testFiles[workspace.short] ?? []).filter(
+      (test) =>
+        BROWSER_TEST.test(test) &&
+        !PERF_TEST.test(test) &&
+        (isBeside(test) || inCssSuite(test))
+    )
+    return tests.length ? [{ workspace, script, tests }] : []
+  })
+
   const typechecked = touched.filter(({ scripts }) => scripts.typecheck)
-  const built = typechecked.filter(({ deps }) =>
+  const built = [
+    ...new Set([
+      ...typechecked,
+      ...browserRuns.map(({ workspace }) => workspace)
+    ])
+  ].filter(({ deps }) =>
     deps.some((dep) => workspaces.some(({ name }) => name === dep))
   )
   if (built.length)
     steps.push({
       kind: 'build',
-      label: 'build what the typecheck reads',
+      label: 'build what the typecheck and browser tests read',
       commands: [
         [
           'pnpm',
@@ -205,20 +242,6 @@ export function planPrePush({
     changedOrDeleted.some((file) => TESTED_BY_CORE.test(file))
       ? [...touched, core]
       : touched
-
-  const changesIn = (workspace) => {
-    const inWorkspace = (paths) =>
-      paths
-        .filter((file) => isIn(file, workspace) && SOURCE.test(file))
-        .map((file) => file.slice(workspace.dir.length + 1))
-    const changed = inWorkspace(files)
-    const changedFolders = new Set(
-      [...changed, ...inWorkspace(deleted)].map(folderOf)
-    )
-    const isBeside = (test) =>
-      changed.includes(test) || changedFolders.has(folderOf(test))
-    return { changed, isBeside }
-  }
 
   for (const workspace of tested) {
     if (!workspace.scripts.test) continue
@@ -259,24 +282,7 @@ export function planPrePush({
     )
   }
 
-  const coreCssChanged = changedOrDeleted.some((file) => CORE_CSS.test(file))
-  let ranBrowserTests = false
-  for (const workspace of workspaces) {
-    const script = workspace.scripts['test:browser']
-    if (!script) continue
-    const inCssSuite = (test) =>
-      coreCssChanged &&
-      workspace.short === CSS_SUITE.short &&
-      test.startsWith(CSS_SUITE.folder)
-    const { isBeside } = changesIn(workspace)
-    const tests = (testFiles[workspace.short] ?? []).filter(
-      (test) =>
-        BROWSER_TEST.test(test) &&
-        !PERF_TEST.test(test) &&
-        (isBeside(test) || inCssSuite(test))
-    )
-    if (tests.length === 0) continue
-    ranBrowserTests = true
+  for (const { workspace, script, tests } of browserRuns) {
     const projectArgs = projectsIn(script).flatMap((project) => [
       '--project',
       project
@@ -300,7 +306,7 @@ export function planPrePush({
       })
   }
   const missingEngines = ENGINES.filter((engine) => !engines.includes(engine))
-  if (ranBrowserTests && missingEngines.length)
+  if (browserRuns.length && missingEngines.length)
     skipped.push(
       `browser tests in ${missingEngines.join(' and ')}, which ${missingEngines.length === 1 ? "isn't" : "aren't"} installed: pnpm exec playwright install ${missingEngines.join(' ')}`
     )

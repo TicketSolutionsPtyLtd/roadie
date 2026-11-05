@@ -193,7 +193,8 @@ Every PR is checked against these before review. Fix every real hit.
   tests. It runs the browser tests beside the change, or components' CSS
   suite for a change to core's CSS, in Chromium, Firefox, and WebKit, one
   engine at a time, and names each engine it ran. An engine Playwright
-  hasn't installed is left out, with the command to install it. It builds what the typecheck reads with no time budget, since a
+  hasn't installed is left out, with the command to install it. It builds
+  what the typecheck and browser tests read with no time budget, since a
   build stopped midway empties `dist`, and gives every other step one. It
   prints what it left to CI with the command to run each, so never push with
   `--no-verify`. Give browser tests explicit timeouts and never wait on an

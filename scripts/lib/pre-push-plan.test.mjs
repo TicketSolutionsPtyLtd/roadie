@@ -217,6 +217,17 @@ describe('the pre-push hook', () => {
       }
     })
 
+    test("builds what components' CSS suite imports before running it", () => {
+      const result = plan([
+        'packages/core/src/css/emphasis.css',
+        'packages/core/src/utils/cn.ts'
+      ])
+      const [build] = commandsOf('build', result)
+      assert.ok(build?.includes('--filter=@oztix/roadie-components^...'))
+      const kinds = result.steps.map(({ kind }) => kind)
+      assert.ok(kinds.indexOf('build') < kinds.indexOf('browser'))
+    })
+
     test('runs only the engines installed, and says how to add the rest', () => {
       const result = planPrePush({
         ...repo,
