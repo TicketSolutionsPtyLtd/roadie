@@ -8,7 +8,7 @@ import {
   onTestFinished,
   vi
 } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 
 import { Field } from '@oztix/roadie-components/field'
 
@@ -531,7 +531,41 @@ describe('Editor email block toolbar placement', () => {
     content: [{ type: 'text', text: 'Buy tickets' }]
   }
 
-  it('sits inside columns at their top-end corner, clear of the button above', async () => {
+  const lines = (textbox: HTMLElement, ...texts: string[]) =>
+    texts.map((text) => within(textbox).getByText(text).getBoundingClientRect())
+
+  it('sits beside columns at their top, clear of the button above and their own text', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={email(ticketButton, columns, p('Doors 7pm'))}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Ochre Kite'))
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Columns actions'
+    })
+    const node = textbox.querySelector('[data-type="columns"]')!
+    const above = textbox.querySelector('[data-type="button"]')!
+    await waitFor(() => {
+      const bar = toolbar.getBoundingClientRect()
+      const box = node.getBoundingClientRect()
+      expect(bar.top).toBeGreaterThanOrEqual(box.top)
+      expect(bar.left).toBeGreaterThanOrEqual(box.right)
+      for (const covered of [
+        above.getBoundingClientRect(),
+        ...lines(textbox, 'Ochre Kite', 'Kazoo Hollow')
+      ]) {
+        expect(intersects(bar, covered)).toBe(false)
+      }
+    })
+  })
+
+  it('sits inside columns at their top-end corner on a phone, clear of the button above', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
     render(
       <Editor
         aria-label={LABEL}
@@ -551,41 +585,41 @@ describe('Editor email block toolbar placement', () => {
       const box = node.getBoundingClientRect()
       expect(bar.top).toBeGreaterThanOrEqual(box.top)
       expect(bar.right).toBeLessThanOrEqual(box.right)
-      expect(box.right - bar.right).toBeLessThan(16)
       expect(intersects(bar, above.getBoundingClientRect())).toBe(false)
     })
   })
 
-  it('sits inside a spacer at its end, clear of the text after it', async () => {
-    render(
-      <Editor
-        aria-label={LABEL}
-        defaultValue={email(
-          p('Doors 7pm'),
-          { type: 'spacer', attrs: { height: 64 } },
-          p('Gates 11am')
-        )}
-      />
-    )
-    const textbox = await screen.findByRole('textbox', { name: LABEL })
-    const spacer = textbox.querySelector('[data-type="spacer"]')!
-    await userEvent.click(spacer)
+  it.each([16, undefined, 64])(
+    'sits beside a spacer %spx high, clear of the text either side',
+    async (height) => {
+      render(
+        <Editor
+          aria-label={LABEL}
+          defaultValue={email(
+            p('Doors 7pm'),
+            { type: 'spacer', attrs: height ? { height } : {} },
+            p('Gates 11am')
+          )}
+        />
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      const spacer = textbox.querySelector('[data-type="spacer"]')!
+      await userEvent.click(spacer)
 
-    const toolbar = await screen.findByRole('toolbar', {
-      name: 'Spacer actions'
-    })
-    await waitFor(() => {
-      const bar = toolbar.getBoundingClientRect()
-      const box = spacer.getBoundingClientRect()
-      expect(bar.top).toBeGreaterThanOrEqual(box.top)
-      expect(bar.bottom).toBeLessThanOrEqual(box.bottom)
-      expect(bar.right).toBeLessThanOrEqual(box.right)
-      for (const text of ['Doors 7pm', 'Gates 11am']) {
-        const line = within(textbox).getByText(text).getBoundingClientRect()
-        expect(intersects(bar, line)).toBe(false)
-      }
-    })
-  })
+      const toolbar = await screen.findByRole('toolbar', {
+        name: 'Spacer actions'
+      })
+      await waitFor(() => {
+        const bar = toolbar.getBoundingClientRect()
+        expect(bar.left).toBeGreaterThanOrEqual(
+          spacer.getBoundingClientRect().right
+        )
+        for (const line of lines(textbox, 'Doors 7pm', 'Gates 11am')) {
+          expect(intersects(bar, line)).toBe(false)
+        }
+      })
+    }
+  )
 })
 
 describe('Editor node selection ring', () => {

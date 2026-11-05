@@ -393,7 +393,7 @@ type EditorButtonPopoverProps = {
   onOpenChange: (open: boolean) => void
 }
 
-// Narrower than the settings' own width, so a drawer fits them better.
+// A phone's width, where a popover would crowd the button it edits.
 const NARROW_QUERY = '(width < 30rem)'
 
 function subscribeToNarrow(onChange: () => void) {
@@ -447,7 +447,12 @@ export function EditorButtonPopover({
       (editing && buttonBox(editor)) || posToDOMRect(editor.view, from, to),
     contextElement: editor.view.dom
   }
-  const initialFocus = editing && hasLink(editor) ? emphasisRef : inputRef
+  // Read as it opens: the React Compiler would cache a read during render by
+  // the editor alone, which is mutable.
+  const initialFocus = () =>
+    selectedNodeType(editor.state) === 'button' && hasLink(editor)
+      ? emphasisRef.current
+      : inputRef.current
   const finalFocus = () => {
     focusEditor(editor)
     return false

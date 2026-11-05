@@ -114,7 +114,7 @@ describe('Editor button settings', () => {
     expect(within(dialog).queryByRole('button', { name: 'Save' })).toBe(null)
   })
 
-  it('focuses the link of a section’s button, which has none yet', async () => {
+  it('focuses the link of a section’s button, which has none yet, then its emphasis once linked', async () => {
     render(
       <Editor
         aria-label={LABEL}
@@ -133,9 +133,19 @@ describe('Editor button settings', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     const dialog = await openSettings()
 
+    const link = within(dialog).getByRole('textbox', { name: 'Link' })
+    await waitFor(() => expect(link).toHaveFocus())
+
+    await userEvent.type(link, 'oztix.com.au{Enter}')
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'Button settings' })).toBe(
+        null
+      )
+    )
+    const reopened = await openSettings()
     await waitFor(() =>
       expect(
-        within(dialog).getByRole('textbox', { name: 'Link' })
+        within(reopened).getByRole('button', { name: 'Strong' })
       ).toHaveFocus()
     )
   })

@@ -94,35 +94,47 @@ const virtualLine = (edge: DOMRect) => ({
   getClientRects: () => [edge]
 })
 
+// Blocks whose text a toolbar inside them would cover, so it goes beside
+// them where the frame has room.
+const BESIDE = new Set<EditorNodeType>(['spacer', 'columns'])
+
 /**
  * A line across the node's top, so the toolbar hangs inside it at the
  * top-end corner. Once the top scrolls off, or under the docked bar, the line
- * follows that edge, stopping where the toolbar would leave the node. A
- * spacer's toolbar sits across its middle, as it's short. Below a node, the
- * line is the toolbar's width from the node's start, so the toolbar's end
- * meets it there.
+ * follows that edge, stopping where the toolbar would leave the node. Spacers
+ * and columns put it past their end instead where the frame has room, a
+ * spacer's across its middle. Below a node, the line is the toolbar's width
+ * from the node's start, so the toolbar's end meets it there.
  */
 function insideTopEdge(editor: TiptapEditor, menu: HTMLElement | null) {
   const selected = selectedElement(editor)
   if (!selected) return null
   const box = selected.element.getBoundingClientRect()
   const height = menu?.offsetHeight ?? 0
+  const width = menu?.offsetWidth ?? 0
   if (BELOW.has(selected.type)) {
-    return virtualLine(
-      new DOMRect(box.left, box.bottom + GAP, menu?.offsetWidth ?? 0, 0)
-    )
-  }
-  const edge = (top: number) =>
-    virtualLine(new DOMRect(box.left + INSET, top, box.width - 2 * INSET, 0))
-  if (selected.type === 'spacer') {
-    return edge(box.top + (box.height - height) / 2)
+    return virtualLine(new DOMRect(box.left, box.bottom + GAP, width, 0))
   }
   const lowest = box.bottom - height - INSET
-  const top = Math.max(
-    Math.min(Math.max(box.top, visibleTop(editor)) + INSET, lowest),
-    box.top
+  const top =
+    selected.type === 'spacer'
+      ? box.top + (box.height - height) / 2
+      : Math.max(
+          Math.min(Math.max(box.top, visibleTop(editor)) + INSET, lowest),
+          box.top
+        )
+  const frame = editor.view.dom.closest('[data-slot="editor"]')
+  const besideEnd = box.right + GAP + width
+  if (
+    BESIDE.has(selected.type) &&
+    frame &&
+    besideEnd <= frame.getBoundingClientRect().right - INSET
+  ) {
+    return virtualLine(new DOMRect(box.right + GAP, top, width, 0))
+  }
+  return virtualLine(
+    new DOMRect(box.left + INSET, top, box.width - 2 * INSET, 0)
   )
-  return edge(top)
 }
 
 const PLUGIN_KEY = 'editorNodeToolbar'
@@ -165,8 +177,9 @@ type EditorNodeToolbarProps = {
 }
 
 /**
- * A selected node's actions: inside the top-end corner of an image, an embed
- * or columns, inside a spacer's end, and below a button or merge tag.
+ * A selected node's actions: inside the top-end corner of an image or an
+ * embed, past the end of a spacer or columns where there's room, and below a
+ * button or merge tag.
  */
 export function EditorNodeToolbar({
   editor,
