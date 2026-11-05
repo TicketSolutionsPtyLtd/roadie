@@ -155,13 +155,11 @@ const inUse = (dir) =>
   cwds.some((cwd) => cwd === dir || cwd.startsWith(dir + sep))
 const sessionPrefix = process.env.ROADIE_BRANCH_PREFIX
 const [mainCheckout, ...registered] = worktrees()
-const prunable = registered.filter((tree) => tree.prunable)
-const allLinked = registered.filter((tree) => !tree.prunable)
-const linked = allLinked.filter(
-  (tree) =>
-    (!sessionPrefix || tree.branch?.startsWith(sessionPrefix)) &&
-    (!onlyBranch || tree.branch === onlyBranch)
-)
+const inScope = (tree) =>
+  (!sessionPrefix || tree.branch?.startsWith(sessionPrefix)) &&
+  (!onlyBranch || tree.branch === onlyBranch)
+const prunable = registered.filter((tree) => tree.prunable && inScope(tree))
+const linked = registered.filter((tree) => !tree.prunable && inScope(tree))
 const cacheOwners =
   sessionPrefix || onlyBranch ? linked : [mainCheckout, ...linked]
 const here = process.cwd()
@@ -208,16 +206,18 @@ for (const tree of linked) {
   console.log(`  ${verb} ${tree.path} [${tree.branch}] (${formatKb(kb)})`)
 }
 
-if (!onlyBranch) {
-  console.log('\nWorktree entries whose folder is gone')
-  for (const tree of prunable) console.log(`  ${verb} ${tree.path}`)
-  if (remove && prunable.length)
-    run('git', ['worktree', 'prune'], { cwd: repoRoot })
+// One entry at a time, since `git worktree prune` would also drop entries
+// outside the prefix or branch asked for.
+console.log('\nWorktree entries whose folder is gone')
+for (const tree of prunable) {
+  if (remove) run('git', ['worktree', 'remove', tree.path], { cwd: repoRoot })
+  console.log(`  ${verb} ${tree.path}`)
 }
 
+const released = new Set([...removable, ...prunable.map((tree) => tree.path)])
 const checkedOut = new Set(
-  [mainCheckout, ...allLinked]
-    .filter((tree) => tree.branch && !removable.has(tree.path))
+  [mainCheckout, ...registered]
+    .filter((tree) => tree.branch && !released.has(tree.path))
     .map((tree) => tree.branch)
 )
 const branches = localBranches()

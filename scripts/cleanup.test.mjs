@@ -1,0 +1,181 @@
+import assert from 'node:assert/strict'
+import { execFileSync, spawnSync } from 'node:child_process'
+import {
+  chmodSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
+import { after, describe, test } from 'node:test'
+import { fileURLToPath } from 'node:url'
+
+const scripts = dirname(fileURLToPath(import.meta.url))
+const roots = []
+after(() => {
+  for (const root of roots) rmSync(root, { recursive: true, force: true })
+})
+
+// The script finds its repo from its own path, so each fixture gets a copy,
+// plus a gh that reports the fixture's merged PRs and a pnpm that does nothing.
+function fixture() {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'roadie-cleanup-')))
+  roots.push(root)
+  const repo = join(root, 'repo')
+  mkdirSync(join(repo, 'scripts', 'lib'), { recursive: true })
+  for (const file of ['cleanup.mjs', 'lib/cleanup-plan.mjs', 'lib/machine.mjs'])
+    cpSync(join(scripts, file), join(repo, 'scripts', file))
+  writeFileSync(join(repo, '.gitignore'), 'node_modules\n')
+
+  const bin = join(root, 'bin')
+  mkdirSync(bin)
+  writeFileSync(join(bin, 'gh'), '#!/bin/sh\nprintf "%s" "$FAKE_GH_PRS"\n')
+  writeFileSync(join(bin, 'pnpm'), '#!/bin/sh\nexit 0\n')
+  chmodSync(join(bin, 'gh'), 0o755)
+  chmodSync(join(bin, 'pnpm'), 0o755)
+
+  const git = (cwd, ...args) =>
+    execFileSync('git', args, { cwd, encoding: 'utf8' }).trim()
+  git(repo, 'init', '-q', '-b', 'main')
+  git(repo, 'config', 'user.email', 'test@example.com')
+  git(repo, 'config', 'user.name', 'Test')
+  git(repo, 'config', 'commit.gpgsign', 'false')
+  git(repo, 'config', 'core.hooksPath', join(root, 'no-hooks'))
+  git(repo, 'add', '-A')
+  git(repo, 'commit', '-qm', 'init')
+
+  const prs = []
+  return {
+    worktree(branch) {
+      const path = join(root, branch.replaceAll('/', '-'))
+      git(repo, 'worktree', 'add', '-q', '-b', branch, path)
+      writeFileSync(join(path, `${branch.replaceAll('/', '-')}.txt`), branch)
+      git(path, 'add', '-A')
+      git(path, 'commit', '-qm', branch)
+      return path
+    },
+    commit(path, file) {
+      writeFileSync(join(path, file), file)
+      git(path, 'add', '-A')
+      git(path, 'commit', '-qm', file)
+    },
+    merge(branch) {
+      prs.push({
+        headRefName: branch,
+        headRefOid: git(repo, 'rev-parse', branch)
+      })
+    },
+    cleanup(args, env = {}) {
+      const result = spawnSync(
+        process.execPath,
+        ['scripts/cleanup.mjs', ...args],
+        {
+          cwd: repo,
+          encoding: 'utf8',
+          env: {
+            ...process.env,
+            PATH: `${bin}:${process.env.PATH}`,
+            FAKE_GH_PRS: JSON.stringify(prs),
+            ROADIE_BRANCH_PREFIX: '',
+            ...env
+          }
+        }
+      )
+      return { ...result, output: result.stdout + result.stderr }
+    },
+    branches: () =>
+      git(repo, 'branch', '--format=%(refname:short)').split('\n'),
+    worktreeList: () => git(repo, 'worktree', 'list', '--porcelain')
+  }
+}
+
+describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
+  test('removes a merged, clean worktree and its branch', () => {
+    const f = fixture()
+    const path = f.worktree('claude/done')
+    f.merge('claude/done')
+
+    const { status, output } = f.cleanup([
+      '--delete',
+      '--branch',
+      'claude/done'
+    ])
+
+    assert.equal(status, 0, output)
+    assert.equal(existsSync(path), false)
+    assert.deepEqual(f.branches(), ['main'])
+  })
+
+  test('keeps a worktree with uncommitted work, and its branch', () => {
+    const f = fixture()
+    const path = f.worktree('claude/dirty')
+    f.merge('claude/dirty')
+    writeFileSync(join(path, 'notes.txt'), 'unsaved')
+
+    const { status, output } = f.cleanup([
+      '--delete',
+      '--branch',
+      'claude/dirty'
+    ])
+
+    assert.equal(status, 0, output)
+    assert.match(output, /uncommitted changes/)
+    assert.equal(existsSync(join(path, 'notes.txt')), true)
+    assert.deepEqual(f.branches(), ['claude/dirty', 'main'])
+  })
+
+  test('keeps a branch with a commit its merged PR lacks', () => {
+    const f = fixture()
+    const path = f.worktree('claude/later')
+    f.merge('claude/later')
+    f.commit(path, 'later.txt')
+    rmSync(path, { recursive: true })
+
+    const { status, output } = f.cleanup([
+      '--delete',
+      '--branch',
+      'claude/later'
+    ])
+
+    assert.equal(status, 0, output)
+    assert.deepEqual(f.branches(), ['claude/later', 'main'])
+  })
+
+  test('with --branch, removes a merged branch whose worktree folder is gone', () => {
+    const f = fixture()
+    const path = f.worktree('claude/gone')
+    f.merge('claude/gone')
+    rmSync(path, { recursive: true })
+
+    const { status, output } = f.cleanup([
+      '--delete',
+      '--branch',
+      'claude/gone'
+    ])
+
+    assert.equal(status, 0, output)
+    assert.deepEqual(f.branches(), ['main'])
+    assert.doesNotMatch(f.worktreeList(), /claude\/gone/)
+  })
+
+  test('leaves gone worktree entries outside the branch prefix', () => {
+    const f = fixture()
+    const mine = f.worktree('p1/gone')
+    const theirs = f.worktree('p2/gone')
+    rmSync(mine, { recursive: true })
+    rmSync(theirs, { recursive: true })
+
+    const { status, output } = f.cleanup(['--delete'], {
+      ROADIE_BRANCH_PREFIX: 'p1/'
+    })
+
+    assert.equal(status, 0, output)
+    assert.doesNotMatch(f.worktreeList(), /p1\/gone/)
+    assert.match(f.worktreeList(), /p2\/gone/)
+  })
+})
