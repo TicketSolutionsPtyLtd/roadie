@@ -142,13 +142,28 @@ function SettingsForm({ settings, start, apply, onDone }: SettingsFormProps) {
   )
 }
 
-function scrollerOf(element: HTMLElement): Element {
-  for (let at = element.parentElement; at; at = at.parentElement) {
-    const { overflowY } = getComputedStyle(at)
-    const scrolls = overflowY === 'auto' || overflowY === 'scroll'
-    if (scrolls && at.scrollHeight > at.clientHeight) return at
+/**
+ * Brings a block near the top, a fifth of the screen down, clear of a sticky
+ * bar above it and of the sheet below. Each scroller from the block out takes
+ * what's left of that fifth, as only one may have room to give.
+ */
+function scrollNearTop(block: HTMLElement) {
+  const document = block.ownerDocument
+  const view = document.defaultView ?? window
+  block.scrollIntoView({ block: 'start' })
+  let left = view.innerHeight * 0.2
+  const scrollers: Element[] = []
+  for (let at = block.parentElement; at; at = at.parentElement) {
+    const { overflowY } = view.getComputedStyle(at)
+    if (overflowY === 'auto' || overflowY === 'scroll') scrollers.push(at)
   }
-  return document.scrollingElement ?? document.documentElement
+  if (document.scrollingElement) scrollers.push(document.scrollingElement)
+  for (const scroller of scrollers) {
+    if (left <= 0) return
+    const before = scroller.scrollTop
+    scroller.scrollTop = before - left
+    left -= before - scroller.scrollTop
+  }
 }
 
 /**
@@ -211,11 +226,9 @@ export function EditorBlockSettings({
       dom.scrollIntoView({ block: 'nearest' })
       return
     }
-    // The sheet takes the bottom half, so the block goes near the top, clear
-    // of any sticky bar above it. Its own style stays put, as ProseMirror
-    // reads a change there as an edit and drops the selection.
-    dom.scrollIntoView({ block: 'start' })
-    scrollerOf(dom).scrollBy({ top: -window.innerHeight * 0.2 })
+    // Never through the block's own style: ProseMirror reads a change there
+    // as an edit and drops the selection, closing the drawer.
+    scrollNearTop(dom)
   }, [editor, from, phone])
   const lost = open && !block
   // Its block went, such as with a new value, so it mustn't reopen on the next.

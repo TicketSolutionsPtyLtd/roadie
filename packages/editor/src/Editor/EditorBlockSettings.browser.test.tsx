@@ -336,12 +336,47 @@ describe('Editor block settings', () => {
     const block = (await promoView()).closest('.react-renderer')!
     const changes: MutationRecord[] = []
     const observer = new MutationObserver((records) => changes.push(...records))
+    // ProseMirror marks the selected node itself, so only style is watched.
     observer.observe(block, { attributes: true, attributeFilter: ['style'] })
 
     await openFromMenu()
     observer.disconnect()
 
     expect(changes).toEqual([])
+  })
+
+  it('brings the block near the top, above its phone sheet, from inside a scrolling pane', async () => {
+    await viewport.viewport(390, 700)
+    onTestFinished(() => viewport.viewport(1280, 800))
+    render(
+      // The pane is at its top, so only the page can give the block room.
+      <div style={{ height: 2400 }}>
+        <div style={{ height: 800 }} />
+        <div style={{ height: 600, overflowY: 'auto' }}>
+          <Editor
+            aria-label={LABEL}
+            extensions={[promo]}
+            defaultValue={{
+              ...page,
+              doc: { type: 'doc', content: [...page.doc.content!].reverse() }
+            }}
+          />
+          <div style={{ height: 1200 }} />
+        </div>
+      </div>
+    )
+
+    await userEvent.click(await promoView())
+    await userEvent.keyboard('{Enter}')
+    const drawer = await screen.findByRole('dialog', { name: 'Promo settings' })
+
+    await waitFor(() => {
+      const top = screen
+        .getByText('Ochre Kite Weekender', { selector: 'p' })
+        .getBoundingClientRect().top
+      expect(top).toBeGreaterThan(700 * 0.1)
+      expect(top).toBeLessThan(drawer.getBoundingClientRect().top)
+    })
   })
 
   it('opens on Enter with the block selected', async () => {
