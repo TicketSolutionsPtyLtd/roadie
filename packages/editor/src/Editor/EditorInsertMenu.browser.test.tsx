@@ -8,6 +8,8 @@ import {
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { Dialog } from '@oztix/roadie-components/dialog'
+
 import { Editor } from '.'
 import type { EditorValue, JSONContent } from '../schema'
 
@@ -244,6 +246,32 @@ describe('Editor insert menu', () => {
     await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
     expect(textbox).not.toHaveAttribute('aria-activedescendant')
     expect(onValueChange).toHaveBeenLastCalledWith(email(p('/sec')))
+  })
+
+  it('closes on Escape without closing the dialog around it', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <Dialog.Content>
+          <Dialog.Title>Compose</Dialog.Title>
+          <Editor aria-label={LABEL} preset='email' />
+        </Dialog.Content>
+      </Dialog>
+    )
+    await focusedTextbox()
+
+    await userEvent.keyboard('/sec')
+    await insertMenu()
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+    expect(screen.getByRole('dialog')).toBeVisible()
+    expect(onOpenChange).not.toHaveBeenCalled()
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(onOpenChange).toHaveBeenCalledWith(false, expect.anything())
+    )
   })
 
   it('inserts the option clicked', async () => {
