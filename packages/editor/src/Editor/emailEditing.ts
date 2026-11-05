@@ -244,11 +244,11 @@ function outlined(
 
 const BUTTON_ALIGN = { center: 'mx-auto', right: 'ms-auto' } as const
 
-// Matches how renderEmail draws each emphasis.
+// Matches how renderEmail draws each emphasis, whatever intent the editor sits in.
 const BUTTON_EMPHASIS = {
   strong: 'intent-accent emphasis-strong',
-  normal: 'emphasis-normal',
-  subtle: 'emphasis-subtle'
+  normal: 'intent-neutral emphasis-normal',
+  subtle: 'intent-neutral emphasis-subtle'
 } as const
 
 function buttonClass(attrs: Attrs) {

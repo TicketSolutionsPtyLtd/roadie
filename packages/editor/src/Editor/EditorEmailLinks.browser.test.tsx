@@ -239,6 +239,24 @@ describe('Editor email buttons that link to link variables', () => {
     )
   })
 
+  it('keeps a variable the editor no longer lists choosable', async () => {
+    renderEmail(email(button({ variable: 'old_url' })))
+    const dialog = await openSettings()
+
+    const linksTo = within(dialog).getByRole('combobox', { name: 'Links to' })
+    expect(linksTo.textContent).toBe('old_url')
+    expect(within(dialog).queryByRole('textbox', { name: 'Link' })).toBe(null)
+    await userEvent.click(linksTo)
+    expect(
+      (await screen.findAllByRole('option')).map((option) => option.textContent)
+    ).toEqual([
+      'A web address',
+      'Unsubscribe page',
+      'View in browser',
+      'old_url'
+    ])
+  })
+
   it('keeps the variable until a button has a whole web address', async () => {
     const onValueChange = renderEmail(
       email(button({ variable: 'unsubscribe_url' }))
