@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-core",
-  "version": "2.12.0",
+  "version": "2.13.0",
   "description": "Foundations of the Roadie Design System: CSS tokens and utilities, plus framework-agnostic logic for records, dates and times, the colour generator, and dashboards",
   "type": "module",
   "repository": {
@@ -86,6 +86,7 @@
   ],
   "files": [
     "dist",
+    "!dist/**/*.d.ts.map",
     "src/css",
     "!src/css/**/*.test.ts"
   ],
@@ -94,11 +95,14 @@
   },
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build": "pnpm generate:tokens && tsdown && node scripts/records-json-schema.mjs && pnpm build:css && pnpm generate:manifest",
+    "build": "pnpm generate:tokens && pnpm generate:manifest --alongside \"tsdown && node scripts/records-json-schema.mjs && pnpm build:css\"",
     "build:quiet": "tsdown --log-level warn && node scripts/records-json-schema.mjs && pnpm build:css",
     "build:css": "tailwindcss -i src/css/roadie.css -o dist/roadie.compiled.css --content 'src/css/safelist.html'",
     "generate:tokens": "node scripts/generate-tokens.mjs",
     "generate:manifest": "node scripts/manifest/generate.ts --tokens",
+    "check:package": "pnpm check:exports && pnpm check:pack",
+    "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css css/compiled roadie.manifest.json records/record-view.schema.json records/records-request.schema.json",
+    "check:pack": "node scripts/check-pack.mjs",
     "dev": "tsdown --watch --log-level warn",
     "format:check": "oxfmt --check",
     "format": "oxfmt",
@@ -123,6 +127,7 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
     "@size-limit/preset-small-lib": "14.3.0",
     "@tailwindcss/cli": "4.3.3",
     "@types/node": "24.19.2",
@@ -136,7 +141,7 @@
     "size-limit": "14.3.0",
     "tailwindcss": "4.3.3",
     "tsdown": "0.23.4",
-    "typescript": "6.0.3",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.3.5",
     "vitest": "5.0.5"
   },

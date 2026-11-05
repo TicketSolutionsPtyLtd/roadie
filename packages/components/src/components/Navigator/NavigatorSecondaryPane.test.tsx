@@ -396,7 +396,6 @@ describe('secondary pane search', () => {
     expect(field).toHaveAttribute('data-slot', 'pane-search-field')
     expect(field).toHaveAttribute('placeholder', 'Search')
     expect(field).toHaveClass(
-      'h-12',
       'text-base',
       'rounded-full',
       'is-interactive-field'

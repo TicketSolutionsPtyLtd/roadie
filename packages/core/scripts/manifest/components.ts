@@ -27,7 +27,7 @@ export type ManifestPart = {
   props: ManifestProp[]
 }
 
-const SKIPPED_PROPS = new Set([
+export const SKIPPED_PROPS = new Set([
   'ref',
   'key',
   'style',
@@ -43,14 +43,17 @@ export function isOurs(fileName: string | undefined) {
   )
 }
 
+export function isOursOrBaseUi(fileName: string | undefined) {
+  return isOurs(fileName) || !!fileName?.includes('@base-ui/react')
+}
+
 function keepProp(prop: PropItem) {
   if (SKIPPED_PROPS.has(prop.name)) return false
   if (prop.name === 'className') return true
   if (!prop.declarations?.length) return true
   return (
     prop.declarations.some((d) => isOurs(d.fileName)) ||
-    isOurs(prop.parent?.fileName) ||
-    !!prop.parent?.fileName.includes('@base-ui/react')
+    isOursOrBaseUi(prop.parent?.fileName)
   )
 }
 

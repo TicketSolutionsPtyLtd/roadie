@@ -1,4 +1,10 @@
-import type { TestimonialProps, TestimonialQuote } from '.'
+import type {
+  TestimonialOrganisation,
+  TestimonialPerson,
+  TestimonialProps,
+  TestimonialQuote
+} from '.'
+import { fieldsOf } from '../_shared/shapes'
 import type { BlockDefinition } from '../catalogue'
 
 const FIELDS = [
@@ -49,7 +55,11 @@ export const testimonialDefinition = {
       limits: { ...ACTIONS, quotes: { min: 2, strict: true } },
       defaults: { align: 'center' }
     }
-  ]
+  ],
+  shapes: {
+    person: fieldsOf<TestimonialPerson>()(['name', 'role', 'image']),
+    organisation: fieldsOf<TestimonialOrganisation>()(['name', 'logo'])
+  }
 } as const satisfies BlockDefinition<
   keyof TestimonialProps & string,
   keyof TestimonialQuote & string

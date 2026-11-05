@@ -8,7 +8,11 @@ import {
   usePointerHighlight,
   useTypedQuery
 } from '../../utils/optionHighlight'
-import { useHeldWhileClosed, useRankedItems } from '../../utils/rankMatches'
+import {
+  collatorContains,
+  useHeldWhileClosed,
+  useRankedItems
+} from '../../utils/rankMatches'
 import { ComboboxReadOnlyContext } from './readOnly'
 
 export type ComboboxRootProps<
@@ -58,8 +62,10 @@ export function ComboboxRoot<
     props.open,
     props.defaultOpen
   )
+  const ownsFilter =
+    props.filter === undefined && props.filteredItems === undefined
   const rankedItems = useRankedItems(items, {
-    enabled: props.filter === undefined && props.filteredItems === undefined,
+    enabled: ownsFilter,
     query: rankQuery,
     label: props.itemToStringLabel,
     locale: props.locale
@@ -100,6 +106,7 @@ export function ComboboxRoot<
             resetTyped(details)
           }}
           {...props}
+          filter={ownsFilter ? collatorContains(props.locale) : props.filter}
           // After the rest, so an explicit open={undefined} can't undo it.
           open={open}
           onOpenChange={handleOpenChange}

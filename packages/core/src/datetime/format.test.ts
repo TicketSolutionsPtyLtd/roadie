@@ -687,6 +687,73 @@ describe('timestamps', () => {
     // Whatever it returns must be accepted by the formatters.
     expect(formatLong(start, { timeZone: tz })).not.toBeNull()
   })
+
+  it('viewerTimeZone asks Intl once while the offset holds', () => {
+    viewerTimeZone()
+    const format = vi.spyOn(Intl, 'DateTimeFormat')
+    try {
+      viewerTimeZone()
+      viewerTimeZone()
+      expect(format).not.toHaveBeenCalled()
+    } finally {
+      format.mockRestore()
+    }
+  })
+
+  it('viewerTimeZone asks again once the offset moves, as across zones', () => {
+    const first = viewerTimeZone()
+    const moved = new Date().getTimezoneOffset() + 60
+    const offset = vi
+      .spyOn(Date.prototype, 'getTimezoneOffset')
+      .mockReturnValue(moved)
+    const format = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+      () =>
+        ({
+          resolvedOptions: () => ({ timeZone: 'Pacific/Auckland' })
+        }) as Intl.DateTimeFormat
+    )
+    try {
+      expect(viewerTimeZone()).toBe('Pacific/Auckland')
+    } finally {
+      offset.mockRestore()
+      format.mockRestore()
+    }
+    expect(viewerTimeZone()).toBe(first)
+  })
+
+  it.each([
+    { from: 'Australia/Brisbane', to: 'Australia/Sydney', month: 0 },
+    { from: 'Africa/Abidjan', to: 'Europe/London', month: 6 }
+  ])(
+    'viewerTimeZone tells $from from $to by month $month',
+    ({ from, to, month }) => {
+      const first = viewerTimeZone()
+      // Off the real offset, so the real zone's cached answer can't match.
+      const base = new Date().getTimezoneOffset() + 30
+      const differs = Date.UTC(new Date().getUTCFullYear(), month, 1)
+      let zone = from
+      const offset = vi
+        .spyOn(Date.prototype, 'getTimezoneOffset')
+        .mockImplementation(function (this: Date) {
+          return zone === to && this.getTime() === differs ? base - 60 : base
+        })
+      const format = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+        () =>
+          ({
+            resolvedOptions: () => ({ timeZone: zone })
+          }) as Intl.DateTimeFormat
+      )
+      try {
+        expect(viewerTimeZone()).toBe(from)
+        zone = to
+        expect(viewerTimeZone()).toBe(to)
+      } finally {
+        offset.mockRestore()
+        format.mockRestore()
+      }
+      expect(viewerTimeZone()).toBe(first)
+    }
+  )
 })
 
 describe('machine values', () => {

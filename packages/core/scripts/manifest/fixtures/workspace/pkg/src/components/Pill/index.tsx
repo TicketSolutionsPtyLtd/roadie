@@ -1,6 +1,23 @@
 import type { PlacesOptions } from '../../../../core/src/places'
 import { PillIcon } from './PillIcon'
 
+export type { PillIconFrame } from './PillIcon'
+
+/** A count or word shown on the pill. */
+export type PillBadge = {
+  /** The badge's text. */
+  text: string
+  /** Colour of the badge. */
+  tone?: 'neutral' | 'danger'
+}
+
+/** A row of the pill's menu. */
+export type PillItem = {
+  label: string
+  /** The item's badge. */
+  badge: PillBadge
+}
+
 export type PillProps = PlacesOptions & {
   /**
    * Colour of the pill.
@@ -14,6 +31,10 @@ export type PillProps = PlacesOptions & {
    */
   scale?: number
   label: string
+  /** A badge after the label. */
+  badge?: PillBadge
+  /** The pill's menu. */
+  items?: readonly PillItem[]
 }
 
 /** A small rounded label. */

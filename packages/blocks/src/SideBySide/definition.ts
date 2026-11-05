@@ -1,5 +1,7 @@
+import type { StatItem } from '../_shared/StatList'
+import { fieldsOf } from '../_shared/shapes'
 import type { BlockDefinition } from '../catalogue'
-import type { SideBySideProps } from './index'
+import type { SideBySideProps, SideBySideStats } from './index'
 
 type Field = keyof SideBySideProps & string
 
@@ -55,7 +57,11 @@ export const sideBySideDefinition = {
       limits: ACTIONS,
       defaults: { align: 'start', contained: true }
     }
-  ]
+  ],
+  shapes: {
+    stats: fieldsOf<SideBySideStats>()(['title', 'description', 'figures']),
+    figures: fieldsOf<StatItem>()(['value', 'label', 'illustration'])
+  }
 } as const satisfies BlockDefinition<Field>
 
 /** A Side by side preset's name. */

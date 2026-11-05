@@ -9,6 +9,7 @@ const twMerge = extendTailwindMerge<
   | 'emphasis'
   | 'selection'
   | 'link'
+  | 'prose-size'
 >({
   extend: {
     classGroups: {
@@ -134,7 +135,8 @@ const twMerge = extendTailwindMerge<
         'is-selected-label',
         'is-selected-label-on-strong'
       ],
-      link: ['link-normal', 'link-strong', 'link-subtle']
+      link: ['link-normal', 'link-strong', 'link-subtle'],
+      'prose-size': ['prose-sm', 'prose-lg']
     },
     conflictingClassGroups: {
       'semantic-text-color': ['text-color'],

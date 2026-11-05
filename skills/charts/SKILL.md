@@ -336,7 +336,8 @@ Handlers and hrefs never go in the JSON.
 - Download CSV from `cardTable(card)` (`@oztix/roadie-charts/tables`). Copy as
   image with `renderChartSvg`. A server route that builds either itself
   passes the card through `followPeriod(card, period, { timeZone, locale })`
-  from the same entry first, so a chart's comparison matches the Table view.
+  from the same entry first, so its headline delta and context and a chart's
+  comparison match the card on screen.
 - For a single card outside a spec, pass `actions` to `Chart`, `DataCard`, or
   `StatTile`.
 
@@ -344,7 +345,8 @@ Handlers and hrefs never go in the JSON.
 
 Each chart's subpath (`/line-chart` and so on) and `/chart` are `'use client'`
 and export only components, so a server can render them but can't call
-anything from them. Use `/static` and `/tables` for everything else.
+anything from them. Use `/static`, `/chart-document`, and `/tables` for
+everything else.
 
 - `DashboardView` is server safe. Return client components from
   `cardActions`, not inline handlers.
@@ -403,14 +405,14 @@ beta, so check the manifest lists `validateChartDocument` before you use it.
    ```
 
 3. **Render it.** `renderChartDocument(doc, { mode, width, height })` from
-   `@oztix/roadie-charts/static` returns one SVG string with the label and
-   headline above the plot and the source below. It runs on the server with no
-   React, validates again, and throws a `ChartDocumentError` whose `problems`
+   `@oztix/roadie-charts/chart-document` returns one SVG string with the label
+   and headline above the plot and the source below. It runs on the server with
+   no React, validates again, and throws a `ChartDocumentError` whose `problems`
    list what failed. Leave the plot at least 120px tall after the text, or it
    throws a `RangeError`. Pass `accentHue` to match the app's accent.
 
    ```ts
-   import { renderChartDocument } from '@oztix/roadie-charts/static'
+   import { renderChartDocument } from '@oztix/roadie-charts/chart-document'
 
    const svg = renderChartDocument(doc, {
      mode: 'light',

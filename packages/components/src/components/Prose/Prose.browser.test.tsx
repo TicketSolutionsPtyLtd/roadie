@@ -198,6 +198,45 @@ describe('Prose', () => {
     })
   })
 
+  it.each([
+    ['prose-sm', 'text-sm', DISPLAY_SMALL],
+    ['prose-lg', 'text-lg', DISPLAY_PROSE]
+  ] as const)(
+    'sizes a bare .prose with %s, for markup without Prose',
+    (className, body, display) => {
+      const container = renderWide(
+        <>
+          <div className={`prose ${className}`}>
+            <p id='body'>Doors 7pm.</p>
+            <h1>Set times</h1>
+            <h2>Set times</h2>
+            <h3>Set times</h3>
+            <h4>Set times</h4>
+            <h5>Set times</h5>
+            <h6>Set times</h6>
+          </div>
+          <p id='reference' className={body}>
+            Doors 7pm.
+          </p>
+          {display.map((reference, index) => (
+            <p key={reference} className={reference} data-level={index + 1}>
+              Set times
+            </p>
+          ))}
+        </>
+      )
+      expect(style(get(container, '#body')).fontSize).toBe(
+        style(get(container, '#reference')).fontSize
+      )
+      display.forEach((reference, index) => {
+        const heading = style(get(container, `h${index + 1}`))
+        const expected = style(get(container, `[data-level='${index + 1}']`))
+        expect(heading.fontSize, reference).toBe(expected.fontSize)
+        expect(heading.fontWeight, reference).toBe(expected.fontWeight)
+      })
+    }
+  )
+
   it('lets a variable on Prose override its size', () => {
     const container = renderWide(
       <Prose size='lg' className='[--prose-size:2rem]'>
@@ -553,6 +592,26 @@ describe('Prose', () => {
       expect(box(get(container, id)).width).not.toBe(upright)
     }
     expect(style(get(container, '#opted-out')).fontStyle).toBe('normal')
+  })
+
+  it('keeps text inside emphasis italic, under other marks', () => {
+    const container = renderWide(
+      <Prose>
+        <p>
+          <strong>
+            <em>
+              <u id='underlined'>No refunds</u> or{' '}
+              <a id='link' href='/refunds'>
+                exchanges
+              </a>
+            </em>
+          </strong>
+        </p>
+      </Prose>
+    )
+    for (const id of ['#underlined', '#link']) {
+      expect(style(get(container, id)).fontStyle).toBe('italic')
+    }
   })
 
   it('takes its colours from the scheme, with no rules of its own', () => {

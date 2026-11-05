@@ -89,4 +89,71 @@ describe('catalogue', () => {
 
     expect(files.sort()).toEqual(expected.sort())
   })
+
+  it('lists preset in every preset, so a CMS stores it even where a block has one', () => {
+    for (const block of catalogue) {
+      for (const preset of block.presets) {
+        expect(preset.fields, `${block.name} ${preset.name}`).toContain(
+          'preset'
+        )
+      }
+    }
+  })
+
+  it('gives Gallery images their size, for an image component that needs it', () => {
+    for (const preset of catalogue.find((block) => block.name === 'gallery')!
+      .presets) {
+      expect(preset.itemFields, preset.name).toEqual(
+        expect.arrayContaining(['width', 'height'])
+      )
+    }
+  })
+
+  // The fields that hold an object, or a list of them, beyond each block's own items.
+  const OBJECT_FIELDS: Record<string, readonly string[]> = {
+    hero: ['actions', 'image', 'images', 'video', 'poster', 'partner', 'logo'],
+    'rich-text': ['actions'],
+    'side-by-side': ['actions', 'image', 'stats', 'figures'],
+    'alternating-rows': ['actions', 'image'],
+    cards: ['actions', 'image'],
+    faq: ['actions'],
+    stats: ['actions'],
+    testimonial: ['actions', 'image', 'person', 'organisation', 'logo'],
+    gallery: ['actions', 'images'],
+    mosaic: ['actions', 'image', 'logo', 'logoTile', 'logos'],
+    'call-to-action': ['actions', 'image']
+  }
+
+  it('lists the object fields of every block in the catalogue', () => {
+    expect(Object.keys(OBJECT_FIELDS).sort()).toEqual(
+      catalogue.map((block) => block.name).sort()
+    )
+  })
+
+  it.each(Object.entries(OBJECT_FIELDS))(
+    'describes the fields inside every object field of %s',
+    (name, fields) => {
+      const block = catalogue.find((candidate) => candidate.name === name)!
+      expect(Object.keys(block.shapes).sort()).toEqual([...fields].sort())
+      for (const inner of Object.values(block.shapes))
+        expect(inner.length, name).toBeGreaterThan(0)
+    }
+  )
+
+  it('describes an image as its source, text, and size', () => {
+    const hero = catalogue.find((block) => block.name === 'hero')!
+    expect(hero.shapes.image).toEqual([
+      'src',
+      'alt',
+      'width',
+      'height',
+      'blurDataURL'
+    ])
+    expect(hero.shapes.actions).toEqual(['label', 'href', 'icon'])
+  })
+
+  it("keeps a block's own shape over the shared image fields", () => {
+    const gallery = catalogue.find((block) => block.name === 'gallery')!
+    expect(gallery.shapes.images).toContain('href')
+  })
 })

@@ -15,6 +15,7 @@ export const statsDefinition = {
       description:
         'A heading over a wrapping row of figures, such as company facts, results, or a local audience.',
       fields: [
+        'preset',
         'id',
         'eyebrow',
         'title',

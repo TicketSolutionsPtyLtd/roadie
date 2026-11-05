@@ -1,6 +1,6 @@
 {
   "name": "@oztix/roadie-widgets",
-  "version": "3.7.1",
+  "version": "3.8.0",
   "description": "Roadie Design System widgets (core + React + Vue skins) — currently the shared cart drawer",
   "type": "module",
   "repository": {
@@ -59,10 +59,12 @@
     "./roadie.manifest.json": "./dist/roadie.manifest.json"
   },
   "scripts": {
-    "build": "tsdown && pnpm generate:manifest && pnpm check:dts && pnpm check:exports",
-    "build:quiet": "tsdown --log-level warn && pnpm generate:manifest",
+    "build": "pnpm generate:manifest --alongside tsdown",
+    "check:package": "pnpm check:dts && pnpm check:exports && pnpm check:pack",
+    "build:quiet": "pnpm generate:manifest --alongside tsdown --log-level warn",
     "check:dts": "node scripts/check-dts.mjs",
     "check:exports": "attw --pack . --profile esm-only --exclude-entrypoints css roadie.manifest.json",
+    "check:pack": "node ../core/scripts/check-pack.mjs",
     "clean": "rm -rf node_modules dist",
     "generate:manifest": "node ../core/scripts/manifest/generate.ts",
     "dev": "tsdown --watch --log-level warn",
@@ -156,7 +158,7 @@
     "react-focus-lock": "2.13.7",
     "size-limit": "14.3.0",
     "tsdown": "0.23.4",
-    "typescript": "6.0.3",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite": "8.3.5",
     "vitest": "5.0.5",
     "vue": "3.5.44",

@@ -1,3 +1,5 @@
+import { onTestFinished, vi } from 'vitest'
+
 import { presetOf } from './presets'
 
 const hero = {
@@ -29,5 +31,46 @@ describe('presetOf', () => {
   it("falls back to the block's first preset for none or an unknown name", () => {
     expect(presetOf(hero, undefined).name).toBe('page-hero')
     expect(presetOf(hero, 'retired').name).toBe('page-hero')
+  })
+
+  it("ignores the invisible characters a live preview adds to a preset's name", () => {
+    expect(presetOf(hero, 'page-\u200Bheader\uFEFF').name).toBe('page-header')
+  })
+
+  it('warns once in development when a preset name matches none', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
+
+    presetOf(hero, 'archived')
+    presetOf(hero, 'archived')
+    presetOf(hero, undefined)
+    presetOf(hero, 'page-header')
+
+    expect(warn).toHaveBeenCalledOnce()
+    expect(warn.mock.calls[0]![0]).toContain('archived')
+  })
+
+  it('stays quiet in production', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
+    vi.stubEnv('NODE_ENV', 'production')
+    onTestFinished(() => {
+      vi.unstubAllEnvs()
+    })
+
+    presetOf(hero, 'withdrawn')
+
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('renders where a bundler shims process without env', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    onTestFinished(() => warn.mockRestore())
+    vi.stubGlobal('process', {})
+    onTestFinished(() => {
+      vi.unstubAllGlobals()
+    })
+
+    expect(presetOf(hero, 'superseded').name).toBe('page-hero')
   })
 })

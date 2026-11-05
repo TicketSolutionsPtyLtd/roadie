@@ -17,6 +17,7 @@ import {
   exportEntries,
   moduleExports
 } from './exports.ts'
+import { type ManifestType, type TypeSource, readTypes } from './types.ts'
 
 export const MANIFEST_FILE = 'roadie.manifest.json'
 export const DOCS_URL = 'https://ticketsolutionsptyltd.github.io/roadie/'
@@ -57,6 +58,7 @@ export type RoadieManifest = {
   docs: string
   exports: ManifestExport[]
   components: ManifestComponent[]
+  types: ManifestType[]
   deprecations: ManifestDeprecation[]
   tokens?: TokenEntry[]
 }
@@ -188,6 +190,8 @@ export function buildManifest({
   const deprecations: ManifestDeprecation[] = []
   const rootDeprecations: ManifestDeprecation[] = []
   const onSubpaths = new Set<string>()
+  const typeSources: TypeSource[] = []
+  const rootTypeSources: TypeSource[] = []
   let rootComponents = new Map<string, string>()
 
   const addComponents = (importName: string, docs: ManifestPart[]) => {
@@ -243,6 +247,10 @@ export function buildManifest({
     }
 
     const api = moduleExports(program, entry.source)
+    // A subpath names a type more precisely than the package root re-exporting it.
+    const typeSource = { import: importName, symbols: api.typeSymbols }
+    if (entry.subpath === '.') rootTypeSources.push(typeSource)
+    else typeSources.push(typeSource)
     exports.push({
       subpath: entry.subpath,
       import: importName,
@@ -352,6 +360,16 @@ export function buildManifest({
     ...rootDeprecations.filter((d) => !onSubpaths.has(d.export))
   )
 
+  const types = readTypes(
+    program,
+    [...typeSources, ...rootTypeSources],
+    components.flatMap((component) =>
+      [component, ...(component.parts ?? [])].flatMap((part) =>
+        part.props.map((prop) => prop.type)
+      )
+    )
+  )
+
   return {
     schemaVersion: SCHEMA_VERSION,
     package: pkg.name,
@@ -359,6 +377,7 @@ export function buildManifest({
     docs: pkg.homepage,
     exports,
     components,
+    types,
     deprecations,
     ...(tokens && { tokens })
   }

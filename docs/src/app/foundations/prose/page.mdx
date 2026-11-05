@@ -54,6 +54,25 @@ wins over the sheet.
 The scope needs `@scope`, in Chrome 118, Safari 17.4 and Firefox 146. Older
 browsers style Prose in full, but a Prose inside an escape stays unstyled.
 
+## Sizes
+
+Add `prose-sm` or `prose-lg` beside `.prose` for the Prose component's `sm`
+and `lg` sizes, in markup that doesn't use the component. `prose-sm` sets
+body text at the `text-sm` size, headings one step below the UI heading
+styles, and a tighter rhythm. `prose-lg` sets larger body text with the prose
+heading styles. Each sets only `--prose-*` variables.
+
+```tsx-live-prose layout=stack gap=8
+<div className='prose prose-sm'>
+  <h3>Can I change the name on my ticket?</h3>
+  <p>Yes, up to 48 hours before doors. Open the ticket and choose Transfer.</p>
+</div>
+<div className='prose prose-lg'>
+  <h3>A weekend at Jumbuck Orchard Park</h3>
+  <p>Three stages, two nights, and the longest bar in the valley.</p>
+</div>
+```
+
 ## Rhythm
 
 Space only goes above an element, never below, so a block's first child sits

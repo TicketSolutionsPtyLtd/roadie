@@ -1,4 +1,5 @@
-import type { MosaicProps, MosaicTile } from '.'
+import type { MosaicLogoTile, MosaicProps, MosaicTile } from '.'
+import { fieldsOf } from '../_shared/shapes'
 import type { BlockDefinition } from '../catalogue'
 
 const ACTIONS = { actions: { max: 2 } } as const
@@ -16,6 +17,7 @@ export const mosaicDefinition = {
       description:
         'Photo tiles, each with a logo or title and a marked label, the wide ones two columns or the full row, then an optional tile of smaller logos.',
       fields: [
+        'preset',
         'id',
         'eyebrow',
         'title',
@@ -42,7 +44,10 @@ export const mosaicDefinition = {
       limits: ACTIONS,
       defaults: { align: 'start' }
     }
-  ]
+  ],
+  shapes: {
+    logoTile: fieldsOf<MosaicLogoTile>()(['title', 'logos'])
+  }
 } as const satisfies BlockDefinition<
   keyof MosaicProps & string,
   keyof MosaicTile & string

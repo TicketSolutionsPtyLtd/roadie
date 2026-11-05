@@ -9,7 +9,8 @@
   },
   "scripts": {
     "dev": "turbo dev",
-    "build": "turbo build",
+    "build": "turbo build --filter=\"./packages/*\"",
+    "build:docs": "turbo build --filter=docs",
     "test": "turbo test",
     "test:browser": "turbo test:browser",
     "test:gated": "node scripts/test-gated.mjs",
@@ -28,7 +29,7 @@
     "prepare": "node scripts/prepare.mjs",
     "postinstall": "husky",
     "typecheck": "turbo typecheck",
-    "release": "pnpm build && pnpm changeset publish"
+    "release": "pnpm build && pnpm turbo check:package --filter=./packages/* && pnpm changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "3.0.3",
@@ -43,7 +44,8 @@
     "oxlint": "1.90.0",
     "playwright": "1.64.1",
     "turbo": "2.11.10",
-    "typescript": "6.0.3"
+    "typescript": "npm:@typescript/typescript6@6.0.2",
+    "typescript-7": "npm:typescript@7.0.2"
   },
   "workspaces": [
     "packages/*",

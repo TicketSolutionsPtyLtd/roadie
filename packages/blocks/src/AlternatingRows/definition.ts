@@ -16,6 +16,7 @@ export const alternatingRowsDefinition = {
       description:
         'Rows of a title set on a colour, a subtitle, and a sentence or two beside a square photo, alternating sides, for values or the steps of a story.',
       fields: [
+        'preset',
         'id',
         'eyebrow',
         'title',

@@ -38,11 +38,11 @@ export const tabsListVariants = cva(
   {
     variants: {
       emphasis: {
-        strong: 'gap-1 rounded-full p-1 emphasis-subtle',
-        normal: 'gap-1 rounded-full p-1 emphasis-subtle',
-        subtle: 'gap-1 rounded-full p-1',
+        strong: 'rounded-full p-1 emphasis-subtle',
+        normal: 'rounded-full p-1 emphasis-subtle',
+        subtle: 'rounded-full p-1',
         subtler:
-          'gap-1 border-b border-subtle data-[orientation=vertical]:border-b-0 data-[orientation=vertical]:border-l data-[orientation=vertical]:border-l-subtle'
+          'border-b border-subtle data-[orientation=vertical]:border-b-0 data-[orientation=vertical]:border-l data-[orientation=vertical]:border-l-subtle'
       }
     },
     defaultVariants: { emphasis: 'normal' }
@@ -67,7 +67,9 @@ export const tabsTabVariants = cva(
     'inline-flex items-center gap-1.5',
     'justify-center data-[orientation=vertical]:justify-start',
     'font-semibold whitespace-nowrap',
-    'not-data-[active]:is-unselected',
+    // Inactive tabs take a subtler button's hover fill. A fixed border keeps
+    // their size as they're chosen, and the padding gives its width back.
+    'border not-data-[active]:emphasis-subtler not-data-[active]:is-unselected',
     'data-[icon-only]:aspect-square data-[icon-only]:shrink-0 data-[icon-only]:rounded-full data-[icon-only]:px-0',
     'data-[icon-only]:data-[orientation=vertical]:justify-center'
   ].join(' '),
@@ -79,12 +81,12 @@ export const tabsTabVariants = cva(
         subtle: 'rounded-full data-[active]:is-selected-label',
         // Inset, because the scrolling list clips a ring drawn outside it.
         subtler:
-          'rounded-none data-[active]:is-selected-label focus-visible:-outline-offset-(--focus-ring-width)'
+          'rounded-t-lg data-[orientation=vertical]:not-data-[icon-only]:rounded-l-none data-[orientation=vertical]:not-data-[icon-only]:rounded-r-lg data-[active]:is-selected-label focus-visible:-outline-offset-(--focus-ring-width)'
       },
       size: {
-        sm: 'h-8 px-3 text-sm',
-        md: 'h-10 px-4 text-sm',
-        lg: 'h-12 px-5 text-base'
+        sm: 'h-8 px-[calc(--spacing(3)-1px)] text-sm',
+        md: 'h-10 px-[calc(--spacing(4)-1px)] text-sm',
+        lg: 'h-12 px-[calc(--spacing(5)-1px)] text-base'
       }
     },
     defaultVariants: { emphasis: 'normal', size: 'md' }

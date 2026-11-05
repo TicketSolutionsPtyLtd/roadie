@@ -1,5 +1,9 @@
+import { IMAGE_FIELDS, fieldsOf } from '../_shared/shapes'
 import type { BlockDefinition } from '../catalogue'
 import type { GalleryImage, GalleryProps } from './index'
+
+// Each image's size lets an image component reserve its space.
+const ITEM_FIELDS = fieldsOf<GalleryImage>()([...IMAGE_FIELDS, 'href'])
 
 const PHOTO_FIELDS = [
   'preset',
@@ -33,7 +37,7 @@ export const galleryDefinition = {
       description:
         'Photos people step through with controls or a swipe, for a set worth browsing, such as the events partners run.',
       fields: PHOTO_FIELDS,
-      itemFields: ['src', 'alt', 'href'],
+      itemFields: ITEM_FIELDS,
       limits: ACTIONS,
       defaults: { align: 'center', ratio: 'story' }
     },
@@ -43,7 +47,7 @@ export const galleryDefinition = {
       description:
         'Photos scrolling past on their own, with a pause button, for a sense of how many events run with Oztix at a glance.',
       fields: PHOTO_FIELDS,
-      itemFields: ['src', 'alt', 'href'],
+      itemFields: ITEM_FIELDS,
       limits: ACTIONS,
       defaults: { align: 'center', ratio: 'story' }
     },
@@ -67,11 +71,12 @@ export const galleryDefinition = {
         'align',
         'size'
       ],
-      itemFields: ['src', 'alt', 'href'],
+      itemFields: ITEM_FIELDS,
       limits: ACTIONS,
       defaults: { align: 'center', ratio: 'natural' }
     }
-  ]
+  ],
+  shapes: { images: ITEM_FIELDS }
 } as const satisfies BlockDefinition<
   keyof GalleryProps & string,
   keyof GalleryImage & string
