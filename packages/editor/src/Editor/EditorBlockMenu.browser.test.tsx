@@ -236,6 +236,7 @@ describe('Editor block menu', () => {
     const link = new URL(window.location.href)
     link.hash = 'headliner'
     expect(writeText).toHaveBeenCalledWith(link.href)
+    expect(await screen.findByRole('status')).toHaveTextContent('Link copied')
     writeText.mockRestore()
   })
 
@@ -323,9 +324,10 @@ describe('Editor block menu', () => {
       const sheet = await screen.findByRole('dialog', { name: 'Paragraph' })
 
       await userEvent.click(
-        within(
-          within(sheet).getByRole('group', { name: 'Turn into' })
-        ).getByRole('button', { name: 'Heading 3' })
+        within(sheet).getByRole('button', { name: 'Turn into' })
+      )
+      await userEvent.click(
+        await within(sheet).findByRole('button', { name: 'Heading 3' })
       )
 
       await waitFor(() =>
@@ -333,6 +335,51 @@ describe('Editor block menu', () => {
           type: 'heading',
           attrs: { level: 3, blockId: 'support' }
         })
+      )
+    })
+
+    it('takes the lower half, under its block, with Delete last and Done to close', async () => {
+      await page.viewport(390, 700)
+      renderLineup({ emphasis: 'normal' })
+      const headliner = await row('Headliner')
+      await userEvent.click(headliner)
+      await userEvent.click(await handle())
+      const sheet = await screen.findByRole('dialog', { name: 'Paragraph' })
+
+      await waitFor(() => {
+        const { top } = sheet.getBoundingClientRect()
+        expect(top).toBeGreaterThanOrEqual(window.innerHeight / 2 - 1)
+        expect(headliner.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+          top
+        )
+      })
+      const rows = within(sheet)
+        .getAllByRole('button')
+        .map(
+          (button) => button.textContent || button.getAttribute('aria-label')
+        )
+      expect(rows.at(-1)).toBe('Delete')
+      expect(
+        parseFloat(
+          getComputedStyle(
+            within(sheet).getByRole('button', { name: 'Duplicate' })
+          ).fontWeight
+        )
+      ).toBeLessThan(600)
+
+      await userEvent.click(within(sheet).getByRole('button', { name: 'Done' }))
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    })
+
+    it('makes room for the grip in a subtler editor too', async () => {
+      await page.viewport(390, 700)
+      renderLineup({ emphasis: 'subtler' })
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await userEvent.click(await row('Doors'))
+      const grip = (await handle()).getBoundingClientRect()
+
+      expect(grip.left).toBeGreaterThanOrEqual(
+        textbox.getBoundingClientRect().left
       )
     })
 
