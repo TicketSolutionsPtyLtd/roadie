@@ -315,6 +315,20 @@ describe('Editor insert menu', () => {
     )
   })
 
+  it('ranks a match at the start of a name first, as /2 finds 2 columns before Heading 2', async () => {
+    renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/2')
+
+    await waitFor(async () =>
+      expect(optionNames(await insertMenu())).toEqual([
+        '2 columns',
+        'Heading 2'
+      ])
+    )
+  })
+
   it.each([
     ['btn', ['Button']],
     ['cta', ['Button']],

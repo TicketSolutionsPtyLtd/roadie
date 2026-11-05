@@ -36,6 +36,7 @@ format it. Pass `emphasis` or `toolbar` to change either. An
 <Editor
   aria-label='Page'
   preset='blocks'
+  className='ps-12'
   defaultValue={{
     version: 1,
     preset: 'blocks',
@@ -76,7 +77,11 @@ its shortcut, such as `##` or `---`, with a mouse or trackpad.
 **Blocks** in the toolbar, docked or floating, opens a drawer of the same
 blocks as tiles under their headings, from the right on a desktop or the
 bottom on a phone. A tile adds its block after the caret's, and the drawer
-closes with the caret in it. The [email preset](/components/editor/email#composing-a-layout)
+closes with the caret in it. Find a block, at its top, filters the tiles as
+`/` does; typing on a tile types there, and Enter adds the first match. The
+arrow keys move between tiles. From 1280 pixels wide the drawer leaves the
+page usable beside it, with no backdrop, so you can move the caret without
+closing it. The [email preset](/components/editor/email#composing-a-layout)
 has the same drawer.
 
 ### Block handle
@@ -97,6 +102,7 @@ the block itself when it's an empty line.
 <Editor
   aria-label='Set times'
   preset='blocks'
+  className='ps-12'
   defaultValue={{
     version: 1,
     preset: 'blocks',
@@ -115,7 +121,8 @@ the block itself when it's an empty line.
 
 A framed editor makes room for the add button and grip at the start of its
 text. A `subtler` editor keeps its text in line with the page, so they hang
-outside it: give it room at the start.
+outside it: give it room at the start, as these examples do with
+`className='ps-12'`.
 
 The grip is a button named Block actions. It takes no Tab stop, since it
 shows only beside the caret's block; `Mod+/` opens its menu instead. The
@@ -240,6 +247,7 @@ function Page() {
     <>
       <Editor
         aria-label='Page'
+        className='ps-12'
         extensions={[callToAction]}
         value={value}
         onValueChange={setValue}

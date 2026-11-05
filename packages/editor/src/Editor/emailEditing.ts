@@ -83,7 +83,8 @@ function replaceLine(
 
 /**
  * Inserts `content` before the caret's line when it's empty, which keeps the
- * caret, or after it, with a paragraph to type in.
+ * caret, or when the caret starts it; otherwise after it, with a paragraph to
+ * type in.
  */
 export function insertBlock(content: JSONContent) {
   return (props: CommandProps) => {
@@ -91,8 +92,9 @@ export function insertBlock(content: JSONContent) {
     if (!$from.parent.isTextblock || $from.depth === 0) return false
     const block = props.tr.doc.type.schema.nodeFromJSON(content)
     const emptied = $from.parent.content.size === 0
-    const at = emptied ? $from.before() : $from.after()
-    return placeBlock(props, at, block, emptied)
+    const before = emptied || $from.parentOffset === 0
+    const at = before ? $from.before() : $from.after()
+    return placeBlock(props, at, block, before)
   }
 }
 
