@@ -616,6 +616,33 @@ describe('importEmail reads an HTML email’s buttons', () => {
     ).toEqual([buttonOf({ align: 'center' })])
   })
 
+  it.each([
+    ['after a paragraph', ''],
+    ['after a paragraph and a break', '<br>']
+  ])('reads a filled link alone %s in its cell as a button', (_, between) => {
+    expect(
+      blocks(
+        `<table><tr><td><p>Doors 7pm</p>${between}<a href="${TICKETS}" style="padding:12px 24px;background:#5f270f">Get tickets</a></td></tr></table>`
+      )
+    ).toEqual([paragraph(text('Doors 7pm')), buttonOf()])
+  })
+
+  it('reads a link styled by its class as a button', () => {
+    expect(
+      blocks(
+        `<style>.btn { padding: 12px 24px; background-color: #5f270f }</style><p><a class="btn" href="${TICKETS}">Get tickets</a></p>`
+      )
+    ).toEqual([buttonOf()])
+  })
+
+  it('reads no button from a class styled only for some screens', () => {
+    expect(
+      blocks(
+        `<style>@media (max-width: 600px) { .btn { padding: 12px; background: #000 } }</style><p><a class="btn" href="${TICKETS}">Get tickets</a></p>`
+      )?.some((block) => block.type === 'button')
+    ).toBe(false)
+  })
+
   it('reads a button to a link variable', () => {
     expect(
       blocks(

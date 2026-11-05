@@ -476,9 +476,11 @@ same dialog with it filled in, in place of pasting the tags.
   `mj-divider` become a button, image, spacer, and divider. A button keeps
   its centre or right alignment and a 100% width. A navbar or social row
   becomes a line of links. Any other element keeps its text.
-- **HTML:** a link alone on its line becomes a button when it has its own
-  fill or border and is padded or `inline-block`, or when it fills a padded
-  one-cell table, as a bulletproof button does. It keeps its centre or right
+- **HTML:** a link alone on its line, or beside only blocks and breaks,
+  becomes a button when it has its own fill or border and is padded or
+  `inline-block`, or when it fills a padded one-cell table, as a bulletproof
+  button does. A class's style from the source's style sheet counts, though
+  not one inside a media query. It keeps its centre or right
   alignment. A row of two to four cells of blocks, whose widths add up to
   100%, becomes columns, leaving out an empty gutter cell. A table with a
   header row, or several such rows with no image or heading, as a receipt

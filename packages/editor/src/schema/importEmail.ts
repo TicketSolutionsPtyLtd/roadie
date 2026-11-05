@@ -301,6 +301,7 @@ function readMjml(source: string): Reading & { container: HTMLElement } {
 function readHtml(source: string): Reading & { container: HTMLElement } {
   const doc = new DOMParser().parseFromString(source, 'text/html')
   const sheets = doc.querySelectorAll('style')
+  readSheets(doc, sheets)
   const reading: Reading = { doc, dropped: [], styles: sheets.length }
   sheets.forEach((sheet) => sheet.remove())
   return { ...reading, container: doc.body }
@@ -428,7 +429,51 @@ const FILLED =
   /(?:^|;)\s*background(?:-color)?\s*:\s*(?!\s*(?:transparent|none|inherit|initial|unset)\s*(?:;|$))/i
 const BORDERED = /(?:^|;)\s*border(?:-width)?\s*:\s*[^;]*[1-9]/i
 
-const styleOf = (element: Element) => element.getAttribute('style') ?? ''
+// Each element's declarations from the source's style sheets, before its
+// own style, which wins. Read once per import, before the sheets go.
+const sheetStyles = new WeakMap<Element, string>()
+
+const styleOf = (element: Element) =>
+  `${sheetStyles.get(element) ?? ''};${element.getAttribute('style') ?? ''}`
+
+// A media query's rules hold for some clients only, so they're left out.
+function withoutAtRules(css: string) {
+  let rest = css.replace(/\/\*[\s\S]*?\*\//g, '')
+  const atRule = /@[^{};]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}|@[^{};]*;/g
+  while (atRule.test(rest)) rest = rest.replace(atRule, '')
+  return rest
+}
+
+function readSheets(doc: Document, sheets: Iterable<Element>) {
+  for (const sheet of sheets) {
+    const rules = withoutAtRules(sheet.textContent ?? '')
+    for (const [, selectors, body] of rules.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      for (const selector of selectors!.split(',')) {
+        let matched: NodeListOf<Element>
+        try {
+          matched = doc.querySelectorAll(selector.trim())
+        } catch {
+          continue
+        }
+        for (const element of matched) {
+          sheetStyles.set(element, `${sheetStyles.get(element) ?? ''};${body}`)
+        }
+      }
+    }
+  }
+}
+
+const BLOCK_SIBLING =
+  'p, div, table, ul, ol, h1, h2, h3, h4, h5, h6, hr, br, center'
+
+// Beside only blocks, breaks, and spaces, a link is a line of its own.
+const isAloneAmongBlocks = (link: Element) =>
+  [...(link.parentElement?.childNodes ?? [])].every(
+    (node) =>
+      node === link ||
+      (node.nodeType === Node.TEXT_NODE && !node.textContent?.trim()) ||
+      (node instanceof Element && node.matches(BLOCK_SIBLING))
+  )
 
 // The link is the line's only text, so it reads as a button, not a word.
 function lineHolding(link: Element) {
@@ -437,6 +482,9 @@ function lineHolding(link: Element) {
   const words = (element: Element) => element.textContent?.trim() ?? ''
   // A linked image or layout is no button's label.
   if (!words(link) || link.querySelector('img, table')) return null
+  if (words(line) !== words(link)) {
+    return link.parentElement === line && isAloneAmongBlocks(link) ? link : null
+  }
   const others = [...line.querySelectorAll('img, a, table')].filter(
     (element) => element !== link && !link.contains(element)
   )
