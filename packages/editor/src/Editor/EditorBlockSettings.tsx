@@ -150,7 +150,9 @@ function SettingsForm({ settings, start, apply, onDone }: SettingsFormProps) {
 function scrollNearTop(block: HTMLElement) {
   const document = block.ownerDocument
   const view = document.defaultView ?? window
-  block.scrollIntoView({ block: 'start' })
+  // Instant, as a page's smooth scrolling would leave each scrollTop read
+  // mid-move, and the room taken from it wrong.
+  block.scrollIntoView({ block: 'start', behavior: 'instant' })
   let left = view.innerHeight * 0.2
   const scrollers: Element[] = []
   for (let at = block.parentElement; at; at = at.parentElement) {
@@ -161,7 +163,7 @@ function scrollNearTop(block: HTMLElement) {
   for (const scroller of scrollers) {
     if (left <= 0) return
     const before = scroller.scrollTop
-    scroller.scrollTop = before - left
+    scroller.scrollTo({ top: before - left, behavior: 'instant' })
     left -= before - scroller.scrollTop
   }
 }
