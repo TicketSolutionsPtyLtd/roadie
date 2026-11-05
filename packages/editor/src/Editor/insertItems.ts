@@ -33,8 +33,8 @@ export type EditorInsertItem = {
   insert: (chain: ChainedCommands, ui: EditorControlUi) => ChainedCommands
   /**
    * Whether it can go at the caret. `afterQuery` starts a chain, never
-   * dispatched, from once the typed `/` and query are gone, for a block whose
-   * place depends on whether the line is empty.
+   * dispatched, on the line without the typed `/` and query, for a block
+   * whose place depends on whether the line is empty.
    */
   enabled: (editor: Editor, afterQuery: () => ChainedCommands) => boolean
   /** Offers the item only while this holds, such as with an upload handler. */
@@ -231,11 +231,13 @@ export function matchingInsertItems(
         return true
       })
       .deleteRange(range)
+  // Matched by name first, as a block's fit is a transaction on each keystroke.
   return items.filter((item) => {
-    if (!(item.available?.(ui) ?? true) || !item.enabled(editor, afterQuery)) {
-      return false
-    }
     const names = [item.label, ...(item.keywords ?? [])].join(' ').toLowerCase()
-    return words.every((word) => names.includes(word))
+    return (
+      words.every((word) => names.includes(word)) &&
+      (item.available?.(ui) ?? true) &&
+      item.enabled(editor, afterQuery)
+    )
   })
 }
