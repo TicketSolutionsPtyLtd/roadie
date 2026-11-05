@@ -467,6 +467,22 @@ describe('renderEmail', () => {
       expect(plain.replaceAll('​', '')).toBe('Hi {{ secret }} #Code#!')
     })
 
+    it.each([
+      ['ae', '#VIP', '#', '#FirstName#', ['#VIP#', '##']],
+      ['liquid', '{', '}', '{{ customer.first_name }}', ['{{{', '}}}']]
+    ] as const)(
+      'keeps typed %s token characters beside a variable from joining its token in the plain text',
+      async (syntax, before, after, token, joined) => {
+        const { text: plain } = await renderEmail(
+          email(p(text(`Hi ${before}`), tag('first_name'), text(after))),
+          { syntax, variables }
+        )
+        expect(plain).toContain(token)
+        for (const run of joined) expect(plain).not.toContain(run)
+        expect(plain.replaceAll('​', '')).toBe(`Hi ${before}${token}${after}`)
+      }
+    )
+
     it('keeps a Liquid token’s whitespace control around its default', async () => {
       const { html } = await renderEmail(greeting('there'), {
         syntax: 'liquid',

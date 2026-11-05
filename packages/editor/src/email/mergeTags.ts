@@ -26,6 +26,12 @@ export const untokenedText = (text: string) =>
     .replace(/#(?=\w+#)/g, '#\u200B')
     .replace(/\[(?=\w+\])/g, '[\u200B')
 
+// Typed token characters beside a variable would otherwise join its token.
+const apartFromTags = (text: string) =>
+  text
+    .replace(/[#{}[\]%]\w*(?=\uE000)/g, '$&\u200B')
+    .replace(/\uE001(?=[#{}[\]%])/g, '$&\u200B')
+
 // Liquid strings have no escapes, so the quote is one the text doesn't hold.
 const liquidString = (text: string) =>
   text.includes('"') ? `'${text.replaceAll("'", '’')}'` : `"${text}"`
@@ -84,6 +90,9 @@ export function mergeTags({ syntax, variables = [], values }: MergeTagOptions) {
     return `\uE000${filled.length - 1}\uE001`
   }
   const fill = (output: string, part: keyof Filled) =>
-    output.replace(PLACEHOLDER, (_match, index) => filled[Number(index)]![part])
+    (part === 'text' ? apartFromTags(output) : output).replace(
+      PLACEHOLDER,
+      (_match, index) => filled[Number(index)]![part]
+    )
   return { tag, fill }
 }
