@@ -288,8 +288,9 @@ on a selected image opens Alt text too.
 
 ### Embeds
 
-The rich preset embeds videos and tracks from YouTube, Vimeo, Spotify, and
-TikTok. Paste a share link alone on an empty line, or use the Embed control.
+The rich preset embeds videos and tracks from YouTube, Vimeo, Spotify,
+SoundCloud, Deezer, Apple Music, and TikTok. Paste a share link alone on an
+empty line, or use the Embed control.
 The editor shows each player at its own shape, under a cover, so a click
 selects it rather than playing it, and Backspace or Delete removes it. A
 player with a ratio is no taller than 36rem, so a portrait one, such as
@@ -310,7 +311,10 @@ TikTok's, stays narrow at the start of the line, in the editor and in
         { type: 'embed', attrs: { provider: 'youtube', id: 'sBzrzS1Ag_g', params: null } },
         { type: 'embed', attrs: { provider: 'spotify', id: '5INjqkS1o8h1imAzPqGZBb', params: { type: 'artist' } } },
         { type: 'embed', attrs: { provider: 'vimeo', id: '1084537', params: null } },
-        { type: 'embed', attrs: { provider: 'tiktok', id: '6718335390845095173', params: null } }
+        { type: 'embed', attrs: { provider: 'tiktok', id: '6718335390845095173', params: null } },
+        { type: 'embed', attrs: { provider: 'soundcloud', id: 'gangofyouths/forbearance-alternate', params: null } },
+        { type: 'embed', attrs: { provider: 'deezer', id: '45534641', params: { type: 'album' } } },
+        { type: 'embed', attrs: { provider: 'apple-music', id: '1233719556', params: { type: 'album', storefront: 'au' } } }
       ]
     }
   }}
@@ -326,9 +330,9 @@ migration. Players run in a sandboxed `iframe`, and a look-alike host such as
 - `embedProviders` sets the providers the editor reads links from, starting
   from `defaultEmbedProviders`. Pass the same list to `/render`, or it drops
   the embeds it doesn't know.
-- `resolveUrl` turns a link no provider reads, such as a TikTok short link,
-  into one it can, when it's entered in the Embed control. Resolve it on
-  your server.
+- `resolveUrl` turns a link no provider reads, such as a TikTok, SoundCloud
+  or Deezer short link, into one it can, when it's entered in the Embed control.
+  Resolve it on your server.
 
 Click an embed, or move onto it with the arrow keys, to edit it in place. A
 toolbar by the embed has Edit link and Remove embed. Edit link starts from the
@@ -394,6 +398,62 @@ cell, as from Word, keeps each item as a paragraph. A table saves no widths or
 styles, only each cell's `colspan` and `rowspan`, and a wide one scrolls
 sideways in the editor and in `/render`, so it never widens the page on a
 phone.
+
+### Email preset
+
+`preset='email'` is for composing an email. Its content sits in a canvas at
+most 600 pixels wide, an email's width, with each section and column
+outlined. Columns sit side by side from 480 pixels and stack below that, as
+they do on a phone. It holds the text blocks of the rich preset, without
+quotes, and an email's own blocks: sections, two to four columns, buttons,
+images, spacers, and dividers.
+
+#### Composing a layout
+
+Type `/` to insert a block at the caret. The list filters as you type, the
+arrow keys move through it, Enter inserts, and Escape closes it, keeping what
+you typed. A paragraph, heading, or list turns the caret's line into one. Any
+other block goes before an empty line, or after a line with text, and a
+section or columns puts the caret in its first line. Only the blocks that fit
+at the caret are offered, so there's no section or columns inside a column, and
+only the other list type inside a list. Image is offered with `onUploadImage`.
+
+```tsx-live-prose
+<Editor
+  aria-label='Newsletter'
+  preset='email'
+  defaultValue={{
+    version: 1,
+    preset: 'email',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        {
+          type: 'section',
+          content: [
+            {
+              type: 'columns',
+              content: [
+                { type: 'column', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Saturday 14 March at Jumbuck Orchard Park, Brisbane.' }] }] },
+                { type: 'column', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Gates 11am. All ages.' }] }] }
+              ]
+            }
+          ]
+        },
+        { type: 'spacer', attrs: { height: 32 } },
+        { type: 'horizontalRule' },
+        { type: 'paragraph', content: [{ type: 'text', text: 'See you there.' }] },
+        { type: 'paragraph' }
+      ]
+    }
+  }}
+/>
+```
+
+An image the email shows must be served over https, as a mail client loads it
+from outside your site. An `onUploadImage` that resolves to a path on the site
+shows an error and adds nothing.
 
 ### Emphasis
 
@@ -789,6 +849,9 @@ render(
 - In the rich preset, the Block type menu's trigger is named for the block at
   the caret, such as "Block type: Heading 2". Its items are radio items, with
   the current type checked, and choosing one puts focus back in the text.
+- In the email preset, `/` opens a `listbox` named Insert under the caret.
+  Focus stays in the text, which points `aria-activedescendant` at the active
+  option and `aria-controls` at the list.
 - Each control carries its shortcut in `aria-keyshortcuts`.
 - The link editor is a popover by the selection, with an input named Link. It
   takes focus when it opens, Enter or the Save link button saves, and Escape
@@ -809,6 +872,7 @@ render(
 | `Mod+Alt+0` | Paragraph, in the rich preset |
 | `Mod+Alt+2` to `Mod+Alt+4` | Heading 2 to 4, in the rich preset |
 | `Mod+Shift+B` | Quote, in the rich preset |
+| `/` | Open the insert menu, in the email preset |
 | `Enter` | On a selected image, edit its alt text |
 | `Tab` | In a table, move to the next cell, adding a row after the last |
 | `Shift+Tab` | In a table, move to the cell before, or leave the editor from the first |

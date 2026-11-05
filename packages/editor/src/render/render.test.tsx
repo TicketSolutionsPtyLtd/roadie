@@ -220,6 +220,103 @@ describe.each(renderers)('%s', (_, render) => {
     expect(render(valueOf(paragraph(text('Kept', mark))))).toBe('<p>Kept</p>')
   })
 
+  it('renders an email’s text and buttons in order, leaving its layout and spacers to renderEmail', () => {
+    const column = (value: string) => ({
+      type: 'column',
+      content: [paragraph(text(value))]
+    })
+
+    expect(
+      render({
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'section',
+              content: [
+                {
+                  type: 'columns',
+                  content: [column('Doors 7pm'), column('All ages')]
+                },
+                {
+                  type: 'button',
+                  attrs: { href: 'https://www.oztix.com.au' },
+                  content: [text('Go')]
+                },
+                { type: 'spacer', attrs: { height: 32 } }
+              ]
+            }
+          ]
+        }
+      })
+    ).toBe(
+      '<p>Doors 7pm</p><p>All ages</p><p><a href="https://www.oztix.com.au" target="_blank" rel="noopener noreferrer" data-slot="link" class="link-normal">Go</a></p>'
+    )
+  })
+
+  it('renders each email button in a paragraph of its own, so two never run together', () => {
+    const button = (href: string, label: string) => ({
+      type: 'button',
+      attrs: { href },
+      content: [text(label)]
+    })
+
+    expect(
+      render({
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'columns',
+              content: [
+                {
+                  type: 'column',
+                  content: [button('mailto:hello@example.com', 'Email us')]
+                },
+                {
+                  type: 'column',
+                  content: [button('tel:+61700000000', 'Call')]
+                }
+              ]
+            }
+          ]
+        }
+      })
+    ).toBe(
+      '<p><a href="mailto:hello@example.com" data-slot="link" class="link-normal">Email us</a></p><p><a href="tel:+61700000000" data-slot="link" class="link-normal">Call</a></p>'
+    )
+  })
+
+  it.each([
+    ['no content', {}],
+    ['empty content', { content: [] }]
+  ])(
+    'renders nothing for an email button with %s, never a link with no name',
+    (_, content) => {
+      expect(
+        render({
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              paragraph(text('Doors 7pm')),
+              {
+                type: 'button',
+                attrs: { href: 'https://www.oztix.com.au' },
+                ...content
+              }
+            ]
+          }
+        })
+      ).toBe('<p>Doors 7pm</p>')
+    }
+  )
+
   it('drops attributes the mapping doesn’t read', () => {
     const injected = {
       onclick: 'alert(1)',
@@ -269,8 +366,8 @@ describe.each(renderers)('%s', (_, render) => {
   it.each([
     [
       'an unknown preset',
-      { version: 1, preset: 'email', doc: { type: 'doc' } },
-      /preset "email"/
+      { version: 1, preset: 'fancy', doc: { type: 'doc' } },
+      /preset "fancy"/
     ],
     [
       'a newer version',
