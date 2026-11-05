@@ -1,11 +1,20 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, test } from 'node:test'
+import { after, describe, test } from 'node:test'
 
 import { repoRoot } from './machine.mjs'
 import {
+  ENGINES,
   incrementalTypecheck,
+  installedEngines,
   isGuardTest,
   planPrePush,
   readWorkspaces
@@ -182,6 +191,10 @@ describe('the pre-push hook', () => {
       )
       for (const step of steps) {
         assert.match(step.label, new RegExp(`in ${step.env.ROADIE_BROWSERS}`))
+        assert.match(
+          step.rerun,
+          new RegExp(`^ROADIE_BROWSERS=${step.env.ROADIE_BROWSERS} `)
+        )
         assert.deepEqual(testsOf(step), [
           'src/components/Toolbar/Toolbar.browser.test.tsx',
           'src/components/Toolbar/Toolbar.touch.browser.test.tsx'
@@ -205,6 +218,16 @@ describe('the pre-push hook', () => {
       assert.deepEqual(browserSteps(plan(DIFFS.component)), [])
       assert.deepEqual(browserSteps(plan(DIFFS.docs)), [])
       assert.deepEqual(browserSteps(plan(DIFFS.lockfile)), [])
+    })
+
+    test('asks for no engine install when no browser test runs', () => {
+      const { skipped } = planPrePush({
+        ...repo,
+        files: DIFFS.component,
+        engines: ['chromium'],
+        cacheDir: '/cache'
+      })
+      assert.ok(!skipped.some((line) => line.includes('playwright install')))
     })
 
     test("a core CSS change runs components' CSS suite", () => {
@@ -249,6 +272,40 @@ describe('the pre-push hook', () => {
     test('leaves perf tests to the Perf workflow', () => {
       for (const step of browserSteps(plan([toolbar])))
         assert.ok(testsOf(step).every((test) => !test.includes('.perf.')))
+    })
+
+    describe('installedEngines', () => {
+      const roots = []
+      after(() => {
+        for (const root of roots) rmSync(root, { recursive: true, force: true })
+      })
+      const rootWith = (playwright) => {
+        const root = mkdtempSync(join(tmpdir(), 'pre-push-engines-'))
+        roots.push(root)
+        writeFileSync(join(root, 'package.json'), '{}')
+        if (playwright) {
+          const dir = join(root, 'node_modules', 'playwright')
+          mkdirSync(dir, { recursive: true })
+          writeFileSync(join(dir, 'index.js'), playwright)
+        }
+        return root
+      }
+
+      test('keeps Chromium and each engine whose browser is on disk', () => {
+        const root = rootWith(`
+          const missing = () => '/no/such/browser'
+          module.exports = {
+            chromium: { executablePath: missing },
+            firefox: { executablePath: () => __filename },
+            webkit: { executablePath: missing }
+          }
+        `)
+        assert.deepEqual(installedEngines(root), ['chromium', 'firefox'])
+      })
+
+      test('assumes every engine when Playwright is missing', () => {
+        assert.deepEqual(installedEngines(rootWith(null)), ENGINES)
+      })
     })
   })
 
