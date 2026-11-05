@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 
 import {
   ArrowsClockwiseIcon,
@@ -74,7 +74,7 @@ function Row({
       aria-pressed={chosen}
       onClick={onClick}
       className={cn(
-        'is-interactive flex min-h-11 items-center gap-3 rounded-lg px-3 text-start text-normal disabled:opacity-50',
+        'is-interactive flex min-h-11 items-center gap-3 rounded-lg px-3 text-start text-normal',
         intent === 'danger' && 'intent-danger text-subtle',
         chosen && 'emphasis-subtle is-selected'
       )}
@@ -112,10 +112,20 @@ export function EditorBlockSheet({
   useEffect(() => {
     if (!open || !block) return
     const { top, bottom } = block.getBoundingClientRect()
-    const clear = window.innerHeight / 2
-    if (top >= 16 && bottom <= clear) return
-    window.scrollBy({ top: top - clear / 3 })
+    if (top >= 16 && bottom <= window.innerHeight / 2) return
+    block.scrollIntoView({ block: 'start' })
   }, [open, block])
+
+  // Turn into's step swaps the buttons out, so focus goes to its first.
+  const stepRef = useRef<HTMLDivElement>(null)
+  const stepped = useRef(false)
+  useEffect(() => {
+    if (!stepped.current) {
+      stepped.current = true
+      return
+    }
+    stepRef.current?.querySelector<HTMLElement>('button')?.focus()
+  }, [turning])
 
   const run = (action: SheetAction) => {
     if (!action.keepOpen) onClose()
@@ -152,7 +162,7 @@ export function EditorBlockSheet({
                 return (
                   <IconButton
                     key={move.label}
-                    size='sm'
+                    size='md'
                     emphasis='subtle'
                     aria-label={move.label}
                     disabled={move.disabled}
@@ -162,13 +172,13 @@ export function EditorBlockSheet({
                   </IconButton>
                 )
               })}
-              <Button size='sm' emphasis='subtle' onClick={onClose}>
+              <Button size='md' emphasis='subtle' onClick={onClose}>
                 Done
               </Button>
             </>
           )}
         </Drawer.Header>
-        <Drawer.Body className='grid content-start gap-0.5 pb-6'>
+        <Drawer.Body ref={stepRef} className='grid content-start gap-0.5 pb-6'>
           {turning ? (
             kinds.map((kind) => (
               <Row
