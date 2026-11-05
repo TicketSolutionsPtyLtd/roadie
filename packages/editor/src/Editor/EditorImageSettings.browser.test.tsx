@@ -47,6 +47,11 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
+const p = (text: string): JSONContent => ({
+  type: 'paragraph',
+  content: [{ type: 'text', text }]
+})
+
 const image = (attrs: Record<string, unknown> = {}): JSONContent => ({
   type: 'image',
   attrs: { src: POSTER, alt: 'Festival poster', width: null, ...attrs }
@@ -278,6 +283,23 @@ describe('Editor image settings', () => {
     await waitFor(() =>
       expect(savedImage(onValueChange)).toMatchObject({ align: 'center' })
     )
+  })
+
+  it('edits an image that isn’t the first block', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={valueOf(
+          'rich',
+          p('Doors 7pm'),
+          image({ src: '/images/crowd.webp' })
+        )}
+      />
+    )
+
+    const dialog = await openSettings()
+
+    expect(within(dialog).getByRole('group', { name: 'Align' })).toBeVisible()
   })
 
   it('opens from the bottom on a phone', async () => {
