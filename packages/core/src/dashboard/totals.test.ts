@@ -79,6 +79,16 @@ describe('resolveTableTotals', () => {
     })
   })
 
+  it('sums only a row’s own fields, never inherited ones', () => {
+    const inherited = Object.create({ sold: 100 }) as TableRow
+    const { values } = resolveTableTotals(
+      [columns[1]!],
+      [inherited, { sold: 5 }],
+      'sum'
+    )
+    expect(values.sold).toBe(5)
+  })
+
   it('rounds a currency sum to cents', () => {
     const { values } = resolveTableTotals(
       [columns[2]!],

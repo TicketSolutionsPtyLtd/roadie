@@ -29,18 +29,19 @@ function report(kind: DroppedContent['kind'], src: string | null) {
   return src && !/^\s*data:/i.test(src) ? { kind, src } : { kind }
 }
 
+// Old embed and image code writes addresses protocol-relative.
+function absoluteSrc(element: Element | null | undefined) {
+  const src = element?.getAttribute('src')?.trim() || null
+  return src?.startsWith('//') ? `https:${src}` : src
+}
+
 function embedFor(
   iframe: Element,
   preset: Preset,
   providers: readonly EmbedProvider[]
 ) {
   if (!Object.hasOwn(presetShapes[preset].nodes, 'embed')) return null
-  // Old embed code, YouTube's among it, writes players protocol-relative.
-  const src = (iframe.getAttribute('src') ?? '').trim()
-  const value = parseEmbedUrl(
-    src.startsWith('//') ? `https:${src}` : src,
-    providers
-  )
+  const value = parseEmbedUrl(absoluteSrc(iframe) ?? '', providers)
   if (!value) return null
   const embed = iframe.ownerDocument.createElement('div')
   embed.dataset.embed = ''
@@ -64,10 +65,13 @@ function keptMedia(
     'img, iframe, video, audio, object, embed'
   )) {
     if (!element.isConnected) continue
-    const src = element.getAttribute('src')
+    const src = absoluteSrc(element)
     const inCell = element.closest('td, th') !== null
     if (element.localName === 'img') {
-      if (canHoldImages && !inCell && isSafeImageSrc(src)) continue
+      if (canHoldImages && !inCell && isSafeImageSrc(src)) {
+        element.setAttribute('src', src)
+        continue
+      }
       dropped.push(report('image', src))
     } else if (element.localName === 'iframe') {
       const embed = inCell ? null : embedFor(element, preset, providers)
@@ -77,7 +81,14 @@ function keptMedia(
       }
       dropped.push(report('embed', src))
     } else {
-      dropped.push(report('media', src ?? element.getAttribute('data')))
+      dropped.push(
+        report(
+          'media',
+          src ||
+            element.getAttribute('data') ||
+            absoluteSrc(element.querySelector('source[src]'))
+        )
+      )
     }
     element.remove()
   }
@@ -99,7 +110,6 @@ function asTextBlock(element: Element) {
 function cellsAsText(body: HTMLElement, preset: Preset) {
   const canHoldTables = Object.hasOwn(presetShapes[preset].nodes, 'table')
   for (const cell of body.querySelectorAll('td, th')) {
-    if (!cell.isConnected) continue
     if (!canHoldTables) asTextBlock(cell)
     else cell.querySelectorAll(BLOCKS_IN_CELL).forEach(asTextBlock)
   }
@@ -129,6 +139,17 @@ function paragraphsAtBreaks(paragraph: JSONContent): JSONContent[] {
   return kept.map((content) => ({ ...paragraph, content }))
 }
 
+const isBlankParagraph = (node: JSONContent) =>
+  node.type === 'paragraph' && (node.content ?? []).every(isBlank)
+
+// CKEditor spaces blocks with empty and `&nbsp;` paragraphs.
+function withoutSpacers(doc: JSONContent): JSONContent {
+  return {
+    ...doc,
+    content: (doc.content ?? []).filter((node) => !isBlankParagraph(node))
+  }
+}
+
 function splitAtBreaks(node: JSONContent): JSONContent {
   if (!node.content) return node
   return {
@@ -145,7 +166,8 @@ function splitAtBreaks(node: JSONContent): JSONContent {
  * Reads HTML, such as CKEditor output, into a value in `preset`, through
  * `migrate`, so the result always loads. Text is kept, except fallback text
  * inside a dropped media element; styles, fonts, colours and classes are
- * dropped. Two or more `<br>` in a paragraph start a new one.
+ * dropped. Two or more `<br>` in a paragraph start a new one, and empty
+ * paragraphs between blocks go. A link around an image isn’t kept.
  * Images the preset can't hold or load, iframes no embed provider reads, and
  * video, audio and plugin elements are dropped and listed in `dropped`, in
  * document order, so an app can warn before overwriting legacy content.
@@ -153,7 +175,8 @@ function splitAtBreaks(node: JSONContent): JSONContent {
  * Iframes become embeds when one of `embedProviders` reads their player URL;
  * pass the editor's own providers if it has them.
  *
- * Needs a browser's `DOMParser`. Throws a RangeError on an unknown preset.
+ * Needs a browser's `DOMParser`, so call it in an effect or event handler.
+ * Throws a RangeError on an unknown preset.
  */
 export function htmlToEditorValue(
   html: string,
@@ -168,11 +191,17 @@ export function htmlToEditorValue(
   if (typeof DOMParser === 'undefined') {
     throw new Error('htmlToEditorValue needs a browser’s DOMParser.')
   }
-  const { body } = new DOMParser().parseFromString(html, 'text/html')
+  // Without the <body>, a leading <noscript> would open in <head>, and its
+  // content would spill into the body.
+  const { body } = new DOMParser().parseFromString(`<body>${html}`, 'text/html')
+  // A page with script never shows a noscript.
+  body.querySelectorAll('noscript, title').forEach((hidden) => hidden.remove())
   const dropped = keptMedia(body, preset, embedProviders)
   cellsAsText(body, preset)
-  const doc = splitAtBreaks(
-    SchemaParser.fromSchema(schemaFor(preset)).parse(body).toJSON()
+  const doc = withoutSpacers(
+    splitAtBreaks(
+      SchemaParser.fromSchema(schemaFor(preset)).parse(body).toJSON()
+    )
   )
   const value = migrate({ version: CURRENT_VERSION, preset, doc }, preset)
   return { value, dropped }

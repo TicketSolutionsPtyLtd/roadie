@@ -72,7 +72,7 @@ describe('useCartDrawerDrag', () => {
     expect(result.current.isDragging).toBe(true)
 
     unmount()
-    // pointermove is only ever removed by the drag cleanup — proves the
+    // pointermove is only ever removed by the drag cleanup, proving the
     // in-flight listeners were detached rather than leaked.
     expect(removeSpy).toHaveBeenCalledWith('pointermove', expect.any(Function))
     removeSpy.mockRestore()

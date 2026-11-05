@@ -285,7 +285,27 @@ describe('parseEmbedUrl', () => {
       'a private SoundCloud player with its token outside the track',
       'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/293&secret_token=s-AbCdE'
     ],
+    [
+      'a private SoundCloud share link',
+      'https://soundcloud.com/forss/flickermood?secret_token=s-AbCdE'
+    ],
+    [
+      'a SoundCloud page that isn’t its player',
+      'https://w.soundcloud.com/widget?url=https%3A//api.soundcloud.com/tracks/293'
+    ],
     ['a Deezer look-alike', 'https://deezer.com.evil.test/track/3135556'],
+    [
+      'a Deezer player path that isn’t a widget',
+      'https://widget.deezer.com/embed/auto/track/3135556'
+    ],
+    [
+      'a Deezer player with an unknown theme',
+      'https://widget.deezer.com/widget/neon/track/3135556'
+    ],
+    [
+      'an Apple Music link with an extra segment',
+      'https://music.apple.com/au/album/x/y/1233719556'
+    ],
     ['a Deezer artist', 'https://www.deezer.com/en/artist/27'],
     ['a Deezer short link', 'https://link.deezer.com/s/30abcdEFgh'],
     ['a Deezer id with markup', 'https://www.deezer.com/track/31"><a'],

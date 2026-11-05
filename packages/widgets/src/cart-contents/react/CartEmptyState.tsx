@@ -2,7 +2,8 @@
 
 import { BagIcon } from '@phosphor-icons/react'
 
-import { Button, EmptyState } from '@oztix/roadie-components'
+import { Button } from '@oztix/roadie-components/button'
+import { EmptyState } from '@oztix/roadie-components/empty-state'
 
 type CartEmptyStateProps = {
   /** App-specific browse target (replaces the website's hardcoded route). */

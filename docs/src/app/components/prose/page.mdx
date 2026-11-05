@@ -65,9 +65,11 @@ for editorial pages.
 </Prose>
 ```
 
-Each size only sets `--prose-*` variables, so a class such as
-`[--prose-flow:2em]` on Prose adjusts it further. The
-[variables table](/foundations/prose/#variables) lists them all.
+`sm` and `lg` add the core [`prose-sm` and `prose-lg`](/foundations/prose/#sizes)
+utilities, which markup without Prose can use too. Each size only sets
+`--prose-*` variables, so a class such as `[--prose-flow:2em]` on Prose
+adjusts it further. The [variables table](/foundations/prose/#variables)
+lists them all.
 
 ### Custom element
 
@@ -160,8 +162,8 @@ underline. Wrap it in `.not-prose` to keep its own styles.
 
 - Use Prose for rendered content, such as CMS output, Markdown, and user HTML.
   For app UI, use the display and text utilities directly.
-- A Prose inside a `.not-prose` element stays unstyled, so put the escape
-  around the parts that need it, not around a region that also holds Prose.
+- A Prose inside a `.not-prose` element typesets its own content again, so a
+  component that escapes the page's Prose can still render Prose inside it.
 - Use `render` rather than `as` to set the element; `as` is removed in v3.
 - Give a table a caption, or put it under a heading with an `id`, so its
   region has a name that says what the table holds.

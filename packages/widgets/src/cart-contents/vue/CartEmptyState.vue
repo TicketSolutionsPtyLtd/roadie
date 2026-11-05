@@ -12,7 +12,7 @@ const props = withDefaults(
   { size: 'sm' }
 )
 
-// Hand-port of the Roadie EmptyState compound — class strings copied from
+// Hand-port of the Roadie EmptyState compound. Class strings copied from
 // packages/components/src/components/EmptyState (+ IconTile xl/2xl).
 const cls = computed(() =>
   props.size === 'md'

@@ -13,18 +13,35 @@ import roadieCss from '../../vitest.browser.css?inline'
 
 // Limits: a string scan, not a selector parser. It reads core and component
 // CSS as the test stylesheet compiles it, which also scans test files, so a
-// class string only a test mentions can trip it; charts and docs CSS aren't
-// read. It knows :is(), :where(), :not() and :has() nesting and escapes, not
+// class string only a test mentions can trip it; charts, widgets and docs CSS
+// aren't read, so the cart drawer's sheet goes unchecked. It knows nested
+// rules, :is(), :where(), :not() and :has() nesting and escapes, not
 // namespaces or `of S` in :nth-child(). See
 // docs/solutions/best-practices/has-invalidation-scales-with-page.md.
 const RARE_ATTRIBUTES = new Set(['data-column', 'data-level', 'data-stack'])
 
+// A nested rule's selector with its parent's in place of `&`, or before it
+// when it has none, as the browser matches it. An escaped `\&` is a class's.
+function nested(selector: string, parent: string) {
+  return splitList(selector)
+    .map((branch) =>
+      /(^|[^\\])&/.test(branch)
+        ? branch.replace(/(^|[^\\])&/g, `$1:is(${parent})`)
+        : `:is(${parent}) ${branch}`
+    )
+    .join(', ')
+}
+
 function selectorsOf(sheet: CSSStyleSheet) {
   const selectors: string[] = []
-  const walk = (rules: CSSRuleList) => {
+  const walk = (rules: CSSRuleList, parent?: string) => {
     for (const rule of rules) {
-      if (rule instanceof CSSStyleRule) selectors.push(rule.selectorText)
-      if ('cssRules' in rule) walk(rule.cssRules as CSSRuleList)
+      let scope = parent
+      if (rule instanceof CSSStyleRule) {
+        scope = parent ? nested(rule.selectorText, parent) : rule.selectorText
+        selectors.push(scope)
+      }
+      if ('cssRules' in rule) walk(rule.cssRules as CSSRuleList, scope)
     }
   }
   walk(sheet.cssRules)
@@ -224,6 +241,26 @@ describe('Roadie CSS and :has() invalidation', () => {
       false
     )
     expect(broad('.a:has(.b), .c [data-slot="d"]')).toBe(false)
+  })
+
+  it('reads a nested rule as its whole selector', () => {
+    const sheet = new CSSStyleSheet()
+    sheet.replaceSync(`
+      .x:has(.y) { & [data-slot="z"] { color: red } }
+      .p:has(.q) { [data-slot="r"] { color: red } }
+      .m { @media (width > 0) { &:has(.n) * { color: red } } }
+      .k:has(.l) { & .narrow { color: red } }
+    `)
+    const broad = selectorsOf(sheet).filter(
+      (selector) => broadAfterHas(selector).length
+    )
+    expect(broad).toHaveLength(3)
+    expect(broad.join(' ')).not.toContain('.narrow')
+    // Engines serialize a nested rule with its implicit `&`, so this path
+    // only runs when one doesn't.
+    expect(broadAfterHas(nested('[data-slot="r"]', '.p:has(.q)'))).toEqual([
+      '[data-slot="r"]'
+    ])
   })
 
   it('spots a later-sibling :has() with nothing else to match on', () => {

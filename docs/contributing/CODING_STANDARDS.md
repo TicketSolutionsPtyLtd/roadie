@@ -67,6 +67,12 @@ Every test must be able to fail for a reason a user would notice.
   too, rather than faking layout in jsdom. Never use a browser that doesn't
   render (Lightpanda and the like), where a layout test passes without
   checking anything.
+- **An interactive or animated component ships with a frame test.** Anything
+  that animates, scrolls, drags, or re-renders while someone uses it gets a
+  `*.perf.browser.test.tsx` that drives it through its public interface with
+  realistic data and checks it with `expectFrameBudget` from
+  `@oztix/roadie-frames` (`testing/frames/`). A fix for a missed budget lands
+  test-first, with the frame test failing before it.
 - **Mock only system boundaries:** time (fake timers or a `today` or `now`
   input), randomness, the network, and browser APIs jsdom lacks. Never mock
   Base UI, motion, Roadie, or the repo's own modules; mock the network under

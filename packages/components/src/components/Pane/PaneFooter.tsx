@@ -9,6 +9,20 @@ import { paneFooterClass } from './variants'
 
 export type PaneFooterProps = ComponentProps<'div'>
 
+// A pane can hold more than one footer, so it clears their sum, and losing one
+// leaves the others' heights in place.
+const footerHeights = new WeakMap<HTMLElement, Map<HTMLElement, number>>()
+
+function publishFooters(paneEl: HTMLElement) {
+  const heights = footerHeights.get(paneEl)
+  if (!heights?.size) {
+    paneEl.style.removeProperty('--pane-footer-height')
+    return
+  }
+  const total = [...heights.values()].reduce((sum, height) => sum + height, 0)
+  paneEl.style.setProperty('--pane-footer-height', `${total}px`)
+}
+
 /** Sticky chrome at the foot of a pane. */
 export function PaneFooter({ className, ref, ...props }: PaneFooterProps) {
   const footerRef = useRef<HTMLDivElement>(null)
@@ -21,18 +35,21 @@ export function PaneFooter({ className, ref, ...props }: PaneFooterProps) {
       '[data-slot="pane"], [data-slot="drawer-popup"]'
     )
     if (!footer || !paneEl) return
-    const publish = () =>
-      paneEl.style.setProperty(
-        '--pane-footer-height',
-        `${footer.offsetHeight}px`
-      )
+    let heights = footerHeights.get(paneEl)
+    if (!heights) footerHeights.set(paneEl, (heights = new Map()))
+    const footers = heights
+    const publish = () => {
+      footers.set(footer, footer.offsetHeight)
+      publishFooters(paneEl)
+    }
     publish()
     const observer =
       typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(publish)
     observer?.observe(footer)
     return () => {
       observer?.disconnect()
-      paneEl.style.removeProperty('--pane-footer-height')
+      footers.delete(footer)
+      publishFooters(paneEl)
     }
   }, [])
 
