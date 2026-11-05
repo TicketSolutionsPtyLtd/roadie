@@ -46,6 +46,15 @@ const optionNames = (listbox: HTMLElement) =>
     .getAllByRole('option')
     .map((option) => option.textContent)
 
+const groupNames = (listbox: HTMLElement) =>
+  within(listbox)
+    .getAllByRole('group')
+    .map((group) => [
+      document.getElementById(group.getAttribute('aria-labelledby')!)
+        ?.textContent,
+      optionNames(group)
+    ])
+
 const lastBlocks = (onValueChange: ReturnType<typeof vi.fn>) =>
   (onValueChange.mock.lastCall![0] as EditorValue).doc.content!
 
@@ -64,11 +73,47 @@ describe('Editor insert menu in the blocks preset', () => {
       'Bulleted list',
       'Numbered list',
       'Quote',
-      'Divider',
       'Image',
       'Embed',
+      'Divider',
       'Table'
     ])
+  })
+
+  it('groups the blocks under headings, and hides a group with no matches', async () => {
+    renderBlocks(withUploads)
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const listbox = await insertMenu()
+    expect(groupNames(listbox)).toEqual([
+      [
+        'Text',
+        [
+          'Paragraph',
+          'Heading 2',
+          'Heading 3',
+          'Heading 4',
+          'Bulleted list',
+          'Numbered list',
+          'Quote'
+        ]
+      ],
+      ['Media', ['Image', 'Embed']],
+      ['Layout', ['Divider', 'Table']]
+    ])
+    await userEvent.keyboard('{ArrowUp}')
+    await waitFor(() =>
+      expect(textbox).toHaveAttribute(
+        'aria-activedescendant',
+        within(listbox).getByRole('option', { name: 'Table' }).id
+      )
+    )
+
+    await userEvent.keyboard('ta')
+    await waitFor(async () =>
+      expect(groupNames(await insertMenu())).toEqual([['Layout', ['Table']]])
+    )
   })
 
   it('leaves Image out without onUploadImage', async () => {

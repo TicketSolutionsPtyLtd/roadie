@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react'
 import type { Editor as TiptapEditor } from '@tiptap/react'
 import { createPortal } from 'react-dom'
 
+import { MenuGroups } from './EditorMenuGroups'
 import type { InsertMenuState } from './insertMenu'
 
 type EditorInsertMenuProps = {
@@ -60,25 +61,29 @@ export function EditorInsertMenu({
       // A press here would otherwise take focus from the editor.
       onMouseDown={(event) => event.preventDefault()}
     >
-      {state.items.map((item, index) => {
-        const Icon = item.icon
-        return (
-          <div
-            key={item.label}
-            id={optionId(id, index)}
-            role='option'
-            aria-selected={index === state.active}
-            onPointerMove={() => {
-              if (index !== state.active) state.highlight(index)
-            }}
-            onClick={() => state.choose(index)}
-            className='flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-normal select-none aria-selected:bg-subtle'
-          >
-            <Icon weight='bold' className='size-4 text-subtle' aria-hidden />
-            {item.label}
-          </div>
-        )
-      })}
+      <MenuGroups
+        items={state.items}
+        id={id}
+        option={(item, index) => {
+          const Icon = item.icon
+          return (
+            <div
+              key={item.label}
+              id={optionId(id, index)}
+              role='option'
+              aria-selected={index === state.active}
+              onPointerMove={() => {
+                if (index !== state.active) state.highlight(index)
+              }}
+              onClick={() => state.choose(index)}
+              className='flex cursor-default items-center gap-2 rounded-lg px-3 py-2 text-sm text-normal select-none aria-selected:bg-subtle'
+            >
+              <Icon weight='bold' className='size-4 text-subtle' aria-hidden />
+              {item.label}
+            </div>
+          )
+        }}
+      />
     </div>,
     document.body
   )

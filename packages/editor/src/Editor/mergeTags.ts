@@ -25,6 +25,7 @@ export function variableInsertItems(
 export const mergeTagItem: EditorInsertItem = {
   label: 'Merge tag',
   icon: BracketsCurlyIcon,
+  group: 'Email',
   keywords: ['variable', 'personalise', 'personalize', 'name', 'placeholder'],
   insert: (chain) => chain.insertContent(MERGE_TAG_OPEN),
   enabled: (editor) => editor.can().insertContent(tagOf(''))
