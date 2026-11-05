@@ -112,7 +112,7 @@ export function EmailPreviewFrame({
     >
       <div ref={roomRef} className='grid min-w-0'>
         <div
-          className='grid gap-2 justify-self-center'
+          className='grid grid-cols-[minmax(0,1fr)] gap-2 justify-self-center'
           // Measured, as the scale is: no utility knows the room.
           style={{ width: laidOut * scale }}
         >

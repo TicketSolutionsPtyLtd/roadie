@@ -1,6 +1,8 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { Field } from '@oztix/roadie-components/field'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import { type EmailTheme, defaultEmailTheme } from '../email/theme'
@@ -293,5 +295,42 @@ describe('Editor email layout, as it sends', () => {
     expect(
       right('Right') - intro.closest('p')!.getBoundingClientRect().right
     ).toBeCloseTo(12, 0)
+  })
+
+  it('keeps columns inside an invalid boxless email’s edge', async () => {
+    render(
+      <Field invalid>
+        <Field.Label>Newsletter</Field.Label>
+        <Editor
+          emphasis='subtler'
+          defaultValue={{
+            version: 1,
+            preset: 'email',
+            doc: {
+              type: 'doc',
+              content: [
+                {
+                  type: 'columns',
+                  content: ['Left', 'Right'].map((text) => ({
+                    type: 'column',
+                    content: [
+                      { type: 'paragraph', content: [{ type: 'text', text }] }
+                    ]
+                  }))
+                }
+              ]
+            }
+          }}
+        />
+      </Field>
+    )
+    const left = await screen.findByText('Left')
+    const canvas = screen.getByRole('textbox', { name: 'Newsletter' })
+    expect(canvas).toHaveAttribute('aria-invalid', 'true')
+    const edge =
+      canvas.getBoundingClientRect().left +
+      parseFloat(getComputedStyle(canvas).borderInlineStartWidth)
+    // The column's 12px, past the edge's own 10px gap.
+    expect(left.getBoundingClientRect().left - edge).toBeCloseTo(22, 0)
   })
 })

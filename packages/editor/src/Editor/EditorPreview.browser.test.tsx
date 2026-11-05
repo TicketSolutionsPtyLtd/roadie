@@ -225,6 +225,21 @@ describe('Editor preview', () => {
       expect(frame.style.width).toBe('375px')
     })
 
+    it('fits a long inbox row to the frame', async () => {
+      renderNarrow({
+        sender: 'Ochre Kite Weekender',
+        subject:
+          'Two weeks until the gates open at Jumbuck Orchard Park, with the full lineup'
+      })
+      const frame = await openPreview()
+      const inbox = screen.getByRole('group', { name: 'In the inbox' })
+      await waitFor(() =>
+        expect(inbox.getBoundingClientRect().right).toBeLessThanOrEqual(
+          frame.getBoundingClientRect().right + 1
+        )
+      )
+    })
+
     it('keeps its controls on one row', async () => {
       renderNarrow()
       await openPreview()
