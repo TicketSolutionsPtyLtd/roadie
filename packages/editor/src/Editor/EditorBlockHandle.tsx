@@ -226,38 +226,38 @@ export function EditorBlockHandle({
   useLayoutEffect(() => {
     shownRef.current = shown
   })
+  // Read by each move before `hovered` renders, so it's mapped through edits too.
+  const pointerBlock = useRef<number | null>(null)
 
   // On the page, as a subtler editor's grip hangs outside the wrapper, and
   // leaving the wrapper for the gap would hide it.
   useEffect(() => {
     if (!host) return
     const page = host.ownerDocument
-    let current: number | null = null
     // On the handle, its block stays, even once the editor loses focus: on
     // touch that's the caret's block, with no hover before the tap.
     const pin = () => {
-      current = shownRef.current
-      setHovered(current)
+      pointerBlock.current = shownRef.current
+      setHovered(pointerBlock.current)
     }
     const onMove = (event: MouseEvent) => {
       if (host.contains(event.target as Node)) {
         pin()
         return
       }
+      const current = pointerBlock.current
       if (!inReach(editor, host, event)) {
-        current = null
+        pointerBlock.current = null
       } else {
-        const keep =
-          current != null &&
-          blockAt(editor.state, current, containers) === current &&
-          inGutterOf(editor, current, event)
-        if (!keep) current = blockAtPointer(editor, event, containers)
+        const keep = current != null && inGutterOf(editor, current, event)
+        if (!keep)
+          pointerBlock.current = blockAtPointer(editor, event, containers)
       }
-      setHovered(current)
+      setHovered(pointerBlock.current)
     }
     const onOut = ({ relatedTarget }: MouseEvent) => {
       if (relatedTarget) return
-      current = null
+      pointerBlock.current = null
       setHovered(null)
     }
     page.addEventListener('mousemove', onMove)
@@ -288,6 +288,7 @@ export function EditorBlockHandle({
         const mapped = transaction.mapping.mapResult(pos)
         return mapped.deleted ? null : mapped.pos
       }
+      pointerBlock.current = map(pointerBlock.current)
       setHovered(map)
       setMenuAt(map)
     }

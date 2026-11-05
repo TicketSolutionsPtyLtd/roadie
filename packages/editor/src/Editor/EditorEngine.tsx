@@ -120,9 +120,11 @@ const BlockMenuShortcut = Extension.create<BlockMenuShortcutOptions>({
   }
 })
 
-const BLOCK_HANDLE_CONTAINERS: Partial<Record<Preset, BlockContainers>> = {
-  blocks: TOP_LEVEL,
-  email: new Set(['doc', 'section', 'column'])
+const BLOCK_HANDLES: Partial<
+  Record<Preset, { containers: BlockContainers; canAdd: boolean }>
+> = {
+  blocks: { containers: TOP_LEVEL, canAdd: false },
+  email: { containers: new Set(['doc', 'section', 'column']), canAdd: true }
 }
 
 type AltTextShortcutOptions = { onEditAlt: () => void }
@@ -411,12 +413,7 @@ export function EditorEngine({
   const editable = !readOnly && !disabled && !unreadable
   useFieldControlError(uploadError ?? (unreadable ? UNREADABLE : null))
   const holdsImages = presetHoldsImages(preset)
-  const blockContainers = BLOCK_HANDLE_CONTAINERS[preset]
-  const hasBlockHandle = blockContainers !== undefined
-  const insertItems = [
-    ...(presetInsertItems[preset] ?? []),
-    ...blocks.map(customInsertItem)
-  ]
+  const blockHandle = BLOCK_HANDLES[preset]
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
@@ -435,7 +432,10 @@ export function EditorEngine({
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
       InsertMenu.configure({
-        items: insertItems,
+        items: [
+          ...(presetInsertItems[preset] ?? []),
+          ...blocks.map(customInsertItem)
+        ],
         ui: () => uiRef.current!,
         onChange: setInsertMenu
       }),
@@ -445,8 +445,10 @@ export function EditorEngine({
           return Boolean(openBlockMenuRef.current)
         }
       }),
-      ...(blockContainers ? [BlockDrag] : []),
-      FocusedBlock.configure({ containers: blockContainers ?? TOP_LEVEL })
+      ...(blockHandle ? [BlockDrag] : []),
+      FocusedBlock.configure({
+        containers: blockHandle?.containers ?? TOP_LEVEL
+      })
     ],
     content: readableDoc,
     editable,
@@ -468,9 +470,9 @@ export function EditorEngine({
           'min-w-0 outline-none',
           preset === 'email' && EMAIL_CANVAS,
           // Room for the block handle at each block's start.
-          hasBlockHandle &&
+          blockHandle &&
             emphasis !== 'subtler' &&
-            (insertItems.length > 0 ? 'ps-15' : 'ps-10')
+            (blockHandle.canAdd ? 'ps-15' : 'ps-10')
         )
       },
       handleDOMEvents: {
@@ -690,12 +692,12 @@ export function EditorEngine({
             toolbarRef={nodeToolbarRef}
           />
         ) : null}
-        {editor && blockContainers ? (
+        {editor && blockHandle ? (
           <EditorBlockHandle
             editor={editor}
             openMenuRef={openBlockMenuRef}
-            containers={blockContainers}
-            canAdd={insertItems.length > 0}
+            containers={blockHandle.containers}
+            canAdd={blockHandle.canAdd}
           />
         ) : null}
         {editor ? (
