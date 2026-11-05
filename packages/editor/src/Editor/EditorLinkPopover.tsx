@@ -19,6 +19,7 @@ import { EditorContext } from './EditorContext'
 import { useRepositionOnResize } from './EditorNodeToolbar'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { focusEditor } from './focusEditor'
+import { EDITOR_POPUP } from './toolbarMode'
 import { type LiveEdit, useLiveEdit } from './useLiveEdit'
 import { EDITOR_TOOLBAR_SIZE } from './variants'
 
@@ -377,6 +378,7 @@ export function EditorLinkPopover({
       />
       <Popover open={open} onOpenChange={live.onOpenChange}>
         <Popover.Content
+          {...{ [EDITOR_POPUP]: '' }}
           side='bottom'
           align='start'
           className={EDITOR_POPOVER_CLASS}

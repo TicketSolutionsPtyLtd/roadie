@@ -15,6 +15,7 @@ import {
   PlusIcon,
   PushPinSlashIcon
 } from '@phosphor-icons/react'
+import { NodeSelection } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Menu } from '@oztix/roadie-components/menu'
@@ -32,6 +33,7 @@ import {
   type EditorToolbarItem,
   SEPARATOR,
   ariaKeyShortcuts,
+  floatingControls,
   presetControls,
   redo,
   undo
@@ -39,7 +41,12 @@ import {
 import { focusEditor } from './focusEditor'
 import { useShowsShortcuts } from './menuGroups'
 import { type ToolbarSlot, fitToolbar } from './toolbarFit'
-import { useKeyboardDock, useStickyTop } from './toolbarMode'
+import {
+  EDITOR_POPUP,
+  useKeyboardDock,
+  useOnPhone,
+  useStickyTop
+} from './toolbarMode'
 import { EDITOR_DOCKED_BAR, EDITOR_TOOLBAR_SIZE } from './variants'
 
 export type ControlState = {
@@ -109,6 +116,7 @@ export function BlockMenu({
         }
       />
       <Menu.Content
+        {...{ [EDITOR_POPUP]: '' }}
         finalFocus={() => {
           // At once, as Firefox drops a caret move made before a deferred focus lands.
           if (editor) focusEditor(editor)
@@ -270,6 +278,18 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     editVariable,
     importSource
   }
+}
+
+/** The items with no separator at either end or beside another. */
+function withoutStraySeparators(items: readonly EditorToolbarItem[]) {
+  const kept: EditorToolbarItem[] = []
+  for (const item of items) {
+    if (item === SEPARATOR && (kept.length === 0 || kept.at(-1) === SEPARATOR))
+      continue
+    kept.push(item)
+  }
+  if (kept.at(-1) === SEPARATOR) kept.pop()
+  return kept
 }
 
 /** The items a preset can show, leaving out controls its UI can't run. */
@@ -545,6 +565,7 @@ function MoreMenu({
         }
       />
       <Menu.Content
+        {...{ [EDITOR_POPUP]: '' }}
         finalFocus={() => {
           // At once, as Firefox drops a caret move made before a deferred focus lands.
           if (editor) focusEditor(editor)
@@ -621,7 +642,20 @@ export function EditorToolbarEngine({
   // Held while the bar sits above the keyboard, so the text doesn't move.
   const [reserved, setReserved] = useState<number>()
   const ui = controlUi(context)
-  const items = availableItems(presetControls[preset], ui)
+  const phone = useOnPhone()
+  const blockSelected = useEditorState({
+    editor,
+    selector: ({ editor: current }) =>
+      current?.state.selection instanceof NodeSelection
+  })
+  // A selected block has no text to format, as the floating bar knows.
+  const formatting = new Set<EditorToolbarItem>(floatingControls[preset])
+  const items = withoutStraySeparators(
+    availableItems(presetControls[preset], ui).filter(
+      (item) =>
+        !(phone && blockSelected && item !== SEPARATOR && formatting.has(item))
+    )
+  )
   const states = useEditorState({
     editor,
     selector: ({ editor: current }) =>

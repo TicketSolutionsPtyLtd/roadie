@@ -1,7 +1,15 @@
 import { useState } from 'react'
 
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Dialog } from '@oztix/roadie-components/dialog'
@@ -213,5 +221,32 @@ describe('Editor link card', () => {
 
     await waitFor(() => expect(textbox).toHaveFocus())
     expect(onOpenChange).not.toHaveBeenCalled()
+  })
+  it('keeps a touch screen’s docked bar above the keyboard while its actions have focus', async () => {
+    const matchMedia = window.matchMedia.bind(window)
+    vi.spyOn(window, 'matchMedia').mockImplementation((query) =>
+      matchMedia(query.replaceAll('(pointer: coarse)', 'all'))
+    )
+    onTestFinished(() => {
+      vi.restoreAllMocks()
+    })
+    renderEditor(valueOf('rich', linked('your tickets', { href: TICKETS })))
+    await caretIn('your tickets')
+    const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+    const viewport = window.visualViewport!
+    const docked = () =>
+      Math.abs(
+        bar.getBoundingClientRect().bottom -
+          (viewport.offsetTop + viewport.height)
+      ) < 1
+    await waitFor(() => expect(docked()).toBe(true))
+
+    within(await card())
+      .getByRole('button', { name: 'Edit link' })
+      .focus()
+    await new Promise(requestAnimationFrame)
+    await new Promise(requestAnimationFrame)
+
+    expect(docked()).toBe(true)
   })
 })
