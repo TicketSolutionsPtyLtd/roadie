@@ -141,16 +141,16 @@ describe('Editor preview', () => {
     await waitFor(() => expect(frame.getBoundingClientRect().width).toBe(375))
   })
 
-  it('previews in dark mode by the frame’s colour scheme', async () => {
+  it('keeps the frame light for a simulated dark mode, which inverts it', async () => {
     renderEditor()
     const frame = await openPreview()
-    expect(getComputedStyle(frame).colorScheme).toBe('light')
 
     await userEvent.click(screen.getByRole('button', { name: 'Dark' }))
 
     await waitFor(() =>
-      expect(getComputedStyle(frame).colorScheme).toBe('dark')
+      expect(frame.getAttribute('srcdoc')).toContain('light only')
     )
+    expect(getComputedStyle(frame).colorScheme).toBe('light')
   })
 
   it('simulates a mail app’s forced dark mode, and says so', async () => {
@@ -239,12 +239,12 @@ describe('Editor preview', () => {
       expect(bar.scrollWidth).toBeLessThanOrEqual(bar.clientWidth)
     })
 
-    it('previews as a recipient from More', async () => {
+    it('previews as a recipient from its icon’s menu', async () => {
       const onRenderPreview = renderNarrow()
       await openPreview()
       expect(screen.queryByRole('combobox', { name: 'Preview as' })).toBeNull()
 
-      await userEvent.click(screen.getByRole('button', { name: 'More' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Preview as' }))
       await userEvent.click(
         await screen.findByRole('menuitemradio', { name: 'No name' })
       )
@@ -463,6 +463,21 @@ describe('Editor preview', () => {
       await userEvent.type(address, 'promoter')
       expect(
         screen.getByText('Enter a whole address, such as name@example.com.')
+      ).toBeInTheDocument()
+    })
+
+    it('says why Send is off after a send', async () => {
+      renderEditor({ onSendTest: async () => {} })
+      await openPreview()
+      await userEvent.click(screen.getByRole('button', { name: 'Send test' }))
+      const address = await screen.findByRole('textbox', { name: 'Send to' })
+      await userEvent.type(address, 'promoter@example.com{Enter}')
+      await screen.findByText('Sent to promoter@example.com')
+
+      await userEvent.clear(address)
+
+      expect(
+        screen.getByText('Enter the address to send a test to.')
       ).toBeInTheDocument()
     })
 

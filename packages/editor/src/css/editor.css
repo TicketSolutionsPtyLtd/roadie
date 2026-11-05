@@ -129,8 +129,11 @@
    placeholder, the handle) mix from its text and background, so they show
    on any background the theme gives it. */
 [data-email],
+[data-email] [data-type='section']:is(.emphasis-subtle, .emphasis-strong),
 [data-preset='email']
   :is([data-slot='editor-block-handle'], [data-slot='editor-block-add']) {
+  --intent-text-normal: var(--email-text);
+  --intent-text-strong: var(--email-text);
   --intent-text-subtle: color-mix(
     in oklch,
     var(--email-text) 70%,
@@ -161,10 +164,16 @@
 }
 
 [data-email] {
-  --intent-text-normal: var(--email-text);
-  --intent-text-strong: var(--email-text);
+  /* The email's own colours, which a section's look swaps beneath it. */
+  --email-base-background: var(--email-background);
+  --email-base-tint: var(--email-tint);
+  --email-base-button: var(--email-button);
+  --email-base-button-text: var(--email-button-text);
 
   color-scheme: light;
+  /* A block outside columns sits 24px in, as the email pads it, which leaves
+     a column's 12px beside it. The start keeps the block handle's room. */
+  padding-inline-end: calc(var(--spacing) * 6);
   border-radius: var(--radius-md);
   background-color: var(--email-background);
   color: var(--email-text);
@@ -198,6 +207,12 @@
   margin-inline: calc(var(--spacing) * -3);
 }
 
+/* A boxless editor has no room kept for a handle, so the email's 24px goes
+   at the start too. */
+[data-slot='editor'][data-emphasis='subtler'] [data-email] {
+  padding-inline-start: calc(var(--spacing) * 6);
+}
+
 /* Drawn as renderEmail draws each emphasis, in the theme's colours: a
    button's, and a section's look of tint or accent. */
 [data-email] [data-type='button'].emphasis-strong {
@@ -211,16 +226,28 @@
   color: var(--email-text);
 }
 
-[data-email] [data-type='section'].emphasis-strong {
-  --intent-text-normal: var(--email-button-text);
-  --intent-text-strong: var(--email-button-text);
-
-  background-color: var(--email-button);
-  color: var(--email-button-text);
+/* A section's look swaps the colours its blocks take, as renderEmail's
+   does: a tint swaps the background and tint, and an accent takes the strong
+   button's, so text, links, and buttons stay legible on it. */
+[data-email] [data-type='section'].emphasis-subtle {
+  --email-background: var(--email-base-tint);
+  --email-tint: var(--email-base-background);
 }
 
-[data-email] [data-type='section'].emphasis-subtle {
-  background-color: var(--email-tint);
+[data-email] [data-type='section'].emphasis-strong {
+  --email-background: var(--email-base-button);
+  --email-text: var(--email-base-button-text);
+  --email-link: var(--email-base-button-text);
+  --email-button: var(--email-base-button-text);
+  --email-button-text: var(--email-base-button);
+  --email-border: var(--email-base-button-text);
+  --email-tint: var(--email-base-button);
+  --email-divider: var(--email-base-button-text);
+}
+
+[data-email] [data-type='section']:is(.emphasis-subtle, .emphasis-strong) {
+  background-color: var(--email-background);
+  color: var(--email-text);
 }
 
 [data-email] [data-type='button'].emphasis-subtle {

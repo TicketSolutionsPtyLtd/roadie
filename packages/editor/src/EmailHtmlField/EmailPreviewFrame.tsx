@@ -49,20 +49,32 @@ export function PreviewWidthToggle({
 }
 
 // Inverts the email and turns its hues back, then inverts images again, as
-// the mail apps that force dark mode on an email do.
-const SIMULATED_DARK = `<style>html{filter:invert(1) hue-rotate(180deg);background:#fff}img,picture,video{filter:invert(1) hue-rotate(180deg)}</style>`
+// the mail apps that force dark mode on an email do. The email's own dark
+// styles are off, or they'd be inverted back to light.
+const SIMULATED_DARK =
+  '<meta name="color-scheme" content="light only"><style>html{filter:invert(1) hue-rotate(180deg);background:#fff}img,picture,video{filter:invert(1) hue-rotate(180deg)}</style>'
 
 /** The email's HTML with the forced dark mode some mail apps apply. */
 export function simulatedDark(html: string) {
-  return /<\/head>/i.test(html)
-    ? html.replace(/<\/head>/i, `${SIMULATED_DARK}</head>`)
-    : SIMULATED_DARK + html
+  if (/<\/head>/i.test(html)) {
+    return html.replace(/<\/head>/i, (tag) => SIMULATED_DARK + tag)
+  }
+  // After whatever must come first, so a doctype still sets standards mode.
+  for (const opening of [/<html[^>]*>/i, /^\s*<!doctype[^>]*>/i]) {
+    if (opening.test(html)) {
+      return html.replace(opening, (tag) => tag + SIMULATED_DARK)
+    }
+  }
+  return SIMULATED_DARK + html
 }
 
 type EmailPreviewFrameProps = {
   html: string
   width: PreviewWidth
-  /** Dark simulates a mail app that forces dark mode on the email. */
+  /**
+   * Dark simulates a mail app that forces dark mode on the email; the frame
+   * itself stays light, as such an app reads the email.
+   */
   colorScheme?: 'light' | 'dark'
   busy?: boolean
   /** Shown above the frame, at its width, such as an inbox's row. */
@@ -116,7 +128,7 @@ export function EmailPreviewFrame({
                 height: PREVIEW_HEIGHT,
                 transform: scale < 1 ? `scale(${scale})` : undefined,
                 transformOrigin: '0 0',
-                colorScheme
+                colorScheme: 'light'
               }}
               className={cn(
                 'rounded-sm transition-opacity',

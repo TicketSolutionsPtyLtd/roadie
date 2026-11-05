@@ -159,12 +159,13 @@ where it ends. Pass `toolbar='docked'` for a bar across the top.
 
 The canvas stays light in a dark app, as the email it sends does. Pass the
 same `theme` that `renderEmail` takes, and its background, text, links,
-buttons, dividers, a tinted or accent section, and font show in the canvas
-as they send. Without one, the canvas takes `defaultEmailTheme`, as
+buttons, dividers, and font show in the canvas as they send, and a tinted
+or accent section swaps its blocks' colours as the email does. Without one, the canvas takes `defaultEmailTheme`, as
 `renderEmail` does, except that its links and strong buttons take the
 accent of a `ThemeProvider` around the editor, which `renderEmail` doesn't
-know, so pass `theme` for an exact match. Columns reach 12 pixels further
-out than the text around them, as they do in the email. The outlines, the
+know, so pass `theme` for an exact match. Text outside columns sits 24
+pixels in from the canvas's end, and columns reach 12 pixels further out,
+as they do in the email. The outlines, the
 caret's tint, selected text, and the placeholder mix from the theme's
 colours, so they show on any background. A colour that isn't hex throws, as
 it does in `renderEmail`.
@@ -201,21 +202,22 @@ values it's given, on your server, since MJML needs Node, and resolve to its
 - **Desktop** and **Phone** lay it out 600 and 375 pixels wide, as
   [`EmailHtmlField`](#html-emails) does, scaled down to fit a narrower
   screen.
-- **Light** and **Dark** set the frame's `color-scheme`. Dark also simulates
-  the forced dark mode some mail apps apply, inverting the email's colours
-  but not its images, and says it's simulated, as other apps keep an email
-  light.
+- **Dark** simulates the forced dark mode some mail apps apply, inverting
+  the email's colours but not its images, and says it's simulated, as other
+  apps keep an email light. The frame stays light, so an email's own dark
+  styles don't apply under the inversion.
 - **Preview as**, with `previewRecipients`, fills the merge tags with a
   recipient's values and shows only the sections their conditions allow. It
   starts on the first. Without recipients, merge tags show their fallbacks.
   On a phone, the bar keeps to one row: its labels give way to icons, and
-  Preview as moves into More.
+  Preview as becomes an icon that opens a menu of the recipients.
 - **Send test**, with `onSendTest`, asks for an address and calls it with
   the value, the address, and the recipient's values. Until the address is
   whole, it says what Send needs. A rejection's message shows under the
   address.
-- **The inbox row**, above the frame, shows the email as an inbox lists it,
-  with `sender` and `subject` when you pass them.
+- **The inbox row**, above the frame, shows the email as an inbox lists it:
+  `sender` and `subject` when you pass them, and the
+  [preview text](#preview-text).
 
 Preview shows the email as it was when Preview opened. Back to editing, or
 Escape, puts the canvas back and focuses it. The frame is sandboxed, so it
@@ -570,7 +572,8 @@ const nextConfig = { serverExternalPackages: ['mjml'] }
 - `text` writes each link as its text then its href in brackets, unless the
   two match, and leaves out images, spacers, and dividers.
 - An empty line, a paragraph with no text, is left out, as it's room to type
-  in the editor, not space to send. A spacer sends space.
+  in the editor, not space to send, and so is a section holding only empty
+  lines. A spacer sends space.
 
 It reads the value into the email preset first, as `migrate` does, so a value
 from another preset renders too, keeping its text. A link or button needs an

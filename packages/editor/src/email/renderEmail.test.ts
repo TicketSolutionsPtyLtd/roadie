@@ -438,16 +438,17 @@ describe('renderEmail', () => {
       const { html, text: plain } = await renderEmail(
         email(...blank, p(text('Doors 7pm')), ...blank)
       )
-      expect(body(html)).not.toContain('&nbsp;</p>')
+      const { html: alone } = await renderEmail(email(p(text('Doors 7pm'))))
+      expect(html).toBe(alone)
       expect(plain).toBe('Doors 7pm')
     })
 
-    it('renders a section holding only empty lines', async () => {
+    it('sends a section holding only empty lines as nothing', async () => {
       const { html } = await renderEmail(
         email(section(...blank), p(text('Doors 7pm')))
       )
-      expect(body(html)).toContain('Doors 7pm')
-      expect(body(html)).not.toContain('&nbsp;</p>')
+      const { html: alone } = await renderEmail(email(p(text('Doors 7pm'))))
+      expect(html).toBe(alone)
     })
 
     it('keeps an empty line in a list item', async () => {
