@@ -258,6 +258,7 @@ for (const tree of linked) {
   }
   const lateReason = remove && reasonSinceCheck(tree)
   if (lateReason) {
+    removable.delete(tree.path)
     console.log(`  Kept ${tree.path} (${lateReason})`)
     continue
   }

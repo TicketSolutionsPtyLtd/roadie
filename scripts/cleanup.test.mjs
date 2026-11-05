@@ -17,6 +17,9 @@ import { after, describe, test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 
 const scripts = dirname(fileURLToPath(import.meta.url))
+const realDu = execFileSync('sh', ['-c', 'command -v du'], {
+  encoding: 'utf8'
+}).trim()
 const roots = []
 
 // The pre-push hook runs these tests with GIT_DIR and friends pointing at the
@@ -68,6 +71,7 @@ function fixture() {
 
   const prs = []
   return {
+    repo,
     worktree(branch) {
       const path = join(root, branch.replaceAll('/', '-'))
       git(repo, 'worktree', 'add', '-q', '-b', branch, path)
@@ -103,6 +107,23 @@ function fixture() {
         '--reason',
         `claude session x (pid ${pid})`,
         path
+      )
+    },
+    // A du that runs `shell` while it sizes `sized`, to act in the gap
+    // between cleanup's checks and its removals.
+    whileSizing(sized, shell) {
+      writeFileSync(
+        join(bin, 'du'),
+        `#!/bin/sh\nif [ "$2" = "${sized}" ]; then\n${shell}\nfi\nexec ${realDu} "$@"\n`
+      )
+      chmodSync(join(bin, 'du'), 0o755)
+    },
+    // Replaces the lock the way a session resuming into the worktree does.
+    lockWhileSizing(sized, path, pid) {
+      this.whileSizing(
+        sized,
+        `git -C "${repo}" worktree unlock "${path}"
+git -C "${repo}" worktree lock --reason "claude session y (pid ${pid})" "${path}"`
       )
     },
     merge(branch, headRefOid = git(repo, 'rev-parse', branch)) {
@@ -234,6 +255,26 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
       f.worktreeList(),
       new RegExp(`locked claude session x \\(pid ${pid}\\)`)
     )
+  })
+
+  test('keeps a worktree a session locks again during the cache pass', () => {
+    const f = fixture()
+    const path = f.worktree('claude/resumed')
+    f.merge('claude/resumed')
+    f.lock(path, spawnSync('true').pid)
+    const cache = join(f.repo, 'docs', '.next')
+    mkdirSync(cache, { recursive: true })
+    f.lockWhileSizing(cache, path, process.pid)
+
+    const { status, output } = f.cleanup(['--delete'])
+
+    assert.equal(status, 0, output)
+    assert.match(output, /claude-resumed \(locked again since the check\)/)
+    assert.match(
+      f.worktreeList(),
+      new RegExp(`locked claude session y \\(pid ${process.pid}\\)`)
+    )
+    assert.deepEqual(f.branches(), ['claude/resumed', 'main'])
   })
 
   test('keeps a worktree locked by a process it may not signal', () => {
