@@ -264,6 +264,37 @@ describe('migrate and the email preset', () => {
   })
 
   it.each([
+    [
+      'a button straight in a list as an item of its label',
+      { type: 'bulletList', content: [button(tickets)] },
+      list([p('Get tickets')])
+    ],
+    [
+      'columns straight in a list as an item of their blocks',
+      {
+        type: 'orderedList',
+        content: [columns(column(p('a')), column(p('b'), button(tickets)))]
+      },
+      {
+        type: 'orderedList',
+        content: [
+          { type: 'listItem', content: [p('a'), p('b'), p('Get tickets')] }
+        ]
+      }
+    ],
+    [
+      'an image straight in a list as an empty item',
+      { type: 'bulletList', content: [p('a'), image(poster)] },
+      list([p('a')], [{ type: 'paragraph' }])
+    ]
+  ])('reads %s, which the schema can load', (_, stored, read) => {
+    const migrated = readEmail(doc(stored))
+
+    expect(migrated).toEqual(doc(read))
+    expect(() => parse(migrated)).not.toThrow()
+  })
+
+  it.each([
     ['javascript:alert(1)'],
     ['data:text/html,<script>alert(1)</script>'],
     ['/ochre-kite-weekender'],
