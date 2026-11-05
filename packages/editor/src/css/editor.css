@@ -25,6 +25,20 @@
   outline-offset: 2px;
 }
 
+/* A section's, so every ring is drawn alike, where the block has none of its
+   own, as an image's wrapper does. */
+@layer components {
+  [data-slot='editor-content']
+    .ProseMirror-selectednode.react-renderer
+    > [data-node-view-wrapper],
+  [data-slot='editor-content'] [data-selected-block]:not(.react-renderer),
+  [data-slot='editor-content']
+    [data-selected-block].react-renderer
+    > [data-node-view-wrapper] {
+    border-radius: var(--radius-lg);
+  }
+}
+
 /* The caret's block takes a tint that reaches past its text, so the text
    doesn't move. An outline, not padding, so lines stay where they are. In
    the components layer so a block that draws its own fill, as a button
@@ -181,4 +195,16 @@
     outline: 2px solid Highlight;
     outline-offset: -2px;
   }
+}
+
+/* Between blocks, as a line across the text rather than a caret over the
+   block before it, such as an image. */
+[data-slot='editor-content'] .ProseMirror-gapcursor {
+  inset-inline: 0;
+}
+
+[data-slot='editor-content'] .ProseMirror-gapcursor:after {
+  inset-inline: 0;
+  inline-size: auto;
+  border-top: 2px solid var(--color-accent-9);
 }

@@ -328,7 +328,7 @@ export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
 
 const imageSettings: EditorControl = {
   label: 'Image settings',
-  icon: ImageIcon,
+  icon: SlidersHorizontalIcon,
   run: (_editor, { editAlt }) => editAlt()
 }
 

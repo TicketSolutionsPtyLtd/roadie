@@ -304,6 +304,50 @@ export function deleteColumn(state: EditorState, pos: number) {
     .scrollIntoView()
 }
 
+/** A place Move to offers: a heading the block goes after, or a section it goes into the end of. */
+export type MovePlace = {
+  kind: 'heading' | 'section'
+  label: string
+  to: number
+}
+
+const placeLabel = (node: Node) => node.textContent.trim().slice(0, 48)
+
+/**
+ * The page's headings and sections the block at `from` can move under, in
+ * reading order, leaving out the block itself and any place it already is.
+ */
+export function movePlaces(
+  doc: Node,
+  from: number,
+  containers: BlockContainers = TOP_LEVEL
+): MovePlace[] {
+  const block = doc.nodeAt(from)
+  if (!block) return []
+  const end = from + block.nodeSize
+  const found: MovePlace[] = []
+  const fits = (to: number) => {
+    if (to >= from && to <= end) return false
+    const $to = doc.resolve(to)
+    return $to.parent.canReplaceWith($to.index(), $to.index(), block.type)
+  }
+  doc.descendants((node, pos, parent) => {
+    if (pos >= from && pos < end) return false
+    if (!parent || !containers.has(parent.type.name)) return true
+    if (node.type.name === 'heading') {
+      const to = pos + node.nodeSize
+      if (fits(to)) found.push({ kind: 'heading', label: placeLabel(node), to })
+    }
+    if (node.type.name === 'section') {
+      const to = pos + node.nodeSize - 1
+      const label = placeLabel(node) || 'Section'
+      if (fits(to)) found.push({ kind: 'section', label, to })
+    }
+    return true
+  })
+  return found
+}
+
 /** What Turn into can make a text block. */
 export type BlockKind =
   | { type: 'paragraph' }

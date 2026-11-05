@@ -22,8 +22,10 @@ import {
   ListNumbersIcon,
   PlusIcon,
   QuotesIcon,
+  RectangleIcon,
   SelectionPlusIcon,
   TextHFourIcon,
+  TextHIcon,
   TextHThreeIcon,
   TextHTwoIcon,
   TextTIcon,
@@ -63,6 +65,8 @@ import {
   findBlockId,
   insertBelow,
   moveBlock,
+  moveBlockTo,
+  movePlaces,
   parentBlock,
   turnInto
 } from './blockActions'
@@ -286,6 +290,21 @@ function landedAt(state: EditorState, moved: ProseMirrorNode | null) {
   return null
 }
 
+// The menu's width and a margin, which the grip must have before it.
+const MENU_ROOM = 240
+
+function roomBeside(
+  editor: TiptapEditor,
+  wrapper: HTMLElement,
+  place: { left: number }
+) {
+  const grip = wrapper.getBoundingClientRect().left + place.left
+  const room = isRtl(editor)
+    ? document.documentElement.clientWidth - grip - HANDLE_SIZE
+    : grip
+  return room >= MENU_ROOM
+}
+
 const PARENT_LABELS: Record<string, string> = {
   section: 'Select section',
   columns: 'Select columns'
@@ -452,6 +471,23 @@ export function EditorBlockHandle({
     if (menuOpen) hideBubbleMenu(editor)
   }, [editor, menuOpen])
 
+  // Opened from Mod+/, the first action is ready for Enter, as a menu opened
+  // from its trigger's keys has it.
+  const fromKeys = useRef(false)
+  const popupRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!menuOpen || !fromKeys.current) return
+    fromKeys.current = false
+    const frame = requestAnimationFrame(() =>
+      popupRef.current
+        ?.querySelector<HTMLElement>(
+          '[role^="menuitem"]:not([aria-disabled="true"])'
+        )
+        ?.focus()
+    )
+    return () => cancelAnimationFrame(frame)
+  }, [menuOpen])
+
   useEffect(() => {
     const follow = ({ transaction }: { transaction: Transaction }) => {
       if (!transaction.docChanged) return
@@ -474,6 +510,7 @@ export function EditorBlockHandle({
   useEffect(() => {
     openMenuRef.current = () => {
       const { from } = editor.state.selection
+      fromKeys.current = true
       setMenuAt(blockAt(editor.state, from, containers))
     }
     return () => {
@@ -482,8 +519,13 @@ export function EditorBlockHandle({
   }, [editor, openMenuRef, containers])
 
   // The menu acts on every selected block when it's open on one of them.
+  // One selected block is that block, with its own menu.
   const blocks =
-    range && shown != null && shown >= range.from && shown < range.to
+    range &&
+    range.count > 1 &&
+    shown != null &&
+    shown >= range.from &&
+    shown < range.to
       ? range
       : null
   const marked = menuAt === null ? null : (blocks ?? menuAt)
@@ -797,6 +839,15 @@ export function EditorBlockHandle({
                   chosen: kind !== null && kindLabel(each) === kindLabel(kind),
                   run: () => turn(each)
                 }))}
+                places={(blocks ? [] : movePlaces(doc, shown, containers)).map(
+                  (place) => ({
+                    label: place.label,
+                    icon: place.kind === 'heading' ? TextHIcon : RectangleIcon,
+                    chosen: false,
+                    run: () =>
+                      run((pos) => moveBlockTo(editor.state, pos, place.to))
+                  })
+                )}
               />
             </>
           ) : (
@@ -808,8 +859,12 @@ export function EditorBlockHandle({
             >
               <Menu.Trigger render={grip} />
               <Menu.Content
-                // Beside the grip, as Notion's is, so the block stays in view.
-                side='left'
+                ref={popupRef}
+                // Beside the grip, as Notion's is, so the block stays in view,
+                // or below it where the page has no room beside it.
+                side={
+                  roomBeside(editor, wrapper, place) ? 'inline-start' : 'bottom'
+                }
                 align='start'
                 // Delete acts on the block, as the menu's open on it.
                 onKeyDown={(event) => {

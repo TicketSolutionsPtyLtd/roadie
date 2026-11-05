@@ -598,8 +598,9 @@ export function EditorEngine({
             cn(
               emphasis !== 'subtler' &&
                 (blockHandle.canAdd ? 'ps-15' : 'ps-10'),
-              // On a phone, a subtler editor's too, as the page may clip it.
-              'max-sm:px-10 pointer-coarse:px-10'
+              // On a phone, only the grip's room at the start, in a subtler
+              // editor too, as the page may clip it; its target may overlap.
+              'max-sm:ps-8 pointer-coarse:ps-8'
             )
         )
       },

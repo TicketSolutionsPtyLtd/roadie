@@ -330,7 +330,7 @@ describe('Editor blocks drawer', () => {
       )
     )
 
-    const field = await screen.findByRole('textbox', { name: 'Image link' })
+    const field = await screen.findByRole('textbox', { name: 'Image address' })
     await waitFor(() => expect(field).toHaveFocus())
     expect(screen.queryByRole('button', { name: 'Upload an image' })).toBe(null)
   })
