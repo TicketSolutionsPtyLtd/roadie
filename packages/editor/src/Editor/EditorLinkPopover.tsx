@@ -36,6 +36,7 @@ type LinkFormProps = {
   editor: TiptapEditor
   inputRef: RefObject<HTMLInputElement | null>
   apply: LiveEdit['apply']
+  revert: LiveEdit['revert']
   onDone: () => void
 }
 
@@ -96,7 +97,7 @@ function VariableLinks({ variables, current, onPick }: VariableLinksProps) {
  * Links the selection, or changes its link, as a whole address is typed. At
  * a caret with no link, it adds the link's text on save.
  */
-function LinkForm({ editor, inputRef, apply, onDone }: LinkFormProps) {
+function LinkForm({ editor, inputRef, apply, revert, onDone }: LinkFormProps) {
   // Read as the form opens: the editor is mutable, so the React Compiler
   // would cache a read during render by the editor alone.
   const [current] = useState(() => currentLink(editor))
@@ -149,7 +150,7 @@ function LinkForm({ editor, inputRef, apply, onDone }: LinkFormProps) {
           if (inserting) return
           const href = toHref(value)
           if (isLinkable(editor, href)) apply(setLink({ href }))
-          else apply(current ? setLink(current) : unlink)
+          else revert()
         }}
         submitLabel='Save link'
         onSubmit={save}
@@ -211,6 +212,7 @@ export function EditorLinkPopover({
           editor={editor}
           inputRef={inputRef}
           apply={live.apply}
+          revert={live.revert}
           onDone={live.done}
         />
       </Popover.Content>

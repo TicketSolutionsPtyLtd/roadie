@@ -457,6 +457,33 @@ describe('Editor link popover', () => {
     expect(within(textbox).getByRole('link')).toHaveAttribute('href', TICKETS)
   })
 
+  it('puts the caret back on Escape after what’s typed stops being an address', async () => {
+    const textbox = await renderEditor(linked)
+    await userEvent.click(within(textbox).getByText('tickets'))
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const field = await openField('Link')
+    await userEvent.keyboard('oztix.com.au{Backspace}')
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    await waitFor(() => expect(textbox).toHaveFocus())
+    expect(document.getSelection()?.isCollapsed).toBe(true)
+  })
+
+  it('leaves a selection part linked once what’s typed stops being an address', async () => {
+    const textbox = await renderEditor(linked)
+    await selectParagraph(within(textbox).getByText('tickets').parentElement!)
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const field = await openField('Link')
+    await userEvent.clear(field)
+
+    await userEvent.click(screen.getByText('Outside'))
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    expect(within(textbox).getByRole('link')).toHaveAccessibleName('tickets')
+  })
+
   it('leaves unlinked text unlinked once what’s typed stops being an address', async () => {
     const textbox = await renderEditor(soldOut)
     const field = await POPOVERS[0]!.open(textbox)
@@ -514,6 +541,24 @@ describe('Editor link popover', () => {
     await POPOVERS[0]!.open(textbox)
 
     expect(screen.queryByRole('button', { name: 'Remove link' })).toBe(null)
+  })
+})
+
+describe('Editor Edit link popover', () => {
+  it('puts the player back once what’s typed stops embedding', async () => {
+    const textbox = await renderEditor(youtube)
+    const field = await POPOVERS[2]!.open(textbox)
+    await userEvent.type(field, SPOTIFY)
+    await POPOVERS[2]!.saved(textbox)
+    await userEvent.keyboard('{Backspace}')
+
+    await userEvent.click(screen.getByText('Outside'))
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    expect(within(textbox).getByTitle(/embed/)).toHaveAttribute(
+      'title',
+      'YouTube embed exampleVid1'
+    )
   })
 })
 

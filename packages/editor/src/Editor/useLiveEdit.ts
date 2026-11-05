@@ -65,21 +65,32 @@ export function useLiveEdit(
       .run()
   }
 
-  const finish = (keep: boolean) => {
+  /** Takes the edits out, returning them. */
+  const unapply = (restoreSelection: boolean) => {
     const { steps, inverses, selection } = applied.current
     applied.current = none()
-    if (!editor || editor.isDestroyed || steps.length === 0) return
-    const { view } = editor
-    const revert = view.state.tr.setMeta('addToHistory', false)
+    if (!editor || editor.isDestroyed || steps.length === 0) return []
+    const tr = editor.state.tr.setMeta('addToHistory', false)
     const reverted = inverses
-      .map((step) => revert.maybeStep(step))
+      .map((step) => tr.maybeStep(step))
       .every((result) => !result.failed)
     // Back to the document it opened on, so its selection holds there too.
-    if (!keep && reverted && selection) {
-      revert.setSelection(selection.resolve(revert.doc))
+    if (restoreSelection && reverted && selection) {
+      tr.setSelection(selection.resolve(tr.doc))
     }
-    view.dispatch(revert)
-    if (!keep) return
+    editor.view.dispatch(tr)
+    return steps
+  }
+
+  /** Puts things back as they opened, leaving it open. */
+  const revert = () => {
+    unapply(true)
+  }
+
+  const finish = (keep: boolean) => {
+    const steps = unapply(!keep)
+    if (!editor || !keep || steps.length === 0) return
+    const { view } = editor
     // Applied again as one step of its own, which nothing typed next joins.
     const redo = view.state.tr
     steps.forEach((step) => redo.maybeStep(step))
@@ -104,7 +115,7 @@ export function useLiveEdit(
     onOpenChange(false)
   }
 
-  return { apply, done, onOpenChange: handleOpenChange }
+  return { apply, revert, done, onOpenChange: handleOpenChange }
 }
 
 export type LiveEdit = ReturnType<typeof useLiveEdit>

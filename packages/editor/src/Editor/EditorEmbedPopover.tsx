@@ -27,6 +27,7 @@ type EmbedFormProps = {
   resolveUrl: ((url: string) => Promise<string>) | undefined
   inputRef: RefObject<HTMLInputElement | null>
   apply: LiveEdit['apply']
+  revert: LiveEdit['revert']
   onDone: () => void
 }
 
@@ -44,6 +45,7 @@ function EmbedForm({
   resolveUrl,
   inputRef,
   apply,
+  revert,
   onDone
 }: EmbedFormProps) {
   // Read as the form opens: the editor is mutable, so the React Compiler
@@ -113,7 +115,7 @@ function EmbedForm({
       onValueChange={(value) => {
         setTyped(value)
         setRefused(false)
-        if (selected) change(value.trim())
+        if (selected && !change(value.trim())) revert()
       }}
       submitLabel={selected ? 'Save link' : 'Embed link'}
       onSubmit={save}
@@ -169,6 +171,7 @@ export function EditorEmbedPopover({
           resolveUrl={resolveUrl}
           inputRef={inputRef}
           apply={live.apply}
+          revert={live.revert}
           onDone={live.done}
         />
       </Popover.Content>
