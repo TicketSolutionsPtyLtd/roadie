@@ -65,15 +65,21 @@ const layout = newsletter(
 function renderNewsletter(defaultValue = layout) {
   const onValueChange = vi.fn()
   render(
-    <Editor
-      aria-label={LABEL}
-      preset='email'
-      defaultValue={defaultValue}
-      onValueChange={onValueChange}
-    />
+    <>
+      <Editor
+        aria-label={LABEL}
+        preset='email'
+        defaultValue={defaultValue}
+        onValueChange={onValueChange}
+      />
+      <div data-testid='outside' className='h-8' />
+    </>
   )
   return onValueChange
 }
+
+// The editor runs to the page's top corner, so the pointer leaves it below.
+const pointerAway = () => userEvent.hover(screen.getByTestId('outside'))
 
 // Each block as its text, and each layout node as its type and children.
 const outline = (node: JSONContent): unknown =>
@@ -196,7 +202,7 @@ describe('Editor email block handle', () => {
   it('keeps the caret block’s grip when the pointer comes straight to it', async () => {
     renderNewsletter()
     await userEvent.click(await line('Right one'))
-    await userEvent.hover(document.body, { position: { x: 1, y: 1 } })
+    await pointerAway()
     await expectGripBeside(await line('Right one'))
 
     await userEvent.hover(await grip())
@@ -207,7 +213,7 @@ describe('Editor email block handle', () => {
   it('opens the caret block’s menu when the pointer comes straight to its grip', async () => {
     const onValueChange = renderNewsletter()
     await userEvent.click(await line('Right one'))
-    await userEvent.hover(document.body, { position: { x: 1, y: 1 } })
+    await pointerAway()
     await expectGripBeside(await line('Right one'))
 
     await userEvent.click(await grip())
