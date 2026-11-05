@@ -1,10 +1,19 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+  vi
+} from 'vitest'
+import { page, userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
+import { clickIntoEditor } from './testUtils'
 
 const LABEL = 'Email'
 
@@ -149,11 +158,58 @@ describe('Editor email section settings', () => {
     await userEvent.click(
       await screen.findByRole('option', { name: 'Everyone' })
     )
-    await userEvent.click(within(drawer).getByRole('button', { name: 'Done' }))
+    // A click on the page keeps the change.
+    await userEvent.click(document.body, { position: { x: 4, y: 4 } })
 
     await waitFor(() =>
       expect(screen.queryByText('Only when Tickets left is set')).toBe(null)
     )
     expect(savedSection(onValueChange).attrs).toBeUndefined()
+  })
+
+  it('opens Settings from the section’s own toolbar, with the caret in it', async () => {
+    renderEmail(email(section()))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Gates 6pm'))
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Section settings' })
+    )
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Section settings' })
+    ).toBeVisible()
+  })
+
+  it('warns of a rule naming a merge tag the email doesn’t list', async () => {
+    renderEmail(email(section({ showWhen: { key: 'vip', op: 'exists' } })))
+
+    expect(
+      await screen.findByText('Only when vip is set · unknown merge tag')
+    ).toBeVisible()
+  })
+
+  it('types into the section after its settings close on a phone, rather than replacing it', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    const onValueChange = renderEmail(email(section()))
+    const drawer = await openSettings()
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Tint' }))
+
+    await userEvent.click(document.body, { position: { x: 4, y: 4 } })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    await userEvent.keyboard('x')
+
+    await waitFor(() =>
+      expect(savedSection(onValueChange)).toEqual({
+        ...section({ look: 'tint' }),
+        content: [
+          {
+            type: 'paragraph',
+            content: [{ type: 'text', text: 'xGates 6pm' }]
+          }
+        ]
+      })
+    )
   })
 })

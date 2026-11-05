@@ -104,7 +104,7 @@ import { customInsertItem, presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
-import { SectionBadges } from './sectionBadges'
+import { SectionToolbars } from './sectionToolbars'
 import { emailSections } from './sections'
 import { SourcePaste } from './sourcePaste'
 import { presetLook, resolvedPreset } from './startingValue'
@@ -453,6 +453,18 @@ export function EditorEngine({
   const [editingButton, setEditingButton] = useState(false)
   const [editingVariable, setEditingVariable] = useState(false)
   const [editingSettings, setEditingSettings] = useState(false)
+  // Read by the editor's plugins, made before the editor they select in.
+  const editorRef = useRef<TiptapEditor | null>(null)
+  const editSettingsAt = (pos: number) => {
+    const current = editorRef.current
+    if (!current?.isEditable) return
+    current.view.dispatch(
+      current.state.tr.setSelection(
+        NodeSelection.create(current.state.doc, pos)
+      )
+    )
+    setEditingSettings(true)
+  }
   const [importing, setImporting] = useState<ImportRequest>({
     open: false,
     source: '',
@@ -548,7 +560,10 @@ export function EditorEngine({
       EmbedPaste.configure({ providers: () => providersRef.current }),
       ...(preset === 'email'
         ? [
-            SectionBadges.configure({ variables: () => variablesRef.current }),
+            SectionToolbars.configure({
+              variables: () => variablesRef.current,
+              onSettings: (pos) => editSettingsAt(pos)
+            }),
             SourcePaste.configure({
               onSource: (source) => uiRef.current?.importSource?.(source)
             })
@@ -725,6 +740,10 @@ export function EditorEngine({
   }, [toolbar])
 
   useEffect(() => {
+    editorRef.current = editor
+  }, [editor])
+
+  useEffect(() => {
     uploadRef.current = onUploadImage
     providersRef.current = embedProviders
     variablesRef.current = variables
@@ -858,14 +877,7 @@ export function EditorEngine({
             canAdd={blockHandle.canAdd}
             appLabels={blockLabels}
             hasSettings={hasSettings}
-            onSettings={(pos) => {
-              editor.view.dispatch(
-                editor.state.tr.setSelection(
-                  NodeSelection.create(editor.state.doc, pos)
-                )
-              )
-              setEditingSettings(true)
-            }}
+            onSettings={editSettingsAt}
           />
         ) : null}
         {editor && blockHandle && drawerItems.length > 0 ? (

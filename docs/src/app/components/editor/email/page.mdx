@@ -44,6 +44,7 @@ variables, the unsubscribe page and the email in a browser.
   preset='email'
   variables={[
     { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
+    { key: 'tickets_left', label: 'Tickets left', tokens: { liquid: '{{ event.tickets_left }}' } },
     { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' } },
     { key: 'view_url', label: 'View in browser', kind: 'url', tokens: { ae: '[ViewInBrowserLink]', liquid: '{{ view_url }}' } }
   ]}
@@ -315,10 +316,13 @@ shows an error and adds nothing.
 
 ### Section settings
 
-A section's menu leads with Settings: open a block's menu in the section,
-pick Select section, then Settings. It opens from the side, or the bottom on
-a phone, and Enter opens it too while the section is selected. As with Button settings, each
-change shows as it's made, and Escape or Cancel puts the section back.
+A section has a small toolbar on its top edge. Its Settings button shows
+while the section holds the caret or is under the pointer, and its menu
+leads with Settings too. Settings opens from the side, leaving the email
+usable beside it, or as a sheet under half a phone's screen. As with Button
+settings, each change shows as it's made, Escape puts the section back, and
+a click or tap away keeps the changes, with the caret back in the section's
+text.
 
 - **Look:** Plain, Tint, the theme's `tint`, or Accent, the strong
   button's fill, with its text, links, and buttons turned to stay legible.
@@ -328,8 +332,10 @@ change shows as it's made, and Escape or Cancel puts the section back.
   value, or is less or more than a number. It writes the section's
   [`showWhen`](#conditions), and applies once the rule is whole.
 
-A section shown only to some carries a badge on its top edge that reads its
-rule, such as "Only when Tickets left < 50". A section saves only what
+A section shown only to some keeps a faint outline, and its toolbar carries
+a badge that reads its rule, such as "Only when Tickets left < 50". A rule
+naming a merge tag that `variables` doesn't list shows a warning badge
+instead, as it can't send. A section saves only what
 differs from the defaults: `look: 'tint' | 'accent'` and
 `spacing: 'tight' | 'roomy'`.
 

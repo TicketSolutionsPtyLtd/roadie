@@ -301,7 +301,9 @@ const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
       Enter: ({ editor }) => editor.commands.command(leaveButton)
     })
   }),
-  section: outlined(Section, sectionClass),
+  section: outlined(Section, sectionClass, (attrs) =>
+    attrs.showWhen ? { 'data-conditional': '' } : {}
+  ),
   // Each column pads its blocks 12px a side, so 24px between them.
   columns: outlined(
     Columns,

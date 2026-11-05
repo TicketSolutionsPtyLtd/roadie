@@ -120,6 +120,11 @@
     transition: outline-color var(--duration-normal);
   }
 
+  /* A section shown only to some keeps a faint edge for its badge to sit on. */
+  [data-email] :where([data-type='section'][data-conditional]) {
+    outline-color: var(--intent-border-subtle);
+  }
+
   [data-email]
     :where([data-type='section'], [data-type='column']):where(
       :hover,
@@ -127,6 +132,18 @@
     ) {
     outline-color: var(--intent-border-normal);
   }
+}
+
+/* A section's Settings shows while it holds the caret, or is hovered. */
+[data-email] [data-slot='editor-section-settings']:not([data-active]) {
+  visibility: hidden;
+}
+
+[data-email]
+  [data-type='section']:hover
+  > [data-slot='editor-section-toolbar']
+  [data-slot='editor-section-settings'] {
+  visibility: visible;
 }
 
 /* A boxed editor isn't a text field, so it keeps only the field's invalid
