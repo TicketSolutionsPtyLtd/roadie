@@ -298,6 +298,22 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     )
   })
 
+  test('finishes the run when a worktree folder is deleted while it is sized', () => {
+    const f = fixture()
+    const path = f.worktree('claude/vanished')
+    f.merge('claude/vanished')
+    f.whileSizing(path, `rm -rf "${path}"`)
+
+    const { status, output } = f.cleanup([
+      '--delete',
+      '--branch',
+      'claude/vanished'
+    ])
+
+    assert.equal(status, 0, output)
+    assert.match(output, /\(folder gone since the check\)/)
+  })
+
   test('keeps a worktree a process starts in while it is sized', () => {
     const f = fixture()
     const path = f.worktree('claude/reopened')

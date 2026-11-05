@@ -97,6 +97,21 @@ describe('changedSinceCheck', () => {
     )
     assert.equal(changedSinceCheck(checked, []), 'gone since the check')
   })
+
+  test('says so when the worktree moved to another commit or branch', () => {
+    const at = (head, branch) =>
+      parseWorktrees(
+        `worktree /w\nHEAD ${head}\nbranch refs/heads/${branch}`
+      )[0]
+    assert.equal(
+      changedSinceCheck(at('a', 'x'), [at('b', 'x')]),
+      'moved since the check'
+    )
+    assert.equal(
+      changedSinceCheck(at('a', 'x'), [at('a', 'y')]),
+      'moved since the check'
+    )
+  })
 })
 
 describe('isStaleLock', () => {

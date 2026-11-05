@@ -31,8 +31,14 @@ const onlyBranch = flags.branch
 const verb = remove ? 'Removed' : 'Would remove'
 let reclaimedKb = 0
 
+// A folder can vanish mid-run, when another session cleans up its own.
 function sizeKb(path) {
-  return Number(run('du', ['-sk', path]).split('\t')[0])
+  if (!existsSync(path)) return 0
+  try {
+    return Number(run('du', ['-sk', path]).split('\t')[0])
+  } catch {
+    return 0
+  }
 }
 
 function formatKb(kb) {
@@ -183,6 +189,7 @@ function keepReason(tree) {
 }
 
 function reasonSinceCheck(tree) {
+  if (!existsSync(tree.path)) return 'folder gone since the check'
   const changed = changedSinceCheck(tree, worktrees())
   if (changed) return changed
   const dir = tree.path
