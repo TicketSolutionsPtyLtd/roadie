@@ -112,8 +112,8 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
 }
 
 // Only the preset's shape decides which nodes keep a rule.
-function withRule(attrs: Record<string, unknown> | undefined, stored: unknown) {
-  const rest = { ...attrs }
+function withRule(attrs: unknown, stored: unknown) {
+  const rest = isObject(attrs) ? { ...attrs } : {}
   delete rest.showWhen
   const showWhen = isObject(stored) ? showWhenRule(stored.showWhen) : undefined
   return showWhen ? { ...rest, showWhen } : rest
