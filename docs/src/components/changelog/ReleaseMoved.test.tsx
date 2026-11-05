@@ -15,7 +15,9 @@ describe('ReleaseMoved', () => {
         ?.getAttribute('content')
     ).toBe('0; url=/overview/changelog/2026-11-05/')
     expect(
-      screen.getByRole('link', { name: 'its own page' }).getAttribute('href')
+      screen
+        .getByRole('link', { name: 'Go to the release' })
+        .getAttribute('href')
     ).toBe('/overview/changelog/2026-11-05')
   })
 })

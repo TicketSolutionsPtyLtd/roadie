@@ -293,7 +293,7 @@ for (const { slug, movedTo } of releaseRoutes(getReleaseViews())) {
   if (!movedTo) continue
   await writeFile(
     path.join(outDir, CHANGELOG_ROUTE, `${slug}.md`),
-    `This release moved to [its own page](${resolveLink(movedTo)}).\n`
+    `This release moved to a new address. [Go to the release](${resolveLink(movedTo)})\n`
   )
 }
 
