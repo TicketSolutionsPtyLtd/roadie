@@ -157,18 +157,19 @@ where it ends. Pass `toolbar='docked'` for a bar across the top.
 
 ### Adding blocks
 
-There are two ways to add a block. Both list the same blocks under the same
+There are two ways to add a block. Both list the blocks under the same
 headings: Text, Media, Layout, and Email. Image shows only with
-`onUploadImage`.
+`onUploadImage`, and Merge tag is in the `/` menu only, with `variables`.
 
 - **Blocks** in the toolbar opens a drawer of tiles, one per block, in its
   group. It starts the docked toolbar, so it shows on a phone, and ends the
-  floating toolbar over a selection. The drawer opens from the right, or from the bottom on a
-  phone. A tile adds its block after the block with the caret, or fills the
-  caret's line when that line is empty, and the drawer closes with the caret
-  in the new block. A section or columns picked in a column goes after the
-  whole row, since columns can't hold one. Image and Button open the file
-  picker and the link field on a new line there.
+  floating toolbar over a selection. The drawer opens from the right, or
+  from the bottom on a phone. A tile adds its block after the block with the
+  caret, and the drawer closes with the caret in the new block. On an empty
+  line, a text block takes the line's place, and any other block goes before
+  it. A section or columns picked in a column goes after the whole row,
+  since columns can't hold one. Image and Button open the file picker and
+  the link field on a new line there.
 - **Sections** at the end of the drawer are ready-made groups of blocks to
   edit: Header, Event, and Two events. Their buttons have no link until you
   set one, and send as text until then. Footer, with a line on why the
