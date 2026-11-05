@@ -339,7 +339,12 @@ export function EditorBlockHandle({
 }: EditorBlockHandleProps) {
   const host = useHandleHost(editor)
   const phone = useOnPhone()
-  const [copied, setCopied] = useState(false)
+  // Where the copied block's grip was, as the grip moves on once the menu closes.
+  const [copied, setCopied] = useState<{
+    top: number
+    left: number
+    at: number
+  } | null>(null)
   useScrollToLinkedBlock(editor)
   const wrapper = host?.parentElement ?? null
   const [hovered, setHovered] = useState<number | null>(null)
@@ -423,9 +428,19 @@ export function EditorBlockHandle({
   // Long enough to read, as the menu that copied it has closed.
   useEffect(() => {
     if (!copied) return
-    const timer = setTimeout(() => setCopied(false), 2000)
+    const timer = setTimeout(() => setCopied(null), 2000)
     return () => clearTimeout(timer)
   }, [copied])
+
+  // Mounted throughout, as a live region added with its text goes unread.
+  const status = host
+    ? createPortal(
+        <span role='status' className='sr-only'>
+          {copied ? 'Link copied' : ''}
+        </span>,
+        host
+      )
+    : null
 
   // Its blur check counts focus on the grip as staying in the editor.
   const menuOpen = menuAt !== null
@@ -483,7 +498,14 @@ export function EditorBlockHandle({
     )
   }, [editor, wrapper, shown, doc, phone])
 
-  if (!wrapper || !editable || shown == null || !place) return null
+  if (!wrapper || !editable || shown == null || !place) {
+    return (
+      <>
+        {status}
+        {null}
+      </>
+    )
+  }
 
   const parent = parentBlock(editor.state, shown, containers)
   const parentName = parent === null ? null : doc.nodeAt(parent)!.type.name
@@ -614,7 +636,13 @@ export function EditorBlockHandle({
             run: () =>
               void navigator.clipboard
                 ?.writeText(blockLink(blockId))
-                .then(() => setCopied(true))
+                .then(() =>
+                  setCopied({
+                    top: place.top - HANDLE_SIZE,
+                    left: place.left,
+                    at: Date.now()
+                  })
+                )
                 // A refused copy changes nothing on the page, so it's let go.
                 .catch(() => {})
           }
@@ -669,153 +697,159 @@ export function EditorBlockHandle({
     </IconButton>
   )
 
-  return createPortal(
+  return (
     <>
-      {copied ? (
-        <Badge
-          role='status'
-          intent='success'
-          emphasis='subtle'
-          size='sm'
-          className='absolute'
-          style={{ top: place.top - HANDLE_SIZE, left: place.left }}
-        >
-          Link copied
-        </Badge>
-      ) : null}
-      {canAdd ? (
-        <IconButton
-          size='xs'
-          emphasis='subtler'
-          aria-label='Add block'
-          // As the grip: Mod+/ and `/` are the keyboard paths.
-          tabIndex={-1}
-          data-slot='editor-block-add'
-          // A phone adds from the toolbar and the block's menu, leaving the
-          // gutter to the grip.
-          className='absolute text-subtle max-sm:hidden pointer-coarse:hidden'
-          style={{
-            top: place.top,
-            left: place.left + (isRtl(editor) ? HANDLE_SIZE : -HANDLE_SIZE)
-          }}
-          onClick={() => addAfter(editor, shown)}
-        >
-          <PlusIcon weight='bold' className='size-4' aria-hidden />
-        </IconButton>
-      ) : null}
-      {phone ? (
+      {status}
+      {createPortal(
         <>
-          {grip}
-          <EditorBlockSheet
-            open={menuOpen}
-            onClose={close}
-            onFinalFocus={handBack}
-            label={label}
-            block={
-              menuOpen
-                ? (editor.view.nodeDOM(shown) as HTMLElement | null)
-                : null
-            }
-            moveUp={moves[0]!}
-            moveDown={moves[1]!}
-            actions={[...moves.slice(2), ...more]}
-            remove={remove}
-            kinds={kinds.map((each) => ({
-              label: kindLabel(each),
-              icon: kindIcon(each),
-              chosen: kind !== null && kindLabel(each) === kindLabel(kind),
-              run: () => turn(each)
-            }))}
-          />
-        </>
-      ) : (
-        <Menu
-          open={menuOpen}
-          onOpenChange={(open) => {
-            if (!open) close()
-          }}
-        >
-          <Menu.Trigger render={grip} />
-          <Menu.Content
-            // Beside the grip, as Notion's is, so the block stays in view.
-            side='left'
-            align='start'
-            // Delete acts on the block, as the menu's open on it.
-            onKeyDown={(event) => {
-              if (event.key !== 'Delete' && event.key !== 'Backspace') return
-              event.preventDefault()
-              remove.run()
-              close()
-            }}
-            finalFocus={handBack}
-          >
-            <Menu.Group>
-              <Menu.GroupLabel>{label}</Menu.GroupLabel>
-              {moves.map((action) => (
-                <Menu.Item
-                  key={action.label}
-                  icon={createElement(action.icon, { weight: 'bold' })}
-                  shortcut={action.shortcut}
-                  disabled={action.disabled}
-                  closeOnClick={!action.keepOpen}
-                  onClick={action.run}
-                >
-                  {action.label}
-                </Menu.Item>
-              ))}
-              {kinds.length > 0 ? (
-                <Menu.SubmenuRoot>
-                  <Menu.SubmenuTrigger
-                    icon={<ArrowsClockwiseIcon weight='bold' />}
-                  >
-                    Turn into
-                  </Menu.SubmenuTrigger>
-                  <Menu.Content>
-                    <Menu.RadioGroup value={kind ? kindLabel(kind) : null}>
-                      {kinds.map((each) => (
-                        <Menu.RadioItem
-                          key={kindLabel(each)}
-                          value={kindLabel(each)}
-                          icon={createElement(kindIcon(each), {
-                            weight: 'bold'
-                          })}
-                          closeOnClick
-                          onClick={() => turn(each)}
-                        >
-                          {kindLabel(each)}
-                        </Menu.RadioItem>
-                      ))}
-                    </Menu.RadioGroup>
-                  </Menu.Content>
-                </Menu.SubmenuRoot>
-              ) : null}
-              {more.map((action) => (
-                <Menu.Item
-                  key={action.label}
-                  icon={createElement(action.icon, { weight: 'bold' })}
-                  shortcut={action.shortcut}
-                  disabled={action.disabled}
-                  closeOnClick={!action.keepOpen}
-                  onClick={action.run}
-                >
-                  {action.label}
-                </Menu.Item>
-              ))}
-              <Menu.Separator />
-              <Menu.Item
-                icon={<TrashIcon weight='bold' />}
-                shortcut={remove.shortcut}
-                intent='danger'
-                onClick={remove.run}
+          {copied ? (
+            <Badge
+              aria-hidden
+              intent='success'
+              emphasis='subtle'
+              size='sm'
+              className='absolute'
+              style={{ top: copied.top, left: copied.left }}
+            >
+              Link copied
+            </Badge>
+          ) : null}
+          {canAdd ? (
+            <IconButton
+              size='xs'
+              emphasis='subtler'
+              aria-label='Add block'
+              // As the grip: Mod+/ and `/` are the keyboard paths.
+              tabIndex={-1}
+              data-slot='editor-block-add'
+              // A phone adds from the toolbar and the block's menu, leaving the
+              // gutter to the grip.
+              className='absolute text-subtle max-sm:hidden pointer-coarse:hidden'
+              style={{
+                top: place.top,
+                left: place.left + (isRtl(editor) ? HANDLE_SIZE : -HANDLE_SIZE)
+              }}
+              onClick={() => addAfter(editor, shown)}
+            >
+              <PlusIcon weight='bold' className='size-4' aria-hidden />
+            </IconButton>
+          ) : null}
+          {phone ? (
+            <>
+              {grip}
+              <EditorBlockSheet
+                open={menuOpen}
+                onClose={close}
+                onFinalFocus={handBack}
+                label={label}
+                block={
+                  menuOpen
+                    ? (editor.view.nodeDOM(shown) as HTMLElement | null)
+                    : null
+                }
+                moveUp={moves[0]!}
+                moveDown={moves[1]!}
+                actions={[...moves.slice(2), ...more]}
+                remove={remove}
+                kinds={kinds.map((each) => ({
+                  label: kindLabel(each),
+                  icon: kindIcon(each),
+                  chosen: kind !== null && kindLabel(each) === kindLabel(kind),
+                  run: () => turn(each)
+                }))}
+              />
+            </>
+          ) : (
+            <Menu
+              open={menuOpen}
+              onOpenChange={(open) => {
+                if (!open) close()
+              }}
+            >
+              <Menu.Trigger render={grip} />
+              <Menu.Content
+                // Beside the grip, as Notion's is, so the block stays in view.
+                side='left'
+                align='start'
+                // Delete acts on the block, as the menu's open on it.
+                onKeyDown={(event) => {
+                  if (event.key !== 'Delete' && event.key !== 'Backspace')
+                    return
+                  event.preventDefault()
+                  remove.run()
+                  close()
+                }}
+                finalFocus={handBack}
               >
-                {remove.label}
-              </Menu.Item>
-            </Menu.Group>
-          </Menu.Content>
-        </Menu>
+                <Menu.Group>
+                  <Menu.GroupLabel>{label}</Menu.GroupLabel>
+                  {moves.map((action) => (
+                    <Menu.Item
+                      key={action.label}
+                      icon={createElement(action.icon, { weight: 'bold' })}
+                      shortcut={action.shortcut}
+                      disabled={action.disabled}
+                      closeOnClick={!action.keepOpen}
+                      onClick={action.run}
+                    >
+                      {action.label}
+                    </Menu.Item>
+                  ))}
+                  {kinds.length > 0 ? (
+                    <Menu.SubmenuRoot>
+                      <Menu.SubmenuTrigger
+                        icon={<ArrowsClockwiseIcon weight='bold' />}
+                      >
+                        Turn into
+                      </Menu.SubmenuTrigger>
+                      <Menu.Content>
+                        <Menu.RadioGroup value={kind ? kindLabel(kind) : null}>
+                          {kinds.map((each) => (
+                            <Menu.RadioItem
+                              key={kindLabel(each)}
+                              value={kindLabel(each)}
+                              icon={createElement(kindIcon(each), {
+                                weight: 'bold'
+                              })}
+                              closeOnClick
+                              onClick={() => turn(each)}
+                            >
+                              {kindLabel(each)}
+                            </Menu.RadioItem>
+                          ))}
+                        </Menu.RadioGroup>
+                      </Menu.Content>
+                    </Menu.SubmenuRoot>
+                  ) : null}
+                  {more.map((action) => (
+                    <Menu.Item
+                      key={action.label}
+                      icon={createElement(action.icon, { weight: 'bold' })}
+                      shortcut={action.shortcut}
+                      disabled={action.disabled}
+                      closeOnClick={!action.keepOpen}
+                      onClick={action.run}
+                    >
+                      {action.label}
+                    </Menu.Item>
+                  ))}
+                  <Menu.Separator />
+                  <Menu.Item
+                    icon={<TrashIcon weight='bold' />}
+                    shortcut={remove.shortcut}
+                    intent='danger'
+                    onClick={remove.run}
+                  >
+                    {remove.label}
+                  </Menu.Item>
+                </Menu.Group>
+              </Menu.Content>
+            </Menu>
+          )}
+        </>,
+        host!
       )}
-    </>,
-    host!
+    </>
   )
 }
 
