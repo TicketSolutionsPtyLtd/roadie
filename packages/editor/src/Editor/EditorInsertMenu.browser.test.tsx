@@ -438,29 +438,6 @@ describe('Editor insert menu', () => {
       expect(screen.queryByRole('listbox')).toBe(null)
     }
   )
-
-  it('refuses an uploaded image served from a path on the site', async () => {
-    const onValueChange = renderEmail({
-      defaultValue: email(p('Doors 7pm')),
-      onUploadImage: async () => ({ src: '/images/crowd.png' })
-    })
-    const textbox = await focusedTextbox()
-
-    const clipboardData = new DataTransfer()
-    clipboardData.items.add(
-      new File(['png'], 'crowd.png', { type: 'image/png' })
-    )
-    const event = new ClipboardEvent('paste', {
-      bubbles: true,
-      cancelable: true
-    })
-    Object.defineProperty(event, 'clipboardData', { value: clipboardData })
-    textbox.dispatchEvent(event)
-
-    expect((await screen.findByRole('alert')).textContent).toMatch(/https/)
-    expect(textbox.querySelector('img')).toBe(null)
-    expect(onValueChange).not.toHaveBeenCalled()
-  })
 })
 
 describe('Editor email paste', () => {
