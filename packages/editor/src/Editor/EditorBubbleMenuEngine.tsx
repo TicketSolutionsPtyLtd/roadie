@@ -44,16 +44,17 @@ const between = (top: number, bottom: number) => ({
 })
 
 /**
- * Table actions sit above the table, or below it when there's no room, so the
- * menu flips only within the side of the selection away from them. The plugin
- * offsets the menu after it flips, so the bounds allow for that.
+ * Table and columns actions sit above their node, or below it when there's no
+ * room, so the menu flips only within the side of the selection away from
+ * them. The plugin offsets the menu after it flips, so the bounds allow for
+ * that.
  */
-function clearOfTableActions(
+function clearOfActions(
   editor: TiptapEditor,
   selection: { top: number; bottom: number }
 ) {
   const actions = editor.view.dom.parentElement?.querySelector(
-    '[data-slot="editor-table-toolbar"]'
+    '[data-slot="editor-table-toolbar"], [data-slot="editor-node-toolbar"]'
   )
   if (!actions) return {}
   const box = actions.getBoundingClientRect()
@@ -90,9 +91,17 @@ function SelectionMenu({
     editAlt,
     editEmbed,
     pickImage,
-    replaceImage
+    replaceImage,
+    editButton
   } = use(EditorContext)!
-  const ui = { editLink, editAlt, editEmbed, pickImage, replaceImage }
+  const ui = {
+    editLink,
+    editAlt,
+    editEmbed,
+    pickImage,
+    replaceImage,
+    editButton
+  }
   const controls = selectionControls[preset]
   const menuRef = useRef<HTMLDivElement>(null)
   const editingLinkRef = useRef(editingLink)
@@ -146,10 +155,7 @@ function SelectionMenu({
         placement: 'top',
         offset: OFFSET,
         flip: ({ elements }) =>
-          clearOfTableActions(
-            editor,
-            elements.reference.getBoundingClientRect()
-          ),
+          clearOfActions(editor, elements.reference.getBoundingClientRect()),
         // The plugin makes its element a tab stop; the toolbar inside is the one.
         onShow: () => {
           menuRef.current?.setAttribute('tabindex', '-1')

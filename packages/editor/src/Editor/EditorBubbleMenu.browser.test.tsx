@@ -200,6 +200,61 @@ describe('Editor.BubbleMenu', () => {
     await noMenu()
   })
 
+  describe('over text in columns', () => {
+    const inColumns: EditorValue = {
+      version: 1,
+      preset: 'email',
+      doc: {
+        type: 'doc',
+        content: [
+          paragraph('Gates open at 4pm'),
+          {
+            type: 'columns',
+            content: [
+              { type: 'column', content: [paragraph('Ochre Kite')] },
+              { type: 'column', content: [paragraph('Kazoo Hollow')] }
+            ]
+          }
+        ]
+      }
+    }
+
+    it('stays clear of the columns actions', async () => {
+      render(<BubbleEditor defaultValue={inColumns} />)
+      await selectText('Ochre Kite')
+      const bubble = await menu()
+      const actions = await screen.findByRole('toolbar', {
+        name: 'Columns actions'
+      })
+
+      const text = screen.getByText('Ochre Kite')
+      await waitFor(() => {
+        const line = text.getBoundingClientRect()
+        const bar = bubble.getBoundingClientRect()
+        const gap = Math.max(bar.top - line.bottom, line.top - bar.bottom)
+        expect(gap).toBeGreaterThanOrEqual(0)
+        expect(gap).toBeLessThan(24)
+      })
+      expect(
+        overlaps(
+          bubble.getBoundingClientRect(),
+          actions.getBoundingClientRect()
+        )
+      ).toBe(false)
+    })
+
+    it('takes focus first on Alt+F10, ahead of the columns actions', async () => {
+      render(<BubbleEditor defaultValue={inColumns} />)
+      await selectText('Ochre Kite')
+      const bubble = await menu()
+      await screen.findByRole('toolbar', { name: 'Columns actions' })
+
+      await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+
+      expect(within(bubble).getByRole('button', { name: 'Bold' })).toHaveFocus()
+    })
+  })
+
   it('shows nothing until the part is added', async () => {
     render(<Editor aria-label={LABEL} defaultValue={lineup} />)
     await selectText('Gates open at 4pm')

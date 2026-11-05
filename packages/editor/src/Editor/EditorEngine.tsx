@@ -367,10 +367,10 @@ export function EditorEngine({
       handleKeyDown: (view, event) => {
         if (!event.altKey || event.key !== 'F10') return false
         // The selection menu is in the document only while it shows.
-        const toolbar = selectedNodeType(view.state)
-          ? nodeToolbarRef.current
-          : bubbleMenuRef.current?.isConnected
-            ? bubbleMenuRef.current
+        const toolbar = bubbleMenuRef.current?.isConnected
+          ? bubbleMenuRef.current
+          : selectedNodeType(view.state)
+            ? nodeToolbarRef.current
             : selectedTable(view.state)
               ? tableToolbarRef.current
               : toolbarRef.current

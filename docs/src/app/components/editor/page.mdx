@@ -157,9 +157,11 @@ and `migrate` drops it from a stored value.
 Add `Editor.BubbleMenu` among the parts to show Bold, Italic, Underline, and
 Link above selected text, close to it on a phone or in a long document. It
 shows while text is selected and the editor has focus, and hides when the
-selection collapses, on a selected image or embed, while the link editor is
-open, and when the editor is read-only or disabled. Children go after the
-preset's controls, as in `Editor.Toolbar`.
+selection collapses, on a selected image or embed, on text that takes no
+marks, such as an email button's label, while the link editor is open, and
+when the editor is read-only or disabled. It keeps clear of Table and Columns
+actions, going below the selection when they're above it. Children go after
+the preset's controls, as in `Editor.Toolbar`.
 
 ```tsx-live-prose
 <Editor
