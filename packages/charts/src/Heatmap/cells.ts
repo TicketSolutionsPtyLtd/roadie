@@ -61,4 +61,8 @@ export function heatCells(props: HeatmapProps): HeatCell[] {
   })
 }
 
-export const firstSeen = (values: readonly string[]) => [...new Set(values)]
+const firstSeen = (values: readonly string[]) => [...new Set(values)]
+
+/** An axis's labels in data order, empty cells included, so gaps never reorder it. */
+export const axisLabels = (props: HeatmapProps, field: string) =>
+  firstSeen(props.data.map((r) => String(r[field] ?? '')).filter(Boolean))

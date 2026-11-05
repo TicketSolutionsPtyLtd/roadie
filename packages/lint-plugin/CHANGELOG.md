@@ -1,5 +1,12 @@
 # @oztix/roadie-lint-plugin
 
+## 0.2.1
+
+### Patch Changes
+
+- f365cf1: Fix three lint rules that missed problems or read a condition as class text. `roadie/no-arbitrary-radius` now reports a raw length in a constant even when the constant was used elsewhere first, such as `cn(pad)` before `cn('rounded-(--r)', pad)`. The class string rules no longer read a condition as class text, so `cn(path === '/faq#top' && 'bg-strong')` and `cn({ 'bg-strong': hash !== '#top' })` pass `roadie/no-hex-colour-class`. `roadie/phosphor-icon-weight` now reports a wrong weight on a `Navigator.Item` icon, such as `weight='thin'`, while still letting the icon leave its weight out.
+- a0b7a62: Fix `roadie/phosphor-icon-suffix` missing icons that come from scope rather than an import, such as in a live code editor. A bare name listed in `settings.roadie.phosphorIcons`, such as `Heart`, now fails where the code renders it, as `<Heart />`, or passes it as a prop, as `icon={Heart}`, with a message to use `HeartIcon`.
+
 ## 0.2.0
 
 ### Minor Changes

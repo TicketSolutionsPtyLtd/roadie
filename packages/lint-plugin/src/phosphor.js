@@ -81,6 +81,38 @@ function iconAttribute(icons, attributeName, report) {
   }
 }
 
+const isBareIconName = (name) =>
+  !name.endsWith('Icon') && !PHOSPHOR_NON_ICONS.test(name)
+
+// Code with icons in scope, such as docs live examples, has no import to
+// check, so a bare name from settings.roadie.phosphorIcons fails as an element
+// or a prop value. Inside an object or array it goes unseen.
+function bareScopeIcons(context) {
+  const bare = new Set(
+    (context.settings.roadie?.phosphorIcons ?? []).filter(isBareIconName)
+  )
+  const report = (node) =>
+    context.report({
+      node,
+      message: `Use ${node.name}Icon, not ${node.name}. See ${ICONOGRAPHY}.`
+    })
+  return {
+    JSXOpeningElement(node) {
+      if (node.name.type === 'JSXIdentifier' && bare.has(node.name.name)) {
+        report(node.name)
+      }
+    },
+    JSXExpressionContainer(node) {
+      if (
+        node.expression.type === 'Identifier' &&
+        bare.has(node.expression.name)
+      ) {
+        report(node.expression)
+      }
+    }
+  }
+}
+
 export const phosphorRules = {
   'phosphor-icon-suffix': {
     meta: {
@@ -91,6 +123,7 @@ export const phosphorRules = {
       schema: []
     },
     create: (context) => ({
+      ...bareScopeIcons(context),
       ImportDeclaration(node) {
         if (!PHOSPHOR.test(node.source.value) || node.importKind === 'type') {
           return
@@ -127,16 +160,16 @@ export const phosphorRules = {
         if (node.name.type !== 'JSXIdentifier' || !icons.has(node.name.name)) {
           return
         }
-        if (isNavigatorItemIcon(node)) return
         const weight = node.attributes.find(
           (attribute) =>
             attribute.type === 'JSXAttribute' &&
             attribute.name.name === 'weight'
         )
         if (!weight) {
-          if (node.attributes.some((a) => a.type === 'JSXSpreadAttribute')) {
-            return
-          }
+          const spread = node.attributes.some(
+            (a) => a.type === 'JSXSpreadAttribute'
+          )
+          if (spread || isNavigatorItemIcon(node)) return
           context.report({
             node,
             message: `Set weight='bold', since Phosphor defaults to regular. See ${ICONOGRAPHY}.`

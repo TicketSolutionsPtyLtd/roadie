@@ -76,6 +76,12 @@ describe('htmlToEditorValue', () => {
     expect(blocks(html)).toEqual(expected)
   })
 
+  it('drops empty and spacer paragraphs', () => {
+    expect(
+      blocks('<p>Doors 7pm</p><p></p><p>&nbsp;</p><p> </p><p>All ages</p>')
+    ).toEqual([paragraph(text('Doors 7pm')), paragraph(text('All ages'))])
+  })
+
   it('splits paragraphs inside a list item', () => {
     expect(blocks('<ul><li>Doors<br><br>7pm</li></ul>')).toEqual([
       {
@@ -194,6 +200,21 @@ describe('htmlToEditorValue', () => {
     ])
   })
 
+  it('keeps a spacer paragraph inside another block', () => {
+    expect(
+      blocks('<blockquote><p>Doors</p><p>&nbsp;</p><p>7pm</p></blockquote>')
+    ).toEqual([
+      {
+        type: 'blockquote',
+        content: [
+          paragraph(text('Doors')),
+          paragraph(text('\u00a0')),
+          paragraph(text('7pm'))
+        ]
+      }
+    ])
+  })
+
   it.each([
     [
       'an image',
@@ -278,6 +299,53 @@ describe('htmlToEditorValue', () => {
     })
 
     it.each([
+      ['a protocol-relative image as https', '//cdn.oztix.com.au/poster.jpg'],
+      ['a space-padded image', ' https://cdn.oztix.com.au/poster.jpg ']
+    ])('reads %s', (_, src) => {
+      const { value, dropped } = htmlToEditorValue(`<img src="${src}">`, 'rich')
+
+      expect(value.doc.content).toEqual([
+        {
+          type: 'image',
+          attrs: { src: 'https://cdn.oztix.com.au/poster.jpg', alt: '' }
+        }
+      ])
+      expect(dropped).toEqual([])
+    })
+
+    // A page with script never shows these, so nothing in them is lost.
+    it.each([
+      [
+        'after text',
+        '<p>Doors 7pm</p><noscript><img src="https://www.facebook.com/tr?id=1"><img src="data:image/gif;base64,R0lGOD"><iframe src="https://evil.example/x"></iframe></noscript>'
+      ],
+      [
+        'before any text',
+        '<title>Tickets</title><script>fbq()</script><noscript><img src="https://www.facebook.com/tr?id=1"></noscript><p>Doors 7pm</p>'
+      ]
+    ])('ignores what only shows without script, %s', (_, html) => {
+      for (const preset of ['rich', 'basic'] as const) {
+        const { value, dropped } = htmlToEditorValue(html, preset)
+
+        expect(value.doc.content).toEqual([paragraph(text('Doors 7pm'))])
+        expect(dropped).toEqual([])
+      }
+    })
+
+    it.each([
+      ['a protocol-relative image', '//cdn.oztix.com.au/a.jpg', 'image'],
+      ['a protocol-relative player', ' //evil.example/x ', 'embed']
+    ] as const)('reports %s as https', (_, src, kind) => {
+      const element =
+        kind === 'image'
+          ? `<img src="${src}">`
+          : `<iframe src="${src}"></iframe>`
+      const { dropped } = htmlToEditorValue(element, 'basic')
+
+      expect(dropped).toEqual([{ kind, src: `https:${src.trim()}` }])
+    })
+
+    it.each([
       [
         'a base64 image',
         '<p>Poster<img src="data:image/png;base64,iVBORw0KGgo="></p>',
@@ -319,6 +387,11 @@ describe('htmlToEditorValue', () => {
       [
         'protocol-relative YouTube',
         '//www.youtube.com/embed/dQw4w9WgXcQ',
+        { provider: 'youtube', id: 'dQw4w9WgXcQ', params: null }
+      ],
+      [
+        'space-padded YouTube',
+        ' //www.youtube.com/embed/dQw4w9WgXcQ ',
         { provider: 'youtube', id: 'dQw4w9WgXcQ', params: null }
       ],
       [
@@ -462,9 +535,14 @@ describe('htmlToEditorValue', () => {
       'https://cdn.oztix.com.au/a.swf'
     ],
     [
+      'a video with an empty src',
+      '<video src=""><source src="https://cdn.oztix.com.au/a.mp4"></video>',
+      'https://cdn.oztix.com.au/a.mp4'
+    ],
+    [
       'a video with only sources',
       '<video><source src="https://cdn.oztix.com.au/a.mp4"></video>',
-      undefined
+      'https://cdn.oztix.com.au/a.mp4'
     ]
   ])('drops and reports %s', (_, media, src) => {
     const { value, dropped } = htmlToEditorValue(`<p>Watch</p>${media}`, 'rich')

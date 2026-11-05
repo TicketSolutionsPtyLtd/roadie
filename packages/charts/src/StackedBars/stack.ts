@@ -44,6 +44,13 @@ const parts = (props: StackedBarsProps, rollup: boolean) => {
   return merged(rollup ? rollupOther(drawn) : drawn)
 }
 
+/** Every named category in data order, whatever its values, so ordered bands keep their slot. */
+export const stackCategories = (props: StackedBarsProps) => [
+  ...new Set(
+    props.data.map((row) => String(row[props.x] ?? '')).filter((x) => x !== '')
+  )
+]
+
 export function seriesOrder(all: readonly Part[]) {
   const order = [...new Set(all.map((p) => p.series))]
   const other = order.indexOf(OTHER)

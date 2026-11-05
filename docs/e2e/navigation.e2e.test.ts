@@ -8,6 +8,7 @@ import {
 } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { settled } from './routerReady'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 let browser: Browser
@@ -31,7 +32,7 @@ async function open(width: number) {
   await serveExport(context)
   const page = await context.newPage()
   await page.goto(`${ORIGIN}${BASE_PATH}/foundations/navigation/`)
-  await page.waitForLoadState('networkidle')
+  await settled(page)
   return page
 }
 

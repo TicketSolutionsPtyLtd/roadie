@@ -57,3 +57,33 @@ describe('Switch', () => {
     expect(track().borderTopColor).toBe(resolve('var(--color-danger-9)'))
   })
 })
+
+describe('a disabled Switch with a label', () => {
+  const row = (disabled: boolean) => (
+    <Switch
+      label='Presale alerts'
+      description='Before tickets go on sale'
+      disabled={disabled}
+    />
+  )
+  const label = () => screen.getByText('Presale alerts')
+  const text = () => label().parentElement!
+
+  it('dims its label and description and stops the pointer', () => {
+    render(row(true))
+    expect(getComputedStyle(text()).opacity).toBe('0.5')
+    expect(getComputedStyle(label()).cursor).toBe('not-allowed')
+  })
+
+  it('leaves them alone when enabled', () => {
+    render(row(false))
+    expect(getComputedStyle(text()).opacity).toBe('1')
+    expect(getComputedStyle(label()).cursor).toBe('pointer')
+  })
+
+  it('follows disabled as it changes', () => {
+    const { rerender } = render(row(false))
+    rerender(row(true))
+    expect(getComputedStyle(text()).opacity).toBe('0.5')
+  })
+})

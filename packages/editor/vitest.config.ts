@@ -57,6 +57,7 @@ export default defineConfig({
             '@oztix/roadie-components/select',
             '@oztix/roadie-components/skeleton',
             '@oztix/roadie-components/toggle',
+            '@oztix/roadie-components/toggle-group',
             '@oztix/roadie-components/toolbar',
             '@oztix/roadie-components/tooltip',
             '@phosphor-icons/react',

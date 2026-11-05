@@ -38,8 +38,8 @@ that showed it were the ones with a trailing slash.
 Every route lookup in the docs keyed off `usePathname()` verbatim. `next dev`
 308-redirects `/components/` to `/components` before anything renders, so the
 slashed form never reaches the app. A static export has no server to do that:
-it ships files, and the host decides. `npx serve out` — the server Next's own
-export message recommends — answers `/components/` with the `/components` page,
+it ships files, and the host decides. `npx serve out` (the server Next's own
+export message recommends) answers `/components/` with the `/components` page,
 slash intact.
 
 Keyed raw, that one URL breaks two things at once:
@@ -59,7 +59,7 @@ loudly on a near-miss, it silently answers the other branch.
 ## Fix
 
 Normalise once, where the pathname becomes a key, and let every lookup share it
-— `docs/src/lib/route.ts`:
+(`docs/src/lib/route.ts`):
 
 ```ts
 export const toRoute = (pathname: string) => pathname.replace(/\/+$/, '') || '/'
@@ -72,7 +72,7 @@ would have fixed the visible symptom and left the Back button wrong.
 
 Roadie itself does **not** normalise. Navigator's `value` is an opaque consumer
 token, not necessarily a URL, so a trailing-slash opinion doesn't belong in the
-component — the app owns the conversion from URL to key.
+component: the app owns the conversion from URL to key.
 
 ## GitHub Pages
 
@@ -102,7 +102,7 @@ asserting nothing.
 - Convert a pathname to a route key at one seam, and compare keys everywhere
   else. `usePathname()` inside a comparison is the smell.
 - When a matching rule has an exact case and a prefix case, a near-miss input
-  doesn't fail — it takes the other branch. Test the near-miss.
+  doesn't fail: it takes the other branch. Test the near-miss.
 - `next dev` normalises URLs that a static export doesn't. A routing assumption
   is unverified until it has been checked against the built `out/` served over
   HTTP, under the host's rules rather than a forgiving dev server's.

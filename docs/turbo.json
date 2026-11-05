@@ -8,24 +8,34 @@
         "$TURBO_EXTENDS$",
         "src/content/**/*.md",
         "$TURBO_ROOT$/.changeset/*.md",
-        "$TURBO_ROOT$/packages/*/CHANGELOG.md"
-      ]
+        "$TURBO_ROOT$/packages/*/CHANGELOG.md",
+        "public/**",
+        "$TURBO_ROOT$/packages/blocks/src/thumbnails/**",
+        "!src/**/{testUtils,*TestUtils}.{ts,tsx}",
+        "!src/**/fixtures.{ts,tsx}"
+      ],
+      "outputs": ["out/**"]
     },
     "test": {
       "inputs": [
         "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/eslint/**",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**"
       ]
     },
     "lint": {
       "inputs": [
         "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint/**",
+        "$TURBO_ROOT$/packages/core/src/css/*.css",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**"
       ]
     },
     "lint:fix": {
       "inputs": [
         "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint/**",
+        "$TURBO_ROOT$/packages/core/src/css/*.css",
         "$TURBO_ROOT$/packages/lint-plugin/{oxlint,src}/**"
       ]
     }

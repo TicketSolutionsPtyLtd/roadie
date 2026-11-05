@@ -10,7 +10,11 @@ import {
   sortedRowOrder
 } from './sort'
 
-export type DataTableSortableProps = Omit<DataTableViewProps, 'sortControl'> & {
+export type DataTableSortableProps = Omit<
+  DataTableViewProps,
+  'sortControl' | 'sort'
+> & {
+  sort?: DataTableSort | null
   defaultSort?: DataTableSort
   onSortChange?: (sort: DataTableSort) => void
 }
@@ -24,7 +28,11 @@ export function DataTableSortable({
   ...props
 }: DataTableSortableProps) {
   const [uncontrolledSort, setUncontrolledSort] = useState(defaultSort)
-  const sort = controlledSort ?? uncontrolledSort
+  // Undefined leaves it uncontrolled; null is controlled with no sort.
+  const sort =
+    controlledSort === undefined
+      ? uncontrolledSort
+      : (controlledSort ?? undefined)
   const order = sortedRowOrder(
     rows.map(({ row }) => row),
     columns,

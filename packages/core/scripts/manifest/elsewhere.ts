@@ -11,11 +11,15 @@ export const DOCUMENTED_ELSEWHERE: DocumentedElsewhere = {
     '/components/spot-illustration/#available-illustrations',
   '@oztix/roadie-charts/dashboard-view': {
     DashboardView: '/charts/dashboards/'
+  },
+  '@oztix/roadie-editor/email-html-field': {
+    EmailHtmlField: '/components/editor/email/#html-emails'
   }
 }
 
 /** Subpaths with no component, linked to the page that documents them. */
 export const DOCUMENTED_SUBPATHS: DocumentedSubpaths = {
+  '@oztix/roadie-charts/chart-document': '/charts/#chart-documents',
   '@oztix/roadie-core/number': '/content/language-and-grammar/#prices',
   '@oztix/roadie-core/records': '/foundations/records/',
   '@oztix/roadie-core/records/meilisearch': '/foundations/records/',

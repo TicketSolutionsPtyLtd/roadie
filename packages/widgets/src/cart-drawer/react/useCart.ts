@@ -10,7 +10,7 @@ import type { CartClient, CartDetails, CartSummary } from '../../cart'
 
 /**
  * Fetch the cart summary via the injected core client. `refreshKey` is folded
- * into the query key so bumping it forces a refetch (design finding #6 — the
+ * into the query key so bumping it forces a refetch (design finding #6: the
  * Vue/outlet app has no refetch-on-focus safety net).
  */
 export function useCartSummary(
