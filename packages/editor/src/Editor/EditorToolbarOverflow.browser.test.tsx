@@ -294,6 +294,32 @@ describe('Editor toolbar on a touch screen', () => {
     await waitFor(() => expect(docked(first!)).toBe(false))
   })
 
+  it('meets the bottom of the screen inside a container query’s box', async () => {
+    onTouchScreen()
+    await page.viewport(390, 700)
+    render(
+      <div style={{ containerType: 'inline-size', paddingTop: 200 }}>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={valueIn('email')}
+          toolbar='docked'
+        />
+        <div style={{ blockSize: 1600 }} />
+      </div>
+    )
+    const toolbar = await shownToolbar()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(within(textbox).getByText(TEXT))
+
+    const viewport = window.visualViewport!
+    await waitFor(() =>
+      expect(toolbar.getBoundingClientRect().bottom).toBeCloseTo(
+        viewport.offsetTop + viewport.height,
+        0
+      )
+    )
+  })
+
   it('stays at the top with a mouse', async () => {
     await page.viewport(390, 700)
     render(
