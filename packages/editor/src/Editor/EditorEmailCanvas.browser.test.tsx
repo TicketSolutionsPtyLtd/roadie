@@ -192,6 +192,8 @@ describe('Editor email canvas', () => {
         .poll(() => section.hasAttribute('data-menu-block'))
         .toBe(true)
       expect(getComputedStyle(section).outlineStyle).toBe('solid')
+      // Flush with the tint, or a stripe shows between them.
+      expect(getComputedStyle(section).outlineOffset).toBe('0px')
     })
 
     it('keeps the chosen halo on a spacer while its menu is open', async () => {
@@ -224,6 +226,46 @@ describe('Editor email canvas', () => {
 
       await expect.poll(() => spacer.hasAttribute('data-menu-block')).toBe(true)
       expect(getComputedStyle(spacer).outlineStyle).toBe('solid')
+      expect(getComputedStyle(spacer).outlineOffset).toBe('0px')
+    })
+
+    it('puts 8px either side of a spacer, which the email doesn’t pad', async () => {
+      render(
+        <Editor
+          aria-label={LABEL}
+          defaultValue={{
+            version: 1,
+            preset: 'email',
+            doc: {
+              type: 'doc',
+              content: [
+                p('Two weeks to go'),
+                { type: 'spacer', attrs: { height: 32 } },
+                p('Gates 11am'),
+                {
+                  type: 'section',
+                  content: [
+                    p('Lineup'),
+                    { type: 'spacer', attrs: { height: 32 } },
+                    p('All ages')
+                  ]
+                }
+              ]
+            }
+          }}
+        />
+      )
+      await screen.findByText('All ages')
+      const box = (text: string) =>
+        screen.getByText(text).getBoundingClientRect()
+      const [top, inSection] = [
+        ...document.querySelectorAll('[data-type="spacer"]')
+      ].map((spacer) => spacer.getBoundingClientRect())
+
+      expect(top!.top - box('Two weeks to go').bottom).toBeCloseTo(8, 0)
+      expect(box('Gates 11am').top - top!.bottom).toBeCloseTo(8, 0)
+      expect(inSection!.top - box('Lineup').bottom).toBeCloseTo(8, 0)
+      expect(box('All ages').top - inSection!.bottom).toBeCloseTo(8, 0)
     })
   })
 
@@ -231,6 +273,9 @@ describe('Editor email canvas', () => {
     render(
       <Editor
         aria-label={LABEL}
+        // WebKit lays out this unloadable image at no size in a floating
+        // email, leaving nothing to click.
+        toolbar='docked'
         defaultValue={{
           version: 1,
           preset: 'email',
@@ -263,6 +308,52 @@ describe('Editor email canvas', () => {
       .poll(() => document.querySelector('.ProseMirror-gapcursor'))
       .not.toBeNull()
     expect(block.getBoundingClientRect().top).toBe(top)
+  })
+
+  it('keeps 8px after a spacer while the gap cursor shows there', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        // As above, so WebKit gives the image a size to click.
+        toolbar='docked'
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              p('Two weeks to go'),
+              { type: 'spacer', attrs: { height: 32 } },
+              {
+                type: 'image',
+                attrs: {
+                  src: 'https://example.test/header.webp',
+                  alt: 'A crowd'
+                }
+              },
+              p('Doors 7pm')
+            ]
+          }
+        }}
+      />
+    )
+    await screen.findByText('Doors 7pm')
+    const image = await screen.findByAltText('A crowd', {}, { timeout: 5000 })
+    const block = image.closest<HTMLElement>('[data-slot="editor-image"]')!
+    const spacer = document.querySelector<HTMLElement>('[data-type="spacer"]')!
+
+    await userEvent.click(image)
+    await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
+    await userEvent.keyboard('{ArrowLeft}')
+
+    await expect
+      .poll(() =>
+        spacer.nextElementSibling?.classList.contains('ProseMirror-gapcursor')
+      )
+      .toBe(true)
+    expect(
+      block.getBoundingClientRect().top - spacer.getBoundingClientRect().bottom
+    ).toBeCloseTo(8, 0)
   })
 
   it('keeps a long word inside a stacked column', async () => {
