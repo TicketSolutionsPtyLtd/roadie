@@ -138,6 +138,20 @@ describe('Editor merge tags', () => {
     expect(screen.queryByRole('listbox')).toBe(null)
   })
 
+  it('lists variables that arrive after the editor is made', async () => {
+    const props = { 'aria-label': LABEL, preset: 'email' } as const
+    const { rerender } = render(<Editor {...props} />)
+    await focusedTextbox()
+
+    rerender(<Editor {...props} variables={VARIABLES} />)
+    await userEvent.keyboard('/merge')
+    const insert = await screen.findByRole('listbox', { name: 'Insert' })
+    expect(optionNames(insert)).toEqual(['Merge tag'])
+    await userEvent.keyboard('{Enter}')
+
+    expect(optionNames(await mergeTagMenu())).toHaveLength(3)
+  })
+
   it('inserts into a button’s label', async () => {
     const onValueChange = renderEmail({
       defaultValue: email({
@@ -180,6 +194,24 @@ describe('Editor merge tags', () => {
       )
     )
   })
+
+  it.each(['basic', 'rich'] as const)(
+    'offers no merge tags in %s, which can’t hold them',
+    async (preset) => {
+      render(
+        <Editor aria-label={LABEL} preset={preset} variables={VARIABLES} />
+      )
+      const textbox = await focusedTextbox()
+
+      await userEvent.keyboard(OPEN)
+      await waitFor(() => expect(textbox).toHaveTextContent('{{'))
+      expect(screen.queryByRole('listbox')).toBe(null)
+
+      await userEvent.keyboard('{Backspace}{Backspace}/merge')
+      await waitFor(() => expect(textbox).toHaveTextContent('/merge'))
+      expect(screen.queryByRole('listbox')).toBe(null)
+    }
+  )
 
   it('offers no Merge tag in the / menu without variables', async () => {
     renderEmail({ variables: undefined })
@@ -310,6 +342,58 @@ describe('Editor merge tag editing', () => {
     await waitFor(() =>
       expect(onValueChange).toHaveBeenLastCalledWith(
         email({ type: 'paragraph', content: [tag('first_name')] })
+      )
+    )
+  })
+
+  it('saves the fallback without the spaces around it', async () => {
+    const onValueChange = renderEmail({ defaultValue: greeting })
+    const dialog = await editTag()
+
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Fallback' }),
+      ' friend '
+    )
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Hi ' }, tag('first_name', 'friend')]
+        })
+      )
+    )
+  })
+
+  it('keeps a key the editor doesn’t list, as one of its choices', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email({ type: 'paragraph', content: [tag('ticket_count')] })
+    })
+    await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(await screen.findByText('ticket_count'))
+    const actions = await screen.findByRole('toolbar', {
+      name: 'Merge tag actions'
+    })
+    await userEvent.click(
+      within(actions).getByRole('button', { name: 'Edit merge tag' })
+    )
+    const dialog = await screen.findByRole('dialog', { name: 'Merge tag' })
+
+    await userEvent.click(
+      within(dialog).getByRole('combobox', { name: 'Shows' })
+    )
+    await userEvent.click(
+      await screen.findByRole('option', { name: 'ticket_count' })
+    )
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Fallback' }),
+      'some{Enter}'
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'paragraph', content: [tag('ticket_count', 'some')] })
       )
     )
   })
