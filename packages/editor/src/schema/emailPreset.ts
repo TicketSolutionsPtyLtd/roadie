@@ -284,8 +284,13 @@ const Divider = Node.create({
 const EmailImage = Image.extend({
   group: EMAIL_BLOCK,
   addAttributes() {
+    // An email's image takes a width in pixels in place of a page's look.
+    const inherited = { ...this.parent?.() }
+    delete inherited.fullWidth
+    delete inherited.align
+    delete inherited.caption
     return {
-      ...this.parent?.(),
+      ...inherited,
       width: {
         default: null,
         parseHTML: (element) =>

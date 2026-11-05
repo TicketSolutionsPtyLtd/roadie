@@ -89,17 +89,24 @@ to undo, a moved block keeps its `blockId`, and a copy gets one of its own.
   quote, keeping its text and its `blockId`.
 - **Insert below** opens a line under the block with the insert menu.
 - **Copy link to block** copies the page's address with the block's
-  `blockId` as its hash. Opening it scrolls the editor to the block.
+  `blockId` as its hash, and says Link copied by the grip. Opening the
+  address scrolls the editor to the block.
 
 Press `Escape` to select the caret's block, then `Shift+ArrowUp` or
 `Shift+ArrowDown` to take in the blocks above or below. With several blocks
 selected, by these keys or by selecting text across them, the move,
 duplicate, and delete keys and the menu act on them all, and the menu is
-headed with how many, such as "3 blocks". An arrow key goes back to a caret.
+headed with how many, such as "3 blocks". Selected blocks take the ring a
+selected image or custom block has, and the floating toolbar stays away. An
+arrow key goes back to a caret, and typing or `Enter` carries on at the end
+of the selection.
 
 On a phone or a touch screen the grip shows beside the block you're typing
-in, with a 44px target, and its menu opens as a sheet from the bottom, with
-the text inset as far from each edge.
+in, with a 44px target, and the text is inset as far from each edge, in a
+`subtler` editor too, so the grip has room. Its menu opens as a sheet over
+the lower half of the screen, with the block scrolled into the half above.
+The sheet leads with Move up and Move down buttons and Done, then Turn into,
+a step of its own, the other actions, and Delete last.
 
 ```tsx-live-prose
 <Editor

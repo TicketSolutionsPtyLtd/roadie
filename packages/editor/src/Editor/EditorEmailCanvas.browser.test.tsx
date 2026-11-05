@@ -157,6 +157,8 @@ describe('Editor email canvas', () => {
       const { section } = await renderCard()
       // The last test can leave the pointer over the section.
       await userEvent.hover(screen.getByText('Outside'))
+      // Past the fade from a hover the last test left, never transparent midway.
+      await Promise.all(section.getAnimations().map((fade) => fade.finished))
       const resting = getComputedStyle(section)
       expect(resting.outlineColor).toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
       expect(resting.borderTopWidth).toBe('0px')

@@ -7,13 +7,19 @@ import { Badge } from '@oztix/roadie-components/badge'
 import { cn } from '@oztix/roadie-core/utils'
 
 import { imageLook, imageWidth } from '../schema/emailAttrs'
+import { pageImageLook } from '../schema/imageAttrs'
 
-const ALIGN = { left: 'me-auto', right: 'ms-auto' } as const
+const ALIGN = {
+  left: 'me-auto',
+  center: 'mx-auto',
+  right: 'ms-auto'
+} as const
 
 /**
  * An image in the editor, flagged until it has alt text. An email's image
  * fills its column, or sits at its width, centred unless aligned, as the
- * email draws it.
+ * email draws it. A page's image sits at its own width or across the text,
+ * aligned, with its caption under it.
  */
 export function EditorImageView({ node, selected }: ReactNodeViewProps) {
   const src = String(node.attrs.src)
@@ -21,6 +27,7 @@ export function EditorImageView({ node, selected }: ReactNodeViewProps) {
   const inEmail = 'width' in node.attrs
   const width = imageWidth(node.attrs.width)
   const { align } = imageLook(node.attrs)
+  const page = pageImageLook(node.attrs)
 
   return (
     <NodeViewWrapper
@@ -29,7 +36,8 @@ export function EditorImageView({ node, selected }: ReactNodeViewProps) {
       // Hugs the image, rounded as prose rounds it, so the ring follows it.
       className={cn(
         'relative grid max-w-full rounded-md',
-        !inEmail && 'w-fit',
+        !inEmail && (page.fullWidth ? 'w-full' : 'w-fit'),
+        !inEmail && page.align && ALIGN[page.align],
         inEmail && width === null && 'w-full',
         inEmail && width !== null && (align ? ALIGN[align] : 'mx-auto')
       )}
@@ -39,11 +47,15 @@ export function EditorImageView({ node, selected }: ReactNodeViewProps) {
         src={src}
         alt={alt}
         draggable={false}
-        className={cn('m-0', inEmail && 'w-full')}
+        className={cn('m-0', (inEmail || page.fullWidth) && 'w-full')}
       />
-      {alt ? null : (
+      {page.caption ? (
+        <figcaption contentEditable={false}>{page.caption}</figcaption>
+      ) : null}
+      {/* Only while it's being edited, as the page around it isn't. */}
+      {alt || !selected ? null : (
         <div contentEditable={false} className='absolute start-2 top-2'>
-          <Badge intent='warning' emphasis='strong'>
+          <Badge intent='warning' emphasis='subtle' size='sm'>
             <WarningIcon weight='bold' className='size-4' aria-hidden />
             No alt text
           </Badge>

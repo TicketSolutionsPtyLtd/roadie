@@ -119,7 +119,7 @@ Underline to the lists. Markdown works as you type: `## `, `### `, and
 `#### ` start a heading, `> ` a quote, and `---` a divider. `Backspace` at
 the start of a heading turns it back into a paragraph. In every preset,
 straight quotes turn curly as you type, `...` becomes an ellipsis, and `--`
-an em dash; `Backspace` straight after puts back what you typed.
+an em dash, except in a `/` query, where it names a block; `Backspace` straight after puts back what you typed.
 
 ```tsx-live-prose
 <Editor
@@ -216,11 +216,19 @@ toolbar by the image has Image settings, Replace image (with `onUploadImage`,
 which uploads the new file the same way and keeps the alt text), and Remove
 image. Image settings edits the image's link and its alt text, each applied
 as it's made, as Button settings does: Escape puts the image back, and a
-click away keeps the changes as one step to undo. In an email it also sets
-where the image links, its width, Full or Fit, and its alignment. An image
-with no alt text shows a No alt text badge until it has some; Enter on a
-selected image opens Image settings too, with focus in Alt text when it has
-none.
+click away keeps the changes as one step to undo. It also sets the image's
+width, Full or Fit, and its alignment when it fits, and, in the rich and
+blocks presets, its caption, or, in an email, where it links. On a phone it
+opens from the bottom. A selected image with no alt text shows a quiet No
+alt text badge until it has some; Enter on a selected image opens Image
+settings too, with focus in Alt text when it has none.
+
+An image in the rich and blocks presets saves its look only where it
+differs from the default, its own width from the start of the text:
+`fullWidth: true` across the text, `align: 'center' | 'right'` for a
+narrower one, and an optional `caption`. `renderEditorValue` and
+`renderEditorHtml` draw an image with any of these as a `figure`, its
+caption in a `figcaption`. `migrate` drops any other value.
 
 ### Embeds
 

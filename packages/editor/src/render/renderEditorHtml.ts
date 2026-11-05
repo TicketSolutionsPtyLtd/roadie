@@ -19,6 +19,7 @@ import {
   outermostMarksLast,
   presetElementsFor,
   withButtonsAsLinks,
+  withImageFigures,
   withTableSections
 } from './elements'
 import type { RenderEditorOptions } from './renderEditorValue'
@@ -100,7 +101,9 @@ function renderDoc(
     unhandledNode: () => '',
     unhandledMark: ({ children }) => serializeChildrenToHTMLString(children)
   })({
-    content: withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
+    content: withImageFigures(
+      withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
+    )
   })
 }
 

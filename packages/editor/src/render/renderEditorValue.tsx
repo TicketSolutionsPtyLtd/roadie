@@ -25,6 +25,7 @@ import {
   outermostMarksLast,
   presetElementsFor,
   withButtonsAsLinks,
+  withImageFigures,
   withTableSections
 } from './elements'
 
@@ -115,7 +116,9 @@ function renderDoc(
     unhandledNode: () => null,
     unhandledMark: ({ children }) => children
   })({
-    content: withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
+    content: withImageFigures(
+      withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
+    )
   })
 }
 

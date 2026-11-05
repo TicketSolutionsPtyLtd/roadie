@@ -67,7 +67,10 @@ const richNodes = {
   heading: { content: 'inline', attrs: ['level'] },
   blockquote: { content: 'blocks' },
   horizontalRule: { content: 'none' },
-  image: { content: 'none', attrs: ['src', 'alt'] },
+  image: {
+    content: 'none',
+    attrs: ['src', 'alt', 'fullWidth', 'align', 'caption']
+  },
   embed: { content: 'none', attrs: ['provider', 'id', 'params'] },
   table: { content: 'tableRows' },
   tableRow: { content: 'tableCells' },

@@ -2,7 +2,7 @@ import { getExtensionField, getSchema } from '@tiptap/core'
 import { type ContentMatch, Node, type NodeType } from '@tiptap/pm/model'
 import { describe, expect, it } from 'vitest'
 
-import { type JSONContent, type Preset, presets } from './index'
+import { type JSONContent, type Preset, migrate, presets } from './index'
 import { presetShapes } from './presetShapes'
 
 const schema = getSchema(presets.basic)
@@ -167,11 +167,66 @@ describe('presets.rich', () => {
     expect(embed.isBlock && embed.isAtom).toBe(true)
   })
 
-  it('saves only the src and alt text of an image, as a block', () => {
+  it('saves only an image’s src, alt text and look, as a block', () => {
     const image = rich.nodes.image!
 
-    expect(Object.keys(image.spec.attrs ?? {})).toEqual(['src', 'alt'])
+    expect(Object.keys(image.spec.attrs ?? {})).toEqual([
+      'src',
+      'alt',
+      'fullWidth',
+      'align',
+      'caption'
+    ])
     expect(image.isBlock && image.isAtom).toBe(true)
+  })
+
+  it.each([
+    [
+      { fullWidth: true, align: 'right', caption: '  Gates 11am  ' },
+      { fullWidth: true, caption: 'Gates 11am' }
+    ],
+    [{ align: 'center', caption: ' ' }, { align: 'center' }],
+    [{ align: 'left', fullWidth: 'yes', caption: 7 }, {}]
+  ])(
+    'saves only the parts of a page image’s look that aren’t the default',
+    (look, saved) => {
+      const { doc } = migrate({
+        version: 1,
+        preset: 'blocks',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'image',
+              attrs: { src: '/images/crowd.webp', alt: '', ...look }
+            }
+          ]
+        }
+      })
+      expect(doc.content![0]!.attrs).toEqual({
+        src: '/images/crowd.webp',
+        alt: '',
+        ...saved
+      })
+    }
+  )
+
+  it('keeps an image’s look through its copied HTML', () => {
+    const look = { fullWidth: true, caption: 'Gates 11am' }
+    const node = rich.nodeFromJSON({
+      type: 'image',
+      attrs: { src: '/images/crowd.webp', alt: '', ...look }
+    })
+    const [, copied] = rich.nodes.image!.spec.toDOM!(node) as [
+      string,
+      Record<string, string>
+    ]
+    const [rule] = rich.nodes.image!.spec.parseDOM!
+    expect(
+      rule!.getAttrs!({
+        getAttribute: (name: string) => copied[name] ?? null
+      } as unknown as HTMLElement)
+    ).toMatchObject(look)
   })
 
   it.each([['tableCell'], ['tableHeader']])(
