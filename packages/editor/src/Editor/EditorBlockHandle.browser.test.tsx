@@ -1,11 +1,15 @@
+import { StrictMode } from 'react'
+
 import { render, screen, waitFor } from '@testing-library/react'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { server, userEvent } from 'vitest/browser'
 
+import { Dialog } from '@oztix/roadie-components/dialog'
+
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
-import { MOD } from './testUtils'
+import { LINE_END, MOD } from './testUtils'
 
 const LABEL = 'Page'
 
@@ -344,4 +348,282 @@ describe('Editor block handle', () => {
       screen.findByRole('button', { name: 'Block actions' }, { timeout: 300 })
     ).rejects.toThrow()
   })
+
+  it('stays while the pointer crosses the gap to a grip outside a subtler editor', async () => {
+    render(
+      <div className='ps-12'>
+        <Editor aria-label={LABEL} defaultValue={lineup} emphasis='subtler' />
+      </div>
+    )
+    const row = await paragraph('Support')
+    await userEvent.hover(row)
+    await expectHandleBeside('Support')
+    const y = row.offsetHeight / 2
+
+    await userEvent.hover(row, { position: { x: -2, y }, force: true })
+
+    await expectHandleBeside('Support')
+  })
+
+  it('goes back to the caret’s block once the pointer leaves the editor', async () => {
+    render(
+      <div className='max-w-80'>
+        <Editor aria-label={LABEL} defaultValue={lineup} />
+      </div>
+    )
+    await userEvent.click(await paragraph('Doors'))
+    const support = await paragraph('Support')
+    await userEvent.hover(support)
+    await expectHandleBeside('Support')
+
+    await userEvent.hover(document.body, {
+      position: { x: 600, y: middle(support) },
+      force: true
+    })
+
+    await expectHandleBeside('Doors')
+  })
+
+  it('hides once the editor loses focus and the pointer is elsewhere', async () => {
+    render(
+      <>
+        <Editor aria-label={LABEL} defaultValue={lineup} />
+        <button type='button'>After</button>
+      </>
+    )
+    await userEvent.click(await paragraph('Doors'))
+    await expectHandleBeside('Doors')
+
+    await userEvent.click(screen.getByRole('button', { name: 'After' }))
+
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Block actions' })).toBe(null)
+    )
+  })
+
+  it('opens the block menu from Mod+/ while the / menu is open, closing it', async () => {
+    renderLineup()
+    await userEvent.click(await paragraph('Support'))
+    await userEvent.keyboard(`${LINE_END}{Enter}/`)
+    await screen.findByRole('listbox', { name: 'Insert' })
+    await userEvent.keyboard(`{${MOD}>}/{/${MOD}}`)
+
+    await waitFor(() => expect(screen.getByRole('menu')).toBeVisible())
+    expect(screen.queryByRole('listbox', { name: 'Insert' })).toBe(null)
+  })
+
+  it('closes the block menu on Escape without closing the dialog around it', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <Dialog.Content>
+          <Dialog.Title>Compose</Dialog.Title>
+          <Editor aria-label={LABEL} defaultValue={lineup} />
+        </Dialog.Content>
+      </Dialog>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(await paragraph('Doors'))
+
+    await userEvent.keyboard(`{${MOD}>}/{/${MOD}}`)
+    await screen.findByRole('menu')
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    await waitFor(() => expect(textbox).toHaveFocus())
+    expect(screen.getByRole('dialog')).toBeVisible()
+    expect(onOpenChange).not.toHaveBeenCalled()
+  })
+
+  it('has no handle in the email preset', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='email'
+        defaultValue={{ ...lineup, preset: 'email' }}
+      />
+    )
+
+    await userEvent.hover(await paragraph('Support'))
+
+    await expect(
+      screen.findByRole('button', { name: 'Block actions' }, { timeout: 300 })
+    ).rejects.toThrow()
+  })
+
+  it('works under StrictMode', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <StrictMode>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={lineup}
+          onValueChange={onValueChange}
+        />
+      </StrictMode>
+    )
+
+    await openMenuOn('Doors')
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Move down' }))
+
+    await waitFor(() =>
+      expect(order(onValueChange).map(([id]) => id)).toEqual([
+        'support',
+        'doors',
+        'headliner'
+      ])
+    )
+    expect(
+      document.querySelectorAll('[data-slot="editor-block-handle-host"]')
+    ).toHaveLength(1)
+  })
+
+  it('unmounts cleanly with the block menu open', async () => {
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const thrown: unknown[] = []
+    const onError = (event: ErrorEvent) => thrown.push(event.error)
+    window.addEventListener('error', onError)
+    const { unmount } = render(
+      <Editor aria-label={LABEL} defaultValue={lineup} />
+    )
+    await openMenuOn('Doors')
+
+    unmount()
+
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+    window.removeEventListener('error', onError)
+    errors.mockRestore()
+    expect(thrown).toEqual([])
+    expect(errors).not.toHaveBeenCalled()
+  })
+
+  it('closes the block menu when the editor turns read-only, and keeps it closed after', async () => {
+    const { rerender } = render(
+      <Editor aria-label={LABEL} defaultValue={lineup} />
+    )
+    await openMenuOn('Doors')
+
+    rerender(<Editor aria-label={LABEL} defaultValue={lineup} readOnly />)
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+    rerender(<Editor aria-label={LABEL} defaultValue={lineup} />)
+
+    await expect(
+      screen.findByRole('menu', {}, { timeout: 300 })
+    ).rejects.toThrow()
+  })
+
+  const setList: EditorValue = {
+    version: 1,
+    preset: 'blocks',
+    doc: {
+      type: 'doc',
+      content: [
+        {
+          type: 'bulletList',
+          attrs: { blockId: 'acts' },
+          content: ['Support', 'Headliner'].map((act) => ({
+            type: 'listItem',
+            attrs: { blockId: act.toLowerCase() },
+            content: [
+              {
+                type: 'paragraph',
+                attrs: { blockId: `${act.toLowerCase()}-text` },
+                content: [{ type: 'text', text: act }]
+              }
+            ]
+          }))
+        },
+        block('doors', 'Doors 7pm')
+      ]
+    }
+  }
+
+  const ids = (value: EditorValue) => {
+    const found: unknown[] = []
+    const walk = (node: {
+      attrs?: Record<string, unknown>
+      content?: unknown[]
+    }) => {
+      if (node.attrs && 'blockId' in node.attrs) found.push(node.attrs.blockId)
+      node.content?.forEach((child) => walk(child as typeof node))
+    }
+    value.doc.content!.forEach((node) => walk(node))
+    return found
+  }
+
+  it('gives a duplicated list and everything in it new ids', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={setList}
+        onValueChange={onValueChange}
+      />
+    )
+    const list = (
+      await screen.findByRole('textbox', { name: LABEL })
+    ).querySelector('ul') as HTMLElement
+    await userEvent.hover(list)
+    await userEvent.click(await handle())
+    await screen.findByRole('menu')
+
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Duplicate' }))
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content
+      ).toHaveLength(3)
+    )
+    const saved = ids(onValueChange.mock.lastCall![0] as EditorValue)
+    expect(saved.slice(0, 5)).toEqual([
+      'acts',
+      'support',
+      'support-text',
+      'headliner',
+      'headliner-text'
+    ])
+    expect(saved).toHaveLength(11)
+    expect(saved.every((id) => typeof id === 'string')).toBe(true)
+    expect(new Set(saved).size).toBe(saved.length)
+  })
+
+  it.skipIf(server.browser === 'webkit')(
+    'keeps the ids inside a list dragged by its handle',
+    async () => {
+      const onValueChange = vi.fn()
+      render(
+        <Editor
+          aria-label={LABEL}
+          defaultValue={setList}
+          onValueChange={onValueChange}
+        />
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      const list = textbox.querySelector('ul') as HTMLElement
+      await userEvent.hover(list)
+      const target = textbox.lastElementChild as HTMLElement
+
+      await userEvent.dragAndDrop(await handle(), target, {
+        targetPosition: {
+          x: target.offsetWidth - 2,
+          y: target.offsetHeight / 2
+        }
+      })
+
+      await waitFor(() =>
+        // StarterKit's trailing node adds a paragraph after a list left last.
+        expect(
+          ids(onValueChange.mock.lastCall![0] as EditorValue).slice(0, 6)
+        ).toEqual([
+          'doors',
+          'acts',
+          'support',
+          'support-text',
+          'headliner',
+          'headliner-text'
+        ])
+      )
+    }
+  )
 })

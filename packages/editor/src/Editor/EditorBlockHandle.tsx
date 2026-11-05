@@ -32,9 +32,9 @@ const HANDLE_GAP = 4
 
 /**
  * A box of the handle's own in the editor's content wrapper, once Tiptap has
- * mounted its view there. A drag must start inside the wrapper, or UniqueID
- * reads the drop as a paste and gives the moved block a new id. Tiptap moves
- * the wrapper's children when it unmounts, so React never owns them directly.
+ * mounted its view there, so the grip is placed against the wrapper. Tiptap
+ * moves the wrapper's children when it unmounts, so React never owns them
+ * directly.
  */
 function useHandleHost(editor: TiptapEditor) {
   const [host, setHost] = useState<HTMLElement | null>(null)
@@ -67,6 +67,17 @@ function blockAtY(editor: TiptapEditor, clientY: number) {
   const hit = view.posAtCoords({ left: box.left + start + 1, top: clientY })
   if (!hit) return null
   return topBlockAt(view.state, hit.inside >= 0 ? hit.inside : hit.pos)
+}
+
+// Over the wrapper, or the gutter before it where the grip sits.
+function inReach(wrapper: HTMLElement, { clientX, clientY }: MouseEvent) {
+  const { left, right, top, bottom } = wrapper.getBoundingClientRect()
+  return (
+    clientX >= left - HANDLE_SIZE - HANDLE_GAP &&
+    clientX <= right &&
+    clientY >= top &&
+    clientY <= bottom
+  )
 }
 
 // Centred on the block's first line, just before its start edge.
@@ -118,18 +129,22 @@ export function EditorBlockHandle({
   })
   const shown = menuAt ?? hovered ?? caretBlock
 
+  // On the page, as a subtler editor's grip hangs outside the wrapper, and
+  // leaving the wrapper for the gap would hide it.
   useEffect(() => {
     if (!wrapper) return
+    const page = wrapper.ownerDocument
     const onMove = (event: MouseEvent) =>
-      setHovered(blockAtY(editor, event.clientY))
-    const onLeave = () => setHovered(null)
-    wrapper.addEventListener('mousemove', onMove)
-    wrapper.addEventListener('mouseleave', onLeave)
-    return () => {
-      wrapper.removeEventListener('mousemove', onMove)
-      wrapper.removeEventListener('mouseleave', onLeave)
-    }
+      setHovered(
+        inReach(wrapper, event) ? blockAtY(editor, event.clientY) : null
+      )
+    page.addEventListener('mousemove', onMove)
+    return () => page.removeEventListener('mousemove', onMove)
   }, [editor, wrapper])
+
+  useEffect(() => {
+    if (!editable) setMenuAt(null)
+  }, [editable])
 
   useEffect(() => {
     const follow = ({ transaction }: { transaction: Transaction }) => {
@@ -182,7 +197,6 @@ export function EditorBlockHandle({
     event.dataTransfer.clearData()
     event.dataTransfer.setData('text/html', html.innerHTML)
     event.dataTransfer.setData('text/plain', text)
-    // Not copyMove: UniqueID would treat the drop as a copy and give new ids.
     event.dataTransfer.effectAllowed = 'move'
     if (dom instanceof HTMLElement) event.dataTransfer.setDragImage(dom, 0, 0)
     view.dragging = { slice, move: true }
