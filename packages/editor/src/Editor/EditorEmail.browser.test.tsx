@@ -81,7 +81,16 @@ afterEach(() => {
 
 describe('Editor with the email preset', () => {
   it('leads with the block type, then the basic controls, with no Quote, Divider, Image, Embed or Table', async () => {
-    render(<Editor aria-label={LABEL} preset='email' />)
+    // An upload handler, as the Image control shows only with one.
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='email'
+        onUploadImage={async () => ({
+          src: 'https://assets.example.com/a.webp'
+        })}
+      />
+    )
     const toolbar = await screen.findByRole('toolbar', { name: 'Formatting' })
 
     expect(
