@@ -3,17 +3,20 @@ import {
   ArrowsVerticalIcon,
   ColumnsIcon,
   CursorClickIcon,
+  FilmStripIcon,
   ImageIcon,
   ListBulletsIcon,
   ListNumbersIcon,
   MinusIcon,
+  QuotesIcon,
   RectangleIcon,
+  TableIcon,
   TextHFourIcon,
   TextHThreeIcon,
   TextHTwoIcon,
   TextTIcon
 } from '@phosphor-icons/react'
-import type { JSONContent } from '@tiptap/core'
+import type { ChainedCommands, JSONContent, Range } from '@tiptap/core'
 import type { Editor } from '@tiptap/react'
 
 import type { Preset } from '../schema'
@@ -27,10 +30,14 @@ export type EditorInsertItem = {
   icon: Icon
   /** More words it's found by, besides its label. */
   keywords?: readonly string[]
-  /** Runs at the caret, once the typed `/` and query are gone. */
-  run: (editor: Editor, ui: EditorControlUi) => void
-  /** Whether it can go at the caret. */
-  enabled: (editor: Editor) => boolean
+  /** Adds itself to the chain that removes the typed `/` and query. */
+  insert: (chain: ChainedCommands, ui: EditorControlUi) => ChainedCommands
+  /**
+   * Whether it can go at the caret. `afterQuery` starts a chain, never
+   * dispatched, on the line without the typed `/` and query, for a block
+   * whose place depends on whether the line is empty.
+   */
+  enabled: (editor: Editor, afterQuery: () => ChainedCommands) => boolean
   /** Offers the item only while this holds, such as with an upload handler. */
   available?: (ui: EditorControlUi) => boolean
 }
@@ -39,7 +46,7 @@ const paragraph: EditorInsertItem = {
   label: 'Paragraph',
   icon: TextTIcon,
   keywords: ['text'],
-  run: (editor) => editor.chain().focus().setParagraph().run(),
+  insert: (chain) => chain.setParagraph(),
   // On a paragraph, setParagraph has nothing to change, so it reports false.
   enabled: (editor) =>
     editor.isActive('paragraph')
@@ -57,14 +64,14 @@ const headings = HEADINGS.map(([level, icon]): EditorInsertItem => ({
   label: `Heading ${level}`,
   icon,
   keywords: ['title'],
-  run: (editor) => editor.chain().focus().setHeading({ level }).run(),
+  insert: (chain) => chain.setHeading({ level }),
   enabled: (editor) => editor.can().setHeading({ level })
 }))
 
 const bulletList: EditorInsertItem = {
   label: 'Bulleted list',
   icon: ListBulletsIcon,
-  run: (editor) => editor.chain().focus().toggleBulletList().run(),
+  insert: (chain) => chain.toggleBulletList(),
   // In its own list, the toggle would take the line out of it.
   enabled: (editor) =>
     !editor.isActive('bulletList') && editor.can().toggleBulletList()
@@ -73,7 +80,7 @@ const bulletList: EditorInsertItem = {
 const orderedList: EditorInsertItem = {
   label: 'Numbered list',
   icon: ListNumbersIcon,
-  run: (editor) => editor.chain().focus().toggleOrderedList().run(),
+  insert: (chain) => chain.toggleOrderedList(),
   enabled: (editor) =>
     !editor.isActive('orderedList') && editor.can().toggleOrderedList()
 }
@@ -88,8 +95,9 @@ function block(
     label,
     icon,
     keywords,
-    run: (editor) => editor.chain().focus().command(insertBlock(content)).run(),
-    enabled: (editor) => editor.can().command(insertBlock(content))
+    insert: (chain) => chain.command(insertBlock(content)),
+    enabled: (_editor, afterQuery) =>
+      afterQuery().command(insertBlock(content)).run()
   }
 }
 
@@ -121,9 +129,14 @@ const image: EditorInsertItem = {
   label: 'Image',
   icon: ImageIcon,
   keywords: ['picture', 'photo'],
-  run: (_editor, { pickImage }) => pickImage?.(),
-  enabled: (editor) =>
-    editor.can().command(insertBlock({ type: 'image', attrs: { src: '' } })),
+  insert: (chain, { pickImage }) => {
+    pickImage?.()
+    return chain
+  },
+  enabled: (_editor, afterQuery) =>
+    afterQuery()
+      .command(insertBlock({ type: 'image', attrs: { src: '' } }))
+      .run(),
   available: ({ pickImage }) => Boolean(pickImage)
 }
 
@@ -131,8 +144,14 @@ const button: EditorInsertItem = {
   label: 'Button',
   icon: CursorClickIcon,
   keywords: ['link', 'call to action'],
-  run: (_editor, { editButton }) => editButton(),
-  enabled: (editor) => editor.can().command(insertBlock(buttonBlock('')))
+  insert: (chain, { editButton }) => {
+    editButton()
+    return chain
+  },
+  enabled: (_editor, afterQuery) =>
+    afterQuery()
+      .command(insertBlock(buttonBlock('')))
+      .run()
 }
 
 const spacer = block('Spacer', ArrowsVerticalIcon, { type: 'spacer' }, [
@@ -145,10 +164,57 @@ const divider = block('Divider', MinusIcon, { type: 'horizontalRule' }, [
   'rule'
 ])
 
+const quote: EditorInsertItem = {
+  label: 'Quote',
+  icon: QuotesIcon,
+  keywords: ['blockquote'],
+  insert: (chain) => chain.wrapIn('blockquote'),
+  enabled: (editor) =>
+    !editor.isActive('blockquote') && editor.can().wrapIn('blockquote')
+}
+
+const embed: EditorInsertItem = {
+  label: 'Embed',
+  icon: FilmStripIcon,
+  keywords: ['video', 'audio'],
+  insert: (chain, { editEmbed }) => {
+    editEmbed()
+    return chain
+  },
+  // setEmbed would split a table to fit one in a cell, so check it as a block.
+  enabled: (_editor, afterQuery) =>
+    afterQuery()
+      .command(insertBlock({ type: 'embed', attrs: { provider: '', id: '' } }))
+      .run()
+}
+
+const cells = (type: string) =>
+  Array.from({ length: 3 }, () => ({ type, content: [emptyParagraph] }))
+
+const table = block('Table', TableIcon, {
+  type: 'table',
+  content: [
+    { type: 'tableRow', content: cells('tableHeader') },
+    { type: 'tableRow', content: cells('tableCell') },
+    { type: 'tableRow', content: cells('tableCell') }
+  ]
+})
+
 /** The insert menu's items, for each preset that has one. */
 export const presetInsertItems: Partial<
   Record<Preset, readonly EditorInsertItem[]>
 > = {
+  blocks: [
+    paragraph,
+    ...headings,
+    bulletList,
+    orderedList,
+    quote,
+    divider,
+    image,
+    embed,
+    table
+  ],
   email: [
     paragraph,
     ...headings,
@@ -163,17 +229,31 @@ export const presetInsertItems: Partial<
   ]
 }
 
-/** The items matching `query` that can go at the caret. */
+/** The items matching `query` that can go in place of the typed `range`. */
 export function matchingInsertItems(
   items: readonly EditorInsertItem[],
   query: string,
+  range: Range,
   editor: Editor,
   ui: EditorControlUi
 ) {
   const words = query.toLowerCase().trim().split(/\s+/)
+  // `can()` changes nothing as it checks, so the query would still be there.
+  const afterQuery = () =>
+    editor
+      .chain()
+      .command(({ tr }) => {
+        tr.setMeta('preventDispatch', true)
+        return true
+      })
+      .deleteRange(range)
+  // Matched by name first, as a block's fit is a transaction on each keystroke.
   return items.filter((item) => {
-    if (!(item.available?.(ui) ?? true) || !item.enabled(editor)) return false
     const names = [item.label, ...(item.keywords ?? [])].join(' ').toLowerCase()
-    return words.every((word) => names.includes(word))
+    return (
+      words.every((word) => names.includes(word)) &&
+      (item.available?.(ui) ?? true) &&
+      item.enabled(editor, afterQuery)
+    )
   })
 }

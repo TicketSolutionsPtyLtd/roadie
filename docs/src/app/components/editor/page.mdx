@@ -404,7 +404,8 @@ phone.
 ### Blocks preset
 
 `preset='blocks'` holds everything the rich preset does, for a page built
-from blocks, and every block keeps an id as it moves.
+from blocks, and every block keeps an id as it moves. Type `/` to add a
+block.
 
 ```tsx-live-prose
 <Editor
@@ -434,6 +435,15 @@ Give each record's editor its own `key`, such as the record's id. An editor
 reused for another record reads that record's id-less blocks as the ones it
 already holds when their content matches, so it keeps the first record's ids.
 
+#### Inserting blocks
+
+Type `/` to open the same insert menu as the
+[email preset](#composing-a-layout), with the same keys. It offers
+Paragraph, Heading 2 to 4, Bulleted list, Numbered list, Quote, Divider,
+Image, Embed, and Table, and only those that fit at the caret, so a table
+cell offers Paragraph alone. Image shows with `onUploadImage` and opens the
+file picker, and Embed opens the Embed popover.
+
 ### Email preset
 
 `preset='email'` is for composing an email. Its content sits in a canvas at
@@ -447,8 +457,10 @@ buttons, spacers, and dividers.
 
 Type `/` to insert a block at the caret. The list filters as you type, the
 arrow keys move through it, Enter inserts, and Escape closes it, keeping what
-you typed. A paragraph, heading, or list turns the caret's line into one. Any
-other block goes before an empty line, or after a line with text, and a
+you typed, as does moving focus away. One undo takes a block the menu inserts
+back to what you typed; an image, embed, or button, which arrives after its
+upload or link, takes a second. A paragraph, heading, or list turns the caret's line into
+one. Any other block goes before an empty line, or after a line with text, and a
 section or columns puts the caret in its first line. Only the blocks that fit
 at the caret are offered, so there's no section or columns inside a column, and
 only the other list type inside a list. Image is offered with `onUploadImage`.
@@ -1012,7 +1024,8 @@ render(
 - In the rich preset, the Block type menu's trigger is named for the block at
   the caret, such as "Block type: Heading 2". Its items are radio items, with
   the current type checked, and choosing one puts focus back in the text.
-- In the email preset, `/` opens a `listbox` named Insert under the caret.
+- In the email and blocks presets, `/` opens a `listbox` named Insert under
+  the caret.
   Focus stays in the text, which points `aria-activedescendant` at the active
   option and `aria-controls` at the list.
 - In the email preset, a button's, a spacer's, or columns' own toolbar is
@@ -1039,7 +1052,7 @@ render(
 | `Mod+Alt+0` | Paragraph, in the rich preset |
 | `Mod+Alt+2` to `Mod+Alt+4` | Heading 2 to 4, in the rich preset |
 | `Mod+Shift+B` | Quote, in the rich preset |
-| `/` | Open the insert menu, in the email preset |
+| `/` | Open the insert menu, in the email and blocks presets |
 | `Enter` | In a button, start a new paragraph after it |
 | `Enter` | On a selected image, edit its alt text |
 | `Tab` | In a table, move to the next cell, adding a row after the last |
