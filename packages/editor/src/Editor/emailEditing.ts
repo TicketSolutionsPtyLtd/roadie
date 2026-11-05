@@ -5,7 +5,7 @@ import {
   findParentNode
 } from '@tiptap/core'
 import { Fragment, type Node as PMNode } from '@tiptap/pm/model'
-import { NodeSelection, type Selection, TextSelection } from '@tiptap/pm/state'
+import { type Selection, TextSelection } from '@tiptap/pm/state'
 
 import { cn } from '@oztix/roadie-core/utils'
 
@@ -104,11 +104,9 @@ export function insertBlockAfter(
     const block = doc.type.schema.nodeFromJSON(content)
     const $end = doc.resolve(selection.to)
     const places: { from: number; to: number }[] = []
-    if (
-      selection instanceof NodeSelection &&
-      containers.has(selection.$from.parent.type.name)
-    ) {
-      places.push({ from: selection.from, to: selection.to })
+    // A selected block, a gap cursor or select all ends between children.
+    if (containers.has($end.parent.type.name)) {
+      places.push({ from: selection.to, to: selection.to })
     }
     for (let depth = $end.depth; depth >= 1; depth--) {
       if (containers.has($end.node(depth - 1).type.name)) {

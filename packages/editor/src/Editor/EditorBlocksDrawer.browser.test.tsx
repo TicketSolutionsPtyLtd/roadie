@@ -13,7 +13,7 @@ import { page, userEvent } from 'vitest/browser'
 import { Editor, type EditorProps } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, JSONContent } from '../schema'
-import { clickIntoEditor, selectParagraph } from './testUtils'
+import { MOD, clickIntoEditor, selectParagraph } from './testUtils'
 
 const LABEL = 'Newsletter'
 
@@ -254,6 +254,80 @@ describe('Editor blocks drawer', () => {
     }
   )
 
+  const divider = { type: 'horizontalRule' }
+
+  it('adds after a selected block', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email(p('Doors 7pm'), spacer, p('Gates 6pm'))
+    })
+    await userEvent.click(
+      (await textbox()).querySelector('[data-type="spacer"]')!
+    )
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Divider' })
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm'), spacer, divider, p('Gates 6pm'))
+      )
+    )
+  })
+
+  it('adds at the gap cursor between two blocks', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email(p('Doors 7pm'), spacer, spacer, p('Gates 6pm'))
+    })
+    const [, second] = (await textbox()).querySelectorAll(
+      '[data-type="spacer"]'
+    )
+    await userEvent.click(second!)
+    await userEvent.keyboard('{ArrowLeft}')
+    await expect
+      .poll(() => document.querySelector('.ProseMirror-gapcursor'))
+      .not.toBe(null)
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Divider' })
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm'), spacer, divider, p(), spacer, p('Gates 6pm'))
+      )
+    )
+  })
+
+  it('adds at the end with everything selected', async () => {
+    const onValueChange = renderEmail()
+    await clickInto('Doors 7pm')
+    await userEvent.keyboard(`{${MOD}>}a{/${MOD}}`)
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Divider' })
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm'), p('Gates 6pm'), divider, p())
+      )
+    )
+  })
+
+  it('offers no Image tile without onUploadImage', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+
+    expect(within(drawer).queryByRole('button', { name: 'Image' })).toBe(null)
+    expect(within(drawer).queryByRole('group', { name: 'Media' })).toBe(null)
+  })
+
   it('keeps a button with no label when a text block is picked on it', async () => {
     const button = {
       type: 'button',
@@ -374,6 +448,33 @@ describe('Editor blocks drawer', () => {
       )
     )
     await waitFor(async () => expect(await textbox()).toHaveFocus())
+  })
+
+  it('takes a block back in one undo', async () => {
+    const onValueChange = renderEmail()
+    await clickInto('Doors 7pm')
+
+    await userEvent.click(
+      within(await openFromDockedBar()).getByRole('button', { name: 'Event' })
+    )
+    await waitFor(async () => expect(await textbox()).toHaveFocus())
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm'), p('Gates 6pm'))
+      )
+    )
+  })
+
+  it('disables Blocks in a read-only editor', async () => {
+    renderEmail({ readOnly: true })
+
+    const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+    expect(within(bar).getByRole('button', { name: 'Blocks' })).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    )
   })
 
   it('slides in from the right on a desktop and up from the bottom on a phone', async () => {
