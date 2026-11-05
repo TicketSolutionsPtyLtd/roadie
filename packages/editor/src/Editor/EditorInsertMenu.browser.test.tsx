@@ -337,20 +337,29 @@ describe('Editor insert menu', () => {
     expect(textbox).not.toHaveAttribute('aria-activedescendant')
   })
 
-  it('undoes an inserted block back to what was typed', async () => {
+  it.each([
+    ['/div', 'horizontalRule'],
+    ['/sec', 'section'],
+    ['/2 col', 'columns'],
+    ['/spac', 'spacer'],
+    ['/heading 2', 'heading'],
+    ['/bullet', 'bulletList'],
+    ['/numbered', 'orderedList']
+  ])('undoes %s back to what was typed', async (typed, type) => {
     const onValueChange = renderEmail()
     await focusedTextbox()
 
-    await userEvent.keyboard('/div{Enter}')
+    await userEvent.keyboard(`${typed}{Enter}`)
     await waitFor(() =>
-      expect(onValueChange).toHaveBeenLastCalledWith(
-        email({ type: 'horizontalRule' }, p())
-      )
+      expect(
+        (onValueChange.mock.lastCall?.[0] as EditorValue | undefined)?.doc
+          .content?.[0]?.type
+      ).toBe(type)
     )
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 
     await waitFor(() =>
-      expect(onValueChange).toHaveBeenLastCalledWith(email(p('/div')))
+      expect(onValueChange).toHaveBeenLastCalledWith(email(p(typed)))
     )
   })
 
