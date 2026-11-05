@@ -151,7 +151,7 @@ const PARENT_LABELS: Record<string, string> = {
 }
 
 const BLOCK_LABELS: Record<string, string> = {
-  paragraph: 'Text',
+  paragraph: 'Paragraph',
   bulletList: 'Bulleted list',
   orderedList: 'Numbered list',
   blockquote: 'Quote',
@@ -167,9 +167,13 @@ const BLOCK_LABELS: Record<string, string> = {
   spacer: 'Spacer'
 }
 
-function blockLabel(node: ProseMirrorNode) {
+function blockLabel(
+  node: ProseMirrorNode,
+  appLabels: Readonly<Record<string, string>>
+) {
   if (node.type.name === 'heading') return `Heading ${node.attrs.level}`
-  return BLOCK_LABELS[node.type.name] ?? 'Block'
+  const { name } = node.type
+  return appLabels[name] ?? BLOCK_LABELS[name] ?? 'Block'
 }
 
 type EditorBlockHandleProps = {
@@ -180,6 +184,8 @@ type EditorBlockHandleProps = {
   containers: BlockContainers
   /** Shows an add button that opens the insert menu after the block. */
   canAdd?: boolean
+  /** An app's blocks' names, by node name, to head their menus. */
+  appLabels?: Readonly<Record<string, string>>
 }
 
 /**
@@ -190,7 +196,8 @@ export function EditorBlockHandle({
   editor,
   openMenuRef,
   containers,
-  canAdd = false
+  canAdd = false,
+  appLabels = {}
 }: EditorBlockHandleProps) {
   const host = useHandleHost(editor)
   const wrapper = host?.parentElement ?? null
@@ -388,7 +395,9 @@ export function EditorBlockHandle({
           }}
         >
           <Menu.Group>
-            <Menu.GroupLabel>{blockLabel(doc.nodeAt(shown)!)}</Menu.GroupLabel>
+            <Menu.GroupLabel>
+              {blockLabel(doc.nodeAt(shown)!, appLabels)}
+            </Menu.GroupLabel>
             <Menu.Item
               icon={<ArrowUpIcon weight='bold' />}
               shortcut={BLOCK_ACTION_KEYS.moveUp}

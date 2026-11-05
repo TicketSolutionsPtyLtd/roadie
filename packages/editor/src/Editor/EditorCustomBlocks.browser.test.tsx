@@ -184,6 +184,36 @@ describe('Editor extensions', () => {
     expect(savedIds.filter((id) => id !== 'okw')).toEqual([])
   })
 
+  it('heads an app’s block menu with its label', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        extensions={[eventCard]}
+        defaultValue={{
+          version: 1,
+          preset: 'blocks',
+          doc: {
+            type: 'doc',
+            content: [{ type: 'eventCard', attrs: { eventId: 'okw' } }]
+          }
+        }}
+      />
+    )
+    await userEvent.hover(await screen.findByRole('textbox', { name: 'Event' }))
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Block actions' })
+    )
+
+    const menu = await screen.findByRole('menu')
+    await waitFor(() =>
+      expect(
+        within(menu).getByRole('group', { name: 'Event card' })
+      ).toBeVisible()
+    )
+  })
+
   it('keeps an app’s block through a controlled value', async () => {
     function Controlled() {
       const [value, setValue] = useState<EditorValue>({
