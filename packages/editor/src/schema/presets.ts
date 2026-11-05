@@ -1,4 +1,9 @@
-import type { Extensions } from '@tiptap/core'
+import {
+  type Extensions,
+  combineTransactionSteps,
+  findChildrenInRange,
+  getChangedRanges
+} from '@tiptap/core'
 import { Heading } from '@tiptap/extension-heading'
 import { UniqueID } from '@tiptap/extension-unique-id'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
@@ -38,17 +43,48 @@ const rich: Extensions = [
   TableCell
 ]
 
-// ProseMirror allows every drag to copy or move, so UniqueID strips the ids
-// from any dropped slice. A move restores them, so a moved block keeps its id.
+// UniqueID strips the ids from every dropped slice, as ProseMirror lets any
+// drag copy or move. This keeps them, then gives a dropped block a new id only
+// when its old one is still in the doc, so a moved block keeps its id, and a
+// copy, or text dragged out of a block that stays, gets one of its own.
 const BlockIds = UniqueID.extend({
   addProseMirrorPlugins() {
+    const { attributeName, generateID } = this.options
     return [
       ...(this.parent?.() ?? []),
       new Plugin({
-        key: new PluginKey('blockIdsOnMove'),
+        key: new PluginKey('blockIdsOnDrop'),
         props: {
-          transformPasted: (slice, view) =>
-            view.dragging?.move ? view.dragging.slice : slice
+          transformPasted: (slice, view) => view.dragging?.slice ?? slice
+        },
+        appendTransaction: (transactions, oldState, newState) => {
+          if (!transactions.some((tr) => tr.getMeta('uiEvent') === 'drop')) {
+            return
+          }
+          const uses = new Map<unknown, number>()
+          newState.doc.descendants(({ attrs }) => {
+            const id = attrs[attributeName]
+            if (id != null) uses.set(id, (uses.get(id) ?? 0) + 1)
+          })
+          const { tr } = newState
+          const changes = combineTransactionSteps(oldState.doc, [
+            ...transactions
+          ])
+          const unmapped = changes.mapping.invert()
+          for (const { newRange } of getChangedRanges(changes)) {
+            for (const { node, pos } of findChildrenInRange(
+              newState.doc,
+              newRange,
+              ({ attrs }) => (uses.get(attrs[attributeName]) ?? 0) > 1
+            )) {
+              if (!unmapped.mapResult(pos).deleted) continue
+              tr.setNodeMarkup(pos, undefined, {
+                ...node.attrs,
+                [attributeName]: generateID({ node, pos })
+              })
+            }
+          }
+          return tr.steps.length ? tr : null
         }
       })
     ]

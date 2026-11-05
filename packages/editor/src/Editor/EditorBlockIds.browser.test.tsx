@@ -226,12 +226,16 @@ describe('Editor blocks preset ids on drag', () => {
     content: [text('Doors 7pm')]
   }
 
-  async function dragImageAfterDoors(init: DragEventInit = {}) {
+  async function dragImageAfterDoors(
+    init: DragEventInit = {},
+    dropInit = init
+  ) {
     const image = await screen.findByRole('img', { name: 'Crowd' })
     dragBlock(
       image.closest('[draggable="true"]')!,
       await screen.findByText('Doors 7pm'),
-      init
+      init,
+      dropInit
     )
   }
 
@@ -254,6 +258,94 @@ describe('Editor blocks preset ids on drag', () => {
       'doors',
       'crowd'
     ])
+  })
+
+  it('gives a block copied by a modifier pressed mid-drag an id of its own', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={valueOf(crowdImage, doorsParagraph)}
+        onValueChange={onValueChange}
+      />
+    )
+
+    await dragImageAfterDoors({}, { altKey: true, ctrlKey: true })
+
+    await waitFor(() =>
+      expect(lastDoc(onValueChange).content?.length).toBeGreaterThan(2)
+    )
+    const ids = blockIds(lastDoc(onValueChange))
+    expect(ids).toEqual(expect.arrayContaining(['doors', 'crowd']))
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('gives text dragged out of its block a block id of its own', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={valueOf(doorsParagraph, crowdImage)}
+        onValueChange={onValueChange}
+      />
+    )
+    await focusedTextbox()
+    const doors = await screen.findByText('Doors 7pm')
+    await userEvent.click(doors)
+    await userEvent.keyboard('{Home}{Shift>}{ArrowRight>6/}{/Shift}')
+
+    dragBlock(doors, await screen.findByRole('img', { name: 'Crowd' }), {})
+
+    await waitFor(() =>
+      expect(lastDoc(onValueChange).content?.[2]?.content).toEqual([
+        text('Doors ')
+      ])
+    )
+    const [left, , dragged] = lastDoc(onValueChange).content!
+    expect(left).toEqual({
+      type: 'paragraph',
+      attrs: { blockId: 'doors' },
+      content: [text('7pm')]
+    })
+    expect(dragged?.attrs?.blockId).toEqual(expect.any(String))
+    expect(dragged?.attrs?.blockId).not.toBe('doors')
+  })
+
+  it('keeps the ids of blocks dragged to a new place together', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={valueOf(
+          doorsParagraph,
+          {
+            type: 'paragraph',
+            attrs: { blockId: 'ages' },
+            content: [text('All ages')]
+          },
+          {
+            type: 'paragraph',
+            attrs: { blockId: 'lineup' },
+            content: [text('Lineup')]
+          }
+        )}
+        onValueChange={onValueChange}
+      />
+    )
+    await focusedTextbox()
+    const doors = await screen.findByText('Doors 7pm')
+    await userEvent.click(doors)
+    await userEvent.keyboard('{Home}{Shift>}{ArrowRight>18/}{/Shift}')
+
+    dragBlock(doors, await screen.findByText('Lineup'), {})
+
+    await waitFor(() =>
+      expect(lastDoc(onValueChange).content?.at(-1)?.content).toEqual([
+        text('All ages')
+      ])
+    )
+    const ids = blockIds(lastDoc(onValueChange))
+    expect(ids).toEqual(['doors', 'lineup', 'ages'])
   })
 
   it('gives blocks copied by dragging ids of their own', async () => {
@@ -289,7 +381,12 @@ describe('Editor blocks preset ids on drag', () => {
 
 // A real drag keeps the effectAllowed ProseMirror sets on dragstart until the
 // drop, but a DataTransfer made in a test stays at 'none', so this keeps it.
-function dragBlock(source: Element, target: Element, init: DragEventInit) {
+function dragBlock(
+  source: Element,
+  target: Element,
+  init: DragEventInit,
+  dropInit = init
+) {
   const dataTransfer = new DataTransfer()
   let effectAllowed = dataTransfer.effectAllowed
   Object.defineProperty(dataTransfer, 'effectAllowed', {
@@ -311,7 +408,7 @@ function dragBlock(source: Element, target: Element, init: DragEventInit) {
   const to = target.getBoundingClientRect()
   target.dispatchEvent(
     new DragEvent('drop', {
-      ...init,
+      ...dropInit,
       dataTransfer,
       bubbles: true,
       cancelable: true,
