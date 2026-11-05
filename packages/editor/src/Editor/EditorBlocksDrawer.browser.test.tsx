@@ -785,20 +785,17 @@ describe('Editor blocks drawer in the blocks preset', () => {
 })
 
 describe('Editor blocks drawer sections', () => {
-  const heading = (level: number, text: string): JSONContent => ({
+  // Placeholder copy shows as hints, so the lines are empty.
+  const heading = (level: number, text?: string): JSONContent => ({
     type: 'heading',
     attrs: { level },
-    content: [{ type: 'text', text }]
+    ...(text ? { content: [{ type: 'text', text }] } : {})
   })
   const getTickets: JSONContent = {
     type: 'button',
     content: [{ type: 'text', text: 'Get tickets' }]
   }
-  const event = [
-    heading(3, 'Event name'),
-    p('Fri 14 Mar, 7:30pm · Venue, City'),
-    getTickets
-  ]
+  const event = [heading(3), p(), getTickets]
   const unsubscribeUrl = {
     key: 'unsubscribe_url',
     label: 'Unsubscribe page',
@@ -811,10 +808,7 @@ describe('Editor blocks drawer sections', () => {
       'Header',
       {
         type: 'section',
-        content: [
-          heading(2, 'Headline'),
-          p('A line or two on what this email is about.')
-        ]
+        content: [heading(2), p()]
       }
     ],
     ['Event', { type: 'section', content: event }],
@@ -838,7 +832,7 @@ describe('Editor blocks drawer sections', () => {
     await waitFor(async () => expect(await textbox()).toHaveFocus())
   })
 
-  it('selects the section’s first placeholder, so typing replaces it', async () => {
+  it('puts the caret on the section’s first line, so typing fills it', async () => {
     const onValueChange = renderEmail()
     await clickInto('Doors 7pm')
 
@@ -855,10 +849,7 @@ describe('Editor blocks drawer sections', () => {
           p('Doors 7pm'),
           {
             type: 'section',
-            content: [
-              heading(2, 'Ochre Kite Weekender'),
-              p('A line or two on what this email is about.')
-            ]
+            content: [heading(2, 'Ochre Kite Weekender'), p()]
           },
           p('Gates 6pm')
         )

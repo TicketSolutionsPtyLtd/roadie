@@ -133,7 +133,11 @@ export function EditorBlocksDrawer({
     // Closed first, so the drawer lets go of focus before the block takes it.
     flushSync(() => onOpenChange(false))
     focusEditor(editor)
-    editor.chain().command(insertion(item, containers)).run()
+    editor
+      .chain()
+      .command(insertion(item, containers))
+      .command((props) => item.placed?.(props) ?? true)
+      .run()
     if (!item.block) item.insert(editor.chain(), ui).run()
   }
 
