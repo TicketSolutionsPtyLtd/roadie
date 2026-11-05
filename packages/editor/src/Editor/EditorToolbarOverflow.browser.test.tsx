@@ -90,6 +90,9 @@ describe('Editor toolbar on a phone', () => {
     expect(rows(toolbar)).toBe(1)
 
     const menu = await moreMenu(toolbar)
+    const entries = Array.from(menu.querySelectorAll('[role]'))
+    expect(entries[0]?.role).not.toBe('separator')
+    expect(entries.at(-1)?.role).not.toBe('separator')
     expect(menuLabels(menu)).toEqual(
       expect.arrayContaining(['Divider', 'Embed', 'Table', 'Redo'])
     )

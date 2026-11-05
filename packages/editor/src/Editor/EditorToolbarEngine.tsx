@@ -535,7 +535,13 @@ function MoreMenu({ buttonRef, items, states, editor, ui }: MoreMenuProps) {
         }}
       >
         {items.map((item, index) => {
-          if (item === SEPARATOR) return <Menu.Separator key={index} />
+          if (item === SEPARATOR) {
+            const between =
+              index > 0 &&
+              index < items.length - 1 &&
+              items[index - 1] !== SEPARATOR
+            return between ? <Menu.Separator key={index} /> : null
+          }
           if (!('kind' in item)) return entry(item, states?.[index])
           if (item.kind === 'choice') {
             return item.controls.map((control, at) =>
