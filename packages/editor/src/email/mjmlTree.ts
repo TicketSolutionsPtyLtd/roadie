@@ -122,11 +122,21 @@ function blockContent(node: JSONContent, context: Context) {
     case 'horizontalRule':
       return [mj('mj-divider', { padding })]
     default: {
+      // An empty line is room to type in, not space to send.
+      if (isBlankParagraph(node)) return []
       const html = textBlockHtml(node, context)
       return html ? [leaf('mj-text', { padding }, html)] : []
     }
   }
 }
+
+const isBlankParagraph = (node: JSONContent) =>
+  node.type === 'paragraph' &&
+  (node.content ?? []).every(
+    (child) =>
+      child.type === 'hardBreak' ||
+      (child.type === 'text' && !child.text?.trim())
+  )
 
 const column = (blocks: JSONContent[], context: Context) =>
   mj(

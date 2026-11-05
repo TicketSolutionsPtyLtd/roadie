@@ -115,9 +115,10 @@ export type EditorRootProps = {
   /**
    * The email's colours and font, for the `email` preset, as `renderEmail`
    * takes them. The canvas shows the email in them, light or dark as it
-   * sends, whatever the app's theme. A colour left out takes Roadie's light
-   * scales, with the accent of a `ThemeProvider` around the editor, so pass
-   * the theme `renderEmail` gets for an exact match. Throws, as it does, on a
+   * sends, whatever the app's theme. A colour left out takes
+   * `defaultEmailTheme`'s, but the accent, link and button colours take a
+   * `ThemeProvider`'s accent, so pass the theme `renderEmail` gets for an
+   * exact match. Throws, as it does, on a
    * colour that isn't hex.
    */
   theme?: Partial<EmailTheme>
@@ -139,6 +140,10 @@ export type EditorRootProps = {
    * Preview. A rejection's message shows under the address.
    */
   onSendTest?: EditorSendTest
+  /** Who the email is from, for the inbox row above Preview's frame. */
+  sender?: string
+  /** The email's subject, for the inbox row above Preview's frame. */
+  subject?: string
   'aria-label'?: string
   'aria-labelledby'?: string
   /**
