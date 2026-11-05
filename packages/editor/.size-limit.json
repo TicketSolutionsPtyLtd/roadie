@@ -18,6 +18,20 @@
     ]
   },
   {
+    "name": "email",
+    "path": "dist/email/index.js",
+    "import": "*",
+    "limit": "4.35 kB",
+    "ignore": [
+      "@oztix/roadie-core",
+      "mjml",
+      "html-to-text",
+      "@tiptap/core",
+      "@tiptap/extension-heading",
+      "@tiptap/pm"
+    ]
+  },
+  {
     "name": "Editor (shell)",
     "path": "dist/Editor/index.js",
     "import": "*",

@@ -44,7 +44,9 @@ export default defineConfig(({ watch }) => ({
       'react',
       'react-dom',
       '@oztix/roadie-core',
-      /^@oztix\/roadie-components/
+      /^@oztix\/roadie-components/,
+      'html-to-text',
+      'mjml'
     ]
   }
 }))
