@@ -166,16 +166,17 @@ headings: Text, Media, Layout, Email, and Sections. Image shows only with
   floating toolbar over a selection. The drawer opens from the right, or
   from the bottom on a phone. A tile adds its block after the block with the
   caret, and the drawer closes with the caret in the new block. On an empty
-  line, a text block takes the line's place, and any other block goes before
-  it. A section or columns picked in a column goes after the whole row,
+  line, the block takes the line's place, so no empty line is left behind,
+  except one an empty button holds on its own. A section or columns picked in a column goes after the whole row,
   since columns can't hold one. Image and Button open the file picker and
   the link field on a new line there, or on the empty line. Find a block
   filters the tiles as `/` does, and from 1280 pixels wide the drawer
   leaves the email usable beside it.
 - **Sections** lead the drawer and end the `/` menu. They're ready-made
-  groups of blocks to edit: Header, Event, and Two events, also found as
-  `/lineup`. Each goes after the top-level block with the caret, or before
-  an empty top-level line, never inside a section, with its first line's text selected, so typing replaces it.
+  groups of blocks to edit: Header (also `/banner`), Event (`/tickets`,
+  `/cta`), Two events, and Lineup. Each goes after the top-level block with
+  the caret, or in place of an empty top-level line, never inside a section,
+  and no empty line follows it, with its first line's text selected, so typing replaces it.
   Their buttons have no link until you set one, and send as text until then.
   Footer, also found as `/unsubscribe`, with a line on why the reader gets
   the email and an Unsubscribe link, shows when one of `variables` is a link
@@ -245,8 +246,11 @@ until you type a space. With a mouse or trackpad, each block made by markdown
 shows its shortcut, such as `##` for Heading 2. One undo takes a block the menu inserts
 back to what you typed; an image, embed, or button, which arrives after its
 upload or link, takes a second. A paragraph, heading, or list turns the caret's line into
-one. Any other block goes before an empty line or a line the `/` starts, or after a line with text, and a
-section or columns puts the caret in its first line. Only the blocks that fit
+one. Any other block takes an empty line's place, goes before a line the `/` starts, or after a line with text, and a
+section or columns puts the caret in its first line. Enter on the empty last
+line of a section takes that line out after the section, as Enter on an empty
+list item leaves the list, so what you type next isn't in the section. An
+email can end with a section or columns, with no empty line after them. Only the blocks that fit
 at the caret are offered, so there's no empty section or columns inside a
 column, and only the other list type inside a list. A ready-made section is
 offered anywhere, as it goes after the whole block. Image is offered with `onUploadImage`.

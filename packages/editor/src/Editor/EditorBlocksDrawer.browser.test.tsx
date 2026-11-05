@@ -94,7 +94,7 @@ describe('Editor blocks drawer', () => {
     const drawer = await openFromDockedBar()
 
     expect(tileGroups(drawer)).toEqual([
-      ['Sections', ['Header', 'Event', 'Two events']],
+      ['Sections', ['Header', 'Event', 'Two events', 'Lineup']],
       [
         'Text',
         [
@@ -205,8 +205,7 @@ describe('Editor blocks drawer', () => {
             type: 'columns',
             content: [column(p('Lineup')), column(p('Set times'))]
           },
-          { type: 'section', content: [p()] },
-          p()
+          { type: 'section', content: [p()] }
         )
       )
     )
@@ -375,7 +374,6 @@ describe('Editor blocks drawer', () => {
             attrs: { href: 'https://example.com/tickets' },
             content: [{ type: 'text', text: 'Button' }]
           },
-          p(),
           p('Gates 6pm')
         )
       )
@@ -456,7 +454,7 @@ describe('Editor blocks drawer', () => {
         })
       ).toHaveFocus()
     )
-    await userEvent.keyboard('{ArrowRight}'.repeat(13))
+    await userEvent.keyboard('{ArrowRight}'.repeat(14))
     expect(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Spacer' })
     ).toHaveFocus()
@@ -610,17 +608,19 @@ describe('Editor blocks drawer finding and moving', () => {
     await clickInto('Doors 7pm')
     const drawer = await openFromDockedBar()
     const tile = (name: string) => within(drawer).getByRole('button', { name })
-    await waitFor(() => expect(tile('Paragraph')).toHaveFocus())
+    const [first, second] = tileNames(drawer)
+    await waitFor(() => expect(tile(first!)).toHaveFocus())
 
     await userEvent.keyboard('{ArrowRight}')
-    expect(tile('Heading 2')).toHaveFocus()
+    expect(tile(second!)).toHaveFocus()
     await userEvent.keyboard('{ArrowDown}')
     const moved = (
       document.activeElement as HTMLElement
     ).getBoundingClientRect()
-    const above = tile('Heading 2').getBoundingClientRect()
+    const above = tile(second!).getBoundingClientRect()
     expect(moved.top).toBeGreaterThan(above.top)
-    expect(Math.abs(moved.left - above.left)).toBeLessThan(2)
+    // The nearest tile in the next row, which is under it unless that row is short.
+    expect(moved.left).toBeLessThanOrEqual(above.left + 1)
     await userEvent.keyboard('{End}')
     const last = document.activeElement
     expect(last?.textContent).toBe(tileNames(drawer).at(-1))
@@ -866,6 +866,24 @@ describe('Editor blocks drawer sections', () => {
     )
   })
 
+  it('puts a section in place of an empty email’s line, with no empty line after it', async () => {
+    const onValueChange = renderEmail({ defaultValue: email(p()) })
+    await clickIntoEditor((await textbox()).querySelector('p')!)
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Header' })
+    )
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content!.map(
+          ({ type }) => type
+        )
+      ).toEqual(['section'])
+    )
+  })
+
   it('puts a section after the section with the caret, not inside it', async () => {
     const onValueChange = renderEmail({
       defaultValue: email(
@@ -904,7 +922,7 @@ describe('Editor blocks drawer sections', () => {
       within(sections)
         .getAllByRole('button')
         .map((tile) => tile.textContent)
-    ).toEqual(['Header', 'Event', 'Two events', 'Footer'])
+    ).toEqual(['Header', 'Event', 'Two events', 'Lineup', 'Footer'])
     await userEvent.click(
       within(sections).getByRole('button', { name: 'Footer' })
     )
