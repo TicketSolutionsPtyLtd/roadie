@@ -18,6 +18,7 @@ import {
   SquareSplitVerticalIcon,
   SwapIcon,
   TableIcon,
+  TextAlignCenterIcon,
   TextBIcon,
   TextItalicIcon,
   TextUnderlineIcon,
@@ -26,7 +27,11 @@ import {
 import type { Editor } from '@tiptap/react'
 
 import type { Preset } from '../schema'
-import { COLUMN_COUNTS } from '../schema/emailAttrs'
+import {
+  COLUMN_COUNTS,
+  type ColumnsLook,
+  columnsLook
+} from '../schema/emailAttrs'
 import { HEADING_LEVELS } from '../schema/headings'
 import { selectedColumns, setColumnCount } from './emailEditing'
 import { hasHeaderRow, leavesAColumn, leavesARow, selectedTable } from './table'
@@ -247,12 +252,44 @@ const importSource: EditorControl = {
 
 const emailBlockType = { ...blockType, types: [paragraph, ...headings] }
 
+const centredBlock = (editor: Editor) =>
+  editor.isActive('paragraph', { align: 'center' }) ||
+  editor.isActive('heading', { align: 'center' })
+
+// A heading or paragraph, as a list's lines take its alignment from the list.
+const centre: EditorControl = {
+  label: 'Centre',
+  icon: TextAlignCenterIcon,
+  run: (editor) => {
+    const align = centredBlock(editor) ? undefined : 'center'
+    editor
+      .chain()
+      .focus()
+      .command(({ tr }) => {
+        const { from, to } = tr.selection
+        tr.doc.nodesBetween(from, to, (node, pos, parent) => {
+          const text =
+            node.type.name === 'paragraph' || node.type.name === 'heading'
+          if (text && parent?.type.name !== 'listItem') {
+            tr.setNodeAttribute(pos, 'align', align)
+          }
+        })
+        return true
+      })
+      .run()
+  },
+  pressed: centredBlock,
+  enabled: (editor) =>
+    !editor.isActive('listItem') &&
+    (editor.isActive('paragraph') || editor.isActive('heading'))
+}
+
 /** The text controls, which the floating toolbar shows over a selection. */
 export const floatingControls: Record<Preset, readonly EditorToolbarItem[]> = {
   basic: basicControls,
   rich: [blockType, SEPARATOR, ...basicControls],
   blocks: [blockType, SEPARATOR, ...basicControls],
-  email: [emailBlockType, SEPARATOR, ...basicControls]
+  email: [emailBlockType, SEPARATOR, ...basicControls, SEPARATOR, centre]
 }
 
 /** The docked bar's controls the floating toolbar puts in its … menu. */
@@ -368,6 +405,56 @@ const columnCount: EditorBlockMenu = {
   }))
 }
 
+const selectedLook = (editor: Editor) =>
+  columnsLook(selectedColumns(editor.state)?.node.attrs)
+
+function setColumnsLook(look: ColumnsLook) {
+  return (editor: Editor) =>
+    editor
+      .chain()
+      .focus()
+      .command(({ tr }) => {
+        const found = selectedColumns(tr)
+        if (!found) return false
+        for (const [name, value] of Object.entries(look)) {
+          tr.setNodeAttribute(found.pos, name, value)
+        }
+        return true
+      })
+      .run()
+}
+
+const COLUMN_LAYOUTS = [
+  ['Equal', undefined],
+  ['Wide left (2:1)', 'wide-left'],
+  ['Wide right (1:2)', 'wide-right']
+] as const
+
+const columnLayout: EditorBlockMenu = {
+  kind: 'blockMenu',
+  label: 'Layout',
+  types: COLUMN_LAYOUTS.map(([label, layout]) => ({
+    label,
+    active: (editor) => selectedLook(editor).layout === layout,
+    run: setColumnsLook({ layout })
+  }))
+}
+
+const STACKS = [
+  ['Left first', undefined],
+  ['Right first', 'reverse']
+] as const
+
+const columnStack: EditorBlockMenu = {
+  kind: 'blockMenu',
+  label: 'Stack on phone',
+  types: STACKS.map(([label, stack]) => ({
+    label,
+    active: (editor) => selectedLook(editor).stack === stack,
+    run: setColumnsLook({ stack })
+  }))
+}
+
 export type EditorNodeType =
   | 'image'
   | 'embed'
@@ -384,7 +471,7 @@ export const nodeControls: Record<EditorNodeType, readonly EditorNodeItem[]> = {
   embed: [editEmbedLink, remove('Remove embed')],
   spacer: [spacerHeight, remove('Remove spacer')],
   button: [editButton, removeButton],
-  columns: [columnCount],
+  columns: [columnCount, columnLayout, columnStack],
   variable: [editMergeTag, remove('Remove merge tag')]
 }
 
