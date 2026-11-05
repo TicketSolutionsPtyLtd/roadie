@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useRef, useState } from 'react'
+import { type RefObject, useEffect, useRef, useState } from 'react'
 
 import { UploadSimpleIcon } from '@phosphor-icons/react'
 import { posToDOMRect } from '@tiptap/core'
@@ -449,6 +449,12 @@ export function EditorImagePopover({
     editor,
     selector: ({ editor: current }) => (current ? selectedImage(current) : null)
   })
+  const sheetFor = open && phone && !adding ? (selected?.from ?? null) : null
+  useEffect(() => {
+    if (editor && sheetFor !== null) {
+      keepAboveSheet(editor.view.nodeDOM(sheetFor))
+    }
+  }, [editor, sheetFor])
   if (!editor) return null
   const image = adding ? null : selected
   const { from, to } = editor.state.selection
@@ -482,7 +488,6 @@ export function EditorImagePopover({
   }
   // On a phone, from the bottom, as a popover by the image runs off screen.
   if (phone && image) {
-    if (open) keepAboveSheet(editor.view.nodeDOM(image.from))
     return (
       // No blur, and half the screen, so the image stays in view above it.
       <Drawer
