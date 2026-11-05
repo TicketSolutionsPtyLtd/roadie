@@ -23,6 +23,8 @@ type EditorBlocksDrawerProps = {
   ui: EditorControlUi
   /** Where blocks can go, as the block handle counts them. */
   containers: ReadonlySet<string>
+  /** The group whose first tile takes focus, else the first group's. */
+  startAt?: string
 }
 
 const insertion = (item: EditorInsertItem, containers: ReadonlySet<string>) =>
@@ -39,9 +41,6 @@ function groupsOf(items: readonly EditorInsertItem[]) {
   return [...groups]
 }
 
-const isFirst = (groupIndex: number, index: number) =>
-  groupIndex === 0 && index === 0
-
 /**
  * The preset's blocks as tiles, from the side on a desktop and the bottom on
  * a phone. A tile adds its block after the caret's, and hands focus back.
@@ -52,13 +51,20 @@ export function EditorBlocksDrawer({
   onOpenChange,
   items,
   ui,
-  containers
+  containers,
+  startAt
 }: EditorBlocksDrawerProps) {
   const phone = useOnPhone()
   const id = useId()
   // A pick hands focus on itself, which closing mustn't take back.
   const pickedRef = useRef(false)
   const firstTileRef = useRef<HTMLButtonElement>(null)
+
+  const groups = groupsOf(items)
+  const startIndex = Math.max(
+    0,
+    groups.findIndex(([group]) => group === startAt)
+  )
 
   const pick = (item: EditorInsertItem) => {
     pickedRef.current = true
@@ -92,7 +98,7 @@ export function EditorBlocksDrawer({
           </Drawer.Description>
         </Drawer.Header>
         <Drawer.Body className='grid content-start gap-6 pb-6'>
-          {groupsOf(items).map(([group, tiles], groupIndex) => {
+          {groups.map(([group, tiles], groupIndex) => {
             const headingId = `${id}-group-${groupIndex}`
             return (
               <div
@@ -111,7 +117,9 @@ export function EditorBlocksDrawer({
                       <button
                         key={item.label}
                         ref={
-                          isFirst(groupIndex, index) ? firstTileRef : undefined
+                          groupIndex === startIndex && index === 0
+                            ? firstTileRef
+                            : undefined
                         }
                         type='button'
                         disabled={

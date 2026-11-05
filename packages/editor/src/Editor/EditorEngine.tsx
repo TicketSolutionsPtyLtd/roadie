@@ -66,6 +66,7 @@ import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
 import { EditorButtonPopover } from './EditorButtonPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
+import { EditorEmailStart } from './EditorEmailStart'
 import { EditorEmbedPopover } from './EditorEmbedPopover'
 import { EditorEmbedView } from './EditorEmbedView'
 import { EditorImageView } from './EditorImageView'
@@ -89,6 +90,7 @@ import { BlockDrag } from './blockDrag'
 import type { EditorControlUi } from './controls'
 import { withEmailEditing } from './emailEditing'
 import { EmbedPaste } from './embedPaste'
+import { EmptyLineHint } from './emptyLineHint'
 import { focusEditor } from './focusEditor'
 import { FocusedBlock, MenuBlock } from './focusedBlock'
 import {
@@ -104,7 +106,7 @@ import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
 import { emailSections } from './sections'
 import { SourcePaste } from './sourcePaste'
-import { presetLook, resolvedPreset } from './startingValue'
+import { presetHint, presetLook, resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
 import { useToolbarMode } from './toolbarMode'
 import {
@@ -271,6 +273,16 @@ function readsDoc(schema: Schema, doc: JSONContent) {
   }
 }
 
+/** As `isBlankDoc` reads a saved value, so the skeleton matches. */
+function holdsOnlyAnEmptyLine(doc: ProseMirrorNode) {
+  const line = doc.firstChild
+  return (
+    doc.childCount === 1 &&
+    line?.type.name === 'paragraph' &&
+    line.content.size === 0
+  )
+}
+
 function presetHoldsImages(preset: Preset) {
   return presets[preset].some(({ name }) => name === 'image')
 }
@@ -435,6 +447,7 @@ export function EditorEngine({
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
   const [addingBlocks, setAddingBlocks] = useState(false)
+  const [drawerStart, setDrawerStart] = useState<string>()
   const [mergeTagMenu, setMergeTagMenu] = useState<InsertMenuState | null>(null)
   const variablesRef = useRef(variables)
   const uiRef = useRef<EditorControlUi | null>(null)
@@ -501,7 +514,16 @@ export function EditorEngine({
     extensions: [
       ...withBlocks(editorExtensions[preset], blocks),
       Placeholder.configure({
-        placeholder: () => placeholderRef.current ?? ''
+        // Tiptap counts an empty section as empty too, which would draw the
+        // hint on it as well as on its line.
+        placeholder: ({ editor: current }) =>
+          placeholderRef.current ??
+          (holdsOnlyAnEmptyLine(current.state.doc) ? presetHint(preset) : '') ??
+          ''
+      }),
+      EmptyLineHint.configure({
+        hint: () =>
+          placeholderRef.current === undefined ? presetHint(preset) : undefined
       }),
       LinkShortcut.configure({ onEditLink: () => setEditingLink(true) }),
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
@@ -625,6 +647,12 @@ export function EditorEngine({
       onValueChange?.(currentValue(updated, preset))
   })
 
+  const blankEmail = useEditorState({
+    editor,
+    selector: ({ editor: current }) =>
+      Boolean(current?.isEditable && holdsOnlyAnEmptyLine(current.state.doc))
+  })
+
   const leftOut = preset !== 'blocks' && Boolean(extensionsProp?.length)
   const taken = (preset === 'blocks' ? (extensionsProp ?? []) : [])
     .filter((block) => takenName(preset, block))
@@ -744,6 +772,10 @@ export function EditorEngine({
   useEffect(() => {
     uiRef.current = ui
   })
+  const openDrawer = (group?: string) => {
+    setDrawerStart(group)
+    setAddingBlocks(true)
+  }
   // Sections lead, as the quickest way to a whole email.
   const drawerItems = blockHandle?.canAdd
     ? [
@@ -773,8 +805,7 @@ export function EditorEngine({
         toolbarRef,
         bubbleMenuRef,
         ...ui,
-        openBlocks:
-          drawerItems.length > 0 ? () => setAddingBlocks(true) : undefined,
+        openBlocks: drawerItems.length > 0 ? () => openDrawer() : undefined,
         editingLink,
         embedProviders,
         variables,
@@ -829,6 +860,14 @@ export function EditorEngine({
             items={drawerItems}
             ui={ui}
             containers={blockHandle.containers}
+            startAt={drawerStart}
+          />
+        ) : null}
+        {preset === 'email' && blankEmail ? (
+          <EditorEmailStart
+            onSections={() => openDrawer('Sections')}
+            onBlocks={() => openDrawer('Text')}
+            onImport={() => importSource()}
           />
         ) : null}
         {editor ? (

@@ -10,6 +10,15 @@
   pointer-events: none;
 }
 
+/* The caret's empty line in a preset with the `/` menu, from emptyLineHint. */
+[data-slot='editor-content'] .ProseMirror-focused [data-hint]::before {
+  content: attr(data-hint);
+  float: inline-start;
+  block-size: 0;
+  color: var(--intent-text-subtler);
+  pointer-events: none;
+}
+
 /* A node view rings its own wrapper, which can be narrower than the row. */
 [data-slot='editor-content'] .ProseMirror-selectednode:not(.react-renderer),
 [data-slot='editor-content'] [data-node-view-wrapper][data-selected] {

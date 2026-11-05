@@ -23,6 +23,16 @@ export function presetLook(preset: Preset): {
   return { emphasis: 'normal', toolbar: 'docked' }
 }
 
+const PRESET_HINTS: Partial<Record<Preset, string>> = {
+  blocks: 'Type / to add a block',
+  email: 'Type / for blocks, or pick a section'
+}
+
+/** What an empty line says to do, in a preset with the `/` menu. */
+export function presetHint(preset: Preset) {
+  return PRESET_HINTS[preset]
+}
+
 /** The `preset` prop, else the value's own preset, else `basic`. */
 export function resolvedPreset({
   preset,
