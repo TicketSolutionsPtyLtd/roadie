@@ -69,8 +69,10 @@ their own toolbars.
 The docked bar runs edge to edge inside the frame, with a divider under it,
 a size smaller than the text. It sticks to the top of the page, or of the
 scrolling box the editor is in, while you scroll a long description, and looks
-the same whether you're editing or not, so the text never moves. On a phone or
-touch screen its controls scroll sideways on one row when they don't fit.
+the same whether you're editing or not, so the text never moves. It keeps its
+controls on one row: when they don't fit, the last ones go into a More menu at
+the end, after Undo. Blocks and the block type always stay, so on a phone the
+bar leads with them.
 
 ```tsx-live-prose
 <Editor
@@ -396,7 +398,7 @@ render(
   the one before it and Shift+Tab lifts it back out.
 - The docked bar is a `toolbar` named Formatting, with `aria-controls` set to
   the editable area. It takes one Tab stop, and the arrow keys move between its
-  controls, scrolling the one with focus into view on a phone. Bold, italic, underline,
+  controls, More among them when it shows. Bold, italic, underline,
   link, and the lists are toggles that report
   `aria-pressed` for the text at the caret. Undo and Redo are disabled when
   there's nothing to undo or redo, and stay focusable.

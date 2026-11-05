@@ -1,9 +1,17 @@
 'use client'
 
-import { use, useEffect, useRef } from 'react'
+import {
+  type RefObject,
+  use,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from 'react'
 
 import {
   CaretDownIcon,
+  DotsThreeIcon,
   PlusIcon,
   PushPinSlashIcon
 } from '@phosphor-icons/react'
@@ -24,10 +32,13 @@ import {
   type EditorToolbarItem,
   SEPARATOR,
   ariaKeyShortcuts,
-  presetControls
+  presetControls,
+  redo,
+  undo
 } from './controls'
 import { focusEditor } from './focusEditor'
 import { useShowsShortcuts } from './menuGroups'
+import { type ToolbarSlot, fitToolbar } from './toolbarFit'
 import { useStickyTop } from './toolbarMode'
 import { EDITOR_DOCKED_BAR, EDITOR_TOOLBAR_SIZE } from './variants'
 
@@ -322,6 +333,205 @@ export function ToolbarItems({
   )
 }
 
+const slotOf = (item: EditorToolbarItem, index: number): ToolbarSlot => {
+  if (item === SEPARATOR) return 'separator'
+  if (item === undo) return 'undo'
+  if (item === redo) return 'redo'
+  return index === 0 && 'kind' in item && item.kind === 'blockMenu'
+    ? 'lead'
+    : 'item'
+}
+
+function outerWidth(element: Element) {
+  const { marginInlineStart, marginInlineEnd } = getComputedStyle(element)
+  return (
+    element.getBoundingClientRect().width +
+    parseFloat(marginInlineStart) +
+    parseFloat(marginInlineEnd)
+  )
+}
+
+const sameItems = (
+  a: ReadonlySet<number> | null,
+  b: ReadonlySet<number> | null
+) =>
+  a === b ||
+  (a !== null &&
+    b !== null &&
+    a.size === b.size &&
+    [...a].every((index) => b.has(index)))
+
+type FittedItemsOptions = {
+  items: readonly EditorToolbarItem[]
+  barRef: RefObject<HTMLDivElement | null>
+  rowRef: RefObject<HTMLDivElement | null>
+  moreRef: RefObject<HTMLButtonElement | null>
+  /** How many elements come before the items, such as Blocks and its separator. */
+  leading: number
+}
+
+/**
+ * The items that fit the bar on one row, with Undo and More, or null while
+ * every one does. Each item's width is kept from when it last showed, as they
+ * all do on the first render.
+ */
+function useFittedItems({
+  items,
+  barRef,
+  rowRef,
+  moreRef,
+  leading
+}: FittedItemsOptions) {
+  const [shown, setShown] = useState<ReadonlySet<number> | null>(null)
+  const shownRef = useRef(shown)
+  const widthsRef = useRef<number[]>([])
+
+  useLayoutEffect(() => {
+    shownRef.current = shown
+    const bar = barRef.current
+    const row = rowRef.current
+    if (!bar || !row) return
+    const slots = items.map(slotOf)
+    const fit = () => {
+      const order = items
+        .map((_, index) => index)
+        .filter((index) => shownRef.current?.has(index) ?? true)
+      const children = Array.from(row.children)
+      const placed = children.slice(leading, leading + order.length)
+      if (placed.length < order.length) return
+      const widths = widthsRef.current
+      placed.forEach((element, at) => {
+        widths[order[at]!] = outerWidth(element)
+      })
+      const { display, columnGap, paddingInlineStart, paddingInlineEnd } =
+        getComputedStyle(row)
+      // Unstyled, its items stack rather than share a row.
+      if (display !== 'flex') return
+      const gap = parseFloat(columnGap) || 0
+      const own = children.filter(
+        (element) => !placed.includes(element) && element !== moreRef.current
+      )
+      const base = own.reduce(
+        (sum, element) => sum + outerWidth(element) + gap,
+        parseFloat(paddingInlineStart) + parseFloat(paddingInlineEnd) - gap
+      )
+      const next = fitToolbar({
+        slots,
+        widths,
+        base,
+        gap,
+        // Until it first shows, as wide as Undo, another icon button.
+        more: moreRef.current
+          ? outerWidth(moreRef.current)
+          : (widths[slots.indexOf('undo')] ?? 0),
+        available: bar.clientWidth
+      })
+      if (!sameItems(next, shownRef.current)) {
+        shownRef.current = next
+        setShown(next)
+      }
+    }
+    fit()
+    const observer = new ResizeObserver(fit)
+    observer.observe(bar)
+    observer.observe(row)
+    return () => observer.disconnect()
+  })
+  return shown
+}
+
+type MoreMenuProps = {
+  buttonRef: RefObject<HTMLButtonElement | null>
+  items: readonly EditorToolbarItem[]
+  states: readonly (ControlState | undefined)[] | null | undefined
+  editor: TiptapEditor | null
+  ui: EditorControlUi
+}
+
+/** The docked bar's items that don't fit on its row. */
+function MoreMenu({ buttonRef, items, states, editor, ui }: MoreMenuProps) {
+  const showsShortcuts = useShowsShortcuts()
+  const run = (control: EditorControl) => {
+    if (!editor) return
+    focusEditor(editor)
+    control.run(editor, ui)
+  }
+  const entry = (control: EditorControl, state: ControlState | undefined) => {
+    const decorations = {
+      icon: <control.icon weight='bold' />,
+      shortcut: showsShortcuts ? control.shortcut : undefined,
+      disabled: !state?.enabled
+    }
+    return control.pressed ? (
+      <Menu.CheckboxItem
+        key={control.label}
+        {...decorations}
+        checked={state?.pressed ?? false}
+        onCheckedChange={() => run(control)}
+        closeOnClick
+      >
+        {control.label}
+      </Menu.CheckboxItem>
+    ) : (
+      <Menu.Item
+        key={control.label}
+        {...decorations}
+        onClick={() => run(control)}
+      >
+        {control.label}
+      </Menu.Item>
+    )
+  }
+  return (
+    <Menu>
+      <Menu.Trigger
+        render={
+          <Toolbar.Button ref={buttonRef} aria-label='More'>
+            <DotsThreeIcon weight='bold' className='size-4' aria-hidden />
+          </Toolbar.Button>
+        }
+      />
+      <Menu.Content
+        finalFocus={() => {
+          // At once, as Firefox drops a caret move made before a deferred focus lands.
+          if (editor) focusEditor(editor)
+          return false
+        }}
+      >
+        {items.map((item, index) => {
+          if (item === SEPARATOR) return <Menu.Separator key={index} />
+          if (!('kind' in item)) return entry(item, states?.[index])
+          if (item.kind === 'choice') {
+            return item.controls.map((control, at) =>
+              entry(control, states?.[index]?.choices?.[at])
+            )
+          }
+          return (
+            <Menu.RadioGroup
+              key={item.label}
+              value={states?.[index]?.current}
+              onValueChange={(label) => {
+                const type = item.types.find((option) => option.label === label)
+                if (editor && type) type.run(editor)
+              }}
+            >
+              {item.types.map((type) => (
+                <Menu.RadioItem
+                  key={type.label}
+                  value={type.label}
+                  closeOnClick
+                >
+                  {type.label}
+                </Menu.RadioItem>
+              ))}
+            </Menu.RadioGroup>
+          )
+        })}
+      </Menu.Content>
+    </Menu>
+  )
+}
+
 export function EditorToolbarEngine({
   emphasis = 'subtler',
   className,
@@ -359,6 +569,23 @@ export function EditorToolbarEngine({
     editor,
     selector: ({ editor: current }) => current?.isEditable ?? false
   })
+  const rowRef = useRef<HTMLDivElement>(null)
+  const moreRef = useRef<HTMLButtonElement>(null)
+  const shown = useFittedItems({
+    items,
+    barRef,
+    rowRef,
+    moreRef,
+    leading: openBlocks ? 2 : 0
+  })
+  const visible = shown ? items.filter((_, index) => shown.has(index)) : items
+  const hidden = shown ? items.filter((_, index) => !shown.has(index)) : []
+  const stateOfVisible = shown
+    ? states?.filter((_, index) => shown.has(index))
+    : states
+  const stateOfHidden = shown
+    ? states?.filter((_, index) => !shown.has(index))
+    : []
 
   useEffect(() => {
     if (!floating) return
@@ -379,7 +606,10 @@ export function EditorToolbarEngine({
       )}
     >
       <Toolbar
-        ref={toolbarRef}
+        ref={(element) => {
+          toolbarRef.current = element
+          rowRef.current = element
+        }}
         flush
         aria-label='Formatting'
         aria-controls={contentId}
@@ -408,8 +638,22 @@ export function EditorToolbarEngine({
           disabled={!editable}
           separator='after'
         />
-        <ToolbarItems items={items} states={states} editor={editor} ui={ui} />
+        <ToolbarItems
+          items={visible}
+          states={stateOfVisible}
+          editor={editor}
+          ui={ui}
+        />
         {children}
+        {hidden.length > 0 ? (
+          <MoreMenu
+            buttonRef={moreRef}
+            items={hidden}
+            states={stateOfHidden}
+            editor={editor}
+            ui={ui}
+          />
+        ) : null}
         {pinnable ? (
           <Tooltip>
             <Tooltip.Trigger

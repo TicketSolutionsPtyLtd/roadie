@@ -156,7 +156,7 @@ export const undo: EditorControl = {
   enabled: (editor) => editor.can().undo()
 }
 
-const redo: EditorControl = {
+export const redo: EditorControl = {
   label: 'Redo',
   icon: ArrowClockwiseIcon,
   shortcut: ['mod', 'shift', 'z'],
