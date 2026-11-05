@@ -425,12 +425,13 @@ export function EditorEngine({
   const holdsImages = presetHoldsImages(preset)
   const blockContainers = BLOCK_HANDLE_CONTAINERS[preset]
   const hasBlockHandle = blockContainers !== undefined
-  const takesMergeTags = Boolean(
-    schema.nodes.variable && textVariables(variables).length
-  )
+  const holdsMergeTags = Boolean(schema.nodes.variable)
   const presetItems = presetInsertItems[preset] ?? []
-  const insertItems =
-    takesMergeTags && presetItems.length > 0
+  // Read as each menu opens, as `variables` can arrive after the editor is made.
+  const insertItems = () =>
+    holdsMergeTags &&
+    presetItems.length > 0 &&
+    textVariables(variablesRef.current).length
       ? [...presetItems, mergeTagItem]
       : presetItems
   const uploads = {
@@ -466,11 +467,11 @@ export function EditorEngine({
         : []),
       FocusedBlock.configure({ containers: blockContainers ?? TOP_LEVEL }),
       InsertMenu.configure({
-        items: () => insertItems,
+        items: insertItems,
         ui: () => uiRef.current!,
         onChange: setInsertMenu
       }),
-      ...(takesMergeTags
+      ...(holdsMergeTags
         ? [
             InsertMenu.extend({ name: 'mergeTagMenu' }).configure({
               char: MERGE_TAG_OPEN,
@@ -505,7 +506,7 @@ export function EditorEngine({
           // Room for the block handle at each block's start.
           hasBlockHandle &&
             emphasis !== 'subtler' &&
-            (insertItems.length > 0 ? 'ps-15' : 'ps-10'),
+            (presetItems.length > 0 ? 'ps-15' : 'ps-10'),
           preset === 'email' && EMAIL_CANVAS
         )
       },
@@ -725,7 +726,7 @@ export function EditorEngine({
             editor={editor}
             openMenuRef={openBlockMenuRef}
             containers={blockContainers}
-            canAdd={insertItems.length > 0}
+            canAdd={presetItems.length > 0}
           />
         ) : null}
         {editor && blockContainers && drawerItems.length > 0 ? (
