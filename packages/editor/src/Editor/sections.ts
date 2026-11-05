@@ -1,6 +1,7 @@
 import type { Icon } from '@phosphor-icons/react'
 import {
   AlignBottomIcon,
+  ListBulletsIcon,
   NewspaperIcon,
   SquareSplitHorizontalIcon,
   TicketIcon
@@ -76,31 +77,54 @@ function section(
   }
 }
 
-const header = section('Header', NewspaperIcon, {
-  type: 'section',
-  content: [
-    heading(2, 'Headline'),
-    paragraph(text('A line or two on what this email is about.'))
-  ]
-})
-
-const eventSection = section('Event', TicketIcon, {
-  type: 'section',
-  content: event
-})
-
-const twoEvents = section(
-  'Two events',
-  SquareSplitHorizontalIcon,
+const header = section(
+  'Header',
+  NewspaperIcon,
   {
-    type: 'columns',
+    type: 'section',
     content: [
-      { type: 'column', content: event },
-      { type: 'column', content: event }
+      heading(2, 'Headline'),
+      paragraph(text('A line or two on what this email is about.'))
     ]
   },
-  ['lineup']
+  ['banner', 'hero']
 )
+
+const eventSection = section(
+  'Event',
+  TicketIcon,
+  { type: 'section', content: event },
+  ['tickets', 'cta', 'gig', 'show']
+)
+
+const act = (value: string): JSONContent => ({
+  type: 'listItem',
+  content: [paragraph(text(value))]
+})
+
+const lineup = section(
+  'Lineup',
+  ListBulletsIcon,
+  {
+    type: 'section',
+    content: [
+      heading(3, 'Lineup'),
+      {
+        type: 'bulletList',
+        content: [act('Headliner, 9:30pm'), act('Support, 8pm')]
+      }
+    ]
+  },
+  ['acts', 'set times', 'schedule']
+)
+
+const twoEvents = section('Two events', SquareSplitHorizontalIcon, {
+  type: 'columns',
+  content: [
+    { type: 'column', content: event },
+    { type: 'column', content: event }
+  ]
+})
 
 const footer = (unsubscribe: string) =>
   section(
@@ -139,6 +163,7 @@ export function emailSections(
     header,
     eventSection,
     twoEvents,
+    lineup,
     ...(unsubscribe ? [footer(unsubscribe.key)] : [])
   ]
 }

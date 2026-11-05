@@ -105,7 +105,8 @@ describe('Editor insert menu', () => {
       'Button',
       'Header',
       'Event',
-      'Two events'
+      'Two events',
+      'Lineup'
     ])
   })
 
@@ -143,7 +144,7 @@ describe('Editor insert menu', () => {
         ['Section', '2 columns', '3 columns', '4 columns', 'Spacer', 'Divider']
       ],
       ['Email', ['Button', 'Merge tag']],
-      ['Sections', ['Header', 'Event', 'Two events']]
+      ['Sections', ['Header', 'Event', 'Two events', 'Lineup']]
     ])
     const layout = within(listbox).getByRole('group', { name: 'Layout' })
     await userEvent.keyboard('{ArrowDown}'.repeat(7))
@@ -157,7 +158,7 @@ describe('Editor insert menu', () => {
     await waitFor(() =>
       expect(textbox).toHaveAttribute(
         'aria-activedescendant',
-        within(listbox).getByRole('option', { name: 'Two events' }).id
+        within(listbox).getByRole('option', { name: 'Lineup' }).id
       )
     )
   })
@@ -172,11 +173,11 @@ describe('Editor insert menu', () => {
   })
 
   it.each([
-    ['section', 'Section', [{ type: 'section', content: [p()] }, p()]],
+    ['section', 'Section', [{ type: 'section', content: [p()] }]],
     [
       'two columns',
       '2 columns',
-      [{ type: 'columns', content: [column(p()), column(p())] }, p()]
+      [{ type: 'columns', content: [column(p()), column(p())] }]
     ],
     [
       'four columns',
@@ -185,8 +186,7 @@ describe('Editor insert menu', () => {
         {
           type: 'columns',
           content: [column(p()), column(p()), column(p()), column(p())]
-        },
-        p()
+        }
       ]
     ],
     ['a spacer', 'Spacer', [{ type: 'spacer', attrs: { height: 32 } }, p()]],
@@ -226,10 +226,10 @@ describe('Editor insert menu', () => {
 
     await waitFor(() =>
       expect(onValueChange).toHaveBeenLastCalledWith(
-        email(
-          { type: 'columns', content: [column(p('Doors 7pm')), column(p())] },
-          p()
-        )
+        email({
+          type: 'columns',
+          content: [column(p('Doors 7pm')), column(p())]
+        })
       )
     )
   })
@@ -258,6 +258,55 @@ describe('Editor insert menu', () => {
     await waitFor(() =>
       expect(onValueChange).toHaveBeenLastCalledWith(
         email(p('Doors 7pm '), { type: 'horizontalRule' }, p('18+ All ages'))
+      )
+    )
+  })
+
+  it('puts a block with lines in place of the emptied line, leaving no empty line', async () => {
+    const onValueChange = renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/section{Enter}Doors 7pm')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'section', content: [p('Doors 7pm')] })
+      )
+    )
+  })
+
+  it('leaves a section on Enter in its empty last line, as a list does', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email({ type: 'section', content: [p('Doors 7pm')] })
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{End}{Enter}{Enter}All ages')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'section', content: [p('Doors 7pm')] }, p('All ages'))
+      )
+    )
+  })
+
+  it('keeps an empty line between a section’s lines on Enter', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email({
+        type: 'section',
+        content: [p('Doors 7pm'), p('All ages')]
+      })
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{End}{Enter}{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({
+          type: 'section',
+          content: [p('Doors 7pm'), p(), p(), p('All ages')]
+        })
       )
     )
   })
@@ -315,9 +364,23 @@ describe('Editor insert menu', () => {
     )
   })
 
+  it('ranks a match at the start of a name first, as /2 finds 2 columns before Heading 2', async () => {
+    renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/2')
+
+    await waitFor(async () =>
+      expect(optionNames(await insertMenu())).toEqual([
+        '2 columns',
+        'Heading 2'
+      ])
+    )
+  })
+
   it.each([
     ['btn', ['Button']],
-    ['cta', ['Button']],
+    ['cta', ['Button', 'Event']],
     ['h1', ['Heading 2']],
     ['img', ['Image']],
     ['hr', ['Divider']]
@@ -563,8 +626,10 @@ describe('Editor insert menu', () => {
 
   it.each([
     ['header', ['Header']],
+    ['banner', ['Header']],
     ['event', ['Event', 'Two events']],
-    ['lineup', ['Two events']],
+    ['tickets', ['Event']],
+    ['lineup', ['Lineup']],
     ['footer', ['Footer']],
     ['unsubscribe', ['Footer']]
   ])('finds the ready-made section /%s', async (query, names) => {
@@ -609,8 +674,7 @@ describe('Editor insert menu', () => {
               },
               p('A line or two on what this email is about.')
             ]
-          },
-          p()
+          }
         )
       )
     )
@@ -631,8 +695,7 @@ describe('Editor insert menu', () => {
         )
       ).toEqual([
         ['section', 1],
-        ['section', 3],
-        ['paragraph', undefined]
+        ['section', 3]
       ])
     )
   })
@@ -670,7 +733,8 @@ describe('Editor insert menu', () => {
       'Numbered list',
       'Header',
       'Event',
-      'Two events'
+      'Two events',
+      'Lineup'
     ])
   })
 

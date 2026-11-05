@@ -22,6 +22,8 @@ function firstTextblock(node: PMNode) {
   return found
 }
 
+const LAYOUT = new Set(['section', 'columns'])
+
 function firstLineOf(block: PMNode, at: number) {
   const line = firstTextblock(block)
   return line && { start: at + 1 + line.offset + 1, size: line.size }
@@ -32,8 +34,9 @@ const isEmptyTextblock = (node: PMNode | null) =>
 
 const isTextLine = (node: PMNode) => node.type.isInGroup('block')
 
-// Puts `block` at `at`, before an emptied line, which keeps it, or with a
-// paragraph after it to type in. The block's first line, or the block itself
+// Puts `block` at `at`, in place of the emptied line there, so no empty line
+// is left. A paragraph to type in follows, unless a text block does already
+// or the block is a section or columns, which Enter leaves. The block's first line, or the block itself
 // when it's a text block, has its text selected, so typing replaces a
 // ready-made section's placeholder.
 function placeBlock(
@@ -43,15 +46,18 @@ function placeBlock(
   emptied: boolean
 ) {
   const $at = tr.doc.resolve(at)
-  const next = $at.parent.maybeChild($at.index())
+  const index = $at.index()
+  const end = emptied ? index + 1 : index
+  const next = $at.parent.maybeChild(end)
   const nodes = [block]
-  if (!emptied && !next?.isTextblock) {
+  if (!LAYOUT.has(block.type.name) && !next?.isTextblock) {
     nodes.push(tr.doc.type.schema.nodes.paragraph!.create())
   }
   const fragment = Fragment.from(nodes)
-  if (!$at.parent.canReplace($at.index(), $at.index(), fragment)) return false
+  if (!$at.parent.canReplace(index, end, fragment)) return false
   if (dispatch) {
-    tr.insert(at, fragment)
+    const to = emptied ? at + $at.parent.child(index).nodeSize : at
+    tr.replaceWith(at, to, fragment)
     const line = block.isTextblock
       ? { start: at + 1, size: block.content.size }
       : firstLineOf(block, at)
@@ -83,7 +89,8 @@ function replaceLine(
 
 /**
  * Inserts `content` before the caret's line when it's empty, which keeps the
- * caret, or after it, with a paragraph to type in.
+ * caret, or when the caret starts it; otherwise after it, with a paragraph to
+ * type in.
  */
 export function insertBlock(content: JSONContent) {
   return (props: CommandProps) => {
@@ -91,7 +98,8 @@ export function insertBlock(content: JSONContent) {
     if (!$from.parent.isTextblock || $from.depth === 0) return false
     const block = props.tr.doc.type.schema.nodeFromJSON(content)
     const emptied = $from.parent.content.size === 0
-    const at = emptied ? $from.before() : $from.after()
+    const before = emptied || $from.parentOffset === 0
+    const at = before ? $from.before() : $from.after()
     return placeBlock(props, at, block, emptied)
   }
 }
@@ -125,10 +133,11 @@ export function insertBlockAfter(
       const emptied =
         index === 0 && selection.empty && isEmptyTextblock(doc.nodeAt(from))
       // Only a text line gives way: an empty button is a block of its own.
-      if (emptied && block.isTextblock && isTextLine(doc.nodeAt(from)!)) {
+      const givesWay = emptied && isTextLine(doc.nodeAt(from)!)
+      if (givesWay && block.isTextblock) {
         return replaceLine(props, { from, to }, block)
       }
-      return placeBlock(props, emptied ? from : to, block, emptied)
+      return placeBlock(props, emptied ? from : to, block, givesWay)
     })
   }
 }
@@ -149,6 +158,34 @@ export const buttonBlock = (href: string): JSONContent => ({
   attrs: { href },
   content: [{ type: 'text', text: BUTTON_LABEL }]
 })
+
+/**
+ * Takes the empty last line of a section out after it, as Enter on an empty
+ * list item leaves the list, so what's typed next isn't in the section.
+ */
+function leaveSection({ tr, dispatch }: CommandProps) {
+  const { $from, empty } = tr.selection
+  if (!empty || $from.depth < 2) return false
+  const section = $from.node(-1)
+  const lastLine = $from.index(-1) === section.childCount - 1
+  if (
+    section.type.name !== 'section' ||
+    section.childCount < 2 ||
+    !lastLine ||
+    $from.parent.type.name !== 'paragraph' ||
+    $from.parent.content.size > 0
+  ) {
+    return false
+  }
+  if (dispatch) {
+    const after = $from.after(-1)
+    tr.delete($from.before(), $from.after())
+    const at = tr.mapping.map(after)
+    tr.insert(at, tr.doc.type.schema.nodes.paragraph!.create())
+    tr.setSelection(TextSelection.create(tr.doc, at + 1)).scrollIntoView()
+  }
+  return true
+}
 
 /** Leaves a button for a new paragraph after it, rather than splitting it. */
 function leaveButton({ tr, dispatch }: CommandProps) {
@@ -291,7 +328,11 @@ const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
     })
   }),
   // The email's wrapper pads a section 16px above and below.
-  section: outlined(Section, 'prose-bleed rounded-lg py-4'),
+  section: outlined(Section, 'prose-bleed rounded-lg py-4').extend({
+    addKeyboardShortcuts: () => ({
+      Enter: ({ editor }) => editor.commands.command(leaveSection)
+    })
+  }),
   // Each column pads its blocks 12px a side, so 24px between them.
   columns: outlined(
     Columns,
