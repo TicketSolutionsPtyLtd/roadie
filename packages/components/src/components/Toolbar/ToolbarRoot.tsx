@@ -40,7 +40,7 @@ export type ToolbarRootProps = Omit<
     /**
      * Drops the inset, rounding, border and shadow, so the toolbar is as
      * tall as its controls, for a bar docked along an edge. `emphasis` sets
-     * only its fill, and the parent draws any edge.
+     * only its fill, and a divider goes in `className`.
      *
      * @default false
      */

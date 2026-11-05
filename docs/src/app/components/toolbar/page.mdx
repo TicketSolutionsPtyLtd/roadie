@@ -86,7 +86,7 @@ Each part renders a Roadie component you already know. `Toolbar.Button` is a `Bu
 
 ### Flush
 
-`flush` drops the inset, rounding, border, and shadow, so the toolbar is as tall as its controls, for a bar docked along an edge, such as across the top of an editor or a panel. `emphasis` sets only its fill. Draw the edge on the parent, and add `w-full` to run the bar across it.
+`flush` drops the inset, rounding, border, and shadow, so the toolbar is as tall as its controls, for a bar docked along an edge, such as across the top of an editor or a panel. `emphasis` sets only its fill. Draw a divider with `className`, such as `border-b border-subtler`, and add `w-full` to run the bar across its parent.
 
 ```tsx-live
 <div className='grid min-w-0 rounded-xl border border-subtle'>
@@ -194,7 +194,7 @@ On a touch screen, or a screen narrower than `md`, the items stay on one row and
 ## Guidelines
 
 - **Group related controls.** Put controls that work together, such as text styles, in a `Toolbar.Group` and separate the groups with `Toolbar.Separator`.
-- **Dock a bar with `flush`.** Along the edge of a card, pane, or editor, a flush toolbar lines up with the edge and the parent draws the divider.
+- **Dock a bar with `flush`.** Along the edge of a card, pane, or editor, a flush toolbar lines up with the edge, and draws a divider only when you add one.
 - **Drop the surface inside another one.** Inside a `Card`, a pane header, or a bar that already has a surface, use `emphasis='subtler'` so the toolbar doesn't draw a box within a box. Use `floating` for a toolbar over content, such as on an image.
 - **Keep the toolbar short.** On a phone the row scrolls, so actions past the edge are out of sight until someone scrolls. Put the most used first, and rarely used actions in a `Menu`.
 - **Size it with `className` or `style`.** Both go on the surface, the toolbar's outermost element. It's at most as wide as its container, so space it with the container's padding or `gap` rather than a margin, which pushes a full-width toolbar past the edge.
