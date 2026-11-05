@@ -535,7 +535,7 @@ describe('Editor email block toolbar placement', () => {
     texts.map((text) => within(textbox).getByText(text).getBoundingClientRect())
 
   it.each([1280, 390])(
-    'sits above columns at their end at %ipx, clear of their text and the button above, and clickable',
+    'sits outside columns at %ipx, clear of their text and the button above, and clickable',
     async (width) => {
       await page.viewport(width, 800)
       onTestFinished(() => page.viewport(1280, 800))
@@ -558,8 +558,7 @@ describe('Editor email block toolbar placement', () => {
       await waitFor(() => {
         const bar = toolbar.getBoundingClientRect()
         const box = node.getBoundingClientRect()
-        expect(bar.bottom).toBeLessThanOrEqual(box.top)
-        expect(Math.abs(bar.right - box.right)).toBeLessThan(2)
+        expect(intersects(bar, box)).toBe(false)
         for (const covered of [
           above.getBoundingClientRect(),
           ...lines(textbox, 'Ochre Kite', 'Kazoo Hollow')
@@ -575,7 +574,90 @@ describe('Editor email block toolbar placement', () => {
     }
   )
 
-  it('sits below columns that start the content', async () => {
+  it('keeps off a long line before columns, on a phone', async () => {
+    await page.viewport(390, 800)
+    onTestFinished(() => page.viewport(1280, 800))
+    const fees = 'Ticket prices include booking fees and are final at checkout'
+    render(
+      <div style={{ paddingTop: 96 }}>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={email(p(fees), columns, p('Doors'))}
+        />
+      </div>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Kazoo Hollow'))
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Columns actions'
+    })
+    const node = textbox.querySelector('[data-type="columns"]')!
+    await waitFor(() => {
+      const bar = toolbar.getBoundingClientRect()
+      const box = node.getBoundingClientRect()
+      expect(bar.top >= box.bottom || bar.bottom <= box.top).toBe(true)
+      for (const text of [fees, 'Doors', 'Ochre Kite', 'Kazoo Hollow']) {
+        const range = document.createRange()
+        range.selectNodeContents(within(textbox).getByText(text))
+        for (const covered of range.getClientRects()) {
+          expect(intersects(bar, covered)).toBe(false)
+        }
+      }
+    })
+  })
+
+  it('stays in reach in tall columns whose edges scroll off, on a phone', async () => {
+    await page.viewport(390, 600)
+    onTestFinished(() => page.viewport(1280, 800))
+    const sets = Array.from({ length: 30 }, (_, index) => p(`Set ${index + 1}`))
+    render(
+      <>
+        <Editor
+          aria-label={LABEL}
+          toolbar='docked'
+          defaultValue={email(
+            p('Doors'),
+            {
+              type: 'columns',
+              content: [
+                { type: 'column', content: sets },
+                { type: 'column', content: [p('Kazoo Hollow')] }
+              ]
+            },
+            p('Gates')
+          )}
+        />
+        <div style={{ blockSize: '200vh' }} />
+      </>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const target = within(textbox).getByText('Set 15')
+    target.scrollIntoView({ block: 'center' })
+    await clickIntoEditor(target)
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Columns actions'
+    })
+    try {
+      await waitFor(() => {
+        const bar = toolbar.getBoundingClientRect()
+        expect(bar.top).toBeGreaterThanOrEqual(0)
+        expect(bar.bottom).toBeLessThanOrEqual(window.innerHeight)
+        const hit = document.elementFromPoint(
+          bar.left + bar.width / 2,
+          bar.top + bar.height / 2
+        )
+        expect(toolbar.contains(hit)).toBe(true)
+      })
+    } finally {
+      window.scrollTo(0, 0)
+    }
+  })
+
+  it('sits outside columns that start the content, on a phone', async () => {
+    await page.viewport(390, 800)
+    onTestFinished(() => page.viewport(1280, 800))
     render(
       <Editor
         aria-label={LABEL}
