@@ -387,6 +387,37 @@ describe('Editor extensions', () => {
     vi.unstubAllGlobals()
   })
 
+  it.each([
+    ['as written', EventCard],
+    ['with empty content', EventCard.extend({ content: '' })]
+  ])(
+    'doesn’t warn of a leaf block, %s, in a new list each render',
+    async (_, node) => {
+      vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { rerender } = render(
+        <Editor
+          aria-label={LABEL}
+          preset='blocks'
+          extensions={[{ ...eventCard, node }]}
+        />
+      )
+      await focusedTextbox()
+
+      rerender(
+        <Editor
+          aria-label={LABEL}
+          preset='blocks'
+          extensions={[{ ...eventCard, node }]}
+        />
+      )
+
+      expect(warn).not.toHaveBeenCalledWith(expect.stringMatching(/^Editor:/))
+      warn.mockRestore()
+      vi.unstubAllGlobals()
+    }
+  )
+
   it('warns of a block that holds content, which it can’t save', async () => {
     vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
