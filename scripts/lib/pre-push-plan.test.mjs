@@ -164,6 +164,83 @@ describe('the pre-push hook', () => {
     )
   })
 
+  describe('browser tests', () => {
+    const toolbar = 'packages/components/src/components/Toolbar/index.tsx'
+    const browserSteps = (result) =>
+      result.steps.filter((step) => step.kind === 'browser')
+    const testsOf = (step) =>
+      step.commands[0].slice(
+        3,
+        step.commands[0].findIndex((arg) => arg.startsWith('-'))
+      )
+
+    test('runs those beside the change in every engine, one at a time', () => {
+      const steps = browserSteps(plan([toolbar]))
+      assert.deepEqual(
+        steps.map(({ env }) => env.ROADIE_BROWSERS),
+        ['chromium', 'firefox', 'webkit']
+      )
+      for (const step of steps) {
+        assert.match(step.label, new RegExp(`in ${step.env.ROADIE_BROWSERS}`))
+        assert.deepEqual(testsOf(step), [
+          'src/components/Toolbar/Toolbar.browser.test.tsx',
+          'src/components/Toolbar/Toolbar.touch.browser.test.tsx'
+        ])
+        assert.ok(step.commands[0].includes('browser*'))
+        assert.match(step.rerun, /--project 'browser\*'/)
+      }
+    })
+
+    test('runs a changed browser test on its own', () => {
+      const changed = 'packages/charts/src/LineChart/LineChart.browser.test.tsx'
+      const steps = browserSteps(plan([changed]))
+      assert.equal(steps.length, 3)
+      for (const step of steps)
+        assert.ok(
+          testsOf(step).includes('src/LineChart/LineChart.browser.test.tsx')
+        )
+    })
+
+    test('runs no engine when no browser test is beside the change', () => {
+      assert.deepEqual(browserSteps(plan(DIFFS.component)), [])
+      assert.deepEqual(browserSteps(plan(DIFFS.docs)), [])
+      assert.deepEqual(browserSteps(plan(DIFFS.lockfile)), [])
+    })
+
+    test("a core CSS change runs components' CSS suite", () => {
+      const steps = browserSteps(plan(['packages/core/src/css/emphasis.css']))
+      assert.equal(steps.length, 3)
+      for (const step of steps) {
+        const tests = testsOf(step)
+        assert.ok(tests.includes('src/css/focusRing.browser.test.tsx'))
+        assert.ok(tests.every((test) => test.startsWith('src/css/')))
+      }
+    })
+
+    test('runs only the engines installed, and says how to add the rest', () => {
+      const result = planPrePush({
+        ...repo,
+        files: [toolbar],
+        engines: ['chromium', 'webkit'],
+        cacheDir: '/cache'
+      })
+      assert.deepEqual(
+        browserSteps(result).map(({ env }) => env.ROADIE_BROWSERS),
+        ['chromium', 'webkit']
+      )
+      assert.ok(
+        result.skipped.some((line) =>
+          line.includes('pnpm exec playwright install firefox')
+        )
+      )
+    })
+
+    test('leaves perf tests to the Perf workflow', () => {
+      for (const step of browserSteps(plan([toolbar])))
+        assert.ok(testsOf(step).every((test) => !test.includes('.perf.')))
+    })
+  })
+
   test('every step but the build has a time budget', () => {
     for (const files of Object.values(DIFFS))
       for (const step of plan(files).steps)
