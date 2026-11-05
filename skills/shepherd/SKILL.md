@@ -35,9 +35,16 @@ review your own work. Fix what it leaves open test-first with
 
 ## 3. Wait without burning the machine
 
-- CI runs remotely, so wait, don't poll hard:
-  `gh pr checks <n> --watch --interval 60 --fail-fast`, or one check a minute
-  or slower. Green means every check passed or was skipped (Roadie skips the
+- CI runs remotely, so never wait on it in the foreground: no `sleep`
+  loops, `gh run watch`, or `gh pr checks --watch`, since every poll re-reads
+  the whole session. After a push or `gh pr ready`, end your turn. In the
+  Claude desktop app, Auto-fix and `ci-monitor-event` messages wake the
+  session when checks finish or fail. Elsewhere, start one
+  `gh pr checks <n> --watch --interval 60 --fail-fast` as a background
+  command (`run_in_background`), which wakes you when it exits. A single
+  `gh pr checks <n>` to read the state is fine. Roadie's
+  `.claude/hooks/block-ci-polling.mjs` denies foreground waits, including any
+  `sleep` over 10 seconds. Green means every check passed or was skipped (Roadie skips the
   browser jobs when no package changes, and build too when docs don't, as in a
   skills-only PR). Before merging,
   wait for the run `gh pr ready` started, not a draft's green: a draft runs
@@ -131,7 +138,7 @@ rely on `gh pr update-branch --rebase`: it fails on any conflict. Resolve
 conflicts keeping both sides' intent. A clean rebase can still break a file,
 such as an MDX fence, so before pushing run lint and typecheck for every file
 both sides touched, docs MDX included (in Roadie, `pnpm --filter <package> lint`
-and `typecheck`, where the docs app is `docs`). Then push and wait for CI.
+and `typecheck`, where the docs app is `docs`). Then push and wait for CI as step 3 says.
 Right after the rebase, this lists those files:
 
 ```bash

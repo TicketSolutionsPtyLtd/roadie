@@ -127,7 +127,7 @@ export function planPrePush({
     commands: [
       ['node', 'scripts/check-component-docs.mjs'],
       ['node', 'scripts/check-docs-content.mjs'],
-      ['node', '--test', 'scripts/**/*.test.mjs']
+      ['node', '--test', 'scripts/**/*.test.mjs', '.claude/hooks/*.test.mjs']
     ]
   })
 
