@@ -8,6 +8,7 @@ import type { Editor as TiptapEditor } from '@tiptap/react'
 import { Button } from '@oztix/roadie-components/button'
 import { Popover } from '@oztix/roadie-components/popover'
 
+import { isText } from '../schema/isText'
 import { type EditorVariable, linkVariables } from '../schema/variables'
 import { EditorContext } from './EditorContext'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
@@ -41,7 +42,7 @@ type CurrentLink = { href?: string; variable?: string }
 function currentLink(editor: TiptapEditor): CurrentLink | undefined {
   const { href, variable }: Record<string, unknown> =
     editor.getAttributes('link')
-  if (typeof variable === 'string' && variable !== '') return { variable }
+  if (isText(variable)) return { variable }
   return typeof href === 'string' ? { href } : undefined
 }
 

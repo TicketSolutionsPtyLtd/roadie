@@ -1,3 +1,5 @@
+import { isText } from './isText'
+
 /**
  * A rule for showing an email block, naming a variable by key. The sending
  * system's syntax is chosen when the email renders.
@@ -8,9 +10,6 @@ export type ShowWhen =
   | { key: string; op: 'lessThan' | 'greaterThan'; value: number }
 
 export type ShowWhenOp = ShowWhen['op']
-
-const isText = (value: unknown): value is string =>
-  typeof value === 'string' && value !== ''
 
 /**
  * A saved rule with only its key, trimmed as a variable's is, its op and its
