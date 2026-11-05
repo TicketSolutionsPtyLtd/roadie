@@ -13,6 +13,7 @@ import {
 import { embedAttrs } from './embedAttrs'
 import { headingLevel } from './headings'
 import { isSafeImageSrc } from './imageSrc'
+import { isText } from './isText'
 import {
   BLOCK_ID,
   type NodeContent,
@@ -56,8 +57,6 @@ function picked(attrs: unknown, names: NodeShape['attrs'] = []) {
   return Object.fromEntries(kept.map((name) => [name, attrs[name]]))
 }
 
-const isText = (value: unknown): value is string =>
-  typeof value === 'string' && value !== ''
 function isKeptMark(mark: unknown, shape: PresetShape): mark is StoredMark {
   if (!isObject(mark) || typeof mark.type !== 'string') return false
   if (!Object.hasOwn(shape.marks, mark.type)) return false

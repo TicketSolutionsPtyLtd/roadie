@@ -136,10 +136,28 @@ export const Button = Node.create({
   addAttributes() {
     return {
       href: { default: undefined },
-      variable: { default: undefined },
-      align: { default: undefined },
-      emphasis: { default: undefined },
-      fullWidth: { default: undefined },
+      // From its data attributes only, as Tiptap reads a bare one by default.
+      variable: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute('data-variable') ?? undefined
+      },
+      align: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          buttonLook({ align: element.getAttribute('data-align') }).align
+      },
+      emphasis: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          buttonLook({ emphasis: element.getAttribute('data-emphasis') })
+            .emphasis
+      },
+      fullWidth: {
+        default: undefined,
+        parseHTML: (element: HTMLElement) =>
+          element.getAttribute('data-full-width') === null ? undefined : true
+      },
       ...showWhen
     }
   },
@@ -153,14 +171,7 @@ export const Button = Node.create({
           const href = element.getAttribute('href')
           const variable = element.getAttribute('data-variable')
           if (!variable && !isEmailHref(href)) return false
-          return {
-            ...(variable ? { variable } : { href }),
-            ...buttonLook({
-              align: element.getAttribute('data-align'),
-              emphasis: element.getAttribute('data-emphasis'),
-              fullWidth: element.getAttribute('data-full-width') !== null
-            })
-          }
+          return variable ? { variable } : { href }
         }
       }
     ]
