@@ -140,11 +140,7 @@ export function setColumnCount(count: number) {
 
 type Attrs = Record<string, unknown>
 
-const OUTLINE = 'outline outline-dashed outline-offset-2'
-
-// The saved schema renders bare divs. The editor outlines a spacer always,
-// and a section or a column on hover (in editor.css), outside the layout so
-// the page keeps the email's spacing.
+// The saved schema renders bare divs; editor.css outlines them for editing.
 function outlined(
   node: typeof Section,
   className: string,
@@ -215,7 +211,7 @@ const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
     'prose-bleed grid gap-4 @min-[480px]:auto-cols-fr @min-[480px]:grid-flow-col @min-[480px]:gap-6'
   ),
   column: outlined(Column, 'min-w-0 rounded-md'),
-  spacer: outlined(Spacer, `prose-bleed rounded-md ${OUTLINE}`, (attrs) => ({
+  spacer: outlined(Spacer, 'prose-bleed rounded-md', (attrs) => ({
     'data-height': String(attrs.height),
     style: `height: ${Number(attrs.height)}px`
   }))

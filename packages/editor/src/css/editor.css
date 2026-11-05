@@ -79,22 +79,29 @@
   line-height: 1.5rem;
 }
 
-[data-email] [data-type='spacer'] {
-  outline-color: var(--intent-border-subtle);
-}
+/* A spacer shows always, as it's otherwise invisible, and a section or a
+   column under the pointer or the caret. Outlines take no room from the
+   email's spacing. Layered and in :where() so a chosen block's halo and a
+   selected node's ring win. */
+@layer components {
+  [data-email] :where([data-type='spacer']) {
+    outline: 1px dashed var(--intent-border-subtle);
+    outline-offset: 2px;
+  }
 
-/* A section or a column shows where it is under the pointer or the caret,
-   as an outline, so it takes no room from the email's spacing. */
-[data-email] :is([data-type='section'], [data-type='column']) {
-  outline: 1px dashed transparent;
-  outline-offset: calc(var(--spacing) * 1);
-  transition: outline-color var(--duration-normal);
-}
+  [data-email] :where([data-type='section'], [data-type='column']) {
+    outline: 1px dashed transparent;
+    outline-offset: calc(var(--spacing) * 1);
+    transition: outline-color var(--duration-normal);
+  }
 
-[data-email] :is([data-type='section'], [data-type='column']):hover,
-[data-email]
-  :is([data-type='section'], [data-type='column']):has([data-focused-block]) {
-  outline-color: var(--intent-border-normal);
+  [data-email]
+    :where([data-type='section'], [data-type='column']):where(
+      :hover,
+      :has([data-focused-block])
+    ) {
+    outline-color: var(--intent-border-normal);
+  }
 }
 
 /* A boxed editor isn't a text field, so it keeps only the field's invalid
