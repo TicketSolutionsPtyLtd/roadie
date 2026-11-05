@@ -2,6 +2,7 @@ import type { JSONContent } from '@tiptap/core'
 
 import { isEmailHref } from '../schema/emailAttrs'
 import { headingLevel } from '../schema/headings'
+import { isText } from '../schema/isText'
 import type { LinkTag, MergeTag } from './mergeTags'
 import type { EmailTheme } from './theme'
 
@@ -54,7 +55,7 @@ export function emailHref(
   { href, variable }: Record<string, unknown> = {},
   { linkTag }: TextContext
 ) {
-  if (typeof variable === 'string' && variable !== '') return linkTag(variable)
+  if (isText(variable)) return linkTag(variable)
   return isEmailHref(href) ? escapeHtml(href) : undefined
 }
 
