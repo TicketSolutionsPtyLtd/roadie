@@ -44,10 +44,10 @@ export type EditorBlock = {
    * saves, so keep them to its inputs, never rendered content.
    */
   node: Node
-  /** Its name in the slash menu. */
+  /** Its name in the insert menu. */
   label: string
-  /** A bold Phosphor icon for the slash menu. */
+  /** A bold Phosphor icon for the insert menu. */
   icon: Icon
-  /** Other words the slash menu finds it by. */
+  /** Other words the insert menu finds it by. */
   keywords?: readonly string[]
 }

@@ -4,7 +4,7 @@ import { TicketIcon } from '@phosphor-icons/react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { server, userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -18,6 +18,7 @@ import {
 } from '../extensions'
 import { renderEditorValue } from '../render'
 import type { EditorValue } from '../schema'
+import { MOD } from './testUtils'
 
 const LABEL = 'Page'
 
@@ -79,7 +80,7 @@ async function focusedTextbox() {
 }
 
 describe('Editor extensions', () => {
-  it('inserts an app’s block from the slash menu, found by a keyword', async () => {
+  it('inserts an app’s block from the insert menu, found by a keyword', async () => {
     const onValueChange = vi.fn()
     render(
       <Editor
@@ -103,6 +104,63 @@ describe('Editor extensions', () => {
         attrs: { eventId: '', blockId: expect.any(String) }
       })
     )
+  })
+
+  it('lists an app’s blocks after the preset’s', async () => {
+    render(
+      <Editor aria-label={LABEL} preset='blocks' extensions={[eventCard]} />
+    )
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+
+    const options = within(
+      await screen.findByRole('listbox', { name: 'Insert' })
+    ).getAllByRole('option')
+    expect(options.map((option) => option.textContent).slice(-2)).toEqual([
+      'Table',
+      'Event card'
+    ])
+  })
+
+  it('undoes an app’s block back to what was typed', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        extensions={[eventCard]}
+        onValueChange={onValueChange}
+      />
+    )
+    await focusedTextbox()
+
+    await userEvent.keyboard('/gig{Enter}')
+    await screen.findByRole('textbox', { name: 'Event' })
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(lastValue(onValueChange).doc.content).toMatchObject([
+        { type: 'paragraph', content: [{ type: 'text', text: '/gig' }] }
+      ])
+    )
+  })
+
+  it('offers no app’s block in a table cell', async () => {
+    render(
+      <Editor aria-label={LABEL} preset='blocks' extensions={[eventCard]} />
+    )
+    await focusedTextbox()
+    await userEvent.keyboard('/table{Enter}')
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+
+    await userEvent.keyboard('/')
+
+    expect(
+      within(await screen.findByRole('listbox', { name: 'Insert' }))
+        .getAllByRole('option')
+        .map((option) => option.textContent)
+    ).toEqual(['Paragraph'])
   })
 
   it('saves what its view edits, and renders it through /render', async () => {
@@ -332,4 +390,69 @@ describe('Editor extensions', () => {
       expect(blocks().map(([, id]) => id)).toEqual([copy![1], 'card', 'doors'])
     )
   })
+
+  // A WebKit drag leaves the mouse pressed for the next file
+  // (docs/solutions/test-failures/webkit-native-drag-leaves-mouse-pressed.md).
+  it.skipIf(server.browser === 'webkit')(
+    'moves an app’s block dragged by its handle, keeping its id',
+    async () => {
+      const onValueChange = vi.fn()
+      render(
+        <Editor
+          aria-label={LABEL}
+          preset='blocks'
+          extensions={[eventCard]}
+          onValueChange={onValueChange}
+          defaultValue={{
+            version: 1,
+            preset: 'blocks',
+            doc: {
+              type: 'doc',
+              content: [
+                {
+                  type: 'eventCard',
+                  attrs: { eventId: 'okw', blockId: 'card' }
+                },
+                {
+                  type: 'paragraph',
+                  attrs: { blockId: 'doors' },
+                  content: [{ type: 'text', text: 'Doors 7pm' }]
+                }
+              ]
+            }
+          }}
+        />
+      )
+      await userEvent.hover(
+        await screen.findByRole('textbox', { name: 'Event' })
+      )
+      const handle = await screen.findByRole('button', {
+        name: 'Block actions'
+      })
+      const target = await screen.findByText('Doors 7pm')
+
+      await userEvent.dragAndDrop(handle, target, {
+        targetPosition: {
+          x: target.offsetWidth - 2,
+          y: target.offsetHeight / 2
+        }
+      })
+
+      // An atom dropped at a line's end splits it, leaving an empty line after.
+      await waitFor(() =>
+        expect(
+          lastValue(onValueChange)
+            .doc.content!.slice(0, 2)
+            .map((node) => [
+              node.type,
+              node.attrs?.blockId,
+              node.attrs?.eventId
+            ])
+        ).toEqual([
+          ['paragraph', 'doors', undefined],
+          ['eventCard', 'card', 'okw']
+        ])
+      )
+    }
+  )
 })

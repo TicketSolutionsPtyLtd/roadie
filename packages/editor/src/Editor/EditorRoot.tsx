@@ -70,7 +70,7 @@ export type EditorRootProps = {
   resolveUrl?: (url: string) => Promise<string>
   /**
    * An app's own blocks, from `@oztix/roadie-editor/extensions`, for the
-   * `blocks` preset. Each saves its attrs, shows in the slash menu, and
+   * `blocks` preset. Each saves its attrs, shows in the insert menu, and
    * renders with `/render`'s matching `nodeMapping` entry. Read once, when
    * the editor is created.
    */

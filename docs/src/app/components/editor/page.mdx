@@ -589,7 +589,8 @@ import {
   them, not the text around the block. A read-only or disabled editor
   ignores its `updateAttributes`.
 - Pass `{ node, label, icon, keywords }` in `extensions` to show it in the
-  slash menu. The editor reads `extensions` once, when it's created.
+  insert menu, after the preset's blocks and only where it fits. The editor
+  reads `extensions` once, when it's created.
 - Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
   block that gets its `attrs`. Read each as untrusted input. A block with no
   entry is dropped, never shown raw, and so is every custom block in

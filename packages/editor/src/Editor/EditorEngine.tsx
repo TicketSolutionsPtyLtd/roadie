@@ -70,7 +70,7 @@ import {
   replaceImage,
   uploadImages
 } from './imageUpload'
-import { presetInsertItems } from './insertItems'
+import { customInsertItem, presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { resolvedPreset } from './startingValue'
@@ -165,13 +165,13 @@ function presetSchema(preset: Preset) {
   return schema
 }
 
-/** An app's blocks, only in the preset that takes them, as Tiptap nodes. */
 /** Whether a block's name is one the preset's own nodes or marks use. */
 function takenName(preset: Preset, { node }: EditorBlock) {
   const { nodes, marks } = presetSchema(preset)
   return Object.hasOwn(nodes, node.name) || Object.hasOwn(marks, node.name)
 }
 
+/** An app's blocks, only in the preset that takes them. */
 function blocksFor(preset: Preset, blocks: readonly EditorBlock[] = []) {
   if (preset !== 'blocks') return []
   return blocks.filter((block) => !takenName(preset, block))
@@ -387,7 +387,10 @@ export function EditorEngine({
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
       InsertMenu.configure({
-        items: presetInsertItems[preset] ?? [],
+        items: [
+          ...(presetInsertItems[preset] ?? []),
+          ...blocks.map(customInsertItem)
+        ],
         ui: () => uiRef.current!,
         onChange: setInsertMenu
       }),
@@ -555,7 +558,6 @@ export function EditorEngine({
         ...ui,
         editingLink,
         embedProviders,
-        blocks,
         TiptapContent,
         ToolbarEngine: EditorToolbarEngine,
         BubbleMenuEngine: EditorBubbleMenuEngine
