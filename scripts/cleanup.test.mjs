@@ -17,6 +17,12 @@ import { fileURLToPath } from 'node:url'
 
 const scripts = dirname(fileURLToPath(import.meta.url))
 const roots = []
+
+// The pre-push hook runs these tests with GIT_DIR and friends pointing at the
+// repo being pushed, which would send every fixture git call there instead.
+const gitFreeEnv = Object.fromEntries(
+  Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))
+)
 after(() => {
   for (const root of roots) rmSync(root, { recursive: true, force: true })
 })
@@ -40,7 +46,7 @@ function fixture() {
   chmodSync(join(bin, 'pnpm'), 0o755)
 
   const git = (cwd, ...args) =>
-    execFileSync('git', args, { cwd, encoding: 'utf8' }).trim()
+    execFileSync('git', args, { cwd, encoding: 'utf8', env: gitFreeEnv }).trim()
   git(repo, 'init', '-q', '-b', 'main')
   git(repo, 'config', 'user.email', 'test@example.com')
   git(repo, 'config', 'user.name', 'Test')
@@ -99,8 +105,8 @@ function fixture() {
           cwd: repo,
           encoding: 'utf8',
           env: {
-            ...process.env,
-            PATH: `${bin}:${process.env.PATH}`,
+            ...gitFreeEnv,
+            PATH: `${bin}:${gitFreeEnv.PATH}`,
             FAKE_GH_PRS: JSON.stringify(prs),
             ROADIE_BRANCH_PREFIX: '',
             ...env
