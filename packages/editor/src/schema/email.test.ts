@@ -156,6 +156,8 @@ describe('presets.email', () => {
   it.each([
     ['/images/crowd.webp', false],
     ['http://assets.oztix.com.au/crowd.webp', false],
+    ['https://assets.oztix.com.au/the crowd.webp', false],
+    ['https://[oztix/crowd.webp', false],
     [poster, expect.objectContaining({ src: poster })]
   ])('reads a pasted image from %s as %j', (src, read) => {
     expect(pastedAttrs('image', pastedImage(src))).toEqual(read)
@@ -168,7 +170,8 @@ describe('presets.email', () => {
     ['javascript:alert(1)', false],
     ['/ochre-kite-weekender', false],
     ['mailto:', false],
-    ['https://', false]
+    ['https://', false],
+    ['https://www.oztix .com.au', false]
   ])('reads a pasted button to %s as %j', (href, read) => {
     expect(pastedAttrs('button', pastedButton(href))).toEqual(read)
   })
@@ -368,6 +371,7 @@ describe('migrate and the email preset', () => {
   it.each([
     [40, 40],
     [40.4, 40],
+    [40.6, 41],
     [2, 8],
     [500, 160],
     ['40', 32],

@@ -1,9 +1,11 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
+import { Editor as TiptapEditor, getSchema } from '@tiptap/core'
+import { DOMParser, DOMSerializer, Node } from '@tiptap/pm/model'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
-import type { EditorValue, JSONContent } from '../schema'
+import { type EditorValue, type JSONContent, presets } from '../schema'
 import { LINE_END } from './testUtils'
 
 const LABEL = 'Newsletter'
@@ -78,6 +80,41 @@ afterEach(() => {
 })
 
 describe('Editor with the email preset', () => {
+  it('leads with the block type, then the basic controls, with no Quote, Divider, Image, Embed or Table', async () => {
+    render(<Editor aria-label={LABEL} preset='email' />)
+    const toolbar = await screen.findByRole('toolbar', { name: 'Formatting' })
+
+    expect(
+      Array.from(toolbar.children, (item) =>
+        item.getAttribute('role') === 'separator'
+          ? '|'
+          : (item.getAttribute('aria-label') ?? item.textContent)
+      )
+    ).toEqual([
+      'Block type: Paragraph',
+      '|',
+      'Bold',
+      'Italic',
+      'Underline',
+      'Link',
+      '|',
+      'Bulleted list',
+      'Numbered list',
+      '|',
+      'Undo',
+      'Redo'
+    ])
+
+    await userEvent.click(screen.getByRole('button', { name: /^Block type/ }))
+    const menu = await screen.findByRole('menu')
+    expect(within(menu).getAllByRole('menuitemradio')).toHaveLength(4)
+    expect(within(menu).queryByRole('menuitemradio', { name: /Quote/ })).toBe(
+      null
+    )
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
+  })
+
   it('edits text in a column of a saved layout and saves the layout with it', async () => {
     const onValueChange = vi.fn()
     render(
@@ -183,5 +220,58 @@ describe('Editor with the email preset', () => {
     expect(
       await within(textbox).findByRole('img', { name: 'The poster' })
     ).toHaveAttribute('src', poster)
+  })
+})
+
+describe('the email preset’s HTML', () => {
+  const schema = getSchema(presets.email)
+
+  it('reads its own HTML back unchanged, as a copy and paste does', () => {
+    const copied: JSONContent = {
+      type: 'doc',
+      content: [
+        ...layout('Doors 7pm').content!,
+        {
+          type: 'image',
+          attrs: {
+            src: 'https://assets.example.com/poster.webp',
+            alt: 'The poster',
+            width: 280
+          }
+        },
+        { type: 'spacer', attrs: { height: 40 } }
+      ]
+    }
+    const holder = document.createElement('div')
+    holder.append(
+      DOMSerializer.fromSchema(schema).serializeFragment(
+        Node.fromJSON(schema, copied).content
+      )
+    )
+
+    expect(DOMParser.fromSchema(schema).parse(holder).toJSON()).toEqual(copied)
+  })
+
+  it('inserts an image with setImage only from https', () => {
+    const editor = new TiptapEditor({
+      extensions: presets.email,
+      content: { type: 'doc', content: [p('Doors 7pm')] }
+    })
+
+    expect(editor.commands.setImage({ src: '/images/poster.webp' })).toBe(false)
+    expect(
+      editor.commands.setImage({
+        src: 'https://assets.example.com/poster.webp'
+      })
+    ).toBe(true)
+    expect(editor.getJSON().content).toContainEqual({
+      type: 'image',
+      attrs: {
+        src: 'https://assets.example.com/poster.webp',
+        alt: '',
+        width: null
+      }
+    })
+    editor.destroy()
   })
 })
