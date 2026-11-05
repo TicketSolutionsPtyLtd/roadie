@@ -22,11 +22,16 @@ import {
   PaintBrushIcon,
   PaletteIcon,
   PencilLineIcon,
+  RowsIcon,
   SparkleIcon,
   SquaresFourIcon
 } from '@phosphor-icons/react'
 
-import type { CatalogueCategory, CatalogueEntry } from '@/lib/page-manifest'
+import type {
+  CatalogueCategory,
+  CatalogueEntry,
+  PageWidth
+} from '@/lib/page-manifest'
 import { useRoute } from '@/lib/route'
 import type { SourceLink } from '@/lib/source-links'
 import type { PageStatus } from '@/lib/status'
@@ -74,7 +79,7 @@ type NavigationProps = {
   /** Route → page title, rendered as `Pane.BodyTitle`. */
   pageTitles: Record<string, string>
   /** Routes whose content column drops the standard reading-width cap. */
-  pageWide: Record<string, boolean>
+  pageWide: Record<string, PageWidth>
   /** Routes with a markdown twin at `{route}.md`. */
   markdownTwins: Record<string, boolean>
   /** Route → its status and releases, for pages that set a status. */
@@ -95,6 +100,7 @@ const DESTINATION_ICONS: Record<string, ReactNode> = {
   '/tokens': <PaletteIcon />,
   '/components': <CubeIcon />,
   '/charts': <ChartLineIcon />,
+  '/blocks': <RowsIcon />,
   '/roadie-widgets': <SquaresFourIcon />
 }
 /* eslint-enable roadie/phosphor-icon-weight */
@@ -161,12 +167,15 @@ export function DocsNavigator({
   )
 
   const related = relatedLinks(route)
-  const isWide = pageWide[route] ?? false
+  const isWide = pageWide[route] === true
+  const wideExamples = pageWide[route] === 'examples'
   // A page's own inspector, such as the changelog's months, replaces "On this page".
   const [pageInspector, setPageInspector] = useState<ReactNode>(null)
   const toc = useDocHeadings(pageInspector === null)
   const showInspector =
-    (pageInspector !== null || toc.headings.length >= 2) && !isWide
+    (pageInspector !== null || toc.headings.length >= 2) &&
+    !isWide &&
+    !wideExamples
   // Held here so picking a heading can close the drawer the column yields into.
   const [tocRevealed, setTocRevealed] = useState(false)
   const inspectorSlot = useMemo(
@@ -309,7 +318,7 @@ export function DocsNavigator({
           <Navigator.ExpandToggle />
         </Navigator.Primary>
 
-        <Pane className='scroll-pt-6'>
+        <Pane className='@container/docs-pane scroll-pt-6'>
           <Pane.Header>
             <Pane.Actions>
               {sourceLinks[route] ? (
@@ -325,6 +334,7 @@ export function DocsNavigator({
           </Pane.Header>
           <div
             id='docs-content'
+            data-wide-examples={wideExamples || undefined}
             className={`mx-auto grid w-full gap-0 py-6 md:py-12 [&_:is(h1,h2,h3,h4)]:scroll-mt-6 ${isWide ? '' : 'max-w-200'}`}
           >
             {/* The homepage and debug routes have no metadata.title and keep their own h1. */}

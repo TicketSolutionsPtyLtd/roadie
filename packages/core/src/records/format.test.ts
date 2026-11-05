@@ -25,8 +25,8 @@ describe('formatRecordValue', () => {
     ['a status label', 'status', eventRows.walrus, 'Selling fast'],
     ['a status key, humanised', 'status', eventRows.drongo, 'On sale'],
     ['a number', 'capacity', { capacity: 1234.56 }, '1,234.6'],
-    ['money in dollars', 'gross', eventRows.walrus, '$12,500'],
-    ['zero as a value', 'gross', eventRows.drongo, '$0'],
+    ['money in dollars', 'gross', eventRows.walrus, '$12,500.00'],
+    ['zero as a value', 'gross', eventRows.drongo, '$0.00'],
     ['a boolean', 'featured', eventRows.walrus, 'Yes'],
     ['false as a value', 'featured', eventRows.drongo, 'No'],
     ['a plain date as itself', 'birthday', eventRows.tba, 'Wed 3 Oct 1990'],
@@ -53,6 +53,29 @@ describe('formatRecordValue', () => {
     ['an empty list as nothing', 'genres', eventRows.festival, null]
   ])('reads %s', (_, key, row, expected) => {
     expect(formatRecordValue(row, field(key), options)).toBe(expected)
+  })
+
+  it('keeps an end held as an instant after a plain start date, as a date in the zone', () => {
+    const run: RecordField = {
+      key: 'opens',
+      label: 'Run',
+      type: 'date',
+      moment: 'date',
+      end: 'closes'
+    }
+    expect(
+      formatRecordValue(
+        { opens: '2026-10-03', closes: '2026-10-04T20:00:00Z' },
+        run,
+        options
+      )
+    ).toBe(
+      formatRecordValue(
+        { opens: '2026-10-03', closes: '2026-10-05' },
+        run,
+        options
+      )
+    )
   })
 
   it('reads a list of dates as each date', () => {
@@ -99,6 +122,38 @@ describe('formatRecordValue', () => {
     expect(formatRecordValue({ sold: 12_400 }, sold, options)).toBe('12.4k')
   })
 
+  it('formats to the field’s decimal places', () => {
+    const share: RecordField = {
+      key: 'share',
+      label: 'Share',
+      type: 'number',
+      format: 'percent',
+      decimals: 2
+    }
+    expect(formatRecordValue({ share: 0.0127 }, share, options)).toBe('1.27%')
+    const gross: RecordField = {
+      key: 'gross',
+      label: 'Gross',
+      type: 'money',
+      trailingZeroDisplay: 'stripIfInteger'
+    }
+    expect(formatRecordValue({ gross: 12_500 }, gross, options)).toBe('$12,500')
+    const nzd = { ...gross, currency: 'NZD' }
+    expect(formatRecordValue({ gross: 12_500 }, nzd, options)).toBe(
+      'NZD 12,500'
+    )
+    expect(formatRecordValue({ gross: 12_500.5 }, nzd, options)).toBe(
+      'NZD 12,500.50'
+    )
+    expect(
+      formatRecordValue(
+        { gross: 12_500.5 },
+        { ...nzd, trailingZeroDisplay: undefined, decimals: 0 },
+        options
+      )
+    ).toBe('NZD 12,501')
+  })
+
   it('names a currency other than dollars', () => {
     const gross: RecordField = {
       key: 'gross',
@@ -108,24 +163,54 @@ describe('formatRecordValue', () => {
     }
     expect(
       formatRecordValue({ gross: 12_500, currency: 'NZD' }, gross, options)
-    ).toBe('NZD\u00a012,500')
+    ).toBe('NZD\u00a012,500.00')
     expect(
       formatRecordValue({ gross: 12_500, currency: 'AUD' }, gross, options)
-    ).toBe('$12,500')
+    ).toBe('$12,500.00')
   })
 
-  it('reads another currency like dollars at the edges', () => {
+  it.each<[number, RecordField['format'], string]>([
+    [Number.POSITIVE_INFINITY, undefined, 'Not available'],
+    [-1234.5, undefined, '-NZD\u00a01,234.50'],
+    [1_234_567, 'compactCurrency', 'NZD\u00a01.2M'],
+    [999.5, 'compactCurrency', 'NZD\u00a0999.50']
+  ])('reads %s as %s in NZD: %s', (value, format, expected) => {
     const gross: RecordField = {
       key: 'gross',
       label: 'Gross',
       type: 'money',
-      currency: 'NZD'
+      currency: 'NZD',
+      format
     }
-    const read = (value: number, format?: RecordField['format']) =>
-      formatRecordValue({ gross: value }, { ...gross, format }, options)
-    expect(read(Number.POSITIVE_INFINITY)).toBe('Not available')
-    expect(read(-1234.5)).toBe('-NZD\u00a01,234.50')
-    expect(read(1_234_567, 'compactCurrency')).toBe('NZD\u00a01.2M')
+    expect(formatRecordValue({ gross: value }, gross, options)).toBe(expected)
+  })
+
+  it('reads another currency to the field’s places as dollars do', () => {
+    const read = (value: number, places: Partial<RecordField>) =>
+      formatRecordValue(
+        { gross: value },
+        { key: 'gross', label: 'Gross', type: 'money', ...places },
+        options
+      )
+    const decimals = Number.parseFloat('two')
+    expect(read(12_500.5, { decimals })).toBe('$12,500.50')
+    expect(read(12_500.5, { currency: 'NZD', decimals })).toBe(
+      'NZD\u00a012,500.50'
+    )
+    const compact = { format: 'compactCurrency', decimals: 0 } as const
+    expect(read(640.5, compact)).toBe('$640.50')
+    expect(read(640.5, { ...compact, currency: 'NZD' })).toBe('NZD\u00a0640.50')
+  })
+
+  it('keeps the field’s places when it falls back to dollars', () => {
+    const gross: RecordField = {
+      key: 'gross',
+      label: 'Gross',
+      type: 'money',
+      currency: 'dollars',
+      trailingZeroDisplay: 'stripIfInteger'
+    }
+    expect(formatRecordValue({ gross: 12_500 }, gross, options)).toBe('$12,500')
   })
 
   it('shows text it cannot format as given', () => {

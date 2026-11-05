@@ -185,3 +185,71 @@ describe('funnel with a repeated step', () => {
     ])
   })
 })
+
+describe('funnel decimal places', () => {
+  const gross: FunnelProps = {
+    steps: [
+      { label: 'Carts', value: 1200 },
+      { label: 'Paid', value: 600 }
+    ],
+    format: 'currency',
+    trailingZeroDisplay: 'stripIfInteger'
+  }
+  const paid = { x: 'Paid', y: 600, series: 'Steps', index: 1 }
+
+  it('reads values to the decimal places on the plot, in the tooltip, aloud and in the table', () => {
+    const plot = svgOf(gross)
+    expect(plot).toContain('>$1,200<')
+    expect(plot).toContain('>$600, 50% of previous<')
+    expect(
+      funnel.tooltip([paid], gross, paint).rows.map((r) => [r.label, r.value])
+    ).toEqual([
+      ['Count', '$600'],
+      ['Of previous', '50%'],
+      ['Dropped', '$600'],
+      ['Of first', '50%']
+    ])
+    expect(funnel.describe(paid, gross)).toBe(
+      'Paid, $600, 50% of the previous step, 50% of the first'
+    )
+    const columns = funnelTable(gross).columns
+    expect(columns[1]).toMatchObject({
+      key: 'count',
+      trailingZeroDisplay: 'stripIfInteger'
+    })
+    expect(columns[4]).toMatchObject({
+      key: 'dropped',
+      trailingZeroDisplay: 'stripIfInteger'
+    })
+  })
+})
+
+describe('funnel conversion to decimal places', () => {
+  it('reads conversion to the decimal places on the plot, in the tooltip, aloud and in the table', () => {
+    const tenths: FunnelProps = {
+      steps: [
+        { label: 'Carts', value: 1200 },
+        { label: 'Paid', value: 590 }
+      ],
+      decimals: 1
+    }
+    const paid = { x: 'Paid', y: 590, series: 'Steps', index: 1 }
+    expect(svgOf(tenths)).toContain('>590.0, 49.2% of previous<')
+    expect(svgOf(tenths, 'narrow')).toContain('>49.2%<')
+    expect(funnel.summary(tenths)).toBe(
+      '49.2% reached Paid from Carts. The biggest drop is before Paid'
+    )
+    expect(
+      funnel.tooltip([paid], tenths, paint).rows.map((r) => r.value)
+    ).toEqual(['590.0', '49.2%', '610.0', '49.2%'])
+    expect(funnel.describe(paid, tenths)).toBe(
+      'Paid, 590.0, 49.2% of the previous step, 49.2% of the first'
+    )
+    const columns = funnelTable(tenths).columns
+    for (const key of ['ofPrevious', 'ofFirst'])
+      expect(columns.find((c) => c.key === key)).toMatchObject({
+        format: 'percent',
+        decimals: 1
+      })
+  })
+})

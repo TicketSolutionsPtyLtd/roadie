@@ -65,6 +65,9 @@ const description: EditorValue = {
   `alt`), embeds (`embed`, saving only `provider`, `id`, and `params`), and
   tables (`table`, `tableRow`, `tableHeader` and `tableCell`, saving only a
   cell's `colspan` and `rowspan`). A cell holds paragraphs only.
+  `presets.blocks` holds what `rich` does, and every block but a table's
+  rows and cells saves a `blockId` string. Key each record's editor by its
+  record, or a reused editor keeps the last record's ids.
   An image's `src` is `https` or a root-relative path, and its `alt` is `''`
   until someone writes it.
 - `doc` is Tiptap's JSON, with Tiptap's default names (`paragraph`,
@@ -106,8 +109,9 @@ only paragraphs in cells, keeping the text of any other block as paragraphs,
 keeps a cell's `colspan` and `rowspan` only when whole, positive and no more
 than HTML allows (1,000 and 65,534), gives an empty cell a paragraph, and drops a row with no cells and a table with no
 rows. Read into `basic`, a table keeps its cells' text as paragraphs. So
-every value it returns loads in Tiptap. `createEmptyValue(preset)` starts a
-new value.
+every value it returns loads in Tiptap. It keeps a `blockId` only when it's a
+non-empty string no earlier block uses, so the editor gives the others new
+ones. `createEmptyValue(preset)` starts a new value.
 
 ## Rendering a stored value
 

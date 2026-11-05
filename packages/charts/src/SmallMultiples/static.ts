@@ -33,8 +33,8 @@ export function renderSmallMultiplesSvg(
   const height = rows * (PANEL_HEIGHT + CAPTION) + GAP * (rows - 1)
   const domain = sharedDomain(props)
   const captionFrame = plotFrame(PANEL_HEIGHT, 'default')
-  const { chart } = props
   const inner = panels.map((panel, i) => {
+    const { chart } = panel
     const x = (i % columns) * (panelWidth + GAP)
     const y = Math.floor(i / columns) * (PANEL_HEIGHT + CAPTION + GAP)
     const options = {

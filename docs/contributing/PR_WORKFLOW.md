@@ -85,7 +85,11 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   with a docs page of its own. An import path in brackets can follow a
   name. Then a comma and what it is, which becomes the card's description:
   "Add `Calendar` (`@oztix/roadie-components/calendar`), a month grid for
-  choosing a date." A new package opens "First release of
+  choosing a date." After the names, only a comma or other punctuation,
+  "component", "compound", or "for" keeps it a card. Anything else reads
+  as a part of the component, so "Add `Badge` `tag` variant." and "Add
+  `Badge` support for icons." list as changes.
+  A new package opens "First release of
   `@oztix/roadie-name`", with a paragraph after that sentence to describe
   it, and needs entries in `RELEASED_PACKAGES` and `PACKAGE_PAGES` in
   `docs/src/lib/releases.ts`. CI warns when a changeset misses a card
@@ -150,8 +154,30 @@ Every PR is checked against these before review. Fix every real hit.
 - `pnpm build && pnpm typecheck && pnpm lint && pnpm test`, the browser
   tests for the files you touched, and the `size` script of every
   touched package that has one (`pnpm --filter <package> size`; `docs`
-  has none).
+  has none). `pnpm build` builds the packages only, so also run
+  `pnpm build:docs` when the change touches anything the docs site reads:
+  a docs page, a docs component, or a package's exports or CSS. When a
+  change touches a package's `exports`, `files`, or types, also run
+  `pnpm turbo check:package --filter='./packages/*'` (attw, `check:dts`,
+  the Node ESM import check, and the tarball guard), which `build`
+  doesn't run.
 - Rebuild before browser tests; stale `dist` misleads the `:has()` guard.
+- **Docs e2e tests** (`docs/e2e/`) drive the static export in `docs/out`
+  with Playwright, so build the docs first, with the base path CI uses, and
+  pass the same base path to the tests:
+
+  ```bash
+  NEXT_PUBLIC_BASE_PATH=/roadie pnpm turbo build --filter=docs
+  NEXT_PUBLIC_BASE_PATH=/roadie pnpm --filter docs test:e2e
+  ```
+
+  They run in Chromium; set `E2E_BROWSER=firefox` or `E2E_BROWSER=webkit`
+  for another engine (`pnpm exec playwright install <engine>` once). CI
+  adds Firefox on `main` and on a PR with the `full-browsers` label; run
+  WebKit locally, since on Linux it times out. Add a
+  file path after `test:e2e` to run one file. Rebuild after any change the
+  tests read, since they never see your source, only `out`.
+
 - **Keep the machine cool.** Check `uptime` before starting an agent, and
   wait while the 1-minute load is above the core count. Run tests with
   `pnpm test:gated <package>`, never vitest or `pnpm test` directly. It
@@ -160,11 +186,16 @@ Every PR is checked against these before review. Fix every real hit.
   the package's `test` and `test:browser` scripts; the CPU-throttled perf
   tests run only with `--perf`. A draft PR runs no browser tests in CI, and
   marking it ready runs them once, in Chromium only. WebKit and Firefox run
-  on `main` and nightly, or on the PR with the `full-browsers` label. The pre-push hook also waits for
-  the load before it typechecks and tests, and fails the push after 30
-  minutes. Give browser tests explicit timeouts and never wait on an infinite
-  animation. Stop dev servers you start, and run `pnpm cleanup` (`--delete` to
-  delete) when disk runs low.
+  on `main` and nightly, or on the PR with the `full-browsers` label. The
+  pre-push hook waits up to 15 seconds for the load, then checks only what
+  the diff touches: the repo guards, formatting, an incremental typecheck of
+  the changed packages, and their tests beside the change plus their guard
+  tests. It builds what the typecheck reads with no time budget, since a
+  build stopped midway empties `dist`, and gives every other step one. It
+  prints what it left to CI with the command to run each, so never push with
+  `--no-verify`. Give browser tests explicit timeouts and never wait on an
+  infinite animation. Stop dev servers you start, and run `pnpm cleanup`
+  (`--delete` to delete) when disk runs low.
 - **Demo user-visible changes before pushing.** `pnpm preview` serves the
   docs from your worktree and prints the URLs a phone can open; set
   `ROADIE_PORT_RANGE` to your session's range and extra hosts in
@@ -215,9 +246,9 @@ the PR only when the review is clean.
 - **Evidence renders inline on GitHub**, because the maintainer reviews on a
   phone. Take viewport-only screenshots, with no browser chrome, address bar,
   or local URL. Push them to an orphan branch named
-  `<prefix>/<topic>-screenshots` that holds only the images (push it with
-  `--no-verify`, since the code hooks can't run there), and embed them in
-  the body with `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`.
+  `<prefix>/<topic>-screenshots` that holds only the images (the pre-push
+  hook skips a branch with no history in common with `main`), and embed them
+  in the body with `https://github.com/<owner>/<repo>/blob/<branch>/<file>?raw=true`.
   Never link local files, gists, or artifacts. For baselines CI renders, link
   the run and embed a few representative images.
 - **Open it as a draft** (`gh pr create --draft`). CI on a draft runs only
@@ -250,10 +281,13 @@ the PR only when the review is clean.
   or API) gets a fresh review of the fix commits (section 6).
 - **One-way doors** always get the maintainer's review: removing or renaming
   a public export, prop, intent, or subpath; changing a token's value or
-  meaning; the shared CSS cascade, layers, base styles, or `.prose` output;
-  and release contents. Merge danger opens with the door. A one-way door
-  names the item it hits; anything else is a two-way door, which says why a
-  revert undoes it.
+  meaning; the shared CSS cascade, layers, or base styles; and release
+  contents. `.prose` output is a two-way door, since a revert restores it,
+  unless the change edits the cascade, layers, or base styles, or removes or
+  renames a class, attribute, or variable apps write, such as `.not-prose`,
+  `data-not-prose`, or `--prose-measure`. Merge danger opens with the door.
+  A one-way door names the item it hits; anything else is a two-way door,
+  which says why a revert undoes it.
 - A Copilot review the maintainer requests reads
   `.github/copilot-instructions.md`; update that file when a convention or a
   deliberate decision changes, and keep it under 4,000 characters (Copilot
@@ -266,8 +300,9 @@ the PR only when the review is clean.
 - **A bot or reviewer finding is a gap in the local review.** Fix the real
   ones yourself; `/roadie:retro` turns repeats into review classes.
 - **Triage instead of looping.** Critical and Important findings are always
-  fixed, however rare the case. A Minor one is fixed only if a real user
-  would hit it in normal use; the rest become Jira follow-ups (section 9).
+  fixed, however rare the case. A Minor one is fixed in this PR when it's in
+  code the PR changes; one in code the PR doesn't touch becomes a Jira
+  follow-up (section 9).
 - **Flaky tests**: a known flake may be re-run once. A flake seen on two
   unrelated PRs gets fixed at its root in its own PR. Until then it can go on
   the quarantine list in `vitest.browsers.config.ts`, with its ticket. CI
@@ -302,7 +337,9 @@ It shows `CI result`, mirrored from main's CI, and needs no admin bypass
 
 ## 9. Nothing deferred is dropped
 
-Every Minor finding not fixed in its own PR becomes a Jira work item in the
+A Minor finding in code the PR changes, meaning any file in its diff, is fixed
+in that PR, not filed. Every Minor finding in a file the PR doesn't touch
+becomes a Jira work item in the
 **INNO** project with the **Roadie** component and the `follow-up` label,
 holding the file and line, the finding, and a link to the PR thread it came
 from. Add to the open `Roadie follow-ups: <area>` item before creating one,
