@@ -252,7 +252,42 @@ describe.each(renderers)('%s', (_, render) => {
         }
       })
     ).toBe(
-      '<p>Doors 7pm</p><p>All ages</p><a href="https://www.oztix.com.au" target="_blank" rel="noopener noreferrer" data-slot="link" class="link-normal">Go</a>'
+      '<p>Doors 7pm</p><p>All ages</p><p><a href="https://www.oztix.com.au" target="_blank" rel="noopener noreferrer" data-slot="link" class="link-normal">Go</a></p>'
+    )
+  })
+
+  it('renders each email button in a paragraph of its own, so two never run together', () => {
+    const button = (href: string, label: string) => ({
+      type: 'button',
+      attrs: { href },
+      content: [text(label)]
+    })
+
+    expect(
+      render({
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'columns',
+              content: [
+                {
+                  type: 'column',
+                  content: [button('mailto:hello@example.com', 'Email us')]
+                },
+                {
+                  type: 'column',
+                  content: [button('tel:+61700000000', 'Call')]
+                }
+              ]
+            }
+          ]
+        }
+      })
+    ).toBe(
+      '<p><a href="mailto:hello@example.com" data-slot="link" class="link-normal">Email us</a></p><p><a href="tel:+61700000000" data-slot="link" class="link-normal">Call</a></p>'
     )
   })
 
@@ -588,7 +623,7 @@ describe('renderEditorValue', () => {
     )
 
     expect(html).toMatch(
-      /^<div data-slot="prose"[^>]* class="prose [^"]*text-lg[^"]* mt-4"/
+      /^<div data-slot="prose"[^>]* class="prose prose-lg mt-4"/
     )
   })
 
@@ -637,7 +672,7 @@ describe('renderEditorHtml', () => {
         className: 'mt-4" onload="x'
       })
     ).toBe(
-      '<div data-slot="prose" class="prose [--prose-size:var(--text-lg)] [--prose-h1-size:var(--text-5xl)] [--prose-h1-weight:900] [--prose-h2-size:var(--text-4xl)] [--prose-h2-weight:700] [--prose-h3-size:var(--text-3xl)] [--prose-h3-weight:700] [--prose-h4-size:var(--text-2xl)] [--prose-h4-weight:700] [--prose-h5-size:var(--text-xl)] [--prose-h5-weight:700] [--prose-h6-size:var(--text-lg)] [--prose-h6-weight:700] mt-4&quot; onload=&quot;x"><p>Hi</p></div>'
+      '<div data-slot="prose" class="prose prose-lg mt-4&quot; onload=&quot;x"><p>Hi</p></div>'
     )
   })
 })

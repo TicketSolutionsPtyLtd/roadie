@@ -12,12 +12,24 @@ export const MIN_POINTS = 2
 const xOf = (value: PlotX | Row[string] | undefined, isTime: boolean) =>
   isTime ? parseX(value) : finiteOrNull(value)
 
+// A hover restyles the tooltip from these, so each props object parses its
+// rows once rather than on every point the pointer crosses.
+function perProps<T>(build: (props: LineChartProps) => T) {
+  const built = new WeakMap<LineChartProps, T>()
+  return (props: LineChartProps) => {
+    if (!built.has(props)) built.set(props, build(props))
+    return built.get(props)!
+  }
+}
+
 export function seriesLabel(props: Pick<LineChartProps, 'y'>) {
   return fieldLabel(props.y)
 }
 
 /** Every series' points in x order, before the smallest roll into Other. */
-export function linePoints(props: LineChartProps): PlotDatum[] {
+export const linePoints = perProps(function linePoints(
+  props: LineChartProps
+): readonly PlotDatum[] {
   const isTime = isTimeField(props.data, props.x)
   const fallback = seriesLabel(props)
   const names = seriesNames(props.data, props.series, fallback)
@@ -40,10 +52,48 @@ export function linePoints(props: LineChartProps): PlotDatum[] {
       })
     : points
   return accumulated
+})
+
+export type ComparisonPoint = { x: number; y: number | null }
+
+export function comparisonLabel(
+  props: Pick<LineChartProps, 'comparison'>
+): string | undefined {
+  const comparison = props.comparison
+  return comparison && (comparison.label ?? fieldLabel(comparison.y))
 }
 
-export const toLinePoints = (props: LineChartProps): PlotDatum[] =>
+/**
+ * The comparison in x order, added up like the line. None with series, against
+ * the chart's own x or y, or with no value to draw.
+ */
+export const comparisonPoints = perProps(function comparisonPoints(
+  props: LineChartProps
+): readonly ComparisonPoint[] {
+  const field = props.comparison?.y
+  if (!field || props.series || field === props.x || field === props.y)
+    return []
+  const isTime = isTimeField(props.data, props.x)
+  const points = props.data
+    .map((row) => ({
+      x: xOf(row[props.x], isTime),
+      y: finiteOrNull(row[field])
+    }))
+    .filter((p): p is ComparisonPoint => p.x !== null)
+    .sort((a, b) => a.x - b.x)
+  if (points.every((p) => p.y === null)) return []
+  if (!props.cumulative) return points
+  let total = 0
+  return points.map((p) => {
+    if (p.y === null) return p
+    total += p.y
+    return { ...p, y: total }
+  })
+})
+
+export const toLinePoints = perProps((props): readonly PlotDatum[] =>
   rollupOther(linePoints(props))
+)
 
 export function lineXDomain(points: readonly PlotDatum[]): [number, number] {
   const xs = points.map((p) => Number(p.x))
@@ -73,6 +123,7 @@ export function lineYExtent(props: LineChartProps): readonly [number, number] {
     ...props.data.flatMap((row) =>
       rangeFields.map((field) => finiteOrNull(row[field]))
     ),
+    ...comparisonPoints(props).map((p) => p.y),
     ...(props.target === undefined ? [] : [props.target])
   ]
   return valueDomain([...values, ...extra], {

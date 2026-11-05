@@ -41,7 +41,7 @@ describe('buildManifest', () => {
           'ThemeError',
           'useTheme'
         ],
-        types: ['PillProps']
+        types: ['PillBadge', 'PillProps']
       },
       { subpath: './css', import: '@fixture/ui/css', kind: 'css' },
       {
@@ -49,7 +49,7 @@ describe('buildManifest', () => {
         import: '@fixture/ui/pill',
         kind: 'js',
         values: ['Pill', 'Tag'],
-        types: ['PillProps']
+        types: ['PillBadge', 'PillIconFrame', 'PillItem', 'PillProps']
       },
       {
         subpath: './theme',
@@ -65,7 +65,7 @@ describe('buildManifest', () => {
     ])
   })
 
-  it('describes a component with its docs page, first live example, and props and literals in declaration order', () => {
+  it('describes a component with its docs page, first live example, and props and literals in declaration order, including props it shares from core', () => {
     const pill = manifest.components.find((c) => c.name === 'Pill')
     expect(pill).toEqual({
       name: 'Pill',
@@ -76,6 +76,11 @@ describe('buildManifest', () => {
       description: 'A small rounded label.',
       example: "<Pill label='New' />",
       props: [
+        {
+          name: 'places',
+          type: 'number',
+          description: 'Fixed decimal places.'
+        },
         {
           name: 'tone',
           type: '"neutral" | "danger"',
@@ -88,7 +93,17 @@ describe('buildManifest', () => {
           description: 'Scales the pill.',
           deprecated: 'Use `size` instead, which follows the shape tiers.'
         },
-        { name: 'label', type: 'string', required: true }
+        { name: 'label', type: 'string', required: true },
+        {
+          name: 'badge',
+          type: 'PillBadge',
+          description: 'A badge after the label.'
+        },
+        {
+          name: 'items',
+          type: 'readonly PillItem[]',
+          description: "The pill's menu."
+        }
       ],
       parts: [
         {
@@ -104,11 +119,58 @@ describe('buildManifest', () => {
               name: 'theme',
               type: '"dark" | "light"',
               description: 'Swatch the icon is drawn for.'
+            },
+            {
+              name: 'frame',
+              type: 'PillIconFrame',
+              description: 'Space around the icon.'
             }
           ]
         }
       ]
     })
+  })
+
+  it('describes each exported type the props refer to, with its fields, once, from the subpath that exports it', () => {
+    expect(manifest.types).toEqual([
+      {
+        name: 'PillBadge',
+        import: '@fixture/ui/pill',
+        description: 'A count or word shown on the pill.',
+        fields: [
+          {
+            name: 'text',
+            type: 'string',
+            required: true,
+            description: "The badge's text."
+          },
+          {
+            name: 'tone',
+            type: '"neutral" | "danger"',
+            description: 'Colour of the badge.'
+          }
+        ]
+      },
+      {
+        name: 'PillIconFrame',
+        import: '@fixture/ui/pill',
+        fields: [{ name: 'padding', type: 'number', required: true }]
+      },
+      {
+        name: 'PillItem',
+        import: '@fixture/ui/pill',
+        description: "A row of the pill's menu.",
+        fields: [
+          { name: 'label', type: 'string', required: true },
+          {
+            name: 'badge',
+            type: 'PillBadge',
+            required: true,
+            description: "The item's badge."
+          }
+        ]
+      }
+    ])
   })
 
   it('lists only exported components', () => {

@@ -11,7 +11,7 @@ type Show = {
   venue?: string
   starts?: string | number | Date | null
   zone?: string
-  featured?: boolean
+  featured?: boolean | string
 }
 
 const fields: RecordField[] = [
@@ -226,6 +226,17 @@ describe('sortRecords', () => {
     ]
     expect(ids(flags, [{ field: 'featured', direction: 'ascending' }])).toEqual(
       ['no', 'yes']
+    )
+  })
+
+  it('sorts booleans held as text, as filters read them', () => {
+    const flags: Show[] = [
+      { id: 'yes', featured: 'true' },
+      { id: 'none' },
+      { id: 'no', featured: 'False' }
+    ]
+    expect(ids(flags, [{ field: 'featured', direction: 'ascending' }])).toEqual(
+      ['no', 'yes', 'none']
     )
   })
 

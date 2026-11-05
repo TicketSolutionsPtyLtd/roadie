@@ -2,7 +2,7 @@ import type { CartDetails, CartSummary } from './types'
 
 /**
  * Total tickets in the cart. Sourced from the FRESH per-event ticket
- * quantities in the /cart details payload — NOT the backend's stored,
+ * quantities in the /cart details payload, NOT the backend's stored,
  * lag-prone cart.InventoryQuantity (summary.ticketCount). Falls back to
  * summary only before details have loaded.
  */
@@ -26,7 +26,7 @@ export function deriveTicketCount(
 
 /**
  * Pre-checkout cart total: tickets incl. booking fees. Summed from the FRESH
- * per-event `subtotal` (server: item.InventoryTotal()) — NOT the stored,
+ * per-event `subtotal` (server: item.InventoryTotal()), NOT the stored,
  * lag-prone cart.Total / event.total / summary.cartTotal. Excludes delivery /
  * refund / transaction fees, which the drawer copy defers to checkout. Both
  * skins use this so the header/footer figure is identical and reactive.

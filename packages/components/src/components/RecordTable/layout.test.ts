@@ -247,3 +247,17 @@ describe('columnWidths', () => {
     expect(widths([column('show', { width })])).toEqual([width])
   })
 })
+
+describe('columnWidths for custom cells', () => {
+  const rows = Array.from({ length: 10 }, () => ({ id: '' }))
+
+  it('reserves no "Not available" width for empty values a custom cell shows', () => {
+    const [plain] = columnWidths([column('id')], rows, UTC)
+    const [custom] = columnWidths(
+      [column('id', { cell: () => null })],
+      rows,
+      UTC
+    )
+    expect(custom!.grow).toBeLessThan(plain!.grow!)
+  })
+})

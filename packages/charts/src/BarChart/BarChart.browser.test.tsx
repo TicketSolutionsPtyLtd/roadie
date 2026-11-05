@@ -15,7 +15,7 @@ import {
   visitEveryStop
 } from '../plot/browserTesting'
 import { loadBrandFont, useStylesheet } from '../testUtils'
-import { onSaleExample, scanRateExample } from './examples'
+import { comparisonExample, onSaleExample, scanRateExample } from './examples'
 
 const TICK_LABELS = 'text[data-ts-key^="x-tick-label"]'
 
@@ -93,6 +93,32 @@ describe('BarChart under forced colours', () => {
       expect(getComputedStyle(line).fill).toBe('none')
     } finally {
       await commands.forcedColors(false)
+    }
+  })
+})
+
+describe('BarChart comparison in print', () => {
+  it('textures the comparison bars and their key apart from the bars', async () => {
+    const { container } = renderInCard(<BarChart {...comparisonExample} />, {
+      width: 640
+    })
+    await expect
+      .poll(() => container.querySelector('[data-slot=chart-legend]'))
+      .not.toBeNull()
+    const fillOf = (selector: string) =>
+      getComputedStyle(container.querySelector(selector)!).fill
+    await commands.printMedia(true)
+    try {
+      expect(matchMedia('print').matches).toBe(true)
+      const bars = fillOf('path[data-ts-key^="series-1:"]')
+      const compared = fillOf('path[data-ts-key^="comparison:"]')
+      expect(bars).toMatch(/texture-1/)
+      expect(compared).toMatch(/texture-2/)
+      expect(
+        fillOf("[data-slot=chart-legend] rect[data-chart-texture='2']")
+      ).toBe(compared)
+    } finally {
+      await commands.printMedia(false)
     }
   })
 })

@@ -33,7 +33,7 @@ export function DataTableShowAll({ label }: { label: string }) {
       type='button'
       data-slot='data-table-show-all'
       aria-expanded={expanded}
-      className='is-interactive justify-self-start rounded-full text-sm font-semibold text-strong underline-offset-4 hover:underline'
+      className='is-interactive justify-self-start rounded-full text-sm font-semibold text-strong link-subtle'
       onClick={toggle}
     >
       {expanded ? 'Show fewer columns' : label}

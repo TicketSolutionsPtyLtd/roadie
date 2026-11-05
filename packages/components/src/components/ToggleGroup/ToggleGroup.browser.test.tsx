@@ -265,8 +265,13 @@ describe('an edge fade', () => {
     await expectPillOver('7 days')
     await expect.poll(fades).toEqual(['0px', '24px'])
     expect(masked()).toContain('linear-gradient')
-    group.scrollLeft = group.scrollWidth
-    await expect.poll(fades).toEqual(['24px', '0px'])
+    // Again until it holds, as the group's first resize reveals the pressed item.
+    await expect
+      .poll(() => {
+        group.scrollLeft = group.scrollWidth
+        return fades()
+      })
+      .toEqual(['24px', '0px'])
   })
 
   it('fades the far side first in a right-to-left layout', async () => {

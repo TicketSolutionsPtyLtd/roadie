@@ -174,13 +174,13 @@ const EMAIL_EDITING_NODES: Record<string, Extensions[number]> = {
       Enter: ({ editor }) => editor.commands.command(leaveButton)
     })
   }),
-  section: outlined(Section, `prose-bleed rounded-lg p-3 ${OUTLINE}`),
+  section: outlined(Section, `rounded-lg p-3 ${OUTLINE}`),
   columns: outlined(
     Columns,
-    'prose-bleed grid gap-2 @min-[480px]:auto-cols-fr @min-[480px]:grid-flow-col'
+    'grid gap-2 @min-[480px]:auto-cols-fr @min-[480px]:grid-flow-col'
   ),
-  column: outlined(Column, `min-w-0 rounded-md p-2 ${OUTLINE}`),
-  spacer: outlined(Spacer, `prose-bleed rounded-md ${OUTLINE}`, (attrs) => ({
+  column: outlined(Column, `rounded-md p-2 ${OUTLINE}`),
+  spacer: outlined(Spacer, `rounded-md ${OUTLINE}`, (attrs) => ({
     'data-height': String(attrs.height),
     style: `height: ${Number(attrs.height)}px`
   }))
