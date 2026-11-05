@@ -46,7 +46,7 @@ function section(
     icon,
     group: 'Sections',
     block: content,
-    run: (editor) => editor.chain().focus().command(insertBlock(content)).run(),
+    insert: (chain) => chain.command(insertBlock(content)),
     enabled: (editor) => editor.can().command(insertBlock(content))
   }
 }

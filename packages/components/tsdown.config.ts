@@ -1,6 +1,10 @@
 import babel from '@rolldown/plugin-babel'
 import { defineConfig } from 'tsdown'
 
+import {
+  cacheTransforms,
+  skipUnchangedWrites
+} from '../../scripts/tsdown-watch.mjs'
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
 // Unbundle mode: every source file under `src/` emits as its own output
@@ -34,7 +38,7 @@ export default defineConfig(({ watch }) => ({
   entry: [
     'src/**/*.{ts,tsx}',
     '!**/*.test.{ts,tsx}',
-    '!**/testUtils.{ts,tsx}',
+    '!**/{testUtils,*TestUtils}.{ts,tsx}',
     '!**/paneColumns.ts',
     '!**/renderCounter.ts'
   ],
@@ -42,7 +46,8 @@ export default defineConfig(({ watch }) => ({
   suppressWarnings: 'module level directive "use client"',
   format: ['esm'],
   platform: 'neutral',
-  dts: {
+  // The docs dev server reads only JS, so watch skips the declarations.
+  dts: !watch && {
     resolve: true,
     compilerOptions: {
       composite: false,
@@ -58,8 +63,19 @@ export default defineConfig(({ watch }) => ({
   shims: true,
   outDir: 'dist',
   outExtensions: () => ({ js: '.js' }),
-  plugins: [babel({ presets: [reactCompilerPreset] })],
+  plugins: watch
+    ? [
+        cacheTransforms(babel({ presets: [reactCompilerPreset] })),
+        skipUnchangedWrites()
+      ]
+    : [babel({ presets: [reactCompilerPreset] })],
+  // Pragmatic drag and drop ships folder subpaths and extensionless imports
+  // with no `exports` map, which Node's ESM loader rejects, so it's bundled.
+  // Its folders point at the ESM build through `module`, which the neutral
+  // platform doesn't read by default.
+  inputOptions: { resolve: { mainFields: ['module', 'main'] } },
   deps: {
+    alwaysBundle: [/^@atlaskit\//],
     neverBundle: [
       'react',
       'react-dom',

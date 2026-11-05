@@ -22,7 +22,7 @@ function firstTextblockOffset(node: PMNode) {
   return offset
 }
 
-const isEmptyLine = (node: PMNode | null) =>
+const isEmptyTextblock = (node: PMNode | null) =>
   node !== null && node.isTextblock && node.content.size === 0
 
 const isTextLine = (node: PMNode) => node.type.isInGroup('block')
@@ -117,7 +117,7 @@ export function insertBlockAfter(
     }
     return places.some(({ from, to }, index) => {
       const emptied =
-        index === 0 && selection.empty && isEmptyLine(doc.nodeAt(from))
+        index === 0 && selection.empty && isEmptyTextblock(doc.nodeAt(from))
       // Only a text line gives way: an empty button is a block of its own.
       if (emptied && block.isTextblock && isTextLine(doc.nodeAt(from)!)) {
         return replaceLine(props, { from, to }, block)
@@ -131,7 +131,7 @@ export function insertBlockAfter(
 export function openLineAfter(containers: ReadonlySet<string>) {
   return (props: CommandProps) =>
     (props.tr.selection.empty &&
-      isEmptyLine(props.tr.selection.$from.parent) &&
+      isEmptyTextblock(props.tr.selection.$from.parent) &&
       props.tr.selection.$from.parent.type.name === 'paragraph') ||
     insertBlockAfter({ type: 'paragraph' }, containers)(props)
 }
@@ -146,9 +146,11 @@ export const buttonBlock = (href: string): JSONContent => ({
 
 /** Leaves a button for a new paragraph after it, rather than splitting it. */
 function leaveButton({ tr, dispatch }: CommandProps) {
-  const { $from } = tr.selection
-  if ($from.parent.type.name !== 'button') return false
+  if (tr.selection.$from.parent.type.name !== 'button') return false
   if (dispatch) {
+    tr.deleteSelection()
+    const { $from } = tr.selection
+    if ($from.parent.type.name !== 'button') return true
     const after = $from.after()
     tr.insert(after, tr.doc.type.schema.nodes.paragraph!.create())
     tr.setSelection(TextSelection.create(tr.doc, after + 1)).scrollIntoView()
@@ -161,6 +163,10 @@ const isColumns = (node: PMNode) => node.type.name === 'columns'
 /** The columns holding the selection. */
 export const selectedColumns = ({ selection }: { selection: Selection }) =>
   findParentNode(isColumns)(selection)
+
+// A button keeps its link with no label, so it isn't a line to drop.
+const isEmptyLine = (node: PMNode) =>
+  node.isTextblock && node.type.name !== 'button' && node.content.size === 0
 
 /**
  * Sets how many columns the selection's columns have. A removed column's

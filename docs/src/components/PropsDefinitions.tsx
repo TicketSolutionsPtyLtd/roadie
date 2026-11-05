@@ -1,4 +1,5 @@
 import { ArrowSquareOutIcon } from '@phosphor-icons/react/ssr'
+import { slug } from 'github-slugger'
 
 import {
   type ManifestPart,
@@ -319,7 +320,12 @@ function PartSection({ part }: { part: ManifestPart }) {
     <section className='grid gap-3'>
       <header className='grid gap-1'>
         <div className='flex flex-wrap items-center gap-3'>
-          <h3 className='font-mono text-lg font-bold'>{part.name}</h3>
+          <h3
+            id={`api-${slug(part.name)}`}
+            className='font-mono text-lg font-bold'
+          >
+            {part.name}
+          </h3>
           {baseUiHref && (
             <a
               href={baseUiHref}
@@ -353,7 +359,9 @@ export function PropsDefinitions({ component }: PropsDefinitionsProps) {
 
   return (
     <div data-not-prose className='mt-8 grid gap-8 pt-8'>
-      <h2 className='text-xl font-bold'>API reference</h2>
+      <h2 id='api-reference' className='text-xl font-bold'>
+        API reference
+      </h2>
       {parts.map((part) => (
         <PartSection key={part.name} part={part} />
       ))}

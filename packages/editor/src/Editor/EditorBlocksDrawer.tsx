@@ -66,7 +66,7 @@ export function EditorBlocksDrawer({
     flushSync(() => onOpenChange(false))
     focusEditor(editor)
     editor.chain().command(insertion(item, containers)).run()
-    if (!item.block) item.run(editor, ui)
+    if (!item.block) item.insert(editor.chain(), ui).run()
   }
 
   return (

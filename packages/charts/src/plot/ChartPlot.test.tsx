@@ -181,6 +181,6 @@ describe('ChartPlot when the chart cannot draw', () => {
     )
     const card = document.querySelector("[data-slot='data-card']")
     expect(card).toHaveAttribute('data-state', 'error')
-    expect(card).toHaveTextContent("We couldn't load tickets sold")
+    expect(card).toHaveTextContent("This chart couldn't be drawn")
   })
 })

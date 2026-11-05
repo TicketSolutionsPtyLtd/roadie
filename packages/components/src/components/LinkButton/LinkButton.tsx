@@ -46,7 +46,7 @@ export type LinkButtonProps<T extends ElementType = 'a'> = {
  * export remains for backwards compatibility and will be removed in
  * v3.0.0. The new `<Button href>` API picks the right element, applies
  * external-link safety attributes, and routes through the configured
- * Link automatically — see the Linking foundations docs page.
+ * Link automatically. See the Linking foundations docs page.
  */
 export function LinkButton<T extends ElementType = 'a'>({
   as,

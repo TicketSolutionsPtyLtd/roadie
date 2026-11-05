@@ -60,6 +60,11 @@ describe('scatter', () => {
       expect(svg).toContain(`>${name}<`)
   })
 
+  it('titles both axes with their fields', () => {
+    expect(svg).toMatch(/>Pace<\/text>/)
+    expect(svg).toMatch(/>Sold<\/text>/)
+  })
+
   it('focuses only the points, all in one walk', () => {
     const points = sceneOf(portfolioExample).points
     expect(new Set(points.map((p) => p.markId))).toEqual(
@@ -213,5 +218,22 @@ describe('scatter summary', () => {
         takeaway: undefined
       })
     ).toBe('1 of 2 shows is on a roll')
+  })
+})
+
+describe('scatter decimal places', () => {
+  const sold: ScatterProps = { ...portfolioExample, decimals: 2 }
+  const point = { x: 78, y: 0.4, series: 'Julia Jacklin', index: 4 }
+
+  it('reads y to the decimal places in the tooltip, aloud and in the table', () => {
+    expect(
+      scatter.tooltip([point], sold, paint).rows.map((r) => r.value)
+    ).toEqual(['78', '40.00%', '800'])
+    expect(scatter.describe(point, sold)).toBe(
+      'Julia Jacklin, pace 78, sold 40.00%, needs a push'
+    )
+    const columns = scatterTable(sold).columns
+    expect(columns[1]).not.toHaveProperty('decimals')
+    expect(columns[2]).toMatchObject({ key: 'sold', decimals: 2 })
   })
 })

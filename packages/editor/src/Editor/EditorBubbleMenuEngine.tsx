@@ -29,7 +29,6 @@ import {
   overflowControls
 } from './controls'
 import { focusEditor } from './focusEditor'
-import { selectedTable } from './table'
 import {
   EDITOR_TOOLBAR_SIZE,
   type EditorSize,
@@ -39,13 +38,72 @@ import {
 const PLUGIN_KEY = 'editorBubbleMenu'
 
 /** Whether the selection is text the menu's marks can format. */
-export function selectsText({ selection, doc }: EditorState) {
-  if (selection.empty) return false
+function selectsText({ selection, doc, schema }: EditorState) {
   // A Mod-click selects the block, which has its own text.
   if (selection instanceof NodeSelection) return false
   if (selection instanceof CellSelection) return false
-  if (selection.$from.parent.type.spec.code) return false
-  return doc.textBetween(selection.from, selection.to).length > 0
+  const marks = Object.values(schema.marks)
+  let formattable = false
+  doc.nodesBetween(selection.from, selection.to, (node, _pos, parent) => {
+    // Not an email button's label, which takes no marks.
+    formattable ||=
+      node.isText &&
+      marks.some((mark) => parent?.type.allowsMarkType(mark) ?? false)
+    return !formattable
+  })
+  return formattable
+}
+
+export function hideBubbleMenu(editor: TiptapEditor) {
+  editor.view.dispatch(
+    editor.state.tr.setMeta(PLUGIN_KEY, 'hide').setMeta('addToHistory', false)
+  )
+}
+
+const OFFSET = 8
+/**
+ * After a scroll or resize, placed once the table actions have taken their
+ * default 60ms to move, as it reads where they are.
+ */
+export const RESIZE_DELAY = 80
+
+/**
+ * As the root boundary, so a scrolling container still clips the flip. It
+ * replaces the viewport, so it starts no higher than the viewport's top.
+ */
+function between(top: number, bottom: number) {
+  const y = Math.max(top, 0)
+  return {
+    rootBoundary: { x: 0, y, width: window.innerWidth, height: bottom - y }
+  }
+}
+
+/**
+ * Table and columns actions sit above their node, or below it when there's no
+ * room, so the menu flips only within the side of the selection away from
+ * them. The plugin offsets the menu after it flips, so the bounds allow for
+ * that.
+ */
+function clearOfActions(
+  editor: TiptapEditor,
+  selection: { top: number; bottom: number }
+) {
+  const actions = editor.view.dom.parentElement?.querySelector(
+    '[data-slot="editor-table-toolbar"], [data-slot="editor-node-toolbar"]'
+  )
+  if (!actions) return {}
+  const box = actions.getBoundingClientRect()
+  if (box.bottom <= selection.top) {
+    return between(box.bottom + OFFSET, window.innerHeight)
+  }
+  if (box.top >= selection.bottom) {
+    // With no room either side, off the top of the page, not over them.
+    return {
+      ...between(0, box.top - OFFSET),
+      fallbackStrategy: 'initialPlacement' as const
+    }
+  }
+  return {}
 }
 
 /** Whether a caret sits in text, where Alt+F10 can open the menu. */
@@ -110,25 +168,13 @@ function SelectionMenu({
     editor,
     selector: ({ editor: current }) => current.isEditable
   })
-  // Table actions sit above the table, or below one that starts the
-  // content, so in a table this takes the other side of the selection.
-  const placement = useEditorState({
-    editor,
-    selector: ({ editor: current }) => {
-      const table = selectedTable(current.state)
-      return table && table.pos > 0 ? 'bottom' : 'top'
-    }
-  })
-
   // The plugin asks shouldShow only when the selection or doc changes. Focus
   // moves to the link editor, but a click on the menu's Link keeps the menu
   // from hiding on that blur, and turning read-only changes neither.
   useEffect(() => {
     editingLinkRef.current = editingLink
     if ((editable && !editingLink) || editor.isDestroyed) return
-    editor.view.dispatch(
-      editor.state.tr.setMeta(PLUGIN_KEY, 'hide').setMeta('addToHistory', false)
-    )
+    hideBubbleMenu(editor)
   }, [editor, editingLink, editable])
 
   useEffect(() => {
@@ -179,11 +225,14 @@ function SelectionMenu({
     <BubbleMenu
       editor={editor}
       pluginKey={PLUGIN_KEY}
+      resizeDelay={RESIZE_DELAY}
       shouldShow={shouldShow}
       ref={menuRef}
       options={{
-        placement,
-        offset: 8,
+        placement: 'top',
+        offset: OFFSET,
+        flip: ({ elements }) =>
+          clearOfActions(editor, elements.reference.getBoundingClientRect()),
         // The plugin makes its element a tab stop; the toolbar inside is the one.
         onShow: () => {
           menuRef.current?.setAttribute('tabindex', '-1')

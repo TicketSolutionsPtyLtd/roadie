@@ -7,7 +7,7 @@ import { Node } from '@tiptap/core'
 import { type ReactNodeViewProps, ReactNodeViewRenderer } from '@tiptap/react'
 
 // Roadie's own Tiptap, so an app's blocks never install or drift from it.
-export { Extension, Mark, mergeAttributes } from '@tiptap/core'
+export { mergeAttributes } from '@tiptap/core'
 export { Node }
 export { NodeViewWrapper } from '@tiptap/react'
 
@@ -44,14 +44,14 @@ export type EditorBlock = {
    * saves, so keep them to its inputs, never rendered content.
    */
   node: Node
-  /** Its name in the slash menu. */
+  /** Its name in the insert menu. */
   label: string
-  /** A bold Phosphor icon for the slash menu. */
+  /** A bold Phosphor icon for the insert menu. */
   icon: Icon
-  /** Other words the slash menu finds it by. */
+  /** Other words the insert menu finds it by. */
   keywords?: readonly string[]
   /**
-   * The slash menu heading it's listed under: one of the preset's, such as
+   * The insert menu heading it's listed under: one of the preset's, such as
    * Media, or its own.
    * @default 'More'
    */

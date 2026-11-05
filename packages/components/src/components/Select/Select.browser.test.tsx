@@ -4,7 +4,7 @@ import { page, userEvent } from 'vitest/browser'
 
 import { Select } from '.'
 import roadieCss from '../../../vitest.browser.css?inline'
-import { setHoverCapable } from '../../css/testUtils'
+import { keepFramesRunning, setHoverCapable } from '../../css/testUtils'
 import { Field } from '../Field'
 import { loadBrandFont, useStylesheet } from '../Pane/testUtils'
 
@@ -80,7 +80,14 @@ describe('Select options on a touch screen', () => {
     await userEvent.keyboard('{ArrowDown}')
     const first = await screen.findByRole('option', { name: 'Rock' })
     const second = screen.getByRole('option', { name: 'Jazz' })
+    // Base UI focuses the first option in a frame, which Linux WebKit may not
+    // run while idle; the far corner keeps frames coming clear of the list.
+    const stopFrames = keepFramesRunning(() => ({
+      x: innerWidth - 2,
+      y: innerHeight - 2
+    }))
     await expect.poll(() => document.activeElement).toBe(first)
+    await stopFrames()
     await userEvent.keyboard('{ArrowDown}')
     await expect.poll(() => document.activeElement).toBe(second)
 

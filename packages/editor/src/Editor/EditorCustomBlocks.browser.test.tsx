@@ -3,10 +3,11 @@ import { useState } from 'react'
 import { TicketIcon } from '@phosphor-icons/react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { server, userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
+import roadieCss from '../../vitest.browser.css?inline'
 import {
   type EditorBlock,
   type EditorNodeViewProps,
@@ -17,10 +18,25 @@ import {
 } from '../extensions'
 import { renderEditorValue } from '../render'
 import type { EditorValue } from '../schema'
+import { MOD } from './testUtils'
 
 const LABEL = 'Page'
 
-function EventCardView({ node, updateAttributes }: EditorNodeViewProps) {
+// The block handle sits outside the text, where a click lands only with
+// styles, and a subtler editor's handle hangs past its start edge.
+let style: HTMLStyleElement
+beforeAll(() => {
+  style = document.createElement('style')
+  style.textContent = `${roadieCss} body { padding-inline: 64px; }`
+  document.head.append(style)
+})
+afterAll(() => style.remove())
+
+function EventCardView({
+  node,
+  updateAttributes,
+  deleteNode
+}: EditorNodeViewProps) {
   return (
     <NodeViewWrapper data-slot='event-card'>
       <input
@@ -28,6 +44,9 @@ function EventCardView({ node, updateAttributes }: EditorNodeViewProps) {
         value={String(node.attrs.eventId ?? '')}
         onChange={(event) => updateAttributes({ eventId: event.target.value })}
       />
+      <button type='button' onClick={deleteNode}>
+        Remove
+      </button>
     </NodeViewWrapper>
   )
 }
@@ -89,7 +108,7 @@ describe('Editor extensions', () => {
     ).toEqual(['Embed', 'Event card'])
   })
 
-  it('inserts an app’s block from the slash menu, found by a keyword', async () => {
+  it('inserts an app’s block from the insert menu, found by a keyword', async () => {
     const onValueChange = vi.fn()
     render(
       <Editor
@@ -116,6 +135,63 @@ describe('Editor extensions', () => {
         attrs: { eventId: '', blockId: expect.any(String) }
       })
     )
+  })
+
+  it('lists an app’s blocks after the preset’s', async () => {
+    render(
+      <Editor aria-label={LABEL} preset='blocks' extensions={[eventCard]} />
+    )
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+
+    const options = within(
+      await screen.findByRole('listbox', { name: 'Insert' })
+    ).getAllByRole('option')
+    expect(options.map((option) => option.textContent).slice(-2)).toEqual([
+      'Table',
+      'Event card'
+    ])
+  })
+
+  it('undoes an app’s block back to what was typed', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        extensions={[eventCard]}
+        onValueChange={onValueChange}
+      />
+    )
+    await focusedTextbox()
+
+    await userEvent.keyboard('/gig{Enter}')
+    await screen.findByRole('textbox', { name: 'Event' })
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(lastValue(onValueChange).doc.content).toMatchObject([
+        { type: 'paragraph', content: [{ type: 'text', text: '/gig' }] }
+      ])
+    )
+  })
+
+  it('offers no app’s block in a table cell', async () => {
+    render(
+      <Editor aria-label={LABEL} preset='blocks' extensions={[eventCard]} />
+    )
+    await focusedTextbox()
+    await userEvent.keyboard('/table{Enter}')
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+
+    await userEvent.keyboard('/')
+
+    expect(
+      within(await screen.findByRole('listbox', { name: 'Insert' }))
+        .getAllByRole('option')
+        .map((option) => option.textContent)
+    ).toEqual(['Paragraph'])
   })
 
   it('saves what its view edits, and renders it through /render', async () => {
@@ -176,8 +252,11 @@ describe('Editor extensions', () => {
 
     const input = await screen.findByRole('textbox', { name: 'Event' })
     await userEvent.type(input, '-2026')
+    // A disabled editor can't be clicked, so this calls the view's handler.
+    screen.getByRole('button', { name: 'Remove' }).click()
 
     expect(input).toHaveValue('okw')
+    expect(input).toBeInTheDocument()
     const savedIds = onValueChange.mock.calls.map(
       ([saved]) => (saved as EditorValue).doc.content![0]!.attrs!.eventId
     )
@@ -306,16 +385,229 @@ describe('Editor extensions', () => {
     // A browser has no `process`; a consumer's bundler supplies NODE_ENV.
     vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(<Editor aria-label={LABEL} preset='rich' extensions={[eventCard]} />)
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='rich'
+        extensions={[eventCard]}
+        onValueChange={onValueChange}
+        defaultValue={{
+          version: 1,
+          preset: 'rich',
+          doc: {
+            type: 'doc',
+            content: [
+              { type: 'eventCard', attrs: { eventId: 'okw' } },
+              { type: 'paragraph' }
+            ]
+          }
+        }}
+      />
+    )
     await focusedTextbox()
 
-    await userEvent.keyboard('/')
+    await userEvent.keyboard('Doors')
 
-    expect(screen.queryByRole('listbox')).toBe(null)
+    await waitFor(() =>
+      expect(lastValue(onValueChange).doc.content).toMatchObject([
+        { type: 'paragraph', content: [{ type: 'text', text: 'Doors' }] }
+      ])
+    )
+    expect(screen.queryByRole('textbox', { name: 'Event' })).toBe(null)
     expect(warn).toHaveBeenCalledWith(
       expect.stringMatching(/extensions are for the blocks preset/)
     )
     warn.mockRestore()
     vi.unstubAllGlobals()
   })
+
+  it('warns that extensions changed after the editor was created', async () => {
+    vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = render(<Editor aria-label={LABEL} preset='blocks' />)
+    await focusedTextbox()
+
+    rerender(
+      <Editor aria-label={LABEL} preset='blocks' extensions={[eventCard]} />
+    )
+
+    await waitFor(() =>
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringMatching(/reads extensions once/)
+      )
+    )
+    warn.mockRestore()
+    vi.unstubAllGlobals()
+  })
+
+  it.each([
+    ['as written', EventCard],
+    ['with empty content', EventCard.extend({ content: '' })]
+  ])(
+    'doesn’t warn of a leaf block, %s, in a new list each render',
+    async (_, node) => {
+      vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { rerender } = render(
+        <Editor
+          aria-label={LABEL}
+          preset='blocks'
+          extensions={[{ ...eventCard, node }]}
+        />
+      )
+      await focusedTextbox()
+
+      rerender(
+        <Editor
+          aria-label={LABEL}
+          preset='blocks'
+          extensions={[{ ...eventCard, node }]}
+        />
+      )
+
+      expect(warn).not.toHaveBeenCalledWith(expect.stringMatching(/^Editor:/))
+      warn.mockRestore()
+      vi.unstubAllGlobals()
+    }
+  )
+
+  it('warns of a block that holds content, which it can’t save', async () => {
+    vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const holding: EditorBlock = {
+      ...eventCard,
+      node: Node.create({ name: 'panel', group: 'block', content: 'block+' })
+    }
+    render(<Editor aria-label={LABEL} preset='blocks' extensions={[holding]} />)
+    await focusedTextbox()
+
+    await waitFor(() =>
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(/panel/))
+    )
+    warn.mockRestore()
+    vi.unstubAllGlobals()
+  })
+
+  it('duplicates and moves an app’s block from the block handle', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        extensions={[eventCard]}
+        onValueChange={onValueChange}
+        defaultValue={{
+          version: 1,
+          preset: 'blocks',
+          doc: {
+            type: 'doc',
+            content: [
+              { type: 'eventCard', attrs: { eventId: 'okw', blockId: 'card' } },
+              {
+                type: 'paragraph',
+                attrs: { blockId: 'doors' },
+                content: [{ type: 'text', text: 'Doors 7pm' }]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    const blocks = () =>
+      lastValue(onValueChange).doc.content!.map((node) => [
+        node.type,
+        node.attrs?.blockId
+      ])
+    const openMenu = async () => {
+      const [first] = await screen.findAllByRole('textbox', { name: 'Event' })
+      await userEvent.hover(first!)
+      await userEvent.click(
+        await screen.findByRole('button', { name: 'Block actions' })
+      )
+      return screen.findByRole('menu')
+    }
+
+    await openMenu()
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Duplicate' }))
+
+    await waitFor(() => expect(blocks()).toHaveLength(3))
+    const [card, copy] = blocks()
+    expect(card).toEqual(['eventCard', 'card'])
+    expect(copy![0]).toBe('eventCard')
+    expect(copy![1]).not.toBe('card')
+    expect(lastValue(onValueChange).doc.content![1]!.attrs!.eventId).toBe('okw')
+
+    await openMenu()
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Move down' }))
+
+    await waitFor(() =>
+      expect(blocks().map(([, id]) => id)).toEqual([copy![1], 'card', 'doors'])
+    )
+  })
+
+  // A WebKit drag leaves the mouse pressed for the next file
+  // (docs/solutions/test-failures/webkit-native-drag-leaves-mouse-pressed.md).
+  it.skipIf(server.browser === 'webkit')(
+    'moves an app’s block dragged by its handle, keeping its id',
+    async () => {
+      const onValueChange = vi.fn()
+      render(
+        <Editor
+          aria-label={LABEL}
+          preset='blocks'
+          extensions={[eventCard]}
+          onValueChange={onValueChange}
+          defaultValue={{
+            version: 1,
+            preset: 'blocks',
+            doc: {
+              type: 'doc',
+              content: [
+                {
+                  type: 'eventCard',
+                  attrs: { eventId: 'okw', blockId: 'card' }
+                },
+                {
+                  type: 'paragraph',
+                  attrs: { blockId: 'doors' },
+                  content: [{ type: 'text', text: 'Doors 7pm' }]
+                }
+              ]
+            }
+          }}
+        />
+      )
+      await userEvent.hover(
+        await screen.findByRole('textbox', { name: 'Event' })
+      )
+      const handle = await screen.findByRole('button', {
+        name: 'Block actions'
+      })
+      const target = await screen.findByText('Doors 7pm')
+
+      await userEvent.dragAndDrop(handle, target, {
+        targetPosition: {
+          x: target.offsetWidth - 2,
+          y: target.offsetHeight / 2
+        }
+      })
+
+      // An atom dropped at a line's end splits it, leaving an empty line after.
+      await waitFor(() =>
+        expect(
+          lastValue(onValueChange)
+            .doc.content!.slice(0, 2)
+            .map((node) => [
+              node.type,
+              node.attrs?.blockId,
+              node.attrs?.eventId
+            ])
+        ).toEqual([
+          ['paragraph', 'doors', undefined],
+          ['eventCard', 'card', 'okw']
+        ])
+      )
+    }
+  )
 })
