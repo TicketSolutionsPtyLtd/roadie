@@ -280,6 +280,53 @@ describe('Editor block settings', () => {
     })
   })
 
+  it('leaves the next block whole when settings close between two blocks', async () => {
+    await viewport.viewport(390, 700)
+    onTestFinished(() => viewport.viewport(1280, 800))
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        extensions={[promo]}
+        onValueChange={onValueChange}
+        defaultValue={{
+          ...page,
+          doc: {
+            type: 'doc',
+            content: [
+              { type: 'promo', attrs: { blockId: 'first' } },
+              {
+                type: 'promo',
+                attrs: { blockId: 'second', title: 'Kazoo Hollow' }
+              },
+              {
+                type: 'paragraph',
+                attrs: { blockId: 'outro' },
+                content: [{ type: 'text', text: 'Gates 6pm' }]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    const drawer = await openFromMenu()
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Loud' }))
+
+    await userEvent.click(document.body, { position: { x: 4, y: 4 } })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    await userEvent.keyboard('x')
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content
+      ).toMatchObject([
+        { type: 'promo', attrs: { tone: 'loud' } },
+        { type: 'promo', attrs: { title: 'Kazoo Hollow' } },
+        { type: 'paragraph', content: [{ type: 'text', text: 'xGates 6pm' }] }
+      ])
+    )
+  })
+
   it('opens on Enter with the block selected', async () => {
     renderPage()
 
