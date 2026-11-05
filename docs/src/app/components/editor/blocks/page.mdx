@@ -26,7 +26,7 @@ the images, embeds, and tables this preset holds too.
 `preset='blocks'` holds everything the rich preset does, for a page built
 from blocks, and every block keeps an id as it moves. Type `/` to add a
 block. An empty page, and the empty line with the caret while the editor has
-focus, say so: "Type / to add a block". A `placeholder` replaces it, and shows
+focus, say so: "Type / to add a block", or on a touch screen, where `/` is a keyboard layer away, "Tap Blocks to add one". A `placeholder` replaces it, and shows
 only while the page is empty.
 
 A page is edited in place, so a `blocks` editor opens with
@@ -38,7 +38,6 @@ format it. Pass `emphasis` or `toolbar` to change either. An
 <Editor
   aria-label='Page'
   preset='blocks'
-  className='ps-12'
   defaultValue={{
     version: 1,
     preset: 'blocks',
@@ -104,7 +103,6 @@ the block itself when it's an empty line.
 <Editor
   aria-label='Set times'
   preset='blocks'
-  className='ps-12'
   defaultValue={{
     version: 1,
     preset: 'blocks',
@@ -123,8 +121,7 @@ the block itself when it's an empty line.
 
 A framed editor makes room for the add button and grip at the start of its
 text. A `subtler` editor keeps its text in line with the page, so they hang
-outside it: give it room at the start, as these examples do with
-`className='ps-12'`.
+outside it: give it room at the start.
 
 The grip is a button named Block actions. It takes no Tab stop, since it
 shows only beside the caret's block; `Mod+/` opens its menu instead. The
@@ -249,8 +246,7 @@ function Page() {
     <>
       <Editor
         aria-label='Page'
-        className='ps-12'
-        extensions={[callToAction]}
+              extensions={[callToAction]}
         value={value}
         onValueChange={setValue}
       />
