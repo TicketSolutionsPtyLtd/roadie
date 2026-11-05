@@ -432,6 +432,7 @@ export function EditorImagePopover({
 }: EditorImagePopoverProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const altRef = useRef<HTMLInputElement>(null)
+  const titleRef = useRef<HTMLHeadingElement>(null)
   const live = useLiveEdit(editor, open, onOpenChange)
   const phone = useOnPhone()
   if (!editor) return null
@@ -471,11 +472,14 @@ export function EditorImagePopover({
       <Drawer open={open} onOpenChange={live.onOpenChange} side='bottom'>
         <Drawer.Content
           size='fit'
-          initialFocus={firstFocus}
+          // Its title, as the keyboard a field brings up would cover the sheet.
+          initialFocus={titleRef}
           finalFocus={handBack}
         >
           <Drawer.Header>
-            <Drawer.Title>Image settings</Drawer.Title>
+            <Drawer.Title ref={titleRef} tabIndex={-1}>
+              Image settings
+            </Drawer.Title>
           </Drawer.Header>
           <Drawer.Body className='pb-6'>{settings}</Drawer.Body>
         </Drawer.Content>

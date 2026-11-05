@@ -273,6 +273,11 @@ describe('Editor image settings', () => {
       })
     )
     expect(within(align).getByRole('button', { name: 'Right' })).toBeDisabled()
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Fit' }))
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({ align: 'center' })
+    )
   })
 
   it('opens from the bottom on a phone', async () => {
@@ -295,6 +300,10 @@ describe('Editor image settings', () => {
         )
       )
       expect(sheet.getBoundingClientRect().left).toBeGreaterThanOrEqual(0)
+      await waitFor(() =>
+        expect(sheet.contains(document.activeElement)).toBe(true)
+      )
+      expect(document.activeElement?.tagName).not.toBe('INPUT')
     } finally {
       await page.viewport(1280, 800)
     }
