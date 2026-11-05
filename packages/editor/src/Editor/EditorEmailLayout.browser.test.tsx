@@ -226,4 +226,45 @@ describe('Editor page image', () => {
       expect(place[at]).toBeCloseTo(0, 0)
     }
   )
+
+  it('centres a fitted image, not its long caption', async () => {
+    render(
+      <div style={{ width: 600 }}>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={{
+            version: 1,
+            preset: 'blocks',
+            doc: {
+              type: 'doc',
+              content: [
+                {
+                  type: 'image',
+                  attrs: {
+                    src: '/images/crowd.webp',
+                    alt: 'Crowd',
+                    align: 'center',
+                    caption:
+                      'The crowd at sunset on the second night, from the hill behind the main stage, as the headliner came on'
+                  }
+                }
+              ]
+            }
+          }}
+        />
+      </div>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const img = textbox.querySelector<HTMLElement>(
+      '[data-slot="editor-image"] img'
+    )!
+    // The tests serve no images, so this stands in for a loaded one's size.
+    img.style.width = '120px'
+    const style = getComputedStyle(textbox)
+    const start = boxOf(textbox).left + parseFloat(style.paddingLeft)
+    const end = boxOf(textbox).right - parseFloat(style.paddingRight)
+    const box = boxOf(img)
+
+    expect((box.left + box.right) / 2).toBeCloseTo((start + end) / 2, 0)
+  })
 })
