@@ -97,8 +97,9 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
   if (type === 'variable') {
     const fallback: unknown = attrs?.fallback
     return {
-      key: attrs?.key,
-      ...(typeof fallback === 'string' && fallback !== '' && { fallback })
+      key: variableKey(attrs),
+      ...(typeof fallback === 'string' &&
+        fallback.trim() !== '' && { fallback })
     }
   }
   if (type === 'embed') return embedAttrs(attrs) ?? undefined
@@ -110,6 +111,14 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
     }
   }
   return attrs
+}
+
+// Only the preset's shape decides which nodes keep a rule.
+function withRule(attrs: unknown, stored: unknown) {
+  const rest = isObject(attrs) ? { ...attrs } : {}
+  delete rest.showWhen
+  const showWhen = isObject(stored) ? showWhenRule(stored.showWhen) : undefined
+  return showWhen ? { ...rest, showWhen } : rest
 }
 
 // An id that isn't a string, or is empty, is dropped, so the editor gives the
@@ -144,14 +153,6 @@ function withoutRepeatedIds(
   return kept
 }
 
-// Only the preset's shape decides which nodes keep a rule.
-function withRule(attrs: Record<string, unknown> | undefined, stored: unknown) {
-  const rest = { ...attrs }
-  delete rest.showWhen
-  const showWhen = isObject(stored) ? showWhenRule(stored.showWhen) : undefined
-  return showWhen ? { ...rest, showWhen } : rest
-}
-
 function isSafeNode(node: unknown, shape: PresetShape): node is JSONContent {
   if (!isObject(node)) return false
   const { type, attrs, text } = node as JSONContent
@@ -162,12 +163,14 @@ function isSafeNode(node: unknown, shape: PresetShape): node is JSONContent {
       : isSafeImageSrc(attrs?.src)
   }
   if (type === 'embed') return embedAttrs(attrs) !== null
-  if (type === 'variable') return isText(attrs?.key)
+  if (type === 'variable') return variableKey(attrs) !== ''
   return true
 }
 
-const isText = (value: unknown): value is string =>
-  typeof value === 'string' && value !== ''
+const variableKey = (attrs: Record<string, unknown> | undefined) => {
+  const key: unknown = attrs?.key
+  return typeof key === 'string' ? key.trim() : ''
+}
 
 // A doc is the root only, so one below it gives way to its blocks.
 function shapeOf({ type }: JSONContent, shape: PresetShape) {
@@ -237,6 +240,20 @@ function heldWithin(
   )
 }
 
+// A block straight in a list, which a list item holds when it can.
+function listItemOf(node: JSONContent, shape: PresetShape): JSONContent {
+  const holds = shape.nodes.listItem?.holds
+  const blocks = unwrapped(node)
+  return {
+    type: 'listItem',
+    content: paragraphFirst(
+      holds
+        ? blocks.flatMap((block) => heldWithin(block, holds, shape))
+        : blocks
+    )
+  }
+}
+
 function paragraphFirst(blocks: JSONContent[]) {
   return blocks[0]?.type === 'paragraph'
     ? blocks
@@ -303,9 +320,7 @@ function fitted(
   const blocks = paragraphsAround(nodes, shape)
   if (content === 'listItems') {
     return blocks.map((node) =>
-      node.type === 'listItem'
-        ? node
-        : { type: 'listItem', content: paragraphFirst(unwrapped(node)) }
+      node.type === 'listItem' ? node : listItemOf(node, shape)
     )
   }
   if (content === 'paragraphs') {
@@ -352,8 +367,8 @@ function cleaned(
   }
   const { type, text, marks, content, attrs: stored } = node
   const attrs = picked(
-    withRule(
-      withBlockId(cleanedAttrs({ type, attrs: stored }), stored),
+    withBlockId(
+      withRule(cleanedAttrs({ type, attrs: stored }), stored),
       stored
     ),
     nodeShape.attrs

@@ -1,5 +1,4 @@
 import { BracketsCurlyIcon } from '@phosphor-icons/react'
-import type { Editor } from '@tiptap/react'
 
 import type { EditorVariable } from '../schema'
 import type { EditorInsertItem } from './insertItems'
@@ -17,7 +16,7 @@ export function variableInsertItems(
     label,
     icon: BracketsCurlyIcon,
     keywords: [key],
-    run: (editor) => editor.chain().focus().insertContent(tagOf(key)).run(),
+    insert: (chain) => chain.insertContent(tagOf(key)),
     enabled: (editor) => editor.can().insertContent(tagOf(key))
   }))
 }
@@ -27,7 +26,6 @@ export const mergeTagItem: EditorInsertItem = {
   label: 'Merge tag',
   icon: BracketsCurlyIcon,
   keywords: ['variable', 'personalise', 'personalize', 'name', 'placeholder'],
-  run: (editor: Editor) =>
-    editor.chain().focus().insertContent(MERGE_TAG_OPEN).run(),
+  insert: (chain) => chain.insertContent(MERGE_TAG_OPEN),
   enabled: (editor) => editor.can().insertContent(tagOf(''))
 }

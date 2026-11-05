@@ -6,7 +6,7 @@ export const TAP_PX = 5
 
 /**
  * Drag progress below which header/footer ResizeObserver measurements are
- * trusted — above it the drawer is morphing and the measured sizes would
+ * trusted. Above it the drawer is morphing and the measured sizes would
  * inflate the docked (closed) height.
  */
 export const MEASURE_PROGRESS_MAX = 0.05
@@ -17,7 +17,7 @@ export const VIEWPORT_MARGIN_PX = 32
 /**
  * Top inset (px) left clear when the mobile drawer is open fullscreen. The
  * drawer is bottom-anchored (bottom:0), so subtracting this from the layout
- * viewport height leaves this gap at the top — keeping the grab handle / header
+ * viewport height leaves this gap at the top, keeping the grab handle / header
  * clear of the status bar / top browser chrome.
  */
 export const MOBILE_OPEN_TOP_INSET_PX = 30

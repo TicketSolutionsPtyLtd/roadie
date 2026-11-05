@@ -1,5 +1,15 @@
+import type { CSSProperties } from 'react'
+
 import { cleanup, render } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { RecordTable } from '.'
@@ -369,6 +379,128 @@ describe('RecordTable surface', () => {
       .poll(() => bg(container, 'record-table-head'))
       .toBe(getComputedStyle(card).backgroundColor)
   })
+
+  it('follows a fill set inline behind it', async () => {
+    const { container } = render(
+      <div data-testid='card' className='bg-sunken'>
+        <RecordTable
+          data={testShows(20)}
+          fields={showFields}
+          columns={showColumns}
+        />
+      </div>
+    )
+    const card = container.querySelector<HTMLElement>('[data-testid="card"]')!
+    card.style.setProperty('--card-gap', '4px')
+    card.style.backgroundColor = 'rgb(10, 20, 30)'
+    await expect
+      .poll(() => bg(container, 'record-table-head'))
+      .toBe('rgb(10, 20, 30)')
+  })
+
+  it.each([
+    ['a variable', '--card-fill', 'rgb(40, 50, 60)'],
+    ['a var() shorthand', 'background', 'var(--card-other)']
+  ])('follows a fill behind it that %s sets', async (_, property, value) => {
+    const { container } = render(
+      <div
+        data-testid='card'
+        style={
+          {
+            '--card-fill': 'rgb(10, 20, 30)',
+            '--card-other': 'rgb(40, 50, 60)',
+            background: 'var(--card-fill)'
+          } as CSSProperties
+        }
+      >
+        <RecordTable
+          data={testShows(20)}
+          fields={showFields}
+          columns={showColumns}
+        />
+      </div>
+    )
+    const card = container.querySelector<HTMLElement>('[data-testid="card"]')!
+    await expect
+      .poll(() => bg(container, 'record-table-head'))
+      .toBe('rgb(10, 20, 30)')
+    card.style.setProperty(property, value)
+    await expect
+      .poll(() => bg(container, 'record-table-head'))
+      .toBe('rgb(40, 50, 60)')
+  })
+
+  // What a nested ThemeProvider writes on its wrapper.
+  it('follows a nested accent whose chroma changes', async () => {
+    const { container } = render(
+      <div
+        data-testid='scope'
+        data-accent-scope=''
+        style={
+          {
+            '--accent-hue': '247',
+            '--accent-chroma': '0.168'
+          } as CSSProperties
+        }
+      >
+        <div data-testid='card' className='bg-strong intent-accent'>
+          <RecordTable
+            data={testShows(20)}
+            fields={showFields}
+            columns={showColumns}
+          />
+        </div>
+      </div>
+    )
+    const scope = container.querySelector<HTMLElement>('[data-testid="scope"]')!
+    const card = container.querySelector<HTMLElement>('[data-testid="card"]')!
+    const fill = () => getComputedStyle(card).backgroundColor
+    const before = fill()
+    await expect.poll(() => bg(container, 'record-table-head')).toBe(before)
+    scope.style.setProperty('--accent-chroma', '0.05')
+    expect(fill()).not.toBe(before)
+    await expect.poll(() => bg(container, 'record-table-head')).toBe(fill())
+  })
+
+  it.each([
+    ['a scroll area scrolls', '--scroll-area-overflow-y-start', '12px'],
+    ['a drawer swipes', '--drawer-swipe-progress', '0.4']
+  ])(
+    "doesn't re-read the surface behind it when %s",
+    async (_, property, value) => {
+      const { container } = render(
+        <div data-testid='card' className='bg-sunken'>
+          <RecordTable
+            data={testShows(20)}
+            fields={showFields}
+            columns={showColumns}
+          />
+        </div>
+      )
+      const card = container.querySelector<HTMLElement>('[data-testid="card"]')!
+      await expect
+        .poll(() => bg(container, 'record-table-head'))
+        .toBe(getComputedStyle(card).backgroundColor)
+      const settles: MutationRecord[] = []
+      const watcher = new MutationObserver((records) =>
+        settles.push(...records)
+      )
+      onTestFinished(() => watcher.disconnect())
+      const parts = container.querySelectorAll('[data-records-surface]')
+      expect(parts).not.toHaveLength(0)
+      for (const part of parts)
+        watcher.observe(part, { attributeFilter: ['style'] })
+      const settlesInAFrame = async () => {
+        settles.length = 0
+        await frame()
+        return settles.length
+      }
+      // The table settles more than once as it mounts and sizes its columns.
+      await expect.poll(settlesInAFrame).toBe(0)
+      card.style.setProperty(property, value)
+      expect(await settlesInAFrame()).toBe(0)
+    }
+  )
 
   it('follows the theme when it switches', async () => {
     const { container } = render(

@@ -32,20 +32,25 @@ export function warnIfLowDisk() {
   return true
 }
 
-export async function waitForLoad() {
+export async function waitForLoad({
+  maxWaitMs = maxLoadWaitMs,
+  pollMs = loadPollMs
+} = {}) {
   const started = Date.now()
   for (;;) {
     const [load] = loadavg()
     if (load <= loadLimit) return
-    if (Date.now() - started > maxLoadWaitMs) {
+    const waited = Date.now() - started
+    if (waited >= maxWaitMs) {
       throw new Error(
-        `Load stayed above ${loadLimit} for 30 minutes. Giving up.`
+        `Load stayed above ${loadLimit} for ${Math.round(waited / 1000)}s. Giving up.`
       )
     }
+    const wait = Math.min(pollMs, maxWaitMs - waited)
     console.log(
-      `Load ${load.toFixed(2)} is above ${loadLimit}. Waiting ${loadPollMs / 1000}s.`
+      `Load ${load.toFixed(2)} is above ${loadLimit}. Waiting ${Math.ceil(wait / 1000)}s.`
     )
-    await sleep(loadPollMs)
+    await sleep(wait)
   }
 }
 
@@ -53,9 +58,31 @@ export function run(command, args, options = {}) {
   return execFileSync(command, args, { encoding: 'utf8', ...options })?.trim()
 }
 
+export const isWindows = process.platform === 'win32'
+
+const SAFE_FOR_CMD = /^[\w./:=@,+-]+$/
+
+/**
+ * How to start a package manager such as pnpm or npm. Windows reaches it
+ * through a .cmd shim, which Node runs only in a shell, so it gets one command
+ * line with each argument quoted for cmd.
+ */
+export function shimCommand(command, args, platform = process.platform) {
+  if (platform !== 'win32') return { command, args, shell: false }
+  const quoted = args.map((arg) =>
+    SAFE_FOR_CMD.test(arg) ? arg : `"${arg.replaceAll('"', '\\"')}"`
+  )
+  return { command: [command, ...quoted].join(' '), args: [], shell: true }
+}
+
+// Windows has no process groups, so it kills the child's tree instead.
 export function killGroup(pid, signal) {
   try {
-    process.kill(-pid, signal)
+    if (isWindows)
+      execFileSync('taskkill', ['/pid', String(pid), '/t', '/f'], {
+        stdio: 'ignore'
+      })
+    else process.kill(-pid, signal)
   } catch {
     // ESRCH: the group has already exited.
   }

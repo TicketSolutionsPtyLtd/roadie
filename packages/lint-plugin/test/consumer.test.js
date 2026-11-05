@@ -1,6 +1,5 @@
 import { ESLint as ESLint10 } from 'eslint'
 import { ESLint as ESLint9 } from 'eslint-v9'
-import { execFileSync } from 'node:child_process'
 import { existsSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -12,7 +11,8 @@ import {
   MISTAKE_RULES,
   TEST_MISTAKE_RULES,
   addRoadie,
-  createApp
+  createApp,
+  runShim
 } from './app.js'
 
 const CONFIG = `import roadie from '@oztix/roadie-lint-plugin'
@@ -28,7 +28,7 @@ beforeAll(() => {
   }))
   // The plugin has no dependencies, so the install never needs the network.
   const install = ['install', '--offline', '--legacy-peer-deps', '--no-audit']
-  execFileSync('npm', [...install, packed.filename], {
+  runShim('npm', [...install, packed.filename], {
     cwd: app,
     stdio: 'ignore'
   })

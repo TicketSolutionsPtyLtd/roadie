@@ -572,7 +572,7 @@ describe('ChartPlot under forced colours', () => {
         return
       }
       // The scoped id from useChartPatterns, not the unscoped roadie-texture-1
-      // fallback — proves var(--chart-texture-1) resolving to url(#…) works.
+      // fallback. Proves var(--chart-texture-1) resolving to url(#…) works.
       expect(getComputedStyle(area).fill).toMatch(/texture-1/)
       expect(getComputedStyle(line).fill).toBe('none')
       expect(getComputedStyle(line).strokeDasharray).toMatch(

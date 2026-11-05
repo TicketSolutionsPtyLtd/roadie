@@ -12,13 +12,17 @@ export type ShowWhenOp = ShowWhen['op']
 const isText = (value: unknown): value is string =>
   typeof value === 'string' && value !== ''
 
-/** A saved rule with only its key, op and value, or undefined when malformed. */
+/**
+ * A saved rule with only its key, trimmed as a variable's is, its op and its
+ * value, or undefined when malformed.
+ */
 export function showWhenRule(rule: unknown): ShowWhen | undefined {
   if (typeof rule !== 'object' || rule === null || Array.isArray(rule)) {
     return undefined
   }
-  const { key, op, value } = rule as Record<string, unknown>
-  if (!isText(key)) return undefined
+  const { key: savedKey, op, value } = rule as Record<string, unknown>
+  const key = typeof savedKey === 'string' ? savedKey.trim() : ''
+  if (key === '') return undefined
   if (op === 'exists') return { key, op }
   const isNumber = typeof value === 'number' && Number.isFinite(value)
   if (op === 'lessThan' || op === 'greaterThan') {

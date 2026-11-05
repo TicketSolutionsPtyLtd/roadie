@@ -4,7 +4,7 @@ import NumberFlow from '@number-flow/react'
 import { BagIcon } from '@phosphor-icons/react'
 import { type MotionStyle, m } from 'motion/react'
 
-import { Button } from '@oztix/roadie-components'
+import { Button } from '@oztix/roadie-components/button'
 
 import { formatCurrency } from '../../cart'
 import { priceFormat } from '../../cart/price'

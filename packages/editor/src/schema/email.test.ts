@@ -159,6 +159,8 @@ describe('presets.email', () => {
   it.each([
     ['/images/crowd.webp', false],
     ['http://assets.oztix.com.au/crowd.webp', false],
+    ['https://assets.oztix.com.au/the crowd.webp', false],
+    ['https://[oztix/crowd.webp', false],
     [poster, expect.objectContaining({ src: poster })]
   ])('reads a pasted image from %s as %j', (src, read) => {
     expect(pastedAttrs('image', pastedImage(src))).toEqual(read)
@@ -171,7 +173,8 @@ describe('presets.email', () => {
     ['javascript:alert(1)', false],
     ['/ochre-kite-weekender', false],
     ['mailto:', false],
-    ['https://', false]
+    ['https://', false],
+    ['https://www.oztix .com.au', false]
   ])('reads a pasted button to %s as %j', (href, read) => {
     expect(pastedAttrs('button', pastedButton(href))).toEqual(read)
   })
@@ -348,6 +351,37 @@ describe('migrate and the email preset', () => {
   })
 
   it.each([
+    [
+      'a button straight in a list as an item of its label',
+      { type: 'bulletList', content: [button(tickets)] },
+      list([p('Get tickets')])
+    ],
+    [
+      'columns straight in a list as an item of their blocks',
+      {
+        type: 'orderedList',
+        content: [columns(column(p('a')), column(p('b'), button(tickets)))]
+      },
+      {
+        type: 'orderedList',
+        content: [
+          { type: 'listItem', content: [p('a'), p('b'), p('Get tickets')] }
+        ]
+      }
+    ],
+    [
+      'an image straight in a list as an empty item',
+      { type: 'bulletList', content: [p('a'), image(poster)] },
+      list([p('a')], [{ type: 'paragraph' }])
+    ]
+  ])('reads %s, which the schema can load', (_, stored, read) => {
+    const migrated = readEmail(doc(stored))
+
+    expect(migrated).toEqual(doc(read))
+    expect(() => parse(migrated)).not.toThrow()
+  })
+
+  it.each([
     ['javascript:alert(1)'],
     ['data:text/html,<script>alert(1)</script>'],
     ['/ochre-kite-weekender'],
@@ -421,6 +455,7 @@ describe('migrate and the email preset', () => {
   it.each([
     [40, 40],
     [40.4, 40],
+    [40.6, 41],
     [2, 8],
     [500, 160],
     ['40', 32],
@@ -481,7 +516,13 @@ describe('a variable in the email preset', () => {
       { key: 'first_name', fallback: 'there' }
     ],
     [{ 'data-key': 'first_name' }, { key: 'first_name' }],
-    [{ 'data-key': '' }, false]
+    [{ 'data-key': ' first_name ' }, { key: 'first_name' }],
+    [
+      { 'data-key': 'first_name', 'data-fallback': '  ' },
+      { key: 'first_name' }
+    ],
+    [{ 'data-key': '' }, false],
+    [{ 'data-key': ' ' }, false]
   ])('reads a pasted variable with %j as %j', (attributes, read) => {
     const element = {
       getAttribute: (name: string) =>
@@ -504,6 +545,7 @@ describe('a variable in the email preset', () => {
 
   it.each([
     ['an empty fallback', ''],
+    ['a fallback of only spaces', '  '],
     ['a fallback that isn’t text', 7],
     ['no fallback', null]
   ])('drops %s', (_name, fallback) => {
@@ -515,9 +557,16 @@ describe('a variable in the email preset', () => {
   it.each([
     ['no key', {}],
     ['an empty key', { key: '' }],
+    ['a key of only spaces', { key: ' ' }],
     ['a key that isn’t text', { key: 7 }]
   ])('drops a variable with %s', (_name, attrs) => {
     expect(readEmail(greeting(attrs))).toEqual(doc(p('Hi ')))
+  })
+
+  it('trims the spaces around a key', () => {
+    expect(readEmail(greeting({ key: ' first_name ' }))).toEqual(
+      greeting({ key: 'first_name' })
+    )
   })
 
   it('keeps a variable in a button’s label, unmarked', () => {
@@ -600,6 +649,7 @@ describe('a rule for showing a block in the email preset', () => {
     ['is a list', [nearlySoldOut]],
     ['has no key', { op: 'exists' }],
     ['has an empty key', { key: '', op: 'exists' }],
+    ['has a key of only spaces', { key: '  ', op: 'exists' }],
     ['has a key that isn’t text', { key: 7, op: 'exists' }],
     ['has an unknown op', { key: 'tickets_left', op: 'atMost', value: 20 }],
     ['equals nothing', { key: 'ticket_type', op: 'equals' }],
@@ -619,6 +669,14 @@ describe('a rule for showing a block in the email preset', () => {
       doc(button(tickets))
     )
     expect(readEmail(doc(ruled(divider, rule)))).toEqual(doc(divider))
+  })
+
+  it('trims a rule’s key, as a variable’s is', () => {
+    expect(
+      readEmail(
+        doc(ruled(divider, { ...nearlySoldOut, key: ' tickets_left ' }))
+      )
+    ).toEqual(doc(ruled(divider, nearlySoldOut)))
   })
 
   it('reads a block with no rule as it was', () => {

@@ -1,5 +1,13 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Toolbar } from '@oztix/roadie-components/toolbar'
@@ -7,7 +15,8 @@ import { Toolbar } from '@oztix/roadie-components/toolbar'
 import { Editor, type EditorProps } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue } from '../schema'
-import { LINE_END, MOD, selectParagraph } from './testUtils'
+import { RESIZE_DELAY } from './EditorBubbleMenuEngine'
+import { LINE_END, MOD, clickIntoEditor, selectParagraph } from './testUtils'
 
 const LABEL = 'Event description'
 const MENU = 'Selection formatting'
@@ -20,6 +29,7 @@ beforeAll(() => {
   document.head.append(style)
 })
 afterAll(() => style.remove())
+afterEach(() => window.scrollTo(0, 0))
 
 const paragraph = (text: string) => ({
   type: 'paragraph',
@@ -93,10 +103,52 @@ async function selectText(text: string) {
 }
 
 const menu = () => screen.findByRole('toolbar', { name: MENU })
+// Hidden too, as a modal popover hides the page around it from the
+// accessibility tree.
 const noMenu = () =>
   waitFor(() =>
-    expect(screen.queryByRole('toolbar', { name: MENU })).toBe(null)
+    expect(screen.queryByRole('toolbar', { name: MENU, hidden: true })).toBe(
+      null
+    )
   )
+
+/**
+ * Resolves once the menu has placed itself for the scroll, as timers of equal
+ * delay run in the order they're set.
+ */
+async function scrollPageBy(y: number) {
+  const placed = new Promise<void>((resolve) =>
+    window.addEventListener(
+      'scroll',
+      // Ordered after the plugin's own timer, not a guessed wait.
+      // eslint-disable-next-line roadie/no-fixed-sleep
+      () => setTimeout(resolve, RESIZE_DELAY),
+      { once: true }
+    )
+  )
+  window.scrollBy(0, y)
+  await placed
+  await new Promise(requestAnimationFrame)
+}
+
+/**
+ * Selects the last two characters of a table cell's text. A double or triple
+ * click in a cell selects the cell, so the keys select the text.
+ */
+async function selectInCell(text: string) {
+  const textbox = await screen.findByRole('textbox', { name: LABEL })
+  const element = within(textbox).getByText(text)
+  await clickIntoEditor(element)
+  const actions = await screen.findByRole('toolbar', { name: 'Table actions' })
+  await userEvent.keyboard(`${LINE_END}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}`)
+  return { text: element, actions, bubble: await menu() }
+}
+
+function overlaps(a: DOMRect, b: DOMRect) {
+  return (
+    a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+  )
+}
 
 const itemsOf = (toolbar: HTMLElement) =>
   within(toolbar)
@@ -120,6 +172,187 @@ describe('Editor.BubbleMenu', () => {
       'Numbered list',
       'More'
     ])
+  })
+
+  it('shows in the blocks preset', async () => {
+    render(<BubbleEditor defaultValue={{ ...lineup, preset: 'blocks' }} />)
+    await selectText('Gates open at 4pm')
+
+    expect(itemsOf(await menu())).toEqual(
+      expect.arrayContaining(['Bold', 'Italic', 'Underline', 'Link'])
+    )
+  })
+
+  it('shows in the email preset, but not over a button’s label, which takes no marks', async () => {
+    render(
+      <BubbleEditor
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              paragraph('Gates open at 4pm'),
+              {
+                type: 'button',
+                attrs: { href: 'https://example.com/tickets' },
+                content: [{ type: 'text', text: 'Get tickets' }]
+              }
+            ]
+          }
+        }}
+      />
+    )
+    await selectText('Gates open at 4pm')
+    expect(itemsOf(await menu())).toEqual(
+      expect.arrayContaining(['Bold', 'Italic', 'Underline', 'Link'])
+    )
+
+    await selectText('Get tickets')
+    await noMenu()
+  })
+
+  it('shows over a selection from a button’s label into text that takes marks', async () => {
+    render(
+      <BubbleEditor
+        defaultValue={{
+          version: 1,
+          preset: 'email',
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'button',
+                attrs: { href: 'https://example.com/tickets' },
+                content: [{ type: 'text', text: 'Get tickets' }]
+              },
+              paragraph('Gates open at 4pm')
+            ]
+          }
+        }}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Get tickets'))
+    await userEvent.keyboard(
+      `${LINE_END}{Shift>}{ArrowRight}{ArrowRight}{ArrowRight}{/Shift}`
+    )
+
+    expect(itemsOf(await menu())).toEqual(
+      expect.arrayContaining(['Bold', 'Italic', 'Underline', 'Link'])
+    )
+  })
+
+  it('shows when everything is selected', async () => {
+    render(<BubbleEditor />)
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Gates open at 4pm'))
+    await userEvent.keyboard(`{${MOD}>}a{/${MOD}}`)
+
+    await waitFor(async () => expect(await menu()).toBeVisible())
+  })
+
+  describe('over text in columns', () => {
+    const inColumns: EditorValue = {
+      version: 1,
+      preset: 'email',
+      doc: {
+        type: 'doc',
+        content: [
+          paragraph('Gates open at 4pm'),
+          {
+            type: 'columns',
+            content: [
+              { type: 'column', content: [paragraph('Ochre Kite')] },
+              { type: 'column', content: [paragraph('Kazoo Hollow')] }
+            ]
+          }
+        ]
+      }
+    }
+
+    it('stays clear of the columns actions', async () => {
+      render(<BubbleEditor defaultValue={inColumns} />)
+      await selectText('Ochre Kite')
+      const bubble = await menu()
+      const actions = await screen.findByRole('toolbar', {
+        name: 'Columns actions'
+      })
+
+      const text = screen.getByText('Ochre Kite')
+      await waitFor(() => {
+        const line = text.getBoundingClientRect()
+        const bar = bubble.getBoundingClientRect()
+        const gap = Math.max(bar.top - line.bottom, line.top - bar.bottom)
+        expect(gap).toBeGreaterThanOrEqual(0)
+        expect(gap).toBeLessThan(24)
+      })
+      expect(
+        overlaps(
+          bubble.getBoundingClientRect(),
+          actions.getBoundingClientRect()
+        )
+      ).toBe(false)
+    })
+
+    it('stays on screen with the columns actions scrolled off above it', async () => {
+      const filler = Array.from({ length: 12 }, (_, index) =>
+        paragraph(`Set time ${index + 1}`)
+      )
+      render(
+        <>
+          <BubbleEditor
+            defaultValue={{
+              ...inColumns,
+              doc: {
+                type: 'doc',
+                content: [
+                  ...inColumns.doc.content!.slice(0, 1),
+                  paragraph('Doors close at 11pm'),
+                  {
+                    type: 'columns',
+                    content: [
+                      {
+                        type: 'column',
+                        content: [...filler, paragraph('Ochre Kite')]
+                      },
+                      { type: 'column', content: [paragraph('Kazoo Hollow')] }
+                    ]
+                  }
+                ]
+              }
+            }}
+          />
+          <div style={{ height: 2000 }} />
+        </>
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      const text = within(textbox).getByText('Ochre Kite')
+      window.scrollBy(0, text.getBoundingClientRect().top - 4)
+      await selectText('Ochre Kite')
+      const bubble = await menu()
+      const actions = await screen.findByRole('toolbar', {
+        name: 'Columns actions'
+      })
+
+      await waitFor(() =>
+        expect(bubble.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+          text.getBoundingClientRect().bottom
+        )
+      )
+      expect(actions.getBoundingClientRect().bottom).toBeLessThan(0)
+    })
+
+    it('takes focus first on Alt+F10, ahead of the columns actions', async () => {
+      render(<BubbleEditor defaultValue={inColumns} />)
+      await selectText('Ochre Kite')
+      const bubble = await menu()
+      await screen.findByRole('toolbar', { name: 'Columns actions' })
+
+      await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+
+      expect(within(bubble).getAllByRole('button')[0]).toHaveFocus()
+    })
   })
 
   it('shows nothing in a floating editor until the part is added', async () => {
@@ -162,7 +395,11 @@ describe('Editor.BubbleMenu', () => {
       expect(lastValue(onValueChange).doc.content?.[1]).toEqual({
         type: 'paragraph',
         content: [
-          { type: 'text', marks: [{ type: 'bold' }], text: 'Gates open at 4pm' }
+          {
+            type: 'text',
+            marks: [{ type: 'bold' }],
+            text: 'Gates open at 4pm'
+          }
         ]
       })
     )
@@ -249,19 +486,7 @@ describe('Editor.BubbleMenu', () => {
         }}
       />
     )
-    const textbox = await selectText('Gates open at 4pm')
-    await menu()
-    await userEvent.keyboard('{ArrowRight}')
-    await noMenu()
-    const text = within(textbox).getByText('9pm')
-    await userEvent.click(text)
-    const actions = await screen.findByRole('toolbar', {
-      name: 'Table actions'
-    })
-    await userEvent.keyboard(
-      `${LINE_END}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}`
-    )
-    const bubble = await menu()
+    const { text, actions, bubble } = await selectInCell('9pm')
 
     await waitFor(() =>
       expect(bubble.getBoundingClientRect().bottom).toBeLessThanOrEqual(
@@ -327,31 +552,132 @@ describe('Editor.BubbleMenu', () => {
 
   it('goes below text in a table, clear of the table actions', async () => {
     render(<BubbleEditor defaultValue={withTable} />)
-    // A double or triple click in a cell selects the cell, so the keys
-    // select text, once the menu has shown long after the editor took focus.
-    const textbox = await selectText('Gates open at 4pm')
-    await menu()
-    const text = within(textbox).getByText('Time')
-    await userEvent.click(text)
-    const table = await screen.findByRole('toolbar', { name: 'Table actions' })
-    await userEvent.keyboard(
-      `${LINE_END}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}`
-    )
-    const bubble = await menu()
+    const { text, actions, bubble } = await selectInCell('Time')
 
     await waitFor(() =>
       expect(bubble.getBoundingClientRect().top).toBeGreaterThanOrEqual(
         text.getBoundingClientRect().bottom
       )
     )
-    const a = bubble.getBoundingClientRect()
-    const b = table.getBoundingClientRect()
-    const overlaps =
-      a.left < b.right &&
-      b.left < a.right &&
-      a.top < b.bottom &&
-      b.top < a.bottom
-    expect(overlaps).toBe(false)
+    expect(
+      overlaps(bubble.getBoundingClientRect(), actions.getBoundingClientRect())
+    ).toBe(false)
+  })
+
+  it.each<[string, Partial<EditorProps>]>([
+    ['normal', {}],
+    // Too little room above the table, so its actions go below it.
+    ['subtler and small', { emphasis: 'subtler', size: 'sm' }]
+  ])(
+    'stays clear of the table actions over text in a table’s last row, %s',
+    async (_, props) => {
+      render(<BubbleEditor defaultValue={withTable} {...props} />)
+      const { text, actions, bubble } = await selectInCell('9pm')
+
+      await waitFor(() => {
+        const line = text.getBoundingClientRect()
+        const bar = bubble.getBoundingClientRect()
+        const gap = Math.max(bar.top - line.bottom, line.top - bar.bottom)
+        expect(gap).toBeGreaterThanOrEqual(0)
+        expect(gap).toBeLessThan(24)
+      })
+      expect(
+        overlaps(
+          bubble.getBoundingClientRect(),
+          actions.getBoundingClientRect()
+        )
+      ).toBe(false)
+    }
+  )
+
+  it('goes below text in a table with room above it for itself but not its offset', async () => {
+    render(<BubbleEditor defaultValue={withTable} />)
+    const { text, actions, bubble } = await selectInCell('9pm')
+    await waitFor(() =>
+      expect(bubble.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        text.getBoundingClientRect().top
+      )
+    )
+
+    const room =
+      text.getBoundingClientRect().top - actions.getBoundingClientRect().bottom
+    // Grown to leave half its offset, as a taller menu would.
+    bubble.style.minHeight = `${room - 4}px`
+
+    await waitFor(() =>
+      expect(bubble.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        text.getBoundingClientRect().bottom
+      )
+    )
+    expect(
+      overlaps(bubble.getBoundingClientRect(), actions.getBoundingClientRect())
+    ).toBe(false)
+  })
+
+  it.each<[string, Partial<EditorProps>]>([
+    ['below the table from the start', { emphasis: 'subtler', size: 'sm' }],
+    ['moving below the table on the scroll', {}]
+  ])(
+    'stays clear of table actions %s, with the selection at the top of the page',
+    async (_, props) => {
+      render(
+        <>
+          <BubbleEditor defaultValue={withTable} {...props} />
+          <div style={{ height: '200vh' }} />
+        </>
+      )
+      const { text, actions, bubble } = await selectInCell('9pm')
+
+      await scrollPageBy(text.getBoundingClientRect().top - 4)
+
+      expect(actions.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        text.getBoundingClientRect().bottom
+      )
+      expect(
+        overlaps(
+          bubble.getBoundingClientRect(),
+          actions.getBoundingClientRect()
+        )
+      ).toBe(false)
+    }
+  )
+
+  it('stays within a scrolled container over text in a table, with the table actions scrolled out', async () => {
+    const filler = Array.from({ length: 12 }, (_, index) =>
+      paragraph(`Set time ${index + 1}`)
+    )
+    render(
+      <>
+        <div style={{ height: 300 }} />
+        <div style={{ height: 400, overflow: 'auto' }} data-testid='scroller'>
+          <BubbleEditor
+            defaultValue={{
+              ...withTable,
+              doc: {
+                type: 'doc',
+                content: [...filler, ...withTable.doc.content!, ...filler]
+              }
+            }}
+          />
+        </div>
+      </>
+    )
+    const scroller = screen.getByTestId('scroller')
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const target = within(textbox).getByText('9pm')
+    scroller.scrollTop +=
+      target.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top -
+      4
+    const { actions, bubble } = await selectInCell('9pm')
+
+    await waitFor(() => {
+      const bar = bubble.getBoundingClientRect()
+      expect(bar.top).toBeGreaterThanOrEqual(
+        scroller.getBoundingClientRect().top
+      )
+      expect(overlaps(bar, actions.getBoundingClientRect())).toBe(false)
+    })
   })
 
   it('puts its children after the preset controls, before More', async () => {

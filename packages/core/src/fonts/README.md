@@ -24,7 +24,7 @@ build is Inter 4.001 (release v4.1, `git-9221beed3`).
 ### Why the repair pass exists
 
 `pyftfeatfreeze` freezes a character variant by repointing **cmap** at the
-alternate glyph — U+0031 stops mapping to `one` and maps to `one.ss01`. It does
+alternate glyph: U+0031 stops mapping to `one` and maps to `one.ss01`. It does
 not rewrite GSUB. Every single-substitution lookup still keyed on the
 pre-freeze glyph name therefore stops matching.
 
@@ -32,7 +32,7 @@ Because Intermission freezes cv01/cv02/cv03/cv04 (alternate 1, open 4, open 6,
 open 9), `tnum` lost its entries for exactly those four digits: `tnum` mapped
 `one -> one.tf`, but the text now contains `one.ss01`, which has no entry. The
 result was tabular figures that lined up 0 2 3 5 7 8 and left 1 4 6 9 at their
-proportional widths — silently broken digit alignment in tables, countdowns and
+proportional widths: silently broken digit alignment in tables, countdowns and
 currency columns. `numr`, `dnom`, `subs`, `sups` and `sinf` were broken the
 same way.
 
