@@ -6,6 +6,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   realpathSync,
   rmSync,
   writeFileSync
@@ -19,10 +20,13 @@ const scripts = dirname(fileURLToPath(import.meta.url))
 const roots = []
 
 // The pre-push hook runs these tests with GIT_DIR and friends pointing at the
-// repo being pushed, which would send every fixture git call there instead.
-const gitFreeEnv = Object.fromEntries(
-  Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))
-)
+// repo being pushed. Left in, they sent the fixture's `git init` and
+// `git config` to the real repo and made it bare. Read at call time so the
+// decoy test below can prove it.
+const gitFreeEnv = () =>
+  Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_'))
+  )
 after(() => {
   for (const root of roots) rmSync(root, { recursive: true, force: true })
 })
@@ -46,8 +50,15 @@ function fixture() {
   chmodSync(join(bin, 'pnpm'), 0o755)
 
   const git = (cwd, ...args) =>
-    execFileSync('git', args, { cwd, encoding: 'utf8', env: gitFreeEnv }).trim()
+    execFileSync('git', ['-C', cwd, ...args], {
+      cwd,
+      encoding: 'utf8',
+      env: gitFreeEnv()
+    }).trim()
   git(repo, 'init', '-q', '-b', 'main')
+  const gitDir = git(repo, 'rev-parse', '--absolute-git-dir')
+  if (gitDir !== join(repo, '.git'))
+    throw new Error(`Fixture git resolved to ${gitDir}, outside ${root}`)
   git(repo, 'config', 'user.email', 'test@example.com')
   git(repo, 'config', 'user.name', 'Test')
   git(repo, 'config', 'commit.gpgsign', 'false')
@@ -97,7 +108,8 @@ function fixture() {
     merge(branch, headRefOid = git(repo, 'rev-parse', branch)) {
       prs.push({ headRefName: branch, headRefOid })
     },
-    cleanup(args, env = {}) {
+    cleanup(args, extraEnv = {}) {
+      const base = gitFreeEnv()
       const result = spawnSync(
         process.execPath,
         ['scripts/cleanup.mjs', ...args],
@@ -105,11 +117,11 @@ function fixture() {
           cwd: repo,
           encoding: 'utf8',
           env: {
-            ...gitFreeEnv,
-            PATH: `${bin}:${gitFreeEnv.PATH}`,
+            ...base,
+            PATH: `${bin}:${base.PATH}`,
             FAKE_GH_PRS: JSON.stringify(prs),
             ROADIE_BRANCH_PREFIX: '',
-            ...env
+            ...extraEnv
           }
         }
       )
@@ -122,6 +134,36 @@ function fixture() {
 }
 
 describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
+  test('never touches the repo a hook points GIT_DIR at', () => {
+    const decoyRoot = realpathSync(mkdtempSync(join(tmpdir(), 'roadie-decoy-')))
+    roots.push(decoyRoot)
+    execFileSync('git', ['init', '-q', decoyRoot], { env: gitFreeEnv() })
+    const decoyConfig = join(decoyRoot, '.git', 'config')
+    const before = readFileSync(decoyConfig, 'utf8')
+    const saved = {
+      GIT_DIR: process.env.GIT_DIR,
+      GIT_WORK_TREE: process.env.GIT_WORK_TREE
+    }
+    process.env.GIT_DIR = join(decoyRoot, '.git')
+    process.env.GIT_WORK_TREE = decoyRoot
+    try {
+      const f = fixture()
+      f.worktree('claude/done')
+      f.merge('claude/done')
+      const { status, output } = f.cleanup([
+        '--delete',
+        '--branch',
+        'claude/done'
+      ])
+      assert.equal(status, 0, output)
+    } finally {
+      for (const [key, value] of Object.entries(saved))
+        if (value === undefined) delete process.env[key]
+        else process.env[key] = value
+    }
+    assert.equal(readFileSync(decoyConfig, 'utf8'), before)
+  })
+
   test('removes a merged, clean worktree and its branch', () => {
     const f = fixture()
     const path = f.worktree('claude/done')
