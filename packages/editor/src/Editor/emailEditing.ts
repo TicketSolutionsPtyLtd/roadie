@@ -164,9 +164,7 @@ function outlined(
 
 const BUTTON_ALIGN = { center: 'mx-auto', right: 'ms-auto' } as const
 
-// As the email draws it: strong in the accent, or a neutral normal or
-// subtle, at its label's width or the column's, from the column's start,
-// centred, or at its end.
+// Matches how renderEmail draws each emphasis.
 const BUTTON_EMPHASIS = {
   strong: 'intent-accent emphasis-strong',
   normal: 'emphasis-normal',
