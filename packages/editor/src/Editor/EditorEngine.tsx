@@ -103,7 +103,12 @@ import {
 import { customInsertItem, presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
-import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
+import {
+  MERGE_TAG_OPEN,
+  MergeTagEnter,
+  mergeTagItem,
+  variableInsertItems
+} from './mergeTags'
 import { emailSections } from './sections'
 import { SourcePaste } from './sourcePaste'
 import { presetHint, presetLook, resolvedPreset } from './startingValue'
@@ -560,6 +565,7 @@ export function EditorEngine({
       }),
       ...(holdsMergeTags
         ? [
+            MergeTagEnter.configure({ onEdit: () => setEditingVariable(true) }),
             InsertMenu.extend({ name: 'mergeTagMenu' }).configure({
               char: MERGE_TAG_OPEN,
               items: () =>
