@@ -1183,6 +1183,15 @@ describe('releaseTitle', () => {
       )
     ).toBe('Update currency to show cents')
   })
+
+  it('calls a breaking release whose other changes are dependency bumps a breaking change', () => {
+    expect(
+      releaseTitle(
+        [card('Breaking change', { breaking: true })],
+        [item('changed', undefined, 'Update Tiptap to 3.32.1.')]
+      )
+    ).toBe('Breaking change')
+  })
 })
 
 describe('releaseSummary', () => {

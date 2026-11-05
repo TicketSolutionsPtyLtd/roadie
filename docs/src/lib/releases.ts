@@ -1012,9 +1012,9 @@ export function releaseTitle(cards: ReleaseCard[], items: ReleaseItem[]) {
     return andList(more ? [...shown, 'more'] : shown)
   }
   if (pages.length > 0) return `Updates to ${named(pages)}`
-  if (cards.length > 0 && items.length === 0) return GENERIC_BREAKING
-  if (items.length === 0 || items.every(isDependencyBump))
-    return 'Dependency updates'
+  const onlyBumps = items.every(isDependencyBump)
+  if (cards.length > 0 && onlyBumps) return GENERIC_BREAKING
+  if (onlyBumps) return 'Dependency updates'
   // A lone change's opening words, such as "Add a date and time standard".
   const [lone] = items
   const opening = lone?.text[0]
