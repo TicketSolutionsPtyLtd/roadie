@@ -2,6 +2,8 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
+import { Dialog } from '@oztix/roadie-components/dialog'
+
 import { Editor } from '.'
 import type { EditorValue, JSONContent } from '../schema'
 import { LINE_END, MOD } from './testUtils'
@@ -269,6 +271,35 @@ describe('Editor email blocks', () => {
       })
     }
   )
+
+  it('leaves a block’s toolbar on Escape without closing the dialog around it', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <Dialog.Content>
+          <Dialog.Title>Compose</Dialog.Title>
+          <Editor
+            aria-label={LABEL}
+            preset='email'
+            defaultValue={email(columns(['Lineup'], ['Tickets']))}
+          />
+        </Dialog.Content>
+      </Dialog>
+    )
+    await clickText('Lineup')
+    const trigger = await screen.findByRole('button', {
+      name: 'Columns: 2 columns'
+    })
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    await waitFor(() => expect(trigger).toHaveFocus())
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+    )
+    expect(onOpenChange).not.toHaveBeenCalled()
+  })
 
   it('sets a selected spacer’s height', async () => {
     const onValueChange = renderEmail(
