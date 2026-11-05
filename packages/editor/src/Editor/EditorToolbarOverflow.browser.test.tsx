@@ -257,6 +257,43 @@ describe('Editor toolbar on a touch screen', () => {
     await waitFor(() => expect(at().bottom).toBeLessThan(textTop + 1))
   })
 
+  it('leaves another editor’s bar in place, and a field in the same dialog', async () => {
+    onTouchScreen()
+    await page.viewport(390, 700)
+    render(
+      <div role='dialog' aria-label='Compose'>
+        <input aria-label='Subject' />
+        <Editor
+          aria-label={LABEL}
+          defaultValue={valueIn('email')}
+          toolbar='docked'
+        />
+        <Editor
+          aria-label='Footer'
+          defaultValue={valueIn('email')}
+          toolbar='docked'
+        />
+      </div>
+    )
+    const [first, second] = await screen.findAllByRole('toolbar', {
+      name: 'Formatting'
+    })
+    const viewport = window.visualViewport!
+    const bottom = viewport.offsetTop + viewport.height
+    const docked = (toolbar: HTMLElement) =>
+      Math.abs(toolbar.getBoundingClientRect().bottom - bottom) < 1
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(within(textbox).getByText(TEXT))
+    await waitFor(() => expect(docked(first!)).toBe(true))
+
+    await moreMenu(first!)
+    expect(docked(second!)).toBe(false)
+    await userEvent.keyboard('{Escape}')
+
+    await userEvent.click(screen.getByRole('textbox', { name: 'Subject' }))
+    await waitFor(() => expect(docked(first!)).toBe(false))
+  })
+
   it('stays at the top with a mouse', async () => {
     await page.viewport(390, 700)
     render(
@@ -300,6 +337,32 @@ describe('Editor toolbar More', () => {
       expect(controls(toolbar)).toEqual(before)
     }
   )
+  it('fits again after the bar goes while More is open', async () => {
+    await page.viewport(600, 800)
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={valueIn('rich')}
+        defaultToolbar='floating'
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(within(textbox).getByText(TEXT))
+    await page.viewport(360, 800)
+    const toolbar = await shownToolbar()
+    await waitFor(() => fitsItsBar(toolbar))
+    await moreMenu(toolbar)
+
+    await page.viewport(800, 800)
+    await waitFor(() =>
+      expect(screen.queryByRole('toolbar', { name: 'Formatting' })).toBe(null)
+    )
+    await page.viewport(360, 800)
+
+    const again = await shownToolbar()
+    await waitFor(() => expect(rows(again)).toBe(1))
+    fitsItsBar(again)
+  })
 })
 
 describe('Editor toolbar in a narrow column', () => {

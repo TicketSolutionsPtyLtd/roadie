@@ -502,6 +502,8 @@ function MoreMenu({
   ui
 }: MoreMenuProps) {
   const showsShortcuts = useShowsShortcuts()
+  // Closed by unmounting, the menu never says so.
+  useEffect(() => () => onOpenChange(false), [onOpenChange])
   const run = (control: EditorControl) => {
     if (!editor) return
     focusEditor(editor)
@@ -640,7 +642,7 @@ export function EditorToolbarEngine({
     moreRef,
     leading: openBlocks ? 2 : 0,
     docked: !floating,
-    held: moreOpen
+    held: moreOpen && !floating
   })
   const visible = shown ? items.filter((_, index) => shown.has(index)) : items
   const hidden = shown ? items.filter((_, index) => !shown.has(index)) : []
@@ -679,7 +681,7 @@ export function EditorToolbarEngine({
         style={aboveKeyboard ? { bottom: lift } : undefined}
         className={cn(
           aboveKeyboard &&
-            'fixed inset-x-0 z-sticky border-t border-subtler bg-normal pb-[env(safe-area-inset-bottom)]'
+            'fixed inset-x-0 z-overlay border-t border-subtler bg-normal pb-[env(safe-area-inset-bottom)]'
         )}
       >
         <Toolbar
