@@ -483,6 +483,29 @@ describe('renderEmail', () => {
       }
     )
 
+    it.each([
+      ['ae', '{', '%', 'Hi {#FirstName#%'],
+      ['liquid', '#', '%', 'Hi #{{ customer.first_name }}%']
+    ] as const)(
+      'leaves characters beside a variable that %s doesn’t read as a token as typed',
+      async (syntax, before, after, written) => {
+        const { text: plain } = await renderEmail(
+          email(p(text(`Hi ${before}`), tag('first_name'), text(after))),
+          { syntax, variables }
+        )
+        expect(plain).toBe(written)
+      }
+    )
+
+    it('keeps typed token characters beside a preview’s value from making a token of it', async () => {
+      const { text: plain } = await renderEmail(
+        email(p(text('Hi #'), tag('first_name'), text('#'))),
+        { syntax: 'liquid', variables, values: { first_name: 'Code' } }
+      )
+      expect(plain).not.toContain('#Code#')
+      expect(plain.replaceAll('​', '')).toBe('Hi #Code#')
+    })
+
     it('keeps a fallback with quotes and braces inside its Liquid default in the plain text', async () => {
       const { text: plain } = await renderEmail(greeting(`"Mate's" }} {{ x`), {
         syntax: 'liquid',
