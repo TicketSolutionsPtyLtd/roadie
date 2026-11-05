@@ -44,6 +44,7 @@ import {
 } from '../schema/presetShapes'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorBlockHandle } from './EditorBlockHandle'
+import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
 import { EditorButtonPopover } from './EditorButtonPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
@@ -281,6 +282,7 @@ export function EditorEngine({
 }: EditorRootProps) {
   const placeholderRef = useRef(placeholder)
   const toolbarRef = useRef<HTMLDivElement>(null)
+  const bubbleMenuRef = useRef<HTMLDivElement>(null)
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
   const openBlockMenuRef = useRef<(() => void) | null>(null)
@@ -387,11 +389,14 @@ export function EditorEngine({
       },
       handleKeyDown: (view, event) => {
         if (!event.altKey || event.key !== 'F10') return false
-        const toolbar = selectedNodeType(view.state)
-          ? nodeToolbarRef.current
-          : selectedTable(view.state)
-            ? tableToolbarRef.current
-            : toolbarRef.current
+        // The selection menu is in the document only while it shows.
+        const toolbar = bubbleMenuRef.current?.isConnected
+          ? bubbleMenuRef.current
+          : selectedNodeType(view.state)
+            ? nodeToolbarRef.current
+            : selectedTable(view.state)
+              ? tableToolbarRef.current
+              : toolbarRef.current
         const firstEnabled = toolbar?.querySelector<HTMLElement>(
           'button:not([aria-disabled="true"])'
         )
@@ -477,10 +482,13 @@ export function EditorEngine({
         emphasis,
         contentId,
         toolbarRef,
+        bubbleMenuRef,
         ...ui,
+        editingLink,
         embedProviders,
         TiptapContent,
-        ToolbarEngine: EditorToolbarEngine
+        ToolbarEngine: EditorToolbarEngine,
+        BubbleMenuEngine: EditorBubbleMenuEngine
       }}
     >
       <div
