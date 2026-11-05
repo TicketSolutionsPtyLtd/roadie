@@ -857,8 +857,8 @@ const preview = await renderEmail(welcome, {
 
 - `syntax` is `ae` for `#Token#` or `liquid` for `{{ }}`. Each variable is
   written as its token, unescaped, in the HTML and the plain text alike.
-- A Liquid token gets the fallback as its `default`. An AE token has no
-  default, so the sending system's own applies.
+- A Liquid token of one `{{ }}` output gets the fallback as its `default`.
+  An AE token has no default, so its fallback isn't written.
 - With `values`, each variable is filled with its value, escaped, or its
   fallback when the value is missing or empty. A preview needs no `syntax`.
 - A variable `variables` doesn't list, or one with no token in `syntax`,
