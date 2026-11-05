@@ -21,7 +21,8 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   `git worktree unlock <path>` and run it again.
 
   For a task you abandon, check `git status` is clean and the branch is
-  pushed, then `git worktree remove <path>`; the branch stays.
+  pushed, unlock the worktree if no session is using it, then
+  `git worktree remove <path>`; the branch stays.
 
   Delete every helper branch you make (a rebase, review or screenshots
   branch) once it has done its job: `git branch -D <branch>`. A pushed
@@ -31,7 +32,8 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   a background server running. Delete only files you created, by exact path.
   Never delete or empty the scratchpad directory, since subagents share it
   with the parent session. `pnpm cleanup` with no flags lists everything that
-  can go and every branch it kept, oldest first; run it when
+  can go, each worktree it kept and why, and, oldest first, each branch it
+  kept that no worktree holds; run it when
   `pnpm test:gated` or `pnpm preview` warns about low disk, and tell the
   maintainer when free space stays under about 20 GB.
 
