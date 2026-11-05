@@ -498,7 +498,7 @@ export function EditorEngine({
           // Room for the block handle at each block's start.
           hasBlockHandle &&
             emphasis !== 'subtler' &&
-            (insertItems.length > 0 ? 'ps-15' : 'ps-10'),
+            (presetItems.length > 0 ? 'ps-15' : 'ps-10'),
           preset === 'email' && EMAIL_CANVAS
         )
       },
@@ -710,7 +710,7 @@ export function EditorEngine({
             editor={editor}
             openMenuRef={openBlockMenuRef}
             containers={blockContainers}
-            canAdd={insertItems.length > 0}
+            canAdd={presetItems.length > 0}
           />
         ) : null}
         {editor ? (
