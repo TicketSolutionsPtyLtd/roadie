@@ -149,6 +149,55 @@ describe('Editor email links to link variables', () => {
     )
   })
 
+  it('puts the variable back on Escape after an address is typed', async () => {
+    const onValueChange = renderEmail(
+      email(linked('Unsubscribe', { variable: 'unsubscribe_url' }))
+    )
+    const dialog = await openLink('Unsubscribe')
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Link' }),
+      TICKETS
+    )
+    await waitFor(() =>
+      expect(firstBlock(onValueChange)).toEqual(
+        linked('Unsubscribe', { href: TICKETS })
+      )
+    )
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(firstBlock(onValueChange)).toEqual(
+      linked('Unsubscribe', { variable: 'unsubscribe_url' })
+    )
+  })
+
+  it('undoes a variable picked after a typed address in one step', async () => {
+    const onValueChange = renderEmail(
+      email(linked('Unsubscribe', { href: TICKETS }))
+    )
+    const dialog = await openLink('Unsubscribe')
+    const input = within(dialog).getByRole('textbox', { name: 'Link' })
+    await userEvent.clear(input)
+    await userEvent.type(input, 'oztix.com.au')
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'View in browser' })
+    )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(firstBlock(onValueChange)).toEqual(
+      linked('Unsubscribe', { variable: 'view_url' })
+    )
+
+    // The second undo finds nothing earlier to take back.
+    await userEvent.keyboard(`{${MOD}>}zz{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(firstBlock(onValueChange)).toEqual(
+        linked('Unsubscribe', { href: TICKETS })
+      )
+    )
+  })
+
   it('offers no link variables without any', async () => {
     renderEmail(
       email({
