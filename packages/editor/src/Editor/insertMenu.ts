@@ -45,7 +45,6 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
 
   addProseMirrorPlugins() {
     const { char, items, allowIn, ui, onChange } = this.options
-    if (items().length === 0) return []
     let open: {
       props: Props
       active: number
@@ -93,6 +92,7 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
         allowSpaces: true,
         floatingUi: { strategy: 'fixed' },
         allow: ({ state, range }) =>
+          items().length > 0 &&
           allowIn(state.doc.resolve(range.from).parent.type.name),
         items: ({ query, editor }) =>
           matchingInsertItems(items(), query, editor, ui()),
