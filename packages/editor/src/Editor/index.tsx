@@ -19,6 +19,12 @@ export { Editor }
 export type { EditorRootProps as EditorProps } from './EditorRoot'
 export type { EditorBubbleMenuProps } from './EditorBubbleMenu'
 export type { EditorToolbarProps } from './EditorToolbar'
+export type {
+  EditorPreviewRecipient,
+  EditorPreviewValues,
+  EditorRenderPreview,
+  EditorSendTest
+} from './EditorPreview'
 export { preloadEditor } from './load'
 export { useEditorContext } from './useEditorContext'
 export type { EditorEmphasis, EditorSize } from './variants'

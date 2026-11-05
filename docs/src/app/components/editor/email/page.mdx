@@ -188,6 +188,81 @@ isn't hex throws, as it does in `renderEmail`.
 />
 ```
 
+### Previewing and sending a test
+
+With `onRenderPreview`, Preview, at the end of the docked toolbar's editing
+controls and in the floating toolbar's … menu, shows the email as it sends
+in place of the canvas. The host renders it: call `renderEmail` with the
+values it's given, on your server, since MJML needs Node, and resolve to its
+`html`. This page has no server, so it renders in the browser.
+
+- **Desktop** and **Phone** show it 600 and 375 pixels wide, as
+  [`EmailHtmlField`](#html-emails) does.
+- **Light** and **Dark** set the frame's `color-scheme`, as a mail client in
+  dark mode does, so an email with its own dark styles shows them.
+- **Preview as**, with `previewRecipients`, fills the merge tags with a
+  recipient's values and shows only the sections their conditions allow. It
+  starts on the first. Without recipients, merge tags show their fallbacks.
+- **Send test**, with `onSendTest`, asks for an address and calls it with
+  the value, the address, and the recipient's values. A rejection's message
+  shows under the address.
+
+Back to editing, or Escape, puts the canvas back with the caret where it
+was. The frame is sandboxed, so it runs none of the email's scripts.
+
+```tsx-live-noinline
+const variables = [
+  { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
+  { key: 'tickets_left', label: 'Tickets left', tokens: { liquid: '{{ event.tickets_left }}' } }
+]
+
+function PreviewedEmail() {
+  return (
+    <Editor
+      aria-label='Newsletter'
+      preset='email'
+      toolbar='docked'
+      variables={variables}
+      previewRecipients={[
+        { label: 'Alex, 12 tickets left', values: { first_name: 'Alex', tickets_left: '12' } },
+        { label: 'No name, 300 tickets left', values: { tickets_left: '300' } }
+      ]}
+      onRenderPreview={async (value, { values }) =>
+        (await renderEmail({ kind: 'design', value }, { variables, values })).html
+      }
+      // A real app sends from its server; this one only waits.
+      onSendTest={() => new Promise((resolve) => setTimeout(resolve, 600))}
+      defaultValue={{
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+            {
+              type: 'paragraph',
+              content: [
+                { type: 'text', text: 'Hi ' },
+                { type: 'variable', attrs: { key: 'first_name', fallback: 'there' } },
+                { type: 'text', text: ', the gates open at Jumbuck Orchard Park on Saturday 14 March.' }
+              ]
+            },
+            {
+              type: 'section',
+              attrs: { showWhen: { key: 'tickets_left', op: 'lessThan', value: 50 } },
+              content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Fewer than 50 tickets are left, so grab yours soon.' }] }]
+            },
+            { type: 'button', attrs: { href: 'https://www.oztix.com.au/ochre-kite-weekender' }, content: [{ type: 'text', text: 'Get tickets' }] }
+          ]
+        }
+      }}
+    />
+  )
+}
+
+render(<PreviewedEmail />)
+```
+
 ### Adding blocks
 
 There are two ways to add a block. Both list the blocks under the same

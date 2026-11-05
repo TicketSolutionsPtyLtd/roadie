@@ -4,6 +4,7 @@ import {
   ArrowCounterClockwiseIcon,
   ColumnsPlusLeftIcon,
   ColumnsPlusRightIcon,
+  EyeIcon,
   FileCodeIcon,
   FilmStripIcon,
   ImageIcon,
@@ -47,6 +48,8 @@ export type EditorControlUi = {
   editVariable: () => void
   /** Opens the import of an email's HTML or MJML, in the email preset. */
   importSource?: (source?: string) => void
+  /** Shows the email as it sends, in the email preset with `onRenderPreview`. */
+  preview?: () => void
 }
 
 export type EditorControl = {
@@ -245,6 +248,13 @@ const importSource: EditorControl = {
   available: (ui) => Boolean(ui.importSource)
 }
 
+const preview: EditorControl = {
+  label: 'Preview',
+  icon: EyeIcon,
+  run: (_editor, ui) => ui.preview?.(),
+  available: (ui) => Boolean(ui.preview)
+}
+
 const emailBlockType = { ...blockType, types: [paragraph, ...headings] }
 
 /** The text controls, which the floating toolbar shows over a selection. */
@@ -260,7 +270,7 @@ export const overflowControls: Record<Preset, readonly EditorControl[]> = {
   basic: history,
   rich: [...inserts, ...history],
   blocks: [...inserts, ...history],
-  email: [importSource, ...history]
+  email: [preview, importSource, ...history]
 }
 
 // Each preset lists only controls for extensions it holds.
@@ -283,6 +293,7 @@ export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
   email: [
     ...floatingControls.email,
     SEPARATOR,
+    preview,
     importSource,
     SEPARATOR,
     ...history
