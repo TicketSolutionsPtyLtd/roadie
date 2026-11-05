@@ -19,9 +19,10 @@ agents alike. Read `AGENTS.md` first; this page is the process around it.
   PR holds every commit and nothing uncommitted would be lost, and says why it
   kept anything. A session can't remove its own worktree, since it runs there
   and holds its lock. Claude Code never releases that lock, so `pnpm cleanup`
-  treats one as stale once the process it names has exited, and the next run
-  from any session removes the worktree. A lock that names no process, or one
-  whose process still runs, keeps the worktree.
+  treats one as stale once the process it names has exited, and the next
+  `pnpm cleanup --delete` that covers the branch removes the worktree. A lock
+  that names no process, or one whose process still runs, keeps it; if no
+  session is using it, `git worktree unlock <path>` and run cleanup again.
 
   For a task you abandon, check `git status` is clean and the branch is
   pushed, unlock the worktree if no session is using it, then
