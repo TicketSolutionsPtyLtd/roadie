@@ -148,6 +148,40 @@ describe('Editor with the email preset', () => {
     )
   })
 
+  it('submits an edited layout with no rules as it saved it', async () => {
+    let submitted: FormData | undefined
+    render(
+      <form
+        onSubmit={(event) => {
+          event.preventDefault()
+          submitted = new FormData(event.currentTarget)
+        }}
+      >
+        <Editor
+          aria-label={LABEL}
+          name='newsletter'
+          defaultValue={newsletter}
+        />
+        <button type='submit'>Save</button>
+      </form>
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await waitFor(() => expect(textbox).toHaveTextContent('Doors 7pm'))
+    await userEvent.click(screen.getByText('Doors 7pm'))
+    await userEvent.keyboard(`${LINE_END}, bar till late`)
+    await waitFor(() =>
+      expect(textbox).toHaveTextContent('Doors 7pm, bar till late')
+    )
+
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(JSON.parse(submitted!.get('newsletter') as string)).toEqual({
+      version: 1,
+      preset: 'email',
+      doc: layout('Doors 7pm, bar till late')
+    })
+  })
+
   it('pastes a copied button as a button, not a link', async () => {
     const onValueChange = vi.fn()
     render(
@@ -295,17 +329,25 @@ describe('the email preset’s HTML', () => {
             width: 280
           }
         },
-        { type: 'spacer', attrs: { height: 40 } }
+        {
+          type: 'spacer',
+          attrs: {
+            height: 40,
+            showWhen: { key: 'tickets_left', op: 'lessThan', value: 20 }
+          }
+        }
       ]
     }
+    const node = Node.fromJSON(schema, copied)
     const holder = document.createElement('div')
     holder.append(
-      DOMSerializer.fromSchema(schema).serializeFragment(
-        Node.fromJSON(schema, copied).content
-      )
+      DOMSerializer.fromSchema(schema).serializeFragment(node.content)
     )
 
-    expect(DOMParser.fromSchema(schema).parse(holder).toJSON()).toEqual(copied)
+    // toJSON keeps the undefined rule of each block with none.
+    expect(DOMParser.fromSchema(schema).parse(holder).toJSON()).toEqual(
+      node.toJSON()
+    )
   })
 
   it('inserts an image with setImage only from https', () => {
