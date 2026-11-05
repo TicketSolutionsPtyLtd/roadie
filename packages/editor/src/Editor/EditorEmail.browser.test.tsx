@@ -230,6 +230,53 @@ describe('Editor with the email preset', () => {
       await within(textbox).findByRole('img', { name: 'The poster' })
     ).toHaveAttribute('src', poster)
   })
+
+  it('keeps an image’s width when Replace image swaps its file', async () => {
+    const stage = 'https://assets.example.com/stage.webp'
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        defaultValue={{
+          ...newsletter,
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'image',
+                attrs: {
+                  src: 'https://assets.example.com/poster.webp',
+                  alt: 'The poster',
+                  width: 280
+                }
+              },
+              p('See you there.')
+            ]
+          }
+        }}
+        onUploadImage={async () => ({ src: stage })}
+        onValueChange={onValueChange}
+      />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.click(textbox.querySelector('img')!)
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Replace image' })
+    )
+    await userEvent.upload(
+      screen.getByLabelText('Replacement image file'),
+      new File(['png'], 'stage.png', { type: 'image/png' })
+    )
+
+    await waitFor(() =>
+      expect(onValueChange.mock.lastCall?.[0].doc.content[0].attrs).toEqual({
+        src: stage,
+        alt: 'The poster',
+        width: 280
+      })
+    )
+  })
 })
 
 describe('the email preset’s HTML', () => {

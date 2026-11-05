@@ -63,7 +63,11 @@ const insertImage: Place = (tr, at, image) => {
 const replaceImageAt: Place = (tr, at, { src, alt }) => {
   const image = tr.doc.nodeAt(at)
   if (image?.type.name !== 'image') return
-  tr.setNodeMarkup(at, undefined, { src, alt: String(image.attrs.alt) || alt })
+  tr.setNodeMarkup(at, undefined, {
+    ...image.attrs,
+    src,
+    alt: String(image.attrs.alt) || alt
+  })
 }
 
 function upload(
