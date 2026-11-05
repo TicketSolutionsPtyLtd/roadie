@@ -309,11 +309,21 @@ describe('Editor email import', () => {
   )
 
   it('offers no import outside the email preset', async () => {
-    render(<Editor aria-label={LABEL} preset='rich' />)
-    await screen.findByRole('textbox', { name: LABEL })
+    const onValueChange = vi.fn()
+    render(
+      <Editor aria-label={LABEL} preset='rich' onValueChange={onValueChange} />
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
 
     expect(
       screen.queryByRole('button', { name: 'Import HTML or MJML' })
     ).toBeNull()
+
+    await clickIntoEditor(textbox)
+    paste(textbox, { 'text/plain': '<p>Doors</p>' })
+
+    await waitFor(() =>
+      expect(lastDoc(onValueChange)).toEqual([paragraph('<p>Doors</p>')])
+    )
   })
 })
