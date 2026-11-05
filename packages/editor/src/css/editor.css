@@ -36,6 +36,8 @@
     border-radius: var(--radius-md);
     background-color: var(--intent-5);
     outline: calc(var(--spacing) * 1.5) solid var(--intent-5);
+    /* An email section's or spacer's dashed outline sets one. */
+    outline-offset: 0;
   }
 
   @media (forced-colors: active) {
@@ -66,6 +68,25 @@
   :is([data-type='section'], [data-type='column'])
   > :where(:not(.ProseMirror-gapcursor) ~ :not(.ProseMirror-gapcursor)) {
   margin-block-start: calc(var(--spacing) * 4);
+}
+
+/* An email's spacer has no padding, so only its neighbours' 8px sit beside it. */
+[data-email]
+  :is([data-type='section'], [data-type='column'])
+  > :where(:not(.ProseMirror-gapcursor) ~ [data-type='spacer']),
+[data-email] > :where(:not(.ProseMirror-gapcursor) ~ [data-type='spacer']),
+[data-email]
+  :is([data-type='section'], [data-type='column'])
+  > :where(
+    [data-type='spacer'] + :not(.ProseMirror-gapcursor),
+    [data-type='spacer'] + .ProseMirror-gapcursor + *
+  ),
+[data-email]
+  > :where(
+    [data-type='spacer'] + :not(.ProseMirror-gapcursor),
+    [data-type='spacer'] + .ProseMirror-gapcursor + *
+  ) {
+  margin-block-start: calc(var(--spacing) * 2);
 }
 
 [data-email] h2 {
