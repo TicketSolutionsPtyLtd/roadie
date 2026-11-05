@@ -61,20 +61,20 @@ function isKeptMark(mark: unknown, shape: PresetShape): mark is StoredMark {
   if (!Object.hasOwn(shape.marks, mark.type)) return false
   if (mark.type !== 'link') return true
   const { href, variable } = (mark as StoredMark).attrs ?? {}
-  // Only a shape that saves a link's variable keeps a link with one.
-  if (isText(variable) && shape.marks.link?.includes('variable')) return true
+  if (isText(variable) && savesLinkVariable(shape)) return true
   return typeof href === 'string' && !isUnsafeHref(href)
 }
 
-// A link to a variable has no href, which the editor holds as null.
-function linkAttrs({ type, attrs }: StoredMark) {
+const savesLinkVariable = (shape: PresetShape) =>
+  shape.marks.link?.includes('variable') ?? false
+
+// A link to a variable has no href, which the editor holds as null, and its
+// variable wins over any href, which goes unchecked.
+function linkAttrs({ type, attrs }: StoredMark, shape: PresetShape) {
   if (type !== 'link' || !isObject(attrs)) return attrs
   const { href, variable, ...rest } = attrs
-  return {
-    ...rest,
-    ...(typeof href === 'string' && { href }),
-    ...(isText(variable) && { variable })
-  }
+  if (isText(variable) && savesLinkVariable(shape)) return { ...rest, variable }
+  return { ...rest, ...(typeof href === 'string' && { href }) }
 }
 
 // The schema holds one mark of each type, so a repeat is dropped.
@@ -82,7 +82,7 @@ function cleanedMarks(marks: unknown[], shape: PresetShape) {
   const kept = new Map<string, StoredMark>()
   for (const mark of marks) {
     if (!isKeptMark(mark, shape) || kept.has(mark.type)) continue
-    const attrs = picked(linkAttrs(mark), shape.marks[mark.type])
+    const attrs = picked(linkAttrs(mark, shape), shape.marks[mark.type])
     kept.set(mark.type, { type: mark.type, ...(attrs && { attrs }) })
   }
   return [...kept.values()]

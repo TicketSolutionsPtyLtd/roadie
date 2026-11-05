@@ -43,10 +43,11 @@ export async function renderEmail(
   { theme, ...options }: RenderEmailOptions = {}
 ): Promise<RenderedEmail> {
   const { doc } = migrate(value, 'email')
-  const { tag, hold, fill } = mergeTags(options)
+  const { tag, linkTag, hold, fill } = mergeTags(options)
   const tree = mjmlTree(doc, {
     theme: emailTheme(theme),
     tag,
+    linkTag,
     showsWhen: conditions(options, hold)
   })
   // Strict, since a tree MJML refuses is Roadie's bug, never the author's.
