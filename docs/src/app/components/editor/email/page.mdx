@@ -159,13 +159,15 @@ where it ends. Pass `toolbar='docked'` for a bar across the top.
 
 The canvas stays light in a dark app, as the email it sends does. Pass the
 same `theme` that `renderEmail` takes, and its background, text, links,
-buttons, dividers, and font show in the canvas as they send. Without one,
-the canvas takes Roadie's light scales and the email's default fonts, and
-its links and strong buttons take the accent of a `ThemeProvider` around the
-editor, which `renderEmail` doesn't know, so pass `theme` for an exact
-match. The outlines, the caret's tint, and the placeholder mix from the
-theme's text and background, so they show on any background. A colour that
-isn't hex throws, as it does in `renderEmail`.
+buttons, dividers, a tinted or accent section, and font show in the canvas
+as they send. Without one, the canvas takes `defaultEmailTheme`, as
+`renderEmail` does, except that its links and strong buttons take the
+accent of a `ThemeProvider` around the editor, which `renderEmail` doesn't
+know, so pass `theme` for an exact match. Columns reach 12 pixels further
+out than the text around them, as they do in the email. The outlines, the
+caret's tint, selected text, and the placeholder mix from the theme's
+colours, so they show on any background. A colour that isn't hex throws, as
+it does in `renderEmail`.
 
 ```tsx-live-prose
 <Editor
