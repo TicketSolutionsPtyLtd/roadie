@@ -2,7 +2,7 @@ import type { JSONContent } from '@tiptap/core'
 
 import { isEmailHref } from '../schema/emailAttrs'
 import { headingLevel } from '../schema/headings'
-import type { MergeTag } from './mergeTags'
+import type { LinkTag, MergeTag } from './mergeTags'
 import type { EmailTheme } from './theme'
 
 const ESCAPES: Record<string, string> = {
@@ -29,7 +29,11 @@ export const escapeHtml = (value: string) =>
     .replace(/[&<>"'{}#[\]]/g, (char) => ESCAPES[char]!)
 
 /** What text is written with: the theme, and where each variable goes. */
-export type TextContext = { theme: EmailTheme; tag: MergeTag }
+export type TextContext = {
+  theme: EmailTheme
+  tag: MergeTag
+  linkTag: LinkTag
+}
 
 const HEADING_SIZES: Record<number, string> = {
   2: 'font-size:24px;line-height:32px',
@@ -48,11 +52,9 @@ type Mark = NonNullable<JSONContent['marks']>[number]
  */
 export function emailHref(
   { href, variable }: Record<string, unknown> = {},
-  { tag }: TextContext
+  { linkTag }: TextContext
 ) {
-  if (typeof variable === 'string' && variable !== '') {
-    return tag({ key: variable })
-  }
+  if (typeof variable === 'string' && variable !== '') return linkTag(variable)
   return isEmailHref(href) ? escapeHtml(href) : undefined
 }
 
