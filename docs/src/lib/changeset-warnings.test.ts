@@ -52,6 +52,13 @@ describe('changesetWarnings', () => {
     ['a new prop with an article', 'Add a `size` prop to `Badge`.'],
     ['a new variant of a component', 'Add a new `Badge` variant, `tag`.'],
     ['a change led by a component', '`Badge` gains a `tag` variant.'],
+    ['a variant named after a component', 'Add `Badge` `tag` variant.'],
+    ['support in a component', 'Add `Badge` support for icons.'],
+    ['a part of two components', 'Add `Badge` and `Calendar` icons.'],
+    [
+      'a part of two components, after an article',
+      'Add a `Badge` and `Calendar` icons.'
+    ],
     ['a name with no page', 'Add `isUnsafeHref` to `@oztix/roadie-core/utils`.']
   ])('stays quiet for %s', (_, text) => {
     expect(warn(text)).toEqual([])

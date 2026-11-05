@@ -25,10 +25,12 @@ beforeAll(() => {
 
 afterEach(cleanup)
 
-function linkTo(href: string) {
+function linkTo(href: string, target?: string) {
   render(
     <Providers>
-      <Button href={href}>Go</Button>
+      <Button href={href} target={target}>
+        Go
+      </Button>
     </Providers>
   )
   return screen.getByRole('link', { name: 'Go' })
@@ -46,5 +48,13 @@ describe('DocsLink', () => {
       expect(link.getAttribute('href')).toBe(`/roadie${href}`)
       cleanup()
     }
+  })
+
+  it('opens a page in a new tab plainly, so Next never prefetches it', () => {
+    const link = linkTo('/examples/components/badge/default/', '_blank')
+    expect(link.hasAttribute('data-routed')).toBe(false)
+    expect(link.getAttribute('href')).toBe(
+      '/roadie/examples/components/badge/default/'
+    )
   })
 })

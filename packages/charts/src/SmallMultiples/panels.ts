@@ -1,14 +1,16 @@
 import type { PlotRow } from '@oztix/roadie-core/dashboard'
 
 import { barYExtent } from '../BarChart/bars'
-import { lineYExtent } from '../LineChart/points'
+import { lineXDomain, lineYExtent, toLinePoints } from '../LineChart/points'
+import { isOnAxis } from '../plot/onAxis'
+import { isTimeField } from '../plot/time'
 import { minMax } from '../plot/values'
-import type { SmallMultiplesProps } from './types'
+import type { SmallMultiplesChart, SmallMultiplesProps } from './types'
 
 export const PANEL_HEIGHT = 140
-export type Panel = { key: string; rows: PlotRow[] }
+export type Panel = { key: string; rows: PlotRow[]; chart: SmallMultiplesChart }
 
-export function panelsOf(props: SmallMultiplesProps): Panel[] {
+function rowsByPanel(props: SmallMultiplesProps) {
   const panels = new Map<string, PlotRow[]>()
   for (const row of props.data) {
     const key = row[props.by]
@@ -17,7 +19,33 @@ export function panelsOf(props: SmallMultiplesProps): Panel[] {
     list.push(row)
     panels.set(String(key), list)
   }
-  return [...panels.entries()].map(([key, rows]) => ({ key, rows }))
+  return [...panels.entries()]
+}
+
+// A line panel leaves off an annotation that another panel places, so only one
+// that no panel can place warns that it won't show.
+export function panelsOf(props: SmallMultiplesProps): Panel[] {
+  const { chart } = props
+  const groups = rowsByPanel(props)
+  if (chart.kind !== 'line' || !chart.annotations?.length)
+    return groups.map(([key, rows]) => ({ key, rows, chart }))
+  const { annotations } = chart
+  const placed = groups.map(([, rows]) => {
+    const domain = lineXDomain(toLinePoints({ ...chart, data: rows }))
+    const isTime = isTimeField(rows, chart.x)
+    return annotations.map((a) => isOnAxis(a.at, domain, isTime))
+  })
+  const anywhere = annotations.map((_, i) => placed.some((own) => own[i]))
+  return groups.map(([key, rows], panel) => ({
+    key,
+    rows,
+    chart: {
+      ...chart,
+      annotations: annotations.filter(
+        (_, i) => placed[panel]![i] || !anywhere[i]
+      )
+    }
+  }))
 }
 
 export function sharedDomain(
@@ -25,10 +53,10 @@ export function sharedDomain(
 ): readonly [number, number] | undefined {
   if (props.shared === false) return undefined
   const { chart } = props
-  const extents = panelsOf(props).map((panel) =>
+  const extents = rowsByPanel(props).map(([, rows]) =>
     chart.kind === 'line'
-      ? lineYExtent({ ...chart, data: panel.rows })
-      : barYExtent({ ...chart, data: panel.rows })
+      ? lineYExtent({ ...chart, data: rows })
+      : barYExtent({ ...chart, data: rows })
   )
   if (extents.length === 0) return undefined
   return [

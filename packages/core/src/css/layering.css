@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════
-   Layering — z-index scale
+   Layering: z-index scale
    Named stacking tiers so overlay components layer predictably
    against each other and new components slot into the right
    band. Registered in Tailwind's `--z-index-*` namespace, so each
-   token emits a first-class utility — write `z-popover`, never a
+   token emits a first-class utility: write `z-popover`, never a
    raw `z-50` or the `z-(--z-popover)` var form. Higher tier =
    closer to the viewer.
 
@@ -22,6 +22,6 @@
   --z-index-modal: 40; /* dialog / drawer surface */
   --z-index-popover: 50; /* popover, select, combobox, autocomplete, dropdown panels */
   --z-index-toast: 60; /* transient notifications */
-  --z-index-tooltip: 70; /* tooltips — always on top */
-  --z-index-alert: 80; /* blocking alert dialogs — above an open modal / drawer */
+  --z-index-tooltip: 70; /* tooltips, always on top */
+  --z-index-alert: 80; /* blocking alert dialogs, above an open modal / drawer */
 }

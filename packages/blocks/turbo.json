@@ -1,0 +1,28 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/docs/src/app/**/page.mdx",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.react.json",
+        "!src/**/fixtures.{ts,tsx}",
+        "!src/_test/**"
+      ]
+    },
+    "build:quiet": {
+      "inputs": [
+        "$TURBO_EXTENDS$",
+        "$TURBO_ROOT$/docs/src/app/**/page.mdx",
+        "$TURBO_ROOT$/packages/core/scripts/manifest/**",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.react.json",
+        "!src/**/fixtures.{ts,tsx}",
+        "!src/_test/**",
+        "!$TURBO_ROOT$/packages/core/scripts/manifest/**/*.test.*"
+      ]
+    }
+  }
+}

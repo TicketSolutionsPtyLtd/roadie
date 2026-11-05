@@ -11,11 +11,13 @@ const genres = ['Rock', 'Jazz', 'Hip hop', 'Folk']
 function Genres({
   defaultValue = ['Rock', 'Jazz'],
   onValueChange,
-  disabled
+  disabled,
+  readOnly
 }: {
   defaultValue?: string[]
   onValueChange?: (value: string[]) => void
   disabled?: boolean
+  readOnly?: boolean
 }) {
   return (
     <Combobox
@@ -24,6 +26,7 @@ function Genres({
       defaultValue={defaultValue}
       onValueChange={onValueChange}
       disabled={disabled}
+      readOnly={readOnly}
     >
       <Combobox.InputGroup data-testid='group'>
         <Combobox.Value>
@@ -50,6 +53,14 @@ const chipNames = () =>
   )
 
 describe('Combobox chips', () => {
+  it('shows no remove button in a read-only combobox', () => {
+    render(<Genres readOnly />)
+    expect(chipNames()).toEqual(['Rock', 'Jazz'])
+    expect(
+      screen.queryByRole('button', { name: 'Remove Rock', hidden: true })
+    ).toBeNull()
+  })
+
   it('renders a chip per selected value, before the input', () => {
     render(<Genres />)
     const chips = screen.getByRole('toolbar', { name: 'Selected genres' })
