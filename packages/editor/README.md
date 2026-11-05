@@ -156,9 +156,10 @@ const src = video && embedSrc(video)
 // 'https://www.youtube-nocookie.com/embed/exampleVid1'
 ```
 
-`defaultEmbedProviders` covers YouTube, Vimeo, Spotify and TikTok. Hosts must
-match exactly, and every id and param must match its provider's pattern before
-`embedSrc` builds a URL, so a stored value can't point a player anywhere else.
+`defaultEmbedProviders` covers YouTube, Vimeo, Spotify, SoundCloud, Deezer,
+Apple Music and TikTok. Hosts must match exactly, and every id and param must
+match its provider's pattern before `embedSrc` builds a URL, so a stored value
+can't point a player anywhere else.
 To add a provider, pass `[...defaultEmbedProviders, yours]` as the second
 argument of both functions, and as `embedProviders` to `Editor`,
 `renderEditorValue`, and `renderEditorHtml`.
