@@ -199,6 +199,26 @@ describe('Editor sections', () => {
     expect(within(drawer).getByRole('textbox', { name: 'Shout' })).toBeVisible()
   })
 
+  it('keeps the first of two sections with one name', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        sections={[promo, { ...promo, templates: [{ label: 'Copy promo' }] }]}
+        defaultValue={page(intro)}
+      />
+    )
+    await clickInto('Doors 7pm')
+
+    await userEvent.keyboard('{End}{Enter}/promo')
+
+    const sections = await screen.findByRole('group', { name: 'Sections' })
+    expect(
+      within(sections)
+        .getAllByRole('option')
+        .map((option) => option.textContent)
+    ).toEqual(['Calm promo', 'Loud promo'])
+  })
+
   it('renders a saved section through /render with its own renderer', () => {
     const value = page({
       type: 'promo',

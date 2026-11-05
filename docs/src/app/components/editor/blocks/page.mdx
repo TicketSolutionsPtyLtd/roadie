@@ -147,8 +147,9 @@ import { catalogueSections } from '@oztix/roadie-blocks/catalogue/sections'
   section from its `render`:
   `Object.fromEntries(sections.map(({ name, render }) => [name, render]))`.
 - Each saves its fields as attrs, under its node name, such as
-  `heroSection`, so that name stays put once pages hold it. A section that
-  can't be drawn from what's saved shows a message in its place.
+  `heroSection`, so that name stays put once pages hold it. A section reads
+  its saved lists as lists, and in the editor one that still can't be drawn
+  shows a message in its place.
 
 ```tsx-live-prose-noinline
 const photo = { src: '/brand/photography/08.webp', alt: '', width: 1280, height: 850 }

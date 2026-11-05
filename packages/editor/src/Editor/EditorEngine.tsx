@@ -266,10 +266,19 @@ function presetTakes(preset: Preset, name: string) {
   return Object.hasOwn(nodes, name) || Object.hasOwn(marks, name)
 }
 
-/** An app's sections, only in the preset that takes them. */
-function sectionsFor(preset: Preset, sections: readonly EditorSection[] = []) {
+/** An app's sections, only in the preset that takes them, each name once. */
+function sectionsFor(
+  preset: Preset,
+  sections: readonly EditorSection[] = [],
+  blocks: readonly EditorBlock[] = []
+) {
   if (preset !== 'blocks') return []
-  return sections.filter(({ name }) => !presetTakes(preset, name))
+  const taken = new Set(blocks.map(({ node }) => node.name))
+  return sections.filter(({ name }) => {
+    if (presetTakes(preset, name) || taken.has(name)) return false
+    taken.add(name)
+    return true
+  })
 }
 
 /** An app's blocks, only in the preset that takes them. */
@@ -490,7 +499,9 @@ export function EditorEngine({
   const storedPreset = (value ?? defaultValue)?.preset
   // Tiptap fixes its schema when it creates the editor, so these are read once.
   const [appBlocks] = useState(() => blocksFor(preset, extensionsProp))
-  const [sections] = useState(() => sectionsFor(preset, sectionsProp))
+  const [sections] = useState(() =>
+    sectionsFor(preset, sectionsProp, appBlocks)
+  )
   const [blocks] = useState(() => [...appBlocks, ...sections.map(sectionBlock)])
   const [blockLabels] = useState(() =>
     Object.fromEntries(blocks.map(({ node, label }) => [node.name, label]))

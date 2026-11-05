@@ -21,7 +21,7 @@
     "name": "catalogue/sections",
     "path": "dist/catalogue/sections.js",
     "import": "*",
-    "limit": "3.8 kB",
+    "limit": "4 kB",
     "ignore": ["react"]
   },
   {

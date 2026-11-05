@@ -1,8 +1,17 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 
+import { AlternatingRows } from '../AlternatingRows'
 import { CallToAction } from '../CallToAction'
+import { Cards } from '../Cards'
+import { FAQ } from '../FAQ'
+import { Gallery } from '../Gallery'
 import { Hero } from '../Hero'
+import { Mosaic } from '../Mosaic'
+import { RichText } from '../RichText'
+import { SideBySide } from '../SideBySide'
+import { Stats } from '../Stats'
+import { Testimonial } from '../Testimonial'
 import { catalogueSections } from './sections'
 
 const thumbnailUrl = (file: string) => `/thumbnails/${file}`
@@ -61,6 +70,55 @@ describe('catalogueSections', () => {
     expect(shown('title')).toEqual(
       expect.arrayContaining(['preset', 'eyebrow', 'title', 'description'])
     )
+  })
+
+  const everyBlock = () =>
+    catalogueSections({
+      components: {
+        'alternating-rows': AlternatingRows,
+        'call-to-action': CallToAction,
+        cards: Cards,
+        faq: FAQ,
+        gallery: Gallery,
+        hero: Hero,
+        mosaic: Mosaic,
+        'rich-text': RichText,
+        'side-by-side': SideBySide,
+        stats: Stats,
+        testimonial: Testimonial
+      }
+    })
+
+  it.each(
+    everyBlock().flatMap((section) =>
+      section.templates.map((template) => [template.label, section, template])
+    )
+  )(
+    'draws a new %s section, before anything’s added to it',
+    (_, section, template) => {
+      const { render, attrs } = section as ReturnType<typeof everyBlock>[number]
+      expect(() =>
+        renderToStaticMarkup(
+          render({
+            attrs: { ...attrs, ...(template as { attrs: object }).attrs }
+          })
+        )
+      ).not.toThrow()
+    }
+  )
+
+  it('draws a section whose saved list isn’t one', () => {
+    const stats = everyBlock().find(({ label }) => label === 'Stats')!
+
+    expect(() =>
+      renderToStaticMarkup(
+        stats.render({ attrs: { ...stats.attrs, stats: 'x', actions: {} } })
+      )
+    ).not.toThrow()
+  })
+
+  it('saves no id, so a copy never repeats one', () => {
+    expect(everyBlock().some(({ attrs }) => 'id' in attrs)).toBe(false)
   })
 
   it('starts each template with the app’s content, over its own', () => {

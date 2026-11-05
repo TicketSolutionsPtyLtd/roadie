@@ -137,6 +137,43 @@ const PLACEHOLDERS: Readonly<Attrs> = {
   size: 'lg'
 }
 
+// Each block maps over these, so a missing or saved non-list would throw.
+const LISTS: ReadonlySet<string> = new Set([
+  'actions',
+  'cards',
+  'figures',
+  'images',
+  'logos',
+  'questions',
+  'quotes',
+  'rows',
+  'stats',
+  'tiles'
+])
+
+// An anchor id would repeat in a copied section, so it isn't offered.
+const UNSAVED: ReadonlySet<string> = new Set(['id'])
+
+const isAttrs = (value: unknown): value is Attrs =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+// Side by side's stats are a panel holding its figures, not a list.
+function propOf(block: string, name: string, value: unknown): unknown {
+  if (block === 'side-by-side' && name === 'stats') {
+    const panel = isAttrs(value) ? value : {}
+    return { ...panel, figures: propOf('', 'figures', panel.figures) }
+  }
+  return LISTS.has(name) && !Array.isArray(value) ? [] : value
+}
+
+const propsOf = (block: string, attrs: Attrs): Attrs =>
+  Object.fromEntries(
+    Object.entries(attrs).map(([name, value]) => [
+      name,
+      propOf(block, name, value)
+    ])
+  )
+
 const camel = (kebab: string) =>
   kebab.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())
 
@@ -187,6 +224,7 @@ export function catalogueSections({
     const fields = Object.fromEntries(
       block.presets
         .flatMap((preset) => preset.fields)
+        .filter((name) => !UNSAVED.has(name))
         .map((name) => [name, PLACEHOLDERS[name]])
     )
     return [
@@ -195,9 +233,12 @@ export function catalogueSections({
         label: block.title,
         attrs: { ...fields, preset: first.name },
         settings,
-        // Its attrs are its props by name, read by the block as untrusted.
+        // Its attrs are its props by name, as saved, so lists are checked.
         render: ({ attrs }) =>
-          createElement(component as ComponentType<Attrs>, attrs),
+          createElement(
+            component as ComponentType<Attrs>,
+            propsOf(block.name, attrs)
+          ),
         templates: block.presets.map((preset) => ({
           label:
             block.presets.length > 1
