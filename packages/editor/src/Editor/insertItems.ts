@@ -316,7 +316,24 @@ export function matchingInsertItems(
   const matches = namedInsertItems(items, query, ui).filter((item) =>
     item.enabled(editor, afterQuery)
   )
-  return inGroupOrder(matches)
+  // Ranked before grouping, so the group of the best match leads.
+  const ranked = matches
+    .map((item, index) => ({ item, index, rank: matchRank(item, query) }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .map(({ item }) => item)
+  return inGroupOrder(ranked)
+}
+
+const wordsOf = (text: string) => text.toLowerCase().trim().split(/\s+/)
+
+// 0 when the label starts with the query, 1 when another of its words does,
+// and 2 when only a keyword does.
+function matchRank({ label }: EditorInsertItem, query: string) {
+  const typed = query.toLowerCase().trim()
+  const name = label.toLowerCase()
+  if (name.startsWith(typed)) return 0
+  const [first = ''] = wordsOf(typed)
+  return wordsOf(name).some((word) => word.startsWith(first)) ? 1 : 2
 }
 
 /** The items with a word in their label or keywords starting each word of `query`. */
@@ -325,7 +342,7 @@ export function namedInsertItems(
   query: string,
   ui: EditorControlUi
 ) {
-  const words = query.toLowerCase().trim().split(/\s+/)
+  const words = wordsOf(query)
   return items.filter((item) => {
     const names = [item.label, ...(item.keywords ?? [])]
       .join(' ')
