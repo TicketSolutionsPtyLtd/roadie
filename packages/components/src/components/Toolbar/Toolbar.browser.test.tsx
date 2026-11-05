@@ -215,10 +215,9 @@ describe('Toolbar layout', () => {
       '[data-slot="toolbar-toggle-group-indicator"]'
     )!
     await expect.poll(() => indicator.hasAttribute('data-ready')).toBe(true)
+    // Layout widths: a rect would catch the press's scale still springing back.
     const widths = () =>
-      screen
-        .getAllByRole('button')
-        .map((toggle) => toggle.getBoundingClientRect().width)
+      screen.getAllByRole('button').map((toggle) => toggle.offsetWidth)
     const before = widths()
     await userEvent.click(screen.getByRole('button', { name: 'Centre' }))
     expect(widths()).toEqual(before)
