@@ -1373,6 +1373,35 @@ describe('toReleaseView', () => {
   })
 })
 
+describe('views', () => {
+  it("keeps each dated release's old package-named slug, so its old page redirects", () => {
+    const history = {
+      releases: groupReleases(
+        [
+          {
+            name: '@oztix/roadie-components',
+            versions: parseChangelog(COMPONENTS_CHANGELOG).slice(1),
+            commits: new Map([
+              ['2.14.0', { hash: 'bbb', date: '2026-09-24', time: 10 }]
+            ])
+          }
+        ],
+        index
+      ),
+      unreleased: pendingChanges([], index)
+    }
+    const releases = views(history, {
+      index,
+      pageInfo: () => undefined,
+      notes: new Map()
+    })
+    expect(releaseRoutes(releases)).toEqual([
+      { slug: '2026-09-24' },
+      { slug: 'components-2-14-0', movedTo: '/overview/changelog/2026-09-24' }
+    ])
+  })
+})
+
 describe('toInline', () => {
   it('keeps code and links, and drops emphasis to text', () => {
     expect(
