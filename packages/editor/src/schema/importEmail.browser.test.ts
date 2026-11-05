@@ -302,6 +302,7 @@ describe('importEmail from MJML', () => {
     const tree = mjmlTree(doc, {
       theme: defaultEmailTheme,
       tag: ({ key }) => tokens[String(key)]!,
+      linkTag: (key) => tokens[key],
       showsWhen: () => true
     })
 
