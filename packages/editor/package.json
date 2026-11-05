@@ -63,6 +63,7 @@
     "size:check": "size-limit --limit"
   },
   "dependencies": {
+    "@floating-ui/dom": "1.8.0",
     "@tiptap/core": "3.32.1",
     "@tiptap/extension-heading": "3.32.1",
     "@tiptap/extension-link": "3.32.1",
@@ -72,7 +73,8 @@
     "@tiptap/pm": "3.32.1",
     "@tiptap/react": "3.32.1",
     "@tiptap/starter-kit": "3.32.1",
-    "@tiptap/static-renderer": "3.32.1"
+    "@tiptap/static-renderer": "3.32.1",
+    "@tiptap/suggestion": "3.32.1"
   },
   "peerDependencies": {
     "@oztix/roadie-components": "workspace:^",
