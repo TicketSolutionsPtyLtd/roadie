@@ -176,7 +176,7 @@ const CASES: Case[] = [
 type KnownFailure = { mode: Mode; case: string; why: string; ticket: string }
 
 // Run as expected failures, so each one flags itself once it's fixed.
-const HOVER_TICKET = 'INNO-TICKET'
+const HOVER_TICKET = 'https://oztix.atlassian.net/browse/INNO-1541'
 const DARK_NORMAL =
   'dark normal rests on step 2 and hovers to --intent-2, also step 2, so only the lift changes'
 const RAISED_LIFT = 'raised hovers by its shadow and rise alone'
