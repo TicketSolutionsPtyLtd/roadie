@@ -41,6 +41,8 @@ export type EditorControlUi = {
   replaceImage: (() => void) | undefined
   /** Opens the button link editor, on the button at the selection if there is one. */
   editButton: () => void
+  /** Opens the editor of the selected merge tag. */
+  editVariable: () => void
 }
 
 export type EditorControl = {
@@ -303,6 +305,12 @@ const editButtonLink: EditorControl = {
   run: (_editor, { editButton }) => editButton()
 }
 
+const editMergeTag: EditorControl = {
+  label: 'Edit merge tag',
+  icon: PencilSimpleIcon,
+  run: (_editor, { editVariable }) => editVariable()
+}
+
 const removeButton: EditorControl = {
   label: 'Remove button',
   icon: TrashIcon,
@@ -343,7 +351,13 @@ const columnCount: EditorBlockMenu = {
   }))
 }
 
-export type EditorNodeType = 'image' | 'embed' | 'spacer' | 'button' | 'columns'
+export type EditorNodeType =
+  | 'image'
+  | 'embed'
+  | 'spacer'
+  | 'button'
+  | 'columns'
+  | 'variable'
 
 export type EditorNodeItem = EditorControl | EditorBlockMenu
 
@@ -353,7 +367,8 @@ export const nodeControls: Record<EditorNodeType, readonly EditorNodeItem[]> = {
   embed: [editEmbedLink, remove('Remove embed')],
   spacer: [spacerHeight, remove('Remove spacer')],
   button: [editButtonLink, removeButton],
-  columns: [columnCount]
+  columns: [columnCount],
+  variable: [editMergeTag, remove('Remove merge tag')]
 }
 
 type TableCommand =

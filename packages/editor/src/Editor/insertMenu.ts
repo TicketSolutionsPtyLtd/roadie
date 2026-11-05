@@ -21,28 +21,48 @@ export type InsertMenuState = {
 }
 
 export type InsertMenuOptions = {
-  items: readonly EditorInsertItem[]
+  /** Typed to open the menu. */
+  char: string
+  /** Read as the menu opens, so the items can change after the editor is made. */
+  items: () => readonly EditorInsertItem[]
+  /** Whether the menu can open in a node of this type. */
+  allowIn: (type: string) => boolean
   ui: () => EditorControlUi
   onChange: (state: InsertMenuState | null) => void
 }
 
 type Props = SuggestionProps<EditorInsertItem, EditorInsertItem>
 
-const insertMenuKey = new PluginKey<{ active: boolean; range: Range }>(
-  'insertMenu'
-)
+type InsertMenuStorage = {
+  key: PluginKey<{ active: boolean; range: Range }>
+}
 
 /** Opens the insert menu on `/`, filtering its items by what follows. */
-export const InsertMenu = Extension.create<InsertMenuOptions>({
+export const InsertMenu = Extension.create<
+  InsertMenuOptions,
+  InsertMenuStorage
+>({
   name: 'insertMenu',
 
+  // One per menu, as the `/` and `{{` menus can both be in an editor.
+  addStorage() {
+    return { key: new PluginKey(this.name) }
+  },
+
   addOptions() {
-    return { items: [], ui: () => ({}) as EditorControlUi, onChange: () => {} }
+    return {
+      char: '/',
+      items: () => [],
+      // A button's label is plain text, so `/` there is only a character.
+      allowIn: (type) => type !== 'button',
+      ui: () => ({}) as EditorControlUi,
+      onChange: () => {}
+    }
   },
 
   addProseMirrorPlugins() {
-    const { items, ui, onChange } = this.options
-    if (items.length === 0) return []
+    const { char, items, allowIn, ui, onChange } = this.options
+    const { key } = this.storage
     let open: {
       props: Props
       active: number
@@ -83,16 +103,18 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
     return [
       Suggestion<EditorInsertItem, EditorInsertItem>({
         editor: this.editor,
-        pluginKey: insertMenuKey,
-        char: '/',
+        pluginKey: key,
+        char,
+        // `{{` follows a word as often as a space, as in "Hi,{{".
+        allowedPrefixes: char === '/' ? [' '] : null,
         allowSpaces: true,
         floatingUi: { strategy: 'fixed' },
-        // A button's label is plain text, so `/` there is only a character.
         allow: ({ state, range }) =>
-          state.doc.resolve(range.from).parent.type.name !== 'button',
+          items().length > 0 &&
+          allowIn(state.doc.resolve(range.from).parent.type.name),
         items: ({ query, editor }) => {
-          const { range } = insertMenuKey.getState(editor.state)!
-          return matchingInsertItems(items, query, range, editor, ui())
+          const { range } = key.getState(editor.state)!
+          return matchingInsertItems(items(), query, range, editor, ui())
         },
         command: ({ editor, range, props: item }) => {
           // One undo step of its own, so undo returns to what was typed.
@@ -145,8 +167,7 @@ export const InsertMenu = Extension.create<InsertMenuOptions>({
 
   onBlur() {
     const { view } = this.editor
-    if (insertMenuKey.getState(view.state)?.active) {
-      exitSuggestion(view, insertMenuKey)
-    }
+    const { key } = this.storage
+    if (key.getState(view.state)?.active) exitSuggestion(view, key)
   }
 })

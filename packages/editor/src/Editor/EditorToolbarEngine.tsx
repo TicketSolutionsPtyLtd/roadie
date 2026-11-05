@@ -207,9 +207,24 @@ export function ChoiceGroup({ group, state, editor, ui }: ChoiceGroupProps) {
 
 /** What the controls open in the editor's own UI, from its context. */
 export function controlUi(context: EditorContextValue): EditorControlUi {
-  const { editLink, editAlt, editEmbed, pickImage, replaceImage, editButton } =
-    context
-  return { editLink, editAlt, editEmbed, pickImage, replaceImage, editButton }
+  const {
+    editLink,
+    editAlt,
+    editEmbed,
+    pickImage,
+    replaceImage,
+    editButton,
+    editVariable
+  } = context
+  return {
+    editLink,
+    editAlt,
+    editEmbed,
+    pickImage,
+    replaceImage,
+    editButton,
+    editVariable
+  }
 }
 
 /** The items a preset can show, leaving out controls its UI can't run. */

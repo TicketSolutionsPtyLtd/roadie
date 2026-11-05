@@ -21,10 +21,16 @@ const LABELS: Record<EditorNodeType, string> = {
   embed: 'Embed actions',
   spacer: 'Spacer actions',
   button: 'Button actions',
-  columns: 'Columns actions'
+  columns: 'Columns actions',
+  variable: 'Merge tag actions'
 }
 
-const SELECTABLE = new Set<EditorNodeType>(['image', 'embed', 'spacer'])
+const SELECTABLE = new Set<EditorNodeType>([
+  'image',
+  'embed',
+  'spacer',
+  'variable'
+])
 const HOLDING = new Set<EditorNodeType>(['button', 'columns'])
 
 /**
@@ -61,6 +67,7 @@ const GAP = 4
 const BESIDE: Partial<Record<EditorNodeType, 'above' | 'below'>> = {
   button: 'below',
   spacer: 'below',
+  variable: 'below',
   columns: 'above'
 }
 
