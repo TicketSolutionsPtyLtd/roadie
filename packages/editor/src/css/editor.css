@@ -134,16 +134,24 @@
   }
 }
 
-/* A section's Settings shows while it holds the caret, or is hovered. */
-[data-email] [data-slot='editor-section-settings']:not([data-active]) {
+/* A section's Settings shows while it holds the caret, or is hovered, and
+   never in an editor that can't be edited. */
+[data-email] [data-slot='editor-section-settings'] {
   visibility: hidden;
 }
 
 [data-email]
-  [data-type='section']:hover
+  [data-type='section']:where(:hover, [data-section-active])
   > [data-slot='editor-section-toolbar']
   [data-slot='editor-section-settings'] {
   visibility: visible;
+}
+
+[data-email][contenteditable='false']
+  [data-type='section']
+  > [data-slot='editor-section-toolbar']
+  [data-slot='editor-section-settings'] {
+  visibility: hidden;
 }
 
 /* A boxed editor isn't a text field, so it keeps only the field's invalid

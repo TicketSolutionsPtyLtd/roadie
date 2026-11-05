@@ -212,4 +212,23 @@ describe('Editor email section settings', () => {
       })
     )
   })
+
+  it('hides a section’s Settings while the caret is elsewhere', async () => {
+    renderEmail(
+      email(section(), {
+        type: 'paragraph',
+        content: [{ type: 'text', text: 'Doors 7pm' }]
+      })
+    )
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Doors 7pm'))
+    await userEvent.hover(document.body, { position: { x: 1, y: 1 } })
+
+    await waitFor(() =>
+      // Testing Library names no hidden element, so it's found by its label.
+      expect(
+        textbox.querySelector('[aria-label="Section settings"]')
+      ).not.toBeVisible()
+    )
+  })
 })

@@ -31,11 +31,10 @@ type Shown = {
   rule?: ShowWhen
   /** The rule's merge tag, or undefined when the email doesn't list it. */
   label?: string
-  active: boolean
   open: () => void
 }
 
-function SectionToolbar({ rule, label, active, open }: Shown) {
+function SectionToolbar({ rule, label, open }: Shown) {
   const unknown = rule && label === undefined
   return (
     <div className='flex items-center gap-1'>
@@ -66,7 +65,6 @@ function SectionToolbar({ rule, label, active, open }: Shown) {
         aria-label='Section settings'
         tabIndex={-1}
         data-slot='editor-section-settings'
-        data-active={active ? '' : undefined}
         // A press would otherwise move the caret before the click.
         onMouseDown={(event) => event.preventDefault()}
         onClick={open}
@@ -103,16 +101,24 @@ export const SectionToolbars = Extension.create<SectionToolbarOptions>({
         key: new PluginKey('sectionToolbars'),
         props: {
           decorations: (state) => {
-            const widgets: Decoration[] = []
+            const decorations: Decoration[] = []
             const active = activeSection(state)
             // Sections sit only at the top, so nothing inside is read.
             state.doc.forEach((node, pos) => {
               if (node.type.name !== 'section') return
               const rule = showWhenRule(node.attrs.showWhen)
               const label = rule && labelOf(rule.key)
-              const isActive = pos === active
+              // A mark on the section, not the toolbar's key, so moving the
+              // caret never rebuilds a toolbar.
+              if (pos === active) {
+                decorations.push(
+                  Decoration.node(pos, pos + node.nodeSize, {
+                    'data-section-active': ''
+                  })
+                )
+              }
               // At the section's end, inside it, so no block moves for it.
-              widgets.push(
+              decorations.push(
                 Decoration.widget(
                   pos + node.nodeSize - 1,
                   (view, getPos) => {
@@ -131,18 +137,13 @@ export const SectionToolbars = Extension.create<SectionToolbarOptions>({
                     }
                     const root = createRoot(dom)
                     root.render(
-                      <SectionToolbar
-                        rule={rule}
-                        label={label}
-                        active={isActive}
-                        open={open}
-                      />
+                      <SectionToolbar rule={rule} label={label} open={open} />
                     )
                     roots.set(dom, root)
                     return dom
                   },
                   {
-                    key: `section-toolbar:${JSON.stringify(rule ?? null)}:${label}:${isActive}`,
+                    key: `section-toolbar:${JSON.stringify(rule ?? null)}:${label}`,
                     side: 1,
                     ignoreSelection: true,
                     stopEvent: () => true,
@@ -155,7 +156,7 @@ export const SectionToolbars = Extension.create<SectionToolbarOptions>({
                 )
               )
             })
-            return DecorationSet.create(state.doc, widgets)
+            return DecorationSet.create(state.doc, decorations)
           }
         }
       })
