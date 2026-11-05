@@ -232,6 +232,13 @@ export const presetControls: Record<Preset, readonly EditorToolbarItem[]> = {
     table,
     SEPARATOR,
     ...history
+  ],
+  email: [
+    { ...blockType, types: [paragraph, ...headings] },
+    SEPARATOR,
+    ...basicControls,
+    SEPARATOR,
+    ...history
   ]
 }
 
