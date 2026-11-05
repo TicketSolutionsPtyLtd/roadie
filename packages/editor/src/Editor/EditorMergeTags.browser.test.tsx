@@ -138,6 +138,18 @@ describe('Editor merge tags', () => {
     expect(screen.queryByRole('listbox')).toBe(null)
   })
 
+  it('closes when focus leaves the editor', async () => {
+    renderEmail()
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard(OPEN)
+    await mergeTagMenu()
+    textbox.blur()
+
+    await waitFor(() => expect(screen.queryByRole('listbox')).toBe(null))
+    expect(textbox).not.toHaveAttribute('aria-controls')
+  })
+
   it('lists variables that arrive after the editor is made', async () => {
     const props = { 'aria-label': LABEL, preset: 'email' } as const
     const { rerender } = render(<Editor {...props} />)
@@ -212,6 +224,15 @@ describe('Editor merge tags', () => {
       expect(screen.queryByRole('listbox')).toBe(null)
     }
   )
+
+  it('offers no Merge tag in the blocks preset’s / menu', async () => {
+    render(<Editor aria-label={LABEL} preset='blocks' variables={VARIABLES} />)
+    await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const insert = await screen.findByRole('listbox', { name: 'Insert' })
+    expect(optionNames(insert)).not.toContain('Merge tag')
+  })
 
   it('offers no Merge tag in the / menu without variables', async () => {
     renderEmail({ variables: undefined })
@@ -368,7 +389,10 @@ describe('Editor merge tag editing', () => {
 
   it('keeps a key the editor doesn’t list, as one of its choices', async () => {
     const onValueChange = renderEmail({
-      defaultValue: email({ type: 'paragraph', content: [tag('ticket_count')] })
+      defaultValue: email({
+        type: 'paragraph',
+        content: [tag('ticket_count')]
+      })
     })
     await screen.findByRole('textbox', { name: LABEL })
     await userEvent.click(await screen.findByText('ticket_count'))
