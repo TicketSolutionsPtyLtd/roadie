@@ -267,7 +267,8 @@ export function setColumnCount(count: number) {
 /**
  * Moves the caret to the start of the next column, or the end of the one
  * before, as Tab moves between a table's cells. Past the row's ends it goes
- * to the line after or before the row. A list item that can indent keeps Tab.
+ * to the line after or before the row, and Tab opens one after a row that
+ * ends its container. A list item that can indent keeps Tab.
  */
 function goToColumn(dir: 1 | -1) {
   return ({ tr, dispatch, can }: CommandProps) => {
@@ -289,7 +290,18 @@ function goToColumn(dir: 1 | -1) {
       }
       if (dir === -1) from += row.child(target).nodeSize
     }
-    const found = Selection.findFrom(tr.doc.resolve(from), dir, true)
+    const $past = tr.doc.resolve(from)
+    const last =
+      dir === 1 && from === $from.after(depth - 1) && !$past.nodeAfter
+    if (last) {
+      if (dispatch) {
+        tr.insert(from, tr.doc.type.schema.nodes.paragraph!.create())
+        tr.setSelection(TextSelection.create(tr.doc, from + 1))
+        dispatch(tr.scrollIntoView())
+      }
+      return true
+    }
+    const found = Selection.findFrom($past, dir, true)
     if (!found) return false
     dispatch?.(tr.setSelection(found).scrollIntoView())
     return true

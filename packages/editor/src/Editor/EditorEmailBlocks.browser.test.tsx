@@ -472,8 +472,20 @@ describe('Editor email columns by keyboard', () => {
 
     await userEvent.keyboard('/2 col{Enter}Left{Tab}Right')
 
-    await saved(onValueChange, email(columns(['Left'], ['Right']), p()))
+    await saved(onValueChange, email(columns(['Left'], ['Right'])))
     expect(textbox).toHaveFocus()
+  })
+
+  it('opens a line after a row that ends the email on Tab from its last column', async () => {
+    const onValueChange = renderEmail(email(columns(['Lineup'], ['Set times'])))
+    await clickText('Set times')
+
+    await userEvent.keyboard('{Tab}All ages')
+
+    await saved(
+      onValueChange,
+      email(columns(['Lineup'], ['Set times']), p('All ages'))
+    )
   })
 
   it('moves back to the end of the column before on Shift+Tab', async () => {
@@ -482,7 +494,7 @@ describe('Editor email columns by keyboard', () => {
 
     await userEvent.keyboard('{Shift>}{Tab}{/Shift}!')
 
-    await saved(onValueChange, email(columns(['Lineup!'], ['Set times']), p()))
+    await saved(onValueChange, email(columns(['Lineup!'], ['Set times'])))
   })
 
   it.each([
