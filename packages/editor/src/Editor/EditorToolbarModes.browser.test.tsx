@@ -289,15 +289,15 @@ describe('Floating toolbar’s More menu', () => {
     expect(doc.content?.map((block) => block.type)).toContain('table')
   })
 
-  it.each<Preset>(['basic', 'email'])(
-    'holds Undo and Redo in a %s editor',
-    async (preset) => {
-      render(<Page defaultValue={valueIn(preset)} toolbar='floating' />)
-      await selectText()
+  it.each<[Preset, string[]]>([
+    ['basic', ['Undo', 'Redo']],
+    ['email', ['Import HTML or MJML', 'Undo', 'Redo']]
+  ])('holds its own items in a %s editor', async (preset, items) => {
+    render(<Page defaultValue={valueIn(preset)} toolbar='floating' />)
+    await selectText()
 
-      expect(menuItems(await moreMenu())).toEqual(['Undo', 'Redo'])
-    }
-  )
+    expect(menuItems(await moreMenu())).toEqual(items)
+  })
 })
 
 describe('Pinning the toolbar', () => {

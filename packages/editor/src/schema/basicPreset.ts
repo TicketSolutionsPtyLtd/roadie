@@ -1,8 +1,12 @@
 import type { Extensions } from '@tiptap/core'
-import { Link } from '@tiptap/extension-link'
+import { Link, isAllowedUri } from '@tiptap/extension-link'
 import { StarterKit } from '@tiptap/starter-kit'
 
 import { isUnsafeHref } from '@oztix/roadie-core/utils'
+
+/** Whether the link mark keeps `href`, or reads the link as its text. */
+export const isLinkHref = (href: string) =>
+  Boolean(isAllowedUri(href)) && !isUnsafeHref(href)
 
 // Saved links hold only `href`; how a link opens is the renderer's call.
 export const SafeLink = Link.extend({
@@ -19,8 +23,7 @@ export const SafeLink = Link.extend({
   autolink: true,
   linkOnPaste: true,
   defaultProtocol: 'https',
-  isAllowedUri: (url, { defaultValidate }) =>
-    defaultValidate(url) && !isUnsafeHref(url),
+  isAllowedUri: isLinkHref,
   shouldAutoLink: (url) =>
     Link.options.shouldAutoLink(url) && !isUnsafeHref(url)
 })

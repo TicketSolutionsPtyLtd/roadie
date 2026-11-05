@@ -1,20 +1,40 @@
 import { type JSONContent, getSchema } from '@tiptap/core'
 import { type Schema, DOMParser as SchemaParser } from '@tiptap/pm/model'
 
+import { isEmailImageSrc } from './emailAttrs'
 import {
   type EmbedProvider,
   defaultEmbedProviders,
   parseEmbedUrl
 } from './embed'
 import { isSafeImageSrc } from './imageSrc'
-import { type Preset, isPreset, presetShapes } from './presetShapes'
+import {
+  type Preset,
+  type PresetShape,
+  isPreset,
+  presetShapes
+} from './presetShapes'
 import { presets } from './presets'
 import { CURRENT_VERSION, type EditorValue, migrate } from './value'
 
-/** Content an import couldn't keep. `src` is left out for a `data:` URI. */
+/**
+ * Content an import couldn't keep. `src` is left out for a `data:` URI.
+ * `importEmail` also reports `hidden` text, such as a preheader, a `link` on
+ * an image, its `src` the link's href, an `unsafe-link`, such as
+ * `javascript:`, whose text it keeps, and an MJML `element` it has no block
+ * for, by `tag`, whose text it keeps.
+ */
 export type DroppedContent = {
-  kind: 'image' | 'embed' | 'media'
+  kind:
+    | 'image'
+    | 'embed'
+    | 'media'
+    | 'hidden'
+    | 'link'
+    | 'unsafe-link'
+    | 'element'
   src?: string
+  tag?: string
 }
 
 const schemas = new Map<Preset, Schema>()
@@ -25,12 +45,12 @@ function schemaFor(preset: Preset) {
   return schema
 }
 
-function report(kind: DroppedContent['kind'], src: string | null) {
+export function report(kind: DroppedContent['kind'], src: string | null) {
   return src && !/^\s*data:/i.test(src) ? { kind, src } : { kind }
 }
 
 // Old embed and image code writes addresses protocol-relative.
-function absoluteSrc(element: Element | null | undefined) {
+export function absoluteSrc(element: Element | null | undefined) {
   const src = element?.getAttribute('src')?.trim() || null
   return src?.startsWith('//') ? `https:${src}` : src
 }
@@ -53,22 +73,25 @@ function embedFor(
 
 // The schema would skip these quietly, so each is swapped or removed here,
 // where what's lost can be reported. A cell holds only paragraphs, so no
-// image or embed survives in one.
+// image or embed survives in one, unless the preset turns cells into text.
 function keptMedia(
   body: HTMLElement,
   preset: Preset,
   providers: readonly EmbedProvider[]
 ) {
   const dropped: DroppedContent[] = []
-  const canHoldImages = Object.hasOwn(presetShapes[preset].nodes, 'image')
+  const shape: PresetShape = presetShapes[preset]
+  const canHoldImages = Object.hasOwn(shape.nodes, 'image')
+  const isKeptSrc = shape.httpsImages ? isEmailImageSrc : isSafeImageSrc
+  const canHoldTables = Object.hasOwn(shape.nodes, 'table')
   for (const element of body.querySelectorAll(
     'img, iframe, video, audio, object, embed'
   )) {
     if (!element.isConnected) continue
     const src = absoluteSrc(element)
-    const inCell = element.closest('td, th') !== null
+    const inCell = canHoldTables && element.closest('td, th') !== null
     if (element.localName === 'img') {
-      if (canHoldImages && !inCell && isSafeImageSrc(src)) {
+      if (canHoldImages && !inCell && isKeptSrc(src)) {
         element.setAttribute('src', src)
         continue
       }
@@ -162,6 +185,22 @@ function splitAtBreaks(node: JSONContent): JSONContent {
   }
 }
 
+/** Reads a parsed body into a doc in `preset`, before `migrate`. */
+export function bodyToDoc(
+  body: HTMLElement,
+  preset: Preset,
+  providers: readonly EmbedProvider[]
+) {
+  const dropped = keptMedia(body, preset, providers)
+  cellsAsText(body, preset)
+  const doc = withoutSpacers(
+    splitAtBreaks(
+      SchemaParser.fromSchema(schemaFor(preset)).parse(body).toJSON()
+    )
+  )
+  return { doc, dropped }
+}
+
 /**
  * Reads HTML, such as CKEditor output, into a value in `preset`, through
  * `migrate`, so the result always loads. Text is kept, except fallback text
@@ -196,13 +235,7 @@ export function htmlToEditorValue(
   const { body } = new DOMParser().parseFromString(`<body>${html}`, 'text/html')
   // A page with script never shows a noscript.
   body.querySelectorAll('noscript, title').forEach((hidden) => hidden.remove())
-  const dropped = keptMedia(body, preset, embedProviders)
-  cellsAsText(body, preset)
-  const doc = withoutSpacers(
-    splitAtBreaks(
-      SchemaParser.fromSchema(schemaFor(preset)).parse(body).toJSON()
-    )
-  )
+  const { doc, dropped } = bodyToDoc(body, preset, embedProviders)
   const value = migrate({ version: CURRENT_VERSION, preset, doc }, preset)
   return { value, dropped }
 }
