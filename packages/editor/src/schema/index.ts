@@ -9,6 +9,13 @@ export {
   parseEmbedUrl
 } from './embed'
 export { type EmailContent, type StoredEmailContent } from './emailContent'
+export {
+  type EmailSourceFormat,
+  type ImportEmailOptions,
+  type ImportedEmail,
+  emailSourceFormat,
+  importEmail
+} from './importEmail'
 export { type DroppedContent, htmlToEditorValue } from './importHtml'
 export { type Preset, presets } from './presets'
 export type { ShowWhen } from './showWhen'

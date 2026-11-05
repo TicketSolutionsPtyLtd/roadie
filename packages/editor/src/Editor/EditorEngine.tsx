@@ -69,6 +69,7 @@ import { EditorContext } from './EditorContext'
 import { EditorEmbedPopover } from './EditorEmbedPopover'
 import { EditorEmbedView } from './EditorEmbedView'
 import { EditorImageView } from './EditorImageView'
+import { EditorImportDialog, type ImportRequest } from './EditorImportDialog'
 import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
@@ -102,6 +103,7 @@ import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
 import { emailSections } from './sections'
+import { SourcePaste } from './sourcePaste'
 import { presetLook, resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
 import { useToolbarMode } from './toolbarMode'
@@ -424,6 +426,11 @@ export function EditorEngine({
   const [editingEmbed, setEditingEmbed] = useState(false)
   const [editingButton, setEditingButton] = useState(false)
   const [editingVariable, setEditingVariable] = useState(false)
+  const [importing, setImporting] = useState<ImportRequest>({
+    open: false,
+    source: '',
+    count: 0
+  })
   const providersRef = useRef(embedProviders)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [insertMenu, setInsertMenu] = useState<InsertMenuState | null>(null)
@@ -497,6 +504,13 @@ export function EditorEngine({
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
+      ...(preset === 'email'
+        ? [
+            SourcePaste.configure({
+              onSource: (source) => uiRef.current?.importSource?.(source)
+            })
+          ]
+        : []),
       InsertMenu.configure({
         items: insertItems,
         ui: () => uiRef.current!,
@@ -690,6 +704,10 @@ export function EditorEngine({
     }
   }, [editor, valueDoc, readableDoc, preset, onValueChange])
 
+  function importSource(source = '') {
+    if (!editor?.isEditable) return
+    setImporting(({ count }) => ({ open: true, source, count: count + 1 }))
+  }
   const canUpload = Boolean(onUploadImage) && holdsImages
   const ui = {
     editLink: () => {
@@ -714,7 +732,10 @@ export function EditorEngine({
       if (editor?.isEditable) setEditingVariable(true)
     },
     pickImage: canUpload ? () => fileInputRef.current?.click() : undefined,
-    replaceImage: canUpload ? () => replaceInputRef.current?.click() : undefined
+    replaceImage: canUpload
+      ? () => replaceInputRef.current?.click()
+      : undefined,
+    importSource: preset === 'email' ? importSource : undefined
   }
   useEffect(() => {
     uiRef.current = ui
@@ -856,6 +877,17 @@ export function EditorEngine({
           open={editingEmbed}
           onOpenChange={setEditingEmbed}
         />
+        {preset === 'email' ? (
+          <EditorImportDialog
+            editor={editor}
+            request={importing}
+            onClose={() =>
+              setImporting((request) => ({ ...request, open: false }))
+            }
+            variables={variables}
+            embedProviders={embedProviders}
+          />
+        ) : null}
         {(uploadError || unreadable) && !field.fieldId ? (
           // In a Field, Field.ErrorText shows it instead.
           <p

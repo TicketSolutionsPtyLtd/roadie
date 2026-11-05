@@ -139,6 +139,8 @@ describe('Editor with the email preset', () => {
       '|',
       'List',
       '|',
+      'Import HTML or MJML',
+      '|',
       'Undo',
       'Redo'
     ])
