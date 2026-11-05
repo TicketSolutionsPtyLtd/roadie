@@ -148,7 +148,8 @@ import {
   buttons, or a select past three, with `defaultValue` chosen while its attr
   is unset. Each change shows as it's made. Escape puts the block back;
   Enter in a text setting, or a click or tap away, keeps the changes as one
-  step to undo, with the caret back in the text so the next key types.
+  step to undo. Either way the caret goes to the nearest text, so the next
+  key types rather than replacing the block.
 - `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
   it in place. The component gets `node.attrs` and `updateAttributes`, and
   wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
