@@ -1,6 +1,13 @@
 'use client'
 
-import { useId, useRef, useState, useSyncExternalStore } from 'react'
+import {
+  type KeyboardEvent,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useSyncExternalStore
+} from 'react'
 
 import type { Editor as TiptapEditor } from '@tiptap/react'
 import { flushSync } from 'react-dom'
@@ -108,7 +115,8 @@ export function EditorBlocksDrawer({
   containers
 }: EditorBlocksDrawerProps) {
   const phone = useOnPhone()
-  const wide = useWide()
+  // A wide touch screen still gets the bottom sheet, which takes the page.
+  const beside = useWide() && !phone
   const id = useId()
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
@@ -124,6 +132,13 @@ export function EditorBlocksDrawer({
   const ordered = groups.flatMap(([, tiles]) => tiles)
   const enabled = ordered.filter(usable)
   const current = Math.min(active, Math.max(enabled.length - 1, 0))
+
+  // Closed by a pick, Escape or the toolbar alike, it opens unfiltered.
+  useEffect(() => {
+    if (open) return
+    setQuery('')
+    setActive(0)
+  }, [open])
 
   const pick = (item: EditorInsertItem) => {
     pickedRef.current = true
@@ -141,7 +156,7 @@ export function EditorBlocksDrawer({
       ) ?? [])
     ] as HTMLElement[]
 
-  const onGridKeyDown = (event: React.KeyboardEvent) => {
+  const onGridKeyDown = (event: KeyboardEvent) => {
     const from = event.target as HTMLElement
     if (ARROWS.has(event.key) || event.key === 'Home' || event.key === 'End') {
       const all = tiles()
@@ -169,22 +184,18 @@ export function EditorBlocksDrawer({
   return (
     <Drawer
       open={open}
-      onOpenChange={(next) => {
-        if (!next) setQuery('')
-        setActive(0)
-        onOpenChange(next)
-      }}
+      onOpenChange={onOpenChange}
       side={phone ? 'bottom' : 'right'}
-      modal={!wide}
-      disablePointerDismissal={wide}
+      modal={!beside}
+      disablePointerDismissal={beside}
     >
       <Drawer.Portal>
-        {wide ? null : <Drawer.Backdrop />}
+        {beside ? null : <Drawer.Backdrop />}
         {/* Wide, the viewport lets the page under it take the pointer. */}
-        <Drawer.Viewport className={wide ? 'pointer-events-none' : undefined}>
+        <Drawer.Viewport className={beside ? 'pointer-events-none' : undefined}>
           <Drawer.Popup
             size={phone ? 'fit' : 'sm'}
-            className={wide ? 'pointer-events-auto' : undefined}
+            className={beside ? 'pointer-events-auto' : undefined}
             initialFocus={() => tiles()[0] ?? filterRef.current}
             finalFocus={() => {
               if (!pickedRef.current) focusEditor(editor)
