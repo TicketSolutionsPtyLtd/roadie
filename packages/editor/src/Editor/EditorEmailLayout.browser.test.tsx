@@ -171,3 +171,59 @@ describe('Editor email layout', () => {
     }
   )
 })
+
+describe('Editor page image', () => {
+  it.each([
+    [{ fullWidth: true }, 'across'],
+    [{ align: 'center' }, 'centre'],
+    [{ align: 'right' }, 'end']
+  ] as const)(
+    'draws %j %s the text, with its caption under it',
+    async (look, at) => {
+      render(
+        <div style={{ width: 600 }}>
+          <Editor
+            aria-label={LABEL}
+            defaultValue={{
+              version: 1,
+              preset: 'blocks',
+              doc: {
+                type: 'doc',
+                content: [
+                  {
+                    type: 'image',
+                    attrs: {
+                      src: '/images/crowd.webp',
+                      alt: 'Crowd',
+                      caption: 'Gates 11am',
+                      ...look
+                    }
+                  }
+                ]
+              }
+            }}
+          />
+        </div>
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      const figure = textbox.querySelector<HTMLElement>(
+        '[data-slot="editor-image"]'
+      )!
+      // The tests serve no images, so this stands in for a loaded one's size.
+      const img = figure.querySelector('img')!
+      if (at !== 'across') img.style.width = '120px'
+      const box = boxOf(figure)
+      const style = getComputedStyle(textbox)
+      const start = boxOf(textbox).left + parseFloat(style.paddingLeft)
+      const end = boxOf(textbox).right - parseFloat(style.paddingRight)
+
+      expect(await screen.findByText('Gates 11am')).toBeVisible()
+      const place = {
+        across: box.width - (end - start),
+        centre: (box.left + box.right) / 2 - (start + end) / 2,
+        end: box.right - end
+      }
+      expect(place[at]).toBeCloseTo(0, 0)
+    }
+  )
+})

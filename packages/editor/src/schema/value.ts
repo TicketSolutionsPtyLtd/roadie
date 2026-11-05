@@ -15,6 +15,7 @@ import {
 } from './emailAttrs'
 import { embedAttrs } from './embedAttrs'
 import { headingLevel } from './headings'
+import { pageImageLook } from './imageAttrs'
 import { isSafeImageSrc } from './imageSrc'
 import { isText } from './isText'
 import {
@@ -98,7 +99,7 @@ function aligned(attrs: JSONContent['attrs']) {
   return kept ? { ...rest, align: kept } : rest
 }
 
-function cleanedAttrs({ type, attrs }: JSONContent) {
+function cleanedAttrs({ type, attrs }: JSONContent, email: boolean) {
   if (type === 'tableCell' || type === 'tableHeader') {
     const { colspan, rowspan } = attrs ?? {}
     return {
@@ -112,12 +113,15 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
   if (type === 'paragraph') return attrs && aligned(attrs)
   if (type === 'image') {
     const alt: unknown = attrs?.alt
-    const { align, href, variable, ...rest } = attrs ?? {}
+    const { align, href, variable, fullWidth, caption, ...rest } = attrs ?? {}
+    // The preset's shape keeps an email's look or a page's, never both.
     return {
       ...rest,
       alt: typeof alt === 'string' ? alt : '',
       width: imageWidth(attrs?.width),
-      ...imageLook({ align, href, variable })
+      ...(email
+        ? imageLook({ align, href, variable })
+        : pageImageLook({ align, fullWidth, caption }))
     }
   }
   if (type === 'columns') return columnsLook(attrs)
@@ -403,7 +407,10 @@ function cleaned(
   const { type, text, marks, content, attrs: stored } = node
   const attrs = picked(
     withBlockId(
-      withRule(cleanedAttrs({ type, attrs: stored }), stored),
+      withRule(
+        cleanedAttrs({ type, attrs: stored }, shape.httpsImages === true),
+        stored
+      ),
       stored
     ),
     nodeShape.attrs

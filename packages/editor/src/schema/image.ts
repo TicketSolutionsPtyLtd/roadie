@@ -1,5 +1,6 @@
 import { Node } from '@tiptap/core'
 
+import { pageImageLook } from './imageAttrs'
 import { isSafeImageSrc } from './imageSrc'
 
 export type ImageAttrs = { src: string; alt?: string }
@@ -25,6 +26,23 @@ export const Image = Node.create({
       alt: {
         default: '',
         parseHTML: (element) => element.getAttribute('alt') ?? ''
+      },
+      // From data attributes alone, as Tiptap reads a bare one by default.
+      fullWidth: {
+        default: undefined,
+        parseHTML: (element) =>
+          element.getAttribute('data-full-width') === null ? undefined : true
+      },
+      align: {
+        default: undefined,
+        parseHTML: (element) =>
+          pageImageLook({ align: element.getAttribute('data-align') }).align
+      },
+      caption: {
+        default: undefined,
+        parseHTML: (element) =>
+          pageImageLook({ caption: element.getAttribute('data-caption') })
+            .caption
       }
     }
   },
@@ -40,7 +58,17 @@ export const Image = Node.create({
   },
 
   renderHTML({ node }) {
-    return ['img', { src: node.attrs.src, alt: node.attrs.alt }]
+    const { fullWidth, align, caption } = pageImageLook(node.attrs)
+    return [
+      'img',
+      {
+        src: node.attrs.src,
+        alt: node.attrs.alt,
+        ...(fullWidth && { 'data-full-width': '' }),
+        ...(align && { 'data-align': align }),
+        ...(caption && { 'data-caption': caption })
+      }
+    ]
   },
 
   addCommands() {
