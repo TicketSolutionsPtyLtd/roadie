@@ -224,7 +224,7 @@ function presetKeepsBlockIds(preset: Preset) {
 }
 
 function currentValue(editor: TiptapEditor, preset: Preset): EditorValue {
-  return { version: CURRENT_VERSION, preset, doc: editor.getJSON() }
+  return { version: CURRENT_VERSION, preset, doc: savedDoc(editor.getJSON()) }
 }
 
 function holdsDoc(
@@ -237,6 +237,17 @@ function holdsDoc(
   } catch {
     return false
   }
+}
+
+// A block's rule defaults to undefined, so a node with no other attrs saves
+// none, as it did before rules.
+function savedDoc(json: JSONContent): JSONContent {
+  const saved = { ...json }
+  if (saved.attrs && Object.values(saved.attrs).every((v) => v === undefined)) {
+    delete saved.attrs
+  }
+  if (saved.content) saved.content = saved.content.map(savedDoc)
+  return saved
 }
 
 // A block the value gives no id holds the one the editor gave it, or a parent
@@ -280,7 +291,8 @@ function FormValue({
     selector: ({ editor: current }) => current?.state.doc ?? null,
     equalityFn: Object.is
   })
-  const doc: JSONContent | null = unreadDoc ?? editorDoc?.toJSON() ?? null
+  const doc: JSONContent | null =
+    unreadDoc ?? (editorDoc ? savedDoc(editorDoc.toJSON()) : null)
   if (!doc) return null
   return (
     <input
