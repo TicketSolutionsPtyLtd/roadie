@@ -51,6 +51,11 @@ function groupsOf(items: readonly EditorInsertItem[]) {
   return [...groups]
 }
 
+const sectionsFirst = (groups: [string, EditorInsertItem[]][]) => [
+  ...groups.filter(([group]) => group === 'Sections'),
+  ...groups.filter(([group]) => group !== 'Sections')
+]
+
 // Wide enough to keep the email in view beside the drawer.
 const WIDE = '(min-width: 1280px)'
 
@@ -128,7 +133,9 @@ export function EditorBlocksDrawer({
   const shown = rankedInsertItems(namedInsertItems(items, query, ui), query)
   const usable = (item: EditorInsertItem) =>
     editor.can().command(insertion(item, containers))
-  const groups = groupsOf(shown)
+  // A phone's sheet shows a screen of tiles at a time, so the quickest way
+  // to a whole page leads there.
+  const groups = phone ? sectionsFirst(groupsOf(shown)) : groupsOf(shown)
   const ordered = groups.flatMap(([, tiles]) => tiles)
   const enabled = ordered.filter(usable)
   const current = Math.min(active, Math.max(enabled.length - 1, 0))

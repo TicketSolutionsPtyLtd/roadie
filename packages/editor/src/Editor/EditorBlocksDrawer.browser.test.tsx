@@ -1,3 +1,4 @@
+import { NewspaperIcon } from '@phosphor-icons/react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import {
   afterAll,
@@ -8,10 +9,11 @@ import {
   it,
   vi
 } from 'vitest'
-import { page, userEvent } from 'vitest/browser'
+import { page as browserPage, page, userEvent } from 'vitest/browser'
 
 import { Editor, type EditorProps } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
+import { type EditorBlock, Node } from '../extensions'
 import type { EditorValue, JSONContent } from '../schema'
 import { MOD, clickIntoEditor, selectParagraph } from './testUtils'
 
@@ -714,6 +716,40 @@ describe('Editor blocks drawer in the blocks preset', () => {
     (onValueChange.mock.lastCall![0] as EditorValue).doc.content!.map(
       ({ type, content }) => [type, content?.[0]?.text]
     )
+
+  const hero: EditorBlock = {
+    node: Node.create({
+      name: 'hero',
+      group: 'block',
+      atom: true,
+      parseHTML: () => [{ tag: 'div[data-hero]' }],
+      renderHTML: () => ['div', { 'data-hero': '' }]
+    }),
+    label: 'Hero',
+    icon: NewspaperIcon,
+    group: 'Sections'
+  }
+  const groupNames = (drawer: HTMLElement) =>
+    tileGroups(drawer).map(([group]) => group)
+
+  it('lists Sections first on a phone, where the sheet is short of room', async () => {
+    await browserPage.viewport(390, 844)
+    renderPage({ extensions: [hero] })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+
+    expect(groupNames(drawer)).toEqual(['Sections', 'Text', 'Media', 'Layout'])
+  })
+
+  it('keeps the preset’s order on a desktop', async () => {
+    renderPage({ toolbar: 'docked', extensions: [hero] })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+
+    expect(groupNames(drawer)).toEqual(['Text', 'Media', 'Layout', 'Sections'])
+  })
 
   it('opens from the docked toolbar with the preset’s blocks as tiles', async () => {
     renderPage({
