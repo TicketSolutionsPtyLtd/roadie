@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
@@ -77,6 +79,32 @@ describe('Editor blocks preset ids', () => {
         }
       ])
     )
+  })
+
+  it('reports a controlled value’s new ids once, though the value keeps none', async () => {
+    const onValueChange = vi.fn()
+    const value = valueOf({ type: 'paragraph', content: [text('Doors 7pm')] })
+    function Page() {
+      const [, setReported] = useState<EditorValue>()
+      return (
+        <Editor
+          aria-label={LABEL}
+          value={value}
+          onValueChange={(next) => {
+            onValueChange(next)
+            setReported(next)
+          }}
+        />
+      )
+    }
+    render(<Page />)
+    await screen.findByText('Doors 7pm')
+    await waitFor(() => expect(onValueChange).toHaveBeenCalled())
+    const reported = onValueChange.mock.calls.length
+
+    await focusedTextbox()
+
+    expect(onValueChange).toHaveBeenCalledTimes(reported)
   })
 
   it('reports nothing as a rich controlled value is set', async () => {
