@@ -64,10 +64,11 @@ already holds when their content matches, so it keeps the first record's ids.
 
 Type `/` to open the same insert menu as the
 [email preset](/components/editor/email#composing-a-layout), with the same keys. It offers
-Paragraph, Heading 2 to 4, Bulleted list, Numbered list, Quote, Divider,
-Image, Embed, and Table, and only those that fit at the caret, so a table
-cell offers Paragraph alone. Image shows with `onUploadImage` and opens the
-file picker, and Embed opens the Embed popover.
+Paragraph, Heading 2 to 4, Bulleted list, Numbered list, and Quote under
+Text, Image and Embed under Media, and Divider and Table under Layout, then
+More for an app's own blocks. It offers only those that fit at the caret, so
+a table cell offers Paragraph alone. Image shows with `onUploadImage` and
+opens the file picker, and Embed opens the Embed popover.
 
 ### Block handle
 
@@ -144,9 +145,10 @@ import {
   them, not the text around the block. A read-only or disabled editor
   ignores its `updateAttributes` and `deleteNode`.
 - Pass `{ node, label, icon, keywords }` in `extensions` to show it in the
-  insert menu, after the preset's blocks and only where it fits. The editor
-  reads `extensions` once, when it's created, so give it a new `key` to
-  change them.
+  insert menu, under More and only where it fits. Add `group` to list it
+  under one of the preset's headings, such as Media, or a heading of its
+  own. The editor reads `extensions` once, when it's created, so give it a
+  new `key` to change them.
 - Render it with `renderEditorValue(value, { nodeMapping })`, an entry per
   block that gets its `attrs`. Read each as untrusted input. A block with no
   entry is dropped, never shown raw, and so is every custom block in

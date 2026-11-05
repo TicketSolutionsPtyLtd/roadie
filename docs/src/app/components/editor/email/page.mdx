@@ -155,6 +155,53 @@ toolbars: select text to format it. It keeps its box, unlike a `blocks`
 page, as an email isn't read on the page it's written on, and the box shows
 where it ends. Pass `toolbar='docked'` for a bar across the top.
 
+### Adding blocks
+
+There are two ways to add a block. Both list the blocks under the same
+headings: Text, Media, Layout, and Email. Image shows only with
+`onUploadImage`, and Merge tag is in the `/` menu only, with `variables`.
+
+- **Blocks** in the toolbar opens a drawer of tiles, one per block, in its
+  group. It starts the docked toolbar, so it shows on a phone, and ends the
+  floating toolbar over a selection. The drawer opens from the right, or
+  from the bottom on a phone. A tile adds its block after the block with the
+  caret, and the drawer closes with the caret in the new block. On an empty
+  line, a text block takes the line's place, and any other block goes before
+  it. A section or columns picked in a column goes after the whole row,
+  since columns can't hold one. Image and Button open the file picker and
+  the link field on a new line there, or on the empty line.
+- **Sections** at the end of the drawer are ready-made groups of blocks to
+  edit: Header, Event, and Two events. Their buttons have no link until you
+  set one, and send as text until then. Footer, with a line on why the
+  reader gets the email and an Unsubscribe link, shows when one of
+  `variables` is a link variable whose key or label names the unsubscribe
+  page. The `/` menu leaves sections out.
+- **`/`** opens the insert menu under the caret. Type to filter it. A
+  heading with no matches hides, and the arrow keys step through the
+  matches in the order shown, across the headings.
+
+```tsx-live-prose
+<Editor
+  aria-label='Newsletter'
+  preset='email'
+  toolbar='docked'
+  variables={[
+    { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' } }
+  ]}
+  defaultValue={{
+    version: 1,
+    preset: 'email',
+    doc: {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Ochre Kite Weekender' }] },
+        { type: 'paragraph', content: [{ type: 'text', text: 'Pick Blocks in the toolbar to add a block after this line.' }] }
+      ]
+    }
+  }}
+/>
+```
+
 ### Moving and adding blocks
 
 A grip and an add button show at the start of the block under the pointer,
@@ -548,8 +595,14 @@ const preview = await renderEmail({ kind: 'design', value: nearlySoldOut }, {
 
 - In the email preset, `/` opens a `listbox` named Insert under the caret.
   Focus stays in the text, which points `aria-activedescendant` at the active
-  option and `aria-controls` at the list. With `variables`, `{{` opens a
-  `listbox` named Merge tags the same way.
+  option and `aria-controls` at the list. Each heading's options sit in a
+  `group` named for it. With `variables`, `{{` opens a `listbox` named Merge
+  tags the same way.
+- Blocks in the toolbar opens a `dialog` named Blocks, with focus on its
+  first tile. Each heading's tiles sit in a `group` named for it, and Tab
+  moves between them. Enter or Space adds a block, and Escape closes the
+  drawer. Either way, focus goes back to the text, or to the link field
+  after Button.
 - In the email preset, a button's, a spacer's, columns', or a merge tag's own
   toolbar is named for it, such as "Button actions" or "Merge tag actions", and
   Alt+F10 moves focus into it.
@@ -563,6 +616,7 @@ const preview = await renderEmail({ kind: 'design', value: nearlySoldOut }, {
 | Keys | Action |
 | --- | --- |
 | `/` | Open the insert menu, in the email preset |
+| `Alt+F10`, then `Enter` | Open the Blocks drawer from the docked toolbar |
 | `{{` | Open the merge tag list, with `variables` |
 | `Mod+/` | Open the menu for the block with the caret |
 | `Enter` | In a button, start a new paragraph after it |
