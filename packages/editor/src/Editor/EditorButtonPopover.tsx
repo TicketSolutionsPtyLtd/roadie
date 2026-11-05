@@ -30,6 +30,7 @@ import { selectedNode, selectedNodeType } from './EditorNodeToolbar'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { buttonBlock, insertBlock } from './emailEditing'
 import { focusEditor } from './focusEditor'
+import { EDITOR_POPUP } from './toolbarMode'
 import { type LiveEdit, useLiveEdit } from './useLiveEdit'
 
 type ButtonFormProps = {
@@ -471,6 +472,7 @@ export function EditorButtonPopover({
     return (
       <Drawer open={open} onOpenChange={live.onOpenChange} side='bottom'>
         <Drawer.Content
+          {...{ [EDITOR_POPUP]: '' }}
           size='fit'
           initialFocus={initialFocus}
           finalFocus={finalFocus}
@@ -486,6 +488,7 @@ export function EditorButtonPopover({
   return (
     <Popover open={open} onOpenChange={live.onOpenChange}>
       <Popover.Content
+        {...{ [EDITOR_POPUP]: '' }}
         side='bottom'
         align='start'
         sideOffset={8}

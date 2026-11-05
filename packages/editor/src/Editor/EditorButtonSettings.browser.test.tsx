@@ -186,6 +186,34 @@ describe('Editor button settings', () => {
     )
   })
 
+  it('keeps a touch screen’s docked bar above the keyboard while the drawer is open', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    const matchMedia = window.matchMedia.bind(window)
+    vi.spyOn(window, 'matchMedia').mockImplementation((query) =>
+      matchMedia(query.replaceAll('(pointer: coarse)', 'all'))
+    )
+    onTestFinished(() => {
+      vi.restoreAllMocks()
+    })
+    renderEmail(email(button()))
+    const dialog = await openSettings()
+    const bar = screen.getByRole('toolbar', {
+      name: 'Formatting',
+      hidden: true
+    })
+    const viewport = window.visualViewport!
+
+    await choose(dialog, 'Normal')
+    await new Promise(requestAnimationFrame)
+    await new Promise(requestAnimationFrame)
+
+    expect(bar.getBoundingClientRect().bottom).toBeCloseTo(
+      viewport.offsetTop + viewport.height,
+      0
+    )
+  })
+
   it('applies each choice as it’s made, and draws it so', async () => {
     const onValueChange = renderEmail(email(button()))
     const dialog = await openSettings()
