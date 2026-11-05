@@ -79,7 +79,12 @@ export const RESIZE_DELAY = 80
 function between(top: number, bottom: number) {
   const y = Math.max(top, 0)
   return {
-    rootBoundary: { x: 0, y, width: window.innerWidth, height: bottom - y }
+    rootBoundary: {
+      x: 0,
+      y,
+      width: window.innerWidth,
+      height: Math.max(bottom - y, 0)
+    }
   }
 }
 
@@ -95,6 +100,9 @@ function chromeBottom(editor: TiptapEditor) {
     sibling;
     sibling = sibling.previousElementSibling
   ) {
+    // Not one laid over the text, such as a block's floating controls.
+    const { position } = getComputedStyle(sibling)
+    if (position === 'absolute' || position === 'fixed') continue
     bottom = Math.max(bottom, sibling.getBoundingClientRect().bottom)
   }
   return bottom
