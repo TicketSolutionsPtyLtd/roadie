@@ -36,9 +36,9 @@ const isTextLine = (node: PMNode) => node.type.isInGroup('block')
 
 // Puts `block` at `at`, in place of the emptied line there, so no empty line
 // is left. A paragraph to type in follows, unless a text block does already
-// or the block is a section or columns, which Enter leaves. The block's first line, or the block itself
-// when it's a text block, has its text selected, so typing replaces a
-// ready-made section's placeholder.
+// or the block is a section or columns, which Enter and Tab leave. The
+// block's first line, or the block itself when it's a text block, has its
+// text selected, so typing replaces a ready-made section's placeholder.
 function placeBlock(
   { tr, dispatch }: Pick<CommandProps, 'tr' | 'dispatch'>,
   at: number,
@@ -88,9 +88,8 @@ function replaceLine(
 }
 
 /**
- * Inserts `content` before the caret's line when it's empty, which keeps the
- * caret, or when the caret starts it; otherwise after it, with a paragraph to
- * type in.
+ * Inserts `content` in place of the caret's line when it's empty, before it
+ * when the caret starts it, and otherwise after it.
  */
 export function insertBlock(content: JSONContent) {
   return (props: CommandProps) => {
