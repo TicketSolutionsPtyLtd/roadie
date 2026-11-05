@@ -346,6 +346,26 @@ describe('Editor merge tag editing', () => {
     )
   })
 
+  it('saves the fallback without the spaces around it', async () => {
+    const onValueChange = renderEmail({ defaultValue: greeting })
+    const dialog = await editTag()
+
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: 'Fallback' }),
+      ' friend '
+    )
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Hi ' }, tag('first_name', 'friend')]
+        })
+      )
+    )
+  })
+
   it('keeps a key the editor doesn’t list, as one of its choices', async () => {
     const onValueChange = renderEmail({
       defaultValue: email({ type: 'paragraph', content: [tag('ticket_count')] })
