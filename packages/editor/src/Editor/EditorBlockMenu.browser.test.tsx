@@ -287,7 +287,98 @@ describe('Editor block menu', () => {
     )
   })
 
+  it('highlights the first action when Mod+/ opens the menu', async () => {
+    const onValueChange = renderLineup()
+    await userEvent.click(await row('Support'))
+
+    await userEvent.keyboard(`{${MOD}>}/{/${MOD}}`)
+
+    await waitFor(() =>
+      expect(screen.getByRole('menuitem', { name: 'Move up' })).toHaveFocus()
+    )
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() =>
+      expect(
+        lastDoc(onValueChange).content!.map((b) => b.attrs!.blockId)
+      ).toEqual(['support', 'doors', 'headliner'])
+    )
+  })
+
+  it('opens the menu beside the grip, clear of the text, where there’s room', async () => {
+    document.body.style.paddingInlineStart = '320px'
+    onTestFinished(() => {
+      document.body.style.paddingInlineStart = ''
+    })
+    renderLineup()
+    const menu = await openMenuOn('Support')
+
+    await waitFor(async () =>
+      expect(menu.getBoundingClientRect().right).toBeLessThanOrEqual(
+        (await handle()).getBoundingClientRect().left
+      )
+    )
+  })
+
+  it('opens the menu below the grip where there’s no room beside it', async () => {
+    renderLineup()
+    const menu = await openMenuOn('Support')
+
+    await waitFor(async () =>
+      expect(menu.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        (await handle()).getBoundingClientRect().bottom
+      )
+    )
+  })
+
   describe('on a phone', () => {
+    it('moves a block under a heading the page has, in one step', async () => {
+      await page.viewport(390, 700)
+      const onValueChange = renderLineup({
+        defaultValue: {
+          ...lineup,
+          doc: {
+            type: 'doc',
+            content: [
+              {
+                type: 'heading',
+                attrs: { level: 2, blockId: 'lineup' },
+                content: [{ type: 'text', text: 'Lineup' }]
+              },
+              block('doors', 'Doors 7pm'),
+              {
+                type: 'heading',
+                attrs: { level: 2, blockId: 'travel' },
+                content: [{ type: 'text', text: 'Getting there' }]
+              },
+              block('parking', 'Parking on site')
+            ]
+          }
+        }
+      })
+      await userEvent.click(await row('Doors'))
+      await userEvent.click(await handle())
+      const sheet = await screen.findByRole('dialog', { name: 'Paragraph' })
+
+      await userEvent.click(
+        within(sheet).getByRole('button', { name: 'Move to…' })
+      )
+      expect(
+        within(sheet)
+          .getAllByRole('button')
+          .map((button) => button.textContent)
+          .filter(Boolean)
+      ).toContain('Getting there')
+      await userEvent.click(
+        within(sheet).getByRole('button', { name: 'Getting there' })
+      )
+
+      await waitFor(() =>
+        expect(
+          lastDoc(onValueChange).content!.map((b) => b.attrs!.blockId)
+        ).toEqual(['lineup', 'travel', 'doors', 'parking'])
+      )
+    })
+
     it('opens the menu as a sheet from the bottom, with no keys', async () => {
       await page.viewport(390, 700)
       const onValueChange = renderLineup()
@@ -379,19 +470,22 @@ describe('Editor block menu', () => {
       await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     })
 
-    it('makes room for the grip in a subtler editor too', async () => {
+    it('makes room for the grip at the start of a subtler editor, and none at its end', async () => {
       await page.viewport(390, 700)
       renderLineup({ emphasis: 'subtler' })
       const textbox = await screen.findByRole('textbox', { name: LABEL })
       await userEvent.click(await row('Doors'))
       const grip = (await handle()).getBoundingClientRect()
+      const { paddingLeft, paddingRight } = getComputedStyle(textbox)
 
       expect(grip.left).toBeGreaterThanOrEqual(
         textbox.getBoundingClientRect().left
       )
+      expect(parseFloat(paddingLeft)).toBeLessThanOrEqual(36)
+      expect(paddingRight).toBe('0px')
     })
 
-    it('leaves as much room after the text as before it', async () => {
+    it('keeps only the grip’s room at the start, and the frame’s own at the end', async () => {
       await page.viewport(390, 700)
       render(
         <Editor
@@ -418,8 +512,9 @@ describe('Editor block menu', () => {
 
       const { paddingLeft, paddingRight } = getComputedStyle(textbox)
 
-      expect(paddingLeft).toBe(paddingRight)
-      expect(parseFloat(paddingLeft)).toBeGreaterThanOrEqual(36)
+      expect(parseFloat(paddingLeft)).toBeGreaterThanOrEqual(30)
+      expect(parseFloat(paddingLeft)).toBeLessThanOrEqual(36)
+      expect(parseFloat(paddingRight)).toBeLessThan(parseFloat(paddingLeft))
       expect(screen.queryByRole('button', { name: 'Add block' })).toBe(null)
     })
 
