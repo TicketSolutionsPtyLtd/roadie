@@ -379,7 +379,11 @@ label, or a copy review, run `/roadie:content`.
   durations, and any count of 11 or more, and words for other counts from one
   to ten. Commas for thousands, `$1,200`, and `68%`. Format
   them with `formatValue` from `@oztix/roadie-core/dataviz`, not
-  `toLocaleString`. Record fields format their own.
+  `toLocaleString`. Money keeps its cents in a cart, checkout, receipt,
+  chart, or table. In copy, such as a headline, sentence, or listing, pass
+  `trailingZeroDisplay: 'stripIfInteger'` with `currency` so a round price has
+  no cents, unless another price in the same list has them. Record fields
+  format their own.
 - **Errors** say what happened and what to do: "Enter an event name.", not
   "Invalid input".
 - **Sample data** never uses a real venue, event, or promoter, because

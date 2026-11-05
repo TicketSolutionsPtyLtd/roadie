@@ -1,6 +1,10 @@
 import babel from '@rolldown/plugin-babel'
 import { defineConfig } from 'tsdown'
 
+import {
+  cacheTransforms,
+  skipUnchangedWrites
+} from '../../scripts/tsdown-watch.mjs'
 import { reactCompilerPreset } from './react-compiler.config.ts'
 
 // Unbundle mode is load-bearing for RSC safety, and keeps 'use client' per file
@@ -17,7 +21,8 @@ export default defineConfig(({ watch }) => ({
   suppressWarnings: 'module level directive "use client"',
   format: ['esm'],
   platform: 'neutral',
-  dts: {
+  // The docs dev server reads only JS, so watch skips the declarations.
+  dts: !watch && {
     resolve: true,
     compilerOptions: {
       composite: false,
@@ -33,7 +38,12 @@ export default defineConfig(({ watch }) => ({
   shims: true,
   outDir: 'dist',
   outExtensions: () => ({ js: '.js' }),
-  plugins: [babel({ presets: [reactCompilerPreset] })],
+  plugins: watch
+    ? [
+        cacheTransforms(babel({ presets: [reactCompilerPreset] })),
+        skipUnchangedWrites()
+      ]
+    : [babel({ presets: [reactCompilerPreset] })],
   deps: {
     neverBundle: [
       'react',

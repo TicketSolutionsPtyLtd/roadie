@@ -47,7 +47,7 @@ describe('Dashboard design page', () => {
     expect(ACTIONS_LABEL_LIMITS.md).toBe(ACTIONS_LABEL_LIMITS.sm)
     expect(ACTIONS_LABEL_LIMITS.full).toBe(ACTIONS_LABEL_LIMITS.lg)
     expect(page.replace(/\s+/g, ' ')).toContain(
-      `keep chart labels to ${ACTIONS_LABEL_LIMITS.sm} characters at \`sm\` and \`md\` and ${ACTIONS_LABEL_LIMITS.lg} at \`lg\` and \`full\`, and stat labels to ${ACTIONS_LABEL_LIMITS.stat}.`
+      `keep chart, table, and note labels to ${ACTIONS_LABEL_LIMITS.sm} characters at \`sm\` and \`md\` and ${ACTIONS_LABEL_LIMITS.lg} at \`lg\` and \`full\`, and stat labels to ${ACTIONS_LABEL_LIMITS.stat}.`
     )
   })
 })

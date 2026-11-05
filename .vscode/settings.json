@@ -1,5 +1,5 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.tsdk": "node_modules/.pnpm/node_modules/@typescript/old/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "typescript.validate.enable": true,
   "typescript.suggest.enabled": true,

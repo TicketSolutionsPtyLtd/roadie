@@ -206,6 +206,7 @@ const soundcloud: EmbedProvider = {
   id: /^(?:(?:tracks|playlists):\d{1,20}|[\w-]{1,100}\/(?:sets\/)?[\w-]{1,255})$/,
   aspect: { height: 166 },
   match(url) {
+    if (isPrivate(url)) return null
     const id = soundcloudPermalink(url) ?? soundcloudPlayerTrack(url)
     return id ? { id } : null
   },

@@ -1,6 +1,8 @@
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'tsdown'
 
+import { skipUnchangedWrites } from '../../scripts/tsdown-watch.mjs'
+
 export default defineConfig(({ watch }) => ({
   // Object entries (not array) so the key becomes the output path; otherwise
   // tsdown collapses to the common ancestor and drops the widget layer.
@@ -16,8 +18,9 @@ export default defineConfig(({ watch }) => ({
   },
   format: ['esm'],
   platform: 'neutral',
-  plugins: [vue()],
-  dts: {
+  plugins: watch ? [vue(), skipUnchangedWrites()] : [vue()],
+  // The docs dev server reads only JS, so watch skips the declarations.
+  dts: !watch && {
     resolve: true,
     vue: true,
     compilerOptions: { composite: false, incremental: false }

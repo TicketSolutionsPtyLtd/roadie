@@ -11,9 +11,11 @@ import {
 
 describe('words', () => {
   it('says a value in plain words', () => {
-    expect(describeValue(184, 'number', 'orders')).toBe('184 orders')
-    expect(describeValue(0.61, 'percent', 'sold')).toBe('61% sold')
-    expect(describeValue(null, 'number', 'orders')).toBe('no data')
+    expect(describeValue(184, { format: 'number' }, 'orders')).toBe(
+      '184 orders'
+    )
+    expect(describeValue(0.61, { format: 'percent' }, 'sold')).toBe('61% sold')
+    expect(describeValue(null, { format: 'number' }, 'orders')).toBe('no data')
   })
 
   it('says a point in plain words', () => {
@@ -29,7 +31,8 @@ describe('words', () => {
       first: 120,
       last: 1464,
       from: '1 Oct',
-      to: '14 Nov'
+      to: '14 Nov',
+      style: {}
     })
     expect(sentence).toBe(
       'Tickets sold rose from 120 to 1,464 between 1 Oct and 14 Nov'

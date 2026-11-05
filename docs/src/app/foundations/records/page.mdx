@@ -99,6 +99,7 @@ export const eventFields: RecordField[] = [
 | `localDateKey`, `endLocalDateKey` | The stored venue-local date, for adapters that can't work it out per row.                                                                       |
 | `match`                           | A pattern for identifiers, such as order numbers, as a string anchored with `^` and `$`. Typed text that matches, in any case, is offered as an exact filter. |
 | `format`                          | How a number or money field's values read. Defaults to number, or currency for money.                                                          |
+| `decimals`, `trailingZeroDisplay` | Fixed decimal places for a number or money field, from none to four, and whether a whole value drops them.                                     |
 | `currency`, `currencyKey`         | A fixed ISO code, or the row key holding it.                                                                                                    |
 | `status`                          | The dashboard status map. An option field with one gets Badge rendering, sorting by order, and labels from one definition.                     |
 | `options`                         | The values to pick from, each with an optional parent for hierarchies and, on a location, a kind.                                               |
@@ -210,7 +211,9 @@ Empty is a real state: null, an empty string, and an empty list are all not
 set. Negative operators (is-not, not-contains, and neq) keep records where the
 field is empty, the way Meilisearch does. Check a view from storage or an API
 with `validateRecordView(view, fields)`. It rejects unknown fields and
-operators that don't fit, and says what would. A view carries its format as
+operators that don't fit, and says what would. It warns of a value with an unpaired
+backslash at its end or before a quote, which `toMeilisearch` can't write and
+throws on. A view carries its format as
 `version`, `RECORD_VIEW_VERSION`. A view saved without one reads as version 1,
 and a version this release doesn't know is rejected.
 
@@ -597,6 +600,11 @@ when a longer reading takes its words: in `melb this weekend`, "this" belongs
 to "Start date is this weekend", so it never suggests a venue such as Nimbus
 Thistle Hall. Text a field contains takes no words this way, so
 `name disco melb` still suggests "Location is in Melbourne".
+
+A chip's values OR, so values of one field joined by "or" read as one chip.
+`location melb or syd` suggests "Location is in Melbourne or Sydney", and
+`venue is not walrus or kettle` one chip ruling out both venues. Chips AND, so
+`melb and syd` suggests Melbourne alone and keeps `and syd` as `remainder`.
 
 Negation reads as the opposite filter. "not melb" suggests "Location is not
 in Melbourne", and never "Location is in Melbourne". The negating words are

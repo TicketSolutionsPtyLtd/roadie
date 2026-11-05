@@ -3,7 +3,7 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DataTable, type DataTableColumn, sortDataTableRows } from '.'
-import { compareText, sortValue } from './sort'
+import { compareText, sortValueOf } from './sort'
 
 const columns: DataTableColumn[] = [
   {
@@ -87,6 +87,82 @@ describe('DataTable', () => {
     render(<DataTable columns={columns} rows={rows} plain />)
     expect(screen.queryAllByRole('meter')).toHaveLength(0)
     expect(screen.getByText('77%')).toBeInTheDocument()
+  })
+
+  it('shows numbers, meters and sparklines to the column’s decimal places', () => {
+    render(
+      <DataTable
+        columns={[
+          {
+            key: 's',
+            header: 'Sold',
+            kind: 'number',
+            format: 'percent',
+            decimals: 2
+          },
+          {
+            key: 'g',
+            header: 'Gross',
+            kind: 'number',
+            format: 'currency',
+            trailingZeroDisplay: 'stripIfInteger'
+          },
+          { key: 'm', header: 'Sell-through', kind: 'meter', decimals: 1 },
+          { key: 'd', header: 'Daily', kind: 'sparkline', decimals: 2 }
+        ]}
+        rows={[{ s: 0.0127, g: 3116, m: 0.5, d: [1, 2, 30] }]}
+        plain
+      />
+    )
+    for (const text of ['1.27%', '$3,116', '50.0%', '30.00'])
+      expect(screen.getByText(text)).toBeInTheDocument()
+  })
+
+  it('reads a meter against its max to the column’s decimal places', () => {
+    render(
+      <DataTable
+        columns={[
+          {
+            key: 'n',
+            header: 'Scanned',
+            kind: 'meter',
+            max: 800,
+            decimals: 1
+          }
+        ]}
+        rows={[{ n: 412 }]}
+      />
+    )
+    expect(screen.getByRole('meter', { name: 'Scanned' })).toHaveAttribute(
+      'aria-valuetext',
+      '412.0 of 800.0'
+    )
+  })
+
+  it('shows a delta cell to the column’s decimal places', () => {
+    render(
+      <DataTable
+        columns={[
+          {
+            key: 'd',
+            header: 'Change',
+            kind: 'delta',
+            format: 'percent',
+            decimals: 2
+          },
+          {
+            key: 'g',
+            header: 'Gross change',
+            kind: 'delta',
+            format: 'currency',
+            trailingZeroDisplay: 'stripIfInteger'
+          }
+        ]}
+        rows={[{ d: 0.0127, g: 1200 }]}
+      />
+    )
+    expect(screen.getByText('up 1.27%, better')).toBeInTheDocument()
+    expect(screen.getByText('up $1,200, better')).toBeInTheDocument()
   })
 
   it('links sortable headers and marks the sorted column', () => {
@@ -290,6 +366,33 @@ describe('DataTable sorting', () => {
     expect(shownOrder()[0]).toBe('Ocean Alley')
   })
 
+  it('returns to the given order when a controlled sort is cleared', () => {
+    const given = sortRows.map((row) => String(row.show))
+    const { rerender } = render(
+      <DataTable
+        sortable
+        sort={{ key: 'show', direction: 'descending' }}
+        onSortChange={() => {}}
+        columns={sortColumns}
+        rows={sortRows}
+      />
+    )
+    expect(shownOrder()).not.toEqual(given)
+    rerender(
+      <DataTable
+        sortable
+        sort={null}
+        onSortChange={() => {}}
+        columns={sortColumns}
+        rows={sortRows}
+      />
+    )
+    expect(shownOrder()).toEqual(given)
+    expect(header('Show')).not.toHaveAttribute('aria-sort')
+    fireEvent.click(screen.getByRole('button', { name: 'Show' }))
+    expect(shownOrder()).toEqual(given)
+  })
+
   it('keeps row keys with their rows', () => {
     const { container } = render(
       <DataTable
@@ -331,6 +434,10 @@ describe('DataTable sorting', () => {
     ])
   })
 
+  it('keeps the given order on a server with no sort', () => {
+    expect(sortDataTableRows(sortRows, sortColumns, null)).toEqual(sortRows)
+  })
+
   it('links unsorted number headers largest first', () => {
     render(
       <DataTable
@@ -359,10 +466,10 @@ describe('shared sort helpers', () => {
 
   it('treats missing values as undefined', () => {
     const number = { key: 'gross', header: 'Gross', kind: 'number' } as const
-    expect(sortValue(number, 'On sale soon')).toBeUndefined()
-    expect(sortValue(number, null)).toBeUndefined()
-    expect(sortValue(number, 12)).toBe(12)
+    expect(sortValueOf(number)('On sale soon')).toBeUndefined()
+    expect(sortValueOf(number)(null)).toBeUndefined()
+    expect(sortValueOf(number)(12)).toBe(12)
     const text = { key: 'show', header: 'Show', kind: 'text' } as const
-    expect(sortValue(text, 42)).toBe('42')
+    expect(sortValueOf(text)(42)).toBe('42')
   })
 })

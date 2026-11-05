@@ -5,6 +5,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { shimCommand } from '../../../scripts/lib/machine.mjs'
+
 const packageDir = fileURLToPath(new URL('..', import.meta.url))
 
 export const MISTAKES = `import { Heart, StarIcon } from '@phosphor-icons/react'
@@ -91,17 +93,34 @@ export function addRoadie(app) {
   const tailwind = createRequire(
     join(packageDir, '../core/package.json')
   ).resolve('tailwindcss/package.json')
-  symlinkSync(join(tailwind, '..'), join(app, 'node_modules/tailwindcss'))
+  // A junction links a folder on Windows without admin rights.
+  symlinkSync(
+    join(tailwind, '..'),
+    join(app, 'node_modules/tailwindcss'),
+    'junction'
+  )
+}
+
+/** Runs pnpm or npm, which Windows reaches only through a shell. */
+export function runShim(command, args, options) {
+  const shim = shimCommand(command, args)
+  return execFileSync(shim.command, shim.args, {
+    ...options,
+    shell: shim.shell
+  })
 }
 
 // Packs the package as npm would publish it into a fresh app, with the
 // fixtures in src/, so the app can reach only the published files and exports.
 export function createApp(prefix, files) {
   const app = mkdtempSync(join(tmpdir(), prefix))
-  const output = execFileSync(
+  const output = runShim(
     'pnpm',
     ['pack', '--pack-destination', app, '--json'],
-    { cwd: packageDir, encoding: 'utf8' }
+    {
+      cwd: packageDir,
+      encoding: 'utf8'
+    }
   )
   writeFileSync(
     join(app, 'package.json'),

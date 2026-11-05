@@ -9,7 +9,7 @@ severity: medium
 symptoms:
   - A decorative element (icon, suffix, indicator) renders normally for default usage but disappears when the consumer passes a custom `render` element with children
   - Component default JSX `{children}{decorativeIcon}` becomes just `{consumerChildren}` after `cloneElement` merging
-  - No error or warning fires — the element silently disappears
+  - No error or warning fires. The element silently disappears
 root_cause: incorrect_logic
 resolution_type: code_fix
 related_components:
@@ -33,19 +33,19 @@ consumer passes an element-form `render` override that itself carries
 children (`render={<NextLink>See all</NextLink>}`), the trailing arrow
 silently disappears. The bug only surfaces when both the component
 provides default children AND the consumer's render element provides
-its own children — exactly the case that motivates the `render` prop
+its own children, exactly the case that motivates the `render` prop
 in the first place.
 
 ## Symptoms
 
 ```tsx
-// Works as expected — arrow renders
+// Works as expected: arrow renders
 <Carousel.TitleLink href='/events'>
   See events
 </Carousel.TitleLink>
 // → "See events →"
 
-// Bug — arrow silently dropped
+// Bug: arrow silently dropped
 <Carousel.TitleLink render={<NextLink href='/events'>See events</NextLink>}>
   Events
 </Carousel.TitleLink>
@@ -58,19 +58,19 @@ to _follow_ the text is gone.
 
 ## What Didn't Work
 
-- **Pass `children: innerChildren` (text + arrow) inside `defaultProps`**
-  — this is what the original implementation did. `mergeProps` follows
+- **Pass `children: innerChildren` (text + arrow) inside `defaultProps`**:
+  this is what the original implementation did. `mergeProps` follows
   Base UI's "override wins for non-className/non-event keys" rule, so
   `renderProps.children` ("See events") wholesale replaces
   `defaultProps.children` (`{title}{arrow}`). Both the title text AND
   the arrow get dropped together.
 
 - **Special-case `children` in `mergeProps`** (e.g., always concatenate
-  defaults + override) — this would break the consumer's clear intent
+  defaults + override): this would break the consumer's clear intent
   to _replace_ the title text. The decorative arrow is a separate
-  concern from the title — they need separate handling.
+  concern from the title: they need separate handling.
 
-- **Forbid render-element children entirely** — too restrictive.
+- **Forbid render-element children entirely**: too restrictive.
   `<NextLink href='/x'>See all</NextLink>` is the natural way to
   override the title text.
 
@@ -166,7 +166,7 @@ overridable by `mergeProps`. Keeping it as a JSX child of a wrapping
       </Carousel.TitleLink>
     )
     expect(getByText('See all')).toBeInTheDocument()
-    // ArrowRightIcon renders as <svg> — assert it's still there
+    // ArrowRightIcon renders as <svg>: assert it's still there
     expect(container.querySelector('[data-slot="carousel-title-link"] svg'))
       .toBeInTheDocument()
   })
@@ -181,7 +181,7 @@ overridable by `mergeProps`. Keeping it as a JSX child of a wrapping
    */
   ```
 - **Watch for the same trap with `style`, `className`, and event
-  handlers** — `mergeProps` handles those specially (concat for
+  handlers**: `mergeProps` handles those specially (concat for
   `className`, chain for `on*`, shallow-merge for `style`), but
   `children` is treated as a plain prop and follows the override-wins
   rule. Any other props that need "always-on" semantics need the same
@@ -189,5 +189,5 @@ overridable by `mergeProps`. Keeping it as a JSX child of a wrapping
 
 ## Related Issues
 
-- [Element-form `render` general guidance](./../best-practices/use-prefix-non-hook-forward-compat-hazard.md) — same component-library context, different lesson.
-- The Roadie commit that fixed this: `ffc6ff4` — see CarouselTitleLink.tsx render-path branch.
+- [Element-form `render` general guidance](./../best-practices/use-prefix-non-hook-forward-compat-hazard.md): same component-library context, different lesson.
+- The Roadie commit that fixed this: `ffc6ff4` (see CarouselTitleLink.tsx render-path branch).

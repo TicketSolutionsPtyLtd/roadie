@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   Elevation — Intent-tinted shadows
+   Elevation: intent-tinted shadows
    Overrides Tailwind's shadow scale with oklch() shadows
    tinted by --intent-hue. Falls back to rgba() for old browsers.
 
@@ -220,7 +220,7 @@
 /* ─── Point the shadow utilities at the tokens ───
    Tailwind compiles a shadow utility's @theme value in at build time, so
    the .dark and oklch overrides above never reached `shadow-*` or
-   `inset-shadow-*` — only rules reading var(--shadow-*) followed the theme.
+   `inset-shadow-*`: only rules reading var(--shadow-*) followed the theme.
    Setting the variables Tailwind composes keeps rings and insets stacking. */
 @utility shadow-xs {
   --tw-shadow: var(--shadow-xs);

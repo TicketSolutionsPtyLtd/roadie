@@ -2,6 +2,7 @@ import { createRequire } from 'module'
 import { type Browser, type Page, chromium, firefox, webkit } from 'playwright'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 
+import { settled } from './routerReady'
 import { BASE_PATH, ORIGIN, serveExport } from './serveExport'
 
 const engines = { chromium, firefox, webkit }
@@ -36,7 +37,7 @@ async function open(width: number, path = PAGE) {
   })
   page.on('pageerror', (error) => errors.push(String(error)))
   await page.goto(`${ORIGIN}${BASE_PATH}${path}`)
-  await page.waitForLoadState('networkidle')
+  await settled(page)
   return { page, errors }
 }
 

@@ -73,15 +73,21 @@ function liquidCondition(path: string, rule: ShowWhen) {
 const numberIn = (value: string | undefined) =>
   /^\s*-?\d+(\.\d+)?\s*$/.test(String(value)) ? Number(value) : undefined
 
+// A preview can only write a sender's false as text, and Liquid's false fails
+// `and` and equals no text.
+const isFalse = (value: string | undefined) => value === 'false'
+
 const matches = (value: string | undefined, wanted: string | number) =>
-  typeof wanted === 'number' ? numberIn(value) === wanted : value === wanted
+  typeof wanted === 'number'
+    ? numberIn(value) === wanted
+    : value === wanted && !isFalse(value)
 
 function holds(rule: ShowWhen, values: Readonly<Record<string, string>>) {
   const value = Object.hasOwn(values, rule.key) ? values[rule.key] : undefined
   const number = numberIn(value)
   switch (rule.op) {
     case 'exists':
-      return Boolean(value)
+      return Boolean(value) && !isFalse(value)
     case 'equals':
       return matches(value, rule.value)
     case 'notEquals':
@@ -92,6 +98,13 @@ function holds(rule: ShowWhen, values: Readonly<Record<string, string>>) {
       return number !== undefined && number > rule.value
   }
 }
+
+// Each `if` trims the break before it, so one that opens the plain text trims
+// the break after it too, or a shown block starts with a blank line.
+export const textStartingAtWords = (text: string) =>
+  text.replace(/^(?:\{%- if [\s\S]*?%\}\s*)+/, (opening) =>
+    opening.replace(/ %\}\s*/g, ' -%}')
+  )
 
 /**
  * Checks each rule against `variables`, then shows or hides its block for a

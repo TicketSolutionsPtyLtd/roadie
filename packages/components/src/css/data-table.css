@@ -103,17 +103,22 @@
 
 /* A closed group's rows stay in the table, collapsed, so groups open and
    close like an Accordion: each cell's content shrinks from 1fr to 0fr while
-   its padding and rule go with it. */
-[data-slot='data-table'] tbody[data-grouped] > tr > td {
+   its padding and rule go with it. A long table's (`data-instant`) snap. */
+[data-slot='data-table'] tbody[data-grouped]:not([data-instant]) > tr > td {
   transition-property: padding-block, border-bottom-width;
   transition-duration: var(--duration-moderate);
   transition-timing-function: var(--ease-enter);
 }
 
+[data-slot='data-table']
+  tbody[data-grouped]:not([data-instant])
+  [data-slot='data-table-collapse'] {
+  transition: grid-template-rows var(--duration-moderate) var(--ease-enter);
+}
+
 [data-slot='data-table-collapse'] {
   display: grid;
   grid-template-rows: 1fr;
-  transition: grid-template-rows var(--duration-moderate) var(--ease-enter);
 
   /* Clips only the height it animates, with room for a sparkline's end dot
      once the row is open. */

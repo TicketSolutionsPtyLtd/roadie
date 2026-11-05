@@ -12,6 +12,11 @@
    Hover only applies where a pointer can hover. A touch screen
    keeps :hover on the last element tapped, which left buttons
    looking stuck in their hover colour.
+   Every branch of a selector list weighs the same: a bundler that
+   lowers nesting merges the list into :is(), which takes its
+   heaviest branch's weight, and a heavy resting branch then beat
+   its own hover. So an is-interactive-within branch counts its
+   state once and keeps the rest in :where().
    ═══════════════════════════════════════════════════════════ */
 
 @utility emphasis-strong {
@@ -21,8 +26,10 @@
   box-shadow: var(--rim-light-subtle);
 
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+  &.is-interactive-within:has(
+      :where([data-interactive-target]):focus-visible
+    ):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
     ) {
     background-color: var(--intent-bg-strong-hover);
     transform: translateY(-1px);
@@ -30,8 +37,8 @@
   }
   @media (hover: hover) {
     &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
+    &.is-interactive-within:has(:where([data-interactive-target]):hover):where(
+        :not(:has(.is-interactive-within [data-interactive-target]:hover))
       ) {
       background-color: var(--intent-bg-strong-hover);
       transform: translateY(-1px);
@@ -40,8 +47,8 @@
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
-  &.is-interactive-within:has([data-interactive-target]:active):not(
-      :has(.is-interactive-within [data-interactive-target]:active)
+  &.is-interactive-within:has(:where([data-interactive-target]):active):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:active))
     ) {
     background-color: var(--intent-bg-strong-active);
     transform: translateY(0) scale(0.99);
@@ -55,8 +62,10 @@
   border: 1px solid var(--intent-border-normal);
 
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+  &.is-interactive-within:has(
+      :where([data-interactive-target]):focus-visible
+    ):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
     ) {
     background-color: var(--intent-2);
     transform: translateY(-1px);
@@ -64,8 +73,8 @@
   }
   @media (hover: hover) {
     &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
+    &.is-interactive-within:has(:where([data-interactive-target]):hover):where(
+        :not(:has(.is-interactive-within [data-interactive-target]:hover))
       ) {
       background-color: var(--intent-2);
       transform: translateY(-1px);
@@ -74,8 +83,8 @@
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
-  &.is-interactive-within:has([data-interactive-target]:active):not(
-      :has(.is-interactive-within [data-interactive-target]:active)
+  &.is-interactive-within:has(:where([data-interactive-target]):active):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:active))
     ) {
     background-color: var(--intent-3);
     transform: translateY(0) scale(0.99);
@@ -99,23 +108,25 @@
   }
 
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+  &.is-interactive-within:has(
+      :where([data-interactive-target]):focus-visible
+    ):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
     ) {
     background-color: var(--intent-4a);
   }
   @media (hover: hover) {
     &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
+    &.is-interactive-within:has(:where([data-interactive-target]):hover):where(
+        :not(:has(.is-interactive-within [data-interactive-target]:hover))
       ) {
       background-color: var(--intent-4a);
     }
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
-  &.is-interactive-within:has([data-interactive-target]:active):not(
-      :has(.is-interactive-within [data-interactive-target]:active)
+  &.is-interactive-within:has(:where([data-interactive-target]):active):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:active))
     ) {
     background-color: var(--intent-5a);
   }
@@ -128,34 +139,35 @@
   border-style: solid;
 
   /* No selector can find a target outside nested surfaces, so a surface with
-     its own target and nested ones keeps its rest tint. Separate rules, as a
-     lowered list becomes an :is() as specific as its :has(), outranking hover. */
-  &.is-interactive {
-    background-color: transparent;
-  }
-  &.is-interactive-within:has([data-interactive-target]):not(
-      :has(.is-interactive-within [data-interactive-target])
+     its own target and nested ones keeps its rest tint. */
+  &.is-interactive,
+  &.is-interactive-within:where(
+      :has([data-interactive-target]):not(
+        :has(.is-interactive-within [data-interactive-target])
+      )
     ) {
     background-color: transparent;
   }
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+  &.is-interactive-within:has(
+      :where([data-interactive-target]):focus-visible
+    ):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
     ) {
     background-color: var(--intent-3a);
   }
   @media (hover: hover) {
     &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
+    &.is-interactive-within:has(:where([data-interactive-target]):hover):where(
+        :not(:has(.is-interactive-within [data-interactive-target]:hover))
       ) {
       background-color: var(--intent-3a);
     }
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
-  &.is-interactive-within:has([data-interactive-target]:active):not(
-      :has(.is-interactive-within [data-interactive-target]:active)
+  &.is-interactive-within:has(:where([data-interactive-target]):active):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:active))
     ) {
     background-color: var(--intent-4a);
   }
@@ -186,16 +198,18 @@
   color: var(--intent-text-normal);
 
   &.is-interactive:focus-visible,
-  &.is-interactive-within:has([data-interactive-target]:focus-visible):not(
-      :has(.is-interactive-within [data-interactive-target]:focus-visible)
+  &.is-interactive-within:has(
+      :where([data-interactive-target]):focus-visible
+    ):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:focus-visible))
     ) {
     transform: translateY(-1px);
     box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-lg);
   }
   @media (hover: hover) {
     &.is-interactive:hover,
-    &.is-interactive-within:has([data-interactive-target]:hover):not(
-        :has(.is-interactive-within [data-interactive-target]:hover)
+    &.is-interactive-within:has(:where([data-interactive-target]):hover):where(
+        :not(:has(.is-interactive-within [data-interactive-target]:hover))
       ) {
       transform: translateY(-1px);
       box-shadow:
@@ -204,8 +218,8 @@
   }
   &.is-interactive:active,
   &.is-interactive.is-active,
-  &.is-interactive-within:has([data-interactive-target]:active):not(
-      :has(.is-interactive-within [data-interactive-target]:active)
+  &.is-interactive-within:has(:where([data-interactive-target]):active):where(
+      :not(:has(.is-interactive-within [data-interactive-target]:active))
     ) {
     transform: translateY(0) scale(0.99);
     box-shadow: var(--rim-light-own, var(--rim-light-strong)), var(--shadow-sm);

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { ArrowRightIcon } from '@phosphor-icons/react/ssr'
 
+import { BlockPreview } from '@/components/BlockPreview'
 import { ChartPreview } from '@/components/ChartPreview'
 import { ComponentSkeleton, Skel } from '@/components/ComponentSkeleton'
 import { FoundationPreview } from '@/components/FoundationPreview'
@@ -10,6 +11,7 @@ import { Image } from '@/components/Image'
 import { PreviewCard } from '@/components/PreviewGrid'
 import { LatestRelease } from '@/components/changelog/LatestRelease'
 import {
+  BLOCKS,
   BRAND,
   CHARTS,
   COMPONENTS,
@@ -40,13 +42,14 @@ const EXPLORE_GRID = [
 ].join(' ')
 
 export default async function Home() {
-  const [brand, foundations, content, components, charts, widgets] =
+  const [brand, foundations, content, components, charts, blocks, widgets] =
     await Promise.all([
       getCatalogue(BRAND),
       getCatalogue(FOUNDATIONS),
       getCatalogue(CONTENT),
       getCatalogue(COMPONENTS),
       getCatalogue(CHARTS),
+      getCatalogue(BLOCKS),
       getCatalogue(WIDGETS)
     ])
 
@@ -128,6 +131,13 @@ export default async function Home() {
             subtitle={plural(countEntries(charts), 'guide')}
           >
             <ChartPreview name='data-visualisation' />
+          </PreviewCard>
+          <PreviewCard
+            href='/blocks'
+            title='Blocks'
+            subtitle={plural(countEntries(blocks), 'block')}
+          >
+            <BlockPreview name='hero' />
           </PreviewCard>
           <PreviewCard
             href='/roadie-widgets'

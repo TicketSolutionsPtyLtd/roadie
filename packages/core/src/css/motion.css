@@ -25,7 +25,7 @@
   --ease-enter: cubic-bezier(0, 0, 0.2, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 
-  /* ═══ Spring approximation via linear() — transforms only ═══ */
+  /* ═══ Spring approximation via linear(), transforms only ═══ */
   --ease-spring: linear(
     0,
     0.006,
@@ -147,10 +147,19 @@
 
 @keyframes shimmer-sweep {
   from {
-    background-position-x: 200%;
+    background-position-x: -200vw;
   }
   to {
     background-position-x: 0%;
+  }
+}
+
+@keyframes shimmer-sweep-rtl {
+  from {
+    background-position-x: 100%;
+  }
+  to {
+    background-position-x: calc(100% - 200vw);
   }
 }
 
@@ -239,13 +248,11 @@
 }
 
 /* A loading surface: a tint pulse under a highlight sweeping across it.
-   `background-attachment: fixed` anchors the gradient to the viewport, so every
-   element wearing this class shows the slice of one shared sweep that falls
-   where it sits. A one-line placeholder and a full-width block then agree,
-   which a per-element sweep cannot do: it would restart at each element's own
-   edges and run at a different apparent speed on each. The cost is that the
-   sweep paints rather than riding the compositor, since only
-   `background-position` can express a shared gradient.
+   Each element's tile is twice the viewport wide, so every band runs at one
+   speed. The tile starts at the element's inline-start edge, so placeholders
+   that share that edge, such as lines of different lengths, sweep together. Not
+   `background-attachment: fixed`: it lines them all up, but every frame
+   repaints each one with a gradient as tall as the viewport.
 
    The element's own fill (from `emphasis-*`) is the base; the gradient paints
    `--sheen-shade` over it everywhere the band is not and `--sheen-highlight`
@@ -259,8 +266,7 @@
     var(--sheen-highlight) 50%,
     var(--sheen-shade) 60%
   );
-  background-size: 200% 100%;
-  background-attachment: fixed;
+  background-size: 200vw 100%;
   background-repeat: repeat-x;
   /* One period moves the gradient exactly one tile width, and the tile's two
      ends are the same flat shade, so the loop closes on itself with no seam.
@@ -270,6 +276,10 @@
   animation:
     pulse-subtle var(--duration-sweep) var(--ease-standard) infinite,
     shimmer-sweep var(--duration-sweep) linear infinite;
+
+  &:dir(rtl) {
+    animation-name: pulse-subtle, shimmer-sweep-rtl;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     background-image: none;
@@ -317,7 +327,7 @@
 /* ─── Enter/exit transitions ───
    Reusable, component-agnostic motions for any element that toggles
    `data-[starting-style]` on enter and `data-[ending-style]` on exit
-   (e.g. Base UI primitives — overlays, accordions, anything mounted with
+   (e.g. Base UI primitives: overlays, accordions, anything mounted with
    a transition). Transition-based (not keyframes) so the exit can run
    before unmount. The reduced-motion reset below disables them. */
 
@@ -335,7 +345,7 @@
   }
 }
 
-/* Fade + slide — up on enter, down on exit. */
+/* Fade + slide: up on enter, down on exit. */
 @utility motion-slide {
   transition-property: translate, opacity;
   transition-timing-function: var(--ease-standard);
@@ -348,7 +358,7 @@
   }
 }
 
-/* Drawer surface — slides off its anchored edge and tracks Base UI's live
+/* Drawer surface: slides off its anchored edge and tracks Base UI's live
    swipe offset. `transform`, not `translate`: Base UI writes an inline
    `transform` mid-swipe, which must override the resting value, not compose.
    A surface held off its edge sets `--drawer-float` so it travels clear. */

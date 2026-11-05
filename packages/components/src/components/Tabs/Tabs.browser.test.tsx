@@ -228,3 +228,36 @@ describe('a list too narrow for its tabs', () => {
     await expect.poll(() => inView('History')).toBe(true)
   })
 })
+
+describe('a panel', () => {
+  function EventPanels() {
+    return (
+      <Tabs defaultValue='overview'>
+        <Tabs.List aria-label='Event'>
+          <Tabs.Tab value='overview'>Overview</Tabs.Tab>
+          <Tabs.Tab value='tickets'>Tickets</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel value='overview'>Doors open at 7pm</Tabs.Panel>
+        <Tabs.Panel value='tickets'>General admission</Tabs.Panel>
+      </Tabs>
+    )
+  }
+
+  const panel = () => screen.getByRole('tabpanel')
+  const ring = () => {
+    const { outlineStyle, outlineWidth } = getComputedStyle(panel())
+    return [outlineStyle, outlineWidth]
+  }
+  const ringWidth = () =>
+    getComputedStyle(document.documentElement)
+      .getPropertyValue('--focus-ring-width')
+      .trim()
+
+  it('shows a focus ring when the keyboard reaches it', async () => {
+    render(<EventPanels />)
+    await userEvent.tab()
+    await userEvent.tab()
+    expect(panel()).toHaveFocus()
+    await expect.poll(ring).toEqual(['solid', ringWidth()])
+  })
+})

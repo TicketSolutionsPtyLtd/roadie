@@ -19,6 +19,7 @@ import {
 import type { UniqueID } from '@tiptap/extension-unique-id'
 import { Placeholder } from '@tiptap/extensions'
 import { closeHistory } from '@tiptap/pm/history'
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import {
   type EditorState,
   NodeSelection,
@@ -44,13 +45,19 @@ import { cn } from '@oztix/roadie-core/utils'
 import type { EditorBlock } from '../extensions'
 import {
   CURRENT_VERSION,
+  type EditorValue,
   type Preset,
   createEmptyValue,
   defaultEmbedProviders,
   migrate,
   presets
 } from '../schema'
-import { BLOCK_ID, BLOCK_ID_TYPES } from '../schema/presetShapes'
+import {
+  BLOCK_ID,
+  BLOCK_ID_TYPES,
+  type PresetShape,
+  presetShapes
+} from '../schema/presetShapes'
 import { textVariables } from '../schema/variables'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorBlockHandle } from './EditorBlockHandle'
@@ -65,7 +72,6 @@ import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
 import type { EditorRootProps } from './EditorRoot'
-import { EditorSlashMenuEngine } from './EditorSlashMenuEngine'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
 import { EditorVariablePopover } from './EditorVariablePopover'
@@ -90,11 +96,10 @@ import {
   replaceImage,
   uploadImages
 } from './imageUpload'
-import { presetInsertItems } from './insertItems'
+import { customInsertItem, presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
 import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
-import { SlashMenu, type SlashMenuHandle } from './slashMenu'
 import { presetLook, resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
 import { useToolbarMode } from './toolbarMode'
@@ -220,13 +225,13 @@ function presetSchema(preset: Preset) {
   return schema
 }
 
-/** An app's blocks, only in the preset that takes them, as Tiptap nodes. */
 /** Whether a block's name is one the preset's own nodes or marks use. */
 function takenName(preset: Preset, { node }: EditorBlock) {
   const { nodes, marks } = presetSchema(preset)
   return Object.hasOwn(nodes, node.name) || Object.hasOwn(marks, node.name)
 }
 
+/** An app's blocks, only in the preset that takes them. */
 function blocksFor(preset: Preset, blocks: readonly EditorBlock[] = []) {
   if (preset !== 'blocks') return []
   return blocks.filter((block) => !takenName(preset, block))
@@ -269,9 +274,26 @@ function presetHoldsImages(preset: Preset) {
 const EMAIL_CANVAS =
   '@container mx-auto w-full max-w-[600px] [--prose-measure:none]'
 
-function holdsDoc(editor: TiptapEditor, doc: JSONContent) {
+function holdsHttpsImagesOnly(preset: Preset) {
+  const shape: PresetShape = presetShapes[preset]
+  return shape.httpsImages === true
+}
+
+function presetKeepsBlockIds(preset: Preset) {
+  return presets[preset].some(({ name }) => name === 'uniqueID')
+}
+
+function currentValue(editor: TiptapEditor, preset: Preset): EditorValue {
+  return { version: CURRENT_VERSION, preset, doc: savedDoc(editor.getJSON()) }
+}
+
+function holdsDoc(
+  editor: TiptapEditor,
+  doc: JSONContent,
+  holds = (held: ProseMirrorNode, given: ProseMirrorNode) => held.eq(given)
+) {
   try {
-    return editor.state.doc.eq(editor.schema.nodeFromJSON(doc))
+    return holds(editor.state.doc, editor.schema.nodeFromJSON(doc))
   } catch {
     return false
   }
@@ -286,6 +308,26 @@ function savedDoc(json: JSONContent): JSONContent {
   }
   if (saved.content) saved.content = saved.content.map(savedDoc)
   return saved
+}
+
+// A block the value gives no id holds the one the editor gave it, or a parent
+// that keeps no ids would have the editor set its value, and new ids, forever.
+function holdsBlocks(held: ProseMirrorNode, given: ProseMirrorNode): boolean {
+  const filled =
+    given.attrs[BLOCK_ID] === null
+      ? { ...given.attrs, [BLOCK_ID]: held.attrs[BLOCK_ID] }
+      : given.attrs
+  if (
+    !held.hasMarkup(given.type, filled, given.marks) ||
+    held.text !== given.text ||
+    held.childCount !== given.childCount
+  ) {
+    return false
+  }
+  for (let i = 0; i < held.childCount; i++) {
+    if (!holdsBlocks(held.child(i), given.child(i))) return false
+  }
+  return true
 }
 
 type FormValueProps = {
@@ -359,7 +401,6 @@ export function EditorEngine({
   const bubbleMenuRef = useRef<HTMLDivElement>(null)
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
-  const slashMenuRef = useRef<SlashMenuHandle>(null)
   const openBubbleMenuRef = useRef<(() => boolean) | null>(null)
   const look = presetLook(
     resolvedPreset({ preset: presetProp, value, defaultValue })
@@ -426,7 +467,10 @@ export function EditorEngine({
   const blockContainers = BLOCK_HANDLE_CONTAINERS[preset]
   const hasBlockHandle = blockContainers !== undefined
   const holdsMergeTags = Boolean(schema.nodes.variable)
-  const presetItems = presetInsertItems[preset] ?? []
+  const presetItems = [
+    ...(presetInsertItems[preset] ?? []),
+    ...blocks.map(customInsertItem)
+  ]
   // Read as each menu opens, as `variables` can arrive after the editor is made.
   const insertItems = () =>
     holdsMergeTags &&
@@ -437,7 +481,7 @@ export function EditorEngine({
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
-    httpsOnly: preset === 'email'
+    httpsOnly: holdsHttpsImagesOnly(preset)
   }
 
   const editor = useEditor({
@@ -451,7 +495,11 @@ export function EditorEngine({
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
-      SlashMenu.configure({ menu: () => slashMenuRef.current }),
+      InsertMenu.configure({
+        items: insertItems,
+        ui: () => uiRef.current!,
+        onChange: setInsertMenu
+      }),
       BlockMenuShortcut.configure({
         open: () => {
           openBlockMenuRef.current?.()
@@ -466,11 +514,6 @@ export function EditorEngine({
           ]
         : []),
       FocusedBlock.configure({ containers: blockContainers ?? TOP_LEVEL }),
-      InsertMenu.configure({
-        items: insertItems,
-        ui: () => uiRef.current!,
-        onChange: setInsertMenu
-      }),
       ...(holdsMergeTags
         ? [
             InsertMenu.extend({ name: 'mergeTagMenu' }).configure({
@@ -503,11 +546,11 @@ export function EditorEngine({
         class: cn(
           editorContentClass(size, emphasis),
           'min-w-0 outline-none',
+          preset === 'email' && EMAIL_CANVAS,
           // Room for the block handle at each block's start.
           hasBlockHandle &&
             emphasis !== 'subtler' &&
-            (presetItems.length > 0 ? 'ps-15' : 'ps-10'),
-          preset === 'email' && EMAIL_CANVAS
+            (presetItems.length > 0 ? 'ps-15' : 'ps-10')
         )
       },
       handleDOMEvents: {
@@ -528,12 +571,11 @@ export function EditorEngine({
       },
       handleKeyDown: (view, event) => {
         if (!event.altKey || event.key !== 'F10') return false
-        const onNode = selectedNodeType(view.state)
         // The selection menu is in the document only while it shows.
-        const target = onNode
-          ? nodeToolbarRef.current
-          : bubbleMenuRef.current?.isConnected
-            ? bubbleMenuRef.current
+        const target = bubbleMenuRef.current?.isConnected
+          ? bubbleMenuRef.current
+          : selectedNodeType(view.state)
+            ? nodeToolbarRef.current
             : selectedTable(view.state)
               ? tableToolbarRef.current
               : toolbarRef.current
@@ -558,11 +600,7 @@ export function EditorEngine({
       )
     },
     onUpdate: ({ editor: updated }) =>
-      onValueChange?.({
-        version: CURRENT_VERSION,
-        preset,
-        doc: savedDoc(updated.getJSON())
-      })
+      onValueChange?.(currentValue(updated, preset))
   })
 
   const leftOut = preset !== 'blocks' && Boolean(extensionsProp?.length)
@@ -570,8 +608,29 @@ export function EditorEngine({
     .filter((block) => takenName(preset, block))
     .map(({ node }) => node.name)
     .join(', ')
+  const holding = blocks
+    .map(({ node }) => node.name)
+    .filter((name) => {
+      const type = schema.nodes[name]
+      return !type?.isBlock || !type.isLeaf
+    })
+    .join(', ')
+  const blockNames = (list: readonly EditorBlock[]) =>
+    list.map(({ node }) => node.name).join()
+  const changed =
+    blockNames(blocksFor(preset, extensionsProp)) !== blockNames(blocks)
   useEffect(() => {
     if (!isDev()) return
+    if (holding) {
+      console.warn(
+        `Editor: ${holding} must be a block holding no content, as an app's block saves only its attrs.`
+      )
+    }
+    if (changed) {
+      console.warn(
+        "Editor: the editor reads extensions once, when it's created, so it keeps the blocks it started with. Give it a new key to change them."
+      )
+    }
     if (leftOut) {
       console.warn(
         `Editor: extensions are for the blocks preset, so the "${preset}" editor leaves them out.`
@@ -582,7 +641,7 @@ export function EditorEngine({
         `Editor: the blocks preset already has ${taken}, so the editor leaves out the extensions of that name.`
       )
     }
-  }, [leftOut, preset, taken])
+  }, [leftOut, preset, taken, holding, changed])
 
   useEffect(() => {
     if (presetProp && storedPreset && presetProp !== storedPreset && isDev()) {
@@ -617,9 +676,15 @@ export function EditorEngine({
   }, [editor, placeholder])
 
   useEffect(() => {
-    if (!editor || !valueDoc || holdsDoc(editor, readableDoc)) return
+    if (!editor || !valueDoc || holdsDoc(editor, readableDoc, holdsBlocks)) {
+      return
+    }
     editor.commands.setContent(readableDoc, { emitUpdate: false })
-  }, [editor, valueDoc, readableDoc])
+    // The blocks preset gives each block without an id one as it's set.
+    if (presetKeepsBlockIds(preset) && !holdsDoc(editor, readableDoc)) {
+      onValueChange?.(currentValue(editor, preset))
+    }
+  }, [editor, valueDoc, readableDoc, preset, onValueChange])
 
   const canUpload = Boolean(onUploadImage) && holdsImages
   const ui = {
@@ -675,12 +740,9 @@ export function EditorEngine({
         editingLink,
         embedProviders,
         variables,
-        blocks,
         TiptapContent,
         ToolbarEngine: EditorToolbarEngine,
-        BubbleMenuEngine: EditorBubbleMenuEngine,
-        SlashMenuEngine: EditorSlashMenuEngine,
-        slashMenuRef
+        BubbleMenuEngine: EditorBubbleMenuEngine
       }}
     >
       <div
@@ -702,7 +764,6 @@ export function EditorEngine({
             <EditorToolbarEngine />
             <EditorContent />
             <EditorBubbleMenuEngine />
-            <EditorSlashMenuEngine />
           </>
         )}
         {editor ? (

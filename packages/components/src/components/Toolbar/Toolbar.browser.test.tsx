@@ -215,10 +215,9 @@ describe('Toolbar layout', () => {
       '[data-slot="toolbar-toggle-group-indicator"]'
     )!
     await expect.poll(() => indicator.hasAttribute('data-ready')).toBe(true)
+    // Layout widths: a rect would catch the press's scale still springing back.
     const widths = () =>
-      screen
-        .getAllByRole('button')
-        .map((toggle) => toggle.getBoundingClientRect().width)
+      screen.getAllByRole('button').map((toggle) => toggle.offsetWidth)
     const before = widths()
     await userEvent.click(screen.getByRole('button', { name: 'Centre' }))
     expect(widths()).toEqual(before)
@@ -265,6 +264,26 @@ describe('Toolbar layout', () => {
     expect(indicator.getBoundingClientRect().top).toBe(
       right.getBoundingClientRect().top
     )
+  })
+
+  it('stretches the toggles of a vertical group that are also tooltip triggers', () => {
+    render(
+      <Toolbar aria-label='Formatting' orientation='vertical'>
+        <Toolbar.ToggleGroup aria-label='List' defaultValue={['bulleted']}>
+          {['bulleted', 'numbered list'].map((value) => (
+            <Tooltip key={value}>
+              <Tooltip.Trigger
+                render={<Toolbar.Toggle value={value}>{value}</Toolbar.Toggle>}
+              />
+              <Tooltip.Content>{value}</Tooltip.Content>
+            </Tooltip>
+          ))}
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const width = (name: string) =>
+      screen.getByRole('button', { name }).getBoundingClientRect().width
+    expect(width('bulleted')).toBe(width('numbered list'))
   })
 
   it('fills each pressed toggle of a multiple group itself', () => {
@@ -482,6 +501,32 @@ describe('Flush toolbar', () => {
       expect(surface.borderBottomWidth).toBe('0px')
       expect(surface.borderTopLeftRadius).toBe('0px')
       expect(surface.boxShadow).toBe('none')
+    }
+  )
+
+  it.each(['normal', 'subtle', 'subtler', 'raised', 'floating'] as const)(
+    'keeps the fill of %s in both themes',
+    (emphasis) => {
+      onTestFinished(() => document.documentElement.classList.remove('dark'))
+      render(
+        <>
+          <Toolbar emphasis={emphasis} aria-label='Inset'>
+            <Toolbar.Button>Undo</Toolbar.Button>
+          </Toolbar>
+          <Toolbar flush emphasis={emphasis} aria-label='Flush'>
+            <Toolbar.Button>Undo</Toolbar.Button>
+          </Toolbar>
+        </>
+      )
+      const fill = (name: string) => {
+        const style = getComputedStyle(surfaceOf(name))
+        return [style.backgroundColor, style.backdropFilter]
+      }
+      expect(fill('Flush')).toEqual(fill('Inset'))
+
+      // Only dark mode tells the floating fill from the raised one.
+      document.documentElement.classList.add('dark')
+      expect(fill('Flush')).toEqual(fill('Inset'))
     }
   )
 
