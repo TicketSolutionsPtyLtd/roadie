@@ -274,9 +274,11 @@ describe('Editor insert menu', () => {
     )
   })
 
-  it('inserts the option clicked', async () => {
+  it('inserts the option clicked, keeping focus in the text', async () => {
     const onValueChange = renderEmail()
-    await focusedTextbox()
+    const textbox = await focusedTextbox()
+    const onBlur = vi.fn()
+    textbox.addEventListener('blur', onBlur)
 
     await userEvent.keyboard('/')
     await userEvent.click(
@@ -288,6 +290,7 @@ describe('Editor insert menu', () => {
         email({ type: 'spacer', attrs: { height: 32 } }, p())
       )
     )
+    expect(onBlur).not.toHaveBeenCalled()
   })
 
   it('offers no section or columns inside a column', async () => {
