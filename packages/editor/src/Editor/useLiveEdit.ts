@@ -4,23 +4,28 @@ import { useEffect, useEffectEvent, useRef } from 'react'
 
 import type { ChainedCommands, Editor as TiptapEditor } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
-import { NodeSelection, type SelectionBookmark } from '@tiptap/pm/state'
+import {
+  NodeSelection,
+  type SelectionBookmark,
+  type Transaction
+} from '@tiptap/pm/state'
 import type { Step } from '@tiptap/pm/transform'
 
 import type { PopoverProps } from '@oztix/roadie-components/popover'
 
 type OpenChange = NonNullable<PopoverProps['onOpenChange']>
 
+const OWN = 'liveEdit'
+
 // Escape and a close button put things back; any other close keeps them.
 const REVERTING: ReadonlySet<string> = new Set(['escape-key', 'close-press'])
 
 type Applied = {
-  steps: Step[]
   inverses: Step[]
   selection?: SelectionBookmark
 }
 
-const none = (): Applied => ({ steps: [], inverses: [] })
+const none = (): Applied => ({ inverses: [] })
 
 /**
  * Sets the selected node's attrs in place. updateAttributes replaces a leaf
@@ -48,17 +53,43 @@ export function useLiveEdit(
 ) {
   const applied = useRef(none())
 
+  // Live edits change marks and attrs, which move no positions, so each
+  // inverse maps on its own through a change made elsewhere.
+  useEffect(() => {
+    if (!editor) return
+    const follow = (event: {
+      transaction: Transaction
+      appendedTransactions: Transaction[]
+    }) => {
+      const { transaction, appendedTransactions } = event
+      if (transaction.getMeta(OWN) === applied) return
+      for (const { docChanged, mapping } of [
+        transaction,
+        ...appendedTransactions
+      ]) {
+        if (!docChanged) continue
+        const { inverses, selection } = applied.current
+        applied.current = {
+          inverses: inverses.flatMap((step) => step.map(mapping) ?? []),
+          selection: selection?.map(mapping)
+        }
+      }
+    }
+    editor.on('transaction', follow)
+    return () => {
+      editor.off('transaction', follow)
+    }
+  }, [editor])
+
   // Out of the history while it's open, so undo can't land halfway.
   const apply = (edit: (chain: ChainedCommands) => ChainedCommands) => {
     if (!editor) return
     applied.current.selection ??= editor.state.selection.getBookmark()
-    edit(editor.chain().setMeta('addToHistory', false))
+    edit(editor.chain().setMeta('addToHistory', false).setMeta(OWN, applied))
       .command(({ tr }) => {
         tr.docs.forEach((before, index) => {
           const step = tr.steps[index]
-          if (!step) return
-          applied.current.steps.push(step)
-          applied.current.inverses.unshift(step.invert(before))
+          if (step) applied.current.inverses.unshift(step.invert(before))
         })
         return true
       })
@@ -67,9 +98,9 @@ export function useLiveEdit(
 
   /** Takes the edits out, returning them. */
   const unapply = (restoreSelection: boolean) => {
-    const { steps, inverses, selection } = applied.current
+    const { inverses, selection } = applied.current
     applied.current = none()
-    if (!editor || editor.isDestroyed || steps.length === 0) return []
+    if (!editor || editor.isDestroyed || inverses.length === 0) return []
     const tr = editor.state.tr.setMeta('addToHistory', false)
     const reverted = inverses
       .map((step) => tr.maybeStep(step))
@@ -79,7 +110,9 @@ export function useLiveEdit(
       tr.setSelection(selection.resolve(tr.doc))
     }
     editor.view.dispatch(tr)
-    return steps
+    return tr.docs
+      .flatMap((before, index) => tr.steps[index]?.invert(before) ?? [])
+      .reverse()
   }
 
   /** Puts things back as they opened, leaving it open. */
