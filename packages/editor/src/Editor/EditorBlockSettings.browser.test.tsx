@@ -212,6 +212,34 @@ describe('Editor block settings', () => {
     )
   })
 
+  it('puts the block back on Cancel', async () => {
+    const onValueChange = renderPage()
+    const drawer = await openFromMenu()
+
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Loud' }))
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Cancel' })
+    )
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(savedPromo(onValueChange)).toMatchObject({ tone: 'calm' })
+  })
+
+  it('keeps the changes on Enter in a text setting', async () => {
+    const onValueChange = renderPage()
+    const drawer = await openFromMenu()
+
+    await userEvent.type(
+      within(drawer).getByRole('textbox', { name: 'Title' }),
+      '!{Enter}'
+    )
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(savedPromo(onValueChange)).toMatchObject({
+      title: 'Ochre Kite Weekender!'
+    })
+  })
+
   it('opens on Enter with the block selected', async () => {
     renderPage()
 

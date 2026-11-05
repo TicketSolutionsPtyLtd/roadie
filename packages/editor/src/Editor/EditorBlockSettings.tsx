@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 
 import { NodeSelection } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
@@ -171,6 +171,11 @@ export function EditorBlockSettings({
   const bodyRef = useRef<HTMLDivElement>(null)
   const selection = useEditorState({ editor, selector: selectedNode })
   const block = selection && blocks[selection.node.type.name]
+  const lost = open && !block
+  // Its block went, such as with a new value, so it mustn't reopen on the next.
+  useEffect(() => {
+    if (lost) onOpenChange(false)
+  }, [lost, onOpenChange])
   if (!editor || !selection || !block) return null
   return (
     <Drawer
@@ -182,11 +187,14 @@ export function EditorBlockSettings({
     >
       <Drawer.Content
         size={phone ? 'fit' : 'sm'}
-        // The first setting, as its title takes none.
+        // The first setting, as its title takes none. On a phone the drawer
+        // itself, so the keyboard doesn't cover the block.
         initialFocus={() =>
-          bodyRef.current?.querySelector<HTMLElement>(
-            'input:not([type=hidden]), textarea, button'
-          )
+          phone
+            ? bodyRef.current?.closest<HTMLElement>('[role=dialog]')
+            : bodyRef.current?.querySelector<HTMLElement>(
+                'input:not([type=hidden]), textarea, button'
+              )
         }
         finalFocus={() => {
           focusEditor(editor)
@@ -206,6 +214,8 @@ export function EditorBlockSettings({
           />
         </Drawer.Body>
         <Drawer.Footer>
+          {/* A phone has no Escape, so this puts the block back too. */}
+          <Drawer.Close render={<Button>Cancel</Button>} />
           <Button emphasis='strong' intent='accent' onClick={live.done}>
             Done
           </Button>
