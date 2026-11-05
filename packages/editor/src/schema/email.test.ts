@@ -273,6 +273,43 @@ describe('presets.email', () => {
     ])
   })
 
+  it('keeps only the variable of a link with an href too', () => {
+    const saved = migrate({
+      version: 1,
+      preset: 'email',
+      doc: doc({
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: 'Unsubscribe',
+            marks: [
+              {
+                type: 'link',
+                attrs: {
+                  href: 'javascript:alert(1)',
+                  variable: 'unsubscribe_url'
+                }
+              }
+            ]
+          }
+        ]
+      })
+    })
+    expect(saved.doc.content).toEqual([
+      {
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: 'Unsubscribe',
+            marks: [{ type: 'link', attrs: { variable: 'unsubscribe_url' } }]
+          }
+        ]
+      }
+    ])
+  })
+
   it('drops a link variable outside the email preset', () => {
     const saved = migrate({
       version: 1,
