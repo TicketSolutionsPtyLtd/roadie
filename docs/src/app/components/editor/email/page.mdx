@@ -43,7 +43,7 @@ variables, the unsubscribe page and the email in a browser.
   aria-label='Newsletter'
   preset='email'
   variables={[
-    { key: 'first_name', label: 'First name', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
+    { key: 'first_name', label: 'First name', fallback: 'there', tokens: { ae: '#FirstName#', liquid: '{{ customer.first_name }}' } },
     { key: 'unsubscribe_url', label: 'Unsubscribe page', kind: 'url', tokens: { ae: '#OptOut#', liquid: '{{ unsubscribe_url }}' } },
     { key: 'view_url', label: 'View in browser', kind: 'url', tokens: { ae: '[ViewInBrowserLink]', liquid: '{{ view_url }}' } }
   ]}
@@ -248,6 +248,12 @@ With `variables`, type `{{` anywhere, even straight after a word, to list
 them under the caret. The list filters by label or key as you type, and Enter
 inserts the active one as a chip. Merge tag in the `/` menu opens the same
 list. A button's label takes merge tags too.
+
+A variable's `fallback`, such as `'there'` for a first name, goes on each tag
+as it's inserted. A variable with none opens the merge tag form as its tag is
+inserted, with focus in Fallback, as Edit merge tag does on any tag without
+one, and Enter there goes back to the text after the chip. Each chip shows its fallback after its label, as "First name ·
+there", or a warning dot when it has none.
 
 Click a chip to select it, and its toolbar shows below it: Edit merge tag and
 Remove merge tag. Edit merge tag opens a form to change which variable the

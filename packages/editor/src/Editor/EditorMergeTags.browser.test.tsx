@@ -5,10 +5,19 @@ import {
   waitFor,
   within
 } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
+import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
 import { MOD } from './testUtils'
 
@@ -243,6 +252,88 @@ describe('Editor merge tags', () => {
 
     await waitFor(() => expect(textbox).toHaveTextContent('/merge'))
     expect(screen.queryByRole('listbox')).toBe(null)
+  })
+})
+
+describe('Editor merge tag fallbacks', () => {
+  let style: HTMLStyleElement
+  beforeAll(() => {
+    style = document.createElement('style')
+    style.textContent = roadieCss
+    document.head.append(style)
+  })
+  afterAll(() => style.remove())
+
+  const withFallback: EditorVariable[] = [
+    { ...VARIABLES[0]!, fallback: 'there' },
+    VARIABLES[1]!
+  ]
+
+  it('gives a tag its variable’s fallback as it’s inserted, and goes on in the text', async () => {
+    const onValueChange = renderEmail({ variables: withFallback })
+    await focusedTextbox()
+
+    await userEvent.keyboard(`Hi ${OPEN}first{Enter}!`)
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Hi ' },
+            tag('first_name', 'there'),
+            { type: 'text', text: '!' }
+          ]
+        })
+      )
+    )
+    expect(screen.queryByRole('dialog')).toBe(null)
+  })
+
+  it('asks for a fallback as a tag without one is inserted, then goes on after it', async () => {
+    const onValueChange = renderEmail({ variables: withFallback })
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard(`Hi ${OPEN}last{Enter}`)
+    const fallback = await screen.findByRole('textbox', { name: 'Fallback' })
+    await waitFor(() => expect(fallback).toHaveFocus())
+    await userEvent.keyboard('friend{Enter}')
+    await waitFor(() => expect(textbox).toHaveFocus())
+    await userEvent.keyboard('!')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Hi ' },
+            tag('last_name', 'friend'),
+            { type: 'text', text: '!' }
+          ]
+        })
+      )
+    )
+  })
+
+  it('shows the fallback beside the label, and marks a tag without one', async () => {
+    renderEmail({
+      defaultValue: email({
+        type: 'paragraph',
+        content: [tag('first_name', 'there'), tag('last_name')]
+      })
+    })
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+
+    const [named, bare] = Array.from(
+      textbox.querySelectorAll<HTMLElement>('[data-slot="editor-variable"]')
+    )
+    await waitFor(() => expect(named).toHaveTextContent('First name·there'))
+    const shown = within(named!).getByText('there')
+    expect(getComputedStyle(shown).color).not.toBe(
+      getComputedStyle(within(named!).getByText('First name')).color
+    )
+    expect(within(named!).queryByText('No fallback')).toBe(null)
+    expect(within(bare!).getByTitle('No fallback')).toBeVisible()
   })
 })
 

@@ -15,6 +15,12 @@ export type EditorVariable = {
    * to it, and its token is written as the href. Text by default.
    */
   kind?: 'text' | 'url'
+  /**
+   * What a merge tag shows a customer without a value, such as "there" for
+   * a first name. A tag takes it as it's inserted, and an author can change
+   * it there.
+   */
+  fallback?: string
 }
 
 /** The variables shown as text, as merge tags. */
