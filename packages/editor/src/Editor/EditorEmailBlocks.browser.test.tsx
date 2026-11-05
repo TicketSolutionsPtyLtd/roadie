@@ -367,6 +367,39 @@ describe('Editor email blocks', () => {
     expect(onOpenChange).not.toHaveBeenCalled()
   })
 
+  it('leaves the Formatting toolbar on Escape without closing the dialog around it', async () => {
+    const onOpenChange = vi.fn()
+    render(
+      <Dialog defaultOpen onOpenChange={onOpenChange}>
+        <Dialog.Content>
+          <Dialog.Title>Compose</Dialog.Title>
+          <Editor
+            aria-label={LABEL}
+            preset='rich'
+            defaultValue={{
+              version: 1,
+              preset: 'rich',
+              doc: email(p('Lineup')).doc
+            }}
+          />
+        </Dialog.Content>
+      </Dialog>
+    )
+    await clickText('Lineup')
+    const toolbar = await screen.findByRole('toolbar', { name: 'Formatting' })
+
+    await userEvent.keyboard('{Alt>}{F10}{/Alt}')
+    await waitFor(() =>
+      expect(toolbar.contains(document.activeElement)).toBe(true)
+    )
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+    )
+    expect(onOpenChange).not.toHaveBeenCalled()
+  })
+
   it('sets a selected spacer’s height', async () => {
     const onValueChange = renderEmail(
       email(p('Doors 7pm'), { type: 'spacer', attrs: { height: 40 } }, p())
