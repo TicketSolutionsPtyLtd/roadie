@@ -27,6 +27,7 @@ import {
   Selection,
   type Transaction
 } from '@tiptap/pm/state'
+import type { EditorView } from '@tiptap/pm/view'
 import {
   type ReactNodeViewProps,
   ReactNodeViewRenderer,
@@ -224,7 +225,7 @@ const SettingsShortcut = Extension.create<SettingsShortcutOptions>({
 })
 
 type SectionClickOptions = {
-  isSection: (name: string) => boolean
+  hasSettings: (name: string) => boolean
   onEdit: (field: string | undefined) => void
 }
 
@@ -233,23 +234,46 @@ type SectionClickOptions = {
 const SectionClick = Extension.create<SectionClickOptions>({
   name: 'sectionClick',
   addProseMirrorPlugins() {
-    const { isSection, onEdit } = this.options
+    const { hasSettings, onEdit } = this.options
+    // The press's own pointer, as a touch laptop's primary one is a mouse.
+    let byMouse = false
+    const isSection = (view: EditorView, node: ProseMirrorNode) =>
+      view.editable && hasSettings(node.type.name) && node.isAtom
+    const open = (
+      view: EditorView,
+      _pos: number,
+      node: ProseMirrorNode,
+      nodePos: number,
+      event: MouseEvent,
+      direct: boolean
+    ) => {
+      if (!direct || !byMouse || !isSection(view, node)) return false
+      view.dispatch(
+        view.state.tr.setSelection(
+          NodeSelection.create(view.state.doc, nodePos)
+        )
+      )
+      const dom = view.nodeDOM(nodePos)
+      onEdit(
+        dom instanceof Element
+          ? clickedSetting(dom, event.clientX, event.clientY, node.attrs)
+          : undefined
+      )
+      return true
+    }
     return [
       new Plugin({
         props: {
-          handleClickOn: (view, _pos, node, nodePos, event, direct) => {
-            if (!direct || !view.editable || !isSection(node.type.name)) {
+          handleDOMEvents: {
+            pointerdown: (_view, event) => {
+              byMouse = event.pointerType === 'mouse'
               return false
             }
-            if (!window.matchMedia('(pointer: fine)').matches) return false
-            view.dispatch(
-              view.state.tr.setSelection(
-                NodeSelection.create(view.state.doc, nodePos)
-              )
-            )
-            onEdit(clickedSetting(event.target, node.attrs))
-            return true
-          }
+          },
+          handleClickOn: open,
+          // Its first press closed the drawer the click opened, so this one
+          // opens it again rather than falling through to the text.
+          handleDoubleClickOn: open
         }
       })
     ]
@@ -608,7 +632,9 @@ export function EditorEngine({
         }
       }),
       SectionClick.configure({
-        isSection: (name) => sections.some((section) => section.name === name),
+        hasSettings: (name) =>
+          sections.some((section) => section.name === name) &&
+          hasSettings(name),
         onEdit: (field) => {
           setFocusSetting(field)
           setEditingSettings(true)
@@ -794,11 +820,15 @@ export function EditorEngine({
   }, [toolbar])
 
   // Loaded ahead, so a template's tile isn't blank the first time `/` opens.
+  const thumbnails = sections
+    .flatMap(sectionInsertItems)
+    .flatMap(({ thumbnail }) => (thumbnail ? [thumbnail] : []))
+    .join('\n')
   useEffect(() => {
-    for (const { thumbnail } of sections.flatMap(sectionInsertItems)) {
+    for (const thumbnail of thumbnails.split('\n')) {
       if (thumbnail) new Image().src = thumbnail
     }
-  }, [sections])
+  }, [thumbnails])
 
   useEffect(() => {
     uploadRef.current = onUploadImage
@@ -936,6 +966,7 @@ export function EditorEngine({
             appLabels={blockLabels}
             hasSettings={hasSettings}
             onSettings={(pos) => {
+              setFocusSetting(undefined)
               editor.view.dispatch(
                 editor.state.tr.setSelection(
                   NodeSelection.create(editor.state.doc, pos)

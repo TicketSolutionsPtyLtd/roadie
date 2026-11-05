@@ -150,26 +150,6 @@ export function sectionBlock(section: EditorSection): EditorBlock {
 }
 
 /** A section's templates, as insert menu items that each add it as they start it. */
-/**
- * The setting a click on a section's text meant: the nearest element, out to
- * the section, whose text is one of its attrs.
- */
-export function clickedSetting(
-  target: EventTarget | null,
-  attrs: Readonly<Attrs>
-): string | undefined {
-  let element = target instanceof Element ? target : null
-  while (element && element.getAttribute('data-slot') !== 'editor-section') {
-    const text = element.textContent?.trim()
-    const name = Object.keys(attrs).find(
-      (key) => typeof attrs[key] === 'string' && attrs[key].trim() === text
-    )
-    if (text && name) return name
-    element = element.parentElement
-  }
-  return undefined
-}
-
 export function sectionInsertItems(section: EditorSection): EditorInsertItem[] {
   const templates = section.templates?.length
     ? section.templates
@@ -191,4 +171,31 @@ export function sectionInsertItems(section: EditorSection): EditorInsertItem[] {
         afterQuery().command(insertBlock(content)).run()
     }
   })
+}
+
+/**
+ * The setting a click at (x, y) on a section's text meant: the innermost
+ * element there whose text is one of its attrs. Its drawing is inert, so the
+ * click's target is always the section, and only geometry tells.
+ */
+export function clickedSetting(
+  section: Element,
+  x: number,
+  y: number,
+  attrs: Readonly<Attrs>
+): string | undefined {
+  const under = [...section.querySelectorAll('*')].filter((element) => {
+    const box = element.getBoundingClientRect()
+    return x >= box.left && x <= box.right && y >= box.top && y <= box.bottom
+  })
+  // Later in document order is deeper, so the innermost match wins.
+  for (const element of under.reverse()) {
+    const text = element.textContent?.trim()
+    const name = Object.keys(attrs).find((key) => {
+      const value = attrs[key]
+      return typeof value === 'string' && value.trim() === text
+    })
+    if (text && name) return name
+  }
+  return undefined
 }

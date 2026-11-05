@@ -28,8 +28,9 @@ const thumbnail = (fill: string) =>
 const promo: EditorSection = {
   name: 'promo',
   label: 'Promo',
-  attrs: { title: 'Ochre Kite Weekender', tone: 'calm' },
+  attrs: { eyebrow: 'Brisbane', title: 'Ochre Kite Weekender', tone: 'calm' },
   settings: [
+    { name: 'eyebrow', label: 'Eyebrow', type: 'text' },
     { name: 'title', label: 'Title', type: 'text' },
     {
       name: 'tone',
@@ -49,6 +50,7 @@ const promo: EditorSection = {
   ],
   render: ({ attrs }) => (
     <aside data-tone={String(attrs.tone)}>
+      <p>{String(attrs.eyebrow)}</p>
       <h2>{String(attrs.title)}</h2>
       <a href='/events/ochre-kite-weekender'>Get tickets</a>
     </aside>
@@ -215,6 +217,19 @@ describe('Editor sections', () => {
         within(drawer).getByRole('textbox', { name: 'Title' })
       ).toHaveFocus()
     )
+  })
+
+  it('keeps Settings open on a double click', async () => {
+    renderPage(page(intro, { type: 'promo', attrs: { blockId: 'promo' } }))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+
+    await userEvent.dblClick(
+      within(textbox).getByRole('group', { name: 'Promo' })
+    )
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Promo settings' })
+    ).toBeVisible()
   })
 
   it('draws a section across the page, past the text’s measure', async () => {
