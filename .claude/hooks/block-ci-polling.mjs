@@ -8,9 +8,10 @@ const sleepCall = new RegExp(
   `${commandStart}sleep((?:[ \\t]+[^\\s;&|)\x60]+)+)`,
   'g'
 )
-const sleepLoop = new RegExp(
-  `${commandStart}(?:until|while)\\s[\\s\\S]*?\\bdo\\b(?:[\\s\\S]*?[;&|(\x60{\\n])?\\s*sleep\\s`
+const loop = new RegExp(
+  `${commandStart}(?:for|while|until)\\s[\\s\\S]*\\bdone\\b`
 )
+const sleepWord = /\bsleep\s/
 const runWatch = /\bgh\s[^\n;&|]*?\brun\s+watch\b/
 const checksWatch = /\bgh\s[^\n;&|]*?\bpr\s+checks\b[^\n;&|]*?\s--watch\b/
 
@@ -34,7 +35,12 @@ function sleepSeconds(args) {
 
 function ciPollingFound(command) {
   const code = stripLiterals(command)
-  if (runWatch.test(code) || checksWatch.test(code) || sleepLoop.test(code)) {
+  const loopText = loop.exec(code)?.[0] ?? ''
+  if (
+    runWatch.test(code) ||
+    checksWatch.test(code) ||
+    sleepWord.test(loopText)
+  ) {
     return true
   }
   return [...code.matchAll(sleepCall)].some(

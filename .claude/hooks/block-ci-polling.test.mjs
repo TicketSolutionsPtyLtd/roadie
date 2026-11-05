@@ -27,6 +27,10 @@ describe('block-ci-polling', () => {
     'until gh pr checks 1; do sleep 5; done',
     'while true; do gh run list; sleep 2; done',
     'for i in 1 2 3; do gh pr checks 1; sleep 30; done',
+    'for i in $(seq 60); do gh pr checks 1 && break; sleep 10; done',
+    'while sleep 30; do gh pr checks 1 && break; done',
+    'while true; do for n in 1 2; do gh pr checks $n; done; sleep 5; done',
+    'while true\ndo\n  gh pr checks 1 && break\n  sleep 5\ndone',
     'cd /repo && sleep 120',
     'git push\nsleep 300'
   ]) {
@@ -50,6 +54,7 @@ describe('block-ci-polling', () => {
     "echo 'until x; do sleep 60; done'",
     "gh pr create --draft --body-file - <<'EOF'\nBlocks `gh pr checks --watch` and `sleep 60`.\nEOF",
     'while read -r f; do echo "$f"; done < files.txt',
+    'for f in *.png; do optipng "$f"; done; sleep 2',
     'node scripts/wait-for-load.mjs'
   ]) {
     it(`allows ${JSON.stringify(command)}`, () => {
