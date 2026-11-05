@@ -528,7 +528,11 @@ describe('Menus on a touch screen', () => {
     const matchMedia = window.matchMedia.bind(window)
     // Playwright can't emulate a touch screen's pointer.
     vi.spyOn(window, 'matchMedia').mockImplementation((query) =>
-      matchMedia(query.replaceAll('(pointer: coarse)', 'all'))
+      matchMedia(
+        query
+          .replaceAll('(pointer: coarse)', 'all')
+          .replaceAll('(any-pointer: fine)', 'not all')
+      )
     )
     onTestFinished(() => {
       vi.restoreAllMocks()
