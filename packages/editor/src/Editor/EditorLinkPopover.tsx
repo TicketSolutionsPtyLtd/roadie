@@ -195,6 +195,27 @@ function linkTarget(href: string) {
 
 const CARD_KEY = 'editorLinkCard'
 
+/**
+ * The visible screen, less the editor's bar on a touch screen, which docks
+ * over the keyboard as the caret lands.
+ */
+function clearOfKeyboardBar(editor: TiptapEditor) {
+  const viewport = window.visualViewport
+  const top = viewport?.offsetTop ?? 0
+  const bottom = top + (viewport?.height ?? window.innerHeight)
+  const bar = editor.view.dom
+    .closest('[data-slot="editor"]')
+    ?.querySelector<HTMLElement>('[data-slot="editor-toolbar"] > div')
+  const touch = window.matchMedia('(pointer: coarse)').matches
+  const docked = touch && bar ? bar.offsetHeight : 0
+  return {
+    x: 0,
+    y: top,
+    width: window.innerWidth,
+    height: bottom - docked - top
+  }
+}
+
 const caretInLink: NonNullable<BubbleMenuProps['shouldShow']> = ({
   editor,
   view,
@@ -279,6 +300,9 @@ function LinkCard({ editor, editing, onEdit }: LinkCardProps) {
       options={{
         placement: 'bottom-start',
         offset: 4,
+        // Over the link where there's no room under it.
+        flip: () => ({ rootBoundary: clearOfKeyboardBar(editor) }),
+        shift: { padding: 8 },
         // The plugin makes its element a tab stop; the toolbar inside is the one.
         onShow: () => menuRef.current?.setAttribute('tabindex', '-1')
       }}
