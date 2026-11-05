@@ -444,6 +444,30 @@ describe('Editor link popover', () => {
     expect(document.getSelection()?.isCollapsed).toBe(true)
   })
 
+  it('puts the link back once what’s typed stops being an address', async () => {
+    const textbox = await renderEditor(linked)
+    await userEvent.click(within(textbox).getByText('tickets'))
+    await userEvent.keyboard(`{${MOD}>}k{/${MOD}}`)
+    const field = await openField('Link')
+    await userEvent.keyboard('oztix.com.au{Backspace}')
+
+    await userEvent.click(screen.getByText('Outside'))
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    expect(within(textbox).getByRole('link')).toHaveAttribute('href', TICKETS)
+  })
+
+  it('leaves unlinked text unlinked once what’s typed stops being an address', async () => {
+    const textbox = await renderEditor(soldOut)
+    const field = await POPOVERS[0]!.open(textbox)
+    await userEvent.keyboard('oztix.com.au{Backspace}')
+
+    await userEvent.click(screen.getByText('Outside'))
+
+    await waitFor(() => expect(field).not.toBeInTheDocument())
+    expect(within(textbox).queryByRole('link')).toBe(null)
+  })
+
   it('shows Remove link between the check and close buttons', async () => {
     const textbox = await renderEditor(linked)
     await userEvent.click(within(textbox).getByText('tickets'))

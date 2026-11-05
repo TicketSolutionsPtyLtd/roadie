@@ -46,6 +46,9 @@ const setLink = (attrs: LinkAttrs) => (chain: ChainedCommands) =>
     .extendMarkRange('link')
     .setMark('link', { href: undefined, variable: undefined, ...attrs })
 
+const unlink = (chain: ChainedCommands) =>
+  chain.extendMarkRange('link').unsetLink()
+
 type CurrentLink = { href?: string; variable?: string }
 
 function currentLink(editor: TiptapEditor): CurrentLink | undefined {
@@ -126,7 +129,7 @@ function LinkForm({ editor, inputRef, apply, onDone }: LinkFormProps) {
   }
 
   const remove = () => {
-    apply((chain) => chain.extendMarkRange('link').unsetLink())
+    apply(unlink)
     onDone()
   }
 
@@ -142,8 +145,10 @@ function LinkForm({ editor, inputRef, apply, onDone }: LinkFormProps) {
         onValueChange={(value) => {
           setTyped(value)
           setRefused(false)
+          if (inserting) return
           const href = toHref(value)
-          if (!inserting && isLinkable(editor, href)) apply(setLink({ href }))
+          if (isLinkable(editor, href)) apply(setLink({ href }))
+          else apply(current ? setLink(current) : unlink)
         }}
         submitLabel='Save link'
         onSubmit={save}

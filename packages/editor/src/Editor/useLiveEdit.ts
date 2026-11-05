@@ -4,7 +4,7 @@ import { useEffect, useEffectEvent, useRef } from 'react'
 
 import type { ChainedCommands, Editor as TiptapEditor } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
-import type { SelectionBookmark } from '@tiptap/pm/state'
+import { NodeSelection, type SelectionBookmark } from '@tiptap/pm/state'
 import type { Step } from '@tiptap/pm/transform'
 
 import type { PopoverProps } from '@oztix/roadie-components/popover'
@@ -29,6 +29,7 @@ const none = (): Applied => ({ steps: [], inverses: [] })
 export const setSelectedAttrs =
   (attrs: Record<string, unknown>) => (chain: ChainedCommands) =>
     chain.command(({ tr }) => {
+      if (!(tr.selection instanceof NodeSelection)) return false
       for (const [name, value] of Object.entries(attrs)) {
         tr.setNodeAttribute(tr.selection.from, name, value)
       }
