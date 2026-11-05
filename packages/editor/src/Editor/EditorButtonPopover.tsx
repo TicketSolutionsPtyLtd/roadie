@@ -174,7 +174,12 @@ function ButtonSettingsForm({
   apply: applyLive,
   onDone
 }: SettingsFormProps) {
-  const variables = useLinkVariables(editor)
+  const listed = useLinkVariables(editor)
+  // A button can name a key the editor no longer lists, which stays choosable.
+  const variables =
+    !variable || listed.some(({ key }) => key === variable)
+      ? listed
+      : [...listed, { key: variable, label: variable }]
   const [linksTo, setLinksTo] = useState(
     variable ? linkTo(variable) : WEB_ADDRESS
   )
