@@ -110,6 +110,28 @@ describe('Editor.SlashMenu', () => {
     )
   })
 
+  it('stays below the / as a scroll container around the editor scrolls', async () => {
+    render(
+      <div data-testid='scroller' style={{ height: 300, overflow: 'auto' }}>
+        <div style={{ height: 100 }} />
+        {blocks()}
+        <div style={{ height: 1000 }} />
+      </div>
+    )
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const list = await listbox()
+    const line = textbox.querySelector('p')!
+    const gap = () =>
+      list.getBoundingClientRect().top - line.getBoundingClientRect().bottom
+    await waitFor(() => expect(gap()).toBeGreaterThanOrEqual(0))
+    const opened = gap()
+    screen.getByTestId('scroller').scrollTop = 60
+
+    await waitFor(() => expect(gap()).toBeCloseTo(opened, 0))
+  })
+
   it('leaves Image out without onUploadImage', async () => {
     render(<Editor aria-label={LABEL} preset='blocks' />)
     await focusedTextbox()

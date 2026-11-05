@@ -105,7 +105,9 @@ function SlashMenuList({
     }
   })
 
+  // The context element lets the popup follow a scrolling container.
   const anchor = {
+    contextElement: editor.view.dom,
     getBoundingClientRect: () =>
       posToDOMRect(editor.view, match.from, match.from)
   }
