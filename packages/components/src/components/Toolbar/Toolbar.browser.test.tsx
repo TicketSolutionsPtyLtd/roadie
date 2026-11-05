@@ -267,6 +267,26 @@ describe('Toolbar layout', () => {
     )
   })
 
+  it('stretches the toggles of a vertical group that are also tooltip triggers', () => {
+    render(
+      <Toolbar aria-label='Formatting' orientation='vertical'>
+        <Toolbar.ToggleGroup aria-label='List' defaultValue={['bulleted']}>
+          {['bulleted', 'numbered list'].map((value) => (
+            <Tooltip key={value}>
+              <Tooltip.Trigger
+                render={<Toolbar.Toggle value={value}>{value}</Toolbar.Toggle>}
+              />
+              <Tooltip.Content>{value}</Tooltip.Content>
+            </Tooltip>
+          ))}
+        </Toolbar.ToggleGroup>
+      </Toolbar>
+    )
+    const width = (name: string) =>
+      screen.getByRole('button', { name }).getBoundingClientRect().width
+    expect(width('bulleted')).toBe(width('numbered list'))
+  })
+
   it('fills each pressed toggle of a multiple group itself', () => {
     render(
       <Toolbar aria-label='Formatting'>
