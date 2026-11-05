@@ -1,6 +1,7 @@
 import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, rmSync } from 'node:fs'
 import { join, sep } from 'node:path'
+import { parseArgs } from 'node:util'
 
 import {
   mergedHead,
@@ -9,14 +10,22 @@ import {
 } from './lib/cleanup-plan.mjs'
 import { freeDiskGb, repoRoot, run, warnIfLowDisk } from './lib/machine.mjs'
 
+// `pnpm cleanup -- --delete` passes the `--` through.
 const argv = process.argv.slice(2)
-const remove = argv.includes('--delete')
-const branchFlag = argv.indexOf('--branch')
-const onlyBranch = branchFlag === -1 ? undefined : argv[branchFlag + 1]
-if (branchFlag !== -1 && (!onlyBranch || onlyBranch.startsWith('--'))) {
-  console.error('--branch needs a branch name, like --branch claude/my-fix.')
+let flags
+try {
+  flags = parseArgs({
+    args: argv[0] === '--' ? argv.slice(1) : argv,
+    options: { delete: { type: 'boolean' }, branch: { type: 'string' } }
+  }).values
+} catch (error) {
+  console.error(
+    `${error.message}\nUsage: pnpm cleanup [--delete] [--branch <branch>]`
+  )
   process.exit(1)
 }
+const remove = Boolean(flags.delete)
+const onlyBranch = flags.branch
 const verb = remove ? 'Removed' : 'Would remove'
 let reclaimedKb = 0
 
@@ -264,4 +273,5 @@ if (!onlyBranch) {
 
 const storeNote = onlyBranch ? '' : ', plus what the store prune frees'
 console.log(`\n${verb} ${formatKb(reclaimedKb)}${storeNote}.`)
-if (!remove) console.log('Run `pnpm cleanup --delete` to delete.')
+const branchArg = onlyBranch ? ` --branch ${onlyBranch}` : ''
+if (!remove) console.log(`Run \`pnpm cleanup --delete${branchArg}\` to delete.`)

@@ -178,4 +178,42 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     assert.doesNotMatch(f.worktreeList(), /p1\/gone/)
     assert.match(f.worktreeList(), /p2\/gone/)
   })
+
+  test('takes --branch=<name> as well as --branch <name>', () => {
+    const f = fixture()
+    const one = f.worktree('claude/one')
+    const other = f.worktree('claude/other')
+    f.merge('claude/one')
+    f.merge('claude/other')
+
+    const { status, output } = f.cleanup(['--delete', '--branch=claude/one'])
+
+    assert.equal(status, 0, output)
+    assert.equal(existsSync(one), false)
+    assert.equal(existsSync(other), true)
+  })
+
+  test('a dry run with --branch names the command that deletes it', () => {
+    const f = fixture()
+    f.worktree('claude/done')
+    f.merge('claude/done')
+
+    const { status, output } = f.cleanup(['--branch', 'claude/done'])
+
+    assert.equal(status, 0, output)
+    assert.match(output, /pnpm cleanup --delete --branch claude\/done/)
+    assert.deepEqual(f.branches(), ['claude/done', 'main'])
+  })
+
+  test('refuses an unknown flag and deletes nothing', () => {
+    const f = fixture()
+    const path = f.worktree('claude/done')
+    f.merge('claude/done')
+
+    const { status } = f.cleanup(['--delete', '--brnach', 'claude/done'])
+
+    assert.notEqual(status, 0)
+    assert.equal(existsSync(path), true)
+    assert.deepEqual(f.branches(), ['claude/done', 'main'])
+  })
 })
