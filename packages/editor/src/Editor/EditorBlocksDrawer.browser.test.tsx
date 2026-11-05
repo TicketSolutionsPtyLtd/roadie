@@ -94,7 +94,7 @@ describe('Editor blocks drawer', () => {
     const drawer = await openFromDockedBar()
 
     expect(tileGroups(drawer)).toEqual([
-      ['Sections', ['Header', 'Event', 'Two events']],
+      ['Sections', ['Header', 'Event', 'Two events', 'Lineup']],
       [
         'Text',
         [
@@ -205,8 +205,7 @@ describe('Editor blocks drawer', () => {
             type: 'columns',
             content: [column(p('Lineup')), column(p('Set times'))]
           },
-          { type: 'section', content: [p()] },
-          p()
+          { type: 'section', content: [p()] }
         )
       )
     )
@@ -375,7 +374,6 @@ describe('Editor blocks drawer', () => {
             attrs: { href: 'https://example.com/tickets' },
             content: [{ type: 'text', text: 'Button' }]
           },
-          p(),
           p('Gates 6pm')
         )
       )
@@ -456,7 +454,7 @@ describe('Editor blocks drawer', () => {
         })
       ).toHaveFocus()
     )
-    await userEvent.keyboard('{Tab}'.repeat(13))
+    await userEvent.keyboard('{ArrowRight}'.repeat(14))
     expect(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Spacer' })
     ).toHaveFocus()
@@ -543,6 +541,122 @@ describe('Editor blocks drawer', () => {
       expect(within(bar).queryByRole('button', { name: 'Blocks' })).toBe(null)
     }
   )
+})
+
+describe('Editor blocks drawer finding and moving', () => {
+  const tileNames = (drawer: HTMLElement) =>
+    within(drawer)
+      .queryAllByRole('button')
+      .filter((tile) => tile.dataset.slot === 'editor-blocks-tile')
+      .map((tile) => tile.textContent)
+
+  it('filters the tiles with the / menu’s matcher, and Enter picks the first', async () => {
+    const onValueChange = renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+
+    await userEvent.type(
+      within(drawer).getByRole('searchbox', { name: 'Find a block' }),
+      'hr'
+    )
+    expect(tileNames(drawer)).toEqual(['Divider'])
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm'), { type: 'horizontalRule' }, p('Gates 6pm'))
+      )
+    )
+  })
+
+  it('ranks a name that starts with the filter first', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+
+    await userEvent.type(
+      within(drawer).getByRole('searchbox', { name: 'Find a block' }),
+      '2'
+    )
+
+    expect(tileNames(drawer)).toEqual(['2 columns', 'Heading 2'])
+  })
+
+  it('types into the filter from a tile', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+    await waitFor(() =>
+      expect(document.activeElement).toHaveAttribute(
+        'data-slot',
+        'editor-blocks-tile'
+      )
+    )
+
+    await userEvent.keyboard('spa')
+
+    const filter = within(drawer).getByRole('searchbox', {
+      name: 'Find a block'
+    })
+    expect(filter).toHaveFocus()
+    expect(filter).toHaveValue('spa')
+    expect(tileNames(drawer)).toEqual(['Spacer'])
+  })
+
+  it('moves between tiles with the arrow keys, with one tab stop', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+    const tile = (name: string) => within(drawer).getByRole('button', { name })
+    const [first, second] = tileNames(drawer)
+    await waitFor(() => expect(tile(first!)).toHaveFocus())
+
+    await userEvent.keyboard('{ArrowRight}')
+    expect(tile(second!)).toHaveFocus()
+    await userEvent.keyboard('{ArrowDown}')
+    const moved = (
+      document.activeElement as HTMLElement
+    ).getBoundingClientRect()
+    const above = tile(second!).getBoundingClientRect()
+    expect(moved.top).toBeGreaterThan(above.top)
+    // The nearest tile in the next row, which is under it unless that row is short.
+    expect(moved.left).toBeLessThanOrEqual(above.left + 1)
+    await userEvent.keyboard('{End}')
+    const last = document.activeElement
+    expect(last?.textContent).toBe(tileNames(drawer).at(-1))
+
+    const stops = within(drawer)
+      .getAllByRole('button')
+      .filter(
+        (button) =>
+          button.dataset.slot === 'editor-blocks-tile' && button.tabIndex === 0
+      )
+    expect(stops).toEqual([last])
+  })
+
+  it('leaves the email usable beside it from 1280px wide', async () => {
+    renderEmail()
+    await clickInto('Doors 7pm')
+    const drawer = await openFromDockedBar()
+
+    expect(document.querySelector('[data-slot="drawer-backdrop"]')).toBe(null)
+    await clickInto('Gates 6pm')
+
+    expect(await textbox()).toHaveFocus()
+    expect(drawer).toBeVisible()
+  })
+
+  it('takes over the page below 1280px wide', async () => {
+    await page.viewport(1024, 800)
+    renderEmail()
+    await clickInto('Doors 7pm')
+
+    await openFromDockedBar()
+
+    expect(
+      document.querySelector('[data-slot="drawer-backdrop"]')
+    ).toBeInTheDocument()
+  })
 })
 
 describe('Editor blocks drawer in the blocks preset', () => {
@@ -671,20 +785,17 @@ describe('Editor blocks drawer in the blocks preset', () => {
 })
 
 describe('Editor blocks drawer sections', () => {
-  const heading = (level: number, text: string): JSONContent => ({
+  // Placeholder copy shows as hints, so the lines are empty.
+  const heading = (level: number, text?: string): JSONContent => ({
     type: 'heading',
     attrs: { level },
-    content: [{ type: 'text', text }]
+    ...(text ? { content: [{ type: 'text', text }] } : {})
   })
   const getTickets: JSONContent = {
     type: 'button',
     content: [{ type: 'text', text: 'Get tickets' }]
   }
-  const event = [
-    heading(3, 'Event name'),
-    p('Fri 14 Mar, 7:30pm · Venue, City'),
-    getTickets
-  ]
+  const event = [heading(3), p(), getTickets]
   const unsubscribeUrl = {
     key: 'unsubscribe_url',
     label: 'Unsubscribe page',
@@ -697,10 +808,7 @@ describe('Editor blocks drawer sections', () => {
       'Header',
       {
         type: 'section',
-        content: [
-          heading(2, 'Headline'),
-          p('A line or two on what this email is about.')
-        ]
+        content: [heading(2), p()]
       }
     ],
     ['Event', { type: 'section', content: event }],
@@ -724,7 +832,7 @@ describe('Editor blocks drawer sections', () => {
     await waitFor(async () => expect(await textbox()).toHaveFocus())
   })
 
-  it('selects the section’s first placeholder, so typing replaces it', async () => {
+  it('puts the caret on the section’s first line, so typing fills it', async () => {
     const onValueChange = renderEmail()
     await clickInto('Doors 7pm')
 
@@ -741,14 +849,29 @@ describe('Editor blocks drawer sections', () => {
           p('Doors 7pm'),
           {
             type: 'section',
-            content: [
-              heading(2, 'Ochre Kite Weekender'),
-              p('A line or two on what this email is about.')
-            ]
+            content: [heading(2, 'Ochre Kite Weekender'), p()]
           },
           p('Gates 6pm')
         )
       )
+    )
+  })
+
+  it('puts a section in place of an empty email’s line, with no empty line after it', async () => {
+    const onValueChange = renderEmail({ defaultValue: email(p()) })
+    await clickIntoEditor((await textbox()).querySelector('p')!)
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Header' })
+    )
+
+    await waitFor(() =>
+      expect(
+        (onValueChange.mock.lastCall![0] as EditorValue).doc.content!.map(
+          ({ type }) => type
+        )
+      ).toEqual(['section'])
     )
   })
 
@@ -790,7 +913,7 @@ describe('Editor blocks drawer sections', () => {
       within(sections)
         .getAllByRole('button')
         .map((tile) => tile.textContent)
-    ).toEqual(['Header', 'Event', 'Two events', 'Footer'])
+    ).toEqual(['Header', 'Event', 'Two events', 'Lineup', 'Footer'])
     await userEvent.click(
       within(sections).getByRole('button', { name: 'Footer' })
     )

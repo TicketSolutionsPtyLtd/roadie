@@ -290,16 +290,13 @@ describe('Editor email blocks', () => {
 
     await saved(
       onValueChange,
-      email(
-        {
-          type: 'columns',
-          content: [
-            { type: 'column', content: [p('Lineup')] },
-            { type: 'column', content: [p('Tickets'), unlabelled] }
-          ]
-        },
-        p()
-      )
+      email({
+        type: 'columns',
+        content: [
+          { type: 'column', content: [p('Lineup')] },
+          { type: 'column', content: [p('Tickets'), unlabelled] }
+        ]
+      })
     )
   })
 
