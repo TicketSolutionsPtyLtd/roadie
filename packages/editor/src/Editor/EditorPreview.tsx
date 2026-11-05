@@ -87,9 +87,13 @@ export function EditorPreview({
   })
   const backRef = useRef<HTMLButtonElement>(null)
   const previewAsId = useId()
-  const values = recipients?.[recipient]?.values ?? NO_VALUES
-  // A host's inline handler is new each render, which mustn't render again.
-  const render = useEffectEvent(onRenderPreview)
+  // A host's list can shrink while Preview is open.
+  const chosen = Math.max(0, Math.min(recipient, (recipients?.length ?? 1) - 1))
+  const values = recipients?.[chosen]?.values ?? NO_VALUES
+  // A host's inline list and handler are new each render, which mustn't
+  // render the email again, so only the values themselves are compared.
+  const valuesKey = JSON.stringify(values)
+  const render = useEffectEvent(() => onRenderPreview(value, { values }))
 
   useEffect(() => {
     backRef.current?.focus()
@@ -98,7 +102,7 @@ export function EditorPreview({
   useEffect(() => {
     let latest = true
     setShown((current) => ({ ...current, busy: true }))
-    render(value, { values }).then(
+    render().then(
       (html) => {
         if (latest) setShown({ html, error: null, busy: false })
       },
@@ -115,7 +119,7 @@ export function EditorPreview({
     return () => {
       latest = false
     }
-  }, [value, values])
+  }, [value, valuesKey])
 
   const closeOnEscape = (event: KeyboardEvent<HTMLDivElement>) => {
     // A select or popover portals out, and its own Escape closes only it.
@@ -158,7 +162,7 @@ export function EditorPreview({
               Preview as
             </span>
             <Select
-              value={String(recipient)}
+              value={String(chosen)}
               onValueChange={(next) => setRecipient(Number(next))}
             >
               <Select.Trigger
@@ -171,7 +175,7 @@ export function EditorPreview({
               </Select.Trigger>
               <Select.Content>
                 {recipients.map(({ label }, index) => (
-                  <Select.Item key={label} value={String(index)}>
+                  <Select.Item key={index} value={String(index)}>
                     {label}
                   </Select.Item>
                 ))}
@@ -218,6 +222,8 @@ type SendTestProps = {
 function SendTest({ onSend, className }: SendTestProps) {
   const [to, setTo] = useState('')
   const [sending, setSending] = useState<Sending>({ state: 'idle' })
+  // Reopening starts afresh, so an earlier send's answer mustn't land.
+  const sendId = useRef(0)
   const address = to.trim()
   const canSend = ADDRESS.test(address) && sending.state !== 'sending'
 
@@ -225,17 +231,25 @@ function SendTest({ onSend, className }: SendTestProps) {
     event.preventDefault()
     if (!canSend) return
     setSending({ state: 'sending' })
+    const id = ++sendId.current
     onSend(address).then(
-      () => setSending({ state: 'sent', to: address }),
-      (error: unknown) =>
-        setSending({ state: 'failed', message: messageOf(error) })
+      () => {
+        if (id === sendId.current) setSending({ state: 'sent', to: address })
+      },
+      (error: unknown) => {
+        if (id === sendId.current) {
+          setSending({ state: 'failed', message: messageOf(error) })
+        }
+      }
     )
   }
 
   return (
     <Popover
       onOpenChange={(open) => {
-        if (open) setSending({ state: 'idle' })
+        if (!open) return
+        sendId.current += 1
+        setSending({ state: 'idle' })
       }}
     >
       <Popover.Trigger

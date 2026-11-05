@@ -173,6 +173,57 @@ describe('Editor preview', () => {
     })
   })
 
+  it('renders once for a host that passes its recipients inline', async () => {
+    const onRenderPreview = vi.fn(async () => '<p>Hi</p>')
+    const view = (count: number) => (
+      <div data-count={count}>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={VALUE}
+          toolbar='docked'
+          onRenderPreview={onRenderPreview}
+          previewRecipients={RECIPIENTS.map((each) => ({ ...each }))}
+        />
+      </div>
+    )
+    const { rerender } = render(view(0))
+    await openPreview()
+    await waitFor(() => expect(onRenderPreview).toHaveBeenCalledTimes(1))
+
+    rerender(view(1))
+    await act(async () => {})
+
+    expect(onRenderPreview).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    ['Preview as', () => screen.getByRole('combobox', { name: 'Preview as' })],
+    ['Send test', () => screen.getByRole('button', { name: 'Send test' })]
+  ])('closes only %s on Escape', async (_, trigger) => {
+    renderEditor({
+      previewRecipients: RECIPIENTS,
+      onSendTest: async () => {}
+    })
+    await openPreview()
+    await userEvent.click(trigger())
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('listbox') ??
+          screen.queryByRole('textbox', { name: 'Send to' })
+      ).not.toBeNull()
+    )
+
+    await userEvent.keyboard('{Escape}')
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('listbox') ??
+          screen.queryByRole('textbox', { name: 'Send to' })
+      ).toBeNull()
+    )
+    expect(screen.getByTitle('Email preview')).toBeVisible()
+  })
+
   it('offers no Preview as without recipients', async () => {
     renderEditor()
     await openPreview()

@@ -198,8 +198,9 @@ values it's given, on your server, since MJML needs Node, and resolve to its
 
 - **Desktop** and **Phone** show it 600 and 375 pixels wide, as
   [`EmailHtmlField`](#html-emails) does.
-- **Light** and **Dark** set the frame's `color-scheme`, as a mail client in
-  dark mode does, so an email with its own dark styles shows them.
+- **Light** and **Dark** set the frame's `color-scheme`, the signal a mail
+  client in dark mode gives an email. A client that recolours an email
+  itself, as some do, isn't imitated.
 - **Preview as**, with `previewRecipients`, fills the merge tags with a
   recipient's values and shows only the sections their conditions allow. It
   starts on the first. Without recipients, merge tags show their fallbacks.
@@ -207,8 +208,9 @@ values it's given, on your server, since MJML needs Node, and resolve to its
   the value, the address, and the recipient's values. A rejection's message
   shows under the address.
 
-Back to editing, or Escape, puts the canvas back with the caret where it
-was. The frame is sandboxed, so it runs none of the email's scripts.
+Preview shows the email as it was when Preview opened. Back to editing, or
+Escape, puts the canvas back and focuses it. The frame is sandboxed, so it
+runs none of the email's scripts.
 
 ```tsx-live-noinline
 const variables = [
