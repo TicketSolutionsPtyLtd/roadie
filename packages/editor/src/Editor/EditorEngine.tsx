@@ -35,6 +35,7 @@ import {
   migrate,
   presets
 } from '../schema'
+import { type PresetShape, presetShapes } from '../schema/presetShapes'
 import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
@@ -154,6 +155,11 @@ function presetHoldsImages(preset: Preset) {
 const EMAIL_CANVAS =
   '@container mx-auto w-full max-w-[600px] [--prose-measure:none]'
 
+function holdsHttpsImagesOnly(preset: Preset) {
+  const shape: PresetShape = presetShapes[preset]
+  return shape.httpsImages === true
+}
+
 function holdsDoc(editor: TiptapEditor, doc: JSONContent) {
   try {
     return editor.state.doc.eq(editor.schema.nodeFromJSON(doc))
@@ -259,7 +265,7 @@ export function EditorEngine({
   const uploads = {
     upload: () => (holdsImages ? uploadRef.current : undefined),
     onError: setUploadError,
-    httpsOnly: preset === 'email'
+    httpsOnly: holdsHttpsImagesOnly(preset)
   }
 
   const editor = useEditor({

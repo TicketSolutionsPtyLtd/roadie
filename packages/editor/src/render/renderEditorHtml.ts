@@ -18,6 +18,7 @@ import {
   VOID_TAGS,
   outermostMarksLast,
   presetElementsFor,
+  withButtonsAsLinks,
   withTableSections
 } from './elements'
 import type { RenderEditorOptions } from './renderEditorValue'
@@ -76,8 +77,6 @@ function renderers(
     mapping[name] = (props) => {
       const element = toElement(attrsOf(props) ?? {}, context)
       const children = serializeChildrenToHTMLString(props.children)
-      // A link with no text has no name, as an email button emptied of its label.
-      if (element?.tag === 'a' && children === '') return ''
       return element ? htmlElement(element, children) : children
     }
   }
@@ -97,7 +96,9 @@ function renderDoc(
     markMapping: renderers(marks, ({ mark }) => mark?.attrs, context),
     unhandledNode: () => '',
     unhandledMark: ({ children }) => serializeChildrenToHTMLString(children)
-  })({ content: withTableSections(outermostMarksLast(doc)) })
+  })({
+    content: withTableSections(withButtonsAsLinks(outermostMarksLast(doc)))
+  })
 }
 
 /**

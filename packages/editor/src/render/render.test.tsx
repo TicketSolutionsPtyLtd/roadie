@@ -252,7 +252,42 @@ describe.each(renderers)('%s', (_, render) => {
         }
       })
     ).toBe(
-      '<p>Doors 7pm</p><p>All ages</p><a href="https://www.oztix.com.au" target="_blank" rel="noopener noreferrer" data-slot="link" class="link-normal">Go</a>'
+      '<p>Doors 7pm</p><p>All ages</p><p><a href="https://www.oztix.com.au" target="_blank" rel="noopener noreferrer" data-slot="link" class="link-normal">Go</a></p>'
+    )
+  })
+
+  it('renders each email button in a paragraph of its own, so two never run together', () => {
+    const button = (href: string, label: string) => ({
+      type: 'button',
+      attrs: { href },
+      content: [text(label)]
+    })
+
+    expect(
+      render({
+        version: 1,
+        preset: 'email',
+        doc: {
+          type: 'doc',
+          content: [
+            {
+              type: 'columns',
+              content: [
+                {
+                  type: 'column',
+                  content: [button('mailto:hello@example.com', 'Email us')]
+                },
+                {
+                  type: 'column',
+                  content: [button('tel:+61700000000', 'Call')]
+                }
+              ]
+            }
+          ]
+        }
+      })
+    ).toBe(
+      '<p><a href="mailto:hello@example.com" data-slot="link" class="link-normal">Email us</a></p><p><a href="tel:+61700000000" data-slot="link" class="link-normal">Call</a></p>'
     )
   })
 

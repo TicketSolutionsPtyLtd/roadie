@@ -178,6 +178,20 @@ function heldWithin(
   )
 }
 
+// A block straight in a list, which a list item holds when it can.
+function listItemOf(node: JSONContent, shape: PresetShape): JSONContent {
+  const holds = shape.nodes.listItem?.holds
+  const blocks = unwrapped(node)
+  return {
+    type: 'listItem',
+    content: paragraphFirst(
+      holds
+        ? blocks.flatMap((block) => heldWithin(block, holds, shape))
+        : blocks
+    )
+  }
+}
+
 function paragraphFirst(blocks: JSONContent[]) {
   return blocks[0]?.type === 'paragraph'
     ? blocks
@@ -244,9 +258,7 @@ function fitted(
   const blocks = paragraphsAround(nodes, shape)
   if (content === 'listItems') {
     return blocks.map((node) =>
-      node.type === 'listItem'
-        ? node
-        : { type: 'listItem', content: paragraphFirst(unwrapped(node)) }
+      node.type === 'listItem' ? node : listItemOf(node, shape)
     )
   }
   if (content === 'paragraphs') {
