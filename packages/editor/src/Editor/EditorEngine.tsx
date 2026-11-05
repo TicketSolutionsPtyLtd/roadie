@@ -466,8 +466,29 @@ export function EditorEngine({
     .filter((block) => takenName(preset, block))
     .map(({ node }) => node.name)
     .join(', ')
+  const holding = blocks
+    .map(({ node }) => node.name)
+    .filter((name) => {
+      const type = schema.nodes[name]
+      return !type?.isBlock || !type.isLeaf
+    })
+    .join(', ')
+  const blockNames = (list: readonly EditorBlock[]) =>
+    list.map(({ node }) => node.name).join()
+  const changed =
+    blockNames(blocksFor(preset, extensionsProp)) !== blockNames(blocks)
   useEffect(() => {
     if (!isDev()) return
+    if (holding) {
+      console.warn(
+        `Editor: ${holding} must be a block holding no content, as an app's block saves only its attrs.`
+      )
+    }
+    if (changed) {
+      console.warn(
+        'Editor: the editor reads extensions once, when it’s created, so it keeps the blocks it started with. Give it a new key to change them.'
+      )
+    }
     if (leftOut) {
       console.warn(
         `Editor: extensions are for the blocks preset, so the "${preset}" editor leaves them out.`
@@ -478,7 +499,7 @@ export function EditorEngine({
         `Editor: the blocks preset already has ${taken}, so the editor leaves out the extensions of that name.`
       )
     }
-  }, [leftOut, preset, taken])
+  }, [leftOut, preset, taken, holding, changed])
 
   useEffect(() => {
     if (presetProp && storedPreset && presetProp !== storedPreset && isDev()) {

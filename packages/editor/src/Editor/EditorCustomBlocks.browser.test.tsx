@@ -31,7 +31,11 @@ beforeAll(() => {
 })
 afterAll(() => style.remove())
 
-function EventCardView({ node, updateAttributes }: EditorNodeViewProps) {
+function EventCardView({
+  node,
+  updateAttributes,
+  deleteNode
+}: EditorNodeViewProps) {
   return (
     <NodeViewWrapper data-slot='event-card'>
       <input
@@ -39,6 +43,9 @@ function EventCardView({ node, updateAttributes }: EditorNodeViewProps) {
         value={String(node.attrs.eventId ?? '')}
         onChange={(event) => updateAttributes({ eventId: event.target.value })}
       />
+      <button type='button' onClick={deleteNode}>
+        Remove
+      </button>
     </NodeViewWrapper>
   )
 }
@@ -221,8 +228,11 @@ describe('Editor extensions', () => {
 
     const input = await screen.findByRole('textbox', { name: 'Event' })
     await userEvent.type(input, '-2026')
+    // A disabled editor can't be clicked, so this calls the view's handler.
+    screen.getByRole('button', { name: 'Remove' }).click()
 
     expect(input).toHaveValue('okw')
+    expect(input).toBeInTheDocument()
     const savedIds = onValueChange.mock.calls.map(
       ([saved]) => (saved as EditorValue).doc.content![0]!.attrs!.eventId
     )
@@ -321,14 +331,74 @@ describe('Editor extensions', () => {
     // A browser has no `process`; a consumer's bundler supplies NODE_ENV.
     vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    render(<Editor aria-label={LABEL} preset='rich' extensions={[eventCard]} />)
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='rich'
+        extensions={[eventCard]}
+        onValueChange={onValueChange}
+        defaultValue={{
+          version: 1,
+          preset: 'rich',
+          doc: {
+            type: 'doc',
+            content: [
+              { type: 'eventCard', attrs: { eventId: 'okw' } },
+              { type: 'paragraph' }
+            ]
+          }
+        }}
+      />
+    )
     await focusedTextbox()
 
-    await userEvent.keyboard('/')
+    await userEvent.keyboard('Doors')
 
-    expect(screen.queryByRole('listbox')).toBe(null)
+    await waitFor(() =>
+      expect(lastValue(onValueChange).doc.content).toMatchObject([
+        { type: 'paragraph', content: [{ type: 'text', text: 'Doors' }] }
+      ])
+    )
+    expect(screen.queryByRole('textbox', { name: 'Event' })).toBe(null)
     expect(warn).toHaveBeenCalledWith(
       expect.stringMatching(/extensions are for the blocks preset/)
+    )
+    warn.mockRestore()
+    vi.unstubAllGlobals()
+  })
+
+  it('warns that extensions changed after the editor was created', async () => {
+    vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = render(<Editor aria-label={LABEL} preset='blocks' />)
+    await focusedTextbox()
+
+    rerender(
+      <Editor aria-label={LABEL} preset='blocks' extensions={[eventCard]} />
+    )
+
+    await waitFor(() =>
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringMatching(/reads extensions once/)
+      )
+    )
+    warn.mockRestore()
+    vi.unstubAllGlobals()
+  })
+
+  it('warns of a block that holds content, which it can’t save', async () => {
+    vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const holding: EditorBlock = {
+      ...eventCard,
+      node: Node.create({ name: 'panel', group: 'block', content: 'block+' })
+    }
+    render(<Editor aria-label={LABEL} preset='blocks' extensions={[holding]} />)
+    await focusedTextbox()
+
+    await waitFor(() =>
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(/panel/))
     )
     warn.mockRestore()
     vi.unstubAllGlobals()
