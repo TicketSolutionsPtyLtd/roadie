@@ -169,6 +169,55 @@ describe('Editor insert menu', () => {
     )
   })
 
+  it('inserts before the next line, putting the caret there', async () => {
+    const onValueChange = renderEmail({
+      defaultValue: email(p('Doors 7pm'), p('All ages'))
+    })
+    await userEvent.click(await screen.findByText('Doors 7pm'))
+
+    await userEvent.keyboard('{End} /div{Enter}18+ ')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(p('Doors 7pm '), { type: 'horizontalRule' }, p('18+ All ages'))
+      )
+    )
+  })
+
+  it('keeps the caret in an emptied line after a block goes before it', async () => {
+    const onValueChange = renderEmail()
+    await focusedTextbox()
+
+    await userEvent.keyboard('/spa{Enter}See you there')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'spacer', attrs: { height: 32 } }, p('See you there'))
+      )
+    )
+  })
+
+  it('makes the option under the pointer active', async () => {
+    const onValueChange = renderEmail()
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard('/')
+    const spacer = within(await insertMenu()).getByRole('option', {
+      name: 'Spacer'
+    })
+    await userEvent.hover(spacer)
+    await waitFor(() =>
+      expect(textbox).toHaveAttribute('aria-activedescendant', spacer.id)
+    )
+    await userEvent.keyboard('{Enter}')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({ type: 'spacer', attrs: { height: 32 } }, p())
+      )
+    )
+  })
+
   it('filters as you type, and closes when nothing matches', async () => {
     renderEmail()
     await focusedTextbox()
@@ -322,6 +371,42 @@ describe('Editor insert menu', () => {
     await userEvent.keyboard('{End} /')
 
     expect(optionNames(await insertMenu())).toEqual(['Numbered list'])
+  })
+
+  it('uploads the image chosen, before the emptied line', async () => {
+    const poster = 'https://assets.example.com/poster.webp'
+    const onValueChange = renderEmail({
+      onUploadImage: async () => ({ src: poster, alt: 'Festival poster' })
+    })
+    await focusedTextbox()
+    const fileInput = screen.getByLabelText('Image file')
+    const onPick = vi.fn()
+    fileInput.addEventListener('click', (event) => {
+      event.preventDefault()
+      onPick()
+    })
+
+    await userEvent.keyboard('/ima{Enter}')
+    await waitFor(() => expect(onPick).toHaveBeenCalled())
+    await userEvent.upload(
+      fileInput,
+      new File(['png'], 'poster.png', { type: 'image/png' })
+    )
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email(
+          {
+            type: 'image',
+            attrs: expect.objectContaining({
+              src: poster,
+              alt: 'Festival poster'
+            })
+          },
+          p()
+        )
+      )
+    )
   })
 
   it('offers Image with onUploadImage', async () => {
