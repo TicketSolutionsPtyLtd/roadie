@@ -451,6 +451,27 @@ describe('Flush toolbar', () => {
     }
   )
 
+  it.each(['normal', 'subtle', 'subtler', 'raised', 'floating'] as const)(
+    'keeps the fill of %s',
+    (emphasis) => {
+      render(
+        <>
+          <Toolbar emphasis={emphasis} aria-label='Inset'>
+            <Toolbar.Button>Undo</Toolbar.Button>
+          </Toolbar>
+          <Toolbar flush emphasis={emphasis} aria-label='Flush'>
+            <Toolbar.Button>Undo</Toolbar.Button>
+          </Toolbar>
+        </>
+      )
+      const fill = (name: string) => {
+        const style = getComputedStyle(surfaceOf(name))
+        return [style.backgroundColor, style.backdropFilter]
+      }
+      expect(fill('Flush')).toEqual(fill('Inset'))
+    }
+  )
+
   it.each([
     ['sm', 32],
     ['md', 40],

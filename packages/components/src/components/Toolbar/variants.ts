@@ -16,7 +16,7 @@ const flushSurface: Record<ToolbarEmphasis, string> = {
   normal: 'bg-normal',
   subtle: 'bg-subtle',
   subtler: '',
-  raised: 'bg-raised',
+  raised: 'bg-raised is-translucent',
   floating: 'surface-floating is-translucent'
 }
 
