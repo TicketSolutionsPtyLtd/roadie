@@ -6,6 +6,7 @@ import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import type { EditorValue, JSONContent } from '../schema'
+import { LINE_START } from './testUtils'
 
 const LABEL = 'Page'
 
@@ -332,16 +333,19 @@ describe('Editor blocks preset ids on drag', () => {
     await focusedTextbox()
     const doors = await screen.findByText('Doors 7pm')
     await userEvent.click(doors)
-    await userEvent.keyboard('{Home}{Shift>}{ArrowRight>6/}{/Shift}')
+    await userEvent.keyboard(`${LINE_START}{Shift>}{ArrowRight>6/}{/Shift}`)
 
     dragBlock(doors, await screen.findByRole('img', { name: 'Crowd' }), {})
 
-    await waitFor(() =>
-      expect(lastDoc(onValueChange).content?.[2]?.content).toEqual([
-        text('Doors ')
-      ])
-    )
-    const [left, , dragged] = lastDoc(onValueChange).content!
+    // WebKit drops it before the image, the others after it.
+    const draggedOf = (doc: JSONContent) =>
+      doc.content?.find(
+        (node, i) => i > 0 && node.content?.[0]?.text === 'Doors '
+      )
+    await waitFor(() => expect(draggedOf(lastDoc(onValueChange))).toBeDefined())
+    const [left] = lastDoc(onValueChange).content!
+    const dragged = draggedOf(lastDoc(onValueChange))
+    expect(dragged?.content).toEqual([text('Doors ')])
     expect(left).toEqual({
       type: 'paragraph',
       attrs: { blockId: 'doors' },
@@ -375,7 +379,7 @@ describe('Editor blocks preset ids on drag', () => {
     await focusedTextbox()
     const doors = await screen.findByText('Doors 7pm')
     await userEvent.click(doors)
-    await userEvent.keyboard('{Home}{Shift>}{ArrowRight>18/}{/Shift}')
+    await userEvent.keyboard(`${LINE_START}{Shift>}{ArrowRight>18/}{/Shift}`)
 
     dragBlock(doors, await screen.findByText('Lineup'), {})
 
