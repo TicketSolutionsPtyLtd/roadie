@@ -45,7 +45,8 @@ type Mode = (typeof MODES)[number]
 
 type Case = {
   name: string
-  render: () => ReactElement
+  /** Takes the intent for a part that portals out of the intent wrapper. */
+  render: (intent: RoadieIntent) => ReactElement
   target: () => Promise<HTMLElement>
   /** Menu rows show keyboard focus as their highlight fill, not a ring. */
   focus?: 'ring' | 'fill'
@@ -134,12 +135,12 @@ const CASES: Case[] = [
   })),
   {
     name: 'Menu item',
-    render: () => (
+    render: (intent) => (
       <Menu defaultOpen>
         <Menu.Trigger>Actions</Menu.Trigger>
         <Menu.Content>
-          <Menu.Item>Edit event</Menu.Item>
-          <Menu.Item>Duplicate</Menu.Item>
+          <Menu.Item intent={intent}>Edit event</Menu.Item>
+          <Menu.Item intent={intent}>Duplicate</Menu.Item>
         </Menu.Content>
       </Menu>
     ),
@@ -225,8 +226,10 @@ function setMode(mode: Mode) {
   document.documentElement.classList.toggle('dark', mode === 'dark')
 }
 
-function renderIn(intent: RoadieIntent, element: ReactElement) {
-  return render(<div className={intentVariants[intent]}>{element}</div>)
+function renderIn(intent: RoadieIntent, testCase: Case) {
+  return render(
+    <div className={intentVariants[intent]}>{testCase.render(intent)}</div>
+  )
 }
 
 // What a user sees change: the fill over the page, the text, the edge and
@@ -253,7 +256,7 @@ describe.each(MODES)('%s mode', (mode) => {
 
     hoverTest(hoverName, async () => {
       setMode(mode)
-      renderIn('neutral', testCase.render())
+      renderIn('neutral', testCase)
       const target = await testCase.target()
       const rest = paint(target)
 
@@ -266,7 +269,7 @@ describe.each(MODES)('%s mode', (mode) => {
 
     it('shows keyboard focus', async () => {
       setMode(mode)
-      renderIn('neutral', testCase.render())
+      renderIn('neutral', testCase)
       const target = await testCase.target()
       const rest = paint(target)
       await commands.focusPage()
@@ -289,7 +292,7 @@ describe.each(MODES)('%s mode', (mode) => {
 
     it.each(INTENTS)('reads at rest in intent-%s', async (intent) => {
       setMode(mode)
-      renderIn(intent, testCase.render())
+      renderIn(intent, testCase)
       const target = await testCase.target()
 
       const lc = apcaLc(
