@@ -222,6 +222,40 @@ describe('Editor email blocks', () => {
     await saved(onValueChange, value)
   })
 
+  it('moves a removed column’s button even with no label', async () => {
+    const unlabelled = {
+      type: 'button',
+      attrs: { href: 'https://oztix.com.au' }
+    }
+    const onValueChange = renderEmail(
+      email({
+        type: 'columns',
+        content: [
+          { type: 'column', content: [p('Lineup')] },
+          { type: 'column', content: [p('Tickets')] },
+          { type: 'column', content: [unlabelled] }
+        ]
+      })
+    )
+    await clickText('Lineup')
+
+    await choose('Columns: 3 columns', '2 columns')
+
+    await saved(
+      onValueChange,
+      email(
+        {
+          type: 'columns',
+          content: [
+            { type: 'column', content: [p('Lineup')] },
+            { type: 'column', content: [p('Tickets'), unlabelled] }
+          ]
+        },
+        p()
+      )
+    )
+  })
+
   it('keeps typing in its line when that line’s column is removed', async () => {
     const onValueChange = renderEmail(
       email(

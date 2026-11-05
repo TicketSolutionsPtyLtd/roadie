@@ -79,8 +79,9 @@ const isColumns = (node: PMNode) => node.type.name === 'columns'
 export const selectedColumns = ({ selection }: { selection: Selection }) =>
   findParentNode(isColumns)(selection)
 
+// A button keeps its link with no label, so it isn't a line to drop.
 const isEmptyLine = (node: PMNode) =>
-  node.isTextblock && node.content.size === 0
+  node.isTextblock && node.type.name !== 'button' && node.content.size === 0
 
 /**
  * Sets how many columns the selection's columns have. A removed column's
