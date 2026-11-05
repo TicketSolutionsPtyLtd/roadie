@@ -699,6 +699,21 @@ describe('Editor email block handle', () => {
       await expectGripBeside(block)
     })
 
+    it('keeps a nested block’s grip in its gutter after typing above it', async () => {
+      renderNewsletter()
+      await userEvent.click(await line('Alpha one'))
+      const block = await hoverBlock('Right one')
+      const y = middle(block)
+      const gap = block.getBoundingClientRect().left - 2
+      moveThrough([{ x: gap, y }])
+
+      await userEvent.keyboard('x')
+      moveThrough([{ x: gap - 1, y }])
+      await nextFrame()
+
+      await expectGripBeside(block)
+    })
+
     it('keeps the grip of the block the pointer is on once focus leaves the text', async () => {
       render(
         <>
