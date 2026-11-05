@@ -76,6 +76,12 @@ describe('htmlToEditorValue', () => {
     expect(blocks(html)).toEqual(expected)
   })
 
+  it('drops empty and spacer paragraphs', () => {
+    expect(
+      blocks('<p>Doors 7pm</p><p></p><p>&nbsp;</p><p> </p><p>All ages</p>')
+    ).toEqual([paragraph(text('Doors 7pm')), paragraph(text('All ages'))])
+  })
+
   it('splits paragraphs inside a list item', () => {
     expect(blocks('<ul><li>Doors<br><br>7pm</li></ul>')).toEqual([
       {
@@ -194,6 +200,12 @@ describe('htmlToEditorValue', () => {
     ])
   })
 
+  it('keeps an empty table cell’s paragraph', () => {
+    const table = blocks('<table><tr><td>Doors</td><td></td></tr></table>')?.[0]
+
+    expect(table?.content?.[0]?.content?.[1]?.content).toEqual([paragraph()])
+  })
+
   it.each([
     [
       'an image',
@@ -277,6 +289,32 @@ describe('htmlToEditorValue', () => {
       expect(dropped).toEqual([])
     })
 
+    it('reads a protocol-relative image as https', () => {
+      const { value, dropped } = htmlToEditorValue(
+        '<img src="//cdn.oztix.com.au/poster.jpg">',
+        'rich'
+      )
+
+      expect(value.doc.content).toEqual([
+        {
+          type: 'image',
+          attrs: { src: 'https://cdn.oztix.com.au/poster.jpg', alt: '' }
+        }
+      ])
+      expect(dropped).toEqual([])
+    })
+
+    // A page with script never shows these, so nothing in them is lost.
+    it('ignores what only shows without script', () => {
+      const { value, dropped } = htmlToEditorValue(
+        '<p>Doors 7pm</p><noscript><img src="https://www.facebook.com/tr?id=1"><img src="data:image/gif;base64,R0lGOD"><iframe src="https://evil.example/x"></iframe></noscript><template><p>Hidden</p></template>',
+        'rich'
+      )
+
+      expect(value.doc.content).toEqual([paragraph(text('Doors 7pm'))])
+      expect(dropped).toEqual([])
+    })
+
     it.each([
       [
         'a base64 image',
@@ -319,6 +357,11 @@ describe('htmlToEditorValue', () => {
       [
         'protocol-relative YouTube',
         '//www.youtube.com/embed/dQw4w9WgXcQ',
+        { provider: 'youtube', id: 'dQw4w9WgXcQ', params: null }
+      ],
+      [
+        'space-padded YouTube',
+        ' //www.youtube.com/embed/dQw4w9WgXcQ ',
         { provider: 'youtube', id: 'dQw4w9WgXcQ', params: null }
       ],
       [
@@ -445,7 +488,7 @@ describe('htmlToEditorValue', () => {
     [
       'a video with only sources',
       '<video><source src="https://cdn.oztix.com.au/a.mp4"></video>',
-      undefined
+      'https://cdn.oztix.com.au/a.mp4'
     ]
   ])('drops and reports %s', (_, media, src) => {
     const { value, dropped } = htmlToEditorValue(`<p>Watch</p>${media}`, 'rich')

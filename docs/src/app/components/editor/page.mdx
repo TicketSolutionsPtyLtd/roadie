@@ -658,17 +658,25 @@ import { htmlToEditorValue } from '@oztix/roadie-editor/schema'
 
 - Text is kept, and styles, fonts, sizes, colours and classes are dropped.
 - In a paragraph, one `<br>` is a line break, and two or more start a new
-  paragraph, as CKEditor writes them.
+  paragraph, as CKEditor writes them. Empty and `&nbsp;` spacer paragraphs
+  go.
 - `h1` reads as `h2`, and anything else the preset can't hold keeps its text.
-- Images the preset can't load, such as base64 `data:` images, iframes no
-  embed provider reads, and video and audio are dropped and listed in
-  `dropped`, so you can warn before the legacy content is overwritten.
+- These are dropped and listed in `dropped`, so you can warn before the
+  legacy content is overwritten:
+  - images the preset can't load, such as base64 `data:` images, and every
+    image in `basic`
+  - iframes no embed provider reads
+  - images and players in a table cell, which holds only text
+  - video and audio
+- A link around an image isn't kept, and isn't listed.
 
 Iframes become embeds when a provider reads their player address. If the
 editor has its own `embedProviders`, pass the same list:
 `htmlToEditorValue(html, 'rich', { embedProviders })`.
 
-It needs a browser, so call it in a client component.
+It needs a browser's `DOMParser` and throws on the server, where a client
+component also renders first. Call it in an effect or an event handler, such
+as the one that opens the editor.
 
 ```tsx-live-prose-noinline
 const video = 'https://www.youtube.com/embed/sBzrzS1Ag_g'
