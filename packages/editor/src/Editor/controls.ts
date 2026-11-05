@@ -251,6 +251,7 @@ const inlineControls = [bold, italic, underline, link] as const
 export const selectionControls: Record<Preset, readonly EditorControl[]> = {
   basic: inlineControls,
   rich: inlineControls,
+  blocks: inlineControls,
   email: inlineControls
 }
 

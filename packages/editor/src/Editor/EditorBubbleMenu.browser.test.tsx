@@ -156,6 +156,18 @@ describe('Editor.BubbleMenu', () => {
     expect(itemsOf(toolbar)).toEqual(['Bold', 'Italic', 'Underline', 'Link'])
   })
 
+  it('shows in the blocks preset', async () => {
+    render(<BubbleEditor defaultValue={{ ...lineup, preset: 'blocks' }} />)
+    await selectText('Gates open at 4pm')
+
+    expect(itemsOf(await menu())).toEqual([
+      'Bold',
+      'Italic',
+      'Underline',
+      'Link'
+    ])
+  })
+
   it('shows in the email preset, but not over a button’s label, which takes no marks', async () => {
     render(
       <BubbleEditor
