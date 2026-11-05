@@ -2,7 +2,7 @@
 
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 
-import { NodeSelection, TextSelection } from '@tiptap/pm/state'
+import { NodeSelection, Selection } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Drawer } from '@oztix/roadie-components/drawer'
@@ -156,14 +156,15 @@ function leaveBlock(editor: TiptapEditor) {
   const { state, view } = editor
   const { selection } = state
   if (!(selection instanceof NodeSelection)) return
-  const inside = selection.node.isAtom
-    ? state.doc.resolve(selection.to)
-    : state.doc.resolve(selection.from + 1)
-  view.dispatch(
-    state.tr
-      .setSelection(TextSelection.near(inside))
-      .setMeta('addToHistory', false)
+  const from = state.doc.resolve(
+    selection.node.isAtom ? selection.to : selection.from + 1
   )
+  // Text only: a block selected next, such as a second section or an image
+  // first in this one, would be replaced by the next key all the same.
+  const caret =
+    Selection.findFrom(from, 1, true) ?? Selection.findFrom(from, -1, true)
+  if (!caret) return
+  view.dispatch(state.tr.setSelection(caret).setMeta('addToHistory', false))
 }
 
 const selectedNode = ({ editor }: { editor: TiptapEditor | null }) => {
