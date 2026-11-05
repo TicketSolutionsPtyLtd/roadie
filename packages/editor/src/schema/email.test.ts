@@ -568,6 +568,7 @@ describe('a rule for showing a block in the email preset', () => {
     ['is a list', [nearlySoldOut]],
     ['has no key', { op: 'exists' }],
     ['has an empty key', { key: '', op: 'exists' }],
+    ['has a key of only spaces', { key: '  ', op: 'exists' }],
     ['has a key that isn’t text', { key: 7, op: 'exists' }],
     ['has an unknown op', { key: 'tickets_left', op: 'atMost', value: 20 }],
     ['equals nothing', { key: 'ticket_type', op: 'equals' }],
@@ -587,6 +588,14 @@ describe('a rule for showing a block in the email preset', () => {
       doc(button(tickets))
     )
     expect(readEmail(doc(ruled(divider, rule)))).toEqual(doc(divider))
+  })
+
+  it('trims a rule’s key, as a variable’s is', () => {
+    expect(
+      readEmail(
+        doc(ruled(divider, { ...nearlySoldOut, key: ' tickets_left ' }))
+      )
+    ).toEqual(doc(ruled(divider, nearlySoldOut)))
   })
 
   it('reads a block with no rule as it was', () => {
