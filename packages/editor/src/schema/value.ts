@@ -90,8 +90,9 @@ function cleanedAttrs({ type, attrs }: JSONContent) {
   if (type === 'variable') {
     const fallback: unknown = attrs?.fallback
     return {
-      key: attrs?.key,
-      ...(typeof fallback === 'string' && fallback !== '' && { fallback })
+      key: variableKey(attrs),
+      ...(typeof fallback === 'string' &&
+        fallback.trim() !== '' && { fallback })
     }
   }
   if (type === 'embed') return embedAttrs(attrs) ?? undefined
@@ -147,12 +148,14 @@ function isSafeNode(node: unknown, shape: PresetShape): node is JSONContent {
       : isSafeImageSrc(attrs?.src)
   }
   if (type === 'embed') return embedAttrs(attrs) !== null
-  if (type === 'variable') return isText(attrs?.key)
+  if (type === 'variable') return variableKey(attrs) !== ''
   return true
 }
 
-const isText = (value: unknown): value is string =>
-  typeof value === 'string' && value !== ''
+const variableKey = (attrs: Record<string, unknown> | undefined) => {
+  const key: unknown = attrs?.key
+  return typeof key === 'string' ? key.trim() : ''
+}
 
 // A doc is the root only, so one below it gives way to its blocks.
 function shapeOf({ type }: JSONContent, shape: PresetShape) {

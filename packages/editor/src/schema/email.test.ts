@@ -457,6 +457,7 @@ describe('a variable in the email preset', () => {
 
   it.each([
     ['an empty fallback', ''],
+    ['a fallback of only spaces', '  '],
     ['a fallback that isn’t text', 7],
     ['no fallback', null]
   ])('drops %s', (_name, fallback) => {
@@ -468,9 +469,16 @@ describe('a variable in the email preset', () => {
   it.each([
     ['no key', {}],
     ['an empty key', { key: '' }],
+    ['a key of only spaces', { key: ' ' }],
     ['a key that isn’t text', { key: 7 }]
   ])('drops a variable with %s', (_name, attrs) => {
     expect(readEmail(greeting(attrs))).toEqual(doc(p('Hi ')))
+  })
+
+  it('trims the spaces around a key', () => {
+    expect(readEmail(greeting({ key: ' first_name ' }))).toEqual(
+      greeting({ key: 'first_name' })
+    )
   })
 
   it('keeps a variable in a button’s label, unmarked', () => {
