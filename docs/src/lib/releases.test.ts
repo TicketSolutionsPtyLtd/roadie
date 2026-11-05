@@ -1157,6 +1157,32 @@ describe('releaseTitle', () => {
       )
     ).toBe('Add a date standard')
   })
+
+  it('calls a release of only dependency bumps dependency updates', () => {
+    const virtual: ReleaseItem = {
+      ...item('changed'),
+      text: [
+        'Update ',
+        { code: '@tanstack/react-virtual' },
+        ' to 3.14.22, which Records uses to window long lists of records.'
+      ]
+    }
+    const tiptap = item('changed', undefined, 'Update Tiptap to 3.32.1.')
+    expect(releaseTitle([], [virtual])).toBe('Dependency updates')
+    expect(releaseTitle([], [virtual, tiptap])).toBe('Dependency updates')
+    expect(releaseTitle([], [virtual, item('fixed')])).toBe('Updates')
+    expect(
+      releaseTitle(
+        [],
+        [
+          {
+            ...item('changed'),
+            text: ['Update ', { code: 'currency' }, ' to show cents.']
+          }
+        ]
+      )
+    ).toBe('Update currency to show cents')
+  })
 })
 
 describe('releaseSummary', () => {

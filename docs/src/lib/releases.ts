@@ -990,6 +990,12 @@ function busiestPages(items: ReleaseItem[]) {
 }
 
 /** A title from the highlights, then the pages the other changes touch most. */
+// A production bump needs a changeset, written as "Update `pkg` to 3.14.22" or "Update Tiptap to 3.32.1".
+const DEPENDENCY_BUMP = /^(?:Update|Bump|Upgrade) \S+ to v?\d+\.\d+/
+
+const isDependencyBump = (item: ReleaseItem) =>
+  DEPENDENCY_BUMP.test(plainText(item.text))
+
 export function releaseTitle(cards: ReleaseCard[], items: ReleaseItem[]) {
   const names = [
     ...new Set(
@@ -1007,7 +1013,8 @@ export function releaseTitle(cards: ReleaseCard[], items: ReleaseItem[]) {
   }
   if (pages.length > 0) return `Updates to ${named(pages)}`
   if (cards.length > 0 && items.length === 0) return GENERIC_BREAKING
-  if (items.length === 0) return 'Dependency updates'
+  if (items.length === 0 || items.every(isDependencyBump))
+    return 'Dependency updates'
   // A lone change's opening words, such as "Add a date and time standard".
   const [lone] = items
   const opening = lone?.text[0]
