@@ -372,13 +372,23 @@ describe('Editor block handle', () => {
         'support'
       ])
     )
+    // The menu stays open on the moved block, for another move.
+    await userEvent.keyboard('{Enter}')
+    await waitFor(() =>
+      expect(order(onValueChange).map(([id]) => id)).toEqual([
+        'headliner',
+        'doors',
+        'support'
+      ])
+    )
+    await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(textbox).toHaveFocus())
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
     await waitFor(() =>
       expect(order(onValueChange).map(([id]) => id)).toEqual([
         'doors',
-        'support',
-        'headliner'
+        'headliner',
+        'support'
       ])
     )
   })
@@ -389,8 +399,10 @@ describe('Editor block handle', () => {
 
     await openMenuOn('Doors')
     await userEvent.click(screen.getByRole('menuitem', { name: 'Move down' }))
+    await userEvent.keyboard('{Escape}')
     await openMenuOn('Headliner')
     await userEvent.click(screen.getByRole('menuitem', { name: 'Move up' }))
+    await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(textbox).toHaveFocus())
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 

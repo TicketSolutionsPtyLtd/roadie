@@ -151,6 +151,8 @@ async function openMenuOn(text: string) {
 
 async function chooseMove(name: 'Move up' | 'Move down') {
   await userEvent.click(await screen.findByRole('menuitem', { name }))
+  // The menu stays open on the moved block, for another move.
+  await userEvent.keyboard('{Escape}')
   await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
 }
 

@@ -75,12 +75,23 @@ opens the file picker, and Embed opens the Embed popover.
 A grip shows at the start of the block under the pointer, or of the block
 with the caret while the editor has focus. Drag it to move the block; a line
 shows where it will land. Click or tap it, or press `Mod+/` in the text, for
-the block's menu: Move up, Move down, Duplicate, and Delete. The menu opens
-beside the grip, headed by the block's type, with each action's keys, and
-the block takes the chosen tint while it's open, so it's clear which block
-it acts on. Each is one step to undo, a moved block keeps its `blockId`,
-and a copy gets one of its own. On a touch screen the grip shows beside the
-block you're typing in, and its menu moves the block.
+the block's menu: Move up, Move down, Duplicate, Turn into, Insert below,
+Copy link to block, and Delete. The menu opens beside the grip, headed by
+the block's type, with each action's keys, and the block takes the chosen
+tint while it's open, so it's clear which block it acts on. Each is one step
+to undo, a moved block keeps its `blockId`, and a copy gets one of its own.
+
+- **Move up** and **Move down** leave the menu open on the block, so it can
+  move again.
+- **Turn into** makes a text block a paragraph, a heading, a list, or a
+  quote, keeping its text and its `blockId`.
+- **Insert below** opens a line under the block with the insert menu.
+- **Copy link to block** copies the page's address with the block's
+  `blockId` as its hash. Opening it scrolls the editor to the block.
+
+On a phone or a touch screen the grip shows beside the block you're typing
+in, with a 44px target, and its menu opens as a sheet from the bottom, with
+the text inset as far from each edge.
 
 ```tsx-live-prose
 <Editor

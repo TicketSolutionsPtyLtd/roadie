@@ -2,7 +2,9 @@
 
 import {
   type RefObject,
+  createElement,
   useEffect,
+  useId,
   useLayoutEffect,
   useRef,
   useState
@@ -11,10 +13,20 @@ import {
 import {
   ArrowDownIcon,
   ArrowUpIcon,
+  ArrowsClockwiseIcon,
   CopySimpleIcon,
   DotsSixVerticalIcon,
+  type Icon,
+  LinkIcon,
+  ListBulletsIcon,
+  ListNumbersIcon,
   PlusIcon,
+  QuotesIcon,
   SelectionPlusIcon,
+  TextHFourIcon,
+  TextHThreeIcon,
+  TextHTwoIcon,
+  TextTIcon,
   TrashIcon
 } from '@phosphor-icons/react'
 import { closeHistory } from '@tiptap/pm/history'
@@ -27,28 +39,93 @@ import {
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 import { createPortal } from 'react-dom'
 
-import { IconButton } from '@oztix/roadie-components/button'
+import { Button, IconButton } from '@oztix/roadie-components/button'
+import { Drawer } from '@oztix/roadie-components/drawer'
 import { Menu } from '@oztix/roadie-components/menu'
+import { cn } from '@oztix/roadie-core/utils'
 
 import { hideBubbleMenu } from './EditorBubbleMenuEngine'
 import {
   BLOCK_ACTION_KEYS,
   type BlockContainers,
+  type BlockKind,
+  TEXT_BLOCK_KINDS,
   blockAt,
+  blockIdAt,
+  blockKind,
   canMoveBlock,
   deleteBlock,
   duplicateBlock,
+  findBlockId,
+  insertBelow,
   moveBlock,
-  parentBlock
+  parentBlock,
+  turnInto
 } from './blockActions'
 import { draggedBlocks } from './blockDrag'
 import { focusEditor } from './focusEditor'
 import { markMenuBlock } from './focusedBlock'
+import { useOnPhone } from './toolbarMode'
 
 // A button's width and the gap to the text, in px.
 const HANDLE_SIZE = 24
 const HANDLE_GAP = 4
+// Wider on a phone, so the grip's 44px target ends at the text.
+const PHONE_HANDLE_GAP = 6
 const GUTTER = HANDLE_SIZE * 2 + HANDLE_GAP
+
+const HEADING_ICONS: Record<number, Icon> = {
+  2: TextHTwoIcon,
+  3: TextHThreeIcon,
+  4: TextHFourIcon
+}
+
+const KIND_NAMES = {
+  paragraph: ['Paragraph', TextTIcon],
+  bulletList: ['Bulleted list', ListBulletsIcon],
+  orderedList: ['Numbered list', ListNumbersIcon],
+  blockquote: ['Quote', QuotesIcon]
+} as const satisfies Record<string, readonly [string, Icon]>
+
+const kindLabel = (kind: BlockKind) =>
+  kind.type === 'heading' ? `Heading ${kind.level}` : KIND_NAMES[kind.type][0]
+
+const kindIcon = (kind: BlockKind): Icon =>
+  kind.type === 'heading'
+    ? (HEADING_ICONS[kind.level] ?? TextHTwoIcon)
+    : KIND_NAMES[kind.type][1]
+
+function blockLink(blockId: string) {
+  const url = new URL(window.location.href)
+  url.hash = blockId
+  return url.href
+}
+
+// A hash the page holds for something else may not decode.
+function hashId() {
+  try {
+    return decodeURIComponent(window.location.hash.slice(1))
+  } catch {
+    return ''
+  }
+}
+
+function useScrollToLinkedBlock(editor: TiptapEditor) {
+  useEffect(() => {
+    const id = hashId()
+    if (!id) return
+    const scroll = () => {
+      const pos = findBlockId(editor.state.doc, id)
+      const dom = pos === null ? null : editor.view.nodeDOM(pos)
+      if (dom instanceof HTMLElement) dom.scrollIntoView({ block: 'center' })
+    }
+    if (editor.isInitialized) scroll()
+    editor.on('create', scroll)
+    return () => {
+      editor.off('create', scroll)
+    }
+  }, [editor])
+}
 
 /**
  * A box of the handle's own in the editor's content wrapper, once Tiptap has
@@ -141,7 +218,12 @@ function inReach(
 }
 
 // Centred on the block's first line, just before its start edge.
-function placeAt(editor: TiptapEditor, wrapper: HTMLElement, pos: number) {
+function placeAt(
+  editor: TiptapEditor,
+  wrapper: HTMLElement,
+  pos: number,
+  gap: number
+) {
   const dom = editor.view.nodeDOM(pos)
   if (!(dom instanceof HTMLElement)) return null
   const box = dom.getBoundingClientRect()
@@ -150,8 +232,8 @@ function placeAt(editor: TiptapEditor, wrapper: HTMLElement, pos: number) {
   return {
     top: box.top - frame.top + (Math.min(line, box.height) - HANDLE_SIZE) / 2,
     left: isRtl(editor)
-      ? box.right - frame.left + HANDLE_GAP
-      : box.left - frame.left - HANDLE_SIZE - HANDLE_GAP
+      ? box.right - frame.left + gap
+      : box.left - frame.left - HANDLE_SIZE - gap
   }
 }
 
@@ -233,6 +315,9 @@ export function EditorBlockHandle({
   appLabels = {}
 }: EditorBlockHandleProps) {
   const host = useHandleHost(editor)
+  const phone = useOnPhone()
+  const contentId = useId()
+  useScrollToLinkedBlock(editor)
   const wrapper = host?.parentElement ?? null
   const [hovered, setHovered] = useState<number | null>(null)
   const [menuAt, setMenuAt] = useState<number | null>(null)
@@ -259,6 +344,7 @@ export function EditorBlockHandle({
   })
   // Read by each move before `hovered` renders, so it's mapped through edits too.
   const pointerBlock = useRef<number | null>(null)
+  const afterClose = useRef<(() => void) | null>(null)
 
   // On the page, as a subtler editor's grip hangs outside the wrapper, and
   // leaving the wrapper for the gap would hide it.
@@ -345,8 +431,11 @@ export function EditorBlockHandle({
 
   // After every change, as text above or in the block moves it.
   useLayoutEffect(() => {
-    setPlace(wrapper && shown != null ? placeAt(editor, wrapper, shown) : null)
-  }, [editor, wrapper, shown, doc])
+    const gap = phone ? PHONE_HANDLE_GAP : HANDLE_GAP
+    setPlace(
+      wrapper && shown != null ? placeAt(editor, wrapper, shown, gap) : null
+    )
+  }, [editor, wrapper, shown, doc, phone])
 
   if (!wrapper || !editable || shown == null || !place) return null
 
@@ -357,6 +446,19 @@ export function EditorBlockHandle({
     const tr = action(shown)
     // Its own undo step, even straight after the last.
     if (tr) editor.view.dispatch(closeHistory(tr))
+  }
+
+  // The menu stays open on the block where it lands.
+  const move = (step: -1 | 1) => {
+    run((pos) => moveBlock(editor.state, pos, step, containers))
+    setMenuAt(blockAt(editor.state, editor.state.selection.from, containers))
+  }
+
+  const handBack = () => {
+    focusEditor(editor)
+    afterClose.current?.()
+    afterClose.current = null
+    return false
   }
 
   const onDragStart = (event: React.DragEvent) => {
@@ -378,6 +480,113 @@ export function EditorBlockHandle({
     draggedBlocks.set(view, { from: shown, containers })
   }
 
+  const label = blockLabel(doc.nodeAt(shown)!, appLabels)
+  const kind = blockKind(doc, shown)
+  const kinds = kind
+    ? TEXT_BLOCK_KINDS.filter(({ type }) => Boolean(editor.schema.nodes[type]))
+    : []
+  const blockId = blockIdAt(doc, shown)
+  const close = () => setMenuAt(null)
+
+  const moves: BlockAction[] = [
+    {
+      label: 'Move up',
+      icon: ArrowUpIcon,
+      shortcut: BLOCK_ACTION_KEYS.moveUp,
+      disabled: !canMoveBlock(doc, shown, -1, containers),
+      // Stays open on the block, so it can go up again.
+      keepOpen: true,
+      run: () => move(-1)
+    },
+    {
+      label: 'Move down',
+      icon: ArrowDownIcon,
+      shortcut: BLOCK_ACTION_KEYS.moveDown,
+      disabled: !canMoveBlock(doc, shown, 1, containers),
+      keepOpen: true,
+      run: () => move(1)
+    },
+    ...(parent !== null
+      ? [
+          {
+            label: PARENT_LABELS[parentName!] ?? 'Select parent block',
+            icon: SelectionPlusIcon,
+            // Stays open on the parent, the keyboard's way to a section.
+            keepOpen: true,
+            run: () => setMenuAt(parent)
+          }
+        ]
+      : []),
+    {
+      label: 'Duplicate',
+      icon: CopySimpleIcon,
+      shortcut: BLOCK_ACTION_KEYS.duplicate,
+      run: () => run((pos) => duplicateBlock(editor.state, pos))
+    }
+  ]
+  const more: BlockAction[] = [
+    {
+      label: 'Insert below',
+      icon: PlusIcon,
+      // Once the menu's let go of focus, or the insert menu would close.
+      run: () => {
+        afterClose.current = () => run((pos) => insertBelow(editor.state, pos))
+      }
+    },
+    ...(blockId
+      ? [
+          {
+            label: 'Copy link to block',
+            icon: LinkIcon,
+            // A refused copy changes nothing on the page, so it's let go.
+            run: () =>
+              void navigator.clipboard
+                ?.writeText(blockLink(blockId))
+                .catch(() => {})
+          }
+        ]
+      : [])
+  ]
+  const remove: BlockAction = {
+    label: 'Delete',
+    icon: TrashIcon,
+    shortcut: BLOCK_ACTION_KEYS.delete,
+    intent: 'danger',
+    run: () => run((pos) => deleteBlock(editor.state, pos))
+  }
+  const turn = (to: BlockKind) => {
+    editor.chain().command(turnInto(shown, to)).run()
+    focusEditor(editor)
+  }
+
+  const grip = (
+    <IconButton
+      size='xs'
+      emphasis='subtler'
+      aria-label='Block actions'
+      draggable
+      // It shows only beside the caret's block, so focus on it would
+      // hide it; Mod+/ is the keyboard path.
+      tabIndex={-1}
+      data-slot='editor-block-handle'
+      className={cn(
+        'absolute cursor-grab text-subtle',
+        // A thumb's 44px target, where a phone has no hover to find it.
+        'max-sm:before:absolute max-sm:before:top-1/2 max-sm:before:left-1/2 max-sm:before:size-11 max-sm:before:-translate-1/2',
+        'pointer-coarse:before:absolute pointer-coarse:before:top-1/2 pointer-coarse:before:left-1/2 pointer-coarse:before:size-11 pointer-coarse:before:-translate-1/2'
+      )}
+      style={place}
+      onClick={() => setMenuAt(shown)}
+      onDragStart={onDragStart}
+      onDragEnd={() => {
+        editor.view.dragging = null
+        draggedBlocks.delete(editor.view)
+      }}
+    >
+      <DotsSixVerticalIcon weight='bold' className='size-4' aria-hidden />
+    </IconButton>
+  )
+
   return createPortal(
     <>
       {canAdd ? (
@@ -388,7 +597,9 @@ export function EditorBlockHandle({
           // As the grip: Mod+/ and `/` are the keyboard paths.
           tabIndex={-1}
           data-slot='editor-block-add'
-          className='absolute text-subtle'
+          // A phone adds from the toolbar and the block's menu, leaving the
+          // gutter to the grip.
+          className='absolute text-subtle max-sm:hidden pointer-coarse:hidden'
           style={{
             top: place.top,
             left: place.left + (isRtl(editor) ? HANDLE_SIZE : -HANDLE_SIZE)
@@ -398,110 +609,215 @@ export function EditorBlockHandle({
           <PlusIcon weight='bold' className='size-4' aria-hidden />
         </IconButton>
       ) : null}
-      <Menu
-        open={menuAt !== null}
-        onOpenChange={(open) => {
-          if (!open) setMenuAt(null)
-        }}
-      >
-        <Menu.Trigger
-          render={
-            <IconButton
-              size='xs'
-              emphasis='subtler'
-              aria-label='Block actions'
-              draggable
-              // It shows only beside the caret's block, so focus on it would
-              // hide it; Mod+/ is the keyboard path.
-              tabIndex={-1}
-              data-slot='editor-block-handle'
-              className='absolute cursor-grab text-subtle'
-              style={place}
-              onClick={() => setMenuAt(shown)}
-              onDragStart={onDragStart}
-              onDragEnd={() => {
-                editor.view.dragging = null
-                draggedBlocks.delete(editor.view)
-              }}
-            >
-              <DotsSixVerticalIcon
-                weight='bold'
-                className='size-4'
-                aria-hidden
-              />
-            </IconButton>
-          }
-        />
-        <Menu.Content
-          // Beside the grip, as Notion's is, so the block stays in view.
-          side='left'
-          align='start'
-          // Delete acts on the block, as the menu's open on it.
-          onKeyDown={(event) => {
-            if (event.key !== 'Delete' && event.key !== 'Backspace') return
-            event.preventDefault()
-            run((pos) => deleteBlock(editor.state, pos))
-            setMenuAt(null)
-          }}
-          finalFocus={() => {
-            focusEditor(editor)
-            return false
+      {phone ? (
+        <>
+          {grip}
+          <Drawer
+            open={menuOpen}
+            onOpenChange={(open) => {
+              if (!open) close()
+            }}
+            side='bottom'
+          >
+            <Drawer.Content size='fit' finalFocus={handBack}>
+              <Drawer.Header>
+                <Drawer.Title>{label}</Drawer.Title>
+              </Drawer.Header>
+              <Drawer.Body className='grid content-start gap-4 pb-6'>
+                <DrawerActions
+                  actions={[...moves, ...more, remove]}
+                  onDone={close}
+                />
+                {kinds.length > 0 ? (
+                  <div
+                    role='group'
+                    aria-labelledby={`${contentId}-turn-into`}
+                    className='grid gap-1'
+                  >
+                    <h3
+                      id={`${contentId}-turn-into`}
+                      className='px-3 text-display-ui-6 text-subtle'
+                    >
+                      Turn into
+                    </h3>
+                    {kinds.map((each) => (
+                      <DrawerAction
+                        key={kindLabel(each)}
+                        icon={kindIcon(each)}
+                        pressed={kindLabel(each) === kindLabel(kind!)}
+                        onClick={() => {
+                          close()
+                          turn(each)
+                        }}
+                      >
+                        {kindLabel(each)}
+                      </DrawerAction>
+                    ))}
+                  </div>
+                ) : null}
+              </Drawer.Body>
+            </Drawer.Content>
+          </Drawer>
+        </>
+      ) : (
+        <Menu
+          open={menuOpen}
+          onOpenChange={(open) => {
+            if (!open) close()
           }}
         >
-          <Menu.Group>
-            <Menu.GroupLabel>
-              {blockLabel(doc.nodeAt(shown)!, appLabels)}
-            </Menu.GroupLabel>
-            <Menu.Item
-              icon={<ArrowUpIcon weight='bold' />}
-              shortcut={BLOCK_ACTION_KEYS.moveUp}
-              disabled={!canMoveBlock(doc, shown, -1, containers)}
-              onClick={() =>
-                run((pos) => moveBlock(editor.state, pos, -1, containers))
-              }
-            >
-              Move up
-            </Menu.Item>
-            <Menu.Item
-              icon={<ArrowDownIcon weight='bold' />}
-              shortcut={BLOCK_ACTION_KEYS.moveDown}
-              disabled={!canMoveBlock(doc, shown, 1, containers)}
-              onClick={() =>
-                run((pos) => moveBlock(editor.state, pos, 1, containers))
-              }
-            >
-              Move down
-            </Menu.Item>
-            {parent !== null ? (
+          <Menu.Trigger render={grip} />
+          <Menu.Content
+            // Beside the grip, as Notion's is, so the block stays in view.
+            side='left'
+            align='start'
+            // Delete acts on the block, as the menu's open on it.
+            onKeyDown={(event) => {
+              if (event.key !== 'Delete' && event.key !== 'Backspace') return
+              event.preventDefault()
+              remove.run()
+              close()
+            }}
+            finalFocus={handBack}
+          >
+            <Menu.Group>
+              <Menu.GroupLabel>{label}</Menu.GroupLabel>
+              {moves.map((action) => (
+                <Menu.Item
+                  key={action.label}
+                  icon={createElement(action.icon, { weight: 'bold' })}
+                  shortcut={action.shortcut}
+                  disabled={action.disabled}
+                  closeOnClick={!action.keepOpen}
+                  onClick={action.run}
+                >
+                  {action.label}
+                </Menu.Item>
+              ))}
+              {kinds.length > 0 ? (
+                <Menu.SubmenuRoot>
+                  <Menu.SubmenuTrigger
+                    icon={<ArrowsClockwiseIcon weight='bold' />}
+                  >
+                    Turn into
+                  </Menu.SubmenuTrigger>
+                  <Menu.Content>
+                    <Menu.RadioGroup value={kindLabel(kind!)}>
+                      {kinds.map((each) => (
+                        <Menu.RadioItem
+                          key={kindLabel(each)}
+                          value={kindLabel(each)}
+                          icon={createElement(kindIcon(each), {
+                            weight: 'bold'
+                          })}
+                          closeOnClick
+                          onClick={() => turn(each)}
+                        >
+                          {kindLabel(each)}
+                        </Menu.RadioItem>
+                      ))}
+                    </Menu.RadioGroup>
+                  </Menu.Content>
+                </Menu.SubmenuRoot>
+              ) : null}
+              {more.map((action) => (
+                <Menu.Item
+                  key={action.label}
+                  icon={createElement(action.icon, { weight: 'bold' })}
+                  shortcut={action.shortcut}
+                  disabled={action.disabled}
+                  closeOnClick={!action.keepOpen}
+                  onClick={action.run}
+                >
+                  {action.label}
+                </Menu.Item>
+              ))}
+              <Menu.Separator />
               <Menu.Item
-                icon={<SelectionPlusIcon weight='bold' />}
-                // Stays open on the parent, the keyboard's way to a section.
-                closeOnClick={false}
-                onClick={() => setMenuAt(parent)}
+                icon={<TrashIcon weight='bold' />}
+                shortcut={remove.shortcut}
+                intent='danger'
+                onClick={remove.run}
               >
-                {PARENT_LABELS[parentName!] ?? 'Select parent block'}
+                {remove.label}
               </Menu.Item>
-            ) : null}
-            <Menu.Item
-              icon={<CopySimpleIcon weight='bold' />}
-              shortcut={BLOCK_ACTION_KEYS.duplicate}
-              onClick={() => run((pos) => duplicateBlock(editor.state, pos))}
-            >
-              Duplicate
-            </Menu.Item>
-            <Menu.Separator />
-            <Menu.Item
-              icon={<TrashIcon weight='bold' />}
-              shortcut={BLOCK_ACTION_KEYS.delete}
-              intent='danger'
-              onClick={() => run((pos) => deleteBlock(editor.state, pos))}
-            >
-              Delete
-            </Menu.Item>
-          </Menu.Group>
-        </Menu.Content>
-      </Menu>
+            </Menu.Group>
+          </Menu.Content>
+        </Menu>
+      )}
     </>,
     host!
+  )
+}
+
+type BlockAction = {
+  label: string
+  icon: Icon
+  shortcut?: readonly string[]
+  disabled?: boolean
+  intent?: 'danger'
+  /** Leaves the menu open, on the block wherever it went. */
+  keepOpen?: boolean
+  run: () => void
+}
+
+type DrawerActionProps = {
+  icon: Icon
+  intent?: 'danger'
+  pressed?: boolean
+  disabled?: boolean
+  onClick: () => void
+  children: string
+}
+
+// A thumb's row, with no keys: a phone has none to press.
+function DrawerAction({
+  icon,
+  intent,
+  pressed,
+  disabled,
+  onClick,
+  children
+}: DrawerActionProps) {
+  return (
+    <Button
+      size='lg'
+      emphasis='subtler'
+      intent={intent}
+      disabled={disabled}
+      aria-pressed={pressed}
+      className={cn('w-full justify-start', pressed && 'is-selected')}
+      onClick={onClick}
+    >
+      {createElement(icon, { weight: 'bold', className: 'size-4' })}
+      {children}
+    </Button>
+  )
+}
+
+function DrawerActions({
+  actions,
+  onDone
+}: {
+  actions: readonly BlockAction[]
+  onDone: () => void
+}) {
+  return (
+    <div className='grid gap-1'>
+      {actions.map((action) => (
+        <DrawerAction
+          key={action.label}
+          icon={action.icon}
+          intent={action.intent}
+          disabled={action.disabled}
+          onClick={() => {
+            if (!action.keepOpen) onDone()
+            action.run()
+          }}
+        >
+          {action.label}
+        </DrawerAction>
+      ))}
+    </div>
   )
 }
