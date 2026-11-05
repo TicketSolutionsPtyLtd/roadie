@@ -73,16 +73,21 @@ function liquidCondition(path: string, rule: ShowWhen) {
 const numberIn = (value: string | undefined) =>
   /^\s*-?\d+(\.\d+)?\s*$/.test(String(value)) ? Number(value) : undefined
 
+// A preview can only write a sender's false as text, and Liquid's false fails
+// `and` and equals no text.
+const isFalse = (value: string | undefined) => value === 'false'
+
 const matches = (value: string | undefined, wanted: string | number) =>
-  typeof wanted === 'number' ? numberIn(value) === wanted : value === wanted
+  typeof wanted === 'number'
+    ? numberIn(value) === wanted
+    : value === wanted && !isFalse(value)
 
 function holds(rule: ShowWhen, values: Readonly<Record<string, string>>) {
   const value = Object.hasOwn(values, rule.key) ? values[rule.key] : undefined
   const number = numberIn(value)
   switch (rule.op) {
-    // A sender's false fails Liquid's `and`, and a preview can only write it as text.
     case 'exists':
-      return Boolean(value) && value !== 'false'
+      return Boolean(value) && !isFalse(value)
     case 'equals':
       return matches(value, rule.value)
     case 'notEquals':

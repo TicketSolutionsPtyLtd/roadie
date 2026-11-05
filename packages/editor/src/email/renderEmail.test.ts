@@ -911,6 +911,20 @@ describe('renderEmail', () => {
       }
     )
 
+    it('compares a preview’s false as Liquid’s false, which no text equals', async () => {
+      const read = async (op: 'equals' | 'notEquals') =>
+        (
+          await renderEmail(offer({ key: 'ticket_type', op, value: 'false' }), {
+            variables,
+            values: { ticket_type: 'false' }
+          })
+        ).text
+      expect(await read('equals')).toBe('Before\n\nAfter')
+      expect(await read('notEquals')).toBe(
+        `Before\n\nGrab the last few [${tickets}]\n\nAfter`
+      )
+    })
+
     it('checks a rule keyed like an object’s own property from values alone', async () => {
       const keyed: EditorVariable[] = [
         { key: 'constructor', label: 'Constructor', tokens: {} }
