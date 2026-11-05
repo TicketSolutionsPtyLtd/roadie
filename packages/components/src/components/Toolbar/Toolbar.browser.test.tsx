@@ -506,8 +506,9 @@ describe('Flush toolbar', () => {
   )
 
   it.each(['normal', 'subtle', 'subtler', 'raised', 'floating'] as const)(
-    'keeps the fill of %s',
+    'keeps the fill of %s in both themes',
     (emphasis) => {
+      onTestFinished(() => document.documentElement.classList.remove('dark'))
       render(
         <>
           <Toolbar emphasis={emphasis} aria-label='Inset'>
@@ -522,6 +523,10 @@ describe('Flush toolbar', () => {
         const style = getComputedStyle(surfaceOf(name))
         return [style.backgroundColor, style.backdropFilter]
       }
+      expect(fill('Flush')).toEqual(fill('Inset'))
+
+      // Only dark mode tells the floating fill from the raised one.
+      document.documentElement.classList.add('dark')
       expect(fill('Flush')).toEqual(fill('Inset'))
     }
   )
