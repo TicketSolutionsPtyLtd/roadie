@@ -534,7 +534,7 @@ describe('Editor blocks drawer', () => {
     })
   })
 
-  it.each(['basic', 'rich', 'blocks'] as const)(
+  it.each(['basic', 'rich'] as const)(
     'offers no Blocks button in the %s preset',
     async (preset) => {
       render(<Editor aria-label={LABEL} preset={preset} toolbar='docked' />)
@@ -543,6 +543,131 @@ describe('Editor blocks drawer', () => {
       expect(within(bar).queryByRole('button', { name: 'Blocks' })).toBe(null)
     }
   )
+})
+
+describe('Editor blocks drawer in the blocks preset', () => {
+  const page = (...content: JSONContent[]): EditorValue => ({
+    version: 1,
+    preset: 'blocks',
+    doc: { type: 'doc', content }
+  })
+  const block = (blockId: string, text: string): JSONContent => ({
+    type: 'paragraph',
+    attrs: { blockId },
+    content: [{ type: 'text', text }]
+  })
+
+  function renderPage(props: Partial<EditorProps> = {}) {
+    const onValueChange = vi.fn()
+    render(
+      <div style={{ paddingTop: 96, paddingInline: 64 }}>
+        <Editor
+          aria-label={LABEL}
+          preset='blocks'
+          defaultValue={page(
+            block('doors', 'Doors 7pm'),
+            block('gates', 'Gates 6pm')
+          )}
+          onValueChange={onValueChange}
+          {...props}
+        />
+      </div>
+    )
+    return onValueChange
+  }
+
+  const types = (onValueChange: ReturnType<typeof vi.fn>) =>
+    (onValueChange.mock.lastCall![0] as EditorValue).doc.content!.map(
+      ({ type, content }) => [type, content?.[0]?.text]
+    )
+
+  it('opens from the docked toolbar with the preset’s blocks as tiles', async () => {
+    renderPage({
+      toolbar: 'docked',
+      onUploadImage: async () => ({ src: '/images/crowd.webp' })
+    })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+
+    expect(tileGroups(drawer)).toEqual([
+      [
+        'Text',
+        [
+          'Paragraph',
+          'Heading 2',
+          'Heading 3',
+          'Heading 4',
+          'Bulleted list',
+          'Numbered list',
+          'Quote'
+        ]
+      ],
+      ['Media', ['Image', 'Embed']],
+      ['Layout', ['Divider', 'Table']]
+    ])
+  })
+
+  it('adds a block after the caret’s block', async () => {
+    const onValueChange = renderPage({ toolbar: 'docked' })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(
+      within(drawer).getByRole('button', { name: 'Divider' })
+    )
+
+    await waitFor(() =>
+      expect(types(onValueChange)).toEqual([
+        ['paragraph', 'Doors 7pm'],
+        ['horizontalRule', undefined],
+        ['paragraph', 'Gates 6pm']
+      ])
+    )
+    await waitFor(async () => expect(await textbox()).toHaveFocus())
+  })
+
+  it('opens the Embed popover on a new line after the caret’s block', async () => {
+    const onValueChange = renderPage({ toolbar: 'docked' })
+    await clickInto('Doors 7pm')
+
+    const drawer = await openFromDockedBar()
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Embed' }))
+
+    const field = await screen.findByRole('textbox', {
+      name: 'Video or audio link'
+    })
+    await waitFor(() => expect(field).toHaveFocus())
+    expect(types(onValueChange)).toEqual([
+      ['paragraph', 'Doors 7pm'],
+      ['paragraph', undefined],
+      ['paragraph', 'Gates 6pm']
+    ])
+  })
+
+  it('shows an add button before the grip, which opens the insert menu after the block', async () => {
+    const onValueChange = renderPage()
+    const row = await screen.findByText('Doors 7pm')
+    await userEvent.hover(row)
+
+    const add = await screen.findByRole('button', { name: 'Add block' })
+    const grip = await screen.findByRole('button', { name: 'Block actions' })
+    await waitFor(() =>
+      expect(add.getBoundingClientRect().right).toBeLessThanOrEqual(
+        grip.getBoundingClientRect().left
+      )
+    )
+    await userEvent.click(add)
+
+    expect(await screen.findByRole('listbox', { name: 'Insert' })).toBeVisible()
+    await waitFor(() =>
+      expect(types(onValueChange)).toEqual([
+        ['paragraph', 'Doors 7pm'],
+        ['paragraph', '/'],
+        ['paragraph', 'Gates 6pm']
+      ])
+    )
+  })
 })
 
 describe('Editor blocks drawer sections', () => {
