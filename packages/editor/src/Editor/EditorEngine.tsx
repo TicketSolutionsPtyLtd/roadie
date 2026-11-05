@@ -54,7 +54,6 @@ import {
   presetShapes
 } from '../schema/presetShapes'
 import { textVariables } from '../schema/variables'
-import { EditorAltTextPopover } from './EditorAltTextPopover'
 import { EditorBlockHandle } from './EditorBlockHandle'
 import { EditorBlocksDrawer } from './EditorBlocksDrawer'
 import { EditorBubbleMenuEngine } from './EditorBubbleMenuEngine'
@@ -63,6 +62,7 @@ import { EditorContent } from './EditorContent'
 import { EditorContext } from './EditorContext'
 import { EditorEmbedPopover } from './EditorEmbedPopover'
 import { EditorEmbedView } from './EditorEmbedView'
+import { EditorImagePopover } from './EditorImagePopover'
 import { EditorImageView } from './EditorImageView'
 import { EditorImportDialog, type ImportRequest } from './EditorImportDialog'
 import { EditorInsertMenu } from './EditorInsertMenu'
@@ -422,7 +422,8 @@ export function EditorEngine({
   const [toolbarExtras, setToolbarExtras] = useState<ReactNode>(null)
   const openBlockMenuRef = useRef<(() => void) | null>(null)
   const [editingLink, setEditingLink] = useState(false)
-  const [editingAlt, setEditingAlt] = useState(false)
+  const [editingImage, setEditingImage] = useState(false)
+  const [addingImage, setAddingImage] = useState(false)
   const [editingEmbed, setEditingEmbed] = useState(false)
   const [editingButton, setEditingButton] = useState(false)
   const [editingVariable, setEditingVariable] = useState(false)
@@ -503,7 +504,12 @@ export function EditorEngine({
       LinkShortcut.configure({ onEditLink: () => setEditingLink(true) }),
       HeadingBackspace,
       SmartPunctuation,
-      AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
+      AltTextShortcut.configure({
+        onEditAlt: () => {
+          setAddingImage(false)
+          setEditingImage(true)
+        }
+      }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
       ...(preset === 'email'
@@ -722,7 +728,9 @@ export function EditorEngine({
       }
     },
     editAlt: () => {
-      if (editor?.isEditable) setEditingAlt(true)
+      if (!editor?.isEditable) return
+      setAddingImage(false)
+      setEditingImage(true)
     },
     editEmbed: () => {
       if (editor?.isEditable && editor.schema.nodes.embed) {
@@ -737,7 +745,15 @@ export function EditorEngine({
     editVariable: () => {
       if (editor?.isEditable) setEditingVariable(true)
     },
-    pickImage: canUpload ? () => fileInputRef.current?.click() : undefined,
+    // From a link, or an upload with onUploadImage.
+    pickImage: holdsImages
+      ? () => {
+          if (!editor?.isEditable) return
+          // Adds one, even with an image selected.
+          setAddingImage(true)
+          setEditingImage(true)
+        }
+      : undefined,
     replaceImage: canUpload
       ? () => replaceInputRef.current?.click()
       : undefined,
@@ -861,10 +877,15 @@ export function EditorEngine({
           open={editingLink}
           onOpenChange={setEditingLink}
         />
-        <EditorAltTextPopover
+        <EditorImagePopover
           editor={editor}
-          open={editingAlt}
-          onOpenChange={setEditingAlt}
+          open={editingImage}
+          onOpenChange={setEditingImage}
+          adding={addingImage}
+          pickFile={canUpload ? () => fileInputRef.current?.click() : undefined}
+          replaceFile={
+            canUpload ? () => replaceInputRef.current?.click() : undefined
+          }
         />
         <EditorButtonPopover
           editor={editor}

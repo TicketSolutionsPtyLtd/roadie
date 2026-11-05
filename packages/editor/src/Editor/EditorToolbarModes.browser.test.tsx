@@ -244,6 +244,7 @@ describe('Floating toolbar’s More menu', () => {
 
     expect(menuItems(menu)).toEqual([
       'Divider',
+      'Image',
       'Embed',
       'Table',
       'Undo',

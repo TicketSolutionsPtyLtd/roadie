@@ -15,7 +15,6 @@ import { LINE_END, MOD, selectParagraph } from './testUtils'
 
 const LABEL = 'Event description'
 const TICKETS = 'https://www.oztix.com.au/ochre-kite-weekender'
-const CROWD_ALT = 'The crowd at sunset'
 const SPOTIFY = 'https://open.spotify.com/track/exampleTrack0000000001'
 
 // The tests serve no images, so this stands in for a loaded one's size.
@@ -49,10 +48,6 @@ const withDoc = (...content: unknown[]): EditorValue =>
   }) as EditorValue
 
 const soldOut = withDoc(SOLD_OUT)
-const pictured = withDoc(
-  { type: 'image', attrs: { src: '/images/crowd.webp', alt: '' } },
-  SOLD_OUT
-)
 const youtube = withDoc(
   { type: 'embed', attrs: { provider: 'youtube', id: 'exampleVid1' } },
   SOLD_OUT
@@ -168,19 +163,25 @@ const POPOVERS: Popover[] = [
     live: true
   },
   {
-    name: 'Alt text',
-    placeholder: 'Describe the image',
-    value: pictured,
+    name: 'Image',
+    placeholder: 'Paste an image link',
+    value: soldOut,
     async open(textbox) {
-      await userEvent.click(textbox.querySelector('img')!)
-      await userEvent.keyboard('{Enter}')
-      return openField('Alt text')
+      await userEvent.click(within(textbox).getByText('Sold out'))
+      await userEvent.click(screen.getByRole('button', { name: 'Image' }))
+      return openField('Image link')
     },
-    typed: CROWD_ALT,
-    submitLabel: 'Save alt text',
-    saved: (textbox) => within(textbox).findByRole('img', { name: CROWD_ALT }),
-    shown: (textbox) => within(textbox).queryByRole('img', { name: CROWD_ALT }),
-    live: true
+    typed: '/images/crowd.webp',
+    submitLabel: 'Add image',
+    saved: (textbox) =>
+      waitFor(() => {
+        const image = textbox.querySelector('img[src="/images/crowd.webp"]')
+        expect(image).not.toBe(null)
+        return image
+      }),
+    shown: (textbox) =>
+      textbox.querySelector<HTMLElement>('img[src="/images/crowd.webp"]'),
+    live: false
   }
 ]
 
@@ -653,19 +654,6 @@ const PREFILLED = [
       await userEvent.click(within(textbox).getByText('tickets'))
       await userEvent.click(screen.getByRole('button', { name: 'Link' }))
       return openField('Link')
-    }
-  },
-  {
-    name: 'Alt text on an image with alt',
-    value: withDoc(
-      { type: 'image', attrs: { src: '/images/crowd.webp', alt: CROWD_ALT } },
-      SOLD_OUT
-    ),
-    saved: CROWD_ALT,
-    async open(textbox: HTMLElement) {
-      await userEvent.click(textbox.querySelector('img')!)
-      await userEvent.keyboard('{Enter}')
-      return openField('Alt text')
     }
   }
 ]

@@ -105,7 +105,7 @@ describe('Editor extensions', () => {
       within(media)
         .getAllByRole('option')
         .map((option) => option.textContent)
-    ).toEqual(['Embed', 'Event card'])
+    ).toEqual(['Image', 'Embed', 'Event card'])
   })
 
   it('inserts an app’s block from the insert menu, found by a keyword', async () => {

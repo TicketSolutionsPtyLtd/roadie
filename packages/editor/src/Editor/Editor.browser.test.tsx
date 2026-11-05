@@ -1093,6 +1093,7 @@ describe('Editor rich preset', () => {
       'Numbered list',
       '|',
       'Divider',
+      'Image',
       'Embed',
       'Table',
       '|',
@@ -1315,11 +1316,11 @@ function imagesIn(value: EditorValue) {
 }
 
 describe('Editor images', () => {
-  it('has no image control, and ignores pasted and dropped images, without onUploadImage', async () => {
+  it('adds images only from a link, ignoring pasted and dropped ones, without onUploadImage', async () => {
     const onValueChange = vi.fn()
     render(<RichEditor onValueChange={onValueChange} />)
     const textbox = await focusedTextbox()
-    expect(screen.queryByRole('button', { name: 'Image' })).toBe(null)
+    expect(screen.getByRole('button', { name: 'Image' })).toBeVisible()
 
     pasteFiles(textbox, imageFile())
     const drop = dropFiles(textbox, imageFile())
