@@ -163,9 +163,11 @@ const BlockShortcuts = Extension.create<BlockShortcutsOptions>({
   }
 })
 
-const BLOCK_HANDLE_CONTAINERS: Partial<Record<Preset, BlockContainers>> = {
-  blocks: TOP_LEVEL,
-  email: new Set(['doc', 'section', 'column'])
+const BLOCK_HANDLES: Partial<
+  Record<Preset, { containers: BlockContainers; canAdd: boolean }>
+> = {
+  blocks: { containers: TOP_LEVEL, canAdd: false },
+  email: { containers: new Set(['doc', 'section', 'column']), canAdd: true }
 }
 
 type AltTextShortcutOptions = { onEditAlt: () => void }
@@ -464,8 +466,7 @@ export function EditorEngine({
   const editable = !readOnly && !disabled && !unreadable
   useFieldControlError(uploadError ?? (unreadable ? UNREADABLE : null))
   const holdsImages = presetHoldsImages(preset)
-  const blockContainers = BLOCK_HANDLE_CONTAINERS[preset]
-  const hasBlockHandle = blockContainers !== undefined
+  const blockHandle = BLOCK_HANDLES[preset]
   const holdsMergeTags = Boolean(schema.nodes.variable)
   const presetItems = [
     ...(presetInsertItems[preset] ?? []),
@@ -506,14 +507,16 @@ export function EditorEngine({
           return Boolean(openBlockMenuRef.current)
         }
       }),
-      ...(blockContainers
+      ...(blockHandle
         ? [
             BlockDrag,
             MenuBlock,
-            BlockShortcuts.configure({ containers: blockContainers })
+            BlockShortcuts.configure({ containers: blockHandle.containers })
           ]
         : []),
-      FocusedBlock.configure({ containers: blockContainers ?? TOP_LEVEL }),
+      FocusedBlock.configure({
+        containers: blockHandle?.containers ?? TOP_LEVEL
+      }),
       ...(holdsMergeTags
         ? [
             InsertMenu.extend({ name: 'mergeTagMenu' }).configure({
@@ -548,9 +551,9 @@ export function EditorEngine({
           'min-w-0 outline-none',
           preset === 'email' && EMAIL_CANVAS,
           // Room for the block handle at each block's start.
-          hasBlockHandle &&
+          blockHandle &&
             emphasis !== 'subtler' &&
-            (presetItems.length > 0 ? 'ps-15' : 'ps-10')
+            (blockHandle.canAdd ? 'ps-15' : 'ps-10')
         )
       },
       handleDOMEvents: {
@@ -774,12 +777,12 @@ export function EditorEngine({
             toolbarRef={nodeToolbarRef}
           />
         ) : null}
-        {editor && blockContainers ? (
+        {editor && blockHandle ? (
           <EditorBlockHandle
             editor={editor}
             openMenuRef={openBlockMenuRef}
-            containers={blockContainers}
-            canAdd={presetItems.length > 0}
+            containers={blockHandle.containers}
+            canAdd={blockHandle.canAdd}
             appLabels={blockLabels}
           />
         ) : null}
