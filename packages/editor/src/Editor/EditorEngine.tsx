@@ -52,7 +52,6 @@ import { EditorInsertMenu } from './EditorInsertMenu'
 import { EditorLinkPopover } from './EditorLinkPopover'
 import { EditorNodeToolbar, selectedNodeType } from './EditorNodeToolbar'
 import type { EditorRootProps } from './EditorRoot'
-import { EditorSlashMenuEngine } from './EditorSlashMenuEngine'
 import { EditorTableToolbar } from './EditorTableToolbar'
 import { EditorToolbarEngine } from './EditorToolbarEngine'
 import type { EditorControlUi } from './controls'
@@ -68,7 +67,6 @@ import {
 import { presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
-import { SlashMenu, type SlashMenuHandle } from './slashMenu'
 import { resolvedPreset } from './startingValue'
 import { selectedTable, withTableEditing } from './table'
 import {
@@ -271,7 +269,6 @@ export function EditorEngine({
   const toolbarRef = useRef<HTMLDivElement>(null)
   const nodeToolbarRef = useRef<HTMLDivElement>(null)
   const tableToolbarRef = useRef<HTMLDivElement>(null)
-  const slashMenuRef = useRef<SlashMenuHandle>(null)
   const [editingLink, setEditingLink] = useState(false)
   const [editingAlt, setEditingAlt] = useState(false)
   const [editingEmbed, setEditingEmbed] = useState(false)
@@ -320,7 +317,6 @@ export function EditorEngine({
       AltTextShortcut.configure({ onEditAlt: () => setEditingAlt(true) }),
       ImageUpload.configure(uploads),
       EmbedPaste.configure({ providers: () => providersRef.current }),
-      SlashMenu.configure({ menu: () => slashMenuRef.current }),
       InsertMenu.configure({
         items: presetInsertItems[preset] ?? [],
         ui: () => uiRef.current!,
@@ -454,9 +450,7 @@ export function EditorEngine({
         ...ui,
         embedProviders,
         TiptapContent,
-        ToolbarEngine: EditorToolbarEngine,
-        SlashMenuEngine: EditorSlashMenuEngine,
-        slashMenuRef
+        ToolbarEngine: EditorToolbarEngine
       }}
     >
       <div
@@ -477,7 +471,6 @@ export function EditorEngine({
           <>
             <EditorToolbarEngine />
             <EditorContent />
-            <EditorSlashMenuEngine />
           </>
         )}
         {editor ? (
