@@ -166,7 +166,11 @@ const embed: EditorInsertItem = {
     editEmbed()
     return chain
   },
-  enabled: (editor) => editor.can().setEmbed({ provider: '', id: '' })
+  // setEmbed would split a table to fit one in a cell, so check it as a block.
+  enabled: (_editor, afterQuery) =>
+    afterQuery()
+      .command(insertBlock({ type: 'embed', attrs: { provider: '', id: '' } }))
+      .run()
 }
 
 const cells = (type: string) =>

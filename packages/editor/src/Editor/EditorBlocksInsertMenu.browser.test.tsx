@@ -155,7 +155,8 @@ describe('Editor insert menu in the blocks preset', () => {
     )
   })
 
-  it('offers no table, heading or list in a table cell', async () => {
+  // An embed there would split the table around it.
+  it('offers only Paragraph in a table cell', async () => {
     renderBlocks()
     await focusedTextbox()
     await userEvent.keyboard('/table{Enter}')
@@ -163,10 +164,7 @@ describe('Editor insert menu in the blocks preset', () => {
 
     await userEvent.keyboard('/')
 
-    const names = optionNames(await insertMenu())
-    expect(names).not.toContain('Table')
-    expect(names).not.toContain('Heading 2')
-    expect(names).not.toContain('Bulleted list')
+    expect(optionNames(await insertMenu())).toEqual(['Paragraph'])
   })
 
   it.each([
