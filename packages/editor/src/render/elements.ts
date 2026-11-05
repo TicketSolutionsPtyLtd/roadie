@@ -103,7 +103,11 @@ const NODES: Record<string, ToElement> = {
   table: () => ({ tag: 'table' }),
   tableRow: () => ({ tag: 'tr' }),
   tableHeader: cellOf('th'),
-  tableCell: cellOf('td')
+  tableCell: cellOf('td'),
+  // An email's layout renders with renderEmail; on a page its text flows.
+  section: () => null,
+  columns: () => null,
+  column: () => null
 }
 
 // Nodes `withTableSections` adds around a saved table's rows, never saved.
@@ -194,5 +198,23 @@ export function withTableSections(node: JSONContent): JSONContent {
   return {
     type: 'tableScroll',
     content: [{ ...node, content: tableSections(content ?? []) }]
+  }
+}
+
+const hasLabel = ({ type, content }: JSONContent) =>
+  type !== 'button' || Boolean(content?.length)
+
+/**
+ * Renders an email button on a page as a paragraph of its linked label, so
+ * two in a row never run together, and drops one with no label, which would
+ * be a link with no name.
+ */
+export function withButtonsAsLinks(node: JSONContent): JSONContent {
+  const content = node.content?.filter(hasLabel).map(withButtonsAsLinks)
+  if (node.type !== 'button') return content ? { ...node, content } : node
+  const marks = [{ type: 'link', attrs: { href: node.attrs?.href } }]
+  return {
+    type: 'paragraph',
+    content: content?.map((label) => ({ ...label, marks }))
   }
 }
