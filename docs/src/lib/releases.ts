@@ -989,13 +989,13 @@ function busiestPages(items: ReleaseItem[]) {
   return [...counts].sort((a, b) => b[1] - a[1]).map(([title]) => title)
 }
 
-/** A title from the highlights, then the pages the other changes touch most. */
 // A production bump needs a changeset, written as "Update `pkg` to 3.14.22" or "Update Tiptap to 3.32.1".
 const DEPENDENCY_BUMP = /^(?:Update|Bump|Upgrade) \S+ to v?\d+\.\d+/
 
 const isDependencyBump = (item: ReleaseItem) =>
   DEPENDENCY_BUMP.test(plainText(item.text))
 
+/** A title from the highlights, then the pages the other changes touch most. */
 export function releaseTitle(cards: ReleaseCard[], items: ReleaseItem[]) {
   const names = [
     ...new Set(
