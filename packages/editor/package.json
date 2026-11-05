@@ -63,6 +63,7 @@
     "size:check": "size-limit --limit"
   },
   "dependencies": {
+    "@floating-ui/dom": "1.8.0",
     "@tiptap/core": "3.32.1",
     "@tiptap/extension-heading": "3.32.1",
     "@tiptap/extension-link": "3.32.1",
