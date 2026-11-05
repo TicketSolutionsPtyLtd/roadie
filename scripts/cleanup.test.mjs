@@ -277,6 +277,54 @@ describe('pnpm cleanup', { skip: process.platform === 'win32' }, () => {
     assert.deepEqual(f.branches(), ['claude/resumed', 'main'])
   })
 
+  test('keeps a worktree a session locks again while it is sized', () => {
+    const f = fixture()
+    const path = f.worktree('claude/resumed')
+    f.merge('claude/resumed')
+    f.lock(path, spawnSync('true').pid)
+    f.lockWhileSizing(path, path, process.pid)
+
+    const { status, output } = f.cleanup([
+      '--delete',
+      '--branch',
+      'claude/resumed'
+    ])
+
+    assert.equal(status, 0, output)
+    assert.equal(existsSync(path), true)
+    assert.match(
+      f.worktreeList(),
+      new RegExp(`locked claude session y \\(pid ${process.pid}\\)`)
+    )
+  })
+
+  test('keeps a worktree a process starts in while it is sized', () => {
+    const f = fixture()
+    const path = f.worktree('claude/reopened')
+    f.merge('claude/reopened')
+    const pidFile = join(dirname(f.repo), 'started.pid')
+    f.whileSizing(
+      path,
+      `(cd "${path}" && exec sleep 60) >/dev/null 2>&1 &\necho $! > "${pidFile}"`
+    )
+
+    try {
+      const { status, output } = f.cleanup([
+        '--delete',
+        '--branch',
+        'claude/reopened'
+      ])
+
+      assert.equal(status, 0, output)
+      assert.match(output, /\(a process started in it since the check\)/)
+      assert.equal(existsSync(path), true)
+      assert.deepEqual(f.branches(), ['claude/reopened', 'main'])
+    } finally {
+      if (existsSync(pidFile))
+        process.kill(Number(readFileSync(pidFile, 'utf8')))
+    }
+  })
+
   test('keeps a worktree locked by a process it may not signal', () => {
     const f = fixture()
     const path = f.worktree('claude/root')

@@ -256,13 +256,13 @@ for (const tree of linked) {
     console.log(`  Kept ${tree.path} (${reason})`)
     continue
   }
+  const kb = sizeKb(tree.path)
   const lateReason = remove && reasonSinceCheck(tree)
   if (lateReason) {
     removable.delete(tree.path)
     console.log(`  Kept ${tree.path} (${lateReason})`)
     continue
   }
-  const kb = sizeKb(tree.path)
   if (remove) removeWorktree(tree)
   reclaimedKb += kb
   console.log(`  ${verb} ${tree.path} [${tree.branch}] (${formatKb(kb)})`)
