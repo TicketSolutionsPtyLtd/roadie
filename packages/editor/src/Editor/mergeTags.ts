@@ -1,4 +1,5 @@
 import { BracketsCurlyIcon } from '@phosphor-icons/react'
+import { Extension } from '@tiptap/core'
 import { NodeSelection } from '@tiptap/pm/state'
 
 import type { EditorVariable } from '../schema'
@@ -38,6 +39,26 @@ export function variableInsertItems(
     enabled: (editor) => editor.can().insertContent(tagOf(key))
   }))
 }
+
+type MergeTagEnterOptions = { onEdit: () => void }
+
+/** Opens a selected tag's form on Enter, which would otherwise split its line. */
+export const MergeTagEnter = Extension.create<MergeTagEnterOptions>({
+  name: 'mergeTagEnter',
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        const { selection } = editor.state
+        const onTag =
+          selection instanceof NodeSelection &&
+          selection.node.type.name === 'variable'
+        if (!onTag || !editor.isEditable) return false
+        this.options.onEdit()
+        return true
+      }
+    }
+  }
+})
 
 /** The `/` menu's way into the merge tag menu, for those who don't know `{{`. */
 export const mergeTagItem: EditorInsertItem = {

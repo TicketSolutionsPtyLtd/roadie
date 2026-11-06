@@ -1,7 +1,8 @@
 'use client'
 
-import { useDeferredValue, useState } from 'react'
+import { useDeferredValue, useRef, useState } from 'react'
 
+import { FileArrowUpIcon } from '@phosphor-icons/react'
 import type { JSONContent } from '@tiptap/core'
 import { Selection } from '@tiptap/pm/state'
 import type { Editor as TiptapEditor } from '@tiptap/react'
@@ -68,6 +69,7 @@ function ImportForm({
   const [placement, setPlacement] = useState<Placement>(
     editor.isEmpty ? 'replace' : 'add'
   )
+  const fileRef = useRef<HTMLInputElement>(null)
   const read = useDeferredValue(source)
   const hasSource = read.trim() !== ''
   const imported = hasSource
@@ -115,8 +117,9 @@ function ImportForm({
       <Dialog.Header>
         <Dialog.Title>Import HTML or MJML</Dialog.Title>
         <Dialog.Description>
-          Paste an email’s source, whole or in part. Its text, links, images,
-          and buttons come across, in the email’s own style.
+          Paste an email’s source, whole or in part, or choose an .html or .mjml
+          file. Its text, links, images, buttons, and columns come across, in
+          the email’s own style.
         </Dialog.Description>
       </Dialog.Header>
       <Dialog.Body className='gap-4'>
@@ -136,6 +139,28 @@ function ImportForm({
               : 'MJML starts with <mjml>. Anything else is read as HTML.'}
           </Field.HelperText>
         </Field>
+        <Button
+          size='sm'
+          emphasis='subtle'
+          className='justify-self-start'
+          onClick={() => fileRef.current?.click()}
+        >
+          <FileArrowUpIcon weight='bold' className='size-4' aria-hidden />
+          Choose a file
+        </Button>
+        <input
+          ref={fileRef}
+          type='file'
+          accept='.html,.htm,.mjml,text/html'
+          hidden
+          aria-label='Email file'
+          onChange={(event) => {
+            const [file] = event.currentTarget.files ?? []
+            event.currentTarget.value = ''
+            // An unreadable file leaves the source as it was.
+            file?.text().then(setSource, () => {})
+          }}
+        />
         {losses.length > 0 ? (
           <Callout intent='warning'>
             <Callout.Icon />

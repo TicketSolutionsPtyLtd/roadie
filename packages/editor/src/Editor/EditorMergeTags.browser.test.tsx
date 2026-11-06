@@ -429,6 +429,18 @@ describe('Editor merge tag editing', () => {
     content: [{ type: 'text', text: 'Hi ' }, tag('last_name', 'friend')]
   })
 
+  it('opens the merge tag form on Enter on a selected tag, keeping the line whole', async () => {
+    const onValueChange = renderEmail({ defaultValue: greeting })
+    await selectChip()
+
+    await userEvent.keyboard('{Enter}')
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Merge tag' })
+    ).toBeInTheDocument()
+    expect(onValueChange).not.toHaveBeenCalled()
+  })
+
   it('applies each change as it’s made, with no Save', async () => {
     const onValueChange = renderEmail({ defaultValue: greeting })
     const dialog = await editTag()
