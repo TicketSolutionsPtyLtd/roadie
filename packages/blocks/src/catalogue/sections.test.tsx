@@ -146,6 +146,61 @@ describe('catalogueSections', () => {
     })
   })
 
+  const settingOf = (label: string, name: string) =>
+    everyBlock()
+      .find((section) => section.label === label)!
+      .settings.find((setting) => setting.name === name)
+
+  it('edits a block’s items as a list, each with its own fields', () => {
+    const cards = settingOf('Cards', 'cards')
+
+    expect(cards).toMatchObject({ type: 'list', itemLabel: 'Card' })
+    expect(
+      cards?.type === 'list' &&
+        cards.fields?.map(({ name, type }) => [name, type])
+    ).toEqual(
+      expect.arrayContaining([
+        ['title', 'text'],
+        ['description', 'text'],
+        ['image', 'image'],
+        ['href', 'text']
+      ])
+    )
+    expect(settingOf('FAQ', 'questions')).toMatchObject({
+      type: 'list',
+      itemLabel: 'Question'
+    })
+  })
+
+  it('edits buttons and images, up to a preset’s limit', () => {
+    expect(settingOf('Hero', 'actions')).toMatchObject({
+      type: 'list',
+      item: 'action',
+      max: 2
+    })
+    expect(settingOf('Hero', 'image')).toMatchObject({ type: 'image' })
+    expect(settingOf('Hero', 'images')).toMatchObject({
+      type: 'list',
+      item: 'image'
+    })
+    expect(settingOf('Gallery', 'images')).toMatchObject({
+      type: 'list',
+      item: 'image'
+    })
+  })
+
+  it('shows no surface as the Surface default, and draws it as none', () => {
+    const stats = everyBlock().find(({ label }) => label === 'Stats')!
+    const surface = settingOf('Stats', 'emphasis')
+
+    expect(surface).toMatchObject({ defaultValue: 'none' })
+    expect(
+      renderToStaticMarkup(
+        stats.render({ attrs: { ...stats.attrs, emphasis: 'none' } })
+      )
+    ).toBe(renderToStaticMarkup(stats.render({ attrs: stats.attrs })))
+  })
+
   it('saves no id, so a copy never repeats one', () => {
     expect(everyBlock().some(({ attrs }) => 'id' in attrs)).toBe(false)
   })

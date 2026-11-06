@@ -41,6 +41,15 @@ export type CatalogueSetting = {
 } & (
   | { type: 'text'; multiline?: boolean }
   | { type: 'choice'; options: readonly Option[]; defaultValue?: string }
+  | { type: 'image' }
+  | { type: 'action' }
+  | {
+      type: 'list'
+      itemLabel: string
+      fields?: readonly CatalogueSetting[]
+      item?: 'image' | 'action'
+      max?: number
+    }
 )
 
 /** A block as one of the editor's `sections`, which `EditorSection` describes. */
@@ -78,8 +87,7 @@ type Field = {
   | { type: 'choice'; options: readonly Option[]; defaultValue?: string }
 )
 
-// The plain fields, which a drawer edits well. Images, actions, and each
-// block's items keep what their template starts with.
+// The plain fields; `partsOf` adds images, buttons and items.
 const FIELDS: Readonly<Record<string, Field>> = {
   eyebrow: { label: 'Eyebrow', type: 'text' },
   title: { label: 'Title', type: 'text' },
@@ -111,7 +119,10 @@ const FIELDS: Readonly<Record<string, Field>> = {
   emphasis: {
     label: 'Surface',
     type: 'choice',
+    // Unset draws no surface, which `propOf` reads `none` as.
+    defaultValue: 'none',
     options: [
+      { value: 'none', label: 'None' },
       { value: 'subtler', label: 'Subtler' },
       { value: 'subtle', label: 'Subtle' },
       { value: 'normal', label: 'Normal' },
@@ -160,6 +171,7 @@ const isAttrs = (value: unknown): value is Attrs =>
 
 // Side by side's stats are a panel holding its figures, not a list.
 function propOf(block: string, name: string, value: unknown): unknown {
+  if (name === 'emphasis' && value === 'none') return undefined
   if (block === 'side-by-side' && name === 'stats') {
     const panel = isAttrs(value) ? value : {}
     return { ...panel, figures: propOf('', 'figures', panel.figures) }
@@ -177,6 +189,123 @@ const propsOf = (block: string, attrs: Attrs): Attrs =>
 
 const camel = (kebab: string) =>
   kebab.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())
+
+// A block's items, by their prop, and what one is called.
+const ITEMS: Readonly<Record<string, string>> = {
+  cards: 'Card',
+  questions: 'Question',
+  stats: 'Stat',
+  figures: 'Stat',
+  rows: 'Row',
+  tiles: 'Tile',
+  quotes: 'Quote'
+}
+
+const LONG_TEXT = new Set(['description', 'answer', 'quote', 'body'])
+const ITEM_TEXT = new Set([
+  'title',
+  'subtitle',
+  'description',
+  'question',
+  'answer',
+  'value',
+  'label',
+  'quote',
+  'href'
+])
+const ITEM_IMAGES = new Set(['image', 'logo'])
+
+const sentence = (name: string) => name.charAt(0).toUpperCase() + name.slice(1)
+
+// An item's own fields, as settings: its text and its images.
+function itemSettings(names: readonly string[]): CatalogueSetting[] {
+  return names.flatMap((name): CatalogueSetting[] => {
+    if (ITEM_IMAGES.has(name)) {
+      return [{ name, label: sentence(name), type: 'image' }]
+    }
+    if (!ITEM_TEXT.has(name)) return []
+    return [
+      {
+        name,
+        label: name === 'href' ? 'Link' : sentence(name),
+        type: 'text',
+        multiline: LONG_TEXT.has(name)
+      }
+    ]
+  })
+}
+
+type Part = CatalogueSetting extends infer Setting
+  ? Setting extends unknown
+    ? Omit<Setting, 'name' | 'available'>
+    : never
+  : never
+
+// The fields a drawer edits as a whole: images, buttons, and the items.
+function partsOf(block: CatalogueBlock, fields: Set<string>) {
+  const parts: [string, Part][] = []
+  const most = (name: string) =>
+    Math.max(
+      ...block.presets.map(
+        (preset) =>
+          (preset.limits as Record<string, { max?: number }> | undefined)?.[
+            name
+          ]?.max ?? Infinity
+      )
+    )
+  if (fields.has('actions')) {
+    const max = most('actions')
+    parts.push([
+      'actions',
+      {
+        label: 'Buttons',
+        type: 'list',
+        itemLabel: 'Button',
+        item: 'action',
+        ...(Number.isFinite(max) && { max })
+      }
+    ])
+  }
+  for (const name of ['image', 'logo', 'poster']) {
+    if (fields.has(name))
+      parts.push([name, { label: sentence(name), type: 'image' }])
+  }
+  for (const [name, itemLabel] of [
+    ['images', 'Image'],
+    ['logos', 'Logo']
+  ] as const) {
+    if (fields.has(name)) {
+      parts.push([
+        name,
+        { label: sentence(name), type: 'list', itemLabel, item: 'image' }
+      ])
+    }
+  }
+  for (const [name, itemLabel] of Object.entries(ITEMS)) {
+    // Side by side's stats are a panel, not a list.
+    if (
+      !fields.has(name) ||
+      (block.name === 'side-by-side' && name === 'stats')
+    ) {
+      continue
+    }
+    const names = [
+      ...new Set(block.presets.flatMap((preset) => preset.itemFields ?? []))
+    ]
+    const max = most(name)
+    parts.push([
+      name,
+      {
+        label: sentence(name),
+        type: 'list',
+        itemLabel,
+        fields: itemSettings(names),
+        ...(Number.isFinite(max) && { max })
+      }
+    ])
+  }
+  return parts
+}
 
 function settingsOf(block: CatalogueBlock): CatalogueSetting[] {
   const reads = (name: string) => (attrs: Readonly<Attrs>) =>
@@ -202,7 +331,11 @@ function settingsOf(block: CatalogueBlock): CatalogueSetting[] {
     ...layout,
     ...Object.entries(FIELDS)
       .filter(([name]) => fields.has(name))
-      .map(([name, field]) => ({ ...field, name, available: reads(name) }))
+      .map(([name, field]) => ({ ...field, name, available: reads(name) })),
+    ...partsOf(block, fields).map(
+      ([name, part]) =>
+        ({ ...part, name, available: reads(name) }) as CatalogueSetting
+    )
   ]
 }
 
