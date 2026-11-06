@@ -93,11 +93,11 @@ to undo, a moved block keeps its `blockId`, and a copy gets one of its own.
   address scrolls the editor to the block.
 
 On a phone or a touch screen the grip shows beside the block you're typing
-in, with a 44px target, and the text is inset at its start by the grip's
+in, following the caret onto a new line, with a 44px target, and the text is inset at its start by the grip's
 room, in a `subtler` editor too, so the page can't clip it. Its menu opens
 as a sheet over the lower half of the screen, with the block scrolled into
-the half above. The sheet leads with Move up and Move down buttons and
-Done, then Turn into and Move to, each a step of its own, the other
+the half above, which stays undimmed. The sheet leads with Move up and
+Move down buttons and Done, then Turn into and Move to, each a step of its own, the other
 actions, and Delete last. Move to lists the page's headings and sections,
 and puts the block under the one tapped, as one step to undo.
 
@@ -121,9 +121,10 @@ and puts the block under the one tapped, as one step to undo.
 />
 ```
 
-A framed editor makes room for the grip at the start of its text. A
-`subtler` editor keeps its text in line with the page, so the grip hangs
-outside it: give it room at the start.
+The editor makes room for the grip at the start of its text, in a
+`subtler` editor too, so neither its host nor a frame clips it. The grip
+sits on a block's first line of text, below a section's padding, and keeps
+its place as the editor resizes.
 
 The grip is a button named Block actions. It takes no Tab stop, since it
 shows only beside the caret's block; `Mod+/` opens its menu instead. The
