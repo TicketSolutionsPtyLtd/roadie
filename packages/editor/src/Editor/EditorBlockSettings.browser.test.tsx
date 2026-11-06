@@ -149,6 +149,14 @@ async function openFromMenu() {
   await userEvent.click(
     await screen.findByRole('button', { name: 'Block actions' })
   )
+  // A phone's block menu is a sheet, led by the same Settings.
+  if (window.innerWidth < 640) {
+    const sheet = await screen.findByRole('dialog', { name: 'Promo' })
+    await userEvent.click(
+      within(sheet).getByRole('button', { name: 'Settings' })
+    )
+    return screen.findByRole('dialog', { name: 'Promo settings' })
+  }
   const menu = await screen.findByRole('menu')
   const [first] = within(menu).getAllByRole('menuitem')
   expect(first).toHaveTextContent('Settings')
@@ -717,6 +725,27 @@ describe('Editor block settings', () => {
     expect(within(drawer).getByRole('textbox', { name: 'Name' })).toHaveValue(
       'Velvet Kookaburra'
     )
+  })
+
+  it('opens from Settings on a phone’s docked bar while the block is selected', async () => {
+    await viewport.viewport(390, 700)
+    onTestFinished(() => viewport.viewport(1280, 800))
+    renderPage({ toolbar: 'docked' })
+    const name = await screen.findByText('Velvet Kookaburra')
+    const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+    expect(within(bar).queryByRole('button', { name: 'Settings' })).toBe(null)
+
+    tap(name)
+    await waitFor(() =>
+      expect(name.closest('.ProseMirror-selectednode')).not.toBe(null)
+    )
+    await userEvent.click(
+      await within(bar).findByRole('button', { name: 'Settings' })
+    )
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Promo settings' })
+    ).toBeVisible()
   })
 
   it('focuses a new item’s first field', async () => {
