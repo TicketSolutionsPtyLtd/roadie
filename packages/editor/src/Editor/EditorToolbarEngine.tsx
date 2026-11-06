@@ -747,17 +747,27 @@ export function EditorToolbarEngine({
     // ProseMirror's margin counts only from the scroll box's edge, which a
     // phone's browser can put under the keyboard, so the caret is lifted
     // clear of the bar too, when ProseMirror itself would scroll to it.
-    const lift = ({ transaction }: { transaction: Transaction }) => {
+    let frame = 0
+    const liftNow = () => {
       const bar = barRef.current
       const { selection } = editor.state
-      if (!transaction.scrolledIntoView || !bar || !view.hasFocus()) return
-      if (selection instanceof NodeSelection) return
+      if (!bar || editor.isDestroyed || selection instanceof NodeSelection)
+        return
       const caret = view.coordsAtPos(selection.head)
       const clear = bar.getBoundingClientRect().top - CARET_GAP
       if (caret.bottom > clear) scrollBy(view.dom, caret.bottom - clear)
     }
+    const lift = ({ transaction }: { transaction: Transaction }) => {
+      if (!transaction.scrolledIntoView) return
+      liftNow()
+      // Again once the browser has laid out what's typed, and the bar has
+      // followed the keyboard.
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(liftNow)
+    }
     editor.on('transaction', lift)
     return () => {
+      cancelAnimationFrame(frame)
       editor.off('transaction', lift)
       if (!editor.isDestroyed) view.setProps({ scrollMargin: before ?? 5 })
     }
