@@ -51,8 +51,18 @@ function keepAboveSheet(dom: unknown) {
     return undefined
   }
   return requestAnimationFrame(() =>
-    window.scrollBy({ top: top - ABOVE_SHEET_MARGIN })
+    scrollerOf(dom).scrollBy({ top: top - ABOVE_SHEET_MARGIN })
   )
+}
+
+// The page may scroll in a pane of its own rather than the window.
+function scrollerOf(dom: HTMLElement): HTMLElement | Window {
+  for (let parent = dom.parentElement; parent; parent = parent.parentElement) {
+    const { overflowY } = getComputedStyle(parent)
+    const scrolls = overflowY === 'auto' || overflowY === 'scroll'
+    if (scrolls && parent.scrollHeight > parent.clientHeight) return parent
+  }
+  return window
 }
 
 const REFUSED = 'Enter an image’s https address.'
