@@ -448,6 +448,8 @@ describe('Editor toolbar on a touch screen', () => {
       expect.arrayContaining(['Blocks', 'Undo'])
     )
     expect(controls(toolbar)).not.toContain('Bold')
+    // Nothing in this editor holds a spacer's settings.
+    expect(controls(toolbar)).not.toContain('Settings')
     if (within(toolbar).queryByRole('button', { name: 'More' })) {
       await moreMenu(toolbar)
       expect(screen.queryByRole('menuitemcheckbox', { name: 'Bold' })).toBe(

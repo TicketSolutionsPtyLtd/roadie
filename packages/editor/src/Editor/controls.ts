@@ -47,6 +47,8 @@ export type EditorControlUi = {
   editVariable: () => void
   /** Opens the import of an email's HTML or MJML, in the email preset. */
   importSource?: (source?: string) => void
+  /** Opens the selected block's settings, while it has any. */
+  editSettings?: () => void
 }
 
 export type EditorControl = {
@@ -317,6 +319,14 @@ function remove(label: string): EditorControl {
     icon: TrashIcon,
     run: (editor) => editor.chain().focus().deleteSelection().run()
   }
+}
+
+/** A phone's bar's way to a selected block's settings. */
+export const blockSettings: EditorControl = {
+  label: 'Settings',
+  icon: SlidersHorizontalIcon,
+  run: (_editor, { editSettings }) => editSettings?.(),
+  available: ({ editSettings }) => Boolean(editSettings)
 }
 
 const editButton: EditorControl = {
