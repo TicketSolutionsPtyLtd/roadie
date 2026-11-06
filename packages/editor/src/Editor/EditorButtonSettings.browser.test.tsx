@@ -273,7 +273,7 @@ describe('Editor button settings', () => {
     fullWidth: true
   })
 
-  it('puts the button back as it opened on Escape', async () => {
+  it('keeps the changes on Escape, and Undo puts the button back', async () => {
     const onValueChange = renderEmail(email(button()))
     await restyle()
     await waitFor(() => expect(savedButton(onValueChange)).toEqual(restyled))
@@ -281,8 +281,10 @@ describe('Editor button settings', () => {
     await userEvent.keyboard('{Escape}')
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(savedButton(onValueChange)).toEqual(button())
+    expect(savedButton(onValueChange)).toEqual(restyled)
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() => expect(savedButton(onValueChange)).toEqual(button()))
   })
 
   it('keeps the changes on a click outside', async () => {
