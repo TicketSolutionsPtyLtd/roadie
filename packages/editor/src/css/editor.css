@@ -203,6 +203,12 @@
 
 /* A column pads its blocks 12px a side and a block outside columns 24px, so
    in the email columns reach 12px further out than the text around them. */
+/* The grip and add button sit in the gutter beside the email, so where the
+   frame is too narrow for one, the content keeps it. */
+[data-preset='email'] [data-slot='editor-content'] {
+  padding-inline-start: max(0px, calc(var(--spacing) * 8 - (100% - 600px) / 2));
+}
+
 [data-email] [data-type='columns'] {
   margin-inline: calc(var(--spacing) * -3);
 }

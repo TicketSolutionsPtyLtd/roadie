@@ -574,8 +574,10 @@ export function EditorEngine({
           editorContentClass(size, emphasis),
           'min-w-0 outline-none',
           preset === 'email' && EMAIL_CANVAS,
-          // Room for the block handle at each block's start.
+          // Room for the block handle at each block's start. An email's sits
+          // in the gutter beside it, which editor.css keeps.
           blockHandle &&
+            preset !== 'email' &&
             emphasis !== 'subtler' &&
             (blockHandle.canAdd ? 'ps-15' : 'ps-10')
         )
