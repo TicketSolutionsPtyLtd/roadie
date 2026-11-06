@@ -90,15 +90,35 @@ has the same drawer.
 A grip shows at the start of the block under the pointer, or of the block
 with the caret while the editor has focus. Drag it to move the block; a line
 shows where it will land. Click or tap it, or press `Mod+/` in the text, for
-the block's menu: Move up, Move down, Duplicate, and Delete, led by
-Settings on a block that has them. The menu opens
-beside the grip, headed by the block's type, with each action's keys, and
-the block takes the chosen tint while it's open, so it's clear which block
-it acts on. Each is one step to undo, a moved block keeps its `blockId`,
-and a copy gets one of its own. On a touch screen the grip shows beside the
-block you're typing in, and its menu moves the block. The add button
-before the grip opens the insert menu on a new line after the block, or in
-the block itself when it's an empty line.
+the block's menu: Move up, Move down, Duplicate, Turn into, Insert below,
+Copy link to block, and Delete, led by Settings on a block that has them.
+The menu opens beside the grip, clear of the text, or below it where the
+page has no room beside it. `Mod+/` opens it with its first action ready for
+`Enter`. It's headed by the block's type, with each action's keys, and the
+block takes the chosen tint while it's open, so it's clear which block it
+acts on. Each is one step to undo, a moved block keeps its `blockId`, and a
+copy gets one of its own. The add button before the grip opens the insert
+menu on a new line after the block, or in the block itself when it's an
+empty line.
+
+- **Move up** and **Move down** leave the menu open on the block, so it can
+  move again.
+- **Turn into** makes a text block a paragraph, a heading, a list, or a
+  quote, keeping its text and its `blockId`.
+- **Insert below** opens a line under the block with the insert menu.
+- **Copy link to block** copies the page's address with the block's
+  `blockId` as its hash, and says Link copied by the grip. Opening the
+  address scrolls the editor to the block.
+
+On a phone or a touch screen the grip shows beside the block you're typing
+in, following the caret onto a new line, with a 44px target, and the text
+is inset at its start by the grip's room, in a `subtler` editor too, so the
+page can't clip it. Its menu opens as a sheet over the lower half of the
+screen, with the block scrolled into the half above, which stays undimmed.
+The sheet leads with Move up and Move down buttons and Done, then Turn into
+and Move to, each a step of its own, the other actions, and Delete last.
+Move to lists the page's headings and sections, and puts the block under
+the one tapped, as one step to undo.
 
 ```tsx-live-prose
 <Editor
@@ -120,9 +140,10 @@ the block itself when it's an empty line.
 />
 ```
 
-A framed editor makes room for the add button and grip at the start of its
-text. A `subtler` editor keeps its text in line with the page, so they hang
-outside it: give it room at the start, such as with `ps-12` on its container.
+The editor makes room for the add button and grip at the start of its text, in a
+`subtler` editor too, so neither its host nor a frame clips it. The grip
+sits on a block's first line of text, below a section's padding, and keeps
+its place as the editor resizes.
 
 The grip is a button named Block actions. It takes no Tab stop, since it
 shows only beside the caret's block; `Mod+/` opens its menu instead. The
