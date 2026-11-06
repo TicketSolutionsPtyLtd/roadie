@@ -94,6 +94,14 @@ async function openSettings({ fromToolbar = false } = {}) {
   return dialog
 }
 
+// Past the moment a click's settings would open.
+const expectNoSettings = () =>
+  expect(
+    waitFor(() => expect(screen.queryByRole('dialog')).not.toBe(null), {
+      timeout: 300
+    })
+  ).rejects.toThrow()
+
 describe('Editor image settings', () => {
   it('opens on a click, led by its title, a hint, and Done, which keeps the changes', async () => {
     const onValueChange = renderImage()
@@ -271,7 +279,7 @@ describe('Editor image settings', () => {
     await waitFor(() => expect(savedImage(onValueChange)).toMatchObject(edited))
   })
 
-  it('focuses the first style choice, as Button settings does', async () => {
+  it('focuses the first style choice, where no keyboard comes up', async () => {
     renderImage(valueOf('email', image({ alt: '' }), { type: 'paragraph' }))
 
     const dialog = await openSettings()
@@ -363,6 +371,69 @@ describe('Editor image settings', () => {
     const dialog = await openSettings({ fromToolbar: true })
 
     expect(within(dialog).getByRole('group', { name: 'Align' })).toBeVisible()
+  })
+
+  it('opens on a tap only on an image already selected', async () => {
+    renderImage()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const img = textbox.querySelector('img')!
+    const tap = () => {
+      img.dispatchEvent(
+        new PointerEvent('pointerdown', { pointerType: 'touch', bubbles: true })
+      )
+      img.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+    }
+
+    tap()
+    await expectNoSettings()
+
+    await userEvent.click(textbox.querySelector('p')!)
+    await userEvent.keyboard('{ArrowUp}')
+    await waitFor(() =>
+      expect(
+        textbox.querySelector('[data-slot="editor-image"]')
+      ).toHaveAttribute('data-selected')
+    )
+    tap()
+    expect(
+      await screen.findByRole('dialog', { name: 'Image settings' })
+    ).toBeInTheDocument()
+  })
+
+  it('leaves a Shift-click to the selection', async () => {
+    renderImage()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+
+    await userEvent.click(textbox.querySelector('img')!, {
+      modifiers: ['Shift']
+    })
+
+    await expectNoSettings()
+  })
+
+  it('offers no Left for a page image in right-to-left text, which can’t save one', async () => {
+    render(
+      <div dir='rtl'>
+        <Editor
+          aria-label={LABEL}
+          defaultValue={valueOf('rich', image({ src: '/images/crowd.webp' }), {
+            type: 'paragraph'
+          })}
+        />
+      </div>
+    )
+
+    const dialog = await openSettings({ fromToolbar: true })
+
+    const align = within(dialog).getByRole('group', { name: 'Align' })
+    expect(
+      within(align)
+        .getAllByRole('button')
+        .map((button) => button.textContent)
+    ).toEqual(['Centre', 'Right'])
+    expect(
+      within(align).getByRole('button', { name: 'Right' })
+    ).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('names its choices as Button settings does', async () => {

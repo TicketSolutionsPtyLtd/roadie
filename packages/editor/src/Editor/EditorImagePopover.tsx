@@ -383,7 +383,13 @@ function ImageSettingsForm({
           />
           <ImageChoice
             legend='Align'
-            choices={ALIGNS}
+            // A page image saves only centre or right, so in right-to-left
+            // text, where its start is the right, it can't sit left.
+            choices={
+              startSide(editor) === 'right'
+                ? ALIGNS.filter(({ value }) => value !== 'left')
+                : ALIGNS
+            }
             value={page.align ?? startSide(editor)}
             onValueChange={(choice) =>
               changePage({
@@ -509,7 +515,7 @@ export function EditorImagePopover({
       onDone={live.done}
     />
   ) : null
-  // The first style choice, as Button settings has; adding, the address.
+  // The first style choice, which brings up no keyboard; adding, the address.
   const firstFocus = () =>
     formRef.current?.querySelector<HTMLElement>(
       'fieldset [aria-pressed="true"]'

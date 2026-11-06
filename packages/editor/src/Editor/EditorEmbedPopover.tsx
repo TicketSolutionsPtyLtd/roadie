@@ -6,7 +6,6 @@ import { posToDOMRect } from '@tiptap/core'
 import { NodeSelection } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
-import { Drawer } from '@oztix/roadie-components/drawer'
 import { Popover } from '@oztix/roadie-components/popover'
 
 import {
@@ -19,7 +18,6 @@ import { type EmbedAttrs, embedAttrs } from '../schema/embedAttrs'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { EditorSettingsHeader } from './EditorSettingsHeader'
 import { focusEditor } from './focusEditor'
-import { useOnPhone } from './toolbarMode'
 import { type LiveEdit, setSelectedAttrs, useLiveEdit } from './useLiveEdit'
 
 const REFUSED = 'That link can’t be embedded.'
@@ -151,7 +149,6 @@ export function EditorEmbedPopover({
 }: EditorEmbedPopoverProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const live = useLiveEdit(editor, open, onOpenChange)
-  const phone = useOnPhone()
   // From the editor's state as it changes: a read of the mutable editor in
   // render would be cached by the editor alone.
   const editing = useEditorState({
@@ -180,31 +177,6 @@ export function EditorEmbedPopover({
       onDone={live.done}
     />
   )
-  // On a phone, from the bottom, as Image settings opens, unblurred.
-  if (editing && phone) {
-    return (
-      <Drawer
-        open={open}
-        onOpenChange={live.onOpenChange}
-        side='bottom'
-        emphasis='subtler'
-      >
-        <Drawer.Content
-          size='sm'
-          initialFocus={inputRef}
-          finalFocus={handBack}
-          data-editor-popup=''
-        >
-          <EditorSettingsHeader
-            title='Embed settings'
-            sheet
-            onDone={live.done}
-          />
-          <Drawer.Body className='pb-6'>{form}</Drawer.Body>
-        </Drawer.Content>
-      </Drawer>
-    )
-  }
   return (
     <Popover open={open} onOpenChange={live.onOpenChange}>
       <Popover.Content

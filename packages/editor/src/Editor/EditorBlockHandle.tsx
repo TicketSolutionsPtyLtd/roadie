@@ -234,17 +234,16 @@ function inReach(
   return clientX >= from && clientX <= to && clientY >= top && clientY <= bottom
 }
 
-// The first line of text in it, below any padding a section has.
+// Its first line, below any padding a section has: the first block down its
+// first children, text or not.
 function firstLineOf(editor: TiptapEditor, pos: number, dom: HTMLElement) {
-  const node = editor.state.doc.nodeAt(pos)
-  if (!node || node.isTextblock) return dom
-  let first: number | null = null
-  node.descendants((child, offset) => {
-    if (first !== null) return false
-    if (child.isTextblock) first = pos + 1 + offset
-    return first === null
-  })
-  const line = first === null ? null : editor.view.nodeDOM(first)
+  let node = editor.state.doc.nodeAt(pos)
+  let at = pos
+  while (node && !node.isTextblock && !node.isAtom && node.firstChild) {
+    at += 1
+    node = node.firstChild
+  }
+  const line = at === pos ? null : editor.view.nodeDOM(at)
   return line instanceof HTMLElement ? line : dom
 }
 
@@ -420,9 +419,10 @@ export function EditorBlockHandle({
       selectedBlocks(current.state, containers),
     equalityFn: (a, b) => a?.from === b?.from && a?.to === b?.to
   })
-  // On touch, the last tap's block would otherwise outstay the caret's.
+  // After a tap, as the hover a tap leaves would outstay the caret's block.
+  const [touched, setTouched] = useState(false)
   const shown =
-    menuAt ?? (phone ? (caretBlock ?? hovered) : (hovered ?? caretBlock))
+    menuAt ?? (touched ? (caretBlock ?? hovered) : (hovered ?? caretBlock))
   const shownRef = useRef(shown)
   useLayoutEffect(() => {
     shownRef.current = shown
@@ -462,10 +462,14 @@ export function EditorBlockHandle({
       pointerBlock.current = null
       setHovered(null)
     }
+    const onPress = ({ pointerType }: PointerEvent) =>
+      setTouched(pointerType === 'touch')
+    page.addEventListener('pointerdown', onPress, true)
     page.addEventListener('mousemove', onMove)
     page.addEventListener('mouseout', onOut)
     host.addEventListener('pointerdown', pin)
     return () => {
+      page.removeEventListener('pointerdown', onPress, true)
       page.removeEventListener('mousemove', onMove)
       page.removeEventListener('mouseout', onOut)
       host.removeEventListener('pointerdown', pin)

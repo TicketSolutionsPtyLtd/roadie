@@ -72,7 +72,8 @@ a web address links it as you go.
 
 The Link, Embed, Edit link, and Image popovers are one row: an input, a
 check button that saves, and Close. Editing a link adds Remove link between
-the two, and Edit link, as Embed settings, sits under its title and Done.
+the two. An embed's Edit link opens as Embed settings, under its title, a
+hint, and Done.
 The popovers that change what's there show each change as it's typed: a
 selection's link while it's a whole address, an embed's player while a
 provider reads its link. Enter, the check, Escape, or a click away keeps the
@@ -215,12 +216,14 @@ Click an image, or move onto it with the arrow keys, to edit it in place. A
 toolbar by the image has Image settings, Replace image (with `onUploadImage`,
 which uploads the new file the same way and keeps the alt text), and Remove
 image. In the blocks and email presets, a click on an image opens Image
-settings instead, and the image's block menu leads with Settings. Image
+settings first, the toolbar showing once it closes, and the image's block
+menu leads with Settings. A tap opens them on an image already selected. Image
 settings edits the image's address and its alt text, each applied as it's
 made: Done, Escape, or a click away keeps the changes as one step, which undo
 puts back. It also sets the image's width, Fit or Full width, and its
 alignment when it fits, Left, Centre, or Right, as Button settings names
-them, and, in the rich and blocks presets, its caption, or, in an email,
+them (in right-to-left text, a page image's start is its right, so it has
+no Left), and, in the rich and blocks presets, its caption, or, in an email,
 where it links. It opens with focus on its first style choice. On a phone it
 opens over the lower half of the screen, with the image kept in view above
 it. A selected image with no alt text shows a No alt text chip until it has
@@ -286,8 +289,8 @@ toolbar by the embed has Edit link and Remove embed. Edit link starts from the
 embed's share link, from its provider's optional `shareUrl`, and swaps in the
 new link's player as soon as a provider reads it. It refuses a link no
 provider reads, as the Embed control does. In the blocks preset, a click on
-an embed opens Embed settings, with the same link and a Done, and its block
-menu leads with Settings.
+an embed opens Embed settings straight away, and its block menu leads with
+Settings.
 
 ### Tables
 

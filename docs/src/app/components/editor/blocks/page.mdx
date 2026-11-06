@@ -85,6 +85,8 @@ the block's type, with each action's keys, and the block takes the chosen
 tint while it's open, so it's clear which block it acts on. Each is one step
 to undo, a moved block keeps its `blockId`, and a copy gets one of its own.
 
+- **Settings** leads an image's or an embed's menu, and opens the same
+  settings a click on it does.
 - **Move up** and **Move down** leave the menu open on the block, so it can
   move again.
 - **Turn into** makes a text block a paragraph, a heading, a list, or a
@@ -104,12 +106,12 @@ arrow key goes back to a caret, and typing or `Enter` carries on at the end
 of the selection.
 
 On a phone or a touch screen the grip shows beside the block you're typing
-in, following the caret onto a new line, with a 44px target, and the text is inset at its start by the grip's
-room, in a `subtler` editor too, so the page can't clip it. Its menu opens
-as a sheet over the lower half of the screen, with the block scrolled into
-the half above, which stays undimmed. The sheet leads with Move up and
-Move down buttons and Done, then Turn into and Move to, each a step of its own, the other
-actions, and Delete last. Move to lists the page's headings and sections,
+in, following the caret onto a new line, with a 44px target, and the text
+is inset at its start by the grip's room, in a `subtler` editor too, so the
+page can't clip it. Its menu opens as a sheet over the lower half of the
+screen, with the block scrolled into the half above, which stays undimmed.
+The sheet leads with Move up and Move down buttons and Done, then Turn into
+and Move to, each a step of its own, the other actions, and Delete last. Move to lists the page's headings and sections,
 and puts the block under the one tapped, as one step to undo.
 
 ```tsx-live-prose
