@@ -272,6 +272,29 @@ describe('Editor email section settings', () => {
     ).toBeGreaterThanOrEqual(45)
   })
 
+  it('reads its toolbar in the dark on an email that sets its own text colour', async () => {
+    document.documentElement.classList.add('dark')
+    // As an email's theme sets it across its canvas.
+    const theme = document.createElement('style')
+    theme.textContent = '[data-email] { --intent-text-normal: #16202a; }'
+    document.head.append(theme)
+    onTestFinished(() => {
+      document.documentElement.classList.remove('dark')
+      theme.remove()
+    })
+    renderEmail(email(section()))
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await clickIntoEditor(within(textbox).getByText('Gates 6pm'))
+
+    const settings = await screen.findByRole('button', {
+      name: 'Section settings'
+    })
+
+    expect(
+      Math.abs(apcaLc(shownText(settings), shownFill(settings)))
+    ).toBeGreaterThanOrEqual(45)
+  })
+
   it('hides Settings before the editor has focus', async () => {
     renderEmail(email(section()))
     const textbox = await screen.findByRole('textbox', { name: LABEL })

@@ -37,12 +37,12 @@ type Shown = {
 function SectionToolbar({ rule, label, open }: Shown) {
   const unknown = rule && label === undefined
   return (
-    // Its own floating surface, so it reads on a canvas pinned to the email's
-    // light colours as well as on the app's dark one.
+    // Its own floating surface, and neutral intent, so it reads on a canvas
+    // that sets the email's own colours as well as on the app's dark one.
     // With no badge it's Settings alone, so the whole pill hides with it.
     <div
       data-slot={rule ? undefined : 'editor-section-settings'}
-      className='flex items-center gap-1 rounded-full emphasis-floating p-0.5'
+      className='flex items-center gap-1 rounded-full emphasis-floating p-0.5 intent-neutral'
     >
       {rule ? (
         <Badge
