@@ -1,6 +1,11 @@
 'use client'
 
-import { type ComponentType, createElement, useEffect } from 'react'
+import {
+  type ComponentType,
+  type ReactNode,
+  createElement,
+  useEffect
+} from 'react'
 
 import type { Icon } from '@phosphor-icons/react'
 import { type Editor, Node } from '@tiptap/core'
@@ -91,6 +96,8 @@ export type EditorSetting = {
   name: string
   label: string
   helperText?: string
+  /** Shows it only while the block's attrs hold this, such as for one layout. */
+  available?: (attrs: Readonly<Record<string, unknown>>) => boolean
 } & (
   | {
       /** A line of text, or a few with `multiline`. */
@@ -156,4 +163,47 @@ export type EditorBlock = {
    * Settings, and Enter opens it on the selected block.
    */
   settings?: readonly EditorSetting[]
+}
+
+/** One way a section can start, as a tile in the Blocks drawer and a choice in `/`. */
+export type EditorSectionTemplate = {
+  label: string
+  /** An image for its tile, such as a wireframe of the layout. */
+  thumbnail?: string
+  /** Other words the insert menu finds it by. */
+  keywords?: readonly string[]
+  /** What it changes from the section's own `attrs`. */
+  attrs?: Readonly<Record<string, unknown>>
+}
+
+/**
+ * A designed section, such as a hero, for the `blocks` editor's `sections`.
+ * It's plain data, so a package of sections needs no Tiptap: the editor makes
+ * its block, shows it as `render` draws it, and edits it with `settings`.
+ */
+export type EditorSection = {
+  /**
+   * Its node's name, which the saved value stores, so it can't change once
+   * pages hold it. It can't be one the preset's own nodes use.
+   */
+  name: string
+  label: string
+  /** Every attr it saves, with the value a new one starts from. */
+  attrs: Readonly<Record<string, unknown>>
+  /** What its Settings drawer edits, one field each. */
+  settings?: readonly EditorSetting[]
+  /**
+   * Draws it from its attrs, as the page will, so it doubles as its
+   * `nodeMapping` entry in `renderEditorValue`. Read each attr as untrusted.
+   */
+  render: (props: {
+    attrs: Record<string, unknown>
+    /** Set in the editor, so a blank part can show a hint the page won't. */
+    editing?: boolean
+  }) => ReactNode
+  /**
+   * The ways it's offered, each with its own tile.
+   * @default one, named by its label
+   */
+  templates?: readonly EditorSectionTemplate[]
 }

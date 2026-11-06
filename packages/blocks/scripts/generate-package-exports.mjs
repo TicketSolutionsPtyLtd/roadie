@@ -57,6 +57,11 @@ function buildExports(folders) {
     }
   }
 
+  // The editor's adapter, apart from the catalogue, which stays React-free.
+  exports['./catalogue/sections'] = {
+    types: './dist/catalogue/sections.d.ts',
+    import: './dist/catalogue/sections.js'
+  }
   exports['./thumbnails/*'] = './src/thumbnails/*'
   exports['./roadie.manifest.json'] = './dist/roadie.manifest.json'
 

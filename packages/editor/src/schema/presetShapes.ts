@@ -118,7 +118,11 @@ export const presetShapes = {
   email: {
     nodes: {
       ...basicNodes,
-      doc: { content: 'blocks', holds: [...emailBlocks, 'section', 'columns'] },
+      doc: {
+        content: 'blocks',
+        attrs: ['preheader'],
+        holds: [...emailBlocks, 'section', 'columns']
+      },
       paragraph: { content: 'inline', attrs: ['align'] },
       listItem: { content: 'paragraphFirst', holds: textBlocks },
       heading: { content: 'inline', attrs: ['align', 'level'] },

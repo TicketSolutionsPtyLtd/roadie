@@ -64,6 +64,8 @@ export type BlockDefinition<
   /** When to use it, as one sentence an editor reads in a picker. */
   description: string
   group: BlockGroup
+  /** Other words a picker or an editor's insert menu finds it by. */
+  keywords?: readonly string[]
   presets: readonly BlockPreset<Field, ItemField>[]
   /** The fields inside the block's own object fields, such as a testimonial's `person`, by the field's name. Images and actions come from the catalogue. */
   shapes?: Readonly<Record<string, readonly string[]>>
