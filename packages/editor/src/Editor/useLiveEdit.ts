@@ -147,12 +147,13 @@ export function useLiveEdit(
   const step = (edit: (chain: ChainedCommands) => ChainedCommands) => {
     if (!editor) return
     finish(true)
-    edit(
+    const made = edit(
       editor.chain().command(({ tr }) => {
         closeHistory(tr)
         return true
       })
     ).run()
+    if (!made) return
     editor.view.dispatch(closeHistory(editor.state.tr))
     visit.current = { steps: visit.current.steps + 1, undone: 0 }
   }
