@@ -1,7 +1,8 @@
 'use client'
 
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { type KeyboardEvent, type ReactNode, useEffect, useRef } from 'react'
 
+import { isMacOS } from '@tiptap/core'
 import {
   NodeSelection,
   Selection,
@@ -16,6 +17,7 @@ import { Drawer } from '@oztix/roadie-components/drawer'
 
 import type { EditorSetting } from '../extensions'
 import { SettingField, type UploadSettingImage } from './EditorSettingFields'
+import { itemElement } from './blockClick'
 import { focusEditor } from './focusEditor'
 import { useOnPhone } from './toolbarMode'
 import { type LiveEdit, setSelectedAttrs, useLiveEdit } from './useLiveEdit'
@@ -40,25 +42,27 @@ const shownWith =
     setting.type === 'own' || (setting.available?.(attrs) ?? true)
 
 type SettingsFormProps = BlockSettings & {
-  start: Attrs
-  apply: LiveEdit['apply']
+  /** The block's attrs, which Undo can change while it's open. */
+  attrs: Attrs
+  live: LiveEdit
   onDone: () => void
   focusPath?: string
+  onEditItem?: (path: string, editing: boolean) => void
   uploadImage?: UploadSettingImage
 }
 
 function SettingsForm({
   settings,
-  start,
-  apply,
+  attrs,
+  live,
   onDone,
   focusPath,
+  onEditItem,
   uploadImage
 }: SettingsFormProps) {
-  const [attrs, setAttrs] = useState(start)
-  const set = (change: Attrs) => {
-    setAttrs((current) => ({ ...current, ...change }))
-    apply(setSelectedAttrs(change))
+  const set = (change: Attrs, ownStep = false) => {
+    if (ownStep) live.step(setSelectedAttrs(change))
+    else live.apply(setSelectedAttrs(change))
   }
   return (
     <div className='grid content-start gap-4'>
@@ -72,10 +76,13 @@ function SettingsForm({
             key={setting.name}
             setting={setting}
             value={attrs[setting.name]}
-            onValueChange={(value) => set({ [setting.name]: value })}
+            onValueChange={(value, ownStep) =>
+              set({ [setting.name]: value }, ownStep)
+            }
             onDone={onDone}
             path={setting.name}
             focusPath={focusPath}
+            onEditItem={onEditItem}
             uploadImage={uploadImage}
           />
         )
@@ -91,6 +98,28 @@ function SettingsForm({
  * end.
  */
 const EDGE = 16
+
+/** Whether an element shows whole between the top of the screen and the sheet. */
+function aboveSheet(element: Element, sheet: Element) {
+  const { top, bottom } = element.getBoundingClientRect()
+  return top >= EDGE && bottom <= sheet.getBoundingClientRect().top
+}
+
+function scrollToTop(scroller: Element, element: Element) {
+  scroller.scrollTop +=
+    element.getBoundingClientRect().top - scroller.getBoundingClientRect().top
+}
+
+// In a field, Mod+Z would undo the browser's own typing there, which the
+// block already shows, or a keystroke in another field, so it goes to the
+// editor's history instead.
+const historyKey = (event: KeyboardEvent) => {
+  if (event.altKey || event.nativeEvent.isComposing) return null
+  if (!(isMacOS() ? event.metaKey : event.ctrlKey)) return null
+  const key = event.key.toLowerCase()
+  if (key === 'z') return event.shiftKey ? 'redo' : 'undo'
+  return key === 'y' && !isMacOS() ? 'redo' : null
+}
 
 function scrollNearTop(element: Element) {
   const document = element.ownerDocument
@@ -196,6 +225,9 @@ type EditorBlockSettingsProps = {
    * selected; otherwise the caret goes back where it was.
    */
   keepSelected?: boolean
+  /** The list item being edited, by its path, such as `cards.2`. */
+  editingItem?: string | null
+  onEditingItemChange?: (path: string | null) => void
   uploadImage?: UploadSettingImage
 }
 
@@ -212,6 +244,8 @@ export function EditorBlockSettings({
   focusSetting,
   focusElement,
   keepSelected = false,
+  editingItem = null,
+  onEditingItemChange,
   uploadImage
 }: EditorBlockSettingsProps) {
   const phone = useOnPhone()
@@ -282,6 +316,42 @@ export function EditorBlockSettings({
       }
     }
   }, [editor, open])
+  // A phone's sheet starts at the item tapped, scrolled to rather than
+  // focused, so the keyboard stays down.
+  useEffect(() => {
+    if (!phone || from === null || !focusSetting) return
+    const frame = requestAnimationFrame(() => {
+      const body = bodyRef.current
+      const field = body?.querySelector(
+        `[data-setting="${CSS.escape(focusSetting)}"]`
+      )
+      if (body && field)
+        scrollToTop(body, field.closest('[data-item]') ?? field)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [phone, from, focusSetting])
+  const attrs = selection?.node.attrs
+  // The item being edited stays above the sheet as it opens, is added, or
+  // grows as it's typed in, moving the page only once it's out of sight.
+  useEffect(() => {
+    if (!phone || from === null || !editingItem || !editor || !block) return
+    const [name = '', index] = editingItem.split('.')
+    const setting = block.settings.find((each) => each.name === name)
+    const items = attrs?.[name]
+    if (setting?.type !== 'list' || !Array.isArray(items)) return
+    const frame = requestAnimationFrame(() => {
+      const dom = editor.view.nodeDOM(from)
+      const sheet = bodyRef.current?.closest('[role=dialog]')
+      const element =
+        dom instanceof Element
+          ? itemElement(dom, items, Number(index), setting.itemLabel)
+          : null
+      if (element && sheet && !aboveSheet(element, sheet)) {
+        scrollNearTop(element)
+      }
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [phone, from, editingItem, editor, block, attrs])
   const lost = open && !block
   // Its block went, such as with a new value, so it mustn't reopen on the next.
   useEffect(() => {
@@ -291,6 +361,16 @@ export function EditorBlockSettings({
   const finalFocus = () => {
     focusEditor(editor)
     return false
+  }
+  const onKeyDown = (event: KeyboardEvent) => {
+    const direction = historyKey(event)
+    if (!direction) return
+    event.preventDefault()
+    live.history(direction)
+  }
+  const onEditItem = (path: string, editing: boolean) => {
+    if (editing) onEditingItemChange?.(path)
+    else if (editingItem === path) onEditingItemChange?.(null)
   }
   const content = (
     <>
@@ -310,10 +390,11 @@ export function EditorBlockSettings({
         <SettingsForm
           key={selection.from}
           {...block}
-          start={selection.node.attrs}
-          apply={live.apply}
+          attrs={selection.node.attrs}
+          live={live}
           onDone={live.done}
           focusPath={focusSetting}
+          onEditItem={onEditItem}
           uploadImage={uploadImage}
         />
       </Drawer.Body>
@@ -352,6 +433,7 @@ export function EditorBlockSettings({
           }}
           size='fit'
           className='max-h-[50dvh]'
+          onKeyDown={onKeyDown}
           // The sheet itself, so the keyboard doesn't cover the block.
           initialFocus={() =>
             bodyRef.current?.closest<HTMLElement>('[role=dialog]')
@@ -380,6 +462,7 @@ export function EditorBlockSettings({
               }}
               size='sm'
               className='pointer-events-auto'
+              onKeyDown={onKeyDown}
               // The first setting, as its title takes none.
               initialFocus={() =>
                 bodyRef.current?.querySelector<HTMLElement>(

@@ -3,7 +3,7 @@
 import { useEffect, useEffectEvent, useRef } from 'react'
 
 import type { ChainedCommands, Editor as TiptapEditor } from '@tiptap/core'
-import { closeHistory } from '@tiptap/pm/history'
+import { closeHistory, redo, undo } from '@tiptap/pm/history'
 import {
   NodeSelection,
   type SelectionBookmark,
@@ -120,15 +120,57 @@ export function useLiveEdit(
     unapply(true)
   }
 
+  // The steps this visit has added to the history, and those it has undone,
+  // so Undo inside it never reaches past the visit, such as to the block's
+  // own insertion.
+  const visit = useRef({ steps: 0, undone: 0 })
+  useEffect(() => {
+    if (open) visit.current = { steps: 0, undone: 0 }
+  }, [open])
+
   const finish = (keep: boolean) => {
     const steps = unapply(!keep)
     if (!editor || !keep || steps.length === 0) return
     const { view } = editor
     // Applied again as one step of its own, which nothing typed next joins.
-    const redo = view.state.tr
-    steps.forEach((step) => redo.maybeStep(step))
-    view.dispatch(closeHistory(redo))
+    const again = view.state.tr
+    steps.forEach((step) => again.maybeStep(step))
+    view.dispatch(closeHistory(again))
     view.dispatch(closeHistory(view.state.tr))
+    visit.current = { steps: visit.current.steps + 1, undone: 0 }
+  }
+
+  /**
+   * Keeps the edits so far as one step, then makes this edit a step of its
+   * own, such as removing an item, which Undo brings back alone.
+   */
+  const step = (edit: (chain: ChainedCommands) => ChainedCommands) => {
+    if (!editor) return
+    finish(true)
+    const made = edit(
+      editor.chain().command(({ tr }) => {
+        closeHistory(tr)
+        return true
+      })
+    ).run()
+    if (!made) return
+    editor.view.dispatch(closeHistory(editor.state.tr))
+    visit.current = { steps: visit.current.steps + 1, undone: 0 }
+  }
+
+  /** The editor's Undo, or Redo, within the steps this visit made. */
+  const history = (direction: 'undo' | 'redo') => {
+    if (!editor) return
+    finish(true)
+    const { steps, undone } = visit.current
+    const { state } = editor
+    const dispatch = (tr: Transaction) => editor.view.dispatch(tr)
+    if (direction === 'undo' && steps > 0 && undo(state, dispatch)) {
+      visit.current = { steps: steps - 1, undone: undone + 1 }
+    }
+    if (direction === 'redo' && undone > 0 && redo(state, dispatch)) {
+      visit.current = { steps: steps + 1, undone: undone - 1 }
+    }
   }
 
   // Closed by the editor rather than the popover.
@@ -148,7 +190,14 @@ export function useLiveEdit(
     onOpenChange(false)
   }
 
-  return { apply, revert, done, onOpenChange: handleOpenChange }
+  return {
+    apply,
+    step,
+    history,
+    revert,
+    done,
+    onOpenChange: handleOpenChange
+  }
 }
 
 export type LiveEdit = ReturnType<typeof useLiveEdit>

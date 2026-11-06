@@ -200,6 +200,49 @@ describe('catalogueSections', () => {
     ).toBe(renderToStaticMarkup(hero.render({ attrs })))
   })
 
+  it('draws a button being added while editing, by its label or as Button, before it has a link', () => {
+    const hero = everyBlock().find(({ label }) => label === 'Hero')!
+    const attrs = {
+      ...hero.attrs,
+      preset: 'title',
+      title: 'Kazoo Hollow',
+      actions: [
+        { label: 'Tickets', href: '' },
+        { label: '', href: '' }
+      ]
+    }
+
+    const editing = renderToStaticMarkup(hero.render({ attrs, editing: true }))
+
+    expect(editing).toContain('>Tickets<')
+    expect(editing).toContain('>Button<')
+    expect(renderToStaticMarkup(hero.render({ attrs }))).not.toContain(
+      'Tickets'
+    )
+  })
+
+  it('opens the question being edited', () => {
+    const faq = everyBlock().find(({ label }) => label === 'FAQ')!
+    const attrs = {
+      ...faq.attrs,
+      questions: [
+        { question: 'When do doors open?', answer: '7pm.' },
+        { question: 'Is there parking?', answer: 'On Ann Street.' }
+      ]
+    }
+
+    const opened = (editingItem?: string) => {
+      const host = document.createElement('div')
+      host.innerHTML = renderToStaticMarkup(
+        faq.render({ attrs, editing: true, editingItem })
+      )
+      return [...host.querySelectorAll('details')].map(({ open }) => open)
+    }
+
+    expect(opened('questions.1.answer')).toEqual([false, true])
+    expect(opened()).toEqual([false, false])
+  })
+
   it('edits buttons and images, up to a preset’s limit', () => {
     expect(settingOf('Hero', 'actions')).toMatchObject({
       type: 'list',
@@ -241,9 +284,9 @@ describe('catalogueSections', () => {
     const page = renderToStaticMarkup(cards.render({ attrs }))
 
     expect(editing).toContain('>Card<')
-    expect(editing).toContain('data:image/svg+xml')
+    expect(editing).toContain('data-slot="block-image-placeholder"')
     expect(page).not.toContain('>Card<')
-    expect(page).not.toContain('data:image/svg+xml')
+    expect(page).not.toContain('block-image-placeholder')
   })
 
   it.each([
