@@ -14,7 +14,7 @@ import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
 import { apcaLc, shownFill, shownText } from './contrastTestUtils'
-import { MOD, clickIntoEditor } from './testUtils'
+import { LINE_END, MOD, clickIntoEditor } from './testUtils'
 
 const LABEL = 'Email'
 
@@ -97,7 +97,7 @@ describe('Editor email section settings', () => {
     ).toHaveTextContent('Everyone')
   })
 
-  it('applies a look and spacing as they’re picked, and Escape puts them back', async () => {
+  it('applies a look and spacing as they’re picked, and Escape keeps them', async () => {
     const onValueChange = renderEmail(email(section()))
     const drawer = await openSettings()
 
@@ -112,7 +112,10 @@ describe('Editor email section settings', () => {
     )
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(savedSection(onValueChange).attrs).toBeUndefined()
+    expect(savedSection(onValueChange).attrs).toEqual({
+      look: 'tint',
+      spacing: 'roomy'
+    })
   })
 
   it('shows a section only to those a rule picks, and badges it', async () => {
@@ -307,19 +310,84 @@ describe('Editor email section settings', () => {
     )
   })
 
-  it('brings Escape’s changes back on Redo', async () => {
+  it('takes a visit back in one step on Undo', async () => {
     const onValueChange = renderEmail(email(section()))
     const drawer = await openSettings()
     await userEvent.click(within(drawer).getByRole('button', { name: 'Tint' }))
+    await userEvent.click(within(drawer).getByRole('button', { name: 'Roomy' }))
 
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(savedSection(onValueChange).attrs).toBeUndefined()
-    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 
     await waitFor(() =>
-      expect(savedSection(onValueChange).attrs).toEqual({ look: 'tint' })
+      expect(savedSection(onValueChange).attrs).toBeUndefined()
     )
+  })
+
+  it.each([
+    [
+      'Done',
+      async (drawer: HTMLElement) =>
+        userEvent.click(within(drawer).getByRole('button', { name: 'Done' }))
+    ],
+    ['Escape', async () => userEvent.keyboard('{Escape}')],
+    [
+      'a click away',
+      async () => userEvent.click(document.body, { position: { x: 4, y: 4 } })
+    ]
+  ])(
+    'keeps the caret where it was after %s, outside the section, and the next key types there',
+    async (_, close) => {
+      const onValueChange = renderEmail(
+        email(section({ showWhen: { key: 'tickets_left', op: 'exists' } }), {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Unsubscribe' }]
+        })
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await clickIntoEditor(within(textbox).getByText('Unsubscribe'))
+      await userEvent.keyboard(LINE_END)
+
+      const drawer = await openSettings()
+      await close(drawer)
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+      await userEvent.keyboard('!')
+
+      await waitFor(() =>
+        expect(
+          (onValueChange.mock.lastCall![0] as EditorValue).doc.content![1]
+        ).toEqual({
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'Unsubscribe!' }]
+        })
+      )
+    }
+  )
+
+  it('keeps the last section above its phone sheet', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    render(
+      <div style={{ paddingTop: 900 }}>
+        <Editor
+          aria-label={LABEL}
+          preset='email'
+          variables={variables}
+          defaultValue={email(section())}
+        />
+      </div>
+    )
+
+    const drawer = await openSettings()
+
+    await waitFor(() => {
+      const top = document
+        .querySelector('[data-type="section"]')!
+        .getBoundingClientRect().top
+      expect(top).toBeGreaterThan(0)
+      expect(top).toBeLessThan(drawer.getBoundingClientRect().top)
+    })
   })
 
   it('keeps the email clear of the drawer on a wide page', async () => {
