@@ -15,7 +15,7 @@ import {
   PlusIcon,
   PushPinSlashIcon
 } from '@phosphor-icons/react'
-import { NodeSelection } from '@tiptap/pm/state'
+import { NodeSelection, type Transaction } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Menu } from '@oztix/roadie-components/menu'
@@ -268,8 +268,7 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource,
-    editSettings
+    importSource
   } = context
   return {
     editLink,
@@ -279,8 +278,7 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource,
-    editSettings
+    importSource
   }
 }
 
@@ -354,6 +352,31 @@ export function ToolbarItems({
       />
     )
   )
+}
+
+// Room under the caret for the bar docked over the keyboard.
+const KEYBOARD_SCROLL_MARGIN = { top: 5, right: 5, bottom: 96, left: 5 }
+// How far above that bar the caret stays.
+const CARET_GAP = 8
+
+/**
+ * Scrolls `element` up by `distance` in each box around it that can still
+ * scroll, then the page, until it has gone that far.
+ */
+function scrollBy(element: Element, distance: number) {
+  let left = distance
+  for (
+    let box = element.parentElement;
+    box && left > 0;
+    box = box.parentElement
+  ) {
+    const { overflowY } = getComputedStyle(box)
+    if (overflowY !== 'auto' && overflowY !== 'scroll') continue
+    const from = box.scrollTop
+    box.scrollTop += left
+    left -= box.scrollTop - from
+  }
+  if (left > 0) window.scrollBy(0, left)
 }
 
 const slotOf = (item: EditorToolbarItem, index: number): ToolbarSlot => {
@@ -646,13 +669,28 @@ export function EditorToolbarEngine({
   const { aboveKeyboard, shift } = useKeyboardDock(stickyRef, barRef, !floating)
   // Held while the bar sits above the keyboard, so the text doesn't move.
   const [reserved, setReserved] = useState<number>()
-  const ui = controlUi(context)
   const phone = useOnPhone()
   const blockSelected = useEditorState({
     editor,
     selector: ({ editor: current }) =>
       current?.state.selection instanceof NodeSelection
   })
+  // Where the selected block starts, while it's one with Settings.
+  const settingsAt = useEditorState({
+    editor,
+    selector: ({ editor: current }) => {
+      const selection = current?.state.selection
+      return selection instanceof NodeSelection &&
+        context.hasSettings(selection.node.type.name)
+        ? selection.from
+        : null
+    }
+  })
+  const ui: EditorControlUi = {
+    ...controlUi(context),
+    editSettings:
+      settingsAt === null ? undefined : () => context.editSettingsAt(settingsAt)
+  }
   // Its settings take the place of the text controls, a tap away.
   const settingsShown =
     phone && blockSelected && (blockSettings.available?.(ui) ?? false)
@@ -698,6 +736,42 @@ export function EditorToolbarEngine({
   useLayoutEffect(() => {
     if (!aboveKeyboard) setReserved(stickyRef.current?.offsetHeight)
   }, [aboveKeyboard])
+
+  // The caret scrolls clear of the bar over the keyboard, not just the screen.
+  useEffect(() => {
+    if (!editor || editor.isDestroyed || !aboveKeyboard) return
+    const { view } = editor
+    // Only the margin, as the engine sets the other props on every render.
+    const before = view.props.scrollMargin
+    view.setProps({ scrollMargin: KEYBOARD_SCROLL_MARGIN })
+    // ProseMirror's margin counts only from the scroll box's edge, which a
+    // phone's browser can put under the keyboard, so the caret is lifted
+    // clear of the bar too, when ProseMirror itself would scroll to it.
+    let frame = 0
+    const liftNow = () => {
+      const bar = barRef.current
+      const { selection } = editor.state
+      if (!bar || editor.isDestroyed || selection instanceof NodeSelection)
+        return
+      const caret = view.coordsAtPos(selection.head)
+      const clear = bar.getBoundingClientRect().top - CARET_GAP
+      if (caret.bottom > clear) scrollBy(view.dom, caret.bottom - clear)
+    }
+    const lift = ({ transaction }: { transaction: Transaction }) => {
+      if (!transaction.scrolledIntoView) return
+      liftNow()
+      // Again once the browser has laid out what's typed, and the bar has
+      // followed the keyboard.
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(liftNow)
+    }
+    editor.on('transaction', lift)
+    return () => {
+      cancelAnimationFrame(frame)
+      editor.off('transaction', lift)
+      if (!editor.isDestroyed) view.setProps({ scrollMargin: before ?? 5 })
+    }
+  }, [editor, aboveKeyboard])
 
   useEffect(() => {
     if (!floating) return

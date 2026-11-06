@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  type ReactNode,
   type RefObject,
   useEffect,
   useRef,
@@ -14,10 +13,8 @@ import type { Editor as TiptapEditor } from '@tiptap/react'
 
 import { Drawer } from '@oztix/roadie-components/drawer'
 import { Field } from '@oztix/roadie-components/field'
-import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { Popover } from '@oztix/roadie-components/popover'
 import { Select } from '@oztix/roadie-components/select'
-import { ToggleGroup } from '@oztix/roadie-components/toggle-group'
 
 import {
   type ButtonAlign,
@@ -26,13 +23,10 @@ import {
   isEmailHref
 } from '../schema/emailAttrs'
 import { isText } from '../schema/isText'
+import { type Choice, EditorChoice } from './EditorChoice'
 import { toHref, useLinkVariables } from './EditorLinkPopover'
 import { selectedNode, selectedNodeType } from './EditorNodeToolbar'
-import {
-  EDITOR_POPOVER_CLASS,
-  EditorPopoverForm,
-  keepingOnEscape
-} from './EditorPopoverForm'
+import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { buttonBlock, insertBlock } from './emailEditing'
 import { focusEditor } from './focusEditor'
 import { EDITOR_POPUP } from './toolbarMode'
@@ -93,61 +87,6 @@ function AddButtonForm({ editor, inputRef, onDone }: ButtonFormProps) {
       invalid={refused}
       error={REFUSED}
     />
-  )
-}
-
-type Choice<Value extends string> = { value: Value; label: string }
-
-type ChoiceProps<Value extends string> = {
-  legend: string
-  choices: readonly Choice<Value>[]
-  value: Value
-  onValueChange: (value: Value) => void
-  disabled?: boolean
-  helperText?: ReactNode
-  /** Given to the chosen item, for the settings to open with focus there. */
-  chosenRef?: RefObject<HTMLButtonElement | null>
-}
-
-function ButtonChoice<Value extends string>({
-  legend,
-  choices,
-  value,
-  onValueChange,
-  disabled,
-  helperText,
-  chosenRef
-}: ChoiceProps<Value>) {
-  return (
-    <Fieldset className='grid gap-1.5 [&>*+*]:mt-0' disabled={disabled}>
-      {/* A label's size, as the Link field's, not a section's. */}
-      <Fieldset.Legend className='text-sm font-medium text-normal'>
-        {legend}
-      </Fieldset.Legend>
-      <ToggleGroup
-        value={[value]}
-        // Pressing the chosen item again would leave none, so it's ignored.
-        onValueChange={([chosen]) => {
-          if (chosen) onValueChange(chosen as Value)
-        }}
-        disabled={disabled}
-        className='w-full'
-      >
-        {choices.map((choice) => (
-          <ToggleGroup.Item
-            key={choice.value}
-            ref={choice.value === value ? chosenRef : undefined}
-            value={choice.value}
-            className='flex-1'
-          >
-            {choice.label}
-          </ToggleGroup.Item>
-        ))}
-      </ToggleGroup>
-      {helperText ? (
-        <Fieldset.HelperText>{helperText}</Fieldset.HelperText>
-      ) : null}
-    </Fieldset>
   )
 }
 
@@ -323,7 +262,7 @@ function ButtonSettingsForm({
           <Field.ErrorText>{REFUSED}</Field.ErrorText>
         </Field>
       )}
-      <ButtonChoice
+      <EditorChoice
         legend='Emphasis'
         choices={EMPHASES}
         value={look.emphasis ?? 'strong'}
@@ -332,7 +271,7 @@ function ButtonSettingsForm({
         }
         chosenRef={emphasisRef}
       />
-      <ButtonChoice
+      <EditorChoice
         legend='Width'
         choices={WIDTHS}
         value={look.fullWidth ? 'full' : 'fit'}
@@ -340,7 +279,7 @@ function ButtonSettingsForm({
           changeLook({ fullWidth: width === 'full' || undefined })
         }
       />
-      <ButtonChoice
+      <EditorChoice
         legend='Align'
         choices={ALIGNS}
         value={look.align ?? 'left'}
@@ -493,7 +432,7 @@ export function EditorButtonPopover({
       // No blur, so the button shows its changes above the half-height sheet.
       <Drawer
         open={open}
-        onOpenChange={keepingOnEscape(live)}
+        onOpenChange={live.onOpenChange}
         side='bottom'
         emphasis='subtler'
       >
@@ -512,7 +451,7 @@ export function EditorButtonPopover({
     )
   }
   return (
-    <Popover open={open} onOpenChange={keepingOnEscape(live)}>
+    <Popover open={open} onOpenChange={live.onOpenChange}>
       <Popover.Content
         {...{ [EDITOR_POPUP]: '' }}
         side='bottom'

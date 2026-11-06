@@ -17,11 +17,7 @@ import { isText } from '../schema/isText'
 import { type EditorVariable, linkVariables } from '../schema/variables'
 import { EditorContext } from './EditorContext'
 import { useRepositionOnResize } from './EditorNodeToolbar'
-import {
-  EDITOR_POPOVER_CLASS,
-  EditorPopoverForm,
-  keepingOnEscape
-} from './EditorPopoverForm'
+import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
 import { focusEditor } from './focusEditor'
 import { EDITOR_POPUP } from './toolbarMode'
 import { type LiveEdit, useLiveEdit } from './useLiveEdit'
@@ -404,7 +400,7 @@ export function EditorLinkPopover({
         editing={open}
         onEdit={() => onOpenChange(true)}
       />
-      <Popover open={open} onOpenChange={keepingOnEscape(live)}>
+      <Popover open={open} onOpenChange={live.onOpenChange}>
         <Popover.Content
           {...{ [EDITOR_POPUP]: '' }}
           side='bottom'

@@ -310,28 +310,23 @@ describe('Editor button settings', () => {
     ['normal', 'borderTopColor'],
     ['subtle', 'backgroundColor']
   ] as const)(
-    'draws a %s button in neutrals under another intent',
+    'draws a %s button in the email’s colours under another intent',
     async (emphasis, property) => {
-      render(
-        <div className='intent-danger'>
-          <Editor
-            aria-label={LABEL}
-            defaultValue={email(button({ emphasis }))}
-          />
-        </div>
-      )
-      await screen.findByRole('textbox', { name: LABEL })
-      const neutral = document.createElement('div')
-      neutral.className = `emphasis-${emphasis}`
-      document.body.append(neutral)
-      const danger = document.createElement('div')
-      danger.className = `intent-danger emphasis-${emphasis}`
-      document.body.append(danger)
-
-      const colour = (element: Element) => getComputedStyle(element)[property]
-      // Else the two references can't tell a neutral button from a tinted one.
-      expect(colour(danger)).not.toBe(colour(neutral))
-      expect(colour(drawn())).toBe(colour(neutral))
+      const colourIn = async (intent?: string) => {
+        render(
+          <div className={intent}>
+            <Editor
+              aria-label={LABEL}
+              defaultValue={email(button({ emphasis }))}
+            />
+          </div>
+        )
+        await screen.findByRole('textbox', { name: LABEL })
+        const colour = getComputedStyle(drawn())[property]
+        cleanup()
+        return colour
+      }
+      expect(await colourIn('intent-danger')).toBe(await colourIn())
     }
   )
 
@@ -428,8 +423,7 @@ describe('Editor button settings', () => {
     fullWidth: true
   })
 
-  // The maintainer's call: Escape keeps a live edit, and Undo takes it back.
-  it('keeps the changes on Escape, and undo puts the button back in one step', async () => {
+  it('keeps the changes on Escape, and Undo puts the button back', async () => {
     const onValueChange = renderEmail(email(button()))
     await restyle()
     await waitFor(() => expect(savedButton(onValueChange)).toEqual(restyled))
