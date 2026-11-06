@@ -105,7 +105,6 @@ function aboveSheet(element: Element, sheet: Element) {
   return top >= EDGE && bottom <= sheet.getBoundingClientRect().top
 }
 
-/** Scrolls a scroller just enough to bring an element inside it to its top. */
 function scrollToTop(scroller: Element, element: Element) {
   scroller.scrollTop +=
     element.getBoundingClientRect().top - scroller.getBoundingClientRect().top
