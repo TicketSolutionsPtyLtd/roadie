@@ -408,7 +408,7 @@ describe('Editor merge tag editing', () => {
     expect(onValueChange).toHaveBeenLastCalledWith(edited)
   })
 
-  it('puts the tag back as it opened on Escape', async () => {
+  it('keeps the changes on Escape, which undo puts back in one step', async () => {
     const onValueChange = renderEmail({ defaultValue: greeting })
     await changeTag(await editTag())
     await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(edited))
@@ -416,8 +416,13 @@ describe('Editor merge tag editing', () => {
     await userEvent.keyboard('{Escape}')
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(onValueChange).toHaveBeenLastCalledWith(greeting)
+    expect(onValueChange).toHaveBeenLastCalledWith(edited)
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(greeting)
+    )
   })
 
   it('undoes every change it made in one step, and redoes them in one', async () => {

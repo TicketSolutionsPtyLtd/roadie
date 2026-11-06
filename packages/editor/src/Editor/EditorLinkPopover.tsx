@@ -178,8 +178,8 @@ type EditorLinkPopoverProps = {
 }
 
 /**
- * Adds, changes or removes the link on the selection, anchored to it. Escape
- * or Close puts the link back as it was.
+ * Adds, changes or removes the link on the selection, anchored to it. Close puts
+ * the link back as it was; Escape keeps it, for undo to put back.
  */
 export function EditorLinkPopover({
   editor,
