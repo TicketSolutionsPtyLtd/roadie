@@ -8,6 +8,7 @@ export const callToActionDefinition = {
   title: 'Call to action',
   description: 'Use it last on a page, to give the next step.',
   group: 'close',
+  keywords: ['cta', 'banner', 'button', 'sign up', 'tickets', 'event', 'gig'],
   presets: [
     {
       name: 'photo',

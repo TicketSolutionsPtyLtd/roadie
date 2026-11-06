@@ -67,6 +67,8 @@ export type EditorInsertItem = {
    * they can't hold it, which the menu says beside it.
    */
   topLevel?: 'always' | 'fallback'
+  /** An image its tile and option show in place of its icon. */
+  thumbnail?: string
   /** Runs once the drawer has put `block` in, with the caret in it. */
   placed?: (props: CommandProps) => boolean
 }

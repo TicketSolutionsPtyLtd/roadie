@@ -25,6 +25,7 @@ export const cardsDefinition = {
   description:
     'Use it for three or more short, like items side by side, such as benefits, services, steps, or people.',
   group: 'explain',
+  keywords: ['grid', 'features', 'steps', 'lineup', 'event', 'tickets'],
   presets: [
     {
       name: 'plain',
