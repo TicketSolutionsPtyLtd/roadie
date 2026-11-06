@@ -161,7 +161,7 @@ export function EditorVariablePopover({
           return false
         }}
       >
-        <Popover.Header>
+        <Popover.Header className='text-start'>
           <Popover.Title>Merge tag</Popover.Title>
         </Popover.Header>
         {tag ? (
