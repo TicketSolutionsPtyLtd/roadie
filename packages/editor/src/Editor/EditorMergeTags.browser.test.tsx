@@ -398,6 +398,18 @@ describe('Editor merge tag editing', () => {
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
   })
 
+  it('starts its title at the form’s edge, as the other settings do', async () => {
+    renderEmail({ defaultValue: greeting })
+
+    const dialog = await editTag()
+
+    const title = within(dialog).getByRole('heading', { name: 'Merge tag' })
+    // By class, as the test sheet compiles no text alignment to measure.
+    const header = title.closest('[data-slot="popover-header"]')!
+    expect(header).toHaveClass('text-start')
+    expect(header).not.toHaveClass('text-center')
+  })
+
   it('keeps the changes on a click outside', async () => {
     const onValueChange = renderEmail({ defaultValue: greeting })
     await changeTag(await editTag())
@@ -408,7 +420,7 @@ describe('Editor merge tag editing', () => {
     expect(onValueChange).toHaveBeenLastCalledWith(edited)
   })
 
-  it('puts the tag back as it opened on Escape', async () => {
+  it('keeps the changes on Escape, which undo puts back in one step', async () => {
     const onValueChange = renderEmail({ defaultValue: greeting })
     await changeTag(await editTag())
     await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(edited))
@@ -416,8 +428,13 @@ describe('Editor merge tag editing', () => {
     await userEvent.keyboard('{Escape}')
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(onValueChange).toHaveBeenLastCalledWith(greeting)
+    expect(onValueChange).toHaveBeenLastCalledWith(edited)
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(greeting)
+    )
   })
 
   it('undoes every change it made in one step, and redoes them in one', async () => {

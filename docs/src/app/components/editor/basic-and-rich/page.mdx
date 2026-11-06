@@ -72,13 +72,13 @@ a web address links it as you go.
 
 The Link, Embed, Edit link, and Image popovers are one row: an input, a
 check button that saves, and Close. Editing a link adds Remove link between
-the two. The popovers that change what's there show each change as it's
-typed: a selection's link while it's a whole address, an embed's player while a
-provider reads its link. Enter, the check, or
-a click away keeps the changes as one step to undo, and Escape or Close puts
-things back as they were. A link at a caret with nothing selected, a new
-embed from the Embed control, and a new image from the Image control are
-added on save.
+the two, and Edit link, as Embed settings, sits under its title and Done.
+The popovers that change what's there show each change as it's typed: a
+selection's link while it's a whole address, an embed's player while a
+provider reads its link. Enter, the check, Escape, or a click away keeps the
+changes as one step to undo, and Close puts things back as they were. A link
+at a caret with nothing selected, a new embed from the Embed control, and a
+new image from the Image control are added on save.
 
 ```tsx-live-prose
 <Editor
@@ -214,15 +214,17 @@ when it's inserted, pasted, or loaded.
 Click an image, or move onto it with the arrow keys, to edit it in place. A
 toolbar by the image has Image settings, Replace image (with `onUploadImage`,
 which uploads the new file the same way and keeps the alt text), and Remove
-image. Image settings edits the image's address and its alt text, each applied
-as it's made, as Button settings does: Escape puts the image back, and a
-click away keeps the changes as one step to undo. It also sets the image's
-width, Full or Fit, and its alignment when it fits, Start, Centre, or End,
-and, in the rich and blocks presets, its caption, or, in an email, where it
-links. On a phone it opens over the lower half of the screen, with the image
-kept in view above it. A selected image with no alt text shows a No alt text
-chip until it has some; Enter on a selected image opens Image
-settings too, with focus in Alt text when it has none.
+image. In the blocks and email presets, a click on an image opens Image
+settings instead, and the image's block menu leads with Settings. Image
+settings edits the image's address and its alt text, each applied as it's
+made: Done, Escape, or a click away keeps the changes as one step, which undo
+puts back. It also sets the image's width, Fit or Full width, and its
+alignment when it fits, Left, Centre, or Right, as Button settings names
+them, and, in the rich and blocks presets, its caption, or, in an email,
+where it links. It opens with focus on its first style choice. On a phone it
+opens over the lower half of the screen, with the image kept in view above
+it. A selected image with no alt text shows a No alt text chip until it has
+some; Enter on a selected image opens Image settings too.
 
 An image in the rich and blocks presets saves its look only where it
 differs from the default, its own width from the start of the text:
@@ -283,7 +285,9 @@ Click an embed, or move onto it with the arrow keys, to edit it in place. A
 toolbar by the embed has Edit link and Remove embed. Edit link starts from the
 embed's share link, from its provider's optional `shareUrl`, and swaps in the
 new link's player as soon as a provider reads it. It refuses a link no
-provider reads, as the Embed control does.
+provider reads, as the Embed control does. In the blocks preset, a click on
+an embed opens Embed settings, with the same link and a Done, and its block
+menu leads with Settings.
 
 ### Tables
 

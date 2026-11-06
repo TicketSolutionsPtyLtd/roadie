@@ -24,6 +24,7 @@ import {
   QuotesIcon,
   RectangleIcon,
   SelectionPlusIcon,
+  SlidersHorizontalIcon,
   TextHFourIcon,
   TextHIcon,
   TextHThreeIcon,
@@ -233,6 +234,20 @@ function inReach(
   return clientX >= from && clientX <= to && clientY >= top && clientY <= bottom
 }
 
+// The first line of text in it, below any padding a section has.
+function firstLineOf(editor: TiptapEditor, pos: number, dom: HTMLElement) {
+  const node = editor.state.doc.nodeAt(pos)
+  if (!node || node.isTextblock) return dom
+  let first: number | null = null
+  node.descendants((child, offset) => {
+    if (first !== null) return false
+    if (child.isTextblock) first = pos + 1 + offset
+    return first === null
+  })
+  const line = first === null ? null : editor.view.nodeDOM(first)
+  return line instanceof HTMLElement ? line : dom
+}
+
 // Centred on the block's first line, just before its start edge.
 function placeAt(
   editor: TiptapEditor,
@@ -244,9 +259,14 @@ function placeAt(
   if (!(dom instanceof HTMLElement)) return null
   const box = dom.getBoundingClientRect()
   const frame = wrapper.getBoundingClientRect()
-  const line = parseFloat(getComputedStyle(dom).lineHeight) || box.height
+  const text = firstLineOf(editor, pos, dom)
+  const textBox = text === dom ? box : text.getBoundingClientRect()
+  const line = parseFloat(getComputedStyle(text).lineHeight) || textBox.height
   return {
-    top: box.top - frame.top + (Math.min(line, box.height) - HANDLE_SIZE) / 2,
+    top:
+      textBox.top -
+      frame.top +
+      (Math.min(line, textBox.height) - HANDLE_SIZE) / 2,
     left: isRtl(editor)
       ? box.right - frame.left + gap
       : box.left - frame.left - HANDLE_SIZE - gap
@@ -346,6 +366,10 @@ type EditorBlockHandleProps = {
   canAdd?: boolean
   /** An app's blocks' names, by node name, to head their menus. */
   appLabels?: Readonly<Record<string, string>>
+  /** Whether a block, by node name, has settings, which its menu leads with. */
+  hasSettings?: (name: string) => boolean
+  /** Opens the settings of the block at `pos`. */
+  onSettings?: (pos: number) => void
 }
 
 /**
@@ -357,7 +381,9 @@ export function EditorBlockHandle({
   openMenuRef,
   containers,
   canAdd = false,
-  appLabels = {}
+  appLabels = {},
+  hasSettings,
+  onSettings
 }: EditorBlockHandleProps) {
   const host = useHandleHost(editor)
   const phone = useOnPhone()
@@ -394,7 +420,9 @@ export function EditorBlockHandle({
       selectedBlocks(current.state, containers),
     equalityFn: (a, b) => a?.from === b?.from && a?.to === b?.to
   })
-  const shown = menuAt ?? hovered ?? caretBlock
+  // On touch, the last tap's block would otherwise outstay the caret's.
+  const shown =
+    menuAt ?? (phone ? (caretBlock ?? hovered) : (hovered ?? caretBlock))
   const shownRef = useRef(shown)
   useLayoutEffect(() => {
     shownRef.current = shown
@@ -543,7 +571,14 @@ export function EditorBlockHandle({
     )
   }, [editor, marked])
 
-  // After every change, as text above or in the block moves it.
+  // After every change, as text above or in the block moves it, and as the
+  // editor resizes, as a drawer opening beside it reflows its text.
+  const [resized, setResized] = useState(0)
+  useEffect(() => {
+    const observer = new ResizeObserver(() => setResized((count) => count + 1))
+    observer.observe(editor.view.dom)
+    return () => observer.disconnect()
+  }, [editor])
   useLayoutEffect(() => {
     // In a column, the grip fills the gap before it, clear of the column
     // to its left.
@@ -552,7 +587,7 @@ export function EditorBlockHandle({
     setPlace(
       wrapper && shown != null ? placeAt(editor, wrapper, shown, gap) : null
     )
-  }, [editor, wrapper, shown, doc, phone])
+  }, [editor, wrapper, shown, doc, phone, resized])
 
   const columnHandle = (column: number | null) =>
     wrapper && containers.has('column') ? (
@@ -644,6 +679,20 @@ export function EditorBlockHandle({
   const blockId = blocks ? null : blockIdAt(doc, shown)
   const close = () => setMenuAt(null)
 
+  const settings: BlockAction[] =
+    !blocks && onSettings && hasSettings?.(doc.nodeAt(shown)!.type.name)
+      ? [
+          {
+            label: 'Settings',
+            icon: SlidersHorizontalIcon,
+            // Once the menu's handed focus back, or it would close them.
+            run: () => {
+              const at = shown
+              afterClose.current = () => onSettings(at)
+            }
+          }
+        ]
+      : []
   const moves: BlockAction[] = [
     {
       label: 'Move up',
@@ -837,7 +886,7 @@ export function EditorBlockHandle({
                 }
                 moveUp={moves[0]!}
                 moveDown={moves[1]!}
-                actions={[...moves.slice(2), ...more]}
+                actions={[...settings, ...moves.slice(2), ...more]}
                 remove={remove}
                 kinds={kinds.map((each) => ({
                   label: kindLabel(each),
@@ -889,7 +938,7 @@ export function EditorBlockHandle({
               >
                 <Menu.Group>
                   <Menu.GroupLabel>{label}</Menu.GroupLabel>
-                  {moves.map((action) => (
+                  {[...settings, ...moves].map((action) => (
                     <Menu.Item
                       key={action.label}
                       icon={createElement(action.icon, { weight: 'bold' })}

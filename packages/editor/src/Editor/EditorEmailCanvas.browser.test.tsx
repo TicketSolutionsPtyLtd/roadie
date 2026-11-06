@@ -198,6 +198,20 @@ describe('Editor email canvas', () => {
       expect(getComputedStyle(section).outlineOffset).toBe('0px')
     })
 
+    it('lines a section’s grip up with its first line, not its padding', async () => {
+      const { box, section } = await renderCard()
+      await userEvent.hover(section, { position: { x: 4, y: 4 } })
+      const grip = await screen.findByRole('button', { name: 'Block actions' })
+      const heading = box('Ochre Kite Weekender')
+      const centre = () => {
+        const { top, bottom } = grip.getBoundingClientRect()
+        return (top + bottom) / 2
+      }
+
+      await expect.poll(centre).toBeGreaterThan(heading.top)
+      expect(centre()).toBeLessThan(heading.bottom)
+    })
+
     it('keeps the chosen halo on a spacer while its menu is open', async () => {
       render(
         <Editor
@@ -304,6 +318,10 @@ describe('Editor email canvas', () => {
 
     await userEvent.click(image)
     await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
+    // Out of the settings the click opens, back to the selected image.
+    await screen.findByRole('dialog', { name: 'Image settings' })
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => screen.queryByRole('dialog')).toBe(null)
     await userEvent.keyboard('{ArrowLeft}')
 
     await expect
@@ -346,6 +364,10 @@ describe('Editor email canvas', () => {
 
     await userEvent.click(image)
     await expect.poll(() => block.hasAttribute('data-selected')).toBe(true)
+    // Out of the settings the click opens, back to the selected image.
+    await screen.findByRole('dialog', { name: 'Image settings' })
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(() => screen.queryByRole('dialog')).toBe(null)
     await userEvent.keyboard('{ArrowLeft}')
 
     await expect

@@ -19,6 +19,7 @@ import { page, userEvent } from 'vitest/browser'
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
+import { MOD } from './testUtils'
 
 const LABEL = 'Newsletter'
 const POSTER = 'https://example.test/poster.webp'
@@ -78,19 +79,60 @@ function renderImage(value = valueOf('email', image(), { type: 'paragraph' })) {
 const savedImage = (onValueChange: ReturnType<typeof vi.fn>) =>
   (onValueChange.mock.lastCall![0] as EditorValue).doc.content![0]!.attrs
 
-async function openSettings() {
+// A click opens them where the editor has a block menu; elsewhere, the
+// image's toolbar does.
+async function openSettings({ fromToolbar = false } = {}) {
   const textbox = await screen.findByRole('textbox', { name: LABEL })
   await userEvent.click(textbox.querySelector('img')!)
-  await userEvent.click(
-    await screen.findByRole('button', { name: 'Image settings' })
-  )
+  if (fromToolbar) {
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Image settings' })
+    )
+  }
   const dialog = await screen.findByRole('dialog', { name: 'Image settings' })
   await waitFor(() => expect(dialog).toBeVisible())
   return dialog
 }
 
 describe('Editor image settings', () => {
-  it('replaces the cryptic Aa with Image settings, and has no Save', async () => {
+  it('opens on a click, led by its title, a hint, and Done, which keeps the changes', async () => {
+    const onValueChange = renderImage()
+
+    const dialog = await openSettings()
+
+    const title = within(dialog).getByRole('heading', {
+      name: 'Image settings'
+    })
+    expect(getComputedStyle(title).textAlign).toMatch(/^(start|left)$/)
+    expect(dialog).toHaveTextContent(
+      'Changes apply as you go. Undo puts them back.'
+    )
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Fit' }))
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Done' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
+    expect(savedImage(onValueChange)).toMatchObject({
+      width: expect.any(Number)
+    })
+  })
+
+  it('leads the image’s block menu with Settings, which opens them', async () => {
+    renderImage()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    await userEvent.hover(textbox.querySelector('img')!)
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Block actions' })
+    )
+
+    const menu = await screen.findByRole('menu')
+    const first = within(menu).getAllByRole('menuitem')[0]!
+    expect(first).toHaveTextContent('Settings')
+    await userEvent.click(first)
+
+    const dialog = await screen.findByRole('dialog', { name: 'Image settings' })
+    await waitFor(() => expect(dialog).toBeVisible())
+  })
+
+  it('has every field, and no Save', async () => {
     renderImage()
 
     const dialog = await openSettings()
@@ -112,10 +154,10 @@ describe('Editor image settings', () => {
     const onValueChange = renderImage()
     const dialog = await openSettings()
     const align = within(dialog).getByRole('group', { name: 'Align' })
-    expect(within(align).getByRole('button', { name: 'End' })).toBeDisabled()
+    expect(within(align).getByRole('button', { name: 'Right' })).toBeDisabled()
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Fit' }))
-    await userEvent.click(within(align).getByRole('button', { name: 'End' }))
+    await userEvent.click(within(align).getByRole('button', { name: 'Right' }))
 
     await waitFor(() =>
       expect(savedImage(onValueChange)).toMatchObject({
@@ -123,7 +165,9 @@ describe('Editor image settings', () => {
         align: 'right'
       })
     )
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Full' }))
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Full width' })
+    )
     await waitFor(() =>
       expect(savedImage(onValueChange)).toMatchObject({ width: null })
     )
@@ -185,7 +229,7 @@ describe('Editor image settings', () => {
     )
   })
 
-  it('puts the image back as it opened on Escape', async () => {
+  it('keeps the changes on Escape, which undo puts back in one step and redo restores', async () => {
     const onValueChange = renderImage(
       valueOf('email', image({ href: TICKETS }), { type: 'paragraph' })
     )
@@ -204,22 +248,35 @@ describe('Editor image settings', () => {
     await userEvent.keyboard('{Escape}')
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
-    expect(savedImage(onValueChange)).toMatchObject({
-      src: POSTER,
-      alt: 'Festival poster',
-      width: null,
+    const edited = {
+      alt: 'Festival poster at dusk',
+      width: expect.any(Number),
       href: TICKETS
-    })
+    }
+    expect(savedImage(onValueChange)).toMatchObject(edited)
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+    await waitFor(() =>
+      expect(savedImage(onValueChange)).toMatchObject({
+        src: POSTER,
+        alt: 'Festival poster',
+        width: null,
+        href: TICKETS
+      })
+    )
+    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+    await waitFor(() => expect(savedImage(onValueChange)).toMatchObject(edited))
   })
 
-  it('focuses Alt text first on an image without any', async () => {
+  it('focuses the first style choice, as Button settings does', async () => {
     renderImage(valueOf('email', image({ alt: '' }), { type: 'paragraph' }))
 
     const dialog = await openSettings()
 
+    const width = within(dialog).getByRole('group', { name: 'Width' })
     await waitFor(() =>
       expect(
-        within(dialog).getByRole('textbox', { name: 'Alt text' })
+        within(width).getByRole('button', { name: 'Full width' })
       ).toHaveFocus()
     )
   })
@@ -251,7 +308,7 @@ describe('Editor image settings', () => {
         type: 'paragraph'
       })
     )
-    const dialog = await openSettings()
+    const dialog = await openSettings({ fromToolbar: true })
     expect(within(dialog).queryByRole('textbox', { name: 'Link' })).toBe(null)
 
     const align = within(dialog).getByRole('group', { name: 'Align' })
@@ -268,7 +325,9 @@ describe('Editor image settings', () => {
         caption: 'Gates 11am'
       })
     )
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Full' }))
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Full width' })
+    )
 
     await waitFor(() =>
       expect(savedImage(onValueChange)).toEqual({
@@ -278,7 +337,7 @@ describe('Editor image settings', () => {
         caption: 'Gates 11am'
       })
     )
-    expect(within(align).getByRole('button', { name: 'End' })).toBeDisabled()
+    expect(within(align).getByRole('button', { name: 'Right' })).toBeDisabled()
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Fit' }))
     await waitFor(() =>
@@ -298,21 +357,21 @@ describe('Editor image settings', () => {
       />
     )
 
-    const dialog = await openSettings()
+    const dialog = await openSettings({ fromToolbar: true })
 
     expect(within(dialog).getByRole('group', { name: 'Align' })).toBeVisible()
   })
 
-  it('names the alignments Start, Centre and End, as sections do', async () => {
+  it('names its choices as Button settings does', async () => {
     renderImage(valueOf('email', image({ width: 200 }), { type: 'paragraph' }))
     const dialog = await openSettings()
 
-    const align = within(dialog).getByRole('group', { name: 'Align' })
-    expect(
-      within(align)
+    const names = (group: string) =>
+      within(within(dialog).getByRole('group', { name: group }))
         .getAllByRole('button')
         .map((button) => button.textContent)
-    ).toEqual(['Start', 'Centre', 'End'])
+    expect(names('Width')).toEqual(['Fit', 'Full width'])
+    expect(names('Align')).toEqual(['Left', 'Centre', 'Right'])
     expect(
       within(dialog).getByRole('textbox', { name: 'Image address' })
     ).toBeVisible()
@@ -335,9 +394,6 @@ describe('Editor image settings', () => {
       renderImage()
       const textbox = await screen.findByRole('textbox', { name: LABEL })
       await userEvent.click(textbox.querySelector('img')!)
-      await userEvent.click(
-        await screen.findByRole('button', { name: 'Image settings' })
-      )
 
       const sheet = await screen.findByRole('dialog', {
         name: 'Image settings'
@@ -352,7 +408,8 @@ describe('Editor image settings', () => {
       await waitFor(() =>
         expect(sheet.contains(document.activeElement)).toBe(true)
       )
-      expect(document.activeElement?.tagName).not.toBe('INPUT')
+      // A choice, as a field's keyboard would cover the sheet.
+      expect(document.activeElement).toHaveAttribute('aria-pressed', 'true')
       expect(sheet).toHaveAttribute('data-editor-popup')
       // Half the screen, with the image above it and the page unblurred.
       const image = textbox.querySelector('img')!
@@ -368,9 +425,6 @@ describe('Editor image settings', () => {
       if (backdrop) {
         expect(getComputedStyle(backdrop).backdropFilter).toBe('none')
       }
-      expect(getComputedStyle(document.activeElement!).outlineStyle).toBe(
-        'none'
-      )
     } finally {
       await page.viewport(1280, 800)
     }

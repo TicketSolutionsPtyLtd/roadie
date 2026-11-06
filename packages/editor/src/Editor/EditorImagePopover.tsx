@@ -28,6 +28,7 @@ import {
   type LinkTarget
 } from './EditorLinkTargetFields'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
+import { EditorSettingsHeader } from './EditorSettingsHeader'
 import { insertBlock } from './emailEditing'
 import { focusEditor } from './focusEditor'
 import { useOnPhone } from './toolbarMode'
@@ -189,21 +190,21 @@ function ImageChoice<Value extends string>({
   )
 }
 
+// As Button settings names them.
 const WIDTHS = [
-  { value: 'full', label: 'Full' },
-  { value: 'fit', label: 'Fit' }
+  { value: 'fit', label: 'Fit' },
+  { value: 'full', label: 'Full width' }
 ] as const
 
-// Start and End are where the text begins and ends, so they swap sides in
-// right-to-left text, while the saved values name the physical side.
-function alignChoices(editor: TiptapEditor) {
-  const rtl = getComputedStyle(editor.view.dom).direction === 'rtl'
-  return [
-    { value: rtl ? 'right' : 'left', label: 'Start' },
-    { value: 'center', label: 'Centre' },
-    { value: rtl ? 'left' : 'right', label: 'End' }
-  ] as const
-}
+const ALIGNS = [
+  { value: 'left', label: 'Left' },
+  { value: 'center', label: 'Centre' },
+  { value: 'right', label: 'Right' }
+] as const
+
+// Where a page image sits with no align saved: the text's start.
+const startSide = (editor: TiptapEditor) =>
+  getComputedStyle(editor.view.dom).direction === 'rtl' ? 'right' : 'left'
 
 type Saved = {
   src: string
@@ -233,8 +234,8 @@ function fitWidth(editor: TiptapEditor) {
 
 type ImageSettingsFormProps = {
   editor: TiptapEditor
+  formRef: RefObject<HTMLFormElement | null>
   inputRef: RefObject<HTMLInputElement | null>
-  altRef: RefObject<HTMLInputElement | null>
   apply: LiveEdit['apply']
   upload?: () => void
   onDone: () => void
@@ -243,8 +244,8 @@ type ImageSettingsFormProps = {
 /** Applies each change as it's made: a choice at once, a link once it's whole. */
 function ImageSettingsForm({
   editor,
+  formRef,
   inputRef,
-  altRef,
   apply: applyLive,
   upload,
   onDone
@@ -283,6 +284,7 @@ function ImageSettingsForm({
 
   return (
     <form
+      ref={formRef}
       noValidate
       className='grid gap-4'
       onSubmit={(event) => {
@@ -356,7 +358,7 @@ function ImageSettingsForm({
           />
           <ImageChoice
             legend='Align'
-            choices={alignChoices(editor)}
+            choices={ALIGNS}
             value={align ?? 'center'}
             onValueChange={(choice) => {
               const next = choice === 'center' ? undefined : choice
@@ -381,12 +383,12 @@ function ImageSettingsForm({
           />
           <ImageChoice
             legend='Align'
-            choices={alignChoices(editor)}
-            value={page.align ?? alignChoices(editor)[0].value}
+            choices={ALIGNS}
+            value={page.align ?? startSide(editor)}
             onValueChange={(choice) =>
               changePage({
                 align:
-                  choice === alignChoices(editor)[0].value || choice === 'left'
+                  choice === startSide(editor) || choice === 'left'
                     ? undefined
                     : choice
               })
@@ -417,7 +419,6 @@ function ImageSettingsForm({
       <Field>
         <Field.Label>Alt text</Field.Label>
         <Field.Input
-          ref={altRef}
           value={alt}
           placeholder='Describe the image'
           onChange={(event) => {
@@ -455,7 +456,7 @@ type EditorImagePopoverProps = {
 /**
  * Adds an image from its link or an upload, or edits the selected image's
  * link, alt text and, in an email, where it links, its width and its
- * alignment. Escape puts an edited image back as it was.
+ * alignment, each as it's made. Undo puts an edited image back as it was.
  */
 export function EditorImagePopover({
   editor,
@@ -466,8 +467,7 @@ export function EditorImagePopover({
   replaceFile
 }: EditorImagePopoverProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const altRef = useRef<HTMLInputElement>(null)
-  const titleRef = useRef<HTMLHeadingElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
   const live = useLiveEdit(editor, open, onOpenChange)
   const phone = useOnPhone()
   // From the editor's state as it changes: a read of the mutable editor in
@@ -502,15 +502,18 @@ export function EditorImagePopover({
     <ImageSettingsForm
       key={image.from}
       editor={editor}
+      formRef={formRef}
       inputRef={inputRef}
-      altRef={altRef}
       apply={live.apply}
       upload={replaceFile}
       onDone={live.done}
     />
   ) : null
+  // The first style choice, as Button settings has; adding, the address.
   const firstFocus = () =>
-    image && !image.node.attrs.alt ? altRef.current : inputRef.current
+    formRef.current?.querySelector<HTMLElement>(
+      'fieldset [aria-pressed="true"]'
+    ) ?? inputRef.current
   const handBack = () => {
     focusEditor(editor)
     return false
@@ -527,17 +530,16 @@ export function EditorImagePopover({
       >
         <Drawer.Content
           size='sm'
-          // Its title, as the keyboard a field brings up would cover the sheet.
-          initialFocus={titleRef}
+          initialFocus={firstFocus}
           finalFocus={handBack}
           // The editor's own, so a docked phone toolbar stays put.
           data-editor-popup=''
         >
-          <Drawer.Header>
-            <Drawer.Title ref={titleRef} tabIndex={-1} className='outline-none'>
-              Image settings
-            </Drawer.Title>
-          </Drawer.Header>
+          <EditorSettingsHeader
+            title='Image settings'
+            sheet
+            onDone={live.done}
+          />
           <Drawer.Body className='pb-6'>{settings}</Drawer.Body>
         </Drawer.Content>
       </Drawer>
@@ -555,15 +557,16 @@ export function EditorImagePopover({
             : EDITOR_POPOVER_CLASS
         }
         positionerProps={{ anchor }}
-        // An image without alt text needs it most, so that's where typing goes.
         initialFocus={firstFocus}
         finalFocus={handBack}
       >
         {image ? (
           <>
-            <Popover.Header>
-              <Popover.Title>Image settings</Popover.Title>
-            </Popover.Header>
+            <EditorSettingsHeader
+              title='Image settings'
+              sheet={false}
+              onDone={live.done}
+            />
             {settings}
           </>
         ) : (

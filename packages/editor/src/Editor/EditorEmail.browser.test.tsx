@@ -329,7 +329,7 @@ describe('Editor with the email preset', () => {
     await userEvent.click(textbox.querySelector('img')!)
 
     await userEvent.click(
-      await screen.findByRole('button', { name: 'Replace image' })
+      await screen.findByRole('button', { name: 'Upload a new image' })
     )
     await userEvent.upload(
       screen.getByLabelText('Replacement image file'),
@@ -343,6 +343,7 @@ describe('Editor with the email preset', () => {
         width: 280
       })
     )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
   })
 
   it('shows a merge tag as a chip with its label, not as text to edit', async () => {
@@ -526,6 +527,9 @@ describe('Editor with the email preset', () => {
 
     await userEvent.click(image)
     await waitFor(() => expect(view).toHaveAttribute('data-selected'))
+    await screen.findByRole('dialog', { name: 'Image settings' })
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
   })
 })
 
