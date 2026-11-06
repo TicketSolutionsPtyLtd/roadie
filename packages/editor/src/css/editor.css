@@ -360,14 +360,23 @@
   line-height: 1.5rem;
 }
 
-/* A spacer shows always, as it's otherwise invisible, and a section or a
-   column under the pointer or the caret. Outlines take no room from the
-   email's spacing. Layered and in :where() so a chosen block's halo and a
-   selected node's ring win. */
+/* A spacer, a section or a column shows its box under the pointer or the
+   caret. Outlines take no room from the email's spacing. Layered and in
+   :where() so a chosen block's halo and a selected node's ring win. */
 @layer components {
   [data-email] :where([data-type='spacer']) {
-    outline: 1px dashed var(--intent-border-subtle);
+    outline: 1px dashed transparent;
     outline-offset: 2px;
+    transition: outline-color var(--duration-normal);
+  }
+
+  [data-email]
+    :where([data-type='spacer']):where(
+      :hover,
+      [data-focused-block],
+      .ProseMirror-selectednode
+    ) {
+    outline-color: var(--intent-border-subtle);
   }
 
   [data-email] :where([data-type='section'], [data-type='column']) {

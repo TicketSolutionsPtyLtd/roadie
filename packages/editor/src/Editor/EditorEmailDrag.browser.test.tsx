@@ -169,18 +169,19 @@ async function typeAtEndOf(text: string) {
 }
 
 describe('Editor email block handle', () => {
-  it('shows a grip and an add button beside a block in a column', async () => {
+  it('keeps a block’s grip in the gap before its column, with no add button', async () => {
     renderNewsletter()
 
     const block = await hoverBlock('Right one')
 
-    const add = (await addButton()).getBoundingClientRect()
-    expect(middle(await addButton())).toBeGreaterThan(
+    const left = (await line('Left one')).getBoundingClientRect()
+    expect((await grip()).getBoundingClientRect().left).toBeGreaterThanOrEqual(
+      left.right
+    )
+    expect(middle(await grip())).toBeGreaterThan(
       block.getBoundingClientRect().top
     )
-    expect(add.right).toBeLessThanOrEqual(
-      (await grip()).getBoundingClientRect().left
-    )
+    expect(screen.queryByRole('button', { name: 'Add block' })).toBe(null)
   })
 
   it('puts the grip and add button in the gutter beside the email, inside the frame', async () => {
@@ -645,7 +646,7 @@ describe('Editor email block handle', () => {
     )
   })
 
-  it('adds a block into an empty column from its add button', async () => {
+  it('adds a block into an empty column from its grip’s Insert below', async () => {
     const onValueChange = renderNewsletter(
       newsletter(section(columns([p('Left one')], [p()])))
     )
@@ -655,7 +656,10 @@ describe('Editor email block handle', () => {
     await userEvent.hover(empty)
     await expectGripBeside(empty)
 
-    await userEvent.click(await addButton())
+    await userEvent.click(await grip())
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: 'Insert below' })
+    )
     await userEvent.click(
       await screen.findByRole('option', { name: 'Divider' })
     )
@@ -891,7 +895,7 @@ describe('Editor email block handle', () => {
       )
     })
 
-    it('keeps a tall nested block’s handle beside its lower lines, out to the add button', async () => {
+    it('keeps a tall nested block’s handle beside its lower lines, out to the grip', async () => {
       renderNewsletter(
         newsletter(
           section(
@@ -908,7 +912,7 @@ describe('Editor email block handle', () => {
       expect(block.offsetHeight).toBeGreaterThan(32)
       await userEvent.hover(block)
       await expectGripBeside(block)
-      const add = (await addButton()).getBoundingClientRect()
+      const add = (await grip()).getBoundingClientRect()
 
       moveThrough([
         {
@@ -943,7 +947,8 @@ describe('Editor email block handle', () => {
           <button type='button'>After</button>
         </>
       )
-      await userEvent.click(await line('Right one'))
+      // Outside the columns, whose toolbar sits over their blocks' grips.
+      await userEvent.click(await line('Alpha two'))
       // Off the editor, which fills the page's top-left corner.
       const after = screen.getByRole('button', { name: 'After' })
       const away = after.getBoundingClientRect()
@@ -955,7 +960,7 @@ describe('Editor email block handle', () => {
       screen.getByRole('button', { name: 'After' }).focus()
       await nextFrame()
 
-      await expectGripBeside(await line('Right one'))
+      await expectGripBeside(await line('Alpha two'))
     })
 
     it('keeps the grip of the block a tap lands on once focus leaves the text', async () => {
@@ -1029,7 +1034,7 @@ describe('Editor email block handle', () => {
 
       it('puts the add button beyond the grip, on the right', async () => {
         renderRtl()
-        const block = await line('Right one')
+        const block = await line('Closing')
         await userEvent.hover(block)
         await expectGripAfter(block)
 

@@ -4,6 +4,7 @@ import type { EditorState, Transaction } from '@tiptap/pm/state'
 import { NodeSelection, TextSelection } from '@tiptap/pm/state'
 import { dropPoint } from '@tiptap/pm/transform'
 
+import { COLUMN_COUNTS } from '../schema/emailAttrs'
 import { HEADING_LEVELS } from '../schema/headings'
 import { BLOCK_ID } from '../schema/presetShapes'
 
@@ -228,6 +229,78 @@ export function deleteBlock(state: EditorState, pos: number) {
   const at = Math.min(pos, tr.doc.content.size)
   return tr
     .setSelection(TextSelection.near(tr.doc.resolve(at)))
+    .scrollIntoView()
+}
+
+/** Where the column holding the block at `pos` starts, if it's in one. */
+export function columnOf(doc: Node, pos: number): number | null {
+  const $pos = doc.resolve(pos)
+  return $pos.parent.type.name === 'column' ? $pos.before() : null
+}
+
+const COLUMNS = {
+  min: Math.min(...COLUMN_COUNTS),
+  max: Math.max(...COLUMN_COUNTS)
+}
+
+const columnPlace = (doc: Node, pos: number) => {
+  const $pos = doc.resolve(pos)
+  return { row: $pos.parent, index: $pos.index() }
+}
+
+/** Whether the column at `pos` has a neighbour to swap with, left (-1) or right (1). */
+export function canMoveColumn(doc: Node, pos: number, step: -1 | 1) {
+  const { row, index } = columnPlace(doc, pos)
+  const to = index + step
+  return to >= 0 && to < row.childCount
+}
+
+/** Swaps the column at `pos` with its neighbour, left (-1) or right (1), in one step. */
+export function moveColumn(state: EditorState, pos: number, step: -1 | 1) {
+  if (!canMoveColumn(state.doc, pos, step)) return null
+  const column = state.doc.nodeAt(pos)!
+  const $pos = state.doc.resolve(pos)
+  const neighbour =
+    step === 1 ? state.doc.nodeAt(pos + column.nodeSize)! : $pos.nodeBefore!
+  const from = step === 1 ? pos : pos - neighbour.nodeSize
+  const to = from + column.nodeSize + neighbour.nodeSize
+  const tr = state.tr.replaceWith(
+    from,
+    to,
+    step === 1 ? [neighbour, column] : [column, neighbour]
+  )
+  const landed = step === 1 ? from + neighbour.nodeSize : from
+  return tr
+    .setSelection(TextSelection.near(tr.doc.resolve(landed + 1)))
+    .scrollIntoView()
+}
+
+export const canAddColumn = (doc: Node, pos: number) =>
+  columnPlace(doc, pos).row.childCount < COLUMNS.max
+
+export const canRemoveColumn = (doc: Node, pos: number) =>
+  columnPlace(doc, pos).row.childCount > COLUMNS.min
+
+/** Puts a copy of the column at `pos` after it, while the row has room. */
+export function duplicateColumn(state: EditorState, pos: number) {
+  if (!canAddColumn(state.doc, pos)) return null
+  const column = state.doc.nodeAt(pos)!
+  const to = pos + column.nodeSize
+  const tr = state.tr.insert(to, withoutIds(column))
+  return tr
+    .setSelection(TextSelection.near(tr.doc.resolve(to + 1)))
+    .scrollIntoView()
+}
+
+/** Removes the column at `pos`, while the row keeps two. */
+export function deleteColumn(state: EditorState, pos: number) {
+  if (!canRemoveColumn(state.doc, pos)) return null
+  const column = state.doc.nodeAt(pos)!
+  const tr = state.tr.delete(pos, pos + column.nodeSize)
+  return tr
+    .setSelection(
+      TextSelection.near(tr.doc.resolve(Math.min(pos, tr.doc.content.size)))
+    )
     .scrollIntoView()
 }
 

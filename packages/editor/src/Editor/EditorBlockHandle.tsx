@@ -13,6 +13,7 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   ArrowsClockwiseIcon,
+  ColumnsIcon,
   CopySimpleIcon,
   DotsSixVerticalIcon,
   type Icon,
@@ -49,6 +50,7 @@ import { cn } from '@oztix/roadie-core/utils'
 
 import { EditorBlockSheet } from './EditorBlockSheet'
 import { hideBubbleMenu } from './EditorBubbleMenuEngine'
+import { EditorColumnHandle } from './EditorColumnHandle'
 import {
   BLOCK_ACTION_KEYS,
   type BlockContainers,
@@ -58,6 +60,7 @@ import {
   blockIdAt,
   blockKind,
   canMoveBlock,
+  columnOf,
   deleteBlock,
   duplicateBlock,
   findBlockId,
@@ -393,6 +396,7 @@ export function EditorBlockHandle({
   const wrapper = host?.parentElement ?? null
   const [hovered, setHovered] = useState<number | null>(null)
   const [menuAt, setMenuAt] = useState<number | null>(null)
+  const [columnMenuAt, setColumnMenuAt] = useState<number | null>(null)
   const [place, setPlace] = useState<{ top: number; left: number } | null>(null)
   const { caretBlock, doc } = useEditorState({
     editor,
@@ -531,6 +535,7 @@ export function EditorBlockHandle({
       pointerBlock.current = map(pointerBlock.current)
       setHovered(map)
       setMenuAt(map)
+      setColumnMenuAt(map)
     }
     editor.on('transaction', follow)
     return () => {
@@ -579,17 +584,36 @@ export function EditorBlockHandle({
     return () => observer.disconnect()
   }, [editor])
   useLayoutEffect(() => {
-    const gap = phone ? PHONE_HANDLE_GAP : HANDLE_GAP
+    // In a column after another, side by side, the grip fills the gap
+    // before it, clear of the column to its left. A first column's text, and
+    // a phone's stacked columns, start where body text does.
+    const column = shown == null ? null : columnOf(doc, shown)
+    const afterAnother = column !== null && doc.resolve(column).index() > 0
+    const gap = phone ? PHONE_HANDLE_GAP : afterAnother ? 0 : HANDLE_GAP
     setPlace(
       wrapper && shown != null ? placeAt(editor, wrapper, shown, gap) : null
     )
   }, [editor, wrapper, shown, doc, phone, resized])
 
+  const columnHandle = (column: number | null) =>
+    wrapper && containers.has('column') ? (
+      <EditorColumnHandle
+        editor={editor}
+        wrapper={wrapper}
+        column={column}
+        menuAt={columnMenuAt}
+        onMenuAtChange={setColumnMenuAt}
+      />
+    ) : null
+
   if (!wrapper || !editable || shown == null || !place) {
+    // A moved column takes its block's grip with it, but keeps its menu.
     return (
       <>
         {status}
-        {null}
+        {editable && host && columnMenuAt !== null
+          ? createPortal(columnHandle(null), host)
+          : null}
       </>
     )
   }
@@ -720,13 +744,30 @@ export function EditorBlockHandle({
         )
     }
   ]
+  const column = blocks ? null : columnOf(doc, shown)
   const more: BlockAction[] = [
+    ...(column !== null
+      ? [
+          {
+            label: 'Column actions',
+            icon: ColumnsIcon,
+            // The keyboard's way to the column's grip, which takes no Tab stop.
+            run: () => {
+              afterClose.current = () => setColumnMenuAt(column)
+            }
+          }
+        ]
+      : []),
     {
       label: 'Insert below',
       icon: PlusIcon,
       // Once the menu's let go of focus, or the insert menu would close.
       run: () => {
-        afterClose.current = () => run(() => insertBelow(editor.state, end))
+        // An empty line takes the `/` itself, as the add button's does.
+        afterClose.current = () =>
+          blocks
+            ? run(() => insertBelow(editor.state, end))
+            : addAfter(editor, shown)
       }
     },
     ...(blockId
@@ -815,7 +856,8 @@ export function EditorBlockHandle({
               Link copied
             </Badge>
           ) : null}
-          {canAdd ? (
+          {columnHandle(columnOf(doc, shown))}
+          {canAdd && columnOf(doc, shown) === null ? (
             <IconButton
               size='xs'
               emphasis='subtler'

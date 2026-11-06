@@ -8,12 +8,15 @@ import { BubbleMenu, type BubbleMenuProps } from '@tiptap/react/menus'
 
 import { Toolbar } from '@oztix/roadie-components/toolbar'
 
+import { EditorBlockMenuGroup } from './EditorBlockMenuGroup'
 import { BlockMenu, Control, stateOf } from './EditorToolbarEngine'
 import {
+  type EditorBlockMenu,
   type EditorControlUi,
   type EditorNodeType,
   nodeControls
 } from './controls'
+import { useOnPhone } from './toolbarMode'
 import { EDITOR_TOOLBAR_SIZE, type EditorSize } from './variants'
 
 const LABELS: Record<EditorNodeType, string> = {
@@ -289,6 +292,11 @@ export function EditorNodeToolbar({
   })
   const menuRef = useRef<HTMLDivElement>(null)
   useRepositionOnResize(editor, menuRef, PLUGIN_KEY)
+  const phone = useOnPhone()
+  const items = type ? nodeControls[type] : []
+  const menus = items.filter((item): item is EditorBlockMenu => 'kind' in item)
+  // A phone has no room for a button per menu beside the node.
+  const grouped = phone && menus.length > 1
   const toolbarSize = EDITOR_TOOLBAR_SIZE[size]
   const floating = {
     placement: 'bottom-end',
@@ -330,8 +338,16 @@ export function EditorNodeToolbar({
             if (event.key === 'Escape' && inToolbar) event.stopPropagation()
           }}
         >
-          {nodeControls[type].map((item, index) =>
-            'kind' in item ? (
+          {grouped ? (
+            <EditorBlockMenuGroup
+              label='Layout'
+              menus={menus}
+              states={menus.map((menu) => states[items.indexOf(menu)])}
+              editor={editor}
+            />
+          ) : null}
+          {items.map((item, index) =>
+            grouped && 'kind' in item ? null : 'kind' in item ? (
               <BlockMenu
                 key={item.label}
                 menu={item}

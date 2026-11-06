@@ -215,6 +215,48 @@ describe('Editor email canvas', () => {
       expect(centre()).toBeLessThan(heading.bottom)
     })
 
+    it('outlines a spacer only under the pointer or at the caret', async () => {
+      render(
+        <>
+          <Editor
+            aria-label={LABEL}
+            defaultValue={{
+              version: 1,
+              preset: 'email',
+              doc: {
+                type: 'doc',
+                content: [
+                  p('Two weeks to go'),
+                  { type: 'spacer', attrs: { height: 32 } },
+                  p('Doors 7pm')
+                ]
+              }
+            }}
+          />
+          <p>Outside</p>
+        </>
+      )
+      const doors = await screen.findByText('Doors 7pm')
+      const spacer = document.querySelector<HTMLElement>(
+        '[data-type="spacer"]'
+      )!
+      const clear = /rgba\(0, 0, 0, 0\)|transparent/
+      const colour = () => getComputedStyle(spacer).outlineColor
+      // The last test can leave the pointer where the spacer is.
+      await userEvent.hover(screen.getByText('Outside'))
+      await expect.poll(colour).toMatch(clear)
+
+      await userEvent.hover(spacer)
+      await expect.poll(colour).not.toMatch(clear)
+      expect(getComputedStyle(spacer).outlineStyle).toBe('dashed')
+
+      await userEvent.hover(screen.getByText('Outside'))
+      await expect.poll(colour).toMatch(clear)
+      await userEvent.click(doors)
+      await userEvent.keyboard('{Home}{ArrowUp}')
+      await expect.poll(colour).not.toMatch(clear)
+    })
+
     it('lines a grip up with the top of a section that starts with an image', async () => {
       render(
         <Editor
@@ -271,8 +313,6 @@ describe('Editor email canvas', () => {
       const spacer = document.querySelector<HTMLElement>(
         '[data-type="spacer"]'
       )!
-      expect(getComputedStyle(spacer).outlineStyle).toBe('dashed')
-
       await userEvent.hover(spacer)
       await userEvent.click(
         await screen.findByRole('button', { name: 'Block actions' })
