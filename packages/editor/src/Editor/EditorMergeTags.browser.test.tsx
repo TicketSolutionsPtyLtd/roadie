@@ -5,10 +5,19 @@ import {
   waitFor,
   within
 } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
+import roadieCss from '../../vitest.browser.css?inline'
 import type { EditorValue, EditorVariable, JSONContent } from '../schema'
 import { MOD } from './testUtils'
 
@@ -250,6 +259,10 @@ describe('Editor merge tags', () => {
     await waitFor(() =>
       expect(onValueChange).toHaveBeenLastCalledWith(hi(tag('first_name')))
     )
+    // Out of the fallback form a tag with none opens, back to the text.
+    await screen.findByRole('dialog', { name: 'Merge tag' })
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
 
     await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith(hi()))
@@ -293,6 +306,88 @@ describe('Editor merge tags', () => {
     expect(within(insert).getByRole('option')).toHaveTextContent(
       'No blocks match'
     )
+  })
+})
+
+describe('Editor merge tag fallbacks', () => {
+  let style: HTMLStyleElement
+  beforeAll(() => {
+    style = document.createElement('style')
+    style.textContent = roadieCss
+    document.head.append(style)
+  })
+  afterAll(() => style.remove())
+
+  const withFallback: EditorVariable[] = [
+    { ...VARIABLES[0]!, fallback: 'there' },
+    VARIABLES[1]!
+  ]
+
+  it('gives a tag its variable’s fallback as it’s inserted, and goes on in the text', async () => {
+    const onValueChange = renderEmail({ variables: withFallback })
+    await focusedTextbox()
+
+    await userEvent.keyboard(`Hi ${OPEN}first{Enter}!`)
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Hi ' },
+            tag('first_name', 'there'),
+            { type: 'text', text: '!' }
+          ]
+        })
+      )
+    )
+    expect(screen.queryByRole('dialog')).toBe(null)
+  })
+
+  it('asks for a fallback as a tag without one is inserted, then goes on after it', async () => {
+    const onValueChange = renderEmail({ variables: withFallback })
+    const textbox = await focusedTextbox()
+
+    await userEvent.keyboard(`Hi ${OPEN}last{Enter}`)
+    const fallback = await screen.findByRole('textbox', { name: 'Fallback' })
+    await waitFor(() => expect(fallback).toHaveFocus())
+    await userEvent.keyboard('friend{Enter}')
+    await waitFor(() => expect(textbox).toHaveFocus())
+    await userEvent.keyboard('!')
+
+    await waitFor(() =>
+      expect(onValueChange).toHaveBeenLastCalledWith(
+        email({
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'Hi ' },
+            tag('last_name', 'friend'),
+            { type: 'text', text: '!' }
+          ]
+        })
+      )
+    )
+  })
+
+  it('shows the fallback beside the label, and marks a tag without one', async () => {
+    renderEmail({
+      defaultValue: email({
+        type: 'paragraph',
+        content: [tag('first_name', 'there'), tag('last_name')]
+      })
+    })
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+
+    const [named, bare] = Array.from(
+      textbox.querySelectorAll<HTMLElement>('[data-slot="editor-variable"]')
+    )
+    await waitFor(() => expect(named).toHaveTextContent('First name·there'))
+    const shown = within(named!).getByText('there')
+    expect(getComputedStyle(shown).color).not.toBe(
+      getComputedStyle(within(named!).getByText('First name')).color
+    )
+    expect(within(named!).queryByText('No fallback')).toBe(null)
+    expect(within(bare!).getByTitle('No fallback')).toBeVisible()
   })
 })
 
@@ -355,6 +450,18 @@ describe('Editor merge tag editing', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBe(null))
     expect(onValueChange).toHaveBeenLastCalledWith(edited)
     expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
+  })
+
+  it('starts its title at the form’s edge rather than centring it', async () => {
+    renderEmail({ defaultValue: greeting })
+
+    const dialog = await editTag()
+
+    const title = within(dialog).getByRole('heading', { name: 'Merge tag' })
+    // By class, as the test sheet compiles no text alignment to measure.
+    const header = title.closest('[data-slot="popover-header"]')!
+    expect(header).toHaveClass('text-start')
+    expect(header).not.toHaveClass('text-center')
   })
 
   it('keeps the changes on a click outside', async () => {
