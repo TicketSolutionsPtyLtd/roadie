@@ -34,6 +34,7 @@ import {
   SEPARATOR,
   ariaKeyShortcuts,
   floatingControls,
+  link,
   presetControls,
   redo,
   undo
@@ -356,6 +357,8 @@ const slotOf = (item: EditorToolbarItem, index: number): ToolbarSlot => {
   if (item === SEPARATOR) return 'separator'
   if (item === undo) return 'undo'
   if (item === redo) return 'redo'
+  // A phone's bar keeps Link in reach, as linking is what people do most.
+  if (item === link) return 'first'
   return index === 0 && 'kind' in item && item.kind === 'blockMenu'
     ? 'lead'
     : 'item'

@@ -102,6 +102,17 @@ describe('Editor toolbar on a phone', () => {
     }
   })
 
+  it('keeps Link on the bar ahead of the controls before it', async () => {
+    await page.viewport(360, 700)
+    render(<Editor aria-label={LABEL} defaultValue={valueIn('rich')} />)
+    const toolbar = await shownToolbar()
+
+    await waitFor(() => fitsItsBar(toolbar))
+    const shown = controls(toolbar)
+    expect(shown).toContain('Link')
+    expect(menuLabels(await moreMenu(toolbar))).not.toContain('Link')
+  })
+
   it('leads with Blocks in a preset that has a Blocks drawer', async () => {
     await page.viewport(390, 700)
     render(
@@ -183,23 +194,23 @@ describe('Editor toolbar on a phone', () => {
     }
   )
 
-  it('keeps focus in the link editor opened from More', async () => {
+  it('keeps focus in the embed editor opened from More', async () => {
     await page.viewport(320, 700)
     render(<Editor aria-label={LABEL} defaultValue={valueIn('rich')} />)
     const toolbar = await shownToolbar()
     const textbox = await screen.findByRole('textbox', { name: LABEL })
-    await userEvent.tripleClick(within(textbox).getByText(TEXT))
+    await userEvent.click(within(textbox).getByText(TEXT))
     await waitFor(() => fitsItsBar(toolbar))
     await moreMenu(toolbar)
 
-    await userEvent.click(
-      screen.getByRole('menuitemcheckbox', { name: 'Link' })
-    )
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Embed' }))
 
-    const url = await screen.findByRole('textbox', { name: 'Link' })
+    const url = await screen.findByRole('textbox', {
+      name: 'Video or audio link'
+    })
     await waitFor(() => expect(url).toHaveFocus())
-    await userEvent.keyboard('oztix.com.au')
-    expect(url).toHaveValue('oztix.com.au')
+    await userEvent.keyboard('youtu.be')
+    expect(url).toHaveValue('youtu.be')
   })
 })
 

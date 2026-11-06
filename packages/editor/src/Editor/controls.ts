@@ -118,7 +118,7 @@ const underline: EditorControl = {
   pressed: (editor) => editor.isActive('underline')
 }
 
-const link: EditorControl = {
+export const link: EditorControl = {
   label: 'Link',
   icon: LinkIcon,
   shortcut: ['mod', 'k'],

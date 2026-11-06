@@ -1,9 +1,16 @@
 /**
  * What each of the docked bar's items is to the fit: the block type `lead`
- * and `undo` always show, `redo` only when everything does, and the rest
- * show in order while they fit.
+ * and `undo` always show, `redo` only when everything does, a `first` item
+ * ahead of the others where there's room, and the rest in order while they
+ * fit.
  */
-export type ToolbarSlot = 'lead' | 'item' | 'separator' | 'undo' | 'redo'
+export type ToolbarSlot =
+  | 'lead'
+  | 'first'
+  | 'item'
+  | 'separator'
+  | 'undo'
+  | 'redo'
 
 type FitOptions = {
   slots: readonly ToolbarSlot[]
@@ -42,6 +49,11 @@ export function fitToolbar({
     )
   )
   let room = available - total([...kept]) - more - gap
+  for (const slot of all) {
+    if (slots[slot] !== 'first' || cost(slot) > room) continue
+    kept.add(slot)
+    room -= cost(slot)
+  }
   for (const slot of all) {
     if (kept.has(slot) || slots[slot] === 'redo') continue
     if (cost(slot) > room) break

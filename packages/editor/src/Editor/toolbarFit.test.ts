@@ -59,4 +59,17 @@ describe('fitToolbar', () => {
     const used = [...shown].reduce((sum, slot) => sum + WIDTHS[slot]! + GAP, 4)
     expect(used + MORE + GAP).toBeLessThanOrEqual(ALL - 1)
   })
+  it('keeps a first slot ahead of the items before it', () => {
+    const slots: ToolbarSlot[] = [...SLOTS]
+    slots[4] = 'first'
+    const shown = fitToolbar({
+      slots,
+      widths: WIDTHS,
+      base: 4,
+      gap: GAP,
+      more: MORE,
+      available: ALL - 100
+    })!
+    expect([...shown]).toEqual([0, 1, 2, 4, 8, 9])
+  })
 })
