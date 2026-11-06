@@ -358,6 +358,21 @@ export function ToolbarItems({
 
 // Room under the caret for the bar docked over the keyboard.
 const KEYBOARD_SCROLL_MARGIN = { top: 5, right: 5, bottom: 96, left: 5 }
+// How far above that bar the caret stays.
+const CARET_GAP = 8
+
+/** The box that scrolls the editor, or the page. */
+function scrollerOf(element: Element): Element | Window {
+  for (let box = element.parentElement; box; box = box.parentElement) {
+    const { overflowY } = getComputedStyle(box)
+    if (
+      (overflowY === 'auto' || overflowY === 'scroll') &&
+      box.scrollHeight > box.clientHeight
+    )
+      return box
+  }
+  return window
+}
 
 const slotOf = (item: EditorToolbarItem, index: number): ToolbarSlot => {
   if (item === SEPARATOR) return 'separator'
@@ -709,7 +724,22 @@ export function EditorToolbarEngine({
     editor.setOptions({
       editorProps: { ...before, scrollMargin: KEYBOARD_SCROLL_MARGIN }
     })
+    // ProseMirror's margin counts only from the scroll box's edge, which a
+    // phone's browser can put under the keyboard, so the caret is lifted
+    // clear of the bar itself too.
+    const lift = () => {
+      const bar = barRef.current
+      if (!bar || editor.isDestroyed || !editor.view.hasFocus()) return
+      const caret = editor.view.coordsAtPos(editor.state.selection.head)
+      const clear = bar.getBoundingClientRect().top - CARET_GAP
+      if (caret.bottom > clear)
+        scrollerOf(editor.view.dom).scrollBy(0, caret.bottom - clear)
+    }
+    editor.on('selectionUpdate', lift)
+    editor.on('update', lift)
     return () => {
+      editor.off('selectionUpdate', lift)
+      editor.off('update', lift)
       if (!editor.isDestroyed) editor.setOptions({ editorProps: before })
     }
   }, [editor, aboveKeyboard])
