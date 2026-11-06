@@ -101,7 +101,12 @@ import {
 import { customInsertItem, presetInsertItems } from './insertItems'
 import { InsertMenu, type InsertMenuState } from './insertMenu'
 import { isDev } from './isDev'
-import { MERGE_TAG_OPEN, mergeTagItem, variableInsertItems } from './mergeTags'
+import {
+  MERGE_TAG_OPEN,
+  MergeTagEnter,
+  mergeTagItem,
+  variableInsertItems
+} from './mergeTags'
 import { sectionBlock, sectionInsertItems } from './sectionNodes'
 import { SectionToolbars } from './sectionToolbars'
 import { emailSections } from './sections'
@@ -704,6 +709,7 @@ export function EditorEngine({
       }),
       ...(holdsMergeTags
         ? [
+            MergeTagEnter.configure({ onEdit: () => setEditingVariable(true) }),
             InsertMenu.extend({ name: 'mergeTagMenu' }).configure({
               char: MERGE_TAG_OPEN,
               items: () =>

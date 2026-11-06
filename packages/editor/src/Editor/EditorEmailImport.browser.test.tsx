@@ -86,7 +86,12 @@ async function openImport() {
   await userEvent.click(
     await screen.findByRole('button', { name: 'Import HTML or MJML' })
   )
-  return screen.findByRole('dialog', { name: 'Import HTML or MJML' })
+  const dialog = await screen.findByRole('dialog', {
+    name: 'Import HTML or MJML'
+  })
+  // Visible only once it has faded in.
+  await Promise.all(dialog.getAnimations().map((fade) => fade.finished))
+  return dialog
 }
 
 // Firefox ignores the clipboardData a ClipboardEvent is made with and gives

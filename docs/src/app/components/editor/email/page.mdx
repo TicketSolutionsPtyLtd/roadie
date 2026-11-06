@@ -448,7 +448,7 @@ inserts the active one as a chip. Merge tag in the `/` menu opens the same
 list, and Escape there takes its `{{` back out. A button's label takes merge tags too.
 
 Click a chip to select it, and its toolbar shows below it: Edit merge tag and
-Remove merge tag. Edit merge tag opens a form to change which variable the
+Remove merge tag. Edit merge tag, or Enter on the selected chip, opens a form to change which variable the
 tag shows and its fallback, the text anyone without a value sees. Each change
 shows in the email as you make it. Enter in Fallback or a click away keeps
 them, as does Escape, as one step to undo, and Undo puts the tag back. An empty
@@ -940,6 +940,8 @@ const preview = await renderEmail({ kind: 'design', value: nearlySoldOut }, {
 | `{{` | Open the merge tag list, with `variables` |
 | `Mod+/` | Open the menu for the block with the caret |
 | `Enter` | In a button, start a new paragraph after it |
+| `Enter` | On a selected merge tag, open its form |
+| `Tab`, `Shift+Tab` | In columns, move to the next column's start or the previous one's end, then out of the row, with Tab opening a line after a row that ends the email; a list item that can indent or outdent does that instead |
 
 Every preset's other keys are on the [Editor](/components/editor#accessibility)
 page.
