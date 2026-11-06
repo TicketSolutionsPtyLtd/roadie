@@ -145,7 +145,8 @@ export function EditorBlockSheet({
       }}
       side='bottom'
     >
-      <Drawer.Content size='sm' finalFocus={onFinalFocus}>
+      {/* Marks it as the editor's own, so a docked phone toolbar stays put. */}
+      <Drawer.Content size='sm' finalFocus={onFinalFocus} data-editor-popup=''>
         <Drawer.Header className='flex items-center gap-2'>
           {step ? (
             <IconButton
