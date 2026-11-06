@@ -584,10 +584,10 @@ export function EditorBlockHandle({
     return () => observer.disconnect()
   }, [editor])
   useLayoutEffect(() => {
-    // In a column, the grip fills the gap before it, clear of the column
-    // to its left.
+    // In a column side by side, the grip fills the gap before it, clear of
+    // the column to its left; a phone stacks them, starting where text does.
     const inColumn = shown != null && columnOf(doc, shown) !== null
-    const gap = inColumn ? 0 : phone ? PHONE_HANDLE_GAP : HANDLE_GAP
+    const gap = phone ? PHONE_HANDLE_GAP : inColumn ? 0 : HANDLE_GAP
     setPlace(
       wrapper && shown != null ? placeAt(editor, wrapper, shown, gap) : null
     )

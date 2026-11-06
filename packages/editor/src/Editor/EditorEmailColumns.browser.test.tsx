@@ -95,6 +95,30 @@ describe('Editor email columns', () => {
     expect(screen.queryByRole('button', { name: 'Add block' })).toBe(null)
   })
 
+  it('sets a stacked column’s grip off its text by the grip’s usual gap on a phone', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    renderEmail(p('Doors 7pm'), row('Lineup', 'Tickets'))
+    await clickText('Doors 7pm')
+    const grip = await screen.findByRole('button', { name: 'Block actions' })
+    const body = (await screen.findByText('Doors 7pm')).getBoundingClientRect()
+    let bodyGap = 0
+    await waitFor(() => {
+      bodyGap = body.left - grip.getBoundingClientRect().right
+      expect(bodyGap).toBeGreaterThan(0)
+    })
+
+    await clickText('Tickets')
+
+    const text = (await screen.findByText('Tickets')).getBoundingClientRect()
+    await waitFor(() =>
+      expect(text.left - grip.getBoundingClientRect().right).toBeCloseTo(
+        bodyGap,
+        0
+      )
+    )
+  })
+
   it('moves, copies and deletes a whole column from its grip', async () => {
     const onValueChange = renderEmail(row('Lineup', 'Tickets'))
     await clickText('Lineup')
