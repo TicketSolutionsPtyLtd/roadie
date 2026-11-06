@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 
@@ -158,7 +158,10 @@ describe('Editor email canvas', () => {
       // The last test can leave the pointer over the section.
       await userEvent.hover(screen.getByText('Outside'))
       const resting = getComputedStyle(section)
-      expect(resting.outlineColor).toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
+      // The outline fades out, so a hover the last test left takes a moment.
+      await waitFor(() =>
+        expect(resting.outlineColor).toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
+      )
       expect(resting.borderTopWidth).toBe('0px')
 
       await userEvent.hover(section)
