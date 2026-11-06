@@ -229,6 +229,59 @@ describe('Editor extensions', () => {
     ).toContain('<aside>Event <!-- -->okw-2026</aside>')
   })
 
+  it('undoes and redoes typing in an app’s block’s field', async () => {
+    render(
+      <Editor
+        aria-label={LABEL}
+        extensions={[eventCard]}
+        defaultValue={{
+          version: 1,
+          preset: 'blocks',
+          doc: {
+            type: 'doc',
+            content: [{ type: 'eventCard', attrs: { eventId: 'okw' } }]
+          }
+        }}
+      />
+    )
+    const input = await screen.findByRole('textbox', { name: 'Event' })
+    await userEvent.type(input, '-2026')
+    await waitFor(() => expect(input).toHaveValue('okw-2026'))
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    await waitFor(() => expect(input).toHaveValue('okw'))
+    expect(input).toHaveFocus()
+
+    await userEvent.keyboard(`{${MOD}>}{Shift>}z{/Shift}{/${MOD}}`)
+
+    await waitFor(() => expect(input).toHaveValue('okw-2026'))
+  })
+
+  it('undoes typing in the field of an app’s block inserted from the menu', async () => {
+    const onValueChange = vi.fn()
+    render(
+      <Editor
+        aria-label={LABEL}
+        preset='blocks'
+        extensions={[eventCard]}
+        onValueChange={onValueChange}
+      />
+    )
+    await focusedTextbox()
+    await userEvent.keyboard('/gig{Enter}')
+    const input = await screen.findByRole('textbox', { name: 'Event' })
+    await userEvent.type(input, 'okw')
+    await waitFor(() => expect(input).toHaveValue('okw'))
+
+    await userEvent.keyboard(`{${MOD}>}z{/${MOD}}`)
+
+    // Typed straight after the insert, it may undo with it, in one step.
+    await waitFor(() =>
+      expect(JSON.stringify(lastValue(onValueChange).doc)).not.toContain('okw')
+    )
+  })
+
   it.each([
     ['read-only', { readOnly: true }],
     ['disabled', { disabled: true }]
