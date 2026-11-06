@@ -432,8 +432,8 @@ function hasLink(editor: TiptapEditor) {
 /**
  * Adds a button from its link, or edits the selected button's link, style,
  * width and alignment, opening on its emphasis once it has a link. Below a
- * narrow width the settings open as a drawer from the bottom. Escape puts an
- * edited button back as it was.
+ * narrow width the settings open as a drawer from the bottom. Escape keeps
+ * the changes, as a click away does, for Undo to take back in one step.
  */
 export function EditorButtonPopover({
   editor,

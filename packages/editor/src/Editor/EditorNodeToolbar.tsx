@@ -143,9 +143,16 @@ function insideTopEdge(editor: TiptapEditor, menu: HTMLElement | null) {
 /** The text's own line boxes in an element, not the block around them. */
 function textRects(element: Element | null) {
   if (!element) return []
+  const rects: DOMRect[] = []
   const range = document.createRange()
-  range.selectNodeContents(element)
-  return Array.from(range.getClientRects())
+  // Each text node's own lines, as a range over the element also holds the
+  // boxes of the blocks inside it.
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    range.selectNodeContents(node)
+    rects.push(...Array.from(range.getClientRects()))
+  }
+  return rects
 }
 
 const overlaps = (a: DOMRect, b: DOMRect) =>
@@ -173,16 +180,17 @@ function columnsPlace(
   )
   const frame = editor.view.dom.closest('[data-slot="editor"]')
   const frameRight = frame?.getBoundingClientRect().right ?? box.right
-  const text = [
-    ...textRects(element.previousElementSibling),
-    ...textRects(element)
-  ]
+  const holder = element.parentElement?.closest('[data-type]')
+  const inside = holder && editor.view.dom.contains(holder) ? holder : null
+  // All of the holder's text, so its top padding stays clear of a heading.
+  const text = textRects(inside ?? element.previousElementSibling).concat(
+    inside ? [] : textRects(element)
+  )
   const corner = Math.max(
     Math.min(Math.max(box.top, top) + INSET, box.bottom - height - INSET),
     box.top
   )
-  const holder = element.parentElement?.closest('[data-type]')
-  const padding = holder ? holder.getBoundingClientRect().top + INSET : -1
+  const padding = inside ? inside.getBoundingClientRect().top + INSET : -1
   // Each as the toolbar's top and where its end sits.
   const places = [
     [Math.max(box.top, top), box.right + GAP + width],
@@ -203,7 +211,17 @@ function columnsPlace(
       text.every((rect) => !overlaps(rect, toolbar))
     )
   }
-  const [y, end] = places.find(fits) ?? places[3]
+  // Then down the row's end, then its start, for a gap between its lines.
+  const rows = Array.from(
+    {
+      length: Math.max(0, Math.floor((box.bottom - height - box.top) / 4)) + 1
+    },
+    (_, step) => box.top + step * 4
+  )
+  const scanned = [box.right, box.left + width].flatMap((edge) =>
+    rows.map((row) => [row, edge] as const)
+  )
+  const [y, end] = places.find(fits) ?? scanned.find(fits) ?? places[3]
   return new DOMRect(end - width, y, width, 0)
 }
 
