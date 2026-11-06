@@ -187,21 +187,24 @@ describe('Editor email block handle', () => {
     expect(add.right).toBeLessThanOrEqual(textbox.getBoundingClientRect().left)
   })
 
-  it('keeps room for the grip and add button in a phone-width frame', async () => {
-    render(
-      <div style={{ width: 360 }}>
-        <Editor aria-label={LABEL} preset='email' defaultValue={layout} />
-      </div>
-    )
+  it.each([360, 642])(
+    'keeps room for the grip and add button in a %ipx frame',
+    async (width) => {
+      render(
+        <div style={{ width }}>
+          <Editor aria-label={LABEL} preset='email' defaultValue={layout} />
+        </div>
+      )
 
-    await hoverBlock('Closing')
+      await hoverBlock('Closing')
 
-    const frame = (await screen.findByRole('textbox', { name: LABEL }))
-      .closest('[data-slot="editor"]')!
-      .getBoundingClientRect()
-    const add = (await addButton()).getBoundingClientRect()
-    expect(add.left).toBeGreaterThanOrEqual(frame.left)
-  })
+      const frame = (await screen.findByRole('textbox', { name: LABEL }))
+        .closest('[data-slot="editor"]')!
+        .getBoundingClientRect()
+      const add = (await addButton()).getBoundingClientRect()
+      expect(add.left).toBeGreaterThanOrEqual(frame.left)
+    }
+  )
 
   it('keeps the grip while the pointer crosses to it', async () => {
     renderNewsletter()
