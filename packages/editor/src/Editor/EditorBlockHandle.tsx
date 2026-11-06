@@ -15,6 +15,7 @@ import {
   DotsSixVerticalIcon,
   PlusIcon,
   SelectionPlusIcon,
+  SlidersHorizontalIcon,
   TrashIcon
 } from '@phosphor-icons/react'
 import { closeHistory } from '@tiptap/pm/history'
@@ -219,6 +220,10 @@ type EditorBlockHandleProps = {
   canAdd?: boolean
   /** An app's blocks' names, by node name, to head their menus. */
   appLabels?: Readonly<Record<string, string>>
+  /** Whether a block, by node name, has settings, which its menu leads with. */
+  hasSettings?: (name: string) => boolean
+  /** Opens the settings of the block at `pos`. */
+  onSettings?: (pos: number) => void
 }
 
 /**
@@ -230,7 +235,9 @@ export function EditorBlockHandle({
   openMenuRef,
   containers,
   canAdd = false,
-  appLabels = {}
+  appLabels = {},
+  hasSettings,
+  onSettings
 }: EditorBlockHandleProps) {
   const host = useHandleHost(editor)
   const wrapper = host?.parentElement ?? null
@@ -452,6 +459,14 @@ export function EditorBlockHandle({
             <Menu.GroupLabel>
               {blockLabel(doc.nodeAt(shown)!, appLabels)}
             </Menu.GroupLabel>
+            {onSettings && hasSettings?.(doc.nodeAt(shown)!.type.name) ? (
+              <Menu.Item
+                icon={<SlidersHorizontalIcon weight='bold' />}
+                onClick={() => onSettings(shown)}
+              >
+                Settings
+              </Menu.Item>
+            ) : null}
             <Menu.Item
               icon={<ArrowUpIcon weight='bold' />}
               shortcut={BLOCK_ACTION_KEYS.moveUp}
