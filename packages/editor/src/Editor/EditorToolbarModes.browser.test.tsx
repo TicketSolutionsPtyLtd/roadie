@@ -266,6 +266,10 @@ describe('Floating toolbar’s More menu', () => {
     await userEvent.keyboard('{Escape}')
     await waitFor(() => expect(screen.queryByRole('menu')).toBe(null))
     await waitFor(() => expect(textbox).toHaveFocus())
+    // ProseMirror rewrites the DOM selection 20ms after taking focus, which
+    // would undo an arrow pressed sooner on a loaded machine.
+    // eslint-disable-next-line roadie/no-fixed-sleep
+    await new Promise((resolve) => setTimeout(resolve, 20))
     await userEvent.keyboard('{ArrowRight}')
 
     await waitFor(() =>

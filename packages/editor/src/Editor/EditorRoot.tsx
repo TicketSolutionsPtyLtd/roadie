@@ -7,13 +7,14 @@ import { Skeleton } from '@oztix/roadie-components/skeleton'
 import { cn } from '@oztix/roadie-core/utils'
 
 import type { EmailTheme } from '../email/theme'
-import type { EditorBlock } from '../extensions'
+import type { EditorBlock, EditorSection } from '../extensions'
 import type {
   EditorValue,
   EditorVariable,
   EmbedProvider,
   Preset
 } from '../schema'
+import { EditorEmailStart, isBlankDoc } from './EditorEmailStart'
 import type {
   EditorPreviewRecipient,
   EditorRenderPreview,
@@ -107,6 +108,15 @@ export type EditorRootProps = {
    */
   extensions?: readonly EditorBlock[]
   /**
+   * Designed sections, such as `@oztix/roadie-blocks`' `catalogueSections()`,
+   * for the `blocks` preset. Each is drawn as the page draws it, listed under
+   * Sections in `/` and the Blocks drawer with a tile for each template, and
+   * edited in its Settings drawer. Render them with `/render`'s
+   * `nodeMapping`, an entry per section from its `render`. Read once, when
+   * the editor is created.
+   */
+  sections?: readonly EditorSection[]
+  /**
    * The merge tags the sending system fills, for the `email` preset. Each
    * `variable` node shows as a chip with its label, and one whose key isn't
    * listed shows as invalid. Without it, a chip shows its key.
@@ -189,6 +199,32 @@ export function EditorRoot(props: EditorRootProps) {
         )}
       />
     )
+    const preheaderRoom = email ? (
+      // Laid out as the field is, in the email's gutter, stacked on a phone,
+      // its text unseen.
+      <div className='ps-(--email-gutter)'>
+        <div className='@container invisible mx-auto w-full max-w-[600px] px-6 pt-3'>
+          <div className='grid items-center gap-x-3 gap-y-1 @min-[30rem]:grid-cols-[auto_minmax(0,1fr)]'>
+            <span className='text-sm'>Preview text</span>
+            <div className='h-8' />
+            <span className='text-xs @min-[30rem]:col-start-2'>
+              About 40 to 90 characters show.
+            </span>
+          </div>
+        </div>
+      </div>
+    ) : null
+    const blankEmail =
+      resolvedPreset(props) === 'email' &&
+      !props.readOnly &&
+      !props.disabled &&
+      !field.disabled &&
+      isBlankDoc(startingValue(props))
+    const emailStart = blankEmail ? (
+      <div inert className='invisible'>
+        <EditorEmailStart />
+      </div>
+    ) : null
     const frame = cn(
       'flex min-w-0 flex-col',
       EDITOR_MIN_HEIGHT[size],
@@ -206,6 +242,7 @@ export function EditorRoot(props: EditorRootProps) {
             className={cn(frame, props.className)}
           >
             {toolbarRoom}
+            {preheaderRoom}
             <div
               className={cn(
                 editorContentClass(size, emphasis),
@@ -226,6 +263,7 @@ export function EditorRoot(props: EditorRootProps) {
                 <Skeleton className='w-2/3' />
               </div>
             </div>
+            {emailStart}
           </div>
         ) : (
           <Skeleton
@@ -234,7 +272,9 @@ export function EditorRoot(props: EditorRootProps) {
             className={cn(frame, 'h-auto rounded-lg', props.className)}
           >
             {toolbarRoom}
+            {preheaderRoom}
             <div className={editorContentClass(size, emphasis)} />
+            {emailStart}
           </Skeleton>
         )}
         {props.name ? (

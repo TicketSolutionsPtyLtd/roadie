@@ -35,6 +35,10 @@ export type BlockSettings = {
   settings: readonly (EditorSetting | EditorOwnSetting)[]
 }
 
+const shownWith =
+  (attrs: Attrs) => (setting: EditorSetting | EditorOwnSetting) =>
+    setting.type === 'own' || (setting.available?.(attrs) ?? true)
+
 type SettingsFormProps = BlockSettings & {
   start: Attrs
   apply: LiveEdit['apply']
@@ -58,7 +62,7 @@ function SettingsForm({
   }
   return (
     <div className='grid content-start gap-4'>
-      {settings.map((setting) =>
+      {settings.filter(shownWith(attrs)).map((setting) =>
         setting.type === 'own' ? (
           <div key={setting.name} className='grid'>
             {setting.render(attrs, set)}

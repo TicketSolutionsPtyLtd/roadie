@@ -3,6 +3,7 @@
 import {
   type RefObject,
   useLayoutEffect,
+  useRef,
   useState,
   useSyncExternalStore
 } from 'react'
@@ -83,4 +84,89 @@ export function useStickyTop(
     }
   }, [ref, shown])
   return top
+}
+
+/**
+ * Popups opened from the editor, which focus moves into while editing goes
+ * on. The editor's own sheets and settings carry `data-editor-popup`.
+ */
+export const EDITOR_POPUP = 'data-editor-popup'
+const BAR_POPUPS = `[${EDITOR_POPUP}], [role="menu"], [role="listbox"], [role="dialog"]`
+
+/**
+ * On a touch screen, whether the docked bar sits above the keyboard, and how
+ * far the keyboard pushes it up: it does while focus is in the editor, or in
+ * a popup it opened, so the controls stay in thumb reach.
+ */
+export function useKeyboardDock(
+  ref: RefObject<HTMLElement | null>,
+  /** The bar that goes `fixed`. */
+  barRef: RefObject<HTMLElement | null>,
+  /** Changes when the bar mounts again. */
+  shown: boolean
+) {
+  const touch = useMediaQuery('(pointer: coarse)')
+  const [editing, setEditing] = useState(false)
+  const [shift, setShift] = useState(0)
+  const shiftRef = useRef(0)
+
+  useLayoutEffect(() => {
+    const frame = ref.current?.closest('[data-slot="editor"]')
+    if (!touch || !shown || !frame) return
+    let frameId = 0
+    // Whether focus was last in this editor, so a popup it opened counts.
+    let inside = false
+    const follow = () => {
+      cancelAnimationFrame(frameId)
+      // After focus settles, as a menu's popup takes it a moment later.
+      frameId = requestAnimationFrame(() => {
+        const active = document.activeElement
+        const popup = active?.closest(BAR_POPUPS)
+        if (active && frame.contains(active)) inside = true
+        else if (!active || active === document.body) {
+          // A sheet's control that re-renders as it's tapped drops focus to
+          // the page, with the sheet still open.
+          inside &&= document.querySelector(`[${EDITOR_POPUP}]`) !== null
+        }
+        // A dialog around the editor is the page, not a popup of its bar.
+        else if (!popup || popup.contains(frame)) inside = false
+        setEditing(inside)
+      })
+    }
+    follow()
+    document.addEventListener('focusin', follow)
+    document.addEventListener('focusout', follow)
+    return () => {
+      cancelAnimationFrame(frameId)
+      document.removeEventListener('focusin', follow)
+      document.removeEventListener('focusout', follow)
+    }
+  }, [ref, touch, shown])
+
+  // Measured rather than set as `bottom`: a transformed or contained
+  // ancestor, such as a container query's, holds a fixed bar in its own box.
+  useLayoutEffect(() => {
+    const viewport = window.visualViewport
+    if (!touch || !editing || !viewport) return
+    const place = () => {
+      const bar = barRef.current
+      if (!bar) return
+      const natural = bar.getBoundingClientRect().bottom - shiftRef.current
+      shiftRef.current = viewport.offsetTop + viewport.height - natural
+      setShift(shiftRef.current)
+    }
+    place()
+    viewport.addEventListener('resize', place)
+    viewport.addEventListener('scroll', place)
+    window.addEventListener('scroll', place, { capture: true, passive: true })
+    return () => {
+      shiftRef.current = 0
+      setShift(0)
+      viewport.removeEventListener('resize', place)
+      viewport.removeEventListener('scroll', place)
+      window.removeEventListener('scroll', place, { capture: true })
+    }
+  }, [barRef, touch, editing])
+
+  return { aboveKeyboard: touch && editing, shift }
 }

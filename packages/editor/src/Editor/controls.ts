@@ -53,6 +53,8 @@ export type EditorControlUi = {
   editVariable: () => void
   /** Opens the import of an email's HTML or MJML, in the email preset. */
   importSource?: (source?: string) => void
+  /** Opens the selected block's settings, while it has any. */
+  editSettings?: () => void
   /** Shows the email as it sends, in the email preset with `onRenderPreview`. */
   preview?: () => void
 }
@@ -126,7 +128,7 @@ const underline: EditorControl = {
   pressed: (editor) => editor.isActive('underline')
 }
 
-const link: EditorControl = {
+export const link: EditorControl = {
   label: 'Link',
   icon: LinkIcon,
   shortcut: ['mod', 'k'],
@@ -164,7 +166,7 @@ export const undo: EditorControl = {
   enabled: (editor) => editor.can().undo()
 }
 
-const redo: EditorControl = {
+export const redo: EditorControl = {
   label: 'Redo',
   icon: ArrowClockwiseIcon,
   shortcut: ['mod', 'shift', 'z'],
@@ -253,7 +255,7 @@ const importSource: EditorControl = {
   available: (ui) => Boolean(ui.importSource)
 }
 
-const preview: EditorControl = {
+export const preview: EditorControl = {
   label: 'Preview',
   icon: EyeIcon,
   run: (_editor, ui) => ui.preview?.(),
@@ -365,6 +367,14 @@ function remove(label: string): EditorControl {
     icon: TrashIcon,
     run: (editor) => editor.chain().focus().deleteSelection().run()
   }
+}
+
+/** A phone's bar's way to a selected block's settings. */
+export const blockSettings: EditorControl = {
+  label: 'Settings',
+  icon: SlidersHorizontalIcon,
+  run: (_editor, { editSettings }) => editSettings?.(),
+  available: ({ editSettings }) => Boolean(editSettings)
 }
 
 const editButton: EditorControl = {

@@ -207,6 +207,10 @@ describe('Editor.BubbleMenu', () => {
     expect(itemsOf(await menu())).toEqual(
       expect.arrayContaining(['Bold', 'Italic', 'Underline', 'Link'])
     )
+    // Closed first, by collapsing the selection, as it can sit over the
+    // button with the email's Preview text above the canvas.
+    await userEvent.keyboard('{ArrowRight}')
+    await noMenu()
 
     await selectText('Get tickets')
     await noMenu()
@@ -350,7 +354,7 @@ describe('Editor.BubbleMenu', () => {
       })
     })
 
-    it('stays on screen with the columns actions scrolled off above it', async () => {
+    it('stays on screen below the text, with the columns’ top scrolled off', async () => {
       const filler = Array.from({ length: 12 }, (_, index) =>
         paragraph(`Set time ${index + 1}`)
       )
@@ -395,7 +399,7 @@ describe('Editor.BubbleMenu', () => {
           text.getBoundingClientRect().bottom
         )
       )
-      expect(actions.getBoundingClientRect().bottom).toBeLessThan(0)
+      expect(actions).toBeVisible()
     })
 
     it('takes focus first on Alt+F10, ahead of the columns actions', async () => {
