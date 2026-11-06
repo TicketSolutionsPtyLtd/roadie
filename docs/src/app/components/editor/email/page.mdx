@@ -185,7 +185,9 @@ headings: Text, Media, Layout, Email, and Sections. Image shows only with
   and no empty line follows it. Its placeholder copy, such as Headline,
   shows as a hint on each empty line, in the subtler text colour, and saves
   as nothing, so there's nothing to delete: the caret starts on its first
-  line, and a hint goes once its line has text. Hints live only while
+  line, a hint goes once its line has text, and Enter at the end of a line
+  moves into the next one while it shows a hint, as a form moves to its
+  next field. Hints live only while
   the email is open in the editor that added the section: undo and redo,
   or loading it again, leave the lines empty, and an editor that's
   read-only or disabled shows none.
@@ -263,9 +265,12 @@ section or columns puts the caret in its first line. Enter on the empty last
 line of a section takes that line out after the section, as Enter on an empty
 list item leaves the list, so what you type next isn't in the section. An
 email can end with a section or columns, with no empty line after them. Only the blocks that fit
-at the caret are offered, so there's no empty section or columns inside a
-column, and only the other list type inside a list. A ready-made section is
-offered anywhere, as it goes after the whole block. Image is offered with `onUploadImage`.
+at the caret are offered, and only the other list type inside a list. Inside
+a section, columns, or list, Section and columns that can't go there, and
+the ready-made sections, go after that whole block instead, and the menu
+says so beside them, such as "after this section". Enter at the end of a
+button moves into an empty line already after it, so a second Enter leaves
+a section. Image is offered with `onUploadImage`.
 
 ### Adding and editing merge tags
 
