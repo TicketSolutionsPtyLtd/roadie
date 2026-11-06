@@ -144,6 +144,7 @@ export function EditorBlockSheet({
         if (!next) onClose()
       }}
       side='bottom'
+      emphasis='subtler'
     >
       {/* Marks it as the editor's own, so a docked phone toolbar stays put. */}
       <Drawer.Content size='sm' finalFocus={onFinalFocus} data-editor-popup=''>
@@ -182,7 +183,7 @@ export function EditorBlockSheet({
                   </IconButton>
                 )
               })}
-              <Button size='md' emphasis='subtle' onClick={onClose}>
+              <Button size='md' emphasis='strong' onClick={onClose}>
                 Done
               </Button>
             </>
