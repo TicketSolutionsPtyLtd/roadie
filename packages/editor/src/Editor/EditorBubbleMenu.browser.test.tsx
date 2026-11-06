@@ -304,6 +304,8 @@ describe('Editor.BubbleMenu', () => {
           bar.top < button.bottom &&
           button.top < bar.bottom
       ).toBe(false)
+      // On the selection's side of them, not pushed past.
+      expect(bar.right).toBeLessThanOrEqual(button.left)
     })
   })
 
