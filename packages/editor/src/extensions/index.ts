@@ -1,9 +1,14 @@
 'use client'
 
-import { type ComponentType, type ReactNode, createElement } from 'react'
+import {
+  type ComponentType,
+  type ReactNode,
+  createElement,
+  useEffect
+} from 'react'
 
 import type { Icon } from '@phosphor-icons/react'
-import { Node } from '@tiptap/core'
+import { type Editor, Node } from '@tiptap/core'
 import { type ReactNodeViewProps, ReactNodeViewRenderer } from '@tiptap/react'
 
 // Roadie's own Tiptap, so an app's blocks never install or drift from it.
@@ -13,6 +18,48 @@ export { NodeViewWrapper } from '@tiptap/react'
 
 /** What an app block's React view gets: its node, `updateAttributes`, and `selected`. */
 export type EditorNodeViewProps = ReactNodeViewProps
+
+const MAC =
+  typeof navigator !== 'undefined' &&
+  /Mac|iP(hone|[oa]d)/.test(navigator.platform)
+
+function historyKey(event: KeyboardEvent): 'undo' | 'redo' | null {
+  const inField =
+    event.target instanceof Element &&
+    event.target.closest('input, textarea') !== null
+  const mod = MAC ? event.metaKey : event.ctrlKey
+  if (!inField || !mod || event.altKey) return null
+  const key = event.key.toLowerCase()
+  if (key === 'z') return event.shiftKey ? 'redo' : 'undo'
+  return key === 'y' && !MAC ? 'redo' : null
+}
+
+// One listener on the editor, as a view's own element isn't in place yet
+// while a newly inserted block first renders.
+const listening = new WeakSet<Editor>()
+
+function listenForHistoryKeys(editor: Editor) {
+  if (listening.has(editor)) return
+  listening.add(editor)
+  // A controlled field loses the browser's own undo as it re-renders, so
+  // its keys step the editor's history, which holds each change.
+  const toHistory = (event: KeyboardEvent) => {
+    const inView =
+      event.target instanceof Element &&
+      event.target.closest('[data-node-view-wrapper]') !== null
+    const step = historyKey(event)
+    if (!inView || !step || !editor.isEditable) return
+    event.preventDefault()
+    if (step === 'undo') editor.commands.undo()
+    else editor.commands.redo()
+  }
+  const dom = editor.view.dom
+  dom.addEventListener('keydown', toHistory)
+  editor.on('destroy', () => {
+    dom.removeEventListener('keydown', toHistory)
+    listening.delete(editor)
+  })
+}
 
 /**
  * Renders a node with a React component in the editor. Return it from the
@@ -24,6 +71,7 @@ export function reactNodeView(component: ComponentType<EditorNodeViewProps>) {
   // Tiptap runs a view's commands even when the editor isn't editable.
   function EditableOnly(props: EditorNodeViewProps) {
     const { editor, updateAttributes, deleteNode } = props
+    useEffect(() => listenForHistoryKeys(editor), [editor])
     return createElement(component, {
       ...props,
       updateAttributes: (attributes) => {

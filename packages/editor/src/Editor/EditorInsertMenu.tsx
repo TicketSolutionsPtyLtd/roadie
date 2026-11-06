@@ -128,6 +128,14 @@ export function EditorInsertMenu({
               <span data-slot='editor-insert-label' className='grow'>
                 {item.label}
               </span>
+              {state.notes[index] ? (
+                <span
+                  data-slot='editor-insert-note'
+                  className='ms-4 text-xs text-subtle'
+                >
+                  {state.notes[index]}
+                </span>
+              ) : null}
               {item.shortcut && showsShortcuts ? (
                 <Kbd
                   emphasis='subtler'

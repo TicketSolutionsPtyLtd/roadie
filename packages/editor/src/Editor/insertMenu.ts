@@ -1,4 +1,4 @@
-import { Extension, type Range } from '@tiptap/core'
+import { type Editor, Extension, type Range } from '@tiptap/core'
 import { closeHistory } from '@tiptap/pm/history'
 import type { Node as PMNode } from '@tiptap/pm/model'
 import { PluginKey } from '@tiptap/pm/state'
@@ -9,11 +9,32 @@ import {
 } from '@tiptap/suggestion'
 
 import type { EditorControlUi } from './controls'
+import { insertBlock } from './emailEditing'
 import {
   type EditorInsertItem,
   matchingInsertItems,
   namedInsertItems
 } from './insertItems'
+
+const AFTER: Record<string, string> = {
+  section: 'after this section',
+  columns: 'after these columns',
+  bulletList: 'after this list',
+  orderedList: 'after this list'
+}
+
+// Worked out as the menu updates, not as it renders, since the caret's block
+// can change while the editor object stays the same.
+function placeNote(editor: Editor, item: EditorInsertItem) {
+  const { $from } = editor.state.selection
+  if (!item.topLevel || $from.depth <= 1) return undefined
+  const fitsHere =
+    item.topLevel === 'fallback' &&
+    item.block !== undefined &&
+    editor.can().command(insertBlock(item.block))
+  if (fitsHere) return undefined
+  return AFTER[$from.node(1).type.name] ?? 'after this block'
+}
 
 // The run of non-space text just before `pos` in its line.
 function wordBefore(doc: PMNode, pos: number) {
@@ -27,6 +48,8 @@ export type InsertMenuState = {
   items: readonly EditorInsertItem[]
   /** Shown in place of the items while none match. */
   noMatches?: string
+  /** Beside each item, where it goes when not at the caret. */
+  notes: readonly (string | undefined)[]
   active: number
   choose: (index: number) => void
   highlight: (index: number) => void
@@ -96,6 +119,9 @@ export const InsertMenu = Extension.create<
       }
       onChange({
         items: current.props.items,
+        notes: current.props.items.map((item) =>
+          placeNote(current.props.editor, item)
+        ),
         noMatches,
         active: current.active,
         choose: (index) => {

@@ -23,7 +23,11 @@ import type { EditorBlock } from '../extensions'
 import type { Preset } from '../schema'
 import { COLUMN_COUNTS } from '../schema/emailAttrs'
 import type { EditorControlUi } from './controls'
-import { buttonBlock, insertBlock } from './emailEditing'
+import {
+  buttonBlock,
+  insertBlock,
+  insertBlockHereOrAfter
+} from './emailEditing'
 import { inGroupOrder } from './menuGroups'
 
 /** One choice in the insert menu that `/` opens. */
@@ -51,6 +55,13 @@ export type EditorInsertItem = {
    * Without one, the drawer runs it on a new line there.
    */
   block?: JSONContent
+  /** The only places the drawer counts, in place of the block handle's. */
+  containers?: ReadonlySet<string>
+  /**
+   * Goes after the caret's top-level section or columns, always or only where
+   * they can't hold it, which the menu says beside it.
+   */
+  topLevel?: 'always' | 'fallback'
   /** An image its tile and option show in place of its icon. */
   thumbnail?: string
 }
@@ -138,26 +149,37 @@ function block(
 
 const emptyParagraph = { type: 'paragraph' }
 
-const section = block(
-  'Section',
-  RectangleIcon,
-  { type: 'section', content: [emptyParagraph] },
-  ['layout']
-)
+function layout(
+  label: string,
+  icon: Icon,
+  content: JSONContent
+): EditorInsertItem {
+  const insert = insertBlockHereOrAfter(content)
+  return {
+    label,
+    icon,
+    group: 'Layout',
+    keywords: ['layout'],
+    block: content,
+    topLevel: 'fallback',
+    insert: (chain) => chain.command(insert),
+    enabled: (_editor, afterQuery) => afterQuery().command(insert).run()
+  }
+}
+
+const section = layout('Section', RectangleIcon, {
+  type: 'section',
+  content: [emptyParagraph]
+})
 
 const columns = COLUMN_COUNTS.map((count) =>
-  block(
-    `${count} columns`,
-    ColumnsIcon,
-    {
-      type: 'columns',
-      content: Array.from({ length: count }, () => ({
-        type: 'column',
-        content: [emptyParagraph]
-      }))
-    },
-    ['layout']
-  )
+  layout(`${count} columns`, ColumnsIcon, {
+    type: 'columns',
+    content: Array.from({ length: count }, () => ({
+      type: 'column',
+      content: [emptyParagraph]
+    }))
+  })
 )
 
 const image: EditorInsertItem = {

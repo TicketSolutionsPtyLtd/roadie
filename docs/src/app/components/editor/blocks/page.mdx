@@ -258,8 +258,9 @@ import {
 - `reactNodeView(Component)`, returned from the node's `addNodeView`, edits
   it in place. The component gets `node.attrs` and `updateAttributes`, and
   wraps what it renders in `NodeViewWrapper`. Typing in its inputs edits
-  them, not the text around the block. A read-only or disabled editor
-  ignores its `updateAttributes` and `deleteNode`.
+  them, not the text around the block, and `Mod+Z` and `Mod+Shift+Z` there
+  step the editor's history, so each edit undoes as text does. A read-only
+  or disabled editor ignores its `updateAttributes` and `deleteNode`.
 - Pass `{ node, label, icon, keywords }` in `extensions` to show it in the
   insert menu, under More and only where it fits. Add `group` to list it
   under one of the preset's headings, such as Media, or a heading of its
