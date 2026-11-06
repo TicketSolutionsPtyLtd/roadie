@@ -11,6 +11,20 @@ export type ShowWhen =
 
 export type ShowWhenOp = ShowWhen['op']
 
+const SAYS: Record<ShowWhenOp, string> = {
+  exists: 'is set',
+  equals: 'is',
+  notEquals: 'isn’t',
+  lessThan: '<',
+  greaterThan: '>'
+}
+
+/** A rule as an author reads it, such as "Only when Tickets left < 50". */
+export function showWhenLabel(rule: ShowWhen, label = rule.key) {
+  const said = `Only when ${label} ${SAYS[rule.op]}`
+  return rule.op === 'exists' ? said : `${said} ${rule.value}`
+}
+
 /**
  * A saved rule with only its key, trimmed as a variable's is, its op and its
  * value, or undefined when malformed.

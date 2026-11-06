@@ -76,3 +76,25 @@ export function buttonLook(attrs: unknown): ButtonLook {
     ...(fullWidth === true && { fullWidth })
   }
 }
+
+/** A section's fill, from the email's theme: its tint, or its accent. */
+export type SectionLook = 'tint' | 'accent'
+
+/** The room above and below a section's blocks. */
+export type SectionSpacing = 'tight' | 'roomy'
+
+/**
+ * A section's look and spacing, each saved only when it isn't the default:
+ * plain, with normal spacing.
+ */
+export function sectionLook(attrs: unknown): {
+  look?: SectionLook
+  spacing?: SectionSpacing
+} {
+  if (typeof attrs !== 'object' || attrs === null) return {}
+  const { look, spacing } = attrs as Record<string, unknown>
+  return {
+    ...((look === 'tint' || look === 'accent') && { look }),
+    ...((spacing === 'tight' || spacing === 'roomy') && { spacing })
+  }
+}
