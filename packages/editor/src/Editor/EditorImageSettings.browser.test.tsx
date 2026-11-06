@@ -80,16 +80,14 @@ function renderImage(value = valueOf('email', image(), { type: 'paragraph' })) {
 const savedImage = (onValueChange: ReturnType<typeof vi.fn>) =>
   (onValueChange.mock.lastCall![0] as EditorValue).doc.content![0]!.attrs
 
-// A click opens them where the editor has a block menu; elsewhere, the
-// image's toolbar does.
-async function openSettings({ fromToolbar = false } = {}) {
+// A click selects the image, as one does a button, and its toolbar leads
+// with its settings.
+async function openSettings() {
   const textbox = await screen.findByRole('textbox', { name: LABEL })
   await userEvent.click(textbox.querySelector('img')!)
-  if (fromToolbar) {
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'Image settings' })
-    )
-  }
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'Image settings' })
+  )
   const dialog = await screen.findByRole('dialog', { name: 'Image settings' })
   await waitFor(() => expect(dialog).toBeVisible())
   return dialog
@@ -104,7 +102,26 @@ const expectNoSettings = () =>
   ).rejects.toThrow()
 
 describe('Editor image settings', () => {
-  it('opens on a click, led by its title, a hint, and Done, which keeps the changes', async () => {
+  it('selects on a click, as a button does, and opens on a second', async () => {
+    renderImage()
+    const textbox = await screen.findByRole('textbox', { name: LABEL })
+    const img = textbox.querySelector('img')!
+
+    await userEvent.click(img)
+
+    const toolbar = await screen.findByRole('toolbar', {
+      name: 'Image actions'
+    })
+    expect(within(toolbar).getAllByRole('button')[0]).toHaveAccessibleName(
+      'Image settings'
+    )
+    await expectNoSettings()
+    await userEvent.click(img)
+    const dialog = await screen.findByRole('dialog', { name: 'Image settings' })
+    await waitFor(() => expect(dialog).toBeVisible())
+  })
+
+  it('opens led by its title, a hint, and Done, which keeps the changes', async () => {
     const onValueChange = renderImage()
 
     const dialog = await openSettings()
@@ -320,7 +337,7 @@ describe('Editor image settings', () => {
         type: 'paragraph'
       })
     )
-    const dialog = await openSettings({ fromToolbar: true })
+    const dialog = await openSettings()
     expect(within(dialog).queryByRole('textbox', { name: 'Link' })).toBe(null)
 
     const align = within(dialog).getByRole('group', { name: 'Align' })
@@ -369,7 +386,7 @@ describe('Editor image settings', () => {
       />
     )
 
-    const dialog = await openSettings({ fromToolbar: true })
+    const dialog = await openSettings()
 
     expect(within(dialog).getByRole('group', { name: 'Align' })).toBeVisible()
   })
@@ -424,7 +441,7 @@ describe('Editor image settings', () => {
       </div>
     )
 
-    const dialog = await openSettings({ fromToolbar: true })
+    const dialog = await openSettings()
 
     const align = within(dialog).getByRole('group', { name: 'Align' })
     expect(
@@ -468,11 +485,8 @@ describe('Editor image settings', () => {
     try {
       renderImage()
       const textbox = await screen.findByRole('textbox', { name: LABEL })
-      await userEvent.click(textbox.querySelector('img')!)
 
-      const sheet = await screen.findByRole('dialog', {
-        name: 'Image settings'
-      })
+      const sheet = await openSettings()
       await waitFor(() =>
         expect(sheet.getBoundingClientRect().bottom).toBeCloseTo(
           window.innerHeight,
@@ -567,5 +581,29 @@ describe('Editor image settings', () => {
         (onValueChange.mock.lastCall![0] as EditorValue).doc.content
       ).toMatchObject([{ type: 'image' }, p('Doors open at 7pm!')])
     )
+  })
+
+  it('opens from Settings on a phone’s docked bar while the image is selected', async () => {
+    await page.viewport(390, 700)
+    onTestFinished(() => page.viewport(1280, 800))
+    render(
+      <Editor
+        aria-label={LABEL}
+        toolbar='docked'
+        defaultValue={valueOf('email', image(), p('Doors open at 7pm'))}
+      />
+    )
+    const bar = await screen.findByRole('toolbar', { name: 'Formatting' })
+    await clickIntoEditor(await screen.findByText('Doors open at 7pm'))
+    expect(within(bar).queryByRole('button', { name: 'Settings' })).toBe(null)
+
+    await userEvent.keyboard('{ArrowUp}')
+    await userEvent.click(
+      await within(bar).findByRole('button', { name: 'Settings' })
+    )
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Image settings' })
+    ).toBeVisible()
   })
 })

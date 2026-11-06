@@ -8,7 +8,6 @@ import { NodeSelection } from '@tiptap/pm/state'
 import { type Editor as TiptapEditor, useEditorState } from '@tiptap/react'
 
 import { Button } from '@oztix/roadie-components/button'
-import { Drawer } from '@oztix/roadie-components/drawer'
 import { Field } from '@oztix/roadie-components/field'
 import { Fieldset } from '@oztix/roadie-components/fieldset'
 import { Popover } from '@oztix/roadie-components/popover'
@@ -28,7 +27,7 @@ import {
   type LinkTarget
 } from './EditorLinkTargetFields'
 import { EDITOR_POPOVER_CLASS, EditorPopoverForm } from './EditorPopoverForm'
-import { EditorSettingsHeader } from './EditorSettingsHeader'
+import { EditorSettingsPopup } from './EditorSettingsPopup'
 import { insertBlock } from './emailEditing'
 import { focusEditor } from './focusEditor'
 import { useOnPhone } from './toolbarMode'
@@ -458,6 +457,8 @@ type EditorImagePopoverProps = {
   pickFile?: () => void
   /** Opens the file picker to replace the selected image, with `onUploadImage`. */
   replaceFile?: () => void
+  /** Leaves the image selected as it closes, as when opened from the keyboard. */
+  keepSelected?: boolean
 }
 
 /**
@@ -471,12 +472,15 @@ export function EditorImagePopover({
   onOpenChange,
   adding = false,
   pickFile,
-  replaceFile
+  replaceFile,
+  keepSelected = false
 }: EditorImagePopoverProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
-  const live = useLiveEdit(editor, open, onOpenChange)
   const phone = useOnPhone()
+  const live = useLiveEdit(editor, open, onOpenChange, {
+    keepSelected: keepSelected && !phone
+  })
   // From the editor's state as it changes: a read of the mutable editor in
   // render would be cached by the editor alone.
   const selected = useEditorState({
@@ -505,17 +509,6 @@ export function EditorImagePopover({
     },
     contextElement: editor.view.dom
   }
-  const settings = image ? (
-    <ImageSettingsForm
-      key={image.from}
-      editor={editor}
-      formRef={formRef}
-      inputRef={inputRef}
-      apply={live.apply}
-      upload={replaceFile}
-      onDone={live.done}
-    />
-  ) : null
   // The first style choice, which brings up no keyboard; adding, the address.
   const firstFocus = () =>
     formRef.current?.querySelector<HTMLElement>(
@@ -525,31 +518,26 @@ export function EditorImagePopover({
     focusEditor(editor)
     return false
   }
-  // On a phone, from the bottom, as a popover by the image runs off screen.
-  if (phone && image) {
+  if (image) {
     return (
-      // No blur, and half the screen, so the image stays in view above it.
-      <Drawer
+      <EditorSettingsPopup
+        title='Image settings'
         open={open}
-        onOpenChange={live.onOpenChange}
-        side='bottom'
-        emphasis='subtler'
+        live={live}
+        anchor={anchor}
+        initialFocus={firstFocus}
+        finalFocus={handBack}
       >
-        <Drawer.Content
-          size='sm'
-          initialFocus={firstFocus}
-          finalFocus={handBack}
-          // The editor's own, so a docked phone toolbar stays put.
-          data-editor-popup=''
-        >
-          <EditorSettingsHeader
-            title='Image settings'
-            sheet
-            onDone={live.done}
-          />
-          <Drawer.Body className='pb-6'>{settings}</Drawer.Body>
-        </Drawer.Content>
-      </Drawer>
+        <ImageSettingsForm
+          key={image.from}
+          editor={editor}
+          formRef={formRef}
+          inputRef={inputRef}
+          apply={live.apply}
+          upload={replaceFile}
+          onDone={live.done}
+        />
+      </EditorSettingsPopup>
     )
   }
   return (
@@ -558,32 +546,17 @@ export function EditorImagePopover({
         data-editor-popup=''
         side='bottom'
         align='start'
-        className={
-          image
-            ? 'max-h-(--available-height) w-80 max-w-(--available-width) overflow-y-auto'
-            : EDITOR_POPOVER_CLASS
-        }
+        className={EDITOR_POPOVER_CLASS}
         positionerProps={{ anchor }}
         initialFocus={firstFocus}
         finalFocus={handBack}
       >
-        {image ? (
-          <>
-            <EditorSettingsHeader
-              title='Image settings'
-              sheet={false}
-              onDone={live.done}
-            />
-            {settings}
-          </>
-        ) : (
-          <AddImageForm
-            editor={editor}
-            inputRef={inputRef}
-            upload={pickFile}
-            onDone={live.done}
-          />
-        )}
+        <AddImageForm
+          editor={editor}
+          inputRef={inputRef}
+          upload={pickFile}
+          onDone={live.done}
+        />
       </Popover.Content>
     </Popover>
   )

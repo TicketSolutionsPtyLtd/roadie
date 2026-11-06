@@ -32,7 +32,8 @@ const SELECTABLE = new Set<EditorNodeType>([
   'image',
   'embed',
   'spacer',
-  'variable'
+  'variable',
+  'button'
 ])
 const HOLDING = new Set<EditorNodeType>(['button', 'columns'])
 
