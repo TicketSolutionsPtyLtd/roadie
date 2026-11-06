@@ -717,6 +717,76 @@ describe('Editor email block toolbar placement', () => {
     }
   )
 
+  it.each([
+    [1024, 680],
+    [390, 390]
+  ])(
+    'keeps clear of the column grip, Section settings and badges at %ipx',
+    async (width, frame) => {
+      await page.viewport(width, 800)
+      onTestFinished(() => page.viewport(1280, 800))
+      const cell = (...texts: string[]) => ({
+        type: 'column',
+        content: texts.map(p)
+      })
+      render(
+        <div style={{ paddingTop: 96, inlineSize: frame }}>
+          <Editor
+            aria-label={LABEL}
+            defaultValue={email(
+              p('Doors 7pm'),
+              {
+                type: 'section',
+                content: [
+                  {
+                    type: 'heading',
+                    attrs: { level: 2 },
+                    content: [{ type: 'text', text: 'The lineup' }]
+                  },
+                  {
+                    type: 'columns',
+                    content: [
+                      cell('Velvet Kookaburra', 'Marri Lane'),
+                      cell('The Saltbush Echoes', 'Dusty Banksia'),
+                      cell('Gumleaf Static', 'Lowtide Choir')
+                    ]
+                  }
+                ]
+              },
+              {
+                type: 'section',
+                attrs: {
+                  showWhen: { key: 'tickets_left', op: 'lessThan', value: 50 }
+                },
+                content: [p('Bringing a friend? Grab theirs soon.')]
+              }
+            )}
+          />
+        </div>
+      )
+      const textbox = await screen.findByRole('textbox', { name: LABEL })
+      await clickIntoEditor(within(textbox).getByText('Gumleaf Static'))
+
+      const toolbar = await screen.findByRole('toolbar', {
+        name: 'Columns actions'
+      })
+      await waitFor(() => {
+        const bar = toolbar.getBoundingClientRect()
+        expect(bar.width).toBeGreaterThan(0)
+        const controls = document.querySelectorAll(
+          '[data-slot="editor-column-handle"], [data-slot="editor-section-toolbar"] :is([data-slot="editor-section-settings"], [data-slot="badge"])'
+        )
+        const shown = Array.from(controls).filter(
+          (control) => getComputedStyle(control).visibility === 'visible'
+        )
+        expect(shown.length).toBeGreaterThanOrEqual(3)
+        for (const control of shown) {
+          expect(intersects(bar, control.getBoundingClientRect())).toBe(false)
+        }
+      })
+    }
+  )
+
   it('stays below the fields above the text when columns start it', async () => {
     await page.viewport(390, 800)
     onTestFinished(() => page.viewport(1280, 800))
