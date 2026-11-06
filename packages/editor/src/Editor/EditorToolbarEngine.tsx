@@ -37,6 +37,7 @@ import {
   floatingControls,
   link,
   presetControls,
+  preview,
   redo,
   undo
 } from './controls'
@@ -268,7 +269,8 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource
+    importSource,
+    openPreview
   } = context
   return {
     editLink,
@@ -278,7 +280,8 @@ export function controlUi(context: EditorContextValue): EditorControlUi {
     replaceImage,
     editButton,
     editVariable,
-    importSource
+    importSource,
+    preview: openPreview
   }
 }
 
@@ -383,8 +386,8 @@ const slotOf = (item: EditorToolbarItem, index: number): ToolbarSlot => {
   if (item === SEPARATOR) return 'separator'
   if (item === undo) return 'undo'
   if (item === redo) return 'redo'
-  // A phone's bar keeps Link in reach, as linking is what people do most.
-  if (item === link) return 'first'
+  // A phone's bar keeps Link and Preview in reach, as people use them most.
+  if (item === link || item === preview) return 'first'
   return index === 0 && 'kind' in item && item.kind === 'blockMenu'
     ? 'lead'
     : 'item'

@@ -42,7 +42,7 @@
     "name": "EmailHtmlField",
     "path": "dist/EmailHtmlField/index.js",
     "import": "*",
-    "limit": "1.95 kB",
+    "limit": "2.9 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -54,7 +54,7 @@
     "name": "Editor (shell)",
     "path": "dist/Editor/index.js",
     "import": "*",
-    "limit": "60.5 kB",
+    "limit": "64 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
@@ -76,7 +76,7 @@
     "name": "Editor (lazy chunk)",
     "path": "dist/Editor/EditorEngine.js",
     "import": "*",
-    "limit": "203 kB",
+    "limit": "207 kB",
     "ignore": [
       "@oztix/roadie-core",
       "@oztix/roadie-components",
