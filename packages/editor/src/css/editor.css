@@ -141,8 +141,11 @@
 }
 
 [data-email]
-  [data-type='section']:where(:hover, [data-section-active])
+  [data-type='section']:hover
   > [data-slot='editor-section-toolbar']
+  [data-slot='editor-section-settings'],
+[data-email]
+  [data-slot='editor-section-toolbar'][data-active]
   [data-slot='editor-section-settings'] {
   visibility: visible;
 }

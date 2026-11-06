@@ -82,6 +82,7 @@ function SectionToolbar({ rule, label, open }: Shown) {
 }
 
 const roots = new WeakMap<Node, { unmount: () => void }>()
+const toolbars = new WeakMap<Element, () => number | undefined>()
 
 // The top-level section holding the caret, or selected whole.
 function activeSection({ selection }: EditorState) {
@@ -106,25 +107,31 @@ export const SectionToolbars = Extension.create<SectionToolbarOptions>({
     return [
       new Plugin({
         key: new PluginKey('sectionToolbars'),
+        // The caret's section is marked on its toolbar, which ProseMirror
+        // leaves alone, rather than on the section: changing a section's own
+        // attributes as focus lands makes Firefox drop the click's caret.
+        view: () => ({
+          update: (view) => {
+            // Before the editor has focus no section holds the caret.
+            const active = editor.isFocused ? activeSection(view.state) : null
+            for (const toolbar of view.dom.querySelectorAll<HTMLElement>(
+              '[data-slot=editor-section-toolbar]'
+            )) {
+              const at = toolbars.get(toolbar)?.()
+              const section =
+                at === undefined ? null : view.state.doc.resolve(at).before(1)
+              toolbar.toggleAttribute('data-active', section === active)
+            }
+          }
+        }),
         props: {
           decorations: (state) => {
             const decorations: Decoration[] = []
-            // Before the editor has focus no section holds the caret.
-            const active = editor.isFocused ? activeSection(state) : null
             // Sections sit only at the top, so nothing inside is read.
             state.doc.forEach((node, pos) => {
               if (node.type.name !== 'section') return
               const rule = showWhenRule(node.attrs.showWhen)
               const label = rule && labelOf(rule.key)
-              // A mark on the section, not the toolbar's key, so moving the
-              // caret never rebuilds a toolbar.
-              if (pos === active) {
-                decorations.push(
-                  Decoration.node(pos, pos + node.nodeSize, {
-                    'data-section-active': ''
-                  })
-                )
-              }
               // At the section's end, inside it, so no block moves for it.
               decorations.push(
                 Decoration.widget(
@@ -143,6 +150,7 @@ export const SectionToolbars = Extension.create<SectionToolbarOptions>({
                         onSettings(view.state.doc.resolve(at).before(1))
                       }
                     }
+                    toolbars.set(dom, getPos)
                     const root = createRoot(dom)
                     root.render(
                       <SectionToolbar rule={rule} label={label} open={open} />
