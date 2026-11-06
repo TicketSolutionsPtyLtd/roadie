@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { server, userEvent } from 'vitest/browser'
 
 import { Editor } from '.'
 import roadieCss from '../../vitest.browser.css?inline'
@@ -351,7 +351,9 @@ describe('Editor text selection across a section', () => {
   })
 })
 
-describe('Editor block drop', () => {
+// Not in WebKit, which userEvent's drag of the grip doesn't drive, as the
+// other grip drag tests find.
+describe.skipIf(server.browser === 'webkit')('Editor block drop', () => {
   async function dragOnto(from: string, to: string, half: 'top' | 'bottom') {
     await userEvent.hover(await row(from))
     const grip = await screen.findByRole('button', { name: 'Block actions' })
