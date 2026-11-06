@@ -112,7 +112,9 @@ function makeRoomBeside(editor: TiptapEditor, body: HTMLElement | null) {
   const root = editor.view.dom.closest<HTMLElement>('[data-slot=editor]')
   const drawer = body?.closest<HTMLElement>('[role=dialog]')
   const page = root?.ownerDocument.documentElement
-  if (!root || !drawer || !page || page.clientWidth < ROOM_FROM) return
+  const view = root?.ownerDocument.defaultView ?? window
+  // The window's width, as a page scrollbar narrows the document's.
+  if (!root || !drawer || !page || view.innerWidth < ROOM_FROM) return
   const covered =
     root.getBoundingClientRect().right - (page.clientWidth - drawer.offsetWidth)
   root.style.paddingInlineEnd = covered > 0 ? `${covered}px` : ''
