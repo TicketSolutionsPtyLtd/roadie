@@ -107,7 +107,9 @@ describe('Editor preview', () => {
 
     expect(await screen.findByRole('textbox', { name: LABEL })).toBeVisible()
     expect(screen.queryByTitle('Email preview')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Preview' })).toBeVisible()
+    // The docked bar returns; Preview itself can sit in its More menu when
+    // the bar runs out of room.
+    expect(screen.getByRole('toolbar', { name: 'Formatting' })).toBeVisible()
     await waitFor(() =>
       expect(screen.getByRole('textbox', { name: LABEL })).toHaveFocus()
     )

@@ -8,6 +8,7 @@ export const statsDefinition = {
   title: 'Stats',
   description: 'Use it when three to six numbers make the point on their own.',
   group: 'prove',
+  keywords: ['numbers', 'figures', 'facts'],
   presets: [
     {
       name: 'figures',
