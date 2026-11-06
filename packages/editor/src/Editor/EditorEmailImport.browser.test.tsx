@@ -149,9 +149,11 @@ describe('Editor email import', () => {
       within(dialog).getByRole('button', { name: 'Import' })
     ).toBeDisabled()
     await userEvent.fill(source, MJML)
-    // The format reads from a deferred copy of the source, which WebKit can
-    // render a beat later.
-    expect(await within(dialog).findByText('Reading it as MJML.')).toBeVisible()
+    // The format reads from a deferred copy of the source, which can render a
+    // beat later, so both the lookup and the check retry.
+    await waitFor(() =>
+      expect(within(dialog).getByText('Reading it as MJML.')).toBeVisible()
+    )
     expect(within(dialog).queryByRole('radiogroup')).toBeNull()
     await userEvent.click(
       within(dialog).getByRole('button', { name: 'Import' })
